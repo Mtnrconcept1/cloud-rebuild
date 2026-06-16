@@ -23,8 +23,17 @@ const VALID_EDITABLE_STATUSES = new Set(["draft", "paused", "active", "ended", "
 const VALID_CUSTOMER_SEGMENTS = new Set(["all", "new", "returning", "loyal", "inactive"]);
 const VALID_JOURNEY_TYPES = new Set(["delivery", "takeaway", "reservation", "zero_attente"]);
 const VALID_SERVICE_MOMENTS = new Set(["lunch", "dinner", "weekend"]);
+const VALID_CREATIVE_TEMPLATES = new Set(["signature", "offer", "story"]);
+const VALID_CREATIVE_TONES = new Set(["tok_orange", "fresh_green", "night_gold", "berry"]);
+const VALID_CREATIVE_FONTS = new Set(["display", "modern", "editorial"]);
+const VALID_CREATIVE_BACKGROUNDS = new Set(["gradient", "soft_pattern", "photo_overlay"]);
+const VALID_CREATIVE_SHAPES = new Set(["rounded", "ticket", "capsule"]);
 
 type CampaignPortalAction = "list" | "save" | "update_status" | "delete" | "estimate_audience";
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
 
 function normalizeText(value: unknown) {
   return String(value || "").trim();
@@ -52,10 +61,26 @@ function sanitizeStringArray(values: unknown, allowed?: Set<string>) {
     .filter((value) => !allowed || allowed.has(value))));
 }
 
+function sanitizeChoice(value: unknown, allowed: Set<string>, fallback: string) {
+  const normalized = normalizeLower(value);
+  return allowed.has(normalized) ? normalized : fallback;
+}
+
+function sanitizeCampaignCreative(raw: unknown, existingRaw?: unknown) {
+  const existing = isRecord(existingRaw) ? existingRaw : {};
+  const source = isRecord(raw) ? { ...existing, ...raw } : existing;
+
+  return {
+    template: sanitizeChoice(source.template, VALID_CREATIVE_TEMPLATES, "signature"),
+    tone: sanitizeChoice(source.tone, VALID_CREATIVE_TONES, "tok_orange"),
+    font: sanitizeChoice(source.font, VALID_CREATIVE_FONTS, "display"),
+    background: sanitizeChoice(source.background, VALID_CREATIVE_BACKGROUNDS, "gradient"),
+    shape: sanitizeChoice(source.shape, VALID_CREATIVE_SHAPES, "rounded"),
+  };
+}
+
 function sanitizeAudienceCriteria(raw: unknown) {
-  const source = raw && typeof raw === "object" && !Array.isArray(raw)
-    ? raw as Record<string, unknown>
-    : {};
+  const source = isRecord(raw) ? raw : {};
 
   const customerSegment = normalizeLower(source.customerSegment);
 
@@ -73,17 +98,15 @@ function sanitizeAudienceCriteria(raw: unknown) {
 }
 
 function sanitizeCampaignChannels(raw: unknown, type: string, existingChannels: unknown) {
-  const source = raw && typeof raw === "object" && !Array.isArray(raw)
-    ? raw as Record<string, unknown>
-    : {};
-  const existing = existingChannels && typeof existingChannels === "object" && !Array.isArray(existingChannels)
-    ? existingChannels as Record<string, unknown>
-    : {};
+  const source = isRecord(raw) ? raw : {};
+  const existing = isRecord(existingChannels) ? existingChannels : {};
   const placements = normalizeCampaignPlacementSelection(source, type);
+  const creative = sanitizeCampaignCreative(source.creative, existing.creative);
 
   return {
     ...existing,
     ...source,
+    creative,
     banner: placements.banner,
     restaurant_cards: placements.restaurant_cards,
   };

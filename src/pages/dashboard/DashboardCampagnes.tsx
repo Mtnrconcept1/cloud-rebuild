@@ -7,14 +7,18 @@ import {
   CheckCircle2,
   Edit2,
   Eye,
+  LayoutTemplate,
   Loader2,
   Megaphone,
   MousePointer,
+  Palette,
   Plus,
   ShoppingCart,
   Sparkles,
+  Shapes,
   Target,
   Timer,
+  Type,
   Trash2,
   TrendingUp,
   Wallet,
@@ -48,6 +52,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
+import {
+  CAMPAIGN_CREATIVE_BACKGROUNDS,
+  CAMPAIGN_CREATIVE_FONTS,
+  CAMPAIGN_CREATIVE_SHAPES,
+  CAMPAIGN_CREATIVE_TEMPLATES,
+  CAMPAIGN_CREATIVE_TONES,
+  normalizeCampaignCreative,
+  type CampaignCreativeConfig,
+} from "@/lib/campaignCreative";
 import {
   DEFAULT_AUDIENCE_CRITERIA,
   normalizeAudienceCriteria,
@@ -85,6 +98,7 @@ import {
   getFirstAvailablePaymentMethod,
   type PaymentMethodId,
 } from "@/lib/paymentMethods";
+import { cn } from "@/lib/utils";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
 
 const supabase = getSupabase();
@@ -996,6 +1010,278 @@ function CampaignDetailMetric({ label, value }: { label: string; value: string |
   );
 }
 
+function getCampaignCreativeFromChannels(channels: unknown) {
+  if (!channels || typeof channels !== "object" || Array.isArray(channels)) {
+    return normalizeCampaignCreative(null);
+  }
+
+  return normalizeCampaignCreative((channels as Record<string, unknown>).creative);
+}
+
+function CampaignCreativeStudio({
+  value,
+  onChange,
+  title,
+  body,
+  imageUrl,
+  type,
+}: {
+  value: CampaignCreativeConfig;
+  onChange: (next: CampaignCreativeConfig) => void;
+  title: string;
+  body: string;
+  imageUrl: string;
+  type: string;
+}) {
+  const template = CAMPAIGN_CREATIVE_TEMPLATES.find((entry) => entry.id === value.template) || CAMPAIGN_CREATIVE_TEMPLATES[0];
+  const tone = CAMPAIGN_CREATIVE_TONES.find((entry) => entry.id === value.tone) || CAMPAIGN_CREATIVE_TONES[0];
+  const font = CAMPAIGN_CREATIVE_FONTS.find((entry) => entry.id === value.font) || CAMPAIGN_CREATIVE_FONTS[0];
+  const background = CAMPAIGN_CREATIVE_BACKGROUNDS.find((entry) => entry.id === value.background) || CAMPAIGN_CREATIVE_BACKGROUNDS[0];
+  const shape = CAMPAIGN_CREATIVE_SHAPES.find((entry) => entry.id === value.shape) || CAMPAIGN_CREATIVE_SHAPES[0];
+  const campaignTypeLabel = CAMPAIGN_TYPES.find((campaignType) => campaignType.value === type)?.label || "Campagne";
+  const previewTitle = title.trim() || "Votre restaurant en pleine lumière";
+  const previewBody = body.trim() || "Une campagne claire, lisible et prête à convertir les clients les plus proches.";
+  const showPhotoOverlay = value.background === "photo_overlay" && Boolean(imageUrl);
+
+  return (
+    <section className="overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-background via-orange-50/40 to-background p-4 shadow-sm dark:via-orange-950/15">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-primary" />
+            <p className="text-sm font-semibold">Studio visuel de campagne</p>
+          </div>
+          <p className="mt-1 text-xs leading-5 text-muted-foreground">
+            Personnalisez le rendu sponsorisé avant paiement: structure, couleur, police, fond et forme restent sauvegardés avec la campagne.
+          </p>
+        </div>
+        <Badge variant="secondary" className="w-fit">
+          {template.previewLabel}
+        </Badge>
+      </div>
+
+      <div className="mt-4 grid gap-4 xl:grid-cols-[0.95fr_1.05fr]">
+        <div
+          className={cn(
+            "relative flex min-h-[280px] overflow-hidden border border-white/20 bg-gradient-to-br p-5 text-white shadow-[0_24px_70px_-34px_rgba(234,88,12,0.8)] sm:min-h-[320px]",
+            tone.previewClassName,
+            shape.previewClassName,
+            font.className,
+          )}
+        >
+          {showPhotoOverlay ? (
+            <img src={imageUrl} alt="" className="absolute inset-0 h-full w-full object-cover opacity-35 mix-blend-overlay" />
+          ) : null}
+          <div className={cn("absolute inset-0", background.layerClassName)} />
+          {value.shape === "ticket" ? (
+            <>
+              <span className="absolute -left-5 top-1/2 h-10 w-10 -translate-y-1/2 rounded-full bg-background" />
+              <span className="absolute -right-5 top-1/2 h-10 w-10 -translate-y-1/2 rounded-full bg-background" />
+            </>
+          ) : null}
+
+          <div className={cn("relative z-10 flex h-full w-full flex-col gap-5", template.contentClassName)}>
+            <div className="flex items-center justify-between gap-3">
+              <span className={cn("rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] ring-1", tone.accentClassName)}>
+                Sponsorisé
+              </span>
+              <span className="rounded-full bg-black/20 px-3 py-1 text-[11px] font-semibold backdrop-blur">
+                {campaignTypeLabel}
+              </span>
+            </div>
+
+            {value.template === "offer" ? (
+              <div className="max-w-[88%] space-y-4">
+                <div className="inline-flex rounded-2xl bg-white/18 px-4 py-3 text-sm font-semibold shadow-inner ring-1 ring-white/20 backdrop-blur">
+                  Offre locale à fort impact
+                </div>
+                <div>
+                  <h3 className="text-3xl font-black leading-tight sm:text-4xl">{previewTitle}</h3>
+                  <p className="mt-3 max-w-sm text-sm leading-6 text-white/86">{previewBody}</p>
+                </div>
+              </div>
+            ) : value.template === "story" ? (
+              <div className="max-w-[90%] rounded-3xl bg-black/24 p-4 shadow-2xl ring-1 ring-white/14 backdrop-blur">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/70">Coulisses du restaurant</p>
+                <h3 className="mt-3 text-2xl font-black leading-tight sm:text-3xl">{previewTitle}</h3>
+                <p className="mt-3 text-sm leading-6 text-white/86">{previewBody}</p>
+              </div>
+            ) : (
+              <div className="grid h-full gap-4 sm:grid-cols-[1fr_0.72fr]">
+                <div className="flex min-w-0 flex-col justify-end">
+                  <h3 className="text-3xl font-black leading-tight sm:text-4xl">{previewTitle}</h3>
+                  <p className="mt-3 max-w-sm text-sm leading-6 text-white/86">{previewBody}</p>
+                </div>
+                <div className="flex items-end justify-end">
+                  <div className="w-full max-w-[190px] rounded-3xl bg-white/16 p-3 shadow-2xl ring-1 ring-white/20 backdrop-blur">
+                    {imageUrl ? (
+                      <img src={imageUrl} alt="" className="h-28 w-full rounded-2xl object-cover" />
+                    ) : (
+                      <div className="flex h-28 items-center justify-center rounded-2xl bg-white/18 text-center text-xs font-semibold text-white/80">
+                        Image de campagne
+                      </div>
+                    )}
+                    <p className="mt-3 text-xs leading-5 text-white/80">Prévisualisation sponsorisée</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <button
+              type="button"
+              className={cn(
+                "mt-auto inline-flex w-fit items-center rounded-full px-5 py-2.5 text-sm font-bold shadow-lg transition-colors",
+                tone.ctaClassName,
+              )}
+            >
+              Voir le restaurant
+            </button>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+              <LayoutTemplate className="h-4 w-4" /> Template
+            </Label>
+            <div className="grid gap-2 sm:grid-cols-3">
+              {CAMPAIGN_CREATIVE_TEMPLATES.map((entry) => {
+                const selected = value.template === entry.id;
+                return (
+                  <button
+                    key={entry.id}
+                    type="button"
+                    aria-pressed={selected}
+                    onClick={() => onChange({ ...value, template: entry.id })}
+                    className={cn(
+                      "rounded-2xl border p-3 text-left transition-all hover:border-primary/50 hover:bg-primary/5",
+                      selected && "border-primary bg-primary/10 shadow-sm",
+                    )}
+                  >
+                    <span className="text-sm font-semibold">{entry.label}</span>
+                    <span className="mt-1 block text-xs leading-5 text-muted-foreground">{entry.description}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                <Palette className="h-4 w-4" /> Couleur
+              </Label>
+              <div className="grid grid-cols-2 gap-2">
+                {CAMPAIGN_CREATIVE_TONES.map((entry) => {
+                  const selected = value.tone === entry.id;
+                  return (
+                    <button
+                      key={entry.id}
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() => onChange({ ...value, tone: entry.id })}
+                      className={cn(
+                        "flex items-center gap-2 rounded-xl border px-3 py-2 text-left text-xs font-semibold transition-all hover:border-primary/50",
+                        selected && "border-primary bg-primary/10",
+                      )}
+                    >
+                      <span className={cn("h-5 w-5 shrink-0 rounded-full ring-1 ring-black/10", entry.swatchClassName)} />
+                      {entry.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                <Type className="h-4 w-4" /> Police
+              </Label>
+              <div className="grid gap-2">
+                {CAMPAIGN_CREATIVE_FONTS.map((entry) => {
+                  const selected = value.font === entry.id;
+                  return (
+                    <button
+                      key={entry.id}
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() => onChange({ ...value, font: entry.id })}
+                      className={cn(
+                        "flex items-center justify-between rounded-xl border px-3 py-2 text-left transition-all hover:border-primary/50",
+                        selected && "border-primary bg-primary/10",
+                      )}
+                    >
+                      <span className="text-xs font-semibold">{entry.label}</span>
+                      <span className={cn("text-sm", entry.className)}>{entry.sample}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                <Sparkles className="h-4 w-4" /> Fond
+              </Label>
+              <div className="grid gap-2">
+                {CAMPAIGN_CREATIVE_BACKGROUNDS.map((entry) => {
+                  const selected = value.background === entry.id;
+                  return (
+                    <button
+                      key={entry.id}
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() => onChange({ ...value, background: entry.id })}
+                      className={cn(
+                        "rounded-xl border px-3 py-2 text-left transition-all hover:border-primary/50",
+                        selected && "border-primary bg-primary/10",
+                      )}
+                    >
+                      <span className="text-xs font-semibold">{entry.label}</span>
+                      <span className="mt-0.5 block text-[11px] leading-4 text-muted-foreground">{entry.description}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                <Shapes className="h-4 w-4" /> Forme
+              </Label>
+              <div className="grid gap-2">
+                {CAMPAIGN_CREATIVE_SHAPES.map((entry) => {
+                  const selected = value.shape === entry.id;
+                  return (
+                    <button
+                      key={entry.id}
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() => onChange({ ...value, shape: entry.id })}
+                      className={cn(
+                        "rounded-xl border px-3 py-2 text-left transition-all hover:border-primary/50",
+                        selected && "border-primary bg-primary/10",
+                      )}
+                    >
+                      <span className="flex items-center gap-2 text-xs font-semibold">
+                        <span className={cn("h-5 w-8 border border-primary/50 bg-primary/10", entry.chipClassName)} />
+                        {entry.label}
+                      </span>
+                      <span className="mt-0.5 block text-[11px] leading-4 text-muted-foreground">{entry.description}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function CampaignForm({
   restaurantId,
   initial,
@@ -1015,6 +1301,9 @@ function CampaignForm({
   const [body, setBody] = useState(initial?.body || "");
   const [type, setType] = useState(initial?.type || "boost");
   const [imageUrl, setImageUrl] = useState(initial?.image_url || "");
+  const [campaignCreative, setCampaignCreative] = useState<CampaignCreativeConfig>(
+    getCampaignCreativeFromChannels(initial?.channels),
+  );
   const [placementSelection, setPlacementSelection] = useState(initialPlacementSelection);
   const [targetPages, setTargetPages] = useState<string[]>(
     Array.isArray(initial?.target_pages) ? initial.target_pages : ["home", "search"]
@@ -1164,6 +1453,7 @@ function CampaignForm({
     const campaignChannels = {
       ...existingChannels,
       ...placementSelection,
+      creative: campaignCreative,
     };
     const usesCredits = paymentMethod === "credits" && totalBudgetValue > 0;
     const payload = {
@@ -1278,6 +1568,15 @@ function CampaignForm({
       </div>
 
       <ImageUpload value={imageUrl} onChange={setImageUrl} label="Image de la campagne" bucket="images" />
+
+      <CampaignCreativeStudio
+        value={campaignCreative}
+        onChange={setCampaignCreative}
+        title={title}
+        body={body}
+        imageUrl={imageUrl}
+        type={type}
+      />
 
       <div className="space-y-2">
         <Label>Type de campagne</Label>
