@@ -72,7 +72,7 @@ jobs:
       - name: Release readiness
         run: pnpm run release:readiness
         env:
-          RELEASE_READINESS_STRICT: ${{ vars.PRODUCTION_DEPLOY_ENABLED }}
+          RELEASE_READINESS_STRICT: ${{ vars.PRODUCTION_RELEASE_STRICT }}
           VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
           STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}

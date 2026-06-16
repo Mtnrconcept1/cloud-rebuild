@@ -10,6 +10,10 @@ Mettre Tok en production uniquement quand les secrets reels, les domaines, le si
 - `pnpm run release:readiness:strict`
 - `pnpm run supabase:doctor:prod`
 
+## Activation GitHub Actions
+- `PRODUCTION_DEPLOY_ENABLED=true` dans les variables GitHub de l'environnement `production` déclenche les jobs `deploy_supabase` et `deploy_frontend`.
+- `PRODUCTION_RELEASE_STRICT=true` rend `release:readiness` bloquant dans le workflow. Garder cette variable absente ou differente de `true` tant que les secrets live finaux ne sont pas tous en place.
+
 ## Variables et secrets requis
 - Supabase production: URL, anon key, service role key, JWT secret, project ref.
 - Stripe live: secret key, publishable key, webhook secret, Connect client id, comptes restaurants onboarding termines.
