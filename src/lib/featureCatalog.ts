@@ -499,6 +499,16 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     routeTargets: ["/dashboard/campagnes"],
   },
   {
+    name: "dashboard-crm",
+    label: "Dashboard: CRM clients",
+    description: "Expose le CRM restaurateur base sur les commandes, reservations et habitudes client.",
+    defaultEnabled: true,
+    group: "restaurant_dashboard",
+    dependsOn: ["dashboard-restaurateur"],
+    requiresAnyOf: ["commandes", "reservation"],
+    routeTargets: ["/dashboard/crm"],
+  },
+  {
     name: "dashboard-factures",
     label: "Dashboard: Factures",
     description: "Expose la vue factures et paiements restaurateur.",
@@ -722,6 +732,14 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     defaultEnabled: true,
     group: "admin_tools",
     routeTargets: ["/admin/actualites"],
+  },
+  {
+    name: "admin-crm",
+    label: "Admin: CRM clients",
+    description: "Expose la segmentation client et les signaux commerciaux du CRM TOK.",
+    defaultEnabled: true,
+    group: "admin_tools",
+    routeTargets: ["/admin/crm"],
   },
   {
     name: "admin-audit",

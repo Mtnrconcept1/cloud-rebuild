@@ -167,6 +167,14 @@ const ADMIN_TOOLS = [
     color: "text-sky-500",
   },
   {
+    title: "CRM clients",
+    description: "Segmenter les clients, leurs habitudes et les opportunites de relance.",
+    icon: Users,
+    href: "/admin/crm",
+    feature: "admin-crm",
+    color: "text-emerald-500",
+  },
+  {
     title: "Audit et sécurité",
     description: "Surveiller les exécutions Edge et les mutations sensibles.",
     icon: Shield,

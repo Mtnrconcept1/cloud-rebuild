@@ -81,6 +81,7 @@ const DashboardOffres = lazy(() => import("./pages/dashboard/DashboardOffres"));
 const DashboardVentesFlash = lazy(() => import("./pages/dashboard/DashboardVentesFlash"));
 const DashboardFormules = lazy(() => import("./pages/dashboard/DashboardFormules"));
 const DashboardCampagnes = lazy(() => import("./pages/dashboard/DashboardCampagnes"));
+const DashboardCrm = lazy(() => import("./pages/dashboard/DashboardCrm"));
 const DashboardPerformances = lazy(() => import("./pages/dashboard/DashboardPerformances"));
 const DashboardComparaison = lazy(() => import("./pages/dashboard/DashboardComparaison"));
 const DashboardAvis = lazy(() => import("./pages/dashboard/DashboardAvis"));
@@ -125,6 +126,7 @@ const AdminComptaAi = lazy(() => import("./pages/admin/AdminComptaAi"));
 const AdminOperationsCenter = lazy(() => import("./pages/admin/AdminOperationsCenter"));
 const AdminAiOperations = lazy(() => import("./pages/admin/AdminAiOperations"));
 const AdminActualites = lazy(() => import("./pages/admin/AdminActualites"));
+const AdminCrm = lazy(() => import("./pages/admin/AdminCrm"));
 const AdminSinistres = lazy(() => import("./pages/admin/AdminSinistres"));
 
 focusManager.setEventListener(() => () => undefined);
@@ -336,6 +338,7 @@ function AppShell() {
   const dashboardReseauxSociauxEnabled = hasFeature("dashboard-reseaux-sociaux");
   const dashboardActualitesEnabled = hasFeature("dashboard-actualites");
   const dashboardCampagnesEnabled = hasFeature("dashboard-campagnes");
+  const dashboardCrmEnabled = hasFeature("dashboard-crm");
   const dashboardSupportEnabled = hasFeature("dashboard-support");
   const dashboardServiceEnabled = hasFeature("dashboard-service");
   const dashboardPlanSalleEnabled = hasFeature("dashboard-plan-salle");
@@ -357,6 +360,7 @@ function AppShell() {
   const adminComptaAiEnabled = hasFeature("ai_accounting_insights");
   const adminAiOperationsEnabled = hasFeature("ai_admin_monitoring");
   const adminActualitesEnabled = hasFeature("admin-actualites");
+  const adminCrmEnabled = hasFeature("admin-crm");
   const adminPlatformConfigEnabled = hasFeature("admin-platform-config");
   const adminOperationsCenterEnabled = hasFeature("admin-operations-center");
   const deliveryEnabled = hasFeature("livraison");
@@ -425,6 +429,7 @@ function AppShell() {
           <Route path="/dashboard/reseaux-sociaux" element={<DashboardRoute><FeatureSwitch enabled={dashboardReseauxSociauxEnabled} fallback="/dashboard"><DashboardReseauxSociaux /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/actualites" element={<DashboardRoute><FeatureSwitch enabled={dashboardActualitesEnabled} fallback="/dashboard"><DashboardActualites /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/campagnes" element={<DashboardRoute><FeatureSwitch enabled={dashboardCampagnesEnabled} fallback="/dashboard"><DashboardCampagnes /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/crm" element={<DashboardRoute><FeatureSwitch enabled={dashboardCrmEnabled} fallback="/dashboard"><DashboardCrm /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/notifications" element={<DashboardRoute><DashboardNotifications /></DashboardRoute>} />
           <Route path="/dashboard/support" element={<DashboardRoute><FeatureSwitch enabled={dashboardSupportEnabled} fallback="/dashboard"><DashboardSupport /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/service" element={<DashboardRoute><FeatureSwitch enabled={dashboardServiceEnabled} fallback="/dashboard"><DashboardService /></FeatureSwitch></DashboardRoute>} />
@@ -446,6 +451,7 @@ function AppShell() {
           <Route path="/admin/drops" element={<AdminProtectedRoute><FeatureSwitch enabled={adminDropsEnabled} fallback="/admin"><DropsManagement /></FeatureSwitch></AdminProtectedRoute>} />
           <Route path="/admin/notifications" element={<AdminProtectedRoute><FeatureSwitch enabled={adminNotificationsEnabled} fallback="/admin"><AdminNotifications /></FeatureSwitch></AdminProtectedRoute>} />
           <Route path="/admin/actualites" element={<AdminProtectedRoute><FeatureSwitch enabled={adminActualitesEnabled} fallback="/admin"><AdminActualites /></FeatureSwitch></AdminProtectedRoute>} />
+          <Route path="/admin/crm" element={<AdminProtectedRoute><FeatureSwitch enabled={adminCrmEnabled} fallback="/admin"><AdminCrm /></FeatureSwitch></AdminProtectedRoute>} />
           <Route path="/admin/audit" element={<AdminProtectedRoute><FeatureSwitch enabled={adminAuditEnabled} fallback="/admin"><AdminAuditLogs /></FeatureSwitch></AdminProtectedRoute>} />
           <Route path="/admin/packs" element={<AdminProtectedRoute><FeatureSwitch enabled={adminPacksEnabled} fallback="/admin"><AdminLaunchPacks /></FeatureSwitch></AdminProtectedRoute>} />
           <Route path="/admin/compta" element={<AdminProtectedRoute><FeatureSwitch enabled={adminComptaEnabled} fallback="/admin"><AdminCompta /></FeatureSwitch></AdminProtectedRoute>} />

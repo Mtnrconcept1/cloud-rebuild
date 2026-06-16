@@ -31,6 +31,7 @@ import {
   Package,
   Lock,
   ShieldCheck,
+  Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -81,6 +82,7 @@ const NAV_SECTIONS: NavSection[] = [
     title: "Marketing",
     items: [
       { to: "/dashboard/campagnes", label: "Campagnes", icon: Megaphone, feature: "dashboard-campagnes" },
+      { to: "/dashboard/crm", label: "CRM clients", icon: Users, feature: "dashboard-crm" },
       { to: "/dashboard/promotions", label: "Promotions", icon: Megaphone, feature: "dashboard-promotions" },
       { to: "/dashboard/reseaux-sociaux", label: "Reseaux sociaux", icon: Share2, feature: "dashboard-reseaux-sociaux" },
       { to: "/dashboard/actualites", label: "Actualités", icon: Newspaper, feature: "dashboard-actualites" },
