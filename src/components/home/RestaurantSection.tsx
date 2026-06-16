@@ -70,6 +70,7 @@ export default function RestaurantSection({
                 sponsoredPromoImage={r.promo_image || undefined}
                 sponsoredCampaignTitle={r.campaign_title || undefined}
                 sponsoredCampaignBody={r.campaign_body || undefined}
+                sponsoredCampaignCreative={r.campaign_creative || undefined}
               />
             </div>
           ))}

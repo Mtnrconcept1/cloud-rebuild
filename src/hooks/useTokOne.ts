@@ -7,6 +7,10 @@ export { TOK_ONE_DEFAULT_DISCOUNT_PERCENT };
 
 const supabase = getSupabase();
 
+type QueryOptions = {
+  enabled?: boolean;
+};
+
 export type TokOnePlan = {
   id: string;
   name: string;
@@ -271,7 +275,7 @@ export function resolveTokOneFreeDeliveryMinOrderForContext(
   return Number.isFinite(planThreshold) && planThreshold > 0 ? planThreshold : 0;
 }
 
-export function useTokOnePlans() {
+export function useTokOnePlans(options: QueryOptions = {}) {
   return useQuery({
     queryKey: ["tok-one-plans"],
     queryFn: async () => {
@@ -282,10 +286,11 @@ export function useTokOnePlans() {
         .order("price_monthly", { ascending: true });
       return (data || []) as TokOnePlan[];
     },
+    enabled: options.enabled ?? true,
   });
 }
 
-export function useTokOneBenefits(planId: string | undefined) {
+export function useTokOneBenefits(planId: string | undefined, options: QueryOptions = {}) {
   return useQuery({
     queryKey: ["tok-one-benefits", planId],
     queryFn: async () => {
@@ -295,11 +300,11 @@ export function useTokOneBenefits(planId: string | undefined) {
         .eq("plan_id", planId!);
       return (data || []) as TokOneBenefit[];
     },
-    enabled: !!planId,
+    enabled: !!planId && (options.enabled ?? true),
   });
 }
 
-export function useTokOneSubscription() {
+export function useTokOneSubscription(options: QueryOptions = {}) {
   const { user } = useAuth();
   return useQuery({
     queryKey: ["tok-one-subscription", user?.id],
@@ -376,7 +381,7 @@ export function useTokOneSubscription() {
         id: `recovered-${latestTokOnePayment.id}`,
       }, recoveredPlan);
     },
-    enabled: !!user,
+    enabled: !!user && (options.enabled ?? true),
   });
 }
 

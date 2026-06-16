@@ -24,19 +24,25 @@ const VALID_CUSTOMER_SEGMENTS = new Set(["all", "new", "returning", "loyal", "in
 const VALID_JOURNEY_TYPES = new Set(["delivery", "takeaway", "reservation", "zero_attente"]);
 const VALID_SERVICE_MOMENTS = new Set(["lunch", "dinner", "weekend"]);
 const VALID_CREATIVE_TEMPLATES = new Set([
-  "signature",
-  "offer",
-  "story",
-  "contrast",
-  "minimal",
-  "dynamic",
-  "immersive",
-  "street",
+  "classic_elegant",
+  "modern_clean",
+  "warm_gourmet",
+  "bold_contrast",
+  "minimal_premium",
+  "dynamic_color",
+  "immersive_photo",
+  "urban_street",
 ]);
-const VALID_CREATIVE_TONES = new Set(["tok_orange", "fresh_green", "night_gold", "berry"]);
-const VALID_CREATIVE_FONTS = new Set(["display", "modern", "editorial"]);
-const VALID_CREATIVE_BACKGROUNDS = new Set(["gradient", "soft_pattern", "photo_overlay", "paper", "dark_grain"]);
-const VALID_CREATIVE_SHAPES = new Set(["rounded", "ticket", "capsule", "wave", "fade", "grunge", "diagonal"]);
+const VALID_CREATIVE_TEXT_ELEMENTS = ["badge", "discount", "restaurant", "headline", "body", "cta"] as const;
+
+const DEFAULT_CREATIVE_TEXT = {
+  badge: { x: 0, y: 0, scale: 100, rotation: 0, color: "#ffffff" },
+  discount: { x: 0, y: 0, scale: 100, rotation: 0, color: "#ffffff" },
+  restaurant: { x: 0, y: 0, scale: 100, rotation: 0, color: "#111827" },
+  headline: { x: 0, y: 0, scale: 100, rotation: 0, color: "#111827" },
+  body: { x: 0, y: 0, scale: 100, rotation: 0, color: "#334155" },
+  cta: { x: 0, y: 0, scale: 100, rotation: 0, color: "#ffffff" },
+};
 
 type CampaignPortalAction = "list" | "save" | "update_status" | "delete" | "estimate_audience";
 
@@ -75,16 +81,45 @@ function sanitizeChoice(value: unknown, allowed: Set<string>, fallback: string) 
   return allowed.has(normalized) ? normalized : fallback;
 }
 
+function clampNumber(value: unknown, min: number, max: number, fallback: number) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return fallback;
+  return Math.min(max, Math.max(min, numeric));
+}
+
+function sanitizeHexColor(value: unknown, fallback: string) {
+  const normalized = normalizeText(value);
+  return /^#[0-9a-fA-F]{6}$/.test(normalized) ? normalized.toLowerCase() : fallback;
+}
+
+function sanitizeCreativeTextStyle(raw: unknown, fallback: typeof DEFAULT_CREATIVE_TEXT.badge) {
+  const source = isRecord(raw) ? raw : {};
+
+  return {
+    x: clampNumber(source.x, -120, 120, fallback.x),
+    y: clampNumber(source.y, -120, 120, fallback.y),
+    scale: clampNumber(source.scale, 70, 150, fallback.scale),
+    rotation: clampNumber(source.rotation, -35, 35, fallback.rotation),
+    color: sanitizeHexColor(source.color, fallback.color),
+  };
+}
+
+function sanitizeCreativeText(raw: unknown) {
+  const source = isRecord(raw) ? raw : {};
+
+  return VALID_CREATIVE_TEXT_ELEMENTS.reduce((acc, key) => {
+    acc[key] = sanitizeCreativeTextStyle(source[key], DEFAULT_CREATIVE_TEXT[key]);
+    return acc;
+  }, {} as Record<typeof VALID_CREATIVE_TEXT_ELEMENTS[number], ReturnType<typeof sanitizeCreativeTextStyle>>);
+}
+
 function sanitizeCampaignCreative(raw: unknown, existingRaw?: unknown) {
   const existing = isRecord(existingRaw) ? existingRaw : {};
   const source = isRecord(raw) ? { ...existing, ...raw } : existing;
 
   return {
-    template: sanitizeChoice(source.template, VALID_CREATIVE_TEMPLATES, "signature"),
-    tone: sanitizeChoice(source.tone, VALID_CREATIVE_TONES, "tok_orange"),
-    font: sanitizeChoice(source.font, VALID_CREATIVE_FONTS, "display"),
-    background: sanitizeChoice(source.background, VALID_CREATIVE_BACKGROUNDS, "gradient"),
-    shape: sanitizeChoice(source.shape, VALID_CREATIVE_SHAPES, "rounded"),
+    template: sanitizeChoice(source.template, VALID_CREATIVE_TEMPLATES, "classic_elegant"),
+    text: sanitizeCreativeText(source.text),
   };
 }
 

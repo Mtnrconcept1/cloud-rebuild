@@ -2,6 +2,8 @@ import { Link } from "react-router-dom";
 import { Bike } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTokLogoSrc } from "@/hooks/useTokLogo";
+import { useActiveFeatures } from "@/lib/featureFlags";
+import { getVisiblePublicDiscoverLinks } from "@/lib/featureVisibility";
 
 interface FooterSectionProps {
   deliveryEnabled?: boolean;
@@ -9,6 +11,9 @@ interface FooterSectionProps {
 
 export default function FooterSection({ deliveryEnabled = true }: FooterSectionProps) {
   const logoSrc = useTokLogoSrc();
+  const activeFeatures = useActiveFeatures();
+  const discoverLinks = getVisiblePublicDiscoverLinks(activeFeatures);
+  const dashboardEnabled = activeFeatures.has("dashboard-restaurateur");
 
   return (
     <>
@@ -53,10 +58,11 @@ export default function FooterSection({ deliveryEnabled = true }: FooterSectionP
               <h4 className="font-display font-bold text-sm">Découvrir</h4>
               <nav className="flex flex-col gap-2 text-sm text-muted-foreground">
                 <Link to="/recherche" className="hover:text-foreground transition-colors">Restaurants</Link>
-                <Link to="/anti-gaspi" className="hover:text-foreground transition-colors">Anti-gaspi</Link>
-                <Link to="/ventes-flash" className="hover:text-foreground transition-colors">Ventes flash</Link>
-                <Link to="/chefs-table" className="hover:text-foreground transition-colors">La Table du Chef</Link>
-                <Link to="/tok-one" className="hover:text-foreground transition-colors">Tok One</Link>
+                {discoverLinks.map((link) => (
+                  <Link key={link.to} to={link.to} className="hover:text-foreground transition-colors">
+                    {link.label}
+                  </Link>
+                ))}
               </nav>
             </div>
             <div className="space-y-3">
@@ -76,7 +82,9 @@ export default function FooterSection({ deliveryEnabled = true }: FooterSectionP
                 <Link to="/packs-restaurateur" className="hover:text-foreground transition-colors">Voir les packs</Link>
                 <Link to="/restaurateurs/google-business" className="hover:text-foreground transition-colors">Audit Google Business</Link>
                 <Link to="/restaurateurs/alternative-commission-couvert" className="hover:text-foreground transition-colors">Comparer les commissions</Link>
-                <Link to="/dashboard" className="hover:text-foreground transition-colors">Espace pro</Link>
+                {dashboardEnabled ? (
+                  <Link to="/dashboard" className="hover:text-foreground transition-colors">Espace pro</Link>
+                ) : null}
               </nav>
               <div className="pt-2 space-y-2">
                 <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Bientôt disponible</p>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { getNextZurichDayDelayMs, getTokLogoForDate } from "@/lib/tokLogo";
+import { DEFAULT_TOK_LOGO_SRC, getNextZurichDayDelayMs, getTokLogoForDate } from "@/lib/tokLogo";
 
 type ManifestIcon = {
   src?: string;
@@ -43,17 +43,17 @@ export function useTokLogoSrc() {
 }
 
 export function useTokLogoDocumentIcons() {
-  const logo = useTokLogo();
+  const documentIconSrc = DEFAULT_TOK_LOGO_SRC;
 
   useEffect(() => {
     if (typeof document === "undefined") return;
 
     const iconLinks = document.querySelectorAll<HTMLLinkElement>('link[rel="icon"], link[rel="apple-touch-icon"]');
     iconLinks.forEach((link) => {
-      link.href = logo.src;
-      if (link.rel === "icon") link.type = logo.src.endsWith(".webp") ? "image/webp" : "image/png";
+      link.href = documentIconSrc;
+      if (link.rel === "icon") link.type = "image/png";
     });
-  }, [logo.src]);
+  }, [documentIconSrc]);
 
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -70,8 +70,7 @@ export function useTokLogoDocumentIcons() {
         if (!response.ok) return;
 
         const manifest = (await response.json()) as WebAppManifest;
-        const iconType = logo.src.endsWith(".webp") ? "image/webp" : "image/png";
-        const rewriteIcon = (icon: ManifestIcon) => ({ ...icon, src: logo.src, type: iconType });
+        const rewriteIcon = (icon: ManifestIcon) => ({ ...icon, src: documentIconSrc, type: "image/png" });
 
         manifest.icons = manifest.icons?.map(rewriteIcon);
         manifest.shortcuts = manifest.shortcuts?.map((shortcut) => ({
@@ -94,5 +93,5 @@ export function useTokLogoDocumentIcons() {
       active = false;
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [logo.src]);
+  }, [documentIconSrc]);
 }

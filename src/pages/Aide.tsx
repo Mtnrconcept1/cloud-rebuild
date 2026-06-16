@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Search,
   ChevronRight,
@@ -30,6 +30,8 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Link } from "react-router-dom";
+import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
+import { isHelpCategoryVisible, isHelpQuestionVisible } from "@/lib/featureVisibility";
 
 declare global {
   interface Window {
@@ -566,10 +568,33 @@ const FAQS = [
 export default function Aide() {
   const [search, setSearch] = useState("");
   const [selectedCat, setSelectedCat] = useState<string | null>(null);
+  const { activeFeatures } = useFeatureFlagSnapshot();
+  const visibleCategories = useMemo(
+    () => CATEGORIES.filter((category) => isHelpCategoryVisible(category.id, activeFeatures)),
+    [activeFeatures],
+  );
+  const visibleCategoryIds = useMemo(
+    () => new Set(visibleCategories.map((category) => category.id)),
+    [visibleCategories],
+  );
 
-  const filteredFaqs = FAQS.filter(
-    (f) => !selectedCat || f.category === selectedCat
-  )
+  useEffect(() => {
+    if (selectedCat && !visibleCategoryIds.has(selectedCat)) {
+      setSelectedCat(null);
+    }
+  }, [selectedCat, visibleCategoryIds]);
+
+  const visibleFaqSections = FAQS.filter((f) => visibleCategoryIds.has(f.category))
+    .map((section) => ({
+      ...section,
+      questions: section.questions.filter(
+        (q) => isHelpQuestionVisible(section.category, q.q, q.a, activeFeatures)
+      ),
+    }))
+    .filter((section) => section.questions.length > 0);
+
+  const filteredFaqs = visibleFaqSections
+    .filter((section) => !selectedCat || section.category === selectedCat)
     .map((section) => ({
       ...section,
       questions: section.questions.filter(
@@ -580,7 +605,7 @@ export default function Aide() {
     }))
     .filter((section) => section.questions.length > 0);
 
-  const totalQuestions = FAQS.reduce(
+  const totalQuestions = visibleFaqSections.reduce(
     (sum, section) => sum + section.questions.length,
     0
   );
@@ -612,7 +637,7 @@ export default function Aide() {
       <div className="container max-w-6xl -mt-8 px-6 space-y-12">
         {/* Quick Categories */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-          {CATEGORIES.map((cat) => (
+          {visibleCategories.map((cat) => (
             <button
               key={cat.id}
               onClick={() =>
@@ -639,7 +664,7 @@ export default function Aide() {
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-display font-bold">
                 {selectedCat
-                  ? CATEGORIES.find((c) => c.id === selectedCat)?.title
+                  ? visibleCategories.find((c) => c.id === selectedCat)?.title
                   : "Questions frequentes"}
               </h2>
               {selectedCat && (
@@ -662,7 +687,7 @@ export default function Aide() {
                     >
                       <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide pt-2 group-hover:text-primary transition-colors">
                         {
-                          CATEGORIES.find((c) => c.id === section.category)
+                          visibleCategories.find((c) => c.id === section.category)
                             ?.title
                         }
                       </h3>

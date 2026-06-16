@@ -35,6 +35,7 @@ const PRIMARY_PILLARS = [
     label: "Zéro attente",
     desc: "Réservez, choisissez, payez, arrivez, mangez.",
     to: "/zero-attente",
+    feature: "zero-attente",
     bg: "bg-indigo-500/10",
     fg: "text-indigo-500",
   },
@@ -43,6 +44,7 @@ const PRIMARY_PILLARS = [
     label: "Offres anti-gaspi & Tables du Chef",
     desc: "Des offres fortes, limitées et utiles aux restaurants.",
     to: "/anti-gaspi",
+    feature: "anti-gaspi",
     bg: "bg-amber-500/10",
     fg: "text-amber-500",
   },
@@ -51,13 +53,16 @@ const PRIMARY_PILLARS = [
     label: "Miamz solidaires",
     desc: "Chaque repas peut produire un impact concret.",
     to: "/tok-one",
+    feature: "tok-one",
     bg: "bg-pink-500/10",
     fg: "text-pink-500",
   },
 ];
 
 export default function FeaturesSection({ activeFeatures }: FeaturesSectionProps) {
+  const visiblePrimaryPillars = PRIMARY_PILLARS.filter((feature) => activeFeatures.has(feature.feature));
   const visibleFeatures = SECONDARY_FEATURES.filter((feature) => activeFeatures.has(feature.feature));
+  if (visiblePrimaryPillars.length === 0 && visibleFeatures.length === 0) return null;
 
   return (
     <section className="border-y border-border/70 bg-gradient-to-b from-background to-secondary/20 py-10 dark:border-white/10 dark:from-background dark:via-slate-950/40 dark:to-orange-950/10 md:py-14">
@@ -72,8 +77,9 @@ export default function FeaturesSection({ activeFeatures }: FeaturesSectionProps
           </p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
-          {PRIMARY_PILLARS.map((feature) => {
+        {visiblePrimaryPillars.length > 0 ? (
+          <div className="grid gap-4 md:grid-cols-3">
+            {visiblePrimaryPillars.map((feature) => {
             const Icon = feature.icon;
             return (
               <Link
@@ -90,8 +96,9 @@ export default function FeaturesSection({ activeFeatures }: FeaturesSectionProps
                 </div>
               </Link>
             );
-          })}
-        </div>
+            })}
+          </div>
+        ) : null}
 
         {visibleFeatures.length > 0 ? (
           <div className="space-y-3">

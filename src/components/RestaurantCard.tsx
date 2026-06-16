@@ -11,10 +11,12 @@ import { useAuth } from "@/lib/auth-context";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { useToast } from "@/hooks/use-toast";
 import { SponsoredBadge, SponsoredContextPill } from "@/components/campaigns/SponsoredVisual";
+import SponsoredRestaurantTemplateCard from "@/components/campaigns/SponsoredRestaurantTemplateCard";
 import { useSponsoredImpressionOnView } from "@/hooks/useSponsoredImpressionOnView";
 import { buildRestaurantSeoPath } from "@/lib/restaurantSlugs";
 import { cn } from "@/lib/utils";
 import { getOptimizedImageSizes, getOptimizedImageSrcSet, getOptimizedImageUrl } from "@/lib/optimizedImages";
+import type { CampaignCreativeConfig } from "@/lib/campaignCreative";
 
 const supabase = getSupabase();
 
@@ -34,6 +36,7 @@ interface RestaurantCardProps {
   sponsoredPromoImage?: string;
   sponsoredCampaignTitle?: string;
   sponsoredCampaignBody?: string;
+  sponsoredCampaignCreative?: CampaignCreativeConfig | unknown;
 }
 
 const CUISINE_FALLBACKS: Record<string, string> = {
@@ -164,6 +167,7 @@ export default function RestaurantCard({
   sponsoredPromoImage,
   sponsoredCampaignTitle,
   sponsoredCampaignBody,
+  sponsoredCampaignCreative,
 }: RestaurantCardProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -276,6 +280,34 @@ export default function RestaurantCard({
   useEffect(() => {
     organicImpressionTracked.current = false;
   }, [id]);
+
+  if (isSponsored) {
+    return (
+      <div onClick={handleCardClick} className="group block h-full cursor-pointer">
+        <div
+          ref={sponsoredImpressionRef}
+          className="h-full transition-transform duration-300 hover:-translate-y-1"
+        >
+          <SponsoredRestaurantTemplateCard
+            creative={sponsoredCampaignCreative}
+            imageUrl={optimizedImage}
+            restaurantName={name}
+            cuisine={cuisine}
+            city={city}
+            address={address}
+            rating={rating}
+            reviewCount={reviewCount}
+            priceRange={priceRange}
+            headline={sponsoredHeading}
+            body={sponsoredDescription}
+            slots={visibleSlots}
+            isFavorite={Boolean(isFavorite)}
+            onFavoriteClick={toggleFavorite}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div onClick={handleCardClick} className="group block h-full cursor-pointer">

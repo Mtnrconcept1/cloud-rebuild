@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { User, ShoppingCart, CalendarDays, LayoutDashboard, Settings, Bell, Crown } from "lucide-react";
+import { User, ShoppingCart, CalendarDays, LayoutDashboard, Settings, Bell, Crown, type LucideIcon } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { BackNavigationButton } from "@/components/navigation/BackNavigationButton";
 import RoleSpaceSwitcher from "@/components/navigation/RoleSpaceSwitcher";
@@ -8,20 +8,30 @@ import NotificationMenuBadge from "@/components/notifications/NotificationMenuBa
 import { useNotificationCenter } from "@/hooks/useNotificationCenter";
 import { getAdminNavigationHref } from "@/lib/adminDomains";
 import SignOutButton from "@/components/auth/SignOutButton";
+import { useActiveFeatures } from "@/lib/featureFlags";
 
-const NAV_ITEMS = [
+type CustomerNavItem = {
+  to: string;
+  label: string;
+  icon: LucideIcon;
+  feature?: string;
+};
+
+const NAV_ITEMS: CustomerNavItem[] = [
   { to: "/profil", label: "Mon profil", icon: User },
-  { to: "/commandes", label: "Mes commandes", icon: ShoppingCart },
-  { to: "/reservations", label: "Mes réservations", icon: CalendarDays },
+  { to: "/commandes", label: "Mes commandes", icon: ShoppingCart, feature: "commandes" },
+  { to: "/reservations", label: "Mes réservations", icon: CalendarDays, feature: "reservation" },
   { to: "/notifications", label: "Notifications", icon: Bell },
-  { to: "/tok-one", label: "Tok One", icon: Crown },
+  { to: "/tok-one", label: "Tok One", icon: Crown, feature: "tok-one" },
 ];
 
 export default function CustomerDashboardLayout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation();
   const { roles, role } = useAuth();
+  const activeFeatures = useActiveFeatures();
   const { unreadNotifications } = useNotificationCenter(50);
   const adminDashboardHref = getAdminNavigationHref("/admin");
+  const visibleNavItems = NAV_ITEMS.filter((item) => !item.feature || activeFeatures.has(item.feature));
 
   return (
     <div className="min-h-screen bg-muted/30 pt-16">
@@ -30,7 +40,7 @@ export default function CustomerDashboardLayout({ children }: { children: React.
           <div className="bg-card border rounded-2xl p-4 flex flex-col gap-2 sticky top-24">
             <h2 className="font-display font-semibold px-3 py-2 mb-2 text-lg">Mon Espace</h2>
             <RoleSpaceSwitcher className="mb-2 w-full justify-between" align="start" />
-            {NAV_ITEMS.map((item) => (
+            {visibleNavItems.map((item) => (
               <Link key={item.to} to={item.to} className={cn("flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors", pathname === item.to ? "bg-primary text-primary-foreground shadow-sm" : "text-foreground hover:bg-muted")}>
                 <item.icon className="h-4 w-4" />
                 <span>{item.label}</span>

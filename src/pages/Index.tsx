@@ -373,6 +373,7 @@ export default function Index() {
         promo_image: campaign.image_url || null,
         campaign_title: campaign.title || null,
         campaign_body: campaign.body || null,
+        campaign_creative: campaign.channels?.creative || null,
       };
     })
     .filter(Boolean) as any[];

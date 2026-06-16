@@ -128,7 +128,7 @@ describe("campaign pricing helpers", () => {
     expect(dashboard).toContain('"credits"');
     expect(dashboard).toContain('paymentMethod !== "credits"');
     expect(dashboard).toContain("Utiliser les credits");
-    expect(dashboard).toContain("Le budget sera reserve");
+    expect(dashboard).toContain("Le budget de campagne a ?t? r?serv?");
 
     expect(paymentMethods).toContain('| "credits"');
     expect(paymentMethods).toContain('Exclude<PaymentMethodId, "credits">');

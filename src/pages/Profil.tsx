@@ -37,6 +37,7 @@ import {
 } from "@/hooks/useTokOne";
 import { Badge } from "@/components/ui/badge";
 import { buildTokOneEntitlements } from "@/lib/subscriptionEntitlements";
+import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 
 const supabase = getSupabase();
 
@@ -101,7 +102,7 @@ export default function Profil() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const defaultTab = searchParams.get("tab") || "infos";
+  const requestedTab = searchParams.get("tab") || "infos";
   const [loading, setLoading] = useState(false);
   const [deleteConfirmEmail, setDeleteConfirmEmail] = useState("");
   const [deleting, setDeleting] = useState(false);
@@ -112,9 +113,13 @@ export default function Profil() {
   const [avatarUrl, setAvatarUrl] = useState("");
   const [birthDate, setBirthDate] = useState("");
   const { data: signupApplication } = useSignupApplication("client");
-  const { data: tokOneSub } = useTokOneSubscription();
-  const { data: tokOnePlans } = useTokOnePlans();
-  const tokOneIsActive = isTokOneSubscriptionActive(tokOneSub);
+  const { activeFeatures } = useFeatureFlagSnapshot();
+  const tokOneFeatureEnabled = activeFeatures.has("tok-one");
+  const pointsGiftEnabled = activeFeatures.has("points-cadeau");
+  const { data: tokOneSub } = useTokOneSubscription({ enabled: tokOneFeatureEnabled });
+  const { data: tokOnePlans } = useTokOnePlans({ enabled: tokOneFeatureEnabled });
+  const tokOneIsActive = tokOneFeatureEnabled && isTokOneSubscriptionActive(tokOneSub);
+  const defaultTab = requestedTab === "abonnement" && !tokOneFeatureEnabled ? "infos" : requestedTab;
 
   const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
@@ -289,10 +294,10 @@ export default function Profil() {
   };
 
   const topics = [
-    { id: "flash_sales", label: "Ventes Flash", desc: "Offres limitées en temps réel." },
-    { id: "chefs_table", label: "La Table du Chef", desc: "Nouveaux drops exclusifs." },
-    { id: "anti_gaspi", label: "Anti-gaspi", desc: "Offres solidaires et anti-gaspi." },
-  ];
+    { id: "flash_sales", feature: "ventes-flash", label: "Ventes Flash", desc: "Offres limitées en temps réel." },
+    { id: "chefs_table", feature: "chefs-table", label: "La Table du Chef", desc: "Nouveaux drops exclusifs." },
+    { id: "anti_gaspi", feature: "anti-gaspi", label: "Anti-gaspi", desc: "Offres solidaires et anti-gaspi." },
+  ].filter((topic) => activeFeatures.has(topic.feature));
 
   return (
     <CustomerDashboardLayout>
@@ -304,8 +309,12 @@ export default function Profil() {
           <h1 className="font-display text-3xl font-bold">Mon profil</h1>
         </div>
 
-        <Tabs defaultValue={defaultTab}>
-          <TabsList className="!grid h-auto w-full grid-cols-3 gap-1 rounded-2xl bg-muted/60 p-1 sm:grid-cols-6">
+        <Tabs key={defaultTab} defaultValue={defaultTab}>
+          <TabsList
+            className={`!grid h-auto w-full grid-cols-3 gap-1 rounded-2xl bg-muted/60 p-1 ${
+              tokOneFeatureEnabled ? "sm:grid-cols-6" : "sm:grid-cols-5"
+            }`}
+          >
             <TabsTrigger value="infos" className="min-w-0 gap-1 rounded-xl px-1.5 py-2 text-[11px] leading-none sm:px-2 sm:text-xs">
               <User className="h-3.5 w-3.5 shrink-0" />
               <span className="truncate"><span className="sm:hidden">Infos</span><span className="hidden sm:inline">Informations</span></span>
@@ -314,10 +323,12 @@ export default function Profil() {
               <Heart className="h-3.5 w-3.5 shrink-0" />
               <span className="truncate"><span className="sm:hidden">Fav.</span><span className="hidden sm:inline">Favoris</span> ({favorites?.length || 0})</span>
             </TabsTrigger>
-            <TabsTrigger value="abonnement" className="min-w-0 gap-1 rounded-xl px-1.5 py-2 text-[11px] leading-none sm:px-2 sm:text-xs">
-              <Crown className="h-3.5 w-3.5 shrink-0" />
-              <span className="truncate"><span className="hidden sm:inline">Abonnement</span><span className="sm:hidden">Abo.</span></span>
-            </TabsTrigger>
+            {tokOneFeatureEnabled ? (
+              <TabsTrigger value="abonnement" className="min-w-0 gap-1 rounded-xl px-1.5 py-2 text-[11px] leading-none sm:px-2 sm:text-xs">
+                <Crown className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate"><span className="hidden sm:inline">Abonnement</span><span className="sm:hidden">Abo.</span></span>
+              </TabsTrigger>
+            ) : null}
             <TabsTrigger value="notifications" className="min-w-0 gap-1 rounded-xl px-1.5 py-2 text-[11px] leading-none sm:px-2 sm:text-xs">
               <Bell className="h-3.5 w-3.5 shrink-0" />
               <span className="truncate"><span className="hidden sm:inline">Notifications</span><span className="sm:hidden">Notifs</span></span>
@@ -436,9 +447,11 @@ export default function Profil() {
             )}
           </TabsContent>
 
-          <TabsContent value="abonnement" className="space-y-6 pt-4">
-            <TokOneTab userId={user?.id} subscription={tokOneSub} isActive={tokOneIsActive} plans={tokOnePlans} />
-          </TabsContent>
+          {tokOneFeatureEnabled ? (
+            <TabsContent value="abonnement" className="space-y-6 pt-4">
+              <TokOneTab userId={user?.id} subscription={tokOneSub} isActive={tokOneIsActive} plans={tokOnePlans} />
+            </TabsContent>
+          ) : null}
 
           <TabsContent value="notifications" className="space-y-6 pt-4">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -521,42 +534,46 @@ export default function Profil() {
               </div>
             </div>
 
-            <div className="rounded-xl border bg-card p-4 space-y-3">
-              <h3 className="font-semibold text-sm">Alertes thématiques</h3>
-              <div className="space-y-2">
-                {topics.map((topic) => {
-                  const isSubscribed = (notificationSubscriptions || []).some((subscription) => subscription.topic === topic.id);
-                  return (
-                    <div key={topic.id} className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium">{topic.label}</p>
-                        <p className="text-[11px] text-muted-foreground">{topic.desc}</p>
+            {topics.length > 0 ? (
+              <div className="rounded-xl border bg-card p-4 space-y-3">
+                <h3 className="font-semibold text-sm">Alertes thématiques</h3>
+                <div className="space-y-2">
+                  {topics.map((topic) => {
+                    const isSubscribed = (notificationSubscriptions || []).some((subscription) => subscription.topic === topic.id);
+                    return (
+                      <div key={topic.id} className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium">{topic.label}</p>
+                          <p className="text-[11px] text-muted-foreground">{topic.desc}</p>
+                        </div>
+                        <Switch checked={isSubscribed} onCheckedChange={() => toggleTopic(topic.id)} />
                       </div>
-                      <Switch checked={isSubscribed} onCheckedChange={() => toggleTopic(topic.id)} />
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            ) : null}
           </TabsContent>
 
           <TabsContent value="fidelite" className="space-y-6 pt-4">
             <LoyaltyStatus />
 
             {/* Gift Points CTA */}
-            <Link
-              to="/points-cadeau"
-              className="flex items-center gap-4 p-4 rounded-xl border-2 border-pink-500/20 bg-pink-500/5 hover:border-pink-500/40 transition-all group"
-            >
-              <div className="w-10 h-10 rounded-full bg-pink-500/10 flex items-center justify-center group-hover:bg-pink-500/20 transition-colors">
-                <Gift className="h-5 w-5 text-pink-500" />
-              </div>
-              <div className="flex-1">
-                <p className="font-semibold text-sm">Points Cadeau</p>
-                <p className="text-xs text-muted-foreground">Offrez des Miamz à vos proches ou réclamez un cadeau</p>
-              </div>
-              <span className="text-pink-500 text-sm font-medium">Ouvrir →</span>
-            </Link>
+            {pointsGiftEnabled ? (
+              <Link
+                to="/points-cadeau"
+                className="flex items-center gap-4 p-4 rounded-xl border-2 border-pink-500/20 bg-pink-500/5 hover:border-pink-500/40 transition-all group"
+              >
+                <div className="w-10 h-10 rounded-full bg-pink-500/10 flex items-center justify-center group-hover:bg-pink-500/20 transition-colors">
+                  <Gift className="h-5 w-5 text-pink-500" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-sm">Points Cadeau</p>
+                  <p className="text-xs text-muted-foreground">Offrez des Miamz à vos proches ou réclamez un cadeau</p>
+                </div>
+                <span className="text-pink-500 text-sm font-medium">Ouvrir →</span>
+              </Link>
+            ) : null}
 
             <div className="space-y-4">
               <h2 className="font-display text-xl font-bold">Historique</h2>

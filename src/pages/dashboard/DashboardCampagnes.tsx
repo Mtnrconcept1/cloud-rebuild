@@ -1,14 +1,14 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ComponentType } from "react";
+﻿import { useCallback, useEffect, useMemo, useRef, useState, type ComponentType, type PointerEvent as ReactPointerEvent } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowRight,
+  AlignCenter,
   BarChart3,
   CalendarDays,
   CheckCircle2,
   Edit2,
   Eye,
-  Heart,
   LayoutTemplate,
   Loader2,
   MapPin,
@@ -18,12 +18,9 @@ import {
   Plus,
   ShoppingCart,
   Sparkles,
-  Shapes,
-  Star,
   Target,
   Timer,
   Type,
-  Utensils,
   Trash2,
   TrendingUp,
   Wallet,
@@ -43,6 +40,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import ImageUpload from "@/components/ImageUpload";
 import PaymentMethodSelector from "@/components/cart/PaymentMethodSelector";
+import SponsoredRestaurantTemplateCard from "@/components/campaigns/SponsoredRestaurantTemplateCard";
 import { redirectToTrustedCheckoutUrl } from "@/lib/securityUrls";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -53,18 +51,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { buildCheckoutReturnUrl } from "@/lib/checkoutReturnUrl";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
 import {
-  CAMPAIGN_CREATIVE_BACKGROUNDS,
-  CAMPAIGN_CREATIVE_FONTS,
-  CAMPAIGN_CREATIVE_SHAPES,
   CAMPAIGN_CREATIVE_TEMPLATES,
-  CAMPAIGN_CREATIVE_TONES,
+  DEFAULT_CAMPAIGN_CREATIVE,
   normalizeCampaignCreative,
   type CampaignCreativeConfig,
+  type CampaignCreativeTextElement,
 } from "@/lib/campaignCreative";
 import {
   DEFAULT_AUDIENCE_CRITERIA,
@@ -493,7 +490,7 @@ export default function DashboardCampagnes() {
                         <span className="text-muted-foreground">Période</span>
                         <span className="font-medium">
                           {paidCampaign.start_date ? new Date(paidCampaign.start_date).toLocaleDateString("fr-CH") : "—"}
-                          {" — "}
+                          {" ? "}
                           {paidCampaign.end_date ? new Date(paidCampaign.end_date).toLocaleDateString("fr-CH") : "—"}
                         </span>
                       </div>
@@ -1023,13 +1020,63 @@ function getCampaignCreativeFromChannels(channels: unknown) {
   return normalizeCampaignCreative((channels as Record<string, unknown>).creative);
 }
 
+const CREATIVE_TEXT_ELEMENTS: Array<{
+  id: CampaignCreativeTextElement;
+  label: string;
+  description: string;
+}> = [
+  { id: "badge", label: "Badge", description: "Mention sponsorisée" },
+  { id: "discount", label: "Offre", description: "Badge de réduction" },
+  { id: "restaurant", label: "Nom resto", description: "Titre principal" },
+  { id: "headline", label: "Accroche", description: "Bloc campagne" },
+  { id: "body", label: "Texte", description: "Description courte" },
+  { id: "cta", label: "Bouton", description: "Texte d'appel à l'action" },
+];
+
+function CreativeSliderControl({
+  label,
+  value,
+  min,
+  max,
+  step,
+  suffix = "",
+  onChange,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  suffix?: string;
+  onChange: (next: number) => void;
+}) {
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between gap-3">
+        <Label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+          {label}
+        </Label>
+        <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
+          {Math.round(value)}{suffix}
+        </span>
+      </div>
+      <Slider
+        min={min}
+        max={max}
+        step={step}
+        value={[value]}
+        onValueChange={(values) => onChange(values[0] ?? value)}
+      />
+    </div>
+  );
+}
+
 function CampaignCreativeStudio({
   value,
   onChange,
   title,
   body,
   imageUrl,
-  type,
 }: {
   value: CampaignCreativeConfig;
   onChange: (next: CampaignCreativeConfig) => void;
@@ -1038,25 +1085,93 @@ function CampaignCreativeStudio({
   imageUrl: string;
   type: string;
 }) {
-  const template = CAMPAIGN_CREATIVE_TEMPLATES.find((entry) => entry.id === value.template) || CAMPAIGN_CREATIVE_TEMPLATES[0];
-  const tone = CAMPAIGN_CREATIVE_TONES.find((entry) => entry.id === value.tone) || CAMPAIGN_CREATIVE_TONES[0];
-  const font = CAMPAIGN_CREATIVE_FONTS.find((entry) => entry.id === value.font) || CAMPAIGN_CREATIVE_FONTS[0];
-  const background = CAMPAIGN_CREATIVE_BACKGROUNDS.find((entry) => entry.id === value.background) || CAMPAIGN_CREATIVE_BACKGROUNDS[0];
-  const shape = CAMPAIGN_CREATIVE_SHAPES.find((entry) => entry.id === value.shape) || CAMPAIGN_CREATIVE_SHAPES[0];
-  const campaignTypeLabel = CAMPAIGN_TYPES.find((campaignType) => campaignType.value === type)?.label || "Campagne";
-  const previewTitle = title.trim() || "Votre restaurant en pleine lumière";
-  const previewBody = body.trim() || "Une campagne claire, lisible et prête à convertir les clients les plus proches.";
-  const hasImage = Boolean(imageUrl);
-  const isDarkTemplate = ["offer", "contrast", "immersive", "street"].includes(value.template);
+  const [selectedTextElement, setSelectedTextElement] = useState<CampaignCreativeTextElement>("headline");
+  const [dragState, setDragState] = useState<{
+    key: CampaignCreativeTextElement;
+    startX: number;
+    startY: number;
+    baseX: number;
+    baseY: number;
+  } | null>(null);
+  const selectedTextStyle = value.text[selectedTextElement];
+  const previewTitle = title.trim() || "La fondue du Quirinale";
+  const previewBody = body.trim() || "Viens déguster la meilleure fondue de Genève!";
   const restaurantLabel = title.trim() ? "Votre restaurant" : "Quirinale";
-  const mutedTextClassName = isDarkTemplate ? "text-white/72" : "text-slate-600";
-  const metaTextClassName = isDarkTemplate ? "text-white/82" : "text-slate-700";
-  const panelEyebrowClassName = value.template === "street"
-    ? "text-emerald-700"
-    : isDarkTemplate
-      ? "text-orange-200"
-      : "text-orange-600";
-  const ctaClassName = "bg-[#ff5a14] text-white hover:bg-[#f04d0d]";
+
+  const updateCreative = useCallback((next: CampaignCreativeConfig) => {
+    onChange(normalizeCampaignCreative(next));
+  }, [onChange]);
+
+  const updateTextElement = useCallback((
+    key: CampaignCreativeTextElement,
+    patch: Partial<CampaignCreativeConfig["text"][CampaignCreativeTextElement]>,
+  ) => {
+    updateCreative({
+      ...value,
+      text: {
+        ...value.text,
+        [key]: {
+          ...value.text[key],
+          ...patch,
+        },
+      },
+    });
+  }, [updateCreative, value]);
+
+  const handleTextPointerDown = (
+    key: CampaignCreativeTextElement,
+    event: ReactPointerEvent<HTMLElement>,
+  ) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const style = value.text[key];
+    setSelectedTextElement(key);
+    setDragState({
+      key,
+      startX: event.clientX,
+      startY: event.clientY,
+      baseX: style.x,
+      baseY: style.y,
+    });
+  };
+
+  const autoAlignText = () => {
+    const base = value.text[selectedTextElement];
+    updateCreative({
+      ...value,
+      text: CREATIVE_TEXT_ELEMENTS.reduce((acc, element) => {
+        acc[element.id] = {
+          ...value.text[element.id],
+          x: base.x,
+          rotation: 0,
+        };
+        return acc;
+      }, {} as CampaignCreativeConfig["text"]),
+    });
+  };
+
+  useEffect(() => {
+    if (!dragState) return;
+
+    const handlePointerMove = (event: PointerEvent) => {
+      event.preventDefault();
+      updateTextElement(dragState.key, {
+        x: Math.min(120, Math.max(-120, dragState.baseX + event.clientX - dragState.startX)),
+        y: Math.min(120, Math.max(-120, dragState.baseY + event.clientY - dragState.startY)),
+      });
+    };
+    const handlePointerUp = () => setDragState(null);
+
+    window.addEventListener("pointermove", handlePointerMove, { passive: false });
+    window.addEventListener("pointerup", handlePointerUp, { once: true });
+    window.addEventListener("pointercancel", handlePointerUp, { once: true });
+
+    return () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
+      window.removeEventListener("pointercancel", handlePointerUp);
+    };
+  }, [dragState, updateTextElement]);
 
   return (
     <section className="overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-background via-orange-50/40 to-background p-4 shadow-sm dark:via-orange-950/15">
@@ -1067,160 +1182,125 @@ function CampaignCreativeStudio({
             <p className="text-sm font-semibold">Studio visuel de campagne</p>
           </div>
           <p className="mt-1 text-xs leading-5 text-muted-foreground">
-            Personnalisez le rendu sponsorisé avant paiement: structure, couleur, police, fond et masque restent sauvegardés avec la campagne.
+            Choisissez un template fixe, puis ajustez uniquement les textes: taille, couleur, position et rotation.
           </p>
         </div>
         <Badge variant="secondary" className="w-fit">
-          {template.previewLabel}
+          Template verrouillé
         </Badge>
       </div>
 
       <div className="mt-4 grid gap-4 xl:grid-cols-[0.95fr_1.05fr]">
-        <div
-          className={cn(
-            "relative mx-auto flex min-h-[440px] w-full max-w-[380px] overflow-hidden border border-white/35 bg-gradient-to-br p-4 shadow-[0_24px_70px_-34px_rgba(20,20,20,0.9)] sm:min-h-[470px]",
-            tone.previewClassName,
-            shape.previewClassName,
-            font.className,
-            template.cardClassName,
-          )}
-        >
-          <div className={cn("absolute inset-0", background.layerClassName)} />
-          {value.template === "street" ? (
-            <>
-              <span className="absolute -left-8 top-20 h-20 w-28 rotate-[-14deg] rounded-[45%] bg-lime-400/70 blur-[1px]" />
-              <span className="absolute right-8 top-24 h-10 w-24 rotate-[12deg] rounded-[45%] bg-lime-400/55 blur-[1px]" />
-            </>
-          ) : null}
-          {value.template === "dynamic" ? (
-            <>
-              <span className="absolute -right-12 top-20 h-32 w-32 rounded-full bg-lime-200/65" />
-              <span className="absolute right-16 bottom-24 h-16 w-16 rounded-full bg-yellow-300/70" />
-            </>
-          ) : null}
-          <div className={cn("overflow-hidden shadow-2xl ring-1 ring-white/30", template.mediaClassName, shape.mediaMaskClassName)}>
-            {hasImage ? (
-              <img src={imageUrl} alt="" className="h-full w-full object-cover" />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.42),transparent_30%),linear-gradient(135deg,#1f2937,#f97316)] text-center text-xs font-bold text-white/86">
-                <span className="flex flex-col items-center gap-2 px-4">
-                  <Utensils className="h-6 w-6" />
-                  Photo uploadée
-                </span>
-              </div>
-            )}
-            <div
-              className={cn(
-                "absolute inset-0",
-                value.template === "offer" || value.template === "immersive"
-                  ? "bg-gradient-to-b from-black/36 via-black/20 to-black/72"
-                  : value.template === "contrast" || value.template === "street"
-                    ? "bg-gradient-to-l from-black/28 to-transparent"
-                    : "bg-gradient-to-b from-transparent to-black/8",
-              )}
-            />
-            {value.shape === "grunge" ? (
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(255,255,255,0.9)_0_1px,transparent_2px),radial-gradient(circle_at_72%_45%,rgba(255,255,255,0.7)_0_1px,transparent_2px)] bg-[length:18px_18px] opacity-25 mix-blend-screen" />
-            ) : null}
-          </div>
-          {value.shape === "ticket" ? (
-            <>
-              <span className="absolute -left-5 top-1/2 h-10 w-10 -translate-y-1/2 rounded-full bg-background" />
-              <span className="absolute -right-5 top-1/2 h-10 w-10 -translate-y-1/2 rounded-full bg-background" />
-            </>
-          ) : null}
-
-          <div className={cn("relative z-10 flex h-full w-full flex-col gap-4", template.contentClassName)}>
-            <div className="flex items-center justify-between gap-3">
-              <span className={cn("inline-flex items-center gap-1 rounded-lg px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] shadow-lg", template.badgeClassName)}>
-                <Megaphone className="h-3 w-3" />
-                Sponsorisé
-              </span>
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-red-500 shadow-lg">
-                <Heart className="h-4 w-4 fill-current" />
-              </span>
-            </div>
-
-            <div className={cn("space-y-2", value.template === "offer" || value.template === "immersive" ? "max-w-[92%]" : "pt-16 sm:pt-20")}>
-              <div className="flex items-center gap-2">
-                <span className={cn("rounded-full px-2.5 py-1 text-xs font-black", isDarkTemplate ? "bg-emerald-500 text-white" : "bg-emerald-600 text-white")}>
-                  -18%
-                </span>
-                <span className={cn("text-[11px] font-black uppercase tracking-[0.16em]", metaTextClassName)}>
-                  Offre spéciale
-                </span>
-              </div>
-              <div className="flex items-end justify-between gap-3">
-                <div className="min-w-0">
-                  <h3 className="truncate text-3xl font-black leading-none tracking-tight sm:text-4xl">{restaurantLabel}</h3>
-                  <div className={cn("mt-2 flex flex-wrap items-center gap-2 text-[11px] font-medium", metaTextClassName)}>
-                    <span>Italien</span>
-                    <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-600 px-1.5 py-0.5 text-white">
-                      <Utensils className="h-2.5 w-2.5" />
-                      <Utensils className="h-2.5 w-2.5" />
-                      <Utensils className="h-2.5 w-2.5" />
-                    </span>
-                    <span>Premium</span>
-                  </div>
-                </div>
-                <span className="shrink-0 rounded-xl bg-[#ff6a00] px-2.5 py-2 text-sm font-black leading-none text-white shadow-lg">
-                  5.7
-                </span>
-              </div>
-              <p className={cn("flex items-center gap-1 text-xs", mutedTextClassName)}>
-                <MapPin className="h-3.5 w-3.5 text-[#ff5a14]" />
-                Puplinge · Rue de Graman
-              </p>
-            </div>
-
-            <div className={cn("rounded-2xl border p-4", template.panelClassName)}>
-              <p className={cn("text-[10px] font-black uppercase tracking-[0.16em]", panelEyebrowClassName)}>
-                Campagne active
-              </p>
-              <h4 className="mt-1 line-clamp-2 text-base font-black leading-tight">{previewTitle}</h4>
-              <p className={cn("mt-2 line-clamp-2 text-xs leading-5", isDarkTemplate ? "text-white/82" : "text-slate-700")}>
-                {previewBody}
-              </p>
-            </div>
-
-            <div className="mt-auto space-y-3">
-              <div className="grid grid-cols-[1fr_auto_auto] gap-2">
-                <button
-                  type="button"
-                  className={cn(
-                    "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-black shadow-lg transition-colors",
-                    ctaClassName,
-                  )}
-                >
-                  Découvrir l'offre
-                  <ArrowRight className="h-4 w-4" />
-                </button>
-                {["18:30", "19:00"].map((slot) => (
-                  <span
-                    key={slot}
-                    className={cn(
-                      "inline-flex min-h-11 items-center justify-center rounded-xl border px-3 text-sm font-black",
-                      isDarkTemplate ? "border-emerald-400/70 bg-black/28 text-emerald-300" : "border-emerald-300 bg-emerald-50 text-emerald-700",
-                    )}
-                  >
-                    {slot}
-                  </span>
-                ))}
-              </div>
-              <p className={cn("text-[11px]", mutedTextClassName)}>
-                Prochains créneaux visibles. Plus d'options sur la fiche.
-              </p>
-              <div className={cn("flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em]", mutedTextClassName)}>
-                <Star className="h-3 w-3 fill-current text-[#ff6a00]" />
-                {campaignTypeLabel}
-                <span className="h-1 w-1 rounded-full bg-current opacity-60" />
-                Prévisualisation sponsorisée
-              </div>
-            </div>
-          </div>
+        <div className="mx-auto w-full max-w-[380px]">
+          <SponsoredRestaurantTemplateCard
+            creative={value}
+            imageUrl={imageUrl}
+            restaurantName={restaurantLabel}
+            headline={previewTitle}
+            body={previewBody}
+            selectedTextElement={selectedTextElement}
+            draggingTextElement={dragState?.key || null}
+            onTextPointerDown={handleTextPointerDown}
+          />
+          <p className="mt-3 rounded-2xl border bg-background/80 px-3 py-2 text-xs leading-5 text-muted-foreground">
+            La zone photo provient du masque transparent du template. Les badges, le bouton et les encarts gardent leur position d'origine.
+          </p>
         </div>
 
         <div className="space-y-4">
+          <div className="rounded-2xl border bg-background/80 p-3 shadow-sm">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <Label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                  <MousePointer className="h-4 w-4" /> Texte sélectionné
+                </Label>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                  Cliquez un texte dans l'aperçu ou choisissez-le ici. Les formes de la carte restent fixes.
+                </p>
+              </div>
+              <Button type="button" variant="outline" size="sm" className="h-8 gap-1 text-xs" onClick={autoAlignText}>
+                <AlignCenter className="h-3.5 w-3.5" />
+                Auto
+              </Button>
+            </div>
+
+            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {CREATIVE_TEXT_ELEMENTS.map((entry) => {
+                const selected = selectedTextElement === entry.id;
+                return (
+                  <button
+                    key={entry.id}
+                    type="button"
+                    aria-pressed={selected}
+                    onClick={() => setSelectedTextElement(entry.id)}
+                    className={cn(
+                      "rounded-xl border px-3 py-2 text-left transition-all hover:border-primary/50",
+                      selected && "border-primary bg-primary/10 shadow-sm",
+                    )}
+                  >
+                    <span className="block text-xs font-semibold">{entry.label}</span>
+                    <span className="mt-0.5 block text-[11px] leading-4 text-muted-foreground">{entry.description}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <CreativeSliderControl
+                label="Horizontal"
+                value={selectedTextStyle.x}
+                min={-120}
+                max={120}
+                step={1}
+                suffix="px"
+                onChange={(next) => updateTextElement(selectedTextElement, { x: next })}
+              />
+              <CreativeSliderControl
+                label="Vertical"
+                value={selectedTextStyle.y}
+                min={-120}
+                max={120}
+                step={1}
+                suffix="px"
+                onChange={(next) => updateTextElement(selectedTextElement, { y: next })}
+              />
+              <CreativeSliderControl
+                label="Taille"
+                value={selectedTextStyle.scale}
+                min={70}
+                max={150}
+                step={1}
+                suffix="%"
+                onChange={(next) => updateTextElement(selectedTextElement, { scale: next })}
+              />
+              <CreativeSliderControl
+                label="Rotation"
+                value={selectedTextStyle.rotation}
+                min={-35}
+                max={35}
+                step={1}
+                suffix="°"
+                onChange={(next) => updateTextElement(selectedTextElement, { rotation: next })}
+              />
+            </div>
+
+            <div className="mt-4 space-y-2">
+              <Label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                <Palette className="h-4 w-4" /> Couleur du texte
+              </Label>
+              <div className="flex h-10 items-center gap-2 rounded-xl border bg-background px-2">
+                <input
+                  type="color"
+                  value={selectedTextStyle.color}
+                  onChange={(event) => updateTextElement(selectedTextElement, { color: event.target.value })}
+                  className="h-7 w-10 cursor-pointer rounded-md border-0 bg-transparent p-0"
+                  aria-label="Couleur du texte sélectionné"
+                />
+                <span className="font-mono text-xs text-muted-foreground">{selectedTextStyle.color}</span>
+              </div>
+            </div>
+          </div>
+
           <div className="space-y-2">
             <Label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
               <LayoutTemplate className="h-4 w-4" /> Template
@@ -1233,128 +1313,20 @@ function CampaignCreativeStudio({
                     key={entry.id}
                     type="button"
                     aria-pressed={selected}
-                    onClick={() => onChange({ ...value, template: entry.id })}
+                    onClick={() => updateCreative({ ...value, template: entry.id })}
                     className={cn(
-                      "rounded-2xl border p-3 text-left transition-all hover:border-primary/50 hover:bg-primary/5",
+                      "overflow-hidden rounded-2xl border p-2 text-left transition-all hover:border-primary/50 hover:bg-primary/5",
                       selected && "border-primary bg-primary/10 shadow-sm",
                     )}
                   >
-                    <span className="text-xs font-semibold">{entry.label}</span>
-                    <span className="mt-1 block text-xs leading-5 text-muted-foreground">{entry.description}</span>
+                    <span className="relative block aspect-[4/5.25] overflow-hidden rounded-xl bg-muted">
+                      <img src={entry.assetSrc} alt="" className="h-full w-full object-fill" loading="lazy" decoding="async" />
+                    </span>
+                    <span className="mt-2 block text-xs font-semibold">{entry.label}</span>
+                    <span className="mt-1 block text-[11px] leading-4 text-muted-foreground">{entry.description}</span>
                   </button>
                 );
               })}
-            </div>
-          </div>
-
-          <div className="grid gap-4 lg:grid-cols-2">
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                <Palette className="h-4 w-4" /> Couleur
-              </Label>
-              <div className="grid grid-cols-2 gap-2">
-                {CAMPAIGN_CREATIVE_TONES.map((entry) => {
-                  const selected = value.tone === entry.id;
-                  return (
-                    <button
-                      key={entry.id}
-                      type="button"
-                      aria-pressed={selected}
-                      onClick={() => onChange({ ...value, tone: entry.id })}
-                      className={cn(
-                        "flex items-center gap-2 rounded-xl border px-3 py-2 text-left text-xs font-semibold transition-all hover:border-primary/50",
-                        selected && "border-primary bg-primary/10",
-                      )}
-                    >
-                      <span className={cn("h-5 w-5 shrink-0 rounded-full ring-1 ring-black/10", entry.swatchClassName)} />
-                      {entry.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                <Type className="h-4 w-4" /> Police
-              </Label>
-              <div className="grid gap-2">
-                {CAMPAIGN_CREATIVE_FONTS.map((entry) => {
-                  const selected = value.font === entry.id;
-                  return (
-                    <button
-                      key={entry.id}
-                      type="button"
-                      aria-pressed={selected}
-                      onClick={() => onChange({ ...value, font: entry.id })}
-                      className={cn(
-                        "flex items-center justify-between rounded-xl border px-3 py-2 text-left transition-all hover:border-primary/50",
-                        selected && "border-primary bg-primary/10",
-                      )}
-                    >
-                      <span className="text-xs font-semibold">{entry.label}</span>
-                      <span className={cn("text-sm", entry.className)}>{entry.sample}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          <div className="grid gap-4 lg:grid-cols-2">
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                <Sparkles className="h-4 w-4" /> Fond
-              </Label>
-              <div className="grid gap-2">
-                {CAMPAIGN_CREATIVE_BACKGROUNDS.map((entry) => {
-                  const selected = value.background === entry.id;
-                  return (
-                    <button
-                      key={entry.id}
-                      type="button"
-                      aria-pressed={selected}
-                      onClick={() => onChange({ ...value, background: entry.id })}
-                      className={cn(
-                        "rounded-xl border px-3 py-2 text-left transition-all hover:border-primary/50",
-                        selected && "border-primary bg-primary/10",
-                      )}
-                    >
-                      <span className="text-xs font-semibold">{entry.label}</span>
-                      <span className="mt-0.5 block text-[11px] leading-4 text-muted-foreground">{entry.description}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                <Shapes className="h-4 w-4" /> Masque photo
-              </Label>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {CAMPAIGN_CREATIVE_SHAPES.map((entry) => {
-                  const selected = value.shape === entry.id;
-                  return (
-                    <button
-                      key={entry.id}
-                      type="button"
-                      aria-pressed={selected}
-                      onClick={() => onChange({ ...value, shape: entry.id })}
-                      className={cn(
-                        "rounded-xl border px-3 py-2 text-left transition-all hover:border-primary/50",
-                        selected && "border-primary bg-primary/10",
-                      )}
-                    >
-                      <span className="flex items-center gap-2 text-xs font-semibold">
-                        <span className={cn("h-5 w-8 border border-primary/50 bg-primary/10", entry.chipClassName)} />
-                        {entry.label}
-                      </span>
-                      <span className="mt-0.5 block text-[11px] leading-4 text-muted-foreground">{entry.description}</span>
-                    </button>
-                  );
-                })}
-              </div>
             </div>
           </div>
         </div>
@@ -1362,7 +1334,6 @@ function CampaignCreativeStudio({
     </section>
   );
 }
-
 function CampaignForm({
   restaurantId,
   initial,
@@ -1504,7 +1475,7 @@ function CampaignForm({
       if (result.target_pages) setTargetPages(result.target_pages);
       if (result.total_budget) setTotalBudget(String(result.total_budget));
 
-      toast({ title: "Campagne generee par l IA", description: "Relisez et ajustez le ciblage avant publication." });
+      toast({ title: "Campagne générée par l’IA", description: "Relisez et ajustez le ciblage avant publication." });
     } catch (error) {
       toast({
         title: "Erreur",
@@ -1606,8 +1577,8 @@ function CampaignForm({
 
       if (usesCredits && !isPaidCampaign) {
         toast({
-          title: "Credits reserves",
-          description: "Le budget de campagne a ete reserve sur votre solde TOK.",
+          title: "Cr?dits r?serv?s",
+          description: "Le budget de campagne a ?t? r?serv? sur votre solde TOK.",
         });
       }
 
@@ -1615,7 +1586,7 @@ function CampaignForm({
     } catch (error) {
       toast({
         title: "Erreur",
-        description: error instanceof Error ? error.message : "Impossible d enregistrer la campagne.",
+        description: error instanceof Error ? error.message : "Impossible d’enregistrer la campagne.",
         variant: "destructive",
       });
     } finally {
@@ -1634,7 +1605,7 @@ function CampaignForm({
           className="w-full gap-2 border-primary/30 text-primary hover:bg-primary/5"
         >
           {aiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-          {aiLoading ? "L IA analyse votre restaurant..." : "Generer automatiquement avec l IA"}
+          {aiLoading ? "L’IA analyse votre restaurant..." : "Générer automatiquement avec l’IA"}
         </Button>
       ) : null}
 
@@ -1710,7 +1681,7 @@ function CampaignForm({
         <div className="space-y-1">
           <p className="text-sm font-semibold">Budget et objectif</p>
           <p className="text-xs text-muted-foreground">
-            Tout ce qui pilote le budget est reuni ici. TOK recommande automatiquement la meilleure formule selon votre campagne.
+            Tout ce qui pilote le budget est réuni ici. TOK recommande automatiquement la meilleure formule selon votre campagne.
           </p>
         </div>
 
@@ -1749,12 +1720,12 @@ function CampaignForm({
           <div className="rounded-xl border bg-background p-4 space-y-3">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-xs font-medium">Recommendation TOK</p>
+                <p className="text-xs font-medium">Recommandation TOK</p>
                 <p className="mt-1 text-lg font-semibold">{strategyConfig.label}</p>
                 <p className="text-xs text-muted-foreground">{strategyConfig.recommendationHint}</p>
               </div>
               <Badge variant="secondary" className="shrink-0">
-                {strategyTouched ? "Choisie manuellement" : "Recommandee"}
+                {strategyTouched ? "Choisie manuellement" : "Recommandée"}
               </Badge>
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -1800,7 +1771,7 @@ function CampaignForm({
                     <p className="mt-1 text-xs text-muted-foreground">{config.description}</p>
                   </div>
                   <div className="flex flex-col items-end gap-1">
-                    {isRecommended ? <Badge variant="secondary" className="text-[10px]">Recommandee</Badge> : null}
+                    {isRecommended ? <Badge variant="secondary" className="text-[10px]">Recommandée</Badge> : null}
                     {isSelected ? <Badge variant="default" className="text-[10px]">Active</Badge> : null}
                   </div>
                 </div>
@@ -1905,12 +1876,12 @@ function CampaignForm({
         />
         {paymentMethod === "credits" ? (
           <p className="text-xs text-primary">
-            Le budget sera reserve sur le solde de credits TOK de l'abonnement ou des packs achetes.
+            Le budget sera réservé sur le solde de crédits TOK de l'abonnement ou des packs achetés.
           </p>
         ) : null}
         {isPaidCampaign ? (
           <p className="text-xs text-green-600">
-            Campagne déjà payée a hauteur de {Number(initial?.paid_amount || 0).toFixed(2)} CHF via {String(initial?.payment_method || "card").toUpperCase()}.
+            Campagne déjà payée à hauteur de {Number(initial?.paid_amount || 0).toFixed(2)} CHF via {String(initial?.payment_method || "card").toUpperCase()}.
           </p>
         ) : null}
       </div>
@@ -1921,7 +1892,7 @@ function CampaignForm({
           : requiresCheckout
             ? "Payer et lancer la campagne"
             : paymentMethod === "credits" && totalBudgetValue > 0 && !isPaidCampaign
-              ? "Utiliser les credits et creer la campagne"
+              ? "Utiliser les credits et créer la campagne"
             : initial
               ? "Enregistrer la campagne"
               : "Créer la campagne"}
