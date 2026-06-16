@@ -11,10 +11,12 @@ import {
   Newspaper,
   RefreshCw,
   Rocket,
+  Search,
   Sparkles,
   Store,
   TrendingUp,
   Utensils,
+  X,
 } from "lucide-react";
 
 import SocialComposer from "@/components/social/SocialComposer";
@@ -22,6 +24,7 @@ import TrackedSocialPostCard from "@/components/social/TrackedSocialPostCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useInfiniteSocialFeed, useToggleRestaurantFollow } from "@/hooks/useSocialFeed";
 import { createActualitesFeedOrderSeed, orderActualitesFeedPosts } from "@/lib/actualitesFeedOrdering";
@@ -29,10 +32,46 @@ import { useAuth } from "@/lib/auth-context";
 import { SOCIAL_FEED_SCOPES, normalizeSocialFeedScope, type SocialFeedPost, type SocialFeedScope } from "@/lib/socialFeed";
 import { useOwnerRestaurants } from "@/pages/dashboard/useOwnerRestaurants";
 
+const ACTUALITES_TRENDS = ["Offre midi", "Arrivages", "Coulisses", "Tables libres"] as const;
+
+function normalizeActualitesSearch(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/[#_./-]+/g, " ")
+    .toLocaleLowerCase("fr-CH")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function compactActualitesSearch(value: string) {
+  return normalizeActualitesSearch(value).replace(/\s+/g, "");
+}
+
+function buildPostSearchIndex(post: SocialFeedPost) {
+  const fields = [
+    post.body,
+    post.restaurant.name,
+    post.restaurant.city,
+    post.restaurant.cuisineType,
+    post.postType,
+    post.ctaType,
+    post.campaignGoal,
+    post.campaignName,
+    post.audienceSegment,
+    post.offerCode,
+    post.recommendationReasons?.join(" "),
+  ]
+    .filter(Boolean)
+    .join(" ");
+  return `${normalizeActualitesSearch(fields)} ${compactActualitesSearch(fields)}`;
+}
+
 export default function Actualites() {
   const { role, isSuperAdmin, user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [scope, setScope] = useState<SocialFeedScope>(() => normalizeSocialFeedScope(searchParams.get("scope")));
+  const [searchQuery, setSearchQuery] = useState("");
   const [feedOrderSeed] = useState(() => createActualitesFeedOrderSeed());
   const [composerRestaurantId, setComposerRestaurantId] = useState<string | null>(null);
   const highlightedPostId = searchParams.get("post");
@@ -41,6 +80,20 @@ export default function Actualites() {
   const ownerRestaurants = useOwnerRestaurants({ enabled: canManage });
   const rawPosts = useMemo(() => feed.data?.pages.flatMap((page) => page.posts) || [], [feed.data]);
   const posts = useMemo(() => orderActualitesFeedPosts(rawPosts, `${feedOrderSeed}:${scope}`), [feedOrderSeed, rawPosts, scope]);
+  const filteredPosts = useMemo(() => {
+    const normalizedQuery = normalizeActualitesSearch(searchQuery);
+    const compactQuery = compactActualitesSearch(searchQuery);
+
+    if (!normalizedQuery && !compactQuery) return posts;
+
+    return posts.filter((post) => {
+      const searchIndex = buildPostSearchIndex(post);
+      return Boolean(
+        normalizedQuery && searchIndex.includes(normalizedQuery)
+          || compactQuery && searchIndex.includes(compactQuery),
+      );
+    });
+  }, [posts, searchQuery]);
   const restaurants = useMemo(
     () => canManage ? ownerRestaurants.restaurants : [],
     [canManage, ownerRestaurants.restaurants],
@@ -49,7 +102,7 @@ export default function Actualites() {
   const toggleFollow = useToggleRestaurantFollow();
   const suggestedRestaurants = useMemo(() => {
     const seen = new Set<string>();
-    return posts
+    return filteredPosts
       .filter((post) => !post.followedByMe)
       .filter((post) => {
         if (seen.has(post.restaurantId)) return false;
@@ -57,15 +110,15 @@ export default function Actualites() {
         return true;
       })
       .slice(0, 4);
-  }, [posts]);
+  }, [filteredPosts]);
   const feedStats = useMemo(() => {
-    const restaurantsCount = new Set(posts.map((post) => post.restaurantId)).size;
-    const offersCount = posts.filter((post) => post.postType === "promo" || post.ctaType === "offer").length;
-    const savedCount = posts.filter((post) => post.savedByMe).length;
-    const mediaCount = posts.reduce((total, post) => total + post.media.length, 0);
+    const restaurantsCount = new Set(filteredPosts.map((post) => post.restaurantId)).size;
+    const offersCount = filteredPosts.filter((post) => post.postType === "promo" || post.ctaType === "offer").length;
+    const savedCount = filteredPosts.filter((post) => post.savedByMe).length;
+    const mediaCount = filteredPosts.reduce((total, post) => total + post.media.length, 0);
 
     return { restaurantsCount, offersCount, savedCount, mediaCount };
-  }, [posts]);
+  }, [filteredPosts]);
 
   useEffect(() => {
     if (!canManage || ownerRestaurants.loading) return;
@@ -84,6 +137,10 @@ export default function Actualites() {
     const nextParams = new URLSearchParams(searchParams);
     nextParams.set("scope", nextScope);
     setSearchParams(nextParams, { replace: true });
+  };
+
+  const startTrendSearch = (trend: string) => {
+    setSearchQuery(`#${trend}`);
   };
 
   return (
@@ -117,7 +174,7 @@ export default function Actualites() {
                 <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
                   <span className="inline-flex items-center gap-1 rounded-full bg-white/80 px-3 py-1 shadow-sm ring-1 ring-border/70">
                     <Utensils className="h-3.5 w-3.5 text-primary" />
-                    {posts.length} posts
+                    {filteredPosts.length} posts
                   </span>
                   <span className="inline-flex items-center gap-1 rounded-full bg-white/80 px-3 py-1 shadow-sm ring-1 ring-border/70">
                     <Store className="h-3.5 w-3.5 text-primary" />
@@ -186,6 +243,41 @@ export default function Actualites() {
             </div>
           ) : null}
 
+          <div className="rounded-2xl border bg-background/95 p-3 shadow-sm">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center">
+              <div className="relative min-w-0 flex-1">
+                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="actualites-search"
+                  type="search"
+                  value={searchQuery}
+                  aria-label="Rechercher dans les actualités"
+                  data-testid="actualites-search"
+                  placeholder="Rechercher par #, restaurant, cuisine, ville..."
+                  className="h-12 rounded-2xl border-orange-100 bg-white pl-11 pr-12 shadow-sm"
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                />
+                {searchQuery ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-1.5 top-1/2 h-9 w-9 -translate-y-1/2 rounded-full text-muted-foreground hover:bg-orange-50 hover:text-primary"
+                    aria-label="Effacer la recherche"
+                    onClick={() => setSearchQuery("")}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                ) : null}
+              </div>
+              <p className="text-xs text-muted-foreground md:w-64">
+                {searchQuery.trim()
+                  ? `${filteredPosts.length}/${posts.length} post(s) correspondent à votre recherche.`
+                  : "Recherchez un #, un restaurant, une cuisine, une ville ou un mot-clé."}
+              </p>
+            </div>
+          </div>
+
           <Tabs value={scope} onValueChange={changeScope}>
             <div className="rounded-2xl border bg-background/90 p-2 shadow-sm">
               <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-xl bg-muted/50 p-1 sm:grid-cols-5">
@@ -221,9 +313,9 @@ export default function Actualites() {
             <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-6 text-sm text-destructive shadow-sm">
               {(feed.error as Error).message}
             </div>
-          ) : posts.length > 0 ? (
-            <div className="space-y-4">
-              {posts.map((post: SocialFeedPost) => (
+          ) : filteredPosts.length > 0 ? (
+            <div className="space-y-4" data-testid="actualites-feed">
+              {filteredPosts.map((post: SocialFeedPost) => (
                 <TrackedSocialPostCard
                   key={post.activityId}
                   post={post}
@@ -242,8 +334,18 @@ export default function Actualites() {
                 </Button>
               </div>
             </div>
+          ) : searchQuery.trim() ? (
+            <div className="rounded-[2rem] border bg-background/90 p-10 text-center shadow-sm" data-testid="actualites-feed">
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                <Search className="h-7 w-7" />
+              </div>
+              <h2 className="font-display text-xl font-bold">Aucun résultat</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Essayez un autre #, une ville, un type de cuisine ou le nom d'un restaurant.
+              </p>
+            </div>
           ) : (
-            <div className="rounded-[2rem] border bg-background/90 p-10 text-center shadow-sm">
+            <div className="rounded-[2rem] border bg-background/90 p-10 text-center shadow-sm" data-testid="actualites-feed">
               <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                 <BellRing className="h-7 w-7" />
               </div>
@@ -350,11 +452,17 @@ export default function Actualites() {
                 <Flame className="h-4 w-4 text-primary" />
                 <h2 className="font-semibold">Tendances</h2>
               </div>
-              {["Offre midi", "Arrivages", "Coulisses", "Tables libres"].map((trend) => (
-                <div key={trend} className="flex items-center justify-between rounded-2xl bg-muted/50 px-3 py-2 text-sm">
+              {ACTUALITES_TRENDS.map((trend) => (
+                <button
+                  key={trend}
+                  type="button"
+                  className="flex w-full items-center justify-between rounded-2xl bg-muted/50 px-3 py-2 text-left text-sm transition hover:bg-orange-50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                  aria-label={`Rechercher #${trend}`}
+                  onClick={() => startTrendSearch(trend)}
+                >
                   <span>#{trend}</span>
                   <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                </div>
+                </button>
               ))}
             </CardContent>
           </Card>
