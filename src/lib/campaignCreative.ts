@@ -110,7 +110,7 @@ export const CAMPAIGN_CREATIVE_TEMPLATES: CampaignCreativeTemplateDefinition[] =
     id: "tok_spotlight",
     label: "Modèle TOK Spotlight",
     description: "Carte, bannière et push sponsorisés avec photo forte, promo visible, encart lisible et CTA direct.",
-    assetSrc: "/pub.png",
+    assetSrc: "/pub.jpg",
     isDark: false,
     dimensions: { width: 380, height: 470 },
     layers: withLayers(),
