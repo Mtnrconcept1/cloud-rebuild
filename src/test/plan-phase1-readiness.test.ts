@@ -252,6 +252,10 @@ describe("phase 1 launch audit plan readiness", () => {
     ]) {
       expect(script).toContain(target);
     }
+
+    expect(script).toContain("Plan d'activation Genève");
+    expect(script).toContain("Bascule du bouton Google");
+    expect(script).toContain("Remplacer le bouton quand les services sont prêts");
   });
 
   it("caches feature flags and batches public analytics events client-side", () => {

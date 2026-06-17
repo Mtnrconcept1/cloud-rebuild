@@ -25,11 +25,19 @@ const DEFAULT_TARGETS = [
   },
   {
     url: "https://www.thetok.ch/restaurateurs/geneve",
-    expect: ["Remplissez vos tables", "Demander une démo"],
+    expect: [
+      "La plateforme restaurateur pour transformer la demande locale",
+      "Plan d'activation Genève",
+      "Optimiser Google Business",
+    ],
   },
   {
     url: "https://www.thetok.ch/restaurateurs/google-business",
-    expect: ["Remplacer le bouton", "Audit gratuit de ma fiche Google"],
+    expect: [
+      "Transformez votre fiche Google Business en canal direct",
+      "Bascule du bouton Google",
+      "Remplacer le bouton quand les services sont prêts",
+    ],
   },
 ];
 
