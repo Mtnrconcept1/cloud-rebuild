@@ -1,4 +1,6 @@
 export type CampaignCreativeTemplate = "tok_spotlight";
+export type CampaignBannerTextPlacement = "left" | "right" | "top" | "bottom";
+export type CampaignBannerSeparator = "fade" | "wave" | "curve" | "straight";
 
 export type CampaignCreativeTextElement =
   | "badge"
@@ -20,6 +22,8 @@ export type CampaignCreativeTextStyle = {
 
 export type CampaignCreativeConfig = {
   template: CampaignCreativeTemplate;
+  bannerTextPlacement: CampaignBannerTextPlacement;
+  bannerSeparator: CampaignBannerSeparator;
   text: Record<CampaignCreativeTextElement, CampaignCreativeTextStyle>;
 };
 
@@ -119,6 +123,8 @@ export const CAMPAIGN_CREATIVE_TEMPLATES: CampaignCreativeTemplateDefinition[] =
 
 export const DEFAULT_CAMPAIGN_CREATIVE: CampaignCreativeConfig = {
   template: "tok_spotlight",
+  bannerTextPlacement: "left",
+  bannerSeparator: "fade",
   text: {
     badge: {
       x: 0,
@@ -229,6 +235,8 @@ export function normalizeCampaignCreative(value: unknown): CampaignCreativeConfi
 
   return {
     template: getCampaignCreativeTemplate(source.template).id,
+    bannerTextPlacement: pickAllowed(source.bannerTextPlacement, ["left", "right", "top", "bottom"] as const, DEFAULT_CAMPAIGN_CREATIVE.bannerTextPlacement),
+    bannerSeparator: pickAllowed(source.bannerSeparator, ["fade", "wave", "curve", "straight"] as const, DEFAULT_CAMPAIGN_CREATIVE.bannerSeparator),
     text: {
       badge: normalizeTextStyle(textSource.badge, DEFAULT_CAMPAIGN_CREATIVE.text.badge),
       discount: normalizeTextStyle(textSource.discount, DEFAULT_CAMPAIGN_CREATIVE.text.discount),

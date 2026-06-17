@@ -34,6 +34,8 @@ describe("campaign creative studio", () => {
       },
     })).toMatchObject({
       template: "tok_spotlight",
+      bannerTextPlacement: DEFAULT_CAMPAIGN_CREATIVE.bannerTextPlacement,
+      bannerSeparator: DEFAULT_CAMPAIGN_CREATIVE.bannerSeparator,
       text: DEFAULT_CAMPAIGN_CREATIVE.text,
     });
 
@@ -47,6 +49,22 @@ describe("campaign creative studio", () => {
         frame: "#111111",
       },
     })).toEqual(DEFAULT_CAMPAIGN_CREATIVE);
+
+    expect(normalizeCampaignCreative({
+      bannerTextPlacement: "right",
+      bannerSeparator: "wave",
+    })).toMatchObject({
+      bannerTextPlacement: "right",
+      bannerSeparator: "wave",
+    });
+
+    expect(normalizeCampaignCreative({
+      bannerTextPlacement: "unsafe-side",
+      bannerSeparator: "remote-css",
+    })).toMatchObject({
+      bannerTextPlacement: DEFAULT_CAMPAIGN_CREATIVE.bannerTextPlacement,
+      bannerSeparator: DEFAULT_CAMPAIGN_CREATIVE.bannerSeparator,
+    });
   });
 
   it("keeps editable text controls within safe ranges", () => {
@@ -88,6 +106,8 @@ describe("campaign creative studio", () => {
     const card = readSource("src/components/campaigns/SponsoredRestaurantTemplateCard.tsx");
 
     expect(dashboard).toContain("CampaignCreativeStudio");
+    expect(dashboard).toContain("CREATIVE_BANNER_PLACEMENT_OPTIONS");
+    expect(dashboard).toContain("CREATIVE_BANNER_SEPARATOR_OPTIONS");
     expect(dashboard).toContain("creative: campaignCreative");
     expect(dashboard).toContain("getCampaignCreativeFromChannels(initial?.channels)");
     expect(dashboard).not.toContain("Nuancier des blocs");
@@ -96,10 +116,14 @@ describe("campaign creative studio", () => {
 
     expect(portal).toContain("sanitizeCampaignCreative");
     expect(portal).toContain("tok_spotlight");
+    expect(portal).toContain("VALID_BANNER_TEXT_PLACEMENTS");
+    expect(portal).toContain("VALID_BANNER_SEPARATORS");
     expect(portal).not.toContain("VALID_CREATIVE_TONES");
     expect(portal).toContain("creative,");
 
     expect(card).toContain("ad-card-spotlight");
+    expect(card).toContain("getBannerSeparatorClass");
+    expect(card).toContain("bannerTextPlacement");
     expect(card).toContain('variant = "card"');
     expect(card).not.toContain("TEMPLATE_NUMBERS");
     expect(card).not.toContain("photo-zone-template");

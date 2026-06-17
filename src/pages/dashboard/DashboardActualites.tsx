@@ -15,6 +15,7 @@ import {
   Timer,
   TrendingUp,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
@@ -78,6 +79,28 @@ function DashboardPostMetrics({ post }: { post: SocialFeedPost }) {
         </p>
         <p className="mt-1 text-xl font-black text-slate-950">{formatCompactMetric(ctaClicks)}</p>
       </div>
+    </div>
+  );
+}
+
+function DashboardInsightTile({
+  icon: Icon,
+  label,
+  value,
+  className = "",
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: string | number;
+  className?: string;
+}) {
+  return (
+    <div className={`rounded-lg border bg-background/80 px-3 py-2 ${className}`}>
+      <div className="flex items-start justify-between gap-2">
+        <p className="text-[11px] leading-snug text-muted-foreground">{label}</p>
+        <Icon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+      </div>
+      <p className="mt-1 text-lg font-black leading-none text-foreground">{value}</p>
     </div>
   );
 }
@@ -186,88 +209,60 @@ export default function DashboardActualites() {
             />
 
             <div className="grid gap-6 xl:grid-cols-[minmax(18rem,22rem)_minmax(0,1fr)]">
-              <div className="space-y-4">
+              <div className="space-y-3">
               <Card className="rounded-lg">
-                <CardContent className="space-y-4 p-4">
+                <CardContent className="space-y-3 p-3">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-xs uppercase tracking-wide text-muted-foreground">Plan marketing</p>
-                      <h2 className="font-display text-lg font-semibold">Priorites du mois</h2>
+                      <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Plan marketing</p>
+                      <h2 className="font-display text-base font-semibold">Priorités du mois</h2>
                     </div>
-                    <Megaphone className="h-5 w-5 text-primary" />
+                    <Megaphone className="h-4 w-4 text-primary" />
                   </div>
-                  <div className="grid gap-3">
-                    <div className="rounded-lg border bg-muted/30 p-3">
+                  <div className="grid gap-2">
+                    <div className="rounded-lg border bg-muted/30 px-3 py-2">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-sm font-medium">Objectif dominant</span>
-                        <span className="text-sm text-muted-foreground">{topGoal?.count || 0} posts</span>
+                        <span className="text-sm font-medium leading-tight">Objectif dominant</span>
+                        <span className="text-xs text-muted-foreground">{topGoal?.count || 0} posts</span>
                       </div>
-                      <p className="mt-1 text-sm text-muted-foreground">{topGoal?.label || "Notoriete"} · {topGoal?.description || "Developper la visibilité locale."}</p>
+                      <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">{topGoal?.label || "Notoriété"} · {topGoal?.description || "Développer la visibilité locale."}</p>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="rounded-lg border p-3">
-                        <CalendarClock className="mb-2 h-4 w-4 text-primary" />
-                        <p className="text-2xl font-bold">{scheduledCount}</p>
-                        <p className="text-xs text-muted-foreground">posts programmés</p>
-                      </div>
-                      <div className="rounded-lg border p-3">
-                        <TrendingUp className="mb-2 h-4 w-4 text-primary" />
-                        <p className="text-2xl font-bold">{insights?.engagementRate ?? 0}%</p>
-                        <p className="text-xs text-muted-foreground">engagement</p>
-                      </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <DashboardInsightTile icon={CalendarClock} label="Posts programmés" value={scheduledCount} />
+                      <DashboardInsightTile icon={TrendingUp} label="Engagement" value={`${insights?.engagementRate ?? 0}%`} />
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
               <Card className="rounded-lg border-primary/20 bg-primary/5">
-                <CardContent className="p-4 space-y-3">
+                <CardContent className="space-y-3 p-3">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-xs uppercase tracking-wide text-muted-foreground">Conversions sponsorisées</p>
-                      <h2 className="font-display text-lg font-semibold">Impact Actualités</h2>
+                      <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Conversions sponsorisées</p>
+                      <h2 className="font-display text-base font-semibold">Impact Actualités</h2>
                     </div>
-                    <Target className="h-5 w-5 text-primary" />
+                    <Target className="h-4 w-4 text-primary" />
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="rounded-lg border bg-background/80 p-3">
-                      <ShoppingCart className="mb-2 h-4 w-4 text-primary" />
-                      <p className="text-2xl font-bold">{sponsoredConversions}</p>
-                      <p className="text-xs text-muted-foreground">total attribue</p>
-                    </div>
-                    <div className="rounded-lg border bg-background/80 p-3">
-                      <MousePointerClick className="mb-2 h-4 w-4 text-primary" />
-                      <p className="text-2xl font-bold">{insights?.ctaClicks ?? 0}</p>
-                      <p className="text-xs text-muted-foreground">clics CTA</p>
-                    </div>
-                    <div className="rounded-lg border bg-background/80 p-3">
-                      <ShoppingCart className="mb-2 h-4 w-4 text-primary" />
-                      <p className="text-2xl font-bold">{orderConversions}</p>
-                      <p className="text-xs text-muted-foreground">commandes</p>
-                    </div>
-                    <div className="rounded-lg border bg-background/80 p-3">
-                      <CalendarCheck className="mb-2 h-4 w-4 text-primary" />
-                      <p className="text-2xl font-bold">{reservationConversions}</p>
-                      <p className="text-xs text-muted-foreground">réservations</p>
-                    </div>
-                    <div className="rounded-lg border bg-background/80 p-3 col-span-2">
-                      <Timer className="mb-2 h-4 w-4 text-primary" />
-                      <p className="text-2xl font-bold">{zeroAttenteConversions}</p>
-                      <p className="text-xs text-muted-foreground">Zéro Attente attribues</p>
-                    </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <DashboardInsightTile icon={ShoppingCart} label="Total attribué" value={sponsoredConversions} />
+                    <DashboardInsightTile icon={MousePointerClick} label="Clics CTA (appel à l'action)" value={insights?.ctaClicks ?? 0} />
+                    <DashboardInsightTile icon={ShoppingCart} label="Commandes" value={orderConversions} />
+                    <DashboardInsightTile icon={CalendarCheck} label="Réservations" value={reservationConversions} />
+                    <DashboardInsightTile icon={Timer} label="Zéro Attente attribués" value={zeroAttenteConversions} className="col-span-2" />
                   </div>
                 </CardContent>
               </Card>
 
-              <div className="grid grid-cols-2 gap-3">
-                <Card className="rounded-lg"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Impressions</p><p className="text-2xl font-bold">{insights?.impressions ?? 0}</p></CardContent></Card>
-                <Card className="rounded-lg"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Clics CTA</p><p className="text-2xl font-bold">{insights?.ctaClicks ?? 0}</p></CardContent></Card>
-                <Card className="rounded-lg"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Commentaires</p><p className="text-2xl font-bold">{posts.reduce((sum, post) => sum + post.commentsCount, 0)}</p></CardContent></Card>
-                <Card className="rounded-lg"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Reposts</p><p className="text-2xl font-bold">{posts.reduce((sum, post) => sum + post.repostsCount, 0)}</p></CardContent></Card>
-                <Card className="rounded-lg"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Reactions</p><p className="text-2xl font-bold">{posts.reduce((sum, post) => sum + post.likesCount, 0)}</p></CardContent></Card>
-                <Card className="rounded-lg"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Sauvegardes</p><p className="text-2xl font-bold">{insights?.saves ?? 0}</p></CardContent></Card>
-                <Card className="rounded-lg"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Taux engagement</p><p className="text-2xl font-bold">{insights?.engagementRate ?? 0}%</p></CardContent></Card>
-                <Card className="rounded-lg"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Posts avec CTA</p><p className="text-2xl font-bold">{conversionFocus}%</p></CardContent></Card>
+              <div className="grid grid-cols-2 gap-2">
+                <DashboardInsightTile icon={Eye} label="Impressions" value={insights?.impressions ?? 0} />
+                <DashboardInsightTile icon={MousePointerClick} label="Clics CTA (appel à l'action)" value={insights?.ctaClicks ?? 0} />
+                <DashboardInsightTile icon={BarChart3} label="Commentaires" value={posts.reduce((sum, post) => sum + post.commentsCount, 0)} />
+                <DashboardInsightTile icon={Megaphone} label="Reposts" value={posts.reduce((sum, post) => sum + post.repostsCount, 0)} />
+                <DashboardInsightTile icon={ThumbsUp} label="Réactions" value={posts.reduce((sum, post) => sum + post.likesCount, 0)} />
+                <DashboardInsightTile icon={Target} label="Sauvegardes" value={insights?.saves ?? 0} />
+                <DashboardInsightTile icon={TrendingUp} label="Taux d'engagement" value={`${insights?.engagementRate ?? 0}%`} />
+                <DashboardInsightTile icon={MousePointerClick} label="Posts avec CTA (appel à l'action)" value={`${conversionFocus}%`} />
               </div>
               </div>
 

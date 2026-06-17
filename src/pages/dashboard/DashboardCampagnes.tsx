@@ -56,6 +56,8 @@ import { getSupabase } from "@/integrations/supabase/client";
 import {
   DEFAULT_CAMPAIGN_CREATIVE,
   normalizeCampaignCreative,
+  type CampaignBannerSeparator,
+  type CampaignBannerTextPlacement,
   type CampaignCreativeConfig,
   type CampaignCreativeTextElement,
 } from "@/lib/campaignCreative";
@@ -1043,6 +1045,28 @@ const CREATIVE_STYLE_OPTIONS: Array<{
   { value: "italic", label: "Italique" },
 ];
 
+const CREATIVE_BANNER_PLACEMENT_OPTIONS: Array<{
+  value: CampaignBannerTextPlacement;
+  label: string;
+  description: string;
+}> = [
+  { value: "left", label: "Texte à gauche", description: "Photo à droite" },
+  { value: "right", label: "Texte à droite", description: "Photo à gauche" },
+  { value: "top", label: "Texte en haut", description: "Photo en bas" },
+  { value: "bottom", label: "Texte en bas", description: "Photo en haut" },
+];
+
+const CREATIVE_BANNER_SEPARATOR_OPTIONS: Array<{
+  value: CampaignBannerSeparator;
+  label: string;
+  description: string;
+}> = [
+  { value: "fade", label: "Fondu", description: "Transition douce" },
+  { value: "wave", label: "Vague", description: "Séparation organique" },
+  { value: "curve", label: "Courbe", description: "Découpe inclinée" },
+  { value: "straight", label: "Droite", description: "Séparation nette" },
+];
+
 function CampaignCreativeStudio({
   value,
   onChange,
@@ -1086,6 +1110,15 @@ function CampaignCreativeStudio({
     });
   }, [updateCreative, value]);
 
+  const updateBannerLayout = useCallback((
+    patch: Partial<Pick<CampaignCreativeConfig, "bannerTextPlacement" | "bannerSeparator">>,
+  ) => {
+    updateCreative({
+      ...value,
+      ...patch,
+    });
+  }, [updateCreative, value]);
+
   return (
     <section className="overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-background via-orange-50/40 to-background p-4 shadow-sm dark:via-orange-950/15">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
@@ -1122,6 +1155,61 @@ function CampaignCreativeStudio({
         </div>
 
         <div className="space-y-4">
+          {previewVariant === "banner" ? (
+            <div className="rounded-2xl border bg-background/80 p-3 shadow-sm">
+              <div>
+                <Label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                  <Megaphone className="h-4 w-4" /> Composition bannière
+                </Label>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                  Réservez une zone lisible au texte et choisissez la transition avec la photo.
+                </p>
+              </div>
+
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                {CREATIVE_BANNER_PLACEMENT_OPTIONS.map((option) => {
+                  const selected = value.bannerTextPlacement === option.value;
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() => updateBannerLayout({ bannerTextPlacement: option.value })}
+                      className={cn(
+                        "rounded-xl border px-3 py-2 text-left transition-all hover:border-primary/50",
+                        selected && "border-primary bg-primary/10 shadow-sm",
+                      )}
+                    >
+                      <span className="block text-xs font-semibold">{option.label}</span>
+                      <span className="mt-0.5 block text-[11px] leading-4 text-muted-foreground">{option.description}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {CREATIVE_BANNER_SEPARATOR_OPTIONS.map((option) => {
+                  const selected = value.bannerSeparator === option.value;
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() => updateBannerLayout({ bannerSeparator: option.value })}
+                      className={cn(
+                        "min-h-14 rounded-xl border px-2 py-2 text-left transition-all hover:border-primary/50",
+                        selected && "border-primary bg-primary/10 shadow-sm",
+                      )}
+                    >
+                      <span className="block text-[11px] font-semibold">{option.label}</span>
+                      <span className="mt-0.5 block text-[10px] leading-3 text-muted-foreground">{option.description}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
+
           <div className="rounded-2xl border bg-background/80 p-3 shadow-sm">
             <div>
               <Label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">

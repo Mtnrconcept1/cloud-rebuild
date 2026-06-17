@@ -24,6 +24,8 @@ const VALID_CUSTOMER_SEGMENTS = new Set(["all", "new", "returning", "loyal", "in
 const VALID_JOURNEY_TYPES = new Set(["delivery", "takeaway", "reservation", "zero_attente"]);
 const VALID_SERVICE_MOMENTS = new Set(["lunch", "dinner", "weekend"]);
 const VALID_CREATIVE_TEMPLATES = new Set(["tok_spotlight"]);
+const VALID_BANNER_TEXT_PLACEMENTS = new Set(["left", "right", "top", "bottom"]);
+const VALID_BANNER_SEPARATORS = new Set(["fade", "wave", "curve", "straight"]);
 const VALID_CREATIVE_TEXT_ELEMENTS = ["badge", "discount", "restaurant", "headline", "body", "cta"] as const;
 
 const DEFAULT_CREATIVE_TEXT = {
@@ -114,6 +116,8 @@ function sanitizeCampaignCreative(raw: unknown, existingRaw?: unknown) {
 
   return {
     template: sanitizeChoice(source.template, VALID_CREATIVE_TEMPLATES, "tok_spotlight"),
+    bannerTextPlacement: sanitizeChoice(source.bannerTextPlacement, VALID_BANNER_TEXT_PLACEMENTS, "left"),
+    bannerSeparator: sanitizeChoice(source.bannerSeparator, VALID_BANNER_SEPARATORS, "fade"),
     text: sanitizeCreativeText(source.text),
   };
 }

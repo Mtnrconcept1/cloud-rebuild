@@ -4,6 +4,8 @@ import type { MouseEvent } from "react";
 import PriceRangeIcons from "@/components/PriceRangeIcons";
 import {
   normalizeCampaignCreative,
+  type CampaignBannerSeparator,
+  type CampaignBannerTextPlacement,
   type CampaignCreativeConfig,
   type CampaignCreativeTextElement,
   type CampaignCreativeTextStyle,
@@ -96,6 +98,63 @@ function OfferText({
   );
 }
 
+function getBannerLayoutClass(placement: CampaignBannerTextPlacement) {
+  if (placement === "right") return "flex-col lg:flex-row-reverse";
+  if (placement === "top") return "flex-col";
+  if (placement === "bottom") return "flex-col-reverse";
+  return "flex-col lg:flex-row";
+}
+
+function getBannerTextPanelClass(placement: CampaignBannerTextPlacement) {
+  return cn(
+    "relative z-20 flex min-w-0 flex-col justify-center bg-white p-5 text-slate-950 dark:bg-slate-950 dark:text-white sm:p-7",
+    placement === "left" || placement === "right" ? "lg:min-h-[300px] lg:w-[42%] lg:max-w-[480px]" : "w-full",
+    placement === "top" || placement === "bottom" ? "min-h-[178px]" : "min-h-[220px]",
+  );
+}
+
+function getBannerPhotoPanelClass(placement: CampaignBannerTextPlacement) {
+  return cn(
+    "relative isolate min-h-[230px] min-w-0 flex-1 overflow-hidden bg-slate-900",
+    placement === "left" || placement === "right" ? "lg:min-h-[300px]" : "min-h-[260px]",
+  );
+}
+
+function getBannerSeparatorClass(placement: CampaignBannerTextPlacement, separator: CampaignBannerSeparator) {
+  if (separator === "fade") {
+    if (placement === "left") return "left-0 top-0 h-20 w-full bg-gradient-to-b from-white via-white/70 to-transparent dark:from-slate-950 dark:via-slate-950/70 lg:-left-1 lg:h-full lg:w-24 lg:bg-gradient-to-r";
+    if (placement === "right") return "left-0 top-0 h-20 w-full bg-gradient-to-b from-white via-white/70 to-transparent dark:from-slate-950 dark:via-slate-950/70 lg:left-auto lg:right-0 lg:-right-1 lg:h-full lg:w-24 lg:bg-gradient-to-l";
+    if (placement === "top") return "left-0 top-0 h-20 w-full bg-gradient-to-b from-white via-white/70 to-transparent dark:from-slate-950 dark:via-slate-950/70";
+    return "bottom-0 left-0 h-20 w-full bg-gradient-to-t from-white via-white/70 to-transparent dark:from-slate-950 dark:via-slate-950/70";
+  }
+
+  if (separator === "straight") {
+    if (placement === "left") return "left-0 top-0 h-px w-full bg-white/90 dark:bg-slate-950/90 lg:-left-px lg:h-full lg:w-px";
+    if (placement === "right") return "left-0 top-0 h-px w-full bg-white/90 dark:bg-slate-950/90 lg:left-auto lg:right-0 lg:-right-px lg:h-full lg:w-px";
+    if (placement === "top") return "left-0 top-0 h-px w-full bg-white/90 dark:bg-slate-950/90";
+    return "bottom-0 left-0 h-px w-full bg-white/90 dark:bg-slate-950/90";
+  }
+
+  if (separator === "wave") {
+    if (placement === "left") return "left-0 -top-9 h-20 w-full rounded-[0_0_60%_60%] bg-white dark:bg-slate-950 lg:-left-8 lg:top-0 lg:h-full lg:w-20 lg:rounded-[55%]";
+    if (placement === "right") return "left-0 -top-9 h-20 w-full rounded-[0_0_60%_60%] bg-white dark:bg-slate-950 lg:left-auto lg:-right-8 lg:top-0 lg:h-full lg:w-20 lg:rounded-[55%]";
+    if (placement === "top") return "left-0 -top-9 h-20 w-full rounded-[0_0_60%_60%] bg-white dark:bg-slate-950";
+    return "bottom-[-2.25rem] left-0 h-20 w-full rounded-[60%_60%_0_0] bg-white dark:bg-slate-950";
+  }
+
+  if (placement === "left") return "left-0 -top-8 h-20 w-full skew-y-[-2deg] bg-white dark:bg-slate-950 lg:-left-10 lg:top-0 lg:h-full lg:w-24 lg:skew-x-[-10deg] lg:skew-y-0";
+  if (placement === "right") return "left-0 -top-8 h-20 w-full skew-y-[-2deg] bg-white dark:bg-slate-950 lg:left-auto lg:-right-10 lg:top-0 lg:h-full lg:w-24 lg:skew-x-[10deg] lg:skew-y-0";
+  if (placement === "top") return "left-0 -top-8 h-20 w-full skew-y-[-2deg] bg-white dark:bg-slate-950";
+  return "bottom-[-2rem] left-0 h-20 w-full skew-y-[2deg] bg-white dark:bg-slate-950";
+}
+
+function getBannerFallbackFadeClass(placement: CampaignBannerTextPlacement) {
+  if (placement === "left") return "left-0 top-0 h-16 w-full bg-gradient-to-b from-white/80 to-transparent dark:from-slate-950/80 lg:h-full lg:w-20 lg:bg-gradient-to-r";
+  if (placement === "right") return "left-0 top-0 h-16 w-full bg-gradient-to-b from-white/80 to-transparent dark:from-slate-950/80 lg:left-auto lg:right-0 lg:h-full lg:w-20 lg:bg-gradient-to-l";
+  if (placement === "top") return "left-0 top-0 h-16 w-full bg-gradient-to-b from-white/80 to-transparent dark:from-slate-950/80";
+  return "bottom-0 left-0 h-16 w-full bg-gradient-to-t from-white/80 to-transparent dark:from-slate-950/80";
+}
+
 export function SponsoredRestaurantTemplateCard({
   creative,
   imageUrl,
@@ -127,42 +186,75 @@ export function SponsoredRestaurantTemplateCard({
   const slotDiscountLabel = getSlotDiscountLabel(discountLabel);
 
   if (variant === "banner") {
+    const placement = normalized.bannerTextPlacement;
+    const separator = normalized.bannerSeparator;
+    const isFadeSeparator = separator === "fade";
+
     return (
       <article
         className={cn(
-          "group relative isolate min-h-[340px] w-full overflow-hidden rounded-[30px] border border-white/70 bg-slate-950 text-white shadow-[0_22px_60px_rgba(15,23,42,0.22)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_30px_70px_rgba(15,23,42,0.28)]",
+          "group relative isolate w-full overflow-hidden rounded-[30px] border border-orange-100 bg-white shadow-[0_22px_60px_rgba(15,23,42,0.14)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_30px_70px_rgba(15,23,42,0.18)] dark:border-slate-800 dark:bg-slate-950",
           className,
         )}
       >
-        <img
-          src={imageUrl || DEFAULT_IMAGE}
-          alt=""
-          className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
-          loading="lazy"
-          decoding="async"
-        />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(10,13,22,0.84)_0%,rgba(10,13,22,0.56)_46%,rgba(10,13,22,0.10)_100%)]" />
-        <div className="absolute left-5 top-5 z-20 inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-white shadow-[0_14px_28px_rgba(249,115,22,0.34)]">
-          <Megaphone className="h-3.5 w-3.5" />
-          Sponsorisé
-        </div>
-        <div className="relative z-10 flex min-h-[340px] max-w-[560px] flex-col justify-end p-5 sm:p-7">
-          <div className="mb-4 flex flex-wrap items-center gap-2 text-xs font-semibold text-white/82">
-            <span className="font-display text-2xl font-black text-white sm:text-3xl">{restaurantName}</span>
-            <span>·</span>
-            <span>{displayCuisine}</span>
-            <span>·</span>
-            <span>{displayCity}</span>
-          </div>
-          <div className="rounded-[26px] border border-white/18 bg-white/12 p-4 shadow-[0_18px_44px_rgba(15,23,42,0.28)] backdrop-blur-xl sm:p-5">
-            <div className="mb-3 inline-flex rounded-full bg-white px-3 py-1 text-[11px] font-black uppercase tracking-[0.08em] text-primary">
-              {discountLabel}
+        <div className={cn("flex min-h-[300px]", getBannerLayoutClass(placement))}>
+          <div className={getBannerTextPanelClass(placement)}>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-2 rounded-full bg-primary px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.16em] text-white shadow-[0_12px_26px_rgba(249,115,22,0.26)]">
+                <Megaphone className="h-3.5 w-3.5" />
+                Sponsorisé
+              </span>
+              <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1.5 text-[11px] font-black uppercase text-emerald-700 ring-1 ring-emerald-100 dark:bg-emerald-400/10 dark:text-emerald-200 dark:ring-emerald-400/20">
+                {discountLabel}
+              </span>
             </div>
-            <OfferText creative={normalized} headline={displayHeadline} body={displayBody} />
-            <span className="mt-5 inline-flex h-11 items-center gap-2 rounded-2xl bg-white px-5 text-sm font-black text-slate-950 shadow-[0_14px_28px_rgba(15,23,42,0.22)]">
+
+            <div className="mt-5 min-w-0">
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">
+                {displayCuisine} · {displayCity}
+              </p>
+              <h3 className="mt-1 truncate font-display text-3xl font-black leading-none text-slate-950 dark:text-white sm:text-4xl">
+                {restaurantName}
+              </h3>
+              <p className="mt-2 flex min-w-0 items-center gap-1.5 text-sm font-medium text-muted-foreground">
+                <MapPin className="h-4 w-4 shrink-0 text-primary" />
+                <span className="truncate">{displayAddress}</span>
+              </p>
+            </div>
+
+            <div className="mt-5 rounded-[24px] border border-slate-200 bg-slate-50/90 p-4 shadow-inner dark:border-slate-800 dark:bg-slate-900/80">
+              <OfferText creative={normalized} headline={displayHeadline} body={displayBody} />
+            </div>
+
+            <span className="mt-5 inline-flex h-11 w-fit items-center gap-2 rounded-2xl bg-slate-950 px-5 text-sm font-black text-white shadow-[0_14px_28px_rgba(15,23,42,0.18)] dark:bg-white dark:text-slate-950">
               {ctaLabel}
               <ArrowRight className="h-4 w-4" />
             </span>
+          </div>
+
+          <div className={getBannerPhotoPanelClass(placement)}>
+            <img
+              src={imageUrl || DEFAULT_IMAGE}
+              alt=""
+              className="absolute inset-0 h-full w-full scale-110 object-cover opacity-60 blur-2xl transition-transform duration-700 group-hover:scale-[1.16]"
+              loading="lazy"
+              decoding="async"
+            />
+            <img
+              src={imageUrl || DEFAULT_IMAGE}
+              alt=""
+              className="absolute inset-0 h-full w-full object-contain p-2 transition-transform duration-700 group-hover:scale-[1.02]"
+              loading="lazy"
+              decoding="async"
+            />
+            <div className="absolute inset-0 bg-gradient-to-br from-slate-950/10 via-transparent to-slate-950/26" />
+            <div className="absolute right-4 top-4 z-20 rounded-full bg-white/92 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.12em] text-slate-900 shadow-sm backdrop-blur">
+              Photo mise en avant
+            </div>
+            <div className={cn("pointer-events-none absolute z-10", getBannerSeparatorClass(placement, separator))} />
+            {isFadeSeparator ? null : (
+              <div className={cn("pointer-events-none absolute z-10 opacity-70", getBannerFallbackFadeClass(placement))} />
+            )}
           </div>
         </div>
       </article>

@@ -118,6 +118,33 @@ const MARKETING_TOOLS: Array<{
   },
 ];
 
+const MARKETING_STUDIO_STEPS: Array<{
+  title: string;
+  description: string;
+  icon: LucideIcon;
+}> = [
+  {
+    title: "Ressources",
+    description: "Ajoutez logo, carte, menu et visuels existants.",
+    icon: Upload,
+  },
+  {
+    title: "Support",
+    description: "Choisissez flyer, carte de visite ou carte du restaurant.",
+    icon: FileImage,
+  },
+  {
+    title: "Brief",
+    description: "Décrivez le résultat attendu avec un prompt clair.",
+    icon: Wand2,
+  },
+  {
+    title: "Generation",
+    description: "Vérifiez le récapitulatif, puis lancez l'image.",
+    icon: Sparkles,
+  },
+];
+
 const MARKETING_SECURITY_CHECKS = [
   "Types acceptes limites: PNG, JPG et WebP.",
   "Poids limite a 15 Mo par ressource avant optimisation.",
@@ -545,16 +572,53 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
             </div>
           </div>
 
-          <Card className="border-orange-100 bg-white/90 shadow-sm dark:bg-background/80">
-            <CardHeader>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {MARKETING_STUDIO_STEPS.map((step, index) => {
+              const Icon = step.icon;
+              return (
+                <div
+                  key={step.title}
+                  className="rounded-2xl border border-orange-100 bg-white/85 p-3 shadow-sm ring-1 ring-black/[0.02] dark:bg-background/80"
+                >
+                  <div className="flex items-start gap-3">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-orange-600 text-sm font-bold text-white shadow-sm">
+                      {index + 1}
+                    </span>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <Icon className="h-4 w-4 text-orange-600" />
+                        <p className="text-sm font-semibold text-foreground">{step.title}</p>
+                      </div>
+                      <p className="mt-1 text-xs leading-5 text-muted-foreground">{step.description}</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <Card className="border-orange-200 bg-white/95 shadow-md shadow-orange-100/40 dark:bg-background/85">
+            <CardHeader className="border-b border-orange-100 bg-orange-50/60">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
               <CardTitle className="flex items-center gap-2">
                 <Wand2 className="h-5 w-5 text-orange-600" />
                 Générer un nouveau visuel
               </CardTitle>
               <CardDescription>Choisissez le type de support, puis decrivez le resultat attendu.</CardDescription>
+                </div>
+                <Badge variant="outline" className="w-fit border-orange-300 bg-white text-orange-700">
+                  Workflow guidé
+                </Badge>
+              </div>
             </CardHeader>
-            <CardContent className="space-y-5">
-              <div className="grid gap-3 md:grid-cols-3">
+            <CardContent className="space-y-4 p-4 sm:p-5">
+              <div className="rounded-3xl border border-orange-100 bg-white p-3 shadow-sm dark:bg-background">
+                <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-orange-600 text-xs font-bold text-white">1</span>
+                  Choisir le support
+                </div>
+                <div className="grid gap-3 md:grid-cols-3">
                 {MARKETING_TOOLS.map((tool) => {
                   const Icon = tool.icon;
                   const selected = tool.id === activeTool;
@@ -581,8 +645,14 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                     </button>
                   );
                 })}
+                </div>
               </div>
 
+              <div className="rounded-3xl border border-orange-100 bg-white p-3 shadow-sm dark:bg-background">
+                <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-orange-600 text-xs font-bold text-white">2</span>
+                  Rédiger le brief
+                </div>
               <div className="space-y-2">
                 <Label htmlFor="marketing-ia-prompt">Décrivez votre besoin</Label>
                 <Textarea
@@ -591,7 +661,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                   onChange={(event) => setPrompt(event.target.value)}
                   maxLength={MARKETING_PROMPT_MAX_LENGTH + 120}
                   placeholder="Ex: Creer un flyer pour la soiree mexicaine de vendredi, avec tacos, ambiance festive, couleurs chaudes, style moderne et gourmand..."
-                  className="min-h-[112px] resize-y"
+                  className="min-h-[132px] resize-y rounded-2xl border-orange-200 bg-orange-50/30 text-base shadow-inner focus-visible:ring-orange-400"
                 />
                 <div className="flex flex-col gap-2 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
                   <span>{sanitizedPrompt.length}/{MARKETING_PROMPT_MAX_LENGTH} caractères sécurisés</span>
@@ -610,8 +680,10 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                   </div>
                 ) : null}
               </div>
+              </div>
 
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 rounded-3xl border border-dashed border-orange-200 bg-orange-50/40 p-3">
+                <span className="mr-1 self-center text-xs font-semibold uppercase tracking-[0.18em] text-orange-700">Idées rapides</span>
                 {activeToolConfig.suggestions.map((suggestion) => (
                   <button
                     key={suggestion}
@@ -624,6 +696,11 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                 ))}
               </div>
 
+              <div className="rounded-3xl border border-orange-100 bg-white p-3 shadow-sm dark:bg-background">
+                <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-orange-600 text-xs font-bold text-white">3</span>
+                  Paramétrer le rendu
+                </div>
               <div className="grid gap-4 md:grid-cols-3">
                 <div className="space-y-2">
                   <Label htmlFor="marketing-format">Format</Label>
@@ -667,13 +744,18 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                   </select>
                 </div>
               </div>
+              </div>
 
-              <div className="rounded-2xl border bg-muted/40 p-4 text-sm">
+              <div className="rounded-3xl border border-emerald-200 bg-emerald-50/70 p-4 text-sm shadow-sm">
+                <div className="mb-3 flex items-center gap-2">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-600 text-xs font-bold text-white">4</span>
+                  <p className="font-semibold text-emerald-950">Contrôle avant génération</p>
+                </div>
                 <p className="font-semibold text-foreground">Image marketing prête à générer</p>
-                <p className="mt-2 text-muted-foreground">
+                <p className="mt-2 text-emerald-900/80">
                   Type: {activeToolConfig.title} · Format: {format} · Orientation: {orientation} · Style: {styleMode} · Ressources persistantes: {persistedResources.length} · Logo: {hasLogo ? "oui" : "non"}
                 </p>
-                <p className="mt-2 line-clamp-2 text-muted-foreground">{sanitizedPrompt || "Le prompt apparaitra ici apres saisie."}</p>
+                <p className="mt-2 line-clamp-2 rounded-2xl bg-white/80 p-3 text-emerald-950/80">{sanitizedPrompt || "Le prompt apparaitra ici apres saisie."}</p>
               </div>
 
               {generatedMarketingImageUrl ? (
@@ -699,12 +781,12 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                 </div>
               ) : null}
 
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                <Button type="button" onClick={requestGeneration} disabled={!restaurantId || loading} className="gap-2 bg-orange-600 hover:bg-orange-700">
+              <div className="flex flex-col gap-3 rounded-3xl border border-orange-200 bg-orange-50/80 p-3 sm:flex-row sm:items-center">
+                <Button type="button" onClick={requestGeneration} disabled={!restaurantId || loading} size="lg" className="min-h-12 gap-2 rounded-2xl bg-orange-600 px-6 text-base font-bold shadow-lg shadow-orange-500/20 hover:bg-orange-700">
                   {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                   {loading ? "Génération de l'image..." : "Générer l'image marketing"}
                 </Button>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs leading-5 text-muted-foreground">
                   Image générée côté serveur avec validation RLS, ressources persistantes, quotas IA et historique.
                 </p>
               </div>
@@ -712,9 +794,12 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
           </Card>
         </div>
 
-        <aside className="space-y-4">
-          <Card>
-            <CardHeader>
+        <aside className="space-y-4 lg:sticky lg:top-6 lg:self-start">
+          <Card className="border-orange-200 shadow-sm">
+            <CardHeader className="border-b border-orange-100 bg-orange-50/60">
+              <Badge variant="outline" className="w-fit border-orange-300 bg-white text-orange-700">
+                Etape 1
+              </Badge>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Palette className="h-5 w-5 text-orange-600" />
                 Ressources de marque
@@ -777,8 +862,8 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
+          <Card className="border-blue-100 shadow-sm">
+            <CardHeader className="border-b bg-blue-50/50">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <LockKeyhole className="h-5 w-5 text-blue-600" />
                 Securite & confidentialite
