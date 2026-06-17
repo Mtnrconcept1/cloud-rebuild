@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { runRestaurantAgent } from "@/lib/ai/tokAiClient";
 import {
   AlertTriangle,
   BriefcaseBusiness,
@@ -13,6 +14,7 @@ import {
   FileImage,
   FileText,
   ImagePlus,
+  Loader2,
   LockKeyhole,
   Megaphone,
   Palette,
@@ -34,6 +36,12 @@ type MarketingResource = {
   fileSize: number;
   mimeType: string;
 };
+
+type Props = {
+  restaurantId?: string | null;
+};
+
+type MarketingGenerationResult = Awaited<ReturnType<typeof runRestaurantAgent>>;
 
 const MARKETING_UPLOAD_ACCEPT = "image/png,image/jpeg,image/webp,application/pdf";
 const MAX_MARKETING_ASSET_BYTES = 15 * 1024 * 1024;
@@ -149,7 +157,30 @@ function createMarketingResource(file: File, kind: MarketingAssetKind): Marketin
   };
 }
 
-export default function TokAiMarketingStudio() {
+function formatMarketingGenerationError(error: unknown) {
+  const rawMessage = error instanceof Error ? error.message : String(error || "");
+  const message = rawMessage.toLowerCase();
+
+  if (message.includes("ai_quota_exceeded") || message.includes("402")) {
+    return "Le quota IA de ce restaurant est atteint pour la période en cours.";
+  }
+  if (message.includes("ai_service_unavailable") || message.includes("openai")) {
+    return "Le service IA serveur n'est pas disponible pour le moment. Vérifiez la configuration IA côté Supabase avant de relancer.";
+  }
+  if (message.includes("unauthorized") || message.includes("401")) {
+    return "Votre session a expiré. Reconnectez-vous avant de relancer le brief.";
+  }
+  if (message.includes("restaurant_required")) {
+    return "Sélectionnez un restaurant avant de lancer le brief marketing.";
+  }
+  if (message.includes("rate") || message.includes("429")) {
+    return "Trop de demandes IA ont été lancées. Réessayez dans quelques minutes.";
+  }
+
+  return rawMessage || "Impossible de générer le brief marketing.";
+}
+
+export default function TokAiMarketingStudio({ restaurantId }: Props) {
   const { toast } = useToast();
   const [activeTool, setActiveTool] = useState<MarketingToolId>("flyer");
   const [prompt, setPrompt] = useState("");
@@ -157,6 +188,8 @@ export default function TokAiMarketingStudio() {
   const [orientation, setOrientation] = useState("Portrait");
   const [styleMode, setStyleMode] = useState("Base sur mon identite");
   const [resources, setResources] = useState<MarketingResource[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [generationResult, setGenerationResult] = useState<MarketingGenerationResult | null>(null);
 
   const activeToolConfig = MARKETING_TOOLS.find((tool) => tool.id === activeTool) || MARKETING_TOOLS[0];
   const sanitizedPrompt = sanitizeMarketingPrompt(prompt);
@@ -211,9 +244,14 @@ export default function TokAiMarketingStudio() {
     setPrompt((current) => sanitizeMarketingPrompt(current ? `${current} ${suggestion}.` : `${suggestion}.`));
   };
 
-  const requestGeneration = () => {
+  const requestGeneration = async () => {
     const safePrompt = sanitizeMarketingPrompt(prompt);
     const warnings = getMarketingPromptWarnings(prompt);
+
+    if (!restaurantId) {
+      toast({ title: "Restaurant requis", description: "Sélectionnez un restaurant avant de lancer le brief marketing.", variant: "destructive" });
+      return;
+    }
 
     if (!safePrompt) {
       toast({ title: "Brief requis", description: "Ajoutez une consigne pour guider le visuel.", variant: "destructive" });
@@ -225,10 +263,52 @@ export default function TokAiMarketingStudio() {
       return;
     }
 
-    toast({
-      title: "Brief securise pret",
-      description: "Le module est pret pour une generation serveur avec validation RLS, quotas IA et historique.",
-    });
+    setLoading(true);
+    setGenerationResult(null);
+
+    try {
+      const data = await runRestaurantAgent({
+        restaurantId,
+        action: "marketing_campaign",
+        prompt: [
+          safePrompt,
+          `Support demandé: ${activeToolConfig.title}.`,
+          `Format: ${format}. Orientation: ${orientation}. Style: ${styleMode}.`,
+          "Produis un brief de création marketing exploitable pour un graphiste ou un moteur image, sans publier automatiquement.",
+        ].join("\n"),
+        context: {
+          source: "tok_ai_marketing_studio",
+          requested_output: "branded_marketing_visual_brief",
+          active_tool: activeTool,
+          format,
+          orientation,
+          style_mode: styleMode,
+          has_logo: hasLogo,
+          resource_count: resources.length,
+          resources: resources.map((resource) => ({
+            kind: resource.kind,
+            label: MARKETING_ASSET_KIND_LABELS[resource.kind],
+            file_name: resource.fileName,
+            file_size: resource.fileSize,
+            mime_type: resource.mimeType,
+          })),
+        },
+      });
+
+      setGenerationResult(data);
+      toast({
+        title: "Brief marketing généré",
+        description: "Le brouillon a été produit côté serveur avec validation d'accès, quota IA et historique.",
+      });
+    } catch (error) {
+      toast({
+        title: "Génération impossible",
+        description: formatMarketingGenerationError(error),
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -382,19 +462,47 @@ export default function TokAiMarketingStudio() {
               </div>
 
               <div className="rounded-2xl border bg-muted/40 p-4 text-sm">
-                <p className="font-semibold text-foreground">Brief securise envoye au moteur IA</p>
+                <p className="font-semibold text-foreground">Brief sécurisé prêt pour génération serveur</p>
                 <p className="mt-2 text-muted-foreground">
                   Type: {activeToolConfig.title} · Format: {format} · Orientation: {orientation} · Style: {styleMode} · Logo: {hasLogo ? "oui" : "non"}
                 </p>
                 <p className="mt-2 line-clamp-2 text-muted-foreground">{sanitizedPrompt || "Le brief apparaitra ici apres saisie."}</p>
               </div>
 
+              {generationResult ? (
+                <div className="rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4 text-sm text-emerald-950 dark:border-emerald-900/50 dark:bg-emerald-950/20 dark:text-emerald-50">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <p className="font-semibold">{generationResult.title}</p>
+                      <p className="mt-1 text-emerald-800 dark:text-emerald-100">{generationResult.summary}</p>
+                    </div>
+                    <Badge variant="outline" className="w-fit border-emerald-300 bg-white/70 text-emerald-800 dark:bg-background/40 dark:text-emerald-100">
+                      {generationResult.status}
+                    </Badge>
+                  </div>
+                  <div className="mt-3 max-h-72 overflow-auto rounded-xl border border-emerald-200 bg-white/80 p-3 text-sm leading-6 text-foreground dark:border-emerald-900/50 dark:bg-background/70">
+                    <pre className="whitespace-pre-wrap font-sans">{generationResult.markdown}</pre>
+                  </div>
+                  {generationResult.recommended_actions.length ? (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {generationResult.recommended_actions.slice(0, 4).map((action) => (
+                        <span key={action} className="rounded-full bg-white/80 px-3 py-1 text-xs font-medium text-emerald-800 dark:bg-background/50 dark:text-emerald-100">
+                          {action}
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                <Button type="button" onClick={requestGeneration} className="gap-2 bg-orange-600 hover:bg-orange-700">
-                  <Sparkles className="h-4 w-4" />
-                  Generer le visuel
+                <Button type="button" onClick={requestGeneration} disabled={!restaurantId || loading} className="gap-2 bg-orange-600 hover:bg-orange-700">
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                  {loading ? "Génération du brief..." : "Générer le brief marketing"}
                 </Button>
-                <p className="text-xs text-muted-foreground">Generation IA avec quotas, historique et validation serveur requis avant mise en production.</p>
+                <p className="text-xs text-muted-foreground">
+                  Génération IA serveur avec quotas, historique et validation RLS. Les fichiers ajoutés restent un contexte local tant que le pipeline Storage marketing n'est pas branché.
+                </p>
               </div>
             </CardContent>
           </Card>

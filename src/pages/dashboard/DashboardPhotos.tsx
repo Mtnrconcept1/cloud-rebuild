@@ -210,7 +210,7 @@ export default function DashboardPhotos() {
           ]}
         />
 
-        <TokAiMarketingStudio />
+        <TokAiMarketingStudio restaurantId={selectedId} />
 
         <TokAiPhotoStudio
           restaurantId={selectedId}

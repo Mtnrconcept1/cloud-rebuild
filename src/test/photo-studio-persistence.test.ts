@@ -110,7 +110,7 @@ describe("TOK photo studio persistence", () => {
 
   it("adds a guarded marketing studio for branded restaurant visuals", () => {
     expect(dashboardPhotos).toContain('from "@/components/dashboard/TokAiMarketingStudio"');
-    expect(dashboardPhotos).toContain("<TokAiMarketingStudio />");
+    expect(dashboardPhotos).toContain("<TokAiMarketingStudio restaurantId={selectedId} />");
     expect(dashboardPhotos).toContain("Studio Photo & Marketing IA");
 
     expect(marketingStudio).toContain("MARKETING_UPLOAD_ACCEPT");
@@ -119,10 +119,13 @@ describe("TOK photo studio persistence", () => {
     expect(marketingStudio).toContain("PROMPT_INJECTION_PATTERNS");
     expect(marketingStudio).toContain("SQL_INJECTION_PATTERNS");
     expect(marketingStudio).toContain("sanitizeMarketingPrompt");
+    expect(marketingStudio).toContain("runRestaurantAgent");
+    expect(marketingStudio).toContain('action: "marketing_campaign"');
     expect(marketingStudio).toContain("Flyer / affiche");
     expect(marketingStudio).toContain("Carte de visite");
     expect(marketingStudio).toContain("Carte du restaurant");
-    expect(marketingStudio).toContain("Generation IA avec quotas, historique et validation serveur requis");
+    expect(marketingStudio).toContain("Génération IA serveur avec quotas, historique et validation RLS");
+    expect(marketingStudio).not.toContain("Le module est pret pour une generation serveur");
     expect(marketingStudio).toContain("Storage/RLS cote serveur");
   });
 
