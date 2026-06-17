@@ -144,9 +144,8 @@ describe("TOK AI tools foundation", () => {
     expect(source).toContain("buildImageRequestOptions(format.size, Boolean(sourceImageUrl))");
     expect(source).toContain("TOK_INTERACTIVE_IMAGE_QUALITY");
     expect(source).toContain("TOK_INTERACTIVE_IMAGE_SIZE");
-    expect(source).toContain("gpt-image-1.5");
+    expect(source).toContain("gpt-image-2");
     expect(source).toContain("gpt-image-1-mini");
-    expect(source).not.toContain("gpt-image-2");
     expect(source).toContain('"low"');
     expect(source).toContain('"1024x1024"');
     expect(source).toContain("interactive_fast");

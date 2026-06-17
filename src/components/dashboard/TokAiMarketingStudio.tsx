@@ -6,7 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { runRestaurantAgent } from "@/lib/ai/tokAiClient";
+import {
+  generateTokDishImage,
+  runRestaurantAgent,
+  type TokImageFormat,
+  type TokImageGenerationResult,
+} from "@/lib/ai/tokAiClient";
 import {
   AlertTriangle,
   BriefcaseBusiness,
@@ -42,6 +47,7 @@ type Props = {
 };
 
 type MarketingGenerationResult = Awaited<ReturnType<typeof runRestaurantAgent>>;
+type MarketingImageResult = TokImageGenerationResult;
 
 const MARKETING_UPLOAD_ACCEPT = "image/png,image/jpeg,image/webp,application/pdf";
 const MAX_MARKETING_ASSET_BYTES = 15 * 1024 * 1024;
@@ -180,6 +186,64 @@ function formatMarketingGenerationError(error: unknown) {
   return rawMessage || "Impossible de générer le brief marketing.";
 }
 
+function formatMarketingImageGenerationError(error: unknown) {
+  const rawMessage = error instanceof Error ? error.message : String(error || "");
+  const message = rawMessage.toLowerCase();
+
+  if (message.includes("image_generation_timeout") || message.includes("image_edit_timeout")) {
+    return "Le brief est prêt, mais la génération d'image a dépassé le délai serveur. Réessayez avec un brief plus court.";
+  }
+  if (message.includes("ai_rate_limited") || message.includes("429")) {
+    return "Le brief est prêt, mais OpenAI limite temporairement les générations image. Réessayez dans quelques minutes.";
+  }
+  if (message.includes("ai_credits_exhausted") || message.includes("402")) {
+    return "Le brief est prêt, mais les crédits image OpenAI sont insuffisants côté serveur.";
+  }
+  if (message.includes("ai_service_unavailable") || message.includes("401") || message.includes("403")) {
+    return "Le brief est prêt, mais le service image OpenAI n'est pas correctement disponible côté Supabase.";
+  }
+  if (message.includes("content_policy") || message.includes("safety")) {
+    return "Le brief est prêt, mais la demande image a été refusée par la sécurité du modèle. Reformulez sans marque, personne réelle ou promesse sensible.";
+  }
+
+  return rawMessage || "Le brief est prêt, mais l'image n'a pas pu être générée.";
+}
+
+function getMarketingImageFormat(format: string, orientation: string): TokImageFormat {
+  const normalized = `${format} ${orientation}`.toLowerCase();
+  if (normalized.includes("story") || normalized.includes("portrait")) return "portrait";
+  if (normalized.includes("carre") || normalized.includes("carr")) return "square";
+  return "landscape";
+}
+
+function buildMarketingImagePrompt(input: {
+  toolTitle: string;
+  prompt: string;
+  format: string;
+  orientation: string;
+  styleMode: string;
+  result: MarketingGenerationResult;
+  resources: MarketingResource[];
+}) {
+  const resourceSummary = input.resources.length
+    ? input.resources
+      .map((resource) => `${MARKETING_ASSET_KIND_LABELS[resource.kind]}: ${resource.fileName}`)
+      .join(", ")
+    : "Aucune ressource de marque transmise au modele image.";
+
+  return [
+    "Créer un visuel marketing premium pour un restaurant, prêt à servir de base créative après validation du brief.",
+    `Support: ${input.toolTitle}. Format: ${input.format}. Orientation: ${input.orientation}. Style: ${input.styleMode}.`,
+    `Demande restaurateur: ${input.prompt}`,
+    `Ressources déclarées: ${resourceSummary}`,
+    `Titre du brief: ${input.result.title}`,
+    `Synthèse du brief: ${input.result.summary}`,
+    `Brief validé: ${input.result.markdown.slice(0, 1400)}`,
+    "Direction artistique: photographie et design restauration haut de gamme, composition claire, appétissante, moderne, adaptée au marché suisse romand.",
+    "Contraintes: ne pas inventer de logo, QR code, coordonnées, prix, allergènes, labels officiels ou fausse promotion. Ne pas ajouter de watermark. Garder le rendu exploitable pour une validation humaine avant publication.",
+  ].join("\n\n").slice(0, 3600);
+}
+
 export default function TokAiMarketingStudio({ restaurantId }: Props) {
   const { toast } = useToast();
   const [activeTool, setActiveTool] = useState<MarketingToolId>("flyer");
@@ -190,6 +254,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
   const [resources, setResources] = useState<MarketingResource[]>([]);
   const [loading, setLoading] = useState(false);
   const [generationResult, setGenerationResult] = useState<MarketingGenerationResult | null>(null);
+  const [marketingImageResult, setMarketingImageResult] = useState<MarketingImageResult | null>(null);
 
   const activeToolConfig = MARKETING_TOOLS.find((tool) => tool.id === activeTool) || MARKETING_TOOLS[0];
   const sanitizedPrompt = sanitizeMarketingPrompt(prompt);
@@ -265,6 +330,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
 
     setLoading(true);
     setGenerationResult(null);
+    setMarketingImageResult(null);
 
     try {
       const data = await runRestaurantAgent({
@@ -296,10 +362,39 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
       });
 
       setGenerationResult(data);
-      toast({
-        title: "Brief marketing généré",
-        description: "Le brouillon a été produit côté serveur avec validation d'accès, quota IA et historique.",
-      });
+
+      try {
+        const imageResult = await generateTokDishImage({
+          restaurantId,
+          prompt: buildMarketingImagePrompt({
+            toolTitle: activeToolConfig.title,
+            prompt: safePrompt,
+            format,
+            orientation,
+            styleMode,
+            result: data,
+            resources,
+          }),
+          dishName: activeToolConfig.title,
+          assetType: "campaign_visual",
+          format: getMarketingImageFormat(format, orientation),
+          variantCount: 1,
+          generateImage: true,
+          imageOnly: true,
+        });
+
+        setMarketingImageResult(imageResult);
+        toast({
+          title: "Brief et image générés",
+          description: `Le visuel marketing a été généré côté serveur avec ${imageResult.model || "OpenAI"}.`,
+        });
+      } catch (imageError) {
+        toast({
+          title: "Brief généré, image non produite",
+          description: formatMarketingImageGenerationError(imageError),
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       toast({
         title: "Génération impossible",
@@ -310,6 +405,8 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
       setLoading(false);
     }
   };
+
+  const generatedMarketingImageUrl = marketingImageResult?.gallery_image_url || marketingImageResult?.generated_image_url || "";
 
   return (
     <section className="overflow-hidden rounded-3xl border border-orange-200 bg-gradient-to-br from-orange-50 via-background to-background shadow-sm dark:border-orange-900/50 dark:from-orange-950/20">
@@ -483,6 +580,28 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                   <div className="mt-3 max-h-72 overflow-auto rounded-xl border border-emerald-200 bg-white/80 p-3 text-sm leading-6 text-foreground dark:border-emerald-900/50 dark:bg-background/70">
                     <pre className="whitespace-pre-wrap font-sans">{generationResult.markdown}</pre>
                   </div>
+                  {generatedMarketingImageUrl ? (
+                    <div className="mt-4 overflow-hidden rounded-2xl border border-emerald-200 bg-white shadow-sm dark:border-emerald-900/50 dark:bg-background">
+                      <div className="flex flex-col gap-3 border-b border-emerald-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-between dark:border-emerald-900/50">
+                        <div>
+                          <p className="font-semibold text-foreground">Image marketing générée</p>
+                          <p className="text-xs text-muted-foreground">Modèle: {marketingImageResult?.model || "gpt-image-2"}</p>
+                        </div>
+                        <Button type="button" variant="outline" size="sm" asChild>
+                          <a href={generatedMarketingImageUrl} target="_blank" rel="noreferrer">
+                            Ouvrir l'image
+                          </a>
+                        </Button>
+                      </div>
+                      <div className="bg-slate-950/5 p-3">
+                        <img
+                          src={generatedMarketingImageUrl}
+                          alt={marketingImageResult?.alt_text || `Visuel marketing ${activeToolConfig.title}`}
+                          className="mx-auto max-h-[520px] w-full rounded-xl object-contain"
+                        />
+                      </div>
+                    </div>
+                  ) : null}
                   {generationResult.recommended_actions.length ? (
                     <div className="mt-3 flex flex-wrap gap-2">
                       {generationResult.recommended_actions.slice(0, 4).map((action) => (
@@ -498,10 +617,10 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <Button type="button" onClick={requestGeneration} disabled={!restaurantId || loading} className="gap-2 bg-orange-600 hover:bg-orange-700">
                   {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                  {loading ? "Génération du brief..." : "Générer le brief marketing"}
+                  {loading ? "Génération du brief et de l'image..." : "Générer le brief et l'image"}
                 </Button>
                 <p className="text-xs text-muted-foreground">
-                  Génération IA serveur avec quotas, historique et validation RLS. Les fichiers ajoutés restent un contexte local tant que le pipeline Storage marketing n'est pas branché.
+                  Génération IA serveur avec quotas, historique et validation RLS. L'image est produite après le brief via la fonction Supabase image.
                 </p>
               </div>
             </CardContent>

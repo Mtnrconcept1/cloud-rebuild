@@ -120,7 +120,11 @@ describe("TOK photo studio persistence", () => {
     expect(marketingStudio).toContain("SQL_INJECTION_PATTERNS");
     expect(marketingStudio).toContain("sanitizeMarketingPrompt");
     expect(marketingStudio).toContain("runRestaurantAgent");
+    expect(marketingStudio).toContain("generateTokDishImage");
     expect(marketingStudio).toContain('action: "marketing_campaign"');
+    expect(marketingStudio).toContain('assetType: "campaign_visual"');
+    expect(marketingStudio).toContain("buildMarketingImagePrompt");
+    expect(marketingStudio).toContain("Image marketing générée");
     expect(marketingStudio).toContain("Flyer / affiche");
     expect(marketingStudio).toContain("Carte de visite");
     expect(marketingStudio).toContain("Carte du restaurant");
