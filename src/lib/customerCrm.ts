@@ -260,3 +260,152 @@ export function buildCustomerCrmInsights(profile: CustomerCrmProfile): CustomerC
     nextBestActions: nextBestActions.slice(0, 3),
   };
 }
+
+type CustomerCrmExportKind = "text" | "number" | "money" | "date" | "phone";
+
+type CustomerCrmExportColumn = {
+  header: string;
+  kind: CustomerCrmExportKind;
+  getValue: (profile: CustomerCrmProfile, insights: CustomerCrmInsights) => string | number | null;
+};
+
+const CUSTOMER_CRM_EXPORT_COLUMNS: CustomerCrmExportColumn[] = [
+  { header: "Nom complet", kind: "text", getValue: (profile) => profile.fullName },
+  { header: "Prenom", kind: "text", getValue: (profile) => profile.firstName },
+  { header: "Nom", kind: "text", getValue: (profile) => profile.lastName },
+  { header: "Email", kind: "text", getValue: (profile) => profile.email },
+  { header: "Telephone", kind: "phone", getValue: (profile) => profile.phone },
+  { header: "Ville", kind: "text", getValue: (profile) => profile.city },
+  { header: "Adresse", kind: "text", getValue: (profile) => profile.address },
+  { header: "Restaurant recent", kind: "text", getValue: (profile) => profile.lastRestaurantName },
+  { header: "Score CRM", kind: "number", getValue: (profile) => profile.crmScore },
+  { header: "Segment principal", kind: "text", getValue: (_profile, insights) => insights.profileLabel },
+  { header: "Commandes", kind: "number", getValue: (profile) => profile.totalOrders },
+  { header: "Reservations", kind: "number", getValue: (profile) => profile.totalReservations },
+  { header: "Restaurants visites", kind: "number", getValue: (profile) => profile.restaurantsCount },
+  { header: "Depense totale CHF", kind: "money", getValue: (profile) => profile.totalSpent.toFixed(2) },
+  { header: "Panier moyen CHF", kind: "money", getValue: (profile) => profile.avgOrderValue.toFixed(2) },
+  { header: "Points Miamz", kind: "number", getValue: (profile) => profile.loyaltyPoints },
+  { header: "Canal prefere", kind: "text", getValue: (profile) => getPreferredChannelLabel(profile.preferredChannel) },
+  { header: "Service prefere", kind: "text", getValue: (profile) => getPreferredServiceLabel(profile.preferredService) },
+  { header: "Jour prefere", kind: "text", getValue: (profile) => getPreferredWeekdayLabel(profile.preferredWeekday) },
+  { header: "Heure commande", kind: "text", getValue: (profile) => getPreferredHourLabel(profile.favoriteOrderHour) },
+  { header: "Heure reservation", kind: "text", getValue: (profile) => getPreferredHourLabel(profile.favoriteReservationHour) },
+  { header: "Cuisines preferees", kind: "text", getValue: (profile) => csvList(profile.favoriteCuisines) },
+  {
+    header: "Plats favoris",
+    kind: "text",
+    getValue: (profile) =>
+      profile.favoriteItems
+        .map((item) => `${item.label}${item.quantity > 0 ? ` x${item.quantity}` : ""}`)
+        .join(" | "),
+  },
+  { header: "Premiere activite", kind: "date", getValue: (profile) => formatCustomerCrmDate(profile.firstSeenAt) },
+  { header: "Derniere activite", kind: "date", getValue: (profile) => formatCustomerCrmDate(profile.lastActivityAt) },
+  { header: "Derniere commande", kind: "date", getValue: (profile) => formatCustomerCrmDate(profile.lastOrderAt) },
+  { header: "Derniere reservation", kind: "date", getValue: (profile) => formatCustomerCrmDate(profile.lastReservationAt) },
+  { header: "Actions conseillees", kind: "text", getValue: (_profile, insights) => csvList(insights.nextBestActions) },
+];
+
+function csvCell(value: unknown, kind: CustomerCrmExportKind = "text") {
+  const rawValue = value === null || value === undefined ? "" : String(value);
+  if (kind === "phone" && /^(\+|0)/.test(rawValue) && /^[+\d\s()./-]+$/.test(rawValue)) {
+    return `"=""${rawValue.replace(/"/g, '""')}"""`;
+  }
+  return `"${rawValue.replace(/"/g, '""')}"`;
+}
+
+function csvList(values: string[]) {
+  return values.filter(Boolean).join(" | ");
+}
+
+function getCustomerCrmExportRows(profiles: CustomerCrmProfile[]) {
+  return profiles.map((profile) => {
+    const insights = buildCustomerCrmInsights(profile);
+    return CUSTOMER_CRM_EXPORT_COLUMNS.map((column) => ({
+      kind: column.kind,
+      value: column.getValue(profile, insights),
+    }));
+  });
+}
+
+export function buildCustomerCrmCsv(profiles: CustomerCrmProfile[]) {
+  const headers = CUSTOMER_CRM_EXPORT_COLUMNS.map((column) => csvCell(column.header));
+  const rows = getCustomerCrmExportRows(profiles).map((row) =>
+    row.map((cell) => csvCell(cell.value, cell.kind)).join(";"),
+  );
+
+  return [headers.join(";"), ...rows].join("\r\n");
+}
+
+function xmlCell(value: unknown) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function excelCell(value: unknown, kind: CustomerCrmExportKind, styleId?: string) {
+  const rawValue = value === null || value === undefined ? "" : String(value);
+  if ((kind === "number" || kind === "money") && rawValue.trim() !== "" && Number.isFinite(Number(rawValue))) {
+    return `<Cell${styleId ? ` ss:StyleID="${styleId}"` : ""}><Data ss:Type="Number">${Number(rawValue)}</Data></Cell>`;
+  }
+
+  return `<Cell${styleId ? ` ss:StyleID="${styleId}"` : ""}><Data ss:Type="String">${xmlCell(rawValue)}</Data></Cell>`;
+}
+
+export function buildCustomerCrmXls(profiles: CustomerCrmProfile[]) {
+  const columnsCount = CUSTOMER_CRM_EXPORT_COLUMNS.length;
+  const rows = getCustomerCrmExportRows(profiles);
+  const autoFilterRange = `R1C1:R${Math.max(rows.length + 1, 2)}C${columnsCount}`;
+  const headerRow = CUSTOMER_CRM_EXPORT_COLUMNS
+    .map((column) => excelCell(column.header, "text", "Header"))
+    .join("");
+  const dataRows = rows
+    .map((row) => `<Row>${row.map((cell) => excelCell(cell.value, cell.kind, cell.kind === "phone" ? "Text" : undefined)).join("")}</Row>`)
+    .join("");
+  const columns = CUSTOMER_CRM_EXPORT_COLUMNS
+    .map((column) => `<Column ss:AutoFitWidth="1" ss:Width="${column.kind === "text" ? 160 : 110}" />`)
+    .join("");
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+  xmlns:o="urn:schemas-microsoft-com:office:office"
+  xmlns:x="urn:schemas-microsoft-com:office:excel"
+  xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+  xmlns:html="http://www.w3.org/TR/REC-html40">
+  <Styles>
+    <Style ss:ID="Default" ss:Name="Normal">
+      <Alignment ss:Vertical="Top" ss:WrapText="1" />
+      <Font ss:FontName="Calibri" ss:Size="11" />
+    </Style>
+    <Style ss:ID="Header">
+      <Alignment ss:Vertical="Center" ss:WrapText="1" />
+      <Font ss:FontName="Calibri" ss:Size="11" ss:Bold="1" />
+      <Interior ss:Color="#FF5A1F" ss:Pattern="Solid" />
+    </Style>
+    <Style ss:ID="Text">
+      <NumberFormat ss:Format="@" />
+    </Style>
+  </Styles>
+  <Worksheet ss:Name="CRM clients">
+    <Table ss:ExpandedColumnCount="${columnsCount}" ss:ExpandedRowCount="${rows.length + 1}" x:FullColumns="1" x:FullRows="1">
+      ${columns}
+      <Row ss:AutoFitHeight="1">${headerRow}</Row>
+      ${dataRows}
+    </Table>
+    <AutoFilter x:Range="${autoFilterRange}" xmlns="urn:schemas-microsoft-com:office:excel" />
+    <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+      <FreezePanes />
+      <FrozenNoSplit />
+      <SplitHorizontal>1</SplitHorizontal>
+      <TopRowBottomPane>1</TopRowBottomPane>
+      <ActivePane>2</ActivePane>
+      <ProtectObjects>False</ProtectObjects>
+      <ProtectScenarios>False</ProtectScenarios>
+    </WorksheetOptions>
+  </Worksheet>
+</Workbook>`;
+}

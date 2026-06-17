@@ -200,6 +200,13 @@ export type SocialFeedMedia = {
   altText?: string | null;
 };
 
+export type SocialPostDashboardMetrics = {
+  impressions: number;
+  views: number;
+  ctaClicks: number;
+  interactions: number;
+};
+
 export type SocialFeedPost = {
   id: string;
   activityId: string;
@@ -237,6 +244,7 @@ export type SocialFeedPost = {
   offerCode?: string | null;
   utmCampaign?: string | null;
   recommendationReasons?: string[];
+  dashboardMetrics?: SocialPostDashboardMetrics;
   restaurant: {
     id: string;
     name: string;

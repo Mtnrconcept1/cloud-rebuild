@@ -9,8 +9,6 @@ import {
   Megaphone,
   MousePointerClick,
   Newspaper,
-  Repeat2,
-  Share2,
   ShoppingCart,
   Target,
   ThumbsUp,
@@ -27,11 +25,61 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useRestaurantSocialPosts, useSocialInsights } from "@/hooks/useSocialFeed";
 import { SOCIAL_MARKETING_GOALS } from "@/lib/socialFeed";
+import type { SocialFeedPost } from "@/lib/socialFeed";
 import { useDashboardRestaurant } from "@/pages/dashboard/useDashboardRestaurant";
 
 function asNumber(value: unknown) {
   const parsed = Number(value || 0);
   return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function formatCompactMetric(value: number) {
+  return new Intl.NumberFormat("fr-CH", {
+    notation: value >= 10000 ? "compact" : "standard",
+    maximumFractionDigits: 1,
+  }).format(Math.max(0, value));
+}
+
+function DashboardPostMetrics({ post }: { post: SocialFeedPost }) {
+  const metrics = post.dashboardMetrics;
+  const fallbackInteractions = post.likesCount + post.commentsCount + post.repostsCount + post.sharesCount;
+  const impressions = metrics?.impressions ?? 0;
+  const views = metrics?.views ?? 0;
+  const interactions = metrics?.interactions ?? fallbackInteractions;
+  const ctaClicks = metrics?.ctaClicks ?? 0;
+
+  return (
+    <div className="grid gap-2 rounded-2xl border border-orange-100 bg-gradient-to-r from-orange-50 via-white to-sky-50 p-2 shadow-sm sm:grid-cols-4">
+      <div className="rounded-xl bg-white/90 px-3 py-2">
+        <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+          <Eye className="h-3.5 w-3.5 text-orange-600" />
+          Impressions
+        </p>
+        <p className="mt-1 text-xl font-black text-slate-950">{formatCompactMetric(impressions)}</p>
+      </div>
+      <div className="rounded-xl bg-white/90 px-3 py-2">
+        <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+          <MousePointerClick className="h-3.5 w-3.5 text-sky-600" />
+          Vues
+        </p>
+        <p className="mt-1 text-xl font-black text-slate-950">{formatCompactMetric(views)}</p>
+      </div>
+      <div className="rounded-xl bg-white/90 px-3 py-2">
+        <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+          <BarChart3 className="h-3.5 w-3.5 text-emerald-600" />
+          Engagement
+        </p>
+        <p className="mt-1 text-xl font-black text-slate-950">{formatCompactMetric(interactions)}</p>
+      </div>
+      <div className="rounded-xl bg-white/90 px-3 py-2">
+        <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+          <Target className="h-3.5 w-3.5 text-primary" />
+          CTA
+        </p>
+        <p className="mt-1 text-xl font-black text-slate-950">{formatCompactMetric(ctaClicks)}</p>
+      </div>
+    </div>
+  );
 }
 
 export default function DashboardActualites() {
@@ -130,13 +178,15 @@ export default function DashboardActualites() {
         ) : null}
 
         {selectedRestaurant ? (
-          <div className="grid gap-6 xl:grid-cols-[minmax(0,24rem)_minmax(0,1fr)]">
-            <div className="space-y-4">
-              <SocialComposer
-                restaurantId={selectedRestaurant.id}
-                restaurantName={selectedRestaurant.name}
-                socialLinks={selectedRestaurant.socialLinks || null}
-              />
+          <div className="space-y-6">
+            <SocialComposer
+              restaurantId={selectedRestaurant.id}
+              restaurantName={selectedRestaurant.name}
+              socialLinks={selectedRestaurant.socialLinks || null}
+            />
+
+            <div className="grid gap-6 xl:grid-cols-[minmax(18rem,22rem)_minmax(0,1fr)]">
+              <div className="space-y-4">
               <Card className="rounded-lg">
                 <CardContent className="space-y-4 p-4">
                   <div className="flex items-center justify-between gap-3">
@@ -219,9 +269,9 @@ export default function DashboardActualites() {
                 <Card className="rounded-lg"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Taux engagement</p><p className="text-2xl font-bold">{insights?.engagementRate ?? 0}%</p></CardContent></Card>
                 <Card className="rounded-lg"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Posts avec CTA</p><p className="text-2xl font-bold">{conversionFocus}%</p></CardContent></Card>
               </div>
-            </div>
+              </div>
 
-            <section className="space-y-4">
+              <section className="space-y-4">
               <div className="grid gap-3 lg:grid-cols-3">
                 {recommendations.slice(0, 3).map((recommendation: string, index: number) => (
                   <Card key={`${recommendation}-${index}`} className="rounded-lg">
@@ -237,13 +287,21 @@ export default function DashboardActualites() {
               </div>
 
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <h2 className="font-display text-xl font-semibold">Posts</h2>
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-muted-foreground">
-                  <span className="inline-flex items-center gap-1"><Eye className="h-4 w-4" /> {insights?.impressions ?? 0}</span>
-                  <span className="inline-flex items-center gap-1"><MousePointerClick className="h-4 w-4" /> {insights?.clicks ?? 0}</span>
-                  <span className="inline-flex items-center gap-1"><Repeat2 className="h-4 w-4" /> {posts.reduce((sum, post) => sum + post.repostsCount, 0)}</span>
-                  <span className="inline-flex items-center gap-1"><Share2 className="h-4 w-4" /> {posts.reduce((sum, post) => sum + post.sharesCount, 0)}</span>
-                  <span className="inline-flex items-center gap-1"><BarChart3 className="h-4 w-4" /> {insights?.interactions ?? interactions}</span>
+                <div>
+                  <h2 className="font-display text-xl font-semibold">Posts</h2>
+                  <p className="text-sm text-muted-foreground">
+                    Impressions et vues visibles uniquement dans votre dashboard.
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs font-semibold text-muted-foreground">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-orange-50 px-3 py-1 text-orange-700">
+                    <Eye className="h-3.5 w-3.5" />
+                    Performance par post
+                  </span>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-3 py-1 text-sky-700">
+                    <MousePointerClick className="h-3.5 w-3.5" />
+                    Lecture restaurateur
+                  </span>
                 </div>
               </div>
               {postsQuery.isLoading ? (
@@ -252,6 +310,7 @@ export default function DashboardActualites() {
                 <div className="space-y-4">
                   {posts.map((post) => (
                     <div key={post.id} className="space-y-2">
+                      <DashboardPostMetrics post={post} />
                       <div className="flex justify-end">
                         <SocialPostBoostDialog
                           post={post}
@@ -267,7 +326,8 @@ export default function DashboardActualites() {
               ) : (
                 <Card className="rounded-lg"><CardContent className="p-8 text-center text-muted-foreground">Aucun post publié.</CardContent></Card>
               )}
-            </section>
+              </section>
+            </div>
           </div>
         ) : null}
       </div>

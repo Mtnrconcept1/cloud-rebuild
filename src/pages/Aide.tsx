@@ -1,35 +1,37 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  Search,
-  ChevronRight,
-  ShoppingBag,
-  User,
-  CreditCard,
-  ShieldCheck,
-  Truck,
-  HelpCircle,
-  MessageSquare,
-  Mail,
-  Phone,
+  BadgePercent,
+  Bell,
   CalendarDays,
-  Zap,
-  Leaf,
-  Star,
-  UtensilsCrossed,
-  Store,
+  ChevronRight,
+  CreditCard,
   Gift,
+  HeartHandshake,
+  HelpCircle,
+  Leaf,
+  Mail,
+  MapPin,
+  MessageSquare,
+  Phone,
+  ReceiptText,
+  Search,
+  ShieldCheck,
+  ShoppingBag,
+  Smartphone,
+  Star,
+  Store,
+  Truck,
+  User,
+  UtensilsCrossed,
+  Zap,
 } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import TokAiSupportChat from "@/components/support/TokAiSupportChat";
-import { SUPPORT_EMAIL } from "@/lib/contact";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import { Link } from "react-router-dom";
+
+import TokAiSupportChat from "@/components/support/TokAiSupportChat";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { SUPPORT_EMAIL } from "@/lib/contact";
 import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 import { isHelpCategoryVisible, isHelpQuestionVisible } from "@/lib/featureVisibility";
 
@@ -39,24 +41,54 @@ declare global {
   }
 }
 
-const CATEGORIES = [
+type HelpCategory = {
+  id: string;
+  title: string;
+  description: string;
+  icon: typeof HelpCircle;
+  color: string;
+  bg: string;
+};
+
+type FaqItem = {
+  q: string;
+  a: string;
+};
+
+type FaqSection = {
+  category: string;
+  questions: FaqItem[];
+};
+
+const CATEGORIES: HelpCategory[] = [
+  {
+    id: "getting-started",
+    title: "Premiers pas",
+    description: "Créer son compte, chercher un restaurant, comprendre TOK.",
+    icon: Smartphone,
+    color: "text-orange-600",
+    bg: "bg-orange-50",
+  },
   {
     id: "orders",
-    title: "Mes Commandes",
+    title: "Commandes",
+    description: "Panier, validation, suivi, annulation et problèmes.",
     icon: ShoppingBag,
     color: "text-green-600",
     bg: "bg-green-50",
   },
   {
     id: "account",
-    title: "Compte & Paiement",
+    title: "Compte & paiement",
+    description: "Connexion, cartes, factures, sécurité et données.",
     icon: CreditCard,
     color: "text-blue-600",
     bg: "bg-blue-50",
   },
   {
     id: "delivery",
-    title: "Livraison & Retrait",
+    title: "Livraison & retrait",
+    description: "Adresse, retrait à emporter, retards et créneaux.",
     icon: Truck,
     color: "text-amber-600",
     bg: "bg-amber-50",
@@ -64,6 +96,7 @@ const CATEGORIES = [
   {
     id: "reservations",
     title: "Réservations",
+    description: "Tables, modifications, no-show et expériences premium.",
     icon: CalendarDays,
     color: "text-rose-600",
     bg: "bg-rose-50",
@@ -71,20 +104,31 @@ const CATEGORIES = [
   {
     id: "features",
     title: "Fonctionnalités",
+    description: "Multi-restaurant, groupes, abonnements repas et options.",
     icon: Zap,
     color: "text-indigo-600",
     bg: "bg-indigo-50",
   },
   {
+    id: "offers",
+    title: "Promos & offres",
+    description: "Codes promo, ventes flash, anti-gaspi et bons plans.",
+    icon: BadgePercent,
+    color: "text-red-600",
+    bg: "bg-red-50",
+  },
+  {
     id: "social",
     title: "Actualités",
+    description: "Posts, vidéos, commentaires, recommandations et signalements.",
     icon: MessageSquare,
     color: "text-cyan-600",
     bg: "bg-cyan-50",
   },
   {
     id: "antigaspi",
-    title: "Anti-gaspi & Durabilité",
+    title: "Anti-gaspi",
+    description: "Paniers surprise, dons solidaires et impact écologique.",
     icon: Leaf,
     color: "text-emerald-600",
     bg: "bg-emerald-50",
@@ -92,20 +136,23 @@ const CATEGORIES = [
   {
     id: "membership",
     title: "Tok One",
+    description: "Abonnement, livraison offerte, avantages et résiliation.",
     icon: ShieldCheck,
     color: "text-violet-600",
     bg: "bg-violet-50",
   },
   {
     id: "loyalty",
-    title: "Fidélité & Points",
+    title: "Miamz & cadeaux",
+    description: "Points, niveaux, bonus, cadeaux et fidélité.",
     icon: Star,
     color: "text-yellow-600",
     bg: "bg-yellow-50",
   },
   {
     id: "quality",
-    title: "Qualité & Sécurité",
+    title: "Qualité & sécurité",
+    description: "Hygiène, remboursement, abus, confidentialité et litiges.",
     icon: ShieldCheck,
     color: "text-sky-600",
     bg: "bg-sky-50",
@@ -113,59 +160,136 @@ const CATEGORIES = [
   {
     id: "restaurants",
     title: "Restaurateurs",
+    description: "Inscription, dashboard, commandes, campagnes et facturation.",
     icon: Store,
     color: "text-orange-600",
     bg: "bg-orange-50",
   },
 ];
 
-const FAQS = [
+const URGENT_CASES = [
+  "Commande en cours non reçue, livreur bloqué ou adresse incorrecte.",
+  "Paiement débité sans confirmation visible dans l'application.",
+  "Article manquant, plat renversé, allergène ou problème de sécurité alimentaire.",
+  "Réservation ce soir à modifier, retard important ou impossibilité de venir.",
+];
+
+const FAQS: FaqSection[] = [
+  {
+    category: "getting-started",
+    questions: [
+      {
+        q: "Qu'est-ce que TOK ?",
+        a: "TOK est une plateforme suisse pour commander, réserver, découvrir des restaurants, suivre des offres locales, gagner des Miamz et profiter de services restaurateurs. L'objectif est de simplifier le réflexe food tout en donnant plus de valeur aux restaurants locaux.",
+      },
+      {
+        q: "Comment commencer si je découvre l'application ?",
+        a: "Commencez par saisir votre ville, votre adresse ou votre position approximative. Parcourez les restaurants, les catégories, les offres et les posts Actualités. Quand un restaurant vous intéresse, ouvrez sa fiche pour voir son menu, ses horaires, ses modes de service, ses avis, ses offres et ses options de réservation ou commande.",
+      },
+      {
+        q: "Dois-je créer un compte pour utiliser TOK ?",
+        a: "Vous pouvez explorer une partie de l'application sans compte. Pour commander, réserver, sauvegarder des restaurants, commenter, recevoir des notifications, gagner des Miamz ou suivre une commande, un compte est nécessaire afin de sécuriser vos informations et l'historique.",
+      },
+      {
+        q: "Comment savoir si TOK est disponible dans ma zone ?",
+        a: "Saisissez votre adresse dans la recherche ou dans le panier. L'application vérifie automatiquement les restaurants qui livrent chez vous, ceux disponibles en retrait et les offres proches. Si aucune livraison n'est disponible, le retrait à emporter ou les réservations peuvent rester accessibles selon les restaurants.",
+      },
+      {
+        q: "Pourquoi certains restaurants ou boutons ne s'affichent pas ?",
+        a: "Les restaurants et fonctionnalités dépendent de votre zone, des horaires, du mode de service, du stock, des disponibilités et des fonctionnalités activées par TOK. Si une fonctionnalité est désactivée par la plateforme, elle doit disparaître de l'interface plutôt que rester visible mais inutilisable.",
+      },
+      {
+        q: "Comment rechercher rapidement un restaurant ou un plat ?",
+        a: "Utilisez la barre de recherche avec un nom de restaurant, une cuisine, un plat, un hashtag, une ville ou une envie simple comme pizza, sushi, halal, burger, terrasse, dessert ou déjeuner. Vous pouvez ensuite filtrer par distance, horaires, livraison, retrait, offres, avis ou préférences.",
+      },
+      {
+        q: "Que signifient les badges visibles sur les restaurants ?",
+        a: "Les badges donnent des signaux rapides : type de cuisine, restaurant suivi, offre active, vente flash, anti-gaspi, nouveauté, clients proches, sponsorisé, ouvert en ligne, livraison, retrait ou réservation. Ils servent à comprendre pourquoi un restaurant ou un post remonte dans votre expérience.",
+      },
+      {
+        q: "Comment choisir entre livraison, retrait et réservation ?",
+        a: "La livraison sert à recevoir votre repas à l'adresse choisie. Le retrait à emporter vous permet de commander et récupérer au restaurant à une heure donnée. La réservation sert à bloquer une table, parfois avec des options premium comme Zéro Attente ou La Table du Chef si elles sont disponibles.",
+      },
+      {
+        q: "Que faire si l'application semble bloquée ou n'affiche pas les données ?",
+        a: "Actualisez la page, vérifiez votre connexion, désactivez temporairement les bloqueurs trop agressifs, reconnectez-vous si nécessaire et essayez de vider le cache du navigateur. Si le problème touche une commande, une réservation ou un paiement, contactez le support avec une capture et l'heure exacte.",
+      },
+      {
+        q: "TOK est-il une marketplace ou le restaurant reste-t-il responsable de ses plats ?",
+        a: "TOK facilite la découverte, la commande, le paiement, le suivi, la fidélité et certains outils opérationnels. Le restaurant reste responsable de la préparation, de la qualité des plats, des informations de menu, des allergènes déclarés et des horaires qu'il configure.",
+      },
+    ],
+  },
   {
     category: "orders",
     questions: [
       {
-        q: "Ou est ma commande ?",
-        a: "Vous pouvez suivre votre commande en temps réel depuis l'onglet 'Commandes' de votre profil. Une fois le livreur en route, vous verrez sa position sur la carte avec une estimation du temps d'arrivée. Vous recevrez aussi des notifications à chaque étape : confirmation par le restaurant, début de préparation, livreur en route, et arrivée imminente.",
+        q: "Comment passer une commande ?",
+        a: "Ouvrez la fiche du restaurant, choisissez vos plats, options et quantités, puis ajoutez-les au panier. Dans le panier, vérifiez le restaurant, le mode de service, l'adresse ou l'heure de retrait, les frais, les réductions, le total et le moyen de paiement. La commande est transmise au restaurant uniquement après validation du paiement lorsque le mode choisi l'exige.",
+      },
+      {
+        q: "Quand ma commande est-elle vraiment confirmée ?",
+        a: "Pour les paiements carte, TWINT ou PostFinance, la commande ne doit être confirmée qu'après confirmation du paiement. Avant cela, elle peut être en attente, en création ou en échec. Si vous recevez une notification de confirmation mais que le paiement échoue, contactez le support : c'est un cas à vérifier immédiatement.",
+      },
+      {
+        q: "Où suivre ma commande ?",
+        a: "Rendez-vous dans Mes commandes ou ouvrez la notification reçue. Vous verrez les étapes disponibles : commande créée, paiement confirmé, acceptée par le restaurant, en préparation, prête, prise en charge, en livraison, livrée, annulée ou remboursée selon le cas.",
+      },
+      {
+        q: "Pourquoi le restaurant doit-il accepter la commande ?",
+        a: "Même si le paiement est autorisé, le restaurant peut devoir confirmer sa capacité à préparer la commande selon ses horaires, son stock et son volume. Si le restaurant refuse ou ne répond pas dans le délai prévu, TOK doit annuler ou relancer le flux et vous informer clairement.",
+      },
+      {
+        q: "Puis-je modifier une commande après paiement ?",
+        a: "C'est possible uniquement très tôt, avant le début de préparation et selon la réponse du restaurant. Contactez le support depuis la commande. Une fois la préparation lancée, il faut généralement passer une nouvelle commande ou traiter la demande comme un cas support.",
       },
       {
         q: "Comment annuler une commande ?",
-        a: "L'annulation est possible tant que le restaurant n'a pas commencé la préparation. Rendez-vous dans les détails de votre commande et appuyez sur 'Annuler la commande'. Si l'option n'apparaît plus, le restaurant a déjà débuté la préparation et l'annulation n'est plus possible. Le remboursement est effectué sous 5 à 10 jours ouvrables sur votre moyen de paiement d'origine.",
+        a: "Ouvrez la commande et utilisez l'action d'annulation si elle est disponible. Elle disparaît lorsque la préparation est trop avancée ou que le restaurant a déjà engagé des coûts. Si le bouton n'est plus visible, contactez le support : l'équipe vérifiera si une annulation exceptionnelle est possible.",
+      },
+      {
+        q: "J'ai été débité mais la commande n'apparaît pas",
+        a: `Attendez une minute puis vérifiez Mes commandes. Si aucune commande n'apparaît, contactez le support avec l'heure, le montant, le moyen de paiement et si possible une capture de la transaction. Écrivez aussi à ${SUPPORT_EMAIL} si le chat n'est pas disponible. Le paiement sera rapproché et remboursé si aucune commande valide n'existe.`,
+      },
+      {
+        q: "Le restaurant a annulé ma commande, que se passe-t-il ?",
+        a: "Vous êtes notifié et le paiement est annulé ou remboursé selon son état. Une autorisation bancaire peut disparaître en quelques jours, tandis qu'un remboursement confirmé peut prendre 5 à 10 jours ouvrables selon la banque. TOK peut proposer une alternative ou un crédit selon la situation.",
       },
       {
         q: "Il manque un article dans ma commande",
-        a: `Nous en sommes désolés. Signalez le problème via le chat de support ou contactez-nous directement à ${SUPPORT_EMAIL} en précisant votre numéro de commande et l'article manquant. Après vérification auprès du restaurant, un remboursement partiel ou un crédit Tok sera appliqué sous 48h.`,
+        a: `Signalez le problème depuis la commande avec le nom de l'article manquant. Ajoutez une photo du reçu ou du sac si possible. TOK vérifie avec le restaurant et propose selon le cas un remboursement partiel, un crédit ou une solution commerciale. Pour un traitement rapide, indiquez le numéro de commande à ${SUPPORT_EMAIL}.`,
       },
       {
-        q: "Comment modifier ma commande après validation ?",
-        a: "Pour toute modification après validation, contactez notre support via le chat en bas de page dans les premières minutes suivant votre commande. Passe le début de préparation par le restaurant, la modification n'est plus possible — vous devrez annuler la commande et en passer une nouvelle.",
+        q: "J'ai reçu le mauvais plat",
+        a: "Ne jetez pas immédiatement l'emballage si une preuve est nécessaire. Prenez une photo du plat reçu, du ticket et du numéro de commande, puis ouvrez un ticket. Si un allergène ou une restriction alimentaire est concerné, indiquez-le en priorité : ces cas sont traités comme sensibles.",
       },
       {
-        q: "Comment utiliser un code promo ?",
-        a: "Lors du récapitulatif de commande, appuyez sur 'Ajouter un code promo' et saisissez votre code. La réduction sera appliquée automatiquement au montant total. Les codes promos ne sont pas cumulables sauf mention contraire. Chaque code a une date d'expiration et des conditions d'utilisation spécifiques (montant minimum, restaurants éligibles, etc.).",
+        q: "Puis-je commander à nouveau la même chose ?",
+        a: "Oui, ouvrez l'historique, sélectionnez la commande et utilisez Commander à nouveau si l'action existe. Le panier est reconstruit avec les articles encore disponibles. Les prix, stocks, frais et promotions peuvent être différents de la commande d'origine.",
       },
       {
-        q: "Je souhaite demander un remboursement",
-        a: "Rendez-vous dans l'historique de vos commandes, sélectionnez la commande concernée, puis appuyez sur 'Signaler un problème'. Décrivez le souci rencontré (article manquant, qualité insatisfaisante, retard excessif) et notre équipe traitera votre demande sous 48h ouvrées. Le remboursement sera effectué sur votre moyen de paiement d'origine ou en crédit Tok, selon la nature du problème.",
+        q: "Pourquoi mon total a-t-il changé entre le menu et le panier ?",
+        a: "Le total final peut inclure options, suppléments, consigne, frais de service, livraison, réductions, code promo, Miamz, taxes applicables ou frais liés au mode de paiement. Le panier est la source d'affichage la plus complète avant paiement.",
       },
       {
-        q: "Puis-je repasser la même commande ?",
-        a: "Oui ! Depuis votre historique de commandes, appuyez sur 'Commander à nouveau' sur n'importe quelle commande passée. Le panier sera pré-rempli avec les mêmes articles, sous réserve de disponibilité au restaurant. Vous pourrez modifier les quantités ou ajouter d'autres articles avant de valider.",
+        q: "Pourquoi un plat devient indisponible pendant que je commande ?",
+        a: "Les stocks et horaires peuvent changer en temps réel. Un plat peut être retiré si le restaurant le marque indisponible, si une vente flash est terminée, si l'horaire de service change ou si le stock restant est réservé par d'autres clients.",
       },
       {
-        q: "Comment commander depuis plusieurs restaurants en une seule commande ?",
-        a: "Avec la fonctionnalité Multi-Restaurant, vous pouvez composer un repas complet en choisissant une entrée, un plat et un dessert depuis différents restaurants situés dans un rayon de 500m. Toutes les commandes sont synchronisées pour arriver en même temps. Sélectionnez l'option 'Multi-Restaurant' depuis la page d'accueil pour commencer.",
+        q: "Comment gérer les allergies ou restrictions alimentaires ?",
+        a: "Lisez les informations allergènes affichées sur le plat et utilisez les instructions lorsque le restaurant les accepte. Pour une allergie sévère, contactez directement le restaurant avant de commander. TOK ne peut pas garantir l'absence de contamination croisée si le restaurant ne la confirme pas explicitement.",
       },
       {
-        q: "Comment fonctionne la commande groupée ?",
-        a: "Avec Match Groupes, vous pouvez rejoindre un groupe existant ou en créer un nouveau. Chaque membre commande ses plats individuellement et bénéficie d'une réduction collective (jusqu’à -25%) grâce à la mutualisation de la livraison. Vous pouvez trouver les groupes actifs près de chez vous ou inviter vos proches à rejoindre le vôtre.",
+        q: "Puis-je ajouter un pourboire ?",
+        a: "Si le pourboire est disponible, il apparaît dans le panier ou après livraison. Le montant doit être clair avant validation. Si l'option n'apparaît pas, elle n'est pas active pour ce restaurant, ce mode de service ou cette zone.",
       },
       {
-        q: "Puis-je commander pour quelqu'un à une autre adresse ?",
-        a: "Oui, grâce à la fonctionnalité Multi-Stop. Vous pouvez ajouter jusqu’à 4 adresses de livraison différentes dans une seule commande. Chaque arrêt a ses propres articles et destinataire. Les frais de livraison sont optimisés et partagés entre les différents arrêts (base 5.90 CHF + 1.50 CHF par arrêt supplémentaire).",
+        q: "Comment utiliser une note pour le restaurant ?",
+        a: "Ajoutez une instruction courte, utile et réaliste : sans oignon, sauce à part, cuisson, couverts, nom à l'accueil. Les demandes non garanties, les changements de prix ou les ajouts payants ne peuvent pas toujours être acceptés via une note.",
       },
       {
-        q: "Mon plat est arrive froid, que faire ?",
-        a: "Si vous avez souscrit à la Garantie Qualité (+1.50 CHF), notre système détecte automatiquement les anomalies de température et vous serez remboursé à 100% si la température est inférieure à 55°C. Sans la garantie, signalez le problème via le chat de support avec une photo si possible — notre équipe évaluera la situation et proposera une compensation appropriée.",
+        q: "Que faire si la commande est indiquée livrée mais que je n'ai rien reçu ?",
+        a: "Vérifiez l'adresse, le hall, la réception, le voisinage immédiat et vos appels manqués. Contactez ensuite le support avec votre numéro de commande. TOK vérifie l'heure de livraison, les messages, le suivi et les preuves disponibles avant de statuer.",
       },
     ],
   },
@@ -174,43 +298,59 @@ const FAQS = [
     questions: [
       {
         q: "Comment créer un compte ?",
-        a: "Appuyez sur 'S'inscrire' depuis l'écran de connexion. Vous pouvez créer un compte avec votre email ou vous connecter directement via Google ou Apple. Un email de vérification vous sera envoyé pour confirmer votre adresse. Votre compte vous donne accès à l'historique de commandes, aux points de fidélité, aux adresses enregistrées et à toutes les fonctionnalités de la plateforme.",
+        a: "Utilisez l'inscription par email ou un fournisseur compatible comme Google ou Apple lorsqu'il est activé. Confirmez votre email si demandé. Ajoutez ensuite votre nom, prénom, téléphone et adresses pour accélérer les commandes et réservations.",
       },
       {
         q: "Quels moyens de paiement sont acceptés ?",
-        a: "Tok accepte les moyens de paiement suivants : Visa, Mastercard, TWINT, Apple Pay et Google Pay. Vous pouvez également utiliser votre solde de crédit Tok (reçu via des remboursements ou des cadeaux de points). Pour les packs restaurateurs, PostFinance Card et PostFinance E-Finance sont également acceptés.",
+        a: "TOK peut accepter carte bancaire, TWINT, PostFinance, Apple Pay, Google Pay ou d'autres moyens selon la configuration active. Les moyens visibles dans le panier sont ceux réellement disponibles pour votre commande, votre zone et le restaurant choisi.",
       },
       {
-        q: "Comment changer mon mode de paiement ?",
-        a: "Allez dans 'Profil' > 'Moyens de paiement' pour ajouter, modifier ou supprimer vos cartes bancaires. Vous pouvez enregistrer plusieurs cartes et définir une carte par défaut. Le changement de méthode de paiement est également possible au moment du checkout.",
+        q: "Pourquoi un moyen de paiement n'apparaît pas ?",
+        a: "Il peut être indisponible pour ce montant, ce type d'achat, le pays, le navigateur, le restaurant, l'environnement ou la configuration Stripe. Utilisez un autre moyen de paiement visible ou contactez le support si un moyen annoncé ne s'affiche jamais.",
       },
       {
-        q: "Réinitialiser mon mot de passe",
-        a: `Cliquez sur 'Mot de passe oublié' sur la page de connexion. Saisissez votre email et vous recevrez un lien de réinitialisation valable 24 heures. Si vous ne recevez pas l'email, vérifiez vos spams ou contactez le support à ${SUPPORT_EMAIL}.`,
+        q: "Comment changer ou supprimer une carte ?",
+        a: "Allez dans Profil, Moyens de paiement ou dans le portail de paiement si disponible. Vous pouvez ajouter, choisir par défaut ou retirer une carte. Une carte associée à un abonnement actif peut demander un remplacement avant suppression.",
       },
       {
-        q: "Comment modifier mes informations personnelles ?",
-        a: "Rendez-vous dans 'Profil' > 'Informations personnelles' pour modifier votre nom, email, numéro de téléphone ou adresse de livraison par défaut. Certaines modifications (comme l'email) peuvent nécessiter une vérification par email.",
+        q: "Mes informations bancaires sont-elles stockées par TOK ?",
+        a: "TOK ne doit pas stocker vos numéros de carte complets. Les paiements sont traités par des prestataires sécurisés. L'application conserve uniquement les références techniques nécessaires au suivi, à la facturation, au remboursement ou à l'abonnement.",
+      },
+      {
+        q: "Comment récupérer une facture ou un reçu ?",
+        a: "Ouvrez la commande, la réservation payée ou l'abonnement concerné. Les reçus disponibles indiquent le montant, la date, le restaurant, le moyen de paiement et les frais. Si vous avez besoin d'un justificatif spécifique, contactez le support avec la référence.",
+      },
+      {
+        q: "Comment modifier mon email ou mon téléphone ?",
+        a: "Ouvrez Profil puis Informations personnelles. Une modification d'email ou de téléphone peut demander une vérification. Gardez un numéro joignable : il est essentiel pour les livreurs, restaurants et notifications urgentes.",
+      },
+      {
+        q: "Je ne reçois pas l'email de connexion ou de réinitialisation",
+        a: "Vérifiez les spams, l'orthographe de l'adresse et attendez quelques minutes. Essayez de demander un nouveau lien. Si rien n'arrive, contactez le support avec l'adresse concernée, sans envoyer de mot de passe.",
+      },
+      {
+        q: "Comment réinitialiser mon mot de passe ?",
+        a: `Depuis la page de connexion, utilisez Mot de passe oublié, saisissez votre email et ouvrez le lien reçu. Le lien est temporaire. Si vous ne recevez rien, vérifiez les spams puis contactez ${SUPPORT_EMAIL}.`,
+      },
+      {
+        q: "Puis-je utiliser plusieurs rôles avec le même compte ?",
+        a: "Un même utilisateur peut disposer de plusieurs rôles si TOK les lui attribue, par exemple client et restaurateur. Les données visibles changent selon le rôle actif. Les informations sensibles restent séparées par permissions et règles serveur.",
       },
       {
         q: "Comment supprimer mon compte ?",
-        a: "Vous pouvez demander la suppression de votre compte depuis 'Profil' > 'Paramètres' > 'Supprimer mon compte'. Cette action est irréversible et entraîne la perte de vos points de fidélité, crédits, historique de commandes et réservations. La suppression sera effective sous 30 jours. Conformément à la LPD et au RGPD, vos données personnelles seront supprimées de nos serveurs.",
+        a: "Depuis Profil ou Contact, demandez la suppression. Certaines données peuvent être conservées temporairement pour obligations légales, comptables, anti-fraude ou litiges. Les points, avantages, historiques personnels et préférences non nécessaires seront supprimés ou anonymisés selon les règles applicables.",
       },
       {
-        q: "Mes paiements sont-ils sécurisés ?",
-        a: "Absolument. Tous les paiements sont traités par des prestataires certifiés PCI-DSS. Vos informations bancaires ne sont jamais stockées sur nos serveurs — seuls des tokens sécurisés sont utilisés. Chaque transaction est protégée par un chiffrement SSL 256 bits et l'authentification 3D Secure est activée quand nécessaire.",
+        q: "Pourquoi dois-je fournir mon téléphone ?",
+        a: "Le téléphone sert aux situations opérationnelles : livreur qui ne trouve pas l'adresse, restaurant qui doit confirmer une précision, support urgent ou sécurité de compte. Il ne doit pas être utilisé pour du spam.",
       },
       {
-        q: "Comment ajouter une adresse de livraison ?",
-        a: "Depuis 'Profil' > 'Adresses', appuyez sur 'Ajouter une adresse'. Vous pouvez saisir votre adresse manuellement ou utiliser la géolocalisation. Ajoutez des détails pratiques (code d'entrée, étage, interphone) pour faciliter la livraison. Vous pouvez enregistrer plusieurs adresses (domicile, bureau, etc.) et définir une adresse par défaut.",
+        q: "Comment gérer mes notifications ?",
+        a: "Ouvrez Profil ou Notifications. Vous pouvez généralement gérer les alertes de commande, réservation, offres, actualités, fidélité et support. Les notifications transactionnelles importantes peuvent rester nécessaires pour le bon fonctionnement du service.",
       },
       {
-        q: "J'ai été débité mais ma commande n'a pas été confirmée",
-        a: `En cas de débit sans confirmation, vérifiez d'abord votre onglet 'Commandes' — la commande peut être en cours de traitement. Si rien n'apparaît, contactez notre support via le chat ou à ${SUPPORT_EMAIL} avec votre référence de paiement. Nous vérifierons le statut de la transaction et procéderons au remboursement si nécessaire sous 5 à 10 jours ouvrables.`,
-      },
-      {
-        q: "Puis-je me connecter avec Google ou Apple ?",
-        a: "Oui, Tok supporte la connexion via Google et Apple. Si vous avez déjà un compte avec le même email, les comptes seront liés automatiquement. Vous pouvez basculer entre les méthodes de connexion à tout moment depuis les paramètres de votre profil.",
+        q: "Que faire si je pense que mon compte a été utilisé par quelqu'un d'autre ?",
+        a: "Changez immédiatement votre mot de passe, déconnectez les sessions si l'option existe, vérifiez vos moyens de paiement et contactez le support. Ne partagez jamais vos liens de connexion, codes ou emails de réinitialisation.",
       },
     ],
   },
@@ -218,48 +358,52 @@ const FAQS = [
     category: "delivery",
     questions: [
       {
-        q: "Quels sont les délais de livraison ?",
-        a: "Les délais de livraison varient en général entre 20 et 45 minutes selon la distance, le restaurant et les conditions de circulation. Le délai estimé est affiché avant la validation de votre commande et mis à jour en temps réel pendant la livraison. Vous pouvez suivre la position du livreur sur la carte en direct.",
+        q: "Quelle est la différence entre livraison et retrait à emporter ?",
+        a: "En livraison, le repas est apporté à votre adresse. En retrait à emporter, vous choisissez une heure de retrait et récupérez la commande au restaurant. Le panier doit afficher Heure de retrait pour l'emporter, et Adresse pour la livraison.",
       },
       {
-        q: "Quelles sont les zones de livraison ?",
-        a: "Tok livre actuellement dans les principales villes de Suisse romande, dont Genève, Lausanne, et les communes environnantes. La disponibilité est vérifiée automatiquement lorsque vous saisissez votre adresse. Si votre zone n'est pas encore couverte, vous pouvez vous inscrire pour être notifié de son ouverture.",
-      },
-      {
-        q: "Les frais de livraison sont-ils fixes ?",
-        a: "Les frais de livraison varient entre 2.90 CHF et 6.90 CHF selon la distance entre le restaurant et votre adresse. Ils sont clairement affichés avant validation. Les abonnés Tok One bénéficient de la livraison gratuite sur les restaurants éligibles (sans minimum de commande). Les commandes groupées (Match Groupes) permettent aussi de réduire les frais par personne.",
-      },
-      {
-        q: "Je ne suis pas chez moi, que se passe-t-il ?",
-        a: "Le livreur tentera de vous contacter par téléphone. Si vous êtes injoignable, il attendra 5 minutes maximum sur place. Passé ce délai, la commande sera considérée comme livrée. Pour éviter ce problème, pensez à ajouter des instructions de livraison détaillées (code d'entrée, étage, digicode) et assurez-vous que votre téléphone est joignable.",
+        q: "Comment choisir une heure de retrait ?",
+        a: "Sélectionnez À emporter, choisissez la date et un créneau disponible. Les créneaux respectent les horaires du restaurant et sa capacité. Présentez-vous avec votre numéro de commande lorsque la commande est prête ou à l'heure prévue.",
       },
       {
         q: "Puis-je programmer une livraison à l'avance ?",
-        a: "Oui ! Lors de la commande, sélectionnez l'option 'Programmer' au lieu de 'Dès que possible'. Vous pouvez planifier une livraison jusqu’à 7 jours à l'avance, sous réserve de la disponibilité du restaurant. Vous recevrez un rappel avant l'heure de livraison prévue.",
+        a: "Oui si le restaurant accepte la programmation. Choisissez une date et un horaire dans le panier. La commande peut être transmise plus tard au restaurant selon le flux prévu, mais votre paiement et votre confirmation doivent rester cohérents avec le statut affiché.",
       },
       {
-        q: "Comment fonctionne le click & collect (à emporter) ?",
-        a: "Sélectionnez l'option 'À emporter' lors de votre commande. Choisissez l'heure de retrait souhaitée. Vous recevrez une notification lorsque votre commande sera prête à être retirée. Présentez-vous au restaurant avec votre numéro de commande pour récupérer votre repas. Aucun frais de livraison ne s'applique pour les commandes à emporter.",
+        q: "Comment les délais sont-ils estimés ?",
+        a: "Les délais tiennent compte de la préparation, de la distance, du trafic, de la disponibilité des livreurs, du volume du restaurant et du mode de service. Une estimation reste indicative tant que le restaurant et la livraison n'ont pas confirmé les étapes clés.",
       },
       {
-        q: "Mon livreur ne trouve pas mon adresse",
-        a: "Assurez-vous que votre adresse est correcte et complète dans votre profil. Ajoutez des instructions de livraison détaillées (numéro de bâtiment, code d'entrée, étage, interphone). Si le livreur est en difficulté, il vous contactera directement par téléphone. Vous pouvez également suivre sa position sur la carte et le guider par message.",
+        q: "Que faire si le livreur ne trouve pas mon adresse ?",
+        a: "Gardez votre téléphone disponible, ajoutez code d'entrée, étage, nom sur la sonnette et instructions précises. Si le livreur vous contacte, répondez rapidement. Une adresse imprécise peut provoquer du retard ou une livraison impossible.",
+      },
+      {
+        q: "Puis-je modifier l'adresse après commande ?",
+        a: "Seulement si la commande n'est pas trop avancée et si la nouvelle adresse reste dans la zone. Contactez le support immédiatement. Un changement d'adresse peut entraîner des frais ou être refusé si le restaurant ou le livreur ne peut pas suivre.",
       },
       {
         q: "Que sont les Créneaux Garantis ?",
-        a: "Les Créneaux Garantis vous permettent de choisir un créneau de livraison précis avec une garantie de ponctualité. Trois niveaux sont disponibles : Ultra Précis (±15 min, remboursement à 100% si manqué, +2.50 CHF), Standard (±30 min, 5 CHF de crédit, +1.00 CHF) et Flexible (±60 min, 2 CHF de crédit, gratuit). Si le livreur ne respecte pas le créneau, la compensation est automatique.",
+        a: "Les Créneaux Garantis permettent de choisir une fenêtre de livraison plus précise avec une compensation prévue si le créneau n'est pas respecté. Les règles exactes, prix et compensations doivent être affichés avant validation.",
       },
       {
         q: "Comment fonctionne Flex Prix Bas ?",
-        a: "Flex Prix Bas vous propose une réduction en échange d'une fenêtre de livraison plus large. Plus la fenêtre est grande, plus la réduction est importante : 1h (-15%), 1h30 (-25%), 2h (-35%), ou fenêtre max 3h (-45%). L'algorithme optimise le meilleur moment de livraison dans votre créneau. Cela réduit aussi l'empreinte carbone en optimisant les trajets (jusqu’à -30% de CO2).",
+        a: "Flex Prix Bas propose une remise en échange d'une fenêtre de livraison plus large. Plus vous êtes flexible, plus l'organisation peut optimiser les trajets et réduire les coûts. La remise et la fenêtre exacte sont affichées avant paiement.",
       },
       {
-        q: "Que se passe-t-il si ma commande est en retard ?",
-        a: "Si vous avez choisi un Créneau Garanti, la compensation est automatique selon le niveau choisi. Pour les livraisons standards, si le retard dépasse 15 minutes au-delà de l'estimation affichée, contactez le support via le chat. Nous évaluerons la situation et proposerons une compensation (crédit Tok ou livraison gratuite sur la prochaine commande).",
+        q: "Je ne suis pas là au moment de la livraison",
+        a: "Le livreur tente de vous joindre. Sans réponse, il peut attendre un temps limité et suivre la procédure prévue. Une commande alimentaire ne peut pas toujours être relivrée ou remboursée si l'adresse était correcte et que vous étiez absent.",
       },
       {
-        q: "Livrez-vous le dimanche et les jours fériés ?",
-        a: "Oui, la disponibilité de la livraison dépend des horaires d'ouverture des restaurants partenaires. De nombreux restaurants sont ouverts le dimanche et certains jours fériés. Les horaires de chaque restaurant sont affichés sur sa fiche. La plateforme est accessible 7 jours sur 7.",
+        q: "Puis-je demander une livraison sans contact ?",
+        a: "Ajoutez une instruction claire dans l'adresse ou la note de livraison : déposer devant la porte, sonner puis partir, réception, hall. Pour des raisons de preuve ou de sécurité, le livreur peut tout de même devoir confirmer la remise.",
+      },
+      {
+        q: "Pourquoi les frais de livraison changent-ils ?",
+        a: "Ils peuvent varier selon distance, zone, demande, météo, disponibilité, restaurant, abonnement, promotion, commande groupée ou seuil de panier. Le montant final doit être visible avant paiement.",
+      },
+      {
+        q: "Le retrait à emporter a du retard, que faire ?",
+        a: "Présentez-vous au comptoir avec votre numéro. Si le restaurant annonce un retard important, ouvrez un ticket ou contactez le support. Le retrait dépend fortement de la charge du restaurant, surtout aux heures de pointe.",
       },
     ],
   },
@@ -268,39 +412,43 @@ const FAQS = [
     questions: [
       {
         q: "Comment réserver une table ?",
-        a: "Rendez-vous sur la page du restaurant souhaité et appuyez sur 'Réserver'. Sélectionnez la date, l'heure et le nombre de convives. Votre réservation sera confirmée instantanément si le créneau est disponible. Vous recevrez une confirmation par notification et par email avec tous les détails.",
-      },
-      {
-        q: "Qu'est-ce que Zéro Attente ?",
-        a: "Zéro Attente est une expérience de réservation premium : vous réservez votre table ET précommandez vos plats en même temps, le tout avec un paiement anticipé. À votre arrivée au restaurant, vos plats sont déjà en préparation — vous n'attendez plus. La réservation apparaît dans l'onglet 'Réservations' du restaurant (et non dans les commandes) avec un badge indigo distinctif.",
-      },
-      {
-        q: "Comment fonctionne le paiement Zéro Attente ?",
-        a: "Lors de la réservation Zéro Attente, vous sélectionnez vos plats depuis le menu du restaurant, puis vous payez directement via Stripe (carte bancaire, TWINT, PostFinance). Le paiement est sécurisé et le montant inclut les plats précommandés. Dès que le paiement est confirmé, votre réservation est automatiquement validée avec le statut 'Confirmée'.",
-      },
-      {
-        q: "Puis-je annuler une réservation ?",
-        a: "L'annulation est possible jusqu’à 2 heures avant l'heure de la réservation. Passé ce délai, une annulation tardive pourrait entraîner des restrictions sur votre compte (signalement no-show). Pour les réservations Zéro Attente (payées), contactez le support pour discuter d'un remboursement ou d'un report de date.",
-      },
-      {
-        q: "Puis-je appliquer une formule à ma réservation ?",
-        a: "Oui, si le restaurant propose des formules (entrée + plat, plat + dessert, menu complet), elles sont applicables lors de la commande Zéro Attente. La réduction de la formule sera appliquée automatiquement au total. Les détails de la formule et la réduction apparaissent dans le récapitulatif.",
-      },
-      {
-        q: "Qu'est-ce qu'un La Table du Chef ?",
-        a: "Un La Table du Chef est un événement gastronomique exclusif : le chef prépare des plats signature hors-carte en quantité ultra-limitée. Les portions disponibles sont affichées en temps réel et partent très vite. Pour y participer, réservez une table au restaurant et sélectionnez les plats La Table du Chef disponibles. Les abonnés Tok One ont un accès prioritaire.",
+        a: "Ouvrez la fiche restaurant, choisissez Réserver, indiquez date, heure, nombre de personnes et coordonnées. Si le créneau est disponible, vous recevez une confirmation ou une demande en attente selon le fonctionnement du restaurant.",
       },
       {
         q: "Comment savoir si ma réservation est confirmée ?",
-        a: "Après votre réservation, vous recevez une notification et un email de confirmation. Vous pouvez aussi vérifier le statut de toutes vos réservations depuis l'onglet 'Reservations' de votre profil. Les statuts possibles sont : en attente, confirmée, arrivée, annulée et no-show.",
+        a: "La confirmation apparaît dans Mes réservations et peut être envoyée par notification ou email. Vérifiez le statut : en attente, confirmée, modifiée, annulée, arrivée ou no-show selon le cas.",
       },
       {
-        q: "Que se passe-t-il si je ne me présente pas (no-show) ?",
-        a: "Si vous ne vous présentez pas sans avoir annulé au préalable, cela sera enregistré comme un 'no-show'. Des no-shows répétés peuvent entraîner des restrictions sur votre capacité à réserver. Pour les réservations Zéro Attente, le paiement est conservé. Pensez toujours à annuler à l'avance si vos plans changent.",
+        q: "Puis-je modifier une réservation ?",
+        a: "Oui si le restaurant accepte la modification et si la capacité le permet. Ouvrez la réservation et modifiez l'heure, la date, le nombre de personnes ou les notes. Sinon, contactez le restaurant ou le support.",
       },
       {
-        q: "Puis-je modifier le nombre de convives après la réservation ?",
-        a: "Oui, vous pouvez modifier le nombre de convives tant que le créneau le permet (capacité disponible). Rendez-vous dans les détails de votre réservation et appuyez sur 'Modifier'. Si le restaurant ne peut pas accommoder le nouveau nombre, vous devrez annuler et réserver un autre créneau.",
+        q: "Comment annuler une réservation ?",
+        a: "Ouvrez Mes réservations et utilisez Annuler si l'action est disponible. Annulez dès que possible pour libérer la table. Les annulations tardives ou absences répétées peuvent limiter l'accès à certaines réservations.",
+      },
+      {
+        q: "Qu'est-ce qu'un no-show ?",
+        a: "Un no-show signifie que vous ne vous êtes pas présenté sans annuler. Cela pénalise le restaurant. Des no-shows répétés peuvent entraîner des restrictions de réservation ou l'obligation d'une garantie de paiement.",
+      },
+      {
+        q: "Qu'est-ce que Zéro Attente ?",
+        a: "Zéro Attente permet de réserver une table et de précommander certains plats afin de réduire l'attente sur place. Le paiement peut être demandé à l'avance. La réservation est confirmée uniquement lorsque les conditions affichées sont remplies, notamment le paiement si nécessaire.",
+      },
+      {
+        q: "Puis-je venir en retard à une réservation ?",
+        a: "Prévenez le restaurant dès que possible. Une tolérance peut exister mais n'est pas garantie. Après un certain retard, le restaurant peut libérer la table, surtout en service chargé.",
+      },
+      {
+        q: "Comment ajouter une demande spéciale ?",
+        a: "Utilisez le champ note : poussette, chaise bébé, anniversaire, terrasse, allergie, accès PMR, table calme. Les demandes sont transmises au restaurant mais restent soumises à disponibilité.",
+      },
+      {
+        q: "Qu'est-ce que La Table du Chef ?",
+        a: "La Table du Chef correspond à des expériences, plats signature, tables VIP ou créneaux limités proposés par certains restaurants. Les quantités et horaires sont restreints. Les conditions, prix et priorités sont affichés dans l'application.",
+      },
+      {
+        q: "Dois-je payer pour réserver ?",
+        a: "La plupart des réservations simples peuvent être gratuites. Certaines expériences, précommandes, garanties ou événements peuvent demander un paiement, une empreinte ou un acompte. Le montant et les règles doivent être indiqués avant validation.",
       },
     ],
   },
@@ -308,36 +456,69 @@ const FAQS = [
     category: "features",
     questions: [
       {
-        q: "Qu'est-ce que le Multi-Restaurant ?",
-        a: "Le Multi-Restaurant vous permet de composer un repas complet en commandant depuis plusieurs restaurants différents. Choisissez votre entrée chez un restaurant, votre plat chez un autre et votre dessert ailleurs — le tout dans un rayon de 500m. Toutes les préparations sont synchronisées pour que vos plats arrivent en même temps chez vous.",
-      },
-      {
-        q: "Comment fonctionnent les Ventes Flash ?",
-        a: "Les Ventes Flash sont des offres limitées dans le temps avec des réductions allant jusqu’à -70%. Elles apparaissent avec un compte à rebours en temps réel. Une fois le délai expiré, l'offre disparaît automatiquement. Activez les notifications pour être alerté des nouvelles ventes flash. Disponible en livraison et à emporter.",
+        q: "Comment fonctionne le Multi-Restaurant ?",
+        a: "Le Multi-Restaurant permet de composer un panier avec plusieurs restaurants compatibles. Les contraintes de distance, préparation, livraison et synchronisation sont importantes. Les frais, délais et éventuelles limites sont affichés dans le panier.",
       },
       {
         q: "Comment fonctionne Match Groupes ?",
-        a: "Match Groupes permet de mutualiser une livraison avec d'autres personnes de votre quartier. Recherchez les groupes actifs près de chez vous ou créez le vôtre en définissant un créneau, une zone et un nombre maximum de membres. Chaque participant commande individuellement et bénéficie d'une réduction collective (jusqu’à -25%). La réduction CO2 atteint -45% par rapport à des commandes individuelles.",
+        a: "Match Groupes permet de grouper des commandes proches pour réduire les coûts et optimiser la livraison. Chaque participant choisit ses plats, puis le groupe suit un créneau, une zone et des conditions de validation.",
       },
       {
         q: "Comment fonctionne Multi-Stop ?",
-        a: "Multi-Stop vous permet de livrer une seule commande à plusieurs adresses (jusqu’à 4 arrêts). Idéal pour envoyer un repas à des proches ou organiser un dîner à plusieurs endroits. Les frais de livraison sont optimisés : 5.90 CHF de base + 1.50 CHF par arrêt supplémentaire (au lieu de payer une livraison complète par adresse). Pour chaque arrêt, précisez l'adresse, le destinataire et les articles.",
+        a: "Multi-Stop sert à livrer plusieurs adresses dans une même organisation lorsque la fonctionnalité est disponible. Chaque arrêt doit avoir une adresse claire, un destinataire et des instructions. Les frais et temps augmentent selon les arrêts.",
       },
       {
         q: "Qu'est-ce que Budget Auto ?",
-        a: "Budget Auto est un outil intelligent qui compose automatiquement un menu optimisé selon vos objectifs (budget, préférences alimentaires, découverte). Définissez votre budget cible et vos critères, et l'algorithme vous propose les meilleures combinaisons de plats disponibles dans les restaurants à proximité.",
+        a: "Budget Auto aide à composer une sélection selon un budget, des préférences et des contraintes alimentaires. L'utilisateur doit toujours valider le panier final : disponibilité, prix et options restent affichés avant paiement.",
       },
       {
-        q: "Comment fonctionne l'Abonnement repas hebdomadaire ?",
-        a: "L'Abonnement vous permet de planifier vos repas pour toute la semaine. Sélectionnez un restaurant et un plat pour chaque jour. Vous pouvez marquer certains jours comme libres (pas de commande). L'abonnement se renouvelle chaque semaine automatiquement. Vous pouvez mettre en pause votre abonnement (vacances, par exemple) à tout moment sans perdre vos paramètres.",
+        q: "Comment fonctionne l'abonnement repas ?",
+        a: "L'abonnement repas sert à programmer des repas récurrents, par exemple chaque semaine. Vous définissez les jours, horaires, restaurants ou plats compatibles. Vous pouvez mettre en pause, modifier ou arrêter selon les conditions affichées.",
       },
       {
-        q: "Comment offrir des points de fidélité en cadeau ?",
-        a: "Rendez-vous dans 'Points cadeau' depuis le menu principal. Choisissez le montant de points à offrir (minimum 100 points), saisissez l'email du destinataire et ajoutez un message personnalisé. Si le destinataire a déjà un compte, les points sont crédités immédiatement. Sinon, un code cadeau lui est envoyé par email, valable 30 jours.",
+        q: "Qu'est-ce que la Garantie Qualité ?",
+        a: "La Garantie Qualité est une option qui peut couvrir certains problèmes comme retard, température, emballage ou conformité selon les règles affichées. Elle ne remplace pas les droits habituels du consommateur ni la responsabilité du restaurant.",
       },
       {
-        q: "Puis-je donner des repas à des personnes dans le besoin ?",
-        a: "Oui ! Via le programme de dons solidaires, vous pouvez offrir des repas à des personnes en difficulté. Depuis la page Anti-gaspi, appuyez sur 'Dons Solidaires' et choisissez le nombre de repas à offrir. Vous pouvez aussi convertir vos points de fidélité en dons (1000 points = 1 repas offert). Chaque contribution fait une différence concrète.",
+        q: "Puis-je cumuler plusieurs fonctionnalités sur une commande ?",
+        a: "Pas toujours. Certaines fonctions se combinent, d'autres non : code promo, Tok One, anti-gaspi, ventes flash, créneau garanti, livraison gratuite, formule, abonnement ou multi-restaurant. Le panier indique les incompatibilités avant paiement.",
+      },
+      {
+        q: "Pourquoi une fonctionnalité affichée hier n'est plus là aujourd'hui ?",
+        a: "Elle peut être désactivée temporairement, limitée à une zone, fermée par le restaurant, hors horaire, en test, complète ou non disponible pour votre compte. Les fonctions désactivées côté admin doivent disparaître de toute la plateforme.",
+      },
+    ],
+  },
+  {
+    category: "offers",
+    questions: [
+      {
+        q: "Comment utiliser un code promo ?",
+        a: "Ajoutez le code dans le panier, vérifiez la réduction et relisez les conditions : montant minimum, premier achat, restaurant éligible, date de validité, mode de service, non-cumul ou usage unique.",
+      },
+      {
+        q: "Pourquoi mon code promo ne fonctionne pas ?",
+        a: "Le code peut être expiré, déjà utilisé, réservé à un compte, limité à certains restaurants, incompatible avec une autre offre ou inférieur au montant minimum. Le message d'erreur doit indiquer la raison lorsque l'information est disponible.",
+      },
+      {
+        q: "Comment fonctionnent les Ventes Flash ?",
+        a: "Les Ventes Flash sont des offres limitées en temps et en stock. Le prix, le compte à rebours, la quantité et les horaires doivent être visibles. Une fois le délai ou le stock terminé, l'offre disparaît ou revient à son prix normal.",
+      },
+      {
+        q: "Une offre peut-elle être annulée par le restaurant ?",
+        a: "Oui si le stock est épuisé, si le restaurant ferme exceptionnellement ou si une erreur manifeste est détectée. Si vous avez déjà payé, le paiement est annulé ou remboursé selon son état.",
+      },
+      {
+        q: "Que signifie sponsorisé ?",
+        a: "Sponsorisé signifie qu'un restaurant paie pour mettre en avant un contenu ou une carte. TOK doit afficher clairement cette mention. La mise en avant ne doit pas masquer les informations essentielles comme prix, cuisine, avis ou distance.",
+      },
+      {
+        q: "Les offres sont-elles les mêmes en livraison et en retrait ?",
+        a: "Pas forcément. Certaines promotions ne s'appliquent qu'à la livraison, au retrait, aux réservations, aux nouveaux clients, aux membres Tok One ou à des horaires précis. Vérifiez toujours le panier final.",
+      },
+      {
+        q: "Comment être alerté des bons plans ?",
+        a: "Activez les notifications pour les ventes flash, anti-gaspi, restaurants suivis et Actualités. Suivez vos restaurants préférés pour recevoir leurs publications et offres locales quand elles sont disponibles.",
       },
     ],
   },
@@ -346,27 +527,43 @@ const FAQS = [
     questions: [
       {
         q: "Comment fonctionne la page Actualités ?",
-        a: "La page Actualités regroupe les posts publiés par les restaurants : nouveautés, coulisses, offres courtes, tables disponibles, événements, contenus sponsorisés et appels à réserver ou commander. Vous pouvez aimer, commenter, partager, sauvegarder, suivre un restaurant ou signaler un contenu.",
+        a: "Actualités affiche les posts des restaurants : nouveautés, coulisses, offres, tables disponibles, menus du jour, événements, vidéos et contenus sponsorisés. Vous pouvez suivre, aimer, commenter, sauvegarder, partager, masquer ou signaler.",
       },
       {
-        q: "Où retrouver les posts que j'ai sauvegardés ?",
-        a: "Un onglet dédié aux posts sauvegardés regroupe les contenus que vous avez enregistrés avec le bouton 'Sauver'. Il sert de liste personnelle pour retrouver une offre, une adresse, une table ou une actualité sans devoir rechercher le post dans le fil principal.",
+        q: "Pourquoi vois-je certains posts plutôt que d'autres ?",
+        a: "Le fil utilise plusieurs signaux : proximité, restaurants suivis, préférences, cuisine, interactions, popularité, fraîcheur, disponibilité, contenu sponsorisé et actions comme Plus comme ça ou Moins comme ça. L'objectif est d'afficher des contenus utiles, pas seulement les plus récents.",
       },
       {
-        q: "À quoi servent les boutons Plus comme ça et Moins comme ça ?",
-        a: "Le bouton 'Plus comme ça' renforce les signaux du post : cuisine, restaurant, type d'offre, ville, prix ou tags associés. Les contenus similaires auront plus de chances de remonter. Le bouton 'Moins comme ça' fait l'inverse : il réduit fortement le poids de ces signaux et aide à nettoyer votre fil.",
+        q: "Comment fonctionnent les vidéos ?",
+        a: "Les vidéos peuvent se lancer automatiquement lorsqu'elles entrent dans l'écran et s'arrêter lorsqu'elles sortent de la zone visible. Les contrôles peuvent se masquer pendant la lecture et réapparaître à la pause selon le design.",
       },
       {
-        q: "Comment TOK choisit les posts que je vois ?",
-        a: "Le fil combine plusieurs signaux : vos vues, clics, likes, commentaires, partages, sauvegardes, réservations, commandes, préférences 'Plus/Moins comme ça', proximité géographique, engagement global et statut sponsorisé. L'objectif est de proposer des restaurants et offres que vous êtes susceptible d'apprécier, sans afficher uniquement des posts sponsorisés.",
+        q: "Où retrouver les posts sauvegardés ?",
+        a: "Utilisez l'onglet Sauvegardés de la page Actualités si disponible. Il regroupe les posts que vous avez enregistrés pour retrouver un menu, une offre, une table ou une idée plus tard.",
       },
       {
-        q: "Pourquoi certains posts sont-ils indiqués comme sponsorisés ?",
-        a: "Un post sponsorisé est une publication mise en avant par un restaurant via une campagne payante. TOK affiche ce statut pour distinguer les contenus promus des recommandations organiques. Un post ne doit pas devenir sponsorisé automatiquement : le restaurant doit passer par le parcours de mise en avant et de paiement prévu.",
+        q: "Comment signaler un post ou un commentaire ?",
+        a: "Utilisez le bouton de signalement, choisissez une raison et ajoutez un détail si nécessaire. Les signalements doivent être légitimes. Les campagnes abusives, le harcèlement d'un concurrent ou les signalements de mauvaise foi peuvent entraîner des restrictions ou la suppression du compte.",
       },
       {
-        q: "Puis-je influencer ou corriger mes recommandations ?",
-        a: "Oui. Utilisez 'Plus comme ça' pour voir davantage de contenus similaires, 'Moins comme ça' pour en voir moins, 'Sauver' pour conserver un post, et les actions classiques comme like, commentaire ou partage. Vous pouvez aussi masquer ou signaler un contenu si celui-ci est trompeur, inadapté ou contraire aux règles.",
+        q: "Que se passe-t-il après un signalement ?",
+        a: "Le contenu peut être examiné par TOK. Selon le cas, il peut rester visible, être masqué, supprimé, restauré ou conduire à une action sur le compte. Un signalement ne garantit pas automatiquement la suppression.",
+      },
+      {
+        q: "Puis-je répondre à un commentaire ?",
+        a: "Oui si les commentaires sont actifs. Lorsque vous répondez à quelqu'un, l'application peut ajouter une mention @ et envoyer une notification indiquant qu'une personne vous a mentionné dans un commentaire.",
+      },
+      {
+        q: "Pourquoi mon commentaire n'apparaît pas ?",
+        a: "Il peut être en cours d'envoi, refusé par les règles de modération, supprimé, masqué, associé à un post indisponible ou bloqué par une perte de connexion. Essayez d'actualiser avant de publier plusieurs fois.",
+      },
+      {
+        q: "Comment un restaurateur publie-t-il une actualité ?",
+        a: "Depuis le dashboard, le restaurateur saisit un texte, ajoute une image ou vidéo, choisit un appel à l'action, peut améliorer le texte avec l'IA si la fonction est active, programmer la publication et décider éventuellement de la sponsoriser.",
+      },
+      {
+        q: "Les posts sponsorisés sont-ils ciblés ?",
+        a: "Oui, ils peuvent être diffusés selon des critères comme ville, distance, cuisine préférée, genre si disponible et autorisé, habitudes de commande ou réservation, livraison, horaires et engagement. Les critères doivent rester proportionnés et conformes aux règles de confidentialité.",
       },
     ],
   },
@@ -374,28 +571,32 @@ const FAQS = [
     category: "antigaspi",
     questions: [
       {
-        q: "Qu'est-ce que l'Anti-Gaspi ?",
-        a: "Le programme Anti-Gaspi de Tok permet aux restaurants de proposer leurs invendus à prix réduit (jusqu’à -70%) plutôt que de les jeter. Vous contribuez à réduire le gaspillage alimentaire tout en profitant de repas de qualité à petit prix. Plus de 50 000 repas ont été sauvés grâce à ce programme, et nous économisons 942 kg de nourriture par semaine.",
+        q: "Qu'est-ce que l'Anti-gaspi ?",
+        a: "L'Anti-gaspi permet aux restaurants de proposer des invendus ou préparations en surplus à prix réduit plutôt que les jeter. Vous profitez d'un repas moins cher et le restaurant limite le gaspillage.",
       },
       {
-        q: "Comment fonctionnent les Paniers Surprise ?",
-        a: "Les Paniers Surprise sont des lots mystère composés par le restaurant avec ses invendus du jour. Vous ne connaissez pas le contenu exact à l'avance, mais vous bénéficiez de réductions allant jusqu’à -70%. Les paniers sont disponibles à des horaires spécifiques (généralement en fin de service midi et soir). Réservez-les vite — ils partent très rapidement !",
+        q: "Comment fonctionnent les paniers surprise ?",
+        a: "Le contenu exact peut varier selon les invendus du jour. Le restaurant indique généralement une valeur estimée, un prix réduit, une heure de retrait et les informations importantes. Le caractère surprise fait partie de l'offre.",
       },
       {
-        q: "Les produits anti-gaspi sont-ils de bonne qualité ?",
-        a: "Absolument. Il s'agit de plats et produits qui n'ont simplement pas été vendus dans la journée. Ils respectent les mêmes normes d'hygiène et de fraîcheur que les commandes régulières. Les restaurants partenaires s'engagent à ne proposer que des produits encore parfaitement consommables.",
+        q: "Puis-je choisir précisément les produits anti-gaspi ?",
+        a: "Selon l'offre. Certains paniers sont fixes, d'autres totalement surprise. Si vous avez des allergies ou contraintes fortes, évitez les paniers dont la composition n'est pas suffisamment claire ou contactez le restaurant.",
       },
       {
-        q: "Comment fonctionne le programme de dons solidaires ?",
-        a: "Le programme permet de financer des repas pour les personnes en difficulté. Vous pouvez faire un don direct en argent, convertir vos points de fidélité en repas (1000 points = 1 repas) ou arrondir le montant de votre commande au franc supérieur pour la solidarité. Tous les dons sont redistribués à travers notre réseau de partenaires associatifs.",
+        q: "Les produits anti-gaspi sont-ils sûrs ?",
+        a: "Ils doivent respecter les règles d'hygiène et de consommation. Anti-gaspi ne signifie pas produit impropre, mais surplus encore consommable. Signalez immédiatement toute odeur, emballage anormal ou doute sanitaire.",
       },
       {
-        q: "Quel est l'impact environnemental de ma commande ?",
-        a: "Chaque commande anti-gaspi affiche son impact : poids de nourriture sauvée et équivalent CO2 évité. Au global, Tok a permis de sauver plus de 50 000 repas et d'éviter des tonnes de déchets alimentaires. En utilisant Flex Prix Bas, vous réduisez aussi l'empreinte carbone de la livraison de 8 à 30% grâce à l'optimisation des trajets.",
+        q: "Pourquoi les paniers partent si vite ?",
+        a: "Les quantités sont faibles et liées aux invendus réels. Activez les notifications ou suivez vos restaurants préférés pour être prévenu plus rapidement.",
       },
       {
-        q: "À quelles heures sont disponibles les offres anti-gaspi ?",
-        a: "Les offres anti-gaspi apparaissent généralement en fin de service (14h-15h pour le midi, 21h-22h pour le soir), quand les restaurants souhaitent écouler leurs invendus. Les horaires varient selon chaque restaurant. Activez les notifications anti-gaspi pour être alerté dès qu'une offre est disponible près de chez vous.",
+        q: "Comment fonctionnent les dons solidaires ?",
+        a: "Lorsque la fonction est disponible, vous pouvez contribuer à des repas solidaires ou convertir certains avantages en dons. Les règles de redistribution, partenaires et montants doivent être affichés dans l'application.",
+      },
+      {
+        q: "Puis-je annuler une offre anti-gaspi ?",
+        a: "Les annulations peuvent être plus strictes car le stock est limité et préparé pour un horaire précis. Vérifiez les conditions avant paiement. En cas de fermeture ou impossibilité côté restaurant, le remboursement est traité.",
       },
     ],
   },
@@ -403,32 +604,32 @@ const FAQS = [
     category: "membership",
     questions: [
       {
-        q: "Quels sont les avantages de Tok One ?",
-        a: "Tok One vous offre : la livraison gratuite sur les restaurants éligibles, des réductions ou offres réservées selon les partenaires, un accès prioritaire à certaines expériences La Table du Chef, un accès anticipé aux ventes flash et offres spéciales, un support client prioritaire et des avantages réguliers réservés aux membres.",
+        q: "Qu'est-ce que Tok One ?",
+        a: "Tok One est un abonnement donnant accès à des avantages selon l'offre active : livraison offerte ou réduite, support prioritaire, accès anticipé, offres réservées, avantages fidélité ou expériences partenaires.",
       },
       {
-        q: "Combien coûte l'abonnement Tok One ?",
-        a: "L'abonnement Tok One est disponible en deux formules : 9.90 CHF/mois (sans engagement) ou 89.90 CHF/an (soit 2 mois offerts par rapport au tarif mensuel). Vous pouvez essayer gratuitement pendant 14 jours avant d'être facturé. Aucun frais caché.",
+        q: "Comment souscrire à Tok One ?",
+        a: "Ouvrez la page Tok One, choisissez la formule, vérifiez le prix, la période d'essai éventuelle, les conditions, le renouvellement et le moyen de paiement. La souscription devient active après validation du paiement.",
       },
       {
-        q: "Comment résilier mon abonnement Tok One ?",
-        a: "Rendez-vous dans 'Profil' > 'Mon abonnement' > 'Gérer l'abonnement' > 'Résilier'. La résiliation prend effet à la fin de la période en cours (mois ou année), et vous conservez tous vos avantages jusqu’à cette date. Aucun remboursement partiel n'est effectué pour la période entamée. Vous pouvez vous réabonner à tout moment.",
+        q: "Comment résilier Tok One ?",
+        a: "Ouvrez Profil, Abonnement ou le portail de gestion. La résiliation stoppe le renouvellement futur, mais les avantages peuvent rester actifs jusqu'à la fin de la période payée selon les conditions affichées.",
       },
       {
-        q: "Quels restaurants sont éligibles à la livraison gratuite ?",
-        a: "La grande majorité de nos 500+ restaurants partenaires sont éligibles à la livraison gratuite avec Tok One. Les restaurants éligibles sont identifiés par un badge 'Livraison gratuite' sur leur fiche. Quelques exceptions peuvent s'appliquer pour les restaurants très éloignés ou les commandes avec des frais de livraison exceptionnels.",
+        q: "Tok One rembourse-t-il les périodes déjà payées ?",
+        a: "En général, une période commencée n'est pas remboursée automatiquement sauf erreur, double facturation, droit applicable ou geste commercial. Contactez le support en cas de situation particulière.",
       },
       {
-        q: "Puis-je partager mon abonnement Tok One ?",
-        a: "L'abonnement Tok One est personnel et lié à un seul compte. Il ne peut pas être partagé ou transféré à une autre personne. Cependant, chaque membre de votre foyer peut souscrire à son propre abonnement et bénéficier de la période d'essai gratuite de 14 jours.",
+        q: "Quels restaurants sont éligibles aux avantages Tok One ?",
+        a: "Les restaurants éligibles affichent les avantages correspondants. Certains restaurants, zones, frais spéciaux, paniers anti-gaspi ou offres partenaires peuvent être exclus.",
       },
       {
-        q: "L'essai gratuit de 14 jours m'engage-t-il ?",
-        a: "Non, l'essai gratuit est sans engagement. Vous pouvez résilier à tout moment pendant les 14 jours sans être facturé. Si vous ne résiliez pas, l'abonnement sera activé automatiquement à la fin de la période d'essai au tarif choisi (mensuel ou annuel).",
+        q: "Puis-je partager mon abonnement ?",
+        a: "Tok One est personnel sauf mention contraire. Le partage de compte peut poser des problèmes de paiement, de données personnelles et de sécurité.",
       },
       {
-        q: "Les avantages Tok One sont-ils cumulables avec les promos ?",
-        a: "Oui ! Les réductions Tok One sont cumulables avec les codes promo, les offres anti-gaspi et les ventes flash. Vous bénéficiez à la fois de la livraison gratuite et des réductions éventuelles. C'est la combinaison la plus avantageuse pour les utilisateurs réguliers.",
+        q: "Les avantages Tok One se cumulent-ils avec les promotions ?",
+        a: "Parfois oui, parfois non. Le panier applique les règles de cumul. Si deux avantages ne peuvent pas être combinés, l'application doit afficher le meilleur traitement disponible ou expliquer l'incompatibilité.",
       },
     ],
   },
@@ -436,28 +637,36 @@ const FAQS = [
     category: "loyalty",
     questions: [
       {
-        q: "Comment fonctionne le programme de fidélité ?",
-        a: "Chaque commande, réservation ou action qualifiée peut vous rapporter des Miamz selon les règles affichées dans l'application. Les Miamz servent à débloquer des avantages : bonus, offres partenaires, priorités, cadeaux, dons solidaires, accès à certains bons plans et niveaux de fidélité.",
+        q: "Que sont les Miamz ?",
+        a: "Les Miamz sont les points de fidélité TOK. Ils peuvent être gagnés lors de commandes, réservations, actions qualifiées ou opérations spéciales, puis utilisés pour débloquer des avantages selon les règles disponibles.",
       },
       {
-        q: "Comment utiliser mes points Miamz ?",
-        a: "Rendez-vous dans 'Profil' > 'Mes points' pour voir votre solde et les avantages disponibles. Les Miamz ne sont pas une monnaie et ne sont pas convertibles en espèces. Lorsqu'un avantage est éligible, ses conditions, sa durée de validité et ses restrictions sont affichées avant utilisation.",
+        q: "Comment gagner des Miamz ?",
+        a: "Vous pouvez en gagner via des achats, réservations, bonus, parrainage, anniversaires, challenges, actions anti-gaspi ou campagnes partenaires. Le nombre exact dépend des règles actives et du statut de l'action.",
       },
       {
-        q: "Mes points de fidélité expirent-ils ?",
-        a: "Les points Miamz restent valides tant que votre compte est actif. En cas de suppression de compte, tous les points accumulés sont perdus définitivement. Les points cadeau envoyés à un destinataire ont une validité de 30 jours pour être réclamés.",
+        q: "Quand mes Miamz sont-ils crédités ?",
+        a: "Ils peuvent être crédités après paiement, livraison, réservation honorée ou validation d'une action. En cas d'annulation, remboursement ou fraude, les points peuvent être annulés ou retirés.",
       },
       {
-        q: "Comment offrir des points à un ami ?",
-        a: "Rendez-vous sur la page 'Points cadeau' accessible depuis le menu. Choisissez un montant (100, 250, 500 ou 1000 points, ou un montant personnalisé), saisissez l'email de votre ami et ajoutez un message. Les points sont crédités instantanément si votre ami a déjà un compte Tok. Sinon, il recevra un code cadeau à utiliser lors de son inscription.",
+        q: "Comment utiliser mes Miamz ?",
+        a: "Ouvrez Profil ou Programme fidélité. Les avantages disponibles indiquent le coût, les conditions, la durée et les restrictions. Les Miamz ne sont pas forcément convertibles en argent.",
       },
       {
-        q: "Existe-t-il des niveaux de fidélité ?",
-        a: "Oui, le programme de fidélité comporte des niveaux comme Bronze, Silver, Gold et Platinum. Ils peuvent donner accès à des bonus Miamz, priorités de réservation, avantages de livraison, événements partenaires, support prioritaire, créneaux premium et accès à certaines tables VIP lorsque les restaurants les rendent disponibles.",
+        q: "Quels sont les niveaux de fidélité ?",
+        a: "Les niveaux comme Bronze, Silver, Gold ou Platinum peuvent donner accès à des multiplicateurs, bonus, priorités, cadeaux, événements, support prioritaire ou offres partenaires. Les paliers exacts peuvent évoluer.",
       },
       {
-        q: "Que sont les tables VIP La Table du Chef ?",
-        a: "Certains restaurants peuvent réserver une partie de leurs expériences La Table du Chef à des clients éligibles, par exemple selon leur niveau Miamz, Tok One ou une invitation partenaire. Ces tables VIP restent limitées, non garanties et soumises aux règles de disponibilité du restaurant.",
+        q: "Comment offrir des points cadeau ?",
+        a: "Si la fonctionnalité est active, choisissez le montant, le destinataire et le message. Le destinataire reçoit les points ou un code à réclamer. Les points cadeau peuvent avoir une durée de validité.",
+      },
+      {
+        q: "Pourquoi un bonus est indiqué déjà réclamé ?",
+        a: "Certains bonus sont limités à une fois par période : anniversaire, campagne, niveau ou opération partenaire. Si vous pensez à une erreur, contactez le support avec une capture.",
+      },
+      {
+        q: "Que deviennent mes Miamz si je supprime mon compte ?",
+        a: "Ils sont perdus ou anonymisés avec le compte selon les règles applicables. Utilisez vos avantages avant toute demande de suppression si vous souhaitez en profiter.",
       },
     ],
   },
@@ -465,36 +674,44 @@ const FAQS = [
     category: "quality",
     questions: [
       {
-        q: "Qu'est-ce que la Garantie Qualité ?",
-        a: "La Garantie Qualité est une option premium (+1.50 CHF par commande) qui vous assure un contrôle qualité complet de votre livraison. Elle inclut : un sac scellé inviolable, un suivi de température en temps réel, une vérification par QR code à la réception, et une compensation automatique en cas d'anomalie détectée.",
-      },
-      {
-        q: "Comment fonctionne la compensation automatique ?",
-        a: "Avec la Garantie Qualité, les compensations sont appliquées automatiquement : température inférieure à 55°C = remboursement à 100%, température entre 55-60°C = 50% en crédit Tok, sac endommagé = remboursement à 100% + 5 CHF de crédit, retard supérieur à 15 minutes = livraison gratuite sur la prochaine commande. Aucune démarche de votre part n'est nécessaire.",
-      },
-      {
-        q: "Comment fonctionne le QR code de vérification ?",
-        a: "À la réception de votre commande, scannez le QR code sur l'emballage avec l'application Tok. Le scan confirme la chaîne de qualité : température pendant le transport, intégrité du sac et délai de livraison. Si une anomalie est détectée, la compensation est déclenchée automatiquement.",
-      },
-      {
-        q: "Comment les restaurants sont-ils sélectionnés ?",
-        a: "Chaque restaurant partenaire passe par un processus de vérification rigoureux avant d'être accepté sur la plateforme. Nous vérifions les normes d'hygiène, la qualité des ingrédients, la régularité du service et les avis clients. Les restaurants sont notés en continu et ceux qui ne maintiennent pas nos standards sont retirés de la plateforme. 80% de nos partenaires sont des restaurants indépendants locaux.",
-      },
-      {
-        q: "Les livreurs sont-ils formes ?",
-        a: "Nos livreurs partenaires sont des professionnels indépendants équipés pour garantir la qualité de la livraison. Ils disposent de sacs isothermes pour maintenir la température des plats. Leur performance est suivie en continu : taux d'acceptation, délai moyen de livraison, et retours clients.",
-      },
-      {
         q: "Comment signaler un problème de qualité ?",
-        a: `Si vous rencontrez un problème de qualité (plat froid, emballage endommagé, article non conforme), signalez-le immédiatement via le chat de support ou en envoyant un email à ${SUPPORT_EMAIL} avec votre numéro de commande et une photo si possible. Notre équipe traitera votre réclamation sous 48h ouvrées.`,
+        a: `Ouvrez la commande ou le chat support. Décrivez précisément le problème, ajoutez une photo si possible, indiquez l'article concerné et gardez le ticket ou l'emballage. Pour les cas sensibles, écrivez aussi à ${SUPPORT_EMAIL}.`,
       },
       {
-        q: "Comment suivre un sinistre ou une conversation support ?",
-        a: "Les conversations de support et les sinistres affichent un numéro de référence en haut de la fenêtre de chat. Le statut peut évoluer sans être clôturé immédiatement : en attente, en cours, résolu ou clôturé. Cela permet de suivre le traitement sans classer le dossier trop tôt.",
+        q: "Quels problèmes peuvent donner lieu à remboursement ?",
+        a: "Article manquant, erreur majeure, commande non livrée, double paiement, annulation restaurant, problème sanitaire, emballage renversé ou retard exceptionnel peuvent être éligibles selon les preuves et la situation. Une préférence gustative seule ne suffit pas toujours.",
       },
       {
-        q: "Mes notifications et mon panier restent-ils après déconnexion ?",
-        a: "Non. Les notifications sont limitées au compte, rôle ou restaurant concerné. À la déconnexion ou lors d'un changement de compte, TOK nettoie les données locales sensibles comme le panier, certains brouillons de checkout et les jetons de notification push de la session courante.",
+        q: "Combien de temps prend un remboursement ?",
+        a: "Après validation, le remboursement bancaire prend souvent 5 à 10 jours ouvrables selon la banque. Une autorisation non capturée peut disparaître plus vite. Un crédit TOK peut être visible plus rapidement.",
+      },
+      {
+        q: "Comment TOK traite les allergènes ?",
+        a: "TOK affiche les informations fournies par les restaurants. Pour une allergie sévère, vérifiez auprès du restaurant avant de commander. Signalez immédiatement tout écart entre votre demande, les informations affichées et le plat reçu.",
+      },
+      {
+        q: "Comment sont modérés les avis et commentaires ?",
+        a: "Les contenus peuvent être supprimés ou masqués s'ils sont illégaux, haineux, diffamatoires, menaçants, publicitaires, frauduleux, hors sujet ou s'ils contiennent des données personnelles sensibles.",
+      },
+      {
+        q: "Puis-je laisser un avis négatif ?",
+        a: "Oui, s'il est factuel, honnête et lié à une expérience réelle. Évitez accusations invérifiables, insultes, menaces ou informations privées. Un avis précis aide plus qu'un commentaire agressif.",
+      },
+      {
+        q: "Comment TOK protège mes données ?",
+        a: "Les données sont utilisées pour fournir le service : compte, commandes, réservations, paiements, support, sécurité, personnalisation et obligations légales. Les accès doivent être limités par rôle et les données sensibles protégées côté serveur.",
+      },
+      {
+        q: "Pourquoi TOK collecte mes préférences ?",
+        a: "Elles améliorent la recherche, les recommandations, les offres, les alertes et l'expérience restaurateur. Vous pouvez influencer ces signaux via vos actions, vos paramètres, vos favoris et certains choix de confidentialité.",
+      },
+      {
+        q: "Comment éviter les abus de signalement ?",
+        a: "Signalez uniquement des contenus réellement problématiques. Les signalements coordonnés contre un concurrent, un client ou un restaurant peuvent être considérés comme du harcèlement et entraîner des sanctions.",
+      },
+      {
+        q: "Que faire en cas d'urgence alimentaire ou médicale ?",
+        a: "Si vous pensez avoir ingéré un allergène dangereux ou si une personne présente des symptômes graves, contactez immédiatement les services d'urgence. Prévenez ensuite TOK et le restaurant avec les informations de commande pour l'enquête.",
       },
     ],
   },
@@ -502,64 +719,52 @@ const FAQS = [
     category: "restaurants",
     questions: [
       {
-        q: "Comment inscrire mon restaurant sur Tok ?",
-        a: `Rendez-vous sur la page d'inscription restaurateur ou contactez-nous à ${SUPPORT_EMAIL}. Notre équipe vous accompagnera dans le processus d'inscription : création de votre profil, digitalisation de votre menu, configuration de vos horaires et de vos modes de service (livraison, emporter, sur place). Le processus prend généralement 48 à 72h.`,
+        q: "Comment inscrire mon restaurant sur TOK ?",
+        a: `Utilisez l'espace Restaurateurs ou contactez ${SUPPORT_EMAIL}. L'équipe vérifie vos informations, votre identité commerciale, vos horaires, modes de service, menu, photos, moyens de paiement et conditions opérationnelles avant mise en ligne.`,
       },
       {
-        q: "Qu'est-ce que les Packs de Lancement ?",
-        a: "Les Packs de Lancement sont des formules d'accompagnement pour les restaurateurs qui souhaitent optimiser leur présence sur Tok. Quatre formules sont disponibles : Découverte (490 CHF), Essentiel (990 CHF), Pro (1 990 CHF, le plus populaire) et Premium (3 490 CHF, VIP). Chaque pack inclut différents services : mise en place du compte, création de menu, photos professionnelles, gestion des réseaux sociaux, campagnes publicitaires, plan de salle digital et account manager dédié.",
+        q: "Que contient le dashboard restaurateur ?",
+        a: "Le dashboard peut regrouper commandes, réservations, menu, offres, anti-gaspi, ventes flash, Actualités, campagnes, CRM, performances, avis, factures, photos, support, plan de salle et pilotage de service selon les droits et fonctionnalités activées.",
       },
       {
-        q: "Quels services sont inclus dans chaque pack ?",
-        a: "Pack Découverte : mise en place basique + menu jusqu’à 20 plats. Pack Essentiel : mise en place complète + 40 plats + 10 photos pro + réseaux sociaux. Pack Pro : illimité + 25 photos + réseaux sociaux + 1 campagne pub (200 CHF budget) + plan de salle. Pack Premium : tout illimité + account manager dédié + 3 campagnes (500 CHF budget total) + 3 mois de gestion réseaux sociaux.",
+        q: "Comment gérer les commandes entrantes ?",
+        a: "Le restaurant doit accepter, préparer, marquer prêt, refuser ou signaler un problème depuis le dashboard. Les statuts doivent refléter la réalité opérationnelle, car ils pilotent les notifications client et les flux de paiement/livraison.",
       },
       {
-        q: "Comment fonctionne le dashboard restaurateur ?",
-        a: "Le dashboard vous donne accès à la gestion de votre restaurant sur TOK : vue d'ensemble, commandes, réservations, Zéro Attente, menu, prix, photos, Actualités, campagnes, avis, factures, support, services, plan de salle et statistiques. Les sections accessibles peuvent dépendre de votre rôle, de votre restaurant et des fonctionnalités activées.",
+        q: "Comment gérer les réservations ?",
+        a: "Le dashboard affiche les réservations par date, statut, nombre de couverts et notes client. Le restaurant peut confirmer, annuler, modifier, assigner une table ou marquer l'arrivée selon les outils disponibles.",
       },
       {
-        q: "Comment voir la progression de mon pack de lancement ?",
-        a: "Depuis votre dashboard, rendez-vous dans 'Pack de lancement'. Vous y verrez le pack souscrit, une barre de progression globale et le statut de chaque service inclus (en attente, planifié, en cours, terminé). Notre équipe met à jour l'avancement au fur et à mesure des étapes accomplies. Vous recevrez des notifications à chaque mise à jour.",
+        q: "Comment mettre à jour mon menu ?",
+        a: "Modifiez catégories, plats, prix, descriptions, allergènes, photos, options et disponibilités. Les changements doivent être relus avant publication, surtout prix et allergènes. Un plat indisponible doit être désactivé plutôt que laissé commandable.",
       },
       {
-        q: "Pourquoi certains onglets du dashboard sont-ils verrouillés ?",
-        a: "Les onglets accessibles dans votre dashboard dépendent du pack de lancement que vous avez choisi. Les fonctionnalités non incluses dans votre pack sont grisées et marquées d'un cadenas. Par exemple, le plan de salle n'est accessible qu'avec les packs Pro et Premium. Contactez notre équipe pour upgrader votre pack et débloquer de nouvelles fonctionnalités.",
+        q: "Comment publier un post Actualités ?",
+        a: "Depuis Actualités, rédigez le texte, ajoutez un média, choisissez un CTA, programmez si besoin, puis publiez. L'IA peut proposer des variantes lorsque la fonction est active, mais le restaurateur reste responsable du contenu final.",
       },
       {
-        q: "Comment les réservations Zéro Attente apparaissent-elles dans mon dashboard ?",
-        a: "Les réservations Zéro Attente apparaissent dans l'onglet 'Réservations' de votre dashboard (pas dans les commandes). Elles sont visuellement distinctes avec une bordure et un fond indigo, ainsi qu'un badge 'Zéro Attente'. Vous y verrez les détails de la réservation, les plats précommandés, le montant payé et le mode de paiement. Le chiffre d'affaires des Zéro Attente est inclus dans vos statistiques de performance.",
+        q: "Comment sponsoriser un post ?",
+        a: "Choisissez Sponsoriser, paramétrez objectif, budget total et la durée, ville, distance, cuisine, audience, genre si autorisé, horaires et critères utiles. TOK affiche une estimation simple des impressions, du CPC et des conversions attendues avant paiement. Les notifications liées à la campagne utilisent les jetons de notification push uniquement lorsque l'utilisateur a accepté ce canal. La diffusion commence après validation du paiement et respect des règles de contenu.",
       },
       {
-        q: "Comment sont calculées mes performances et mon chiffre d'affaires ?",
-        a: "Le chiffre d'affaires affiché dans votre dashboard inclut les revenus des commandes (livraison et à emporter) ainsi que les paiements des réservations Zéro Attente. Les commandes annulées, refusées ou en échec de paiement sont exclues. Vous pouvez consulter vos performances par période (7, 30, 90 jours), voir les graphiques quotidiens, le panier moyen, le taux d'annulation et la satisfaction client.",
+        q: "Comment fonctionne le CRM restaurateur ?",
+        a: "Le CRM peut regrouper les clients qui commandent ou réservent : nom, prénom, email, téléphone si disponible, habitudes, horaires, préférences, panier moyen, fréquence et signaux d'intérêt. Ces données doivent être utilisées avec respect, proportionnalité et conformité.",
       },
       {
-        q: "Comment gérer mon plan de salle ?",
-        a: "Depuis l'onglet 'Plan de salle' du dashboard (disponible avec les packs Pro et Premium), vous pouvez créer et éditer visuellement votre plan de salle : ajouter des tables, définir leur capacité et leur forme, les disposer dans l'espace, et affecter des réservations aux tables. Le plan de salle est utilisé pour optimiser la gestion des réservations et la capacité de votre restaurant.",
+        q: "Quelles données client le restaurant reçoit-il ?",
+        a: "Seulement les données nécessaires à l'opération et autorisées : identité utile, contact pour la commande/réservation, informations de service, préférences déclarées et historique pertinent. Les données de paiement sensibles ne sont pas transmises.",
       },
       {
-        q: "Comment utiliser Actualités comme outil marketing ?",
-        a: "Depuis le dashboard restaurateur, ouvrez 'Actualités'. Choisissez un objectif (notoriété, commandes, réservations, fidélisation ou offre limitée), une audience, un CTA et un modèle de publication. Le score marketing vous aide à vérifier accroche, média, format, CTA, programmation et cohérence de l'offre avant publication.",
+        q: "Comment consulter mes factures ?",
+        a: "Ouvrez Factures ou Mon compte/Facturation. Les documents disponibles peuvent inclure commissions, abonnements, campagnes, packs, remboursements, rapprochements et exports selon votre rôle.",
       },
       {
-        q: "Quelles statistiques sont disponibles pour mes actualités ?",
-        a: "Le cockpit Actualités affiche les impressions, clics, clics CTA, réactions, commentaires, sauvegardes, partages, taux d'engagement, conversions, posts programmés et répartition par objectif marketing. Ces données vous aident à comprendre quels contenus génèrent visibilité, commandes ou réservations.",
+        q: "Pourquoi un module du dashboard est-il absent ?",
+        a: "Il peut être désactivé par feature flag, non inclus dans votre pack, réservé à certains rôles, non configuré pour votre restaurant ou temporairement indisponible. Quand un module est désactivé par l'admin, il doit être inexistant dans l'interface.",
       },
       {
-        q: "Qui modere les publications et signalements Actualités ?",
-        a: "Les administrateurs Tok peuvent examiner directement les publications, commentaires, reposts et signalements depuis l'espace admin, puis masquer, restaurer, supprimer ou clôturer un signalement sans passer par une console technique. Les contenus trompeurs, illicites ou contraires aux CGU peuvent être retirés.",
-      },
-      {
-        q: "Comment fonctionne la page Campagnes ?",
-        a: "La page Campagnes regroupe les campagnes en cours et l'historique des campagnes terminées. Vous voyez une vue globale avec budget dépensé, coût global, impressions, clics, conversions, CPC et performance cumulée. En cliquant sur une campagne active, vous accédez aux données détaillées de cette campagne.",
-      },
-      {
-        q: "Comment le budget d'une campagne est-il diffusé ?",
-        a: "TOK répartit la diffusion selon le budget total et la durée. Par exemple, 50 CHF sur 5 jours donne environ 10 CHF par jour, tandis que 50 CHF sur 1 jour diffuse plus agressivement. Le score de diffusion tient compte du budget restant, des jours restants, de la pertinence, de la distance et de l'engagement historique.",
-      },
-      {
-        q: "Puis-je publier directement sur mes réseaux sociaux ?",
-        a: "Si vous avez renseigné ou connecté vos réseaux sociaux, l'interface Actualités peut proposer de préparer ou publier le post sur les canaux sélectionnés, selon les permissions accordées. Vous restez responsable du contenu, des droits sur les visuels et du respect des règles Instagram, TikTok, Facebook ou des autres réseaux utilisés.",
+        q: "Comment demander de l'aide opérationnelle ?",
+        a: "Utilisez l'aide restaurateur, le support dashboard ou l'email. Pour un incident urgent, donnez le restaurant, l'heure, l'ID commande/réservation, le statut actuel et la capture du problème.",
       },
     ],
   },
@@ -569,10 +774,12 @@ export default function Aide() {
   const [search, setSearch] = useState("");
   const [selectedCat, setSelectedCat] = useState<string | null>(null);
   const { activeFeatures } = useFeatureFlagSnapshot();
+
   const visibleCategories = useMemo(
     () => CATEGORIES.filter((category) => isHelpCategoryVisible(category.id, activeFeatures)),
     [activeFeatures],
   );
+
   const visibleCategoryIds = useMemo(
     () => new Set(visibleCategories.map((category) => category.id)),
     [visibleCategories],
@@ -584,259 +791,339 @@ export default function Aide() {
     }
   }, [selectedCat, visibleCategoryIds]);
 
-  const visibleFaqSections = FAQS.filter((f) => visibleCategoryIds.has(f.category))
-    .map((section) => ({
-      ...section,
-      questions: section.questions.filter(
-        (q) => isHelpQuestionVisible(section.category, q.q, q.a, activeFeatures)
-      ),
-    }))
-    .filter((section) => section.questions.length > 0);
-
-  const filteredFaqs = visibleFaqSections
-    .filter((section) => !selectedCat || section.category === selectedCat)
-    .map((section) => ({
-      ...section,
-      questions: section.questions.filter(
-        (q) =>
-          q.q.toLowerCase().includes(search.toLowerCase()) ||
-          q.a.toLowerCase().includes(search.toLowerCase())
-      ),
-    }))
-    .filter((section) => section.questions.length > 0);
-
-  const totalQuestions = visibleFaqSections.reduce(
-    (sum, section) => sum + section.questions.length,
-    0
+  const visibleFaqSections = useMemo(
+    () =>
+      FAQS.filter((section) => visibleCategoryIds.has(section.category))
+        .map((section) => ({
+          ...section,
+          questions: section.questions.filter((question) =>
+            isHelpQuestionVisible(section.category, question.q, question.a, activeFeatures),
+          ),
+        }))
+        .filter((section) => section.questions.length > 0),
+    [activeFeatures, visibleCategoryIds],
   );
+
+  const normalizedSearch = search.trim().toLowerCase();
+
+  const filteredFaqs = useMemo(
+    () =>
+      visibleFaqSections
+        .filter((section) => !selectedCat || section.category === selectedCat)
+        .map((section) => ({
+          ...section,
+          questions: section.questions.filter(
+            (question) =>
+              !normalizedSearch ||
+              question.q.toLowerCase().includes(normalizedSearch) ||
+              question.a.toLowerCase().includes(normalizedSearch),
+          ),
+        }))
+        .filter((section) => section.questions.length > 0),
+    [normalizedSearch, selectedCat, visibleFaqSections],
+  );
+
+  const totalQuestions = visibleFaqSections.reduce((sum, section) => sum + section.questions.length, 0);
+  const selectedCategory = visibleCategories.find((category) => category.id === selectedCat);
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      {/* Header / Search Section */}
-      <div className="bg-primary pt-20 pb-16 text-primary-foreground px-6">
-        <div className="container max-w-4xl space-y-8">
-          <h1 className="text-4xl md:text-5xl font-display font-bold text-center">
-            Comment pouvons-nous vous aider ?
-          </h1>
-          <p className="text-center text-primary-foreground/80 text-lg max-w-2xl mx-auto">
-            Parcourez nos {totalQuestions} questions-réponses ou contactez notre
-            équipe de support pour une aide personnalisée.
-          </p>
-          <div className="relative max-w-2xl mx-auto">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground h-5 w-5" />
+      <div className="bg-primary px-6 pb-14 pt-20 text-primary-foreground">
+        <div className="container max-w-5xl space-y-7">
+          <div className="mx-auto max-w-3xl space-y-4 text-center">
+            <p className="text-sm font-bold uppercase tracking-[0.2em] text-primary-foreground/70">
+              Centre d'aide TOK
+            </p>
+            <h1 className="font-display text-4xl font-bold md:text-5xl">
+              Trouvez une réponse claire avant de contacter le support
+            </h1>
+            <p className="mx-auto max-w-2xl text-base leading-relaxed text-primary-foreground/80 md:text-lg">
+              Commandes, paiements, réservations, livraison, fidélité, actualités,
+              restaurateurs et sécurité : {totalQuestions} réponses détaillées pour vous guider.
+            </p>
+          </div>
+
+          <div className="relative mx-auto max-w-2xl">
+            <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Rechercher un problème ou une question..."
-              className="h-14 pl-12 rounded-2xl text-foreground font-medium border-0 shadow-lg text-lg"
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Rechercher : remboursement, TWINT, réservation, anti-gaspi..."
+              className="h-14 rounded-2xl border-0 pl-12 text-base font-medium text-foreground shadow-lg md:text-lg"
             />
           </div>
         </div>
       </div>
 
-      <div className="container max-w-6xl -mt-8 px-6 space-y-12">
-        {/* Quick Categories */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-          {visibleCategories.map((cat) => (
+      <main className="container -mt-7 max-w-6xl space-y-10 px-4 md:px-6">
+        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {visibleCategories.map((category) => (
             <button
-              key={cat.id}
-              onClick={() =>
-                setSelectedCat(selectedCat === cat.id ? null : cat.id)
-              }
-              className={`p-4 rounded-2xl border bg-card shadow-sm transition-all text-left space-y-2
-                ${selectedCat === cat.id
-                  ? "ring-2 ring-primary border-transparent"
-                  : "hover:border-primary/20"
-                }`}
+              key={category.id}
+              type="button"
+              onClick={() => setSelectedCat(selectedCat === category.id ? null : category.id)}
+              className={`rounded-2xl border bg-card p-4 text-left shadow-sm transition-all ${
+                selectedCat === category.id ? "border-transparent ring-2 ring-primary" : "hover:border-primary/30"
+              }`}
             >
-              <div className={`${cat.bg} p-2 rounded-xl w-fit`}>
-                <cat.icon className={`h-5 w-5 ${cat.color}`} />
+              <div className="flex items-start gap-3">
+                <div className={`${category.bg} shrink-0 rounded-xl p-2`}>
+                  <category.icon className={`h-5 w-5 ${category.color}`} />
+                </div>
+                <div className="min-w-0">
+                  <h2 className="text-sm font-bold">{category.title}</h2>
+                  <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+                    {category.description}
+                  </p>
+                </div>
               </div>
-              <h3 className="font-bold text-xs">{cat.title}</h3>
             </button>
           ))}
-        </div>
+        </section>
 
-        {/* Content Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-          {/* FAQ List */}
-          <div className="lg:col-span-2 space-y-8">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-display font-bold">
-                {selectedCat
-                  ? visibleCategories.find((c) => c.id === selectedCat)?.title
-                  : "Questions frequentes"}
-              </h2>
-              {selectedCat && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSelectedCat(null)}
-                >
-                  Voir tout
-                </Button>
-              )}
-            </div>
-            <div className="space-y-6">
-              {filteredFaqs.map((section) => (
-                <div key={section.category} className="space-y-3">
-                  {!selectedCat && (
-                    <button
-                      onClick={() => setSelectedCat(section.category)}
-                      className="flex items-center gap-2 group"
-                    >
-                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide pt-2 group-hover:text-primary transition-colors">
-                        {
-                          visibleCategories.find((c) => c.id === section.category)
-                            ?.title
-                        }
-                      </h3>
-                      <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full mt-2">
-                        {section.questions.length}
-                      </span>
-                    </button>
-                  )}
-                  <Accordion type="single" collapsible className="w-full">
-                    {section.questions.map((item, i) => (
-                      <AccordionItem
-                        key={i}
-                        value={`${section.category}-${i}`}
-                        className="border rounded-xl px-4 py-1 mb-3 bg-card shadow-sm"
-                      >
-                        <AccordionTrigger className="hover:no-underline font-semibold text-left">
-                          {item.q}
-                        </AccordionTrigger>
-                        <AccordionContent className="text-muted-foreground text-sm leading-relaxed whitespace-pre-line">
-                          {item.a}
-                        </AccordionContent>
-                      </AccordionItem>
-                    ))}
-                  </Accordion>
-                </div>
-              ))}
-            </div>
-            {filteredFaqs.length === 0 && (
-              <div className="text-center py-12 text-muted-foreground bg-muted/20 rounded-2xl border-2 border-dashed space-y-2">
-                <HelpCircle className="h-10 w-10 mx-auto text-muted-foreground/50" />
-                <p className="font-medium">Aucun resultat trouve</p>
-                <p className="text-sm">
-                  Essayez avec d'autres mots-clés ou contactez notre support.
-                </p>
+        <section className="grid gap-4 md:grid-cols-3">
+          <div className="rounded-2xl border bg-card p-5 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="rounded-xl bg-red-50 p-2 text-red-600">
+                <Bell className="h-5 w-5" />
               </div>
-            )}
+              <div>
+                <h2 className="font-bold">Urgence commande</h2>
+                <p className="text-sm text-muted-foreground">Contactez le chat en priorité.</p>
+              </div>
+            </div>
+            <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
+              {URGENT_CASES.map((item) => (
+                <li key={item} className="flex gap-2">
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
           </div>
 
-          {/* Sidebar / More Help */}
-          <div className="space-y-6">
-            <div className="p-6 rounded-2xl border bg-primary/5 space-y-4">
-              <h3 className="font-bold flex items-center gap-2">
+          <div className="rounded-2xl border bg-card p-5 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="rounded-xl bg-green-50 p-2 text-green-600">
+                <ReceiptText className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="font-bold">Avant d'ouvrir un ticket</h2>
+                <p className="text-sm text-muted-foreground">Gagnez du temps avec les bonnes infos.</p>
+              </div>
+            </div>
+            <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+              Préparez votre numéro de commande ou réservation, le restaurant, l'heure,
+              le montant, le moyen de paiement, une capture et une photo si un article
+              ou une qualité est concerné.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border bg-card p-5 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="rounded-xl bg-violet-50 p-2 text-violet-600">
+                <HeartHandshake className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="font-bold">Réponse humaine</h2>
+                <p className="text-sm text-muted-foreground">Le support reprend si l'IA ne suffit pas.</p>
+              </div>
+            </div>
+            <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+              Le chat peut aider immédiatement. Les cas de paiement, allergène, litige,
+              remboursement ou incident opérationnel peuvent être transférés à l'équipe TOK.
+            </p>
+          </div>
+        </section>
+
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-3">
+          <section className="space-y-7 lg:col-span-2">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h2 className="font-display text-2xl font-bold">
+                  {selectedCategory ? selectedCategory.title : "Toutes les questions fréquentes"}
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {selectedCategory
+                    ? selectedCategory.description
+                    : "Filtrez par thème ou utilisez la recherche pour trouver la réponse précise."}
+                </p>
+              </div>
+              {selectedCat ? (
+                <Button variant="ghost" size="sm" onClick={() => setSelectedCat(null)}>
+                  Voir tout
+                </Button>
+              ) : null}
+            </div>
+
+            <div className="space-y-6">
+              {filteredFaqs.map((section) => {
+                const category = visibleCategories.find((item) => item.id === section.category);
+
+                return (
+                  <div key={section.category} className="space-y-3">
+                    {!selectedCat && category ? (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedCat(section.category)}
+                        className="group flex items-center gap-2"
+                      >
+                        <span className={`${category.bg} rounded-lg p-1.5`}>
+                          <category.icon className={`h-4 w-4 ${category.color}`} />
+                        </span>
+                        <h3 className="pt-0.5 text-sm font-semibold uppercase tracking-wide text-muted-foreground transition-colors group-hover:text-primary">
+                          {category.title}
+                        </h3>
+                        <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                          {section.questions.length}
+                        </span>
+                      </button>
+                    ) : null}
+
+                    <Accordion type="single" collapsible className="w-full">
+                      {section.questions.map((item, index) => (
+                        <AccordionItem
+                          key={`${section.category}-${item.q}`}
+                          value={`${section.category}-${index}`}
+                          className="mb-3 rounded-xl border bg-card px-4 py-1 shadow-sm"
+                        >
+                          <AccordionTrigger className="text-left font-semibold hover:no-underline">
+                            {item.q}
+                          </AccordionTrigger>
+                          <AccordionContent className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+                            {item.a}
+                          </AccordionContent>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
+                  </div>
+                );
+              })}
+            </div>
+
+            {filteredFaqs.length === 0 ? (
+              <div className="space-y-2 rounded-2xl border-2 border-dashed bg-muted/20 py-12 text-center text-muted-foreground">
+                <HelpCircle className="mx-auto h-10 w-10 text-muted-foreground/50" />
+                <p className="font-medium">Aucun résultat trouvé</p>
+                <p className="text-sm">Essayez un autre mot-clé ou contactez le support.</p>
+              </div>
+            ) : null}
+          </section>
+
+          <aside className="space-y-6">
+            <div className="space-y-4 rounded-2xl border bg-primary/5 p-6">
+              <h3 className="flex items-center gap-2 font-bold">
                 <MessageSquare className="h-5 w-5 text-primary" />
                 Dépannage en direct
               </h3>
               <p className="text-sm text-muted-foreground">
-                Un problème urgent avec une commande en cours ? Utilisez notre
-                chat interactif pour une aide immédiate.
+                Un problème urgent avec une commande ou un paiement ? Ouvrez le chat pour
+                transmettre les informations de contexte.
               </p>
-              <Button
-                className="w-full rounded-xl gap-2 font-bold"
-                onClick={() => window.openChat && window.openChat()}
-              >
+              <Button className="w-full gap-2 rounded-xl font-bold" onClick={() => window.openChat?.()}>
                 Ouvrir le chat
               </Button>
             </div>
 
-            <div className="p-6 rounded-2xl border space-y-4">
-              <h3 className="font-bold flex items-center gap-2">
+            <div className="space-y-4 rounded-2xl border p-6">
+              <h3 className="flex items-center gap-2 font-bold">
                 <Mail className="h-5 w-5 text-muted-foreground" />
                 Nous contacter
               </h3>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <div className="flex items-start gap-3">
-                  <Mail className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                  <Mail className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                   <div>
                     <p className="text-sm font-medium">Email</p>
-                    <p className="text-xs text-muted-foreground">
-                      {SUPPORT_EMAIL}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Réponse sous 24h
-                    </p>
+                    <p className="text-xs text-muted-foreground">{SUPPORT_EMAIL}</p>
+                    <p className="text-xs text-muted-foreground">Réponse généralement sous 24h ouvrées.</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <Phone className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                  <Phone className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                   <div>
                     <p className="text-sm font-medium">Téléphone</p>
-                    <p className="text-xs text-muted-foreground">
-                      0800 MIAMZ (64269)
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Lun-Ven, 9h-21h
-                    </p>
+                    <p className="text-xs text-muted-foreground">0800 MIAMZ (64269)</p>
+                    <p className="text-xs text-muted-foreground">Lun-Ven, 9h-21h.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                  <div>
+                    <p className="text-sm font-medium">Zone principale</p>
+                    <p className="text-xs text-muted-foreground">Suisse romande, avec Genève comme zone prioritaire.</p>
                   </div>
                 </div>
               </div>
               <Link to="/contact">
-                <Button
-                  variant="outline"
-                  className="w-full rounded-xl gap-2 font-bold mt-2"
-                >
+                <Button variant="outline" className="mt-2 w-full gap-2 rounded-xl font-bold">
                   Page de contact <ChevronRight className="h-4 w-4" />
                 </Button>
               </Link>
             </div>
 
-            <div className="p-6 rounded-2xl border space-y-4">
-              <h3 className="font-bold flex items-center gap-2">
+            <div className="space-y-4 rounded-2xl border p-6">
+              <h3 className="flex items-center gap-2 font-bold">
                 <UtensilsCrossed className="h-5 w-5 text-muted-foreground" />
                 Vous êtes restaurateur ?
               </h3>
               <p className="text-sm text-muted-foreground">
-                Découvrez nos packs de lancement et rejoignez les 500+
-                restaurants partenaires de Tok.
+                Retrouvez les réponses sur l'inscription, le dashboard, les commandes,
+                les campagnes, le CRM, les avis, la facturation et le support opérationnel.
               </p>
-              <Link to="/packs-restaurateur">
-                <Button
-                  variant="outline"
-                  className="w-full rounded-xl gap-2 font-bold mt-1"
-                >
-                  Packs restaurateurs <ChevronRight className="h-4 w-4" />
-                </Button>
-              </Link>
+              <div className="grid gap-2">
+                <Link to="/packs-restaurateur">
+                  <Button variant="outline" className="w-full gap-2 rounded-xl font-bold">
+                    Packs restaurateurs <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </Link>
+                <Link to="/dashboard/support">
+                  <Button variant="outline" className="w-full gap-2 rounded-xl font-bold">
+                    Support dashboard <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
             </div>
 
-            <div className="p-6 rounded-2xl border space-y-4">
-              <h3 className="font-bold flex items-center gap-2">
-                <HelpCircle className="h-5 w-5 text-muted-foreground" />
+            <div className="space-y-4 rounded-2xl border p-6">
+              <h3 className="flex items-center gap-2 font-bold">
+                <Gift className="h-5 w-5 text-muted-foreground" />
                 Liens utiles
               </h3>
               <div className="space-y-2">
-                <Link
-                  to="/cgu"
-                  className="flex items-center gap-1 text-sm text-primary font-semibold hover:underline"
-                >
+                <Link to="/cgu" className="flex items-center gap-1 text-sm font-semibold text-primary hover:underline">
                   Conditions générales <ChevronRight className="h-4 w-4" />
                 </Link>
                 <Link
                   to="/politique-confidentialite"
-                  className="flex items-center gap-1 text-sm text-primary font-semibold hover:underline"
+                  className="flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
                 >
-                  Politique de confidentialite{" "}
-                  <ChevronRight className="h-4 w-4" />
+                  Politique de confidentialité <ChevronRight className="h-4 w-4" />
                 </Link>
                 <Link
                   to="/a-propos"
-                  className="flex items-center gap-1 text-sm text-primary font-semibold hover:underline"
+                  className="flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
                 >
-                  À propos de Tok <ChevronRight className="h-4 w-4" />
+                  À propos de TOK <ChevronRight className="h-4 w-4" />
                 </Link>
               </div>
             </div>
-          </div>
+
+            <div className="space-y-3 rounded-2xl border bg-muted/25 p-6">
+              <h3 className="flex items-center gap-2 font-bold">
+                <User className="h-5 w-5 text-muted-foreground" />
+                Bon réflexe support
+              </h3>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                Ne transmettez jamais votre mot de passe, vos codes de connexion,
+                votre numéro complet de carte ou une clé privée. TOK ne vous les demandera pas.
+              </p>
+            </div>
+          </aside>
         </div>
 
         <TokAiSupportChat context={{ page: "aide" }} compact />
-      </div>
+      </main>
     </div>
   );
 }

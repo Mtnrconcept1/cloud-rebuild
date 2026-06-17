@@ -17,6 +17,7 @@ import {
   type SocialFeedComment,
   type SocialFeedMedia,
   type SocialFeedPost,
+  type SocialPostDashboardMetrics,
   type SocialFeedScope,
   type SocialAudienceSegment,
   type SocialMarketingGoal,
@@ -170,6 +171,18 @@ type SponsoredPostState = {
   isSponsored: boolean;
   promotionStatus: string | null;
   promotionPaymentStatus: string | null;
+};
+
+type SocialPostMetricsRow = {
+  post_id?: string | null;
+  impressions_count?: number | null;
+  clicks_count?: number | null;
+  cta_clicks_count?: number | null;
+  reactions_count?: number | null;
+  comments_count?: number | null;
+  shares_count?: number | null;
+  saves_count?: number | null;
+  reposts_count?: number | null;
 };
 
 type SetPostReactionInput = {
@@ -366,6 +379,7 @@ function mapRestaurantPostRow(row: any): SocialFeedPost {
     offerCode: row.offer_code || null,
     utmCampaign: row.utm_campaign || null,
     recommendationReasons: [],
+    dashboardMetrics: row.dashboard_metrics || undefined,
   };
 }
 
@@ -502,6 +516,51 @@ async function getSponsoredStateByPostId(postIds: string[]) {
   }
 
   return stateByPostId;
+}
+
+async function getDashboardMetricsByPostId(postIds: string[]) {
+  const uniquePostIds = Array.from(new Set(postIds.filter(Boolean)));
+  const metricsByPostId = new Map<string, SocialPostDashboardMetrics>();
+  if (uniquePostIds.length === 0) return metricsByPostId;
+
+  const { data, error } = await (supabase.from("social_post_metrics_daily" as any) as any)
+    .select("post_id,impressions_count,clicks_count,cta_clicks_count,reactions_count,comments_count,shares_count,saves_count,reposts_count")
+    .in("post_id", uniquePostIds);
+
+  if (error) {
+    if (!/social_post_metrics_daily|schema cache|does not exist/i.test(error.message || "")) {
+      console.warn("Dashboard social post metrics unavailable", error);
+    }
+    return metricsByPostId;
+  }
+
+  for (const row of (data || []) as SocialPostMetricsRow[]) {
+    const postId = row.post_id;
+    if (!postId) continue;
+    const current = metricsByPostId.get(postId) || {
+      impressions: 0,
+      views: 0,
+      ctaClicks: 0,
+      interactions: 0,
+    };
+
+    const views = Number(row.clicks_count || 0);
+    const ctaClicks = Number(row.cta_clicks_count || 0);
+    current.impressions += Number(row.impressions_count || 0);
+    current.views += views;
+    current.ctaClicks += ctaClicks;
+    current.interactions +=
+      Number(row.reactions_count || 0) +
+      Number(row.comments_count || 0) +
+      Number(row.shares_count || 0) +
+      Number(row.saves_count || 0) +
+      Number(row.reposts_count || 0) +
+      ctaClicks;
+
+    metricsByPostId.set(postId, current);
+  }
+
+  return metricsByPostId;
 }
 
 async function assertRestaurantAccess(restaurantId: string, userId: string) {
@@ -677,15 +736,21 @@ export function useRestaurantSocialPosts(restaurantId?: string | null) {
 
       if (error) throw error;
       const rows = data || [];
-      const sponsoredStateByPostId = await getSponsoredStateByPostId(rows.map((row: any) => row.id).filter(Boolean));
+      const postIds = rows.map((row: any) => row.id).filter(Boolean);
+      const [sponsoredStateByPostId, dashboardMetricsByPostId] = await Promise.all([
+        getSponsoredStateByPostId(postIds),
+        getDashboardMetricsByPostId(postIds),
+      ]);
 
       return rows.map((row: any) => {
         const sponsoredState = sponsoredStateByPostId.get(row.id);
+        const dashboardMetrics = dashboardMetricsByPostId.get(row.id);
         return mapRestaurantPostRow({
           ...row,
           is_sponsored: sponsoredState?.isSponsored ?? false,
           promotion_status: sponsoredState?.promotionStatus ?? null,
           promotion_payment_status: sponsoredState?.promotionPaymentStatus ?? null,
+          dashboard_metrics: dashboardMetrics,
         });
       });
     },

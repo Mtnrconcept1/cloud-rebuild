@@ -1,6 +1,10 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import {
+  selectDailyProgressiveOffers,
+  type ProgressiveReservationOffer,
+} from "../lib/progressiveReservationOffers";
 
 const root = resolve(__dirname, "../..");
 
@@ -23,6 +27,63 @@ function latestMigrationContaining(needle: string) {
 }
 
 describe("progressive reservation offers", () => {
+  it("keeps only one visible progressive offer per restaurant and day", () => {
+    const offers = [
+      {
+        id: "evening",
+        restaurant_id: "restaurant-1",
+        title: "Soir",
+        description: null,
+        service_date: "2026-06-18",
+        service_time: "19:00",
+        countdown_ends_at: "2026-06-18T18:00:00.000Z",
+        booking_cutoff_at: "2026-06-18T17:30:00.000Z",
+        max_tables: 10,
+        max_discount_percent: 50,
+        current_reservations_count: 1,
+        status: "active",
+      },
+      {
+        id: "lunch",
+        restaurant_id: "restaurant-1",
+        title: "Midi",
+        description: null,
+        service_date: "2026-06-18",
+        service_time: "12:00",
+        countdown_ends_at: "2026-06-18T11:00:00.000Z",
+        booking_cutoff_at: "2026-06-18T10:30:00.000Z",
+        max_tables: 10,
+        max_discount_percent: 50,
+        current_reservations_count: 1,
+        status: "active",
+      },
+      {
+        id: "next-day",
+        restaurant_id: "restaurant-1",
+        title: "Demain",
+        description: null,
+        service_date: "2026-06-19",
+        service_time: "19:00",
+        countdown_ends_at: "2026-06-19T18:00:00.000Z",
+        booking_cutoff_at: "2026-06-19T17:30:00.000Z",
+        max_tables: 10,
+        max_discount_percent: 50,
+        current_reservations_count: 1,
+        status: "active",
+      },
+    ] satisfies ProgressiveReservationOffer[];
+
+    expect(selectDailyProgressiveOffers(offers, { maxOffers: 3 }).map((offer) => offer.id)).toEqual([
+      "lunch",
+      "next-day",
+    ]);
+    expect(selectDailyProgressiveOffers(offers, {
+      reservationDate: "2026-06-18",
+      reservationTime: "19:30",
+      maxOffers: 3,
+    }).map((offer) => offer.id)).toEqual(["evening"]);
+  });
+
   it("stores progressive booking offers and enforces the discount lifecycle in Supabase", () => {
     const migration = latestMigrationContaining("CREATE TABLE IF NOT EXISTS public.reservation_progressive_offers");
 
@@ -54,6 +115,15 @@ describe("progressive reservation offers", () => {
     expect(migration).toContain("Cette offre progressive est disponible uniquement pour le service");
     expect(migration).toContain("progressive_offer_service");
     expect(migration).toContain("GRANT EXECUTE ON FUNCTION public.get_progressive_offer_service_key(time) TO anon, authenticated, service_role");
+  });
+
+  it("prevents two active progressive offers on the same restaurant day", () => {
+    const migration = latestMigrationContaining("idx_reservation_progressive_offers_one_active_per_day");
+
+    expect(migration).toContain("daily_progressive_offer_limit");
+    expect(migration).toContain("CREATE UNIQUE INDEX IF NOT EXISTS idx_reservation_progressive_offers_one_active_per_day");
+    expect(migration).toContain("ON public.reservation_progressive_offers(restaurant_id, service_date)");
+    expect(migration).toContain("WHERE status = 'active'");
   });
 
   it("wires progressive offers through restaurant, customer and admin surfaces", () => {
@@ -94,6 +164,12 @@ describe("progressive reservation offers", () => {
     expect(reservationDialog).toContain('setTime((initialProgressiveOffer.service_time || "19:00").slice(0, 5))');
     expect(dashboardFormules).toContain("Service cible");
     expect(dashboardFormules).toContain("Tous les creneaux du service");
+    expect(dashboardFormules).toContain("Recurrence");
+    expect(dashboardFormules).toContain("Nombre d'occurrences");
+    expect(dashboardFormules).toContain("occurrences programmees");
+    expect(index).toContain("selectDailyProgressiveOffers");
+    expect(restaurantDetail).toContain("selectDailyProgressiveOffers");
+    expect(reservationDialog).toContain("selectDailyProgressiveOffers");
     expect(reservationMutations).toContain("progressive_offer_id");
     expect(customerReservations).toContain("progressive_offer_discount_percent");
     expect(dashboardReservations).toContain("progressive_offer_discount_percent");

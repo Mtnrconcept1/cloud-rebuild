@@ -7,7 +7,7 @@ type SeoMetaInput = {
   description: string;
   path: string;
   image?: string;
-  jsonLd?: Record<string, unknown> | null;
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[] | null;
 };
 
 function upsertMeta(selector: string, attributes: Record<string, string>) {
@@ -44,11 +44,14 @@ export function useSeoMeta({ title, description, path, image = "/fond3.png", jso
 
     document.title = title;
     upsertMeta("meta[name='description']", { name: "description", content: description });
+    upsertMeta("meta[name='robots']", { name: "robots", content: "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" });
     upsertCanonical(canonicalUrl);
+    upsertMeta("meta[property='og:type']", { property: "og:type", content: "website" });
     upsertMeta("meta[property='og:title']", { property: "og:title", content: title });
     upsertMeta("meta[property='og:description']", { property: "og:description", content: description });
     upsertMeta("meta[property='og:url']", { property: "og:url", content: canonicalUrl });
     upsertMeta("meta[property='og:image']", { property: "og:image", content: imageUrl });
+    upsertMeta("meta[name='twitter:card']", { name: "twitter:card", content: "summary_large_image" });
     upsertMeta("meta[name='twitter:title']", { name: "twitter:title", content: title });
     upsertMeta("meta[name='twitter:description']", { name: "twitter:description", content: description });
     upsertMeta("meta[name='twitter:image']", { name: "twitter:image", content: imageUrl });

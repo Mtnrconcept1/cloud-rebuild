@@ -29,6 +29,7 @@ import {
   getProgressiveOfferServiceLabel,
   getProgressiveOfferRemainingTables,
   isProgressiveOfferAvailableForSlot,
+  selectDailyProgressiveOffers,
   type ProgressiveReservationOffer,
 } from "@/lib/progressiveReservationOffers";
 import {
@@ -240,8 +241,15 @@ export default function ReservationDialog({
 
         const { data: progressiveData, error: progressiveError } = await progressiveQuery;
         if (progressiveError) throw progressiveError;
-        progressiveRows = ((progressiveData || []) as ProgressiveReservationOffer[])
-          .filter((offer) => isProgressiveOfferAvailableForSlot(offer, reservationDate, time));
+        progressiveRows = selectDailyProgressiveOffers(
+          ((progressiveData || []) as ProgressiveReservationOffer[])
+            .filter((offer) => isProgressiveOfferAvailableForSlot(offer, reservationDate, time)),
+          {
+            reservationDate,
+            reservationTime: time,
+            maxOffers: 1,
+          },
+        );
       }
 
       const formulaPromos = ((data || []) as MealFormulaRow[])

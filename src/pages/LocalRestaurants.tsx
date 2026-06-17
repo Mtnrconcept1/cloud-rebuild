@@ -18,6 +18,12 @@ const CITY_LABELS: Record<string, string> = {
   geneve: "Genève",
   genève: "Genève",
   lausanne: "Lausanne",
+  fribourg: "Fribourg",
+  neuchatel: "Neuchatel",
+  nyon: "Nyon",
+  vevey: "Vevey",
+  montreux: "Montreux",
+  "yverdon-les-bains": "Yverdon-les-Bains",
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -29,6 +35,18 @@ const CATEGORY_LABELS: Record<string, string> = {
   sushi: "sushi",
   vegan: "vegan",
   asiatique: "asiatique",
+  africain: "africaine",
+  libanais: "libanaise",
+  indien: "indienne",
+  halal: "halal",
+  healthy: "healthy",
+  brunch: "brunch",
+  dessert: "dessert",
+  desserts: "desserts",
+  coreen: "coreenne",
+  grec: "grecque",
+  bistro: "bistro",
+  "street-food": "street food",
 };
 
 const DISTRICT_LABELS: Record<string, string> = {
@@ -38,7 +56,15 @@ const DISTRICT_LABELS: Record<string, string> = {
   carouge: "Carouge",
   champel: "Champel",
   jonction: "Jonction",
+  servette: "Servette",
+  rive: "Rive",
+  flon: "Flon",
+  ouchy: "Ouchy",
+  "sous-gare": "Sous-Gare",
+  chailly: "Chailly",
 };
+
+const POPULAR_CUISINES = ["pizza", "sushi", "burger", "italien", "libanais", "halal", "brunch", "healthy"];
 
 function slugToLabel(slug: string | undefined, labels: Record<string, string>) {
   const normalized = String(slug || "").trim().toLowerCase();
@@ -70,10 +96,11 @@ function getPageName(city: string, category: string, district: string) {
 }
 
 function buildRestaurantJsonLd(restaurants: any[], city: string, category: string, district: string, path: string) {
-  return {
+  const pageName = getPageName(city, category, district);
+  const itemList = {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    name: getPageName(city, category, district),
+    name: pageName,
     url: buildCanonicalUrl(path),
     itemListElement: restaurants.slice(0, 24).map((restaurant, index) => {
       const restaurantPath = buildRestaurantSeoPath(restaurant);
@@ -104,6 +131,61 @@ function buildRestaurantJsonLd(restaurants: any[], city: string, category: strin
       };
     }),
   };
+
+  return [
+    itemList,
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Accueil", item: buildCanonicalUrl("/") },
+        { "@type": "ListItem", position: 2, name: "Recherche restaurants", item: buildCanonicalUrl("/recherche") },
+        { "@type": "ListItem", position: 3, name: pageName, item: buildCanonicalUrl(path) },
+      ],
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: `Comment choisir un restaurant a ${city} sur TOK ?`,
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Comparez les cuisines, quartiers, notes, modes de service, offres locales et disponibilites avant de commander ou reserver.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Puis-je reserver et commander depuis la meme page ?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Oui, lorsque le restaurant a active ces services, TOK permet de reserver, commander, choisir le retrait ou consulter les offres disponibles.",
+          },
+        },
+      ],
+    },
+  ];
+}
+
+function buildLocalSeoLinks(citySlug: string | undefined, city: string, category: string, district: string) {
+  const safeCitySlug = slugifyRestaurantSegment(citySlug || city || "geneve");
+  const cuisineLinks = POPULAR_CUISINES.map((cuisine) => ({
+    href: `/restaurants/${safeCitySlug}/${cuisine}`,
+    label: `${slugToLabel(cuisine, CATEGORY_LABELS)} a ${city}`,
+  }));
+
+  return [
+    { href: `/restaurants/${safeCitySlug}`, label: `Tous les restaurants a ${city}` },
+    ...cuisineLinks,
+    { href: "/anti-gaspi", label: "Offres anti-gaspi" },
+    { href: "/ventes-flash", label: "Ventes flash" },
+    { href: "/miamz-solidaires", label: "Miamz solidaires" },
+  ].filter((link) => {
+    if (category && link.href.endsWith(`/${slugifyRestaurantSegment(category)}`)) return false;
+    if (district && link.href.endsWith(`/${slugifyRestaurantSegment(district)}`)) return false;
+    return true;
+  });
 }
 
 export default function LocalRestaurants() {
@@ -170,6 +252,10 @@ export default function LocalRestaurants() {
     () => buildRestaurantJsonLd(restaurants, city, category, district, path),
     [category, city, district, path, restaurants],
   );
+  const localSeoLinks = useMemo(
+    () => buildLocalSeoLinks(params.city, city, category, district),
+    [category, city, district, params.city],
+  );
 
   useSeoMeta({ title, description, path, jsonLd });
 
@@ -210,6 +296,26 @@ export default function LocalRestaurants() {
                 Affiner la recherche
               </Link>
             </Button>
+          </div>
+        </section>
+
+        <section className="rounded-2xl border bg-card p-5 shadow-sm">
+          <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
+            <div className="space-y-2">
+              <h2 className="text-lg font-semibold">Guide local TOK pour {pageName.toLowerCase()}</h2>
+              <p className="text-sm leading-6 text-muted-foreground">
+                Utilisez cette page pour comparer les restaurants actifs, reperer les cuisines proches,
+                verifier les services de commande ou de reservation, puis acceder aux offres courtes,
+                ventes flash et avantages Miamz quand ils sont disponibles.
+              </p>
+            </div>
+            <nav aria-label="Liens restaurants populaires" className="flex flex-wrap gap-2">
+              {localSeoLinks.slice(0, 10).map((link) => (
+                <Button key={link.href} asChild variant="outline" size="sm" className="h-8 rounded-full text-xs">
+                  <Link to={link.href}>{link.label}</Link>
+                </Button>
+              ))}
+            </nav>
           </div>
         </section>
 

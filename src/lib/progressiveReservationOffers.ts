@@ -15,6 +15,7 @@ export type ProgressiveReservationOffer = {
   current_reservations_count: number;
   final_discount_percent?: number | null;
   status: string;
+  metadata?: Record<string, unknown> | null;
   restaurants?: {
     id?: string;
     name?: string | null;
@@ -23,6 +24,12 @@ export type ProgressiveReservationOffer = {
     cuisine_type?: string | null;
     rating?: number | null;
   } | null;
+};
+
+type DailyProgressiveOfferOptions = {
+  reservationDate?: string | null;
+  reservationTime?: string | null;
+  maxOffers?: number;
 };
 
 export function getProgressiveOfferServicePeriod(offer: Pick<ProgressiveReservationOffer, "service_time">): ServicePeriod {
@@ -95,6 +102,42 @@ export function isProgressiveOfferBookable(offer: Pick<ProgressiveReservationOff
     && new Date(offer.booking_cutoff_at).getTime() > now
     && getProgressiveOfferRemainingTables(offer) > 0
   );
+}
+
+function progressiveOfferSortTime(value: string | null | undefined) {
+  if (!value) return Number.POSITIVE_INFINITY;
+  const timestamp = new Date(value).getTime();
+  return Number.isFinite(timestamp) ? timestamp : Number.POSITIVE_INFINITY;
+}
+
+export function selectDailyProgressiveOffers(
+  offers: ProgressiveReservationOffer[],
+  options: DailyProgressiveOfferOptions = {},
+) {
+  const maxOffers = Math.max(1, Number(options.maxOffers || 1));
+  const seen = new Set<string>();
+
+  return offers
+    .filter((offer) => {
+      if (getProgressiveOfferRemainingTables(offer) <= 0) return false;
+      if (options.reservationDate && offer.service_date !== options.reservationDate) return false;
+      if (options.reservationDate && options.reservationTime) {
+        return isProgressiveOfferAvailableForSlot(offer, options.reservationDate, options.reservationTime);
+      }
+      return true;
+    })
+    .sort((left, right) => (
+      progressiveOfferSortTime(`${left.service_date}T12:00:00`) - progressiveOfferSortTime(`${right.service_date}T12:00:00`)
+      || progressiveOfferSortTime(left.booking_cutoff_at) - progressiveOfferSortTime(right.booking_cutoff_at)
+      || progressiveOfferSortTime(left.countdown_ends_at) - progressiveOfferSortTime(right.countdown_ends_at)
+    ))
+    .filter((offer) => {
+      const key = `${offer.restaurant_id}:${offer.service_date}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, maxOffers);
 }
 
 export function formatProgressiveCountdown(targetIso: string, nowMs = Date.now()) {

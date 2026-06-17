@@ -33,6 +33,7 @@ import {
   getProgressiveOfferRemainingTables,
   getProgressiveOfferServiceLabel,
   isProgressiveOfferAvailableForSlot,
+  selectDailyProgressiveOffers,
   type ProgressiveReservationOffer,
 } from "@/lib/progressiveReservationOffers";
 import { useTokLogoSrc } from "@/hooks/useTokLogo";
@@ -355,13 +356,14 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
     [activeReservationProgressiveOfferId, progressiveOffers],
   );
   const visibleProgressiveOffers = useMemo(() => {
-    const bookableOffers = progressiveOffers.filter((offer) => getProgressiveOfferRemainingTables(offer) > 0);
-    if (!reservationWidgetSelection?.date) return bookableOffers;
-
-    const selectedDate = format(reservationWidgetSelection.date, "yyyy-MM-dd");
-    return bookableOffers.filter((offer) => (
-      isProgressiveOfferAvailableForSlot(offer, selectedDate, reservationWidgetSelection.time)
-    ));
+    const selectedDate = reservationWidgetSelection?.date
+      ? format(reservationWidgetSelection.date, "yyyy-MM-dd")
+      : null;
+    return selectDailyProgressiveOffers(progressiveOffers, {
+      reservationDate: selectedDate,
+      reservationTime: selectedDate ? reservationWidgetSelection?.time : null,
+      maxOffers: 1,
+    });
   }, [progressiveOffers, reservationWidgetSelection]);
 
   const reservationAvailable = reservationEnabled && !!restaurant?.supports_reservation;

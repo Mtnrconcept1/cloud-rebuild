@@ -28,6 +28,223 @@ const STATIC_LOCAL_PAGES = [
   ["lausanne/asiatique", "Restaurants asiatiques à Lausanne"],
 ];
 
+const LOCAL_CITIES = [
+  { slug: "geneve", label: "Geneve", districts: ["eaux-vives", "plainpalais", "paquis", "carouge", "champel", "jonction", "servette", "rive"] },
+  { slug: "lausanne", label: "Lausanne", districts: ["flon", "ouchy", "sous-gare", "chailly"] },
+  { slug: "fribourg", label: "Fribourg", districts: [] },
+  { slug: "neuchatel", label: "Neuchatel", districts: [] },
+  { slug: "nyon", label: "Nyon", districts: [] },
+  { slug: "vevey", label: "Vevey", districts: [] },
+  { slug: "montreux", label: "Montreux", districts: [] },
+  { slug: "yverdon-les-bains", label: "Yverdon-les-Bains", districts: [] },
+];
+
+const LOCAL_CUISINES = [
+  { slug: "pizza", label: "Pizza" },
+  { slug: "sushi", label: "Sushi" },
+  { slug: "burger", label: "Burger" },
+  { slug: "kebab", label: "Kebab" },
+  { slug: "italien", label: "Italien" },
+  { slug: "asiatique", label: "Asiatique" },
+  { slug: "japonais", label: "Japonais" },
+  { slug: "libanais", label: "Libanais" },
+  { slug: "indien", label: "Indien" },
+  { slug: "halal", label: "Halal" },
+  { slug: "healthy", label: "Healthy" },
+  { slug: "brunch", label: "Brunch" },
+  { slug: "dessert", label: "Dessert" },
+  { slug: "africain", label: "Africain" },
+  { slug: "bistro", label: "Bistro" },
+  { slug: "street-food", label: "Street food" },
+  { slug: "coreen", label: "Coreen" },
+  { slug: "grec", label: "Grec" },
+];
+
+const LOCAL_DISTRICTS = {
+  "eaux-vives": "Eaux-Vives",
+  plainpalais: "Plainpalais",
+  paquis: "Paquis",
+  carouge: "Carouge",
+  champel: "Champel",
+  jonction: "Jonction",
+  servette: "Servette",
+  rive: "Rive",
+  flon: "Flon",
+  ouchy: "Ouchy",
+  "sous-gare": "Sous-Gare",
+  chailly: "Chailly",
+};
+
+const RICH_LOCAL_PAGES = [
+  ...LOCAL_CITIES.map((city) => ({
+    type: "city",
+    slug: city.slug,
+    citySlug: city.slug,
+    city: city.label,
+  })),
+  ...LOCAL_CITIES.flatMap((city) =>
+    LOCAL_CUISINES.slice(0, city.slug === "geneve" ? LOCAL_CUISINES.length : 10).map((cuisine) => ({
+      type: "cuisine",
+      slug: `${city.slug}/${cuisine.slug}`,
+      citySlug: city.slug,
+      city: city.label,
+      cuisineSlug: cuisine.slug,
+      cuisine: cuisine.label,
+    })),
+  ),
+  ...LOCAL_CITIES.flatMap((city) =>
+    city.districts.map((districtSlug) => ({
+      type: "district",
+      slug: `${city.slug}/${districtSlug}`,
+      citySlug: city.slug,
+      city: city.label,
+      districtSlug,
+      district: LOCAL_DISTRICTS[districtSlug] || districtSlug.replace(/-/g, " "),
+    })),
+  ),
+];
+
+function buildLocalHeading(page) {
+  if (page.type === "cuisine") return `${page.cuisine} a ${page.city} : commander, reserver et comparer`;
+  if (page.type === "district") return `Restaurants a ${page.district}, ${page.city}`;
+  return `Restaurants a ${page.city} : reservation, commande et offres locales`;
+}
+
+function buildLocalTitle(page) {
+  if (page.type === "cuisine") return `${page.cuisine} a ${page.city} : restaurants, commande et reservation | TOK`;
+  if (page.type === "district") return `Restaurants a ${page.district}, ${page.city} | TOK`;
+  return `Restaurants a ${page.city} : reserver, commander et profiter des offres | TOK`;
+}
+
+function buildLocalDescription(page) {
+  if (page.type === "cuisine") {
+    return `Trouvez les restaurants ${page.cuisine} a ${page.city} sur TOK : reservation, commande, retrait, livraison, offres locales, ventes flash et Miamz.`;
+  }
+  if (page.type === "district") {
+    return `Decouvrez les restaurants proches de ${page.district} a ${page.city} avec TOK : bonnes adresses, reservation, commande, offres locales et avis clients.`;
+  }
+  return `Comparez les restaurants a ${page.city} avec TOK : cuisines populaires, quartiers, reservation, commande, anti-gaspi, ventes flash et avantages Miamz.`;
+}
+
+function buildLocalLinks(page) {
+  const citySlug = page.citySlug || page.slug.split("/")[0] || "geneve";
+  const city = LOCAL_CITIES.find((item) => item.slug === citySlug) || LOCAL_CITIES[0];
+  const cuisineLinks = LOCAL_CUISINES.slice(0, 8).map((cuisine) => ({
+    href: `/restaurants/${citySlug}/${cuisine.slug}`,
+    label: `${cuisine.label} a ${city.label}`,
+  }));
+  const districtLinks = city.districts.slice(0, 6).map((districtSlug) => ({
+    href: `/restaurants/${citySlug}/${districtSlug}`,
+    label: `Restaurants ${LOCAL_DISTRICTS[districtSlug]}`,
+  }));
+
+  return [
+    { href: "/recherche", label: "Recherche restaurants" },
+    { href: "/anti-gaspi", label: "Offres anti-gaspi" },
+    { href: "/ventes-flash", label: "Ventes flash food" },
+    ...cuisineLinks,
+    ...districtLinks,
+  ].filter((link, index, links) => links.findIndex((candidate) => candidate.href === link.href) === index);
+}
+
+function buildLocalStaticContent(page) {
+  const serviceLine = page.type === "cuisine"
+    ? `Cette page aide a trouver une adresse ${page.cuisine} a ${page.city}, puis a choisir selon le service disponible : reservation, commande, retrait, livraison, offres courtes ou actualites du restaurant.`
+    : page.type === "district"
+      ? `Cette page concentre les restaurants du quartier ${page.district} a ${page.city}, avec des criteres utiles pour reserver vite, commander au bon moment et reperer les offres locales.`
+      : `Cette page rassemble les restaurants de ${page.city}, les cuisines recherchees, les quartiers utiles, les offres anti-gaspi, les ventes flash et les avantages Miamz.`;
+
+  return {
+    heading: buildLocalHeading(page),
+    paragraphs: [
+      serviceLine,
+      "TOK privilegie des pages locales utiles : contexte de recherche, liens internes, services disponibles, informations restaurant et donnees structurees lisibles par les moteurs.",
+    ],
+    sections: [
+      {
+        heading: "Ce que vous pouvez filtrer",
+        items: ["Cuisine", "Ville ou quartier", "Commande", "Reservation", "Retrait", "Offres locales", "Ventes flash"],
+      },
+      {
+        heading: "Pourquoi cette page est utile",
+        items: ["Adresses locales", "Restaurants actifs", "Liens vers cuisines proches", "Maillage par quartiers", "Parcours mobile rapide"],
+      },
+      {
+        heading: "Services TOK associes",
+        items: ["Reservation", "Commande", "Anti-gaspi", "Actualites restaurants", "Miamz", "Tok One"],
+      },
+    ],
+    links: buildLocalLinks(page),
+  };
+}
+
+function buildLocalJsonLd(page) {
+  const pathName = `/restaurants/${page.slug}`;
+  const name = buildLocalHeading(page);
+  const city = page.city || "Geneve";
+
+  return [
+    {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      name,
+      url: canonicalUrl(pathName),
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Accueil", item: `${CANONICAL_ORIGIN}/` },
+        { "@type": "ListItem", position: 2, name: "Restaurants", item: canonicalUrl("/recherche") },
+        { "@type": "ListItem", position: 3, name, item: canonicalUrl(pathName) },
+      ],
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: `Comment trouver un restaurant a ${city} avec TOK ?`,
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Utilisez la recherche TOK pour filtrer par ville, cuisine, quartier, reservation, commande, offres locales et restaurants actifs.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Puis-je commander ou reserver depuis une page locale TOK ?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Oui. Quand le restaurant active les services correspondants, TOK permet de reserver, commander, choisir le retrait ou consulter les offres disponibles.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Les pages locales TOK affichent-elles seulement une grille ?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Non. Les pages locales associent restaurants, cuisines, quartiers, liens utiles, donnees structurees et contenu local pour mieux repondre aux recherches.",
+          },
+        },
+      ],
+    },
+  ];
+}
+
+function buildLocalSeoPage(page, overrides = {}) {
+  return {
+    path: `/restaurants/${page.slug}`,
+    title: buildLocalTitle(page),
+    description: buildLocalDescription(page),
+    priority: page.type === "city" ? "0.9" : "0.8",
+    changefreq: page.type === "city" ? "daily" : "weekly",
+    staticContent: buildLocalStaticContent(page),
+    jsonLd: buildLocalJsonLd(page),
+    ...overrides,
+  };
+}
+
 const PUBLIC_SEO_PAGES = [
   {
     path: "/",
@@ -66,6 +283,7 @@ const PUBLIC_SEO_PAGES = [
     priority: "0.9",
     changefreq: "daily",
   },
+  ...RICH_LOCAL_PAGES.map((page) => buildLocalSeoPage(page)),
   ...STATIC_LOCAL_PAGES.map(([slug, label]) => {
     const [citySlug, categorySlug] = slug.split("/");
     const city = citySlug === "geneve" ? "Genève" : "Lausanne";
@@ -614,6 +832,33 @@ const PUBLIC_SEO_PAGES = [
       "Consultez l'aide TOK pour comprendre les commandes, réservations, paiements, Miamz, dons solidaires et packs restaurateurs.",
     priority: "0.6",
     changefreq: "weekly",
+    staticContent: {
+      heading: "Centre d'aide TOK : toutes les reponses essentielles",
+      paragraphs: [
+        "Le centre d'aide TOK couvre les commandes, reservations, paiements, remboursements, retraits, livraisons, Miamz, Tok One, anti-gaspi, ventes flash, notifications, signalements et outils restaurateurs.",
+        "Cette page est structuree pour repondre aux questions frequentes des clients, des restaurateurs et des partenaires, avec des reponses courtes et actionnables.",
+      ],
+      sections: [
+        {
+          heading: "Clients",
+          items: ["Commander", "Reserver", "Suivre une commande", "Choisir le retrait", "Utiliser les Miamz", "Gerer son profil"],
+        },
+        {
+          heading: "Paiements et support",
+          items: ["Paiement carte", "TWINT", "PostFinance", "Remboursement", "Signalement", "Notifications"],
+        },
+        {
+          heading: "Restaurateurs",
+          items: ["Dashboard", "Campagnes sponsorisees", "Actualites", "CRM clients", "Reservations", "Offres locales"],
+        },
+      ],
+      links: [
+        { href: "/contact", label: "Contacter TOK" },
+        { href: "/recherche", label: "Trouver un restaurant" },
+        { href: "/packs-restaurateur", label: "Packs restaurateurs" },
+        { href: "/miamz-solidaires", label: "Comprendre les Miamz" },
+      ],
+    },
     jsonLd: {
       "@context": "https://schema.org",
       "@type": "FAQPage",
@@ -632,6 +877,38 @@ const PUBLIC_SEO_PAGES = [
           acceptedAnswer: {
             "@type": "Answer",
             text: "Les Miamz peuvent servir à réduire une commande, être offerts ou participer à un objectif solidaire.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Quand une commande est-elle confirmee ?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Une commande payee par carte, TWINT ou PostFinance doit etre confirmee apres validation du paiement. Le suivi affiche ensuite les etapes disponibles.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Comment demander de l'aide apres une commande ?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Depuis le centre d'aide ou la page de commande, contactez TOK avec le numero de commande, le restaurant concerne et le probleme rencontre.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Un restaurateur peut-il publier des actualites sur TOK ?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Oui. Les restaurateurs peuvent publier des actualites, medias, offres et campagnes sponsorisees selon les modules actives sur leur compte.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Comment fonctionne le signalement d'un contenu ?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Un signalement doit etre legitime. Les campagnes abusives ou le harcelement d'un concurrent peuvent entrainer des mesures sur le compte.",
           },
         },
       ],
@@ -723,6 +1000,55 @@ function buildRestaurantSeoPath(restaurant) {
   return `/restaurant/${restaurant.id}`;
 }
 
+function buildPriceRange(value) {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue) || numericValue <= 0) return undefined;
+  const level = Math.min(Math.max(Math.round(numericValue), 1), 4);
+  return Array.from({ length: level }, () => "CHF").join(" ");
+}
+
+function buildRestaurantOfferCatalog(restaurant, restaurantPath) {
+  const baseUrl = canonicalUrl(restaurantPath);
+  return {
+    "@type": "OfferCatalog",
+    name: `Services TOK - ${restaurant.name}`,
+    itemListElement: [
+      {
+        "@type": "Offer",
+        name: "Commande en ligne",
+        availability: "https://schema.org/InStock",
+        url: baseUrl,
+      },
+      {
+        "@type": "Offer",
+        name: "Reservation de table",
+        availability: "https://schema.org/InStock",
+        url: baseUrl,
+      },
+      {
+        "@type": "Offer",
+        name: "Offres locales et actualites",
+        availability: "https://schema.org/InStock",
+        url: baseUrl,
+      },
+    ],
+  };
+}
+
+function buildRestaurantPotentialActions(restaurantPath) {
+  const target = canonicalUrl(restaurantPath);
+  return [
+    {
+      "@type": "OrderAction",
+      target,
+    },
+    {
+      "@type": "ReserveAction",
+      target,
+    },
+  ];
+}
+
 function dedupePages(pages) {
   const byPath = new Map();
   for (const page of pages) {
@@ -769,7 +1095,7 @@ async function collectDynamicRestaurantPages() {
     });
     const { data, error } = await supabase
       .from("restaurants")
-      .select("id, name, slug, city, cuisine_type, image_url, rating, review_count, updated_at")
+      .select("id, name, slug, city, cuisine_type, image_url, rating, review_count, updated_at, description, address, phone, price_range, opening_hours")
       .eq("is_active", true)
       .order("updated_at", { ascending: false, nullsFirst: false })
       .limit(MAX_DYNAMIC_RESTAURANTS);
@@ -805,6 +1131,36 @@ async function collectDynamicRestaurantPages() {
             lastmod: restaurant.updated_at,
           });
         }
+        if (citySlug) {
+          cityCategoryPages.set(
+            `/restaurants/${citySlug}`,
+            buildLocalSeoPage(
+              {
+                type: "city",
+                slug: citySlug,
+                citySlug,
+                city,
+              },
+              { priority: "0.8", lastmod: restaurant.updated_at },
+            ),
+          );
+        }
+        if (citySlug && cuisineSlug) {
+          cityCategoryPages.set(
+            `/restaurants/${citySlug}/${cuisineSlug}`,
+            buildLocalSeoPage(
+              {
+                type: "cuisine",
+                slug: `${citySlug}/${cuisineSlug}`,
+                citySlug,
+                city,
+                cuisineSlug,
+                cuisine,
+              },
+              { priority: "0.7", lastmod: restaurant.updated_at },
+            ),
+          );
+        }
         return [
           {
             path: restaurantPath,
@@ -819,13 +1175,24 @@ async function collectDynamicRestaurantPages() {
               "@type": "Restaurant",
               "@id": canonicalUrl(restaurantPath),
               name: restaurant.name,
+              description:
+                restaurant.description ||
+                `${restaurant.name} sur TOK : restaurant ${cuisine || "local"} a ${city}, avec reservation, commande et offres locales selon les services disponibles.`,
               image: restaurant.image_url || undefined,
               servesCuisine: cuisine || undefined,
+              telephone: restaurant.phone || undefined,
+              priceRange: buildPriceRange(restaurant.price_range),
               address: {
                 "@type": "PostalAddress",
+                streetAddress: restaurant.address || undefined,
                 addressLocality: city,
                 addressCountry: "CH",
               },
+              openingHoursSpecification: Array.isArray(restaurant.opening_hours)
+                ? restaurant.opening_hours
+                : undefined,
+              hasOfferCatalog: buildRestaurantOfferCatalog(restaurant, restaurantPath),
+              potentialAction: buildRestaurantPotentialActions(restaurantPath),
               aggregateRating: restaurant.rating
                 ? {
                   "@type": "AggregateRating",

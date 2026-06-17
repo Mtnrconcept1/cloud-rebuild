@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
@@ -46,6 +47,9 @@ const SERVICE_PERIODS: Array<{ key: ServicePeriod; note: string }> = [
 ];
 
 const PROGRESSIVE_OFFER_LIMIT = 20;
+const PROGRESSIVE_RECURRENCE_MAX_COUNT = 30;
+
+type ProgressiveOfferRecurrence = "none" | "daily" | "weekly";
 
 type PresetFormula = {
   formula_key: string;
@@ -222,8 +226,35 @@ function toDateTimeLocalValue(date: Date) {
   return `${toDateInputValue(date)}T${padNumber(date.getHours())}:${padNumber(date.getMinutes())}`;
 }
 
+function addDays(date: Date, days: number) {
+  const next = new Date(date);
+  next.setDate(next.getDate() + days);
+  return next;
+}
+
 function getProgressiveServiceDefaultTime(period: ServicePeriod) {
   return DEFAULT_SERVICE_SETTINGS[period].start_time;
+}
+
+function readProgressiveRecurrence(offer: ProgressiveReservationOffer): {
+  recurrence: ProgressiveOfferRecurrence;
+  recurrenceCount: string;
+} {
+  const metadata = offer.metadata;
+  const recurrence = metadata && typeof metadata === "object" && "recurrence" in metadata
+    ? (metadata.recurrence as Record<string, unknown> | null)
+    : null;
+  const frequency = recurrence?.frequency === "daily" || recurrence?.frequency === "weekly"
+    ? recurrence.frequency
+    : "none";
+  const occurrenceCount = typeof recurrence?.occurrence_count === "number"
+    ? recurrence.occurrence_count
+    : 1;
+
+  return {
+    recurrence: frequency,
+    recurrenceCount: String(Math.max(1, Math.min(PROGRESSIVE_RECURRENCE_MAX_COUNT, occurrenceCount))),
+  };
 }
 
 function buildDefaultProgressiveOfferForm() {
@@ -245,11 +276,14 @@ function buildDefaultProgressiveOfferForm() {
     maxTables: "10",
     maxDiscountPercent: "50",
     isActive: true,
+    recurrence: "none" as ProgressiveOfferRecurrence,
+    recurrenceCount: "1",
   };
 }
 
 function progressiveOfferToForm(offer: ProgressiveReservationOffer) {
   const countdownEnd = new Date(offer.countdown_ends_at);
+  const recurrence = readProgressiveRecurrence(offer);
   return {
     id: offer.id,
     title: offer.title || "Offre progressive",
@@ -262,6 +296,8 @@ function progressiveOfferToForm(offer: ProgressiveReservationOffer) {
     maxTables: String(offer.max_tables || 10),
     maxDiscountPercent: String(offer.max_discount_percent || 50),
     isActive: offer.status === "active",
+    recurrence: recurrence.recurrence,
+    recurrenceCount: recurrence.recurrenceCount,
   };
 }
 
@@ -299,16 +335,21 @@ function ProgressiveOfferManager({
 
   const save = async () => {
     const title = form.title.trim();
+    const serviceDate = new Date(`${form.serviceDate}T12:00:00`);
     const countdownEnd = new Date(form.countdownEndsAt);
     const maxTables = Math.max(1, Math.min(200, Number(form.maxTables) || 10));
     const maxDiscountPercent = Math.max(1, Math.min(100, Number(form.maxDiscountPercent) || 50));
+    const recurrenceCount = form.id || form.recurrence === "none"
+      ? 1
+      : Math.max(1, Math.min(PROGRESSIVE_RECURRENCE_MAX_COUNT, Number(form.recurrenceCount) || 1));
+    const recurrenceIntervalDays = form.recurrence === "weekly" ? 7 : 1;
 
     if (!title) {
       toast({ title: "Titre requis", description: "Nommez l'offre progressive.", variant: "destructive" });
       return;
     }
 
-    if (!form.serviceDate || Number.isNaN(new Date(`${form.serviceDate}T12:00:00`).getTime())) {
+    if (!form.serviceDate || Number.isNaN(serviceDate.getTime())) {
       toast({ title: "Date requise", description: "Choisissez le jour de service de l'offre.", variant: "destructive" });
       return;
     }
@@ -330,36 +371,79 @@ function ProgressiveOfferManager({
 
     setSaving(true);
     try {
-      const payload = {
+      const payloads = Array.from({ length: recurrenceCount }, (_, index) => {
+        const offsetDays = form.recurrence === "none" ? 0 : index * recurrenceIntervalDays;
+        const occurrenceServiceDate = addDays(serviceDate, offsetDays);
+        const occurrenceCountdownEnd = addDays(countdownEnd, offsetDays);
+        const occurrenceBookingCutoff = addDays(bookingCutoff, offsetDays);
+
+        return {
         restaurant_id: restaurantId,
         title,
         description: form.description.trim() || null,
-        service_date: form.serviceDate,
+          service_date: toDateInputValue(occurrenceServiceDate),
         service_time: form.serviceTime || "19:00",
-        countdown_ends_at: countdownEnd.toISOString(),
-        booking_cutoff_at: bookingCutoff.toISOString(),
+          countdown_ends_at: occurrenceCountdownEnd.toISOString(),
+          booking_cutoff_at: occurrenceBookingCutoff.toISOString(),
         max_tables: maxTables,
         max_discount_percent: maxDiscountPercent,
         status: form.isActive ? "active" : "draft",
+          metadata: {
+            recurrence: {
+              frequency: form.id ? "none" : form.recurrence,
+              occurrence_index: index + 1,
+              occurrence_count: recurrenceCount,
+            },
+          },
         updated_at: new Date().toISOString(),
-      };
+        };
+      });
+
+      if (form.isActive) {
+        const scheduledDates = payloads.map((payload) => payload.service_date);
+        let conflictQuery = (supabase.from("reservation_progressive_offers" as any) as any)
+          .select("id, service_date, title")
+          .eq("restaurant_id", restaurantId)
+          .eq("status", "active")
+          .in("service_date", scheduledDates);
+
+        if (form.id) {
+          conflictQuery = conflictQuery.neq("id", form.id);
+        }
+
+        const { data: conflicts, error: conflictError } = await conflictQuery;
+        if (conflictError) throw conflictError;
+
+        if ((conflicts || []).length > 0) {
+          const firstConflict = conflicts[0];
+          toast({
+            title: "Une offre existe deja ce jour-la",
+            description: `Une seule offre progressive active est autorisee par jour. Conflit le ${firstConflict.service_date}.`,
+            variant: "destructive",
+          });
+          return;
+        }
+      }
 
       if (form.id) {
         const { error } = await (supabase.from("reservation_progressive_offers" as any) as any)
-          .update(payload)
+          .update(payloads[0])
           .eq("id", form.id);
         if (error) throw error;
       } else {
         const { data, error } = await (supabase.from("reservation_progressive_offers" as any) as any)
-          .insert(payload)
+          .insert(payloads)
           .select("id")
-          .single();
+          .limit(1);
         if (error) throw error;
-        if (data?.id) setForm((current) => ({ ...current, id: data.id }));
+        if (data?.[0]?.id) setForm((current) => ({ ...current, id: data[0].id }));
       }
 
       onSaved();
-      toast({ title: form.isActive ? "Offre progressive activee" : "Offre progressive enregistree" });
+      toast({
+        title: form.isActive ? "Offre progressive activee" : "Offre progressive enregistree",
+        description: recurrenceCount > 1 ? `${recurrenceCount} occurrences programmees.` : undefined,
+      });
     } catch (error: any) {
       toast({
         title: "Enregistrement impossible",
@@ -533,6 +617,38 @@ function ProgressiveOfferManager({
                 onChange={(event) => setForm((current) => ({ ...current, countdownEndsAt: event.target.value }))}
               />
               <p className="text-[11px] text-muted-foreground">Derniere reservation autorisee 30 minutes avant cette heure.</p>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Recurrence</Label>
+              <Select
+                value={form.recurrence}
+                onValueChange={(value) => setForm((current) => ({ ...current, recurrence: value as ProgressiveOfferRecurrence }))}
+                disabled={Boolean(form.id)}
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Aucune recurrence</SelectItem>
+                  <SelectItem value="daily">Tous les jours</SelectItem>
+                  <SelectItem value="weekly">Chaque semaine</SelectItem>
+                </SelectContent>
+              </Select>
+              {form.id ? (
+                <p className="text-[11px] text-muted-foreground">La recurrence se parametre lors de la creation d'une nouvelle serie.</p>
+              ) : null}
+            </div>
+            <div className="space-y-1.5">
+              <Label>Nombre d'occurrences</Label>
+              <Input
+                type="number"
+                min={1}
+                max={PROGRESSIVE_RECURRENCE_MAX_COUNT}
+                value={form.recurrenceCount}
+                onChange={(event) => setForm((current) => ({ ...current, recurrenceCount: event.target.value }))}
+                disabled={Boolean(form.id) || form.recurrence === "none"}
+              />
+              <p className="text-[11px] text-muted-foreground">Maximum {PROGRESSIVE_RECURRENCE_MAX_COUNT} dates programmees.</p>
             </div>
             <div className="space-y-1.5">
               <Label className="flex items-center gap-1.5"><Users className="h-4 w-4" /> Tables maximum</Label>

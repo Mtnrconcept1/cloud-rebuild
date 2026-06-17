@@ -690,13 +690,19 @@ export default function SocialComposer({
             </div>
           ) : null}
 
-          <div className={cn("flex flex-col", compact ? "gap-2" : "gap-3")}>
+          <div
+            className={cn(
+              "grid min-w-0 items-stretch",
+              compact ? "gap-2" : "gap-3",
+              "xl:grid-cols-[minmax(11rem,0.8fr)_minmax(18rem,1.25fr)_minmax(18rem,1fr)]",
+            )}
+          >
             <Button
               type="button"
               variant="outline"
               size="sm"
               className={cn(
-                "w-full justify-center gap-2 rounded-xl border-orange-200 bg-orange-50/70 font-semibold text-orange-700 shadow-sm hover:border-orange-300 hover:bg-orange-100",
+                "w-full justify-center gap-2 rounded-xl border-orange-200 bg-orange-50/70 font-semibold text-orange-700 shadow-sm hover:border-orange-300 hover:bg-orange-100 xl:h-full xl:min-h-[4.75rem]",
                 compact ? "h-9 text-xs" : "h-10 text-sm",
               )}
               onClick={() => {
@@ -766,9 +772,9 @@ export default function SocialComposer({
               ) : null}
             </div>
 
-            <div className="flex w-full min-w-0 flex-wrap items-center gap-2">
+            <div className="flex w-full min-w-0 flex-wrap items-center gap-2 xl:flex-nowrap">
               <div className={cn(
-                "flex min-w-0 flex-1 basis-full items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 shadow-sm sm:basis-[13rem]",
+                "flex min-w-0 flex-1 basis-full items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 shadow-sm sm:basis-[13rem] xl:h-full xl:min-h-[4.75rem]",
                 compact ? "py-1.5" : "py-2",
               )}>
                 <CalendarClock className="h-4 w-4 shrink-0 text-primary" />
@@ -788,7 +794,7 @@ export default function SocialComposer({
               <Button
                 type="button"
                 className={cn(
-                  "min-w-[8rem] flex-1 gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 px-5 shadow-lg shadow-orange-500/25 hover:from-orange-600 hover:to-orange-700 sm:flex-none",
+                  "min-w-[8rem] flex-1 gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 px-5 shadow-lg shadow-orange-500/25 hover:from-orange-600 hover:to-orange-700 sm:flex-none xl:h-full xl:min-h-[4.75rem]",
                   compact ? "h-10" : "h-11",
                 )}
                 disabled={!canSubmit}

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { BadgePercent, ChevronRight, Compass, Heart, MapPinned, MoonStar, ShoppingCart, Sparkles, SunMedium, Timer, TrendingUp, UserRound, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -28,6 +28,7 @@ import {
   getProgressiveOfferProgressPercent,
   getProgressiveOfferRemainingTables,
   getProgressiveOfferServiceLabel,
+  selectDailyProgressiveOffers,
   type ProgressiveReservationOffer,
 } from "@/lib/progressiveReservationOffers";
 import { formatRestaurantCategorySummary } from "@/lib/restaurantCategories";
@@ -256,6 +257,11 @@ export default function Index() {
     },
     staleTime: 30_000,
   });
+
+  const visibleProgressiveOffers = useMemo(
+    () => selectDailyProgressiveOffers(progressiveOffers, { maxOffers: 3 }),
+    [progressiveOffers],
+  );
 
   const { data: trendingRail = [] } = useQuery({
     queryKey: ["home-rail-trending"],
@@ -507,7 +513,7 @@ export default function Index() {
         <CampaignBanner page="home" maxBanners={1} />
       </section>
 
-      {progressiveOffers.length > 0 ? (
+      {visibleProgressiveOffers.length > 0 ? (
         <section className="container py-4" aria-labelledby="progressive-offers-title">
           <div className="overflow-hidden rounded-[28px] border border-orange-200 bg-orange-50/90 shadow-[0_18px_44px_rgba(249,115,22,0.12)] dark:bg-orange-950/20">
             <div className="flex flex-col gap-4 p-5 md:p-6">
@@ -533,7 +539,7 @@ export default function Index() {
               </div>
 
               <div className="grid gap-3 lg:grid-cols-3">
-                {progressiveOffers.slice(0, 3).map((offer) => {
+                {visibleProgressiveOffers.map((offer) => {
                   const restaurant = getProgressiveOfferRestaurant(offer);
                   const restaurantId = restaurant?.id || offer.restaurant_id;
                   const currentDiscount = getCurrentProgressiveDiscount(offer);
