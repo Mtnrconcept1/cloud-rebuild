@@ -55,6 +55,7 @@ const PolitiqueConfidentialite = lazy(() => import("./pages/PolitiqueConfidentia
 const Cookies = lazy(() => import("./pages/Cookies"));
 const APropos = lazy(() => import("./pages/APropos"));
 const PacksRestaurateur = lazy(() => import("./pages/PacksRestaurateur"));
+const ConditionsRestaurateurs = lazy(() => import("./pages/ConditionsRestaurateurs"));
 const RestaurateursGeneve = lazy(() => import("./pages/RestaurateursGeneve"));
 const RestaurateursGoogleBusiness = lazy(() => import("./pages/RestaurateursGoogleBusiness"));
 const AlternativeCommissionCouvert = lazy(() => import("./pages/AlternativeCommissionCouvert"));
@@ -469,6 +470,7 @@ function AppShell() {
           <Route path="/cookies" element={<Cookies />} />
           <Route path="/a-propos" element={<APropos />} />
           <Route path="/packs-restaurateur" element={<PacksRestaurateur />} />
+          <Route path="/conditions-restaurateurs" element={<ConditionsRestaurateurs />} />
           <Route path="/restaurateurs/geneve" element={<RestaurateursGeneve />} />
           <Route path="/restaurateurs/google-business" element={<RestaurateursGoogleBusiness />} />
           <Route path="/restaurateurs/alternative-commission-couvert" element={<AlternativeCommissionCouvert />} />

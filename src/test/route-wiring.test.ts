@@ -42,6 +42,7 @@ const CORE_ROUTES = new Set([
   "/politique-confidentialite",
   "/a-propos",
   "/packs-restaurateur",
+  "/conditions-restaurateurs",
   "/restaurateurs/geneve",
   "/restaurateurs/google-business",
   "/restaurateurs/alternative-commission-couvert",

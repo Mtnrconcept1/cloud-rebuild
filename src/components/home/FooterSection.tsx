@@ -81,6 +81,7 @@ export default function FooterSection({ deliveryEnabled = true }: FooterSectionP
               <nav className="flex flex-col gap-2 text-sm text-muted-foreground">
                 <Link to="/restaurateurs/geneve" className="hover:text-foreground transition-colors">Devenir partenaire</Link>
                 <Link to="/packs-restaurateur" className="hover:text-foreground transition-colors">Voir les packs</Link>
+                <Link to="/conditions-restaurateurs" className="hover:text-foreground transition-colors">Conditions restaurateurs</Link>
                 <Link to="/restaurateurs/google-business" className="hover:text-foreground transition-colors">Audit Google Business</Link>
                 <Link to="/restaurateurs/alternative-commission-couvert" className="hover:text-foreground transition-colors">Comparer les commissions</Link>
                 {dashboardEnabled ? (
