@@ -1257,31 +1257,65 @@ export default function Auth() {
                 </div>
               ) : null}
 
-              {!isLogin ? (
-                <div className="rounded-2xl border bg-card/60 p-4">
-                  <label htmlFor="legal-acceptance" className="flex cursor-pointer items-start gap-3 text-sm">
-                    <Checkbox
-                      id="legal-acceptance"
-                      checked={legalAccepted}
-                      onCheckedChange={(checked) => setLegalAccepted(checked === true)}
-                      aria-label="J'accepte les CGU et la politique de confidentialité"
-                    />
-                    <span className="leading-6 text-muted-foreground">
-                      J'accepte les{" "}
-                      <Link to="/cgu" target="_blank" className="font-medium text-primary hover:underline">
-                        CGU
-                      </Link>{" "}
-                      et la{" "}
-                      <Link
-                        to="/politique-confidentialite"
-                        target="_blank"
-                        className="font-medium text-primary hover:underline"
-                      >
-                        politique de confidentialité
-                      </Link>{" "}
-                      de TOK.
-                    </span>
-                  </label>
+              {!isLogin && legalAccepted ? (
+                <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
+                  <p className="font-medium">Conditions acceptées</p>
+                  <p className="mt-1 text-emerald-800">
+                    Vous pouvez finaliser votre inscription. Les liens juridiques restent accessibles depuis le pied de page.
+                  </p>
+                </div>
+              ) : null}
+
+              {!isLogin && !legalAccepted ? (
+                <div
+                  className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/35 p-4 backdrop-blur-md"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="legal-acceptance-title"
+                >
+                  <div className="w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-6 text-slate-950 shadow-2xl sm:p-7">
+                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      <Shield className="h-6 w-6" />
+                    </div>
+                    <div className="mt-5 text-center">
+                      <h2 id="legal-acceptance-title" className="text-xl font-semibold">
+                        Accepter les conditions générales
+                      </h2>
+                      <p className="mt-2 text-sm leading-6 text-slate-600">
+                        Avant de créer votre compte TOK, confirmez que vous avez lu et accepté les conditions applicables et la politique de confidentialité.
+                      </p>
+                    </div>
+                    <label
+                      htmlFor="legal-acceptance"
+                      className="mt-6 flex cursor-pointer items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-left text-sm transition hover:border-primary/40 hover:bg-primary/5"
+                    >
+                      <Checkbox
+                        id="legal-acceptance"
+                        checked={legalAccepted}
+                        onCheckedChange={(checked) => setLegalAccepted(checked === true)}
+                        aria-label="J'accepte les CGU et la politique de confidentialité"
+                        className="mt-0.5"
+                      />
+                      <span className="leading-6 text-slate-700">
+                        J'accepte les{" "}
+                        <Link to="/cgu" target="_blank" className="font-semibold text-primary hover:underline">
+                          CGU
+                        </Link>{" "}
+                        et la{" "}
+                        <Link
+                          to="/politique-confidentialite"
+                          target="_blank"
+                          className="font-semibold text-primary hover:underline"
+                        >
+                          politique de confidentialité
+                        </Link>{" "}
+                        de TOK.
+                      </span>
+                    </label>
+                    <p className="mt-4 text-center text-xs leading-5 text-slate-500">
+                      Le formulaire reste affiché derrière cette fenêtre, mais il sera accessible après acceptation.
+                    </p>
+                  </div>
                 </div>
               ) : null}
 
