@@ -114,23 +114,30 @@ describe("TOK photo studio persistence", () => {
     expect(dashboardPhotos).toContain("Studio Photo & Marketing IA");
 
     expect(marketingStudio).toContain("MARKETING_UPLOAD_ACCEPT");
-    expect(marketingStudio).toContain("image/png,image/jpeg,image/webp,application/pdf");
+    expect(marketingStudio).toContain("image/png,image/jpeg,image/webp");
     expect(marketingStudio).toContain("MAX_MARKETING_ASSET_BYTES = 15 * 1024 * 1024");
     expect(marketingStudio).toContain("PROMPT_INJECTION_PATTERNS");
     expect(marketingStudio).toContain("SQL_INJECTION_PATTERNS");
     expect(marketingStudio).toContain("sanitizeMarketingPrompt");
-    expect(marketingStudio).toContain("runRestaurantAgent");
+    expect(marketingStudio).not.toContain("runRestaurantAgent");
     expect(marketingStudio).toContain("generateTokDishImage");
-    expect(marketingStudio).toContain('action: "marketing_campaign"');
+    expect(marketingStudio).not.toContain('action: "marketing_campaign"');
     expect(marketingStudio).toContain('assetType: "campaign_visual"');
+    expect(marketingStudio).toContain("referenceImageUrls");
+    expect(marketingStudio).toContain("marketingAssetMode: true");
+    expect(marketingStudio).toContain('from("restaurant_media")');
+    expect(marketingStudio).toContain("MARKETING_ASSET_MEDIA_TYPES");
+    expect(marketingStudio).toContain("uploadMarketingResource");
     expect(marketingStudio).toContain("buildMarketingImagePrompt");
+    expect(marketingStudio).toContain("Créer directement une affiche marketing finale TOK");
     expect(marketingStudio).toContain("Image marketing générée");
     expect(marketingStudio).toContain("Flyer / affiche");
     expect(marketingStudio).toContain("Carte de visite");
     expect(marketingStudio).toContain("Carte du restaurant");
-    expect(marketingStudio).toContain("Génération IA serveur avec quotas, historique et validation RLS");
+    expect(marketingStudio).toContain("Image générée côté serveur avec validation RLS");
     expect(marketingStudio).not.toContain("Le module est pret pour une generation serveur");
-    expect(marketingStudio).toContain("Storage/RLS cote serveur");
+    expect(marketingStudio).not.toContain("Brief sécurisé prêt");
+    expect(marketingStudio).toContain("restaurant_media");
   });
 
   it("makes restaurant gallery photos public from the cover and includes raw and TOK studio photos", () => {

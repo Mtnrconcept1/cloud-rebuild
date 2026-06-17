@@ -176,7 +176,11 @@ describe("TOK AI tools foundation", () => {
     expect(source).toContain("sans texte de marque");
     expect(source).toContain("SUPPORTED_SOURCE_IMAGE_MIME_TYPES");
     expect(source).toContain("getSourceImageFileName");
-    expect(source).toContain('form.append("image[]", sourceBlob, getSourceImageFileName(sourceBlob.type))');
+    expect(source).toContain("normalizeReferenceImageUrls");
+    expect(source).toContain("callOpenAIImageEditWithReferences");
+    expect(source).toContain("marketingAssetMode");
+    expect(source).toContain("reference_image_urls");
+    expect(source).toContain("reference-${index + 1}-${getSourceImageFileName(sourceBlob.type)}");
     expect(source).not.toContain("TOK_BRAND_LOGO_URL");
     expect(source).not.toContain("TOK_BRAND_LOGO_PROMPT");
     expect(source).not.toContain('form.append("image[]", logoBlob, "tok-logo.png")');
@@ -207,7 +211,9 @@ describe("TOK AI tools foundation", () => {
     expect(studio).toContain("image_generation_timeout");
     expect(source).toContain("const imageOnly = true");
     expect(source).toContain("image_generation_required");
-    expect(source).toContain('briefSource = "image_only"');
+    expect(source).toContain('briefSource = marketingAssetMode ? "marketing_image_only" : "image_only"');
+    expect(client).toContain("referenceImageUrls?: string[]");
+    expect(client).toContain("marketingAssetMode?: boolean");
     expect(source).toContain('publication_caption: ""');
     expect(source).toContain("marketing_angles: []");
 

@@ -71,6 +71,7 @@ export type TokImageFormat = "landscape" | "square" | "portrait";
 export type TokImageGenerationRequest = {
   restaurantId: string;
   sourceImageUrl?: string | null;
+  referenceImageUrls?: string[];
   dishName?: string | null;
   prompt: string;
   assetType?: "menu_visual" | "campaign_visual" | "banner" | "image";
@@ -78,6 +79,7 @@ export type TokImageGenerationRequest = {
   variantCount?: number;
   generateImage?: boolean;
   imageOnly?: boolean;
+  marketingAssetMode?: boolean;
 };
 
 export type TokImageGenerationResult = {

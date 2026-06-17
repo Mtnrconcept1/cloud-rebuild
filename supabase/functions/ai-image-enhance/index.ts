@@ -203,6 +203,11 @@ function sanitizeUrl(raw: unknown) {
   }
 }
 
+function normalizeReferenceImageUrls(raw: unknown) {
+  if (!Array.isArray(raw)) return [];
+  return Array.from(new Set(raw.map((entry) => sanitizeUrl(entry)).filter(Boolean))).slice(0, 4);
+}
+
 function stripBrandOverlayInstructions(raw: string) {
   return raw
     .split(/\r?\n|(?<=[.!?])\s+/)
@@ -418,6 +423,36 @@ function buildImageOnlyResult(input: {
   };
 }
 
+function buildMarketingVisualResult(input: {
+  restaurantName: string;
+  userPrompt: string;
+  format: string;
+  referenceImageCount: number;
+}): ImageEnhanceResult {
+  const enhancedPrompt = [
+    input.userPrompt,
+    "",
+    "Objectif: générer une affiche marketing finale, pas un brief.",
+    "Utiliser les visuels de référence fournis pour reprendre la mascotte, le logo, la palette orange TOK, le style publicitaire, les panneaux blancs inclinés, les badges, les icônes et la hiérarchie visuelle.",
+    "Le rendu cible est une affiche verticale premium de recrutement restaurateur: fond orange dynamique, mascotte chef TOK à gauche, logo TOK visible, grand message promotionnel lisible au centre, bénéfices en bas, CTA clair et URL thetok.ch.",
+    "Texte à rendre lisible si la demande le contient: 50% DE RABAIS, pour les 50 premiers restaurateurs inscrits, Offre de lancement, Inscrire mon restaurant, thetok.ch.",
+    `Restaurant associé: ${input.restaurantName}. Format demandé: ${input.format}. Références visuelles: ${input.referenceImageCount}.`,
+    "Contraintes: conserver l'identité TOK des références, ne pas inventer d'autre marque, ne pas ajouter de coordonnées privées, ne pas remplacer TOK par une marque générique.",
+  ].join("\n").slice(0, 4200);
+
+  return {
+    title: "Image marketing TOK",
+    enhanced_prompt: enhancedPrompt,
+    edit_instructions: "",
+    alt_text: "Affiche marketing TOK générée par IA",
+    publication_caption: "",
+    checklist: [],
+    style_tags: ["tok", "marketing", "campaign", input.format],
+    safety_notes: [],
+    marketing_angles: [],
+  };
+}
+
 async function fetchImageBlob(url: string) {
   const response = await fetchWithTimeout(url, {}, SOURCE_IMAGE_TIMEOUT_MS, "source_image_timeout");
   if (!response.ok) throw new HttpError(400, "source_image_unreachable");
@@ -457,7 +492,12 @@ async function callOpenAIImageGeneration(prompt: string, n: number, options: Ima
 }
 
 async function callOpenAIImageEdit(prompt: string, sourceImageUrl: string, n: number, options: ImageRequestOptions) {
-  const sourceBlob = await fetchImageBlob(sourceImageUrl);
+  return await callOpenAIImageEditWithReferences(prompt, [sourceImageUrl], n, options);
+}
+
+async function callOpenAIImageEditWithReferences(prompt: string, imageUrls: string[], n: number, options: ImageRequestOptions) {
+  if (!imageUrls.length) throw new HttpError(400, "reference_image_required");
+  const sourceBlobs = await Promise.all(imageUrls.map((url) => fetchImageBlob(url)));
   const form = new FormData();
   form.append("model", options.model);
   form.append("prompt", prompt);
@@ -466,7 +506,9 @@ async function callOpenAIImageEdit(prompt: string, sourceImageUrl: string, n: nu
   form.append("quality", options.quality);
   form.append("output_format", "png");
   form.append("moderation", "auto");
-  form.append("image[]", sourceBlob, getSourceImageFileName(sourceBlob.type));
+  sourceBlobs.forEach((sourceBlob, index) => {
+    form.append("image[]", sourceBlob, `reference-${index + 1}-${getSourceImageFileName(sourceBlob.type)}`);
+  });
 
   const response = await fetchWithTimeout(IMAGE_EDITS_URL, {
     method: "POST",
@@ -657,10 +699,16 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     restaurantId = maybeUuid(body.restaurantId);
-    const prompt = stripPlatformBrandTerms(stripBrandOverlayInstructions(sanitizeText(body.prompt || body.objective || PREMIUM_SOURCE_IMAGE_EDIT_PROMPT)));
+    const assetType = normalizeAssetType(body.assetType);
+    const marketingAssetMode = assetType === "campaign_visual" && body.marketingAssetMode === true;
+    const rawPrompt = sanitizeText(body.prompt || body.objective || PREMIUM_SOURCE_IMAGE_EDIT_PROMPT);
+    const prompt = marketingAssetMode
+      ? rawPrompt
+      : stripPlatformBrandTerms(stripBrandOverlayInstructions(rawPrompt));
     const dishName = sanitizeText(body.dishName, 120);
     const sourceImageUrl = sanitizeUrl(body.sourceImageUrl);
-    const assetType = normalizeAssetType(body.assetType);
+    const referenceImageUrls = normalizeReferenceImageUrls(body.referenceImageUrls)
+      .filter((url) => url !== sourceImageUrl);
     const format = normalizeFormat(body.format);
     const variantCount = clampVariantCount(body.variantCount);
     const generateImage = body.generateImage !== false;
@@ -682,23 +730,42 @@ Deno.serve(async (req) => {
       ? buildCompactPhotoStudioRetouchPrompt({ dishName })
       : "";
 
-    const result = buildImageOnlyResult({
-      restaurantName: restaurant.name || "Restaurant",
-      dishName,
-      userPrompt: prompt,
-      format: format.label,
-      sourceImagePresent: Boolean(sourceImageUrl),
-      sourceEditPrompt,
-    });
-    const briefSource = "image_only";
+    const result = marketingAssetMode
+      ? buildMarketingVisualResult({
+        restaurantName: restaurant.name || "Restaurant",
+        userPrompt: prompt,
+        format: format.label,
+        referenceImageCount: referenceImageUrls.length + (sourceImageUrl ? 1 : 0),
+      })
+      : buildImageOnlyResult({
+        restaurantName: restaurant.name || "Restaurant",
+        dishName,
+        userPrompt: prompt,
+        format: format.label,
+        sourceImagePresent: Boolean(sourceImageUrl),
+        sourceEditPrompt,
+      });
+    const briefSource = marketingAssetMode ? "marketing_image_only" : "image_only";
 
     let generated: GeneratedImage | null = null;
-    const generatedImageOptions = buildImageRequestOptions(format.size, Boolean(sourceImageUrl));
+    const generatedImageOptions = marketingAssetMode
+      ? buildConfiguredImageRequestOptions(format.size)
+      : buildImageRequestOptions(format.size, Boolean(sourceImageUrl));
     let usedImageOptions: ImageRequestOptions | null = null;
     let imageEditRetryUsed = false;
     let sourceEditUsed = false;
     const imageOptions = generatedImageOptions;
-    const finalPrompt = sourceImageUrl
+    const finalPrompt = marketingAssetMode
+      ? [
+        result.enhanced_prompt,
+        "",
+        "Instructions finales de composition:",
+        "- Produire une image finale complète au format affiche, pas des variantes de logo isolé.",
+        "- S'inspirer des références sans copier les captures d'écran brutes.",
+        "- Le texte principal doit être très grand, contrasté et lisible.",
+        "- Le rendu doit ressembler à une publicité TOK terminée, proche d'une affiche professionnelle prête pour validation.",
+      ].join("\n").slice(0, 7000)
+      : sourceImageUrl
       ? [
         sourceEditPrompt || PREMIUM_SOURCE_IMAGE_EDIT_PROMPT,
         "",
@@ -716,7 +783,9 @@ Deno.serve(async (req) => {
       ].join("\n").slice(0, 7000);
 
     let imageResponse: unknown;
-    if (sourceImageUrl) {
+    if (marketingAssetMode && referenceImageUrls.length) {
+      imageResponse = await callOpenAIImageEditWithReferences(finalPrompt, referenceImageUrls, variantCount, imageOptions);
+    } else if (sourceImageUrl) {
       const editResult = await callOpenAIImageEditWithRetry({
         primaryPrompt: finalPrompt,
         retryPrompt: [
@@ -768,6 +837,9 @@ Deno.serve(async (req) => {
         gallery_image_url: stored.galleryImageUrl,
         gallery_storage_bucket: GALLERY_BUCKET,
         gallery_storage_path: stored.galleryPath,
+        marketing_asset_mode: marketingAssetMode,
+        reference_image_urls: referenceImageUrls,
+        reference_image_count: referenceImageUrls.length,
         original_prompt: prompt,
         dish_name: dishName,
         format: format.label,
@@ -807,6 +879,8 @@ Deno.serve(async (req) => {
         image_model: usedImageOptions?.model,
         image_quality: usedImageOptions?.quality,
         image_mode: usedImageOptions?.mode,
+        marketing_asset_mode: marketingAssetMode,
+        reference_image_count: referenceImageUrls.length,
         source_edit_used: sourceEditUsed,
         image_edit_retry: imageEditRetryUsed,
         brand_overlay_positioning: "frontend_transparent_layer",
@@ -835,6 +909,8 @@ Deno.serve(async (req) => {
         image_mode: usedImageOptions?.mode,
         brief_source: briefSource,
         image_only: imageOnly,
+        marketing_asset_mode: marketingAssetMode,
+        reference_image_count: referenceImageUrls.length,
         source_edit_used: sourceEditUsed,
         image_edit_retry: imageEditRetryUsed,
         brand_overlay_positioning: "frontend_transparent_layer",
