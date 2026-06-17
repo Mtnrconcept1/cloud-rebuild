@@ -6,7 +6,7 @@ export default function CGU() {
     <div className="container py-12 md:py-20 max-w-4xl space-y-12">
       <div className="space-y-4">
         <h1 className="font-display text-4xl font-bold">Conditions Générales d'Utilisation</h1>
-        <p className="text-muted-foreground">Dernière mise à jour : 7 juin 2026</p>
+        <p className="text-muted-foreground">Dernière mise à jour : 17 juin 2026</p>
       </div>
 
       <div className="prose prose-foodhub max-w-none space-y-8">
@@ -28,6 +28,9 @@ export default function CGU() {
           <p className="text-foreground/80 leading-relaxed">
             Des conditions complémentaires peuvent s'appliquer à certains services, notamment Tok One, les packs restaurateurs, les campagnes sponsorisées, les réservations Zéro Attente, La Table du Chef, les dons solidaires et les services de paiement.
           </p>
+          <p className="text-foreground/80 leading-relaxed">
+            Une fenêtre de consentement peut être affichée à l'arrivée sur le site afin de rappeler les CGU, la politique de confidentialité et les règles cookies. Le refus n'autorise pas l'utilisation des services contractuels de TOK, notamment la création de compte, la commande, la réservation, les campagnes sponsorisées, les exports CRM et les fonctionnalités restaurateur qui supposent l'acceptation des présentes conditions.
+          </p>
         </section>
 
         <section className="space-y-4">
@@ -41,6 +44,8 @@ export default function CGU() {
             <li>Le programme Miamz, les cadeaux de points, les niveaux de fidélité et les avantages associés.</li>
             <li>Le fil Actualités avec posts, commentaires, likes, partages, sauvegardes, signalements, boutons « Plus comme ça » et « Moins comme ça ».</li>
             <li>Les contenus sponsorisés, campagnes publicitaires locales, rapports de performance et métriques marketing.</li>
+            <li>Les outils CRM clients, segmentation, exports CSV/XLS, profils de vente, recommandations commerciales et historiques d'interactions issus des commandes ou réservations.</li>
+            <li>Les outils d'aide à la rédaction, génération de variantes, compression média, publication vidéo, programmation de posts et préparation de contenus destinés aux réseaux sociaux.</li>
             <li>Les interfaces restaurateur, coursier et administrateur, incluant commandes, réservations, menus, campagnes, factures, support, notifications, sinistres et outils de pilotage.</li>
           </ul>
           <p className="text-foreground/80 leading-relaxed">
@@ -129,6 +134,12 @@ export default function CGU() {
           <p className="text-foreground/80 leading-relaxed">
             Un post ne doit être présenté comme sponsorisé qu'après validation du parcours prévu, notamment le paiement ou l'autorisation de mise en avant lorsque celle-ci est payante. TOK peut suspendre une campagne en cas d'erreur, litige, contenu trompeur, défaut de paiement ou risque pour les utilisateurs.
           </p>
+          <p className="text-foreground/80 leading-relaxed">
+            Les outils CRM restaurateur et administrateur sont réservés à la relation commerciale légitime liée à TOK. Les restaurants peuvent consulter ou exporter les données client strictement nécessaires provenant de leurs commandes, réservations ou interactions autorisées. Toute utilisation pour harceler, revendre des fichiers, contourner les préférences de notification, contacter un client sans base valable ou mener une campagne externe non conforme est interdite.
+          </p>
+          <p className="text-foreground/80 leading-relaxed">
+            Les exports CSV/XLS et tableaux CRM doivent être conservés de manière sécurisée par le restaurateur ou l'administrateur qui les télécharge. L'utilisateur exportateur devient responsable de l'usage, du stockage, de la suppression et de la confidentialité du fichier en dehors de l'environnement TOK.
+          </p>
         </section>
 
         <section className="space-y-4">
@@ -166,7 +177,10 @@ export default function CGU() {
             Les cookies et technologies similaires peuvent être utilisés pour l'authentification, le panier, les préférences, la sécurité, la mesure d'audience et, avec consentement lorsque requis, la personnalisation ou le marketing.
           </p>
           <p className="text-foreground/80 leading-relaxed">
-            Pour plus d'informations, consultez notre <Link to="/politique-confidentialite" className="text-primary hover:underline font-medium">Politique de confidentialité</Link>.
+            Les outils Actualités, CRM, campagnes sponsorisées, vidéo, IA, notifications, exports et réseaux sociaux peuvent impliquer des traitements supplémentaires décrits dans la politique de confidentialité et la politique cookies.
+          </p>
+          <p className="text-foreground/80 leading-relaxed">
+            Pour plus d'informations, consultez notre <Link to="/politique-confidentialite" className="text-primary hover:underline font-medium">Politique de confidentialité</Link> et notre <Link to="/cookies" className="text-primary hover:underline font-medium">Politique cookies</Link>.
           </p>
         </section>
 

@@ -73,15 +73,13 @@ export function FloatingRouteBackButton() {
   return (
     <div
       className={cn(
-        "pointer-events-none absolute left-[calc(env(safe-area-inset-left,0px)+0.75rem)] z-[65] sm:left-4",
-        pathname === "/actualites"
-          ? "top-[calc(env(safe-area-inset-top,0px)+0.75rem)] sm:top-4"
-          : "top-[calc(env(safe-area-inset-top,0px)+4.75rem)] sm:top-20",
+        "relative z-10 mx-auto flex w-full max-w-screen-2xl px-4 sm:px-6 lg:px-8",
+        "pt-[calc(env(safe-area-inset-top,0px)+4.75rem)] md:pt-3",
       )}
     >
       <BackNavigationButton
         fallback={getBackFallbackForPathname(pathname)}
-        className="pointer-events-auto shadow-[0_14px_34px_rgba(15,23,42,0.16)]"
+        className="shadow-[0_14px_34px_rgba(15,23,42,0.16)]"
       />
     </div>
   );

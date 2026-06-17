@@ -1,17 +1,11 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, ChevronRight, MapPin } from "lucide-react";
 
-import {
-  SponsoredBadge,
-  SponsoredContextPill,
-} from "@/components/campaigns/SponsoredVisual";
-import { getSponsoredVisualConfig, type SponsoredVisualTone } from "@/components/campaigns/sponsoredVisualTheme";
-import { useActiveFeatures } from "@/lib/featureFlags";
-import { getActiveSponsoredRestaurants, trackSponsoredClick } from "@/lib/analytics";
+import SponsoredRestaurantTemplateCard from "@/components/campaigns/SponsoredRestaurantTemplateCard";
 import { useSponsoredImpressionOnView } from "@/hooks/useSponsoredImpressionOnView";
-import { cn } from "@/lib/utils";
+import { getActiveSponsoredRestaurants, trackSponsoredClick } from "@/lib/analytics";
+import { useActiveFeatures } from "@/lib/featureFlags";
 import { rotateSponsoredCardsWithinRestaurants } from "@/lib/sponsoredPlacement";
 
 interface CampaignBannerProps {
@@ -53,11 +47,10 @@ function CampaignBannerItem({
   page,
 }: {
   campaign: any;
-  page: SponsoredVisualTone;
+  page: CampaignBannerProps["page"];
 }) {
   const navigate = useNavigate();
   const restaurant = campaign.restaurants;
-  const visual = getSponsoredVisualConfig(page);
   const heading = campaign.title || restaurant?.name || "Découvrez cette adresse mise en avant";
   const description =
     campaign.body
@@ -81,69 +74,21 @@ function CampaignBannerItem({
     <div
       ref={bannerRef}
       onClick={handleClick}
-      className={cn(
-        "neon-card group relative isolate cursor-pointer overflow-hidden rounded-[30px] border shadow-[0_18px_40px_rgba(15,23,42,0.12)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_52px_rgba(15,23,42,0.18)] dark:border-white/20 dark:shadow-[0_24px_74px_rgba(0,0,0,0.58),0_0_48px_rgba(249,115,22,0.18)]",
-        visual.bannerShellClassName,
-      )}
+      className="group cursor-pointer"
     >
-      {campaign.image_url ? (
-        <>
-          <img
-            src={campaign.image_url}
-            alt={heading}
-            className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
-          />
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(15,23,42,0.08),rgba(15,23,42,0.22))]" />
-        </>
-      ) : (
-        <div className={cn("absolute inset-0", visual.bannerOverlayClassName)} />
-      )}
-
-      <div className={cn("absolute inset-0", visual.bannerSpotlightClassName)} />
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0))]" />
-
-      <div className="relative flex min-h-[240px] flex-col justify-end p-4 text-white sm:min-h-[260px] sm:p-6">
-        <div className="campaign-copy-panel w-full max-w-[42rem] space-y-4 rounded-3xl border border-white/18 bg-slate-950/62 p-4 shadow-[0_18px_42px_rgba(15,23,42,0.28)] ring-1 ring-white/10 backdrop-blur-xl sm:p-5">
-          <div className="flex flex-wrap items-start gap-2">
-            <SponsoredBadge tone={page} />
-            <SponsoredContextPill tone={page} />
-          </div>
-
-          <div className="space-y-2">
-            {restaurant?.name ? (
-              <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-white/72 sm:text-[11px]">
-                {restaurant.name}
-              </p>
-            ) : null}
-            <h3 className="max-w-xl font-display text-xl font-bold leading-tight text-white sm:text-3xl">
-              {heading}
-            </h3>
-            <p className="max-w-xl text-sm leading-6 text-white/88 sm:text-base">
-              {description}
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3 text-sm">
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/22 bg-white px-4 py-2 font-semibold text-slate-950 shadow-[0_12px_24px_rgba(15,23,42,0.18)]">
-              Voir le restaurant
-              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
-            </span>
-            {restaurant?.city ? (
-              <span className="inline-flex items-center gap-1.5 text-white/76">
-                <MapPin className="h-3.5 w-3.5" />
-                {restaurant.city}
-              </span>
-            ) : null}
-            {restaurant?.name ? (
-              <span className="inline-flex items-center gap-1.5 text-white/76">
-                {restaurant.name}
-                <ChevronRight className="h-3.5 w-3.5" />
-              </span>
-            ) : null}
-          </div>
-        </div>
-      </div>
+      <SponsoredRestaurantTemplateCard
+        variant="banner"
+        creative={campaign.channels?.creative}
+        imageUrl={campaign.image_url}
+        restaurantName={restaurant?.name || "Adresse TOK"}
+        cuisine={restaurant?.cuisine_type}
+        city={restaurant?.city}
+        address={restaurant?.address}
+        headline={heading}
+        body={description}
+        ctaLabel="Voir le restaurant"
+        discountLabel={campaign.discount_label || "Sponsorisé"}
+      />
     </div>
   );
 }
-

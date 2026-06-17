@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState, type ComponentType } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { CalendarClock, Percent, UtensilsCrossed, CakeSlice, Salad, Loader2, Timer, Users } from "lucide-react";
+import { CalendarCheck, CalendarClock, CalendarDays, Percent, UtensilsCrossed, CakeSlice, Salad, Loader2, Timer, Users } from "lucide-react";
 
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -46,7 +47,7 @@ const SERVICE_PERIODS: Array<{ key: ServicePeriod; note: string }> = [
   { key: "dinner", note: "Formule visible sur le service du soir." },
 ];
 
-const PROGRESSIVE_OFFER_LIMIT = 20;
+const PROGRESSIVE_OFFER_LIMIT = 120;
 const PROGRESSIVE_RECURRENCE_MAX_COUNT = 30;
 
 type ProgressiveOfferRecurrence = "none" | "daily" | "weekly";
@@ -222,6 +223,12 @@ function toDateInputValue(date: Date) {
   return `${date.getFullYear()}-${padNumber(date.getMonth() + 1)}-${padNumber(date.getDate())}`;
 }
 
+function fromDateInputValue(value: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const date = new Date(`${value}T12:00:00`);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
 function toDateTimeLocalValue(date: Date) {
   return `${toDateInputValue(date)}T${padNumber(date.getHours())}:${padNumber(date.getMinutes())}`;
 }
@@ -230,6 +237,28 @@ function addDays(date: Date, days: number) {
   const next = new Date(date);
   next.setDate(next.getDate() + days);
   return next;
+}
+
+function getServiceDayStartDateTimeValue(serviceDate: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(serviceDate)) return "";
+  return `${serviceDate}T00:00`;
+}
+
+function isCountdownBeforeServiceDay(countdownEndsAt: string, serviceDate: string) {
+  const serviceDayStart = new Date(`${serviceDate}T00:00:00`);
+  const countdownEnd = new Date(countdownEndsAt);
+  if (Number.isNaN(serviceDayStart.getTime()) || Number.isNaN(countdownEnd.getTime())) return false;
+  return countdownEnd.getTime() < serviceDayStart.getTime();
+}
+
+function clampCountdownEndToServiceDay(countdownEndsAt: string, serviceDate: string) {
+  const minValue = getServiceDayStartDateTimeValue(serviceDate);
+  if (!minValue) return countdownEndsAt;
+  if (!countdownEndsAt || !isCountdownBeforeServiceDay(countdownEndsAt, serviceDate)) return countdownEndsAt;
+  const time = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(countdownEndsAt)
+    ? countdownEndsAt.slice(11, 16)
+    : "18:00";
+  return `${serviceDate}T${time}`;
 }
 
 function getProgressiveServiceDefaultTime(period: ServicePeriod) {
@@ -281,6 +310,15 @@ function buildDefaultProgressiveOfferForm() {
   };
 }
 
+function buildProgressiveOfferFormForDate(serviceDate: string) {
+  const form = buildDefaultProgressiveOfferForm();
+  return {
+    ...form,
+    serviceDate,
+    countdownEndsAt: `${serviceDate}T18:00`,
+  };
+}
+
 function progressiveOfferToForm(offer: ProgressiveReservationOffer) {
   const countdownEnd = new Date(offer.countdown_ends_at);
   const recurrence = readProgressiveRecurrence(offer);
@@ -315,22 +353,54 @@ function ProgressiveOfferManager({
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(buildDefaultProgressiveOfferForm);
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState(() => buildDefaultProgressiveOfferForm().serviceDate);
+  const [calendarTouched, setCalendarTouched] = useState(false);
+
+  const offersByDate = useMemo(() => {
+    const grouped = new Map<string, ProgressiveReservationOffer[]>();
+    offers.forEach((offer) => {
+      const list = grouped.get(offer.service_date) || [];
+      list.push(offer);
+      grouped.set(offer.service_date, list);
+    });
+    return grouped;
+  }, [offers]);
 
   const currentOffer = useMemo(
-    () => offers.find((offer) => offer.status === "active") || offers[0] || null,
-    [offers],
+    () => {
+      const selectedDateOffers = offersByDate.get(selectedCalendarDate) || [];
+      return (
+      selectedDateOffers.find((offer) => offer.status === "active")
+      || selectedDateOffers.find((offer) => offer.status === "draft")
+      || selectedDateOffers[0]
+      || null
+      );
+    },
+    [offersByDate, selectedCalendarDate],
   );
+
+  useEffect(() => {
+    if (calendarTouched || offers.length === 0) return;
+    const firstOffer = offers.find((offer) => offer.status === "active") || offers[0];
+    if (firstOffer) setSelectedCalendarDate(firstOffer.service_date);
+  }, [calendarTouched, offers]);
 
   useEffect(() => {
     if (currentOffer) {
       setForm(progressiveOfferToForm(currentOffer));
     } else {
-      setForm(buildDefaultProgressiveOfferForm());
+      setForm(buildProgressiveOfferFormForDate(selectedCalendarDate));
     }
-  }, [currentOffer]);
+  }, [currentOffer, selectedCalendarDate]);
 
   const resetForNewOffer = () => {
-    setForm(buildDefaultProgressiveOfferForm());
+    setForm(buildProgressiveOfferFormForDate(selectedCalendarDate));
+  };
+
+  const selectCalendarDate = (date: Date | undefined) => {
+    if (!date) return;
+    setCalendarTouched(true);
+    setSelectedCalendarDate(toDateInputValue(date));
   };
 
   const save = async () => {
@@ -356,6 +426,15 @@ function ProgressiveOfferManager({
 
     if (Number.isNaN(countdownEnd.getTime())) {
       toast({ title: "Compte a rebours invalide", description: "Choisissez une date et une heure de fin.", variant: "destructive" });
+      return;
+    }
+
+    if (isCountdownBeforeServiceDay(form.countdownEndsAt, form.serviceDate)) {
+      toast({
+        title: "Fin du compte a rebours invalide",
+        description: "La fin du compte a rebours ne peut pas etre avant le jour J de l'offre.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -478,6 +557,51 @@ function ProgressiveOfferManager({
     }
   };
 
+  const updateOfferStatus = async (offer: ProgressiveReservationOffer, status: "active" | "draft") => {
+    if (offer.status === status) return;
+    setSaving(true);
+    try {
+      if (status === "active") {
+        const { data: conflicts, error: conflictError } = await (supabase.from("reservation_progressive_offers" as any) as any)
+          .select("id, service_date, title")
+          .eq("restaurant_id", restaurantId)
+          .eq("status", "active")
+          .eq("service_date", offer.service_date)
+          .neq("id", offer.id);
+        if (conflictError) throw conflictError;
+        if ((conflicts || []).length > 0) {
+          toast({
+            title: "Une offre existe deja ce jour-la",
+            description: "Désactivez l'autre offre active avant d'activer celle-ci.",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+
+      const { error } = await (supabase.from("reservation_progressive_offers" as any) as any)
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq("id", offer.id);
+      if (error) throw error;
+
+      onSaved();
+      toast({
+        title: status === "active" ? "Offre activée" : "Offre désactivée",
+        description: status === "active"
+          ? "Cette offre est maintenant visible pour le jour selectionne."
+          : "Cette offre reste configuree mais n'est plus visible aux clients.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Changement impossible",
+        description: error?.message || "Le statut de l'offre n'a pas pu etre modifie.",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const previewOffer = {
     max_discount_percent: Number(form.maxDiscountPercent || 50),
     max_tables: Number(form.maxTables || 10),
@@ -488,6 +612,21 @@ function ProgressiveOfferManager({
   const currentDiscount = getCurrentProgressiveDiscount(previewOffer);
   const nextDiscount = getNextProgressiveDiscount(previewOffer);
   const selectedProgressiveService = getProgressiveOfferServicePeriod({ service_time: form.serviceTime });
+  const countdownMinDateTime = getServiceDayStartDateTimeValue(form.serviceDate);
+  const countdownEndsBeforeServiceDate = isCountdownBeforeServiceDay(form.countdownEndsAt, form.serviceDate);
+  const selectedCalendarDateObject = fromDateInputValue(selectedCalendarDate) || new Date();
+  const calendarActiveDates = offers
+    .filter((offer) => offer.status === "active")
+    .map((offer) => fromDateInputValue(offer.service_date))
+    .filter(Boolean) as Date[];
+  const calendarDraftDates = offers
+    .filter((offer) => offer.status === "draft")
+    .map((offer) => fromDateInputValue(offer.service_date))
+    .filter(Boolean) as Date[];
+  const calendarFinalizedDates = offers
+    .filter((offer) => offer.status === "finalized")
+    .map((offer) => fromDateInputValue(offer.service_date))
+    .filter(Boolean) as Date[];
 
   return (
     <Card className="border-orange-200 bg-orange-50/70 shadow-sm dark:bg-orange-950/10">
@@ -557,6 +696,77 @@ function ProgressiveOfferManager({
           </div>
         ) : null}
 
+        <div className="grid gap-4 rounded-2xl border bg-background/70 p-4 lg:grid-cols-[340px_minmax(0,1fr)]">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold">Calendrier des offres</p>
+                <p className="text-xs text-muted-foreground">Cliquez sur un jour pour le parametrer.</p>
+              </div>
+              <CalendarDays className="h-5 w-5 text-orange-500" />
+            </div>
+            <Calendar
+              mode="single"
+              selected={selectedCalendarDateObject}
+              onSelect={selectCalendarDate}
+              modifiers={{
+                activeOffer: calendarActiveDates,
+                draftOffer: calendarDraftDates,
+                finalizedOffer: calendarFinalizedDates,
+              }}
+              modifiersClassNames={{
+                activeOffer: "border border-emerald-500 bg-emerald-50 text-emerald-700 font-bold",
+                draftOffer: "border border-orange-300 bg-orange-50 text-orange-700 font-semibold",
+                finalizedOffer: "border border-slate-300 bg-slate-100 text-slate-500",
+              }}
+              className="rounded-2xl border bg-white p-3"
+              classNames={{
+                months: "flex w-full",
+                month: "w-full space-y-4",
+                table: "w-full border-collapse space-y-1",
+                head_row: "grid grid-cols-7",
+                row: "grid grid-cols-7 w-full mt-2",
+                cell: "h-10 text-center text-sm p-0 relative",
+                day: "h-10 w-full rounded-xl p-0 font-normal hover:bg-orange-50",
+              }}
+            />
+            <div className="flex flex-wrap gap-2 text-[11px] text-muted-foreground">
+              <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-emerald-500" /> Active</span>
+              <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-orange-400" /> Brouillon</span>
+              <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-slate-300" /> Finalisee</span>
+            </div>
+          </div>
+
+          <div className="flex min-w-0 flex-col justify-between gap-4 rounded-2xl border bg-white p-4">
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="outline">{formatProgressiveServiceDate(selectedCalendarDate)}</Badge>
+                {currentOffer ? <Badge className={currentOffer.status === "active" ? "bg-emerald-500 text-white" : "bg-orange-500 text-white"}>{currentOffer.status}</Badge> : <Badge variant="secondary">Aucune offre</Badge>}
+              </div>
+              <h4 className="text-lg font-semibold">
+                {currentOffer ? currentOffer.title : "Configurer une offre pour ce jour"}
+              </h4>
+              <p className="text-sm leading-6 text-muted-foreground">
+                {currentOffer
+                  ? "Chargez, modifiez, activez ou désactivez l'offre liée au jour sélectionné."
+                  : "Le formulaire est pret pour creer une nouvelle offre progressive sur cette date."}
+              </p>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-3">
+              <Button type="button" variant="outline" onClick={() => setForm(currentOffer ? progressiveOfferToForm(currentOffer) : buildProgressiveOfferFormForDate(selectedCalendarDate))} disabled={saving}>
+                <CalendarCheck className="mr-2 h-4 w-4" />
+                Charger
+              </Button>
+              <Button type="button" onClick={() => currentOffer && updateOfferStatus(currentOffer, "active")} disabled={saving || !currentOffer || currentOffer.status === "active" || currentOffer.status === "finalized"}>
+                Activer
+              </Button>
+              <Button type="button" variant="outline" onClick={() => currentOffer && updateOfferStatus(currentOffer, "draft")} disabled={saving || !currentOffer || currentOffer.status !== "active"}>
+                Désactiver
+              </Button>
+            </div>
+          </div>
+        </div>
+
         <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="space-y-3">
             <div className="grid gap-3 sm:grid-cols-2">
@@ -585,7 +795,20 @@ function ProgressiveOfferManager({
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label className="flex items-center gap-1.5"><CalendarClock className="h-4 w-4" /> Jour J</Label>
-              <Input type="date" value={form.serviceDate} onChange={(event) => setForm((current) => ({ ...current, serviceDate: event.target.value }))} />
+              <Input
+                type="date"
+                value={form.serviceDate}
+                onChange={(event) => {
+                  const nextServiceDate = event.target.value;
+                  setCalendarTouched(true);
+                  setSelectedCalendarDate(nextServiceDate);
+                  setForm((current) => ({
+                    ...current,
+                    serviceDate: nextServiceDate,
+                    countdownEndsAt: clampCountdownEndToServiceDay(current.countdownEndsAt, nextServiceDate),
+                  }));
+                }}
+              />
             </div>
             <div className="space-y-1.5">
               <Label>Service cible</Label>
@@ -614,9 +837,17 @@ function ProgressiveOfferManager({
               <Input
                 type="datetime-local"
                 value={form.countdownEndsAt}
-                onChange={(event) => setForm((current) => ({ ...current, countdownEndsAt: event.target.value }))}
+                min={countdownMinDateTime}
+                onChange={(event) => setForm((current) => ({
+                  ...current,
+                  countdownEndsAt: clampCountdownEndToServiceDay(event.target.value, current.serviceDate),
+                }))}
               />
-              <p className="text-[11px] text-muted-foreground">Derniere reservation autorisee 30 minutes avant cette heure.</p>
+              <p className={cn("text-[11px]", countdownEndsBeforeServiceDate ? "text-destructive" : "text-muted-foreground")}>
+                {countdownEndsBeforeServiceDate
+                  ? "La fin du compte a rebours doit etre le jour J ou apres."
+                  : "Derniere reservation autorisee 30 minutes avant cette heure."}
+              </p>
             </div>
             <div className="space-y-1.5">
               <Label>Recurrence</Label>

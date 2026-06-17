@@ -1,100 +1,18 @@
-import { ArrowRight, Heart, MapPin, Megaphone, Sparkles } from "lucide-react";
-import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
+import { ArrowRight, BellRing, Heart, MapPin, Megaphone, Percent, Sparkles } from "lucide-react";
+import type { MouseEvent } from "react";
 
 import PriceRangeIcons from "@/components/PriceRangeIcons";
 import {
-  DEFAULT_CAMPAIGN_CREATIVE,
   normalizeCampaignCreative,
   type CampaignCreativeConfig,
   type CampaignCreativeTextElement,
+  type CampaignCreativeTextStyle,
 } from "@/lib/campaignCreative";
 import { cn } from "@/lib/utils";
 
 const DEFAULT_IMAGE = "/images/pasta-assortment.jpeg";
 
-const TEMPLATE_NUMBERS: Record<string, number> = {
-  classic_elegant: 1,
-  modern_clean: 2,
-  warm_gourmet: 3,
-  bold_contrast: 4,
-  minimal_premium: 5,
-  dynamic_color: 6,
-  immersive_photo: 7,
-  urban_street: 8,
-};
-
-const DARK_TEMPLATES = new Set(["modern_clean", "bold_contrast", "immersive_photo", "urban_street"]);
-
-const TEXT_LAYER_BASE: Record<CampaignCreativeTextElement, {
-  className: string;
-  style: CSSProperties;
-}> = {
-  badge: {
-    className: "text-[10px] font-black uppercase tracking-[0.16em] text-white",
-    style: { left: 16, top: 20, width: 102, textAlign: "center" },
-  },
-  discount: {
-    className: "text-[12px] font-black uppercase text-white",
-    style: { left: 23, top: 143, width: 88, textAlign: "center" },
-  },
-  restaurant: {
-    className: "font-display text-[34px] font-black leading-none",
-    style: { left: 18, top: 202, width: 210 },
-  },
-  headline: {
-    className: "text-[15px] font-black leading-tight",
-    style: { left: 78, top: 318, width: 230 },
-  },
-  body: {
-    className: "text-[12px] font-medium leading-snug",
-    style: { left: 78, top: 344, width: 230 },
-  },
-  cta: {
-    className: "text-[14px] font-black text-white",
-    style: { left: 28, top: 425, width: 166, textAlign: "center" },
-  },
-};
-
-const TEXT_LAYER_OVERRIDES: Partial<Record<number, Partial<Record<CampaignCreativeTextElement, CSSProperties>>>> = {
-  2: {
-    restaurant: { top: 190, color: "#ffffff" },
-    headline: { color: "#ffffff" },
-    body: { color: "#f8fafc" },
-  },
-  4: {
-    restaurant: { top: 190, color: "#ffffff" },
-    headline: { color: "#ffffff" },
-    body: { color: "#f8fafc" },
-  },
-  5: {
-    restaurant: { top: 204 },
-    headline: { left: 78, top: 310, width: 190 },
-    body: { left: 78, top: 338, width: 190 },
-  },
-  6: {
-    badge: { top: 20 },
-    discount: { top: 123, width: 54 },
-    restaurant: { top: 214 },
-    headline: { left: 58, top: 326, width: 228, color: "#ffffff" },
-    body: { left: 58, top: 354, width: 228, color: "#f8fafc" },
-    cta: { left: 28, top: 425, width: 150 },
-  },
-  7: {
-    restaurant: { top: 200, color: "#ffffff" },
-    headline: { color: "#ffffff" },
-    body: { color: "#f8fafc" },
-  },
-  8: {
-    restaurant: { top: 190, color: "#ffffff" },
-    headline: { left: 78, top: 332 },
-    body: { left: 78, top: 360 },
-  },
-};
-
-type TextPointerHandler = (
-  key: CampaignCreativeTextElement,
-  event: ReactPointerEvent<HTMLElement>,
-) => void;
+type SponsoredCreativeVariant = "card" | "banner" | "push";
 
 type SponsoredRestaurantTemplateCardProps = {
   creative?: CampaignCreativeConfig | unknown;
@@ -112,76 +30,69 @@ type SponsoredRestaurantTemplateCardProps = {
   discountLabel?: string;
   slots?: string[];
   className?: string;
+  variant?: SponsoredCreativeVariant;
   selectedTextElement?: CampaignCreativeTextElement | null;
   draggingTextElement?: CampaignCreativeTextElement | null;
-  onTextPointerDown?: TextPointerHandler;
+  onTextPointerDown?: never;
   isFavorite?: boolean;
-  onFavoriteClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  onFavoriteClick?: (event: MouseEvent<HTMLButtonElement>) => void;
 };
 
-function textLayerStyle(
-  key: CampaignCreativeTextElement,
-  templateNumber: number,
-  creative: CampaignCreativeConfig,
-): CSSProperties {
-  const base = TEXT_LAYER_BASE[key];
-  const override = TEXT_LAYER_OVERRIDES[templateNumber]?.[key] || {};
-  const style = creative.text[key];
-  const defaultStyle = DEFAULT_CAMPAIGN_CREATIVE.text[key];
-  const explicitColor = style.color !== defaultStyle.color ? style.color : undefined;
-
-  return {
-    ...base.style,
-    ...override,
-    color: explicitColor || override.color || base.style.color || style.color,
-    transform: `translate(${style.x}px, ${style.y}px) rotate(${style.rotation}deg) scale(${style.scale / 100})`,
-    transformOrigin: base.style.textAlign === "center" ? "center center" : "left center",
-  };
+function getSlotDiscountLabel(discountLabel?: string): string {
+  const match = discountLabel?.match(/-\s?\d+(?:[.,]\d+)?%/);
+  return match ? match[0].replace(/\s/g, "").replace(",", ".") : "";
 }
 
-function editableLayerClassName(
-  key: CampaignCreativeTextElement,
-  selectedTextElement?: CampaignCreativeTextElement | null,
-  draggingTextElement?: CampaignCreativeTextElement | null,
-  onTextPointerDown?: TextPointerHandler,
-) {
+function getTypographyClass(style: CampaignCreativeTextStyle) {
   return cn(
-    "absolute z-30 block min-w-0 whitespace-normal break-words rounded-md outline-none transition-shadow",
-    TEXT_LAYER_BASE[key].className,
-    onTextPointerDown && "touch-none cursor-grab px-1 py-0.5 text-left ring-offset-2 focus-visible:ring-2 focus-visible:ring-primary",
-    selectedTextElement === key && "ring-2 ring-primary ring-offset-2",
-    draggingTextElement === key && "cursor-grabbing",
+    style.font === "display" && "font-display",
+    style.font === "serif" && "font-serif",
+    style.font === "sans" && "font-sans",
+    style.style === "bold" && "font-black",
+    style.style === "italic" && "italic",
+    style.style === "normal" && "font-medium",
   );
 }
 
-function CampaignTextLayer({
-  id,
-  text,
-  templateNumber,
+function OfferText({
   creative,
-  selectedTextElement,
-  draggingTextElement,
-  onTextPointerDown,
+  headline,
+  body,
+  compact = false,
 }: {
-  id: CampaignCreativeTextElement;
-  text: string;
-  templateNumber: number;
   creative: CampaignCreativeConfig;
-  selectedTextElement?: CampaignCreativeTextElement | null;
-  draggingTextElement?: CampaignCreativeTextElement | null;
-  onTextPointerDown?: TextPointerHandler;
+  headline: string;
+  body: string;
+  compact?: boolean;
 }) {
-  const Element = onTextPointerDown ? "button" : "span";
+  const headlineStyle = creative.text.headline;
+  const bodyStyle = creative.text.body;
 
   return (
-    <Element
-      type={onTextPointerDown ? "button" : undefined}
-      className={editableLayerClassName(id, selectedTextElement, draggingTextElement, onTextPointerDown)}
-      style={textLayerStyle(id, templateNumber, creative)}
-      onPointerDown={onTextPointerDown ? (event) => onTextPointerDown(id, event) : undefined}
-    >
-      {text}
-    </Element>
+    <div className="min-w-0">
+      <p
+        className={cn(
+          "line-clamp-2 leading-tight",
+          compact ? "text-sm" : "text-base",
+          getTypographyClass(headlineStyle),
+        )}
+        style={{ color: headlineStyle.color }}
+      >
+        {headline}
+      </p>
+      {body ? (
+        <p
+          className={cn(
+            "mt-1 line-clamp-2 leading-5",
+            compact ? "text-xs" : "text-sm",
+            getTypographyClass(bodyStyle),
+          )}
+          style={{ color: bodyStyle.color }}
+        >
+          {body}
+        </p>
+      ) : null}
+    </div>
   );
 }
 
@@ -201,170 +112,189 @@ export function SponsoredRestaurantTemplateCard({
   discountLabel = "Jusqu'à -18%",
   slots = ["18:30", "19:00"],
   className,
-  selectedTextElement,
-  draggingTextElement,
-  onTextPointerDown,
+  variant = "card",
   isFavorite = false,
   onFavoriteClick,
 }: SponsoredRestaurantTemplateCardProps) {
   const normalized = normalizeCampaignCreative(creative);
-  const templateNumber = TEMPLATE_NUMBERS[normalized.template] || 1;
-  const dark = DARK_TEMPLATES.has(normalized.template);
   const displayRating = Number(rating || 0) > 0 ? Math.min(Number(rating || 0), 10).toFixed(1) : "5.7";
   const safeReviewCount = Number.isFinite(Number(reviewCount)) ? Number(reviewCount) : 3;
   const displayCity = city || "Puplinge";
   const displayAddress = address || "Rue de Graman";
   const displayCuisine = cuisine || "Italien";
+  const displayHeadline = headline?.trim() || "Vos ventes flash Quirinale";
+  const displayBody = body?.trim() || "Mettez vos ventes flash en avant pour accélérer les commandes.";
+  const slotDiscountLabel = getSlotDiscountLabel(discountLabel);
+
+  if (variant === "banner") {
+    return (
+      <article
+        className={cn(
+          "group relative isolate min-h-[340px] w-full overflow-hidden rounded-[30px] border border-white/70 bg-slate-950 text-white shadow-[0_22px_60px_rgba(15,23,42,0.22)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_30px_70px_rgba(15,23,42,0.28)]",
+          className,
+        )}
+      >
+        <img
+          src={imageUrl || DEFAULT_IMAGE}
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+          loading="lazy"
+          decoding="async"
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(10,13,22,0.84)_0%,rgba(10,13,22,0.56)_46%,rgba(10,13,22,0.10)_100%)]" />
+        <div className="absolute left-5 top-5 z-20 inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-white shadow-[0_14px_28px_rgba(249,115,22,0.34)]">
+          <Megaphone className="h-3.5 w-3.5" />
+          Sponsorisé
+        </div>
+        <div className="relative z-10 flex min-h-[340px] max-w-[560px] flex-col justify-end p-5 sm:p-7">
+          <div className="mb-4 flex flex-wrap items-center gap-2 text-xs font-semibold text-white/82">
+            <span className="font-display text-2xl font-black text-white sm:text-3xl">{restaurantName}</span>
+            <span>·</span>
+            <span>{displayCuisine}</span>
+            <span>·</span>
+            <span>{displayCity}</span>
+          </div>
+          <div className="rounded-[26px] border border-white/18 bg-white/12 p-4 shadow-[0_18px_44px_rgba(15,23,42,0.28)] backdrop-blur-xl sm:p-5">
+            <div className="mb-3 inline-flex rounded-full bg-white px-3 py-1 text-[11px] font-black uppercase tracking-[0.08em] text-primary">
+              {discountLabel}
+            </div>
+            <OfferText creative={normalized} headline={displayHeadline} body={displayBody} />
+            <span className="mt-5 inline-flex h-11 items-center gap-2 rounded-2xl bg-white px-5 text-sm font-black text-slate-950 shadow-[0_14px_28px_rgba(15,23,42,0.22)]">
+              {ctaLabel}
+              <ArrowRight className="h-4 w-4" />
+            </span>
+          </div>
+        </div>
+      </article>
+    );
+  }
+
+  if (variant === "push") {
+    return (
+      <article
+        className={cn(
+          "relative isolate h-[176px] w-full overflow-hidden rounded-[28px] border border-orange-100 bg-white shadow-[0_18px_42px_rgba(15,23,42,0.12)]",
+          className,
+        )}
+      >
+        <div className="absolute left-4 top-4 z-30 grid h-11 w-11 place-items-center overflow-hidden rounded-2xl bg-orange-50">
+          <img src={imageUrl || DEFAULT_IMAGE} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+        </div>
+        <BellRing className="absolute right-5 top-5 h-5 w-5 text-primary" />
+        <div className="ml-[72px] mr-12 mt-4">
+          <p className="text-[10px] font-black uppercase tracking-[0.16em] text-primary">Sponsorisé</p>
+          <p className="mt-1 text-sm font-black text-slate-950">{restaurantName}</p>
+          <OfferText creative={normalized} headline={displayHeadline} body={displayBody} compact />
+        </div>
+      </article>
+    );
+  }
 
   return (
     <article
       className={cn(
-        "ad-card-template group relative isolate h-[470px] w-full overflow-hidden rounded-[18px] border border-white/70 shadow-[0_18px_40px_rgba(0,0,0,0.12)]",
-        `template-shell-${templateNumber}`,
+        "ad-card-spotlight premium-card neon-card group flex h-full w-full flex-col overflow-hidden rounded-[26px] border border-amber-200/80 bg-[linear-gradient(180deg,rgba(255,248,238,0.98),rgba(255,255,255,0.98))] shadow-[0_18px_46px_rgba(249,115,22,0.16)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_54px_rgba(249,115,22,0.22)]",
         className,
       )}
     >
-      <div className={cn("photo-zone-template relative overflow-hidden bg-[#e60000]", `template-photo-${templateNumber}`)}>
+      <div className="relative aspect-[16/10] overflow-hidden">
         <img
           src={imageUrl || DEFAULT_IMAGE}
           alt=""
-          className="absolute inset-0 h-full w-full object-cover"
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           loading="lazy"
           decoding="async"
         />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_20%,rgba(255,255,255,0.18),transparent_30%),linear-gradient(135deg,rgba(0,0,0,0.08),transparent_60%)]" />
-        <div className="absolute left-[18px] top-[18px] z-20 h-[26px] w-[96px] rounded-lg bg-[linear-gradient(135deg,#ff6414,#ef4f00)]" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/62 via-slate-950/10 to-transparent" />
+        <div className="absolute left-3 right-14 top-3 flex flex-wrap items-start gap-1.5">
+          <span className="inline-flex items-center gap-1 rounded-full border border-white/35 bg-primary/95 px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.12em] text-white shadow-sm backdrop-blur-md">
+            <Megaphone className="h-3 w-3" />
+            Sponsorisé
+          </span>
+        </div>
         <button
           type="button"
           aria-label={isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
-          className="absolute right-4 top-4 z-30 grid h-9 w-9 place-items-center rounded-full bg-white text-red-500 shadow-sm"
+          className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white/90 backdrop-blur-sm transition-colors hover:bg-white"
           onClick={onFavoriteClick}
         >
           <Heart className={cn("h-4 w-4 text-red-500", isFavorite && "fill-current")} />
         </button>
-      </div>
-
-      <div className={cn("absolute z-20 rounded-full bg-[linear-gradient(135deg,#00b978,#008f5a)]", `discount-shape-${templateNumber}`)} />
-
-      <div className={cn("content-template relative min-h-[305px] px-[18px] pb-[18px] pt-8", `template-body-${templateNumber}`)}>
-        <div className="mx-auto mb-5 flex justify-center gap-[7px]">
-          <span className="h-[11px] w-[22px] rounded-[3px] border border-[#008f5a] bg-[#008f5a]/15" />
-          <span className="h-[11px] w-[22px] rounded-[3px] border border-[#008f5a] bg-[#008f5a]/15" />
-          <span className="h-[11px] w-[22px] rounded-[3px] border border-[#008f5a] bg-[#008f5a]/15" />
-        </div>
-        {templateNumber !== 7 ? (
-          <span className="mb-6 block h-[11px] w-[11px] rotate-[-45deg] rounded-[50%_50%_50%_0] border-2 border-primary" />
-        ) : null}
-        {templateNumber !== 5 ? (
-          <>
-            <span className="absolute right-4 top-7 h-[30px] w-[30px] rounded-[9px] bg-[linear-gradient(135deg,#ff9638,#ff6414)]" />
-            <span className="absolute right-[25px] top-[66px] h-[10px] w-[10px] rounded-full bg-[#b7b7b7]" />
-          </>
-        ) : null}
-
-        <div className={cn("campaign-box-template relative mb-[18px] h-[88px] rounded-[14px] border border-[rgba(255,184,78,0.45)] bg-white/50", `campaign-box-${templateNumber}`)}>
-          <span className="absolute left-5 top-[22px] grid h-[34px] w-[34px] place-items-center rounded-full bg-primary/10 text-primary">
-            <Sparkles className="h-4 w-4" />
+        <div className="absolute bottom-3 left-3 right-3 flex items-end">
+          <span className="inline-flex items-center gap-1.5 rounded-2xl border border-white/30 bg-gradient-to-r from-primary via-orange-500 to-emerald-600 px-3.5 py-2 text-[11px] font-black uppercase tracking-[0.08em] text-white shadow-[0_14px_30px_rgba(15,23,42,0.28)] ring-1 ring-black/5 backdrop-blur-md">
+            <span className="grid h-5 w-5 place-items-center rounded-full bg-white/20">
+              <Percent className="h-3.5 w-3.5" />
+            </span>
+            Promo {discountLabel}
           </span>
         </div>
+      </div>
 
-        <div className="grid grid-cols-[1fr_62px_62px] gap-2.5">
-          <div className="relative h-[46px] rounded-[9px] bg-[linear-gradient(135deg,#ff6414,#ef4f00)]">
-            <ArrowRight className="absolute right-[22px] top-1/2 h-5 w-5 -translate-y-1/2 text-white" />
+      <div className="flex flex-1 flex-col p-4 sm:p-5">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1 space-y-1">
+            <h3 className="font-display text-base font-bold leading-tight text-foreground transition-colors group-hover:text-primary">
+              {restaurantName}
+            </h3>
+            <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/90">
+              <span className="max-w-full truncate">{displayCuisine}</span>
+              <span className="text-border">/</span>
+              <PriceRangeIcons range={priceRange} />
+              <span>Premium</span>
+            </div>
           </div>
-          <div className={cn("h-[46px] rounded-[9px] border-[1.5px] border-[#17b985] bg-white/65", templateNumber === 6 && "bg-[linear-gradient(135deg,#078850,#0ba865)]")} />
-          <div className={cn("h-[46px] rounded-[9px] border-[1.5px] border-[#17b985] bg-white/65", templateNumber === 6 && "bg-[linear-gradient(135deg,#078850,#0ba865)]")} />
+          <div className="shrink-0 text-right">
+            <div className="inline-flex min-w-[2.7rem] items-center justify-center rounded-xl bg-orange-500 px-2.5 py-1.5 text-sm font-bold text-white">
+              {displayRating}
+            </div>
+            <p className="mt-1 text-[10px] text-muted-foreground">({safeReviewCount})</p>
+          </div>
         </div>
-      </div>
 
-      <CampaignTextLayer
-        id="badge"
-        text="Sponsorisé"
-        templateNumber={templateNumber}
-        creative={normalized}
-        selectedTextElement={selectedTextElement}
-        draggingTextElement={draggingTextElement}
-        onTextPointerDown={onTextPointerDown}
-      />
-      <CampaignTextLayer
-        id="discount"
-        text={discountLabel}
-        templateNumber={templateNumber}
-        creative={normalized}
-        selectedTextElement={selectedTextElement}
-        draggingTextElement={draggingTextElement}
-        onTextPointerDown={onTextPointerDown}
-      />
-      <CampaignTextLayer
-        id="restaurant"
-        text={restaurantName || "Quirinale"}
-        templateNumber={templateNumber}
-        creative={normalized}
-        selectedTextElement={selectedTextElement}
-        draggingTextElement={draggingTextElement}
-        onTextPointerDown={onTextPointerDown}
-      />
-      <CampaignTextLayer
-        id="headline"
-        text={headline || "La fondue du Quirinale"}
-        templateNumber={templateNumber}
-        creative={normalized}
-        selectedTextElement={selectedTextElement}
-        draggingTextElement={draggingTextElement}
-        onTextPointerDown={onTextPointerDown}
-      />
-      <CampaignTextLayer
-        id="body"
-        text={body || "Viens déguster la meilleure fondue de Genève!"}
-        templateNumber={templateNumber}
-        creative={normalized}
-        selectedTextElement={selectedTextElement}
-        draggingTextElement={draggingTextElement}
-        onTextPointerDown={onTextPointerDown}
-      />
-      <CampaignTextLayer
-        id="cta"
-        text={ctaLabel}
-        templateNumber={templateNumber}
-        creative={normalized}
-        selectedTextElement={selectedTextElement}
-        draggingTextElement={draggingTextElement}
-        onTextPointerDown={onTextPointerDown}
-      />
+        <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+          <span className="inline-flex items-center gap-1.5">
+            <MapPin className="h-3.5 w-3.5 text-primary/75" />
+            <span className="font-medium text-foreground/90">{displayCity}</span>
+          </span>
+        </div>
+        <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted-foreground">
+          {displayAddress}
+        </p>
 
-      <div className="absolute left-[96px] top-[233px] z-30 text-[10px]">
-        <PriceRangeIcons range={priceRange} />
-      </div>
-      <p className={cn("absolute left-[18px] top-[252px] z-30 max-w-[58%] truncate text-[12px] font-medium", dark ? "text-white/88" : "text-slate-800")}>
-        {displayCuisine}
-        <span className="mx-2 text-current/55">·</span>
-        Premium
-      </p>
-      <p className={cn("absolute left-[18px] top-[278px] z-30 flex max-w-[66%] items-center gap-1 truncate text-[12px] font-medium", dark ? "text-white/78" : "text-slate-700")}>
-        <MapPin className="h-[1em] w-[1em] shrink-0 text-primary" />
-        {displayCity} · {displayAddress}
-      </p>
-      <span className="absolute right-[18px] top-[223px] z-30 min-w-[30px] text-center text-[13px] font-black text-white">
-        {displayRating}
-      </span>
-      <span className={cn("absolute right-[22px] top-[260px] z-30 text-[11px]", dark ? "text-white/70" : "text-slate-700")}>
-        ({safeReviewCount})
-      </span>
-      {slots.slice(0, 2).map((slot, index) => (
-        <span
-          key={`${slot}-${index}`}
-          className={cn("absolute top-[419px] z-30 flex h-[46px] w-[62px] items-center justify-center text-sm font-black", dark ? "text-emerald-300" : "text-emerald-700")}
-          style={{ left: index === 0 ? 226 : 298 }}
-        >
-          {slot}
-        </span>
-      ))}
-      <p className={cn("absolute bottom-[11px] left-[18px] z-30 max-w-[82%] truncate text-[11px]", dark ? "text-white/72" : "text-slate-600")}>
-        Prochains créneaux visibles. Plus d'options sur la fiche.
-      </p>
+        <div className="mt-3 rounded-[22px] border border-amber-200/80 bg-[linear-gradient(135deg,rgba(255,248,230,0.95),rgba(255,255,255,0.94))] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#ffedd5] via-[#fff7ed] to-[#fef3c7] text-amber-600 shadow-[0_10px_22px_rgba(249,115,22,0.14)]">
+              <Sparkles className="h-4 w-4" />
+            </div>
+            <OfferText creative={normalized} headline={displayHeadline} body={displayBody} />
+          </div>
+        </div>
 
-      <div className="pointer-events-none absolute left-[18px] top-[24px] z-30 text-white">
-        <Megaphone className="h-3 w-3" />
+        <div className="mt-auto pt-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary via-orange-500 to-orange-600 px-4 text-sm font-bold text-white shadow-[0_14px_30px_rgba(249,115,22,0.26)]">
+              {ctaLabel}
+              <ArrowRight className="h-4 w-4" />
+            </div>
+            {slots.slice(0, 2).map((slot) => (
+              <span
+                key={slot}
+                className="inline-flex h-12 min-w-[4.75rem] flex-col items-center justify-center gap-0.5 rounded-xl border border-emerald-500 bg-emerald-600 px-3.5 font-bold text-white shadow-[0_12px_24px_rgba(16,185,129,0.22)]"
+              >
+                <span className="text-sm leading-none">{slot}</span>
+                {slotDiscountLabel ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-white/95 px-1.5 py-0.5 text-[10px] leading-none text-emerald-700 shadow-sm">
+                    <Percent className="h-2.5 w-2.5" />
+                    {slotDiscountLabel}
+                  </span>
+                ) : null}
+              </span>
+            ))}
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Créneaux promo visibles. Plus d'options sur la fiche.
+          </p>
+        </div>
       </div>
     </article>
   );

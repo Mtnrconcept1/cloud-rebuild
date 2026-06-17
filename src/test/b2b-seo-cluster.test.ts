@@ -24,18 +24,26 @@ describe("B2B restaurateur SEO cluster", () => {
     expect(geneve).toContain("Anti-gaspi et ventes flash");
     expect(geneve).toContain("Actualités, campagnes et Miamz");
     expect(geneve).toContain("Onboarding restaurateur");
+    expect(geneve).toContain("Ce que TOK regroupe pour un restaurant genevois");
+    expect(geneve).toContain("Besoin terrain");
+    expect(geneve).toContain("Résultat attendu");
 
     expect(google).toContain("Transformez votre fiche Google Business en canal direct");
     expect(google).toContain("clics Google Maps");
     expect(google).toContain("Checklist de bascule");
     expect(google).toContain("Tables Google par mois");
     expect(google).toContain("bouton de réservation traçable");
+    expect(google).toContain("Bascule du bouton Google");
+    expect(google).toContain("Situation");
+    expect(google).toContain("Action TOK");
 
     expect(alternative).toContain("Commission par couvert : comparez avant de choisir");
     expect(alternative).toContain("coût d'acquisition");
-    expect(alternative).toContain("No-show et changements");
+    expect(alternative).toContain("No-shows et changements");
     expect(alternative).toContain("Scénarios chiffrés");
     expect(alternative).toContain("Marge prévisible");
+    expect(alternative).toContain("Question à trancher");
+    expect(alternative).toContain("Lecture TOK");
 
     expect(geneve).not.toContain("Transformez votre fiche Google Business en canal direct");
     expect(google).not.toContain("Scénarios chiffrés");
@@ -55,12 +63,12 @@ describe("B2B restaurateur SEO cluster", () => {
       expect(source).toContain('"@type": "FAQPage"');
     }
 
-    expect(geneve).toContain('/restaurateurs/google-business');
-    expect(geneve).toContain('/restaurateurs/alternative-commission-couvert');
-    expect(google).toContain('/restaurateurs/geneve');
-    expect(google).toContain('/restaurateurs/alternative-commission-couvert');
-    expect(alternative).toContain('/restaurateurs/geneve');
-    expect(alternative).toContain('/restaurateurs/google-business');
+    expect(geneve).toContain("/restaurateurs/google-business");
+    expect(geneve).toContain("/restaurateurs/alternative-commission-couvert");
+    expect(google).toContain("/restaurateurs/geneve");
+    expect(google).toContain("/restaurateurs/alternative-commission-couvert");
+    expect(alternative).toContain("/restaurateurs/geneve");
+    expect(alternative).toContain("/restaurateurs/google-business");
   });
 
   it("aligns static prerender content with the React pages", () => {
@@ -69,13 +77,16 @@ describe("B2B restaurateur SEO cluster", () => {
     expect(prerender).toContain("Logiciel restaurateur à Genève : réservations, commandes et marketing | TOK");
     expect(prerender).toContain("Plan d'activation Genève");
     expect(prerender).toContain("Cas d'usage locaux");
+    expect(prerender).toContain("Lecture simple pour restaurateur");
 
     expect(prerender).toContain("Google Business restaurant : convertir clics Google en réservations | TOK");
     expect(prerender).toContain("Clics Google");
     expect(prerender).toContain("Coût par conversion");
+    expect(prerender).toContain("Bascule du bouton Google");
 
     expect(prerender).toContain("Commission par couvert restaurant : alternative et comparatif marge | TOK");
     expect(prerender).toContain("No-show et annulations");
     expect(prerender).toContain("Coût d'acquisition");
+    expect(prerender).toContain("Question à trancher");
   });
 });

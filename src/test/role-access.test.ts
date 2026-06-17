@@ -9,8 +9,10 @@ import {
   canShowClientSurface,
   canSwitchRoles,
   canUseClientRole,
+  getFeatureVisibleRoles,
   getDefaultActiveRole,
   getEffectiveRoles,
+  isRoleFeatureEnabled,
   getRoleHomePath,
 } from "@/lib/roleAccess";
 import type { UserRole } from "@/lib/auth-context";
@@ -36,15 +38,27 @@ describe("role access policy", () => {
     const adminFrameSource = readFileSync(resolve(process.cwd(), "src/App.tsx"), "utf8");
 
     expect(authSource).not.toContain('role === "client" && hasPrivilegedRole(roles)');
-    expect(authPageSource).toContain("const switchableRoles = roles;");
-    expect(navbarSource).toContain("const switchableRoles = roles;");
-    expect(roleSwitcherSource).toContain("roles.map");
+    expect(authPageSource).toContain("getFeatureVisibleRoles(roles, activeFeatures)");
+    expect(navbarSource).toContain("getFeatureVisibleRoles(roles, activeFeatures)");
+    expect(roleSwitcherSource).toContain("getFeatureVisibleRoles(roles, activeFeatures)");
+    expect(roleSwitcherSource).toContain("switchableRoles.map");
     expect(roleSwitcherSource).toContain("switchRole(nextRole)");
     expect(roleSwitcherSource).toContain("getRoleTarget");
     expect(dashboardLayoutSource).toContain("RoleSpaceSwitcher");
     expect(customerLayoutSource).toContain("RoleSpaceSwitcher");
     expect(courierLayoutSource).toContain("RoleSpaceSwitcher");
     expect(adminFrameSource).toContain("RoleSpaceSwitcher");
+  });
+
+  it("hides feature-disabled roles from switchers without mutating assigned roles", () => {
+    const assignedRoles: UserRole[] = ["client", "admin", "restaurateur", "courier"];
+
+    expect(isRoleFeatureEnabled("courier", new Set())).toBe(false);
+    expect(isRoleFeatureEnabled("courier", new Set(["espace-livreur"]))).toBe(true);
+    expect(isRoleFeatureEnabled("admin", new Set())).toBe(true);
+
+    expect(getFeatureVisibleRoles(assignedRoles, new Set())).toEqual(["client", "admin", "restaurateur"]);
+    expect(getFeatureVisibleRoles(assignedRoles, new Set(["espace-livreur"]))).toEqual(assignedRoles);
   });
 
   it("allows cross-role dashboard access only for roles assigned by Supabase", () => {

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
+import CrmAccessGuard from "@/components/crm/CrmAccessGuard";
 import CustomerCrmDashboard, { type CustomerCrmRestaurantOption } from "@/components/crm/CustomerCrmDashboard";
 import { getSupabase } from "@/integrations/supabase/client";
 
@@ -24,13 +25,15 @@ export default function AdminCrm() {
   });
 
   return (
-    <CustomerCrmDashboard
-      surface="admin"
-      restaurantId={restaurantId}
-      restaurants={restaurantsQuery.data || []}
-      onRestaurantChange={setRestaurantId}
-      restaurantLoading={restaurantsQuery.isLoading}
-      restaurantError={restaurantsQuery.error instanceof Error ? restaurantsQuery.error.message : null}
-    />
+    <CrmAccessGuard surface="admin" requiresElite={false}>
+      <CustomerCrmDashboard
+        surface="admin"
+        restaurantId={restaurantId}
+        restaurants={restaurantsQuery.data || []}
+        onRestaurantChange={setRestaurantId}
+        restaurantLoading={restaurantsQuery.isLoading}
+        restaurantError={restaurantsQuery.error instanceof Error ? restaurantsQuery.error.message : null}
+      />
+    </CrmAccessGuard>
   );
 }

@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle2, Clock, ExternalLink, Loader2, ShieldAlert, UserCheck } from "lucide-react";
+import { CheckCircle2, ChevronDown, Clock, ExternalLink, Loader2, ShieldAlert, UserCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getSupabase } from "@/integrations/supabase/client";
@@ -147,6 +147,7 @@ export default function AdminUrgentActions({
   const [includeResolved, setIncludeResolved] = useState(false);
   const [noteByAlert, setNoteByAlert] = useState<Record<string, string>>({});
   const [takingAlertKey, setTakingAlertKey] = useState<string | null>(null);
+  const [isExpanded, setIsExpanded] = useState(!compact);
 
   const { data: alerts = [], isLoading, error } = useQuery({
     queryKey: ["admin-marketplace-alerts", includeResolved],
@@ -248,20 +249,30 @@ export default function AdminUrgentActions({
   }
 
   const visibleAlerts = filteredAlerts.slice(0, maxItems ?? (compact ? 6 : 20));
+  const summaryAlerts = visibleAlerts.slice(0, 3);
+  const collapsed = compact && !isExpanded;
 
   return (
-    <Card className="border-red-200 bg-gradient-to-br from-red-50 via-background to-background">
-      <CardHeader>
+    <Card className={`border-red-200 bg-gradient-to-br from-red-50 via-background to-background ${compact ? "overflow-hidden" : ""}`}>
+      <CardHeader className={compact ? "p-4" : undefined}>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => compact && setIsExpanded((value) => !value)}
+            className={`min-w-0 text-left ${compact ? "rounded-xl transition-colors hover:bg-background/60" : ""}`}
+            aria-expanded={isExpanded}
+          >
+            <span className="flex items-center gap-2">
               <ShieldAlert className="h-5 w-5 text-red-600" />
-              <CardTitle>{title}</CardTitle>
-            </div>
-            <p className="text-sm text-muted-foreground">
+              <span className="text-lg font-semibold leading-none tracking-tight">{title}</span>
+              {compact ? (
+                <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+              ) : null}
+            </span>
+            <span className={compact ? "mt-1 block line-clamp-1 text-sm text-muted-foreground" : "block text-sm text-muted-foreground"}>
               {description}
-            </p>
-          </div>
+            </span>
+          </button>
           <div className="flex flex-wrap gap-2">
             <Badge className="bg-red-100 text-red-800">{counters.critical} critiques</Badge>
             <Badge className="bg-orange-100 text-orange-800">{counters.high} hautes</Badge>
@@ -269,7 +280,44 @@ export default function AdminUrgentActions({
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className={compact ? "space-y-3 px-4 pb-4 pt-0" : "space-y-4"}>
+        {collapsed ? (
+          <button
+            type="button"
+            onClick={() => setIsExpanded(true)}
+            className="w-full rounded-2xl border bg-background/80 p-4 text-left shadow-sm transition-colors hover:border-red-200 hover:bg-white"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-red-700">Résumé urgent</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {isLoading
+                    ? "Chargement des alertes prioritaires..."
+                    : error
+                      ? getAdminUrgentActionsErrorMessage(error)
+                      : summaryAlerts.length > 0
+                        ? `${summaryAlerts.length} action(s) prioritaire(s) visibles. Cliquez pour traiter.`
+                        : emptyLabel}
+                </p>
+              </div>
+              <Badge variant="outline" className="shrink-0">Déplier</Badge>
+            </div>
+            {!isLoading && !error && summaryAlerts.length > 0 ? (
+              <div className="mt-3 grid gap-2 md:grid-cols-3">
+                {summaryAlerts.map((alert) => (
+                  <div key={alert.alert_key} className={`rounded-xl border px-3 py-2 ${severityClass(alert.severity)}`}>
+                    <div className="flex items-center gap-2">
+                      <Badge className={severityBadgeClass(alert.severity)}>{alert.severity}</Badge>
+                      <span className="truncate text-xs font-medium">{alert.source}</span>
+                    </div>
+                    <p className="mt-1 line-clamp-1 text-sm font-semibold">{alert.title}</p>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </button>
+        ) : (
+          <>
         <div className="grid gap-3 lg:grid-cols-[minmax(220px,1fr)_180px_220px_180px_auto]">
           <Input
             value={search}
@@ -412,6 +460,8 @@ export default function AdminUrgentActions({
               );
             })}
           </div>
+        )}
+          </>
         )}
       </CardContent>
     </Card>

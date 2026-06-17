@@ -40,7 +40,7 @@ import { useActiveFeatures } from "@/lib/featureFlags";
 import { useNotificationCenter } from "@/hooks/useNotificationCenter";
 import { useTokLogoSrc } from "@/hooks/useTokLogo";
 import { getAdminNavigationHref } from "@/lib/adminDomains";
-import { canShowClientSurface, canShowSocialFeedSurface, getRoleHomePath } from "@/lib/roleAccess";
+import { canShowClientSurface, canShowSocialFeedSurface, getFeatureVisibleRoles, getRoleHomePath } from "@/lib/roleAccess";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -128,7 +128,8 @@ export default function Navbar() {
   const visibleFeatures = FEATURES.filter((feature) => activeFeatures.has(feature.feature));
   const discoveryFeatures = visibleFeatures.slice(0, 3);
   const showClientSurface = canShowClientSurface({ activeRole: role, roles });
-  const switchableRoles = roles;
+  const switchableRoles = getFeatureVisibleRoles(roles, activeFeatures);
+  const showRoleSwitcher = canSwitchRole && switchableRoles.length > 1;
   const showSocialFeedSurface = canShowSocialFeedSurface({ activeRole: role, roles });
   const homeTarget = showClientSurface ? "/" : getRoleHomePath(role);
   const showCartShortcut = showClientSurface && (user || itemCount > 0);
@@ -403,7 +404,7 @@ export default function Navbar() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-72 data-[state=closed]:hidden">
-                  {canSwitchRole ? (
+                  {showRoleSwitcher ? (
                     <div className="mb-1 border-b px-2 py-2">
                       <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Espace actif</p>
                       <div className="flex flex-wrap gap-1">
@@ -456,7 +457,7 @@ export default function Navbar() {
                       <Link to="/actualites">Actualités</Link>
                     </DropdownMenuItem>
                   ) : null}
-                  {role === "courier" && !showClientSurface ? (
+                  {courierEnabled && role === "courier" && !showClientSurface ? (
                     <DropdownMenuItem asChild>
                       <Link to="/courier/profile">Mon profil</Link>
                     </DropdownMenuItem>
@@ -588,7 +589,7 @@ export default function Navbar() {
 
                   {user ? (
                     <div className="mt-2 space-y-4 border-t pt-4">
-                      {canSwitchRole ? (
+                      {showRoleSwitcher ? (
                         <div className="space-y-2">
                           <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Espace actif</p>
                           <div className="flex flex-wrap gap-1.5">
@@ -617,7 +618,7 @@ export default function Navbar() {
                           Mon profil
                         </Link>
                       ) : null}
-                      {role === "courier" && !showClientSurface ? (
+                      {courierEnabled && role === "courier" && !showClientSurface ? (
                         <Link to="/courier/profile" className="flex items-center gap-2 text-sm font-medium hover:text-primary" onClick={() => setMenuOpen(false)}>
                           <User className="h-4 w-4" />
                           Mon profil
@@ -675,6 +676,12 @@ export default function Navbar() {
                       </Link>
                       <Link to="/cgu" className="block text-sm font-medium text-muted-foreground hover:text-foreground" onClick={() => setMenuOpen(false)}>
                         CGU
+                      </Link>
+                      <Link to="/politique-confidentialite" className="block text-sm font-medium text-muted-foreground hover:text-foreground" onClick={() => setMenuOpen(false)}>
+                        Confidentialité
+                      </Link>
+                      <Link to="/cookies" className="block text-sm font-medium text-muted-foreground hover:text-foreground" onClick={() => setMenuOpen(false)}>
+                        Cookies
                       </Link>
                     </div>
                   </div>

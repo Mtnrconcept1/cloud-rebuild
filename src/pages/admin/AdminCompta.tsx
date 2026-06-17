@@ -265,32 +265,32 @@ export default function AdminCompta() {
 
       {isLoading ? <p className="text-sm text-muted-foreground">Chargement des données comptables...</p> : null}
       <Card className="tok-dashboard-section rounded-3xl border border-border/70">
-        <CardContent className="grid gap-4 p-5 lg:grid-cols-[minmax(0,1fr)_240px_auto] lg:items-center md:p-6">
-          <div className="space-y-1">
+        <CardContent className="space-y-4 p-4 sm:p-5 md:p-6">
+          <div className="max-w-3xl space-y-1">
             <p className="text-sm font-semibold">Exports comptables</p>
             <p className="text-sm text-muted-foreground">
               Journal CSV complet des entrées et sorties, puis PDF bilan, compte de résultat ou journal sur la période choisie.
             </p>
           </div>
 
-          <Select value={exportPeriodPreset} onValueChange={(value) => setExportPeriodPreset(value as AccountingPeriodPreset)}>
-            <SelectTrigger className="h-12 rounded-2xl border-border/70 bg-background/90 font-semibold dark:border-[#5f7aad]/35 dark:bg-[#040c1c]/86 dark:text-white">
-              <SelectValue placeholder="Période comptable" />
-            </SelectTrigger>
-            <SelectContent>
-              {ACCOUNTING_PERIOD_PRESETS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <div className="flex flex-wrap gap-2 lg:justify-end">
+          <div className="grid min-w-0 gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(220px,260px)_repeat(4,minmax(130px,1fr))]">
+            <Select value={exportPeriodPreset} onValueChange={(value) => setExportPeriodPreset(value as AccountingPeriodPreset)}>
+              <SelectTrigger className="h-12 w-full rounded-2xl border-border/70 bg-background/90 font-semibold dark:border-[#5f7aad]/35 dark:bg-[#040c1c]/86 dark:text-white">
+                <SelectValue placeholder="Période comptable" />
+              </SelectTrigger>
+              <SelectContent>
+                {ACCOUNTING_PERIOD_PRESETS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Button
               type="button"
               size="sm"
               variant="outline"
+              className="h-12 w-full justify-center rounded-2xl"
               onClick={() => void runAccountingExport("csv")}
               disabled={exporting !== null}
             >
@@ -301,6 +301,7 @@ export default function AdminCompta() {
               type="button"
               size="sm"
               variant="outline"
+              className="h-12 w-full justify-center rounded-2xl"
               onClick={() => void runAccountingExport("balance_sheet")}
               disabled={exporting !== null}
             >
@@ -311,6 +312,7 @@ export default function AdminCompta() {
               type="button"
               size="sm"
               variant="outline"
+              className="h-12 w-full justify-center rounded-2xl"
               onClick={() => void runAccountingExport("income_statement")}
               disabled={exporting !== null}
             >
@@ -321,6 +323,7 @@ export default function AdminCompta() {
               type="button"
               size="sm"
               variant="outline"
+              className="h-12 w-full justify-center rounded-2xl"
               onClick={() => void runAccountingExport("journal")}
               disabled={exporting !== null}
             >

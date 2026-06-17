@@ -146,6 +146,9 @@ describe("progressive reservation offers", () => {
     expect(index).toContain("reservation_progressive_offers");
     expect(index).toContain("isMissingOptionalSupabaseRelation");
     expect(index).toContain("PROGRESSIVE_OFFERS_TABLE");
+    expect(index).toContain('queryKey: ["home-progressive-reservation-offers", todayServiceDate]');
+    expect(index).toContain('.eq("service_date", todayServiceDate)');
+    expect(index).toContain("reservationDate: todayServiceDate");
     expect(index).toContain("getProgressiveOfferServiceLabel");
     expect(restaurantDetail).toContain("progressiveOfferId");
     expect(restaurantDetail).toContain("reservation_progressive_offers");
@@ -167,6 +170,15 @@ describe("progressive reservation offers", () => {
     expect(dashboardFormules).toContain("Recurrence");
     expect(dashboardFormules).toContain("Nombre d'occurrences");
     expect(dashboardFormules).toContain("occurrences programmees");
+    expect(dashboardFormules).toContain("getServiceDayStartDateTimeValue");
+    expect(dashboardFormules).toContain("isCountdownBeforeServiceDay");
+    expect(dashboardFormules).toContain("min={countdownMinDateTime}");
+    expect(dashboardFormules).toContain("La fin du compte a rebours ne peut pas etre avant le jour J");
+    expect(dashboardFormules).toContain("Calendrier des offres");
+    expect(dashboardFormules).toContain("selectedCalendarDate");
+    expect(dashboardFormules).toContain("updateOfferStatus");
+    expect(dashboardFormules).toContain("Activer");
+    expect(dashboardFormules).toContain("Désactiver");
     expect(index).toContain("selectDailyProgressiveOffers");
     expect(restaurantDetail).toContain("selectDailyProgressiveOffers");
     expect(reservationDialog).toContain("selectDailyProgressiveOffers");

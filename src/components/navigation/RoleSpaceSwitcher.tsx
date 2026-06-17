@@ -12,7 +12,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { getAdminNavigationHref } from "@/lib/adminDomains";
 import { useAuth, type UserRole } from "@/lib/auth-context";
-import { getRoleHomePath } from "@/lib/roleAccess";
+import { useActiveFeatures } from "@/lib/featureFlags";
+import { getFeatureVisibleRoles, getRoleHomePath } from "@/lib/roleAccess";
 import { cn } from "@/lib/utils";
 
 type RoleSpaceSwitcherProps = {
@@ -55,10 +56,12 @@ export default function RoleSpaceSwitcher({
 }: RoleSpaceSwitcherProps) {
   const navigate = useNavigate();
   const { role, roles, canSwitchRole, switchRole } = useAuth();
+  const activeFeatures = useActiveFeatures();
+  const switchableRoles = getFeatureVisibleRoles(roles, activeFeatures);
 
-  if (!canSwitchRole || roles.length < 2) return null;
+  if (!canSwitchRole || switchableRoles.length < 2) return null;
 
-  const activeRole = role && roles.includes(role) ? role : roles[0];
+  const activeRole = role && switchableRoles.includes(role) ? role : switchableRoles[0];
   const ActiveIcon = ROLE_ICONS[activeRole];
 
   const handleRoleSelect = (nextRole: UserRole) => {
@@ -96,7 +99,7 @@ export default function RoleSpaceSwitcher({
       <DropdownMenuContent align={align} className="w-72">
         <DropdownMenuLabel>Espace actif</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {roles.map((candidateRole) => {
+        {switchableRoles.map((candidateRole) => {
           const Icon = ROLE_ICONS[candidateRole];
           const selected = candidateRole === activeRole;
 

@@ -7,6 +7,7 @@ import {
   getPreferredHourLabel,
   normalizeCustomerCrmProfile,
 } from "@/lib/customerCrm";
+import { findPendingCrmMfaFactor, findVerifiedCrmMfaFactor } from "@/lib/crmMfa";
 
 function readSource(path: string) {
   return readFileSync(resolve(process.cwd(), path), "utf8");
@@ -80,7 +81,11 @@ describe("customer CRM", () => {
 
   it("guards CRM access server-side and seeds feature flags", () => {
     const migration = readSource("supabase/migrations/20260616164131_customer_crm_profiles.sql");
+    const accessMigration = readSource("supabase/migrations/20260617110000_customer_crm_elite_mfa_gate.sql");
     const app = readSource("src/App.tsx");
+    const guard = readSource("src/components/crm/CrmAccessGuard.tsx");
+    const dashboardCrm = readSource("src/pages/dashboard/DashboardCrm.tsx");
+    const adminCrm = readSource("src/pages/admin/AdminCrm.tsx");
 
     expect(migration).toContain("SECURITY DEFINER");
     expect(migration).toContain("public.auth_is_admin()");
@@ -90,7 +95,43 @@ describe("customer CRM", () => {
     expect(migration).toContain("'dashboard-crm'");
     expect(migration).toContain("'admin-crm'");
 
+    expect(accessMigration).toContain("auth.jwt()->>'aal'");
+    expect(accessMigration).toContain("restaurant_has_elite_crm_subscription");
+    expect(accessMigration).toContain("get_customer_crm_profiles_source");
+    expect(accessMigration).toContain("Elite subscription required for CRM.");
+    expect(accessMigration).toContain("CRM two-factor authentication required.");
+    expect(accessMigration).toContain("REVOKE EXECUTE ON FUNCTION public.get_customer_crm_profiles_source");
+
     expect(app).toContain('path="/dashboard/crm"');
     expect(app).toContain('path="/admin/crm"');
+    expect(dashboardCrm).toContain("CrmAccessGuard");
+    expect(dashboardCrm).toContain("isEliteRestaurantSubscription");
+    expect(adminCrm).toContain("CrmAccessGuard");
+    expect(guard).toContain("getAuthenticatorAssuranceLevel");
+    expect(guard).toContain("listFactors");
+    expect(guard).toContain("enroll");
+    expect(guard).toContain("challenge");
+    expect(guard).toContain("unenroll");
+    expect(guard).toContain("verify");
+    expect(guard).not.toContain("refreshSession");
+    expect(guard).toContain("currentLevel !== \"aal2\"");
+  });
+
+  it("reuses verified CRM MFA factors and replaces incomplete TOK CRM setup", () => {
+    const verifiedFactor = {
+      id: "factor-verified",
+      factor_type: "totp",
+      friendly_name: "TOK CRM",
+      status: "verified",
+    };
+    const pendingFactor = {
+      id: "factor-pending",
+      factor_type: "totp",
+      friendly_name: "TOK CRM",
+      status: "unverified",
+    };
+
+    expect(findVerifiedCrmMfaFactor({ all: [pendingFactor, verifiedFactor], totp: [] })).toEqual(verifiedFactor);
+    expect(findPendingCrmMfaFactor({ all: [pendingFactor], totp: [] })).toEqual(pendingFactor);
   });
 });

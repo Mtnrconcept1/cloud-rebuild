@@ -132,6 +132,13 @@ function getProgressiveOfferRestaurant(offer: ProgressiveReservationOffer) {
   return Array.isArray(restaurant) ? restaurant[0] : restaurant;
 }
 
+function toLocalDateInputValue(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 const sectionStagger = {
   hidden: {},
   visible: { transition: { staggerChildren: 0.09 } },
@@ -155,6 +162,7 @@ export default function Index() {
   const [shouldLoadMap, setShouldLoadMap] = useState(false);
   const [nowMs, setNowMs] = useState(() => Date.now());
   const mapSectionRef = useRef<HTMLElement | null>(null);
+  const todayServiceDate = useMemo(() => toLocalDateInputValue(new Date(nowMs)), [nowMs]);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsVisible(true), 400);
@@ -230,7 +238,7 @@ export default function Index() {
   });
 
   const { data: progressiveOffers = [] } = useQuery({
-    queryKey: ["home-progressive-reservation-offers"],
+    queryKey: ["home-progressive-reservation-offers", todayServiceDate],
     queryFn: async () => {
       const { data, error } = await (supabase.from(PROGRESSIVE_OFFERS_TABLE as any) as any)
         .select(`
@@ -245,6 +253,7 @@ export default function Index() {
           )
         `)
         .eq("status", "active")
+        .eq("service_date", todayServiceDate)
         .gt("booking_cutoff_at", new Date().toISOString())
         .order("booking_cutoff_at", { ascending: true })
         .limit(6);
@@ -259,8 +268,8 @@ export default function Index() {
   });
 
   const visibleProgressiveOffers = useMemo(
-    () => selectDailyProgressiveOffers(progressiveOffers, { maxOffers: 3 }),
-    [progressiveOffers],
+    () => selectDailyProgressiveOffers(progressiveOffers, { reservationDate: todayServiceDate, maxOffers: 3 }),
+    [progressiveOffers, todayServiceDate],
   );
 
   const { data: trendingRail = [] } = useQuery({

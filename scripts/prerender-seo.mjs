@@ -408,6 +408,16 @@ const PUBLIC_SEO_PAGES = [
           ],
         },
         {
+          heading: "Lecture simple pour restaurateur",
+          items: [
+            "Besoin terrain",
+            "Module TOK",
+            "Résultat attendu",
+            "Canal mesuré",
+            "Action à suivre dans le dashboard",
+          ],
+        },
+        {
           heading: "Cas d'usage locaux",
           items: [
             "Bistrot de quartier",
@@ -517,6 +527,16 @@ const PUBLIC_SEO_PAGES = [
             "Commission comparée par couvert",
             "Coût par conversion",
             "Écart annuel estimé",
+          ],
+        },
+        {
+          heading: "Bascule du bouton Google",
+          items: [
+            "Situation actuelle",
+            "Risque commercial",
+            "Action TOK recommandée",
+            "Métrique de décision",
+            "Conversion après sept jours",
           ],
         },
         {
@@ -643,6 +663,7 @@ const PUBLIC_SEO_PAGES = [
             "Prévisibilité",
             "No-show et changements",
             "Marge",
+            "Question à trancher",
             "Décision progressive",
           ],
         },

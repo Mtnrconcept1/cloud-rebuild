@@ -73,6 +73,7 @@ export default function FooterSection({ deliveryEnabled = true }: FooterSectionP
                 <Link to="/aide" className="hover:text-foreground transition-colors">Centre d'aide</Link>
                 <Link to="/cgu" className="hover:text-foreground transition-colors">CGU</Link>
                 <Link to="/politique-confidentialite" className="hover:text-foreground transition-colors">Confidentialité</Link>
+                <Link to="/cookies" className="hover:text-foreground transition-colors">Cookies</Link>
               </nav>
             </div>
             <div className="space-y-3">
@@ -106,7 +107,7 @@ export default function FooterSection({ deliveryEnabled = true }: FooterSectionP
             <div className="flex gap-4">
               <Link to="/cgu" className="hover:text-foreground transition-colors">Conditions</Link>
               <Link to="/politique-confidentialite" className="hover:text-foreground transition-colors">Confidentialité</Link>
-              <Link to="/cgu" className="hover:text-foreground transition-colors">Cookies</Link>
+              <Link to="/cookies" className="hover:text-foreground transition-colors">Cookies</Link>
             </div>
           </div>
         </div>

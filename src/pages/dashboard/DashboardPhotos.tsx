@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import TokAiMarketingStudio from "@/components/dashboard/TokAiMarketingStudio";
 import TokAiPhotoStudio from "@/components/dashboard/TokAiPhotoStudio";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -197,8 +198,8 @@ export default function DashboardPhotos() {
       <div className="space-y-6">
         <DashboardPageHero
           badge="Media restaurant"
-          title="Galerie photos"
-          description="Préparez la couverture, les photos de plats et les visuels marketing TOK du restaurant. Le Studio IA transforme une photo simple en image premium cohérente avec la ligne graphique TOK."
+          title="Studio Photo & Marketing IA"
+          description="Centralisez les photos, logos, cartes et ressources de marque du restaurant. Le Studio IA aide a produire des visuels culinaires et marketing coherents sans exposer vos donnees sensibles."
           icon={ImageIcon}
           tone="sky"
           visualLabel="Galerie"
@@ -208,6 +209,8 @@ export default function DashboardPhotos() {
             { label: "Studio IA", value: "TOK", icon: Sparkles },
           ]}
         />
+
+        <TokAiMarketingStudio />
 
         <TokAiPhotoStudio
           restaurantId={selectedId}

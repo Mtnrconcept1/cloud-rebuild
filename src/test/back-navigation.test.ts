@@ -40,11 +40,11 @@ describe("route back navigation", () => {
     expect(source).toContain("showLabel");
     expect(source).toContain("sr-only");
     expect(source).toContain("aria-label=");
-    expect(source).toContain("pointer-events-none absolute");
-    expect(source).toContain("z-[65]");
-    expect(source).toContain("pointer-events-auto");
-    expect(source).toContain('pathname === "/actualites"');
-    expect(source).toContain("top-[calc(env(safe-area-inset-top,0px)+0.75rem)]");
+    expect(source).toContain("relative z-10 mx-auto flex w-full max-w-screen-2xl");
+    expect(source).toContain("pt-[calc(env(safe-area-inset-top,0px)+4.75rem)] md:pt-3");
+    expect(source).not.toContain("pointer-events-none absolute");
+    expect(source).not.toContain("z-[65]");
+    expect(source).not.toContain('pathname === "/actualites"');
   });
 
   it("adds back navigation to public, admin, dashboard, client and courier shells", () => {

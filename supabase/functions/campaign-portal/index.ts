@@ -23,25 +23,16 @@ const VALID_EDITABLE_STATUSES = new Set(["draft", "paused", "active", "ended", "
 const VALID_CUSTOMER_SEGMENTS = new Set(["all", "new", "returning", "loyal", "inactive"]);
 const VALID_JOURNEY_TYPES = new Set(["delivery", "takeaway", "reservation", "zero_attente"]);
 const VALID_SERVICE_MOMENTS = new Set(["lunch", "dinner", "weekend"]);
-const VALID_CREATIVE_TEMPLATES = new Set([
-  "classic_elegant",
-  "modern_clean",
-  "warm_gourmet",
-  "bold_contrast",
-  "minimal_premium",
-  "dynamic_color",
-  "immersive_photo",
-  "urban_street",
-]);
+const VALID_CREATIVE_TEMPLATES = new Set(["tok_spotlight"]);
 const VALID_CREATIVE_TEXT_ELEMENTS = ["badge", "discount", "restaurant", "headline", "body", "cta"] as const;
 
 const DEFAULT_CREATIVE_TEXT = {
-  badge: { x: 0, y: 0, scale: 100, rotation: 0, color: "#ffffff" },
-  discount: { x: 0, y: 0, scale: 100, rotation: 0, color: "#ffffff" },
-  restaurant: { x: 0, y: 0, scale: 100, rotation: 0, color: "#111827" },
-  headline: { x: 0, y: 0, scale: 100, rotation: 0, color: "#111827" },
-  body: { x: 0, y: 0, scale: 100, rotation: 0, color: "#334155" },
-  cta: { x: 0, y: 0, scale: 100, rotation: 0, color: "#ffffff" },
+  badge: { x: 0, y: 0, scale: 100, rotation: 0, color: "#ffffff", font: "sans", style: "bold" },
+  discount: { x: 0, y: 0, scale: 100, rotation: 0, color: "#ffffff", font: "sans", style: "bold" },
+  restaurant: { x: 0, y: 0, scale: 100, rotation: 0, color: "#111827", font: "display", style: "bold" },
+  headline: { x: 0, y: 0, scale: 100, rotation: 0, color: "#111827", font: "sans", style: "bold" },
+  body: { x: 0, y: 0, scale: 100, rotation: 0, color: "#334155", font: "sans", style: "normal" },
+  cta: { x: 0, y: 0, scale: 100, rotation: 0, color: "#ffffff", font: "sans", style: "bold" },
 };
 
 type CampaignPortalAction = "list" | "save" | "update_status" | "delete" | "estimate_audience";
@@ -94,6 +85,8 @@ function sanitizeHexColor(value: unknown, fallback: string) {
 
 function sanitizeCreativeTextStyle(raw: unknown, fallback: typeof DEFAULT_CREATIVE_TEXT.badge) {
   const source = isRecord(raw) ? raw : {};
+  const font = sanitizeChoice(source.font, new Set(["display", "sans", "serif"]), fallback.font);
+  const style = sanitizeChoice(source.style, new Set(["normal", "bold", "italic"]), fallback.style);
 
   return {
     x: clampNumber(source.x, -120, 120, fallback.x),
@@ -101,6 +94,8 @@ function sanitizeCreativeTextStyle(raw: unknown, fallback: typeof DEFAULT_CREATI
     scale: clampNumber(source.scale, 70, 150, fallback.scale),
     rotation: clampNumber(source.rotation, -35, 35, fallback.rotation),
     color: sanitizeHexColor(source.color, fallback.color),
+    font,
+    style,
   };
 }
 
@@ -118,7 +113,7 @@ function sanitizeCampaignCreative(raw: unknown, existingRaw?: unknown) {
   const source = isRecord(raw) ? { ...existing, ...raw } : existing;
 
   return {
-    template: sanitizeChoice(source.template, VALID_CREATIVE_TEMPLATES, "classic_elegant"),
+    template: sanitizeChoice(source.template, VALID_CREATIVE_TEMPLATES, "tok_spotlight"),
     text: sanitizeCreativeText(source.text),
   };
 }

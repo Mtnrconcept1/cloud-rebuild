@@ -4,8 +4,9 @@ import { Bike, ChefHat, CreditCard, Eye, EyeOff, FileText, Loader2, Shield, Shop
 
 import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth, type UserRole } from "@/lib/auth-context";
+import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 import { normalizeInternalNavigationTarget } from "@/lib/navigation";
-import { getDefaultActiveRole, getRoleHomePath } from "@/lib/roleAccess";
+import { getDefaultActiveRole, getFeatureVisibleRoles, getRoleHomePath } from "@/lib/roleAccess";
 import {
   getMissingSignupDocuments,
   getRequiredSignupDocuments,
@@ -348,6 +349,8 @@ export default function Auth() {
   const [subscriptionPlans, setSubscriptionPlans] = useState<RestaurantSubscriptionPlanOption[]>([]);
   const [launchPacksLoading, setLaunchPacksLoading] = useState(false);
   const [subscriptionPlansLoading, setSubscriptionPlansLoading] = useState(false);
+  const { activeFeatures, loading: featureFlagsLoading } = useFeatureFlagSnapshot();
+  const courierSignupEnabled = activeFeatures.has("espace-livreur");
 
   const requiredDocuments = useMemo(
     () => getRequiredSignupDocuments(roleMode, signupForm.vehicleType),
@@ -368,7 +371,10 @@ export default function Auth() {
   const isClientSignup = !isLogin && roleMode === "client";
   const showExtendedIdentityFields = !isLogin && roleMode !== "client";
   const showDocumentSection = !isLogin && requiredDocuments.length > 0;
-  const switchableRoles = roles;
+  const switchableRoles = useMemo(
+    () => getFeatureVisibleRoles(roles, activeFeatures),
+    [activeFeatures, roles],
+  );
   const postAuthRedirectTarget = useMemo(() => {
     const redirectTarget = searchParams.get("redirect");
     if (!redirectTarget) return null;
@@ -384,16 +390,24 @@ export default function Auth() {
   }, [postAuthRedirectTarget]);
 
   useEffect(() => {
-    if (!user || roles.length === 0 || privilegedSignupSubmitting) return;
+    if (!user || roles.length === 0 || privilegedSignupSubmitting || featureFlagsLoading) return;
 
-    if (canSwitchRole) {
+    if (canSwitchRole && switchableRoles.length > 1) {
       if (!showRolePicker) setShowRolePicker(true);
       return;
     }
 
-    const targetRole = role || getDefaultActiveRole(roles);
+    const targetRole = role && switchableRoles.includes(role)
+      ? role
+      : switchableRoles[0] || getDefaultActiveRole(roles);
     navigate(getPostAuthTarget(targetRole), { replace: true });
-  }, [canSwitchRole, getPostAuthTarget, navigate, privilegedSignupSubmitting, role, roles, showRolePicker, user]);
+  }, [canSwitchRole, featureFlagsLoading, getPostAuthTarget, navigate, privilegedSignupSubmitting, role, roles, showRolePicker, switchableRoles, user]);
+
+  useEffect(() => {
+    if (!featureFlagsLoading && !courierSignupEnabled && roleMode === "courier") {
+      setRoleMode("client");
+    }
+  }, [courierSignupEnabled, featureFlagsLoading, roleMode]);
 
   useEffect(() => {
     if (isLogin || roleMode !== "restaurateur") return;
@@ -749,7 +763,7 @@ export default function Auth() {
     }
   };
 
-  if (showRolePicker && user && canSwitchRole) {
+  if (showRolePicker && user && canSwitchRole && switchableRoles.length > 1) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-secondary/10 px-4">
         <Card className="w-full max-w-md shadow-lg border-0">
@@ -814,10 +828,10 @@ export default function Auth() {
           ) : null}
           {!isLogin ? (
             <Tabs value={roleMode} onValueChange={(value) => setRoleMode(value as SignupRole)} className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className={`grid w-full ${courierSignupEnabled ? "grid-cols-3" : "grid-cols-2"}`}>
                 <TabsTrigger value="client">Client</TabsTrigger>
                 <TabsTrigger value="restaurateur">Restaurateur</TabsTrigger>
-                <TabsTrigger value="courier">Livreur</TabsTrigger>
+                {courierSignupEnabled ? <TabsTrigger value="courier">Livreur</TabsTrigger> : null}
               </TabsList>
             </Tabs>
           ) : null}

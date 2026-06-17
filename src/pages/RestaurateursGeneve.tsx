@@ -79,6 +79,29 @@ const onboardingSteps = [
   "Pilotage hebdomadaire : performances, avis, campagnes, commandes, conversions et créneaux à renforcer.",
 ];
 
+const decisionRows = [
+  {
+    need: "Remplir les créneaux faibles",
+    module: "Ventes flash, anti-gaspi, actualités sponsorisées",
+    result: "Le restaurateur pousse une offre courte au bon moment, sans brader toute la carte.",
+  },
+  {
+    need: "Réduire les appels et messages dispersés",
+    module: "Réservations, commandes, horaires et confirmations",
+    result: "Les demandes arrivent au même endroit avec un statut lisible pour l'équipe.",
+  },
+  {
+    need: "Comprendre d'où viennent les clients",
+    module: "Google Business, campagnes, QR codes et tracking",
+    result: "Chaque canal peut être comparé sur ses clics, réservations, commandes et revenus.",
+  },
+  {
+    need: "Faire revenir les bons clients",
+    module: "Miamz, CRM, profils clients et notifications",
+    result: "Les actions commerciales partent des habitudes réelles, pas d'une intuition.",
+  },
+];
+
 const faqItems = [
   {
     question: "TOK est-il seulement un outil de réservation ?",
@@ -275,6 +298,33 @@ export default function RestaurateursGeneve() {
               <p className="mt-2 text-sm leading-6 text-muted-foreground">{body}</p>
             </article>
           ))}
+        </div>
+      </section>
+
+      <section className="px-4 py-16 md:px-8 lg:px-12">
+        <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.8fr_1.2fr]">
+          <div className="space-y-4">
+            <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-600">Lecture simple</p>
+            <h2 className="text-3xl font-black md:text-4xl">Ce que TOK regroupe pour un restaurant genevois.</h2>
+            <p className="text-muted-foreground">
+              Un restaurateur doit comprendre en quelques secondes quel problème est traité, où l'action se pilote et
+              quel résultat suivre dans le dashboard.
+            </p>
+          </div>
+          <div className="overflow-hidden rounded-2xl border bg-white shadow-sm">
+            <div className="grid gap-0 bg-slate-950 px-4 py-3 text-xs font-black uppercase tracking-[0.16em] text-white md:grid-cols-[0.8fr_1fr_1.2fr]">
+              <span>Besoin terrain</span>
+              <span>Module TOK</span>
+              <span>Résultat attendu</span>
+            </div>
+            {decisionRows.map((row) => (
+              <div key={row.need} className="grid gap-2 border-t p-4 text-sm md:grid-cols-[0.8fr_1fr_1.2fr]">
+                <p className="font-bold text-slate-950">{row.need}</p>
+                <p className="text-orange-700">{row.module}</p>
+                <p className="leading-6 text-muted-foreground">{row.result}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

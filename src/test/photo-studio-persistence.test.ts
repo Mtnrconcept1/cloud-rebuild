@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 describe("TOK photo studio persistence", () => {
   const source = readFileSync(resolve(process.cwd(), "src/components/dashboard/TokAiPhotoStudioV2.tsx"), "utf8");
+  const marketingStudio = readFileSync(resolve(process.cwd(), "src/components/dashboard/TokAiMarketingStudio.tsx"), "utf8");
   const legacyStudio = readFileSync(resolve(process.cwd(), "src/components/dashboard/TokAiPhotoStudio.tsx"), "utf8");
   const dashboardPhotos = readFileSync(resolve(process.cwd(), "src/pages/dashboard/DashboardPhotos.tsx"), "utf8");
   const restaurantDetail = readFileSync(resolve(process.cwd(), "src/pages/RestaurantDetail.tsx"), "utf8");
@@ -47,7 +48,7 @@ describe("TOK photo studio persistence", () => {
     expect(source).toContain("Un emballage ne doit jamais devenir une assiette servie.");
     expect(source).toContain("Visuel TOK prêt");
     expect(source).toContain("Après TOK");
-    expect(dashboardPhotos).toContain("Préparez la couverture");
+    expect(dashboardPhotos).toContain("Centralisez les photos, logos, cartes et ressources de marque");
     expect(imageUpload).toContain("Vous devez sélectionner une image.");
   });
 
@@ -105,6 +106,24 @@ describe("TOK photo studio persistence", () => {
 
   it("keeps dashboard photo uploads focused on files instead of manual image URLs", () => {
     expect(dashboardPhotos).toContain("showUrlInput={false}");
+  });
+
+  it("adds a guarded marketing studio for branded restaurant visuals", () => {
+    expect(dashboardPhotos).toContain('from "@/components/dashboard/TokAiMarketingStudio"');
+    expect(dashboardPhotos).toContain("<TokAiMarketingStudio />");
+    expect(dashboardPhotos).toContain("Studio Photo & Marketing IA");
+
+    expect(marketingStudio).toContain("MARKETING_UPLOAD_ACCEPT");
+    expect(marketingStudio).toContain("image/png,image/jpeg,image/webp,application/pdf");
+    expect(marketingStudio).toContain("MAX_MARKETING_ASSET_BYTES = 15 * 1024 * 1024");
+    expect(marketingStudio).toContain("PROMPT_INJECTION_PATTERNS");
+    expect(marketingStudio).toContain("SQL_INJECTION_PATTERNS");
+    expect(marketingStudio).toContain("sanitizeMarketingPrompt");
+    expect(marketingStudio).toContain("Flyer / affiche");
+    expect(marketingStudio).toContain("Carte de visite");
+    expect(marketingStudio).toContain("Carte du restaurant");
+    expect(marketingStudio).toContain("Generation IA avec quotas, historique et validation serveur requis");
+    expect(marketingStudio).toContain("Storage/RLS cote serveur");
   });
 
   it("makes restaurant gallery photos public from the cover and includes raw and TOK studio photos", () => {

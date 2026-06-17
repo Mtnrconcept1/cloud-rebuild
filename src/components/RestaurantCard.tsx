@@ -143,6 +143,12 @@ function getNextTimeSlots(): string[] {
     .slice(0, 4);
 }
 
+function formatDiscountPercent(discount: number): string {
+  const value = Number(discount);
+  if (!Number.isFinite(value) || value <= 0) return "";
+  return Number.isInteger(value) ? String(value) : value.toFixed(1).replace(/\.0$/, "");
+}
+
 function getRatingColor(rating: number): string {
   if (rating >= 9) return "bg-emerald-600 text-white";
   if (rating >= 8) return "bg-emerald-500 text-white";
@@ -235,6 +241,10 @@ export default function RestaurantCard({
 
   const timeSlots = useMemo(() => getNextTimeSlots(), []);
   const visibleSlots = timeSlots.slice(0, 2);
+  const discountPercentLabel = formatDiscountPercent(bestDiscount);
+  const hasDiscount = discountPercentLabel.length > 0;
+  const discountBadgeLabel = hasDiscount ? `Jusqu'à -${discountPercentLabel}%` : null;
+  const discountShortLabel = hasDiscount ? `-${discountPercentLabel}%` : null;
   const estimatedMinutes = useMemo(() => {
     const base = 25 + Math.floor(Math.random() * 15);
     return { min: base, max: base + 10 };
@@ -300,6 +310,7 @@ export default function RestaurantCard({
             priceRange={priceRange}
             headline={sponsoredHeading}
             body={sponsoredDescription}
+            discountLabel={discountBadgeLabel || undefined}
             slots={visibleSlots}
             isFavorite={Boolean(isFavorite)}
             onFavoriteClick={toggleFavorite}
@@ -360,10 +371,13 @@ export default function RestaurantCard({
             <Heart className={isFavorite ? "h-4 w-4 fill-red-500 text-red-500" : "h-4 w-4 text-muted-foreground dark:text-white/80"} />
           </button>
 
-          {bestDiscount > 0 ? (
-            <div className="absolute bottom-3 left-3">
-              <Badge className="gap-1 rounded-full border border-white/20 bg-white/90 px-3 py-1 text-[10px] font-bold text-emerald-700 shadow-sm ring-1 ring-black/5 backdrop-blur-md hover:bg-white dark:border-emerald-200/70 dark:bg-emerald-950/95 dark:text-emerald-50 dark:ring-emerald-200/20 dark:shadow-[0_0_24px_rgba(16,185,129,0.36),0_10px_24px_rgba(0,0,0,0.35)] dark:hover:bg-emerald-900">
-                <Percent className="h-3 w-3" /> Jusqu'à -{bestDiscount}%
+          {discountBadgeLabel ? (
+            <div className="absolute bottom-3 left-3 right-3 flex items-end">
+              <Badge className="gap-1.5 rounded-2xl border border-white/30 bg-gradient-to-r from-primary via-orange-500 to-emerald-600 px-3.5 py-2 text-[11px] font-black uppercase tracking-[0.08em] text-white shadow-[0_14px_30px_rgba(15,23,42,0.28)] ring-1 ring-black/5 backdrop-blur-md hover:brightness-105 dark:border-white/20 dark:from-primary dark:via-orange-500 dark:to-emerald-500">
+                <span className="grid h-5 w-5 place-items-center rounded-full bg-white/20">
+                  <Percent className="h-3.5 w-3.5" />
+                </span>
+                Promo {discountBadgeLabel}
               </Badge>
             </div>
           ) : null}
@@ -448,7 +462,7 @@ export default function RestaurantCard({
                     : "bg-[#21314b] shadow-[0_10px_24px_rgba(33,49,75,0.22)] hover:bg-[#2a3d5d] dark:bg-gradient-to-r dark:from-slate-100 dark:to-white dark:text-slate-950 dark:shadow-[0_0_32px_rgba(255,255,255,0.16)] dark:hover:brightness-110",
                 )}
               >
-                {isSponsored ? "Decouvrir l'offre" : "Voir le restaurant"}
+                {isSponsored ? "Découvrir l'offre" : "Voir le restaurant"}
                 <ArrowRight className="h-4 w-4" />
               </button>
               {visibleSlots.map((slot) => (
@@ -456,15 +470,28 @@ export default function RestaurantCard({
                   key={slot}
                   type="button"
                   onClick={(e) => handleSlotClick(e, slot)}
-                  className="inline-flex h-11 items-center justify-center rounded-xl border border-emerald-500/35 bg-emerald-50 px-3.5 text-sm font-bold text-emerald-700 transition-colors hover:border-emerald-500 hover:bg-emerald-500 hover:text-white dark:bg-emerald-400/10 dark:text-emerald-200 dark:shadow-[0_0_20px_rgba(16,185,129,0.14)]"
+                  className={cn(
+                    "inline-flex min-w-[4.75rem] items-center justify-center rounded-xl border px-3.5 font-bold transition-colors",
+                    hasDiscount
+                      ? "h-12 flex-col gap-0.5 border-emerald-500 bg-emerald-600 text-white shadow-[0_12px_24px_rgba(16,185,129,0.22)] hover:bg-emerald-700 dark:border-emerald-300/60 dark:bg-emerald-500 dark:text-slate-950"
+                      : "h-11 border-emerald-500/35 bg-emerald-50 text-sm text-emerald-700 hover:border-emerald-500 hover:bg-emerald-500 hover:text-white dark:bg-emerald-400/10 dark:text-emerald-200 dark:shadow-[0_0_20px_rgba(16,185,129,0.14)]",
+                  )}
                 >
-                  {slot}
+                  <span className="text-sm leading-none">{slot}</span>
+                  {discountShortLabel ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-white/95 px-1.5 py-0.5 text-[10px] leading-none text-emerald-700 shadow-sm dark:bg-slate-950/90 dark:text-emerald-200">
+                      <Percent className="h-2.5 w-2.5" />
+                      {discountShortLabel}
+                    </span>
+                  ) : null}
                 </button>
               ))}
             </div>
             {timeSlots.length > 0 ? (
               <p className="mt-2 text-xs text-muted-foreground dark:text-slate-300/90">
-                Prochains créneaux visibles. Plus d'options sur la fiche.
+                {hasDiscount
+                  ? "Créneaux promo visibles. Plus d'options sur la fiche."
+                  : "Prochains créneaux visibles. Plus d'options sur la fiche."}
               </p>
             ) : null}
           </div>

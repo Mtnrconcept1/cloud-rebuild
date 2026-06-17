@@ -4,6 +4,7 @@ import {
   computeDisabledFeatures,
   computeEnabledFeatures,
   getPackServiceFeatureMap,
+  isEliteRestaurantSubscription,
   type GatableFeatureKey,
 } from "@/lib/packFeatureGating";
 
@@ -36,6 +37,7 @@ describe("packFeatureGating", () => {
       "dashboard-performances",
       "dashboard-comparaison",
       "dashboard-avis",
+      "dashboard-crm",
       "dashboard-campagne-overview",
       "dashboard-reseaux-sociaux",
       "dashboard-actualites",
@@ -99,5 +101,26 @@ describe("packFeatureGating", () => {
     expect(disabled).toContain("dashboard-plan-salle");
     expect(disabled).toContain("dashboard-service");
     expect(disabled).toContain("dashboard-campagnes");
+  });
+
+  it("reserves the CRM dashboard to active Elite subscriptions", () => {
+    const premiumEnabled = computeEnabledFeatures([], {
+      subscription: {
+        plan: "premium",
+        status: "active",
+      },
+    });
+    const eliteEnabled = computeEnabledFeatures([], {
+      subscription: {
+        plan: "elite",
+        status: "active",
+      },
+    });
+
+    expect(premiumEnabled).not.toContain("dashboard-crm");
+    expect(eliteEnabled).toContain("dashboard-crm");
+    expect(isEliteRestaurantSubscription({ plan: "premium", status: "active" })).toBe(false);
+    expect(isEliteRestaurantSubscription({ plan: "elite", status: "active" })).toBe(true);
+    expect(isEliteRestaurantSubscription({ plan: "elite", status: "cancelled" })).toBe(false);
   });
 });

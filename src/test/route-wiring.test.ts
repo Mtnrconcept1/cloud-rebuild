@@ -38,6 +38,7 @@ const CORE_ROUTES = new Set([
   "/courier/notifications",
   "/contact",
   "/cgu",
+  "/cookies",
   "/politique-confidentialite",
   "/a-propos",
   "/packs-restaurateur",

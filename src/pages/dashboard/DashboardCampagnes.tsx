@@ -1,15 +1,13 @@
-﻿import { useCallback, useEffect, useMemo, useRef, useState, type ComponentType, type PointerEvent as ReactPointerEvent } from "react";
+﻿import { useCallback, useEffect, useMemo, useRef, useState, type ComponentType } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowRight,
-  AlignCenter,
   BarChart3,
   CalendarDays,
   CheckCircle2,
   Edit2,
   Eye,
-  LayoutTemplate,
   Loader2,
   MapPin,
   Megaphone,
@@ -51,13 +49,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { buildCheckoutReturnUrl } from "@/lib/checkoutReturnUrl";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
 import {
-  CAMPAIGN_CREATIVE_TEMPLATES,
   DEFAULT_CAMPAIGN_CREATIVE,
   normalizeCampaignCreative,
   type CampaignCreativeConfig,
@@ -107,7 +103,7 @@ const supabase = getSupabase();
 
 const CAMPAIGN_TYPES = [
   { value: "boost", label: "Boost (Sponsorisé)" },
-  { value: "banner", label: "Banniere" },
+  { value: "banner", label: "Bannière" },
   { value: "push", label: "Push notification" },
 ];
 
@@ -1021,55 +1017,31 @@ function getCampaignCreativeFromChannels(channels: unknown) {
 }
 
 const CREATIVE_TEXT_ELEMENTS: Array<{
-  id: CampaignCreativeTextElement;
+  id: Extract<CampaignCreativeTextElement, "headline" | "body">;
   label: string;
   description: string;
 }> = [
-  { id: "badge", label: "Badge", description: "Mention sponsorisée" },
-  { id: "discount", label: "Offre", description: "Badge de réduction" },
-  { id: "restaurant", label: "Nom resto", description: "Titre principal" },
-  { id: "headline", label: "Accroche", description: "Bloc campagne" },
+  { id: "headline", label: "Accroche", description: "Titre de l'offre" },
   { id: "body", label: "Texte", description: "Description courte" },
-  { id: "cta", label: "Bouton", description: "Texte d'appel à l'action" },
 ];
 
-function CreativeSliderControl({
-  label,
-  value,
-  min,
-  max,
-  step,
-  suffix = "",
-  onChange,
-}: {
+const CREATIVE_FONT_OPTIONS: Array<{
+  value: CampaignCreativeConfig["text"][CampaignCreativeTextElement]["font"];
   label: string;
-  value: number;
-  min: number;
-  max: number;
-  step: number;
-  suffix?: string;
-  onChange: (next: number) => void;
-}) {
-  return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between gap-3">
-        <Label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-          {label}
-        </Label>
-        <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
-          {Math.round(value)}{suffix}
-        </span>
-      </div>
-      <Slider
-        min={min}
-        max={max}
-        step={step}
-        value={[value]}
-        onValueChange={(values) => onChange(values[0] ?? value)}
-      />
-    </div>
-  );
-}
+}> = [
+  { value: "sans", label: "Moderne" },
+  { value: "display", label: "TOK display" },
+  { value: "serif", label: "Editorial" },
+];
+
+const CREATIVE_STYLE_OPTIONS: Array<{
+  value: CampaignCreativeConfig["text"][CampaignCreativeTextElement]["style"];
+  label: string;
+}> = [
+  { value: "normal", label: "Normal" },
+  { value: "bold", label: "Gras" },
+  { value: "italic", label: "Italique" },
+];
 
 function CampaignCreativeStudio({
   value,
@@ -1077,6 +1049,8 @@ function CampaignCreativeStudio({
   title,
   body,
   imageUrl,
+  type,
+  placementSelection,
 }: {
   value: CampaignCreativeConfig;
   onChange: (next: CampaignCreativeConfig) => void;
@@ -1084,27 +1058,21 @@ function CampaignCreativeStudio({
   body: string;
   imageUrl: string;
   type: string;
+  placementSelection: Record<CampaignPlacementOption, boolean>;
 }) {
-  const [selectedTextElement, setSelectedTextElement] = useState<CampaignCreativeTextElement>("headline");
-  const [dragState, setDragState] = useState<{
-    key: CampaignCreativeTextElement;
-    startX: number;
-    startY: number;
-    baseX: number;
-    baseY: number;
-  } | null>(null);
+  const [selectedTextElement, setSelectedTextElement] = useState<Extract<CampaignCreativeTextElement, "headline" | "body">>("headline");
   const selectedTextStyle = value.text[selectedTextElement];
   const previewTitle = title.trim() || "La fondue du Quirinale";
   const previewBody = body.trim() || "Viens déguster la meilleure fondue de Genève!";
-  const restaurantLabel = title.trim() ? "Votre restaurant" : "Quirinale";
+  const previewVariant = type === "push" ? "push" : type === "banner" || placementSelection.banner ? "banner" : "card";
 
   const updateCreative = useCallback((next: CampaignCreativeConfig) => {
     onChange(normalizeCampaignCreative(next));
   }, [onChange]);
 
   const updateTextElement = useCallback((
-    key: CampaignCreativeTextElement,
-    patch: Partial<CampaignCreativeConfig["text"][CampaignCreativeTextElement]>,
+    key: Extract<CampaignCreativeTextElement, "headline" | "body">,
+    patch: Pick<Partial<CampaignCreativeConfig["text"][CampaignCreativeTextElement]>, "color" | "font" | "style">,
   ) => {
     updateCreative({
       ...value,
@@ -1118,61 +1086,6 @@ function CampaignCreativeStudio({
     });
   }, [updateCreative, value]);
 
-  const handleTextPointerDown = (
-    key: CampaignCreativeTextElement,
-    event: ReactPointerEvent<HTMLElement>,
-  ) => {
-    event.preventDefault();
-    event.stopPropagation();
-    const style = value.text[key];
-    setSelectedTextElement(key);
-    setDragState({
-      key,
-      startX: event.clientX,
-      startY: event.clientY,
-      baseX: style.x,
-      baseY: style.y,
-    });
-  };
-
-  const autoAlignText = () => {
-    const base = value.text[selectedTextElement];
-    updateCreative({
-      ...value,
-      text: CREATIVE_TEXT_ELEMENTS.reduce((acc, element) => {
-        acc[element.id] = {
-          ...value.text[element.id],
-          x: base.x,
-          rotation: 0,
-        };
-        return acc;
-      }, {} as CampaignCreativeConfig["text"]),
-    });
-  };
-
-  useEffect(() => {
-    if (!dragState) return;
-
-    const handlePointerMove = (event: PointerEvent) => {
-      event.preventDefault();
-      updateTextElement(dragState.key, {
-        x: Math.min(120, Math.max(-120, dragState.baseX + event.clientX - dragState.startX)),
-        y: Math.min(120, Math.max(-120, dragState.baseY + event.clientY - dragState.startY)),
-      });
-    };
-    const handlePointerUp = () => setDragState(null);
-
-    window.addEventListener("pointermove", handlePointerMove, { passive: false });
-    window.addEventListener("pointerup", handlePointerUp, { once: true });
-    window.addEventListener("pointercancel", handlePointerUp, { once: true });
-
-    return () => {
-      window.removeEventListener("pointermove", handlePointerMove);
-      window.removeEventListener("pointerup", handlePointerUp);
-      window.removeEventListener("pointercancel", handlePointerUp);
-    };
-  }, [dragState, updateTextElement]);
-
   return (
     <section className="overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-background via-orange-50/40 to-background p-4 shadow-sm dark:via-orange-950/15">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
@@ -1182,49 +1095,44 @@ function CampaignCreativeStudio({
             <p className="text-sm font-semibold">Studio visuel de campagne</p>
           </div>
           <p className="mt-1 text-xs leading-5 text-muted-foreground">
-            Choisissez un template fixe, puis ajustez uniquement les textes: taille, couleur, position et rotation.
+            Un modèle unique décliné en carte, bannière et notification push. La photo et le texte d'offre sont éditables; les informations restaurant restent verrouillées.
           </p>
         </div>
         <Badge variant="secondary" className="w-fit">
-          Template verrouillé
+          TOK Spotlight
         </Badge>
       </div>
 
-      <div className="mt-4 grid gap-4 xl:grid-cols-[0.95fr_1.05fr]">
-        <div className="mx-auto w-full max-w-[380px]">
+      <div className="mt-4 grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
+        <div className={cn("mx-auto w-full", previewVariant === "banner" ? "max-w-full" : "max-w-[390px]")}>
           <SponsoredRestaurantTemplateCard
             creative={value}
             imageUrl={imageUrl}
-            restaurantName={restaurantLabel}
+            restaurantName="Quirinale"
+            cuisine="Italien"
+            city="Puplinge"
+            address="Rue de Graman"
             headline={previewTitle}
             body={previewBody}
-            selectedTextElement={selectedTextElement}
-            draggingTextElement={dragState?.key || null}
-            onTextPointerDown={handleTextPointerDown}
+            variant={previewVariant}
           />
           <p className="mt-3 rounded-2xl border bg-background/80 px-3 py-2 text-xs leading-5 text-muted-foreground">
-            La zone photo provient du masque transparent du template. Les badges, le bouton et les encarts gardent leur position d'origine.
+            Aperçu {previewVariant === "banner" ? "bannière" : previewVariant === "push" ? "notification push" : "carte restaurant"}. La taille et la structure suivent le format diffusé aux clients.
           </p>
         </div>
 
         <div className="space-y-4">
           <div className="rounded-2xl border bg-background/80 p-3 shadow-sm">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <Label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                  <MousePointer className="h-4 w-4" /> Texte sélectionné
-                </Label>
-                <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                  Cliquez un texte dans l'aperçu ou choisissez-le ici. Les formes de la carte restent fixes.
-                </p>
-              </div>
-              <Button type="button" variant="outline" size="sm" className="h-8 gap-1 text-xs" onClick={autoAlignText}>
-                <AlignCenter className="h-3.5 w-3.5" />
-                Auto
-              </Button>
+            <div>
+              <Label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                <Type className="h-4 w-4" /> Texte d'offre
+              </Label>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                Sélectionnez l'accroche ou la description. Les seules options disponibles sont la couleur, la police et le style.
+              </p>
             </div>
 
-            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+            <div className="mt-3 grid grid-cols-2 gap-2">
               {CREATIVE_TEXT_ELEMENTS.map((entry) => {
                 const selected = selectedTextElement === entry.id;
                 return (
@@ -1245,88 +1153,64 @@ function CampaignCreativeStudio({
               })}
             </div>
 
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <CreativeSliderControl
-                label="Horizontal"
-                value={selectedTextStyle.x}
-                min={-120}
-                max={120}
-                step={1}
-                suffix="px"
-                onChange={(next) => updateTextElement(selectedTextElement, { x: next })}
-              />
-              <CreativeSliderControl
-                label="Vertical"
-                value={selectedTextStyle.y}
-                min={-120}
-                max={120}
-                step={1}
-                suffix="px"
-                onChange={(next) => updateTextElement(selectedTextElement, { y: next })}
-              />
-              <CreativeSliderControl
-                label="Taille"
-                value={selectedTextStyle.scale}
-                min={70}
-                max={150}
-                step={1}
-                suffix="%"
-                onChange={(next) => updateTextElement(selectedTextElement, { scale: next })}
-              />
-              <CreativeSliderControl
-                label="Rotation"
-                value={selectedTextStyle.rotation}
-                min={-35}
-                max={35}
-                step={1}
-                suffix="°"
-                onChange={(next) => updateTextElement(selectedTextElement, { rotation: next })}
-              />
-            </div>
-
-            <div className="mt-4 space-y-2">
-              <Label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                <Palette className="h-4 w-4" /> Couleur du texte
-              </Label>
-              <div className="flex h-10 items-center gap-2 rounded-xl border bg-background px-2">
-                <input
-                  type="color"
-                  value={selectedTextStyle.color}
-                  onChange={(event) => updateTextElement(selectedTextElement, { color: event.target.value })}
-                  className="h-7 w-10 cursor-pointer rounded-md border-0 bg-transparent p-0"
-                  aria-label="Couleur du texte sélectionné"
-                />
-                <span className="font-mono text-xs text-muted-foreground">{selectedTextStyle.color}</span>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                  <Palette className="h-4 w-4" /> Couleur
+                </Label>
+                <div className="flex h-10 items-center gap-2 rounded-xl border bg-background px-2">
+                  <input
+                    type="color"
+                    value={selectedTextStyle.color}
+                    onChange={(event) => updateTextElement(selectedTextElement, { color: event.target.value })}
+                    className="h-7 w-10 cursor-pointer rounded-md border-0 bg-transparent p-0"
+                    aria-label="Couleur du texte sélectionné"
+                  />
+                  <span className="font-mono text-xs text-muted-foreground">{selectedTextStyle.color}</span>
+                </div>
               </div>
-            </div>
-          </div>
 
-          <div className="space-y-2">
-            <Label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              <LayoutTemplate className="h-4 w-4" /> Template
-            </Label>
-            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-              {CAMPAIGN_CREATIVE_TEMPLATES.map((entry) => {
-                const selected = value.template === entry.id;
-                return (
-                  <button
-                    key={entry.id}
-                    type="button"
-                    aria-pressed={selected}
-                    onClick={() => updateCreative({ ...value, template: entry.id })}
-                    className={cn(
-                      "overflow-hidden rounded-2xl border p-2 text-left transition-all hover:border-primary/50 hover:bg-primary/5",
-                      selected && "border-primary bg-primary/10 shadow-sm",
-                    )}
-                  >
-                    <span className="relative block aspect-[4/5.25] overflow-hidden rounded-xl bg-muted">
-                      <img src={entry.assetSrc} alt="" className="h-full w-full object-fill" loading="lazy" decoding="async" />
-                    </span>
-                    <span className="mt-2 block text-xs font-semibold">{entry.label}</span>
-                    <span className="mt-1 block text-[11px] leading-4 text-muted-foreground">{entry.description}</span>
-                  </button>
-                );
-              })}
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Police</Label>
+                <Select
+                  value={selectedTextStyle.font}
+                  onValueChange={(font) => updateTextElement(selectedTextElement, {
+                    font: font as CampaignCreativeConfig["text"][CampaignCreativeTextElement]["font"],
+                  })}
+                >
+                  <SelectTrigger className="h-10 rounded-xl">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CREATIVE_FONT_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2 sm:col-span-2">
+                <Label className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Style</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  {CREATIVE_STYLE_OPTIONS.map((option) => {
+                    const selected = selectedTextStyle.style === option.value;
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        aria-pressed={selected}
+                        onClick={() => updateTextElement(selectedTextElement, { style: option.value })}
+                        className={cn(
+                          "h-10 rounded-xl border px-3 text-xs font-semibold transition-colors hover:border-primary/50",
+                          selected && "border-primary bg-primary/10 text-primary",
+                        )}
+                      >
+                        {option.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1380,6 +1264,8 @@ function CampaignForm({
   const baseBudgetValue = Math.max(0, Number(totalBudget) || 0);
   const placementMultiplier = getCampaignPlacementCostMultiplier(placementSelection, type);
   const totalBudgetValue = calculateCampaignTotalCost(baseBudgetValue, placementSelection, type);
+  const copyLimit = type === "banner" || placementSelection.banner ? 250 : 100;
+  const copyLength = title.length + body.length;
   const allowedPaymentMethods = useMemo<PaymentMethodId[]>(() => {
     const methods = getAllowedPaymentMethods(activeFeatures, []);
     return methods.includes("credits") ? methods : [...methods, "credits"];
@@ -1431,6 +1317,14 @@ function CampaignForm({
     }
   }, [recommendedStrategy, strategyTouched]);
 
+  useEffect(() => {
+    setTitle((currentTitle) => {
+      const nextTitle = currentTitle.slice(0, copyLimit);
+      setBody((currentBody) => currentBody.slice(0, Math.max(0, copyLimit - nextTitle.length)));
+      return nextTitle;
+    });
+  }, [copyLimit]);
+
   const togglePage = (page: string) => {
     setTargetPages((previous) =>
       previous.includes(page) ? previous.filter((entry) => entry !== page) : [...previous, page]
@@ -1452,6 +1346,16 @@ function CampaignForm({
     });
   };
 
+  const handleTitleChange = (nextTitle: string) => {
+    const normalizedTitle = nextTitle.slice(0, copyLimit);
+    setTitle(normalizedTitle);
+    setBody((currentBody) => currentBody.slice(0, Math.max(0, copyLimit - normalizedTitle.length)));
+  };
+
+  const handleBodyChange = (nextBody: string) => {
+    setBody(nextBody.slice(0, Math.max(0, copyLimit - title.length)));
+  };
+
   const handleAiGenerate = async () => {
     setAiLoading(true);
     try {
@@ -1469,8 +1373,13 @@ function CampaignForm({
       }
 
       const result = await response.json();
-      if (result.title) setTitle(result.title);
-      if (result.body) setBody(result.body);
+      if (result.title) {
+        const generatedTitle = String(result.title).slice(0, copyLimit);
+        setTitle(generatedTitle);
+        if (result.body) setBody(String(result.body).slice(0, Math.max(0, copyLimit - generatedTitle.length)));
+      } else if (result.body) {
+        setBody(String(result.body).slice(0, Math.max(0, copyLimit - title.length)));
+      }
       if (result.type) setType(result.type);
       if (result.target_pages) setTargetPages(result.target_pages);
       if (result.total_budget) setTotalBudget(String(result.total_budget));
@@ -1507,11 +1416,13 @@ function CampaignForm({
       ...placementSelection,
       creative: campaignCreative,
     };
+    const safeTitle = title.trim().slice(0, copyLimit);
+    const safeBody = body.trim().slice(0, Math.max(0, copyLimit - safeTitle.length));
     const usesCredits = paymentMethod === "credits" && totalBudgetValue > 0;
     const payload = {
       restaurant_id: restaurantId,
-      title,
-      body,
+      title: safeTitle,
+      body: safeBody,
       type,
       pricing_strategy: strategy,
       image_url: imageUrl || null,
@@ -1541,7 +1452,7 @@ function CampaignForm({
             checkout_kind: "campaign",
             items: [
               {
-                name: `Campagne publicitaire - ${title}`,
+                name: `Campagne publicitaire - ${safeTitle || "Annonce"}`,
                 restaurant_name: null,
                 price: totalBudgetValue,
                 quantity: 1,
@@ -1553,7 +1464,7 @@ function CampaignForm({
               checkout_kind: "campaign",
               order_reference: `campaign-${campaignRecord.id}`,
               campaign_id: campaignRecord.id,
-              campaign_title: title,
+              campaign_title: safeTitle,
               restaurant_id: restaurantId,
               disable_connected_account: true,
             },
@@ -1577,8 +1488,8 @@ function CampaignForm({
 
       if (usesCredits && !isPaidCampaign) {
         toast({
-          title: "Cr?dits r?serv?s",
-          description: "Le budget de campagne a ?t? r?serv? sur votre solde TOK.",
+          title: "Crédits réservés",
+          description: "Le budget de campagne a été réservé sur votre solde TOK.",
         });
       }
 
@@ -1611,12 +1522,15 @@ function CampaignForm({
 
       <div className="space-y-2">
         <Label>Titre</Label>
-        <Input value={title} onChange={(event) => setTitle(event.target.value)} required placeholder="Ex: Offre spéciale week-end" />
+        <Input value={title} onChange={(event) => handleTitleChange(event.target.value)} maxLength={copyLimit} required placeholder="Ex: Offre spéciale week-end" />
       </div>
 
       <div className="space-y-2">
         <Label>Description</Label>
-        <Textarea value={body} onChange={(event) => setBody(event.target.value)} placeholder="Décrivez le message que verront vos clients..." rows={3} />
+        <Textarea value={body} onChange={(event) => handleBodyChange(event.target.value)} maxLength={Math.max(0, copyLimit - title.length)} placeholder="Décrivez le message que verront vos clients..." rows={3} />
+        <p className={cn("text-xs", copyLength >= copyLimit ? "text-primary font-semibold" : "text-muted-foreground")}>
+          {copyLength}/{copyLimit} caractères pour ce format.
+        </p>
       </div>
 
       <ImageUpload value={imageUrl} onChange={setImageUrl} label="Image de la campagne" bucket="images" />
@@ -1628,6 +1542,7 @@ function CampaignForm({
         body={body}
         imageUrl={imageUrl}
         type={type}
+        placementSelection={placementSelection}
       />
 
       <div className="space-y-2">

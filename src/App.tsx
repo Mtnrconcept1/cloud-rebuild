@@ -23,6 +23,7 @@ import NotificationBell from "@/components/notifications/NotificationBell";
 import RoleSpaceSwitcher from "@/components/navigation/RoleSpaceSwitcher";
 import ThemeToggleButton from "@/components/theme/ThemeToggleButton";
 import SignOutButton from "@/components/auth/SignOutButton";
+import LegalConsentBanner from "@/components/legal/LegalConsentBanner";
 import { setupDeepLinks } from "@/lib/deep-links";
 import { getAdminHostRedirectTarget } from "@/lib/adminDomains";
 import { canShowClientSurface, getRoleHomePath } from "@/lib/roleAccess";
@@ -51,6 +52,7 @@ const SuiviCommande = lazy(() => import("./pages/SuiviCommande"));
 const Contact = lazy(() => import("./pages/Contact"));
 const CGU = lazy(() => import("./pages/CGU"));
 const PolitiqueConfidentialite = lazy(() => import("./pages/PolitiqueConfidentialite"));
+const Cookies = lazy(() => import("./pages/Cookies"));
 const APropos = lazy(() => import("./pages/APropos"));
 const PacksRestaurateur = lazy(() => import("./pages/PacksRestaurateur"));
 const RestaurateursGeneve = lazy(() => import("./pages/RestaurateursGeneve"));
@@ -464,6 +466,7 @@ function AppShell() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/cgu" element={<CGU />} />
           <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
+          <Route path="/cookies" element={<Cookies />} />
           <Route path="/a-propos" element={<APropos />} />
           <Route path="/packs-restaurateur" element={<PacksRestaurateur />} />
           <Route path="/restaurateurs/geneve" element={<RestaurateursGeneve />} />
@@ -478,6 +481,7 @@ function AppShell() {
         <OrderConflictDialog />
       </Suspense>
       {showPublicFooter ? <FooterSection deliveryEnabled={pathname === "/" && deliveryEnabled === true} /> : null}
+      <LegalConsentBanner />
     </>
   );
 }

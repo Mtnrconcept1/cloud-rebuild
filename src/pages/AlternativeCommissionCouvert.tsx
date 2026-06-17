@@ -22,11 +22,36 @@ const PAGE_PATH = "/restaurateurs/alternative-commission-couvert";
 const CANONICAL_ORIGIN = "https://www.thetok.ch";
 
 const comparisonRows = [
-  ["Déclencheur du coût", "La table confirmée et le pack choisi", "Chaque couvert déclaré ou généré"],
-  ["Prévisibilité", "Budget plus facile à anticiper avant le service", "Facture sensible au volume, aux groupes et aux écarts de remplissage"],
-  ["No-show et changements", "Le restaurateur raisonne par table et scénario opérationnel", "Le modèle peut devenir difficile à relire si les couverts changent"],
-  ["Marge", "Lecture plus directe du coût d'acquisition et de la rentabilité", "La marge baisse vite quand le ticket moyen ou le volume varient"],
-  ["Décision", "Test progressif par canal, page, Google Business ou campagne locale", "Dépendance possible si tout le flux passe par une seule plateforme"],
+  {
+    criterion: "Déclencheur du coût",
+    tok: "Table confirmée, pack choisi et actions réellement activées.",
+    perCover: "Chaque couvert déclaré, apporté ou facturé selon le canal.",
+    decision: "Comparer le coût avant le service, pas seulement après facturation.",
+  },
+  {
+    criterion: "Prévisibilité",
+    tok: "Budget plus stable pour prévoir marge, staff et enveloppe marketing.",
+    perCover: "Facture sensible aux groupes, pics de volume et écarts de remplissage.",
+    decision: "Vérifier le scénario samedi soir, pas uniquement le jour calme.",
+  },
+  {
+    criterion: "No-shows et changements",
+    tok: "Lecture par table honorée, créneau, acompte éventuel et statut client.",
+    perCover: "Le coût devient difficile à relire si les couverts changent ou annulent.",
+    decision: "Suivre tables honorées, tables perdues et coût par couvert réel.",
+  },
+  {
+    criterion: "Marge",
+    tok: "Lecture directe du coût d'acquisition par table et par revenu encaissé.",
+    perCover: "La marge baisse vite si le ticket moyen ou la taille des groupes varie.",
+    decision: "Comparer coût du canal, ticket moyen et revenu net restaurant.",
+  },
+  {
+    criterion: "Décision",
+    tok: "Test progressif par Google Business, page restaurant, campagne ou offre locale.",
+    perCover: "Dépendance possible si tout le flux passe par une seule plateforme.",
+    decision: "Déplacer du volume seulement quand les conversions sont mesurées.",
+  },
 ];
 
 const scenarioRows = [
@@ -299,15 +324,22 @@ export default function AlternativeCommissionCouvert() {
               claire de la marge, des no-shows et de la prévisibilité.
             </p>
           </div>
-          <div className="overflow-hidden rounded-lg border bg-white">
-            {comparisonRows.map(([label, tok, classic]) => (
+          <div className="overflow-hidden rounded-2xl border bg-white shadow-sm">
+            <div className="grid bg-slate-950 px-4 py-3 text-xs font-black uppercase tracking-[0.16em] text-white md:grid-cols-[0.75fr_1fr_1fr_1fr]">
+              <span>Critère</span>
+              <span>Lecture TOK</span>
+              <span>Commission par couvert</span>
+              <span>Question à trancher</span>
+            </div>
+            {comparisonRows.map((row) => (
               <div
-                key={label}
-                className="grid gap-2 border-b p-4 text-sm last:border-b-0 md:grid-cols-[160px_1fr_1fr] md:gap-3"
+                key={row.criterion}
+                className="grid gap-2 border-t p-4 text-sm md:grid-cols-[0.75fr_1fr_1fr_1fr] md:gap-3"
               >
-                <p className="font-bold">{label}</p>
-                <p className="text-emerald-700">{tok}</p>
-                <p className="text-muted-foreground">{classic}</p>
+                <p className="font-bold text-slate-950">{row.criterion}</p>
+                <p className="leading-6 text-emerald-700">{row.tok}</p>
+                <p className="leading-6 text-muted-foreground">{row.perCover}</p>
+                <p className="leading-6 text-orange-700">{row.decision}</p>
               </div>
             ))}
           </div>

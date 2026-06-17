@@ -3,6 +3,9 @@ import type { UserRole } from "@/lib/auth-context";
 const VALID_ROLES: UserRole[] = ["client", "restaurateur", "admin", "courier"];
 const PRIVILEGED_ROLES: UserRole[] = ["admin", "restaurateur", "courier"];
 const DEFAULT_ROLE_PRIORITY: UserRole[] = ["admin", "restaurateur", "courier", "client"];
+const ROLE_FEATURE_REQUIREMENTS: Partial<Record<UserRole, string[]>> = {
+  courier: ["espace-livreur"],
+};
 const ROLE_HOME_PATHS: Record<UserRole, string> = {
   client: "/",
   restaurateur: "/dashboard",
@@ -10,7 +13,7 @@ const ROLE_HOME_PATHS: Record<UserRole, string> = {
   courier: "/courier",
 };
 
-export function getEffectiveRoles(roles: UserRole[]): UserRole[] {
+export function getEffectiveRoles(roles: UserRole[] = []): UserRole[] {
   const uniqueRoles = roles.filter((role, index) =>
     VALID_ROLES.includes(role) && roles.indexOf(role) === index
   );
@@ -21,6 +24,15 @@ export function getEffectiveRoles(roles: UserRole[]): UserRole[] {
 export function getDefaultActiveRole(roles: UserRole[]): UserRole {
   const effectiveRoles = getEffectiveRoles(roles);
   return DEFAULT_ROLE_PRIORITY.find((role) => effectiveRoles.includes(role)) || "client";
+}
+
+export function isRoleFeatureEnabled(role: UserRole, activeFeatures: ReadonlySet<string>) {
+  const requirements = ROLE_FEATURE_REQUIREMENTS[role] || [];
+  return requirements.every((featureName) => activeFeatures.has(featureName));
+}
+
+export function getFeatureVisibleRoles(roles: UserRole[] = [], activeFeatures: ReadonlySet<string>): UserRole[] {
+  return getEffectiveRoles(roles).filter((role) => isRoleFeatureEnabled(role, activeFeatures));
 }
 
 export function getRoleHomePath(role: UserRole | null | undefined) {

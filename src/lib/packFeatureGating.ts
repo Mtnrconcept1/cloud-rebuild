@@ -12,6 +12,7 @@ export const ALL_GATABLE_FEATURES = [
   { key: "dashboard-performances", label: "Performances" },
   { key: "dashboard-comparaison", label: "Comparaison" },
   { key: "dashboard-avis", label: "Avis clients" },
+  { key: "dashboard-crm", label: "CRM clients" },
   { key: "dashboard-campagne-overview", label: "Campagnes" },
   { key: "dashboard-reseaux-sociaux", label: "Reseaux sociaux" },
   { key: "dashboard-actualites", label: "Actualités" },
@@ -195,6 +196,11 @@ function normalizeSubscriptionFeatureLabels(value: unknown): string[] {
 export function isActiveRestaurantSubscription(subscription: RestaurantSubscriptionFeatureAccess | null | undefined) {
   const status = normalizePlanSlug(subscription?.status);
   return ACTIVE_SUBSCRIPTION_STATUSES.has(status);
+}
+
+export function isEliteRestaurantSubscription(subscription: RestaurantSubscriptionFeatureAccess | null | undefined) {
+  if (!isActiveRestaurantSubscription(subscription)) return false;
+  return normalizePlanSlug(subscription?.slug || subscription?.plan) === "elite";
 }
 
 export function computeSubscriptionEnabledFeatures(

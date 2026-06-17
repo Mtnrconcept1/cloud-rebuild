@@ -46,6 +46,10 @@ describe("admin operations center", () => {
     expect(component).toContain("window.confirm");
     expect(component).toContain("marketplace alert reconciliation skipped");
     expect(component).toContain("getAdminUrgentActionsErrorMessage");
+    expect(component).toContain("isExpanded");
+    expect(component).toContain("setIsExpanded");
+    expect(component).toContain("Résumé urgent");
+    expect(component).toContain("Déplier");
     expect(component).toContain("Accès admin requis pour charger les actions urgentes.");
     expect(component).toContain("Note admin obligatoire pour résoudre/ignorer");
     expect(component).toContain("Alerte prise en charge");

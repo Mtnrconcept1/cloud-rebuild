@@ -30,6 +30,27 @@ const guideSteps = [
   "Suivez chaque semaine les clics Google, le taux de conversion et les ventes générées depuis ce canal.",
 ];
 
+const googleDecisionRows = [
+  {
+    situation: "Bouton Google absent",
+    risk: "Les clients appellent, abandonnent ou passent par une autre plateforme.",
+    tokAction: "Créer un lien TOK traçable vers réservation, commande ou page restaurant.",
+    metric: "Clics Google, réservations confirmées, commandes issues de Google.",
+  },
+  {
+    situation: "Bouton Google vers une plateforme externe",
+    risk: "Le restaurant perd la donnée client et lit mal le coût réel du canal.",
+    tokAction: "Tester TOK en parallèle, puis basculer si la conversion directe est meilleure.",
+    metric: "Coût par conversion, marge, clients récupérés dans le CRM.",
+  },
+  {
+    situation: "Bouton Google vers le site du restaurant",
+    risk: "Le lien existe mais les horaires, services et conversions ne sont pas toujours mesurés.",
+    tokAction: "Garder l'expérience de marque et ajouter tracking, créneaux, paiements et relances.",
+    metric: "Taux de clic vers action, no-show, panier ou table moyenne.",
+  },
+];
+
 const channelMetrics = [
   {
     icon: MousePointerClick,
@@ -232,6 +253,35 @@ export default function RestaurateursGoogleBusiness() {
               <p className="mt-2 text-sm leading-6 text-slate-600">{body}</p>
             </article>
           ))}
+        </div>
+      </section>
+
+      <section className="px-4 py-16 md:px-8 lg:px-12">
+        <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.78fr_1.22fr]">
+          <div className="space-y-4">
+            <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-600">Bascule du bouton Google</p>
+            <h2 className="text-3xl font-black md:text-4xl">Le bon lien dépend de votre situation actuelle.</h2>
+            <p className="text-slate-600">
+              Le restaurateur doit pouvoir décider sans jargon : quel est le risque aujourd'hui, quelle action TOK
+              mettre en place, et quelle métrique regarder après sept jours.
+            </p>
+          </div>
+          <div className="overflow-hidden rounded-2xl border bg-white shadow-sm">
+            <div className="grid bg-slate-950 px-4 py-3 text-xs font-black uppercase tracking-[0.16em] text-white md:grid-cols-[0.85fr_1.05fr_1.1fr_1fr]">
+              <span>Situation</span>
+              <span>Risque</span>
+              <span>Action TOK</span>
+              <span>Mesure</span>
+            </div>
+            {googleDecisionRows.map((row) => (
+              <div key={row.situation} className="grid gap-2 border-t p-4 text-sm md:grid-cols-[0.85fr_1.05fr_1.1fr_1fr]">
+                <p className="font-bold text-slate-950">{row.situation}</p>
+                <p className="leading-6 text-slate-600">{row.risk}</p>
+                <p className="leading-6 text-orange-700">{row.tokAction}</p>
+                <p className="leading-6 text-slate-600">{row.metric}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

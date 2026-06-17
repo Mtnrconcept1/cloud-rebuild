@@ -14,23 +14,16 @@ function readSource(path: string) {
 }
 
 describe("campaign creative studio", () => {
-  it("ships the eight fixed restaurant-card templates", () => {
-    expect(CAMPAIGN_CREATIVE_TEMPLATES).toHaveLength(8);
+  it("ships one fixed sponsored creative model", () => {
+    expect(CAMPAIGN_CREATIVE_TEMPLATES).toHaveLength(1);
     expect(CAMPAIGN_CREATIVE_TEMPLATES.map((template) => template.id)).toEqual([
-      "classic_elegant",
-      "modern_clean",
-      "warm_gourmet",
-      "bold_contrast",
-      "minimal_premium",
-      "dynamic_color",
-      "immersive_photo",
-      "urban_street",
+      "tok_spotlight",
     ]);
   });
 
   it("normalizes campaign creative choices to supported values only", () => {
     expect(normalizeCampaignCreative({
-      template: "immersive_photo",
+      template: "tok_spotlight",
       tone: "night_gold",
       font: "editorial",
       background: "dark_grain",
@@ -40,7 +33,7 @@ describe("campaign creative studio", () => {
         button: "#ff3300",
       },
     })).toMatchObject({
-      template: "immersive_photo",
+      template: "tok_spotlight",
       text: DEFAULT_CAMPAIGN_CREATIVE.text,
     });
 
@@ -85,8 +78,8 @@ describe("campaign creative studio", () => {
   it("keeps a readable summary for campaign operators", () => {
     expect(getCampaignCreativeSummary({
       ...DEFAULT_CAMPAIGN_CREATIVE,
-      template: "warm_gourmet",
-    })).toContain("Chaleureux");
+      template: "tok_spotlight",
+    })).toContain("TOK Spotlight");
   });
 
   it("persists creative choices in channels and normalizes them server-side", () => {
@@ -99,13 +92,16 @@ describe("campaign creative studio", () => {
     expect(dashboard).toContain("getCampaignCreativeFromChannels(initial?.channels)");
     expect(dashboard).not.toContain("Nuancier des blocs");
     expect(dashboard).not.toContain("Masque photo");
+    expect(dashboard).not.toContain("CAMPAIGN_CREATIVE_TEMPLATES.map");
 
     expect(portal).toContain("sanitizeCampaignCreative");
-    expect(portal).toContain("classic_elegant");
+    expect(portal).toContain("tok_spotlight");
     expect(portal).not.toContain("VALID_CREATIVE_TONES");
     expect(portal).toContain("creative,");
 
-    expect(card).toContain("TEMPLATE_NUMBERS");
-    expect(card).toContain("photo-zone-template");
+    expect(card).toContain("ad-card-spotlight");
+    expect(card).toContain('variant = "card"');
+    expect(card).not.toContain("TEMPLATE_NUMBERS");
+    expect(card).not.toContain("photo-zone-template");
   });
 });

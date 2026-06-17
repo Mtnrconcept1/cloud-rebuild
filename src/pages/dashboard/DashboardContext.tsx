@@ -69,6 +69,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         "dashboard-performances",
         "dashboard-comparaison",
         "dashboard-avis",
+        "dashboard-crm",
         "dashboard-campagnes",
         "dashboard-promotions",
         "dashboard-reseaux-sociaux",

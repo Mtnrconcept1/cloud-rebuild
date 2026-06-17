@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type ComponentType } from "react";
+import { Link } from "react-router-dom";
 import { getSupabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
@@ -9,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
-import { AlertTriangle, ArrowRight, CalendarDays, CheckCircle2, FileText, LayoutDashboard, MoonStar, ShoppingCart, SunMedium, TrendingUp } from "lucide-react";
+import { AlertTriangle, ArrowRight, BellRing, CalendarDays, CheckCircle2, FileText, LayoutDashboard, Megaphone, MoonStar, Rocket, ShoppingCart, SunMedium, TrendingUp } from "lucide-react";
 import { normalizeOrderStatus } from "@/lib/orderStatus";
 import { useSignupApplication } from "@/hooks/useSignupApplication";
 import { useToast } from "@/hooks/use-toast";
@@ -35,6 +36,7 @@ const supabase = getSupabase();
 // state where the restaurateur still has to confirm: we must keep it visible.
 const INVALID_ORDER_STATUS_FILTER = "(cancelled,refused,payment_failed,pending,pending_payment)";
 const INVALID_RESERVATION_STATUS_FILTER = "(cancelled,no_show,pending_payment)";
+const UPCOMING_ORDER_STATUSES = ["confirmed", "accepted", "preparing", "ready", "delivering"];
 
 type UpcomingReservationRow = {
   id: string;
@@ -137,6 +139,61 @@ function formatDashboardDateTime(value: string) {
   }).format(new Date(value));
 }
 
+function formatChf(value: number) {
+  return new Intl.NumberFormat("fr-CH", {
+    style: "currency",
+    currency: "CHF",
+    maximumFractionDigits: 2,
+  }).format(Math.max(0, value));
+}
+
+function ActualitesBoostBanner() {
+  return (
+    <section
+      aria-label="Mettre votre restaurant en avant"
+      className="relative isolate overflow-hidden rounded-[1.35rem] bg-[#ff4b00] bg-[image:url('/fondbanniere.png')] bg-cover bg-center shadow-xl shadow-orange-500/20 max-sm:h-[33rem] max-sm:rounded-[1.15rem] max-sm:bg-[image:url('/fondbanniere2.png')]"
+    >
+      <div className="relative z-10 grid min-h-[22rem] grid-cols-[minmax(0,1.1fr)_minmax(15rem,0.86fr)] gap-4 px-5 pb-5 pt-4 sm:min-h-[20rem] sm:px-6 sm:py-6 md:grid-cols-[minmax(18rem,1.1fr)_minmax(16rem,0.82fr)] md:items-center lg:min-h-[21rem] max-sm:block max-sm:h-full max-sm:min-h-0 max-sm:p-0">
+        <div className="relative min-h-[19rem] sm:min-h-[20rem] max-sm:absolute max-sm:inset-0 max-sm:min-h-0">
+          <img
+            src="/chef3.png"
+            alt="Ton resto mis en avant à partir de CHF 1.-"
+            loading="lazy"
+            className="absolute left-[-2.8rem] top-0 ml-[9px] mt-[-35px] h-[28rem] w-[34rem] max-w-none object-contain object-top pl-[39px] drop-shadow-2xl [mask-image:radial-gradient(ellipse_at_45%_42%,black_64%,transparent_88%)] sm:left-[-3.4rem] sm:top-[-0.25rem] sm:h-[29rem] sm:w-[36rem] md:left-[-3.75rem] md:h-[30rem] md:w-[36rem] lg:left-[-3.25rem] lg:h-[31rem] lg:w-[37rem] max-sm:left-[-4.55rem] max-sm:top-[-1.05rem] max-sm:ml-0 max-sm:mt-0 max-sm:h-auto max-sm:w-[29.5rem] max-sm:object-contain max-sm:pl-0"
+          />
+        </div>
+
+        <div className="flex min-w-0 flex-col justify-center gap-4 text-white md:pl-4 lg:pl-6 max-sm:absolute max-sm:inset-x-4 max-sm:bottom-4 max-sm:z-20 max-sm:gap-3">
+          <div className="space-y-3 max-sm:mb-2 max-sm:ml-[12.5rem] max-sm:grid max-sm:grid-cols-1 max-sm:gap-2 max-sm:space-y-0">
+            {[
+              { icon: TrendingUp, title: "Plus de visibilité", body: "Soyez vu par des milliers de gourmands" },
+              { icon: BellRing, title: "Plus de clients", body: "Attirez de nouveaux clients chaque jour" },
+              { icon: Rocket, title: "Résultats rapides", body: "Des résultats dès les premières heures" },
+            ].map(({ icon: Icon, title, body }) => (
+              <div key={title} className="flex items-start gap-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-orange-600 shadow-lg shadow-orange-900/15 max-sm:h-8 max-sm:w-8">
+                  <Icon className="h-5 w-5 max-sm:h-4 max-sm:w-4" aria-hidden="true" />
+                </span>
+                <span>
+                  <strong className="block text-lg font-black leading-tight max-sm:text-[12px]">{title}</strong>
+                  <span className="block text-sm font-medium leading-snug text-white/90 max-sm:text-[11px]">{body}</span>
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <Button
+            asChild
+            className="mt-1 h-12 rounded-2xl bg-white px-5 text-base font-black text-orange-600 shadow-xl shadow-orange-900/20 transition hover:bg-orange-50 hover:text-orange-700 max-sm:h-11 max-sm:w-full max-sm:text-sm"
+          >
+            <Link to="/dashboard/actualites">Mettre mon restaurant en avant</Link>
+          </Button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function Dashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -144,6 +201,12 @@ export default function Dashboard() {
   const { data: signupApplication } = useSignupApplication("restaurateur");
   const [onboardingCheckoutLoading, setOnboardingCheckoutLoading] = useState(false);
   const today = new Date().toISOString().split("T")[0];
+  const todayStartDate = new Date();
+  todayStartDate.setHours(0, 0, 0, 0);
+  const tomorrowStartDate = new Date(todayStartDate);
+  tomorrowStartDate.setDate(tomorrowStartDate.getDate() + 1);
+  const todayStart = todayStartDate.toISOString();
+  const tomorrowStart = tomorrowStartDate.toISOString();
   const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
   const { data: restaurant } = useQuery({
     queryKey: ["my-restaurant-detail", selectedId],
@@ -156,14 +219,14 @@ export default function Dashboard() {
 
   const operationalQueriesEnabled = Boolean(restaurant?.id && !dashboardAccessLocked);
 
-  const { data: recentOrders } = useQuery({
-    queryKey: ["dashboard-recent-orders", restaurant?.id],
+  const { data: upcomingOrders = [] } = useQuery({
+    queryKey: ["dashboard-upcoming-orders", restaurant?.id],
     queryFn: async () => {
       const { data } = await supabase
         .from("orders")
         .select("*")
         .eq("restaurant_id", restaurant!.id)
-        .not("status", "in", INVALID_ORDER_STATUS_FILTER)
+        .in("status", UPCOMING_ORDER_STATUSES)
         .order("created_at", { ascending: false })
         .limit(5);
       return data || [];
@@ -187,19 +250,6 @@ export default function Dashboard() {
     enabled: operationalQueriesEnabled,
   });
 
-  const { data: totalOrders = 0 } = useQuery({
-    queryKey: ["dashboard-total-orders", restaurant?.id],
-    queryFn: async () => {
-      const { count } = await supabase
-        .from("orders")
-        .select("*", { count: "exact", head: true })
-        .eq("restaurant_id", restaurant!.id)
-        .not("status", "in", INVALID_ORDER_STATUS_FILTER);
-      return count || 0;
-    },
-    enabled: operationalQueriesEnabled,
-  });
-
   const { data: totalUpcomingReservations = 0 } = useQuery({
     queryKey: ["dashboard-total-upcoming-reservations", restaurant?.id, today],
     queryFn: async () => {
@@ -209,6 +259,59 @@ export default function Dashboard() {
         .eq("restaurant_id", restaurant!.id)
         .gte("date", today)
         .not("status", "in", INVALID_RESERVATION_STATUS_FILTER);
+      return count || 0;
+    },
+    enabled: operationalQueriesEnabled,
+  });
+
+  const { data: totalUpcomingOrders = 0 } = useQuery({
+    queryKey: ["dashboard-total-upcoming-orders", restaurant?.id],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("orders")
+        .select("*", { count: "exact", head: true })
+        .eq("restaurant_id", restaurant!.id)
+        .in("status", UPCOMING_ORDER_STATUSES);
+      return count || 0;
+    },
+    enabled: operationalQueriesEnabled,
+  });
+
+  const { data: todayRevenue = 0 } = useQuery({
+    queryKey: ["dashboard-today-revenue", restaurant?.id, today],
+    queryFn: async () => {
+      const [ordersRes, reservationsRes] = await Promise.all([
+        supabase
+          .from("orders")
+          .select("total_amount")
+          .eq("restaurant_id", restaurant!.id)
+          .gte("created_at", todayStart)
+          .lt("created_at", tomorrowStart)
+          .not("status", "in", INVALID_ORDER_STATUS_FILTER),
+        supabase
+          .from("reservations")
+          .select("total_amount")
+          .eq("restaurant_id", restaurant!.id)
+          .eq("feature", "zero-attente")
+          .eq("date", today)
+          .not("status", "in", "(cancelled,no_show)")
+          .gt("total_amount", 0),
+      ]);
+      const orderRevenue = (ordersRes.data || []).reduce((sum, row) => sum + Number(row.total_amount || 0), 0);
+      const reservationRevenue = (reservationsRes.data || []).reduce((sum, row) => sum + Number(row.total_amount || 0), 0);
+      return orderRevenue + reservationRevenue;
+    },
+    enabled: operationalQueriesEnabled,
+  });
+
+  const { data: activeCampaignsCount = 0 } = useQuery({
+    queryKey: ["dashboard-active-campaigns-count", restaurant?.id],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("ad_campaigns")
+        .select("*", { count: "exact", head: true })
+        .eq("restaurant_id", restaurant!.id)
+        .eq("status", "active");
       return count || 0;
     },
     enabled: operationalQueriesEnabled,
@@ -441,9 +544,9 @@ export default function Dashboard() {
           tone="orange"
           visualLabel="Accueil"
           stats={[
-            { label: "Commandes validees", value: totalOrders, icon: ShoppingCart },
-            { label: "Reservations a venir", value: totalUpcomingReservations, icon: CalendarDays },
-            { label: "Revenus du mois", value: `${monthlyRevenue.toFixed(2)} CHF`, icon: TrendingUp },
+            { label: "Commandes à venir", value: totalUpcomingOrders, icon: ShoppingCart },
+            { label: "Réservations à venir", value: totalUpcomingReservations, icon: CalendarDays },
+            { label: "CA du jour", value: formatChf(todayRevenue), icon: TrendingUp },
           ]}
         />
 
@@ -495,36 +598,50 @@ export default function Dashboard() {
 
         <GoogleBusinessBookingCard restaurantId={restaurant.id} />
 
+        <ActualitesBoostBanner />
+
         <div className="space-y-4">
           <DashboardStatCard
-            label="Commandes validees"
-            value={String(totalOrders)}
+            label="Commandes à venir"
+            value={String(totalUpcomingOrders)}
             icon={ShoppingCart}
             tone="violet"
           />
           <DashboardStatCard
-            label="Reservations a venir"
+            label="Réservations à venir"
             value={String(totalUpcomingReservations)}
             icon={CalendarDays}
             tone="orange"
           />
           <DashboardStatCard
-            label="Revenus du mois"
-            value={`${monthlyRevenue.toFixed(2)} CHF`}
+            label="Chiffre d'affaires du jour"
+            value={formatChf(todayRevenue)}
             icon={TrendingUp}
             tone="emerald"
+          />
+          <DashboardStatCard
+            label="Campagnes pub actives"
+            value={String(activeCampaignsCount)}
+            icon={Megaphone}
+            tone="amber"
           />
           <DashboardStatCard
             label="Midi aujourd'hui"
             value={String(todayServiceCounts.lunch)}
             icon={SunMedium}
-            tone="amber"
+            tone="sky"
           />
           <DashboardStatCard
             label="Soir aujourd'hui"
             value={String(todayServiceCounts.dinner)}
             icon={MoonStar}
-            tone="sky"
+            tone="violet"
+          />
+          <DashboardStatCard
+            label="Revenus du mois"
+            value={formatChf(monthlyRevenue)}
+            icon={TrendingUp}
+            tone="emerald"
           />
         </div>
 
@@ -535,18 +652,18 @@ export default function Dashboard() {
                 <span className="tok-kpi-icon tok-tone-sky flex h-12 w-12 items-center justify-center rounded-2xl">
                   <FileText className="h-6 w-6" />
                 </span>
-                Commandes récentes
+                Commandes à venir
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {recentOrders?.map((order) => (
+              {upcomingOrders?.map((order) => (
                 <div key={order.id} className="flex items-center justify-between gap-4 rounded-2xl border border-border/70 bg-background/70 px-4 py-3 text-sm dark:border-[#5f7aad]/22 dark:bg-[#07142b]/72 dark:text-slate-100">
                   <span>{new Date(order.created_at).toLocaleDateString("fr-FR")}</span>
                   <span className="font-bold">{Number(order.total_amount).toFixed(2)} CHF</span>
                   <OrderStatusBadge status={normalizeOrderStatus(order.status)} />
                 </div>
               ))}
-              {(!recentOrders || recentOrders.length === 0) ? <p className="text-sm text-muted-foreground">Aucune commande</p> : null}
+              {(!upcomingOrders || upcomingOrders.length === 0) ? <p className="text-sm text-muted-foreground">Aucune commande à venir</p> : null}
             </CardContent>
           </Card>
           <Card className="tok-dashboard-section rounded-3xl border border-border/70">
@@ -555,7 +672,7 @@ export default function Dashboard() {
                 <span className="tok-kpi-icon tok-tone-orange flex h-12 w-12 items-center justify-center rounded-2xl">
                   <CalendarDays className="h-6 w-6" />
                 </span>
-                Reservations a venir
+                Réservations à venir
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">

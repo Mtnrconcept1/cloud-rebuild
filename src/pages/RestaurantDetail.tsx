@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Heart, MapPin, Phone, Clock, Star, Bike, Percent, Leaf, Utensils, ShoppingBag, ShoppingCart, Zap, ArrowLeft, Info, UtensilsCrossed, MessageSquare, ChevronRight, Camera, X, ChevronLeft, LogIn, Timer } from "lucide-react";
+import { Heart, MapPin, Phone, Clock, Star, Bike, Percent, Leaf, Utensils, ShoppingBag, ShoppingCart, Zap, ArrowLeft, Info, UtensilsCrossed, MessageSquare, ChevronRight, Camera, X, ChevronLeft, LogIn, Timer, CheckCircle2 } from "lucide-react";
 import MenuItemCard from "@/components/MenuItemCard";
 import ReviewForm from "@/components/ReviewForm";
 import ReservationDialog from "@/components/ReservationDialog";
@@ -38,6 +38,7 @@ import {
 } from "@/lib/progressiveReservationOffers";
 import { useTokLogoSrc } from "@/hooks/useTokLogo";
 import { getOptimizedImageSizes, getOptimizedImageSrcSet, getOptimizedImageUrl } from "@/lib/optimizedImages";
+import { getRestaurantAmenityOptions } from "@/lib/restaurantAmenities";
 
 const supabase = getSupabase();
 const RESTAURANT_DETAIL_STALE_MS = 60_000;
@@ -365,6 +366,10 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
       maxOffers: 1,
     });
   }, [progressiveOffers, reservationWidgetSelection]);
+  const amenityOptions = useMemo(
+    () => getRestaurantAmenityOptions((restaurant as { amenities?: unknown } | null | undefined)?.amenities),
+    [restaurant],
+  );
 
   const reservationAvailable = reservationEnabled && !!restaurant?.supports_reservation;
   const takeawayAvailable = takeawayEnabled && !!restaurant?.supports_pickup;
@@ -704,7 +709,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
                     if (entries.length > 0) return <div className="space-y-1">{entries.map((e) => <p key={e.day} className="text-sm text-muted-foreground"><span className="font-medium text-foreground">{e.day}</span> : {e.hours}</p>)}</div>;
                   }
                   return <p className="text-sm text-muted-foreground">Lundi - Dimanche : 11h30 - 22h30</p>;
-                })()}</div></div><div className="p-4 rounded-xl bg-secondary/30 flex items-start gap-3"><Info className="h-5 w-5 text-primary mt-0.5" /><div><h3 className="font-semibold mb-2">Détails</h3><ul className="text-sm text-muted-foreground space-y-1"><li>Cuisine : {restaurant.cuisine_type || "Non spécifié"}</li><li>Fourchette de prix : <PriceRangeIcons range={restaurant.price_range || 2} /></li>{showDelivery && <li>Frais de livraison : {Number(restaurant.delivery_fee || 0).toFixed(2)} CHF</li>}{showDelivery && Number(restaurant.min_order_amount) > 0 && <li>Commande min. : {Number(restaurant.min_order_amount).toFixed(2)} CHF</li>}</ul></div></div></div></div>
+                })()}</div></div><div className="p-4 rounded-xl bg-secondary/30 flex items-start gap-3"><Info className="h-5 w-5 text-primary mt-0.5" /><div><h3 className="font-semibold mb-2">Détails</h3><ul className="text-sm text-muted-foreground space-y-1"><li>Cuisine : {restaurant.cuisine_type || "Non spécifié"}</li><li>Fourchette de prix : <PriceRangeIcons range={restaurant.price_range || 2} /></li>{showDelivery && <li>Frais de livraison : {Number(restaurant.delivery_fee || 0).toFixed(2)} CHF</li>}{showDelivery && Number(restaurant.min_order_amount) > 0 && <li>Commande min. : {Number(restaurant.min_order_amount).toFixed(2)} CHF</li>}</ul></div></div></div>{amenityOptions.length > 0 ? (<div className="rounded-xl bg-secondary/30 p-4"><div className="mb-3 flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-primary" /><h3 className="font-semibold">Commodités et services</h3></div><div className="flex flex-wrap gap-2">{amenityOptions.map((option) => (<Badge key={option.id} variant="secondary" className="rounded-full bg-background px-3 py-1 text-xs font-semibold shadow-sm">{option.label}</Badge>))}</div></div>) : null}</div>
 
                 {/* Carte du restaurant — échantillon du menu */}
                 {menuItems && menuItems.length > 0 && (

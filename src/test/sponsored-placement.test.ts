@@ -306,9 +306,8 @@ describe("prioritizeSponsoredCards", () => {
     expect(banner).toContain('getActiveSponsoredRestaurants(page, "banner")');
     expect(banner).toContain("rotateSponsoredCardsWithinRestaurants");
     expect(banner).toContain("rotationSeed");
-    expect(banner).toContain("campaign-copy-panel");
-    expect(banner).toContain("bg-slate-950/62");
-    expect(banner).toContain("backdrop-blur-xl");
+    expect(banner).toContain('variant="banner"');
+    expect(banner).toContain("SponsoredRestaurantTemplateCard");
     expect(analytics).toContain("avoidCompanionPlacementDuplicates");
     expect(analytics).toContain("campaignSupportsPlacement(campaign, placement)");
   });
@@ -323,5 +322,18 @@ describe("prioritizeSponsoredCards", () => {
     expect(theme).toContain("ring-2 ring-white/80");
     expect(theme).toContain("bg-slate-950/82 text-white");
     expect(restaurantCard).toContain("absolute left-3 right-14 top-3");
+  });
+
+  it("surfaces restaurant promotions in search card time slots", () => {
+    const restaurantCard = readSource("src/components/RestaurantCard.tsx");
+    const templateCard = readSource("src/components/campaigns/SponsoredRestaurantTemplateCard.tsx");
+
+    expect(restaurantCard).toContain("const discountBadgeLabel = hasDiscount");
+    expect(restaurantCard).toContain("discountLabel={discountBadgeLabel || undefined}");
+    expect(restaurantCard).toContain("Créneaux promo visibles");
+    expect(restaurantCard).toContain("Promo {discountBadgeLabel}");
+    expect(templateCard).toContain("const slotDiscountLabel = getSlotDiscountLabel(discountLabel)");
+    expect(templateCard).toContain("{slotDiscountLabel}");
+    expect(templateCard).toContain("ad-card-spotlight");
   });
 });

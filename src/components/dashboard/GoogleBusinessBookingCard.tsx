@@ -172,6 +172,39 @@ export default function GoogleBusinessBookingCard({ restaurantId }: GoogleBusine
 
   if (!setup) return null;
 
+  if (isConfigured) {
+    return (
+      <Card className="tok-dashboard-section rounded-3xl border border-emerald-200/80 bg-emerald-50/70 dark:border-emerald-400/25 dark:bg-emerald-500/10">
+        <CardContent className="grid gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-600 text-white">
+              <CheckCircle2 className="h-5 w-5" />
+            </span>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="font-display text-lg font-black tracking-tight text-emerald-950 dark:text-emerald-50">
+                  Bouton google configuré
+                </p>
+                <Badge className="gap-1 rounded-full bg-white text-emerald-700 hover:bg-white dark:bg-emerald-400/15 dark:text-emerald-100">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  Vu
+                </Badge>
+              </div>
+              <p className="mt-1 text-sm text-emerald-800 dark:text-emerald-100/80">
+                Les réservations issues de Google restent suivies dans TOK.
+              </p>
+            </div>
+          </div>
+          <div className="grid min-w-[18rem] grid-cols-3 gap-2">
+            <MetricPill label="Visites" value={Number(setup.link_clicks || 0)} />
+            <MetricPill label="Ouverts" value={Number(setup.reservation_starts || 0)} />
+            <MetricPill label="Réservations Google" value={Number(setup.reservation_completions || 0)} />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="tok-dashboard-section overflow-hidden rounded-3xl border border-orange-200/70 bg-gradient-to-br from-white via-white to-orange-50/65 dark:border-[#ff8a3d]/30 dark:from-[#07142b] dark:via-[#07142b] dark:to-[#30130b]">
       <CardHeader className="gap-4">
