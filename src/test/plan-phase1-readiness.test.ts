@@ -86,6 +86,31 @@ describe("phase 1 launch audit plan readiness", () => {
     expect(deployWorkflow).toContain("PUBLIC_APP_URL: ${{ env.PUBLIC_APP_URL }}");
   });
 
+  it("retries transient Supabase platform errors during production deploy", () => {
+    const deployWorkflow = readProjectFile(".github/workflows/deploy-production.yml");
+    const retryScript = readProjectFile("scripts/supabase-ci-retry.sh");
+
+    expect(retryScript).toContain("supabase_ci_retry()");
+    expect(retryScript).toContain("supabase@${SUPABASE_CLI_VERSION}");
+    expect(retryScript).toContain("error\\ code:\\ (429|500|502|503|504)");
+    expect(retryScript).toContain("Unexpected\\ error\\ retrieving\\ remote\\ project\\ status");
+    expect(retryScript).toContain("ECONNRESET");
+
+    expect(deployWorkflow.match(/source \.\/scripts\/supabase-ci-retry\.sh/g)?.length).toBe(4);
+    expect(deployWorkflow).toContain(
+      'supabase_ci_retry link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"',
+    );
+    expect(deployWorkflow).toContain(
+      'supabase_ci_retry secrets set --env-file "${RUNNER_TEMP}/supabase.functions.env" --project-ref "$SUPABASE_PROJECT_REF"',
+    );
+    expect(deployWorkflow).toContain(
+      'supabase_ci_retry db push --linked --yes --password "$SUPABASE_DB_PASSWORD"',
+    );
+    expect(deployWorkflow).toContain(
+      'supabase_ci_retry functions deploy --project-ref "$SUPABASE_PROJECT_REF" --use-api',
+    );
+  });
+
   it("aligns the PWA manifest with the TOK Geneva launch positioning", () => {
     const manifest = readJsonFile<{
       name: string;

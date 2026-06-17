@@ -193,16 +193,24 @@ jobs:
         run: node ./scripts/write-supabase-secrets-env.mjs --out=${RUNNER_TEMP}/supabase.functions.env
 
       - name: Link Supabase production project
-        run: pnpm dlx supabase@${{ env.SUPABASE_CLI_VERSION }} link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
+        run: |
+          source ./scripts/supabase-ci-retry.sh
+          supabase_ci_retry link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
 
       - name: Sync Supabase production secrets
-        run: pnpm dlx supabase@${{ env.SUPABASE_CLI_VERSION }} secrets set --env-file "${RUNNER_TEMP}/supabase.functions.env" --project-ref "$SUPABASE_PROJECT_REF"
+        run: |
+          source ./scripts/supabase-ci-retry.sh
+          supabase_ci_retry secrets set --env-file "${RUNNER_TEMP}/supabase.functions.env" --project-ref "$SUPABASE_PROJECT_REF"
 
       - name: Push database migrations
-        run: pnpm dlx supabase@${{ env.SUPABASE_CLI_VERSION }} db push --linked --yes --password "$SUPABASE_DB_PASSWORD"
+        run: |
+          source ./scripts/supabase-ci-retry.sh
+          supabase_ci_retry db push --linked --yes --password "$SUPABASE_DB_PASSWORD"
 
       - name: Deploy Edge Functions
-        run: pnpm dlx supabase@${{ env.SUPABASE_CLI_VERSION }} functions deploy --project-ref "$SUPABASE_PROJECT_REF" --use-api
+        run: |
+          source ./scripts/supabase-ci-retry.sh
+          supabase_ci_retry functions deploy --project-ref "$SUPABASE_PROJECT_REF" --use-api
 
   deploy_frontend:
     if: ${{ vars.PRODUCTION_DEPLOY_ENABLED == 'true' }}
