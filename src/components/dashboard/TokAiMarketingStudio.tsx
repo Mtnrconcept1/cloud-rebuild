@@ -27,6 +27,7 @@ import {
   Palette,
   ShieldCheck,
   Sparkles,
+  Trash2,
   Upload,
   Wand2,
 } from "lucide-react";
@@ -58,6 +59,7 @@ type MarketingImageResult = TokImageGenerationResult;
 const supabase = getSupabase();
 
 const MARKETING_UPLOAD_ACCEPT = "image/png,image/jpeg,image/webp";
+const MARKETING_STORAGE_BUCKET = "images";
 const MARKETING_IMAGE_MIME_EXTENSIONS: Record<string, string> = {
   "image/jpeg": "jpg",
   "image/png": "png",
@@ -320,7 +322,7 @@ async function uploadMarketingResource(input: {
     label: "Visuel marketing",
   });
 
-  const storageBucket = "images";
+  const storageBucket = MARKETING_STORAGE_BUCKET;
   const storagePath = createMarketingAssetPath(input.userId, input.restaurantId, optimizedFile);
   const { error: uploadError } = await supabase.storage.from(storageBucket).upload(storagePath, optimizedFile, {
     contentType: optimizedFile.type,
@@ -362,6 +364,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
   const [loading, setLoading] = useState(false);
   const [resourcesLoading, setResourcesLoading] = useState(false);
   const [uploadingKind, setUploadingKind] = useState<MarketingAssetKind | null>(null);
+  const [deletingResourceId, setDeletingResourceId] = useState<string | null>(null);
   const [marketingImageResult, setMarketingImageResult] = useState<MarketingImageResult | null>(null);
 
   const activeToolConfig = MARKETING_TOOLS.find((tool) => tool.id === activeTool) || MARKETING_TOOLS[0];
@@ -477,6 +480,76 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
       });
     } finally {
       setUploadingKind(null);
+    }
+  };
+
+  const deleteMarketingResource = async (resource: MarketingResource) => {
+    if (deletingResourceId) return;
+
+    if (!resource.persisted) {
+      setResources((current) => current.filter((item) => item.id !== resource.id));
+      return;
+    }
+
+    if (!restaurantId || !resource.mediaId) {
+      toast({
+        title: "Suppression impossible",
+        description: "Cette ressource n'est pas rattachee au restaurant actif.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const previousResources = resources;
+    setDeletingResourceId(resource.id);
+    setResources((current) => current.filter((item) => item.id !== resource.id));
+
+    try {
+      const { error: deleteError } = await supabase
+        .from("restaurant_media")
+        .delete()
+        .eq("id", resource.mediaId)
+        .eq("restaurant_id", restaurantId)
+        .eq("media_type", MARKETING_ASSET_MEDIA_TYPES[resource.kind]);
+
+      if (deleteError) throw deleteError;
+
+      if (resource.storageBucket && resource.storagePath) {
+        if (resource.storageBucket !== MARKETING_STORAGE_BUCKET) {
+          toast({
+            title: "Ressource retiree",
+            description: "Le fichier est retire du studio. Le bucket d'origine n'a pas ete modifie.",
+          });
+          return;
+        }
+
+        const { error: storageError } = await supabase.storage
+          .from(resource.storageBucket)
+          .remove([resource.storagePath]);
+
+        if (storageError) {
+          toast({
+            title: "Ressource retiree",
+            description: "La reference a ete supprimee, mais le fichier Storage devra etre nettoye plus tard.",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+
+      toast({
+        title: "Ressource supprimee",
+        description: `${resource.fileName} a ete retire du studio marketing.`,
+      });
+    } catch (error) {
+      setResources(previousResources);
+      toast({
+        title: "Suppression impossible",
+        description: error instanceof Error ? error.message : "Impossible de supprimer cette ressource marketing.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingResourceId(null);
     }
   };
 
@@ -832,11 +905,26 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                       {isUploading ? <Loader2 className="h-4 w-4 animate-spin text-orange-600" /> : kindResources.length ? <CheckCircle2 className="h-4 w-4 text-emerald-600" /> : null}
                     </div>
                     {kindResources.length ? (
-                      <div className="mt-3 space-y-1">
-                        {kindResources.slice(0, 2).map((resource) => (
-                          <p key={resource.id} className="truncate text-xs text-muted-foreground">
-                            {resource.fileName} · {resource.persisted ? "enregistré" : "en cours"}{resource.fileSize ? ` · ${formatBytes(resource.fileSize)}` : ""}
-                          </p>
+                      <div className="mt-3 max-h-36 space-y-2 overflow-y-auto pr-1">
+                        {kindResources.map((resource) => (
+                          <div key={resource.id} className="flex items-center justify-between gap-2 rounded-xl bg-muted/40 px-3 py-2">
+                            <div className="min-w-0">
+                              <p className="truncate text-xs font-medium text-foreground">
+                                {resource.fileName} · {resource.persisted ? "enregistré" : "en cours"}{resource.fileSize ? ` · ${formatBytes(resource.fileSize)}` : ""}
+                              </p>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 shrink-0 text-red-600 hover:bg-red-50 hover:text-red-700"
+                              disabled={deletingResourceId === resource.id}
+                              onClick={() => deleteMarketingResource(resource)}
+                              aria-label={`Supprimer ${resource.fileName}`}
+                            >
+                              {deletingResourceId === resource.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                            </Button>
+                          </div>
                         ))}
                       </div>
                     ) : null}

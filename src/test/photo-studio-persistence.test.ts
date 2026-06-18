@@ -140,6 +140,19 @@ describe("TOK photo studio persistence", () => {
     expect(marketingStudio).toContain("restaurant_media");
   });
 
+  it("lets restaurateurs remove uploaded marketing resources safely", () => {
+    expect(marketingStudio).toContain("deleteMarketingResource");
+    expect(marketingStudio).toContain("MARKETING_STORAGE_BUCKET");
+    expect(marketingStudio).toContain(".from(\"restaurant_media\")");
+    expect(marketingStudio).toContain(".delete()");
+    expect(marketingStudio).toContain(".eq(\"restaurant_id\", restaurantId)");
+    expect(marketingStudio).toContain(".eq(\"media_type\", MARKETING_ASSET_MEDIA_TYPES[resource.kind])");
+    expect(marketingStudio).toContain(".from(resource.storageBucket)");
+    expect(marketingStudio).toContain(".remove([resource.storagePath])");
+    expect(marketingStudio).toContain("aria-label={`Supprimer ${resource.fileName}`}");
+    expect(marketingStudio).toContain("Suppression impossible");
+  });
+
   it("makes restaurant gallery photos public from the cover and includes raw and TOK studio photos", () => {
     expect(restaurantDetail).toContain("useTokLogoSrc");
     expect(restaurantDetail).toContain("RestaurantGalleryWatermark");
