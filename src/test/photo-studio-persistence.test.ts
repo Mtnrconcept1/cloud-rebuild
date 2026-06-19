@@ -147,10 +147,23 @@ describe("TOK photo studio persistence", () => {
     expect(marketingStudio).toContain(".delete()");
     expect(marketingStudio).toContain(".eq(\"restaurant_id\", restaurantId)");
     expect(marketingStudio).toContain(".eq(\"media_type\", MARKETING_ASSET_MEDIA_TYPES[resource.kind])");
+    expect(marketingStudio).toContain(".select(\"id\")");
+    expect(marketingStudio).toContain("if (!deletedMedia)");
     expect(marketingStudio).toContain(".from(resource.storageBucket)");
     expect(marketingStudio).toContain(".remove([resource.storagePath])");
     expect(marketingStudio).toContain("aria-label={`Supprimer ${resource.fileName}`}");
     expect(marketingStudio).toContain("Suppression impossible");
+  });
+
+  it("refreshes marketing references before image generation to avoid stale uploaded assets", () => {
+    expect(marketingStudio).toContain("function fetchMarketingResources");
+    expect(marketingStudio).toContain("const latestResources = await fetchMarketingResources(restaurantId)");
+    expect(marketingStudio).toContain("const generationResources = latestResources.filter");
+    expect(marketingStudio).toContain("resources: generationResources");
+    expect(marketingStudio).toContain("referenceImageUrls: generationResources.map((resource) => resource.mediaUrl)");
+    expect(marketingStudio).toContain("generationRequestRef");
+    expect(marketingStudio).toContain("invalidateMarketingGeneration");
+    expect(marketingStudio).toContain("if (generationRequestRef.current !== requestId) return");
   });
 
   it("makes restaurant gallery photos public from the cover and includes raw and TOK studio photos", () => {

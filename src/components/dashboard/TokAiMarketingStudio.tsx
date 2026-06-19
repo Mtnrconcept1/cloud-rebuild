@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -309,6 +309,18 @@ function rowToMarketingResource(row: Record<string, unknown>): MarketingResource
   };
 }
 
+async function fetchMarketingResources(restaurantId: string) {
+  const { data, error } = await supabase
+    .from("restaurant_media")
+    .select("id, media_url, alt_text, media_type, storage_bucket, storage_path, created_at")
+    .eq("restaurant_id", restaurantId)
+    .in("media_type", MARKETING_MEDIA_TYPES)
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return (data || []).map((row) => rowToMarketingResource(row as Record<string, unknown>));
+}
+
 async function uploadMarketingResource(input: {
   restaurantId: string;
   userId: string;
@@ -366,6 +378,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
   const [uploadingKind, setUploadingKind] = useState<MarketingAssetKind | null>(null);
   const [deletingResourceId, setDeletingResourceId] = useState<string | null>(null);
   const [marketingImageResult, setMarketingImageResult] = useState<MarketingImageResult | null>(null);
+  const generationRequestRef = useRef(0);
 
   const activeToolConfig = MARKETING_TOOLS.find((tool) => tool.id === activeTool) || MARKETING_TOOLS[0];
   const sanitizedPrompt = sanitizeMarketingPrompt(prompt);
@@ -384,6 +397,12 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
     );
   }, [resources]);
 
+  const invalidateMarketingGeneration = () => {
+    generationRequestRef.current += 1;
+    setLoading(false);
+    setMarketingImageResult(null);
+  };
+
   useEffect(() => {
     let cancelled = false;
 
@@ -395,21 +414,21 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
       }
 
       setResourcesLoading(true);
-      const { data, error } = await supabase
-        .from("restaurant_media")
-        .select("id, media_url, alt_text, media_type, storage_bucket, storage_path, created_at")
-        .eq("restaurant_id", restaurantId)
-        .in("media_type", MARKETING_MEDIA_TYPES)
-        .order("created_at", { ascending: false });
-
-      if (cancelled) return;
-      if (error) {
-        toast({ title: "Ressources indisponibles", description: error.message, variant: "destructive" });
+      try {
+        const latestResources = await fetchMarketingResources(restaurantId);
+        if (cancelled) return;
+        setResources(latestResources);
+      } catch (error) {
+        if (cancelled) return;
+        toast({
+          title: "Ressources indisponibles",
+          description: error instanceof Error ? error.message : "Impossible de charger les ressources marketing.",
+          variant: "destructive",
+        });
         setResources([]);
-      } else {
-        setResources((data || []).map((row) => rowToMarketingResource(row as Record<string, unknown>)));
+      } finally {
+        if (!cancelled) setResourcesLoading(false);
       }
-      setResourcesLoading(false);
     }
 
     loadMarketingAssets();
@@ -452,6 +471,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
       return;
     }
 
+    invalidateMarketingGeneration();
     setUploadingKind(kind);
     setResources((current) => {
       const pending = accepted.map((file) => createPendingMarketingResource(file, kind));
@@ -486,6 +506,8 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
   const deleteMarketingResource = async (resource: MarketingResource) => {
     if (deletingResourceId) return;
 
+    invalidateMarketingGeneration();
+
     if (!resource.persisted) {
       setResources((current) => current.filter((item) => item.id !== resource.id));
       return;
@@ -505,14 +527,17 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
     setResources((current) => current.filter((item) => item.id !== resource.id));
 
     try {
-      const { error: deleteError } = await supabase
+      const { data: deletedMedia, error: deleteError } = await supabase
         .from("restaurant_media")
         .delete()
         .eq("id", resource.mediaId)
         .eq("restaurant_id", restaurantId)
-        .eq("media_type", MARKETING_ASSET_MEDIA_TYPES[resource.kind]);
+        .eq("media_type", MARKETING_ASSET_MEDIA_TYPES[resource.kind])
+        .select("id")
+        .maybeSingle();
 
       if (deleteError) throw deleteError;
+      if (!deletedMedia) throw new Error("La ressource n'a pas ete supprimee. Verifiez vos droits sur ce restaurant.");
 
       if (resource.storageBucket && resource.storagePath) {
         if (resource.storageBucket !== MARKETING_STORAGE_BUCKET) {
@@ -576,10 +601,18 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
       return;
     }
 
+    const requestId = generationRequestRef.current + 1;
+    generationRequestRef.current = requestId;
     setLoading(true);
     setMarketingImageResult(null);
 
     try {
+      const latestResources = await fetchMarketingResources(restaurantId);
+      if (generationRequestRef.current !== requestId) return;
+
+      setResources(latestResources);
+      const generationResources = latestResources.filter((resource) => resource.persisted && resource.mediaUrl);
+
       const imageResult = await generateTokDishImage({
         restaurantId,
         prompt: buildMarketingImagePrompt({
@@ -588,9 +621,9 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
           format,
           orientation,
           styleMode,
-          resources: persistedResources,
+          resources: generationResources,
         }),
-        referenceImageUrls: persistedResources.map((resource) => resource.mediaUrl),
+        referenceImageUrls: generationResources.map((resource) => resource.mediaUrl),
         dishName: activeToolConfig.title,
         assetType: "campaign_visual",
         format: getMarketingImageFormat(format, orientation),
@@ -600,19 +633,22 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
         marketingAssetMode: true,
       });
 
+      if (generationRequestRef.current !== requestId) return;
+
       setMarketingImageResult(imageResult);
       toast({
         title: "Image marketing générée",
         description: `Le visuel a été produit avec ${imageResult.model || "OpenAI"} à partir du prompt et des ressources persistantes.`,
       });
     } catch (error) {
+      if (generationRequestRef.current !== requestId) return;
       toast({
         title: "Image impossible",
         description: formatMarketingImageGenerationError(error),
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
+      if (generationRequestRef.current === requestId) setLoading(false);
     }
   };
 

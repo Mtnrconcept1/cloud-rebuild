@@ -74,17 +74,17 @@ export default function LegalConsentBanner() {
   }
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-[1300] px-3 pb-[calc(env(safe-area-inset-bottom,0px)+0.75rem)] sm:px-6">
+    <div className="fixed inset-0 z-[1300] flex items-center justify-center bg-slate-950/45 px-4 py-[calc(env(safe-area-inset-top,0px)+1rem)] backdrop-blur-sm sm:px-6">
       <section
         role="dialog"
-        aria-modal="false"
+        aria-modal="true"
         aria-labelledby="legal-consent-title"
         className={cn(
-          "mx-auto max-w-5xl overflow-hidden rounded-3xl border border-orange-200/80 bg-background/96 shadow-[0_24px_70px_rgba(15,23,42,0.22)] backdrop-blur-2xl",
-          "dark:border-orange-300/25 dark:bg-slate-950/95 dark:shadow-[0_24px_80px_rgba(0,0,0,0.55)]",
+          "mx-auto w-full max-w-3xl overflow-hidden rounded-3xl border border-orange-200 bg-white shadow-[0_30px_90px_rgba(15,23,42,0.28)]",
+          "dark:border-orange-300/25 dark:bg-slate-950 dark:shadow-[0_24px_80px_rgba(0,0,0,0.55)]",
         )}
       >
-        <div className="grid gap-4 p-4 sm:grid-cols-[auto_1fr_auto] sm:items-center sm:p-5">
+        <div className="grid gap-5 p-5 sm:grid-cols-[auto_1fr] sm:p-6">
           <div className="hidden h-12 w-12 place-items-center rounded-2xl bg-primary/10 text-primary sm:grid">
             <ShieldCheck className="h-6 w-6" />
           </div>
@@ -109,7 +109,7 @@ export default function LegalConsentBanner() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 sm:w-[17rem]">
+          <div className="grid grid-cols-2 gap-2 sm:col-span-2 sm:ml-16">
             <Button
               type="button"
               variant="outline"
