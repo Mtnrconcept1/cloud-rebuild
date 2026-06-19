@@ -73,8 +73,8 @@ export function FloatingRouteBackButton() {
   return (
     <div
       className={cn(
-        "relative z-10 mx-auto flex w-full max-w-screen-2xl px-4 sm:px-6 lg:px-8",
-        "pt-[calc(env(safe-area-inset-top,0px)+4.75rem)] md:pt-3",
+        "relative z-10 mx-auto flex w-full max-w-screen-2xl px-4 pb-2 pt-2 sm:px-6 lg:px-8",
+        "md:pb-0 md:pt-3",
       )}
     >
       <BackNavigationButton

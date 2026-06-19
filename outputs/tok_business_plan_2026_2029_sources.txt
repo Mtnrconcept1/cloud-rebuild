@@ -1,0 +1,22 @@
+TOK business plan - source notes
+
+Internal product anchors
+- src/pages/PacksRestaurateur.tsx
+- src/pages/TokOne.tsx
+- src/pages/AlternativeCommissionCouvert.tsx
+- supabase/migrations/20260404120000_launch_offer_packs.sql
+- supabase/migrations/20260526170535_tok_one_default_plan.sql
+- supabase/migrations/20260615001515_restaurateur_onboarding_payment_gate.sql
+- supabase/migrations/20260417120000_reservation_billing_schema.sql
+- supabase/migrations/20260425014839_campaign_hybrid_pricing.sql
+- supabase/migrations/20260607033000_platform_finance_sales_governance.sql
+
+External market anchors used in the narrative
+- OFS/BFS Switzerland: household final consumption expenditure, restaurants and accommodation services
+- Stripe Switzerland payments overview
+- GastroSuisse business climate note
+- Zenchef pricing / zero commission positioning
+
+Method
+- Forecasts are scenario-based estimates, not observed production revenue.
+- Scenarios were derived from productized revenue lines visible in the codebase and from local-market execution assumptions.

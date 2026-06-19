@@ -9,6 +9,13 @@ import {
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { createRateLimiter } from "../_shared/rate-limit.ts";
 import { makeLogger } from "../_shared/logging.ts";
+import {
+  OPENAI_API_KEY,
+  createOpenAIResponse,
+  extractUsage,
+  parseStructuredOutput,
+  selectTokAiModel,
+} from "../_shared/openai.ts";
 
 const VALID_CAMPAIGN_TYPES = new Set(["boost", "banner", "push"]);
 const VALID_TARGET_PAGES = new Set(["home", "search", "flash_sales", "anti_waste"]);
@@ -182,6 +189,8 @@ Deno.serve(async (req) => {
     let campaign: Record<string, unknown> = fallbackCampaign;
     let generationSource = "fallback";
     let fallbackReason: string | null = null;
+    const aiModel = selectTokAiModel("strategy");
+    let aiUsage = { input_tokens: 0, output_tokens: 0, total_tokens: 0 };
 
     const contextSummary = `
 Restaurant: ${restaurant.name}
@@ -222,83 +231,53 @@ REGLES:
 
 Retourne UNIQUEMENT le JSON, sans explication.`;
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-
-    if (!LOVABLE_API_KEY) {
-      fallbackReason = "lovable_key_missing";
+    if (!OPENAI_API_KEY) {
+      fallbackReason = "openai_key_missing";
     } else {
       try {
-        const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${LOVABLE_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "google/gemini-2.5-flash",
-            messages: [
-              { role: "system", content: systemPrompt },
-              { role: "user", content: "Genere une campagne publicitaire optimisee pour ce restaurant." },
-            ],
-            tools: [
-              {
-                type: "function",
-                function: {
-                  name: "create_campaign",
-                  description: "Cree une campagne publicitaire optimisee",
-                  parameters: {
-                    type: "object",
-                    properties: {
-                      title: { type: "string" },
-                      body: { type: "string" },
-                      type: { type: "string", enum: ["boost", "banner", "push"] },
-                      target_pages: {
-                        type: "array",
-                        items: { type: "string", enum: ["home", "search", "flash_sales", "anti_waste"] },
-                      },
-                      total_budget: { type: "number" },
-                      budget_daily: { type: "number" },
-                    },
-                    required: ["title", "body", "type", "target_pages", "total_budget", "budget_daily"],
-                    additionalProperties: false,
-                  },
+        const aiData = await createOpenAIResponse({
+          model: aiModel,
+          input: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: "Genere une campagne publicitaire optimisee pour ce restaurant." },
+          ],
+          maxOutputTokens: 500,
+          jsonSchema: {
+            name: "tok_campaign_recommendation",
+            description: "Campagne publicitaire TOK optimisee pour un restaurant.",
+            strict: true,
+            schema: {
+              type: "object",
+              properties: {
+                title: { type: "string" },
+                body: { type: "string" },
+                type: { type: "string", enum: ["boost", "banner", "push"] },
+                target_pages: {
+                  type: "array",
+                  items: { type: "string", enum: ["home", "search", "flash_sales", "anti_waste"] },
                 },
+                total_budget: { type: "number" },
+                budget_daily: { type: "number" },
               },
-            ],
-            tool_choice: { type: "function", function: { name: "create_campaign" } },
-          }),
+              required: ["title", "body", "type", "target_pages", "total_budget", "budget_daily"],
+              additionalProperties: false,
+            },
+          },
         });
 
-        if (aiResponse.ok) {
-          const aiData = await aiResponse.json();
-          let rawCampaign: Record<string, unknown> = {};
-          const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
-          if (toolCall?.function?.arguments) {
-            try {
-              rawCampaign = JSON.parse(toolCall.function.arguments);
-            } catch {
-              rawCampaign = {};
-            }
-          } else {
-            const content = aiData.choices?.[0]?.message?.content || "";
-            const jsonMatch = content.match(/\{[\s\S]*\}/);
-            if (jsonMatch) {
-              rawCampaign = JSON.parse(jsonMatch[0]);
-            }
-          }
-
-          campaign = normalizeGeneratedCampaign(rawCampaign, fallbackCampaign);
-          generationSource = "ai";
-        } else if (aiResponse.status === 429) {
+        const rawCampaign = parseStructuredOutput<Record<string, unknown>>(aiData);
+        campaign = normalizeGeneratedCampaign(rawCampaign, fallbackCampaign);
+        generationSource = "ai";
+        aiUsage = extractUsage(aiData);
+      } catch (aiError) {
+        log.error("ai_fallback", { message: aiError instanceof Error ? aiError.message : "unknown" });
+        if (aiError instanceof HttpError && aiError.status === 429) {
           fallbackReason = "rate_limited";
-        } else if (aiResponse.status === 402) {
+        } else if (aiError instanceof HttpError && aiError.status === 402) {
           fallbackReason = "insufficient_credits";
         } else {
-          fallbackReason = `gateway_${aiResponse.status}`;
+          fallbackReason = "openai_error";
         }
-      } catch (_aiError) {
-        log.error("ai_fallback");
-        fallbackReason = "gateway_error";
       }
     }
 
@@ -307,13 +286,13 @@ Retourne UNIQUEMENT le JSON, sans explication.`;
       action: "generate_campaign_copy",
       feature_name: "campaign_assistant",
       source: "generate-campaign",
-      model: generationSource === "ai" ? "google/gemini-2.5-flash" : "fallback",
+      model: generationSource === "ai" ? aiModel : "fallback",
       user_id: actor.userId,
       restaurant_id: restaurantId,
       status: "success",
-      input_tokens: 0,
-      output_tokens: 0,
-      total_tokens: 0,
+      input_tokens: aiUsage.input_tokens || 0,
+      output_tokens: aiUsage.output_tokens || 0,
+      total_tokens: aiUsage.total_tokens || 0,
       estimated_cost_chf: 0,
       metadata: {
         credit_kind: "ai_tools",

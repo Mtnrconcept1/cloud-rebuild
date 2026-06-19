@@ -4,8 +4,6 @@ import type { MouseEvent } from "react";
 import PriceRangeIcons from "@/components/PriceRangeIcons";
 import {
   normalizeCampaignCreative,
-  type CampaignBannerSeparator,
-  type CampaignBannerTextPlacement,
   type CampaignCreativeConfig,
   type CampaignCreativeTextElement,
   type CampaignCreativeTextStyle,
@@ -98,63 +96,6 @@ function OfferText({
   );
 }
 
-function getBannerLayoutClass(placement: CampaignBannerTextPlacement) {
-  if (placement === "right") return "flex-col lg:flex-row-reverse";
-  if (placement === "top") return "flex-col";
-  if (placement === "bottom") return "flex-col-reverse";
-  return "flex-col lg:flex-row";
-}
-
-function getBannerTextPanelClass(placement: CampaignBannerTextPlacement) {
-  return cn(
-    "relative z-20 flex min-w-0 flex-col justify-center bg-white p-5 text-slate-950 dark:bg-slate-950 dark:text-white sm:p-7",
-    placement === "left" || placement === "right" ? "lg:min-h-[300px] lg:w-[42%] lg:max-w-[480px]" : "w-full",
-    placement === "top" || placement === "bottom" ? "min-h-[178px]" : "min-h-[220px]",
-  );
-}
-
-function getBannerPhotoPanelClass(placement: CampaignBannerTextPlacement) {
-  return cn(
-    "relative isolate min-h-[230px] min-w-0 flex-1 overflow-hidden bg-slate-900",
-    placement === "left" || placement === "right" ? "lg:min-h-[300px]" : "min-h-[260px]",
-  );
-}
-
-function getBannerSeparatorClass(placement: CampaignBannerTextPlacement, separator: CampaignBannerSeparator) {
-  if (separator === "fade") {
-    if (placement === "left") return "left-0 top-0 h-20 w-full bg-gradient-to-b from-white via-white/70 to-transparent dark:from-slate-950 dark:via-slate-950/70 lg:-left-1 lg:h-full lg:w-24 lg:bg-gradient-to-r";
-    if (placement === "right") return "left-0 top-0 h-20 w-full bg-gradient-to-b from-white via-white/70 to-transparent dark:from-slate-950 dark:via-slate-950/70 lg:left-auto lg:right-0 lg:-right-1 lg:h-full lg:w-24 lg:bg-gradient-to-l";
-    if (placement === "top") return "left-0 top-0 h-20 w-full bg-gradient-to-b from-white via-white/70 to-transparent dark:from-slate-950 dark:via-slate-950/70";
-    return "bottom-0 left-0 h-20 w-full bg-gradient-to-t from-white via-white/70 to-transparent dark:from-slate-950 dark:via-slate-950/70";
-  }
-
-  if (separator === "straight") {
-    if (placement === "left") return "left-0 top-0 h-px w-full bg-white/90 dark:bg-slate-950/90 lg:-left-px lg:h-full lg:w-px";
-    if (placement === "right") return "left-0 top-0 h-px w-full bg-white/90 dark:bg-slate-950/90 lg:left-auto lg:right-0 lg:-right-px lg:h-full lg:w-px";
-    if (placement === "top") return "left-0 top-0 h-px w-full bg-white/90 dark:bg-slate-950/90";
-    return "bottom-0 left-0 h-px w-full bg-white/90 dark:bg-slate-950/90";
-  }
-
-  if (separator === "wave") {
-    if (placement === "left") return "left-0 -top-9 h-20 w-full rounded-[0_0_60%_60%] bg-white dark:bg-slate-950 lg:-left-8 lg:top-0 lg:h-full lg:w-20 lg:rounded-[55%]";
-    if (placement === "right") return "left-0 -top-9 h-20 w-full rounded-[0_0_60%_60%] bg-white dark:bg-slate-950 lg:left-auto lg:-right-8 lg:top-0 lg:h-full lg:w-20 lg:rounded-[55%]";
-    if (placement === "top") return "left-0 -top-9 h-20 w-full rounded-[0_0_60%_60%] bg-white dark:bg-slate-950";
-    return "bottom-[-2.25rem] left-0 h-20 w-full rounded-[60%_60%_0_0] bg-white dark:bg-slate-950";
-  }
-
-  if (placement === "left") return "left-0 -top-8 h-20 w-full skew-y-[-2deg] bg-white dark:bg-slate-950 lg:-left-10 lg:top-0 lg:h-full lg:w-24 lg:skew-x-[-10deg] lg:skew-y-0";
-  if (placement === "right") return "left-0 -top-8 h-20 w-full skew-y-[-2deg] bg-white dark:bg-slate-950 lg:left-auto lg:-right-10 lg:top-0 lg:h-full lg:w-24 lg:skew-x-[10deg] lg:skew-y-0";
-  if (placement === "top") return "left-0 -top-8 h-20 w-full skew-y-[-2deg] bg-white dark:bg-slate-950";
-  return "bottom-[-2rem] left-0 h-20 w-full skew-y-[2deg] bg-white dark:bg-slate-950";
-}
-
-function getBannerFallbackFadeClass(placement: CampaignBannerTextPlacement) {
-  if (placement === "left") return "left-0 top-0 h-16 w-full bg-gradient-to-b from-white/80 to-transparent dark:from-slate-950/80 lg:h-full lg:w-20 lg:bg-gradient-to-r";
-  if (placement === "right") return "left-0 top-0 h-16 w-full bg-gradient-to-b from-white/80 to-transparent dark:from-slate-950/80 lg:left-auto lg:right-0 lg:h-full lg:w-20 lg:bg-gradient-to-l";
-  if (placement === "top") return "left-0 top-0 h-16 w-full bg-gradient-to-b from-white/80 to-transparent dark:from-slate-950/80";
-  return "bottom-0 left-0 h-16 w-full bg-gradient-to-t from-white/80 to-transparent dark:from-slate-950/80";
-}
-
 export function SponsoredRestaurantTemplateCard({
   creative,
   imageUrl,
@@ -186,75 +127,73 @@ export function SponsoredRestaurantTemplateCard({
   const slotDiscountLabel = getSlotDiscountLabel(discountLabel);
 
   if (variant === "banner") {
-    const placement = normalized.bannerTextPlacement;
-    const separator = normalized.bannerSeparator;
-    const isFadeSeparator = separator === "fade";
+    const secondaryBadge = discountLabel?.trim() || "Sponsorisé";
 
     return (
       <article
         className={cn(
-          "group relative isolate w-full overflow-hidden rounded-[30px] border border-orange-100 bg-white shadow-[0_22px_60px_rgba(15,23,42,0.14)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_30px_70px_rgba(15,23,42,0.18)] dark:border-slate-800 dark:bg-slate-950",
+          "ad-banner-spotlight group relative isolate w-full overflow-hidden rounded-[30px] border border-orange-100 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.12)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_32px_82px_rgba(249,115,22,0.18)] dark:border-slate-800 dark:bg-slate-950",
           className,
         )}
       >
-        <div className={cn("flex min-h-[300px]", getBannerLayoutClass(placement))}>
-          <div className={getBannerTextPanelClass(placement)}>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-2 rounded-full bg-primary px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.16em] text-white shadow-[0_12px_26px_rgba(249,115,22,0.26)]">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_74%_42%,rgba(255,122,24,0.23),transparent_34%),linear-gradient(90deg,#ffffff_0%,#fffaf3_48%,#ff7a18_100%)] dark:bg-[linear-gradient(90deg,#020617_0%,#111827_50%,#ff6b00_100%)]" />
+        <div className="absolute right-0 top-0 hidden h-full w-[57%] rounded-l-[120px] bg-gradient-to-br from-orange-200/85 via-orange-400/90 to-[#ff5a00] lg:block" />
+        <div className="absolute bottom-0 right-0 h-1/2 w-full bg-gradient-to-t from-orange-500/18 to-transparent lg:hidden" />
+
+        <div className="relative z-10 grid min-h-[570px] grid-rows-[auto_minmax(250px,1fr)] lg:min-h-[366px] lg:grid-cols-[minmax(340px,0.84fr)_minmax(460px,1.16fr)] lg:grid-rows-1">
+          <div className="flex min-w-0 flex-col justify-center p-5 pb-3 sm:p-8 sm:pb-4 lg:p-10 xl:p-12">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <span className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-white shadow-[0_14px_28px_rgba(249,115,22,0.28)]">
                 <Megaphone className="h-3.5 w-3.5" />
                 Sponsorisé
               </span>
-              <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1.5 text-[11px] font-black uppercase text-emerald-700 ring-1 ring-emerald-100 dark:bg-emerald-400/10 dark:text-emerald-200 dark:ring-emerald-400/20">
-                {discountLabel}
+              <span className="inline-flex rounded-full bg-orange-50 px-4 py-2 text-[10px] font-black uppercase tracking-[0.08em] text-primary ring-1 ring-orange-100 dark:bg-orange-400/10 dark:text-orange-100 dark:ring-orange-300/20">
+                {secondaryBadge}
               </span>
             </div>
 
-            <div className="mt-5 min-w-0">
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">
+            <div className="mt-6 min-w-0 lg:mt-7">
+              <p className="text-[11px] font-black uppercase tracking-[0.32em] text-slate-500 dark:text-slate-300">
                 {displayCuisine} · {displayCity}
               </p>
-              <h3 className="mt-1 truncate font-display text-3xl font-black leading-none text-slate-950 dark:text-white sm:text-4xl">
+              <h3 className="mt-1 line-clamp-2 font-display text-4xl font-black leading-[0.92] text-slate-950 dark:text-white sm:text-5xl lg:text-[3.35rem]">
                 {restaurantName}
               </h3>
-              <p className="mt-2 flex min-w-0 items-center gap-1.5 text-sm font-medium text-muted-foreground">
-                <MapPin className="h-4 w-4 shrink-0 text-primary" />
+              <p className="mt-3 flex min-w-0 items-center gap-2 text-base font-medium text-slate-500 dark:text-slate-300">
+                <MapPin className="h-5 w-5 shrink-0 text-primary" />
                 <span className="truncate">{displayAddress}</span>
               </p>
             </div>
 
-            <div className="mt-5 rounded-[24px] border border-slate-200 bg-slate-50/90 p-4 shadow-inner dark:border-slate-800 dark:bg-slate-900/80">
-              <OfferText creative={normalized} headline={displayHeadline} body={displayBody} />
+            <div className="mt-7 rounded-[26px] border border-orange-100 bg-white/86 p-4 shadow-[0_16px_42px_rgba(15,23,42,0.08)] backdrop-blur dark:border-white/10 dark:bg-white/8 sm:p-5">
+              <div className="flex items-start gap-4">
+                <div className="hidden h-14 w-14 shrink-0 place-items-center rounded-full bg-orange-50 text-primary ring-1 ring-orange-100 sm:grid">
+                  <Sparkles className="h-6 w-6" />
+                </div>
+                <OfferText creative={normalized} headline={displayHeadline} body={displayBody} />
+              </div>
             </div>
 
-            <span className="mt-5 inline-flex h-11 w-fit items-center gap-2 rounded-2xl bg-slate-950 px-5 text-sm font-black text-white shadow-[0_14px_28px_rgba(15,23,42,0.18)] dark:bg-white dark:text-slate-950">
+            <span className="mt-6 inline-flex h-12 w-fit items-center gap-3 rounded-2xl bg-gradient-to-r from-primary to-orange-500 px-6 text-sm font-black text-white shadow-[0_18px_34px_rgba(249,115,22,0.26)] transition-transform duration-300 group-hover:translate-x-1">
               {ctaLabel}
               <ArrowRight className="h-4 w-4" />
             </span>
           </div>
 
-          <div className={getBannerPhotoPanelClass(placement)}>
-            <img
-              src={imageUrl || DEFAULT_IMAGE}
-              alt=""
-              className="absolute inset-0 h-full w-full scale-110 object-cover opacity-60 blur-2xl transition-transform duration-700 group-hover:scale-[1.16]"
-              loading="lazy"
-              decoding="async"
-            />
-            <img
-              src={imageUrl || DEFAULT_IMAGE}
-              alt=""
-              className="absolute inset-0 h-full w-full object-contain p-2 transition-transform duration-700 group-hover:scale-[1.02]"
-              loading="lazy"
-              decoding="async"
-            />
-            <div className="absolute inset-0 bg-gradient-to-br from-slate-950/10 via-transparent to-slate-950/26" />
-            <div className="absolute right-4 top-4 z-20 rounded-full bg-white/92 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.12em] text-slate-900 shadow-sm backdrop-blur">
-              Photo mise en avant
+          <div className="relative z-20 flex min-w-0 items-end p-5 pt-0 sm:p-8 sm:pt-0 lg:items-center lg:p-8 xl:p-10">
+            <div className="relative h-full min-h-[250px] w-full overflow-hidden rounded-[30px] bg-slate-950 shadow-[0_24px_56px_rgba(15,23,42,0.24)] ring-1 ring-white/35 sm:min-h-[300px] lg:min-h-[292px] lg:rounded-[34px]">
+              <img
+                src={imageUrl || DEFAULT_IMAGE}
+                alt=""
+                className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.035]"
+                loading="lazy"
+                decoding="async"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/18 via-transparent to-slate-950/10" />
+              <div className="absolute right-4 top-4 z-20 rounded-full bg-primary px-4 py-2 text-[10px] font-black uppercase tracking-[0.12em] text-white shadow-[0_12px_26px_rgba(249,115,22,0.26)] backdrop-blur">
+                Photo mise en avant
+              </div>
             </div>
-            <div className={cn("pointer-events-none absolute z-10", getBannerSeparatorClass(placement, separator))} />
-            {isFadeSeparator ? null : (
-              <div className={cn("pointer-events-none absolute z-10 opacity-70", getBannerFallbackFadeClass(placement))} />
-            )}
           </div>
         </div>
       </article>

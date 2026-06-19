@@ -129,7 +129,11 @@ describe("TOK photo studio persistence", () => {
     expect(marketingStudio).toContain("MARKETING_ASSET_MEDIA_TYPES");
     expect(marketingStudio).toContain("uploadMarketingResource");
     expect(marketingStudio).toContain("buildMarketingImagePrompt");
-    expect(marketingStudio).toContain("Créer directement une affiche marketing finale TOK");
+    expect(marketingStudio).toContain("Créer directement un visuel marketing final pour le restaurateur");
+    expect(marketingStudio).toContain("Ressources actives à utiliser comme seules références visuelles");
+    expect(marketingStudio).toContain("Empreinte des ressources actives");
+    expect(marketingStudio).not.toContain("mascotte chef TOK");
+    expect(marketingStudio).not.toContain("thetok.ch");
     expect(marketingStudio).toContain("Image marketing générée");
     expect(marketingStudio).toContain("Flyer / affiche");
     expect(marketingStudio).toContain("Carte de visite");
@@ -164,6 +168,20 @@ describe("TOK photo studio persistence", () => {
     expect(marketingStudio).toContain("generationRequestRef");
     expect(marketingStudio).toContain("invalidateMarketingGeneration");
     expect(marketingStudio).toContain("if (generationRequestRef.current !== requestId) return");
+  });
+
+  it("keeps marketing image generation scoped to current uploaded brand resources", () => {
+    const aiFunction = readFileSync(resolve(process.cwd(), "supabase/functions/ai-image-enhance/index.ts"), "utf8");
+
+    expect(aiFunction).toContain("Utiliser exclusivement les visuels de référence fournis dans cette requête comme source d'identité visuelle");
+    expect(aiFunction).toContain("Ignorer toute identité, tout asset, tout prompt ou toute préférence provenant d'une génération précédente");
+    expect(aiFunction).toContain("reference_identity_scope");
+    expect(aiFunction).toContain("current_uploaded_restaurant_resources");
+    expect(aiFunction).toContain("reference_folder: marketingAssetMode ? null");
+    expect(aiFunction).not.toContain("palette orange TOK");
+    expect(aiFunction).not.toContain("mascotte chef TOK");
+    expect(aiFunction).not.toContain("publicité TOK terminée");
+    expect(aiFunction).not.toContain("URL thetok.ch");
   });
 
   it("makes restaurant gallery photos public from the cover and includes raw and TOK studio photos", () => {

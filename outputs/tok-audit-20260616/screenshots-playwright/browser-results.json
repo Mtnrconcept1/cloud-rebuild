@@ -1,0 +1,1006 @@
+[
+  {
+    "route": "/",
+    "name": "home",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "status": 200,
+    "summary": {
+      "url": "http://127.0.0.1:5173/",
+      "title": "TOK - Réservez, commandez et profitez des meilleures offres food à Genève",
+      "headings": [
+        "Réservez etcommandezles meilleuresoffres food",
+        "Réservez, commandez et profitezdes meilleures offres food à Genève",
+        "Explorer par cuisine",
+        "Pour ce midi",
+        "Promotions et activations du moment",
+        "Offres Anti-Gaspi",
+        "Programme Fidélité",
+        "La Table du Chef",
+        "Bons plans du moment",
+        "Pour ce soir"
+      ],
+      "navLinks": [
+        {
+          "text": "",
+          "href": "/"
+        },
+        {
+          "text": "Explorer",
+          "href": "/recherche"
+        },
+        {
+          "text": "Actualités",
+          "href": "/actualites"
+        },
+        {
+          "text": "Anti-gaspi",
+          "href": "/anti-gaspi"
+        },
+        {
+          "text": "Ventes flash",
+          "href": "/ventes-flash"
+        },
+        {
+          "text": "Tok One",
+          "href": "/tok-one"
+        },
+        {
+          "text": "Restaurateurs",
+          "href": "/restaurateurs/geneve"
+        },
+        {
+          "text": "CONNEXION",
+          "href": "/auth"
+        },
+        {
+          "text": "Restaurants",
+          "href": "/recherche"
+        },
+        {
+          "text": "Anti-gaspi",
+          "href": "/anti-gaspi"
+        },
+        {
+          "text": "Ventes flash",
+          "href": "/ventes-flash"
+        },
+        {
+          "text": "La Table du Chef",
+          "href": "/chefs-table"
+        }
+      ],
+      "inputs": [
+        {
+          "tag": "input",
+          "type": null,
+          "placeholder": "Votre ville...",
+          "aria": null,
+          "name": null
+        },
+        {
+          "tag": "input",
+          "type": "text",
+          "placeholder": "Cuisine, nom de restaurant...",
+          "aria": null,
+          "name": null
+        },
+        {
+          "tag": "input",
+          "type": null,
+          "placeholder": "Votre ville...",
+          "aria": null,
+          "name": null
+        },
+        {
+          "tag": "input",
+          "type": "text",
+          "placeholder": "Cuisine, nom de restaurant...",
+          "aria": null,
+          "name": null
+        }
+      ],
+      "buttons": [
+        "Réessayer le son",
+        "Pour les restaurateurs",
+        "Aide",
+        "Explorer",
+        "Actualités",
+        "Anti-gaspi",
+        "Ventes flash",
+        "Tok One",
+        "Plus",
+        "Mode sombre",
+        "Restaurateurs",
+        "CONNEXION",
+        "Ouvrir le menu",
+        "Je veux manger",
+        "Restaurateur"
+      ],
+      "rootChildren": 10,
+      "rootTextLength": 6584,
+      "rootTextSample": "Réessayer le sonPour les restaurateurs|AideExplorerActualitésAnti-gaspiVentes flashTok OnePlus Mode sombreRestaurateursCONNEXIONOuvrir le menuRéservez etcommandezles meilleuresoffres foodÀ Genève, cumulez desMiamz solidaires à chaque repasJe veux mangerRestaurateurAbonnez-vous à notre newsletter et recevez 500 Miamz.Conditions applicables. Inscrivez-vousRéservez, commandez et profitezdes meilleures offres food à GenèveGagnez du temps, cumulez des Miamz et transformez vos repas en impact solidaire.Je veux mangerJe suis restaurateur4.8/5Restaurants locaux partenairesAbonnez-vous à notre newsletter et recevez 500 Miamz. Conditions applicables.Inscrivez-vousÀ votre goûtExplorer par cuisineAfricainAfricainAméricainAméricainBistroBistroBoulangerieBoulangerieBrunchBrunchBurgerBurgerCaféCaféChinoisChinoisCréoleCréoleDessertsDessertsFondue SuisseFondue SuisseFrançaisFrançaisGastronomiqueGastronom",
+      "overflowX": false,
+      "visibleAlerts": [],
+      "bodyScrollHeight": 10915
+    },
+    "logs": [
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 404 ()"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 404 ()"
+      }
+    ],
+    "screenshot": "C:\\Users\\Pc\\cloud-rebuild-recovered\\outputs\\tok-audit-20260616\\screenshots-playwright\\home-1280x720.png"
+  },
+  {
+    "route": "/recherche",
+    "name": "search",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "status": 200,
+    "summary": {
+      "url": "http://127.0.0.1:5173/recherche",
+      "title": "TOK - Réservez, commandez et profitez des meilleures offres food à Genève",
+      "headings": [
+        "Trouvez le bon restaurant, plus vite"
+      ],
+      "navLinks": [
+        {
+          "text": "",
+          "href": "/"
+        },
+        {
+          "text": "Explorer",
+          "href": "/recherche"
+        },
+        {
+          "text": "Actualités",
+          "href": "/actualites"
+        },
+        {
+          "text": "Anti-gaspi",
+          "href": "/anti-gaspi"
+        },
+        {
+          "text": "Ventes flash",
+          "href": "/ventes-flash"
+        },
+        {
+          "text": "Tok One",
+          "href": "/tok-one"
+        },
+        {
+          "text": "Restaurateurs",
+          "href": "/restaurateurs/geneve"
+        },
+        {
+          "text": "CONNEXION",
+          "href": "/auth"
+        },
+        {
+          "text": "Restaurants",
+          "href": "/recherche"
+        },
+        {
+          "text": "Anti-gaspi",
+          "href": "/anti-gaspi"
+        },
+        {
+          "text": "Ventes flash",
+          "href": "/ventes-flash"
+        },
+        {
+          "text": "La Table du Chef",
+          "href": "/chefs-table"
+        }
+      ],
+      "inputs": [
+        {
+          "tag": "input",
+          "type": null,
+          "placeholder": "Nom, cuisine, plat ou adresse...",
+          "aria": null,
+          "name": null
+        },
+        {
+          "tag": "input",
+          "type": null,
+          "placeholder": "Ville...",
+          "aria": null,
+          "name": null
+        }
+      ],
+      "buttons": [
+        "Pour les restaurateurs",
+        "Aide",
+        "Explorer",
+        "Actualités",
+        "Anti-gaspi",
+        "Ventes flash",
+        "Tok One",
+        "Plus",
+        "Mode sombre",
+        "Restaurateurs",
+        "CONNEXION",
+        "Ouvrir le menu",
+        "Retour",
+        "Rechercher",
+        "Africain"
+      ],
+      "rootChildren": 9,
+      "rootTextLength": 4347,
+      "rootTextSample": "Pour les restaurateurs|AideExplorerActualitésAnti-gaspiVentes flashTok OnePlus Mode sombreRestaurateursCONNEXIONOuvrir le menuRetourExplorerTrouvez le bon restaurant, plus viteRecherchez par nom, cuisine ou ville, puis affinez uniquement si nécessaire.21restaurant(s) visible(s)RechercherAfricainAmericainBoulangerieBrunchBurgerCafe FiltresType de cuisineBudgetToutes les notesOuiLivraisonTrier par :PertinenceDecroissantSélection disponibleAffinez si nécessaire, sinon ouvrez directement une fiche restaurant.21 resultat(s) LivraisonPizzeria Da LuigiItalien/Moyen4.5(456)Genève37-47 minBoulevard Carl-Vogt 65Voir le restaurant11:3012:00Prochains créneaux visibles. Plus d'options sur la fiche. LivraisonLa Table LibanaiseLibanais/Moyen4.7(278)Genève25-35 minRue de Zurich 8Voir le restaurant11:3012:00Prochains créneaux visibles. Plus d'options sur la fiche. LivraisonChez Mamie ThaïThaïlandais/Écon",
+      "overflowX": false,
+      "visibleAlerts": [],
+      "bodyScrollHeight": 4618
+    },
+    "logs": [],
+    "screenshot": "C:\\Users\\Pc\\cloud-rebuild-recovered\\outputs\\tok-audit-20260616\\screenshots-playwright\\search-1280x720.png"
+  },
+  {
+    "route": "/auth",
+    "name": "auth",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "status": 200,
+    "summary": {
+      "url": "http://127.0.0.1:5173/auth",
+      "title": "TOK - Réservez, commandez et profitez des meilleures offres food à Genève",
+      "headings": [],
+      "navLinks": [
+        {
+          "text": "",
+          "href": "/"
+        },
+        {
+          "text": "Explorer",
+          "href": "/recherche"
+        },
+        {
+          "text": "Actualités",
+          "href": "/actualites"
+        },
+        {
+          "text": "Anti-gaspi",
+          "href": "/anti-gaspi"
+        },
+        {
+          "text": "Ventes flash",
+          "href": "/ventes-flash"
+        },
+        {
+          "text": "Tok One",
+          "href": "/tok-one"
+        },
+        {
+          "text": "Restaurateurs",
+          "href": "/restaurateurs/geneve"
+        },
+        {
+          "text": "CONNEXION",
+          "href": "/auth"
+        },
+        {
+          "text": "Restaurants",
+          "href": "/recherche"
+        },
+        {
+          "text": "Anti-gaspi",
+          "href": "/anti-gaspi"
+        },
+        {
+          "text": "Ventes flash",
+          "href": "/ventes-flash"
+        },
+        {
+          "text": "La Table du Chef",
+          "href": "/chefs-table"
+        }
+      ],
+      "inputs": [
+        {
+          "tag": "input",
+          "type": "email",
+          "placeholder": "vous@exemple.com",
+          "aria": null,
+          "name": null
+        },
+        {
+          "tag": "input",
+          "type": "password",
+          "placeholder": "********",
+          "aria": null,
+          "name": null
+        }
+      ],
+      "buttons": [
+        "Pour les restaurateurs",
+        "Aide",
+        "Explorer",
+        "Actualités",
+        "Anti-gaspi",
+        "Ventes flash",
+        "Tok One",
+        "Plus",
+        "Mode sombre",
+        "Restaurateurs",
+        "CONNEXION",
+        "Ouvrir le menu",
+        "Se connecter",
+        "Renvoyer l’email de confirmation",
+        "Continuer avec Google"
+      ],
+      "rootChildren": 8,
+      "rootTextLength": 780,
+      "rootTextSample": "Pour les restaurateurs|AideExplorerActualitésAnti-gaspiVentes flashTok OnePlus Mode sombreRestaurateursCONNEXIONOuvrir le menuBon retourConnectez-vous pour acceder à vos espaces client, restaurateur, livreur ou admin.EmailMot de passeSe connecterRenvoyer l’email de confirmationouContinuer avec GoogleContinuer avec AppleMot de passe oublié ?Pas encore de compte ? S'inscrireLe réflexe food simple, rentable et solidaire. Commandez, réservez, et savourez.DécouvrirRestaurantsAnti-gaspiVentes flashLa Table du ChefTok OneInformationsÀ proposContactCentre d'aideCGUConfidentialitéRestaurateurDevenir partenaireVoir les packsAudit Google BusinessComparer les commissionsEspace proBientôt disponibleApp StoreGoogle Play© 2026 Tok. Tous droits réservés.ConditionsConfidentialitéCookies",
+      "overflowX": false,
+      "visibleAlerts": [],
+      "bodyScrollHeight": 1348
+    },
+    "logs": [],
+    "screenshot": "C:\\Users\\Pc\\cloud-rebuild-recovered\\outputs\\tok-audit-20260616\\screenshots-playwright\\auth-1280x720.png"
+  },
+  {
+    "route": "/panier",
+    "name": "cart",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "status": 200,
+    "summary": {
+      "url": "http://127.0.0.1:5173/panier",
+      "title": "TOK - Réservez, commandez et profitez des meilleures offres food à Genève",
+      "headings": [
+        "Votre panier est vide"
+      ],
+      "navLinks": [
+        {
+          "text": "",
+          "href": "/"
+        },
+        {
+          "text": "Explorer",
+          "href": "/recherche"
+        },
+        {
+          "text": "Actualités",
+          "href": "/actualites"
+        },
+        {
+          "text": "Anti-gaspi",
+          "href": "/anti-gaspi"
+        },
+        {
+          "text": "Ventes flash",
+          "href": "/ventes-flash"
+        },
+        {
+          "text": "Tok One",
+          "href": "/tok-one"
+        },
+        {
+          "text": "Restaurateurs",
+          "href": "/restaurateurs/geneve"
+        },
+        {
+          "text": "CONNEXION",
+          "href": "/auth"
+        },
+        {
+          "text": "Restaurants",
+          "href": "/recherche"
+        },
+        {
+          "text": "Anti-gaspi",
+          "href": "/anti-gaspi"
+        },
+        {
+          "text": "Ventes flash",
+          "href": "/ventes-flash"
+        },
+        {
+          "text": "La Table du Chef",
+          "href": "/chefs-table"
+        }
+      ],
+      "inputs": [],
+      "buttons": [
+        "Pour les restaurateurs",
+        "Aide",
+        "Explorer",
+        "Actualités",
+        "Anti-gaspi",
+        "Ventes flash",
+        "Tok One",
+        "Plus",
+        "Mode sombre",
+        "Restaurateurs",
+        "CONNEXION",
+        "Ouvrir le menu",
+        "Retour",
+        "Voir les restaurants",
+        "Restaurants"
+      ],
+      "rootChildren": 9,
+      "rootTextLength": 623,
+      "rootTextSample": "Pour les restaurateurs|AideExplorerActualitésAnti-gaspiVentes flashTok OnePlus Mode sombreRestaurateursCONNEXIONOuvrir le menuRetourVotre panier est videExplorez nos restaurants et ajoutez des platsVoir les restaurantsLe réflexe food simple, rentable et solidaire. Commandez, réservez, et savourez.DécouvrirRestaurantsAnti-gaspiVentes flashLa Table du ChefTok OneInformationsÀ proposContactCentre d'aideCGUConfidentialitéRestaurateurDevenir partenaireVoir les packsAudit Google BusinessComparer les commissionsEspace proBientôt disponibleApp StoreGoogle Play© 2026 Tok. Tous droits réservés.ConditionsConfidentialitéCookies",
+      "overflowX": false,
+      "visibleAlerts": [],
+      "bodyScrollHeight": 1296
+    },
+    "logs": [],
+    "screenshot": "C:\\Users\\Pc\\cloud-rebuild-recovered\\outputs\\tok-audit-20260616\\screenshots-playwright\\cart-1280x720.png"
+  },
+  {
+    "route": "/admin",
+    "name": "admin",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "status": 200,
+    "summary": {
+      "url": "http://127.0.0.1:5173/auth?redirect=%2Fadmin",
+      "title": "TOK - Réservez, commandez et profitez des meilleures offres food à Genève",
+      "headings": [],
+      "navLinks": [
+        {
+          "text": "",
+          "href": "/"
+        },
+        {
+          "text": "Explorer",
+          "href": "/recherche"
+        },
+        {
+          "text": "Actualités",
+          "href": "/actualites"
+        },
+        {
+          "text": "Anti-gaspi",
+          "href": "/anti-gaspi"
+        },
+        {
+          "text": "Ventes flash",
+          "href": "/ventes-flash"
+        },
+        {
+          "text": "Tok One",
+          "href": "/tok-one"
+        },
+        {
+          "text": "Restaurateurs",
+          "href": "/restaurateurs/geneve"
+        },
+        {
+          "text": "CONNEXION",
+          "href": "/auth"
+        },
+        {
+          "text": "Restaurants",
+          "href": "/recherche"
+        },
+        {
+          "text": "Anti-gaspi",
+          "href": "/anti-gaspi"
+        },
+        {
+          "text": "Ventes flash",
+          "href": "/ventes-flash"
+        },
+        {
+          "text": "La Table du Chef",
+          "href": "/chefs-table"
+        }
+      ],
+      "inputs": [
+        {
+          "tag": "input",
+          "type": "email",
+          "placeholder": "vous@exemple.com",
+          "aria": null,
+          "name": null
+        },
+        {
+          "tag": "input",
+          "type": "password",
+          "placeholder": "********",
+          "aria": null,
+          "name": null
+        }
+      ],
+      "buttons": [
+        "Pour les restaurateurs",
+        "Aide",
+        "Explorer",
+        "Actualités",
+        "Anti-gaspi",
+        "Ventes flash",
+        "Tok One",
+        "Plus",
+        "Mode sombre",
+        "Restaurateurs",
+        "CONNEXION",
+        "Ouvrir le menu",
+        "Se connecter",
+        "Renvoyer l’email de confirmation",
+        "Continuer avec Google"
+      ],
+      "rootChildren": 8,
+      "rootTextLength": 887,
+      "rootTextSample": "Pour les restaurateurs|AideExplorerActualitésAnti-gaspiVentes flashTok OnePlus Mode sombreRestaurateursCONNEXIONOuvrir le menuBon retourConnectez-vous pour reprendre votre commande, réservation ou parcours en cours.Connexion requise pour continuerUne fois connecté, vous reviendrez automatiquement à votre parcours en cours.EmailMot de passeSe connecterRenvoyer l’email de confirmationouContinuer avec GoogleContinuer avec AppleMot de passe oublié ?Pas encore de compte ? S'inscrireLe réflexe food simple, rentable et solidaire. Commandez, réservez, et savourez.DécouvrirRestaurantsAnti-gaspiVentes flashLa Table du ChefTok OneInformationsÀ proposContactCentre d'aideCGUConfidentialitéRestaurateurDevenir partenaireVoir les packsAudit Google BusinessComparer les commissionsEspace proBientôt disponibleApp StoreGoogle Play© 2026 Tok. Tous droits réservés.ConditionsConfidentialitéCookies",
+      "overflowX": false,
+      "visibleAlerts": [],
+      "bodyScrollHeight": 1450
+    },
+    "logs": [],
+    "screenshot": "C:\\Users\\Pc\\cloud-rebuild-recovered\\outputs\\tok-audit-20260616\\screenshots-playwright\\admin-1280x720.png"
+  },
+  {
+    "route": "/dashboard",
+    "name": "dashboard",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "status": 200,
+    "summary": {
+      "url": "http://127.0.0.1:5173/auth?redirect=%2Fdashboard",
+      "title": "TOK - Réservez, commandez et profitez des meilleures offres food à Genève",
+      "headings": [],
+      "navLinks": [
+        {
+          "text": "",
+          "href": "/"
+        },
+        {
+          "text": "Explorer",
+          "href": "/recherche"
+        },
+        {
+          "text": "Actualités",
+          "href": "/actualites"
+        },
+        {
+          "text": "Anti-gaspi",
+          "href": "/anti-gaspi"
+        },
+        {
+          "text": "Ventes flash",
+          "href": "/ventes-flash"
+        },
+        {
+          "text": "Tok One",
+          "href": "/tok-one"
+        },
+        {
+          "text": "Restaurateurs",
+          "href": "/restaurateurs/geneve"
+        },
+        {
+          "text": "CONNEXION",
+          "href": "/auth"
+        },
+        {
+          "text": "Restaurants",
+          "href": "/recherche"
+        },
+        {
+          "text": "Anti-gaspi",
+          "href": "/anti-gaspi"
+        },
+        {
+          "text": "Ventes flash",
+          "href": "/ventes-flash"
+        },
+        {
+          "text": "La Table du Chef",
+          "href": "/chefs-table"
+        }
+      ],
+      "inputs": [
+        {
+          "tag": "input",
+          "type": "email",
+          "placeholder": "vous@exemple.com",
+          "aria": null,
+          "name": null
+        },
+        {
+          "tag": "input",
+          "type": "password",
+          "placeholder": "********",
+          "aria": null,
+          "name": null
+        }
+      ],
+      "buttons": [
+        "Pour les restaurateurs",
+        "Aide",
+        "Explorer",
+        "Actualités",
+        "Anti-gaspi",
+        "Ventes flash",
+        "Tok One",
+        "Plus",
+        "Mode sombre",
+        "Restaurateurs",
+        "CONNEXION",
+        "Ouvrir le menu",
+        "Se connecter",
+        "Renvoyer l’email de confirmation",
+        "Continuer avec Google"
+      ],
+      "rootChildren": 8,
+      "rootTextLength": 887,
+      "rootTextSample": "Pour les restaurateurs|AideExplorerActualitésAnti-gaspiVentes flashTok OnePlus Mode sombreRestaurateursCONNEXIONOuvrir le menuBon retourConnectez-vous pour reprendre votre commande, réservation ou parcours en cours.Connexion requise pour continuerUne fois connecté, vous reviendrez automatiquement à votre parcours en cours.EmailMot de passeSe connecterRenvoyer l’email de confirmationouContinuer avec GoogleContinuer avec AppleMot de passe oublié ?Pas encore de compte ? S'inscrireLe réflexe food simple, rentable et solidaire. Commandez, réservez, et savourez.DécouvrirRestaurantsAnti-gaspiVentes flashLa Table du ChefTok OneInformationsÀ proposContactCentre d'aideCGUConfidentialitéRestaurateurDevenir partenaireVoir les packsAudit Google BusinessComparer les commissionsEspace proBientôt disponibleApp StoreGoogle Play© 2026 Tok. Tous droits réservés.ConditionsConfidentialitéCookies",
+      "overflowX": false,
+      "visibleAlerts": [],
+      "bodyScrollHeight": 1450
+    },
+    "logs": [],
+    "screenshot": "C:\\Users\\Pc\\cloud-rebuild-recovered\\outputs\\tok-audit-20260616\\screenshots-playwright\\dashboard-1280x720.png"
+  },
+  {
+    "route": "/courier",
+    "name": "courier",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "status": 200,
+    "summary": {
+      "url": "http://127.0.0.1:5173/auth?redirect=%2Fcourier",
+      "title": "TOK - Réservez, commandez et profitez des meilleures offres food à Genève",
+      "headings": [],
+      "navLinks": [
+        {
+          "text": "",
+          "href": "/"
+        },
+        {
+          "text": "Explorer",
+          "href": "/recherche"
+        },
+        {
+          "text": "Actualités",
+          "href": "/actualites"
+        },
+        {
+          "text": "Anti-gaspi",
+          "href": "/anti-gaspi"
+        },
+        {
+          "text": "Ventes flash",
+          "href": "/ventes-flash"
+        },
+        {
+          "text": "Tok One",
+          "href": "/tok-one"
+        },
+        {
+          "text": "Restaurateurs",
+          "href": "/restaurateurs/geneve"
+        },
+        {
+          "text": "CONNEXION",
+          "href": "/auth"
+        },
+        {
+          "text": "Restaurants",
+          "href": "/recherche"
+        },
+        {
+          "text": "Anti-gaspi",
+          "href": "/anti-gaspi"
+        },
+        {
+          "text": "Ventes flash",
+          "href": "/ventes-flash"
+        },
+        {
+          "text": "La Table du Chef",
+          "href": "/chefs-table"
+        }
+      ],
+      "inputs": [
+        {
+          "tag": "input",
+          "type": "email",
+          "placeholder": "vous@exemple.com",
+          "aria": null,
+          "name": null
+        },
+        {
+          "tag": "input",
+          "type": "password",
+          "placeholder": "********",
+          "aria": null,
+          "name": null
+        }
+      ],
+      "buttons": [
+        "Pour les restaurateurs",
+        "Aide",
+        "Explorer",
+        "Actualités",
+        "Anti-gaspi",
+        "Ventes flash",
+        "Tok One",
+        "Plus",
+        "Mode sombre",
+        "Restaurateurs",
+        "CONNEXION",
+        "Ouvrir le menu",
+        "Se connecter",
+        "Renvoyer l’email de confirmation",
+        "Continuer avec Google"
+      ],
+      "rootChildren": 8,
+      "rootTextLength": 887,
+      "rootTextSample": "Pour les restaurateurs|AideExplorerActualitésAnti-gaspiVentes flashTok OnePlus Mode sombreRestaurateursCONNEXIONOuvrir le menuBon retourConnectez-vous pour reprendre votre commande, réservation ou parcours en cours.Connexion requise pour continuerUne fois connecté, vous reviendrez automatiquement à votre parcours en cours.EmailMot de passeSe connecterRenvoyer l’email de confirmationouContinuer avec GoogleContinuer avec AppleMot de passe oublié ?Pas encore de compte ? S'inscrireLe réflexe food simple, rentable et solidaire. Commandez, réservez, et savourez.DécouvrirRestaurantsAnti-gaspiVentes flashLa Table du ChefTok OneInformationsÀ proposContactCentre d'aideCGUConfidentialitéRestaurateurDevenir partenaireVoir les packsAudit Google BusinessComparer les commissionsEspace proBientôt disponibleApp StoreGoogle Play© 2026 Tok. Tous droits réservés.ConditionsConfidentialitéCookies",
+      "overflowX": false,
+      "visibleAlerts": [],
+      "bodyScrollHeight": 1450
+    },
+    "logs": [],
+    "screenshot": "C:\\Users\\Pc\\cloud-rebuild-recovered\\outputs\\tok-audit-20260616\\screenshots-playwright\\courier-1280x720.png"
+  },
+  {
+    "route": "/",
+    "name": "home-mobile",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "status": 200,
+    "summary": {
+      "url": "http://127.0.0.1:5173/",
+      "title": "TOK - Réservez, commandez et profitez des meilleures offres food à Genève",
+      "headings": [
+        "Réservez etcommandezles meilleuresoffres food",
+        "Réservez, commandez et profitezdes meilleures offres food à Genève",
+        "Explorer par cuisine",
+        "Pour ce midi",
+        "Promotions et activations du moment",
+        "Offres Anti-Gaspi",
+        "Programme Fidélité",
+        "La Table du Chef",
+        "Bons plans du moment",
+        "Pour ce soir"
+      ],
+      "navLinks": [
+        {
+          "text": "",
+          "href": "/"
+        },
+        {
+          "text": "Explorer",
+          "href": "/recherche"
+        },
+        {
+          "text": "Actualités",
+          "href": "/actualites"
+        },
+        {
+          "text": "Anti-gaspi",
+          "href": "/anti-gaspi"
+        },
+        {
+          "text": "Ventes flash",
+          "href": "/ventes-flash"
+        },
+        {
+          "text": "Tok One",
+          "href": "/tok-one"
+        },
+        {
+          "text": "Restaurateurs",
+          "href": "/restaurateurs/geneve"
+        },
+        {
+          "text": "CONNEXION",
+          "href": "/auth"
+        },
+        {
+          "text": "Restaurants",
+          "href": "/recherche"
+        },
+        {
+          "text": "Anti-gaspi",
+          "href": "/anti-gaspi"
+        },
+        {
+          "text": "Ventes flash",
+          "href": "/ventes-flash"
+        },
+        {
+          "text": "La Table du Chef",
+          "href": "/chefs-table"
+        }
+      ],
+      "inputs": [
+        {
+          "tag": "input",
+          "type": null,
+          "placeholder": "Votre ville...",
+          "aria": null,
+          "name": null
+        },
+        {
+          "tag": "input",
+          "type": "text",
+          "placeholder": "Cuisine, nom de restaurant...",
+          "aria": null,
+          "name": null
+        },
+        {
+          "tag": "input",
+          "type": null,
+          "placeholder": "Votre ville...",
+          "aria": null,
+          "name": null
+        },
+        {
+          "tag": "input",
+          "type": "text",
+          "placeholder": "Cuisine, nom de restaurant...",
+          "aria": null,
+          "name": null
+        }
+      ],
+      "buttons": [
+        "Réessayer le son",
+        "Pour les restaurateurs",
+        "Aide",
+        "Explorer",
+        "Actualités",
+        "Anti-gaspi",
+        "Ventes flash",
+        "Tok One",
+        "Plus",
+        "Mode sombre",
+        "Restaurateurs",
+        "CONNEXION",
+        "Ouvrir le menu",
+        "Je veux manger",
+        "Restaurateur"
+      ],
+      "rootChildren": 10,
+      "rootTextLength": 6584,
+      "rootTextSample": "Réessayer le sonPour les restaurateurs|AideExplorerActualitésAnti-gaspiVentes flashTok OnePlus Mode sombreRestaurateursCONNEXIONOuvrir le menuRéservez etcommandezles meilleuresoffres foodÀ Genève, cumulez desMiamz solidaires à chaque repasJe veux mangerRestaurateurAbonnez-vous à notre newsletter et recevez 500 Miamz.Conditions applicables. Inscrivez-vousRéservez, commandez et profitezdes meilleures offres food à GenèveGagnez du temps, cumulez des Miamz et transformez vos repas en impact solidaire.Je veux mangerJe suis restaurateur4.8/5Restaurants locaux partenairesAbonnez-vous à notre newsletter et recevez 500 Miamz. Conditions applicables.Inscrivez-vousÀ votre goûtExplorer par cuisineAfricainAfricainAméricainAméricainBistroBistroBoulangerieBoulangerieBrunchBrunchBurgerBurgerCaféCaféChinoisChinoisCréoleCréoleDessertsDessertsFondue SuisseFondue SuisseFrançaisFrançaisGastronomiqueGastronom",
+      "overflowX": false,
+      "visibleAlerts": [],
+      "bodyScrollHeight": 15371
+    },
+    "logs": [
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 404 ()"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 404 ()"
+      }
+    ],
+    "screenshot": "C:\\Users\\Pc\\cloud-rebuild-recovered\\outputs\\tok-audit-20260616\\screenshots-playwright\\home-mobile-390x844.png"
+  },
+  {
+    "route": "/recherche",
+    "name": "search-mobile",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "status": 200,
+    "summary": {
+      "url": "http://127.0.0.1:5173/recherche",
+      "title": "TOK - Réservez, commandez et profitez des meilleures offres food à Genève",
+      "headings": [
+        "Trouvez le bon restaurant, plus vite"
+      ],
+      "navLinks": [
+        {
+          "text": "",
+          "href": "/"
+        },
+        {
+          "text": "Explorer",
+          "href": "/recherche"
+        },
+        {
+          "text": "Actualités",
+          "href": "/actualites"
+        },
+        {
+          "text": "Anti-gaspi",
+          "href": "/anti-gaspi"
+        },
+        {
+          "text": "Ventes flash",
+          "href": "/ventes-flash"
+        },
+        {
+          "text": "Tok One",
+          "href": "/tok-one"
+        },
+        {
+          "text": "Restaurateurs",
+          "href": "/restaurateurs/geneve"
+        },
+        {
+          "text": "CONNEXION",
+          "href": "/auth"
+        },
+        {
+          "text": "Restaurants",
+          "href": "/recherche"
+        },
+        {
+          "text": "Anti-gaspi",
+          "href": "/anti-gaspi"
+        },
+        {
+          "text": "Ventes flash",
+          "href": "/ventes-flash"
+        },
+        {
+          "text": "La Table du Chef",
+          "href": "/chefs-table"
+        }
+      ],
+      "inputs": [
+        {
+          "tag": "input",
+          "type": null,
+          "placeholder": "Nom, cuisine, plat ou adresse...",
+          "aria": null,
+          "name": null
+        },
+        {
+          "tag": "input",
+          "type": null,
+          "placeholder": "Ville...",
+          "aria": null,
+          "name": null
+        }
+      ],
+      "buttons": [
+        "Pour les restaurateurs",
+        "Aide",
+        "Explorer",
+        "Actualités",
+        "Anti-gaspi",
+        "Ventes flash",
+        "Tok One",
+        "Plus",
+        "Mode sombre",
+        "Restaurateurs",
+        "CONNEXION",
+        "Ouvrir le menu",
+        "Retour",
+        "Rechercher",
+        "Africain"
+      ],
+      "rootChildren": 9,
+      "rootTextLength": 4347,
+      "rootTextSample": "Pour les restaurateurs|AideExplorerActualitésAnti-gaspiVentes flashTok OnePlus Mode sombreRestaurateursCONNEXIONOuvrir le menuRetourExplorerTrouvez le bon restaurant, plus viteRecherchez par nom, cuisine ou ville, puis affinez uniquement si nécessaire.21restaurant(s) visible(s)RechercherAfricainAmericainBoulangerieBrunchBurgerCafe FiltresType de cuisineBudgetToutes les notesOuiLivraisonTrier par :PertinenceDecroissantSélection disponibleAffinez si nécessaire, sinon ouvrez directement une fiche restaurant.21 resultat(s) LivraisonPizzeria Da LuigiItalien/Moyen4.5(456)Genève39-49 minBoulevard Carl-Vogt 65Voir le restaurant11:3012:00Prochains créneaux visibles. Plus d'options sur la fiche. LivraisonLa Table LibanaiseLibanais/Moyen4.7(278)Genève31-41 minRue de Zurich 8Voir le restaurant11:3012:00Prochains créneaux visibles. Plus d'options sur la fiche. LivraisonChez Mamie ThaïThaïlandais/Écon",
+      "overflowX": false,
+      "visibleAlerts": [],
+      "bodyScrollHeight": 11863
+    },
+    "logs": [],
+    "screenshot": "C:\\Users\\Pc\\cloud-rebuild-recovered\\outputs\\tok-audit-20260616\\screenshots-playwright\\search-mobile-390x844.png"
+  }
+]

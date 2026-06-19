@@ -1,0 +1,104 @@
+﻿kind	branch	head	date	author	subject	upstream	track
+local	a	d1bdc86f	2026-05-26	RaphaÃ«l Barman	2	origin/a	[behind 40]
+local	codex/admin-restaurant-sheet-display	abd79a4d	2026-06-07	RaphaÃ«l Barman	fix: show admin restaurant sheet in dialog	origin/codex/admin-restaurant-sheet-display
+local	codex/admin-security-business-audit-hardening	4e9c8df5	2026-06-03	RaphaÃ«l Barman	fix(admin): harden audit and sensitive business mutations	origin/codex/admin-security-business-audit-hardening
+local	codex/ajouter-revenus-compta-admin	8dd29e97	2026-05-16	RaphaÃ«l Barman	2	origin/codex/ajouter-revenus-compta-admin
+local	codex/audit-low-risk-cleanup	a1c5ea16	2026-06-03	RaphaÃ«l Barman	fix(audit): clean low-risk copy and dead code	origin/codex/audit-low-risk-cleanup
+local	codex/chef-table-vip-miamz	62a17129	2026-06-07	RaphaÃ«l Barman	feat: finalize TOK dashboard and ad delivery fixes
+local	codex/continuer-audit-production	6e9f085e	2026-05-31	mtnrconcept	Merge pull request #66 from mtnrconcept/a
+local	codex/designnouveau	8dd29e97	2026-05-16	RaphaÃ«l Barman	2
+local	codex/execute-plan-20260607-031639	f26cc392	2026-06-07	RaphaÃ«l Barman	fix: improve launch readiness and modal dropdown layering
+local	codex/fix-frontend-10k-public-images	2ab0d0bc	2026-06-02	RaphaÃ«l Barman	fix(frontend): optimize added public images	origin/codex/fix-frontend-10k-public-images
+local	codex/fix-photo-studio-edge-errors	67ff23c0	2026-06-02	RaphaÃ«l Barman	Merge origin/main into codex/fix-photo-studio-edge-errors	origin/codex/fix-photo-studio-edge-errors
+local	codex/fix-photo-studio-source-fidelity-prompt	0bbe3046	2026-06-02	RaphaÃ«l Barman	fix(photo): enforce source-fidelity edit prompt
+local	codex/hardening-10k-supabase-reliability	3f125a3c	2026-06-02	RaphaÃ«l Barman	fix(frontend): optimize added public images	origin/codex/hardening-10k-supabase-reliability
+local	codex/integration-open-prs	fefc24e4	2026-06-07	RaphaÃ«l Barman	fix: tolerate duplicate payment transaction history	origin/main	[behind 98]
+local	codex/livreur	28bd09e1	2026-05-31	RaphaÃ«l Barman	2	origin/codex/livreur
+local	codex/local-git-auto-sync	deec24cc	2026-06-02	RaphaÃ«l Barman	feat(dev): add safe local git auto sync	origin/codex/local-git-auto-sync
+local	codex/newux	356f3fdd	2026-04-25	RaphaÃ«l Barman	2	origin/codex/newux
+local	codex/plan-2-alternative-commission-page	3c703223	2026-06-07	RaphaÃ«l Barman	feat: add commission alternative landing page	origin/codex/plan-2-alternative-commission-page
+local	codex/plan-2-fk-indexes	10300247	2026-06-07	RaphaÃ«l Barman	perf: add plan 2 foreign key index migration	origin/codex/plan-2-fk-indexes
+local	codex/plan-2-google-business	ab411e83	2026-06-07	RaphaÃ«l Barman	feat: add Google Business restaurateur acquisition page	origin/codex/plan-2-google-business
+local	codex/plan-2-security-definer-revokes	75b7d91f	2026-06-07	RaphaÃ«l Barman	docs: classify plan 2 security definer rpc exposure	origin/codex/plan-2-security-definer-revokes
+local	codex/plan-completion-20260607-remaining	92d54c9f	2026-06-07	RaphaÃ«l Barman	feat: enrich SEO prerender and legal readiness
+local	codex/plan-continuation-20260607-0400	d2841452	2026-06-07	RaphaÃ«l Barman	feat: harden launch analytics and SEO readiness
+local	codex/production-reliability-priorities-ai-payments	7fcf83b0	2026-06-03	RaphaÃ«l Barman	Polish homepage hero responsive design	origin/codex/production-reliability-priorities-ai-payments	[ahead 4, behind 5]
+local	codex/restaurateur-onboarding-payments	b9637c58	2026-06-15	RaphaÃ«l Barman	Add restaurateur onboarding subscriptions
+local	codex/sauvegarde-changements-20260607-031126	040381dd	2026-06-07	RaphaÃ«l Barman	fix: improve modal dropdown layering	origin/codex/sauvegarde-changements-20260607-031126
+local	codex/social-cross-post	65c700cc	2026-06-07	RaphaÃ«l Barman	feat: add restaurateur social cross-posting	origin/codex/social-cross-post
+local	codex/ss	7c070b32	2026-05-31	RaphaÃ«l Barman	2	origin/codex/ss
+local	codex/tok-ai-platform	b2db178f	2026-06-02	RaphaÃ«l Barman	scsc	origin/codex/tok-ai-platform
+local	codex/tokone	0f53207e	2026-05-31	mtnrconcept	Merge pull request #68 from mtnrconcept/codex/tokone	origin/codex/tokone	[ahead 1]
+local	main	1ff0c94c	2026-06-15	RaphaÃ«l Barman	Add progressive reservation offers	origin/main
+local	production	b5826dc2	2026-04-23	RaphaÃ«l Barman	rrr	origin/production
+local	seo/tok-local-positioning	25630c8c	2026-06-08	RaphaÃ«l Barman	Fix mobile cart suggestion cards
+remote	origin/a	0f30b9e4	2026-05-31	mtnrconcept	Merge branch 'main' into a
+remote	origin/accueil	7e007504	2026-04-02	RaphaÃ«l Barman	2
+remote	origin/audit/tok-production-hardening	2cd377fa	2026-06-02	mtnrconcept	feat(actualites): align social cards with news feed mockup
+remote	origin/chatgpt/match-groupes-prepay-ui	762640ce	2026-06-01	mtnrconcept	Test write on chatgpt branch
+remote	origin/codex/add-admin-notification-for-restaurateur-signup	83d6d91b	2026-06-13	mtnrconcept	Ensure restaurateur signup dossiers reach admin
+remote	origin/codex/adjust-header-images-alignment	e84a1db3	2026-06-11	mtnrconcept	Fix homepage section header illustration placement
+remote	origin/codex/admin-restaurant-sheet-display	abd79a4d	2026-06-07	RaphaÃ«l Barman	fix: show admin restaurant sheet in dialog
+remote	origin/codex/admin-security-business-audit-hardening	4e9c8df5	2026-06-03	RaphaÃ«l Barman	fix(admin): harden audit and sensitive business mutations
+remote	origin/codex/ajouter-deploiement-des-details-de-la-facture	52255903	2026-04-27	mtnrconcept	feat(admin): add mobile invoice detail access in compta inflow
+remote	origin/codex/ajouter-revenus-compta-admin	8dd29e97	2026-05-16	RaphaÃ«l Barman	2
+remote	origin/codex/ameliorer-la-responsivite-du-tableau	0e36235c	2026-04-27	mtnrconcept	Fix mobile invoice history responsiveness in admin and dashboard
+remote	origin/codex/ameliorer-la-responsivite-du-tableau-des-factures	53084aa8	2026-04-26	mtnrconcept	Improve mobile responsiveness for invoice history tables
+remote	origin/codex/analyser-faiblesses-pour-rivaliser	b6c1ce11	2026-03-27	RaphaÃ«l Barman	2
+remote	origin/codex/audit-low-risk-cleanup	a1c5ea16	2026-06-03	RaphaÃ«l Barman	fix(audit): clean low-risk copy and dead code
+remote	origin/codex/finalize-updates-for-tok-photo-studio	f1422646	2026-06-02	mtnrconcept	feat(photo): default TOK image generation to high quality
+remote	origin/codex/fix-admin-dashboard-issues-for-restaurateur-accounts	9f72143b	2026-06-14	mtnrconcept	Fix restaurateur signup dossiers and roles
+remote	origin/codex/fix-ambiguous-column-reference-in-edge-function	94ae56e7	2026-06-15	mtnrconcept	Fix signup application RPC ambiguity
+remote	origin/codex/fix-edge-function-non-2xx-status-code	8cac655a	2026-06-14	mtnrconcept	Fix signup document edge uploads
+remote	origin/codex/fix-frontend-10k-public-images	2ab0d0bc	2026-06-02	RaphaÃ«l Barman	fix(frontend): optimize added public images
+remote	origin/codex/fix-login-bug-for-restaurateur-accounts	d8837ba4	2026-06-13	mtnrconcept	Fix pending restaurateur onboarding access
+remote	origin/codex/fix-outdated-pnpm-lockfile	7b9996d5	2026-05-26	mtnrconcept	chore: pin pnpm version for consistent Vercel installs
+remote	origin/codex/fix-outdated-pnpm-lockfile-gwz78k	c34a9e12	2026-05-26	mtnrconcept	fix: support Supabase env fallback during Vercel build
+remote	origin/codex/fix-outdated-pnpm-lockfile-hb3biq	6373c98e	2026-05-26	mtnrconcept	fix: support Supabase env fallback during Vercel build
+remote	origin/codex/fix-photo-studio-edge-errors	67ff23c0	2026-06-02	RaphaÃ«l Barman	Merge origin/main into codex/fix-photo-studio-edge-errors
+remote	origin/codex/fix-photo-studio-source-fidelity-prompt	0bbe3046	2026-06-02	RaphaÃ«l Barman	fix(photo): enforce source-fidelity edit prompt
+remote	origin/codex/fix-responsiveness-for-all-pages	cb97b20e	2026-04-25	mtnrconcept	fix: renforcer la responsivitÃ© mobile globale et bloquer le scroll horizontal
+remote	origin/codex/fix-webkit-masked-url-issues	e591f1f3	2026-05-14	mtnrconcept	Filter masked browser extension Sentry errors
+remote	origin/codex/flags-cleanup	5e4ffac2	2026-06-09	RaphaÃ«l Barman	2
+remote	origin/codex/hardening-10k-supabase-reliability	3f125a3c	2026-06-02	RaphaÃ«l Barman	fix(frontend): optimize added public images
+remote	origin/codex/improve-tok-one-page-design-and-subscriptions	0b73e5b9	2026-04-26	mtnrconcept	Improve Tok One page design and enable subscription access
+remote	origin/codex/livreur	28bd09e1	2026-05-31	RaphaÃ«l Barman	2
+remote	origin/codex/local-git-auto-sync	deec24cc	2026-06-02	RaphaÃ«l Barman	feat(dev): add safe local git auto sync
+remote	origin/codex/newux	356f3fdd	2026-04-25	RaphaÃ«l Barman	2
+remote	origin/codex/plan-2-alternative-commission-page	3c703223	2026-06-07	RaphaÃ«l Barman	feat: add commission alternative landing page
+remote	origin/codex/plan-2-fk-indexes	10300247	2026-06-07	RaphaÃ«l Barman	perf: add plan 2 foreign key index migration
+remote	origin/codex/plan-2-google-business	ab411e83	2026-06-07	RaphaÃ«l Barman	feat: add Google Business restaurateur acquisition page
+remote	origin/codex/plan-2-security-definer-revokes	75b7d91f	2026-06-07	RaphaÃ«l Barman	docs: classify plan 2 security definer rpc exposure
+remote	origin/codex/production-reliability-priorities-ai-payments	685d62d9	2026-06-03	RaphaÃ«l Barman	2
+remote	origin/codex/refactor-dashboard-responsiveness-for-mobile	e9d84933	2026-04-26	mtnrconcept	Fix mobile overflow on admin and restaurateur invoice tables
+remote	origin/codex/remove-added-shadow-and-show-full-pin-image	4a0839d8	2026-06-11	mtnrconcept	Use original pin header image
+remote	origin/codex/remplacer-le-logo-par-logotok.png	2f132e7a	2026-06-11	mtnrconcept	Use logotok brand logo
+remote	origin/codex/resolve-admin-issues-69-94	3bdb28d8	2026-06-01	mtnrconcept	feat(admin): add marketplace alert rpc
+remote	origin/codex/sauvegarde-changements-20260607-031126	040381dd	2026-06-07	RaphaÃ«l Barman	fix: improve modal dropdown layering
+remote	origin/codex/social-cross-post	65c700cc	2026-06-07	RaphaÃ«l Barman	feat: add restaurateur social cross-posting
+remote	origin/codex/ss	7c070b32	2026-05-31	RaphaÃ«l Barman	2
+remote	origin/codex/strict-feature-visibility	24a6c075	2026-06-09	mtnrconcept	feat: enforce cascading feature flag availability
+remote	origin/codex/tok-ai-platform	b2db178f	2026-06-02	RaphaÃ«l Barman	scsc
+remote	origin/codex/tok-financial-b2b-model	a50c3051	2026-06-06	RaphaÃ«l Barman	Implement SEO and platform UX hardening
+remote	origin/codex/tokone	c500a9e1	2026-05-31	RaphaÃ«l Barman	2
+remote	origin/docs/tok-ide-skills-index	938adef6	2026-06-02	mtnrconcept	docs(agents): reference TOK IDE skills
+remote	origin/dÃ©ployement-google	448417cc	2026-03-23	RaphaÃ«l Barman	2
+remote	origin/feat/admin-log-filters-20260602	561195bc	2026-06-02	mtnrconcept	feat(admin): add advanced audit log filters
+remote	origin/feature/strict-feature-flag-governance	3e3d03a8	2026-06-09	mtnrconcept	feat: simplify support chat to generic surface
+remote	origin/fix/ai-image-enhance-errors	512d8a91	2026-06-02	mtnrconcept	Expose actionable OpenAI image errors
+remote	origin/fix/ci-prod-vitest-readiness	6cd612b3	2026-06-09	mtnrconcept	test: assert enforced frontend asset budget
+remote	origin/fix/homepage-positioning-guard	55514b0b	2026-06-09	mtnrconcept	chore: remove temporary verification file
+remote	origin/fix/homepage-positioning-guard-current	6be4a185	2026-06-09	mtnrconcept	Fix homepage showcase positioning guard
+remote	origin/fix/meal-subscription-multi-restaurant-test	b85a2ba2	2026-06-02	mtnrconcept	Fix meal subscription cart tests with dynamic occurrence totals
+remote	origin/fix/studio-gallery-logo-preview	9b9bd01c	2026-06-03	mtnrconcept	Govern invoices reviews and Tok One currency (#228)
+remote	origin/fix/tok-photo-source-preservation	7a181d0d	2026-06-02	mtnrconcept	fix(ai): require strict source image edits
+remote	origin/fix/tok-photo-source-preservation-20260602	dbd90bd3	2026-06-02	mtnrconcept	fix(ai): make TOK photo studio v2 preserve source
+remote	origin/hardening/scale-readiness-10000-daily-orders	f3f96bec	2026-06-02	mtnrconcept	test(scale): guard production checkout scale readiness
+remote	origin/hardening/scale-readiness-10000-daily-orders-v2	f11cb867	2026-06-02	mtnrconcept	docs(agents): reference TOK IDE skills
+remote	origin/ios	89e754b1	2026-03-19	RaphaÃ«l Barman	2
+remote	origin/main	1ff0c94c	2026-06-15	RaphaÃ«l Barman	Add progressive reservation offers
+remote	origin/plandesalle2	f3625737	2026-04-11	RaphaÃ«l Barman	2
+remote	origin/preview	87f81b98	2026-05-31	mtnrconcept	Add RPC for robust match group creation
+remote	origin/production	b5826dc2	2026-04-23	RaphaÃ«l Barman	rrr
+remote	origin/rrefonte	0b11e547	2026-03-14	RaphaÃ«l Barman	2
+remote	origin/rÃ©servation	6fb06ddf	2026-03-23	RaphaÃ«l Barman	2

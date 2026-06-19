@@ -1,187 +1,120 @@
-# Welcome to your Lovable project
+# TOK / TheTok
 
-## Project info
+TOK est une plateforme suisse pour la decouverte de restaurants, la commande, la reservation, la fidelite, les operations restaurateur, le dispatch coursier et l'administration plateforme.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Stack
 
-## Supabase target safety
+- React, Vite, TypeScript
+- Tailwind CSS et composants shadcn/Radix
+- Supabase PostgreSQL, Auth, RLS, Edge Functions et Storage
+- Stripe Checkout, abonnements, webhooks et Connect
+- Vercel pour le frontend
+- Capacitor pour les builds mobiles
+- pnpm `10.28.1`
+- Node.js `22`
 
-This repo can talk to different Supabase projects depending on which env file
-the frontend loads and which project the Supabase CLI is linked to locally.
-That is the main source of "it worked in Antigravity but broke in Codex local"
-drift on this project.
+## URLs de reference
 
-Rules for this repo:
+- Site public : `https://www.thetok.ch`
+- Admin : `https://admin.thetok.ch`
+- Cible frontend de production actuelle : `https://cloud-rebuild-recovered.vercel.app/`
+- Supabase production : `wwcrtyoueexyxkkikaos`
 
-- `supabase/.temp/` is local-only and must never be committed.
-- The repo standardizes on the npm Supabase CLI via `npx supabase`. Do not rely on
-  ad-hoc local binaries under `.tools/`.
-- The default local target is development. Switch targets explicitly instead of
-  reusing stale CLI link metadata.
-- Run `npm run supabase:target:dev` to reset local work to the development
-  project.
-- Run `npm run supabase:target:prod` before a production deploy, then relink if
-  your CLI needs it.
-- Run `npm run supabase:doctor` before `supabase db push` or `supabase functions deploy`.
-- Run `npm run supabase:doctor:prod` before any production deploy.
-- Run `npm run release:readiness` before a full production/mobile release. It
-  fails closed when production payments, mobile app links, Android signing, or
-  transactional delivery secrets are missing.
-- Prefer `npm run supabase:db:push:prod` for production migrations. It aligns the target,
-  runs the doctor, relinks the CLI, then pushes to the production project in one command.
-- If the doctor fails, align the frontend env and your local `supabase link`
-  target before continuing.
+## Installation locale
 
-## GitHub Actions production deploy
+```sh
+corepack enable
+corepack prepare pnpm@10.28.1 --activate
+pnpm install
+```
 
-This repo now ships a dedicated production workflow at
-`.github/workflows/deploy-production.yml`.
+## Commandes principales
 
-What it does on `main` / `master` pushes and manual runs:
+```sh
+pnpm dev
+pnpm build
+pnpm build:prod
+pnpm lint
+pnpm test
+pnpm test:prod
+```
 
-- validates the production build with real production env values
-- aligns the checkout to the production Supabase target
-- syncs Edge Function secrets to the hosted Supabase project
-- pushes pending database migrations
-- deploys all Supabase Edge Functions
-- deploys the frontend to Vercel if the Vercel secrets are present
+## Supabase
 
-Required GitHub secrets for the Supabase deploy:
+Les changements de base doivent passer par les scripts du depot et par des migrations nouvelles. Ne modifiez pas les anciennes migrations deja appliquees.
 
-- `SUPABASE_ACCESS_TOKEN`
-- `SUPABASE_DB_PASSWORD`
+Commandes utiles :
 
-Recommended GitHub secrets for frontend production builds:
+```sh
+pnpm supabase:target:dev
+pnpm supabase:doctor
+pnpm supabase:target:prod
+pnpm supabase:doctor:prod
+pnpm supabase:db:push:prod
+```
 
-- `VITE_STRIPE_PUBLISHABLE_KEY`
-- `VITE_FIREBASE_API_KEY`
-- `VITE_FIREBASE_AUTH_DOMAIN`
-- `VITE_FIREBASE_PROJECT_ID`
-- `VITE_FIREBASE_MESSAGING_SENDER_ID`
-- `VITE_FIREBASE_APP_ID`
-- `VITE_FIREBASE_VAPID_KEY`
+Avant toute operation risquee, verifiez la cible Supabase. Les secrets ne doivent pas etre commit.
 
-Optional but supported frontend/build metadata secrets:
+## Variables d'environnement
 
-- `VITE_SUPABASE_PROJECT_ID`
+Les variables frontend exposees commencent par `VITE_`. Elles sont publiques dans le bundle navigateur.
+
+Variables frontend courantes :
+
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_PUBLISHABLE_KEY`
-- `VITE_SENTRY_DSN`
+- `VITE_SUPABASE_PROJECT_ID`
+- `VITE_STRIPE_PUBLISHABLE_KEY`
+- variables publiques Firebase si le push web est active
 
-Optional Supabase Edge Function secrets synced by the workflow when present:
+Secrets Edge Functions courants :
 
 - `SUPABASE_URL`
 - `SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `STRIPE_SECRET_KEY`
-- `STRIPE_WEBHOOK_SECRET` for the primary Stripe webhook destination
-- `STRIPE_WEBHOOK_SIGNING_SECRET` for an optional second destination on the same endpoint URL
+- `STRIPE_WEBHOOK_SECRET`
+- `STRIPE_WEBHOOK_SIGNING_SECRET`
 - `INTERNAL_CRON_SECRET`
 - `OPENAI_API_KEY`
 - `OPENAI_MODEL`
 - `RESEND_API_KEY`
 - `EMAIL_FROM`
-- `APP_BASE_URL`
-- `PUBLIC_APP_URL`
-- `SITE_URL`
 - `ALLOWED_ORIGINS`
-- `FIREBASE_SERVICE_ACCOUNT`
-- `LOVABLE_API_KEY`
-- `FIRECRAWL_API_KEY`
+- secrets Firebase serveur si necessaires
 
-Optional Vercel deploy secrets:
+Consultez `.env.example` pour le modele local sans valeurs reelles.
 
-- `VERCEL_TOKEN`
-- `VERCEL_ORG_ID`
-- `VERCEL_PROJECT_ID`
+## Deploiement
 
-Local production frontend deploy sequence:
+La production est geree par GitHub Actions et Vercel. Le workflow de production :
 
-```sh
-node ./scripts/write-production-env.mjs --out=.env.production.local
-npx vercel@latest pull --yes --environment=production
-npx vercel@latest --prod
-```
+1. installe avec pnpm,
+2. valide lint/tests/build selon le workflow,
+3. cible Supabase production,
+4. pousse les migrations via les scripts du depot,
+5. synchronise les secrets Edge Functions autorises,
+6. deploie les fonctions Supabase,
+7. deploie le frontend Vercel si les secrets Vercel sont presents.
 
-Common commands:
+Ne creez pas de preview Vercel automatique depuis ce depot. La configuration `vercel.json` garde `deploymentEnabled: false`.
 
-```sh
-npm install
-npm run supabase:target:dev
-npm run supabase:doctor
-npm run supabase:db:push:prod
-npm run supabase:doctor:prod
-npm run release:readiness
-```
+## Regles de contribution
 
-## How can I edit this code?
+- Utiliser pnpm, pas npm, pour les workflows du depot.
+- Ne jamais exposer `SUPABASE_SERVICE_ROLE_KEY` ou une cle Stripe secrete cote frontend.
+- Garder les roles `client`, `restaurateur`, `courier` et `admin` separes.
+- Ne pas contourner RLS depuis le front.
+- Recalculer les montants critiques cote serveur.
+- Ajouter ou adapter des tests pour les zones paiement, commande, admin, Supabase, RLS, notifications et IA.
+- Garder les fichiers texte en UTF-8.
 
-There are several ways of editing your application.
+## Documentation projet
 
-**Use Lovable**
+Les garde-fous agent et projet sont dans `docs/skills/`, notamment :
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Verify that the frontend target and local Supabase link agree.
-npm run supabase:target:dev
-npm run supabase:doctor
-
-# Step 5: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+- `TOK_APPLICATION_SKILL.md`
+- `TOK_GLOBAL_RULES.md`
+- `TOK_SUPABASE_RLS_SKILL.md`
+- `TOK_TESTING_SKILL.md`
+- `TOK_RELEASE_GATEKEEPER.md`

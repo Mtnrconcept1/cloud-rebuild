@@ -147,7 +147,6 @@ jobs:
       FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
       FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
       FIREBASE_TOKEN_URI: ${{ secrets.FIREBASE_TOKEN_URI }}
-      LOVABLE_API_KEY: ${{ secrets.LOVABLE_API_KEY }}
       FIRECRAWL_API_KEY: ${{ secrets.FIRECRAWL_API_KEY }}
 
     steps:

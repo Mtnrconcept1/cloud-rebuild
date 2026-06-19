@@ -120,8 +120,7 @@ Deno.serve(async (req) => {
     actor = await authenticateRequest(req, { allowServiceRole: false });
     if (!actor.userId) throw new HttpError(401, "Unauthorized");
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!OPENAI_API_KEY && !LOVABLE_API_KEY) {
+    if (!OPENAI_API_KEY) {
       log.error("ai_provider_missing");
       throw new HttpError(503, "ai_service_unavailable");
     }
@@ -323,17 +322,12 @@ RÈGLES :
 - Si une donnée manque, dis-le honnêtement
 - Propose des actions prioritaires classées par impact`;
 
-    const useOpenAI = !!OPENAI_API_KEY;
-    model = useOpenAI ? selectTokAiModel("strategy") : "google/gemini-3-flash-preview";
+    model = selectTokAiModel("strategy");
 
-    const aiUrl = useOpenAI
-      ? "https://api.openai.com/v1/chat/completions"
-      : "https://ai.gateway.lovable.dev/v1/chat/completions";
-
-    const response = await fetch(aiUrl, {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${useOpenAI ? OPENAI_API_KEY : LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -343,7 +337,7 @@ RÈGLES :
           ...messages,
         ],
         stream: true,
-        stream_options: useOpenAI ? { include_usage: true } : undefined,
+        stream_options: { include_usage: true },
       }),
     });
 

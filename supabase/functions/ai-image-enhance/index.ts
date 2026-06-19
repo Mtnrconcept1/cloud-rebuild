@@ -432,22 +432,22 @@ function buildMarketingVisualResult(input: {
   const enhancedPrompt = [
     input.userPrompt,
     "",
-    "Objectif: générer une affiche marketing finale, pas un brief.",
-    "Utiliser les visuels de référence fournis pour reprendre la mascotte, le logo, la palette orange TOK, le style publicitaire, les panneaux blancs inclinés, les badges, les icônes et la hiérarchie visuelle.",
-    "Le rendu cible est une affiche verticale premium de recrutement restaurateur: fond orange dynamique, mascotte chef TOK à gauche, logo TOK visible, grand message promotionnel lisible au centre, bénéfices en bas, CTA clair et URL thetok.ch.",
-    "Texte à rendre lisible si la demande le contient: 50% DE RABAIS, pour les 50 premiers restaurateurs inscrits, Offre de lancement, Inscrire mon restaurant, thetok.ch.",
-    `Restaurant associé: ${input.restaurantName}. Format demandé: ${input.format}. Références visuelles: ${input.referenceImageCount}.`,
-    "Contraintes: conserver l'identité TOK des références, ne pas inventer d'autre marque, ne pas ajouter de coordonnées privées, ne pas remplacer TOK par une marque générique.",
+    "Objectif: générer un visuel marketing final pour le restaurateur, pas un brief.",
+    "Utiliser exclusivement les visuels de référence fournis dans cette requête comme source d'identité visuelle: logo, palette, typographies, textures, style photo, composition, formes, badges, icônes, hiérarchie et ton commercial.",
+    "Ne jamais appliquer l'identité visuelle de la plateforme par défaut, ne jamais ajouter sa mascotte, son logo, son URL, sa palette ou ses messages si le prompt courant et les références actives ne le demandent pas explicitement.",
+    "Ignorer toute identité, tout asset, tout prompt ou toute préférence provenant d'une génération précédente. Les références actives de cette requête remplacent complètement les anciennes.",
+    `Restaurant associé: ${input.restaurantName}. Format demandé: ${input.format}. Références visuelles actives: ${input.referenceImageCount}.`,
+    "Contraintes: respecter la marque visible dans les fichiers actifs, ne pas inventer d'autre marque, ne pas ajouter de coordonnées privées, ne pas créer de faux label officiel, garder le texte demandé lisible.",
   ].join("\n").slice(0, 4200);
 
   return {
-    title: "Image marketing TOK",
+    title: "Image marketing restaurant",
     enhanced_prompt: enhancedPrompt,
     edit_instructions: "",
-    alt_text: "Affiche marketing TOK générée par IA",
+    alt_text: "Visuel marketing restaurant généré par IA",
     publication_caption: "",
     checklist: [],
-    style_tags: ["tok", "marketing", "campaign", input.format],
+    style_tags: ["marketing", "campaign", input.format],
     safety_notes: [],
     marketing_angles: [],
   };
@@ -761,9 +761,11 @@ Deno.serve(async (req) => {
         "",
         "Instructions finales de composition:",
         "- Produire une image finale complète au format affiche, pas des variantes de logo isolé.",
-        "- S'inspirer des références sans copier les captures d'écran brutes.",
+        "- S'inspirer uniquement des références actives envoyées dans cette requête sans copier les captures d'écran brutes.",
+        "- Les références actives remplacent toute identité ou tout prompt d'une génération précédente.",
         "- Le texte principal doit être très grand, contrasté et lisible.",
-        "- Le rendu doit ressembler à une publicité TOK terminée, proche d'une affiche professionnelle prête pour validation.",
+        "- Le rendu doit ressembler à une publicité professionnelle terminée pour la marque du restaurateur, prête pour validation.",
+        "- Ne pas utiliser l'identité visuelle de la plateforme sauf si les références actives fournies par le restaurateur sont elles-mêmes des visuels de cette plateforme.",
       ].join("\n").slice(0, 7000)
       : sourceImageUrl
       ? [
@@ -840,11 +842,12 @@ Deno.serve(async (req) => {
         marketing_asset_mode: marketingAssetMode,
         reference_image_urls: referenceImageUrls,
         reference_image_count: referenceImageUrls.length,
+        reference_identity_scope: marketingAssetMode ? "current_uploaded_restaurant_resources" : "source_or_tok_photo_studio",
         original_prompt: prompt,
         dish_name: dishName,
         format: format.label,
         source_preservation_policy: sourceImageUrl ? "strict_source_edit_no_generation_fallback" : "generation_without_source",
-        reference_folder: `public${TOK_REFERENCE_FOLDER}`,
+        reference_folder: marketingAssetMode ? null : `public${TOK_REFERENCE_FOLDER}`,
       },
     });
 
@@ -932,7 +935,7 @@ Deno.serve(async (req) => {
       image_mode: usedImageOptions?.mode,
       brand_overlay_positioning: "frontend_transparent_layer",
       brand_overlay_size: "180x180",
-      reference_folder: `public${TOK_REFERENCE_FOLDER}`,
+      reference_folder: marketingAssetMode ? null : `public${TOK_REFERENCE_FOLDER}`,
       status: "stored",
     }, 200, cors);
   } catch (err) {

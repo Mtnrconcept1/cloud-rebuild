@@ -1,0 +1,1031 @@
+﻿hash	short	date	author	email	subject
+1ff0c94c614ea523e0361a0bd233aad059c655ce	1ff0c94c	2026-06-15T09:06:29+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Add progressive reservation offers
+48406e141bc2b5e73e72cb47ef931b83ab1feb01	48406e14	2026-06-15T08:27:10+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Refine restaurant onboarding billing and floor plan AI
+599431d3355a9f3761910bfca7c448e5a47946e9	599431d3	2026-06-15T06:32:50+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Expand floor plan workspace
+504d176a88be0bfe0a3b91bac0df2bb64f51b0a3	504d176a	2026-06-15T06:26:51+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Fix floor plan zoom controls
+4c6e2c2cd038e0f117e0ebb94e35f0fbca64898b	4c6e2c2c	2026-06-15T06:19:56+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Finalize restaurant tooling and billing updates
+bf4b7ff037bb88dc7fb00437d05e3f4ed7529173	bf4b7ff0	2026-06-15T05:06:31+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Fix signup review application ambiguity
+f5d7edd921240bd2b601e0b7e1d1ba0ffec2d1ae	f5d7edd9	2026-06-15T04:47:25+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	feat(floor-plan): add automatic image import variants
+b5112e98e5ddb95515eb92f4b466099993748568	b5112e98	2026-06-15T04:27:08+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	fix(signup): resolve document upsert ambiguity
+288cea90f767deb2156215b2d17226f96c212c24	288cea90	2026-06-15T03:56:42+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Update restaurant dashboard and onboarding flows
+b9637c58aeef9c6e4e11aacbfa6f4e2d3d2fa1ad	b9637c58	2026-06-15T02:41:13+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Add restaurateur onboarding subscriptions
+e283506d92eb9aa4e551ba911f1350f4c84c4f3e	e283506d	2026-06-15T00:13:22+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Fix signup application RPC ambiguity (#259)
+94ae56e772d893a88992344bd84199805717612d	94ae56e7	2026-06-15T00:13:11+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Fix signup application RPC ambiguity
+7183c6f29736ac98d62bea3b60c57981af93e855	7183c6f2	2026-06-14T23:20:37+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Fix signup document edge uploads (#258)
+8cac655ad75bd2d17068efb5e87a57d27db4db66	8cac655a	2026-06-14T23:20:23+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Fix signup document edge uploads
+51666e5c2b9598756d00e6ef26610096eace56a9	51666e5c	2026-06-14T22:45:36+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Fix restaurateur signup dossiers and roles (#257)
+9f72143b262c994f5951525581d79f6917441b70	9f72143b	2026-06-14T22:44:54+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Fix restaurateur signup dossiers and roles
+1f646eeefb166a5d3f619cd622fa8e7b1ec51e60	1f646eee	2026-06-13T11:17:14+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Ensure restaurateur signup dossiers reach admin (#256)
+83d6d91be47555da2c27d3dfd509e530cc25efe5	83d6d91b	2026-06-13T11:16:38+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Ensure restaurateur signup dossiers reach admin
+945f4d91e30716cb80c42f6b0c4a007c1a084dc3	945f4d91	2026-06-13T05:43:35+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add logout button across interfaces (#255)
+bc802713a7c01a28a96a4a9a93b4c7191412395c	bc802713	2026-06-13T05:19:14+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Block privileged roles from client ordering surfaces (#254)
+e1ff4e80bd822a56c7393da073d5949085e92ed4	e1ff4e80	2026-06-13T05:03:14+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Fix signup role routing after email confirmation (#253)
+5263e90f6b0c9fcb0c0b92803979ef0feffdf981	5263e90f	2026-06-13T04:10:23+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Fix pending restaurateur onboarding access (#252)
+d8837ba42ec147c357fbd69daf5c6f7ef9c00c4f	d8837ba4	2026-06-13T04:09:06+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Fix pending restaurateur onboarding access
+496de66269b0f7d34d1622ae85d32c10a38f6223	496de662	2026-06-13T00:40:58+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Fix restaurateur signup session handling (#251)
+69bc2f8e6ff1ba7316fb3d4e107f3de47e977ee5	69bc2f8e	2026-06-12T22:36:55+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Fix signup email confirmation flow (#250)
+fce78900b837e8f1e5294b1543a4b893f410558e	fce78900	2026-06-11T15:53:40+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Rotate active sponsored campaigns
+6237afec137bc05a920f06da42293a7a3290c114	6237afec	2026-06-11T15:36:44+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Keep homepage rails for signed-in users
+34b6864f26ff84ca9c9ec5770d3521bec619f66a	34b6864f	2026-06-11T15:30:35+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Fade navbar on scroll direction
+feba3643b4782c739b5b8b735042f21e39587771	feba3643	2026-06-11T15:20:55+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Move actualites navbar tab
+6696fe3d0a3ddd53bd94f566d0d3340693b79dd2	6696fe3d	2026-06-11T15:14:35+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Update navbar help and shortcuts
+f95c16a8f979d6e2749eae804910bbf103b7d548	f95c16a8	2026-06-11T14:39:34+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Order Actualites sponsored feed
+93b6457541aaa1346d0946ac176337ee8d90df5a	93b64575	2026-06-11T14:31:49+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Automate campaign placements
+8c9dbbe741e56909192bd3660d3854a6dda809a1	8c9dbbe7	2026-06-11T14:12:08+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Fix promo chef image clipping
+5fb7da45380912a8b0e714cafdc5caf926770cec	5fb7da45	2026-06-11T14:06:49+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Automate event logos
+72774f5795d9d233261dcbb6b43ff20d8832cce9	72774f57	2026-06-11T13:47:44+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Replace brand logo asset
+f2d9eda0ccf272ff05ceb023649387b139236296	f2d9eda0	2026-06-11T12:27:23+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Use logotok brand logo (#249)
+02609fdb9a44bd41472e56f4aa112c03d6de229d	02609fdb	2026-06-11T11:49:00+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Use logotok brand logo (#248)
+2f132e7a0b9a0ac3a95d6b50fc042c46b420ffa7	2f132e7a	2026-06-11T11:48:45+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Use logotok brand logo
+a4db8ab67087b368f188dd33a0d3e7a311244179	a4db8ab6	2026-06-11T10:14:04+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add files via upload
+6f5142ee2553fde27d9f50cc2887b697cd8e82e5	6f5142ee	2026-06-11T10:06:25+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add files via upload
+59a3627a9cf73fd107ddf3241fb791bebbadb3bf	59a3627a	2026-06-11T09:42:28+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Use original pin header image (#247)
+4a0839d86d0d0aafff7c6e8b836e8b72a488ce44	4a0839d8	2026-06-11T09:42:13+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Use original pin header image
+2dc8b0701ac4d9fde4cd6e1641e2d088f25ac549	2dc8b070	2026-06-11T06:32:57+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Fix homepage section header illustration placement (#246)
+e84a1db3ef287f372fb3fb5f6c8d0cf26a43fbf4	e84a1db3	2026-06-11T06:32:38+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Fix homepage section header illustration placement
+8454f980d6ef84a809f6b1ca161e21f445974135	8454f980	2026-06-11T05:38:29+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix: load homepage section header positioning styles
+1d122d4de2d755c15dc16eb7efc1bb337e6a79d6	1d122d4d	2026-06-11T05:38:15+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix: constrain homepage section header artwork
+8e50e275aee79c90316e5a54971b03c1a710f61f	8e50e275	2026-06-11T05:15:04+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Update section header positioning guards
+52605d1105aecdcbfd0c24c9282d9662374b745c	52605d11	2026-06-11T05:13:23+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Fix section header illustration positioning
+30a161adfb50f8e4306535786222a37a2b509b0c	30a161ad	2026-06-11T00:16:36+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add files via upload
+e853a186c53361b44013f48025dd626b0d42c439	e853a186	2026-06-11T00:15:25+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add files via upload
+08fb693bd54b090509bee3d9ddce37e0c56ff042	08fb693b	2026-06-11T00:12:42+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Delete public/images/section-headers/pin-3d.png
+8b8c9bab9592915861a1283d02e78a709872411a	8b8c9bab	2026-06-11T00:03:34+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add files via upload
+79bd05a0cbc27c9c44fe6a9b329ccbb2486649ff	79bd05a0	2026-06-11T00:03:12+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Delete public/images/section-headers/pin-3d.png
+e807aca5c527b75915b0f3dd74f108d1dd5ef946	e807aca5	2026-06-11T00:02:59+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Delete public/images/section-headers/heart-3d.png
+616fab6c590660d9b80d65d5cb3360ecee1606ce	616fab6c	2026-06-10T23:49:05+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix: replace broken heart and pin section header images
+f8d7f24fb9e5a5fd14f03e091a1030ee5f94da52	f8d7f24f	2026-06-10T14:46:04+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	feat: Replace section header images - add heart-3d.png and pin-3d.png for homepage sections
+f05418fbf228a790ea38768c3dbd23fb154fff3c	f05418fb	2026-06-10T14:38:42+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add files via upload
+3ee0bd4692b182ce947426f6f7ef156e345586a6	3ee0bd46	2026-06-10T14:37:23+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Delete public/images/section-headers/864DB634-B132-4A7E-8443-CCB38318F96D.jpeg
+a3511df2d1ffd7ce3ff23d8ef3c70e46bfbcfced	a3511df2	2026-06-10T14:36:54+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Delete public/images/section-headers/A5F314DA-0208-45A3-8C73-EAB3F910059F.jpeg
+76a8941b9cacccdc0e7ec635514241ade2838aba	76a8941b	2026-06-10T14:32:40+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Delete public/images/section-headers/heart-3d.png
+f12850eafac0b4830e01ca3119faf81cf8dab16b	f12850ea	2026-06-10T14:31:41+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add files via upload
+3e105375f6669a9c1b52becabb77fd593ca79162	3e105375	2026-06-09T22:50:28+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Fix homepage showcase positioning guard (#245)
+6be4a185eae4185708c54c1c1af34712149a063b	6be4a185	2026-06-09T22:47:45+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Fix homepage showcase positioning guard
+65d4c56b743b1afc4a9c4dd5ddcd3d11ca5d41e4	65d4c56b	2026-06-09T21:51:51+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Contain home section header illustrations
+e09047021da82326527697481e692022d37d9966	e0904702	2026-06-09T21:44:25+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Update meal-subscription-cart.test.tsx
+3bfdb6b776ac18ada87f281cbb7c9c857e4ec5ae	3bfdb6b7	2026-06-09T21:41:39+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Update meal-subscription-cart.test.tsx
+830892c4d6f540dc54eef48547585915903260f5	830892c4	2026-06-09T13:14:03+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Renforce les CGU TOK pour le droit suisse
+24a6c07558e7d6bd68e6e92a1d53b9a927c318b0	24a6c075	2026-06-09T13:13:53+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	feat: enforce cascading feature flag availability
+4db0286898f2566821300309ff1846a2af51c545	4db02868	2026-06-09T13:09:45+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	feat: add order flag helper
+d7f7574b0b02284a20965108ce2c8d4e04a9698d	d7f7574b	2026-06-09T13:08:52+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	feat: add active delivery helper
+1f087f983fe07e77e5743400b879efe7bb0d9ef1	1f087f98	2026-06-09T13:07:58+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	feat: add active feature set helper
+412dd0eefbb415044e6f37d47e224550aef80f05	412dd0ee	2026-06-09T12:54:22+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	feat: add feature visibility helpers
+3e3d03a811aecd980d014099cb45cc9f181df46f	3e3d03a8	2026-06-09T12:18:14+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	feat: simplify support chat to generic surface
+4e67208aa434c9db61464efe16feb1c758f1153a	4e67208a	2026-06-09T12:14:42+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	chore: restore README after feature flag note
+e66593248f1f869a5c6ea7e4df3dd7d683f03e49	e6659324	2026-06-09T12:09:02+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	feat: make legal copy service-flag neutral
+aa415eb8de21b23dcc0440e10c7e12adbb33279b	aa415eb8	2026-06-09T12:05:30+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	feat: neutralize about page unavailable service copy
+47d662492c0e8424619816102d5df00eada62fd5	47d66249	2026-06-09T12:02:00+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	feat: read active features in help button
+2141e9c30cfba1077e702c8296db57f02864ad20	2141e9c3	2026-06-09T12:01:08+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	feat: prepare help button for feature flags
+6b6a98b22c876df64c65fd1c02fade13c32757d4	6b6a98b2	2026-06-09T11:53:03+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	docs: mark help chat feature flag surface
+8f4064191b8e1b600217f6a5877d67791adcdba5	8f406419	2026-06-09T11:52:45+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	docs: note feature flag governance
+55514b0bf378ab84a333b9bce9e10c64c10e08dc	55514b0b	2026-06-09T11:35:59+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	chore: remove temporary verification file
+cf267ca3c603542ca33b5ee8fdbf5e2a150d2bac	cf267ca3	2026-06-09T11:34:20+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	noop
+c6a9f7a0c9893ea0a93385ab50a53314ef668e2b	c6a9f7a0	2026-06-09T08:32:21+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Fix CI production Vitest readiness (#243)
+6cd612b3eb7b0284ba224ffab14bdf477c482a69	6cd612b3	2026-06-09T08:29:34+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	test: assert enforced frontend asset budget
+aa1313a66ec00f34b0390384d4ccdafa3ecdcd06	aa1313a6	2026-06-09T08:28:10+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	test: align frontend readiness guard with routed assets
+73d1dbc90d382ea4e124b81694a9deca31ad377c	73d1dbc9	2026-06-09T08:22:34+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	test: mock IntersectionObserver in Vitest setup
+5e4ffac2104dd6d8e75d4d225067007caaa87703	5e4ffac2	2026-06-09T07:57:57+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+0ac2ca3307ca68c3573b8f4582db213dfc8f54de	0ac2ca33	2026-06-09T04:58:00+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Use custom artwork for homepage section headers
+efa47c456f1c18beb59ccc3fb0776e11f9811aa0	efa47c45	2026-06-09T04:51:29+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Prepare Android Google Play release
+584b3c61771b8b271f2dc7c7ebe603f5dcceb2ef	584b3c61	2026-06-09T04:16:47+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Improve homepage section headers
+f9e249d63261ef1ae1a786d1d424a38c61aec3e6	f9e249d6	2026-06-09T03:42:07+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	chore: prepare ios app store readiness
+909685125ca89187ca92343a078180eebb7bd7e5	90968512	2026-06-08T22:05:54+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	fix: improve sponsored badge visibility
+6f22462904249339e84e0b6e651c0fd250495887	6f224629	2026-06-08T21:45:39+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	feat: gate tok one offers and refine homepage sections
+37e73d106909c380249d815cdae6ecac3f27ed1b	37e73d10	2026-06-08T15:55:26+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Add sign in password visibility toggle
+271c1730fe8f3d8c0337a71213a40c012dd325d5	271c1730	2026-06-08T15:33:59+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Add signup password visibility toggle
+19259919ebdefbc66bbe1fb9ccbf4085981812d1	19259919	2026-06-08T08:16:30+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Notify admins when corrections are completed
+745ed98e9eb60a670c5ef4e4b81810b51480be3f	745ed98e	2026-06-08T08:11:12+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Add restaurant correction request workflow
+a7ceef958616af5b20f74c7787b622599ed23365	a7ceef95	2026-06-08T07:56:00+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Fix admin restaurant detail RPC payout lookup
+97d417b9142d87da5f23852a37e453ac3401d0fe	97d417b9	2026-06-08T07:36:22+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Fix admin restaurant detail fallback
+3c8fbfba46c825c6a966242eb17f73d8551d3d07	3c8fbfba	2026-06-08T07:06:58+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Add audited marketplace alert take action
+04a7c98b68bbdd620dec1a61d030bedd6247c521	04a7c98b	2026-06-08T06:22:54+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Show restaurant replies in admin reviews
+b4ee8f282fbf08fb032f4e8aee2567351bd912a8	b4ee8f28	2026-06-08T05:54:03+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Fix review moderation migration redeploy
+e1b26933820e2363200ad6237c59cacd85a13986	e1b26933	2026-06-08T05:41:55+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Add restaurant review response workflow
+924ec6159be878349ffc9568b343d50f5e8d85cb	924ec615	2026-06-08T04:44:35+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Hide configured Google Business actions
+c04de957569ec8eb4bdc0072e590476e0fcb4fe6	c04de957	2026-06-08T04:15:42+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Fix Google Business action feedback
+52c5198d8f678894afd4fd30e0b95953befcd310	52c5198d	2026-06-08T03:06:35+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Fix Tok One Stripe subscription periods
+43a1c8d8d2cad4ed814ddaaf9abb14421d1ea849	43a1c8d8	2026-06-08T02:42:33+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Fix Tok One Stripe test key activation
+671cb965982ff7bc61641707c93cc606f0b45336	671cb965	2026-06-08T02:14:03+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Personalize checkout product suggestions
+a6d5c2a6b5033796eff0f216c9cb852d99025c76	a6d5c2a6	2026-06-08T01:14:25+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Fix La Gazelle promotion seed constraints
+8543f5640527d6d74b7da6277b0168e631c7e0c1	8543f564	2026-06-08T01:09:17+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	On seo/tok-local-positioning: wip seo local positioning tests
+af7cbfbd63380b809d476357c81c35c80a184e73	af7cbfbd	2026-06-08T01:09:17+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	index on seo/tok-local-positioning: 25630c8c Fix mobile cart suggestion cards
+25630c8c1f8190167d7deed625aa27fe9b78d697	25630c8c	2026-06-08T00:58:07+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Fix mobile cart suggestion cards
+ac904f754216ccf03dece5f7167dd9df4f87292f	ac904f75	2026-06-08T00:46:04+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Link La Gazelle d'Or to rbarman
+4b974133072d53ad0cd4581eb893534e496e2fe4	4b974133	2026-06-08T00:32:01+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Fix cart suggestion cards on mobile
+f47149d7022390abf34fa63fe4f4d5a7687782bc	f47149d7	2026-06-08T00:31:54+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Add mobile theme toggle to app shells
+4030b1f0a06ea219e2f00eafebae26446ed9ba22	4030b1f0	2026-06-08T00:31:47+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Fix Tok One Stripe test activation
+72e9909277bc99dea149e7169f4b2f4e04658570	72e99092	2026-06-07T23:45:33+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	fix: make cart suggestions responsive
+1e55a0706884ede2632d7db1593b0a6cdb819ff7	1e55a070	2026-06-07T23:45:07+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	feat: seed la gazelle dor restaurant
+0cd701d3ca34001a9939a3d7640481692d717920	0cd701d3	2026-06-07T23:07:35+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	feat: add Google Business booking setup
+f0d008b049339a2e70f6a79af96269ea0a1bd5ad	f0d008b0	2026-06-07T21:57:02+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	feat: improve cart checkout and Tok One sync
+8cc135209ed1010ee49e8a5ef4058af0578e2601	8cc13520	2026-06-07T20:47:48+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	fix: rotate sponsored campaigns and wire B2B funnel
+56f33a6ec3b9353f85498095f86af8ba7369f528	56f33a6e	2026-06-07T20:18:23+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	fix: cap sponsored restaurant placements
+6146ad1ac06887cb5f0fbb4cf5586a4f59d2f0db	6146ad1a	2026-06-07T20:03:40+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	fix: track multi-campaign actualites conversions
+e041b87cd24c02260c34a879f14cfb83c08b5997	e041b87c	2026-06-07T11:13:44+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	feat: finalize TOK dashboard governance updates
+62a1712973bd6c6d0dde3cfee2220acfa483118f	62a17129	2026-06-07T09:05:27+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	feat: finalize TOK dashboard and ad delivery fixes
+fefc24e4f7ea1b84d17a1f75fe94db015775623c	fefc24e4	2026-06-07T07:39:29+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	fix: tolerate duplicate payment transaction history
+94bf9fa88eb1a3104f88bac17db962f649923365	94bf9fa8	2026-06-07T07:29:37+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	fix: reorder production migration timestamps
+6ddf74572328a121e33fa93cb3f882ffc8ca1e17	6ddf7457	2026-06-07T07:15:15+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Merge remote-tracking branch 'origin/codex/admin-restaurant-sheet-display' into codex/integration-open-prs
+4af294f08ac1a836b8a555ba9862015cf4e84e70	4af294f0	2026-06-07T07:15:06+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Merge remote-tracking branch 'origin/codex/plan-2-alternative-commission-page' into codex/integration-open-prs
+f1eee5eaa48c325d7379f907729a50a6b081f2cd	f1eee5ea	2026-06-07T07:12:21+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Merge remote-tracking branch 'origin/codex/plan-2-security-definer-revokes' into codex/integration-open-prs
+541d1266036d1eaf4b2586c045a4614b731c690b	541d1266	2026-06-07T07:12:14+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Merge remote-tracking branch 'origin/codex/plan-2-fk-indexes' into codex/integration-open-prs
+6173a539584e0bd6b43a7b2dcd6feee70afcded7	6173a539	2026-06-07T07:12:07+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Merge remote-tracking branch 'origin/codex/social-cross-post' into codex/integration-open-prs
+2f5b75416f6d52e0283695784425bbeb7a287bc0	2f5b7541	2026-06-07T07:12:00+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Merge remote-tracking branch 'origin/codex/plan-2-google-business' into codex/integration-open-prs
+53f7484442496f9630b26b603236d6a92abc46e8	53f74844	2026-06-07T07:11:53+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Merge remote-tracking branch 'origin/hardening/scale-readiness-10000-daily-orders' into codex/integration-open-prs
+abd79a4ddf321500bed9c058503c4a906b99ba09	abd79a4d	2026-06-07T07:03:03+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	fix: show admin restaurant sheet in dialog
+3c703223d552e217eadbb7cc97f7de52c73f8858	3c703223	2026-06-07T06:47:56+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	feat: add commission alternative landing page
+75b7d91f6379bde9946eef86fe85c245714a3413	75b7d91f	2026-06-07T06:29:40+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	docs: classify plan 2 security definer rpc exposure
+a7e89fd104b43713df3fda9fbc91139b7cb6f513	a7e89fd1	2026-06-07T06:18:49+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	fix: harden sensitive security definer rpc grants
+10300247d840354cb12a386a7ae46e8dee58b411	10300247	2026-06-07T06:05:20+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	perf: add plan 2 foreign key index migration
+65c700ccfef411af8a166496ab2b38c85d7534c5	65c700cc	2026-06-07T06:03:14+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	feat: add restaurateur social cross-posting
+ab411e8397eaccff71a585a78e659b1baa57eea8	ab411e83	2026-06-07T05:34:50+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	feat: add Google Business restaurateur acquisition page
+ee7e4c602e0f56f90224c43cd1da43910c69d2c3	ee7e4c60	2026-06-07T05:04:37+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	fix: hide SEO prerender fallback from hydrated app
+92d54c9ffd15356d2eb0868c1a3ebf76c1194f6c	92d54c9f	2026-06-07T04:36:34+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	feat: enrich SEO prerender and legal readiness
+d2841452d4c9145bdf99a4553d15f0417c2ca458	d2841452	2026-06-07T04:19:13+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	feat: harden launch analytics and SEO readiness
+f26cc39206a44888bbde91224b649b68cd23edbf	f26cc392	2026-06-07T03:52:36+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	fix: improve launch readiness and modal dropdown layering
+040381dddb9ce54afafe4378b50ba0d15bf9865f	040381dd	2026-06-07T03:02:45+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	fix: improve modal dropdown layering
+f8945a82349a765090ddf7f99a39235e1fc262ee	f8945a82	2026-06-07T00:43:46+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Add notification history pages
+6c7bf589866823ab642f61e7cc0473508dd57a71	6c7bf589	2026-06-06T06:22:47+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Fix floor plan inspector tab setter
+05018b2c3df329d04056aec03bb5729632a164ca	05018b2c	2026-06-06T06:05:09+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Repair loyalty tier status for AI support chat
+191267c8b82c700881ae9f80b13d6b0d35ef4b24	191267c8	2026-06-06T03:14:39+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Move social media bucket migration after remote head
+a50c305195ea0e99632771144fea39596907192a	a50c3051	2026-06-06T00:59:28+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Implement SEO and platform UX hardening
+6a2881af1363cf5620e2c677650f4256a6d1b9f6	6a2881af	2026-06-05T22:33:47+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Branche les tickets du chat support admin
+1bac45f4b898251ab502e3f5d9a004ba9b4d90ec	1bac45f4	2026-06-05T22:24:46+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Ameliore dashboards et exports comptables
+4a702ab678dbf7804a8d5e9e87ad0bcfbc6c98e4	4a702ab6	2026-06-05T21:04:30+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Require Stripe test key for Tok One
+76fa335bf24c70a9f26c20fa44194fbe928b9240	76fa335b	2026-06-05T20:53:07+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Fix Miamz refund queue migration
+f55f1df19adce797aa15f59c699e4ac79249465e	f55f1df1	2026-06-05T20:42:06+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Wire Miamz benefits and Tok One test Stripe
+1608e8d7cd07f8964048fd8d85b6a1497f588933	1608e8d7	2026-06-05T19:50:51+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	feat: manage Miamz benefits from admin
+3d3010d3c74abc87d5197964a640ba6a3e6bd284	3d3010d3	2026-06-05T19:18:14+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Improve space help chat access
+44fbf814e50b47719bcaec3eca301396d6bf92e5	44fbf814	2026-06-05T18:47:14+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Add intro video and AI loading states
+9ce10c0c7080f5df1119c50c2db992577e80fe54	9ce10c0c	2026-06-05T18:32:31+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Fix mobile overlays and DNS docs
+5307dd73a0d44fbd517ad3387eabc239e56dfa19	5307dd73	2026-06-05T16:08:36+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	fix: harden admin domain and query limits
+f2574440a2dfac7a2780a6bb3d46a889ecbc2556	f2574440	2026-06-05T06:50:50+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	fix: share realtime notification channel
+03fc89c6ec91b6be0072c4de8b517b3d20f31658	03fc89c6	2026-06-05T06:21:31+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	fix: repair client chat modals and sponsored campaigns
+a647289aa1d73b274a107e6a8c4091082b4cce36	a647289a	2026-06-05T05:48:10+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	feat: add global notification center and chat sinistres
+344ab5550e5225096e0365053b38a60e76cf3e88	344ab555	2026-06-05T05:09:20+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	fix: reset admin operations audit signals
+f42b0fce502de5244fd3d89583ddd275669c5713	f42b0fce	2026-06-05T04:46:19+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	fix: make admin log reset safe delete compatible
+babff93718b4cddddf163a8f02b7935defc3e938	babff937	2026-06-05T04:37:10+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	feat: add courier mobile navigation controls
+3a6b1beca12b2a40c63ccdf443bcd0adf74d72fd	3a6b1bec	2026-06-05T04:28:54+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	fix: reduce stale admin operations alerts
+0a10f1a729336b49ddde08a2691d39c10e1a5d9a	0a10f1a7	2026-06-05T04:18:02+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	fix: open admin user details in modal
+7f3df7e872d6e5f7aa1375bfa86c0583f5714627	7f3df7e8	2026-06-05T03:56:25+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	fix: harden admin ai monitor responses
+aa5fc6f426a89712d0ffb9fb558312b385ba4418	aa5fc6f4	2026-06-05T03:22:57+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	fix: finalize admin compta and monitoring fixes
+586ab63c183bff87a9a9de40508cf37a943ab6d5	586ab63c	2026-06-05T03:13:40+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	fix: pass frontend env to vercel build
+a9d22653443ddca3e5f4e503bd97e9897cbba868	a9d22653	2026-06-05T01:34:55+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Fix production Vercel deploy path
+e47cf2ca764148e9ad96851dfc4793ef0f1e9dfc	e47cf2ca	2026-06-05T01:23:57+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Fix Firebase web push VAPID validation
+fda4ce0ad16f3ec108a575f7552548fd3696d0a7	fda4ce0a	2026-06-04T20:42:07+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Add mobile admin navigation menu
+e9f15419a0dbb9ca24663d4791a45f88bf050d67	e9f15419	2026-06-04T19:14:38+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Fix admin mobile back button visibility
+49e1ea0039763ab0a4b79349926576f671792d11	49e1ea00	2026-06-04T02:43:33+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Resolve remaining governance issues and admin navigation
+fff73542a31a82f5736fc527d90ff2de2242e74e	fff73542	2026-06-04T01:15:09+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Fix admin log reset migration delimiter
+95769db68dbc8c8bb13f751f77f0c0fdf62c44cc	95769db6	2026-06-04T01:06:42+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Upgrade react router dependency
+12c9e8d632d045926a9c7de3b470fc76ea677f3c	12c9e8d6	2026-06-04T01:03:08+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Add admin log reset controls
+fb8cee8abbb8c67ea1121499321f3ca40628852a	fb8cee8a	2026-06-03T23:59:27+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Improve admin order history mobile tables
+59ab181994d84fa1c13581f93047728edeccd91f	59ab1819	2026-06-03T23:45:46+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Add consistent back navigation buttons
+e46919b6f14e3f9071a1cb7141b0f58601002221	e46919b6	2026-06-03T23:28:41+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Improve admin mobile responsiveness
+37f089fad2467854faa8283476fccbbe8ec7bd26	37f089fa	2026-06-03T21:44:55+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Finalize AI photo and offer governance updates
+5269293779fe2af7fa4a6a16ea8b54b6238740b3	52692937	2026-06-03T18:57:50+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Fix admin accounting invoice actions (#231)
+b994f0560082494a15f4bc93c2d18d3fb653160b	b994f056	2026-06-03T18:33:19+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Preserve guaranteed delivery slot context in cart (#230)
+e172187c7096b8f9cf9d09a2832314da3888a346	e172187c	2026-06-03T18:18:25+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Preserve Zero Attente context and tune studio watermark (#229)
+9b9bd01cf50a55ed25989d0f0bbfe1b3f990ef6c	9b9bd01c	2026-06-03T18:00:15+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Govern invoices reviews and Tok One currency (#228)
+0e46b5dcf34081c7abfe2a320c9ec76cc6cc718f	0e46b5dc	2026-06-03T17:42:35+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Fix restaurant media migration order (#227)
+d61af43bd5ff1be4e093293de7b9e02db32bd4d2	d61af43b	2026-06-03T17:31:28+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Fix restaurant media cover and storage cleanup (#226)
+47cb34b780447d101750060b9f01d2519e595432	47cb34b7	2026-06-03T16:57:38+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix(gallery): expose restaurant photos to clients (#225)
+eacc4dc937382b61e617cae9673d6134041de0a0	eacc4dc9	2026-06-03T16:41:07+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix(notifications): govern support and campaign flows (#224)
+cb69931455776c45f22ce68916dba9b74ca4d323	cb699314	2026-06-03T16:20:37+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix(ai): make photo studio edits more resilient (#223)
+0c6b8e0abbab223d59bb0020fdd91baa0e11ae76	0c6b8e0a	2026-06-03T16:04:49+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix(rls): replace generic authenticated policies
+c628d301eacead71cf9b5336107556ba11842c75	c628d301	2026-06-03T15:59:57+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix(ai): update photo studio edit prompt
+c837c8a5494fbaa36b0bbd1f232ecc998dc9f555	c837c8a5	2026-06-03T15:39:16+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix(rls): harden policy ownership gates
+80c53abe6b0253a040e4465a8997fa922d58af1f	80c53abe	2026-06-03T15:25:30+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #219 from mtnrconcept/codex/home-copy-asset-cleanup
+2328edf6fa2dda8c504673dbee48213459e9ffeb	2328edf6	2026-06-03T15:21:13+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	fix(home): clean mobile copy and optimize assets
+50d809adb3c6dfea265d37b331bd23374e12fc7f	50d809ad	2026-06-03T15:06:21+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix(flags): guard platform config and pricing constraints (#218)
+7aabcf9e518152b3a20c8729dac29dfc89bfe37a	7aabcf9e	2026-06-03T14:54:31+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix(ops): guard admin operations and dispatch proof (#217)
+9a1c49528dd029c02c00205604971c0eaebb6570	9a1c4952	2026-06-03T14:43:22+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix(nav): clean dashboard shell routing (#216)
+3e4210ca1b9f68d3a088bcca5acd9089b455e39b	3e4210ca	2026-06-03T14:33:51+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix(photo): export premium AI photos with TOK watermark (#214)
+5f155833fbac8f006060714b0d9e278e05429c06	5f155833	2026-06-03T14:32:56+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix(audit): clean low-risk copy and dead code (#215)
+a1c5ea1619e5e1ff153fc3c37ea3fa48b6778978	a1c5ea16	2026-06-03T14:31:50+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	fix(audit): clean low-risk copy and dead code
+7fcf83b09d9419d2cbf715e6318db86ddd107d4d	7fcf83b0	2026-06-03T05:35:41+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Polish homepage hero responsive design
+ad77e828bc6560e65d9eb0041cc347506fee0bfd	ad77e828	2026-06-03T02:46:26+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+685d62d920098098a25afe1091799241719ed6c8	685d62d9	2026-06-03T02:46:26+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+3b39d12f18d835d41c72fa3157ed7bc3933b855a	3b39d12f	2026-06-03T02:33:18+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Codex/production reliability priorities ai payments (#146)
+b9f576bcae195fe1d3861dd6990315a210fe0ec6	b9f576bc	2026-06-03T02:32:22+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+ea950ab2e616bc39a3abb2bed7f32b0be8f00678	ea950ab2	2026-06-03T02:13:51+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+4cfcc6ed4022ba550f8efef632b6792aee289e37	4cfcc6ed	2026-06-03T02:00:20+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix: harden production reliability checks (#145)
+5ff9711032ecc63cd147189937405ddfe566672b	5ff97110	2026-06-03T01:58:52+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Remove AI agent and add delivery proof signature flow
+760d7eed6d5987cbc499b9552c649dffde2877eb	760d7eed	2026-06-03T01:19:12+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	fix: harden production reliability checks
+5b4f3404fcdbf022dfcf082877af631078f58c3b	5b4f3404	2026-06-03T00:44:54+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix(photo): avoid source edit timeout 503 (#143)
+536d462dabd5498e4825df30a23d34568f091c97	536d462d	2026-06-03T00:37:39+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix(admin): harden audit and sensitive business mutations (#144)
+2d1b434de5d1c77c2b6a438cc74e23b1e3bc3022	2d1b434d	2026-06-03T00:18:00+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix(admin): harden audit and sensitive business mutations (#142)
+4e9c8df5a742eae6e802eef10d2fbc4aa8191db8	4e9c8df5	2026-06-03T00:11:00+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	fix(admin): harden audit and sensitive business mutations
+3e39007dcd50897a3f6264f73d210f345ff18521	3e39007d	2026-06-02T23:26:59+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix(navbar): keep dropdowns visible after scroll (#141)
+7232a3967450c4e9f9b3ee3f3840b27a9420862f	7232a396	2026-06-02T23:12:12+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Replace wine glass loader with TOK neon logo studio loader
+1d5b8aaf8327e6c5d016d495a71928f4684caade	1d5b8aaf	2026-06-02T22:54:11+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix(navbar): keep action bar stable on click
+cfc64d66f7f5df9574560cc972a2b6b999790366	cfc64d66	2026-06-02T22:29:35+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix(photo): add generated image preview download
+0cb5f477ee2e8341754e62e25888f4e9bfd26f81	0cb5f477	2026-06-02T21:59:25+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix(photo): add TOK logo reference to studio images
+eaf3768144ddcaf81100cd2ab0527f3317c1f2d9	eaf37681	2026-06-02T21:01:39+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix(photo): enforce source-fidelity edit prompt
+0bbe3046e9ab5daee8309009a170e7ae98bd5a39	0bbe3046	2026-06-02T20:48:55+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	fix(photo): enforce source-fidelity edit prompt
+9193bf9475f35039348432430e594023337ed1f2	9193bf94	2026-06-02T20:26:08+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix(photo): harden TOK studio image generation
+67ff23c092b7d6dc70ecdcadac94fc8791948592	67ff23c0	2026-06-02T20:21:36+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Merge origin/main into codex/fix-photo-studio-edge-errors
+bb1b8f1807e8376b4dc099fd27bfd6a01d563b76	bb1b8f18	2026-06-02T20:11:48+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Fix AI image enhance errors and configurable rate limits (#136)
+9bcb18bf34e79510cd3ff955ab5e15172219d1c6	9bcb18bf	2026-06-02T20:11:47+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	test(frontend): avoid stale dist in readiness unit test
+ec2969148683598237c58178aa59edd6cbf374db	ec296914	2026-06-02T20:02:24+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	fix(photo): harden TOK studio image generation
+512d8a9188fee28aa12e149fbb887d0bfa4d7d40	512d8a91	2026-06-02T20:02:18+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Expose actionable OpenAI image errors
+6d50b3d993ec2e685c6210f82da0e4a7f4a27c3c	6d50b3d9	2026-06-02T19:49:34+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Make edge function rate limits configurable
+7bd73dccba9582353647afbeef1e0ca4cc12103c	7bd73dcc	2026-06-02T19:40:36+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	feat(admin): add advanced audit log filters (#134)
+561195bc1578785421301c495c19b4ff84e54d47	561195bc	2026-06-02T19:39:20+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	feat(admin): add advanced audit log filters
+4f18a594f6d321466fd27aba84bd43783a576141	4f18a594	2026-06-02T19:22:58+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix(ai): require strict source image edits (#133)
+7a181d0d1ddb3f90dec2d959bea77a4b1e3a7c14	7a181d0d	2026-06-02T19:21:56+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix(ai): require strict source image edits
+d5f343597ea72c24798d7e9f54f905309530e6aa	d5f34359	2026-06-02T19:05:00+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix(photo): generate TOK studio images without text brief
+22f65cac3295d9dd2df58237e3c5f823dd1846d8	22f65cac	2026-06-02T18:33:19+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	test(photo): align studio brief expectation (#131)
+cfdd42308539eb8d9392bc99ce19bdf210a60b02	cfdd4230	2026-06-02T18:21:13+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix(ai): prÃ©server le produit source dans les retouches TOK (#130)
+328e185b963a8e86ed63a052a6d67853b16bc774	328e185b	2026-06-02T18:05:42+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix(admin): enable live operations refresh (#129)
+dbd90bd3631c45c2bce4dac02e02055897636f43	dbd90bd3	2026-06-02T17:59:57+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix(ai): make TOK photo studio v2 preserve source
+60f175cbeb909923b64b081453f71f54bc5a7c23	60f175cb	2026-06-02T17:59:13+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix(ai): tighten TOK photo studio brief
+599ca3296de7a72cc58f7b95ca7c6d6f6947b084	599ca329	2026-06-02T17:58:19+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix(ai): preserve source product in TOK image retouch
+529dc827a5bbe9493a27b2624513ceb60a866702	529dc827	2026-06-02T17:41:59+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	feat(ai): export admin operations reports
+bc96794bef79e1a6c9b45bf70fe02f1b10a1c9af	bc96794b	2026-06-02T17:26:54+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	feat(ai): add restaurant accounting reports
+560e4061c59e68dfc86673f3d93151c579b53e0a	560e4061	2026-06-02T17:08:00+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	feat(ai): add subscription upsell and accounting exports
+87409fe58f677fe05d69402a941dea8b3effd9b6	87409fe5	2026-06-02T16:46:16+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix(photo): make studio generation interactive-safe
+b56f78cec87f76d3c8c38c417d76d9ffb8f8d09c	b56f78ce	2026-06-02T16:21:23+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix(supabase): allow owned Vercel preview CORS (#124)
+c2eb8fa028f8d96a66b1994b784ec13e39252754	c2eb8fa0	2026-06-02T16:04:48+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix(photo): avoid ai image edge timeouts (#123)
+8821e95682f951a407047f2e1fa04f727604af80	8821e956	2026-06-02T15:36:57+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #121 from mtnrconcept/docs/tok-ide-skills-index
+b5f7fd895a8d6626e0e2e80d8e6c216821410027	b5f7fd89	2026-06-02T15:33:43+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #116 from mtnrconcept/codex/fix-frontend-10k-public-images
+660427824eee6453a70c439a93617f3499bc85a8	66042782	2026-06-02T15:33:26+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #119 from mtnrconcept/codex/local-git-auto-sync
+99be81daa86cdfdbf90799a0bf9099fc5273a691	99be81da	2026-06-02T15:33:00+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add files via upload
+65b80210e3e90cd20eaeb1f5cc5632088fe5e1c7	65b80210	2026-06-02T15:29:24+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #120 from mtnrconcept/codex/verify-photo-studio-dashboard
+763bf5efe644553cc18861e83f25b9a7bb522eda	763bf5ef	2026-06-02T15:23:51+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	fix(photo): stabilize TOK studio gallery publishing
+deec24cce0bcdefeca48bcbd2fa4a806694fadb2	deec24cc	2026-06-02T14:51:40+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	feat(dev): add safe local git auto sync
+938adef60387720f50639779fad22a129563eeab	938adef6	2026-06-02T14:45:33+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	docs(agents): reference TOK IDE skills
+971e6e5f5e89ac4d6e5f1c7e77140f537a0e61d5	971e6e5f	2026-06-02T14:27:01+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	fix(frontend): optimize added public images
+170bb97ff40e82616f55c8b016bd6b7925b72b22	170bb97f	2026-06-02T14:43:58+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	docs(skills): add TOK skills index
+f11cb8674afe78d699b0a7ec0e837f88cc3a223c	f11cb867	2026-06-02T14:42:12+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	docs(agents): reference TOK IDE skills
+34d1c871512c2b5de21908e25e15b3c6dcae1ba9	34d1c871	2026-06-02T14:40:13+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	docs(skills): add TOK skills index
+cd0755b05bcf01983e815583b74232b9cc69d5df	cd0755b0	2026-06-02T14:39:24+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #118 from mtnrconcept/hardening/scale-readiness-10000-daily-orders-v2
+2ed4a04a9d56d802c044b79d5c0b160918221413	2ed4a04a	2026-06-02T14:39:02+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #117 from mtnrconcept/audit/tok-production-hardening
+33d5154db9993a9f8bfcef992fad8ca2bb99acc8	33d5154d	2026-06-02T14:38:54+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	docs(skills): add TOK release gatekeeper skill
+5864ac7215751876658c0736e82f9fefb948d217	5864ac72	2026-06-02T14:37:58+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	docs(skills): add TOK testing skill
+f6cfc96ee79d332a3dbc337f38bca103c0012013	f6cfc96e	2026-06-02T14:36:45+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	docs(skills): add TOK media and AI skill
+93b49ebcb9e7d82f8eb078f1dd628c146bbbfbb8	93b49ebc	2026-06-02T14:35:45+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	docs(skills): add TOK SEO skill
+9c437621b3ebda46f8603a658d8a914062d15f15	9c437621	2026-06-02T14:34:41+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	docs(skills): add TOK admin support skill
+70ae6d47cecf42d224b864291494b890d5f8cdc5	70ae6d47	2026-06-02T14:32:48+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	docs(skills): add TOK notifications skill
+812dfdca2771f02dc186a83b3f6c1d729e3f93ea	812dfdca	2026-06-02T14:30:35+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	docs(skills): add TOK restaurant operations skill
+9296deb4a2678351918809e2006f4b633eb8ca72	9296deb4	2026-06-02T14:29:44+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	docs(skills): add TOK scale readiness skill
+2cd377fa419cdecf2519a0a9f5c2f11a9051da7b	2cd377fa	2026-06-02T14:29:37+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	feat(actualites): align social cards with news feed mockup
+2ab0d0bcb7c0ce5d9b84007289fb4876eb8a5b19	2ab0d0bc	2026-06-02T14:27:01+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	fix(frontend): optimize added public images
+57909336e556f838cb479770d6b07196d461388a	57909336	2026-06-02T14:28:14+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	docs(skills): add TOK Supabase RLS skill
+b993ff5fa5c9bc13224f3ea9110f52af40a71818	b993ff5f	2026-06-02T14:27:21+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	docs(skills): add TOK payment skill
+3f125a3cd73cdc8f43f9553604a4d1c5c1697558	3f125a3c	2026-06-02T14:27:01+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	fix(frontend): optimize added public images
+d409501c224c3afcf1daea39d4382e104015ea17	d409501c	2026-06-02T14:26:19+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	docs(skills): add TOK global IDE rules
+d986a12f4f19b4b86ba74d2dab0ad0ae06e3ae27	d986a12f	2026-06-02T14:26:13+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	feat(actualites): adapt media layout to social card mockup
+b94316fe1529b53b048a5a77bdb84b37f515b9da	b94316fe	2026-06-02T14:24:18+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	feat(actualites): simplify composer to match mockup
+73916a940169e32488ea01b1b5c8f803e265855e	73916a94	2026-06-02T14:16:34+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #114 from mtnrconcept/codex/hardening-10k-supabase-reliability
+5b3bff5e166f91e62cbb63de2e193835e327a596	5b3bff5e	2026-06-02T14:15:14+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	ok
+6148fb40cfe73cea0cb01b0bafb5ea6d15f20dc1	6148fb40	2026-06-02T14:07:20+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	feat(hardening): complete 10k reliability tranche
+7b3d7785ca9d4518a21c3f73b7827e776d97253c	7b3d7785	2026-06-02T13:53:58+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Merge remote-tracking branch 'origin/main' into codex/hardening-10k-supabase-reliability
+958c8cfcf9ad8b265b6c1c105dc24765362f7b7c	958c8cfc	2026-06-02T13:36:53+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #115 from mtnrconcept/audit/tok-production-hardening
+28de4dcdaff622137cd59269cffa576a64cc8ffc	28de4dcd	2026-06-02T13:32:23+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	feat(actualites): premiumize restaurant feed design
+6114331789dfb1d26865addf41d1d9a48b890f28	61143317	2026-06-02T13:30:33+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	security: harden client upload validation
+0ec60aab6c90bb6c42dfdc491c3cefbe94a5c05d	0ec60aab	2026-06-02T13:28:29+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	security: lock critical Actualites RPC grants
+0cd84f2d9dab548f9e056b074cef6c6610886412	0cd84f2d	2026-06-02T13:25:20+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	ci: enforce production readiness checks
+9f14691da02acaa2c012b726acffce63814a88d9	9f14691d	2026-06-02T13:20:34+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	chore: remove temporary test file
+1d694bcdc63759bc328f7fffe9e8dad640838e10	1d694bcd	2026-06-02T13:19:34+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	test
+2047840b40ca0d0a44daecb848b01a78f47d770d	2047840b	2026-06-02T13:16:16+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	feat(reservations): harden confirmation deposit launch checks
+1625acd286ea7b8b630d31703ed4ca38d2c312e2	1625acd2	2026-06-02T12:57:20+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	fix(push): support resilient Firebase service account config
+9a0dc9fa642de89f6725d60a508bef0465684d55	9a0dc9fa	2026-06-02T12:52:19+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	feat(orders): harden restaurant acceptance capacity
+dabab112ed4119f8fa01e699b870359f64b0a6fb	dabab112	2026-06-02T12:23:13+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #113 from mtnrconcept/codex/hardening-10k-supabase-reliability
+b374b67ccca8ad017303da5321be16227f9c29cf	b374b67c	2026-06-02T12:15:37+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	feat(reliability): harden 10k Supabase checkout flows
+53ce1d1c15a6ada3f9bcd6913954294b7df54029	53ce1d1c	2026-06-02T11:33:29+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #112 from mtnrconcept/hardening/scale-readiness-10000-daily-orders-v2
+b3c52896c31e3daebc5baf1362cca6441e1db950	b3c52896	2026-06-02T11:31:55+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	test(scale): guard hot path indexes
+8cf85f218f1c4d45bb2f34f5b614fb1be5239983	8cf85f21	2026-06-02T11:31:37+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	chore(scale): add order payment reservation indexes
+f3f96becbb7b3088c8796798ca14d994c1860bd1	f3f96bec	2026-06-02T11:29:54+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	test(scale): guard production checkout scale readiness
+fb7025551e6431dd2e43521a892ccaf5ca1b5cc1	fb702555	2026-06-02T11:29:34+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	chore(scale): add checkout hot-path indexes and guards
+87f46f9a88d30ccf52f980eac46f4395f87e7e5f	87f46f9a	2026-06-02T11:28:55+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	chore(scale): add production scale readiness checker
+d9e9c4ccb14e161dca7ae2bfe228c15a27a091e0	d9e9c4cc	2026-06-02T11:27:03+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	chore(scale): add scale readiness check command
+88b2becc1cdd610ed86a21f850beb8c8932282c7	88b2becc	2026-06-02T11:22:48+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+0ed6d297c0268a6b054489d2c7b16225f72ccbb9	0ed6d297	2026-06-02T08:01:30+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Merge branch 'main' of https://github.com/mtnrconcept/cloud-rebuild
+6ee22adc2f3c4069b7a2d22ebe8d897776c0ac4a	6ee22adc	2026-06-02T08:01:17+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Default TOK image enhancement to high quality
+16788fe000756f8469ca4a8445c18a8644c8d24e	16788fe0	2026-06-02T07:51:38+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #111 from mtnrconcept/codex/finalize-updates-for-tok-photo-studio
+f1422646a6cd3b230b4a15d7fa5340b558c8bb2d	f1422646	2026-06-02T07:51:28+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	feat(photo): default TOK image generation to high quality
+ab68fffd22886269df5a8c9c7316e3b3439e38a6	ab68fffd	2026-06-02T07:34:14+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	feat(photo): use simplified TOK AI studio
+1b3937e21a2a13ddfac019194dfa326f74a1676a	1b3937e2	2026-06-02T07:31:55+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	feat(photo): add simplified TOK photo studio UI
+f79baa8861346697735830a177b786b0905a5794	f79baa88	2026-06-02T07:29:10+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	feat(ui): allow hiding manual image URL field
+e00d1d0433628a9b0f97fc2e9ec73eac8efda3d6	e00d1d04	2026-06-02T07:22:34+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	ok
+c200d50dc9582046eeb45cb05cafeeedff1ce50e	c200d50d	2026-06-02T07:10:39+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	fix(ai): restore Supabase AI schema
+a2503efa7a18a78fc7f72b467ade6f4b88ee3c56	a2503efa	2026-06-02T06:52:29+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+30b58c322ea10b984b67d6ef9c4d1241d49be826	30b58c32	2026-06-02T06:26:19+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	feat(ai): add shared AI security guardrails
+1c2d320d880bddaf2d5da45bd5815984f3ef8fde	1c2d320d	2026-06-02T06:15:24+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix(env): preserve public env validation contract
+44409923fa4ffa4bacfde94a1c2e9b9502169f47	44409923	2026-06-02T06:10:15+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	chore: deploy TOK AI photo studio
+a4637598c348f1e8969d8fd128ca60cf65b9ea93	a4637598	2026-06-02T06:04:40+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	feat(dashboard): show TOK AI photo studio in photos tab
+6722c3b0d10b8bd0ccbbd6bafa7e453258f1df44	6722c3b0	2026-06-02T06:02:23+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	feat(dashboard): add TOK AI photo studio component
+9e2fe4c5c70cda3f3189daecbb7fc68362158c4d	9e2fe4c5	2026-06-02T05:59:53+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	feat(ai): expose TOK image generation client
+c978c15efea994c419e36307d551b506680d785c	c978c15e	2026-06-02T05:59:03+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	feat(ai): generate TOK branded dish visuals
+9bc41a0e646d7fc405804eec8b82889388619fc0	9bc41a0e	2026-06-02T05:47:31+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+50e95184ace0cb2a8aa7a0f3afead725103e5c9b	50e95184	2026-06-02T05:47:12+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Merge branch 'main' of https://github.com/mtnrconcept/cloud-rebuild
+8a867c2eb8aa2909cd369305138260de823a3714	8a867c2e	2026-06-02T05:46:44+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	fix(ci): pass Supabase anon key to production builds
+f3adaff079f22ce54a44b51f65f5bdd6dfb3c79b	f3adaff0	2026-06-02T05:41:42+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix(prod): persist social sync and RPC security hotfix
+695772120a6ee5785ed82bf76b9d0dbaaca26d9f	69577212	2026-06-02T05:39:55+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix(env): allow Supabase anon key in production build
+a9abe7ec0fbb69adb98642f8be7c511be3071597	a9abe7ec	2026-06-02T05:21:19+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	chore: retry production deployment
+b74e52efc9f56595788c5aa50621e280b6391941	b74e52ef	2026-06-02T05:14:38+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix(env): read Supabase anon fallback at build time
+318edfb80863933e9b62d272ce08e82214e50932	318edfb8	2026-06-02T05:14:04+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix(env): support Supabase anon key fallback
+c3168556621d223b9c32af55cf94383e18bd0f6b	c3168556	2026-06-02T05:02:45+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	chore: retry production deployment
+089f37be9341f7e995ada87fee8f753aa6edda9a	089f37be	2026-06-02T05:01:42+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix(test): keep compta governance contract migration discoverable
+be6907230f9557fc12ad3ee30d8a816fd94becb0	be690723	2026-06-02T04:53:36+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix(admin): avoid compta period RPC 400 during auth bootstrap
+c3cc9e8680dcd93aa7d800b35e3b39ccca6c53dd	c3cc9e86	2026-06-02T04:48:22+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	chore: retry production deployment
+5ca15536ca704d2457cc76307e171cb0dcade336	5ca15536	2026-06-02T04:47:35+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix(supabase): remove destructive remote schema diff migration
+adccf84c82dfacd77c9604b1e2e835e29c6dd89b	adccf84c	2026-06-02T04:35:25+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+73556f9070463fe3bca270e91be21de887e50aeb	73556f90	2026-06-02T04:35:02+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	chore: sync remote Supabase schema
+507bfdc6d60b99cf2e43a7e727a21f95cfa57560	507bfdc6	2026-06-02T04:31:17+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix(supabase): avoid hardening match group RPCs before creation
+859d27d66bdff186d98dd8e2ac4980373eb1a567	859d27d6	2026-06-02T04:08:07+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix(supabase): restore missing remote migration marker
+70571ac40de6929362038fe3550f03bd6061a811	70571ac4	2026-06-02T04:01:57+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	chore(ai): retrigger production validation
+b505dc552025051e4a5f92fe3c8166bb256843a3	b505dc55	2026-06-02T03:55:35+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #110 from mtnrconcept/codex/tok-ai-platform
+b85a2ba22f7a2b864ae3b0cadcd5513da439da5b	b85a2ba2	2026-06-02T03:54:48+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Fix meal subscription cart tests with dynamic occurrence totals
+a6d932bc74f4bc4137c9cb4a25d98a977dab19c9	a6d932bc	2026-06-02T03:47:50+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	chore: trigger production deployment
+b2db178f6776a679b97fcf3c97be43126d55a641	b2db178f	2026-06-02T02:55:08+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	scsc
+c1bbd385c7363b35797e72708e8fbe449c5be62c	c1bbd385	2026-06-02T02:31:57+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #100 from mtnrconcept/codex/tok-ai-platform
+a1744238a3b764ec044d71b819b851a108c8beda	a1744238	2026-06-02T02:31:22+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	eef
+6aad7c4c39127d1fc4e6b15f9e55d1c090219c62	6aad7c4c	2026-06-02T02:22:13+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #99 from mtnrconcept/codex/tok-ai-platform
+b0f0d5f31ea7175c56c69eefaf9178ffb08e3e43	b0f0d5f3	2026-06-02T02:21:39+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+f9422c6434dbc705d99c19319c1596e4cd1c476f	f9422c64	2026-06-02T01:49:22+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	iok
+9e65b8e11375deae8aed525765eea39409fd0e19	9e65b8e1	2026-06-01T07:42:14+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	h
+2aaac33341ceda9f0c716c3df200a6662e7a75dd	2aaac333	2026-06-01T07:00:49+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	k
+4973a2cbc19d35d4f48b47ae919c975d83ab5b67	4973a2cb	2026-06-01T06:30:36+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Strengthen admin user governance
+a47e884c88cb92d3fae83520015fa2c363d62e15	a47e884c	2026-06-01T06:11:50+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Send admin restaurant notifications
+5fb4a159fd93c3c39f0dbbae01a658c8b6d451be	5fb4a159	2026-06-01T06:06:39+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Add admin restaurant operations console
+120bf9322b7501422ee6b3662aa2183593ff15ee	120bf932	2026-06-01T05:48:58+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Document Actualites sponsored scenario
+a734dc65d9eb8ff63a7be748e884df31a1375c4e	a734dc65	2026-06-01T05:48:19+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Tighten remaining French UI copy accents
+2bfc6eda4d41a27e378708f9bbfbb039ee80462b	2bfc6eda	2026-06-01T05:43:36+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Add admin Actualites sponsored controls
+93f75e1776499b5a1d31fb8f6253a6140620f6f9	93f75e17	2026-06-01T05:42:51+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Normalize French UI copy accents
+35116a20c0dac70c95072cac5e3584424b5065be	35116a20	2026-06-01T05:08:46+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Normalize French UI copy accents
+a3200f3701e3ae1b723e1ac9bc7065437223f5ec	a3200f37	2026-06-01T04:45:17+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Support Vercel deploy hook in production workflow
+81c1dedb96dd05372c6813d22595489f26540673	81c1dedb	2026-06-01T04:20:56+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Harden paid checkout order finalization
+6a955fc226302b99815c38b5eab2c52b37069b2c	6a955fc2	2026-06-01T04:08:06+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Make production Vercel deploy explicit from GitHub Actions
+3f09ef096be40ee1918b35c916ed951a68ef43c9	3f09ef09	2026-06-01T04:04:11+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	ok
+12a3ebe9a6fa4d340e55dc2e1a0d47c52e6ac31b	12a3ebe9	2026-06-01T04:02:22+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	kj
+69f6d2a4f71a54532b0c952548502c5408a9f693	69f6d2a4	2026-06-01T03:53:44+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Add Supabase critical RPC guards
+51afdcc7f95babd41b9bfdaface12da713a5dd58	51afdcc7	2026-06-01T03:43:01+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Keep desktop navigation menu visible while scrolled
+949cbecde1de1f379c1cd8c5314fc4e716cd697c	949cbecd	2026-06-01T03:42:01+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Expand admin operations center views
+3cb8474b5eb407c9c00fd75ee6760277b47d6e5c	3cb8474b	2026-06-01T03:35:22+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Add admin production health dashboard
+ac7e0d5fde457db5e41d33bfa879bf88699aa0db	ac7e0d5f	2026-06-01T03:14:29+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Add admin marketplace alerts backend
+755de1f9a97dcea2745b06398fe94bdb805e9ab8	755de1f9	2026-06-01T02:53:22+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Fix invoice label expectation
+aa3a17c6eef0821ad86750e62eb69e1517e89876	aa3a17c6	2026-06-01T02:49:44+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Show urgent actions on admin dashboard
+bc38747879695b01c0e7c2cdca7aecd838092589	bc387478	2026-06-01T02:44:01+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Merge branch 'main' of https://github.com/mtnrconcept/cloud-rebuild
+a83c9b5072d7b01e20e2efa22ed568158cf36b92	a83c9b50	2026-06-01T02:43:37+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+ae59189baf7e321de47991453559c86d574bc798	ae59189b	2026-06-01T02:40:00+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Route admin operations center
+58bae364f52684d2e37b2eb738fc8030adfc7f27	58bae364	2026-06-01T02:33:54+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add admin operations center wrapper
+296e4547678936e1e8b23950d6994df397e81f3c	296e4547	2026-06-01T02:27:30+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Remove unused admin alert import
+6da227745a13ea6847df24843d280564ed01205a	6da22774	2026-06-01T02:18:37+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add admin urgent actions component
+886e02e048dbf6d476e0141c6adcaf9eb97ecca7	886e02e0	2026-06-01T01:15:51+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Disable automatic Vercel Git deployments
+3bdb28d8ca85ceb78b05dbd20a943b573510da8b	3bdb28d8	2026-06-01T00:31:02+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	feat(admin): add marketplace alert rpc
+e9191ba8930312b2c2c4ca09e4e6fd75257bfa42	e9191ba8	2026-06-01T00:26:35+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	test(admin): cover marketplace alert engine
+4132786d8a882c49fe748f4c43a3ece5a3abddab	4132786d	2026-06-01T00:20:45+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	feat(admin): add marketplace operations alert engine
+3ff5e02761560060ed0891a71a3c6a9ecc077f7e	3ff5e027	2026-06-01T00:12:33+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Align Match Groupes prepayment frontend
+762640ce43ef875e7ef7a2d977cedd0fdf908860	762640ce	2026-06-01T00:00:53+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Test write on chatgpt branch
+c7e67376349a62d91481f33771d05f580aea25dc	c7e67376	2026-05-31T23:29:47+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Enforce Match Group prepayment rules
+f49ea9b8c96445ed8bd7530ad663f5f5122dbd0f	f49ea9b8	2026-05-31T22:01:11+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Clean release gates and build chunks
+d75ac273a902c7702ef369a371c55b24f762a103	d75ac273	2026-05-31T21:39:47+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Harden courier review RPC and production checks
+cd2649f8a667e60963174bfbba0f52a5ad7be0e9	cd2649f8	2026-05-31T21:15:54+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+9c601768ad925511f77bddff23fb56db19487522	9c601768	2026-05-31T21:02:30+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #76 from mtnrconcept/codex/livreur
+28bd09e11cfe8e240df0eadc47001e2fa2edc919	28bd09e1	2026-05-31T21:01:53+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+2cd7a0742eba4beb99f0784e72a2f1477f64f6a7	2cd7a074	2026-05-31T21:01:23+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Wire guaranteed delivery checkout metadata
+ee0e571fe1db43fc94e7a0e3efaa6a2a3d8e857f	ee0e571f	2026-05-31T20:59:47+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Lock guaranteed delivery cart mode
+882867ab2dc64a6e8414889b39a4904bc8cfc49c	882867ab	2026-05-31T20:55:30+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Harden Supabase security lints and core cron
+339b01d1906abbde68659bfce31ad534135ed349	339b01d1	2026-05-31T20:40:33+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Polish French navigation labels
+45f7bdadf947f76d1e6070c5f83b501f108b6228	45f7bdad	2026-05-31T20:33:30+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Fix Tok production canonical metadata
+9cc49d004191c3327e1bca3ebd4d026ec67f6e03	9cc49d00	2026-05-31T17:45:15+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Harden sensitive RPC grants
+d2cbb50291a1adaa538d5441c08381bfcf6456b2	d2cbb502	2026-05-31T04:47:18-07:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Show sponsored conversions in actualites dashboard
+17ec90a543b8ba6cb1d1fa61147c763f42784d72	17ec90a5	2026-05-31T04:44:00-07:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Harden actualites sponsored conversion insights
+19a4d0899f83c61bece71ef9e40925dc0c9bf022	19a4d089	2026-05-31T04:13:10-07:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Fix production workflow env expression
+7b671a4c4ee45a7212340d4004847b69c06e1bd6	7b671a4c	2026-05-31T04:06:07-07:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Auto-sync finalized match group carts
+b580fc9e7cfa4d5038ea6b3ce275caedde4bb3c3	b580fc9e	2026-05-31T03:46:38-07:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Persist and restore match group carts
+4d3d688054567ac8e78e7aeed9e1443a44aee1de	4d3d6880	2026-05-31T03:28:29-07:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Remove local Claude settings with stale Supabase refs
+d89b937709d50ef2293dfa6b9135bf7e2a5cb34a	d89b9377	2026-05-31T03:26:51-07:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add production Supabase target guard
+e90a99c2605bd6c2ceb209ebdfcd9e8a32ce0cd3	e90a99c2	2026-05-31T03:25:39-07:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Pin production frontend Supabase target
+87f81b98ad3103626f9ee3cd4774d2f0df41be98	87f81b98	2026-05-31T02:57:28-07:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add RPC for robust match group creation
+bcfb7dc224e6a29801e6f353e9373613aaf71adc	bcfb7dc2	2026-05-31T02:54:04-07:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Disable legacy JWT verification for match group functions
+0ae0bb5858218c5ba83464272036953dfefeabc8	0ae0bb58	2026-05-31T02:44:42-07:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add match group authorization reconciliation function
+79b22c02e76aea1b5ff05190135a0ce0c71005e0	79b22c02	2026-05-31T02:41:59-07:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add match group authorization reconciliation RPCs
+516a95eef1b6a38188a9200b71c6aa6a66789b2f	516a95ee	2026-05-31T02:38:48-07:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add match group authorization checkout function
+17573343d18544bb6d181823fe5e3880b8a4354a	17573343	2026-05-31T02:37:39-07:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add match group delayed capture cron function
+a3d4d742e58559edf52105f432f4590a929e3d09	a3d4d742	2026-05-31T02:34:46-07:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add cron function to close due match groups
+1d0c3fa2ca1b22e39eccf4582266645a6fd71437	1d0c3fa2	2026-05-31T02:32:30-07:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add match group authorization and auto capture fields
+245ae91021ce489dd4e77e3c34ea08fd7797b9fa	245ae910	2026-05-31T02:26:50-07:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Rework match group flow with countdown and final discount
+56144a5678d5c3d8d0602b3c002b310804a19b25	56144a56	2026-05-31T02:22:32-07:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add match group lifecycle foundation
+3e3b321695a14c4785a38ea96756b651e68e7811	3e3b3216	2026-05-31T02:08:47-07:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Mock useRealtimeOrder in subscription tracking test
+0bd39352f3fa421f6f98bba584f7b4b3d5a8eec5	0bd39352	2026-05-31T02:03:38-07:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Reconnect full delivery order tracking module
+a63e70d61d59081c179812ebaa69f4c597d0c9a6	a63e70d6	2026-05-31T02:01:14-07:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Reconnect order tracking realtime cache invalidation
+84998e4c0654b1d847d89769c351af21c824b65c	84998e4c	2026-05-31T01:56:39-07:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Show support incidents in restaurant dashboard
+f71104dcf07a700360410a187569d96594fd51de	f71104dc	2026-05-31T01:49:49-07:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add support incidents foundation
+592d18738014136e82ac7519155cf448e1dd0213	592d1873	2026-05-31T01:39:29-07:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Show payment integrity anomalies in admin audit
+c8c9e98990a2a5a2af238823cc5371b0e7261cf8	c8c9e989	2026-05-31T01:34:55-07:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add payment integrity anomaly RPC
+732ed8841599ff439a81918318e3b7cd8c8870e8	732ed884	2026-05-31T01:29:25-07:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add checkout and Stripe webhook guard tests
+3e543e92c14039730ceea35ef1e2bc0869552edb	3e543e92	2026-05-31T01:23:09-07:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Update actualites route wiring test for public feed
+ae220590b5d48afb6c4a488495dc5458a6fc4cac	ae220590	2026-05-31T01:14:25-07:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Document Supabase RPC guard tests
+055f2b31f56ff8cc3335350038197bfb07156faa	055f2b31	2026-05-31T01:13:25-07:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add SQL guard tests for actualites sponsored metrics
+671447bb31c6eec39d14b035f049bb5d9e936188	671447bb	2026-05-31T09:53:45+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add global site gap audit
+a974f32328fcc95289fc2b83c5d5d594485a41a0	a974f323	2026-05-31T09:41:49+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Ignore internal actors for actualites organic metrics
+07b769dc8299ecca477f8cc0d84d75449a63bb54	07b769dc	2026-05-31T09:36:40+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Ignore internal actors for campaign metrics
+b9f424bc2d037e190cfc933c33b1a7646c9a97b9	b9f424bc	2026-05-31T09:32:04+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add actualites internal actor helper
+89eb0c144ca4a20030cee4f815342b363976714f	89eb0c14	2026-05-31T09:30:23+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add internal actor marker to social events
+a08408e11d779c5bcdce5e6a54100755629c5ffd	a08408e1	2026-05-31T09:18:31+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Track actualites events for visitors
+47b0b40c8e22420615d539ea6ab9f4f2feef013d	47b0b40c	2026-05-31T09:17:16+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Open actualites feed publicly with anonymous tracking
+de111ea91c4ca116b9dcdec9c8c475d038c66acf	de111ea9	2026-05-31T09:16:17+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Make actualites route public
+9ac2723f0913a1b7751bc2002d00d22d1a414c20	9ac2723f	2026-05-31T09:04:16+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Restore superseded actualites metrics migration marker
+4e86073687dad5583c0b13c9cc8f23af1fefb985	4e860736	2026-05-31T09:01:35+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Remove invalid actualites metrics migration
+9aa24f91730ceccf50ca1335e5fcb86710f97c1f	9aa24f91	2026-05-31T09:00:59+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add weighted actualites promotion rotation and conversion attribution
+9ae78c996d38bc8b21834db96aad2cb96226cf18	9ae78c99	2026-05-31T08:47:09+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Use unique realtime channel topics
+eff088ba967e0739960fb9c4b7bfe0444e8b85aa	eff088ba	2026-05-31T08:43:05+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Make social realtime manager backward compatible
+f83a1f118db05eb21236f5fe4d98e158a10ee200	f83a1f11	2026-05-31T08:39:00+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Remove invalid sponsored rotation migration
+13c94d5624741ac15f00afea0ae0dadcf33e4cf1	13c94d56	2026-05-31T08:34:42+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Fix sponsored rotation UUID aggregation
+1493e50e8eca2a9421c9461be294f3aa0a81b6ba	1493e50e	2026-05-31T08:32:18+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add weighted rotation for sponsored actualites posts
+2e2d21dbd0214cf9909214644422c732012484ac	2e2d21db	2026-05-31T08:27:59+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Make social tracking non blocking
+6c6d4287e86e010a8266762eb9e566b6ccc3a1e4	6c6d4287	2026-05-31T08:21:33+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Remove bun lockfile from pnpm project
+0fa462f7c413bbeaba18135b9867493bef5a5c17	0fa462f7	2026-05-31T08:21:12+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Remove npm lockfile from pnpm project
+8b618da9bfb3bcd00b747eb186f761a2b4a078ac	8b618da9	2026-05-31T08:18:43+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Force pnpm build settings on Vercel
+0c1b21d15d60f3822ff424497100630c0fa9cf86	0c1b21d1	2026-05-31T08:14:36+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Enable pgcrypto for actualites metric dedupe
+6b219bf55844ca860587ad8229c05580bdc63186	6b219bf5	2026-05-31T08:13:01+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Harden actualites post and campaign metrics
+2c18f1f3c68f700cd1214a8324519130edb34d15	2c18f1f3	2026-05-31T08:12:00+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Use tracked post cards on actualites
+1a866c258b20dcf5083b2822ba8d2594e4b947c8	1a866c25	2026-05-31T08:11:14+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Track social post impressions and clicks
+315160cb50cc3276f8e78648b26eea8cc0685466	315160cb	2026-05-31T08:01:32+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Handle Stripe return on actualites boosts
+aeb0cb416a5f31bfa6d95c2b1a2655323a82ceb1	aeb0cb41	2026-05-31T07:59:36+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Fix social post boost actor id
+09c064c7ad7aa83e6801f1589782825452190fd4	09c064c7	2026-05-31T07:58:55+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Launch Stripe checkout for social post boosts
+70f6202240ec1109fca235dcec712a2502d1d17a	70f62022	2026-05-31T07:44:06+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add social post promotions table
+6cdeedaf567e5a5f9581073e11548c74c36ec2d8	6cdeedaf	2026-05-31T07:42:09+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Use dedicated social boost function
+872a467f2517e663f9fde8f70054db4020e7f98f	872a467f	2026-05-31T07:41:33+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add social post boost edge function
+2511f48ec294bf8b022effd20cde5c249ec9bfc0	2511f48e	2026-05-31T07:39:59+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add boost action to dashboard actualites posts
+668a563c4821f6031354cad2d998f1aef28f7053	668a563c	2026-05-31T07:39:21+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add social post boost dialog
+ca882cb513238cbe7c79cf629e746d84c02d9f7d	ca882cb5	2026-05-31T06:49:25+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Use .env.production in production workflow
+98305fe87e6117a4259dab0b9f3c5e00db870066	98305fe8	2026-05-31T06:24:29+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Make dependency audit non blocking in CI
+38bdca13a24d313ca6202883dcb767170549d6e8	38bdca13	2026-05-31T06:18:11+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Trigger production workflow
+f0f644e240bdd718ff5c778780702b2c7b735fe9	f0f644e2	2026-05-31T05:44:07+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add complete TOK application skill file
+fbc3c0536429dae2be5959f22fd29c187b3b304a	fbc3c053	2026-05-31T05:22:10+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Fix recursive social comments RLS policy
+647f0859a275412553a6218651ef250ff3bbf89e	647f0859	2026-05-31T05:05:15+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Remove OpenAI env from production deploy workflow
+1281142d39fa53062222b215009be387263922f3	1281142d	2026-05-31T04:45:48+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Use pnpm in CI workflow
+a9947c7ceb62e13e0557c57ee6600442b205b5e3	a9947c7c	2026-05-31T04:41:30+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Use dlx for Supabase CLI in deploy workflow
+0f8f817b85dbf4e7f4771c0d4542949c78c66773	0f8f817b	2026-05-31T04:35:59+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Write production env before Supabase deploy target check
+5c0af7ef9b1c05567fb67c2f15d2fb22c3bfff8f	5c0af7ef	2026-05-31T04:30:08+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Use pnpm in production deploy workflow
+84ddecea51f5d738c4136630de2f6ba1415dd2ed	84ddecea	2026-05-31T04:27:01+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Restore pnpm lockfile
+0f53207ef55c11aa3270a91c3c623995f90c0700	0f53207e	2026-05-31T04:09:44+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #68 from mtnrconcept/codex/tokone
+c500a9e11b43949a9903eccf0d7ab308efbb4c0a	c500a9e1	2026-05-31T04:07:35+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+8d27edf34552e46e8e49456bbc805e8b82cda7ba	8d27edf3	2026-05-31T03:55:02+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Handle failed auth session refresh
+b81afcad5bb287f7cb2cdd14c23a09f25e19490d	b81afcad	2026-05-31T03:54:23+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Fix restaurateur signup validation test
+b9a810fcab88ec82056822cba1d5ac8372554d40	b9a810fc	2026-05-31T03:53:48+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Fix subscription tracking page test
+99497e2a837ad75f28568aa0db181272028e3662	99497e2a	2026-05-31T03:45:41+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Fix subscription tracking test
+1bfa18c532fed86f94bbf731a742053faa8eb3e0	1bfa18c5	2026-05-31T03:36:52+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+a776366cbe9e4e7901de31c7146dcaffe0a465f6	a776366c	2026-05-31T03:13:49+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Allow pk_test_ Stripe publishable keys for testing
+197fae1a0d57ae912fd14cacf994176cfcbff2b4	197fae1a	2026-05-31T02:06:15+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #67 from mtnrconcept/codex/ss
+7c070b32ca2b6404bb393ae39b450556378eef20	7c070b32	2026-05-31T02:02:44+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+2d556e39d6417afa6808276c00d8b99d02caa118	2d556e39	2026-05-31T01:56:16+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Fix package lock
+6e9f085e7b2d3e4464ea136449b15e146a071d56	6e9f085e	2026-05-31T01:35:43+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #66 from mtnrconcept/a
+0f30b9e4d2523aa1a615c052b07d8a7ddfc8a61e	0f30b9e4	2026-05-31T01:35:31+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge branch 'main' into a
+6a0221058d14b2799e33d7b6b25aff7c83d125c9	6a022105	2026-05-31T01:32:23+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #63 from mtnrconcept/codex/fix-outdated-pnpm-lockfile-hb3biq
+3b54e4e0b68aff94770fbf241d36a1be8c74042e	3b54e4e0	2026-05-31T01:24:43+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix: sync package-lock.json with package.json - update minimatch to 10.2.5
+b6e2270e30d4e84ec4a16c6c5e633d66a57b0df8	b6e2270e	2026-05-31T01:15:51+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Update Node engine requirement to >=22.0.0 in package.json
+872761dcb8ccf2e29883fab9b01cba11c2646c7f	872761dc	2026-05-31T01:14:48+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Update Node version to 22 in deploy-production workflow and package.json
+24b081c2d2054b8f90050d5f6c76737902d99da4	24b081c2	2026-05-31T01:01:56+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #65 from mtnrconcept/codex/tokone
+c608ef0280c9ba7b64e22d71ae06ab6154a523d9	c608ef02	2026-05-31T01:01:20+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	hh
+383a27a5189a9e4994130083b4f5b3441ac61ec8	383a27a5	2026-05-31T00:13:22+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+f9bd99e4cc7d22cd0018fb2b45157d2b46fb542e	f9bd99e4	2026-05-30T23:21:55+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+b9e00b90db84831f30a2e52700ed7ba89198d05b	b9e00b90	2026-05-30T10:35:07+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	rf
+99bc210ff1991d09303f86b22ae439470b9fe569	99bc210f	2026-05-30T09:07:14+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	gg
+77e3a5c00290455100bfecd34ce7c0178dfd4a70	77e3a5c0	2026-05-30T08:20:06+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+1557a6dd7a299d3c4512c3e04f2ed16ffc8f2305	1557a6dd	2026-05-30T07:59:20+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	feat(ops): schedule send-email worker every minute via pg_cron
+559c328d01fbfe564b61a37d6746c1cf315631a4	559c328d	2026-05-30T07:56:48+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	fix(signup): non-blocking email-confirm trigger + restaurant resubmit parity + decision email polish
+9254675c459a79d1e595d8d9a3f4f0d17d97a6cc	9254675c	2026-05-30T07:48:36+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	feat(signup): awaiting_email draft RPC, email-confirm promotion trigger, decision emails
+477a199497b44247bf5799b542763596448eb39f	477a1994	2026-05-30T07:43:26+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	docs(plans): plan d'implementation parcours d'inscription durci
+96576d013d8a1be6783572af2276958d2f8e6b04	96576d01	2026-05-30T07:30:40+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	docs(specs): design parcours d'inscription durci
+e75d3146d8f281db053a31582d012346c819753e	e75d3146	2026-05-30T06:50:23+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	z
+34ddc07ba18d4a4e9505ef5ca03c6d7bd04c83cb	34ddc07b	2026-05-30T05:02:40+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+1f84febd29a636004ea141f79d007d35710f1439	1f84febd	2026-05-28T00:27:34+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+68bf907f0ce198a6e20b2b40f7215f9637aacf93	68bf907f	2026-05-27T14:44:12+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	sd
+600670c0c9cc71a091c1a485c3f16ddf32851efb	600670c0	2026-05-26T21:26:48+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #64 from mtnrconcept/codex/fix-outdated-pnpm-lockfile-gwz78k
+c34a9e126fb9eef75bc74147e12fa360b5dd9a34	c34a9e12	2026-05-26T21:26:25+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix: support Supabase env fallback during Vercel build
+6373c98e1abeab53fff52a5d34cd91b7e8a70f40	6373c98e	2026-05-26T21:26:22+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix: support Supabase env fallback during Vercel build
+da84ef0583bbf3d14f02e4fb3cb3e040e44f66a9	da84ef05	2026-05-26T21:19:25+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #62 from mtnrconcept/codex/fix-outdated-pnpm-lockfile
+7b9996d5f6b96570e7c4dd91b63357f38a71e7f8	7b9996d5	2026-05-26T21:19:10+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	chore: pin pnpm version for consistent Vercel installs
+bd90a85c682d2d7e43e679d1ad1a454e18c780b8	bd90a85c	2026-05-26T20:48:19+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #61 from mtnrconcept/codex/tokone
+aefb53d3217c6ac8aea6b4574a11ec0cdee707d4	aefb53d3	2026-05-26T19:59:49+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+8a912dd9da956765cd8d242e47a3864966559bfa	8a912dd9	2026-05-26T19:29:34+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	l
+7a2f76f4a200f61e61478452e944bfa76fd6db14	7a2f76f4	2026-05-26T19:02:44+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	g
+c21e7514348513f051efcf053f9278e428e731e2	c21e7514	2026-05-26T19:01:32+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #60 from mtnrconcept/codex/tokone
+054e7df6ce964439b4765be8c1294796af56ea4c	054e7df6	2026-05-26T18:16:26+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	kj
+2df4ff05c034ddfc8c27271e34403c5c1045a786	2df4ff05	2026-05-26T17:55:29+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+d1bdc86f309d40a1b4b622aa4333f5ac894761be	d1bdc86f	2026-05-26T17:39:35+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+d7a7e4744b9945110d0e3bd489cbc3b71831c551	d7a7e474	2026-05-26T16:31:50+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+67d8224293d071e823358b82c2024b1f07630410	67d82242	2026-05-25T23:44:40+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #59 from mtnrconcept/a
+0334df780e442b16a5747dd858ab426aa06f5d86	0334df78	2026-05-25T23:43:50+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+1d1b5b3c0fa1498c924e511045e9b3ef7acebdd4	1d1b5b3c	2026-05-25T22:39:14+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	ycx
+1a45349778ccfbb63dd0f7d7e2459e1ceef75704	1a453497	2026-05-25T22:03:12+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+c049179a7c402880600163a241a13160e5e0e3f8	c049179a	2026-05-23T04:59:04+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+02555765707e5f93cec3c03d6b31f4dd84dbb4b3	02555765	2026-05-22T09:41:28+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+0439ce05e126b76746ef449e51807ff23de5b75c	0439ce05	2026-05-18T09:16:57+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+8e99316e4e3c70515bf2e6aad3f70f6996e30af4	8e99316e	2026-05-18T07:18:56+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #58 from mtnrconcept/a
+e265f19b936153b926377dc145f3c05c27e3c3e8	e265f19b	2026-05-18T07:17:52+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+d40215e020bea8ee548ac6028d02cd0a60249463	d40215e0	2026-05-18T07:08:36+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add files via upload
+f2286d003df56d13cfa451d3c72c37d9880e036f	f2286d00	2026-05-18T07:04:33+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #57 from mtnrconcept/a
+74efebacc2d258da4fde01e1a5e0b860cb97d832	74efebac	2026-05-18T07:03:23+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+810894a94fd0bb62429a44d42c9ef73e333b81ba	810894a9	2026-05-17T04:50:14+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+700a611632aeab52725a144251249f0f49d80a19	700a6116	2026-05-17T02:15:22+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+d41e87cb5c8967bba58c012c82e2d8f8a374cdaf	d41e87cb	2026-05-16T21:25:17+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #56 from mtnrconcept/a
+f41117f0eaa1d68c38ed732b827617474f9075af	f41117f0	2026-05-16T21:24:40+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+8dd29e978d4b71630b6089d682485ad7b5bf1ecc	8dd29e97	2026-05-16T18:12:30+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+4227b7f87c9ffbecce3a0c30b52833c52d0dd6dd	4227b7f8	2026-05-14T14:07:59+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #55 from mtnrconcept/codex/fix-webkit-masked-url-issues
+e591f1f3e6fe4453117fd07f4eab6c0109f5ffd6	e591f1f3	2026-05-14T14:07:29+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Filter masked browser extension Sentry errors
+4e8c60c6ee3d312076796455c0d31432fc3f354b	4e8c60c6	2026-05-01T05:13:25+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	e
+8d1f3b31b398523209c68f6e7fcc1260dc6d3e06	8d1f3b31	2026-04-30T04:17:05+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	k
+d1921df72f14c9c5b9213539c2799bef82368421	d1921df7	2026-04-30T03:32:50+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	l
+d316769ff6667acae80bdb4f8d32cc72d4ba78b7	d316769f	2026-04-28T23:22:01+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	33e
+9d0ba332df42a4dd7de5b266b6867c88fddffe19	9d0ba332	2026-04-28T22:43:08+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+5e36cb6f3c9aba3e5c64d60255204d83f34d329c	5e36cb6f	2026-04-28T21:16:34+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+11229080bb3dbebc0a8675fdcc3925b6ee27ff61	11229080	2026-04-28T01:23:58+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	e
+21445f3e307766d13cabaab61b910553fb511c92	21445f3e	2026-04-27T05:07:15+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #54 from mtnrconcept/codex/ajouter-deploiement-des-details-de-la-facture
+52255903f01a969049a48e1f806cf758269619cc	52255903	2026-04-27T05:06:18+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	feat(admin): add mobile invoice detail access in compta inflow
+dd5f06e3eb0607e841a67c47ef39da370c646fdf	dd5f06e3	2026-04-27T01:25:51+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #53 from mtnrconcept/codex/ameliorer-la-responsivite-du-tableau
+0e36235c9820892ea82252867283e11101f7b381	0e36235c	2026-04-27T01:25:22+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Fix mobile invoice history responsiveness in admin and dashboard
+9b4408b385d2352d6cf4f4beae5b69e35de32c9f	9b4408b3	2026-04-26T22:13:51+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #52 from mtnrconcept/codex/ameliorer-la-responsivite-du-tableau-des-factures
+53084aa819f988ae4d01eb557977fedc5a10614d	53084aa8	2026-04-26T22:13:31+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Improve mobile responsiveness for invoice history tables
+a69a374ed2b170c63ae540cb135e3ea6217c6826	a69a374e	2026-04-26T22:02:53+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #51 from mtnrconcept/codex/refactor-dashboard-responsiveness-for-mobile
+e9d8493329db59f3658fae73793cf5ac0414f7a0	e9d84933	2026-04-26T22:02:37+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Fix mobile overflow on admin and restaurateur invoice tables
+5bcfbf1a4a8cb28a1aba4280b0c721356b93e409	5bcfbf1a	2026-04-26T04:05:41+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #50 from mtnrconcept/codex/improve-tok-one-page-design-and-subscriptions
+0b73e5b96094b646ed61dd039d1a40c7da0bef93	0b73e5b9	2026-04-26T04:05:24+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Improve Tok One page design and enable subscription access
+b289f70099c6f279a0b00244adbad89cc7ad472e	b289f700	2026-04-25T17:41:21+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #49 from mtnrconcept/codex/fix-responsiveness-for-all-pages
+cb97b20e9fe9bb2083d485554c86803c2b18e467	cb97b20e	2026-04-25T17:41:08+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	fix: renforcer la responsivitÃ© mobile globale et bloquer le scroll horizontal
+64d415c6328c440e536ff93151f9d06af064ea84	64d415c6	2026-04-25T17:18:54+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #48 from mtnrconcept/codex/newux
+356f3fdd5604ac736e686149ca6cd2178f2ef97d	356f3fdd	2026-04-25T17:18:25+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+3bce8799815ac291844c036fad01250e593ccaf1	3bce8799	2026-04-25T17:14:10+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+50dd635ec08111afc5c9d80437212bf3bf65acb9	50dd635e	2026-04-25T17:04:19+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+9b72a5905b82a29f4c19fc9ce959fdc85e4a7869	9b72a590	2026-04-25T16:27:00+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	feat(db): add refund tracking columns + lift paid-special locks for service_role/admin
+075300b230cf73816482392fcbe4a22fe8ff637b	075300b2	2026-04-25T16:21:54+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	docs(plan): cancellation with refund + Miamz cleanup implementation plan
+a916f3299085cf591921c6d448dc86b7b75745d1	a916f329	2026-04-25T16:12:54+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	docs(spec): cancellation with refund + Miamz cleanup design
+013b5394bac7f3bd744a60b520ea8ae43a949b8a	013b5394	2026-04-25T15:54:23+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+9a0f3500ab3608a7f80b4d16972c9f36b75e0b8d	9a0f3500	2026-04-25T14:55:10+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+e9d3524b94a1c3b65e09054c718f17ad0aa89fdf	e9d3524b	2026-04-25T13:59:06+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+edee7e8f430be624daada4f16654ba012bb487be	edee7e8f	2026-04-25T04:54:23+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+af0ad50985f8427e6eec5f912a1552bbef5ed777	af0ad509	2026-04-25T04:06:41+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #47 from mtnrconcept/codex/newux
+652c6e7e9e1d3e06fc2b74f81dd3468c6df22c8d	652c6e7e	2026-04-25T04:05:13+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	wd
+d7bf5e981b3acde5245592bd30fa16e75e989bfb	d7bf5e98	2026-04-25T03:44:54+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+906ab0c6226c661d4ccdcd8504292a44733f402c	906ab0c6	2026-04-25T02:27:48+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #46 from mtnrconcept/codex/newux
+f1a554a7128d7665af3ca0d1182589d4c11e5a24	f1a554a7	2026-04-25T02:25:39+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	chore: update pnpm-lock.yaml to resolve CI ERR_PNPM_OUTDATED_LOCKFILE
+fb337e00abec1be7cd4a7f2800182803e1ac20f6	fb337e00	2026-04-25T02:14:34+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	test: mock supabase public env variables in vitest setup
+cd3737be1a025e40747e0fd7d2820cb672557a19	cd3737be	2026-04-25T02:09:41+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #45 from mtnrconcept/codex/newux
+8073d60ca6ac178c6afaf31747bb0d81bf67269a	8073d60c	2026-04-25T01:59:27+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	feat(dashboards): add search by order/reservation reference and fix admin sheet sizing
+bc3b81c757e7c8df1fde805048cda162a5f083d0	bc3b81c7	2026-04-25T00:28:42+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+3e31775891f9dcc0880d8b033d982ed0fb24512f	3e317758	2026-04-25T00:18:53+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+193e086de8d01a24ef1af9c6437cdfa4fa38bf10	193e086d	2026-04-24T23:21:50+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+8d825b7f7e59d1da06aa6658d115af4a47b52f43	8d825b7f	2026-04-24T21:12:16+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #44 from mtnrconcept/codex/newux
+e7135a9351d0b007fbb26555b58fddd2c63636f0	e7135a93	2026-04-24T21:10:45+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+a8893f4b5edee2f07e357a4a7dfeefd92d41f546	a8893f4b	2026-04-24T20:59:13+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #43 from mtnrconcept/codex/newux
+d13984c7882ceb1a346f6c27d1ef6d01f40d2237	d13984c7	2026-04-24T20:58:19+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+672b60d6fd8ce85328d1c42b137c4ce16e10eb65	672b60d6	2026-04-24T20:43:26+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #42 from mtnrconcept/codex/newux
+8459016ae948d3c2245460f7347eb34cd6276b3a	8459016a	2026-04-24T20:42:12+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+c3ea31892ca804dfd52ea68bd17d081b6b13ccba	c3ea3189	2026-04-24T03:54:36+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+cab52940a3d96b2a04907d141e166f3304913613	cab52940	2026-04-24T03:21:58+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+43c822010eb013bed95c2a3c99b173ab3e9cd61e	43c82201	2026-04-23T17:17:39+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #41 from mtnrconcept/production
+b5826dc2c109c8c302366f7716c2a5c8bc1c8ab5	b5826dc2	2026-04-23T17:15:56+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	rrr
+256efadf215fe08fc25a4e9adce86dd582535d8f	256efadf	2026-04-22T20:10:43+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	rgr
+c458bbac6030655a470fd17d28a29710c204fe95	c458bbac	2026-04-22T16:48:32+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Add admin orders-reservations history and invoice details
+422a22a8b2e41b296ae2bd3f59fe70bb923630f9	422a22a8	2026-04-22T14:47:29+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Hide sold-out special offers across public pages and dashboards
+4dd27b78035225e2d3c2805abf73ab05589d1a20	4dd27b78	2026-04-22T02:33:23+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #40 from mtnrconcept/production
+25316b90411195dd37a9fa4fdf1895d16cc57171	25316b90	2026-04-22T02:32:17+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+82b286146703c5f8a0a40519f47a918abaab9822	82b28614	2026-04-22T02:18:50+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #39 from mtnrconcept/production
+a191f2373f2afde43db94615167ab5c85b8a83a3	a191f237	2026-04-22T02:16:31+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+a0f199d45d7471f355a6666fed672010e459f372	a0f199d4	2026-04-22T02:03:04+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+e3eeed5cfc4555964e0b6482893d34e8b971e3f9	e3eeed5c	2026-04-22T01:17:47+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #38 from mtnrconcept/production
+dab23c49301caaec381aa26687607a71d838c402	dab23c49	2026-04-22T01:15:02+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+921623fa7c62bfccafa7f40ee42ba9c40867e8d3	921623fa	2026-04-22T00:43:31+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #37 from mtnrconcept/production
+aeb0946104f0b1c9ecbc474d91f6b0a91f910901	aeb09461	2026-04-22T00:42:46+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	jh
+cc3025adb244319bcac50fd82ce95abe73fa3a81	cc3025ad	2026-04-21T23:27:39+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Fix anti-gaspi offer visibility and checkout metadata
+66462d863154a6e579eb71fa3bad5cf97805457a	66462d86	2026-04-21T23:08:08+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #36 from mtnrconcept/production
+14203e523f73954eb6d9adecdc0c6c9b2a35bee1	14203e52	2026-04-21T23:07:16+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	jhgu
+38b14ead857df7b13868b4c46fb634495d8f394a	38b14ead	2026-04-21T21:53:44+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #35 from mtnrconcept/production
+433aa478f7dc0391cbaaa6c45454586572eb6da6	433aa478	2026-04-21T21:52:13+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Support multiple Stripe webhook secrets
+4085901a3a324c019e4f648a28becc9e513e261e	4085901a	2026-04-21T21:44:22+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	gd
+443275f48645ba86a9a995cc693d2738b4498f83	443275f4	2026-04-21T21:11:56+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #34 from mtnrconcept/production
+1ac3358e97fd64f3fa1a5abfb38e2c7ccbdf0d1c	1ac3358e	2026-04-21T21:11:05+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	uuh
+0af325b276779308879cf39b5d6394e81b3c3206	0af325b2	2026-04-21T20:42:36+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #33 from mtnrconcept/production
+7071f775da8585b09728ac2bf7894711430b5222	7071f775	2026-04-21T20:18:02+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	kjbkjn
+3d6bf1588d1a0c8d28f8e0c12e521fd38496aa8f	3d6bf158	2026-04-21T18:06:44+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #32 from mtnrconcept/production
+41d49c885344497f487b0dbfb1bf439e244365fa	41d49c88	2026-04-21T18:05:40+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+f07d8a2bed558605615c04b63b7acbf64ddcdb69	f07d8a2b	2026-04-21T17:59:00+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+1d37ce4078e77f1db90c625a2b5676726c1b12c8	1d37ce40	2026-04-21T17:46:36+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #31 from mtnrconcept/production
+83148b644ec14c922311e4680f4eb63a6e98097c	83148b64	2026-04-21T17:44:13+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+28cc9f4453493ed52cb03d9f250572555525148e	28cc9f44	2026-04-21T03:03:53+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #30 from mtnrconcept/production
+7d77dbef807bf13ef933086765592e06bc2cd84d	7d77dbef	2026-04-21T03:02:56+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+c8fb93de6196876cce78c259a5a047dcb1c1d3b0	c8fb93de	2026-04-21T02:57:31+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+e370270ef94d52014663682f3549bac11be81171	e370270e	2026-04-21T02:37:59+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #29 from mtnrconcept/production
+c725bca25f3c886f85f69b60aaafe146e1ba9296	c725bca2	2026-04-21T02:37:20+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+57e39846cbac2661ccb77c3651bcb208b715202e	57e39846	2026-04-21T02:26:22+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #28 from mtnrconcept/production
+799c6bf551749ff956d2e42d77cee068406c2a0b	799c6bf5	2026-04-21T02:25:03+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+e5e9f667536832dbf7d976aa467246debd894fd7	e5e9f667	2026-04-21T02:08:50+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #27 from mtnrconcept/production
+01286342901307e23b83b10d36dbd2dcc6c40956	01286342	2026-04-21T02:08:03+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+44760d6748ec8330063af751a607388bb76c3dbd	44760d67	2026-04-21T01:54:02+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #26 from mtnrconcept/production
+414f5f7a72622fccd71bbd416100e15f4d1e2d6d	414f5f7a	2026-04-21T01:52:55+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+5a807ec99147b3d95ad028bd279ac1b1e697ba39	5a807ec9	2026-04-21T01:42:51+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #25 from mtnrconcept/production
+6017c5e64b53934a810377b08b338cfae7eafc34	6017c5e6	2026-04-21T01:41:34+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+a22c9530da8b0f65df0f6652e69bebd82a012276	a22c9530	2026-04-21T01:38:22+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #24 from mtnrconcept/production
+f2e55a2d2d357e450d39aee1b510962dcb3cec03	f2e55a2d	2026-04-21T01:37:33+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+eb502edfc08ddad39b96c795d0955fc9abe7e991	eb502edf	2026-04-20T16:50:09+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #23 from mtnrconcept/production
+965df87589957c56d69c2eace319e67e515be66b	965df875	2026-04-20T16:49:04+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+5710f0ed42f3f3f81257d69678caa59af8a6f50b	5710f0ed	2026-04-20T16:46:21+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #22 from mtnrconcept/production
+1dc70ce919f47d2e6323016d519bab54abae3f16	1dc70ce9	2026-04-20T16:45:49+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+27d5d7520bb9930538d7ed03a3c456dc63269984	27d5d752	2026-04-20T16:39:38+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #21 from mtnrconcept/production
+695f13a6d0661fdfff4d7582d6b4d287fe1278f5	695f13a6	2026-04-20T16:39:06+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+d18b1e71aa3b7f99af3ff9de992149953bb36e8f	d18b1e71	2026-04-20T16:34:28+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #20 from mtnrconcept/production
+1d1eaaf6efce9050a28ba3429d00cec80bed0943	1d1eaaf6	2026-04-20T16:33:11+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+ca510981443cb774bc5543803b57f808dd808712	ca510981	2026-04-20T16:19:48+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #19 from mtnrconcept/production
+76b10c9ff12e5155bea7f4a4b2a2562c227ac176	76b10c9f	2026-04-20T16:18:15+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+ac7ab1e7bb0dd0658412f5f51c680449ae7a88c2	ac7ab1e7	2026-04-20T16:08:48+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #18 from mtnrconcept/production
+2ad6c576041c9cc4ebd5f8657287efa2eeaf170d	2ad6c576	2026-04-20T16:08:08+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+d2ee682e5551dd36361c109474ee280ce169a23a	d2ee682e	2026-04-20T16:04:12+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #17 from mtnrconcept/production
+bac82ed37204ddf961c5459d4703b2eedd152edb	bac82ed3	2026-04-20T16:03:31+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+b80031691aa4af5232923f6e67c7398f7f6ec386	b8003169	2026-04-20T16:01:40+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #16 from mtnrconcept/production
+1d6ed56def03dbcbc32d02a6fbe804b36bf92641	1d6ed56d	2026-04-20T15:59:55+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+2ab97206f72f1567d317d5a3c42ee9712daaec4c	2ab97206	2026-04-20T15:55:50+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #15 from mtnrconcept/production
+2e66b95ba6344deddc3d48a22a70164e60f497d1	2e66b95b	2026-04-20T15:55:03+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+81dc83cb810b05f553462073c35b11149b1cc1d4	81dc83cb	2026-04-18T14:51:53+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Stop hiding pending reservations from the restaurateur dashboard
+c843d4b7fae5e8a7c32955262d5398bfc604880b	c843d4b7	2026-04-18T14:46:33+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Make zero-attente reservation creation idempotent on duplicate slot
+030d439ed022eb358b8fd282278d190fe1d62bbd	030d439e	2026-04-18T13:55:40+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Strengthen reservation billing rule (cancelled_by drives billability)
+0b215fc4350c9c72efeea6d520724ecd5c808aa5	0b215fc4	2026-04-18T13:38:55+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Production audit: harden security, index hot FKs, cleanup duplicates
+c989a3b92a8aa603a46aefbcfc5b0ab2473fe3d2	c989a3b9	2026-04-18T07:10:43+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #14 from mtnrconcept/production
+0818b6ae28b8b803d991e4605737270d476d13a7	0818b6ae	2026-04-18T06:59:14+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+8664d341e20d2e5c68cbe3ee8d9439a8a76eec18	8664d341	2026-04-18T05:44:20+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Add 'ready' takeaway status and hide pending_payment from dashboards
+b46d169b85d713d9835950e84c8e94ea432e7350	b46d169b	2026-04-18T05:38:00+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Add submit_verified_review RPC backing the review form
+adfb591fcb807dfe49011339a62ba71941ec3e08	adfb591f	2026-04-18T05:36:10+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Restore DashboardAvis page from git history
+8c7a8d8fb371b5bcab5a8174208be89c5e23040c	8c7a8d8f	2026-04-18T05:31:58+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Auto-set reservations.confirmed_at via DB trigger
+c72241bca8deaac0b1b976d36e35a97d88e544af	c72241bc	2026-04-18T05:22:55+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Resolve merge conflict markers blocking Vite parse
+9c92dff01922b85830eec73a6ca6347f4f3e0281	9c92dff0	2026-04-18T02:44:35+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+3fddc73fe6cbb0ca236e29650bfaf888480080b5	3fddc73f	2026-04-18T02:43:32+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+79be0cb33b8fa3f9106fd31fc695e7db23be7779	79be0cb3	2026-04-18T01:36:22+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+653ea3c3746e80e0098b4013bbe14f3fe273c6dc	653ea3c3	2026-04-18T01:27:44+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #13 from mtnrconcept/production
+75d52acb8834ddd97787485276f04cc24c9ad3b1	75d52acb	2026-04-18T01:03:41+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+21936ff6b7798b5683a01d4763dc203dc82e11a2	21936ff6	2026-04-18T00:55:33+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Generalize payout encours and add admin payout invoices view
+775b30645c435e6ef6eceba6ae197931c5fcd231	775b3064	2026-04-18T00:25:19+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Add TOK reservation-fee invoice generator button to AdminCompta
+2391380c9f4351bdacb783c1b99f5bcff110d5b9	2391380c	2026-04-18T00:22:10+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Split DashboardFactures into payout vs TOK reservation-fee invoice sections
+e772e5b975abffc875bcf929cf8f15b20356869e	e772e5b9	2026-04-18T00:07:23+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Split reservation fees into separate TOK->restaurant invoices
+6a50b6a277e8ece909587c458acc72b5205d51f0	6a50b6a2	2026-04-17T22:30:45+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+eaaf973d423ebf2b5742cd2760bf1645c91e419d	eaaf973d	2026-04-17T21:09:45+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+e5ac041d317b62420923719974d2ffe44e054b3a	e5ac041d	2026-04-17T20:04:47+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Add reservation billing schema (confirmed_at, cancellation columns, fee)
+927d978e560ceda9203449dd8198863bdb8f1fb8	927d978e	2026-04-17T20:02:36+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Add implementation plan for reservation billing feature
+7da3377a99779671e7922031b637fd240da49ac4	7da3377a	2026-04-17T19:54:36+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Add design spec for reservation billing and anti-fraud dashboard
+341b42c10e1105422b8394309f7cec79f82ddd46	341b42c1	2026-04-13T00:22:59+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge branch 'main' into production
+fbc890371f37261c081938b3a29dd431f4255ffd	fbc89037	2026-04-12T22:56:55+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+af5a2c434bb4eb42501296af84edd67491003a94	af5a2c43	2026-04-12T20:09:45+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Harden edge functions with shared auth, CORS, and rate limits
+fadc7506a7a9e402e01ef6753b970f33868036b6	fadc7506	2026-04-11T19:59:48+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+2bb5f79ad95e6f3ecc3ed12b9bb1fc4f16b7a7fe	2bb5f79a	2026-04-11T19:46:15+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+76eab5717889c3a32e4b6405111d5cf40bda81e9	76eab571	2026-04-11T18:53:24+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Improve mobile dashboard menu button placement
+f362573783d5b50a4790d1ebc0f91f095b131435	f3625737	2026-04-11T07:13:10+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+8cbf99b883dab3167fc658b2240d1833f7e80c2a	8cbf99b8	2026-04-11T04:51:49+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #12 from mtnrconcept/plandesalle2
+0d9baa88437164b2fe563f64c87b66b1cedf11e6	0d9baa88	2026-04-11T04:38:02+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Route analytics writes through a Supabase edge function
+c4bd2f9acbaf5657f5b72b15327be7581ac57366	c4bd2f9a	2026-04-11T04:25:29+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+663629aed49df62826b4ae87865998c35e53c1fa	663629ae	2026-04-07T20:10:29+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #11 from mtnrconcept/plandesalle2
+f807ea0514041d125819e04e5cb50e6120c40cbb	f807ea05	2026-04-07T20:09:41+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+3ebbb3e3827faf10f8ac5744194cae668421af1f	3ebbb3e3	2026-04-07T19:11:17+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+f22583f935860fc758610df0e2bdfcce13f8c865	f22583f9	2026-04-06T14:42:55+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+2deab7c3d45ab0f027c4718dcbfa3d55f63c1c37	2deab7c3	2026-04-05T07:38:46+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #10 from mtnrconcept/plandesalle2
+49b1a76075c434fb4bb0f33fdec1b65145eb956c	49b1a760	2026-04-05T07:38:08+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	tok one
+721e3fc04addde3f49cda6af1ec6a85cb72b141d	721e3fc0	2026-04-05T06:34:52+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+96970226c4c0230c11fe2a529b1ccfe73060e9fd	96970226	2026-04-02T20:48:49+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #9 from mtnrconcept/accueil
+7e00750459d0392e221f0c176f0417d7507a9c12	7e007504	2026-04-02T20:48:01+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+faa6e530c9e97ea4969a191d2aabd716786dc86f	faa6e530	2026-04-01T08:36:59+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #8 from mtnrconcept/accueil
+7d75a3047e01b4f7f2e42bec5674464bbcde0f0d	7d75a304	2026-04-01T07:26:53+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+6630476d82f509c6ac289fb6da0ef020cd2d6ed2	6630476d	2026-04-01T07:16:34+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+9e548742c9aa984e4c1a38e3e5ef773e7d244f98	9e548742	2026-04-01T05:48:58+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+877a3b3e92bb58e59a7b6ea2529693ce6009fb25	877a3b3e	2026-03-31T18:03:24+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+602935711de5c9f35ef84d6747d800ae4e2e0f0c	60293571	2026-03-31T17:36:36+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+f805d79891352b409972f5921e11f6bc5fa9f6a1	f805d798	2026-03-31T17:33:03+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+be1d2b76cc5b6fc3dfa599555b55fd7583fc8189	be1d2b76	2026-03-31T17:18:40+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #7 from mtnrconcept/accueil
+e8b281fc28f61c0552095b9a674da18bff11b49e	e8b281fc	2026-03-31T17:16:50+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+c660805cd3056b005508e75c5a6b39914de0c3b6	c660805c	2026-03-31T17:06:05+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	changement accueil
+5f07ee06531aaa408365b518657ec7951cdad8b7	5f07ee06	2026-03-31T04:59:55+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+f8885b7e773a25d498f41c24a9fd71d0000443de	f8885b7e	2026-03-31T04:17:54+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+9c3adeed6434daedfd0e7d50d86c110171ef9487	9c3adeed	2026-03-30T22:51:45+02:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #6 from mtnrconcept/accueil
+8434c62774fe3a4af5532c93509169ca969610ac	8434c627	2026-03-30T22:51:01+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+2e10a7c1f3ebb1b8561ca36c711084333710e989	2e10a7c1	2026-03-30T20:49:56+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+3080483523f2994ea89fda981d63fea4b9f32a2e	30804835	2026-03-30T12:39:10+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+2b55d2844417a1d9276e9478b544828498717bf9	2b55d284	2026-03-30T11:41:07+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Implement global feature flags and restaurant floor plans
+a885e9c5a1067481ee6bccfb1ef645b8cfa0522c	a885e9c5	2026-03-30T06:10:55+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+7a1cae1968c23e3dbc04da8456e3753aed184cd6	7a1cae19	2026-03-30T01:30:02+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+81df593c809e0b4066a4e6e3c1fbc92d1fc48925	81df593c	2026-03-29T05:57:52+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Harden reservation flows and unify notification dispatch
+8a52e7174ee2c8b0045941a420489eb1c284c972	8a52e717	2026-03-29T05:19:24+02:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Harden auth, dashboard, and signup application flows
+b6c1ce118d4994f7dc6778be4bba967e1df644d4	b6c1ce11	2026-03-27T06:42:56+01:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+195ef65b37438b158c87b922c4271471684a82b3	195ef65b	2026-03-27T06:20:22+01:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+34f9da24487d6afca945b01c225b5ce0668a5b25	34f9da24	2026-03-27T05:47:31+01:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Add dashboard order tabs and unread counters
+532fea82f70f7bc9177f2e42b308e2013dd745c8	532fea82	2026-03-27T05:31:30+01:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Implement TheFork booking foundation and verified review flow
+e319f3717a7bd55ae7b03006bfdb2195dfc51a99	e319f371	2026-03-26T19:03:49+01:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+6505b7ca7b0b3b2d41788b99ca2c29301c8e331e	6505b7ca	2026-03-24T05:11:34+01:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+573711e3c431303d908005555dcbc54a47f5df4d	573711e3	2026-03-24T02:57:42+01:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+6ef8ced4063892eb690503bede2e925046b6e77c	6ef8ced4	2026-03-24T02:41:53+01:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Route campaign dashboard actions through edge functions
+60eee7e1a39357bc2c6a780e1df7303e95dcca2c	60eee7e1	2026-03-24T02:25:22+01:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+312d027b2f475d0a4bdb77eea5bc977a94f3fe84	312d027b	2026-03-24T02:23:23+01:00	RaphaÃ«l Barman	rbarman@hotmail.ch	Sanitize Supabase envs and harden Stripe notification flows
+752e33770f084f4f08d24e10e46ded990ee84f19	752e3377	2026-03-24T01:02:35+01:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+cba32013c33acb867e1d2645ff06ce3379e32b0d	cba32013	2026-03-24T00:48:24+01:00	RaphaÃ«l Barman	rbarman@hotmail.ch	2
+ec0df9709608d64262a1492b5ca819e341edcdee	ec0df970	2026-03-23T03:46:16+01:00	RaphaÃ«l Barman	ton-email@exemple.com	2
+448417ccd446df389932695da0143fcd3a1b52c9	448417cc	2026-03-23T01:10:31+01:00	RaphaÃ«l Barman	ton-email@exemple.com	2
+6fb06ddf795d98e039cba8165a5f6f61f40ce911	6fb06ddf	2026-03-23T00:00:46+01:00	RaphaÃ«l Barman	ton-email@exemple.com	2
+71f5bef63458a840ec97863df253a997de2fe1bb	71f5bef6	2026-03-22T23:36:36+01:00	RaphaÃ«l Barman	ton-email@exemple.com	2
+8a08e15a5e5edf6c7b3788070125c33c487466eb	8a08e15a	2026-03-22T23:32:55+01:00	RaphaÃ«l Barman	ton-email@exemple.com	2
+f0b0cd1b0447d2a81ebffbfd2cd0cfeb4b8f6916	f0b0cd1b	2026-03-22T21:10:33+01:00	RaphaÃ«l Barman	ton-email@exemple.com	2
+5d98bafce0ff0706fba47694b114fe671f10ddeb	5d98bafc	2026-03-21T02:57:07+01:00	RaphaÃ«l Barman	ton-email@exemple.com	2
+8d705ada5a5306e10372b96b39ba0c5988ebf30f	8d705ada	2026-03-21T02:18:16+01:00	RaphaÃ«l Barman	ton-email@exemple.com	2
+183f84630127a265c28002e9df1d158b094f48be	183f8463	2026-03-19T18:36:25+01:00	RaphaÃ«l Barman	ton-email@exemple.com	style: center hero elements and adjust background for mobile
+89e754b169754db623669997fd10b6d9249a29df	89e754b1	2026-03-19T18:33:39+01:00	RaphaÃ«l Barman	ton-email@exemple.com	2
+6c909b98d987037ede91ecf6a3813fa04e16590a	6c909b98	2026-03-17T13:48:41+01:00	RaphaÃ«l Barman	ton-email@exemple.com	2
+be6d0265fb7b111e1e45690928a5ca33082e0a54	be6d0265	2026-03-17T05:37:22+01:00	RaphaÃ«l Barman	ton-email@exemple.com	2
+d0b62531f1f695d85c02f73eecd028995f08b78b	d0b62531	2026-03-17T05:18:03+01:00	RaphaÃ«l Barman	ton-email@exemple.com	nouveau design
+04f1eafa89a8be0f77e8af2a7102090135a07dd3	04f1eafa	2026-03-17T01:59:33+01:00	RaphaÃ«l Barman	ton-email@exemple.com	2
+57802be30f99ac4dd1aa81fb42691655bd3e42a7	57802be3	2026-03-16T23:26:36+01:00	RaphaÃ«l Barman	ton-email@exemple.com	2
+0b11e5472e59d5988c0bc7227969d1e17d525fe8	0b11e547	2026-03-14T11:52:02+01:00	RaphaÃ«l Barman	ton-email@exemple.com	2
+1e873c0c582142eb8fc26f4a73f6429b0f1774f6	1e873c0c	2026-03-13T20:11:33+01:00	RaphaÃ«l Barman	ton-email@exemple.com	2
+cce5c0dc9f057bd740c55f6ff196d1803f2a29b8	cce5c0dc	2026-03-12T18:25:38+01:00	RaphaÃ«l Barman	ton-email@exemple.com	2
+fca241646c560ee032cea014155f1fecbb597e4a	fca24164	2026-03-12T18:00:48+01:00	RaphaÃ«l Barman	ton-email@exemple.com	2
+15330411d6c0500e8a3fff171172defb5dc5719d	15330411	2026-03-12T03:24:31+01:00	RaphaÃ«l Barman	ton-email@exemple.com	2
+fe693ff9dd515f8fead701f48ade3162a55cd61b	fe693ff9	2026-03-11T22:59:30+01:00	RaphaÃ«l Barman	ton-email@exemple.com	Split dashboard services into lunch and dinner
+1e40b486d335298a8de761c797f8a034aea685de	1e40b486	2026-03-11T22:44:50+01:00	RaphaÃ«l Barman	ton-email@exemple.com	Merge origin/rrefonte into rrefonte
+7ad255f0f38c6ca9164b7f957fc593ae1cbf995b	7ad255f0	2026-03-11T22:34:57+01:00	RaphaÃ«l Barman	ton-email@exemple.com	Complete admin tools and unify restaurant dashboard
+24536e37e32b974138d1ae718e0435d1106462f7	24536e37	2026-03-11T21:17:45+01:00	RaphaÃ«l Barman	ton-email@exemple.com	2
+f8a4dcad1442f7d34bfcba52ba9f634ca2fe869e	f8a4dcad	2026-03-11T18:50:33+01:00	RaphaÃ«l Barman	ton-email@exemple.com	2
+e60850709fae37c8fdfef20e5154da6676915229	e6085070	2026-03-11T17:40:39+01:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #2 from mtnrconcept/codex/refactor-dashboard-to-use-selected-restaurant
+aabf55c72f9d08d359ae653600f1d9408a79acac	aabf55c7	2026-03-11T17:40:10+01:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Dashboard: support multi-restaurant selection for commandes and reservations
+67186b45a30dfeeb9fe70995618b5b30df0324c3	67186b45	2026-03-11T17:37:48+01:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Merge pull request #1 from mtnrconcept/codex/add-migration-to-assign-restaurants-to-rbarman
+bfa32e3a865dd6078a532f86944e4c000b6c3648	bfa32e3a	2026-03-11T17:37:31+01:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add idempotent migration assigning NULL restaurant owners to rbarman
+0047c797358860a643fcb8046da01e4e43637935	0047c797	2026-03-11T17:21:04+01:00	RaphaÃ«l Barman	ton-email@exemple.com	2
+a76cff5832124cf171cb4d321128eb21f63cda7f	a76cff58	2026-03-10T05:40:26+01:00	RaphaÃ«l Barman	ton-email@exemple.com	2
+63abc46215a47551e23018634a0c5e6c10e7dc33	63abc462	2026-03-10T05:22:13+01:00	RaphaÃ«l Barman	ton-email@exemple.com	2
+05027d2a22dc879540a4c16b81a1edab93342c50	05027d2a	2026-03-10T04:52:34+01:00	RaphaÃ«l Barman	ton-email@exemple.com	2
+6f4b9812b3927db25a7c3636e19a5e5afebcbee6	6f4b9812	2026-03-10T02:41:17+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Handle ad-campaign RPC errors
+024168efeafd8c9d0dad5dcd63dd04b9e4275981	024168ef	2026-03-10T02:41:09+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Handle ad RPC guards
+9c2ee641bada4a51dc2faf002e42903fd65f071f	9c2ee641	2026-03-10T02:38:44+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Add unique constraint
+f55fb7916db1c4eaac075f8e0c91331fa5760b77	f55fb791	2026-03-10T02:38:37+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Add ad blocker safe handling
+6b01cf4cea113d0d9024c039f6cfc770184301e4	6b01cf4c	2026-03-10T02:33:02+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Resiliented ad campaign calls
+0b70415ef947e064f7e6360c8d2eb2422101ae7b	0b70415e	2026-03-10T02:32:54+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	RÃ©dui vie mobile fond
+88e158fd7618bb194997597da458f5fefed02efe	88e158fd	2026-03-10T02:32:53+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+1e6c3a46f0e215f258ce2d352be5d9702dc91cd1	1e6c3a46	2026-03-10T02:32:51+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+36a92e112364a5014ea76e0b04ca321f748903be	36a92e11	2026-03-10T02:13:15+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Integrate promotion detector
+cf37f78c18e005c21a1d54d14f8a92d56fe827cb	cf37f78c	2026-03-10T02:12:57+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Add PromotionDetector component
+58535fe55dbdfaea042a5e8098b43e4da66775e1	58535fe5	2026-03-10T02:12:47+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Add PromotionDetector
+e348befd3a064fb4a0477aab6bd93ad279308160	e348befd	2026-03-10T02:12:47+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+97ad76df70c58f22e527b3a0a17de2934165d75b	97ad76df	2026-03-10T02:12:44+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+5f0360d8f3460e560e58f8c770ee6777ecc2f47f	5f0360d8	2026-03-10T02:12:33+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Integrate PromotionDetector
+e86f13dadc3f55669d62ffddbae7a3f74c7ccf52	e86f13da	2026-03-10T02:12:26+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Add PromotionDetector
+372d78d4657b7166b86dfbc8a97c6cd90becd915	372d78d4	2026-03-10T02:12:25+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+4e904de22f6255da6d80ca2b3a56312042db6385	4e904de2	2026-03-10T02:12:18+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Audit dashboard interactivity
+93c2d4016b7d6dd3f02d6282007be071887e2e4b	93c2d401	2026-03-10T02:55:16+01:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add files via upload
+e1f7e8e267419be835a86293a110b4435489b6dd	e1f7e8e2	2026-03-10T02:55:03+01:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Delete public/fond4.png
+db70095838cf8fefb175c7ad35d38b39847eb3a9	db700958	2026-03-10T02:52:43+01:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Adjust blur effect on HeroSection background
+61ba505c0b8d198837e78737e877544c665b7c2e	61ba505c	2026-03-10T02:50:14+01:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add files via upload
+7409a3137881ab3844f77ef254059b6f03211ce9	7409a313	2026-03-10T02:49:53+01:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Delete public/fond4.png
+c28a03c76828942334e452042101ffdadbb804a9	c28a03c7	2026-03-10T01:45:07+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	AjustÃ© hero pour mobile
+8c878f15d313fa46b1a6f4a1c0471af27193eaa5	8c878f15	2026-03-10T01:45:00+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Ajuste image fond portrait
+385b8278a35e3997bbbbe1241264f27f298e2ab4	385b8278	2026-03-10T01:44:52+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Changes
+681c3576691920afc60789875e989c5a643feb5f	681c3576	2026-03-10T01:43:22+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	AjustÃ© hero mobile image
+f5c46e51bb5b95f41f3cc9088678aa6387047b11	f5c46e51	2026-03-10T01:43:16+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Changes
+313b4021ff02c208eb399d76dc2423939ec62dcd	313b4021	2026-03-10T02:34:20+01:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Update HeroSection.tsx
+8fb705871c79b9e81e707587104a42c8b9fa11fa	8fb70587	2026-03-10T01:29:55+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	DiminuÃ© hauteur hero mobile
+c4991cf61922f9d6d308959563bd4755f7942d62	c4991cf6	2026-03-10T01:29:45+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Changes
+625f5356ae1ccda8857680b858f9ac8555ec4803	625f5356	2026-03-09T16:26:03+01:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add files via upload
+b50a58e6a37fc515c52d38dd6a66cd4d8454e29d	b50a58e6	2026-03-09T16:25:51+01:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Delete public/fond4.png
+db379db14f178d7a86cf8745fb03888f58aef3c2	db379db1	2026-03-09T16:22:10+01:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add files via upload
+b76bc7edcc15bae673b8a834a6afebd811878717	b76bc7ed	2026-03-09T16:21:13+01:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Delete public/fond4.png
+a3385f3f05ed8a456a111932e288e50f53217889	a3385f3f	2026-03-09T16:18:54+01:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Change background image in HeroSection component
+5bff289d80114830542f342539a172bf4017f592	5bff289d	2026-03-09T16:17:35+01:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Update HeroSection.tsx
+3b9f331300f23a87a6b4ddbecf14c93c058d0f85	3b9f3313	2026-03-09T16:13:41+01:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Update HeroSection.tsx
+3e580c5c6c46b7ef63c98a6f6c1de3f45bf03470	3e580c5c	2026-03-09T16:13:07+01:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add files via upload
+f1aa80ac2fd83a2d08766c465a78ef26bd79247e	f1aa80ac	2026-03-09T15:12:31+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Update site info for publish
+9ee0ee7f04a5b12b51877c7265bda17c4aef80fe	9ee0ee7f	2026-03-09T16:09:08+01:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Update HeroSection.tsx
+807054681c67a0c52e9f51b40356515fd96d8303	80705468	2026-03-09T16:06:56+01:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add files via upload
+176e01ef70de966f24a202aa51c561e53e3dee08	176e01ef	2026-03-09T16:06:44+01:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Delete public/fond3.png
+5186eddbbf349449915fd09f01d7fb24ee775a18	5186eddb	2026-03-09T16:04:10+01:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Update background image in HeroSection component
+f9539ada86b525a09f13a7cd9c54e9cde363ee21	f9539ada	2026-03-09T16:02:12+01:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Update HeroSection.tsx
+759ca026d363cf09768126c47e0401e49122a98a	759ca026	2026-03-09T16:01:36+01:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Rename ChatGPT Image 9 mars 2026, 15_59_50.png to fond3.png
+d16b0a1f6102dd265ff4c336f098276a92d48aec	d16b0a1f	2026-03-09T16:00:45+01:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add files via upload
+05226138195510dcd58cdb76b4d024b7afaf65c8	05226138	2026-03-09T13:29:45+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	AffichÃ© dÃ©tails paiement
+bedcd204c7a7a4c7a9adf99a7965c256d67938db	bedcd204	2026-03-09T13:29:31+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	AffichÃ© dÃ©tails paiement
+c0030237cc4a60a9917f938849b0de039faf9dda	c0030237	2026-03-09T13:29:10+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	AffichÃ© les dÃ©tails paiement
+11aee25a66180abe6c6090a32546721fb9c67f9e	11aee25a	2026-03-09T13:25:27+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Adjust order creation for special items
+d96c9df32f90ad565d1c9a1be683903e3e58fa09	d96c9df3	2026-03-09T13:25:16+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Handle special items in validation
+bee2cdc5e506e809737379064d38030fbf169afa	bee2cdc5	2026-03-09T13:24:49+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Fix checkout edge error
+ba6b3f74d06cd427d2704c3c3eeb76d4f01dc46f	ba6b3f74	2026-03-09T13:23:02+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Limit rating display to 10
+9d1bec7410990d92ea0549df363c132a537d61e7	9d1bec74	2026-03-09T13:22:52+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Changes
+e3d59510ba9264b64b3d861abada87952b0c7d07	e3d59510	2026-03-09T13:01:22+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Affiche ventes flash intÃ©grÃ©es
+1ade7619160b96033a09c26cdecf2ea2ca9f58bd	1ade7619	2026-03-09T13:01:04+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Affichage ventes flash avancÃ©
+3767bf1b21b3bfa4b6e584605cf0d73ecfd2fdfb	3767bf1b	2026-03-09T13:00:43+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	AffichÃ© ventes flash actives
+80c51e68026fab43aa32179c9708ad3516f57c7c	80c51e68	2026-03-09T13:00:32+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Afficher ventes flash
+d794cffbbe56c7e127e302f44bb553f3b684d724	d794cffb	2026-03-09T12:55:11+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	RÃ©duis Ventes Flash et Offres
+52159d921736c3f6d90d7dbc8f28ec65da50dd67	52159d92	2026-03-09T12:54:56+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Simplified Ventes Flash et Offres
+c772b0c2f93b29895fb7e5471c33078604d80188	c772b0c2	2026-03-09T12:48:53+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Fix Stripe checkout types
+47c0763e40d6b83b8761d1f0dea03b4a6820b13c	47c0763e	2026-03-09T12:48:45+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Fix checkout payment types
+6148c54d8b01f13b25375037b1a2a25814117be2	6148c54d	2026-03-09T12:48:36+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Changes
+8f42a08b6c4f246c73e71d6d04f47aca67024803	8f42a08b	2026-03-09T12:45:25+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Add advance payment for ZeroAttente
+98df614b906921462eeb3c81fde1d88b53ea140a	98df614b	2026-03-09T12:45:09+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Implement advance payment for Zero Attente
+09453a063992d583b216d7d1334221bea89c4063	09453a06	2026-03-09T12:28:49+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Add Stripe checkout function
+e426125bc810b49665894b7156352c313f0ab58b	e426125b	2026-03-09T12:28:32+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Add Stripe checkout function
+92e15e06938c968d7a189118739be52f027994f8	92e15e06	2026-03-09T12:27:42+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Add Stripe checkout support
+f76c0f3e7c4d0d0833eacc2331106f4e1e5de5a2	f76c0f3e	2026-03-09T12:27:36+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Add Stripe checkout support
+76a22209a72885b85c90b6b1f9daa7404f83b342	76a22209	2026-03-09T12:27:22+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Add Stripe checkout integration
+fd0f07a30f69d8adca14b5f4c801428ad53a686a	fd0f07a3	2026-03-09T11:40:34+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Implement presets formules dashboard
+a5b8f37d8627c64d89791f053162dad14e50be69	a5b8f37d	2026-03-09T11:40:20+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Create preset formulas dashboard
+ff8270ad99b346562d42605a859ac6181de4ed99	ff8270ad	2026-03-09T11:40:13+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Redesign dashboard formules
+5ea060eec4423495be74ed5a82c665c6a5147ec7	5ea060ee	2026-03-09T12:40:04+01:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Change background opacity of HeroSection
+b873cddf85c6923a139a429d94f8493437437697	b873cddf	2026-03-09T12:35:27+01:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Change background opacity of HeroSection component
+3c4185063c73251a7019743bfe7bdd5a63796ced	3c418506	2026-03-09T12:33:28+01:00	mtnrconcept	149347251+mtnrconcept@users.noreply.github.com	Add files via upload
+38cdae8e657803ec3e958c75868458ae05e7fe40	38cdae8e	2026-03-09T03:52:51+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Improve reservation and order customer lookups
+cbdfef046727185df87ea2ceb5d73c6d81a75fce	cbdfef04	2026-03-09T03:52:34+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Add reservation/customer helper
+8883abcd373eeb72db90e67c7c3004d388dfd8dc	8883abcd	2026-03-09T03:52:23+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Add reservation customers function
+5f9fe4abb2bc54ea67aa43d7027be98d92ea58ff	5f9fe4ab	2026-03-09T03:52:13+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Improve reservation data access
+6a766a7a89f00aa2f0ac87a934e5b0ecdbb0dd4a	6a766a7a	2026-03-09T03:52:05+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Add reservation customers function
+48f347515f49fb03e943ab4847703cc63cce253f	48f34751	2026-03-09T03:51:52+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Connect dashboard tools
+615a52fb649e94e1cc58cf26bec4d685f1e5f6da	615a52fb	2026-03-09T03:51:36+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Connect dashboard tools to logic
+6a84d8f667d15e2f65dc009a4fa8085f1762b579	6a84d8f6	2026-03-09T03:51:30+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Audit dashboard data connections
+7c9997fd609fac86864b4d97657072d8c2ec4c2b	7c9997fd	2026-03-09T03:51:29+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+cd71e30c0e20568aa12bba87a711d615d6bf93e2	cd71e30c	2026-03-09T03:51:28+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+97697b9927e96572d8d8a2a734fe3e3d13cef6cb	97697b99	2026-03-09T03:47:40+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Integrate IA campaign tool
+0223e13654db7e733147a93ad700a41ae9997380	0223e136	2026-03-09T03:47:22+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	IntÃ©grÃ© campagnes IA images
+f0607ca1c067854d4f6bb4cf53e92f4dda06634d	f0607ca1	2026-03-09T03:47:22+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+c75abb53ebab4e81f9be1fad7c27d8374c1024f4	c75abb53	2026-03-09T03:47:07+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	IntÃ©grer IA campagne et patch
+04b4fdaea294ac6230d1ba6c0dcf90fc443fa3ca	04b4fdae	2026-03-09T03:46:59+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	AmÃ©liorÃ© suivi campagnes IA
+28bdd312f981379888c4442c13a5c637d9960a13	28bdd312	2026-03-09T03:46:37+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Fix campaign metrics tracking
+eb3e868a3f728070b7e81a8becbf015b24caeba5	eb3e868a	2026-03-09T03:46:26+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	AmÃ©liorÃ© campagne IA et logs
+5556a853a457c8baf4befc7eb83c9973d97d380b	5556a853	2026-03-09T03:42:32+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	CorrigÃ© campagnes stats
+34945133e598b2d4e23a5f051df5707121f0b259	34945133	2026-03-09T03:42:25+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	AmÃ©liorÃ© campagne data flow
+f1b79be25e0b9e97b2b1f06e0a1ff6057f7f97ee	f1b79be2	2026-03-09T03:42:24+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+23db141452a67de679f10f89bf562bf497273ada	23db1414	2026-03-09T03:42:23+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+8d93e5884160e63d8dbfe50302867dd3b5053175	8d93e588	2026-03-09T03:36:06+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	AmÃ©liorÃ© campagnes images IA
+8a91c506c0fff8fcca8832df48e2c2e56d9e5bdf	8a91c506	2026-03-09T03:35:44+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Enrich Campaigns banners IA
+368ea410641c76d38b36bcbce58ba3b033aea1d0	368ea410	2026-03-09T03:35:43+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+23ae7c1964e135aa217aa0be20160f7316e31007	23ae7c19	2026-03-09T03:35:41+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+322e0a703d3a0bf1aa5c29a2ac714b574806e4f8	322e0a70	2026-03-09T03:35:19+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Campaign banners upgades
+1e1795ba58440b24317310f5e5c189cd0b561d53	1e1795ba	2026-03-09T03:35:07+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	AmÃ©liorÃ© outil campagnes
+c616d00d6b9708d0e388376a766547c074021938	c616d00d	2026-03-09T03:30:01+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Corrected advisor auth flow
+48cd416b7afae49384f98bf233ef3018ac4cba84	48cd416b	2026-03-09T03:29:54+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Fix unauthorized edge function
+f29fd5e5338da73a72c73cc4c3ce8c979609cb3d	f29fd5e5	2026-03-09T03:28:56+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Ajouter IA conseiller ventes
+8cd1b75ee11905600075ee2087a365c319ff6f2d	8cd1b75e	2026-03-09T03:28:35+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Ajout agent IA advisor
+dd4d0ec0fa815657b19731102cd76ed9a1ff1199	dd4d0ec0	2026-03-09T03:28:29+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Ajout IA advisor dashboard
+ba6c3863c8a9e6a261fb969d1c7f2fbeae675158	ba6c3863	2026-03-09T03:28:29+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+bf4bf0a1554a4e3a7c3b4eda2578b898f707fd12	bf4bf0a1	2026-03-09T03:28:21+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Ajouter IA conseiller dashboard
+1892f421c07620a2f43d4a40c1ed635a35e2f881	1892f421	2026-03-09T03:28:20+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+6ab4a6c46a4b998937a67069b6eaf5994ca98516	6ab4a6c4	2026-03-09T03:28:00+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Ajouter IA conseiller dashboard
+b8ca6c31025fde0e6af35147b837c6929441210b	b8ca6c31	2026-03-09T03:23:19+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Reservation details modal added
+9de2ce6517696463711e046afeb984a865af95f4	9de2ce65	2026-03-09T03:22:59+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Add reservation detail modal
+79c0c7bccda78caae9531dfb5155fe220f76045a	79c0c7bc	2026-03-09T03:22:59+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+a25e42512ac1f2998f870f423bb9493e19b6ce41	a25e4251	2026-03-09T03:22:49+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Reservation detail modal added
+bd3771d21b592491a4a660b5ee4e5acf37fc5289	bd3771d2	2026-03-09T03:22:49+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+6e55697a4a9e40f4a68a228bc89a7aeaac303131	6e55697a	2026-03-09T03:22:42+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+2672922969080b09e8e3d2c0dcfe66cafc8180ba	26729229	2026-03-09T03:22:35+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Add reservation detail modal
+b94a7bf7fb69b2a89de75c0a89c572f28f052683	b94a7bf7	2026-03-09T03:22:28+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Reservation detail modal added
+c6d200a0ef4878c1a19cbd5b85da71d240b1fde2	c6d200a0	2026-03-09T03:22:20+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Add reservation detail modal
+a1cbf151c65f42d71899f1e692778d61c906841f	a1cbf151	2026-03-09T03:22:19+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+d4197445d74bff7bf71427536ffdc99d349da279	d4197445	2026-03-09T03:22:12+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+8e67273a895d2feb9b47b31d55969dff97ecba52	8e67273a	2026-03-09T03:22:00+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Add reservation detail modal
+195d2d1af830a801ae8cf16d293a8471f63bb4fe	195d2d1a	2026-03-09T03:21:52+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Add reservation detail modal
+ddaf20006e6a771bc4af99b55633952cacff4a9d	ddaf2000	2026-03-09T03:21:51+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+b8949998f04db4eac02980044bcb132119c78444	b8949998	2026-03-09T03:21:38+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Add reservation detail modal
+6bb9bf841ecaf2d7a4b182335305896c11d2a1cb	6bb9bf84	2026-03-09T03:21:25+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Add reservation detail modal
+9788abec5eae60da98e17a706a26810096439978	9788abec	2026-03-09T03:21:25+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+070b40f3e849eac3043a8aa4ddf96d6cf1b8f10d	070b40f3	2026-03-09T03:21:16+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Add reservation detail modal
+9e70c7eda58a6baf1cb47451cdfcf0908f1a24bc	9e70c7ed	2026-03-09T03:13:31+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Improve cart item UI and pricing
+33ea5f8ea5929c200efb73dd0056ecf5e7ff937d	33ea5f8e	2026-03-09T03:13:05+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Refactor cart items component
+3d45534787a126d3cadbbb2e6482877e750d1132	3d455347	2026-03-09T03:11:13+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Refactored P2 items and fixes
+d7bc590d0d076547c384acf6071f12d22d68d38c	d7bc590d	2026-03-09T03:05:15+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Secure plan & fixes applied
+3b6c549b99392d40a3ba129ff0d332de84711bc7	3b6c549b	2026-03-09T03:04:46+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Stabilized app with fixes
+4b1028ad96658e59deb8ac68d131464ff0cb901a	4b1028ad	2026-03-09T03:04:39+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Secured app + cleanup
+5c13f53159d58d6b09888f511ff5a30856958676	5c13f531	2026-03-09T03:04:38+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+264a5e36c59640555686dd0f5b024d30c2682476	264a5e36	2026-03-09T03:04:32+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Secure cleanup and upgrades
+0df178243aec52ad237dc39ff1b2cedf88f5eef0	0df17824	2026-03-09T03:04:24+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Implement security and cleanup
+be2fed9aa8363a75d48c16172466de68bc28715e	be2fed9a	2026-03-09T03:04:24+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+b5a6e3e3d910d78fb40e1acfc8f2edb43417c2b4	b5a6e3e3	2026-03-09T03:04:22+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+ad2d35eb54baade6bb3ef3d2b005bf26dcd19215	ad2d35eb	2026-03-09T03:04:08+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Security cleanup and refactors
+29891077d2e20ffa20e8a57f4f82284748218d67	29891077	2026-03-09T03:04:08+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+da5032f281e08907f630d9201af6fc6913bdb0f8	da5032f2	2026-03-09T03:04:06+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+5a99cb86dcb28a76788e2772cd2d4371161b8c5e	5a99cb86	2026-03-09T03:04:04+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+6bfd2fee8b606286c5e5d45ccb5c0f0fe917b02d	6bfd2fee	2026-03-09T03:04:02+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+1a879633160b133af194cfc80898eafdc38b7a84	1a879633	2026-03-09T03:03:58+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+d03f234b47299937761bf6def42d743bf87f9d81	d03f234b	2026-03-09T03:03:41+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Security & cleanup improvements
+e3e525c7331038e8099737ba9c65bf79a51233d8	e3e525c7	2026-03-09T03:03:27+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Apply security fixes and cleanup
+b989acd803ca50e4c961eb1348640edd61b6352e	b989acd8	2026-03-09T03:03:27+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+f9f805f0ce3b9ef47c341af4a8e3adc0a01bef53	f9f805f0	2026-03-09T03:03:25+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+fbb0c2aa7a75f16be944ee7cc00b8196ce2ccb9c	fbb0c2aa	2026-03-09T03:03:08+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Redeploy triggers and tighten RBAC
+27e2096234c56fd616c7e1fb9fce0e536465a633	27e20962	2026-03-09T03:03:07+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+c82142f4cfc3a7f548fff4aa75b8ac21042d8610	c82142f4	2026-03-09T03:03:06+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+e1311fb12010604418721b5f41539dc0c7bf6ef8	e1311fb1	2026-03-09T03:02:53+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+d66befc38c23efe7c89e327ed01d19de5bdbf2fe	d66befc3	2026-03-09T03:02:49+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+21d8eec794e778d11577e28315b44840e1d540e3	21d8eec7	2026-03-09T03:02:19+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Redeploy triggers
+80277970da891ae273bc74c6f27fb5a3fa4e85dd	80277970	2026-03-09T03:01:21+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Changes
+0ec420f12aa3e6653050967226eede57807514a9	0ec420f1	2026-03-09T02:54:40+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Save plan in Lovable
+6b7ebc14e4daa8311a5c22dc79381a4a930ea28a	6b7ebc14	2026-03-09T02:44:17+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Add loyalty triggers and funcs
+a3fc6d0be4866573e4c03e2b69e17cef71d69116	a3fc6d0b	2026-03-09T02:43:59+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Fix loyalty points crediting
+75bc18681533cef97d36c2c46e529a36a459ead0	75bc1868	2026-03-09T02:40:24+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Industrialised reservations flow
+8c0ff8fa08b21e38763d88457bc4c0e3ee8ac0bc	8c0ff8fa	2026-03-09T02:40:10+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Industrialised backend flows
+4cf73f15736918916024446c8e3681a17b98ee87	4cf73f15	2026-03-09T02:32:11+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Sanitized validate-order input
+f63ee2e0d7693febd89407010322272e87a81606	f63ee2e0	2026-03-09T02:32:01+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Fix validate-order inputs
+f2bfe411ae0373ce2507eddcba5120f7cee95d45	f2bfe411	2026-03-09T02:31:52+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Migrate validate order input
+25b6b698d12e16b446d165274213172c5cef40af	25b6b698	2026-03-09T02:28:54+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	DB triggers recreated and RLS tightened
+e972de7a6af7872c8f62e004caba28045c8f3965	e972de7a	2026-03-09T02:28:41+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Recreated DB triggers safely
+c82eab8458ff7e70773e93fec3adae66edbd62cc	c82eab84	2026-03-09T02:28:31+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Industrialized backend
+bd0726f16ebf27f66be019f5ce71ef82e018f6e5	bd0726f1	2026-03-09T02:19:25+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Industrialised email/promo flow
+300362892e598ac80c1537320f45cab1136370ef	30036289	2026-03-09T02:19:01+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Industrialized MVP
+c59d18f0c8b74c4ca27f1e349a7c77a1fc8a60e8	c59d18f0	2026-03-09T02:18:23+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Industrialised MVP backend
+589680723012f2875a64aa9841fd40e071f74cc5	58968072	2026-03-09T02:18:22+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+2277029de6b9c57184b8d4eeae6229d35cabdb20	2277029d	2026-03-09T02:18:18+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+3e154acfb4765079d789c4e2800a6a7b16a8283d	3e154acf	2026-03-09T02:18:06+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Add email/order edge logic
+d98d2597512664b9ad0523ff5215922d898b1595	d98d2597	2026-03-09T02:18:05+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+e738a4a56ebf41c843d8714bd99997cd5829036f	e738a4a5	2026-03-09T02:17:20+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Industrialize MVP backend infra
+a041af7de3253fcfbe78d9451a8d470b5aa438a5	a041af7d	2026-03-09T02:16:39+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Industrialise MVP backend
+79f7f4a42017e8baa188c9e53abab0290883834c	79f7f4a4	2026-03-09T02:16:30+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Industrialise MVP plan
+1efe31db698d6f4e6a5eca380ed7ce739ca6b9eb	1efe31db	2026-03-09T02:14:45+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Save plan in Lovable
+8bc3e5849f7360dea481326266375f617a5b69c2	8bc3e584	2026-03-09T02:02:55+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Ajout triggers et bucket public
+176905e0773a5f8342f86283beb3fe6e09325770	176905e0	2026-03-09T02:02:29+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Add image bucket and triggers
+fa0c99c49de5c800379fd4c4014ae54cac6e1d7f	fa0c99c4	2026-03-09T02:02:17+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Automated infra improvements
+ef4fd6fa3ab48d2748e73c917fa7d445d212abd8	ef4fd6fa	2026-03-09T02:01:14+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Save plan in Lovable
+a5a2b27e34c38c042cd5462e77114d4e339dd0c2	a5a2b27e	2026-03-08T21:47:07+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	GÃ©nÃ©rÃ© logo et fonds
+7a9d7dcb4394d5b75fba47abf0f11d62da1eea81	7a9d7dcb	2026-03-08T21:46:51+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Generate site images
+1349d578b90b827a5bfdede7ac0fe111c786ac7e	1349d578	2026-03-08T21:11:38+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Add automatic branded invoices
+517e883bebd2794fdad42a676f9f7ac5c7e539c6	517e883b	2026-03-08T21:11:19+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Add automatic branded invoices
+ddc19db4d33b74a09b9495a210e2cd1eef07d18c	ddc19db4	2026-03-08T21:11:08+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Implement invoice customization
+3d2f1562c976774b02ef4de4855f4dee969c0c48	3d2f1562	2026-03-08T21:11:07+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+1829cdcdf960792c1e90f93762d37914aa09daf4	1829cdcd	2026-03-08T21:10:59+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Add customizable invoices
+2db1b90cce9b1b647db9cf72f835be3f88285595	2db1b90c	2026-03-08T21:09:16+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Add invoice customization
+a9fedc0e65b8e198c7d6620fbb5d43b1b5f647df	a9fedc0e	2026-03-08T21:07:32+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	IntÃ©gration logiques complÃ¨tes
+29e58331192d9f9ab354224b8a4b0cb4954ae912	29e58331	2026-03-08T21:07:08+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Improve dashboard features and UX
+44655fe3dc37e42518b1a1e5ebe3f2ba002c843d	44655fe3	2026-03-08T21:07:07+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+b51fc500e57b2a7ba2fa00ec1859244dd5a953ce	b51fc500	2026-03-08T20:59:05+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Augmented app to compete
+45d7406a00ba61013e91ab2093d043e46d5493c0	45d7406a	2026-03-08T20:58:39+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Add key features for competitors
+19c4f04ad17f3ad2de02b41b417383fc6a3c9d66	19c4f04a	2026-03-08T20:57:49+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Enhance delivery UX and cards
+8c5193a7d354e5a82b5d650f938b560502c0a1c7	8c5193a7	2026-03-08T20:57:48+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+840f1934634e214c6939c50ef36cf291b3459f8d	840f1934	2026-03-08T20:57:34+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	AmÃ©liorÃ© app pour rivaliser
+00a1a05a238c224cc7d0a9f11039d29dff073f49	00a1a05a	2026-03-08T20:57:34+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+a30e7c451da6a87b086a7b1c5d841fe6c3db3fcc	a30e7c45	2026-03-08T20:57:27+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+85fc820318835ebb39dae2d6cbb1cf435c45ba21	85fc8203	2026-03-08T20:54:46+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	ImplÃ©mente toutes les pages
+2cfef6e0c3dff7205007c32af575cc0da002041a	2cfef6e0	2026-03-08T20:54:28+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Implemented dashboard fixes
+2eaa1eb6b4c83fd628931c1e7f10f4029ee9968c	2eaa1eb6	2026-03-08T20:54:11+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Implement remaining dashboard pages
+b7cc6c2b9518507c632d193f721ee7e625477d42	b7cc6c2b	2026-03-08T20:50:42+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Implement dashboard stubs
+d667bce8fb37bbec470ca0d6ddcd0f74dd03f47d	d667bce8	2026-03-08T20:50:09+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Added restaurant detail page
+1fd3a7af8070c6ea5b3ba711dd3d7aa53c640820	1fd3a7af	2026-03-08T18:16:24+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Populate enrich-restaurants
+d8e80203ff84ef34bb90183f5a57e4afc1685db4	d8e80203	2026-03-08T18:15:52+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Enriched rest enrichment
+14911d9b2d131014c5b47419c7766f3666966389	14911d9b	2026-03-08T18:15:02+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Fixed photo scraping logic
+50097f529c0515421f041f28d63bc6303c3a2637	50097f52	2026-03-08T18:10:51+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Enriched restaurants data
+162e5f88787f4b7f7bc7b15b6ac899807c220892	162e5f88	2026-03-08T18:10:07+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Changes
+19857118bb57476502edb1528d0b6c212f227ce3	19857118	2026-03-08T18:08:10+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Fix enrich-restaurants batching
+6681506fddf65cf5574eca69b5d9b93a8488c6da	6681506f	2026-03-08T18:07:17+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Enriched restaurants data
+5334b23069b78af43d0675af94159a436c5926a2	5334b230	2026-03-08T18:06:31+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Enrich restaurants data
+aaab020445402114331f9c3600892035fa65525b	aaab0204	2026-03-08T18:05:06+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Scraped reviews and photos
+47d08cd17dfe65d703233531872f4eafd65d634b	47d08cd1	2026-03-08T17:58:46+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Populate Geneva restaurants data
+edae6295702f54e76c2595cdd3f4986ebb03f515	edae6295	2026-03-08T17:58:25+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Add Geneva restaurant scraper
+218e36580a3d808ec61f1bc442a82aee3d78d511	218e3658	2026-03-08T17:55:42+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Scrape Geneva restaurants
+99d596298e2ca33e98f8077cfac1510f0c357106	99d59629	2026-03-08T17:52:22+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Migrated and created DB tables
+53e34b50a59c3ac9dc86cb6dc2f334c706fb0ea3	53e34b50	2026-03-08T17:52:10+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Migrate all core tables
+f2df615f52cd617d67d66fe8bcd66d1274691cf4	f2df615f	2026-03-08T17:52:02+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Create all database tables
+7ecd67bdd5f8fa6144c728378baf2c16bfa6c5c5	7ecd67bd	2026-03-08T17:51:05+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Create all database tables
+d839fed7efcfdf994e89254d997c8b9501c539a8	d839fed7	2026-03-08T17:50:17+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Created database tables
+76e83ba8b0315ec22addda733eee9c9f5879eb06	76e83ba8	2026-03-08T17:49:38+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Created core DB tables
+fa0c7968de73ab25c84d2bce6311e799fba976ab	fa0c7968	2026-03-08T17:49:13+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Created database tables
+259f560b6efbbd91abb0ccc24c4ff3f79bf14740	259f560b	2026-03-08T17:48:24+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Connected to Lovable Cloud
+053a32f5fac5ef932cf554e0438e52e01d1b95e6	053a32f5	2026-03-08T17:48:14+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Changes
+8c361a0760a83bf147d750491ad0903f43854de7	8c361a07	2026-03-08T17:44:50+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Avoid firebase import errors
+a44443a9df6b033d865180243c3682a7d9b7bcad	a44443a9	2026-03-08T17:44:39+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Changes
+0cf2a6ec66a45135854dc55842194521ecc88ddf	0cf2a6ec	2026-03-08T17:43:13+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Fix firebase import error
+4e25ab913da53a5b8b9d7f0221cbd7cb09ddfb79	4e25ab91	2026-03-08T17:43:05+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Changes
+308e3c806c1e0ceed9442d1318d98ecb039563ef	308e3c80	2026-03-08T17:42:27+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	IntÃ©gration front core
+de90e8ac76b7d1dea963526e7b494b4aed397a27	de90e8ac	2026-03-08T17:42:09+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Migrated Bite & Book frontend
+64d13d705105535ee971eb3485be29ea74b6fb13	64d13d70	2026-03-08T17:42:08+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+7d9fd1136ca6a0d0deeb20e6f62a722e0a5bd988	7d9fd113	2026-03-08T17:42:06+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+6968c1129c0eeabb6ffa7cbf42f16a24776ac9d7	6968c112	2026-03-08T17:42:02+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+9cf6c59d2f9b7f6895ec7f05479ac6db627b34ba	9cf6c59d	2026-03-08T17:41:54+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+488749ce26f5d26f94e1e26f9b7c03a9a6cac1de	488749ce	2026-03-08T17:41:51+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+ddc549888779c53c404d6b2960f6cbf0fe903158	ddc54988	2026-03-08T17:41:40+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Implemented dashboard pages
+2e35aeb70c0259f88f010628d1be74f3769428ea	2e35aeb7	2026-03-08T17:38:35+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Corriger build et ts types
+192339346097e64a4e9feabe592376abfc479256	19233934	2026-03-08T17:36:28+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Fixed build errors and stubs
+2902119fc9f55fafec31eb5ce881f0f37c107b38	2902119f	2026-03-08T17:36:22+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	CorrigÃ© erreurs TS et imports
+75a092af669c896e1d5283ddd4822d9c493f376d	75a092af	2026-03-08T17:36:06+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Remplaced stubs dashboard admin
+81ef2767012c89b2e82e7ba36facaadb82976457	81ef2767	2026-03-08T17:35:27+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Replace dashboard/admin stubs
+6e567b1e4b12042a1fb3a99ec55c0a64b72d1a6c	6e567b1e	2026-03-08T17:35:01+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Save plan in Lovable
+0d4d3eb1bb987bb132226713b3e4cd589d166ac2	0d4d3eb1	2026-03-08T17:34:53+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Update plan
+4d1736b532c290c795647b5633c105606a5993c0	4d1736b5	2026-03-08T17:33:26+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Work in progress
+2fddd29ccb05621ffb9eee1e9195cb135fdc4f17	2fddd29c	2026-03-08T17:15:55+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Add dashboard scaffolding fixes
+e51bff465dd143b32136f31d3b89a05292a6a847	e51bff46	2026-03-08T17:15:39+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Continue dashboard pages migration
+3dd6ee299f23ac8e6a7ceb5fd24235c9e07c3121	3dd6ee29	2026-03-08T17:15:32+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Continue dashboard pages migration
+d6cbe80cb23e52aca45a40ecc4d3bfdb6d3a7761	d6cbe80c	2026-03-08T17:09:25+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Implemented all frontend pages
+60a9e80aa3e1371c1fd68ef08042d885be8c695b	60a9e80a	2026-03-08T17:09:12+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Copied remaining pages
+e43e713fa4f7318bfffb4dbe61412209dce17705	e43e713f	2026-03-08T17:08:57+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Replace stub dashboards
+b07325b2627416509459d38cf9c3a4ce0b9a673e	b07325b2	2026-03-08T17:06:18+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Fixed missing pages and types
+83dd3aa7616fb498c0e8e234f0629987a1e2e1cb	83dd3aa7	2026-03-08T17:06:08+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Recreated frontend scaffolding
+e13065d9ea14ca131c9350478ef584a98314e88d	e13065d9	2026-03-08T17:05:37+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+b66cfccf8cdbde01bde5d917acb9f76469a381b6	b66cfccf	2026-03-08T17:05:35+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Preceding changes
+1ffabf8e2af4bfb9b7acb11b49bcb02b12e0faf4	1ffabf8e	2026-03-08T17:04:55+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Recreated core pages
+e1943d4d9e072c249daacfb7f92cd7a7eb96dddd	e1943d4d	2026-03-08T17:04:36+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Recreated UI skeletons
+1a53cd0654adf7fd5be8649eab2a4f7136d69260	1a53cd06	2026-03-08T17:02:58+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Recreated pages and routes
+f1c808751f48df5ad9fc853fe07c07ade9c2681e	f1c80875	2026-03-08T17:02:11+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Cloned and updated static pages
+922e2e0345ca221ea744199d91e6e87fe0fbe52e	922e2e03	2026-03-08T17:01:09+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Recreated pages scaffold
+5736b60370e94d60078fa57d6505214723ae9ad5	5736b603	2026-03-08T17:00:53+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Recreated pages scaffold
+86b5715c290eec985b6367897bf0dc29fc7b8aa7	86b5715c	2026-03-08T16:56:59+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Add address autocomplete UI
+137a5e35bbe9c66ba64a7e7cfb4c099061605679	137a5e35	2026-03-08T16:56:48+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Add components to project
+994ca6a9d2ec4932d15122de1da093ae71f69dc0	994ca6a9	2026-03-08T16:55:38+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Copied core components & pages
+5d2a4c666cd2663b6650e76767ec6c46f1e2a835	5d2a4c66	2026-03-08T16:46:21+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Rewired Lovable core deps
+45ab9bd848f63db5c095e20724e6e7a57b6de71d	45ab9bd8	2026-03-08T16:46:05+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Replicated Bite & Book libs
+7e1c5f0d3292af1b667e54f244d4b2e1d101edb1	7e1c5f0d	2026-03-08T16:45:23+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Cloned Bite & Book assets
+693b3aa38ce065e43baf1406cf82d60673fec583	693b3aa3	2026-03-08T16:44:33+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Cloned Bite & Book codebase
+77ff27b9bb3f51bc52c8c0aba317c9dedeb1b815	77ff27b9	2026-03-08T16:44:09+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Added Supabase config and client
+5acfc48ebcb27029fb72d44db8627520eb39f872	5acfc48e	2026-03-08T16:40:30+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Changes
+912d8a75d4084b228cf411f308858e2027fa7ef1	912d8a75	2026-03-08T16:40:12+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Save plan in Lovable
+5587326f18c7b59f16b9e7486290c70292621efc	5587326f	2026-03-08T16:36:29+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Update plan
+d38cd8a799ba56deacf9e18ae1c663ee630dd767	d38cd8a7	2026-03-08T16:36:19+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Update plan
+e49aca82c58d118751dac4edb7fbdb22e40b4b5e	e49aca82	2026-03-08T16:35:07+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Update plan
+efb4c43887f34a359469d9c8917bc4a45bf72a1b	efb4c438	2026-03-08T16:35:05+00:00	gpt-engineer-app[bot]	159125892+gpt-engineer-app[bot]@users.noreply.github.com	Update plan
+b331aa1a7d54e9db10920729709d1ff849c8e2ea	b331aa1a	2025-01-01T00:00:00+00:00	Lovable	noreply@lovable.dev	template: new_style_vite_react_shadcn_ts_testing_2026-01-08

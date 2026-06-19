@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   BadgePercent,
   Bell,
@@ -773,6 +773,7 @@ const FAQS: FaqSection[] = [
 export default function Aide() {
   const [search, setSearch] = useState("");
   const [selectedCat, setSelectedCat] = useState<string | null>(null);
+  const questionsRef = useRef<HTMLElement | null>(null);
   const { activeFeatures } = useFeatureFlagSnapshot();
 
   const visibleCategories = useMemo(
@@ -826,6 +827,24 @@ export default function Aide() {
   const totalQuestions = visibleFaqSections.reduce((sum, section) => sum + section.questions.length, 0);
   const selectedCategory = visibleCategories.find((category) => category.id === selectedCat);
 
+  const scrollToQuestions = () => {
+    if (typeof window === "undefined") return;
+
+    window.setTimeout(() => {
+      const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+      questionsRef.current?.scrollIntoView({
+        behavior: prefersReducedMotion ? "auto" : "smooth",
+        block: "start",
+      });
+    }, 0);
+  };
+
+  const handleCategorySelect = (categoryId: string) => {
+    setSelectedCat((current) => (current === categoryId ? null : categoryId));
+    scrollToQuestions();
+  };
+
   return (
     <div className="min-h-screen bg-background pb-20">
       <div className="bg-primary px-6 pb-14 pt-20 text-primary-foreground">
@@ -861,7 +880,7 @@ export default function Aide() {
             <button
               key={category.id}
               type="button"
-              onClick={() => setSelectedCat(selectedCat === category.id ? null : category.id)}
+              onClick={() => handleCategorySelect(category.id)}
               className={`rounded-2xl border bg-card p-4 text-left shadow-sm transition-all ${
                 selectedCat === category.id ? "border-transparent ring-2 ring-primary" : "hover:border-primary/30"
               }`}
@@ -937,7 +956,7 @@ export default function Aide() {
         </section>
 
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-3">
-          <section className="space-y-7 lg:col-span-2">
+          <section ref={questionsRef} id="questions-aide" className="scroll-mt-24 space-y-7 lg:col-span-2">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <h2 className="font-display text-2xl font-bold">
@@ -965,7 +984,7 @@ export default function Aide() {
                     {!selectedCat && category ? (
                       <button
                         type="button"
-                        onClick={() => setSelectedCat(section.category)}
+                        onClick={() => handleCategorySelect(section.category)}
                         className="group flex items-center gap-2"
                       >
                         <span className={`${category.bg} rounded-lg p-1.5`}>

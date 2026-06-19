@@ -16,6 +16,7 @@ import { optimizeImageUpload } from "@/lib/optimizedImages";
 import { assertSafeFileUpload, getSafeUploadExtension } from "@/lib/uploadSecurity";
 import {
   AlertTriangle,
+  ArrowRight,
   BriefcaseBusiness,
   CheckCircle2,
   FileImage,
@@ -55,6 +56,7 @@ type Props = {
 };
 
 type MarketingImageResult = TokImageGenerationResult;
+type MarketingWorkflowStep = 1 | 2 | 3 | 4;
 
 const supabase = getSupabase();
 
@@ -262,21 +264,30 @@ function buildMarketingImagePrompt(input: {
   styleMode: string;
   resources: MarketingResource[];
 }) {
+  const orderedResources = [...input.resources].sort((a, b) => {
+    const left = `${a.kind}:${a.mediaId || a.id}:${a.fileName}`;
+    const right = `${b.kind}:${b.mediaId || b.id}:${b.fileName}`;
+    return left.localeCompare(right);
+  });
   const resourceSummary = input.resources.length
-    ? input.resources
+    ? orderedResources
       .map((resource) => `${MARKETING_ASSET_KIND_LABELS[resource.kind]}: ${resource.fileName}`)
       .join(", ")
     : "Aucune ressource de marque transmise au modele image.";
+  const resourceFingerprint = orderedResources
+    .map((resource) => `${resource.kind}:${resource.mediaId || resource.id}:${resource.fileName}`)
+    .join("|")
+    .slice(0, 900);
 
   return [
-    "Créer directement une affiche marketing finale TOK, sans produire de brief.",
+    "Créer directement un visuel marketing final pour le restaurateur, sans produire de brief.",
     `Support: ${input.toolTitle}. Format: ${input.format}. Orientation: ${input.orientation}. Style: ${input.styleMode}.`,
     `Demande restaurateur: ${input.prompt}`,
-    `Visuels persistants à utiliser comme références: ${resourceSummary}`,
-    "Rendu cible: affiche verticale orange, mascotte chef TOK à gauche, grand panneau blanc avec accroche très lisible, logo TOK en haut, badge d'offre, bénéfices en bas, bouton CTA blanc arrondi et URL thetok.ch.",
-    "Texte attendu si cohérent avec la demande: 50% DE RABAIS, pour les 50 premiers restaurateurs inscrits, Offre de lancement, Rejoignez TOK et donnez plus de visibilité à votre restaurant, Plus de visibilité, Plus de réservations, Moins de dépendance aux grandes plateformes, Inscrire mon restaurant, thetok.ch.",
-    "Direction artistique: proche d'une publicité TOK terminée, premium, énergique, restaurant-friendly, très contrastée, lisible sur mobile.",
-    "Contraintes: utiliser l'identité TOK des références, ne pas remplacer TOK par une autre marque, ne pas ajouter de coordonnées privées, ne pas créer de faux label officiel.",
+    `Ressources actives à utiliser comme seules références visuelles: ${resourceSummary}`,
+    `Empreinte des ressources actives: ${resourceFingerprint || "aucune"}`,
+    "Direction artistique: reprendre l'identité visuelle observable dans les fichiers actifs fournis pour cette génération: logo, couleurs, typographies, textures, style photo, formes, composition, hiérarchie et ton commercial.",
+    "Interdictions: ne pas utiliser l'identité visuelle de la plateforme par défaut, ne pas réutiliser une identité ou un prompt d'une génération précédente, ne pas inventer une autre marque si les références indiquent une marque précise.",
+    "Contraintes: respecter uniquement le prompt courant et les visuels actifs envoyés avec cette requête, ne pas ajouter de coordonnées privées, ne pas créer de faux label officiel, garder le texte demandé lisible.",
   ].join("\n\n").slice(0, 3600);
 }
 
@@ -378,6 +389,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
   const [uploadingKind, setUploadingKind] = useState<MarketingAssetKind | null>(null);
   const [deletingResourceId, setDeletingResourceId] = useState<string | null>(null);
   const [marketingImageResult, setMarketingImageResult] = useState<MarketingImageResult | null>(null);
+  const [activeStep, setActiveStep] = useState<MarketingWorkflowStep>(1);
   const generationRequestRef = useRef(0);
 
   const activeToolConfig = MARKETING_TOOLS.find((tool) => tool.id === activeTool) || MARKETING_TOOLS[0];
@@ -386,6 +398,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
   const persistedResources = resources.filter((resource) => resource.persisted && resource.mediaUrl);
   const hasLogo = persistedResources.some((resource) => resource.kind === "logo");
   const hasBrandResources = persistedResources.length >= 2;
+  const briefReady = Boolean(sanitizedPrompt) && promptWarnings.length === 0;
 
   const resourcesByKind = useMemo(() => {
     return resources.reduce<Record<MarketingAssetKind, MarketingResource[]>>(
@@ -403,8 +416,16 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
     setMarketingImageResult(null);
   };
 
+  const updatePrompt = (value: string) => {
+    invalidateMarketingGeneration();
+    setPrompt(value);
+  };
+
   useEffect(() => {
     let cancelled = false;
+    generationRequestRef.current += 1;
+    setLoading(false);
+    setMarketingImageResult(null);
 
     async function loadMarketingAssets() {
       if (!restaurantId) {
@@ -579,7 +600,8 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
   };
 
   const applySuggestion = (suggestion: string) => {
-    setPrompt((current) => sanitizeMarketingPrompt(current ? `${current} ${suggestion}.` : `${suggestion}.`));
+    updatePrompt(sanitizeMarketingPrompt(prompt ? `${prompt} ${suggestion}.` : `${suggestion}.`));
+    setActiveStep((current) => current < 3 ? 3 : current);
   };
 
   const requestGeneration = async () => {
@@ -658,19 +680,20 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
     <section className="overflow-hidden rounded-3xl border border-orange-200 bg-gradient-to-br from-orange-50 via-background to-background shadow-sm dark:border-orange-900/50 dark:from-orange-950/20">
       <div className="grid gap-6 p-5 lg:grid-cols-[minmax(0,1fr)_360px] lg:p-6">
         <div className="space-y-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="relative overflow-hidden rounded-[2rem] border border-orange-200 bg-[radial-gradient(circle_at_top_right,rgba(255,115,0,0.20),transparent_38%),linear-gradient(135deg,#fff7ed,#ffffff_52%,#fff1e6)] p-5 shadow-sm sm:p-6">
+            <div className="absolute -right-16 -top-24 h-56 w-56 rounded-full bg-orange-200/50 blur-3xl" aria-hidden="true" />
             <div className="space-y-2">
               <Badge className="bg-orange-600 text-white hover:bg-orange-600">Marketing automatique</Badge>
               <div>
-                <h2 className="font-serif text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+                <h2 className="font-serif text-3xl font-bold tracking-tight text-foreground sm:text-5xl">
                   Studio Photo & Marketing IA
                 </h2>
-                <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
+                <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
                   Ajoutez une fois votre logo, vos captures et vos visuels de marque. L'outil les enregistre et génère ensuite une image marketing finale à partir de votre prompt.
                 </p>
               </div>
             </div>
-            <div className="rounded-2xl border border-violet-200 bg-white/80 p-4 text-sm shadow-sm dark:bg-background/70">
+            <div className="hidden rounded-2xl border border-violet-200 bg-white/80 p-4 text-sm shadow-sm dark:bg-background/70">
               <div className="flex gap-3">
                 <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-violet-600" />
                 <div>
@@ -684,10 +707,15 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {MARKETING_STUDIO_STEPS.map((step, index) => {
               const Icon = step.icon;
+              const currentStep = (index + 1) as MarketingWorkflowStep;
+              const isLocked = currentStep > activeStep + 1 || (currentStep >= 3 && !briefReady);
               return (
-                <div
+                <button
                   key={step.title}
-                  className="rounded-2xl border border-orange-100 bg-white/85 p-3 shadow-sm ring-1 ring-black/[0.02] dark:bg-background/80"
+                  type="button"
+                  disabled={isLocked}
+                  onClick={() => setActiveStep(currentStep)}
+                  className={`rounded-2xl border border-orange-100 bg-white/85 p-3 text-left shadow-sm ring-1 ring-black/[0.02] transition hover:border-orange-300 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-background/80 ${activeStep === currentStep ? "border-orange-400" : ""}`}
                 >
                   <div className="flex items-start gap-3">
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-orange-600 text-sm font-bold text-white shadow-sm">
@@ -701,7 +729,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                       <p className="mt-1 text-xs leading-5 text-muted-foreground">{step.description}</p>
                     </div>
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
@@ -735,20 +763,23 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                     <button
                       key={tool.id}
                       type="button"
-                      onClick={() => setActiveTool(tool.id)}
-                      className={`rounded-2xl border p-4 text-left transition ${
+                      onClick={() => {
+                        invalidateMarketingGeneration();
+                        setActiveTool(tool.id);
+                        setActiveStep((current) => current < 2 ? 2 : current);
+                      }}
+                      className={`rounded-2xl border p-4 text-center transition ${
                         selected
                           ? "border-orange-400 bg-orange-50 shadow-sm dark:bg-orange-950/20"
                           : "border-border bg-background hover:border-orange-200"
                       }`}
                     >
-                      <div className="flex items-start gap-3">
-                        <span className={`rounded-2xl p-3 ${selected ? "bg-orange-600 text-white" : "bg-muted text-muted-foreground"}`}>
-                          <Icon className="h-5 w-5" />
+                      <div className="flex min-h-28 flex-col items-center justify-center gap-3">
+                        <span className={`rounded-3xl p-4 ${selected ? "bg-orange-600 text-white" : "bg-orange-50 text-orange-700"}`}>
+                          <Icon className="h-7 w-7" />
                         </span>
                         <span>
-                          <span className="block font-semibold text-foreground">{tool.title}</span>
-                          <span className="mt-1 block text-sm leading-5 text-muted-foreground">{tool.description}</span>
+                          <span className="block text-base font-bold text-foreground">{tool.title}</span>
                         </span>
                       </div>
                     </button>
@@ -757,7 +788,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                 </div>
               </div>
 
-              <div className="rounded-3xl border border-orange-100 bg-white p-3 shadow-sm dark:bg-background">
+              <div className={`${activeStep >= 2 ? "" : "hidden"} rounded-3xl border border-orange-100 bg-white p-3 shadow-sm dark:bg-background`}>
                 <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-orange-600 text-xs font-bold text-white">2</span>
                   Rédiger le brief
@@ -767,7 +798,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                 <Textarea
                   id="marketing-ia-prompt"
                   value={prompt}
-                  onChange={(event) => setPrompt(event.target.value)}
+                  onChange={(event) => updatePrompt(event.target.value)}
                   maxLength={MARKETING_PROMPT_MAX_LENGTH + 120}
                   placeholder="Ex: Creer un flyer pour la soiree mexicaine de vendredi, avec tacos, ambiance festive, couleurs chaudes, style moderne et gourmand..."
                   className="min-h-[132px] resize-y rounded-2xl border-orange-200 bg-orange-50/30 text-base shadow-inner focus-visible:ring-orange-400"
@@ -788,10 +819,22 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                     </div>
                   </div>
                 ) : null}
+                <div className="flex justify-end pt-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={!briefReady}
+                    onClick={() => setActiveStep(3)}
+                    className="gap-2 rounded-2xl border-orange-300 text-orange-700 hover:bg-orange-50"
+                  >
+                    Continuer
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
               </div>
 
-              <div className="flex flex-wrap gap-2 rounded-3xl border border-dashed border-orange-200 bg-orange-50/40 p-3">
+              <div className={`${activeStep >= 2 ? "flex" : "hidden"} flex-wrap gap-2 rounded-3xl border border-dashed border-orange-200 bg-orange-50/40 p-3`}>
                 <span className="mr-1 self-center text-xs font-semibold uppercase tracking-[0.18em] text-orange-700">Idées rapides</span>
                 {activeToolConfig.suggestions.map((suggestion) => (
                   <button
@@ -805,7 +848,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                 ))}
               </div>
 
-              <div className="rounded-3xl border border-orange-100 bg-white p-3 shadow-sm dark:bg-background">
+              <div className={`${activeStep >= 3 ? "" : "hidden"} rounded-3xl border border-orange-100 bg-white p-3 shadow-sm dark:bg-background`}>
                 <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-orange-600 text-xs font-bold text-white">3</span>
                   Paramétrer le rendu
@@ -816,7 +859,10 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                   <select
                     id="marketing-format"
                     value={format}
-                    onChange={(event) => setFormat(event.target.value)}
+                    onChange={(event) => {
+                      invalidateMarketingGeneration();
+                      setFormat(event.target.value);
+                    }}
                     className="h-10 w-full rounded-md border bg-background px-3 text-sm"
                   >
                     <option>A4 imprime</option>
@@ -830,7 +876,10 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                   <select
                     id="marketing-orientation"
                     value={orientation}
-                    onChange={(event) => setOrientation(event.target.value)}
+                    onChange={(event) => {
+                      invalidateMarketingGeneration();
+                      setOrientation(event.target.value);
+                    }}
                     className="h-10 w-full rounded-md border bg-background px-3 text-sm"
                   >
                     <option>Portrait</option>
@@ -843,7 +892,10 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                   <select
                     id="marketing-style"
                     value={styleMode}
-                    onChange={(event) => setStyleMode(event.target.value)}
+                    onChange={(event) => {
+                      invalidateMarketingGeneration();
+                      setStyleMode(event.target.value);
+                    }}
                     className="h-10 w-full rounded-md border bg-background px-3 text-sm"
                   >
                     <option>Base sur mon identite</option>
@@ -852,10 +904,21 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                     <option>Minimaliste imprime</option>
                   </select>
                 </div>
+                <div className="mt-2 flex justify-end md:col-span-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setActiveStep(4)}
+                    className="gap-2 rounded-2xl border-orange-300 text-orange-700 hover:bg-orange-50"
+                  >
+                    Verifier le recapitulatif
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
               </div>
 
-              <div className="rounded-3xl border border-emerald-200 bg-emerald-50/70 p-4 text-sm shadow-sm">
+              <div className={`${activeStep >= 4 ? "" : "hidden"} rounded-3xl border border-emerald-200 bg-emerald-50/70 p-4 text-sm shadow-sm`}>
                 <div className="mb-3 flex items-center gap-2">
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-600 text-xs font-bold text-white">4</span>
                   <p className="font-semibold text-emerald-950">Contrôle avant génération</p>
@@ -890,7 +953,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                 </div>
               ) : null}
 
-              <div className="flex flex-col gap-3 rounded-3xl border border-orange-200 bg-orange-50/80 p-3 sm:flex-row sm:items-center">
+              <div className={`${activeStep >= 4 ? "flex" : "hidden"} flex-col gap-3 rounded-3xl border border-orange-200 bg-orange-50/80 p-3 sm:flex-row sm:items-center`}>
                 <Button type="button" onClick={requestGeneration} disabled={!restaurantId || loading} size="lg" className="min-h-12 gap-2 rounded-2xl bg-orange-600 px-6 text-base font-bold shadow-lg shadow-orange-500/20 hover:bg-orange-700">
                   {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                   {loading ? "Génération de l'image..." : "Générer l'image marketing"}

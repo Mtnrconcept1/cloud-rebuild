@@ -122,8 +122,10 @@ describe("campaign creative studio", () => {
     expect(portal).toContain("creative,");
 
     expect(card).toContain("ad-card-spotlight");
-    expect(card).toContain("getBannerSeparatorClass");
-    expect(card).toContain("bannerTextPlacement");
+    expect(card).toContain("ad-banner-spotlight");
+    expect(card).toContain("Photo mise en avant");
+    expect(card).not.toContain("getBannerSeparatorClass");
+    expect(card).not.toContain("getBannerPhotoPanelClass");
     expect(card).toContain('variant = "card"');
     expect(card).not.toContain("TEMPLATE_NUMBERS");
     expect(card).not.toContain("photo-zone-template");

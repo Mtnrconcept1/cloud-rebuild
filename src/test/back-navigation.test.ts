@@ -41,7 +41,8 @@ describe("route back navigation", () => {
     expect(source).toContain("sr-only");
     expect(source).toContain("aria-label=");
     expect(source).toContain("relative z-10 mx-auto flex w-full max-w-screen-2xl");
-    expect(source).toContain("pt-[calc(env(safe-area-inset-top,0px)+4.75rem)] md:pt-3");
+    expect(source).toContain("px-4 pb-2 pt-2 sm:px-6 lg:px-8");
+    expect(source).toContain("md:pb-0 md:pt-3");
     expect(source).not.toContain("pointer-events-none absolute");
     expect(source).not.toContain("z-[65]");
     expect(source).not.toContain('pathname === "/actualites"');

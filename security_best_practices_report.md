@@ -224,7 +224,7 @@ XSS findings have a larger blast radius, authenticated pages can be framed unles
 Fix:
 
 - Configure Vercel headers for CSP, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `Permissions-Policy`, and `frame-ancestors`/`X-Frame-Options`.
-- Tune CSP to current assets: Supabase, Stripe, Firebase, Sentry, OpenAI/Lovable endpoints, maps/images, and self-hosted/static assets.
+- Tune CSP to current assets: Supabase, Stripe, Firebase, Sentry, OpenAI/ancien fournisseur IA endpoints, maps/images, and self-hosted/static assets.
 
 False positive notes:
 
