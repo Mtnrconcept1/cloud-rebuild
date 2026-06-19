@@ -144,6 +144,15 @@ describe("TOK photo studio persistence", () => {
     expect(marketingStudio).toContain("restaurant_media");
   });
 
+  it("keeps marketing studio controls responsive on narrow dashboard screens", () => {
+    expect(marketingStudio).toContain("grid min-w-0 gap-4 p-3 sm:gap-6 sm:p-5 lg:grid-cols-[minmax(0,1fr)_360px] lg:p-6");
+    expect(marketingStudio).toContain("min-w-0 rounded-2xl border border-orange-100 bg-white p-3 shadow-sm");
+    expect(marketingStudio).toContain("basis-full self-center text-xs font-semibold uppercase");
+    expect(marketingStudio).toContain("h-auto min-h-[44px] w-full min-w-0 whitespace-normal");
+    expect(marketingStudio).toContain("h-auto min-h-12 w-full min-w-0 whitespace-normal");
+    expect((marketingStudio.match(/\[overflow-wrap:anywhere\]/g) || []).length).toBeGreaterThanOrEqual(6);
+  });
+
   it("lets restaurateurs remove uploaded marketing resources safely", () => {
     expect(marketingStudio).toContain("deleteMarketingResource");
     expect(marketingStudio).toContain("MARKETING_STORAGE_BUCKET");

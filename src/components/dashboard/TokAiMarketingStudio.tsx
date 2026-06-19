@@ -677,10 +677,10 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
   const generatedMarketingImageUrl = marketingImageResult?.gallery_image_url || marketingImageResult?.generated_image_url || "";
 
   return (
-    <section className="overflow-hidden rounded-3xl border border-orange-200 bg-gradient-to-br from-orange-50 via-background to-background shadow-sm dark:border-orange-900/50 dark:from-orange-950/20">
-      <div className="grid gap-6 p-5 lg:grid-cols-[minmax(0,1fr)_360px] lg:p-6">
-        <div className="space-y-6">
-          <div className="relative overflow-hidden rounded-[2rem] border border-orange-200 bg-[radial-gradient(circle_at_top_right,rgba(255,115,0,0.20),transparent_38%),linear-gradient(135deg,#fff7ed,#ffffff_52%,#fff1e6)] p-5 shadow-sm sm:p-6">
+    <section className="max-w-full overflow-hidden rounded-3xl border border-orange-200 bg-gradient-to-br from-orange-50 via-background to-background shadow-sm dark:border-orange-900/50 dark:from-orange-950/20">
+      <div className="grid min-w-0 gap-4 p-3 sm:gap-6 sm:p-5 lg:grid-cols-[minmax(0,1fr)_360px] lg:p-6">
+        <div className="min-w-0 space-y-4 sm:space-y-6">
+          <div className="relative min-w-0 overflow-hidden rounded-3xl border border-orange-200 bg-[radial-gradient(circle_at_top_right,rgba(255,115,0,0.20),transparent_38%),linear-gradient(135deg,#fff7ed,#ffffff_52%,#fff1e6)] p-4 shadow-sm sm:rounded-[2rem] sm:p-6">
             <div className="absolute -right-16 -top-24 h-56 w-56 rounded-full bg-orange-200/50 blur-3xl" aria-hidden="true" />
             <div className="space-y-2">
               <Badge className="bg-orange-600 text-white hover:bg-orange-600">Marketing automatique</Badge>
@@ -704,7 +704,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
             </div>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {MARKETING_STUDIO_STEPS.map((step, index) => {
               const Icon = step.icon;
               const currentStep = (index + 1) as MarketingWorkflowStep;
@@ -717,16 +717,16 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                   onClick={() => setActiveStep(currentStep)}
                   className={`rounded-2xl border border-orange-100 bg-white/85 p-3 text-left shadow-sm ring-1 ring-black/[0.02] transition hover:border-orange-300 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-background/80 ${activeStep === currentStep ? "border-orange-400" : ""}`}
                 >
-                  <div className="flex items-start gap-3">
+                  <div className="flex min-w-0 items-start gap-3">
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-orange-600 text-sm font-bold text-white shadow-sm">
                       {index + 1}
                     </span>
                     <div className="min-w-0">
-                      <div className="flex items-center gap-2">
+                      <div className="flex min-w-0 items-center gap-2">
                         <Icon className="h-4 w-4 text-orange-600" />
-                        <p className="text-sm font-semibold text-foreground">{step.title}</p>
+                        <p className="min-w-0 break-words text-sm font-semibold text-foreground">{step.title}</p>
                       </div>
-                      <p className="mt-1 text-xs leading-5 text-muted-foreground">{step.description}</p>
+                      <p className="mt-1 break-words text-xs leading-5 text-muted-foreground">{step.description}</p>
                     </div>
                   </div>
                 </button>
@@ -734,23 +734,23 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
             })}
           </div>
 
-          <Card className="border-orange-200 bg-white/95 shadow-md shadow-orange-100/40 dark:bg-background/85">
-            <CardHeader className="border-b border-orange-100 bg-orange-50/60">
+          <Card className="min-w-0 border-orange-200 bg-white/95 shadow-md shadow-orange-100/40 dark:bg-background/85">
+            <CardHeader className="border-b border-orange-100 bg-orange-50/60 p-4 sm:p-6">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-              <CardTitle className="flex items-center gap-2">
+                <div className="min-w-0">
+              <CardTitle className="flex items-center gap-2 text-xl sm:text-2xl">
                 <Wand2 className="h-5 w-5 text-orange-600" />
                 Générer un nouveau visuel
               </CardTitle>
-              <CardDescription>Choisissez le type de support, puis decrivez le resultat attendu.</CardDescription>
+              <CardDescription className="break-words">Choisissez le type de support, puis decrivez le resultat attendu.</CardDescription>
                 </div>
                 <Badge variant="outline" className="w-fit border-orange-300 bg-white text-orange-700">
                   Workflow guidé
                 </Badge>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4 p-4 sm:p-5">
-              <div className="rounded-3xl border border-orange-100 bg-white p-3 shadow-sm dark:bg-background">
+            <CardContent className="min-w-0 space-y-4 p-3 sm:p-5">
+              <div className="min-w-0 rounded-2xl border border-orange-100 bg-white p-3 shadow-sm dark:bg-background sm:rounded-3xl">
                 <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-orange-600 text-xs font-bold text-white">1</span>
                   Choisir le support
@@ -768,7 +768,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                         setActiveTool(tool.id);
                         setActiveStep((current) => current < 2 ? 2 : current);
                       }}
-                      className={`rounded-2xl border p-4 text-center transition ${
+                      className={`min-w-0 rounded-2xl border p-4 text-center transition ${
                         selected
                           ? "border-orange-400 bg-orange-50 shadow-sm dark:bg-orange-950/20"
                           : "border-border bg-background hover:border-orange-200"
@@ -788,7 +788,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                 </div>
               </div>
 
-              <div className={`${activeStep >= 2 ? "" : "hidden"} rounded-3xl border border-orange-100 bg-white p-3 shadow-sm dark:bg-background`}>
+              <div className={`${activeStep >= 2 ? "" : "hidden"} min-w-0 rounded-2xl border border-orange-100 bg-white p-3 shadow-sm dark:bg-background sm:rounded-3xl`}>
                 <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-orange-600 text-xs font-bold text-white">2</span>
                   Rédiger le brief
@@ -803,9 +803,9 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                   placeholder="Ex: Creer un flyer pour la soiree mexicaine de vendredi, avec tacos, ambiance festive, couleurs chaudes, style moderne et gourmand..."
                   className="min-h-[132px] resize-y rounded-2xl border-orange-200 bg-orange-50/30 text-base shadow-inner focus-visible:ring-orange-400"
                 />
-                <div className="flex flex-col gap-2 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-                  <span>{sanitizedPrompt.length}/{MARKETING_PROMPT_MAX_LENGTH} caractères sécurisés</span>
-                  <span>{hasBrandResources ? "Identite visuelle exploitable" : "Ajoutez au moins deux ressources de marque pour affiner le style."}</span>
+                <div className="flex min-w-0 flex-col gap-2 break-words text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+                  <span className="min-w-0">{sanitizedPrompt.length}/{MARKETING_PROMPT_MAX_LENGTH} caractères sécurisés</span>
+                  <span className="min-w-0">{hasBrandResources ? "Identite visuelle exploitable" : "Ajoutez au moins deux ressources de marque pour affiner le style."}</span>
                 </div>
                 {promptWarnings.length ? (
                   <div className="rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
@@ -834,27 +834,27 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
               </div>
               </div>
 
-              <div className={`${activeStep >= 2 ? "flex" : "hidden"} flex-wrap gap-2 rounded-3xl border border-dashed border-orange-200 bg-orange-50/40 p-3`}>
-                <span className="mr-1 self-center text-xs font-semibold uppercase tracking-[0.18em] text-orange-700">Idées rapides</span>
+              <div className={`${activeStep >= 2 ? "flex" : "hidden"} min-w-0 flex-wrap gap-2 rounded-2xl border border-dashed border-orange-200 bg-orange-50/40 p-3 sm:rounded-3xl`}>
+                <span className="basis-full self-center text-xs font-semibold uppercase tracking-[0.18em] text-orange-700 sm:mr-1 sm:basis-auto">Idées rapides</span>
                 {activeToolConfig.suggestions.map((suggestion) => (
                   <button
                     key={suggestion}
                     type="button"
                     onClick={() => applySuggestion(suggestion)}
-                    className="rounded-full border bg-background px-3 py-1 text-xs font-medium text-muted-foreground transition hover:border-orange-300 hover:text-orange-700"
+                    className="max-w-full rounded-full border bg-background px-3 py-1 text-left text-xs font-medium text-muted-foreground transition [overflow-wrap:anywhere] hover:border-orange-300 hover:text-orange-700"
                   >
                     {suggestion}
                   </button>
                 ))}
               </div>
 
-              <div className={`${activeStep >= 3 ? "" : "hidden"} rounded-3xl border border-orange-100 bg-white p-3 shadow-sm dark:bg-background`}>
+              <div className={`${activeStep >= 3 ? "" : "hidden"} min-w-0 rounded-2xl border border-orange-100 bg-white p-3 shadow-sm dark:bg-background sm:rounded-3xl`}>
                 <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-orange-600 text-xs font-bold text-white">3</span>
                   Paramétrer le rendu
                 </div>
-              <div className="grid gap-4 md:grid-cols-3">
-                <div className="space-y-2">
+              <div className="grid min-w-0 gap-4 md:grid-cols-3">
+                <div className="min-w-0 space-y-2">
                   <Label htmlFor="marketing-format">Format</Label>
                   <select
                     id="marketing-format"
@@ -871,7 +871,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                     <option>Carte double volet</option>
                   </select>
                 </div>
-                <div className="space-y-2">
+                <div className="min-w-0 space-y-2">
                   <Label htmlFor="marketing-orientation">Orientation</Label>
                   <select
                     id="marketing-orientation"
@@ -887,7 +887,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                     <option>Carre</option>
                   </select>
                 </div>
-                <div className="space-y-2">
+                <div className="min-w-0 space-y-2">
                   <Label htmlFor="marketing-style">Style</Label>
                   <select
                     id="marketing-style"
@@ -904,12 +904,12 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                     <option>Minimaliste imprime</option>
                   </select>
                 </div>
-                <div className="mt-2 flex justify-end md:col-span-3">
+                <div className="mt-2 flex justify-stretch md:col-span-3 md:justify-end">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => setActiveStep(4)}
-                    className="gap-2 rounded-2xl border-orange-300 text-orange-700 hover:bg-orange-50"
+                    className="h-auto min-h-[44px] w-full min-w-0 whitespace-normal rounded-2xl border-orange-300 text-center text-orange-700 hover:bg-orange-50 sm:w-auto"
                   >
                     Verifier le recapitulatif
                     <ArrowRight className="h-4 w-4" />
@@ -918,16 +918,21 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
               </div>
               </div>
 
-              <div className={`${activeStep >= 4 ? "" : "hidden"} rounded-3xl border border-emerald-200 bg-emerald-50/70 p-4 text-sm shadow-sm`}>
-                <div className="mb-3 flex items-center gap-2">
+              <div className={`${activeStep >= 4 ? "" : "hidden"} min-w-0 rounded-2xl border border-emerald-200 bg-emerald-50/70 p-3 text-sm shadow-sm sm:rounded-3xl sm:p-4`}>
+                <div className="mb-3 flex min-w-0 items-center gap-2">
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-600 text-xs font-bold text-white">4</span>
-                  <p className="font-semibold text-emerald-950">Contrôle avant génération</p>
+                  <p className="min-w-0 break-words font-semibold text-emerald-950">Contrôle avant génération</p>
                 </div>
-                <p className="font-semibold text-foreground">Image marketing prête à générer</p>
-                <p className="mt-2 text-emerald-900/80">
-                  Type: {activeToolConfig.title} · Format: {format} · Orientation: {orientation} · Style: {styleMode} · Ressources persistantes: {persistedResources.length} · Logo: {hasLogo ? "oui" : "non"}
-                </p>
-                <p className="mt-2 line-clamp-2 rounded-2xl bg-white/80 p-3 text-emerald-950/80">{sanitizedPrompt || "Le prompt apparaitra ici apres saisie."}</p>
+                <p className="break-words font-semibold text-foreground">Image marketing prête à générer</p>
+                <div className="mt-3 flex min-w-0 flex-wrap gap-2 text-emerald-900/80">
+                  <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Type: {activeToolConfig.title}</span>
+                  <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Format: {format}</span>
+                  <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Orientation: {orientation}</span>
+                  <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Style: {styleMode}</span>
+                  <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Ressources: {persistedResources.length}</span>
+                  <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Logo: {hasLogo ? "oui" : "non"}</span>
+                </div>
+                <p className="mt-2 line-clamp-2 min-w-0 rounded-2xl bg-white/80 p-3 text-emerald-950/80 [overflow-wrap:anywhere]">{sanitizedPrompt || "Le prompt apparaitra ici apres saisie."}</p>
               </div>
 
               {generatedMarketingImageUrl ? (
@@ -953,12 +958,12 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                 </div>
               ) : null}
 
-              <div className={`${activeStep >= 4 ? "flex" : "hidden"} flex-col gap-3 rounded-3xl border border-orange-200 bg-orange-50/80 p-3 sm:flex-row sm:items-center`}>
-                <Button type="button" onClick={requestGeneration} disabled={!restaurantId || loading} size="lg" className="min-h-12 gap-2 rounded-2xl bg-orange-600 px-6 text-base font-bold shadow-lg shadow-orange-500/20 hover:bg-orange-700">
+              <div className={`${activeStep >= 4 ? "flex" : "hidden"} min-w-0 flex-col gap-3 rounded-2xl border border-orange-200 bg-orange-50/80 p-3 sm:flex-row sm:items-center sm:rounded-3xl`}>
+                <Button type="button" onClick={requestGeneration} disabled={!restaurantId || loading} size="lg" className="h-auto min-h-12 w-full min-w-0 whitespace-normal rounded-2xl bg-orange-600 px-4 text-center text-base font-bold shadow-lg shadow-orange-500/20 hover:bg-orange-700 sm:w-auto sm:px-6">
                   {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                   {loading ? "Génération de l'image..." : "Générer l'image marketing"}
                 </Button>
-                <p className="text-xs leading-5 text-muted-foreground">
+                <p className="min-w-0 break-words text-xs leading-5 text-muted-foreground">
                   Image générée côté serveur avec validation RLS, ressources persistantes, quotas IA et historique.
                 </p>
               </div>
@@ -966,7 +971,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
           </Card>
         </div>
 
-        <aside className="space-y-4 lg:sticky lg:top-6 lg:self-start">
+        <aside className="min-w-0 space-y-4 lg:sticky lg:top-6 lg:self-start">
           <Card className="border-orange-200 shadow-sm">
             <CardHeader className="border-b border-orange-100 bg-orange-50/60">
               <Badge variant="outline" className="w-fit border-orange-300 bg-white text-orange-700">
