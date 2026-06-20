@@ -19,6 +19,17 @@ const courierProfileSource = readFileSync(resolve(root, "src/pages/courier/Couri
 const courierPortalSource = readFileSync(resolve(root, "supabase/functions/courier-portal/index.ts"), "utf8");
 const imageUploadSource = readFileSync(resolve(root, "src/components/ImageUpload.tsx"), "utf8");
 
+function latestMigrationSourceContaining(marker: string) {
+  const matches = readdirSync(resolve(root, "supabase/migrations"))
+    .filter((file) => file.endsWith(".sql"))
+    .sort()
+    .map((file) => readFileSync(resolve(root, "supabase/migrations", file), "utf8"))
+    .filter((source) => source.includes(marker));
+
+  expect(matches.length, `migration containing ${marker}`).toBeGreaterThan(0);
+  return matches[matches.length - 1]!;
+}
+
 describe("Miamz business logic guards", () => {
   it("defines server-side Miamz entitlement effects with restricted execution", () => {
     expect(migrationsSource).toContain("resolve_miamz_benefit_state");
@@ -97,5 +108,17 @@ describe("Miamz business logic guards", () => {
 
   it("keeps manual image URLs hidden by default outside privileged flows", () => {
     expect(imageUploadSource).toContain("showUrlInput = false");
+  });
+
+  it("keeps solidarity meal conversion at 1000 Miamz per meal", () => {
+    const sql = latestMigrationSourceContaining("miamz_solidarity_1000_points_per_meal");
+
+    expect(sql).toContain("FLOOR(points_param::numeric / 1000)::integer");
+    expect(sql).toContain("FLOOR(v_earned::numeric / 1000)::integer");
+    expect(sql).toContain("FLOOR(SUM(points_amount)::numeric / 1000)");
+    expect(sql).toContain("points_param IS NULL OR points_param <= 0");
+    expect(sql).toContain("REVOKE EXECUTE ON FUNCTION public.donate_points_for_meal(integer, text) FROM PUBLIC, anon");
+    expect(sql).toContain("GRANT EXECUTE ON FUNCTION public.get_total_donated_meals() TO anon, authenticated, service_role");
+    expect(sql).toContain("NOTIFY pgrst, 'reload schema'");
   });
 });

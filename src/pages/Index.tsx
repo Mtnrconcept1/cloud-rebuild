@@ -359,14 +359,6 @@ export default function Index() {
     queryFn: () => fetchHomeRail({ city: userContext?.city || null, sortBy: "popularite", limit: 4 }),
   });
 
-  const { data: donatedMeals = 0 } = useQuery({
-    queryKey: ["donated-meals-total"],
-    queryFn: async () => {
-      const { data, error } = await (supabase as any).rpc("get_total_donated_meals");
-      return error ? 0 : Number(data) || 0;
-    },
-  });
-
   const { data: donatedPoints = 0 } = useQuery({
     queryKey: ["donated-points-total"],
     queryFn: async () => {
@@ -833,7 +825,7 @@ export default function Index() {
         </motion.div>
 
         <motion.div variants={sectionBounce}>
-          <SolidaritySection donatedMeals={donatedMeals} donatedPoints={donatedPoints} />
+          <SolidaritySection donatedPoints={donatedPoints} />
         </motion.div>
 
         <motion.div variants={sectionBounce}>

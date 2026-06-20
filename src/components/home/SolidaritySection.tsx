@@ -1,20 +1,29 @@
 interface SolidaritySectionProps {
-  donatedMeals: number;
   donatedPoints: number;
 }
 
-const NEXT_GOAL_POINTS = 5000;
+const POINTS_PER_SOLIDARITY_MEAL = 1000;
+const SOLIDARITY_GOAL_STEP_POINTS = 5000;
 
 function formatSolidarityNumber(value: number) {
   return Math.round(value).toLocaleString("fr-FR").replace(/\u202f/g, " ");
 }
 
-export default function SolidaritySection({ donatedMeals, donatedPoints }: SolidaritySectionProps) {
-  const displayedPoints = formatSolidarityNumber(donatedPoints);
+function getNextSolidarityGoalPoints(donatedPoints: number) {
+  const normalizedPoints = Math.max(0, Math.floor(donatedPoints));
+  const nextStepIndex = Math.floor(normalizedPoints / SOLIDARITY_GOAL_STEP_POINTS) + 1;
+  return nextStepIndex * SOLIDARITY_GOAL_STEP_POINTS;
+}
+
+export default function SolidaritySection({ donatedPoints }: SolidaritySectionProps) {
+  const normalizedDonatedPoints = Math.max(0, Math.round(donatedPoints));
+  const donatedMeals = Math.floor(normalizedDonatedPoints / POINTS_PER_SOLIDARITY_MEAL);
+  const nextGoalPoints = getNextSolidarityGoalPoints(normalizedDonatedPoints);
+  const displayedPoints = formatSolidarityNumber(normalizedDonatedPoints);
   const displayedMeals = formatSolidarityNumber(donatedMeals);
-  const displayedGoal = formatSolidarityNumber(NEXT_GOAL_POINTS);
-  const progressValue = Math.min(Math.max(0, donatedPoints), NEXT_GOAL_POINTS);
-  const progressPercent = Math.min(100, Math.round((progressValue / NEXT_GOAL_POINTS) * 100));
+  const displayedGoal = formatSolidarityNumber(nextGoalPoints);
+  const progressValue = Math.min(normalizedDonatedPoints, nextGoalPoints);
+  const progressPercent = Math.min(100, Math.round((progressValue / nextGoalPoints) * 100));
 
   return (
     <section className="border-y border-pink-500/10 bg-[radial-gradient(circle_at_top,rgba(244,114,182,0.16),rgba(255,255,255,0.86)_48%,rgba(255,255,255,0.98))] py-5 dark:bg-pink-500/10 md:py-6">
@@ -76,7 +85,7 @@ export default function SolidaritySection({ donatedMeals, donatedPoints }: Solid
                   aria-label="Progression vers le prochain objectif"
                   aria-valuemin={0}
                   aria-valuenow={progressValue}
-                  aria-valuemax={NEXT_GOAL_POINTS}
+                  aria-valuemax={nextGoalPoints}
                   className="relative h-2.5 overflow-visible rounded-full border border-pink-200 bg-pink-100 shadow-inner sm:h-3 md:h-4"
                 >
                   <div
