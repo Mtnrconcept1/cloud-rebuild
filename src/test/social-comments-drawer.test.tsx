@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import SocialPostCard from "@/components/social/SocialPostCard";
 
@@ -9,6 +9,9 @@ const socialHooks = vi.hoisted(() => ({
   mutate: vi.fn(),
   mutateAsync: vi.fn(async () => undefined),
 }));
+
+const originalInnerHeight = window.innerHeight;
+const originalVisualViewportDescriptor = Object.getOwnPropertyDescriptor(window, "visualViewport");
 
 vi.mock("@/lib/auth-context", () => ({
   useAuth: () => ({ user: { id: "user-1" }, isSuperAdmin: false }),
@@ -79,6 +82,58 @@ describe("SocialPostCard comment drawer", () => {
     socialHooks.mutateAsync.mockClear();
   });
 
+  afterEach(() => {
+    Object.defineProperty(window, "innerHeight", {
+      configurable: true,
+      writable: true,
+      value: originalInnerHeight,
+    });
+
+    if (originalVisualViewportDescriptor) {
+      Object.defineProperty(window, "visualViewport", originalVisualViewportDescriptor);
+    } else {
+      delete (window as any).visualViewport;
+    }
+  });
+
+  function mockKeyboardViewport() {
+    const listeners = new Map<string, Set<() => void>>();
+    const viewport = {
+      height: 520,
+      width: 390,
+      offsetTop: 0,
+      offsetLeft: 0,
+      pageTop: 0,
+      pageLeft: 0,
+      scale: 1,
+      addEventListener: vi.fn((event: string, listener: () => void) => {
+        const eventListeners = listeners.get(event) || new Set<() => void>();
+        eventListeners.add(listener);
+        listeners.set(event, eventListeners);
+      }),
+      removeEventListener: vi.fn((event: string, listener: () => void) => {
+        listeners.get(event)?.delete(listener);
+      }),
+    };
+
+    Object.defineProperty(window, "innerHeight", {
+      configurable: true,
+      writable: true,
+      value: 800,
+    });
+    Object.defineProperty(window, "visualViewport", {
+      configurable: true,
+      value: viewport,
+    });
+
+    return {
+      viewport,
+      emit: (event: string) => {
+        listeners.get(event)?.forEach((listener) => listener());
+      },
+    };
+  }
+
   it("keeps the mobile comment composer inside the drawer and submits comments", async () => {
     render(
       <MemoryRouter>
@@ -91,8 +146,9 @@ describe("SocialPostCard comment drawer", () => {
     expect(screen.getByRole("heading", { name: "Commentaires" })).toBeInTheDocument();
 
     const drawer = document.querySelector("[data-vaul-drawer]");
-    expect(drawer).toHaveClass("max-h-[calc(100dvh-0.75rem)]");
+    expect(drawer).toHaveClass("rounded-t-[1.5rem]");
     expect(drawer).toHaveClass("overflow-hidden");
+    expect(drawer).toHaveStyle({ bottom: "0px", height: "auto", maxHeight: "none" });
 
     const textarea = screen.getByPlaceholderText("Ajouter un commentaire");
     expect(textarea).toHaveClass("min-w-0");
@@ -106,5 +162,30 @@ describe("SocialPostCard comment drawer", () => {
     fireEvent.click(sendButton);
 
     await waitFor(() => expect(socialHooks.addComment).toHaveBeenCalledWith("Commentaire mobile"));
+  });
+
+  it("anchors the drawer above the mobile keyboard visual viewport", async () => {
+    const keyboard = mockKeyboardViewport();
+
+    render(
+      <MemoryRouter>
+        <SocialPostCard post={post as any} />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Afficher les commentaires" }));
+    keyboard.emit("resize");
+
+    const drawer = document.querySelector("[data-vaul-drawer]");
+    expect(drawer).toBeInstanceOf(HTMLElement);
+
+    await waitFor(() => {
+      expect(drawer).toHaveStyle({
+        top: "8px",
+        bottom: "280px",
+        height: "auto",
+        maxHeight: "none",
+      });
+    });
   });
 });

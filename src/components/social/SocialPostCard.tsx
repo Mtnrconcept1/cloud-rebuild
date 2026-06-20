@@ -1,4 +1,4 @@
-import { type FormEvent, useMemo, useState } from "react";
+import { type CSSProperties, type FormEvent, useEffect, useMemo, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
@@ -122,6 +122,65 @@ const COMMENT_SORT_OPTIONS = [
 
 type CommentSortMode = (typeof COMMENT_SORT_OPTIONS)[number]["value"];
 type CommentReplyTarget = Pick<SocialFeedComment, "id" | "authorName"> | null;
+
+const COMMENTS_DRAWER_TOP_GAP = 8;
+
+function getCommentsDrawerViewport() {
+  if (typeof window === "undefined") {
+    return { top: COMMENTS_DRAWER_TOP_GAP, bottom: 0 };
+  }
+
+  const visualViewport = window.visualViewport;
+  const layoutHeight = window.innerHeight || visualViewport?.height || 0;
+  const viewportHeight = visualViewport?.height || layoutHeight;
+  const viewportOffsetTop = visualViewport?.offsetTop || 0;
+
+  return {
+    top: Math.max(COMMENTS_DRAWER_TOP_GAP, Math.round(viewportOffsetTop + COMMENTS_DRAWER_TOP_GAP)),
+    bottom: Math.max(0, Math.round(layoutHeight - viewportHeight - viewportOffsetTop)),
+  };
+}
+
+function useCommentsDrawerViewport(open: boolean): CSSProperties {
+  const [viewport, setViewport] = useState(getCommentsDrawerViewport);
+
+  useEffect(() => {
+    if (!open || typeof window === "undefined") return undefined;
+
+    let frame = 0;
+    const update = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => setViewport(getCommentsDrawerViewport()));
+    };
+
+    update();
+
+    const visualViewport = window.visualViewport;
+    visualViewport?.addEventListener("resize", update);
+    visualViewport?.addEventListener("scroll", update);
+    window.addEventListener("resize", update);
+    window.addEventListener("orientationchange", update);
+    window.addEventListener("focusin", update);
+    window.addEventListener("focusout", update);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      visualViewport?.removeEventListener("resize", update);
+      visualViewport?.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+      window.removeEventListener("orientationchange", update);
+      window.removeEventListener("focusin", update);
+      window.removeEventListener("focusout", update);
+    };
+  }, [open]);
+
+  return {
+    top: `${viewport.top}px`,
+    bottom: `${viewport.bottom}px`,
+    height: "auto",
+    maxHeight: "none",
+  };
+}
 
 function getCommentTimestamp(comment: SocialFeedComment) {
   const value = new Date(comment.createdAt).getTime();
@@ -726,6 +785,7 @@ export default function SocialPostCard({
   const [reportDetails, setReportDetails] = useState("");
   const [commentSortMode, setCommentSortMode] = useState<CommentSortMode>("newest");
   const [replyTarget, setReplyTarget] = useState<CommentReplyTarget>(null);
+  const commentsDrawerViewportStyle = useCommentsDrawerViewport(commentsOpen);
   const { user, isSuperAdmin } = useAuth();
   const setPostReaction = useSetSocialPostReaction();
   const toggleSave = useToggleSocialSave();
@@ -1141,8 +1201,17 @@ export default function SocialPostCard({
           </DialogContent>
         </Dialog>
 
-        <Drawer open={commentsOpen} onOpenChange={handleCommentsOpenChange} shouldScaleBackground={false}>
-          <DrawerContent className="z-[90] h-[calc(100dvh-0.75rem)] max-h-[calc(100dvh-0.75rem)] min-h-0 overflow-hidden rounded-t-[1.5rem]">
+        <Drawer
+          open={commentsOpen}
+          onOpenChange={handleCommentsOpenChange}
+          shouldScaleBackground={false}
+          repositionInputs={false}
+          preventScrollRestoration
+        >
+          <DrawerContent
+            style={commentsDrawerViewportStyle}
+            className="z-[90] min-h-0 overflow-hidden rounded-t-[1.5rem]"
+          >
             <DrawerHeader className="shrink-0">
               <DrawerTitle>Commentaires</DrawerTitle>
               <DrawerDescription>{post.restaurant.name}</DrawerDescription>

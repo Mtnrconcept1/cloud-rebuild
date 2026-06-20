@@ -9,7 +9,12 @@ describe("social comments mobile layout", () => {
     const dashboardLayout = readFileSync(resolve(process.cwd(), "src/components/DashboardLayout.tsx"), "utf8");
 
     expect(source).toContain("shouldScaleBackground={false}");
-    expect(source).toContain("z-[90] h-[calc(100dvh-0.75rem)]");
+    expect(source).toContain("repositionInputs={false}");
+    expect(source).toContain("preventScrollRestoration");
+    expect(source).toContain("useCommentsDrawerViewport");
+    expect(source).toContain("style={commentsDrawerViewportStyle}");
+    expect(source).toContain("top: `${viewport.top}px`");
+    expect(source).toContain("bottom: `${viewport.bottom}px`");
     expect(source).toContain("shrink-0 border-t bg-background/95 px-4 pb-[calc(env(safe-area-inset-bottom,0px)+0.75rem)] pt-3");
     expect(source).toContain("min-h-0 min-w-0 flex-1");
     expect(source).toContain("overflow-y-auto overscroll-contain");
@@ -18,6 +23,7 @@ describe("social comments mobile layout", () => {
     expect(source).toContain("h-10 w-10 shrink-0");
     expect(source).toContain("setReplyTarget");
     expect(dashboardLayout).toContain("bottom-0 z-[40]");
+    expect(source).not.toContain("repositionInputs={true}");
     expect(source).not.toContain("max-h-[88vh]");
   });
 });
