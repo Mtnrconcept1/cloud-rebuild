@@ -50,34 +50,36 @@ function DashboardPostMetrics({ post }: { post: SocialFeedPost }) {
   const ctaClicks = metrics?.ctaClicks ?? 0;
 
   return (
-    <div className="grid gap-2 rounded-2xl border border-orange-100 bg-gradient-to-r from-orange-50 via-white to-sky-50 p-2 shadow-sm sm:grid-cols-4">
-      <div className="rounded-xl bg-white/90 px-3 py-2">
-        <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-          <Eye className="h-3.5 w-3.5 text-orange-600" />
-          Impressions
+    <div className="grid grid-cols-4 gap-1.5 rounded-2xl border border-orange-100 bg-gradient-to-r from-orange-50 via-white to-sky-50 p-1.5 shadow-sm sm:gap-2 sm:p-2">
+      <div className="min-w-0 rounded-xl bg-white/90 px-1.5 py-2 sm:px-3">
+        <p aria-label="Impressions" title="Impressions" className="flex min-w-0 items-center gap-1 text-[9px] font-semibold uppercase leading-tight tracking-normal text-muted-foreground sm:gap-1.5 sm:text-[11px] sm:tracking-wide">
+          <Eye className="hidden h-3.5 w-3.5 shrink-0 text-orange-600 sm:block" />
+          <span className="sm:hidden">Impr.</span>
+          <span className="hidden sm:inline">Impressions</span>
         </p>
-        <p className="mt-1 text-xl font-black text-slate-950">{formatCompactMetric(impressions)}</p>
+        <p className="mt-1 text-lg font-black leading-none text-slate-950 sm:text-xl">{formatCompactMetric(impressions)}</p>
       </div>
-      <div className="rounded-xl bg-white/90 px-3 py-2">
-        <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-          <MousePointerClick className="h-3.5 w-3.5 text-sky-600" />
-          Vues
+      <div className="min-w-0 rounded-xl bg-white/90 px-1.5 py-2 sm:px-3">
+        <p aria-label="Vues" title="Vues" className="flex min-w-0 items-center gap-1 text-[9px] font-semibold uppercase leading-tight tracking-normal text-muted-foreground sm:gap-1.5 sm:text-[11px] sm:tracking-wide">
+          <MousePointerClick className="hidden h-3.5 w-3.5 shrink-0 text-sky-600 sm:block" />
+          <span>Vues</span>
         </p>
-        <p className="mt-1 text-xl font-black text-slate-950">{formatCompactMetric(views)}</p>
+        <p className="mt-1 text-lg font-black leading-none text-slate-950 sm:text-xl">{formatCompactMetric(views)}</p>
       </div>
-      <div className="rounded-xl bg-white/90 px-3 py-2">
-        <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-          <BarChart3 className="h-3.5 w-3.5 text-emerald-600" />
-          Engagement
+      <div className="min-w-0 rounded-xl bg-white/90 px-1.5 py-2 sm:px-3">
+        <p aria-label="Engagement" title="Engagement" className="flex min-w-0 items-center gap-1 text-[9px] font-semibold uppercase leading-tight tracking-normal text-muted-foreground sm:gap-1.5 sm:text-[11px] sm:tracking-wide">
+          <BarChart3 className="hidden h-3.5 w-3.5 shrink-0 text-emerald-600 sm:block" />
+          <span className="sm:hidden">Eng.</span>
+          <span className="hidden sm:inline">Engagement</span>
         </p>
-        <p className="mt-1 text-xl font-black text-slate-950">{formatCompactMetric(interactions)}</p>
+        <p className="mt-1 text-lg font-black leading-none text-slate-950 sm:text-xl">{formatCompactMetric(interactions)}</p>
       </div>
-      <div className="rounded-xl bg-white/90 px-3 py-2">
-        <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-          <Target className="h-3.5 w-3.5 text-primary" />
-          CTA
+      <div className="min-w-0 rounded-xl bg-white/90 px-1.5 py-2 sm:px-3">
+        <p aria-label="CTA" title="CTA" className="flex min-w-0 items-center gap-1 text-[9px] font-semibold uppercase leading-tight tracking-normal text-muted-foreground sm:gap-1.5 sm:text-[11px] sm:tracking-wide">
+          <Target className="hidden h-3.5 w-3.5 shrink-0 text-primary sm:block" />
+          <span>CTA</span>
         </p>
-        <p className="mt-1 text-xl font-black text-slate-950">{formatCompactMetric(ctaClicks)}</p>
+        <p className="mt-1 text-lg font-black leading-none text-slate-950 sm:text-xl">{formatCompactMetric(ctaClicks)}</p>
       </div>
     </div>
   );

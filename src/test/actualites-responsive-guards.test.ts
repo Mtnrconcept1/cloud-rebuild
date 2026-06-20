@@ -118,9 +118,13 @@ describe("Actualites responsive guards", () => {
     const dashboard = read("src/pages/dashboard/DashboardActualites.tsx");
 
     expect(dashboard).toContain("grid grid-cols-4 gap-1.5 sm:gap-2");
+    expect(dashboard).toContain("grid grid-cols-4 gap-1.5 rounded-2xl");
+    expect(dashboard).toContain('<span className="sm:hidden">Impr.</span>');
+    expect(dashboard).toContain('<span className="sm:hidden">Eng.</span>');
     expect(dashboard).toContain("aria-label={label} title={label}");
     expect(dashboard).toContain('mobileLabel="Posts CTA"');
     expect(dashboard).toContain("[overflow-wrap:anywhere]");
+    expect(dashboard).not.toContain("grid gap-2 rounded-2xl border border-orange-100");
     expect(dashboard).not.toContain('label="Zéro Attente attribués" value={zeroAttenteConversions} className="col-span-2"');
   });
 });
