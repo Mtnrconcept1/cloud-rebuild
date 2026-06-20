@@ -174,10 +174,6 @@ export function SponsoredRestaurantTemplateCard({
               </div>
             </div>
 
-            <span className="mt-6 inline-flex h-12 w-fit items-center gap-3 rounded-2xl bg-gradient-to-r from-primary to-orange-500 px-6 text-sm font-black text-white shadow-[0_18px_34px_rgba(249,115,22,0.26)] transition-transform duration-300 group-hover:translate-x-1">
-              {ctaLabel}
-              <ArrowRight className="h-4 w-4" />
-            </span>
           </div>
 
           <div className="relative z-20 flex min-w-0 items-end p-5 pt-0 sm:p-8 sm:pt-0 lg:items-center lg:p-8 xl:p-10">

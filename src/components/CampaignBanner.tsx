@@ -86,7 +86,6 @@ function CampaignBannerItem({
         address={restaurant?.address}
         headline={heading}
         body={description}
-        ctaLabel="Voir le restaurant"
         discountLabel={campaign.discount_label || "Sponsorisé"}
       />
     </div>

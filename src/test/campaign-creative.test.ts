@@ -124,6 +124,7 @@ describe("campaign creative studio", () => {
     expect(card).toContain("ad-card-spotlight");
     expect(card).toContain("ad-banner-spotlight");
     expect(card).toContain("Photo mise en avant");
+    expect(card).not.toContain("mt-6 inline-flex h-12 w-fit");
     expect(card).not.toContain("getBannerSeparatorClass");
     expect(card).not.toContain("getBannerPhotoPanelClass");
     expect(card).toContain('variant = "card"');
