@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 
@@ -26,5 +26,12 @@ describe("HeroSection mobile newsletter", () => {
 
     const signup = within(newsletter).getByRole("button", { name: "Inscrivez-vous" });
     expect(signup.className).not.toContain("-top-");
+
+    fireEvent.click(within(newsletter).getByRole("button", { name: "Conditions applicables." }));
+
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByText("Conditions du bonus newsletter")).toBeInTheDocument();
+    expect(screen.getByText(/500 Miamz sont crédités une seule fois/i)).toBeInTheDocument();
+    expect(screen.getByText(/Vous pouvez vous désinscrire de la newsletter à tout moment/i)).toBeInTheDocument();
   });
 });

@@ -4,6 +4,13 @@ import { motion } from "framer-motion";
 import { ChefHat, MapPin, Search, Star, X } from "lucide-react";
 
 import CityAutocomplete from "@/components/CityAutocomplete";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useTokLogoSrc } from "@/hooks/useTokLogo";
 
 const stagger = {
@@ -32,6 +39,14 @@ const scaleIn = {
 const desktopFieldInputClassName =
   "h-auto border-none bg-transparent px-0 py-0 text-[1.03rem] font-semibold text-[#2d3950] placeholder:text-[#7d8897] shadow-none focus-visible:ring-0 md:text-[1.03rem] dark:text-slate-50 dark:placeholder:text-slate-200/90";
 
+const newsletterConditions = [
+  "Le bonus de bienvenue est réservé aux nouveaux comptes TOK qui s'inscrivent à la newsletter depuis cette offre.",
+  "Les 500 Miamz sont crédités une seule fois par personne après validation du compte et de l'inscription à la newsletter.",
+  "Les Miamz ne sont pas convertibles en argent et s'utilisent uniquement dans les parcours TOK éligibles, selon les règles affichées dans l'application.",
+  "Vous pouvez vous désinscrire de la newsletter à tout moment. La désinscription n'annule pas les Miamz déjà crédités, sauf fraude, abus ou erreur technique.",
+  "TOK peut modifier, suspendre ou arrêter l'offre si nécessaire, notamment en cas d'usage abusif, de comptes multiples ou de tentative de contournement.",
+];
+
 export default function HeroSection({ contentVisible = true }: { contentVisible?: boolean }) {
   const heroRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -39,6 +54,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
   const [city, setCity] = useState("Genève");
   const [searchQuery, setSearchQuery] = useState("");
   const [showNewsletter, setShowNewsletter] = useState(true);
+  const [showNewsletterConditions, setShowNewsletterConditions] = useState(false);
 
   useEffect(() => {
     let ticking = false;
@@ -162,7 +178,12 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
               {"Abonnez-vous à notre newsletter et recevez "}
               <span className="text-[#ff6418]">500 Miamz.</span>
             </p>
-            <button className="mx-auto block text-[0.72rem] font-semibold leading-tight text-[#5d6979] underline underline-offset-4 min-[390px]:text-[0.76rem]">
+            <button
+              type="button"
+              onClick={() => setShowNewsletterConditions(true)}
+              aria-haspopup="dialog"
+              className="mx-auto block text-[0.72rem] font-semibold leading-tight text-[#5d6979] underline underline-offset-4 min-[390px]:text-[0.76rem]"
+            >
               Conditions applicables.
             </button>
             {" "}
@@ -295,7 +316,12 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
               <p className="text-center text-sm font-semibold text-foreground sm:text-left">
                 Abonnez-vous à notre newsletter et recevez{" "}
                 <span className="font-extrabold text-primary">500 Miamz</span>.{" "}
-                <button className="text-xs underline text-muted-foreground hover:text-foreground">
+                <button
+                  type="button"
+                  onClick={() => setShowNewsletterConditions(true)}
+                  aria-haspopup="dialog"
+                  className="text-xs underline text-muted-foreground hover:text-foreground"
+                >
                   Conditions applicables.
                 </button>
               </p>
@@ -318,6 +344,27 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
           </motion.div>
         ) : null}
       </section>
+
+      <Dialog open={showNewsletterConditions} onOpenChange={setShowNewsletterConditions}>
+        <DialogContent className="max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-lg rounded-2xl p-0">
+          <DialogHeader className="border-b px-5 pb-4 pt-5 pr-12 text-left sm:px-6">
+            <DialogTitle>Conditions du bonus newsletter</DialogTitle>
+            <DialogDescription>
+              Ce bonus permet de recevoir 500 Miamz lors d'une inscription éligible à la newsletter TOK.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 px-5 pb-5 pt-4 text-sm leading-6 text-slate-700 sm:px-6 dark:text-slate-200">
+            <ul className="list-disc space-y-3 pl-5">
+              {newsletterConditions.map((condition) => (
+                <li key={condition}>{condition}</li>
+              ))}
+            </ul>
+            <p className="rounded-xl bg-orange-50 px-4 py-3 text-xs font-semibold leading-5 text-orange-900 dark:bg-orange-950/30 dark:text-orange-100">
+              En continuant l'inscription, vous acceptez aussi les Conditions générales d'utilisation et la Politique de confidentialité TOK.
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
