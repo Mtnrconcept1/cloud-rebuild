@@ -47,9 +47,16 @@ const RESTAURANT_MENU_ITEMS_LIMIT = 120;
 const RESTAURANT_REVIEWS_LIMIT = 50;
 const RESTAURANT_FORMULAS_LIMIT = 24;
 const RESTAURANT_SPECIAL_OFFERS_LIMIT = 12;
+const RESTAURANT_PROMOTIONS_LIMIT = 4;
 const RESERVATION_SIDEBAR_PREFERRED_STICKY_TOP = 96;
 const RESERVATION_SIDEBAR_BOTTOM_GAP = 16;
 const HERO_IMAGE_FETCH_PRIORITY_PROPS = { fetchpriority: "high" } as const;
+
+const RESTAURANT_PROMOTION_TARGET_LABELS: Record<string, string> = {
+  all: "Tous les clients",
+  new: "Nouveaux clients",
+  returning: "Clients fidèles",
+};
 
 type RestaurantGalleryPhoto = {
   id: string;
@@ -59,6 +66,35 @@ type RestaurantGalleryPhoto = {
   position: number;
   media_type: string;
 };
+
+type RestaurantPromotion = {
+  id: string;
+  name: string;
+  promotion_type: string;
+  promotion_value: number;
+  target: string;
+  start_at: string;
+  end_at: string;
+};
+
+function formatCompactPromotionNumber(value: number) {
+  if (!Number.isFinite(value)) return "0";
+  return Number.isInteger(value) ? value.toFixed(0) : value.toFixed(2).replace(/\.?0+$/, "");
+}
+
+function formatRestaurantPromotionValue(promotion: RestaurantPromotion) {
+  const value = Number(promotion.promotion_value || 0);
+  if (promotion.promotion_type === "percentage") return `-${formatCompactPromotionNumber(value)}%`;
+  if (promotion.promotion_type === "fixed") return `-${formatCompactPromotionNumber(value)} CHF`;
+  if (promotion.promotion_type === "free_delivery") return "Livraison offerte";
+  return "Promotion";
+}
+
+function formatRestaurantPromotionEndDate(endAt: string) {
+  const date = new Date(endAt);
+  if (!Number.isFinite(date.getTime())) return "date à confirmer";
+  return date.toLocaleDateString("fr-FR", { day: "2-digit", month: "long" });
+}
 
 function RestaurantGalleryWatermark({ className = "", sizeClassName = "h-12 w-12" }: { className?: string; sizeClassName?: string }) {
   const logoSrc = useTokLogoSrc();
@@ -305,6 +341,26 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
     queryFn: async () => {
       const { data } = await supabase.from("anti_waste_offers").select("*").eq("restaurant_id", restaurantId!).eq("is_active", true).gt("quantity_available", 0).order("created_at", { ascending: false }).limit(RESTAURANT_SPECIAL_OFFERS_LIMIT);
       return data || [];
+    },
+    enabled: !!restaurantId,
+    staleTime: RESTAURANT_DETAIL_STALE_MS,
+  });
+
+  const { data: activePromotions = [] } = useQuery({
+    queryKey: ["restaurant-active-promotions", restaurantId],
+    queryFn: async () => {
+      const now = new Date().toISOString();
+      const { data, error } = await supabase
+        .from("restaurant_promotions")
+        .select("id, name, promotion_type, promotion_value, target, start_at, end_at")
+        .eq("restaurant_id", restaurantId!)
+        .eq("active", true)
+        .lte("start_at", now)
+        .gte("end_at", now)
+        .order("end_at", { ascending: true })
+        .limit(RESTAURANT_PROMOTIONS_LIMIT);
+      if (error) throw error;
+      return (data || []) as RestaurantPromotion[];
     },
     enabled: !!restaurantId,
     staleTime: RESTAURANT_DETAIL_STALE_MS,
@@ -681,6 +737,43 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
               <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
                 Les parcours réservation, livraison et emporter sont actuellement indisponibles pour ce restaurant.
               </div>
+            ) : null}
+            {activePromotions.length > 0 ? (
+              <section className="rounded-2xl border-2 border-primary/15 bg-gradient-to-br from-primary/10 via-orange-50/70 to-background p-4 shadow-sm dark:border-primary/25 dark:from-primary/15 dark:via-orange-950/20">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm">
+                      <Percent className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Promotions actives</p>
+                      <h2 className="mt-1 font-display text-xl font-bold">Offres disponibles sur cette fiche</h2>
+                      <p className="mt-1 text-sm text-muted-foreground">Ces remises restent visibles sur la fiche tant qu'elles sont actives.</p>
+                    </div>
+                  </div>
+                  <Badge className="w-fit rounded-full bg-primary text-primary-foreground">
+                    {activePromotions.length} active{activePromotions.length > 1 ? "s" : ""}
+                  </Badge>
+                </div>
+                <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+                  {activePromotions.map((promotion) => (
+                    <div key={promotion.id} className="rounded-xl border bg-background/85 p-4 shadow-sm">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge className="bg-primary/10 text-primary hover:bg-primary/10">
+                          {formatRestaurantPromotionValue(promotion)}
+                        </Badge>
+                        <Badge variant="outline" className="bg-background text-[10px]">
+                          {RESTAURANT_PROMOTION_TARGET_LABELS[promotion.target] || promotion.target}
+                        </Badge>
+                      </div>
+                      <p className="mt-3 text-sm font-bold">{promotion.name}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Valable jusqu'au {formatRestaurantPromotionEndDate(promotion.end_at)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </section>
             ) : null}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
               <TabsList className="w-full justify-start bg-transparent border-b rounded-none p-0 h-auto gap-0">

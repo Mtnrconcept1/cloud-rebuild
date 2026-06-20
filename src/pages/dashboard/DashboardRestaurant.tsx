@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Banknote, CheckCircle2, CreditCard, ExternalLink, Loader2, Smartphone, Store, Wallet } from "lucide-react";
+import { Banknote, CheckCircle2, CreditCard, ExternalLink, Loader2, Percent, Smartphone, Store, Wallet } from "lucide-react";
 
 import AddressAutocomplete from "@/components/AddressAutocomplete";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -33,6 +33,13 @@ import { RESTAURANT_AMENITY_GROUPS, normalizeRestaurantAmenities } from "@/lib/r
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
 
 const supabase = getSupabase();
+const DASHBOARD_RESTAURANT_PROMOTIONS_LIMIT = 4;
+
+const DASHBOARD_PROMOTION_TARGET_LABELS: Record<string, string> = {
+  all: "Tous les clients",
+  new: "Nouveaux clients",
+  returning: "Clients fidèles",
+};
 
 type CuisineOption = {
   id: string;
@@ -40,6 +47,35 @@ type CuisineOption = {
   slug?: string | null;
   keywords?: string[] | null;
 };
+
+type DashboardActivePromotion = {
+  id: string;
+  name: string;
+  promotion_type: string;
+  promotion_value: number;
+  target: string;
+  start_at: string;
+  end_at: string;
+};
+
+function formatDashboardPromotionNumber(value: number) {
+  if (!Number.isFinite(value)) return "0";
+  return Number.isInteger(value) ? value.toFixed(0) : value.toFixed(2).replace(/\.?0+$/, "");
+}
+
+function formatDashboardPromotionValue(promotion: DashboardActivePromotion) {
+  const value = Number(promotion.promotion_value || 0);
+  if (promotion.promotion_type === "percentage") return `-${formatDashboardPromotionNumber(value)}%`;
+  if (promotion.promotion_type === "fixed") return `-${formatDashboardPromotionNumber(value)} CHF`;
+  if (promotion.promotion_type === "free_delivery") return "Livraison offerte";
+  return "Promotion";
+}
+
+function formatDashboardPromotionEndDate(endAt: string) {
+  const date = new Date(endAt);
+  if (!Number.isFinite(date.getTime())) return "date à confirmer";
+  return date.toLocaleDateString("fr-FR", { day: "2-digit", month: "long" });
+}
 
 export default function DashboardRestaurant() {
   const { user } = useAuth();
@@ -85,6 +121,25 @@ export default function DashboardRestaurant() {
       const { data, error } = await supabase.from("restaurants").select("*").eq("id", selectedId!).single();
       if (error) throw error;
       return data;
+    },
+    enabled: !!selectedId,
+  });
+
+  const { data: activePromotions = [] } = useQuery({
+    queryKey: ["dashboard-restaurant-active-promotions", selectedId],
+    queryFn: async () => {
+      const now = new Date().toISOString();
+      const { data, error } = await supabase
+        .from("restaurant_promotions")
+        .select("id, name, promotion_type, promotion_value, target, start_at, end_at")
+        .eq("restaurant_id", selectedId!)
+        .eq("active", true)
+        .lte("start_at", now)
+        .gte("end_at", now)
+        .order("end_at", { ascending: true })
+        .limit(DASHBOARD_RESTAURANT_PROMOTIONS_LIMIT);
+      if (error) throw error;
+      return (data || []) as DashboardActivePromotion[];
     },
     enabled: !!selectedId,
   });
@@ -280,6 +335,45 @@ export default function DashboardRestaurant() {
             { label: "Stripe", value: restaurant?.stripe_account_id ? "Connecte" : "A relier", icon: Wallet },
           ]}
         />
+        {restaurant && activePromotions.length > 0 ? (
+          <section className="max-w-3xl rounded-2xl border-2 border-primary/15 bg-gradient-to-br from-primary/10 via-orange-50/70 to-background p-4 shadow-sm">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex items-start gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm">
+                  <Percent className="h-5 w-5" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Promotions visibles</p>
+                  <h2 className="mt-1 font-display text-xl font-bold">Actives sur la fiche restaurant</h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Ces offres sont actuellement affichées aux clients tant que leurs dates restent valides.
+                  </p>
+                </div>
+              </div>
+              <Badge className="w-fit rounded-full bg-primary text-primary-foreground">
+                {activePromotions.length} active{activePromotions.length > 1 ? "s" : ""}
+              </Badge>
+            </div>
+            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {activePromotions.map((promotion) => (
+                <div key={promotion.id} className="rounded-xl border bg-background/85 p-4 shadow-sm">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge className="bg-primary/10 text-primary hover:bg-primary/10">
+                      {formatDashboardPromotionValue(promotion)}
+                    </Badge>
+                    <Badge variant="outline" className="bg-background text-[10px]">
+                      {DASHBOARD_PROMOTION_TARGET_LABELS[promotion.target] || promotion.target}
+                    </Badge>
+                  </div>
+                  <p className="mt-3 text-sm font-bold">{promotion.name}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Valable jusqu'au {formatDashboardPromotionEndDate(promotion.end_at)}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </section>
+        ) : null}
         <div className="max-w-3xl space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">

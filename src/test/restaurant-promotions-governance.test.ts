@@ -39,6 +39,37 @@ describe("restaurant promotion governance", () => {
     expect(page).toContain('disabled={promoType === "free_delivery"}');
   });
 
+  it("surfaces active dashboard promotions directly on restaurant detail pages", () => {
+    const restaurantDetail = read("src/pages/RestaurantDetail.tsx");
+
+    expect(restaurantDetail).toContain('queryKey: ["restaurant-active-promotions", restaurantId]');
+    expect(restaurantDetail).toContain('.from("restaurant_promotions")');
+    expect(restaurantDetail).toContain('.eq("restaurant_id", restaurantId!)');
+    expect(restaurantDetail).toContain('.eq("active", true)');
+    expect(restaurantDetail).toContain('.lte("start_at", now)');
+    expect(restaurantDetail).toContain('.gte("end_at", now)');
+    expect(restaurantDetail).toContain(".limit(RESTAURANT_PROMOTIONS_LIMIT)");
+    expect(restaurantDetail).toContain("Promotions actives");
+    expect(restaurantDetail).toContain("Offres disponibles sur cette fiche");
+    expect(restaurantDetail).toContain("formatRestaurantPromotionValue(promotion)");
+    expect(restaurantDetail).toContain("RESTAURANT_PROMOTION_TARGET_LABELS[promotion.target]");
+  });
+
+  it("shows active promotions on the restaurateur restaurant profile", () => {
+    const dashboardRestaurant = read("src/pages/dashboard/DashboardRestaurant.tsx");
+
+    expect(dashboardRestaurant).toContain('queryKey: ["dashboard-restaurant-active-promotions", selectedId]');
+    expect(dashboardRestaurant).toContain('.from("restaurant_promotions")');
+    expect(dashboardRestaurant).toContain('.eq("restaurant_id", selectedId!)');
+    expect(dashboardRestaurant).toContain('.eq("active", true)');
+    expect(dashboardRestaurant).toContain('.lte("start_at", now)');
+    expect(dashboardRestaurant).toContain('.gte("end_at", now)');
+    expect(dashboardRestaurant).toContain(".limit(DASHBOARD_RESTAURANT_PROMOTIONS_LIMIT)");
+    expect(dashboardRestaurant).toContain("Promotions visibles");
+    expect(dashboardRestaurant).toContain("Actives sur la fiche restaurant");
+    expect(dashboardRestaurant).toContain("formatDashboardPromotionValue(promotion)");
+  });
+
   it("keeps La Gazelle d'Or seed promotions compatible with production constraints", () => {
     const seed = read("supabase/migrations/20260607212249_seed_la_gazelle_dor_restaurant.sql");
 
