@@ -86,21 +86,26 @@ function DashboardPostMetrics({ post }: { post: SocialFeedPost }) {
 function DashboardInsightTile({
   icon: Icon,
   label,
+  mobileLabel,
   value,
   className = "",
 }: {
   icon: LucideIcon;
   label: string;
+  mobileLabel?: string;
   value: string | number;
   className?: string;
 }) {
   return (
-    <div className={`rounded-lg border bg-background/80 px-3 py-2 ${className}`}>
-      <div className="flex items-start justify-between gap-2">
-        <p className="text-[11px] leading-snug text-muted-foreground">{label}</p>
-        <Icon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+    <div className={`min-w-0 rounded-lg border bg-background/80 px-1.5 py-2 sm:px-3 ${className}`}>
+      <div className="flex min-w-0 items-start justify-between gap-1.5">
+        <p aria-label={label} title={label} className="min-w-0 text-[9px] leading-tight text-muted-foreground [overflow-wrap:anywhere] sm:text-[11px]">
+          <span className="sm:hidden">{mobileLabel ?? label}</span>
+          <span className="hidden sm:inline">{label}</span>
+        </p>
+        <Icon className="mt-0.5 hidden h-3.5 w-3.5 shrink-0 text-primary sm:block" />
       </div>
-      <p className="mt-1 text-lg font-black leading-none text-foreground">{value}</p>
+      <p className="mt-1 text-base font-black leading-none text-foreground sm:text-lg">{value}</p>
     </div>
   );
 }
@@ -244,25 +249,25 @@ export default function DashboardActualites() {
                     </div>
                     <Target className="h-4 w-4 text-primary" />
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <DashboardInsightTile icon={ShoppingCart} label="Total attribué" value={sponsoredConversions} />
-                    <DashboardInsightTile icon={MousePointerClick} label="Clics CTA (appel à l'action)" value={insights?.ctaClicks ?? 0} />
-                    <DashboardInsightTile icon={ShoppingCart} label="Commandes" value={orderConversions} />
-                    <DashboardInsightTile icon={CalendarCheck} label="Réservations" value={reservationConversions} />
-                    <DashboardInsightTile icon={Timer} label="Zéro Attente attribués" value={zeroAttenteConversions} className="col-span-2" />
+                  <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
+                    <DashboardInsightTile icon={ShoppingCart} label="Total attribué" mobileLabel="Total" value={sponsoredConversions} />
+                    <DashboardInsightTile icon={MousePointerClick} label="Clics CTA (appel à l'action)" mobileLabel="Clics CTA" value={insights?.ctaClicks ?? 0} />
+                    <DashboardInsightTile icon={ShoppingCart} label="Commandes" mobileLabel="Commandes" value={orderConversions} />
+                    <DashboardInsightTile icon={CalendarCheck} label="Réservations" mobileLabel="Réserv." value={reservationConversions} />
+                    <DashboardInsightTile icon={Timer} label="Zéro Attente attribués" mobileLabel="Zéro Att." value={zeroAttenteConversions} />
                   </div>
                 </CardContent>
               </Card>
 
-              <div className="grid grid-cols-2 gap-2">
-                <DashboardInsightTile icon={Eye} label="Impressions" value={insights?.impressions ?? 0} />
-                <DashboardInsightTile icon={MousePointerClick} label="Clics CTA (appel à l'action)" value={insights?.ctaClicks ?? 0} />
-                <DashboardInsightTile icon={BarChart3} label="Commentaires" value={posts.reduce((sum, post) => sum + post.commentsCount, 0)} />
-                <DashboardInsightTile icon={Megaphone} label="Reposts" value={posts.reduce((sum, post) => sum + post.repostsCount, 0)} />
-                <DashboardInsightTile icon={ThumbsUp} label="Réactions" value={posts.reduce((sum, post) => sum + post.likesCount, 0)} />
-                <DashboardInsightTile icon={Target} label="Sauvegardes" value={insights?.saves ?? 0} />
-                <DashboardInsightTile icon={TrendingUp} label="Taux d'engagement" value={`${insights?.engagementRate ?? 0}%`} />
-                <DashboardInsightTile icon={MousePointerClick} label="Posts avec CTA (appel à l'action)" value={`${conversionFocus}%`} />
+              <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
+                <DashboardInsightTile icon={Eye} label="Impressions" mobileLabel="Impress." value={insights?.impressions ?? 0} />
+                <DashboardInsightTile icon={MousePointerClick} label="Clics CTA (appel à l'action)" mobileLabel="Clics CTA" value={insights?.ctaClicks ?? 0} />
+                <DashboardInsightTile icon={BarChart3} label="Commentaires" mobileLabel="Comm." value={posts.reduce((sum, post) => sum + post.commentsCount, 0)} />
+                <DashboardInsightTile icon={Megaphone} label="Reposts" mobileLabel="Reposts" value={posts.reduce((sum, post) => sum + post.repostsCount, 0)} />
+                <DashboardInsightTile icon={ThumbsUp} label="Réactions" mobileLabel="Réactions" value={posts.reduce((sum, post) => sum + post.likesCount, 0)} />
+                <DashboardInsightTile icon={Target} label="Sauvegardes" mobileLabel="Sauv." value={insights?.saves ?? 0} />
+                <DashboardInsightTile icon={TrendingUp} label="Taux d'engagement" mobileLabel="Taux" value={`${insights?.engagementRate ?? 0}%`} />
+                <DashboardInsightTile icon={MousePointerClick} label="Posts avec CTA (appel à l'action)" mobileLabel="Posts CTA" value={`${conversionFocus}%`} />
               </div>
               </div>
 

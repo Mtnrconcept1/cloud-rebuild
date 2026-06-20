@@ -113,4 +113,14 @@ describe("Actualites responsive guards", () => {
     expect(composer).not.toContain("flex shrink-0 flex-wrap items-center gap-2");
     expect(composer).not.toContain("flex min-w-[230px]");
   });
+
+  it("keeps the restaurant dashboard impact metrics compact", () => {
+    const dashboard = read("src/pages/dashboard/DashboardActualites.tsx");
+
+    expect(dashboard).toContain("grid grid-cols-4 gap-1.5 sm:gap-2");
+    expect(dashboard).toContain("aria-label={label} title={label}");
+    expect(dashboard).toContain('mobileLabel="Posts CTA"');
+    expect(dashboard).toContain("[overflow-wrap:anywhere]");
+    expect(dashboard).not.toContain('label="Zéro Attente attribués" value={zeroAttenteConversions} className="col-span-2"');
+  });
 });
