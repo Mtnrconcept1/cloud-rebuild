@@ -33,4 +33,19 @@ describe("analytics ingest contract", () => {
     expect(edgeFunction).toContain("dedupeBatchEvents");
     expect(edgeFunction).toContain("MAX_BATCH_EVENTS");
   });
+
+  it("keeps restaurant detail analytics and image priority attributes compatible with runtime contracts", () => {
+    const analytics = read("src/lib/analytics.ts");
+    const restaurantDetail = read("src/pages/RestaurantDetail.tsx");
+    const edgeFunction = read("supabase/functions/track-analytics/index.ts");
+
+    expect(analytics).toContain('| "view"');
+    expect(edgeFunction).toContain('"view"');
+    expect(restaurantDetail).toContain('eventType: "view"');
+    expect(restaurantDetail).not.toContain('eventType: "page_view"');
+
+    expect(restaurantDetail).toContain("HERO_IMAGE_FETCH_PRIORITY_PROPS");
+    expect(restaurantDetail).toContain('fetchpriority: "high"');
+    expect(restaurantDetail).not.toContain("fetchPriority=");
+  });
 });

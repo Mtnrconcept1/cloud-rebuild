@@ -29,6 +29,7 @@ import {
 } from "@/lib/sponsoredAttribution";
 
 export type AnalyticsEventType =
+  | "view"
   | "page_view"
   | "search"
   | "menu_view"

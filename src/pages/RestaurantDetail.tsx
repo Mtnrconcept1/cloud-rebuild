@@ -49,6 +49,7 @@ const RESTAURANT_FORMULAS_LIMIT = 24;
 const RESTAURANT_SPECIAL_OFFERS_LIMIT = 12;
 const RESERVATION_SIDEBAR_PREFERRED_STICKY_TOP = 96;
 const RESERVATION_SIDEBAR_BOTTOM_GAP = 16;
+const HERO_IMAGE_FETCH_PRIORITY_PROPS = { fetchpriority: "high" } as const;
 
 type RestaurantGalleryPhoto = {
   id: string;
@@ -244,8 +245,8 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
       impressionTracked.current = true;
       trackImpression("restaurant", restaurantId, "restaurant_detail");
       trackEvent({
-        eventType: "page_view",
-        eventData: { page: "restaurant_detail", restaurant_name: restaurant.name },
+        eventType: "view",
+        eventData: { source: "restaurant_detail", restaurant_id: restaurantId },
         restaurantId,
       });
     }
@@ -572,7 +573,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
               sizes={optimizedHeroSrcSet ? getOptimizedImageSizes("hero") : undefined}
               alt={restaurant.name}
               className="w-full h-full object-cover"
-              fetchPriority="high"
+              {...HERO_IMAGE_FETCH_PRIORITY_PROPS}
               decoding="async"
             />
           </button>
@@ -583,7 +584,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
             sizes={optimizedHeroSrcSet ? getOptimizedImageSizes("hero") : undefined}
             alt={restaurant.name}
             className="w-full h-full object-cover"
-            fetchPriority="high"
+            {...HERO_IMAGE_FETCH_PRIORITY_PROPS}
             decoding="async"
           />
         )}
