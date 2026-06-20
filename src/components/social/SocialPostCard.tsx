@@ -121,6 +121,7 @@ const COMMENT_SORT_OPTIONS = [
 ] as const;
 
 type CommentSortMode = (typeof COMMENT_SORT_OPTIONS)[number]["value"];
+type CommentReplyTarget = Pick<SocialFeedComment, "id" | "authorName"> | null;
 
 function getCommentTimestamp(comment: SocialFeedComment) {
   const value = new Date(comment.createdAt).getTime();
@@ -510,8 +511,15 @@ function getCommentMention(authorName?: string | null) {
   return `@${compactName || "client"} `;
 }
 
-function SocialCommentItem({ node, depth = 0 }: { node: SocialCommentThread; depth?: number }) {
-  const [replying, setReplying] = useState(false);
+function SocialCommentItem({
+  node,
+  depth = 0,
+  onReplyRequest,
+}: {
+  node: SocialCommentThread;
+  depth?: number;
+  onReplyRequest: (comment: SocialFeedComment) => void;
+}) {
   const { user, isSuperAdmin } = useAuth();
   const setReaction = useSetSocialCommentReaction();
   const deleteComment = useDeleteSocialComment();
@@ -558,7 +566,7 @@ function SocialCommentItem({ node, depth = 0 }: { node: SocialCommentThread; dep
             disabled={setReaction.isPending}
             onSelect={(reaction) => setReaction.mutate({ comment, reaction })}
           />
-          <Button variant="ghost" size="sm" className="h-8 px-2 text-xs" onClick={() => setReplying((open) => !open)}>
+          <Button variant="ghost" size="sm" className="h-8 px-2 text-xs" onClick={() => onReplyRequest(comment)}>
             Répondre
           </Button>
           {canDelete ? (
@@ -576,22 +584,10 @@ function SocialCommentItem({ node, depth = 0 }: { node: SocialCommentThread; dep
         </div>
       </div>
 
-      {replying ? (
-        <div className="mt-2">
-          <CommentForm
-            postId={comment.postId}
-            parentCommentId={comment.id}
-            initialBody={getCommentMention(comment.authorName)}
-            placeholder={`Répondre à ${comment.authorName || "ce commentaire"}`}
-            onDone={() => setReplying(false)}
-          />
-        </div>
-      ) : null}
-
       {node.replies.length > 0 ? (
         <div className="mt-3 min-w-0 max-w-full space-y-3 overflow-hidden">
           {node.replies.map((reply) => (
-            <SocialCommentItem key={reply.comment.id} node={reply} depth={depth + 1} />
+            <SocialCommentItem key={reply.comment.id} node={reply} depth={depth + 1} onReplyRequest={onReplyRequest} />
           ))}
         </div>
       ) : null}
@@ -603,10 +599,12 @@ function SocialComments({
   post,
   sortMode,
   onSortModeChange,
+  onReplyRequest,
 }: {
   post: SocialFeedPost;
   sortMode: CommentSortMode;
   onSortModeChange: (value: CommentSortMode) => void;
+  onReplyRequest: (comment: SocialFeedComment) => void;
 }) {
   const comments = useSocialComments(post.id);
   const commentTree = useMemo(
@@ -620,17 +618,58 @@ function SocialComments({
         <h3 className="text-sm font-bold text-slate-950">Commentaires ({post.commentsCount})</h3>
         <CommentSortButton value={sortMode} onChange={onSortModeChange} />
       </div>
-      <CommentForm postId={post.id} placeholder="Ajouter un commentaire" />
-
       <div className="mt-4 min-w-0 max-w-full space-y-3 overflow-hidden">
         {comments.isLoading ? (
           <p className="text-sm text-muted-foreground">Chargement...</p>
         ) : commentTree.length > 0 ? (
-          commentTree.map((node) => <SocialCommentItem key={node.comment.id} node={node} />)
+          commentTree.map((node) => (
+            <SocialCommentItem key={node.comment.id} node={node} onReplyRequest={onReplyRequest} />
+          ))
         ) : (
           <p className="text-sm text-muted-foreground">Aucun commentaire.</p>
         )}
       </div>
+    </div>
+  );
+}
+
+function CommentComposerDock({
+  postId,
+  replyTarget,
+  onCancelReply,
+  onDone,
+}: {
+  postId: string;
+  replyTarget: CommentReplyTarget;
+  onCancelReply: () => void;
+  onDone: () => void;
+}) {
+  return (
+    <div className="shrink-0 border-t bg-background/95 px-4 pb-[calc(env(safe-area-inset-bottom,0px)+0.75rem)] pt-3 shadow-[0_-14px_36px_rgba(15,23,42,0.10)] backdrop-blur">
+      {replyTarget ? (
+        <div className="mb-2 flex min-w-0 items-center justify-between gap-2 rounded-2xl bg-orange-50 px-3 py-2 text-xs text-orange-900">
+          <span className="min-w-0 truncate font-semibold">
+            Réponse à {replyTarget.authorName || "ce commentaire"}
+          </span>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-7 shrink-0 rounded-full px-2 text-xs text-orange-700 hover:bg-orange-100"
+            onClick={onCancelReply}
+          >
+            Annuler
+          </Button>
+        </div>
+      ) : null}
+      <CommentForm
+        key={replyTarget?.id || "root-comment"}
+        postId={postId}
+        parentCommentId={replyTarget?.id || null}
+        initialBody={replyTarget ? getCommentMention(replyTarget.authorName) : ""}
+        placeholder={replyTarget ? `Répondre à ${replyTarget.authorName || "ce commentaire"}` : "Ajouter un commentaire"}
+        onDone={onDone}
+      />
     </div>
   );
 }
@@ -686,6 +725,7 @@ export default function SocialPostCard({
   const [reportReason, setReportReason] = useState<SocialReportReason>("spam");
   const [reportDetails, setReportDetails] = useState("");
   const [commentSortMode, setCommentSortMode] = useState<CommentSortMode>("newest");
+  const [replyTarget, setReplyTarget] = useState<CommentReplyTarget>(null);
   const { user, isSuperAdmin } = useAuth();
   const setPostReaction = useSetSocialPostReaction();
   const toggleSave = useToggleSocialSave();
@@ -737,6 +777,11 @@ export default function SocialPostCard({
     setReportReason("spam");
     setReportDetails("");
     setReportDialogOpen(true);
+  };
+
+  const handleCommentsOpenChange = (open: boolean) => {
+    setCommentsOpen(open);
+    if (!open) setReplyTarget(null);
   };
 
   const submitReport = () => {
@@ -1096,16 +1141,27 @@ export default function SocialPostCard({
           </DialogContent>
         </Dialog>
 
-        <Drawer open={commentsOpen} onOpenChange={setCommentsOpen} shouldScaleBackground={false}>
-          <DrawerContent className="max-h-[calc(100dvh-0.75rem)] min-h-0 overflow-hidden">
+        <Drawer open={commentsOpen} onOpenChange={handleCommentsOpenChange} shouldScaleBackground={false}>
+          <DrawerContent className="z-[90] h-[calc(100dvh-0.75rem)] max-h-[calc(100dvh-0.75rem)] min-h-0 overflow-hidden rounded-t-[1.5rem]">
             <DrawerHeader className="shrink-0">
               <DrawerTitle>Commentaires</DrawerTitle>
               <DrawerDescription>{post.restaurant.name}</DrawerDescription>
             </DrawerHeader>
-            <div className="min-h-0 min-w-0 flex-1 space-y-3 overflow-x-hidden overflow-y-auto overscroll-contain px-4 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)]">
+            <div className="min-h-0 min-w-0 flex-1 space-y-3 overflow-x-hidden overflow-y-auto overscroll-contain px-4 pb-4">
               <SocialPostModalSummary post={post} />
-              <SocialComments post={post} sortMode={commentSortMode} onSortModeChange={setCommentSortMode} />
+              <SocialComments
+                post={post}
+                sortMode={commentSortMode}
+                onSortModeChange={setCommentSortMode}
+                onReplyRequest={setReplyTarget}
+              />
             </div>
+            <CommentComposerDock
+              postId={post.id}
+              replyTarget={replyTarget}
+              onCancelReply={() => setReplyTarget(null)}
+              onDone={() => setReplyTarget(null)}
+            />
           </DrawerContent>
         </Drawer>
       </CardContent>

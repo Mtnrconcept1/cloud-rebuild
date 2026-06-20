@@ -330,6 +330,12 @@ export function normalizeSocialReaction(value: unknown): SocialReactionType | nu
   return isSocialReactionType(value) ? value : null;
 }
 
+export function normalizeSocialViewerReaction(value: unknown, likedByMe?: boolean | null): SocialReactionType | null {
+  const reaction = normalizeSocialReaction(value);
+  if (reaction) return reaction;
+  return likedByMe ? "like" : null;
+}
+
 export function summarizeSocialReactions(counts: SocialReactionCounts = {}): SocialReactionSummaryItem[] {
   return SOCIAL_REACTIONS
     .map((reaction) => ({

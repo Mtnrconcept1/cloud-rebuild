@@ -405,7 +405,7 @@ export default function DashboardLayout({
       </div>
 
       {/* MOBILE */}
-      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[60] flex justify-end px-4 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] md:hidden">
+      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[40] flex justify-end px-4 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] md:hidden">
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
           <SheetTrigger asChild>
             <Button

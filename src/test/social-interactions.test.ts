@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   SOCIAL_REACTIONS,
   buildSocialCommentThread,
+  normalizeSocialViewerReaction,
   summarizeSocialReactions,
   type SocialFeedComment,
   type SocialReactionType,
@@ -43,6 +44,13 @@ describe("social interactions", () => {
       { type: "love", count: 1 },
       { type: "fire", count: 2 },
     ]);
+  });
+
+  it("keeps the viewer-selected emoji when reaction rows include a concrete type", () => {
+    expect(normalizeSocialViewerReaction("fire", true)).toBe("fire");
+    expect(normalizeSocialViewerReaction("miam", true)).toBe("miam");
+    expect(normalizeSocialViewerReaction(null, true)).toBe("like");
+    expect(normalizeSocialViewerReaction(null, false)).toBeNull();
   });
 
   it("groups replies below their parent comments", () => {

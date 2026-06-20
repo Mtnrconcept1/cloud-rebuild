@@ -12,6 +12,7 @@ import {
   normalizeSocialPostCta,
   normalizeSocialPostType,
   normalizeSocialReaction,
+  normalizeSocialViewerReaction,
   isMissingSocialMarketingSchemaError,
   validateSocialPostDraft,
   type SocialFeedComment,
@@ -185,6 +186,11 @@ type SocialPostMetricsRow = {
   reposts_count?: number | null;
 };
 
+type ViewerPostReactionRow = {
+  post_id?: string | null;
+  reaction_type?: string | null;
+};
+
 type SetPostReactionInput = {
   post: SocialFeedPost;
   reaction: SocialReactionType | null;
@@ -290,7 +296,7 @@ function mapSocialPost(row: SocialFeedRpcRow): SocialFeedPost {
     publishedAt: row.published_at,
     likesCount: Number(row.likes_count || countReactions(reactionCounts)),
     reactionCounts,
-    myReaction: normalizeSocialReaction(row.my_reaction),
+    myReaction: normalizeSocialViewerReaction(row.my_reaction, row.liked_by_me),
     commentsCount: Number(row.comments_count || 0),
     repostsCount: Number(row.reposts_count || 0),
     sharesCount: Number(row.shares_count || 0),
@@ -334,6 +340,8 @@ function mapRestaurantPostRow(row: any): SocialFeedPost {
           altText: item.alt_text,
         }))
     : [];
+  const reactionCounts = normalizeReactionCounts(row.reaction_counts);
+  const myReaction = normalizeSocialViewerReaction(row.my_reaction, row.liked_by_me);
 
   return {
     id: row.id,
@@ -345,13 +353,13 @@ function mapRestaurantPostRow(row: any): SocialFeedPost {
     status: row.status,
     createdAt: row.created_at,
     publishedAt: row.published_at,
-    likesCount: Number(row.likes_count || 0),
-    reactionCounts: {},
-    myReaction: null,
+    likesCount: Number(row.likes_count || countReactions(reactionCounts)),
+    reactionCounts,
+    myReaction,
     commentsCount: Number(row.comments_count || 0),
     repostsCount: Number(row.reposts_count || 0),
     sharesCount: Number(row.shares_count || 0),
-    likedByMe: false,
+    likedByMe: Boolean(row.liked_by_me) || Boolean(myReaction),
     followedByMe: false,
     repostedByMe: false,
     savedByMe: false,
@@ -458,6 +466,29 @@ function patchAdminSocialModeration(queryClient: QueryClient, target: Moderation
   });
 }
 
+async function replaceReaction(
+  table: "social_post_likes" | "social_comment_reactions",
+  target: { post_id: string } | { comment_id: string },
+  userId: string,
+  reaction: SocialReactionType | null,
+) {
+  let deleteQuery = (supabase.from(table as any) as any).delete().eq("user_id", userId);
+  for (const [column, value] of Object.entries(target)) {
+    deleteQuery = deleteQuery.eq(column, value);
+  }
+
+  const deleteResult = await deleteQuery;
+  if (deleteResult.error) throw deleteResult.error;
+  if (!reaction) return;
+
+  const insertResult = await (supabase.from(table as any) as any).insert({
+    ...target,
+    user_id: userId,
+    reaction_type: reaction,
+  });
+  if (insertResult.error) throw insertResult.error;
+}
+
 async function getSponsoredStateByPostId(postIds: string[]) {
   const uniquePostIds = Array.from(new Set(postIds.filter(Boolean)));
   const stateByPostId = new Map<string, SponsoredPostState>();
@@ -561,6 +592,33 @@ async function getDashboardMetricsByPostId(postIds: string[]) {
   }
 
   return metricsByPostId;
+}
+
+async function getViewerPostReactionsByPostId(postIds: string[], viewerId?: string | null) {
+  const uniquePostIds = Array.from(new Set(postIds.filter(Boolean)));
+  const reactionByPostId = new Map<string, SocialReactionType>();
+  if (uniquePostIds.length === 0 || !viewerId) return reactionByPostId;
+
+  const { data, error } = await (supabase.from("social_post_likes" as any) as any)
+    .select("post_id,reaction_type")
+    .eq("user_id", viewerId)
+    .in("post_id", uniquePostIds)
+    .limit(uniquePostIds.length);
+
+  if (error) {
+    if (!/social_post_likes|reaction_type|schema cache|does not exist|permission denied|forbidden/i.test(error.message || "")) {
+      console.warn("Viewer social post reactions unavailable", error);
+    }
+    return reactionByPostId;
+  }
+
+  for (const row of (data || []) as ViewerPostReactionRow[]) {
+    const postId = row.post_id;
+    const reaction = normalizeSocialReaction(row.reaction_type);
+    if (postId && reaction) reactionByPostId.set(postId, reaction);
+  }
+
+  return reactionByPostId;
 }
 
 async function assertRestaurantAccess(restaurantId: string, userId: string) {
@@ -724,9 +782,11 @@ export function useInfiniteSocialFeed(scope: SocialFeedScope = "for_you", limit 
 
 export function useRestaurantSocialPosts(restaurantId?: string | null) {
   useSocialRealtime(!!restaurantId);
+  const { user } = useAuth();
+  const viewerId = user?.id || null;
 
   return useQuery({
-    queryKey: ["restaurant-social-posts", restaurantId],
+    queryKey: ["restaurant-social-posts", restaurantId, viewerId],
     queryFn: async () => {
       const { data, error } = await (supabase.from("social_posts" as any) as any)
         .select("*, restaurants(id,name,image_url,city,cuisine_type), social_post_media(*)")
@@ -737,20 +797,24 @@ export function useRestaurantSocialPosts(restaurantId?: string | null) {
       if (error) throw error;
       const rows = data || [];
       const postIds = rows.map((row: any) => row.id).filter(Boolean);
-      const [sponsoredStateByPostId, dashboardMetricsByPostId] = await Promise.all([
+      const [sponsoredStateByPostId, dashboardMetricsByPostId, viewerReactionByPostId] = await Promise.all([
         getSponsoredStateByPostId(postIds),
         getDashboardMetricsByPostId(postIds),
+        getViewerPostReactionsByPostId(postIds, viewerId),
       ]);
 
       return rows.map((row: any) => {
         const sponsoredState = sponsoredStateByPostId.get(row.id);
         const dashboardMetrics = dashboardMetricsByPostId.get(row.id);
+        const viewerReaction = viewerReactionByPostId.get(row.id) || null;
         return mapRestaurantPostRow({
           ...row,
           is_sponsored: sponsoredState?.isSponsored ?? false,
           promotion_status: sponsoredState?.promotionStatus ?? null,
           promotion_payment_status: sponsoredState?.promotionPaymentStatus ?? null,
           dashboard_metrics: dashboardMetrics,
+          my_reaction: viewerReactionByPostId.get(row.id) || null,
+          liked_by_me: Boolean(viewerReaction),
         });
       });
     },
@@ -1018,7 +1082,6 @@ export function useToggleSocialLike() {
         { post_id: post.id },
         user.id,
         post.myReaction ? null : "like",
-        post.myReaction,
       );
     },
     onSuccess: () => invalidateSocialQueries(queryClient),
@@ -1041,7 +1104,7 @@ export function useSetSocialPostReaction() {
 
       if (error && !isMissingRpc(error)) throw error;
       if (error) {
-        await replaceReaction("social_post_likes", { post_id: post.id }, user.id, reaction, post.myReaction);
+        await replaceReaction("social_post_likes", { post_id: post.id }, user.id, reaction);
       }
 
       await recordSocialEventBestEffort({
@@ -1466,7 +1529,6 @@ export function useSetSocialCommentReaction() {
           { comment_id: comment.id },
           user.id,
           reaction,
-          comment.myReaction,
         );
       }
     },
