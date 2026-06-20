@@ -186,9 +186,6 @@ export function SponsoredRestaurantTemplateCard({
                 decoding="async"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/18 via-transparent to-slate-950/10" />
-              <div className="absolute right-4 top-4 z-20 rounded-full bg-primary px-4 py-2 text-[10px] font-black uppercase tracking-[0.12em] text-white shadow-[0_12px_26px_rgba(249,115,22,0.26)] backdrop-blur">
-                Photo mise en avant
-              </div>
             </div>
           </div>
         </div>
