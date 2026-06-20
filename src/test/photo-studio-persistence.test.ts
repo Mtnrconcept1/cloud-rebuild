@@ -144,6 +144,53 @@ describe("TOK photo studio persistence", () => {
     expect(marketingStudio).toContain("restaurant_media");
   });
 
+  it("offers print supports with support-specific Flyerline-inspired formats", () => {
+    expect(marketingStudio).toContain("type MarketingFormatOption");
+    expect(marketingStudio).toContain("formats: MarketingFormatOption[]");
+    expect(marketingStudio).toContain("activeToolConfig.formats");
+    expect(marketingStudio).toContain("getFormatByLabel(activeToolConfig.formats, format)");
+    expect(marketingStudio).toContain("setFormat(nextFormat.label)");
+
+    for (const support of [
+      "Flyer / affiche",
+      "Carte de visite",
+      "Carte du restaurant",
+      "Depliant multi-page",
+      "Brochure",
+      "Poster / affiche",
+      "Affiche grand format",
+      "Carte postale",
+      "Autocollant / sticker",
+      "PLV / presentoir",
+      "Bache / banniere",
+    ]) {
+      expect(marketingStudio).toContain(support);
+    }
+
+    for (const format of [
+      "A3 297 x 420 mm",
+      "A5 148 x 210 mm",
+      "A6 105 x 148 mm",
+      "DIN A6/5 105 x 210 mm",
+      "Carte de visite 85 x 55 mm",
+      "Carte de visite 55 x 85 mm",
+      "Depliant 1 pli 4 pages",
+      "Depliant accordeon 6 pages",
+      "Depliant roule 6 pages",
+      "Depliant double pli parallele 8 pages",
+      "Brochure DIN A4 8 a 72 pages",
+      "Affiche F4",
+      "Affiche F200",
+      "Affiche F12",
+      "Affiche F24",
+      "Autocollant rond 74 mm",
+      "Autocollant carre 105 x 105 mm",
+      "Roll-up",
+    ]) {
+      expect(marketingStudio).toContain(format);
+    }
+  });
+
   it("keeps marketing studio controls responsive on narrow dashboard screens", () => {
     expect(marketingStudio).toContain("grid min-w-0 gap-4 p-3 sm:gap-6 sm:p-5 lg:grid-cols-[minmax(0,1fr)_360px] lg:p-6");
     expect(marketingStudio).toContain("min-w-0 rounded-2xl border border-orange-100 bg-white p-3 shadow-sm");

@@ -34,7 +34,36 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-type MarketingToolId = "flyer" | "business_card" | "restaurant_menu";
+type MarketingToolId =
+  | "flyer"
+  | "business_card"
+  | "restaurant_menu"
+  | "folded_leaflet"
+  | "brochure"
+  | "poster"
+  | "large_poster"
+  | "postcard"
+  | "sticker"
+  | "pos_display"
+  | "banner";
+
+type MarketingOrientation = "Portrait" | "Paysage" | "Carre";
+
+type MarketingFormatOption = {
+  label: string;
+  orientation: MarketingOrientation;
+  printSpec: string;
+  pageHint?: string;
+};
+
+type MarketingToolConfig = {
+  id: MarketingToolId;
+  title: string;
+  description: string;
+  icon: LucideIcon;
+  suggestions: string[];
+  formats: MarketingFormatOption[];
+};
 
 type MarketingAssetKind = "logo" | "business_card" | "restaurant_menu" | "brand_visuals";
 
@@ -92,35 +121,203 @@ const MARKETING_KIND_BY_MEDIA_TYPE = Object.fromEntries(
 
 const MARKETING_MEDIA_TYPES = Object.values(MARKETING_ASSET_MEDIA_TYPES);
 
-const MARKETING_TOOLS: Array<{
-  id: MarketingToolId;
-  title: string;
-  description: string;
-  icon: LucideIcon;
-  suggestions: string[];
-}> = [
+const marketingFormat = (
+  label: string,
+  orientation: MarketingOrientation,
+  printSpec = label,
+  pageHint?: string,
+): MarketingFormatOption => ({ label, orientation, printSpec, pageHint });
+
+const MARKETING_TOOLS: MarketingToolConfig[] = [
   {
     id: "flyer",
     title: "Flyer / affiche",
-    description: "Creez des flyers, posters et visuels promotionnels coherents avec votre marque.",
+    description: "Flyers, annonces de service, offres et supports promotionnels courts.",
     icon: Megaphone,
     suggestions: ["Soiree a theme", "Menu du jour", "Offre speciale", "Brunch du dimanche"],
+    formats: [
+      marketingFormat("A3 297 x 420 mm", "Portrait", "DIN A3 297 x 420 mm"),
+      marketingFormat("A4 imprime 210 x 297 mm", "Portrait", "DIN A4 210 x 297 mm"),
+      marketingFormat("A5 148 x 210 mm", "Portrait", "DIN A5 148 x 210 mm"),
+      marketingFormat("A6 105 x 148 mm", "Portrait", "DIN A6 105 x 148 mm"),
+      marketingFormat("DIN A6/5 105 x 210 mm", "Portrait", "DIN A6/5 105 x 210 mm"),
+      marketingFormat("Flyer carre 148 x 148 mm", "Carre", "Carre 148 x 148 mm"),
+      marketingFormat("Story 9:16", "Portrait", "Format digital vertical 9:16"),
+      marketingFormat("Post carre", "Carre", "Format digital carre"),
+    ],
   },
   {
     id: "business_card",
     title: "Carte de visite",
-    description: "Generez une carte professionnelle a partir de votre logo et de votre style.",
+    description: "Cartes compactes recto ou recto-verso pour equipe, livraison et reservation.",
     icon: BriefcaseBusiness,
     suggestions: ["Sobre premium", "Chef proprietaire", "Livraison", "QR code menu"],
+    formats: [
+      marketingFormat("Carte de visite 85 x 55 mm", "Paysage", "85 x 55 mm paysage", "Recto ou recto-verso"),
+      marketingFormat("Carte de visite 55 x 85 mm", "Portrait", "55 x 85 mm portrait", "Recto ou recto-verso"),
+      marketingFormat("Carte de visite double volet", "Paysage", "Carte de visite pliee / double volet", "4 faces"),
+      marketingFormat("Carte de visite carree 55 x 55 mm", "Carre", "55 x 55 mm carre"),
+    ],
   },
   {
     id: "restaurant_menu",
     title: "Carte du restaurant",
-    description: "Creez ou modernisez une carte de restaurant lisible, elegante et imprimable.",
+    description: "Menus, cartes boissons, cartes saisonnieres et supports de table lisibles.",
     icon: FileText,
     suggestions: ["Menu du soir", "Carte drinks", "Menu enfant", "Carte saisonniere"],
+    formats: [
+      marketingFormat("Menu A4 210 x 297 mm", "Portrait", "DIN A4 210 x 297 mm", "1 ou 2 pages"),
+      marketingFormat("Menu A3 plie A4", "Paysage", "DIN A3 plie au format A4", "4 pages"),
+      marketingFormat("Menu A5 148 x 210 mm", "Portrait", "DIN A5 148 x 210 mm", "1 ou 2 pages"),
+      marketingFormat("Menu DIN A6/5 105 x 210 mm", "Portrait", "DIN A6/5 105 x 210 mm"),
+      marketingFormat("Set de table A3", "Paysage", "DIN A3 paysage"),
+    ],
+  },
+  {
+    id: "folded_leaflet",
+    title: "Depliant multi-page",
+    description: "Depliants plies pour menus et offres: 1 a 4 plis, jusqu'a 12 pages.",
+    icon: FileText,
+    suggestions: ["Menu traiteur", "Offre entreprise", "Programme brunch", "Carte festive"],
+    formats: [
+      marketingFormat("Depliant 1 pli 4 pages", "Paysage", "Depliant 1 pli", "4 pages"),
+      marketingFormat("Depliant accordeon 6 pages", "Paysage", "Pli accordeon", "6 pages"),
+      marketingFormat("Depliant roule 6 pages", "Paysage", "Pli roule", "6 pages"),
+      marketingFormat("Depliant double pli parallele 8 pages", "Paysage", "Double pli parallele", "8 pages"),
+      marketingFormat("Depliant pli croise 8 pages", "Paysage", "Pli croise", "8 pages"),
+      marketingFormat("Depliant pli fenetre 6 pages", "Paysage", "Pli fenetre", "6 pages"),
+      marketingFormat("Depliant accordeon avec rabat 10 pages", "Paysage", "Accordeon avec rabat", "10 pages"),
+      marketingFormat("Depliant 4 plis 12 pages", "Paysage", "Depliant 4 plis", "12 pages"),
+    ],
+  },
+  {
+    id: "brochure",
+    title: "Brochure",
+    description: "Brochures agrafees ou collees pour cartes longues, dossiers et offres groupe.",
+    icon: FileText,
+    suggestions: ["Dossier banquet", "Carte vins", "Catalogue traiteur", "Presentation restaurant"],
+    formats: [
+      marketingFormat("Brochure DIN A4 8 a 72 pages", "Portrait", "DIN A4 portrait", "8 a 72 pages"),
+      marketingFormat("Brochure DIN A4 paysage 8 a 72 pages", "Paysage", "DIN A4 paysage", "8 a 72 pages"),
+      marketingFormat("Brochure DIN A5 8 a 72 pages", "Portrait", "DIN A5 portrait", "8 a 72 pages"),
+      marketingFormat("Brochure DIN A6/5 8 a 72 pages", "Portrait", "DIN A6/5 portrait", "8 a 72 pages"),
+      marketingFormat("Brochure DIN A6 8 a 72 pages", "Portrait", "DIN A6 portrait", "8 a 72 pages"),
+    ],
+  },
+  {
+    id: "poster",
+    title: "Poster / affiche",
+    description: "Affiches imprimees pour vitrine, entree, evenement ou promotion locale.",
+    icon: Megaphone,
+    suggestions: ["Affiche vitrine", "Concert live", "Happy hour", "Recrutement"],
+    formats: [
+      marketingFormat("Affiche A4 210 x 297 mm", "Portrait", "DIN A4 210 x 297 mm", "1 ou 2 pages"),
+      marketingFormat("Affiche A3 297 x 420 mm", "Portrait", "DIN A3 297 x 420 mm"),
+      marketingFormat("Affiche A2 420 x 594 mm", "Portrait", "DIN A2 420 x 594 mm"),
+      marketingFormat("Affiche B2 / A2+", "Portrait", "A2+ / B2"),
+      marketingFormat("Affiche A1 594 x 841 mm", "Portrait", "DIN A1 594 x 841 mm"),
+      marketingFormat("Affiche B1", "Portrait", "DIN B1"),
+      marketingFormat("Affiche A0 841 x 1189 mm", "Portrait", "DIN A0 841 x 1189 mm"),
+    ],
+  },
+  {
+    id: "large_poster",
+    title: "Affiche grand format",
+    description: "Formats exterieurs et reseaux d'affichage type F4, F200, F12 et F24.",
+    icon: FileImage,
+    suggestions: ["Campagne quartier", "Ouverture", "Terrasse ete", "Grand visuel marque"],
+    formats: [
+      marketingFormat("Affiche F4", "Portrait", "Format F4 grand affichage"),
+      marketingFormat("Affiche F200", "Portrait", "Format F200"),
+      marketingFormat("Affiche F200L", "Paysage", "Format F200L"),
+      marketingFormat("Affiche F12", "Portrait", "Format F12"),
+      marketingFormat("Affiche F12L", "Paysage", "Format F12L"),
+      marketingFormat("Affiche F24", "Portrait", "Format F24"),
+      marketingFormat("Carton a suspendre 250 x 350 mm", "Portrait", "250 x 350 mm"),
+      marketingFormat("RailPoster", "Paysage", "RailPoster"),
+      marketingFormat("RailMidiPoster", "Paysage", "RailMidiPoster"),
+    ],
+  },
+  {
+    id: "postcard",
+    title: "Carte postale",
+    description: "Cartes postales, cartes cadeau et invitations recto-verso ou 4 pages.",
+    icon: FileImage,
+    suggestions: ["Carte cadeau", "Invitation VIP", "Merci client", "Carte de voeux"],
+    formats: [
+      marketingFormat("Carte postale A6 105 x 148 mm", "Paysage", "DIN A6 105 x 148 mm"),
+      marketingFormat("Carte postale A5 148 x 210 mm", "Paysage", "DIN A5 148 x 210 mm"),
+      marketingFormat("Carte postale carree 148 x 148 mm", "Carre", "Carre 148 x 148 mm"),
+      marketingFormat("Carte de voeux 4 pages A6", "Paysage", "Carte pliee A6", "4 pages"),
+      marketingFormat("Carte de voeux 4 pages A5", "Paysage", "Carte pliee A5", "4 pages"),
+    ],
+  },
+  {
+    id: "sticker",
+    title: "Autocollant / sticker",
+    description: "Etiquettes, stickers QR, stickers emballage et formes rondes ou carrees.",
+    icon: FileImage,
+    suggestions: ["Sticker packaging", "QR code avis", "Etiquette produit", "Scelle livraison"],
+    formats: [
+      marketingFormat("Autocollant format carte de visite", "Paysage", "Format carte de visite"),
+      marketingFormat("Autocollant A8", "Portrait", "DIN A8"),
+      marketingFormat("Autocollant A7", "Portrait", "DIN A7"),
+      marketingFormat("Autocollant A6", "Portrait", "DIN A6"),
+      marketingFormat("Autocollant DIN A6/5", "Portrait", "DIN A6/5"),
+      marketingFormat("Autocollant A5", "Portrait", "DIN A5"),
+      marketingFormat("Autocollant A4", "Portrait", "DIN A4"),
+      marketingFormat("Autocollant A3", "Portrait", "DIN A3"),
+      marketingFormat("Autocollant carre 50 x 50 mm", "Carre", "Carre 50 x 50 mm"),
+      marketingFormat("Autocollant carre 74 x 74 mm", "Carre", "Carre 74 x 74 mm"),
+      marketingFormat("Autocollant carre 105 x 105 mm", "Carre", "Carre 105 x 105 mm"),
+      marketingFormat("Autocollant carre 148 x 148 mm", "Carre", "Carre 148 x 148 mm"),
+      marketingFormat("Autocollant rond 30 mm", "Carre", "Rond 30 mm"),
+      marketingFormat("Autocollant rond 50 mm", "Carre", "Rond 50 mm"),
+      marketingFormat("Autocollant rond 74 mm", "Carre", "Rond 74 mm"),
+      marketingFormat("Autocollant rond 105 mm", "Carre", "Rond 105 mm"),
+      marketingFormat("Autocollant Freeform", "Paysage", "Forme libre"),
+    ],
+  },
+  {
+    id: "pos_display",
+    title: "PLV / presentoir",
+    description: "Supports de comptoir, porte-brochures, affiches a poser, chevalets et roll-up.",
+    icon: FileImage,
+    suggestions: ["Comptoir livraison", "Menu QR", "Table tente", "Entree restaurant"],
+    formats: [
+      marketingFormat("Presentoir carte de visite portrait", "Portrait", "Presentoir cartes de visite portrait"),
+      marketingFormat("Presentoir carte de visite paysage", "Paysage", "Presentoir cartes de visite paysage"),
+      marketingFormat("Porte-brochures DIN A6", "Portrait", "Porte-brochures DIN A6"),
+      marketingFormat("Porte-brochures DIN A6/5", "Portrait", "Porte-brochures DIN A6/5"),
+      marketingFormat("Porte-brochures DIN A5", "Portrait", "Porte-brochures DIN A5"),
+      marketingFormat("Affiche a poser A4", "Portrait", "Affiche a poser DIN A4"),
+      marketingFormat("Affiche a poser A3", "Portrait", "Affiche a poser DIN A3"),
+      marketingFormat("Affiche a poser A2", "Portrait", "Affiche a poser DIN A2"),
+      marketingFormat("Affiche a poser A1", "Portrait", "Affiche a poser DIN A1"),
+      marketingFormat("Chevalet Stopper A1", "Portrait", "Chevalet Stopper A1"),
+      marketingFormat("Cadre Stopper A1", "Portrait", "Cadre Stopper A1"),
+      marketingFormat("Roll-up", "Portrait", "Roll-up"),
+    ],
+  },
+  {
+    id: "banner",
+    title: "Bache / banniere",
+    description: "Baches grand format, bannieres de chantier et supports exterieurs.",
+    icon: Megaphone,
+    suggestions: ["Terrasse", "Ouverture facade", "Festival food", "Signaletique retrait"],
+    formats: [
+      marketingFormat("Bache format libre hauteur 800 mm", "Paysage", "Format libre, hauteur jusqu'a 800 mm"),
+      marketingFormat("Bache format libre hauteur 1000 mm", "Paysage", "Format libre, hauteur jusqu'a 1000 mm"),
+      marketingFormat("Bache format libre hauteur 1500 mm", "Paysage", "Format libre, hauteur jusqu'a 1500 mm"),
+      marketingFormat("Bache format libre hauteur 2000 mm", "Paysage", "Format libre, hauteur jusqu'a 2000 mm"),
+      marketingFormat("Bache format libre hauteur 2400 mm", "Paysage", "Format libre, hauteur jusqu'a 2400 mm"),
+      marketingFormat("Bache chantier 340 x 173 cm", "Paysage", "340 x 173 cm"),
+      marketingFormat("Banniere barriere de securite", "Paysage", "Banniere pour barriere de securite"),
+    ],
   },
 ];
+
+const DEFAULT_MARKETING_FORMAT = MARKETING_TOOLS[0]!.formats[0]!;
 
 const MARKETING_STUDIO_STEPS: Array<{
   title: string;
@@ -134,7 +331,7 @@ const MARKETING_STUDIO_STEPS: Array<{
   },
   {
     title: "Support",
-    description: "Choisissez flyer, carte de visite ou carte du restaurant.",
+    description: "Choisissez le support imprime ou digital, puis son format.",
     icon: FileImage,
   },
   {
@@ -267,10 +464,23 @@ function getMarketingImageFormat(format: string, orientation: string): TokImageF
   return "landscape";
 }
 
+function getFormatByLabel(formats: MarketingFormatOption[], label: string): MarketingFormatOption {
+  return formats.find((option) => option.label === label) || formats[0] || DEFAULT_MARKETING_FORMAT;
+}
+
+function getFormatOrientations(formats: MarketingFormatOption[]) {
+  return formats.reduce<MarketingOrientation[]>((orientations, option) => {
+    if (!orientations.includes(option.orientation)) orientations.push(option.orientation);
+    return orientations;
+  }, []);
+}
+
 function buildMarketingImagePrompt(input: {
   toolTitle: string;
   prompt: string;
   format: string;
+  formatSpec: string;
+  pageHint?: string;
   orientation: string;
   styleMode: string;
   resources: MarketingResource[];
@@ -292,7 +502,8 @@ function buildMarketingImagePrompt(input: {
 
   return [
     "Créer directement un visuel marketing final pour le restaurateur, sans produire de brief.",
-    `Support: ${input.toolTitle}. Format: ${input.format}. Orientation: ${input.orientation}. Style: ${input.styleMode}.`,
+    `Support: ${input.toolTitle}. Format: ${input.format}. Specification imprimeur: ${input.formatSpec}. Orientation: ${input.orientation}. Style: ${input.styleMode}.`,
+    `Pagination et support: ${input.pageHint || "respecter le format selectionne et garder les zones de coupe/marge visuellement propres."}`,
     `Demande restaurateur: ${input.prompt}`,
     `Ressources actives à utiliser comme seules références visuelles: ${resourceSummary}`,
     `Empreinte des ressources actives: ${resourceFingerprint || "aucune"}`,
@@ -391,8 +602,8 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
   const { toast } = useToast();
   const [activeTool, setActiveTool] = useState<MarketingToolId>("flyer");
   const [prompt, setPrompt] = useState("");
-  const [format, setFormat] = useState("A4 imprime");
-  const [orientation, setOrientation] = useState("Portrait");
+  const [format, setFormat] = useState(DEFAULT_MARKETING_FORMAT.label);
+  const [orientation, setOrientation] = useState<MarketingOrientation>(DEFAULT_MARKETING_FORMAT.orientation);
   const [styleMode, setStyleMode] = useState("Base sur mon identite");
   const [resources, setResources] = useState<MarketingResource[]>([]);
   const [loading, setLoading] = useState(false);
@@ -403,7 +614,12 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
   const [activeStep, setActiveStep] = useState<MarketingWorkflowStep>(1);
   const generationRequestRef = useRef(0);
 
-  const activeToolConfig = MARKETING_TOOLS.find((tool) => tool.id === activeTool) || MARKETING_TOOLS[0];
+  const activeToolConfig = MARKETING_TOOLS.find((tool) => tool.id === activeTool) || MARKETING_TOOLS[0]!;
+  const selectedFormat = getFormatByLabel(activeToolConfig.formats, format);
+  const availableOrientations = useMemo(
+    () => getFormatOrientations(activeToolConfig.formats),
+    [activeToolConfig.formats],
+  );
   const sanitizedPrompt = sanitizeMarketingPrompt(prompt);
   const promptWarnings = getMarketingPromptWarnings(prompt);
   const persistedResources = resources.filter((resource) => resource.persisted && resource.mediaUrl);
@@ -431,6 +647,16 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
     invalidateMarketingGeneration();
     setPrompt(value);
   };
+
+  useEffect(() => {
+    const nextFormat = getFormatByLabel(activeToolConfig.formats, format);
+    if (!activeToolConfig.formats.some((option) => option.label === format)) {
+      setFormat(nextFormat.label);
+      setOrientation(nextFormat.orientation);
+      return;
+    }
+    if (orientation !== nextFormat.orientation) setOrientation(nextFormat.orientation);
+  }, [activeToolConfig.formats, format, orientation]);
 
   useEffect(() => {
     let cancelled = false;
@@ -651,15 +877,17 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
         prompt: buildMarketingImagePrompt({
           toolTitle: activeToolConfig.title,
           prompt: safePrompt,
-          format,
-          orientation,
+          format: selectedFormat.label,
+          formatSpec: selectedFormat.printSpec,
+          pageHint: selectedFormat.pageHint,
+          orientation: selectedFormat.orientation,
           styleMode,
           resources: generationResources,
         }),
         referenceImageUrls: generationResources.map((resource) => resource.mediaUrl),
         dishName: activeToolConfig.title,
         assetType: "campaign_visual",
-        format: getMarketingImageFormat(format, orientation),
+        format: getMarketingImageFormat(selectedFormat.label, selectedFormat.orientation),
         variantCount: 1,
         generateImage: true,
         imageOnly: true,
@@ -766,7 +994,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-orange-600 text-xs font-bold text-white">1</span>
                   Choisir le support
                 </div>
-                <div className="grid gap-3 md:grid-cols-3">
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 {MARKETING_TOOLS.map((tool) => {
                   const Icon = tool.icon;
                   const selected = tool.id === activeTool;
@@ -775,8 +1003,11 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                       key={tool.id}
                       type="button"
                       onClick={() => {
+                        const nextFormat = tool.formats[0] || DEFAULT_MARKETING_FORMAT;
                         invalidateMarketingGeneration();
                         setActiveTool(tool.id);
+                        setFormat(nextFormat.label);
+                        setOrientation(nextFormat.orientation);
                         setActiveStep((current) => current < 2 ? 2 : current);
                       }}
                       className={`min-w-0 rounded-2xl border p-4 text-center transition ${
@@ -791,6 +1022,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                         </span>
                         <span>
                           <span className="block text-base font-bold text-foreground">{tool.title}</span>
+                          <span className="mt-1 block text-xs leading-5 text-muted-foreground">{tool.description}</span>
                         </span>
                       </div>
                     </button>
@@ -871,16 +1103,18 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                     id="marketing-format"
                     value={format}
                     onChange={(event) => {
+                      const nextFormat = getFormatByLabel(activeToolConfig.formats, event.target.value);
                       invalidateMarketingGeneration();
-                      setFormat(event.target.value);
+                      setFormat(nextFormat.label);
+                      setOrientation(nextFormat.orientation);
                     }}
                     className="h-10 w-full rounded-md border bg-background px-3 text-sm"
                   >
-                    <option>A4 imprime</option>
-                    <option>Story 9:16</option>
-                    <option>Post carre</option>
-                    <option>Carte double volet</option>
+                    {activeToolConfig.formats.map((option) => (
+                      <option key={option.label} value={option.label}>{option.label}</option>
+                    ))}
                   </select>
+                  <p className="text-xs leading-5 text-muted-foreground">{selectedFormat.printSpec}</p>
                 </div>
                 <div className="min-w-0 space-y-2">
                   <Label htmlFor="marketing-orientation">Orientation</Label>
@@ -888,15 +1122,19 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                     id="marketing-orientation"
                     value={orientation}
                     onChange={(event) => {
+                      const nextOrientation = event.target.value as MarketingOrientation;
+                      const nextFormat = activeToolConfig.formats.find((option) => option.orientation === nextOrientation) || activeToolConfig.formats[0] || DEFAULT_MARKETING_FORMAT;
                       invalidateMarketingGeneration();
-                      setOrientation(event.target.value);
+                      setOrientation(nextOrientation);
+                      setFormat(nextFormat.label);
                     }}
                     className="h-10 w-full rounded-md border bg-background px-3 text-sm"
                   >
-                    <option>Portrait</option>
-                    <option>Paysage</option>
-                    <option>Carre</option>
+                    {availableOrientations.map((option) => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
                   </select>
+                  <p className="text-xs leading-5 text-muted-foreground">{selectedFormat.pageHint || "Format adapte au support selectionne."}</p>
                 </div>
                 <div className="min-w-0 space-y-2">
                   <Label htmlFor="marketing-style">Style</Label>
@@ -937,8 +1175,12 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                 <p className="break-words font-semibold text-foreground">Image marketing prête à générer</p>
                 <div className="mt-3 flex min-w-0 flex-wrap gap-2 text-emerald-900/80">
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Type: {activeToolConfig.title}</span>
-                  <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Format: {format}</span>
-                  <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Orientation: {orientation}</span>
+                  <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Format: {selectedFormat.label}</span>
+                  <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Specification: {selectedFormat.printSpec}</span>
+                  <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Orientation: {selectedFormat.orientation}</span>
+                  {selectedFormat.pageHint ? (
+                    <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Pages: {selectedFormat.pageHint}</span>
+                  ) : null}
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Style: {styleMode}</span>
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Ressources: {persistedResources.length}</span>
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Logo: {hasLogo ? "oui" : "non"}</span>
