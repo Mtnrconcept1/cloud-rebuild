@@ -148,7 +148,8 @@ describe("TOK AI tools foundation", () => {
     expect(source).toContain("TOK_INTERACTIVE_IMAGE_QUALITY");
     expect(source).toContain("TOK_INTERACTIVE_IMAGE_SIZE");
     expect(source).toContain("gpt-image-2");
-    expect(source).toContain("gpt-image-1-mini");
+    expect(source).toContain("const INTERACTIVE_IMAGE_MODEL = IMAGE_MODEL;");
+    expect(source).not.toContain("gpt-image-1-mini");
     expect(source).toContain('"low"');
     expect(source).toContain('"1024x1024"');
     expect(source).toContain("interactive_fast");
@@ -229,7 +230,6 @@ describe("TOK AI tools foundation", () => {
       "TOK_IMAGE_USE_AI_BRIEF",
       "TOK_IMAGE_FAST_INTERACTIVE",
       "TOK_IMAGE_USE_SOURCE_EDIT",
-      "TOK_INTERACTIVE_IMAGE_MODEL",
       "TOK_INTERACTIVE_IMAGE_QUALITY",
       "TOK_INTERACTIVE_IMAGE_SIZE",
       "TOK_INTERACTIVE_IMAGE_TIMEOUT_MS",
@@ -240,6 +240,19 @@ describe("TOK AI tools foundation", () => {
       expect(secrets).toContain(`"${name}"`);
       expect(workflow).toContain(`${name}: \${{ secrets.${name} }}`);
     }
+  });
+
+  it("uses the configured image 2 model for every image generation path", () => {
+    const source = readProjectFile("supabase/functions/ai-image-enhance/index.ts");
+    const secrets = readProjectFile("scripts/write-supabase-secrets-env.mjs");
+    const workflow = readProjectFile(".github/workflows/deploy-production.yml");
+
+    expect(source).toContain('const IMAGE_MODEL = Deno.env.get("OPENAI_IMAGE_MODEL")?.trim() || "gpt-image-2";');
+    expect(source).toContain("const INTERACTIVE_IMAGE_MODEL = IMAGE_MODEL;");
+    expect(source).not.toContain("gpt-image-1-mini");
+    expect(source).not.toContain('Deno.env.get("TOK_INTERACTIVE_IMAGE_MODEL")');
+    expect(secrets).not.toContain('"TOK_INTERACTIVE_IMAGE_MODEL"');
+    expect(workflow).not.toContain("TOK_INTERACTIVE_IMAGE_MODEL");
   });
 
   it("uses optimized WebP food references for the TOK photo studio style memory", () => {
