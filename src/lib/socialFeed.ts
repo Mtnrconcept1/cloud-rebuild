@@ -240,6 +240,10 @@ export type SocialFeedPost = {
   isSponsored?: boolean;
   promotionStatus?: string | null;
   promotionPaymentStatus?: string | null;
+  premiumBannerId?: string | null;
+  premiumBannerAudienceCount?: number | null;
+  premiumBannerImpressionsPerViewer?: number | null;
+  premiumBannerRemainingImpressions?: number | null;
   audienceSegment?: SocialAudienceSegment | null;
   offerCode?: string | null;
   utmCampaign?: string | null;

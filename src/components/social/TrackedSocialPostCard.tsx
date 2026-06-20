@@ -87,6 +87,10 @@ export default function TrackedSocialPostCard({
           activityId: post.activityId,
           activityType: post.activityType,
           restaurantId: post.restaurantId,
+          premiumBannerId: post.premiumBannerId || undefined,
+          premiumBanner: Boolean(post.premiumBannerId),
+          premiumBannerImpressionsPerViewer: post.premiumBannerImpressionsPerViewer || undefined,
+          premiumBannerRemainingImpressions: post.premiumBannerRemainingImpressions || undefined,
         },
       });
     };
@@ -109,7 +113,16 @@ export default function TrackedSocialPostCard({
 
     observer.observe(element);
     return () => observer.disconnect();
-  }, [post.activityId, post.activityType, post.id, post.restaurantId, source]);
+  }, [
+    post.activityId,
+    post.activityType,
+    post.id,
+    post.premiumBannerId,
+    post.premiumBannerImpressionsPerViewer,
+    post.premiumBannerRemainingImpressions,
+    post.restaurantId,
+    source,
+  ]);
 
   const handleClickCapture = (event: React.MouseEvent<HTMLDivElement>) => {
     const link = getLinkMetadata(event.target);
@@ -132,6 +145,8 @@ export default function TrackedSocialPostCard({
         activityId: post.activityId,
         activityType: post.activityType,
         restaurantId: post.restaurantId,
+        premiumBannerId: post.premiumBannerId || undefined,
+        premiumBanner: Boolean(post.premiumBannerId),
       },
     });
   };

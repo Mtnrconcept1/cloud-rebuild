@@ -138,6 +138,10 @@ type SocialFeedRpcRow = {
   audience_segment?: string | null;
   offer_code?: string | null;
   utm_campaign?: string | null;
+  premium_banner_id?: string | null;
+  premium_banner_audience_count?: number | null;
+  premium_banner_impressions_per_viewer?: number | null;
+  premium_banner_remaining_impressions?: number | null;
 };
 
 type CreateSocialPostInput = {
@@ -205,6 +209,14 @@ type PreparedSocialPostMediaFile = {
   file: File;
   sourceName: string;
   mediaType: "image" | "video";
+};
+
+export type RestaurantActualitesPremiumBannerAudience = {
+  hasAccess: boolean;
+  planSlug: string | null;
+  audienceCount: number;
+  impressionsPerViewer: number;
+  activeBannerCount: number;
 };
 
 type SocialFeedFeedbackInput = {
@@ -283,7 +295,8 @@ function updateReactionCounts(
 function mapSocialPost(row: SocialFeedRpcRow): SocialFeedPost {
   const reactionCounts = normalizeReactionCounts(row.reaction_counts);
   const recommendationReasons = parseRecommendationReasons(row.recommendation_reasons);
-  const isSponsored = hasSponsoredRecommendation(recommendationReasons);
+  const isPremiumBanner = Boolean(row.premium_banner_id);
+  const isSponsored = isPremiumBanner || hasSponsoredRecommendation(recommendationReasons);
   return {
     id: row.post_id,
     activityId: row.activity_id,
@@ -319,6 +332,10 @@ function mapSocialPost(row: SocialFeedRpcRow): SocialFeedPost {
     isSponsored,
     promotionStatus: isSponsored ? "active" : null,
     promotionPaymentStatus: isSponsored ? "paid" : null,
+    premiumBannerId: row.premium_banner_id || null,
+    premiumBannerAudienceCount: row.premium_banner_audience_count == null ? null : Number(row.premium_banner_audience_count),
+    premiumBannerImpressionsPerViewer: row.premium_banner_impressions_per_viewer == null ? null : Number(row.premium_banner_impressions_per_viewer),
+    premiumBannerRemainingImpressions: row.premium_banner_remaining_impressions == null ? null : Number(row.premium_banner_remaining_impressions),
     audienceSegment: normalizeSocialAudienceSegment(row.audience_segment),
     offerCode: row.offer_code || null,
     utmCampaign: row.utm_campaign || null,
@@ -399,6 +416,7 @@ function invalidateSocialQueries(queryClient: QueryClient) {
   queryClient.invalidateQueries({ queryKey: ["social-comments"] });
   queryClient.invalidateQueries({ queryKey: ["admin-social"] });
   queryClient.invalidateQueries({ queryKey: ["admin-actualites-sponsored"] });
+  queryClient.invalidateQueries({ queryKey: ["restaurant-actualites-premium-banner-audience"] });
 }
 
 function patchSocialPost(queryClient: QueryClient, postId: string, updater: (post: SocialFeedPost) => SocialFeedPost) {
@@ -709,6 +727,35 @@ function validateSocialPostDraft(input: {
   return errors;
 }
 
+function normalizePremiumBannerAudience(value: unknown): RestaurantActualitesPremiumBannerAudience {
+  const raw = value && typeof value === "object" ? value as Record<string, unknown> : {};
+  return {
+    hasAccess: Boolean(raw.hasAccess),
+    planSlug: typeof raw.planSlug === "string" ? raw.planSlug : null,
+    audienceCount: Math.max(0, Number(raw.audienceCount || 0)),
+    impressionsPerViewer: Math.max(1, Number(raw.impressionsPerViewer || 5)),
+    activeBannerCount: Math.max(0, Number(raw.activeBannerCount || 0)),
+  };
+}
+
+async function getPremiumBannerRows(scope: SocialFeedScope, limit: number) {
+  if (typeof (supabase.rpc as any) !== "function" || scope === "saved") return [] as SocialFeedRpcRow[];
+
+  const { data, error } = await (supabase.rpc as any)("get_social_feed_premium_banners", {
+    p_limit: Math.max(1, Math.min(1, limit)),
+    p_scope: scope,
+  });
+
+  if (error) {
+    if (!isMissingRpc(error)) {
+      console.warn("Actualites premium banner RPC unavailable", error);
+    }
+    return [] as SocialFeedRpcRow[];
+  }
+
+  return Array.isArray(data) ? data as SocialFeedRpcRow[] : [];
+}
+
 export function useSocialRealtime(enabled = true) {
   useEffect(() => {
     if (!enabled) return;
@@ -770,9 +817,15 @@ export function useInfiniteSocialFeed(scope: SocialFeedScope = "for_you", limit 
         };
       }
 
-      const rows = data || [];
+      const organicRows = Array.isArray(data) ? data as SocialFeedRpcRow[] : [];
+      const premiumRows = pageParam ? [] : await getPremiumBannerRows(scope, limit);
+      const premiumPostIds = new Set(premiumRows.map((row) => row.post_id));
+      const rows = [
+        ...premiumRows,
+        ...organicRows.filter((row) => !premiumPostIds.has(row.post_id)),
+      ];
       const posts = filterSocialPostsByHiddenFeedback(rows.map(mapSocialPost), hiddenFeedback);
-      const nextCursor = rows.length === limit ? rows[rows.length - 1]?.created_at || null : null;
+      const nextCursor = organicRows.length === limit ? organicRows[organicRows.length - 1]?.created_at || null : null;
       return { posts, nextCursor };
     },
     initialPageParam: null as string | null,
@@ -819,6 +872,54 @@ export function useRestaurantSocialPosts(restaurantId?: string | null) {
       });
     },
     enabled: !!restaurantId,
+  });
+}
+
+export function useRestaurantActualitesPremiumBannerAudience(restaurantId?: string | null) {
+  return useQuery({
+    queryKey: ["restaurant-actualites-premium-banner-audience", restaurantId],
+    queryFn: async () => {
+      const { data, error } = await (supabase.rpc as any)("get_restaurant_actualites_premium_banner_audience", {
+        p_restaurant_id: restaurantId,
+      });
+
+      if (error && !isMissingRpc(error)) throw error;
+      if (error) {
+        return {
+          hasAccess: false,
+          planSlug: null,
+          audienceCount: 0,
+          impressionsPerViewer: 5,
+          activeBannerCount: 0,
+        } satisfies RestaurantActualitesPremiumBannerAudience;
+      }
+
+      return normalizePremiumBannerAudience(data);
+    },
+    enabled: !!restaurantId,
+  });
+}
+
+export function useCreatePremiumActualitesBanner() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (postId: string) => {
+      const { data, error } = await (supabase.rpc as any)("create_premium_actualites_banner", {
+        p_post_id: postId,
+      });
+
+      if (error) throw error;
+      return data as {
+        bannerId?: string;
+        audienceCount?: number;
+        impressionsPerViewer?: number;
+        planSlug?: string | null;
+      };
+    },
+    onSuccess: () => {
+      invalidateSocialQueries(queryClient);
+    },
   });
 }
 

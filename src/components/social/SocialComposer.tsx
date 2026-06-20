@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ComponentType } from "react";
-import { CalendarClock, Facebook, ImagePlus, Instagram, Loader2, Megaphone, Music2, Plus, Send, Share2, Sparkles, Video, X } from "lucide-react";
+import { CalendarClock, Crown, Facebook, ImagePlus, Instagram, Loader2, Megaphone, Music2, Plus, Send, Share2, Sparkles, Video, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -15,7 +15,12 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { useCreateSocialPost, useRecordExternalShare } from "@/hooks/useSocialFeed";
+import {
+  useCreatePremiumActualitesBanner,
+  useCreateSocialPost,
+  useRecordExternalShare,
+  useRestaurantActualitesPremiumBannerAudience,
+} from "@/hooks/useSocialFeed";
 import { getSupabase } from "@/integrations/supabase/client";
 import {
   CUSTOMER_SEGMENT_OPTIONS,
@@ -212,6 +217,7 @@ export default function SocialComposer({
   const [aiCopyLoading, setAiCopyLoading] = useState(false);
   const [aiCopyError, setAiCopyError] = useState<string | null>(null);
   const [sponsorPost, setSponsorPost] = useState(false);
+  const [premiumBannerPost, setPremiumBannerPost] = useState(false);
   const [sponsorDialogOpen, setSponsorDialogOpen] = useState(false);
   const [sponsorBudget, setSponsorBudget] = useState("25");
   const [sponsorDurationDays, setSponsorDurationDays] = useState(7);
@@ -230,6 +236,8 @@ export default function SocialComposer({
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const createPost = useCreateSocialPost();
+  const createPremiumBanner = useCreatePremiumActualitesBanner();
+  const premiumBannerAudience = useRestaurantActualitesPremiumBannerAudience(restaurantId);
   const recordExternalShare = useRecordExternalShare();
   const minimumScheduledAt = useMemo(() => getMinimumScheduledAtInputValue(), []);
   const availableCrossPostPlatforms = useMemo(
@@ -250,6 +258,17 @@ export default function SocialComposer({
   );
   const canCreateSponsoredCheckout = sponsorPost && !scheduledAt && sponsorBudgetValue > 0;
   const sponsorObjectiveLabel = CAMPAIGN_STRATEGY_CONFIG[sponsorStrategy].shortLabel;
+  const premiumAudience = premiumBannerAudience.data || {
+    hasAccess: false,
+    planSlug: null,
+    audienceCount: 0,
+    impressionsPerViewer: 5,
+    activeBannerCount: 0,
+  };
+  const hasPremiumBannerAccess = Boolean(premiumAudience.hasAccess);
+  const premiumAudienceCount = Number(premiumAudience.audienceCount || 0);
+  const premiumImpressionsPerViewer = Number(premiumAudience.impressionsPerViewer || 5);
+  const canCreatePremiumBanner = premiumBannerPost && !scheduledAt && hasPremiumBannerAccess;
 
   useEffect(() => {
     const nextPreviews = files.slice(0, 10).map((file) => ({ file, url: URL.createObjectURL(file) }));
@@ -264,6 +283,12 @@ export default function SocialComposer({
     setSponsorPost(true);
     setSponsorDialogOpen(true);
   }, [scheduledAt, sponsorDialogRequest]);
+
+  useEffect(() => {
+    if (scheduledAt && premiumBannerPost) {
+      setPremiumBannerPost(false);
+    }
+  }, [premiumBannerPost, scheduledAt]);
 
   useEffect(() => {
     setSelectedCrossPostPlatforms((current) =>
@@ -337,7 +362,14 @@ export default function SocialComposer({
       }),
     [body, ctaType, files.length, postType, scheduledAt],
   );
-  const canSubmit = Boolean(restaurantId && body.trim() && validationErrors.length === 0 && !fileError && !createPost.isPending);
+  const canSubmit = Boolean(
+    restaurantId &&
+    body.trim() &&
+    validationErrors.length === 0 &&
+    !fileError &&
+    !createPost.isPending &&
+    !createPremiumBanner.isPending,
+  );
   const mediaLabel = files.length === 0 ? "Média" : `${files.length}/10`;
   const utmCampaign = useMemo(() => {
     const source = campaignName.trim() || `${campaignGoal}-${restaurantName || "tok"}`;
@@ -551,6 +583,34 @@ export default function SocialComposer({
       });
     }
 
+    if (premiumBannerPost) {
+      if (!canCreatePremiumBanner) {
+        toast({
+          title: "Banniere premium non activee",
+          description: scheduledIso
+            ? "La banniere premium est disponible uniquement pour une publication immediate."
+            : "Cette option est reservee aux abonnements Premium et Elite.",
+          variant: "destructive",
+        });
+      } else {
+        try {
+          const premiumResult = await createPremiumBanner.mutateAsync(postId);
+          const reached = Number(premiumResult?.audienceCount ?? premiumAudienceCount);
+          const impressions = Number(premiumResult?.impressionsPerViewer ?? premiumImpressionsPerViewer);
+          toast({
+            title: "Banniere premium activee",
+            description: `${reached.toLocaleString("fr-CH")} personne(s) ciblee(s), ${impressions} affichages chacune.`,
+          });
+        } catch (error) {
+          toast({
+            title: "Banniere premium non activee",
+            description: error instanceof Error ? error.message : "Le post est publie, mais la banniere n'a pas pu etre activee.",
+            variant: "destructive",
+          });
+        }
+      }
+    }
+
     if (canCreateSponsoredCheckout) {
       try {
         const redirected = await createSponsoredCheckout(postId, postBody);
@@ -576,6 +636,7 @@ export default function SocialComposer({
     setSelectedCrossPostPlatforms([]);
     setCrossPostDialogOpen(false);
     setSponsorPost(false);
+    setPremiumBannerPost(false);
     setSponsorDialogOpen(false);
     setSponsorBudget("25");
     setSponsorDurationDays(7);
@@ -694,7 +755,7 @@ export default function SocialComposer({
             className={cn(
               "grid min-w-0 items-stretch",
               compact ? "gap-2" : "gap-3",
-              "xl:grid-cols-[minmax(11rem,0.8fr)_minmax(18rem,1.25fr)_minmax(18rem,1fr)]",
+              "xl:grid-cols-[minmax(11rem,0.8fr)_minmax(16rem,1fr)_minmax(16rem,1fr)_minmax(18rem,1fr)]",
             )}
           >
             <Button
@@ -769,6 +830,49 @@ export default function SocialComposer({
                 >
                   Paramétrer la campagne
                 </Button>
+              ) : null}
+            </div>
+
+            <div className={cn(
+              "rounded-2xl border bg-white shadow-sm",
+              premiumBannerPost ? "border-orange-300 ring-1 ring-orange-100" : "border-slate-200",
+              compact ? "p-2.5" : "p-3",
+            )}>
+              <div className="flex items-start gap-3 text-sm">
+                <Checkbox
+                  id="social-post-premium-banner"
+                  checked={premiumBannerPost}
+                  onCheckedChange={(value) => setPremiumBannerPost(value === true)}
+                  disabled={Boolean(scheduledAt) || premiumBannerAudience.isLoading || !hasPremiumBannerAccess}
+                  aria-label="Activer la banniere premium"
+                />
+                <button
+                  type="button"
+                  className="min-w-0 flex-1 text-left disabled:cursor-not-allowed"
+                  disabled={Boolean(scheduledAt) || premiumBannerAudience.isLoading || !hasPremiumBannerAccess}
+                  onClick={() => {
+                    if (scheduledAt || premiumBannerAudience.isLoading || !hasPremiumBannerAccess) return;
+                    setPremiumBannerPost((enabled) => !enabled);
+                  }}
+                >
+                  <span className="flex items-center gap-2 font-semibold text-slate-950">
+                    <Crown className="h-4 w-4 text-orange-600" />
+                    Banniere premium
+                  </span>
+                  <span className="mt-0.5 block text-xs leading-5 text-muted-foreground">
+                    {premiumBannerAudience.isLoading
+                      ? "Calcul de l'audience..."
+                      : hasPremiumBannerAccess
+                        ? `${premiumAudienceCount.toLocaleString("fr-CH")} personne(s) ciblee(s) · ${premiumImpressionsPerViewer} affichages chacun`
+                        : "Reserve aux abonnements Premium et Elite."}
+                  </span>
+                </button>
+              </div>
+
+              {scheduledAt ? (
+                <p className="mt-2 rounded-xl bg-slate-50 px-3 py-2 text-xs text-muted-foreground">
+                  Disponible uniquement pour une publication immediate.
+                </p>
               ) : null}
             </div>
 

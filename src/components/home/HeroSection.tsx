@@ -83,32 +83,32 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
 
   return (
     <>
-      <section className="bg-white md:hidden">
+      <section data-testid="mobile-hero-shell" className="relative min-h-[calc(100svh-64px)] overflow-hidden bg-[#edf7ff] md:hidden">
+        <div className="absolute inset-0 bg-[url('/fondacceuil.png')] bg-cover bg-[position:50%_0%] bg-no-repeat" aria-hidden="true" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,250,240,0.68)_0%,rgba(255,250,240,0.12)_34%,rgba(67,32,11,0.06)_62%,rgba(22,10,4,0.54)_100%)]" aria-hidden="true" />
         <motion.div
           variants={stagger}
           initial="hidden"
           animate={contentVisible ? "visible" : "hidden"}
           data-testid="mobile-hero-panel"
-          className="relative h-[calc(100svh-216px)] min-h-[604px] max-h-[720px] overflow-hidden bg-[#edf7ff]"
+          className="relative z-10 min-h-[calc(100svh-64px)] overflow-hidden"
         >
-          <div className="absolute inset-0 bg-[url('/fondacceuil.png')] bg-cover bg-[position:50%_32px] bg-no-repeat" aria-hidden="true" />
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,250,240,0.72)_0%,rgba(255,250,240,0.18)_36%,rgba(67,32,11,0.08)_66%,rgba(35,15,5,0.42)_100%)]" aria-hidden="true" />
+          <div className="relative z-10 flex min-h-[calc(100svh-64px)] flex-col">
+            <div className="px-5 pb-1 pt-6 text-center min-[390px]:pt-7">
+              <motion.div variants={scaleIn} className="mx-auto flex h-[76px] justify-center min-[390px]:h-[84px]">
+                <img
+                  src={logoSrc}
+                  alt="Tok"
+                  className="h-full w-auto translate-x-[12px] object-contain drop-shadow-[0_12px_30px_rgba(62,30,10,0.20)]"
+                />
+              </motion.div>
 
-          <div className="relative z-10 flex h-full flex-col">
-            <div className="px-5 pb-2 pt-3 text-center">
-              <motion.img
-                src={logoSrc}
-                alt="Tok"
-                variants={scaleIn}
-                className="mx-auto h-[82px] w-auto object-contain drop-shadow-[0_12px_30px_rgba(62,30,10,0.20)] min-[390px]:h-[90px]"
-              />
-
-              <motion.div variants={fadeUp} className="relative isolate mx-auto mt-1 max-w-[350px]">
+              <motion.div variants={fadeUp} className="relative isolate mx-auto mt-1 w-full max-w-[390px]">
                 <div className="pointer-events-none absolute -inset-x-6 -inset-y-5 -z-10 rounded-[999px] bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.88)_0%,rgba(255,255,255,0.50)_52%,transparent_78%)] blur-xl" aria-hidden="true" />
-                <h1 className="font-display text-[2rem] font-bold leading-[0.92] tracking-normal text-[#371b0c] drop-shadow-[0_2px_1px_rgba(255,255,255,0.72)] min-[390px]:text-[2.16rem]">
-                  <span className="block whitespace-nowrap text-[1.72rem] min-[390px]:text-[1.84rem]">Réservez & commandez</span>
-                  <span className="block italic">les meilleures</span>
-                  <span className="block italic">offres food</span>
+                <h1 className="text-[#2a1407] drop-shadow-[0_2px_1px_rgba(255,255,255,0.78)]">
+                  <span className="block whitespace-nowrap [font-family:'Playball',cursive] text-[2.16rem] font-normal leading-[0.86] tracking-normal min-[390px]:text-[2.34rem]">Réservez et commandez</span>
+                  <span className="block font-display text-[2.12rem] font-black italic leading-[0.88] tracking-normal min-[390px]:text-[2.34rem]">les meilleures</span>
+                  <span className="block font-display text-[2.12rem] font-black italic leading-[0.88] tracking-normal min-[390px]:text-[2.34rem]">offres food</span>
                 </h1>
                 <p className="mx-auto mt-3 max-w-[300px] text-[0.98rem] font-extrabold leading-[1.16] text-[#111827] drop-shadow-[0_1px_0_rgba(255,255,255,0.80)] min-[390px]:text-[1.05rem]">
                   <span className="block">À Genève, cumulez des</span>
@@ -119,42 +119,43 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
               </motion.div>
             </div>
 
-            <motion.form variants={scaleIn} onSubmit={handleSearch} className="absolute inset-x-0 bottom-3 space-y-2 px-6 pb-0 min-[390px]:bottom-4 min-[390px]:px-8">
-              <div className="flex h-[48px] items-center gap-3 rounded-full bg-white px-5 shadow-[0_14px_26px_rgba(34,16,5,0.24)] min-[390px]:h-[52px]">
-                <MapPin className="h-5 w-5 shrink-0 text-[#ff4017]" />
+            <motion.div variants={scaleIn} className="absolute inset-x-0 bottom-2 space-y-2 px-7 pb-0 min-[390px]:bottom-3 min-[390px]:px-8">
+              <form onSubmit={handleSearch} className="space-y-1.5">
+              <div className="flex h-[40px] items-center gap-3 rounded-full bg-white px-5 shadow-[0_12px_22px_rgba(34,16,5,0.22)] min-[390px]:h-[42px]">
+                <MapPin className="h-4 w-4 shrink-0 text-[#ff4017]" />
                 <CityAutocomplete
                   value={city}
                   onCitySelect={(selectedCity) => setCity(selectedCity)}
                   onValueChange={(value) => setCity(value)}
                   placeholder="Votre ville..."
                   className="min-w-0 flex-1"
-                  inputClassName="h-auto border-none bg-transparent px-0 py-0 text-[1rem] font-extrabold text-[#1f2937] placeholder:text-[#7c8797] shadow-none focus-visible:ring-0 min-[390px]:text-[1.06rem]"
+                  inputClassName="h-auto border-none bg-transparent px-0 py-0 text-[0.92rem] font-extrabold text-[#1f2937] placeholder:text-[#7c8797] shadow-none focus-visible:ring-0 min-[390px]:text-[0.98rem]"
                   hideIcon
                 />
               </div>
 
-              <div className="flex h-[52px] items-center gap-3 rounded-full bg-white pl-5 pr-1.5 shadow-[0_14px_26px_rgba(34,16,5,0.24)] min-[390px]:h-[56px]">
-                <Search className="h-5 w-5 shrink-0 text-[#6b7280]" />
+              <div className="flex h-[42px] items-center gap-3 rounded-full bg-white pl-5 pr-1.5 shadow-[0_12px_22px_rgba(34,16,5,0.22)] min-[390px]:h-[44px]">
+                <Search className="h-4 w-4 shrink-0 text-[#6b7280]" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Cuisine, nom de restaurant..."
-                  className="min-w-0 flex-1 bg-transparent text-[0.92rem] font-bold text-[#26344c] placeholder:text-[#6f7682] focus:outline-none min-[390px]:text-[1rem]"
+                  className="min-w-0 flex-1 bg-transparent text-[0.82rem] font-bold text-[#26344c] placeholder:text-[#6f7682] focus:outline-none min-[390px]:text-[0.9rem]"
                 />
                 <button
                   type="submit"
                   aria-label="Rechercher"
-                  className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#ff4017] text-white shadow-[0_10px_20px_rgba(255,64,23,0.30)] transition hover:bg-[#ff5a25] active:scale-95 min-[390px]:h-11 min-[390px]:w-11"
+                  className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#ff4017] text-white shadow-[0_10px_20px_rgba(255,64,23,0.30)] transition hover:bg-[#ff5a25] active:scale-95 min-[390px]:h-9 min-[390px]:w-9"
                 >
-                  <Search className="h-5 w-5" />
+                  <Search className="h-4 w-4" />
                 </button>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 pt-1">
+              <div className="grid grid-cols-2 gap-2 pt-0">
                 <button
                   type="submit"
-                  className="flex h-[50px] items-center justify-center gap-2 rounded-full bg-[#ff4017] px-3 text-[0.78rem] font-extrabold text-white shadow-[0_14px_26px_rgba(255,64,23,0.34)] transition hover:bg-[#ff5a25] active:translate-y-px min-[390px]:h-[52px] min-[390px]:text-[0.86rem]"
+                  className="flex h-[42px] items-center justify-center gap-2 rounded-full bg-[#ff4017] px-3 text-[0.74rem] font-extrabold text-white shadow-[0_12px_22px_rgba(255,64,23,0.32)] transition hover:bg-[#ff5a25] active:translate-y-px min-[390px]:h-[44px] min-[390px]:text-[0.8rem]"
                 >
                   <Utensils className="h-4 w-4 shrink-0" />
                   Je veux manger
@@ -162,46 +163,46 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
                 <button
                   type="button"
                   onClick={() => navigate("/restaurateurs/geneve")}
-                  className="flex h-[50px] items-center justify-center gap-2 rounded-full bg-white px-3 text-[0.78rem] font-extrabold text-[#1f2937] shadow-[0_12px_24px_rgba(34,16,5,0.22)] transition hover:bg-[#fff7f1] active:translate-y-px min-[390px]:h-[52px] min-[390px]:text-[0.86rem]"
+                  className="flex h-[42px] items-center justify-center gap-2 rounded-full bg-white px-3 text-[0.74rem] font-extrabold text-[#1f2937] shadow-[0_10px_20px_rgba(34,16,5,0.20)] transition hover:bg-[#fff7f1] active:translate-y-px min-[390px]:h-[44px] min-[390px]:text-[0.8rem]"
                 >
                   <ChefHat className="h-4 w-4 shrink-0 text-[#3b1c0c]" />
                   Restaurateur
                 </button>
               </div>
-            </motion.form>
+              </form>
+
+              {showNewsletter ? (
+                <div
+                  data-testid="mobile-newsletter"
+                  className="relative rounded-[24px] bg-[#2d1608]/78 px-3 py-2 text-center shadow-[0_14px_26px_rgba(25,12,5,0.20)] backdrop-blur-[2px]"
+                >
+                  <p className="mx-auto max-w-[290px] text-[0.74rem] font-extrabold leading-[1.12] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)] min-[390px]:text-[0.78rem]">
+                    {"Abonnez-vous et recevez "}
+                    <span className="text-[#ff7a1a]">500 Miamz.</span>
+                  </p>
+                  <div className="mt-1.5 flex items-center justify-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowNewsletterConditions(true)}
+                      aria-haspopup="dialog"
+                      className="text-[0.68rem] font-semibold leading-tight text-white underline underline-offset-4 drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)] min-[390px]:text-[0.72rem]"
+                    >
+                      Conditions applicables.
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => navigate("/auth")}
+                      className="h-[30px] rounded-full bg-[#ff6418] px-4 text-[0.7rem] font-extrabold text-white shadow-[0_10px_18px_rgba(255,100,24,0.30)] transition hover:bg-[#ff711f] min-[390px]:h-[32px] min-[390px]:text-[0.74rem]"
+                    >
+                      Inscrivez-vous
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+            </motion.div>
           </div>
         </motion.div>
 
-        {showNewsletter ? (
-          <motion.div
-            initial={{ y: 44, opacity: 0 }}
-            animate={contentVisible ? { y: 0, opacity: 1 } : { y: 44, opacity: 0 }}
-            transition={{ delay: 0.35, type: "spring", stiffness: 120, damping: 16 }}
-            data-testid="mobile-newsletter"
-            className="relative min-h-[148px] space-y-2 overflow-hidden bg-[#2d1608] bg-[url('/fondacceuil.png')] bg-cover bg-[position:50%_100%] px-6 pb-4 pt-4 text-center shadow-[0_-14px_30px_rgba(25,12,5,0.18)] min-[390px]:min-h-[152px]"
-          >
-            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(45,22,8,0.08)_0%,rgba(45,22,8,0.74)_58%,rgba(45,22,8,0.88)_100%)]" aria-hidden="true" />
-            <p className="relative z-10 mx-auto max-w-[300px] text-[0.86rem] font-extrabold leading-[1.16] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)] min-[390px]:text-[0.9rem]">
-              {"Abonnez-vous à notre newsletter et recevez "}
-              <span className="text-[#ff6418]">500 Miamz.</span>
-            </p>
-            <button
-              type="button"
-              onClick={() => setShowNewsletterConditions(true)}
-              aria-haspopup="dialog"
-              className="relative z-10 mx-auto block text-[0.72rem] font-semibold leading-tight text-white underline underline-offset-4 drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)] min-[390px]:text-[0.76rem]"
-            >
-              Conditions applicables.
-            </button>
-            {" "}
-            <button
-              onClick={() => navigate("/auth")}
-              className="relative z-10 h-[38px] w-full max-w-[280px] rounded-full bg-[#ff6418] px-8 text-[0.78rem] font-extrabold text-white shadow-[0_12px_22px_rgba(255,100,24,0.32)] transition hover:bg-[#ff711f] min-[390px]:h-[40px] min-[390px]:text-[0.82rem]"
-            >
-              Inscrivez-vous
-            </button>
-          </motion.div>
-        ) : null}
       </section>
 
       <section ref={heroRef} className="relative hidden min-h-[calc(100dvh-116px)] flex-col overflow-hidden md:flex">

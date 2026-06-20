@@ -804,6 +804,7 @@ export default function SocialPostCard({
   const audienceLabel = getAudienceLabel(post);
   const canExpandBody = post.body.trim().length > 115 || post.body.includes("\n");
   const collapsedMobileBody = getCollapsedMobileBody(post.body);
+  const isPremiumBanner = Boolean(post.premiumBannerId);
   const mobilePrimaryActionClass =
     "max-sm:h-11 max-sm:w-full max-sm:min-w-0 max-sm:justify-center max-sm:gap-1 max-sm:rounded-xl max-sm:px-1.5 max-sm:text-sm";
 
@@ -865,8 +866,19 @@ export default function SocialPostCard({
     <Card className={cn(
       "overflow-hidden rounded-[1.65rem] border bg-white shadow-lg shadow-slate-200/60 transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-orange-100/70 max-sm:-mx-2 max-sm:overflow-visible max-sm:rounded-none max-sm:border-0 max-sm:shadow-none max-sm:hover:translate-y-0",
       highlighted && "border-primary/60 ring-2 ring-primary/20",
+      isPremiumBanner && "border-orange-300 bg-gradient-to-b from-orange-50/70 via-white to-white ring-2 ring-orange-100/80",
     )}>
       <CardContent className={cn("p-5 max-sm:px-0", compact && "p-4")}>
+        {isPremiumBanner ? (
+          <div className="mb-3 flex items-center justify-between gap-3 rounded-2xl border border-orange-200 bg-orange-500 px-3 py-2 text-xs font-extrabold uppercase tracking-[0.14em] text-white shadow-lg shadow-orange-500/20 max-sm:mx-3 max-sm:rounded-xl">
+            <span className="inline-flex min-w-0 items-center gap-2">
+              <Sparkles className="h-4 w-4 shrink-0" />
+              <span className="truncate">A ne pas manquer</span>
+            </span>
+            <span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px]">Mis en avant</span>
+          </div>
+        ) : null}
+
         {post.repost ? (
           <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
             <Repeat2 className="h-3.5 w-3.5" />
@@ -886,8 +898,13 @@ export default function SocialPostCard({
               <div className="flex min-w-0 flex-wrap items-center gap-2">
                 <h3 className="truncate text-base font-bold leading-tight text-slate-950 max-sm:text-base">{post.restaurant.name}</h3>
                 {post.isSponsored ? (
-                  <Badge className="rounded-full bg-violet-50 px-2.5 py-0.5 text-[11px] font-semibold text-violet-700 hover:bg-violet-50">
-                    Sponsorisé
+                  <Badge className={cn(
+                    "rounded-full px-2.5 py-0.5 text-[11px] font-semibold",
+                    isPremiumBanner
+                      ? "bg-orange-50 text-orange-700 hover:bg-orange-50"
+                      : "bg-violet-50 text-violet-700 hover:bg-violet-50",
+                  )}>
+                    {isPremiumBanner ? "Banniere" : "Sponsorise"}
                   </Badge>
                 ) : null}
               </div>
@@ -1008,7 +1025,15 @@ export default function SocialPostCard({
               <Button
                 asChild
                 className="mt-4 gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 px-5 shadow-lg shadow-orange-500/25 hover:from-orange-600 hover:to-orange-700 max-sm:-mx-6 max-sm:mt-2.5 max-sm:h-10 max-sm:w-screen max-sm:justify-center max-sm:rounded-none max-sm:px-4 max-sm:text-sm max-sm:font-extrabold max-sm:shadow-md max-sm:shadow-orange-500/20"
-                onClick={() => recordEvent.mutate({ postId: post.id, eventType: "cta_click", metadata: { ctaType: post.ctaType } })}
+                onClick={() => recordEvent.mutate({
+                  postId: post.id,
+                  eventType: "cta_click",
+                  metadata: {
+                    ctaType: post.ctaType,
+                    premiumBannerId: post.premiumBannerId || undefined,
+                    premiumBanner: Boolean(post.premiumBannerId),
+                  },
+                })}
               >
                 <Link to={cta.to}>
                   {CtaIcon ? <CtaIcon className="h-4 w-4 max-sm:h-3.5 max-sm:w-3.5" /> : null}

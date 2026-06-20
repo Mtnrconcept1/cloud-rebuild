@@ -9,12 +9,30 @@ function read(path: string) {
 describe("homepage positioning guards", () => {
   it("keeps the homepage focused on the three public TOK pillars", () => {
     const hero = read("src/components/home/HeroSection.tsx");
+    const css = read("src/index.css");
     const features = read("src/components/home/FeaturesSection.tsx");
     const index = read("src/pages/Index.tsx");
 
     expect(hero).toContain("Réservez, commandez et profitez");
+    expect(hero).toContain('data-testid="mobile-hero-shell"');
     expect(hero).toContain("fondacceuil.png");
-    expect(hero).toContain("Réservez &");
+    expect((hero.match(/fondacceuil\.png/g) ?? []).length).toBe(1);
+    expect(hero).toContain("bg-[position:50%_0%]");
+    expect(hero).toContain("bg-no-repeat");
+    expect(hero).toContain("min-h-[calc(100svh-64px)]");
+    expect(hero).toContain("bottom-2 space-y-2");
+    expect(hero).toContain("pt-6 text-center min-[390px]:pt-7");
+    expect(hero).toContain("translate-x-[12px]");
+    expect(hero).toContain("w-full max-w-[390px]");
+    expect(hero).toContain("[font-family:'Playball',cursive]");
+    expect(hero).toContain("text-[2.16rem] font-normal");
+    expect(css).toContain('font-family: "Playball";');
+    expect(css).toContain("/playball-font/Playball-q6o1.ttf");
+    expect(hero).toContain("font-black italic");
+    expect(hero).not.toContain("bg-[position:50%_100%]");
+    expect(hero).not.toContain("h-[calc(100svh-216px)]");
+    expect(hero).not.toContain("min-h-[148px]");
+    expect(hero).toContain("Réservez et commandez");
     expect(hero).toContain("Je veux manger");
     expect(hero).toContain("Je suis restaurateur");
     expect(features).toContain("PRIMARY_PILLARS");

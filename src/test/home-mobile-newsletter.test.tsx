@@ -12,18 +12,29 @@ describe("HeroSection mobile newsletter", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByTestId("mobile-hero-panel")).toHaveClass("h-[calc(100svh-216px)]");
-    expect(screen.getByTestId("mobile-hero-panel")).toHaveClass("min-h-[604px]");
-    expect(screen.getByTestId("mobile-hero-panel").innerHTML).toContain("fondacceuil.png");
-    expect(screen.getByText("Réservez & commandez")).toBeInTheDocument();
+    const mobileHero = screen.getByTestId("mobile-hero-shell");
+    expect(mobileHero).toHaveClass("min-h-[calc(100svh-64px)]");
+    expect(screen.getByTestId("mobile-hero-panel")).toHaveClass("min-h-[calc(100svh-64px)]");
+    expect(mobileHero.innerHTML).toContain("fondacceuil.png");
+    expect((mobileHero.innerHTML.match(/fondacceuil\.png/g) ?? [])).toHaveLength(1);
+    expect(mobileHero.innerHTML).toContain("bg-[position:50%_0%]");
+    expect(mobileHero.innerHTML).toContain("bg-no-repeat");
+    expect(mobileHero.innerHTML).toContain("bottom-2 space-y-2");
+    expect(mobileHero.innerHTML).toContain("pt-6 text-center min-[390px]:pt-7");
+    expect(mobileHero.innerHTML).toContain("translate-x-[12px]");
+    expect(mobileHero.innerHTML).toContain("w-full max-w-[390px]");
+    expect(mobileHero.innerHTML).toContain("[font-family:'Playball',cursive]");
+    expect(mobileHero.innerHTML).toContain("text-[2.16rem] font-normal");
+    expect(mobileHero.innerHTML).toContain("font-black italic");
+    expect(screen.getByText("Réservez et commandez")).toBeInTheDocument();
     expect(screen.getByText("offres food")).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: /je veux manger/i }).length).toBeGreaterThan(0);
     expect(screen.getAllByRole("button", { name: /restaurateur/i }).length).toBeGreaterThan(0);
 
     const newsletter = screen.getByTestId("mobile-newsletter");
-    expect(newsletter).toHaveClass("min-h-[148px]");
-    expect(newsletter).toHaveClass("space-y-2");
-    expect(newsletter.textContent).not.toContain("Conditions applicables.Inscrivez-vous");
+    expect(newsletter).toHaveClass("rounded-[24px]");
+    expect(newsletter.className).toContain("bg-[#2d1608]/78");
+    expect(newsletter.innerHTML).not.toContain("fondacceuil.png");
 
     const signup = within(newsletter).getByRole("button", { name: "Inscrivez-vous" });
     expect(signup.className).not.toContain("-top-");

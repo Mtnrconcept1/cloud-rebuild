@@ -129,4 +129,22 @@ describe("Actualites sponsored SQL safety guards", () => {
     expect(organicSql).toContain("IF v_is_internal_actor THEN");
     expect(organicSql).toContain("RETURN v_event_id;");
   });
+
+  it("supports premium banners for users who already liked the restaurant", () => {
+    const sql = readMigration("actualites_premium_banner_followers");
+
+    expect(sql).toContain("CREATE TABLE IF NOT EXISTS public.social_post_premium_banners");
+    expect(sql).toContain("CREATE TABLE IF NOT EXISTS public.social_post_premium_banner_deliveries");
+    expect(sql).toContain("ADD COLUMN IF NOT EXISTS premium_banner_id");
+    expect(sql).toContain("CREATE OR REPLACE FUNCTION public.get_restaurant_actualites_premium_banner_audience");
+    expect(sql).toContain("CREATE OR REPLACE FUNCTION public.create_premium_actualites_banner");
+    expect(sql).toContain("CREATE FUNCTION public.get_social_feed_premium_banners");
+    expect(sql).toContain("count(DISTINCT l.user_id)");
+    expect(sql).toContain("liked_post.restaurant_id = b.restaurant_id");
+    expect(sql).toContain("slug IN ('premium', 'elite', 'custom')");
+    expect(sql).toContain("impressions_per_viewer");
+    expect(sql).toContain("v_premium_banner_token text := NULLIF(p_metadata->>'premiumBannerId', '')");
+    expect(sql).toContain("COALESCE(d.impression_count, 0) < b.impressions_per_viewer");
+    expect(sql).toContain("premium_banner_id");
+  });
 });

@@ -110,6 +110,11 @@ describe("Actualites responsive guards", () => {
     expect(composer).toContain("flex w-full min-w-0 flex-wrap items-center gap-2");
     expect(composer).toContain("sponsorDialogRequest?: number");
     expect(composer).toContain("setSponsorDialogOpen(true)");
+    expect(composer).toContain("social-post-premium-banner");
+    expect(composer).toContain("Banniere premium");
+    expect(composer).toContain("useRestaurantActualitesPremiumBannerAudience");
+    expect(composer).toContain("useCreatePremiumActualitesBanner");
+    expect(composer).toContain("affichages chacun");
     expect(composer).toContain("basis-full");
     expect(composer).toContain("sm:basis-[13rem]");
     expect(composer).not.toContain("2xl:flex-row");

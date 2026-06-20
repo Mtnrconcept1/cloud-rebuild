@@ -746,13 +746,12 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
                       <Percent className="h-5 w-5" />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Promotions actives</p>
-                      <h2 className="mt-1 font-display text-xl font-bold">Offres disponibles sur cette fiche</h2>
-                      <p className="mt-1 text-sm text-muted-foreground">Ces remises restent visibles sur la fiche tant qu'elles sont actives.</p>
+                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Promotions</p>
+                      <h2 className="mt-1 font-display text-xl font-bold">Offres disponibles</h2>
                     </div>
                   </div>
                   <Badge className="w-fit rounded-full bg-primary text-primary-foreground">
-                    {activePromotions.length} active{activePromotions.length > 1 ? "s" : ""}
+                    {activePromotions.length} offre{activePromotions.length > 1 ? "s" : ""}
                   </Badge>
                 </div>
                 <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">

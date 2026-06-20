@@ -49,8 +49,10 @@ describe("restaurant promotion governance", () => {
     expect(restaurantDetail).toContain('.lte("start_at", now)');
     expect(restaurantDetail).toContain('.gte("end_at", now)');
     expect(restaurantDetail).toContain(".limit(RESTAURANT_PROMOTIONS_LIMIT)");
-    expect(restaurantDetail).toContain("Promotions actives");
-    expect(restaurantDetail).toContain("Offres disponibles sur cette fiche");
+    expect(restaurantDetail).toContain("Promotions");
+    expect(restaurantDetail).toContain("Offres disponibles");
+    expect(restaurantDetail).toContain('offre{activePromotions.length > 1 ? "s" : ""}');
+    expect(restaurantDetail).not.toContain("Ces remises restent visibles sur la fiche tant qu'elles sont actives.");
     expect(restaurantDetail).toContain("formatRestaurantPromotionValue(promotion)");
     expect(restaurantDetail).toContain("RESTAURANT_PROMOTION_TARGET_LABELS[promotion.target]");
   });

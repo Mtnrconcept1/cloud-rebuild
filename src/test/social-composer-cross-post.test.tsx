@@ -5,6 +5,11 @@ import SocialComposer from "@/components/social/SocialComposer";
 
 const socialHooks = vi.hoisted(() => ({
   createPost: vi.fn(async () => "post-1"),
+  createPremiumBanner: vi.fn(async () => ({
+    bannerId: "banner-1",
+    audienceCount: 42,
+    impressionsPerViewer: 5,
+  })),
   recordExternalShare: vi.fn(),
   invoke: vi.fn(),
   invokeSupabaseFunction: vi.fn(),
@@ -13,8 +18,19 @@ const socialHooks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/hooks/useSocialFeed", () => ({
+  useCreatePremiumActualitesBanner: () => ({ mutateAsync: socialHooks.createPremiumBanner, isPending: false }),
   useCreateSocialPost: () => ({ mutateAsync: socialHooks.createPost, isPending: false }),
   useRecordExternalShare: () => ({ mutate: socialHooks.recordExternalShare, isPending: false }),
+  useRestaurantActualitesPremiumBannerAudience: () => ({
+    data: {
+      hasAccess: true,
+      planSlug: "premium",
+      audienceCount: 42,
+      impressionsPerViewer: 5,
+      activeBannerCount: 0,
+    },
+    isLoading: false,
+  }),
 }));
 
 vi.mock("@/integrations/supabase/client", () => ({
@@ -45,6 +61,7 @@ vi.mock("@/lib/checkoutReturnUrl", () => ({
 describe("SocialComposer external social publishing", () => {
   beforeEach(() => {
     socialHooks.createPost.mockClear();
+    socialHooks.createPremiumBanner.mockClear();
     socialHooks.recordExternalShare.mockClear();
     socialHooks.invoke.mockReset();
     socialHooks.invokeSupabaseFunction.mockReset();
@@ -256,6 +273,30 @@ describe("SocialComposer external social publishing", () => {
         }),
       );
     });
+  });
+
+  it("lets premium restaurateurs activate a five-impression banner for their exact audience", async () => {
+    socialHooks.createPost.mockResolvedValueOnce("post-premium-1");
+
+    render(<SocialComposer restaurantId="restaurant-1" restaurantName="Cafe Test" />);
+
+    expect(screen.getByText(/42 personne\(s\) ciblee\(s\).*5 affichages/i)).toBeInTheDocument();
+
+    fireEvent.change(screen.getByPlaceholderText(/Quoi de neuf/i), {
+      target: { value: "Nouvelle offre maison disponible ce soir." },
+    });
+    fireEvent.click(screen.getByRole("checkbox", { name: /Activer la banniere premium/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^Publier$/i }));
+
+    await waitFor(() => {
+      expect(socialHooks.createPost).toHaveBeenCalledWith(
+        expect.objectContaining({
+          restaurantId: "restaurant-1",
+          body: "Nouvelle offre maison disponible ce soir.",
+        }),
+      );
+    });
+    expect(socialHooks.createPremiumBanner).toHaveBeenCalledWith("post-premium-1");
   });
 
   it("lets restaurateurs sponsor the new post and starts the campaign checkout", async () => {
