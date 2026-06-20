@@ -13,6 +13,8 @@ describe("homepage positioning guards", () => {
     const index = read("src/pages/Index.tsx");
 
     expect(hero).toContain("Réservez, commandez et profitez");
+    expect(hero).toContain("fondacceuil.png");
+    expect(hero).toContain("Réservez &");
     expect(hero).toContain("Je veux manger");
     expect(hero).toContain("Je suis restaurateur");
     expect(features).toContain("PRIMARY_PILLARS");

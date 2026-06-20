@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ChefHat, MapPin, Search, Star, X } from "lucide-react";
+import { ChefHat, MapPin, Search, Star, Utensils, X } from "lucide-react";
 
 import CityAutocomplete from "@/components/CityAutocomplete";
 import {
@@ -89,76 +89,82 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
           initial="hidden"
           animate={contentVisible ? "visible" : "hidden"}
           data-testid="mobile-hero-panel"
-          className="relative h-[calc(100svh-216px)] min-h-[600px] max-h-[700px] overflow-hidden bg-[#201409]"
+          className="relative h-[calc(100svh-216px)] min-h-[604px] max-h-[720px] overflow-hidden bg-[#edf7ff]"
         >
-          <div className="absolute -inset-y-[60px] inset-x-0 translate-y-[60px] bg-[url('/chefbg2.webp')] bg-cover bg-[position:50%_36%]" aria-hidden="true" />
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_0%,transparent_64%,rgba(58,28,8,0.22)_100%)]" aria-hidden="true" />
+          <div className="absolute inset-0 bg-[url('/fondacceuil.png')] bg-cover bg-[position:50%_32px] bg-no-repeat" aria-hidden="true" />
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,250,240,0.72)_0%,rgba(255,250,240,0.18)_36%,rgba(67,32,11,0.08)_66%,rgba(35,15,5,0.42)_100%)]" aria-hidden="true" />
 
-          <div className="relative z-10 flex h-full flex-col pt-[34px]">
-            <div className="px-5 pb-2 pt-4">
+          <div className="relative z-10 flex h-full flex-col">
+            <div className="px-5 pb-2 pt-3 text-center">
               <motion.img
                 src={logoSrc}
                 alt="Tok"
                 variants={scaleIn}
-                className="relative -top-[40px] mx-auto h-[82px] w-auto object-contain drop-shadow-[0_12px_30px_rgba(30,18,9,0.28)] min-[390px]:h-[88px]"
+                className="mx-auto h-[82px] w-auto object-contain drop-shadow-[0_12px_30px_rgba(62,30,10,0.20)] min-[390px]:h-[90px]"
               />
 
-              <motion.div variants={fadeUp} className="relative isolate -top-[55px] left-[15px] ml-auto mt-11 w-[56%] min-w-[198px] max-w-[268px] text-left">
-                <div className="pointer-events-none absolute -left-5 -right-4 -top-5 bottom-[-18px] -z-10 rounded-[42px] bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,1)_0%,rgba(255,255,255,0.96)_42%,rgba(255,255,255,0.66)_68%,transparent_90%)] opacity-[0.94] blur-xl" aria-hidden="true" />
-                <h1 className="font-display text-[1.68rem] font-bold leading-[0.95] tracking-normal text-[#26344c] drop-shadow-[0_2px_1px_rgba(255,255,255,0.55)] min-[390px]:text-[1.88rem]">
-                  <span className="block">Réservez et</span>
-                  <span className="block">commandez</span>
-                  <span className="block italic text-[#ff5f16]">les meilleures</span>
-                  <span className="block italic text-[#ff5f16]">offres food</span>
+              <motion.div variants={fadeUp} className="relative isolate mx-auto mt-1 max-w-[350px]">
+                <div className="pointer-events-none absolute -inset-x-6 -inset-y-5 -z-10 rounded-[999px] bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.88)_0%,rgba(255,255,255,0.50)_52%,transparent_78%)] blur-xl" aria-hidden="true" />
+                <h1 className="font-display text-[2rem] font-bold leading-[0.92] tracking-normal text-[#371b0c] drop-shadow-[0_2px_1px_rgba(255,255,255,0.72)] min-[390px]:text-[2.16rem]">
+                  <span className="block whitespace-nowrap text-[1.72rem] min-[390px]:text-[1.84rem]">Réservez & commandez</span>
+                  <span className="block italic">les meilleures</span>
+                  <span className="block italic">offres food</span>
                 </h1>
-                <p className="relative -left-2 mt-2 inline-block w-[218px] max-w-none rounded-[18px] bg-white/76 px-2 py-1.5 text-[0.74rem] font-extrabold leading-[1.14] text-[#21314b] shadow-[0_8px_22px_rgba(255,255,255,0.24)] backdrop-blur-[2px] min-[390px]:w-[230px] min-[390px]:text-[0.78rem]">
+                <p className="mx-auto mt-3 max-w-[300px] text-[0.98rem] font-extrabold leading-[1.16] text-[#111827] drop-shadow-[0_1px_0_rgba(255,255,255,0.80)] min-[390px]:text-[1.05rem]">
                   <span className="block">À Genève, cumulez des</span>
-                  <span className="block whitespace-nowrap">
-                    <span className="text-[#ff5f16]">Miamz</span> solidaires à chaque repas
+                  <span className="block">
+                    <span className="text-[#ff4017]">Miamz</span> solidaires à chaque repas
                   </span>
                 </p>
               </motion.div>
             </div>
 
-            <motion.form variants={scaleIn} onSubmit={handleSearch} className="absolute inset-x-0 bottom-3 space-y-2 px-8 pb-0 min-[390px]:bottom-4 min-[390px]:px-10">
-              <div className="flex h-[42px] items-center gap-3 rounded-full bg-white px-5 shadow-[0_10px_20px_rgba(25,12,5,0.20)] min-[390px]:h-[44px]">
-                <MapPin className="h-4 w-4 shrink-0 text-[#8b95a4]" />
+            <motion.form variants={scaleIn} onSubmit={handleSearch} className="absolute inset-x-0 bottom-3 space-y-2 px-6 pb-0 min-[390px]:bottom-4 min-[390px]:px-8">
+              <div className="flex h-[48px] items-center gap-3 rounded-full bg-white px-5 shadow-[0_14px_26px_rgba(34,16,5,0.24)] min-[390px]:h-[52px]">
+                <MapPin className="h-5 w-5 shrink-0 text-[#ff4017]" />
                 <CityAutocomplete
                   value={city}
                   onCitySelect={(selectedCity) => setCity(selectedCity)}
                   onValueChange={(value) => setCity(value)}
                   placeholder="Votre ville..."
                   className="min-w-0 flex-1"
-                  inputClassName="h-auto border-none bg-transparent px-0 py-0 text-[0.9rem] font-bold text-[#26344c] placeholder:text-[#7c8797] shadow-none focus-visible:ring-0 min-[390px]:text-[0.96rem]"
+                  inputClassName="h-auto border-none bg-transparent px-0 py-0 text-[1rem] font-extrabold text-[#1f2937] placeholder:text-[#7c8797] shadow-none focus-visible:ring-0 min-[390px]:text-[1.06rem]"
                   hideIcon
                 />
               </div>
 
-              <div className="flex h-[42px] items-center gap-3 rounded-full bg-white px-5 shadow-[0_10px_20px_rgba(25,12,5,0.20)] min-[390px]:h-[44px]">
-                <Search className="h-4 w-4 shrink-0 text-[#8b95a4]" />
+              <div className="flex h-[52px] items-center gap-3 rounded-full bg-white pl-5 pr-1.5 shadow-[0_14px_26px_rgba(34,16,5,0.24)] min-[390px]:h-[56px]">
+                <Search className="h-5 w-5 shrink-0 text-[#6b7280]" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Cuisine, nom de restaurant..."
-                  className="min-w-0 flex-1 bg-transparent text-[0.78rem] font-bold text-[#26344c] placeholder:text-[#7c8797] focus:outline-none min-[390px]:text-[0.86rem]"
+                  className="min-w-0 flex-1 bg-transparent text-[0.92rem] font-bold text-[#26344c] placeholder:text-[#6f7682] focus:outline-none min-[390px]:text-[1rem]"
                 />
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 pt-0.5">
                 <button
                   type="submit"
-                  className="flex h-[46px] items-center justify-center gap-1.5 rounded-full bg-[#ff6418] px-3 text-[0.68rem] font-extrabold uppercase tracking-[0.06em] text-white shadow-[0_12px_24px_rgba(255,100,24,0.30)] transition hover:bg-[#ff711f] active:translate-y-px min-[390px]:h-[48px] min-[390px]:text-[0.74rem]"
+                  aria-label="Rechercher"
+                  className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#ff4017] text-white shadow-[0_10px_20px_rgba(255,64,23,0.30)] transition hover:bg-[#ff5a25] active:scale-95 min-[390px]:h-11 min-[390px]:w-11"
                 >
-                  <Search className="h-3.5 w-3.5 shrink-0" />
+                  <Search className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <button
+                  type="submit"
+                  className="flex h-[50px] items-center justify-center gap-2 rounded-full bg-[#ff4017] px-3 text-[0.78rem] font-extrabold text-white shadow-[0_14px_26px_rgba(255,64,23,0.34)] transition hover:bg-[#ff5a25] active:translate-y-px min-[390px]:h-[52px] min-[390px]:text-[0.86rem]"
+                >
+                  <Utensils className="h-4 w-4 shrink-0" />
                   Je veux manger
                 </button>
                 <button
                   type="button"
                   onClick={() => navigate("/restaurateurs/geneve")}
-                  className="flex h-[46px] items-center justify-center gap-1.5 rounded-full bg-white px-3 text-[0.68rem] font-extrabold uppercase tracking-[0.04em] text-[#26344c] shadow-[0_8px_18px_rgba(25,12,5,0.16)] transition hover:bg-[#fff7f1] active:translate-y-px min-[390px]:h-[48px] min-[390px]:text-[0.74rem]"
+                  className="flex h-[50px] items-center justify-center gap-2 rounded-full bg-white px-3 text-[0.78rem] font-extrabold text-[#1f2937] shadow-[0_12px_24px_rgba(34,16,5,0.22)] transition hover:bg-[#fff7f1] active:translate-y-px min-[390px]:h-[52px] min-[390px]:text-[0.86rem]"
                 >
-                  <ChefHat className="h-3.5 w-3.5 shrink-0 text-[#ff6418]" />
+                  <ChefHat className="h-4 w-4 shrink-0 text-[#3b1c0c]" />
                   Restaurateur
                 </button>
               </div>
@@ -172,9 +178,10 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
             animate={contentVisible ? { y: 0, opacity: 1 } : { y: 44, opacity: 0 }}
             transition={{ delay: 0.35, type: "spring", stiffness: 120, damping: 16 }}
             data-testid="mobile-newsletter"
-            className="relative min-h-[148px] space-y-2 bg-white px-6 pb-4 pt-4 text-center shadow-[0_-14px_30px_rgba(25,12,5,0.10)] min-[390px]:min-h-[152px]"
+            className="relative min-h-[148px] space-y-2 overflow-hidden bg-[#2d1608] bg-[url('/fondacceuil.png')] bg-cover bg-[position:50%_100%] px-6 pb-4 pt-4 text-center shadow-[0_-14px_30px_rgba(25,12,5,0.18)] min-[390px]:min-h-[152px]"
           >
-            <p className="mx-auto max-w-[300px] text-[0.86rem] font-extrabold leading-[1.16] text-slate-950 min-[390px]:text-[0.9rem]">
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(45,22,8,0.08)_0%,rgba(45,22,8,0.74)_58%,rgba(45,22,8,0.88)_100%)]" aria-hidden="true" />
+            <p className="relative z-10 mx-auto max-w-[300px] text-[0.86rem] font-extrabold leading-[1.16] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)] min-[390px]:text-[0.9rem]">
               {"Abonnez-vous à notre newsletter et recevez "}
               <span className="text-[#ff6418]">500 Miamz.</span>
             </p>
@@ -182,14 +189,14 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
               type="button"
               onClick={() => setShowNewsletterConditions(true)}
               aria-haspopup="dialog"
-              className="mx-auto block text-[0.72rem] font-semibold leading-tight text-[#5d6979] underline underline-offset-4 min-[390px]:text-[0.76rem]"
+              className="relative z-10 mx-auto block text-[0.72rem] font-semibold leading-tight text-white underline underline-offset-4 drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)] min-[390px]:text-[0.76rem]"
             >
               Conditions applicables.
             </button>
             {" "}
             <button
               onClick={() => navigate("/auth")}
-              className="h-[38px] w-full max-w-[280px] rounded-full bg-[#ff6418] px-8 text-[0.78rem] font-extrabold text-white shadow-[0_12px_22px_rgba(255,100,24,0.26)] transition hover:bg-[#ff711f] min-[390px]:h-[40px] min-[390px]:text-[0.82rem]"
+              className="relative z-10 h-[38px] w-full max-w-[280px] rounded-full bg-[#ff6418] px-8 text-[0.78rem] font-extrabold text-white shadow-[0_12px_22px_rgba(255,100,24,0.32)] transition hover:bg-[#ff711f] min-[390px]:h-[40px] min-[390px]:text-[0.82rem]"
             >
               Inscrivez-vous
             </button>

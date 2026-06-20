@@ -13,8 +13,9 @@ describe("HeroSection mobile newsletter", () => {
     );
 
     expect(screen.getByTestId("mobile-hero-panel")).toHaveClass("h-[calc(100svh-216px)]");
-    expect(screen.getByTestId("mobile-hero-panel")).toHaveClass("min-h-[600px]");
-    expect(screen.getByText("Réservez et")).toBeInTheDocument();
+    expect(screen.getByTestId("mobile-hero-panel")).toHaveClass("min-h-[604px]");
+    expect(screen.getByTestId("mobile-hero-panel").innerHTML).toContain("fondacceuil.png");
+    expect(screen.getByText("Réservez & commandez")).toBeInTheDocument();
     expect(screen.getByText("offres food")).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: /je veux manger/i }).length).toBeGreaterThan(0);
     expect(screen.getAllByRole("button", { name: /restaurateur/i }).length).toBeGreaterThan(0);

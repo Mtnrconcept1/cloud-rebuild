@@ -22,7 +22,16 @@ import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import SocialComposer from "@/components/social/SocialComposer";
 import SocialPostBoostDialog from "@/components/social/SocialPostBoostDialog";
 import SocialPostCard from "@/components/social/SocialPostCard";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
 import { useRestaurantSocialPosts, useSocialInsights } from "@/hooks/useSocialFeed";
 import { SOCIAL_MARKETING_GOALS } from "@/lib/socialFeed";
@@ -112,6 +121,115 @@ function DashboardInsightTile({
   );
 }
 
+function DashboardActualitesStatsPanel({
+  topGoal,
+  scheduledCount,
+  engagementRate,
+  sponsoredConversions,
+  ctaClicks,
+  orderConversions,
+  reservationConversions,
+  zeroAttenteConversions,
+  impressions,
+  commentsCount,
+  repostsCount,
+  reactionsCount,
+  saves,
+  conversionFocus,
+  recommendations,
+}: {
+  topGoal: { label: string; description: string; count: number } | undefined;
+  scheduledCount: number;
+  engagementRate: number;
+  sponsoredConversions: number;
+  ctaClicks: number;
+  orderConversions: number;
+  reservationConversions: number;
+  zeroAttenteConversions: number;
+  impressions: number;
+  commentsCount: number;
+  repostsCount: number;
+  reactionsCount: number;
+  saves: number;
+  conversionFocus: number;
+  recommendations: string[];
+}) {
+  return (
+    <div className="space-y-3">
+      <Card className="rounded-lg">
+        <CardContent className="space-y-3 p-3">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Plan marketing</p>
+              <h2 className="font-display text-base font-semibold">Priorités du mois</h2>
+            </div>
+            <Megaphone className="h-4 w-4 text-primary" />
+          </div>
+          <div className="grid gap-2">
+            <div className="rounded-lg border bg-muted/30 px-3 py-2">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-sm font-medium leading-tight">Objectif dominant</span>
+                <span className="text-xs text-muted-foreground">{topGoal?.count || 0} posts</span>
+              </div>
+              <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">
+                {topGoal?.label || "Notoriété"} · {topGoal?.description || "Développer la visibilité locale."}
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <DashboardInsightTile icon={CalendarClock} label="Posts programmés" value={scheduledCount} />
+              <DashboardInsightTile icon={TrendingUp} label="Engagement" value={`${engagementRate}%`} />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="rounded-lg border-primary/20 bg-primary/5">
+        <CardContent className="space-y-3 p-3">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Conversions sponsorisées</p>
+              <h2 className="font-display text-base font-semibold">Impact Actualités</h2>
+            </div>
+            <Target className="h-4 w-4 text-primary" />
+          </div>
+          <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+            <DashboardInsightTile icon={ShoppingCart} label="Total attribué" mobileLabel="Total" value={sponsoredConversions} />
+            <DashboardInsightTile icon={MousePointerClick} label="Clics CTA (appel à l'action)" mobileLabel="Clics CTA" value={ctaClicks} />
+            <DashboardInsightTile icon={ShoppingCart} label="Commandes" mobileLabel="Commandes" value={orderConversions} />
+            <DashboardInsightTile icon={CalendarCheck} label="Réservations" mobileLabel="Réserv." value={reservationConversions} />
+            <DashboardInsightTile icon={Timer} label="Zéro Attente attribués" mobileLabel="Zéro Att." value={zeroAttenteConversions} />
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+        <DashboardInsightTile icon={Eye} label="Impressions" mobileLabel="Impress." value={impressions} />
+        <DashboardInsightTile icon={MousePointerClick} label="Clics CTA (appel à l'action)" mobileLabel="Clics CTA" value={ctaClicks} />
+        <DashboardInsightTile icon={BarChart3} label="Commentaires" mobileLabel="Comm." value={commentsCount} />
+        <DashboardInsightTile icon={Megaphone} label="Reposts" mobileLabel="Reposts" value={repostsCount} />
+        <DashboardInsightTile icon={ThumbsUp} label="Réactions" mobileLabel="Réactions" value={reactionsCount} />
+        <DashboardInsightTile icon={Target} label="Sauvegardes" mobileLabel="Sauv." value={saves} />
+        <DashboardInsightTile icon={TrendingUp} label="Taux d'engagement" mobileLabel="Taux" value={`${engagementRate}%`} />
+        <DashboardInsightTile icon={MousePointerClick} label="Posts avec CTA (appel à l'action)" mobileLabel="Posts CTA" value={`${conversionFocus}%`} />
+      </div>
+
+      <div className="grid gap-3">
+        {recommendations.slice(0, 3).map((recommendation: string, index: number) => (
+          <Card key={`${recommendation}-${index}`} className="rounded-lg">
+            <CardContent className="p-4">
+              <div className="mb-2 flex items-center gap-2">
+                <Target className="h-4 w-4 text-primary" />
+                <p className="text-sm font-medium">Action conseillée</p>
+              </div>
+              <p className="text-sm leading-6 text-muted-foreground">{recommendation}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function DashboardActualites() {
   const { selectedId, restaurants, loading, error } = useDashboardRestaurant();
   const queryClient = useQueryClient();
@@ -140,6 +258,13 @@ export default function DashboardActualites() {
   const orderConversions = asNumber(insights?.orderConversions ?? conversionsByType.order);
   const reservationConversions = asNumber(insights?.reservationConversions ?? conversionsByType.reservation);
   const zeroAttenteConversions = asNumber(insights?.zeroAttenteConversions ?? conversionsByType.zeroAttente);
+  const ctaClicks = asNumber(insights?.ctaClicks);
+  const impressions = asNumber(insights?.impressions);
+  const saves = asNumber(insights?.saves);
+  const engagementRate = asNumber(insights?.engagementRate);
+  const commentsCount = posts.reduce((sum, post) => sum + post.commentsCount, 0);
+  const repostsCount = posts.reduce((sum, post) => sum + post.repostsCount, 0);
+  const reactionsCount = posts.reduce((sum, post) => sum + post.likesCount, 0);
   const recommendations = insights?.recommendations?.length
     ? insights.recommendations
     : [
@@ -215,79 +340,8 @@ export default function DashboardActualites() {
               socialLinks={selectedRestaurant.socialLinks || null}
             />
 
-            <div className="grid gap-6 xl:grid-cols-[minmax(18rem,22rem)_minmax(0,1fr)]">
-              <div className="space-y-3">
-              <Card className="rounded-lg">
-                <CardContent className="space-y-3 p-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Plan marketing</p>
-                      <h2 className="font-display text-base font-semibold">Priorités du mois</h2>
-                    </div>
-                    <Megaphone className="h-4 w-4 text-primary" />
-                  </div>
-                  <div className="grid gap-2">
-                    <div className="rounded-lg border bg-muted/30 px-3 py-2">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-sm font-medium leading-tight">Objectif dominant</span>
-                        <span className="text-xs text-muted-foreground">{topGoal?.count || 0} posts</span>
-                      </div>
-                      <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">{topGoal?.label || "Notoriété"} · {topGoal?.description || "Développer la visibilité locale."}</p>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <DashboardInsightTile icon={CalendarClock} label="Posts programmés" value={scheduledCount} />
-                      <DashboardInsightTile icon={TrendingUp} label="Engagement" value={`${insights?.engagementRate ?? 0}%`} />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="rounded-lg border-primary/20 bg-primary/5">
-                <CardContent className="space-y-3 p-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Conversions sponsorisées</p>
-                      <h2 className="font-display text-base font-semibold">Impact Actualités</h2>
-                    </div>
-                    <Target className="h-4 w-4 text-primary" />
-                  </div>
-                  <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
-                    <DashboardInsightTile icon={ShoppingCart} label="Total attribué" mobileLabel="Total" value={sponsoredConversions} />
-                    <DashboardInsightTile icon={MousePointerClick} label="Clics CTA (appel à l'action)" mobileLabel="Clics CTA" value={insights?.ctaClicks ?? 0} />
-                    <DashboardInsightTile icon={ShoppingCart} label="Commandes" mobileLabel="Commandes" value={orderConversions} />
-                    <DashboardInsightTile icon={CalendarCheck} label="Réservations" mobileLabel="Réserv." value={reservationConversions} />
-                    <DashboardInsightTile icon={Timer} label="Zéro Attente attribués" mobileLabel="Zéro Att." value={zeroAttenteConversions} />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
-                <DashboardInsightTile icon={Eye} label="Impressions" mobileLabel="Impress." value={insights?.impressions ?? 0} />
-                <DashboardInsightTile icon={MousePointerClick} label="Clics CTA (appel à l'action)" mobileLabel="Clics CTA" value={insights?.ctaClicks ?? 0} />
-                <DashboardInsightTile icon={BarChart3} label="Commentaires" mobileLabel="Comm." value={posts.reduce((sum, post) => sum + post.commentsCount, 0)} />
-                <DashboardInsightTile icon={Megaphone} label="Reposts" mobileLabel="Reposts" value={posts.reduce((sum, post) => sum + post.repostsCount, 0)} />
-                <DashboardInsightTile icon={ThumbsUp} label="Réactions" mobileLabel="Réactions" value={posts.reduce((sum, post) => sum + post.likesCount, 0)} />
-                <DashboardInsightTile icon={Target} label="Sauvegardes" mobileLabel="Sauv." value={insights?.saves ?? 0} />
-                <DashboardInsightTile icon={TrendingUp} label="Taux d'engagement" mobileLabel="Taux" value={`${insights?.engagementRate ?? 0}%`} />
-                <DashboardInsightTile icon={MousePointerClick} label="Posts avec CTA (appel à l'action)" mobileLabel="Posts CTA" value={`${conversionFocus}%`} />
-              </div>
-              </div>
-
+            <div className="space-y-4">
               <section className="space-y-4">
-              <div className="grid gap-3 lg:grid-cols-3">
-                {recommendations.slice(0, 3).map((recommendation: string, index: number) => (
-                  <Card key={`${recommendation}-${index}`} className="rounded-lg">
-                    <CardContent className="p-4">
-                      <div className="mb-2 flex items-center gap-2">
-                        <Target className="h-4 w-4 text-primary" />
-                        <p className="text-sm font-medium">Action conseillee</p>
-                      </div>
-                      <p className="text-sm leading-6 text-muted-foreground">{recommendation}</p>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h2 className="font-display text-xl font-semibold">Posts</h2>
@@ -295,16 +349,44 @@ export default function DashboardActualites() {
                     Impressions et vues visibles uniquement dans votre dashboard.
                   </p>
                 </div>
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs font-semibold text-muted-foreground">
-                  <span className="inline-flex items-center gap-1 rounded-full bg-orange-50 px-3 py-1 text-orange-700">
-                    <Eye className="h-3.5 w-3.5" />
-                    Performance par post
-                  </span>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-3 py-1 text-sky-700">
-                    <MousePointerClick className="h-3.5 w-3.5" />
-                    Lecture restaurateur
-                  </span>
-                </div>
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <Button className="w-full gap-2 rounded-full bg-primary px-5 shadow-lg shadow-primary/20 sm:w-auto">
+                      <BarChart3 className="h-4 w-4" />
+                      Statistique
+                      <span className="rounded-full bg-primary-foreground/20 px-2 py-0.5 text-[11px]">
+                        {formatCompactMetric(impressions)} vues
+                      </span>
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="right" className="flex w-[92vw] max-w-none flex-col overflow-hidden p-0 sm:max-w-xl">
+                    <SheetHeader className="border-b px-5 py-4 text-left">
+                      <SheetTitle className="font-display text-2xl">Statistique Actualités</SheetTitle>
+                      <SheetDescription>
+                        Plan marketing, conversions, engagement et recommandations du restaurant.
+                      </SheetDescription>
+                    </SheetHeader>
+                    <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-5">
+                      <DashboardActualitesStatsPanel
+                        topGoal={topGoal}
+                        scheduledCount={scheduledCount}
+                        engagementRate={engagementRate}
+                        sponsoredConversions={sponsoredConversions}
+                        ctaClicks={ctaClicks}
+                        orderConversions={orderConversions}
+                        reservationConversions={reservationConversions}
+                        zeroAttenteConversions={zeroAttenteConversions}
+                        impressions={impressions}
+                        commentsCount={commentsCount}
+                        repostsCount={repostsCount}
+                        reactionsCount={reactionsCount}
+                        saves={saves}
+                        conversionFocus={conversionFocus}
+                        recommendations={recommendations}
+                      />
+                    </div>
+                  </SheetContent>
+                </Sheet>
               </div>
               {postsQuery.isLoading ? (
                 <Card className="rounded-lg"><CardContent className="p-8 text-center text-muted-foreground">Chargement...</CardContent></Card>

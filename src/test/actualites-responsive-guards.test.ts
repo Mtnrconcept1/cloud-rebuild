@@ -97,7 +97,12 @@ describe("Actualites responsive guards", () => {
     const composer = read("src/components/social/SocialComposer.tsx");
 
     expect(dashboard).toContain("flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between");
-    expect(dashboard).toContain("flex flex-wrap items-center gap-x-3 gap-y-2");
+    expect(dashboard).toContain("SheetTrigger asChild");
+    expect(dashboard).toContain("Statistique");
+    expect(dashboard).toContain("DashboardActualitesStatsPanel");
+    expect(dashboard).toContain('SheetContent side="right"');
+    expect(dashboard).not.toContain("xl:grid-cols-[minmax(18rem,22rem)_minmax(0,1fr)]");
+    expect(dashboard).not.toContain("flex flex-wrap items-center gap-x-3 gap-y-2");
 
     expect(composer).toContain("flex flex-col sm:flex-row");
     expect(composer).toContain("compact ? \"gap-2\" : \"gap-4\"");
@@ -117,8 +122,10 @@ describe("Actualites responsive guards", () => {
   it("keeps the restaurant dashboard impact metrics compact", () => {
     const dashboard = read("src/pages/dashboard/DashboardActualites.tsx");
 
-    expect(dashboard).toContain("grid grid-cols-4 gap-1.5 sm:gap-2");
+    expect(dashboard).toContain("grid grid-cols-2 gap-1.5 sm:gap-2");
     expect(dashboard).toContain("grid grid-cols-4 gap-1.5 rounded-2xl");
+    expect(dashboard).toContain("w-[92vw] max-w-none flex-col overflow-hidden");
+    expect(dashboard).toContain("overflow-y-auto px-4 py-4 sm:px-5");
     expect(dashboard).toContain('<span className="sm:hidden">Impr.</span>');
     expect(dashboard).toContain('<span className="sm:hidden">Eng.</span>');
     expect(dashboard).toContain("aria-label={label} title={label}");
