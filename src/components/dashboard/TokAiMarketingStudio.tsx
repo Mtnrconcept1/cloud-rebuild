@@ -47,7 +47,7 @@ type MarketingToolId =
   | "pos_display"
   | "banner";
 
-type MarketingOrientation = "Portrait" | "Paysage" | "Carre";
+type MarketingOrientation = "Portrait" | "Paysage" | "Carre" | "Rond" | "Libre";
 
 type MarketingFormatOption = {
   label: string;
@@ -271,11 +271,11 @@ const MARKETING_TOOLS: MarketingToolConfig[] = [
       marketingFormat("Autocollant carre 74 x 74 mm", "Carre", "Carre 74 x 74 mm"),
       marketingFormat("Autocollant carre 105 x 105 mm", "Carre", "Carre 105 x 105 mm"),
       marketingFormat("Autocollant carre 148 x 148 mm", "Carre", "Carre 148 x 148 mm"),
-      marketingFormat("Autocollant rond 30 mm", "Carre", "Rond 30 mm"),
-      marketingFormat("Autocollant rond 50 mm", "Carre", "Rond 50 mm"),
-      marketingFormat("Autocollant rond 74 mm", "Carre", "Rond 74 mm"),
-      marketingFormat("Autocollant rond 105 mm", "Carre", "Rond 105 mm"),
-      marketingFormat("Autocollant Freeform", "Paysage", "Forme libre"),
+      marketingFormat("Autocollant rond 30 mm", "Rond", "Rond 30 mm"),
+      marketingFormat("Autocollant rond 50 mm", "Rond", "Rond 50 mm"),
+      marketingFormat("Autocollant rond 74 mm", "Rond", "Rond 74 mm"),
+      marketingFormat("Autocollant rond 105 mm", "Rond", "Rond 105 mm"),
+      marketingFormat("Autocollant Freeform", "Libre", "Forme libre"),
     ],
   },
   {
@@ -460,6 +460,7 @@ function formatMarketingImageGenerationError(error: unknown) {
 function getMarketingImageFormat(format: string, orientation: string): TokImageFormat {
   const normalized = `${format} ${orientation}`.toLowerCase();
   if (normalized.includes("story") || normalized.includes("portrait")) return "portrait";
+  if (normalized.includes("rond")) return "square";
   if (normalized.includes("carre") || normalized.includes("carr")) return "square";
   return "landscape";
 }
@@ -473,6 +474,13 @@ function getFormatOrientations(formats: MarketingFormatOption[]) {
     if (!orientations.includes(option.orientation)) orientations.push(option.orientation);
     return orientations;
   }, []);
+}
+
+function getFormatOrientationSummary(format: MarketingFormatOption) {
+  if (format.orientation === "Rond" || format.orientation === "Libre") {
+    return `Forme: ${format.orientation}`;
+  }
+  return `Orientation: ${format.orientation}`;
 }
 
 function buildMarketingImagePrompt(input: {
@@ -1117,7 +1125,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                   <p className="text-xs leading-5 text-muted-foreground">{selectedFormat.printSpec}</p>
                 </div>
                 <div className="min-w-0 space-y-2">
-                  <Label htmlFor="marketing-orientation">Orientation</Label>
+                  <Label htmlFor="marketing-orientation">Orientation / forme</Label>
                   <select
                     id="marketing-orientation"
                     value={orientation}
@@ -1177,7 +1185,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Type: {activeToolConfig.title}</span>
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Format: {selectedFormat.label}</span>
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Specification: {selectedFormat.printSpec}</span>
-                  <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Orientation: {selectedFormat.orientation}</span>
+                  <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">{getFormatOrientationSummary(selectedFormat)}</span>
                   {selectedFormat.pageHint ? (
                     <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Pages: {selectedFormat.pageHint}</span>
                   ) : null}

@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 const ROOT = process.cwd();
 const SKIPPED_DIRS = new Set([
   ".git",
+  ".tmp",
   ".vercel",
   "dist",
   "node_modules",

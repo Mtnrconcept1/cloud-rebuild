@@ -191,6 +191,17 @@ describe("TOK photo studio persistence", () => {
     }
   });
 
+  it("does not expose square or landscape orientation for round sticker formats", () => {
+    expect(marketingStudio).toContain('| "Rond"');
+    expect(marketingStudio).toContain('marketingFormat("Autocollant rond 30 mm", "Rond", "Rond 30 mm")');
+    expect(marketingStudio).toContain('marketingFormat("Autocollant rond 74 mm", "Rond", "Rond 74 mm")');
+    expect(marketingStudio).not.toContain('marketingFormat("Autocollant rond 30 mm", "Carre", "Rond 30 mm")');
+    expect(marketingStudio).not.toContain('marketingFormat("Autocollant rond 30 mm", "Paysage", "Rond 30 mm")');
+    expect(marketingStudio).toContain("getFormatOrientationSummary(selectedFormat)");
+    expect(marketingStudio).toContain("Orientation / forme");
+    expect(marketingStudio).toContain('if (normalized.includes("rond")) return "square";');
+  });
+
   it("keeps marketing studio controls responsive on narrow dashboard screens", () => {
     expect(marketingStudio).toContain("grid min-w-0 gap-4 p-3 sm:gap-6 sm:p-5 lg:grid-cols-[minmax(0,1fr)_360px] lg:p-6");
     expect(marketingStudio).toContain("min-w-0 rounded-2xl border border-orange-100 bg-white p-3 shadow-sm");
