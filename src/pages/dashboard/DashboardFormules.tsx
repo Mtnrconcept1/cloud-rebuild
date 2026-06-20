@@ -1,6 +1,20 @@
 import { useEffect, useMemo, useState, type ComponentType } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { CalendarCheck, CalendarClock, CalendarDays, Percent, UtensilsCrossed, CakeSlice, Salad, Loader2, Timer, Users } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  CalendarCheck,
+  CalendarClock,
+  CalendarDays,
+  CheckCircle2,
+  Percent,
+  UtensilsCrossed,
+  CakeSlice,
+  Salad,
+  Loader2,
+  Timer,
+  Users,
+} from "lucide-react";
 
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
@@ -8,6 +22,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -49,6 +71,29 @@ const SERVICE_PERIODS: Array<{ key: ServicePeriod; note: string }> = [
 
 const PROGRESSIVE_OFFER_LIMIT = 120;
 const PROGRESSIVE_RECURRENCE_MAX_COUNT = 30;
+
+const PROGRESSIVE_EDITOR_STEPS = [
+  {
+    id: "base",
+    eyebrow: "Etape 1",
+    title: "Base de l'offre",
+    description: "Titre, description et visibilite client.",
+  },
+  {
+    id: "schedule",
+    eyebrow: "Etape 2",
+    title: "Calendrier",
+    description: "Jour J, service cible et fin du compte a rebours.",
+  },
+  {
+    id: "capacity",
+    eyebrow: "Etape 3",
+    title: "Capacite et remise",
+    description: "Tables disponibles, remise maximum et enregistrement.",
+  },
+] as const;
+
+type ProgressiveEditorStepId = (typeof PROGRESSIVE_EDITOR_STEPS)[number]["id"];
 
 type ProgressiveOfferRecurrence = "none" | "daily" | "weekly";
 
@@ -355,6 +400,8 @@ function ProgressiveOfferManager({
   const [form, setForm] = useState(buildDefaultProgressiveOfferForm);
   const [selectedCalendarDate, setSelectedCalendarDate] = useState(() => buildDefaultProgressiveOfferForm().serviceDate);
   const [calendarTouched, setCalendarTouched] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editorStep, setEditorStep] = useState<ProgressiveEditorStepId>("base");
 
   const offersByDate = useMemo(() => {
     const grouped = new Map<string, ProgressiveReservationOffer[]>();
@@ -393,8 +440,14 @@ function ProgressiveOfferManager({
     }
   }, [currentOffer, selectedCalendarDate]);
 
+  const openEditor = (nextForm = form) => {
+    setForm(nextForm);
+    setEditorStep("base");
+    setEditorOpen(true);
+  };
+
   const resetForNewOffer = () => {
-    setForm(buildProgressiveOfferFormForDate(selectedCalendarDate));
+    openEditor(buildProgressiveOfferFormForDate(selectedCalendarDate));
   };
 
   const selectCalendarDate = (date: Date | undefined) => {
@@ -416,17 +469,17 @@ function ProgressiveOfferManager({
 
     if (!title) {
       toast({ title: "Titre requis", description: "Nommez l'offre progressive.", variant: "destructive" });
-      return;
+      return false;
     }
 
     if (!form.serviceDate || Number.isNaN(serviceDate.getTime())) {
       toast({ title: "Date requise", description: "Choisissez le jour de service de l'offre.", variant: "destructive" });
-      return;
+      return false;
     }
 
     if (Number.isNaN(countdownEnd.getTime())) {
       toast({ title: "Compte a rebours invalide", description: "Choisissez une date et une heure de fin.", variant: "destructive" });
-      return;
+      return false;
     }
 
     if (isCountdownBeforeServiceDay(form.countdownEndsAt, form.serviceDate)) {
@@ -435,7 +488,7 @@ function ProgressiveOfferManager({
         description: "La fin du compte a rebours ne peut pas etre avant le jour J de l'offre.",
         variant: "destructive",
       });
-      return;
+      return false;
     }
 
     const bookingCutoff = new Date(countdownEnd.getTime() - 30 * 60 * 1000);
@@ -445,7 +498,7 @@ function ProgressiveOfferManager({
         description: "Une offre active doit laisser au moins 30 minutes de reservation.",
         variant: "destructive",
       });
-      return;
+      return false;
     }
 
     setSaving(true);
@@ -500,7 +553,7 @@ function ProgressiveOfferManager({
             description: `Une seule offre progressive active est autorisee par jour. Conflit le ${firstConflict.service_date}.`,
             variant: "destructive",
           });
-          return;
+          return false;
         }
       }
 
@@ -523,12 +576,14 @@ function ProgressiveOfferManager({
         title: form.isActive ? "Offre progressive activee" : "Offre progressive enregistree",
         description: recurrenceCount > 1 ? `${recurrenceCount} occurrences programmees.` : undefined,
       });
+      return true;
     } catch (error: any) {
       toast({
         title: "Enregistrement impossible",
         description: error?.message || "L'offre progressive n'a pas pu etre enregistree.",
         variant: "destructive",
       });
+      return false;
     } finally {
       setSaving(false);
     }
@@ -614,6 +669,16 @@ function ProgressiveOfferManager({
   const selectedProgressiveService = getProgressiveOfferServicePeriod({ service_time: form.serviceTime });
   const countdownMinDateTime = getServiceDayStartDateTimeValue(form.serviceDate);
   const countdownEndsBeforeServiceDate = isCountdownBeforeServiceDay(form.countdownEndsAt, form.serviceDate);
+  const editorStepIndex = PROGRESSIVE_EDITOR_STEPS.findIndex((step) => step.id === editorStep);
+  const currentEditorStep = PROGRESSIVE_EDITOR_STEPS[Math.max(0, editorStepIndex)];
+  const isFirstEditorStep = editorStepIndex <= 0;
+  const isLastEditorStep = editorStepIndex === PROGRESSIVE_EDITOR_STEPS.length - 1;
+  const goToPreviousEditorStep = () => {
+    setEditorStep(PROGRESSIVE_EDITOR_STEPS[Math.max(0, editorStepIndex - 1)].id);
+  };
+  const goToNextEditorStep = () => {
+    setEditorStep(PROGRESSIVE_EDITOR_STEPS[Math.min(PROGRESSIVE_EDITOR_STEPS.length - 1, editorStepIndex + 1)].id);
+  };
   const selectedCalendarDateObject = fromDateInputValue(selectedCalendarDate) || new Date();
   const calendarActiveDates = offers
     .filter((offer) => offer.status === "active")
@@ -753,9 +818,14 @@ function ProgressiveOfferManager({
               </p>
             </div>
             <div className="grid gap-2 sm:grid-cols-3">
-              <Button type="button" variant="outline" onClick={() => setForm(currentOffer ? progressiveOfferToForm(currentOffer) : buildProgressiveOfferFormForDate(selectedCalendarDate))} disabled={saving}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => openEditor(currentOffer ? progressiveOfferToForm(currentOffer) : buildProgressiveOfferFormForDate(selectedCalendarDate))}
+                disabled={saving}
+              >
                 <CalendarCheck className="mr-2 h-4 w-4" />
-                Charger
+                {currentOffer ? "Modifier" : "Creer"}
               </Button>
               <Button type="button" onClick={() => currentOffer && updateOfferStatus(currentOffer, "active")} disabled={saving || !currentOffer || currentOffer.status === "active" || currentOffer.status === "finalized"}>
                 Activer
@@ -767,140 +837,263 @@ function ProgressiveOfferManager({
           </div>
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="space-y-3">
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label>Titre</Label>
-                <Input value={form.title} onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} />
-              </div>
-              <div className="flex items-center justify-between rounded-xl border bg-background px-3 py-2">
-                <div>
-                  <Label className="text-sm">Publier sur l'accueil</Label>
-                  <p className="text-[11px] text-muted-foreground">Rend l'offre visible et reservable.</p>
-                </div>
-                <Switch checked={form.isActive} onCheckedChange={(checked) => setForm((current) => ({ ...current, isActive: checked }))} />
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Description</Label>
-              <Textarea
-                value={form.description}
-                onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))}
-                rows={3}
-              />
-            </div>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="space-y-1.5">
-              <Label className="flex items-center gap-1.5"><CalendarClock className="h-4 w-4" /> Jour J</Label>
-              <Input
-                type="date"
-                value={form.serviceDate}
-                onChange={(event) => {
-                  const nextServiceDate = event.target.value;
-                  setCalendarTouched(true);
-                  setSelectedCalendarDate(nextServiceDate);
-                  setForm((current) => ({
-                    ...current,
-                    serviceDate: nextServiceDate,
-                    countdownEndsAt: clampCountdownEndToServiceDay(current.countdownEndsAt, nextServiceDate),
-                  }));
-                }}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Service cible</Label>
-              <div className="grid grid-cols-2 gap-2">
-                {SERVICE_PERIODS.map(({ key }) => {
-                  const isSelected = selectedProgressiveService === key;
-                  return (
-                    <button
-                      key={key}
-                      type="button"
-                      onClick={() => setForm((current) => ({ ...current, serviceTime: getProgressiveServiceDefaultTime(key) }))}
-                      className={cn(
-                        "rounded-xl border px-3 py-2 text-left text-sm transition-colors",
-                        isSelected ? "border-orange-500 bg-orange-500/10 text-orange-700" : "border-border bg-background hover:border-orange-300",
-                      )}
-                    >
-                      <span className="block font-semibold">{getServicePeriodLabel(key)}</span>
-                      <span className="text-[11px] text-muted-foreground">Tous les creneaux du service</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-            <div className="space-y-1.5 sm:col-span-2">
-              <Label>Fin du compte a rebours</Label>
-              <Input
-                type="datetime-local"
-                value={form.countdownEndsAt}
-                min={countdownMinDateTime}
-                onChange={(event) => setForm((current) => ({
-                  ...current,
-                  countdownEndsAt: clampCountdownEndToServiceDay(event.target.value, current.serviceDate),
-                }))}
-              />
-              <p className={cn("text-[11px]", countdownEndsBeforeServiceDate ? "text-destructive" : "text-muted-foreground")}>
-                {countdownEndsBeforeServiceDate
-                  ? "La fin du compte a rebours doit etre le jour J ou apres."
-                  : "Derniere reservation autorisee 30 minutes avant cette heure."}
+        <div className="flex flex-col gap-4 rounded-2xl border bg-background/80 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0 space-y-3">
+            <div>
+              <p className="text-sm font-semibold">Parametrage en 3 etapes</p>
+              <p className="text-sm text-muted-foreground">
+                Remplace le grand formulaire par un parcours guide pour creer ou modifier l'offre du jour selectionne.
               </p>
             </div>
-            <div className="space-y-1.5">
-              <Label>Recurrence</Label>
-              <Select
-                value={form.recurrence}
-                onValueChange={(value) => setForm((current) => ({ ...current, recurrence: value as ProgressiveOfferRecurrence }))}
-                disabled={Boolean(form.id)}
-              >
-                <SelectTrigger className="bg-background">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Aucune recurrence</SelectItem>
-                  <SelectItem value="daily">Tous les jours</SelectItem>
-                  <SelectItem value="weekly">Chaque semaine</SelectItem>
-                </SelectContent>
-              </Select>
-              {form.id ? (
-                <p className="text-[11px] text-muted-foreground">La recurrence se parametre lors de la creation d'une nouvelle serie.</p>
-              ) : null}
-            </div>
-            <div className="space-y-1.5">
-              <Label>Nombre d'occurrences</Label>
-              <Input
-                type="number"
-                min={1}
-                max={PROGRESSIVE_RECURRENCE_MAX_COUNT}
-                value={form.recurrenceCount}
-                onChange={(event) => setForm((current) => ({ ...current, recurrenceCount: event.target.value }))}
-                disabled={Boolean(form.id) || form.recurrence === "none"}
-              />
-              <p className="text-[11px] text-muted-foreground">Maximum {PROGRESSIVE_RECURRENCE_MAX_COUNT} dates programmees.</p>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="flex items-center gap-1.5"><Users className="h-4 w-4" /> Tables maximum</Label>
-              <Input type="number" min={1} max={200} value={form.maxTables} onChange={(event) => setForm((current) => ({ ...current, maxTables: event.target.value }))} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Remise maximum (%)</Label>
-              <Input type="number" min={1} max={100} value={form.maxDiscountPercent} onChange={(event) => setForm((current) => ({ ...current, maxDiscountPercent: event.target.value }))} />
+            <div className="grid gap-2 sm:grid-cols-3">
+              {PROGRESSIVE_EDITOR_STEPS.map((step) => (
+                <div key={step.id} className="rounded-xl border bg-white px-3 py-2 text-sm">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-orange-600">{step.eyebrow}</p>
+                  <p className="font-semibold">{step.title}</p>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
-
-        <div className="flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-xs text-muted-foreground">
-            Exemple: 50% pour 10 tables donne +5% a chaque reservation participante, puis la remise est figee a la fin du compte a rebours.
-          </p>
-          <Button type="button" onClick={save} disabled={saving} className="gap-2">
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-            Enregistrer l'offre
+          <Button
+            type="button"
+            className="shrink-0 gap-2"
+            onClick={() => openEditor(currentOffer ? progressiveOfferToForm(currentOffer) : buildProgressiveOfferFormForDate(selectedCalendarDate))}
+            disabled={saving}
+          >
+            <CalendarCheck className="h-4 w-4" />
+            {currentOffer ? "Modifier en 3 etapes" : "Creer en 3 etapes"}
           </Button>
         </div>
+
+        <Dialog open={editorOpen} onOpenChange={setEditorOpen}>
+          <DialogContent
+            className="flex max-h-[calc(100dvh-1rem)] max-w-4xl flex-col gap-0 overflow-hidden p-0"
+            data-testid="progressive-offer-editor-modal"
+          >
+            <DialogHeader className="border-b px-5 pb-4 pt-5 pr-12 text-left sm:px-6">
+              <DialogTitle>Offre progressive en 3 etapes</DialogTitle>
+              <DialogDescription>
+                {currentEditorStep.eyebrow} - {currentEditorStep.description}
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-5 sm:px-6">
+              <ol className="grid gap-2 sm:grid-cols-3" data-testid="progressive-offer-stepper">
+                {PROGRESSIVE_EDITOR_STEPS.map((step, index) => {
+                  const isCurrent = step.id === editorStep;
+                  const isDone = index < editorStepIndex;
+                  return (
+                    <li
+                      key={step.id}
+                      aria-current={isCurrent ? "step" : undefined}
+                      className={cn(
+                        "rounded-2xl border px-4 py-3 text-sm transition-colors",
+                        isCurrent && "border-orange-500 bg-orange-50 text-orange-950",
+                        isDone && "border-emerald-200 bg-emerald-50 text-emerald-900",
+                        !isCurrent && !isDone && "bg-background text-muted-foreground",
+                      )}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={cn(
+                            "grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-bold",
+                            isCurrent && "bg-orange-500 text-white",
+                            isDone && "bg-emerald-500 text-white",
+                            !isCurrent && !isDone && "bg-muted text-muted-foreground",
+                          )}
+                        >
+                          {isDone ? <CheckCircle2 className="h-4 w-4" /> : index + 1}
+                        </span>
+                        <span className="font-semibold">{step.title}</span>
+                      </div>
+                      <p className="mt-2 text-xs leading-5">{step.description}</p>
+                    </li>
+                  );
+                })}
+              </ol>
+
+              {editorStep === "base" ? (
+                <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_260px]">
+                  <div className="space-y-4">
+                    <div className="space-y-1.5">
+                      <Label>Titre</Label>
+                      <Input value={form.title} onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Description</Label>
+                      <Textarea
+                        value={form.description}
+                        onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))}
+                        rows={5}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between gap-4 rounded-2xl border bg-background px-4 py-3 lg:flex-col lg:items-start">
+                    <div>
+                      <Label className="text-sm">Publier sur l'accueil</Label>
+                      <p className="mt-1 text-xs leading-5 text-muted-foreground">Rend l'offre visible et reservable apres enregistrement.</p>
+                    </div>
+                    <Switch checked={form.isActive} onCheckedChange={(checked) => setForm((current) => ({ ...current, isActive: checked }))} />
+                  </div>
+                </div>
+              ) : null}
+
+              {editorStep === "schedule" ? (
+                <div className="grid gap-4 lg:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label className="flex items-center gap-1.5"><CalendarClock className="h-4 w-4" /> Jour J</Label>
+                    <Input
+                      type="date"
+                      value={form.serviceDate}
+                      onChange={(event) => {
+                        const nextServiceDate = event.target.value;
+                        setCalendarTouched(true);
+                        setSelectedCalendarDate(nextServiceDate);
+                        setForm((current) => ({
+                          ...current,
+                          serviceDate: nextServiceDate,
+                          countdownEndsAt: clampCountdownEndToServiceDay(current.countdownEndsAt, nextServiceDate),
+                        }));
+                      }}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Service cible</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {SERVICE_PERIODS.map(({ key }) => {
+                        const isSelected = selectedProgressiveService === key;
+                        return (
+                          <button
+                            key={key}
+                            type="button"
+                            onClick={() => setForm((current) => ({ ...current, serviceTime: getProgressiveServiceDefaultTime(key) }))}
+                            className={cn(
+                              "rounded-xl border px-3 py-2 text-left text-sm transition-colors",
+                              isSelected ? "border-orange-500 bg-orange-500/10 text-orange-700" : "border-border bg-background hover:border-orange-300",
+                            )}
+                          >
+                            <span className="block font-semibold">{getServicePeriodLabel(key)}</span>
+                            <span className="text-[11px] text-muted-foreground">Tous les creneaux du service</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <div className="space-y-1.5 lg:col-span-2">
+                    <Label>Fin du compte a rebours</Label>
+                    <Input
+                      type="datetime-local"
+                      value={form.countdownEndsAt}
+                      min={countdownMinDateTime}
+                      onChange={(event) => setForm((current) => ({
+                        ...current,
+                        countdownEndsAt: clampCountdownEndToServiceDay(event.target.value, current.serviceDate),
+                      }))}
+                    />
+                    <p className={cn("text-[11px]", countdownEndsBeforeServiceDate ? "text-destructive" : "text-muted-foreground")}>
+                      {countdownEndsBeforeServiceDate
+                        ? "La fin du compte a rebours doit etre le jour J ou apres."
+                        : "Derniere reservation autorisee 30 minutes avant cette heure."}
+                    </p>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Recurrence</Label>
+                    <Select
+                      value={form.recurrence}
+                      onValueChange={(value) => setForm((current) => ({ ...current, recurrence: value as ProgressiveOfferRecurrence }))}
+                      disabled={Boolean(form.id)}
+                    >
+                      <SelectTrigger className="bg-background">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Aucune recurrence</SelectItem>
+                        <SelectItem value="daily">Tous les jours</SelectItem>
+                        <SelectItem value="weekly">Chaque semaine</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {form.id ? (
+                      <p className="text-[11px] text-muted-foreground">La recurrence se parametre lors de la creation d'une nouvelle serie.</p>
+                    ) : null}
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Nombre d'occurrences</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={PROGRESSIVE_RECURRENCE_MAX_COUNT}
+                      value={form.recurrenceCount}
+                      onChange={(event) => setForm((current) => ({ ...current, recurrenceCount: event.target.value }))}
+                      disabled={Boolean(form.id) || form.recurrence === "none"}
+                    />
+                    <p className="text-[11px] text-muted-foreground">Maximum {PROGRESSIVE_RECURRENCE_MAX_COUNT} dates programmees.</p>
+                  </div>
+                </div>
+              ) : null}
+
+              {editorStep === "capacity" ? (
+                <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <Label className="flex items-center gap-1.5"><Users className="h-4 w-4" /> Tables maximum</Label>
+                      <Input type="number" min={1} max={200} value={form.maxTables} onChange={(event) => setForm((current) => ({ ...current, maxTables: event.target.value }))} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Remise maximum (%)</Label>
+                      <Input type="number" min={1} max={100} value={form.maxDiscountPercent} onChange={(event) => setForm((current) => ({ ...current, maxDiscountPercent: event.target.value }))} />
+                    </div>
+                    <div className="rounded-2xl border bg-background p-4 sm:col-span-2">
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Exemple</p>
+                      <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                        50% pour 10 tables donne +5% a chaque reservation participante, puis la remise est figee a la fin du compte a rebours.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="grid gap-3">
+                    <div className="rounded-2xl border bg-orange-50 p-4">
+                      <p className="text-xs text-muted-foreground">Remise actuelle</p>
+                      <p className="text-2xl font-bold text-primary">-{currentDiscount}%</p>
+                    </div>
+                    <div className="rounded-2xl border bg-emerald-50 p-4">
+                      <p className="text-xs text-muted-foreground">Prochaine reservation</p>
+                      <p className="text-2xl font-bold text-emerald-700">-{nextDiscount}%</p>
+                    </div>
+                    <div className="rounded-2xl border bg-background p-4">
+                      <p className="text-xs text-muted-foreground">Tables restantes</p>
+                      <p className="text-2xl font-bold">{currentOffer ? getProgressiveOfferRemainingTables(currentOffer) : form.maxTables}</p>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+
+            <DialogFooter className="shrink-0 gap-2 border-t px-5 py-4 sm:px-6">
+              <Button type="button" variant="outline" onClick={goToPreviousEditorStep} disabled={saving || isFirstEditorStep} className="gap-2">
+                <ArrowLeft className="h-4 w-4" />
+                Precedent
+              </Button>
+              {isLastEditorStep ? (
+                <Button
+                  type="button"
+                  onClick={async () => {
+                    const saved = await save();
+                    if (saved) setEditorOpen(false);
+                  }}
+                  disabled={saving}
+                  className="gap-2"
+                >
+                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                  Enregistrer l'offre
+                </Button>
+              ) : (
+                <Button type="button" onClick={goToNextEditorStep} disabled={saving} className="gap-2">
+                  Suivant
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              )}
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );

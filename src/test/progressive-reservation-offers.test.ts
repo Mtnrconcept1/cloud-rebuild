@@ -170,6 +170,12 @@ describe("progressive reservation offers", () => {
     expect(dashboardFormules).toContain("Recurrence");
     expect(dashboardFormules).toContain("Nombre d'occurrences");
     expect(dashboardFormules).toContain("occurrences programmees");
+    expect(dashboardFormules).toContain("PROGRESSIVE_EDITOR_STEPS");
+    expect(dashboardFormules).toContain("progressive-offer-editor-modal");
+    expect(dashboardFormules).toContain("Parametrage en 3 etapes");
+    expect(dashboardFormules).toContain("Offre progressive en 3 etapes");
+    expect(dashboardFormules).toContain("Base de l'offre");
+    expect(dashboardFormules).toContain("Capacite et remise");
     expect(dashboardFormules).toContain("getServiceDayStartDateTimeValue");
     expect(dashboardFormules).toContain("isCountdownBeforeServiceDay");
     expect(dashboardFormules).toContain("min={countdownMinDateTime}");
