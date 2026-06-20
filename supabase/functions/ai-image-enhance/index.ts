@@ -180,6 +180,18 @@ function buildImageRequestOptions(formatSize: string, sourceImagePresent: boolea
   };
 }
 
+function buildMarketingImageRequestOptions(formatSize: string, hasReferenceImages: boolean): ImageRequestOptions {
+  if (!hasReferenceImages) return buildConfiguredImageRequestOptions(formatSize);
+
+  return {
+    model: INTERACTIVE_IMAGE_MODEL,
+    quality: INTERACTIVE_IMAGE_QUALITY,
+    size: formatSize,
+    timeoutMs: INTERACTIVE_IMAGE_TIMEOUT_MS,
+    mode: "interactive_fast",
+  };
+}
+
 function sanitizeText(raw: unknown, max = 3000) {
   return typeof raw === "string" ? raw.trim().slice(0, max) : "";
 }
@@ -749,7 +761,7 @@ Deno.serve(async (req) => {
 
     let generated: GeneratedImage | null = null;
     const generatedImageOptions = marketingAssetMode
-      ? buildConfiguredImageRequestOptions(format.size)
+      ? buildMarketingImageRequestOptions(format.size, referenceImageUrls.length > 0)
       : buildImageRequestOptions(format.size, Boolean(sourceImageUrl));
     let usedImageOptions: ImageRequestOptions | null = null;
     let imageEditRetryUsed = false;

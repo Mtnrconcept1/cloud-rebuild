@@ -230,6 +230,17 @@ function formatMarketingImageGenerationError(error: unknown) {
   const rawMessage = error instanceof Error ? error.message : String(error || "");
   const message = rawMessage.toLowerCase();
 
+  if (
+    message.includes("functionsfetcherror") ||
+    message.includes("functionsrelayerror") ||
+    rawMessage.includes("Failed to send a request to the Edge Function") ||
+    message.includes("relay error invoking the edge function")
+  ) {
+    return "La fonction Supabase de génération image n'a pas répondu correctement. Réessayez avec moins de visuels de référence ou un prompt plus court; si le problème persiste, l'équipe TOK doit vérifier la fonction ai-image-enhance.";
+  }
+  if (message.includes("requested function was not found") || message.includes("not_found")) {
+    return "La fonction Supabase ai-image-enhance n'est pas disponible. Relancez le workflow de déploiement des Edge Functions avant de réessayer.";
+  }
   if (message.includes("image_generation_timeout") || message.includes("image_edit_timeout")) {
     return "La génération d'image a dépassé le délai serveur. Réessayez avec un prompt plus court.";
   }

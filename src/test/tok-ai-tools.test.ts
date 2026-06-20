@@ -126,6 +126,7 @@ describe("TOK AI tools foundation", () => {
     const source = readProjectFile("supabase/functions/ai-image-enhance/index.ts");
     const client = readProjectFile("src/lib/ai/tokAiClient.ts");
     const studio = readProjectFile("src/components/dashboard/TokAiPhotoStudioV2.tsx");
+    const marketingStudio = readProjectFile("src/components/dashboard/TokAiMarketingStudio.tsx");
     const secrets = readProjectFile("scripts/write-supabase-secrets-env.mjs");
     const workflow = readProjectFile(".github/workflows/deploy-production.yml");
 
@@ -139,9 +140,11 @@ describe("TOK AI tools foundation", () => {
     expect(source).not.toContain("TOK_IMAGE_USE_AI_BRIEF");
     expect(source).toContain("TOK_IMAGE_FAST_INTERACTIVE");
     expect(source).toContain('const USE_FAST_INTERACTIVE_IMAGE = readEnvFlag("TOK_IMAGE_FAST_INTERACTIVE", false)');
+    expect(source).toContain("buildMarketingImageRequestOptions");
     expect(source).not.toContain("FORCE_STRICT_SOURCE_EDIT ? false");
     expect(source).toContain("sourceImagePresent && USE_FAST_INTERACTIVE_IMAGE");
     expect(source).toContain("buildImageRequestOptions(format.size, Boolean(sourceImageUrl))");
+    expect(source).toContain("buildMarketingImageRequestOptions(format.size, referenceImageUrls.length > 0)");
     expect(source).toContain("TOK_INTERACTIVE_IMAGE_QUALITY");
     expect(source).toContain("TOK_INTERACTIVE_IMAGE_SIZE");
     expect(source).toContain("gpt-image-2");
@@ -216,6 +219,8 @@ describe("TOK AI tools foundation", () => {
     expect(client).toContain("marketingAssetMode?: boolean");
     expect(source).toContain('publication_caption: ""');
     expect(source).toContain("marketing_angles: []");
+    expect(marketingStudio).toContain("functionsfetcherror");
+    expect(marketingStudio).toContain("Failed to send a request to the Edge Function");
 
     for (const name of [
       "OPENAI_IMAGE_MODEL",
