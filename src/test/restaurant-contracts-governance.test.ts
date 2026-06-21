@@ -38,17 +38,30 @@ describe("restaurant partner contracts governance", () => {
 
   it("keeps a complete signed contract version in the frontend copy", () => {
     expect(contractCopy).toContain("RESTAURANT_PARTNER_CONTRACT_VERSION");
-    expect(contractCopy).toContain("Prix, commissions, frais et facturation");
     expect(contractCopy).toContain(
-      "Paiements, remboursements et Stripe Connect",
+      "Annexe tarifaire, commissions, frais et facturation",
     );
-    expect(contractCopy).toContain("Signature numérique et preuve");
-    expect(contractCopy).toContain("generateSignedRestaurantPartnerContractHtml");
+    expect(contractCopy).toContain(
+      "Paiements, annulations, no-show, remboursements et litiges clients",
+    );
+    expect(contractCopy).toContain(
+      "Signature numérique, piste de preuve et archivage",
+    );
+    expect(contractCopy).toContain(
+      "generateSignedRestaurantPartnerContractHtml",
+    );
     expect(contractCopy).toContain("Signature manuscrite du restaurateur");
     expect(contractCopy).toContain("Informations complètes du restaurateur");
     expect(contractCopy).toContain("TOK_CONTRACT_LEGAL_INFORMATION");
     expect(contractCopy).toContain("Date de signature");
     expect(contractCopy).toContain("Lieu");
+    expect(contractCopy).toContain("IDE/UID suisse");
+    expect(contractCopy).toContain("commission par réservation");
+    expect(contractCopy).toContain("chargeback");
+    expect(contractCopy).toContain("sous-traitants ultérieurs");
+    expect(contractCopy).toContain("allergènes");
+    expect(contractCopy).toContain("tribunaux compétents du canton de Genève");
+    expect(contractCopy).toContain("Annexes contractuelles attendues");
   });
 
   it("requires a manual restaurateur contract signature during signup before submission", () => {
@@ -56,17 +69,28 @@ describe("restaurant partner contracts governance", () => {
     expect(authPage).toContain("Signature au doigt ou au stylet");
     expect(authPage).toContain("Exporter le contrat signé en PDF");
     expect(authPage).toContain("openSafeHtmlPrintDocument");
-    expect(authPage).not.toContain('window.open("", "_blank", "noopener,noreferrer")');
+    expect(authPage).not.toContain(
+      'window.open("", "_blank", "noopener,noreferrer")',
+    );
     expect(authPage).toContain("contract_signature_data_url");
+    expect(authPage).toContain("contract_content_hash");
+    expect(authPage).toContain("contract_acceptance_text");
     expect(signupValidation).toContain("contract_signature_data_url");
-    expect(signupValidation).toContain("La signature manuscrite du contrat restaurateur est requise.");
+    expect(signupValidation).toContain(
+      "La signature manuscrite du contrat restaurateur est requise.",
+    );
   });
 
   it("allows signed restaurant contracts to be exported from the restaurateur dashboard", () => {
     expect(dashboardContractCard).toContain("Exporter le contrat en PDF");
-    expect(dashboardContractCard).toContain("generateSignedRestaurantPartnerContractHtml");
+    expect(dashboardContractCard).toContain(
+      "generateSignedRestaurantPartnerContractHtml",
+    );
     expect(dashboardContractCard).toContain("user_profiles");
     expect(dashboardContractCard).toContain("contract_signature_data_url");
+    expect(dashboardContractCard).toContain("acceptance_text");
+    expect(dashboardContractCard).toContain("signed_user_id");
+    expect(dashboardContractCard).toContain("signed_restaurant_id");
   });
 
   it("uses the shared iframe fallback for contract PDF exports on mobile browsers", () => {
@@ -77,6 +101,8 @@ describe("restaurant partner contracts governance", () => {
     expect(safePrintWindow).toContain("openIframePrintFallback");
     expect(safePrintWindow).toContain("shouldUseInlinePrintFallback");
     expect(safePrintWindow).toContain("if (shouldUseInlinePrintFallback())");
-    expect(safePrintWindow).toContain("return openIframePrintFallback(safeHtml, printDelayMs)");
+    expect(safePrintWindow).toContain(
+      "return openIframePrintFallback(safeHtml, printDelayMs)",
+    );
   });
 });

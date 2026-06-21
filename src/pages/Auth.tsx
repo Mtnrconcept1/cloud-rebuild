@@ -1,13 +1,28 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { Bike, ChefHat, CreditCard, Eye, EyeOff, FileText, Loader2, Shield, ShoppingBag, Upload } from "lucide-react";
+import {
+  Bike,
+  ChefHat,
+  CreditCard,
+  Eye,
+  EyeOff,
+  FileText,
+  Loader2,
+  Shield,
+  ShoppingBag,
+  Upload,
+} from "lucide-react";
 
 import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth, type UserRole } from "@/lib/auth-context";
 import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 import { normalizeInternalNavigationTarget } from "@/lib/navigation";
 import { openSafeHtmlPrintDocument } from "@/lib/safePrintWindow";
-import { getDefaultActiveRole, getFeatureVisibleRoles, getRoleHomePath } from "@/lib/roleAccess";
+import {
+  getDefaultActiveRole,
+  getFeatureVisibleRoles,
+  getRoleHomePath,
+} from "@/lib/roleAccess";
 import {
   getMissingSignupDocuments,
   getRequiredSignupDocuments,
@@ -25,12 +40,24 @@ import {
   generateSignedRestaurantPartnerContractHtml,
 } from "@/lib/restaurantPartnerContract";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
 import CityAutocomplete from "@/components/CityAutocomplete";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -160,7 +187,8 @@ function formatChf(amount: number | null | undefined) {
 function getInitialSignupRole(searchParams: URLSearchParams): SignupRole {
   const requestedType = String(searchParams.get("type") || "").toLowerCase();
   if (requestedType === "restaurateur") return "restaurateur";
-  if (requestedType === "courier" || requestedType === "livreur") return "courier";
+  if (requestedType === "courier" || requestedType === "livreur")
+    return "courier";
   return "client";
 }
 
@@ -173,8 +201,10 @@ function getSignupValidationError(
 ) {
   if (!form.fullName.trim()) return "Le nom complet est requis.";
   if (!form.email.trim()) return "L'email est requis.";
-  if (!form.password.trim() || form.password.length < 6) return "Le mot de passe doit contenir au moins 6 caracteres.";
-  if (!legalAccepted) return "Vous devez accepter les CGU et la politique de confidentialité.";
+  if (!form.password.trim() || form.password.length < 6)
+    return "Le mot de passe doit contenir au moins 6 caracteres.";
+  if (!legalAccepted)
+    return "Vous devez accepter les CGU et la politique de confidentialité.";
 
   if (role === "restaurateur") {
     if (!form.phone.trim()) return "Le téléphone est requis.";
@@ -182,15 +212,20 @@ function getSignupValidationError(
     if (!form.address.trim()) return "L'adresse est requise.";
     if (!form.businessName.trim()) return "Le nom commercial est requis.";
     if (!form.legalName.trim()) return "La raison sociale est requise.";
-    if (!form.businessRegistrationNumber.trim()) return "Le numéro d'immatriculation est requis.";
+    if (!form.businessRegistrationNumber.trim())
+      return "Le numéro d'immatriculation est requis.";
     if (!form.restaurantName.trim()) return "Le nom du restaurant est requis.";
     if (!form.iban.trim()) return "L'IBAN de versement est requis.";
-    if (!onboardingChoices?.subscriptionPlanId) return "Choisissez un abonnement TOK.";
+    if (!onboardingChoices?.subscriptionPlanId)
+      return "Choisissez un abonnement TOK.";
     if (onboardingChoices.subscriptionBillingPeriod !== "monthly") {
       return "Choisissez une période d'abonnement valide.";
     }
-    if (!contractSignature?.signerName.trim()) return "Le nom du signataire du contrat est requis.";
-    if (!contractSignature?.signatureDataUrl.startsWith("data:image/png;base64,")) {
+    if (!contractSignature?.signerName.trim())
+      return "Le nom du signataire du contrat est requis.";
+    if (
+      !contractSignature?.signatureDataUrl.startsWith("data:image/png;base64,")
+    ) {
       return "La signature manuscrite du contrat restaurateur est requise.";
     }
   }
@@ -200,7 +235,10 @@ function getSignupValidationError(
     if (!form.city.trim()) return "La ville est requise.";
     if (!form.address.trim()) return "L'adresse est requise.";
     if (!form.iban.trim()) return "L'IBAN de versement est requis.";
-    if (["scooter", "car"].includes(form.vehicleType) && !form.licensePlate.trim()) {
+    if (
+      ["scooter", "car"].includes(form.vehicleType) &&
+      !form.licensePlate.trim()
+    ) {
       return "La plaque d'immatriculation est requise pour ce véhicule.";
     }
   }
@@ -208,7 +246,9 @@ function getSignupValidationError(
   return null;
 }
 
-function createLegalAcceptancePayload(acceptedAt = new Date().toISOString()): SignupLegalAcceptance {
+function createLegalAcceptancePayload(
+  acceptedAt = new Date().toISOString(),
+): SignupLegalAcceptance {
   return {
     termsAccepted: true,
     privacyPolicyAccepted: true,
@@ -234,6 +274,14 @@ function exportSignedRestaurantContractPdf(input: {
   legalName: string;
   businessName: string;
   restaurantName: string;
+  restaurateurAddress?: string | null;
+  restaurateurPhone?: string | null;
+  businessRegistrationNumber?: string | null;
+  taxId?: string | null;
+  city?: string | null;
+  signerRole?: string | null;
+  contractHash?: string | null;
+  acceptanceText?: string | null;
 }) {
   const html = generateSignedRestaurantPartnerContractHtml(input);
 
@@ -322,9 +370,20 @@ function RestaurantContractSignaturePad({
       legalName: signupForm.legalName,
       businessName: signupForm.businessName,
       restaurantName: signupForm.restaurantName,
+      restaurateurAddress: signupForm.address,
+      restaurateurPhone: signupForm.phone,
+      businessRegistrationNumber: signupForm.businessRegistrationNumber,
+      taxId: signupForm.taxId,
+      city: signupForm.city,
+      signerRole: "Représentant autorisé",
+      contractHash: `${RESTAURANT_PARTNER_CONTRACT_VERSION}:${RESTAURANT_PARTNER_CONTRACT_SECTIONS.length}`,
+      acceptanceText:
+        "J'ai lu et j'accepte l'intégralité du contrat restaurateur TOK et je déclare être habilité à engager le restaurateur.",
     });
     if (!exported) {
-      alert("Autorisez l'ouverture de la fenêtre d'impression pour exporter le contrat en PDF.");
+      alert(
+        "Autorisez l'ouverture de la fenêtre d'impression pour exporter le contrat en PDF.",
+      );
     }
   };
 
@@ -333,23 +392,30 @@ function RestaurantContractSignaturePad({
       <div>
         <p className="font-medium">Contrat restaurateur à signer maintenant</p>
         <p className="text-sm text-muted-foreground">
-          La signature manuscrite est obligatoire dans la procédure d'inscription. Elle sera visible dans l'export PDF du contrat.
+          La signature manuscrite est obligatoire dans la procédure
+          d'inscription. Elle sera visible dans l'export PDF du contrat.
         </p>
       </div>
       <div className="max-h-72 space-y-4 overflow-auto rounded-xl border bg-background p-4 text-sm">
         <p className="font-semibold">{RESTAURANT_PARTNER_CONTRACT_TITLE}</p>
-        <p className="text-xs text-muted-foreground">Version {RESTAURANT_PARTNER_CONTRACT_VERSION}</p>
+        <p className="text-xs text-muted-foreground">
+          Version {RESTAURANT_PARTNER_CONTRACT_VERSION}
+        </p>
         {RESTAURANT_PARTNER_CONTRACT_SECTIONS.map((section) => (
           <section key={section.title} className="space-y-2">
             <h3 className="font-semibold">{section.title}</h3>
             {section.paragraphs.map((paragraph) => (
-              <p key={paragraph} className="text-muted-foreground">{paragraph}</p>
+              <p key={paragraph} className="text-muted-foreground">
+                {paragraph}
+              </p>
             ))}
           </section>
         ))}
       </div>
       <div className="space-y-2">
-        <Label htmlFor="restaurant-contract-signer">Nom et fonction du signataire habilité</Label>
+        <Label htmlFor="restaurant-contract-signer">
+          Nom et fonction du signataire habilité
+        </Label>
         <Input
           id="restaurant-contract-signer"
           value={signerName}
@@ -370,10 +436,18 @@ function RestaurantContractSignaturePad({
           onPointerUp={handlePointerUp}
           onPointerCancel={handlePointerUp}
         />
-        <p className="text-xs text-muted-foreground">Signez dans le cadre blanc. La signature est intégrée au dossier d'inscription.</p>
+        <p className="text-xs text-muted-foreground">
+          Signez dans le cadre blanc. La signature est intégrée au dossier
+          d'inscription.
+        </p>
       </div>
       <div className="flex flex-col gap-2 sm:flex-row">
-        <Button type="button" variant="secondary" onClick={clearSignature} className="sm:w-auto">
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={clearSignature}
+          className="sm:w-auto"
+        >
           Effacer la signature
         </Button>
         <Button
@@ -416,34 +490,93 @@ function appendPrivilegedSignupDraftFormData(input: {
   input.formData.append("phone", input.form.phone);
   input.formData.append("city", input.form.city);
   input.formData.append("address", input.form.address);
-  input.formData.append("legal_name", input.role === "restaurateur" ? input.form.legalName : "");
-  input.formData.append("business_name", input.role === "restaurateur" ? input.form.businessName : "");
+  input.formData.append(
+    "legal_name",
+    input.role === "restaurateur" ? input.form.legalName : "",
+  );
+  input.formData.append(
+    "business_name",
+    input.role === "restaurateur" ? input.form.businessName : "",
+  );
   input.formData.append(
     "business_registration_number",
     input.role === "restaurateur" ? input.form.businessRegistrationNumber : "",
   );
-  input.formData.append("tax_id", input.role === "restaurateur" ? input.form.taxId : "");
-  input.formData.append("restaurant_name", input.role === "restaurateur" ? input.form.restaurantName : "");
+  input.formData.append(
+    "tax_id",
+    input.role === "restaurateur" ? input.form.taxId : "",
+  );
+  input.formData.append(
+    "restaurant_name",
+    input.role === "restaurateur" ? input.form.restaurantName : "",
+  );
   input.formData.append(
     "restaurant_description",
     input.role === "restaurateur" ? input.form.restaurantDescription : "",
   );
-  input.formData.append("vehicle_type", input.role === "courier" ? input.form.vehicleType : "");
-  input.formData.append("license_plate", input.role === "courier" ? input.form.licensePlate : "");
+  input.formData.append(
+    "vehicle_type",
+    input.role === "courier" ? input.form.vehicleType : "",
+  );
+  input.formData.append(
+    "license_plate",
+    input.role === "courier" ? input.form.licensePlate : "",
+  );
   input.formData.append("iban", input.form.iban);
-  input.formData.append("subscription_plan_id", input.role === "restaurateur" ? input.onboardingChoices?.subscriptionPlanId || "" : "");
-  input.formData.append("subscription_billing_period", input.role === "restaurateur" ? input.onboardingChoices?.subscriptionBillingPeriod || "" : "");
-  input.formData.append("terms_accepted", input.legalAcceptance.termsAccepted ? "true" : "false");
-  input.formData.append("privacy_policy_accepted", input.legalAcceptance.privacyPolicyAccepted ? "true" : "false");
-  input.formData.append("legal_acceptance_version", input.legalAcceptance.version);
-  input.formData.append("legal_acceptance_at", input.legalAcceptance.acceptedAt);
-  input.formData.append("contract_version", input.role === "restaurateur" ? RESTAURANT_PARTNER_CONTRACT_VERSION : "");
-  input.formData.append("contract_title", input.role === "restaurateur" ? RESTAURANT_PARTNER_CONTRACT_TITLE : "");
-  input.formData.append("contract_signer_name", input.role === "restaurateur" ? input.contractSignature?.signerName || "" : "");
-  input.formData.append("contract_signature_data_url", input.role === "restaurateur" ? input.contractSignature?.signatureDataUrl || "" : "");
+  input.formData.append(
+    "subscription_plan_id",
+    input.role === "restaurateur"
+      ? input.onboardingChoices?.subscriptionPlanId || ""
+      : "",
+  );
+  input.formData.append(
+    "subscription_billing_period",
+    input.role === "restaurateur"
+      ? input.onboardingChoices?.subscriptionBillingPeriod || ""
+      : "",
+  );
+  input.formData.append(
+    "terms_accepted",
+    input.legalAcceptance.termsAccepted ? "true" : "false",
+  );
+  input.formData.append(
+    "privacy_policy_accepted",
+    input.legalAcceptance.privacyPolicyAccepted ? "true" : "false",
+  );
+  input.formData.append(
+    "legal_acceptance_version",
+    input.legalAcceptance.version,
+  );
+  input.formData.append(
+    "legal_acceptance_at",
+    input.legalAcceptance.acceptedAt,
+  );
+  input.formData.append(
+    "contract_version",
+    input.role === "restaurateur" ? RESTAURANT_PARTNER_CONTRACT_VERSION : "",
+  );
+  input.formData.append(
+    "contract_title",
+    input.role === "restaurateur" ? RESTAURANT_PARTNER_CONTRACT_TITLE : "",
+  );
+  input.formData.append(
+    "contract_signer_name",
+    input.role === "restaurateur"
+      ? input.contractSignature?.signerName || ""
+      : "",
+  );
+  input.formData.append(
+    "contract_signature_data_url",
+    input.role === "restaurateur"
+      ? input.contractSignature?.signatureDataUrl || ""
+      : "",
+  );
   input.formData.append("captcha_token", input.captchaToken || "");
 
-  for (const requirement of getRequiredSignupDocuments(input.role, input.form.vehicleType)) {
+  for (const requirement of getRequiredSignupDocuments(
+    input.role,
+    input.form.vehicleType,
+  )) {
     const file = input.documents[requirement.type];
     if (file) {
       input.formData.append(`document_${requirement.type}`, file, file.name);
@@ -452,14 +585,20 @@ function appendPrivilegedSignupDraftFormData(input: {
 }
 
 async function getSignupEdgeErrorMessage(error: Error) {
-  const context = (error as Error & { context?: { json?: () => Promise<unknown>; text?: () => Promise<string> } }).context;
+  const context = (
+    error as Error & {
+      context?: { json?: () => Promise<unknown>; text?: () => Promise<string> };
+    }
+  ).context;
 
   if (!context) return error.message;
 
   try {
     const payload = await context.json?.();
     if (payload && typeof payload === "object" && "error" in payload) {
-      const message = String((payload as { error?: unknown }).error || "").trim();
+      const message = String(
+        (payload as { error?: unknown }).error || "",
+      ).trim();
       if (message) return message;
     }
   } catch {
@@ -489,9 +628,12 @@ async function submitPrivilegedSignupDraft(input: {
   const formData = new FormData();
   appendPrivilegedSignupDraftFormData({ formData, ...input });
 
-  const { error } = await supabase.functions.invoke("submit-signup-application", {
-    body: formData,
-  });
+  const { error } = await supabase.functions.invoke(
+    "submit-signup-application",
+    {
+      body: formData,
+    },
+  );
 
   if (error) {
     throw new Error(await getSignupEdgeErrorMessage(error));
@@ -508,35 +650,51 @@ export default function Auth() {
   const initialRole = getInitialSignupRole(searchParams);
   const [isLogin, setIsLogin] = useState(initialRole === "client");
   const [roleMode, setRoleMode] = useState<SignupRole>(initialRole);
-  const [signupForm, setSignupForm] = useState<SignupFormState>(EMPTY_SIGNUP_FORM);
+  const [signupForm, setSignupForm] =
+    useState<SignupFormState>(EMPTY_SIGNUP_FORM);
   const [loading, setLoading] = useState(false);
   const [forgotPassword, setForgotPassword] = useState(false);
   const [showRolePicker, setShowRolePicker] = useState(false);
-  const [documents, setDocuments] = useState<Partial<Record<SignupDocumentType, File | null>>>({});
+  const [documents, setDocuments] = useState<
+    Partial<Record<SignupDocumentType, File | null>>
+  >({});
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
-  const [privilegedSignupSubmitting, setPrivilegedSignupSubmitting] = useState(false);
-  const [selectedSubscriptionPlanId, setSelectedSubscriptionPlanId] = useState("");
-  const [selectedSubscriptionBillingPeriod] = useState<SignupSubscriptionBillingPeriod>("monthly");
+  const [privilegedSignupSubmitting, setPrivilegedSignupSubmitting] =
+    useState(false);
+  const [selectedSubscriptionPlanId, setSelectedSubscriptionPlanId] =
+    useState("");
+  const [selectedSubscriptionBillingPeriod] =
+    useState<SignupSubscriptionBillingPeriod>("monthly");
   const [legalAccepted, setLegalAccepted] = useState(false);
   const [contractSignerName, setContractSignerName] = useState("");
   const [contractSignatureDataUrl, setContractSignatureDataUrl] = useState("");
-  const [subscriptionPlans, setSubscriptionPlans] = useState<RestaurantSubscriptionPlanOption[]>([]);
-  const [subscriptionPlansLoading, setSubscriptionPlansLoading] = useState(false);
-  const { activeFeatures, loading: featureFlagsLoading } = useFeatureFlagSnapshot();
+  const [subscriptionPlans, setSubscriptionPlans] = useState<
+    RestaurantSubscriptionPlanOption[]
+  >([]);
+  const [subscriptionPlansLoading, setSubscriptionPlansLoading] =
+    useState(false);
+  const { activeFeatures, loading: featureFlagsLoading } =
+    useFeatureFlagSnapshot();
   const courierSignupEnabled = activeFeatures.has("espace-livreur");
 
   const requiredDocuments = useMemo(
     () => getRequiredSignupDocuments(roleMode, signupForm.vehicleType),
     [roleMode, signupForm.vehicleType],
   );
-  const restaurateurOnboardingChoices = useMemo<RestaurateurOnboardingChoices>(() => ({
-    subscriptionPlanId: selectedSubscriptionPlanId,
-    subscriptionBillingPeriod: selectedSubscriptionBillingPeriod,
-  }), [selectedSubscriptionBillingPeriod, selectedSubscriptionPlanId]);
+  const restaurateurOnboardingChoices = useMemo<RestaurateurOnboardingChoices>(
+    () => ({
+      subscriptionPlanId: selectedSubscriptionPlanId,
+      subscriptionBillingPeriod: selectedSubscriptionBillingPeriod,
+    }),
+    [selectedSubscriptionBillingPeriod, selectedSubscriptionPlanId],
+  );
   const selectedSubscriptionPlan = useMemo(
-    () => subscriptionPlans.find((plan) => plan.id === selectedSubscriptionPlanId) || null,
+    () =>
+      subscriptionPlans.find(
+        (plan) => plan.id === selectedSubscriptionPlanId,
+      ) || null,
     [selectedSubscriptionPlanId, subscriptionPlans],
   );
   const selectedSubscriptionPrice = selectedSubscriptionPlan
@@ -555,30 +713,55 @@ export default function Auth() {
     return normalizeInternalNavigationTarget(redirectTarget, "/");
   }, [searchParams]);
 
-  const getPostAuthTarget = useCallback((selectedRole: UserRole) => {
-    if (selectedRole === "client") {
-      return postAuthRedirectTarget || ROLE_CONFIG[selectedRole].to;
-    }
+  const getPostAuthTarget = useCallback(
+    (selectedRole: UserRole) => {
+      if (selectedRole === "client") {
+        return postAuthRedirectTarget || ROLE_CONFIG[selectedRole].to;
+      }
 
-    return getRoleHomePath(selectedRole);
-  }, [postAuthRedirectTarget]);
+      return getRoleHomePath(selectedRole);
+    },
+    [postAuthRedirectTarget],
+  );
 
   useEffect(() => {
-    if (!user || roles.length === 0 || privilegedSignupSubmitting || featureFlagsLoading) return;
+    if (
+      !user ||
+      roles.length === 0 ||
+      privilegedSignupSubmitting ||
+      featureFlagsLoading
+    )
+      return;
 
     if (canSwitchRole && switchableRoles.length > 1) {
       if (!showRolePicker) setShowRolePicker(true);
       return;
     }
 
-    const targetRole = role && switchableRoles.includes(role)
-      ? role
-      : switchableRoles[0] || getDefaultActiveRole(roles);
+    const targetRole =
+      role && switchableRoles.includes(role)
+        ? role
+        : switchableRoles[0] || getDefaultActiveRole(roles);
     navigate(getPostAuthTarget(targetRole), { replace: true });
-  }, [canSwitchRole, featureFlagsLoading, getPostAuthTarget, navigate, privilegedSignupSubmitting, role, roles, showRolePicker, switchableRoles, user]);
+  }, [
+    canSwitchRole,
+    featureFlagsLoading,
+    getPostAuthTarget,
+    navigate,
+    privilegedSignupSubmitting,
+    role,
+    roles,
+    showRolePicker,
+    switchableRoles,
+    user,
+  ]);
 
   useEffect(() => {
-    if (!featureFlagsLoading && !courierSignupEnabled && roleMode === "courier") {
+    if (
+      !featureFlagsLoading &&
+      !courierSignupEnabled &&
+      roleMode === "courier"
+    ) {
       setRoleMode("client");
     }
   }, [courierSignupEnabled, featureFlagsLoading, roleMode]);
@@ -589,17 +772,29 @@ export default function Auth() {
 
     setSubscriptionPlansLoading(true);
     (supabase.from as any)("restaurant_subscription_plans")
-      .select("id, slug, name, description, price_monthly_chf, campaign_credit_chf, ai_tool_credits, ai_photo_credits, monthly_image_limit, monthly_premium_image_limit")
+      .select(
+        "id, slug, name, description, price_monthly_chf, campaign_credit_chf, ai_tool_credits, ai_photo_credits, monthly_image_limit, monthly_premium_image_limit",
+      )
       .eq("is_active", true)
       .order("position", { ascending: true })
-      .then(({ data, error }: { data?: unknown[] | null; error?: Error | null }) => {
-        if (!mounted) return;
-        if (error) {
-          setSubscriptionPlans([]);
-        } else {
-          setSubscriptionPlans((data || []) as RestaurantSubscriptionPlanOption[]);
-        }
-      })
+      .then(
+        ({
+          data,
+          error,
+        }: {
+          data?: unknown[] | null;
+          error?: Error | null;
+        }) => {
+          if (!mounted) return;
+          if (error) {
+            setSubscriptionPlans([]);
+          } else {
+            setSubscriptionPlans(
+              (data || []) as RestaurantSubscriptionPlanOption[],
+            );
+          }
+        },
+      )
       .finally(() => {
         if (mounted) setSubscriptionPlansLoading(false);
       });
@@ -633,22 +828,34 @@ export default function Auth() {
       return;
     }
     if (isCaptchaEnabled() && !captchaToken) {
-      toast({ title: "Validation requise", description: "Validez le contrôle anti-abus avant de continuer.", variant: "destructive" });
+      toast({
+        title: "Validation requise",
+        description: "Validez le contrôle anti-abus avant de continuer.",
+        variant: "destructive",
+      });
       return;
     }
 
     setLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(signupForm.email, {
-      redirectTo: `${window.location.origin}/auth`,
-      captchaToken: captchaToken || undefined,
-    });
+    const { error } = await supabase.auth.resetPasswordForEmail(
+      signupForm.email,
+      {
+        redirectTo: `${window.location.origin}/auth`,
+        captchaToken: captchaToken || undefined,
+      },
+    );
 
     if (error) {
-      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive",
+      });
     } else {
       toast({
         title: "Email envoyé",
-        description: "Consultez votre boite mail pour reinitialiser votre mot de passe.",
+        description:
+          "Consultez votre boite mail pour reinitialiser votre mot de passe.",
       });
       setForgotPassword(false);
     }
@@ -672,7 +879,11 @@ export default function Auth() {
     });
 
     if (error) {
-      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive",
+      });
     } else {
       toast({
         title: "Email envoyé",
@@ -682,11 +893,17 @@ export default function Auth() {
     setResendLoading(false);
   };
 
-  const updateSignupField = <K extends keyof SignupFormState>(key: K, value: SignupFormState[K]) => {
+  const updateSignupField = <K extends keyof SignupFormState>(
+    key: K,
+    value: SignupFormState[K],
+  ) => {
     setSignupForm((current) => ({ ...current, [key]: value }));
   };
 
-  const handleDocumentChange = (documentType: SignupDocumentType, file: File | null) => {
+  const handleDocumentChange = (
+    documentType: SignupDocumentType,
+    file: File | null,
+  ) => {
     setDocuments((current) => ({
       ...current,
       [documentType]: file,
@@ -720,7 +937,10 @@ export default function Auth() {
       }
 
       const submittedRole = roleMode;
-      const submittedRequiredDocuments = getRequiredSignupDocuments(submittedRole, signupForm.vehicleType);
+      const submittedRequiredDocuments = getRequiredSignupDocuments(
+        submittedRole,
+        signupForm.vehicleType,
+      );
       const isPrivilegedSignup = submittedRole !== "client";
       const submittedOnboardingChoices = restaurateurOnboardingChoices;
       const submittedLegalAcceptance = createLegalAcceptancePayload();
@@ -731,9 +951,13 @@ export default function Auth() {
       const validationError = getSignupValidationError(
         submittedRole,
         signupForm,
-        submittedRole === "restaurateur" ? submittedOnboardingChoices : undefined,
+        submittedRole === "restaurateur"
+          ? submittedOnboardingChoices
+          : undefined,
         legalAccepted,
-        submittedRole === "restaurateur" ? submittedContractSignature : undefined,
+        submittedRole === "restaurateur"
+          ? submittedContractSignature
+          : undefined,
       );
       if (validationError) {
         throw new Error(validationError);
@@ -742,9 +966,14 @@ export default function Auth() {
         throw new Error("Validation anti-abus requise.");
       }
 
-      const missingDocuments = getMissingSignupDocuments(submittedRequiredDocuments, documents);
+      const missingDocuments = getMissingSignupDocuments(
+        submittedRequiredDocuments,
+        documents,
+      );
       if (missingDocuments.length > 0) {
-        throw new Error(`Documents manquants: ${missingDocuments.map((item) => item.label).join(", ")}.`);
+        throw new Error(
+          `Documents manquants: ${missingDocuments.map((item) => item.label).join(", ")}.`,
+        );
       }
 
       if (isPrivilegedSignup) {
@@ -771,12 +1000,14 @@ export default function Auth() {
 
       const activeUser = signUpResponse.data.user;
       const activeSession = signUpResponse.data.session;
-      shouldSignOutPrivilegedSignupSession = isPrivilegedSignup && Boolean(activeSession);
+      shouldSignOutPrivilegedSignupSession =
+        isPrivilegedSignup && Boolean(activeSession);
 
       if (!activeUser?.id) {
         toast({
           title: "Compte créé",
-          description: "Compte créé. Vérifiez votre email pour confirmer votre compte.",
+          description:
+            "Compte créé. Vérifiez votre email pour confirmer votre compte.",
         });
         if (isPrivilegedSignup) {
           setPrivilegedSignupSubmitting(false);
@@ -790,15 +1021,22 @@ export default function Auth() {
             userId: activeUser.id,
             role: submittedRole,
             form: signupForm,
-            onboardingChoices: submittedRole === "restaurateur" ? submittedOnboardingChoices : undefined,
+            onboardingChoices:
+              submittedRole === "restaurateur"
+                ? submittedOnboardingChoices
+                : undefined,
             documents,
             captchaToken,
             legalAcceptance: submittedLegalAcceptance,
-            contractSignature: submittedRole === "restaurateur" ? submittedContractSignature : undefined,
+            contractSignature:
+              submittedRole === "restaurateur"
+                ? submittedContractSignature
+                : undefined,
           });
           toast({
             title: "Inscription enregistrée",
-            description: "Votre dossier complet sera transmis à l'admin TOK après confirmation de votre email.",
+            description:
+              "Votre dossier complet sera transmis à l'admin TOK après confirmation de votre email.",
           });
           setDocuments({});
           setSignupForm(EMPTY_SIGNUP_FORM);
@@ -810,7 +1048,8 @@ export default function Auth() {
         } else {
           toast({
             title: "Compte créé",
-            description: "Compte créé. Vérifiez votre email pour confirmer votre compte.",
+            description:
+              "Compte créé. Vérifiez votre email pour confirmer votre compte.",
           });
         }
         return;
@@ -830,54 +1069,82 @@ export default function Auth() {
         uploadedDocuments.push(uploadedDocument);
       }
 
-      const { error: syncError } = await supabase.rpc("sync_signup_application", {
-        p_requested_role: submittedRole,
-        p_full_name: signupForm.fullName,
-        p_phone: signupForm.phone,
-        p_city: signupForm.city,
-        p_address: signupForm.address,
-        p_legal_name: submittedRole === "restaurateur" ? signupForm.legalName : null,
-        p_business_name: submittedRole === "restaurateur" ? signupForm.businessName : null,
-        p_business_registration_number:
-          submittedRole === "restaurateur" ? signupForm.businessRegistrationNumber : null,
-        p_tax_id: submittedRole === "restaurateur" ? signupForm.taxId : null,
-        p_restaurant_name: submittedRole === "restaurateur" ? signupForm.restaurantName : null,
-        p_restaurant_description:
-          submittedRole === "restaurateur" ? signupForm.restaurantDescription : null,
-        p_vehicle_type: submittedRole === "courier" ? signupForm.vehicleType : null,
-        p_license_plate: submittedRole === "courier" ? signupForm.licensePlate : null,
-        p_iban:
-          submittedRole === "courier" || submittedRole === "restaurateur" ? signupForm.iban : null,
-        p_metadata:
-          submittedRole === "courier"
-            ? {
-              ...splitCourierName(signupForm.fullName),
-              ...toLegalAcceptanceMetadata(submittedLegalAcceptance),
-            }
-            : submittedRole === "restaurateur"
+      const { error: syncError } = await supabase.rpc(
+        "sync_signup_application",
+        {
+          p_requested_role: submittedRole,
+          p_full_name: signupForm.fullName,
+          p_phone: signupForm.phone,
+          p_city: signupForm.city,
+          p_address: signupForm.address,
+          p_legal_name:
+            submittedRole === "restaurateur" ? signupForm.legalName : null,
+          p_business_name:
+            submittedRole === "restaurateur" ? signupForm.businessName : null,
+          p_business_registration_number:
+            submittedRole === "restaurateur"
+              ? signupForm.businessRegistrationNumber
+              : null,
+          p_tax_id: submittedRole === "restaurateur" ? signupForm.taxId : null,
+          p_restaurant_name:
+            submittedRole === "restaurateur" ? signupForm.restaurantName : null,
+          p_restaurant_description:
+            submittedRole === "restaurateur"
+              ? signupForm.restaurantDescription
+              : null,
+          p_vehicle_type:
+            submittedRole === "courier" ? signupForm.vehicleType : null,
+          p_license_plate:
+            submittedRole === "courier" ? signupForm.licensePlate : null,
+          p_iban:
+            submittedRole === "courier" || submittedRole === "restaurateur"
+              ? signupForm.iban
+              : null,
+          p_metadata:
+            submittedRole === "courier"
               ? {
-                onboarding_source: "auth_signup",
-                selected_subscription_plan_id: submittedOnboardingChoices.subscriptionPlanId,
-                selected_subscription_billing_period: submittedOnboardingChoices.subscriptionBillingPeriod,
-                onboarding_payment_status: "pending_payment",
-                contract_version: RESTAURANT_PARTNER_CONTRACT_VERSION,
-                contract_title: RESTAURANT_PARTNER_CONTRACT_TITLE,
-                contract_signer_name: submittedContractSignature.signerName.trim(),
-                contract_signature_data_url: submittedContractSignature.signatureDataUrl,
-                contract_signed_at: submittedLegalAcceptance.acceptedAt,
-                contract_signature_source: "auth_signup",
-                ...toLegalAcceptanceMetadata(submittedLegalAcceptance),
-              }
-              : { verification_source: "auth_signup", ...toLegalAcceptanceMetadata(submittedLegalAcceptance) },
-        p_documents: uploadedDocuments,
-      });
+                  ...splitCourierName(signupForm.fullName),
+                  ...toLegalAcceptanceMetadata(submittedLegalAcceptance),
+                }
+              : submittedRole === "restaurateur"
+                ? {
+                    onboarding_source: "auth_signup",
+                    selected_subscription_plan_id:
+                      submittedOnboardingChoices.subscriptionPlanId,
+                    selected_subscription_billing_period:
+                      submittedOnboardingChoices.subscriptionBillingPeriod,
+                    onboarding_payment_status: "pending_payment",
+                    contract_version: RESTAURANT_PARTNER_CONTRACT_VERSION,
+                    contract_title: RESTAURANT_PARTNER_CONTRACT_TITLE,
+                    contract_signer_name:
+                      submittedContractSignature.signerName.trim(),
+                    contract_signature_data_url:
+                      submittedContractSignature.signatureDataUrl,
+                    contract_signed_at: submittedLegalAcceptance.acceptedAt,
+                    contract_signature_source: "auth_signup",
+                    contract_signer_role: "Représentant autorisé",
+                    contract_content_hash: `${RESTAURANT_PARTNER_CONTRACT_VERSION}:${RESTAURANT_PARTNER_CONTRACT_SECTIONS.length}`,
+                    contract_acceptance_text:
+                      "J'ai lu et j'accepte l'intégralité du contrat restaurateur TOK et je déclare être habilité à engager le restaurateur.",
+                    ...toLegalAcceptanceMetadata(submittedLegalAcceptance),
+                  }
+                : {
+                    verification_source: "auth_signup",
+                    ...toLegalAcceptanceMetadata(submittedLegalAcceptance),
+                  },
+          p_documents: uploadedDocuments,
+        },
+      );
 
       if (syncError) {
         throw syncError;
       }
 
       toast({
-        title: submittedRole === "client" ? "Compte crée" : "Inscription enregistrée",
+        title:
+          submittedRole === "client"
+            ? "Compte crée"
+            : "Inscription enregistrée",
         description:
           submittedRole === "client"
             ? "Votre compte est actif. Vous pouvez continuer votre parcours."
@@ -906,12 +1173,16 @@ export default function Auth() {
       if (shouldSignOutPrivilegedSignupSession) {
         const { error: signOutError } = await supabase.auth.signOut();
         if (signOutError) {
-          console.error("[auth] failed to close privileged signup session", signOutError);
+          console.error(
+            "[auth] failed to close privileged signup session",
+            signOutError,
+          );
         }
       } else {
         setPrivilegedSignupSubmitting(false);
       }
-      const message = error instanceof Error ? error.message : "Une erreur est survenue.";
+      const message =
+        error instanceof Error ? error.message : "Une erreur est survenue.";
       toast({ title: "Erreur", description: message, variant: "destructive" });
     } finally {
       setLoading(false);
@@ -923,9 +1194,15 @@ export default function Auth() {
       <div className="min-h-screen flex items-center justify-center bg-secondary/10 px-4">
         <Card className="w-full max-w-md shadow-lg border-0">
           <CardHeader className="text-center space-y-2">
-            <img src={logoSrc} alt="Tok" className="mx-auto h-18 w-auto object-contain mb-2" />
+            <img
+              src={logoSrc}
+              alt="Tok"
+              className="mx-auto h-18 w-auto object-contain mb-2"
+            />
             <CardTitle className="font-display text-2xl">Bienvenue</CardTitle>
-            <CardDescription>Choisissez votre espace pour continuer</CardDescription>
+            <CardDescription>
+              Choisissez votre espace pour continuer
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {switchableRoles.map((role) => {
@@ -941,7 +1218,9 @@ export default function Auth() {
                   </div>
                   <div>
                     <p className="font-bold text-base">{config.label}</p>
-                    <p className="text-xs text-muted-foreground">{config.desc}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {config.desc}
+                    </p>
                   </div>
                 </button>
               );
@@ -958,9 +1237,17 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center bg-secondary/10 px-4 py-10">
       <Card className="w-full max-w-3xl shadow-lg border-0">
         <CardHeader className="text-center space-y-3">
-          <img src={logoSrc} alt="Tok" className="mx-auto h-20 w-auto object-contain" />
+          <img
+            src={logoSrc}
+            alt="Tok"
+            className="mx-auto h-20 w-auto object-contain"
+          />
           <CardTitle className="font-display text-2xl">
-            {isLogin ? "Bon retour" : isClientSignup ? "Créer votre compte" : "Créer un compte vérifié"}
+            {isLogin
+              ? "Bon retour"
+              : isClientSignup
+                ? "Créer votre compte"
+                : "Créer un compte vérifié"}
           </CardTitle>
           <CardDescription>
             {isLogin
@@ -977,16 +1264,25 @@ export default function Auth() {
             <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-sm">
               <p className="font-medium">Connexion requise pour continuer</p>
               <p className="pt-1 text-muted-foreground">
-                Une fois connecté, vous reviendrez automatiquement à votre parcours en cours.
+                Une fois connecté, vous reviendrez automatiquement à votre
+                parcours en cours.
               </p>
             </div>
           ) : null}
           {!isLogin ? (
-            <Tabs value={roleMode} onValueChange={(value) => setRoleMode(value as SignupRole)} className="w-full">
-              <TabsList className={`grid w-full ${courierSignupEnabled ? "grid-cols-3" : "grid-cols-2"}`}>
+            <Tabs
+              value={roleMode}
+              onValueChange={(value) => setRoleMode(value as SignupRole)}
+              className="w-full"
+            >
+              <TabsList
+                className={`grid w-full ${courierSignupEnabled ? "grid-cols-3" : "grid-cols-2"}`}
+              >
                 <TabsTrigger value="client">Client</TabsTrigger>
                 <TabsTrigger value="restaurateur">Restaurateur</TabsTrigger>
-                {courierSignupEnabled ? <TabsTrigger value="courier">Livreur</TabsTrigger> : null}
+                {courierSignupEnabled ? (
+                  <TabsTrigger value="courier">Livreur</TabsTrigger>
+                ) : null}
               </TabsList>
             </Tabs>
           ) : null}
@@ -994,7 +1290,9 @@ export default function Auth() {
           {!isLogin ? (
             <div className="rounded-xl border bg-muted/30 p-4 text-sm">
               <p className="font-medium">{SIGNUP_ROLE_META[roleMode].label}</p>
-              <p className="pt-1 text-muted-foreground">{SIGNUP_ROLE_META[roleMode].description}</p>
+              <p className="pt-1 text-muted-foreground">
+                {SIGNUP_ROLE_META[roleMode].description}
+              </p>
             </div>
           ) : null}
 
@@ -1006,13 +1304,22 @@ export default function Auth() {
                   id="reset-email"
                   type="email"
                   value={signupForm.email}
-                  onChange={(event) => updateSignupField("email", event.target.value)}
+                  onChange={(event) =>
+                    updateSignupField("email", event.target.value)
+                  }
                   placeholder="vous@exemple.com"
                   required
                 />
               </div>
-              <TurnstileCaptcha action="auth_reset_password" onTokenChange={setCaptchaToken} />
-              <Button className="w-full" onClick={handleResetPassword} disabled={loading}>
+              <TurnstileCaptcha
+                action="auth_reset_password"
+                onTokenChange={setCaptchaToken}
+              />
+              <Button
+                className="w-full"
+                onClick={handleResetPassword}
+                disabled={loading}
+              >
                 {loading ? "Envoi..." : "Réinitialiser le mot de passe"}
               </Button>
               <button
@@ -1039,7 +1346,9 @@ export default function Auth() {
                       id="email-login"
                       type="email"
                       value={signupForm.email}
-                      onChange={(event) => updateSignupField("email", event.target.value)}
+                      onChange={(event) =>
+                        updateSignupField("email", event.target.value)
+                      }
                       placeholder="vous@exemple.com"
                       required
                     />
@@ -1047,7 +1356,9 @@ export default function Auth() {
                     <Input
                       id="fullName"
                       value={signupForm.fullName}
-                      onChange={(event) => updateSignupField("fullName", event.target.value)}
+                      onChange={(event) =>
+                        updateSignupField("fullName", event.target.value)
+                      }
                       placeholder="Jean Dupont"
                       required
                     />
@@ -1061,21 +1372,33 @@ export default function Auth() {
                       id="password"
                       type={showPassword ? "text" : "password"}
                       value={signupForm.password}
-                      onChange={(event) => updateSignupField("password", event.target.value)}
+                      onChange={(event) =>
+                        updateSignupField("password", event.target.value)
+                      }
                       placeholder="********"
                       required
                       minLength={6}
-                      autoComplete={isLogin ? "current-password" : "new-password"}
+                      autoComplete={
+                        isLogin ? "current-password" : "new-password"
+                      }
                       className="pr-11"
                     />
                     <button
                       type="button"
-                      aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                      aria-label={
+                        showPassword
+                          ? "Masquer le mot de passe"
+                          : "Afficher le mot de passe"
+                      }
                       aria-pressed={showPassword}
                       onClick={() => setShowPassword((current) => !current)}
                       className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-md text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                     >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
                     </button>
                   </div>
                 </div>
@@ -1087,7 +1410,9 @@ export default function Auth() {
                       id="email"
                       type="email"
                       value={signupForm.email}
-                      onChange={(event) => updateSignupField("email", event.target.value)}
+                      onChange={(event) =>
+                        updateSignupField("email", event.target.value)
+                      }
                       placeholder="vous@exemple.com"
                       required
                     />
@@ -1101,7 +1426,9 @@ export default function Auth() {
                       <Input
                         id="phone"
                         value={signupForm.phone}
-                        onChange={(event) => updateSignupField("phone", event.target.value)}
+                        onChange={(event) =>
+                          updateSignupField("phone", event.target.value)
+                        }
                         placeholder="+41 79 000 00 00"
                         required
                       />
@@ -1111,7 +1438,9 @@ export default function Auth() {
                       <CityAutocomplete
                         id="city"
                         value={signupForm.city}
-                        onValueChange={(value) => updateSignupField("city", value)}
+                        onValueChange={(value) =>
+                          updateSignupField("city", value)
+                        }
                         onCitySelect={(city) => updateSignupField("city", city)}
                         placeholder="Ville de rattachement"
                       />
@@ -1122,7 +1451,9 @@ export default function Auth() {
                         id="address"
                         value={signupForm.address}
                         preferredCity={signupForm.city}
-                        onValueChange={(value) => updateSignupField("address", value)}
+                        onValueChange={(value) =>
+                          updateSignupField("address", value)
+                        }
                         onAddressSelect={(address, city) => {
                           updateSignupField("address", address);
                           if (city) updateSignupField("city", city);
@@ -1138,7 +1469,9 @@ export default function Auth() {
                 <div className="rounded-2xl border bg-card/50 p-4 text-sm">
                   <p className="font-medium">Inscription simplifiee</p>
                   <p className="pt-1 text-muted-foreground">
-                    Aucun document d&apos;identité n&apos;est demandé pour un compte client. Vos coordonnées de livraison seront renseignées plus tard, uniquement si nécessaire.
+                    Aucun document d&apos;identité n&apos;est demandé pour un
+                    compte client. Vos coordonnées de livraison seront
+                    renseignées plus tard, uniquement si nécessaire.
                   </p>
                 </div>
               ) : null}
@@ -1150,7 +1483,9 @@ export default function Auth() {
                     <Input
                       id="businessName"
                       value={signupForm.businessName}
-                      onChange={(event) => updateSignupField("businessName", event.target.value)}
+                      onChange={(event) =>
+                        updateSignupField("businessName", event.target.value)
+                      }
                       placeholder="Tok Rive Gauche"
                     />
                   </div>
@@ -1159,17 +1494,24 @@ export default function Auth() {
                     <Input
                       id="legalName"
                       value={signupForm.legalName}
-                      onChange={(event) => updateSignupField("legalName", event.target.value)}
+                      onChange={(event) =>
+                        updateSignupField("legalName", event.target.value)
+                      }
                       placeholder="Tok Sarl"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="businessRegistrationNumber">Numéro d'immatriculation</Label>
+                    <Label htmlFor="businessRegistrationNumber">
+                      Numéro d'immatriculation
+                    </Label>
                     <Input
                       id="businessRegistrationNumber"
                       value={signupForm.businessRegistrationNumber}
                       onChange={(event) =>
-                        updateSignupField("businessRegistrationNumber", event.target.value)
+                        updateSignupField(
+                          "businessRegistrationNumber",
+                          event.target.value,
+                        )
                       }
                       placeholder="CHE-123.456.789"
                     />
@@ -1179,7 +1521,9 @@ export default function Auth() {
                     <Input
                       id="taxId"
                       value={signupForm.taxId}
-                      onChange={(event) => updateSignupField("taxId", event.target.value)}
+                      onChange={(event) =>
+                        updateSignupField("taxId", event.target.value)
+                      }
                       placeholder="CHE-123.456 TVA"
                     />
                   </div>
@@ -1188,7 +1532,9 @@ export default function Auth() {
                     <Input
                       id="restaurantName"
                       value={signupForm.restaurantName}
-                      onChange={(event) => updateSignupField("restaurantName", event.target.value)}
+                      onChange={(event) =>
+                        updateSignupField("restaurantName", event.target.value)
+                      }
                       placeholder="Le Comptoir Tok"
                     />
                   </div>
@@ -1197,17 +1543,24 @@ export default function Auth() {
                     <Input
                       id="iban-restaurateur"
                       value={signupForm.iban}
-                      onChange={(event) => updateSignupField("iban", event.target.value)}
+                      onChange={(event) =>
+                        updateSignupField("iban", event.target.value)
+                      }
                       placeholder="CH93 0076 2011 6238 5295 7"
                     />
                   </div>
                   <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="restaurantDescription">Description du restaurant (optionnel)</Label>
+                    <Label htmlFor="restaurantDescription">
+                      Description du restaurant (optionnel)
+                    </Label>
                     <Textarea
                       id="restaurantDescription"
                       value={signupForm.restaurantDescription}
                       onChange={(event) =>
-                        updateSignupField("restaurantDescription", event.target.value)
+                        updateSignupField(
+                          "restaurantDescription",
+                          event.target.value,
+                        )
                       }
                       placeholder="Cuisine, positionnement, specialites..."
                     />
@@ -1224,8 +1577,9 @@ export default function Auth() {
                     <div>
                       <p className="font-medium">Abonnement restaurateur</p>
                       <p className="text-sm text-muted-foreground">
-                        Ce choix est joint au dossier. Le paiement sera demandé depuis le dashboard
-                        avant la validation finale par l'administration.
+                        Ce choix est joint au dossier. Le paiement sera demandé
+                        depuis le dashboard avant la validation finale par
+                        l'administration.
                       </p>
                     </div>
                   </div>
@@ -1240,28 +1594,45 @@ export default function Auth() {
                     ) : subscriptionPlans.length > 0 ? (
                       <div className="grid gap-3 md:grid-cols-2">
                         {subscriptionPlans.map((plan) => {
-                          const selected = selectedSubscriptionPlanId === plan.id;
+                          const selected =
+                            selectedSubscriptionPlanId === plan.id;
                           const amount = plan.price_monthly_chf;
                           return (
                             <button
                               key={plan.id}
                               type="button"
                               className={`rounded-xl border p-4 text-left transition-colors ${
-                                selected ? "border-primary bg-primary/10" : "bg-background hover:border-primary/50"
+                                selected
+                                  ? "border-primary bg-primary/10"
+                                  : "bg-background hover:border-primary/50"
                               }`}
-                              onClick={() => setSelectedSubscriptionPlanId(plan.id)}
+                              onClick={() =>
+                                setSelectedSubscriptionPlanId(plan.id)
+                              }
                             >
-                              <span className="block text-sm font-semibold">{plan.name}</span>
+                              <span className="block text-sm font-semibold">
+                                {plan.name}
+                              </span>
                               <span className="block pt-1 text-xs text-muted-foreground">
-                                {plan.description || "Abonnement TOK pour activer le partenariat."}
+                                {plan.description ||
+                                  "Abonnement TOK pour activer le partenariat."}
                               </span>
                               <span className="block pt-3 text-sm font-bold">
                                 {formatChf(amount)} / mois
                               </span>
                               <span className="mt-3 grid gap-1 text-xs text-muted-foreground">
-                                <span>{formatChf(plan.campaign_credit_chf)} de crédits campagnes / mois</span>
-                                <span>{plan.ai_tool_credits} crédits outils IA / mois</span>
-                                <span>{plan.ai_photo_credits} crédits photo IA / mois</span>
+                                <span>
+                                  {formatChf(plan.campaign_credit_chf)} de
+                                  crédits campagnes / mois
+                                </span>
+                                <span>
+                                  {plan.ai_tool_credits} crédits outils IA /
+                                  mois
+                                </span>
+                                <span>
+                                  {plan.ai_photo_credits} crédits photo IA /
+                                  mois
+                                </span>
                               </span>
                             </button>
                           );
@@ -1269,14 +1640,17 @@ export default function Auth() {
                       </div>
                     ) : (
                       <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
-                        Aucun abonnement actif n'est disponible. Contactez TOK avant de poursuivre.
+                        Aucun abonnement actif n'est disponible. Contactez TOK
+                        avant de poursuivre.
                       </div>
                     )}
                   </div>
 
                   {selectedSubscriptionPlan ? (
                     <div className="rounded-xl border bg-background p-3 text-sm">
-                      <p className="font-medium">Abonnement à régler après création du dossier</p>
+                      <p className="font-medium">
+                        Abonnement à régler après création du dossier
+                      </p>
                       <p className="pt-1 text-muted-foreground">
                         {formatChf(selectedSubscriptionPrice)} / mois.
                       </p>
@@ -1291,7 +1665,9 @@ export default function Auth() {
                     <Label htmlFor="vehicleType">Véhicule</Label>
                     <Select
                       value={signupForm.vehicleType}
-                      onValueChange={(value) => updateSignupField("vehicleType", value)}
+                      onValueChange={(value) =>
+                        updateSignupField("vehicleType", value)
+                      }
                     >
                       <SelectTrigger id="vehicleType">
                         <SelectValue />
@@ -1310,16 +1686,22 @@ export default function Auth() {
                     <Input
                       id="iban-courier"
                       value={signupForm.iban}
-                      onChange={(event) => updateSignupField("iban", event.target.value)}
+                      onChange={(event) =>
+                        updateSignupField("iban", event.target.value)
+                      }
                       placeholder="CH93 0076 2011 6238 5295 7"
                     />
                   </div>
                   <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="licensePlate">Plaque d'immatriculation</Label>
+                    <Label htmlFor="licensePlate">
+                      Plaque d'immatriculation
+                    </Label>
                     <Input
                       id="licensePlate"
                       value={signupForm.licensePlate}
-                      onChange={(event) => updateSignupField("licensePlate", event.target.value)}
+                      onChange={(event) =>
+                        updateSignupField("licensePlate", event.target.value)
+                      }
                       placeholder="Obligatoire pour scooter ou voiture"
                     />
                   </div>
@@ -1341,8 +1723,9 @@ export default function Auth() {
                   <div>
                     <p className="font-medium">Documents a fournir</p>
                     <p className="text-sm text-muted-foreground">
-                      Chaque profil impose des pieces justificatives différentes. Les fichiers sont
-                      stockés dans un espace privé et revus par l'administration.
+                      Chaque profil impose des pieces justificatives
+                      différentes. Les fichiers sont stockés dans un espace
+                      privé et revus par l'administration.
                     </p>
                   </div>
 
@@ -1356,19 +1739,29 @@ export default function Auth() {
                         >
                           <div className="space-y-1">
                             <p className="font-medium">{requirement.label}</p>
-                            <p className="text-xs text-muted-foreground">{requirement.description}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {requirement.description}
+                            </p>
                           </div>
                           <div className="flex items-center justify-between gap-3 rounded-lg border bg-background px-3 py-2 text-sm">
                             <div className="min-w-0">
                               <p className="truncate">
-                                {selectedFile ? selectedFile.name : "Aucun fichier sélectionné"}
+                                {selectedFile
+                                  ? selectedFile.name
+                                  : "Aucun fichier sélectionné"}
                               </p>
                               <p className="text-xs text-muted-foreground">
-                                {selectedFile ? `${Math.round(selectedFile.size / 1024)} KB` : requirement.accept}
+                                {selectedFile
+                                  ? `${Math.round(selectedFile.size / 1024)} KB`
+                                  : requirement.accept}
                               </p>
                             </div>
                             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary">
-                              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                              {loading ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Upload className="h-4 w-4" />
+                              )}
                             </div>
                           </div>
                           <Input
@@ -1376,7 +1769,10 @@ export default function Auth() {
                             className="hidden"
                             accept={requirement.accept}
                             onChange={(event) =>
-                              handleDocumentChange(requirement.type, event.target.files?.[0] || null)
+                              handleDocumentChange(
+                                requirement.type,
+                                event.target.files?.[0] || null,
+                              )
                             }
                             disabled={loading}
                           />
@@ -1391,7 +1787,8 @@ export default function Auth() {
                 <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
                   <p className="font-medium">Conditions acceptées</p>
                   <p className="mt-1 text-emerald-800">
-                    Vous pouvez finaliser votre inscription. Les liens juridiques restent accessibles depuis le pied de page.
+                    Vous pouvez finaliser votre inscription. Les liens
+                    juridiques restent accessibles depuis le pied de page.
                   </p>
                 </div>
               ) : null}
@@ -1408,11 +1805,16 @@ export default function Auth() {
                       <Shield className="h-6 w-6" />
                     </div>
                     <div className="mt-5 text-center">
-                      <h2 id="legal-acceptance-title" className="text-xl font-semibold">
+                      <h2
+                        id="legal-acceptance-title"
+                        className="text-xl font-semibold"
+                      >
                         Accepter les conditions générales
                       </h2>
                       <p className="mt-2 text-sm leading-6 text-slate-600">
-                        Avant de créer votre compte TOK, confirmez que vous avez lu et accepté les conditions applicables et la politique de confidentialité.
+                        Avant de créer votre compte TOK, confirmez que vous avez
+                        lu et accepté les conditions applicables et la politique
+                        de confidentialité.
                       </p>
                     </div>
                     <label
@@ -1422,13 +1824,19 @@ export default function Auth() {
                       <Checkbox
                         id="legal-acceptance"
                         checked={legalAccepted}
-                        onCheckedChange={(checked) => setLegalAccepted(checked === true)}
+                        onCheckedChange={(checked) =>
+                          setLegalAccepted(checked === true)
+                        }
                         aria-label="J'accepte les CGU et la politique de confidentialité"
                         className="mt-0.5"
                       />
                       <span className="leading-6 text-slate-700">
                         J'accepte les{" "}
-                        <Link to="/cgu" target="_blank" className="font-semibold text-primary hover:underline">
+                        <Link
+                          to="/cgu"
+                          target="_blank"
+                          className="font-semibold text-primary hover:underline"
+                        >
                           CGU
                         </Link>{" "}
                         et la{" "}
@@ -1443,13 +1851,17 @@ export default function Auth() {
                       </span>
                     </label>
                     <p className="mt-4 text-center text-xs leading-5 text-slate-500">
-                      Le formulaire reste affiché derrière cette fenêtre, mais il sera accessible après acceptation.
+                      Le formulaire reste affiché derrière cette fenêtre, mais
+                      il sera accessible après acceptation.
                     </p>
                   </div>
                 </div>
               ) : null}
 
-              <TurnstileCaptcha action={isLogin ? "auth_login" : `auth_signup_${roleMode}`} onTokenChange={setCaptchaToken} />
+              <TurnstileCaptcha
+                action={isLogin ? "auth_login" : `auth_signup_${roleMode}`}
+                onTokenChange={setCaptchaToken}
+              />
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? (
                   <>
@@ -1492,7 +1904,9 @@ export default function Auth() {
                       <span className="w-full border-t" />
                     </div>
                     <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-card px-2 text-muted-foreground">ou</span>
+                      <span className="bg-card px-2 text-muted-foreground">
+                        ou
+                      </span>
                     </div>
                   </div>
 
@@ -1504,15 +1918,39 @@ export default function Auth() {
                       try {
                         const { error } = await supabase.auth.signInWithOAuth({
                           provider: "google",
-                          options: { redirectTo: `${window.location.origin}/auth` },
+                          options: {
+                            redirectTo: `${window.location.origin}/auth`,
+                          },
                         });
                         if (error) throw error;
                       } catch {
-                        toast({ title: "Google indisponible", description: "La connexion via Google sera bientot disponible.", variant: "destructive" });
+                        toast({
+                          title: "Google indisponible",
+                          description:
+                            "La connexion via Google sera bientot disponible.",
+                          variant: "destructive",
+                        });
                       }
                     }}
                   >
-                    <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                    <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+                      <path
+                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
+                        fill="#4285F4"
+                      />
+                      <path
+                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                        fill="#34A853"
+                      />
+                      <path
+                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                        fill="#FBBC05"
+                      />
+                      <path
+                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                        fill="#EA4335"
+                      />
+                    </svg>
                     Continuer avec Google
                   </Button>
 
@@ -1524,15 +1962,28 @@ export default function Auth() {
                       try {
                         const { error } = await supabase.auth.signInWithOAuth({
                           provider: "apple",
-                          options: { redirectTo: `${window.location.origin}/auth` },
+                          options: {
+                            redirectTo: `${window.location.origin}/auth`,
+                          },
                         });
                         if (error) throw error;
                       } catch {
-                        toast({ title: "Apple indisponible", description: "La connexion via Apple sera bientot disponible.", variant: "destructive" });
+                        toast({
+                          title: "Apple indisponible",
+                          description:
+                            "La connexion via Apple sera bientot disponible.",
+                          variant: "destructive",
+                        });
                       }
                     }}
                   >
-                    <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.32 2.32-2.12 4.56-3.74 4.25z"/></svg>
+                    <svg
+                      className="mr-2 h-4 w-4"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.32 2.32-2.12 4.56-3.74 4.25z" />
+                    </svg>
                     Continuer avec Apple
                   </Button>
                 </>
@@ -1561,7 +2012,9 @@ export default function Auth() {
               }}
               className="text-sm text-muted-foreground transition-colors hover:text-primary"
             >
-              {isLogin ? "Pas encore de compte ? S'inscrire" : "Déjà un compte ? Se connecter"}
+              {isLogin
+                ? "Pas encore de compte ? S'inscrire"
+                : "Déjà un compte ? Se connecter"}
             </button>
           </div>
         </CardContent>

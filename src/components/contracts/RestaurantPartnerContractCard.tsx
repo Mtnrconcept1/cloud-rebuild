@@ -44,6 +44,7 @@ type RestaurantContractDetails = {
   legal_name?: string | null;
   business_name?: string | null;
   business_registration_number?: string | null;
+  tax_id?: string | null;
   address?: string | null;
   city?: string | null;
   phone?: string | null;
@@ -116,7 +117,10 @@ export default function RestaurantPartnerContractCard({
     !currentContract,
   );
   const { data: restaurateurProfile } = useQuery({
-    queryKey: ["restaurant-contract-signer-profile", currentContract?.signed_by],
+    queryKey: [
+      "restaurant-contract-signer-profile",
+      currentContract?.signed_by,
+    ],
     enabled: Boolean(currentContract?.signed_by),
     queryFn: async () => {
       const { data, error } = await supabase
@@ -153,6 +157,22 @@ export default function RestaurantPartnerContractCard({
       restaurantAddress: restaurant.address,
       restaurantPhone: restaurant.phone,
       businessRegistrationNumber: restaurant.business_registration_number,
+      taxId: restaurant.tax_id,
+      signerRole:
+        typeof metadata.signer_role === "string"
+          ? metadata.signer_role
+          : "Représentant autorisé",
+      signerEmail: user?.email,
+      userId: contract.signed_by,
+      restaurantId: contract.restaurant_id,
+      contractHash:
+        typeof metadata.contract_content_hash === "string"
+          ? metadata.contract_content_hash
+          : undefined,
+      acceptanceText:
+        typeof metadata.acceptance_text === "string"
+          ? metadata.acceptance_text
+          : undefined,
       city: restaurant.city,
       place: restaurant.city,
     });
@@ -164,12 +184,12 @@ export default function RestaurantPartnerContractCard({
     if (!exported) {
       toast({
         title: "Export PDF impossible",
-        description: "Le navigateur n'a pas pu ouvrir la fenêtre d'impression du contrat.",
+        description:
+          "Le navigateur n'a pas pu ouvrir la fenêtre d'impression du contrat.",
         variant: "destructive",
       });
     }
   };
-
 
   const handleSign = async () => {
     if (!restaurantId || !user || !canSign) return;
@@ -186,6 +206,14 @@ export default function RestaurantPartnerContractCard({
           accepted_authority: acceptedAuthority,
           accepted_contract: acceptedContract,
           signature_metadata: {
+            signer_role: "Représentant autorisé",
+            acceptance_text:
+              "J'ai lu et j'accepte l'intégralité du contrat restaurateur TOK et je déclare être habilité à engager le restaurateur.",
+            contract_content_hash: `${RESTAURANT_PARTNER_CONTRACT_VERSION}:${RESTAURANT_PARTNER_CONTRACT_SECTIONS.length}`,
+            signed_user_id: user.id,
+            signed_restaurant_id: restaurantId,
+            signed_email: user.email || null,
+            signed_at_client: new Date().toISOString(),
             user_agent:
               typeof navigator !== "undefined" ? navigator.userAgent : null,
             source:
