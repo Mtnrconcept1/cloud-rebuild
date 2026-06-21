@@ -127,11 +127,22 @@ describe("phase 1 launch audit plan readiness", () => {
     expect(manifest.start_url).toBe("/?source=pwa");
     expect(manifest.screenshots?.map((screenshot) => screenshot.form_factor).sort()).toEqual(["narrow", "wide"]);
     expect(manifest.shortcuts?.map((shortcut) => shortcut.name)).toEqual([
+      "TOK Pulse",
       "Réserver",
-      "Offres",
-      "Miamz",
-      "Restaurateurs",
+      "Offres flash",
+      "Scanner fidélité",
     ]);
+  });
+
+  it("exposes the TOK Pulse iPhone PWA widget landing page", () => {
+    const app = readProjectFile("src/App.tsx");
+    const page = readProjectFile("src/pages/TokPulse.tsx");
+
+    expect(app).toContain('const TokPulse = lazy(() => import("./pages/TokPulse"))');
+    expect(app).toContain('<Route path="/tok-pulse" element={<ClientSurfaceRoute><TokPulse /></ClientSurfaceRoute>} />');
+    expect(page).toContain("TOK Pulse · présence iPhone");
+    expect(page).toContain("Un widget TOK qui agit comme un gros bouton vivant.");
+    expect(page).toContain("Aucun faux compteur marketing.");
   });
 
   it("routes /restaurateurs/geneve to a dedicated B2B landing page", () => {
