@@ -162,75 +162,8 @@ Deno.serve(async (req) => {
     };
 
     if (effectiveKind === "launch-pack") {
-      const packId = String(order_metadata?.pack_id || "");
-      const restaurantId = String(order_metadata?.restaurant_id || "");
-      if (!packId) throw new HttpError(400, "pack_id requis");
-      if (!restaurantId) throw new HttpError(400, "restaurant_id requis");
-
-      auditTargetEntityType = "launch_packs";
-      auditTargetEntityId = packId;
-
-      await requireRestaurantAccess(actor, restaurantId);
-
-      const { data: pack, error: packError } = await actor.adminClient
-        .from("launch_packs")
-        .select("id, slug, name, price_chf, services, is_active")
-        .eq("id", packId)
-        .eq("is_active", true)
-        .maybeSingle();
-
-      if (packError) throw new HttpError(500, packError.message);
-      if (!pack) throw new HttpError(404, "Pack introuvable ou inactif");
-
-      const packAmount = Number(pack.price_chf);
-      if (packAmount <= 0) throw new HttpError(400, "Prix du pack invalide");
-
-      // Check no existing active pack for this restaurant
-      const { data: existingPack } = await actor.adminClient
-        .from("restaurant_launch_packs")
-        .select("id, status")
-        .eq("restaurant_id", restaurantId)
-        .eq("pack_id", packId)
-        .not("status", "eq", "cancelled")
-        .maybeSingle();
-
-      if (existingPack) throw new HttpError(409, "Ce pack est deja achete pour ce restaurant");
-
-      // Create pending record
-      const { data: purchaseRecord, error: purchaseError } = await actor.adminClient
-        .from("restaurant_launch_packs")
-        .insert({
-          restaurant_id: restaurantId,
-          pack_id: packId,
-          purchased_by: actor.userId,
-          status: "pending_payment",
-        })
-        .select("id")
-        .single();
-
-      if (purchaseError) throw new HttpError(500, purchaseError.message);
-
-      lineItems = [{
-        price_data: {
-          currency: "chf",
-          product_data: {
-            name: `Pack de lancement - ${pack.name}`,
-          },
-          unit_amount: Math.round(packAmount * 100),
-        },
-        quantity: 1,
-      }];
-
-      sessionMetadata = {
-        ...sessionMetadata,
-        restaurant_id: restaurantId,
-        pack_id: pack.id,
-        pack_slug: pack.slug,
-        restaurant_launch_pack_id: purchaseRecord.id,
-        authoritative_total: packAmount.toFixed(2),
-      };
+      throw new HttpError(410, "Les packs de lancement ne sont plus commercialises. Choisissez un abonnement ou un pack de credits IA.");
     } else if (effectiveKind === "restaurant-onboarding") {
-      const packId = String(order_metadata?.pack_id || "");
       const planId = String(order_metadata?.plan_id || "");
       const restaurantId = String(order_metadata?.restaurant_id || "");
       const signupApplicationId = String(order_metadata?.signup_application_id || "");
@@ -238,7 +171,6 @@ Deno.serve(async (req) => {
         ? "yearly"
         : "monthly";
 
-      if (!packId) throw new HttpError(400, "pack_id requis");
       if (!planId) throw new HttpError(400, "plan_id requis");
       if (!restaurantId) throw new HttpError(400, "restaurant_id requis");
       if (billingPeriod !== "monthly") throw new HttpError(400, "Les abonnements restaurateur sont mensuels");
@@ -269,15 +201,11 @@ Deno.serve(async (req) => {
           ? application.metadata as Record<string, unknown>
           : {};
         const applicationRestaurantId = String(applicationMetadata.restaurant_id || "");
-        const selectedPackId = String(applicationMetadata.selected_launch_pack_id || "");
         const selectedPlanId = String(applicationMetadata.selected_subscription_plan_id || "");
         const selectedBillingPeriod = String(applicationMetadata.selected_subscription_billing_period || "monthly");
 
         if (applicationRestaurantId && applicationRestaurantId !== restaurantId) {
           throw new HttpError(403, "Restaurant du dossier invalide");
-        }
-        if (selectedPackId && selectedPackId !== packId) {
-          throw new HttpError(400, "Le pack choisi ne correspond pas au dossier");
         }
         if (selectedPlanId && selectedPlanId !== planId) {
           throw new HttpError(400, "L'abonnement choisi ne correspond pas au dossier");
@@ -287,30 +215,17 @@ Deno.serve(async (req) => {
         }
       }
 
-      const [{ data: pack, error: packError }, { data: plan, error: planError }] = await Promise.all([
-        actor.adminClient
-          .from("launch_packs")
-          .select("id, slug, name, price_chf, services, is_active")
-          .eq("id", packId)
-          .eq("is_active", true)
-          .maybeSingle(),
-        actor.adminClient
-          .from("restaurant_subscription_plans")
-          .select("id, slug, name, description, price_monthly_chf, campaign_credit_chf, ai_tool_credits, ai_photo_credits, monthly_conversation_limit, monthly_text_tool_limit, monthly_image_limit, monthly_premium_image_limit, monthly_voice_minutes_limit, is_active")
-          .eq("id", planId)
-          .eq("is_active", true)
-          .maybeSingle(),
-      ]);
+      const { data: plan, error: planError } = await actor.adminClient
+        .from("restaurant_subscription_plans")
+        .select("id, slug, name, description, price_monthly_chf, campaign_credit_chf, ai_tool_credits, ai_photo_credits, monthly_conversation_limit, monthly_text_tool_limit, monthly_image_limit, monthly_premium_image_limit, monthly_voice_minutes_limit, is_active")
+        .eq("id", planId)
+        .eq("is_active", true)
+        .maybeSingle();
 
-      if (packError) throw new HttpError(500, packError.message);
       if (planError) throw new HttpError(500, planError.message);
-      if (!pack) throw new HttpError(404, "Pack introuvable ou inactif");
       if (!plan) throw new HttpError(404, "Plan introuvable ou inactif");
 
-      const packAmount = Number(pack.price_chf);
       const subscriptionAmount = Number(plan.price_monthly_chf);
-
-      if (packAmount <= 0) throw new HttpError(400, "Prix du pack invalide");
       if (subscriptionAmount <= 0) throw new HttpError(400, "Prix du plan invalide");
 
       const { data: existingSub, error: existingSubError } = await actor.adminClient
@@ -331,90 +246,34 @@ Deno.serve(async (req) => {
         throw new HttpError(409, "Vous avez deja un abonnement actif");
       }
 
-      const { data: existingPack, error: existingPackError } = await actor.adminClient
-        .from("restaurant_launch_packs")
-        .select("id, status")
-        .eq("restaurant_id", restaurantId)
-        .eq("pack_id", packId)
-        .maybeSingle();
-
-      if (existingPackError) throw new HttpError(500, existingPackError.message);
-      if (existingPack && existingPack.status !== "pending_payment" && existingPack.status !== "cancelled") {
-        throw new HttpError(409, "Ce pack est deja achete pour ce restaurant");
-      }
-
-      const purchasePayload = {
-        restaurant_id: restaurantId,
-        pack_id: packId,
-        purchased_by: actor.userId,
-        status: "pending_payment",
-        metadata: {
-          checkout_kind: "restaurant-onboarding",
-          signup_application_id: signupApplicationId || null,
-          plan_id: planId,
-          billing_period: "monthly",
-        },
-      };
-
-      const { data: purchaseRecord, error: purchaseError } = existingPack?.id
-        ? await actor.adminClient
-          .from("restaurant_launch_packs")
-          .update(purchasePayload)
-          .eq("id", existingPack.id)
-          .select("id")
-          .single()
-        : await actor.adminClient
-          .from("restaurant_launch_packs")
-          .insert(purchasePayload)
-          .select("id")
-          .single();
-
-      if (purchaseError) throw new HttpError(500, purchaseError.message);
-
-      lineItems = [
-        {
-          price_data: {
-            currency: "chf",
-            product_data: {
-              name: `Pack de lancement - ${pack.name}`,
+      lineItems = [{
+        price_data: {
+          currency: "chf",
+          product_data: {
+            name: `Abonnement restaurateur TOK - ${plan.name}`,
+            description: String(plan.description || ""),
+            metadata: {
+              restaurant_subscription_plan_id: plan.id,
+              restaurant_subscription_plan_slug: plan.slug,
             },
-            unit_amount: Math.round(packAmount * 100),
           },
-          quantity: 1,
-        },
-        {
-          price_data: {
-            currency: "chf",
-            product_data: {
-              name: `Abonnement restaurateur TOK - ${plan.name}`,
-              description: String(plan.description || ""),
-              metadata: {
-                restaurant_subscription_plan_id: plan.id,
-                restaurant_subscription_plan_slug: plan.slug,
-              },
-            },
-            recurring: {
-              interval: "month",
-            },
-            unit_amount: Math.round(subscriptionAmount * 100),
+          recurring: {
+            interval: "month",
           },
-          quantity: 1,
+          unit_amount: Math.round(subscriptionAmount * 100),
         },
-      ];
+        quantity: 1,
+      }];
 
       sessionMetadata = {
         ...sessionMetadata,
         restaurant_id: restaurantId,
         signup_application_id: signupApplicationId,
-        pack_id: pack.id,
-        pack_slug: pack.slug,
         plan_id: plan.id,
         restaurant_subscription_plan_id: plan.id,
         restaurant_subscription_plan_slug: plan.slug,
         plan_name: plan.name,
         billing_period: "monthly",
-        restaurant_launch_pack_id: purchaseRecord.id,
-        launch_pack_amount: packAmount.toFixed(2),
         subscription_amount: subscriptionAmount.toFixed(2),
         campaign_credit_chf: Number(plan.campaign_credit_chf || 0).toFixed(2),
         ai_tool_credits: String(plan.ai_tool_credits || 0),
@@ -424,7 +283,7 @@ Deno.serve(async (req) => {
         monthly_image_limit: String(plan.monthly_image_limit || 0),
         monthly_premium_image_limit: String(plan.monthly_premium_image_limit || 0),
         monthly_voice_minutes_limit: String(plan.monthly_voice_minutes_limit || 0),
-        authoritative_total: (packAmount + subscriptionAmount).toFixed(2),
+        authoritative_total: subscriptionAmount.toFixed(2),
       };
     } else if (effectiveKind === "restaurant-subscription-upgrade") {
       const planId = String(order_metadata?.plan_id || "");

@@ -870,7 +870,7 @@ Deno.serve(async (req) => {
           const aiToolCredits = Number(session.metadata?.ai_tool_credits || 0);
           const aiPhotoCredits = Number(session.metadata?.ai_photo_credits || 0);
 
-          if (!userId || !restaurantLaunchPackId || !packId || !planId || !planSlug || !restaurantId) {
+          if (!userId || !planId || !planSlug || !restaurantId) {
             log.warn("restaurant_onboarding_missing_metadata", { sessionId: session.id });
             break;
           }
@@ -886,24 +886,26 @@ Deno.serve(async (req) => {
           const period = resolveRestaurantSubscriptionPeriod(stripeSubscription);
           const paidAt = new Date().toISOString();
 
-          await supabaseAdmin
-            .from("restaurant_launch_packs")
-            .update({
-              status: "paid",
-              stripe_checkout_session_id: session.id,
-              stripe_payment_intent_id: typeof session.payment_intent === "string" ? session.payment_intent : null,
-              paid_at: paidAt,
-              metadata: {
-                checkout_kind: "restaurant-onboarding",
-                signup_application_id: signupApplicationId,
-                plan_id: planId,
-                restaurant_subscription_plan_id: planId,
-                restaurant_subscription_plan_slug: planSlug,
-                billing_period: billingPeriod,
-                stripe_subscription_id: stripeSubscription?.id || null,
-              },
-            })
-            .eq("id", restaurantLaunchPackId);
+          if (restaurantLaunchPackId) {
+            await supabaseAdmin
+              .from("restaurant_launch_packs")
+              .update({
+                status: "paid",
+                stripe_checkout_session_id: session.id,
+                stripe_payment_intent_id: typeof session.payment_intent === "string" ? session.payment_intent : null,
+                paid_at: paidAt,
+                metadata: {
+                  checkout_kind: "restaurant-onboarding",
+                  signup_application_id: signupApplicationId,
+                  plan_id: planId,
+                  restaurant_subscription_plan_id: planId,
+                  restaurant_subscription_plan_slug: planSlug,
+                  billing_period: billingPeriod,
+                  stripe_subscription_id: stripeSubscription?.id || null,
+                },
+              })
+              .eq("id", restaurantLaunchPackId);
+          }
 
           const { data: restaurantSubscriptionRow, error: restaurantSubscriptionError } = await supabaseAdmin
             .from("restaurant_ai_subscriptions")
@@ -946,13 +948,15 @@ Deno.serve(async (req) => {
             log.error("restaurant_onboarding_subscription_upsert_failed", { message: restaurantSubscriptionError.message });
           }
 
-          const { data: pack } = await supabaseAdmin
-            .from("launch_packs")
-            .select("name, services")
-            .eq("id", packId)
-            .maybeSingle();
+          const { data: pack } = restaurantLaunchPackId && packId
+            ? await supabaseAdmin
+              .from("launch_packs")
+              .select("name, services")
+              .eq("id", packId)
+              .maybeSingle()
+            : { data: null };
 
-          if (pack?.services && Array.isArray(pack.services)) {
+          if (restaurantLaunchPackId && pack?.services && Array.isArray(pack.services)) {
             const fulfillments = (pack.services as Array<{ service: string; label: string }>).map((svc) => ({
               restaurant_pack_id: restaurantLaunchPackId,
               service_slug: svc.service,
@@ -976,28 +980,30 @@ Deno.serve(async (req) => {
               .eq("id", restaurantId);
           }
 
-          await supabaseAdmin.from("payment_transactions").insert({
-            user_id: userId,
-            stripe_checkout_session_id: session.id,
-            stripe_payment_intent_id: typeof session.payment_intent === "string" ? session.payment_intent : null,
-            amount: packAmount > 0 ? packAmount : (session.amount_total || 0) / 100,
-            currency: (session.currency || "chf").toLowerCase(),
-            type: "charge",
-            status: "succeeded",
-            metadata: {
-              checkout_kind: "restaurant-onboarding",
-              charge_component: "launch-pack",
-              pack_id: packId,
-              restaurant_launch_pack_id: restaurantLaunchPackId,
-              restaurant_id: restaurantId,
-              plan_id: planId,
-              restaurant_subscription_plan_id: planId,
-              restaurant_subscription_plan_slug: planSlug,
-              billing_period: billingPeriod,
-              card_brand: cardBrand,
-              card_last4: cardLast4,
-            },
-          });
+          if (restaurantLaunchPackId && packId && packAmount > 0) {
+            await supabaseAdmin.from("payment_transactions").insert({
+              user_id: userId,
+              stripe_checkout_session_id: session.id,
+              stripe_payment_intent_id: typeof session.payment_intent === "string" ? session.payment_intent : null,
+              amount: packAmount,
+              currency: (session.currency || "chf").toLowerCase(),
+              type: "charge",
+              status: "succeeded",
+              metadata: {
+                checkout_kind: "restaurant-onboarding",
+                charge_component: "launch-pack",
+                pack_id: packId,
+                restaurant_launch_pack_id: restaurantLaunchPackId,
+                restaurant_id: restaurantId,
+                plan_id: planId,
+                restaurant_subscription_plan_id: planId,
+                restaurant_subscription_plan_slug: planSlug,
+                billing_period: billingPeriod,
+                card_brand: cardBrand,
+                card_last4: cardLast4,
+              },
+            });
+          }
 
           await recordTokOnePaymentIfMissing({
             adminClient: supabaseAdmin,
@@ -1013,14 +1019,13 @@ Deno.serve(async (req) => {
             metadata: {
               charge_component: "subscription",
               restaurant_id: restaurantId,
-              pack_id: packId,
               restaurant_subscription_plan_id: planId,
               restaurant_subscription_plan_slug: planSlug,
-              restaurant_launch_pack_id: restaurantLaunchPackId,
             },
             log,
           });
 
+          if (restaurantLaunchPackId && packId && packAmount > 0) {
           await recordRestaurantTokPurchaseInvoiceIfMissing({
             adminClient: supabaseAdmin,
             session,
@@ -1033,8 +1038,6 @@ Deno.serve(async (req) => {
             paidAt,
             metadata: {
               checkout_kind: "restaurant-onboarding",
-              pack_id: packId,
-              restaurant_launch_pack_id: restaurantLaunchPackId,
               plan_id: planId,
               restaurant_subscription_plan_id: planId,
               restaurant_subscription_plan_slug: planSlug,
@@ -1044,6 +1047,7 @@ Deno.serve(async (req) => {
             },
             log,
           });
+          }
 
           await recordRestaurantTokPurchaseInvoiceIfMissing({
             adminClient: supabaseAdmin,
@@ -1058,8 +1062,6 @@ Deno.serve(async (req) => {
             metadata: {
               checkout_kind: "restaurant-onboarding",
               charge_component: "subscription",
-              pack_id: packId,
-              restaurant_launch_pack_id: restaurantLaunchPackId,
               plan_id: planId,
               restaurant_subscription_plan_id: planId,
               restaurant_subscription_plan_slug: planSlug,
@@ -1087,7 +1089,6 @@ Deno.serve(async (req) => {
                   onboarding_payment_status: "paid",
                   onboarding_checkout_session_id: session.id,
                   onboarding_paid_at: paidAt,
-                  restaurant_launch_pack_id: restaurantLaunchPackId,
                   restaurant_subscription_plan_id: planId,
                   restaurant_subscription_plan_slug: planSlug,
                   stripe_subscription_id: stripeSubscription?.id || null,
@@ -1109,13 +1110,11 @@ Deno.serve(async (req) => {
                 adminClient: supabaseAdmin,
                 userId: restaurant.owner_id,
                 title: "Onboarding restaurateur paye",
-                body: `Votre pack ${pack?.name || "de lancement"} et votre abonnement TOK ont ete payes avec succes (${paidAmount} CHF). L'administration peut finaliser la validation de votre compte.`,
+                body: `Votre abonnement TOK a ete paye avec succes (${paidAmount} CHF). L'administration peut finaliser la validation de votre compte.`,
                 type: "payment",
                 category: "transactional",
                 data: {
                   signup_application_id: signupApplicationId,
-                  restaurant_launch_pack_id: restaurantLaunchPackId,
-                  pack_id: packId,
                   plan_id: planId,
                   restaurant_id: restaurantId,
                   restaurant_name: restaurant.name,
@@ -1326,8 +1325,6 @@ Deno.serve(async (req) => {
             status: "succeeded",
             metadata: {
               checkout_kind: "launch-pack",
-              pack_id: packId,
-              restaurant_launch_pack_id: restaurantLaunchPackId,
               restaurant_id: session.metadata?.restaurant_id || null,
               card_brand: cardBrand,
               card_last4: cardLast4,
@@ -1380,8 +1377,6 @@ Deno.serve(async (req) => {
                 type: "payment",
                 category: "transactional",
                 data: {
-                  restaurant_launch_pack_id: restaurantLaunchPackId,
-                  pack_id: packId,
                   restaurant_id: restaurantId,
                   restaurant_name: restaurant.name,
                   paid_amount: paidAmount,

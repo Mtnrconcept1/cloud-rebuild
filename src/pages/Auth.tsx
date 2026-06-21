@@ -61,7 +61,6 @@ type SignupFormState = {
 };
 
 type RestaurateurOnboardingChoices = {
-  launchPackId: string;
   subscriptionPlanId: string;
   subscriptionBillingPeriod: SignupSubscriptionBillingPeriod;
 };
@@ -76,13 +75,6 @@ type SignupLegalAcceptance = {
   privacyPolicyAccepted: boolean;
   acceptedAt: string;
   version: string;
-};
-
-type SignupLaunchPackOption = {
-  id: string;
-  name: string;
-  description: string | null;
-  price_chf: number;
 };
 
 type RestaurantSubscriptionPlanOption = {
@@ -192,7 +184,6 @@ function getSignupValidationError(
     if (!form.businessRegistrationNumber.trim()) return "Le numéro d'immatriculation est requis.";
     if (!form.restaurantName.trim()) return "Le nom du restaurant est requis.";
     if (!form.iban.trim()) return "L'IBAN de versement est requis.";
-    if (!onboardingChoices?.launchPackId) return "Choisissez un pack de lancement.";
     if (!onboardingChoices?.subscriptionPlanId) return "Choisissez un abonnement TOK.";
     if (onboardingChoices.subscriptionBillingPeriod !== "monthly") {
       return "Choisissez une période d'abonnement valide.";
@@ -442,7 +433,6 @@ function appendPrivilegedSignupDraftFormData(input: {
   input.formData.append("vehicle_type", input.role === "courier" ? input.form.vehicleType : "");
   input.formData.append("license_plate", input.role === "courier" ? input.form.licensePlate : "");
   input.formData.append("iban", input.form.iban);
-  input.formData.append("launch_pack_id", input.role === "restaurateur" ? input.onboardingChoices?.launchPackId || "" : "");
   input.formData.append("subscription_plan_id", input.role === "restaurateur" ? input.onboardingChoices?.subscriptionPlanId || "" : "");
   input.formData.append("subscription_billing_period", input.role === "restaurateur" ? input.onboardingChoices?.subscriptionBillingPeriod || "" : "");
   input.formData.append("terms_accepted", input.legalAcceptance.termsAccepted ? "true" : "false");
@@ -529,15 +519,10 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
   const [privilegedSignupSubmitting, setPrivilegedSignupSubmitting] = useState(false);
-  const [selectedLaunchPackId, setSelectedLaunchPackId] = useState("");
   const [selectedSubscriptionPlanId, setSelectedSubscriptionPlanId] = useState("");
   const [selectedSubscriptionBillingPeriod] = useState<SignupSubscriptionBillingPeriod>("monthly");
   const [legalAccepted, setLegalAccepted] = useState(false);
-  const [contractSignerName, setContractSignerName] = useState("");
-  const [contractSignatureDataUrl, setContractSignatureDataUrl] = useState("");
-  const [launchPacks, setLaunchPacks] = useState<SignupLaunchPackOption[]>([]);
   const [subscriptionPlans, setSubscriptionPlans] = useState<RestaurantSubscriptionPlanOption[]>([]);
-  const [launchPacksLoading, setLaunchPacksLoading] = useState(false);
   const [subscriptionPlansLoading, setSubscriptionPlansLoading] = useState(false);
   const { activeFeatures, loading: featureFlagsLoading } = useFeatureFlagSnapshot();
   const courierSignupEnabled = activeFeatures.has("espace-livreur");
@@ -547,10 +532,9 @@ export default function Auth() {
     [roleMode, signupForm.vehicleType],
   );
   const restaurateurOnboardingChoices = useMemo<RestaurateurOnboardingChoices>(() => ({
-    launchPackId: selectedLaunchPackId,
     subscriptionPlanId: selectedSubscriptionPlanId,
     subscriptionBillingPeriod: selectedSubscriptionBillingPeriod,
-  }), [selectedLaunchPackId, selectedSubscriptionBillingPeriod, selectedSubscriptionPlanId]);
+  }), [selectedSubscriptionBillingPeriod, selectedSubscriptionPlanId]);
   const selectedSubscriptionPlan = useMemo(
     () => subscriptionPlans.find((plan) => plan.id === selectedSubscriptionPlanId) || null,
     [selectedSubscriptionPlanId, subscriptionPlans],
@@ -603,33 +587,6 @@ export default function Auth() {
     if (isLogin || roleMode !== "restaurateur") return;
     let mounted = true;
 
-    setLaunchPacksLoading(true);
-    supabase
-      .from("launch_packs")
-      .select("id, name, description, price_chf")
-      .eq("is_active", true)
-      .order("position", { ascending: true })
-      .then(({ data, error }) => {
-        if (!mounted) return;
-        if (error) {
-          setLaunchPacks([]);
-        } else {
-          setLaunchPacks((data || []) as SignupLaunchPackOption[]);
-        }
-      })
-      .finally(() => {
-        if (mounted) setLaunchPacksLoading(false);
-      });
-
-    return () => {
-      mounted = false;
-    };
-  }, [isLogin, roleMode]);
-
-  useEffect(() => {
-    if (isLogin || roleMode !== "restaurateur") return;
-    let mounted = true;
-
     setSubscriptionPlansLoading(true);
     (supabase.from as any)("restaurant_subscription_plans")
       .select("id, slug, name, description, price_monthly_chf, campaign_credit_chf, ai_tool_credits, ai_photo_credits, monthly_image_limit, monthly_premium_image_limit")
@@ -651,13 +608,6 @@ export default function Auth() {
       mounted = false;
     };
   }, [isLogin, roleMode]);
-
-  useEffect(() => {
-    if (roleMode !== "restaurateur") return;
-    if (!selectedLaunchPackId && launchPacks[0]?.id) {
-      setSelectedLaunchPackId(launchPacks[0].id);
-    }
-  }, [launchPacks, roleMode, selectedLaunchPackId]);
 
   useEffect(() => {
     if (roleMode !== "restaurateur") return;
@@ -907,7 +857,6 @@ export default function Auth() {
             : submittedRole === "restaurateur"
               ? {
                 onboarding_source: "auth_signup",
-                selected_launch_pack_id: submittedOnboardingChoices.launchPackId,
                 selected_subscription_plan_id: submittedOnboardingChoices.subscriptionPlanId,
                 selected_subscription_billing_period: submittedOnboardingChoices.subscriptionBillingPeriod,
                 onboarding_payment_status: "pending_payment",
@@ -1273,47 +1222,12 @@ export default function Auth() {
                       <CreditCard className="h-5 w-5" />
                     </div>
                     <div>
-                      <p className="font-medium">Pack de lancement et abonnement</p>
+                      <p className="font-medium">Abonnement restaurateur</p>
                       <p className="text-sm text-muted-foreground">
-                        Ces choix sont joints au dossier. Le paiement sera demandé depuis le dashboard
+                        Ce choix est joint au dossier. Le paiement sera demandé depuis le dashboard
                         avant la validation finale par l'administration.
                       </p>
                     </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <Label>Pack de lancement</Label>
-                    {launchPacksLoading ? (
-                      <div className="rounded-xl border p-4 text-sm text-muted-foreground">
-                        Chargement des packs...
-                      </div>
-                    ) : launchPacks.length > 0 ? (
-                      <div className="grid gap-3 md:grid-cols-2">
-                        {launchPacks.map((pack) => {
-                          const selected = selectedLaunchPackId === pack.id;
-                          return (
-                            <button
-                              key={pack.id}
-                              type="button"
-                              className={`rounded-xl border p-4 text-left transition-colors ${
-                                selected ? "border-primary bg-primary/10" : "bg-background hover:border-primary/50"
-                              }`}
-                              onClick={() => setSelectedLaunchPackId(pack.id)}
-                            >
-                              <span className="block text-sm font-semibold">{pack.name}</span>
-                              <span className="block pt-1 text-xs text-muted-foreground">
-                                {pack.description || "Accompagnement de lancement TOK."}
-                              </span>
-                              <span className="block pt-3 text-sm font-bold">{formatChf(pack.price_chf)}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
-                        Aucun pack actif n'est disponible. Contactez TOK avant de poursuivre.
-                      </div>
-                    )}
                   </div>
 
                   <div className="space-y-3">
@@ -1360,11 +1274,11 @@ export default function Auth() {
                     )}
                   </div>
 
-                  {selectedLaunchPackId && selectedSubscriptionPlan ? (
+                  {selectedSubscriptionPlan ? (
                     <div className="rounded-xl border bg-background p-3 text-sm">
-                      <p className="font-medium">Total initial à régler après création du dossier</p>
+                      <p className="font-medium">Abonnement à régler après création du dossier</p>
                       <p className="pt-1 text-muted-foreground">
-                        Pack choisi + {formatChf(selectedSubscriptionPrice)} / mois.
+                        {formatChf(selectedSubscriptionPrice)} / mois.
                       </p>
                     </div>
                   ) : null}

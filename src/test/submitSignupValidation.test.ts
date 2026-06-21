@@ -31,13 +31,13 @@ describe("submit-signup-application validation", () => {
     expect(validateSubmissionFields("restaurateur", {
       full_name: "A", iban: "CH..", business_registration_number: "CHE..", business_name: "x",
       legal_name: "y", restaurant_name: "z", phone: "1", city: "c", address: "a",
-      launch_pack_id: "pack-1", subscription_plan_id: "plan-1", subscription_billing_period: "monthly",
+      subscription_plan_id: "plan-1", subscription_billing_period: "monthly",
       terms_accepted: "true", privacy_policy_accepted: "true",
       contract_signer_name: "Marie Dupont", contract_signature_data_url: "data:image/png;base64,aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", contract_version: "TOK-CH-RP-2026-06-v1",
     })).toBeNull();
   });
 
-  it("refuse un restaurateur sans pack de lancement ni abonnement choisis", () => {
+  it("refuse un restaurateur sans abonnement choisi", () => {
     const baseFields = {
       full_name: "Restaurateur Test",
       phone: "+41790000000",
@@ -53,25 +53,25 @@ describe("submit-signup-application validation", () => {
       contract_signer_name: "Marie Dupont", contract_signature_data_url: "data:image/png;base64,aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", contract_version: "TOK-CH-RP-2026-06-v1",
     };
 
-    expect(validateSubmissionFields("restaurateur", baseFields)).toMatch(/pack/i);
+    expect(validateSubmissionFields("restaurateur", baseFields)).toMatch(/abonnement/i);
 
     expect(validateSubmissionFields("restaurateur", {
       ...baseFields,
-      launch_pack_id: "pack-1",
+      
       subscription_plan_id: "",
       subscription_billing_period: "monthly",
     })).toMatch(/abonnement/i);
 
     expect(validateSubmissionFields("restaurateur", {
       ...baseFields,
-      launch_pack_id: "pack-1",
+      
       subscription_plan_id: "plan-1",
       subscription_billing_period: "weekly",
     })).toMatch(/periode/i);
 
     expect(validateSubmissionFields("restaurateur", {
       ...baseFields,
-      launch_pack_id: "pack-1",
+      
       subscription_plan_id: "plan-1",
       subscription_billing_period: "monthly",
     })).toBeNull();
@@ -88,7 +88,7 @@ describe("submit-signup-application validation", () => {
       business_registration_number: "CHE-123.456.789",
       restaurant_name: "La Table Tok",
       iban: "CH9300762011623852957",
-      launch_pack_id: "pack-1",
+      
       subscription_plan_id: "plan-1",
       subscription_billing_period: "monthly",
     };

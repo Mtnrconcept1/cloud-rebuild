@@ -31,15 +31,13 @@ describe("launch pack AI quota governance", () => {
     expect(migrations).toMatch(/UPDATE\s+public\.launch_packs[\s\S]+pro[\s\S]+80/i);
   });
 
-  it("exposes AI quota fields and renders them on restaurateur pack surfaces", () => {
-    const launchPacks = read("src/lib/launchPacks.ts");
+  it("moves public restaurateur offers to subscriptions and AI credit packs", () => {
     const publicPacks = read("src/pages/PacksRestaurateur.tsx");
-    const dashboardPack = read("src/pages/dashboard/DashboardPack.tsx");
+    const disableLaunchPacks = read("supabase/migrations/20260621090000_disable_launch_packs.sql");
 
-    expect(launchPacks).toContain("monthly_ai_image_limit");
-    expect(launchPacks).toContain("formatLaunchPackAiQuota");
-    expect(publicPacks).toContain("formatLaunchPackAiQuota(pack)");
-    expect(dashboardPack).toContain("formatLaunchPackAiQuota(pack)");
-    expect(dashboardPack).toContain("formatLaunchPackAiQuota(restaurantPack.launch_packs)");
+    expect(publicPacks).toContain("restaurant_subscription_plans");
+    expect(publicPacks).toContain("restaurant_credit_packs");
+    expect(publicPacks).toContain("Packs de crédits IA");
+    expect(disableLaunchPacks).toContain("is_active = false");
   });
 });

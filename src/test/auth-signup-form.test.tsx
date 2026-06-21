@@ -326,7 +326,7 @@ describe("Auth signup form", () => {
     });
 
     const { container } = renderAuth("/auth?type=restaurateur");
-    await screen.findByText("Pack Starter");
+    await screen.findByText("TOK Starter");
     await screen.findByText("TOK Starter");
 
     fireEvent.change(screen.getByLabelText("Nom du responsable"), {
@@ -387,7 +387,6 @@ describe("Auth signup form", () => {
           p_requested_role: "restaurateur",
           p_restaurant_name: "La Table Tok",
           p_metadata: expect.objectContaining({
-            selected_launch_pack_id: "launch-pack-id",
             selected_subscription_plan_id: "restaurant-plan-id",
             selected_subscription_billing_period: "monthly",
             onboarding_payment_status: "pending_payment",
@@ -430,7 +429,7 @@ describe("Auth signup form", () => {
     });
 
     const { container } = renderAuth("/auth?type=restaurateur");
-    await screen.findByText("Pack Starter");
+    await screen.findByText("TOK Starter");
     await screen.findByText("TOK Starter");
 
     fireEvent.change(screen.getByLabelText("Nom du responsable"), {
@@ -491,7 +490,7 @@ describe("Auth signup form", () => {
     expect(body.get("user_id")).toBe("restaurant-user-id");
     expect(body.get("requested_role")).toBe("restaurateur");
     expect(body.get("restaurant_name")).toBe("La Table Tok");
-    expect(body.get("launch_pack_id")).toBe("launch-pack-id");
+    expect(body.get("launch_pack_id")).toBeNull();
     expect(body.get("subscription_plan_id")).toBe("restaurant-plan-id");
     expect(body.get("subscription_billing_period")).toBe("monthly");
     expect(body.get("terms_accepted")).toBe("true");
@@ -530,7 +529,7 @@ describe("Auth signup form", () => {
 
   it("keeps the restaurateur signup email field editable", async () => {
     renderAuth("/auth?type=restaurateur");
-    await screen.findByText("Pack Starter");
+    await screen.findByText("TOK Starter");
 
     const emailInput = screen.getByLabelText("Email");
     fireEvent.change(emailInput, { target: { value: "restaurant@example.com" } });
