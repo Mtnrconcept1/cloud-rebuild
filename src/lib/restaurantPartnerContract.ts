@@ -74,7 +74,7 @@ export const RESTAURANT_PARTNER_CONTRACT_SECTIONS = [
     ],
   },
   {
-    title: "8. Avis, support, incidents et qualité de service",
+    title: "8. Offres, ventes flash, anti-gaspi, fidélité et avantages",
     paragraphs: [
       "Le restaurateur répond aux avis et demandes support de façon professionnelle, sans pression indue, incitation trompeuse, menace ou discrimination envers les clients. Les réponses peuvent être modérées si elles enfreignent les règles de TOK.",
       "Les incidents de préparation, retard, rupture, allergène, réservation invisible, client non servi, erreur de prix, paiement anormal, livreur absent, contenu diffamatoire ou utilisation frauduleuse du compte doivent être signalés rapidement depuis les canaux prévus.",
@@ -151,7 +151,7 @@ export const TOK_CONTRACT_LEGAL_INFORMATION = {
     "Droit suisse; tribunaux compétents du canton de Genève, Suisse, sous réserve des fors impératifs",
 } as const;
 
-type RestaurantPartnerContractHtmlInput = {
+export type RestaurantPartnerContractHtmlInput = {
   signerName: string;
   signatureDataUrl?: string;
   signedAt: string;
@@ -184,9 +184,33 @@ type RestaurantPartnerContractHtmlInput = {
   tokJurisdiction?: string;
 };
 
+type InfoRow = {
+  label: string;
+  value?: string | null;
+  full?: boolean;
+  optional?: boolean;
+};
+
 function displayValue(value?: string | null) {
   const normalized = typeof value === "string" ? value.trim() : "";
   return normalized || "Non renseigné";
+}
+
+function hasDisplayValue(value?: string | null) {
+  return displayValue(value) !== "Non renseigné";
+}
+
+function renderInfoRows(rows: InfoRow[]) {
+  return rows
+    .filter((row) => !row.optional || hasDisplayValue(row.value))
+    .map(
+      (row) => `
+      <div${row.full ? ` class="full"` : ""}>
+        <div class="label">${escapeHtml(row.label)}</div>
+        <div class="value">${escapeHtml(displayValue(row.value))}</div>
+      </div>`,
+    )
+    .join("");
 }
 
 function formatContractDate(value: string) {
@@ -207,30 +231,71 @@ export function generateSignedRestaurantPartnerContractHtml(
   `,
   ).join("");
 
+  const restaurateurRows = renderInfoRows([
+    { label: "Signataire habilité", value: input.signerName },
+    { label: "Date de signature", value: formatContractDate(input.signedAt) },
+    { label: "Prénom du représentant", value: input.restaurateurFirstName, optional: true },
+    { label: "Nom du représentant", value: input.restaurateurLastName, optional: true },
+    { label: "Date de naissance", value: input.restaurateurDateOfBirth, optional: true },
+    { label: "Téléphone du représentant", value: input.restaurateurPhone, optional: true },
+    { label: "Adresse du représentant", value: input.restaurateurAddress, optional: true, full: true },
+    { label: "Raison sociale", value: input.legalName },
+    { label: "Nom commercial", value: input.businessName },
+    { label: "Nom du restaurant", value: input.restaurantName },
+    { label: "Adresse du restaurant", value: input.restaurantAddress, optional: true, full: true },
+    { label: "Téléphone du restaurant", value: input.restaurantPhone, optional: true },
+    { label: "Numéro d'immatriculation / IDE", value: input.businessRegistrationNumber, optional: true },
+    { label: "Numéro TVA", value: input.taxId, optional: true },
+    { label: "Pack / abonnement accepté", value: input.selectedSubscriptionPlanLabel, optional: true },
+    { label: "Prix du pack", value: input.selectedSubscriptionPriceLabel, optional: true },
+    { label: "Lieu", value: input.place || input.city, optional: true },
+  ]);
+
+  const tokRows = renderInfoRows([
+    { label: "Marque", value: input.tokCompanyName || TOK_CONTRACT_LEGAL_INFORMATION.companyName },
+    { label: "Entité", value: input.tokLegalName || TOK_CONTRACT_LEGAL_INFORMATION.legalName },
+    { label: "Adresse", value: input.tokAddress || TOK_CONTRACT_LEGAL_INFORMATION.address, full: true },
+    { label: "Email", value: input.tokEmail || TOK_CONTRACT_LEGAL_INFORMATION.email },
+    { label: "Site public", value: input.tokWebsite || TOK_CONTRACT_LEGAL_INFORMATION.website },
+    { label: "Dashboard admin", value: input.tokAdminWebsite || TOK_CONTRACT_LEGAL_INFORMATION.adminWebsite },
+    { label: "Droit / for", value: input.tokJurisdiction || TOK_CONTRACT_LEGAL_INFORMATION.jurisdiction, full: true },
+  ]);
+
   return `<!doctype html>
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
   <title>${escapeHtml(RESTAURANT_PARTNER_CONTRACT_TITLE)} - ${escapeHtml(input.restaurantName || input.businessName || input.legalName || input.signerName)}</title>
   <style>
+    :root { color-scheme: light; }
     body { color: #0f172a; font-family: Arial, sans-serif; line-height: 1.5; margin: 32px; }
     h1 { font-size: 24px; margin-bottom: 4px; }
     h2 { font-size: 16px; margin-top: 24px; }
     p { font-size: 12px; margin: 8px 0; }
+    section { break-inside: avoid; }
+    .version { color: #475569; font-size: 12px; margin-top: 0; }
+    .notice { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 12px; color: #7c2d12; font-size: 12px; margin: 18px 0; padding: 12px 14px; }
     .meta, .signature { border: 1px solid #cbd5e1; border-radius: 12px; margin: 18px 0; padding: 16px; }
     .grid { display: grid; gap: 10px 18px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .full { grid-column: 1 / -1; }
     .label { color: #475569; font-size: 11px; text-transform: uppercase; }
-    .value { font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+    .value { font-size: 13px; font-weight: 700; margin-bottom: 8px; overflow-wrap: anywhere; }
     img { border: 1px solid #e2e8f0; border-radius: 8px; display: block; max-height: 120px; max-width: 360px; padding: 8px; }
-    @media print { body { margin: 18mm; } button { display: none; } }
+    @media print {
+      body { margin: 16mm; }
+      button { display: none; }
+      .meta, .signature, section { break-inside: avoid; }
+    }
   </style>
 </head>
 <body>
   <h1>${escapeHtml(RESTAURANT_PARTNER_CONTRACT_TITLE)}</h1>
-  <p>Version ${escapeHtml(RESTAURANT_PARTNER_CONTRACT_VERSION)}</p>
+  <p class="version">Version ${escapeHtml(RESTAURANT_PARTNER_CONTRACT_VERSION)}</p>
+  <div class="notice">
+    Ce document constitue la version contractuelle acceptée numériquement par le restaurateur. Les paramètres tarifaires, packs, feature flags et annexes opérationnelles acceptés dans le dashboard complètent le présent contrat.
+  </div>
   <div class="meta">
-    <h2>Informations complètes du restaurateur</h2>
+    <h2>Informations du restaurateur et du signataire</h2>
     <div class="grid">
       <div><div class="label">Prénom</div><div class="value">${escapeHtml(displayValue(input.restaurateurFirstName))}</div></div>
       <div><div class="label">Nom</div><div class="value">${escapeHtml(displayValue(input.restaurateurLastName))}</div></div>
@@ -249,13 +314,7 @@ export function generateSignedRestaurantPartnerContractHtml(
   <div class="meta">
     <h2>Informations TOK</h2>
     <div class="grid">
-      <div><div class="label">Marque</div><div class="value">${escapeHtml(input.tokCompanyName || TOK_CONTRACT_LEGAL_INFORMATION.companyName)}</div></div>
-      <div><div class="label">Entité</div><div class="value">${escapeHtml(input.tokLegalName || TOK_CONTRACT_LEGAL_INFORMATION.legalName)}</div></div>
-      <div class="full"><div class="label">Adresse</div><div class="value">${escapeHtml(input.tokAddress || TOK_CONTRACT_LEGAL_INFORMATION.address)}</div></div>
-      <div><div class="label">Email</div><div class="value">${escapeHtml(input.tokEmail || TOK_CONTRACT_LEGAL_INFORMATION.email)}</div></div>
-      <div><div class="label">Site public</div><div class="value">${escapeHtml(input.tokWebsite || TOK_CONTRACT_LEGAL_INFORMATION.website)}</div></div>
-      <div><div class="label">Dashboard admin</div><div class="value">${escapeHtml(input.tokAdminWebsite || TOK_CONTRACT_LEGAL_INFORMATION.adminWebsite)}</div></div>
-      <div><div class="label">Droit / lieu</div><div class="value">${escapeHtml(input.tokJurisdiction || TOK_CONTRACT_LEGAL_INFORMATION.jurisdiction)}</div></div>
+      ${tokRows}
     </div>
   </div>
   <div class="meta">
@@ -275,7 +334,7 @@ export function generateSignedRestaurantPartnerContractHtml(
     <div class="label">Texte accepté</div>
     <div class="value">${escapeHtml(displayValue(input.acceptanceText))}</div>
     <div class="label">Horodatage d'export</div>
-    <div class="value">${escapeHtml(new Date(input.signedAt).toLocaleString("fr-CH"))}</div>
+    <div class="value">${escapeHtml(formatContractDateTime(input.signedAt))}</div>
     <div class="label">Signature</div>
     ${input.signatureDataUrl ? `<img src="${escapeHtml(input.signatureDataUrl)}" alt="Signature manuscrite du restaurateur" />` : `<div class="value">Signature numérique enregistrée par ${escapeHtml(input.signerName)}</div>`}
   </div>
