@@ -105,14 +105,54 @@ function escapeHtml(value: string) {
     .replace(/'/g, "&#39;");
 }
 
-export function generateSignedRestaurantPartnerContractHtml(input: {
+export const TOK_CONTRACT_LEGAL_INFORMATION = {
+  companyName: "TOK",
+  legalName: "TOK Platform Switzerland",
+  address: "Genève, Suisse",
+  email: "support@thetok.ch",
+  website: "https://www.thetok.ch",
+  adminWebsite: "https://admin.thetok.ch",
+  jurisdiction: "Genève, Suisse",
+} as const;
+
+type RestaurantPartnerContractHtmlInput = {
   signerName: string;
-  signatureDataUrl: string;
+  signatureDataUrl?: string;
   signedAt: string;
   legalName: string;
   businessName: string;
   restaurantName: string;
-}) {
+  restaurateurFirstName?: string | null;
+  restaurateurLastName?: string | null;
+  restaurateurDateOfBirth?: string | null;
+  restaurateurAddress?: string | null;
+  restaurateurPhone?: string | null;
+  restaurantAddress?: string | null;
+  restaurantPhone?: string | null;
+  businessRegistrationNumber?: string | null;
+  city?: string | null;
+  place?: string | null;
+  tokLegalName?: string;
+  tokCompanyName?: string;
+  tokAddress?: string;
+  tokEmail?: string;
+  tokWebsite?: string;
+  tokAdminWebsite?: string;
+  tokJurisdiction?: string;
+};
+
+function displayValue(value?: string | null) {
+  const normalized = typeof value === "string" ? value.trim() : "";
+  return normalized || "Non renseigné";
+}
+
+function formatContractDate(value: string) {
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return displayValue(value);
+  return date.toLocaleDateString("fr-CH");
+}
+
+export function generateSignedRestaurantPartnerContractHtml(input: RestaurantPartnerContractHtmlInput) {
   const sections = RESTAURANT_PARTNER_CONTRACT_SECTIONS.map((section) => `
     <section>
       <h2>${escapeHtml(section.title)}</h2>
@@ -131,6 +171,8 @@ export function generateSignedRestaurantPartnerContractHtml(input: {
     h2 { font-size: 16px; margin-top: 24px; }
     p { font-size: 12px; margin: 8px 0; }
     .meta, .signature { border: 1px solid #cbd5e1; border-radius: 12px; margin: 18px 0; padding: 16px; }
+    .grid { display: grid; gap: 10px 18px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .full { grid-column: 1 / -1; }
     .label { color: #475569; font-size: 11px; text-transform: uppercase; }
     .value { font-size: 13px; font-weight: 700; margin-bottom: 8px; }
     img { border: 1px solid #e2e8f0; border-radius: 8px; display: block; max-height: 120px; max-width: 360px; padding: 8px; }
@@ -141,12 +183,32 @@ export function generateSignedRestaurantPartnerContractHtml(input: {
   <h1>${escapeHtml(RESTAURANT_PARTNER_CONTRACT_TITLE)}</h1>
   <p>Version ${escapeHtml(RESTAURANT_PARTNER_CONTRACT_VERSION)}</p>
   <div class="meta">
-    <div class="label">Restaurant</div>
-    <div class="value">${escapeHtml(input.restaurantName || "Non renseigné")}</div>
-    <div class="label">Raison sociale</div>
-    <div class="value">${escapeHtml(input.legalName || "Non renseignée")}</div>
-    <div class="label">Nom commercial</div>
-    <div class="value">${escapeHtml(input.businessName || "Non renseigné")}</div>
+    <h2>Informations complètes du restaurateur</h2>
+    <div class="grid">
+      <div><div class="label">Prénom</div><div class="value">${escapeHtml(displayValue(input.restaurateurFirstName))}</div></div>
+      <div><div class="label">Nom</div><div class="value">${escapeHtml(displayValue(input.restaurateurLastName))}</div></div>
+      <div><div class="label">Date de naissance</div><div class="value">${escapeHtml(displayValue(input.restaurateurDateOfBirth))}</div></div>
+      <div><div class="label">Téléphone</div><div class="value">${escapeHtml(displayValue(input.restaurateurPhone || input.restaurantPhone))}</div></div>
+      <div class="full"><div class="label">Adresse</div><div class="value">${escapeHtml(displayValue(input.restaurateurAddress || input.restaurantAddress))}</div></div>
+      <div><div class="label">Raison sociale</div><div class="value">${escapeHtml(displayValue(input.legalName))}</div></div>
+      <div><div class="label">Nom commercial</div><div class="value">${escapeHtml(displayValue(input.businessName))}</div></div>
+      <div><div class="label">Nom du restaurant</div><div class="value">${escapeHtml(displayValue(input.restaurantName))}</div></div>
+      <div><div class="label">Numéro d'immatriculation</div><div class="value">${escapeHtml(displayValue(input.businessRegistrationNumber))}</div></div>
+      <div><div class="label">Lieu</div><div class="value">${escapeHtml(displayValue(input.place || input.city))}</div></div>
+      <div><div class="label">Date de signature</div><div class="value">${escapeHtml(formatContractDate(input.signedAt))}</div></div>
+    </div>
+  </div>
+  <div class="meta">
+    <h2>Informations TOK</h2>
+    <div class="grid">
+      <div><div class="label">Marque</div><div class="value">${escapeHtml(input.tokCompanyName || TOK_CONTRACT_LEGAL_INFORMATION.companyName)}</div></div>
+      <div><div class="label">Entité</div><div class="value">${escapeHtml(input.tokLegalName || TOK_CONTRACT_LEGAL_INFORMATION.legalName)}</div></div>
+      <div class="full"><div class="label">Adresse</div><div class="value">${escapeHtml(input.tokAddress || TOK_CONTRACT_LEGAL_INFORMATION.address)}</div></div>
+      <div><div class="label">Email</div><div class="value">${escapeHtml(input.tokEmail || TOK_CONTRACT_LEGAL_INFORMATION.email)}</div></div>
+      <div><div class="label">Site public</div><div class="value">${escapeHtml(input.tokWebsite || TOK_CONTRACT_LEGAL_INFORMATION.website)}</div></div>
+      <div><div class="label">Dashboard admin</div><div class="value">${escapeHtml(input.tokAdminWebsite || TOK_CONTRACT_LEGAL_INFORMATION.adminWebsite)}</div></div>
+      <div><div class="label">Droit / lieu</div><div class="value">${escapeHtml(input.tokJurisdiction || TOK_CONTRACT_LEGAL_INFORMATION.jurisdiction)}</div></div>
+    </div>
   </div>
   ${sections}
   <div class="signature">
@@ -154,8 +216,8 @@ export function generateSignedRestaurantPartnerContractHtml(input: {
     <div class="value">${escapeHtml(input.signerName)}</div>
     <div class="label">Horodatage d'export</div>
     <div class="value">${escapeHtml(new Date(input.signedAt).toLocaleString("fr-CH"))}</div>
-    <div class="label">Signature manuscrite</div>
-    <img src="${escapeHtml(input.signatureDataUrl)}" alt="Signature manuscrite du restaurateur" />
+    <div class="label">Signature</div>
+    ${input.signatureDataUrl ? `<img src="${escapeHtml(input.signatureDataUrl)}" alt="Signature manuscrite du restaurateur" />` : `<div class="value">Signature numérique enregistrée par ${escapeHtml(input.signerName)}</div>`}
   </div>
 </body>
 </html>`;
