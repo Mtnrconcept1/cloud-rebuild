@@ -54,6 +54,23 @@ describe("safe print windows", () => {
     expect(printDocument.querySelector("main")?.textContent).toBe("OK");
   });
 
+  it("can print directly through an in-page iframe without opening a blank mobile tab", () => {
+    const openSpy = vi.spyOn(window, "open");
+
+    expect(openSafeHtmlPrintDocument({
+      title: "Contrat TOK",
+      html: '<!doctype html><html lang="fr"><head><title>Contrat TOK</title></head><body><main>Contrat signé</main></body></html>',
+      printDelayMs: 0,
+      preferIframeFallback: true,
+    })).toBe(true);
+
+    expect(openSpy).not.toHaveBeenCalled();
+    const iframe = document.querySelector('iframe[aria-hidden="true"]');
+    expect(iframe).not.toBeNull();
+    expect(iframe?.contentDocument?.querySelector("main")?.textContent).toBe("Contrat signé");
+    iframe?.remove();
+  });
+
   it("falls back to an in-page print iframe when popup windows are blocked", () => {
     vi.spyOn(window, "open").mockReturnValue(null);
 

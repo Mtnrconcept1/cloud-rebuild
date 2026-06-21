@@ -55,6 +55,9 @@ describe("restaurant partner contracts governance", () => {
     expect(authPage).toContain("RestaurantContractSignaturePad");
     expect(authPage).toContain("Signature au doigt ou au stylet");
     expect(authPage).toContain("Exporter le contrat signé en PDF");
+    expect(authPage).toContain("openSafeHtmlPrintDocument");
+    expect(authPage).toContain("preferIframeFallback: true");
+    expect(authPage).not.toContain('window.open("", "_blank", "noopener,noreferrer")');
     expect(authPage).toContain("contract_signature_data_url");
     expect(signupValidation).toContain("contract_signature_data_url");
     expect(signupValidation).toContain("La signature manuscrite du contrat restaurateur est requise.");
@@ -65,5 +68,15 @@ describe("restaurant partner contracts governance", () => {
     expect(dashboardContractCard).toContain("generateSignedRestaurantPartnerContractHtml");
     expect(dashboardContractCard).toContain("user_profiles");
     expect(dashboardContractCard).toContain("contract_signature_data_url");
+  });
+
+  it("uses the shared iframe fallback for contract PDF exports on mobile browsers", () => {
+    const safePrintWindow = readFileSync("src/lib/safePrintWindow.ts", "utf8");
+
+    expect(authPage).toContain("openSafeHtmlPrintDocument");
+    expect(dashboardContractCard).toContain("openSafeHtmlPrintDocument");
+    expect(dashboardContractCard).toContain("preferIframeFallback: true");
+    expect(safePrintWindow).toContain("openIframePrintFallback");
+    expect(safePrintWindow).toContain("return openIframePrintFallback(safeHtml, printDelayMs)");
   });
 });

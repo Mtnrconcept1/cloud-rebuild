@@ -4,6 +4,7 @@ type OpenSafePrintWindowOptions = {
   bodyHtml: string;
   features?: string;
   printDelayMs?: number;
+  preferIframeFallback?: boolean;
 };
 
 type OpenSafeHtmlPrintDocumentOptions = {
@@ -11,6 +12,7 @@ type OpenSafeHtmlPrintDocumentOptions = {
   title?: string;
   features?: string;
   printDelayMs?: number;
+  preferIframeFallback?: boolean;
 };
 
 const UNSAFE_PRINT_HTML_PATTERNS = [
@@ -59,9 +61,11 @@ function openIframePrintFallback(html: string, printDelayMs: number) {
   iframe.style.position = "fixed";
   iframe.style.right = "0";
   iframe.style.bottom = "0";
-  iframe.style.width = "0";
-  iframe.style.height = "0";
+  iframe.style.width = "1px";
+  iframe.style.height = "1px";
   iframe.style.border = "0";
+  iframe.style.opacity = "0";
+  iframe.style.pointerEvents = "none";
   document.body.appendChild(iframe);
 
   const targetWindow = iframe.contentWindow;
@@ -80,8 +84,14 @@ export function openSafeHtmlPrintDocument({
   title,
   features = "noopener,noreferrer",
   printDelayMs = 150,
+  preferIframeFallback = false,
 }: OpenSafeHtmlPrintDocumentOptions) {
   const safeHtml = assertSafePrintHtmlFragment(html, "document");
+
+  if (preferIframeFallback) {
+    return openIframePrintFallback(safeHtml, printDelayMs);
+  }
+
   const printWindow = window.open("", "_blank", features);
 
   if (printWindow) {
@@ -99,6 +109,7 @@ export function openSafePrintWindow({
   bodyHtml,
   features = "noopener,noreferrer",
   printDelayMs = 150,
+  preferIframeFallback = false,
 }: OpenSafePrintWindowOptions) {
   const safeHeadHtml = assertSafePrintHtmlFragment(headHtml, "head");
   const safeBodyHtml = assertSafePrintHtmlFragment(bodyHtml, "body");
@@ -117,5 +128,6 @@ export function openSafePrintWindow({
     html,
     features,
     printDelayMs,
+    preferIframeFallback,
   });
 }

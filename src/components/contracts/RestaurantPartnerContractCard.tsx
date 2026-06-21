@@ -159,6 +159,7 @@ export default function RestaurantPartnerContractCard({
     const exported = openSafeHtmlPrintDocument({
       title: `${RESTAURANT_PARTNER_CONTRACT_TITLE} - ${contract.signer_name}`,
       html,
+      preferIframeFallback: true,
     });
 
     if (!exported) {
