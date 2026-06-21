@@ -392,9 +392,11 @@ describe("Auth signup form", () => {
             onboarding_payment_status: "pending_payment",
             legal_terms_accepted: true,
             privacy_policy_accepted: true,
-            contract_version: "TOK-CH-RP-2026-06-v1",
+            contract_version: "TOK-CH-RP-2026-06-v2",
             contract_signer_name: "Marie Dupont, gérante",
             contract_signature_data_url: expect.stringContaining("data:image/png;base64,"),
+            contract_content_hash: "TOK-CH-RP-2026-06-v2:12",
+            contract_acceptance_text: expect.stringContaining("je déclare être habilité"),
           }),
         }),
       );
@@ -495,7 +497,7 @@ describe("Auth signup form", () => {
     expect(body.get("subscription_billing_period")).toBe("monthly");
     expect(body.get("terms_accepted")).toBe("true");
     expect(body.get("privacy_policy_accepted")).toBe("true");
-    expect(body.get("contract_version")).toBe("TOK-CH-RP-2026-06-v1");
+    expect(body.get("contract_version")).toBe("TOK-CH-RP-2026-06-v2");
     expect(body.get("contract_signer_name")).toBe("Marie Dupont, gérante");
     expect(String(body.get("contract_signature_data_url"))).toContain("data:image/png;base64,");
     expect(body.get("document_identity_document")).toBeInstanceOf(File);

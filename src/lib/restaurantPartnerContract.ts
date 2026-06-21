@@ -5,183 +5,118 @@ export const RESTAURANT_PARTNER_CONTRACT_TITLE =
 
 export const RESTAURANT_PARTNER_CONTRACT_SECTIONS = [
   {
-    title: "1. Parties, identification et pouvoir de signature",
+    title: "1. Parties, identification et documents contractuels",
     paragraphs: [
-      "Le présent contrat est conclu entre TOK, exploitant de la plateforme TOK en Suisse, et le restaurateur identifié dans le dossier d'inscription, la fiche restaurant, le dashboard ou tout document d'onboarding rattaché.",
-      "Le restaurateur confirme que les informations transmises à TOK sont exactes: raison sociale, enseigne, adresse, coordonnées, numéro d'identification ou d'immatriculation, TVA le cas échéant, représentant autorisé, coordonnées bancaires et lieu d'exploitation.",
-      "Le signataire déclare disposer du pouvoir nécessaire pour engager juridiquement le restaurateur. En cas de signature par une personne non autorisée, le restaurateur reste responsable de toute utilisation du compte, sauf preuve d'une fraude externe signalée immédiatement à TOK.",
-      "Toute modification importante des informations d'identification, de propriété, de direction, d'adresse, d'autorisation d'exploiter ou de coordonnées de paiement doit être communiquée sans délai à TOK depuis les canaux prévus.",
+      "Le présent contrat encadre la mise à disposition par TOK d'une plateforme digitale B2B de visibilité, réservation, commande, paiement, livraison, fidélité, campagnes, support, avis, IA et outils opérationnels au bénéfice du restaurateur partenaire.",
+      "Le restaurateur doit être identifié par sa raison sociale, son enseigne, son adresse légale, son IDE/UID suisse ou numéro fiscal lorsqu'il existe, son numéro du registre du commerce lorsqu'il est inscrit, le nom du restaurant exploité, le représentant autorisé, sa fonction et ses coordonnées de contact.",
+      "Le signataire déclare disposer du pouvoir d'engager juridiquement la société ou l'entreprise restauratrice, détenir les autorisations, assurances, licences, droits d'exploitation et informations commerciales nécessaires, et maintenir ces informations exactes dans le dashboard.",
+      "Le contrat comprend le présent document, ses annexes versionnées, la grille tarifaire acceptée, les règles opérationnelles réservation/commande/remboursement, la politique données/sous-traitants, les conditions IA/marketing, les règles avis/modération, le SLA/support, les règles de suspension et les preuves de signature numérique accessibles ou remises au restaurateur au moment de l'acceptation.",
+      "Tout document externe opposable au restaurateur doit être daté, versionné, accessible avant signature et accepté explicitement ou rattaché à un avenant numérique traçable. En cas de contradiction, le contrat principal prévaut sauf clause spéciale plus récente acceptée par les parties.",
     ],
   },
   {
-    title: "2. Périmètre de la plateforme et documents contractuels",
+    title: "2. Obligations opérationnelles du restaurateur",
     paragraphs: [
-      "TOK met à disposition une plateforme digitale destinée notamment à la visibilité, la réservation, la commande, le paiement, le retrait, la livraison si activée, les offres promotionnelles, la fidélité, les campagnes marketing, l'assistance, les avis, les outils IA et les opérations de gestion restaurant.",
-      "Les fonctionnalités peuvent être activées, limitées, suspendues ou désactivées selon le pack souscrit, la zone géographique, les feature flags, l'état de validation du restaurant, les règles de conformité, les contraintes techniques ou les décisions opérationnelles de TOK.",
-      "Le contrat comprend le présent document, les conditions restaurateurs, la grille tarifaire ou le pack accepté, les règles opérationnelles réservation/commande/remboursement, les règles de paiement, les politiques de données et de sécurité, ainsi que tout avenant ou paramètre accepté numériquement.",
-      "En cas de contradiction, les conditions particulières acceptées dans le dashboard ou dans une annexe signée prévalent pour leur objet précis. Les dispositions de sécurité, conformité, paiement, preuve et protection des clients restent applicables en tout temps.",
+      "Le restaurateur maintient une fiche exacte: nom légal, enseigne, adresse, horaires, jours de fermeture, allergènes, provenance lorsque requise, prix, TVA le cas échéant, moyens de contact, disponibilités, délais de préparation, photos, menus, stocks, capacités de réservation et informations de livraison ou retrait.",
+      "Il s'engage à honorer les commandes, réservations, offres, abonnements, ventes flash, bons d'achat, avoirs et avantages de fidélité acceptés sur TOK, sauf cas de force majeure ou incident signalé immédiatement au support avec une raison structurée.",
+      "Il garantit l'hygiène, la sécurité alimentaire, la conformité des produits, la gestion HACCP ou équivalente, la chaîne du froid, la traçabilité interne, la qualité des emballages, les licences nécessaires et la conformité aux lois suisses et cantonales applicables.",
+      "Il est seul responsable de l'exactitude des menus, ingrédients, allergènes, additifs, prix, photos, quantités, origines, disponibilités, mentions obligatoires, délais annoncés et promesses commerciales publiées via son compte, y compris lorsqu'un texte ou visuel a été assisté par IA.",
     ],
   },
   {
-    title: "3. Onboarding, vérifications, autorisations et assurances",
+    title: "3. Obligations TOK et limites de service",
     paragraphs: [
-      "L'accès complet aux fonctionnalités restaurateur peut dépendre de la vérification du dossier, de la validation des documents, de la configuration du paiement, de l'acceptation du contrat, du respect des exigences opérationnelles et du paiement des montants dus.",
-      "Le restaurateur garantit disposer des autorisations, licences, permis, assurances, locaux, équipements, équipes, droits d'exploitation et droits commerciaux nécessaires à l'activité proposée sur TOK.",
-      "TOK peut demander des justificatifs complémentaires, refuser une activation, limiter certaines fonctionnalités ou suspendre le compte lorsque le dossier est incomplet, incohérent, expiré, risqué pour les clients ou contraire aux règles de la plateforme.",
-      "Le restaurateur reste responsable du renouvellement de ses autorisations, de ses assurances et de ses obligations administratives, fiscales, sociales, sanitaires et commerciales.",
+      "TOK fournit l'accès au dashboard restaurateur, aux outils de catalogue, commandes, réservations, avis, facturation, support, notifications, campagnes, reporting et fonctionnalités activées par feature flag, pack souscrit ou configuration administrateur.",
+      "TOK assure une exploitation raisonnable de la plateforme, la sécurisation des accès, la journalisation des actions sensibles, la séparation des rôles, l'application des politiques RLS et les intégrations de paiement dans la limite des prestataires tiers.",
+      "TOK peut modérer, suspendre, masquer ou corriger une fiche, offre, avis, campagne ou contenu lorsqu'une information est manifestement trompeuse, incomplète, risquée pour les clients, contraire aux règles de la plateforme ou susceptible d'engager la sécurité alimentaire.",
+      "TOK ne garantit pas l'absence totale d'interruption, de bug, de retard de prestataire, d'indisponibilité réseau ou de blocage par Stripe, Supabase, un service d'emailing, un fournisseur IA, un transporteur ou une autorité compétente.",
     ],
   },
   {
-    title: "4. Fiche restaurant, menus, prix et informations publiées",
+    title: "4. Annexe tarifaire, commissions, frais et facturation",
     paragraphs: [
-      "Le restaurateur est seul responsable de l'exactitude et de la mise à jour de sa fiche: nom, adresse, horaires, jours de fermeture, capacité, délais de préparation, conditions de réservation, zones de livraison ou retrait, photos, menus, prix, taxes, disponibilités et restrictions.",
-      "Les prix affichés doivent être clairs, actuels et honorés pour les commandes, réservations, offres ou avantages acceptés sur TOK. Toute erreur de prix doit être signalée immédiatement avant confirmation ou préparation.",
-      "Les menus, visuels, descriptions, labels, origines, quantités, formats, suppléments, frais, conditions d'offre et informations de stock doivent refléter l'expérience réellement fournie au client.",
-      "TOK peut corriger, masquer, demander une modification ou suspendre toute information manifestement incomplète, trompeuse, illicite, risquée pour les clients, contraire à l'image de TOK ou susceptible de créer un litige.",
+      "Chaque restaurant doit disposer d'une annexe tarifaire claire indiquant la commission par réservation, la commission par commande, les frais fixes, frais variables, frais de livraison, abonnements, packs de lancement, crédits IA/campagnes, frais Stripe ou prestataire, TVA applicable et éventuels minimums de facturation.",
+      "L'annexe précise qui supporte les remboursements, avoirs, bons d'achat, rétrofacturations, frais de chargeback, erreurs de prix, gestes commerciaux, frais de livraison annulée et corrections comptables selon l'origine de l'incident: client, restaurateur, TOK, livreur ou prestataire de paiement.",
+      "Les délais de versement au restaurateur, retenues de sécurité, réserves, conditions Stripe Connect, exigences KYC, soldes négatifs, rapprochements, exports et factures sont détaillés dans le dashboard ou dans l'annexe tarifaire acceptée.",
+      "Les packs promotionnels ou de lancement indiquent leur durée, leur prix de renouvellement, les fonctionnalités incluses, les limites de crédits IA/marketing, les conditions de résiliation et la date à partir de laquelle le tarif standard peut s'appliquer.",
+      "TOK peut modifier les prix avec un préavis raisonnable communiqué sur support durable ou dans le dashboard. Une modification substantielle ne s'applique pas rétroactivement aux commandes, réservations ou campagnes déjà acceptées, sauf obligation légale ou correction d'erreur manifeste.",
     ],
   },
   {
-    title: "5. Sécurité alimentaire, allergènes, traçabilité et conformité",
+    title:
+      "5. Paiements, annulations, no-show, remboursements et litiges clients",
     paragraphs: [
-      "Le restaurateur garantit le respect des exigences suisses applicables en matière d'hygiène, sécurité alimentaire, conservation, préparation, emballage, température, traçabilité interne, nettoyage, personnel, locaux et informations au consommateur.",
-      "Les allergènes, intolérances, ingrédients critiques, contaminations croisées connues, informations de provenance et mentions obligatoires doivent être exacts, disponibles et mis à jour. Lorsque TOK permet leur saisie, le restaurateur doit les renseigner de manière fiable.",
-      "Le restaurateur assume seul les conséquences d'une information alimentaire fausse, absente, imprécise ou non actualisée, notamment en cas d'allergie, intoxication, produit non conforme, rappel produit, plainte client ou intervention administrative.",
-      "TOK peut retirer une offre, bloquer un menu, suspendre une vente ou demander un plan correctif en cas de risque sanitaire, signalement client, demande administrative ou doute raisonnable sur la conformité.",
+      "Les paiements peuvent être traités par Stripe, Stripe Connect ou tout prestataire activé par TOK. Le restaurateur fournit des informations de paiement exactes, maintient son compte connecté opérationnel et accepte que les contrôles KYC puissent retarder ou bloquer un versement.",
+      "Les règles d'annulation client, no-show, réservation non honorée, restaurant fermé, client refusé, commande préparée mais non récupérée, rupture de stock, réservation double, erreur de menu, erreur de prix et retard important sont définies dans l'annexe opérationnelle applicable.",
+      "Lorsqu'un paiement est capturé sans commande confirmée, lorsqu'une commande est confirmée sans transaction réussie ou lorsqu'un remboursement partiel est nécessaire, TOK peut appliquer une procédure de réconciliation, de remboursement ou d'avoir traçable dans l'admin.",
+      "Les rétrofacturations, contestations bancaires, frais Stripe, remboursements imposés par un prestataire ou litiges clients sont supportés par la partie à l'origine de l'incident lorsque celle-ci peut être déterminée; à défaut, TOK applique les règles de l'annexe tarifaire et conserve les preuves disponibles.",
+      "Le restaurateur ne doit jamais demander au client de contourner le paiement TOK pour une commande, réservation ou offre initiée sur la plateforme, sauf instruction écrite de TOK lors d'un incident opérationnel.",
     ],
   },
   {
-    title: "6. Réservations, no-show, annulations et capacité",
+    title: "6. Données personnelles, confidentialité et sécurité",
     paragraphs: [
-      "Le restaurateur s'engage à honorer les réservations acceptées sur TOK selon l'heure, le nombre de couverts, les conditions, l'offre et les avantages confirmés au client.",
-      "Le restaurateur doit maintenir des disponibilités cohérentes avec sa capacité réelle, ses horaires et son organisation. Les doubles réservations, oublis, refus injustifiés ou changements tardifs doivent être traités immédiatement via les canaux TOK.",
-      "Les règles d'annulation, retard client, no-show, modification du nombre de couverts, dépôt éventuel, pénalité éventuelle ou offre associée doivent être communiquées clairement avant confirmation lorsqu'elles sont utilisées.",
-      "Lorsqu'une réservation acceptée ne peut pas être honorée, le restaurateur doit prévenir TOK et le client au plus vite, proposer une solution raisonnable et assumer les conséquences qui lui sont imputables selon les règles opérationnelles applicables.",
+      "Les données traitées peuvent inclure les données clients, commandes, réservations, paiements, avis, messages support, notifications, données restaurateurs, documents d'onboarding, données de livraison, logs techniques et preuves de signature.",
+      "Selon le traitement, TOK peut agir comme responsable du traitement indépendant, responsable conjoint ou sous-traitant du restaurateur. Les finalités incluent l'exécution du service, le paiement, le support, la conformité, la sécurité, la facturation, l'audit, les notifications, la modération, les statistiques et l'amélioration produit.",
+      "Chaque partie répond aux demandes d'accès, rectification, suppression, opposition ou portabilité relevant de son périmètre et coopère raisonnablement lorsqu'une demande concerne les deux parties ou un client commun.",
+      "TOK peut recourir à des sous-traitants et sous-traitants ultérieurs tels que Stripe, Supabase, fournisseurs cloud, outils d'emailing, outils d'analyse, fournisseurs IA ou support. TOK encadre contractuellement ces prestataires, les mesures de sécurité, la confidentialité et les transferts à l'étranger lorsque nécessaire.",
+      "Le restaurateur protège ses identifiants, applique le moindre privilège à son équipe, interdit le partage de compte non autorisé et signale immédiatement toute suspicion de compromission, fuite de données, erreur d'accès, demande abusive ou incident sécurité.",
+      "Les durées de conservation varient selon les finalités: preuve contractuelle, comptabilité, paiements, litiges, sécurité, support et obligations légales peuvent justifier une conservation post-contractuelle limitée et documentée.",
     ],
   },
   {
-    title: "7. Commandes, retrait, livraison et exécution opérationnelle",
+    title: "7. Propriété intellectuelle, contenus, marketing et IA",
     paragraphs: [
-      "Le restaurateur s'engage à préparer les commandes confirmées conformément au menu, aux options, au prix, au délai annoncé, aux informations client et aux exigences de qualité applicables.",
-      "En cas de rupture de stock, retard, erreur de préparation, erreur d'emballage, produit manquant, indisponibilité de retrait, problème de livreur ou incident technique, le restaurateur doit mettre à jour le statut et alerter TOK rapidement.",
-      "Lorsque la livraison est activée, les responsabilités respectives entre le restaurateur, TOK et le prestataire de livraison dépendent du modèle opérationnel activé. Le restaurateur reste responsable de la préparation, de l'emballage, de la remise correcte et des informations transmises.",
-      "Le restaurateur ne peut pas demander au client de contourner TOK pour une commande ou une réservation initiée sur la plateforme, sauf instruction écrite de TOK dans le cadre d'un incident spécifique.",
+      "Le restaurateur garantit disposer des droits sur les menus, marques, photos, logos, textes, recettes publiables, vidéos, visuels et contenus transmis à TOK. Il autorise TOK à les utiliser pour exploiter, promouvoir, référencer et améliorer la présentation du restaurant sur la plateforme.",
+      "Les contenus générés ou assistés par IA, traductions, descriptions, suggestions de menus, visuels marketing et recommandations doivent être vérifiés par le restaurateur avant publication. Les informations critiques, prix, allergènes, disponibilités, origines et promesses commerciales restent sous sa responsabilité.",
+      "TOK peut refuser ou retirer tout contenu illicite, trompeur, discriminatoire, dangereux, contraire à l'image de la plateforme, généré sans droits suffisants ou portant atteinte aux droits de tiers.",
+      "Les campagnes, offres promotionnelles, coupons, abonnements, avantages fidélité, Tok One, ventes flash et communications marketing doivent respecter les prix validés, les stocks, les durées, les conditions affichées au client et les règles de désabonnement applicables.",
     ],
   },
   {
     title: "8. Offres, ventes flash, anti-gaspi, fidélité et avantages",
     paragraphs: [
-      "Toute offre, vente flash, avantage fidélité, anti-gaspi, menu spécial, promotion ou avantage réservé à certains clients doit être réel, disponible, compréhensible et honoré selon les conditions affichées au moment de l'acceptation.",
-      "Le restaurateur reste responsable de la marge, des quantités, de la disponibilité, des restrictions horaires, des conditions d'utilisation, des exclusions et de la conformité commerciale de ses offres.",
-      "TOK peut limiter ou suspendre une offre en cas d'abus, erreur manifeste, indisponibilité répétée, taux de litige élevé, risque client ou incohérence avec les règles de la plateforme.",
-      "Les avantages clients, points, crédits, abonnements ou campagnes financés en tout ou partie par le restaurateur sont traités selon la configuration acceptée et les rapports disponibles dans le dashboard.",
+      "Le restaurateur répond aux avis et demandes support de façon professionnelle, sans pression indue, incitation trompeuse, menace ou discrimination envers les clients. Les réponses peuvent être modérées si elles enfreignent les règles de TOK.",
+      "Les incidents de préparation, retard, rupture, allergène, réservation invisible, client non servi, erreur de prix, paiement anormal, livreur absent, contenu diffamatoire ou utilisation frauduleuse du compte doivent être signalés rapidement depuis les canaux prévus.",
+      "TOK peut journaliser les incidents, recommander des corrections, suspendre temporairement une offre, exiger une preuve, demander un plan d'action qualité ou restreindre une fonctionnalité lorsque le niveau de service se dégrade.",
+      "Les avis manifestement illicites, diffamatoires, frauduleux, publicitaires ou sans lien avec une expérience réelle peuvent faire l'objet d'une modération, mais TOK ne garantit pas la suppression de tout avis défavorable légitime.",
     ],
   },
   {
-    title: "9. Prix, commissions, abonnements, frais et facturation",
+    title: "9. Responsabilité, indemnisation et limitations",
     paragraphs: [
-      "Les commissions, frais fixes, frais variables, abonnements, packs de lancement, crédits marketing, crédits IA, frais de paiement, frais de livraison, avoirs, remises et éventuels frais administratifs sont ceux acceptés dans la grille tarifaire, le pack, le dashboard ou l'avenant applicable.",
-      "Sauf mention contraire, les montants sont exprimés en francs suisses et peuvent s'entendre hors TVA lorsque la TVA est applicable. Le restaurateur reste responsable de ses obligations fiscales, comptables et déclaratives.",
-      "Les exports, factures, soldes, rapports de commissions, remises, remboursements, frais Stripe et opérations de correction constituent les références opérationnelles de rapprochement comptable, sous réserve d'erreur manifeste corrigée par TOK.",
-      "Toute contestation de facture, commission, solde, remboursement ou frais doit être adressée avec justificatifs dans un délai de 30 jours dès la mise à disposition du rapport concerné, sauf délai impératif contraire. Passé ce délai, les écritures sont réputées acceptées pour l'exploitation courante.",
+      "Le restaurateur assume la responsabilité des denrées, boissons, allergènes, intoxications alimentaires, informations de provenance, conformité sanitaire, erreurs de prix ou menu, commandes mal préparées, réservations non honorées, clients refusés sans motif légitime et manquements de son personnel.",
+      "TOK assume la responsabilité des fautes prouvées directement imputables à sa plateforme, à ses instructions écrites ou à ses actions administrateur, sous réserve des exclusions liées aux prestataires tiers, informations fournies par le restaurateur, force majeure et usages frauduleux non signalés.",
+      "Aucune partie n'est responsable des dommages indirects tels que perte de chance, perte de marge, atteinte à l'image non démontrée, perte de données non imputable ou interruption causée par un tiers, sauf faute intentionnelle, négligence grave ou responsabilité impérative prévue par la loi.",
+      "Lorsque la loi le permet, la responsabilité contractuelle totale de TOK pour un restaurant est plafonnée aux commissions nettes effectivement perçues par TOK auprès de ce restaurant pendant les trois mois précédant l'incident, sans limiter les obligations impératives, la fraude ou la faute grave.",
+      "Le restaurateur indemnise TOK contre les réclamations de clients, autorités, salariés, prestataires ou tiers résultant de ses produits, contenus, informations alimentaires, violations de droits, erreurs opérationnelles, non-conformités ou usage non autorisé du compte.",
     ],
   },
   {
-    title: "10. Paiements, Stripe Connect, versements et rétrofacturations",
+    title: "10. Durée, suspension, résiliation et effets post-contractuels",
     paragraphs: [
-      "Les paiements peuvent être traités par Stripe, Stripe Connect ou tout autre prestataire activé par TOK. Le restaurateur doit fournir des informations exactes, maintenir son compte connecté opérationnel et respecter les conditions du prestataire.",
-      "Les versements au restaurateur interviennent selon les délais, contrôles, réserves, frais, retenues, règles de conformité et éventuels blocages du prestataire de paiement ou de TOK.",
-      "Les remboursements, annulations, paiements échoués, paiements sans commande confirmée, litiges, rétrofacturations, frais bancaires ou corrections sont traités selon les workflows TOK, les règles du prestataire et la responsabilité de l'incident.",
-      "Lorsque le litige résulte d'une faute, d'une information erronée, d'un produit manquant, d'une réservation non honorée ou d'un manquement du restaurateur, TOK peut imputer le remboursement, les frais et les corrections au restaurateur concerné.",
+      "Le contrat prend effet à la signature numérique et demeure applicable tant que le restaurant utilise TOK, sauf résiliation, suspension ou remplacement par une nouvelle version acceptée. Sauf annexe contraire, il est conclu sans durée minimale.",
+      "Le restaurateur peut demander la résiliation depuis les canaux support ou le dashboard avec un préavis raisonnable permettant de traiter les commandes, réservations, campagnes, factures, remboursements, litiges et offres déjà acceptés.",
+      "TOK peut suspendre ou résilier avec effet immédiat en cas de risque client, fraude, impayé, violation contractuelle grave, contenu illicite, défaut de conformité alimentaire, incident sécurité, compte compromis, demande administrative ou atteinte répétée à la qualité de service.",
+      "La fin du contrat n'annule pas les commandes, réservations, offres déjà vendues, factures impayées, remboursements, chargebacks, crédits utilisés, obligations de confidentialité, preuves de signature, conservation comptable, audits, litiges et obligations légales nés avant la date d'effet.",
+      "Les crédits IA, campagnes ou packs non utilisés ne sont remboursés que si l'annexe tarifaire le prévoit ou si la résiliation résulte d'une faute prouvée de TOK. Les contenus publics peuvent être déréférencés progressivement, sous réserve des obligations de preuve, sécurité et conformité.",
     ],
   },
   {
-    title: "11. Données personnelles, confidentialité et sécurité",
+    title: "11. Signature numérique, piste de preuve et archivage",
     paragraphs: [
-      "Chaque partie traite les données personnelles uniquement pour les finalités liées au service, à la commande, à la réservation, au paiement, au support, à la sécurité, à la facturation, à la conformité et à l'amélioration raisonnable de la plateforme.",
-      "Les données clients accessibles au restaurateur ne peuvent pas être revendues, exportées à des fins étrangères au service, utilisées pour du spam, transférées à des tiers non autorisés ou exploitées hors du cadre autorisé par TOK et par la loi applicable.",
-      "Le restaurateur protège ses accès, impose des droits adaptés à son personnel, désactive les comptes inutiles, évite les partages d'identifiants et signale immédiatement toute compromission, perte, fuite, erreur d'accès ou suspicion d'incident.",
-      "TOK peut journaliser les actions sensibles, conserver les preuves d'acceptation, versions contractuelles, adresses IP, identifiants, horodatages, événements d'audit et métadonnées nécessaires à la preuve, à la sécurité, au support, à la conformité et à la défense de ses droits.",
+      "La signature numérique par case d'acceptation, nom complet, fonction du signataire, déclaration de pouvoir, action authentifiée et, lorsque disponible, signature manuscrite sur écran vaut consentement et rattachement au profil du restaurant pour les actes sans forme écrite impérative.",
+      "TOK conserve une piste de preuve comprenant notamment l'ID utilisateur, l'ID restaurant, l'email du compte, l'adresse IP lorsque disponible côté serveur, le user-agent, la date et l'heure serveur, la version exacte du contrat, le titre accepté, le texte exact des cases cochées, le nom complet, la fonction déclarée, la source de signature et les métadonnées non sensibles nécessaires.",
+      "Lorsqu'un PDF est généré, TOK peut archiver ou permettre l'archivage d'une copie non modifiable avec hash du PDF ou hash du contenu contractuel, horodatage et statut de signature. Toute nouvelle version substantielle peut nécessiter une nouvelle signature avant l'activation ou la poursuite de certaines fonctionnalités.",
+      "Le restaurateur reconnaît que la valeur probante dépend de la qualité de cette piste de preuve et que les signatures électroniques qualifiées peuvent être requises pour certains actes soumis à une forme écrite impérative en droit suisse.",
     ],
   },
   {
-    title: "12. Propriété intellectuelle, contenus, photos et IA",
+    title: "12. Droit applicable et for",
     paragraphs: [
-      "Le restaurateur garantit disposer des droits nécessaires sur les marques, logos, photos, menus, textes, recettes publiables, visuels, documents et contenus transmis ou publiés via TOK.",
-      "Le restaurateur accorde à TOK une licence non exclusive, limitée aux besoins de la plateforme, permettant d'héberger, adapter techniquement, afficher, promouvoir, référencer et exploiter ces contenus pour le restaurant concerné.",
-      "Les contenus générés, modifiés ou assistés par IA doivent être vérifiés par le restaurateur avant publication. Les prix, allergènes, disponibilités, promesses commerciales, informations alimentaires et mentions légales restent sous sa responsabilité.",
-      "TOK peut refuser, retirer, modérer ou désactiver tout contenu illicite, trompeur, discriminatoire, dangereux, contraire aux droits de tiers, contraire à l'image de TOK ou susceptible de créer un risque client.",
-    ],
-  },
-  {
-    title: "13. Avis clients, support, incidents et qualité de service",
-    paragraphs: [
-      "Le restaurateur s'engage à traiter les avis, réclamations, demandes support et incidents de manière professionnelle, loyale et proportionnée, sans pression indue, menace, incitation abusive ou contournement des règles de modération.",
-      "TOK peut modérer les avis ou réponses qui sont injurieux, illicites, discriminatoires, manifestement faux, hors sujet, commerciaux de manière abusive ou contraires aux règles de la plateforme.",
-      "Les incidents de préparation, retard, rupture, réservation invisible, client non servi, erreur de prix, erreur de paiement, produit manquant, allergène, livraison ou comportement inapproprié peuvent être journalisés et rattachés au restaurant.",
-      "En cas de dégradation répétée du niveau de service, TOK peut demander un plan d'action, limiter certaines fonctionnalités, suspendre une offre, réduire la visibilité ou suspendre temporairement le compte.",
-    ],
-  },
-  {
-    title: "14. Disponibilité, maintenance, prestataires et limites techniques",
-    paragraphs: [
-      "TOK fournit une exploitation raisonnable de la plateforme, sans garantir une disponibilité ininterrompue ni l'absence totale d'erreurs, d'interruptions, de lenteurs, de maintenances, d'incidents de réseau ou de défaillances de prestataires tiers.",
-      "Certaines fonctionnalités dépendent de prestataires tels que l'hébergement, la base de données, le paiement, l'email, les notifications, la cartographie, l'IA ou la livraison. TOK n'est pas responsable des défaillances qui leur sont exclusivement imputables, sous réserve de ses obligations propres de diligence.",
-      "TOK peut effectuer des maintenances, mises à jour, corrections de sécurité, migrations, changements d'interface ou évolutions fonctionnelles lorsque cela est nécessaire à la sécurité, à la conformité, à la stabilité ou à l'amélioration du service.",
-      "Le restaurateur doit signaler les anomalies de façon documentée afin de permettre leur traitement: date, heure, compte concerné, commande ou réservation concernée, captures, message d'erreur et impact opérationnel.",
-    ],
-  },
-  {
-    title: "15. Responsabilité, garanties et exclusions",
-    paragraphs: [
-      "Le restaurateur est responsable de ses produits, services, informations, prix, contenus, équipes, locaux, autorisations, fiscalité, assurances, exécution des commandes, réservations honorées et obligations envers les clients.",
-      "TOK est responsable de ses obligations propres de plateforme dans la limite du droit applicable, du rôle effectivement assumé et des fonctionnalités activées. TOK n'assume pas la responsabilité du restaurateur pour la préparation, la qualité, la conformité alimentaire ou l'exécution opérationnelle du restaurant.",
-      "Aucune partie n'est responsable des dommages indirects, pertes de marge, pertes de clientèle, atteintes d'image, pertes de données non imputables, interruptions externes ou conséquences d'un cas de force majeure, sauf faute intentionnelle ou règle impérative contraire.",
-      "Lorsque la loi le permet, la responsabilité contractuelle de TOK liée à un incident est limitée au montant des commissions ou frais effectivement perçus par TOK auprès du restaurateur concerné pendant les trois mois précédant l'incident, sans limiter les cas où une limitation serait légalement exclue.",
-    ],
-  },
-  {
-    title: "16. Fraude, abus, conformité et suspension",
-    paragraphs: [
-      "TOK peut suspendre, limiter ou désactiver un compte, une fiche, une offre, un paiement, une campagne ou une fonctionnalité en cas de fraude, abus, impayé, risque client, risque sécurité, violation contractuelle, contenu illicite, défaut de conformité ou demande administrative.",
-      "Sont notamment interdits: fausses informations, faux avis, manipulation de prix, contournement de paiement, usage non autorisé des données clients, offres inexistantes, usurpation d'identité, tentative d'intrusion, automatisation abusive ou exploitation d'une faille.",
-      "La suspension peut être immédiate lorsqu'un risque client, financier, sanitaire, juridique, réputationnel ou technique le justifie. TOK peut demander des explications ou justificatifs avant réactivation.",
-      "La suspension ne supprime pas les obligations de paiement, remboursement, confidentialité, coopération, conservation, preuve, audit et traitement des commandes ou réservations déjà acceptées.",
-    ],
-  },
-  {
-    title: "17. Durée, résiliation et effets de fin de contrat",
-    paragraphs: [
-      "Le contrat prend effet à la signature numérique, à l'acceptation dans le dashboard ou à l'utilisation des fonctionnalités restaurateur, et demeure applicable tant que le restaurateur utilise TOK ou conserve un compte actif.",
-      "Sauf conditions particulières contraires, chaque partie peut résilier le partenariat avec un préavis de 30 jours par écrit ou via le canal prévu. TOK peut résilier ou suspendre immédiatement en cas de manquement grave, fraude, risque client, impayé ou obligation légale.",
-      "La fin du contrat n'affecte pas les commandes, réservations, offres déjà acceptées, remboursements, litiges, factures, commissions, frais, obligations de confidentialité, obligations de preuve, conservation comptable ou droits acquis avant la date d'effet.",
-      "Après la résiliation, TOK peut conserver les données nécessaires à la preuve, au support, à la facturation, à la conformité, aux audits, à la prévention des abus et à la défense de ses droits pendant les durées légalement ou raisonnablement nécessaires.",
-    ],
-  },
-  {
-    title: "18. Signature numérique, preuve et traçabilité",
-    paragraphs: [
-      "La signature numérique par case d'acceptation, nom du signataire, signature manuscrite capturée le cas échéant et action authentifiée dans le dashboard vaut consentement, preuve d'acceptation et rattachement au profil restaurant.",
-      "TOK peut conserver la version exacte du contrat signé, l'horodatage, l'identifiant utilisateur, l'identifiant restaurant, l'adresse IP lorsque disponible, l'user agent, la source de signature, les métadonnées d'audit et l'empreinte ou la référence technique du document.",
-      "Le signataire confirme avoir lu le contrat, compris ses obligations principales et accepté les documents contractuels associés, notamment les règles tarifaires, opérationnelles, de paiement, de données et de sécurité applicables.",
-      "Toute nouvelle version substantielle peut nécessiter une nouvelle acceptation avant activation, poursuite ou réactivation de certaines fonctionnalités. Les versions antérieures restent archivées pour la preuve des périodes concernées.",
-    ],
-  },
-  {
-    title: "19. Droit applicable, for et règlement des litiges",
-    paragraphs: [
-      "Le présent contrat est soumis au droit suisse, à l'exclusion des règles de conflit de lois qui imposeraient l'application d'un autre droit.",
-      "Les parties recherchent d'abord une résolution amiable et documentée des litiges opérationnels, comptables ou contractuels, en transmettant les éléments utiles dans un délai raisonnable.",
-      "Sous réserve des fors impératifs prévus par la loi, tout litige relatif au présent contrat relève des tribunaux compétents du canton de Genève, Suisse.",
-      "Si une clause est déclarée nulle ou inapplicable, les autres dispositions restent en vigueur. Les parties remplacent la clause concernée par une disposition valable se rapprochant autant que possible de l'objectif initial.",
-    ],
-  },
-  {
-    title: "20. Annexes opérationnelles et documents de référence",
-    paragraphs: [
-      "Les annexes et documents de référence peuvent inclure: grille tarifaire, règles de réservation, règles de commande et remboursement, règles de paiement, politique de données, politique de sécurité, règles IA/marketing, règles de modération et procédures support.",
-      "Ces documents doivent être accessibles, datés, versionnés ou rattachés au pack accepté lorsque TOK les utilise pour fonder une facturation, une restriction, une suspension ou une obligation opérationnelle spécifique.",
-      "Le restaurateur accepte que certaines modalités soient matérialisées dans le dashboard par des paramètres validés, des plans souscrits, des prix affichés, des cases d'acceptation, des logs d'action ou des avenants numériques.",
-      "Les règles impératives du droit suisse et les obligations de protection des clients priment sur toute configuration technique ou opérationnelle contradictoire.",
+      "Le présent contrat est soumis au droit suisse, à l'exclusion des règles de conflit de lois lorsque celles-ci conduiraient à l'application d'un autre droit.",
+      "Tout litige relève des tribunaux compétents du canton de Genève, Suisse, sous réserve des fors impératifs prévus par la loi et des procédures amiables ou de médiation éventuellement acceptées par les parties.",
+      "Cette clause doit être validée par un juriste suisse avant un déploiement commercial massif ou une signature à grande échelle de restaurateurs.",
     ],
   },
 ] as const;
@@ -212,7 +147,8 @@ export const TOK_CONTRACT_LEGAL_INFORMATION = {
   email: "support@thetok.ch",
   website: "https://www.thetok.ch",
   adminWebsite: "https://admin.thetok.ch",
-  jurisdiction: "Droit suisse / tribunaux compétents du canton de Genève",
+  jurisdiction:
+    "Droit suisse; tribunaux compétents du canton de Genève, Suisse, sous réserve des fors impératifs",
 } as const;
 
 export type RestaurantPartnerContractHtmlInput = {
@@ -227,12 +163,16 @@ export type RestaurantPartnerContractHtmlInput = {
   restaurateurDateOfBirth?: string | null;
   restaurateurAddress?: string | null;
   restaurateurPhone?: string | null;
+  signerRole?: string | null;
+  signerEmail?: string | null;
+  userId?: string | null;
+  restaurantId?: string | null;
+  contractHash?: string | null;
+  acceptanceText?: string | null;
   restaurantAddress?: string | null;
   restaurantPhone?: string | null;
   businessRegistrationNumber?: string | null;
   taxId?: string | null;
-  selectedSubscriptionPlanLabel?: string | null;
-  selectedSubscriptionPriceLabel?: string | null;
   city?: string | null;
   place?: string | null;
   tokLegalName?: string;
@@ -279,19 +219,17 @@ function formatContractDate(value: string) {
   return date.toLocaleDateString("fr-CH");
 }
 
-function formatContractDateTime(value: string) {
-  const date = new Date(value);
-  if (!Number.isFinite(date.getTime())) return displayValue(value);
-  return date.toLocaleString("fr-CH");
-}
-
-export function generateSignedRestaurantPartnerContractHtml(input: RestaurantPartnerContractHtmlInput) {
-  const sections = RESTAURANT_PARTNER_CONTRACT_SECTIONS.map((section) => `
+export function generateSignedRestaurantPartnerContractHtml(
+  input: RestaurantPartnerContractHtmlInput,
+) {
+  const sections = RESTAURANT_PARTNER_CONTRACT_SECTIONS.map(
+    (section) => `
     <section>
       <h2>${escapeHtml(section.title)}</h2>
       ${section.paragraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("")}
     </section>
-  `).join("");
+  `,
+  ).join("");
 
   const restaurateurRows = renderInfoRows([
     { label: "Signataire habilité", value: input.signerName },
@@ -359,7 +297,18 @@ export function generateSignedRestaurantPartnerContractHtml(input: RestaurantPar
   <div class="meta">
     <h2>Informations du restaurateur et du signataire</h2>
     <div class="grid">
-      ${restaurateurRows}
+      <div><div class="label">Prénom</div><div class="value">${escapeHtml(displayValue(input.restaurateurFirstName))}</div></div>
+      <div><div class="label">Nom</div><div class="value">${escapeHtml(displayValue(input.restaurateurLastName))}</div></div>
+      <div><div class="label">Date de naissance</div><div class="value">${escapeHtml(displayValue(input.restaurateurDateOfBirth))}</div></div>
+      <div><div class="label">Téléphone</div><div class="value">${escapeHtml(displayValue(input.restaurateurPhone || input.restaurantPhone))}</div></div>
+      <div class="full"><div class="label">Adresse</div><div class="value">${escapeHtml(displayValue(input.restaurateurAddress || input.restaurantAddress))}</div></div>
+      <div><div class="label">Raison sociale</div><div class="value">${escapeHtml(displayValue(input.legalName))}</div></div>
+      <div><div class="label">Nom commercial</div><div class="value">${escapeHtml(displayValue(input.businessName))}</div></div>
+      <div><div class="label">Nom du restaurant</div><div class="value">${escapeHtml(displayValue(input.restaurantName))}</div></div>
+      <div><div class="label">Numéro d'immatriculation / RC</div><div class="value">${escapeHtml(displayValue(input.businessRegistrationNumber))}</div></div>
+      <div><div class="label">IDE/UID / TVA</div><div class="value">${escapeHtml(displayValue(input.taxId))}</div></div>
+      <div><div class="label">Lieu</div><div class="value">${escapeHtml(displayValue(input.place || input.city))}</div></div>
+      <div><div class="label">Date de signature</div><div class="value">${escapeHtml(formatContractDate(input.signedAt))}</div></div>
     </div>
   </div>
   <div class="meta">
@@ -368,10 +317,22 @@ export function generateSignedRestaurantPartnerContractHtml(input: RestaurantPar
       ${tokRows}
     </div>
   </div>
+  <div class="meta">
+    <h2>Annexes contractuelles attendues</h2>
+    <p>Annexe A - grille tarifaire; Annexe B - règles opérationnelles réservation, commande, annulation et remboursement; Annexe C - données personnelles et sous-traitants; Annexe D - IA, marketing et contenus; Annexe E - avis, modération, support et SLA; Annexe F - suspension, sécurité et preuve de signature.</p>
+  </div>
   ${sections}
   <div class="signature">
     <div class="label">Signataire habilité</div>
     <div class="value">${escapeHtml(input.signerName)}</div>
+    <div class="label">Fonction déclarée</div>
+    <div class="value">${escapeHtml(displayValue(input.signerRole))}</div>
+    <div class="label">Email / ID utilisateur / ID restaurant</div>
+    <div class="value">${escapeHtml(displayValue(input.signerEmail))} — ${escapeHtml(displayValue(input.userId))} — ${escapeHtml(displayValue(input.restaurantId))}</div>
+    <div class="label">Version / hash contractuel</div>
+    <div class="value">${escapeHtml(RESTAURANT_PARTNER_CONTRACT_VERSION)} — ${escapeHtml(displayValue(input.contractHash))}</div>
+    <div class="label">Texte accepté</div>
+    <div class="value">${escapeHtml(displayValue(input.acceptanceText))}</div>
     <div class="label">Horodatage d'export</div>
     <div class="value">${escapeHtml(formatContractDateTime(input.signedAt))}</div>
     <div class="label">Signature</div>

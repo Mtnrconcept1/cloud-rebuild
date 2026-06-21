@@ -29,8 +29,8 @@ describe("restaurant onboarding subscription payments", () => {
     expect(auth).toContain("selectedSubscriptionPlanId");
     expect(auth).toContain("selectedSubscriptionBillingPeriod");
     expect(auth).not.toContain('formData.append("launch_pack_id"');
-    expect(auth).toContain('formData.append("subscription_plan_id"');
-    expect(auth).toContain('formData.append("subscription_billing_period"');
+    expect(auth).toMatch(/formData\.append\(\s*"subscription_plan_id"/);
+    expect(auth).toMatch(/formData\.append\(\s*"subscription_billing_period"/);
     expect(validation).not.toContain("launch_pack_id");
     expect(validation).toContain("subscription_plan_id");
     expect(validation).toContain("subscription_billing_period");

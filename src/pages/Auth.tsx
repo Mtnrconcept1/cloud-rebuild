@@ -234,6 +234,14 @@ function exportSignedRestaurantContractPdf(input: {
   legalName: string;
   businessName: string;
   restaurantName: string;
+  restaurateurAddress?: string | null;
+  restaurateurPhone?: string | null;
+  businessRegistrationNumber?: string | null;
+  taxId?: string | null;
+  city?: string | null;
+  signerRole?: string | null;
+  contractHash?: string | null;
+  acceptanceText?: string | null;
 }) {
   const html = generateSignedRestaurantPartnerContractHtml(input);
 
@@ -322,6 +330,14 @@ function RestaurantContractSignaturePad({
       legalName: signupForm.legalName,
       businessName: signupForm.businessName,
       restaurantName: signupForm.restaurantName,
+      restaurateurAddress: signupForm.address,
+      restaurateurPhone: signupForm.phone,
+      businessRegistrationNumber: signupForm.businessRegistrationNumber,
+      taxId: signupForm.taxId,
+      city: signupForm.city,
+      signerRole: "Représentant autorisé",
+      contractHash: `${RESTAURANT_PARTNER_CONTRACT_VERSION}:${RESTAURANT_PARTNER_CONTRACT_SECTIONS.length}`,
+      acceptanceText: "J'ai lu et j'accepte l'intégralité du contrat restaurateur TOK et je déclare être habilité à engager le restaurateur.",
     });
     if (!exported) {
       alert("Autorisez l'ouverture de la fenêtre d'impression pour exporter le contrat en PDF.");
@@ -866,6 +882,9 @@ export default function Auth() {
                 contract_signature_data_url: submittedContractSignature.signatureDataUrl,
                 contract_signed_at: submittedLegalAcceptance.acceptedAt,
                 contract_signature_source: "auth_signup",
+                contract_signer_role: "Représentant autorisé",
+                contract_content_hash: `${RESTAURANT_PARTNER_CONTRACT_VERSION}:${RESTAURANT_PARTNER_CONTRACT_SECTIONS.length}`,
+                contract_acceptance_text: "J'ai lu et j'accepte l'intégralité du contrat restaurateur TOK et je déclare être habilité à engager le restaurateur.",
                 ...toLegalAcceptanceMetadata(submittedLegalAcceptance),
               }
               : { verification_source: "auth_signup", ...toLegalAcceptanceMetadata(submittedLegalAcceptance) },
