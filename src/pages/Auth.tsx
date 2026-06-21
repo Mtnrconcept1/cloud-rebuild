@@ -522,6 +522,8 @@ export default function Auth() {
   const [selectedSubscriptionPlanId, setSelectedSubscriptionPlanId] = useState("");
   const [selectedSubscriptionBillingPeriod] = useState<SignupSubscriptionBillingPeriod>("monthly");
   const [legalAccepted, setLegalAccepted] = useState(false);
+  const [contractSignerName, setContractSignerName] = useState("");
+  const [contractSignatureDataUrl, setContractSignatureDataUrl] = useState("");
   const [subscriptionPlans, setSubscriptionPlans] = useState<RestaurantSubscriptionPlanOption[]>([]);
   const [subscriptionPlansLoading, setSubscriptionPlansLoading] = useState(false);
   const { activeFeatures, loading: featureFlagsLoading } = useFeatureFlagSnapshot();
