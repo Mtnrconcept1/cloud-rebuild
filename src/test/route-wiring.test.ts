@@ -47,6 +47,7 @@ const CORE_ROUTES = new Set([
   "/restaurateurs/google-business",
   "/restaurateurs/alternative-commission-couvert",
   "/miamz-solidaires",
+  "/tok-pulse",
   "/aide",
   "/admin",
 ]);

@@ -75,6 +75,7 @@ const GiftPoints = lazy(() => import("./pages/GiftPoints"));
 const VentesFlash = lazy(() => import("./pages/VentesFlash"));
 const Actualites = lazy(() => import("./pages/Actualites"));
 const TokOne = lazy(() => import("./pages/TokOne"));
+const TokPulse = lazy(() => import("./pages/TokPulse"));
 const DashboardHome = lazy(() => import("./pages/dashboard/DashboardHome"));
 const DashboardRestaurant = lazy(() => import("./pages/dashboard/DashboardRestaurant"));
 const DashboardMenu = lazy(() => import("./pages/dashboard/DashboardMenu"));
@@ -403,6 +404,7 @@ function AppShell() {
           <Route path="/budget-auto" element={<ClientSurfaceRoute><FeatureSwitch enabled={hasFeature("budget-auto")}><BudgetAuto /></FeatureSwitch></ClientSurfaceRoute>} />
           <Route path="/abonnement" element={<ClientSurfaceRoute><FeatureSwitch enabled={abonnementEnabled}><Abonnement /></FeatureSwitch></ClientSurfaceRoute>} />
           <Route path="/tok-one" element={<ClientSurfaceRoute><FeatureSwitch enabled={tokOneEnabled}><TokOne /></FeatureSwitch></ClientSurfaceRoute>} />
+          <Route path="/tok-pulse" element={<ClientSurfaceRoute><TokPulse /></ClientSurfaceRoute>} />
           <Route path="/miamz-solidaires" element={<MiamzSolidaires />} />
           <Route path="/points-cadeau" element={<ProtectedRoute requiredRole="client"><FeatureSwitch enabled={giftPointsEnabled}><GiftPoints /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/ventes-flash" element={<ClientSurfaceRoute><FeatureSwitch enabled={flashSalesEnabled}><VentesFlash /></FeatureSwitch></ClientSurfaceRoute>} />

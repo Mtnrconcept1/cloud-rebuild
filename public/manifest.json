@@ -7,7 +7,11 @@
   "orientation": "portrait",
   "background_color": "#ffffff",
   "theme_color": "#f97316",
-  "categories": ["food", "shopping", "lifestyle"],
+  "categories": [
+    "food",
+    "shopping",
+    "lifestyle"
+  ],
   "icons": [
     {
       "src": "/favicon-192x192.png",
@@ -46,32 +50,56 @@
   ],
   "shortcuts": [
     {
+      "name": "TOK Pulse",
+      "short_name": "Pulse",
+      "description": "Ouvrir le widget bouton TOK pour l'écran d'accueil iPhone",
+      "url": "/tok-pulse?source=pwa-shortcut",
+      "icons": [
+        {
+          "src": "/favicon-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
       "name": "Réserver",
       "short_name": "Réserver",
       "description": "Trouver une table à Genève",
       "url": "/recherche?mode=reservation",
-      "icons": [{ "src": "/favicon-192x192.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [
+        {
+          "src": "/favicon-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     },
     {
-      "name": "Offres",
+      "name": "Offres flash",
       "short_name": "Offres",
-      "description": "Voir les offres locales",
+      "description": "Voir les offres locales et anti-gaspi",
       "url": "/ventes-flash",
-      "icons": [{ "src": "/favicon-192x192.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [
+        {
+          "src": "/favicon-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     },
     {
-      "name": "Miamz",
-      "short_name": "Miamz",
-      "description": "Suivre les Miamz solidaires",
+      "name": "Scanner fidélité",
+      "short_name": "Fidélité",
+      "description": "Ouvrir les points et avantages Miamz",
       "url": "/points-cadeau",
-      "icons": [{ "src": "/favicon-192x192.png", "sizes": "192x192", "type": "image/png" }]
-    },
-    {
-      "name": "Restaurateurs",
-      "short_name": "Pros",
-      "description": "Demander une démo restaurateur",
-      "url": "/restaurateurs/geneve",
-      "icons": [{ "src": "/favicon-192x192.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [
+        {
+          "src": "/favicon-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     }
   ]
 }
