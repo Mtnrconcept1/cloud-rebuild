@@ -1,5 +1,7 @@
 export type ProRole = "restaurateur" | "courier";
 
+export const RESTAURANT_PARTNER_CONTRACT_VERSION = "TOK-CH-RP-2026-06-v2";
+
 export const ACCEPTED_MIME_TYPES = [
   "application/pdf",
   "image/jpeg",
@@ -55,7 +57,7 @@ export function validateSubmissionFields(
     if (!signature.startsWith("data:image/png;base64,") || signature.length < 120) {
       return "La signature manuscrite du contrat restaurateur est requise.";
     }
-    if (String(fields.contract_version || "").trim() !== "TOK-CH-RP-2026-06-v1") {
+    if (String(fields.contract_version || "").trim() !== RESTAURANT_PARTNER_CONTRACT_VERSION) {
       return "La version du contrat restaurateur est invalide.";
     }
     const billingPeriod = String(fields.subscription_billing_period || "").trim().toLowerCase();
