@@ -10,8 +10,7 @@ class ResizeObserverMock {
   disconnect = vi.fn();
 }
 
-globalThis.ResizeObserver =
-  ResizeObserverMock as unknown as typeof ResizeObserver;
+globalThis.ResizeObserver = ResizeObserverMock as unknown as typeof ResizeObserver;
 
 const supabaseMocks = vi.hoisted(() => ({
   resend: vi.fn(),
@@ -132,12 +131,11 @@ const restaurantSubscriptionPlanRows = [
 ];
 
 function mockSupabaseTable(table: string) {
-  const rows =
-    table === "launch_packs"
-      ? launchPackRows
-      : table === "restaurant_subscription_plans"
-        ? restaurantSubscriptionPlanRows
-        : [];
+  const rows = table === "launch_packs"
+    ? launchPackRows
+    : table === "restaurant_subscription_plans"
+      ? restaurantSubscriptionPlanRows
+      : [];
   const builder = {
     select: vi.fn(() => builder),
     eq: vi.fn(() => builder),
@@ -156,26 +154,14 @@ function renderAuth(route: string) {
   );
 }
 
+
 function signRestaurantContract() {
-  fireEvent.change(
-    screen.getByLabelText("Nom et fonction du signataire habilité"),
-    {
-      target: { value: "Marie Dupont, gérante" },
-    },
-  );
-  const signaturePad = screen.getByLabelText(
-    "Zone de signature manuscrite du contrat restaurateur",
-  );
-  fireEvent.pointerDown(signaturePad, {
-    clientX: 10,
-    clientY: 10,
-    pointerId: 1,
+  fireEvent.change(screen.getByLabelText("Nom et fonction du signataire habilité"), {
+    target: { value: "Marie Dupont, gérante" },
   });
-  fireEvent.pointerMove(signaturePad, {
-    clientX: 80,
-    clientY: 30,
-    pointerId: 1,
-  });
+  const signaturePad = screen.getByLabelText("Zone de signature manuscrite du contrat restaurateur");
+  fireEvent.pointerDown(signaturePad, { clientX: 10, clientY: 10, pointerId: 1 });
+  fireEvent.pointerMove(signaturePad, { clientX: 80, clientY: 30, pointerId: 1 });
   fireEvent.pointerUp(signaturePad, { pointerId: 1 });
 }
 
@@ -202,9 +188,7 @@ describe("Auth signup form", () => {
       moveTo: vi.fn(),
       stroke: vi.fn(),
     })) as unknown as typeof HTMLCanvasElement.prototype.getContext;
-    HTMLCanvasElement.prototype.toDataURL = vi.fn(
-      () => "data:image/png;base64,manual-signature",
-    );
+    HTMLCanvasElement.prototype.toDataURL = vi.fn(() => "data:image/png;base64,manual-signature");
     HTMLCanvasElement.prototype.setPointerCapture = vi.fn();
     supabaseMocks.signUp.mockResolvedValue({
       data: {
@@ -225,9 +209,7 @@ describe("Auth signup form", () => {
   it("lets a client enter an email when switching to signup", () => {
     renderAuth("/auth?type=client");
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "Pas encore de compte ? S'inscrire" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "Pas encore de compte ? S'inscrire" }));
 
     const emailInput = screen.getByLabelText("Email");
     fireEvent.change(emailInput, { target: { value: "client@example.com" } });
@@ -242,14 +224,10 @@ describe("Auth signup form", () => {
     const passwordInput = screen.getByLabelText("Mot de passe");
     expect(passwordInput).toHaveAttribute("type", "password");
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "Afficher le mot de passe" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "Afficher le mot de passe" }));
     expect(passwordInput).toHaveAttribute("type", "text");
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "Masquer le mot de passe" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "Masquer le mot de passe" }));
     expect(passwordInput).toHaveAttribute("type", "password");
     expect(supabaseMocks.signInWithPassword).not.toHaveBeenCalled();
   });
@@ -257,21 +235,15 @@ describe("Auth signup form", () => {
   it("lets signup users reveal and hide the password before submitting", () => {
     renderAuth("/auth?type=client");
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "Pas encore de compte ? S'inscrire" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "Pas encore de compte ? S'inscrire" }));
 
     const passwordInput = screen.getByLabelText("Mot de passe");
     expect(passwordInput).toHaveAttribute("type", "password");
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "Afficher le mot de passe" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "Afficher le mot de passe" }));
     expect(passwordInput).toHaveAttribute("type", "text");
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "Masquer le mot de passe" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "Masquer le mot de passe" }));
     expect(passwordInput).toHaveAttribute("type", "password");
     expect(supabaseMocks.signUp).not.toHaveBeenCalled();
   });
@@ -279,15 +251,9 @@ describe("Auth signup form", () => {
   it("submits client signup with the confirmation redirect and does not auto-login without a session", async () => {
     renderAuth("/auth?type=client");
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "Pas encore de compte ? S'inscrire" }),
-    );
-    fireEvent.change(screen.getByLabelText("Nom complet"), {
-      target: { value: "Client Test" },
-    });
-    fireEvent.change(screen.getByLabelText("Email"), {
-      target: { value: "client@example.com" },
-    });
+    fireEvent.click(screen.getByRole("button", { name: "Pas encore de compte ? S'inscrire" }));
+    fireEvent.change(screen.getByLabelText("Nom complet"), { target: { value: "Client Test" } });
+    fireEvent.change(screen.getByLabelText("Email"), { target: { value: "client@example.com" } });
     fireEvent.change(screen.getByLabelText("Mot de passe"), {
       target: { value: "secret123" },
     });
@@ -313,23 +279,16 @@ describe("Auth signup form", () => {
     expect(supabaseMocks.signInWithPassword).not.toHaveBeenCalled();
     expect(toastMock).toHaveBeenCalledWith({
       title: "Compte créé",
-      description:
-        "Compte créé. Vérifiez votre email pour confirmer votre compte.",
+      description: "Compte créé. Vérifiez votre email pour confirmer votre compte.",
     });
   });
 
   it("requires legal acceptance before creating a signup account", async () => {
     renderAuth("/auth?type=client");
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "Pas encore de compte ? S'inscrire" }),
-    );
-    fireEvent.change(screen.getByLabelText("Nom complet"), {
-      target: { value: "Client Test" },
-    });
-    fireEvent.change(screen.getByLabelText("Email"), {
-      target: { value: "client@example.com" },
-    });
+    fireEvent.click(screen.getByRole("button", { name: "Pas encore de compte ? S'inscrire" }));
+    fireEvent.change(screen.getByLabelText("Nom complet"), { target: { value: "Client Test" } });
+    fireEvent.change(screen.getByLabelText("Email"), { target: { value: "client@example.com" } });
     fireEvent.change(screen.getByLabelText("Mot de passe"), {
       target: { value: "secret123" },
     });
@@ -340,8 +299,7 @@ describe("Auth signup form", () => {
       expect(toastMock).toHaveBeenCalledWith(
         expect.objectContaining({
           title: "Erreur",
-          description:
-            "Vous devez accepter les CGU et la politique de confidentialité.",
+          description: "Vous devez accepter les CGU et la politique de confidentialité.",
           variant: "destructive",
         }),
       );
@@ -357,9 +315,7 @@ describe("Auth signup form", () => {
       moveTo: vi.fn(),
       stroke: vi.fn(),
     })) as unknown as typeof HTMLCanvasElement.prototype.getContext;
-    HTMLCanvasElement.prototype.toDataURL = vi.fn(
-      () => "data:image/png;base64,manual-signature",
-    );
+    HTMLCanvasElement.prototype.toDataURL = vi.fn(() => "data:image/png;base64,manual-signature");
     HTMLCanvasElement.prototype.setPointerCapture = vi.fn();
     supabaseMocks.signUp.mockResolvedValue({
       data: {
@@ -438,13 +394,9 @@ describe("Auth signup form", () => {
             privacy_policy_accepted: true,
             contract_version: "TOK-CH-RP-2026-06-v2",
             contract_signer_name: "Marie Dupont, gérante",
-            contract_signature_data_url: expect.stringContaining(
-              "data:image/png;base64,",
-            ),
+            contract_signature_data_url: expect.stringContaining("data:image/png;base64,"),
             contract_content_hash: "TOK-CH-RP-2026-06-v2:12",
-            contract_acceptance_text: expect.stringContaining(
-              "je déclare être habilité",
-            ),
+            contract_acceptance_text: expect.stringContaining("je déclare être habilité"),
           }),
         }),
       );
@@ -459,6 +411,7 @@ describe("Auth signup form", () => {
     );
   });
 
+
   it("submits the complete restaurateur dossier through the Edge Function when email confirmation prevents a session", async () => {
     HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
       beginPath: vi.fn(),
@@ -467,9 +420,7 @@ describe("Auth signup form", () => {
       moveTo: vi.fn(),
       stroke: vi.fn(),
     })) as unknown as typeof HTMLCanvasElement.prototype.getContext;
-    HTMLCanvasElement.prototype.toDataURL = vi.fn(
-      () => "data:image/png;base64,manual-signature",
-    );
+    HTMLCanvasElement.prototype.toDataURL = vi.fn(() => "data:image/png;base64,manual-signature");
     HTMLCanvasElement.prototype.setPointerCapture = vi.fn();
     supabaseMocks.signUp.mockResolvedValue({
       data: {
@@ -522,17 +473,13 @@ describe("Auth signup form", () => {
     const documentFile = new File(["document"], "document.png", {
       type: "image/png",
     });
-    const fileInputs = Array.from(
-      container.querySelectorAll<HTMLInputElement>('input[type="file"]'),
-    );
+    const fileInputs = Array.from(container.querySelectorAll<HTMLInputElement>('input[type="file"]'));
     expect(fileInputs).toHaveLength(3);
     for (const input of fileInputs) {
       fireEvent.change(input, { target: { files: [documentFile] } });
     }
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "Envoyer mon inscription vérifiée" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "Envoyer mon inscription vérifiée" }));
 
     await waitFor(() => {
       expect(supabaseMocks.invoke).toHaveBeenCalledWith(
@@ -552,16 +499,11 @@ describe("Auth signup form", () => {
     expect(body.get("privacy_policy_accepted")).toBe("true");
     expect(body.get("contract_version")).toBe("TOK-CH-RP-2026-06-v2");
     expect(body.get("contract_signer_name")).toBe("Marie Dupont, gérante");
-    expect(String(body.get("contract_signature_data_url"))).toContain(
-      "data:image/png;base64,",
-    );
+    expect(String(body.get("contract_signature_data_url"))).toContain("data:image/png;base64,");
     expect(body.get("document_identity_document")).toBeInstanceOf(File);
     expect(body.get("document_business_registration")).toBeInstanceOf(File);
     expect(body.get("document_iban_proof")).toBeInstanceOf(File);
-    expect(supabaseMocks.rpc).not.toHaveBeenCalledWith(
-      "sync_signup_application",
-      expect.anything(),
-    );
+    expect(supabaseMocks.rpc).not.toHaveBeenCalledWith("sync_signup_application", expect.anything());
     expect(toastMock).toHaveBeenCalledWith(
       expect.objectContaining({
         title: "Inscription enregistrée",
@@ -573,12 +515,8 @@ describe("Auth signup form", () => {
   it("lets users resend the signup confirmation email", async () => {
     renderAuth("/auth?type=client");
 
-    fireEvent.change(screen.getByLabelText("Email"), {
-      target: { value: "client@example.com" },
-    });
-    fireEvent.click(
-      screen.getByRole("button", { name: "Renvoyer l’email de confirmation" }),
-    );
+    fireEvent.change(screen.getByLabelText("Email"), { target: { value: "client@example.com" } });
+    fireEvent.click(screen.getByRole("button", { name: "Renvoyer l’email de confirmation" }));
 
     await waitFor(() => {
       expect(supabaseMocks.resend).toHaveBeenCalledWith({
@@ -596,13 +534,9 @@ describe("Auth signup form", () => {
     await screen.findByText("TOK Starter");
 
     const emailInput = screen.getByLabelText("Email");
-    fireEvent.change(emailInput, {
-      target: { value: "restaurant@example.com" },
-    });
+    fireEvent.change(emailInput, { target: { value: "restaurant@example.com" } });
 
-    expect(
-      screen.getByRole("heading", { name: "Créer un compte vérifié" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Créer un compte vérifié" })).toBeInTheDocument();
     expect(emailInput).toHaveAttribute("type", "email");
     expect(emailInput).toHaveValue("restaurant@example.com");
   });

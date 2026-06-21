@@ -14,9 +14,7 @@ function latestMigrationContaining(pattern: RegExp) {
     .filter((name) => name.endsWith(".sql"))
     .sort()
     .reverse()
-    .find((name) =>
-      pattern.test(readFileSync(resolve(migrationsDir, name), "utf8")),
-    );
+    .find((name) => pattern.test(readFileSync(resolve(migrationsDir, name), "utf8")));
 
   if (!match) return "";
   return readFileSync(resolve(migrationsDir, match), "utf8");
@@ -25,9 +23,7 @@ function latestMigrationContaining(pattern: RegExp) {
 describe("restaurant onboarding subscription payments", () => {
   it("collects subscription choices during restaurateur signup", () => {
     const auth = read("src/pages/Auth.tsx");
-    const validation = read(
-      "supabase/functions/submit-signup-application/validation.ts",
-    );
+    const validation = read("supabase/functions/submit-signup-application/validation.ts");
 
     expect(auth).not.toContain("selectedLaunchPackId");
     expect(auth).toContain("selectedSubscriptionPlanId");
@@ -54,9 +50,7 @@ describe("restaurant onboarding subscription payments", () => {
     expect(checkout).toContain("ai_photo_credits");
     expect(checkout).toContain("subscription_data");
     expect(checkout).toContain("billing_period");
-    expect(checkout).not.toContain(
-      'effectiveKind === "restaurant-onboarding" ? "payment"',
-    );
+    expect(checkout).not.toContain('effectiveKind === "restaurant-onboarding" ? "payment"');
 
     expect(webhook).toContain('checkoutKind === "restaurant-onboarding"');
     expect(webhook).toContain("restaurant_ai_subscriptions");
@@ -68,21 +62,15 @@ describe("restaurant onboarding subscription payments", () => {
       /CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.signup_restaurateur_onboarding_payment_ready/i,
     );
     const admin = read("src/pages/admin/AdminUtilisateurs.tsx");
-    const statusCard = read(
-      "src/components/signup/SignupApplicationStatusCard.tsx",
-    );
+    const statusCard = read("src/components/signup/SignupApplicationStatusCard.tsx");
 
-    expect(migration).toContain(
-      "CREATE OR REPLACE FUNCTION public.signup_restaurateur_onboarding_payment_ready",
-    );
+    expect(migration).toContain("CREATE OR REPLACE FUNCTION public.signup_restaurateur_onboarding_payment_ready");
     expect(migration).toContain("restaurant_subscription_plans");
     expect(migration).toContain("restaurant_ai_subscriptions");
     expect(migration).not.toContain("v_launch_pack_id");
     expect(migration).not.toContain("restaurant_launch_packs rlp");
     expect(migration).toContain("Onboarding payment required before approval");
-    expect(migration).toContain(
-      "GRANT EXECUTE ON FUNCTION public.signup_restaurateur_onboarding_payment_ready",
-    );
+    expect(migration).toContain("GRANT EXECUTE ON FUNCTION public.signup_restaurateur_onboarding_payment_ready");
 
     expect(admin).toContain("Paiement onboarding");
     expect(admin).toContain("canApproveSignupApplication");
