@@ -1,11 +1,22 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Banknote, CheckCircle2, CreditCard, ExternalLink, Loader2, Percent, Smartphone, Store, Wallet } from "lucide-react";
+import {
+  Banknote,
+  CheckCircle2,
+  CreditCard,
+  ExternalLink,
+  Loader2,
+  Percent,
+  Smartphone,
+  Store,
+  Wallet,
+} from "lucide-react";
 
 import AddressAutocomplete from "@/components/AddressAutocomplete";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import ImageUpload from "@/components/ImageUpload";
+import RestaurantPartnerContractCard from "@/components/contracts/RestaurantPartnerContractCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -28,7 +39,10 @@ import {
   PREDEFINED_RESTAURANT_CATEGORIES,
 } from "@/lib/restaurantCategories";
 import { getGloballyEnabledPaymentMethods } from "@/lib/paymentMethods";
-import { RESTAURANT_AMENITY_GROUPS, normalizeRestaurantAmenities } from "@/lib/restaurantAmenities";
+import {
+  RESTAURANT_AMENITY_GROUPS,
+  normalizeRestaurantAmenities,
+} from "@/lib/restaurantAmenities";
 
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
 
@@ -60,13 +74,17 @@ type DashboardActivePromotion = {
 
 function formatDashboardPromotionNumber(value: number) {
   if (!Number.isFinite(value)) return "0";
-  return Number.isInteger(value) ? value.toFixed(0) : value.toFixed(2).replace(/\.?0+$/, "");
+  return Number.isInteger(value)
+    ? value.toFixed(0)
+    : value.toFixed(2).replace(/\.?0+$/, "");
 }
 
 function formatDashboardPromotionValue(promotion: DashboardActivePromotion) {
   const value = Number(promotion.promotion_value || 0);
-  if (promotion.promotion_type === "percentage") return `-${formatDashboardPromotionNumber(value)}%`;
-  if (promotion.promotion_type === "fixed") return `-${formatDashboardPromotionNumber(value)} CHF`;
+  if (promotion.promotion_type === "percentage")
+    return `-${formatDashboardPromotionNumber(value)}%`;
+  if (promotion.promotion_type === "fixed")
+    return `-${formatDashboardPromotionNumber(value)} CHF`;
   if (promotion.promotion_type === "free_delivery") return "Livraison offerte";
   return "Promotion";
 }
@@ -95,7 +113,9 @@ export default function DashboardRestaurant() {
   const [loading, setLoading] = useState(false);
   const [connectLoading, setConnectLoading] = useState(false);
   const [selectedCuisineIds, setSelectedCuisineIds] = useState<string[]>([]);
-  const [disabledPaymentMethods, setDisabledPaymentMethods] = useState<string[]>([]);
+  const [disabledPaymentMethods, setDisabledPaymentMethods] = useState<
+    string[]
+  >([]);
   const [form, setForm] = useState({
     name: "",
     description: "",
@@ -118,7 +138,11 @@ export default function DashboardRestaurant() {
   const { data: restaurant } = useQuery({
     queryKey: ["my-restaurant", selectedId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("restaurants").select("*").eq("id", selectedId!).single();
+      const { data, error } = await supabase
+        .from("restaurants")
+        .select("*")
+        .eq("id", selectedId!)
+        .single();
       if (error) throw error;
       return data;
     },
@@ -131,7 +155,9 @@ export default function DashboardRestaurant() {
       const now = new Date().toISOString();
       const { data, error } = await supabase
         .from("restaurant_promotions")
-        .select("id, name, promotion_type, promotion_value, target, start_at, end_at")
+        .select(
+          "id, name, promotion_type, promotion_value, target, start_at, end_at",
+        )
         .eq("restaurant_id", selectedId!)
         .eq("active", true)
         .lte("start_at", now)
@@ -147,12 +173,14 @@ export default function DashboardRestaurant() {
   const { data: cuisineOptions = [] } = useQuery({
     queryKey: ["restaurant-cuisine-options"],
     queryFn: async () => {
-      const fallback = PREDEFINED_RESTAURANT_CATEGORIES.map((category, index) => ({
-        id: category.slug || `fallback-${index}`,
-        name: category.name,
-        slug: category.slug,
-        keywords: category.keywords,
-      }));
+      const fallback = PREDEFINED_RESTAURANT_CATEGORIES.map(
+        (category, index) => ({
+          id: category.slug || `fallback-${index}`,
+          name: category.name,
+          slug: category.slug,
+          keywords: category.keywords,
+        }),
+      );
       const { data, error } = await (supabase.from("cuisines") as any)
         .select("id, name, slug, keywords")
         .order("name", { ascending: true });
@@ -164,7 +192,10 @@ export default function DashboardRestaurant() {
   const { data: restaurantCuisineLinks = [] } = useQuery({
     queryKey: ["restaurant-cuisine-links", selectedId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("restaurant_cuisines").select("cuisine_id").eq("restaurant_id", selectedId!);
+      const { data, error } = await supabase
+        .from("restaurant_cuisines")
+        .select("cuisine_id")
+        .eq("restaurant_id", selectedId!);
       if (error) throw error;
       return (data || []).map((row: any) => String(row.cuisine_id));
     },
@@ -189,9 +220,14 @@ export default function DashboardRestaurant() {
       supports_pickup: restaurant.supports_pickup || false,
       supports_dinein: restaurant.supports_dinein || false,
       supports_reservation: restaurant.supports_reservation || false,
-      amenities: normalizeRestaurantAmenities((restaurant as Record<string, unknown>).amenities),
+      amenities: normalizeRestaurantAmenities(
+        (restaurant as Record<string, unknown>).amenities,
+      ),
     });
-    setDisabledPaymentMethods((restaurant as Record<string, unknown>).disabled_payment_methods as string[] || []);
+    setDisabledPaymentMethods(
+      ((restaurant as Record<string, unknown>)
+        .disabled_payment_methods as string[]) || [],
+    );
   }, [restaurant]);
 
   useEffect(() => {
@@ -202,7 +238,9 @@ export default function DashboardRestaurant() {
       return;
     }
 
-    const normalizedLegacy = normalizeRestaurantCategoryText(restaurant.cuisine_type);
+    const normalizedLegacy = normalizeRestaurantCategoryText(
+      restaurant.cuisine_type,
+    );
     if (!normalizedLegacy) {
       setSelectedCuisineIds([]);
       return;
@@ -210,8 +248,14 @@ export default function DashboardRestaurant() {
 
     const inferredIds = cuisineOptions
       .filter((option) => {
-        const terms = buildRestaurantCategorySearchTerms({ categories: [option], legacyCuisineType: option.name });
-        return terms.some((term) => normalizedLegacy.includes(term) || term.includes(normalizedLegacy));
+        const terms = buildRestaurantCategorySearchTerms({
+          categories: [option],
+          legacyCuisineType: option.name,
+        });
+        return terms.some(
+          (term) =>
+            normalizedLegacy.includes(term) || term.includes(normalizedLegacy),
+        );
       })
       .map((option) => option.id);
 
@@ -220,19 +264,24 @@ export default function DashboardRestaurant() {
 
   const selectedCuisineNames = useMemo(() => {
     const selectedSet = new Set(selectedCuisineIds);
-    return cuisineOptions.filter((option) => selectedSet.has(option.id)).map((option) => option.name);
+    return cuisineOptions
+      .filter((option) => selectedSet.has(option.id))
+      .map((option) => option.name);
   }, [cuisineOptions, selectedCuisineIds]);
 
   const cuisineSummary = useMemo(() => {
-    return formatRestaurantCategorySummary(selectedCuisineNames, form.cuisine_type || "");
+    return formatRestaurantCategorySummary(
+      selectedCuisineNames,
+      form.cuisine_type || "",
+    );
   }, [form.cuisine_type, selectedCuisineNames]);
 
   const toggleCuisine = (cuisineId: string) => {
-    setSelectedCuisineIds((current) => (
+    setSelectedCuisineIds((current) =>
       current.includes(cuisineId)
         ? current.filter((id) => id !== cuisineId)
-        : [...current, cuisineId]
-    ));
+        : [...current, cuisineId],
+    );
   };
 
   const toggleAmenity = (amenityId: string) => {
@@ -267,7 +316,10 @@ export default function DashboardRestaurant() {
       let restaurantId = restaurant?.id || null;
 
       if (restaurant) {
-        const { error } = await supabase.from("restaurants").update(payload).eq("id", restaurant.id);
+        const { error } = await supabase
+          .from("restaurants")
+          .update(payload)
+          .eq("id", restaurant.id);
         if (error) throw error;
         restaurantId = restaurant.id;
       } else {
@@ -284,12 +336,18 @@ export default function DashboardRestaurant() {
         await syncRestaurantCuisines(restaurantId);
       }
 
-      toast({ title: restaurant ? "Restaurant mis à jour !" : "Restaurant crée !" });
+      toast({
+        title: restaurant ? "Restaurant mis à jour !" : "Restaurant crée !",
+      });
       queryClient.invalidateQueries({ queryKey: ["my-restaurant"] });
       queryClient.invalidateQueries({ queryKey: ["owner-restaurants"] });
       queryClient.invalidateQueries({ queryKey: ["restaurant-cuisine-links"] });
     } catch (error: any) {
-      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -299,21 +357,28 @@ export default function DashboardRestaurant() {
     if (!restaurant) return;
     setConnectLoading(true);
     try {
-      const response = await fetchWithFreshAccessToken(`${SUPABASE_URL}/functions/v1/stripe-connect-onboard`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetchWithFreshAccessToken(
+        `${SUPABASE_URL}/functions/v1/stripe-connect-onboard`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            restaurant_id: restaurant.id,
+            return_url: buildCurrentCheckoutReturnUrl(),
+          }),
         },
-        body: JSON.stringify({
-          restaurant_id: restaurant.id,
-          return_url: buildCurrentCheckoutReturnUrl(),
-        }),
-      });
+      );
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Erreur");
       redirectToTrustedCheckoutUrl(data.url);
     } catch (error: any) {
-      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive",
+      });
       setConnectLoading(false);
     }
   };
@@ -329,10 +394,26 @@ export default function DashboardRestaurant() {
           tone="orange"
           visualLabel="Profil"
           stats={[
-            { label: "Categories", value: selectedCuisineIds.length, icon: Store },
-            { label: "Commodités", value: form.amenities.length, icon: CheckCircle2 },
-            { label: "Paiements coupes", value: disabledPaymentMethods.length, icon: CreditCard },
-            { label: "Stripe", value: restaurant?.stripe_account_id ? "Connecte" : "A relier", icon: Wallet },
+            {
+              label: "Categories",
+              value: selectedCuisineIds.length,
+              icon: Store,
+            },
+            {
+              label: "Commodités",
+              value: form.amenities.length,
+              icon: CheckCircle2,
+            },
+            {
+              label: "Paiements coupes",
+              value: disabledPaymentMethods.length,
+              icon: CreditCard,
+            },
+            {
+              label: "Stripe",
+              value: restaurant?.stripe_account_id ? "Connecte" : "A relier",
+              icon: Wallet,
+            },
           ]}
         />
         {restaurant && activePromotions.length > 0 ? (
@@ -343,53 +424,85 @@ export default function DashboardRestaurant() {
                   <Percent className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Promotions visibles</p>
-                  <h2 className="mt-1 font-display text-xl font-bold">Actives sur la fiche restaurant</h2>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+                    Promotions visibles
+                  </p>
+                  <h2 className="mt-1 font-display text-xl font-bold">
+                    Actives sur la fiche restaurant
+                  </h2>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Ces offres sont actuellement affichées aux clients tant que leurs dates restent valides.
+                    Ces offres sont actuellement affichées aux clients tant que
+                    leurs dates restent valides.
                   </p>
                 </div>
               </div>
               <Badge className="w-fit rounded-full bg-primary text-primary-foreground">
-                {activePromotions.length} active{activePromotions.length > 1 ? "s" : ""}
+                {activePromotions.length} active
+                {activePromotions.length > 1 ? "s" : ""}
               </Badge>
             </div>
             <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
               {activePromotions.map((promotion) => (
-                <div key={promotion.id} className="rounded-xl border bg-background/85 p-4 shadow-sm">
+                <div
+                  key={promotion.id}
+                  className="rounded-xl border bg-background/85 p-4 shadow-sm"
+                >
                   <div className="flex flex-wrap items-center gap-2">
                     <Badge className="bg-primary/10 text-primary hover:bg-primary/10">
                       {formatDashboardPromotionValue(promotion)}
                     </Badge>
-                    <Badge variant="outline" className="bg-background text-[10px]">
-                      {DASHBOARD_PROMOTION_TARGET_LABELS[promotion.target] || promotion.target}
+                    <Badge
+                      variant="outline"
+                      className="bg-background text-[10px]"
+                    >
+                      {DASHBOARD_PROMOTION_TARGET_LABELS[promotion.target] ||
+                        promotion.target}
                     </Badge>
                   </div>
                   <p className="mt-3 text-sm font-bold">{promotion.name}</p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Valable jusqu'au {formatDashboardPromotionEndDate(promotion.end_at)}
+                    Valable jusqu'au{" "}
+                    {formatDashboardPromotionEndDate(promotion.end_at)}
                   </p>
                 </div>
               ))}
             </div>
           </section>
         ) : null}
+        {restaurant ? (
+          <RestaurantPartnerContractCard
+            restaurantId={restaurant.id}
+            mode="restaurateur"
+          />
+        ) : null}
+
         <div className="max-w-3xl space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Nom</Label>
-              <Input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} required />
+              <Input
+                value={form.name}
+                onChange={(event) =>
+                  setForm({ ...form, name: event.target.value })
+                }
+                required
+              />
             </div>
             <div className="space-y-2">
               <Label>Résumé des catégories</Label>
-              <Input value={cuisineSummary} readOnly placeholder="Sélectionnez un ou plusieurs types" />
+              <Input
+                value={cuisineSummary}
+                readOnly
+                placeholder="Sélectionnez un ou plusieurs types"
+              />
             </div>
           </div>
 
           <div className="space-y-2">
             <Label>Types de restauration</Label>
             <p className="text-xs text-muted-foreground">
-              Sélection multiple. Ces catégories alimentent la recherche et decrivent precisement votre offre.
+              Sélection multiple. Ces catégories alimentent la recherche et
+              decrivent precisement votre offre.
             </p>
             <div className="flex flex-wrap gap-2 rounded-xl border p-3">
               {cuisineOptions.map((option) => {
@@ -409,7 +522,9 @@ export default function DashboardRestaurant() {
             {selectedCuisineNames.length > 0 && (
               <div className="flex flex-wrap gap-2 pt-1">
                 {selectedCuisineNames.map((name) => (
-                  <Badge key={name} variant="secondary">{name}</Badge>
+                  <Badge key={name} variant="secondary">
+                    {name}
+                  </Badge>
                 ))}
               </div>
             )}
@@ -417,7 +532,12 @@ export default function DashboardRestaurant() {
 
           <div className="space-y-2">
             <Label>Description</Label>
-            <Textarea value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} />
+            <Textarea
+              value={form.description}
+              onChange={(event) =>
+                setForm({ ...form, description: event.target.value })
+              }
+            />
           </div>
 
           <div className="space-y-2">
@@ -454,24 +574,39 @@ export default function DashboardRestaurant() {
 
           <div className="space-y-2">
             <Label>Téléphone</Label>
-            <Input value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} />
+            <Input
+              value={form.phone}
+              onChange={(event) =>
+                setForm({ ...form, phone: event.target.value })
+              }
+            />
           </div>
 
-          <ImageUpload label="Photo du restaurant" value={form.image_url} onChange={(url) => setForm({ ...form, image_url: url })} />
+          <ImageUpload
+            label="Photo du restaurant"
+            value={form.image_url}
+            onChange={(url) => setForm({ ...form, image_url: url })}
+          />
 
           <div className="mt-6 space-y-4 border-t pt-4">
             <div>
               <h3 className="font-semibold">Commodités et services</h3>
               <p className="text-sm text-muted-foreground">
-                Sélectionnez les attributs visibles par les clients, sur le modèle des fiches Google Business.
+                Sélectionnez les attributs visibles par les clients, sur le
+                modèle des fiches Google Business.
               </p>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
               {RESTAURANT_AMENITY_GROUPS.map((group) => (
-                <section key={group.id} className="rounded-xl border bg-background p-4">
+                <section
+                  key={group.id}
+                  className="rounded-xl border bg-background p-4"
+                >
                   <div className="mb-3">
                     <h4 className="text-sm font-semibold">{group.title}</h4>
-                    <p className="text-xs text-muted-foreground">{group.description}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {group.description}
+                    </p>
                   </div>
                   <div className="space-y-3">
                     {group.options.map((option) => {
@@ -486,10 +621,15 @@ export default function DashboardRestaurant() {
                             className="mt-0.5"
                           />
                           <div className="grid gap-0.5 leading-none">
-                            <Label htmlFor={checkboxId} className="cursor-pointer text-sm font-medium leading-none">
+                            <Label
+                              htmlFor={checkboxId}
+                              className="cursor-pointer text-sm font-medium leading-none"
+                            >
                               {option.label}
                             </Label>
-                            <p className="text-xs leading-5 text-muted-foreground">{option.description}</p>
+                            <p className="text-xs leading-5 text-muted-foreground">
+                              {option.description}
+                            </p>
                           </div>
                         </div>
                       );
@@ -503,7 +643,9 @@ export default function DashboardRestaurant() {
                 {RESTAURANT_AMENITY_GROUPS.flatMap((group) => group.options)
                   .filter((option) => form.amenities.includes(option.id))
                   .map((option) => (
-                    <Badge key={option.id} variant="secondary">{option.label}</Badge>
+                    <Badge key={option.id} variant="secondary">
+                      {option.label}
+                    </Badge>
                   ))}
               </div>
             ) : null}
@@ -513,7 +655,12 @@ export default function DashboardRestaurant() {
             <>
               <div className="flex items-center gap-4 pt-2">
                 <div className="flex items-center gap-2">
-                  <Switch checked={form.delivery_available} onCheckedChange={(checked) => setForm({ ...form, delivery_available: checked })} />
+                  <Switch
+                    checked={form.delivery_available}
+                    onCheckedChange={(checked) =>
+                      setForm({ ...form, delivery_available: checked })
+                    }
+                  />
                   <Label>Livraison disponible</Label>
                 </div>
               </div>
@@ -522,45 +669,91 @@ export default function DashboardRestaurant() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Frais de livraison (CHF)</Label>
-                    <Input type="number" step="0.01" value={form.delivery_fee} onChange={(event) => setForm({ ...form, delivery_fee: Number(event.target.value) })} />
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={form.delivery_fee}
+                      onChange={(event) =>
+                        setForm({
+                          ...form,
+                          delivery_fee: Number(event.target.value),
+                        })
+                      }
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>Commande minimum (CHF)</Label>
-                    <Input type="number" step="0.01" value={form.min_order_amount} onChange={(event) => setForm({ ...form, min_order_amount: Number(event.target.value) })} />
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={form.min_order_amount}
+                      onChange={(event) =>
+                        setForm({
+                          ...form,
+                          min_order_amount: Number(event.target.value),
+                        })
+                      }
+                    />
                   </div>
                 </div>
               )}
             </>
           ) : (
             <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
-              La livraison est actuellement désactivée par l'administration globale.
+              La livraison est actuellement désactivée par l'administration
+              globale.
             </div>
           )}
 
           <div className="mt-6 border-t pt-4">
-            <h3 className="mb-4 font-semibold">Modes de consommation alternatifs</h3>
+            <h3 className="mb-4 font-semibold">
+              Modes de consommation alternatifs
+            </h3>
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="flex items-center gap-2">
-                <Switch checked={takeawayEnabled && form.supports_pickup} disabled={!takeawayEnabled} onCheckedChange={(checked) => setForm({ ...form, supports_pickup: checked })} />
+                <Switch
+                  checked={takeawayEnabled && form.supports_pickup}
+                  disabled={!takeawayEnabled}
+                  onCheckedChange={(checked) =>
+                    setForm({ ...form, supports_pickup: checked })
+                  }
+                />
                 <Label>A emporter (Click & Collect)</Label>
               </div>
               <div className="flex items-center gap-2">
-                <Switch checked={dineInEnabled && form.supports_dinein} disabled={!dineInEnabled} onCheckedChange={(checked) => setForm({ ...form, supports_dinein: checked })} />
+                <Switch
+                  checked={dineInEnabled && form.supports_dinein}
+                  disabled={!dineInEnabled}
+                  onCheckedChange={(checked) =>
+                    setForm({ ...form, supports_dinein: checked })
+                  }
+                />
                 <Label>Sur place (Dine-in)</Label>
               </div>
               <div className="flex items-center gap-2">
-                <Switch checked={reservationEnabled && form.supports_reservation} disabled={!reservationEnabled} onCheckedChange={(checked) => setForm({ ...form, supports_reservation: checked })} />
+                <Switch
+                  checked={reservationEnabled && form.supports_reservation}
+                  disabled={!reservationEnabled}
+                  onCheckedChange={(checked) =>
+                    setForm({ ...form, supports_reservation: checked })
+                  }
+                />
                 <Label>Reservation de table</Label>
               </div>
             </div>
-            {(!takeawayEnabled || !dineInEnabled || !reservationEnabled) ? (
+            {!takeawayEnabled || !dineInEnabled || !reservationEnabled ? (
               <p className="pt-2 text-xs text-muted-foreground">
-                Les options coupees globalement par l'administration restent forcees a off ici.
+                Les options coupees globalement par l'administration restent
+                forcees a off ici.
               </p>
             ) : null}
           </div>
 
-          <Button onClick={handleSave} disabled={loading} className="mt-8 w-full">
+          <Button
+            onClick={handleSave}
+            disabled={loading}
+            className="mt-8 w-full"
+          >
             {loading ? "Enregistrement..." : "Sauvegarder"}
           </Button>
 
@@ -570,34 +763,73 @@ export default function DashboardRestaurant() {
                 <CreditCard className="h-5 w-5" /> Moyens de paiement acceptés
               </h3>
               <p className="mb-4 text-sm text-muted-foreground">
-                Désactivez les moyens de paiement que vous ne souhaitez pas proposer à vos clients.
+                Désactivez les moyens de paiement que vous ne souhaitez pas
+                proposer à vos clients.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {([
-                  { id: "card", label: "Carte bancaire", icon: CreditCard, description: "Visa, Mastercard, AMEX" },
-                  { id: "twint", label: "TWINT", icon: Smartphone, description: "Paiement mobile suisse" },
-                  { id: "postfinance_card", label: "PostFinance Card", icon: Wallet, description: "Carte PostFinance" },
-                  { id: "postfinance_efinance", label: "PostFinance E-Finance", icon: Wallet, description: "E-banking PostFinance" },
-                  { id: "cash", label: "Espèces", icon: Banknote, description: "Paiement sur place" },
-                ] as const).map((method) => {
+                {(
+                  [
+                    {
+                      id: "card",
+                      label: "Carte bancaire",
+                      icon: CreditCard,
+                      description: "Visa, Mastercard, AMEX",
+                    },
+                    {
+                      id: "twint",
+                      label: "TWINT",
+                      icon: Smartphone,
+                      description: "Paiement mobile suisse",
+                    },
+                    {
+                      id: "postfinance_card",
+                      label: "PostFinance Card",
+                      icon: Wallet,
+                      description: "Carte PostFinance",
+                    },
+                    {
+                      id: "postfinance_efinance",
+                      label: "PostFinance E-Finance",
+                      icon: Wallet,
+                      description: "E-banking PostFinance",
+                    },
+                    {
+                      id: "cash",
+                      label: "Espèces",
+                      icon: Banknote,
+                      description: "Paiement sur place",
+                    },
+                  ] as const
+                ).map((method) => {
                   const enabled = !disabledPaymentMethods.includes(method.id);
-                  const globallyEnabled = globallyEnabledPaymentMethods.has(method.id);
+                  const globallyEnabled = globallyEnabledPaymentMethods.has(
+                    method.id,
+                  );
                   return (
-                    <div key={method.id} className={`flex items-center gap-3 rounded-xl border-2 p-3 transition-all ${enabled && globallyEnabled ? "border-primary/30 bg-primary/5" : "border-muted bg-muted/30 opacity-60"}`}>
+                    <div
+                      key={method.id}
+                      className={`flex items-center gap-3 rounded-xl border-2 p-3 transition-all ${enabled && globallyEnabled ? "border-primary/30 bg-primary/5" : "border-muted bg-muted/30 opacity-60"}`}
+                    >
                       <Switch
                         checked={enabled && globallyEnabled}
                         disabled={!globallyEnabled}
                         onCheckedChange={(checked) => {
                           setDisabledPaymentMethods((prev) =>
-                            checked ? prev.filter((m) => m !== method.id) : [...prev, method.id]
+                            checked
+                              ? prev.filter((m) => m !== method.id)
+                              : [...prev, method.id],
                           );
                         }}
                       />
-                      <method.icon className={`h-5 w-5 shrink-0 ${enabled && globallyEnabled ? "text-primary" : "text-muted-foreground"}`} />
+                      <method.icon
+                        className={`h-5 w-5 shrink-0 ${enabled && globallyEnabled ? "text-primary" : "text-muted-foreground"}`}
+                      />
                       <div>
                         <p className="text-sm font-medium">{method.label}</p>
                         <p className="text-[11px] text-muted-foreground">
-                          {globallyEnabled ? method.description : "Désactivé globalement par l'administration"}
+                          {globallyEnabled
+                            ? method.description
+                            : "Désactivé globalement par l'administration"}
                         </p>
                       </div>
                     </div>
@@ -613,24 +845,50 @@ export default function DashboardRestaurant() {
                 <CreditCard className="h-5 w-5" /> Paiements Stripe Connect
               </h3>
               <p className="mb-4 text-sm text-muted-foreground">
-                Connectez votre compte Stripe pour recevoir les paiements directement sur votre compte bancaire.
+                Connectez votre compte Stripe pour recevoir les paiements
+                directement sur votre compte bancaire.
               </p>
               {(restaurant as any).stripe_account_id ? (
                 <div className="flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 p-4">
                   <CheckCircle2 className="h-5 w-5 shrink-0 text-green-600" />
                   <div className="flex-1">
-                    <p className="text-sm font-semibold text-green-800">Compte Stripe connecté</p>
-                    <p className="font-mono text-xs text-green-600">{(restaurant as any).stripe_account_id}</p>
+                    <p className="text-sm font-semibold text-green-800">
+                      Compte Stripe connecté
+                    </p>
+                    <p className="font-mono text-xs text-green-600">
+                      {(restaurant as any).stripe_account_id}
+                    </p>
                   </div>
-                  <Button variant="outline" size="sm" onClick={handleStripeConnect} disabled={connectLoading} className="gap-1.5">
-                    {connectLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ExternalLink className="h-3.5 w-3.5" />}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleStripeConnect}
+                    disabled={connectLoading}
+                    className="gap-1.5"
+                  >
+                    {connectLoading ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    )}
                     Gérer
                   </Button>
                 </div>
               ) : (
-                <Button onClick={handleStripeConnect} disabled={connectLoading} variant="outline" className="w-full gap-2">
-                  {connectLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
-                  {connectLoading ? "Redirection..." : "Connecter mon compte Stripe"}
+                <Button
+                  onClick={handleStripeConnect}
+                  disabled={connectLoading}
+                  variant="outline"
+                  className="w-full gap-2"
+                >
+                  {connectLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <CreditCard className="h-4 w-4" />
+                  )}
+                  {connectLoading
+                    ? "Redirection..."
+                    : "Connecter mon compte Stripe"}
                 </Button>
               )}
             </div>
