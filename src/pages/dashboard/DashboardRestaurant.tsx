@@ -473,6 +473,7 @@ export default function DashboardRestaurant() {
           <RestaurantPartnerContractCard
             restaurantId={restaurant.id}
             mode="restaurateur"
+            restaurant={restaurant as any}
           />
         ) : null}
 
