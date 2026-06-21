@@ -9,6 +9,11 @@ const contractCopy = readFileSync(
   "src/lib/restaurantPartnerContract.ts",
   "utf8",
 );
+const authPage = readFileSync("src/pages/Auth.tsx", "utf8");
+const signupValidation = readFileSync(
+  "supabase/functions/submit-signup-application/validation.ts",
+  "utf8",
+);
 
 describe("restaurant partner contracts governance", () => {
   it("stores signatures in an RLS protected restaurant_contracts table", () => {
@@ -34,5 +39,16 @@ describe("restaurant partner contracts governance", () => {
       "Paiements, remboursements et Stripe Connect",
     );
     expect(contractCopy).toContain("Signature numérique et preuve");
+    expect(contractCopy).toContain("generateSignedRestaurantPartnerContractHtml");
+    expect(contractCopy).toContain("Signature manuscrite du restaurateur");
+  });
+
+  it("requires a manual restaurateur contract signature during signup before submission", () => {
+    expect(authPage).toContain("RestaurantContractSignaturePad");
+    expect(authPage).toContain("Signature au doigt ou au stylet");
+    expect(authPage).toContain("Exporter le contrat signé en PDF");
+    expect(authPage).toContain("contract_signature_data_url");
+    expect(signupValidation).toContain("contract_signature_data_url");
+    expect(signupValidation).toContain("La signature manuscrite du contrat restaurateur est requise.");
   });
 });

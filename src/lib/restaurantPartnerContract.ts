@@ -95,3 +95,68 @@ export function getRestaurantPartnerContractPlainText() {
     ]),
   ].join("\n\n");
 }
+
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+export function generateSignedRestaurantPartnerContractHtml(input: {
+  signerName: string;
+  signatureDataUrl: string;
+  signedAt: string;
+  legalName: string;
+  businessName: string;
+  restaurantName: string;
+}) {
+  const sections = RESTAURANT_PARTNER_CONTRACT_SECTIONS.map((section) => `
+    <section>
+      <h2>${escapeHtml(section.title)}</h2>
+      ${section.paragraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("")}
+    </section>
+  `).join("");
+
+  return `<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>${escapeHtml(RESTAURANT_PARTNER_CONTRACT_TITLE)} - ${escapeHtml(input.restaurantName || input.businessName || input.legalName || input.signerName)}</title>
+  <style>
+    body { color: #0f172a; font-family: Arial, sans-serif; line-height: 1.5; margin: 32px; }
+    h1 { font-size: 24px; margin-bottom: 4px; }
+    h2 { font-size: 16px; margin-top: 24px; }
+    p { font-size: 12px; margin: 8px 0; }
+    .meta, .signature { border: 1px solid #cbd5e1; border-radius: 12px; margin: 18px 0; padding: 16px; }
+    .label { color: #475569; font-size: 11px; text-transform: uppercase; }
+    .value { font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+    img { border: 1px solid #e2e8f0; border-radius: 8px; display: block; max-height: 120px; max-width: 360px; padding: 8px; }
+    @media print { body { margin: 18mm; } button { display: none; } }
+  </style>
+</head>
+<body>
+  <h1>${escapeHtml(RESTAURANT_PARTNER_CONTRACT_TITLE)}</h1>
+  <p>Version ${escapeHtml(RESTAURANT_PARTNER_CONTRACT_VERSION)}</p>
+  <div class="meta">
+    <div class="label">Restaurant</div>
+    <div class="value">${escapeHtml(input.restaurantName || "Non renseigné")}</div>
+    <div class="label">Raison sociale</div>
+    <div class="value">${escapeHtml(input.legalName || "Non renseignée")}</div>
+    <div class="label">Nom commercial</div>
+    <div class="value">${escapeHtml(input.businessName || "Non renseigné")}</div>
+  </div>
+  ${sections}
+  <div class="signature">
+    <div class="label">Signataire habilité</div>
+    <div class="value">${escapeHtml(input.signerName)}</div>
+    <div class="label">Horodatage d'export</div>
+    <div class="value">${escapeHtml(new Date(input.signedAt).toLocaleString("fr-CH"))}</div>
+    <div class="label">Signature manuscrite</div>
+    <img src="${escapeHtml(input.signatureDataUrl)}" alt="Signature manuscrite du restaurateur" />
+  </div>
+</body>
+</html>`;
+}

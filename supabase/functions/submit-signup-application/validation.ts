@@ -51,6 +51,14 @@ export function validateSubmissionFields(
     if (!String(fields.restaurant_name || "").trim()) return "Le nom du restaurant est requis.";
     if (!String(fields.launch_pack_id || "").trim()) return "Le pack de lancement est requis.";
     if (!String(fields.subscription_plan_id || "").trim()) return "L'abonnement TOK est requis.";
+    if (!String(fields.contract_signer_name || "").trim()) return "Le signataire du contrat restaurateur est requis.";
+    const signature = String(fields.contract_signature_data_url || "").trim();
+    if (!signature.startsWith("data:image/png;base64,") || signature.length < 120) {
+      return "La signature manuscrite du contrat restaurateur est requise.";
+    }
+    if (String(fields.contract_version || "").trim() !== "TOK-CH-RP-2026-06-v1") {
+      return "La version du contrat restaurateur est invalide.";
+    }
     const billingPeriod = String(fields.subscription_billing_period || "").trim().toLowerCase();
     if (billingPeriod !== "monthly") {
       return "La periode d'abonnement est invalide.";

@@ -33,6 +33,7 @@ describe("submit-signup-application validation", () => {
       legal_name: "y", restaurant_name: "z", phone: "1", city: "c", address: "a",
       launch_pack_id: "pack-1", subscription_plan_id: "plan-1", subscription_billing_period: "monthly",
       terms_accepted: "true", privacy_policy_accepted: "true",
+      contract_signer_name: "Marie Dupont", contract_signature_data_url: "data:image/png;base64,aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", contract_version: "TOK-CH-RP-2026-06-v1",
     })).toBeNull();
   });
 
@@ -49,6 +50,7 @@ describe("submit-signup-application validation", () => {
       iban: "CH9300762011623852957",
       terms_accepted: "true",
       privacy_policy_accepted: "true",
+      contract_signer_name: "Marie Dupont", contract_signature_data_url: "data:image/png;base64,aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", contract_version: "TOK-CH-RP-2026-06-v1",
     };
 
     expect(validateSubmissionFields("restaurateur", baseFields)).toMatch(/pack/i);
