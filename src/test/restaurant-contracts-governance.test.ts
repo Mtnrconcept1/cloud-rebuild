@@ -9,6 +9,15 @@ const contractCopy = readFileSync(
   "src/lib/restaurantPartnerContract.ts",
   "utf8",
 );
+const authPage = readFileSync("src/pages/Auth.tsx", "utf8");
+const dashboardContractCard = readFileSync(
+  "src/components/contracts/RestaurantPartnerContractCard.tsx",
+  "utf8",
+);
+const signupValidation = readFileSync(
+  "supabase/functions/submit-signup-application/validation.ts",
+  "utf8",
+);
 
 describe("restaurant partner contracts governance", () => {
   it("stores signatures in an RLS protected restaurant_contracts table", () => {
@@ -34,5 +43,27 @@ describe("restaurant partner contracts governance", () => {
       "Paiements, remboursements et Stripe Connect",
     );
     expect(contractCopy).toContain("Signature numérique et preuve");
+    expect(contractCopy).toContain("generateSignedRestaurantPartnerContractHtml");
+    expect(contractCopy).toContain("Signature manuscrite du restaurateur");
+    expect(contractCopy).toContain("Informations complètes du restaurateur");
+    expect(contractCopy).toContain("TOK_CONTRACT_LEGAL_INFORMATION");
+    expect(contractCopy).toContain("Date de signature");
+    expect(contractCopy).toContain("Lieu");
+  });
+
+  it("requires a manual restaurateur contract signature during signup before submission", () => {
+    expect(authPage).toContain("RestaurantContractSignaturePad");
+    expect(authPage).toContain("Signature au doigt ou au stylet");
+    expect(authPage).toContain("Exporter le contrat signé en PDF");
+    expect(authPage).toContain("contract_signature_data_url");
+    expect(signupValidation).toContain("contract_signature_data_url");
+    expect(signupValidation).toContain("La signature manuscrite du contrat restaurateur est requise.");
+  });
+
+  it("allows signed restaurant contracts to be exported from the restaurateur dashboard", () => {
+    expect(dashboardContractCard).toContain("Exporter le contrat en PDF");
+    expect(dashboardContractCard).toContain("generateSignedRestaurantPartnerContractHtml");
+    expect(dashboardContractCard).toContain("user_profiles");
+    expect(dashboardContractCard).toContain("contract_signature_data_url");
   });
 });

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Bike, ChefHat, CreditCard, Eye, EyeOff, FileText, Loader2, Shield, ShoppingBag, Upload } from "lucide-react";
 
@@ -17,6 +17,12 @@ import {
   type SignupRole,
   type UploadedSignupDocument,
 } from "@/lib/signup";
+import {
+  RESTAURANT_PARTNER_CONTRACT_SECTIONS,
+  RESTAURANT_PARTNER_CONTRACT_TITLE,
+  RESTAURANT_PARTNER_CONTRACT_VERSION,
+  generateSignedRestaurantPartnerContractHtml,
+} from "@/lib/restaurantPartnerContract";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -57,6 +63,11 @@ type SignupFormState = {
 type RestaurateurOnboardingChoices = {
   subscriptionPlanId: string;
   subscriptionBillingPeriod: SignupSubscriptionBillingPeriod;
+};
+
+type RestaurateurContractSignature = {
+  signerName: string;
+  signatureDataUrl: string;
 };
 
 type SignupLegalAcceptance = {
@@ -157,6 +168,7 @@ function getSignupValidationError(
   form: SignupFormState,
   onboardingChoices?: RestaurateurOnboardingChoices,
   legalAccepted = false,
+  contractSignature?: RestaurateurContractSignature,
 ) {
   if (!form.fullName.trim()) return "Le nom complet est requis.";
   if (!form.email.trim()) return "L'email est requis.";
@@ -175,6 +187,10 @@ function getSignupValidationError(
     if (!onboardingChoices?.subscriptionPlanId) return "Choisissez un abonnement TOK.";
     if (onboardingChoices.subscriptionBillingPeriod !== "monthly") {
       return "Choisissez une période d'abonnement valide.";
+    }
+    if (!contractSignature?.signerName.trim()) return "Le nom du signataire du contrat est requis.";
+    if (!contractSignature?.signatureDataUrl.startsWith("data:image/png;base64,")) {
+      return "La signature manuscrite du contrat restaurateur est requise.";
     }
   }
 
@@ -210,6 +226,172 @@ function toLegalAcceptanceMetadata(legalAcceptance: SignupLegalAcceptance) {
   };
 }
 
+function exportSignedRestaurantContractPdf(input: {
+  signerName: string;
+  signatureDataUrl: string;
+  signedAt: string;
+  legalName: string;
+  businessName: string;
+  restaurantName: string;
+}) {
+  const html = generateSignedRestaurantPartnerContractHtml(input);
+  const printWindow = window.open("", "_blank", "noopener,noreferrer");
+  if (!printWindow) return false;
+  printWindow.document.open();
+  printWindow.document.write(html);
+  printWindow.document.close();
+  printWindow.focus();
+  printWindow.print();
+  return true;
+}
+
+function RestaurantContractSignaturePad({
+  signerName,
+  onSignerNameChange,
+  signatureDataUrl,
+  onSignatureChange,
+  signupForm,
+}: {
+  signerName: string;
+  onSignerNameChange: (value: string) => void;
+  signatureDataUrl: string;
+  onSignatureChange: (value: string) => void;
+  signupForm: SignupFormState;
+}) {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const drawingRef = useRef(false);
+
+  const updateSignature = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    onSignatureChange(canvas.toDataURL("image/png"));
+  }, [onSignatureChange]);
+
+  const getPoint = (event: React.PointerEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: ((event.clientX - rect.left) / rect.width) * canvas.width,
+      y: ((event.clientY - rect.top) / rect.height) * canvas.height,
+    };
+  };
+
+  const handlePointerDown = (event: React.PointerEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    const context = canvas?.getContext("2d");
+    if (!canvas || !context) return;
+    const point = getPoint(event);
+    drawingRef.current = true;
+    canvas.setPointerCapture(event.pointerId);
+    context.beginPath();
+    context.moveTo(point.x, point.y);
+  };
+
+  const handlePointerMove = (event: React.PointerEvent<HTMLCanvasElement>) => {
+    if (!drawingRef.current) return;
+    const canvas = canvasRef.current;
+    const context = canvas?.getContext("2d");
+    if (!canvas || !context) return;
+    const point = getPoint(event);
+    context.lineWidth = 3;
+    context.lineCap = "round";
+    context.lineJoin = "round";
+    context.strokeStyle = "#0f172a";
+    context.lineTo(point.x, point.y);
+    context.stroke();
+  };
+
+  const handlePointerUp = () => {
+    if (!drawingRef.current) return;
+    drawingRef.current = false;
+    updateSignature();
+  };
+
+  const clearSignature = () => {
+    const canvas = canvasRef.current;
+    const context = canvas?.getContext("2d");
+    if (!canvas || !context) return;
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    onSignatureChange("");
+  };
+
+  const handleExport = () => {
+    const exported = exportSignedRestaurantContractPdf({
+      signerName,
+      signatureDataUrl,
+      signedAt: new Date().toISOString(),
+      legalName: signupForm.legalName,
+      businessName: signupForm.businessName,
+      restaurantName: signupForm.restaurantName,
+    });
+    if (!exported) {
+      alert("Autorisez l'ouverture de la fenêtre d'impression pour exporter le contrat en PDF.");
+    }
+  };
+
+  return (
+    <div className="space-y-4 rounded-2xl border bg-card p-4">
+      <div>
+        <p className="font-medium">Contrat restaurateur à signer maintenant</p>
+        <p className="text-sm text-muted-foreground">
+          La signature manuscrite est obligatoire dans la procédure d'inscription. Elle sera visible dans l'export PDF du contrat.
+        </p>
+      </div>
+      <div className="max-h-72 space-y-4 overflow-auto rounded-xl border bg-background p-4 text-sm">
+        <p className="font-semibold">{RESTAURANT_PARTNER_CONTRACT_TITLE}</p>
+        <p className="text-xs text-muted-foreground">Version {RESTAURANT_PARTNER_CONTRACT_VERSION}</p>
+        {RESTAURANT_PARTNER_CONTRACT_SECTIONS.map((section) => (
+          <section key={section.title} className="space-y-2">
+            <h3 className="font-semibold">{section.title}</h3>
+            {section.paragraphs.map((paragraph) => (
+              <p key={paragraph} className="text-muted-foreground">{paragraph}</p>
+            ))}
+          </section>
+        ))}
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="restaurant-contract-signer">Nom et fonction du signataire habilité</Label>
+        <Input
+          id="restaurant-contract-signer"
+          value={signerName}
+          onChange={(event) => onSignerNameChange(event.target.value)}
+          placeholder="Ex. Marie Dupont, gérante"
+        />
+      </div>
+      <div className="space-y-2">
+        <Label>Signature au doigt ou au stylet</Label>
+        <canvas
+          ref={canvasRef}
+          width={900}
+          height={260}
+          className="h-44 w-full touch-none rounded-xl border bg-white"
+          aria-label="Zone de signature manuscrite du contrat restaurateur"
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
+        />
+        <p className="text-xs text-muted-foreground">Signez dans le cadre blanc. La signature est intégrée au dossier d'inscription.</p>
+      </div>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <Button type="button" variant="secondary" onClick={clearSignature} className="sm:w-auto">
+          Effacer la signature
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleExport}
+          disabled={!signerName.trim() || !signatureDataUrl}
+          className="sm:w-auto"
+        >
+          Exporter le contrat signé en PDF
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 function splitCourierName(fullName: string) {
   const parts = fullName.trim().split(/\s+/).filter(Boolean);
   return {
@@ -227,6 +409,7 @@ function appendPrivilegedSignupDraftFormData(input: {
   documents: Partial<Record<SignupDocumentType, File | null>>;
   captchaToken: string | null;
   legalAcceptance: SignupLegalAcceptance;
+  contractSignature?: RestaurateurContractSignature;
 }) {
   input.formData.append("user_id", input.userId);
   input.formData.append("requested_role", input.role);
@@ -256,6 +439,10 @@ function appendPrivilegedSignupDraftFormData(input: {
   input.formData.append("privacy_policy_accepted", input.legalAcceptance.privacyPolicyAccepted ? "true" : "false");
   input.formData.append("legal_acceptance_version", input.legalAcceptance.version);
   input.formData.append("legal_acceptance_at", input.legalAcceptance.acceptedAt);
+  input.formData.append("contract_version", input.role === "restaurateur" ? RESTAURANT_PARTNER_CONTRACT_VERSION : "");
+  input.formData.append("contract_title", input.role === "restaurateur" ? RESTAURANT_PARTNER_CONTRACT_TITLE : "");
+  input.formData.append("contract_signer_name", input.role === "restaurateur" ? input.contractSignature?.signerName || "" : "");
+  input.formData.append("contract_signature_data_url", input.role === "restaurateur" ? input.contractSignature?.signatureDataUrl || "" : "");
   input.formData.append("captcha_token", input.captchaToken || "");
 
   for (const requirement of getRequiredSignupDocuments(input.role, input.form.vehicleType)) {
@@ -299,6 +486,7 @@ async function submitPrivilegedSignupDraft(input: {
   documents: Partial<Record<SignupDocumentType, File | null>>;
   captchaToken: string | null;
   legalAcceptance: SignupLegalAcceptance;
+  contractSignature?: RestaurateurContractSignature;
 }) {
   const formData = new FormData();
   appendPrivilegedSignupDraftFormData({ formData, ...input });
@@ -536,11 +724,16 @@ export default function Auth() {
       const isPrivilegedSignup = submittedRole !== "client";
       const submittedOnboardingChoices = restaurateurOnboardingChoices;
       const submittedLegalAcceptance = createLegalAcceptancePayload();
+      const submittedContractSignature: RestaurateurContractSignature = {
+        signerName: contractSignerName,
+        signatureDataUrl: contractSignatureDataUrl,
+      };
       const validationError = getSignupValidationError(
         submittedRole,
         signupForm,
         submittedRole === "restaurateur" ? submittedOnboardingChoices : undefined,
         legalAccepted,
+        submittedRole === "restaurateur" ? submittedContractSignature : undefined,
       );
       if (validationError) {
         throw new Error(validationError);
@@ -601,6 +794,7 @@ export default function Auth() {
             documents,
             captchaToken,
             legalAcceptance: submittedLegalAcceptance,
+            contractSignature: submittedRole === "restaurateur" ? submittedContractSignature : undefined,
           });
           toast({
             title: "Inscription enregistrée",
@@ -609,6 +803,8 @@ export default function Auth() {
           setDocuments({});
           setSignupForm(EMPTY_SIGNUP_FORM);
           setLegalAccepted(false);
+          setContractSignerName("");
+          setContractSignatureDataUrl("");
           setCaptchaToken(null);
           setPrivilegedSignupSubmitting(false);
         } else {
@@ -664,6 +860,12 @@ export default function Auth() {
                 selected_subscription_plan_id: submittedOnboardingChoices.subscriptionPlanId,
                 selected_subscription_billing_period: submittedOnboardingChoices.subscriptionBillingPeriod,
                 onboarding_payment_status: "pending_payment",
+                contract_version: RESTAURANT_PARTNER_CONTRACT_VERSION,
+                contract_title: RESTAURANT_PARTNER_CONTRACT_TITLE,
+                contract_signer_name: submittedContractSignature.signerName.trim(),
+                contract_signature_data_url: submittedContractSignature.signatureDataUrl,
+                contract_signed_at: submittedLegalAcceptance.acceptedAt,
+                contract_signature_source: "auth_signup",
                 ...toLegalAcceptanceMetadata(submittedLegalAcceptance),
               }
               : { verification_source: "auth_signup", ...toLegalAcceptanceMetadata(submittedLegalAcceptance) },
@@ -694,6 +896,8 @@ export default function Auth() {
       setIsLogin(true);
       setDocuments({});
       setLegalAccepted(false);
+      setContractSignerName("");
+      setContractSignatureDataUrl("");
       setSignupForm((current) => ({
         ...EMPTY_SIGNUP_FORM,
         email: current.email,
@@ -1120,6 +1324,16 @@ export default function Auth() {
                     />
                   </div>
                 </div>
+              ) : null}
+
+              {!isLogin && roleMode === "restaurateur" ? (
+                <RestaurantContractSignaturePad
+                  signerName={contractSignerName}
+                  onSignerNameChange={setContractSignerName}
+                  signatureDataUrl={contractSignatureDataUrl}
+                  onSignatureChange={setContractSignatureDataUrl}
+                  signupForm={signupForm}
+                />
               ) : null}
 
               {showDocumentSection ? (

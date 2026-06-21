@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   CheckCircle2,
+  Download,
   FileSignature,
   Loader2,
   ShieldCheck,
@@ -20,6 +21,7 @@ import {
   RESTAURANT_PARTNER_CONTRACT_SECTIONS,
   RESTAURANT_PARTNER_CONTRACT_TITLE,
   RESTAURANT_PARTNER_CONTRACT_VERSION,
+  generateSignedRestaurantPartnerContractHtml,
 } from "@/lib/restaurantPartnerContract";
 
 const supabase = getSupabase();
@@ -33,6 +35,24 @@ type RestaurantContract = {
   signed_by: string | null;
   signed_at: string | null;
   status: string;
+  signature_metadata?: Record<string, unknown> | null;
+};
+
+type RestaurantContractDetails = {
+  name?: string | null;
+  legal_name?: string | null;
+  business_name?: string | null;
+  business_registration_number?: string | null;
+  address?: string | null;
+  city?: string | null;
+  phone?: string | null;
+};
+
+type RestaurateurProfileDetails = {
+  first_name?: string | null;
+  last_name?: string | null;
+  date_of_birth?: string | null;
+  phone_number?: string | null;
 };
 
 function formatDateTime(value?: string | null) {
@@ -46,9 +66,11 @@ function formatDateTime(value?: string | null) {
 export default function RestaurantPartnerContractCard({
   restaurantId,
   mode = "restaurateur",
+  restaurant,
 }: {
   restaurantId?: string | null;
   mode?: "restaurateur" | "admin";
+  restaurant?: RestaurantContractDetails | null;
 }) {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -65,7 +87,7 @@ export default function RestaurantPartnerContractCard({
       const { data, error } = await (supabase as any)
         .from("restaurant_contracts")
         .select(
-          "id, restaurant_id, contract_version, contract_title, signer_name, signed_by, signed_at, status",
+          "id, restaurant_id, contract_version, contract_title, signer_name, signed_by, signed_at, status, signature_metadata",
         )
         .eq("restaurant_id", restaurantId)
         .order("signed_at", { ascending: false })
@@ -92,6 +114,63 @@ export default function RestaurantPartnerContractCard({
     acceptedContract &&
     !currentContract,
   );
+  const { data: restaurateurProfile } = useQuery({
+    queryKey: ["restaurant-contract-signer-profile", currentContract?.signed_by],
+    enabled: Boolean(currentContract?.signed_by),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("user_profiles")
+        .select("first_name, last_name, date_of_birth, phone_number")
+        .eq("user_id", currentContract!.signed_by!)
+        .maybeSingle();
+      if (error) throw error;
+      return data as RestaurateurProfileDetails | null;
+    },
+  });
+
+  const handleExportPdf = () => {
+    const contract = currentContract;
+    if (!contract || !restaurant) return;
+    const metadata = contract.signature_metadata || {};
+    const html = generateSignedRestaurantPartnerContractHtml({
+      signerName: contract.signer_name,
+      signatureDataUrl:
+        typeof metadata.contract_signature_data_url === "string"
+          ? metadata.contract_signature_data_url
+          : typeof metadata.signature_data_url === "string"
+            ? metadata.signature_data_url
+            : undefined,
+      signedAt: contract.signed_at || new Date().toISOString(),
+      legalName: restaurant.legal_name || "",
+      businessName: restaurant.business_name || restaurant.name || "",
+      restaurantName: restaurant.name || "",
+      restaurateurFirstName: restaurateurProfile?.first_name,
+      restaurateurLastName: restaurateurProfile?.last_name,
+      restaurateurDateOfBirth: restaurateurProfile?.date_of_birth,
+      restaurateurAddress: restaurant.address,
+      restaurateurPhone: restaurateurProfile?.phone_number || restaurant.phone,
+      restaurantAddress: restaurant.address,
+      restaurantPhone: restaurant.phone,
+      businessRegistrationNumber: restaurant.business_registration_number,
+      city: restaurant.city,
+      place: restaurant.city,
+    });
+    const printWindow = window.open("", "_blank", "noopener,noreferrer");
+    if (!printWindow) {
+      toast({
+        title: "Export PDF bloqué",
+        description: "Autorisez l'ouverture de la fenêtre d'impression pour exporter le contrat.",
+        variant: "destructive",
+      });
+      return;
+    }
+    printWindow.document.open();
+    printWindow.document.write(html);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+  };
+
 
   const handleSign = async () => {
     if (!restaurantId || !user || !canSign) return;
@@ -165,16 +244,29 @@ export default function RestaurantPartnerContractCard({
       </CardHeader>
       <CardContent className="space-y-4">
         {currentContract ? (
-          <div className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
-            <CheckCircle2 className="mt-0.5 h-5 w-5 flex-none" />
-            <div>
-              <p className="font-semibold">
-                Signé par {currentContract.signer_name}
-              </p>
-              <p className="text-xs">
-                Horodatage: {formatDateTime(currentContract.signed_at)}
-              </p>
+          <div className="flex flex-col gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex items-start gap-3">
+              <CheckCircle2 className="mt-0.5 h-5 w-5 flex-none" />
+              <div>
+                <p className="font-semibold">
+                  Signé par {currentContract.signer_name}
+                </p>
+                <p className="text-xs">
+                  Horodatage: {formatDateTime(currentContract.signed_at)}
+                </p>
+              </div>
             </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="gap-2 border-emerald-300 bg-white text-emerald-900 hover:bg-emerald-100"
+              onClick={handleExportPdf}
+              disabled={!restaurant}
+            >
+              <Download className="h-4 w-4" />
+              Exporter le contrat en PDF
+            </Button>
           </div>
         ) : null}
 

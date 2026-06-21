@@ -154,6 +154,17 @@ function renderAuth(route: string) {
   );
 }
 
+
+function signRestaurantContract() {
+  fireEvent.change(screen.getByLabelText("Nom et fonction du signataire habilité"), {
+    target: { value: "Marie Dupont, gérante" },
+  });
+  const signaturePad = screen.getByLabelText("Zone de signature manuscrite du contrat restaurateur");
+  fireEvent.pointerDown(signaturePad, { clientX: 10, clientY: 10, pointerId: 1 });
+  fireEvent.pointerMove(signaturePad, { clientX: 80, clientY: 30, pointerId: 1 });
+  fireEvent.pointerUp(signaturePad, { pointerId: 1 });
+}
+
 function acceptLegalTerms() {
   fireEvent.click(screen.getByLabelText(/J'accepte les CGU/i));
 }
@@ -170,6 +181,15 @@ describe("Auth signup form", () => {
       error: null,
     });
     supabaseMocks.invoke.mockResolvedValue({ data: { ok: true }, error: null });
+    HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
+      beginPath: vi.fn(),
+      clearRect: vi.fn(),
+      lineTo: vi.fn(),
+      moveTo: vi.fn(),
+      stroke: vi.fn(),
+    })) as unknown as typeof HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.toDataURL = vi.fn(() => "data:image/png;base64,manual-signature");
+    HTMLCanvasElement.prototype.setPointerCapture = vi.fn();
     supabaseMocks.signUp.mockResolvedValue({
       data: {
         session: null,
@@ -288,6 +308,15 @@ describe("Auth signup form", () => {
   });
 
   it("logs out a restaurateur signup session after submitting the verification dossier", async () => {
+    HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
+      beginPath: vi.fn(),
+      clearRect: vi.fn(),
+      lineTo: vi.fn(),
+      moveTo: vi.fn(),
+      stroke: vi.fn(),
+    })) as unknown as typeof HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.toDataURL = vi.fn(() => "data:image/png;base64,manual-signature");
+    HTMLCanvasElement.prototype.setPointerCapture = vi.fn();
     supabaseMocks.signUp.mockResolvedValue({
       data: {
         session: { access_token: "signup-session" },
@@ -334,6 +363,7 @@ describe("Auth signup form", () => {
       target: { value: "CH9300762011623852957" },
     });
     acceptLegalTerms();
+    signRestaurantContract();
 
     const documentFile = new File(["document"], "document.pdf", {
       type: "application/pdf",
@@ -362,6 +392,9 @@ describe("Auth signup form", () => {
             onboarding_payment_status: "pending_payment",
             legal_terms_accepted: true,
             privacy_policy_accepted: true,
+            contract_version: "TOK-CH-RP-2026-06-v1",
+            contract_signer_name: "Marie Dupont, gérante",
+            contract_signature_data_url: expect.stringContaining("data:image/png;base64,"),
           }),
         }),
       );
@@ -378,6 +411,15 @@ describe("Auth signup form", () => {
 
 
   it("submits the complete restaurateur dossier through the Edge Function when email confirmation prevents a session", async () => {
+    HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
+      beginPath: vi.fn(),
+      clearRect: vi.fn(),
+      lineTo: vi.fn(),
+      moveTo: vi.fn(),
+      stroke: vi.fn(),
+    })) as unknown as typeof HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.toDataURL = vi.fn(() => "data:image/png;base64,manual-signature");
+    HTMLCanvasElement.prototype.setPointerCapture = vi.fn();
     supabaseMocks.signUp.mockResolvedValue({
       data: {
         session: null,
@@ -424,6 +466,7 @@ describe("Auth signup form", () => {
       target: { value: "CH9300762011623852957" },
     });
     acceptLegalTerms();
+    signRestaurantContract();
 
     const documentFile = new File(["document"], "document.png", {
       type: "image/png",
@@ -452,6 +495,9 @@ describe("Auth signup form", () => {
     expect(body.get("subscription_billing_period")).toBe("monthly");
     expect(body.get("terms_accepted")).toBe("true");
     expect(body.get("privacy_policy_accepted")).toBe("true");
+    expect(body.get("contract_version")).toBe("TOK-CH-RP-2026-06-v1");
+    expect(body.get("contract_signer_name")).toBe("Marie Dupont, gérante");
+    expect(String(body.get("contract_signature_data_url"))).toContain("data:image/png;base64,");
     expect(body.get("document_identity_document")).toBeInstanceOf(File);
     expect(body.get("document_business_registration")).toBeInstanceOf(File);
     expect(body.get("document_iban_proof")).toBeInstanceOf(File);

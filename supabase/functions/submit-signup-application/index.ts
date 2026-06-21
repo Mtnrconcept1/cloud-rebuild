@@ -184,6 +184,10 @@ Deno.serve(async (req) => {
       privacy_policy_accepted: sanitizeText(form.get("privacy_policy_accepted"), 20).toLowerCase(),
       legal_acceptance_version: sanitizeText(form.get("legal_acceptance_version"), 40),
       legal_acceptance_at: sanitizeText(form.get("legal_acceptance_at"), 80),
+      contract_version: sanitizeText(form.get("contract_version"), 80),
+      contract_title: sanitizeText(form.get("contract_title"), 180),
+      contract_signer_name: sanitizeText(form.get("contract_signer_name"), 180),
+      contract_signature_data_url: sanitizeText(form.get("contract_signature_data_url"), 50000),
     };
 
     requireInput(UUID_PATTERN.test(userId), "invalid_user_id");
@@ -232,6 +236,12 @@ Deno.serve(async (req) => {
         selected_subscription_plan_id: fields.subscription_plan_id,
         selected_subscription_billing_period: fields.subscription_billing_period,
         onboarding_payment_status: "pending_payment",
+        contract_version: fields.contract_version,
+        contract_title: fields.contract_title || "Contrat de partenariat restaurateur TOK",
+        contract_signer_name: fields.contract_signer_name,
+        contract_signature_data_url: fields.contract_signature_data_url,
+        contract_signed_at: legalAcceptedAt,
+        contract_signature_source: "auth_signup_edge",
         ...legalMetadata,
       };
 
@@ -273,6 +283,7 @@ Deno.serve(async (req) => {
         user_id: userId,
         documents_count: uploadedDocuments.length,
         captcha_skipped: captcha.skipped,
+        contract_signed: role === "restaurateur" && Boolean(fields.contract_signature_data_url),
       },
     });
 
