@@ -413,7 +413,6 @@ export default function Dashboard() {
             checkout_kind: "restaurant-onboarding",
             signup_application_id: signupApplication.id,
             restaurant_id: restaurantId,
-            pack_id: onboardingSelection.launchPackId,
             plan_id: onboardingSelection.subscriptionPlanId,
             billing_period: onboardingSelection.subscriptionBillingPeriod,
           },

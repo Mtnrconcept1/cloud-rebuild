@@ -202,7 +202,7 @@ export default function SignupApplicationStatusCard({
                 disabled={onboardingPaymentLoading}
               >
                 {onboardingPaymentLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
-                Payer le pack et l'abonnement
+                Payer l'abonnement
               </Button>
             ) : null}
           </div>

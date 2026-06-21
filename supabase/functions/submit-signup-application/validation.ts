@@ -49,7 +49,6 @@ export function validateSubmissionFields(
     if (!String(fields.legal_name || "").trim()) return "La raison sociale est requise.";
     if (!String(fields.business_registration_number || "").trim()) return "Le numero d'immatriculation est requis.";
     if (!String(fields.restaurant_name || "").trim()) return "Le nom du restaurant est requis.";
-    if (!String(fields.launch_pack_id || "").trim()) return "Le pack de lancement est requis.";
     if (!String(fields.subscription_plan_id || "").trim()) return "L'abonnement TOK est requis.";
     const billingPeriod = String(fields.subscription_billing_period || "").trim().toLowerCase();
     if (billingPeriod !== "monthly") {

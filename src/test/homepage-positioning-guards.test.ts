@@ -47,11 +47,11 @@ describe("homepage positioning guards", () => {
   it("keeps restaurateur packs as a softer B2B tunnel before direct checkout", () => {
     const packs = read("src/pages/PacksRestaurateur.tsx");
 
-    expect(packs).toContain("Comparer les packs");
-    expect(packs).toContain("Demander une démo");
-    expect(packs).toContain("/contact?subject=demo-restaurateur");
-    expect(packs).toContain("create-checkout");
-    expect(packs).toContain('checkout_kind: "launch-pack"');
+    expect(packs).toContain("Abonnements restaurateur");
+    expect(packs).toContain("Packs de crédits IA");
+    expect(packs).toContain("restaurant_subscription_plans");
+    expect(packs).toContain("restaurant_credit_packs");
+    expect(packs).not.toContain('checkout_kind: "launch-pack"');
   });
 
   it("keeps homepage content rails visually separated", () => {

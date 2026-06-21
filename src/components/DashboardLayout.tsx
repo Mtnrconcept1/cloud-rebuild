@@ -28,7 +28,6 @@ import {
   ChevronDown,
   CreditCard,
   Store,
-  Package,
   Lock,
   ShieldCheck,
   Users,
@@ -98,7 +97,6 @@ const NAV_SECTIONS: NavSection[] = [
   {
     title: "Mon offre",
     items: [
-      { to: "/dashboard/pack", label: "Pack de lancement", icon: Package, feature: "dashboard-pack" },
     ],
   },
   {

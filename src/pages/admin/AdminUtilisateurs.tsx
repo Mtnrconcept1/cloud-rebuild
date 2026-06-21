@@ -1261,7 +1261,7 @@ export default function AdminUtilisateurs() {
                           <div>
                             <p className="font-medium">Paiement onboarding</p>
                             <p className="pt-1 text-muted-foreground">
-                              Pack et abonnement {onboardingSelection.subscriptionBillingPeriod === "yearly" ? "annuel" : "mensuel"} sélectionnés.
+                              Abonnement {onboardingSelection.subscriptionBillingPeriod === "yearly" ? "annuel" : "mensuel"} sélectionné.
                             </p>
                           </div>
                           <Badge className={onboardingPaymentReady ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}>
@@ -1270,7 +1270,7 @@ export default function AdminUtilisateurs() {
                         </div>
                         {!onboardingPaymentReady ? (
                           <p className="pt-3 text-xs text-muted-foreground">
-                            L'approbation admin sera refusée par Supabase tant que le pack et l'abonnement ne sont pas payés.
+                            L'approbation admin sera refusée par Supabase tant que l'abonnement n'est pas payé.
                           </p>
                         ) : null}
                       </div>

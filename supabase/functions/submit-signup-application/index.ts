@@ -178,7 +178,6 @@ Deno.serve(async (req) => {
       vehicle_type: sanitizeText(form.get("vehicle_type"), 60),
       license_plate: sanitizeText(form.get("license_plate"), 60),
       iban: sanitizeText(form.get("iban"), 80),
-      launch_pack_id: sanitizeText(form.get("launch_pack_id"), 80),
       subscription_plan_id: sanitizeText(form.get("subscription_plan_id"), 80),
       subscription_billing_period: sanitizeText(form.get("subscription_billing_period"), 20).toLowerCase(),
       terms_accepted: sanitizeText(form.get("terms_accepted"), 20).toLowerCase(),
@@ -230,7 +229,6 @@ Deno.serve(async (req) => {
       }
       : {
         onboarding_source: "auth_signup_edge",
-        selected_launch_pack_id: fields.launch_pack_id,
         selected_subscription_plan_id: fields.subscription_plan_id,
         selected_subscription_billing_period: fields.subscription_billing_period,
         onboarding_payment_status: "pending_payment",

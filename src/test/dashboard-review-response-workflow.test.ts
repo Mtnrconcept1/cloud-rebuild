@@ -108,15 +108,13 @@ describe("restaurant dashboard review response workflow", () => {
     expect(restaurantDetail).toContain('.eq("status", "published")');
   });
 
-  it("adds AI review replies to restaurant launch packs", () => {
+  it("keeps AI review replies available through subscription and credit surfaces after launch packs", () => {
     const packsPage = readProjectFile("src/pages/PacksRestaurateur.tsx");
-    const launchPacks = readProjectFile("src/lib/launchPacks.ts");
-    const sql = latestMigrationContaining(/ai_review_replies/i);
+    const disableLaunchPacks = latestMigrationContaining(/Stop commercializing legacy restaurant launch packs/i);
 
-    expect(launchPacks).toContain('"ai_review_replies"');
-    expect(launchPacks).toContain("MessageSquareReply");
-    expect(packsPage).toContain("Réponses IA aux avis");
-    expect(sql).toContain("ai_review_replies");
-    expect(sql).toContain("Réponses IA aux avis");
+    expect(packsPage).toContain("Abonnements restaurateur");
+    expect(packsPage).toContain("Packs de crédits IA");
+    expect(disableLaunchPacks).toContain("UPDATE public.launch_packs");
+    expect(disableLaunchPacks).toContain("is_active = false");
   });
 });

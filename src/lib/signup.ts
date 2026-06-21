@@ -37,7 +37,6 @@ export type UploadedSignupDocument = {
 export type SignupSubscriptionBillingPeriod = "monthly" | "yearly";
 
 export type SignupRestaurateurOnboardingSelection = {
-  launchPackId: string;
   subscriptionPlanId: string;
   subscriptionBillingPeriod: SignupSubscriptionBillingPeriod;
   onboardingPaymentStatus: string;
@@ -232,16 +231,14 @@ export function getSignupRestaurateurOnboardingSelection(
 ): SignupRestaurateurOnboardingSelection | null {
   if (!application || application.requested_role !== "restaurateur") return null;
   const metadata = application.metadata || {};
-  const launchPackId = getMetadataString(metadata, "selected_launch_pack_id");
   const subscriptionPlanId = getMetadataString(metadata, "selected_subscription_plan_id");
   const subscriptionBillingPeriod = normalizeSignupSubscriptionBillingPeriod(
     getMetadataString(metadata, "selected_subscription_billing_period"),
   );
   const onboardingPaymentStatus = getMetadataString(metadata, "onboarding_payment_status");
 
-  if (!launchPackId || !subscriptionPlanId) return null;
+  if (!subscriptionPlanId) return null;
   return {
-    launchPackId,
     subscriptionPlanId,
     subscriptionBillingPeriod,
     onboardingPaymentStatus: onboardingPaymentStatus || "pending_payment",
