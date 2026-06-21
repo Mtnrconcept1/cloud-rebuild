@@ -295,7 +295,7 @@ export function generateSignedRestaurantPartnerContractHtml(
     Ce document constitue la version contractuelle acceptée numériquement par le restaurateur. Les paramètres tarifaires, packs, feature flags et annexes opérationnelles acceptés dans le dashboard complètent le présent contrat.
   </div>
   <div class="meta">
-    <h2>Informations du restaurateur et du signataire</h2>
+    <h2>Informations complètes du restaurateur et du signataire</h2>
     <div class="grid">
       <div><div class="label">Prénom</div><div class="value">${escapeHtml(displayValue(input.restaurateurFirstName))}</div></div>
       <div><div class="label">Nom</div><div class="value">${escapeHtml(displayValue(input.restaurateurLastName))}</div></div>
