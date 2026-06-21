@@ -75,6 +75,8 @@ describe("restaurant partner contracts governance", () => {
     expect(authPage).toContain("openSafeHtmlPrintDocument");
     expect(dashboardContractCard).toContain("openSafeHtmlPrintDocument");
     expect(safePrintWindow).toContain("openIframePrintFallback");
+    expect(safePrintWindow).toContain("shouldUseInlinePrintFallback");
+    expect(safePrintWindow).toContain("if (shouldUseInlinePrintFallback())");
     expect(safePrintWindow).toContain("return openIframePrintFallback(safeHtml, printDelayMs)");
   });
 });

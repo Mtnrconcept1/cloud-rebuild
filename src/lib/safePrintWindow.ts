@@ -38,6 +38,20 @@ export function assertSafePrintHtmlFragment(value: string, label: string) {
   return value;
 }
 
+function shouldUseInlinePrintFallback() {
+  if (typeof navigator === "undefined") return false;
+
+  const userAgent = navigator.userAgent || "";
+  const isAppleMobile = /iP(?:hone|ad|od)/i.test(userAgent);
+  const isMobileSafari = /Safari/i.test(userAgent) && /Mobile/i.test(userAgent);
+  const isStandaloneWebApp =
+    typeof window !== "undefined" &&
+    "matchMedia" in window &&
+    window.matchMedia("(display-mode: standalone)").matches;
+
+  return isAppleMobile || isMobileSafari || isStandaloneWebApp;
+}
+
 function renderPrintDocument(targetWindow: Window, html: string, printDelayMs: number) {
   const parsed = new DOMParser().parseFromString(html, "text/html");
   const importedDocument = targetWindow.document.importNode(parsed.documentElement, true);
@@ -82,6 +96,11 @@ export function openSafeHtmlPrintDocument({
   printDelayMs = 150,
 }: OpenSafeHtmlPrintDocumentOptions) {
   const safeHtml = assertSafePrintHtmlFragment(html, "document");
+
+  if (shouldUseInlinePrintFallback()) {
+    return openIframePrintFallback(safeHtml, printDelayMs);
+  }
+
   const printWindow = window.open("", "_blank", features);
 
   if (printWindow) {

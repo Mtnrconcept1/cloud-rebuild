@@ -54,6 +54,25 @@ describe("safe print windows", () => {
     expect(printDocument.querySelector("main")?.textContent).toBe("OK");
   });
 
+  it("uses the in-page print iframe on mobile Safari to avoid blank popup tabs", () => {
+    const openSpy = vi.spyOn(window, "open");
+    const userAgentSpy = vi.spyOn(window.navigator, "userAgent", "get").mockReturnValue(
+      "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+    );
+
+    expect(openSafeHtmlPrintDocument({
+      title: "Contrat TOK",
+      html: '<!doctype html><html lang="fr"><head><title>Contrat TOK</title></head><body><main>Contrat signé mobile</main></body></html>',
+      printDelayMs: 0,
+    })).toBe(true);
+
+    expect(openSpy).not.toHaveBeenCalled();
+    expect(userAgentSpy).toHaveBeenCalled();
+    const iframe = document.querySelector('iframe[aria-hidden="true"]');
+    expect(iframe?.contentDocument?.querySelector("main")?.textContent).toBe("Contrat signé mobile");
+    iframe?.remove();
+  });
+
   it("falls back to an in-page print iframe when popup windows are blocked", () => {
     vi.spyOn(window, "open").mockReturnValue(null);
 
