@@ -14,7 +14,9 @@ function latestMigrationContaining(pattern: RegExp) {
     .filter((name) => name.endsWith(".sql"))
     .sort()
     .reverse()
-    .find((name) => pattern.test(readFileSync(resolve(migrationsDir, name), "utf8")));
+    .find((name) =>
+      pattern.test(readFileSync(resolve(migrationsDir, name), "utf8")),
+    );
 
   if (!match) return "";
   return readFileSync(resolve(migrationsDir, match), "utf8");
@@ -23,14 +25,16 @@ function latestMigrationContaining(pattern: RegExp) {
 describe("restaurant onboarding pack and subscription payments", () => {
   it("collects launch pack and subscription choices during restaurateur signup", () => {
     const auth = read("src/pages/Auth.tsx");
-    const validation = read("supabase/functions/submit-signup-application/validation.ts");
+    const validation = read(
+      "supabase/functions/submit-signup-application/validation.ts",
+    );
 
     expect(auth).toContain("selectedLaunchPackId");
     expect(auth).toContain("selectedSubscriptionPlanId");
     expect(auth).toContain("selectedSubscriptionBillingPeriod");
-    expect(auth).toContain('formData.append("launch_pack_id"');
-    expect(auth).toContain('formData.append("subscription_plan_id"');
-    expect(auth).toContain('formData.append("subscription_billing_period"');
+    expect(auth).toMatch(/formData\.append\(\s*"launch_pack_id"/);
+    expect(auth).toMatch(/formData\.append\(\s*"subscription_plan_id"/);
+    expect(auth).toMatch(/formData\.append\(\s*"subscription_billing_period"/);
     expect(validation).toContain("launch_pack_id");
     expect(validation).toContain("subscription_plan_id");
     expect(validation).toContain("subscription_billing_period");
@@ -50,7 +54,9 @@ describe("restaurant onboarding pack and subscription payments", () => {
     expect(checkout).toContain("ai_photo_credits");
     expect(checkout).toContain("subscription_data");
     expect(checkout).toContain("billing_period");
-    expect(checkout).not.toContain('effectiveKind === "restaurant-onboarding" ? "payment"');
+    expect(checkout).not.toContain(
+      'effectiveKind === "restaurant-onboarding" ? "payment"',
+    );
 
     expect(webhook).toContain('checkoutKind === "restaurant-onboarding"');
     expect(webhook).toContain("restaurant_launch_packs");
@@ -63,10 +69,16 @@ describe("restaurant onboarding pack and subscription payments", () => {
       /CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.signup_restaurateur_onboarding_payment_ready/i,
     );
     const admin = read("src/pages/admin/AdminUtilisateurs.tsx");
-    const statusCard = read("src/components/signup/SignupApplicationStatusCard.tsx");
+    const statusCard = read(
+      "src/components/signup/SignupApplicationStatusCard.tsx",
+    );
 
-    expect(migration).toContain("CREATE OR REPLACE FUNCTION public.signup_restaurateur_onboarding_payment_ready");
-    expect(migration).toContain("CREATE TABLE IF NOT EXISTS public.restaurant_subscription_plans");
+    expect(migration).toContain(
+      "CREATE OR REPLACE FUNCTION public.signup_restaurateur_onboarding_payment_ready",
+    );
+    expect(migration).toContain(
+      "CREATE TABLE IF NOT EXISTS public.restaurant_subscription_plans",
+    );
     expect(migration).toContain("69.00");
     expect(migration).toContain("129.00");
     expect(migration).toContain("199.00");
@@ -77,7 +89,9 @@ describe("restaurant onboarding pack and subscription payments", () => {
     expect(migration).toContain("restaurant_launch_packs");
     expect(migration).toContain("restaurant_ai_subscriptions");
     expect(migration).toContain("Onboarding payment required before approval");
-    expect(migration).toContain("GRANT EXECUTE ON FUNCTION public.signup_restaurateur_onboarding_payment_ready");
+    expect(migration).toContain(
+      "GRANT EXECUTE ON FUNCTION public.signup_restaurateur_onboarding_payment_ready",
+    );
 
     expect(admin).toContain("Paiement onboarding");
     expect(admin).toContain("canApproveSignupApplication");

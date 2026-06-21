@@ -5,10 +5,38 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { User, Trophy, Gift, Camera, Mail, Phone, MapPin, Heart, Settings, Shield, Bell, Trash2, AlertTriangle, Crown, CalendarCheck, Truck, Percent, Headphones, Zap, CreditCard } from "lucide-react";
+import {
+  User,
+  Trophy,
+  Gift,
+  Camera,
+  Mail,
+  Phone,
+  MapPin,
+  Heart,
+  Settings,
+  Shield,
+  Bell,
+  Trash2,
+  AlertTriangle,
+  Crown,
+  CalendarCheck,
+  Truck,
+  Percent,
+  Headphones,
+  Zap,
+  CreditCard,
+} from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   AlertDialog,
@@ -112,19 +140,32 @@ export default function Profil() {
   const [city, setCity] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [birthDate, setBirthDate] = useState("");
+  const [gender, setGender] = useState("unspecified");
   const { data: signupApplication } = useSignupApplication("client");
   const { activeFeatures } = useFeatureFlagSnapshot();
   const tokOneFeatureEnabled = activeFeatures.has("tok-one");
   const pointsGiftEnabled = activeFeatures.has("points-cadeau");
-  const { data: tokOneSub } = useTokOneSubscription({ enabled: tokOneFeatureEnabled });
-  const { data: tokOnePlans } = useTokOnePlans({ enabled: tokOneFeatureEnabled });
-  const tokOneIsActive = tokOneFeatureEnabled && isTokOneSubscriptionActive(tokOneSub);
-  const defaultTab = requestedTab === "abonnement" && !tokOneFeatureEnabled ? "infos" : requestedTab;
+  const { data: tokOneSub } = useTokOneSubscription({
+    enabled: tokOneFeatureEnabled,
+  });
+  const { data: tokOnePlans } = useTokOnePlans({
+    enabled: tokOneFeatureEnabled,
+  });
+  const tokOneIsActive =
+    tokOneFeatureEnabled && isTokOneSubscriptionActive(tokOneSub);
+  const defaultTab =
+    requestedTab === "abonnement" && !tokOneFeatureEnabled
+      ? "infos"
+      : requestedTab;
 
   const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
     queryFn: async () => {
-      const { data } = await supabase.from("profiles").select("*").eq("user_id", user!.id).single();
+      const { data } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", user!.id)
+        .single();
       return data;
     },
     enabled: !!user,
@@ -151,7 +192,10 @@ export default function Profil() {
       setAddress(profile.address || "");
       setCity(profile.city || "");
       setAvatarUrl(profile.avatar_url || "");
-      setBirthDate(profile.date_of_birth || accountProfile?.date_of_birth || "");
+      setBirthDate(
+        profile.date_of_birth || accountProfile?.date_of_birth || "",
+      );
+      setGender(profile.gender || "unspecified");
     } else if (accountProfile?.date_of_birth) {
       setBirthDate(accountProfile.date_of_birth);
     }
@@ -160,6 +204,14 @@ export default function Profil() {
   const handleSave = async () => {
     if (!user) return;
     const normalizedBirthDate = birthDate.trim() || null;
+    const normalizedGender = [
+      "female",
+      "male",
+      "other",
+      "unspecified",
+    ].includes(gender)
+      ? gender
+      : "unspecified";
     if (normalizedBirthDate && isFutureDate(normalizedBirthDate)) {
       toast({
         title: "Date invalide",
@@ -172,9 +224,8 @@ export default function Profil() {
     const { firstName, lastName } = splitFullName(fullName);
 
     setLoading(true);
-    const { error: profileError } = await supabase
-      .from("profiles")
-      .upsert({
+    const { error: profileError } = await supabase.from("profiles").upsert(
+      {
         user_id: user.id,
         full_name: fullName,
         phone,
@@ -182,23 +233,31 @@ export default function Profil() {
         city,
         avatar_url: avatarUrl,
         date_of_birth: normalizedBirthDate,
-      }, { onConflict: "user_id" });
+        gender: normalizedGender,
+      },
+      { onConflict: "user_id" },
+    );
     const { error: accountProfileError } = profileError
       ? { error: null }
-      : await supabase
-        .from("user_profiles")
-        .upsert({
-          user_id: user.id,
-          first_name: firstName,
-          last_name: lastName,
-          phone_number: phone,
-          avatar_url: avatarUrl,
-          date_of_birth: normalizedBirthDate,
-        }, { onConflict: "user_id" });
+      : await supabase.from("user_profiles").upsert(
+          {
+            user_id: user.id,
+            first_name: firstName,
+            last_name: lastName,
+            phone_number: phone,
+            avatar_url: avatarUrl,
+            date_of_birth: normalizedBirthDate,
+          },
+          { onConflict: "user_id" },
+        );
     const error = profileError || accountProfileError;
     setLoading(false);
     if (error) {
-      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive",
+      });
     } else {
       toast({ title: "Profil mis à jour !" });
       queryClient.invalidateQueries({ queryKey: ["profile"] });
@@ -209,7 +268,12 @@ export default function Profil() {
   const { data: favorites } = useQuery({
     queryKey: ["my-favorites", user?.id],
     queryFn: async () => {
-      const { data } = await supabase.from("favorites").select("*, restaurants(id, name, city, cuisine_type, rating, image_url)").eq("user_id", user!.id);
+      const { data } = await supabase
+        .from("favorites")
+        .select(
+          "*, restaurants(id, name, city, cuisine_type, rating, image_url)",
+        )
+        .eq("user_id", user!.id);
       return (data || []) as FavoriteRow[];
     },
     enabled: !!user,
@@ -242,7 +306,12 @@ export default function Profil() {
 
   const prefs: NotificationPreferences = notificationPrefs || {
     channels: { in_app: true, email: true, push: true },
-    categories: { transactional: true, product: true, marketing: false, system: true },
+    categories: {
+      transactional: true,
+      product: true,
+      marketing: false,
+      system: true,
+    },
   };
 
   const updatePreferences = async (next: Partial<NotificationPreferences>) => {
@@ -256,10 +325,16 @@ export default function Profil() {
       .from("notification_preferences")
       .upsert(payload, { onConflict: "user_id" });
     if (error) {
-      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive",
+      });
     } else {
       toast({ title: "Préférences mises à jour" });
-      queryClient.invalidateQueries({ queryKey: ["notification-preferences", user.id] });
+      queryClient.invalidateQueries({
+        queryKey: ["notification-preferences", user.id],
+      });
     }
   };
 
@@ -269,7 +344,9 @@ export default function Profil() {
     });
   };
 
-  const toggleCategory = (key: "transactional" | "product" | "marketing" | "system") => {
+  const toggleCategory = (
+    key: "transactional" | "product" | "marketing" | "system",
+  ) => {
     updatePreferences({
       categories: { ...prefs.categories, [key]: !prefs.categories?.[key] },
     });
@@ -278,7 +355,9 @@ export default function Profil() {
   const toggleTopic = async (topic: string) => {
     if (!user) return;
     const subscriptions = notificationSubscriptions || [];
-    const isSubscribed = subscriptions.some((subscription) => subscription.topic === topic);
+    const isSubscribed = subscriptions.some(
+      (subscription) => subscription.topic === topic,
+    );
     if (isSubscribed) {
       await supabase
         .from("notification_subscriptions")
@@ -288,15 +367,35 @@ export default function Profil() {
     } else {
       await supabase
         .from("notification_subscriptions")
-        .upsert({ user_id: user.id, topic, filters: {} }, { onConflict: "user_id,topic" });
+        .upsert(
+          { user_id: user.id, topic, filters: {} },
+          { onConflict: "user_id,topic" },
+        );
     }
-    queryClient.invalidateQueries({ queryKey: ["notification-subscriptions", user.id] });
+    queryClient.invalidateQueries({
+      queryKey: ["notification-subscriptions", user.id],
+    });
   };
 
   const topics = [
-    { id: "flash_sales", feature: "ventes-flash", label: "Ventes Flash", desc: "Offres limitées en temps réel." },
-    { id: "chefs_table", feature: "chefs-table", label: "La Table du Chef", desc: "Nouveaux drops exclusifs." },
-    { id: "anti_gaspi", feature: "anti-gaspi", label: "Anti-gaspi", desc: "Offres solidaires et anti-gaspi." },
+    {
+      id: "flash_sales",
+      feature: "ventes-flash",
+      label: "Ventes Flash",
+      desc: "Offres limitées en temps réel.",
+    },
+    {
+      id: "chefs_table",
+      feature: "chefs-table",
+      label: "La Table du Chef",
+      desc: "Nouveaux drops exclusifs.",
+    },
+    {
+      id: "anti_gaspi",
+      feature: "anti-gaspi",
+      label: "Anti-gaspi",
+      desc: "Offres solidaires et anti-gaspi.",
+    },
   ].filter((topic) => activeFeatures.has(topic.feature));
 
   return (
@@ -315,31 +414,68 @@ export default function Profil() {
               tokOneFeatureEnabled ? "sm:grid-cols-6" : "sm:grid-cols-5"
             }`}
           >
-            <TabsTrigger value="infos" className="min-w-0 gap-1 rounded-xl px-1.5 py-2 text-[11px] leading-none sm:px-2 sm:text-xs">
+            <TabsTrigger
+              value="infos"
+              className="min-w-0 gap-1 rounded-xl px-1.5 py-2 text-[11px] leading-none sm:px-2 sm:text-xs"
+            >
               <User className="h-3.5 w-3.5 shrink-0" />
-              <span className="truncate"><span className="sm:hidden">Infos</span><span className="hidden sm:inline">Informations</span></span>
+              <span className="truncate">
+                <span className="sm:hidden">Infos</span>
+                <span className="hidden sm:inline">Informations</span>
+              </span>
             </TabsTrigger>
-            <TabsTrigger value="favoris" className="min-w-0 gap-1 rounded-xl px-1.5 py-2 text-[11px] leading-none sm:px-2 sm:text-xs">
+            <TabsTrigger
+              value="favoris"
+              className="min-w-0 gap-1 rounded-xl px-1.5 py-2 text-[11px] leading-none sm:px-2 sm:text-xs"
+            >
               <Heart className="h-3.5 w-3.5 shrink-0" />
-              <span className="truncate"><span className="sm:hidden">Fav.</span><span className="hidden sm:inline">Favoris</span> ({favorites?.length || 0})</span>
+              <span className="truncate">
+                <span className="sm:hidden">Fav.</span>
+                <span className="hidden sm:inline">Favoris</span> (
+                {favorites?.length || 0})
+              </span>
             </TabsTrigger>
             {tokOneFeatureEnabled ? (
-              <TabsTrigger value="abonnement" className="min-w-0 gap-1 rounded-xl px-1.5 py-2 text-[11px] leading-none sm:px-2 sm:text-xs">
+              <TabsTrigger
+                value="abonnement"
+                className="min-w-0 gap-1 rounded-xl px-1.5 py-2 text-[11px] leading-none sm:px-2 sm:text-xs"
+              >
                 <Crown className="h-3.5 w-3.5 shrink-0" />
-                <span className="truncate"><span className="hidden sm:inline">Abonnement</span><span className="sm:hidden">Abo.</span></span>
+                <span className="truncate">
+                  <span className="hidden sm:inline">Abonnement</span>
+                  <span className="sm:hidden">Abo.</span>
+                </span>
               </TabsTrigger>
             ) : null}
-            <TabsTrigger value="notifications" className="min-w-0 gap-1 rounded-xl px-1.5 py-2 text-[11px] leading-none sm:px-2 sm:text-xs">
+            <TabsTrigger
+              value="notifications"
+              className="min-w-0 gap-1 rounded-xl px-1.5 py-2 text-[11px] leading-none sm:px-2 sm:text-xs"
+            >
               <Bell className="h-3.5 w-3.5 shrink-0" />
-              <span className="truncate"><span className="hidden sm:inline">Notifications</span><span className="sm:hidden">Notifs</span></span>
+              <span className="truncate">
+                <span className="hidden sm:inline">Notifications</span>
+                <span className="sm:hidden">Notifs</span>
+              </span>
             </TabsTrigger>
-            <TabsTrigger value="fidelite" className="min-w-0 gap-1 rounded-xl px-1.5 py-2 text-[11px] leading-none sm:px-2 sm:text-xs">
+            <TabsTrigger
+              value="fidelite"
+              className="min-w-0 gap-1 rounded-xl px-1.5 py-2 text-[11px] leading-none sm:px-2 sm:text-xs"
+            >
               <Trophy className="h-3.5 w-3.5 shrink-0" />
-              <span className="truncate"><span className="hidden sm:inline">Fidélité</span><span className="sm:hidden">Points</span></span>
+              <span className="truncate">
+                <span className="hidden sm:inline">Fidélité</span>
+                <span className="sm:hidden">Points</span>
+              </span>
             </TabsTrigger>
-            <TabsTrigger value="parametres" className="min-w-0 gap-1 rounded-xl px-1.5 py-2 text-[11px] leading-none sm:px-2 sm:text-xs">
+            <TabsTrigger
+              value="parametres"
+              className="min-w-0 gap-1 rounded-xl px-1.5 py-2 text-[11px] leading-none sm:px-2 sm:text-xs"
+            >
               <Settings className="h-3.5 w-3.5 shrink-0" />
-              <span className="truncate"><span className="hidden sm:inline">Paramètres</span><span className="sm:hidden">Param.</span></span>
+              <span className="truncate">
+                <span className="hidden sm:inline">Paramètres</span>
+                <span className="sm:hidden">Param.</span>
+              </span>
             </TabsTrigger>
           </TabsList>
 
@@ -354,7 +490,11 @@ export default function Profil() {
               <div className="relative group">
                 <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-primary/10 bg-muted">
                   {avatarUrl ? (
-                    <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                    <img
+                      src={avatarUrl}
+                      alt="Avatar"
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-primary/5">
                       <User className="h-10 w-10 text-primary/40" />
@@ -374,16 +514,22 @@ export default function Profil() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label>Nom complet</Label>
-                <Input value={fullName} onChange={(e) => setFullName(e.target.value)} />
+                <Input
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Email</Label>
                 <Input value={user?.email || ""} disabled />
               </div>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
                 <div className="space-y-2">
                   <Label>Téléphone</Label>
-                  <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
+                  <Input
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="birth_date">Date de naissance</Label>
@@ -396,6 +542,24 @@ export default function Profil() {
                   />
                   <p className="text-xs text-muted-foreground">
                     Active les attentions Miamz anniversaire.
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="gender">Genre</Label>
+                  <Select value={gender} onValueChange={setGender}>
+                    <SelectTrigger id="gender">
+                      <SelectValue placeholder="Non renseigné" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="unspecified">Non renseigné</SelectItem>
+                      <SelectItem value="female">Femme</SelectItem>
+                      <SelectItem value="male">Homme</SelectItem>
+                      <SelectItem value="other">Autre</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Signal optionnel utilisé pour rendre les campagnes
+                    sponsorisées plus pertinentes.
                   </p>
                 </div>
                 <div className="space-y-2">
@@ -433,23 +597,40 @@ export default function Profil() {
               favorites.map((f) => {
                 const r = f.restaurants;
                 return (
-                  <Link key={f.id} to={`/restaurant/${r?.id}`} className="flex items-center gap-4 p-3 border rounded-xl bg-card hover:bg-accent transition-colors">
-                    <img src={r?.image_url || "/images/kebab-box-spread.jpeg"} alt={r?.name} className="w-12 h-12 rounded-lg object-cover" />
+                  <Link
+                    key={f.id}
+                    to={`/restaurant/${r?.id}`}
+                    className="flex items-center gap-4 p-3 border rounded-xl bg-card hover:bg-accent transition-colors"
+                  >
+                    <img
+                      src={r?.image_url || "/images/kebab-box-spread.jpeg"}
+                      alt={r?.name}
+                      className="w-12 h-12 rounded-lg object-cover"
+                    />
                     <div>
                       <p className="font-semibold text-sm">{r?.name}</p>
-                      <p className="text-xs text-muted-foreground">{r?.cuisine_type} · {r?.city}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {r?.cuisine_type} · {r?.city}
+                      </p>
                     </div>
                   </Link>
                 );
               })
             ) : (
-              <p className="text-muted-foreground text-center py-8">Aucun favori</p>
+              <p className="text-muted-foreground text-center py-8">
+                Aucun favori
+              </p>
             )}
           </TabsContent>
 
           {tokOneFeatureEnabled ? (
             <TabsContent value="abonnement" className="space-y-6 pt-4">
-              <TokOneTab userId={user?.id} subscription={tokOneSub} isActive={tokOneIsActive} plans={tokOnePlans} />
+              <TokOneTab
+                userId={user?.id}
+                subscription={tokOneSub}
+                isActive={tokOneIsActive}
+                plans={tokOnePlans}
+              />
             </TabsContent>
           ) : null}
 
@@ -460,15 +641,24 @@ export default function Profil() {
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center justify-between">
                     <span>In-app</span>
-                    <Switch checked={!!prefs.channels?.in_app} onCheckedChange={() => toggleChannel("in_app")} />
+                    <Switch
+                      checked={!!prefs.channels?.in_app}
+                      onCheckedChange={() => toggleChannel("in_app")}
+                    />
                   </div>
                   <div className="flex items-center justify-between">
                     <span>Email</span>
-                    <Switch checked={!!prefs.channels?.email} onCheckedChange={() => toggleChannel("email")} />
+                    <Switch
+                      checked={!!prefs.channels?.email}
+                      onCheckedChange={() => toggleChannel("email")}
+                    />
                   </div>
                   <div className="flex items-center justify-between">
                     <span>Push web</span>
-                    <Switch checked={!!prefs.channels?.push} onCheckedChange={() => toggleChannel("push")} />
+                    <Switch
+                      checked={!!prefs.channels?.push}
+                      onCheckedChange={() => toggleChannel("push")}
+                    />
                   </div>
                 </div>
               </div>
@@ -478,19 +668,31 @@ export default function Profil() {
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center justify-between">
                     <span>Transactionnel</span>
-                    <Switch checked={!!prefs.categories?.transactional} onCheckedChange={() => toggleCategory("transactional")} />
+                    <Switch
+                      checked={!!prefs.categories?.transactional}
+                      onCheckedChange={() => toggleCategory("transactional")}
+                    />
                   </div>
                   <div className="flex items-center justify-between">
                     <span>Produit</span>
-                    <Switch checked={!!prefs.categories?.product} onCheckedChange={() => toggleCategory("product")} />
+                    <Switch
+                      checked={!!prefs.categories?.product}
+                      onCheckedChange={() => toggleCategory("product")}
+                    />
                   </div>
                   <div className="flex items-center justify-between">
                     <span>Marketing</span>
-                    <Switch checked={!!prefs.categories?.marketing} onCheckedChange={() => toggleCategory("marketing")} />
+                    <Switch
+                      checked={!!prefs.categories?.marketing}
+                      onCheckedChange={() => toggleCategory("marketing")}
+                    />
                   </div>
                   <div className="flex items-center justify-between">
                     <span>Système</span>
-                    <Switch checked={!!prefs.categories?.system} onCheckedChange={() => toggleCategory("system")} />
+                    <Switch
+                      checked={!!prefs.categories?.system}
+                      onCheckedChange={() => toggleCategory("system")}
+                    />
                   </div>
                 </div>
               </div>
@@ -499,7 +701,8 @@ export default function Profil() {
             <div className="rounded-xl border bg-card p-4 space-y-3">
               <h3 className="font-semibold text-sm">Push web</h3>
               <p className="text-xs text-muted-foreground">
-                Activez les notifications push pour recevoir les alertes en temps réel.
+                Activez les notifications push pour recevoir les alertes en
+                temps réel.
               </p>
               <div className="flex flex-wrap gap-2">
                 <Button
@@ -508,7 +711,11 @@ export default function Profil() {
                     if (!user) return;
                     const res = await enablePush(user.id);
                     if (!res.ok) {
-                      toast({ title: "Push indisponible", description: res.reason, variant: "destructive" });
+                      toast({
+                        title: "Push indisponible",
+                        description: res.reason,
+                        variant: "destructive",
+                      });
                     } else {
                       toast({ title: "Push active" });
                     }
@@ -523,7 +730,11 @@ export default function Profil() {
                     if (!user) return;
                     const res = await disablePush(user.id);
                     if (!res.ok) {
-                      toast({ title: "Erreur", description: res.reason, variant: "destructive" });
+                      toast({
+                        title: "Erreur",
+                        description: res.reason,
+                        variant: "destructive",
+                      });
                     } else {
                       toast({ title: "Push désactivé" });
                     }
@@ -539,14 +750,24 @@ export default function Profil() {
                 <h3 className="font-semibold text-sm">Alertes thématiques</h3>
                 <div className="space-y-2">
                   {topics.map((topic) => {
-                    const isSubscribed = (notificationSubscriptions || []).some((subscription) => subscription.topic === topic.id);
+                    const isSubscribed = (notificationSubscriptions || []).some(
+                      (subscription) => subscription.topic === topic.id,
+                    );
                     return (
-                      <div key={topic.id} className="flex items-center justify-between">
+                      <div
+                        key={topic.id}
+                        className="flex items-center justify-between"
+                      >
                         <div>
                           <p className="text-sm font-medium">{topic.label}</p>
-                          <p className="text-[11px] text-muted-foreground">{topic.desc}</p>
+                          <p className="text-[11px] text-muted-foreground">
+                            {topic.desc}
+                          </p>
                         </div>
-                        <Switch checked={isSubscribed} onCheckedChange={() => toggleTopic(topic.id)} />
+                        <Switch
+                          checked={isSubscribed}
+                          onCheckedChange={() => toggleTopic(topic.id)}
+                        />
                       </div>
                     );
                   })}
@@ -569,9 +790,13 @@ export default function Profil() {
                 </div>
                 <div className="flex-1">
                   <p className="font-semibold text-sm">Points Cadeau</p>
-                  <p className="text-xs text-muted-foreground">Offrez des Miamz à vos proches ou réclamez un cadeau</p>
+                  <p className="text-xs text-muted-foreground">
+                    Offrez des Miamz à vos proches ou réclamez un cadeau
+                  </p>
                 </div>
-                <span className="text-pink-500 text-sm font-medium">Ouvrir →</span>
+                <span className="text-pink-500 text-sm font-medium">
+                  Ouvrir →
+                </span>
               </Link>
             ) : null}
 
@@ -588,14 +813,20 @@ export default function Profil() {
                   <AlertTriangle className="h-5 w-5 text-destructive" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-destructive">Zone de danger</h3>
-                  <p className="text-xs text-muted-foreground">Actions irreversibles</p>
+                  <h3 className="font-semibold text-destructive">
+                    Zone de danger
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    Actions irreversibles
+                  </p>
                 </div>
               </div>
 
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">
-                  La suppression de votre compte est definitive et entraîne la perte de vos points de fidélité, crédits, historique de commandes et réservations.
+                  La suppression de votre compte est definitive et entraîne la
+                  perte de vos points de fidélité, crédits, historique de
+                  commandes et réservations.
                 </p>
 
                 <AlertDialog>
@@ -607,40 +838,69 @@ export default function Profil() {
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Supprimer définitivement votre compte ?</AlertDialogTitle>
+                      <AlertDialogTitle>
+                        Supprimer définitivement votre compte ?
+                      </AlertDialogTitle>
                       <AlertDialogDescription className="space-y-3">
-                        <span className="block">Cette action est irréversible. Toutes vos données seront supprimées.</span>
-                        <span className="block">Pour confirmer, saisissez votre email : <strong>{user?.email}</strong></span>
+                        <span className="block">
+                          Cette action est irréversible. Toutes vos données
+                          seront supprimées.
+                        </span>
+                        <span className="block">
+                          Pour confirmer, saisissez votre email :{" "}
+                          <strong>{user?.email}</strong>
+                        </span>
                         <Input
                           value={deleteConfirmEmail}
-                          onChange={(e) => setDeleteConfirmEmail(e.target.value)}
+                          onChange={(e) =>
+                            setDeleteConfirmEmail(e.target.value)
+                          }
                           placeholder="Votre email"
                           className="mt-2"
                         />
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel onClick={() => setDeleteConfirmEmail("")}>Annuler</AlertDialogCancel>
+                      <AlertDialogCancel
+                        onClick={() => setDeleteConfirmEmail("")}
+                      >
+                        Annuler
+                      </AlertDialogCancel>
                       <AlertDialogAction
                         className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        disabled={deleteConfirmEmail !== user?.email || deleting}
+                        disabled={
+                          deleteConfirmEmail !== user?.email || deleting
+                        }
                         onClick={async () => {
                           setDeleting(true);
                           try {
-                            const { error } = await supabase.functions.invoke("delete-account");
+                            const { error } =
+                              await supabase.functions.invoke("delete-account");
                             if (error) throw error;
                             await signOut();
-                            toast({ title: "Compte supprimé", description: "Votre compte a été supprimé avec succès." });
+                            toast({
+                              title: "Compte supprimé",
+                              description:
+                                "Votre compte a été supprimé avec succès.",
+                            });
                             navigate("/");
                           } catch (err: any) {
-                            toast({ title: "Erreur", description: err.message || "Impossible de supprimer le compte.", variant: "destructive" });
+                            toast({
+                              title: "Erreur",
+                              description:
+                                err.message ||
+                                "Impossible de supprimer le compte.",
+                              variant: "destructive",
+                            });
                           } finally {
                             setDeleting(false);
                             setDeleteConfirmEmail("");
                           }
                         }}
                       >
-                        {deleting ? "Suppression..." : "Supprimer définitivement"}
+                        {deleting
+                          ? "Suppression..."
+                          : "Supprimer définitivement"}
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
@@ -677,23 +937,37 @@ function TokOneTab({ userId, subscription, isActive, plans }: TokOneTabProps) {
   const { data: tokOneOrders, isLoading: ordersLoading } = useQuery({
     queryKey: ["tok-one-orders", userId],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_customer_orders_dashboard" as any);
+      const { data, error } = await supabase.rpc(
+        "get_customer_orders_dashboard" as any,
+      );
       if (error) throw error;
 
       return ((data || []) as any[])
         .map((order) => {
-          const metadata = order.metadata && typeof order.metadata === "object" && !Array.isArray(order.metadata)
-            ? order.metadata
-            : {};
-          const restaurant = order.restaurant && typeof order.restaurant === "object" && !Array.isArray(order.restaurant)
-            ? order.restaurant
-            : null;
+          const metadata =
+            order.metadata &&
+            typeof order.metadata === "object" &&
+            !Array.isArray(order.metadata)
+              ? order.metadata
+              : {};
+          const restaurant =
+            order.restaurant &&
+            typeof order.restaurant === "object" &&
+            !Array.isArray(order.restaurant)
+              ? order.restaurant
+              : null;
 
           return {
             ...order,
             metadata,
-            order_reference: order.order_reference || order.order_number || metadata.order_reference || null,
-            restaurants: restaurant ? { name: restaurant.name || "Restaurant" } : null,
+            order_reference:
+              order.order_reference ||
+              order.order_number ||
+              metadata.order_reference ||
+              null,
+            restaurants: restaurant
+              ? { name: restaurant.name || "Restaurant" }
+              : null,
           };
         })
         .filter((order) => (order.metadata as any)?.tok_one_member === true)
@@ -714,19 +988,35 @@ function TokOneTab({ userId, subscription, isActive, plans }: TokOneTabProps) {
         .limit(20);
       return (data || []).filter((p: any) => {
         const status = String((p as any)?.status || "");
-        return (p.metadata as any)?.checkout_kind === "tok-one" && ["paid", "succeeded"].includes(status);
+        return (
+          (p.metadata as any)?.checkout_kind === "tok-one" &&
+          ["paid", "succeeded"].includes(status)
+        );
       });
     },
     enabled: !!userId,
   });
 
   // Computed stats
-  const totalTokOneSaved = (tokOneOrders || []).reduce((sum: number, o: any) => {
-    const metadata = (o.metadata || {}) as any;
-    return sum + Number(metadata.tok_one_total_saved || (Number(metadata.tok_one_delivery_saved || 0) + Number(metadata.tok_one_discount_amount || 0)));
-  }, 0);
+  const totalTokOneSaved = (tokOneOrders || []).reduce(
+    (sum: number, o: any) => {
+      const metadata = (o.metadata || {}) as any;
+      return (
+        sum +
+        Number(
+          metadata.tok_one_total_saved ||
+            Number(metadata.tok_one_delivery_saved || 0) +
+              Number(metadata.tok_one_discount_amount || 0),
+        )
+      );
+    },
+    0,
+  );
   const totalOrders = (tokOneOrders || []).length;
-  const totalPaid = (payments || []).reduce((sum: number, p: any) => sum + Number(p.amount || 0), 0);
+  const totalPaid = (payments || []).reduce(
+    (sum: number, p: any) => sum + Number(p.amount || 0),
+    0,
+  );
 
   return (
     <div className="space-y-6">
@@ -741,7 +1031,9 @@ function TokOneTab({ userId, subscription, isActive, plans }: TokOneTabProps) {
               <div>
                 <div className="flex items-center gap-2">
                   <h3 className="font-bold text-lg text-violet-900">Tok One</h3>
-                  <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">Actif</Badge>
+                  <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">
+                    Actif
+                  </Badge>
                 </div>
                 <p className="text-sm text-violet-600">
                   {subscription.user_subscription_plans?.name || "Premium"}
@@ -751,7 +1043,11 @@ function TokOneTab({ userId, subscription, isActive, plans }: TokOneTabProps) {
             {!subscription.cancel_at_period_end && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-destructive hover:text-destructive"
+                  >
                     Résilier
                   </Button>
                 </AlertDialogTrigger>
@@ -759,7 +1055,16 @@ function TokOneTab({ userId, subscription, isActive, plans }: TokOneTabProps) {
                   <AlertDialogHeader>
                     <AlertDialogTitle>Résilier Tok One ?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Vous conserverez vos avantages jusqu’au {new Date(subscription.current_period_end).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}. Après cette date, les frais de livraison et réductions exclusives ne s'appliqueront plus.
+                      Vous conserverez vos avantages jusqu’au{" "}
+                      {new Date(
+                        subscription.current_period_end,
+                      ).toLocaleDateString("fr-FR", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      })}
+                      . Après cette date, les frais de livraison et réductions
+                      exclusives ne s'appliqueront plus.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -767,14 +1072,27 @@ function TokOneTab({ userId, subscription, isActive, plans }: TokOneTabProps) {
                     <AlertDialogAction
                       className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                       onClick={async () => {
-                        const { error } = await supabase.functions.invoke("manage-tok-one-subscription", {
-                          body: { action: "cancel" },
-                        });
+                        const { error } = await supabase.functions.invoke(
+                          "manage-tok-one-subscription",
+                          {
+                            body: { action: "cancel" },
+                          },
+                        );
                         if (error) {
-                          toast({ title: "Erreur", description: error.message, variant: "destructive" });
+                          toast({
+                            title: "Erreur",
+                            description: error.message,
+                            variant: "destructive",
+                          });
                         } else {
-                          toast({ title: "Abonnement résilié", description: "Vos avantages restent actifs jusqu’à la fin de la période." });
-                          queryClient.invalidateQueries({ queryKey: ["tok-one-subscription"] });
+                          toast({
+                            title: "Abonnement résilié",
+                            description:
+                              "Vos avantages restent actifs jusqu’à la fin de la période.",
+                          });
+                          queryClient.invalidateQueries({
+                            queryKey: ["tok-one-subscription"],
+                          });
                         }
                       }}
                     >
@@ -788,28 +1106,44 @@ function TokOneTab({ userId, subscription, isActive, plans }: TokOneTabProps) {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="rounded-xl bg-white/60 border p-4 space-y-1">
-              <p className="text-xs text-muted-foreground font-medium">Début de la période</p>
+              <p className="text-xs text-muted-foreground font-medium">
+                Début de la période
+              </p>
               <p className="font-semibold text-sm">
                 <CalendarCheck className="h-3.5 w-3.5 inline mr-1.5 text-violet-500" />
-                {new Date(subscription.current_period_start).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
+                {new Date(subscription.current_period_start).toLocaleDateString(
+                  "fr-FR",
+                  { day: "numeric", month: "long", year: "numeric" },
+                )}
               </p>
             </div>
             <div className="rounded-xl bg-white/60 border p-4 space-y-1">
               <p className="text-xs text-muted-foreground font-medium">
-                {subscription.cancel_at_period_end ? "Expire le" : "Prochain renouvellement"}
+                {subscription.cancel_at_period_end
+                  ? "Expire le"
+                  : "Prochain renouvellement"}
               </p>
               <p className="font-semibold text-sm">
                 <CalendarCheck className="h-3.5 w-3.5 inline mr-1.5 text-violet-500" />
-                {new Date(subscription.current_period_end).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
+                {new Date(subscription.current_period_end).toLocaleDateString(
+                  "fr-FR",
+                  { day: "numeric", month: "long", year: "numeric" },
+                )}
               </p>
             </div>
           </div>
 
           <div className="rounded-xl bg-white/60 border p-4">
-            <p className="text-xs text-muted-foreground font-medium mb-3">Avantages actifs</p>
+            <p className="text-xs text-muted-foreground font-medium mb-3">
+              Avantages actifs
+            </p>
             <div className="flex flex-wrap gap-2">
               {enabledBenefitLabels.map((label) => (
-                <Badge key={label} variant="secondary" className="bg-violet-100 text-violet-700">
+                <Badge
+                  key={label}
+                  variant="secondary"
+                  className="bg-violet-100 text-violet-700"
+                >
                   {label}
                 </Badge>
               ))}
@@ -819,7 +1153,8 @@ function TokOneTab({ userId, subscription, isActive, plans }: TokOneTabProps) {
           {subscription.cancel_at_period_end && (
             <div className="rounded-xl bg-amber-50 border border-amber-200 p-4">
               <p className="text-sm text-amber-800">
-                Votre abonnement ne sera pas renouvelé. Vous conservez vos avantages jusqu’à la fin de la période en cours.
+                Votre abonnement ne sera pas renouvelé. Vous conservez vos
+                avantages jusqu’à la fin de la période en cours.
               </p>
             </div>
           )}
@@ -831,14 +1166,18 @@ function TokOneTab({ userId, subscription, isActive, plans }: TokOneTabProps) {
           </div>
           <h3 className="font-bold text-xl">Aucun abonnement actif</h3>
           <p className="text-muted-foreground max-w-md mx-auto">
-            Rejoignez Tok One pour bénéficier de la livraison gratuite, de réductions exclusives et d'un accès VIP.
+            Rejoignez Tok One pour bénéficier de la livraison gratuite, de
+            réductions exclusives et d'un accès VIP.
           </p>
           {plans && plans.length > 0 && (
             <p className="text-sm text-violet-600 font-medium">
               À partir de {Number(plans[0].price_monthly).toFixed(2)} CHF/mois
             </p>
           )}
-          <Button className="bg-violet-600 hover:bg-violet-700 text-white" asChild>
+          <Button
+            className="bg-violet-600 hover:bg-violet-700 text-white"
+            asChild
+          >
             <Link to="/tok-one">
               <Crown className="mr-2 h-4 w-4" />
               Decouvrir Tok One
@@ -855,16 +1194,26 @@ function TokOneTab({ userId, subscription, isActive, plans }: TokOneTabProps) {
             <p className="text-xs text-muted-foreground">Commandes Tok One</p>
           </div>
           <div className="rounded-xl border bg-card p-4 text-center space-y-1">
-            <p className="text-2xl font-bold text-emerald-600">{totalTokOneSaved.toFixed(2)}</p>
+            <p className="text-2xl font-bold text-emerald-600">
+              {totalTokOneSaved.toFixed(2)}
+            </p>
             <p className="text-xs text-muted-foreground">CHF economises</p>
           </div>
           <div className="rounded-xl border bg-card p-4 text-center space-y-1">
-            <p className="text-2xl font-bold text-blue-600">{(payments || []).length}</p>
-            <p className="text-xs text-muted-foreground">Paiements abonnement</p>
+            <p className="text-2xl font-bold text-blue-600">
+              {(payments || []).length}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Paiements abonnement
+            </p>
           </div>
           <div className="rounded-xl border bg-card p-4 text-center space-y-1">
-            <p className="text-2xl font-bold text-amber-600">{totalPaid.toFixed(2)}</p>
-            <p className="text-xs text-muted-foreground">CHF total abonnement</p>
+            <p className="text-2xl font-bold text-amber-600">
+              {totalPaid.toFixed(2)}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              CHF total abonnement
+            </p>
           </div>
         </div>
       )}
@@ -876,31 +1225,52 @@ function TokOneTab({ userId, subscription, isActive, plans }: TokOneTabProps) {
           Historique des avantages utilisés
         </h3>
         {ordersLoading ? (
-          <div className="text-center py-6 text-muted-foreground text-sm">Chargement...</div>
+          <div className="text-center py-6 text-muted-foreground text-sm">
+            Chargement...
+          </div>
         ) : tokOneOrders && tokOneOrders.length > 0 ? (
           <div className="space-y-2">
             {tokOneOrders.map((order: any) => {
               const meta = (order.metadata || {}) as any;
-              const saved = Number(meta.tok_one_total_saved || (Number(meta.tok_one_delivery_saved || 0) + Number(meta.tok_one_discount_amount || 0)));
-              const restaurantName = (order.restaurants as any)?.name || "Restaurant";
+              const saved = Number(
+                meta.tok_one_total_saved ||
+                  Number(meta.tok_one_delivery_saved || 0) +
+                    Number(meta.tok_one_discount_amount || 0),
+              );
+              const restaurantName =
+                (order.restaurants as any)?.name || "Restaurant";
               return (
-                <div key={order.id} className="flex items-center justify-between p-3 rounded-xl border bg-card">
+                <div
+                  key={order.id}
+                  className="flex items-center justify-between p-3 rounded-xl border bg-card"
+                >
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center shrink-0">
                       <Crown className="h-4 w-4 text-violet-500" />
                     </div>
                     <div className="min-w-0">
-                      <p className="font-medium text-sm truncate">{restaurantName}</p>
+                      <p className="font-medium text-sm truncate">
+                        {restaurantName}
+                      </p>
                       <p className="text-xs text-muted-foreground">
-                        {new Date(order.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
-                        {order.order_reference ? ` · #${order.order_reference}` : ""}
+                        {new Date(order.created_at).toLocaleDateString(
+                          "fr-FR",
+                          { day: "numeric", month: "short", year: "numeric" },
+                        )}
+                        {order.order_reference
+                          ? ` · #${order.order_reference}`
+                          : ""}
                       </p>
                     </div>
                   </div>
                   <div className="text-right shrink-0 ml-2">
-                    <p className="text-sm font-bold">{Number(order.total_amount).toFixed(2)} CHF</p>
+                    <p className="text-sm font-bold">
+                      {Number(order.total_amount).toFixed(2)} CHF
+                    </p>
                     {saved > 0 && (
-                      <p className="text-xs text-emerald-600 font-medium">-{saved.toFixed(2)} CHF avantages</p>
+                      <p className="text-xs text-emerald-600 font-medium">
+                        -{saved.toFixed(2)} CHF avantages
+                      </p>
                     )}
                   </div>
                 </div>
@@ -928,16 +1298,27 @@ function TokOneTab({ userId, subscription, isActive, plans }: TokOneTabProps) {
           <div className="space-y-2">
             {payments.map((payment: any) => {
               const meta = (payment.metadata || {}) as any;
-              const period = meta.billing_period === "yearly" ? "Annuel" : "Mensuel";
+              const period =
+                meta.billing_period === "yearly" ? "Annuel" : "Mensuel";
               return (
-                <div key={payment.id} className="flex items-center justify-between p-3 rounded-xl border bg-card">
+                <div
+                  key={payment.id}
+                  className="flex items-center justify-between p-3 rounded-xl border bg-card"
+                >
                   <div>
-                    <p className="font-medium text-sm">Abonnement Tok One — {period}</p>
+                    <p className="font-medium text-sm">
+                      Abonnement Tok One — {period}
+                    </p>
                     <p className="text-xs text-muted-foreground">
-                      {new Date(payment.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
+                      {new Date(payment.created_at).toLocaleDateString(
+                        "fr-FR",
+                        { day: "numeric", month: "long", year: "numeric" },
+                      )}
                     </p>
                   </div>
-                  <p className="text-sm font-bold">{Number(payment.amount).toFixed(2)} CHF</p>
+                  <p className="text-sm font-bold">
+                    {Number(payment.amount).toFixed(2)} CHF
+                  </p>
                 </div>
               );
             })}
@@ -963,21 +1344,36 @@ function LoyaltyHistory({ userId }: { userId?: string }) {
     enabled: !!userId,
   });
 
-  if (isLoading) return <p className="text-sm text-muted-foreground">Chargement...</p>;
+  if (isLoading)
+    return <p className="text-sm text-muted-foreground">Chargement...</p>;
   if (!transactions || transactions.length === 0) {
-    return <p className="text-sm text-muted-foreground">Aucune transaction pour le moment.</p>;
+    return (
+      <p className="text-sm text-muted-foreground">
+        Aucune transaction pour le moment.
+      </p>
+    );
   }
 
   return (
     <div className="space-y-3">
       {transactions.map((transaction) => (
-        <div key={transaction.id} className="flex items-center justify-between p-3 border rounded-xl bg-card">
+        <div
+          key={transaction.id}
+          className="flex items-center justify-between p-3 border rounded-xl bg-card"
+        >
           <div>
-            <p className="font-semibold text-sm">{transaction.description || "Mouvement de points"}</p>
-            <p className="text-xs text-muted-foreground">{new Date(transaction.created_at).toLocaleDateString()}</p>
+            <p className="font-semibold text-sm">
+              {transaction.description || "Mouvement de points"}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {new Date(transaction.created_at).toLocaleDateString()}
+            </p>
           </div>
-          <div className={`font-bold ${transaction.amount > 0 ? "text-green-600" : "text-destructive"}`}>
-            {transaction.amount > 0 ? "+" : ""}{transaction.amount} pts
+          <div
+            className={`font-bold ${transaction.amount > 0 ? "text-green-600" : "text-destructive"}`}
+          >
+            {transaction.amount > 0 ? "+" : ""}
+            {transaction.amount} pts
           </div>
         </div>
       ))}
