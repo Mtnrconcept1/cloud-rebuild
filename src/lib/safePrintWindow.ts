@@ -92,7 +92,7 @@ function openIframePrintFallback(html: string, printDelayMs: number) {
 export function openSafeHtmlPrintDocument({
   html,
   title,
-  features = "noopener,noreferrer",
+  features = "popup=yes,width=1024,height=768",
   printDelayMs = 150,
 }: OpenSafeHtmlPrintDocumentOptions) {
   const safeHtml = assertSafePrintHtmlFragment(html, "document");
@@ -116,7 +116,7 @@ export function openSafePrintWindow({
   title,
   headHtml = "",
   bodyHtml,
-  features = "noopener,noreferrer",
+  features = "popup=yes,width=1024,height=768",
   printDelayMs = 150,
 }: OpenSafePrintWindowOptions) {
   const safeHeadHtml = assertSafePrintHtmlFragment(headHtml, "head");
