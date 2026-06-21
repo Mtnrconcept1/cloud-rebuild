@@ -23,6 +23,7 @@ import {
   RESTAURANT_PARTNER_CONTRACT_VERSION,
   generateSignedRestaurantPartnerContractHtml,
 } from "@/lib/restaurantPartnerContract";
+import { openSafeHtmlPrintDocument } from "@/lib/safePrintWindow";
 
 const supabase = getSupabase();
 
@@ -155,20 +156,18 @@ export default function RestaurantPartnerContractCard({
       city: restaurant.city,
       place: restaurant.city,
     });
-    const printWindow = window.open("", "_blank", "noopener,noreferrer");
-    if (!printWindow) {
+    const exported = openSafeHtmlPrintDocument({
+      title: `${RESTAURANT_PARTNER_CONTRACT_TITLE} - ${contract.signer_name}`,
+      html,
+    });
+
+    if (!exported) {
       toast({
-        title: "Export PDF bloqué",
-        description: "Autorisez l'ouverture de la fenêtre d'impression pour exporter le contrat.",
+        title: "Export PDF impossible",
+        description: "Le navigateur n'a pas pu ouvrir la fenêtre d'impression du contrat.",
         variant: "destructive",
       });
-      return;
     }
-    printWindow.document.open();
-    printWindow.document.write(html);
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
   };
 
 

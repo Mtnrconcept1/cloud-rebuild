@@ -6,6 +6,7 @@ import {
 } from "@/lib/chartStyleSecurity";
 import {
   assertSafePrintHtmlFragment,
+  openSafeHtmlPrintDocument,
   openSafePrintWindow,
 } from "@/lib/safePrintWindow";
 
@@ -51,6 +52,21 @@ describe("safe print windows", () => {
     expect(writeSpy).not.toHaveBeenCalled();
     expect(printDocument.title).toBe("Facture <TOK>");
     expect(printDocument.querySelector("main")?.textContent).toBe("OK");
+  });
+
+  it("falls back to an in-page print iframe when popup windows are blocked", () => {
+    vi.spyOn(window, "open").mockReturnValue(null);
+
+    expect(openSafeHtmlPrintDocument({
+      title: "Contrat TOK",
+      html: '<!doctype html><html lang="fr"><head><title>Contrat TOK</title></head><body><main>Contrat signé</main></body></html>',
+      printDelayMs: 0,
+    })).toBe(true);
+
+    const iframe = document.querySelector('iframe[aria-hidden="true"]');
+    expect(iframe).not.toBeNull();
+    expect(iframe?.contentDocument?.querySelector("main")?.textContent).toBe("Contrat signé");
+    iframe?.remove();
   });
 });
 

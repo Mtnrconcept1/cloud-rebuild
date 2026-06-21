@@ -6,6 +6,13 @@ type OpenSafePrintWindowOptions = {
   printDelayMs?: number;
 };
 
+type OpenSafeHtmlPrintDocumentOptions = {
+  html: string;
+  title?: string;
+  features?: string;
+  printDelayMs?: number;
+};
+
 const UNSAFE_PRINT_HTML_PATTERNS = [
   /<script\b/i,
   /\son[a-z]+\s*=/i,
@@ -31,6 +38,61 @@ export function assertSafePrintHtmlFragment(value: string, label: string) {
   return value;
 }
 
+function renderPrintDocument(targetWindow: Window, html: string, printDelayMs: number) {
+  const parsed = new DOMParser().parseFromString(html, "text/html");
+  const importedDocument = targetWindow.document.importNode(parsed.documentElement, true);
+  targetWindow.document.documentElement.replaceWith(importedDocument);
+  targetWindow.document.close();
+
+  if (printDelayMs >= 0) {
+    targetWindow.setTimeout(() => {
+      targetWindow.focus();
+      const print = targetWindow.print || window.print;
+      print.call(targetWindow);
+    }, printDelayMs);
+  }
+}
+
+function openIframePrintFallback(html: string, printDelayMs: number) {
+  const iframe = document.createElement("iframe");
+  iframe.setAttribute("aria-hidden", "true");
+  iframe.style.position = "fixed";
+  iframe.style.right = "0";
+  iframe.style.bottom = "0";
+  iframe.style.width = "0";
+  iframe.style.height = "0";
+  iframe.style.border = "0";
+  document.body.appendChild(iframe);
+
+  const targetWindow = iframe.contentWindow;
+  if (!targetWindow) {
+    iframe.remove();
+    return false;
+  }
+
+  renderPrintDocument(targetWindow, html, printDelayMs);
+  targetWindow.setTimeout(() => iframe.remove(), Math.max(printDelayMs + 30_000, 30_000));
+  return true;
+}
+
+export function openSafeHtmlPrintDocument({
+  html,
+  title,
+  features = "noopener,noreferrer",
+  printDelayMs = 150,
+}: OpenSafeHtmlPrintDocumentOptions) {
+  const safeHtml = assertSafePrintHtmlFragment(html, "document");
+  const printWindow = window.open("", "_blank", features);
+
+  if (printWindow) {
+    if (title) printWindow.document.title = title;
+    renderPrintDocument(printWindow, safeHtml, printDelayMs);
+    return true;
+  }
+
+  return openIframePrintFallback(safeHtml, printDelayMs);
+}
+
 export function openSafePrintWindow({
   title,
   headHtml = "",
@@ -38,9 +100,6 @@ export function openSafePrintWindow({
   features = "noopener,noreferrer",
   printDelayMs = 150,
 }: OpenSafePrintWindowOptions) {
-  const nextWindow = window.open("", "_blank", features);
-  if (!nextWindow) return false;
-
   const safeHeadHtml = assertSafePrintHtmlFragment(headHtml, "head");
   const safeBodyHtml = assertSafePrintHtmlFragment(bodyHtml, "body");
   const html = `<!doctype html>
@@ -53,18 +112,10 @@ export function openSafePrintWindow({
   <body>${safeBodyHtml}</body>
 </html>`;
 
-  const parsed = new DOMParser().parseFromString(html, "text/html");
-  const importedDocument = nextWindow.document.importNode(parsed.documentElement, true);
-  nextWindow.document.documentElement.replaceWith(importedDocument);
-  nextWindow.document.close();
-
-  if (printDelayMs >= 0) {
-    nextWindow.setTimeout(() => {
-      nextWindow.focus();
-      const print = nextWindow.print || window.print;
-      print.call(nextWindow);
-    }, printDelayMs);
-  }
-
-  return true;
+  return openSafeHtmlPrintDocument({
+    title,
+    html,
+    features,
+    printDelayMs,
+  });
 }
