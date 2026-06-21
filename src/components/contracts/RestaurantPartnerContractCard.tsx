@@ -21,6 +21,7 @@ import {
   RESTAURANT_PARTNER_CONTRACT_SECTIONS,
   RESTAURANT_PARTNER_CONTRACT_TITLE,
   RESTAURANT_PARTNER_CONTRACT_VERSION,
+  generateRestaurantPartnerContractSha256,
   generateSignedRestaurantPartnerContractHtml,
 } from "@/lib/restaurantPartnerContract";
 import { openSafeHtmlPrintDocument } from "@/lib/safePrintWindow";
@@ -108,10 +109,16 @@ export default function RestaurantPartnerContractCard({
       ),
     [contracts],
   );
+  const hasRequiredRestaurantIdentity = Boolean(
+    restaurant?.legal_name?.trim() &&
+    (restaurant.business_name?.trim() || restaurant.name?.trim()) &&
+    restaurant.name?.trim(),
+  );
   const canSign = Boolean(
     restaurantId &&
     user &&
     signerName.trim().length >= 3 &&
+    hasRequiredRestaurantIdentity &&
     acceptedAuthority &&
     acceptedContract &&
     !currentContract,
@@ -162,13 +169,18 @@ export default function RestaurantPartnerContractCard({
         typeof metadata.signer_role === "string"
           ? metadata.signer_role
           : "Représentant autorisé",
-      signerEmail: user?.email,
+      signerEmail:
+        typeof metadata.signed_email === "string"
+          ? metadata.signed_email
+          : user?.email,
       userId: contract.signed_by,
       restaurantId: contract.restaurant_id,
       contractHash:
-        typeof metadata.contract_content_hash === "string"
-          ? metadata.contract_content_hash
-          : undefined,
+        typeof metadata.contract_content_sha256 === "string"
+          ? metadata.contract_content_sha256
+          : typeof metadata.contract_content_hash === "string"
+            ? metadata.contract_content_hash
+            : undefined,
       acceptanceText:
         typeof metadata.acceptance_text === "string"
           ? metadata.acceptance_text
@@ -195,6 +207,21 @@ export default function RestaurantPartnerContractCard({
     if (!restaurantId || !user || !canSign) return;
     setIsSigning(true);
     try {
+      const signedAtClient = new Date().toISOString();
+      const acceptanceText =
+        "J'ai lu et j'accepte l'intégralité du contrat restaurateur TOK et je déclare être habilité à engager le restaurateur.";
+      const contractContentSha256 = await generateRestaurantPartnerContractSha256({
+        signerName: signerName.trim(),
+        signedAt: signedAtClient,
+        legalName: restaurant?.legal_name || "",
+        businessName: restaurant?.business_name || restaurant?.name || "",
+        restaurantName: restaurant?.name || "",
+        signerRole: "Représentant autorisé",
+        signerEmail: user.email || null,
+        userId: user.id,
+        restaurantId,
+        acceptanceText,
+      });
       const { error } = await (supabase as any)
         .from("restaurant_contracts")
         .insert({
@@ -207,13 +234,16 @@ export default function RestaurantPartnerContractCard({
           accepted_contract: acceptedContract,
           signature_metadata: {
             signer_role: "Représentant autorisé",
-            acceptance_text:
-              "J'ai lu et j'accepte l'intégralité du contrat restaurateur TOK et je déclare être habilité à engager le restaurateur.",
-            contract_content_hash: `${RESTAURANT_PARTNER_CONTRACT_VERSION}:${RESTAURANT_PARTNER_CONTRACT_SECTIONS.length}`,
+            acceptance_text: acceptanceText,
+            contract_content_sha256: contractContentSha256,
+            contract_content_hash: contractContentSha256,
             signed_user_id: user.id,
             signed_restaurant_id: restaurantId,
             signed_email: user.email || null,
-            signed_at_client: new Date().toISOString(),
+            signed_at_client: signedAtClient,
+            legal_name: restaurant?.legal_name || null,
+            business_name: restaurant?.business_name || restaurant?.name || null,
+            restaurant_name: restaurant?.name || null,
             user_agent:
               typeof navigator !== "undefined" ? navigator.userAgent : null,
             source:
@@ -343,6 +373,12 @@ export default function RestaurantPartnerContractCard({
                 J'ai lu et j'accepte l'intégralité du contrat restaurateur TOK.
               </span>
             </label>
+            {!hasRequiredRestaurantIdentity ? (
+              <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+                La raison sociale, le nom commercial et le nom du restaurant
+                doivent être renseignés avant signature réelle.
+              </p>
+            ) : null}
             <Button
               onClick={handleSign}
               disabled={!canSign || isSigning}
