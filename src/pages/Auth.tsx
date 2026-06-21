@@ -22,6 +22,7 @@ import {
   RESTAURANT_PARTNER_CONTRACT_SECTIONS,
   RESTAURANT_PARTNER_CONTRACT_TITLE,
   RESTAURANT_PARTNER_CONTRACT_VERSION,
+  generateRestaurantPartnerContractSha256,
   generateSignedRestaurantPartnerContractHtml,
 } from "@/lib/restaurantPartnerContract";
 import { Button } from "@/components/ui/button";
@@ -322,11 +323,13 @@ function RestaurantContractSignaturePad({
     onSignatureChange("");
   };
 
-  const handleExport = () => {
-    const exported = exportSignedRestaurantContractPdf({
+  const handleExport = async () => {
+    const signedAt = new Date().toISOString();
+    const acceptanceText = "J'ai lu et j'accepte l'intégralité du contrat restaurateur TOK et je déclare être habilité à engager le restaurateur.";
+    const contractHash = await generateRestaurantPartnerContractSha256({
       signerName,
       signatureDataUrl,
-      signedAt: new Date().toISOString(),
+      signedAt,
       legalName: signupForm.legalName,
       businessName: signupForm.businessName,
       restaurantName: signupForm.restaurantName,
@@ -336,8 +339,23 @@ function RestaurantContractSignaturePad({
       taxId: signupForm.taxId,
       city: signupForm.city,
       signerRole: "Représentant autorisé",
-      contractHash: `${RESTAURANT_PARTNER_CONTRACT_VERSION}:${RESTAURANT_PARTNER_CONTRACT_SECTIONS.length}`,
-      acceptanceText: "J'ai lu et j'accepte l'intégralité du contrat restaurateur TOK et je déclare être habilité à engager le restaurateur.",
+      acceptanceText,
+    });
+    const exported = exportSignedRestaurantContractPdf({
+      signerName,
+      signatureDataUrl,
+      signedAt,
+      legalName: signupForm.legalName,
+      businessName: signupForm.businessName,
+      restaurantName: signupForm.restaurantName,
+      restaurateurAddress: signupForm.address,
+      restaurateurPhone: signupForm.phone,
+      businessRegistrationNumber: signupForm.businessRegistrationNumber,
+      taxId: signupForm.taxId,
+      city: signupForm.city,
+      signerRole: "Représentant autorisé",
+      contractHash,
+      acceptanceText,
     });
     if (!exported) {
       alert("Autorisez l'ouverture de la fenêtre d'impression pour exporter le contrat en PDF.");
@@ -832,6 +850,28 @@ export default function Auth() {
         return;
       }
 
+      const contractAcceptanceText =
+        "J'ai lu et j'accepte l'intégralité du contrat restaurateur TOK et je déclare être habilité à engager le restaurateur.";
+      const contractContentSha256 = submittedRole === "restaurateur"
+        ? await generateRestaurantPartnerContractSha256({
+          signerName: submittedContractSignature.signerName.trim(),
+          signatureDataUrl: submittedContractSignature.signatureDataUrl,
+          signedAt: submittedLegalAcceptance.acceptedAt,
+          legalName: signupForm.legalName,
+          businessName: signupForm.businessName,
+          restaurantName: signupForm.restaurantName,
+          restaurateurAddress: signupForm.address,
+          restaurateurPhone: signupForm.phone,
+          businessRegistrationNumber: signupForm.businessRegistrationNumber,
+          taxId: signupForm.taxId,
+          city: signupForm.city,
+          signerRole: "Représentant autorisé",
+          signerEmail: signupForm.email,
+          userId: activeUser.id,
+          acceptanceText: contractAcceptanceText,
+        })
+        : null;
+
       const uploadedDocuments: UploadedSignupDocument[] = [];
       for (const requirement of submittedRequiredDocuments) {
         const file = documents[requirement.type];
@@ -883,8 +923,14 @@ export default function Auth() {
                 contract_signed_at: submittedLegalAcceptance.acceptedAt,
                 contract_signature_source: "auth_signup",
                 contract_signer_role: "Représentant autorisé",
-                contract_content_hash: `${RESTAURANT_PARTNER_CONTRACT_VERSION}:${RESTAURANT_PARTNER_CONTRACT_SECTIONS.length}`,
-                contract_acceptance_text: "J'ai lu et j'accepte l'intégralité du contrat restaurateur TOK et je déclare être habilité à engager le restaurateur.",
+                contract_content_sha256: contractContentSha256,
+                contract_content_hash: contractContentSha256,
+                contract_acceptance_text: contractAcceptanceText,
+                contract_signed_email: signupForm.email,
+                contract_signed_user_id: activeUser.id,
+                contract_legal_name: signupForm.legalName,
+                contract_business_name: signupForm.businessName,
+                contract_restaurant_name: signupForm.restaurantName,
                 ...toLegalAcceptanceMetadata(submittedLegalAcceptance),
               }
               : { verification_source: "auth_signup", ...toLegalAcceptanceMetadata(submittedLegalAcceptance) },

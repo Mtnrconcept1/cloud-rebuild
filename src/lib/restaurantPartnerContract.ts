@@ -74,7 +74,7 @@ export const RESTAURANT_PARTNER_CONTRACT_SECTIONS = [
     ],
   },
   {
-    title: "8. Offres, ventes flash, anti-gaspi, fidélité et avantages",
+    title: "8. Avis, support, incidents et qualité de service",
     paragraphs: [
       "Le restaurateur répond aux avis et demandes support de façon professionnelle, sans pression indue, incitation trompeuse, menace ou discrimination envers les clients. Les réponses peuvent être modérées si elles enfreignent les règles de TOK.",
       "Les incidents de préparation, retard, rupture, allergène, réservation invisible, client non servi, erreur de prix, paiement anormal, livreur absent, contenu diffamatoire ou utilisation frauduleuse du compte doivent être signalés rapidement depuis les canaux prévus.",
@@ -116,7 +116,6 @@ export const RESTAURANT_PARTNER_CONTRACT_SECTIONS = [
     paragraphs: [
       "Le présent contrat est soumis au droit suisse, à l'exclusion des règles de conflit de lois lorsque celles-ci conduiraient à l'application d'un autre droit.",
       "Tout litige relève des tribunaux compétents du canton de Genève, Suisse, sous réserve des fors impératifs prévus par la loi et des procédures amiables ou de médiation éventuellement acceptées par les parties.",
-      "Cette clause doit être validée par un juriste suisse avant un déploiement commercial massif ou une signature à grande échelle de restaurateurs.",
     ],
   },
 ] as const;
@@ -228,6 +227,35 @@ function formatContractDateTime(value: string) {
     dateStyle: "short",
     timeStyle: "short",
   });
+}
+
+export function buildRestaurantPartnerContractHashPayload(input: RestaurantPartnerContractHtmlInput) {
+  return JSON.stringify({
+    version: RESTAURANT_PARTNER_CONTRACT_VERSION,
+    title: RESTAURANT_PARTNER_CONTRACT_TITLE,
+    sections: RESTAURANT_PARTNER_CONTRACT_SECTIONS,
+    signerName: displayValue(input.signerName),
+    signedAt: displayValue(input.signedAt),
+    legalName: displayValue(input.legalName),
+    businessName: displayValue(input.businessName),
+    restaurantName: displayValue(input.restaurantName),
+    signerRole: displayValue(input.signerRole),
+    signerEmail: displayValue(input.signerEmail),
+    userId: displayValue(input.userId),
+    restaurantId: displayValue(input.restaurantId),
+    acceptanceText: displayValue(input.acceptanceText),
+  });
+}
+
+export async function generateRestaurantPartnerContractSha256(input: RestaurantPartnerContractHtmlInput) {
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(buildRestaurantPartnerContractHashPayload(input)),
+  );
+
+  return Array.from(new Uint8Array(digest))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 export function generateSignedRestaurantPartnerContractHtml(
