@@ -175,6 +175,8 @@ export type RestaurantPartnerContractHtmlInput = {
   taxId?: string | null;
   city?: string | null;
   place?: string | null;
+  selectedSubscriptionPlanLabel?: string | null;
+  selectedSubscriptionPriceLabel?: string | null;
   tokLegalName?: string;
   tokCompanyName?: string;
   tokAddress?: string;
@@ -217,6 +219,15 @@ function formatContractDate(value: string) {
   const date = new Date(value);
   if (!Number.isFinite(date.getTime())) return displayValue(value);
   return date.toLocaleDateString("fr-CH");
+}
+
+function formatContractDateTime(value: string) {
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return displayValue(value);
+  return date.toLocaleString("fr-CH", {
+    dateStyle: "short",
+    timeStyle: "short",
+  });
 }
 
 export function generateSignedRestaurantPartnerContractHtml(
@@ -297,18 +308,7 @@ export function generateSignedRestaurantPartnerContractHtml(
   <div class="meta">
     <h2>Informations complètes du restaurateur et du signataire</h2>
     <div class="grid">
-      <div><div class="label">Prénom</div><div class="value">${escapeHtml(displayValue(input.restaurateurFirstName))}</div></div>
-      <div><div class="label">Nom</div><div class="value">${escapeHtml(displayValue(input.restaurateurLastName))}</div></div>
-      <div><div class="label">Date de naissance</div><div class="value">${escapeHtml(displayValue(input.restaurateurDateOfBirth))}</div></div>
-      <div><div class="label">Téléphone</div><div class="value">${escapeHtml(displayValue(input.restaurateurPhone || input.restaurantPhone))}</div></div>
-      <div class="full"><div class="label">Adresse</div><div class="value">${escapeHtml(displayValue(input.restaurateurAddress || input.restaurantAddress))}</div></div>
-      <div><div class="label">Raison sociale</div><div class="value">${escapeHtml(displayValue(input.legalName))}</div></div>
-      <div><div class="label">Nom commercial</div><div class="value">${escapeHtml(displayValue(input.businessName))}</div></div>
-      <div><div class="label">Nom du restaurant</div><div class="value">${escapeHtml(displayValue(input.restaurantName))}</div></div>
-      <div><div class="label">Numéro d'immatriculation / RC</div><div class="value">${escapeHtml(displayValue(input.businessRegistrationNumber))}</div></div>
-      <div><div class="label">IDE/UID / TVA</div><div class="value">${escapeHtml(displayValue(input.taxId))}</div></div>
-      <div><div class="label">Lieu</div><div class="value">${escapeHtml(displayValue(input.place || input.city))}</div></div>
-      <div><div class="label">Date de signature</div><div class="value">${escapeHtml(formatContractDate(input.signedAt))}</div></div>
+      ${restaurateurRows}
     </div>
   </div>
   <div class="meta">
