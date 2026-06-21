@@ -6,6 +6,7 @@ import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth, type UserRole } from "@/lib/auth-context";
 import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 import { normalizeInternalNavigationTarget } from "@/lib/navigation";
+import { openSafeHtmlPrintDocument } from "@/lib/safePrintWindow";
 import { getDefaultActiveRole, getFeatureVisibleRoles, getRoleHomePath } from "@/lib/roleAccess";
 import {
   getMissingSignupDocuments,
@@ -235,14 +236,11 @@ function exportSignedRestaurantContractPdf(input: {
   restaurantName: string;
 }) {
   const html = generateSignedRestaurantPartnerContractHtml(input);
-  const printWindow = window.open("", "_blank", "noopener,noreferrer");
-  if (!printWindow) return false;
-  printWindow.document.open();
-  printWindow.document.write(html);
-  printWindow.document.close();
-  printWindow.focus();
-  printWindow.print();
-  return true;
+
+  return openSafeHtmlPrintDocument({
+    title: `${RESTAURANT_PARTNER_CONTRACT_TITLE} - ${input.signerName}`,
+    html,
+  });
 }
 
 function RestaurantContractSignaturePad({
