@@ -535,6 +535,7 @@ function SocialPostModalSummary({ post }: { post: SocialFeedPost }) {
           media={post.media}
           variant="side"
           mobileBleed="container"
+          lightboxEngagement={{ likesCount: post.likesCount, commentsCount: post.commentsCount }}
         />
       ) : null}
     </div>
@@ -1048,6 +1049,7 @@ export default function SocialPostCard({
               media={post.media}
               variant="side"
               className="order-2 max-sm:mt-2 lg:order-2"
+              lightboxEngagement={{ likesCount: post.likesCount, commentsCount: post.commentsCount }}
               mobileOverlay={(
                 <MobileMediaActionRail
                   onOptions={openReportDialog}
