@@ -1332,7 +1332,7 @@ function CampaignAutoDecisionPanel({
         <div className="space-y-2">
           <p className="font-semibold">Pilotage automatique IA de tous les champs</p>
           <p className="text-xs leading-5 text-muted-foreground">
-            Le bouton IA analyse catalogue, produits vendus, avis, ventes flash, anti-gaspi, réservations, campagnes passées et pics horaires. Il remplit le titre, texte, objectif {strategyLabel.toLowerCase()}, type {type}, pages, ciblage, budget, dates, image si disponible, emplacements {placementLabels.join(" + ") || "aucun"} et suivi anti-gaspi si pertinent.
+            Le bouton IA analyse catalogue, produits vendus, avis, ventes flash, anti-gaspi, réservations, campagnes passées, pics horaires et tous les paramètres personnalisables déjà saisis. Il utilise le titre, texte, objectif {strategyLabel.toLowerCase()}, type {type}, pages, ciblage, budget, dates, image, emplacements {placementLabels.join(" + ") || "aucun"}, composition bannière, couleurs, polices, styles et suivi anti-gaspi si pertinent.
           </p>
           <div className="flex flex-wrap gap-1.5">
             {targetPages.map((page) => (
@@ -1495,7 +1495,29 @@ function CampaignForm({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ restaurantId }),
+        body: JSON.stringify({
+          restaurantId,
+          currentSettings: {
+            title,
+            body,
+            type,
+            image_url: imageUrl || null,
+            target_pages: targetPages,
+            target_criteria: normalizeAudienceCriteria(targetCriteria),
+            base_budget: baseBudgetValue,
+            total_budget: totalBudgetValue,
+            budget_daily: dailyBudgetValue,
+            duration_days: durationDays,
+            starts_at: startsAt ? new Date(startsAt).toISOString() : null,
+            ends_at: endsAt ? new Date(endsAt).toISOString() : null,
+            pricing_strategy: strategy,
+            channels: {
+              ...placementSelection,
+              creative: campaignCreative,
+            },
+            creative: campaignCreative,
+          },
+        }),
       });
 
       if (!response.ok) {
