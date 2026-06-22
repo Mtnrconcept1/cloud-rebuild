@@ -84,7 +84,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
   return (
     <>
       <section data-testid="mobile-hero-shell" className="relative min-h-[calc(100svh-64px)] overflow-hidden bg-[#edf7ff] md:hidden">
-        <div className="absolute inset-0 bg-[url('/fondacceuil.png')] bg-cover bg-[position:50%_0%] bg-no-repeat" aria-hidden="true" />
+        <div className="absolute inset-0 bg-[url('/fondacceuil.png')] bg-[length:auto_94%] bg-[position:50%_8%] bg-no-repeat" aria-hidden="true" />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,250,240,0.68)_0%,rgba(255,250,240,0.12)_34%,rgba(67,32,11,0.06)_62%,rgba(22,10,4,0.54)_100%)]" aria-hidden="true" />
         <motion.div
           variants={stagger}
@@ -94,7 +94,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
           className="relative z-10 min-h-[calc(100svh-64px)] overflow-hidden"
         >
           <div className="relative z-10 flex min-h-[calc(100svh-64px)] flex-col">
-            <div className="px-5 pb-1 pt-6 text-center min-[390px]:pt-7">
+            <div className="px-5 pb-1 pt-9 text-center min-[390px]:pt-10">
               <motion.div variants={scaleIn} className="mx-auto flex h-[76px] justify-center min-[390px]:h-[84px]">
                 <img
                   src={logoSrc}
