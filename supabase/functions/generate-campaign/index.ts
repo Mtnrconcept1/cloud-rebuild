@@ -28,6 +28,136 @@ function roundBudget(value: number) {
   return Math.round(value / 5) * 5;
 }
 
+
+function getServiceMomentFromHour(hour: number) {
+  if (hour >= 11 && hour <= 14) return "lunch";
+  if (hour >= 18 && hour <= 22) return "dinner";
+  return null;
+}
+
+function getHourLabel(hour: number) {
+  return `${String(hour).padStart(2, "0")}h-${String((hour + 1) % 24).padStart(2, "0")}h`;
+}
+
+function rankEntries<T extends { score: number }>(entries: T[], limit: number) {
+  return [...entries].sort((a, b) => b.score - a.score).slice(0, limit);
+}
+
+function buildHourlyPerformance(orders: any[], reservations: any[]) {
+  const buckets = new Map<number, { hour: number; orders: number; reservations: number; revenue: number; score: number }>();
+  const getBucket = (hour: number) => {
+    const normalizedHour = Number.isFinite(hour) ? Math.max(0, Math.min(23, Math.floor(hour))) : 12;
+    const existing = buckets.get(normalizedHour);
+    if (existing) return existing;
+    const created = { hour: normalizedHour, orders: 0, reservations: 0, revenue: 0, score: 0 };
+    buckets.set(normalizedHour, created);
+    return created;
+  };
+
+  for (const order of orders) {
+    const createdAt = Date.parse(String(order.created_at || ""));
+    if (!Number.isFinite(createdAt)) continue;
+    const bucket = getBucket(new Date(createdAt).getUTCHours());
+    bucket.orders += 1;
+    bucket.revenue += Number(order.total_amount || 0);
+    bucket.score += 3 + Math.min(10, Number(order.total_amount || 0) / 10);
+  }
+
+  for (const reservation of reservations) {
+    const [hourText] = String(reservation.time || "").split(":");
+    const hour = Number(hourText);
+    if (!Number.isFinite(hour)) continue;
+    const bucket = getBucket(hour);
+    bucket.reservations += 1;
+    bucket.score += 2 + Math.min(8, Number(reservation.party_size || 0));
+  }
+
+  return rankEntries(Array.from(buckets.values()), 5);
+}
+
+function buildProductPerformance(orderItems: any[], menu: any[]) {
+  const menuById = new Map(menu.map((item: any) => [String(item.id || ""), item]));
+  const productMap = new Map<string, { name: string; category: string; quantity: number; revenue: number; score: number }>();
+
+  for (const item of orderItems) {
+    const menuItem = menuById.get(String(item.menu_item_id || ""));
+    const name = String(menuItem?.name || item.metadata?.name || item.metadata?.title || "Produit TOK").trim();
+    const category = String(menuItem?.category || item.metadata?.category || "").trim();
+    const key = String(item.menu_item_id || name).toLowerCase();
+    const current = productMap.get(key) || { name, category, quantity: 0, revenue: 0, score: 0 };
+    const quantity = Math.max(1, Number(item.quantity || 1));
+    const revenue = Number(item.total_price || 0);
+    current.quantity += quantity;
+    current.revenue += revenue;
+    current.score += quantity * 3 + revenue;
+    productMap.set(key, current);
+  }
+
+  return rankEntries(Array.from(productMap.values()), 8);
+}
+
+function deriveAudienceCriteria({
+  restaurant,
+  avgTicket,
+  categories,
+  hourlyPerformance,
+  completedOrders,
+  reservations,
+}: {
+  restaurant: Record<string, unknown>;
+  avgTicket: number;
+  categories: string[];
+  hourlyPerformance: ReturnType<typeof buildHourlyPerformance>;
+  completedOrders: any[];
+  reservations: any[];
+}) {
+  const topMoments = Array.from(new Set(hourlyPerformance
+    .map((entry) => getServiceMomentFromHour(entry.hour))
+    .filter((entry): entry is "lunch" | "dinner" => Boolean(entry))));
+  const hasReservations = reservations.length > completedOrders.length * 0.35;
+  const journeyTypes = hasReservations ? ["reservation"] : ["delivery", "takeaway"];
+  const repeatCustomerCount = completedOrders.reduce((acc: Record<string, number>, order: any) => {
+    const userId = String(order.user_id || "");
+    if (userId) acc[userId] = (acc[userId] || 0) + 1;
+    return acc;
+  }, {});
+  const loyalShare = Object.values(repeatCustomerCount).filter((count) => Number(count) >= 3).length;
+  const customerSegment = loyalShare >= 5 ? "loyal" : completedOrders.length >= 20 ? "returning" : "new";
+
+  return {
+    cuisines: categories.slice(0, 3).map((category) => String(category).toLowerCase()),
+    cities: restaurant.city ? [String(restaurant.city).toLowerCase()] : [],
+    minOrders: customerSegment === "loyal" ? 3 : customerSegment === "returning" ? 1 : 0,
+    maxDaysSinceOrder: customerSegment === "new" ? 365 : 60,
+    minAvgBasket: avgTicket >= 25 ? Math.max(15, Math.round(avgTicket * 0.75)) : 0,
+    favoritesOnly: customerSegment === "loyal",
+    genders: ["all"],
+    customerSegment,
+    journeyTypes,
+    serviceMoments: topMoments.length > 0 ? topMoments : ["lunch", "dinner"],
+    restaurantId: String(restaurant.id || ""),
+  };
+}
+
+function deriveSchedule({ hourlyPerformance, totalBudget }: { hourlyPerformance: ReturnType<typeof buildHourlyPerformance>; totalBudget: number }) {
+  const bestHour = hourlyPerformance[0]?.hour ?? 11;
+  const startsAt = new Date();
+  startsAt.setUTCDate(startsAt.getUTCDate() + 1);
+  startsAt.setUTCHours(Math.max(0, bestHour - 1), 0, 0, 0);
+  const durationDays = totalBudget >= 150 ? 14 : 7;
+  const endsAt = new Date(startsAt);
+  endsAt.setUTCDate(endsAt.getUTCDate() + durationDays);
+  endsAt.setUTCHours(Math.min(23, bestHour + 2), 59, 59, 0);
+
+  return {
+    starts_at: startsAt.toISOString(),
+    ends_at: endsAt.toISOString(),
+    publish_hour_utc: Math.max(0, bestHour - 1),
+    stop_hour_utc: Math.min(23, bestHour + 2),
+    duration_days: durationDays,
+  };
+}
+
 function normalizeTargetPages(value: unknown, fallback: string[]) {
   if (!Array.isArray(value)) return fallback;
 
@@ -46,6 +176,7 @@ function buildFallbackCampaign({
   categories,
   flashCount,
   antiWasteCount,
+  hourlyPerformance,
 }: {
   restaurant: Record<string, unknown>;
   avgRating: number;
@@ -54,6 +185,7 @@ function buildFallbackCampaign({
   categories: string[];
   flashCount: number;
   antiWasteCount: number;
+  hourlyPerformance: ReturnType<typeof buildHourlyPerformance>;
 }) {
   const restaurantName = String(restaurant.name || "Votre restaurant").trim();
   const cuisineType = String(restaurant.cuisine_type || "").trim();
@@ -83,7 +215,8 @@ function buildFallbackCampaign({
     targetPages = ["search", "home"];
   }
 
-  const revenueBase = Math.max(totalRevenue, avgTicket * 20, 120);
+  const peakMultiplier = hourlyPerformance.length > 0 ? 1.15 : 1;
+  const revenueBase = Math.max(totalRevenue, avgTicket * 20, 120) * peakMultiplier;
   const totalBudget = roundBudget(clampBudget(revenueBase * 0.08, 20, 500));
   const budgetDaily = roundBudget(clampBudget(totalBudget / 7, 5, Math.max(5, totalBudget)));
 
@@ -94,6 +227,8 @@ function buildFallbackCampaign({
     target_pages: targetPages,
     total_budget: totalBudget,
     budget_daily: Math.min(budgetDaily, totalBudget),
+    target_criteria: deriveAudienceCriteria({ restaurant, avgTicket, categories, hourlyPerformance, completedOrders: [], reservations: [] }),
+    optimization_notes: [],
   };
 }
 
@@ -112,6 +247,12 @@ function normalizeGeneratedCampaign(raw: unknown, fallbackCampaign: Record<strin
   const type = String(source.type || fallbackType).trim().toLowerCase();
   const totalBudget = clampBudget(Number(source.total_budget) || fallbackTotalBudget, 0, 5000);
   const budgetDaily = clampBudget(Number(source.budget_daily) || fallbackDailyBudget, 0, Math.max(totalBudget, fallbackDailyBudget, 5));
+  const targetCriteria = source.target_criteria && typeof source.target_criteria === "object" && !Array.isArray(source.target_criteria)
+    ? source.target_criteria as Record<string, unknown>
+    : fallbackCampaign.target_criteria;
+  const optimizationNotes = Array.isArray(source.optimization_notes)
+    ? source.optimization_notes.map((note) => String(note || "").trim()).filter(Boolean).slice(0, 6)
+    : fallbackCampaign.optimization_notes;
 
   return {
     title: String(source.title || fallbackCampaign.title || "Nouvelle campagne").trim().slice(0, 60),
@@ -120,6 +261,10 @@ function normalizeGeneratedCampaign(raw: unknown, fallbackCampaign: Record<strin
     target_pages: normalizeTargetPages(source.target_pages, fallbackPages),
     total_budget: totalBudget,
     budget_daily: Math.min(budgetDaily, Math.max(totalBudget, budgetDaily, 5)),
+    target_criteria: targetCriteria,
+    starts_at: typeof source.starts_at === "string" ? source.starts_at : fallbackCampaign.starts_at,
+    ends_at: typeof source.ends_at === "string" ? source.ends_at : fallbackCampaign.ends_at,
+    optimization_notes: optimizationNotes,
   };
 }
 
@@ -149,12 +294,12 @@ Deno.serve(async (req) => {
     const adminClient = actor.adminClient;
     const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000).toISOString();
 
-    const [ordersRes, reviewsRes, menuRes, campaignsRes, flashRes, antiWasteRes] = await Promise.all([
-      adminClient.from("orders").select("total_amount, status, created_at")
+    const [ordersRes, reviewsRes, menuRes, campaignsRes, flashRes, antiWasteRes, reservationsRes] = await Promise.all([
+      adminClient.from("orders").select("id, user_id, total_amount, status, created_at")
         .eq("restaurant_id", restaurantId).gte("created_at", thirtyDaysAgo),
       adminClient.from("reviews").select("rating, comment, quality_rating, service_rating, speed_rating")
         .eq("restaurant_id", restaurantId).order("created_at", { ascending: false }).limit(20),
-      adminClient.from("menu_items").select("name, price, category, image_url, is_available")
+      adminClient.from("menu_items").select("id, name, price, category, image_url, is_available")
         .eq("restaurant_id", restaurantId),
       adminClient.from("ad_campaigns").select("title, type, status, impressions, clicks, conversions, spent, total_budget")
         .eq("restaurant_id", restaurantId).order("created_at", { ascending: false }).limit(10),
@@ -162,6 +307,8 @@ Deno.serve(async (req) => {
         .eq("restaurant_id", restaurantId).eq("is_active", true).limit(5),
       adminClient.from("anti_waste_offers").select("title, original_price, discounted_price")
         .eq("restaurant_id", restaurantId).eq("is_active", true).limit(5),
+      adminClient.from("reservations").select("date, time, party_size, status, feature, total_amount, created_at")
+        .eq("restaurant_id", restaurantId).gte("created_at", thirtyDaysAgo).limit(500),
     ]);
 
     const orders = ordersRes.data || [];
@@ -175,6 +322,16 @@ Deno.serve(async (req) => {
     const menu = menuRes.data || [];
     const categories = [...new Set(menu.map((item: any) => item.category).filter(Boolean))];
     const pastCampaigns = campaignsRes.data || [];
+    const reservations = (reservationsRes.data || []).filter((reservation: any) => reservation.status !== "cancelled");
+    const orderIds = completedOrders.map((order: any) => order.id).filter(Boolean);
+    const orderItemsRes = orderIds.length > 0
+      ? await adminClient.from("order_items").select("order_id, menu_item_id, quantity, total_price, metadata")
+        .eq("restaurant_id", restaurantId).in("order_id", orderIds).limit(1000)
+      : { data: [], error: null };
+    if (orderItemsRes.error) log.warn("order_items_unavailable", { message: orderItemsRes.error.message });
+    const productPerformance = buildProductPerformance(orderItemsRes.data || [], menu);
+    const hourlyPerformance = buildHourlyPerformance(completedOrders, reservations);
+    const targetCriteria = deriveAudienceCriteria({ restaurant, avgTicket, categories, hourlyPerformance, completedOrders, reservations });
     const flashCount = (flashRes.data || []).length;
     const antiWasteCount = (antiWasteRes.data || []).length;
     const fallbackCampaign = buildFallbackCampaign({
@@ -185,6 +342,16 @@ Deno.serve(async (req) => {
       categories,
       flashCount,
       antiWasteCount,
+      hourlyPerformance,
+    });
+    Object.assign(fallbackCampaign, {
+      target_criteria: targetCriteria,
+      ...deriveSchedule({ hourlyPerformance, totalBudget: Number(fallbackCampaign.total_budget || 0) }),
+      optimization_notes: [
+        productPerformance[0] ? `Produit prioritaire: ${productPerformance[0].name}` : "Catalogue analyse sans produit dominant",
+        hourlyPerformance[0] ? `Meilleur horaire: ${getHourLabel(hourlyPerformance[0].hour)}` : "Horaire par defaut midi/soir",
+        reservations.length > completedOrders.length * 0.35 ? "Axe reservation prioritaire" : "Axe commande prioritaire",
+      ],
     });
     let campaign: Record<string, unknown> = fallbackCampaign;
     let generationSource = "fallback";
@@ -199,7 +366,9 @@ Ville: ${restaurant.city || "Inconnue"}
 Note moyenne: ${avgRating.toFixed(1)}/5 (${reviews.length} avis)
 Commandes 30j: ${completedOrders.length} (CA: ${totalRevenue.toFixed(0)} CHF, panier moyen: ${avgTicket.toFixed(0)} CHF)
 Menu: ${menu.length} plats dans ${categories.length} categories (${categories.join(", ")})
-Plats populaires: ${menu.slice(0, 5).map((item: any) => `${item.name} (${item.price} CHF)`).join(", ")}
+Produits les plus performants: ${productPerformance.length > 0 ? productPerformance.map((item) => `${item.name} (${item.quantity} ventes, ${item.revenue.toFixed(0)} CHF)`).join(", ") : menu.slice(0, 5).map((item: any) => `${item.name} (${item.price} CHF)`).join(", ")}
+Horaires les plus performants: ${hourlyPerformance.length > 0 ? hourlyPerformance.map((entry) => `${getHourLabel(entry.hour)}: ${entry.orders} commandes, ${entry.reservations} reservations, ${entry.revenue.toFixed(0)} CHF`).join("; ") : "Donnees insuffisantes"}
+Reservations 30j: ${reservations.length} (${reservations.reduce((sum: number, reservation: any) => sum + Number(reservation.party_size || 0), 0)} couverts)
 Ventes flash actives: ${flashCount}
 Offres anti-gaspi actives: ${antiWasteCount}
 Campagnes passees: ${pastCampaigns.length} (${pastCampaigns.filter((campaign: any) => campaign.status === "active").length} actives)
@@ -219,14 +388,20 @@ Tu dois retourner un JSON valide avec exactement ces champs:
   "type": "boost",
   "target_pages": ["home", "search", "flash_sales", "anti_waste"],
   "total_budget": number,
-  "budget_daily": number
+  "budget_daily": number,
+  "target_criteria": { "customerSegment": "all|new|returning|loyal|inactive", "journeyTypes": ["delivery|takeaway|reservation|zero_attente"], "serviceMoments": ["lunch|dinner|weekend"], "cities": [], "cuisines": [], "minOrders": number, "maxDaysSinceOrder": number, "minAvgBasket": number, "favoritesOnly": boolean, "genders": ["all"] },
+  "starts_at": "ISO datetime",
+  "ends_at": "ISO datetime",
+  "optimization_notes": ["raison factuelle courte"]
 }
 
 REGLES:
 - Le titre doit etre accrocheur
 - La description doit creer l'urgence ou la curiosite
 - Choisis les target_pages les plus pertinentes (2-3 max)
-- Le budget doit etre realiste (5-15% du CA mensuel)
+- Selectionne automatiquement le segment client, les parcours, les moments de service, l heure de publication et l heure d arret selon les ventes/reservations
+- Le budget doit etre realiste (5-15% du CA mensuel) et pace par jour
+- Priorise les produits et horaires qui performent le mieux
 - Adapte le message aux forces du restaurant
 
 Retourne UNIQUEMENT le JSON, sans explication.`;
@@ -258,8 +433,28 @@ Retourne UNIQUEMENT le JSON, sans explication.`;
                 },
                 total_budget: { type: "number" },
                 budget_daily: { type: "number" },
+                target_criteria: {
+                  type: "object",
+                  properties: {
+                    cuisines: { type: "array", items: { type: "string" } },
+                    cities: { type: "array", items: { type: "string" } },
+                    minOrders: { type: "number" },
+                    maxDaysSinceOrder: { type: "number" },
+                    minAvgBasket: { type: "number" },
+                    favoritesOnly: { type: "boolean" },
+                    genders: { type: "array", items: { type: "string", enum: ["all", "female", "male"] } },
+                    customerSegment: { type: "string", enum: ["all", "new", "returning", "loyal", "inactive"] },
+                    journeyTypes: { type: "array", items: { type: "string", enum: ["delivery", "takeaway", "reservation", "zero_attente"] } },
+                    serviceMoments: { type: "array", items: { type: "string", enum: ["lunch", "dinner", "weekend"] } },
+                  },
+                  required: ["cuisines", "cities", "minOrders", "maxDaysSinceOrder", "minAvgBasket", "favoritesOnly", "genders", "customerSegment", "journeyTypes", "serviceMoments"],
+                  additionalProperties: false,
+                },
+                starts_at: { type: "string" },
+                ends_at: { type: "string" },
+                optimization_notes: { type: "array", items: { type: "string" } },
               },
-              required: ["title", "body", "type", "target_pages", "total_budget", "budget_daily"],
+              required: ["title", "body", "type", "target_pages", "total_budget", "budget_daily", "target_criteria", "starts_at", "ends_at", "optimization_notes"],
               additionalProperties: false,
             },
           },
@@ -316,6 +511,8 @@ Retourne UNIQUEMENT le JSON, sans explication.`;
         fallback_reason: fallbackReason,
         generated_title: typeof campaign?.title === "string" ? campaign.title : null,
         target_pages: Array.isArray(campaign?.target_pages) ? campaign.target_pages : [],
+        target_criteria: campaign?.target_criteria || null,
+        optimization_notes: Array.isArray(campaign?.optimization_notes) ? campaign.optimization_notes : [],
       },
     });
 

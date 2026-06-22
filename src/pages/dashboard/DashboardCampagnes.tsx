@@ -1470,9 +1470,25 @@ function CampaignForm({
       }
       if (result.type) setType(result.type);
       if (result.target_pages) setTargetPages(result.target_pages);
+      if (result.target_criteria) setTargetCriteria(normalizeAudienceCriteria(result.target_criteria));
       if (result.total_budget) setTotalBudget(String(result.total_budget));
+      if (result.starts_at) {
+        const generatedStart = String(result.starts_at).split("T")[0];
+        if (generatedStart) setStartsAt(generatedStart);
+      }
+      if (result.starts_at && result.ends_at) {
+        const generatedStart = String(result.starts_at).split("T")[0];
+        const generatedEnd = String(result.ends_at).split("T")[0];
+        if (generatedStart && generatedEnd) setDurationDays(getDurationDays(generatedStart, generatedEnd));
+      }
 
-      toast({ title: "Campagne générée par l’IA", description: "Relisez et ajustez le ciblage avant publication." });
+      const optimizationNotes = Array.isArray(result.optimization_notes)
+        ? result.optimization_notes.filter(Boolean).slice(0, 2).join(" · ")
+        : "";
+      toast({
+        title: "Campagne générée par l’IA",
+        description: optimizationNotes || "Ciblage, budget et calendrier ont été optimisés automatiquement.",
+      });
     } catch (error) {
       toast({
         title: "Erreur",
