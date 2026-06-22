@@ -1352,7 +1352,7 @@ function CampaignForm({
   const baseBudgetValue = Math.max(0, Number(totalBudget) || 0);
   const placementMultiplier = getCampaignPlacementCostMultiplier(placementSelection, type);
   const totalBudgetValue = calculateCampaignTotalCost(baseBudgetValue, placementSelection, type);
-  const copyLimit = type === "banner" || placementSelection.banner ? 250 : 100;
+  const copyLimit = 250;
   const copyLength = title.length + body.length;
   const allowedPaymentMethods = useMemo<PaymentMethodId[]>(() => {
     const methods = getAllowedPaymentMethods(activeFeatures, []);

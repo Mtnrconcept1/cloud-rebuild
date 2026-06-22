@@ -28,4 +28,11 @@ describe("restaurant dashboard campaign unification", () => {
     expect(campaigns).toContain("Conversions");
     expect(campaigns).toContain("Impressions");
   });
+  it("allows 250 characters on restaurant card campaign copy", () => {
+    const campaigns = read("src/pages/dashboard/DashboardCampagnes.tsx");
+
+    expect(campaigns).toContain("const copyLimit = 250;");
+    expect(campaigns).not.toContain('placementSelection.banner ? 250 : 100');
+  });
+
 });
