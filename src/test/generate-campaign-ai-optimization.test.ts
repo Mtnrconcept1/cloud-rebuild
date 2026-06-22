@@ -17,11 +17,13 @@ describe("generate-campaign AI optimization", () => {
     expect(edgeFunction).toContain('"target_criteria"');
     expect(edgeFunction).toContain('"starts_at"');
     expect(edgeFunction).toContain('"ends_at"');
+    expect(edgeFunction).toContain('"duration_days"');
     expect(edgeFunction).toContain('"optimization_notes"');
     expect(edgeFunction).toContain('"pricing_strategy"');
     expect(edgeFunction).toContain('"channels"');
     expect(edgeFunction).toContain("deriveAudienceCriteria({ restaurant, avgTicket, categories, hourlyPerformance, completedOrders, reservations })");
     expect(edgeFunction).toContain("deriveSchedule({ hourlyPerformance");
+    expect(edgeFunction).toContain("splitCuisineTargets(restaurant.cuisine_type");
   });
 
   it("sends every customizable campaign setting to the AI agent", () => {
@@ -41,9 +43,11 @@ describe("generate-campaign AI optimization", () => {
 
   it("applies the generated campaign plan in the dashboard form", () => {
     expect(dashboard).toContain("setTargetCriteria(normalizeAudienceCriteria(result.target_criteria))");
+    expect(dashboard).toContain("calculateCampaignBaseBudget(generatedTotalBudget, generatedPlacementSelection, generatedType)");
+    expect(dashboard).toContain("setDurationDays(Math.max(1, Math.round(Number(result.duration_days) || 1)))");
     expect(dashboard).toContain("setStartsAt(generatedStart)");
     expect(dashboard).toContain("setDurationDays(getDurationDays(generatedStart, generatedEnd))");
-    expect(dashboard).toContain("setPlacementSelection(normalizeCampaignPlacementSelection(result.channels");
+    expect(dashboard).toContain("setPlacementSelection(generatedPlacementSelection)");
     expect(dashboard).toContain("setSelectedStrategy(normalizeCampaignPricingStrategy(result.pricing_strategy");
     expect(dashboard).toContain("Objectif, emplacements, pages, ciblage, budget et calendrier ont été optimisés automatiquement.");
   });

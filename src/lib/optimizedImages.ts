@@ -53,12 +53,16 @@ export function getOptimizedImageUrl(
   return buildTransformedSupabaseUrl(rawUrl, { ...PRESET_OPTIONS[preset], ...overrides });
 }
 
-export function getOptimizedImageSrcSet(rawUrl: string | null | undefined, preset: OptimizedImagePreset) {
+export function getOptimizedImageSrcSet(
+  rawUrl: string | null | undefined,
+  preset: OptimizedImagePreset,
+  overrides: OptimizedImageOptions = {},
+) {
   if (!rawUrl) return undefined;
 
   const entries = SRC_SET_WIDTHS[preset]
     .map((width) => {
-      const transformedUrl = getOptimizedImageUrl(rawUrl, preset, { width, height: undefined });
+      const transformedUrl = getOptimizedImageUrl(rawUrl, preset, { ...overrides, width, height: undefined });
       return transformedUrl === rawUrl ? null : `${transformedUrl} ${width}w`;
     })
     .filter(Boolean);

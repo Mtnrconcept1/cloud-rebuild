@@ -71,4 +71,17 @@ describe("dashboard shell navigation", () => {
     expect(app).toContain("const publicNavbar = shouldShowPublicNavbar(pathname) ? <Navbar /> : null");
     expect(app).not.toContain('pathname === "/actualites" && publicNavbar');
   });
+
+  it("keeps fixed dashboard controls below modal overlays", () => {
+    const layout = read("src/components/DashboardLayout.tsx");
+    const sheet = read("src/components/ui/sheet.tsx");
+    const dialog = read("src/components/ui/dialog.tsx");
+
+    expect(layout).toContain("top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-[40] flex items-center gap-2");
+    expect(layout).not.toContain("top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-[70] flex items-center gap-2");
+    expect(sheet).toContain("fixed inset-0 z-50");
+    expect(sheet).toContain('"fixed z-50 gap-4');
+    expect(dialog).toContain("fixed inset-0 z-[80]");
+    expect(dialog).toContain("fixed left-[50%] top-[50%] z-[90]");
+  });
 });

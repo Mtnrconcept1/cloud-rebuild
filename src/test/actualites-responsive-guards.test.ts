@@ -109,6 +109,9 @@ describe("Actualites responsive guards", () => {
     expect(carousel).toContain("max-sm:rounded-none");
     expect(carousel).toContain("max-sm:border-0 max-sm:shadow-none");
     expect(carousel).toContain("getOptimizedImageUrl");
+    expect(carousel).toContain('height: undefined, resize: "contain"');
+    expect(carousel).toContain('className="h-auto w-full object-contain"');
+    expect(carousel).not.toContain('className="h-full w-full object-cover"');
     expect(carousel).toContain('preload="metadata"');
   });
 

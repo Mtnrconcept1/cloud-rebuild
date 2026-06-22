@@ -65,7 +65,8 @@ export function inspectFrontendReadiness(options = {}) {
 
 function listProjectFiles(root) {
   try {
-    const output = execFileSync("git", ["-c", `safe.directory=${root}`, "-C", root, "ls-files"], {
+    const safeDirectory = path.resolve(root).replace(/\\/g, "/");
+    const output = execFileSync("git", ["-c", `safe.directory=${safeDirectory}`, "-C", root, "ls-files"], {
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"],
     });

@@ -12,6 +12,15 @@ const videoMedia = [{
   altText: "Service du jour",
 }] as const;
 
+const imageMedia = [{
+  id: "media-image-1",
+  postId: "post-1",
+  mediaUrl: "https://example.supabase.co/storage/v1/object/public/social/posters/tok-logo.jpg",
+  mediaType: "image",
+  sortOrder: 0,
+  altText: "Logo TOK",
+}] as const;
+
 type ObserverCallback = IntersectionObserverCallback;
 
 describe("SocialMediaCarousel video autoplay", () => {
@@ -145,5 +154,17 @@ describe("SocialMediaCarousel video autoplay", () => {
     expect(observerCallback).toBeNull();
     expect(playMock).not.toHaveBeenCalled();
     expect(pauseMock).not.toHaveBeenCalled();
+  });
+
+  it("renders images at their original ratio instead of cropping them into the video frame", () => {
+    render(<SocialMediaCarousel media={imageMedia as any} variant="side" />);
+
+    const image = screen.getByAltText("Logo TOK");
+
+    expect(image).toHaveClass("h-auto", "w-full", "object-contain");
+    expect(image).not.toHaveClass("h-full", "object-cover");
+    expect(image.getAttribute("src")).toContain("resize=contain");
+    expect(image.getAttribute("src")).not.toContain("height=");
+    expect(image.getAttribute("srcset")).toContain("resize=contain");
   });
 });

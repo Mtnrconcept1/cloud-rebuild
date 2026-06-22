@@ -1313,14 +1313,23 @@ function CampaignAutoDecisionPanel({
   targetPages,
   placementSelection,
   strategy,
+  targetCriteria,
+  totalBudgetValue,
+  durationDays,
+  paymentMethod,
 }: {
   type: string;
   targetPages: string[];
   placementSelection: Record<CampaignPlacementOption, boolean>;
   strategy: CampaignPricingStrategy;
+  targetCriteria: AudienceCriteria;
+  totalBudgetValue: number;
+  durationDays: number;
+  paymentMethod: PaymentMethodId;
 }) {
   const plan = buildAutomaticCampaignPlan({ preferredPages: targetPages });
   const strategyLabel = getCampaignStrategyConfig(strategy).label;
+  const targetingParts = summarizeAudienceCriteria(targetCriteria);
   const placementLabels = (Object.keys(CAMPAIGN_PLACEMENT_CONFIG) as CampaignPlacementOption[])
     .filter((placement) => placementSelection[placement])
     .map((placement) => CAMPAIGN_PLACEMENT_CONFIG[placement].label);
@@ -1340,7 +1349,13 @@ function CampaignAutoDecisionPanel({
                 {TARGET_PAGES.find((targetPage) => targetPage.value === page)?.label || page}
               </Badge>
             ))}
+            <Badge variant="outline" className="text-[10px]">Budget {formatChf(totalBudgetValue)}</Badge>
+            <Badge variant="outline" className="text-[10px]">{durationDays} jours</Badge>
             <Badge variant="outline" className="text-[10px]">Objectif {strategyLabel}</Badge>
+            <Badge variant="outline" className="text-[10px]">Paiement {paymentMethod.toUpperCase()}</Badge>
+            {targetingParts.slice(0, 4).map((part) => (
+              <Badge key={part} variant="outline" className="text-[10px]">{part}</Badge>
+            ))}
             {plan.rationale.slice(0, 1).map((note) => <Badge key={note} variant="outline" className="text-[10px]">{note}</Badge>)}
           </div>
         </div>
@@ -1533,17 +1548,32 @@ function CampaignForm({
       } else if (result.body) {
         setBody(String(result.body).slice(0, Math.max(0, copyLimit - title.length)));
       }
-      if (result.type) setType(result.type);
+      const generatedType = result.type ? String(result.type) : type;
+      const generatedPlacementSelection = result.channels
+        ? normalizeCampaignPlacementSelection(result.channels, generatedType)
+        : result.placement_selection
+          ? normalizeCampaignPlacementSelection(result.placement_selection, generatedType)
+          : placementSelection;
+
+      if (result.type) setType(generatedType);
       if (result.target_pages) setTargetPages(result.target_pages);
-      if (result.channels) setPlacementSelection(normalizeCampaignPlacementSelection(result.channels, result.type || type));
-      if (result.placement_selection) setPlacementSelection(normalizeCampaignPlacementSelection(result.placement_selection, result.type || type));
+      if (result.channels || result.placement_selection) setPlacementSelection(generatedPlacementSelection);
       if (result.pricing_strategy) {
         setSelectedStrategy(normalizeCampaignPricingStrategy(result.pricing_strategy, recommendedStrategy));
         setStrategyTouched(true);
       }
       if (result.image_url) setImageUrl(String(result.image_url));
       if (result.target_criteria) setTargetCriteria(normalizeAudienceCriteria(result.target_criteria));
-      if (result.total_budget) setTotalBudget(String(result.total_budget));
+      const generatedBaseBudget = Number(result.base_budget);
+      const generatedTotalBudget = Number(result.total_budget);
+      if (Number.isFinite(generatedBaseBudget) && generatedBaseBudget >= 0) {
+        setTotalBudget(String(generatedBaseBudget));
+      } else if (Number.isFinite(generatedTotalBudget) && generatedTotalBudget >= 0) {
+        setTotalBudget(String(calculateCampaignBaseBudget(generatedTotalBudget, generatedPlacementSelection, generatedType)));
+      }
+      if (result.duration_days) {
+        setDurationDays(Math.max(1, Math.round(Number(result.duration_days) || 1)));
+      }
       if (result.starts_at) {
         const generatedStart = String(result.starts_at).split("T")[0];
         if (generatedStart) setStartsAt(generatedStart);
@@ -1742,6 +1772,10 @@ function CampaignForm({
         targetPages={targetPages}
         placementSelection={placementSelection}
         strategy={strategy}
+        targetCriteria={targetCriteria}
+        totalBudgetValue={totalBudgetValue}
+        durationDays={durationDays}
+        paymentMethod={paymentMethod}
       />
 
       <div className="space-y-3">

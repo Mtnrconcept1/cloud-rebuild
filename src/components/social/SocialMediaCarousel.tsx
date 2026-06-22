@@ -156,16 +156,20 @@ export default function SocialMediaCarousel({
 
   if (!media.length) return null;
 
-  const frameClassName = cn(
-    "relative overflow-hidden border bg-muted",
+  const frameBaseClassName = "relative overflow-hidden border bg-muted";
+  const videoFrameClassName = cn(
+    frameBaseClassName,
     variant === "side"
       ? "aspect-[16/9] min-h-0 rounded-[1.45rem] shadow-xl shadow-orange-100/70 max-sm:rounded-[1.35rem] max-sm:border-0 max-sm:shadow-none sm:min-h-[16rem]"
       : "aspect-[4/3] rounded-lg",
   );
-  const containerClassName = cn(
-    variant === "side" ? "mt-0" : "mt-4",
-    className,
+  const imageFrameClassName = cn(
+    frameBaseClassName,
+    variant === "side"
+      ? "rounded-[1.45rem] shadow-xl shadow-orange-100/70 max-sm:rounded-[1.35rem] max-sm:border-0 max-sm:shadow-none"
+      : "rounded-lg",
   );
+  const containerClassName = cn(variant === "side" ? "mt-0" : "mt-4", className);
   const imagePreset = variant === "side" ? "hero" : "card";
   const isPortraitMedia = (item: SocialFeedMedia) =>
     (item.mediaType === "video" && verticalVideoIds.has(item.id)) ||
@@ -174,22 +178,17 @@ export default function SocialMediaCarousel({
     const index = media.findIndex((mediaItem) => mediaItem.id === item.id);
     setLightboxIndex(index >= 0 ? index : 0);
   };
-  const getContainerClassName = (item: SocialFeedMedia) =>
-    cn(
-      containerClassName,
-      variant === "side" &&
-        mobileBleed === "viewport" &&
-        "max-sm:-mx-6 max-sm:w-screen",
-      variant === "side" &&
-        mobileBleed === "container" &&
-        "max-sm:-mx-4 max-sm:w-[calc(100%+2rem)]",
-    );
-  const getFrameClassName = (item: SocialFeedMedia) =>
-    cn(
-      frameClassName,
-      variant === "side" && "max-sm:rounded-none",
-      isPortraitMedia(item) && "bg-black",
-    );
+  const getContainerClassName = (item: SocialFeedMedia) => cn(
+    containerClassName,
+    variant === "side" && mobileBleed === "viewport" && "max-sm:-mx-6 max-sm:w-screen",
+    variant === "side" && mobileBleed === "container" && "max-sm:-mx-4 max-sm:w-[calc(100%+2rem)]",
+  );
+  const getFrameClassName = (item: SocialFeedMedia) => cn(
+    item.mediaType === "video" ? videoFrameClassName : imageFrameClassName,
+    variant === "side" && "max-sm:rounded-none",
+    variant === "side" && item.mediaType === "video" && verticalVideoIds.has(item.id) && "max-sm:aspect-[5/6]",
+    isPortraitMedia(item) && "bg-black",
+  );
   const updateVideoPlayback = (itemId: string, playing: boolean) => {
     setPlayingVideoIds((current) => {
       const next = new Set(current);
@@ -251,14 +250,11 @@ export default function SocialMediaCarousel({
 
     return (
       <img
-        src={getOptimizedImageUrl(item.mediaUrl, imagePreset)}
-        srcSet={getOptimizedImageSrcSet(item.mediaUrl, imagePreset)}
+        src={getOptimizedImageUrl(item.mediaUrl, imagePreset, { height: undefined, resize: "contain" })}
+        srcSet={getOptimizedImageSrcSet(item.mediaUrl, imagePreset, { resize: "contain" })}
         sizes={getOptimizedImageSizes(imagePreset)}
         alt={item.altText || ""}
-        className={cn(
-          "h-full w-full",
-          isPortraitMedia(item) ? "bg-black object-contain" : "object-cover",
-        )}
+        className="h-auto w-full object-contain"
         loading="lazy"
         onClick={() => openLightbox(item)}
         onLoad={(event) => {

@@ -52,6 +52,14 @@ function getHourLabel(hour: number) {
   return `${String(hour).padStart(2, "0")}h-${String((hour + 1) % 24).padStart(2, "0")}h`;
 }
 
+function splitCuisineTargets(...values: unknown[]) {
+  const entries = values
+    .flatMap((value) => String(value || "").split(/[,;/|]+/))
+    .map((value) => value.trim().toLowerCase())
+    .filter(Boolean);
+  return Array.from(new Set(entries)).slice(0, 3);
+}
+
 function rankEntries<T extends { score: number }>(entries: T[], limit: number) {
   return [...entries].sort((a, b) => b.score - a.score).slice(0, limit);
 }
@@ -129,6 +137,7 @@ function deriveAudienceCriteria({
     .filter((entry): entry is "lunch" | "dinner" => Boolean(entry))));
   const hasReservations = reservations.length > completedOrders.length * 0.35;
   const journeyTypes = hasReservations ? ["reservation"] : ["delivery", "takeaway"];
+  const cuisines = splitCuisineTargets(restaurant.cuisine_type, ...categories);
   const repeatCustomerCount = completedOrders.reduce((acc: Record<string, number>, order: any) => {
     const userId = String(order.user_id || "");
     if (userId) acc[userId] = (acc[userId] || 0) + 1;
@@ -138,7 +147,7 @@ function deriveAudienceCriteria({
   const customerSegment = loyalShare >= 5 ? "loyal" : completedOrders.length >= 20 ? "returning" : "new";
 
   return {
-    cuisines: categories.slice(0, 3).map((category) => String(category).toLowerCase()),
+    cuisines,
     cities: restaurant.city ? [String(restaurant.city).toLowerCase()] : [],
     minOrders: customerSegment === "loyal" ? 3 : customerSegment === "returning" ? 1 : 0,
     maxDaysSinceOrder: customerSegment === "new" ? 365 : 60,
@@ -254,6 +263,37 @@ function mergeAudienceCriteria(
     serviceMoments: requested.serviceMoments.length > 0 ? requested.serviceMoments : derived.serviceMoments,
     cuisines: requested.cuisines.length > 0 ? requested.cuisines : derived.cuisines,
     cities: requested.cities.length > 0 ? requested.cities : derived.cities,
+  };
+}
+
+function normalizeGeneratedAudienceCriteria(value: unknown, fallbackValue: unknown) {
+  const source = isRecord(value) ? value : {};
+  const fallback = isRecord(fallbackValue) ? fallbackValue : {};
+  const sourceCuisines = normalizeStringArray(source.cuisines, undefined, 20);
+  const sourceCities = normalizeStringArray(source.cities, undefined, 20);
+  const sourceGenders = normalizeStringArray(source.genders, VALID_GENDERS, 3);
+  const sourceJourneyTypes = normalizeStringArray(source.journeyTypes, VALID_JOURNEY_TYPES, 4);
+  const sourceServiceMoments = normalizeStringArray(source.serviceMoments, VALID_SERVICE_MOMENTS, 3);
+
+  const fallbackCuisines = normalizeStringArray(fallback.cuisines, undefined, 20);
+  const fallbackCities = normalizeStringArray(fallback.cities, undefined, 20);
+  const fallbackGenders = normalizeStringArray(fallback.genders, VALID_GENDERS, 3);
+  const fallbackJourneyTypes = normalizeStringArray(fallback.journeyTypes, VALID_JOURNEY_TYPES, 4);
+  const fallbackServiceMoments = normalizeStringArray(fallback.serviceMoments, VALID_SERVICE_MOMENTS, 3);
+  const sourceSegment = String(source.customerSegment || "");
+  const fallbackSegment = String(fallback.customerSegment || "all");
+
+  return {
+    cuisines: sourceCuisines.length > 0 ? sourceCuisines : fallbackCuisines,
+    cities: sourceCities.length > 0 ? sourceCities : fallbackCities,
+    minOrders: Number.isFinite(Number(source.minOrders)) ? Math.max(0, Number(source.minOrders)) : Math.max(0, Number(fallback.minOrders) || 0),
+    maxDaysSinceOrder: Number.isFinite(Number(source.maxDaysSinceOrder)) ? Math.max(1, Number(source.maxDaysSinceOrder)) : Math.max(1, Number(fallback.maxDaysSinceOrder) || 365),
+    minAvgBasket: Number.isFinite(Number(source.minAvgBasket)) ? Math.max(0, Number(source.minAvgBasket)) : Math.max(0, Number(fallback.minAvgBasket) || 0),
+    favoritesOnly: typeof source.favoritesOnly === "boolean" ? source.favoritesOnly : Boolean(fallback.favoritesOnly),
+    genders: sourceGenders.length > 0 ? sourceGenders : (fallbackGenders.length > 0 ? fallbackGenders : ["all"]),
+    customerSegment: VALID_CUSTOMER_SEGMENTS.has(sourceSegment) ? sourceSegment : (VALID_CUSTOMER_SEGMENTS.has(fallbackSegment) ? fallbackSegment : "all"),
+    journeyTypes: sourceJourneyTypes.length > 0 ? sourceJourneyTypes : fallbackJourneyTypes,
+    serviceMoments: sourceServiceMoments.length > 0 ? sourceServiceMoments : fallbackServiceMoments,
   };
 }
 
@@ -400,13 +440,15 @@ function normalizeGeneratedCampaign(raw: unknown, fallbackCampaign: Record<strin
     : ["home", "search"];
   const fallbackTotalBudget = Number(fallbackCampaign.total_budget || 20);
   const fallbackDailyBudget = Number(fallbackCampaign.budget_daily || 5);
+  const fallbackDurationDays = Number(fallbackCampaign.duration_days || 7);
 
   const type = String(source.type || fallbackType).trim().toLowerCase();
   const totalBudget = clampBudget(Number(source.total_budget) || fallbackTotalBudget, 0, 5000);
   const budgetDaily = clampBudget(Number(source.budget_daily) || fallbackDailyBudget, 0, Math.max(totalBudget, fallbackDailyBudget, 5));
-  const targetCriteria = source.target_criteria && typeof source.target_criteria === "object" && !Array.isArray(source.target_criteria)
-    ? source.target_criteria as Record<string, unknown>
-    : fallbackCampaign.target_criteria;
+  const durationDays = Number.isFinite(Number(source.duration_days))
+    ? Math.max(1, Math.round(Number(source.duration_days)))
+    : Math.max(1, Math.round(fallbackDurationDays));
+  const targetCriteria = normalizeGeneratedAudienceCriteria(source.target_criteria, fallbackCampaign.target_criteria);
   const optimizationNotes = Array.isArray(source.optimization_notes)
     ? source.optimization_notes.map((note) => String(note || "").trim()).filter(Boolean).slice(0, 6)
     : fallbackCampaign.optimization_notes;
@@ -427,6 +469,7 @@ function normalizeGeneratedCampaign(raw: unknown, fallbackCampaign: Record<strin
     pricing_strategy: pricingStrategy,
     total_budget: totalBudget,
     budget_daily: Math.min(budgetDaily, Math.max(totalBudget, budgetDaily, 5)),
+    duration_days: durationDays,
     target_criteria: targetCriteria,
     channels,
     placement_selection: channels,
@@ -578,6 +621,7 @@ Tu dois retourner un JSON valide avec exactement ces champs:
   "target_pages": ["home", "search", "flash_sales", "anti_waste"],
   "total_budget": number,
   "budget_daily": number,
+  "duration_days": number,
   "pricing_strategy": "visibility|traffic|conversion",
   "channels": { "banner": boolean, "restaurant_cards": boolean },
   "image_url": "URL image menu disponible ou null",
@@ -592,7 +636,7 @@ REGLES:
 - La description doit etre une annonce client finale: elle vend le plat, l'offre, l'experience ou le restaurant directement
 - Interdiction de donner des conseils au restaurateur: pas de formulations comme "Mettez", "Boostez", "Capitalisez", "Utilisez", "Votre restaurant", "Vos ventes"
 - Ne parle jamais au restaurateur; parle aux clients finaux ou de l'offre disponible
-- Utilise tous les parametres personnalises transmis: texte existant, type, pages, emplacements, composition visuelle, couleur/police/style, budget, duree, dates, objectif, segment client, fans, affinites culinaires, parcours, moments, villes, minimums de commandes/panier et image
+- Utilise tous les parametres personnalises transmis: texte existant, type, pages, emplacements, composition visuelle, couleur/police/style, budget, duree, dates, objectif, segment client, fans, type de cuisine, affinites culinaires, parcours, moments, villes, minimums de commandes/panier et image
 - Si un parametre personnalise est renseigne, conserve-le ou adapte uniquement la copie pour le rendre coherent; ne l ignore pas silencieusement
 - Choisis les target_pages les plus pertinentes (2-3 max) quand aucune page personnalisee n'est fournie
 - Choisis pricing_strategy: visibility pour notoriété, traffic pour visites fiche/recherche, conversion pour commandes/réservations/anti-gaspi, sauf objectif personnalise explicite
@@ -631,6 +675,7 @@ Retourne UNIQUEMENT le JSON, sans explication.`;
                 },
                 total_budget: { type: "number" },
                 budget_daily: { type: "number" },
+                duration_days: { type: "number" },
                 pricing_strategy: { type: "string", enum: ["visibility", "traffic", "conversion"] },
                 channels: {
                   type: "object",
@@ -663,7 +708,7 @@ Retourne UNIQUEMENT le JSON, sans explication.`;
                 ends_at: { type: "string" },
                 optimization_notes: { type: "array", items: { type: "string" } },
               },
-              required: ["title", "body", "type", "target_pages", "pricing_strategy", "channels", "image_url", "total_budget", "budget_daily", "target_criteria", "starts_at", "ends_at", "optimization_notes"],
+              required: ["title", "body", "type", "target_pages", "pricing_strategy", "channels", "image_url", "total_budget", "budget_daily", "duration_days", "target_criteria", "starts_at", "ends_at", "optimization_notes"],
               additionalProperties: false,
             },
           },
