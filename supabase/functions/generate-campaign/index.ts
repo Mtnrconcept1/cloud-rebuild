@@ -216,26 +216,26 @@ function buildFallbackCampaign({
   const city = String(restaurant.city || "").trim();
   const firstCategory = categories.find(Boolean) || cuisineType || "vos specialites";
 
-  let title = `Découvrez ${restaurantName}`;
-  let body = `${restaurantName} met a l'honneur ${firstCategory}${city ? ` a ${city}` : ""}. Donnez envie aux clients de passer commande aujourd'hui.`;
+  let title = `${restaurantName}, l'adresse a decouvrir`;
+  let body = `${firstCategory} signe${city ? ` a ${city}` : ""} une pause gourmande pleine de caractere. Commande simple, saveurs au rendez-vous, moment TOK garanti.`;
   const type = "boost";
   let targetPages = ["home", "search"];
 
   if (flashCount > 0) {
-    title = `Vos ventes flash ${restaurantName}`;
-    body = `Mettez vos ventes flash en avant pour accelerer les commandes et capter les clients deja actifs sur la plateforme.`;
+    title = `${restaurantName} en flash gourmand`;
+    body = `Offres flash en quantites limitees chez ${restaurantName}: saveurs genereuses, prix doux et commande rapide avant epuisement.`;
     targetPages = ["flash_sales", "home"];
   } else if (antiWasteCount > 0) {
-    title = `Offres anti-gaspi a saisir`;
-    body = `${restaurantName} peut attirer de nouveaux clients avec ses offres anti-gaspi et convertir la demande locale rapidement.`;
+    title = `Paniers surprises chez ${restaurantName}`;
+    body = `Des portions encore delicieuses, un prix malin et un geste anti-gaspi local: les paniers ${restaurantName} partent vite.`;
     targetPages = ["anti_waste", "home"];
   } else if (avgRating >= 4.5) {
-    title = `${restaurantName} fait parler de lui`;
-    body = `Capitalisez sur votre note de ${avgRating.toFixed(1)}/5 pour attirer des clients en recherche d'une adresse fiable et bien notee.`;
+    title = `${restaurantName}, coup de coeur TOK`;
+    body = `Une adresse appreciee des clients avec ${avgRating.toFixed(1)}/5: ${firstCategory} soignees, service fiable et envie d'y revenir.`;
     targetPages = ["home", "search"];
   } else if (avgTicket >= 35) {
-    title = `Boostez votre panier moyen`;
-    body = `${restaurantName} peut mettre en avant ${firstCategory} pour transformer l'intention en commande a forte valeur.`;
+    title = `${firstCategory} qui font envie`;
+    body = `${restaurantName} rassemble ses meilleures saveurs dans une selection genereuse, ideale pour un repas qui marque les esprits.`;
     targetPages = ["search", "home"];
   }
 
@@ -258,6 +258,19 @@ function buildFallbackCampaign({
     image_url: null,
     optimization_notes: [],
   };
+}
+
+function containsRestaurateurAdviceCopy(value: string) {
+  const normalized = value.trim().toLowerCase();
+  return /^(mettez|boostez|capitalisez|utilisez|créez|creez|publiez|lancez|attirez|relancez|donnez|ameliorez|améliorez|profitez)\b/.test(normalized)
+    || /\b(vos ventes|votre note|votre restaurant|vos clients|votre panier|vos offres|vos produits)\b/.test(normalized);
+}
+
+function normalizeConsumerAdCopy(value: unknown, fallback: unknown, maxLength: number) {
+  const generated = String(value || "").trim();
+  const fallbackText = String(fallback || "").trim();
+  const selected = generated && !containsRestaurateurAdviceCopy(generated) ? generated : fallbackText;
+  return selected.slice(0, maxLength);
 }
 
 function normalizeGeneratedCampaign(raw: unknown, fallbackCampaign: Record<string, unknown>) {
@@ -291,8 +304,8 @@ function normalizeGeneratedCampaign(raw: unknown, fallbackCampaign: Record<strin
       : fallbackCampaign.channels;
 
   return {
-    title: String(source.title || fallbackCampaign.title || "Nouvelle campagne").trim().slice(0, 60),
-    body: String(source.body || fallbackCampaign.body || "").trim().slice(0, 200),
+    title: normalizeConsumerAdCopy(source.title, fallbackCampaign.title || "Selection TOK du moment", 60),
+    body: normalizeConsumerAdCopy(source.body, fallbackCampaign.body || "Une adresse locale a decouvrir aujourd'hui sur TOK.", 200),
     type: normalizedType,
     target_pages: normalizedPages,
     pricing_strategy: pricingStrategy,
@@ -426,8 +439,8 @@ ${contextSummary}
 
 Tu dois retourner un JSON valide avec exactement ces champs:
 {
-  "title": "Titre accrocheur de la campagne (max 60 caracteres)",
-  "body": "Description engageante de la campagne (max 200 caracteres). Doit donner envie et etre actionnable.",
+  "title": "Titre publicitaire final visible par les clients (max 60 caracteres)",
+  "body": "Description publicitaire finale visible par les clients (max 200 caracteres). Elle vend le produit ou l'offre directement.",
   "type": "boost",
   "target_pages": ["home", "search", "flash_sales", "anti_waste"],
   "total_budget": number,
@@ -442,8 +455,10 @@ Tu dois retourner un JSON valide avec exactement ces champs:
 }
 
 REGLES:
-- Le titre doit etre accrocheur
-- La description doit creer l'urgence ou la curiosite
+- Le titre doit etre accrocheur, concret et pret a publier tel quel
+- La description doit etre une annonce client finale: elle vend le plat, l'offre, l'experience ou le restaurant directement
+- Interdiction de donner des conseils au restaurateur: pas de formulations comme "Mettez", "Boostez", "Capitalisez", "Utilisez", "Votre restaurant", "Vos ventes"
+- Ne parle jamais au restaurateur; parle aux clients finaux ou de l'offre disponible
 - Choisis les target_pages les plus pertinentes (2-3 max)
 - Choisis pricing_strategy: visibility pour notoriété, traffic pour visites fiche/recherche, conversion pour commandes/réservations/anti-gaspi
 - Choisis channels.banner et channels.restaurant_cards automatiquement: bannière pour notoriété/ventes flash/produits forts, carte restaurant pour trafic et anti-gaspi
@@ -467,7 +482,7 @@ Retourne UNIQUEMENT le JSON, sans explication.`;
           maxOutputTokens: 500,
           jsonSchema: {
             name: "tok_campaign_recommendation",
-            description: "Campagne publicitaire TOK optimisee pour un restaurant.",
+            description: "Annonce publicitaire TOK finale et plan de campagne automatise pour un restaurant.",
             strict: true,
             schema: {
               type: "object",
