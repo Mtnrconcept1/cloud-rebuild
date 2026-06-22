@@ -17,11 +17,12 @@ describe("homepage positioning guards", () => {
     expect(hero).toContain('data-testid="mobile-hero-shell"');
     expect(hero).toContain("fondacceuil.png");
     expect((hero.match(/fondacceuil\.png/g) ?? []).length).toBe(1);
-    expect(hero).toContain("bg-[position:50%_0%]");
+    expect(hero).toContain("bg-[position:50%_8%]");
+    expect(hero).toContain("bg-[length:auto_94%]");
     expect(hero).toContain("bg-no-repeat");
     expect(hero).toContain("min-h-[calc(100svh-64px)]");
     expect(hero).toContain("bottom-2 space-y-2");
-    expect(hero).toContain("pt-6 text-center min-[390px]:pt-7");
+    expect(hero).toContain("pt-9 text-center min-[390px]:pt-10");
     expect(hero).toContain("translate-x-[12px]");
     expect(hero).toContain("w-full max-w-[390px]");
     expect(hero).toContain("[font-family:'Playball',cursive]");

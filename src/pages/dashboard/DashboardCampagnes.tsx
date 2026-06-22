@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useMemo, useRef, useState, type ComponentType } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ComponentType } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -74,6 +74,7 @@ import {
   calculateCampaignBaseBudget,
   calculateCampaignTotalCost,
   estimateCampaignPlan,
+  buildAutomaticCampaignPlan,
   getCampaignPlacementCostMultiplier,
   getCampaignStrategyConfig,
   getCampaignObservedMetrics,
@@ -1306,6 +1307,48 @@ function CampaignCreativeStudio({
     </section>
   );
 }
+
+function CampaignAutoDecisionPanel({
+  type,
+  targetPages,
+  placementSelection,
+  strategy,
+}: {
+  type: string;
+  targetPages: string[];
+  placementSelection: Record<CampaignPlacementOption, boolean>;
+  strategy: CampaignPricingStrategy;
+}) {
+  const plan = buildAutomaticCampaignPlan({ preferredPages: targetPages });
+  const strategyLabel = getCampaignStrategyConfig(strategy).label;
+  const placementLabels = (Object.keys(CAMPAIGN_PLACEMENT_CONFIG) as CampaignPlacementOption[])
+    .filter((placement) => placementSelection[placement])
+    .map((placement) => CAMPAIGN_PLACEMENT_CONFIG[placement].label);
+
+  return (
+    <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 text-sm">
+      <div className="flex items-start gap-3">
+        <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+        <div className="space-y-2">
+          <p className="font-semibold">Pilotage automatique IA de tous les champs</p>
+          <p className="text-xs leading-5 text-muted-foreground">
+            Le bouton IA analyse catalogue, produits vendus, avis, ventes flash, anti-gaspi, réservations, campagnes passées et pics horaires. Il remplit le titre, texte, objectif {strategyLabel.toLowerCase()}, type {type}, pages, ciblage, budget, dates, image si disponible, emplacements {placementLabels.join(" + ") || "aucun"} et suivi anti-gaspi si pertinent.
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {targetPages.map((page) => (
+              <Badge key={page} variant="secondary" className="text-[10px]">
+                {TARGET_PAGES.find((targetPage) => targetPage.value === page)?.label || page}
+              </Badge>
+            ))}
+            <Badge variant="outline" className="text-[10px]">Objectif {strategyLabel}</Badge>
+            {plan.rationale.slice(0, 1).map((note) => <Badge key={note} variant="outline" className="text-[10px]">{note}</Badge>)}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function CampaignForm({
   restaurantId,
   initial,
@@ -1470,6 +1513,13 @@ function CampaignForm({
       }
       if (result.type) setType(result.type);
       if (result.target_pages) setTargetPages(result.target_pages);
+      if (result.channels) setPlacementSelection(normalizeCampaignPlacementSelection(result.channels, result.type || type));
+      if (result.placement_selection) setPlacementSelection(normalizeCampaignPlacementSelection(result.placement_selection, result.type || type));
+      if (result.pricing_strategy) {
+        setSelectedStrategy(normalizeCampaignPricingStrategy(result.pricing_strategy, recommendedStrategy));
+        setStrategyTouched(true);
+      }
+      if (result.image_url) setImageUrl(String(result.image_url));
       if (result.target_criteria) setTargetCriteria(normalizeAudienceCriteria(result.target_criteria));
       if (result.total_budget) setTotalBudget(String(result.total_budget));
       if (result.starts_at) {
@@ -1483,11 +1533,11 @@ function CampaignForm({
       }
 
       const optimizationNotes = Array.isArray(result.optimization_notes)
-        ? result.optimization_notes.filter(Boolean).slice(0, 2).join(" · ")
+        ? result.optimization_notes.filter(Boolean).slice(0, 3).join(" · ")
         : "";
       toast({
         title: "Campagne générée par l’IA",
-        description: optimizationNotes || "Ciblage, budget et calendrier ont été optimisés automatiquement.",
+        description: optimizationNotes || "Objectif, emplacements, pages, ciblage, budget et calendrier ont été optimisés automatiquement.",
       });
     } catch (error) {
       toast({
@@ -1665,6 +1715,13 @@ function CampaignForm({
         </Select>
       </div>
 
+      <CampaignAutoDecisionPanel
+        type={type}
+        targetPages={targetPages}
+        placementSelection={placementSelection}
+        strategy={strategy}
+      />
+
       <div className="space-y-3">
         <Label className="flex items-center gap-2">
           <Megaphone className="h-4 w-4" /> Emplacements de diffusion
@@ -1700,7 +1757,7 @@ function CampaignForm({
         <div className="space-y-1">
           <p className="text-sm font-semibold">Budget et objectif</p>
           <p className="text-xs text-muted-foreground">
-            Tout ce qui pilote le budget est réuni ici. TOK recommande automatiquement la meilleure formule selon votre campagne.
+            Tout ce qui pilote le budget est réuni ici. TOK recommande automatiquement notoriété, trafic ou conversion selon les produits, offres et ventes du moment.
           </p>
         </div>
 

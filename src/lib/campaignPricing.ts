@@ -8,6 +8,24 @@ export type CampaignPricingStrategy = "visibility" | "traffic" | "conversion";
 export type CampaignPlacementOption = "banner" | "restaurant_cards";
 export type CampaignPlacementSelection = Record<CampaignPlacementOption, boolean>;
 
+export type CampaignAutoPlanInput = {
+  flashCount?: number;
+  antiWasteCount?: number;
+  topProductCount?: number;
+  reservationShare?: number;
+  avgRating?: number;
+  hasPriorConversions?: boolean;
+  preferredPages?: string[] | null;
+};
+
+export type CampaignAutoPlan = {
+  type: "boost" | "banner" | "push";
+  targetPages: string[];
+  placements: CampaignPlacementSelection;
+  pricingStrategy: CampaignPricingStrategy;
+  rationale: string[];
+};
+
 export type CampaignBenchmarkSnapshot = {
   metaFoodCpmUsd: number;
   metaFoodCpcUsd: number;
@@ -400,4 +418,62 @@ export function recommendCampaignStrategy(input: {
   }
 
   return "traffic" as const;
+}
+
+
+function uniquePages(pages: string[]) {
+  return Array.from(new Set(pages.filter(Boolean))).slice(0, 3);
+}
+
+export function buildAutomaticCampaignPlan(input: CampaignAutoPlanInput): CampaignAutoPlan {
+  const flashCount = Math.max(0, Number(input.flashCount) || 0);
+  const antiWasteCount = Math.max(0, Number(input.antiWasteCount) || 0);
+  const topProductCount = Math.max(0, Number(input.topProductCount) || 0);
+  const reservationShare = Math.max(0, Math.min(1, Number(input.reservationShare) || 0));
+  const avgRating = Math.max(0, Number(input.avgRating) || 0);
+  const preferredPages = Array.isArray(input.preferredPages) ? input.preferredPages.map((page) => String(page || '').trim()).filter(Boolean) : [];
+
+  const rationale: string[] = [];
+  let targetPages = uniquePages(preferredPages.length ? preferredPages : ['home', 'search']);
+  let type: CampaignAutoPlan['type'] = 'boost';
+  let placements: CampaignPlacementSelection = { ...DEFAULT_CAMPAIGN_PLACEMENTS };
+
+  if (antiWasteCount > 0) {
+    targetPages = uniquePages(['anti_waste', 'home', 'search']);
+    type = 'boost';
+    placements = { banner: false, restaurant_cards: true };
+    rationale.push('Offres anti-gaspi actives: pistage prioritaire sur la page Anti-Gaspi et carte restaurant.');
+  } else if (flashCount > 0) {
+    targetPages = uniquePages(['flash_sales', 'home', 'search']);
+    type = 'banner';
+    placements = { banner: true, restaurant_cards: true };
+    rationale.push('Ventes flash actives: bannière + cartes pour créer de l’urgence.');
+  } else if (topProductCount >= 3 || avgRating >= 4.5) {
+    targetPages = uniquePages(['home', 'search']);
+    type = 'banner';
+    placements = { banner: true, restaurant_cards: true };
+    rationale.push('Produits ou avis forts: objectif notoriété avec bannière et cartes.');
+  } else if (reservationShare >= 0.45) {
+    targetPages = uniquePages(['search', 'home']);
+    type = 'boost';
+    placements = { banner: false, restaurant_cards: true };
+    rationale.push('Demandes de réservation dominantes: trafic qualifié vers la fiche restaurant.');
+  } else {
+    targetPages = uniquePages(['search', 'home']);
+    rationale.push('Données mixtes: trafic qualifié vers la fiche et les résultats de recherche.');
+  }
+
+  const pricingStrategy = recommendCampaignStrategy({
+    type,
+    targetPages,
+    hasFlashSales: flashCount > 0,
+    hasAntiWaste: antiWasteCount > 0,
+    hasPriorConversions: input.hasPriorConversions,
+  });
+
+  if (targetPages.includes('anti_waste')) {
+    rationale.push('Les conversions anti-gaspi sont suivies sur anti_waste.');
+  }
+
+  return { type, targetPages, placements, pricingStrategy, rationale };
 }

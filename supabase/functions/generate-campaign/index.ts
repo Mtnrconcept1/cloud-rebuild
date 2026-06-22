@@ -19,6 +19,7 @@ import {
 
 const VALID_CAMPAIGN_TYPES = new Set(["boost", "banner", "push"]);
 const VALID_TARGET_PAGES = new Set(["home", "search", "flash_sales", "anti_waste"]);
+const VALID_PRICING_STRATEGIES = new Set(["visibility", "traffic", "conversion"]);
 
 function clampBudget(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
@@ -158,6 +159,29 @@ function deriveSchedule({ hourlyPerformance, totalBudget }: { hourlyPerformance:
   };
 }
 
+function normalizePricingStrategy(value: unknown, fallback = "conversion") {
+  const strategy = String(value || "").trim().toLowerCase();
+  return VALID_PRICING_STRATEGIES.has(strategy) ? strategy : fallback;
+}
+
+function buildPlacementSelection({ type, targetPages, flashCount, antiWasteCount, topProductCount, avgRating }: {
+  type: string;
+  targetPages: string[];
+  flashCount: number;
+  antiWasteCount: number;
+  topProductCount: number;
+  avgRating: number;
+}) {
+  if (type === "push") return { banner: false, restaurant_cards: false };
+  if (type === "banner" || flashCount > 0 || topProductCount >= 3 || avgRating >= 4.5) {
+    return { banner: true, restaurant_cards: true };
+  }
+  if (antiWasteCount > 0 || targetPages.includes("anti_waste")) {
+    return { banner: false, restaurant_cards: true };
+  }
+  return { banner: false, restaurant_cards: true };
+}
+
 function normalizeTargetPages(value: unknown, fallback: string[]) {
   if (!Array.isArray(value)) return fallback;
 
@@ -228,6 +252,10 @@ function buildFallbackCampaign({
     total_budget: totalBudget,
     budget_daily: Math.min(budgetDaily, totalBudget),
     target_criteria: deriveAudienceCriteria({ restaurant, avgTicket, categories, hourlyPerformance, completedOrders: [], reservations: [] }),
+    pricing_strategy: antiWasteCount > 0 || flashCount > 0 ? "conversion" : targetPages.includes("search") ? "traffic" : "visibility",
+    channels: buildPlacementSelection({ type, targetPages, flashCount, antiWasteCount, topProductCount: 0, avgRating }),
+    placement_selection: buildPlacementSelection({ type, targetPages, flashCount, antiWasteCount, topProductCount: 0, avgRating }),
+    image_url: null,
     optimization_notes: [],
   };
 }
@@ -253,15 +281,27 @@ function normalizeGeneratedCampaign(raw: unknown, fallbackCampaign: Record<strin
   const optimizationNotes = Array.isArray(source.optimization_notes)
     ? source.optimization_notes.map((note) => String(note || "").trim()).filter(Boolean).slice(0, 6)
     : fallbackCampaign.optimization_notes;
+  const normalizedPages = normalizeTargetPages(source.target_pages, fallbackPages);
+  const normalizedType = VALID_CAMPAIGN_TYPES.has(type) ? type : fallbackType;
+  const pricingStrategy = normalizePricingStrategy(source.pricing_strategy, String(fallbackCampaign.pricing_strategy || "conversion"));
+  const channels = source.channels && typeof source.channels === "object" && !Array.isArray(source.channels)
+    ? source.channels as Record<string, unknown>
+    : source.placement_selection && typeof source.placement_selection === "object" && !Array.isArray(source.placement_selection)
+      ? source.placement_selection as Record<string, unknown>
+      : fallbackCampaign.channels;
 
   return {
     title: String(source.title || fallbackCampaign.title || "Nouvelle campagne").trim().slice(0, 60),
     body: String(source.body || fallbackCampaign.body || "").trim().slice(0, 200),
-    type: VALID_CAMPAIGN_TYPES.has(type) ? type : fallbackType,
-    target_pages: normalizeTargetPages(source.target_pages, fallbackPages),
+    type: normalizedType,
+    target_pages: normalizedPages,
+    pricing_strategy: pricingStrategy,
     total_budget: totalBudget,
     budget_daily: Math.min(budgetDaily, Math.max(totalBudget, budgetDaily, 5)),
     target_criteria: targetCriteria,
+    channels,
+    placement_selection: channels,
+    image_url: typeof source.image_url === "string" ? source.image_url : fallbackCampaign.image_url,
     starts_at: typeof source.starts_at === "string" ? source.starts_at : fallbackCampaign.starts_at,
     ends_at: typeof source.ends_at === "string" ? source.ends_at : fallbackCampaign.ends_at,
     optimization_notes: optimizationNotes,
@@ -346,6 +386,9 @@ Deno.serve(async (req) => {
     });
     Object.assign(fallbackCampaign, {
       target_criteria: targetCriteria,
+      image_url: productPerformance[0]
+        ? (menu.find((item: any) => item.name === productPerformance[0].name)?.image_url || null)
+        : (menu.find((item: any) => item.image_url)?.image_url || null),
       ...deriveSchedule({ hourlyPerformance, totalBudget: Number(fallbackCampaign.total_budget || 0) }),
       optimization_notes: [
         productPerformance[0] ? `Produit prioritaire: ${productPerformance[0].name}` : "Catalogue analyse sans produit dominant",
@@ -389,6 +432,9 @@ Tu dois retourner un JSON valide avec exactement ces champs:
   "target_pages": ["home", "search", "flash_sales", "anti_waste"],
   "total_budget": number,
   "budget_daily": number,
+  "pricing_strategy": "visibility|traffic|conversion",
+  "channels": { "banner": boolean, "restaurant_cards": boolean },
+  "image_url": "URL image menu disponible ou null",
   "target_criteria": { "customerSegment": "all|new|returning|loyal|inactive", "journeyTypes": ["delivery|takeaway|reservation|zero_attente"], "serviceMoments": ["lunch|dinner|weekend"], "cities": [], "cuisines": [], "minOrders": number, "maxDaysSinceOrder": number, "minAvgBasket": number, "favoritesOnly": boolean, "genders": ["all"] },
   "starts_at": "ISO datetime",
   "ends_at": "ISO datetime",
@@ -399,6 +445,8 @@ REGLES:
 - Le titre doit etre accrocheur
 - La description doit creer l'urgence ou la curiosite
 - Choisis les target_pages les plus pertinentes (2-3 max)
+- Choisis pricing_strategy: visibility pour notoriété, traffic pour visites fiche/recherche, conversion pour commandes/réservations/anti-gaspi
+- Choisis channels.banner et channels.restaurant_cards automatiquement: bannière pour notoriété/ventes flash/produits forts, carte restaurant pour trafic et anti-gaspi
 - Selectionne automatiquement le segment client, les parcours, les moments de service, l heure de publication et l heure d arret selon les ventes/reservations
 - Le budget doit etre realiste (5-15% du CA mensuel) et pace par jour
 - Priorise les produits et horaires qui performent le mieux
@@ -433,6 +481,17 @@ Retourne UNIQUEMENT le JSON, sans explication.`;
                 },
                 total_budget: { type: "number" },
                 budget_daily: { type: "number" },
+                pricing_strategy: { type: "string", enum: ["visibility", "traffic", "conversion"] },
+                channels: {
+                  type: "object",
+                  properties: {
+                    banner: { type: "boolean" },
+                    restaurant_cards: { type: "boolean" },
+                  },
+                  required: ["banner", "restaurant_cards"],
+                  additionalProperties: false,
+                },
+                image_url: { type: ["string", "null"] },
                 target_criteria: {
                   type: "object",
                   properties: {
@@ -454,7 +513,7 @@ Retourne UNIQUEMENT le JSON, sans explication.`;
                 ends_at: { type: "string" },
                 optimization_notes: { type: "array", items: { type: "string" } },
               },
-              required: ["title", "body", "type", "target_pages", "total_budget", "budget_daily", "target_criteria", "starts_at", "ends_at", "optimization_notes"],
+              required: ["title", "body", "type", "target_pages", "pricing_strategy", "channels", "image_url", "total_budget", "budget_daily", "target_criteria", "starts_at", "ends_at", "optimization_notes"],
               additionalProperties: false,
             },
           },
@@ -512,6 +571,8 @@ Retourne UNIQUEMENT le JSON, sans explication.`;
         generated_title: typeof campaign?.title === "string" ? campaign.title : null,
         target_pages: Array.isArray(campaign?.target_pages) ? campaign.target_pages : [],
         target_criteria: campaign?.target_criteria || null,
+        pricing_strategy: campaign?.pricing_strategy || null,
+        channels: campaign?.channels || null,
         optimization_notes: Array.isArray(campaign?.optimization_notes) ? campaign.optimization_notes : [],
       },
     });

@@ -18,6 +18,8 @@ describe("generate-campaign AI optimization", () => {
     expect(edgeFunction).toContain('"starts_at"');
     expect(edgeFunction).toContain('"ends_at"');
     expect(edgeFunction).toContain('"optimization_notes"');
+    expect(edgeFunction).toContain('"pricing_strategy"');
+    expect(edgeFunction).toContain('"channels"');
     expect(edgeFunction).toContain("deriveAudienceCriteria({ restaurant, avgTicket, categories, hourlyPerformance, completedOrders, reservations })");
     expect(edgeFunction).toContain("deriveSchedule({ hourlyPerformance");
   });
@@ -26,6 +28,8 @@ describe("generate-campaign AI optimization", () => {
     expect(dashboard).toContain("setTargetCriteria(normalizeAudienceCriteria(result.target_criteria))");
     expect(dashboard).toContain("setStartsAt(generatedStart)");
     expect(dashboard).toContain("setDurationDays(getDurationDays(generatedStart, generatedEnd))");
-    expect(dashboard).toContain("Ciblage, budget et calendrier ont été optimisés automatiquement.");
+    expect(dashboard).toContain("setPlacementSelection(normalizeCampaignPlacementSelection(result.channels");
+    expect(dashboard).toContain("setSelectedStrategy(normalizeCampaignPricingStrategy(result.pricing_strategy");
+    expect(dashboard).toContain("Objectif, emplacements, pages, ciblage, budget et calendrier ont été optimisés automatiquement.");
   });
 });
