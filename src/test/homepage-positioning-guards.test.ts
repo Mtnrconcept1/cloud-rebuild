@@ -17,8 +17,8 @@ describe("homepage positioning guards", () => {
     expect(hero).toContain('data-testid="mobile-hero-shell"');
     expect(hero).toContain("fondacceuil.png");
     expect((hero.match(/fondacceuil\.png/g) ?? []).length).toBe(1);
-    expect(hero).toContain("bg-[position:50%_8%]");
-    expect(hero).toContain("bg-[length:auto_94%]");
+    expect(hero).toContain("bg-[position:50%_0%]");
+    expect(hero).toContain("bg-[length:100%_auto]");
     expect(hero).toContain("bg-no-repeat");
     expect(hero).toContain("min-h-[calc(100svh-64px)]");
     expect(hero).toContain("bottom-2 space-y-2");
