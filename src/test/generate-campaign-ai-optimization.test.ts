@@ -24,6 +24,21 @@ describe("generate-campaign AI optimization", () => {
     expect(edgeFunction).toContain("deriveSchedule({ hourlyPerformance");
   });
 
+  it("sends every customizable campaign setting to the AI agent", () => {
+    expect(dashboard).toContain("currentSettings");
+    expect(dashboard).toContain("target_criteria: normalizeAudienceCriteria(targetCriteria)");
+    expect(dashboard).toContain("base_budget: baseBudgetValue");
+    expect(dashboard).toContain("total_budget: totalBudgetValue");
+    expect(dashboard).toContain("budget_daily: dailyBudgetValue");
+    expect(dashboard).toContain("duration_days: durationDays");
+    expect(dashboard).toContain("pricing_strategy: strategy");
+    expect(dashboard).toContain("creative: campaignCreative");
+    expect(edgeFunction).toContain("normalizeRequestedCampaignSettings(requestBody?.currentSettings)");
+    expect(edgeFunction).toContain("PARAMETRES PERSONNALISES SAISIS DANS LE FORMULAIRE");
+    expect(edgeFunction).toContain("Utilise tous les parametres personnalises transmis");
+    expect(edgeFunction).toContain("requested_settings: requestedSettings");
+  });
+
   it("applies the generated campaign plan in the dashboard form", () => {
     expect(dashboard).toContain("setTargetCriteria(normalizeAudienceCriteria(result.target_criteria))");
     expect(dashboard).toContain("setStartsAt(generatedStart)");

@@ -20,6 +20,18 @@ import {
 const VALID_CAMPAIGN_TYPES = new Set(["boost", "banner", "push"]);
 const VALID_TARGET_PAGES = new Set(["home", "search", "flash_sales", "anti_waste"]);
 const VALID_PRICING_STRATEGIES = new Set(["visibility", "traffic", "conversion"]);
+const VALID_JOURNEY_TYPES = new Set(["delivery", "takeaway", "reservation", "zero_attente"]);
+const VALID_SERVICE_MOMENTS = new Set(["lunch", "dinner", "weekend"]);
+const VALID_CUSTOMER_SEGMENTS = new Set(["all", "new", "returning", "loyal", "inactive"]);
+const VALID_GENDERS = new Set(["all", "female", "male"]);
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
+function sanitizeText(value: unknown, maxLength: number) {
+  return String(value || "").replace(/\s+/g, " ").trim().slice(0, maxLength);
+}
 
 function clampBudget(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
@@ -162,6 +174,110 @@ function deriveSchedule({ hourlyPerformance, totalBudget }: { hourlyPerformance:
 function normalizePricingStrategy(value: unknown, fallback = "conversion") {
   const strategy = String(value || "").trim().toLowerCase();
   return VALID_PRICING_STRATEGIES.has(strategy) ? strategy : fallback;
+}
+
+function normalizeStringArray(value: unknown, allowed?: Set<string>, limit = 12) {
+  if (!Array.isArray(value)) return [];
+  const entries = value
+    .map((entry) => String(entry || "").trim().toLowerCase())
+    .filter((entry) => entry && (!allowed || allowed.has(entry)));
+  return Array.from(new Set(entries)).slice(0, limit);
+}
+
+function normalizeBooleanMap(value: unknown) {
+  const source = isRecord(value) ? value : {};
+  return {
+    banner: Boolean(source.banner),
+    restaurant_cards: Boolean(source.restaurant_cards),
+  };
+}
+
+function normalizeRequestedCampaignSettings(value: unknown) {
+  const source = isRecord(value) ? value : {};
+  const targetCriteria = isRecord(source.target_criteria) ? source.target_criteria : {};
+  const channels = normalizeBooleanMap(source.channels);
+  const creative = isRecord(source.creative) ? source.creative : isRecord(source.channels) && isRecord(source.channels.creative) ? source.channels.creative : null;
+
+  return {
+    title: sanitizeText(source.title, 60),
+    body: sanitizeText(source.body, 200),
+    type: VALID_CAMPAIGN_TYPES.has(String(source.type || "").toLowerCase()) ? String(source.type).toLowerCase() : "",
+    target_pages: normalizeTargetPages(source.target_pages, []),
+    pricing_strategy: normalizePricingStrategy(source.pricing_strategy, ""),
+    base_budget: Number.isFinite(Number(source.base_budget)) ? Math.max(0, Number(source.base_budget)) : null,
+    total_budget: Number.isFinite(Number(source.total_budget)) ? Math.max(0, Number(source.total_budget)) : null,
+    budget_daily: Number.isFinite(Number(source.budget_daily)) ? Math.max(0, Number(source.budget_daily)) : null,
+    duration_days: Number.isFinite(Number(source.duration_days)) ? Math.max(1, Math.round(Number(source.duration_days))) : null,
+    starts_at: sanitizeText(source.starts_at, 40),
+    ends_at: sanitizeText(source.ends_at, 40),
+    image_url: sanitizeText(source.image_url, 500),
+    channels,
+    creative,
+    target_criteria: {
+      cuisines: normalizeStringArray(targetCriteria.cuisines, undefined, 20),
+      cities: normalizeStringArray(targetCriteria.cities, undefined, 20),
+      minOrders: Math.max(0, Number(targetCriteria.minOrders) || 0),
+      maxDaysSinceOrder: Math.max(1, Number(targetCriteria.maxDaysSinceOrder) || 365),
+      minAvgBasket: Math.max(0, Number(targetCriteria.minAvgBasket) || 0),
+      favoritesOnly: Boolean(targetCriteria.favoritesOnly),
+      genders: normalizeStringArray(targetCriteria.genders, VALID_GENDERS, 3),
+      customerSegment: VALID_CUSTOMER_SEGMENTS.has(String(targetCriteria.customerSegment || "")) ? String(targetCriteria.customerSegment) : "all",
+      journeyTypes: normalizeStringArray(targetCriteria.journeyTypes, VALID_JOURNEY_TYPES, 4),
+      serviceMoments: normalizeStringArray(targetCriteria.serviceMoments, VALID_SERVICE_MOMENTS, 3),
+    },
+  };
+}
+
+function hasRequestedAudienceConstraints(criteria: ReturnType<typeof normalizeRequestedCampaignSettings>["target_criteria"]) {
+  return criteria.cuisines.length > 0
+    || criteria.cities.length > 0
+    || criteria.minOrders > 0
+    || criteria.maxDaysSinceOrder < 365
+    || criteria.minAvgBasket > 0
+    || criteria.favoritesOnly
+    || (criteria.genders.length > 0 && !criteria.genders.includes("all"))
+    || criteria.customerSegment !== "all"
+    || criteria.journeyTypes.length > 0
+    || criteria.serviceMoments.length > 0;
+}
+
+function mergeAudienceCriteria(
+  derived: Record<string, unknown>,
+  requested: ReturnType<typeof normalizeRequestedCampaignSettings>["target_criteria"],
+) {
+  if (!hasRequestedAudienceConstraints(requested)) return derived;
+  return {
+    ...derived,
+    ...requested,
+    genders: requested.genders.length > 0 ? requested.genders : derived.genders,
+    journeyTypes: requested.journeyTypes.length > 0 ? requested.journeyTypes : derived.journeyTypes,
+    serviceMoments: requested.serviceMoments.length > 0 ? requested.serviceMoments : derived.serviceMoments,
+    cuisines: requested.cuisines.length > 0 ? requested.cuisines : derived.cuisines,
+    cities: requested.cities.length > 0 ? requested.cities : derived.cities,
+  };
+}
+
+function buildRequestedSettingsSummary(settings: ReturnType<typeof normalizeRequestedCampaignSettings>) {
+  return JSON.stringify({
+    copy: { title: settings.title || null, body: settings.body || null },
+    budget: {
+      base_budget: settings.base_budget,
+      total_budget: settings.total_budget,
+      budget_daily: settings.budget_daily,
+      duration_days: settings.duration_days,
+      starts_at: settings.starts_at || null,
+      ends_at: settings.ends_at || null,
+      pricing_strategy: settings.pricing_strategy || null,
+    },
+    display: {
+      type: settings.type || null,
+      target_pages: settings.target_pages,
+      channels: settings.channels,
+      image_url: settings.image_url || null,
+      creative: settings.creative,
+    },
+    audience: settings.target_criteria,
+  }, null, 2);
 }
 
 function buildPlacementSelection({ type, targetPages, flashCount, antiWasteCount, topProductCount, avgRating }: {
@@ -333,8 +449,10 @@ Deno.serve(async (req) => {
   try {
     actor = await authenticateRequest(req, { allowServiceRole: false });
     if (!actor.userId) throw new HttpError(401, "Unauthorized");
-    ({ restaurantId } = await req.json());
+    const requestBody = await req.json();
+    ({ restaurantId } = requestBody);
     if (!restaurantId) throw new HttpError(400, "restaurantId requis");
+    const requestedSettings = normalizeRequestedCampaignSettings(requestBody?.currentSettings);
 
     const restaurant = await requireRestaurantAccess(actor, restaurantId);
 
@@ -384,7 +502,10 @@ Deno.serve(async (req) => {
     if (orderItemsRes.error) log.warn("order_items_unavailable", { message: orderItemsRes.error.message });
     const productPerformance = buildProductPerformance(orderItemsRes.data || [], menu);
     const hourlyPerformance = buildHourlyPerformance(completedOrders, reservations);
-    const targetCriteria = deriveAudienceCriteria({ restaurant, avgTicket, categories, hourlyPerformance, completedOrders, reservations });
+    const targetCriteria = mergeAudienceCriteria(
+      deriveAudienceCriteria({ restaurant, avgTicket, categories, hourlyPerformance, completedOrders, reservations }),
+      requestedSettings.target_criteria,
+    );
     const flashCount = (flashRes.data || []).length;
     const antiWasteCount = (antiWasteRes.data || []).length;
     const fallbackCampaign = buildFallbackCampaign({
@@ -398,11 +519,20 @@ Deno.serve(async (req) => {
       hourlyPerformance,
     });
     Object.assign(fallbackCampaign, {
+      title: requestedSettings.title || fallbackCampaign.title,
+      body: requestedSettings.body || fallbackCampaign.body,
+      type: requestedSettings.type || fallbackCampaign.type,
+      target_pages: requestedSettings.target_pages.length > 0 ? requestedSettings.target_pages : fallbackCampaign.target_pages,
+      pricing_strategy: requestedSettings.pricing_strategy || fallbackCampaign.pricing_strategy,
+      total_budget: requestedSettings.total_budget ?? fallbackCampaign.total_budget,
+      budget_daily: requestedSettings.budget_daily ?? fallbackCampaign.budget_daily,
       target_criteria: targetCriteria,
-      image_url: productPerformance[0]
+      channels: requestedSettings.channels.banner || requestedSettings.channels.restaurant_cards ? requestedSettings.channels : fallbackCampaign.channels,
+      placement_selection: requestedSettings.channels.banner || requestedSettings.channels.restaurant_cards ? requestedSettings.channels : fallbackCampaign.placement_selection,
+      image_url: requestedSettings.image_url || (productPerformance[0]
         ? (menu.find((item: any) => item.name === productPerformance[0].name)?.image_url || null)
-        : (menu.find((item: any) => item.image_url)?.image_url || null),
-      ...deriveSchedule({ hourlyPerformance, totalBudget: Number(fallbackCampaign.total_budget || 0) }),
+        : (menu.find((item: any) => item.image_url)?.image_url || null)),
+      ...deriveSchedule({ hourlyPerformance, totalBudget: Number(requestedSettings.total_budget ?? fallbackCampaign.total_budget ?? 0) }),
       optimization_notes: [
         productPerformance[0] ? `Produit prioritaire: ${productPerformance[0].name}` : "Catalogue analyse sans produit dominant",
         hourlyPerformance[0] ? `Meilleur horaire: ${getHourLabel(hourlyPerformance[0].hour)}` : "Horaire par defaut midi/soir",
@@ -430,6 +560,9 @@ Offres anti-gaspi actives: ${antiWasteCount}
 Campagnes passees: ${pastCampaigns.length} (${pastCampaigns.filter((campaign: any) => campaign.status === "active").length} actives)
 ${pastCampaigns.length > 0 ? `Perf campagnes: ${pastCampaigns.reduce((sum: number, campaign: any) => sum + (campaign.impressions || 0), 0)} impressions, ${pastCampaigns.reduce((sum: number, campaign: any) => sum + (campaign.clicks || 0), 0)} clics, ${pastCampaigns.reduce((sum: number, campaign: any) => sum + (campaign.conversions || 0), 0)} conversions` : ""}
 Avis recents negatifs: ${reviews.filter((review: any) => review.rating <= 3).map((review: any) => review.comment).filter(Boolean).slice(0, 3).join(" | ") || "Aucun"}
+
+PARAMETRES PERSONNALISES SAISIS DANS LE FORMULAIRE (a utiliser comme contraintes prioritaires, sauf incompatibilite manifeste avec les donnees restaurant):
+${buildRequestedSettingsSummary(requestedSettings)}
 `;
 
     const systemPrompt = `Tu es un expert en marketing digital pour la restauration. Tu dois generer UNE campagne publicitaire optimisee pour le restaurant ci-dessous.
@@ -459,11 +592,13 @@ REGLES:
 - La description doit etre une annonce client finale: elle vend le plat, l'offre, l'experience ou le restaurant directement
 - Interdiction de donner des conseils au restaurateur: pas de formulations comme "Mettez", "Boostez", "Capitalisez", "Utilisez", "Votre restaurant", "Vos ventes"
 - Ne parle jamais au restaurateur; parle aux clients finaux ou de l'offre disponible
-- Choisis les target_pages les plus pertinentes (2-3 max)
-- Choisis pricing_strategy: visibility pour notoriété, traffic pour visites fiche/recherche, conversion pour commandes/réservations/anti-gaspi
-- Choisis channels.banner et channels.restaurant_cards automatiquement: bannière pour notoriété/ventes flash/produits forts, carte restaurant pour trafic et anti-gaspi
-- Selectionne automatiquement le segment client, les parcours, les moments de service, l heure de publication et l heure d arret selon les ventes/reservations
-- Le budget doit etre realiste (5-15% du CA mensuel) et pace par jour
+- Utilise tous les parametres personnalises transmis: texte existant, type, pages, emplacements, composition visuelle, couleur/police/style, budget, duree, dates, objectif, segment client, fans, affinites culinaires, parcours, moments, villes, minimums de commandes/panier et image
+- Si un parametre personnalise est renseigne, conserve-le ou adapte uniquement la copie pour le rendre coherent; ne l ignore pas silencieusement
+- Choisis les target_pages les plus pertinentes (2-3 max) quand aucune page personnalisee n'est fournie
+- Choisis pricing_strategy: visibility pour notoriété, traffic pour visites fiche/recherche, conversion pour commandes/réservations/anti-gaspi, sauf objectif personnalise explicite
+- Choisis channels.banner et channels.restaurant_cards automatiquement quand aucun emplacement personnalise n'est fourni: bannière pour notoriété/ventes flash/produits forts, carte restaurant pour trafic et anti-gaspi
+- Selectionne automatiquement le segment client, les parcours, les moments de service, l heure de publication et l heure d arret selon les ventes/reservations quand le ciblage personnalise est vide
+- Le budget doit etre realiste (5-15% du CA mensuel) et pace par jour, sauf budget personnalise explicite
 - Priorise les produits et horaires qui performent le mieux
 - Adapte le message aux forces du restaurant
 
@@ -568,6 +703,7 @@ Retourne UNIQUEMENT le JSON, sans explication.`;
         credit_units: 5,
         generation_source: generationSource,
         fallback_reason: fallbackReason,
+        requested_settings: requestedSettings,
       },
     });
 
