@@ -471,7 +471,7 @@ export default function DashboardLayout({
       </div>
 
       {/* MAIN */}
-      <main className={cn("relative flex-1 overflow-hidden p-5 pb-28 md:p-6", mainClassName)}>
+      <main className={cn("relative flex-1 overflow-hidden p-4 pb-28 pt-20 sm:p-5 sm:pt-20 md:p-6", mainClassName)}>
         <div className="pointer-events-none absolute inset-0 hidden dark:block">
           <div className="absolute -left-36 top-10 h-96 w-96 rounded-full bg-[#ff6a1a]/12 blur-3xl" />
           <div className="absolute right-0 top-1/4 h-[28rem] w-[28rem] rounded-full bg-[#1e4aa0]/18 blur-3xl" />
