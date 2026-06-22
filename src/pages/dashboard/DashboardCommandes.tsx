@@ -587,7 +587,7 @@ export default function DashboardCommandes() {
               >
                 {groupedOrders.map((dayGroup) => (
                   <AccordionItem key={dayGroup.dateKey} value={dayGroup.dateKey} className="overflow-hidden rounded-2xl border bg-card shadow-sm">
-                    <AccordionTrigger className="px-5 py-4 text-left hover:no-underline">
+                    <AccordionTrigger className="px-4 py-4 text-left hover:no-underline sm:px-5">
                       <div className="space-y-1">
                         <p className="text-sm font-semibold capitalize">{dayGroup.dateLabel}</p>
                         <p className="text-xs text-muted-foreground">
@@ -595,7 +595,7 @@ export default function DashboardCommandes() {
                         </p>
                       </div>
                     </AccordionTrigger>
-                    <AccordionContent className="space-y-4 px-5 pb-5">
+                    <AccordionContent className="space-y-4 px-3 pb-4 sm:px-5 sm:pb-5">
                       <div className="space-y-3 rounded-2xl border border-dashed border-border/70 bg-muted/20 p-4">
                         <div className="space-y-1">
                           <p className="text-sm font-semibold">Repartition du jour</p>
@@ -668,12 +668,12 @@ export default function DashboardCommandes() {
                         return (
                           <div
                             key={order.id}
-                            className={`space-y-4 rounded-2xl border bg-card p-5 ${orderTypeMeta.cardClassName}`}
+                            className={`min-w-0 space-y-4 rounded-2xl border bg-card p-4 sm:p-5 ${orderTypeMeta.cardClassName}`}
                           >
-                            <div className="flex flex-wrap items-start justify-between gap-4">
-                              <div className="space-y-1">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-lg font-bold">{order.order_number || `#${order.id.slice(0, 8)}`}</span>
+                            <div className="flex min-w-0 flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                              <div className="min-w-0 space-y-1">
+                                <div className="flex min-w-0 flex-wrap items-center gap-2">
+                                  <span className="min-w-0 break-words text-lg font-bold">{order.order_number || `#${order.id.slice(0, 8)}`}</span>
                                   <OrderStatusBadge status={normalizeOrderStatus(order.status)} />
                                   {orderTypeMeta.badgeLabel ? (
                                     <Badge variant="outline" className={orderTypeMeta.badgeClassName}>
@@ -706,15 +706,15 @@ export default function DashboardCommandes() {
                                   })}
                                 </p>
                               </div>
-                              <div className="flex items-center gap-3">
-                                <div className="mr-4 text-right">
+                              <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(11rem,1fr)_auto_auto_minmax(10rem,auto)_auto] lg:items-start xl:min-w-[34rem]">
+                                <div className="min-w-0 rounded-xl bg-muted/25 p-3 text-left sm:col-span-2 lg:col-span-1 lg:text-right">
                                   <p className="text-lg font-bold text-primary">{Number(order.total_amount).toFixed(2)} CHF</p>
                                   {paymentBreakdown.tokOneTotalSaved > 0 ? (
                                     <p className="mt-1 text-[11px] font-medium text-violet-600">
                                       -{paymentBreakdown.tokOneTotalSaved.toFixed(2)} CHF Tok One
                                     </p>
                                   ) : null}
-                                  <div className="flex flex-col items-end">
+                                  <div className="flex flex-col items-start lg:items-end">
                                     <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Paiement reçu</p>
                                     {paymentMeta.payment_method ? (
                                       <div className="mt-1 flex items-center gap-1.5">
@@ -733,7 +733,7 @@ export default function DashboardCommandes() {
                                   <Button
                                     size="sm"
                                     variant="outline"
-                                    className="h-10"
+                                    className="h-10 w-full justify-center lg:w-auto"
                                     onClick={() => void markOrderSeen(order.id)}
                                     disabled={cancelMutation.isPending}
                                   >
@@ -744,7 +744,7 @@ export default function DashboardCommandes() {
                                 {isAwaitingRestaurantAcceptance ? (
                                   <Button
                                     size="sm"
-                                    className="h-10"
+                                    className="h-10 w-full justify-center lg:w-auto"
                                     onClick={() => handleStatusSelection(order, "accepted")}
                                     disabled={isOrderStatusLocked || cancelMutation.isPending}
                                   >
@@ -752,13 +752,13 @@ export default function DashboardCommandes() {
                                     Accepter
                                   </Button>
                                 ) : null}
-                                <div className="space-y-1">
+                                <div className="min-w-0 space-y-1 sm:col-span-2 lg:col-span-1">
                                   <Select
                                     value={normalizeOrderStatus(order.status)}
                                     onValueChange={(value) => handleStatusSelection(order, value)}
                                     disabled={isOrderStatusLocked || cancelMutation.isPending}
                                   >
-                                    <SelectTrigger className="h-10 w-40 shadow-sm">
+                                    <SelectTrigger className="h-10 w-full min-w-0 shadow-sm lg:w-40">
                                       <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -770,7 +770,7 @@ export default function DashboardCommandes() {
                                     </SelectContent>
                                   </Select>
                                   {orderStatusLockMessage ? (
-                                    <p className="max-w-40 text-right text-[11px] text-muted-foreground">
+                                    <p className="text-left text-[11px] text-muted-foreground lg:max-w-40 lg:text-right">
                                       {orderStatusLockMessage}
                                     </p>
                                   ) : null}
@@ -778,7 +778,7 @@ export default function DashboardCommandes() {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="h-10 text-destructive"
+                                  className="h-10 w-full justify-center text-destructive lg:w-auto"
                                   onClick={() => setCancelTarget(order)}
                                   disabled={!canCancelOrder(order) || cancelMutation.isPending}
                                 >
@@ -819,14 +819,14 @@ export default function DashboardCommandes() {
                                 </div>
                                 <div className="space-y-2 rounded-xl bg-muted/30 p-3">
                                   {items.map((item) => (
-                                    <div key={item.id} className="flex items-center justify-between text-xs">
-                                      <div className="flex items-center gap-2">
+                                    <div key={item.id} className="flex min-w-0 flex-col gap-1 text-xs sm:flex-row sm:items-center sm:justify-between">
+                                      <div className="flex min-w-0 items-center gap-2">
                                         <span className="flex h-5 w-5 items-center justify-center rounded bg-primary/10 text-[10px] font-bold text-primary">
                                           {item.quantity}
                                         </span>
-                                        <span className="font-medium">{item.name || "Article"}</span>
+                                        <span className="min-w-0 break-words font-medium">{item.name || "Article"}</span>
                                       </div>
-                                      <span className="text-muted-foreground">{Number(item.total_price).toFixed(2)} CHF</span>
+                                      <span className="shrink-0 text-muted-foreground sm:text-right">{Number(item.total_price).toFixed(2)} CHF</span>
                                     </div>
                                   ))}
                                   {order.notes ? (
