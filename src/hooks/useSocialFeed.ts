@@ -3,6 +3,7 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient, type QueryClie
 import { toast } from "sonner";
 
 import { getSupabase } from "@/integrations/supabase/client";
+import { getUserFacingErrorMessage } from "@/lib/userFacingErrors";
 import { useAuth } from "@/lib/auth-context";
 import { createSocialRealtimeManager } from "@/lib/socialRealtime";
 import {
@@ -1162,7 +1163,7 @@ export function useCreateSocialPost() {
       toast.success(input.scheduledAt ? "Post programme." : "Post publie.");
       invalidateSocialQueries(queryClient);
     },
-    onError: (error) => toast.error((error as Error).message),
+    onError: (error) => toast.error(getUserFacingErrorMessage(error)),
   });
 }
 
@@ -1186,7 +1187,7 @@ export function useToggleSocialLike() {
       );
     },
     onSuccess: () => invalidateSocialQueries(queryClient),
-    onError: (error) => toast.error((error as Error).message),
+    onError: (error) => toast.error(getUserFacingErrorMessage(error)),
   });
 }
 
@@ -1228,7 +1229,7 @@ export function useSetSocialPostReaction() {
     },
     onSuccess: () => invalidateSocialQueries(queryClient),
     onError: (error) => {
-      toast.error((error as Error).message);
+      toast.error(getUserFacingErrorMessage(error));
       invalidateSocialQueries(queryClient);
     },
   });
@@ -1256,7 +1257,7 @@ export function useDeleteSocialPost() {
       removeSocialPost(queryClient, post.id);
       invalidateSocialQueries(queryClient);
     },
-    onError: (error) => toast.error((error as Error).message),
+    onError: (error) => toast.error(getUserFacingErrorMessage(error)),
   });
 }
 
@@ -1293,7 +1294,7 @@ export function useToggleRestaurantFollow() {
       });
     },
     onSuccess: () => invalidateSocialQueries(queryClient),
-    onError: (error) => toast.error((error as Error).message),
+    onError: (error) => toast.error(getUserFacingErrorMessage(error)),
   });
 }
 
@@ -1323,7 +1324,7 @@ export function useToggleSocialRepost() {
       await recordSocialEventBestEffort({ postId: post.id, eventType: "repost", metadata: {} });
     },
     onSuccess: () => invalidateSocialQueries(queryClient),
-    onError: (error) => toast.error((error as Error).message),
+    onError: (error) => toast.error(getUserFacingErrorMessage(error)),
   });
 }
 
@@ -1373,7 +1374,7 @@ export function useToggleSocialSave() {
     },
     onSuccess: () => invalidateSocialQueries(queryClient),
     onError: (error) => {
-      toast.error((error as Error).message);
+      toast.error(getUserFacingErrorMessage(error));
       invalidateSocialQueries(queryClient);
     },
   });
@@ -1396,7 +1397,7 @@ export function useRecordExternalShare() {
       await recordSocialEventBestEffort({ postId, eventType: "share", metadata: { channel } });
     },
     onSuccess: () => invalidateSocialQueries(queryClient),
-    onError: (error) => toast.error((error as Error).message),
+    onError: (error) => toast.error(getUserFacingErrorMessage(error)),
   });
 }
 
@@ -1476,7 +1477,7 @@ export function useSocialFeedFeedback() {
       toast.success(feedbackType === "show_more" ? "Preference prise en compte." : "Le fil s'adapté à votre retour.");
       invalidateSocialQueries(queryClient);
     },
-    onError: (error) => toast.error((error as Error).message),
+    onError: (error) => toast.error(getUserFacingErrorMessage(error)),
   });
 }
 
@@ -1606,7 +1607,7 @@ export function useAddSocialComment(postId: string, parentCommentId?: string | n
       });
     },
     onSuccess: () => invalidateSocialQueries(queryClient),
-    onError: (error) => toast.error((error as Error).message),
+    onError: (error) => toast.error(getUserFacingErrorMessage(error)),
   });
 }
 
@@ -1634,7 +1635,7 @@ export function useSetSocialCommentReaction() {
       }
     },
     onSuccess: () => invalidateSocialQueries(queryClient),
-    onError: (error) => toast.error((error as Error).message),
+    onError: (error) => toast.error(getUserFacingErrorMessage(error)),
   });
 }
 
@@ -1659,7 +1660,7 @@ export function useDeleteSocialComment() {
       toast.success("Commentaire supprime.");
       invalidateSocialQueries(queryClient);
     },
-    onError: (error) => toast.error((error as Error).message),
+    onError: (error) => toast.error(getUserFacingErrorMessage(error)),
   });
 }
 
@@ -1694,7 +1695,7 @@ export function useReportSocialItem() {
       toast.success(result.alreadyReported ? "Signalement déjà transmis." : "Signalement transmis.");
       invalidateSocialQueries(queryClient);
     },
-    onError: (error) => toast.error((error as Error).message),
+    onError: (error) => toast.error(getUserFacingErrorMessage(error)),
   });
 }
 
@@ -1769,6 +1770,6 @@ export function useModerateSocialContent() {
       patchAdminSocialModeration(queryClient, variables);
       invalidateSocialQueries(queryClient);
     },
-    onError: (error) => toast.error((error as Error).message),
+    onError: (error) => toast.error(getUserFacingErrorMessage(error)),
   });
 }
