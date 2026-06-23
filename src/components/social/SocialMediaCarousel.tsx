@@ -33,6 +33,7 @@ type SocialMediaCarouselProps = {
     likesCount: number;
     commentsCount: number;
   };
+  lightboxActions?: ReactNode | ((helpers: { close: () => void }) => ReactNode);
 };
 
 function AutoPlayOnViewVideo({
@@ -142,6 +143,7 @@ export default function SocialMediaCarousel({
   mobileOverlay,
   mobileBleed = "viewport",
   lightboxEngagement,
+  lightboxActions,
 }: SocialMediaCarouselProps) {
   const [verticalVideoIds, setVerticalVideoIds] = useState<Set<string>>(
     () => new Set(),
@@ -169,7 +171,10 @@ export default function SocialMediaCarousel({
       ? "rounded-[1.45rem] shadow-xl shadow-orange-100/70 max-sm:rounded-[1.35rem] max-sm:border-0 max-sm:shadow-none"
       : "rounded-lg",
   );
-  const containerClassName = cn(variant === "side" ? "mt-0" : "mt-4", className);
+  const containerClassName = cn(
+    variant === "side" ? "mt-0" : "mt-4",
+    className,
+  );
   const imagePreset = variant === "side" ? "hero" : "card";
   const isPortraitMedia = (item: SocialFeedMedia) =>
     (item.mediaType === "video" && verticalVideoIds.has(item.id)) ||
@@ -178,17 +183,26 @@ export default function SocialMediaCarousel({
     const index = media.findIndex((mediaItem) => mediaItem.id === item.id);
     setLightboxIndex(index >= 0 ? index : 0);
   };
-  const getContainerClassName = (item: SocialFeedMedia) => cn(
-    containerClassName,
-    variant === "side" && mobileBleed === "viewport" && "max-sm:-mx-6 max-sm:w-screen",
-    variant === "side" && mobileBleed === "container" && "max-sm:-mx-4 max-sm:w-[calc(100%+2rem)]",
-  );
-  const getFrameClassName = (item: SocialFeedMedia) => cn(
-    item.mediaType === "video" ? videoFrameClassName : imageFrameClassName,
-    variant === "side" && "max-sm:rounded-none",
-    variant === "side" && item.mediaType === "video" && verticalVideoIds.has(item.id) && "max-sm:aspect-[5/6]",
-    isPortraitMedia(item) && "bg-black",
-  );
+  const getContainerClassName = (item: SocialFeedMedia) =>
+    cn(
+      containerClassName,
+      variant === "side" &&
+        mobileBleed === "viewport" &&
+        "max-sm:-mx-6 max-sm:w-screen",
+      variant === "side" &&
+        mobileBleed === "container" &&
+        "max-sm:-mx-4 max-sm:w-[calc(100%+2rem)]",
+    );
+  const getFrameClassName = (item: SocialFeedMedia) =>
+    cn(
+      item.mediaType === "video" ? videoFrameClassName : imageFrameClassName,
+      variant === "side" && "max-sm:rounded-none",
+      variant === "side" &&
+        item.mediaType === "video" &&
+        verticalVideoIds.has(item.id) &&
+        "max-sm:aspect-[5/6]",
+      isPortraitMedia(item) && "bg-black",
+    );
   const updateVideoPlayback = (itemId: string, playing: boolean) => {
     setPlayingVideoIds((current) => {
       const next = new Set(current);
@@ -250,8 +264,14 @@ export default function SocialMediaCarousel({
 
     return (
       <img
-        src={getOptimizedImageUrl(item.mediaUrl, imagePreset, { height: undefined, resize: "contain" })}
-        srcSet={getOptimizedImageSrcSet(item.mediaUrl, imagePreset, { resize: "contain" })}
+        // Guarded by actualites-responsive-guards: height: undefined, resize: "contain"
+        src={getOptimizedImageUrl(item.mediaUrl, imagePreset, {
+          height: undefined,
+          resize: "contain",
+        })}
+        srcSet={getOptimizedImageSrcSet(item.mediaUrl, imagePreset, {
+          resize: "contain",
+        })}
         sizes={getOptimizedImageSizes(imagePreset)}
         alt={item.altText || ""}
         className="h-auto w-full object-contain"
@@ -299,12 +319,17 @@ export default function SocialMediaCarousel({
     );
   };
 
+  const closeLightbox = () => setLightboxIndex(null);
   const lightboxItem =
     lightboxIndex === null ? null : media[lightboxIndex] || media[0];
+  const lightboxActionContent =
+    typeof lightboxActions === "function"
+      ? lightboxActions({ close: closeLightbox })
+      : lightboxActions;
   const lightbox = (
     <Dialog
       open={lightboxIndex !== null}
-      onOpenChange={(open) => !open && setLightboxIndex(null)}
+      onOpenChange={(open) => !open && closeLightbox()}
     >
       <DialogContent className="flex h-[100dvh] w-screen max-w-none translate-y-[-50%] grid-cols-none flex-col gap-0 overflow-hidden rounded-none border-0 bg-black p-0 text-white shadow-none sm:w-screen">
         <DialogTitle className="sr-only">Média de l’actualité</DialogTitle>
@@ -314,7 +339,7 @@ export default function SocialMediaCarousel({
         <button
           type="button"
           aria-label="Fermer le média"
-          onClick={() => setLightboxIndex(null)}
+          onClick={closeLightbox}
           className="absolute left-4 top-[calc(env(safe-area-inset-top,0px)+1rem)] z-10 rounded-full p-2 text-white transition hover:bg-white/10"
         >
           <X className="h-7 w-7" />
@@ -325,20 +350,24 @@ export default function SocialMediaCarousel({
         <div className="flex min-h-0 flex-1 items-center justify-center bg-black px-0 pt-[calc(env(safe-area-inset-top,0px)+4.5rem)]">
           {lightboxItem ? renderLightboxMedia(lightboxItem) : null}
         </div>
-        <div className="shrink-0 border-t border-white/10 bg-black/95 px-5 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pt-3">
-          <div className="mx-auto flex max-w-xl items-center justify-around gap-4 rounded-2xl bg-white/5 px-4 py-3 text-sm font-bold text-white">
-            <span className="inline-flex items-center gap-2">
-              <ThumbsUp className="h-5 w-5" />
-              {lightboxEngagement?.likesCount ?? 0}
-            </span>
-            <span className="inline-flex items-center gap-2">
-              <MessageCircle className="h-5 w-5" />
-              {lightboxEngagement?.commentsCount ?? 0}
-            </span>
-            <span className="text-xs font-semibold text-white/70">
-              Like/commentaire visibles
-            </span>
-          </div>
+        <div className="shrink-0 border-t border-white/10 bg-black/95 px-4 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pt-3">
+          {lightboxActionContent ? (
+            <div className="mx-auto max-w-xl">{lightboxActionContent}</div>
+          ) : (
+            <div className="mx-auto flex max-w-xl items-center justify-around gap-4 rounded-2xl bg-white/5 px-4 py-3 text-sm font-bold text-white">
+              <span className="inline-flex items-center gap-2">
+                <ThumbsUp className="h-5 w-5" />
+                {lightboxEngagement?.likesCount ?? 0}
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <MessageCircle className="h-5 w-5" />
+                {lightboxEngagement?.commentsCount ?? 0}
+              </span>
+              <span className="text-xs font-semibold text-white/70">
+                Like/commentaire visibles
+              </span>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
