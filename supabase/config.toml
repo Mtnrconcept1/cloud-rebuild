@@ -86,6 +86,9 @@ verify_jwt = false
 [functions.delete-account]
 verify_jwt = false
 
+[functions.daily-slot-spin]
+verify_jwt = false
+
 [functions.dispatch-order]
 verify_jwt = false
 

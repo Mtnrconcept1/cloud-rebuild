@@ -164,6 +164,23 @@
   .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
   .safe-left { padding-left: env(safe-area-inset-left, 0px); }
   .safe-right { padding-right: env(safe-area-inset-right, 0px); }
+  @keyframes tok-slot-marquee {
+    0% {
+      transform: translateX(0);
+    }
+    14% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(calc(-100% - 1rem));
+    }
+  }
+  .tok-slot-marquee-track {
+    display: inline-block;
+    min-width: 100%;
+    padding-left: 100%;
+    animation: tok-slot-marquee 12s linear infinite;
+  }
   .glass-morphism {
     @apply bg-white/70 dark:bg-slate-950/70 backdrop-blur-md border border-white/20 dark:border-white/20 shadow-[0_10px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_70px_rgba(0,0,0,0.5),0_0_36px_rgba(249,115,22,0.12)];
   }
