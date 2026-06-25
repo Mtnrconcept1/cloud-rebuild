@@ -11,6 +11,7 @@ import {
   Bookmark,
   CalendarCheck,
   ChevronDown,
+  Copy,
   EyeOff,
   MessageCircle,
   MoreVertical,
@@ -1014,6 +1015,7 @@ export default function SocialPostCard({
 }) {
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [bodyExpanded, setBodyExpanded] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [reportReason, setReportReason] = useState<SocialReportReason>("spam");
   const [reportDetails, setReportDetails] = useState("");
@@ -1055,13 +1057,24 @@ export default function SocialPostCard({
         return;
       }
 
-      await navigator.clipboard.writeText(url);
-      await recordShare.mutateAsync({ postId: post.id, channel: "link" });
-      toast.success("Lien copié.");
+      setShareDialogOpen(true);
     } catch (error) {
       if ((error as Error).name !== "AbortError") {
         toast.error("Partage impossible.");
       }
+    }
+  };
+
+  const copyShareLink = async () => {
+    const url = getSocialPostShareUrl(post.id);
+
+    try {
+      await navigator.clipboard.writeText(url);
+      await recordShare.mutateAsync({ postId: post.id, channel: "link" });
+      setShareDialogOpen(false);
+      toast.success("Lien copié.");
+    } catch {
+      toast.error("Copie du lien impossible.");
     }
   };
 
@@ -1419,6 +1432,7 @@ export default function SocialPostCard({
             )}
             onClick={sharePost}
             disabled={recordShare.isPending}
+            aria-label="Partager ce post"
           >
             <Share2 className="h-4 w-4 max-sm:h-3.5 max-sm:w-3.5" />
             {post.sharesCount}
@@ -1521,6 +1535,33 @@ export default function SocialPostCard({
             </Badge>
           </div>
         ) : null}
+
+        <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
+          <DialogContent className="max-w-md rounded-2xl p-5 sm:p-6">
+            <DialogHeader>
+              <DialogTitle>Partager ce post</DialogTitle>
+              <DialogDescription>
+                Le compteur sera mis à jour uniquement après une action de
+                partage confirmée.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-3">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 [overflow-wrap:anywhere]">
+                {getSocialPostShareUrl(post.id)}
+              </div>
+              <Button
+                type="button"
+                className="w-full justify-center gap-2 rounded-xl bg-orange-600 hover:bg-orange-700"
+                onClick={copyShareLink}
+                disabled={recordShare.isPending}
+              >
+                <Copy className="h-4 w-4" />
+                Copier le lien
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
           <DialogContent className="max-w-md rounded-2xl p-5 sm:p-6">

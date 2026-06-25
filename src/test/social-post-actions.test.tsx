@@ -97,6 +97,14 @@ async function pointerDownAndSettle(element: Element) {
 describe("SocialPostCard actions", () => {
   beforeEach(() => {
     Element.prototype.setPointerCapture ??= vi.fn();
+    Object.defineProperty(navigator, "share", {
+      configurable: true,
+      value: undefined,
+    });
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: vi.fn(async () => undefined) },
+    });
     socialHooks.addComment.mockClear();
     socialHooks.deleteMutate.mockClear();
     socialHooks.feedbackMutate.mockClear();
@@ -223,6 +231,80 @@ describe("SocialPostCard actions", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Afficher plus" }));
     expect(screen.getByRole("button", { name: "Afficher moins" })).toBeInTheDocument();
+  });
+
+  it("opens the explicit share dialog without counting a share on fallback browsers", async () => {
+    render(
+      <MemoryRouter>
+        <SocialPostCard post={post as any} />
+      </MemoryRouter>,
+    );
+
+    await clickAndSettle(screen.getByRole("button", { name: "Partager ce post" }));
+
+    expect(screen.getByRole("dialog", { name: "Partager ce post" })).toBeInTheDocument();
+    expect(socialHooks.mutateAsync).not.toHaveBeenCalled();
+
+    await clickAndSettle(screen.getByRole("button", { name: "Copier le lien" }));
+
+    await waitFor(() =>
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+        expect.stringContaining("/actualites?post=post-1"),
+      ),
+    );
+    expect(socialHooks.mutateAsync).toHaveBeenCalledWith({
+      postId: "post-1",
+      channel: "link",
+    });
+  });
+
+  it("records native shares only after the native share promise succeeds", async () => {
+    const share = vi.fn(async () => undefined);
+    Object.defineProperty(navigator, "share", {
+      configurable: true,
+      value: share,
+    });
+
+    render(
+      <MemoryRouter>
+        <SocialPostCard post={post as any} />
+      </MemoryRouter>,
+    );
+
+    await clickAndSettle(screen.getByRole("button", { name: "Partager ce post" }));
+
+    expect(share).toHaveBeenCalledWith({
+      title: "Quirinale sur Tok",
+      text: "Plat du jour",
+      url: expect.stringContaining("/actualites?post=post-1"),
+    });
+    expect(socialHooks.mutateAsync).toHaveBeenCalledWith({
+      postId: "post-1",
+      channel: "native",
+    });
+  });
+
+  it("does not record a share when the native share sheet is cancelled", async () => {
+    const abortError = Object.assign(new Error("Share cancelled"), {
+      name: "AbortError",
+    });
+    Object.defineProperty(navigator, "share", {
+      configurable: true,
+      value: vi.fn(async () => {
+        throw abortError;
+      }),
+    });
+
+    render(
+      <MemoryRouter>
+        <SocialPostCard post={post as any} />
+      </MemoryRouter>,
+    );
+
+    await clickAndSettle(screen.getByRole("button", { name: "Partager ce post" }));
+
+    expect(socialHooks.mutateAsync).not.toHaveBeenCalled();
+    expect(screen.queryByRole("dialog", { name: "Partager ce post" })).not.toBeInTheDocument();
   });
 
   it("sorts comments by date or likes from the comments panel", async () => {
