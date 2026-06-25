@@ -83,7 +83,7 @@ const PROGRESSIVE_EDITOR_STEPS = [
     id: "schedule",
     eyebrow: "Etape 2",
     title: "Calendrier",
-    description: "Jour J, service cible et fin du compte a rebours.",
+    description: "Jour unique, occurrence, service et compte a rebours.",
   },
   {
     id: "capacity",
@@ -95,7 +95,11 @@ const PROGRESSIVE_EDITOR_STEPS = [
 
 type ProgressiveEditorStepId = (typeof PROGRESSIVE_EDITOR_STEPS)[number]["id"];
 
-type ProgressiveOfferRecurrence = "none" | "daily" | "weekly";
+type ProgressiveScheduleMode = "single" | "occurrence";
+type ProgressiveOccurrenceMode = "custom" | "weekly";
+type WeekdayValue = (typeof DAYS_OF_WEEK)[number]["value"];
+
+const WEEKDAY_BY_JS_DAY: WeekdayValue[] = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 
 type PresetFormula = {
   formula_key: string;
@@ -274,60 +278,95 @@ function fromDateInputValue(value: string) {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
-function toDateTimeLocalValue(date: Date) {
-  return `${toDateInputValue(date)}T${padNumber(date.getHours())}:${padNumber(date.getMinutes())}`;
-}
-
 function addDays(date: Date, days: number) {
   const next = new Date(date);
   next.setDate(next.getDate() + days);
   return next;
 }
 
-function getServiceDayStartDateTimeValue(serviceDate: string) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(serviceDate)) return "";
-  return `${serviceDate}T00:00`;
-}
-
-function isCountdownBeforeServiceDay(countdownEndsAt: string, serviceDate: string) {
-  const serviceDayStart = new Date(`${serviceDate}T00:00:00`);
-  const countdownEnd = new Date(countdownEndsAt);
-  if (Number.isNaN(serviceDayStart.getTime()) || Number.isNaN(countdownEnd.getTime())) return false;
-  return countdownEnd.getTime() < serviceDayStart.getTime();
-}
-
-function clampCountdownEndToServiceDay(countdownEndsAt: string, serviceDate: string) {
-  const minValue = getServiceDayStartDateTimeValue(serviceDate);
-  if (!minValue) return countdownEndsAt;
-  if (!countdownEndsAt || !isCountdownBeforeServiceDay(countdownEndsAt, serviceDate)) return countdownEndsAt;
-  const time = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(countdownEndsAt)
-    ? countdownEndsAt.slice(11, 16)
-    : "18:00";
-  return `${serviceDate}T${time}`;
-}
-
 function getProgressiveServiceDefaultTime(period: ServicePeriod) {
   return DEFAULT_SERVICE_SETTINGS[period].start_time;
 }
 
+function isDateInputValue(value: string) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value);
+}
+
+function normalizeTimeValue(value: string | null | undefined, fallback: string) {
+  const normalized = typeof value === "string" ? value.slice(0, 5) : "";
+  return /^\d{2}:\d{2}$/.test(normalized) ? normalized : fallback;
+}
+
+function buildProgressiveDateTime(dateValue: string, timeValue: string) {
+  return new Date(`${dateValue}T${normalizeTimeValue(timeValue, "19:00")}:00`);
+}
+
+function getProgressiveCountdownDefaults(period: ServicePeriod) {
+  return period === "lunch"
+    ? { startTime: "08:00", endTime: "11:30" }
+    : { startTime: "12:00", endTime: "18:00" };
+}
+
+function readLocalTimeFromIso(value: string | null | undefined, fallback: string) {
+  if (!value) return fallback;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return fallback;
+  return `${padNumber(date.getHours())}:${padNumber(date.getMinutes())}`;
+}
+
+function getWeekdayValue(date: Date): WeekdayValue {
+  return WEEKDAY_BY_JS_DAY[date.getDay()] || "mon";
+}
+
+function getUniqueSortedDates(dates: string[]) {
+  return Array.from(new Set(dates.filter(isDateInputValue))).sort();
+}
+
+function getDateRangeByWeekdays(startValue: string, endValue: string, weekdays: WeekdayValue[]) {
+  const startDate = fromDateInputValue(startValue);
+  const endDate = fromDateInputValue(endValue);
+  if (!startDate || !endDate || endDate.getTime() < startDate.getTime() || weekdays.length === 0) return [];
+
+  const selected = new Set<WeekdayValue>(weekdays);
+  const dates: string[] = [];
+  let cursor = new Date(startDate);
+
+  while (cursor.getTime() <= endDate.getTime() && dates.length < PROGRESSIVE_RECURRENCE_MAX_COUNT) {
+    if (selected.has(getWeekdayValue(cursor))) {
+      dates.push(toDateInputValue(cursor));
+    }
+    cursor = addDays(cursor, 1);
+  }
+
+  return dates;
+}
+
 function readProgressiveRecurrence(offer: ProgressiveReservationOffer): {
-  recurrence: ProgressiveOfferRecurrence;
-  recurrenceCount: string;
+  occurrenceMode: ProgressiveOccurrenceMode;
+  selectedDates: string[];
+  weekdays: WeekdayValue[];
+  recurrenceEndDate: string;
 } {
   const metadata = offer.metadata;
   const recurrence = metadata && typeof metadata === "object" && "recurrence" in metadata
     ? (metadata.recurrence as Record<string, unknown> | null)
     : null;
-  const frequency = recurrence?.frequency === "daily" || recurrence?.frequency === "weekly"
-    ? recurrence.frequency
-    : "none";
-  const occurrenceCount = typeof recurrence?.occurrence_count === "number"
-    ? recurrence.occurrence_count
-    : 1;
+  const occurrenceMode = recurrence?.frequency === "weekly" ? "weekly" : "custom";
+  const selectedDates = Array.isArray(recurrence?.selected_dates)
+    ? getUniqueSortedDates(recurrence.selected_dates.filter((date): date is string => typeof date === "string"))
+    : [offer.service_date];
+  const weekdays = Array.isArray(recurrence?.weekdays)
+    ? recurrence.weekdays.filter((day): day is WeekdayValue => DAYS_OF_WEEK.some(({ value }) => value === day))
+    : [getWeekdayValue(new Date(`${offer.service_date}T12:00:00`))];
+  const recurrenceEndDate = typeof recurrence?.ends_on === "string" && isDateInputValue(recurrence.ends_on)
+    ? recurrence.ends_on
+    : offer.service_date;
 
   return {
-    recurrence: frequency,
-    recurrenceCount: String(Math.max(1, Math.min(PROGRESSIVE_RECURRENCE_MAX_COUNT, occurrenceCount))),
+    occurrenceMode,
+    selectedDates,
+    weekdays: weekdays.length > 0 ? weekdays : [getWeekdayValue(new Date(`${offer.service_date}T12:00:00`))],
+    recurrenceEndDate,
   };
 }
 
@@ -336,52 +375,72 @@ function buildDefaultProgressiveOfferForm() {
   const serviceDate = new Date(now);
   serviceDate.setDate(serviceDate.getDate() + 1);
   serviceDate.setHours(19, 0, 0, 0);
-
-  const countdownEnd = new Date(serviceDate);
-  countdownEnd.setHours(18, 0, 0, 0);
+  const countdownDefaults = getProgressiveCountdownDefaults("dinner");
+  const recurrenceEnd = addDays(serviceDate, 14);
+  const serviceDateValue = toDateInputValue(serviceDate);
 
   return {
     id: null as string | null,
     title: "Offre progressive du soir",
     description: "Plus les clients reservent avant la fin du compte a rebours, plus la remise finale augmente pour tous les participants.",
-    serviceDate: toDateInputValue(serviceDate),
+    serviceDate: serviceDateValue,
     serviceTime: "19:00",
-    countdownEndsAt: toDateTimeLocalValue(countdownEnd),
+    scheduleMode: "single" as ProgressiveScheduleMode,
+    occurrenceMode: "custom" as ProgressiveOccurrenceMode,
+    selectedDates: [serviceDateValue],
+    weekdays: [getWeekdayValue(serviceDate)] as WeekdayValue[],
+    recurrenceEndDate: toDateInputValue(recurrenceEnd),
+    countdownStartTime: countdownDefaults.startTime,
+    countdownEndTime: countdownDefaults.endTime,
     maxTables: "10",
     maxDiscountPercent: "50",
     isActive: true,
-    recurrence: "none" as ProgressiveOfferRecurrence,
-    recurrenceCount: "1",
   };
 }
 
 function buildProgressiveOfferFormForDate(serviceDate: string) {
   const form = buildDefaultProgressiveOfferForm();
+  const date = fromDateInputValue(serviceDate) || new Date();
   return {
     ...form,
     serviceDate,
-    countdownEndsAt: `${serviceDate}T18:00`,
+    selectedDates: [serviceDate],
+    weekdays: [getWeekdayValue(date)],
+    recurrenceEndDate: toDateInputValue(addDays(date, 14)),
   };
 }
 
 function progressiveOfferToForm(offer: ProgressiveReservationOffer) {
-  const countdownEnd = new Date(offer.countdown_ends_at);
   const recurrence = readProgressiveRecurrence(offer);
+  const serviceTime = normalizeTimeValue(offer.service_time, "19:00");
+  const countdownDefaults = getProgressiveCountdownDefaults(getProgressiveOfferServicePeriod({ service_time: serviceTime }));
   return {
     id: offer.id,
     title: offer.title || "Offre progressive",
     description: offer.description || "",
     serviceDate: offer.service_date,
-    serviceTime: (offer.service_time || "19:00").slice(0, 5),
-    countdownEndsAt: Number.isNaN(countdownEnd.getTime())
-      ? buildDefaultProgressiveOfferForm().countdownEndsAt
-      : toDateTimeLocalValue(countdownEnd),
+    serviceTime,
+    scheduleMode: "single" as ProgressiveScheduleMode,
+    occurrenceMode: recurrence.occurrenceMode,
+    selectedDates: recurrence.selectedDates.length > 0 ? recurrence.selectedDates : [offer.service_date],
+    weekdays: recurrence.weekdays,
+    recurrenceEndDate: recurrence.recurrenceEndDate,
+    countdownStartTime: readLocalTimeFromIso(offer.countdown_starts_at, countdownDefaults.startTime),
+    countdownEndTime: readLocalTimeFromIso(offer.countdown_ends_at, countdownDefaults.endTime),
     maxTables: String(offer.max_tables || 10),
     maxDiscountPercent: String(offer.max_discount_percent || 50),
     isActive: offer.status === "active",
-    recurrence: recurrence.recurrence,
-    recurrenceCount: recurrence.recurrenceCount,
   };
+}
+
+type ProgressiveOfferForm = ReturnType<typeof buildDefaultProgressiveOfferForm>;
+
+function getProgressiveScheduledDates(form: ProgressiveOfferForm) {
+  if (form.id || form.scheduleMode === "single") return getUniqueSortedDates([form.serviceDate]);
+  if (form.occurrenceMode === "weekly") {
+    return getDateRangeByWeekdays(form.serviceDate, form.recurrenceEndDate, form.weekdays);
+  }
+  return getUniqueSortedDates(form.selectedDates.length > 0 ? form.selectedDates : [form.serviceDate]);
 }
 
 function ProgressiveOfferManager({
@@ -458,81 +517,114 @@ function ProgressiveOfferManager({
 
   const save = async () => {
     const title = form.title.trim();
-    const serviceDate = new Date(`${form.serviceDate}T12:00:00`);
-    const countdownEnd = new Date(form.countdownEndsAt);
+    const scheduledDates = getProgressiveScheduledDates(form);
     const maxTables = Math.max(1, Math.min(200, Number(form.maxTables) || 10));
     const maxDiscountPercent = Math.max(1, Math.min(100, Number(form.maxDiscountPercent) || 50));
-    const recurrenceCount = form.id || form.recurrence === "none"
-      ? 1
-      : Math.max(1, Math.min(PROGRESSIVE_RECURRENCE_MAX_COUNT, Number(form.recurrenceCount) || 1));
-    const recurrenceIntervalDays = form.recurrence === "weekly" ? 7 : 1;
+    const serviceTime = normalizeTimeValue(form.serviceTime, "19:00");
+    const countdownStartTime = normalizeTimeValue(form.countdownStartTime, getProgressiveCountdownDefaults(selectedProgressiveService).startTime);
+    const countdownEndTime = normalizeTimeValue(form.countdownEndTime, getProgressiveCountdownDefaults(selectedProgressiveService).endTime);
 
     if (!title) {
       toast({ title: "Titre requis", description: "Nommez l'offre progressive.", variant: "destructive" });
       return false;
     }
 
-    if (!form.serviceDate || Number.isNaN(serviceDate.getTime())) {
-      toast({ title: "Date requise", description: "Choisissez le jour de service de l'offre.", variant: "destructive" });
-      return false;
-    }
-
-    if (Number.isNaN(countdownEnd.getTime())) {
-      toast({ title: "Compte a rebours invalide", description: "Choisissez une date et une heure de fin.", variant: "destructive" });
-      return false;
-    }
-
-    if (isCountdownBeforeServiceDay(form.countdownEndsAt, form.serviceDate)) {
+    if (scheduledDates.length === 0) {
       toast({
-        title: "Fin du compte a rebours invalide",
-        description: "La fin du compte a rebours ne peut pas etre avant le jour J de l'offre.",
+        title: "Date requise",
+        description: form.scheduleMode === "single"
+          ? "Choisissez le jour unique de l'offre."
+          : "Choisissez au moins une date ou un jour de la semaine pour l'occurrence.",
         variant: "destructive",
       });
       return false;
     }
 
-    const bookingCutoff = new Date(countdownEnd.getTime() - 30 * 60 * 1000);
-    if (bookingCutoff.getTime() <= Date.now() && form.isActive) {
+    if (scheduledDates.length > PROGRESSIVE_RECURRENCE_MAX_COUNT) {
       toast({
-        title: "Compte a rebours trop court",
-        description: "Une offre active doit laisser au moins 30 minutes de reservation.",
+        title: "Trop d'occurrences",
+        description: `Limitez la serie a ${PROGRESSIVE_RECURRENCE_MAX_COUNT} dates maximum.`,
         variant: "destructive",
       });
       return false;
+    }
+
+    for (const dateValue of scheduledDates) {
+      const serviceAt = buildProgressiveDateTime(dateValue, serviceTime);
+      const countdownStart = buildProgressiveDateTime(dateValue, countdownStartTime);
+      const countdownEnd = buildProgressiveDateTime(dateValue, countdownEndTime);
+      const bookingCutoff = new Date(countdownEnd.getTime() - 30 * 60 * 1000);
+
+      if ([serviceAt, countdownStart, countdownEnd, bookingCutoff].some((date) => Number.isNaN(date.getTime()))) {
+        toast({ title: "Compte a rebours invalide", description: "Verifiez les dates et les heures choisies.", variant: "destructive" });
+        return false;
+      }
+
+      if (countdownStart.getTime() >= countdownEnd.getTime()) {
+        toast({
+          title: "Compte a rebours invalide",
+          description: "L'heure de debut doit etre avant l'heure de fin du compte a rebours.",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      if (countdownEnd.getTime() >= serviceAt.getTime()) {
+        toast({
+          title: "Fin du compte a rebours invalide",
+          description: "La fin du compte a rebours doit etre avant l'heure de reservation du client.",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      if (bookingCutoff.getTime() <= Date.now() && form.isActive) {
+        toast({
+          title: "Compte a rebours trop court",
+          description: "Une offre active doit laisser au moins 30 minutes de reservation.",
+          variant: "destructive",
+        });
+        return false;
+      }
     }
 
     setSaving(true);
     try {
-      const payloads = Array.from({ length: recurrenceCount }, (_, index) => {
-        const offsetDays = form.recurrence === "none" ? 0 : index * recurrenceIntervalDays;
-        const occurrenceServiceDate = addDays(serviceDate, offsetDays);
-        const occurrenceCountdownEnd = addDays(countdownEnd, offsetDays);
-        const occurrenceBookingCutoff = addDays(bookingCutoff, offsetDays);
+      const payloads = scheduledDates.map((dateValue, index) => {
+        const occurrenceCountdownStart = buildProgressiveDateTime(dateValue, countdownStartTime);
+        const occurrenceCountdownEnd = buildProgressiveDateTime(dateValue, countdownEndTime);
+        const occurrenceBookingCutoff = new Date(occurrenceCountdownEnd.getTime() - 30 * 60 * 1000);
 
         return {
-        restaurant_id: restaurantId,
-        title,
-        description: form.description.trim() || null,
-          service_date: toDateInputValue(occurrenceServiceDate),
-        service_time: form.serviceTime || "19:00",
+          restaurant_id: restaurantId,
+          title,
+          description: form.description.trim() || null,
+          service_date: dateValue,
+          service_time: serviceTime,
+          countdown_starts_at: occurrenceCountdownStart.toISOString(),
           countdown_ends_at: occurrenceCountdownEnd.toISOString(),
           booking_cutoff_at: occurrenceBookingCutoff.toISOString(),
-        max_tables: maxTables,
-        max_discount_percent: maxDiscountPercent,
-        status: form.isActive ? "active" : "draft",
+          max_tables: maxTables,
+          max_discount_percent: maxDiscountPercent,
+          status: form.isActive ? "active" : "draft",
           metadata: {
             recurrence: {
-              frequency: form.id ? "none" : form.recurrence,
+              mode: form.id ? "single" : form.scheduleMode,
+              frequency: form.id || form.scheduleMode === "single" ? "none" : form.occurrenceMode,
               occurrence_index: index + 1,
-              occurrence_count: recurrenceCount,
+              occurrence_count: scheduledDates.length,
+              selected_dates: scheduledDates,
+              weekdays: form.scheduleMode === "occurrence" && form.occurrenceMode === "weekly" ? form.weekdays : [],
+              ends_on: form.scheduleMode === "occurrence" && form.occurrenceMode === "weekly" ? form.recurrenceEndDate : null,
+              countdown_start_time: countdownStartTime,
+              countdown_end_time: countdownEndTime,
             },
           },
-        updated_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
         };
       });
 
       if (form.isActive) {
-        const scheduledDates = payloads.map((payload) => payload.service_date);
         let conflictQuery = (supabase.from("reservation_progressive_offers" as any) as any)
           .select("id, service_date, title")
           .eq("restaurant_id", restaurantId)
@@ -574,7 +666,7 @@ function ProgressiveOfferManager({
       onSaved();
       toast({
         title: form.isActive ? "Offre progressive activee" : "Offre progressive enregistree",
-        description: recurrenceCount > 1 ? `${recurrenceCount} occurrences programmees.` : undefined,
+        description: scheduledDates.length > 1 ? `${scheduledDates.length} occurrences programmees.` : undefined,
       });
       return true;
     } catch (error: any) {
@@ -667,8 +759,10 @@ function ProgressiveOfferManager({
   const currentDiscount = getCurrentProgressiveDiscount(previewOffer);
   const nextDiscount = getNextProgressiveDiscount(previewOffer);
   const selectedProgressiveService = getProgressiveOfferServicePeriod({ service_time: form.serviceTime });
-  const countdownMinDateTime = getServiceDayStartDateTimeValue(form.serviceDate);
-  const countdownEndsBeforeServiceDate = isCountdownBeforeServiceDay(form.countdownEndsAt, form.serviceDate);
+  const scheduledPreviewDates = getProgressiveScheduledDates(form);
+  const selectedOccurrenceDateObjects = form.selectedDates
+    .map((date) => fromDateInputValue(date))
+    .filter(Boolean) as Date[];
   const editorStepIndex = PROGRESSIVE_EDITOR_STEPS.findIndex((step) => step.id === editorStep);
   const currentEditorStep = PROGRESSIVE_EDITOR_STEPS[Math.max(0, editorStepIndex)];
   const isFirstEditorStep = editorStepIndex <= 0;
@@ -692,6 +786,47 @@ function ProgressiveOfferManager({
     .filter((offer) => offer.status === "finalized")
     .map((offer) => fromDateInputValue(offer.service_date))
     .filter(Boolean) as Date[];
+
+  const setProgressiveServicePeriod = (period: ServicePeriod) => {
+    const countdownDefaults = getProgressiveCountdownDefaults(period);
+    setForm((current) => ({
+      ...current,
+      serviceTime: getProgressiveServiceDefaultTime(period),
+      countdownStartTime: countdownDefaults.startTime,
+      countdownEndTime: countdownDefaults.endTime,
+    }));
+  };
+
+  const setProgressiveServiceDate = (nextServiceDate: string) => {
+    const nextDate = fromDateInputValue(nextServiceDate) || new Date();
+    setCalendarTouched(true);
+    setSelectedCalendarDate(nextServiceDate);
+    setForm((current) => ({
+      ...current,
+      serviceDate: nextServiceDate,
+      selectedDates: current.scheduleMode === "single"
+        ? [nextServiceDate]
+        : getUniqueSortedDates([nextServiceDate, ...current.selectedDates]),
+      weekdays: current.weekdays.length > 0 ? current.weekdays : [getWeekdayValue(nextDate)],
+      recurrenceEndDate: current.recurrenceEndDate < nextServiceDate
+        ? toDateInputValue(addDays(nextDate, 14))
+        : current.recurrenceEndDate,
+    }));
+  };
+
+  const toggleProgressiveWeekday = (day: WeekdayValue) => {
+    setForm((current) => {
+      const hasDay = current.weekdays.includes(day);
+      const weekdays = hasDay
+        ? current.weekdays.filter((value) => value !== day)
+        : [...current.weekdays, day];
+
+      return {
+        ...current,
+        weekdays: weekdays.length > 0 ? weekdays : [day],
+      };
+    });
+  };
 
   return (
     <Card className="border-orange-200 bg-orange-50/70 shadow-sm dark:bg-orange-950/10">
@@ -939,24 +1074,154 @@ function ProgressiveOfferManager({
               ) : null}
 
               {editorStep === "schedule" ? (
-                <div className="grid gap-4 lg:grid-cols-2">
-                  <div className="space-y-1.5">
-                    <Label className="flex items-center gap-1.5"><CalendarClock className="h-4 w-4" /> Jour J</Label>
-                    <Input
-                      type="date"
-                      value={form.serviceDate}
-                      onChange={(event) => {
-                        const nextServiceDate = event.target.value;
-                        setCalendarTouched(true);
-                        setSelectedCalendarDate(nextServiceDate);
-                        setForm((current) => ({
-                          ...current,
-                          serviceDate: nextServiceDate,
-                          countdownEndsAt: clampCountdownEndToServiceDay(current.countdownEndsAt, nextServiceDate),
-                        }));
-                      }}
-                    />
+                <div className="grid gap-5 lg:grid-cols-2">
+                  <div className="space-y-2 lg:col-span-2">
+                    <Label>Type de planification</Label>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {[
+                        { value: "single" as const, title: "Jour unique", description: "Une seule date avec son compte a rebours." },
+                        { value: "occurrence" as const, title: "Occurrence", description: "Plusieurs dates choisies ou regulieres." },
+                      ].map((option) => (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() => setForm((current) => ({
+                            ...current,
+                            scheduleMode: option.value,
+                            selectedDates: option.value === "single"
+                              ? [current.serviceDate]
+                              : getUniqueSortedDates(current.selectedDates.length > 0 ? current.selectedDates : [current.serviceDate]),
+                          }))}
+                          disabled={Boolean(form.id) && option.value === "occurrence"}
+                          className={cn(
+                            "rounded-2xl border px-4 py-3 text-left text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-60",
+                            form.scheduleMode === option.value
+                              ? "border-orange-500 bg-orange-50 text-orange-950"
+                              : "border-border bg-background hover:border-orange-300",
+                          )}
+                        >
+                          <span className="block font-semibold">{option.title}</span>
+                          <span className="mt-1 block text-xs leading-5 text-muted-foreground">{option.description}</span>
+                        </button>
+                      ))}
+                    </div>
+                    {form.id ? (
+                      <p className="text-[11px] text-muted-foreground">Pour modifier toute une serie, creez une nouvelle occurrence depuis le calendrier.</p>
+                    ) : null}
                   </div>
+
+                  {form.scheduleMode === "single" ? (
+                    <div className="space-y-1.5">
+                      <Label className="flex items-center gap-1.5"><CalendarClock className="h-4 w-4" /> Jour unique</Label>
+                      <Input
+                        type="date"
+                        value={form.serviceDate}
+                        onChange={(event) => setProgressiveServiceDate(event.target.value)}
+                      />
+                    </div>
+                  ) : (
+                    <div className="space-y-3 rounded-2xl border bg-background p-4 lg:col-span-2">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                          <Label>Mode d'occurrence</Label>
+                          <p className="mt-1 text-xs text-muted-foreground">Choisissez des dates libres ou une recurrence par jour de semaine.</p>
+                        </div>
+                        <Select
+                          value={form.occurrenceMode}
+                          onValueChange={(value) => setForm((current) => ({ ...current, occurrenceMode: value as ProgressiveOccurrenceMode }))}
+                          disabled={Boolean(form.id)}
+                        >
+                          <SelectTrigger className="w-full bg-white sm:w-56">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="custom">Dates personnalisees</SelectItem>
+                            <SelectItem value="weekly">Jours reguliers</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {form.occurrenceMode === "custom" ? (
+                        <div className="grid gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">
+                          <Calendar
+                            mode="multiple"
+                            selected={selectedOccurrenceDateObjects}
+                            onSelect={(dates) => {
+                              const nextDates = getUniqueSortedDates((dates || []).map(toDateInputValue));
+                              const fallbackDate = nextDates[0] || form.serviceDate;
+                              setCalendarTouched(true);
+                              setSelectedCalendarDate(fallbackDate);
+                              setForm((current) => ({
+                                ...current,
+                                selectedDates: nextDates,
+                                serviceDate: fallbackDate,
+                              }));
+                            }}
+                            className="rounded-2xl border bg-white p-3"
+                            classNames={{
+                              months: "flex w-full",
+                              month: "w-full space-y-4",
+                              table: "w-full border-collapse space-y-1",
+                              head_row: "grid grid-cols-7",
+                              row: "grid grid-cols-7 w-full mt-2",
+                              cell: "h-10 text-center text-sm p-0 relative",
+                              day: "h-10 w-full rounded-xl p-0 font-normal hover:bg-orange-50",
+                            }}
+                          />
+                          <div className="rounded-2xl border bg-white p-4">
+                            <p className="text-sm font-semibold">Dates selectionnees</p>
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              {scheduledPreviewDates.length > 0 ? scheduledPreviewDates.slice(0, 12).map((date) => (
+                                <Badge key={date} variant="secondary">{formatProgressiveServiceDate(date)}</Badge>
+                              )) : (
+                                <span className="text-sm text-muted-foreground">Aucune date selectionnee.</span>
+                              )}
+                            </div>
+                            <p className="mt-3 text-xs text-muted-foreground">Maximum {PROGRESSIVE_RECURRENCE_MAX_COUNT} dates programmees.</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="grid gap-4 lg:grid-cols-2">
+                          <div className="space-y-1.5">
+                            <Label>Date de debut</Label>
+                            <Input type="date" value={form.serviceDate} onChange={(event) => setProgressiveServiceDate(event.target.value)} />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label>Date de fin de l'occurrence</Label>
+                            <Input
+                              type="date"
+                              value={form.recurrenceEndDate}
+                              min={form.serviceDate}
+                              onChange={(event) => setForm((current) => ({ ...current, recurrenceEndDate: event.target.value }))}
+                            />
+                          </div>
+                          <div className="space-y-2 lg:col-span-2">
+                            <Label>Jours de la semaine</Label>
+                            <div className="flex flex-wrap gap-2">
+                              {DAYS_OF_WEEK.map((day) => {
+                                const isSelected = form.weekdays.includes(day.value);
+                                return (
+                                  <button
+                                    key={day.value}
+                                    type="button"
+                                    onClick={() => toggleProgressiveWeekday(day.value)}
+                                    className={cn(
+                                      "rounded-full border px-3 py-2 text-sm font-semibold transition-colors",
+                                      isSelected ? "border-orange-500 bg-orange-500 text-white" : "border-border bg-white hover:border-orange-300",
+                                    )}
+                                  >
+                                    {day.label}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                            <p className="text-xs text-muted-foreground">{scheduledPreviewDates.length} dates seront programmees, limitees a {PROGRESSIVE_RECURRENCE_MAX_COUNT}.</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <div className="space-y-1.5">
                     <Label>Service cible</Label>
                     <div className="grid grid-cols-2 gap-2">
@@ -966,7 +1231,7 @@ function ProgressiveOfferManager({
                           <button
                             key={key}
                             type="button"
-                            onClick={() => setForm((current) => ({ ...current, serviceTime: getProgressiveServiceDefaultTime(key) }))}
+                            onClick={() => setProgressiveServicePeriod(key)}
                             className={cn(
                               "rounded-xl border px-3 py-2 text-left text-sm transition-colors",
                               isSelected ? "border-orange-500 bg-orange-500/10 text-orange-700" : "border-border bg-background hover:border-orange-300",
@@ -979,54 +1244,36 @@ function ProgressiveOfferManager({
                       })}
                     </div>
                   </div>
-                  <div className="space-y-1.5 lg:col-span-2">
+                  <div className="space-y-1.5">
+                    <Label>Heure de reservation cible</Label>
+                    <Input
+                      type="time"
+                      value={form.serviceTime}
+                      onChange={(event) => setForm((current) => ({ ...current, serviceTime: event.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Debut du compte a rebours</Label>
+                    <Input
+                      type="time"
+                      value={form.countdownStartTime}
+                      onChange={(event) => setForm((current) => ({ ...current, countdownStartTime: event.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
                     <Label>Fin du compte a rebours</Label>
                     <Input
-                      type="datetime-local"
-                      value={form.countdownEndsAt}
-                      min={countdownMinDateTime}
-                      onChange={(event) => setForm((current) => ({
-                        ...current,
-                        countdownEndsAt: clampCountdownEndToServiceDay(event.target.value, current.serviceDate),
-                      }))}
+                      type="time"
+                      value={form.countdownEndTime}
+                      onChange={(event) => setForm((current) => ({ ...current, countdownEndTime: event.target.value }))}
                     />
-                    <p className={cn("text-[11px]", countdownEndsBeforeServiceDate ? "text-destructive" : "text-muted-foreground")}>
-                      {countdownEndsBeforeServiceDate
-                        ? "La fin du compte a rebours doit etre le jour J ou apres."
-                        : "Derniere reservation autorisee 30 minutes avant cette heure."}
+                    <p className="text-[11px] text-muted-foreground">La fin doit rester avant l'heure de reservation; les reservations sont bloquees 30 minutes avant cette fin.</p>
+                  </div>
+                  <div className="rounded-2xl border bg-emerald-50 p-4 text-sm text-emerald-900 lg:col-span-2">
+                    <p className="font-semibold">{scheduledPreviewDates.length || 0} date(s) prete(s) a programmer</p>
+                    <p className="mt-1 text-xs leading-5">
+                      Compte a rebours {form.countdownStartTime} - {form.countdownEndTime}, puis reservation cible a {form.serviceTime}.
                     </p>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>Recurrence</Label>
-                    <Select
-                      value={form.recurrence}
-                      onValueChange={(value) => setForm((current) => ({ ...current, recurrence: value as ProgressiveOfferRecurrence }))}
-                      disabled={Boolean(form.id)}
-                    >
-                      <SelectTrigger className="bg-background">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">Aucune recurrence</SelectItem>
-                        <SelectItem value="daily">Tous les jours</SelectItem>
-                        <SelectItem value="weekly">Chaque semaine</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {form.id ? (
-                      <p className="text-[11px] text-muted-foreground">La recurrence se parametre lors de la creation d'une nouvelle serie.</p>
-                    ) : null}
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>Nombre d'occurrences</Label>
-                    <Input
-                      type="number"
-                      min={1}
-                      max={PROGRESSIVE_RECURRENCE_MAX_COUNT}
-                      value={form.recurrenceCount}
-                      onChange={(event) => setForm((current) => ({ ...current, recurrenceCount: event.target.value }))}
-                      disabled={Boolean(form.id) || form.recurrence === "none"}
-                    />
-                    <p className="text-[11px] text-muted-foreground">Maximum {PROGRESSIVE_RECURRENCE_MAX_COUNT} dates programmees.</p>
                   </div>
                 </div>
               ) : null}

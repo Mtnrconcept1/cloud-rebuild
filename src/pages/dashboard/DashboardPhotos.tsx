@@ -156,7 +156,7 @@ function TokGalleryWatermark({ className = "", sizeClassName = "h-[180px] w-[180
 function TokGalleryImageFrame({ item }: { item: MediaItem }) {
   return (
     <div
-      className="relative inline-flex max-h-full max-w-full items-center justify-center"
+      className="relative inline-flex max-h-full max-w-full items-center justify-center overflow-hidden"
       data-testid="tok-gallery-image-frame"
     >
       <TokGalleryWatermark className="left-4 top-4" />
@@ -189,6 +189,7 @@ export default function DashboardPhotos() {
       .from("restaurant_media")
       .select("id, restaurant_id, media_url, alt_text, media_type, is_cover, position, storage_bucket, storage_path, created_at")
       .eq("restaurant_id", selectedId)
+      .order("created_at", { ascending: false })
       .order("position", { ascending: true });
     setError(error?.message || null);
     setItems((data || []) as MediaItem[]);
@@ -286,30 +287,35 @@ export default function DashboardPhotos() {
     <DashboardLayout>
       <div className="space-y-6">
         {!activeTool ? (
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5" aria-label="Outils photos du dashboard restaurateur">
-            {PHOTO_WORKSPACE_TOOLS.map((tool) => {
-              const Icon = tool.icon;
-              return (
-                <button
-                  key={tool.id}
-                  type="button"
-                  onClick={() => selectWorkspaceTool(tool.id)}
-                  className="group min-h-[176px] rounded-3xl border border-orange-100 bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-orange-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 dark:bg-background"
-                >
-                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-50 text-orange-600 transition group-hover:bg-orange-600 group-hover:text-white">
-                    <Icon className="h-6 w-6" />
-                  </span>
-                  <span className="mt-5 block text-lg font-bold text-foreground">{tool.title}</span>
-                  <span className="mt-2 block text-sm leading-6 text-muted-foreground">{tool.description}</span>
-                  {tool.id === "gallery" ? (
-                    <span className="mt-4 inline-flex rounded-full bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-700">
-                      {items.length} photo{items.length > 1 ? "s" : ""}
+          <section className="flex min-h-[calc(100dvh-9rem)] items-center justify-center py-8 sm:py-10">
+            <div
+              className="grid w-full max-w-6xl auto-rows-fr gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"
+              aria-label="Outils photos du dashboard restaurateur"
+            >
+              {PHOTO_WORKSPACE_TOOLS.map((tool) => {
+                const Icon = tool.icon;
+                return (
+                  <button
+                    key={tool.id}
+                    type="button"
+                    onClick={() => selectWorkspaceTool(tool.id)}
+                    className="group flex min-h-[218px] flex-col rounded-[28px] border border-orange-100 bg-[linear-gradient(145deg,rgba(255,255,255,0.98),rgba(255,247,237,0.82))] p-5 text-left shadow-[0_18px_46px_rgba(15,23,42,0.08)] transition duration-200 hover:-translate-y-1 hover:border-orange-300 hover:shadow-[0_24px_58px_rgba(249,115,22,0.16)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 dark:border-orange-400/20 dark:bg-background"
+                  >
+                    <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-50 text-orange-600 ring-1 ring-orange-100 transition group-hover:bg-orange-600 group-hover:text-white group-hover:ring-orange-600">
+                      <Icon className="h-6 w-6" />
                     </span>
-                  ) : null}
-                </button>
-              );
-            })}
-          </div>
+                    <span className="mt-5 block text-lg font-bold leading-tight text-foreground">{tool.title}</span>
+                    <span className="mt-3 block text-sm leading-6 text-muted-foreground">{tool.description}</span>
+                    {tool.id === "gallery" ? (
+                      <span className="mt-auto inline-flex w-fit rounded-full bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-700">
+                        {items.length} photo{items.length > 1 ? "s" : ""}
+                      </span>
+                    ) : null}
+                  </button>
+                );
+              })}
+            </div>
+          </section>
         ) : (
           <div className="flex flex-col gap-3 rounded-3xl border border-orange-100 bg-white p-4 shadow-sm dark:bg-background sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
@@ -464,7 +470,7 @@ export default function DashboardPhotos() {
         ) : null}
 
         <Dialog open={Boolean(previewItem)} onOpenChange={(open) => { if (!open) setPreviewItem(null); }}>
-          <DialogContent className="flex h-[calc(100dvh-1rem)] max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-6xl flex-col gap-0 overflow-hidden p-0 sm:h-[92vh] sm:max-h-[92vh]">
+          <DialogContent className="!flex h-[calc(100dvh-1rem)] max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-[min(96rem,calc(100vw-1rem))] flex-col gap-0 !overflow-hidden !p-0 sm:h-[92vh] sm:max-h-[92vh]">
             <DialogHeader className="shrink-0 border-b px-4 py-4 pr-12 text-left sm:px-6">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
@@ -479,9 +485,9 @@ export default function DashboardPhotos() {
                 ) : null}
               </div>
             </DialogHeader>
-            <div className="min-h-0 flex-1 bg-black p-3 sm:p-5">
+            <div className="min-h-0 flex-1 bg-black p-0 sm:p-3">
               {previewItem ? (
-                <div className="flex h-full w-full items-center justify-center">
+                <div className="flex h-full min-h-0 w-full items-center justify-center overflow-hidden">
                   <TokGalleryImageFrame item={previewItem} />
                 </div>
               ) : null}
