@@ -156,14 +156,14 @@ function TokGalleryWatermark({ className = "", sizeClassName = "h-[180px] w-[180
 function TokGalleryImageFrame({ item }: { item: MediaItem }) {
   return (
     <div
-      className="relative inline-flex max-h-full max-w-full items-center justify-center overflow-hidden"
+      className="relative inline-flex h-full max-h-full w-full max-w-full items-center justify-center overflow-hidden"
       data-testid="tok-gallery-image-frame"
     >
       <TokGalleryWatermark className="left-4 top-4" />
       <img
         src={item.media_url}
         alt={item.alt_text || "Photo restaurant"}
-        className="block max-h-full max-w-full rounded-lg object-contain"
+        className="block h-full w-full max-h-full max-w-full rounded-lg object-contain"
       />
     </div>
   );

@@ -97,7 +97,8 @@ describe("TOK photo studio persistence", () => {
   it("keeps gallery watermarks inside the rendered image frame and never downloads raw gallery images", () => {
     expect(dashboardPhotos).toContain("TokGalleryImageFrame");
     expect(dashboardPhotos).toContain('data-testid="tok-gallery-image-frame"');
-    expect(dashboardPhotos).toContain("inline-flex max-h-full max-w-full");
+    expect(dashboardPhotos).toContain("inline-flex h-full max-h-full w-full max-w-full");
+    expect(dashboardPhotos).toContain("block h-full w-full max-h-full max-w-full rounded-lg object-contain");
     expect(dashboardPhotos).not.toContain('className="relative h-full w-full"');
     expect(dashboardPhotos).toContain('.order("created_at", { ascending: false })');
     expect(dashboardPhotos).toContain('.order("position", { ascending: true })');
@@ -109,6 +110,10 @@ describe("TOK photo studio persistence", () => {
 
     expect(watermarkDownloader).toContain("if (!options.watermarkUrl)");
     expect(watermarkDownloader).not.toContain("} catch {\n    const blob = await fetchBlob(options.imageUrl);");
+    expect(watermarkDownloader).toContain("const watermarkWidth = watermark.image.naturalWidth || watermark.image.width");
+    expect(watermarkDownloader).toContain("const watermarkHeight = watermark.image.naturalHeight || watermark.image.height");
+    expect(watermarkDownloader).toContain("const watermarkRatio = watermarkWidth / watermarkHeight");
+    expect(watermarkDownloader).toContain("context.drawImage(watermark.image, margin, margin, drawWidth, drawHeight)");
     expect(dashboardPhotos).not.toContain("link.href = item.media_url");
     expect(source).not.toContain("link.href = generatedImageUrl");
   });
