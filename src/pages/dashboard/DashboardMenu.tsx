@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -14,7 +14,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { BookOpen, Image as ImageIcon, Images, Loader2, Pencil, Plus, Sparkles, Trash2 } from "lucide-react";
 import ImageUpload from "@/components/ImageUpload";
-import { generateTokDishImage, type TokImageGenerationResult } from "@/lib/ai/tokAiClient";
+import type { TokImageGenerationResult } from "@/lib/ai/tokAiClient";
+import {
+  requestAiCreationNotificationPermission,
+  setActiveAiCreationContext,
+  startTokImageCreationJob,
+} from "@/lib/ai/aiCreationJobs";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
 
 const supabase = getSupabase();
@@ -133,8 +138,18 @@ export default function DashboardMenu() {
   const [categoryMode, setCategoryMode] = useState<"preset" | "custom">("preset");
   const [generatingPhoto, setGeneratingPhoto] = useState(false);
   const [photoStudioResult, setPhotoStudioResult] = useState<TokImageGenerationResult | null>(null);
+  const mountedRef = useRef(true);
 
   const restaurant = selectedId ? { id: selectedId } : null;
+
+  useEffect(() => {
+    setActiveAiCreationContext("dashboard-menu:photo-studio");
+    return () => setActiveAiCreationContext(null);
+  }, []);
+
+  useEffect(() => () => {
+    mountedRef.current = false;
+  }, []);
 
   const { data: items } = useQuery<MenuItemRecord[]>({
     queryKey: ["my-menu-items", restaurant?.id],
@@ -290,26 +305,35 @@ export default function DashboardMenu() {
     setGeneratingPhoto(true);
     setPhotoStudioResult(null);
     try {
-      const result = await generateTokDishImage({
+      void requestAiCreationNotificationPermission();
+      const { promise } = startTokImageCreationJob({
         restaurantId: restaurant.id,
-        sourceImageUrl: form.image_url.trim() || null,
-        dishName: form.name.trim() || null,
-        prompt: buildMenuPhotoStudioPrompt(form),
-        assetType: "menu_visual",
-        format: "square",
-        variantCount: 1,
-        generateImage: true,
-        imageOnly: true,
+        tool: "menu_photo",
+        title: form.name.trim() || "Photo de plat",
+        request: {
+          restaurantId: restaurant.id,
+          sourceImageUrl: form.image_url.trim() || null,
+          dishName: form.name.trim() || null,
+          prompt: buildMenuPhotoStudioPrompt(form),
+          assetType: "menu_visual",
+          format: "square",
+          variantCount: 1,
+          generateImage: true,
+          imageOnly: true,
+        },
       });
+      const result = await promise;
       const generatedImageUrl = result.gallery_image_url || result.generated_image_url;
       if (!generatedImageUrl) throw new Error("Aucune image générée par le studio.");
+      if (!mountedRef.current) return;
       setPhotoStudioResult(result);
       setForm((previous) => ({ ...previous, image_url: generatedImageUrl }));
       toast({ title: "Image générée", description: "Le visuel du studio est appliqué au plat." });
     } catch (error) {
+      if (!mountedRef.current) return;
       toast({ title: "Erreur IA", description: getPhotoGenerationErrorMessage(error), variant: "destructive" });
     } finally {
-      setGeneratingPhoto(false);
+      if (mountedRef.current) setGeneratingPhoto(false);
     }
   };
 

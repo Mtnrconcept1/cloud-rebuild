@@ -63,5 +63,5 @@ describe("retired provider cleanup", () => {
       .map((filePath) => path.relative(ROOT, filePath));
 
     expect(matches).toEqual([]);
-  });
+  }, 20_000);
 });

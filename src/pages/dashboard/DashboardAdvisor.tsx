@@ -24,11 +24,15 @@ import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import {
-  generateTokDishImage,
   runRestaurantAgent,
   streamRestaurantAdvisor,
   type RestaurantAgentAction,
 } from "@/lib/ai/tokAiClient";
+import {
+  requestAiCreationNotificationPermission,
+  setActiveAiCreationContext,
+  startTokImageCreationJob,
+} from "@/lib/ai/aiCreationJobs";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
 
 type Message = { role: "user" | "assistant"; content: string };
@@ -237,11 +241,21 @@ export default function DashboardAdvisor() {
   const [historyEntries, setHistoryEntries] = useState<AdvisorHistoryEntry[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const mountedRef = useRef(true);
 
   const restaurant = selectedId
     ? { id: selectedId, name: restaurants.find((item) => item.id === selectedId)?.name || "Mon restaurant" }
     : null;
   const restaurantId = restaurant?.id;
+
+  useEffect(() => {
+    setActiveAiCreationContext("dashboard-advisor:image-tool");
+    return () => setActiveAiCreationContext(null);
+  }, []);
+
+  useEffect(() => () => {
+    mountedRef.current = false;
+  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -327,21 +341,32 @@ export default function DashboardAdvisor() {
     setActiveTool(tool.label);
 
     try {
-      const data =
-        tool.mode === "image"
-          ? await generateTokDishImage({
-              restaurantId: restaurant.id,
-              prompt: tool.prompt,
-              assetType: "menu_visual",
-              generateImage: true,
-              imageOnly: true,
-            })
-          : await runRestaurantAgent({
-              restaurantId: restaurant.id,
-              action: tool.action,
-              prompt: tool.prompt,
-            });
+      let data: unknown;
 
+      if (tool.mode === "image") {
+        void requestAiCreationNotificationPermission();
+        const { promise } = startTokImageCreationJob({
+          restaurantId: restaurant.id,
+          tool: "advisor_photo",
+          title: tool.label,
+          request: {
+            restaurantId: restaurant.id,
+            prompt: tool.prompt,
+            assetType: "menu_visual",
+            generateImage: true,
+            imageOnly: true,
+          },
+        });
+        data = await promise;
+      } else {
+        data = await runRestaurantAgent({
+          restaurantId: restaurant.id,
+          action: tool.action,
+          prompt: tool.prompt,
+        });
+      }
+
+      if (!mountedRef.current) return;
       const assistantMsg: Message = {
         role: "assistant",
         content: formatToolResponse(tool.label, data as unknown as Record<string, unknown>),
@@ -352,6 +377,7 @@ export default function DashboardAdvisor() {
         return nextMessages;
       });
     } catch (error) {
+      if (!mountedRef.current) return;
       const errorMessage = error instanceof Error ? error.message : "Erreur inconnue";
       toast({ title: "Erreur", description: errorMessage, variant: "destructive" });
       setMessages((prev) => {
@@ -362,8 +388,10 @@ export default function DashboardAdvisor() {
         return prev;
       });
     } finally {
-      setIsLoading(false);
-      setActiveTool(null);
+      if (mountedRef.current) {
+        setIsLoading(false);
+        setActiveTool(null);
+      }
     }
   };
 

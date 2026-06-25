@@ -134,7 +134,7 @@ describe("TOK AI platform plan", () => {
       "QUICK_TOOLS",
       "streamRestaurantAdvisor",
       "runRestaurantAgent",
-      "generateTokDishImage",
+      "startTokImageCreationJob",
     ]) {
       expect(dashboardAdvisor).toContain(text);
     }

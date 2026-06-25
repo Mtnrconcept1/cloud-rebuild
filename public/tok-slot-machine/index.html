@@ -1681,6 +1681,17 @@
       window.parent.postMessage({ type: "TOK_SLOT_SPIN_REQUEST" }, window.location.origin);
     }
 
+    function formatAttempts(payload) {
+      const maxAttempts = Number(payload.maxAttempts || 3);
+      const attemptsRemaining = Math.max(Number(payload.attemptsRemaining || 0), 0);
+
+      return {
+        attemptsRemaining,
+        maxAttempts,
+        label: `${attemptsRemaining}/${maxAttempts} essai${attemptsRemaining > 1 ? "s" : ""} restant${attemptsRemaining > 1 ? "s" : ""}`
+      };
+    }
+
     function interceptSpin(event) {
       if (event?.preventDefault) event.preventDefault();
       postSpinRequest();
@@ -1702,6 +1713,7 @@
 
       const rewardPoints = Number(payload.rewardPoints || 0);
       const totalPoints = typeof payload.totalPoints === "number" ? payload.totalPoints : null;
+      const attempts = formatAttempts(payload);
 
       if (totalPoints !== null) {
         credits = totalPoints;
@@ -1712,8 +1724,8 @@
       setMeters(rewardPoints);
       message.textContent = payload.rewardLabel || (rewardPoints > 0 ? "Bravo TOK!" : "Retente ta chance");
       subMessage.textContent = rewardPoints > 0
-        ? `+${rewardPoints} Miamz crédités côté serveur.`
-        : "Tirage sécurisé — résultat calculé côté serveur TOK.";
+        ? `+${rewardPoints} Miamz crédités côté serveur. ${attempts.label}.`
+        : `Tirage sécurisé côté serveur TOK. ${attempts.label}.`;
 
       if (rewardPoints > 0) {
         slotMachine.classList.add("is-winning");
@@ -1721,7 +1733,12 @@
       }
 
       spinning = false;
-      setMachineEnabled(true);
+      setMachineEnabled(attempts.attemptsRemaining > 0);
+
+      if (attempts.attemptsRemaining <= 0) {
+        message.textContent = "Terminé pour aujourd'hui";
+        subMessage.textContent = "Vos 3 essais du jour sont terminés. Revenez demain!";
+      }
     }
 
     function applyServerSpinResult(payload) {
@@ -1760,6 +1777,9 @@
         subMessage.textContent = payload.subMessage || "";
         setMachineEnabled(Boolean(payload.enabled));
         spinning = !payload.enabled;
+        if (typeof payload.attemptsRemaining === "number") {
+          creditsEl.textContent = Math.max(Number(payload.attemptsRemaining), 0);
+        }
         return;
       }
 

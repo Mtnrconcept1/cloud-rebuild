@@ -9,15 +9,17 @@ import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 
 const FUNCTION_NAME = "daily-slot-spin";
 const SLOT_TIME_ZONE = "Europe/Zurich";
-const SLOT_RULE_VERSION = "2026-06-24-v1";
+const SLOT_RULE_VERSION = "2026-06-25-v2";
+const SLOT_MAX_ATTEMPTS_PER_DAY = 3;
 
 const SLOT_SYMBOL_WEIGHTS = [
-  { id: "tok_suisse", weight: 2 },
-  { id: "fork", weight: 6 },
-  { id: "chef", weight: 7 },
-  { id: "courier", weight: 8 },
-  { id: "logo", weight: 10 },
-  { id: "miamz", weight: 9 },
+  // High-value symbols intentionally have lower weights: top paytable rows stay rarer than low combinations.
+  { id: "tok_suisse", weight: 1 },
+  { id: "fork", weight: 4 },
+  { id: "chef", weight: 5 },
+  { id: "courier", weight: 6 },
+  { id: "logo", weight: 9 },
+  { id: "miamz", weight: 10 },
 ] as const;
 
 type SlotSymbolId = typeof SLOT_SYMBOL_WEIGHTS[number]["id"];
@@ -31,6 +33,7 @@ type RewardRule = {
 type SlotSpinRow = {
   id: string;
   spin_date: string;
+  attempt_number: number;
   symbols: SlotSymbolId[];
   reward_points: number;
   reward_label: string;
@@ -42,6 +45,9 @@ type RpcSpinResult = {
   already_claimed?: boolean;
   spin?: SlotSpinRow | null;
   total_loyalty_points?: number | null;
+  attempts_used?: number | null;
+  attempts_remaining?: number | null;
+  max_attempts?: number | null;
 };
 
 const UINT32_RANGE = 0x1_0000_0000;
@@ -126,6 +132,7 @@ function formatSpin(row: SlotSpinRow | null | undefined) {
   return {
     id: row.id,
     spinDate: row.spin_date,
+    attemptNumber: row.attempt_number,
     symbols: row.symbols,
     rewardPoints: row.reward_points,
     rewardLabel: row.reward_label,
@@ -133,19 +140,34 @@ function formatSpin(row: SlotSpinRow | null | undefined) {
   };
 }
 
-async function getExistingSpin(
+type SlotStatus = {
+  latestSpin: SlotSpinRow | null;
+  attemptsUsed: number;
+  attemptsRemaining: number;
+};
+
+async function getSpinStatus(
   actor: Awaited<ReturnType<typeof authenticateRequest>>,
   spinDate: string,
-): Promise<SlotSpinRow | null> {
+): Promise<SlotStatus> {
   const { data, error } = await actor.adminClient
     .from("daily_slot_spins")
-    .select("id, spin_date, symbols, reward_points, reward_label, created_at")
+    .select("id, spin_date, attempt_number, symbols, reward_points, reward_label, created_at")
     .eq("user_id", actor.userId)
     .eq("spin_date", spinDate)
-    .maybeSingle();
+    .order("attempt_number", { ascending: true })
+    .order("created_at", { ascending: true });
 
   if (error) throw new HttpError(500, error.message);
-  return (data as SlotSpinRow | null) || null;
+
+  const spins = ((data as SlotSpinRow[] | null) || []);
+  const attemptsUsed = spins.length;
+
+  return {
+    latestSpin: spins.length ? spins[spins.length - 1] : null,
+    attemptsUsed,
+    attemptsRemaining: Math.max(SLOT_MAX_ATTEMPTS_PER_DAY - attemptsUsed, 0),
+  };
 }
 
 function assertClientActor(actor: Awaited<ReturnType<typeof authenticateRequest>>) {
@@ -170,13 +192,16 @@ Deno.serve(async (req) => {
     assertClientActor(actor);
 
     if (req.method === "GET") {
-      const existingSpin = await getExistingSpin(actor, spinDate);
+      const status = await getSpinStatus(actor, spinDate);
       return jsonResponse({
         ok: true,
-        available: !existingSpin,
-        alreadyClaimed: Boolean(existingSpin),
+        available: status.attemptsRemaining > 0,
+        alreadyClaimed: status.attemptsRemaining <= 0,
         spinDate,
-        spin: formatSpin(existingSpin),
+        spin: formatSpin(status.latestSpin),
+        attemptsUsed: status.attemptsUsed,
+        attemptsRemaining: status.attemptsRemaining,
+        maxAttempts: SLOT_MAX_ATTEMPTS_PER_DAY,
       }, 200, cors);
     }
 
@@ -184,14 +209,17 @@ Deno.serve(async (req) => {
       throw new HttpError(405, "Method not allowed");
     }
 
-    const existingSpin = await getExistingSpin(actor, spinDate);
-    if (existingSpin) {
+    const status = await getSpinStatus(actor, spinDate);
+    if (status.attemptsRemaining <= 0) {
       return jsonResponse({
         ok: true,
         available: false,
         alreadyClaimed: true,
         spinDate,
-        spin: formatSpin(existingSpin),
+        spin: formatSpin(status.latestSpin),
+        attemptsUsed: status.attemptsUsed,
+        attemptsRemaining: 0,
+        maxAttempts: SLOT_MAX_ATTEMPTS_PER_DAY,
       }, 200, cors);
     }
 
@@ -211,6 +239,7 @@ Deno.serve(async (req) => {
         rule_id: reward.ruleId,
         rule_version: SLOT_RULE_VERSION,
         time_zone: SLOT_TIME_ZONE,
+        max_attempts_per_day: SLOT_MAX_ATTEMPTS_PER_DAY,
         symbol_weights: SLOT_SYMBOL_WEIGHTS,
       },
     });
@@ -234,15 +263,23 @@ Deno.serve(async (req) => {
         reward_points: spin?.rewardPoints || reward.points,
         reward_label: spin?.rewardLabel || reward.label,
         already_claimed: Boolean(result.already_claimed),
+        attempts_used: result.attempts_used ?? spin?.attemptNumber ?? null,
+        attempts_remaining: result.attempts_remaining ?? null,
+        max_attempts: result.max_attempts ?? SLOT_MAX_ATTEMPTS_PER_DAY,
       },
     });
 
+    const attemptsRemaining = Math.max(Number(result.attempts_remaining ?? 0), 0);
+
     return jsonResponse({
       ok: true,
-      available: false,
+      available: attemptsRemaining > 0,
       alreadyClaimed: Boolean(result.already_claimed),
       spinDate,
       spin,
+      attemptsUsed: result.attempts_used ?? spin?.attemptNumber ?? null,
+      attemptsRemaining,
+      maxAttempts: result.max_attempts ?? SLOT_MAX_ATTEMPTS_PER_DAY,
       totalLoyaltyPoints: result.total_loyalty_points ?? null,
     }, 200, cors);
   } catch (error) {

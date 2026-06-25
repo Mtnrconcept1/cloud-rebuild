@@ -11,12 +11,17 @@ describe("TOK photo studio persistence", () => {
   const watermarkDownloader = readFileSync(resolve(process.cwd(), "src/lib/media/downloadImageWithWatermark.ts"), "utf8");
   const imageUpload = readFileSync(resolve(process.cwd(), "src/components/ImageUpload.tsx"), "utf8");
   const app = readFileSync(resolve(process.cwd(), "src/App.tsx"), "utf8");
+  const aiCreationJobs = readFileSync(resolve(process.cwd(), "src/lib/ai/aiCreationJobs.ts"), "utf8");
+  const aiCreationNotifications = readFileSync(resolve(process.cwd(), "src/components/AiCreationNotifications.tsx"), "utf8");
+  const aiCreationsGallery = readFileSync(resolve(process.cwd(), "src/components/dashboard/AiCreationsGallery.tsx"), "utf8");
 
   it("persists the generated result across component remounts and tab focus changes", () => {
     expect(source).toContain("useSessionStorageState");
     expect(source).toContain("tok-ai-photo-studio-v2:");
     expect(source).toContain("result: TokImageGenerationResult | null");
     expect(source).toContain("updateDraft({ result: data })");
+    expect(source).toContain("startTokImageCreationJob");
+    expect(app).toContain("<AiCreationNotifications />");
     expect(app).toContain("refetchOnWindowFocus: false");
     expect(app).toContain("refetchOnReconnect: false");
     expect(app).toContain("focusManager.setEventListener");
@@ -50,6 +55,7 @@ describe("TOK photo studio persistence", () => {
     expect(dashboardPhotos).toContain("Photopro");
     expect(dashboardPhotos).toContain("Ajouter une photo à la galerie");
     expect(dashboardPhotos).toContain("Galerie");
+    expect(dashboardPhotos).toContain("Mes créations");
     expect(imageUpload).toContain("Vous devez sélectionner une image.");
   });
 
@@ -116,6 +122,8 @@ describe("TOK photo studio persistence", () => {
     expect(dashboardPhotos).toContain('activeTool === "photopro"');
     expect(dashboardPhotos).toContain('activeTool === "add_photo"');
     expect(dashboardPhotos).toContain('activeTool === "gallery"');
+    expect(dashboardPhotos).toContain('activeTool === "creations"');
+    expect(dashboardPhotos).toContain("<AiCreationsGallery");
 
     expect(marketingStudio).toContain("MARKETING_UPLOAD_ACCEPT");
     expect(marketingStudio).toContain("image/png,image/jpeg,image/webp");
@@ -124,7 +132,7 @@ describe("TOK photo studio persistence", () => {
     expect(marketingStudio).toContain("SQL_INJECTION_PATTERNS");
     expect(marketingStudio).toContain("sanitizeMarketingPrompt");
     expect(marketingStudio).not.toContain("runRestaurantAgent");
-    expect(marketingStudio).toContain("generateTokDishImage");
+    expect(marketingStudio).toContain("startTokImageCreationJob");
     expect(marketingStudio).not.toContain('action: "marketing_campaign"');
     expect(marketingStudio).toContain('assetType: "campaign_visual"');
     expect(marketingStudio).toContain("referenceImageUrls");
@@ -156,6 +164,31 @@ describe("TOK photo studio persistence", () => {
     expect(marketingStudio).not.toContain("Le module est pret pour une generation serveur");
     expect(marketingStudio).not.toContain("Brief sécurisé prêt");
     expect(marketingStudio).toContain("restaurant_media");
+  });
+
+  it("keeps long image generations alive outside the active photo tab and stores completed creations", () => {
+    expect(aiCreationJobs).toContain("AI_CREATION_COMPLETED_EVENT");
+    expect(aiCreationJobs).toContain("AI_CREATIONS_STORAGE_KEY");
+    expect(aiCreationJobs).toContain("startTokImageCreationJob");
+    expect(aiCreationJobs).toContain("generateTokDishImage(input.request)");
+    expect(aiCreationJobs).toContain("window.localStorage");
+    expect(aiCreationJobs).toContain("dispatchAiCreationEvent(AI_CREATION_COMPLETED_EVENT");
+    expect(aiCreationJobs).toContain("setActiveAiCreationContext");
+    expect(aiCreationJobs).toContain("requestAiCreationNotificationPermission");
+
+    expect(aiCreationNotifications).toContain("shouldNotifyOutOfContext");
+    expect(aiCreationNotifications).toContain("record.originPathname");
+    expect(aiCreationNotifications).toContain("getActiveAiCreationContext()");
+    expect(aiCreationNotifications).toContain("new Notification");
+    expect(aiCreationNotifications).toContain("Photos > Mes créations");
+
+    expect(source).toContain('tool: "photopro"');
+    expect(marketingStudio).toContain('tool: "marketing_studio"');
+    expect(aiCreationsGallery).toContain("subscribeAiCreationRecords");
+    expect(aiCreationsGallery).toContain("markAiCreationAddedToGallery");
+    expect(aiCreationsGallery).toContain('from("restaurant_media").insert');
+    expect(aiCreationsGallery).toContain("media_url: imageUrl");
+    expect(aiCreationsGallery).toContain('media_type: "photo_ai_tok"');
   });
 
   it("offers print supports with support-specific Flyerline-inspired formats", () => {
@@ -263,7 +296,8 @@ describe("TOK photo studio persistence", () => {
     expect(marketingStudio).toContain("referenceImageUrls: generationResources.map((resource) => resource.mediaUrl)");
     expect(marketingStudio).toContain("generationRequestRef");
     expect(marketingStudio).toContain("invalidateMarketingGeneration");
-    expect(marketingStudio).toContain("if (generationRequestRef.current !== requestId) return");
+    expect(marketingStudio).toContain("generationRequestRef.current !== requestId");
+    expect(marketingStudio).toContain("mountedRef.current");
   });
 
   it("keeps marketing image generation scoped to current uploaded brand resources", () => {

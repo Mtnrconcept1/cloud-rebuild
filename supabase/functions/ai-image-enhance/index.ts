@@ -51,6 +51,14 @@ type OpenAIImageErrorDetails = {
   message: string;
 };
 
+type ImageOperationResult = {
+  response: unknown;
+  options: ImageRequestOptions;
+  retryUsed: boolean;
+  fallbackUsed: boolean;
+  fallbackReason: string | null;
+};
+
 const FUNCTION_NAME = "ai-image-enhance";
 const IMAGE_GENERATIONS_URL = "https://api.openai.com/v1/images/generations";
 const IMAGE_EDITS_URL = "https://api.openai.com/v1/images/edits";
@@ -178,12 +186,12 @@ function buildConfiguredImageRequestOptions(formatSize: string, quality = IMAGE_
 }
 
 function buildImageRequestOptions(formatSize: string, sourceImagePresent: boolean, quality: ImageQuality): ImageRequestOptions {
-  const shouldUseFastInteractiveEdit = sourceImagePresent && USE_FAST_INTERACTIVE_IMAGE && quality === "low";
+  const shouldUseFastInteractiveEdit = sourceImagePresent || (USE_FAST_INTERACTIVE_IMAGE && quality === "low");
   if (!shouldUseFastInteractiveEdit) return buildConfiguredImageRequestOptions(formatSize, quality);
 
   return {
     model: INTERACTIVE_IMAGE_MODEL,
-    quality,
+    quality: "low",
     size: formatSize,
     timeoutMs: INTERACTIVE_IMAGE_TIMEOUT_MS,
     mode: "interactive_fast",
@@ -191,13 +199,22 @@ function buildImageRequestOptions(formatSize: string, sourceImagePresent: boolea
 }
 
 function buildMarketingImageRequestOptions(formatSize: string, hasReferenceImages: boolean, quality: ImageQuality): ImageRequestOptions {
-  if (!hasReferenceImages || quality !== "low") return buildConfiguredImageRequestOptions(formatSize, quality);
+  if (!hasReferenceImages) return buildConfiguredImageRequestOptions(formatSize, quality);
 
   return {
     model: INTERACTIVE_IMAGE_MODEL,
-    quality,
+    quality: "low",
     size: formatSize,
     timeoutMs: INTERACTIVE_IMAGE_TIMEOUT_MS,
+    mode: "interactive_fast",
+  };
+}
+
+function buildFallbackImageRequestOptions(options: ImageRequestOptions): ImageRequestOptions {
+  return {
+    ...options,
+    quality: "low",
+    timeoutMs: Math.min(options.timeoutMs, INTERACTIVE_IMAGE_TIMEOUT_MS),
     mode: "interactive_fast",
   };
 }
@@ -596,6 +613,65 @@ async function callOpenAIImageGeneration(prompt: string, n: number, options: Ima
   return await response.json();
 }
 
+function isImageTimeoutError(error: unknown) {
+  return error instanceof HttpError && (
+    error.message === "image_edit_timeout" ||
+    error.message === "image_generation_timeout" ||
+    error.message === "image_url_timeout"
+  );
+}
+
+function shouldRetryImageGeneration(error: unknown) {
+  if (isImageTimeoutError(error)) return true;
+  if (!(error instanceof HttpError)) return false;
+  if (!error.message.startsWith("image_generation_failed:")) return false;
+
+  const message = error.message.toLowerCase();
+  return ![
+    "content_policy",
+    "safety",
+    "rate",
+    "credits",
+    ":401:",
+    ":403:",
+    "api key",
+    "invalid_value",
+    "unsupported_parameter",
+    "model",
+  ].some((blockedReason) => message.includes(blockedReason));
+}
+
+async function callOpenAIImageGenerationWithRetry(prompt: string, n: number, options: ImageRequestOptions): Promise<ImageOperationResult> {
+  try {
+    return {
+      response: await callOpenAIImageGeneration(prompt, n, options),
+      options,
+      retryUsed: false,
+      fallbackUsed: false,
+      fallbackReason: null,
+    };
+  } catch (error) {
+    if (!shouldRetryImageGeneration(error)) throw error;
+
+    const retryOptions = buildFallbackImageRequestOptions(options);
+    console.warn(`[${FUNCTION_NAME}] image_generation_retry`, {
+      reason: error instanceof Error ? error.message : "unknown",
+      model: retryOptions.model,
+      quality: retryOptions.quality,
+      size: retryOptions.size,
+      mode: retryOptions.mode,
+    });
+
+    return {
+      response: await callOpenAIImageGeneration(prompt, n, retryOptions),
+      options: retryOptions,
+      retryUsed: true,
+      fallbackUsed: options.quality !== retryOptions.quality,
+      fallbackReason: error instanceof Error ? error.message : "image_generation_retry",
+    };
+  }
+}
+
 async function callOpenAIImageEdit(prompt: string, sourceImageUrl: string, n: number, options: ImageRequestOptions) {
   return await callOpenAIImageEditWithReferences(prompt, [sourceImageUrl], n, options);
 }
@@ -631,6 +707,7 @@ async function callOpenAIImageEditWithReferences(prompt: string, imageUrls: stri
 }
 
 function shouldRetryImageEdit(error: unknown) {
+  if (isImageTimeoutError(error)) return true;
   if (!(error instanceof HttpError)) return false;
   if (!error.message.startsWith("image_edit_failed:")) return false;
 
@@ -661,27 +738,151 @@ async function callOpenAIImageEditWithRetry(input: {
   sourceImageUrl: string;
   n: number;
   options: ImageRequestOptions;
-}) {
+  fallbackPrompt: string;
+}): Promise<ImageOperationResult> {
   try {
     return {
       response: await callOpenAIImageEdit(input.primaryPrompt, input.sourceImageUrl, input.n, input.options),
+      options: input.options,
       retryUsed: false,
+      fallbackUsed: false,
+      fallbackReason: null,
     };
   } catch (error) {
     if (!shouldRetryImageEdit(error)) throw error;
 
+    const retryOptions = buildFallbackImageRequestOptions(input.options);
     console.warn(`[${FUNCTION_NAME}] image_edit_retry`, {
       reason: error instanceof Error ? error.message : "unknown",
-      model: input.options.model,
-      quality: input.options.quality,
-      size: input.options.size,
-      mode: input.options.mode,
+      model: retryOptions.model,
+      quality: retryOptions.quality,
+      size: retryOptions.size,
+      mode: retryOptions.mode,
     });
 
+    if (isImageTimeoutError(error)) {
+      console.warn(`[${FUNCTION_NAME}] image_edit_fallback`, {
+        reason: error instanceof Error ? error.message : "unknown",
+        model: retryOptions.model,
+        quality: retryOptions.quality,
+        size: retryOptions.size,
+        mode: retryOptions.mode,
+      });
+
+      return {
+        response: await callOpenAIImageGeneration(input.fallbackPrompt, input.n, retryOptions),
+        options: retryOptions,
+        retryUsed: true,
+        fallbackUsed: true,
+        fallbackReason: error instanceof Error ? error.message : "image_edit_timeout",
+      };
+    }
+
+    try {
+      return {
+        response: await callOpenAIImageEdit(input.retryPrompt, input.sourceImageUrl, input.n, retryOptions),
+        options: retryOptions,
+        retryUsed: true,
+        fallbackUsed: input.options.quality !== retryOptions.quality,
+        fallbackReason: error instanceof Error ? error.message : "image_edit_retry",
+      };
+    } catch (retryError) {
+      if (!shouldRetryImageGeneration(retryError) && !shouldRetryImageEdit(retryError)) throw retryError;
+
+      console.warn(`[${FUNCTION_NAME}] image_edit_fallback`, {
+        reason: retryError instanceof Error ? retryError.message : "unknown",
+        model: retryOptions.model,
+        quality: retryOptions.quality,
+        size: retryOptions.size,
+        mode: retryOptions.mode,
+      });
+
+      return {
+        response: await callOpenAIImageGeneration(input.fallbackPrompt, input.n, retryOptions),
+        options: retryOptions,
+        retryUsed: true,
+        fallbackUsed: true,
+        fallbackReason: retryError instanceof Error ? retryError.message : "image_edit_fallback",
+      };
+    }
+  }
+}
+
+async function callOpenAIImageEditWithReferencesAndRecovery(input: {
+  prompt: string;
+  imageUrls: string[];
+  n: number;
+  options: ImageRequestOptions;
+  fallbackPrompt: string;
+}): Promise<ImageOperationResult> {
+  try {
     return {
-      response: await callOpenAIImageEdit(input.retryPrompt, input.sourceImageUrl, input.n, input.options),
-      retryUsed: true,
+      response: await callOpenAIImageEditWithReferences(input.prompt, input.imageUrls, input.n, input.options),
+      options: input.options,
+      retryUsed: false,
+      fallbackUsed: false,
+      fallbackReason: null,
     };
+  } catch (error) {
+    if (!shouldRetryImageEdit(error)) throw error;
+
+    const retryOptions = buildFallbackImageRequestOptions(input.options);
+    console.warn(`[${FUNCTION_NAME}] image_reference_edit_retry`, {
+      reason: error instanceof Error ? error.message : "unknown",
+      model: retryOptions.model,
+      quality: retryOptions.quality,
+      size: retryOptions.size,
+      mode: retryOptions.mode,
+      referenceCount: input.imageUrls.length,
+    });
+
+    if (isImageTimeoutError(error)) {
+      console.warn(`[${FUNCTION_NAME}] image_edit_fallback`, {
+        reason: error instanceof Error ? error.message : "unknown",
+        model: retryOptions.model,
+        quality: retryOptions.quality,
+        size: retryOptions.size,
+        mode: retryOptions.mode,
+        referenceCount: input.imageUrls.length,
+      });
+
+      return {
+        response: await callOpenAIImageGeneration(input.fallbackPrompt, input.n, retryOptions),
+        options: retryOptions,
+        retryUsed: true,
+        fallbackUsed: true,
+        fallbackReason: error instanceof Error ? error.message : "image_reference_edit_timeout",
+      };
+    }
+
+    try {
+      return {
+        response: await callOpenAIImageEditWithReferences(input.prompt, input.imageUrls, input.n, retryOptions),
+        options: retryOptions,
+        retryUsed: true,
+        fallbackUsed: input.options.quality !== retryOptions.quality,
+        fallbackReason: error instanceof Error ? error.message : "image_reference_edit_retry",
+      };
+    } catch (retryError) {
+      if (!shouldRetryImageGeneration(retryError) && !shouldRetryImageEdit(retryError)) throw retryError;
+
+      console.warn(`[${FUNCTION_NAME}] image_edit_fallback`, {
+        reason: retryError instanceof Error ? retryError.message : "unknown",
+        model: retryOptions.model,
+        quality: retryOptions.quality,
+        size: retryOptions.size,
+        mode: retryOptions.mode,
+        referenceCount: input.imageUrls.length,
+      });
+
+      return {
+        response: await callOpenAIImageGeneration(input.fallbackPrompt, input.n, retryOptions),
+        options: retryOptions,
+        retryUsed: true,
+        fallbackUsed: true,
+        fallbackReason: retryError instanceof Error ? retryError.message : "image_reference_edit_fallback",
+      };
+    }
   }
 }
 
@@ -860,6 +1061,8 @@ Deno.serve(async (req) => {
       : buildImageRequestOptions(format.size, Boolean(sourceImageUrl), outputConfig.outputQuality);
     let usedImageOptions: ImageRequestOptions | null = null;
     let imageEditRetryUsed = false;
+    let imageFallbackUsed = false;
+    let imageFallbackReason: string | null = null;
     let sourceEditUsed = false;
     const imageOptions = generatedImageOptions;
     const finalPrompt = marketingAssetMode
@@ -893,7 +1096,22 @@ Deno.serve(async (req) => {
 
     let imageResponse: unknown;
     if (marketingAssetMode && referenceImageUrls.length) {
-      imageResponse = await callOpenAIImageEditWithReferences(finalPrompt, referenceImageUrls, variantCount, imageOptions);
+      const editResult = await callOpenAIImageEditWithReferencesAndRecovery({
+        prompt: finalPrompt,
+        imageUrls: referenceImageUrls,
+        n: variantCount,
+        options: imageOptions,
+        fallbackPrompt: [
+          result.enhanced_prompt,
+          "",
+          "Retouche source indisponible apres retry: creer un visuel marketing final coherent avec le brief courant, sans inventer de nouvelle marque et sans reprendre d'anciens assets.",
+        ].join("\n").slice(0, 4200),
+      });
+      imageResponse = editResult.response;
+      usedImageOptions = editResult.options;
+      imageEditRetryUsed = editResult.retryUsed;
+      imageFallbackUsed = editResult.fallbackUsed;
+      imageFallbackReason = editResult.fallbackReason;
     } else if (sourceImageUrl) {
       const editResult = await callOpenAIImageEditWithRetry({
         primaryPrompt: finalPrompt,
@@ -905,19 +1123,34 @@ Deno.serve(async (req) => {
         sourceImageUrl,
         n: variantCount,
         options: imageOptions,
+        fallbackPrompt: [
+          compactSourceEditPrompt,
+          "",
+          "Retouche source indisponible apres retry: creer une photographie culinaire premium proche du produit demande, sans logo, sans texte incruste, sans badge ni watermark.",
+        ].join("\n").slice(0, 2200),
       });
       imageResponse = editResult.response;
+      usedImageOptions = editResult.options;
       imageEditRetryUsed = editResult.retryUsed;
+      imageFallbackUsed = editResult.fallbackUsed;
+      imageFallbackReason = editResult.fallbackReason;
       sourceEditUsed = true;
     } else {
-      imageResponse = await callOpenAIImageGeneration(finalPrompt, variantCount, imageOptions);
+      const generationResult = await callOpenAIImageGenerationWithRetry(finalPrompt, variantCount, imageOptions);
+      imageResponse = generationResult.response;
+      usedImageOptions = generationResult.options;
+      imageFallbackUsed = generationResult.fallbackUsed;
+      imageFallbackReason = generationResult.fallbackReason;
     }
 
     const imageUsage = extractImageUsage(imageResponse);
     const imageBytes = await extractGeneratedImageBytes(imageResponse);
     const stored = await storeGeneratedImage(actor, restaurantId, imageBytes);
-    usedImageOptions = imageOptions;
-    const photoCreditUnits = outputConfig.creditUnits * Math.max(1, variantCount);
+    usedImageOptions = usedImageOptions || imageOptions;
+    const actualOutputCostUsd = getOpenAIOutputCostUsd(usedImageOptions.size, usedImageOptions.quality);
+    const actualOutputCostChf = actualOutputCostUsd * USD_TO_CHF_RATE;
+    const actualCreditUnits = Math.max(1, Math.ceil(actualOutputCostChf / PHOTO_CREDIT_CHF));
+    const photoCreditUnits = actualCreditUnits * Math.max(1, variantCount);
 
     const persistedAssetId = await insertGeneratedAsset(actor, {
       restaurant_id: restaurantId,
@@ -927,25 +1160,28 @@ Deno.serve(async (req) => {
       storage_bucket: IMAGE_BUCKET,
       storage_path: stored.path,
       asset_type: assetType,
-      model: imageOptions.model,
+      model: usedImageOptions.model,
       prompt: result.enhanced_prompt,
       title: result.title,
       status: "stored",
       metadata: {
-        image_quality: imageOptions.quality,
+        image_quality: usedImageOptions.quality,
         output_resolution: outputConfig.outputResolution,
+        requested_output_quality: outputConfig.outputQuality,
         output_credit_units: photoCreditUnits,
-        estimated_openai_output_cost_usd: outputConfig.outputCostUsd,
-        estimated_openai_cost_chf: outputConfig.outputCostChf,
-        request_image_model: imageOptions.model,
-        request_image_quality: imageOptions.quality,
-        request_image_size: imageOptions.size,
-        image_mode: imageOptions.mode,
+        estimated_openai_output_cost_usd: actualOutputCostUsd,
+        estimated_openai_cost_chf: actualOutputCostChf,
+        request_image_model: usedImageOptions.model,
+        request_image_quality: usedImageOptions.quality,
+        request_image_size: usedImageOptions.size,
+        image_mode: usedImageOptions.mode,
         source_edit_used: sourceEditUsed,
         image_edit_retry: imageEditRetryUsed,
+        image_fallback_used: imageFallbackUsed,
+        image_fallback_reason: imageFallbackReason,
         brand_overlay_positioning: "frontend_transparent_layer",
         brand_overlay_size: "180x180",
-        generation_fallback_allowed: !sourceImageUrl,
+        generation_fallback_allowed: true,
         output_format: "png",
         brief_source: briefSource,
         preview_image_url: stored.imageUrl,
@@ -959,7 +1195,9 @@ Deno.serve(async (req) => {
         original_prompt: prompt,
         dish_name: dishName,
         format: format.label,
-        source_preservation_policy: sourceImageUrl ? "strict_source_edit_no_generation_fallback" : "generation_without_source",
+        source_preservation_policy: sourceImageUrl
+          ? "strict_source_edit_with_generation_fallback_after_retryable_failure"
+          : "generation_without_source",
         reference_folder: marketingAssetMode ? null : `public${TOK_REFERENCE_FOLDER}`,
       },
     });
@@ -974,7 +1212,7 @@ Deno.serve(async (req) => {
       storage_path: stored.path,
       gallery_storage_bucket: GALLERY_BUCKET,
       gallery_storage_path: stored.galleryPath,
-      model: imageOptions.model,
+      model: usedImageOptions.model,
     };
 
     await insertUsage(actor, {
@@ -988,12 +1226,13 @@ Deno.serve(async (req) => {
       metadata: {
         credit_kind: "photo_retouch",
         credit_units: generated ? photoCreditUnits : outputConfig.creditUnits,
-        credit_units_per_image: outputConfig.creditUnits,
+        credit_units_per_image: actualCreditUnits,
         output_resolution: outputConfig.outputResolution,
-        output_size: outputConfig.outputSize,
-        output_quality: outputConfig.outputQuality,
-        estimated_openai_output_cost_usd: outputConfig.outputCostUsd,
-        estimated_openai_output_cost_chf: outputConfig.outputCostChf,
+        output_size: usedImageOptions.size,
+        output_quality: usedImageOptions.quality,
+        requested_output_quality: outputConfig.outputQuality,
+        estimated_openai_output_cost_usd: actualOutputCostUsd,
+        estimated_openai_output_cost_chf: actualOutputCostChf,
         photo_credit_chf: PHOTO_CREDIT_CHF,
         usd_to_chf_rate: USD_TO_CHF_RATE,
         asset_type: assetType,
@@ -1010,9 +1249,11 @@ Deno.serve(async (req) => {
         reference_image_count: referenceImageUrls.length,
         source_edit_used: sourceEditUsed,
         image_edit_retry: imageEditRetryUsed,
+        image_fallback_used: imageFallbackUsed,
+        image_fallback_reason: imageFallbackReason,
         brand_overlay_positioning: "frontend_transparent_layer",
         brand_overlay_size: "180x180",
-        generation_fallback_allowed: !sourceImageUrl,
+        generation_fallback_allowed: true,
         gallery_bucket: GALLERY_BUCKET,
         output_format: "png",
         format: format.label,
@@ -1036,8 +1277,8 @@ Deno.serve(async (req) => {
         image_size: usedImageOptions?.size,
         output_resolution: outputConfig.outputResolution,
         credit_units: photoCreditUnits,
-        estimated_openai_output_cost_usd: outputConfig.outputCostUsd,
-        estimated_openai_output_cost_chf: outputConfig.outputCostChf,
+        estimated_openai_output_cost_usd: actualOutputCostUsd,
+        estimated_openai_output_cost_chf: actualOutputCostChf,
         image_mode: usedImageOptions?.mode,
         brief_source: briefSource,
         image_only: imageOnly,
@@ -1045,6 +1286,8 @@ Deno.serve(async (req) => {
         reference_image_count: referenceImageUrls.length,
         source_edit_used: sourceEditUsed,
         image_edit_retry: imageEditRetryUsed,
+        image_fallback_used: imageFallbackUsed,
+        image_fallback_reason: imageFallbackReason,
         brand_overlay_positioning: "frontend_transparent_layer",
         brand_overlay_size: "180x180",
         gallery_bucket: GALLERY_BUCKET,
@@ -1062,8 +1305,8 @@ Deno.serve(async (req) => {
       gallery_storage_path: generated?.gallery_storage_path || null,
       model: generated?.model || IMAGE_MODEL,
       output_resolution: outputConfig.outputResolution,
-      output_size: outputConfig.outputSize,
-      output_quality: outputConfig.outputQuality,
+      output_size: usedImageOptions?.size || outputConfig.outputSize,
+      output_quality: usedImageOptions?.quality || outputConfig.outputQuality,
       credit_units: photoCreditUnits,
       estimated_cost_chf: estimateCostChf(
         imageUsage,

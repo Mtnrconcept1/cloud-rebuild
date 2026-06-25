@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,7 +9,12 @@ import ImageUpload from "@/components/ImageUpload";
 import { useToast } from "@/hooks/use-toast";
 import { useSessionStorageState } from "@/hooks/useSessionStorageState";
 import { getSupabase } from "@/integrations/supabase/client";
-import { generateTokDishImage, type TokImageFormat, type TokImageGenerationResult } from "@/lib/ai/tokAiClient";
+import type { TokImageFormat, TokImageGenerationResult } from "@/lib/ai/tokAiClient";
+import {
+  requestAiCreationNotificationPermission,
+  setActiveAiCreationContext,
+  startTokImageCreationJob,
+} from "@/lib/ai/aiCreationJobs";
 import {
   TOK_IMAGE_OUTPUT_OPTIONS,
   getTokImageOutputPricing,
@@ -342,6 +347,7 @@ function TokLogoGenerationLoader({ logoSrc }: { logoSrc: string }) {
 export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoCount, onGalleryUpdated }: Props) {
   const { toast } = useToast();
   const logoSrc = useTokLogoSrc();
+  const mountedRef = useRef(true);
   const storageKey = `tok-ai-photo-studio-v2:${restaurantId || "pending"}`;
   const [draft, setDraft, clearDraft] = useSessionStorageState<PhotoStudioDraft>(storageKey, DEFAULT_DRAFT);
   const [loading, setLoading] = useState(false);
@@ -356,6 +362,15 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
     setDraft((previous) => ({ ...previous, ...nextDraft }));
   };
 
+  useEffect(() => {
+    setActiveAiCreationContext("dashboard-photos:photopro");
+    return () => setActiveAiCreationContext(null);
+  }, []);
+
+  useEffect(() => () => {
+    mountedRef.current = false;
+  }, []);
+
   const generate = async () => {
     if (!restaurantId) return;
     if (!draft.sourceImageUrl.trim()) {
@@ -367,7 +382,8 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
     setPreviewOpen(false);
     updateDraft({ result: null });
     try {
-      const data = await generateTokDishImage({
+      void requestAiCreationNotificationPermission();
+      const request = {
         restaurantId,
         sourceImageUrl: draft.sourceImageUrl,
         dishName: draft.dishName || null,
@@ -378,13 +394,23 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
         variantCount: 1,
         generateImage: true,
         imageOnly: true,
+      } as const;
+      const { promise } = startTokImageCreationJob({
+        restaurantId,
+        userId,
+        tool: "photopro",
+        title: draft.dishName || "Retouche PhotoPro",
+        request,
       });
+      const data = await promise;
+      if (!mountedRef.current) return;
       updateDraft({ result: data });
       toast({ title: "Visuel TOK prêt", description: "Contrôlez que le produit source est toujours reconnaissable avant publication." });
     } catch (error) {
+      if (!mountedRef.current) return;
       toast({ title: "Erreur IA", description: formatPhotoGenerationError(error), variant: "destructive" });
     } finally {
-      setLoading(false);
+      if (mountedRef.current) setLoading(false);
     }
   };
 

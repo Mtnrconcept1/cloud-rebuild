@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
+import AiCreationsGallery from "@/components/dashboard/AiCreationsGallery";
 import TokAiMarketingStudio from "@/components/dashboard/TokAiMarketingStudio";
 import TokAiPhotoStudio from "@/components/dashboard/TokAiPhotoStudio";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,6 +18,7 @@ import ImageUpload from "@/components/ImageUpload";
 import {
   ArrowLeft,
   Camera,
+  History,
   Images,
   ImagePlus,
   Star,
@@ -61,7 +63,7 @@ const EMPTY_MEDIA_FORM: MediaFormState = {
   storage_path: null,
 };
 
-type PhotoWorkspaceTool = "marketing" | "photopro" | "add_photo" | "gallery";
+type PhotoWorkspaceTool = "marketing" | "photopro" | "add_photo" | "gallery" | "creations";
 
 const PHOTO_WORKSPACE_TOOLS: Array<{
   id: PhotoWorkspaceTool;
@@ -93,6 +95,12 @@ const PHOTO_WORKSPACE_TOOLS: Array<{
     description: "Gérer les photos visibles sur la fiche restaurant.",
     icon: Images,
   },
+  {
+    id: "creations",
+    title: "Mes créations",
+    description: "Retrouver les générations IA et les ajouter à la galerie.",
+    icon: History,
+  },
 ];
 
 const PHOTO_TOOL_HEADINGS: Record<PhotoWorkspaceTool, { title: string; description: string }> = {
@@ -111,6 +119,10 @@ const PHOTO_TOOL_HEADINGS: Record<PhotoWorkspaceTool, { title: string; descripti
   gallery: {
     title: "Galerie",
     description: "Organisez les photos, choisissez la couverture et prévisualisez les visuels.",
+  },
+  creations: {
+    title: "Mes créations",
+    description: "Suivez les générations IA terminées ou en cours, puis publiez les meilleurs visuels dans la galerie.",
   },
 };
 
@@ -274,7 +286,7 @@ export default function DashboardPhotos() {
     <DashboardLayout>
       <div className="space-y-6">
         {!activeTool ? (
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Outils photos du dashboard restaurateur">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5" aria-label="Outils photos du dashboard restaurateur">
             {PHOTO_WORKSPACE_TOOLS.map((tool) => {
               const Icon = tool.icon;
               return (
@@ -320,6 +332,15 @@ export default function DashboardPhotos() {
 
         {activeTool === "photopro" ? (
           <TokAiPhotoStudio
+            restaurantId={selectedId}
+            userId={user?.id || null}
+            currentPhotoCount={items.length}
+            onGalleryUpdated={load}
+          />
+        ) : null}
+
+        {activeTool === "creations" ? (
+          <AiCreationsGallery
             restaurantId={selectedId}
             userId={user?.id || null}
             currentPhotoCount={items.length}

@@ -8,10 +8,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
 import {
-  generateTokDishImage,
   type TokImageFormat,
   type TokImageGenerationResult,
 } from "@/lib/ai/tokAiClient";
+import {
+  requestAiCreationNotificationPermission,
+  setActiveAiCreationContext,
+  startTokImageCreationJob,
+} from "@/lib/ai/aiCreationJobs";
 import {
   TOK_IMAGE_OUTPUT_OPTIONS,
   getTokImageOutputPricing,
@@ -664,6 +668,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
   const [marketingImageResult, setMarketingImageResult] = useState<MarketingImageResult | null>(null);
   const [activeStep, setActiveStep] = useState<MarketingWorkflowStep>(1);
   const generationRequestRef = useRef(0);
+  const mountedRef = useRef(true);
 
   const activeToolConfig = MARKETING_TOOLS.find((tool) => tool.id === activeTool) || MARKETING_TOOLS[0]!;
   const selectedFormat = getFormatByLabel(activeToolConfig.formats, format);
@@ -678,6 +683,15 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
   const hasBrandResources = persistedResources.length >= 2;
   const marketingImageFormat = getMarketingImageFormat(selectedFormat.label, selectedFormat.orientation);
   const outputPricing = getTokImageOutputPricing(marketingImageFormat, outputResolution);
+
+  useEffect(() => {
+    setActiveAiCreationContext("dashboard-photos:marketing");
+    return () => setActiveAiCreationContext(null);
+  }, []);
+
+  useEffect(() => () => {
+    mountedRef.current = false;
+  }, []);
 
   const resourcesByKind = useMemo(() => {
     return resources.reduce<Record<MarketingAssetKind, MarketingResource[]>>(
@@ -947,36 +961,44 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
     setMarketingImageResult(null);
 
     try {
+      void requestAiCreationNotificationPermission();
       const latestResources = await fetchMarketingResources(restaurantId);
-      if (generationRequestRef.current !== requestId) return;
+      if (!mountedRef.current || generationRequestRef.current !== requestId) return;
 
       setResources(latestResources);
       const generationResources = latestResources.filter((resource) => resource.persisted && resource.mediaUrl);
-
-      const imageResult = await generateTokDishImage({
-        restaurantId,
-        prompt: buildMarketingImagePrompt({
-          toolTitle: activeToolConfig.title,
-          prompt: safePrompt,
-          format: selectedFormat.label,
-          formatSpec: selectedFormat.printSpec,
-          pageHint: selectedFormat.pageHint,
-          orientation: selectedFormat.orientation,
-          styleMode,
-          resources: generationResources,
-        }),
-        referenceImageUrls: generationResources.map((resource) => resource.mediaUrl),
-        dishName: activeToolConfig.title,
-        assetType: "campaign_visual",
-        format: marketingImageFormat,
-        outputResolution,
-        variantCount: 1,
-        generateImage: true,
-        imageOnly: true,
-        marketingAssetMode: true,
+      const imagePrompt = buildMarketingImagePrompt({
+        toolTitle: activeToolConfig.title,
+        prompt: safePrompt,
+        format: selectedFormat.label,
+        formatSpec: selectedFormat.printSpec,
+        pageHint: selectedFormat.pageHint,
+        orientation: selectedFormat.orientation,
+        styleMode,
+        resources: generationResources,
       });
 
-      if (generationRequestRef.current !== requestId) return;
+      const { promise } = startTokImageCreationJob({
+        restaurantId,
+        tool: "marketing_studio",
+        title: `${activeToolConfig.title} ${selectedFormat.label}`,
+        request: {
+          restaurantId,
+          prompt: imagePrompt,
+          referenceImageUrls: generationResources.map((resource) => resource.mediaUrl),
+          dishName: activeToolConfig.title,
+          assetType: "campaign_visual",
+          format: marketingImageFormat,
+          outputResolution,
+          variantCount: 1,
+          generateImage: true,
+          imageOnly: true,
+          marketingAssetMode: true,
+        },
+      });
+      const imageResult = await promise;
+
+      if (!mountedRef.current || generationRequestRef.current !== requestId) return;
 
       setMarketingImageResult(imageResult);
       toast({
@@ -984,14 +1006,14 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
         description: `Le visuel a été produit avec ${imageResult.model || "OpenAI"} pour ${outputPricing.photoCredits} crédit(s) photo IA.`,
       });
     } catch (error) {
-      if (generationRequestRef.current !== requestId) return;
+      if (!mountedRef.current || generationRequestRef.current !== requestId) return;
       toast({
         title: "Image impossible",
         description: formatMarketingImageGenerationError(error),
         variant: "destructive",
       });
     } finally {
-      if (generationRequestRef.current === requestId) setLoading(false);
+      if (mountedRef.current && generationRequestRef.current === requestId) setLoading(false);
     }
   };
 

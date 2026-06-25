@@ -142,7 +142,8 @@ describe("TOK AI tools foundation", () => {
     expect(source).toContain('const USE_FAST_INTERACTIVE_IMAGE = readEnvFlag("TOK_IMAGE_FAST_INTERACTIVE", false)');
     expect(source).toContain("buildMarketingImageRequestOptions");
     expect(source).not.toContain("FORCE_STRICT_SOURCE_EDIT ? false");
-    expect(source).toContain("sourceImagePresent && USE_FAST_INTERACTIVE_IMAGE");
+    expect(source).toContain('const shouldUseFastInteractiveEdit = sourceImagePresent || (USE_FAST_INTERACTIVE_IMAGE && quality === "low")');
+    expect(source).toContain('if (!hasReferenceImages) return buildConfiguredImageRequestOptions(formatSize, quality)');
     expect(source).toContain("buildImageRequestOptions(format.size, Boolean(sourceImageUrl), outputConfig.outputQuality)");
     expect(source).toContain("buildMarketingImageRequestOptions(format.size, referenceImageUrls.length > 0, outputConfig.outputQuality)");
     expect(source).not.toContain("TOK_INTERACTIVE_IMAGE_QUALITY");
@@ -191,14 +192,21 @@ describe("TOK AI tools foundation", () => {
     expect(source).toContain("Interdiction explicite: ne pas ajouter de logo");
     expect(source).toContain('brand_overlay_positioning: "frontend_transparent_layer"');
     expect(source).toContain('brand_overlay_size: "180x180"');
-    expect(source).toContain("strict_source_edit_no_generation_fallback");
-    expect(source).toContain("generation_fallback_allowed: !sourceImageUrl");
+    expect(source).toContain("strict_source_edit_with_generation_fallback_after_retryable_failure");
+    expect(source).toContain("generation_fallback_allowed: true");
     expect(source).toContain("let imageEditRetryUsed = false");
+    expect(source).toContain("let imageFallbackUsed = false");
     expect(source).toContain("callOpenAIImageEditWithRetry");
+    expect(source).toContain("callOpenAIImageGenerationWithRetry");
+    expect(source).toContain("callOpenAIImageEditWithReferencesAndRecovery");
+    expect(source).toContain("isImageTimeoutError");
+    expect(source).toContain('error.message === "image_edit_timeout"');
+    expect(source).toContain("buildFallbackImageRequestOptions");
+    expect(source).toContain('quality: "low"');
     expect(source).toContain("shouldRetryImageEdit");
     expect(source).toContain("image_edit_retry");
-    expect(source).not.toContain("image_edit_fallback");
-    expect(source).not.toContain("image_edit_fallback: l'edition de l'image source a echoue");
+    expect(source).toContain("image_edit_fallback");
+    expect(source).toContain("Retouche source indisponible apres retry");
     expect(source).not.toContain("source_image_edit_required");
     expect(source).not.toContain("createOpenAIResponse");
     expect(source).not.toContain("parseStructuredOutput");
@@ -216,6 +224,8 @@ describe("TOK AI tools foundation", () => {
     expect(source).toContain("const imageOnly = true");
     expect(source).toContain("image_generation_required");
     expect(source).toContain('briefSource = marketingAssetMode ? "marketing_image_only" : "image_only"');
+    expect(source).toContain("image_fallback_used: imageFallbackUsed");
+    expect(source).toContain("image_fallback_reason: imageFallbackReason");
     expect(client).toContain("referenceImageUrls?: string[]");
     expect(client).toContain("marketingAssetMode?: boolean");
     expect(source).toContain('publication_caption: ""');
@@ -358,7 +368,8 @@ describe("TOK AI tools foundation", () => {
 
     expect(advisor).toContain("streamRestaurantAdvisor");
     expect(advisor).toContain("runRestaurantAgent");
-    expect(advisor).toContain("generateTokDishImage");
+    expect(advisor).toContain("startTokImageCreationJob");
+    expect(advisor).toContain('tool: "advisor_photo"');
     expect(advisor).toContain("Optimiser un plat");
     expect(advisor).toContain("Creer une campagne");
     expect(advisor).toContain("Ameliorer une photo");

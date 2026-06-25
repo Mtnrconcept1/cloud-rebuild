@@ -25,6 +25,7 @@ import ThemeToggleButton from "@/components/theme/ThemeToggleButton";
 import SignOutButton from "@/components/auth/SignOutButton";
 import LegalConsentBanner from "@/components/legal/LegalConsentBanner";
 import DailyMiamzSlotMachine from "@/components/DailyMiamzSlotMachine";
+import AiCreationNotifications from "@/components/AiCreationNotifications";
 import { setupDeepLinks } from "@/lib/deep-links";
 import { getAdminHostRedirectTarget } from "@/lib/adminDomains";
 import {
@@ -388,6 +389,7 @@ function AppShell() {
   return (
     <>
       <MobileLogoIntro />
+      <AiCreationNotifications />
       {publicNavbar}
       <FloatingRouteBackButton />
       <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}>
