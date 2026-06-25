@@ -399,6 +399,18 @@ describe("TOK AI tools foundation", () => {
     expect(advisor).toContain("Optimiser un plat");
     expect(advisor).toContain("Creer une campagne");
     expect(advisor).toContain("Ameliorer une photo");
+    expect(advisor).toContain('selectionMode: "menu_dishes"');
+    expect(advisor).toContain('selectionMode: "gallery_photos"');
+    expect(advisor).toContain('"restaurant_media"');
+    expect(advisor).toContain('"menu_items"');
+    expect(advisor).toContain("ADVISOR_PHOTOS_LIMIT");
+    expect(advisor).toContain("ADVISOR_MENU_ITEMS_LIMIT");
+    expect(advisor).toContain("Sélectionnez les photos à améliorer");
+    expect(advisor).toContain("Sélectionnez les plats à optimiser");
+    expect(advisor).toContain("sourceImageUrl: payload?.selectedPhotos?.[0]?.mediaUrl || null");
+    expect(advisor).toContain("referenceImageUrls: payload?.selectedPhotos?.map((photo) => photo.mediaUrl) || []");
+    expect(advisor).toContain("selectedDishes: payload.selectedDishes.map");
+    expect(advisor).toContain("Consignes du restaurateur");
     expect(advisor).toContain("generated_image_url");
     expect(advisor).toContain("imageOnly: true");
     expect(advisor).not.toContain("tool.endpoint");

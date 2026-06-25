@@ -22,8 +22,18 @@ import { AiLoadingState } from "@/components/ui/ai-loading-state";
 import AiGenerationProgressDialog from "@/components/ui/ai-generation-progress-dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { getSupabase } from "@/integrations/supabase/client";
 import {
   runRestaurantAgent,
   streamRestaurantAdvisor,
@@ -37,6 +47,21 @@ import {
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
 
 type Message = { role: "user" | "assistant"; content: string };
+type AdvisorSelectionMode = "gallery_photos" | "menu_dishes";
+type AdvisorPhotoOption = {
+  id: string;
+  mediaUrl: string;
+  altText: string | null;
+  createdAt: string;
+};
+type AdvisorDishOption = {
+  id: string;
+  name: string;
+  description: string | null;
+  imageUrl: string | null;
+  category: string | null;
+  price: number;
+};
 type AdvisorHistoryEntry = {
   id: string;
   restaurantId: string;
@@ -49,10 +74,23 @@ type QuickTool = {
   icon: LucideIcon;
   label: string;
   prompt: string;
+  selectionMode?: AdvisorSelectionMode;
 } & (
   | { mode: "agent"; action: RestaurantAgentAction }
   | { mode: "image"; action: "image_enhance" }
 );
+
+type PreparedToolPayload = {
+  prompt: string;
+  selectedPhotos?: AdvisorPhotoOption[];
+  selectedDishes?: AdvisorDishOption[];
+  userInstructions?: string;
+};
+
+const supabase = getSupabase();
+const ADVISOR_GALLERY_MEDIA_TYPES = ["photo", "photo_ai_tok"];
+const ADVISOR_PHOTOS_LIMIT = 80;
+const ADVISOR_MENU_ITEMS_LIMIT = 120;
 
 const SUGGESTED_PROMPTS = [
   {
@@ -93,6 +131,7 @@ const QUICK_TOOLS: QuickTool[] = [
     label: "Optimiser un plat",
     mode: "agent",
     action: "menu_optimizer",
+    selectionMode: "menu_dishes",
     prompt: "Optimise la description, le positionnement prix et la mise en avant d'un plat prioritaire avec les donnees disponibles.",
   },
   {
@@ -107,6 +146,7 @@ const QUICK_TOOLS: QuickTool[] = [
     label: "Ameliorer une photo",
     mode: "image",
     action: "image_enhance",
+    selectionMode: "gallery_photos",
     prompt: "Prepare un brief premium pour ameliorer une photo de plat et generer une legende de publication.",
   },
 ];
@@ -240,6 +280,13 @@ export default function DashboardAdvisor() {
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [historyEntries, setHistoryEntries] = useState<AdvisorHistoryEntry[]>([]);
+  const [preparationTool, setPreparationTool] = useState<QuickTool | null>(null);
+  const [photoOptions, setPhotoOptions] = useState<AdvisorPhotoOption[]>([]);
+  const [dishOptions, setDishOptions] = useState<AdvisorDishOption[]>([]);
+  const [isSelectionLoading, setIsSelectionLoading] = useState(false);
+  const [selectedPhotoIds, setSelectedPhotoIds] = useState<string[]>([]);
+  const [selectedDishIds, setSelectedDishIds] = useState<string[]>([]);
+  const [toolInstructions, setToolInstructions] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const mountedRef = useRef(true);
@@ -266,10 +313,82 @@ export default function DashboardAdvisor() {
     if (!restaurantId) {
       setHistoryEntries([]);
       setHistoryOpen(false);
+      setPhotoOptions([]);
+      setDishOptions([]);
+      setPreparationTool(null);
       return;
     }
     setHistoryEntries(loadAdvisorHistory(restaurantId));
   }, [restaurantId]);
+
+  useEffect(() => {
+    if (!restaurantId) return;
+
+    let cancelled = false;
+    setIsSelectionLoading(true);
+
+    Promise.all([
+      (supabase.from as any)("restaurant_media")
+        .select("id, media_url, alt_text, created_at")
+        .eq("restaurant_id", restaurantId)
+        .in("media_type", ADVISOR_GALLERY_MEDIA_TYPES)
+        .order("created_at", { ascending: false })
+        .limit(ADVISOR_PHOTOS_LIMIT),
+      (supabase.from as any)("menu_items")
+        .select("id, name, description, image_url, category, price")
+        .eq("restaurant_id", restaurantId)
+        .order("category", { ascending: true, nullsFirst: false })
+        .order("name", { ascending: true })
+        .limit(ADVISOR_MENU_ITEMS_LIMIT),
+    ])
+      .then(([photosResult, dishesResult]) => {
+        if (cancelled) return;
+        if (photosResult.error) throw photosResult.error;
+        if (dishesResult.error) throw dishesResult.error;
+
+        setPhotoOptions((photosResult.data || []).flatMap((row: Record<string, unknown>): AdvisorPhotoOption[] => {
+          const id = typeof row.id === "string" ? row.id : "";
+          const mediaUrl = typeof row.media_url === "string" ? row.media_url : "";
+          if (!id || !mediaUrl) return [];
+
+          return [{
+            id,
+            mediaUrl,
+            altText: typeof row.alt_text === "string" ? row.alt_text : null,
+            createdAt: typeof row.created_at === "string" ? row.created_at : "",
+          }];
+        }));
+        setDishOptions((dishesResult.data || []).flatMap((row: Record<string, unknown>): AdvisorDishOption[] => {
+          const id = typeof row.id === "string" ? row.id : "";
+          const name = typeof row.name === "string" ? row.name : "";
+          if (!id || !name) return [];
+
+          return [{
+            id,
+            name,
+            description: typeof row.description === "string" ? row.description : null,
+            imageUrl: typeof row.image_url === "string" ? row.image_url : null,
+            category: typeof row.category === "string" ? row.category : null,
+            price: typeof row.price === "number" ? row.price : Number(row.price) || 0,
+          }];
+        }));
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        toast({
+          title: "Sélection indisponible",
+          description: error instanceof Error ? error.message : "Impossible de charger les photos ou les plats.",
+          variant: "destructive",
+        });
+      })
+      .finally(() => {
+        if (!cancelled) setIsSelectionLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [restaurantId, toast]);
 
   const streamChat = async (allMessages: Message[]) => {
     if (!restaurant) return "";
@@ -329,12 +448,13 @@ export default function DashboardAdvisor() {
     }
   };
 
-  const handleQuickTool = async (tool: QuickTool) => {
+  const handleQuickTool = async (tool: QuickTool, payload?: PreparedToolPayload) => {
     if (!restaurant || isLoading || activeTool) return;
 
+    const prompt = payload?.prompt || tool.prompt;
     const userMsg: Message = {
       role: "user",
-      content: `${tool.label}\n\n${tool.prompt}`,
+      content: `${tool.label}\n\n${prompt}`,
     };
 
     setMessages((prev) => [...prev, userMsg]);
@@ -352,7 +472,10 @@ export default function DashboardAdvisor() {
           title: tool.label,
           request: {
             restaurantId: restaurant.id,
-            prompt: tool.prompt,
+            prompt,
+            sourceImageUrl: payload?.selectedPhotos?.[0]?.mediaUrl || null,
+            referenceImageUrls: payload?.selectedPhotos?.map((photo) => photo.mediaUrl) || [],
+            referenceMediaIds: payload?.selectedPhotos?.map((photo) => photo.id) || [],
             assetType: "menu_visual",
             generateImage: true,
             imageOnly: true,
@@ -363,7 +486,18 @@ export default function DashboardAdvisor() {
         data = await runRestaurantAgent({
           restaurantId: restaurant.id,
           action: tool.action,
-          prompt: tool.prompt,
+          prompt,
+          context: payload?.selectedDishes ? {
+            selectedDishes: payload.selectedDishes.map((dish) => ({
+              id: dish.id,
+              name: dish.name,
+              description: dish.description,
+              imageUrl: dish.imageUrl,
+              category: dish.category,
+              price: dish.price,
+            })),
+            userInstructions: payload.userInstructions || "",
+          } : undefined,
         });
       }
 
@@ -396,6 +530,84 @@ export default function DashboardAdvisor() {
     }
   };
 
+  const openToolPreparation = (tool: QuickTool) => {
+    if (!tool.selectionMode) {
+      void handleQuickTool(tool);
+      return;
+    }
+
+    setPreparationTool(tool);
+    setSelectedPhotoIds([]);
+    setSelectedDishIds([]);
+    setToolInstructions("");
+  };
+
+  const closeToolPreparation = () => {
+    if (isLoading) return;
+    setPreparationTool(null);
+    setSelectedPhotoIds([]);
+    setSelectedDishIds([]);
+    setToolInstructions("");
+  };
+
+  const toggleSelectedPhoto = (photoId: string, checked: boolean) => {
+    setSelectedPhotoIds((current) => (
+      checked ? Array.from(new Set([...current, photoId])) : current.filter((id) => id !== photoId)
+    ));
+  };
+
+  const toggleSelectedDish = (dishId: string, checked: boolean) => {
+    setSelectedDishIds((current) => (
+      checked ? Array.from(new Set([...current, dishId])) : current.filter((id) => id !== dishId)
+    ));
+  };
+
+  const buildPreparedPrompt = (tool: QuickTool, selectedPhotos: AdvisorPhotoOption[], selectedDishes: AdvisorDishOption[]) => {
+    const instructions = toolInstructions.trim();
+    const selectionSummary = tool.selectionMode === "gallery_photos"
+      ? selectedPhotos.map((photo, index) => `${index + 1}. ${photo.altText || "Photo de galerie"} - ${photo.mediaUrl}`).join("\n")
+      : selectedDishes.map((dish, index) => {
+        const price = Number.isFinite(dish.price) && dish.price > 0 ? ` - ${dish.price.toFixed(2)} CHF` : "";
+        const category = dish.category ? ` - ${dish.category}` : "";
+        return `${index + 1}. ${dish.name}${category}${price}${dish.description ? `\n   Description actuelle: ${dish.description}` : ""}${dish.imageUrl ? `\n   Image: ${dish.imageUrl}` : ""}`;
+      }).join("\n");
+
+    return [
+      tool.prompt,
+      tool.selectionMode === "gallery_photos"
+        ? `Photos sélectionnées depuis la galerie:\n${selectionSummary}`
+        : `Plats sélectionnés depuis le menu:\n${selectionSummary}`,
+      instructions ? `Consignes du restaurateur:\n${instructions}` : "",
+    ].filter(Boolean).join("\n\n");
+  };
+
+  const submitPreparedTool = () => {
+    if (!preparationTool || !restaurant || isLoading || activeTool) return;
+
+    const selectedPhotos = photoOptions.filter((photo) => selectedPhotoIds.includes(photo.id));
+    const selectedDishes = dishOptions.filter((dish) => selectedDishIds.includes(dish.id));
+    const requiresPhoto = preparationTool.selectionMode === "gallery_photos";
+    const requiresDish = preparationTool.selectionMode === "menu_dishes";
+
+    if ((requiresPhoto && selectedPhotos.length === 0) || (requiresDish && selectedDishes.length === 0)) {
+      toast({
+        title: "Sélection requise",
+        description: requiresPhoto ? "Sélectionnez au moins une photo à améliorer." : "Sélectionnez au moins un plat à optimiser.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const prompt = buildPreparedPrompt(preparationTool, selectedPhotos, selectedDishes);
+    setPreparationTool(null);
+    void handleQuickTool(preparationTool, {
+      prompt,
+      selectedPhotos,
+      selectedDishes,
+      userInstructions: toolInstructions.trim(),
+    });
+  };
+
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
@@ -407,6 +619,10 @@ export default function DashboardAdvisor() {
     setMessages([]);
     setInput("");
     setActiveTool(null);
+    setPreparationTool(null);
+    setSelectedPhotoIds([]);
+    setSelectedDishIds([]);
+    setToolInstructions("");
   };
 
   const handleLoadHistory = (entry: AdvisorHistoryEntry) => {
@@ -414,12 +630,26 @@ export default function DashboardAdvisor() {
     setInput("");
     setHistoryOpen(false);
     setActiveTool(null);
+    setPreparationTool(null);
+    setSelectedPhotoIds([]);
+    setSelectedDishIds([]);
+    setToolInstructions("");
   };
 
   const handleDeleteHistory = (entryId: string) => {
     if (!restaurant) return;
     setHistoryEntries(deleteAdvisorHistoryEntry(restaurant.id, entryId));
   };
+
+  const isPhotoPreparation = preparationTool?.selectionMode === "gallery_photos";
+  const isDishPreparation = preparationTool?.selectionMode === "menu_dishes";
+  const selectedPreparationCount = isPhotoPreparation ? selectedPhotoIds.length : selectedDishIds.length;
+  const hasPreparationSelection = selectedPreparationCount > 0;
+  const PreparationIcon = preparationTool?.icon;
+  const preparationTitle = isPhotoPreparation ? "Sélectionnez les photos à améliorer" : "Sélectionnez les plats à optimiser";
+  const preparationDescription = isPhotoPreparation
+    ? "Cochez une ou plusieurs images de la galerie, puis ajoutez vos consignes de retouche."
+    : "Cochez un ou plusieurs plats du menu, puis précisez les modifications souhaitées.";
 
   if (!restaurant) {
     return (
@@ -529,7 +759,7 @@ export default function DashboardAdvisor() {
                   <button
                     key={tool.label}
                     type="button"
-                    onClick={() => handleQuickTool(tool)}
+                    onClick={() => openToolPreparation(tool)}
                     className="group rounded-xl border bg-primary/5 p-4 text-left transition-all hover:border-primary/50 hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-60"
                     disabled={isLoading || Boolean(activeTool)}
                   >
@@ -626,6 +856,139 @@ export default function DashboardAdvisor() {
             L'IA analyse les donnees des 30 derniers jours de votre restaurant.
           </p>
         </div>
+        <Dialog open={Boolean(preparationTool)} onOpenChange={(open) => { if (!open) closeToolPreparation(); }}>
+          <DialogContent className="max-h-[86vh] max-w-3xl overflow-hidden p-0">
+            <DialogHeader className="border-b px-5 py-4">
+              <DialogTitle className="flex items-center gap-2">
+                {PreparationIcon ? <PreparationIcon className="h-5 w-5 text-primary" /> : null}
+                {preparationTool?.label || "Préparation IA"}
+              </DialogTitle>
+              <DialogDescription>{preparationDescription}</DialogDescription>
+            </DialogHeader>
+
+            <div className="min-h-0 space-y-4 overflow-y-auto px-5 py-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold">{preparationTitle}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {isSelectionLoading ? "Chargement des éléments..." : `${selectedPreparationCount} élément${selectedPreparationCount > 1 ? "s" : ""} sélectionné${selectedPreparationCount > 1 ? "s" : ""}`}
+                  </p>
+                </div>
+                <Badge variant="outline" className="rounded-full">
+                  {isPhotoPreparation ? photoOptions.length : dishOptions.length} disponible{(isPhotoPreparation ? photoOptions.length : dishOptions.length) > 1 ? "s" : ""}
+                </Badge>
+              </div>
+
+              {isPhotoPreparation ? (
+                photoOptions.length === 0 ? (
+                  <div className="rounded-xl border border-dashed bg-muted/30 p-5 text-center text-sm text-muted-foreground">
+                    Aucune photo de galerie disponible pour ce restaurant.
+                  </div>
+                ) : (
+                  <div className="grid max-h-72 grid-cols-2 gap-3 overflow-y-auto pr-1 sm:grid-cols-3">
+                    {photoOptions.map((photo) => {
+                      const checked = selectedPhotoIds.includes(photo.id);
+
+                      return (
+                        <label
+                          key={photo.id}
+                          className="group cursor-pointer overflow-hidden rounded-xl border bg-background transition hover:border-primary/50"
+                        >
+                          <div className="relative aspect-square bg-muted">
+                            <img
+                              src={photo.mediaUrl}
+                              alt={photo.altText || "Photo de galerie"}
+                              className="h-full w-full object-cover transition group-hover:scale-[1.02]"
+                            />
+                            <span className="absolute left-2 top-2 rounded-lg bg-background/90 p-1 shadow-sm">
+                              <Checkbox
+                                checked={checked}
+                                onCheckedChange={(value) => toggleSelectedPhoto(photo.id, value === true)}
+                                aria-label={`Sélectionner ${photo.altText || "photo de galerie"}`}
+                              />
+                            </span>
+                          </div>
+                          <span className="block truncate px-3 py-2 text-xs font-medium">
+                            {photo.altText || "Photo de galerie"}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )
+              ) : null}
+
+              {isDishPreparation ? (
+                dishOptions.length === 0 ? (
+                  <div className="rounded-xl border border-dashed bg-muted/30 p-5 text-center text-sm text-muted-foreground">
+                    Aucun plat de menu disponible pour ce restaurant.
+                  </div>
+                ) : (
+                  <div className="grid max-h-72 gap-2 overflow-y-auto pr-1">
+                    {dishOptions.map((dish) => {
+                      const checked = selectedDishIds.includes(dish.id);
+
+                      return (
+                        <label
+                          key={dish.id}
+                          className="flex cursor-pointer items-center gap-3 rounded-xl border bg-background p-3 transition hover:border-primary/50"
+                        >
+                          <Checkbox
+                            checked={checked}
+                            onCheckedChange={(value) => toggleSelectedDish(dish.id, value === true)}
+                            aria-label={`Sélectionner ${dish.name}`}
+                          />
+                          {dish.imageUrl ? (
+                            <img src={dish.imageUrl} alt={dish.name} className="h-14 w-14 shrink-0 rounded-lg object-cover" />
+                          ) : (
+                            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-muted">
+                              <Camera className="h-5 w-5 text-muted-foreground" />
+                            </div>
+                          )}
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate text-sm font-semibold">{dish.name}</span>
+                            <span className="mt-0.5 block truncate text-xs text-muted-foreground">
+                              {[dish.category, Number.isFinite(dish.price) && dish.price > 0 ? `${dish.price.toFixed(2)} CHF` : ""].filter(Boolean).join(" - ") || "Plat du menu"}
+                            </span>
+                            {dish.description ? (
+                              <span className="mt-0.5 block line-clamp-1 text-xs text-muted-foreground">{dish.description}</span>
+                            ) : null}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )
+              ) : null}
+
+              <div className="space-y-2">
+                <p className="text-sm font-semibold">Consignes de modification</p>
+                <Textarea
+                  value={toolInstructions}
+                  onChange={(event) => setToolInstructions(event.target.value)}
+                  placeholder={isPhotoPreparation ? "Ex: rendre le plat plus lumineux, garder le cadrage, supprimer les ombres..." : "Ex: rendre la description plus premium, proposer un prix, mettre en avant les ingrédients locaux..."}
+                  className="min-h-24 resize-none"
+                  disabled={isLoading}
+                />
+              </div>
+            </div>
+
+            <DialogFooter className="border-t px-5 py-4">
+              <Button type="button" variant="outline" onClick={closeToolPreparation} disabled={isLoading}>
+                Annuler
+              </Button>
+              <Button
+                type="button"
+                onClick={submitPreparedTool}
+                disabled={isLoading || isSelectionLoading || !hasPreparationSelection}
+                className="gap-2 bg-gradient-to-br from-violet-500 to-indigo-600 hover:opacity-90"
+              >
+                <Sparkles className="h-4 w-4" />
+                Lancer l'assistant
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
         <AiGenerationProgressDialog
           open={Boolean(activeTool)}
           title={activeTool ? `${activeTool} en cours` : "Assistant IA en cours"}
