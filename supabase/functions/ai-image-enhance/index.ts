@@ -35,6 +35,7 @@ type GeneratedImage = {
 
 type ImageQuality = "low" | "medium" | "high";
 type ImageOutputResolution = "web" | "studio" | "print";
+type TokImageModel = "gpt-image-1.5" | "gpt-image-2";
 
 type ImageRequestOptions = {
   model: string;
@@ -62,11 +63,14 @@ type ImageOperationResult = {
 const FUNCTION_NAME = "ai-image-enhance";
 const IMAGE_GENERATIONS_URL = "https://api.openai.com/v1/images/generations";
 const IMAGE_EDITS_URL = "https://api.openai.com/v1/images/edits";
-const IMAGE_MODEL = "gpt-image-2";
+const IMAGE_MODEL: TokImageModel = "gpt-image-1.5";
+const TOK_IMAGE_MODEL_CREDIT_MULTIPLIERS: Record<TokImageModel, number> = {
+  "gpt-image-1.5": 1,
+  "gpt-image-2": 1.5,
+};
 const IMAGE_QUALITY = normalizeImageQuality(Deno.env.get("OPENAI_IMAGE_QUALITY")?.trim());
 const IMAGE_TIMEOUT_MS = readPositiveIntEnv("OPENAI_IMAGE_TIMEOUT_MS", 95_000, 115_000);
 const USE_FAST_INTERACTIVE_IMAGE = readEnvFlag("TOK_IMAGE_FAST_INTERACTIVE", false);
-const INTERACTIVE_IMAGE_MODEL = IMAGE_MODEL;
 const INTERACTIVE_IMAGE_TIMEOUT_MS = readPositiveIntEnv("TOK_INTERACTIVE_IMAGE_TIMEOUT_MS", 42_000, 50_000);
 const SOURCE_IMAGE_TIMEOUT_MS = readPositiveIntEnv("TOK_SOURCE_IMAGE_TIMEOUT_MS", 12_000, 30_000);
 const IMAGE_BUCKET = Deno.env.get("TOK_AI_IMAGE_BUCKET")?.trim() || "ai-generated-assets";
@@ -84,10 +88,10 @@ const MARKETING_REFERENCE_STORAGE_SEGMENT = "/marketing-assets/";
 const SUPPORTED_SOURCE_IMAGE_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const USD_TO_CHF_RATE = 0.81;
 const PHOTO_CREDIT_CHF = 0.015;
-const GPT_IMAGE_2_TEXT_INPUT_USD_PER_TOKEN = 5 / 1_000_000;
-const GPT_IMAGE_2_IMAGE_INPUT_USD_PER_TOKEN = 8 / 1_000_000;
-const GPT_IMAGE_2_IMAGE_OUTPUT_USD_PER_TOKEN = 30 / 1_000_000;
-const GPT_IMAGE_2_OUTPUT_COST_USD: Record<ImageQuality, Record<string, number>> = {
+const GPT_IMAGE_15_TEXT_INPUT_USD_PER_TOKEN = 5 / 1_000_000;
+const GPT_IMAGE_15_IMAGE_INPUT_USD_PER_TOKEN = 8 / 1_000_000;
+const GPT_IMAGE_15_IMAGE_OUTPUT_USD_PER_TOKEN = 30 / 1_000_000;
+const GPT_IMAGE_15_OUTPUT_COST_USD: Record<ImageQuality, Record<string, number>> = {
   low: {
     "1024x1024": 0.006,
     "1024x1536": 0.005,
@@ -189,9 +193,22 @@ function normalizeImageQuality(raw: string | undefined): ImageQuality {
   return "medium";
 }
 
-function buildConfiguredImageRequestOptions(formatSize: string, quality = IMAGE_QUALITY): ImageRequestOptions {
+function normalizeImageModel(raw: unknown): TokImageModel {
+  const value = typeof raw === "string" ? raw.trim().toLowerCase().replace(/_/g, "-") : "";
+  if (["gpt-image-2", "gpt image 2", "gpt2", "gpt-2"].includes(value)) return "gpt-image-2";
+  if (["gpt-image-1.5", "gpt image 1.5", "gpt-image-15", "gpt-image-1-5", "gpt1.5", "gpt-1.5"].includes(value)) {
+    return "gpt-image-1.5";
+  }
+  return IMAGE_MODEL;
+}
+
+function getImageModelCreditMultiplier(model: TokImageModel) {
+  return TOK_IMAGE_MODEL_CREDIT_MULTIPLIERS[model] || 1;
+}
+
+function buildConfiguredImageRequestOptions(formatSize: string, quality = IMAGE_QUALITY, model: TokImageModel = IMAGE_MODEL): ImageRequestOptions {
   return {
-    model: IMAGE_MODEL,
+    model,
     quality,
     size: formatSize,
     timeoutMs: IMAGE_TIMEOUT_MS,
@@ -199,12 +216,12 @@ function buildConfiguredImageRequestOptions(formatSize: string, quality = IMAGE_
   };
 }
 
-function buildImageRequestOptions(formatSize: string, sourceImagePresent: boolean, quality: ImageQuality): ImageRequestOptions {
+function buildImageRequestOptions(formatSize: string, sourceImagePresent: boolean, quality: ImageQuality, model: TokImageModel): ImageRequestOptions {
   const shouldUseFastInteractiveEdit = sourceImagePresent || (USE_FAST_INTERACTIVE_IMAGE && quality === "low");
-  if (!shouldUseFastInteractiveEdit) return buildConfiguredImageRequestOptions(formatSize, quality);
+  if (!shouldUseFastInteractiveEdit) return buildConfiguredImageRequestOptions(formatSize, quality, model);
 
   return {
-    model: INTERACTIVE_IMAGE_MODEL,
+    model,
     quality: "low",
     size: formatSize,
     timeoutMs: INTERACTIVE_IMAGE_TIMEOUT_MS,
@@ -212,8 +229,8 @@ function buildImageRequestOptions(formatSize: string, sourceImagePresent: boolea
   };
 }
 
-function buildMarketingImageRequestOptions(formatSize: string, _hasReferenceImages: boolean, quality: ImageQuality): ImageRequestOptions {
-  return buildConfiguredImageRequestOptions(formatSize, quality);
+function buildMarketingImageRequestOptions(formatSize: string, _hasReferenceImages: boolean, quality: ImageQuality, model: TokImageModel): ImageRequestOptions {
+  return buildConfiguredImageRequestOptions(formatSize, quality, model);
 }
 
 function buildFallbackImageRequestOptions(options: ImageRequestOptions): ImageRequestOptions {
@@ -453,21 +470,26 @@ function getQualityForOutputResolution(resolution: ImageOutputResolution): Image
 }
 
 function getOpenAIOutputCostUsd(size: string, quality: ImageQuality) {
-  return GPT_IMAGE_2_OUTPUT_COST_USD[quality]?.[size] ?? GPT_IMAGE_2_OUTPUT_COST_USD.medium["1536x1024"];
+  return GPT_IMAGE_15_OUTPUT_COST_USD[quality]?.[size] ?? GPT_IMAGE_15_OUTPUT_COST_USD.medium["1536x1024"];
 }
 
-function getImageOutputConfig(format: ReturnType<typeof normalizeFormat>, rawResolution: unknown) {
+function getImageOutputConfig(format: ReturnType<typeof normalizeFormat>, rawResolution: unknown, imageModel: TokImageModel) {
   const outputResolution = normalizeOutputResolution(rawResolution);
   const outputQuality = getQualityForOutputResolution(outputResolution);
+  const imageModelCreditMultiplier = getImageModelCreditMultiplier(imageModel);
   const outputCostUsd = getOpenAIOutputCostUsd(format.size, outputQuality);
-  const outputCostChf = outputCostUsd * USD_TO_CHF_RATE;
+  const baseOutputCostChf = outputCostUsd * USD_TO_CHF_RATE;
+  const outputCostChf = baseOutputCostChf * imageModelCreditMultiplier;
   const creditUnits = Math.max(1, Math.ceil(outputCostChf / PHOTO_CREDIT_CHF));
 
   return {
     outputResolution,
     outputQuality,
     outputSize: format.size,
+    imageModel,
+    imageModelCreditMultiplier,
     outputCostUsd,
+    baseOutputCostChf,
     outputCostChf,
     creditUnits,
   };
@@ -493,9 +515,9 @@ function estimateCostChf(usage: ImageUsage = {}, imageCount = 0, options?: Pick<
   const inputTextTokens = Math.max(0, usage.input_text_tokens ?? inputTokens - inputImageTokens);
   const outputTokens = Math.max(0, usage.output_tokens || 0);
   const tokenCostUsd =
-    (inputTextTokens * GPT_IMAGE_2_TEXT_INPUT_USD_PER_TOKEN) +
-    (inputImageTokens * GPT_IMAGE_2_IMAGE_INPUT_USD_PER_TOKEN) +
-    (outputTokens * GPT_IMAGE_2_IMAGE_OUTPUT_USD_PER_TOKEN);
+    (inputTextTokens * GPT_IMAGE_15_TEXT_INPUT_USD_PER_TOKEN) +
+    (inputImageTokens * GPT_IMAGE_15_IMAGE_INPUT_USD_PER_TOKEN) +
+    (outputTokens * GPT_IMAGE_15_IMAGE_OUTPUT_USD_PER_TOKEN);
   const fallbackOutputCostUsd = options ? getOpenAIOutputCostUsd(options.size, options.quality) * imageCount : 0;
   const costUsd = tokenCostUsd > 0 ? tokenCostUsd : fallbackOutputCostUsd;
   return Number((costUsd * USD_TO_CHF_RATE).toFixed(6));
@@ -1157,7 +1179,9 @@ Deno.serve(async (req) => {
       .filter((url) => url !== sourceImageUrl);
     const requestedReferenceMediaIds = normalizeReferenceMediaIds(body.referenceMediaIds);
     const format = normalizeFormat(body.format);
-    const outputConfig = getImageOutputConfig(format, body.outputResolution);
+    const imageModel = normalizeImageModel(body.imageModel ?? body.model);
+    const imageModelCreditMultiplier = getImageModelCreditMultiplier(imageModel);
+    const outputConfig = getImageOutputConfig(format, body.outputResolution, imageModel);
     const variantCount = clampVariantCount(body.variantCount);
     const generateImage = body.generateImage !== false;
     const imageOnly = true;
@@ -1200,8 +1224,8 @@ Deno.serve(async (req) => {
 
     let generated: GeneratedImage | null = null;
     const generatedImageOptions = marketingAssetMode
-      ? buildMarketingImageRequestOptions(format.size, referenceImageUrls.length > 0, outputConfig.outputQuality)
-      : buildImageRequestOptions(format.size, Boolean(sourceImageUrl), outputConfig.outputQuality);
+      ? buildMarketingImageRequestOptions(format.size, referenceImageUrls.length > 0, outputConfig.outputQuality, imageModel)
+      : buildImageRequestOptions(format.size, Boolean(sourceImageUrl), outputConfig.outputQuality, imageModel);
     let usedImageOptions: ImageRequestOptions | null = null;
     let imageEditRetryUsed = false;
     let imageFallbackUsed = false;
@@ -1291,16 +1315,18 @@ Deno.serve(async (req) => {
     const stored = await storeGeneratedImage(actor, restaurantId, imageBytes);
     usedImageOptions = usedImageOptions || imageOptions;
     const actualOutputCostUsd = getOpenAIOutputCostUsd(usedImageOptions.size, usedImageOptions.quality);
-    const actualOutputCostChf = actualOutputCostUsd * USD_TO_CHF_RATE;
+    const baseActualOutputCostChf = actualOutputCostUsd * USD_TO_CHF_RATE;
+    const actualOutputCostChf = baseActualOutputCostChf * imageModelCreditMultiplier;
     const actualCreditUnits = Math.max(1, Math.ceil(actualOutputCostChf / PHOTO_CREDIT_CHF));
     const photoCreditUnits = actualCreditUnits * Math.max(1, variantCount);
     const billableImageCount = Math.max(1, variantCount);
     const requestedOutputCreditUnits = outputConfig.creditUnits * billableImageCount;
-    const estimatedImageCostChf = estimateCostChf(
+    const baseEstimatedImageCostChf = estimateCostChf(
       imageUsage,
       billableImageCount,
       usedImageOptions ? { size: usedImageOptions.size, quality: usedImageOptions.quality } : undefined,
     );
+    const estimatedImageCostChf = Number((baseEstimatedImageCostChf * imageModelCreditMultiplier).toFixed(6));
     const estimatedCostCreditUnits = creditUnitsFromEstimatedCost(estimatedImageCostChf);
     const billablePhotoCreditUnits = Math.max(
       requestedOutputCreditUnits,
@@ -1326,6 +1352,7 @@ Deno.serve(async (req) => {
       status: "stored",
       metadata: {
         image_quality: usedImageOptions.quality,
+        image_model_credit_multiplier: imageModelCreditMultiplier,
         output_resolution: outputConfig.outputResolution,
         requested_output_quality: outputConfig.outputQuality,
         requested_output_credit_units: requestedOutputCreditUnits,
@@ -1334,8 +1361,11 @@ Deno.serve(async (req) => {
         billable_credit_units: billablePhotoCreditUnits,
         billing_credit_source: billingCreditSource,
         estimated_openai_output_cost_usd: actualOutputCostUsd,
+        estimated_openai_base_output_cost_chf: baseActualOutputCostChf,
         estimated_openai_output_cost_chf: actualOutputCostChf,
+        estimated_openai_base_cost_chf: baseEstimatedImageCostChf,
         estimated_openai_cost_chf: estimatedImageCostChf,
+        requested_image_model: imageModel,
         request_image_model: usedImageOptions.model,
         request_image_quality: usedImageOptions.quality,
         request_image_size: usedImageOptions.size,
@@ -1399,6 +1429,7 @@ Deno.serve(async (req) => {
         credit_kind: "photo_retouch",
         credit_units: billablePhotoCreditUnits,
         credit_units_per_image: actualCreditUnits,
+        image_model_credit_multiplier: imageModelCreditMultiplier,
         requested_output_credit_units: requestedOutputCreditUnits,
         output_credit_units: photoCreditUnits,
         estimated_cost_credit_units: estimatedCostCreditUnits,
@@ -1408,7 +1439,9 @@ Deno.serve(async (req) => {
         output_quality: usedImageOptions.quality,
         requested_output_quality: outputConfig.outputQuality,
         estimated_openai_output_cost_usd: actualOutputCostUsd,
+        estimated_openai_base_output_cost_chf: baseActualOutputCostChf,
         estimated_openai_output_cost_chf: actualOutputCostChf,
+        estimated_openai_base_cost_chf: baseEstimatedImageCostChf,
         photo_credit_chf: PHOTO_CREDIT_CHF,
         usd_to_chf_rate: USD_TO_CHF_RATE,
         asset_type: assetType,
@@ -1417,6 +1450,7 @@ Deno.serve(async (req) => {
         image_only: imageOnly,
         brief_source: briefSource,
         image_timeout_ms: usedImageOptions?.timeoutMs,
+        requested_image_model: imageModel,
         image_model: usedImageOptions?.model,
         image_quality: usedImageOptions?.quality,
         image_size: usedImageOptions?.size,
@@ -1455,11 +1489,14 @@ Deno.serve(async (req) => {
         rid: log.rid,
         restaurant_id: restaurantId,
         image_model: usedImageOptions?.model,
+        requested_image_model: imageModel,
+        image_model_credit_multiplier: imageModelCreditMultiplier,
         image_quality: usedImageOptions?.quality,
         image_size: usedImageOptions?.size,
         output_resolution: outputConfig.outputResolution,
-        credit_units: photoCreditUnits,
+        credit_units: billablePhotoCreditUnits,
         estimated_openai_output_cost_usd: actualOutputCostUsd,
+        estimated_openai_base_output_cost_chf: baseActualOutputCostChf,
         estimated_openai_output_cost_chf: actualOutputCostChf,
         image_mode: usedImageOptions?.mode,
         brief_source: briefSource,

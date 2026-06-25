@@ -17,8 +17,10 @@ import {
   startTokImageCreationJob,
 } from "@/lib/ai/aiCreationJobs";
 import {
+  TOK_IMAGE_MODEL_OPTIONS,
   TOK_IMAGE_OUTPUT_OPTIONS,
   getTokImageOutputPricing,
+  type TokImageModel,
   type TokImageOutputResolution,
 } from "@/lib/ai/imagePricing";
 import { buildRestaurantMediaAiMetadata } from "@/lib/ai/restaurantMediaMetadata";
@@ -44,6 +46,7 @@ type PhotoStudioDraft = {
   dishName: string;
   format: TokImageFormat;
   outputResolution: TokImageOutputResolution;
+  imageModel: TokImageModel;
   result: TokImageGenerationResult | null;
 };
 
@@ -52,6 +55,7 @@ const DEFAULT_DRAFT: PhotoStudioDraft = {
   dishName: "",
   format: "landscape",
   outputResolution: "studio",
+  imageModel: "gpt-image-1.5",
   result: null,
 };
 
@@ -95,7 +99,8 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
   const generatedImageUrl = result?.gallery_image_url || result?.generated_image_url || "";
   const downloadFileName = buildTokPhotoDownloadFileName(draft.dishName || result?.title || "visuel-tok");
   const selectedOutputResolution = draft.outputResolution || "studio";
-  const outputPricing = getTokImageOutputPricing(draft.format, selectedOutputResolution);
+  const selectedImageModel = draft.imageModel || "gpt-image-1.5";
+  const outputPricing = getTokImageOutputPricing(draft.format, selectedOutputResolution, selectedImageModel);
 
   const updateDraft = (nextDraft: Partial<PhotoStudioDraft>) => {
     setDraft((previous) => ({ ...previous, ...nextDraft }));
@@ -130,6 +135,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
         assetType: "menu_visual",
         format: draft.format,
         outputResolution: selectedOutputResolution,
+        imageModel: selectedImageModel,
         variantCount: 1,
         generateImage: true,
         imageOnly: true,
@@ -249,10 +255,37 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
               </div>
             </div>
             <div className="space-y-2">
+              <Label>Modele IA</Label>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {TOK_IMAGE_MODEL_OPTIONS.map((option) => {
+                  const selected = selectedImageModel === option.value;
+                  const pricing = getTokImageOutputPricing(draft.format, selectedOutputResolution, option.value);
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => updateDraft({ imageModel: option.value, result: null })}
+                      className={`min-w-0 rounded-2xl border p-3 text-left text-sm transition ${
+                        selected
+                          ? "border-orange-400 bg-orange-50 text-orange-950 shadow-sm"
+                          : "border-border bg-background hover:border-orange-200"
+                      }`}
+                    >
+                      <span className="block font-semibold">{option.label}</span>
+                      <span className="mt-1 block text-xs leading-5 text-muted-foreground">{option.description}</span>
+                      <span className="mt-2 inline-flex rounded-full bg-white px-2 py-1 text-xs font-bold text-orange-700">
+                        {pricing.photoCredits} credit{pricing.photoCredits > 1 ? "s" : ""}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="space-y-2">
               <Label>Resolution de sortie</Label>
               <div className="grid gap-2 sm:grid-cols-3">
                 {TOK_IMAGE_OUTPUT_OPTIONS.map((option) => {
-                  const pricing = getTokImageOutputPricing(draft.format, option.value);
+                  const pricing = getTokImageOutputPricing(draft.format, option.value, selectedImageModel);
                   const selected = selectedOutputResolution === option.value;
                   return (
                     <button

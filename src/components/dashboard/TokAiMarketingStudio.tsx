@@ -19,8 +19,10 @@ import {
   startTokImageCreationJob,
 } from "@/lib/ai/aiCreationJobs";
 import {
+  TOK_IMAGE_MODEL_OPTIONS,
   TOK_IMAGE_OUTPUT_OPTIONS,
   getTokImageOutputPricing,
+  type TokImageModel,
   type TokImageOutputResolution,
 } from "@/lib/ai/imagePricing";
 import { optimizeImageUpload } from "@/lib/optimizedImages";
@@ -754,6 +756,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
   const [orientation, setOrientation] = useState<MarketingOrientation>(DEFAULT_MARKETING_FORMAT.orientation);
   const [styleMode, setStyleMode] = useState("Base sur mon identite");
   const [outputResolution, setOutputResolution] = useState<TokImageOutputResolution>("studio");
+  const [imageModel, setImageModel] = useState<TokImageModel>("gpt-image-1.5");
   const [resources, setResources] = useState<MarketingResource[]>([]);
   const [loading, setLoading] = useState(false);
   const [resourcesLoading, setResourcesLoading] = useState(false);
@@ -776,7 +779,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
   const hasLogo = persistedResources.some((resource) => resource.kind === "logo");
   const hasBrandResources = persistedResources.length >= 2;
   const marketingImageFormat = getMarketingImageFormat(selectedFormat.label, selectedFormat.orientation);
-  const outputPricing = getTokImageOutputPricing(marketingImageFormat, outputResolution);
+  const outputPricing = getTokImageOutputPricing(marketingImageFormat, outputResolution, imageModel);
   const { data: businessContext, isLoading: businessContextLoading } = useQuery({
     queryKey: ["marketing-studio-business-context", restaurantId],
     queryFn: () => fetchMarketingBusinessContext(restaurantId!),
@@ -1101,6 +1104,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
           assetType: "campaign_visual",
           format: marketingImageFormat,
           outputResolution,
+          imageModel,
           variantCount: 1,
           generateImage: true,
           imageOnly: true,
@@ -1301,7 +1305,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-orange-600 text-xs font-bold text-white">2</span>
                   Paramétrer le rendu
                 </div>
-              <div className="grid min-w-0 gap-4 md:grid-cols-4">
+              <div className="grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-5">
                 <div className="min-w-0 space-y-2">
                   <Label htmlFor="marketing-format">Format</Label>
                   <select
@@ -1370,7 +1374,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                     className="h-10 w-full rounded-md border bg-background px-3 text-sm"
                   >
                     {TOK_IMAGE_OUTPUT_OPTIONS.map((option) => {
-                      const pricing = getTokImageOutputPricing(marketingImageFormat, option.value);
+                      const pricing = getTokImageOutputPricing(marketingImageFormat, option.value, imageModel);
                       return (
                         <option key={option.value} value={option.value}>
                           {option.label} - {pricing.photoCredits} cr.
@@ -1382,7 +1386,31 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                     {outputPricing.size} - qualite {outputPricing.quality}
                   </p>
                 </div>
-                <div className="mt-2 flex justify-stretch md:col-span-4 md:justify-end">
+                <div className="min-w-0 space-y-2">
+                  <Label htmlFor="marketing-image-model">Modele IA</Label>
+                  <select
+                    id="marketing-image-model"
+                    value={imageModel}
+                    onChange={(event) => {
+                      invalidateMarketingGeneration();
+                      setImageModel(event.target.value as TokImageModel);
+                    }}
+                    className="h-10 w-full rounded-md border bg-background px-3 text-sm"
+                  >
+                    {TOK_IMAGE_MODEL_OPTIONS.map((option) => {
+                      const pricing = getTokImageOutputPricing(marketingImageFormat, outputResolution, option.value);
+                      return (
+                        <option key={option.value} value={option.value}>
+                          {option.label} - {pricing.photoCredits} cr.
+                        </option>
+                      );
+                    })}
+                  </select>
+                  <p className="text-xs leading-5 text-muted-foreground">
+                    {outputPricing.modelLabel} - cout x{outputPricing.creditMultiplier}
+                  </p>
+                </div>
+                <div className="mt-2 flex justify-stretch md:col-span-2 xl:col-span-5 md:justify-end">
                   <Button
                     type="button"
                     variant="outline"
@@ -1411,6 +1439,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                     <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Pages: {selectedFormat.pageHint}</span>
                   ) : null}
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Style: {styleMode}</span>
+                  <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Modele IA: {outputPricing.modelLabel}</span>
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Resolution: {outputPricing.size} / {outputPricing.quality}</span>
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Credits: {outputPricing.photoCredits}</span>
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Références marketing: {persistedResources.length}</span>

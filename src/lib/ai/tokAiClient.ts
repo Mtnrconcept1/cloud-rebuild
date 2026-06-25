@@ -1,5 +1,5 @@
 import { getSupabase } from "@/integrations/supabase/client";
-import type { TokImageOutputResolution } from "@/lib/ai/imagePricing";
+import type { TokImageModel, TokImageOutputResolution } from "@/lib/ai/imagePricing";
 import { SUPABASE_URL } from "@/lib/env";
 import { fetchWithFreshAccessToken, invokeSupabaseFunction } from "@/lib/session";
 
@@ -83,6 +83,7 @@ export type TokImageGenerationRequest = {
   assetType?: "menu_visual" | "campaign_visual" | "banner" | "image";
   format?: TokImageFormat;
   outputResolution?: TokImageOutputResolution;
+  imageModel?: TokImageModel;
   variantCount?: number;
   generateImage?: boolean;
   imageOnly?: boolean;

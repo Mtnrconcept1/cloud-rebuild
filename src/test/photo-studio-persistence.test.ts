@@ -406,7 +406,7 @@ describe("TOK photo studio persistence", () => {
     expect(aiFunction).toContain('throw new HttpError(502, "image_reference_edit_required")');
     expect(aiFunction).toContain("allowGenerationFallback: false");
     expect(aiFunction).toContain("const generationFallbackAllowed = !sourceImageUrl && !(marketingAssetMode && referenceImageUrls.length)");
-    expect(aiFunction).toContain("return buildConfiguredImageRequestOptions(formatSize, quality);");
+    expect(aiFunction).toContain("return buildConfiguredImageRequestOptions(formatSize, quality, model);");
     expect(marketingStudio).toContain("formatAiImageGenerationError(error)");
     expect(publicErrorMessages).toContain("image_reference_edit_required");
   });

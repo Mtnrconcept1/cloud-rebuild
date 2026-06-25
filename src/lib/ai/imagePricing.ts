@@ -2,6 +2,7 @@ import type { TokImageFormat } from "@/lib/ai/tokAiClient";
 
 export type TokImageOutputResolution = "web" | "studio" | "print";
 export type TokImageOutputQuality = "low" | "medium" | "high";
+export type TokImageModel = "gpt-image-1.5" | "gpt-image-2";
 
 export type TokImageOutputOption = {
   value: TokImageOutputResolution;
@@ -10,8 +11,31 @@ export type TokImageOutputOption = {
   description: string;
 };
 
+export type TokImageModelOption = {
+  value: TokImageModel;
+  label: string;
+  description: string;
+  creditMultiplier: number;
+};
+
 export const TOK_IMAGE_USD_TO_CHF_RATE = 0.81;
 export const TOK_PHOTO_CREDIT_CHF = 0.015;
+export const TOK_IMAGE_DEFAULT_MODEL: TokImageModel = "gpt-image-1.5";
+
+export const TOK_IMAGE_MODEL_OPTIONS: TokImageModelOption[] = [
+  {
+    value: "gpt-image-1.5",
+    label: "GPT Image 1.5",
+    description: "Tarif standard Photo IA TOK.",
+    creditMultiplier: 1,
+  },
+  {
+    value: "gpt-image-2",
+    label: "GPT Image 2",
+    description: "Rendu premium, cout x1.5.",
+    creditMultiplier: 1.5,
+  },
+];
 
 export const TOK_IMAGE_OUTPUT_OPTIONS: TokImageOutputOption[] = [
   {
@@ -62,22 +86,30 @@ export function getTokImageOutputOption(value: TokImageOutputResolution | null |
   return TOK_IMAGE_OUTPUT_OPTIONS.find((option) => option.value === value) || TOK_IMAGE_OUTPUT_OPTIONS[1]!;
 }
 
+export function getTokImageModelOption(value: TokImageModel | string | null | undefined) {
+  return TOK_IMAGE_MODEL_OPTIONS.find((option) => option.value === value) || TOK_IMAGE_MODEL_OPTIONS[0]!;
+}
+
 export function getTokImageOutputPricing(
   format: TokImageFormat,
   resolution: TokImageOutputResolution | null | undefined,
+  imageModel: TokImageModel | string | null | undefined = TOK_IMAGE_DEFAULT_MODEL,
 ) {
   const option = getTokImageOutputOption(resolution);
+  const modelOption = getTokImageModelOption(imageModel);
   const size = FORMAT_SIZES[format] || FORMAT_SIZES.landscape;
   const outputCostUsd = OUTPUT_COST_USD[option.quality][size] ?? OUTPUT_COST_USD.medium["1536x1024"];
-  const outputCostChf = outputCostUsd * TOK_IMAGE_USD_TO_CHF_RATE;
+  const outputCostChf = outputCostUsd * TOK_IMAGE_USD_TO_CHF_RATE * modelOption.creditMultiplier;
   const photoCredits = Math.max(1, Math.ceil(outputCostChf / TOK_PHOTO_CREDIT_CHF));
 
   return {
     ...option,
+    model: modelOption.value,
+    modelLabel: modelOption.label,
+    creditMultiplier: modelOption.creditMultiplier,
     size,
     outputCostUsd,
     outputCostChf,
     photoCredits,
   };
 }
-

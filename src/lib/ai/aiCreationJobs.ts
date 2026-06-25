@@ -4,7 +4,7 @@ import {
   type TokImageGenerationRequest,
   type TokImageGenerationResult,
 } from "@/lib/ai/tokAiClient";
-import type { TokImageOutputResolution } from "@/lib/ai/imagePricing";
+import type { TokImageModel, TokImageOutputResolution } from "@/lib/ai/imagePricing";
 import { formatAiImageGenerationError } from "@/lib/publicErrorMessages";
 
 export const AI_CREATION_COMPLETED_EVENT = "tok-ai-creation-completed";
@@ -31,6 +31,7 @@ export type AiCreationRecord = {
   assetType?: TokImageGenerationRequest["assetType"];
   format?: TokImageFormat;
   outputResolution?: TokImageOutputResolution;
+  imageModel?: TokImageModel;
   sourceImageUrl?: string | null;
   referenceImageUrls?: string[];
   referenceMediaIds?: string[];
@@ -200,6 +201,7 @@ export function startTokImageCreationJob(input: StartAiCreationJobInput): AiCrea
     assetType: input.request.assetType,
     format: input.request.format,
     outputResolution: input.request.outputResolution,
+    imageModel: input.request.imageModel,
     sourceImageUrl: input.request.sourceImageUrl ?? null,
     referenceImageUrls: input.request.referenceImageUrls ?? [],
     referenceMediaIds: input.request.referenceMediaIds ?? [],

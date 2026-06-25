@@ -143,15 +143,16 @@ describe("TOK AI tools foundation", () => {
     expect(source).toContain("buildMarketingImageRequestOptions");
     expect(source).not.toContain("FORCE_STRICT_SOURCE_EDIT ? false");
     expect(source).toContain('const shouldUseFastInteractiveEdit = sourceImagePresent || (USE_FAST_INTERACTIVE_IMAGE && quality === "low")');
-    expect(source).toContain("return buildConfiguredImageRequestOptions(formatSize, quality);");
+    expect(source).toContain("return buildConfiguredImageRequestOptions(formatSize, quality, model);");
     expect(source).toContain("allowGenerationFallback: false");
     expect(source).toContain("image_reference_edit_required");
-    expect(source).toContain("buildImageRequestOptions(format.size, Boolean(sourceImageUrl), outputConfig.outputQuality)");
-    expect(source).toContain("buildMarketingImageRequestOptions(format.size, referenceImageUrls.length > 0, outputConfig.outputQuality)");
+    expect(source).toContain("buildImageRequestOptions(format.size, Boolean(sourceImageUrl), outputConfig.outputQuality, imageModel)");
+    expect(source).toContain("buildMarketingImageRequestOptions(format.size, referenceImageUrls.length > 0, outputConfig.outputQuality, imageModel)");
     expect(source).not.toContain("TOK_INTERACTIVE_IMAGE_QUALITY");
     expect(source).not.toContain("TOK_INTERACTIVE_IMAGE_SIZE");
-    expect(source).toContain("gpt-image-2");
-    expect(source).toContain("const INTERACTIVE_IMAGE_MODEL = IMAGE_MODEL;");
+    expect(source).toContain('"gpt-image-1.5": 1');
+    expect(source).toContain('"gpt-image-2": 1.5');
+    expect(source).toContain("normalizeImageModel(body.imageModel ?? body.model)");
     expect(source).not.toContain("gpt-image-1-mini");
     expect(source).toContain('"low"');
     expect(source).toContain('"1024x1024"');
@@ -264,13 +265,14 @@ describe("TOK AI tools foundation", () => {
     }
   });
 
-  it("uses the configured image 2 model for every image generation path", () => {
+  it("lets PhotoPro and Marketing Studio choose GPT image 1.5 or 2 without env model overrides", () => {
     const source = readProjectFile("supabase/functions/ai-image-enhance/index.ts");
     const secrets = readProjectFile("scripts/write-supabase-secrets-env.mjs");
     const workflow = readProjectFile(".github/workflows/deploy-production.yml");
 
-    expect(source).toContain('const IMAGE_MODEL = "gpt-image-2";');
-    expect(source).toContain("const INTERACTIVE_IMAGE_MODEL = IMAGE_MODEL;");
+    expect(source).toContain('const IMAGE_MODEL: TokImageModel = "gpt-image-1.5";');
+    expect(source).toContain('"gpt-image-2": 1.5');
+    expect(source).toContain("normalizeImageModel(body.imageModel ?? body.model)");
     expect(source).not.toContain('Deno.env.get("OPENAI_IMAGE_MODEL")');
     expect(source).not.toContain("gpt-image-1-mini");
     expect(source).not.toContain('Deno.env.get("TOK_INTERACTIVE_IMAGE_MODEL")');
@@ -290,9 +292,9 @@ describe("TOK AI tools foundation", () => {
     for (const expected of [
       "USD_TO_CHF_RATE = 0.81",
       "PHOTO_CREDIT_CHF = 0.015",
-      "GPT_IMAGE_2_TEXT_INPUT_USD_PER_TOKEN = 5 / 1_000_000",
-      "GPT_IMAGE_2_IMAGE_INPUT_USD_PER_TOKEN = 8 / 1_000_000",
-      "GPT_IMAGE_2_IMAGE_OUTPUT_USD_PER_TOKEN = 30 / 1_000_000",
+      "GPT_IMAGE_15_TEXT_INPUT_USD_PER_TOKEN = 5 / 1_000_000",
+      "GPT_IMAGE_15_IMAGE_INPUT_USD_PER_TOKEN = 8 / 1_000_000",
+      "GPT_IMAGE_15_IMAGE_OUTPUT_USD_PER_TOKEN = 30 / 1_000_000",
       '"1024x1024": 0.211',
       '"1024x1536": 0.165',
       '"1536x1024": 0.165',
@@ -317,10 +319,18 @@ describe("TOK AI tools foundation", () => {
     }
 
     expect(client).toContain("outputResolution?: TokImageOutputResolution");
+    expect(client).toContain("imageModel?: TokImageModel");
     expect(pricing).toContain("TOK_IMAGE_OUTPUT_OPTIONS");
+    expect(pricing).toContain("TOK_IMAGE_MODEL_OPTIONS");
+    expect(pricing).toContain('value: "gpt-image-2"');
+    expect(pricing).toContain("creditMultiplier: 1.5");
     expect(pricing).toContain("TOK_PHOTO_CREDIT_CHF = 0.015");
+    expect(photoStudio).toContain("Modele IA");
+    expect(photoStudio).toContain("imageModel: selectedImageModel");
     expect(photoStudio).toContain("Resolution de sortie");
     expect(photoStudio).toContain("outputResolution: selectedOutputResolution");
+    expect(marketingStudio).toContain("marketing-image-model");
+    expect(marketingStudio).toContain("imageModel");
     expect(marketingStudio).toContain("marketing-output-resolution");
     expect(marketingStudio).toContain("outputResolution");
     expect(migration).toContain("WHEN 'starter' THEN 24");
