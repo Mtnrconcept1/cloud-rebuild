@@ -26,6 +26,8 @@ export function getSupabase(): SupabaseClient<Database> {
       storage: authStorage,
       persistSession: true,
       autoRefreshToken: true,
+      flowType: "pkce",
+      detectSessionInUrl: false,
     },
   });
 

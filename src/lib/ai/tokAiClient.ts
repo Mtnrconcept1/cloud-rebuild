@@ -1,4 +1,5 @@
 import { getSupabase } from "@/integrations/supabase/client";
+import type { TokImageOutputResolution } from "@/lib/ai/imagePricing";
 import { SUPABASE_URL } from "@/lib/env";
 import { fetchWithFreshAccessToken, invokeSupabaseFunction } from "@/lib/session";
 
@@ -76,6 +77,7 @@ export type TokImageGenerationRequest = {
   prompt: string;
   assetType?: "menu_visual" | "campaign_visual" | "banner" | "image";
   format?: TokImageFormat;
+  outputResolution?: TokImageOutputResolution;
   variantCount?: number;
   generateImage?: boolean;
   imageOnly?: boolean;
@@ -100,6 +102,11 @@ export type TokImageGenerationResult = {
   gallery_storage_bucket: string | null;
   gallery_storage_path: string | null;
   model: string;
+  output_resolution?: TokImageOutputResolution;
+  output_size?: string;
+  output_quality?: "low" | "medium" | "high";
+  credit_units?: number;
+  estimated_cost_chf?: number;
   image_mode?: "interactive_fast" | "configured";
   reference_folder: string;
   status: "generated" | "stored";
@@ -321,6 +328,7 @@ export function generateTokDishImage(request: TokImageGenerationRequest) {
     ...request,
     assetType: request.assetType || "menu_visual",
     format: request.format || "landscape",
+    outputResolution: request.outputResolution || "studio",
     variantCount: request.variantCount || 1,
     generateImage: request.generateImage !== false,
   });

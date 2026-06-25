@@ -14,6 +14,7 @@ globalThis.ResizeObserver = ResizeObserverMock as unknown as typeof ResizeObserv
 
 const supabaseMocks = vi.hoisted(() => ({
   resend: vi.fn(),
+  exchangeCodeForSession: vi.fn(),
   resetPasswordForEmail: vi.fn(),
   rpc: vi.fn(),
   signInWithOAuth: vi.fn(),
@@ -29,6 +30,7 @@ vi.mock("@/integrations/supabase/client", () => ({
   getSupabase: () => ({
     auth: {
       resend: supabaseMocks.resend,
+      exchangeCodeForSession: supabaseMocks.exchangeCodeForSession,
       resetPasswordForEmail: supabaseMocks.resetPasswordForEmail,
       signInWithOAuth: supabaseMocks.signInWithOAuth,
       signInWithPassword: supabaseMocks.signInWithPassword,
@@ -173,6 +175,7 @@ describe("Auth signup form", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     supabaseMocks.resend.mockResolvedValue({ error: null });
+    supabaseMocks.exchangeCodeForSession.mockResolvedValue({ data: { session: null }, error: null });
     supabaseMocks.from.mockImplementation(mockSupabaseTable);
     supabaseMocks.rpc.mockResolvedValue({ data: null, error: null });
     supabaseMocks.signOut.mockResolvedValue({ error: null });
@@ -230,6 +233,20 @@ describe("Auth signup form", () => {
     fireEvent.click(screen.getByRole("button", { name: "Masquer le mot de passe" }));
     expect(passwordInput).toHaveAttribute("type", "password");
     expect(supabaseMocks.signInWithPassword).not.toHaveBeenCalled();
+  });
+
+  it("starts Google OAuth through the PKCE callback URL", async () => {
+    supabaseMocks.signInWithOAuth.mockResolvedValue({ error: null });
+    renderAuth("/auth?type=client");
+
+    fireEvent.click(screen.getByRole("button", { name: "Continuer avec Google" }));
+
+    await waitFor(() => {
+      expect(supabaseMocks.signInWithOAuth).toHaveBeenCalledWith({
+        provider: "google",
+        options: { redirectTo: `${window.location.origin}/auth/callback` },
+      });
+    });
   });
 
   it("lets signup users reveal and hide the password before submitting", () => {

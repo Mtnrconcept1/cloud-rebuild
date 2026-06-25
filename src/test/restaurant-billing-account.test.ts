@@ -77,7 +77,7 @@ describe("restaurant account and billing dashboard", () => {
   });
 
   it("adds secure credit-pack tables and enriches the billing credit usage RPC", () => {
-    const migration = latestMigrationContaining(/restaurant_credit_packs/);
+    const migration = latestMigrationContaining(/CREATE TABLE IF NOT EXISTS public\.restaurant_credit_packs/);
 
     expect(migration).toContain("CREATE TABLE IF NOT EXISTS public.restaurant_credit_packs");
     expect(migration).toContain("CREATE TABLE IF NOT EXISTS public.restaurant_credit_purchases");

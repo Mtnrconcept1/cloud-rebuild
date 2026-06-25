@@ -27,6 +27,10 @@ import LegalConsentBanner from "@/components/legal/LegalConsentBanner";
 import DailyMiamzSlotMachine from "@/components/DailyMiamzSlotMachine";
 import { setupDeepLinks } from "@/lib/deep-links";
 import { getAdminHostRedirectTarget } from "@/lib/adminDomains";
+import {
+  buildSanitizedAuthRedirectUrl,
+  getSupabaseAuthRedirectState,
+} from "@/lib/authRedirect";
 import { canShowClientSurface, getRoleHomePath } from "@/lib/roleAccess";
 import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 import { isNative } from "@/lib/platform";
@@ -183,11 +187,20 @@ function AdminHostBoundary() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
+    const redirectState = getSupabaseAuthRedirectState(window.location.href);
+    const safeLocation = redirectState.hasAuthRedirect
+      ? new URL(buildSanitizedAuthRedirectUrl(window.location.href), window.location.origin)
+      : {
+          pathname: location.pathname,
+          search: location.search,
+          hash: location.hash,
+        };
+
     const redirectTarget = getAdminHostRedirectTarget({
       hostname: window.location.hostname,
-      pathname: location.pathname,
-      search: location.search,
-      hash: location.hash,
+      pathname: safeLocation.pathname,
+      search: safeLocation.search,
+      hash: safeLocation.hash,
     });
 
     if (redirectTarget && redirectTarget !== window.location.href) {
@@ -381,6 +394,7 @@ function AppShell() {
         <Routes>
           <Route path="/" element={<ClientSurfaceRoute><Index /></ClientSurfaceRoute>} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/auth/callback" element={<Auth />} />
           <Route path="/recherche" element={<ClientSurfaceRoute><Recherche /></ClientSurfaceRoute>} />
           <Route path="/restaurants/:city" element={<ClientSurfaceRoute><LocalRestaurants /></ClientSurfaceRoute>} />
           <Route path="/restaurants/:city/:category" element={<ClientSurfaceRoute><LocalRestaurants /></ClientSurfaceRoute>} />

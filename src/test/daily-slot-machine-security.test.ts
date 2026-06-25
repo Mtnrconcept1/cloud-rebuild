@@ -4,8 +4,8 @@ import { readFileSync } from "node:fs";
 const edgeFunction = readFileSync("supabase/functions/daily-slot-spin/index.ts", "utf8");
 const migration = readFileSync("supabase/migrations/20260624223726_daily_miamz_slot_machine.sql", "utf8");
 const component = readFileSync("src/components/DailyMiamzSlotMachine.tsx", "utf8");
+const slotTemplate = readFileSync("public/tok-slot-machine/index.html", "utf8");
 const appShell = readFileSync("src/App.tsx", "utf8");
-const styles = readFileSync("src/index.css", "utf8");
 
 describe("daily Miamz slot machine", () => {
   it("keeps the random result and crediting path server-side", () => {
@@ -38,13 +38,23 @@ describe("daily Miamz slot machine", () => {
     expect(component).toContain("fetchWithFreshAccessToken(SLOT_ENDPOINT, { method: \"GET\" })");
     expect(component).toContain("fetchWithFreshAccessToken(SLOT_ENDPOINT, { method: \"POST\" })");
     expect(component).toContain("Affichee a chaque connexion client eligible");
+    expect(component).toContain('src={SLOT_MACHINE_FRAME_SRC}');
+    expect(component).toContain('sandbox="allow-scripts allow-same-origin"');
+    expect(component).not.toContain("Math.random");
     expect(component).not.toContain("localStorage");
   });
 
-  it("keeps slot display text readable with a marquee screen", () => {
-    expect(component).toContain("ScreenMarquee");
-    expect(component).toContain("tok-slot-marquee-track");
-    expect(styles).toContain("@keyframes tok-slot-marquee");
-    expect(styles).toContain(".tok-slot-marquee-track");
+  it("reuses the provided TOK slot HTML while delegating spins to the server bridge", () => {
+    expect(slotTemplate).toContain('<section class="slot-wrap" aria-label="Machine à sous TOK">');
+    expect(slotTemplate).toContain('<div class="slot-machine" id="slotMachine">');
+    expect(slotTemplate).toContain('<aside class="side-paytable" aria-label="Tableau des gains TOK">');
+    expect(slotTemplate).toContain('src="assets/paytable.png"');
+    expect(slotTemplate).not.toContain("data:image/png;base64");
+    expect(slotTemplate).toContain("TOK_SLOT_SPIN_REQUEST");
+    expect(slotTemplate).toContain("TOK_SLOT_SPIN_RESULT");
+    expect(slotTemplate).toContain("interceptSpin");
+    expect(slotTemplate).toContain("interceptKeyboardSpin");
+    expect(slotTemplate).toContain("window.spin = postSpinRequest");
+    expect(slotTemplate).toContain("Tirage sécurisé — résultat calculé côté serveur TOK.");
   });
 });

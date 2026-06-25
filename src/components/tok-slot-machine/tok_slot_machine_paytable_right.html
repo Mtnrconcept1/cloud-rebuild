@@ -1,0 +1,1793 @@
+﻿<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TOK Slot Machine - Taille stable</title>
+  <style>
+    :root {
+      --tok-orange: #ff5a00;
+      --tok-orange-2: #ff8a00;
+      --tok-dark: #0b0b0d;
+      --tok-black: #15110f;
+      --tok-white: #fff8ee;
+      --tok-cream: #ffe7c2;
+      --tok-red: #e93512;
+      --slot-width: min(900px, 100%);
+      --side-paytable-width: clamp(330px, 25vw, 468px);
+      --reel-size: clamp(96px, 17vw, 174px);
+      --symbol-gap: 16px;
+      --reel-visible-height: calc(var(--reel-size) * 1.16);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--tok-white);
+      background:
+        radial-gradient(circle at 50% 2%, rgba(255, 120, 0, .42), transparent 34%),
+        radial-gradient(circle at 15% 18%, rgba(255, 90, 0, .28), transparent 26%),
+        radial-gradient(circle at 83% 24%, rgba(255, 211, 120, .16), transparent 30%),
+        linear-gradient(145deg, #040404 0%, #14100d 48%, #050505 100%);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, .028) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, .024) 1px, transparent 1px);
+      background-size: 46px 46px;
+      mask-image: radial-gradient(circle at center, black, transparent 78%);
+    }
+
+    .stage {
+      width: min(1880px, 100%);
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: clamp(10px, 2.2vw, 34px) clamp(10px, 1.6vw, 28px) 42px;
+      position: relative;
+      display: grid;
+      place-items: center;
+    }
+
+    .slot-wrap {
+      position: relative;
+      width: min(1840px, 98vw);
+      min-height: calc(100vh - clamp(20px, 4.4vw, 68px) - 42px);
+      display: grid;
+      grid-template-columns: clamp(150px, 15vw, 280px) minmax(620px, var(--slot-width)) clamp(58px, 6vw, 96px) var(--side-paytable-width);
+      gap: clamp(8px, 1.25vw, 22px);
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tok-chef {
+      position: relative;
+      z-index: 4;
+      grid-column: 1;
+      align-self: center;
+      justify-self: end;
+      width: clamp(150px, 15vw, 276px);
+      margin: 0;
+      filter: drop-shadow(0 24px 28px rgba(0, 0, 0, .56));
+      transform: rotate(-3deg);
+      pointer-events: none;
+      user-select: none;
+      animation: none !important;
+      transition: none !important;
+    }
+
+    .slot-machine {
+      position: relative;
+      z-index: 3;
+      grid-column: 2;
+      align-self: center;
+      isolation: isolate;
+      border-radius: 44px;
+      padding: clamp(18px, 3vw, 34px);
+      background:
+        linear-gradient(145deg, rgba(255, 255, 255, .24), transparent 10%, transparent 78%, rgba(0, 0, 0, .42)),
+        radial-gradient(circle at 30% 10%, rgba(255, 242, 212, .32), transparent 28%),
+        linear-gradient(145deg, #ff7600 0%, #ff4e00 45%, #ba2507 100%);
+      border: 5px solid #2b1308;
+      contain: layout paint;
+      box-shadow:
+        0 34px 70px rgba(0, 0, 0, .56),
+        inset 0 3px 1px rgba(255, 255, 255, .55),
+        inset 0 -16px 30px rgba(79, 13, 0, .48);
+    }
+
+    .slot-machine::before,
+    .slot-machine::after {
+      content: "";
+      position: absolute;
+      inset: 14px;
+      border-radius: 34px;
+      pointer-events: none;
+    }
+
+    .slot-machine::before {
+      border: 3px solid rgba(255, 255, 255, .72);
+      box-shadow: inset 0 0 0 4px rgba(15, 10, 7, .44);
+    }
+
+    .slot-machine::after {
+      z-index: -1;
+      inset: -16px -14px -20px;
+      border-radius: 52px;
+      background: linear-gradient(180deg, rgba(255, 128, 0, .4), rgba(0, 0, 0, .52));
+      opacity: .76;
+    }
+
+    .top-panel {
+      display: grid;
+      grid-template-columns: minmax(160px, 280px) 1fr;
+      align-items: center;
+      gap: clamp(14px, 2vw, 26px);
+      margin-bottom: clamp(16px, 2.4vw, 28px);
+      position: relative;
+      z-index: 2;
+    }
+
+    .brand-card {
+      height: clamp(104px, 7.2vw, 116px);
+      min-height: 0;
+      display: grid;
+      place-items: center;
+      border-radius: 26px;
+      padding: 14px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, .95), rgba(255, 224, 190, .96)),
+        #fff;
+      border: 4px solid #1d100b;
+      box-shadow:
+        inset 0 3px 8px rgba(255, 255, 255, .7),
+        inset 0 -8px 16px rgba(255, 98, 0, .16),
+        0 12px 0 rgba(76, 20, 0, .58),
+        0 18px 24px rgba(0, 0, 0, .35);
+    }
+
+    .brand-card img {
+      max-width: 100%;
+      max-height: 88px;
+      object-fit: contain;
+      filter: drop-shadow(0 3px 3px rgba(0, 0, 0, .28));
+    }
+
+    .screen {
+      height: clamp(104px, 7.2vw, 116px);
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border-radius: 28px;
+      padding: 14px clamp(16px, 2.4vw, 26px);
+      background:
+        radial-gradient(circle at 30% 8%, rgba(255, 120, 0, .28), transparent 28%),
+        linear-gradient(180deg, #1b1715, #070707);
+      border: 4px solid #ffb36d;
+      box-shadow:
+        inset 0 0 0 3px rgba(0, 0, 0, .72),
+        inset 0 0 30px rgba(255, 86, 0, .18),
+        0 12px 0 rgba(67, 22, 0, .6);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .screen::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(110deg, transparent 0 15%, rgba(255, 255, 255, .12) 24%, transparent 34% 100%);
+      transform: translateX(-110%);
+      animation: screen-shine 5.8s infinite;
+    }
+
+    .message {
+      position: relative;
+      z-index: 2;
+      margin: 0 0 6px;
+      font-size: clamp(24px, 3.55vw, 52px);
+      line-height: .92;
+      font-weight: 1000;
+      letter-spacing: -.06em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+      text-shadow: 0 4px 0 rgba(255, 92, 0, .45), 0 9px 18px rgba(0, 0, 0, .75);
+    }
+
+    .sub-message {
+      position: relative;
+      z-index: 2;
+      margin: 0;
+      color: #ffd9b0;
+      font-size: clamp(11px, 1.15vw, 15px);
+      line-height: 1.08;
+      font-weight: 800;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+
+    .reels-window {
+      position: relative;
+      z-index: 3;
+      padding: clamp(18px, 2.8vw, 30px);
+      border-radius: 34px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, .92), rgba(255, 232, 205, .96)),
+        #fff4e5;
+      border: 6px solid #1c100b;
+      box-shadow:
+        inset 0 12px 22px rgba(255, 255, 255, .8),
+        inset 0 -16px 22px rgba(255, 117, 0, .16),
+        0 18px 0 rgba(94, 25, 1, .62),
+        0 28px 42px rgba(0, 0, 0, .45);
+      overflow: hidden;
+    }
+
+    .reels-window::before,
+    .reels-window::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 34%;
+      z-index: 8;
+      pointer-events: none;
+    }
+
+    .reels-window::before {
+      top: 0;
+      background: linear-gradient(180deg, rgba(255, 244, 229, .98), rgba(255, 244, 229, .36), transparent);
+    }
+
+    .reels-window::after {
+      bottom: 0;
+      background: linear-gradient(0deg, rgba(255, 244, 229, .98), rgba(255, 244, 229, .36), transparent);
+    }
+
+    .reels {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: clamp(12px, 2.2vw, 22px);
+      min-height: var(--reel-visible-height);
+    }
+
+    .reel {
+      height: var(--reel-visible-height);
+      border-radius: 24px;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, rgba(0, 0, 0, .12), transparent 23% 77%, rgba(0, 0, 0, .14)),
+        linear-gradient(180deg, #fffdf8, #ffe3bb);
+      border: 4px solid rgba(21, 13, 8, .86);
+      box-shadow:
+        inset 0 14px 18px rgba(0, 0, 0, .14),
+        inset 0 -14px 18px rgba(0, 0, 0, .12),
+        0 12px 18px rgba(0, 0, 0, .22);
+      position: relative;
+    }
+
+    .reel-strip {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      will-change: transform;
+      transform: translate3d(0, 0, 0);
+    }
+
+    .symbol {
+      height: var(--reel-visible-height);
+      display: grid;
+      place-items: center;
+      padding: 13px;
+      overflow: hidden;
+    }
+
+    .symbol-card {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      place-items: center;
+      border-radius: 22px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 32% 12%, rgba(255, 255, 255, .96), transparent 36%),
+        linear-gradient(145deg, #fff7ec, #ffc170);
+      box-shadow:
+        inset 0 3px 6px rgba(255, 255, 255, .78),
+        inset 0 -6px 14px rgba(255, 88, 0, .18),
+        0 7px 12px rgba(0, 0, 0, .18);
+      border: 2px solid rgba(43, 18, 5, .2);
+    }
+
+    .reel {
+      --motion-ghost-opacity-1: 0;
+      --motion-ghost-opacity-2: 0;
+      --motion-ghost-opacity-3: 0;
+      --motion-ghost-shift-1: 0px;
+      --motion-ghost-shift-2: 0px;
+      --motion-ghost-shift-3: 0px;
+      --motion-stretch: 1;
+      --motion-glow: 0;
+    }
+
+    .reel::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+      pointer-events: none;
+      opacity: var(--motion-glow);
+      background:
+        linear-gradient(180deg,
+          transparent 0%,
+          rgba(255, 255, 255, .18) 16%,
+          transparent 29%,
+          rgba(255, 122, 0, .13) 52%,
+          transparent 71%,
+          rgba(255, 255, 255, .14) 86%,
+          transparent 100%);
+      mix-blend-mode: screen;
+      transition: opacity 70ms linear;
+    }
+
+    .reel-strip.is-spinning {
+      filter: saturate(1.08) contrast(1.02);
+    }
+
+    .reel-strip.is-spinning .symbol-card {
+      transform: scaleY(var(--motion-stretch));
+      transform-origin: center center;
+    }
+
+    .symbol {
+      --symbol-transform: none;
+    }
+
+    .symbol-card {
+      position: relative;
+    }
+
+    .symbol img {
+      max-width: 94%;
+      max-height: 92%;
+      object-fit: contain;
+      filter: drop-shadow(0 7px 7px rgba(0, 0, 0, .32));
+      user-select: none;
+      pointer-events: none;
+      grid-area: 1 / 1;
+      transform: var(--symbol-transform);
+      transform-origin: center center;
+    }
+
+    .symbol-main {
+      position: relative;
+      z-index: 3;
+    }
+
+    .motion-ghost {
+      position: relative;
+      z-index: 2;
+      opacity: 0;
+      mix-blend-mode: multiply;
+      will-change: transform, opacity;
+    }
+
+    .reel-strip.is-spinning .motion-ghost-1 {
+      opacity: var(--motion-ghost-opacity-1);
+      transform: var(--symbol-transform) translate3d(0, var(--motion-ghost-shift-1), 0) scaleY(1.055);
+    }
+
+    .reel-strip.is-spinning .motion-ghost-2 {
+      opacity: var(--motion-ghost-opacity-2);
+      transform: var(--symbol-transform) translate3d(0, var(--motion-ghost-shift-2), 0) scaleY(1.11);
+    }
+
+    .reel-strip.is-spinning .motion-ghost-3 {
+      opacity: var(--motion-ghost-opacity-3);
+      transform: var(--symbol-transform) translate3d(0, var(--motion-ghost-shift-3), 0) scaleY(1.18);
+    }
+
+    .reel-strip:not(.is-spinning) .motion-ghost {
+      opacity: 0 !important;
+      transform: var(--symbol-transform) translate3d(0, 0, 0) scaleY(1) !important;
+    }
+
+    .symbol[data-symbol="logo_suisse"] img {
+      max-width: 98%;
+      max-height: 96%;
+    }
+
+    .symbol[data-symbol="monstre_fourchette"] {
+      --symbol-transform: scale(1.24);
+    }
+
+    .symbol[data-symbol="monstre_fourchette"] img {
+      max-height: 90%;
+    }
+
+    .symbol[data-symbol="chef_tok"] {
+      --symbol-transform: translateY(0) scale(1.02);
+    }
+
+    .symbol[data-symbol="chef_tok"] img {
+      max-height: 96%;
+    }
+
+    .symbol[data-symbol="livreur"] {
+      --symbol-transform: scale(1.06);
+    }
+
+    .symbol[data-symbol="livreur"] img {
+      max-height: 94%;
+    }
+
+    .symbol[data-symbol="logo_tok"] img {
+      max-height: 96%;
+    }
+
+    .symbol[data-symbol="bulle_miamz"] {
+      --symbol-transform: rotate(-3deg) scale(1.02);
+    }
+
+    .symbol[data-symbol="bulle_miamz"] img {
+      max-width: 99%;
+      max-height: 74%;
+    }
+
+    .bottom-panel {
+      position: relative;
+      z-index: 4;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: clamp(18px, 2.8vw, 30px);
+    }
+
+    .meter {
+      min-height: 74px;
+      border-radius: 20px;
+      padding: 13px 15px;
+      background: linear-gradient(180deg, #1b1511, #080808);
+      border: 3px solid rgba(255, 197, 135, .72);
+      box-shadow: inset 0 0 18px rgba(255, 82, 0, .12), 0 7px 0 rgba(63, 17, 0, .56);
+    }
+
+    .meter-label {
+      display: block;
+      color: #ffc088;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+
+    .meter-value {
+      display: block;
+      margin-top: 3px;
+      color: #fff8ee;
+      font-size: clamp(24px, 3vw, 36px);
+      line-height: 1;
+      font-weight: 1000;
+      letter-spacing: -.04em;
+      text-shadow: 0 0 16px rgba(255, 84, 0, .5);
+    }
+
+    .spin-button {
+      min-height: 74px;
+      width: 100%;
+      border: 0;
+      border-radius: 22px;
+      padding: 13px 16px 16px;
+      cursor: pointer;
+      color: var(--tok-dark);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, .42), transparent 32%),
+        linear-gradient(180deg, #ffdd49, #ff7a00 62%, #d3370a);
+      border: 4px solid #271309;
+      box-shadow:
+        inset 0 4px 0 rgba(255, 255, 255, .58),
+        inset 0 -8px 0 rgba(99, 24, 0, .28),
+        0 12px 0 #5b1a03,
+        0 19px 22px rgba(0, 0, 0, .34);
+      font-size: clamp(20px, 3vw, 34px);
+      font-weight: 1000;
+      letter-spacing: -.04em;
+      text-transform: uppercase;
+      transform: translateY(0);
+      transition: transform .12s ease, box-shadow .12s ease, filter .2s ease;
+    }
+
+    .spin-button:hover {
+      filter: brightness(1.06) saturate(1.08);
+    }
+
+    .spin-button:active,
+    .spin-button.is-down {
+      transform: translateY(9px);
+      box-shadow:
+        inset 0 3px 0 rgba(255, 255, 255, .5),
+        inset 0 -5px 0 rgba(99, 24, 0, .24),
+        0 3px 0 #5b1a03,
+        0 10px 16px rgba(0, 0, 0, .28);
+    }
+
+    .spin-button:disabled {
+      cursor: wait;
+      filter: grayscale(.28) brightness(.72);
+    }
+
+    .lever {
+      position: relative;
+      z-index: 2;
+      grid-column: 3;
+      height: clamp(286px, 44vw, 470px);
+      display: grid;
+      place-items: center;
+      align-self: center;
+      margin-bottom: 0;
+    }
+
+    .lever-track {
+      position: absolute;
+      width: clamp(24px, 3vw, 34px);
+      height: 76%;
+      border-radius: 999px;
+      background:
+        linear-gradient(90deg, #100c0a, #4a2817 40%, #120d0a),
+        #25140d;
+      border: 3px solid #080504;
+      box-shadow:
+        inset 0 0 18px rgba(0, 0, 0, .74),
+        0 18px 28px rgba(0, 0, 0, .46);
+    }
+
+    .lever-handle {
+      position: absolute;
+      top: 9%;
+      width: clamp(62px, 8vw, 92px);
+      height: clamp(62px, 8vw, 92px);
+      border-radius: 999px;
+      border: 5px solid #1e0d05;
+      background:
+        radial-gradient(circle at 34% 26%, #fff2d4 0 8%, transparent 17%),
+        radial-gradient(circle at 50% 40%, #ffab2e, #ff5a00 55%, #9f1c04 100%);
+      box-shadow:
+        inset 0 5px 7px rgba(255, 255, 255, .42),
+        inset 0 -10px 18px rgba(64, 8, 0, .46),
+        0 14px 0 #5b1702,
+        0 24px 28px rgba(0, 0, 0, .45);
+      cursor: pointer;
+      transition: top .48s cubic-bezier(.2, 1.4, .32, 1), transform .18s ease;
+    }
+
+    .lever-handle::after {
+      content: "SPIN";
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      color: #220d03;
+      font-size: clamp(12px, 1.7vw, 17px);
+      font-weight: 1000;
+      letter-spacing: -.04em;
+    }
+
+    .lever-handle:hover {
+      transform: scale(1.03);
+    }
+
+    .lever.is-pulled .lever-handle {
+      top: 68%;
+    }
+
+    .side-paytable {
+      grid-column: 4;
+      align-self: center;
+      justify-self: start;
+      width: var(--side-paytable-width);
+      max-height: calc(100vh - 22px);
+      position: relative;
+      z-index: 5;
+      display: grid;
+      place-items: center;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .side-paytable img {
+      width: 100%;
+      height: auto;
+      max-height: calc(100vh - 22px);
+      object-fit: contain;
+      display: block;
+      border-radius: 10px;
+      box-shadow:
+        0 26px 58px rgba(0, 0, 0, .58),
+        0 0 0 1px rgba(255, 110, 0, .18);
+    }
+
+    .paytable {
+      position: absolute;
+      left: clamp(12px, 3vw, 32px);
+      right: clamp(12px, 3vw, 32px);
+      bottom: -46px;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      z-index: 4;
+    }
+
+    .paytable span {
+      border-radius: 999px;
+      padding: 7px 12px;
+      color: #fce8ce;
+      background: rgba(0, 0, 0, .52);
+      border: 1px solid rgba(255, 165, 88, .5);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, .24);
+      font-size: 12px;
+      font-weight: 850;
+      backdrop-filter: none;
+    }
+
+    .jackpot-flash {
+      position: absolute;
+      inset: -18px;
+      z-index: 0;
+      border-radius: 58px;
+      background: radial-gradient(circle at center, rgba(255, 224, 97, .55), rgba(255, 85, 0, .24) 34%, transparent 62%);
+      opacity: 0;
+      pointer-events: none;
+      opacity: .86;
+    }
+
+    .slot-machine.is-winning .jackpot-flash {
+      animation: jackpot 1.05s ease-in-out 2;
+    }
+
+    .slot-machine.is-winning .reels-window {
+      animation: win-pop .75s ease-in-out 2;
+    }
+
+    .coin {
+      position: fixed;
+      z-index: 20;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      pointer-events: none;
+      background: radial-gradient(circle at 30% 25%, #fff4ad 0 9%, #ffd24b 26%, #ff9200 70%, #a83a00 100%);
+      border: 2px solid #5d2500;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, .34);
+      animation: coin-fall var(--fall-duration, 1200ms) cubic-bezier(.1, .68, .22, 1) forwards;
+    }
+
+    @keyframes screen-shine {
+      0%, 72% { transform: translateX(-120%); }
+      100% { transform: translateX(120%); }
+    }
+
+    @keyframes jackpot {
+      0%, 100% { opacity: 0; transform: scale(.98); }
+      35%, 65% { opacity: 1; transform: scale(1.03); }
+    }
+
+    @keyframes win-pop {
+      0%, 100% { transform: scale(1); }
+      45% { transform: scale(1.018); }
+    }
+
+    @keyframes coin-fall {
+      0% {
+        opacity: 0;
+        transform: translate3d(0, -10vh, 0) rotate(0deg) scale(.74);
+      }
+      12% { opacity: 1; }
+      100% {
+        opacity: 0;
+        transform: translate3d(var(--coin-drift, 20px), 106vh, 0) rotate(680deg) scale(1.1);
+      }
+    }
+
+
+
+    @media (min-width: 1421px) {
+      body {
+        overflow: hidden;
+      }
+
+      .stage {
+        height: 100vh;
+        min-height: 100vh;
+        padding-top: 0;
+        padding-bottom: 0;
+        place-items: center;
+        overflow: hidden;
+      }
+
+      .slot-wrap {
+        height: 100vh;
+        min-height: 100vh;
+        align-items: center;
+      }
+
+      .tok-chef,
+      .slot-machine,
+      .lever,
+      .side-paytable {
+        align-self: center;
+      }
+
+      .tok-chef {
+        margin: 0;
+      }
+
+      .lever {
+        margin-bottom: 0;
+      }
+
+      .side-paytable {
+        height: 100vh;
+        max-height: 100vh;
+      }
+
+      .side-paytable img {
+        width: 100%;
+        height: 100%;
+        max-height: 100vh;
+        object-fit: contain;
+      }
+    }
+
+    @media (max-width: 1420px) {
+      .slot-wrap {
+        width: min(1180px, 98vw);
+        min-height: auto;
+        grid-template-columns: clamp(132px, 18vw, 240px) minmax(0, var(--slot-width)) clamp(64px, 9vw, 112px);
+      }
+
+      .side-paytable {
+        grid-column: 1 / -1;
+        justify-self: center;
+        width: min(468px, 92vw);
+        margin-top: 34px;
+        max-height: none;
+      }
+
+      .side-paytable img {
+        max-height: none;
+      }
+    }
+
+    @media (max-width: 860px) {
+      .slot-wrap {
+        width: min(620px, 96vw);
+        min-height: auto;
+        grid-template-columns: 1fr;
+        align-items: center;
+      }
+
+      .tok-chef {
+        grid-column: 1;
+        grid-row: 2;
+        justify-self: start;
+        width: clamp(118px, 32vw, 168px);
+        margin: 12px 0 -86px -4px;
+        opacity: .96;
+        z-index: 5;
+      }
+
+      .slot-machine {
+        grid-column: 1;
+        grid-row: 1;
+      }
+
+      .side-paytable {
+        grid-column: 1;
+        width: min(430px, 94vw);
+        margin-top: 24px;
+      }
+
+      .lever {
+        grid-column: 1;
+      }
+    }
+
+    @media (max-width: 760px) {
+      :root {
+        --reel-size: clamp(78px, 23vw, 132px);
+      }
+
+      .stage {
+        align-items: start;
+      }
+
+      .slot-wrap {
+        margin-top: 8px;
+      }
+
+      .slot-machine {
+        border-radius: 32px;
+        padding: 18px;
+      }
+
+      .slot-machine::before {
+        inset: 9px;
+        border-radius: 25px;
+      }
+
+      .top-panel {
+        grid-template-columns: 1fr;
+      }
+
+      .brand-card {
+        min-height: 88px;
+      }
+
+      .brand-card img {
+        max-height: 72px;
+      }
+
+      .bottom-panel {
+        grid-template-columns: 1fr;
+      }
+
+      .meter {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+      }
+
+      .lever {
+        position: absolute;
+        right: -5px;
+        top: 135px;
+        height: 220px;
+        width: 72px;
+        margin: 0;
+      }
+
+      .lever-track {
+        width: 22px;
+      }
+
+      .lever-handle {
+        width: 62px;
+        height: 62px;
+      }
+
+      .tok-chef {
+        width: 138px;
+      }
+
+      .paytable {
+        position: static;
+        margin-top: 18px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .001ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="stage">
+    <section class="slot-wrap" aria-label="Machine Ã  sous TOK">
+      <img class="tok-chef" src="assets/chef2.png" alt="Chef TOK" />
+
+      <div class="slot-machine" id="slotMachine">
+        <div class="jackpot-flash" aria-hidden="true"></div>
+
+        <header class="top-panel">
+          <div class="brand-card">
+            <img src="assets/logotok.png" alt="Logo TOK Miamz" />
+          </div>
+
+          <div class="screen" aria-live="polite">
+            <p class="message" id="message">Miamz!</p>
+            <p class="sub-message" id="subMessage">Mangez mieux, vivez mieux â€” 1 crÃ©dit par spin</p>
+          </div>
+        </header>
+
+        <section class="reels-window" aria-label="Rouleaux de la slot machine">
+          <div class="reels">
+            <div class="reel" aria-label="Rouleau 1">
+              <div class="reel-strip" id="reel1"></div>
+            </div>
+
+            <div class="reel" aria-label="Rouleau 2">
+              <div class="reel-strip" id="reel2"></div>
+            </div>
+
+            <div class="reel" aria-label="Rouleau 3">
+              <div class="reel-strip" id="reel3"></div>
+            </div>
+          </div>
+        </section>
+
+        <footer class="bottom-panel">
+          <div class="meter">
+            <span class="meter-label">CrÃ©dits</span>
+            <span class="meter-value" id="credits">15</span>
+          </div>
+
+          <button class="spin-button" id="spinButton" type="button">Tok Spin</button>
+
+          <div class="meter">
+            <span class="meter-label">Gain</span>
+            <span class="meter-value" id="win">0</span>
+          </div>
+        </footer>
+
+      </div>
+
+      <aside class="lever" id="lever" aria-hidden="true">
+        <div class="lever-track"></div>
+        <button class="lever-handle" id="leverHandle" type="button" tabindex="-1" aria-label="Activer la machine"></button>
+      </aside>
+
+      <aside class="side-paytable" aria-label="Tableau des gains TOK">
+        <img src="assets/paytable.png" alt="Tableau des gains TOK" />
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    const symbols = [
+      {
+        id: "logo_suisse",
+        label: "Logo TOK Suisse",
+        src: "assets/tok.png",
+        srcCandidates: [
+          "assets/logo-tok-suisse.png",
+          "assets/logotok-suisse.png",
+          "assets/logo_suisse.png",
+          "assets/logosuisse.png",
+          "assets/tok-suisse.png"
+        ]
+      },
+      {
+        id: "monstre_fourchette",
+        label: "Monstre Fourchette",
+        src: "assets/lacuillere.png",
+        srcCandidates: [
+          "assets/monstre-fourchette.png",
+          "assets/monstre_fourchette.png",
+          "assets/monstre.png",
+          "assets/fourchette.png"
+        ]
+      },
+      {
+        id: "chef_tok",
+        label: "Chef TOK",
+        src: "assets/chef2.png",
+        srcCandidates: [
+          "assets/chef-tok.png",
+          "assets/chef_tok.png",
+          "assets/chef.png"
+        ]
+      },
+      {
+        id: "livreur",
+        label: "Livreur",
+        src: "assets/livreur.png",
+        srcCandidates: [
+          "assets/livreur-tok.png",
+          "assets/livreur_tok.png",
+          "assets/cycliste.png",
+          "assets/cycliste-tok.png",
+          "assets/delivery.png"
+        ]
+      },
+      {
+        id: "logo_tok",
+        label: "Logo TOK",
+        src: "assets/logotok.png",
+        srcCandidates: [
+          "assets/logo-tok.png",
+          "assets/logo_tok.png"
+        ]
+      },
+      {
+        id: "bulle_miamz",
+        label: "Bulle Miamz!",
+        src: "assets/mangez.png",
+        srcCandidates: [
+          "assets/miamz.png",
+          "assets/bulle-miamz.png",
+          "assets/bulle_miamz.png",
+          "assets/miamz-bulle.png"
+        ]
+      }
+    ];
+
+    // Tableau des gains strict, dans l'ordre exact gauche â†’ droite.
+    // Aucune autre combinaison ne paie. Une permutation des mÃªmes images ne paie pas.
+    const paytableRules = Object.freeze([
+      Object.freeze({
+        combo: Object.freeze(["logo_suisse", "logo_suisse", "logo_suisse"]),
+        amount: 100,
+        title: "MÃ©ga Jackpot TOK!",
+        detail: "3Ã— Logo TOK Suisse â€” +100 crÃ©dits",
+        jackpot: true,
+        weight: 1
+      }),
+      Object.freeze({
+        combo: Object.freeze(["monstre_fourchette", "monstre_fourchette", "monstre_fourchette"]),
+        amount: 60,
+        title: "Jackpot Fourchette!",
+        detail: "3Ã— Monstre Fourchette â€” +60 crÃ©dits",
+        jackpot: true,
+        weight: 2
+      }),
+      Object.freeze({
+        combo: Object.freeze(["chef_tok", "chef_tok", "chef_tok"]),
+        amount: 45,
+        title: "Jackpot Chef TOK!",
+        detail: "3Ã— Chef TOK â€” +45 crÃ©dits",
+        jackpot: true,
+        weight: 3
+      }),
+      Object.freeze({
+        combo: Object.freeze(["livreur", "livreur", "livreur"]),
+        amount: 40,
+        title: "Jackpot Livreur!",
+        detail: "3Ã— Livreur â€” +40 crÃ©dits",
+        jackpot: true,
+        weight: 4
+      }),
+      Object.freeze({
+        combo: Object.freeze(["logo_tok", "logo_tok", "logo_tok"]),
+        amount: 30,
+        title: "Jackpot Logo TOK!",
+        detail: "3Ã— Logo TOK â€” +30 crÃ©dits",
+        jackpot: true,
+        weight: 5
+      }),
+      Object.freeze({
+        combo: Object.freeze(["bulle_miamz", "bulle_miamz", "bulle_miamz"]),
+        amount: 24,
+        title: "Jackpot Miamz!",
+        detail: "3Ã— Bulle Miamz! â€” +24 crÃ©dits",
+        jackpot: true,
+        weight: 6
+      }),
+      Object.freeze({
+        combo: Object.freeze(["monstre_fourchette", "monstre_fourchette", "chef_tok"]),
+        amount: 20,
+        title: "Combo Fourchette!",
+        detail: "2Ã— Monstre Fourchette + 1Ã— Chef TOK â€” +20 crÃ©dits",
+        jackpot: false,
+        weight: 8
+      }),
+      Object.freeze({
+        combo: Object.freeze(["chef_tok", "chef_tok", "livreur"]),
+        amount: 16,
+        title: "Combo Chef!",
+        detail: "2Ã— Chef TOK + 1Ã— Livreur â€” +16 crÃ©dits",
+        jackpot: false,
+        weight: 10
+      }),
+      Object.freeze({
+        combo: Object.freeze(["livreur", "livreur", "monstre_fourchette"]),
+        amount: 12,
+        title: "Combo Livreur!",
+        detail: "2Ã— Livreur + 1Ã— Monstre Fourchette â€” +12 crÃ©dits",
+        jackpot: false,
+        weight: 12
+      }),
+      Object.freeze({
+        combo: Object.freeze(["logo_tok", "logo_tok", "monstre_fourchette"]),
+        amount: 10,
+        title: "Combo Logo!",
+        detail: "2Ã— Logo TOK + 1Ã— Monstre Fourchette â€” +10 crÃ©dits",
+        jackpot: false,
+        weight: 14
+      }),
+      Object.freeze({
+        combo: Object.freeze(["monstre_fourchette", "chef_tok", "livreur"]),
+        amount: 8,
+        title: "Combo SpÃ©cial!",
+        detail: "1Ã— Monstre Fourchette + 1Ã— Chef TOK + 1Ã— Livreur â€” +8 crÃ©dits",
+        jackpot: false,
+        weight: 16
+      }),
+      Object.freeze({
+        combo: Object.freeze(["chef_tok", "logo_tok", "logo_tok"]),
+        amount: 6,
+        title: "Combo Chef Logo!",
+        detail: "1Ã— Chef TOK + 2Ã— Logo TOK â€” +6 crÃ©dits",
+        jackpot: false,
+        weight: 18
+      }),
+      Object.freeze({
+        combo: Object.freeze(["livreur", "logo_tok", "logo_tok"]),
+        amount: 4,
+        title: "Combo Livreur Logo!",
+        detail: "1Ã— Livreur + 2Ã— Logo TOK â€” +4 crÃ©dits",
+        jackpot: false,
+        weight: 22
+      }),
+      Object.freeze({
+        combo: Object.freeze(["monstre_fourchette", "logo_tok", "logo_tok"]),
+        amount: 3,
+        title: "Petit Combo TOK!",
+        detail: "1Ã— Monstre Fourchette + 2Ã— Logo TOK â€” +3 crÃ©dits",
+        jackpot: false,
+        weight: 26
+      })
+    ]);
+
+    const symbolIndexById = new Map(symbols.map((symbol, index) => [symbol.id, index]));
+    const ruleKeySeparator = "|";
+    const strictPaytableByKey = new Map();
+
+    for (const rule of paytableRules) {
+      const key = rule.combo.join(ruleKeySeparator);
+
+      if (strictPaytableByKey.has(key)) {
+        throw new Error(`Combinaison dupliquÃ©e dans le tableau des gains: ${key}`);
+      }
+
+      strictPaytableByKey.set(key, rule);
+    }
+
+    const reelCount = 3;
+    const loopsBeforeResult = 18;
+    const baseSpinDuration = 4600;
+    const spinDurationStep = 820;
+    const winningSpinProbability = 0.46;
+    const cyclesInStrip = 44;
+    const safeCycle = 12;
+    const stripLength = symbols.length * cyclesInStrip;
+
+    const reelEls = [
+      document.getElementById("reel1"),
+      document.getElementById("reel2"),
+      document.getElementById("reel3")
+    ];
+
+    const slotMachine = document.getElementById("slotMachine");
+    const spinButton = document.getElementById("spinButton");
+    const lever = document.getElementById("lever");
+    const leverHandle = document.getElementById("leverHandle");
+    const message = document.getElementById("message");
+    const subMessage = document.getElementById("subMessage");
+    const creditsEl = document.getElementById("credits");
+    const winEl = document.getElementById("win");
+
+    let credits = 15;
+    let spinning = false;
+    let positions = [0, 0, 0];
+    let lastResults = [0, 1, 2];
+
+    function positiveModulo(value, modulo) {
+      return ((value % modulo) + modulo) % modulo;
+    }
+
+    function getSymbolHeight() {
+      const sample = document.querySelector(".symbol");
+      return sample ? sample.getBoundingClientRect().height : 180;
+    }
+
+    function setReelTransform(reel, position, symbolHeight) {
+      reel.style.transform = `translate3d(0, ${-position * symbolHeight}px, 0)`;
+    }
+
+    function getSymbolSources(symbol) {
+      const sources = [symbol.src, ...(symbol.srcCandidates || [])].filter(Boolean);
+      return [...new Set(sources)];
+    }
+
+    function createSymbolImage(symbol, className, altText, ariaHidden = false) {
+      const image = document.createElement("img");
+      const sources = getSymbolSources(symbol);
+      let sourceIndex = 0;
+
+      image.className = className;
+      image.alt = altText;
+      image.draggable = false;
+
+      if (ariaHidden) {
+        image.setAttribute("aria-hidden", "true");
+      }
+
+      image.onerror = () => {
+        sourceIndex += 1;
+
+        if (sourceIndex < sources.length) {
+          image.src = sources[sourceIndex];
+          return;
+        }
+
+        image.onerror = null;
+        image.style.display = "none";
+      };
+
+      image.src = sources[0];
+
+      return image;
+    }
+
+    function createSymbol(symbol) {
+      const item = document.createElement("div");
+      item.className = "symbol";
+      item.dataset.symbol = symbol.id;
+      item.setAttribute("role", "img");
+      item.setAttribute("aria-label", symbol.label);
+
+      const card = document.createElement("div");
+      card.className = "symbol-card";
+
+      const image = createSymbolImage(symbol, "symbol-main", symbol.label);
+      const ghost1 = createSymbolImage(symbol, "motion-ghost motion-ghost-1", "", true);
+      const ghost2 = createSymbolImage(symbol, "motion-ghost motion-ghost-2", "", true);
+      const ghost3 = createSymbolImage(symbol, "motion-ghost motion-ghost-3", "", true);
+
+      card.appendChild(ghost3);
+      card.appendChild(ghost2);
+      card.appendChild(ghost1);
+      card.appendChild(image);
+      item.appendChild(card);
+
+      return item;
+    }
+
+    function buildReels() {
+      reelEls.forEach((reel) => {
+        reel.innerHTML = "";
+
+        for (let i = 0; i < stripLength; i += 1) {
+          const symbol = symbols[i % symbols.length];
+          reel.appendChild(createSymbol(symbol));
+        }
+      });
+
+      randomizeStartPositions();
+    }
+
+    function randomizeStartPositions() {
+      const symbolHeight = getSymbolHeight();
+
+      reelEls.forEach((reel, index) => {
+        const startSymbol = Math.floor(Math.random() * symbols.length);
+        const start = (safeCycle + index) * symbols.length + startSymbol;
+
+        positions[index] = start;
+        lastResults[index] = startSymbol;
+
+        reel.style.transition = "none";
+        setReelTransform(reel, start, symbolHeight);
+        reel.offsetHeight;
+      });
+    }
+
+    function idsToIndexes(symbolIds) {
+      return symbolIds.map((symbolId) => {
+        const index = symbolIndexById.get(symbolId);
+
+        if (index === undefined) {
+          throw new Error(`Symbole inconnu dans le tableau des gains: ${symbolId}`);
+        }
+
+        return index;
+      });
+    }
+
+    function indexesToIds(resultIndexes) {
+      return resultIndexes.map((index) => symbols[index]?.id);
+    }
+
+    function getStrictRuleFromIds(resultIds) {
+      return strictPaytableByKey.get(resultIds.join(ruleKeySeparator)) || null;
+    }
+
+    function getStrictRuleFromIndexes(resultIndexes) {
+      return getStrictRuleFromIds(indexesToIds(resultIndexes));
+    }
+
+    function pickWeightedRule() {
+      const totalWeight = paytableRules.reduce((total, rule) => total + rule.weight, 0);
+      let cursor = Math.random() * totalWeight;
+
+      for (const rule of paytableRules) {
+        cursor -= rule.weight;
+
+        if (cursor <= 0) {
+          return rule;
+        }
+      }
+
+      return paytableRules[paytableRules.length - 1];
+    }
+
+    function buildAllStrictLosingResults() {
+      const losingResults = [];
+
+      for (let first = 0; first < symbols.length; first += 1) {
+        for (let second = 0; second < symbols.length; second += 1) {
+          for (let third = 0; third < symbols.length; third += 1) {
+            const result = [first, second, third];
+
+            if (!getStrictRuleFromIndexes(result)) {
+              losingResults.push(result);
+            }
+          }
+        }
+      }
+
+      return losingResults;
+    }
+
+    const strictLosingResults = Object.freeze(buildAllStrictLosingResults().map(Object.freeze));
+
+    function pickLosingResults() {
+      const result = strictLosingResults[Math.floor(Math.random() * strictLosingResults.length)];
+      return [...result];
+    }
+
+    function pickResults() {
+      if (Math.random() < winningSpinProbability) {
+        return idsToIndexes(pickWeightedRule().combo);
+      }
+
+      return pickLosingResults();
+    }
+
+    function calculateWin(resultIndexes) {
+      const matchingRule = getStrictRuleFromIndexes(resultIndexes);
+
+      if (matchingRule) {
+        return {
+          amount: matchingRule.amount,
+          title: matchingRule.title,
+          detail: matchingRule.detail,
+          jackpot: matchingRule.jackpot
+        };
+      }
+
+      return {
+        amount: 0,
+        title: "Retente ta chance",
+        detail: "Combinaison non gagnante â€” 0 crÃ©dit.",
+        jackpot: false
+      };
+    }
+
+    function setMeters(winAmount) {
+      creditsEl.textContent = credits;
+      winEl.textContent = winAmount;
+    }
+
+    function setMachineEnabled(enabled) {
+      spinButton.disabled = !enabled;
+      spinButton.classList.toggle("is-down", !enabled);
+    }
+
+    function spin() {
+      if (spinning) return;
+
+      if (credits <= 0) {
+        credits = 15;
+        setMeters(0);
+        message.textContent = "RechargÃ©!";
+        subMessage.textContent = "15 nouveaux crÃ©dits pour relancer la machine.";
+        return;
+      }
+
+      spinning = true;
+      credits -= 1;
+
+      setMeters(0);
+      setMachineEnabled(false);
+
+      slotMachine.classList.remove("is-winning");
+      lever.classList.add("is-pulled");
+
+      message.textContent = "TOK SPIN";
+      subMessage.textContent = "Les rouleaux tournent â€” rÃ©sultat exact du tableau.";
+
+      window.setTimeout(() => {
+        lever.classList.remove("is-pulled");
+      }, 540);
+
+      const results = pickResults();
+      const symbolHeight = getSymbolHeight();
+
+      const spinPromises = reelEls.map((reel, index) => {
+        const currentPosition = positions[index];
+        const currentSymbolIndex = positiveModulo(currentPosition, symbols.length);
+        const resultIndex = results[index];
+        const distanceToResult = positiveModulo(resultIndex - currentSymbolIndex, symbols.length);
+        const targetPosition = currentPosition + (loopsBeforeResult + index * 2) * symbols.length + distanceToResult;
+
+        positions[index] = targetPosition;
+
+        return animateReel(
+          reel,
+          currentPosition,
+          targetPosition,
+          symbolHeight,
+          baseSpinDuration + index * spinDurationStep
+        );
+      });
+
+      Promise.all(spinPromises).then(() => {
+        finishSpin(results);
+      });
+    }
+
+    function clamp(value, min, max) {
+      return Math.min(Math.max(value, min), max);
+    }
+
+    function easeInOutQuint(t) {
+      return t < 0.5
+        ? 16 * t * t * t * t * t
+        : 1 - Math.pow(-2 * t + 2, 5) / 2;
+    }
+
+    function resetReelMotion(reel) {
+      const reelBox = reel.closest(".reel");
+
+      if (reelBox) {
+        reelBox.style.setProperty("--motion-ghost-opacity-1", "0");
+        reelBox.style.setProperty("--motion-ghost-opacity-2", "0");
+        reelBox.style.setProperty("--motion-ghost-opacity-3", "0");
+        reelBox.style.setProperty("--motion-ghost-shift-1", "0px");
+        reelBox.style.setProperty("--motion-ghost-shift-2", "0px");
+        reelBox.style.setProperty("--motion-ghost-shift-3", "0px");
+        reelBox.style.setProperty("--motion-stretch", "1");
+        reelBox.style.setProperty("--motion-glow", "0");
+      }
+    }
+
+    function applyReelMotion(reel, velocity, deltaY, progress) {
+      const reelBox = reel.closest(".reel");
+
+      if (!reelBox) return;
+
+      const fadeIn = progress < 0.18
+        ? clamp(progress / 0.18, 0, 1)
+        : 1;
+
+      const fadeOut = progress > 0.78
+        ? clamp(1 - ((progress - 0.78) / 0.22), 0, 1)
+        : 1;
+
+      const motionAmount = fadeIn * fadeOut;
+      const speed = clamp(velocity, 0, 5.6);
+      const direction = deltaY < 0 ? 1 : -1;
+
+      const shift1 = direction * clamp(speed * 3.2, 0, 18) * motionAmount;
+      const shift2 = direction * clamp(speed * 6.4, 0, 34) * motionAmount;
+      const shift3 = direction * clamp(speed * 10.5, 0, 56) * motionAmount;
+
+      const opacity1 = clamp(speed * 0.052, 0, 0.26) * motionAmount;
+      const opacity2 = clamp(speed * 0.034, 0, 0.17) * motionAmount;
+      const opacity3 = clamp(speed * 0.021, 0, 0.10) * motionAmount;
+      const stretch = 1 + (clamp(speed * 0.017, 0, 0.095) * motionAmount);
+      const glow = clamp(speed * 0.085, 0, 0.36) * motionAmount;
+
+      reelBox.style.setProperty("--motion-ghost-opacity-1", opacity1.toFixed(3));
+      reelBox.style.setProperty("--motion-ghost-opacity-2", opacity2.toFixed(3));
+      reelBox.style.setProperty("--motion-ghost-opacity-3", opacity3.toFixed(3));
+      reelBox.style.setProperty("--motion-ghost-shift-1", `${shift1.toFixed(1)}px`);
+      reelBox.style.setProperty("--motion-ghost-shift-2", `${shift2.toFixed(1)}px`);
+      reelBox.style.setProperty("--motion-ghost-shift-3", `${shift3.toFixed(1)}px`);
+      reelBox.style.setProperty("--motion-stretch", stretch.toFixed(3));
+      reelBox.style.setProperty("--motion-glow", glow.toFixed(3));
+    }
+
+    function animateReel(reel, startPosition, targetPosition, symbolHeight, duration) {
+      return new Promise((resolve) => {
+        reel.classList.add("is-spinning");
+        reel.style.transition = "none";
+
+        const startY = -startPosition * symbolHeight;
+        const targetY = -targetPosition * symbolHeight;
+        const distanceY = targetY - startY;
+
+        let startTime = null;
+        let previousTime = null;
+        let previousY = startY;
+
+        resetReelMotion(reel);
+        reel.style.transform = `translate3d(0, ${startY}px, 0)`;
+        reel.offsetHeight;
+
+        function frame(now) {
+          if (startTime === null) {
+            startTime = now;
+            previousTime = now;
+          }
+
+          const elapsed = now - startTime;
+          const progress = clamp(elapsed / duration, 0, 1);
+          const easedProgress = easeInOutQuint(progress);
+          const currentY = startY + distanceY * easedProgress;
+          const deltaTime = Math.max(now - previousTime, 16);
+          const deltaY = currentY - previousY;
+          const velocity = Math.abs(deltaY) / deltaTime;
+
+          reel.style.transform = `translate3d(0, ${currentY}px, 0)`;
+          applyReelMotion(reel, velocity, deltaY, progress);
+
+          previousTime = now;
+          previousY = currentY;
+
+          if (progress < 1) {
+            requestAnimationFrame(frame);
+            return;
+          }
+
+          reel.style.transition = "none";
+          setReelTransform(reel, targetPosition, symbolHeight);
+          resetReelMotion(reel);
+          reel.classList.remove("is-spinning");
+          resolve();
+        }
+
+        requestAnimationFrame(frame);
+      });
+    }
+
+    function normalizeReelsToResults(results) {
+      const symbolHeight = getSymbolHeight();
+
+      reelEls.forEach((reel, index) => {
+        const normalizedPosition = (safeCycle + index) * symbols.length + results[index];
+
+        positions[index] = normalizedPosition;
+        lastResults[index] = results[index];
+
+        reel.style.transition = "none";
+        setReelTransform(reel, normalizedPosition, symbolHeight);
+        reel.offsetHeight;
+      });
+    }
+
+    function finishSpin(results) {
+      normalizeReelsToResults(results);
+
+      const outcome = calculateWin(results);
+
+      credits += outcome.amount;
+
+      setMeters(outcome.amount);
+
+      message.textContent = outcome.title;
+      subMessage.textContent = outcome.detail;
+
+      if (outcome.amount > 0) {
+        slotMachine.classList.add("is-winning");
+        rainCoins(outcome.jackpot ? 42 : 16);
+      }
+
+      spinning = false;
+      setMachineEnabled(true);
+
+      if (credits <= 0) {
+        message.textContent = "Plus de crÃ©dits";
+        subMessage.textContent = "Clique encore pour recharger la dÃ©mo.";
+      }
+    }
+
+    function rainCoins(count) {
+      for (let i = 0; i < count; i += 1) {
+        const coin = document.createElement("span");
+
+        coin.className = "coin";
+        coin.style.left = `${Math.random() * 100}vw`;
+        coin.style.top = `${-8 - Math.random() * 24}vh`;
+        coin.style.setProperty("--coin-drift", `${-90 + Math.random() * 180}px`);
+        coin.style.setProperty("--fall-duration", `${900 + Math.random() * 900}ms`);
+
+        document.body.appendChild(coin);
+
+        window.setTimeout(() => {
+          coin.remove();
+        }, 1900);
+      }
+    }
+
+    function preloadAssets() {
+      const uniqueSources = [...new Set(symbols.flatMap(getSymbolSources))];
+
+      return Promise.all(
+        uniqueSources.map((src) => {
+          return new Promise((resolve) => {
+            const image = new Image();
+
+            image.onload = resolve;
+            image.onerror = resolve;
+            image.src = src;
+          });
+        })
+      );
+    }
+
+    const serverSymbolAliases = Object.freeze({
+      tok_suisse: "logo_suisse",
+      fork: "monstre_fourchette",
+      chef: "chef_tok",
+      courier: "livreur",
+      logo: "logo_tok",
+      miamz: "bulle_miamz"
+    });
+
+    function normalizeServerSymbol(symbolId) {
+      return serverSymbolAliases[symbolId] || symbolId || "logo_tok";
+    }
+
+    function serverSymbolsToIndexes(serverSymbols) {
+      const normalizedSymbols = Array.isArray(serverSymbols)
+        ? serverSymbols.slice(0, 3).map(normalizeServerSymbol)
+        : ["logo_tok", "chef_tok", "bulle_miamz"];
+
+      while (normalizedSymbols.length < 3) {
+        normalizedSymbols.push("logo_tok");
+      }
+
+      return normalizedSymbols.map((symbolId) => {
+        const index = symbolIndexById.get(symbolId);
+        return index === undefined ? symbolIndexById.get("logo_tok") : index;
+      });
+    }
+
+    function postSpinRequest() {
+      if (spinning) return;
+
+      spinning = true;
+      setMachineEnabled(false);
+      slotMachine.classList.remove("is-winning");
+      lever.classList.add("is-pulled");
+      message.textContent = "TOK SPIN";
+      subMessage.textContent = "Tirage sécurisé — résultat calculé côté serveur TOK.";
+
+      window.setTimeout(() => {
+        lever.classList.remove("is-pulled");
+      }, 540);
+
+      window.parent.postMessage({ type: "TOK_SLOT_SPIN_REQUEST" }, window.location.origin);
+    }
+
+    function interceptSpin(event) {
+      if (event?.preventDefault) event.preventDefault();
+      postSpinRequest();
+    }
+
+    function interceptKeyboardSpin(event) {
+      if (event.code === "Space" || event.code === "Enter") {
+        const tag = document.activeElement?.tagName?.toLowerCase();
+
+        if (tag !== "input" && tag !== "textarea") {
+          event.preventDefault();
+          postSpinRequest();
+        }
+      }
+    }
+
+    function finishServerSpin(payload, results) {
+      normalizeReelsToResults(results);
+
+      const rewardPoints = Number(payload.rewardPoints || 0);
+      const totalPoints = typeof payload.totalPoints === "number" ? payload.totalPoints : null;
+
+      if (totalPoints !== null) {
+        credits = totalPoints;
+      } else {
+        credits += rewardPoints;
+      }
+
+      setMeters(rewardPoints);
+      message.textContent = payload.rewardLabel || (rewardPoints > 0 ? "Bravo TOK!" : "Retente ta chance");
+      subMessage.textContent = rewardPoints > 0
+        ? `+${rewardPoints} Miamz crédités côté serveur.`
+        : "Tirage sécurisé — résultat calculé côté serveur TOK.";
+
+      if (rewardPoints > 0) {
+        slotMachine.classList.add("is-winning");
+        rainCoins(rewardPoints >= 40 ? 42 : 16);
+      }
+
+      spinning = false;
+      setMachineEnabled(true);
+    }
+
+    function applyServerSpinResult(payload) {
+      const results = serverSymbolsToIndexes(payload.symbols);
+      const symbolHeight = getSymbolHeight();
+
+      const spinPromises = reelEls.map((reel, index) => {
+        const currentPosition = positions[index];
+        const currentSymbolIndex = positiveModulo(currentPosition, symbols.length);
+        const resultIndex = results[index];
+        const distanceToResult = positiveModulo(resultIndex - currentSymbolIndex, symbols.length);
+        const targetPosition = currentPosition + (loopsBeforeResult + index * 2) * symbols.length + distanceToResult;
+
+        positions[index] = targetPosition;
+
+        return animateReel(
+          reel,
+          currentPosition,
+          targetPosition,
+          symbolHeight,
+          baseSpinDuration + index * spinDurationStep
+        );
+      });
+
+      Promise.all(spinPromises).then(() => {
+        finishServerSpin(payload, results);
+      });
+    }
+
+    window.addEventListener("message", (event) => {
+      if (event.origin !== window.location.origin) return;
+      const payload = event.data || {};
+
+      if (payload.type === "TOK_SLOT_SET_STATUS") {
+        message.textContent = payload.message || "TOK SPIN";
+        subMessage.textContent = payload.subMessage || "";
+        setMachineEnabled(Boolean(payload.enabled));
+        spinning = !payload.enabled;
+        return;
+      }
+
+      if (payload.type === "TOK_SLOT_SPIN_RESULT") {
+        applyServerSpinResult(payload);
+      }
+    });
+
+    window.spin = postSpinRequest;
+
+    spinButton.addEventListener("click", interceptSpin);
+    leverHandle.addEventListener("click", interceptSpin);
+    document.addEventListener("keydown", interceptKeyboardSpin);
+
+    window.addEventListener("resize", () => {
+      const symbolHeight = getSymbolHeight();
+
+      reelEls.forEach((reel, index) => {
+        reel.style.transition = "none";
+        resetReelMotion(reel);
+        setReelTransform(reel, positions[index], symbolHeight);
+        reel.offsetHeight;
+      });
+    });
+
+    preloadAssets().then(() => {
+      buildReels();
+      setMeters(0);
+    });
+  </script>
+</body>
+</html>

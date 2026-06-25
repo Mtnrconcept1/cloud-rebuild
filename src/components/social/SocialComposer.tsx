@@ -664,10 +664,10 @@ export default function SocialComposer({
 
   return (
     <section className={cn(
-      "rounded-[1.75rem] border border-orange-200/80 bg-white shadow-xl shadow-orange-100/60",
+      "w-full max-w-full overflow-hidden rounded-[1.75rem] border border-orange-200/80 bg-white shadow-xl shadow-orange-100/60",
       compact ? "p-3 max-sm:rounded-[1.35rem]" : "p-4",
     )}>
-      <div className={cn("flex flex-col sm:flex-row", compact ? "gap-2" : "gap-4")}>
+      <div className={cn("flex min-w-0 flex-col sm:flex-row", compact ? "gap-2" : "gap-4")}>
         <div className={cn("hidden sm:block", compact ? "pt-1" : "pt-2")}>
           <div className={cn(
             "flex items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-orange-600 text-white shadow-lg shadow-orange-500/30",
@@ -753,9 +753,8 @@ export default function SocialComposer({
 
           <div
             className={cn(
-              "grid min-w-0 items-stretch",
+              "grid min-w-0 grid-cols-1 items-stretch md:grid-cols-2 2xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.05fr)]",
               compact ? "gap-2" : "gap-3",
-              "xl:grid-cols-[minmax(11rem,0.8fr)_minmax(16rem,1fr)_minmax(16rem,1fr)_minmax(18rem,1fr)]",
             )}
           >
             <Button
@@ -763,8 +762,8 @@ export default function SocialComposer({
               variant="outline"
               size="sm"
               className={cn(
-                "w-full justify-center gap-2 rounded-xl border-orange-200 bg-orange-50/70 font-semibold text-orange-700 shadow-sm hover:border-orange-300 hover:bg-orange-100 xl:h-full xl:min-h-[4.75rem]",
-                compact ? "h-9 text-xs" : "h-10 text-sm",
+                "h-auto min-h-11 w-full whitespace-normal px-3 text-center leading-snug justify-center gap-2 rounded-xl border-orange-200 bg-orange-50/70 font-semibold text-orange-700 shadow-sm hover:border-orange-300 hover:bg-orange-100 2xl:h-full 2xl:min-h-[4.75rem]",
+                compact ? "text-xs" : "text-sm",
               )}
               onClick={() => {
                 setAiCopyOpen(true);
@@ -776,7 +775,7 @@ export default function SocialComposer({
             </Button>
 
             <div className={cn(
-              "rounded-2xl border bg-white shadow-sm",
+              "min-w-0 overflow-hidden rounded-2xl border bg-white shadow-sm",
               sponsorPost ? "border-orange-200 ring-1 ring-orange-100" : "border-slate-200",
               compact ? "p-2.5" : "p-3",
             )}>
@@ -802,11 +801,11 @@ export default function SocialComposer({
                     setSponsorDialogOpen(true);
                   }}
                 >
-                  <span className="flex items-center gap-2 font-semibold text-slate-950">
+                  <span className="flex min-w-0 items-center gap-2 font-semibold text-slate-950">
                     <Megaphone className="h-4 w-4 text-orange-600" />
-                    Sponsoriser ce post
+                    <span className="min-w-0 [overflow-wrap:anywhere]">Sponsoriser ce post</span>
                   </span>
-                  <span className="mt-0.5 block text-xs leading-5 text-muted-foreground">
+                  <span className="mt-0.5 block text-xs leading-5 text-muted-foreground [overflow-wrap:anywhere]">
                     {sponsorPost
                       ? `${sponsorObjectiveLabel} · ${formatChf(sponsorBudgetValue, 0)} · ${sponsorDurationDays} j · ${sponsorEstimate.estimatedPeopleReached.toLocaleString("fr-CH")} vues estimées`
                       : "Mise en avant dans le fil Actualités après paiement."}
@@ -834,7 +833,7 @@ export default function SocialComposer({
             </div>
 
             <div className={cn(
-              "rounded-2xl border bg-white shadow-sm",
+              "min-w-0 overflow-hidden rounded-2xl border bg-white shadow-sm",
               premiumBannerPost ? "border-orange-300 ring-1 ring-orange-100" : "border-slate-200",
               compact ? "p-2.5" : "p-3",
             )}>
@@ -855,11 +854,11 @@ export default function SocialComposer({
                     setPremiumBannerPost((enabled) => !enabled);
                   }}
                 >
-                  <span className="flex items-center gap-2 font-semibold text-slate-950">
+                  <span className="flex min-w-0 items-center gap-2 font-semibold text-slate-950">
                     <Crown className="h-4 w-4 text-orange-600" />
-                    Banniere premium
+                    <span className="min-w-0 [overflow-wrap:anywhere]">Banniere premium</span>
                   </span>
-                  <span className="mt-0.5 block text-xs leading-5 text-muted-foreground">
+                  <span className="mt-0.5 block text-xs leading-5 text-muted-foreground [overflow-wrap:anywhere]">
                     {premiumBannerAudience.isLoading
                       ? "Calcul de l'audience..."
                       : hasPremiumBannerAccess
@@ -876,9 +875,9 @@ export default function SocialComposer({
               ) : null}
             </div>
 
-            <div className="flex w-full min-w-0 flex-wrap items-center gap-2 xl:flex-nowrap">
+            <div className="grid w-full min-w-0 grid-cols-1 items-stretch gap-2 sm:grid-cols-[minmax(0,1fr)_auto] 2xl:h-full">
               <div className={cn(
-                "flex min-w-0 flex-1 basis-full items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 shadow-sm sm:basis-[13rem] xl:h-full xl:min-h-[4.75rem]",
+                "flex min-w-0 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 shadow-sm 2xl:h-full 2xl:min-h-[4.75rem]",
                 compact ? "py-1.5" : "py-2",
               )}>
                 <CalendarClock className="h-4 w-4 shrink-0 text-primary" />
@@ -891,14 +890,14 @@ export default function SocialComposer({
                     value={scheduledAt}
                     onChange={(event) => setScheduledAt(event.target.value)}
                     aria-label="Programmer la publication"
-                    className="h-7 border-0 bg-transparent p-0 text-xs shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                    className="h-7 w-full min-w-0 border-0 bg-transparent p-0 text-xs shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
                   />
                 </div>
               </div>
               <Button
                 type="button"
                 className={cn(
-                  "min-w-[8rem] flex-1 gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 px-5 shadow-lg shadow-orange-500/25 hover:from-orange-600 hover:to-orange-700 sm:flex-none xl:h-full xl:min-h-[4.75rem]",
+                  "w-full min-w-0 gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 px-5 shadow-lg shadow-orange-500/25 hover:from-orange-600 hover:to-orange-700 sm:w-auto sm:min-w-[8rem] 2xl:h-full 2xl:min-h-[4.75rem]",
                   compact ? "h-10" : "h-11",
                 )}
                 disabled={!canSubmit}

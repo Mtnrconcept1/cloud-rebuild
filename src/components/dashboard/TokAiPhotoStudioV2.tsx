@@ -10,13 +10,18 @@ import { useToast } from "@/hooks/use-toast";
 import { useSessionStorageState } from "@/hooks/useSessionStorageState";
 import { getSupabase } from "@/integrations/supabase/client";
 import { generateTokDishImage, type TokImageFormat, type TokImageGenerationResult } from "@/lib/ai/tokAiClient";
+import {
+  TOK_IMAGE_OUTPUT_OPTIONS,
+  getTokImageOutputPricing,
+  type TokImageOutputResolution,
+} from "@/lib/ai/imagePricing";
 import { downloadImageWithWatermark } from "@/lib/media/downloadImageWithWatermark";
 import { CheckCircle2, Download, Loader2, Maximize2, RotateCcw, Sparkles, Wand2 } from "lucide-react";
 import { useTokLogoSrc } from "@/hooks/useTokLogo";
 
 const supabase = getSupabase();
 const STUDIO_BRIEF =
-  "Améliore l'image en photographie culinaire de studio professionnel non brandée, avec un éclairage softbox premium, un fond propre et un joli flou de profondeur lorsque la scène le permet. Supprime tous les objets et éléments parasites: décor encombré, mains, couverts inutiles, miettes, taches, reflets sales, bords de table distrayants et arrière-plan confus. Améliore les formes et volumes par la lumière, la netteté, les textures et une retouche naturelle, en gardant le produit identique: mêmes aliments, même contenant, mêmes proportions, même packaging et mêmes inscriptions physiques. N'ajoute aucun logo, aucun macaron, aucune bulle de marque, aucun filigrane, aucun texte incrusté et aucune marque. Si un logo ou un filigrane existe déjà sur l'image source comme calque ou watermark, retire-le proprement de l'image générée.";
+  "améliore cette photo pour un rendu professionnel, photographie culinaire. ajoute un fond esthétique et améliore la forme de l'aliment";
 
 type Props = {
   restaurantId: string | null | undefined;
@@ -29,6 +34,7 @@ type PhotoStudioDraft = {
   sourceImageUrl: string;
   dishName: string;
   format: TokImageFormat;
+  outputResolution: TokImageOutputResolution;
   result: TokImageGenerationResult | null;
 };
 
@@ -36,6 +42,7 @@ const DEFAULT_DRAFT: PhotoStudioDraft = {
   sourceImageUrl: "",
   dishName: "",
   format: "landscape",
+  outputResolution: "studio",
   result: null,
 };
 
@@ -67,7 +74,11 @@ function formatPhotoGenerationError(error: unknown) {
   }
 
   if (message.includes("ai_credits_exhausted")) {
-    return "Crédit IA indisponible pour le moment. Vérifiez la configuration OpenAI avant de relancer.";
+    return "Les credits image OpenAI sont insuffisants cote serveur.";
+  }
+
+  if (message.includes("ai_service_unavailable")) {
+    return "Le service image IA est indisponible. L'equipe TOK doit verifier la cle OpenAI de la fonction Supabase.";
   }
 
   return message || "Génération impossible";
@@ -338,6 +349,8 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
   const result = draft.result;
   const generatedImageUrl = result?.gallery_image_url || result?.generated_image_url || "";
   const downloadFileName = buildTokPhotoDownloadFileName(draft.dishName || result?.title || "visuel-tok");
+  const selectedOutputResolution = draft.outputResolution || "studio";
+  const outputPricing = getTokImageOutputPricing(draft.format, selectedOutputResolution);
 
   const updateDraft = (nextDraft: Partial<PhotoStudioDraft>) => {
     setDraft((previous) => ({ ...previous, ...nextDraft }));
@@ -361,6 +374,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
         prompt: STUDIO_BRIEF,
         assetType: "campaign_visual",
         format: draft.format,
+        outputResolution: selectedOutputResolution,
         variantCount: 1,
         generateImage: true,
         imageOnly: true,
@@ -458,10 +472,40 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
                 </select>
               </div>
             </div>
+            <div className="space-y-2">
+              <Label>Resolution de sortie</Label>
+              <div className="grid gap-2 sm:grid-cols-3">
+                {TOK_IMAGE_OUTPUT_OPTIONS.map((option) => {
+                  const pricing = getTokImageOutputPricing(draft.format, option.value);
+                  const selected = selectedOutputResolution === option.value;
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => updateDraft({ outputResolution: option.value, result: null })}
+                      className={`min-w-0 rounded-2xl border p-3 text-left text-sm transition ${
+                        selected
+                          ? "border-orange-400 bg-orange-50 text-orange-950 shadow-sm"
+                          : "border-border bg-background hover:border-orange-200"
+                      }`}
+                    >
+                      <span className="block font-semibold">{option.label}</span>
+                      <span className="mt-1 block text-xs leading-5 text-muted-foreground">{pricing.size} - qualite {option.quality}</span>
+                      <span className="mt-2 inline-flex rounded-full bg-white px-2 py-1 text-xs font-bold text-orange-700">
+                        {pricing.photoCredits} credit{pricing.photoCredits > 1 ? "s" : ""}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-xs leading-5 text-muted-foreground">
+                Estimation OpenAI: {outputPricing.outputCostChf.toFixed(3)} CHF par image, hors petite part de tokens d'entree.
+              </p>
+            </div>
             <div className="flex flex-wrap gap-2">
               <Button type="button" onClick={generate} disabled={!restaurantId || loading} className="gap-2">
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                Générer la version TOK
+                Générer la version TOK ({outputPricing.photoCredits} cr.)
               </Button>
               {result?.gallery_image_url ? <Button type="button" variant="outline" onClick={addToGallery}>Ajouter à la galerie</Button> : null}
               {draft.sourceImageUrl || result ? (

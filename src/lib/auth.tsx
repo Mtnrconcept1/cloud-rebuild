@@ -53,7 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return Array.from(resolvedRoles);
       }
     } else {
-      console.error("[auth] failed to read user_roles directly, trying has_role fallback", error);
+      console.error("[auth] failed to read user_roles directly, trying has_role fallback", error.message);
     }
 
     const privilegedRoles: UserRole[] = ["admin", "restaurateur", "courier"];
@@ -66,7 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
 
         if (hasRoleError) {
-          console.error(`[auth] has_role fallback failed for ${role}`, hasRoleError);
+          console.error(`[auth] has_role fallback failed for ${role}`, hasRoleError.message);
           return null;
         }
 
@@ -123,12 +123,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setInitialSessionReceived(true);
       })
       .catch(async (error) => {
-        console.error("[auth] failed to refresh initial session", error);
+        const message = error instanceof Error ? error.message : "unknown";
+        console.error("[auth] failed to refresh initial session", message);
 
         try {
           await supabase.auth.signOut({ scope: "local" });
         } catch (signOutError) {
-          console.error("[auth] failed to clear local session after refresh error", signOutError);
+          const signOutMessage = signOutError instanceof Error ? signOutError.message : "unknown";
+          console.error("[auth] failed to clear local session after refresh error", signOutMessage);
         }
 
         if (cancelled) return;
@@ -210,12 +212,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         await disablePushForCurrentSession(signedOutUserId);
       } catch (error) {
-        console.warn("[auth] failed to disable current push token during sign out", error);
+        const message = error instanceof Error ? error.message : "unknown";
+        console.warn("[auth] failed to disable current push token during sign out", message);
       }
     }
 
     clearLocalAuthenticatedState();
-    await getSupabase().auth.signOut();
+    try {
+      const { error } = await getSupabase().auth.signOut();
+      if (error) {
+        console.warn("[auth] remote sign out failed after local cleanup", error.message);
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "unknown";
+      console.warn("[auth] remote sign out failed after local cleanup", message);
+    }
     setUser(null);
     setSession(null);
     setMonitoringUser(null);

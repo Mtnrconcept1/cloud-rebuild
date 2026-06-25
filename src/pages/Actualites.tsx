@@ -211,8 +211,8 @@ export default function Actualites() {
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top_left,rgba(249,115,22,0.12),transparent_28rem),linear-gradient(180deg,rgba(255,247,237,0.85),rgba(255,255,255,0.96)_13rem,rgba(248,250,252,0.85))] py-3 md:py-6">
-      <div className="container grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,21rem)]">
-        <section className="min-w-0 space-y-2 max-sm:-ml-[9px] max-sm:w-[calc(100%+37px)] md:space-y-3">
+      <div className="container grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,21rem)]">
+        <section className="min-w-0 max-w-full space-y-2 md:space-y-3">
           <div className="relative overflow-hidden rounded-[1.5rem] border border-orange-100/80 bg-background/95 p-2 shadow-lg shadow-orange-100/35 backdrop-blur md:p-3">
             <div className="hidden">
               <div className="flex flex-wrap items-center justify-between gap-2">
@@ -261,7 +261,7 @@ export default function Actualites() {
               </div>
             </div>
 
-            <div className="relative z-10 flex flex-col gap-2 lg:flex-row lg:items-center">
+            <div className="relative z-10 flex min-w-0 flex-col gap-2 lg:flex-row lg:items-center">
               <div className="relative min-w-0 flex-1">
                 <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -288,13 +288,13 @@ export default function Actualites() {
                 ) : null}
               </div>
 
-              <Tabs value={scope} onValueChange={changeScope} className="lg:w-[29rem]">
-                <TabsList className="grid h-auto w-full grid-cols-5 gap-1 rounded-2xl bg-muted/50 p-1">
+              <Tabs value={scope} onValueChange={changeScope} className="min-w-0 lg:w-[29rem]">
+                <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-2xl bg-muted/50 p-1 sm:grid-cols-5">
                   {SOCIAL_FEED_SCOPES.map((item) => (
                     <TabsTrigger
                       key={item.value}
                       value={item.value}
-                      className="rounded-xl px-1.5 py-2 text-[11px] font-semibold data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm sm:text-xs"
+                      className="min-w-0 whitespace-normal rounded-xl px-1.5 py-2 text-center text-[11px] font-semibold leading-tight data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm sm:text-xs"
                     >
                       {item.label}
                     </TabsTrigger>
@@ -307,7 +307,7 @@ export default function Actualites() {
           {canManage ? <ActualitesBoostBanner onSponsorClick={() => setSponsorDialogRequest((request) => request + 1)} /> : null}
 
           {canManage ? (
-            <div id="actualites-composer" className="scroll-mt-24 space-y-2">
+            <div id="actualites-composer" className="min-w-0 scroll-mt-24 space-y-2">
               {ownerRestaurants.loading ? (
                 <div className="rounded-2xl border bg-background/90 p-4 text-sm text-muted-foreground shadow-sm">
                   Chargement de vos restaurants...

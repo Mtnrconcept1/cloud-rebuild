@@ -302,6 +302,31 @@ Deno.serve(async (req) => {
       }
     };
 
+    const recordImpression = async (input: AnalyticsPayload) => {
+      const entityType = normalizeKind(input.entityType);
+      const entityId = normalizeText(input.entityId);
+
+      if (!TRACKABLE_ENTITY_TYPES.has(entityType)) {
+        throw new HttpError(400, "entityType invalide");
+      }
+      if (!isUuid(entityId)) {
+        throw new HttpError(400, "entityId invalide");
+      }
+
+      const { data, error } = await adminClient.from("impressions").insert({
+        user_id: userId,
+        entity_type: entityType,
+        entity_id: entityId,
+        source: normalizeText(input.source) || null,
+      }).select("id").single();
+
+      if (error) {
+        throw new HttpError(500, error.message);
+      }
+
+      return data?.id || null;
+    };
+
     switch (kind) {
       case "batch": {
         if (!Array.isArray(input.events)) {
@@ -322,6 +347,8 @@ Deno.serve(async (req) => {
             await recordSearch(event);
           } else if (eventKind === "click") {
             await recordClick(event);
+          } else if (eventKind === "impression") {
+            await recordImpression(event);
           } else {
             throw new HttpError(400, "Type de tracking invalide");
           }
@@ -346,28 +373,8 @@ Deno.serve(async (req) => {
       }
 
       case "impression": {
-        const entityType = normalizeKind(input.entityType);
-        const entityId = normalizeText(input.entityId);
-
-        if (!TRACKABLE_ENTITY_TYPES.has(entityType)) {
-          throw new HttpError(400, "entityType invalide");
-        }
-        if (!isUuid(entityId)) {
-          throw new HttpError(400, "entityId invalide");
-        }
-
-        const { data, error } = await adminClient.from("impressions").insert({
-          user_id: userId,
-          entity_type: entityType,
-          entity_id: entityId,
-          source: normalizeText(input.source) || null,
-        }).select("id").single();
-
-        if (error) {
-          throw new HttpError(500, error.message);
-        }
-
-        return jsonResponse({ id: data?.id || null }, 200, corsHeaders);
+        const id = await recordImpression(input);
+        return jsonResponse({ id }, 200, corsHeaders);
       }
 
       case "click": {

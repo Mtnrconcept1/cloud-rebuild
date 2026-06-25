@@ -34,6 +34,7 @@ type GeneratedImage = {
 };
 
 type ImageQuality = "low" | "medium" | "high";
+type ImageOutputResolution = "web" | "studio" | "print";
 
 type ImageRequestOptions = {
   model: string;
@@ -53,19 +54,39 @@ type OpenAIImageErrorDetails = {
 const FUNCTION_NAME = "ai-image-enhance";
 const IMAGE_GENERATIONS_URL = "https://api.openai.com/v1/images/generations";
 const IMAGE_EDITS_URL = "https://api.openai.com/v1/images/edits";
-const IMAGE_MODEL = Deno.env.get("OPENAI_IMAGE_MODEL")?.trim() || "gpt-image-2";
+const IMAGE_MODEL = "gpt-image-2";
 const IMAGE_QUALITY = normalizeImageQuality(Deno.env.get("OPENAI_IMAGE_QUALITY")?.trim());
 const IMAGE_TIMEOUT_MS = readPositiveIntEnv("OPENAI_IMAGE_TIMEOUT_MS", 95_000, 115_000);
 const USE_FAST_INTERACTIVE_IMAGE = readEnvFlag("TOK_IMAGE_FAST_INTERACTIVE", false);
 const INTERACTIVE_IMAGE_MODEL = IMAGE_MODEL;
-const INTERACTIVE_IMAGE_QUALITY = normalizeInteractiveImageQuality(Deno.env.get("TOK_INTERACTIVE_IMAGE_QUALITY")?.trim());
-const INTERACTIVE_IMAGE_SIZE = normalizeInteractiveImageSize(Deno.env.get("TOK_INTERACTIVE_IMAGE_SIZE")?.trim());
 const INTERACTIVE_IMAGE_TIMEOUT_MS = readPositiveIntEnv("TOK_INTERACTIVE_IMAGE_TIMEOUT_MS", 42_000, 50_000);
 const SOURCE_IMAGE_TIMEOUT_MS = readPositiveIntEnv("TOK_SOURCE_IMAGE_TIMEOUT_MS", 12_000, 30_000);
 const IMAGE_BUCKET = Deno.env.get("TOK_AI_IMAGE_BUCKET")?.trim() || "ai-generated-assets";
 const GALLERY_BUCKET = Deno.env.get("TOK_GALLERY_IMAGE_BUCKET")?.trim() || "images";
 const TOK_REFERENCE_FOLDER = "/tok-reference-food-webp";
 const SUPPORTED_SOURCE_IMAGE_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const USD_TO_CHF_RATE = 0.81;
+const PHOTO_CREDIT_CHF = 0.015;
+const GPT_IMAGE_2_TEXT_INPUT_USD_PER_TOKEN = 5 / 1_000_000;
+const GPT_IMAGE_2_IMAGE_INPUT_USD_PER_TOKEN = 8 / 1_000_000;
+const GPT_IMAGE_2_IMAGE_OUTPUT_USD_PER_TOKEN = 30 / 1_000_000;
+const GPT_IMAGE_2_OUTPUT_COST_USD: Record<ImageQuality, Record<string, number>> = {
+  low: {
+    "1024x1024": 0.006,
+    "1024x1536": 0.005,
+    "1536x1024": 0.005,
+  },
+  medium: {
+    "1024x1024": 0.053,
+    "1024x1536": 0.041,
+    "1536x1024": 0.041,
+  },
+  high: {
+    "1024x1024": 0.211,
+    "1024x1536": 0.165,
+    "1536x1024": 0.165,
+  },
+};
 const PHOTO_STUDIO_RETOUCH_PROMPT = `
 Retouche cette photo de [TYPE_DE_PLAT] en conservant strictement le produit d'origine : mêmes ingrédients visibles, mêmes proportions, même structure, même angle de vue global, même composition générale, même position des éléments principaux et même identité visuelle. Ne pas remplacer ni redessiner le produit.
 
@@ -101,7 +122,7 @@ const DEFAULT_PHOTO_STUDIO_TEXTURES =
 
 const TOK_PHOTO_DNA = `
 Charte de retouche culinaire premium non brandee:
-- modele image cible: gpt-image-2 via OPENAI_IMAGE_MODEL, avec edition de l'image source quand elle existe;
+- modele image cible: gpt-image-2, avec edition de l'image source quand elle existe;
 - REGLE BLOQUANTE: si une image source est fournie, l'image finale doit rester une retouche fidele du meme sujet, pas une reinterpretation;
 - conserver la nature exacte du sujet source: meme produit ou plat, meme contenant, meme packaging, meme forme generale et meme identite visuelle reconnaissable;
 - conserver les textes, inscriptions, marques, etiquettes, symboles et typographies visibles du sujet source seulement s'ils existent deja physiquement sur le plat, le contenant ou le packaging;
@@ -146,46 +167,35 @@ function normalizeImageQuality(raw: string | undefined): ImageQuality {
   return "medium";
 }
 
-function normalizeInteractiveImageQuality(raw: string | undefined): ImageQuality {
-  const value = raw?.toLowerCase();
-  if (value === "high" && readEnvFlag("TOK_ALLOW_HIGH_IMAGE_QUALITY", false)) return "high";
-  if (value === "medium") return "medium";
-  return "low";
-}
-
-function normalizeInteractiveImageSize(raw: string | undefined) {
-  return raw === "1024x1024" || raw === "1536x1024" || raw === "1024x1536" ? raw : "1024x1024";
-}
-
-function buildConfiguredImageRequestOptions(formatSize: string): ImageRequestOptions {
+function buildConfiguredImageRequestOptions(formatSize: string, quality = IMAGE_QUALITY): ImageRequestOptions {
   return {
     model: IMAGE_MODEL,
-    quality: IMAGE_QUALITY,
+    quality,
     size: formatSize,
     timeoutMs: IMAGE_TIMEOUT_MS,
     mode: "configured",
   };
 }
 
-function buildImageRequestOptions(formatSize: string, sourceImagePresent: boolean): ImageRequestOptions {
-  const shouldUseFastInteractiveEdit = sourceImagePresent && USE_FAST_INTERACTIVE_IMAGE;
-  if (!shouldUseFastInteractiveEdit) return buildConfiguredImageRequestOptions(formatSize);
+function buildImageRequestOptions(formatSize: string, sourceImagePresent: boolean, quality: ImageQuality): ImageRequestOptions {
+  const shouldUseFastInteractiveEdit = sourceImagePresent && USE_FAST_INTERACTIVE_IMAGE && quality === "low";
+  if (!shouldUseFastInteractiveEdit) return buildConfiguredImageRequestOptions(formatSize, quality);
 
   return {
     model: INTERACTIVE_IMAGE_MODEL,
-    quality: INTERACTIVE_IMAGE_QUALITY,
-    size: INTERACTIVE_IMAGE_SIZE,
+    quality,
+    size: formatSize,
     timeoutMs: INTERACTIVE_IMAGE_TIMEOUT_MS,
     mode: "interactive_fast",
   };
 }
 
-function buildMarketingImageRequestOptions(formatSize: string, hasReferenceImages: boolean): ImageRequestOptions {
-  if (!hasReferenceImages) return buildConfiguredImageRequestOptions(formatSize);
+function buildMarketingImageRequestOptions(formatSize: string, hasReferenceImages: boolean, quality: ImageQuality): ImageRequestOptions {
+  if (!hasReferenceImages || quality !== "low") return buildConfiguredImageRequestOptions(formatSize, quality);
 
   return {
     model: INTERACTIVE_IMAGE_MODEL,
-    quality: INTERACTIVE_IMAGE_QUALITY,
+    quality,
     size: formatSize,
     timeoutMs: INTERACTIVE_IMAGE_TIMEOUT_MS,
     mode: "interactive_fast",
@@ -302,14 +312,97 @@ function normalizeFormat(raw: unknown) {
   return { label: "landscape", size: "1536x1024" };
 }
 
+function normalizeOutputResolution(raw: unknown): ImageOutputResolution {
+  if (raw === "web") return "web";
+  if (raw === "print") return "print";
+  return "studio";
+}
+
+function getQualityForOutputResolution(resolution: ImageOutputResolution): ImageQuality {
+  if (resolution === "web") return "low";
+  if (resolution === "print") return "high";
+  return "medium";
+}
+
+function getOpenAIOutputCostUsd(size: string, quality: ImageQuality) {
+  return GPT_IMAGE_2_OUTPUT_COST_USD[quality]?.[size] ?? GPT_IMAGE_2_OUTPUT_COST_USD.medium["1536x1024"];
+}
+
+function getImageOutputConfig(format: ReturnType<typeof normalizeFormat>, rawResolution: unknown) {
+  const outputResolution = normalizeOutputResolution(rawResolution);
+  const outputQuality = getQualityForOutputResolution(outputResolution);
+  const outputCostUsd = getOpenAIOutputCostUsd(format.size, outputQuality);
+  const outputCostChf = outputCostUsd * USD_TO_CHF_RATE;
+  const creditUnits = Math.max(1, Math.ceil(outputCostChf / PHOTO_CREDIT_CHF));
+
+  return {
+    outputResolution,
+    outputQuality,
+    outputSize: format.size,
+    outputCostUsd,
+    outputCostChf,
+    creditUnits,
+  };
+}
+
 function clampVariantCount(raw: unknown) {
   const count = Math.floor(Number(raw || 1));
   if (!Number.isFinite(count)) return 1;
   return Math.min(2, Math.max(1, count));
 }
 
-function estimateCostChf(inputTokens = 0, outputTokens = 0, imageCount = 0) {
-  return Number(((inputTokens * 0.00000025) + (outputTokens * 0.000001) + (imageCount * 0.045)).toFixed(6));
+type ImageUsage = {
+  input_tokens?: number;
+  input_text_tokens?: number;
+  input_image_tokens?: number;
+  output_tokens?: number;
+  total_tokens?: number;
+};
+
+function estimateCostChf(usage: ImageUsage = {}, imageCount = 0, options?: Pick<ImageRequestOptions, "size" | "quality">) {
+  const inputTokens = Math.max(0, usage.input_tokens || 0);
+  const inputImageTokens = Math.max(0, usage.input_image_tokens || 0);
+  const inputTextTokens = Math.max(0, usage.input_text_tokens ?? inputTokens - inputImageTokens);
+  const outputTokens = Math.max(0, usage.output_tokens || 0);
+  const tokenCostUsd =
+    (inputTextTokens * GPT_IMAGE_2_TEXT_INPUT_USD_PER_TOKEN) +
+    (inputImageTokens * GPT_IMAGE_2_IMAGE_INPUT_USD_PER_TOKEN) +
+    (outputTokens * GPT_IMAGE_2_IMAGE_OUTPUT_USD_PER_TOKEN);
+  const fallbackOutputCostUsd = options ? getOpenAIOutputCostUsd(options.size, options.quality) * imageCount : 0;
+  const costUsd = tokenCostUsd > 0 ? tokenCostUsd : fallbackOutputCostUsd;
+  return Number((costUsd * USD_TO_CHF_RATE).toFixed(6));
+}
+
+function readUsageNumber(record: Record<string, unknown>, keys: string[]) {
+  for (const key of keys) {
+    const value = Number(record[key] ?? 0);
+    if (Number.isFinite(value) && value > 0) return value;
+  }
+  return undefined;
+}
+
+function extractImageUsage(data: unknown) {
+  const usage = (data as Record<string, unknown>)?.usage;
+  if (!usage || typeof usage !== "object") return {};
+
+  const record = usage as Record<string, unknown>;
+  const inputTokens = Number(record.input_tokens ?? 0);
+  const outputTokens = Number(record.output_tokens ?? 0);
+  const totalTokens = Number(record.total_tokens ?? inputTokens + outputTokens);
+  const inputDetails =
+    record.input_tokens_details && typeof record.input_tokens_details === "object"
+      ? (record.input_tokens_details as Record<string, unknown>)
+      : {};
+  const inputImageTokens = readUsageNumber(inputDetails, ["image_tokens", "image_input_tokens", "images"]);
+  const inputTextTokens = readUsageNumber(inputDetails, ["text_tokens", "text_input_tokens", "text"]);
+
+  return {
+    input_tokens: Number.isFinite(inputTokens) ? inputTokens : 0,
+    input_text_tokens: inputTextTokens,
+    input_image_tokens: inputImageTokens,
+    output_tokens: Number.isFinite(outputTokens) ? outputTokens : 0,
+    total_tokens: Number.isFinite(totalTokens) ? totalTokens : 0,
+  };
 }
 
 function guessMimeFromUrl(url: string) {
@@ -673,8 +766,9 @@ async function insertUsage(
     restaurantId?: string | null;
     assetId?: string | null;
     model?: string;
-    usage?: { input_tokens?: number; output_tokens?: number; total_tokens?: number };
+    usage?: ImageUsage;
     imageCount?: number;
+    costOptions?: Pick<ImageRequestOptions, "size" | "quality">;
     metadata?: Record<string, unknown>;
   },
 ) {
@@ -689,7 +783,7 @@ async function insertUsage(
     input_tokens: payload.usage?.input_tokens ?? 0,
     output_tokens: payload.usage?.output_tokens ?? 0,
     total_tokens: payload.usage?.total_tokens ?? 0,
-    estimated_cost_chf: estimateCostChf(payload.usage?.input_tokens, payload.usage?.output_tokens, payload.imageCount || 0),
+    estimated_cost_chf: estimateCostChf(payload.usage, payload.imageCount || 0, payload.costOptions),
     metadata: payload.metadata || {},
   });
 }
@@ -722,6 +816,7 @@ Deno.serve(async (req) => {
     const referenceImageUrls = normalizeReferenceImageUrls(body.referenceImageUrls)
       .filter((url) => url !== sourceImageUrl);
     const format = normalizeFormat(body.format);
+    const outputConfig = getImageOutputConfig(format, body.outputResolution);
     const variantCount = clampVariantCount(body.variantCount);
     const generateImage = body.generateImage !== false;
     const imageOnly = true;
@@ -761,8 +856,8 @@ Deno.serve(async (req) => {
 
     let generated: GeneratedImage | null = null;
     const generatedImageOptions = marketingAssetMode
-      ? buildMarketingImageRequestOptions(format.size, referenceImageUrls.length > 0)
-      : buildImageRequestOptions(format.size, Boolean(sourceImageUrl));
+      ? buildMarketingImageRequestOptions(format.size, referenceImageUrls.length > 0, outputConfig.outputQuality)
+      : buildImageRequestOptions(format.size, Boolean(sourceImageUrl), outputConfig.outputQuality);
     let usedImageOptions: ImageRequestOptions | null = null;
     let imageEditRetryUsed = false;
     let sourceEditUsed = false;
@@ -818,9 +913,11 @@ Deno.serve(async (req) => {
       imageResponse = await callOpenAIImageGeneration(finalPrompt, variantCount, imageOptions);
     }
 
+    const imageUsage = extractImageUsage(imageResponse);
     const imageBytes = await extractGeneratedImageBytes(imageResponse);
     const stored = await storeGeneratedImage(actor, restaurantId, imageBytes);
     usedImageOptions = imageOptions;
+    const photoCreditUnits = outputConfig.creditUnits * Math.max(1, variantCount);
 
     const persistedAssetId = await insertGeneratedAsset(actor, {
       restaurant_id: restaurantId,
@@ -836,6 +933,10 @@ Deno.serve(async (req) => {
       status: "stored",
       metadata: {
         image_quality: imageOptions.quality,
+        output_resolution: outputConfig.outputResolution,
+        output_credit_units: photoCreditUnits,
+        estimated_openai_output_cost_usd: outputConfig.outputCostUsd,
+        estimated_openai_cost_chf: outputConfig.outputCostChf,
         request_image_model: imageOptions.model,
         request_image_quality: imageOptions.quality,
         request_image_size: imageOptions.size,
@@ -881,10 +982,20 @@ Deno.serve(async (req) => {
       restaurantId,
       assetId,
       model: usedImageOptions?.model,
+      usage: imageUsage,
       imageCount: generated ? variantCount : 0,
+      costOptions: usedImageOptions ? { size: usedImageOptions.size, quality: usedImageOptions.quality } : undefined,
       metadata: {
         credit_kind: "photo_retouch",
-        credit_units: Math.max(1, generated ? variantCount : 1),
+        credit_units: generated ? photoCreditUnits : outputConfig.creditUnits,
+        credit_units_per_image: outputConfig.creditUnits,
+        output_resolution: outputConfig.outputResolution,
+        output_size: outputConfig.outputSize,
+        output_quality: outputConfig.outputQuality,
+        estimated_openai_output_cost_usd: outputConfig.outputCostUsd,
+        estimated_openai_output_cost_chf: outputConfig.outputCostChf,
+        photo_credit_chf: PHOTO_CREDIT_CHF,
+        usd_to_chf_rate: USD_TO_CHF_RATE,
         asset_type: assetType,
         has_source_image: Boolean(sourceImageUrl),
         generated_image: Boolean(generated),
@@ -893,6 +1004,7 @@ Deno.serve(async (req) => {
         image_timeout_ms: usedImageOptions?.timeoutMs,
         image_model: usedImageOptions?.model,
         image_quality: usedImageOptions?.quality,
+        image_size: usedImageOptions?.size,
         image_mode: usedImageOptions?.mode,
         marketing_asset_mode: marketingAssetMode,
         reference_image_count: referenceImageUrls.length,
@@ -921,6 +1033,11 @@ Deno.serve(async (req) => {
         restaurant_id: restaurantId,
         image_model: usedImageOptions?.model,
         image_quality: usedImageOptions?.quality,
+        image_size: usedImageOptions?.size,
+        output_resolution: outputConfig.outputResolution,
+        credit_units: photoCreditUnits,
+        estimated_openai_output_cost_usd: outputConfig.outputCostUsd,
+        estimated_openai_output_cost_chf: outputConfig.outputCostChf,
         image_mode: usedImageOptions?.mode,
         brief_source: briefSource,
         image_only: imageOnly,
@@ -944,6 +1061,15 @@ Deno.serve(async (req) => {
       gallery_storage_bucket: generated?.gallery_storage_bucket || null,
       gallery_storage_path: generated?.gallery_storage_path || null,
       model: generated?.model || IMAGE_MODEL,
+      output_resolution: outputConfig.outputResolution,
+      output_size: outputConfig.outputSize,
+      output_quality: outputConfig.outputQuality,
+      credit_units: photoCreditUnits,
+      estimated_cost_chf: estimateCostChf(
+        imageUsage,
+        generated ? variantCount : 0,
+        usedImageOptions ? { size: usedImageOptions.size, quality: usedImageOptions.quality } : undefined,
+      ),
       image_mode: usedImageOptions?.mode,
       brand_overlay_positioning: "frontend_transparent_layer",
       brand_overlay_size: "180x180",

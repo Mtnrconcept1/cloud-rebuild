@@ -1,6 +1,5 @@
 import { FormEvent, useEffect, useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
-import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import TokAiMarketingStudio from "@/components/dashboard/TokAiMarketingStudio";
 import TokAiPhotoStudio from "@/components/dashboard/TokAiPhotoStudio";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,7 +14,20 @@ import { downloadImageWithWatermark } from "@/lib/media/downloadImageWithWaterma
 import { deleteRestaurantMedia, setRestaurantCoverMedia } from "@/lib/restaurantMediaGovernance";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
 import ImageUpload from "@/components/ImageUpload";
-import { Star, Trash2, Pencil, Image as ImageIcon, Sparkles, Download, Maximize2 } from "lucide-react";
+import {
+  ArrowLeft,
+  Camera,
+  Images,
+  ImagePlus,
+  Star,
+  Trash2,
+  Pencil,
+  Image as ImageIcon,
+  Sparkles,
+  Download,
+  Maximize2,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { useTokLogoSrc } from "@/hooks/useTokLogo";
 
 const supabase = getSupabase();
@@ -47,6 +59,59 @@ const EMPTY_MEDIA_FORM: MediaFormState = {
   media_type: "photo",
   storage_bucket: null,
   storage_path: null,
+};
+
+type PhotoWorkspaceTool = "marketing" | "photopro" | "add_photo" | "gallery";
+
+const PHOTO_WORKSPACE_TOOLS: Array<{
+  id: PhotoWorkspaceTool;
+  title: string;
+  description: string;
+  icon: LucideIcon;
+}> = [
+  {
+    id: "marketing",
+    title: "Marketing Studio",
+    description: "Créer des visuels marketing cohérents avec vos ressources de marque.",
+    icon: Sparkles,
+  },
+  {
+    id: "photopro",
+    title: "Photopro",
+    description: "Retoucher une photo culinaire et l'ajouter à la galerie.",
+    icon: Camera,
+  },
+  {
+    id: "add_photo",
+    title: "Ajouter une photo à la galerie",
+    description: "Importer directement une image depuis votre appareil.",
+    icon: ImagePlus,
+  },
+  {
+    id: "gallery",
+    title: "Galerie",
+    description: "Gérer les photos visibles sur la fiche restaurant.",
+    icon: Images,
+  },
+];
+
+const PHOTO_TOOL_HEADINGS: Record<PhotoWorkspaceTool, { title: string; description: string }> = {
+  marketing: {
+    title: "Marketing Studio",
+    description: "Générez un visuel marketing final depuis vos supports, ressources de marque et brief.",
+  },
+  photopro: {
+    title: "Photopro",
+    description: "Améliorez une photo culinaire puis publiez-la dans la galerie du restaurant.",
+  },
+  add_photo: {
+    title: "Ajouter une photo à la galerie",
+    description: "Ajoutez une photo existante sans passer par les outils IA.",
+  },
+  gallery: {
+    title: "Galerie",
+    description: "Organisez les photos, choisissez la couverture et prévisualisez les visuels.",
+  },
 };
 
 function buildGalleryPhotoDownloadFileName(item: MediaItem) {
@@ -103,6 +168,7 @@ export default function DashboardPhotos() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [previewItem, setPreviewItem] = useState<MediaItem | null>(null);
   const [form, setForm] = useState<MediaFormState>(EMPTY_MEDIA_FORM);
+  const [activeTool, setActiveTool] = useState<PhotoWorkspaceTool | null>(null);
 
   const load = async () => {
     if (!selectedId) { setItems([]); setLoading(false); return; }
@@ -148,6 +214,7 @@ export default function DashboardPhotos() {
     toast({ title: editingId ? "Photo mise à jour" : "Photo ajoutée" });
     setEditingId(null);
     setForm(EMPTY_MEDIA_FORM);
+    setActiveTool("gallery");
     load();
   };
 
@@ -193,32 +260,74 @@ export default function DashboardPhotos() {
     }
   };
 
+  const selectWorkspaceTool = (tool: PhotoWorkspaceTool) => {
+    if (tool === "add_photo") {
+      setEditingId(null);
+      setForm(EMPTY_MEDIA_FORM);
+    }
+    setActiveTool(tool);
+  };
+
+  const activeHeading = activeTool ? PHOTO_TOOL_HEADINGS[activeTool] : null;
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <DashboardPageHero
-          badge="Media restaurant"
-          title="Studio Photo & Marketing IA"
-          description="Centralisez les photos, logos, cartes et ressources de marque du restaurant. Le Studio IA aide a produire des visuels culinaires et marketing coherents sans exposer vos donnees sensibles."
-          icon={ImageIcon}
-          tone="sky"
-          visualLabel="Galerie"
-          stats={[
-            { label: "Photos", value: items.length, icon: ImageIcon },
-            { label: "Couverture", value: items.some((item) => item.is_cover) ? "Définie" : "À choisir", icon: Star },
-            { label: "Studio IA", value: "TOK", icon: Sparkles },
-          ]}
-        />
+        {!activeTool ? (
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Outils photos du dashboard restaurateur">
+            {PHOTO_WORKSPACE_TOOLS.map((tool) => {
+              const Icon = tool.icon;
+              return (
+                <button
+                  key={tool.id}
+                  type="button"
+                  onClick={() => selectWorkspaceTool(tool.id)}
+                  className="group min-h-[176px] rounded-3xl border border-orange-100 bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-orange-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 dark:bg-background"
+                >
+                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-50 text-orange-600 transition group-hover:bg-orange-600 group-hover:text-white">
+                    <Icon className="h-6 w-6" />
+                  </span>
+                  <span className="mt-5 block text-lg font-bold text-foreground">{tool.title}</span>
+                  <span className="mt-2 block text-sm leading-6 text-muted-foreground">{tool.description}</span>
+                  {tool.id === "gallery" ? (
+                    <span className="mt-4 inline-flex rounded-full bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-700">
+                      {items.length} photo{items.length > 1 ? "s" : ""}
+                    </span>
+                  ) : null}
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3 rounded-3xl border border-orange-100 bg-white p-4 shadow-sm dark:bg-background sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setActiveTool(null)}
+                className="mb-3 gap-2 rounded-2xl"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Photos
+              </Button>
+              <h1 className="font-serif text-3xl font-bold tracking-tight text-foreground">{activeHeading?.title}</h1>
+              <p className="mt-1 max-w-3xl text-sm leading-6 text-muted-foreground">{activeHeading?.description}</p>
+            </div>
+          </div>
+        )}
 
-        <TokAiMarketingStudio restaurantId={selectedId} />
+        {activeTool === "marketing" ? <TokAiMarketingStudio restaurantId={selectedId} /> : null}
 
-        <TokAiPhotoStudio
-          restaurantId={selectedId}
-          userId={user?.id || null}
-          currentPhotoCount={items.length}
-          onGalleryUpdated={load}
-        />
+        {activeTool === "photopro" ? (
+          <TokAiPhotoStudio
+            restaurantId={selectedId}
+            userId={user?.id || null}
+            currentPhotoCount={items.length}
+            onGalleryUpdated={load}
+          />
+        ) : null}
 
+        {activeTool === "add_photo" ? (
         <Card>
           <CardHeader>
             <CardTitle>{editingId ? "Modifier" : "Ajouter"} une photo</CardTitle>
@@ -249,7 +358,7 @@ export default function DashboardPhotos() {
               <div className="flex gap-2">
                 <Button type="submit">Enregistrer</Button>
                 {editingId && (
-                  <Button type="button" variant="outline" onClick={() => { setEditingId(null); setForm(EMPTY_MEDIA_FORM); }}>
+                  <Button type="button" variant="outline" onClick={() => { setEditingId(null); setForm(EMPTY_MEDIA_FORM); setActiveTool("gallery"); }}>
                     Annuler
                   </Button>
                 )}
@@ -257,7 +366,10 @@ export default function DashboardPhotos() {
             </form>
           </CardContent>
         </Card>
+        ) : null}
 
+        {activeTool === "gallery" ? (
+          <div className="space-y-5">
         {loadingRestaurant || loading ? <p className="text-muted-foreground">Chargement...</p> : null}
         {error ? <p className="text-destructive">Erreur: {error}</p> : null}
         {!loading && !error && !items.length ? (
@@ -312,6 +424,7 @@ export default function DashboardPhotos() {
                       storage_bucket: item.storage_bucket,
                       storage_path: item.storage_path,
                     });
+                    setActiveTool("add_photo");
                   }}>
                     <Pencil className="h-3 w-3 mr-1" /> Éditer
                   </Button>
@@ -326,6 +439,8 @@ export default function DashboardPhotos() {
             </Card>
           ))}
         </div>
+          </div>
+        ) : null}
 
         <Dialog open={Boolean(previewItem)} onOpenChange={(open) => { if (!open) setPreviewItem(null); }}>
           <DialogContent className="flex h-[calc(100dvh-1rem)] max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-6xl flex-col gap-0 overflow-hidden p-0 sm:h-[92vh] sm:max-h-[92vh]">

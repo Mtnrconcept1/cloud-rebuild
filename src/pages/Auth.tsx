@@ -40,6 +40,10 @@ import { useTokLogoSrc } from "@/hooks/useTokLogo";
 import { COURIER_VEHICLE_OPTIONS } from "@/lib/courier";
 import TurnstileCaptcha from "@/components/security/TurnstileCaptcha";
 import { isCaptchaEnabled } from "@/lib/captcha";
+import {
+  buildSanitizedAuthRedirectUrl,
+  getSupabaseAuthRedirectState,
+} from "@/lib/authRedirect";
 
 const supabase = getSupabase();
 const LEGAL_ACCEPTANCE_VERSION = "2026-06-15";
@@ -558,6 +562,7 @@ export default function Auth() {
   const [contractSignatureDataUrl, setContractSignatureDataUrl] = useState("");
   const [subscriptionPlans, setSubscriptionPlans] = useState<RestaurantSubscriptionPlanOption[]>([]);
   const [subscriptionPlansLoading, setSubscriptionPlansLoading] = useState(false);
+  const authRedirectHandledRef = useRef(false);
   const { activeFeatures, loading: featureFlagsLoading } = useFeatureFlagSnapshot();
   const courierSignupEnabled = activeFeatures.has("espace-livreur");
 
@@ -596,6 +601,60 @@ export default function Auth() {
 
     return getRoleHomePath(selectedRole);
   }, [postAuthRedirectTarget]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || authRedirectHandledRef.current) return;
+
+    const redirectState = getSupabaseAuthRedirectState(window.location.href);
+    if (!redirectState.hasAuthRedirect) return;
+
+    authRedirectHandledRef.current = true;
+    let cancelled = false;
+
+    const cleanAuthUrl = () => {
+      window.history.replaceState(
+        window.history.state,
+        document.title,
+        buildSanitizedAuthRedirectUrl(window.location.href),
+      );
+    };
+
+    const completeAuthRedirect = async () => {
+      setLoading(true);
+      try {
+        if (redirectState.error) {
+          throw new Error(redirectState.errorDescription || redirectState.error);
+        }
+
+        if (redirectState.code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(redirectState.code);
+          if (error) throw error;
+        } else if (redirectState.hasSensitiveFragment) {
+          await supabase.auth.signOut({ scope: "local" });
+          throw new Error("Lien de connexion non compatible avec le flux sécurisé.");
+        }
+      } catch {
+        if (!cancelled) {
+          toast({
+            title: "Connexion interrompue",
+            description: "Reconnectez-vous pour finaliser une session sécurisée.",
+            variant: "destructive",
+          });
+        }
+      } finally {
+        if (!cancelled) {
+          cleanAuthUrl();
+          setLoading(false);
+        }
+      }
+    };
+
+    void completeAuthRedirect();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [toast]);
 
   useEffect(() => {
     if (!user || roles.length === 0 || privilegedSignupSubmitting || featureFlagsLoading) return;
@@ -971,7 +1030,7 @@ export default function Auth() {
       if (shouldSignOutPrivilegedSignupSession) {
         const { error: signOutError } = await supabase.auth.signOut();
         if (signOutError) {
-          console.error("[auth] failed to close privileged signup session", signOutError);
+          console.error("[auth] failed to close privileged signup session", signOutError.message);
         }
       } else {
         setPrivilegedSignupSubmitting(false);
@@ -1569,7 +1628,7 @@ export default function Auth() {
                       try {
                         const { error } = await supabase.auth.signInWithOAuth({
                           provider: "google",
-                          options: { redirectTo: `${window.location.origin}/auth` },
+                          options: { redirectTo: `${window.location.origin}/auth/callback` },
                         });
                         if (error) throw error;
                       } catch {
@@ -1589,7 +1648,7 @@ export default function Auth() {
                       try {
                         const { error } = await supabase.auth.signInWithOAuth({
                           provider: "apple",
-                          options: { redirectTo: `${window.location.origin}/auth` },
+                          options: { redirectTo: `${window.location.origin}/auth/callback` },
                         });
                         if (error) throw error;
                       } catch {

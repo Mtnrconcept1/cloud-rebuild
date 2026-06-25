@@ -16,19 +16,19 @@ describe("MobileLogoIntro", () => {
     vi.useFakeTimers();
     window.history.pushState({}, "", "/");
     setViewportWidth(390);
-    window.localStorage.clear();
+    window.sessionStorage.clear();
     document.body.style.overflow = "";
     vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue(undefined);
   });
 
   afterEach(() => {
-    window.localStorage.clear();
+    window.sessionStorage.clear();
     document.body.style.overflow = "";
     vi.useRealTimers();
     vi.restoreAllMocks();
   });
 
-  it("briefly layers the portrait intro video without blocking the page", () => {
+  it("plays the portrait intro video in a blocking layer until media ends", () => {
     render(<MobileLogoIntro />);
 
     const overlay = screen.getByTestId("mobile-logo-intro");
@@ -39,9 +39,9 @@ describe("MobileLogoIntro", () => {
     const skipButton = screen.getByTestId("mobile-logo-intro-skip");
     const vignette = screen.getByTestId("mobile-logo-intro-vignette");
 
-    expect(overlay).toHaveClass("pointer-events-none", "fixed", "inset-0", "z-[9999]", "bg-black");
+    expect(overlay).toHaveClass("pointer-events-auto", "fixed", "inset-0", "z-[9999]", "bg-black");
     expect(overlay).toHaveAttribute("aria-label", "Intro TOK");
-    expect(overlay).toHaveStyle({ transitionDuration: "180ms" });
+    expect(overlay).toHaveStyle({ transitionDuration: "220ms" });
     expect(document.body.style.overflow).toBe("");
     expect(video).toHaveAttribute("poster", "/higgsfield/tok-intro-mobile-poster.webp");
     expect(sources).toHaveLength(1);
@@ -50,7 +50,7 @@ describe("MobileLogoIntro", () => {
     expect(video).toHaveAttribute("data-intro-variant", "mobile");
     expect(video).toHaveAttribute("width", "1080");
     expect(video).toHaveAttribute("height", "1920");
-    expect(video).toHaveAttribute("preload", "metadata");
+    expect(video).toHaveAttribute("preload", "auto");
     expect(video.autoplay).toBe(true);
     expect(video.muted).toBe(true);
     expect(video.playsInline).toBe(true);
@@ -67,7 +67,7 @@ describe("MobileLogoIntro", () => {
     expect(vignette.getAttribute("style")).toContain("linear-gradient");
   });
 
-  it("briefly layers desktop viewports with the optimized landscape intro video", () => {
+  it("plays desktop viewports with the optimized landscape intro video", () => {
     setViewportWidth(1024);
 
     render(<MobileLogoIntro />);
@@ -82,7 +82,7 @@ describe("MobileLogoIntro", () => {
     expect(video).toHaveAttribute("data-intro-variant", "desktop");
     expect(video).toHaveAttribute("width", "1920");
     expect(video).toHaveAttribute("height", "1080");
-    expect(video).toHaveAttribute("preload", "metadata");
+    expect(video).toHaveAttribute("preload", "auto");
     expect(video.muted).toBe(true);
   });
 
@@ -127,14 +127,19 @@ describe("MobileLogoIntro", () => {
     expect(screen.queryByTestId("mobile-logo-intro")).not.toBeInTheDocument();
   });
 
-  it("fades out quickly and then remembers the intro version", () => {
+  it("waits for the video end before fading out and remembers the intro for the session", () => {
     const { unmount } = render(<MobileLogoIntro />);
 
     const overlay = screen.getByTestId("mobile-logo-intro");
+    const video = screen.getByTestId("mobile-logo-intro-video") as HTMLVideoElement;
 
     act(() => {
       vi.advanceTimersByTime(650);
     });
+
+    expect(overlay).toHaveClass("opacity-100");
+
+    fireEvent.ended(video);
 
     expect(overlay).toHaveClass("opacity-0");
 
@@ -166,14 +171,14 @@ describe("MobileLogoIntro", () => {
   it("removes the lightweight overlay even if the transition end event is not fired", () => {
     render(<MobileLogoIntro />);
 
-    act(() => {
-      vi.advanceTimersByTime(650);
-    });
+    const video = screen.getByTestId("mobile-logo-intro-video") as HTMLVideoElement;
+
+    fireEvent.ended(video);
 
     expect(screen.getByTestId("mobile-logo-intro")).toHaveClass("opacity-0");
 
     act(() => {
-      vi.advanceTimersByTime(260);
+      vi.advanceTimersByTime(340);
     });
 
     expect(screen.queryByTestId("mobile-logo-intro")).not.toBeInTheDocument();

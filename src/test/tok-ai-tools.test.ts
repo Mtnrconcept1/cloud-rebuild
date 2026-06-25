@@ -143,10 +143,10 @@ describe("TOK AI tools foundation", () => {
     expect(source).toContain("buildMarketingImageRequestOptions");
     expect(source).not.toContain("FORCE_STRICT_SOURCE_EDIT ? false");
     expect(source).toContain("sourceImagePresent && USE_FAST_INTERACTIVE_IMAGE");
-    expect(source).toContain("buildImageRequestOptions(format.size, Boolean(sourceImageUrl))");
-    expect(source).toContain("buildMarketingImageRequestOptions(format.size, referenceImageUrls.length > 0)");
-    expect(source).toContain("TOK_INTERACTIVE_IMAGE_QUALITY");
-    expect(source).toContain("TOK_INTERACTIVE_IMAGE_SIZE");
+    expect(source).toContain("buildImageRequestOptions(format.size, Boolean(sourceImageUrl), outputConfig.outputQuality)");
+    expect(source).toContain("buildMarketingImageRequestOptions(format.size, referenceImageUrls.length > 0, outputConfig.outputQuality)");
+    expect(source).not.toContain("TOK_INTERACTIVE_IMAGE_QUALITY");
+    expect(source).not.toContain("TOK_INTERACTIVE_IMAGE_SIZE");
     expect(source).toContain("gpt-image-2");
     expect(source).toContain("const INTERACTIVE_IMAGE_MODEL = IMAGE_MODEL;");
     expect(source).not.toContain("gpt-image-1-mini");
@@ -247,12 +247,54 @@ describe("TOK AI tools foundation", () => {
     const secrets = readProjectFile("scripts/write-supabase-secrets-env.mjs");
     const workflow = readProjectFile(".github/workflows/deploy-production.yml");
 
-    expect(source).toContain('const IMAGE_MODEL = Deno.env.get("OPENAI_IMAGE_MODEL")?.trim() || "gpt-image-2";');
+    expect(source).toContain('const IMAGE_MODEL = "gpt-image-2";');
     expect(source).toContain("const INTERACTIVE_IMAGE_MODEL = IMAGE_MODEL;");
+    expect(source).not.toContain('Deno.env.get("OPENAI_IMAGE_MODEL")');
     expect(source).not.toContain("gpt-image-1-mini");
     expect(source).not.toContain('Deno.env.get("TOK_INTERACTIVE_IMAGE_MODEL")');
     expect(secrets).not.toContain('"TOK_INTERACTIVE_IMAGE_MODEL"');
     expect(workflow).not.toContain("TOK_INTERACTIVE_IMAGE_MODEL");
+  });
+
+  it("prices gpt-image-2 output resolution with server-side photo credits", () => {
+    const source = readProjectFile("supabase/functions/ai-image-enhance/index.ts");
+    const client = readProjectFile("src/lib/ai/tokAiClient.ts");
+    const pricing = readProjectFile("src/lib/ai/imagePricing.ts");
+    const photoStudio = readProjectFile("src/components/dashboard/TokAiPhotoStudioV2.tsx");
+    const marketingStudio = readProjectFile("src/components/dashboard/TokAiMarketingStudio.tsx");
+    const migration = readMigrationContaining("ai_image_resolution_credit_pricing");
+
+    for (const expected of [
+      "USD_TO_CHF_RATE = 0.81",
+      "PHOTO_CREDIT_CHF = 0.015",
+      "GPT_IMAGE_2_TEXT_INPUT_USD_PER_TOKEN = 5 / 1_000_000",
+      "GPT_IMAGE_2_IMAGE_INPUT_USD_PER_TOKEN = 8 / 1_000_000",
+      "GPT_IMAGE_2_IMAGE_OUTPUT_USD_PER_TOKEN = 30 / 1_000_000",
+      '"1024x1024": 0.211',
+      '"1024x1536": 0.165',
+      '"1536x1024": 0.165',
+      "normalizeOutputResolution",
+      "getImageOutputConfig",
+      "credit_units_per_image",
+      "output_resolution",
+      "output_size",
+      "output_quality",
+    ]) {
+      expect(source).toContain(expected);
+    }
+
+    expect(client).toContain("outputResolution?: TokImageOutputResolution");
+    expect(pricing).toContain("TOK_IMAGE_OUTPUT_OPTIONS");
+    expect(pricing).toContain("TOK_PHOTO_CREDIT_CHF = 0.015");
+    expect(photoStudio).toContain("Resolution de sortie");
+    expect(photoStudio).toContain("outputResolution: selectedOutputResolution");
+    expect(marketingStudio).toContain("marketing-output-resolution");
+    expect(marketingStudio).toContain("outputResolution");
+    expect(migration).toContain("WHEN 'starter' THEN 24");
+    expect(migration).toContain("WHEN 'pro' THEN 96");
+    expect(migration).toContain("WHEN 'premium' THEN 240");
+    expect(migration).toContain("WHEN 'elite' THEN 960");
+    expect(migration).toContain("ai_photo_credits = 120");
   });
 
   it("uses optimized WebP food references for the TOK photo studio style memory", () => {

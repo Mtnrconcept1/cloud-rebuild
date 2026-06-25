@@ -86,6 +86,7 @@ function CampaignBannerItem({
         address={restaurant?.address}
         headline={heading}
         body={description}
+        compactBanner={page === "flash_sales"}
         discountLabel={campaign.discount_label || "Sponsorisé"}
       />
     </div>

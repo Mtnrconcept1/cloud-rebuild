@@ -309,7 +309,7 @@ export default function DashboardActualites() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="min-w-0 space-y-6">
         <DashboardPageHero
           badge="Fil social"
           title="Actualités"
@@ -333,17 +333,17 @@ export default function DashboardActualites() {
         ) : null}
 
         {selectedRestaurant ? (
-          <div className="space-y-6">
+          <div className="min-w-0 space-y-6">
             <SocialComposer
               restaurantId={selectedRestaurant.id}
               restaurantName={selectedRestaurant.name}
               socialLinks={selectedRestaurant.socialLinks || null}
             />
 
-            <div className="space-y-4">
-              <section className="space-y-4">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
+            <div className="min-w-0 space-y-4">
+              <section className="min-w-0 space-y-4">
+              <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
                   <h2 className="font-display text-xl font-semibold">Posts</h2>
                   <p className="text-sm text-muted-foreground">
                     Impressions et vues visibles uniquement dans votre dashboard.
@@ -391,9 +391,9 @@ export default function DashboardActualites() {
               {postsQuery.isLoading ? (
                 <Card className="rounded-lg"><CardContent className="p-8 text-center text-muted-foreground">Chargement...</CardContent></Card>
               ) : posts.length > 0 ? (
-                <div className="space-y-4">
+                <div className="min-w-0 space-y-4">
                   {posts.map((post) => (
-                    <div key={post.id} className="space-y-2">
+                    <div key={post.id} className="min-w-0 space-y-2">
                       <DashboardPostMetrics post={post} />
                       <div className="flex justify-end">
                         <SocialPostBoostDialog

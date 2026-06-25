@@ -639,7 +639,7 @@ export async function trackImpression(
   source?: string
 ) {
   try {
-    const data = await invokeAnalyticsIngest({
+    const data = await queueAnalyticsEvent({
       kind: "impression",
       entityType,
       entityId,

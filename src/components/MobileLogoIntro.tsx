@@ -3,10 +3,11 @@ import { Volume2, VolumeX } from "lucide-react";
 
 const MOBILE_BREAKPOINT = 768;
 const LOGO_INTRO_VERSION = "2026-06-action-first";
-const LOGO_INTRO_STORAGE_KEY = `tok-logo-intro:${LOGO_INTRO_VERSION}`;
-const LOGO_INTRO_VISIBLE_MS = 650;
-const LOGO_INTRO_FADE_MS = 180;
-const LOGO_INTRO_DISMISS_FALLBACK_MS = LOGO_INTRO_FADE_MS + 80;
+const LOGO_INTRO_SESSION_KEY = `tok-logo-intro-session:${LOGO_INTRO_VERSION}`;
+const LOGO_INTRO_FADE_MS = 220;
+const LOGO_INTRO_DISMISS_FALLBACK_MS = LOGO_INTRO_FADE_MS + 120;
+const LOGO_INTRO_AUTOPLAY_FALLBACK_MS = 2_600;
+const LOGO_INTRO_MAX_PLAYBACK_MS = 45_000;
 
 type IntroVariant = "mobile" | "desktop";
 
@@ -46,7 +47,7 @@ function shouldShowIntro() {
   if (!isHomePath() || typeof window === "undefined") return false;
 
   try {
-    return window.localStorage.getItem(LOGO_INTRO_STORAGE_KEY) !== "seen";
+    return window.sessionStorage.getItem(LOGO_INTRO_SESSION_KEY) !== "seen";
   } catch {
     return true;
   }
@@ -56,9 +57,9 @@ function markIntroSeen() {
   if (typeof window === "undefined") return;
 
   try {
-    window.localStorage.setItem(LOGO_INTRO_STORAGE_KEY, "seen");
+    window.sessionStorage.setItem(LOGO_INTRO_SESSION_KEY, "seen");
   } catch {
-    // Storage can be unavailable in private modes; the timed intro still remains short.
+    // Storage can be unavailable in private modes; playback still controls this mount.
   }
 }
 
@@ -69,13 +70,30 @@ export default function MobileLogoIntro() {
   const [soundEnabled, setSoundEnabled] = useState(false);
   const [soundBlocked, setSoundBlocked] = useState(false);
   const dismissedRef = useRef(false);
+  const dismissFallbackRef = useRef<number | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
-  const completeDismiss = useCallback(() => {
+  const clearDismissFallback = useCallback(() => {
+    if (dismissFallbackRef.current === null) return;
+
+    window.clearTimeout(dismissFallbackRef.current);
+    dismissFallbackRef.current = null;
+  }, []);
+
+  const beginDismiss = useCallback(() => {
+    if (dismissedRef.current) return;
+
     dismissedRef.current = true;
+    clearDismissFallback();
+    markIntroSeen();
+    setFadingOut(true);
+  }, [clearDismissFallback]);
+
+  const completeDismiss = useCallback(() => {
+    clearDismissFallback();
     markIntroSeen();
     setVisible(false);
-  }, []);
+  }, [clearDismissFallback]);
 
   useEffect(() => {
     const onResize = () => {
@@ -90,16 +108,6 @@ export default function MobileLogoIntro() {
   }, []);
 
   useEffect(() => {
-    if (!visible) return;
-
-    const timeoutId = window.setTimeout(() => {
-      setFadingOut(true);
-    }, LOGO_INTRO_VISIBLE_MS);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [visible]);
-
-  useEffect(() => {
     if (!visible || !fadingOut) return;
 
     const timeoutId = window.setTimeout(() => {
@@ -110,30 +118,42 @@ export default function MobileLogoIntro() {
   }, [completeDismiss, visible, fadingOut]);
 
   useEffect(() => {
-    if (!visible) return;
+    if (!visible || fadingOut) return;
 
     const video = videoRef.current;
     if (!video) return;
 
-    let cancelled = false;
+    let disposed = false;
+    const scheduleDismissFallback = (delayMs: number) => {
+      if (disposed) return;
+
+      clearDismissFallback();
+      dismissFallbackRef.current = window.setTimeout(beginDismiss, delayMs);
+    };
+
     video.muted = true;
     video.volume = 0;
     setSoundEnabled(false);
     setSoundBlocked(false);
+    scheduleDismissFallback(LOGO_INTRO_MAX_PLAYBACK_MS);
 
     try {
+      video.currentTime = 0;
       const playAttempt = video.play();
       if (playAttempt && typeof playAttempt.catch === "function") {
-        void playAttempt.catch(() => undefined);
+        void playAttempt.catch(() => {
+          scheduleDismissFallback(LOGO_INTRO_AUTOPLAY_FALLBACK_MS);
+        });
       }
     } catch {
-      // The timed fade still removes the overlay if media playback is unavailable.
+      scheduleDismissFallback(LOGO_INTRO_AUTOPLAY_FALLBACK_MS);
     }
 
     return () => {
-      cancelled = true;
+      disposed = true;
+      clearDismissFallback();
     };
-  }, [visible, variant]);
+  }, [beginDismiss, clearDismissFallback, fadingOut, variant, visible]);
 
   if (!visible) return null;
 
@@ -177,7 +197,7 @@ export default function MobileLogoIntro() {
     <div
       aria-label="Intro TOK"
       className={[
-        "pointer-events-none fixed inset-0 z-[9999] flex items-center justify-center bg-black transition-opacity ease-out",
+        "pointer-events-auto fixed inset-0 z-[9999] flex items-center justify-center bg-black transition-opacity ease-out",
         fadingOut ? "opacity-0" : "opacity-100",
       ].join(" ")}
       data-testid="mobile-logo-intro"
@@ -204,10 +224,10 @@ export default function MobileLogoIntro() {
           muted={!soundEnabled}
           playsInline
           poster={introMedia.poster}
-          preload="metadata"
+          preload="auto"
           ref={videoRef}
-          onEnded={() => setFadingOut(true)}
-          onError={() => setFadingOut(true)}
+          onEnded={beginDismiss}
+          onError={beginDismiss}
           width={introMedia.width}
         >
           <source src={introMedia.src} type="video/mp4" />
@@ -224,7 +244,7 @@ export default function MobileLogoIntro() {
           className="pointer-events-auto absolute right-5 top-5 z-10 inline-flex h-10 items-center rounded-full border border-white/20 bg-black/62 px-4 text-sm font-semibold text-white shadow-2xl backdrop-blur-md transition hover:bg-black/78 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 md:right-8 md:top-8"
           data-testid="mobile-logo-intro-skip"
           type="button"
-          onClick={() => setFadingOut(true)}
+          onClick={beginDismiss}
         >
           Passer
         </button>

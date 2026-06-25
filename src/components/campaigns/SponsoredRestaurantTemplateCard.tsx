@@ -31,6 +31,7 @@ type SponsoredRestaurantTemplateCardProps = {
   slots?: string[];
   className?: string;
   variant?: SponsoredCreativeVariant;
+  compactBanner?: boolean;
   selectedTextElement?: CampaignCreativeTextElement | null;
   draggingTextElement?: CampaignCreativeTextElement | null;
   onTextPointerDown?: never;
@@ -113,6 +114,7 @@ export function SponsoredRestaurantTemplateCard({
   slots = ["18:30", "19:00"],
   className,
   variant = "card",
+  compactBanner = false,
   isFavorite = false,
   onFavoriteClick,
 }: SponsoredRestaurantTemplateCardProps) {
@@ -140,8 +142,20 @@ export function SponsoredRestaurantTemplateCard({
         <div className="absolute right-0 top-0 hidden h-full w-[57%] rounded-l-[120px] bg-gradient-to-br from-orange-200/85 via-orange-400/90 to-[#ff5a00] lg:block" />
         <div className="absolute bottom-0 right-0 h-1/2 w-full bg-gradient-to-t from-orange-500/18 to-transparent lg:hidden" />
 
-        <div className="relative z-10 grid min-h-[570px] grid-rows-[auto_minmax(250px,1fr)] lg:min-h-[366px] lg:grid-cols-[minmax(340px,0.84fr)_minmax(460px,1.16fr)] lg:grid-rows-1">
-          <div className="flex min-w-0 flex-col justify-center p-5 pb-3 sm:p-8 sm:pb-4 lg:p-10 xl:p-12">
+        <div
+          className={cn(
+            "relative z-10 grid lg:grid-rows-1",
+            compactBanner
+              ? "min-h-[286px] grid-rows-[auto_minmax(124px,1fr)] lg:h-[286px] lg:grid-cols-[minmax(280px,0.78fr)_minmax(360px,1.22fr)]"
+              : "min-h-[570px] grid-rows-[auto_minmax(250px,1fr)] lg:min-h-[366px] lg:grid-cols-[minmax(340px,0.84fr)_minmax(460px,1.16fr)]",
+          )}
+        >
+          <div
+            className={cn(
+              "flex min-w-0 flex-col justify-center",
+              compactBanner ? "p-4 pb-2 sm:p-5 sm:pb-3 lg:overflow-hidden lg:p-6 xl:p-7" : "p-5 pb-3 sm:p-8 sm:pb-4 lg:p-10 xl:p-12",
+            )}
+          >
             <div className="flex flex-wrap items-center gap-2.5">
               <span className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-white shadow-[0_14px_28px_rgba(249,115,22,0.28)]">
                 <Megaphone className="h-3.5 w-3.5" />
@@ -152,36 +166,69 @@ export function SponsoredRestaurantTemplateCard({
               </span>
             </div>
 
-            <div className="mt-6 min-w-0 lg:mt-7">
+            <div className={cn("min-w-0", compactBanner ? "mt-3 lg:mt-4" : "mt-6 lg:mt-7")}>
               <p className="text-[11px] font-black uppercase tracking-[0.32em] text-slate-500 dark:text-slate-300">
                 {displayCuisine} · {displayCity}
               </p>
-              <h3 className="mt-1 line-clamp-2 font-display text-4xl font-black leading-[0.92] text-slate-950 dark:text-white sm:text-5xl lg:text-[3.35rem]">
+              <h3
+                className={cn(
+                  "mt-1 line-clamp-2 font-display font-black leading-[0.92] text-slate-950 dark:text-white",
+                  compactBanner ? "text-2xl sm:text-3xl lg:text-[2.25rem]" : "text-4xl sm:text-5xl lg:text-[3.35rem]",
+                )}
+              >
                 {restaurantName}
               </h3>
-              <p className="mt-3 flex min-w-0 items-center gap-2 text-base font-medium text-slate-500 dark:text-slate-300">
-                <MapPin className="h-5 w-5 shrink-0 text-primary" />
+              <p
+                className={cn(
+                  "flex min-w-0 items-center gap-2 font-medium text-slate-500 dark:text-slate-300",
+                  compactBanner ? "mt-2 text-sm" : "mt-3 text-base",
+                )}
+              >
+                <MapPin className={cn("shrink-0 text-primary", compactBanner ? "h-4 w-4" : "h-5 w-5")} />
                 <span className="truncate">{displayAddress}</span>
               </p>
             </div>
 
-            <div className="mt-7 rounded-[26px] border border-orange-100 bg-white/86 p-4 shadow-[0_16px_42px_rgba(15,23,42,0.08)] backdrop-blur dark:border-white/10 dark:bg-white/8 sm:p-5">
-              <div className="flex items-start gap-4">
-                <div className="hidden h-14 w-14 shrink-0 place-items-center rounded-full bg-orange-50 text-primary ring-1 ring-orange-100 sm:grid">
-                  <Sparkles className="h-6 w-6" />
+            <div
+              className={cn(
+                "rounded-[26px] border border-orange-100 bg-white/86 shadow-[0_16px_42px_rgba(15,23,42,0.08)] backdrop-blur dark:border-white/10 dark:bg-white/8",
+                compactBanner ? "mt-3 p-3 sm:p-3.5" : "mt-7 p-4 sm:p-5",
+              )}
+            >
+              <div className={cn("flex items-start", compactBanner ? "gap-3" : "gap-4")}>
+                <div
+                  className={cn(
+                    "hidden shrink-0 place-items-center rounded-full bg-orange-50 text-primary ring-1 ring-orange-100 sm:grid",
+                    compactBanner ? "h-10 w-10" : "h-14 w-14",
+                  )}
+                >
+                  <Sparkles className={compactBanner ? "h-4 w-4" : "h-6 w-6"} />
                 </div>
-                <OfferText creative={normalized} headline={displayHeadline} body={displayBody} />
+                <OfferText creative={normalized} headline={displayHeadline} body={displayBody} compact={compactBanner} />
               </div>
             </div>
 
           </div>
 
-          <div className="relative z-20 flex min-w-0 items-end p-5 pt-0 sm:p-8 sm:pt-0 lg:items-center lg:p-8 xl:p-10">
-            <div className="relative h-full min-h-[250px] w-full overflow-hidden rounded-[30px] bg-slate-950 shadow-[0_24px_56px_rgba(15,23,42,0.24)] ring-1 ring-white/35 sm:min-h-[300px] lg:min-h-[292px] lg:rounded-[34px]">
+          <div
+            className={cn(
+              "relative z-20 flex min-w-0 items-end pt-0 lg:items-center",
+              compactBanner ? "p-4 pt-0 sm:p-5 sm:pt-0 lg:h-full lg:p-5 xl:p-6" : "p-5 pt-0 sm:p-8 sm:pt-0 lg:p-8 xl:p-10",
+            )}
+          >
+            <div
+              className={cn(
+                "relative h-full w-full overflow-hidden rounded-[30px] shadow-[0_24px_56px_rgba(15,23,42,0.24)] ring-1 ring-white/35 lg:rounded-[34px]",
+                compactBanner ? "min-h-[124px] bg-white sm:min-h-[150px] lg:min-h-0" : "min-h-[250px] bg-slate-950 sm:min-h-[300px] lg:min-h-[292px]",
+              )}
+            >
               <img
                 src={imageUrl || DEFAULT_IMAGE}
                 alt=""
-                className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.035]"
+                className={cn(
+                  "h-full w-full transition-transform duration-700 group-hover:scale-[1.035]",
+                  compactBanner ? "object-contain" : "object-cover",
+                )}
                 loading="lazy"
                 decoding="async"
               />

@@ -20,16 +20,20 @@ describe("analytics ingest contract", () => {
     expect(panier).toContain("restaurantId,");
   });
 
-  it("batches public analytics events into one Edge Function call and deduplicates them server-side", () => {
+  it("batches public analytics events, including impressions, into one Edge Function call", () => {
     const analytics = read("src/lib/analytics.ts");
     const edgeFunction = read("supabase/functions/track-analytics/index.ts");
 
     expect(analytics).toContain('kind: "batch"');
     expect(analytics).toContain("events: batch.map");
     expect(analytics).not.toContain("for (const item of batch)");
+    expect(analytics).toContain("export async function trackImpression");
+    expect(analytics).toContain("const data = await queueAnalyticsEvent({");
 
     expect(edgeFunction).toContain("type AnalyticsBatchPayload");
     expect(edgeFunction).toContain('case "batch"');
+    expect(edgeFunction).toContain("recordImpression");
+    expect(edgeFunction).toContain('eventKind === "impression"');
     expect(edgeFunction).toContain("dedupeBatchEvents");
     expect(edgeFunction).toContain("MAX_BATCH_EVENTS");
   });

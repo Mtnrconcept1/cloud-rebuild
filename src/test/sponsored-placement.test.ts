@@ -307,9 +307,25 @@ describe("prioritizeSponsoredCards", () => {
     expect(banner).toContain("rotateSponsoredCardsWithinRestaurants");
     expect(banner).toContain("rotationSeed");
     expect(banner).toContain('variant="banner"');
+    expect(banner).toContain('compactBanner={page === "flash_sales"}');
     expect(banner).toContain("SponsoredRestaurantTemplateCard");
     expect(analytics).toContain("avoidCompanionPlacementDuplicates");
     expect(analytics).toContain("campaignSupportsPlacement(campaign, placement)");
+  });
+
+  it("keeps flash sales campaign banners vertically compact", () => {
+    const banner = readSource("src/components/CampaignBanner.tsx");
+    const templateCard = readSource("src/components/campaigns/SponsoredRestaurantTemplateCard.tsx");
+    const flashSalesPage = readSource("src/pages/VentesFlash.tsx");
+
+    expect(flashSalesPage).toContain('<CampaignBanner page="flash_sales" maxBanners={1} />');
+    expect(banner).toContain('compactBanner={page === "flash_sales"}');
+    expect(templateCard).toContain("compactBanner");
+    expect(templateCard).toContain("min-h-[286px] grid-rows-[auto_minmax(124px,1fr)]");
+    expect(templateCard).toContain("lg:h-[286px]");
+    expect(templateCard).toContain("min-h-[124px] bg-white sm:min-h-[150px]");
+    expect(templateCard).toContain("lg:min-h-0");
+    expect(templateCard).toContain('compactBanner ? "object-contain" : "object-cover"');
   });
 
   it("keeps the sponsored restaurant badge readable over restaurant photos", () => {

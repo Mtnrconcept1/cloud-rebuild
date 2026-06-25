@@ -17,6 +17,10 @@ describe("Actualites responsive guards", () => {
     expect(app).not.toContain('max-sm:hidden">{publicNavbar}</div>');
     expect(page).toContain("overflow-x-hidden");
     expect(page).toContain("xl:grid-cols-[minmax(0,1fr)_minmax(18rem,21rem)]");
+    expect(page).toContain("container grid min-w-0 gap-5");
+    expect(page).toContain("min-w-0 max-w-full space-y-2");
+    expect(page).not.toContain("max-sm:w-[calc(100%+37px)]");
+    expect(page).not.toContain("max-sm:-ml-[9px]");
     expect(page).toContain(
       "min-w-0 space-y-4 xl:sticky xl:top-28 xl:self-start",
     );
@@ -38,10 +42,12 @@ describe("Actualites responsive guards", () => {
     );
     expect(page).not.toContain("h-[7.25rem] w-auto object-contain opacity-15");
     expect(page).toContain(
-      "relative z-10 flex flex-col gap-2 lg:flex-row lg:items-center",
+      "relative z-10 flex min-w-0 flex-col gap-2 lg:flex-row lg:items-center",
     );
     expect(page).toContain('data-testid="actualites-search"');
-    expect(page).toContain("grid h-auto w-full grid-cols-5");
+    expect(page).toContain("grid h-auto w-full grid-cols-2");
+    expect(page).toContain("sm:grid-cols-5");
+    expect(page).toContain("whitespace-normal");
     expect(page).toContain("compact");
     expect(page).not.toContain("Publier pour");
     expect(page).not.toContain("min-h-screen overflow-hidden");
@@ -120,7 +126,7 @@ describe("Actualites responsive guards", () => {
     const composer = read("src/components/social/SocialComposer.tsx");
 
     expect(dashboard).toContain(
-      "flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between",
+      "flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between",
     );
     expect(dashboard).toContain("SheetTrigger asChild");
     expect(dashboard).toContain("Statistique");
@@ -133,11 +139,18 @@ describe("Actualites responsive guards", () => {
       "flex flex-wrap items-center gap-x-3 gap-y-2",
     );
 
-    expect(composer).toContain("flex flex-col sm:flex-row");
+    expect(composer).toContain("flex min-w-0 flex-col sm:flex-row");
     expect(composer).toContain('compact ? "gap-2" : "gap-4"');
     expect(composer).toContain('compact ? "gap-2" : "gap-3"');
+    expect(composer).toContain("w-full max-w-full overflow-hidden");
+    expect(composer).toContain("flex min-w-0 flex-col sm:flex-row");
+    expect(composer).toContain("grid min-w-0 grid-cols-1 items-stretch md:grid-cols-2");
+    expect(composer).toContain("2xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.05fr)]");
+    expect(composer).toContain("h-auto min-h-11 w-full whitespace-normal");
+    expect(composer).toContain("min-w-0 overflow-hidden rounded-2xl border bg-white shadow-sm");
+    expect(composer).toContain("[overflow-wrap:anywhere]");
     expect(composer).toContain(
-      "flex w-full min-w-0 flex-wrap items-center gap-2",
+      "grid w-full min-w-0 grid-cols-1 items-stretch gap-2 sm:grid-cols-[minmax(0,1fr)_auto] 2xl:h-full",
     );
     expect(composer).toContain("sponsorDialogRequest?: number");
     expect(composer).toContain("setSponsorDialogOpen(true)");
@@ -146,8 +159,8 @@ describe("Actualites responsive guards", () => {
     expect(composer).toContain("useRestaurantActualitesPremiumBannerAudience");
     expect(composer).toContain("useCreatePremiumActualitesBanner");
     expect(composer).toContain("affichages chacun");
-    expect(composer).toContain("basis-full");
-    expect(composer).toContain("sm:basis-[13rem]");
+    expect(composer).not.toContain("basis-full");
+    expect(composer).not.toContain("sm:basis-[13rem]");
     expect(composer).not.toContain("2xl:flex-row");
     expect(composer).not.toContain("2xl:w-auto");
     expect(composer).not.toContain("2xl:shrink-0");
