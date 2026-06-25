@@ -65,18 +65,18 @@ if (!root) {
 const logDir = path.join(root, ".tmp", "codex-hooks");
 mkdirSync(logDir, { recursive: true });
 
-const lint = run(root, "npm", ["run", "lint"]);
-const test = run(root, "npm", ["test"]);
+const lint = run(root, "pnpm", ["run", "lint"]);
+const test = run(root, "pnpm", ["test"]);
 
 const report = [
   "# Codex post-edit validation",
   "",
-  "## npm run lint",
+  "## pnpm run lint",
   lint.ok ? "PASS" : "FAIL",
   "",
   lint.output.trim(),
   "",
-  "## npm test",
+  "## pnpm test",
   test.ok ? "PASS" : "FAIL",
   "",
   test.output.trim()
@@ -86,8 +86,8 @@ writeFileSync(path.join(logDir, "last-post-edit-validation.log"), report, "utf8"
 
 if (!lint.ok || !test.ok) {
   const failed = [
-    !lint.ok ? "npm run lint" : null,
-    !test.ok ? "npm test" : null
+    !lint.ok ? "pnpm run lint" : null,
+    !test.ok ? "pnpm test" : null
   ].filter(Boolean).join(" et ");
 
   process.stdout.write(JSON.stringify({

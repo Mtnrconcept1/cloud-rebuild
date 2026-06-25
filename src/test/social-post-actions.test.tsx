@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act } from "react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -75,6 +76,23 @@ const post = {
   offerCode: null,
   utmCampaign: null,
 };
+
+async function settleUi() {
+  await act(async () => {
+    await Promise.resolve();
+    await new Promise((resolve) => window.setTimeout(resolve, 0));
+  });
+}
+
+async function clickAndSettle(element: Element) {
+  fireEvent.click(element);
+  await settleUi();
+}
+
+async function pointerDownAndSettle(element: Element) {
+  fireEvent.pointerDown(element);
+  await settleUi();
+}
 
 describe("SocialPostCard actions", () => {
   beforeEach(() => {
@@ -207,7 +225,7 @@ describe("SocialPostCard actions", () => {
     expect(screen.getByRole("button", { name: "Afficher moins" })).toBeInTheDocument();
   });
 
-  it("sorts comments by date or likes from the comments panel", () => {
+  it("sorts comments by date or likes from the comments panel", async () => {
     socialHooks.comments = [
       {
         id: "popular-old",
@@ -243,19 +261,19 @@ describe("SocialPostCard actions", () => {
       </MemoryRouter>,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Afficher les commentaires" }));
+    await clickAndSettle(screen.getByRole("button", { name: "Afficher les commentaires" }));
 
     const popularComment = screen.getByText("Commentaire populaire");
     const recentComment = screen.getByText("Commentaire recent");
     expect(recentComment.compareDocumentPosition(popularComment) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 
-    fireEvent.pointerDown(screen.getByRole("button", { name: "Trier les commentaires" }));
-    fireEvent.click(screen.getByRole("menuitem", { name: "Plus likés" }));
+    await pointerDownAndSettle(screen.getByRole("button", { name: "Trier les commentaires" }));
+    await clickAndSettle(screen.getByRole("menuitem", { name: "Plus likés" }));
 
     expect(popularComment.compareDocumentPosition(recentComment) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it("shows the first mobile comment preview and opens the full post comments panel", () => {
+  it("shows the first mobile comment preview and opens the full post comments panel", async () => {
     socialHooks.comments = [
       {
         id: "comment-preview",
@@ -294,9 +312,9 @@ describe("SocialPostCard actions", () => {
 
     expect(screen.getByText("Premier avis visible directement sous la vidéo.")).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Voir plus" }));
+    await clickAndSettle(screen.getByRole("button", { name: "Voir plus" }));
 
-    expect(screen.getByRole("dialog", { name: "Commentaires" })).toBeInTheDocument();
+    expect(await screen.findByRole("dialog", { name: "Commentaires" })).toBeInTheDocument();
     expect(screen.getAllByText("Post restaurateur affiché dans la modale.").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("Premier avis visible directement sous la vidéo.").length).toBeGreaterThanOrEqual(1);
   });
@@ -323,14 +341,16 @@ describe("SocialPostCard actions", () => {
       </MemoryRouter>,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Afficher les commentaires" }));
-    fireEvent.click(screen.getAllByRole("button", { name: /pondre/i })[0]);
+    await clickAndSettle(screen.getByRole("button", { name: "Afficher les commentaires" }));
+    await clickAndSettle(screen.getAllByRole("button", { name: /pondre/i })[0]);
 
     const replyInput = await waitFor(() => screen.getByDisplayValue(/@raph/));
     fireEvent.change(replyInput, { target: { value: "@raph Merci pour votre question." } });
-    fireEvent.click(screen.getAllByRole("button", { name: "Envoyer le commentaire" }).at(-1)!);
+    await clickAndSettle(screen.getAllByRole("button", { name: "Envoyer le commentaire" }).at(-1)!);
 
-    expect(socialHooks.addComment).toHaveBeenCalledWith("@raph Merci pour votre question.");
+    await waitFor(() => {
+      expect(socialHooks.addComment).toHaveBeenCalledWith("@raph Merci pour votre question.");
+    });
   });
 
   it("opens the reaction picker for a comment", async () => {
@@ -356,9 +376,9 @@ describe("SocialPostCard actions", () => {
       </MemoryRouter>,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Afficher les commentaires" }));
+    await clickAndSettle(screen.getByRole("button", { name: "Afficher les commentaires" }));
     const reactionButton = await waitFor(() => screen.getByRole("button", { name: /1/ }));
-    fireEvent.click(reactionButton);
+    await clickAndSettle(reactionButton);
 
     expect(screen.getAllByRole("menuitem").length).toBeGreaterThanOrEqual(3);
   });

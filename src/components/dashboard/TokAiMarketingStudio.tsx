@@ -2,6 +2,7 @@ import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import AiGenerationProgressDialog from "@/components/ui/ai-generation-progress-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -125,6 +126,13 @@ const MARKETING_KIND_BY_MEDIA_TYPE = Object.fromEntries(
 ) as Record<string, MarketingAssetKind>;
 
 const MARKETING_MEDIA_TYPES = Object.values(MARKETING_ASSET_MEDIA_TYPES);
+const MARKETING_REFERENCE_LIMIT = 4;
+const MARKETING_REFERENCE_KIND_PRIORITY: MarketingAssetKind[] = [
+  "logo",
+  "business_card",
+  "restaurant_menu",
+  "brand_visuals",
+];
 
 const marketingFormat = (
   label: string,
@@ -431,6 +439,12 @@ function formatMarketingImageGenerationError(error: unknown) {
   if (message.includes("image_generation_timeout") || message.includes("image_edit_timeout")) {
     return "La génération d'image a dépassé le délai serveur. Réessayez avec un prompt plus court.";
   }
+  if (message.includes("image_reference_edit_required")) {
+    return "Les visuels de reference n'ont pas pu etre utilises correctement. Reessayez avec moins de fichiers, des images plus legeres ou des visuels plus nets; TOK ne genere plus d'image hors references.";
+  }
+  if (message.includes("marketing_reference_required")) {
+    return "Ajoutez au moins un logo, une carte, un menu ou un visuel de marque avant de generer. Le studio marketing ne cree plus d'identite visuelle sans reference active.";
+  }
   if (message.includes("ai_rate_limited") || message.includes("429")) {
     return "OpenAI limite temporairement les générations image. Réessayez dans quelques minutes.";
   }
@@ -507,8 +521,26 @@ function buildMarketingImagePrompt(input: {
     `Empreinte des ressources actives: ${resourceFingerprint || "aucune"}`,
     "Direction artistique: reprendre l'identité visuelle observable dans les fichiers actifs fournis pour cette génération: logo, couleurs, typographies, textures, style photo, formes, composition, hiérarchie et ton commercial.",
     "Interdictions: ne pas utiliser l'identité visuelle de la plateforme par défaut, ne pas réutiliser une identité ou un prompt d'une génération précédente, ne pas inventer une autre marque si les références indiquent une marque précise.",
+    "Le nom du compte restaurant n'est pas une reference visuelle: ne pas l'utiliser pour inventer une marque, un logo, une typographie, un chef, un personnage ou un plat.",
+    "Si les references actives ne montrent pas clairement une marque ou un personnage, produire un visuel sans marque inventee.",
     "Contraintes: respecter uniquement le prompt courant et les visuels actifs envoyés avec cette requête, ne pas ajouter de coordonnées privées, ne pas créer de faux label officiel, garder le texte demandé lisible.",
   ].join("\n\n").slice(0, 3600);
+}
+
+function selectMarketingGenerationResources(resources: MarketingResource[]) {
+  const activeResources = resources.filter((resource) => resource.persisted && resource.mediaUrl);
+  const selected: MarketingResource[] = [];
+
+  for (const kind of MARKETING_REFERENCE_KIND_PRIORITY) {
+    for (const resource of activeResources.filter((item) => item.kind === kind)) {
+      if (selected.some((item) => item.mediaUrl === resource.mediaUrl)) continue;
+      selected.push(resource);
+      if (selected.length >= MARKETING_REFERENCE_LIMIT) return selected;
+      if (kind !== "brand_visuals") break;
+    }
+  }
+
+  return selected;
 }
 
 function createMarketingAssetPath(userId: string, restaurantId: string, file: File) {
@@ -966,7 +998,27 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
       if (!mountedRef.current || generationRequestRef.current !== requestId) return;
 
       setResources(latestResources);
-      const generationResources = latestResources.filter((resource) => resource.persisted && resource.mediaUrl);
+      const generationResources = selectMarketingGenerationResources(latestResources);
+      const generationResourceIds = generationResources
+        .map((resource) => resource.mediaId)
+        .filter((mediaId): mediaId is string => Boolean(mediaId));
+      if (!generationResources.length) {
+        toast({
+          title: "Reference requise",
+          description: "Ajoutez au moins une ressource de marque active avant de generer un visuel marketing.",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (generationResourceIds.length !== generationResources.length) {
+        toast({
+          title: "Reference instable",
+          description: "Rechargez les ressources de marque avant de generer. TOK ne lance pas de generation avec des references non identifiees.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const imagePrompt = buildMarketingImagePrompt({
         toolTitle: activeToolConfig.title,
         prompt: safePrompt,
@@ -986,6 +1038,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
           restaurantId,
           prompt: imagePrompt,
           referenceImageUrls: generationResources.map((resource) => resource.mediaUrl),
+          referenceMediaIds: generationResourceIds,
           dishName: activeToolConfig.title,
           assetType: "campaign_visual",
           format: marketingImageFormat,
@@ -1435,6 +1488,13 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
 
         </aside>
       </div>
+      <AiGenerationProgressDialog
+        open={loading}
+        title="Generation marketing en cours"
+        description="TOK combine le support choisi, votre brief et vos ressources de marque pour produire un visuel coherent."
+        status="Marketing Studio compose le visuel"
+        steps={["Brief", "Ressources", "Rendu final"]}
+      />
     </section>
   );
 }

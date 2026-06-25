@@ -3,11 +3,12 @@ import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const SOURCE_DIRS = ["src/components", "src/lib", "src/pages"];
+const MOJIBAKE_PATTERN = /[\u00c2\u00c3\ufffd]|\u00e2[\u0080-\u009d]|\u00f0[\u0080-\u017f]/;
 
 const FORBIDDEN_COPY_SNIPPETS = [
   "Session expiree",
-  "Session expirÃ",
-  "contrÃ",
+  "Session expir\u00c3",
+  "contr\u00c3",
   "Assignee",
   "Acceptee",
   "Commande recuperee",
@@ -142,6 +143,19 @@ function collectSourceFiles(dir: string): string[] {
 }
 
 describe("French product copy", () => {
+  it("does not ship mojibake in visible source surfaces", () => {
+    const offenders = SOURCE_DIRS.flatMap((dir) => collectSourceFiles(dir))
+      .flatMap((file) => {
+        const source = readFileSync(file, "utf8");
+        return source.split(/\r?\n/)
+          .map((line, index) => ({ index: index + 1, line }))
+          .filter(({ line }) => MOJIBAKE_PATTERN.test(line))
+          .map(({ index, line }) => `${relative(process.cwd(), file)}:${index}: ${line.trim()}`);
+      });
+
+    expect(offenders).toEqual([]);
+  });
+
   it("keeps visible French copy accented in source files", () => {
     const offenders = SOURCE_DIRS.flatMap((dir) => collectSourceFiles(dir))
       .flatMap((file) => {

@@ -18,6 +18,32 @@ describe("vercel config", () => {
     });
   });
 
+  it("keeps legacy public image aliases ahead of the SPA fallback", () => {
+    const configPath = path.resolve(process.cwd(), "vercel.json");
+    const config = JSON.parse(readFileSync(configPath, "utf8")) as {
+      rewrites?: Array<{ source?: string; destination?: string }>;
+    };
+    const rewrites = config.rewrites || [];
+    const spaFallbackIndex = rewrites.findIndex((entry) => entry.source === "/(.*)" && entry.destination === "/index.html");
+
+    for (const alias of [
+      ["/images/fondue moitié moitié.jpg", "/images/fondue-moitie-moitie.jpg"],
+      ["/images/fondue%20moiti%C3%A9%20moiti%C3%A9.jpg", "/images/fondue-moitie-moitie.jpg"],
+      ["/images/meringue double.webp", "/images/meringue-double.webp"],
+      ["/images/milshake oreo.jpg", "/images/milkshake-oreo.jpg"],
+      ["/images/milshake vanille.jpeg", "/images/milkshake-vanille.jpeg"],
+      ["/images/moshi glacés.jpg", "/images/mochi-glaces.jpg"],
+      ["/images/rösti bernois.jpg", "/images/rosti-bernois.jpg"],
+      ["/images/salade du marché.jpg", "/images/salade-du-marche.jpg"],
+      ["/images/taboulé.webp", "/images/taboule.webp"],
+    ]) {
+      const aliasIndex = rewrites.findIndex((entry) => entry.source === alias[0] && entry.destination === alias[1]);
+
+      expect(aliasIndex).toBeGreaterThan(-1);
+      expect(spaFallbackIndex).toBeGreaterThan(aliasIndex);
+    }
+  });
+
   it("sets browser security headers for all routes", () => {
     const configPath = path.resolve(process.cwd(), "vercel.json");
     const config = JSON.parse(readFileSync(configPath, "utf8")) as {
@@ -38,6 +64,11 @@ describe("vercel config", () => {
     expect(csp).toContain("object-src 'none'");
     expect(csp).toContain("frame-ancestors 'none'");
     expect(csp).toContain("https://router.project-osrm.org");
+    expect(csp).toContain("frame-src 'self'");
+    expect(csp).toContain("https://www.thetok.ch");
+    expect(csp).toContain("https://cloud-rebuild-recovered.vercel.app");
+    expect(csp).toContain("https://js.stripe.com");
+    expect(csp).toContain("https://hooks.stripe.com");
   });
 
   it("keeps delivery map routing compatible with production CSP and Leaflet cleanup", () => {

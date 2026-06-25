@@ -72,6 +72,15 @@ const SOURCE_IMAGE_TIMEOUT_MS = readPositiveIntEnv("TOK_SOURCE_IMAGE_TIMEOUT_MS"
 const IMAGE_BUCKET = Deno.env.get("TOK_AI_IMAGE_BUCKET")?.trim() || "ai-generated-assets";
 const GALLERY_BUCKET = Deno.env.get("TOK_GALLERY_IMAGE_BUCKET")?.trim() || "images";
 const TOK_REFERENCE_FOLDER = "/tok-reference-food-webp";
+const MARKETING_REFERENCE_LIMIT = 4;
+const MARKETING_REFERENCE_MEDIA_TYPE_PRIORITY = [
+  "marketing_logo",
+  "marketing_business_card",
+  "marketing_menu",
+  "marketing_brand_visual",
+] as const;
+const MARKETING_REFERENCE_MEDIA_TYPES = [...MARKETING_REFERENCE_MEDIA_TYPE_PRIORITY];
+const MARKETING_REFERENCE_STORAGE_SEGMENT = "/marketing-assets/";
 const SUPPORTED_SOURCE_IMAGE_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const USD_TO_CHF_RATE = 0.81;
 const PHOTO_CREDIT_CHF = 0.015;
@@ -113,6 +122,8 @@ Instructions :
 
 Contraintes :
 - Ne pas modifier la nature du produit.
+- Ne jamais remplacer la categorie alimentaire source par une autre categorie alimentaire.
+- Si la source montre deux burgers, deux tacos, une pizza, un sandwich, un plat emballe ou un dessert, la sortie doit conserver ce meme nombre et cette meme categorie.
 - Ne pas ajouter de texte, logo ou éléments graphiques.
 - Ne pas changer le nombre d'éléments principaux.
 - Ne pas déformer les ingrédients.
@@ -133,12 +144,15 @@ Charte de retouche culinaire premium non brandee:
 - modele image cible: gpt-image-2, avec edition de l'image source quand elle existe;
 - REGLE BLOQUANTE: si une image source est fournie, l'image finale doit rester une retouche fidele du meme sujet, pas une reinterpretation;
 - conserver la nature exacte du sujet source: meme produit ou plat, meme contenant, meme packaging, meme forme generale et meme identite visuelle reconnaissable;
+- conserver la categorie alimentaire exacte du sujet source; ne jamais transformer des burgers en tartine, toast, salade, pizza, dessert, bowl, assiette gastronomique ou autre plat different;
+- conserver le nombre exact d'elements alimentaires principaux visibles dans la source;
 - conserver les textes, inscriptions, marques, etiquettes, symboles et typographies visibles du sujet source seulement s'ils existent deja physiquement sur le plat, le contenant ou le packaging;
 - supprimer les logos de coin, les watermarks, les filigranes, les bulles de marque, les badges, les autocollants virtuels ou les marques superposees qui ne font pas partie de l'objet photographie;
 - ne jamais inventer, remplacer, deformer ou approximativement recreer une etiquette, un logo ou un texte visible;
 - si le sujet source est un produit emballe, une boite, un sachet, une bouteille, une conserve ou un verre imprime, conserver cet objet comme sujet principal;
 - ne jamais transformer un produit emballe en plat servi, toast, assiette gastronomique ou scene culinaire differente;
 - ne jamais remplacer une salade, un dessert, une bouteille, une assiette ou un plat source par un autre type de nourriture;
+- ne jamais remplacer un burger, sandwich, tacos, pizza, kebab, wrap ou plateau source par une tartine, un toast, une salade, un bol ou une assiette differente;
 - nettoyage studio: supprimer les objets hors sujet, mains, couverts inutiles, miettes, taches, reflets sales, bords de table distrayants, fonds encombrants et parasites visuels;
 - composition: conserver une composition proche de la scene source; ameliorer seulement le cadrage lorsque cela ne change pas l'identite;
 - rendu studio photo: eclairage softbox premium, contraste maitrise, blancs propres, sujet net, textures visibles, reflets propres et naturels;
@@ -198,16 +212,8 @@ function buildImageRequestOptions(formatSize: string, sourceImagePresent: boolea
   };
 }
 
-function buildMarketingImageRequestOptions(formatSize: string, hasReferenceImages: boolean, quality: ImageQuality): ImageRequestOptions {
-  if (!hasReferenceImages) return buildConfiguredImageRequestOptions(formatSize, quality);
-
-  return {
-    model: INTERACTIVE_IMAGE_MODEL,
-    quality: "low",
-    size: formatSize,
-    timeoutMs: INTERACTIVE_IMAGE_TIMEOUT_MS,
-    mode: "interactive_fast",
-  };
+function buildMarketingImageRequestOptions(formatSize: string, _hasReferenceImages: boolean, quality: ImageQuality): ImageRequestOptions {
+  return buildConfiguredImageRequestOptions(formatSize, quality);
 }
 
 function buildFallbackImageRequestOptions(options: ImageRequestOptions): ImageRequestOptions {
@@ -245,6 +251,109 @@ function sanitizeUrl(raw: unknown) {
 function normalizeReferenceImageUrls(raw: unknown) {
   if (!Array.isArray(raw)) return [];
   return Array.from(new Set(raw.map((entry) => sanitizeUrl(entry)).filter(Boolean))).slice(0, 4);
+}
+
+function normalizeReferenceMediaIds(raw: unknown) {
+  if (!Array.isArray(raw)) return [];
+  return Array.from(new Set(raw.map((entry) => maybeUuid(entry)).filter((id): id is string => Boolean(id)))).slice(0, MARKETING_REFERENCE_LIMIT);
+}
+
+type MarketingReferenceRow = {
+  id: string;
+  media_url: string;
+  media_type: typeof MARKETING_REFERENCE_MEDIA_TYPES[number];
+  storage_bucket: string | null;
+  storage_path: string | null;
+  created_at: string | null;
+};
+
+function toMarketingReferenceRow(raw: Record<string, unknown>): MarketingReferenceRow | null {
+  const mediaType = typeof raw.media_type === "string" ? raw.media_type : "";
+  if (!MARKETING_REFERENCE_MEDIA_TYPES.includes(mediaType as typeof MARKETING_REFERENCE_MEDIA_TYPES[number])) return null;
+
+  const url = sanitizeUrl(raw.media_url);
+  const id = typeof raw.id === "string" ? raw.id : "";
+  if (!id || !url) return null;
+
+  return {
+    id,
+    media_url: url,
+    media_type: mediaType as typeof MARKETING_REFERENCE_MEDIA_TYPES[number],
+    storage_bucket: typeof raw.storage_bucket === "string" ? raw.storage_bucket : null,
+    storage_path: typeof raw.storage_path === "string" ? raw.storage_path : null,
+    created_at: typeof raw.created_at === "string" ? raw.created_at : null,
+  };
+}
+
+function isCurrentMarketingStudioReference(row: MarketingReferenceRow, restaurantId: string) {
+  return row.storage_bucket === GALLERY_BUCKET &&
+    Boolean(row.storage_path?.includes(`${MARKETING_REFERENCE_STORAGE_SEGMENT}${restaurantId}/`));
+}
+
+function selectMarketingReferenceRows(rows: MarketingReferenceRow[]) {
+  const selected: MarketingReferenceRow[] = [];
+
+  for (const mediaType of MARKETING_REFERENCE_MEDIA_TYPE_PRIORITY) {
+    for (const row of rows.filter((item) => item.media_type === mediaType)) {
+      if (selected.some((item) => item.media_url === row.media_url)) continue;
+      selected.push(row);
+      if (selected.length >= MARKETING_REFERENCE_LIMIT) return selected;
+      if (mediaType !== "marketing_brand_visual") break;
+    }
+  }
+
+  return selected;
+}
+
+function getMarketingReferenceFingerprint(rows: MarketingReferenceRow[]) {
+  return rows
+    .map((row) => `${row.media_type}:${row.id}:${row.storage_path || ""}`)
+    .join("|")
+    .slice(0, 900);
+}
+
+async function resolveCurrentMarketingReferences(
+  actor: Awaited<ReturnType<typeof authenticateRequest>>,
+  restaurantId: string,
+  requestedMediaIds: string[],
+) {
+  if (!requestedMediaIds.length) {
+    throw new HttpError(400, "marketing_reference_ids_required");
+  }
+
+  const { data, error } = await actor.adminClient
+    .from("restaurant_media")
+    .select("id, media_url, media_type, storage_bucket, storage_path, created_at")
+    .eq("restaurant_id", restaurantId)
+    .in("media_type", MARKETING_REFERENCE_MEDIA_TYPES)
+    .in("id", requestedMediaIds)
+    .order("created_at", { ascending: false });
+
+  if (error) throw new HttpError(500, error.message);
+
+  const rows = (data || [])
+    .map((row: Record<string, unknown>) => toMarketingReferenceRow(row))
+    .filter((row: MarketingReferenceRow | null): row is MarketingReferenceRow => Boolean(row))
+    .filter((row: MarketingReferenceRow) => isCurrentMarketingStudioReference(row, restaurantId));
+  const validIds = new Set(rows.map((row) => row.id));
+  const missingIds = requestedMediaIds.filter((id) => !validIds.has(id));
+  if (missingIds.length) {
+    throw new HttpError(409, "marketing_reference_mismatch");
+  }
+
+  const selectedRows = selectMarketingReferenceRows(rows);
+
+  if (!selectedRows.length) {
+    throw new HttpError(400, "marketing_reference_required");
+  }
+
+  return {
+    rows: selectedRows,
+    urls: selectedRows.map((row) => row.media_url),
+    ids: selectedRows.map((row) => row.id),
+    mediaTypes: selectedRows.map((row) => row.media_type),
+    fingerprint: getMarketingReferenceFingerprint(selectedRows),
+  };
 }
 
 function stripBrandOverlayInstructions(raw: string) {
@@ -290,6 +399,7 @@ function buildPhotoStudioRetouchPrompt(input: { dishName: string; userPrompt: st
       .replace(/\[TEXTURES[^\]]+\]/g, DEFAULT_PHOTO_STUDIO_TEXTURES),
     extraInstruction,
     "Retouche uniquement la photo source; ne cree pas une nouvelle scene libre.",
+    "La consigne restaurateur ne peut jamais autoriser le remplacement du plat, du produit, des ingredients principaux ou du nombre d'elements visibles.",
   ].filter(Boolean).join("\n\n").slice(0, 3600);
 }
 
@@ -298,7 +408,8 @@ function buildCompactPhotoStudioRetouchPrompt(input: { dishName: string }) {
 
   return [
     `Retouche cette photo de ${dishLabel} comme une photographie culinaire publicitaire haut de gamme.`,
-    "Conserve strictement le produit d'origine: memes ingredients visibles, memes proportions, meme structure, meme angle global, meme cadrage et meme position des elements principaux.",
+    "Conserve strictement le produit d'origine: meme categorie alimentaire, memes ingredients visibles, meme nombre d'elements principaux, memes proportions, meme structure, meme angle global, meme cadrage et meme position des elements principaux.",
+    "Ne remplace jamais le plat source par une tartine, un toast, une salade, un bol, une pizza, un dessert ou une assiette differente.",
     "Nettoie la scene, supprime les elements parasites, simplifie l'arriere-plan, ameliore le support, applique un bel eclairage studio doux, corrige colorimetrie, contraste, volumes et nettete du sujet principal.",
     "Ajoute une profondeur de champ elegante seulement si elle garde tous les details importants du produit principal lisibles.",
     "Contraintes: ne change pas la nature du produit, ne change pas le nombre d'elements principaux, ne deforme pas les ingredients, n'ajoute aucun texte, logo, badge, watermark ou element graphique.",
@@ -388,6 +499,16 @@ function estimateCostChf(usage: ImageUsage = {}, imageCount = 0, options?: Pick<
   const fallbackOutputCostUsd = options ? getOpenAIOutputCostUsd(options.size, options.quality) * imageCount : 0;
   const costUsd = tokenCostUsd > 0 ? tokenCostUsd : fallbackOutputCostUsd;
   return Number((costUsd * USD_TO_CHF_RATE).toFixed(6));
+}
+
+function creditUnitsFromEstimatedCost(estimatedCostChf: number) {
+  if (!Number.isFinite(estimatedCostChf) || estimatedCostChf <= 0) return 1;
+  return Math.max(1, Math.ceil(estimatedCostChf / PHOTO_CREDIT_CHF));
+}
+
+function getBillablePhotoCreditUnits(estimatedCostChf: number, outputCreditUnits: number) {
+  const outputUnits = Number.isFinite(outputCreditUnits) ? Math.max(1, Math.ceil(outputCreditUnits)) : 1;
+  return Math.max(outputUnits, creditUnitsFromEstimatedCost(estimatedCostChf));
 }
 
 function readUsageNumber(record: Record<string, unknown>, keys: string[]) {
@@ -546,7 +667,6 @@ function buildImageOnlyResult(input: {
 }
 
 function buildMarketingVisualResult(input: {
-  restaurantName: string;
   userPrompt: string;
   format: string;
   referenceImageCount: number;
@@ -558,7 +678,9 @@ function buildMarketingVisualResult(input: {
     "Utiliser exclusivement les visuels de référence fournis dans cette requête comme source d'identité visuelle: logo, palette, typographies, textures, style photo, composition, formes, badges, icônes, hiérarchie et ton commercial.",
     "Ne jamais appliquer l'identité visuelle de la plateforme par défaut, ne jamais ajouter sa mascotte, son logo, son URL, sa palette ou ses messages si le prompt courant et les références actives ne le demandent pas explicitement.",
     "Ignorer toute identité, tout asset, tout prompt ou toute préférence provenant d'une génération précédente. Les références actives de cette requête remplacent complètement les anciennes.",
-    `Restaurant associé: ${input.restaurantName}. Format demandé: ${input.format}. Références visuelles actives: ${input.referenceImageCount}.`,
+    "Le nom du compte restaurant n'est pas une reference visuelle et ne doit jamais servir a inventer une marque, un logo ou une typographie.",
+    "Si aucun nom, logo ou personnage n'est clairement visible dans les references actives ou explicitement demande dans le brief courant, generer une mise en page sans marque inventee.",
+    `Format demandé: ${input.format}. Références visuelles actives: ${input.referenceImageCount}.`,
     "Contraintes: respecter la marque visible dans les fichiers actifs, ne pas inventer d'autre marque, ne pas ajouter de coordonnées privées, ne pas créer de faux label officiel, garder le texte demandé lisible.",
   ].join("\n").slice(0, 4200);
 
@@ -738,7 +860,8 @@ async function callOpenAIImageEditWithRetry(input: {
   sourceImageUrl: string;
   n: number;
   options: ImageRequestOptions;
-  fallbackPrompt: string;
+  allowGenerationFallback: boolean;
+  fallbackPrompt?: string;
 }): Promise<ImageOperationResult> {
   try {
     return {
@@ -760,7 +883,7 @@ async function callOpenAIImageEditWithRetry(input: {
       mode: retryOptions.mode,
     });
 
-    if (isImageTimeoutError(error)) {
+    if (isImageTimeoutError(error) && input.allowGenerationFallback) {
       console.warn(`[${FUNCTION_NAME}] image_edit_fallback`, {
         reason: error instanceof Error ? error.message : "unknown",
         model: retryOptions.model,
@@ -770,7 +893,7 @@ async function callOpenAIImageEditWithRetry(input: {
       });
 
       return {
-        response: await callOpenAIImageGeneration(input.fallbackPrompt, input.n, retryOptions),
+        response: await callOpenAIImageGeneration(input.fallbackPrompt || input.retryPrompt, input.n, retryOptions),
         options: retryOptions,
         retryUsed: true,
         fallbackUsed: true,
@@ -788,6 +911,16 @@ async function callOpenAIImageEditWithRetry(input: {
       };
     } catch (retryError) {
       if (!shouldRetryImageGeneration(retryError) && !shouldRetryImageEdit(retryError)) throw retryError;
+      if (!input.allowGenerationFallback) {
+        console.warn(`[${FUNCTION_NAME}] source_image_edit_fallback_blocked`, {
+          reason: retryError instanceof Error ? retryError.message : "unknown",
+          model: retryOptions.model,
+          quality: retryOptions.quality,
+          size: retryOptions.size,
+          mode: retryOptions.mode,
+        });
+        throw new HttpError(502, "source_image_edit_required");
+      }
 
       console.warn(`[${FUNCTION_NAME}] image_edit_fallback`, {
         reason: retryError instanceof Error ? retryError.message : "unknown",
@@ -798,7 +931,7 @@ async function callOpenAIImageEditWithRetry(input: {
       });
 
       return {
-        response: await callOpenAIImageGeneration(input.fallbackPrompt, input.n, retryOptions),
+        response: await callOpenAIImageGeneration(input.fallbackPrompt || input.retryPrompt, input.n, retryOptions),
         options: retryOptions,
         retryUsed: true,
         fallbackUsed: true,
@@ -814,6 +947,7 @@ async function callOpenAIImageEditWithReferencesAndRecovery(input: {
   n: number;
   options: ImageRequestOptions;
   fallbackPrompt: string;
+  allowGenerationFallback: boolean;
 }): Promise<ImageOperationResult> {
   try {
     return {
@@ -846,6 +980,8 @@ async function callOpenAIImageEditWithReferencesAndRecovery(input: {
         referenceCount: input.imageUrls.length,
       });
 
+      if (!input.allowGenerationFallback) throw new HttpError(502, "image_reference_edit_required");
+
       return {
         response: await callOpenAIImageGeneration(input.fallbackPrompt, input.n, retryOptions),
         options: retryOptions,
@@ -874,6 +1010,8 @@ async function callOpenAIImageEditWithReferencesAndRecovery(input: {
         mode: retryOptions.mode,
         referenceCount: input.imageUrls.length,
       });
+
+      if (!input.allowGenerationFallback) throw new HttpError(502, "image_reference_edit_required");
 
       return {
         response: await callOpenAIImageGeneration(input.fallbackPrompt, input.n, retryOptions),
@@ -970,6 +1108,7 @@ async function insertUsage(
     usage?: ImageUsage;
     imageCount?: number;
     costOptions?: Pick<ImageRequestOptions, "size" | "quality">;
+    estimatedCostChf?: number;
     metadata?: Record<string, unknown>;
   },
 ) {
@@ -984,7 +1123,7 @@ async function insertUsage(
     input_tokens: payload.usage?.input_tokens ?? 0,
     output_tokens: payload.usage?.output_tokens ?? 0,
     total_tokens: payload.usage?.total_tokens ?? 0,
-    estimated_cost_chf: estimateCostChf(payload.usage, payload.imageCount || 0, payload.costOptions),
+    estimated_cost_chf: payload.estimatedCostChf ?? estimateCostChf(payload.usage, payload.imageCount || 0, payload.costOptions),
     metadata: payload.metadata || {},
   });
 }
@@ -1014,8 +1153,9 @@ Deno.serve(async (req) => {
       : stripPlatformBrandTerms(stripBrandOverlayInstructions(rawPrompt));
     const dishName = sanitizeText(body.dishName, 120);
     const sourceImageUrl = sanitizeUrl(body.sourceImageUrl);
-    const referenceImageUrls = normalizeReferenceImageUrls(body.referenceImageUrls)
+    const requestedReferenceImageUrls = normalizeReferenceImageUrls(body.referenceImageUrls)
       .filter((url) => url !== sourceImageUrl);
+    const requestedReferenceMediaIds = normalizeReferenceMediaIds(body.referenceMediaIds);
     const format = normalizeFormat(body.format);
     const outputConfig = getImageOutputConfig(format, body.outputResolution);
     const variantCount = clampVariantCount(body.variantCount);
@@ -1025,6 +1165,10 @@ Deno.serve(async (req) => {
     if (!restaurantId) throw new HttpError(400, "restaurant_required");
     if (!generateImage) throw new HttpError(400, "image_generation_required");
     const restaurant = await requireRestaurantAccess(actor, restaurantId);
+    const marketingReferences = marketingAssetMode
+      ? await resolveCurrentMarketingReferences(actor, restaurantId, requestedReferenceMediaIds)
+      : null;
+    const referenceImageUrls = marketingReferences?.urls || requestedReferenceImageUrls;
 
     const rl = createRateLimiter(actor.adminClient, FUNCTION_NAME);
     await rl.consume(`user:${actor.userId}`, { maxRequests: 20, windowSeconds: 600 });
@@ -1040,7 +1184,6 @@ Deno.serve(async (req) => {
 
     const result = marketingAssetMode
       ? buildMarketingVisualResult({
-        restaurantName: restaurant.name || "Restaurant",
         userPrompt: prompt,
         format: format.label,
         referenceImageCount: referenceImageUrls.length + (sourceImageUrl ? 1 : 0),
@@ -1064,6 +1207,7 @@ Deno.serve(async (req) => {
     let imageFallbackUsed = false;
     let imageFallbackReason: string | null = null;
     let sourceEditUsed = false;
+    const generationFallbackAllowed = !sourceImageUrl && !(marketingAssetMode && referenceImageUrls.length);
     const imageOptions = generatedImageOptions;
     const finalPrompt = marketingAssetMode
       ? [
@@ -1073,6 +1217,8 @@ Deno.serve(async (req) => {
         "- Produire une image finale complète au format affiche, pas des variantes de logo isolé.",
         "- S'inspirer uniquement des références actives envoyées dans cette requête sans copier les captures d'écran brutes.",
         "- Les références actives remplacent toute identité ou tout prompt d'une génération précédente.",
+        "- Ne pas deduire une marque depuis le nom du compte restaurant; seules les images jointes et le brief courant font autorite.",
+        "- Ne pas inventer de logo, de nom de marque, de chef, de personnage, de plat ou de mascotte absent des references actives et du brief courant.",
         "- Le texte principal doit être très grand, contrasté et lisible.",
         "- Le rendu doit ressembler à une publicité professionnelle terminée pour la marque du restaurateur, prête pour validation.",
         "- Ne pas utiliser l'identité visuelle de la plateforme sauf si les références actives fournies par le restaurateur sont elles-mêmes des visuels de cette plateforme.",
@@ -1106,6 +1252,7 @@ Deno.serve(async (req) => {
           "",
           "Retouche source indisponible apres retry: creer un visuel marketing final coherent avec le brief courant, sans inventer de nouvelle marque et sans reprendre d'anciens assets.",
         ].join("\n").slice(0, 4200),
+        allowGenerationFallback: false,
       });
       imageResponse = editResult.response;
       usedImageOptions = editResult.options;
@@ -1118,16 +1265,12 @@ Deno.serve(async (req) => {
         retryPrompt: [
           compactSourceEditPrompt,
           "",
-          "Garde la retouche fidele a la photo source. Ne remplace pas le plat ou produit.",
+          "Garde la retouche fidele a la photo source. Ne remplace pas le plat, le produit, la categorie alimentaire, les ingredients principaux ni le nombre d'elements visibles.",
         ].join("\n").slice(0, 2200),
         sourceImageUrl,
         n: variantCount,
         options: imageOptions,
-        fallbackPrompt: [
-          compactSourceEditPrompt,
-          "",
-          "Retouche source indisponible apres retry: creer une photographie culinaire premium proche du produit demande, sans logo, sans texte incruste, sans badge ni watermark.",
-        ].join("\n").slice(0, 2200),
+        allowGenerationFallback: false,
       });
       imageResponse = editResult.response;
       usedImageOptions = editResult.options;
@@ -1151,6 +1294,23 @@ Deno.serve(async (req) => {
     const actualOutputCostChf = actualOutputCostUsd * USD_TO_CHF_RATE;
     const actualCreditUnits = Math.max(1, Math.ceil(actualOutputCostChf / PHOTO_CREDIT_CHF));
     const photoCreditUnits = actualCreditUnits * Math.max(1, variantCount);
+    const billableImageCount = Math.max(1, variantCount);
+    const requestedOutputCreditUnits = outputConfig.creditUnits * billableImageCount;
+    const estimatedImageCostChf = estimateCostChf(
+      imageUsage,
+      billableImageCount,
+      usedImageOptions ? { size: usedImageOptions.size, quality: usedImageOptions.quality } : undefined,
+    );
+    const estimatedCostCreditUnits = creditUnitsFromEstimatedCost(estimatedImageCostChf);
+    const billablePhotoCreditUnits = Math.max(
+      requestedOutputCreditUnits,
+      getBillablePhotoCreditUnits(estimatedImageCostChf, photoCreditUnits),
+    );
+    const billingCreditSource = billablePhotoCreditUnits > Math.max(photoCreditUnits, estimatedCostCreditUnits)
+      ? "requested_output_resolution"
+      : billablePhotoCreditUnits > photoCreditUnits
+      ? "estimated_total_cost"
+      : "output_resolution";
 
     const persistedAssetId = await insertGeneratedAsset(actor, {
       restaurant_id: restaurantId,
@@ -1168,9 +1328,14 @@ Deno.serve(async (req) => {
         image_quality: usedImageOptions.quality,
         output_resolution: outputConfig.outputResolution,
         requested_output_quality: outputConfig.outputQuality,
+        requested_output_credit_units: requestedOutputCreditUnits,
         output_credit_units: photoCreditUnits,
+        estimated_cost_credit_units: estimatedCostCreditUnits,
+        billable_credit_units: billablePhotoCreditUnits,
+        billing_credit_source: billingCreditSource,
         estimated_openai_output_cost_usd: actualOutputCostUsd,
-        estimated_openai_cost_chf: actualOutputCostChf,
+        estimated_openai_output_cost_chf: actualOutputCostChf,
+        estimated_openai_cost_chf: estimatedImageCostChf,
         request_image_model: usedImageOptions.model,
         request_image_quality: usedImageOptions.quality,
         request_image_size: usedImageOptions.size,
@@ -1181,7 +1346,7 @@ Deno.serve(async (req) => {
         image_fallback_reason: imageFallbackReason,
         brand_overlay_positioning: "frontend_transparent_layer",
         brand_overlay_size: "180x180",
-        generation_fallback_allowed: true,
+        generation_fallback_allowed: generationFallbackAllowed,
         output_format: "png",
         brief_source: briefSource,
         preview_image_url: stored.imageUrl,
@@ -1191,12 +1356,18 @@ Deno.serve(async (req) => {
         marketing_asset_mode: marketingAssetMode,
         reference_image_urls: referenceImageUrls,
         reference_image_count: referenceImageUrls.length,
+        requested_reference_image_count: requestedReferenceImageUrls.length,
+        reference_source: marketingAssetMode ? "server_current_restaurant_media" : "request_payload",
+        requested_reference_media_ids: requestedReferenceMediaIds,
+        reference_media_ids: marketingReferences?.ids || [],
+        reference_media_types: marketingReferences?.mediaTypes || [],
+        reference_fingerprint: marketingReferences?.fingerprint || null,
         reference_identity_scope: marketingAssetMode ? "current_uploaded_restaurant_resources" : "source_or_tok_photo_studio",
         original_prompt: prompt,
         dish_name: dishName,
         format: format.label,
         source_preservation_policy: sourceImageUrl
-          ? "strict_source_edit_with_generation_fallback_after_retryable_failure"
+          ? "strict_source_edit_without_generation_fallback"
           : "generation_without_source",
         reference_folder: marketingAssetMode ? null : `public${TOK_REFERENCE_FOLDER}`,
       },
@@ -1223,10 +1394,15 @@ Deno.serve(async (req) => {
       usage: imageUsage,
       imageCount: generated ? variantCount : 0,
       costOptions: usedImageOptions ? { size: usedImageOptions.size, quality: usedImageOptions.quality } : undefined,
+      estimatedCostChf: estimatedImageCostChf,
       metadata: {
         credit_kind: "photo_retouch",
-        credit_units: generated ? photoCreditUnits : outputConfig.creditUnits,
+        credit_units: billablePhotoCreditUnits,
         credit_units_per_image: actualCreditUnits,
+        requested_output_credit_units: requestedOutputCreditUnits,
+        output_credit_units: photoCreditUnits,
+        estimated_cost_credit_units: estimatedCostCreditUnits,
+        billing_credit_source: billingCreditSource,
         output_resolution: outputConfig.outputResolution,
         output_size: usedImageOptions.size,
         output_quality: usedImageOptions.quality,
@@ -1247,13 +1423,19 @@ Deno.serve(async (req) => {
         image_mode: usedImageOptions?.mode,
         marketing_asset_mode: marketingAssetMode,
         reference_image_count: referenceImageUrls.length,
+        requested_reference_image_count: requestedReferenceImageUrls.length,
+        reference_source: marketingAssetMode ? "server_current_restaurant_media" : "request_payload",
+        requested_reference_media_ids: requestedReferenceMediaIds,
+        reference_media_ids: marketingReferences?.ids || [],
+        reference_media_types: marketingReferences?.mediaTypes || [],
+        reference_fingerprint: marketingReferences?.fingerprint || null,
         source_edit_used: sourceEditUsed,
         image_edit_retry: imageEditRetryUsed,
         image_fallback_used: imageFallbackUsed,
         image_fallback_reason: imageFallbackReason,
         brand_overlay_positioning: "frontend_transparent_layer",
         brand_overlay_size: "180x180",
-        generation_fallback_allowed: true,
+        generation_fallback_allowed: generationFallbackAllowed,
         gallery_bucket: GALLERY_BUCKET,
         output_format: "png",
         format: format.label,
@@ -1284,6 +1466,12 @@ Deno.serve(async (req) => {
         image_only: imageOnly,
         marketing_asset_mode: marketingAssetMode,
         reference_image_count: referenceImageUrls.length,
+        requested_reference_image_count: requestedReferenceImageUrls.length,
+        reference_source: marketingAssetMode ? "server_current_restaurant_media" : "request_payload",
+        requested_reference_media_ids: requestedReferenceMediaIds,
+        reference_media_ids: marketingReferences?.ids || [],
+        reference_media_types: marketingReferences?.mediaTypes || [],
+        reference_fingerprint: marketingReferences?.fingerprint || null,
         source_edit_used: sourceEditUsed,
         image_edit_retry: imageEditRetryUsed,
         image_fallback_used: imageFallbackUsed,
@@ -1307,12 +1495,8 @@ Deno.serve(async (req) => {
       output_resolution: outputConfig.outputResolution,
       output_size: usedImageOptions?.size || outputConfig.outputSize,
       output_quality: usedImageOptions?.quality || outputConfig.outputQuality,
-      credit_units: photoCreditUnits,
-      estimated_cost_chf: estimateCostChf(
-        imageUsage,
-        generated ? variantCount : 0,
-        usedImageOptions ? { size: usedImageOptions.size, quality: usedImageOptions.quality } : undefined,
-      ),
+      credit_units: billablePhotoCreditUnits,
+      estimated_cost_chf: estimatedImageCostChf,
       image_mode: usedImageOptions?.mode,
       brand_overlay_positioning: "frontend_transparent_layer",
       brand_overlay_size: "180x180",

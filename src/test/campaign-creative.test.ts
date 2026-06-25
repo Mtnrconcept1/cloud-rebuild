@@ -1,7 +1,10 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
+import SponsoredRestaurantTemplateCard from "@/components/campaigns/SponsoredRestaurantTemplateCard";
 import {
   CAMPAIGN_CREATIVE_TEMPLATES,
   DEFAULT_CAMPAIGN_CREATIVE,
@@ -98,6 +101,22 @@ describe("campaign creative studio", () => {
       ...DEFAULT_CAMPAIGN_CREATIVE,
       template: "tok_spotlight",
     })).toContain("TOK Spotlight");
+  });
+
+  it("does not duplicate the sponsored badge on banner placements", () => {
+    const duplicateSponsoredMarkup = renderToStaticMarkup(createElement(SponsoredRestaurantTemplateCard, {
+      variant: "banner",
+      restaurantName: "Quirinale",
+      discountLabel: "Sponsorisé",
+    }));
+    const discountMarkup = renderToStaticMarkup(createElement(SponsoredRestaurantTemplateCard, {
+      variant: "banner",
+      restaurantName: "Quirinale",
+      discountLabel: "-30%",
+    }));
+
+    expect(duplicateSponsoredMarkup.match(/Sponsorisé/g)).toHaveLength(1);
+    expect(discountMarkup).toContain("-30%");
   });
 
   it("persists creative choices in channels and normalizes them server-side", () => {

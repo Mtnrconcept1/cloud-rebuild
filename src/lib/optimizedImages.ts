@@ -1,3 +1,5 @@
+import { normalizePublicImageUrl } from "@/lib/securityUrls";
+
 export type OptimizedImagePreset = "thumbnail" | "card" | "hero" | "gallery";
 
 type OptimizedImageOptions = {
@@ -50,7 +52,9 @@ export function getOptimizedImageUrl(
   overrides: OptimizedImageOptions = {},
 ) {
   if (!rawUrl) return "";
-  return buildTransformedSupabaseUrl(rawUrl, { ...PRESET_OPTIONS[preset], ...overrides });
+  const normalizedUrl = normalizePublicImageUrl(rawUrl, "");
+  if (!normalizedUrl) return "";
+  return buildTransformedSupabaseUrl(normalizedUrl, { ...PRESET_OPTIONS[preset], ...overrides });
 }
 
 export function getOptimizedImageSrcSet(

@@ -129,7 +129,8 @@ export function SponsoredRestaurantTemplateCard({
   const slotDiscountLabel = getSlotDiscountLabel(discountLabel);
 
   if (variant === "banner") {
-    const secondaryBadge = discountLabel?.trim() || "Sponsorisé";
+    const secondaryBadge = discountLabel?.trim();
+    const showSecondaryBadge = Boolean(secondaryBadge && !/^sponsor/i.test(secondaryBadge));
 
     return (
       <article
@@ -161,9 +162,11 @@ export function SponsoredRestaurantTemplateCard({
                 <Megaphone className="h-3.5 w-3.5" />
                 Sponsorisé
               </span>
-              <span className="inline-flex rounded-full bg-orange-50 px-4 py-2 text-[10px] font-black uppercase tracking-[0.08em] text-primary ring-1 ring-orange-100 dark:bg-orange-400/10 dark:text-orange-100 dark:ring-orange-300/20">
-                {secondaryBadge}
-              </span>
+              {showSecondaryBadge ? (
+                <span className="inline-flex rounded-full bg-orange-50 px-4 py-2 text-[10px] font-black uppercase tracking-[0.08em] text-primary ring-1 ring-orange-100 dark:bg-orange-400/10 dark:text-orange-100 dark:ring-orange-300/20">
+                  {secondaryBadge}
+                </span>
+              ) : null}
             </div>
 
             <div className={cn("min-w-0", compactBanner ? "mt-3 lg:mt-4" : "mt-6 lg:mt-7")}>

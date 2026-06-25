@@ -22,7 +22,8 @@ describe("social comments mobile layout", () => {
     expect(source).toContain("min-w-0 flex-1 resize-none text-base sm:text-sm");
     expect(source).toContain("h-10 w-10 shrink-0");
     expect(source).toContain("setReplyTarget");
-    expect(dashboardLayout).toContain("bottom-0 z-[40]");
+    expect(dashboardLayout).toContain("top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-[40]");
+    expect(dashboardLayout).not.toContain("fixed inset-x-0 bottom-0 z-[40]");
     expect(source).not.toContain("repositionInputs={true}");
     expect(source).not.toContain("max-h-[88vh]");
   });

@@ -1,3 +1,5 @@
+import { canonicalizeKnownPublicImageUrl } from "@/lib/securityUrls";
+
 type ResolveMenuImageArgs = {
   name: string;
   description?: string | null;
@@ -25,7 +27,7 @@ const EXACT_IMAGE_BY_NAME: Record<string, string> = {
   "le fromager": "/images/smash-burger-single.jpeg",
   "frites truffe": "/images/chicken-bucket-fries.jpeg",
   "frites maison": "/images/chicken-bucket-fries.jpeg",
-  milkshake: "/images/milshake vanille.jpeg",
+  milkshake: "/images/milkshake-vanille.jpeg",
   brownie: "/images/1.webp",
   "flat white": "/images/1.webp",
   "pour over": "/images/1.webp",
@@ -47,7 +49,7 @@ const EXACT_IMAGE_BY_NAME: Record<string, string> = {
   edamame: "/images/edamame.webp",
   "california roll": "/images/california roll.jpg",
   "bento box": "/images/thai-spread.jpeg",
-  "green tea ice cream": "/images/moshi glac\u00e9s.jpg",
+  "green tea ice cream": "/images/mochi-glaces.jpg",
   carpaccio: "/images/octopus-fine-dining.jpeg",
   bruschetta: "/images/bruschetta.jpg",
   focaccia: "/images/bruschetta.jpg",
@@ -71,7 +73,7 @@ const EXACT_IMAGE_BY_NAME: Record<string, string> = {
   "poulet kung pao": "/images/thai-curry-spread.jpeg",
   "riz cantonais": "/images/byriani.jpg",
   "soupe wonton": "/images/ramen miso.jpg",
-  "perles de coco": "/images/moshi glac\u00e9s.jpg",
+  "perles de coco": "/images/mochi-glaces.jpg",
   "chicken teriyaki": "/images/poke-bowls.jpeg",
   "tartare de boeuf": "/images/octopus-fine-dining.jpeg",
   "salade nicoise": "/images/fattouche.webp",
@@ -100,7 +102,7 @@ const EXACT_IMAGE_BY_NAME: Record<string, string> = {
   tzatziki: "/images/raita.webp",
   spanakopita: "/images/samosa.jpg",
   loukoumades: "/images/gulam jamun.jpg",
-  "frappe cafe": "/images/milshake vanille.jpeg",
+  "frappe cafe": "/images/milkshake-vanille.jpeg",
 };
 
 const IMAGE_POOLS: Record<string, string[]> = {
@@ -125,7 +127,7 @@ const IMAGE_POOLS: Record<string, string[]> = {
   bowl: ["/images/poke-bowls.jpeg", "/images/acai bowl.jpg"],
   fries: ["/images/chicken-bucket-fries.jpeg", "/images/lobster-roll-fries.jpeg"],
   pasta: ["/images/pasta-assortment.jpeg"],
-  salade: ["/images/fattouche.webp", "/images/salade du march\u00e9.jpg"],
+  salade: ["/images/fattouche.webp", "/images/salade-du-marche.jpg"],
   kebab: [
     "/images/doner-kebab-plate.jpeg",
     "/images/kebab-box-spread.jpeg",
@@ -137,7 +139,7 @@ const IMAGE_POOLS: Record<string, string[]> = {
     "/images/thai-curry-spread.jpeg",
   ],
   soup: ["/images/ramen miso.jpg", "/images/thai-spread.jpeg"],
-  coffee: ["/images/1.webp", "/images/milshake vanille.jpeg"],
+  coffee: ["/images/1.webp", "/images/milkshake-vanille.jpeg"],
   dessert: [
     "/images/1.webp",
     "/images/pannacotta.webp",
@@ -202,7 +204,7 @@ function inferPoolKey(text: string): keyof typeof IMAGE_POOLS {
 }
 
 function normalizeImageUrl(value: string): string {
-  return value.trim().replace(/\\/g, "/");
+  return canonicalizeKnownPublicImageUrl(value);
 }
 
 export function resolveMenuItemImageUrl({
@@ -220,7 +222,7 @@ export function resolveMenuItemImageUrl({
     return exactImage;
   }
 
-  if (imageUrl) return imageUrl;
+  if (normalizedImageUrl) return normalizedImageUrl;
 
   const fullText = normalizeLabel(`${name || ""} ${description || ""} ${category || ""}`);
   const poolKey = inferPoolKey(fullText);

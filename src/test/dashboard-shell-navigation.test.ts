@@ -84,4 +84,16 @@ describe("dashboard shell navigation", () => {
     expect(dialog).toContain("fixed inset-0 z-[80]");
     expect(dialog).toContain("fixed left-[50%] top-[50%] z-[90]");
   });
+
+  it("keeps the mobile dashboard trigger out of bottom content", () => {
+    const layout = read("src/components/DashboardLayout.tsx");
+
+    expect(layout).toContain("fixed left-[calc(env(safe-area-inset-left,0px)+0.75rem)] top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-[40] md:hidden");
+    expect(layout).toContain("h-11 w-11 rounded-full");
+    expect(layout).toContain("flex h-9 w-9 items-center justify-center rounded-full");
+    expect(layout).toContain('<span className="sr-only">{activeNavItem?.label ?? "Ouvrir le menu"}</span>');
+    expect(layout).toContain("pb-[calc(env(safe-area-inset-bottom,0px)+2rem)]");
+    expect(layout).not.toContain("fixed inset-x-0 bottom-0 z-[40]");
+    expect(layout).not.toContain("h-[calc(env(safe-area-inset-bottom,0px)+5.5rem)] md:hidden");
+  });
 });

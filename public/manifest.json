@@ -35,14 +35,14 @@
   "screenshots": [
     {
       "src": "/fond3.png",
-      "sizes": "1280x720",
+      "sizes": "1400x788",
       "type": "image/png",
       "form_factor": "wide",
       "label": "TOK sur desktop"
     },
     {
       "src": "/mockup.png",
-      "sizes": "390x844",
+      "sizes": "458x964",
       "type": "image/png",
       "form_factor": "narrow",
       "label": "TOK sur mobile"

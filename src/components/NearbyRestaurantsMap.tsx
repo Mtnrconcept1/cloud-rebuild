@@ -37,21 +37,21 @@ const userIcon = L.divIcon({
 });
 
 const cuisineEmoji: Record<string, string> = {
-  italien: "🍕",
-  pizza: "🍕",
-  japonais: "🍣",
-  sushi: "🍣",
-  burger: "🍔",
-  hamburger: "🍔",
-  francais: "🥐",
-  chinois: "🥡",
-  mexicain: "🌮",
-  indien: "🍛",
-  thai: "🍜",
-  kebab: "🥙",
-  cafe: "☕",
-  dessert: "🍰",
-  halal: "🍖",
+  italien: "\u{1F355}",
+  pizza: "\u{1F355}",
+  japonais: "\u{1F363}",
+  sushi: "\u{1F363}",
+  burger: "\u{1F354}",
+  hamburger: "\u{1F354}",
+  francais: "\u{1F950}",
+  chinois: "\u{1F961}",
+  mexicain: "\u{1F32E}",
+  indien: "\u{1F35B}",
+  thai: "\u{1F35C}",
+  kebab: "\u{1F959}",
+  cafe: "\u2615",
+  dessert: "\u{1F370}",
+  halal: "\u{1F356}",
 };
 
 function normalizeCuisine(value: string) {
@@ -59,12 +59,12 @@ function normalizeCuisine(value: string) {
 }
 
 function getEmoji(cuisine?: string | null): string {
-  if (!cuisine) return "🍽️";
+  if (!cuisine) return "\u{1F37D}\uFE0F";
   const lower = normalizeCuisine(cuisine);
   for (const [key, emoji] of Object.entries(cuisineEmoji)) {
     if (lower.includes(key)) return emoji;
   }
-  return "🍽️";
+  return "\u{1F37D}\uFE0F";
 }
 
 function pseudoRandomOffset(name: string, index: number): [number, number] {
@@ -124,7 +124,7 @@ function createRestaurantPopup(restaurant: Restaurant) {
     rating.style.color = "#f59e0b";
     rating.style.fontSize = "12px";
     rating.style.fontWeight = "bold";
-    rating.textContent = `⭐ ${Number(restaurant.rating).toFixed(1)}`;
+    rating.textContent = `\u2B50 ${Number(restaurant.rating).toFixed(1)}`;
     body.appendChild(rating);
   }
 
@@ -210,4 +210,3 @@ export default function NearbyRestaurantsMap({
     />
   );
 }
-

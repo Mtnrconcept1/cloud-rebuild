@@ -32,6 +32,7 @@ export type AiCreationRecord = {
   outputResolution?: TokImageOutputResolution;
   sourceImageUrl?: string | null;
   referenceImageUrls?: string[];
+  referenceMediaIds?: string[];
   status: AiCreationStatus;
   createdAt: string;
   updatedAt: string;
@@ -200,6 +201,7 @@ export function startTokImageCreationJob(input: StartAiCreationJobInput): AiCrea
     outputResolution: input.request.outputResolution,
     sourceImageUrl: input.request.sourceImageUrl ?? null,
     referenceImageUrls: input.request.referenceImageUrls ?? [],
+    referenceMediaIds: input.request.referenceMediaIds ?? [],
     status: "running",
     createdAt: now,
     updatedAt: now,
@@ -254,6 +256,16 @@ export function startTokImageCreationJob(input: StartAiCreationJobInput): AiCrea
 
 export function markAiCreationAddedToGallery(id: string) {
   return patchRecord(id, { galleryAdded: true });
+}
+
+export function deleteAiCreationRecord(id: string) {
+  const records = readRecords();
+  const nextRecords = records.filter((record) => record.id !== id);
+  if (nextRecords.length === records.length) return false;
+
+  writeRecords(nextRecords);
+  emitRecords();
+  return true;
 }
 
 export function getAiCreationImageUrl(record: AiCreationRecord) {

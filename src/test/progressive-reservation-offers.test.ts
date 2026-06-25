@@ -107,7 +107,7 @@ describe("progressive reservation offers", () => {
   });
 
   it("scopes progressive offers to their service period on the backend", () => {
-    const migration = latestMigrationContaining("get_progressive_offer_service_key");
+    const migration = latestMigrationContaining("CREATE OR REPLACE FUNCTION public.get_progressive_offer_service_key");
 
     expect(migration).toContain("CREATE OR REPLACE FUNCTION public.get_progressive_offer_service_key");
     expect(migration).toContain("EXTRACT(HOUR FROM p_time) < 16");
@@ -115,6 +115,21 @@ describe("progressive reservation offers", () => {
     expect(migration).toContain("Cette offre progressive est disponible uniquement pour le service");
     expect(migration).toContain("progressive_offer_service");
     expect(migration).toContain("GRANT EXECUTE ON FUNCTION public.get_progressive_offer_service_key(time) TO anon, authenticated, service_role");
+  });
+
+  it("blocks a client from re-registering after cancelling a progressive offer for the same day", () => {
+    const migration = latestMigrationContaining("progressive_offer_reentry_blocked");
+    const reservationMutations = read("src/lib/reservationMutations.ts");
+
+    expect(migration).toContain("idx_reservations_progressive_offer_cancelled_reentry");
+    expect(migration).toContain("v_cancelled_statuses constant text[] := ARRAY['cancelled', 'canceled']");
+    expect(migration).toContain("COALESCE(r.cancelled_by, 'customer') = 'customer'");
+    expect(migration).toContain("r.progressive_offer_id = NEW.progressive_offer_id");
+    expect(migration).toContain("r.date = v_offer.service_date");
+    expect(migration).toContain("progressive_offer_reentry_blocked");
+    expect(migration).toContain("Vous vous etes deja desinscrit de cette offre progressive pour ce jour.");
+    expect(reservationMutations).toContain("PROGRESSIVE_OFFER_REENTRY_MESSAGE");
+    expect(reservationMutations).toContain("normalized.includes(\"progressive_offer_reentry_blocked\")");
   });
 
   it("prevents two active progressive offers on the same restaurant day", () => {

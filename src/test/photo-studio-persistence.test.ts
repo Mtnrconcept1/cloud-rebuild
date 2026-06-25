@@ -41,7 +41,7 @@ describe("TOK photo studio persistence", () => {
 
   it("keeps the restaurateur-facing photo studio copy readable in French", () => {
     for (const file of [source, dashboardPhotos, imageUpload]) {
-      expect(file).not.toMatch(/Ã|Â|â€™|â€œ|â€|�/);
+      expect(file).not.toMatch(/\u00c3|\u00c2|\u00e2\u20ac\u2122|\u00e2\u20ac\u0153|\u00e2\u20ac|\ufffd/);
     }
 
     expect(source).toContain("améliore cette photo pour un rendu professionnel, photographie culinaire");
@@ -99,6 +99,8 @@ describe("TOK photo studio persistence", () => {
     expect(dashboardPhotos).toContain('data-testid="tok-gallery-image-frame"');
     expect(dashboardPhotos).toContain("inline-flex max-h-full max-w-full");
     expect(dashboardPhotos).not.toContain('className="relative h-full w-full"');
+    expect(dashboardPhotos).toContain('.order("created_at", { ascending: false })');
+    expect(dashboardPhotos).toContain('.order("position", { ascending: true })');
 
     expect(restaurantDetail).toContain("RestaurantGalleryImageFrame");
     expect(restaurantDetail).toContain('data-testid="restaurant-gallery-image-frame"');
@@ -186,6 +188,11 @@ describe("TOK photo studio persistence", () => {
     expect(marketingStudio).toContain('tool: "marketing_studio"');
     expect(aiCreationsGallery).toContain("subscribeAiCreationRecords");
     expect(aiCreationsGallery).toContain("markAiCreationAddedToGallery");
+    expect(aiCreationJobs).toContain("deleteAiCreationRecord");
+    expect(aiCreationJobs).toContain("records.filter((record) => record.id !== id)");
+    expect(aiCreationsGallery).toContain("deleteAiCreationRecord");
+    expect(aiCreationsGallery).toContain("Supprimer");
+    expect(aiCreationsGallery).toContain("La photo deja ajoutee reste dans la galerie");
     expect(aiCreationsGallery).toContain('from("restaurant_media").insert');
     expect(aiCreationsGallery).toContain("media_url: imageUrl");
     expect(aiCreationsGallery).toContain('media_type: "photo_ai_tok"');
@@ -291,9 +298,14 @@ describe("TOK photo studio persistence", () => {
   it("refreshes marketing references before image generation to avoid stale uploaded assets", () => {
     expect(marketingStudio).toContain("function fetchMarketingResources");
     expect(marketingStudio).toContain("const latestResources = await fetchMarketingResources(restaurantId)");
-    expect(marketingStudio).toContain("const generationResources = latestResources.filter");
+    expect(marketingStudio).toContain("const generationResources = selectMarketingGenerationResources(latestResources)");
+    expect(marketingStudio).toContain("if (!generationResources.length)");
+    expect(marketingStudio).toContain("Reference requise");
     expect(marketingStudio).toContain("resources: generationResources");
     expect(marketingStudio).toContain("referenceImageUrls: generationResources.map((resource) => resource.mediaUrl)");
+    expect(marketingStudio).toContain("const generationResourceIds = generationResources");
+    expect(marketingStudio).toContain("referenceMediaIds: generationResourceIds");
+    expect(marketingStudio).toContain("Reference instable");
     expect(marketingStudio).toContain("generationRequestRef");
     expect(marketingStudio).toContain("invalidateMarketingGeneration");
     expect(marketingStudio).toContain("generationRequestRef.current !== requestId");
@@ -308,10 +320,41 @@ describe("TOK photo studio persistence", () => {
     expect(aiFunction).toContain("reference_identity_scope");
     expect(aiFunction).toContain("current_uploaded_restaurant_resources");
     expect(aiFunction).toContain("reference_folder: marketingAssetMode ? null");
+    expect(aiFunction).toContain("resolveCurrentMarketingReferences(actor, restaurantId, requestedReferenceMediaIds)");
+    expect(aiFunction).toContain("MARKETING_REFERENCE_STORAGE_SEGMENT");
+    expect(aiFunction).toContain("marketing_reference_required");
+    expect(aiFunction).toContain("marketing_reference_ids_required");
+    expect(aiFunction).toContain("marketing_reference_mismatch");
+    expect(aiFunction).toContain("normalizeReferenceMediaIds");
+    expect(aiFunction).toContain('.in("id", requestedMediaIds)');
+    expect(aiFunction).toContain('reference_source: marketingAssetMode ? "server_current_restaurant_media" : "request_payload"');
+    expect(aiFunction).toContain("requested_reference_media_ids");
+    expect(aiFunction).toContain("reference_media_ids");
+    expect(aiFunction).toContain("requestedReferenceImageUrls");
+    expect(aiFunction).toContain("requestedReferenceMediaIds");
+    expect(aiFunction).toContain("Le nom du compte restaurant n'est pas une reference visuelle");
+    expect(aiFunction).toContain("Ne pas deduire une marque depuis le nom du compte restaurant");
+    expect(aiFunction).not.toContain("Restaurant associé: ${input.restaurantName}");
+    expect(marketingStudio).toContain("MARKETING_REFERENCE_LIMIT = 4");
+    expect(marketingStudio).toContain("MARKETING_REFERENCE_KIND_PRIORITY");
+    expect(marketingStudio).toContain("selectMarketingGenerationResources(latestResources)");
+    expect(marketingStudio).toContain("Le nom du compte restaurant n'est pas une reference visuelle");
     expect(aiFunction).not.toContain("palette orange TOK");
     expect(aiFunction).not.toContain("mascotte chef TOK");
     expect(aiFunction).not.toContain("publicité TOK terminée");
     expect(aiFunction).not.toContain("URL thetok.ch");
+  });
+
+  it("does not fall back to prompt-only generation when marketing references are active", () => {
+    const aiFunction = readFileSync(resolve(process.cwd(), "supabase/functions/ai-image-enhance/index.ts"), "utf8");
+    const marketingStudio = readFileSync(resolve(process.cwd(), "src/components/dashboard/TokAiMarketingStudio.tsx"), "utf8");
+
+    expect(aiFunction).toContain("allowGenerationFallback: boolean");
+    expect(aiFunction).toContain('throw new HttpError(502, "image_reference_edit_required")');
+    expect(aiFunction).toContain("allowGenerationFallback: false");
+    expect(aiFunction).toContain("const generationFallbackAllowed = !sourceImageUrl && !(marketingAssetMode && referenceImageUrls.length)");
+    expect(aiFunction).toContain("return buildConfiguredImageRequestOptions(formatSize, quality);");
+    expect(marketingStudio).toContain("image_reference_edit_required");
   });
 
   it("makes restaurant gallery photos public from the cover and includes raw and TOK studio photos", () => {
@@ -325,19 +368,18 @@ describe("TOK photo studio persistence", () => {
     expect(restaurantDetail).toContain('data-testid="restaurant-gallery-watermark-layer"');
   });
 
-  it("shows a TOK logo loading animation while a TOK photo is being generated", () => {
-    expect(source).toContain("TokLogoGenerationLoader");
-    expect(source).toContain("tokLogoPulse");
-    expect(source).toContain("tokLogoGlow");
-    expect(source).toContain("tokOrbit");
-    expect(source).toContain("tokStudioScan");
-    expect(source).toContain("tok-stage-fill");
-    expect(source).toContain("tok-stage-dot");
-    expect(source).toContain("Retouche, lumière, export galerie");
-    expect(source).toContain("prefers-reduced-motion");
-    expect(source).toContain("Logo TOK");
-    expect(source).toContain("<TokLogoGenerationLoader logoSrc={logoSrc} />");
-    expect(source).toContain("loading ? (");
+  it("shows the shared animated modal while a TOK photo is being generated", () => {
+    const progressDialog = readFileSync(resolve(process.cwd(), "src/components/ui/ai-generation-progress-dialog.tsx"), "utf8");
+
+    expect(progressDialog).toContain('data-testid="ai-generation-progress-dialog"');
+    expect(progressDialog).toContain("tokAiModalOrbit");
+    expect(progressDialog).toContain("tokAiModalScan");
+    expect(progressDialog).toContain("tokAiModalProgress");
+    expect(progressDialog).toContain("prefers-reduced-motion");
+    expect(source).not.toContain("TokLogoGenerationLoader");
+    expect(source).toContain("AiGenerationProgressDialog");
+    expect(source).toContain("Retouche PhotoPro en cours");
+    expect(source).toContain("open={loading}");
   });
 
   it("requests image-only generation and does not render generated marketing copy", () => {
@@ -345,8 +387,11 @@ describe("TOK photo studio persistence", () => {
     expect(source).toContain("améliore cette photo pour un rendu professionnel, photographie culinaire");
     expect(source).toContain("ajoute un fond esthétique");
     expect(source).toContain("améliore la forme de l'aliment");
-    expect(source).toContain("Éclairage studio");
-    expect(source).toContain("profondeur de champ douce");
+    expect(source).toContain("sans remplacer le plat");
+    expect(source).toContain("les ingrédients");
+    expect(source).toContain("le nombre d'aliments");
+    expect(source).toContain("composition source");
+    expect(source).toContain('assetType: "menu_visual"');
     expect(source).not.toContain("photographie culinaire de studio professionnel");
     expect(source).not.toContain("éclairage softbox premium");
     expect(source).toContain("calque transparent séparé");

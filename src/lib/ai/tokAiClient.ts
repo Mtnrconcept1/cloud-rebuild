@@ -73,6 +73,7 @@ export type TokImageGenerationRequest = {
   restaurantId: string;
   sourceImageUrl?: string | null;
   referenceImageUrls?: string[];
+  referenceMediaIds?: string[];
   dishName?: string | null;
   prompt: string;
   assetType?: "menu_visual" | "campaign_visual" | "banner" | "image";

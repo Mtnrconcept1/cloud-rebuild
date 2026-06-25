@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { act } from "react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import Abonnement from "@/pages/Abonnement";
@@ -131,13 +132,20 @@ function createSupabaseTableMock(table: string) {
     }),
   };
 }
-function renderAbonnement() {
+async function settleUi() {
+  await act(async () => {
+    await Promise.resolve();
+  });
+}
+
+async function renderAbonnement() {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false },
+      mutations: { retry: false },
     },
   });
-  return render(
+  const view = render(
     <QueryClientProvider client={queryClient}>
       <MemoryRouter initialEntries={["/abonnement"]}>
         <Routes>
@@ -147,6 +155,8 @@ function renderAbonnement() {
       </MemoryRouter>
     </QueryClientProvider>,
   );
+  await settleUi();
+  return view;
 }
 describe("Abonnement cart sync", () => {
   beforeEach(() => {
@@ -175,7 +185,7 @@ describe("Abonnement cart sync", () => {
   it("rebuilds the cart from an existing active subscription before opening the cart", async () => {
     const lundiOccurrences = expectedOccurrences("Lundi", "12:00");
     const lundiTotal = expectedTotal([{ day: "Lundi", price: 16, time: "12:00" }]);
-    renderAbonnement();
+    await renderAbonnement();
     fireEvent.change(await screen.findByLabelText("Date de fin de l'abonnement"), {
       target: { value: TEST_SUBSCRIPTION_END_DATE },
     });
@@ -217,7 +227,7 @@ describe("Abonnement cart sync", () => {
   });
   it("shows empty days as free days before any meal is selected", async () => {
     subscriptionRows.rows = [];
-    renderAbonnement();
+    await renderAbonnement();
     expect(await screen.findByText("0 repas planifiés")).toBeInTheDocument();
     expect(screen.getAllByText("Jour libre")).toHaveLength(7);
     expect(screen.getByRole("button", { name: /S'abonner - 0\.00 CHF/i })).toBeDisabled();
@@ -250,7 +260,7 @@ describe("Abonnement cart sync", () => {
         restaurants: { id: "restaurant-2", name: "Green Test" },
       },
     ];
-    renderAbonnement();
+    await renderAbonnement();
     fireEvent.change(await screen.findByLabelText("Date de fin de l'abonnement"), {
       target: { value: TEST_MULTI_RESTAURANT_SUBSCRIPTION_END_DATE },
     });
@@ -308,7 +318,7 @@ describe("Abonnement cart sync", () => {
         restaurants: { id: "restaurant-1", name: "Tok Test" },
       },
     ];
-    renderAbonnement();
+    await renderAbonnement();
     fireEvent.change(await screen.findByLabelText("Date de fin de l'abonnement"), {
       target: { value: TEST_SUBSCRIPTION_END_DATE },
     });
@@ -361,7 +371,7 @@ describe("Abonnement cart sync", () => {
         restaurants: { id: "restaurant-1", name: "Tok Test" },
       },
     ];
-    renderAbonnement();
+    await renderAbonnement();
     fireEvent.click(await screen.findByRole("button", { name: /Lundi/i }));
     fireEvent.change(screen.getByLabelText("Heure de livraison Lundi"), { target: { value: "12:45" } });
     fireEvent.click(screen.getByRole("button", { name: /Voir le panier/i }));
@@ -398,7 +408,7 @@ describe("Abonnement cart sync", () => {
         opening_hours: { lundi: [{ open: "11:30", close: "16:00" }] },
       },
     ];
-    renderAbonnement();
+    await renderAbonnement();
     fireEvent.click(await screen.findByRole("button", { name: /Lundi/i }));
     fireEvent.change(screen.getByLabelText("Heure de livraison Lundi"), { target: { value: "15:00" } });
     expect(await screen.findByRole("button", { name: /Cafe ferme/i })).toBeDisabled();

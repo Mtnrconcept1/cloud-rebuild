@@ -3,6 +3,7 @@ import { getSupabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import AiGenerationProgressDialog from "@/components/ui/ai-generation-progress-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -551,6 +552,13 @@ export default function DashboardMenu() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        <AiGenerationProgressDialog
+          open={generatingPhoto}
+          title="Photo du plat en creation"
+          description="TOK prepare une photo culinaire exploitable pour votre menu a partir du plat, de la description et de votre image source."
+          status="Studio menu en cours"
+          steps={["Contexte plat", "Photo culinaire", "Application au menu"]}
+        />
       </div>
     </DashboardLayout>
   );

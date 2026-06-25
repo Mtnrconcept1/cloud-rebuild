@@ -20,7 +20,7 @@
     "lint": "eslint .",
     "lint:release": "eslint src/App.tsx src/pages/TokOne.tsx supabase/functions/create-checkout/index.ts supabase/functions/stripe-webhook/index.ts supabase/functions/manage-tok-one-subscription/index.ts",
     "preview": "vite preview",
-    "preview:prod": "npm run build:prod && vite preview --mode production",
+    "preview:prod": "pnpm run build:prod && vite preview --mode production",
     "test": "vitest run",
     "test:launch:10k": "node ./scripts/launch-10k-load-check.mjs",
     "check:frontend:10k": "node ./scripts/frontend-10k-readiness.mjs",

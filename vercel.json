@@ -13,7 +13,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' https://www.gstatic.com https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.sentry.io https://sentry.io https://photon.komoot.io https://router.project-osrm.org https://www.gstatic.com https://fcmregistrations.googleapis.com https://firebaseinstallations.googleapis.com https://fcm.googleapis.com https://firestore.googleapis.com https://api.openai.com; frame-src https://js.stripe.com https://hooks.stripe.com; worker-src 'self' blob:; media-src 'self' blob: https:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+          "value": "default-src 'self'; script-src 'self' https://www.gstatic.com https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.sentry.io https://sentry.io https://photon.komoot.io https://router.project-osrm.org https://www.gstatic.com https://fcmregistrations.googleapis.com https://firebaseinstallations.googleapis.com https://fcm.googleapis.com https://firestore.googleapis.com https://api.openai.com; frame-src 'self' https://www.thetok.ch https://cloud-rebuild-recovered.vercel.app https://js.stripe.com https://hooks.stripe.com; worker-src 'self' blob:; media-src 'self' blob: https:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
         },
         {
           "key": "X-Content-Type-Options",
@@ -38,6 +38,70 @@
     {
       "source": "/api/photon",
       "destination": "https://photon.komoot.io/api"
+    },
+    {
+      "source": "/images/fondue moitié moitié.jpg",
+      "destination": "/images/fondue-moitie-moitie.jpg"
+    },
+    {
+      "source": "/images/fondue%20moiti%C3%A9%20moiti%C3%A9.jpg",
+      "destination": "/images/fondue-moitie-moitie.jpg"
+    },
+    {
+      "source": "/images/meringue double.webp",
+      "destination": "/images/meringue-double.webp"
+    },
+    {
+      "source": "/images/meringue%20double.webp",
+      "destination": "/images/meringue-double.webp"
+    },
+    {
+      "source": "/images/milshake oreo.jpg",
+      "destination": "/images/milkshake-oreo.jpg"
+    },
+    {
+      "source": "/images/milshake%20oreo.jpg",
+      "destination": "/images/milkshake-oreo.jpg"
+    },
+    {
+      "source": "/images/milshake vanille.jpeg",
+      "destination": "/images/milkshake-vanille.jpeg"
+    },
+    {
+      "source": "/images/milshake%20vanille.jpeg",
+      "destination": "/images/milkshake-vanille.jpeg"
+    },
+    {
+      "source": "/images/moshi glacés.jpg",
+      "destination": "/images/mochi-glaces.jpg"
+    },
+    {
+      "source": "/images/moshi%20glac%C3%A9s.jpg",
+      "destination": "/images/mochi-glaces.jpg"
+    },
+    {
+      "source": "/images/rösti bernois.jpg",
+      "destination": "/images/rosti-bernois.jpg"
+    },
+    {
+      "source": "/images/r%C3%B6sti%20bernois.jpg",
+      "destination": "/images/rosti-bernois.jpg"
+    },
+    {
+      "source": "/images/salade du marché.jpg",
+      "destination": "/images/salade-du-marche.jpg"
+    },
+    {
+      "source": "/images/salade%20du%20march%C3%A9.jpg",
+      "destination": "/images/salade-du-marche.jpg"
+    },
+    {
+      "source": "/images/taboulé.webp",
+      "destination": "/images/taboule.webp"
+    },
+    {
+      "source": "/images/taboul%C3%A9.webp",
+      "destination": "/images/taboule.webp"
     },
     {
       "source": "/(.*)",

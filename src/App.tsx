@@ -37,8 +37,8 @@ import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 import { isNative } from "@/lib/platform";
 import { useTokLogoDocumentIcons } from "@/hooks/useTokLogo";
 
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
+const Index = lazy(() => import("./pages/Index"));
+const Auth = lazy(() => import("./pages/Auth"));
 const Recherche = lazy(() => import("./pages/Recherche"));
 const LocalRestaurants = lazy(() => import("./pages/LocalRestaurants"));
 const RestaurantDetail = lazy(() => import("./pages/RestaurantDetail"));

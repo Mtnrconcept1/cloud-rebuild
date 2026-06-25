@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act } from "react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -146,14 +147,22 @@ function mockSupabaseTable(table: string) {
   return builder;
 }
 
-function renderAuth(route: string) {
-  return render(
-    <MemoryRouter initialEntries={[route]}>
-      <Routes>
-        <Route path="/auth" element={<Auth />} />
-      </Routes>
-    </MemoryRouter>,
-  );
+async function settleUi() {
+  await act(async () => {
+    await Promise.resolve();
+  });
+}
+
+async function renderAuth(route: string) {
+  const view = render(
+      <MemoryRouter initialEntries={[route]}>
+        <Routes>
+          <Route path="/auth" element={<Auth />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+  await settleUi();
+  return view;
 }
 
 
@@ -209,8 +218,8 @@ describe("Auth signup form", () => {
     });
   });
 
-  it("lets a client enter an email when switching to signup", () => {
-    renderAuth("/auth?type=client");
+  it("lets a client enter an email when switching to signup", async () => {
+    await renderAuth("/auth?type=client");
 
     fireEvent.click(screen.getByRole("button", { name: "Pas encore de compte ? S'inscrire" }));
 
@@ -221,8 +230,8 @@ describe("Auth signup form", () => {
     expect(emailInput).toHaveValue("client@example.com");
   });
 
-  it("lets sign in users reveal and hide the password before submitting", () => {
-    renderAuth("/auth?type=client");
+  it("lets sign in users reveal and hide the password before submitting", async () => {
+    await renderAuth("/auth?type=client");
 
     const passwordInput = screen.getByLabelText("Mot de passe");
     expect(passwordInput).toHaveAttribute("type", "password");
@@ -237,7 +246,7 @@ describe("Auth signup form", () => {
 
   it("starts Google OAuth through the PKCE callback URL", async () => {
     supabaseMocks.signInWithOAuth.mockResolvedValue({ error: null });
-    renderAuth("/auth?type=client");
+    await renderAuth("/auth?type=client");
 
     fireEvent.click(screen.getByRole("button", { name: "Continuer avec Google" }));
 
@@ -249,8 +258,8 @@ describe("Auth signup form", () => {
     });
   });
 
-  it("lets signup users reveal and hide the password before submitting", () => {
-    renderAuth("/auth?type=client");
+  it("lets signup users reveal and hide the password before submitting", async () => {
+    await renderAuth("/auth?type=client");
 
     fireEvent.click(screen.getByRole("button", { name: "Pas encore de compte ? S'inscrire" }));
 
@@ -266,7 +275,7 @@ describe("Auth signup form", () => {
   });
 
   it("submits client signup with the confirmation redirect and does not auto-login without a session", async () => {
-    renderAuth("/auth?type=client");
+    await renderAuth("/auth?type=client");
 
     fireEvent.click(screen.getByRole("button", { name: "Pas encore de compte ? S'inscrire" }));
     fireEvent.change(screen.getByLabelText("Nom complet"), { target: { value: "Client Test" } });
@@ -301,7 +310,7 @@ describe("Auth signup form", () => {
   });
 
   it("requires legal acceptance before creating a signup account", async () => {
-    renderAuth("/auth?type=client");
+    await renderAuth("/auth?type=client");
 
     fireEvent.click(screen.getByRole("button", { name: "Pas encore de compte ? S'inscrire" }));
     fireEvent.change(screen.getByLabelText("Nom complet"), { target: { value: "Client Test" } });
@@ -342,7 +351,7 @@ describe("Auth signup form", () => {
       error: null,
     });
 
-    const { container } = renderAuth("/auth?type=restaurateur");
+    const { container } = await renderAuth("/auth?type=restaurateur");
     await screen.findByText("TOK Starter");
     await screen.findByText("TOK Starter");
 
@@ -453,7 +462,7 @@ describe("Auth signup form", () => {
       error: null,
     });
 
-    const { container } = renderAuth("/auth?type=restaurateur");
+    const { container } = await renderAuth("/auth?type=restaurateur");
     await screen.findByText("TOK Starter");
     await screen.findByText("TOK Starter");
 
@@ -536,7 +545,7 @@ describe("Auth signup form", () => {
   });
 
   it("lets users resend the signup confirmation email", async () => {
-    renderAuth("/auth?type=client");
+    await renderAuth("/auth?type=client");
 
     fireEvent.change(screen.getByLabelText("Email"), { target: { value: "client@example.com" } });
     fireEvent.click(screen.getByRole("button", { name: "Renvoyer l’email de confirmation" }));
@@ -553,7 +562,7 @@ describe("Auth signup form", () => {
   });
 
   it("keeps the restaurateur signup email field editable", async () => {
-    renderAuth("/auth?type=restaurateur");
+    await renderAuth("/auth?type=restaurateur");
     await screen.findByText("TOK Starter");
 
     const emailInput = screen.getByLabelText("Email");

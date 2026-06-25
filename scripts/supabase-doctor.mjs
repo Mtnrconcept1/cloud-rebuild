@@ -63,7 +63,7 @@ function inspectMode(mode) {
 
   if (envInfo.projectRef && configProjectId && envInfo.projectRef !== configProjectId) {
     warnings.push(
-      `supabase/config.toml currently targets ${configProjectId}, not the ${mode} frontend project ${envInfo.projectRef}. Run npm run supabase:target:${mode === "production" ? "prod" : "dev"} before ${mode} deploy commands.`,
+      `supabase/config.toml currently targets ${configProjectId}, not the ${mode} frontend project ${envInfo.projectRef}. Run pnpm run supabase:target:${mode === "production" ? "prod" : "dev"} before ${mode} deploy commands.`,
     );
   }
 

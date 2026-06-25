@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  canonicalizeKnownPublicImageUrl,
   normalizeExternalHttpsUrl,
   normalizePublicImageUrl,
   normalizeSocialUrl,
@@ -15,6 +16,16 @@ describe("security URL helpers", () => {
     expect(normalizePublicImageUrl("https://cdn.example.com/photo.webp")).toBe("https://cdn.example.com/photo.webp");
     expect(normalizePublicImageUrl("javascript:alert(1)", "/fallback.jpg")).toBe("/fallback.jpg");
     expect(normalizePublicImageUrl("data:image/svg+xml,<svg onload=alert(1)>", "/fallback.jpg")).toBe("/fallback.jpg");
+  });
+
+  it("canonicalizes legacy public image aliases before rendering", () => {
+    expect(canonicalizeKnownPublicImageUrl("/images/milshake vanille.jpeg")).toBe("/images/milkshake-vanille.jpeg");
+    expect(canonicalizeKnownPublicImageUrl("/images/moshi%20glac%C3%A9s.jpg")).toBe("/images/mochi-glaces.jpg");
+    expect(normalizePublicImageUrl("/images/salade du marché.jpg")).toBe("/images/salade-du-marche.jpg");
+    expect(normalizePublicImageUrl("https://www.thetok.ch/images/r%C3%B6sti%20bernois.jpg"))
+      .toBe("https://www.thetok.ch/images/rosti-bernois.jpg");
+    expect(normalizePublicImageUrl("https://cdn.example.com/images/milshake%20vanille.jpeg"))
+      .toBe("https://cdn.example.com/images/milshake%20vanille.jpeg");
   });
 
   it("normalizes external links to https and enforces host allowlists", () => {

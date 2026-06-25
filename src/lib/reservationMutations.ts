@@ -63,6 +63,22 @@ const getFirstRow = <T>(data: T[] | T | null | undefined): T | null => {
   return data ?? null;
 };
 
+export const PROGRESSIVE_OFFER_REENTRY_MESSAGE =
+  "Vous vous etes deja desinscrit de cette offre progressive pour ce jour. Vous ne pouvez pas vous reinscrire.";
+
+const getReservationErrorMessage = (
+  errorCode: string | null | undefined,
+  errorMessage: string | null | undefined,
+  fallback: string,
+) => {
+  const normalized = `${errorCode ?? ""} ${errorMessage ?? ""}`;
+  if (normalized.includes("progressive_offer_reentry_blocked")) {
+    return PROGRESSIVE_OFFER_REENTRY_MESSAGE;
+  }
+
+  return errorMessage || fallback;
+};
+
 export async function createReservationWithValidation(
   input: CreateReservationInput,
 ): Promise<ReservationCreateResult> {
@@ -97,7 +113,11 @@ export async function createReservationWithValidation(
     return {
       ok: false,
       errorCode: result.error_code || "validation_error",
-      errorMessage: result.error_message || "Reservation impossible.",
+      errorMessage: getReservationErrorMessage(
+        result.error_code,
+        result.error_message,
+        "Reservation impossible.",
+      ),
     };
   }
 

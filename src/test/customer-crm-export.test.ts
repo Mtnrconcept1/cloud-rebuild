@@ -38,6 +38,8 @@ function profile(overrides: Partial<CustomerCrmProfile> = {}): CustomerCrmProfil
 }
 
 describe("buildCustomerCrmCsv", () => {
+  const brokenUtf8Markers = ["\u00c3", "\u00c2", "\ufffd"];
+
   it("exports CRM profiles as semicolon CSV with escaped cells and protected phones", () => {
     const csv = buildCustomerCrmCsv([
       profile({ phone: "022 123 45 67" }),
@@ -60,8 +62,8 @@ describe("buildCustomerCrmCsv", () => {
     expect(xls).toContain('<Worksheet ss:Name="CRM clients">');
     expect(xls).toContain('<Cell ss:StyleID="Text"><Data ss:Type="String">022 123 45 67</Data></Cell>');
     expect(xls).toContain('Pizza &quot;speciale&quot;; menu x2');
-    expect(xls).not.toContain("Ã");
-    expect(xls).not.toContain("Â");
-    expect(xls).not.toContain("�");
+    for (const marker of brokenUtf8Markers) {
+      expect(xls).not.toContain(marker);
+    }
   });
 });

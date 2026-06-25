@@ -19,6 +19,7 @@ import ReactMarkdown from "react-markdown";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Badge } from "@/components/ui/badge";
 import { AiLoadingState } from "@/components/ui/ai-loading-state";
+import AiGenerationProgressDialog from "@/components/ui/ai-generation-progress-dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -625,6 +626,13 @@ export default function DashboardAdvisor() {
             L'IA analyse les donnees des 30 derniers jours de votre restaurant.
           </p>
         </div>
+        <AiGenerationProgressDialog
+          open={Boolean(activeTool)}
+          title={activeTool ? `${activeTool} en cours` : "Assistant IA en cours"}
+          description="TOK analyse le contexte du restaurant, execute l'outil demande et prepare une reponse exploitable."
+          status="Assistant TOK au travail"
+          steps={["Contexte", "Generation", "Reponse"]}
+        />
       </div>
     </DashboardLayout>
   );

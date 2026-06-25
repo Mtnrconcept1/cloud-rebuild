@@ -143,7 +143,9 @@ describe("TOK AI tools foundation", () => {
     expect(source).toContain("buildMarketingImageRequestOptions");
     expect(source).not.toContain("FORCE_STRICT_SOURCE_EDIT ? false");
     expect(source).toContain('const shouldUseFastInteractiveEdit = sourceImagePresent || (USE_FAST_INTERACTIVE_IMAGE && quality === "low")');
-    expect(source).toContain('if (!hasReferenceImages) return buildConfiguredImageRequestOptions(formatSize, quality)');
+    expect(source).toContain("return buildConfiguredImageRequestOptions(formatSize, quality);");
+    expect(source).toContain("allowGenerationFallback: false");
+    expect(source).toContain("image_reference_edit_required");
     expect(source).toContain("buildImageRequestOptions(format.size, Boolean(sourceImageUrl), outputConfig.outputQuality)");
     expect(source).toContain("buildMarketingImageRequestOptions(format.size, referenceImageUrls.length > 0, outputConfig.outputQuality)");
     expect(source).not.toContain("TOK_INTERACTIVE_IMAGE_QUALITY");
@@ -182,6 +184,9 @@ describe("TOK AI tools foundation", () => {
     expect(source).toContain("SUPPORTED_SOURCE_IMAGE_MIME_TYPES");
     expect(source).toContain("getSourceImageFileName");
     expect(source).toContain("normalizeReferenceImageUrls");
+    expect(source).toContain("resolveCurrentMarketingReferences");
+    expect(source).toContain("server_current_restaurant_media");
+    expect(source).toContain("MARKETING_REFERENCE_STORAGE_SEGMENT");
     expect(source).toContain("callOpenAIImageEditWithReferences");
     expect(source).toContain("marketingAssetMode");
     expect(source).toContain("reference_image_urls");
@@ -192,8 +197,9 @@ describe("TOK AI tools foundation", () => {
     expect(source).toContain("Interdiction explicite: ne pas ajouter de logo");
     expect(source).toContain('brand_overlay_positioning: "frontend_transparent_layer"');
     expect(source).toContain('brand_overlay_size: "180x180"');
-    expect(source).toContain("strict_source_edit_with_generation_fallback_after_retryable_failure");
-    expect(source).toContain("generation_fallback_allowed: true");
+    expect(source).toContain("strict_source_edit_without_generation_fallback");
+    expect(source).toContain("generation_fallback_allowed: generationFallbackAllowed");
+    expect(source).toContain("allowGenerationFallback: false");
     expect(source).toContain("let imageEditRetryUsed = false");
     expect(source).toContain("let imageFallbackUsed = false");
     expect(source).toContain("callOpenAIImageEditWithRetry");
@@ -206,8 +212,10 @@ describe("TOK AI tools foundation", () => {
     expect(source).toContain("shouldRetryImageEdit");
     expect(source).toContain("image_edit_retry");
     expect(source).toContain("image_edit_fallback");
-    expect(source).toContain("Retouche source indisponible apres retry");
-    expect(source).not.toContain("source_image_edit_required");
+    expect(source).toContain("source_image_edit_fallback_blocked");
+    expect(source).toContain("source_image_edit_required");
+    expect(source).toContain("Ne remplace pas le plat, le produit, la categorie alimentaire");
+    expect(source).not.toContain("creer une photographie culinaire premium proche du produit demande");
     expect(source).not.toContain("createOpenAIResponse");
     expect(source).not.toContain("parseStructuredOutput");
     expect(source).not.toContain("maxOutputTokens");
@@ -227,6 +235,7 @@ describe("TOK AI tools foundation", () => {
     expect(source).toContain("image_fallback_used: imageFallbackUsed");
     expect(source).toContain("image_fallback_reason: imageFallbackReason");
     expect(client).toContain("referenceImageUrls?: string[]");
+    expect(client).toContain("referenceMediaIds?: string[]");
     expect(client).toContain("marketingAssetMode?: boolean");
     expect(source).toContain('publication_caption: ""');
     expect(source).toContain("marketing_angles: []");
@@ -273,6 +282,7 @@ describe("TOK AI tools foundation", () => {
     const photoStudio = readProjectFile("src/components/dashboard/TokAiPhotoStudioV2.tsx");
     const marketingStudio = readProjectFile("src/components/dashboard/TokAiMarketingStudio.tsx");
     const migration = readMigrationContaining("ai_image_resolution_credit_pricing");
+    const repriceMigration = readMigrationContaining("photo_ai_credit_units_from_estimated_cost");
 
     for (const expected of [
       "USD_TO_CHF_RATE = 0.81",
@@ -289,6 +299,16 @@ describe("TOK AI tools foundation", () => {
       "output_resolution",
       "output_size",
       "output_quality",
+      "creditUnitsFromEstimatedCost",
+      "getBillablePhotoCreditUnits",
+      "estimatedCostChf?: number",
+      "estimatedCostChf: estimatedImageCostChf",
+      "credit_units: billablePhotoCreditUnits",
+      "requestedOutputCreditUnits",
+      "requested_output_credit_units",
+      "estimated_cost_credit_units",
+      "billing_credit_source",
+      "requested_output_resolution",
     ]) {
       expect(source).toContain(expected);
     }
@@ -305,6 +325,12 @@ describe("TOK AI tools foundation", () => {
     expect(migration).toContain("WHEN 'premium' THEN 240");
     expect(migration).toContain("WHEN 'elite' THEN 960");
     expect(migration).toContain("ai_photo_credits = 120");
+    expect(repriceMigration).toContain("normalize_photo_ai_usage_credit_units");
+    expect(repriceMigration).toContain("CEIL(GREATEST(COALESCE(NEW.estimated_cost_chf, 0), 0) / 0.015)");
+    expect(repriceMigration).toContain("requested_output_credit_units");
+    expect(repriceMigration).toContain("UPDATE public.ai_usage_logs");
+    expect(repriceMigration).toContain("previous_credit_units");
+    expect(repriceMigration).toContain("estimated_total_cost");
   });
 
   it("uses optimized WebP food references for the TOK photo studio style memory", () => {

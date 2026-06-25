@@ -13,6 +13,24 @@ const TRUSTED_CHECKOUT_REDIRECT_HOSTS = new Set([
   "connect.stripe.com",
 ]);
 
+const TOK_PUBLIC_ASSET_HOSTS = new Set([
+  "admin.thetok.ch",
+  "cloud-rebuild-recovered.vercel.app",
+  "thetok.ch",
+  "www.thetok.ch",
+]);
+
+const PUBLIC_IMAGE_URL_ALIASES: Record<string, string> = {
+  "/images/fondue moiti\u00e9 moiti\u00e9.jpg": "/images/fondue-moitie-moitie.jpg",
+  "/images/meringue double.webp": "/images/meringue-double.webp",
+  "/images/milshake oreo.jpg": "/images/milkshake-oreo.jpg",
+  "/images/milshake vanille.jpeg": "/images/milkshake-vanille.jpeg",
+  "/images/moshi glac\u00e9s.jpg": "/images/mochi-glaces.jpg",
+  "/images/r\u00f6sti bernois.jpg": "/images/rosti-bernois.jpg",
+  "/images/salade du march\u00e9.jpg": "/images/salade-du-marche.jpg",
+  "/images/taboul\u00e9.webp": "/images/taboule.webp",
+};
+
 type CheckoutRedirectOptions = {
   origin?: string;
   assign?: (url: string) => void;
@@ -28,6 +46,20 @@ function withHttpsScheme(value: string) {
   return `https://${value}`;
 }
 
+function tryDecodeUrl(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
+export function canonicalizeKnownPublicImageUrl(rawUrl: string): string {
+  const normalized = rawUrl.trim().replace(/\\/g, "/");
+  const decoded = tryDecodeUrl(normalized);
+  return PUBLIC_IMAGE_URL_ALIASES[normalized] ?? PUBLIC_IMAGE_URL_ALIASES[decoded] ?? normalized;
+}
+
 function normalizeHost(hostname: string) {
   return hostname.replace(/\.$/, "").toLowerCase();
 }
@@ -41,6 +73,11 @@ function isLocalHttpUrl(url: URL) {
   return url.protocol === "http:" && (
     url.hostname === "localhost" || url.hostname === "127.0.0.1"
   );
+}
+
+function isTokPublicAssetUrl(url: URL) {
+  if (isLocalHttpUrl(url)) return true;
+  return url.protocol === "https:" && TOK_PUBLIC_ASSET_HOSTS.has(normalizeHost(url.hostname));
 }
 
 function getCurrentOrigin() {
@@ -139,11 +176,15 @@ export function normalizePublicImageUrl(
 
   const value = rawUrl.trim();
   if (!value) return fallback;
-  if (value.startsWith("/") && !value.startsWith("//")) return value;
+  if (value.startsWith("/") && !value.startsWith("//")) return canonicalizeKnownPublicImageUrl(value);
 
   try {
     const url = new URL(value);
-    if (url.protocol === "https:" || isLocalHttpUrl(url)) return url.toString();
+    if (url.protocol === "https:" || isLocalHttpUrl(url)) {
+      if (!isTokPublicAssetUrl(url)) return url.toString();
+      url.pathname = canonicalizeKnownPublicImageUrl(url.pathname);
+      return url.toString();
+    }
     return fallback;
   } catch {
     return fallback;

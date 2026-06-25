@@ -13,12 +13,22 @@ const publicLegalPages = [
   "src/pages/APropos.tsx",
 ];
 
+const brokenEncodingMarkers = [
+  "\u00c3",
+  "\u00c2",
+  "\u00e2\u20ac\u201d",
+  "\u00e2\u20ac\u2122",
+  "\u00e2\u20ac\u0153",
+  "\u00e2\u20ac",
+  "\ufffd",
+];
+
 describe("legal Miamz and sponsored content readiness", () => {
   it("keeps public legal and help pages in readable UTF-8 French", () => {
     for (const path of publicLegalPages) {
       const content = read(path);
 
-      for (const brokenEncoding of ["Ã", "Â", "â€”", "â€™", "â€œ", "â€", "�"]) {
+      for (const brokenEncoding of brokenEncodingMarkers) {
         expect(content, `${path} contains ${brokenEncoding}`).not.toContain(brokenEncoding);
       }
     }

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 
 const edgeFunction = readFileSync("supabase/functions/daily-slot-spin/index.ts", "utf8");
@@ -7,6 +8,38 @@ const threeAttemptsMigration = readFileSync("supabase/migrations/20260625034551_
 const component = readFileSync("src/components/DailyMiamzSlotMachine.tsx", "utf8");
 const slotTemplate = readFileSync("public/tok-slot-machine/index.html", "utf8");
 const appShell = readFileSync("src/App.tsx", "utf8");
+const trackedFiles = new Set(
+  execFileSync("git", ["ls-files", "-z"], { encoding: "utf8" })
+    .split("\0")
+    .filter(Boolean)
+    .map((file) => file.replace(/\\/g, "/")),
+);
+
+function publicPathForSlotSource(src: string) {
+  if (/^(?:https?:|data:|blob:)/i.test(src)) {
+    return null;
+  }
+
+  if (src.startsWith("/")) {
+    return `public${src}`;
+  }
+
+  return `public/tok-slot-machine/${src}`;
+}
+
+function collectPrimarySlotSources() {
+  const sources = new Set<string>();
+  const sourcePattern = /\bsrc\s*(?:=|:)\s*["']([^"']+)["']/g;
+
+  for (const match of slotTemplate.matchAll(sourcePattern)) {
+    const source = publicPathForSlotSource(match[1]);
+    if (source) {
+      sources.add(source);
+    }
+  }
+
+  return [...sources].sort();
+}
 
 describe("daily Miamz slot machine", () => {
   it("keeps the random result and crediting path server-side", () => {
@@ -61,6 +94,10 @@ describe("daily Miamz slot machine", () => {
     expect(slotTemplate).toContain('<div class="slot-machine" id="slotMachine">');
     expect(slotTemplate).toContain("side-paytable");
     expect(slotTemplate).toContain('src="assets/paytable.png"');
+    expect(slotTemplate).toContain('src="/logotok.png"');
+    expect(slotTemplate).not.toContain("assets/logotok.png");
+    expect(slotTemplate).toContain('src: "assets/Livreur.png"');
+    expect(slotTemplate).not.toContain('src: "assets/livreur.png"');
     expect(slotTemplate).not.toContain("data:image/png;base64");
     expect(slotTemplate).toContain("TOK_SLOT_SPIN_REQUEST");
     expect(slotTemplate).toContain("TOK_SLOT_SPIN_RESULT");
@@ -70,5 +107,11 @@ describe("daily Miamz slot machine", () => {
     expect(slotTemplate).toContain("Tirage sécurisé");
     expect(slotTemplate).toContain("formatAttempts");
     expect(slotTemplate).toContain("Vos 3 essais du jour sont terminés");
+  });
+
+  it("keeps primary slot-machine asset paths case-exact for Vercel/Linux", () => {
+    const missing = collectPrimarySlotSources().filter((file) => !trackedFiles.has(file));
+
+    expect(missing).toEqual([]);
   });
 });

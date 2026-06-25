@@ -5,13 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
 import {
+  deleteAiCreationRecord,
   getAiCreationImageUrl,
   getAiCreationRecords,
   markAiCreationAddedToGallery,
   subscribeAiCreationRecords,
   type AiCreationRecord,
 } from "@/lib/ai/aiCreationJobs";
-import { CheckCircle2, ImagePlus, Loader2, Sparkles, TriangleAlert } from "lucide-react";
+import { CheckCircle2, ImagePlus, Loader2, Sparkles, Trash2, TriangleAlert } from "lucide-react";
 
 const supabase = getSupabase();
 
@@ -100,6 +101,18 @@ export default function AiCreationsGallery({ restaurantId, userId, currentPhotoC
     toast({ title: "Création ajoutée à la galerie" });
   };
 
+  const deleteCreation = (record: AiCreationRecord) => {
+    const deleted = deleteAiCreationRecord(record.id);
+    if (!deleted) return;
+
+    toast({
+      title: "Creation supprimee",
+      description: record.galleryAdded
+        ? "La creation est retiree de Mes creations. La photo deja ajoutee reste dans la galerie."
+        : "La creation est retiree de Mes creations.",
+    });
+  };
+
   if (!restaurantId) {
     return (
       <Card>
@@ -180,19 +193,34 @@ export default function AiCreationsGallery({ restaurantId, userId, currentPhotoC
                   <p className="rounded-2xl border border-red-100 bg-red-50 p-3 text-sm text-red-700">{record.errorMessage}</p>
                 ) : null}
 
-                {record.galleryAdded ? (
-                  <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700">Déjà en galerie</Badge>
-                ) : (
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  {record.galleryAdded ? (
+                    <Badge variant="outline" className="inline-flex min-h-10 items-center justify-center border-emerald-200 bg-emerald-50 px-3 text-emerald-700">
+                      Déjà en galerie
+                    </Badge>
+                  ) : (
+                    <Button
+                      type="button"
+                      onClick={() => addCreationToGallery(record)}
+                      disabled={!canAddToGallery || addingId === record.id}
+                      className="min-h-10 flex-1 gap-2"
+                    >
+                      {addingId === record.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
+                      Ajouter à la galerie
+                    </Button>
+                  )}
                   <Button
                     type="button"
-                    onClick={() => addCreationToGallery(record)}
-                    disabled={!canAddToGallery || addingId === record.id}
-                    className="w-full gap-2"
+                    variant="outline"
+                    onClick={() => deleteCreation(record)}
+                    disabled={addingId === record.id}
+                    className="min-h-10 gap-2 border-red-100 text-red-600 hover:bg-red-50 hover:text-red-700 sm:w-auto"
+                    aria-label={`Supprimer ${record.title} de Mes creations`}
                   >
-                    {addingId === record.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
-                    Ajouter à la galerie
+                    <Trash2 className="h-4 w-4" />
+                    Supprimer
                   </Button>
-                )}
+                </div>
               </CardContent>
             </Card>
           );

@@ -20,6 +20,11 @@ coverage/
 supabase/.temp/
 .tmp/
 tmp-screenshots/
+.playwright-mcp/
+screenshots/
+.codex-desktop-*.png
+outputs/
+docs/assets-archive/
 .codex/hooks/logs/
 
 # Capacitor native build artifacts
@@ -37,6 +42,8 @@ android/keystore.properties
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
+.vs/
+.tools/
 .idea
 .DS_Store
 *.suo
