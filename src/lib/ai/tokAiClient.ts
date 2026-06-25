@@ -45,6 +45,10 @@ export type ClientSupportConversationMessage = {
   created_at: string;
 };
 
+export type RestaurantAdvisorConversation = ClientSupportConversation & {
+  messages: ClientSupportConversationMessage[];
+};
+
 export type RestaurantAgentAction =
   | "general"
   | "menu_optimizer"
@@ -239,6 +243,130 @@ export async function getClientSupportConversationMessages(conversationId: strin
 
   if (error) throw error;
   return (data || []) as ClientSupportConversationMessage[];
+}
+
+export async function getRestaurantAdvisorConversations(restaurantId: string, limit = 12) {
+  const { data, error } = await (supabase.from as any)("ai_conversations")
+    .select(`
+      id,
+      scope,
+      title,
+      status,
+      support_incident_id,
+      restaurant_id,
+      order_id,
+      reservation_id,
+      metadata,
+      created_at,
+      updated_at
+    `)
+    .eq("restaurant_id", restaurantId)
+    .eq("scope", "restaurant")
+    .neq("status", "closed")
+    .order("updated_at", { ascending: false })
+    .limit(Math.max(limit * 4, 24));
+
+  if (error) throw error;
+
+  const conversations = ((data || []) as ClientSupportConversation[])
+    .filter((conversation) => {
+      const metadata = conversation.metadata || {};
+      const endpoint = typeof metadata.endpoint === "string" ? metadata.endpoint : "";
+      const surface = typeof metadata.surface === "string" ? metadata.surface : "";
+
+      return (
+        surface === "dashboard-advisor"
+        || endpoint === "restaurant-advisor"
+        || endpoint === "ai-restaurant-agent"
+        || endpoint === "ai-restaurant-tools"
+      );
+    })
+    .slice(0, limit);
+
+  const withMessages = await Promise.all(conversations.map(async (conversation) => ({
+    ...conversation,
+    messages: await getClientSupportConversationMessages(conversation.id, 80),
+  })));
+
+  return withMessages.filter((conversation) =>
+    conversation.messages.some((message) =>
+      (message.role === "user" || message.role === "assistant")
+      && message.content.trim().length > 0,
+    ),
+  ) as RestaurantAdvisorConversation[];
+}
+
+export async function createRestaurantAdvisorConversation(request: {
+  restaurantId: string;
+  title: string;
+  messages: TokAiMessage[];
+  metadata?: JsonRecord;
+}) {
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  if (userError) throw userError;
+
+  const { data: conversation, error: conversationError } = await (supabase.from as any)("ai_conversations")
+    .insert({
+      scope: "restaurant",
+      user_id: userData.user?.id || null,
+      restaurant_id: request.restaurantId,
+      title: request.title,
+      metadata: {
+        surface: "dashboard-advisor",
+        endpoint: "restaurant-advisor",
+        ...request.metadata,
+      },
+    })
+    .select("id")
+    .single();
+
+  if (conversationError) throw conversationError;
+
+  const conversationId = String(conversation.id);
+  await appendRestaurantAdvisorConversationMessages({
+    conversationId,
+    messages: request.messages,
+    metadata: request.metadata,
+  });
+
+  return conversationId;
+}
+
+export async function appendRestaurantAdvisorConversationMessages(request: {
+  conversationId: string;
+  messages: TokAiMessage[];
+  metadata?: JsonRecord;
+}) {
+  const messages = request.messages.filter((message) => message.content.trim().length > 0);
+  if (messages.length === 0) return request.conversationId;
+
+  const { error: messageError } = await (supabase.from as any)("ai_messages")
+    .insert(messages.map((message) => ({
+      conversation_id: request.conversationId,
+      role: message.role,
+      content: message.content,
+      metadata: {
+        surface: "dashboard-advisor",
+        ...request.metadata,
+      },
+    })));
+
+  if (messageError) throw messageError;
+
+  const { error: updateError } = await (supabase.from as any)("ai_conversations")
+    .update({ updated_at: new Date().toISOString() })
+    .eq("id", request.conversationId);
+
+  if (updateError) throw updateError;
+  return request.conversationId;
+}
+
+export async function archiveRestaurantAdvisorConversation(conversationId: string) {
+  const { error } = await (supabase.from as any)("ai_conversations")
+    .update({ status: "closed", updated_at: new Date().toISOString() })
+    .eq("id", conversationId);
+
+  if (error) throw error;
 }
 
 export function runRestaurantAgent(request: RestaurantAgentRequest) {

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
 import {
   BarChart3,
   Bot,
@@ -35,9 +35,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
 import {
+  appendRestaurantAdvisorConversationMessages,
+  archiveRestaurantAdvisorConversation,
+  createRestaurantAdvisorConversation,
+  getRestaurantAdvisorConversations,
   runRestaurantAgent,
   streamRestaurantAdvisor,
   type RestaurantAgentAction,
+  type RestaurantAdvisorConversation,
 } from "@/lib/ai/tokAiClient";
 import {
   requestAiCreationNotificationPermission,
@@ -64,6 +69,7 @@ type AdvisorDishOption = {
 };
 type AdvisorHistoryEntry = {
   id: string;
+  backendConversationId?: string;
   restaurantId: string;
   title: string;
   createdAt: string;
@@ -235,6 +241,45 @@ function deleteAdvisorHistoryEntry(restaurantId: string, entryId: string) {
   return nextEntries;
 }
 
+function mapBackendAdvisorConversation(conversation: RestaurantAdvisorConversation): AdvisorHistoryEntry | null {
+  const messages = conversation.messages.filter((message): message is RestaurantAdvisorConversation["messages"][number] => (
+    (message.role === "user" || message.role === "assistant")
+    && typeof message.content === "string"
+    && message.content.trim().length > 0
+  ));
+
+  if (messages.length === 0 || !conversation.restaurant_id) return null;
+
+  const normalizedMessages: Message[] = messages.map((message) => ({
+    role: message.role as Message["role"],
+    content: message.content,
+  }));
+
+  return {
+    id: `backend:${conversation.id}`,
+    backendConversationId: conversation.id,
+    restaurantId: conversation.restaurant_id,
+    title: conversation.title || getAdvisorHistoryTitle(normalizedMessages),
+    createdAt: conversation.updated_at || conversation.created_at,
+    messages: normalizedMessages,
+  };
+}
+
+function mergeAdvisorHistoryEntries(remoteEntries: AdvisorHistoryEntry[], localEntries: AdvisorHistoryEntry[]) {
+  const seen = new Set<string>();
+  const entries: AdvisorHistoryEntry[] = [];
+
+  for (const entry of [...remoteEntries, ...localEntries]) {
+    const firstUserMessage = entry.messages.find((message) => message.role === "user")?.content.trim() || entry.title;
+    const key = `${entry.restaurantId}:${entry.backendConversationId || entry.title}:${firstUserMessage}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    entries.push(entry);
+  }
+
+  return entries.slice(0, MAX_ADVISOR_HISTORY_ENTRIES);
+}
+
 function asTextArray(value: unknown) {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string" && item.trim().length > 0) : [];
 }
@@ -278,6 +323,7 @@ export default function DashboardAdvisor() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [activeTool, setActiveTool] = useState<string | null>(null);
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [historyEntries, setHistoryEntries] = useState<AdvisorHistoryEntry[]>([]);
   const [preparationTool, setPreparationTool] = useState<QuickTool | null>(null);
@@ -296,6 +342,27 @@ export default function DashboardAdvisor() {
     : null;
   const restaurantId = restaurant?.id;
 
+  const refreshAdvisorHistoryEntries = useCallback(async (targetRestaurantId: string) => {
+    const localEntries = loadAdvisorHistory(targetRestaurantId);
+    setHistoryEntries(localEntries);
+
+    try {
+      const conversations = await getRestaurantAdvisorConversations(targetRestaurantId, MAX_ADVISOR_HISTORY_ENTRIES);
+      const remoteEntries = conversations.flatMap((conversation): AdvisorHistoryEntry[] => {
+        const entry = mapBackendAdvisorConversation(conversation);
+        return entry ? [entry] : [];
+      });
+
+      if (mountedRef.current) {
+        setHistoryEntries(mergeAdvisorHistoryEntries(remoteEntries, localEntries));
+      }
+    } catch {
+      if (mountedRef.current) {
+        setHistoryEntries(localEntries);
+      }
+    }
+  }, []);
+
   useEffect(() => {
     setActiveAiCreationContext("dashboard-advisor:image-tool");
     return () => setActiveAiCreationContext(null);
@@ -312,14 +379,15 @@ export default function DashboardAdvisor() {
   useEffect(() => {
     if (!restaurantId) {
       setHistoryEntries([]);
+      setActiveConversationId(null);
       setHistoryOpen(false);
       setPhotoOptions([]);
       setDishOptions([]);
       setPreparationTool(null);
       return;
     }
-    setHistoryEntries(loadAdvisorHistory(restaurantId));
-  }, [restaurantId]);
+    void refreshAdvisorHistoryEntries(restaurantId);
+  }, [restaurantId, refreshAdvisorHistoryEntries]);
 
   useEffect(() => {
     if (!restaurantId) return;
@@ -429,10 +497,34 @@ export default function DashboardAdvisor() {
     try {
       const assistantReply = await streamChat(newMessages);
       if (assistantReply.trim()) {
-        setHistoryEntries(saveAdvisorHistoryEntry(restaurant.id, [
+        const assistantMsg: Message = { role: "assistant", content: assistantReply };
+        const completedMessages = [
           ...newMessages,
-          { role: "assistant", content: assistantReply },
-        ]));
+          assistantMsg,
+        ];
+        setHistoryEntries(saveAdvisorHistoryEntry(restaurant.id, completedMessages));
+
+        try {
+          if (activeConversationId) {
+            await appendRestaurantAdvisorConversationMessages({
+              conversationId: activeConversationId,
+              messages: [userMsg, assistantMsg],
+              metadata: { endpoint: "restaurant-advisor" },
+            });
+          } else {
+            const conversationId = await createRestaurantAdvisorConversation({
+              restaurantId: restaurant.id,
+              title: getAdvisorHistoryTitle(completedMessages),
+              messages: completedMessages,
+              metadata: { endpoint: "restaurant-advisor" },
+            });
+            setActiveConversationId(conversationId);
+          }
+
+          void refreshAdvisorHistoryEntries(restaurant.id);
+        } catch {
+          // Local history remains available if backend persistence is temporarily unavailable.
+        }
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Erreur inconnue";
@@ -456,8 +548,9 @@ export default function DashboardAdvisor() {
       role: "user",
       content: `${tool.label}\n\n${prompt}`,
     };
+    const newMessages = [...messages, userMsg];
 
-    setMessages((prev) => [...prev, userMsg]);
+    setMessages(newMessages);
     setIsLoading(true);
     setActiveTool(tool.label);
 
@@ -506,11 +599,36 @@ export default function DashboardAdvisor() {
         role: "assistant",
         content: formatToolResponse(tool.label, data as unknown as Record<string, unknown>),
       };
-      setMessages((prev) => {
-        const nextMessages = [...prev, assistantMsg];
-        setHistoryEntries(saveAdvisorHistoryEntry(restaurant.id, nextMessages));
-        return nextMessages;
-      });
+      const nextMessages = [...newMessages, assistantMsg];
+      setMessages(nextMessages);
+      setHistoryEntries(saveAdvisorHistoryEntry(restaurant.id, nextMessages));
+
+      const toolResult = data as Record<string, unknown>;
+      const backendConversationId = typeof toolResult.conversationId === "string" ? toolResult.conversationId : null;
+
+      try {
+        if (backendConversationId) {
+          setActiveConversationId(backendConversationId);
+        } else if (activeConversationId) {
+          await appendRestaurantAdvisorConversationMessages({
+            conversationId: activeConversationId,
+            messages: [userMsg, assistantMsg],
+            metadata: { endpoint: "restaurant-advisor", tool: tool.label },
+          });
+        } else {
+          const conversationId = await createRestaurantAdvisorConversation({
+            restaurantId: restaurant.id,
+            title: getAdvisorHistoryTitle(nextMessages),
+            messages: nextMessages,
+            metadata: { endpoint: "restaurant-advisor", tool: tool.label },
+          });
+          setActiveConversationId(conversationId);
+        }
+
+        void refreshAdvisorHistoryEntries(restaurant.id);
+      } catch {
+        // Local history remains available if backend persistence is temporarily unavailable.
+      }
     } catch (error) {
       if (!mountedRef.current) return;
       const errorMessage = error instanceof Error ? error.message : "Erreur inconnue";
@@ -619,6 +737,7 @@ export default function DashboardAdvisor() {
     setMessages([]);
     setInput("");
     setActiveTool(null);
+    setActiveConversationId(null);
     setPreparationTool(null);
     setSelectedPhotoIds([]);
     setSelectedDishIds([]);
@@ -630,15 +749,24 @@ export default function DashboardAdvisor() {
     setInput("");
     setHistoryOpen(false);
     setActiveTool(null);
+    setActiveConversationId(entry.backendConversationId || null);
     setPreparationTool(null);
     setSelectedPhotoIds([]);
     setSelectedDishIds([]);
     setToolInstructions("");
   };
 
-  const handleDeleteHistory = (entryId: string) => {
+  const handleDeleteHistory = async (entry: AdvisorHistoryEntry) => {
     if (!restaurant) return;
-    setHistoryEntries(deleteAdvisorHistoryEntry(restaurant.id, entryId));
+    if (entry.backendConversationId) {
+      try {
+        await archiveRestaurantAdvisorConversation(entry.backendConversationId);
+      } catch {
+        // Keep deletion responsive locally even if backend archival is temporarily unavailable.
+      }
+    }
+    setHistoryEntries((current) => current.filter((candidate) => candidate.id !== entry.id));
+    deleteAdvisorHistoryEntry(restaurant.id, entry.id);
   };
 
   const isPhotoPreparation = preparationTool?.selectionMode === "gallery_photos";
@@ -705,7 +833,7 @@ export default function DashboardAdvisor() {
             <div className="mb-3 flex items-center justify-between gap-3">
               <div>
                 <p className="text-sm font-semibold">Historique de l'assistant</p>
-                <p className="text-xs text-muted-foreground">Conversations enregistrees pour {restaurant.name} sur cet appareil.</p>
+                <p className="text-xs text-muted-foreground">Conversations sauvegardées pour {restaurant.name}.</p>
               </div>
               <Badge variant="outline" className="rounded-full">
                 {historyEntries.length}
@@ -731,7 +859,7 @@ export default function DashboardAdvisor() {
                       <Button type="button" size="sm" variant="outline" className="h-8 rounded-lg px-3" onClick={() => handleLoadHistory(entry)}>
                         Charger
                       </Button>
-                      <Button type="button" size="icon" variant="ghost" className="h-8 w-8 rounded-lg" onClick={() => handleDeleteHistory(entry.id)} title="Supprimer de l'historique">
+                      <Button type="button" size="icon" variant="ghost" className="h-8 w-8 rounded-lg" onClick={() => void handleDeleteHistory(entry)} title="Supprimer de l'historique">
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </div>
