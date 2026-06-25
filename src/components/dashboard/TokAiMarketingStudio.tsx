@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import {
   type TokImageFormat,
   type TokImageGenerationResult,
@@ -88,6 +89,31 @@ type MarketingResource = {
   persisted: boolean;
 };
 
+type MarketingRestaurantProfile = {
+  name: string;
+  description: string | null;
+  address: string | null;
+  city: string | null;
+  phone: string | null;
+  cuisineType: string | null;
+  email: string | null;
+  website: string | null;
+};
+
+type MarketingMenuItem = {
+  name: string;
+  description: string | null;
+  price: number | string | null;
+  category: string | null;
+  isAvailable: boolean | null;
+};
+
+type MarketingBusinessContext = {
+  restaurant: MarketingRestaurantProfile | null;
+  menuItems: MarketingMenuItem[];
+  menuItemsTruncated: boolean;
+};
+
 type Props = {
   restaurantId?: string | null;
 };
@@ -106,6 +132,8 @@ const MARKETING_IMAGE_MIME_EXTENSIONS: Record<string, string> = {
 };
 const MAX_MARKETING_ASSET_BYTES = 15 * 1024 * 1024;
 const MARKETING_PROMPT_MAX_LENGTH = 900;
+const MARKETING_MENU_CONTEXT_LIMIT = 120;
+const MARKETING_MENU_PROMPT_ITEM_LIMIT = 80;
 
 const MARKETING_ASSET_KIND_LABELS: Record<MarketingAssetKind, string> = {
   logo: "Logo",
@@ -388,6 +416,72 @@ function sanitizeMarketingPrompt(value: string) {
     .slice(0, MARKETING_PROMPT_MAX_LENGTH);
 }
 
+function sanitizeMarketingContextValue(value: unknown, maxLength = 220) {
+  if (typeof value !== "string") return "";
+  return Array.from(value, (char) => {
+    const code = char.charCodeAt(0);
+    return code <= 31 || code === 127 ? " " : char;
+  })
+    .join("")
+    .replace(/[<>]/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trim()
+    .slice(0, maxLength);
+}
+
+function formatMarketingMenuPrice(price: MarketingMenuItem["price"]) {
+  const numericPrice = Number(price);
+  if (!Number.isFinite(numericPrice) || numericPrice <= 0) return "";
+  return `${numericPrice.toFixed(2)} CHF`;
+}
+
+function buildMarketingRestaurantContext(context?: MarketingBusinessContext | null) {
+  const restaurant = context?.restaurant;
+  if (!restaurant) return "Aucune fiche restaurant disponible.";
+
+  const contactLines = [
+    sanitizeMarketingContextValue(restaurant.name) ? `Nom: ${sanitizeMarketingContextValue(restaurant.name, 120)}` : "",
+    sanitizeMarketingContextValue(restaurant.cuisineType) ? `Types de cuisine: ${sanitizeMarketingContextValue(restaurant.cuisineType, 180)}` : "",
+    sanitizeMarketingContextValue(restaurant.description) ? `Description: ${sanitizeMarketingContextValue(restaurant.description, 300)}` : "",
+    [sanitizeMarketingContextValue(restaurant.address, 180), sanitizeMarketingContextValue(restaurant.city, 80)].filter(Boolean).join(", "),
+    sanitizeMarketingContextValue(restaurant.phone) ? `Telephone: ${sanitizeMarketingContextValue(restaurant.phone, 80)}` : "",
+    sanitizeMarketingContextValue(restaurant.email) ? `Email: ${sanitizeMarketingContextValue(restaurant.email, 120)}` : "",
+    sanitizeMarketingContextValue(restaurant.website) ? `Site: ${sanitizeMarketingContextValue(restaurant.website, 160)}` : "",
+  ].filter(Boolean);
+
+  return contactLines.length ? contactLines.join(" | ") : "Fiche restaurant vide.";
+}
+
+function buildMarketingMenuContext(context?: MarketingBusinessContext | null) {
+  const menuItems = context?.menuItems || [];
+  if (!menuItems.length) return "Aucun plat de menu disponible.";
+
+  const visibleItems = menuItems.slice(0, MARKETING_MENU_PROMPT_ITEM_LIMIT);
+  const grouped = new Map<string, string[]>();
+
+  for (const item of visibleItems) {
+    const category = sanitizeMarketingContextValue(item.category, 80) || "Sans categorie";
+    const name = sanitizeMarketingContextValue(item.name, 120);
+    if (!name) continue;
+
+    const price = formatMarketingMenuPrice(item.price);
+    const description = sanitizeMarketingContextValue(item.description, 180);
+    const availability = item.isAvailable === false ? "indisponible" : "";
+    const details = [price, availability, description].filter(Boolean).join(" - ");
+    const line = details ? `${name} (${details})` : name;
+    grouped.set(category, [...(grouped.get(category) || []), line]);
+  }
+
+  const summary = Array.from(grouped.entries())
+    .map(([category, items]) => `${category}: ${items.join("; ")}`)
+    .join(" | ");
+  const suffix = context?.menuItemsTruncated || menuItems.length > MARKETING_MENU_PROMPT_ITEM_LIMIT
+    ? ` | Menu tronque: ${Math.min(menuItems.length, MARKETING_MENU_CONTEXT_LIMIT)} plats charges, ${visibleItems.length} transmis.`
+    : "";
+
+  return `${summary}${suffix}`.slice(0, 2200);
+}
+
 function getMarketingPromptWarnings(prompt: string) {
   const warnings: string[] = [];
   if (PROMPT_INJECTION_PATTERNS.some((pattern) => pattern.test(prompt))) {
@@ -496,6 +590,7 @@ function buildMarketingImagePrompt(input: {
   orientation: string;
   styleMode: string;
   resources: MarketingResource[];
+  businessContext?: MarketingBusinessContext | null;
 }) {
   const orderedResources = [...input.resources].sort((a, b) => {
     const left = `${a.kind}:${a.mediaId || a.id}:${a.fileName}`;
@@ -517,6 +612,8 @@ function buildMarketingImagePrompt(input: {
     `Support: ${input.toolTitle}. Format: ${input.format}. Specification imprimeur: ${input.formatSpec}. Orientation: ${input.orientation}. Style: ${input.styleMode}.`,
     `Pagination et support: ${input.pageHint || "respecter le format selectionne et garder les zones de coupe/marge visuellement propres."}`,
     `Demande restaurateur: ${input.prompt}`,
+    `Contexte restaurant public autorise pour pied de page, carte de visite, affiche ou menu: ${buildMarketingRestaurantContext(input.businessContext)}`,
+    `Informations de menu disponibles pour creer une carte ou un menu: ${buildMarketingMenuContext(input.businessContext)}`,
     `Ressources actives à utiliser comme seules références visuelles: ${resourceSummary}`,
     `Empreinte des ressources actives: ${resourceFingerprint || "aucune"}`,
     "Direction artistique: reprendre l'identité visuelle observable dans les fichiers actifs fournis pour cette génération: logo, couleurs, typographies, textures, style photo, formes, composition, hiérarchie et ton commercial.",
@@ -524,7 +621,8 @@ function buildMarketingImagePrompt(input: {
     "Le nom du compte restaurant n'est pas une reference visuelle: ne pas l'utiliser pour inventer une marque, un logo, une typographie, un chef, un personnage ou un plat.",
     "Si les references actives ne montrent pas clairement une marque ou un personnage, produire un visuel sans marque inventee.",
     "Contraintes: respecter uniquement le prompt courant et les visuels actifs envoyés avec cette requête, ne pas ajouter de coordonnées privées, ne pas créer de faux label officiel, garder le texte demandé lisible.",
-  ].join("\n\n").slice(0, 3600);
+    "Coordonnées et menu: utiliser uniquement les informations fournies dans le contexte restaurant et menu; ne pas inventer d'email, de téléphone, d'adresse, de prix ou de plat.",
+  ].join("\n\n").slice(0, 5600);
 }
 
 function selectMarketingGenerationResources(resources: MarketingResource[]) {
@@ -582,6 +680,61 @@ async function fetchMarketingResources(restaurantId: string) {
 
   if (error) throw error;
   return (data || []).map((row) => rowToMarketingResource(row as Record<string, unknown>));
+}
+
+async function fetchMarketingBusinessContext(restaurantId: string): Promise<MarketingBusinessContext> {
+  const [restaurantResult, invoiceSettingsResult, menuItemsResult] = await Promise.all([
+    supabase
+      .from("restaurants")
+      .select("name, description, address, city, phone, cuisine_type")
+      .eq("id", restaurantId)
+      .maybeSingle(),
+    supabase
+      .from("restaurant_invoice_settings")
+      .select("email, phone, website")
+      .eq("restaurant_id", restaurantId)
+      .maybeSingle(),
+    supabase
+      .from("menu_items")
+      .select("name, description, price, category, is_available")
+      .eq("restaurant_id", restaurantId)
+      .order("category", { ascending: true })
+      .order("name", { ascending: true })
+      .limit(MARKETING_MENU_CONTEXT_LIMIT),
+  ]);
+
+  if (restaurantResult.error) throw restaurantResult.error;
+  if (menuItemsResult.error) throw menuItemsResult.error;
+  if (invoiceSettingsResult.error) {
+    console.warn("[marketing-studio] contexte email/site indisponible", invoiceSettingsResult.error);
+  }
+
+  const restaurant = restaurantResult.data;
+  const invoiceSettings = invoiceSettingsResult.data;
+  const menuItems = (menuItemsResult.data || []).map((item) => ({
+    name: item.name,
+    description: item.description,
+    price: item.price,
+    category: item.category,
+    isAvailable: item.is_available,
+  })) satisfies MarketingMenuItem[];
+
+  return {
+    restaurant: restaurant
+      ? {
+        name: restaurant.name,
+        description: restaurant.description,
+        address: restaurant.address,
+        city: restaurant.city,
+        phone: invoiceSettings?.phone || restaurant.phone || null,
+        cuisineType: restaurant.cuisine_type,
+        email: invoiceSettings?.email || null,
+        website: invoiceSettings?.website || null,
+      }
+      : null,
+    menuItems,
+    menuItemsTruncated: menuItems.length >= MARKETING_MENU_CONTEXT_LIMIT,
+  };
 }
 
 async function uploadMarketingResource(input: {
@@ -659,6 +812,11 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
   const hasBrandResources = persistedResources.length >= 2;
   const marketingImageFormat = getMarketingImageFormat(selectedFormat.label, selectedFormat.orientation);
   const outputPricing = getTokImageOutputPricing(marketingImageFormat, outputResolution);
+  const { data: businessContext, isLoading: businessContextLoading } = useQuery({
+    queryKey: ["marketing-studio-business-context", restaurantId],
+    queryFn: () => fetchMarketingBusinessContext(restaurantId!),
+    enabled: !!restaurantId,
+  });
 
   useEffect(() => {
     setActiveAiCreationContext("dashboard-photos:marketing");
@@ -925,7 +1083,10 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
 
     try {
       void requestAiCreationNotificationPermission();
-      const latestResources = await fetchMarketingResources(restaurantId);
+      const [latestResources, latestBusinessContext] = await Promise.all([
+        fetchMarketingResources(restaurantId),
+        fetchMarketingBusinessContext(restaurantId),
+      ]);
       if (!mountedRef.current || generationRequestRef.current !== requestId) return;
 
       setResources(latestResources);
@@ -959,6 +1120,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
         orientation: selectedFormat.orientation,
         styleMode,
         resources: generationResources,
+        businessContext: latestBusinessContext,
       });
 
       const { promise } = startTokImageCreationJob({
@@ -1288,6 +1450,8 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Credits: {outputPricing.photoCredits}</span>
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Références marketing: {persistedResources.length}</span>
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Logo: {hasLogo ? "oui" : "non"}</span>
+                  <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Fiche restaurant: {businessContextLoading ? "chargement" : businessContext?.restaurant ? "active" : "vide"}</span>
+                  <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Menu: {businessContextLoading ? "chargement" : `${businessContext?.menuItems.length || 0} plat(s)`}</span>
                 </div>
                 <p className="mt-2 line-clamp-2 min-w-0 rounded-2xl bg-white/80 p-3 text-emerald-950/80 [overflow-wrap:anywhere]">{sanitizedPrompt || "Le prompt apparaitra ici apres saisie."}</p>
               </div>

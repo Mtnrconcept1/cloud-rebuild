@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from "react";
+import { type CSSProperties, FormEvent, useEffect, useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import AiCreationsGallery from "@/components/dashboard/AiCreationsGallery";
 import TokAiMarketingStudio from "@/components/dashboard/TokAiMarketingStudio";
@@ -67,6 +67,8 @@ const EMPTY_MEDIA_FORM: MediaFormState = {
 };
 
 const GALLERY_MEDIA_TYPES = ["photo", "photo_ai_tok"];
+const TOK_GALLERY_WATERMARK_SIZE = 180;
+const TOK_GALLERY_WATERMARK_MARGIN = 24;
 
 type PhotoWorkspaceTool = "marketing" | "photopro" | "add_photo" | "gallery" | "creations";
 
@@ -191,32 +193,67 @@ function getGalleryAiDescription(item: MediaItem) {
   };
 }
 
-function TokGalleryWatermark({ className = "", sizeClassName = "h-[180px] w-[180px]" }: { className?: string; sizeClassName?: string }) {
+function getPreviewWatermarkStyle(imageSize: { width: number; height: number } | null): CSSProperties | undefined {
+  if (!imageSize?.width || !imageSize.height) return undefined;
+
+  const minSide = Math.min(imageSize.width, imageSize.height);
+  const size = Math.min(TOK_GALLERY_WATERMARK_SIZE, Math.max(56, Math.round(minSide * 0.26)));
+  const margin = Math.min(TOK_GALLERY_WATERMARK_MARGIN, Math.max(12, Math.round(minSide * 0.04)));
+
+  return {
+    left: `${(margin / imageSize.width) * 100}%`,
+    top: `${(margin / imageSize.height) * 100}%`,
+    width: `${(size / imageSize.width) * 100}%`,
+  };
+}
+
+function TokGalleryWatermark({
+  className = "",
+  sizeClassName = "h-[180px] w-[180px]",
+  style,
+}: {
+  className?: string;
+  sizeClassName?: string;
+  style?: CSSProperties;
+}) {
   const logoSrc = useTokLogoSrc();
 
   return (
     <div
       className={`pointer-events-none absolute left-3 top-3 z-10 drop-shadow-[0_10px_24px_rgba(0,0,0,0.30)] ${className}`}
+      style={style}
       aria-hidden="true"
       data-testid="tok-gallery-watermark-layer"
     >
-      <img src={logoSrc} alt="" className={`${sizeClassName} object-contain`} draggable={false} />
+      <img src={logoSrc} alt="" className={style ? "h-auto w-full object-contain" : `${sizeClassName} object-contain`} draggable={false} />
     </div>
   );
 }
 
 function TokGalleryImageFrame({ item }: { item: MediaItem }) {
+  const [imageSize, setImageSize] = useState<{ width: number; height: number } | null>(null);
+  const watermarkStyle = getPreviewWatermarkStyle(imageSize);
+
   return (
     <div
-      className="relative inline-flex h-full max-h-full w-full max-w-full items-center justify-center overflow-hidden"
+      className="flex h-full min-h-0 w-full items-center justify-center overflow-hidden"
       data-testid="tok-gallery-image-frame"
     >
-      <TokGalleryWatermark className="left-4 top-4" />
-      <img
-        src={item.media_url}
-        alt={item.alt_text || "Photo restaurant"}
-        className="block h-full w-full max-h-full max-w-full rounded-lg object-contain"
-      />
+      <div className="relative inline-flex max-h-full max-w-full items-center justify-center" data-testid="tok-gallery-image-bounds">
+        <TokGalleryWatermark style={watermarkStyle} />
+        <img
+          src={item.media_url}
+          alt={item.alt_text || "Photo restaurant"}
+          className="block max-h-full max-w-full rounded-lg object-contain"
+          onLoad={(event) => {
+            const image = event.currentTarget;
+            setImageSize({
+              width: image.naturalWidth || image.width,
+              height: image.naturalHeight || image.height,
+            });
+          }}
+        />
+      </div>
     </div>
   );
 }
@@ -313,8 +350,8 @@ export default function DashboardPhotos() {
         imageUrl: item.media_url,
         fileName: buildGalleryPhotoDownloadFileName(item),
         watermarkUrl: logoSrc,
-        watermarkSize: 180,
-        watermarkMargin: 24,
+        watermarkSize: TOK_GALLERY_WATERMARK_SIZE,
+        watermarkMargin: TOK_GALLERY_WATERMARK_MARGIN,
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Le logo TOK n'a pas pu être appliqué au téléchargement.";

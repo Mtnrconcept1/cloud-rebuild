@@ -124,9 +124,16 @@ describe("TOK photo studio persistence", () => {
   it("keeps gallery watermarks inside the rendered image frame and never downloads raw gallery images", () => {
     expect(dashboardPhotos).toContain("TokGalleryImageFrame");
     expect(dashboardPhotos).toContain('data-testid="tok-gallery-image-frame"');
-    expect(dashboardPhotos).toContain("inline-flex h-full max-h-full w-full max-w-full");
-    expect(dashboardPhotos).toContain("block h-full w-full max-h-full max-w-full rounded-lg object-contain");
+    expect(dashboardPhotos).toContain("TOK_GALLERY_WATERMARK_SIZE = 180");
+    expect(dashboardPhotos).toContain("TOK_GALLERY_WATERMARK_MARGIN = 24");
+    expect(dashboardPhotos).toContain("getPreviewWatermarkStyle");
+    expect(dashboardPhotos).toContain('data-testid="tok-gallery-image-bounds"');
+    expect(dashboardPhotos).toContain("relative inline-flex max-h-full max-w-full");
+    expect(dashboardPhotos).toContain("block max-h-full max-w-full rounded-lg object-contain");
+    expect(dashboardPhotos).not.toContain("block h-full w-full max-h-full max-w-full rounded-lg object-contain");
     expect(dashboardPhotos).not.toContain('className="relative h-full w-full"');
+    expect(dashboardPhotos).toContain("watermarkSize: TOK_GALLERY_WATERMARK_SIZE");
+    expect(dashboardPhotos).toContain("watermarkMargin: TOK_GALLERY_WATERMARK_MARGIN");
     expect(dashboardPhotos).toContain('.order("created_at", { ascending: false })');
     expect(dashboardPhotos).toContain('.order("position", { ascending: true })');
 
@@ -175,6 +182,14 @@ describe("TOK photo studio persistence", () => {
     expect(marketingStudio).toContain("MARKETING_ASSET_MEDIA_TYPES");
     expect(marketingStudio).toContain("uploadMarketingResource");
     expect(marketingStudio).toContain("buildMarketingImagePrompt");
+    expect(marketingStudio).toContain("fetchMarketingBusinessContext");
+    expect(marketingStudio).toContain('from("restaurants")');
+    expect(marketingStudio).toContain('from("restaurant_invoice_settings")');
+    expect(marketingStudio).toContain('from("menu_items")');
+    expect(marketingStudio).toContain("MARKETING_MENU_CONTEXT_LIMIT = 120");
+    expect(marketingStudio).toContain("Contexte restaurant public autorise");
+    expect(marketingStudio).toContain("Informations de menu disponibles pour creer une carte ou un menu");
+    expect(marketingStudio).toContain("ne pas inventer d'email, de téléphone, d'adresse, de prix ou de plat");
     expect(marketingStudio).toContain("Créer directement un visuel marketing final pour le restaurateur");
     expect(marketingStudio).toContain("Ressources actives à utiliser comme seules références visuelles");
     expect(marketingStudio).toContain("Empreinte des ressources actives");
