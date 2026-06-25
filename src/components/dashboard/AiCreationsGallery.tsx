@@ -13,6 +13,7 @@ import {
   type AiCreationRecord,
 } from "@/lib/ai/aiCreationJobs";
 import { buildRestaurantMediaAiMetadata } from "@/lib/ai/restaurantMediaMetadata";
+import { formatAiImageGenerationError, toPublicErrorMessage } from "@/lib/publicErrorMessages";
 import { CheckCircle2, ImagePlus, Loader2, Sparkles, Trash2, TriangleAlert } from "lucide-react";
 
 const supabase = getSupabase();
@@ -99,7 +100,7 @@ export default function AiCreationsGallery({ restaurantId, userId, currentPhotoC
     setAddingId(null);
 
     if (error) {
-      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      toast({ title: "Erreur", description: toPublicErrorMessage(error, "Ajout à la galerie impossible. Réessayez dans quelques instants."), variant: "destructive" });
       return;
     }
 
@@ -197,7 +198,7 @@ export default function AiCreationsGallery({ restaurantId, userId, currentPhotoC
                 </div>
 
                 {record.errorMessage ? (
-                  <p className="rounded-2xl border border-red-100 bg-red-50 p-3 text-sm text-red-700">{record.errorMessage}</p>
+                  <p className="rounded-2xl border border-red-100 bg-red-50 p-3 text-sm text-red-700">{formatAiImageGenerationError(record.errorMessage)}</p>
                 ) : null}
 
                 <div className="flex flex-col gap-2 sm:flex-row">

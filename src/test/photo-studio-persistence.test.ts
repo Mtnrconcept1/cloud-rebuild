@@ -14,6 +14,7 @@ describe("TOK photo studio persistence", () => {
   const aiCreationJobs = readFileSync(resolve(process.cwd(), "src/lib/ai/aiCreationJobs.ts"), "utf8");
   const aiCreationNotifications = readFileSync(resolve(process.cwd(), "src/components/AiCreationNotifications.tsx"), "utf8");
   const aiCreationsGallery = readFileSync(resolve(process.cwd(), "src/components/dashboard/AiCreationsGallery.tsx"), "utf8");
+  const publicErrorMessages = readFileSync(resolve(process.cwd(), "src/lib/publicErrorMessages.ts"), "utf8");
 
   it("persists the generated result across component remounts and tab focus changes", () => {
     expect(source).toContain("useSessionStorageState");
@@ -406,7 +407,8 @@ describe("TOK photo studio persistence", () => {
     expect(aiFunction).toContain("allowGenerationFallback: false");
     expect(aiFunction).toContain("const generationFallbackAllowed = !sourceImageUrl && !(marketingAssetMode && referenceImageUrls.length)");
     expect(aiFunction).toContain("return buildConfiguredImageRequestOptions(formatSize, quality);");
-    expect(marketingStudio).toContain("image_reference_edit_required");
+    expect(marketingStudio).toContain("formatAiImageGenerationError(error)");
+    expect(publicErrorMessages).toContain("image_reference_edit_required");
   });
 
   it("makes restaurant gallery photos public from the cover and includes raw and TOK studio photos", () => {
@@ -460,12 +462,13 @@ describe("TOK photo studio persistence", () => {
 
   it("maps backend image generation failures to restaurateur-facing messages", () => {
     expect(source).toContain("formatPhotoGenerationError(error)");
-    expect(source).toContain("Trop de générations lancées");
-    expect(source).toContain("Session expirée");
-    expect(source).toContain("photo JPG, PNG ou WebP bien éclairée");
-    expect(source).toContain("Format non pris en charge par le studio IA");
-    expect(source).toContain("Photo trop lourde pour la retouche IA");
-    expect(source).toContain("ai_service_unavailable");
-    expect(source).toContain("cle OpenAI de la fonction Supabase");
+    expect(source).toContain("formatAiImageGenerationError(error)");
+    expect(publicErrorMessages).toContain("Trop de générations lancées");
+    expect(publicErrorMessages).toContain("Reconnectez-vous puis relancez la génération");
+    expect(publicErrorMessages).toContain("photo JPG, PNG ou WebP bien éclairée");
+    expect(publicErrorMessages).toContain("Format non pris en charge par le studio IA");
+    expect(publicErrorMessages).toContain("Photo trop lourde pour la retouche IA");
+    expect(publicErrorMessages).toContain("ai_service_unavailable");
+    expect(publicErrorMessages).not.toContain("fonction Supabase");
   });
 });

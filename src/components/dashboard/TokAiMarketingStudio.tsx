@@ -24,6 +24,7 @@ import {
   type TokImageOutputResolution,
 } from "@/lib/ai/imagePricing";
 import { optimizeImageUpload } from "@/lib/optimizedImages";
+import { formatAiImageGenerationError } from "@/lib/publicErrorMessages";
 import { assertSafeFileUpload, getSafeUploadExtension } from "@/lib/uploadSecurity";
 import {
   AlertTriangle,
@@ -516,43 +517,7 @@ function createPendingMarketingResource(file: File, kind: MarketingAssetKind): M
 }
 
 function formatMarketingImageGenerationError(error: unknown) {
-  const rawMessage = error instanceof Error ? error.message : String(error || "");
-  const message = rawMessage.toLowerCase();
-
-  if (
-    message.includes("functionsfetcherror") ||
-    message.includes("functionsrelayerror") ||
-    rawMessage.includes("Failed to send a request to the Edge Function") ||
-    message.includes("relay error invoking the edge function")
-  ) {
-    return "La fonction Supabase de génération image n'a pas répondu correctement. Réessayez avec moins de visuels de référence ou un prompt plus court; si le problème persiste, l'équipe TOK doit vérifier la fonction ai-image-enhance.";
-  }
-  if (message.includes("requested function was not found") || message.includes("not_found")) {
-    return "La fonction Supabase ai-image-enhance n'est pas disponible. Relancez le workflow de déploiement des Edge Functions avant de réessayer.";
-  }
-  if (message.includes("image_generation_timeout") || message.includes("image_edit_timeout")) {
-    return "La génération d'image a dépassé le délai serveur. Réessayez avec un prompt plus court.";
-  }
-  if (message.includes("image_reference_edit_required")) {
-    return "Les visuels de reference n'ont pas pu etre utilises correctement. Reessayez avec moins de fichiers, des images plus legeres ou des visuels plus nets; TOK ne genere plus d'image hors references.";
-  }
-  if (message.includes("marketing_reference_required")) {
-    return "Ajoutez au moins un logo, une carte, un menu ou un visuel de marque avant de generer. Le studio marketing ne cree plus d'identite visuelle sans reference active.";
-  }
-  if (message.includes("ai_rate_limited") || message.includes("429")) {
-    return "OpenAI limite temporairement les générations image. Réessayez dans quelques minutes.";
-  }
-  if (message.includes("ai_credits_exhausted") || message.includes("402")) {
-    return "Les crédits image OpenAI sont insuffisants côté serveur.";
-  }
-  if (message.includes("ai_service_unavailable") || message.includes("401") || message.includes("403")) {
-    return "Le service image OpenAI n'est pas correctement disponible côté Supabase.";
-  }
-  if (message.includes("content_policy") || message.includes("safety")) {
-    return "La demande image a été refusée par la sécurité du modèle. Reformulez sans personne réelle ou promesse sensible.";
-  }
-
-  return rawMessage || "L'image n'a pas pu être générée.";
+  return formatAiImageGenerationError(error);
 }
 
 function getMarketingImageFormat(format: string, orientation: string): TokImageFormat {

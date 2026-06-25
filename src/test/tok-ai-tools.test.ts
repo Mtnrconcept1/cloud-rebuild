@@ -227,8 +227,10 @@ describe("TOK AI tools foundation", () => {
     expect(client).toContain("invokeSupabaseFunction");
     expect(client).not.toContain("async function getAuthorizationHeader");
     expect(client).not.toContain("supabase.functions.invoke(functionName");
-    expect(studio).toContain("image_edit_timeout");
-    expect(studio).toContain("image_generation_timeout");
+    const publicErrors = readProjectFile("src/lib/publicErrorMessages.ts");
+    expect(studio).toContain("formatAiImageGenerationError(error)");
+    expect(publicErrors).toContain("image_edit_timeout");
+    expect(publicErrors).toContain("image_generation_timeout");
     expect(source).toContain("const imageOnly = true");
     expect(source).toContain("image_generation_required");
     expect(source).toContain('briefSource = marketingAssetMode ? "marketing_image_only" : "image_only"');
@@ -239,8 +241,9 @@ describe("TOK AI tools foundation", () => {
     expect(client).toContain("marketingAssetMode?: boolean");
     expect(source).toContain('publication_caption: ""');
     expect(source).toContain("marketing_angles: []");
-    expect(marketingStudio).toContain("functionsfetcherror");
-    expect(marketingStudio).toContain("Failed to send a request to the Edge Function");
+    expect(marketingStudio).toContain("formatAiImageGenerationError(error)");
+    expect(publicErrors).toContain("functionsfetcherror");
+    expect(publicErrors).toContain("failed to send a request");
 
     for (const name of [
       "OPENAI_IMAGE_MODEL",

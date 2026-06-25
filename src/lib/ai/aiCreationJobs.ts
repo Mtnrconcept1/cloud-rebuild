@@ -5,6 +5,7 @@ import {
   type TokImageGenerationResult,
 } from "@/lib/ai/tokAiClient";
 import type { TokImageOutputResolution } from "@/lib/ai/imagePricing";
+import { formatAiImageGenerationError } from "@/lib/publicErrorMessages";
 
 export const AI_CREATION_COMPLETED_EVENT = "tok-ai-creation-completed";
 export const AI_CREATION_FAILED_EVENT = "tok-ai-creation-failed";
@@ -143,7 +144,7 @@ function patchRecord(id: string, patch: Partial<AiCreationRecord>) {
 }
 
 function getErrorMessage(error: unknown) {
-  return error instanceof Error ? error.message : "Generation IA impossible.";
+  return formatAiImageGenerationError(error);
 }
 
 function dispatchAiCreationEvent(eventName: string, record: AiCreationRecord) {

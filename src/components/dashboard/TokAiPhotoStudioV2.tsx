@@ -23,6 +23,7 @@ import {
 } from "@/lib/ai/imagePricing";
 import { buildRestaurantMediaAiMetadata } from "@/lib/ai/restaurantMediaMetadata";
 import { downloadImageWithWatermark } from "@/lib/media/downloadImageWithWatermark";
+import { formatAiImageGenerationError, toPublicErrorMessage } from "@/lib/publicErrorMessages";
 import { CheckCircle2, Download, Loader2, Maximize2, RotateCcw, Sparkles, Wand2 } from "lucide-react";
 import { useTokLogoSrc } from "@/hooks/useTokLogo";
 
@@ -55,41 +56,7 @@ const DEFAULT_DRAFT: PhotoStudioDraft = {
 };
 
 function formatPhotoGenerationError(error: unknown) {
-  const message = error instanceof Error ? error.message : "";
-
-  if (message.includes("rate_limited")) {
-    return "Trop de générations lancées. Patientez quelques minutes avant de relancer un essai.";
-  }
-
-  if (message.includes("Unauthorized") || message.includes("Session expir")) {
-    return "Session expirée. Reconnectez-vous puis relancez la génération.";
-  }
-
-  if (message.includes("source_image_edit_required") || message.includes("image_edit_failed")) {
-    return "La retouche IA n'a pas pu finaliser cette photo. Recadrez le produit principal ou relancez avec une photo JPG, PNG ou WebP bien éclairée.";
-  }
-
-  if (message.includes("image_edit_timeout") || message.includes("image_generation_timeout")) {
-    return "La retouche a pris trop de temps. Essayez avec une photo plus légère ou relancez la génération.";
-  }
-
-  if (message.includes("source_image_unsupported_type")) {
-    return "Format non pris en charge par le studio IA. Utilisez une photo JPG, PNG ou WebP.";
-  }
-
-  if (message.includes("source_image_too_large")) {
-    return "Photo trop lourde pour la retouche IA. Compressez-la sous 10 Mo puis relancez.";
-  }
-
-  if (message.includes("ai_credits_exhausted")) {
-    return "Les credits image OpenAI sont insuffisants cote serveur.";
-  }
-
-  if (message.includes("ai_service_unavailable")) {
-    return "Le service image IA est indisponible. L'equipe TOK doit verifier la cle OpenAI de la fonction Supabase.";
-  }
-
-  return message || "Génération impossible";
+  return formatAiImageGenerationError(error);
 }
 
 function buildTokPhotoDownloadFileName(dishName: string) {
@@ -211,7 +178,13 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
         tool: "photopro",
       }),
     });
-    if (error) return toast({ title: "Erreur", description: error.message, variant: "destructive" });
+    if (error) {
+      return toast({
+        title: "Erreur",
+        description: toPublicErrorMessage(error, "Ajout à la galerie impossible. Réessayez dans quelques instants."),
+        variant: "destructive",
+      });
+    }
     toast({ title: "Ajouté à la galerie" });
     onGalleryUpdated();
   };
@@ -228,7 +201,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
         watermarkMargin: 24,
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Le logo TOK n'a pas pu être appliqué au téléchargement.";
+      const message = toPublicErrorMessage(error, "Le logo TOK n'a pas pu être appliqué au téléchargement.");
       toast({
         title: "Téléchargement impossible",
         description: message,
