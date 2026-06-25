@@ -63,6 +63,8 @@ const EMPTY_MEDIA_FORM: MediaFormState = {
   storage_path: null,
 };
 
+const GALLERY_MEDIA_TYPES = ["photo", "photo_ai_tok"];
+
 type PhotoWorkspaceTool = "marketing" | "photopro" | "add_photo" | "gallery" | "creations";
 
 const PHOTO_WORKSPACE_TOOLS: Array<{
@@ -189,6 +191,7 @@ export default function DashboardPhotos() {
       .from("restaurant_media")
       .select("id, restaurant_id, media_url, alt_text, media_type, is_cover, position, storage_bucket, storage_path, created_at")
       .eq("restaurant_id", selectedId)
+      .in("media_type", GALLERY_MEDIA_TYPES)
       .order("created_at", { ascending: false })
       .order("position", { ascending: true });
     setError(error?.message || null);

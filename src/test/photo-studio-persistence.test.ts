@@ -90,6 +90,8 @@ describe("TOK photo studio persistence", () => {
     expect(dashboardPhotos).toContain("useTokLogoSrc");
     expect(dashboardPhotos).toContain("downloadImageWithWatermark");
     expect(dashboardPhotos).toContain("watermarkUrl: logoSrc");
+    expect(dashboardPhotos).toContain('const GALLERY_MEDIA_TYPES = ["photo", "photo_ai_tok"]');
+    expect(dashboardPhotos).toContain('.in("media_type", GALLERY_MEDIA_TYPES)');
     expect(dashboardPhotos).not.toContain('item.media_type === "photo_ai_tok" ? <TokGalleryWatermark');
     expect(dashboardPhotos).toContain("Prévisualisation grand format de l'image ajoutée à la galerie.");
   });
@@ -158,7 +160,8 @@ describe("TOK photo studio persistence", () => {
     expect(marketingStudio).toContain("Carte de visite");
     expect(marketingStudio).toContain("Carte du restaurant");
     expect(marketingStudio).toContain("Choix du support");
-    expect(marketingStudio).toContain("Téléchargement de visuels pour ressources de marque");
+    expect(marketingStudio).toContain("Éléments de références marketing");
+    expect(marketingStudio).toContain("Ils ne sont pas ajoutés à la galerie restaurant.");
     expect(marketingStudio).toContain("Brief & génération");
     expect(marketingStudio).toContain("Votre visuel est généré à partir du brief");
     expect(marketingStudio).toContain("marketing-output-resolution");
@@ -297,7 +300,7 @@ describe("TOK photo studio persistence", () => {
     expect(marketingStudio).toContain("Certaines anciennes ressources n'ont pas ete supprimees");
     expect(marketingStudio).toContain("const otherResources = current.filter((resource) => resource.kind !== kind && resource.persisted)");
     expect(marketingStudio).toContain("Seuls les nouveaux fichiers de cette catégorie serviront de références visuelles.");
-    expect(marketingStudio).toContain("Choisir de nouveaux fichiers remplace les anciens de la même catégorie.");
+    expect(marketingStudio).toContain("Ajoutez ici les visuels de référence utilisés uniquement par le Marketing Studio.");
   });
 
   it("refreshes marketing references before image generation to avoid stale uploaded assets", () => {

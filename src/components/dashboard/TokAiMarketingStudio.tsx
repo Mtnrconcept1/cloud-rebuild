@@ -343,8 +343,8 @@ const MARKETING_STUDIO_STEPS: Array<{
     icon: FileImage,
   },
   {
-    title: "Ressources de marque",
-    description: "Logo, carte, menu et visuels existants.",
+    title: "Éléments de références marketing",
+    description: "Logo, carte, menu et visuels de marque dédiés au studio.",
     icon: Upload,
   },
   {
@@ -1184,7 +1184,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                     onClick={() => setActiveStep(2)}
                     className="gap-2 rounded-2xl bg-orange-600 hover:bg-orange-700"
                   >
-                    Continuer vers les ressources
+                    Continuer vers les références marketing
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </div>
@@ -1331,7 +1331,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                     onClick={() => setActiveStep(2)}
                     className="h-auto min-h-[44px] w-full min-w-0 whitespace-normal rounded-2xl border-orange-300 text-center text-orange-700 hover:bg-orange-50 sm:w-auto"
                   >
-                    Continuer vers les ressources
+                    Continuer vers les références marketing
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </div>
@@ -1355,7 +1355,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Style: {styleMode}</span>
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Resolution: {outputPricing.size} / {outputPricing.quality}</span>
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Credits: {outputPricing.photoCredits}</span>
-                  <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Ressources: {persistedResources.length}</span>
+                  <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Références marketing: {persistedResources.length}</span>
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Logo: {hasLogo ? "oui" : "non"}</span>
                 </div>
                 <p className="mt-2 line-clamp-2 min-w-0 rounded-2xl bg-white/80 p-3 text-emerald-950/80 [overflow-wrap:anywhere]">{sanitizedPrompt || "Le prompt apparaitra ici apres saisie."}</p>
@@ -1405,9 +1405,9 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
               </Badge>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Palette className="h-5 w-5 text-orange-600" />
-                Téléchargement de visuels pour ressources de marque
+                Éléments de références marketing
               </CardTitle>
-              <CardDescription>Ajoutez les éléments qui définissent votre identité visuelle. Choisir de nouveaux fichiers remplace les anciens de la même catégorie.</CardDescription>
+              <CardDescription>Ajoutez ici les visuels de référence utilisés uniquement par le Marketing Studio. Ils ne sont pas ajoutés à la galerie restaurant.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               {resourcesLoading ? (
@@ -1474,7 +1474,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
               <div className={`rounded-2xl border p-4 text-sm ${hasBrandResources ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-amber-200 bg-amber-50 text-amber-800"}`}>
                 <div className="flex gap-2">
                   {hasBrandResources ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" /> : <ImagePlus className="mt-0.5 h-4 w-4 shrink-0" />}
-                  <p>{hasBrandResources ? "Ressources persistantes prêtes pour générer une image cohérente." : "Ajoutez logo + carte/menu/visuels pour une image plus proche de votre marque."}</p>
+                  <p>{hasBrandResources ? "Éléments de références marketing prêts pour générer une image cohérente." : "Ajoutez logo + carte/menu/visuels dans cet onglet pour une image plus proche de votre marque."}</p>
                 </div>
               </div>
               <div className="flex justify-end">
@@ -1493,7 +1493,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
         title="Generation marketing en cours"
         description="TOK combine le support choisi, votre brief et vos ressources de marque pour produire un visuel coherent."
         status="Marketing Studio compose le visuel"
-        steps={["Brief", "Ressources", "Rendu final"]}
+        steps={["Brief", "Références marketing", "Rendu final"]}
       />
     </section>
   );
