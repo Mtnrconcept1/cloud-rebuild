@@ -70,6 +70,8 @@ const TOK_IMAGE_MODEL_CREDIT_MULTIPLIERS: Record<TokImageModel, number> = {
 };
 const IMAGE_QUALITY = normalizeImageQuality(Deno.env.get("OPENAI_IMAGE_QUALITY")?.trim());
 const IMAGE_TIMEOUT_MS = readPositiveIntEnv("OPENAI_IMAGE_TIMEOUT_MS", 95_000, 115_000);
+const GPT_IMAGE_2_TIMEOUT_FLOOR_MS = 110_000;
+const CONFIGURED_RETRY_IMAGE_TIMEOUT_MS = 70_000;
 const USE_FAST_INTERACTIVE_IMAGE = readEnvFlag("TOK_IMAGE_FAST_INTERACTIVE", false);
 const INTERACTIVE_IMAGE_TIMEOUT_MS = readPositiveIntEnv("TOK_INTERACTIVE_IMAGE_TIMEOUT_MS", 42_000, 50_000);
 const SOURCE_IMAGE_TIMEOUT_MS = readPositiveIntEnv("TOK_SOURCE_IMAGE_TIMEOUT_MS", 12_000, 30_000);
@@ -206,12 +208,25 @@ function getImageModelCreditMultiplier(model: TokImageModel) {
   return TOK_IMAGE_MODEL_CREDIT_MULTIPLIERS[model] || 1;
 }
 
+function getConfiguredImageTimeoutMs(model: TokImageModel) {
+  if (model === "gpt-image-2") return Math.max(IMAGE_TIMEOUT_MS, GPT_IMAGE_2_TIMEOUT_FLOOR_MS);
+  return IMAGE_TIMEOUT_MS;
+}
+
+function getFallbackImageTimeoutMs(options: ImageRequestOptions) {
+  if (options.mode === "configured") {
+    return Math.min(options.timeoutMs, Math.max(INTERACTIVE_IMAGE_TIMEOUT_MS, CONFIGURED_RETRY_IMAGE_TIMEOUT_MS));
+  }
+
+  return Math.min(options.timeoutMs, INTERACTIVE_IMAGE_TIMEOUT_MS);
+}
+
 function buildConfiguredImageRequestOptions(formatSize: string, quality = IMAGE_QUALITY, model: TokImageModel = IMAGE_MODEL): ImageRequestOptions {
   return {
     model,
     quality,
     size: formatSize,
-    timeoutMs: IMAGE_TIMEOUT_MS,
+    timeoutMs: getConfiguredImageTimeoutMs(model),
     mode: "configured",
   };
 }
@@ -237,7 +252,7 @@ function buildFallbackImageRequestOptions(options: ImageRequestOptions): ImageRe
   return {
     ...options,
     quality: "low",
-    timeoutMs: Math.min(options.timeoutMs, INTERACTIVE_IMAGE_TIMEOUT_MS),
+    timeoutMs: getFallbackImageTimeoutMs(options),
     mode: "interactive_fast",
   };
 }
@@ -992,7 +1007,7 @@ async function callOpenAIImageEditWithReferencesAndRecovery(input: {
       referenceCount: input.imageUrls.length,
     });
 
-    if (isImageTimeoutError(error)) {
+    if (isImageTimeoutError(error) && input.allowGenerationFallback) {
       console.warn(`[${FUNCTION_NAME}] image_edit_fallback`, {
         reason: error instanceof Error ? error.message : "unknown",
         model: retryOptions.model,
@@ -1001,8 +1016,6 @@ async function callOpenAIImageEditWithReferencesAndRecovery(input: {
         mode: retryOptions.mode,
         referenceCount: input.imageUrls.length,
       });
-
-      if (!input.allowGenerationFallback) throw new HttpError(502, "image_reference_edit_required");
 
       return {
         response: await callOpenAIImageGeneration(input.fallbackPrompt, input.n, retryOptions),
