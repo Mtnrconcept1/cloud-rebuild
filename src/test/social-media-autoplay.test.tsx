@@ -167,4 +167,16 @@ describe("SocialMediaCarousel video autoplay", () => {
     expect(image.getAttribute("src")).not.toContain("height=");
     expect(image.getAttribute("srcset")).toContain("resize=contain");
   });
+
+  it("constrains preview images to the viewport without changing their ratio", () => {
+    render(<SocialMediaCarousel media={imageMedia as any} variant="side" constrainedPreview />);
+
+    const image = screen.getByAltText("Logo TOK");
+
+    expect(image).toHaveClass("h-auto", "w-auto", "max-w-full", "object-contain");
+    expect(image).toHaveClass("max-h-[min(62dvh,36rem)]");
+    expect(image).not.toHaveClass("w-full");
+    expect(image.parentElement).toHaveClass("max-h-[min(62dvh,36rem)]");
+    expect(image.parentElement).toHaveClass("items-center", "justify-center");
+  });
 });

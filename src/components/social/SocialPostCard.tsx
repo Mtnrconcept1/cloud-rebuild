@@ -630,6 +630,7 @@ function SocialPostModalSummary({ post }: { post: SocialFeedPost }) {
           media={post.media}
           variant="side"
           mobileBleed="container"
+          constrainedPreview
           lightboxEngagement={{
             likesCount: post.likesCount,
             commentsCount: post.commentsCount,

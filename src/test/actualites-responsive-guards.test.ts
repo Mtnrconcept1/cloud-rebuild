@@ -106,9 +106,9 @@ describe("Actualites responsive guards", () => {
     expect(carousel).toContain("isPortraitMedia");
     expect(carousel).toContain("bg-black object-contain");
     expect(carousel).toContain("cursor-zoom-in");
-    expect(carousel).toContain(
-      "max-h-[calc(100dvh-9.5rem)] max-w-full object-contain",
-    );
+    expect(carousel).toContain('className="h-full w-full object-contain"');
+    expect(carousel).toContain("constrainedPreview");
+    expect(carousel).toContain("flex max-h-[min(62dvh,36rem)] items-center justify-center");
     expect(carousel).toContain("Like/commentaire visibles");
     expect(carousel).toContain("lightboxEngagement");
     expect(carousel).toContain("max-sm:-mx-6 max-sm:w-screen");
@@ -116,7 +116,8 @@ describe("Actualites responsive guards", () => {
     expect(carousel).toContain("max-sm:border-0 max-sm:shadow-none");
     expect(carousel).toContain("getOptimizedImageUrl");
     expect(carousel).toContain('height: undefined, resize: "contain"');
-    expect(carousel).toContain('className="h-auto w-full object-contain"');
+    expect(carousel).toContain('"h-auto max-h-[min(62dvh,36rem)] w-auto max-w-full"');
+    expect(carousel).toContain('"h-auto w-full"');
     expect(carousel).not.toContain('className="h-full w-full object-cover"');
     expect(carousel).toContain('preload="metadata"');
   });

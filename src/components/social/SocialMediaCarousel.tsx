@@ -29,6 +29,7 @@ type SocialMediaCarouselProps = {
   className?: string;
   mobileOverlay?: ReactNode;
   mobileBleed?: "viewport" | "container" | false;
+  constrainedPreview?: boolean;
   lightboxEngagement?: {
     likesCount: number;
     commentsCount: number;
@@ -142,6 +143,7 @@ export default function SocialMediaCarousel({
   className,
   mobileOverlay,
   mobileBleed = "viewport",
+  constrainedPreview = false,
   lightboxEngagement,
   lightboxActions,
 }: SocialMediaCarouselProps) {
@@ -164,12 +166,14 @@ export default function SocialMediaCarousel({
     variant === "side"
       ? "aspect-[16/9] min-h-0 rounded-[1.45rem] shadow-xl shadow-orange-100/70 max-sm:rounded-[1.35rem] max-sm:border-0 max-sm:shadow-none sm:min-h-[16rem]"
       : "aspect-[4/3] rounded-lg",
+    constrainedPreview && "flex max-h-[min(62dvh,36rem)] items-center justify-center",
   );
   const imageFrameClassName = cn(
     frameBaseClassName,
     variant === "side"
       ? "rounded-[1.45rem] shadow-xl shadow-orange-100/70 max-sm:rounded-[1.35rem] max-sm:border-0 max-sm:shadow-none"
       : "rounded-lg",
+    constrainedPreview && "flex max-h-[min(62dvh,36rem)] items-center justify-center",
   );
   const containerClassName = cn(
     variant === "side" ? "mt-0" : "mt-4",
@@ -240,7 +244,10 @@ export default function SocialMediaCarousel({
       return (
         <AutoPlayOnViewVideo
           item={item}
-          className="h-full w-full bg-black object-contain"
+          className={cn(
+            "bg-black object-contain",
+            constrainedPreview ? "max-h-[min(62dvh,36rem)] max-w-full" : "h-full w-full",
+          )}
           onLoadedMetadata={(video) => {
             if (
               !isVerticalSocialVideoDimensions(
@@ -274,7 +281,12 @@ export default function SocialMediaCarousel({
         })}
         sizes={getOptimizedImageSizes(imagePreset)}
         alt={item.altText || ""}
-        className="h-auto w-full object-contain"
+        className={cn(
+          "object-contain",
+          constrainedPreview
+            ? "h-auto max-h-[min(62dvh,36rem)] w-auto max-w-full"
+            : "h-auto w-full",
+        )}
         loading="lazy"
         onClick={() => openLightbox(item)}
         onLoad={(event) => {
@@ -299,7 +311,7 @@ export default function SocialMediaCarousel({
           src={item.mediaUrl}
           controls
           playsInline
-          className="max-h-[calc(100dvh-9.5rem)] max-w-full object-contain"
+          className="h-full w-full object-contain"
           aria-label={item.altText || "Vidéo du restaurant"}
         >
           <track kind="captions" />
@@ -313,7 +325,7 @@ export default function SocialMediaCarousel({
         srcSet={getOptimizedImageSrcSet(item.mediaUrl, "hero")}
         sizes="100vw"
         alt={item.altText || "Média du restaurant"}
-        className="max-h-[calc(100dvh-9.5rem)] max-w-full object-contain"
+        className="h-full w-full object-contain"
         decoding="async"
       />
     );

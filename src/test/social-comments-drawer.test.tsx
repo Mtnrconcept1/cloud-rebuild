@@ -188,4 +188,44 @@ describe("SocialPostCard comment drawer", () => {
       });
     });
   });
+
+  it("keeps enlarged post media fully visible inside the comments drawer", async () => {
+    render(
+      <MemoryRouter>
+        <SocialPostCard
+          post={{
+            ...post,
+            commentsCount: 1,
+            media: [{
+              id: "media-image-1",
+              postId: "post-1",
+              mediaUrl: "https://example.com/chef-portrait.jpg",
+              mediaType: "image",
+              sortOrder: 0,
+              altText: "Chef TOK portrait",
+            }],
+          } as any}
+        />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Afficher les commentaires" }));
+
+    const images = await screen.findAllByAltText("Chef TOK portrait");
+    const image = images.find((node) => node.className.includes("max-h-[min(62dvh,36rem)]"));
+
+    expect(image).toBeTruthy();
+    if (!image) {
+      throw new Error("Expected the comments drawer preview image to be constrained");
+    }
+
+    expect(image).toHaveClass("object-contain");
+    expect(image).toHaveClass("max-h-[min(62dvh,36rem)]");
+    expect(image).toHaveClass("w-auto");
+    expect(image).toHaveClass("max-w-full");
+    expect(image).not.toHaveClass("w-full");
+    expect(image.parentElement).toHaveClass("max-h-[min(62dvh,36rem)]");
+    expect(image.parentElement).toHaveClass("items-center");
+    expect(image.parentElement).toHaveClass("justify-center");
+  });
 });
