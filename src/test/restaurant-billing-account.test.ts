@@ -46,7 +46,9 @@ describe("restaurant account and billing dashboard", () => {
     expect(page).toContain("restaurant_credit_packs");
     expect(page).toContain("restaurant-subscription-upgrade");
     expect(page).toContain("restaurant-credit-pack");
-    expect(page).toContain("Racheter des credits");
+    expect(page).toContain("Recharger des crédits TOK");
+    expect(page).toContain("Crédits TOK");
+    expect(page).toContain("tok_credits");
     expect(page).toContain("CreditPackCard");
     expect(page).toContain("BillingCreditEntry");
     expect(page).toContain("Solde");

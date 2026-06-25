@@ -49,7 +49,7 @@ describe("homepage positioning guards", () => {
     const packs = read("src/pages/PacksRestaurateur.tsx");
 
     expect(packs).toContain("Abonnements restaurateur");
-    expect(packs).toContain("Packs de crédits IA");
+    expect(packs).toContain("Recharges de crédits TOK");
     expect(packs).toContain("restaurant_subscription_plans");
     expect(packs).toContain("restaurant_credit_packs");
     expect(packs).not.toContain('checkout_kind: "launch-pack"');

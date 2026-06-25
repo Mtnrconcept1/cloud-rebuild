@@ -5,6 +5,15 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getSupabase } from "@/integrations/supabase/client";
+import {
+  formatTokCredits,
+  getAiSimpleRequestEquivalent,
+  getCampaignEquivalentChf,
+  getMarketingFlyerEquivalent,
+  getPhotoProEquivalent,
+  getPhotoSimpleEquivalent,
+  getTokCreditAmount,
+} from "@/lib/tokCredits";
 
 const supabase = getSupabase();
 
@@ -42,6 +51,30 @@ function normalizeFeatures(value: string[] | null) {
   return Array.isArray(value) ? value.map(String).filter(Boolean) : [];
 }
 
+function getPlanExamples(plan: RestaurantSubscriptionPlan) {
+  const credits = getTokCreditAmount(plan);
+  const photoExample = plan.slug === "starter" || plan.slug === "pro"
+    ? `${getPhotoSimpleEquivalent(credits).toLocaleString("fr-CH")} retouches photo simples`
+    : `${getPhotoProEquivalent(credits).toLocaleString("fr-CH")} photos culinaires pro`;
+
+  return [
+    `${getCampaignEquivalentChf(credits).toLocaleString("fr-CH")} CHF de campagnes TOK`,
+    `${getAiSimpleRequestEquivalent(credits).toLocaleString("fr-CH")} requêtes assistant IA`,
+    photoExample,
+  ];
+}
+
+function getPackExamples(pack: RestaurantCreditPack) {
+  const credits = getTokCreditAmount(pack);
+  return [
+    `${getCampaignEquivalentChf(credits).toLocaleString("fr-CH")} CHF de campagnes TOK`,
+    `${getAiSimpleRequestEquivalent(credits).toLocaleString("fr-CH")} requêtes assistant IA`,
+    pack.slug.includes("growth") || pack.slug.includes("croissance")
+      ? `${getMarketingFlyerEquivalent(credits).toLocaleString("fr-CH")} affiches ou flyers IA`
+      : `${getPhotoProEquivalent(credits).toLocaleString("fr-CH")} photos culinaires pro`,
+  ];
+}
+
 function useRestaurantSubscriptionPlans() {
   return useQuery({
     queryKey: ["public-restaurant-subscription-plans"],
@@ -74,6 +107,8 @@ function useRestaurantCreditPacks() {
 
 function PlanCard({ plan }: { plan: RestaurantSubscriptionPlan }) {
   const features = normalizeFeatures(plan.features);
+  const tokCredits = getTokCreditAmount(plan);
+  const examples = getPlanExamples(plan);
 
   return (
     <Card className="flex h-full flex-col">
@@ -87,11 +122,12 @@ function PlanCard({ plan }: { plan: RestaurantSubscriptionPlan }) {
           <span className="ml-1 text-muted-foreground">/ mois</span>
         </div>
         <div className="grid gap-2 rounded-xl bg-primary/5 p-3 text-sm text-primary">
-          <span>{formatChf(plan.campaign_credit_chf)} de crédits campagnes / mois</span>
-          <span>{plan.ai_tool_credits} crédits outils IA / mois</span>
-          <span>{plan.ai_photo_credits} crédits photo IA / mois</span>
-          <span>{plan.monthly_image_limit} visuels IA / mois</span>
-          <span>{plan.monthly_premium_image_limit} retouches premium / mois</span>
+          <span className="font-semibold">{formatTokCredits(tokCredits)} / mois</span>
+          <span>Utilisables librement pour campagnes, IA, photos, visuels et rendus impression.</span>
+          <span className="pt-1 text-xs font-medium uppercase tracking-wide">Équivalence</span>
+          {examples.map((example) => (
+            <span key={example}>ou {example}</span>
+          ))}
         </div>
         {features.length ? (
           <ul className="space-y-2 text-sm">
@@ -113,12 +149,14 @@ function PlanCard({ plan }: { plan: RestaurantSubscriptionPlan }) {
 
 function CreditPackCard({ pack }: { pack: RestaurantCreditPack }) {
   const features = normalizeFeatures(pack.features);
+  const tokCredits = getTokCreditAmount(pack);
+  const examples = getPackExamples(pack);
 
   return (
     <Card className="flex h-full flex-col">
       <CardHeader>
         <CardTitle>{pack.name}</CardTitle>
-        <p className="text-sm text-muted-foreground">{pack.description || "Recharge ponctuelle de crédits IA TOK."}</p>
+        <p className="text-sm text-muted-foreground">{pack.description || "Recharge ponctuelle de crédits TOK."}</p>
       </CardHeader>
       <CardContent className="flex flex-1 flex-col gap-5">
         <div>
@@ -126,9 +164,12 @@ function CreditPackCard({ pack }: { pack: RestaurantCreditPack }) {
           <span className="ml-1 text-muted-foreground">paiement unique</span>
         </div>
         <div className="grid gap-2 rounded-xl bg-muted/60 p-3 text-sm">
-          <span>{formatChf(pack.campaign_credit_chf)} de crédits campagnes</span>
-          <span>{pack.ai_tool_credits} crédits outils IA</span>
-          <span>{pack.ai_photo_credits} crédits photo IA</span>
+          <span className="font-semibold">{formatTokCredits(tokCredits)}</span>
+          <span>Recharge universelle pour campagnes, assistant IA, photos et supports marketing.</span>
+          <span className="pt-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">Équivalence</span>
+          {examples.map((example) => (
+            <span key={example}>ou {example}</span>
+          ))}
         </div>
         {features.length ? (
           <ul className="space-y-2 text-sm">
@@ -157,18 +198,18 @@ export default function PacksRestaurateur() {
     <div className="container space-y-16 py-12 md:py-20">
       <div className="mx-auto max-w-3xl space-y-6 text-center">
         <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary">
-          <WalletCards className="h-4 w-4" /> Abonnements et crédits IA
+          <WalletCards className="h-4 w-4" /> Abonnements et crédits TOK
         </div>
         <h1 className="font-display text-4xl font-bold md:text-5xl">Choisissez votre abonnement TOK</h1>
         <p className="text-lg leading-relaxed text-muted-foreground">
-          Les packs de lancement ne sont plus commercialisés. TOK propose désormais des abonnements restaurateur et des packs de crédits IA pour piloter vos campagnes, photos et outils intelligents.
+          Les packs de lancement ne sont plus commercialisés. TOK propose désormais des abonnements restaurateur et des recharges de crédits TOK pour piloter campagnes, assistant IA, photos et visuels.
         </p>
         <div className="flex flex-col justify-center gap-3 sm:flex-row">
           <Button asChild size="lg">
             <a href="#abonnements">Voir les abonnements</a>
           </Button>
           <Button asChild variant="outline" size="lg">
-            <a href="#credits-ia">Voir les crédits IA</a>
+            <a href="#credits-tok">Voir les crédits TOK</a>
           </Button>
         </div>
       </div>
@@ -196,16 +237,16 @@ export default function PacksRestaurateur() {
         )}
       </section>
 
-      <section id="credits-ia" className="scroll-mt-28 space-y-6">
+      <section id="credits-tok" className="scroll-mt-28 space-y-6">
         <div className="flex items-center gap-3">
           <Sparkles className="h-6 w-6 text-primary" />
           <div>
-            <h2 className="text-3xl font-bold">Packs de crédits IA</h2>
+            <h2 className="text-3xl font-bold">Recharges de crédits TOK</h2>
             <p className="text-muted-foreground">Recharges ponctuelles disponibles depuis le dashboard restaurateur.</p>
           </div>
         </div>
         {creditPacksQuery.isError ? (
-          <Card><CardContent className="py-8 text-sm text-muted-foreground">Les packs de crédits IA sont temporairement indisponibles.</CardContent></Card>
+          <Card><CardContent className="py-8 text-sm text-muted-foreground">Les recharges de crédits TOK sont temporairement indisponibles.</CardContent></Card>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
             {(creditPacksQuery.data || []).map((pack) => <CreditPackCard key={pack.id} pack={pack} />)}

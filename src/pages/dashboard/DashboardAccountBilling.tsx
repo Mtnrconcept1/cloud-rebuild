@@ -36,12 +36,22 @@ import { buildCheckoutReturnUrl } from "@/lib/checkoutReturnUrl";
 import { getSupabase } from "@/integrations/supabase/client";
 import { redirectToTrustedCheckoutUrl } from "@/lib/securityUrls";
 import { invokeSupabaseFunction } from "@/lib/session";
+import {
+  formatTokCredits,
+  getAiSimpleRequestEquivalent,
+  getCampaignEquivalentChf,
+  getMarketingFlyerEquivalent,
+  getPhotoProEquivalent,
+  getPhotoSimpleEquivalent,
+  getTokCreditAmount,
+  TOK_CREDITS_PER_CAMPAIGN_CHF,
+} from "@/lib/tokCredits";
 import { cn } from "@/lib/utils";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
 
 const supabase = getSupabase();
 
-type CreditKind = "campaign" | "ai_tools" | "photo_retouch";
+type CreditKind = "tok_credits" | "campaign" | "ai_tools" | "photo_retouch";
 
 type RestaurantSubscriptionPlan = {
   id: string;
@@ -131,20 +141,25 @@ const CREDIT_META: Record<CreditKind, {
   tone: string;
   label: string;
 }> = {
+  tok_credits: {
+    icon: WalletCards,
+    tone: "bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-500/10 dark:text-orange-100 dark:border-orange-400/20",
+    label: "Crédits TOK",
+  },
   campaign: {
     icon: Megaphone,
     tone: "bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-500/10 dark:text-orange-100 dark:border-orange-400/20",
-    label: "Crédits campagnes",
+    label: "Campagne",
   },
   ai_tools: {
     icon: Sparkles,
     tone: "bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-500/10 dark:text-sky-100 dark:border-sky-400/20",
-    label: "Crédits outils IA",
+    label: "Assistant IA",
   },
   photo_retouch: {
     icon: Camera,
     tone: "bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-500/10 dark:text-violet-100 dark:border-violet-400/20",
-    label: "Crédits photo IA",
+    label: "Photo et visuel",
   },
 };
 
@@ -163,11 +178,6 @@ function formatChf(value: unknown) {
   })} CHF`;
 }
 
-function formatCreditAmount(value: number, unit: string) {
-  if (unit === "CHF") return formatChf(value);
-  return `${toNumber(value).toLocaleString("fr-CH")} ${value > 1 ? "crédits" : "crédit"}`;
-}
-
 function formatDateTime(value: string | null | undefined) {
   if (!value) return "Non daté";
   return new Date(value).toLocaleString("fr-CH", {
@@ -181,6 +191,63 @@ function formatDateTime(value: string | null | undefined) {
 
 function normalizeFeatures(value: string[] | null) {
   return Array.isArray(value) ? value.map(String).filter(Boolean) : [];
+}
+
+function toTokCreditUnits(amount: number, unit: string) {
+  if (unit === "CHF") return Math.round(amount * TOK_CREDITS_PER_CAMPAIGN_CHF);
+  return Math.round(amount);
+}
+
+function buildUnifiedTokCreditSummary(credits: BillingCreditSummary[]): BillingCreditSummary | null {
+  if (!credits.length) return null;
+
+  const directTokCredit = credits.find((credit) => credit.kind === "tok_credits");
+  if (directTokCredit) return directTokCredit;
+
+  const allowance = credits.reduce((sum, credit) => sum + toTokCreditUnits(toNumber(credit.allowance), credit.unit), 0);
+  const spent = credits.reduce((sum, credit) => sum + toTokCreditUnits(toNumber(credit.spent), credit.unit), 0);
+
+  return {
+    kind: "tok_credits",
+    label: "Crédits TOK",
+    unit: "credit",
+    allowance,
+    spent,
+    balance: Math.max(allowance - spent, 0),
+  };
+}
+
+function getPlanExamples(plan: RestaurantSubscriptionPlan) {
+  const credits = getTokCreditAmount(plan);
+  const photoExample = plan.slug === "starter" || plan.slug === "pro"
+    ? `${getPhotoSimpleEquivalent(credits).toLocaleString("fr-CH")} retouches photo simples`
+    : `${getPhotoProEquivalent(credits).toLocaleString("fr-CH")} photos culinaires pro`;
+
+  return [
+    `${getCampaignEquivalentChf(credits).toLocaleString("fr-CH")} CHF de campagnes TOK`,
+    `${getAiSimpleRequestEquivalent(credits).toLocaleString("fr-CH")} requêtes assistant IA`,
+    photoExample,
+  ];
+}
+
+function getPackExamples(pack: RestaurantCreditPack) {
+  const credits = getTokCreditAmount(pack);
+  const examples = [
+    `${getCampaignEquivalentChf(credits).toLocaleString("fr-CH")} CHF de campagnes TOK`,
+    `${getAiSimpleRequestEquivalent(credits).toLocaleString("fr-CH")} requêtes assistant IA`,
+    `${getPhotoProEquivalent(credits).toLocaleString("fr-CH")} photos culinaires pro`,
+  ];
+
+  if (pack.slug.includes("growth") || pack.slug.includes("croissance")) {
+    examples[2] = `${getMarketingFlyerEquivalent(credits).toLocaleString("fr-CH")} affiches ou flyers IA`;
+  }
+
+  return examples;
+}
+
+function formatEntryTokCreditAmount(entry: BillingCreditEntry) {
+  const credits = toTokCreditUnits(toNumber(entry.credit_amount), entry.credit_unit);
+  return formatTokCredits(credits);
 }
 
 function getSubscriptionStatusLabel(status: string | null | undefined) {
@@ -243,17 +310,17 @@ function CreditSummaryCard({ credit }: { credit: BillingCreditSummary }) {
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-sm font-semibold">{credit.label}</p>
-            <p className="text-xs text-muted-foreground">Solde mensuel</p>
+            <p className="text-xs text-muted-foreground">Solde universel</p>
           </div>
           <span className={cn("flex h-10 w-10 items-center justify-center rounded-xl border", meta.tone)}>
             <Icon className="h-5 w-5" />
           </span>
         </div>
         <div className="space-y-2">
-          <p className="text-2xl font-bold">{formatCreditAmount(toNumber(credit.balance), credit.unit)}</p>
+          <p className="text-2xl font-bold">{formatTokCredits(credit.balance)}</p>
           <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>Dépensé: {formatCreditAmount(spent, credit.unit)}</span>
-            <span>Inclus: {formatCreditAmount(allowance, credit.unit)}</span>
+            <span>Dépensé: {formatTokCredits(spent)}</span>
+            <span>Inclus: {formatTokCredits(allowance)}</span>
           </div>
           <Progress value={progress} className="h-2" />
         </div>
@@ -278,6 +345,8 @@ function PlanCard({
   const isCurrent = currentPlanId === plan.id;
   const isUpgrade = !isCurrent && plan.position > currentPosition;
   const features = normalizeFeatures(plan.features);
+  const tokCredits = getTokCreditAmount(plan);
+  const examples = getPlanExamples(plan);
 
   return (
     <Card className={cn("flex h-full flex-col", isCurrent && "border-primary/60 bg-primary/5")}>
@@ -296,9 +365,12 @@ function PlanCard({
       </CardHeader>
       <CardContent className="flex flex-1 flex-col gap-4">
         <div className="grid gap-2 rounded-xl bg-muted/45 p-3 text-sm">
-          <span>{formatChf(plan.campaign_credit_chf)} de crédits campagnes</span>
-          <span>{plan.ai_tool_credits.toLocaleString("fr-CH")} crédits outils IA</span>
-          <span>{plan.ai_photo_credits.toLocaleString("fr-CH")} crédits photo IA</span>
+          <span className="font-semibold">{formatTokCredits(tokCredits)} / mois</span>
+          <span className="text-muted-foreground">Utilisables librement pour campagnes, IA, photos, visuels et rendus impression.</span>
+          <span className="pt-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">Équivalence</span>
+          {examples.map((example) => (
+            <span key={example}>ou {example}</span>
+          ))}
         </div>
         <ul className="space-y-2 text-sm">
           {features.slice(0, 5).map((feature) => (
@@ -333,6 +405,8 @@ function CreditPackCard({
 }) {
   const features = normalizeFeatures(pack.features);
   const isCheckingOut = checkingOutPackId === pack.id;
+  const tokCredits = getTokCreditAmount(pack);
+  const examples = getPackExamples(pack);
 
   return (
     <Card className="flex h-full flex-col">
@@ -351,9 +425,12 @@ function CreditPackCard({
       </CardHeader>
       <CardContent className="flex flex-1 flex-col gap-4">
         <div className="grid gap-2 rounded-xl bg-muted/45 p-3 text-sm">
-          {toNumber(pack.campaign_credit_chf) > 0 ? <span>{formatChf(pack.campaign_credit_chf)} de credits campagnes</span> : null}
-          {toNumber(pack.ai_tool_credits) > 0 ? <span>{toNumber(pack.ai_tool_credits).toLocaleString("fr-CH")} credits outils IA</span> : null}
-          {toNumber(pack.ai_photo_credits) > 0 ? <span>{toNumber(pack.ai_photo_credits).toLocaleString("fr-CH")} credits photo IA</span> : null}
+          <span className="font-semibold">{formatTokCredits(tokCredits)}</span>
+          <span className="text-muted-foreground">Recharge universelle valable pour campagnes, assistant IA, photos et supports marketing.</span>
+          <span className="pt-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">Équivalence</span>
+          {examples.map((example) => (
+            <span key={example}>ou {example}</span>
+          ))}
         </div>
         <ul className="space-y-2 text-sm">
           {features.slice(0, 4).map((feature) => (
@@ -416,6 +493,7 @@ export default function DashboardAccountBilling() {
   const usage = usageQuery.data;
   const credits = usage?.credits ?? EMPTY_CREDITS;
   const entries = usage?.entries ?? EMPTY_ENTRIES;
+  const tokCreditSummary = useMemo(() => buildUnifiedTokCreditSummary(credits), [credits]);
   const currentPlan = usage?.subscription?.plan_record ?? null;
   const currentPosition = toNumber(currentPlan?.position);
   const activePlans = plansQuery.data ?? [];
@@ -424,11 +502,9 @@ export default function DashboardAccountBilling() {
   const isUsageUnavailable = usageQuery.isError;
 
   const totalBalanceLabel = useMemo(() => {
-    if (!credits.length) return "0";
-    return credits
-      .map((credit) => formatCreditAmount(toNumber(credit.balance), credit.unit))
-      .join(" / ");
-  }, [credits]);
+    if (!tokCreditSummary) return "0 crédit TOK";
+    return formatTokCredits(tokCreditSummary.balance);
+  }, [tokCreditSummary]);
 
   async function handleUpgrade(plan: RestaurantSubscriptionPlan) {
     if (!selectedId) return;
@@ -494,7 +570,7 @@ export default function DashboardAccountBilling() {
         <DashboardPageHero
           badge="Compte restaurateur"
           title="Mon compte/Facturation"
-          description="Pilotez votre abonnement TOK, upgradez votre pack mensuel et suivez le solde de vos crédits avec le détail complet des dépenses."
+          description="Pilotez votre abonnement TOK, upgradez votre pack mensuel et suivez votre solde unique de crédits TOK avec le détail complet des dépenses."
           icon={CreditCard}
           tone="sky"
           visualLabel="Facturation"
@@ -531,6 +607,16 @@ export default function DashboardAccountBilling() {
             </AlertDescription>
           </Alert>
         ) : null}
+            <Alert>
+              <Sparkles className="h-4 w-4" />
+              <AlertTitle>Comment fonctionnent les crédits TOK ?</AlertTitle>
+              <AlertDescription>
+                Les crédits TOK sont utilisables sur tous les outils de la plateforme : campagnes sponsorisées,
+                assistant IA, retouches photo, création de visuels, rendus impression et optimisation marketing.
+                Chaque action affiche son coût avant utilisation. Exemple : 5 crédits pour une requête assistant IA,
+                25 crédits pour une retouche photo simple et 150 crédits pour 10 CHF de campagne.
+              </AlertDescription>
+            </Alert>
             <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)]">
               <Card>
                 <CardHeader>
@@ -595,18 +681,23 @@ export default function DashboardAccountBilling() {
                     </div>
                   ) : isUsageUnavailable ? (
                     <p className="text-sm text-muted-foreground">Le solde sera disponible après synchronisation de la fonction de facturation.</p>
-                  ) : credits.length === 0 ? (
+                  ) : !tokCreditSummary ? (
                     <p className="text-sm text-muted-foreground">Aucun crédit actif pour la période courante.</p>
                   ) : (
-                    credits.map((credit) => (
-                      <div key={credit.kind} className="flex items-center justify-between gap-3 rounded-xl border p-3">
-                        <div>
-                          <p className="text-sm font-medium">{credit.label}</p>
-                          <p className="text-xs text-muted-foreground">Solde disponible</p>
+                      <div className="space-y-3 rounded-xl border p-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <p className="text-sm font-medium">Crédits TOK</p>
+                            <p className="text-xs text-muted-foreground">Solde disponible</p>
+                          </div>
+                          <p className="text-right text-sm font-bold">{formatTokCredits(tokCreditSummary.balance)}</p>
                         </div>
-                        <p className="text-right text-sm font-bold">{formatCreditAmount(toNumber(credit.balance), credit.unit)}</p>
+                        <div className="grid gap-1 text-xs text-muted-foreground">
+                          <span>{getCampaignEquivalentChf(tokCreditSummary.balance).toLocaleString("fr-CH")} CHF de campagnes TOK</span>
+                          <span>ou {getAiSimpleRequestEquivalent(tokCreditSummary.balance).toLocaleString("fr-CH")} requêtes assistant IA</span>
+                          <span>ou {getPhotoSimpleEquivalent(tokCreditSummary.balance).toLocaleString("fr-CH")} retouches photo simples</span>
+                        </div>
                       </div>
-                    ))
                   )}
                 </CardContent>
               </Card>
@@ -626,20 +717,20 @@ export default function DashboardAccountBilling() {
                     Le détail des crédits est temporairement indisponible, mais les packs d'abonnement restent accessibles ci-dessous.
                   </CardContent>
                 </Card>
-              ) : credits.length === 0 ? (
+              ) : !tokCreditSummary ? (
                 <Card className="md:col-span-3">
                   <CardContent className="py-8 text-sm text-muted-foreground">Aucun crédit inclus n'est encore synchronisé.</CardContent>
                 </Card>
-              ) : credits.map((credit) => (
-                <CreditSummaryCard key={credit.kind} credit={credit} />
-              ))}
+              ) : (
+                <CreditSummaryCard credit={tokCreditSummary} />
+              )}
             </section>
 
             <section className="space-y-4">
               <div>
-                <h2 className="text-xl font-bold">Racheter des credits</h2>
+                <h2 className="text-xl font-bold">Recharger des crédits TOK</h2>
                 <p className="text-sm text-muted-foreground">
-                  Rechargez le budget campagnes ou les credits IA lorsque le solde inclus dans l'abonnement est insuffisant.
+                  Ajoutez des crédits universels lorsque le solde inclus dans l'abonnement est insuffisant.
                 </p>
               </div>
               {creditPacksQuery.isLoading ? (
@@ -649,7 +740,7 @@ export default function DashboardAccountBilling() {
               ) : creditPacksQuery.isError ? (
                 <Card>
                   <CardContent className="py-8 text-sm text-muted-foreground">
-                    Les packs de credits sont temporairement indisponibles.
+                    Les packs de crédits TOK sont temporairement indisponibles.
                   </CardContent>
                 </Card>
               ) : (
@@ -707,7 +798,7 @@ export default function DashboardAccountBilling() {
                       <TableHeader>
                         <TableRow>
                           <TableHead>Date</TableHead>
-                          <TableHead>Catégorie</TableHead>
+                          <TableHead>Outil</TableHead>
                           <TableHead>Détail</TableHead>
                           <TableHead className="text-right">Dépense</TableHead>
                           <TableHead className="text-right">Coût estimé</TableHead>
@@ -747,7 +838,7 @@ export default function DashboardAccountBilling() {
                               </div>
                             </TableCell>
                             <TableCell className="whitespace-nowrap text-right font-medium">
-                              {formatCreditAmount(toNumber(entry.credit_amount), entry.credit_unit === "CHF" ? "CHF" : "crédit")}
+                              {formatEntryTokCreditAmount(entry)}
                             </TableCell>
                             <TableCell className="whitespace-nowrap text-right text-muted-foreground">
                               {formatChf(entry.estimated_cost_chf)}

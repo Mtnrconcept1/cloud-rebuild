@@ -113,7 +113,7 @@ describe("restaurant dashboard review response workflow", () => {
     const disableLaunchPacks = latestMigrationContaining(/Stop commercializing legacy restaurant launch packs/i);
 
     expect(packsPage).toContain("Abonnements restaurateur");
-    expect(packsPage).toContain("Packs de crédits IA");
+    expect(packsPage).toContain("Recharges de crédits TOK");
     expect(disableLaunchPacks).toContain("UPDATE public.launch_packs");
     expect(disableLaunchPacks).toContain("is_active = false");
   });

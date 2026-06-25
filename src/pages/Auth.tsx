@@ -9,6 +9,13 @@ import { normalizeInternalNavigationTarget } from "@/lib/navigation";
 import { openSafeHtmlPrintDocument } from "@/lib/safePrintWindow";
 import { getDefaultActiveRole, getFeatureVisibleRoles, getRoleHomePath } from "@/lib/roleAccess";
 import {
+  formatTokCredits,
+  getAiSimpleRequestEquivalent,
+  getCampaignEquivalentChf,
+  getPhotoSimpleEquivalent,
+  getTokCreditAmount,
+} from "@/lib/tokCredits";
+import {
   getMissingSignupDocuments,
   getRequiredSignupDocuments,
   SIGNUP_ROLE_META,
@@ -1366,6 +1373,7 @@ export default function Auth() {
                         {subscriptionPlans.map((plan) => {
                           const selected = selectedSubscriptionPlanId === plan.id;
                           const amount = plan.price_monthly_chf;
+                          const tokCredits = getTokCreditAmount(plan);
                           return (
                             <button
                               key={plan.id}
@@ -1383,9 +1391,11 @@ export default function Auth() {
                                 {formatChf(amount)} / mois
                               </span>
                               <span className="mt-3 grid gap-1 text-xs text-muted-foreground">
-                                <span>{formatChf(plan.campaign_credit_chf)} de crédits campagnes / mois</span>
-                                <span>{plan.ai_tool_credits} crédits outils IA / mois</span>
-                                <span>{plan.ai_photo_credits} crédits photo IA / mois</span>
+                                <span className="font-semibold text-foreground">{formatTokCredits(tokCredits)} / mois</span>
+                                <span>Utilisables pour campagnes, IA, photos et visuels.</span>
+                                <span>ou {getCampaignEquivalentChf(tokCredits).toLocaleString("fr-CH")} CHF de campagnes TOK</span>
+                                <span>ou {getAiSimpleRequestEquivalent(tokCredits).toLocaleString("fr-CH")} requêtes assistant IA</span>
+                                <span>ou {getPhotoSimpleEquivalent(tokCredits).toLocaleString("fr-CH")} retouches photo simples</span>
                               </span>
                             </button>
                           );

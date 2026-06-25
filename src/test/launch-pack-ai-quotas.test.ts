@@ -37,7 +37,7 @@ describe("launch pack AI quota governance", () => {
 
     expect(publicPacks).toContain("restaurant_subscription_plans");
     expect(publicPacks).toContain("restaurant_credit_packs");
-    expect(publicPacks).toContain("Packs de crédits IA");
+    expect(publicPacks).toContain("Recharges de crédits TOK");
     expect(disableLaunchPacks).toContain("is_active = false");
   });
 });

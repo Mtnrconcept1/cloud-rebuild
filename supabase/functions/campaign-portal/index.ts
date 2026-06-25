@@ -27,6 +27,7 @@ const VALID_CREATIVE_TEMPLATES = new Set(["tok_spotlight"]);
 const VALID_BANNER_TEXT_PLACEMENTS = new Set(["left", "right", "top", "bottom"]);
 const VALID_BANNER_SEPARATORS = new Set(["fade", "wave", "curve", "straight"]);
 const VALID_CREATIVE_TEXT_ELEMENTS = ["badge", "discount", "restaurant", "headline", "body", "cta"] as const;
+const TOK_CREDITS_PER_CAMPAIGN_CHF = 15;
 
 const DEFAULT_CREATIVE_TEXT = {
   badge: { x: 0, y: 0, scale: 100, rotation: 0, color: "#ffffff", font: "sans", style: "bold" },
@@ -306,6 +307,11 @@ async function getCampaignCreditBalance(
     : {};
   const credits = Array.isArray(usage.credits) ? usage.credits as Array<Record<string, unknown>> : [];
   const campaignCredit = credits.find((credit) => String(credit.kind || "") === "campaign");
+  const tokCredit = credits.find((credit) => String(credit.kind || "") === "tok_credits");
+
+  if (tokCredit) {
+    return clampNonNegativeNumber(tokCredit.balance) / TOK_CREDITS_PER_CAMPAIGN_CHF;
+  }
 
   return clampNonNegativeNumber(campaignCredit?.balance);
 }
