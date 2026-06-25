@@ -288,18 +288,22 @@ describe("TOK photo studio persistence", () => {
     expect(marketingStudio).toContain("Suppression impossible");
   });
 
-  it("replaces marketing brand resources by category so stale visuals are never reused", () => {
-    expect(marketingStudio).toContain("deletePersistedMarketingResources");
-    expect(marketingStudio).toContain("resourcesToReplace");
-    expect(marketingStudio).toContain("const resourcesOutsideReplacedKind = current.filter((resource) => resource.kind !== kind)");
+  it("keeps marketing reference uploads cumulative and displays them as a visual gallery", () => {
+    expect(marketingStudio).not.toContain("deletePersistedMarketingResources");
+    expect(marketingStudio).not.toContain("resourcesToReplace");
+    expect(marketingStudio).not.toContain("Ressources remplacées");
+    expect(marketingStudio).not.toContain("Seuls les nouveaux fichiers de cette catégorie serviront de références visuelles.");
     expect(marketingStudio).toContain("const uploadResults = await Promise.allSettled");
     expect(marketingStudio).toContain("PromiseFulfilledResult<MarketingResource>");
     expect(marketingStudio).toContain("PromiseRejectedResult");
-    expect(marketingStudio).toContain(".in(\"id\", mediaIds)");
-    expect(marketingStudio).toContain("if (deletedIds.size !== mediaIds.length)");
-    expect(marketingStudio).toContain("Certaines anciennes ressources n'ont pas ete supprimees");
-    expect(marketingStudio).toContain("const otherResources = current.filter((resource) => resource.kind !== kind && resource.persisted)");
-    expect(marketingStudio).toContain("Seuls les nouveaux fichiers de cette catégorie serviront de références visuelles.");
+    expect(marketingStudio).toContain("return [...pending, ...current]");
+    expect(marketingStudio).toContain("return [...persisted, ...existingResources]");
+    expect(marketingStudio).toContain("Les nouveaux visuels ont été ajoutés aux références existantes.");
+    expect(marketingStudio).toContain("Les anciens restent disponibles jusqu'à suppression manuelle.");
+    expect(marketingStudio).toContain("grid max-h-80 grid-cols-2");
+    expect(marketingStudio).toContain("src={resource.mediaUrl}");
+    expect(marketingStudio).toContain("className=\"h-full w-full object-contain p-2\"");
+    expect(marketingStudio).toContain("multiple");
     expect(marketingStudio).toContain("Ajoutez ici les visuels de référence utilisés uniquement par le Marketing Studio.");
   });
 

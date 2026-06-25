@@ -628,62 +628,6 @@ async function uploadMarketingResource(input: {
   return rowToMarketingResource(media as Record<string, unknown>);
 }
 
-async function deletePersistedMarketingResources(input: {
-  restaurantId: string;
-  kind: MarketingAssetKind;
-  resources: MarketingResource[];
-}) {
-  const resourcesToDelete = input.resources.filter((resource) =>
-    resource.persisted &&
-    resource.mediaId &&
-    resource.kind === input.kind
-  );
-
-  if (!resourcesToDelete.length) {
-    return { deletedCount: 0, storageCleanupFailed: false };
-  }
-
-  const mediaIds = resourcesToDelete.map((resource) => resource.mediaId!);
-  const { data: deletedMedia, error: deleteError } = await supabase
-    .from("restaurant_media")
-    .delete()
-    .eq("restaurant_id", input.restaurantId)
-    .eq("media_type", MARKETING_ASSET_MEDIA_TYPES[input.kind])
-    .in("id", mediaIds)
-    .select("id");
-
-  if (deleteError) throw deleteError;
-
-  const deletedIds = new Set(
-    (deletedMedia || [])
-      .map((row) => String((row as { id?: unknown }).id || ""))
-      .filter(Boolean),
-  );
-
-  if (deletedIds.size !== mediaIds.length) {
-    throw new Error("Certaines anciennes ressources n'ont pas ete supprimees. Le remplacement est annule.");
-  }
-
-  const storagePaths = resourcesToDelete
-    .filter((resource) =>
-      resource.mediaId &&
-      deletedIds.has(resource.mediaId) &&
-      resource.storageBucket === MARKETING_STORAGE_BUCKET &&
-      resource.storagePath
-    )
-    .map((resource) => resource.storagePath!);
-
-  if (!storagePaths.length) {
-    return { deletedCount: deletedIds.size, storageCleanupFailed: false };
-  }
-
-  const { error: storageError } = await supabase.storage
-    .from(MARKETING_STORAGE_BUCKET)
-    .remove(storagePaths);
-
-  return { deletedCount: deletedIds.size, storageCleanupFailed: Boolean(storageError) };
-}
-
 export default function TokAiMarketingStudio({ restaurantId }: Props) {
   const { toast } = useToast();
   const [activeTool, setActiveTool] = useState<MarketingToolId>("flyer");
@@ -830,11 +774,9 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
     invalidateMarketingGeneration();
     setUploadingKind(kind);
     const previousResources = resources;
-    const resourcesToReplace = previousResources.filter((resource) => resource.kind === kind && resource.persisted);
     setResources((current) => {
       const pending = accepted.map((file) => createPendingMarketingResource(file, kind));
-      const resourcesOutsideReplacedKind = current.filter((resource) => resource.kind !== kind);
-      return [...pending, ...resourcesOutsideReplacedKind].slice(0, 16);
+      return [...pending, ...current];
     });
 
     let persisted: MarketingResource[] = [];
@@ -851,36 +793,25 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
 
       const failedUpload = uploadResults.find((result): result is PromiseRejectedResult => result.status === "rejected");
       if (failedUpload) {
-        if (persisted.length) {
-          await deletePersistedMarketingResources({ restaurantId, kind, resources: persisted }).catch(() => undefined);
-        }
-        throw failedUpload.reason;
-      }
-
-      let storageCleanupFailed = false;
-      try {
-        const cleanup = await deletePersistedMarketingResources({ restaurantId, kind, resources: resourcesToReplace });
-        storageCleanupFailed = cleanup.storageCleanupFailed;
-      } catch (cleanupError) {
-        await deletePersistedMarketingResources({ restaurantId, kind, resources: persisted }).catch(() => undefined);
-        throw cleanupError;
+        if (!persisted.length) throw failedUpload.reason;
       }
 
       setResources((current) => {
-        const otherResources = current.filter((resource) => resource.kind !== kind && resource.persisted);
-        return [...persisted, ...otherResources].slice(0, 16);
+        const pendingIds = new Set(accepted.map((file) => createPendingMarketingResource(file, kind).id));
+        const existingResources = current.filter((resource) => !pendingIds.has(resource.id));
+        return [...persisted, ...existingResources];
       });
       toast({
-        title: resourcesToReplace.length ? "Ressources remplacées" : "Visuels enregistrés",
-        description: storageCleanupFailed
-          ? "Les anciennes références ont été supprimées de la base et ne seront plus utilisées. Un nettoyage Storage pourra être relancé plus tard."
-          : "Seuls les nouveaux fichiers de cette catégorie serviront de références visuelles.",
+        title: failedUpload ? "Visuels partiellement enregistrés" : "Visuels enregistrés",
+        description: failedUpload
+          ? "Les visuels ajoutés avec succès restent disponibles. Les fichiers en échec peuvent être réessayés sans supprimer les anciens."
+          : "Les nouveaux visuels ont été ajoutés aux références existantes. Les anciens restent disponibles jusqu'à suppression manuelle.",
       });
     } catch (error) {
       setResources(previousResources);
       toast({
-        title: "Remplacement impossible",
-        description: error instanceof Error ? error.message : "Impossible de remplacer les visuels marketing.",
+        title: "Upload impossible",
+        description: error instanceof Error ? error.message : "Impossible d'ajouter les visuels marketing.",
         variant: "destructive",
       });
     } finally {
@@ -1435,25 +1366,39 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                       {isUploading ? <Loader2 className="h-4 w-4 animate-spin text-orange-600" /> : kindResources.length ? <CheckCircle2 className="h-4 w-4 text-emerald-600" /> : null}
                     </div>
                     {kindResources.length ? (
-                      <div className="mt-3 max-h-36 space-y-2 overflow-y-auto pr-1">
+                      <div className="mt-3 grid max-h-80 grid-cols-2 gap-3 overflow-y-auto pr-1 sm:grid-cols-3 xl:grid-cols-2 2xl:grid-cols-3">
                         {kindResources.map((resource) => (
-                          <div key={resource.id} className="flex items-center justify-between gap-2 rounded-xl bg-muted/40 px-3 py-2">
-                            <div className="min-w-0">
-                              <p className="truncate text-xs font-medium text-foreground">
-                                {resource.fileName} · {resource.persisted ? "enregistré" : "en cours"}{resource.fileSize ? ` · ${formatBytes(resource.fileSize)}` : ""}
+                          <div key={resource.id} className="group overflow-hidden rounded-xl border bg-muted/30">
+                            <div className="relative aspect-square bg-white">
+                              {resource.mediaUrl ? (
+                                <img
+                                  src={resource.mediaUrl}
+                                  alt={resource.fileName}
+                                  className="h-full w-full object-contain p-2"
+                                />
+                              ) : (
+                                <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
+                                  Upload...
+                                </div>
+                              )}
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="icon"
+                                className="absolute right-2 top-2 h-8 w-8 opacity-95 shadow-sm transition group-hover:opacity-100"
+                                disabled={deletingResourceId === resource.id}
+                                onClick={() => deleteMarketingResource(resource)}
+                                aria-label={`Supprimer ${resource.fileName}`}
+                              >
+                                {deletingResourceId === resource.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                              </Button>
+                            </div>
+                            <div className="min-w-0 px-2 py-2">
+                              <p className="truncate text-xs font-medium text-foreground">{resource.fileName}</p>
+                              <p className="truncate text-[11px] text-muted-foreground">
+                                {resource.persisted ? "enregistré" : "en cours"}{resource.fileSize ? ` · ${formatBytes(resource.fileSize)}` : ""}
                               </p>
                             </div>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 shrink-0 text-red-600 hover:bg-red-50 hover:text-red-700"
-                              disabled={deletingResourceId === resource.id}
-                              onClick={() => deleteMarketingResource(resource)}
-                              aria-label={`Supprimer ${resource.fileName}`}
-                            >
-                              {deletingResourceId === resource.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-                            </Button>
                           </div>
                         ))}
                       </div>
@@ -1462,7 +1407,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                       id={inputId}
                       type="file"
                       accept={MARKETING_UPLOAD_ACCEPT}
-                      multiple={kind === "brand_visuals"}
+                      multiple
                       className="mt-3"
                       disabled={isUploading || resourcesLoading}
                       onChange={(event) => handleResourceFiles(kind, event)}
