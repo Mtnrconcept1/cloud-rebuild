@@ -4799,6 +4799,7 @@ export type Database = {
           is_cover: boolean
           media_type: string
           media_url: string
+          metadata: Json
           position: number
           restaurant_id: string
           storage_bucket: string | null
@@ -4813,6 +4814,7 @@ export type Database = {
           is_cover?: boolean
           media_type?: string
           media_url: string
+          metadata?: Json
           position?: number
           restaurant_id: string
           storage_bucket?: string | null
@@ -4827,6 +4829,7 @@ export type Database = {
           is_cover?: boolean
           media_type?: string
           media_url?: string
+          metadata?: Json
           position?: number
           restaurant_id?: string
           storage_bucket?: string | null

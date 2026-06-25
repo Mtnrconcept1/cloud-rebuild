@@ -10,7 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 import { useAuth } from "@/lib/auth-context";
+import { getRestaurantMediaAiToolLabel, normalizeTokImageQuality } from "@/lib/ai/restaurantMediaMetadata";
 import { downloadImageWithWatermark } from "@/lib/media/downloadImageWithWatermark";
 import { deleteRestaurantMedia, setRestaurantCoverMedia } from "@/lib/restaurantMediaGovernance";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
@@ -44,6 +46,7 @@ type MediaItem = {
   position: number;
   storage_bucket: string | null;
   storage_path: string | null;
+  metadata: Json | null;
   created_at: string;
 };
 
@@ -141,6 +144,53 @@ function buildGalleryPhotoDownloadFileName(item: MediaItem) {
   return `${normalized || "photo-restaurant"}-${item.id.slice(0, 8)}.png`;
 }
 
+function readMediaMetadata(item: MediaItem) {
+  return item.metadata && !Array.isArray(item.metadata) && typeof item.metadata === "object"
+    ? item.metadata as Record<string, Json | undefined>
+    : {};
+}
+
+function readMetadataString(item: MediaItem, key: string) {
+  const value = readMediaMetadata(item)[key];
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function formatGalleryDateTime(value: string | null | undefined) {
+  if (!value) return "Non renseignée";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Non renseignée";
+
+  return new Intl.DateTimeFormat("fr-CH", {
+    dateStyle: "short",
+    timeStyle: "short",
+  }).format(date);
+}
+
+function getGalleryAiDescription(item: MediaItem) {
+  const metadata = readMediaMetadata(item);
+  const metadataToolLabel = typeof metadata.tool_label === "string" && metadata.tool_label.trim() ? metadata.tool_label.trim() : null;
+  const model = readMetadataString(item, "ai_model") || readMetadataString(item, "model");
+  const quality =
+    normalizeTokImageQuality(readMetadataString(item, "output_quality")) ||
+    normalizeTokImageQuality(readMetadataString(item, "requested_output_quality")) ||
+    normalizeTokImageQuality(readMetadataString(item, "image_quality"));
+  const dishName =
+    readMetadataString(item, "dish_name") ||
+    readMetadataString(item, "dishName") ||
+    item.alt_text ||
+    "Non renseigné";
+  const createdAt = readMetadataString(item, "generated_at") || item.created_at;
+  const tool = readMetadataString(item, "tool");
+
+  return {
+    dishName,
+    model: model || (item.media_type === "photo_ai_tok" ? "Non renseigné" : null),
+    quality: quality || (item.media_type === "photo_ai_tok" ? "Non renseignée" : null),
+    createdAt: formatGalleryDateTime(createdAt),
+    tool: tool ? getRestaurantMediaAiToolLabel(tool) : metadataToolLabel || getRestaurantMediaAiToolLabel(null),
+  };
+}
+
 function TokGalleryWatermark({ className = "", sizeClassName = "h-[180px] w-[180px]" }: { className?: string; sizeClassName?: string }) {
   const logoSrc = useTokLogoSrc();
 
@@ -189,7 +239,7 @@ export default function DashboardPhotos() {
     setLoading(true);
     const { data, error } = await supabase
       .from("restaurant_media")
-      .select("id, restaurant_id, media_url, alt_text, media_type, is_cover, position, storage_bucket, storage_path, created_at")
+      .select("id, restaurant_id, media_url, alt_text, media_type, is_cover, position, storage_bucket, storage_path, metadata, created_at")
       .eq("restaurant_id", selectedId)
       .in("media_type", GALLERY_MEDIA_TYPES)
       .order("created_at", { ascending: false })
@@ -410,7 +460,9 @@ export default function DashboardPhotos() {
         ) : null}
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {items.map((item) => (
+          {items.map((item) => {
+            const aiDescription = getGalleryAiDescription(item);
+            return (
             <Card key={item.id} className="overflow-hidden">
               <div className="relative">
                 <TokGalleryWatermark sizeClassName="h-14 w-14" />
@@ -438,7 +490,17 @@ export default function DashboardPhotos() {
                 ) : null}
               </div>
               <CardContent className="pt-3 space-y-2">
-                {item.alt_text && <p className="text-sm text-muted-foreground">{item.alt_text}</p>}
+                {item.media_type === "photo_ai_tok" ? (
+                  <div className="space-y-1 rounded-2xl border border-orange-100 bg-orange-50/60 p-3 text-xs leading-5 text-orange-950">
+                    <p className="text-sm font-semibold text-foreground">{aiDescription.dishName}</p>
+                    <p><span className="font-medium">Modèle IA:</span> {aiDescription.model}</p>
+                    <p><span className="font-medium">Résolution:</span> {aiDescription.quality}</p>
+                    <p><span className="font-medium">Créée le:</span> {aiDescription.createdAt}</p>
+                    <p><span className="font-medium">Outil:</span> {aiDescription.tool}</p>
+                  </div>
+                ) : item.alt_text ? (
+                  <p className="text-sm text-muted-foreground">{item.alt_text}</p>
+                ) : null}
                 <div className="flex gap-2 flex-wrap">
                   {!item.is_cover && (
                     <Button size="sm" variant="outline" onClick={() => setCover(item.id)}>
@@ -467,7 +529,8 @@ export default function DashboardPhotos() {
                 </div>
               </CardContent>
             </Card>
-          ))}
+          );
+          })}
         </div>
           </div>
         ) : null}
@@ -478,7 +541,11 @@ export default function DashboardPhotos() {
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <DialogTitle>{previewItem?.alt_text || "Photo de galerie"}</DialogTitle>
-                  <DialogDescription>Prévisualisation grand format de l'image ajoutée à la galerie.</DialogDescription>
+                  <DialogDescription>
+                    {previewItem?.media_type === "photo_ai_tok"
+                      ? `${getGalleryAiDescription(previewItem).dishName} - ${getGalleryAiDescription(previewItem).tool}, ${getGalleryAiDescription(previewItem).model || "modèle non renseigné"}, résolution ${getGalleryAiDescription(previewItem).quality || "non renseignée"}, créée le ${getGalleryAiDescription(previewItem).createdAt}.`
+                      : "Prévisualisation grand format de l'image ajoutée à la galerie."}
+                  </DialogDescription>
                 </div>
                 {previewItem ? (
                   <Button type="button" variant="outline" onClick={() => downloadPhoto(previewItem)} className="gap-2">

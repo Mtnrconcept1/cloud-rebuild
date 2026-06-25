@@ -21,6 +21,7 @@ import {
   getTokImageOutputPricing,
   type TokImageOutputResolution,
 } from "@/lib/ai/imagePricing";
+import { buildRestaurantMediaAiMetadata } from "@/lib/ai/restaurantMediaMetadata";
 import { downloadImageWithWatermark } from "@/lib/media/downloadImageWithWatermark";
 import { CheckCircle2, Download, Loader2, Maximize2, RotateCcw, Sparkles, Wand2 } from "lucide-react";
 import { useTokLogoSrc } from "@/hooks/useTokLogo";
@@ -204,6 +205,11 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
       position: currentPhotoCount,
       storage_bucket: result.gallery_storage_bucket,
       storage_path: result.gallery_storage_path,
+      metadata: buildRestaurantMediaAiMetadata({
+        result,
+        dishName: draft.dishName,
+        tool: "photopro",
+      }),
     });
     if (error) return toast({ title: "Erreur", description: error.message, variant: "destructive" });
     toast({ title: "Ajouté à la galerie" });

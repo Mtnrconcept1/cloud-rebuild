@@ -12,6 +12,7 @@ import {
   subscribeAiCreationRecords,
   type AiCreationRecord,
 } from "@/lib/ai/aiCreationJobs";
+import { buildRestaurantMediaAiMetadata } from "@/lib/ai/restaurantMediaMetadata";
 import { CheckCircle2, ImagePlus, Loader2, Sparkles, Trash2, TriangleAlert } from "lucide-react";
 
 const supabase = getSupabase();
@@ -88,6 +89,12 @@ export default function AiCreationsGallery({ restaurantId, userId, currentPhotoC
       position: currentPhotoCount,
       storage_bucket: record.result?.gallery_storage_bucket,
       storage_path: record.result?.gallery_storage_path,
+      metadata: buildRestaurantMediaAiMetadata({
+        result: record.result,
+        dishName: record.title,
+        tool: record.tool,
+        createdAt: record.completedAt || record.updatedAt || record.createdAt,
+      }),
     });
     setAddingId(null);
 

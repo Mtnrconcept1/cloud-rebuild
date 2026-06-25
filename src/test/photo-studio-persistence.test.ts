@@ -64,6 +64,7 @@ describe("TOK photo studio persistence", () => {
     expect(source).toContain("media_url: result.gallery_image_url");
     expect(source).toContain("storage_bucket: result.gallery_storage_bucket");
     expect(source).toContain("storage_path: result.gallery_storage_path");
+    expect(source).toContain("metadata: buildRestaurantMediaAiMetadata");
     expect(source).not.toContain("media_url: result.generated_image_url");
   });
 
@@ -94,6 +95,30 @@ describe("TOK photo studio persistence", () => {
     expect(dashboardPhotos).toContain('.in("media_type", GALLERY_MEDIA_TYPES)');
     expect(dashboardPhotos).not.toContain('item.media_type === "photo_ai_tok" ? <TokGalleryWatermark');
     expect(dashboardPhotos).toContain("Prévisualisation grand format de l'image ajoutée à la galerie.");
+  });
+
+  it("shows generated image metadata in gallery descriptions", () => {
+    const metadataHelper = readFileSync(resolve(process.cwd(), "src/lib/ai/restaurantMediaMetadata.ts"), "utf8");
+    const migration = readFileSync(resolve(process.cwd(), "supabase/migrations/20260625163000_restaurant_media_ai_metadata.sql"), "utf8");
+
+    expect(migration).toContain("ADD COLUMN IF NOT EXISTS metadata jsonb");
+    expect(migration).toContain("ai_generated_assets");
+    expect(migration).toContain("gallery_storage_path");
+    expect(metadataHelper).toContain("normalizeTokImageQuality");
+    expect(metadataHelper).toContain('if (normalized === "medium") return "med";');
+    expect(metadataHelper).toContain("RESTAURANT_MEDIA_AI_TOOL_LABELS");
+    expect(metadataHelper).toContain('marketing_studio: "Marketing Studio"');
+    expect(metadataHelper).toContain('photopro: "Photopro"');
+    expect(source).toContain('tool: "photopro"');
+    expect(aiCreationsGallery).toContain("metadata: buildRestaurantMediaAiMetadata");
+    expect(aiCreationsGallery).toContain("tool: record.tool");
+    expect(aiCreationsGallery).toContain("createdAt: record.completedAt");
+    expect(dashboardPhotos).toContain("metadata, created_at");
+    expect(dashboardPhotos).toContain("getGalleryAiDescription");
+    expect(dashboardPhotos).toContain("Modèle IA:");
+    expect(dashboardPhotos).toContain("Résolution:");
+    expect(dashboardPhotos).toContain("Créée le:");
+    expect(dashboardPhotos).toContain("Outil:");
   });
 
   it("keeps gallery watermarks inside the rendered image frame and never downloads raw gallery images", () => {
