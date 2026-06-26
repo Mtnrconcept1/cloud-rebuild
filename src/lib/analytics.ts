@@ -495,7 +495,7 @@ type QueuedAnalyticsEvent = {
 
 const analyticsQueue: QueuedAnalyticsEvent[] = [];
 const analyticsDedupeLedger = new Map<string, number>();
-let analyticsFlushTimer: ReturnType<typeof setTimeout> | null = null;
+let analyticsFlushTimer: number | null = null;
 
 async function invokeAnalyticsIngest(body: Record<string, unknown>): Promise<AnalyticsIngestResponse | null> {
   if (_analyticsTrackingDisabled) return null;

@@ -650,9 +650,12 @@ export default function AdminUtilisateurs() {
     }
 
     setSavingUserId(userId);
+    const safeNextRoles = nextRoles.filter((role): role is (typeof AVAILABLE_ROLES)[number] => (
+      AVAILABLE_ROLES.includes(role as (typeof AVAILABLE_ROLES)[number])
+    ));
     const { error: rpcError } = await supabase.rpc("admin_set_user_roles", {
       p_user_id: userId,
-      p_roles: nextRoles,
+      p_roles: safeNextRoles.length > 0 ? safeNextRoles : ["client"],
     });
     setSavingUserId(null);
 

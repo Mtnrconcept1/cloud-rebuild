@@ -98,10 +98,11 @@ export default function Abonnement() {
         .eq("user_id", user.id)
         .maybeSingle();
       if (error) throw error;
+      const settings = data as unknown as Partial<MealSubscriptionStatus> | null;
 
       return {
-        status: data?.status === "paused" ? "paused" : "active",
-        resume_at: data?.resume_at || null,
+        status: settings?.status === "paused" ? "paused" : "active",
+        resume_at: settings?.resume_at || null,
       };
     },
     enabled: !!user,

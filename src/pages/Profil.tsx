@@ -112,7 +112,10 @@ export default function Profil() {
   const [city, setCity] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [birthDate, setBirthDate] = useState("");
-  const { data: signupApplication } = useSignupApplication("client");
+  const { data: rawSignupApplication } = useSignupApplication("client");
+  const signupApplication = Array.isArray(rawSignupApplication)
+    ? rawSignupApplication[0] || null
+    : rawSignupApplication || null;
   const { activeFeatures } = useFeatureFlagSnapshot();
   const tokOneFeatureEnabled = activeFeatures.has("tok-one");
   const pointsGiftEnabled = activeFeatures.has("points-cadeau");
@@ -223,7 +226,7 @@ export default function Profil() {
         .select("*")
         .eq("user_id", user!.id)
         .maybeSingle();
-      return (data as NotificationPreferences | null) || null;
+      return (data as unknown as NotificationPreferences | null) || null;
     },
     enabled: !!user,
   });

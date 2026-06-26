@@ -26,7 +26,7 @@ export function buildCustomerOrderGroups(orders: any[]): CustomerOrderGroup[] {
     return acc;
   }, {} as Record<string, any[]>);
 
-  return Object.entries(grouped).map(([groupKey, groupOrders]) => {
+  return Object.entries(grouped).map(([groupKey, groupOrders]: [string, any[]]) => {
     const mainOrder = groupOrders[0];
     const isMealSubscription = groupOrders.some((order) => order?.metadata?.feature === "abonnement");
     const restaurants = uniqueLabels(groupOrders.map((order) => order?.restaurant?.name || "Restaurant"));

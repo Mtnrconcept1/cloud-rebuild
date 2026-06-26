@@ -34,10 +34,11 @@ import { Input } from "@/components/ui/input";
 import { SUPPORT_EMAIL } from "@/lib/contact";
 import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 import { isHelpCategoryVisible, isHelpQuestionVisible } from "@/lib/featureVisibility";
+import type { HelpChatOpenOptions } from "@/lib/helpChat";
 
 declare global {
   interface Window {
-    openChat?: () => void;
+    openChat?: (options?: HelpChatOpenOptions) => void;
   }
 }
 

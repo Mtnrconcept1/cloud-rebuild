@@ -15,7 +15,6 @@ import {
   normalizeSocialReaction,
   normalizeSocialViewerReaction,
   isMissingSocialMarketingSchemaError,
-  validateSocialPostDraft,
   type SocialFeedComment,
   type SocialFeedMedia,
   type SocialFeedPost,

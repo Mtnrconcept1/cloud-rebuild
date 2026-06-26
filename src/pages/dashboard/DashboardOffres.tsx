@@ -72,7 +72,7 @@ export default function DashboardOffres() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return (data || []) as OfferRecord[];
+      return (data || []) as unknown as OfferRecord[];
     },
     enabled: !!selectedId,
   });
@@ -185,8 +185,10 @@ export default function DashboardOffres() {
             {offers.map((offer) => {
               const isSoldOut = isSpecialOfferSoldOut(offer);
               const isEffectivelyActive = isSpecialOfferEffectivelyActive(offer);
-              const discount = offer.original_price > 0
-                ? Math.round((1 - offer.discounted_price / offer.original_price) * 100)
+              const originalPrice = Number(offer.original_price);
+              const discountedPrice = Number(offer.discounted_price);
+              const discount = originalPrice > 0
+                ? Math.round((1 - discountedPrice / originalPrice) * 100)
                 : 0;
 
               return (

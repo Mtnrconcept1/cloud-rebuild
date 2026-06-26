@@ -30,6 +30,10 @@ const STRIPE_CHECKOUT_UNSUPPORTED_METHODS = new Set<PaymentMethodId>([
   "credits",
 ]);
 
+function isFeatureFlagPaymentMethod(method: PaymentMethodId): method is FeatureFlagPaymentMethodId {
+  return method !== "credits";
+}
+
 function filterCheckoutCompatibleMethods(methods: PaymentMethodId[]): PaymentMethodId[] {
   return methods.filter((method) => !STRIPE_CHECKOUT_UNSUPPORTED_METHODS.has(method));
 }
@@ -60,5 +64,5 @@ export function getFirstAvailablePaymentMethod(
 
   return STRIPE_CHECKOUT_UNSUPPORTED_METHODS.has(fallback)
     ? null
-    : (ALL_PAYMENT_METHODS.includes(fallback) ? fallback : null);
+    : (isFeatureFlagPaymentMethod(fallback) && ALL_PAYMENT_METHODS.includes(fallback) ? fallback : null);
 }

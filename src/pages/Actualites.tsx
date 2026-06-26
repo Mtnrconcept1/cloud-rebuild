@@ -144,7 +144,7 @@ export default function Actualites() {
   const feed = useInfiniteSocialFeed(scope, 12);
   const canManage = role === "restaurateur" || isSuperAdmin;
   const ownerRestaurants = useOwnerRestaurants({ enabled: canManage });
-  const rawPosts = useMemo(() => feed.data?.pages.flatMap((page) => page.posts) || [], [feed.data]);
+  const rawPosts = useMemo(() => (feed.data?.pages.flatMap((page) => page.posts) || []) as SocialFeedPost[], [feed.data]);
   const posts = useMemo(() => orderActualitesFeedPosts(rawPosts, `${feedOrderSeed}:${scope}`), [feedOrderSeed, rawPosts, scope]);
   const filteredPosts = useMemo(() => {
     const normalizedQuery = normalizeActualitesSearch(searchQuery);

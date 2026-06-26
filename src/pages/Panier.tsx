@@ -66,6 +66,20 @@ const ORDER_VALIDATION_TIMEOUT_MS = 15000;
 
 type CheckoutStepId = "summary" | "address" | "suggestions" | "payment";
 
+type ValidateOrderFunctionResponse = {
+  error?: string | null;
+  verified_total?: number | string | null;
+  order_id?: string | null;
+  applied_promo_code_id?: string | null;
+  applied_promo_code_discount?: number | string | null;
+};
+
+type CreateCheckoutFunctionResponse = {
+  error?: string | null;
+  url?: string | null;
+  session_id?: string | null;
+};
+
 const CHECKOUT_STEPS: Array<{ id: CheckoutStepId; label: string; description: string }> = [
   { id: "summary", label: "Resume", description: "Commande et mode" },
   { id: "address", label: "Adresse", description: "Adresse ou retrait" },
@@ -698,12 +712,15 @@ export default function Panier() {
     price: number;
     restaurant_id: string;
   }) => {
+    const restaurantName = items.find((item) => item.restaurantId === suggestedItem.restaurant_id)?.restaurantName || "";
+
     addItem({
       menuItemId: suggestedItem.id,
       name: suggestedItem.name,
       price: Number(suggestedItem.price),
       quantity: 1,
       restaurantId: suggestedItem.restaurant_id,
+      restaurantName,
     });
   };
 
@@ -955,7 +972,7 @@ export default function Panier() {
       ));
       const previewResults = await Promise.all(validationPayloads.map(async ({ resId, body }) => {
         const { data, error } = await withTimeout(
-          invokeSupabaseFunction("validate-order", {
+          invokeSupabaseFunction<ValidateOrderFunctionResponse>("validate-order", {
             accessToken,
             body: {
               ...body,
@@ -990,7 +1007,7 @@ export default function Panier() {
 
         const pendingOrderResults = await Promise.all(validationPayloads.map(async ({ resId, body }) => {
           const { data: validateResult, error: validateError } = await withTimeout(
-            invokeSupabaseFunction("validate-order", {
+            invokeSupabaseFunction<ValidateOrderFunctionResponse>("validate-order", {
               accessToken,
               body: {
                 ...body,
@@ -1034,7 +1051,7 @@ export default function Panier() {
         let checkoutData: Record<string, any> | null = null;
         try {
           const { data, error: checkoutError } = await withTimeout(
-            invokeSupabaseFunction("create-checkout", {
+            invokeSupabaseFunction<CreateCheckoutFunctionResponse>("create-checkout", {
               accessToken,
               body: {
                 items: items.map(i => ({
@@ -1124,7 +1141,7 @@ export default function Panier() {
       // Cash payment flow or zero-balance online flow — create orders directly as confirmed
       for (const { resId, body } of validationPayloads) {
 
-        const { data: validateResult, error: validateError } = await invokeSupabaseFunction("validate-order", {
+        const { data: validateResult, error: validateError } = await invokeSupabaseFunction<ValidateOrderFunctionResponse>("validate-order", {
           accessToken,
           body,
         });

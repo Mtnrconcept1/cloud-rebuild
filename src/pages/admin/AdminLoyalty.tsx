@@ -157,7 +157,7 @@ export default function AdminLoyalty() {
   const { data: loyaltyHistory = [] } = useQuery({
     queryKey: ["admin-loyalty-change-history"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("admin_loyalty_change_history")
         .select("*")
         .order("created_at", { ascending: false })

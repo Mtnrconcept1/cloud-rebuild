@@ -366,7 +366,8 @@ export default function DashboardCampagnes() {
       let reservation = 0;
       let zeroAttente = 0;
 
-      for (const row of data || []) {
+      const rows = (data || []) as unknown as Array<{ conversion_type?: string | null }>;
+      for (const row of rows) {
         const conversionType = String(row.conversion_type || "");
         if (conversionType === "order") order += 1;
         else if (conversionType === "reservation") reservation += 1;

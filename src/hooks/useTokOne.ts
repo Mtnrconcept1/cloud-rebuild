@@ -81,7 +81,7 @@ function attachPlan<T extends Record<string, any>>(subscription: T, plan: TokOne
     stripe_checkout_session_id: subscription.stripe_checkout_session_id ?? null,
     stripe_mode: subscription.stripe_mode ?? null,
     user_subscription_plans: plan,
-  } as TokOneSubscription;
+  } as unknown as TokOneSubscription;
 }
 
 function parseBenefitNumber(value: unknown, keys: string[]) {

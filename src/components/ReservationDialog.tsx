@@ -469,7 +469,7 @@ export default function ReservationDialog({
 
     setLoading(false);
 
-    if (!reservationResult.ok) {
+    if ("errorMessage" in reservationResult) {
       toast({ title: "Erreur", description: reservationResult.errorMessage, variant: "destructive" });
       return;
     }

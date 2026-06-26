@@ -230,7 +230,7 @@ export const INVOICE_DETAIL_SOURCE_PRESENTATION: Record<InvoiceDetailSource, Inv
   other: { label: "Autre", className: "bg-slate-100 text-slate-600" },
 };
 
-export function toAmount(value: number | string | null | undefined) {
+export function toAmount(value: unknown) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
 }
@@ -518,8 +518,8 @@ function buildAdminPayableAccrualSummary(input: {
   return summary;
 }
 
-type SupabasePagedQuery<T> = {
-  range: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: unknown }>;
+type SupabasePagedQuery = {
+  range: (from: number, to: number) => PromiseLike<{ data: unknown[] | null; error: unknown }>;
 };
 
 function applyAccountingPeriodRange<TQuery>(
@@ -550,14 +550,14 @@ function applyAdminRestaurantFilter<TQuery>(query: TQuery, selectedRestaurant: s
   return (query as any).eq("restaurant_id", selectedRestaurant) as TQuery;
 }
 
-async function fetchPagedRows<T>(buildQuery: () => SupabasePagedQuery<T>, pageSize = 1000) {
+async function fetchPagedRows<T>(buildQuery: () => SupabasePagedQuery, pageSize = 1000) {
   const rows: T[] = [];
 
   for (let offset = 0; ; offset += pageSize) {
     const { data, error } = await buildQuery().range(offset, offset + pageSize - 1);
     if (error) throw error;
 
-    const page = data || [];
+    const page = (data || []) as T[];
     rows.push(...page);
 
     if (page.length < pageSize) {
@@ -833,10 +833,10 @@ export function useAdminPayoutInvoiceDetailLines(invoiceId: string | null) {
     queryFn: async () => {
       if (!invoiceId) return [] as PayoutInvoiceDetailLine[];
 
-      const { data, error } = await supabase.rpc("get_payout_invoice_lines", { p_invoice_id: invoiceId });
+      const { data, error } = await (supabase.rpc as any)("get_payout_invoice_lines", { p_invoice_id: invoiceId });
       if (error) throw error;
 
-      const rows = data || [];
+      const rows = (data || []) as Array<Record<string, unknown>>;
       const orderIds = Array.from(new Set(
         rows
           .filter((row) => String(row.line_type || "").trim().toLowerCase() === "order")
@@ -1004,11 +1004,11 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
 
         const fallback = await fallbackQuery.order("created_at", { ascending: false });
         if (fallback.error) throw fallback.error;
-        return withDefaultRefundFields(fallback.data || []) as AdminOrderRow[];
+        return withDefaultRefundFields(fallback.data || []) as unknown as AdminOrderRow[];
       }
 
       if (error) throw error;
-      return (data || []) as AdminOrderRow[];
+      return (data || []) as unknown as AdminOrderRow[];
     },
   });
 
@@ -1130,11 +1130,11 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
 
         const fallback = await fallbackQuery.order("created_at", { ascending: false });
         if (fallback.error) throw fallback.error;
-        return withDefaultRefundFields(fallback.data || []) as AdminReservationPaymentRow[];
+        return withDefaultRefundFields(fallback.data || []) as unknown as AdminReservationPaymentRow[];
       }
 
       if (error) throw error;
-      return (data || []) as AdminReservationPaymentRow[];
+      return (data || []) as unknown as AdminReservationPaymentRow[];
     },
   });
 
@@ -1300,7 +1300,7 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
       }
 
       if (error) throw error;
-      return (data || []) as RefundOperationRow[];
+      return (data || []) as unknown as RefundOperationRow[];
     },
   });
 
@@ -1325,7 +1325,7 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
       }
 
       if (error) throw error;
-      return (data || []) as RefundOperationRow[];
+      return (data || []) as unknown as RefundOperationRow[];
     },
   });
 

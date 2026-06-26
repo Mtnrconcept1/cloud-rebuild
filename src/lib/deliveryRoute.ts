@@ -49,7 +49,7 @@ export function normalizeDeliveryRouteSteps(value: unknown) {
       : [];
 
   return source
-    .map((entry, index) => {
+    .map((entry, index): DeliveryRouteStep | null => {
       const item = asObject(entry);
       if (!item) return null;
 

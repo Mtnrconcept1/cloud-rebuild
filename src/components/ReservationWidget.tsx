@@ -150,7 +150,7 @@ export default function ReservationWidget({ restaurantId, restaurantName, onRese
         .in("applies_to", ["reservation", "both", "dine_in"] as any));
       if (error) throw error;
       const reservationDate = date ? format(date, "yyyy-MM-dd") : undefined;
-      return ((data || []) as Array<{ discount_percent: number | null; availability?: MealFormulaAvailability }>)
+      return ((data || []) as unknown as Array<{ discount_percent: number | null; availability?: MealFormulaAvailability }>)
         .filter((row) => isMealFormulaAvailableForSlot(row.availability || null, reservationDate, time))
         .map((row) => Number(row.discount_percent) || 0);
     },

@@ -61,7 +61,7 @@ export default function DashboardVentesFlash() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return (data || []) as FlashSaleRecord[];
+      return (data || []) as unknown as FlashSaleRecord[];
     },
     enabled: !!selectedId,
   });
@@ -174,8 +174,10 @@ export default function DashboardVentesFlash() {
             {sales.map((sale) => {
               const isSoldOut = isSpecialOfferSoldOut(sale);
               const isEffectivelyActive = isSpecialOfferEffectivelyActive(sale);
-              const discount = sale.original_price > 0
-                ? Math.round((1 - sale.discounted_price / sale.original_price) * 100)
+              const originalPrice = Number(sale.original_price);
+              const discountedPrice = Number(sale.discounted_price);
+              const discount = originalPrice > 0
+                ? Math.round((1 - discountedPrice / originalPrice) * 100)
                 : 0;
 
               return (

@@ -458,15 +458,16 @@ function getReservationPreorderItems(reservation: ReservationRow): ReservationPr
 
   return rawItems.flatMap((item) => {
     if (!isJsonRecord(item as Json)) return [];
+    const itemRecord = item as Record<string, Json>;
 
-    const itemMetadata = isJsonRecord(item.metadata as Json) ? item.metadata as Record<string, Json> : {};
+    const itemMetadata = isJsonRecord(itemRecord.metadata) ? itemRecord.metadata : {};
     return [{
-      menuItemId: typeof item.menu_item_id === "string" && item.menu_item_id.trim() ? item.menu_item_id : null,
-      name: typeof item.name === "string" && item.name.trim() ? item.name : "Article",
-      quantity: Math.max(1, Math.round(parseReservationNumber(item.quantity) || 1)),
-      unitPrice: parseReservationNumber(item.unit_price),
-      totalPrice: parseReservationNumber(item.total_price),
-      source: typeof item.source === "string" && item.source.trim() ? item.source : null,
+      menuItemId: typeof itemRecord.menu_item_id === "string" && itemRecord.menu_item_id.trim() ? itemRecord.menu_item_id : null,
+      name: typeof itemRecord.name === "string" && itemRecord.name.trim() ? itemRecord.name : "Article",
+      quantity: Math.max(1, Math.round(parseReservationNumber(itemRecord.quantity) || 1)),
+      unitPrice: parseReservationNumber(itemRecord.unit_price),
+      totalPrice: parseReservationNumber(itemRecord.total_price),
+      source: typeof itemRecord.source === "string" && itemRecord.source.trim() ? itemRecord.source : null,
       metadata: itemMetadata,
     }];
   });
@@ -1018,6 +1019,7 @@ export default function DashboardPlanSalle() {
       setCanvasWidth((current) => (current === nextSize.width ? current : nextSize.width));
       setCanvasHeight((current) => (current === nextSize.height ? current : nextSize.height));
     };
+    const handleResize = () => updateSize();
 
     const observeCurrentViewport = () => {
       const viewport = canvasViewportRef.current;
@@ -1041,14 +1043,14 @@ export default function DashboardPlanSalle() {
     };
 
     observeCurrentViewport();
-    window.addEventListener("resize", updateSize);
+    window.addEventListener("resize", handleResize);
 
     return () => {
       if (frameId !== null) {
         window.cancelAnimationFrame(frameId);
       }
       observer?.disconnect();
-      window.removeEventListener("resize", updateSize);
+      window.removeEventListener("resize", handleResize);
     };
   }, []);
 
@@ -1070,7 +1072,7 @@ export default function DashboardPlanSalle() {
         .eq("restaurant_id", selectedId!)
         .order("created_at", { ascending: true });
       if (error) throw error;
-      return (data || []) as BranchRow[];
+      return (data || []) as unknown as BranchRow[];
     },
     enabled: !!selectedId,
   });
@@ -1086,7 +1088,7 @@ export default function DashboardPlanSalle() {
         .eq("branch_id", selectedBranchId!)
         .order("updated_at", { ascending: false });
       if (error) throw error;
-      return (data || []) as FloorPlanVariantRow[];
+      return (data || []) as unknown as FloorPlanVariantRow[];
     },
     enabled: !!selectedBranchId,
   });
@@ -1103,7 +1105,7 @@ export default function DashboardPlanSalle() {
         .eq("branch_id", selectedBranchId!)
         .order("table_number", { ascending: true });
       if (error) throw error;
-      return (data || []) as TableRow[];
+      return (data || []) as unknown as TableRow[];
     },
     enabled: !!selectedBranchId,
   });
@@ -1118,7 +1120,7 @@ export default function DashboardPlanSalle() {
         .eq("service_date", referenceDate)
         .order("created_at", { ascending: true });
       if (error) throw error;
-      return (data || []) as LayoutOverrideRow[];
+      return (data || []) as unknown as LayoutOverrideRow[];
     },
     enabled: !!selectedBranchId,
   });
@@ -1197,7 +1199,7 @@ export default function DashboardPlanSalle() {
         .select("*")
         .in("table_id", persistedTableIds);
       if (error) throw error;
-      return (data || []) as SlotRow[];
+      return (data || []) as unknown as SlotRow[];
     },
     enabled: !!selectedBranchId && persistedTableIds.length > 0,
   });
@@ -1866,7 +1868,7 @@ export default function DashboardPlanSalle() {
         .single();
 
       if (error) throw error;
-      return data as BranchRow;
+      return data as unknown as BranchRow;
     },
     onSuccess: (branch) => {
       setSelectedBranchId(branch.id);
@@ -1922,7 +1924,7 @@ export default function DashboardPlanSalle() {
         .single();
 
       if (error) throw error;
-      return data as FloorPlanVariantRow;
+      return data as unknown as FloorPlanVariantRow;
     },
     onSuccess: (variant) => {
       setActiveVariantId(variant.id);
@@ -2002,7 +2004,7 @@ export default function DashboardPlanSalle() {
               .select("id")
               .single();
             if (error) throw error;
-            tempIdToPersistedId.set(table.id, String(data.id));
+            tempIdToPersistedId.set(table.id, String((data as unknown as { id: string }).id));
           }
         }
 

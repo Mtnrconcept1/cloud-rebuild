@@ -271,7 +271,8 @@ export default function ReservationQueue({
   const serviceTimeline = useMemo(() => {
     return [...unassignedReservations, ...assignedReservations]
       .map((reservation) => {
-        const assignedTableId = draftAssignments[reservation.id] || reservation.table_id;
+        const assignedTableId = draftAssignments[reservation.id]
+          || (reservation as ServiceReservation & { table_id?: string | null }).table_id;
         const assignedTable = assignedTableId ? tableMap.get(assignedTableId) || null : null;
 
         return {

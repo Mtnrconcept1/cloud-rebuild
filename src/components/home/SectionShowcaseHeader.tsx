@@ -150,7 +150,7 @@ export default function SectionShowcaseHeader({
         initial: { y: 12, scale: 0.97 },
         whileInView: { y: [12, -8, 3, 0], scale: [0.97, 1.035, 0.995, 1] },
         viewport: { once: false, amount: 0.45 },
-        transition: { duration: 0.68, ease: [0.22, 1, 0.36, 1] },
+        transition: { duration: 0.68, ease: [0.22, 1, 0.36, 1] as const },
       };
 
   return (

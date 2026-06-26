@@ -37,6 +37,12 @@ import { PUBLIC_MENU_ITEMS_LIMIT } from "@/lib/queryLimits";
 const supabase = getSupabase();
 
 type Step = "info" | "restaurant" | "menu" | "payment" | "confirm";
+type ZeroAttentePaymentMethodId = Exclude<PaymentMethodId, "cash">;
+
+function isZeroAttentePaymentMethod(method: PaymentMethodId): method is ZeroAttentePaymentMethodId {
+  return method !== "cash";
+}
+
 type PricingSummary = {
   count: number;
   subtotal: number;
@@ -136,7 +142,7 @@ export default function ZeroAttente() {
   });
   const allowedPaymentMethods = useMemo(() => {
     const disabled = (selectedRestaurant as Record<string, unknown>)?.disabled_payment_methods as string[] || [];
-    return getAllowedPaymentMethods(activeFeatures, disabled).filter((method) => method !== "cash");
+    return getAllowedPaymentMethods(activeFeatures, disabled).filter(isZeroAttentePaymentMethod);
   }, [activeFeatures, selectedRestaurant]);
 
   const syncPendingCheckoutSessionId = useCallback((sessionId: string | null) => {
@@ -176,7 +182,7 @@ export default function ZeroAttente() {
   }, [preSelectedRestaurantId, restaurants, selectedRestaurant]);
 
   useEffect(() => {
-    if (!allowedPaymentMethods.includes(paymentMethod)) {
+    if (!isZeroAttentePaymentMethod(paymentMethod) || !allowedPaymentMethods.includes(paymentMethod)) {
       const nextMethod = getFirstAvailablePaymentMethod(
         activeFeatures,
         (selectedRestaurant as Record<string, unknown>)?.disabled_payment_methods as string[] || [],
@@ -315,7 +321,7 @@ export default function ZeroAttente() {
       });
       return;
     }
-    if (!allowedPaymentMethods.includes(paymentMethod)) {
+    if (!isZeroAttentePaymentMethod(paymentMethod) || !allowedPaymentMethods.includes(paymentMethod)) {
       const nextMethod = getFirstAvailablePaymentMethod(
         activeFeatures,
         (selectedRestaurant as Record<string, unknown>)?.disabled_payment_methods as string[] || [],
@@ -349,7 +355,7 @@ export default function ZeroAttente() {
       });
 
     // For online payment methods, redirect to Stripe first
-    if (paymentMethod !== "cash") {
+    if (allowedPaymentMethods.includes(paymentMethod)) {
       const stripeItems = preorderItems.map((pi) => ({
         name: pi.name,
         price: pi.unit_price,

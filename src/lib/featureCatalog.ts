@@ -20,8 +20,9 @@ export type FeatureFlagDefinition = {
   critical?: boolean;
 };
 
-export type FeatureFlag = FeatureFlagDefinition & {
+export type FeatureFlag = Omit<FeatureFlagDefinition, "group"> & {
   id: string;
+  group: FeatureFlagGroup;
   isActive: boolean;
   explicitEnabled: boolean;
   effectiveEnabled: boolean;

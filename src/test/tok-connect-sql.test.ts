@@ -104,6 +104,16 @@ describe("TOK Connect SQL foundation", () => {
     expect(sql).toContain("CREATE INDEX IF NOT EXISTS idx_tok_connect_access_tokens_client_revoked");
   });
 
+  it("does not expose webhook signing secrets through authenticated table reads", () => {
+    const sql = readAllMigrations();
+
+    expect(sql).toContain("REVOKE SELECT ON public.tok_connect_webhook_endpoints FROM authenticated;");
+    expect(sql).toMatch(/GRANT\s+SELECT\s+\([\s\S]*\)\s+ON\s+public\.tok_connect_webhook_endpoints\s+TO\s+authenticated;/i);
+    const authenticatedColumnGrant = sql.match(/GRANT\s+SELECT\s+\(([\s\S]*?)\)\s+ON\s+public\.tok_connect_webhook_endpoints\s+TO\s+authenticated;/i)?.[1] || "";
+    expect(authenticatedColumnGrant).not.toContain("signing_secret");
+    expect(sql).toContain("GRANT ALL ON public.tok_connect_webhook_endpoints TO service_role;");
+  });
+
   it("schedules signed TOK Connect webhook dispatch through pg_cron and Vault", () => {
     const sql = readAllMigrations();
 

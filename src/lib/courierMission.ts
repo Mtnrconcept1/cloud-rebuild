@@ -95,7 +95,7 @@ export function normalizeCourierMissionSteps(value: unknown) {
       : [];
 
   const steps = source
-    .map((entry, index) => {
+    .map((entry, index): CourierMissionStep | null => {
       const item = asObject(entry);
       if (!item) return null;
 

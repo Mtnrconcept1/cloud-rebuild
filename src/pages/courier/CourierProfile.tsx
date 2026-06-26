@@ -90,7 +90,10 @@ export default function CourierProfile() {
   const queryClient = useQueryClient();
   const { signOut, user } = useAuth();
   const { data: profile, isLoading: profileLoading } = useCourierProfile();
-  const { data: signupApplication } = useSignupApplication("courier");
+  const { data: rawSignupApplication } = useSignupApplication("courier");
+  const signupApplication = Array.isArray(rawSignupApplication)
+    ? rawSignupApplication[0] || null
+    : rawSignupApplication || null;
   const [form, setForm] = useState({
     first_name: "",
     last_name: "",

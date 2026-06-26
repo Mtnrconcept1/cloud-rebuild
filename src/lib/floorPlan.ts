@@ -41,6 +41,7 @@ export type FloorPlanItemKind =
   | "divider"
   | "plant"
   | "service-station";
+type FloorPlanFurnitureKind = Exclude<FloorPlanItemKind, "table">;
 
 export type FloorPlanTableLayout = {
   x: number;
@@ -298,7 +299,7 @@ const parseNumber = (value: unknown) => {
   return Number.isFinite(parsed) ? parsed : null;
 };
 
-export function isReservableFloorPlanItem(kind: FloorPlanItemKind | null | undefined) {
+export function isReservableFloorPlanItem(kind: FloorPlanItemKind | null | undefined): kind is "table" {
   return (kind || "table") === "table";
 }
 
@@ -336,7 +337,7 @@ function clampDimension(value: number, min: number, max = Number.POSITIVE_INFINI
 }
 
 function resolveFurnitureFootprint(
-  kind: Exclude<FloorPlanItemKind, "table">,
+  kind: FloorPlanFurnitureKind,
   footprintWidth?: number | null,
   footprintHeight?: number | null,
 ) {
@@ -619,9 +620,9 @@ function normalizeSeatPlacements(
   fallbackSeatType?: FloorPlanSeatType,
   tableWidth?: number,
   tableHeight?: number,
-) {
-  const parsedPlacements = Array.isArray(rawPlacements)
-    ? rawPlacements.flatMap((entry) => {
+): FloorPlanSeatPlacement[] {
+  const parsedPlacements: FloorPlanSeatPlacement[] = Array.isArray(rawPlacements)
+    ? rawPlacements.flatMap((entry): FloorPlanSeatPlacement[] => {
       if (typeof entry !== "object" || entry === null) return [];
       const source = entry as Record<string, unknown>;
       const zone = typeof source.zone === "string" && isSeatZoneForShape(shape, source.zone)
@@ -672,7 +673,7 @@ function normalizeSeatPlacements(
 
   if (shape === "round") {
     const distribution = distributeRoundZones(safeCapacity);
-    return ROUND_SEAT_ZONES.flatMap((zone) => {
+    return ROUND_SEAT_ZONES.flatMap((zone): FloorPlanSeatPlacement[] => {
       const count = distribution.get(zone) || 0;
       if (count <= 0) return [];
       if (defaultType !== "bench") return [{ zone, type: defaultType, count }];
@@ -682,7 +683,7 @@ function normalizeSeatPlacements(
   }
 
   const distribution = distributeSidesRect(safeCapacity);
-  return RECT_SEAT_ZONES.flatMap((zone) => {
+  return RECT_SEAT_ZONES.flatMap((zone): FloorPlanSeatPlacement[] => {
     const count = distribution[zone];
     if (count <= 0) return [];
     if (defaultType !== "bench") return [{ zone, type: defaultType, count }];
@@ -691,11 +692,15 @@ function normalizeSeatPlacements(
   });
 }
 
-function normalizeCornerBenchCorners(shape: FloorPlanTableShape, rawCorners: unknown, fallbackSeatType?: FloorPlanSeatType) {
+function normalizeCornerBenchCorners(
+  shape: FloorPlanTableShape,
+  rawCorners: unknown,
+  fallbackSeatType?: FloorPlanSeatType,
+): FloorPlanCornerBenchCorner[] {
   if (shape !== "rect") return [] as FloorPlanCornerBenchCorner[];
 
-  const parsedCorners = Array.isArray(rawCorners)
-    ? rawCorners.flatMap((entry) => {
+  const parsedCorners: FloorPlanCornerBenchCorner[] = Array.isArray(rawCorners)
+    ? rawCorners.flatMap((entry): FloorPlanCornerBenchCorner[] => {
       if (typeof entry !== "string") return [];
       return CORNER_BENCH_CORNERS.includes(entry as FloorPlanCornerBenchCorner)
         ? [entry as FloorPlanCornerBenchCorner]
@@ -719,7 +724,7 @@ function normalizeCornerBenchConfigs(
   legacyDepth: number | undefined,
   tableWidth: number,
   tableHeight: number,
-) {
+): FloorPlanCornerBenchConfig[] {
   if (shape !== "rect") return [] as FloorPlanCornerBenchConfig[];
 
   const defaults = getDefaultCornerBenchDimensions(tableWidth, tableHeight);
@@ -883,7 +888,7 @@ function normalizeResolvedSeatPlacements(
   tableWidth: number,
   tableHeight: number,
   cornerBenchConfigs: FloorPlanCornerBenchConfig[],
-) {
+): FloorPlanSeatPlacement[] {
   return placements.map((placement) => {
     if (placement.type !== "bench") return placement;
 

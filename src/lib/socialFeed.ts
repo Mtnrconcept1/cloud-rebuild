@@ -505,11 +505,13 @@ function getWeight(weights: Record<string, number> | null | undefined, key?: str
 }
 
 function getItemCuisine(item: SocialFeedRankableItem | SocialFeedPost) {
-  return item.cuisineType || ("restaurant" in item ? item.restaurant.cuisineType : null);
+  const directCuisine = "cuisineType" in item ? item.cuisineType : null;
+  return directCuisine || ("restaurant" in item ? item.restaurant.cuisineType : null);
 }
 
 function getItemCity(item: SocialFeedRankableItem | SocialFeedPost) {
-  return item.city || ("restaurant" in item ? item.restaurant.city : null);
+  const directCity = "city" in item ? item.city : null;
+  return directCity || ("restaurant" in item ? item.restaurant.city : null);
 }
 
 function getRecencyScore(createdAt: string, nowIso?: string) {

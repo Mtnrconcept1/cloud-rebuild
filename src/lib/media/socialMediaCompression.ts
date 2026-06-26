@@ -114,7 +114,8 @@ async function compressVideoUpload(file: File): Promise<File> {
     const stream = canvas.captureStream?.(SOCIAL_VIDEO_TARGET_FPS);
     if (!context || !stream) return file;
 
-    const sourceStream = typeof video.captureStream === "function" ? video.captureStream() : null;
+    const videoWithCaptureStream = video as HTMLVideoElement & { captureStream?: () => MediaStream };
+    const sourceStream = typeof videoWithCaptureStream.captureStream === "function" ? videoWithCaptureStream.captureStream() : null;
     sourceStream?.getAudioTracks().forEach((track) => stream.addTrack(track));
 
     const chunks: Blob[] = [];

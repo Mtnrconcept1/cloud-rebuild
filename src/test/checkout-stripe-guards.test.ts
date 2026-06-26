@@ -59,6 +59,30 @@ describe("checkout and Stripe webhook safety guards", () => {
     );
   });
 
+  it("does not acknowledge claimed Stripe events when processing fails", () => {
+    expect(stripeWebhookSource).toContain("markStripeWebhookEventSucceeded");
+    expect(stripeWebhookSource).toContain("markStripeWebhookEventFailed");
+    expect(stripeWebhookSource).toContain("processing_status");
+    expect(stripeWebhookSource).toContain('return new Response("Stripe webhook processing failed"');
+    expect(stripeWebhookSource).toMatch(/status:\s*500/);
+    const failureResponseIndex = stripeWebhookSource.indexOf('return new Response("Stripe webhook processing failed"');
+    const successResponseIndex = stripeWebhookSource.lastIndexOf("return new Response(JSON.stringify({ received: true })");
+
+    expect(failureResponseIndex).toBeGreaterThan(0);
+    expect(successResponseIndex).toBeGreaterThan(failureResponseIndex);
+  });
+
+  it("migrates Stripe webhook idempotency to explicit processing states", () => {
+    const migration = readMigrationContaining(/stripe_webhook_events_processing_status_check/);
+
+    expect(migration).toContain("ADD COLUMN IF NOT EXISTS processing_status");
+    expect(migration).toContain("ADD COLUMN IF NOT EXISTS attempt_count");
+    expect(migration).toContain("ADD COLUMN IF NOT EXISTS last_error");
+    expect(migration).toContain("processing_status IN ('processing', 'succeeded', 'failed')");
+    expect(migration).toContain("idx_stripe_webhook_events_failed_retry");
+    expect(migration).toContain("GRANT SELECT, INSERT, UPDATE ON public.stripe_webhook_events TO service_role");
+  });
+
   it("activates paid campaigns only from checkout.session.completed", () => {
     expect(stripeWebhookSource).toContain('case "checkout.session.completed"');
     expect(stripeWebhookSource).toContain('checkoutKind === "campaign"');
@@ -87,14 +111,16 @@ describe("checkout and Stripe webhook safety guards", () => {
 
     expect(onlineCheckoutBlock).toContain("const pendingOrderResults = await Promise.all");
     expect(onlineCheckoutBlock).toContain('checkout_session_state: "pending"');
+    const createCheckoutIndex = onlineCheckoutBlock.indexOf('"create-checkout"');
+    expect(createCheckoutIndex).toBeGreaterThan(-1);
     expect(onlineCheckoutBlock.indexOf("const pendingOrderResults = await Promise.all"))
-      .toBeLessThan(onlineCheckoutBlock.indexOf('invokeSupabaseFunction("create-checkout"'));
+      .toBeLessThan(createCheckoutIndex);
     expect(onlineCheckoutBlock).toContain("compensatePendingCheckout");
     expect(onlineCheckoutBlock).toContain('invokeSupabaseFunction("cancel-pending-order-checkout"');
     expect(onlineCheckoutBlock.indexOf("compensatePendingCheckout"))
       .toBeGreaterThan(onlineCheckoutBlock.indexOf("const pendingOrderResults = await Promise.all"));
     expect(onlineCheckoutBlock.indexOf("writePendingOrderCheckoutSessionId"))
-      .toBeGreaterThan(onlineCheckoutBlock.indexOf('invokeSupabaseFunction("create-checkout"'));
+      .toBeGreaterThan(createCheckoutIndex);
   });
 
   it("preserves fixed pickup slots from Anti-Gaspi and flash sale tools in order metadata", () => {

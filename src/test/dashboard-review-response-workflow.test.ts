@@ -118,6 +118,16 @@ describe("restaurant dashboard review response workflow", () => {
     expect(restaurantDetail).toContain("Réponse du restaurant");
   });
 
+  it("normalizes public review replies returned as either an object or an array", () => {
+    const restaurantDetail = readProjectFile("src/pages/RestaurantDetail.tsx");
+
+    expect(restaurantDetail).toContain("RestaurantReviewReply[] | RestaurantReviewReply | null");
+    expect(restaurantDetail).toContain("function getReviewReplies");
+    expect(restaurantDetail).toContain("Array.isArray(review.review_replies)");
+    expect(restaurantDetail).toContain("return [review.review_replies]");
+    expect(restaurantDetail).toContain("getReviewReplies(review).find");
+  });
+
   it("keeps AI review replies available through subscription and credit surfaces after launch packs", () => {
     const packsPage = readProjectFile("src/pages/PacksRestaurateur.tsx");
     const disableLaunchPacks = latestMigrationContaining(/Stop commercializing legacy restaurant launch packs/i);

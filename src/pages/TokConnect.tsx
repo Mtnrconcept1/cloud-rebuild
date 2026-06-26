@@ -319,7 +319,7 @@ function IntentConsole({
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
         <Metric icon={Activity} label="Acteur" value={getActorLabel(plan.actor)} />
         <Metric icon={LockKeyhole} label="Mode" value={getModeLabel(plan.mode)} />
-        <Metric icon={ShieldCheck} label="Objectif" value={plan.primaryGoal.replaceAll("_", " ")} />
+        <Metric icon={ShieldCheck} label="Objectif" value={plan.primaryGoal.replace(/_/g, " ")} />
       </div>
 
       {plan.limits ? (

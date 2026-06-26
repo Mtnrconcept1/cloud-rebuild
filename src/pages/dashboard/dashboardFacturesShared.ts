@@ -175,7 +175,7 @@ type PayableAccrualSummary = {
   totalCount: number;
 };
 
-export function toAmount(value: number | string | null | undefined) {
+export function toAmount(value: unknown) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
 }
@@ -415,8 +415,8 @@ function buildRestaurantShareBySource(bases: Record<string, number>) {
   );
 }
 
-type SupabasePagedQuery<T> = {
-  range: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: unknown }>;
+type SupabasePagedQuery = {
+  range: (from: number, to: number) => PromiseLike<{ data: unknown[] | null; error: unknown }>;
 };
 
 function applyAccountingPeriodRange<TQuery>(
@@ -439,14 +439,14 @@ function applyAccountingPeriodRange<TQuery>(
   ) as TQuery;
 }
 
-async function fetchPagedRows<T>(buildQuery: () => SupabasePagedQuery<T>, pageSize = 1000) {
+async function fetchPagedRows<T>(buildQuery: () => SupabasePagedQuery, pageSize = 1000) {
   const rows: T[] = [];
 
   for (let offset = 0; ; offset += pageSize) {
     const { data, error } = await buildQuery().range(offset, offset + pageSize - 1);
     if (error) throw error;
 
-    const page = data || [];
+    const page = (data || []) as T[];
     rows.push(...page);
 
     if (page.length < pageSize) {
@@ -687,10 +687,10 @@ export function useDashboardPayoutInvoiceDetailLines(invoiceId: string | null) {
     queryFn: async () => {
       if (!invoiceId) return [] as PayoutInvoiceDetailLine[];
 
-      const { data, error } = await supabase.rpc("get_payout_invoice_lines", { p_invoice_id: invoiceId });
+      const { data, error } = await (supabase.rpc as any)("get_payout_invoice_lines", { p_invoice_id: invoiceId });
       if (error) throw error;
 
-      const rows = data || [];
+      const rows = (data || []) as Array<Record<string, unknown>>;
       const orderIds = Array.from(new Set(
         rows
           .filter((row) => String(row.line_type || "").trim().toLowerCase() === "order")
@@ -805,11 +805,11 @@ export function useDashboardFacturesData() {
           .order("created_at", { ascending: false });
 
         if (fallback.error) throw fallback.error;
-        return withDefaultRefundFields(fallback.data || []) as RestaurantOrderRow[];
+        return withDefaultRefundFields(fallback.data || []) as unknown as RestaurantOrderRow[];
       }
 
       if (error) throw error;
-      return (data || []) as RestaurantOrderRow[];
+      return (data || []) as unknown as RestaurantOrderRow[];
     },
     enabled: !!selectedId && !restaurantsLoading,
   });
@@ -835,11 +835,11 @@ export function useDashboardFacturesData() {
           .order("created_at", { ascending: false });
 
         if (fallback.error) throw fallback.error;
-        return withDefaultRefundFields(fallback.data || []) as RestaurantReservationPaymentRow[];
+        return withDefaultRefundFields(fallback.data || []) as unknown as RestaurantReservationPaymentRow[];
       }
 
       if (error) throw error;
-      return (data || []) as RestaurantReservationPaymentRow[];
+      return (data || []) as unknown as RestaurantReservationPaymentRow[];
     },
     enabled: !!selectedId && !restaurantsLoading,
   });
@@ -874,7 +874,7 @@ export function useDashboardFacturesData() {
       }
 
       if (error) throw error;
-      return (data || []) as RefundOperationRow[];
+      return (data || []) as unknown as RefundOperationRow[];
     },
     enabled: !!selectedId && !restaurantsLoading,
   });
@@ -894,7 +894,7 @@ export function useDashboardFacturesData() {
       }
 
       if (error) throw error;
-      return (data || []) as RefundOperationRow[];
+      return (data || []) as unknown as RefundOperationRow[];
     },
     enabled: !!selectedId && !restaurantsLoading,
   });

@@ -64,7 +64,7 @@ export default function AdminCatalog() {
     },
   });
 
-  const { data: collectionsRaw = [] } = useQuery({
+  const { data: collectionsRaw = { collections: [], links: [] } } = useQuery({
     queryKey: ["admin-collections-raw"],
     queryFn: async () => {
       const [collectionsRes, linksRes] = await Promise.all([

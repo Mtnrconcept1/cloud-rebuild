@@ -198,7 +198,10 @@ export default function Dashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { selectedId, dashboardAccessLocked } = useDashboardRestaurant();
-  const { data: signupApplication } = useSignupApplication("restaurateur");
+  const { data: rawSignupApplication } = useSignupApplication("restaurateur");
+  const signupApplication = Array.isArray(rawSignupApplication)
+    ? rawSignupApplication[0] || null
+    : rawSignupApplication || null;
   const [onboardingCheckoutLoading, setOnboardingCheckoutLoading] = useState(false);
   const today = new Date().toISOString().split("T")[0];
   const todayStartDate = new Date();

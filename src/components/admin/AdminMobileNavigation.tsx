@@ -120,7 +120,7 @@ function isAdminNavItemActive(pathname: string, search: string, itemTo: string) 
 async function fetchOpenSupportIncidentCount() {
   const client = getSupabase();
   const [incidentsResult, ticketsResult] = await Promise.all([
-    client
+    (client as any)
       .from("support_incidents")
       .select("id", { count: "exact", head: true })
       .not("status", "in", '("closed","resolved")'),
@@ -216,21 +216,22 @@ export default function AdminMobileNavigation() {
     }
 
     let cancelled = false;
-    getSupabase()
-      .from("signup_applications")
-      .select("id", { count: "exact", head: true })
-      .eq("requested_role", "restaurateur")
-      .eq("status", "pending_review")
-      .then(({ count, error }) => {
+    void (async () => {
+      try {
+        const { count, error } = await getSupabase()
+          .from("signup_applications")
+          .select("id", { count: "exact", head: true })
+          .eq("requested_role", "restaurateur")
+          .eq("status", "pending_review");
         if (!cancelled && !error) {
           setPendingSignupApplicationsCount(count || 0);
         }
-      })
-      .catch(() => {
+      } catch {
         if (!cancelled) {
           setPendingSignupApplicationsCount(0);
         }
-      });
+      }
+    })();
 
     return () => {
       cancelled = true;

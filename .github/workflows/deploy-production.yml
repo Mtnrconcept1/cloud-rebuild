@@ -70,7 +70,7 @@ jobs:
         run: pnpm run supabase:doctor:prod
 
       - name: Release readiness
-        run: pnpm run release:readiness
+        run: pnpm run release:readiness:strict
         env:
           RELEASE_READINESS_STRICT: ${{ vars.PRODUCTION_RELEASE_STRICT }}
           VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
@@ -94,6 +94,9 @@ jobs:
 
       - name: Lint
         run: pnpm run lint
+
+      - name: Typecheck
+        run: pnpm run typecheck
 
       - name: Test
         run: pnpm run test:prod

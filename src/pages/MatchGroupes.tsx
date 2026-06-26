@@ -280,7 +280,7 @@ export default function MatchGroupes() {
         .eq("user_id", user!.id)
         .maybeSingle();
       if (error) throw error;
-      return data as GroupMemberOrder | null;
+      return data as unknown as GroupMemberOrder | null;
     },
     enabled: !!activeGroup?.id && !!user?.id,
     refetchInterval: 5_000,
@@ -297,7 +297,7 @@ export default function MatchGroupes() {
         .order("updated_at", { ascending: false })
         .limit(10);
       if (error) throw error;
-      return (data || []) as GroupMemberOrder[];
+      return (data || []) as unknown as GroupMemberOrder[];
     },
     enabled: !!user?.id,
     refetchInterval: 5_000,

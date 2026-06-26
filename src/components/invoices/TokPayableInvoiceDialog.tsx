@@ -21,6 +21,7 @@ import {
 } from "@/lib/payableInvoice";
 import { openSafePrintWindow } from "@/lib/safePrintWindow";
 import { TokPayableInvoiceDocument } from "./TokPayableInvoiceDocument";
+import type { Json } from "@/integrations/supabase/types";
 
 const supabase = getSupabase();
 
@@ -35,15 +36,28 @@ function getErrorMessage(error: unknown) {
   return error ? String(error) : "Une erreur inconnue est survenue.";
 }
 
-function toAmount(value: number | string | null | undefined) {
+function toAmount(value: unknown) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function toJsonScalar(value: unknown): Json {
+  if (value === null || value === undefined) return null;
+  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") return value;
+  return String(value);
+}
+
+function toJsonObject(value: unknown): Json {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    return value as Json;
+  }
+  return {};
 }
 
 function normalizePayableLines(
   invoiceType: PayableInvoiceType,
   rows: Array<Record<string, unknown>> | null | undefined,
-) {
+): PayableInvoiceLine[] {
   if (invoiceType === "reservation_fees") {
     return (rows || []).map((row) => {
       const reservationDate = String(row.reservation_date || "");
@@ -66,11 +80,11 @@ function normalizePayableLines(
         amountTva: 0,
         amountTtc: billingFee,
         metadata: {
-          status: row.status || null,
-          cancelled_by: row.cancelled_by || null,
-          party_size: row.party_size || null,
-          reservation_time: row.reservation_time || null,
-          cancellation_reason_code: row.cancellation_reason_code || null,
+          status: toJsonScalar(row.status),
+          cancelled_by: toJsonScalar(row.cancelled_by),
+          party_size: toJsonScalar(row.party_size),
+          reservation_time: toJsonScalar(row.reservation_time),
+          cancellation_reason_code: toJsonScalar(row.cancellation_reason_code),
         },
       } satisfies PayableInvoiceLine;
     });
@@ -91,7 +105,7 @@ function normalizePayableLines(
     amountHt: toAmount(row.amount_ht),
     amountTva: toAmount(row.amount_tva),
     amountTtc: toAmount(row.amount_ttc),
-    metadata: (row.metadata || {}) as PayableInvoiceLine["metadata"],
+    metadata: toJsonObject(row.metadata),
   })) satisfies PayableInvoiceLine[];
 }
 

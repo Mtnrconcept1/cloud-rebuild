@@ -70,12 +70,20 @@ async function claimStripeWebhookEvent(input: {
   event: Stripe.Event;
   log: LoggerLike;
 }) {
+  const now = new Date().toISOString();
   const { error } = await input.adminClient
     .from("stripe_webhook_events")
     .insert({
       event_id: input.event.id,
       event_type: input.event.type,
       livemode: input.event.livemode,
+      processing_status: "processing",
+      first_seen_at: now,
+      processing_started_at: now,
+      last_attempt_at: now,
+      attempt_count: 1,
+      last_error: null,
+      last_error_at: null,
     });
 
   if (!error) {
@@ -83,9 +91,61 @@ async function claimStripeWebhookEvent(input: {
   }
 
   if (error.code === "23505") {
+    const { data: existingEvent, error: lookupError } = await input.adminClient
+      .from("stripe_webhook_events")
+      .select("processing_status, attempt_count")
+      .eq("event_id", input.event.id)
+      .maybeSingle();
+
+    if (lookupError) {
+      input.log.error?.("stripe_webhook_event_lookup_failed", {
+        eventId: input.event.id,
+        type: input.event.type,
+        code: lookupError.code || null,
+        message: lookupError.message,
+      });
+      return { claimed: false, duplicate: false, errorMessage: lookupError.message };
+    }
+
+    if (existingEvent?.processing_status === "failed") {
+      const { data: retriedEvent, error: retryError } = await input.adminClient
+        .from("stripe_webhook_events")
+        .update({
+          processing_status: "processing",
+          processing_started_at: now,
+          last_attempt_at: now,
+          attempt_count: Number(existingEvent.attempt_count || 0) + 1,
+          last_error: null,
+          last_error_at: null,
+        })
+        .eq("event_id", input.event.id)
+        .eq("processing_status", "failed")
+        .select("event_id")
+        .maybeSingle();
+
+      if (retryError) {
+        input.log.error?.("stripe_webhook_event_retry_claim_failed", {
+          eventId: input.event.id,
+          type: input.event.type,
+          code: retryError.code || null,
+          message: retryError.message,
+        });
+        return { claimed: false, duplicate: false, errorMessage: retryError.message };
+      }
+
+      if (retriedEvent?.event_id) {
+        input.log.info?.("failed_event_retry_claimed", {
+          eventId: input.event.id,
+          type: input.event.type,
+        });
+        return { claimed: true, duplicate: false, errorMessage: null };
+      }
+    }
+
     input.log.info?.("duplicate_event_skipped", {
       eventId: input.event.id,
       type: input.event.type,
+      processingStatus: existingEvent?.processing_status || null,
     });
     return { claimed: false, duplicate: true, errorMessage: null };
   }
@@ -97,6 +157,53 @@ async function claimStripeWebhookEvent(input: {
     message: error.message,
   });
   return { claimed: false, duplicate: false, errorMessage: error.message };
+}
+
+async function markStripeWebhookEventSucceeded(input: {
+  adminClient: ReturnType<typeof createClient>;
+  event: Stripe.Event;
+}) {
+  const now = new Date().toISOString();
+  const { error } = await input.adminClient
+    .from("stripe_webhook_events")
+    .update({
+      processing_status: "succeeded",
+      processed_at: now,
+      last_attempt_at: now,
+      last_error: null,
+      last_error_at: null,
+    })
+    .eq("event_id", input.event.id);
+
+  if (error) throw error;
+}
+
+async function markStripeWebhookEventFailed(input: {
+  adminClient: ReturnType<typeof createClient>;
+  event: Stripe.Event;
+  error: unknown;
+  log: LoggerLike;
+}) {
+  const now = new Date().toISOString();
+  const errorMessage = input.error instanceof Error ? input.error.message : "Erreur interne";
+  const { error } = await input.adminClient
+    .from("stripe_webhook_events")
+    .update({
+      processing_status: "failed",
+      last_attempt_at: now,
+      last_error: errorMessage,
+      last_error_at: now,
+    })
+    .eq("event_id", input.event.id);
+
+  if (error) {
+    input.log.error?.("stripe_webhook_event_failed_mark_failed", {
+      eventId: input.event.id,
+      type: input.event.type,
+      code: error.code || null,
+      message: error.message,
+    });
+  }
 }
 
 async function recordRestaurantTokPurchaseInvoiceIfMissing(input: {
@@ -1717,8 +1824,11 @@ Deno.serve(async (req) => {
         type: event.type,
       },
     });
+
+    await markStripeWebhookEventSucceeded({ adminClient: supabaseAdmin, event });
   } catch (error) {
     log.error("event_processing_error", { eventType: event.type, message: error instanceof Error ? error.message : "unknown" });
+    await markStripeWebhookEventFailed({ adminClient: supabaseAdmin, event, error, log });
     await writeAuditLog({
       adminClient: supabaseAdmin,
       actor: { roles: ["service_role"], isServiceRole: true },
@@ -1733,6 +1843,10 @@ Deno.serve(async (req) => {
         livemode: event.livemode,
         type: event.type,
       },
+    });
+    return new Response("Stripe webhook processing failed", {
+      status: 500,
+      headers: { "Content-Type": "text/plain" },
     });
   }
 

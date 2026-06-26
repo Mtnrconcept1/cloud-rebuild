@@ -525,7 +525,7 @@ async function fetchReservationHistory(
 
     if (profilesError) throw profilesError;
 
-    profileMap = new Map((profiles || []).map((profile) => [profile.user_id, profile]));
+    profileMap = new Map((profiles || []).map((profile) => [profile.user_id, profile as unknown as ProfileRow]));
   }
 
   return reservationRows.map((row) => normalizeReservationHistoryRow(row, profileMap));
@@ -906,7 +906,7 @@ export default function AdminOrdersReservations() {
               columns={ADMIN_HISTORY_SORT_OPTIONS}
               sortKey={sortKey}
               direction={sortDirection}
-              onSortKeyChange={setSortKey}
+              onSortKeyChange={(key) => setSortKey(key as AdminHistorySortKey)}
               onDirectionChange={setSortDirection}
               className="lg:col-span-5"
             />

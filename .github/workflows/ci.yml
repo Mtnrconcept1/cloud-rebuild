@@ -41,6 +41,9 @@ jobs:
       - name: Lint all sources
         run: pnpm run lint
 
+      - name: Typecheck application
+        run: pnpm run typecheck
+
       - name: Run production-mode tests
         run: pnpm run test:prod
 

@@ -540,7 +540,7 @@ export default function DashboardReservations() {
                 columns={DASHBOARD_RESERVATION_SORT_COLUMNS}
                 sortKey={sortKey}
                 direction={sortDirection}
-                onSortKeyChange={setSortKey}
+                onSortKeyChange={(key) => setSortKey(key as ReservationSortKey)}
                 onDirectionChange={setSortDirection}
                 className="xl:col-span-2"
               />

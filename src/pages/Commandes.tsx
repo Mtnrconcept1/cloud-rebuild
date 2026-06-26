@@ -296,7 +296,7 @@ export default function Commandes() {
               columns={CUSTOMER_ORDER_SORT_COLUMNS}
               sortKey={sortKey}
               direction={sortDirection}
-              onSortKeyChange={setSortKey}
+              onSortKeyChange={(key) => setSortKey(key as CustomerOrderSortKey)}
               onDirectionChange={setSortDirection}
               className="w-full sm:w-[440px]"
             />

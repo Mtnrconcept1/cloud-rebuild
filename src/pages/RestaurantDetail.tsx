@@ -93,7 +93,7 @@ type RestaurantReview = {
   comment: string | null;
   created_at: string;
   status: string | null;
-  review_replies?: RestaurantReviewReply[] | null;
+  review_replies?: RestaurantReviewReply[] | RestaurantReviewReply | null;
 };
 
 function formatCompactPromotionNumber(value: number) {
@@ -115,8 +115,14 @@ function formatRestaurantPromotionEndDate(endAt: string) {
   return date.toLocaleDateString("fr-FR", { day: "2-digit", month: "long" });
 }
 
+function getReviewReplies(review: RestaurantReview) {
+  if (!review.review_replies) return [];
+  if (Array.isArray(review.review_replies)) return review.review_replies;
+  return [review.review_replies];
+}
+
 function getRestaurantStaffReply(review: RestaurantReview) {
-  return (review.review_replies || []).find(
+  return getReviewReplies(review).find(
     (reply) => reply.author_type === "restaurant_staff" && Boolean(reply.reply_text?.trim()),
   ) || null;
 }

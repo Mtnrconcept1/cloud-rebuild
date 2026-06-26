@@ -73,6 +73,7 @@ export default function TrackedSocialPostCard({
   useEffect(() => {
     const element = containerRef.current;
     if (!element || impressionRecordedRef.current) return;
+    const browserWindow = typeof window === "undefined" ? null : window;
 
     const recordImpression = () => {
       if (impressionRecordedRef.current) return;
@@ -95,12 +96,16 @@ export default function TrackedSocialPostCard({
       });
     };
 
-    if (!("IntersectionObserver" in window)) {
-      const timeout = window.setTimeout(recordImpression, 1200);
-      return () => window.clearTimeout(timeout);
+    if (!browserWindow || !("IntersectionObserver" in browserWindow)) {
+      const timeout = browserWindow?.setTimeout(recordImpression, 1200);
+      if (!timeout) {
+        recordImpression();
+        return;
+      }
+      return () => browserWindow.clearTimeout(timeout);
     }
 
-    const observer = new IntersectionObserver(
+    const observer = new browserWindow.IntersectionObserver(
       (entries) => {
         const entry = entries[0];
         if (entry?.isIntersecting && entry.intersectionRatio >= 0.55) {

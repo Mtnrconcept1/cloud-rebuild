@@ -107,6 +107,10 @@ type DashboardOrder = {
 };
 
 type DashboardOrderSortKey = "created_at" | "order_number" | "customer" | "amount" | "status";
+type RestaurantOrderStatusResponse = {
+  error?: string | null;
+  dispatch?: ({ state?: string | null } & Record<string, unknown>) | null;
+};
 
 const DASHBOARD_ORDER_SORT_COLUMNS: SortColumn<DashboardOrder, DashboardOrderSortKey>[] = [
   { key: "created_at", label: "Date", type: "date", getValue: (order) => order.created_at },
@@ -405,12 +409,13 @@ export default function DashboardCommandes() {
 
   const updateStatus = async (orderId: string, status: string) => {
     const normalizedStatus = normalizeOrderStatus(status);
-    const { data, error } = await invokeSupabaseFunction("restaurant-order-status", {
+    const { data: rawData, error } = await invokeSupabaseFunction("restaurant-order-status", {
       body: {
         order_id: orderId,
         status: normalizedStatus,
       },
     });
+    const data = rawData as RestaurantOrderStatusResponse | null;
 
     if (error) {
       const is401 = (error as Error & { status?: number }).status === 401
@@ -554,7 +559,7 @@ export default function DashboardCommandes() {
                 columns={DASHBOARD_ORDER_SORT_COLUMNS}
                 sortKey={sortKey}
                 direction={sortDirection}
-                onSortKeyChange={setSortKey}
+                onSortKeyChange={(key) => setSortKey(key as DashboardOrderSortKey)}
                 onDirectionChange={setSortDirection}
                 className="xl:col-span-2"
               />

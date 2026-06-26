@@ -377,10 +377,10 @@ export default function Recherche() {
     .map((camp: any) => {
       const r = camp.restaurants;
       if (!r) return null;
-      const enrichedRestaurant = organicRestaurantById.get(String(r.id));
+      const enrichedRestaurant = organicRestaurantById.get(String(r.id)) as (Record<string, unknown> & { _categories?: unknown[] }) | undefined;
       return {
         ...r,
-        ...enrichedRestaurant,
+        ...(enrichedRestaurant || {}),
         campaign_id: camp.id,
         promo_image: camp.image_url || null,
         campaign_title: camp.title || null,
