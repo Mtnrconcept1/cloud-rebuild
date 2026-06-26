@@ -103,4 +103,18 @@ describe("TOK Connect SQL foundation", () => {
     expect(sql).toContain("CREATE INDEX IF NOT EXISTS idx_tok_connect_webhook_deliveries_retry");
     expect(sql).toContain("CREATE INDEX IF NOT EXISTS idx_tok_connect_access_tokens_client_revoked");
   });
+
+  it("schedules signed TOK Connect webhook dispatch through pg_cron and Vault", () => {
+    const sql = readAllMigrations();
+
+    expect(sql).toMatch(/CREATE\s+EXTENSION\s+IF\s+NOT\s+EXISTS\s+pg_cron/i);
+    expect(sql).toMatch(/CREATE\s+EXTENSION\s+IF\s+NOT\s+EXISTS\s+pg_net/i);
+    expect(sql).toContain("tok-connect-webhook-dispatcher");
+    expect(sql).toContain("tok-connect-webhook-dispatch");
+    expect(sql).toContain("vault.decrypted_secrets");
+    expect(sql).toContain("internal_cron_secret");
+    expect(sql).toContain("x-internal-cron-secret");
+    expect(sql).toMatch(/cron\.schedule\('tok-connect-webhook-dispatcher',\s+'\* \* \* \* \*'/i);
+    expect(sql).toMatch(/net\.http_post\(/i);
+  });
 });

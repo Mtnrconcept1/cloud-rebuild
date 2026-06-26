@@ -39,6 +39,8 @@ describe("TOK Connect Edge Functions", () => {
     expect(source).not.toContain("service_role_key");
     expect(authSource).toContain("tok_connect_token_client_mismatch");
     expect(authSource).toContain("tok_connect_token_scope_revoked");
+    expect(authSource).toContain("clientQuotaPerMinute");
+    expect(authSource).toContain("tok_connect_quota_per_minute");
   });
 
   it("implements the versioned REST API with scoped access, pagination and idempotent reservation writes", () => {
@@ -48,6 +50,7 @@ describe("TOK Connect Edge Functions", () => {
       "/v1/restaurants",
       "/v1/reservations/preview",
       "/v1/reservations",
+      "/v1/reservations/{id}/cancel",
       "/v1/campaigns/preview",
       "Idempotency-Key",
       "validate_and_create_reservation_safe",
@@ -60,6 +63,11 @@ describe("TOK Connect Edge Functions", () => {
       "writeAuditLog",
       "getTokConnectIdempotencyDecision",
       "idempotency_key_reused_with_different_body",
+      "tok_connect_reservation_not_owned",
+      "end_user_cancellation_confirmation_required",
+      "reservation.cancelled",
+      "get_restaurant_credit_usage",
+      "source: \"get_restaurant_credit_usage\"",
     ]) {
       expect(source).toContain(marker);
     }
@@ -103,6 +111,13 @@ describe("TOK Connect Edge Functions", () => {
     expect(source).toContain("revoke-client");
     expect(source).toContain("send-webhook-test");
     expect(source).toContain("create-webhook-endpoint");
+    expect(source).toContain("upsert-restaurant-grant");
+    expect(source).toContain("update-grant-status");
+    expect(source).toContain("update-client-policy");
+    expect(source).toContain("requireRestaurantAccess");
+    expect(source).toContain("max_daily_reservations");
+    expect(source).toContain("token_ttl_seconds");
+    expect(source).toContain("tok_connect_quota_per_minute");
     expect(source).toContain("writeAuditLog");
     expect(source).toContain("hashTokConnectSecret");
     expect(source).toContain("isSafeTokConnectWebhookUrl");

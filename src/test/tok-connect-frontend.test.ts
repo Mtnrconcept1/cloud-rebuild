@@ -46,6 +46,10 @@ describe("TOK Connect frontend integration", () => {
     expect(admin).toContain("suspend-partner");
     expect(admin).toContain("revoke-partner");
     expect(admin).toContain("revoke-client");
+    expect(admin).toContain("upsert-restaurant-grant");
+    expect(admin).toContain("update-client-policy");
+    expect(admin).toContain("selectedPartnerId");
+    expect(admin).toContain("grantForm");
     expect(admin).toContain("fetchWithFreshAccessToken");
     expect(admin).toContain("tok_connect_partners");
     expect(admin).toContain("tok_connect_api_requests");
@@ -53,6 +57,9 @@ describe("TOK Connect frontend integration", () => {
 
     expect(dashboard).toContain("Consentements TOK Connect");
     expect(dashboard).toContain("tok_connect_restaurant_grants");
+    expect(dashboard).toContain("tok-connect-portal");
+    expect(dashboard).toContain("update-grant-status");
+    expect(dashboard).toContain("fetchWithFreshAccessToken");
     expect(dashboard).toContain("public.auth_owns_restaurant");
     expect(dashboard).toContain("DASHBOARD_TOK_CONNECT_GRANTS_LIMIT");
   });

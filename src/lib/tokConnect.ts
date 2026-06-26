@@ -124,6 +124,12 @@ export const tokConnectCoreEndpoints: TokConnectEndpoint[] = [
     scopes: ["reservations:cancel"],
   },
   {
+    method: "POST",
+    path: "/v1/reservations/{id}/cancel",
+    purpose: "Annulation reelle, confirmee par le client, idempotente et auditee.",
+    scopes: ["reservations:cancel"],
+  },
+  {
     method: "GET",
     path: "/v1/credits/balance",
     purpose: "Lecture du solde de crédits partenaire avant une preview.",

@@ -3,6 +3,8 @@ import { KeyRound, RefreshCw, ShieldCheck, ShieldX, type LucideIcon } from "luci
 
 import { Button } from "@/components/ui/button";
 import { getSupabase } from "@/integrations/supabase/client";
+import { SUPABASE_URL } from "@/lib/env";
+import { fetchWithFreshAccessToken } from "@/lib/session";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
 
 export const DASHBOARD_TOK_CONNECT_GRANTS_LIMIT = 100;
@@ -21,22 +23,23 @@ type GrantRow = {
 };
 
 type QueryResult<T> = Promise<{ data: T[] | null; error: { message: string } | null }>;
-type MutationResult = Promise<{ error: { message: string } | null }>;
-
-type TokConnectMutationBuilder = {
-  eq: (column: string, value: string) => MutationResult;
-};
 
 type TokConnectQueryBuilder<T> = {
   select: (columns: string) => TokConnectQueryBuilder<T>;
   eq: (column: string, value: string) => TokConnectQueryBuilder<T>;
   order: (column: string, options?: { ascending?: boolean }) => TokConnectQueryBuilder<T>;
   limit: (count: number) => QueryResult<T>;
-  update: (values: Record<string, unknown>) => TokConnectMutationBuilder;
 };
 
 type TokConnectSupabase = {
   from: <T>(table: string) => TokConnectQueryBuilder<T>;
+};
+
+type TokConnectEnvelope<TData> = {
+  ok: boolean;
+  data: TData | null;
+  error: { code: string; message: string } | null;
+  request_id: string;
 };
 
 async function fetchRestaurantGrants(restaurantId: string) {
@@ -54,16 +57,20 @@ async function fetchRestaurantGrants(restaurantId: string) {
 }
 
 async function updateGrantStatus(grantId: string, status: "active" | "revoked") {
-  const supabase = getSupabase() as unknown as TokConnectSupabase;
-  const { error } = await supabase
-    .from<GrantRow>("tok_connect_restaurant_grants")
-    .update({
+  const response = await fetchWithFreshAccessToken(`${SUPABASE_URL}/functions/v1/tok-connect-portal`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      action: "update-grant-status",
+      grant_id: grantId,
       status,
-      granted_at: status === "active" ? new Date().toISOString() : null,
-    })
-    .eq("id", grantId);
+    }),
+  });
+  const payload = await response.json() as TokConnectEnvelope<Record<string, unknown>>;
 
-  if (error) throw new Error(error.message);
+  if (!response.ok || !payload.ok) {
+    throw new Error(payload.error?.message || "Mise a jour du consentement impossible.");
+  }
 }
 
 export default function DashboardTokConnect() {

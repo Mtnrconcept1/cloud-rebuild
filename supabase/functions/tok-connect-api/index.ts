@@ -30,6 +30,33 @@ type DispatchResult = {
   idempotencyKey?: string | null;
 };
 
+type TokConnectIdempotencyRow = {
+  request_hash: string | null;
+  response_body: Record<string, unknown> | null;
+  status_code: number | null;
+};
+
+type ReservationRow = {
+  id: string;
+  restaurant_id: string;
+  status: string | null;
+  date: string | null;
+  time: string | null;
+  party_size: number | null;
+  metadata: Record<string, unknown> | null;
+  cancelled_at: string | null;
+  cancellation_reason_code: string | null;
+};
+
+type CreditSummary = {
+  restaurant_id: string;
+  balance: number;
+  allowance: number;
+  spent: number;
+  unit: string;
+  source: "get_restaurant_credit_usage";
+};
+
 const RESTAURANT_SELECT =
   "id, name, description, cuisine_type, address, city, phone, image_url, rating, review_count, price_range, latitude, longitude, supports_reservation, supports_dinein, supports_pickup, created_at";
 const TOK_CONNECT_WEBHOOK_DELIVERIES_TABLE = "tok_connect_webhook_deliveries";
@@ -85,8 +112,8 @@ async function authorize(
   await assertTokConnectFeatureEnabled(context.adminClient, "tok-connect-api");
   assertTokConnectScopes(context.scopes, requiredScopes);
   const limiter = createRateLimiter(context.adminClient, "tok-connect-api");
-  await limiter.consume(`partner:${context.partnerId}`, { maxRequests: 600, windowSeconds: 60 });
-  await limiter.consume(`client:${context.clientUuid}`, { maxRequests: 240, windowSeconds: 60 });
+  await limiter.consume(`partner:${context.partnerId}`, { maxRequests: context.partnerQuotaPerMinute, windowSeconds: 60 });
+  await limiter.consume(`client:${context.clientUuid}`, { maxRequests: context.clientQuotaPerMinute, windowSeconds: 60 });
   return context;
 }
 
@@ -95,9 +122,49 @@ function getRestaurantIdFromPath(path: string, suffix = "") {
   return match?.[1] || null;
 }
 
-function getCancelReservationId(path: string) {
+function getCancelReservationPreviewId(path: string) {
   const match = path.match(/^\/v1\/reservations\/([^/]+)\/cancel\/preview$/);
   return match?.[1] || null;
+}
+
+function getCancelReservationMutationId(path: string) {
+  const match = path.match(/^\/v1\/reservations\/([^/]+)\/cancel$/);
+  return match?.[1] || null;
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
+function nullableTrimmedString(value: unknown, maxLength: number) {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  return trimmed.slice(0, maxLength);
+}
+
+function finiteNumber(value: unknown, fallback = 0) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function extractTokCreditSummary(restaurantId: string, usage: unknown): CreditSummary {
+  const usageRecord = asRecord(usage);
+  const credits = Array.isArray(usageRecord.credits) ? usageRecord.credits : [];
+  const tokCredit = credits
+    .map((item) => asRecord(item))
+    .find((item) => item.kind === "tok_credits") || {};
+
+  return {
+    restaurant_id: restaurantId,
+    balance: finiteNumber(tokCredit.balance),
+    allowance: finiteNumber(tokCredit.allowance),
+    spent: finiteNumber(tokCredit.spent),
+    unit: typeof tokCredit.unit === "string" ? tokCredit.unit : "credit",
+    source: "get_restaurant_credit_usage",
+  };
 }
 
 function getReservationPreview(body: Record<string, unknown>, context: TokConnectTokenContext) {
@@ -522,14 +589,313 @@ async function previewCancellation(req: Request, requestId: string, corsHeaders:
   };
 }
 
+async function cancelReservation(req: Request, requestId: string, corsHeaders: Record<string, string>, reservationId: string) {
+  const context = await authorize(req, ["reservations:cancel"]);
+  const idempotencyKey = req.headers.get("Idempotency-Key");
+  if (!isValidTokConnectIdempotencyKey(idempotencyKey)) {
+    throw new HttpError(400, "idempotency_key_required");
+  }
+
+  const body = asRecord(await req.json().catch(() => ({})));
+  if (body.confirmed_by !== "end_user") {
+    throw new HttpError(409, "end_user_cancellation_confirmation_required");
+  }
+
+  const requestHash = await sha256Base64Url(JSON.stringify({ reservation_id: reservationId, body }));
+  const { data: existing, error: existingError } = await context.adminClient
+    .from("tok_connect_idempotency_keys")
+    .select("request_hash, response_body, status_code")
+    .eq("client_id", context.clientUuid)
+    .eq("key", idempotencyKey)
+    .maybeSingle<TokConnectIdempotencyRow>();
+
+  if (existingError) throw new HttpError(500, existingError.message);
+  const idempotencyDecision = getTokConnectIdempotencyDecision(existing, requestHash);
+  if (idempotencyDecision.status === "conflict") {
+    throw new HttpError(409, "idempotency_key_reused_with_different_body");
+  }
+  if (idempotencyDecision.status === "in_progress") {
+    throw new HttpError(409, "idempotency_key_in_progress");
+  }
+  if (idempotencyDecision.status === "replay") {
+    const replayData = asRecord(idempotencyDecision.responseBody?.data);
+    const replayReservation = asRecord(replayData.reservation);
+    return {
+      response: jsonResponse(idempotencyDecision.responseBody, idempotencyDecision.statusCode, corsHeaders),
+      context,
+      scopes: ["reservations:cancel"],
+      route: "POST /v1/reservations/{id}/cancel",
+      restaurantId: typeof replayReservation.restaurant_id === "string" ? replayReservation.restaurant_id : null,
+      idempotencyKey,
+    };
+  }
+
+  if (context.environment === "sandbox") {
+    const cancelledAt = new Date().toISOString();
+    const payload = buildTokConnectEnvelope({
+      requestId,
+      data: {
+        reservation: {
+          id: reservationId,
+          status: "cancelled",
+          cancelled_at: cancelledAt,
+          already_cancelled: false,
+          environment: "sandbox",
+          reason_code: nullableTrimmedString(body.reason_code, 64) || "customer_cancelled",
+        },
+      },
+    });
+
+    const { error: insertError } = await context.adminClient.from("tok_connect_idempotency_keys").insert({
+      partner_id: context.partnerId,
+      client_id: context.clientUuid,
+      key: idempotencyKey,
+      operation: "reservation.cancel",
+      request_hash: requestHash,
+      response_body: payload,
+      status_code: 200,
+      resource_type: "reservation",
+      resource_id: reservationId,
+    });
+    if (insertError) throw new HttpError(500, insertError.message);
+
+    return {
+      response: jsonResponse(payload, 200, corsHeaders),
+      context,
+      scopes: ["reservations:cancel"],
+      route: "POST /v1/reservations/{id}/cancel",
+      restaurantId: typeof body.restaurant_id === "string" ? body.restaurant_id : null,
+      idempotencyKey,
+    };
+  }
+
+  const { data: reservation, error: reservationError } = await context.adminClient
+    .from("reservations")
+    .select("id, restaurant_id, status, date, time, party_size, metadata, cancelled_at, cancellation_reason_code")
+    .eq("id", reservationId)
+    .maybeSingle<ReservationRow>();
+
+  if (reservationError) throw new HttpError(500, reservationError.message);
+  if (!reservation) throw new HttpError(404, "reservation_not_found");
+
+  await assertTokConnectRestaurantGrant(context, reservation.restaurant_id, "reservations:cancel");
+
+  const reservationMetadata = asRecord(reservation.metadata);
+  if (reservationMetadata.tok_connect_partner_id !== context.partnerId) {
+    throw new HttpError(403, "tok_connect_reservation_not_owned");
+  }
+
+  const status = String(reservation.status || "").toLowerCase();
+  if (status === "no_show") {
+    throw new HttpError(409, "reservation_invalid_state");
+  }
+
+  const reasonCode = nullableTrimmedString(body.reason_code, 64) || "customer_cancelled";
+  const reasonDetails = nullableTrimmedString(body.reason, 500);
+  const alreadyCancelled = status === "cancelled" || status === "canceled";
+  const cancelledAt = reservation.cancelled_at || new Date().toISOString();
+  let finalReservation = reservation;
+
+  if (!alreadyCancelled) {
+    const updatedMetadata = {
+      ...reservationMetadata,
+      tok_connect_cancelled_by_partner_id: context.partnerId,
+      tok_connect_cancel_client_id: context.clientUuid,
+      tok_connect_cancel_request_id: requestId,
+      tok_connect_cancelled_at: cancelledAt,
+      tok_connect_cancel_reason: reasonDetails || reasonCode,
+    };
+
+    const { data: updatedReservation, error: updateError } = await context.adminClient
+      .from("reservations")
+      .update({
+        status: "cancelled",
+        cancelled_at: cancelledAt,
+        cancelled_by: "customer",
+        cancellation_reason_code: reasonCode,
+        cancellation_reason_details: reasonDetails,
+        metadata: updatedMetadata,
+        updated_at: cancelledAt,
+      })
+      .eq("id", reservationId)
+      .select("id, restaurant_id, status, date, time, party_size, metadata, cancelled_at, cancellation_reason_code")
+      .maybeSingle<ReservationRow>();
+
+    if (updateError) throw new HttpError(500, updateError.message);
+    if (!updatedReservation) throw new HttpError(404, "reservation_not_found");
+    finalReservation = updatedReservation;
+  }
+
+  const payload = buildTokConnectEnvelope({
+    requestId,
+    data: {
+      reservation: {
+        id: finalReservation.id,
+        status: "cancelled",
+        restaurant_id: finalReservation.restaurant_id,
+        date: finalReservation.date,
+        time: finalReservation.time,
+        party_size: finalReservation.party_size,
+        cancelled_at: finalReservation.cancelled_at || cancelledAt,
+        already_cancelled: alreadyCancelled,
+        reason_code: finalReservation.cancellation_reason_code || reasonCode,
+      },
+    },
+  });
+
+  const { error: insertError } = await context.adminClient.from("tok_connect_idempotency_keys").insert({
+    partner_id: context.partnerId,
+    client_id: context.clientUuid,
+    key: idempotencyKey,
+    operation: "reservation.cancel",
+    request_hash: requestHash,
+    response_body: payload,
+    status_code: 200,
+    resource_type: "reservation",
+    resource_id: finalReservation.id,
+  });
+  if (insertError) throw new HttpError(500, insertError.message);
+
+  if (!alreadyCancelled) {
+    await enqueueTokConnectWebhookDeliveries({
+      context,
+      eventType: "reservation.cancelled",
+      payload: {
+        event: "reservation.cancelled",
+        reservation_id: finalReservation.id,
+        restaurant_id: finalReservation.restaurant_id,
+        request_id: requestId,
+        reason_code: finalReservation.cancellation_reason_code || reasonCode,
+      },
+    });
+  }
+
+  await writeAuditLog({
+    adminClient: context.adminClient,
+    functionName: "tok-connect-api",
+    action: "reservation.cancel",
+    status: "success",
+    request: req,
+    targetEntityType: "reservation",
+    targetEntityId: finalReservation.id,
+    metadata: {
+      partner_id: context.partnerId,
+      client_id: context.clientUuid,
+      request_id: requestId,
+      already_cancelled: alreadyCancelled,
+      webhook_delivery_table: TOK_CONNECT_WEBHOOK_DELIVERIES_TABLE,
+    },
+  });
+
+  return {
+    response: jsonResponse(payload, 200, corsHeaders),
+    context,
+    scopes: ["reservations:cancel"],
+    route: "POST /v1/reservations/{id}/cancel",
+    restaurantId: finalReservation.restaurant_id,
+    idempotencyKey,
+  };
+}
+
+async function readRestaurantCreditSummary(context: TokConnectTokenContext, restaurantId: string) {
+  const { data, error } = await context.adminClient.rpc("get_restaurant_credit_usage", {
+    p_restaurant_id: restaurantId,
+  });
+
+  if (error) throw new HttpError(500, error.message);
+  return extractTokCreditSummary(restaurantId, data);
+}
+
 async function getCredits(req: Request, requestId: string, corsHeaders: Record<string, string>) {
   const context = await authorize(req, ["credits:read"]);
+  const url = new URL(req.url);
+  const restaurantId = url.searchParams.get("restaurant_id");
+
+  if (restaurantId) {
+    await assertTokConnectRestaurantGrant(context, restaurantId, "credits:read");
+    const summary = context.environment === "sandbox"
+      ? {
+        restaurant_id: restaurantId,
+        balance: 1000,
+        allowance: 1000,
+        spent: 0,
+        unit: "credit",
+        source: "get_restaurant_credit_usage" as const,
+      }
+      : await readRestaurantCreditSummary(context, restaurantId);
+
+    return {
+      response: ok(requestId, {
+        credits: {
+          ...summary,
+          currency: "TOK_CREDIT",
+          environment: context.environment,
+          restaurant_count: 1,
+        },
+      }, corsHeaders),
+      context,
+      scopes: ["credits:read"],
+      route: "GET /v1/credits/balance",
+      restaurantId,
+    };
+  }
+
+  if (context.environment === "sandbox") {
+    return {
+      response: ok(requestId, {
+        credits: {
+          balance: 1000,
+          allowance: 1000,
+          spent: 0,
+          currency: "TOK_CREDIT",
+          unit: "credit",
+          environment: "sandbox",
+          source: "get_restaurant_credit_usage",
+          restaurant_count: 1,
+        },
+      }, corsHeaders),
+      context,
+      scopes: ["credits:read"],
+      route: "GET /v1/credits/balance",
+    };
+  }
+
+  const now = new Date().toISOString();
+  const { data: grants, error: grantsError } = await context.adminClient
+    .from("tok_connect_restaurant_grants")
+    .select("restaurant_id, expires_at")
+    .eq("partner_id", context.partnerId)
+    .eq("status", "active")
+    .contains("allowed_scopes", ["credits:read"])
+    .or(`expires_at.is.null,expires_at.gt.${now}`)
+    .limit(51);
+
+  if (grantsError) throw new HttpError(500, grantsError.message);
+  const visibleGrants = (grants || []).slice(0, 50) as Array<{ restaurant_id: string }>;
+  const restaurantSummaries: CreditSummary[] = [];
+  for (const grant of visibleGrants) {
+    if (grant.restaurant_id) {
+      restaurantSummaries.push(await readRestaurantCreditSummary(context, grant.restaurant_id));
+    }
+  }
+
+  const aggregate = restaurantSummaries.reduce((total, item) => ({
+    balance: total.balance + item.balance,
+    allowance: total.allowance + item.allowance,
+    spent: total.spent + item.spent,
+  }), { balance: 0, allowance: 0, spent: 0 });
+
   return {
     response: ok(requestId, {
       credits: {
-        balance: context.environment === "sandbox" ? 1000 : 0,
+        ...aggregate,
         currency: "TOK_CREDIT",
+        unit: "credit",
         environment: context.environment,
+        source: "get_restaurant_credit_usage",
+        restaurant_count: restaurantSummaries.length,
+        truncated: (grants || []).length > 50,
+        restaurants: restaurantSummaries,
       },
     }, corsHeaders),
     context,
@@ -617,9 +983,14 @@ async function dispatch(req: Request, requestId: string, corsHeaders: Record<str
     return await createReservation(req, requestId, corsHeaders);
   }
 
-  const cancelReservationId = getCancelReservationId(path);
-  if (req.method === "POST" && cancelReservationId) {
-    return await previewCancellation(req, requestId, corsHeaders, cancelReservationId);
+  const cancelReservationMutationId = getCancelReservationMutationId(path);
+  if (req.method === "POST" && cancelReservationMutationId) {
+    return await cancelReservation(req, requestId, corsHeaders, cancelReservationMutationId);
+  }
+
+  const cancelReservationPreviewId = getCancelReservationPreviewId(path);
+  if (req.method === "POST" && cancelReservationPreviewId) {
+    return await previewCancellation(req, requestId, corsHeaders, cancelReservationPreviewId);
   }
 
   if (req.method === "GET" && path === "/v1/credits/balance") {

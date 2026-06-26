@@ -13,6 +13,8 @@ export type TokConnectTokenContext = {
   clientUuid: string;
   scopes: string[];
   environment: "sandbox" | "production";
+  clientQuotaPerMinute: number;
+  partnerQuotaPerMinute: number;
 };
 
 type TokenRow = {
@@ -31,12 +33,14 @@ type ClientRow = {
   status: string;
   allowed_scopes: string[] | null;
   environment: "sandbox" | "production";
+  metadata: Record<string, unknown> | null;
 };
 
 type PartnerRow = {
   id: string;
   status: string;
   environment: "sandbox" | "production";
+  metadata: Record<string, unknown> | null;
 };
 
 type RestaurantGrantRow = {
@@ -46,6 +50,23 @@ type RestaurantGrantRow = {
   max_daily_reservations: number;
   max_party_size: number;
 };
+
+function asMetadataRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
+function getTokConnectQuotaPerMinute(
+  metadata: unknown,
+  key: "tok_connect_quota_per_minute" | "tok_connect_partner_quota_per_minute",
+  fallback: number,
+) {
+  const raw = asMetadataRecord(metadata)[key];
+  const quota = typeof raw === "number" ? raw : Number(raw);
+  if (!Number.isFinite(quota)) return fallback;
+  return Math.max(1, Math.min(Math.floor(quota), 10_000));
+}
 
 export async function assertTokConnectFeatureEnabled(
   adminClient: EdgeSupabaseClient,
@@ -148,7 +169,7 @@ export async function authenticateTokConnectToken(
 
   const { data: clientRow, error: clientError } = await adminClient
     .from("tok_connect_clients")
-    .select("id, partner_id, status, allowed_scopes, environment")
+    .select("id, partner_id, status, allowed_scopes, environment, metadata")
     .eq("id", tokenRow.client_id)
     .maybeSingle<ClientRow>();
 
@@ -164,7 +185,7 @@ export async function authenticateTokConnectToken(
 
   const { data: partnerRow, error: partnerError } = await adminClient
     .from("tok_connect_partners")
-    .select("id, status, environment")
+    .select("id, status, environment, metadata")
     .eq("id", tokenRow.partner_id)
     .maybeSingle<PartnerRow>();
 
@@ -191,6 +212,16 @@ export async function authenticateTokConnectToken(
     clientUuid: tokenRow.client_id,
     scopes,
     environment: tokenRow.environment,
+    clientQuotaPerMinute: getTokConnectQuotaPerMinute(
+      clientRow.metadata,
+      "tok_connect_quota_per_minute",
+      240,
+    ),
+    partnerQuotaPerMinute: getTokConnectQuotaPerMinute(
+      partnerRow.metadata,
+      "tok_connect_partner_quota_per_minute",
+      600,
+    ),
   };
 }
 
