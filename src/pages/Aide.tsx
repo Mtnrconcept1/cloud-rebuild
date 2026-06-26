@@ -165,6 +165,14 @@ const CATEGORIES: HelpCategory[] = [
     color: "text-orange-600",
     bg: "bg-orange-50",
   },
+  {
+    id: "tok-connect",
+    title: "TOK Connect",
+    description: "API, OAuth, MCP, webhooks et accès partenaires.",
+    icon: ShieldCheck,
+    color: "text-slate-700",
+    bg: "bg-slate-100",
+  },
 ];
 
 const URGENT_CASES = [
@@ -765,6 +773,59 @@ const FAQS: FaqSection[] = [
       {
         q: "Comment demander de l'aide opérationnelle ?",
         a: "Utilisez l'aide restaurateur, le support dashboard ou l'email. Pour un incident urgent, donnez le restaurant, l'heure, l'ID commande/réservation, le statut actuel et la capture du problème.",
+      },
+    ],
+  },
+  {
+    category: "tok-connect",
+    questions: [
+      {
+        q: "Qu'est-ce que TOK Connect ?",
+        a: "TOK Connect est le socle d'intégration de TOK pour les partenaires approuvés : API REST, OAuth, webhooks, portail développeur et serveur MCP. Il permet de lire des restaurants, menus et disponibilités, de préparer des réservations, de confirmer certaines réservations réelles et de générer des previews de campagnes sans donner un accès libre à toute la plateforme.",
+      },
+      {
+        q: "À quoi sert l'API REST TOK Connect ?",
+        a: "L'API REST versionnée sert aux applications partenaires qui veulent intégrer TOK dans leurs propres outils : recherche de restaurants, détail d'un restaurant, menu, disponibilité, preview de réservation, création de réservation confirmée, consultation de crédits et preview de campagne. Les réponses utilisent une enveloppe standard avec ok, data, error, request_id et next_cursor lorsque la pagination est nécessaire.",
+      },
+      {
+        q: "Que signifie MCP dans TOK Connect ?",
+        a: "Le serveur MCP permet à un assistant compatible, par exemple un connecteur ChatGPT configuré par un partenaire autorisé, d'appeler des outils TOK de manière structurée. En v1, seuls les outils prudents sont exposés : recherche, disponibilité, préparation de réservation, performance restaurant autorisée, estimation de coût crédit et preview de campagne.",
+      },
+      {
+        q: "Qui peut créer un client OAuth TOK Connect ?",
+        a: "Seuls les partenaires validés peuvent disposer d'un client OAuth. Un client peut être sandbox ou production, recevoir des scopes limités, des quotas et des restaurants autorisés. Les secrets ne sont pas affichés en clair après création et peuvent être révoqués ou renouvelés.",
+      },
+      {
+        q: "Quelles données un partenaire peut-il consulter ?",
+        a: "Un partenaire ne voit que les données couvertes par ses scopes et par les autorisations restaurant : informations publiques de restaurant, menus, disponibilités, données strictement nécessaires à une réservation ou statistiques agrégées lorsque le restaurant et TOK les autorisent. Les données de paiement sensibles et les secrets serveur ne sont jamais transmis.",
+      },
+      {
+        q: "Un partenaire peut-il créer une réservation réelle ?",
+        a: "Oui, mais seulement avec le scope adapté, un restaurant autorisé, une disponibilité valide et une confirmation explicite dans le parcours partenaire. Le endpoint de création exige une clé Idempotency-Key afin d'éviter les doublons si une requête est rejouée.",
+      },
+      {
+        q: "Les actions autonomes sont-elles autorisées ?",
+        a: "Non en v1 pour les actions sensibles. TOK Connect peut préparer, suggérer ou prévisualiser des campagnes, coûts, réservations et performances, mais les offres, campagnes autonomes, crédits consommés ou actions commerciales sensibles doivent rester en preview ou passer par une validation humaine explicite.",
+      },
+      {
+        q: "Que sont les webhooks TOK Connect ?",
+        a: "Les webhooks préviennent un partenaire lorsqu'un événement autorisé se produit, par exemple reservation.created, reservation.cancelled, webhook.test ou campaign.previewed. Chaque livraison comporte des en-têtes X-TOK-Event, X-TOK-Delivery, X-TOK-Timestamp et X-TOK-Signature pour permettre la vérification côté partenaire.",
+      },
+      {
+        q: "Comment fonctionne le mode sandbox ?",
+        a: "Le mode sandbox isole les tests d'un client OAuth avec des données déterministes et sans mutation production. Il sert à développer une intégration, tester l'authentification, la pagination, les erreurs, les webhooks et les appels MCP avant toute validation production.",
+      },
+      {
+        q: "Comment un restaurateur contrôle-t-il l'accès à son établissement ?",
+        a: "Le restaurateur peut autoriser ou révoquer les partenaires par restaurant depuis le dashboard TOK Connect lorsque la fonctionnalité est active. Il peut limiter les scopes, les quotas, les réservations et les usages autorisés. TOK peut aussi suspendre un accès en cas de risque, abus ou non-conformité.",
+      },
+      {
+        q: "Comment TOK sécurise les tokens et les appels TOK Connect ?",
+        a: "TOK Connect utilise OAuth client-credentials, des tokens opaques courts, des secrets hashés, des scopes, des quotas, des logs d'audit, des contrôles côté Edge Function et des signatures webhook. Les mutations sensibles ne sont pas faites directement depuis le navigateur.",
+      },
+      {
+        q: "Où trouver la documentation et les exemples TOK Connect ?",
+        a: "La page publique /tok-connect présente le produit. Le portail /tok-connect/developer donne accès à la documentation OpenAPI, aux clients sandbox, aux logs, quotas, webhooks et exemples MCP pour les utilisateurs autorisés. Les admins disposent d'une supervision dédiée dans /admin/tok-connect.",
       },
     ],
   },

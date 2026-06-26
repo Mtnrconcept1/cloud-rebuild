@@ -21,6 +21,7 @@ const HELP_CATEGORY_REQUIREMENTS: Record<string, string | string[]> = {
   antigaspi: "anti-gaspi",
   membership: "tok-one",
   loyalty: "points-cadeau",
+  "tok-connect": "tok-connect",
 };
 
 const HELP_FEATURE_RULES: Array<{ feature: string; terms: string[] }> = [
@@ -46,6 +47,7 @@ const HELP_FEATURE_RULES: Array<{ feature: string; terms: string[] }> = [
   { feature: "dashboard-actualites", terms: ["outil marketing", "cockpit actualites"] },
   { feature: "dashboard-campagnes", terms: ["page campagnes", "budget d'une campagne"] },
   { feature: "dashboard-plan-salle", terms: ["plan de salle"] },
+  { feature: "tok-connect", terms: ["tok connect", "api partenaires", "oauth", "mcp", "webhook", "sandbox"] },
 ];
 
 function normalizeForSearch(value: string) {

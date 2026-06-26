@@ -5,7 +5,7 @@ export default function PolitiqueConfidentialite() {
     <div className="container py-12 md:py-20 max-w-4xl space-y-12">
       <div className="space-y-4">
         <h1 className="font-display text-4xl font-bold">Politique de confidentialité</h1>
-        <p className="text-muted-foreground">Dernière mise à jour : 7 juin 2026</p>
+        <p className="text-muted-foreground">Dernière mise à jour : 26 juin 2026</p>
       </div>
 
       <div className="prose prose-foodhub max-w-none space-y-8">
@@ -34,6 +34,7 @@ export default function PolitiqueConfidentialite() {
             <li><span className="font-medium text-foreground">Réseaux sociaux restaurateur :</span> profils renseignés, canaux sélectionnés, autorisations de publication, identifiants techniques et jetons strictement nécessaires lorsque le restaurateur connecte un compte externe.</li>
             <li><span className="font-medium text-foreground">Support et administration :</span> conversations, numéros de sinistre, pièces jointes, statuts de traitement, notes d'audit, décisions de modération et notifications.</li>
             <li><span className="font-medium text-foreground">Données techniques :</span> adresse IP, appareil, navigateur, logs de sécurité, jetons de notification push, erreurs, performances et événements d'audit.</li>
+            <li><span className="font-medium text-foreground">Intégrations TOK Connect :</span> partenaires, membres partenaires, clients OAuth, scopes, quotas, restaurants autorisés, tokens opaques, journaux API, clés d'idempotence, endpoints webhook, livraisons webhook, request_id et traces d'agent MCP.</li>
             <li><span className="font-medium text-foreground">Données d'usage IA :</span> demandes, résultats, coûts estimés, modèles utilisés, qualité de sortie et métadonnées nécessaires aux fonctionnalités d'assistance, de génération ou de retouche, y compris lorsque le traitement implique OpenAI.</li>
           </ul>
         </section>
@@ -48,6 +49,7 @@ export default function PolitiqueConfidentialite() {
             <li>Gérer les boutons « Plus comme ça » et « Moins comme ça » pour ajuster les contenus similaires qui vous sont proposés.</li>
             <li>Mesurer les campagnes sponsorisées, répartir leur diffusion selon le budget quotidien et fournir des métriques agrégées aux restaurants.</li>
             <li>Permettre aux restaurateurs de gérer menus, photos, campagnes, actualités, réseaux sociaux, factures, réservations et commandes.</li>
+            <li>Fournir TOK Connect aux partenaires autorisés : API, OAuth, MCP, webhooks, sandbox, logs, quotas, audit et révocation.</li>
             <li>Envoyer des notifications strictement destinées au compte, rôle ou restaurant concerné.</li>
             <li>Prévenir la fraude, sécuriser la plateforme, auditer les actions sensibles et respecter nos obligations légales.</li>
           </ul>
@@ -68,6 +70,7 @@ export default function PolitiqueConfidentialite() {
           <p className="text-foreground/80 leading-relaxed">Nous partageons des données uniquement lorsque cela est nécessaire au service :</p>
           <ul className="list-disc pl-6 space-y-2 text-foreground/80">
             <li><span className="font-medium text-foreground">Restaurants partenaires :</span> informations nécessaires à la préparation, réservation, service, facturation et support.</li>
+            <li><span className="font-medium text-foreground">Partenaires TOK Connect approuvés :</span> données strictement couvertes par leurs scopes, les autorisations restaurant, les quotas et les finalités validées.</li>
             <li><span className="font-medium text-foreground">Coursiers :</span> informations nécessaires à la livraison et au suivi de mission.</li>
             <li><span className="font-medium text-foreground">Stripe :</span> traitement des paiements, abonnements, remboursements, Connect et facturation.</li>
             <li><span className="font-medium text-foreground">Supabase :</span> authentification, base de données, stockage, fonctions serveur, temps réel et sécurité.</li>
@@ -143,8 +146,31 @@ export default function PolitiqueConfidentialite() {
           </p>
         </section>
 
+        <section className="space-y-4">
+          <h2 className="text-2xl font-semibold">13. Traitements liés à TOK Connect</h2>
+          <p className="text-foreground/80 leading-relaxed">
+            TOK Connect permet à des partenaires approuvés d'accéder à certaines fonctionnalités TOK via API REST, OAuth, webhooks et MCP. Les données transmises dépendent toujours des scopes du client OAuth, du mode sandbox ou production, des autorisations accordées par le restaurant concerné, des quotas et des finalités validées par TOK.
+          </p>
+          <ul className="list-disc pl-6 space-y-2 text-foreground/80">
+            <li><span className="font-medium text-foreground">Données restaurant :</span> fiche publique, horaires, services, menus, disponibilités, identifiants techniques et paramètres nécessaires à l'intégration.</li>
+            <li><span className="font-medium text-foreground">Réservations :</span> informations strictement nécessaires à la preview, à la création, à l'annulation ou au support d'une réservation autorisée.</li>
+            <li><span className="font-medium text-foreground">Campagnes et performance :</span> previews, coûts estimés, crédits, métriques agrégées et indicateurs autorisés par le restaurant et TOK.</li>
+            <li><span className="font-medium text-foreground">Sécurité et audit :</span> client OAuth, scopes, adresse IP, request_id, horodatage, statut, erreurs, idempotence, révocation, rotation de secret, livraison webhook et signatures.</li>
+            <li><span className="font-medium text-foreground">MCP :</span> appels d'outils, ressources, prompts, traces techniques et résultats nécessaires pour fournir l'assistant connecté dans le périmètre autorisé.</li>
+          </ul>
+          <p className="text-foreground/80 leading-relaxed">
+            Les secrets OAuth sont hashés ou protégés côté serveur, les tokens sont opaques et les clés service_role ne sont pas exposées dans le navigateur. Les webhooks sont signés afin que le partenaire puisse vérifier l'origine et l'intégrité de la livraison.
+          </p>
+          <p className="text-foreground/80 leading-relaxed">
+            Le partenaire qui reçoit des données via TOK Connect doit les utiliser uniquement pour l'intégration validée, les protéger, respecter les droits des personnes concernées et supprimer ou anonymiser les données lorsqu'elles ne sont plus nécessaires. Selon l'intégration, il peut agir comme sous-traitant ou responsable indépendant de certains traitements.
+          </p>
+          <p className="text-foreground/80 leading-relaxed">
+            Le mode sandbox utilise des données de test ou fixtures isolées et ne doit pas contenir de mutation production. Un restaurant ou TOK peut retirer une autorisation, révoquer un client, réduire un scope ou suspendre un webhook lorsqu'un accès n'est plus justifié.
+          </p>
+        </section>
+
         <section className="space-y-4 border-t pt-8 mt-8">
-          <h2 className="text-2xl font-semibold">13. Contact</h2>
+          <h2 className="text-2xl font-semibold">14. Contact</h2>
           <ul className="list-none space-y-2 text-foreground/80">
             <li><span className="font-medium text-foreground">Email confidentialité :</span> privacy@thetok.ch</li>
             <li><span className="font-medium text-foreground">Formulaire :</span> via notre <Link to="/contact" className="text-primary hover:underline font-medium">page de contact</Link></li>

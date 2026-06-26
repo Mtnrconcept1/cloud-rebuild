@@ -1,12 +1,13 @@
 import { Link } from "react-router-dom";
 import { SUPPORT_EMAIL } from "@/lib/contact";
 
-const updatedAt = "17 juin 2026";
+const updatedAt = "26 juin 2026";
 
 const quickPoints = [
   "Commission reservation: CHF 5.00 par table honoree via TOK, sauf accord ecrit different.",
   "Le restaurant reste responsable des prix, menus, allergenes, horaires, disponibilites, contenus et obligations sanitaires.",
   "Les donnees client issues de TOK ne peuvent etre utilisees que pour une relation commerciale legitime et conforme.",
+  "TOK Connect donne acces a des partenaires uniquement avec autorisation, scopes, quotas et revocation possible par restaurant.",
   "Les outils IA, CRM, campagnes et exports sont des aides: le restaurateur valide et assume les contenus publies.",
   "Le contournement de la plateforme, la fraude, les faux avis et les fausses declarations peuvent entrainer suspension, resiliation et facturation retroactive.",
 ];
@@ -15,6 +16,7 @@ const addedProtections = [
   "Onboarding et verification documentaire avant activation complete du compte.",
   "Regles de paiement, facturation, taxes, impayes, remboursements et chargebacks.",
   "Cadre CRM, exports CSV/XLS, confidentialite, LPD suisse et preferences de notification.",
+  "Cadre TOK Connect: API, OAuth, MCP, webhooks, sandbox, autorisations restaurant et audit.",
   "Regles sur photos, videos, logos, IA, droits de marque, allergenes et communications commerciales.",
   "Clauses de securite, disponibilite, sous-traitants, preuve numerique et cooperation en cas de litige.",
 ];
@@ -233,6 +235,18 @@ const sections = [
       "Les parties s'engagent, lorsque cela est raisonnable, a rechercher une solution amiable avant toute procedure judiciaire.",
     ],
   },
+  {
+    title: "26. TOK Connect, partenaires API et MCP",
+    body: [
+      "TOK Connect permet a des partenaires approuves d'interagir avec certains services TOK via API REST, OAuth, webhooks, portail developpeur, documentation OpenAPI, serveur MCP et clients sandbox ou production.",
+      "Le restaurateur peut autoriser ou refuser un partenaire par restaurant lorsque la fonctionnalite est disponible. Cette autorisation peut etre limitee par scopes, quotas, periode, finalite, volume de reservations, taille de table, disponibilites, webhooks ou tout autre parametre affiche dans le dashboard.",
+      "Les donnees accessibles via TOK Connect restent limitees au perimetre autorise: informations restaurant, menu, disponibilites, reservation, performance agregee, credits ou previews de campagne selon les scopes accordes. Les donnees de paiement sensibles, secrets serveur et informations non necessaires ne doivent pas etre transmis au partenaire.",
+      "Les reservations creees par TOK Connect engagent le restaurant uniquement lorsqu'elles sont confirmees selon le parcours TOK, les disponibilites reelles, les regles de service et les limites accordees au partenaire. Le restaurateur doit maintenir ses horaires, tables, capacités et restrictions a jour afin d'eviter des confirmations incorrectes.",
+      "Les campagnes, offres, credits, actions marketing autonomes et changements commerciaux sensibles generes via TOK Connect restent en preview, suggestion ou validation humaine tant que TOK n'a pas active explicitement un mode plus autonome. Le restaurateur demeure responsable de toute campagne ou offre qu'il valide.",
+      "Les webhooks, logs API, traces MCP, request_id, cles d'idempotence, signatures, scopes et evenements d'audit peuvent etre conserves afin de diagnostiquer les incidents, verifier les quotas, prouver une action, securiser l'integration et traiter les litiges.",
+      "Le restaurateur doit choisir des partenaires fiables, verifier la finalite de l'integration, informer TOK de tout usage suspect et retirer l'autorisation lorsqu'elle n'est plus necessaire. TOK peut suspendre ou revoquer un partenaire en cas de risque, abus, faille de securite, non-conformite ou demande legitime.",
+    ],
+  },
 ];
 
 export default function ConditionsRestaurateurs() {
@@ -319,7 +333,7 @@ export default function ConditionsRestaurateurs() {
             ))}
 
             <section className="rounded-3xl border bg-card p-5 shadow-sm md:p-7">
-              <h2 className="text-2xl font-semibold">26. Contact</h2>
+              <h2 className="text-2xl font-semibold">27. Contact</h2>
               <p className="mt-4 text-foreground/80 leading-relaxed">
                 Pour toute question relative aux presentes conditions restaurateurs, contactez TOK par email ou via le centre d'aide.
               </p>

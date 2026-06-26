@@ -17,6 +17,8 @@ describe("feature visibility", () => {
     expect(isHelpCategoryVisible("antigaspi", new Set())).toBe(false);
     expect(isHelpCategoryVisible("delivery", new Set(["emporter"]))).toBe(true);
     expect(isHelpCategoryVisible("delivery", new Set())).toBe(false);
+    expect(isHelpCategoryVisible("tok-connect", new Set())).toBe(false);
+    expect(isHelpCategoryVisible("tok-connect", new Set(["tok-connect"]))).toBe(true);
   });
 
   it("hides feature-specific help questions when the matching feature is inactive", () => {

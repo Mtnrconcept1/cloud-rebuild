@@ -6,7 +6,7 @@ export default function CGU() {
     <div className="container py-12 md:py-20 max-w-4xl space-y-12">
       <div className="space-y-4">
         <h1 className="font-display text-4xl font-bold">Conditions Générales d'Utilisation</h1>
-        <p className="text-muted-foreground">Dernière mise à jour : 17 juin 2026</p>
+        <p className="text-muted-foreground">Dernière mise à jour : 26 juin 2026</p>
       </div>
 
       <div className="prose prose-foodhub max-w-none space-y-8">
@@ -46,6 +46,7 @@ export default function CGU() {
             <li>Les contenus sponsorisés, campagnes publicitaires locales, rapports de performance et métriques marketing.</li>
             <li>Les outils CRM clients, segmentation, exports CSV/XLS, profils de vente, recommandations commerciales et historiques d'interactions issus des commandes ou réservations.</li>
             <li>Les outils d'aide à la rédaction, génération de variantes, compression média, publication vidéo, programmation de posts et préparation de contenus destinés aux réseaux sociaux.</li>
+            <li>TOK Connect, comprenant API REST, OAuth, webhooks, portail développeur, serveur MCP, clients sandbox et intégrations partenaires approuvées.</li>
             <li>Les interfaces restaurateur, coursier et administrateur, incluant commandes, réservations, menus, campagnes, factures, support, notifications, sinistres et outils de pilotage.</li>
           </ul>
           <p className="text-foreground/80 leading-relaxed">
@@ -217,8 +218,27 @@ export default function CGU() {
           </p>
         </section>
 
+        <section className="space-y-4">
+          <h2 className="text-2xl font-semibold">15. TOK Connect, API partenaires, MCP et webhooks</h2>
+          <p className="text-foreground/80 leading-relaxed">
+            TOK Connect désigne les interfaces techniques permettant à des partenaires approuvés d'interagir avec certains services TOK, notamment via API REST, OAuth client-credentials, webhooks signés, portail développeur, documentation OpenAPI et serveur MCP.
+          </p>
+          <ul className="list-disc pl-6 space-y-2 text-foreground/80">
+            <li>L'accès production à TOK Connect est réservé aux partenaires validés par TOK, aux restaurants ayant accordé les autorisations nécessaires et aux clients OAuth disposant de scopes, quotas et limites définis.</li>
+            <li>Les identifiants, secrets, tokens, signatures webhook, journaux d'appel et clés d'idempotence doivent être protégés par le partenaire. Toute fuite, rotation nécessaire ou usage suspect doit être signalé sans délai à TOK.</li>
+            <li>Les réponses API, ressources MCP et webhooks ne peuvent être utilisés que pour les finalités autorisées : découverte, disponibilité, réservation, support, statistiques autorisées, preview de campagne ou intégration explicitement approuvée.</li>
+            <li>Les réservations créées via TOK Connect ne sont réelles qu'après validation du parcours prévu, disponibilité confirmée, scope adéquat et, lorsque requis, confirmation explicite de l'utilisateur final ou du partenaire autorisé.</li>
+            <li>Les endpoints de mutation peuvent imposer une clé <span className="font-mono text-sm">Idempotency-Key</span> afin d'éviter les doublons et de conserver une trace exploitable en cas de rejouement de requête.</li>
+            <li>Les campagnes, offres, crédits, actions marketing autonomes ou décisions commerciales sensibles restent en preview, suggestion ou validation humaine tant que TOK n'a pas activé un mode explicitement plus autonome.</li>
+            <li>Le mode sandbox utilise des données de test ou des fixtures isolées et ne doit pas être présenté comme une confirmation production.</li>
+          </ul>
+          <p className="text-foreground/80 leading-relaxed">
+            TOK peut refuser, limiter, suspendre, révoquer ou auditer tout accès TOK Connect en cas de non-respect des présentes CGU, de dépassement de quota, d'usage non conforme, de risque de sécurité, de demande du restaurant concerné, de soupçon de fraude ou de nécessité opérationnelle.
+          </p>
+        </section>
+
         <section className="space-y-4 border-t pt-8 mt-8">
-          <h2 className="text-2xl font-semibold">15. Contact</h2>
+          <h2 className="text-2xl font-semibold">16. Contact</h2>
           <p className="text-foreground/80 leading-relaxed">
             Pour toute question relative aux présentes CGU :
           </p>
