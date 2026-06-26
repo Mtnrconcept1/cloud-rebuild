@@ -549,7 +549,7 @@ async function fetchReservationInventoryRows() {
     .select(`
       reservation_id,
       table_id,
-      réservations (
+      reservations (
         id,
         restaurant_id,
         date,

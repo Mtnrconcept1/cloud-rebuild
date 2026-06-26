@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { readFileSync } from "node:fs";
 
 import {
   getDefaultAdminHistoryFilters,
@@ -114,5 +115,12 @@ describe("admin orders and reservations helpers", () => {
       startDate: "2026-03-24",
       endDate: "2026-04-22",
     });
+  });
+
+  it("uses the canonical reservations relation for reservation slot inventory", () => {
+    const page = readFileSync("src/pages/admin/AdminOrdersReservations.tsx", "utf8");
+
+    expect(page).toContain("reservations (");
+    expect(page).not.toContain("réservations (");
   });
 });
