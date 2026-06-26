@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Activity, KeyRound, Network, ShieldAlert, ShieldCheck, ShieldX, SlidersHorizontal, Webhook } from "lucide-react";
+import { Activity, Check, Clipboard, KeyRound, Network, ShieldAlert, ShieldCheck, ShieldX, SlidersHorizontal, Webhook } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
 import { SUPABASE_URL } from "@/lib/env";
 import { fetchWithFreshAccessToken } from "@/lib/session";
@@ -65,6 +66,19 @@ const defaultGrantForm: GrantFormState = {
   expires_at: "",
 };
 
+type ChatGptMcpSetupItem = {
+  step: number;
+  field: string;
+  value: string;
+  note: string;
+  copyable?: boolean;
+};
+
+const CHATGPT_MCP_SERVER_URL = "https://www.thetok.ch/functions/v1/tok-connect-mcp";
+const CHATGPT_OAUTH_TOKEN_URL = "https://www.thetok.ch/functions/v1/tok-connect-oauth";
+const CHATGPT_MCP_DESCRIPTION = "TOK Connect: restaurants, disponibilités, réservations et campagnes preview via MCP sécurisé.";
+const CHATGPT_MCP_FALLBACK_SCOPES = "restaurants:read availability:read reservations:create reservations:cancel analytics:read credits:read campaigns:preview";
+
 function getStringValue(row: TokConnectRow | undefined, key: string) {
   const value = row?.[key];
   return typeof value === "string" ? value : "";
@@ -122,10 +136,12 @@ async function loadAdminTokConnectState(): Promise<AdminTokConnectState> {
 }
 
 export default function AdminTokConnect() {
+  const { toast } = useToast();
   const [state, setState] = useState<AdminTokConnectState>(emptyState);
   const [loading, setLoading] = useState(true);
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [copiedChatGptField, setCopiedChatGptField] = useState<string | null>(null);
   const [selectedPartnerId, setSelectedPartnerId] = useState("");
   const [selectedClientUuid, setSelectedClientUuid] = useState("");
   const [clientScopesInput, setClientScopesInput] = useState("restaurants:read availability:read");
@@ -185,6 +201,141 @@ export default function AdminTokConnect() {
       partner_id: current.partner_id || selectedPartnerId,
     }));
   }, [selectedPartnerId]);
+
+  const selectedClientPublicId = getStringValue(selectedClient, "client_id") || "Sélectionnez un client OAuth actif.";
+  const selectedClientScopes = stringifyScopes(selectedClient?.allowed_scopes) || clientScopesInput || CHATGPT_MCP_FALLBACK_SCOPES;
+
+  const chatGptMcpSetupItems = useMemo<ChatGptMcpSetupItem[]>(() => [
+    {
+      step: 1,
+      field: "Nom",
+      value: "tok",
+      note: "Champ Nom dans la colonne de gauche.",
+      copyable: true,
+    },
+    {
+      step: 2,
+      field: "Description",
+      value: CHATGPT_MCP_DESCRIPTION,
+      note: "Champ Description facultatif.",
+      copyable: true,
+    },
+    {
+      step: 3,
+      field: "Connexion - URL du serveur",
+      value: CHATGPT_MCP_SERVER_URL,
+      note: "Utiliser le serveur MCP. Ne pas coller l'URL tok-connect-api ici.",
+      copyable: true,
+    },
+    {
+      step: 4,
+      field: "Authentification",
+      value: "OAuth",
+      note: "Choisir OAuth dans le menu.",
+      copyable: true,
+    },
+    {
+      step: 5,
+      field: "Méthode d'enregistrement",
+      value: "Client OAuth défini par l'utilisateur",
+      note: "Paramètres OAuth avancés > Enregistrement client.",
+      copyable: true,
+    },
+    {
+      step: 6,
+      field: "ID client OAuth",
+      value: selectedClientPublicId,
+      note: "Utiliser le client OAuth sélectionné dans tok_connect_clients.",
+      copyable: Boolean(getStringValue(selectedClient, "client_id")),
+    },
+    {
+      step: 7,
+      field: "Secret client OAuth",
+      value: "Secret affiché une seule fois lors de la création ou rotation du client OAuth.",
+      note: "Non copiable depuis l'admin: TOK ne stocke jamais le secret en clair.",
+      copyable: false,
+    },
+    {
+      step: 8,
+      field: "Authentification endpoint token",
+      value: "none",
+      note: "Menu Méthode d'authentification de l'endpoint du token.",
+      copyable: true,
+    },
+    {
+      step: 9,
+      field: "Périmètres par défaut",
+      value: selectedClientScopes,
+      note: "Coller dans Périmètres par défaut.",
+      copyable: true,
+    },
+    {
+      step: 10,
+      field: "Périmètres de base",
+      value: selectedClientScopes,
+      note: "Coller la même valeur dans Périmètres de base.",
+      copyable: true,
+    },
+    {
+      step: 11,
+      field: "URL jeton",
+      value: CHATGPT_OAUTH_TOKEN_URL,
+      note: "Endpoints OAuth > URL jeton.",
+      copyable: true,
+    },
+    {
+      step: 12,
+      field: "URL d'autorisation",
+      value: "Laisser vide",
+      note: "TOK Connect v1 utilise client-credentials, pas authorization-code.",
+      copyable: false,
+    },
+    {
+      step: 13,
+      field: "URL d'enregistrement",
+      value: "Laisser vide",
+      note: "Dynamic Client Registration n'est pas active en v1.",
+      copyable: false,
+    },
+    {
+      step: 14,
+      field: "Base du serveur d'autorisation",
+      value: "Laisser vide",
+      note: "Non requis pour le token endpoint TOK Connect v1.",
+      copyable: false,
+    },
+    {
+      step: 15,
+      field: "Resource",
+      value: "Laisser vide",
+      note: "TOK Connect ignore le parametre resource en v1.",
+      copyable: false,
+    },
+    {
+      step: 16,
+      field: "OIDC activé",
+      value: "Non",
+      note: "Ne pas cocher OIDC activé. Laisser les champs OIDC vides.",
+      copyable: false,
+    },
+  ], [selectedClient, selectedClientPublicId, selectedClientScopes]);
+
+  async function copyChatGptMcpValue(item: ChatGptMcpSetupItem) {
+    if (!item.copyable) return;
+
+    try {
+      await navigator.clipboard.writeText(item.value);
+      setCopiedChatGptField(item.field);
+      window.setTimeout(() => setCopiedChatGptField((current) => (current === item.field ? null : current)), 1600);
+      toast({ title: "Copié", description: `${item.field} est prêt à coller dans ChatGPT.` });
+    } catch (copyError) {
+      toast({
+        title: "Copie impossible",
+        description: copyError instanceof Error ? copyError.message : "Copiez la valeur manuellement.",
+        variant: "destructive",
+      });
+    }
+  }
 
   async function runAdminAction(action: "approve-partner" | "suspend-partner" | "revoke-partner" | "revoke-client") {
     setBusyAction(action);
@@ -279,6 +430,33 @@ export default function AdminTokConnect() {
               <p className="mt-1 text-sm font-semibold text-slate-600">{label}</p>
             </article>
           ))}
+        </section>
+
+        <section className="rounded-lg border bg-white p-5 shadow-sm">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <div className="flex items-center gap-3">
+                <Clipboard className="h-6 w-6 text-orange-600" />
+                <h2 className="text-xl font-black">Checklist ChatGPT MCP</h2>
+              </div>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
+                Copiez les valeurs dans ChatGPT dans cet ordre. Les lignes marquées "Laisser vide" ne doivent pas être renseignées.
+              </p>
+            </div>
+            <div className="rounded-md bg-orange-50 px-3 py-2 text-sm font-semibold text-orange-800">
+              Client sélectionné: {selectedClientPublicId}
+            </div>
+          </div>
+          <div className="mt-5 grid gap-3">
+            {chatGptMcpSetupItems.map((item) => (
+              <ChatGptMcpSetupRow
+                key={`${item.step}-${item.field}`}
+                item={item}
+                copied={copiedChatGptField === item.field}
+                onCopy={() => copyChatGptMcpValue(item)}
+              />
+            ))}
+          </div>
         </section>
 
         <section className="rounded-lg border bg-white p-5 shadow-sm">
@@ -437,6 +615,41 @@ export default function AdminTokConnect() {
         </section>
       </div>
     </main>
+  );
+}
+
+function ChatGptMcpSetupRow({
+  item,
+  copied,
+  onCopy,
+}: {
+  item: ChatGptMcpSetupItem;
+  copied: boolean;
+  onCopy: () => void;
+}) {
+  return (
+    <div className="grid gap-3 rounded-md border border-slate-200 bg-slate-50 p-3 md:grid-cols-[48px_minmax(0,220px)_minmax(0,1fr)_auto] md:items-center">
+      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-sm font-black text-orange-600 shadow-sm">
+        {item.step}
+      </div>
+      <div>
+        <p className="text-sm font-black text-slate-900">{item.field}</p>
+        <p className="mt-1 text-xs leading-5 text-slate-500">{item.note}</p>
+      </div>
+      <code className="min-w-0 break-all rounded-md bg-white px-3 py-2 text-xs font-semibold leading-5 text-slate-900 ring-1 ring-slate-200">
+        {item.value}
+      </code>
+      {item.copyable ? (
+        <Button type="button" variant="outline" className="justify-center" onClick={onCopy}>
+          {copied ? <Check className="mr-2 h-4 w-4" /> : <Clipboard className="mr-2 h-4 w-4" />}
+          {copied ? "Copié" : "Copier"}
+        </Button>
+      ) : (
+        <span className="rounded-md bg-white px-3 py-2 text-center text-xs font-bold uppercase text-slate-500 ring-1 ring-slate-200">
+          Info
+        </span>
+      )}
+    </div>
   );
 }
 

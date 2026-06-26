@@ -51,6 +51,14 @@ describe("TOK Connect frontend integration", () => {
     expect(admin).toContain("selectedPartnerId");
     expect(admin).toContain("grantForm");
     expect(admin).toContain("fetchWithFreshAccessToken");
+    expect(admin).toContain("Checklist ChatGPT MCP");
+    expect(admin).toContain("CHATGPT_MCP_SERVER_URL");
+    expect(admin).toContain("tok-connect-mcp");
+    expect(admin).toContain("CHATGPT_OAUTH_TOKEN_URL");
+    expect(admin).toContain("tok-connect-oauth");
+    expect(admin).toContain("Client OAuth défini par l'utilisateur");
+    expect(admin).toContain("Périmètres par défaut");
+    expect(admin).toContain("Secret affiché une seule fois");
     expect(admin).toContain("tok_connect_partners");
     expect(admin).toContain("tok_connect_api_requests");
     expect(admin).toContain("ADMIN_TOK_CONNECT_LOG_LIMIT");
