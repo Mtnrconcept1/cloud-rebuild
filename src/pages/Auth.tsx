@@ -7,7 +7,7 @@ import { useAuth, type UserRole } from "@/lib/auth-context";
 import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 import { normalizeInternalNavigationTarget } from "@/lib/navigation";
 import { openSafeHtmlPrintDocument } from "@/lib/safePrintWindow";
-import { getDefaultActiveRole, getFeatureVisibleRoles, getRoleHomePath } from "@/lib/roleAccess";
+import { getDefaultActiveRole, getFeatureVisibleRoles } from "@/lib/roleAccess";
 import {
   formatTokCredits,
   getAiSimpleRequestEquivalent,
@@ -51,6 +51,7 @@ import {
   buildSanitizedAuthRedirectUrl,
   getSupabaseAuthRedirectState,
 } from "@/lib/authRedirect";
+import { getPostAuthTargetForRole } from "@/lib/authPostLogin";
 
 const supabase = getSupabase();
 const LEGAL_ACCEPTANCE_VERSION = "2026-06-15";
@@ -602,11 +603,7 @@ export default function Auth() {
   }, [searchParams]);
 
   const getPostAuthTarget = useCallback((selectedRole: UserRole) => {
-    if (selectedRole === "client") {
-      return postAuthRedirectTarget || ROLE_CONFIG[selectedRole].to;
-    }
-
-    return getRoleHomePath(selectedRole);
+    return getPostAuthTargetForRole(selectedRole, postAuthRedirectTarget);
   }, [postAuthRedirectTarget]);
 
   useEffect(() => {
