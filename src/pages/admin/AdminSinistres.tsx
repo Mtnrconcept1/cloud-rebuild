@@ -238,9 +238,15 @@ function formatStatus(status: string) {
 function isChatIncident(row: SupportIncidentRow) {
   const metadata = asRecord(row.metadata);
   const source = String(metadata.source || "");
+  const category = String(row.category || "").toLowerCase();
+  const subject = String(row.subject || "").toLowerCase();
 
   return source === "ai-client-chat"
     || source === "ai-client-support"
+    || source === "contact-support"
+    || source.includes("support")
+    || category === "support"
+    || subject.startsWith("incident support")
     || Boolean(metadata.conversation_id)
     || Boolean(metadata.ai_support_ticket_id);
 }

@@ -39,6 +39,11 @@ describe("admin operations center", () => {
     expect(component).toContain("admin_update_marketplace_alert");
     expect(component).toContain("admin_take_marketplace_alert");
     expect(component).toContain("sourceWhitelist");
+    expect(component).toContain("isSupportIncidentAlert");
+    expect(component).toContain('alert.source === "support"');
+    expect(component).toContain('alert.alert_key.startsWith("support:incident:")');
+    expect(component).toContain('alert.entity_type === "support_incident"');
+    expect(component).toContain("operationalAlerts");
     expect(component).toContain("statusFilter");
     expect(component).not.toContain("refetchInterval");
     expect(component).toContain("refetchOnWindowFocus: false");

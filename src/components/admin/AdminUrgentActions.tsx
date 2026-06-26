@@ -79,6 +79,12 @@ function isClosedAlertStatus(status: string) {
   return status === "resolved" || status === "ignored";
 }
 
+function isSupportIncidentAlert(alert: MarketplaceAlert) {
+  return alert.source === "support"
+    || alert.alert_key.startsWith("support:incident:")
+    || alert.entity_type === "support_incident";
+}
+
 function getErrorMessage(error: unknown) {
   if (error instanceof Error) return error.message;
   if (typeof error === "object" && error && "message" in error) {
@@ -196,9 +202,10 @@ export default function AdminUrgentActions({
   });
 
   const scopedAlerts = useMemo(() => {
-    if (!sourceWhitelist?.length) return alerts;
+    const operationalAlerts = alerts.filter((alert) => !isSupportIncidentAlert(alert));
+    if (!sourceWhitelist?.length) return operationalAlerts;
     const allowedSources = new Set(sourceWhitelist);
-    return alerts.filter((alert) => allowedSources.has(alert.source));
+    return operationalAlerts.filter((alert) => allowedSources.has(alert.source));
   }, [alerts, sourceWhitelist]);
 
   const sources = useMemo(() => Array.from(new Set(scopedAlerts.map((alert) => alert.source).filter(Boolean))).sort(), [scopedAlerts]);

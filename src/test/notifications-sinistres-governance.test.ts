@@ -135,6 +135,10 @@ describe("notifications and chat sinistres governance", () => {
     expect(page).toContain("visibility: \"public\"");
     expect(page).toContain("handoff_to_admin: true");
     expect(page).toContain("ai_disabled: true");
+    expect(page).toContain('source === "contact-support"');
+    expect(page).toContain('source.includes("support")');
+    expect(page).toContain('category === "support"');
+    expect(page).toContain('subject.startsWith("incident support")');
   });
 
   it("highlights open chat incidents in admin navigation and refreshes them in realtime", () => {
