@@ -105,7 +105,17 @@ describe("restaurant dashboard review response workflow", () => {
     expect(routing).toContain('notification.type === "review_report"');
     expect(routing).toContain("/dashboard/avis");
     expect(routing).toContain("/admin/avis");
-    expect(restaurantDetail).toContain('.eq("status", "published")');
+    expect(restaurantDetail).toContain('.or("status.is.null,status.eq.published")');
+  });
+
+  it("shows legacy published reviews and restaurant replies on public restaurant pages", () => {
+    const restaurantDetail = readProjectFile("src/pages/RestaurantDetail.tsx");
+
+    expect(restaurantDetail).toContain("review_replies(id, reply_text, author_type, created_at)");
+    expect(restaurantDetail).toContain('.or("status.is.null,status.eq.published")');
+    expect(restaurantDetail).toContain("getRestaurantStaffReply");
+    expect(restaurantDetail).toContain('author_type === "restaurant_staff"');
+    expect(restaurantDetail).toContain("Réponse du restaurant");
   });
 
   it("keeps AI review replies available through subscription and credit surfaces after launch packs", () => {

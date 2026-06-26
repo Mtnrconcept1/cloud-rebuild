@@ -15,6 +15,7 @@ import {
   type ClientSupportConversation,
   type TokAiMessage,
 } from "@/lib/ai/tokAiClient";
+import { normalizeVisibleAiSupportText } from "@/lib/ai/supportText";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { isAdminAppHost, isAdminPath } from "@/lib/adminDomains";
@@ -306,7 +307,7 @@ export default function SupportChat() {
           const nextMessage: ChatMessage = {
             id: message.id,
             type: message.role === "user" ? "user" : "bot",
-            text: message.content,
+            text: normalizeVisibleAiSupportText(message.content),
           };
 
           if (message.role === "assistant" && isAdminSupportMessage(message)) {
@@ -435,7 +436,7 @@ export default function SupportChat() {
         .map((message) => ({
           id: message.id,
           type: message.role === "user" ? "user" as const : "bot" as const,
-          text: message.content,
+          text: normalizeVisibleAiSupportText(message.content),
         }));
 
       setChatSurface(nextSurface);
@@ -518,6 +519,7 @@ export default function SupportChat() {
       setActiveConversationId(data?.conversationId || activeConversationId);
       setSupportTicketId(data?.supportTicketId || null);
       setHumanHandoffActive(Boolean(data?.handoffToAdmin || data?.aiDisabled || humanHandoffActive));
+      const normalizedReply = normalizeVisibleAiSupportText(data?.reply || "");
 
       if (data?.handoffToAdmin || data?.aiDisabled) {
         return;
@@ -528,8 +530,8 @@ export default function SupportChat() {
         {
           type: "bot",
           text: data?.supportTicketId
-            ? `${data.reply}\n\nTicket support créé : ${data.supportTicketId}`
-            : data?.reply || "L'Assistant IA OpenAI n'a pas pu générer de réponse pour le moment.",
+            ? `${normalizedReply}\n\nTicket support créé : ${data.supportTicketId}`
+            : normalizedReply || "L'Assistant IA OpenAI n'a pas pu générer de réponse pour le moment.",
         },
       ]);
     } catch (error) {
@@ -708,7 +710,7 @@ export default function SupportChat() {
                             : "rounded-bl-none border bg-card"
                         }`}
                       >
-                        {message.text}
+                        {normalizeVisibleAiSupportText(message.text)}
                       </div>
                     </div>
                   ))}

@@ -13,6 +13,7 @@ import {
   Leaf,
   LogOut,
   Menu,
+  Network,
   Newspaper,
   Repeat,
   Route,
@@ -125,6 +126,7 @@ export default function Navbar() {
   const reservationEnabled = activeFeatures.has("reservation");
   const dashboardEnabled = activeFeatures.has("dashboard-restaurateur");
   const tokOneEnabled = activeFeatures.has("tok-one");
+  const tokConnectEnabled = activeFeatures.has("tok-connect");
   const visibleFeatures = FEATURES.filter((feature) => activeFeatures.has(feature.feature));
   const discoveryFeatures = visibleFeatures.slice(0, 3);
   const showClientSurface = canShowClientSurface({ activeRole: role, roles });
@@ -238,6 +240,15 @@ export default function Navbar() {
               <Store className="h-3.5 w-3.5" />
               Pour les restaurateurs
             </Link>
+            {tokConnectEnabled ? (
+              <>
+                <span className="text-border">|</span>
+                <Link to="/tok-connect" className="flex items-center gap-1.5 transition-colors hover:text-foreground">
+                  <Network className="h-3.5 w-3.5" />
+                  TOK Connect
+                </Link>
+              </>
+            ) : null}
             <span className="text-border">|</span>
             <Link to="/aide" className="transition-colors hover:text-foreground">Aide</Link>
           </div>
@@ -557,6 +568,12 @@ export default function Navbar() {
                         <Store className="h-4 w-4" />
                         Devenir partenaire
                       </Link>
+                      {tokConnectEnabled ? (
+                        <Link to="/tok-connect" className="mt-3 flex items-center gap-2 text-sm font-medium text-primary" onClick={() => setMenuOpen(false)}>
+                          <Network className="h-4 w-4" />
+                          TOK Connect
+                        </Link>
+                      ) : null}
                     </div>
                   ) : null}
 

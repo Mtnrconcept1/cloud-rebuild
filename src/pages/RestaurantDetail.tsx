@@ -77,6 +77,25 @@ type RestaurantPromotion = {
   end_at: string;
 };
 
+type RestaurantReviewReply = {
+  id: string;
+  reply_text: string | null;
+  author_type: string | null;
+  created_at: string;
+};
+
+type RestaurantReview = {
+  id: string;
+  restaurant_id: string;
+  user_id: string | null;
+  user_name?: string | null;
+  rating: number | string | null;
+  comment: string | null;
+  created_at: string;
+  status: string | null;
+  review_replies?: RestaurantReviewReply[] | null;
+};
+
 function formatCompactPromotionNumber(value: number) {
   if (!Number.isFinite(value)) return "0";
   return Number.isInteger(value) ? value.toFixed(0) : value.toFixed(2).replace(/\.?0+$/, "");
@@ -94,6 +113,12 @@ function formatRestaurantPromotionEndDate(endAt: string) {
   const date = new Date(endAt);
   if (!Number.isFinite(date.getTime())) return "date à confirmer";
   return date.toLocaleDateString("fr-FR", { day: "2-digit", month: "long" });
+}
+
+function getRestaurantStaffReply(review: RestaurantReview) {
+  return (review.review_replies || []).find(
+    (reply) => reply.author_type === "restaurant_staff" && Boolean(reply.reply_text?.trim()),
+  ) || null;
 }
 
 function RestaurantGalleryWatermark({ className = "", sizeClassName = "h-12 w-12" }: { className?: string; sizeClassName?: string }) {
@@ -297,7 +322,17 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
 
   const { data: reviews } = useQuery({
     queryKey: ["reviews", restaurantId],
-    queryFn: async () => { const { data } = await supabase.from("reviews").select("*").eq("restaurant_id", restaurantId!).eq("status", "published").order("created_at", { ascending: false }).limit(RESTAURANT_REVIEWS_LIMIT); return data || []; },
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("reviews")
+        .select("*, review_replies(id, reply_text, author_type, created_at)")
+        .eq("restaurant_id", restaurantId!)
+        .or("status.is.null,status.eq.published")
+        .order("created_at", { ascending: false })
+        .limit(RESTAURANT_REVIEWS_LIMIT);
+      if (error) throw error;
+      return (data || []) as RestaurantReview[];
+    },
     enabled: !!restaurantId,
     staleTime: RESTAURANT_DETAIL_STALE_MS,
   });
@@ -868,27 +903,37 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
                       </div>
                     </div>
                     <div className="space-y-3">
-                      {reviews.slice(0, 3).map((review) => (
-                        <div key={review.id} className="p-4 border rounded-xl bg-card space-y-2">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
-                                <span className="text-xs font-bold text-muted-foreground">
-                                  {(review.user_name || review.user_id || "A").charAt(0).toUpperCase()}
-                                </span>
+                      {reviews.slice(0, 3).map((review) => {
+                        const restaurantReply = getRestaurantStaffReply(review);
+
+                        return (
+                          <div key={review.id} className="p-4 border rounded-xl bg-card space-y-2">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
+                                  <span className="text-xs font-bold text-muted-foreground">
+                                    {(review.user_name || review.user_id || "A").charAt(0).toUpperCase()}
+                                  </span>
+                                </div>
+                                <div>
+                                  <p className="text-xs font-semibold">{review.user_name || "Anonyme"}</p>
+                                  <p className="text-[10px] text-muted-foreground">{new Date(review.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}</p>
+                                </div>
                               </div>
-                              <div>
-                                <p className="text-xs font-semibold">{review.user_name || "Anonyme"}</p>
-                                <p className="text-[10px] text-muted-foreground">{new Date(review.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}</p>
+                              <div className="flex items-center gap-1 bg-primary/10 text-primary px-2 py-0.5 rounded font-bold text-sm">
+                                <Star className="h-3.5 w-3.5 fill-primary" />{Number(review.rating).toFixed(1)}<span className="text-[10px] font-normal text-muted-foreground">/10</span>
                               </div>
                             </div>
-                            <div className="flex items-center gap-1 bg-primary/10 text-primary px-2 py-0.5 rounded font-bold text-sm">
-                              <Star className="h-3.5 w-3.5 fill-primary" />{Number(review.rating).toFixed(1)}<span className="text-[10px] font-normal text-muted-foreground">/10</span>
-                            </div>
+                            {review.comment && <p className="text-sm leading-relaxed text-muted-foreground">{review.comment}</p>}
+                            {restaurantReply ? (
+                              <div className="rounded-lg border-l-2 border-primary/40 bg-primary/5 px-3 py-2">
+                                <p className="text-[11px] font-semibold uppercase tracking-wide text-primary">Réponse du restaurant</p>
+                                <p className="mt-1 text-sm leading-relaxed">{restaurantReply.reply_text}</p>
+                              </div>
+                            ) : null}
                           </div>
-                          {review.comment && <p className="text-sm leading-relaxed text-muted-foreground">{review.comment}</p>}
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                     {reviews.length > 3 && (
                       <div className="flex justify-center">
@@ -1113,15 +1158,25 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
                   <div className="md:col-span-2 space-y-6">
                     {user && <ReviewForm restaurantId={restaurantId!} onSuccess={() => { queryClient.invalidateQueries({ queryKey: ["reviews", restaurantId] }); }} />}
                     <div className="space-y-4">
-                      {reviews?.map((review) => (
-                        <div key={review.id} className="p-4 border rounded-xl bg-card space-y-3">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-1.5 bg-primary/10 text-primary px-2 py-0.5 rounded font-bold text-sm"><Star className="h-3.5 w-3.5 fill-primary" />{Number(review.rating).toFixed(1)}/10</div>
-                            <span className="text-xs text-muted-foreground">{new Date(review.created_at).toLocaleDateString("fr-FR", { year: "numeric", month: "long" })}</span>
+                      {reviews?.map((review) => {
+                        const restaurantReply = getRestaurantStaffReply(review);
+
+                        return (
+                          <div key={review.id} className="p-4 border rounded-xl bg-card space-y-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-1.5 bg-primary/10 text-primary px-2 py-0.5 rounded font-bold text-sm"><Star className="h-3.5 w-3.5 fill-primary" />{Number(review.rating).toFixed(1)}/10</div>
+                              <span className="text-xs text-muted-foreground">{new Date(review.created_at).toLocaleDateString("fr-FR", { year: "numeric", month: "long" })}</span>
+                            </div>
+                            {review.comment && <p className="text-sm leading-relaxed">{review.comment}</p>}
+                            {restaurantReply ? (
+                              <div className="rounded-lg border-l-2 border-primary/40 bg-primary/5 px-3 py-2">
+                                <p className="text-[11px] font-semibold uppercase tracking-wide text-primary">Réponse du restaurant</p>
+                                <p className="mt-1 text-sm leading-relaxed">{restaurantReply.reply_text}</p>
+                              </div>
+                            ) : null}
                           </div>
-                          {review.comment && <p className="text-sm leading-relaxed">{review.comment}</p>}
-                        </div>
-                      ))}
+                        );
+                      })}
                       {(!reviews || reviews.length === 0) && <p className="text-center text-muted-foreground py-8">Aucun avis pour ce restaurant. Soyez le premier !</p>}
                     </div>
                   </div>

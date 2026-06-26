@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useSessionStorageState } from "@/hooks/useSessionStorageState";
 import { getSupabase } from "@/integrations/supabase/client";
 import { askClientSupport, type TokAiMessage } from "@/lib/ai/tokAiClient";
+import { normalizeVisibleAiSupportText } from "@/lib/ai/supportText";
 import { useAuth } from "@/lib/auth-context";
 
 type TokAiSupportChatProps = {
@@ -61,7 +62,7 @@ export default function TokAiSupportChat({
   const humanHandoffActive = Boolean(draft.humanHandoffActive);
 
   const lastAssistantReply = useMemo(
-    () => messages.filter((message) => message.role === "assistant").at(-1)?.content,
+    () => normalizeVisibleAiSupportText(messages.filter((message) => message.role === "assistant").at(-1)?.content || ""),
     [messages],
   );
 
@@ -84,7 +85,7 @@ export default function TokAiSupportChat({
               humanHandoffActive: true,
               messages: previous.messages.some((item) => item.content === message.content)
                 ? previous.messages
-                : [...previous.messages, { role: "assistant", content: message.content }],
+                : [...previous.messages, { role: "assistant", content: normalizeVisibleAiSupportText(message.content) }],
             }));
           }
         },
@@ -150,6 +151,7 @@ export default function TokAiSupportChat({
           ...context,
         },
       });
+      const normalizedReply = normalizeVisibleAiSupportText(result.reply || "");
 
       setDraft((previous) => ({
         ...previous,
@@ -157,9 +159,9 @@ export default function TokAiSupportChat({
         conversationId: result.conversationId,
         supportTicketId: result.supportTicketId,
         humanHandoffActive: Boolean(result.handoffToAdmin || result.aiDisabled || previous.humanHandoffActive),
-        messages: result.handoffToAdmin || result.aiDisabled || !result.reply
+        messages: result.handoffToAdmin || result.aiDisabled || !normalizedReply
           ? nextMessages
-          : [...nextMessages, { role: "assistant", content: result.reply }],
+          : [...nextMessages, { role: "assistant", content: normalizedReply }],
       }));
     } catch (chatError) {
       setError(chatError instanceof Error ? chatError.message : "Assistant IA indisponible.");

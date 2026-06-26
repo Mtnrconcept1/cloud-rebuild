@@ -1,5 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+export type EdgeSupabaseClient = ReturnType<typeof createClient<any>>;
+
 export class HttpError extends Error {
   status: number;
 
@@ -11,8 +13,8 @@ export class HttpError extends Error {
 }
 
 export type RequestActor = {
-  adminClient: ReturnType<typeof createClient>;
-  userClient: ReturnType<typeof createClient> | null;
+  adminClient: EdgeSupabaseClient;
+  userClient: EdgeSupabaseClient | null;
   userId: string | null;
   roles: string[];
   isAdmin: boolean;
@@ -48,7 +50,7 @@ type AuditActorContext = {
 };
 
 type AuditLogInput = {
-  adminClient: ReturnType<typeof createClient>;
+  adminClient: EdgeSupabaseClient;
   functionName: string;
   status: "success" | "failure";
   action?: string;
@@ -68,7 +70,7 @@ export function createAdminClient() {
   return createClient(
     getEnv("SUPABASE_URL"),
     getEnv("SUPABASE_SERVICE_ROLE_KEY"),
-  );
+  ) as EdgeSupabaseClient;
 }
 
 export function jsonResponse(
@@ -200,7 +202,7 @@ export async function authenticateRequest(
         autoRefreshToken: false,
       },
     },
-  );
+  ) as EdgeSupabaseClient;
 
   const { data: userData, error: userError } = await userClient.auth.getUser();
 

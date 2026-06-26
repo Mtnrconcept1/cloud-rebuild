@@ -51,6 +51,11 @@ const ALLOWED_HEADERS = [
   "x-supabase-client-runtime-version",
   "x-internal-cron-secret",
   "x-cron-secret",
+  "idempotency-key",
+  "x-tok-event",
+  "x-tok-delivery",
+  "x-tok-timestamp",
+  "x-tok-signature",
   "stripe-signature",
 ].join(", ");
 

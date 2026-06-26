@@ -64,6 +64,35 @@ const OUTPUT_SCHEMA = {
   },
 };
 
+const DEVANAGARI_SCRIPT_PATTERN = /[\u0900-\u097F]+/g;
+
+function normalizeFrenchSupportReply(value: string) {
+  const trimmed = typeof value === "string" ? value.trim() : "";
+  if (!trimmed) return "";
+
+  const normalized = trimmed
+    .replace(/prochain\s+[\u0900-\u097F]+(?=\s*:)/gi, "prochain message")
+    .replace(DEVANAGARI_SCRIPT_PATTERN, "")
+    .replace(/[ \t]+/g, " ")
+    .replace(/\s+([,.])/g, "$1")
+    .replace(/\s+:/g, " :")
+    .trim();
+
+  return normalized || trimmed;
+}
+
+function normalizeSupportResult(result: SupportResult): SupportResult {
+  return {
+    ...result,
+    reply: normalizeFrenchSupportReply(result.reply),
+    ticket_title: normalizeFrenchSupportReply(result.ticket_title),
+    ticket_summary: normalizeFrenchSupportReply(result.ticket_summary),
+    suggested_next_steps: (Array.isArray(result.suggested_next_steps) ? result.suggested_next_steps : [])
+      .map((step) => normalizeFrenchSupportReply(step))
+      .filter((step) => step.length > 0),
+  };
+}
+
 function maybeUuid(raw: unknown) {
   return typeof raw === "string" && /^[0-9a-f-]{36}$/i.test(raw) ? raw : null;
 }
@@ -74,7 +103,7 @@ function sanitizeMessages(raw: unknown): SupportMessage[] {
   return raw
     .filter((entry): entry is Record<string, unknown> => Boolean(entry) && typeof entry === "object")
     .slice(-18)
-    .map((entry) => ({
+    .map((entry): SupportMessage => ({
       role: entry.role === "assistant" ? "assistant" : "user",
       content: typeof entry.content === "string" ? entry.content.trim().slice(0, 2500) : "",
     }))
@@ -474,7 +503,8 @@ Deno.serve(async (req) => {
 Aucun remboursement automatique: tu ne promets jamais un remboursement, un avoir important, une action juridique ou une modification de commande sans regle explicite.
 Tu dois proposer une escalade humaine pour allergie, intoxication, menace juridique, paiement sensible, demande explicite d'humain, abus ou incident critique.
 Tu peux classer le statut en open, waiting_restaurant, waiting_tok, resolved ou escalated.
-Reponds en francais clair et court.`;
+Reponds uniquement en francais clair et court.
+N'utilise aucun mot, alphabet ou caractere dans une autre ecriture que le francais courant.`;
 
     const openAIResponse = await createOpenAIResponse({
       model,
@@ -503,7 +533,7 @@ Reponds en francais clair et court.`;
       },
     });
 
-    const result = parseStructuredOutput<SupportResult>(openAIResponse);
+    const result = normalizeSupportResult(parseStructuredOutput<SupportResult>(openAIResponse));
     const usage = extractUsage(openAIResponse);
     const finalStatus: SupportStatus = result.should_escalate ? "escalated" : result.status;
 
@@ -556,7 +586,8 @@ Reponds en francais clair et court.`;
       .single();
 
     if (supportTicketError) throw new HttpError(500, supportTicketError.message);
-    supportTicketId = supportTicket.id;
+    const currentSupportTicketId = supportTicket.id;
+    supportTicketId = currentSupportTicketId;
 
     let supportIncidentId: string | null = null;
     if (result.should_escalate && restaurantId) {
@@ -570,7 +601,7 @@ Reponds en francais clair et court.`;
         p_priority: result.priority,
         p_metadata: {
           source: FUNCTION_NAME,
-          ai_support_ticket_id: supportTicketId,
+          ai_support_ticket_id: currentSupportTicketId,
           conversation_id: conversationId,
         },
       });
@@ -580,7 +611,7 @@ Reponds en francais clair et court.`;
         await actor.adminClient
           .from("ai_support_tickets")
           .update({ support_incident_id: supportIncidentId })
-          .eq("id", supportTicketId);
+          .eq("id", currentSupportTicketId);
         await actor.adminClient
           .from("ai_conversations")
           .update({ status: "escalated", support_incident_id: supportIncidentId })
@@ -590,7 +621,7 @@ Reponds en francais clair et court.`;
           conversationId,
           messages,
           assistantReply: result.reply,
-          supportTicketId,
+          supportTicketId: currentSupportTicketId,
         }).catch((transcriptError) => {
           log.warn("support_incident_transcript_append_failed", {
             message: transcriptError instanceof Error ? transcriptError.message : "unknown",
@@ -599,7 +630,7 @@ Reponds en francais clair et court.`;
         await notifyAdminsOfSupportIncident(actor, {
           incidentId: supportIncidentId,
           conversationId,
-          supportTicketId,
+          supportTicketId: currentSupportTicketId,
           title: result.ticket_title,
           summary: result.ticket_summary,
           priority: result.priority,
@@ -618,7 +649,7 @@ Reponds en francais clair et court.`;
 
     if ((supportTicketWasCreated || supportTicketStatusChanged) && supportTicketNeedsAdminAttention && !supportIncidentId) {
       await notifyAdminsOfSupportTicket(actor, {
-        supportTicketId,
+        supportTicketId: currentSupportTicketId,
         conversationId,
         title: result.ticket_title,
         summary: result.ticket_summary,

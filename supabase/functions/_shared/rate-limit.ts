@@ -25,8 +25,7 @@
  *   TOK_RATE_LIMIT_DEFAULT_MAX_REQUESTS=30
  */
 
-import type { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { HttpError } from "./auth.ts";
+import { type EdgeSupabaseClient, HttpError } from "./auth.ts";
 
 export type RateLimitOptions = {
   maxRequests: number;
@@ -64,7 +63,7 @@ function resolveMaxRequests(functionName: string, subject: string, fallback: num
 }
 
 export function createRateLimiter(
-  adminClient: ReturnType<typeof createClient>,
+  adminClient: EdgeSupabaseClient,
   functionName: string,
 ) {
   return {

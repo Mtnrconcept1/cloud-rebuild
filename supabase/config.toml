@@ -157,3 +157,18 @@ verify_jwt = false
 
 [functions.submit-signup-application]
 verify_jwt = false
+
+[functions.tok-connect-oauth]
+verify_jwt = false
+
+[functions.tok-connect-api]
+verify_jwt = false
+
+[functions.tok-connect-mcp]
+verify_jwt = false
+
+[functions.tok-connect-portal]
+verify_jwt = false
+
+[functions.tok-connect-webhook-dispatch]
+verify_jwt = false

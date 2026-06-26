@@ -1,4 +1,4 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getEnv } from "./auth.ts";
 
 type NotificationChannels = {
@@ -8,7 +8,7 @@ type NotificationChannels = {
 };
 
 type EnqueueNotificationInput = {
-  adminClient: ReturnType<typeof createClient>;
+  adminClient: NotificationAdminClient;
   userId: string;
   title: string;
   body: string;
@@ -39,6 +39,8 @@ type NotificationDispatchResult = {
   failedChannels: NotificationDispatchFailure[];
 };
 
+type NotificationAdminClient = SupabaseClient<any, "public", "public", any, any>;
+
 export async function enqueueNotification(input: EnqueueNotificationInput) {
   const payload = { ...(input.data || {}) };
   if (input.requestedChannels) {
@@ -59,7 +61,7 @@ export async function enqueueNotification(input: EnqueueNotificationInput) {
 }
 
 export async function getAdminNotificationRecipients(
-  adminClient: ReturnType<typeof createClient>,
+  adminClient: NotificationAdminClient,
   limit?: number,
 ) {
   const baseQuery = adminClient

@@ -82,6 +82,8 @@ const VentesFlash = lazy(() => import("./pages/VentesFlash"));
 const Actualites = lazy(() => import("./pages/Actualites"));
 const TokOne = lazy(() => import("./pages/TokOne"));
 const TokPulse = lazy(() => import("./pages/TokPulse"));
+const TokConnect = lazy(() => import("./pages/TokConnect"));
+const TokConnectDeveloper = lazy(() => import("./pages/TokConnectDeveloper"));
 const DashboardHome = lazy(() => import("./pages/dashboard/DashboardHome"));
 const DashboardRestaurant = lazy(() => import("./pages/dashboard/DashboardRestaurant"));
 const DashboardMenu = lazy(() => import("./pages/dashboard/DashboardMenu"));
@@ -110,6 +112,7 @@ const DashboardService = lazy(() => import("./pages/dashboard/DashboardService")
 const DashboardPlanSalle = lazy(() => import("./pages/dashboard/DashboardPlanSalle"));
 const DashboardAdvisor = lazy(() => import("./pages/dashboard/DashboardAdvisor"));
 const DashboardPack = lazy(() => import("./pages/dashboard/DashboardPack"));
+const DashboardTokConnect = lazy(() => import("./pages/dashboard/DashboardTokConnect"));
 
 const CourierHome = lazy(() => import("./pages/courier/CourierHome"));
 const CourierJobs = lazy(() => import("./pages/courier/CourierJobs"));
@@ -138,6 +141,7 @@ const AdminAiOperations = lazy(() => import("./pages/admin/AdminAiOperations"));
 const AdminActualites = lazy(() => import("./pages/admin/AdminActualites"));
 const AdminCrm = lazy(() => import("./pages/admin/AdminCrm"));
 const AdminSinistres = lazy(() => import("./pages/admin/AdminSinistres"));
+const AdminTokConnect = lazy(() => import("./pages/admin/AdminTokConnect"));
 
 focusManager.setEventListener(() => () => undefined);
 
@@ -336,6 +340,7 @@ function AppShell() {
   const reservationEnabled = hasFeature("reservation");
   const abonnementEnabled = hasFeature("abonnement");
   const tokOneEnabled = hasFeature("tok-one");
+  const tokConnectEnabled = hasFeature("tok-connect");
   const giftPointsEnabled = hasFeature("points-cadeau");
   const dashboardOverviewEnabled = hasFeature("dashboard-overview");
   const dashboardAdvisorEnabled = hasFeature("dashboard-advisor");
@@ -362,6 +367,7 @@ function AppShell() {
   const dashboardServiceEnabled = hasFeature("dashboard-service");
   const dashboardPlanSalleEnabled = hasFeature("dashboard-plan-salle");
   const dashboardPackEnabled = hasFeature("dashboard-pack");
+  const dashboardTokConnectEnabled = hasFeature("dashboard-tok-connect");
   const courierHomeEnabled = hasFeature("courier-home");
   const courierJobsEnabled = hasFeature("courier-jobs");
   const courierEarningsEnabled = hasFeature("courier-earnings");
@@ -382,6 +388,7 @@ function AppShell() {
   const adminCrmEnabled = hasFeature("admin-crm");
   const adminPlatformConfigEnabled = hasFeature("admin-platform-config");
   const adminOperationsCenterEnabled = hasFeature("admin-operations-center");
+  const adminTokConnectEnabled = hasFeature("admin-tok-connect");
   const deliveryEnabled = hasFeature("livraison");
   const showPublicFooter = shouldShowPublicFooter(pathname);
   const publicNavbar = shouldShowPublicNavbar(pathname) ? <Navbar /> : null;
@@ -422,6 +429,8 @@ function AppShell() {
           <Route path="/abonnement" element={<ClientSurfaceRoute><FeatureSwitch enabled={abonnementEnabled}><Abonnement /></FeatureSwitch></ClientSurfaceRoute>} />
           <Route path="/tok-one" element={<ClientSurfaceRoute><FeatureSwitch enabled={tokOneEnabled}><TokOne /></FeatureSwitch></ClientSurfaceRoute>} />
           <Route path="/tok-pulse" element={<ClientSurfaceRoute><TokPulse /></ClientSurfaceRoute>} />
+          <Route path="/tok-connect" element={<FeatureSwitch enabled={tokConnectEnabled} fallback="/"><TokConnect /></FeatureSwitch>} />
+          <Route path="/tok-connect/developer" element={<ProtectedRoute><FeatureSwitch enabled={tokConnectEnabled} fallback="/tok-connect"><TokConnectDeveloper /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/miamz-solidaires" element={<MiamzSolidaires />} />
           <Route path="/points-cadeau" element={<ProtectedRoute requiredRole="client"><FeatureSwitch enabled={giftPointsEnabled}><GiftPoints /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/ventes-flash" element={<ClientSurfaceRoute><FeatureSwitch enabled={flashSalesEnabled}><VentesFlash /></FeatureSwitch></ClientSurfaceRoute>} />
@@ -457,6 +466,7 @@ function AppShell() {
           <Route path="/dashboard/service" element={<DashboardRoute><FeatureSwitch enabled={dashboardServiceEnabled} fallback="/dashboard"><DashboardService /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/plan-salle" element={<DashboardRoute><FeatureSwitch enabled={dashboardPlanSalleEnabled} fallback="/dashboard"><DashboardPlanSalle /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/pack" element={<DashboardRoute><FeatureSwitch enabled={dashboardPackEnabled} fallback="/dashboard"><DashboardPack /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/tok-connect" element={<DashboardRoute><FeatureSwitch enabled={dashboardTokConnectEnabled} fallback="/dashboard"><DashboardTokConnect /></FeatureSwitch></DashboardRoute>} />
           <Route path="/courier" element={<ProtectedRoute requiredRole="courier"><FeatureSwitch enabled={courierHomeEnabled}><CourierHome /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/courier/jobs" element={<ProtectedRoute requiredRole="courier"><FeatureSwitch enabled={courierJobsEnabled} fallback="/courier"><CourierJobs /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/courier/notifications" element={<ProtectedRoute requiredRole="courier"><CourierNotifications /></ProtectedRoute>} />
@@ -483,6 +493,7 @@ function AppShell() {
           <Route path="/admin/commandes-reservations" element={<AdminProtectedRoute><FeatureSwitch enabled={adminOperationsCenterEnabled} fallback="/admin"><AdminOperationsCenter /></FeatureSwitch></AdminProtectedRoute>} />
           <Route path="/admin/sinistres" element={<AdminProtectedRoute><FeatureSwitch enabled={adminOperationsCenterEnabled} fallback="/admin"><AdminSinistres /></FeatureSwitch></AdminProtectedRoute>} />
           <Route path="/admin/ai-operations" element={<AdminProtectedRoute><FeatureSwitch enabled={adminAiOperationsEnabled} fallback="/admin"><AdminAiOperations /></FeatureSwitch></AdminProtectedRoute>} />
+          <Route path="/admin/tok-connect" element={<AdminProtectedRoute><FeatureSwitch enabled={adminTokConnectEnabled} fallback="/admin"><AdminTokConnect /></FeatureSwitch></AdminProtectedRoute>} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/cgu" element={<CGU />} />
           <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />

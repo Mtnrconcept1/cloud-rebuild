@@ -52,4 +52,15 @@ describe("space Help chat access", () => {
     expect(edgeFunction).toContain("OPENAI_API_KEY");
     expect(edgeFunction).toContain("createOpenAIResponse");
   });
+
+  it("normalizes mixed-script AI support replies before they are stored or displayed", () => {
+    const edgeFunction = readProjectFile("supabase/functions/ai-client-support/index.ts");
+
+    expect(edgeFunction).toContain("DEVANAGARI_SCRIPT_PATTERN");
+    expect(edgeFunction).toContain("normalizeFrenchSupportReply");
+    expect(edgeFunction).toContain("normalizeSupportResult");
+    expect(edgeFunction).toContain("const result = normalizeSupportResult");
+    expect(edgeFunction).toContain("prochain message");
+    expect(edgeFunction).toContain("Reponds uniquement en francais");
+  });
 });

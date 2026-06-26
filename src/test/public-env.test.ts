@@ -56,4 +56,12 @@ describe("public env", () => {
     expect(viteConfig).toContain("VITE_SUPABASE_URL");
     expect(viteConfig).toContain("VITE_SUPABASE_PUBLISHABLE_KEY");
   });
+
+  it("lets the dev server fall back from port 8080 to the next available port", () => {
+    const viteConfig = readFileSync(resolve(process.cwd(), "vite.config.ts"), "utf8");
+
+    expect(viteConfig).toContain("port: 8080");
+    expect(viteConfig).toContain("strictPort: false");
+    expect(viteConfig).not.toContain("strictPort: true");
+  });
 });

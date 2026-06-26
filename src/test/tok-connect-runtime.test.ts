@@ -1,0 +1,108 @@
+import { describe, expect, it } from "vitest";
+
+import {
+  SAFE_TOK_CONNECT_MCP_TOOLS,
+  TOK_CONNECT_REQUIRED_FEATURE_FLAGS,
+  TOK_CONNECT_WEBHOOK_EVENTS,
+  assertTokConnectScopes,
+  buildTokConnectWebhookHeaders,
+  buildTokConnectEnvelope,
+  createTokConnectCursor,
+  getTokConnectRetryDelaySeconds,
+  hashTokConnectSecret,
+  isValidTokConnectIdempotencyKey,
+  parseTokConnectCursor,
+  parseTokConnectLimit,
+  signTokConnectWebhook,
+  verifyTokConnectSecret,
+} from "../../supabase/functions/_shared/tok-connect.ts";
+
+describe("TOK Connect shared runtime", () => {
+  it("standardizes API envelopes and cursor pagination", () => {
+    expect(buildTokConnectEnvelope({ requestId: "req_123", data: { ok: true }, nextCursor: "cursor" })).toEqual({
+      ok: true,
+      data: { ok: true },
+      error: null,
+      request_id: "req_123",
+      next_cursor: "cursor",
+    });
+
+    expect(buildTokConnectEnvelope({ requestId: "req_123", error: { code: "missing_scope", message: "Scope absent" } }))
+      .toEqual({
+        ok: false,
+        data: null,
+        error: { code: "missing_scope", message: "Scope absent" },
+        request_id: "req_123",
+        next_cursor: null,
+      });
+
+    const cursor = createTokConnectCursor("2026-06-26T10:00:00.000Z", "restaurant-1");
+    expect(parseTokConnectCursor(cursor)).toEqual({ createdAt: "2026-06-26T10:00:00.000Z", id: "restaurant-1" });
+    expect(parseTokConnectLimit("500", 25, 100)).toBe(100);
+    expect(parseTokConnectLimit("bad", 25, 100)).toBe(25);
+  });
+
+  it("keeps idempotency keys required and bounded for reservation writes", () => {
+    expect(isValidTokConnectIdempotencyKey("booking_20260626_partner_abc123")).toBe(true);
+    expect(isValidTokConnectIdempotencyKey("x")).toBe(false);
+    expect(isValidTokConnectIdempotencyKey("contains spaces")).toBe(false);
+    expect(isValidTokConnectIdempotencyKey("a".repeat(121))).toBe(false);
+  });
+
+  it("enforces scoped access without enabling autopilot tools in v1", () => {
+    expect(() => assertTokConnectScopes(["restaurants:read", "availability:read"], ["availability:read"]))
+      .not.toThrow();
+    expect(() => assertTokConnectScopes(["restaurants:read"], ["reservations:create"]))
+      .toThrow(/reservations:create/);
+
+    expect(SAFE_TOK_CONNECT_MCP_TOOLS.map((tool) => tool.name)).toEqual([
+      "search_restaurants",
+      "get_real_time_availability",
+      "prepare_reservation",
+      "get_restaurant_performance",
+      "estimate_campaign_credit_cost",
+      "generate_campaign_preview",
+    ]);
+    expect(SAFE_TOK_CONNECT_MCP_TOOLS.map((tool) => tool.name)).not.toContain("create_flash_offer");
+    expect(TOK_CONNECT_REQUIRED_FEATURE_FLAGS).toContain("tok-connect-autopilot");
+  });
+
+  it("hashes client secrets and signs outgoing webhooks", async () => {
+    const hash = await hashTokConnectSecret("tokc_secret_test");
+    expect(hash).toMatch(/^tokc_sha256:/);
+    await expect(verifyTokConnectSecret("tokc_secret_test", hash)).resolves.toBe(true);
+    await expect(verifyTokConnectSecret("wrong", hash)).resolves.toBe(false);
+
+    const signature = await signTokConnectWebhook({
+      secret: "whsec_test",
+      timestamp: "2026-06-26T10:00:00.000Z",
+      payload: JSON.stringify({ event: "reservation.created", id: "res_1" }),
+    });
+
+    expect(signature).toMatch(/^v1=[A-Za-z0-9_-]{40,}$/);
+    expect(TOK_CONNECT_WEBHOOK_EVENTS).toEqual([
+      "reservation.created",
+      "reservation.cancelled",
+      "webhook.test",
+      "campaign.previewed",
+    ]);
+  });
+
+  it("builds signed webhook headers and bounded retry delays for the dispatcher", async () => {
+    const headers = await buildTokConnectWebhookHeaders({
+      eventType: "webhook.test",
+      deliveryId: "delivery_123",
+      secret: "tokc_whsec_test",
+      timestamp: "2026-06-26T10:00:00.000Z",
+      payload: JSON.stringify({ event: "webhook.test" }),
+    });
+
+    expect(headers["X-TOK-Event"]).toBe("webhook.test");
+    expect(headers["X-TOK-Delivery"]).toBe("delivery_123");
+    expect(headers["X-TOK-Timestamp"]).toBe("2026-06-26T10:00:00.000Z");
+    expect(headers["X-TOK-Signature"]).toMatch(/^v1=[A-Za-z0-9_-]{40,}$/);
+    expect(getTokConnectRetryDelaySeconds(0)).toBe(60);
+    expect(getTokConnectRetryDelaySeconds(3)).toBe(480);
+    expect(getTokConnectRetryDelaySeconds(20)).toBe(3600);
+  });
+});
