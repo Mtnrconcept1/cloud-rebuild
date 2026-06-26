@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
 import { useToast } from "@/hooks/use-toast";
-import { Bike, MapPin, User, Phone, Package2, ClipboardList, CreditCard, Search, Ban, CheckCircle, Eye, Timer } from "lucide-react";
+import { Bike, MapPin, User, Phone, Package2, ClipboardList, Search, Ban, CheckCircle, Eye, Timer } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { buildDeliveryRouteSteps } from "@/lib/deliveryRoute";
 import { normalizeOrderStatus } from "@/lib/orderStatus";
@@ -23,7 +23,6 @@ import { invokeSupabaseFunction } from "@/lib/session";
 import { getOrderStatusLockMessage } from "@/lib/statusLocks";
 import { dispatchQueuedNotifications } from "@/lib/notificationDispatch";
 import OrderPaymentBreakdown from "@/components/orders/OrderPaymentBreakdown";
-import { getOrderPaymentBreakdown } from "@/components/orders/order-payment-breakdown-utils";
 import type { CancellationReasonCode } from "@/lib/reservationMutations";
 import {
   cancelOrderByRestaurant,
@@ -716,10 +715,10 @@ export default function DashboardCommandes() {
                         const tracking = order.delivery_tracking ?? null;
                         const customer = order.customer;
                         const items = order.order_items ?? [];
+                        const itemCount = items.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
                         const customerPhone = customer?.phone ?? "";
                         const customerAddress = order.delivery_address ?? "Adresse non renseignee";
                         const paymentMeta = (order.metadata || {}) as Record<string, any>;
-                        const paymentBreakdown = getOrderPaymentBreakdown(order);
                         const orderStatusLockMessage = getOrderStatusLockMessage(order);
                         const refundSnapshot = getOrderRefundSnapshot(order);
                         const isOrderStatusLocked = Boolean(orderStatusLockMessage);
@@ -761,18 +760,19 @@ export default function DashboardCommandes() {
                         return (
                           <div
                             key={order.id}
-                            className={`min-w-0 space-y-4 rounded-2xl border bg-card p-4 sm:p-5 ${orderTypeMeta.cardClassName}`}
+                            className={`min-w-0 space-y-4 overflow-hidden rounded-2xl border border-l-4 bg-card p-4 shadow-sm sm:p-5 ${orderTypeMeta.cardClassName}`}
                           >
                             <div className="flex min-w-0 flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                               <div className="min-w-0 space-y-1">
                                 <div className="flex min-w-0 flex-wrap items-center gap-2">
                                   <span className="min-w-0 break-words text-lg font-bold">{order.order_number || `#${order.id.slice(0, 8)}`}</span>
-                                  <OrderStatusBadge status={normalizeOrderStatus(order.status)} />
                                   {orderTypeMeta.badgeLabel ? (
                                     <Badge variant="outline" className={orderTypeMeta.badgeClassName}>
                                       {orderTypeMeta.badgeLabel}
                                     </Badge>
-                                  ) : null}
+                                  ) : (
+                                    <Badge variant="outline">A la carte</Badge>
+                                  )}
                                   <Badge
                                     variant="outline"
                                     className={restaurantViewedAt ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-amber-200 bg-amber-50 text-amber-700"}
@@ -798,30 +798,22 @@ export default function DashboardCommandes() {
                                     minute: "2-digit",
                                   })}
                                 </p>
-                              </div>
-                              <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(11rem,1fr)_auto_auto_minmax(10rem,auto)_auto] lg:items-start xl:min-w-[34rem]">
-                                <div className="min-w-0 rounded-xl bg-muted/25 p-3 text-left sm:col-span-2 lg:col-span-1 lg:text-right">
-                                  <p className="text-lg font-bold text-primary">{Number(order.total_amount).toFixed(2)} CHF</p>
-                                  {paymentBreakdown.tokOneTotalSaved > 0 ? (
-                                    <p className="mt-1 text-[11px] font-medium text-violet-600">
-                                      -{paymentBreakdown.tokOneTotalSaved.toFixed(2)} CHF Tok One
-                                    </p>
-                                  ) : null}
-                                  <div className="flex flex-col items-start lg:items-end">
-                                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Paiement reçu</p>
-                                    {paymentMeta.payment_method ? (
-                                      <div className="mt-1 flex items-center gap-1.5">
-                                        <CreditCard className="h-3 w-3 text-muted-foreground" />
-                                        <span className="text-[10px] font-medium uppercase">{paymentMeta.payment_method}</span>
-                                        {paymentMeta.card_last4 ? (
-                                          <span className="rounded bg-secondary px-1 font-mono text-[10px]">
-                                            **** {paymentMeta.card_last4}
-                                          </span>
-                                        ) : null}
-                                      </div>
-                                    ) : null}
+                                <div className="mt-3 grid gap-2 text-xs sm:grid-cols-3">
+                                  <div className="rounded-xl border bg-background/70 p-3">
+                                    <p className="text-muted-foreground">Articles</p>
+                                    <p className="font-semibold">{itemCount || items.length}</p>
+                                  </div>
+                                  <div className="rounded-xl border bg-background/70 p-3">
+                                    <p className="text-muted-foreground">Canal</p>
+                                    <p className="font-semibold">{isDeliveryDashboardOrder(order) ? "Livraison" : "Retrait / sur place"}</p>
+                                  </div>
+                                  <div className="rounded-xl border bg-background/70 p-3">
+                                    <p className="text-muted-foreground">Client</p>
+                                    <p className="truncate font-semibold">{customer?.full_name || "Client anonyme"}</p>
                                   </div>
                                 </div>
+                              </div>
+                              <div className="flex min-w-0 flex-wrap gap-2 sm:justify-end xl:min-w-[24rem]">
                                 {!restaurantViewedAt ? (
                                   <Button
                                     size="sm"
@@ -889,7 +881,7 @@ export default function DashboardCommandes() {
                                   <User className="h-4 w-4" />
                                   Client
                                 </div>
-                                <div className="space-y-2 rounded-xl bg-muted/30 p-3">
+                                <div className="space-y-2 rounded-xl border bg-background/80 p-3">
                                   <p className="text-sm font-medium">{customer?.full_name || "Client anonyme"}</p>
                                   <div className="flex flex-col gap-1.5">
                                     <a href={customerPhone ? `tel:${customerPhone}` : undefined} className="flex items-center gap-2 text-xs text-primary hover:underline">
@@ -910,7 +902,7 @@ export default function DashboardCommandes() {
                                   <Package2 className="h-4 w-4" />
                                   Détail de la commande
                                 </div>
-                                <div className="space-y-2 rounded-xl bg-muted/30 p-3">
+                                <div className="space-y-2 rounded-xl border bg-background/80 p-3">
                                   {items.map((item) => (
                                     <div key={item.id} className="flex min-w-0 flex-col gap-1 text-xs sm:flex-row sm:items-center sm:justify-between">
                                       <div className="flex min-w-0 items-center gap-2">

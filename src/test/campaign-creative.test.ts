@@ -119,6 +119,12 @@ describe("campaign creative studio", () => {
     expect(discountMarkup).toContain("-30%");
   });
 
+  it("keeps the sponsored restaurant hero title prominent on desktop", () => {
+    const templateCard = readSource("src/components/campaigns/SponsoredRestaurantTemplateCard.tsx");
+
+    expect(templateCard).toContain("text-4xl sm:text-5xl lg:text-[3.9rem]");
+  });
+
   it("persists creative choices in channels and normalizes them server-side", () => {
     const dashboard = readSource("src/pages/dashboard/DashboardCampagnes.tsx");
     const portal = readSource("supabase/functions/campaign-portal/index.ts");

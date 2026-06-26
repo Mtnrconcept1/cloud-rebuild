@@ -41,6 +41,7 @@ type AdminNavItem = {
   icon: React.ComponentType<{ className?: string }>;
   feature?: string;
   pendingSignupBadge?: boolean;
+  supportIncidentBadge?: boolean;
 };
 
 type AdminNavSection = {
@@ -54,7 +55,7 @@ const ADMIN_NAV_SECTIONS: AdminNavSection[] = [
     items: [
       { to: "/admin", label: "Vue d'ensemble", icon: LayoutDashboard },
       { to: "/admin/commandes-reservations", label: "Commandes et reservations", icon: ClipboardList, feature: "admin-operations-center" },
-      { to: "/admin/sinistres", label: "Sinistres chat", icon: ShieldAlert, feature: "admin-operations-center" },
+      { to: "/admin/sinistres", label: "Sinistres et chat", icon: ShieldAlert, feature: "admin-operations-center", supportIncidentBadge: true },
       { to: "/admin/restaurants", label: "Restaurants", icon: Store, feature: "admin-restaurants" },
       { to: "/admin/restaurants/google-business", label: "Boutons Google", icon: MapPin, feature: "admin-restaurants" },
       { to: "/admin/utilisateurs", label: "Utilisateurs", icon: Users, feature: "admin-utilisateurs" },
@@ -116,18 +117,40 @@ function isAdminNavItemActive(pathname: string, search: string, itemTo: string) 
   return pathname === target.pathname || pathname.startsWith(`${target.pathname}/`);
 }
 
+async function fetchOpenSupportIncidentCount() {
+  const client = getSupabase();
+  const [incidentsResult, ticketsResult] = await Promise.all([
+    client
+      .from("support_incidents")
+      .select("id", { count: "exact", head: true })
+      .not("status", "in", '("closed","resolved")'),
+    (client as any)
+      .from("ai_support_tickets")
+      .select("id", { count: "exact", head: true })
+      .is("support_incident_id", null)
+      .not("status", "in", '("closed","resolved")'),
+  ]);
+
+  if (incidentsResult.error) throw incidentsResult.error;
+  if (ticketsResult.error) throw ticketsResult.error;
+
+  return (incidentsResult.count || 0) + (ticketsResult.count || 0);
+}
+
 function AdminNavItems({
   activeTo,
   sections,
   unreadNotifications,
   role,
   pendingSignupApplicationsCount,
+  openSupportIncidentCount,
 }: {
   activeTo?: string;
   sections: AdminNavSection[];
   unreadNotifications: ReturnType<typeof useNotificationCenter>["unreadNotifications"];
   role: ReturnType<typeof useAuth>["role"];
   pendingSignupApplicationsCount: number;
+  openSupportIncidentCount: number;
 }) {
   return (
     <>
@@ -159,6 +182,14 @@ function AdminNavItems({
                     {pendingSignupApplicationsCount}
                   </span>
                 ) : null}
+                {item.supportIncidentBadge && openSupportIncidentCount > 0 ? (
+                  <span
+                    className="ml-auto inline-flex min-h-5 min-w-5 animate-pulse items-center justify-center rounded-full bg-red-600 px-1.5 text-[10px] font-bold leading-none text-white shadow-[0_0_18px_rgba(220,38,38,0.55)]"
+                    aria-label={`${openSupportIncidentCount} sinistre chat ouvert`}
+                  >
+                    {openSupportIncidentCount}
+                  </span>
+                ) : null}
                 <NotificationMenuBadge route={item.to} role={role} unreadNotifications={unreadNotifications} />
               </Link>
             );
@@ -175,6 +206,7 @@ export default function AdminMobileNavigation() {
   const { role } = useAuth();
   const { unreadNotifications } = useNotificationCenter(50);
   const [pendingSignupApplicationsCount, setPendingSignupApplicationsCount] = useState(0);
+  const [openSupportIncidentCount, setOpenSupportIncidentCount] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -202,6 +234,38 @@ export default function AdminMobileNavigation() {
 
     return () => {
       cancelled = true;
+    };
+  }, [activeFeatures]);
+
+  useEffect(() => {
+    if (!activeFeatures.has("admin-operations-center")) {
+      setOpenSupportIncidentCount(0);
+      return;
+    }
+
+    let cancelled = false;
+    const refreshOpenSupportIncidents = () => {
+      fetchOpenSupportIncidentCount()
+        .then((count) => {
+          if (!cancelled) setOpenSupportIncidentCount(count);
+        })
+        .catch(() => {
+          if (!cancelled) setOpenSupportIncidentCount(0);
+        });
+    };
+
+    refreshOpenSupportIncidents();
+
+    const channel = getSupabase()
+      .channel("admin-support-nav-badge")
+      .on("postgres_changes", { event: "*", schema: "public", table: "support_incidents" }, refreshOpenSupportIncidents)
+      .on("postgres_changes", { event: "*", schema: "public", table: "support_incident_messages" }, refreshOpenSupportIncidents)
+      .on("postgres_changes", { event: "*", schema: "public", table: "ai_support_tickets" }, refreshOpenSupportIncidents)
+      .subscribe();
+
+    return () => {
+      cancelled = true;
+      void getSupabase().removeChannel(channel);
     };
   }, [activeFeatures]);
 
@@ -284,6 +348,7 @@ export default function AdminMobileNavigation() {
                 unreadNotifications={unreadNotifications}
                 role={role}
                 pendingSignupApplicationsCount={pendingSignupApplicationsCount}
+                openSupportIncidentCount={openSupportIncidentCount}
               />
               <div className="mt-3 border-t pt-3">
                 <SignOutButton

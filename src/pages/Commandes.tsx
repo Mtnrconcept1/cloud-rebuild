@@ -452,8 +452,8 @@ export default function Commandes() {
                         && !["pending", "pending_payment", "payment_failed", "cancelled", "delivered"].includes(String(displayStatus));
 
                       return (
-                        <div key={order.id} className="space-y-3">
-                          <div className="flex items-center justify-between">
+                        <div key={order.id} className="space-y-3 rounded-2xl border bg-background/80 p-4 shadow-sm">
+                          <div className="flex flex-wrap items-center justify-between gap-3">
                             <h3 className="text-sm font-semibold">{order.restaurant?.name || "Restaurant"}</h3>
                             <OrderStatusBadge status={displayStatus} />
                           </div>

@@ -109,12 +109,12 @@ function SummaryBlock({
   value: string;
 }) {
   return (
-    <div className="rounded-xl border bg-muted/20 p-3">
+    <div className="rounded-xl border bg-background p-3 shadow-sm">
       <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground">
         <Icon className="h-3.5 w-3.5" />
         <span>{label}</span>
       </div>
-      <p className="mt-2 text-sm font-semibold">{value}</p>
+      <p className="mt-2 break-words text-sm font-semibold">{value}</p>
     </div>
   );
 }
@@ -400,7 +400,7 @@ function ReservationDetailContent({ reservation }: { reservation: AdminReservati
 export default function AdminOperationDetailSheet({ operation, onOpenChange }: Props) {
   return (
     <Sheet open={!!operation} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="flex w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-[560px]">
+      <SheetContent side="right" className="flex w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-[720px]">
         {operation?.kind === "order" ? <OrderDetailContent order={operation.item} /> : null}
         {operation?.kind === "reservation" ? <ReservationDetailContent reservation={operation.item} /> : null}
         {!operation ? (

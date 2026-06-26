@@ -15,14 +15,23 @@ import {
   type ClientSupportConversation,
   type TokAiMessage,
 } from "@/lib/ai/tokAiClient";
+import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { isAdminAppHost, isAdminPath } from "@/lib/adminDomains";
 import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 import { type HelpChatAgentId, type HelpChatOpenOptions, type HelpChatSurface } from "@/lib/helpChat";
 
 type ChatMessage = {
+  id?: string;
   type: "bot" | "user";
   text: string;
+};
+
+type RealtimeAiMessage = {
+  id: string;
+  role: string;
+  content: string;
+  metadata?: Record<string, unknown> | null;
 };
 
 type AgentConfig = {
@@ -61,6 +70,17 @@ const SURFACE_LABELS: Record<HelpChatSurface, string> = {
   courier: "l'espace livreur",
   public: "TOK",
 };
+
+const TYPING_ROLE_LABELS: Record<string, string> = {
+  admin: "TOK",
+  client: "Le client",
+  restaurant: "Le restaurateur",
+  restaurateur: "Le restaurateur",
+  courier: "Le livreur",
+  public: "La personne",
+};
+
+const supabase = getSupabase();
 
 function getDefaultAgentForSurface(surface: HelpChatSurface): HelpChatAgentId {
   if (surface === "admin") return "admin_dashboard_ai";
@@ -120,6 +140,27 @@ function getActiveChatReference(activeConversationId: string | null, supportTick
   return null;
 }
 
+function getSupportTypingTopic(activeConversationId: string | null, supportTicketId: string | null) {
+  const target = activeConversationId || supportTicketId;
+  return target ? `support-chat-${target}` : null;
+}
+
+function isConversationHandedOff(conversation: ClientSupportConversation) {
+  const metadata = conversation.metadata || {};
+  return metadata.handoff_to_admin === true || metadata.ai_disabled === true;
+}
+
+function isAdminSupportMessage(message: RealtimeAiMessage) {
+  const metadata = message.metadata || {};
+  return metadata.author_role === "admin" || metadata.source === "admin-support";
+}
+
+function getTypingRoleForSurface(surface: HelpChatSurface) {
+  if (surface === "restaurant") return "restaurant";
+  if (surface === "courier") return "courier";
+  return "client";
+}
+
 function getChatUnavailableMessage({
   loading,
   featureFlagsLoading,
@@ -159,7 +200,13 @@ export default function SupportChat() {
   const [loadingConversationId, setLoadingConversationId] = useState<string | null>(null);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [remoteTyping, setRemoteTyping] = useState(false);
+  const [remoteTypingRole, setRemoteTypingRole] = useState("admin");
+  const [humanHandoffActive, setHumanHandoffActive] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const remoteTypingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const localTypingStopTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const typingChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   const activeAgent = AGENTS[selectedAgent];
   const activeChatReference = getActiveChatReference(activeConversationId, supportTicketId);
@@ -180,7 +227,7 @@ export default function SupportChat() {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [history, isTyping]);
+  }, [history, isTyping, remoteTyping]);
 
   useEffect(() => {
     window.openChat = (options?: HelpChatOpenOptions) => {
@@ -205,6 +252,8 @@ export default function SupportChat() {
       setHistoryError(null);
       setInputValue("");
       setIsTyping(false);
+      setRemoteTyping(false);
+      setHumanHandoffActive(false);
       setIsOpen(true);
     };
 
@@ -226,6 +275,8 @@ export default function SupportChat() {
     setHistoryError(null);
     setInputValue("");
     setIsTyping(false);
+    setRemoteTyping(false);
+    setHumanHandoffActive(false);
   }, [chatSurface, featureFlagsLoading, isAdminRoute, selectedAgent]);
 
   useEffect(() => {
@@ -235,8 +286,77 @@ export default function SupportChat() {
       setLoadingConversationId(null);
       setInputValue("");
       setIsTyping(false);
+      setRemoteTyping(false);
+      setHumanHandoffActive(false);
     }
   }, [isChatAvailable]);
+
+  useEffect(() => {
+    if (!isChatAvailable || !activeConversationId || isAdminPrivilegedSurface) return;
+
+    const messageChannel = supabase
+      .channel(`support-chat-messages-${activeConversationId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "ai_messages", filter: `conversation_id=eq.${activeConversationId}` },
+        ({ new: inserted }) => {
+          const message = inserted as RealtimeAiMessage;
+          if (!message?.id || !message.content || !["user", "assistant"].includes(message.role)) return;
+
+          const nextMessage: ChatMessage = {
+            id: message.id,
+            type: message.role === "user" ? "user" : "bot",
+            text: message.content,
+          };
+
+          if (message.role === "assistant" && isAdminSupportMessage(message)) {
+            setHumanHandoffActive(true);
+          }
+
+          setHistory((previous) => {
+            if (previous.some((item) => item.id === nextMessage.id)) return previous;
+            if (previous.some((item) => item.type === nextMessage.type && item.text === nextMessage.text)) return previous;
+            return [...previous, nextMessage];
+          });
+        },
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(messageChannel);
+    };
+  }, [activeConversationId, isAdminPrivilegedSurface, isChatAvailable]);
+
+  useEffect(() => {
+    const topic = getSupportTypingTopic(activeConversationId, supportTicketId);
+    if (!isChatAvailable || !topic || isAdminPrivilegedSurface) return;
+
+    const typingChannel = supabase
+      .channel(topic, { config: { broadcast: { self: false } } })
+      .on("broadcast", { event: "typing" }, ({ payload }) => {
+        const role = String((payload as Record<string, unknown>)?.role || "");
+        const typing = Boolean((payload as Record<string, unknown>)?.isTyping);
+        if (!role || role === getTypingRoleForSurface(chatSurface)) return;
+
+        if (remoteTypingTimeoutRef.current) clearTimeout(remoteTypingTimeoutRef.current);
+        setRemoteTypingRole(role);
+        setRemoteTyping(typing);
+        if (typing) {
+          remoteTypingTimeoutRef.current = setTimeout(() => setRemoteTyping(false), 3500);
+        }
+      })
+      .subscribe();
+
+    typingChannelRef.current = typingChannel;
+
+    return () => {
+      setRemoteTyping(false);
+      if (remoteTypingTimeoutRef.current) clearTimeout(remoteTypingTimeoutRef.current);
+      if (localTypingStopTimeoutRef.current) clearTimeout(localTypingStopTimeoutRef.current);
+      void supabase.removeChannel(typingChannel);
+      if (typingChannelRef.current === typingChannel) typingChannelRef.current = null;
+    };
+  }, [activeConversationId, chatSurface, isAdminPrivilegedSurface, isChatAvailable, supportTicketId]);
 
   const resetChat = () => {
     setHistory(getInitialHistory(selectedAgent, chatSurface));
@@ -245,6 +365,8 @@ export default function SupportChat() {
     setHistoryError(null);
     setInputValue("");
     setIsTyping(false);
+    setRemoteTyping(false);
+    setHumanHandoffActive(false);
   };
 
   const handleAgentChange = (agentId: HelpChatAgentId) => {
@@ -254,6 +376,28 @@ export default function SupportChat() {
     setSupportTicketId(null);
     setInputValue("");
     setIsTyping(false);
+    setRemoteTyping(false);
+    setHumanHandoffActive(false);
+  };
+
+  const broadcastClientTyping = (typing: boolean) => {
+    const channel = typingChannelRef.current;
+    if (!channel) return;
+
+    void channel.send({
+      type: "broadcast",
+      event: "typing",
+      payload: { role: getTypingRoleForSurface(chatSurface), isTyping: typing },
+    });
+  };
+
+  const handleInputChange = (value: string) => {
+    setInputValue(value);
+    if (isAdminPrivilegedSurface) return;
+
+    broadcastClientTyping(Boolean(value.trim()));
+    if (localTypingStopTimeoutRef.current) clearTimeout(localTypingStopTimeoutRef.current);
+    localTypingStopTimeoutRef.current = setTimeout(() => broadcastClientTyping(false), 1600);
   };
 
   const loadConversationHistory = async () => {
@@ -289,6 +433,7 @@ export default function SupportChat() {
       const nextHistory = messages
         .filter((message) => message.role === "user" || message.role === "assistant")
         .map((message) => ({
+          id: message.id,
           type: message.role === "user" ? "user" as const : "bot" as const,
           text: message.content,
         }));
@@ -297,6 +442,7 @@ export default function SupportChat() {
       setSelectedAgent(nextAgentId);
       setActiveConversationId(conversation.id);
       setSupportTicketId(null);
+      setHumanHandoffActive(isConversationHandedOff(conversation));
       setHistory(nextHistory.length > 0 ? nextHistory : getInitialHistory(nextAgentId, nextSurface));
       setInputValue("");
       setIsTyping(false);
@@ -320,6 +466,7 @@ export default function SupportChat() {
     ];
 
     setInputValue("");
+    broadcastClientTyping(false);
     setHistory(nextHistory);
     setIsTyping(true);
 
@@ -370,6 +517,11 @@ export default function SupportChat() {
 
       setActiveConversationId(data?.conversationId || activeConversationId);
       setSupportTicketId(data?.supportTicketId || null);
+      setHumanHandoffActive(Boolean(data?.handoffToAdmin || data?.aiDisabled || humanHandoffActive));
+
+      if (data?.handoffToAdmin || data?.aiDisabled) {
+        return;
+      }
 
       setHistory((previous) => [
         ...previous,
@@ -420,12 +572,12 @@ export default function SupportChat() {
 
                   <div className="min-w-0">
                     <p className="truncate text-sm font-bold">
-                      {isChatAvailable ? activeAgent.label : "Chat indisponible"}
+                      {isChatAvailable ? (humanHandoffActive ? "Support TOK en direct" : activeAgent.label) : "Chat indisponible"}
                     </p>
                     <div className="flex items-center gap-1.5">
                       <span className={`h-2 w-2 rounded-full ${isChatAvailable ? "animate-pulse bg-green-400" : "bg-amber-200"}`} />
                       <span className="text-[10px] font-bold uppercase tracking-widest opacity-80">
-                        {isChatAvailable ? "OpenAI en ligne" : "Connexion requise"}
+                        {isChatAvailable ? (humanHandoffActive ? "TOK prend le relais" : "OpenAI en ligne") : "Connexion requise"}
                       </span>
                     </div>
                     {activeChatReference ? (
@@ -462,7 +614,7 @@ export default function SupportChat() {
               {isChatAvailable ? (
                 <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_auto] sm:items-end">
                   <label className="block text-[10px] font-bold uppercase tracking-widest opacity-80">
-                    {isAdminPrivilegedSurface ? "Assistant admin" : "Assistant OpenAI"}
+                    {humanHandoffActive ? "Conversation prise en charge" : isAdminPrivilegedSurface ? "Assistant admin" : "Assistant OpenAI"}
                     <select
                       value={selectedAgent}
                       onChange={(event) => handleAgentChange(event.target.value as HelpChatAgentId)}
@@ -521,7 +673,8 @@ export default function SupportChat() {
                               Conversation #{formatChatReference(conversation.id)}
                             </span>
                             <span className="mt-1 flex items-center justify-between gap-2 text-muted-foreground">
-                              <span>{conversation.status}</span>
+                            <span>{conversation.status}</span>
+                              {isConversationHandedOff(conversation) ? <span>TOK en direct</span> : null}
                               <span>
                                 {loadingConversationId === conversation.id ? "Ouverture..." : new Date(conversation.updated_at).toLocaleDateString("fr-CH")}
                               </span>
@@ -560,9 +713,14 @@ export default function SupportChat() {
                     </div>
                   ))}
 
-                  {isTyping ? (
+                  {isTyping || remoteTyping ? (
                     <div className="flex animate-in justify-start fade-in duration-300">
                       <div className="rounded-2xl rounded-bl-none border bg-card px-3 py-4 shadow-sm">
+                        {remoteTyping && !isTyping ? (
+                          <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                            {TYPING_ROLE_LABELS[remoteTypingRole] || "La personne"} ecrit
+                          </p>
+                        ) : null}
                         <div className="flex animate-pulse gap-1">
                           <div className="h-1.5 w-1.5 rounded-full bg-primary" />
                           <div className="h-1.5 w-1.5 rounded-full bg-primary" />
@@ -580,7 +738,7 @@ export default function SupportChat() {
                         variant="outline"
                         className="text-[10px] uppercase tracking-tighter opacity-60"
                       >
-                        {activeAgent.badge}
+                        {humanHandoffActive ? "TOK en direct" : activeAgent.badge}
                       </Badge>
                       {activeChatReference ? (
                         <p className="mt-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -593,7 +751,7 @@ export default function SupportChat() {
                   <form onSubmit={handleSendMessage} className="flex gap-2">
                     <Input
                       value={inputValue}
-                      onChange={(event) => setInputValue(event.target.value)}
+                      onChange={(event) => handleInputChange(event.target.value)}
                       placeholder={isAdminPrivilegedSurface ? "Question sur les données admin, logs ou opérations..." : "Écrivez votre message à l'Assistant IA OpenAI..."}
                       className="h-10 rounded-full border-0 bg-muted/50 text-xs focus-visible:ring-1 focus-visible:ring-primary/30"
                       disabled={isTyping}

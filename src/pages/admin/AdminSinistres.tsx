@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Bot, CalendarClock, ClipboardList, MessageSquareText, Search, ShieldAlert, Store, User } from "lucide-react";
+import { Bot, CalendarClock, ClipboardList, Loader2, MessageSquareText, Search, Send, ShieldAlert, Store, User } from "lucide-react";
 
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -87,7 +88,20 @@ type AiMessageRow = {
   id: string;
   role: string;
   content: string;
+  metadata?: Record<string, unknown> | null;
   created_at: string;
+};
+
+type IncidentConversationDetail = {
+  supportMessages: SupportMessageRow[];
+  conversation: AiConversationRow | null;
+  aiMessages: AiMessageRow[];
+};
+
+type AdminIncidentMessagePayload = {
+  incident: SupportIncidentRow;
+  conversationId: string | null;
+  body: string;
 };
 
 type IncidentStatusAction = {
@@ -274,6 +288,58 @@ function getIncidentReferenceText(incident: SupportIncidentRow | null) {
     : `Sinistre #${reference}`;
 }
 
+function getIncidentRealtimeTopic(incident: SupportIncidentRow | null, conversationId?: string | null) {
+  const target = conversationId || getIncidentTargetKey(incident);
+  return target ? `support-chat-${target}` : null;
+}
+
+function isAdminAuthoredAiMessage(message: AiMessageRow) {
+  const metadata = asRecord(message.metadata);
+  return metadata.author_role === "admin" || metadata.source === "admin-support";
+}
+
+function getMessageAuthorLabel(message: AiMessageRow) {
+  if (message.role === "user") return "Client";
+  if (isAdminAuthoredAiMessage(message)) return "TOK";
+  return "Assistant IA";
+}
+
+function formatTypingRole(role: string) {
+  if (role === "restaurant" || role === "restaurateur") return "Le restaurateur";
+  if (role === "courier") return "Le livreur";
+  if (role === "client") return "Le client";
+  return "La personne";
+}
+
+function getUnifiedConversationMessages(detail: IncidentConversationDetail | undefined) {
+  if (!detail) return [];
+
+  const supportMessages = detail.supportMessages.map((message) => ({
+    id: `support-${message.id}`,
+    role: message.author_role,
+    body: message.body,
+    created_at: message.created_at,
+    source: "support" as const,
+  }));
+  const aiMessages = detail.aiMessages.map((message) => ({
+    id: `ai-${message.id}`,
+    role: getMessageAuthorLabel(message),
+    body: message.content,
+    created_at: message.created_at,
+    source: "ai" as const,
+  }));
+
+  const byBodyTime = new Map<string, typeof supportMessages[number] | typeof aiMessages[number]>();
+  [...supportMessages, ...aiMessages]
+    .sort((left, right) => new Date(left.created_at).getTime() - new Date(right.created_at).getTime())
+    .forEach((message) => {
+      const key = `${message.created_at}-${message.role}-${message.body}`;
+      if (!byBodyTime.has(key)) byBodyTime.set(key, message);
+    });
+
+  return Array.from(byBodyTime.values());
+}
+
 function getIncidentStatusActions(incident: SupportIncidentRow) {
   return ADMIN_INCIDENT_STATUS_ACTIONS.filter((action) =>
     incident.record_kind === "ai_ticket" ? action.aiTicket : action.supportIncident
@@ -450,7 +516,7 @@ async function fetchIncidentConversation(incident: SupportIncidentRow | null) {
 
     const { data: aiMessages, error: aiMessagesError } = await (supabase as any)
       .from("ai_messages")
-      .select("id, role, content, created_at")
+      .select("id, role, content, metadata, created_at")
       .eq("conversation_id", conversation.id)
       .order("created_at", { ascending: true });
 
@@ -498,7 +564,7 @@ async function fetchIncidentConversation(incident: SupportIncidentRow | null) {
 
   const { data: aiMessages, error: aiMessagesError } = await (supabase as any)
     .from("ai_messages")
-    .select("id, role, content, created_at")
+      .select("id, role, content, metadata, created_at")
     .eq("conversation_id", conversation.id)
     .order("created_at", { ascending: true });
 
@@ -548,6 +614,101 @@ async function updateIncidentStatus({ incident, status }: { incident: SupportInc
   if (error) throw error;
 }
 
+async function sendAdminIncidentMessage({ incident, conversationId, body }: AdminIncidentMessagePayload) {
+  const messageBody = body.trim();
+  if (!messageBody) throw new Error("Message vide.");
+
+  const { data: authData, error: authError } = await supabase.auth.getUser();
+  if (authError) throw authError;
+  const authorId = authData.user?.id;
+  if (!authorId) throw new Error("Session admin introuvable.");
+
+  const supportIncidentId = incident.support_incident_id || (incident.record_kind === "incident" ? incident.id : null);
+  const operations: PromiseLike<unknown>[] = [];
+
+  if (supportIncidentId) {
+    operations.push(
+      (supabase as any)
+        .from("support_incident_messages")
+        .insert({
+          incident_id: supportIncidentId,
+          author_id: authorId,
+          author_role: "admin",
+          body: messageBody,
+          visibility: "public",
+          metadata: {
+            source: "admin-support",
+            ai_support_ticket_id: incident.support_ticket_id,
+            conversation_id: conversationId,
+          },
+        })
+        .then(({ error }: { error: Error | null }) => {
+          if (error) throw error;
+        }),
+    );
+  }
+
+  if (conversationId) {
+    const { data: conversation } = await (supabase as any)
+      .from("ai_conversations")
+      .select("metadata")
+      .eq("id", conversationId)
+      .maybeSingle();
+    const conversationMetadata = asRecord(conversation?.metadata);
+
+    operations.push(
+      (supabase as any)
+        .from("ai_messages")
+        .insert({
+          conversation_id: conversationId,
+          role: "assistant",
+          content: messageBody,
+          metadata: {
+            source: "admin-support",
+            author_role: "admin",
+            support_ticket_id: incident.support_ticket_id,
+            support_incident_id: supportIncidentId,
+          },
+        })
+        .then(({ error }: { error: Error | null }) => {
+          if (error) throw error;
+        }),
+    );
+    operations.push(
+      (supabase as any)
+        .from("ai_conversations")
+        .update({
+          updated_at: new Date().toISOString(),
+          metadata: {
+            ...conversationMetadata,
+            handoff_to_admin: true,
+            ai_disabled: true,
+            handoff_started_at: conversationMetadata.handoff_started_at || new Date().toISOString(),
+            handoff_started_by: authorId,
+          },
+        })
+        .eq("id", conversationId)
+        .then(({ error }: { error: Error | null }) => {
+          if (error) throw error;
+        }),
+    );
+  }
+
+  if (!supportIncidentId && !conversationId) {
+    throw new Error("Aucune conversation rattachee a ce ticket.");
+  }
+
+  await Promise.all(operations);
+
+  if (incident.record_kind === "ai_ticket" && !supportIncidentId) {
+    const { error } = await (supabase as any)
+      .from("ai_support_tickets")
+      .update({ updated_at: new Date().toISOString() })
+      .eq("id", incident.support_ticket_id || incident.id);
+    if (error) throw error;
+  }
+}
+
 export default function AdminSinistres() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -556,7 +717,13 @@ export default function AdminSinistres() {
   const [statusFilter, setStatusFilter] = useState("open");
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [selectedIncident, setSelectedIncident] = useState<SupportIncidentRow | null>(null);
+  const [adminMessage, setAdminMessage] = useState("");
+  const [customerTyping, setCustomerTyping] = useState(false);
+  const [customerTypingRole, setCustomerTypingRole] = useState("client");
   const suppressedAutoOpenTargetRef = useRef<string | null>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const adminTypingStopTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const adminTypingChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   const { data: incidents = [], isLoading, error } = useQuery({
     queryKey: ["admin-chat-sinistres"],
@@ -568,6 +735,9 @@ export default function AdminSinistres() {
     queryFn: () => fetchIncidentConversation(selectedIncident),
     enabled: Boolean(selectedIncident?.id),
   });
+  const selectedConversationNumber = getConversationDisplayNumber(selectedIncident, detail?.conversation || null);
+  const selectedIncidentReference = getIncidentReferenceText(selectedIncident);
+  const conversationMessages = getUnifiedConversationMessages(detail);
 
   const statusMutation = useMutation({
     mutationFn: updateIncidentStatus,
@@ -591,6 +761,106 @@ export default function AdminSinistres() {
       });
     },
   });
+
+  const sendMessageMutation = useMutation({
+    mutationFn: sendAdminIncidentMessage,
+    onSuccess: () => {
+      setAdminMessage("");
+      queryClient.invalidateQueries({ queryKey: ["admin-chat-sinistres"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-chat-sinistre-detail", selectedIncident?.record_kind, selectedIncident?.id] });
+      toast({
+        title: "Message envoye",
+        description: "La reponse TOK est visible dans le chat du client.",
+      });
+    },
+    onError: (mutationError: Error) => {
+      toast({
+        title: "Message non envoye",
+        description: mutationError.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  useEffect(() => {
+    const channel = supabase
+      .channel("admin-support-sinistres-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "support_incidents" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["admin-chat-sinistres"] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "ai_support_tickets" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["admin-chat-sinistres"] });
+      })
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "support_incident_messages" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["admin-chat-sinistres"] });
+        queryClient.invalidateQueries({ queryKey: ["admin-chat-sinistre-detail"] });
+      })
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
+  useEffect(() => {
+    if (!selectedIncident?.id) return;
+
+    const supportIncidentId = selectedIncident.support_incident_id || (selectedIncident.record_kind === "incident" ? selectedIncident.id : null);
+    const conversationId = selectedConversationNumber;
+    const topic = getIncidentRealtimeTopic(selectedIncident, conversationId);
+    const channel = supabase.channel(`admin-support-detail-${selectedIncident.id}`);
+
+    if (supportIncidentId) {
+      channel.on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "support_incident_messages", filter: `incident_id=eq.${supportIncidentId}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["admin-chat-sinistre-detail", selectedIncident.record_kind, selectedIncident.id] });
+        },
+      );
+    }
+
+    if (conversationId) {
+      channel.on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "ai_messages", filter: `conversation_id=eq.${conversationId}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["admin-chat-sinistre-detail", selectedIncident.record_kind, selectedIncident.id] });
+        },
+      );
+    }
+
+    channel.subscribe();
+
+    let typingChannel: ReturnType<typeof supabase.channel> | null = null;
+    if (topic) {
+      typingChannel = supabase
+        .channel(topic, { config: { broadcast: { self: false } } })
+        .on("broadcast", { event: "typing" }, ({ payload }) => {
+          const role = String((payload as Record<string, unknown>)?.role || "");
+          const isTyping = Boolean((payload as Record<string, unknown>)?.isTyping);
+          if (role === "admin") return;
+
+          if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+          setCustomerTypingRole(role);
+          setCustomerTyping(isTyping);
+          if (isTyping) {
+            typingTimeoutRef.current = setTimeout(() => setCustomerTyping(false), 3500);
+          }
+        })
+        .subscribe();
+      adminTypingChannelRef.current = typingChannel;
+    }
+
+    return () => {
+      setCustomerTyping(false);
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      if (adminTypingStopTimeoutRef.current) clearTimeout(adminTypingStopTimeoutRef.current);
+      void supabase.removeChannel(channel);
+      if (typingChannel) void supabase.removeChannel(typingChannel);
+      if (adminTypingChannelRef.current === typingChannel) adminTypingChannelRef.current = null;
+    };
+  }, [queryClient, selectedConversationNumber, selectedIncident]);
 
   useEffect(() => {
     const incidentId = searchParams.get("incident");
@@ -648,12 +918,11 @@ export default function AdminSinistres() {
     urgent: incidents.filter((incident) => incident.priority === "urgent" || incident.priority === "high").length,
   }), [incidents]);
 
-  const selectedConversationNumber = getConversationDisplayNumber(selectedIncident, detail?.conversation || null);
-  const selectedIncidentReference = getIncidentReferenceText(selectedIncident);
-
   const openIncident = (incident: SupportIncidentRow) => {
     suppressedAutoOpenTargetRef.current = null;
     setSelectedIncident(incident);
+    setAdminMessage("");
+    setCustomerTyping(false);
     setSearchParams((current) => {
       const next = new URLSearchParams(current);
       next.delete("incident");
@@ -676,6 +945,8 @@ export default function AdminSinistres() {
       next.delete("ticket");
       return next;
     });
+    setAdminMessage("");
+    setCustomerTyping(false);
     setSelectedIncident(null);
   };
 
@@ -684,11 +955,38 @@ export default function AdminSinistres() {
     statusMutation.mutate({ incident, status });
   };
 
+  const broadcastAdminTyping = (isTyping: boolean) => {
+    const channel = adminTypingChannelRef.current;
+    if (!channel) return;
+    void channel.send({
+      type: "broadcast",
+      event: "typing",
+      payload: { role: "admin", isTyping },
+    });
+  };
+
+  const handleAdminMessageChange = (value: string) => {
+    setAdminMessage(value);
+    broadcastAdminTyping(Boolean(value.trim()));
+    if (adminTypingStopTimeoutRef.current) clearTimeout(adminTypingStopTimeoutRef.current);
+    adminTypingStopTimeoutRef.current = setTimeout(() => broadcastAdminTyping(false), 1600);
+  };
+
+  const handleSendAdminMessage = () => {
+    if (!selectedIncident || !adminMessage.trim() || sendMessageMutation.isPending) return;
+    broadcastAdminTyping(false);
+    sendMessageMutation.mutate({
+      incident: selectedIncident,
+      conversationId: selectedConversationNumber,
+      body: adminMessage,
+    });
+  };
+
   return (
     <div className="container space-y-6 py-8">
       <DashboardPageHero
         badge="Support admin"
-        title="Sinistres chat"
+        title="Sinistres et chat"
         description="Plaintes remontées par le chat support avec résumé, contexte commande/réservation et transcription complète conservée côté backend."
         icon={ShieldAlert}
         tone="orange"
@@ -913,6 +1211,95 @@ export default function AdminSinistres() {
                 <p className="whitespace-pre-wrap text-sm leading-6 text-muted-foreground">
                   {getTicketSummary(asRecord(selectedIncident.metadata), selectedIncident.description)}
                 </p>
+              </div>
+
+              <div className="space-y-3 rounded-2xl border bg-background p-4 shadow-sm">
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-2">
+                    <MessageSquareText className="h-4 w-4 text-primary" />
+                    <p className="font-semibold">Discussion en direct</p>
+                  </div>
+                  <Badge variant="outline" className="w-fit font-mono uppercase tracking-wider">
+                    Realtime
+                  </Badge>
+                </div>
+
+                <div className="max-h-[42vh] space-y-3 overflow-y-auto rounded-2xl border bg-muted/20 p-3">
+                  {detailLoading ? (
+                    <div className="h-28 animate-pulse rounded-xl bg-muted" />
+                  ) : conversationMessages.length > 0 ? (
+                    conversationMessages.map((message) => {
+                      const isCustomer = ["client", "user", "Client"].includes(message.role);
+                      const isAdmin = ["admin", "TOK"].includes(message.role);
+
+                      return (
+                        <div
+                          key={message.id}
+                          className={cn(
+                            "flex animate-in fade-in duration-200",
+                            isCustomer ? "justify-start" : "justify-end",
+                          )}
+                        >
+                          <div
+                            className={cn(
+                              "max-w-[82%] rounded-2xl border px-3 py-2 text-sm shadow-sm",
+                              isCustomer && "rounded-bl-md bg-card",
+                              isAdmin && "rounded-br-md border-primary/30 bg-primary text-primary-foreground",
+                              !isCustomer && !isAdmin && "rounded-br-md bg-orange-50 text-orange-950",
+                            )}
+                          >
+                            <div
+                              className={cn(
+                                "mb-1 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wider",
+                                isAdmin ? "text-primary-foreground/75" : "text-muted-foreground",
+                              )}
+                            >
+                              <span>{message.role}</span>
+                              <span>{formatDateTime(message.created_at)}</span>
+                            </div>
+                            <p className="whitespace-pre-wrap leading-6">{message.body}</p>
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="rounded-xl border border-dashed bg-background p-4 text-sm text-muted-foreground">
+                      Aucun message conversationnel disponible. Le resume du ticket reste exploitable ci-dessus.
+                    </div>
+                  )}
+
+                  {customerTyping ? (
+                    <div className="flex animate-in justify-start fade-in duration-200">
+                      <div className="rounded-2xl rounded-bl-md border bg-card px-3 py-3 text-xs text-muted-foreground shadow-sm">
+                        <span className="mr-2">{formatTypingRole(customerTypingRole)} ecrit</span>
+                        <span className="inline-flex animate-pulse gap-1 align-middle">
+                          <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                          <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                          <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                        </span>
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+
+                <div className="grid gap-2 sm:grid-cols-[1fr_auto] sm:items-end">
+                  <Textarea
+                    value={adminMessage}
+                    onChange={(event) => handleAdminMessageChange(event.target.value)}
+                    placeholder="Repondre directement a la personne..."
+                    className="min-h-24 resize-none rounded-2xl"
+                    disabled={sendMessageMutation.isPending}
+                  />
+                  <Button
+                    type="button"
+                    onClick={handleSendAdminMessage}
+                    disabled={!adminMessage.trim() || sendMessageMutation.isPending}
+                    className="h-11 gap-2 rounded-full"
+                  >
+                    {sendMessageMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                    Envoyer
+                  </Button>
+                </div>
               </div>
 
               <div className="space-y-3">

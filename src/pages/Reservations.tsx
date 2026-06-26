@@ -339,7 +339,7 @@ export default function Reservations() {
                   </button>
 
                   {isExpanded ? (
-                    <div className="space-y-4 border-t p-4">
+                    <div className="space-y-4 border-t bg-muted/10 p-4">
                       <div className="grid gap-3 sm:grid-cols-3">
                         <div className="rounded-lg border bg-muted/20 p-3">
                           <CalendarDays className="mb-2 h-4 w-4 text-primary" />

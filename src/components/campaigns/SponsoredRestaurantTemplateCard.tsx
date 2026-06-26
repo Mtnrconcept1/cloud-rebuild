@@ -147,14 +147,14 @@ export function SponsoredRestaurantTemplateCard({
           className={cn(
             "relative z-10 grid lg:grid-rows-1",
             compactBanner
-              ? "min-h-[286px] grid-rows-[auto_minmax(124px,1fr)] lg:h-[286px] lg:grid-cols-[minmax(280px,0.78fr)_minmax(360px,1.22fr)]"
+              ? "min-h-[268px] grid-rows-[auto_minmax(116px,1fr)] lg:h-[268px] lg:grid-cols-[minmax(280px,0.78fr)_minmax(360px,1.22fr)]"
               : "min-h-[570px] grid-rows-[auto_minmax(250px,1fr)] lg:min-h-[366px] lg:grid-cols-[minmax(340px,0.84fr)_minmax(460px,1.16fr)]",
           )}
         >
           <div
             className={cn(
               "flex min-w-0 flex-col justify-center",
-              compactBanner ? "p-4 pb-2 sm:p-5 sm:pb-3 lg:overflow-hidden lg:p-6 xl:p-7" : "p-5 pb-3 sm:p-8 sm:pb-4 lg:p-10 xl:p-12",
+              compactBanner ? "p-4 pb-2 sm:p-5 sm:pb-3 lg:overflow-hidden lg:p-5 xl:p-6" : "p-5 pb-3 sm:p-8 sm:pb-4 lg:p-10 xl:p-12",
             )}
           >
             <div className="flex flex-wrap items-center gap-2.5">
@@ -176,7 +176,7 @@ export function SponsoredRestaurantTemplateCard({
               <h3
                 className={cn(
                   "mt-1 line-clamp-2 font-display font-black leading-[0.92] text-slate-950 dark:text-white",
-                  compactBanner ? "text-2xl sm:text-3xl lg:text-[2.25rem]" : "text-4xl sm:text-5xl lg:text-[3.35rem]",
+                  compactBanner ? "text-2xl sm:text-3xl lg:text-[2.25rem]" : "text-4xl sm:text-5xl lg:text-[3.9rem]",
                 )}
               >
                 {restaurantName}
@@ -222,7 +222,7 @@ export function SponsoredRestaurantTemplateCard({
             <div
               className={cn(
                 "relative h-full w-full overflow-hidden rounded-[30px] shadow-[0_24px_56px_rgba(15,23,42,0.24)] ring-1 ring-white/35 lg:rounded-[34px]",
-                compactBanner ? "min-h-[124px] bg-white sm:min-h-[150px] lg:min-h-0" : "min-h-[250px] bg-slate-950 sm:min-h-[300px] lg:min-h-[292px]",
+                compactBanner ? "min-h-[116px] bg-white sm:min-h-[136px] lg:min-h-0" : "min-h-[250px] bg-slate-950 sm:min-h-[300px] lg:min-h-[292px]",
               )}
             >
               <img

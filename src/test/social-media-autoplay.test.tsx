@@ -161,7 +161,9 @@ describe("SocialMediaCarousel video autoplay", () => {
 
     const image = screen.getByAltText("Logo TOK");
 
-    expect(image).toHaveClass("h-auto", "w-full", "object-contain");
+    expect(image).toHaveClass("h-auto", "w-auto", "max-w-full", "object-contain");
+    expect(image).toHaveClass("max-h-[min(70dvh,42rem)]");
+    expect(image).not.toHaveClass("w-full");
     expect(image).not.toHaveClass("h-full", "object-cover");
     expect(image.getAttribute("src")).toContain("resize=contain");
     expect(image.getAttribute("src")).not.toContain("height=");

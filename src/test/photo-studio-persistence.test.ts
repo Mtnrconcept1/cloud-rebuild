@@ -314,6 +314,19 @@ describe("TOK photo studio persistence", () => {
     expect((marketingStudio.match(/\[overflow-wrap:anywhere\]/g) || []).length).toBeGreaterThanOrEqual(6);
   });
 
+  it("provides a large marketing prompt idea bank with paginated negative prompts", () => {
+    expect(marketingStudio).toContain("MARKETING_SUGGESTION_BATCH_SIZE = 10");
+    expect(marketingStudio).toContain("MARKETING_PROMPT_IDEAS");
+    expect(marketingStudio).toContain("MARKETING_NEGATIVE_PROMPT_IDEAS");
+    expect(marketingStudio).toContain("visiblePromptIdeaCount");
+    expect(marketingStudio).toContain("visibleNegativeIdeaCount");
+    expect(marketingStudio).toContain("Ne deforme pas le texte");
+    expect(marketingStudio).toContain("Aucune forme bizarre");
+    expect(marketingStudio).toContain("Afficher plus");
+    expect(marketingStudio).toContain("Math.min(count + MARKETING_SUGGESTION_BATCH_SIZE");
+    expect(marketingStudio).toContain("À éviter");
+  });
+
   it("lets restaurateurs remove uploaded marketing resources safely", () => {
     expect(marketingStudio).toContain("deleteMarketingResource");
     expect(marketingStudio).toContain("MARKETING_STORAGE_BUCKET");

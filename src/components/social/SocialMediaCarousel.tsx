@@ -171,7 +171,7 @@ export default function SocialMediaCarousel({
   const imageFrameClassName = cn(
     frameBaseClassName,
     variant === "side"
-      ? "rounded-[1.45rem] shadow-xl shadow-orange-100/70 max-sm:rounded-[1.35rem] max-sm:border-0 max-sm:shadow-none"
+      ? "flex max-h-[min(70dvh,42rem)] items-center justify-center rounded-[1.45rem] shadow-xl shadow-orange-100/70 max-sm:rounded-[1.35rem] max-sm:border-0 max-sm:shadow-none"
       : "rounded-lg",
     constrainedPreview && "flex max-h-[min(62dvh,36rem)] items-center justify-center",
   );
@@ -285,7 +285,9 @@ export default function SocialMediaCarousel({
           "object-contain",
           constrainedPreview
             ? "h-auto max-h-[min(62dvh,36rem)] w-auto max-w-full"
-            : "h-auto w-full",
+            : variant === "side"
+              ? "h-auto max-h-[min(70dvh,42rem)] w-auto max-w-full"
+              : "h-auto w-full",
         )}
         loading="lazy"
         onClick={() => openLightbox(item)}

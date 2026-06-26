@@ -1,4 +1,4 @@
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Bot, Loader2, Send, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { useSessionStorageState } from "@/hooks/useSessionStorageState";
+import { getSupabase } from "@/integrations/supabase/client";
 import { askClientSupport, type TokAiMessage } from "@/lib/ai/tokAiClient";
 import { useAuth } from "@/lib/auth-context";
 
@@ -24,7 +25,17 @@ type SupportDraft = {
   status: "open" | "waiting_restaurant" | "waiting_tok" | "resolved" | "escalated";
   conversationId?: string | null;
   supportTicketId?: string | null;
+  humanHandoffActive?: boolean;
 };
+
+type RealtimeAiMessage = {
+  id: string;
+  role: string;
+  content: string;
+  metadata?: Record<string, unknown> | null;
+};
+
+const supabase = getSupabase();
 
 export default function TokAiSupportChat({
   orderId,
@@ -41,13 +52,80 @@ export default function TokAiSupportChat({
   );
   const { messages, input, status } = draft;
   const [isSending, setIsSending] = useState(false);
+  const [tokTyping, setTokTyping] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const tokTypingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const localTypingStopTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const typingChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const isChatAvailable = Boolean(user) && !loading;
+  const humanHandoffActive = Boolean(draft.humanHandoffActive);
 
   const lastAssistantReply = useMemo(
     () => messages.filter((message) => message.role === "assistant").at(-1)?.content,
     [messages],
   );
+
+  useEffect(() => {
+    if (!isChatAvailable || !draft.conversationId) return;
+
+    const messageChannel = supabase
+      .channel(`embedded-support-chat-messages-${draft.conversationId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "ai_messages", filter: `conversation_id=eq.${draft.conversationId}` },
+        ({ new: inserted }) => {
+          const message = inserted as RealtimeAiMessage;
+          if (!message?.content || !["user", "assistant"].includes(message.role)) return;
+          const metadata = message.metadata || {};
+          const adminMessage = metadata.author_role === "admin" || metadata.source === "admin-support";
+          if (adminMessage) {
+            setDraft((previous) => ({
+              ...previous,
+              humanHandoffActive: true,
+              messages: previous.messages.some((item) => item.content === message.content)
+                ? previous.messages
+                : [...previous.messages, { role: "assistant", content: message.content }],
+            }));
+          }
+        },
+      )
+      .subscribe();
+
+    const typingChannel = supabase
+      .channel(`support-chat-${draft.conversationId}`, { config: { broadcast: { self: false } } })
+      .on("broadcast", { event: "typing" }, ({ payload }) => {
+        const role = String((payload as Record<string, unknown>)?.role || "");
+        const isTyping = Boolean((payload as Record<string, unknown>)?.isTyping);
+        if (role !== "admin") return;
+        if (tokTypingTimeoutRef.current) clearTimeout(tokTypingTimeoutRef.current);
+        setTokTyping(isTyping);
+        if (isTyping) {
+          tokTypingTimeoutRef.current = setTimeout(() => setTokTyping(false), 3500);
+        }
+      })
+      .subscribe();
+
+    typingChannelRef.current = typingChannel;
+
+    return () => {
+      if (tokTypingTimeoutRef.current) clearTimeout(tokTypingTimeoutRef.current);
+      if (localTypingStopTimeoutRef.current) clearTimeout(localTypingStopTimeoutRef.current);
+      setTokTyping(false);
+      void supabase.removeChannel(messageChannel);
+      void supabase.removeChannel(typingChannel);
+      if (typingChannelRef.current === typingChannel) typingChannelRef.current = null;
+    };
+  }, [draft.conversationId, isChatAvailable, setDraft]);
+
+  function broadcastTyping(isTyping: boolean) {
+    const channel = typingChannelRef.current;
+    if (!channel) return;
+    void channel.send({
+      type: "broadcast",
+      event: "typing",
+      payload: { role: context?.surface === "courier" ? "courier" : context?.surface === "restaurant" ? "restaurant" : "client", isTyping },
+    });
+  }
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -56,6 +134,7 @@ export default function TokAiSupportChat({
 
     const nextMessages = [...messages, { role: "user" as const, content }];
     setDraft((previous) => ({ ...previous, messages: nextMessages, input: "" }));
+    broadcastTyping(false);
     setError(null);
     setIsSending(true);
 
@@ -77,7 +156,10 @@ export default function TokAiSupportChat({
         status: result.status,
         conversationId: result.conversationId,
         supportTicketId: result.supportTicketId,
-        messages: [...nextMessages, { role: "assistant", content: result.reply }],
+        humanHandoffActive: Boolean(result.handoffToAdmin || result.aiDisabled || previous.humanHandoffActive),
+        messages: result.handoffToAdmin || result.aiDisabled || !result.reply
+          ? nextMessages
+          : [...nextMessages, { role: "assistant", content: result.reply }],
       }));
     } catch (chatError) {
       setError(chatError instanceof Error ? chatError.message : "Assistant IA indisponible.");
@@ -92,10 +174,10 @@ export default function TokAiSupportChat({
         <div className="flex flex-wrap items-center justify-between gap-2">
           <CardTitle className="flex items-center gap-2 text-lg">
             <Bot className="h-5 w-5 text-primary" />
-            {isChatAvailable ? "Support IA TOK" : "Chat indisponible"}
+            {isChatAvailable ? (humanHandoffActive ? "Support TOK en direct" : "Support IA TOK") : "Chat indisponible"}
           </CardTitle>
           <Badge variant={isChatAvailable && (status === "escalated" || status === "waiting_tok") ? "secondary" : "outline"}>
-            {isChatAvailable ? status : "connexion requise"}
+            {isChatAvailable ? (humanHandoffActive ? "TOK en direct" : status) : "connexion requise"}
           </Badge>
         </div>
         <div className="flex items-start gap-2 text-xs text-muted-foreground">
@@ -118,16 +200,33 @@ export default function TokAiSupportChat({
 
         {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
+        {tokTyping ? (
+          <div className="inline-flex items-center gap-2 rounded-full border bg-background px-3 py-2 text-xs text-muted-foreground">
+            <span>TOK ecrit</span>
+            <span className="inline-flex animate-pulse gap-1">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+            </span>
+          </div>
+        ) : null}
+
         <form onSubmit={submit} className="space-y-2">
           <Textarea
             value={input}
-            onChange={(event) => setDraft((previous) => ({ ...previous, input: event.target.value }))}
+            onChange={(event) => {
+              const value = event.target.value;
+              setDraft((previous) => ({ ...previous, input: value }));
+              broadcastTyping(Boolean(value.trim()));
+              if (localTypingStopTimeoutRef.current) clearTimeout(localTypingStopTimeoutRef.current);
+              localTypingStopTimeoutRef.current = setTimeout(() => broadcastTyping(false), 1600);
+            }}
             placeholder="Décrivez le problème ou la question client..."
             className="min-h-24"
           />
           <Button type="submit" disabled={!input.trim() || isSending} className="gap-2">
             {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-            Envoyer au support IA
+            {humanHandoffActive ? "Envoyer a TOK" : "Envoyer au support IA"}
           </Button>
         </form>
           </>

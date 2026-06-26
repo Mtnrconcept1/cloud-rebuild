@@ -87,7 +87,7 @@ const ADMIN_TOOLS = [
     color: "text-orange-500",
   },
   {
-    title: "Sinistres chat",
+    title: "Sinistres et chat",
     description: "Suivre les plaintes remontées par le chat avec résumé et conversation complète.",
     icon: ShieldAlert,
     href: "/admin/sinistres",

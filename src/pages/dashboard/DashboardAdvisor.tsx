@@ -159,6 +159,18 @@ const QUICK_TOOLS: QuickTool[] = [
 
 const AI_HISTORY_STORAGE_PREFIX = "tok-dashboard-advisor-history";
 const MAX_ADVISOR_HISTORY_ENTRIES = 12;
+const SUPABASE_VISIBLE_URL_PATTERN = /https?:\/\/[^\s)"']*supabase\.co[^\s)"']*/gi;
+const SUPABASE_HOST_PATTERN = /\b[a-z0-9-]+\.supabase\.co\b/gi;
+
+function sanitizeAdvisorVisibleText(value: string) {
+  return value
+    .replace(SUPABASE_VISIBLE_URL_PATTERN, "[image de reference]")
+    .replace(SUPABASE_HOST_PATTERN, "[service image]");
+}
+
+function getShortAdvisorReference(id: string) {
+  return id.slice(0, 8);
+}
 
 function createAdvisorHistoryEntryId() {
   return globalThis.crypto?.randomUUID?.() || `history-${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -171,7 +183,7 @@ function getAdvisorHistoryStorageKey(restaurantId: string) {
 function getAdvisorHistoryTitle(messages: Message[]) {
   const firstUserMessage = messages.find((message) => message.role === "user")?.content || "Conversation IA";
   const firstLine = firstUserMessage.split("\n").find((line) => line.trim().length > 0) || firstUserMessage;
-  return firstLine.trim().slice(0, 80);
+  return sanitizeAdvisorVisibleText(firstLine).trim().slice(0, 80);
 }
 
 function loadAdvisorHistory(restaurantId: string): AdvisorHistoryEntry[] {
@@ -683,11 +695,11 @@ export default function DashboardAdvisor() {
   const buildPreparedPrompt = (tool: QuickTool, selectedPhotos: AdvisorPhotoOption[], selectedDishes: AdvisorDishOption[]) => {
     const instructions = toolInstructions.trim();
     const selectionSummary = tool.selectionMode === "gallery_photos"
-      ? selectedPhotos.map((photo, index) => `${index + 1}. ${photo.altText || "Photo de galerie"} - ${photo.mediaUrl}`).join("\n")
+      ? selectedPhotos.map((photo, index) => `${index + 1}. ${photo.altText || "Photo de galerie"} - reference ${getShortAdvisorReference(photo.id)}`).join("\n")
       : selectedDishes.map((dish, index) => {
         const price = Number.isFinite(dish.price) && dish.price > 0 ? ` - ${dish.price.toFixed(2)} CHF` : "";
         const category = dish.category ? ` - ${dish.category}` : "";
-        return `${index + 1}. ${dish.name}${category}${price}${dish.description ? `\n   Description actuelle: ${dish.description}` : ""}${dish.imageUrl ? `\n   Image: ${dish.imageUrl}` : ""}`;
+        return `${index + 1}. ${dish.name}${category}${price}${dish.description ? `\n   Description actuelle: ${dish.description}` : ""}${dish.imageUrl ? `\n   Image associee: reference ${getShortAdvisorReference(dish.id)}` : ""}`;
       }).join("\n");
 
     return [
@@ -848,7 +860,7 @@ export default function DashboardAdvisor() {
                 {historyEntries.map((entry) => (
                   <div key={entry.id} className="flex items-center justify-between gap-3 rounded-xl border bg-background px-3 py-2">
                     <button type="button" className="min-w-0 flex-1 text-left" onClick={() => handleLoadHistory(entry)}>
-                      <p className="truncate text-sm font-semibold">{entry.title}</p>
+                      <p className="truncate text-sm font-semibold">{sanitizeAdvisorVisibleText(entry.title)}</p>
                       <p className="mt-0.5 text-xs text-muted-foreground">
                         {new Date(entry.createdAt).toLocaleString("fr-CH", { dateStyle: "short", timeStyle: "short" })}
                         {" - "}
@@ -926,10 +938,10 @@ export default function DashboardAdvisor() {
                 >
                   {message.role === "assistant" ? (
                     <div className="prose prose-sm max-w-none dark:prose-invert [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
-                      <ReactMarkdown>{message.content}</ReactMarkdown>
+                      <ReactMarkdown>{sanitizeAdvisorVisibleText(message.content)}</ReactMarkdown>
                     </div>
                   ) : (
-                    <p className="whitespace-pre-wrap text-sm">{message.content}</p>
+                    <p className="whitespace-pre-wrap text-sm">{sanitizeAdvisorVisibleText(message.content)}</p>
                   )}
                 </Card>
                 {message.role === "user" && (

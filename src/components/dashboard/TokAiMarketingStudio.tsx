@@ -164,6 +164,151 @@ const MARKETING_REFERENCE_KIND_PRIORITY: MarketingAssetKind[] = [
   "restaurant_menu",
   "brand_visuals",
 ];
+const MARKETING_SUGGESTION_BATCH_SIZE = 10;
+
+const MARKETING_PROMPT_IDEAS = [
+  "Soiree a theme",
+  "Menu du jour",
+  "Offre speciale",
+  "Brunch du dimanche",
+  "Happy hour terrasse",
+  "Nouveau plat signature",
+  "Menu degustation",
+  "Formule midi rapide",
+  "Menu enfant",
+  "Carte des desserts",
+  "Cocktail maison",
+  "Afterwork tapas",
+  "Saint-Valentin",
+  "Fete des meres",
+  "Fete des peres",
+  "Nouvel An",
+  "Halloween gourmand",
+  "Noel au restaurant",
+  "Ramadan Iftar",
+  "Paques en famille",
+  "Plat vegetarien",
+  "Option vegan",
+  "Burger premium",
+  "Pizza du mois",
+  "Pinsa romana",
+  "Pates fraiches",
+  "Poisson du jour",
+  "Viande grillee",
+  "Tacos party",
+  "Sushi box",
+  "Kebab gourmet",
+  "Salade fraicheur",
+  "Dessert maison",
+  "Cafe gourmand",
+  "Menu business lunch",
+  "Offre etudiant",
+  "Livraison offerte",
+  "A emporter rapide",
+  "Reservation conseillee",
+  "Ouverture exceptionnelle",
+  "Nouvelle terrasse",
+  "Ambiance musicale",
+  "Live DJ",
+  "Degustation vins",
+  "Accord mets et vins",
+  "Carte automne",
+  "Carte hiver",
+  "Carte printemps",
+  "Saveurs estivales",
+  "Produits locaux",
+  "Cuisine de saison",
+  "Fait maison",
+  "Chef en cuisine",
+  "Equipe en salle",
+  "Restaurant familial",
+  "Restaurant premium",
+  "Ambiance cosy",
+  "Ambiance festive",
+  "Service tardif",
+  "Petit-dejeuner",
+  "Pause cafe",
+  "Goûter gourmand",
+  "Menu sportif",
+  "Offre match",
+  "Anniversaire",
+  "Repas d'entreprise",
+  "Carte cadeau",
+  "Fidelite clients",
+  "Lancement TOK",
+  "Promotion Tok One",
+  "Anti-gaspi du jour",
+  "Vente flash",
+  "Dernieres tables",
+  "Places limitees",
+  "Ouverture dimanche",
+  "Privatisation",
+  "Traiteur evenement",
+  "Buffet aperitif",
+  "Menu mariage",
+  "Burger week",
+  "Pasta week",
+  "Tiramisu maison",
+  "Cuisine italienne",
+  "Cuisine americaine",
+  "Cuisine libanaise",
+  "Cuisine japonaise",
+  "Cuisine suisse",
+  "Cuisine francaise",
+  "Cuisine mexicaine",
+  "Cuisine indienne",
+  "Street food premium",
+  "Photo plat hero",
+  "Affiche vitrine",
+  "Flyer boite aux lettres",
+  "Story Instagram",
+  "Post carre reseaux sociaux",
+  "Banniere web",
+  "Carte de fidelite",
+  "QR code menu",
+  "Pied de page avec contact",
+  "Menu lisible pour impression",
+  "Carte boissons",
+  "Selection du chef",
+];
+
+const MARKETING_NEGATIVE_PROMPT_IDEAS = [
+  "Ne deforme pas le texte",
+  "Aucune forme bizarre",
+  "Aucun logo deforme",
+  "Aucune faute dans les mots visibles",
+  "Pas de texte illisible",
+  "Pas de lettres inventees",
+  "Pas de mains deformees",
+  "Pas d'assiette deformee",
+  "Pas d'aliments irreconnaissables",
+  "Pas de couleurs criardes",
+  "Pas de fond trop charge",
+  "Pas de flou sur le produit principal",
+  "Pas de contraste trop faible",
+  "Pas de prix modifie",
+  "Pas de date inventee",
+  "Pas de telephone invente",
+  "Pas d'adresse inventee",
+  "Pas de promesse non demandee",
+  "Pas de reduction inventee",
+  "Pas de QR code fictif",
+  "Pas de watermark",
+  "Pas de bordure coupee",
+  "Pas de logo concurrent",
+  "Pas de marque externe",
+  "Pas d'effet plastique",
+  "Pas de visage inquietant",
+  "Pas d'ombres incoherentes",
+  "Pas de perspective tordue",
+  "Pas de texte hors zone",
+  "Pas de surcharge d'icones",
+  "Pas d'orthographe anglaise si le visuel est francais",
+  "Pas de style low cost",
+  "Pas de typographie trop fine",
+  "Pas d'element important coupe au bord",
+  "Pas de compression visible",
+];
 
 const marketingFormat = (
   label: string,
@@ -764,6 +909,8 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
   const [deletingResourceId, setDeletingResourceId] = useState<string | null>(null);
   const [marketingImageResult, setMarketingImageResult] = useState<MarketingImageResult | null>(null);
   const [activeStep, setActiveStep] = useState<MarketingWorkflowStep>(1);
+  const [visiblePromptIdeaCount, setVisiblePromptIdeaCount] = useState(MARKETING_SUGGESTION_BATCH_SIZE);
+  const [visibleNegativeIdeaCount, setVisibleNegativeIdeaCount] = useState(MARKETING_SUGGESTION_BATCH_SIZE);
   const generationRequestRef = useRef(0);
   const mountedRef = useRef(true);
 
@@ -775,6 +922,11 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
   );
   const sanitizedPrompt = sanitizeMarketingPrompt(prompt);
   const promptWarnings = getMarketingPromptWarnings(prompt);
+  const promptIdeas = useMemo(() => {
+    return Array.from(new Set([...activeToolConfig.suggestions, ...MARKETING_PROMPT_IDEAS]));
+  }, [activeToolConfig.suggestions]);
+  const visiblePromptIdeas = promptIdeas.slice(0, visiblePromptIdeaCount);
+  const visibleNegativePromptIdeas = MARKETING_NEGATIVE_PROMPT_IDEAS.slice(0, visibleNegativeIdeaCount);
   const persistedResources = resources.filter((resource) => resource.persisted && resource.mediaUrl);
   const hasLogo = persistedResources.some((resource) => resource.kind === "logo");
   const hasBrandResources = persistedResources.length >= 2;
@@ -810,6 +962,11 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
     setLoading(false);
     setMarketingImageResult(null);
   };
+
+  useEffect(() => {
+    setVisiblePromptIdeaCount(MARKETING_SUGGESTION_BATCH_SIZE);
+    setVisibleNegativeIdeaCount(MARKETING_SUGGESTION_BATCH_SIZE);
+  }, [activeTool]);
 
   const updatePrompt = (value: string) => {
     invalidateMarketingGeneration();
@@ -1286,18 +1443,55 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
               </div>
               </div>
 
-              <div className={`${activeStep === 3 ? "flex" : "hidden"} min-w-0 flex-wrap gap-2 rounded-2xl border border-dashed border-orange-200 bg-orange-50/40 p-3 sm:rounded-3xl`}>
-                <span className="basis-full self-center text-xs font-semibold uppercase tracking-[0.18em] text-orange-700 sm:mr-1 sm:basis-auto">Idées rapides</span>
-                {activeToolConfig.suggestions.map((suggestion) => (
-                  <button
-                    key={suggestion}
-                    type="button"
-                    onClick={() => applySuggestion(suggestion)}
-                    className="max-w-full rounded-full border bg-background px-3 py-1 text-left text-xs font-medium text-muted-foreground transition [overflow-wrap:anywhere] hover:border-orange-300 hover:text-orange-700"
-                  >
-                    {suggestion}
-                  </button>
-                ))}
+              <div className={`${activeStep === 3 ? "space-y-3" : "hidden"} min-w-0 rounded-2xl border border-dashed border-orange-200 bg-orange-50/40 p-3 sm:rounded-3xl`}>
+                <div className="flex min-w-0 flex-wrap items-center gap-2">
+                  <span className="basis-full self-center text-xs font-semibold uppercase tracking-[0.18em] text-orange-700 sm:mr-1 sm:basis-auto">Idées rapides</span>
+                  {visiblePromptIdeas.map((suggestion) => (
+                    <button
+                      key={suggestion}
+                      type="button"
+                      onClick={() => applySuggestion(suggestion)}
+                      className="max-w-full rounded-full border bg-background px-3 py-1 text-left text-xs font-medium text-muted-foreground transition [overflow-wrap:anywhere] hover:border-orange-300 hover:text-orange-700"
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                  {visiblePromptIdeaCount < promptIdeas.length ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setVisiblePromptIdeaCount((count) => Math.min(count + MARKETING_SUGGESTION_BATCH_SIZE, promptIdeas.length))}
+                      className="rounded-full"
+                    >
+                      Afficher plus
+                    </Button>
+                  ) : null}
+                </div>
+                <div className="flex min-w-0 flex-wrap items-center gap-2 border-t border-orange-200/70 pt-3">
+                  <span className="basis-full self-center text-xs font-semibold uppercase tracking-[0.18em] text-red-700 sm:mr-1 sm:basis-auto">À éviter</span>
+                  {visibleNegativePromptIdeas.map((suggestion) => (
+                    <button
+                      key={suggestion}
+                      type="button"
+                      onClick={() => applySuggestion(suggestion)}
+                      className="max-w-full rounded-full border border-red-100 bg-white px-3 py-1 text-left text-xs font-medium text-red-600 transition [overflow-wrap:anywhere] hover:border-red-300 hover:text-red-700"
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                  {visibleNegativeIdeaCount < MARKETING_NEGATIVE_PROMPT_IDEAS.length ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setVisibleNegativeIdeaCount((count) => Math.min(count + MARKETING_SUGGESTION_BATCH_SIZE, MARKETING_NEGATIVE_PROMPT_IDEAS.length))}
+                      className="rounded-full"
+                    >
+                      Afficher plus
+                    </Button>
+                  ) : null}
+                </div>
               </div>
 
               <div className={`${activeStep === 1 ? "" : "hidden"} min-w-0 rounded-2xl border border-orange-100 bg-white p-3 shadow-sm dark:bg-background sm:rounded-3xl`}>

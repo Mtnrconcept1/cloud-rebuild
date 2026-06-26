@@ -125,6 +125,27 @@ describe("notifications and chat sinistres governance", () => {
     expect(page).toContain("Conversation #");
     expect(page).toContain("Sinistre #");
     expect(page).toContain("Ticket IA #");
+    expect(page).toContain("Discussion en direct");
+    expect(page).toContain("sendAdminIncidentMessage");
+    expect(page).toContain("support-chat-");
+    expect(page).toContain("formatTypingRole");
+    expect(page).toContain("Le restaurateur");
+    expect(page).toContain("Le livreur");
+    expect(page).toContain("support_incident_messages");
+    expect(page).toContain("visibility: \"public\"");
+    expect(page).toContain("handoff_to_admin: true");
+    expect(page).toContain("ai_disabled: true");
+  });
+
+  it("highlights open chat incidents in admin navigation and refreshes them in realtime", () => {
+    const adminNavigation = readProjectFile("src/components/admin/AdminMobileNavigation.tsx");
+
+    expect(adminNavigation).toContain("Sinistres et chat");
+    expect(adminNavigation).toContain("supportIncidentBadge");
+    expect(adminNavigation).toContain("fetchOpenSupportIncidentCount");
+    expect(adminNavigation).toContain("admin-support-nav-badge");
+    expect(adminNavigation).toContain("support_incident_messages");
+    expect(adminNavigation).toContain("animate-pulse");
   });
 
   it("keeps incident detail closing single-click and exposes triage status actions before closure", () => {
@@ -160,5 +181,43 @@ describe("notifications and chat sinistres governance", () => {
     expect(supportChat).toContain("supportTicketId");
     expect(supportChat).toContain("agentId: selectedAgent");
     expect(supportChat).toContain("surface: chatSurface");
+    expect(supportChat).toContain("support-chat-messages-");
+    expect(supportChat).toContain("postgres_changes");
+    expect(supportChat).toContain("support-chat-");
+    expect(supportChat).toContain("remoteTyping");
+    expect(supportChat).toContain("TYPING_ROLE_LABELS");
+    expect(supportChat).toContain("humanHandoffActive");
+    expect(supportChat).toContain("handoffToAdmin");
+    expect(supportChat).toContain("aiDisabled");
+    expect(supportChat).toContain("getTypingRoleForSurface");
+  });
+
+  it("turns off client support AI only for conversations taken over by TOK", () => {
+    const edgeFunction = readProjectFile("supabase/functions/ai-client-support/index.ts");
+    const embeddedChat = readProjectFile("src/components/support/TokAiSupportChat.tsx");
+
+    expect(edgeFunction).toContain("handoff_to_admin");
+    expect(edgeFunction).toContain("ai_disabled");
+    expect(edgeFunction).toContain("delivery: \"admin_thread\"");
+    expect(edgeFunction).toContain("return jsonResponse({");
+    expect(edgeFunction).toContain("handoffToAdmin: true");
+    expect(edgeFunction).toContain("aiDisabled: true");
+    expect(embeddedChat).toContain("humanHandoffActive");
+    expect(embeddedChat).toContain("embedded-support-chat-messages-");
+    expect(embeddedChat).toContain("support-chat-");
+    expect(embeddedChat).toContain("TOK ecrit");
+    expect(embeddedChat).toContain("Envoyer a TOK");
+  });
+
+  it("prevents non-admin users from spoofing admin support messages", () => {
+    const migration = readProjectFile("supabase/migrations/20260626073000_harden_support_incident_message_authors.sql");
+
+    expect(migration).toContain('DROP POLICY IF EXISTS "support_messages_insert_related"');
+    expect(migration).toContain("author_role = 'admin'");
+    expect(migration).toContain("public.has_role(auth.uid(), 'admin')");
+    expect(migration).toContain("author_role = 'client'");
+    expect(migration).toContain("si.opened_by = auth.uid()");
+    expect(migration).toContain("author_role = 'restaurateur'");
+    expect(migration).toContain("public.auth_owns_restaurant(si.restaurant_id)");
   });
 });

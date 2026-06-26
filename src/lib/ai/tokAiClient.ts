@@ -208,6 +208,8 @@ export function askClientSupport(request: ClientSupportRequest) {
     conversationId: string;
     supportTicketId: string;
     supportIncidentId?: string | null;
+    handoffToAdmin?: boolean;
+    aiDisabled?: boolean;
   }>("ai-client-support", { ...request });
 }
 

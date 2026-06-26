@@ -589,9 +589,23 @@ export default function DashboardReservations() {
               <OperationViewToggle value={viewMode} onChange={setViewMode} ariaLabel="Mode de vue des réservations restaurant" />
             </div>
 
-            {viewMode !== "details" && filteredReservations.length > 0 ? (
-              <div className={viewMode === "gallery" ? "grid gap-3 md:grid-cols-2 xl:grid-cols-3" : "space-y-3"}>
-                {sortByColumn(filteredReservations, DASHBOARD_RESERVATION_SORT_COLUMNS, { key: sortKey, direction: sortDirection }).map((reservation) => {
+            {viewMode !== "details" && groupedReservations.length > 0 ? (
+              <div className="space-y-5">
+                {groupedReservations.map((dateGroup) => (
+                  <section key={dateGroup.dateKey} className="rounded-2xl border bg-card/70 p-3 shadow-sm sm:p-4">
+                    <div className="mb-3 flex flex-col gap-1 border-b pb-3 sm:flex-row sm:items-end sm:justify-between">
+                      <div>
+                        <p className="text-sm font-bold capitalize">{dateGroup.dateLabel}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {dateGroup.reservationCount} réservation(s) - {dateGroup.totalGuests} couverts
+                        </p>
+                      </div>
+                      <Badge variant="outline" className="w-fit bg-background">
+                        {dateGroup.groups.length} service{dateGroup.groups.length > 1 ? "s" : ""}
+                      </Badge>
+                    </div>
+                    <div className={viewMode === "gallery" ? "grid grid-cols-1 gap-3 lg:grid-cols-2 2xl:grid-cols-3" : "space-y-3"}>
+                      {dateGroup.groups.flatMap((group) => group.items).map((reservation) => {
                   const metadata = extractMetadata(reservation);
                   const servicePeriod = getServicePeriodFromMetadata(reservation.metadata, reservation.time);
                   const progressiveDiscountPercent = Number(
@@ -627,16 +641,16 @@ export default function DashboardReservations() {
                   const isConfirmedAck = reservation.status === "confirmed";
 
                   return (
-                    <article key={reservation.id} className={`rounded-2xl border p-4 shadow-sm ${typeClass}`}>
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <article key={reservation.id} className={`flex h-full min-w-0 flex-col justify-between overflow-hidden rounded-2xl border p-4 shadow-sm ${typeClass}`}>
+                      <div className="min-w-0 space-y-3">
                         <div className="min-w-0 space-y-2">
                           <div className="flex flex-wrap items-center gap-2">
-                            <span className="break-words font-semibold">{reservation.customer?.full_name || "Client inconnu"}</span>
+                            <span className="min-w-0 break-words text-base font-semibold">{reservation.customer?.full_name || "Client inconnu"}</span>
                             <OrderStatusBadge status={reservation.status} />
                             <Badge variant="outline" className="bg-white/70">{typeLabel}</Badge>
                             <Badge variant="secondary">{reservation.party_size} pers.</Badge>
                           </div>
-                          <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-3">
+                          <div className="grid grid-cols-1 gap-2 text-xs min-[520px]:grid-cols-3">
                             <div className="rounded-lg border bg-white/70 p-2">
                               <p className="text-muted-foreground">Date</p>
                               <p className="font-semibold">{new Date(reservation.date).toLocaleDateString("fr-FR", { day: "2-digit", month: "short" })}</p>
@@ -656,7 +670,7 @@ export default function DashboardReservations() {
                             </p>
                           ) : null}
                         </div>
-                        <div className="flex shrink-0 flex-wrap gap-2 sm:justify-end">
+                        <div className="grid grid-cols-1 gap-2 border-t pt-3 sm:grid-cols-3">
                           <Button
                             size="sm"
                             variant="outline"
@@ -695,7 +709,10 @@ export default function DashboardReservations() {
                       ) : null}
                     </article>
                   );
-                })}
+                      })}
+                    </div>
+                  </section>
+                ))}
               </div>
             ) : null}
 
@@ -777,10 +794,10 @@ export default function DashboardReservations() {
                                 const isZeroAttente = reservation.feature === "zero-attente";
                                 const isChefTable = reservation.feature === "chefs_table";
                                 const articleClass = isZeroAttente
-                                  ? `rounded-xl border-2 border-indigo-300 bg-indigo-50/40 ${compactBase}`
+                                  ? `rounded-2xl border-2 border-l-4 border-indigo-300 bg-indigo-50/40 shadow-sm ${compactBase}`
                                   : isChefTable
-                                    ? `rounded-xl border-2 border-amber-300 bg-amber-50/40 ${compactBase}`
-                                    : `rounded-xl border bg-card ${compactBase}`;
+                                    ? `rounded-2xl border-2 border-l-4 border-amber-300 bg-amber-50/40 shadow-sm ${compactBase}`
+                                    : `rounded-2xl border border-l-4 bg-card shadow-sm ${compactBase}`;
 
                                 return (
                                   <article key={reservation.id} className={articleClass}>
@@ -807,6 +824,20 @@ export default function DashboardReservations() {
                                             {reservation.customer?.phone ? ` - ${reservation.customer.phone}` : ""}
                                           </p>
                                         ) : null}
+                                        <div className="grid gap-2 text-xs sm:grid-cols-3">
+                                          <div className="rounded-xl border bg-background/80 p-3">
+                                            <p className="text-muted-foreground">Date</p>
+                                            <p className="font-semibold">{new Date(reservation.date).toLocaleDateString("fr-FR")} - {getSafeTime(reservation.time)}</p>
+                                          </div>
+                                          <div className="rounded-xl border bg-background/80 p-3">
+                                            <p className="text-muted-foreground">Service</p>
+                                            <p className="font-semibold">{getServicePeriodLabel(servicePeriod)}</p>
+                                          </div>
+                                          <div className="rounded-xl border bg-background/80 p-3">
+                                            <p className="text-muted-foreground">Montant</p>
+                                            <p className="font-semibold text-primary">{reservation.total_amount > 0 ? `${Number(reservation.total_amount).toFixed(2)} CHF` : "Sur place"}</p>
+                                          </div>
+                                        </div>
                                         <div className="flex flex-wrap gap-2">
                                           {offerName || typeof offerDiscountPercent === "number" ? (
                                             <Badge variant="outline" className="text-[11px]">
@@ -890,11 +921,6 @@ export default function DashboardReservations() {
                                                   {metadata.card_last4 ? (
                                                     <span className="rounded bg-secondary px-1.5 py-0.5 font-mono">**** {metadata.card_last4}</span>
                                                   ) : null}
-                                                </div>
-                                              ) : null}
-                                              {reservation.total_amount > 0 ? (
-                                                <div className="text-sm font-bold text-primary">
-                                                  Total : {Number(reservation.total_amount).toFixed(2)} CHF
                                                 </div>
                                               ) : null}
                                               {opsSnapshot.depositAmount > 0 ? (

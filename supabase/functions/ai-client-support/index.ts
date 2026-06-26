@@ -31,6 +31,11 @@ type SupportResult = {
   suggested_next_steps: string[];
 };
 
+type ConversationMetadata = Record<string, unknown> & {
+  handoff_to_admin?: boolean;
+  ai_disabled?: boolean;
+};
+
 const FUNCTION_NAME = "ai-client-support";
 const FEATURE_NAME = "ai_support_chat";
 
@@ -84,6 +89,10 @@ function isQuotaAllowed(value: unknown) {
 function isMissingQuotaRpc(error: { message?: string } | null | undefined) {
   const message = error?.message || "";
   return message.includes("check_restaurant_ai_quota") || message.includes("schema cache");
+}
+
+function getConversationMetadata(value: unknown): ConversationMetadata {
+  return value && typeof value === "object" && !Array.isArray(value) ? value as ConversationMetadata : {};
 }
 
 async function checkRestaurantQuota(
@@ -297,7 +306,7 @@ Deno.serve(async (req) => {
     if (requestedConversationId) {
       const { data, error } = await actor.adminClient
         .from("ai_conversations")
-        .select("id, user_id, restaurant_id, order_id, reservation_id, scope, status, title, metadata")
+        .select("id, user_id, restaurant_id, order_id, reservation_id, scope, status, title, support_incident_id, metadata")
         .eq("id", requestedConversationId)
         .maybeSingle();
 
@@ -361,6 +370,8 @@ Deno.serve(async (req) => {
 
     const lastUserMessage = messages.filter((message) => message.role === "user").at(-1);
     const messagesToPersist = existingConversation && lastUserMessage ? [lastUserMessage] : messages;
+    const existingMetadata = getConversationMetadata(existingConversation?.metadata);
+    const handoffToAdmin = Boolean(existingMetadata.handoff_to_admin || existingMetadata.ai_disabled);
 
     if (existingConversation) {
       conversationId = requestedConversationId;
@@ -401,7 +412,63 @@ Deno.serve(async (req) => {
         role: message.role,
         content: message.content,
         model,
+        metadata: handoffToAdmin
+          ? {
+            source: FUNCTION_NAME,
+            handoff_to_admin: true,
+            ai_disabled: true,
+            delivery: "admin_thread",
+          }
+          : undefined,
       })));
+
+    if (handoffToAdmin) {
+      const { data: existingSupportTicket, error: existingSupportTicketError } = await actor.adminClient
+        .from("ai_support_tickets")
+        .select("id")
+        .eq("conversation_id", conversationId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (existingSupportTicketError) throw new HttpError(500, existingSupportTicketError.message);
+      supportTicketId = existingSupportTicket?.id || null;
+
+      if (supportTicketId) {
+        await actor.adminClient
+          .from("ai_support_tickets")
+          .update({ status: "waiting_tok", updated_at: new Date().toISOString() })
+          .eq("id", supportTicketId);
+      }
+
+      await actor.adminClient
+        .from("ai_conversations")
+        .update({
+          updated_at: new Date().toISOString(),
+          metadata: {
+            ...existingMetadata,
+            endpoint: FUNCTION_NAME,
+            context,
+            handoff_to_admin: true,
+            ai_disabled: true,
+          },
+        })
+        .eq("id", conversationId);
+
+      return jsonResponse({
+        reply: "",
+        category: "human_support",
+        priority: "normal",
+        status: "waiting_tok",
+        shouldEscalate: false,
+        suggestedNextSteps: [],
+        conversationId,
+        supportTicketId,
+        supportIncidentId: existingConversation?.support_incident_id || null,
+        handoffToAdmin: true,
+        aiDisabled: true,
+      }, 200, cors);
+    }
 
     const systemPrompt = `Tu es l'agent support IA de TOK en Suisse.
 Aucun remboursement automatique: tu ne promets jamais un remboursement, un avoir important, une action juridique ou une modification de commande sans regle explicite.
