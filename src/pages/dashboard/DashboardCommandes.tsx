@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { getSupabase } from "@/integrations/supabase/client";
 import DeliveryMap from "@/components/DeliveryMap";
 import SortControls from "@/components/list/SortControls";
+import OperationViewToggle, { type OperationViewMode } from "@/components/operations/OperationViewToggle";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
@@ -36,7 +37,7 @@ import {
   isDateInDashboardTimeRange,
   type DashboardTimeRange,
 } from "@/lib/dashboardTimeRange";
-import { groupItemsByDay, resolveOpenDayKey } from "@/lib/dashboardGrouping";
+import { groupItemsByDay } from "@/lib/dashboardGrouping";
 import { sortByColumn, type SortColumn, type SortDirection } from "@/lib/listSorting";
 import {
   DASHBOARD_ORDER_TYPE_ORDER,
@@ -238,6 +239,7 @@ export default function DashboardCommandes() {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortKey, setSortKey] = useState<DashboardOrderSortKey>("created_at");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+  const [viewMode, setViewMode] = useState<OperationViewMode>("details");
 
   useEffect(() => {
     const orderTarget = searchParams.get("order");
@@ -322,16 +324,6 @@ export default function DashboardCommandes() {
       orderTypeSummary: summarizeDashboardOrdersByType(group.items, (order) => order.total_amount),
     }));
   }, [sortDirection, sortKey, sortedOrders]);
-
-  useEffect(() => {
-    const visibleDateKeys = groupedOrders.map((group) => group.dateKey);
-
-    setOpenDayKey((currentOpenDayKey) => resolveOpenDayKey({
-      visibleDateKeys,
-      currentDateKey: referenceDate,
-      previousOpenDayKey: currentOpenDayKey,
-    }));
-  }, [groupedOrders, referenceDate]);
 
   const cancelMutation = useMutation({
     mutationFn: async ({
@@ -526,7 +518,7 @@ export default function DashboardCommandes() {
 
         {!restaurantsLoading && !restaurantsError && selectedRestaurant && !ordersError ? (
           <div className="space-y-3">
-            <div className="grid grid-cols-1 gap-3 rounded-xl border bg-card p-4 md:grid-cols-2 xl:grid-cols-7">
+            <div className="grid grid-cols-1 gap-3 rounded-xl border bg-card p-3 shadow-sm md:grid-cols-2 md:p-4 xl:grid-cols-7">
               <div className="space-y-1">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Rechercher</p>
                 <div className="relative">
@@ -567,17 +559,104 @@ export default function DashboardCommandes() {
                 onDirectionChange={setSortDirection}
                 className="xl:col-span-2"
               />
-              <div className="rounded-xl bg-muted/30 p-3">
+              <div className="rounded-xl border bg-muted/20 p-2.5 sm:p-3">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Commandes visibles</p>
-                <p className="text-2xl font-bold">{filteredOrders.length}</p>
+                <p className="text-xl font-bold sm:text-2xl">{filteredOrders.length}</p>
               </div>
-              <div className="rounded-xl bg-muted/30 p-3">
+              <div className="rounded-xl border bg-muted/20 p-2.5 sm:p-3">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Chiffre visible</p>
-                <p className="text-2xl font-bold text-primary">{filteredOrdersRevenue.toFixed(2)} CHF</p>
+                <p className="text-xl font-bold text-primary sm:text-2xl">{filteredOrdersRevenue.toFixed(2)} CHF</p>
               </div>
             </div>
 
-            {groupedOrders.length > 0 ? (
+            <div className="flex flex-col gap-3 rounded-xl border bg-card p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-semibold">Vue des commandes</p>
+                <p className="text-xs text-muted-foreground">Galerie pour scanner, liste pour traiter, détails pour piloter par jour.</p>
+              </div>
+              <OperationViewToggle value={viewMode} onChange={setViewMode} ariaLabel="Mode de vue des commandes restaurant" />
+            </div>
+
+            {viewMode !== "details" && filteredOrders.length > 0 ? (
+              <div className={viewMode === "gallery" ? "grid gap-3 md:grid-cols-2 xl:grid-cols-3" : "space-y-3"}>
+                {sortedOrders.map((order) => {
+                  const orderType = classifyDashboardOrderType(order);
+                  const orderTypeMeta = getDashboardOrderTypeMeta(orderType);
+                  const customer = order.customer;
+                  const items = order.order_items ?? [];
+                  const itemCount = items.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
+                  const restaurantViewedAt = typeof order.restaurant_viewed_at === "string" ? order.restaurant_viewed_at : null;
+                  const isAwaitingRestaurantAcceptance = normalizeOrderStatus(order.status) === "confirmed";
+                  const orderStatusLockMessage = getOrderStatusLockMessage(order);
+                  const isOrderStatusLocked = Boolean(orderStatusLockMessage);
+
+                  return (
+                    <article
+                      key={order.id}
+                      className={`min-w-0 rounded-2xl border bg-card p-4 shadow-sm ring-1 ring-transparent transition hover:border-primary/30 ${orderTypeMeta.cardClassName}`}
+                    >
+                      <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="min-w-0 space-y-2">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="break-words text-base font-bold">{order.order_number || `#${order.id.slice(0, 8)}`}</span>
+                            <OrderStatusBadge status={normalizeOrderStatus(order.status)} />
+                            {orderTypeMeta.badgeLabel ? (
+                              <Badge variant="outline" className={orderTypeMeta.badgeClassName}>{orderTypeMeta.badgeLabel}</Badge>
+                            ) : (
+                              <Badge variant="outline">À la carte</Badge>
+                            )}
+                            <Badge variant="outline" className={restaurantViewedAt ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-amber-200 bg-amber-50 text-amber-700"}>
+                              <Eye className="mr-1 h-3 w-3" />
+                              {restaurantViewedAt ? "Vue" : "À voir"}
+                            </Badge>
+                          </div>
+                          <p className="text-sm font-medium">{customer?.full_name || "Client anonyme"}</p>
+                          <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-3">
+                            <div className="rounded-lg border bg-background/70 p-2">
+                              <p className="text-muted-foreground">Montant</p>
+                              <p className="font-bold text-primary">{Number(order.total_amount).toFixed(2)} CHF</p>
+                            </div>
+                            <div className="rounded-lg border bg-background/70 p-2">
+                              <p className="text-muted-foreground">Articles</p>
+                              <p className="font-semibold">{itemCount || items.length}</p>
+                            </div>
+                            <div className="rounded-lg border bg-background/70 p-2">
+                              <p className="text-muted-foreground">Date</p>
+                              <p className="font-semibold">{new Date(order.created_at).toLocaleDateString("fr-FR", { day: "2-digit", month: "short" })}</p>
+                            </div>
+                          </div>
+                          {viewMode === "gallery" ? (
+                            <p className="line-clamp-2 text-xs text-muted-foreground">
+                              {items.slice(0, 3).map((item) => `${item.quantity}x ${item.name || "Article"}`).join(" · ") || "Détail article indisponible"}
+                            </p>
+                          ) : null}
+                        </div>
+                        <div className="flex shrink-0 flex-wrap gap-2 sm:justify-end">
+                          {!restaurantViewedAt ? (
+                            <Button size="sm" variant="outline" onClick={() => void markOrderSeen(order.id)} disabled={cancelMutation.isPending}>
+                              <Eye className="mr-1 h-4 w-4" />
+                              Vue
+                            </Button>
+                          ) : null}
+                          {isAwaitingRestaurantAcceptance ? (
+                            <Button size="sm" onClick={() => handleStatusSelection(order, "accepted")} disabled={isOrderStatusLocked || cancelMutation.isPending}>
+                              <CheckCircle className="mr-1 h-4 w-4" />
+                              Accepter
+                            </Button>
+                          ) : null}
+                          <Button size="sm" variant="outline" className="text-destructive" onClick={() => setCancelTarget(order)} disabled={!canCancelOrder(order) || cancelMutation.isPending}>
+                            <Ban className="mr-1 h-4 w-4" />
+                            Annuler
+                          </Button>
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            ) : null}
+
+            {viewMode === "details" && groupedOrders.length > 0 ? (
               <Accordion
                 type="single"
                 collapsible
@@ -588,11 +667,25 @@ export default function DashboardCommandes() {
                 {groupedOrders.map((dayGroup) => (
                   <AccordionItem key={dayGroup.dateKey} value={dayGroup.dateKey} className="overflow-hidden rounded-2xl border bg-card shadow-sm">
                     <AccordionTrigger className="px-4 py-4 text-left hover:no-underline sm:px-5">
-                      <div className="space-y-1">
-                        <p className="text-sm font-semibold capitalize">{dayGroup.dateLabel}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {dayGroup.items.length} commande(s) - {dayGroup.revenue.toFixed(2)} CHF
-                        </p>
+                      <div className="flex flex-1 flex-wrap items-center justify-between gap-3 pr-4">
+                        <div className="space-y-1">
+                          <p className="text-sm font-semibold capitalize">{dayGroup.dateLabel}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {dayGroup.items.length} commande(s) - {dayGroup.revenue.toFixed(2)} CHF
+                          </p>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {DASHBOARD_ORDER_TYPE_ORDER.map((orderType) => {
+                            const summary = dayGroup.orderTypeSummary[orderType];
+                            if (summary.count === 0) return null;
+                            const meta = getDashboardOrderTypeMeta(orderType);
+                            return (
+                              <Badge key={orderType} variant="outline" className={meta.badgeClassName || "bg-muted/40"}>
+                                {meta.label}: {summary.count}
+                              </Badge>
+                            );
+                          })}
+                        </div>
                       </div>
                     </AccordionTrigger>
                     <AccordionContent className="space-y-4 px-3 pb-4 sm:px-5 sm:pb-5">

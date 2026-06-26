@@ -148,13 +148,18 @@ describe("DashboardCommandes day accordion", () => {
     vi.useRealTimers();
   });
 
-  it("allows the opened day group to collapse without opening another day", async () => {
+  it("keeps day groups closed on entry and allows a day to open then collapse", async () => {
     renderDashboardCommandes();
 
     const openedDayTrigger = await screen.findByRole("button", { name: /mercredi 27 mai 2026/i });
 
-    expect(await screen.findByText(/Burger maison/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Burger maison/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/Pizza verte/i)).not.toBeInTheDocument();
+    expect(openedDayTrigger).toHaveAttribute("aria-expanded", "false");
+
+    fireEvent.click(openedDayTrigger);
+
+    expect(await screen.findByText(/Burger maison/i)).toBeInTheDocument();
     expect(openedDayTrigger).toHaveAttribute("aria-expanded", "true");
 
     fireEvent.click(openedDayTrigger);

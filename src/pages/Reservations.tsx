@@ -7,6 +7,7 @@ import CustomerDashboardLayout from "@/components/CustomerDashboardLayout";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
 import ReservationDetailModal from "@/components/ReservationDetailModal";
 import SortControls from "@/components/list/SortControls";
+import OperationViewToggle, { type OperationViewMode } from "@/components/operations/OperationViewToggle";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getSupabase } from "@/integrations/supabase/client";
@@ -151,6 +152,7 @@ export default function Reservations() {
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [selectedReservation, setSelectedReservation] = useState<ReservationWithRestaurant | null>(null);
   const [expandedReservations, setExpandedReservations] = useState<Set<string>>(new Set());
+  const [viewMode, setViewMode] = useState<OperationViewMode>("details");
 
   const { data: reservations, isLoading } = useQuery({
     queryKey: ["my-reservations", user?.id],
@@ -221,10 +223,67 @@ export default function Reservations() {
             className="w-full sm:w-[440px]"
           />
         </div>
+        <div className="flex flex-col gap-3 rounded-2xl border bg-card p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-semibold">Présentation des réservations</p>
+            <p className="text-xs text-muted-foreground">Galerie pour parcourir, liste pour comparer, détails pour ouvrir une réservation.</p>
+          </div>
+          <OperationViewToggle value={viewMode} onChange={setViewMode} ariaLabel="Mode de vue des réservations client" />
+        </div>
 
         {isLoading ? (
           <div className="space-y-4">{[1, 2, 3].map((i) => <div key={i} className="h-20 animate-pulse rounded-xl bg-muted" />)}</div>
         ) : sortedReservations.length > 0 ? (
+          viewMode !== "details" ? (
+            <div className={viewMode === "gallery" ? "grid gap-3 md:grid-cols-2 xl:grid-cols-3" : "space-y-3"}>
+              {sortedReservations.map((reservation) => {
+                const isZeroAttente = isZeroAttenteReservation(reservation);
+                const timeValue = getDisplayTime(reservation);
+                const restaurantName = getRestaurantName(reservation.restaurants);
+                const featureBadge = getFeatureBadge(reservation.feature);
+                const progressiveDiscount = getProgressiveDiscountSnapshot(reservation);
+                const preorderItems = getPreorderItems(reservation);
+                const typeLabel = progressiveDiscount
+                  ? "Offre progressive"
+                  : featureBadge?.label || (isZeroAttente ? "Zéro attente" : "À la carte");
+
+                return (
+                  <article key={reservation.id} className="rounded-2xl border bg-card p-4 shadow-sm transition hover:border-primary/30">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 space-y-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="break-words font-bold">{restaurantName || "Restaurant"}</p>
+                          <OrderStatusBadge status={reservation.status} />
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          <Badge variant="outline" className={featureBadge?.className}>{typeLabel}</Badge>
+                          <Badge variant="secondary">{formatShortDate(reservation.date)}</Badge>
+                          {timeValue ? <Badge variant="outline">{timeValue}</Badge> : null}
+                          {reservation.party_size ? <Badge variant="outline">{reservation.party_size} personne(s)</Badge> : null}
+                        </div>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <p className="font-bold text-primary">
+                          {Number(reservation.total_amount || 0) > 0 ? `${Number(reservation.total_amount).toFixed(2)} CHF` : "Sur place"}
+                        </p>
+                        {progressiveDiscount ? (
+                          <p className="text-xs font-semibold text-orange-700">-{progressiveDiscount.percent}%</p>
+                        ) : null}
+                      </div>
+                    </div>
+                    {viewMode === "gallery" && preorderItems.length > 0 ? (
+                      <p className="mt-3 line-clamp-2 text-xs text-muted-foreground">
+                        {preorderItems.slice(0, 3).map((item) => `${item.quantity}x ${item.name}`).join(" · ")}
+                      </p>
+                    ) : null}
+                    <Button type="button" variant="outline" size="sm" className="mt-3" onClick={() => setSelectedReservation(reservation)}>
+                      Détails et annulation
+                    </Button>
+                  </article>
+                );
+              })}
+            </div>
+          ) : (
           <div className="space-y-3">
             {sortedReservations.map((reservation) => {
               const isZeroAttente = isZeroAttenteReservation(reservation);
@@ -345,6 +404,7 @@ export default function Reservations() {
               );
             })}
           </div>
+          )
         ) : (
           <div className="space-y-2 py-12 text-center">
             <CalendarDays className="mx-auto h-10 w-10 text-muted-foreground" />

@@ -8,6 +8,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import RestaurantCancellationDialog from "@/components/RestaurantCancellationDialog";
 import SortControls from "@/components/list/SortControls";
+import OperationViewToggle, { type OperationViewMode } from "@/components/operations/OperationViewToggle";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,7 +17,6 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
 import { useToast } from "@/hooks/use-toast";
-import { resolveOpenDayKey } from "@/lib/dashboardGrouping";
 import { dispatchQueuedNotifications } from "@/lib/notificationDispatch";
 import {
   cancelReservationByRestaurant,
@@ -197,6 +197,7 @@ export default function DashboardReservations() {
   const [openDayKey, setOpenDayKey] = useState<string | null>(null);
   const [cancelTarget, setCancelTarget] = useState<ReservationWithProfile | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [viewMode, setViewMode] = useState<OperationViewMode>("details");
 
   useEffect(() => {
     const reservationTarget = searchParams.get("reservation");
@@ -438,18 +439,6 @@ export default function DashboardReservations() {
     );
   }, [filteredReservations]);
 
-  useEffect(() => {
-    const visibleDateKeys = groupedReservations.map((group) => group.dateKey);
-
-    setOpenDayKey((previousOpenDayKey) =>
-      resolveOpenDayKey({
-        visibleDateKeys,
-        currentDateKey: referenceDate,
-        previousOpenDayKey,
-      }),
-    );
-  }, [groupedReservations, referenceDate]);
-
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -486,7 +475,7 @@ export default function DashboardReservations() {
 
         {selectedRestaurant && !reservationsError ? (
           <>
-            <div className="grid grid-cols-1 gap-3 rounded-xl border bg-card p-4 sm:grid-cols-2 xl:grid-cols-7">
+            <div className="grid grid-cols-1 gap-3 rounded-xl border bg-card p-3 shadow-sm sm:grid-cols-2 sm:p-4 xl:grid-cols-7">
               <div className="space-y-1">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Rechercher</p>
                 <div className="relative">
@@ -557,42 +546,160 @@ export default function DashboardReservations() {
               />
             </div>
 
-            <div className="grid gap-3 md:grid-cols-3">
-              <Card>
-                <CardContent className="flex items-center justify-between py-4">
+            <div className="grid grid-cols-3 gap-2 md:gap-3">
+              <Card className="rounded-xl">
+                <CardContent className="flex items-center justify-between gap-2 p-3 sm:py-4">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Reservations visibles</p>
-                    <p className="text-2xl font-bold">{filteredReservations.length}</p>
+                    <p className="text-[11px] font-medium text-muted-foreground sm:text-sm">Visibles</p>
+                    <p className="text-xl font-bold sm:text-2xl">{filteredReservations.length}</p>
                     <p className="text-xs text-muted-foreground">
                       {filteredReservations.reduce((sum, reservation) => sum + Number(reservation.party_size || 0), 0)} couverts
                     </p>
                   </div>
-                  <Dot className="h-5 w-5 text-primary" />
+                  <Dot className="hidden h-5 w-5 text-primary sm:block" />
                 </CardContent>
               </Card>
-              <Card>
-                <CardContent className="flex items-center justify-between py-4">
+              <Card className="rounded-xl">
+                <CardContent className="flex items-center justify-between gap-2 p-3 sm:py-4">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Service midi</p>
-                    <p className="text-2xl font-bold">{serviceBreakdown.lunch.count}</p>
+                    <p className="text-[11px] font-medium text-muted-foreground sm:text-sm">Midi</p>
+                    <p className="text-xl font-bold sm:text-2xl">{serviceBreakdown.lunch.count}</p>
                     <p className="text-xs text-muted-foreground">{serviceBreakdown.lunch.covers} couverts</p>
                   </div>
-                  <SunMedium className="h-5 w-5 text-amber-500" />
+                  <SunMedium className="hidden h-5 w-5 text-amber-500 sm:block" />
                 </CardContent>
               </Card>
-              <Card>
-                <CardContent className="flex items-center justify-between py-4">
+              <Card className="rounded-xl">
+                <CardContent className="flex items-center justify-between gap-2 p-3 sm:py-4">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Service soir</p>
-                    <p className="text-2xl font-bold">{serviceBreakdown.dinner.count}</p>
+                    <p className="text-[11px] font-medium text-muted-foreground sm:text-sm">Soir</p>
+                    <p className="text-xl font-bold sm:text-2xl">{serviceBreakdown.dinner.count}</p>
                     <p className="text-xs text-muted-foreground">{serviceBreakdown.dinner.covers} couverts</p>
                   </div>
-                  <MoonStar className="h-5 w-5 text-sky-500" />
+                  <MoonStar className="hidden h-5 w-5 text-sky-500 sm:block" />
                 </CardContent>
               </Card>
             </div>
 
-            {groupedReservations.length > 0 ? (
+            <div className="flex flex-col gap-3 rounded-xl border bg-card p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-semibold">Vue des réservations</p>
+                <p className="text-xs text-muted-foreground">Galerie pour distinguer les types, liste pour traiter vite, détails pour ouvrir les jours.</p>
+              </div>
+              <OperationViewToggle value={viewMode} onChange={setViewMode} ariaLabel="Mode de vue des réservations restaurant" />
+            </div>
+
+            {viewMode !== "details" && filteredReservations.length > 0 ? (
+              <div className={viewMode === "gallery" ? "grid gap-3 md:grid-cols-2 xl:grid-cols-3" : "space-y-3"}>
+                {sortByColumn(filteredReservations, DASHBOARD_RESERVATION_SORT_COLUMNS, { key: sortKey, direction: sortDirection }).map((reservation) => {
+                  const metadata = extractMetadata(reservation);
+                  const servicePeriod = getServicePeriodFromMetadata(reservation.metadata, reservation.time);
+                  const progressiveDiscountPercent = Number(
+                    reservation.progressive_offer_discount_percent
+                    || metadata.progressive_offer_discount_percent
+                    || 0,
+                  );
+                  const isZeroAttente = reservation.feature === "zero-attente";
+                  const isChefTable = reservation.feature === "chefs_table";
+                  const hasFormula = Boolean(metadata.formula_applied || metadata.promo || progressiveDiscountPercent);
+                  const typeLabel = isZeroAttente
+                    ? "Zéro Attente"
+                    : isChefTable
+                      ? "La Table du Chef"
+                      : progressiveDiscountPercent
+                        ? "Promo progressive"
+                        : hasFormula
+                          ? "Formule promo"
+                          : "À la carte";
+                  const typeClass = isZeroAttente
+                    ? "border-indigo-300 bg-indigo-50/70"
+                    : isChefTable
+                      ? "border-amber-300 bg-amber-50/70"
+                      : progressiveDiscountPercent
+                        ? "border-orange-300 bg-orange-50/70"
+                        : hasFormula
+                          ? "border-emerald-300 bg-emerald-50/70"
+                          : "border-border bg-card";
+                  const statusLockMessage = getReservationStatusLockMessage(reservation);
+                  const opsSnapshot = getReservationOpsSnapshot(reservation);
+                  const isArrived = reservation.status === "arrived";
+                  const isCardLocked = Boolean(statusLockMessage) || isArrived;
+                  const isConfirmedAck = reservation.status === "confirmed";
+
+                  return (
+                    <article key={reservation.id} className={`rounded-2xl border p-4 shadow-sm ${typeClass}`}>
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="min-w-0 space-y-2">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="break-words font-semibold">{reservation.customer?.full_name || "Client inconnu"}</span>
+                            <OrderStatusBadge status={reservation.status} />
+                            <Badge variant="outline" className="bg-white/70">{typeLabel}</Badge>
+                            <Badge variant="secondary">{reservation.party_size} pers.</Badge>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-3">
+                            <div className="rounded-lg border bg-white/70 p-2">
+                              <p className="text-muted-foreground">Date</p>
+                              <p className="font-semibold">{new Date(reservation.date).toLocaleDateString("fr-FR", { day: "2-digit", month: "short" })}</p>
+                            </div>
+                            <div className="rounded-lg border bg-white/70 p-2">
+                              <p className="text-muted-foreground">Heure</p>
+                              <p className="font-semibold">{getSafeTime(reservation.time)}</p>
+                            </div>
+                            <div className="rounded-lg border bg-white/70 p-2">
+                              <p className="text-muted-foreground">Service</p>
+                              <p className="font-semibold">{getServicePeriodLabel(servicePeriod)}</p>
+                            </div>
+                          </div>
+                          {viewMode === "gallery" && (metadata.preorder_items?.length || reservation.notes) ? (
+                            <p className="line-clamp-2 text-xs text-muted-foreground">
+                              {metadata.preorder_items?.slice(0, 2).map((item) => `${item.quantity}x ${item.name}`).join(" · ") || reservation.notes}
+                            </p>
+                          ) : null}
+                        </div>
+                        <div className="flex shrink-0 flex-wrap gap-2 sm:justify-end">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => updateStatusMutation.mutate({ id: reservation.id, status: "arrived" })}
+                            disabled={updateStatusMutation.isPending || isCardLocked}
+                            className={isArrived ? "border-emerald-200 bg-emerald-600 text-white hover:bg-emerald-600 disabled:opacity-100" : undefined}
+                          >
+                            <UserCheck className="mr-1 h-4 w-4" />
+                            Arrivée
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => updateStatusMutation.mutate({ id: reservation.id, status: "confirmed" })}
+                            disabled={updateStatusMutation.isPending || isCardLocked || isConfirmedAck}
+                            className={isConfirmedAck ? "bg-emerald-600 text-white hover:bg-emerald-600 disabled:opacity-100" : undefined}
+                          >
+                            <Check className="mr-1 h-4 w-4" />
+                            Confirmée
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setCancelTarget(reservation)}
+                            disabled={isArrived || reservation.status === "cancelled" || reservation.status === "no_show" || cancelMutation.isPending}
+                            className="text-destructive"
+                          >
+                            <Ban className="mr-1 h-4 w-4" />
+                            Annuler
+                          </Button>
+                        </div>
+                      </div>
+                      {opsSnapshot.requiresConfirmation ? (
+                        <p className="mt-3 text-xs text-muted-foreground">
+                          Confirmation restaurant{opsSnapshot.deadlineLabel ? ` avant ${opsSnapshot.deadlineLabel}` : ""}
+                        </p>
+                      ) : null}
+                    </article>
+                  );
+                })}
+              </div>
+            ) : null}
+
+            {viewMode === "details" && groupedReservations.length > 0 ? (
               <Accordion
                 type="single"
                 collapsible
@@ -604,7 +711,7 @@ export default function DashboardReservations() {
                   <AccordionItem
                     key={dateGroup.dateKey}
                     value={dateGroup.dateKey}
-                    className="overflow-hidden rounded-xl border bg-muted/20"
+                    className="overflow-hidden rounded-xl border bg-card shadow-sm"
                   >
                     <AccordionTrigger className="px-4 py-3 text-left hover:no-underline">
                       <div className="flex flex-1 flex-wrap items-center justify-between gap-2 pr-4">

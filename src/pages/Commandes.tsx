@@ -22,6 +22,7 @@ import CustomerDashboardLayout from "@/components/CustomerDashboardLayout";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
 import TokAiSupportChat from "@/components/support/TokAiSupportChat";
 import SortControls from "@/components/list/SortControls";
+import OperationViewToggle, { type OperationViewMode } from "@/components/operations/OperationViewToggle";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -192,6 +193,7 @@ export default function Commandes() {
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [sortKey, setSortKey] = useState<CustomerOrderSortKey>("created_at");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+  const [viewMode, setViewMode] = useState<OperationViewMode>("details");
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -312,6 +314,13 @@ export default function Commandes() {
             ) : null}
           </div>
         </div>
+        <div className="flex flex-col gap-3 rounded-2xl border bg-card p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-semibold">Présentation des commandes</p>
+            <p className="text-xs text-muted-foreground">Galerie pour parcourir, liste pour comparer, détails pour ouvrir une commande.</p>
+          </div>
+          <OperationViewToggle value={viewMode} onChange={setViewMode} ariaLabel="Mode de vue des commandes client" />
+        </div>
         {isLoading ? (
           <div className="space-y-4">
             {[1, 2, 3].map((i) => <div key={i} className="h-24 animate-pulse rounded-xl bg-muted" />)}
@@ -321,6 +330,59 @@ export default function Commandes() {
             Erreur lors du chargement des commandes : {(error as Error).message}
           </div>
         ) : orderGroups.length > 0 ? (
+          viewMode !== "details" ? (
+            <div className={viewMode === "gallery" ? "grid gap-3 md:grid-cols-2 xl:grid-cols-3" : "space-y-3"}>
+              {orderGroups.map((group) => {
+                const mainOrder = group.mainOrder;
+                const createdDate = new Date(mainOrder.created_at);
+                const displayStatus = getDisplayStatus(mainOrder);
+                const feature = String((mainOrder.metadata as any)?.feature || "");
+                const typeLabel = group.isMealSubscription
+                  ? "Formule abonnement"
+                  : feature === "promo-progressive"
+                    ? "Promo progressive"
+                    : feature === "promo-formule"
+                      ? "Formule promo"
+                      : "À la carte";
+
+                return (
+                  <article key={group.groupKey} className="rounded-2xl border bg-card p-4 shadow-sm transition hover:border-primary/30">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 space-y-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="break-words font-bold">
+                            {group.isMealSubscription ? group.title : (mainOrder.order_number || `#${String(group.groupKey).slice(0, 8)}`)}
+                          </p>
+                          <OrderStatusBadge status={displayStatus} />
+                        </div>
+                        <p className="line-clamp-2 text-sm font-medium">{group.restaurantsLabel}</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          <span className="rounded-full border bg-muted/30 px-2 py-1 text-[11px] font-semibold">{typeLabel}</span>
+                          <span className="rounded-full border bg-muted/30 px-2 py-1 text-[11px]">
+                            {createdDate.toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" })}
+                          </span>
+                          <span className="rounded-full border bg-muted/30 px-2 py-1 text-[11px]">
+                            {group.orderCount} commande{group.orderCount > 1 ? "s" : ""}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <p className="font-bold text-primary">{group.totalAmount.toFixed(2)} CHF</p>
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                          {group.isMealSubscription ? "global" : `${group.orders.length} restaurant(s)`}
+                        </p>
+                      </div>
+                    </div>
+                    {viewMode === "gallery" ? (
+                      <p className="mt-3 line-clamp-2 text-xs text-muted-foreground">
+                        {group.orders.flatMap((order) => (order.order_items as any[]).slice(0, 2).map((item) => `${item.quantity}x ${item.name || "Article"}`)).slice(0, 4).join(" · ")}
+                      </p>
+                    ) : null}
+                  </article>
+                );
+              })}
+            </div>
+          ) : (
           <div className="space-y-6">
             {orderGroups.map((group) => {
               const groupKey = group.groupKey;
@@ -476,6 +538,7 @@ export default function Commandes() {
               );
             })}
           </div>
+          )
         ) : (
           <div className="space-y-2 py-12 text-center">
             <ShoppingCart className="mx-auto h-10 w-10 text-muted-foreground" />
