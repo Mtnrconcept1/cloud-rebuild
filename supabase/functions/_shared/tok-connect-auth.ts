@@ -154,6 +154,13 @@ export async function authenticateTokConnectToken(
 
   if (clientError) throw new HttpError(500, clientError.message);
   if (!clientRow || clientRow.status !== "active") throw new HttpError(401, "tok_connect_client_inactive");
+  if (
+    clientRow.id !== tokenRow.client_id ||
+    clientRow.partner_id !== tokenRow.partner_id ||
+    clientRow.environment !== tokenRow.environment
+  ) {
+    throw new HttpError(401, "tok_connect_token_client_mismatch");
+  }
 
   const { data: partnerRow, error: partnerError } = await adminClient
     .from("tok_connect_partners")
@@ -165,6 +172,11 @@ export async function authenticateTokConnectToken(
   if (!partnerRow || partnerRow.status !== "active") throw new HttpError(403, "tok_connect_partner_inactive");
 
   const scopes = tokenRow.scopes || [];
+  try {
+    assertTokConnectScopes(clientRow.allowed_scopes || [], scopes);
+  } catch {
+    throw new HttpError(401, "tok_connect_token_scope_revoked");
+  }
   assertTokConnectScopes(scopes, requiredScopes);
 
   await adminClient

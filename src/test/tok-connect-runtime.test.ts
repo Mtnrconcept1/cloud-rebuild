@@ -8,8 +8,11 @@ import {
   buildTokConnectWebhookHeaders,
   buildTokConnectEnvelope,
   createTokConnectCursor,
+  getTokConnectIdempotencyDecision,
   getTokConnectRetryDelaySeconds,
+  getTokConnectSandboxMcpToolResult,
   hashTokConnectSecret,
+  isSafeTokConnectWebhookUrl,
   isValidTokConnectIdempotencyKey,
   parseTokConnectCursor,
   parseTokConnectLimit,
@@ -47,6 +50,50 @@ describe("TOK Connect shared runtime", () => {
     expect(isValidTokConnectIdempotencyKey("x")).toBe(false);
     expect(isValidTokConnectIdempotencyKey("contains spaces")).toBe(false);
     expect(isValidTokConnectIdempotencyKey("a".repeat(121))).toBe(false);
+
+    expect(getTokConnectIdempotencyDecision(null, "hash_a")).toEqual({ status: "new" });
+    expect(getTokConnectIdempotencyDecision({
+      request_hash: "hash_a",
+      response_body: { ok: true },
+      status_code: 201,
+    }, "hash_a")).toEqual({
+      status: "replay",
+      responseBody: { ok: true },
+      statusCode: 201,
+    });
+    expect(getTokConnectIdempotencyDecision({
+      request_hash: "hash_a",
+      response_body: { ok: true },
+      status_code: 201,
+    }, "hash_b")).toEqual({ status: "conflict" });
+    expect(getTokConnectIdempotencyDecision({
+      request_hash: "hash_a",
+      response_body: null,
+      status_code: null,
+    }, "hash_a")).toEqual({ status: "in_progress" });
+  });
+
+  it("rejects unsafe webhook callback URLs unless local development explicitly allows localhost http", () => {
+    expect(isSafeTokConnectWebhookUrl("https://partner.example/webhooks")).toBe(true);
+    expect(isSafeTokConnectWebhookUrl("http://partner.example/webhooks")).toBe(false);
+    expect(isSafeTokConnectWebhookUrl("https://127.0.0.1/webhooks")).toBe(false);
+    expect(isSafeTokConnectWebhookUrl("https://10.0.0.5/webhooks")).toBe(false);
+    expect(isSafeTokConnectWebhookUrl("http://localhost:8787/webhooks")).toBe(false);
+    expect(isSafeTokConnectWebhookUrl("http://localhost:8787/webhooks", { allowLocalHttp: true })).toBe(true);
+  });
+
+  it("returns deterministic sandbox MCP results without production RPC mutations", () => {
+    const availability = getTokConnectSandboxMcpToolResult("get_real_time_availability", {
+      restaurant_id: "00000000-0000-4000-8000-000000000101",
+      date: "2026-06-26",
+    });
+    const campaign = getTokConnectSandboxMcpToolResult("generate_campaign_preview", {
+      restaurant_id: "00000000-0000-4000-8000-000000000101",
+      objective: "Remplir le service du midi",
+    });
+
+    expect(availability?.content[0]?.text).toContain("remaining_tables");
+    expect(campaign?.content[0]?.text).toContain("requires_human_approval");
   });
 
   it("enforces scoped access without enabling autopilot tools in v1", () => {

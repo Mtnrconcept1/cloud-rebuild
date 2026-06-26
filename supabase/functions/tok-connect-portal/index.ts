@@ -11,6 +11,7 @@ import {
   buildTokConnectEnvelope,
   createTokConnectClientCredential,
   hashTokConnectSecret,
+  isSafeTokConnectWebhookUrl,
   makeTokConnectRequestId,
 } from "../_shared/tok-connect.ts";
 import { assertTokConnectFeatureEnabled as assertTokConnectPortalFeatureEnabled } from "../_shared/tok-connect-auth.ts";
@@ -315,14 +316,13 @@ async function updatePartnerStatus(
   return { partner };
 }
 
+function isLocalTokConnectDevelopmentRuntime() {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
+  return supabaseUrl.includes("127.0.0.1") || supabaseUrl.includes("localhost");
+}
+
 function assertWebhookUrl(url: string) {
-  try {
-    const parsed = new URL(url);
-    const isLocal = parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1";
-    if (parsed.protocol !== "https:" && !(isLocal && parsed.protocol === "http:")) {
-      throw new Error("invalid_url");
-    }
-  } catch {
+  if (!isSafeTokConnectWebhookUrl(url, { allowLocalHttp: isLocalTokConnectDevelopmentRuntime() })) {
     throw new HttpError(400, "webhook_https_url_required");
   }
 }

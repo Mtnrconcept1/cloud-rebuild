@@ -28,6 +28,22 @@ export type TokConnectMcpTool = {
   inputSchema: Record<string, unknown>;
 };
 
+export type TokConnectIdempotencyRecord<TResponse = Record<string, unknown>> = {
+  request_hash?: string | null;
+  response_body?: TResponse | null;
+  status_code?: number | null;
+};
+
+export type TokConnectIdempotencyDecision<TResponse = Record<string, unknown>> =
+  | { status: "new" }
+  | { status: "replay"; responseBody: TResponse; statusCode: number }
+  | { status: "conflict" }
+  | { status: "in_progress" };
+
+export type TokConnectMcpContentResult = {
+  content: Array<{ type: "text"; text: string }>;
+};
+
 export const TOK_CONNECT_REQUIRED_FEATURE_FLAGS = [
   "tok-connect",
   "tok-connect-api",
@@ -236,6 +252,165 @@ export function isValidTokConnectIdempotencyKey(value: string | null | undefined
   if (!value) return false;
   if (value.length < 8 || value.length > 120) return false;
   return /^[A-Za-z0-9:_-]+$/.test(value);
+}
+
+export function getTokConnectIdempotencyDecision<TResponse = Record<string, unknown>>(
+  existing: TokConnectIdempotencyRecord<TResponse> | null | undefined,
+  requestHash: string,
+): TokConnectIdempotencyDecision<TResponse> {
+  if (!existing) return { status: "new" };
+  if (existing.request_hash && existing.request_hash !== requestHash) {
+    return { status: "conflict" };
+  }
+  if (existing.response_body) {
+    return {
+      status: "replay",
+      responseBody: existing.response_body,
+      statusCode: existing.status_code || 200,
+    };
+  }
+  return { status: "in_progress" };
+}
+
+function normalizeTokConnectHostname(hostname: string) {
+  return hostname.replace(/^\[/, "").replace(/\]$/, "").toLowerCase();
+}
+
+export function isTokConnectPrivateWebhookHostname(hostname: string) {
+  const normalized = normalizeTokConnectHostname(hostname);
+  if (!normalized) return true;
+  if (normalized === "localhost" || normalized.endsWith(".localhost")) return true;
+  if (normalized === "::1" || normalized.startsWith("fc") || normalized.startsWith("fd") || normalized.startsWith("fe80")) {
+    return true;
+  }
+
+  const ipv4 = normalized.split(".");
+  if (ipv4.length === 4 && ipv4.every((part) => /^\d+$/.test(part))) {
+    const [a, b] = ipv4.map((part) => Number(part));
+    if (a === 0 || a === 10 || a === 127) return true;
+    if (a === 169 && b === 254) return true;
+    if (a === 172 && b >= 16 && b <= 31) return true;
+    if (a === 192 && b === 168) return true;
+    if (a === 100 && b >= 64 && b <= 127) return true;
+    if (a >= 224) return true;
+  }
+
+  return false;
+}
+
+export function isSafeTokConnectWebhookUrl(
+  value: string,
+  options: { allowLocalHttp?: boolean } = {},
+) {
+  try {
+    const parsed = new URL(value);
+    const hostname = normalizeTokConnectHostname(parsed.hostname);
+    const isPrivateHost = isTokConnectPrivateWebhookHostname(hostname);
+
+    if (parsed.protocol === "https:") return !isPrivateHost;
+    if (parsed.protocol === "http:" && options.allowLocalHttp) {
+      return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+function mcpJsonContent(value: Record<string, unknown>): TokConnectMcpContentResult {
+  return { content: [{ type: "text", text: JSON.stringify(value) }] };
+}
+
+export function getTokConnectSandboxMcpToolResult(
+  name: string,
+  args: Record<string, unknown>,
+): TokConnectMcpContentResult | null {
+  const restaurantId = typeof args.restaurant_id === "string"
+    ? args.restaurant_id
+    : "00000000-0000-4000-8000-000000000101";
+
+  switch (name) {
+    case "search_restaurants":
+      return mcpJsonContent({
+        restaurants: [
+          {
+            id: "00000000-0000-4000-8000-000000000101",
+            name: "TOK Sandbox Brasserie",
+            city: args.city || "Geneve",
+            cuisine_type: args.cuisine || "Bistronomie",
+            rating: 4.8,
+            supports_reservation: true,
+          },
+          {
+            id: "00000000-0000-4000-8000-000000000102",
+            name: "TOK Sandbox Trattoria",
+            city: "Carouge",
+            cuisine_type: "Italien",
+            rating: 4.7,
+            supports_reservation: true,
+          },
+        ],
+      });
+
+    case "get_real_time_availability":
+      return mcpJsonContent({
+        restaurant_id: restaurantId,
+        date: args.date || new Date().toISOString().slice(0, 10),
+        slots: [
+          { slot_time: "12:00", service: "lunch", remaining_tables: 4, available: true },
+          { slot_time: "19:30", service: "dinner", remaining_tables: 2, available: true },
+        ],
+      });
+
+    case "prepare_reservation":
+      return mcpJsonContent({
+        reservation_preview: {
+          restaurant_id: restaurantId,
+          date: args.date,
+          time: args.time,
+          party_size: args.party_size,
+          requires_confirmation: true,
+          environment: "sandbox",
+        },
+      });
+
+    case "get_restaurant_performance":
+      return mcpJsonContent({
+        restaurant_id: restaurantId,
+        period: args.period || "30d",
+        performance: {
+          reservations: 42,
+          conversion_rate: 0.18,
+          average_rating: 4.8,
+          revenue_signal: "sandbox_fixture",
+        },
+      });
+
+    case "estimate_campaign_credit_cost":
+      return mcpJsonContent({
+        estimate: {
+          restaurant_id: restaurantId,
+          credits: Math.max(1, Math.ceil(Number(args.audience_size || 100) / 100)),
+          currency: "TOK_CREDIT",
+          environment: "sandbox",
+        },
+      });
+
+    case "generate_campaign_preview":
+      return mcpJsonContent({
+        campaign_preview: {
+          restaurant_id: restaurantId,
+          objective: args.objective,
+          budget_chf: Number(args.budget_chf || 0),
+          requires_human_approval: true,
+          status: "preview",
+          environment: "sandbox",
+        },
+      });
+
+    default:
+      return null;
+  }
 }
 
 export function assertTokConnectScopes(grantedScopes: string[], requiredScopes: string[]) {

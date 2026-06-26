@@ -4,6 +4,7 @@ import { createRateLimiter } from "../_shared/rate-limit.ts";
 import {
   SAFE_TOK_CONNECT_MCP_TOOLS,
   buildTokConnectEnvelope,
+  getTokConnectSandboxMcpToolResult,
   makeTokConnectRequestId,
 } from "../_shared/tok-connect.ts";
 import {
@@ -19,6 +20,13 @@ type JsonRpcRequest = {
   id?: string | number | null;
   method?: string;
   params?: Record<string, unknown>;
+};
+
+type McpHandleResult = {
+  payload: Record<string, unknown>;
+  context: TokConnectTokenContext | null;
+  route: string;
+  scopes: string[];
 };
 
 const MCP_RESOURCES = [
@@ -96,6 +104,10 @@ async function callTool(
   args: Record<string, unknown>,
 ) {
   const restaurantId = typeof args.restaurant_id === "string" ? args.restaurant_id : "";
+  if (context.environment === "sandbox") {
+    const sandboxResult = getTokConnectSandboxMcpToolResult(name, args);
+    if (sandboxResult) return sandboxResult;
+  }
 
   switch (name) {
     case "search_restaurants": {
@@ -216,11 +228,12 @@ async function callTool(
   }
 }
 
-async function handleMcp(req: Request, rpc: JsonRpcRequest) {
+async function handleMcp(req: Request, rpc: JsonRpcRequest): Promise<McpHandleResult> {
   switch (rpc.method) {
     case "initialize": {
-      await authorizeMcp(req);
-      return rpcResult(rpc.id, {
+      const context = await authorizeMcp(req);
+      return {
+        payload: rpcResult(rpc.id, {
         protocolVersion: "2025-06-18",
         serverInfo: { name: "tok-connect-mcp", version: "1.0.0" },
         capabilities: {
@@ -228,12 +241,21 @@ async function handleMcp(req: Request, rpc: JsonRpcRequest) {
           resources: {},
           prompts: {},
         },
-      });
+        }),
+        context,
+        route: "MCP initialize",
+        scopes: [],
+      };
     }
 
     case "tools/list": {
-      await authorizeMcp(req);
-      return rpcResult(rpc.id, { tools: SAFE_TOK_CONNECT_MCP_TOOLS.map(toolDefinition) });
+      const context = await authorizeMcp(req);
+      return {
+        payload: rpcResult(rpc.id, { tools: SAFE_TOK_CONNECT_MCP_TOOLS.map(toolDefinition) }),
+        context,
+        route: "MCP tools/list",
+        scopes: [],
+      };
     }
 
     case "tools/call": {
@@ -242,18 +264,31 @@ async function handleMcp(req: Request, rpc: JsonRpcRequest) {
       if (!tool) throw new HttpError(404, "mcp_tool_not_found");
       const context = await authorizeMcp(req, tool.requiredScopes);
       const result = await callTool(context, toolName, (rpc.params?.arguments || {}) as Record<string, unknown>);
-      return rpcResult(rpc.id, result);
+      return {
+        payload: rpcResult(rpc.id, result),
+        context,
+        route: `MCP tools/call ${toolName}`,
+        scopes: tool.requiredScopes,
+      };
     }
 
     case "resources/list": {
-      await authorizeMcp(req);
-      return rpcResult(rpc.id, { resources: MCP_RESOURCES });
+      const context = await authorizeMcp(req);
+      return {
+        payload: rpcResult(rpc.id, { resources: MCP_RESOURCES }),
+        context,
+        route: "MCP resources/list",
+        scopes: [],
+      };
     }
 
     case "resources/read": {
       const uri = String(rpc.params?.uri || "tok://restaurants");
+      let context: TokConnectTokenContext;
+      let scopes: string[];
       if (uri.startsWith("tok://availability/")) {
-        const context = await authorizeMcp(req, ["availability:read"]);
+        scopes = ["availability:read"];
+        context = await authorizeMcp(req, scopes);
         await assertTokConnectRestaurantGrant(
           context,
           uri.replace("tok://availability/", ""),
@@ -261,7 +296,8 @@ async function handleMcp(req: Request, rpc: JsonRpcRequest) {
           { requireMcp: true },
         );
       } else if (uri.startsWith("tok://campaign-preview/")) {
-        const context = await authorizeMcp(req, ["campaigns:preview"]);
+        scopes = ["campaigns:preview"];
+        context = await authorizeMcp(req, scopes);
         await assertTokConnectRestaurantGrant(
           context,
           uri.replace("tok://campaign-preview/", ""),
@@ -269,28 +305,40 @@ async function handleMcp(req: Request, rpc: JsonRpcRequest) {
           { requireMcp: true },
         );
       } else {
-        await authorizeMcp(req, ["restaurants:read"]);
+        scopes = ["restaurants:read"];
+        context = await authorizeMcp(req, scopes);
       }
-      return rpcResult(rpc.id, {
+      return {
+        payload: rpcResult(rpc.id, {
         contents: [{
           uri,
           mimeType: "application/json",
           text: JSON.stringify({ status: "available", mutation_allowed: false }),
         }],
-      });
+        }),
+        context,
+        route: "MCP resources/read",
+        scopes,
+      };
     }
 
     case "prompts/list": {
-      await authorizeMcp(req);
-      return rpcResult(rpc.id, { prompts: MCP_PROMPTS });
+      const context = await authorizeMcp(req);
+      return {
+        payload: rpcResult(rpc.id, { prompts: MCP_PROMPTS }),
+        context,
+        route: "MCP prompts/list",
+        scopes: [],
+      };
     }
 
     case "prompts/get": {
-      await authorizeMcp(req);
+      const context = await authorizeMcp(req);
       const name = String(rpc.params?.name || "");
       const prompt = MCP_PROMPTS.find((entry) => entry.name === name);
       if (!prompt) throw new HttpError(404, "mcp_prompt_not_found");
-      return rpcResult(rpc.id, {
+      return {
+        payload: rpcResult(rpc.id, {
         description: prompt.description,
         messages: [{
           role: "user",
@@ -299,7 +347,11 @@ async function handleMcp(req: Request, rpc: JsonRpcRequest) {
             text: `${prompt.description} Use TOK Connect scopes and return a preview before any real mutation.`,
           },
         }],
-      });
+        }),
+        context,
+        route: `MCP prompts/get ${name}`,
+        scopes: [],
+      };
     }
 
     default:
@@ -314,20 +366,26 @@ Deno.serve(async (req) => {
 
   const requestId = makeTokConnectRequestId();
   const startedAt = Date.now();
-  const context: TokConnectTokenContext | null = null;
+  let context: TokConnectTokenContext | null = null;
   let statusCode = 200;
   let errorCode: string | null = null;
+  let route = "tok-connect-mcp";
+  let scopes: string[] = [];
+  let rpc: JsonRpcRequest = {};
 
   try {
     if (req.method !== "POST") throw new HttpError(405, "method_not_allowed");
-    const rpc = await req.json().catch(() => ({})) as JsonRpcRequest;
+    rpc = await req.json().catch(() => ({})) as JsonRpcRequest;
     const result = await handleMcp(req, rpc);
-    return jsonResponse(result, 200, corsHeaders);
+    context = result.context;
+    route = result.route;
+    scopes = result.scopes;
+    return jsonResponse(result.payload, 200, corsHeaders);
   } catch (error) {
     statusCode = error instanceof HttpError ? error.status : 500;
     errorCode = error instanceof Error ? error.message : "tok_connect_mcp_error";
     return jsonResponse(
-      rpcError(null, statusCode === 404 ? -32601 : -32000, errorCode),
+      rpcError(rpc.id ?? null, statusCode === 404 ? -32601 : -32000, errorCode),
       statusCode,
       corsHeaders,
     );
@@ -336,9 +394,10 @@ Deno.serve(async (req) => {
       context,
       request: req,
       requestId,
-      route: "tok-connect-mcp",
+      route,
       statusCode,
       startedAt,
+      scopes,
       errorCode,
     });
   }

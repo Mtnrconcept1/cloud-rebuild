@@ -26,6 +26,7 @@ describe("TOK Connect Edge Functions", () => {
 
   it("implements OAuth client-credentials with hashed secrets, scopes and audit logs", () => {
     const source = read("supabase/functions/tok-connect-oauth/index.ts");
+    const authSource = read("supabase/functions/_shared/tok-connect-auth.ts");
 
     expect(source).toContain("client_credentials");
     expect(source).toContain("assertTokConnectFeatureEnabled");
@@ -36,6 +37,8 @@ describe("TOK Connect Edge Functions", () => {
     expect(source).toContain("tok_connect_access_tokens");
     expect(source).toContain("writeAuditLog");
     expect(source).not.toContain("service_role_key");
+    expect(authSource).toContain("tok_connect_token_client_mismatch");
+    expect(authSource).toContain("tok_connect_token_scope_revoked");
   });
 
   it("implements the versioned REST API with scoped access, pagination and idempotent reservation writes", () => {
@@ -55,6 +58,8 @@ describe("TOK Connect Edge Functions", () => {
       "assertTokConnectFeatureEnabled",
       "assertTokConnectRestaurantGrant",
       "writeAuditLog",
+      "getTokConnectIdempotencyDecision",
+      "idempotency_key_reused_with_different_body",
     ]) {
       expect(source).toContain(marker);
     }
@@ -85,6 +90,8 @@ describe("TOK Connect Edge Functions", () => {
     expect(source).not.toContain("redeem_miamz");
     expect(source).toContain("assertTokConnectFeatureEnabled");
     expect(source).toContain("assertTokConnectRestaurantGrant");
+    expect(source).toContain("getTokConnectSandboxMcpToolResult");
+    expect(source).toContain("context = result.context");
   });
 
   it("keeps developer portal actions authenticated by user JWT instead of public table writes", () => {
@@ -98,6 +105,8 @@ describe("TOK Connect Edge Functions", () => {
     expect(source).toContain("create-webhook-endpoint");
     expect(source).toContain("writeAuditLog");
     expect(source).toContain("hashTokConnectSecret");
+    expect(source).toContain("isSafeTokConnectWebhookUrl");
+    expect(source).toContain("isLocalTokConnectDevelopmentRuntime");
   });
 
   it("dispatches signed TOK Connect webhooks with retry accounting", () => {

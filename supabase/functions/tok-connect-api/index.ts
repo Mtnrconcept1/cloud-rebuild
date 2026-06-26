@@ -5,6 +5,7 @@ import {
   assertTokConnectScopes,
   buildTokConnectEnvelope,
   createTokConnectCursor,
+  getTokConnectIdempotencyDecision,
   isValidTokConnectIdempotencyKey,
   makeTokConnectRequestId,
   parseTokConnectCursor,
@@ -328,15 +329,26 @@ async function createReservation(req: Request, requestId: string, corsHeaders: R
   const requestHash = await sha256Base64Url(JSON.stringify(body));
   const { data: existing, error: existingError } = await context.adminClient
     .from("tok_connect_idempotency_keys")
-    .select("response_body, status_code")
+    .select("request_hash, response_body, status_code")
     .eq("client_id", context.clientUuid)
     .eq("key", idempotencyKey)
-    .maybeSingle<{ response_body: Record<string, unknown> | null; status_code: number | null }>();
+    .maybeSingle<{
+      request_hash: string | null;
+      response_body: Record<string, unknown> | null;
+      status_code: number | null;
+    }>();
 
   if (existingError) throw new HttpError(500, existingError.message);
-  if (existing?.response_body) {
+  const idempotencyDecision = getTokConnectIdempotencyDecision(existing, requestHash);
+  if (idempotencyDecision.status === "conflict") {
+    throw new HttpError(409, "idempotency_key_reused_with_different_body");
+  }
+  if (idempotencyDecision.status === "in_progress") {
+    throw new HttpError(409, "idempotency_key_in_progress");
+  }
+  if (idempotencyDecision.status === "replay") {
     return {
-      response: jsonResponse(existing.response_body, existing.status_code || 200, corsHeaders),
+      response: jsonResponse(idempotencyDecision.responseBody, idempotencyDecision.statusCode, corsHeaders),
       context,
       scopes: ["reservations:create"],
       route: "POST /v1/reservations",

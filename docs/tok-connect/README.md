@@ -356,7 +356,9 @@ La fonction verifie:
 - statut client `active`;
 - secret valide;
 - partenaire actif;
-- scopes demandes inclus dans `allowed_scopes`.
+- scopes demandes inclus dans `allowed_scopes`;
+- coherence defensive entre le token, le client, le partenaire et l'environnement;
+- refus d'un token si un scope a ete retire du client apres emission.
 
 ### Reponse
 
@@ -513,6 +515,14 @@ Comportement:
 6. enfile un webhook `reservation.created`;
 7. ecrit un audit log.
 
+Idempotence:
+
+- la cle `Idempotency-Key` est obligatoire;
+- le corps de requete est hashe;
+- une meme cle avec le meme hash rejoue la reponse stockee;
+- une meme cle avec un corps different retourne `idempotency_key_reused_with_different_body`;
+- une cle trouvee sans reponse stockee retourne `idempotency_key_in_progress`.
+
 ### `POST /v1/reservations/{id}/cancel/preview`
 
 Scope: `reservations:cancel`.
@@ -555,6 +565,8 @@ Transport: JSON-RPC HTTP.
 
 Version protocole annoncee: `2025-06-18`.
 
+Note audit 2026-06-26: la derniere specification stable affichee par Model Context Protocol est `2025-11-25` (`https://modelcontextprotocol.io/specification/2025-11-25`). La v1 TOK Connect reste volontairement sur le perimetre prudent deja code. L'upgrade MCP complet doit etre traite comme une tranche separee avec tests de compatibilite clients.
+
 ### Methodes supportees
 
 - `initialize`;
@@ -582,7 +594,9 @@ Version protocole annoncee: `2025-06-18`.
 - aucun tool ne cree directement une offre;
 - `prepare_reservation` retourne une preview, pas une reservation confirmee;
 - `generate_campaign_preview` exige validation humaine;
-- les executions de preview sont tracees dans `tok_connect_agent_runs`;
+- les executions de preview production sont tracees dans `tok_connect_agent_runs`;
+- le sandbox MCP utilise des fixtures deterministes et n'appelle pas les RPC production;
+- les logs MCP conservent le contexte partenaire, client, token et scopes quand l'appel est authentifie;
 - les scopes sont verifies a chaque `tools/call`.
 
 ### Exemple
@@ -629,6 +643,9 @@ v1=base64url(HMAC_SHA256(secret, timestamp + "." + payload))
 Etat actuel:
 
 - les endpoints sont configurables dans le portail;
+- les URLs webhook doivent etre HTTPS en production;
+- les hosts locaux/prives sont refuses en production pour reduire le risque SSRF;
+- `http://localhost` est accepte uniquement quand la fonction tourne contre Supabase local;
 - les deliveries sont enfilees dans `tok_connect_webhook_deliveries`;
 - la signature est calculee avec `X-TOK-Event`, `X-TOK-Delivery`, `X-TOK-Timestamp` et `X-TOK-Signature`;
 - `tok-connect-webhook-dispatch` lit les deliveries `pending`, envoie les POST HTTP, applique timeout/retry/backoff et marque `delivered`, `failed` ou `pending` avec `next_retry_at`;
@@ -644,6 +661,7 @@ Effets:
 - menu fixtures;
 - disponibilites fixtures;
 - reservation sandbox sans mutation production;
+- tools MCP fixtures sans appel RPC production;
 - credits sandbox;
 - quotas sandbox;
 - secrets affiches une seule fois.
@@ -775,6 +793,8 @@ Chaque appel REST et MCP doit etre trace dans `tok_connect_api_requests` avec:
 - idempotency key;
 - code erreur.
 
+Les appels MCP authentifies doivent conserver `partner_id`, `client_id`, `access_token_id` et les scopes utilises. Les erreurs avant authentification peuvent rester sans contexte partenaire.
+
 ### Audit logs
 
 Les Edge Functions ecrivent dans `edge_function_audit_logs` pour:
@@ -788,7 +808,7 @@ Les Edge Functions ecrivent dans `edge_function_audit_logs` pour:
 
 ### Agent runs
 
-Les previews campagne et certaines operations MCP sont tracees dans `tok_connect_agent_runs`.
+Les previews campagne production et certaines operations MCP production sont tracees dans `tok_connect_agent_runs`. Le sandbox MCP reste en fixtures pour eviter les mutations production inutiles.
 
 ## Tests et validation
 
@@ -800,13 +820,18 @@ Tests ajoutes:
 - `src/test/tok-connect-edge-functions.test.ts`;
 - `src/test/tok-connect-frontend.test.ts`.
 
-Validation effectuee sur cette branche:
+Validation locale effectuee le 2026-06-26 apres durcissement:
 
+- `pnpm exec vitest run src/test/tok-connect-runtime.test.ts`;
+- `pnpm exec vitest run src/test/tok-connect-edge-functions.test.ts`;
 - `deno check supabase/functions/tok-connect-oauth/index.ts supabase/functions/tok-connect-api/index.ts supabase/functions/tok-connect-mcp/index.ts supabase/functions/tok-connect-portal/index.ts supabase/functions/tok-connect-webhook-dispatch/index.ts`;
-- `pnpm exec vitest run src/test/tok-connect-runtime.test.ts src/test/tok-connect-edge-functions.test.ts src/test/tok-connect-frontend.test.ts src/test/tok-connect-sql.test.ts`;
-- `pnpm run lint`;
+- `pnpm exec vitest run src/test/tok-connect-runtime.test.ts src/test/tok-connect-edge-functions.test.ts src/test/tok-connect-frontend.test.ts src/test/tok-connect-sql.test.ts src/test/tok-connect.test.ts`;
+- `pnpm lint`;
 - `pnpm test`;
-- `pnpm run build`;
+- `pnpm build`.
+
+Validation release a lancer avant production via workflow:
+
 - `pnpm run test:prod`;
 - `pnpm run build:prod`;
 - `pnpm run supabase:target:prod`;
@@ -814,11 +839,11 @@ Validation effectuee sur cette branche:
 - QA navigateur locale desktop/mobile sur `/tok-connect`;
 - verification de redirection auth sur `/tok-connect/developer`.
 
-Resultats connus:
+Resultats locaux 2026-06-26:
 
-- Vitest: 277 fichiers, 1079 tests passes;
-- Supabase doctor production: OK;
-- avertissement attendu: pas de lien CLI local dans `supabase/.temp`.
+- TOK Connect cible: 5 fichiers de tests, 26 tests passes;
+- Vitest complet: 279 fichiers, 1090 tests passes;
+- `deno check`, lint et build: OK.
 
 ## Ce qui reste a mettre en place
 
@@ -854,6 +879,8 @@ Resultats connus:
 2. **MCP conforme plus complet**
    - Ajouter les schemas de resources et prompts de facon plus stricte.
    - Verifier compatibilite avec clients MCP cibles.
+   - Migrer de la cible legacy `2025-06-18` vers la specification stable `2025-11-25`.
+   - Ajouter `resultType`, `structuredContent`, pagination MCP et metadata `_meta` quand le client cible l'exige.
    - Ajouter tests JSON-RPC plus exhaustifs.
 
 3. **Quotas persistants**
