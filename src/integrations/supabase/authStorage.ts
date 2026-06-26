@@ -1,9 +1,14 @@
 import { KeychainAccess, SecureStorage } from "@aparajita/capacitor-secure-storage";
-import type { SupportedStorage } from "@supabase/auth-js";
 
 import { isNative } from "@/lib/platform";
 
 const AUTH_STORAGE_PREFIX = "tok_auth_";
+
+type AuthStorage = {
+  getItem(key: string): string | null | Promise<string | null>;
+  setItem(key: string, value: string): void | Promise<void>;
+  removeItem(key: string): void | Promise<void>;
+};
 
 let secureStorageReady: Promise<void> | null = null;
 
@@ -18,7 +23,7 @@ async function ensureSecureStorageReady() {
   return secureStorageReady;
 }
 
-const webAuthStorage: SupportedStorage = {
+const webAuthStorage: AuthStorage = {
   getItem(key) {
     return localStorage.getItem(key);
   },
@@ -30,7 +35,7 @@ const webAuthStorage: SupportedStorage = {
   },
 };
 
-const nativeAuthStorage: SupportedStorage = {
+const nativeAuthStorage: AuthStorage = {
   async getItem(key) {
     await ensureSecureStorageReady();
 
@@ -62,6 +67,6 @@ const nativeAuthStorage: SupportedStorage = {
   },
 };
 
-export const authStorage: SupportedStorage = isNative()
+export const authStorage: AuthStorage = isNative()
   ? nativeAuthStorage
   : webAuthStorage;
