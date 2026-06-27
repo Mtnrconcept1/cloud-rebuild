@@ -32,7 +32,7 @@ function extractFunction(sql: string, functionName: string) {
 
 describe("Google Business booking button phase 1", () => {
   it("adds a protected setup table, event table and controlled RPC access", () => {
-    const sql = readLatestMigrationContaining("restaurant_google_booking_setup");
+    const sql = readLatestMigrationContaining("CREATE TABLE IF NOT EXISTS public.restaurant_google_booking_setup");
 
     expect(sql).toContain("CREATE TABLE IF NOT EXISTS public.restaurant_google_booking_setup");
     expect(sql).toContain("restaurant_id uuid NOT NULL REFERENCES public.restaurants(id) ON DELETE CASCADE");
