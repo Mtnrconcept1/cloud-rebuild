@@ -378,4 +378,60 @@ describe("SocialComposer external social publishing", () => {
     );
     expect(socialHooks.redirectToTrustedCheckoutUrl).toHaveBeenCalledWith("https://checkout.stripe.com/pay/campaign-1");
   });
+
+  it("lets TOK AI fill every sponsored setting for a new post before checkout", async () => {
+    socialHooks.createPost.mockResolvedValueOnce("post-boost-ai-1");
+    socialHooks.invokeSupabaseFunction.mockImplementation(async (functionName: string) => {
+      if (functionName === "create-social-post-boost") {
+        return { data: { campaign: { id: "campaign-ai-1" } }, error: null };
+      }
+      if (functionName === "create-checkout") {
+        return { data: { url: "https://checkout.stripe.com/pay/campaign-ai-1" }, error: null };
+      }
+      return { data: null, error: null };
+    });
+
+    render(<SocialComposer restaurantId="restaurant-1" restaurantName="Quirinale" />);
+
+    fireEvent.change(screen.getByPlaceholderText(/Quoi de neuf/i), {
+      target: { value: "Service de midi lance avec un plat du jour maison." },
+    });
+    fireEvent.click(screen.getByRole("checkbox", { name: /Sponsoriser ce post/i }));
+    fireEvent.click(screen.getByRole("button", { name: /IA optimise ma publicit/i }));
+
+    expect(screen.getByText(/Plan IA appliqu/i)).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: /Conversion/i })).toBeChecked();
+    expect((screen.getByLabelText(/Budget total/i) as HTMLInputElement).value).toBe("45");
+    expect((screen.getByLabelText(/Dur/i) as HTMLInputElement).value).toBe("5");
+    expect(screen.getByRole("radio", { name: /Nouveaux clients/i })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: /Midi/i })).toBeChecked();
+
+    fireEvent.click(screen.getByRole("button", { name: /Enregistrer le sponsoring/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^Publier$/i }));
+
+    await waitFor(() => {
+      expect(socialHooks.invokeSupabaseFunction).toHaveBeenCalledWith(
+        "create-social-post-boost",
+        expect.objectContaining({
+          body: expect.objectContaining({
+            restaurantId: "restaurant-1",
+            postId: "post-boost-ai-1",
+            totalBudget: 45,
+            durationDays: 5,
+            pricingStrategy: "conversion",
+            targetCriteria: expect.objectContaining({
+              cities: [],
+              cuisines: [],
+              customerSegment: "new",
+              genders: ["all"],
+              journeyTypes: ["delivery", "takeaway"],
+              serviceMoments: ["lunch"],
+            }),
+          }),
+        }),
+      );
+    });
+
+    expect(socialHooks.redirectToTrustedCheckoutUrl).toHaveBeenCalledWith("https://checkout.stripe.com/pay/campaign-ai-1");
+  });
 });

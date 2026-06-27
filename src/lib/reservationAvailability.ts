@@ -30,6 +30,10 @@ type BuildReservationSlotGroupsInput = {
   now?: Date;
 };
 
+type SelectRestaurantCardReservationSlotsInput = BuildReservationSlotGroupsInput & {
+  limit?: number;
+};
+
 function startOfDay(value: Date) {
   const next = new Date(value);
   next.setHours(0, 0, 0, 0);
@@ -107,4 +111,37 @@ export function buildReservationSlotGroups({
       };
     })
     .filter((group) => group.slots.length > 0);
+}
+
+export function selectRestaurantCardReservationSlots({
+  serviceSettings,
+  selectedDate,
+  reservedTablesByTime = {},
+  now = new Date(),
+  limit = 2,
+}: SelectRestaurantCardReservationSlotsInput): ReservationSlotAvailability[] {
+  const slotLimit = Math.max(1, Math.floor(Number(limit) || 2));
+
+  return buildReservationSlotGroups({
+    serviceSettings,
+    selectedDate,
+    reservedTablesByTime: {},
+    now,
+  })
+    .flatMap((group) => group.slots)
+    .map((slot) => {
+      const reservedTables = Math.max(0, Math.floor(Number(reservedTablesByTime[slot.time] || 0)));
+      const remainingTables = Math.max(0, slot.capacity - reservedTables);
+      const available = slot.capacity > 0 && remainingTables > 0;
+
+      return {
+        ...slot,
+        reservedTables,
+        remainingTables,
+        available,
+        disabledReason: available ? null : "Complet",
+      };
+    })
+    .filter((slot) => slot.available)
+    .slice(0, slotLimit);
 }

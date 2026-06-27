@@ -222,8 +222,10 @@ describe("progressive reservation offers", () => {
     expect(restaurantDetail).toContain("reservationDialogResetKey");
     expect(restaurantDetail).toContain("setReservationDialogResetKey((current) => current + 1)");
     expect(restaurantDetail).toContain("resetKey={reservationDialogResetKey}");
+    expect(restaurantDetail).toContain('setReservationInitialStep("datetime")');
     expect(reservationDialog).toContain("resetKey?: number");
     expect(reservationDialog).toContain("setStep(\"datetime\")");
-    expect(reservationDialog).toContain("[open, resetKey]");
+    expect(reservationDialog).toContain('initialStep === "confirm" && initialDate && initialTime ? "confirm" : "datetime"');
+    expect(reservationDialog).toContain("[initialDate, initialStep, initialTime, open, resetKey]");
   });
 });

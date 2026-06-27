@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Megaphone } from "lucide-react";
+import { Loader2, Megaphone, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -31,6 +31,10 @@ import { buildCheckoutReturnUrl } from "@/lib/checkoutReturnUrl";
 import { redirectToTrustedCheckoutUrl } from "@/lib/securityUrls";
 import { invokeSupabaseFunction } from "@/lib/session";
 import type { SocialFeedPost } from "@/lib/socialFeed";
+import {
+  buildSponsoredCampaignAiPreset,
+  type SponsoredCampaignAiPreset,
+} from "@/lib/sponsoredCampaignAi";
 
 const SPONSOR_TARGET_OPTIONS_LIMIT = 120;
 const SPONSOR_OBJECTIVES: CampaignPricingStrategy[] = ["visibility", "traffic", "conversion"];
@@ -78,6 +82,7 @@ export default function SocialPostBoostDialog({
     post.restaurant.cuisineType ? [post.restaurant.cuisineType] : [],
   );
   const [loading, setLoading] = useState(false);
+  const [aiPreset, setAiPreset] = useState<SponsoredCampaignAiPreset | null>(null);
 
   const totalBudgetValue = Math.max(0, Number(totalBudget) || 0);
   const pricing = useMemo(() => getCampaignPricing(undefined, strategy), [strategy]);
@@ -178,6 +183,36 @@ export default function SocialPostBoostDialog({
     setServiceMoments((current) => {
       if (checked) return current.includes(value) ? current : [...current, value];
       return current.filter((item) => item !== value);
+    });
+  };
+
+  const applyAiPreset = () => {
+    const preset = buildSponsoredCampaignAiPreset({
+      body: post.body,
+      restaurant: post.restaurant,
+      postType: post.postType,
+      ctaType: post.ctaType,
+      campaignGoal: post.campaignGoal,
+      hasMedia: post.media.length > 0 || Boolean(imageUrl),
+    });
+
+    setTotalBudget(preset.totalBudget);
+    setDurationDays(preset.durationDays);
+    setStrategy(preset.strategy);
+    setCustomerSegment(preset.customerSegment);
+    setGenders(preset.genders);
+    setCities(preset.cities);
+    setCuisines(preset.cuisines);
+    setFavoritesOnly(preset.favoritesOnly);
+    setMinAvgBasket(preset.minAvgBasket);
+    setMaxDaysSinceOrder(preset.maxDaysSinceOrder);
+    setJourneyTypes(preset.journeyTypes);
+    setServiceMoments(preset.serviceMoments);
+    setAiPreset(preset);
+
+    toast({
+      title: "Plan IA appliqué",
+      description: preset.summary,
     });
   };
 
@@ -290,6 +325,36 @@ export default function SocialPostBoostDialog({
           <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-3">
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Post sélectionné</p>
             <p className="mt-1 text-sm leading-6 text-slate-700">{compactText(post.body, 260)}</p>
+          </div>
+
+          <div className="rounded-2xl border border-orange-200 bg-orange-50/80 p-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-semibold text-orange-950">TOK IA choisit les meilleurs paramètres</p>
+                <p className="mt-1 text-xs leading-5 text-orange-800">
+                  Analyse le post, le restaurant, la ville, la cuisine et l'objectif pour remplir toute la campagne.
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                className="shrink-0 gap-2 rounded-xl border-orange-200 bg-white font-semibold text-orange-700 hover:bg-orange-100"
+                onClick={applyAiPreset}
+              >
+                <Sparkles className="h-4 w-4" />
+                IA optimise ma publicité
+              </Button>
+            </div>
+            {aiPreset ? (
+              <div className="mt-3 rounded-xl border border-orange-100 bg-white/80 p-3">
+                <p className="text-sm font-semibold text-orange-950">Plan IA appliqué</p>
+                <ul className="mt-2 space-y-1 text-xs leading-5 text-orange-800">
+                  {aiPreset.reasons.map((reason) => (
+                    <li key={reason}>{reason}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
           </div>
 
           <div className="space-y-2 rounded-2xl border border-slate-200 bg-slate-50/70 p-3">

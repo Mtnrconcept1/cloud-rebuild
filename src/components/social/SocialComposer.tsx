@@ -59,6 +59,10 @@ import {
   type RestaurantSocialLinks,
   type SocialCrossPostPlatform,
 } from "@/lib/socialCrossPosting";
+import {
+  buildSponsoredCampaignAiPreset,
+  type SponsoredCampaignAiPreset,
+} from "@/lib/sponsoredCampaignAi";
 import { SOCIAL_MEDIA_ACCEPT, assertSafeSocialMediaSourceFileUpload } from "@/lib/uploadSecurity";
 import { cn } from "@/lib/utils";
 
@@ -233,6 +237,8 @@ export default function SocialComposer({
   const [sponsorServiceMoments, setSponsorServiceMoments] = useState<CampaignServiceMoment[]>([]);
   const [sponsorCityOptions, setSponsorCityOptions] = useState<string[]>([]);
   const [sponsorCuisineOptions, setSponsorCuisineOptions] = useState<string[]>([]);
+  const [sponsorRestaurantProfile, setSponsorRestaurantProfile] = useState<{ city?: string | null; cuisineType?: string | null } | null>(null);
+  const [sponsorAiPreset, setSponsorAiPreset] = useState<SponsoredCampaignAiPreset | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const createPost = useCreateSocialPost();
@@ -307,7 +313,7 @@ export default function SocialComposer({
         const [restaurantsResult, cuisinesResult] = await Promise.all([
           supabase
             .from("restaurants" as any)
-            .select("city,cuisine_type")
+            .select("id,city,cuisine_type")
             .not("city", "is", null)
             .limit(SPONSOR_TARGET_OPTIONS_LIMIT),
           supabase
@@ -321,6 +327,7 @@ export default function SocialComposer({
 
         const restaurantRows = Array.isArray(restaurantsResult.data) ? restaurantsResult.data : [];
         const cuisineRows = Array.isArray(cuisinesResult.data) ? cuisinesResult.data : [];
+        const currentRestaurant = restaurantRows.find((row: any) => String(row?.id || "") === String(restaurantId || ""));
         const cities = Array.from(new Set(
           restaurantRows
             .map((row: any) => String(row?.city || "").trim())
@@ -336,10 +343,15 @@ export default function SocialComposer({
 
         setSponsorCityOptions(cities);
         setSponsorCuisineOptions(cuisines);
+        setSponsorRestaurantProfile(currentRestaurant ? {
+          city: currentRestaurant.city || null,
+          cuisineType: currentRestaurant.cuisine_type || null,
+        } : null);
       } catch {
         if (!cancelled) {
           setSponsorCityOptions([]);
           setSponsorCuisineOptions([]);
+          setSponsorRestaurantProfile(null);
         }
       }
     };
@@ -349,7 +361,7 @@ export default function SocialComposer({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [restaurantId]);
 
   const validationErrors = useMemo(
     () =>
@@ -439,6 +451,40 @@ export default function SocialComposer({
         ? Array.from(new Set([...withoutAll, value]))
         : withoutAll.filter((item) => item !== value);
       return next.length > 0 ? next : ["all"];
+    });
+  };
+
+  const applySponsorAiPreset = () => {
+    const preset = buildSponsoredCampaignAiPreset({
+      body,
+      restaurant: {
+        name: restaurantName,
+        city: sponsorRestaurantProfile?.city,
+        cuisineType: sponsorRestaurantProfile?.cuisineType,
+      },
+      postType,
+      ctaType,
+      campaignGoal,
+      hasMedia: files.length > 0,
+    });
+
+    setSponsorBudget(preset.totalBudget);
+    setSponsorDurationDays(preset.durationDays);
+    setSponsorStrategy(preset.strategy);
+    setSponsorCustomerSegment(preset.customerSegment);
+    setSponsorGenders(preset.genders);
+    setSponsorCities(preset.cities);
+    setSponsorCuisines(preset.cuisines);
+    setSponsorFavoritesOnly(preset.favoritesOnly);
+    setSponsorMinAvgBasket(preset.minAvgBasket);
+    setSponsorMaxDaysSinceOrder(preset.maxDaysSinceOrder);
+    setSponsorJourneyTypes(preset.journeyTypes);
+    setSponsorServiceMoments(preset.serviceMoments);
+    setSponsorAiPreset(preset);
+
+    toast({
+      title: "Plan IA appliqué",
+      description: preset.summary,
     });
   };
 
@@ -786,6 +832,7 @@ export default function SocialComposer({
                   onCheckedChange={(value) => {
                     const enabled = value === true;
                     setSponsorPost(enabled);
+                    if (!enabled) setSponsorAiPreset(null);
                     if (enabled && !scheduledAt) setSponsorDialogOpen(true);
                   }}
                   disabled={Boolean(scheduledAt)}
@@ -924,6 +971,36 @@ export default function SocialComposer({
           </DialogHeader>
 
           <div className="space-y-4">
+            <div className="rounded-2xl border border-orange-200 bg-orange-50/80 p-3">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-orange-950">TOK IA choisit les meilleurs paramètres</p>
+                  <p className="mt-1 text-xs leading-5 text-orange-800">
+                    Analyse le texte, le format, le CTA, l'objectif et les signaux du restaurant pour remplir la campagne.
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="shrink-0 gap-2 rounded-xl border-orange-200 bg-white font-semibold text-orange-700 hover:bg-orange-100"
+                  onClick={applySponsorAiPreset}
+                >
+                  <Sparkles className="h-4 w-4" />
+                  IA optimise ma publicité
+                </Button>
+              </div>
+              {sponsorAiPreset ? (
+                <div className="mt-3 rounded-xl border border-orange-100 bg-white/80 p-3">
+                  <p className="text-sm font-semibold text-orange-950">Plan IA appliqué</p>
+                  <ul className="mt-2 space-y-1 text-xs leading-5 text-orange-800">
+                    {sponsorAiPreset.reasons.map((reason) => (
+                      <li key={reason}>{reason}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+            </div>
+
             <div className="space-y-2 rounded-2xl border border-slate-200 bg-slate-50/70 p-3">
               <p className="text-sm font-semibold text-slate-900">Objectif de campagne</p>
               <RadioGroup
@@ -1168,6 +1245,7 @@ export default function SocialComposer({
                 className="rounded-xl"
                 onClick={() => {
                   setSponsorPost(false);
+                  setSponsorAiPreset(null);
                   setSponsorDialogOpen(false);
                 }}
               >

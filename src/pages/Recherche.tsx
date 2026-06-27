@@ -199,6 +199,7 @@ function getRestaurantCuisineSummary(restaurant: any): string {
 function toCardProps(r: any) {
   return {
     id: r.id,
+    slug: r.slug || null,
     name: r.name,
     cuisine: getRestaurantCuisineSummary(r),
     rating: r.rating || 0,
@@ -208,6 +209,8 @@ function toCardProps(r: any) {
     deliveryAvailable: !!r.delivery_available,
     city: r.city || "",
     address: r.address || "",
+    openingHours: Object.prototype.hasOwnProperty.call(r, "opening_hours") ? r.opening_hours : undefined,
+    supportsReservation: Object.prototype.hasOwnProperty.call(r, "supports_reservation") ? r.supports_reservation : undefined,
     sponsoredCampaignId: r.campaign_id || undefined,
     sponsoredPromoImage: r.promo_image || undefined,
     sponsoredCampaignTitle: r.campaign_title || undefined,

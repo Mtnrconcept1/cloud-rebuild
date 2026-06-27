@@ -115,6 +115,18 @@ function formatRestaurantPromotionEndDate(endAt: string) {
   return date.toLocaleDateString("fr-FR", { day: "2-digit", month: "long" });
 }
 
+function parseReservationQueryDate(value: string | null) {
+  if (!value) return new Date();
+  const date = new Date(`${value}T12:00:00`);
+  return Number.isFinite(date.getTime()) ? date : new Date();
+}
+
+function parseReservationQueryPartySize(value: string | null) {
+  const partySize = Number(value);
+  if (!Number.isFinite(partySize)) return 2;
+  return Math.max(1, Math.min(20, Math.round(partySize)));
+}
+
 function getReviewReplies(review: RestaurantReview) {
   if (!review.review_replies) return [];
   if (Array.isArray(review.review_replies)) return review.review_replies;
@@ -234,6 +246,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [reservationDefaults, setReservationDefaults] = useState<{ date?: Date; time?: string; partySize?: number; }>({});
+  const [reservationInitialStep, setReservationInitialStep] = useState<"datetime" | "confirm">("datetime");
   const [reservationDialogResetKey, setReservationDialogResetKey] = useState(0);
   const [reservationProgressiveOfferId, setReservationProgressiveOfferId] = useState<string | null | undefined>(undefined);
   const [reservationWidgetSelection, setReservationWidgetSelection] = useState<{ date: Date; time: string; partySize: number } | null>(null);
@@ -265,7 +278,18 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
     if (shouldOpenReservation && reservationEnabled) {
       setReservationProgressiveOfferId(searchParams.get("progressiveOfferId"));
       const timeParam = searchParams.get("time");
-      if (timeParam) setReservationDefaults({ date: new Date(), time: timeParam, partySize: 2 });
+      const requestedStep = searchParams.get("reservationStep") === "confirm" ? "confirm" : "datetime";
+      if (timeParam) {
+        setReservationDefaults({
+          date: parseReservationQueryDate(searchParams.get("date")),
+          time: timeParam.slice(0, 5),
+          partySize: parseReservationQueryPartySize(searchParams.get("party_size")),
+        });
+        setReservationInitialStep(requestedStep);
+      } else {
+        setReservationDefaults({});
+        setReservationInitialStep("datetime");
+      }
       setReservationDialogResetKey((current) => current + 1);
       setReservationOpen(true);
 
@@ -284,7 +308,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
     }
   }, [reservationEnabled, restaurantId, searchParams]);
 
-  const { data: restaurant } = useQuery({
+  const { data: restaurant, isFetched: isRestaurantFetched } = useQuery({
     queryKey: ["restaurant", restaurantId],
     queryFn: async () => { const { data } = await supabase.from("restaurants").select("*").eq("id", restaurantId!).single(); return data; },
     enabled: !!restaurantId,
@@ -553,11 +577,12 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
   }, [cartItemsForCurrentRestaurant.length, restaurantId, reservationAvailable]);
 
   useEffect(() => {
+    if (!isRestaurantFetched) return;
     if (!reservationAvailable && reservationOpen) {
       setReservationOpen(false);
       setShowReserveChoice(false);
     }
-  }, [reservationAvailable, reservationOpen]);
+  }, [isRestaurantFetched, reservationAvailable, reservationOpen]);
 
   useEffect(() => {
     if (!restaurant) return;
@@ -596,6 +621,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
 
   const handleWidgetReserve = (date: Date, time: string, partySize: number) => {
     setReservationDefaults({ date, time, partySize });
+    setReservationInitialStep("datetime");
     setReservationProgressiveOfferId(null);
     setReservationDialogResetKey((current) => current + 1);
     setReservationOpen(true);
@@ -616,6 +642,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
       time: (offer.service_time || "19:00").slice(0, 5),
       partySize: 2,
     });
+    setReservationInitialStep("datetime");
     setReservationProgressiveOfferId(offer.id);
     setReservationDialogResetKey((current) => current + 1);
     setReservationOpen(true);
@@ -633,6 +660,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
     }
 
     setReservationDialogResetKey((current) => current + 1);
+    setReservationInitialStep("datetime");
     setReservationOpen(true);
   };
 
@@ -739,7 +767,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
                   </button>
                   {zeroWaitAvailable && showReserveChoice && (
                     <div className="absolute left-0 right-0 top-full mt-2 z-50 bg-background border-2 border-primary/20 rounded-2xl shadow-xl p-3 space-y-2">
-                      <button onClick={() => { setShowReserveChoice(false); setReservationDialogResetKey((current) => current + 1); setReservationOpen(true); }} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-secondary/50 transition-all text-left group">
+                      <button onClick={() => { setShowReserveChoice(false); setReservationInitialStep("datetime"); setReservationDialogResetKey((current) => current + 1); setReservationOpen(true); }} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-secondary/50 transition-all text-left group">
                         <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0"><Utensils className="h-5 w-5 text-primary" /></div>
                         <div><p className="font-semibold text-sm">Réservation classique</p><p className="text-xs text-muted-foreground">Réserver avec promos</p></div>
                       </button>
@@ -1262,6 +1290,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
           initialDate={reservationDefaults?.date}
           initialTime={reservationDefaults?.time}
           initialPartySize={reservationDefaults?.partySize}
+          initialStep={reservationInitialStep}
           progressiveOfferId={activeReservationProgressiveOfferId}
           resetKey={reservationDialogResetKey}
         />

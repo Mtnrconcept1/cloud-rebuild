@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { DEFAULT_SERVICE_SETTINGS, type ServiceSettingsMap } from "@/lib/serviceSettings";
 import {
   buildReservationSlotGroups,
+  selectRestaurantCardReservationSlots,
   getSlotCapacityForTime,
   isReservationCalendarDateDisabled,
 } from "@/lib/reservationAvailability";
@@ -98,5 +99,37 @@ describe("reservation availability helpers", () => {
       { time: "22:00", capacity: 10, reservedTables: 9, remainingTables: 1, available: true },
       { time: "23:00", capacity: 10, reservedTables: 9, remainingTables: 1, available: true },
     ]);
+  });
+
+  it("selects visible restaurant-card slots from configured reservation services only", () => {
+    const slots = selectRestaurantCardReservationSlots({
+      serviceSettings: {
+        ...DEFAULT_SERVICE_SETTINGS,
+        lunch: {
+          ...DEFAULT_SERVICE_SETTINGS.lunch,
+          start_time: "12:30",
+          end_time: "14:30",
+          last_reservation_time: "13:30",
+          slot_interval_minutes: 30,
+        },
+        dinner: {
+          ...DEFAULT_SERVICE_SETTINGS.dinner,
+          start_time: "19:30",
+          end_time: "22:00",
+          last_reservation_time: "21:30",
+          slot_interval_minutes: 30,
+        },
+      },
+      selectedDate: new Date(2026, 5, 27),
+      now: new Date(2026, 5, 27, 11, 0),
+      reservedTablesByTime: {
+        "12:30": 8,
+      },
+      limit: 2,
+    });
+
+    expect(slots.map((slot) => slot.time)).toEqual(["13:00", "13:30"]);
+    expect(slots.some((slot) => slot.time === "12:00")).toBe(false);
+    expect(slots.every((slot) => slot.available)).toBe(true);
   });
 });

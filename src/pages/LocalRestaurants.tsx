@@ -86,6 +86,8 @@ function toCardProps(restaurant: any) {
     deliveryAvailable: Boolean(restaurant.delivery_available),
     city: restaurant.city || "",
     address: restaurant.address || "",
+    openingHours: Object.prototype.hasOwnProperty.call(restaurant, "opening_hours") ? restaurant.opening_hours : undefined,
+    supportsReservation: Object.prototype.hasOwnProperty.call(restaurant, "supports_reservation") ? restaurant.supports_reservation : undefined,
   };
 }
 

@@ -344,7 +344,14 @@ describe("prioritizeSponsoredCards", () => {
     const restaurantCard = readSource("src/components/RestaurantCard.tsx");
     const templateCard = readSource("src/components/campaigns/SponsoredRestaurantTemplateCard.tsx");
 
-    expect(restaurantCard).toContain("const discountBadgeLabel = hasDiscount");
+    expect(restaurantCard).toContain("selectRestaurantCardReservationSlots");
+    expect(restaurantCard).toContain("openingHours");
+    expect(restaurantCard).toContain("supportsReservation");
+    expect(restaurantCard).toContain("get_restaurant_reservation_slot_availability");
+    expect(restaurantCard).toContain("reservationStep=datetime");
+    expect(restaurantCard).toContain("reservationSource=card_slot");
+    expect(restaurantCard).not.toContain("function getNextTimeSlots");
+    expect(restaurantCard).not.toContain('"12:00"');
     expect(restaurantCard).toContain("discountLabel={discountBadgeLabel || undefined}");
     expect(restaurantCard).toContain("Créneaux promo visibles");
     expect(restaurantCard).toContain("Promo {discountBadgeLabel}");

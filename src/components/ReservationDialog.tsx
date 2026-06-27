@@ -51,6 +51,7 @@ interface ReservationDialogProps {
   initialDate?: Date;
   initialTime?: string;
   initialPartySize?: number;
+  initialStep?: Step;
   progressiveOfferId?: string | null;
   resetKey?: number;
 }
@@ -104,6 +105,7 @@ export default function ReservationDialog({
   initialDate,
   initialTime,
   initialPartySize,
+  initialStep = "datetime",
   progressiveOfferId,
   resetKey,
 }: ReservationDialogProps) {
@@ -129,8 +131,8 @@ export default function ReservationDialog({
 
   useEffect(() => {
     if (!open) return;
-    setStep("datetime");
-  }, [open, resetKey]);
+    setStep(initialStep === "confirm" && initialDate && initialTime ? "confirm" : "datetime");
+  }, [initialDate, initialStep, initialTime, open, resetKey]);
 
   useEffect(() => {
     if (!open || !initialDate) return;
@@ -138,8 +140,8 @@ export default function ReservationDialog({
     setTime(initialTime || "19:00");
     setPartySize(initialPartySize || 2);
     setPromoChoiceTouched(false);
-    setStep("datetime");
-  }, [open, initialDate, initialTime, initialPartySize]);
+    setStep(initialStep === "confirm" && initialTime ? "confirm" : "datetime");
+  }, [open, initialDate, initialTime, initialPartySize, initialStep]);
 
   useEffect(() => {
     if (!zeroWaitEnabled && reservationMode === "zero-attente") {
@@ -361,6 +363,9 @@ export default function ReservationDialog({
 
   const availableSlots = slotGroups.flatMap((group) => group.slots).filter((slot) => slot.available);
   const selectedSlot = slotGroups.flatMap((group) => group.slots).find((slot) => slot.time === time) || null;
+  const selectedServiceSettings = (restaurantSettings || getServiceSettings(null))[detectServiceFromTime(time)];
+  const partySizeMin = selectedServiceSettings?.min_party_size || 1;
+  const partySizeMax = selectedServiceSettings?.max_party_size || 20;
 
   useEffect(() => {
     if (!open || !date) return;
@@ -677,7 +682,7 @@ export default function ReservationDialog({
                       <Users className="h-4 w-4 text-muted-foreground" />
                       Convives
                     </Label>
-                    <Input type="number" min={1} max={20} value={partySize} onChange={(event) => setPartySize(Number(event.target.value))} />
+                    <Input type="number" min={partySizeMin} max={partySizeMax} value={partySize} onChange={(event) => setPartySize(Number(event.target.value))} />
                   </div>
                 </div>
 
@@ -827,7 +832,20 @@ export default function ReservationDialog({
                   <div className="flex justify-between"><span className="text-muted-foreground">Restaurant</span><span className="font-medium">{restaurantName}</span></div>
                   <div className="flex justify-between"><span className="text-muted-foreground">Date</span><span className="font-medium">{date ? format(date, "EEEE d MMMM yyyy", { locale: fr }) : ""}</span></div>
                   <div className="flex justify-between"><span className="text-muted-foreground">Heure</span><span className="font-medium">{time}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Convives</span><span className="font-medium">{partySize}</span></div>
+                  <div className="flex items-center justify-between gap-3">
+                    <Label htmlFor="reservation-confirm-party-size" className="text-muted-foreground">
+                      Convives
+                    </Label>
+                    <Input
+                      id="reservation-confirm-party-size"
+                      type="number"
+                      min={partySizeMin}
+                      max={partySizeMax}
+                      value={partySize}
+                      onChange={(event) => setPartySize(Number(event.target.value))}
+                      className="h-9 w-24 text-right"
+                    />
+                  </div>
                   {selectedPromo && (
                     <div className="flex justify-between border-t pt-2">
                       <span className="text-muted-foreground">{selectedPromo.kind === "progressive" ? "Offre progressive" : "Formule"}</span>

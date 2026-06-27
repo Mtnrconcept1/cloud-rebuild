@@ -36,6 +36,23 @@ describe("TOK Connect frontend integration", () => {
     expect(portal).toContain("Exemple MCP");
   });
 
+  it("surfaces all TOK Connect entry points and the simplified MCP/API deployment path on the public page", () => {
+    const page = read("src/pages/TokConnect.tsx");
+
+    expect(page).toContain("Accès rapides TOK Connect");
+    expect(page).toContain("/tok-connect/developer");
+    expect(page).toContain("/admin/tok-connect");
+    expect(page).toContain("/dashboard/tok-connect");
+    expect(page).toContain("#api-rest");
+    expect(page).toContain("#mcp-server");
+    expect(page).toContain("#webhooks");
+    expect(page).toContain("#deployer-mcp-api");
+    expect(page).toContain("Déployer MCP/API en 5 actions");
+    expect(page).toContain("Ce que TOK Connect sait faire");
+    expect(page).toContain("https://www.thetok.ch/functions/v1/tok-connect-api");
+    expect(page).toContain("https://www.thetok.ch/functions/v1/tok-connect-mcp");
+  });
+
   it("adds operational TOK Connect consoles for admins and restaurateurs", () => {
     const admin = read("src/pages/admin/AdminTokConnect.tsx");
     const dashboard = read("src/pages/dashboard/DashboardTokConnect.tsx");

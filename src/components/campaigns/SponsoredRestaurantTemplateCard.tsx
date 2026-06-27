@@ -37,6 +37,7 @@ type SponsoredRestaurantTemplateCardProps = {
   onTextPointerDown?: never;
   isFavorite?: boolean;
   onFavoriteClick?: (event: MouseEvent<HTMLButtonElement>) => void;
+  onSlotClick?: (event: MouseEvent<HTMLButtonElement>, slot: string) => void;
 };
 
 function getSlotDiscountLabel(discountLabel?: string): string {
@@ -111,12 +112,13 @@ export function SponsoredRestaurantTemplateCard({
   body,
   ctaLabel = "Découvrir l'offre",
   discountLabel = "Jusqu'à -18%",
-  slots = ["18:30", "19:00"],
+  slots = [],
   className,
   variant = "card",
   compactBanner = false,
   isFavorite = false,
   onFavoriteClick,
+  onSlotClick,
 }: SponsoredRestaurantTemplateCardProps) {
   const normalized = normalizeCampaignCreative(creative);
   const displayRating = Number(rating || 0) > 0 ? Math.min(Number(rating || 0), 10).toFixed(1) : "5.7";
@@ -351,8 +353,10 @@ export function SponsoredRestaurantTemplateCard({
               <ArrowRight className="h-4 w-4" />
             </div>
             {slots.slice(0, 2).map((slot) => (
-              <span
+              <button
                 key={slot}
+                type="button"
+                onClick={onSlotClick ? (event) => onSlotClick(event, slot) : undefined}
                 className="inline-flex h-12 min-w-[4.75rem] flex-col items-center justify-center gap-0.5 rounded-xl border border-emerald-500 bg-emerald-600 px-3.5 font-bold text-white shadow-[0_12px_24px_rgba(16,185,129,0.22)]"
               >
                 <span className="text-sm leading-none">{slot}</span>
@@ -362,12 +366,14 @@ export function SponsoredRestaurantTemplateCard({
                     {slotDiscountLabel}
                   </span>
                 ) : null}
-              </span>
+              </button>
             ))}
           </div>
-          <p className="mt-2 text-xs text-muted-foreground">
+          {slots.length > 0 ? (
+            <p className="mt-2 text-xs text-muted-foreground">
             Créneaux promo visibles. Plus d'options sur la fiche.
-          </p>
+            </p>
+          ) : null}
         </div>
       </div>
     </article>

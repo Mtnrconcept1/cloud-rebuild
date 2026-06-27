@@ -57,4 +57,19 @@ describe("reservation confirmation and deposit operations", () => {
     expect(opsMigration).not.toContain("SECURITY DEFINER");
     expect(opsMigration).toContain("REVOKE EXECUTE ON FUNCTION public.tg_reservations_apply_confirmation_deposit()");
   });
+
+  it("opens card slot reservation deeplinks on the selected datetime step with editable party size", () => {
+    const detail = read("src/pages/RestaurantDetail.tsx");
+    const dialog = read("src/components/ReservationDialog.tsx");
+    const restaurantCard = read("src/components/RestaurantCard.tsx");
+
+    expect(detail).toContain("reservationStep");
+    expect(detail).toContain("party_size");
+    expect(detail).toContain("initialStep={reservationInitialStep}");
+    expect(restaurantCard).toContain("reservationStep=datetime");
+    expect(restaurantCard).toContain("reservationSource=card_slot");
+    expect(dialog).toContain("initialStep?: Step");
+    expect(dialog).toContain('initialStep === "confirm"');
+    expect(dialog).toContain("setPartySize(initialPartySize || 2)");
+  });
 });

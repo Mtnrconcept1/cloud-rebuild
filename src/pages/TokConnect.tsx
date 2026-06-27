@@ -40,6 +40,121 @@ const clientIntent =
 const restaurantIntent =
   "Prépare une campagne pour remplir mes tables vides jeudi soir, sans diffusion automatique et avec coût estimé.";
 
+const tokConnectHeroActions: Array<{
+  label: string;
+  helper: string;
+  href: string;
+  icon: LucideIcon;
+}> = [
+  {
+    label: "Portail développeur",
+    helper: "Sandbox, OpenAPI, clients OAuth",
+    href: "/tok-connect/developer",
+    icon: Code2,
+  },
+  {
+    label: "Supervision admin",
+    helper: "Partenaires, scopes, quotas",
+    href: "/admin/tok-connect",
+    icon: ShieldCheck,
+  },
+  {
+    label: "Consentements restaurant",
+    helper: "Grants, limites, révocation",
+    href: "/dashboard/tok-connect",
+    icon: Table2,
+  },
+  {
+    label: "API REST v1",
+    helper: "Restaurants, menus, réservations",
+    href: "#api-rest",
+    icon: Code2,
+  },
+  {
+    label: "MCP Server",
+    helper: "Tools, resources, prompts",
+    href: "#mcp-server",
+    icon: Bot,
+  },
+  {
+    label: "OAuth sandbox",
+    helper: "Client ID, secret, token",
+    href: "#deployer-mcp-api",
+    icon: KeyRound,
+  },
+  {
+    label: "Webhooks signés",
+    helper: "Tests, retry, signatures",
+    href: "#webhooks",
+    icon: Webhook,
+  },
+  {
+    label: "Logs et quotas",
+    helper: "request_id, audit, limites",
+    href: "/tok-connect/developer",
+    icon: Activity,
+  },
+];
+
+const tokConnectDeploymentSteps = [
+  {
+    title: "Créer le client sandbox",
+    action: "Ouvrir le portail développeur, créer un client sandbox, puis copier le Client ID, le secret et les scopes.",
+    result: "Aucune donnée production n'est modifiée: les appels utilisent des fixtures déterministes.",
+  },
+  {
+    title: "Brancher l'API REST",
+    action:
+      "Demander un token OAuth sur https://www.thetok.ch/functions/v1/tok-connect-oauth/token, puis appeler https://www.thetok.ch/functions/v1/tok-connect-api.",
+    result: "Toutes les réponses suivent { ok, data, error, request_id, next_cursor } et les listes restent paginées.",
+  },
+  {
+    title: "Brancher le MCP dans ChatGPT",
+    action:
+      "Créer un connecteur MCP avec l'URL serveur https://www.thetok.ch/functions/v1/tok-connect-mcp et l'authentification OAuth.",
+    result: "ChatGPT peut appeler les tools prudents sans accès libre aux mutations sensibles.",
+  },
+  {
+    title: "Tester de bout en bout",
+    action:
+      "Tester search_restaurants, get_real_time_availability, prepare_reservation, webhook.test, les logs et les quotas.",
+    result: "Chaque appel produit un request_id traçable et les webhooks sont signés.",
+  },
+  {
+    title: "Demander la production",
+    action:
+      "TOK approuve le partenaire, les scopes et les quotas; le restaurateur accorde ses restaurants; la release part par GitHub Actions.",
+    result: "La production reste contrôlée: pas de push DB manuel, pas d'autopilot autonome en v1.",
+  },
+];
+
+const tokConnectCapabilityCards = [
+  {
+    title: "Découverte restaurant",
+    body: "Chercher restaurants, profils publics, menus, prix, cuisines et contexte utile aux assistants ou widgets partenaires.",
+  },
+  {
+    title: "Disponibilité temps réel",
+    body: "Lire les créneaux compatibles avant de proposer une table, avec scopes et autorisations restaurant.",
+  },
+  {
+    title: "Réservations confirmées",
+    body: "Prévisualiser, créer avec Idempotency-Key, annuler en parcours contrôlé et notifier par webhook signé.",
+  },
+  {
+    title: "Campagnes en preview",
+    body: "Estimer les crédits, générer un brouillon de campagne et bloquer toute diffusion sans validation humaine.",
+  },
+  {
+    title: "MCP prudent",
+    body: "Exposer six tools sûrs, des resources et des prompts pour ChatGPT ou agents IA encadrés.",
+  },
+  {
+    title: "Observabilité",
+    body: "Tracer request_id, quotas, logs API, livraisons webhook, révocations, rotations de secrets et audit admin.",
+  },
+];
+
 function getModeLabel(mode: TokConnectIntentPlan["mode"]) {
   if (mode === "read_only") return "Lecture";
   if (mode === "suggest") return "Suggestion";
@@ -122,6 +237,17 @@ export default function TokConnect() {
               </Button>
             </div>
 
+            <div className="max-w-3xl">
+              <p className="mb-3 text-xs font-black uppercase tracking-[0.16em] text-white/60">
+                Accès rapides TOK Connect
+              </p>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {tokConnectHeroActions.map((action) => (
+                  <HeroActionButton key={`${action.label}-${action.href}`} action={action} />
+                ))}
+              </div>
+            </div>
+
             <div className="grid max-w-2xl gap-3 sm:grid-cols-3">
               <HeroStat value="9" label="endpoints v1" />
               <HeroStat value="6" label="tools MCP sûrs" />
@@ -150,7 +276,7 @@ export default function TokConnect() {
         </div>
       </section>
 
-      <section className="px-4 py-16 md:px-8 lg:px-12">
+      <section id="api-rest" className="scroll-mt-24 px-4 py-16 md:px-8 lg:px-12">
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[minmax(0,1fr)_420px]">
           <div className="space-y-5">
             <div className="flex items-center gap-3">
@@ -178,7 +304,7 @@ export default function TokConnect() {
             </div>
           </div>
 
-          <div className="space-y-4">
+          <div id="mcp-server" className="scroll-mt-24 space-y-4">
             <h3 className="text-xl font-black">Tools MCP v1</h3>
             {tokConnectMcpTools.map((tool) => (
               <article key={tool.name} className="rounded-lg border bg-white p-4 shadow-sm">
@@ -196,7 +322,7 @@ export default function TokConnect() {
         </div>
       </section>
 
-      <section className="border-y bg-slate-50 px-4 py-16 md:px-8 lg:px-12">
+      <section id="webhooks" className="scroll-mt-24 border-y bg-slate-50 px-4 py-16 md:px-8 lg:px-12">
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-2">
           <CatalogPanel title="Webhooks sortants" icon={Webhook} items={tokConnectPartnerWebhooks.map((item) => ({
             title: item.event,
@@ -211,7 +337,7 @@ export default function TokConnect() {
         </div>
       </section>
 
-      <section className="px-4 py-16 md:px-8 lg:px-12">
+      <section id="portail-developpeur" className="scroll-mt-24 px-4 py-16 md:px-8 lg:px-12">
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.86fr_1.14fr]">
           <div>
             <h2 className="text-3xl font-black md:text-4xl">Portail développeur</h2>
@@ -226,6 +352,57 @@ export default function TokConnect() {
             {tokConnectDeveloperPortalModules.map((module) => (
               <div key={module} className="rounded-lg border bg-white p-4 text-sm font-bold shadow-sm">{module}</div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="deployer-mcp-api" className="scroll-mt-24 border-y bg-white px-4 py-16 md:px-8 lg:px-12">
+        <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.92fr_1.08fr]">
+          <div>
+            <div className="flex items-center gap-3">
+              <KeyRound className="h-7 w-7 text-orange-600" />
+              <h2 className="text-3xl font-black md:text-4xl">Déployer MCP/API en 5 actions</h2>
+            </div>
+            <p className="mt-4 max-w-xl text-sm leading-6 text-slate-600">
+              Le chemin le plus simple: sandbox d'abord, OAuth ensuite, MCP/API branchés, tests signés, puis production
+              uniquement après validation TOK et consentement restaurateur.
+            </p>
+
+            <div className="mt-8 space-y-3">
+              {tokConnectDeploymentSteps.map((step, index) => (
+                <article key={step.title} className="grid gap-3 rounded-lg border bg-slate-50 p-4 sm:grid-cols-[44px_minmax(0,1fr)]">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-full bg-orange-500 text-sm font-black text-white">
+                    {index + 1}
+                  </span>
+                  <span>
+                    <h3 className="text-base font-black">{step.title}</h3>
+                    <p className="mt-2 text-sm leading-6 text-slate-700">{step.action}</p>
+                    <p className="mt-2 text-xs font-bold text-orange-700">{step.result}</p>
+                  </span>
+                </article>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-2xl font-black">Ce que TOK Connect sait faire</h3>
+            <div className="mt-5 grid gap-4 md:grid-cols-2">
+              {tokConnectCapabilityCards.map((capability) => (
+                <article key={capability.title} className="rounded-lg border bg-white p-5 shadow-sm">
+                  <h4 className="text-lg font-black">{capability.title}</h4>
+                  <p className="mt-3 text-sm leading-6 text-slate-600">{capability.body}</p>
+                </article>
+              ))}
+            </div>
+
+            <div className="mt-5 rounded-lg border border-orange-200 bg-orange-50 p-5">
+              <h4 className="text-lg font-black text-orange-800">URLs à utiliser</h4>
+              <div className="mt-4 space-y-3 text-sm">
+                <EndpointLine label="OAuth token" value="https://www.thetok.ch/functions/v1/tok-connect-oauth/token" />
+                <EndpointLine label="API REST" value="https://www.thetok.ch/functions/v1/tok-connect-api" />
+                <EndpointLine label="MCP Server" value="https://www.thetok.ch/functions/v1/tok-connect-mcp" />
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -280,9 +457,59 @@ export default function TokConnect() {
 
 function HeroStat({ value, label }: { value: string; label: string }) {
   return (
-    <div className="rounded-lg border border-white/14 bg-white/10 p-4 backdrop-blur">
+    <div className="rounded-lg border border-white/20 bg-white/10 p-4 backdrop-blur">
       <p className="text-3xl font-black text-orange-200">{value}</p>
       <p className="mt-1 text-sm font-semibold">{label}</p>
+    </div>
+  );
+}
+
+function HeroActionButton({
+  action,
+}: {
+  action: {
+    label: string;
+    helper: string;
+    href: string;
+    icon: LucideIcon;
+  };
+}) {
+  const Icon = action.icon;
+  const className =
+    "group flex min-h-16 items-center gap-3 rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-left text-white backdrop-blur transition hover:border-orange-300/70 hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300";
+  const content = (
+    <>
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-orange-500/20 text-orange-100 transition group-hover:bg-orange-500 group-hover:text-white">
+        <Icon className="h-4 w-4" />
+      </span>
+      <span className="min-w-0">
+        <span className="block text-sm font-black leading-5">{action.label}</span>
+        <span className="mt-0.5 block text-xs font-semibold leading-4 text-white/60">{action.helper}</span>
+      </span>
+      <ArrowRight className="ml-auto h-4 w-4 shrink-0 text-white/40 transition group-hover:translate-x-0.5 group-hover:text-orange-100" />
+    </>
+  );
+
+  if (action.href.startsWith("/")) {
+    return (
+      <Link to={action.href} className={className}>
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <a href={action.href} className={className}>
+      {content}
+    </a>
+  );
+}
+
+function EndpointLine({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="grid gap-2 rounded-md bg-white p-3 sm:grid-cols-[132px_minmax(0,1fr)]">
+      <span className="text-xs font-black uppercase tracking-[0.12em] text-orange-700">{label}</span>
+      <code className="min-w-0 break-words text-xs font-semibold text-slate-800">{value}</code>
     </div>
   );
 }

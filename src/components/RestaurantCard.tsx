@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import PriceRangeIcons from "./PriceRangeIcons";
 import { trackSponsoredClick, trackImpression, trackClick } from "@/lib/analytics";
 import { getSupabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 import { useAuth } from "@/lib/auth-context";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { useToast } from "@/hooks/use-toast";
@@ -17,6 +18,8 @@ import { buildRestaurantSeoPath } from "@/lib/restaurantSlugs";
 import { cn } from "@/lib/utils";
 import { getOptimizedImageSizes, getOptimizedImageSrcSet, getOptimizedImageUrl } from "@/lib/optimizedImages";
 import type { CampaignCreativeConfig } from "@/lib/campaignCreative";
+import { selectRestaurantCardReservationSlots } from "@/lib/reservationAvailability";
+import { getServiceSettings } from "@/lib/serviceSettings";
 
 const supabase = getSupabase();
 
@@ -32,6 +35,8 @@ interface RestaurantCardProps {
   city: string;
   address?: string;
   slug?: string | null;
+  openingHours?: Json | null;
+  supportsReservation?: boolean | null;
   sponsoredCampaignId?: string;
   sponsoredPromoImage?: string;
   sponsoredCampaignTitle?: string;
@@ -114,33 +119,45 @@ function getImageUrl(imageUrl: string, cuisine: string): string {
   return CUISINE_FALLBACKS.default;
 }
 
-function getNextTimeSlots(): string[] {
-  const now = new Date();
-  const currentHour = now.getHours();
-  const currentMin = now.getMinutes();
-  const allSlots = [
-    "11:30",
-    "12:00",
-    "12:15",
-    "12:30",
-    "12:45",
-    "13:00",
-    "13:15",
-    "18:30",
-    "19:00",
-    "19:15",
-    "19:30",
-    "20:00",
-    "20:30",
-    "21:00",
-  ];
+function formatReservationCardDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
 
-  return allSlots
-    .filter((slot) => {
-      const [h, m] = slot.split(":").map(Number);
-      return h > currentHour || (h === currentHour && m > currentMin);
+type ReservationCardProfile = {
+  opening_hours: Json | null;
+  supports_reservation: boolean | null;
+};
+
+type ReservationCardSlotAvailabilityRow = {
+  slot_time: string;
+  reserved_tables: number;
+  capacity: number;
+  remaining_tables: number;
+  available: boolean;
+};
+
+function normalizeSlotAvailabilityRows(value: unknown): ReservationCardSlotAvailabilityRow[] {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .map((row) => {
+      if (!row || typeof row !== "object" || Array.isArray(row)) return null;
+      const source = row as Record<string, unknown>;
+      const slotTime = String(source.slot_time || "").slice(0, 5);
+      if (!/^\d{2}:\d{2}$/.test(slotTime)) return null;
+
+      return {
+        slot_time: slotTime,
+        reserved_tables: Math.max(0, Number(source.reserved_tables || 0)),
+        capacity: Math.max(0, Number(source.capacity || 0)),
+        remaining_tables: Math.max(0, Number(source.remaining_tables || 0)),
+        available: Boolean(source.available),
+      };
     })
-    .slice(0, 4);
+    .filter((row): row is ReservationCardSlotAvailabilityRow => Boolean(row));
 }
 
 function formatDiscountPercent(discount: number): string {
@@ -169,6 +186,8 @@ export default function RestaurantCard({
   city,
   address,
   slug,
+  openingHours,
+  supportsReservation,
   sponsoredCampaignId,
   sponsoredPromoImage,
   sponsoredCampaignTitle,
@@ -239,7 +258,80 @@ export default function RestaurantCard({
     },
   });
 
-  const timeSlots = useMemo(() => getNextTimeSlots(), []);
+  const reservationCardNow = useMemo(() => new Date(), []);
+  const reservationCardDate = useMemo(() => formatReservationCardDate(reservationCardNow), [reservationCardNow]);
+  const hasPropOpeningHours = typeof openingHours !== "undefined";
+  const hasPropSupportsReservation = typeof supportsReservation !== "undefined";
+  const shouldFetchReservationProfile = !hasPropOpeningHours || !hasPropSupportsReservation;
+
+  const { data: reservationProfile, isFetched: reservationProfileFetched } = useQuery({
+    queryKey: ["restaurant-card-reservation-profile", id],
+    queryFn: async (): Promise<ReservationCardProfile | null> => {
+      const { data, error } = await supabase
+        .from("restaurants")
+        .select("opening_hours,supports_reservation")
+        .eq("id", id)
+        .maybeSingle();
+
+      if (error) {
+        console.warn("Restaurant card reservation profile fallback:", error.message);
+        return null;
+      }
+
+      return (data as ReservationCardProfile | null) || null;
+    },
+    enabled: shouldFetchReservationProfile && supportsReservation !== false,
+    staleTime: 60_000,
+  });
+
+  const resolvedOpeningHours = hasPropOpeningHours ? openingHours : reservationProfile?.opening_hours;
+  const resolvedSupportsReservation = hasPropSupportsReservation
+    ? supportsReservation
+    : reservationProfile?.supports_reservation;
+  const reservationProfileReady = !shouldFetchReservationProfile || reservationProfileFetched || supportsReservation === false;
+  const canShowReservationSlots = reservationProfileReady && resolvedSupportsReservation === true;
+  const serviceSettings = useMemo(() => getServiceSettings(resolvedOpeningHours), [resolvedOpeningHours]);
+
+  const { data: slotAvailability = [] } = useQuery({
+    queryKey: ["restaurant-card-slot-availability", id, reservationCardDate],
+    queryFn: async () => {
+      const { data, error } = await (supabase.rpc as any)("get_restaurant_reservation_slot_availability", {
+        p_restaurant_id: id,
+        p_date: reservationCardDate,
+      });
+
+      if (error) {
+        console.warn("Restaurant card reservation availability fallback:", error.message);
+        return [] as ReservationCardSlotAvailabilityRow[];
+      }
+
+      return normalizeSlotAvailabilityRows(data);
+    },
+    enabled: canShowReservationSlots,
+    staleTime: 30_000,
+  });
+
+  const timeSlots = useMemo(() => {
+    if (!canShowReservationSlots) return [];
+
+    const serverAvailabilityByTime = new Map(slotAvailability.map((row) => [row.slot_time, row]));
+    const reservedTablesByTime = slotAvailability.reduce<Record<string, number>>((acc, row) => {
+      acc[row.slot_time] = row.reserved_tables;
+      return acc;
+    }, {});
+
+    return selectRestaurantCardReservationSlots({
+      serviceSettings,
+      selectedDate: reservationCardNow,
+      reservedTablesByTime,
+      now: reservationCardNow,
+      limit: 2,
+    }).filter((slot) => {
+      const serverSlot = serverAvailabilityByTime.get(slot.time);
+      if (!serverSlot) return slotAvailability.length === 0;
+      return serverSlot.available && serverSlot.remaining_tables > 0;
+    });
+  }, [canShowReservationSlots, reservationCardNow, serviceSettings, slotAvailability]);
   const visibleSlots = timeSlots.slice(0, 2);
   const discountPercentLabel = formatDiscountPercent(bestDiscount);
   const hasDiscount = discountPercentLabel.length > 0;
@@ -278,7 +370,9 @@ export default function RestaurantCard({
     if (isSponsored && sponsoredCampaignId) {
       trackSponsoredClick(sponsoredCampaignId, id, "restaurant_card_slot");
     }
-    navigate(`/restaurant/${id}?reserve=true&time=${slot}`);
+    navigate(
+      `/restaurant/${id}?reserve=true&date=${reservationCardDate}&time=${encodeURIComponent(slot)}&party_size=2&reservationStep=datetime&reservationSource=card_slot`,
+    );
   };
 
   const ratingNum = Math.min(rating, 10);
@@ -311,9 +405,10 @@ export default function RestaurantCard({
             headline={sponsoredHeading}
             body={sponsoredDescription}
             discountLabel={discountBadgeLabel || undefined}
-            slots={visibleSlots}
+            slots={visibleSlots.map((slot) => slot.time)}
             isFavorite={Boolean(isFavorite)}
             onFavoriteClick={toggleFavorite}
+            onSlotClick={handleSlotClick}
           />
         </div>
       </div>
@@ -467,9 +562,9 @@ export default function RestaurantCard({
               </button>
               {visibleSlots.map((slot) => (
                 <button
-                  key={slot}
+                  key={slot.time}
                   type="button"
-                  onClick={(e) => handleSlotClick(e, slot)}
+                  onClick={(e) => handleSlotClick(e, slot.time)}
                   className={cn(
                     "inline-flex min-w-[4.75rem] items-center justify-center rounded-xl border px-3.5 font-bold transition-colors",
                     hasDiscount
@@ -477,7 +572,7 @@ export default function RestaurantCard({
                       : "h-11 border-emerald-500/35 bg-emerald-50 text-sm text-emerald-700 hover:border-emerald-500 hover:bg-emerald-500 hover:text-white dark:bg-emerald-400/10 dark:text-emerald-200 dark:shadow-[0_0_20px_rgba(16,185,129,0.14)]",
                   )}
                 >
-                  <span className="text-sm leading-none">{slot}</span>
+                  <span className="text-sm leading-none">{slot.time}</span>
                   {discountShortLabel ? (
                     <span className="inline-flex items-center gap-1 rounded-full bg-white/95 px-1.5 py-0.5 text-[10px] leading-none text-emerald-700 shadow-sm dark:bg-slate-950/90 dark:text-emerald-200">
                       <Percent className="h-2.5 w-2.5" />

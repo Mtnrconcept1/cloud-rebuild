@@ -191,4 +191,51 @@ describe("SocialPostBoostDialog", () => {
     );
     expect(boostMocks.redirectToTrustedCheckoutUrl).toHaveBeenCalledWith("https://checkout.stripe.com/pay/campaign-dashboard-1");
   });
+
+  it("lets TOK AI choose the strongest sponsored settings before checkout", async () => {
+    boostMocks.invokeSupabaseFunction.mockImplementation(async (functionName: string) => {
+      if (functionName === "create-social-post-boost") {
+        return { data: { campaign: { id: "campaign-ai-1" } }, error: null };
+      }
+      if (functionName === "create-checkout") {
+        return { data: { url: "https://checkout.stripe.com/pay/campaign-ai-1" }, error: null };
+      }
+      return { data: null, error: null };
+    });
+
+    render(<SocialPostBoostDialog post={post} restaurantId="restaurant-1" />);
+
+    fireEvent.click(screen.getByRole("button", { name: /Mettre en avant/i }));
+    fireEvent.click(screen.getByRole("button", { name: /IA optimise ma publicit/i }));
+
+    expect(screen.getByText(/Plan IA appliqu/i)).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: /Conversion/i })).toBeChecked();
+    expect((screen.getByLabelText(/Budget total/i) as HTMLInputElement).value).toBe("45");
+    expect((screen.getByLabelText(/Dur/i) as HTMLInputElement).value).toBe("5");
+    expect(screen.getByRole("radio", { name: /Nouveaux clients/i })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: /Midi/i })).toBeChecked();
+
+    fireEvent.click(screen.getByRole("button", { name: /Payer et sponsoriser/i }));
+
+    await waitFor(() => {
+      expect(boostMocks.invokeSupabaseFunction).toHaveBeenCalledWith(
+        "create-social-post-boost",
+        expect.objectContaining({
+          body: expect.objectContaining({
+            totalBudget: 45,
+            durationDays: 5,
+            pricingStrategy: "conversion",
+            targetCriteria: expect.objectContaining({
+              cities: ["geneve"],
+              cuisines: ["italien"],
+              customerSegment: "new",
+              genders: ["all"],
+              journeyTypes: ["delivery", "takeaway"],
+              serviceMoments: ["lunch"],
+            }),
+          }),
+        }),
+      );
+    });
+  });
 });

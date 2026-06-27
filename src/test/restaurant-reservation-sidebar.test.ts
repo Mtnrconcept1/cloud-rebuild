@@ -20,4 +20,12 @@ describe("restaurant reservation sidebar", () => {
     expect(restaurantDetail).not.toContain("sticky top-24 space-y-4");
     expect(restaurantDetail).not.toContain("lg:overflow-y-auto");
   });
+
+  it("keeps a reservation deeplink open while restaurant data is still loading", () => {
+    const restaurantDetail = read("src/pages/RestaurantDetail.tsx");
+
+    expect(restaurantDetail).toContain("isRestaurantFetched");
+    expect(restaurantDetail).toContain("if (!isRestaurantFetched) return;");
+    expect(restaurantDetail).toContain("[isRestaurantFetched, reservationAvailable, reservationOpen]");
+  });
 });

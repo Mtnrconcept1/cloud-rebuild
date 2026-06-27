@@ -66,6 +66,9 @@ export default function RestaurantSection({
                 deliveryAvailable={r.delivery_available || false}
                 city={r.city}
                 address={r.address || ""}
+                slug={r.slug || null}
+                openingHours={Object.prototype.hasOwnProperty.call(r, "opening_hours") ? r.opening_hours : undefined}
+                supportsReservation={Object.prototype.hasOwnProperty.call(r, "supports_reservation") ? r.supports_reservation : undefined}
                 sponsoredCampaignId={r.campaign_id || undefined}
                 sponsoredPromoImage={r.promo_image || undefined}
                 sponsoredCampaignTitle={r.campaign_title || undefined}
