@@ -12,7 +12,7 @@ const PROMOS = [
   {
     title: "Offres Anti-Gaspi",
     desc: "Sauvez des repas delicieux a prix reduit.",
-    img: "/images/lebanese-mezze.jpeg",
+    img: "/optimized/promo-lebanese-960.webp",
     link: "/anti-gaspi",
     badge: "Populaire",
     icon: Zap,
@@ -21,7 +21,7 @@ const PROMOS = [
   {
     title: "Programme Fidélité",
     desc: "Gagnez des Miamz à chaque commande.",
-    img: "/images/mixed-grill-platter.jpeg",
+    img: "/optimized/promo-mixed-grill-960.webp",
     link: "/profil",
     badge: "Nouveau",
     icon: Sparkles,
@@ -29,7 +29,7 @@ const PROMOS = [
   {
     title: "La Table du Chef",
     desc: "Découvrez des plats exclusifs en édition limitée.",
-    img: "/images/octopus-fine-dining.jpeg",
+    img: "/optimized/promo-octopus-960.webp",
     link: "/chefs-table",
     badge: "Exclusif",
     icon: Target,
@@ -53,7 +53,15 @@ export default function PromoCarousel() {
           {visiblePromos.map((promo, index) => (
             <div key={`${promo.link}-${index}`} className="flex-[0_0_100%] min-w-0 relative">
               <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-              <img src={promo.img} alt={promo.title} className="h-[300px] w-full object-cover md:h-[450px]" />
+              <img
+                src={promo.img}
+                alt={promo.title}
+                className="h-[300px] w-full object-cover md:h-[450px]"
+                decoding="async"
+                height={450}
+                loading="lazy"
+                width={1400}
+              />
               <div className="absolute inset-0 z-20 flex flex-col justify-end space-y-4 p-8 text-white md:p-16">
                 <div className="flex items-center gap-2">
                   <Badge className="border-none bg-white/20 text-white backdrop-blur-md">
@@ -77,12 +85,16 @@ export default function PromoCarousel() {
       </div>
 
       <button
+        type="button"
+        aria-label="Promotion précédente"
         onClick={scrollPrev}
         className="absolute left-4 top-1/2 z-30 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white opacity-0 backdrop-blur-md transition-opacity hover:bg-white/20 group-hover:opacity-100"
       >
         <ChevronLeft className="h-6 w-6" />
       </button>
       <button
+        type="button"
+        aria-label="Promotion suivante"
         onClick={scrollNext}
         className="absolute right-4 top-1/2 z-30 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white opacity-0 backdrop-blur-md transition-opacity hover:bg-white/20 group-hover:opacity-100"
       >

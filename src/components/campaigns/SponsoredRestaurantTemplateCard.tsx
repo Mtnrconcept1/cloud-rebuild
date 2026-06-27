@@ -141,8 +141,8 @@ export function SponsoredRestaurantTemplateCard({
           className,
         )}
       >
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_74%_42%,rgba(255,122,24,0.23),transparent_34%),linear-gradient(90deg,#ffffff_0%,#fffaf3_48%,#ff7a18_100%)] dark:bg-[linear-gradient(90deg,#020617_0%,#111827_50%,#ff6b00_100%)]" />
-        <div className="absolute right-0 top-0 hidden h-full w-[57%] rounded-l-[120px] bg-gradient-to-br from-orange-200/85 via-orange-400/90 to-[#ff5a00] lg:block" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_74%_42%,rgba(180,83,9,0.23),transparent_34%),linear-gradient(90deg,#ffffff_0%,#fffaf3_48%,#b45309_100%)] dark:bg-[linear-gradient(90deg,#020617_0%,#111827_50%,#9a3412_100%)]" />
+        <div className="absolute right-0 top-0 hidden h-full w-[57%] rounded-l-[120px] bg-gradient-to-br from-orange-200/85 via-orange-700/90 to-[#9a3412] lg:block" />
         <div className="absolute bottom-0 right-0 h-1/2 w-full bg-gradient-to-t from-orange-500/18 to-transparent lg:hidden" />
 
         <div
@@ -160,7 +160,7 @@ export function SponsoredRestaurantTemplateCard({
             )}
           >
             <div className="flex flex-wrap items-center gap-2.5">
-              <span className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-white shadow-[0_14px_28px_rgba(249,115,22,0.28)]">
+              <span className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-white shadow-[0_14px_28px_rgba(154,52,18,0.24)]">
                 <Megaphone className="h-3.5 w-3.5" />
                 Sponsorisé
               </span>
@@ -236,6 +236,8 @@ export function SponsoredRestaurantTemplateCard({
                 )}
                 loading="lazy"
                 decoding="async"
+                height={450}
+                width={720}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/18 via-transparent to-slate-950/10" />
             </div>
@@ -254,7 +256,7 @@ export function SponsoredRestaurantTemplateCard({
         )}
       >
         <div className="absolute left-4 top-4 z-30 grid h-11 w-11 place-items-center overflow-hidden rounded-2xl bg-orange-50">
-          <img src={imageUrl || DEFAULT_IMAGE} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+          <img src={imageUrl || DEFAULT_IMAGE} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" height={176} width={176} />
         </div>
         <BellRing className="absolute right-5 top-5 h-5 w-5 text-primary" />
         <div className="ml-[72px] mr-12 mt-4">
@@ -280,6 +282,8 @@ export function SponsoredRestaurantTemplateCard({
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           loading="lazy"
           decoding="async"
+          height={360}
+          width={576}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/62 via-slate-950/10 to-transparent" />
         <div className="absolute left-3 right-14 top-3 flex flex-wrap items-start gap-1.5">
@@ -297,7 +301,7 @@ export function SponsoredRestaurantTemplateCard({
           <Heart className={cn("h-4 w-4 text-red-500", isFavorite && "fill-current")} />
         </button>
         <div className="absolute bottom-3 left-3 right-3 flex items-end">
-          <span className="inline-flex items-center gap-1.5 rounded-2xl border border-white/30 bg-gradient-to-r from-primary via-orange-500 to-emerald-600 px-3.5 py-2 text-[11px] font-black uppercase tracking-[0.08em] text-white shadow-[0_14px_30px_rgba(15,23,42,0.28)] ring-1 ring-black/5 backdrop-blur-md">
+          <span className="inline-flex items-center gap-1.5 rounded-2xl border border-white/30 bg-gradient-to-r from-[#8f2f0a] via-[#b45309] to-[#047857] px-3.5 py-2 text-[11px] font-black uppercase tracking-[0.08em] text-white shadow-[0_14px_30px_rgba(15,23,42,0.28)] ring-1 ring-black/5 backdrop-blur-md">
             <span className="grid h-5 w-5 place-items-center rounded-full bg-white/20">
               <Percent className="h-3.5 w-3.5" />
             </span>
@@ -320,7 +324,7 @@ export function SponsoredRestaurantTemplateCard({
             </div>
           </div>
           <div className="shrink-0 text-right">
-            <div className="inline-flex min-w-[2.7rem] items-center justify-center rounded-xl bg-orange-500 px-2.5 py-1.5 text-sm font-bold text-white">
+            <div className="inline-flex min-w-[2.7rem] items-center justify-center rounded-xl bg-orange-700 px-2.5 py-1.5 text-sm font-bold text-white">
               {displayRating}
             </div>
             <p className="mt-1 text-[10px] text-muted-foreground">({safeReviewCount})</p>
@@ -348,7 +352,7 @@ export function SponsoredRestaurantTemplateCard({
 
         <div className="mt-auto pt-4">
           <div className="flex flex-wrap items-center gap-2">
-            <div className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary via-orange-500 to-orange-600 px-4 text-sm font-bold text-white shadow-[0_14px_30px_rgba(249,115,22,0.26)]">
+            <div className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#8f2f0a] via-[#b45309] to-[#9a3412] px-4 text-sm font-bold text-white shadow-[0_14px_30px_rgba(154,52,18,0.24)]">
               {ctaLabel}
               <ArrowRight className="h-4 w-4" />
             </div>

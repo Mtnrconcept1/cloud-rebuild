@@ -217,7 +217,7 @@ export default function APropos() {
             <Leaf className="h-6 w-6 text-green-600" />
           </div>
           <h3 className="text-xl font-semibold">Anti-gaspi et offres courtes</h3>
-          <p className="text-muted-foreground text-sm leading-relaxed">
+          <p className="text-slate-700 dark:text-slate-200 text-sm leading-relaxed">
             Les restaurants peuvent transformer des stocks disponibles en offres utiles : Anti-gaspi, ventes flash, codes courts et expériences limitées.
           </p>
         </div>
@@ -226,7 +226,7 @@ export default function APropos() {
             <Megaphone className="h-6 w-6 text-blue-600" />
           </div>
           <h3 className="text-xl font-semibold">Actualités et campagnes</h3>
-          <p className="text-muted-foreground text-sm leading-relaxed">
+          <p className="text-slate-700 dark:text-slate-200 text-sm leading-relaxed">
             Les restaurants publient, sponsorisent, mesurent et comprennent leurs contenus depuis TOK, avec des métriques utiles comme CPC, impressions et conversions.
           </p>
         </div>
@@ -235,7 +235,7 @@ export default function APropos() {
             <TrendingUp className="h-6 w-6 text-amber-600" />
           </div>
           <h3 className="text-xl font-semibold">Fidélité locale</h3>
-          <p className="text-muted-foreground text-sm leading-relaxed">
+          <p className="text-slate-700 dark:text-slate-200 text-sm leading-relaxed">
             Les Miamz, Tok One, avantages VIP et recommandations donnent plus de valeur aux clients réguliers tout en créant du revenu récurrent pour les restaurants.
           </p>
         </div>
@@ -249,17 +249,17 @@ export default function APropos() {
         <p className="text-muted-foreground max-w-xl mx-auto text-lg">
           Explorez les restaurants, suivez les Actualités, réservez une table ou découvrez les packs pensés pour les restaurateurs.
         </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link to="/">
-            <Button size="lg" className="rounded-xl font-bold text-lg px-8 gap-2">
+        <div className="flex flex-col justify-center gap-4 sm:flex-row">
+          <Button asChild size="lg" className="rounded-xl px-8 text-lg font-bold">
+            <Link to="/" className="gap-2">
               <UtensilsCrossed className="h-5 w-5" /> Découvrir les restaurants
-            </Button>
-          </Link>
-          <Link to="/packs-restaurateur">
-            <Button size="lg" variant="outline" className="rounded-xl font-bold text-lg px-8 gap-2">
+            </Link>
+          </Button>
+          <Button asChild size="lg" variant="outline" className="rounded-xl px-8 text-lg font-bold">
+            <Link to="/packs-restaurateur" className="gap-2">
               <Bike className="h-5 w-5" /> Côté restaurateur
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </div>
       </section>
     </div>

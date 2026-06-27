@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, type CSSProperties } from "react";
+import { lazy, Suspense, useEffect, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { Toaster } from "@/components/ui/toaster";
@@ -12,7 +12,6 @@ import { CartProvider } from "@/lib/cart";
 import Navbar from "@/components/Navbar";
 import MobileLogoIntro from "@/components/MobileLogoIntro";
 import FooterSection from "@/components/home/FooterSection";
-import SupportChat from "@/components/SupportChat";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import DashboardRoute from "@/components/DashboardRoute";
 import ScrollToTop from "@/components/ScrollToTop";
@@ -24,8 +23,6 @@ import RoleSpaceSwitcher from "@/components/navigation/RoleSpaceSwitcher";
 import ThemeToggleButton from "@/components/theme/ThemeToggleButton";
 import SignOutButton from "@/components/auth/SignOutButton";
 import LegalConsentBanner from "@/components/legal/LegalConsentBanner";
-import DailyMiamzSlotMachine from "@/components/DailyMiamzSlotMachine";
-import AiCreationNotifications from "@/components/AiCreationNotifications";
 import { setupDeepLinks } from "@/lib/deep-links";
 import { getAdminHostRedirectTarget } from "@/lib/adminDomains";
 import {
@@ -48,6 +45,9 @@ const Panier = lazy(() => import("./pages/Panier"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const OrderConflictDialog = lazy(() => import("./components/OrderConflictDialog"));
 const AdminUrgentActions = lazy(() => import("./components/admin/AdminUrgentActions"));
+const SupportChat = lazy(() => import("./components/SupportChat"));
+const DailyMiamzSlotMachine = lazy(() => import("./components/DailyMiamzSlotMachine"));
+const AiCreationNotifications = lazy(() => import("./components/AiCreationNotifications"));
 
 const Commandes = lazy(() => import("./pages/Commandes"));
 const OrderConfirmation = lazy(() => import("./pages/OrderConfirmation"));
@@ -256,6 +256,26 @@ function shouldShowPublicFooter(pathname: string) {
   return shouldShowPublicNavbar(pathname);
 }
 
+function DeferredGlobalWidgets() {
+  const [shouldLoad, setShouldLoad] = useState(false);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setShouldLoad(true), 4500);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  if (!shouldLoad) return null;
+
+  return (
+    <Suspense fallback={null}>
+      <AiCreationNotifications />
+      <SupportChat />
+      <OrderConflictDialog />
+      <DailyMiamzSlotMachine />
+    </Suspense>
+  );
+}
+
 const adminBackButtonPortalStyle: CSSProperties = {
   left: "calc(env(safe-area-inset-left, 0px) + 0.75rem)",
   top: "calc(env(safe-area-inset-top, 0px) + 0.75rem)",
@@ -395,8 +415,7 @@ function AppShell() {
 
   return (
     <>
-      <MobileLogoIntro />
-      <AiCreationNotifications />
+      {isNative() ? <MobileLogoIntro /> : null}
       {publicNavbar}
       <FloatingRouteBackButton />
       <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}>
@@ -509,11 +528,7 @@ function AppShell() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
-      <SupportChat />
-      <Suspense fallback={null}>
-        <OrderConflictDialog />
-      </Suspense>
-      <DailyMiamzSlotMachine />
+      <DeferredGlobalWidgets />
       {showPublicFooter ? <FooterSection deliveryEnabled={pathname === "/" && deliveryEnabled === true} /> : null}
       <LegalConsentBanner />
     </>

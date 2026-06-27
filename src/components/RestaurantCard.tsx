@@ -167,11 +167,11 @@ function formatDiscountPercent(discount: number): string {
 }
 
 function getRatingColor(rating: number): string {
-  if (rating >= 9) return "bg-emerald-600 text-white";
-  if (rating >= 8) return "bg-emerald-500 text-white";
-  if (rating >= 7) return "bg-lime-500 text-white";
-  if (rating >= 6) return "bg-amber-400 text-white";
-  return "bg-orange-400 text-white";
+  if (rating >= 9) return "bg-emerald-700 text-white";
+  if (rating >= 8) return "bg-emerald-700 text-white";
+  if (rating >= 7) return "bg-lime-700 text-white";
+  if (rating >= 6) return "bg-amber-700 text-white";
+  return "bg-orange-700 text-white";
 }
 
 export default function RestaurantCard({
@@ -442,6 +442,8 @@ export default function RestaurantCard({
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
             decoding="async"
+            height={360}
+            width={576}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-slate-950/10 to-transparent dark:from-slate-950/80 dark:via-slate-950/25" />
 
@@ -460,6 +462,8 @@ export default function RestaurantCard({
           </div>
 
           <button
+            type="button"
+            aria-label={isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
             className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white/90 backdrop-blur-sm transition-colors hover:bg-white dark:border dark:border-white/20 dark:bg-slate-950/80 dark:shadow-[0_0_22px_rgba(255,255,255,0.08)] dark:hover:bg-slate-900"
             onClick={toggleFavorite}
           >
@@ -468,7 +472,7 @@ export default function RestaurantCard({
 
           {discountBadgeLabel ? (
             <div className="absolute bottom-3 left-3 right-3 flex items-end">
-              <Badge className="gap-1.5 rounded-2xl border border-white/30 bg-gradient-to-r from-primary via-orange-500 to-emerald-600 px-3.5 py-2 text-[11px] font-black uppercase tracking-[0.08em] text-white shadow-[0_14px_30px_rgba(15,23,42,0.28)] ring-1 ring-black/5 backdrop-blur-md hover:brightness-105 dark:border-white/20 dark:from-primary dark:via-orange-500 dark:to-emerald-500">
+              <Badge className="gap-1.5 rounded-2xl border border-white/30 bg-gradient-to-r from-[#8f2f0a] via-[#b45309] to-[#047857] px-3.5 py-2 text-[11px] font-black uppercase tracking-[0.08em] text-white shadow-[0_14px_30px_rgba(15,23,42,0.28)] ring-1 ring-black/5 backdrop-blur-md hover:brightness-105 dark:border-white/20 dark:from-[#8f2f0a] dark:via-[#b45309] dark:to-[#047857]">
                 <span className="grid h-5 w-5 place-items-center rounded-full bg-white/20">
                   <Percent className="h-3.5 w-3.5" />
                 </span>
@@ -553,7 +557,7 @@ export default function RestaurantCard({
                 className={cn(
                   "inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl px-4 text-sm font-bold text-white transition-all",
                   isSponsored
-                    ? "bg-gradient-to-r from-primary via-orange-500 to-orange-600 shadow-[0_14px_30px_rgba(249,115,22,0.26)] hover:brightness-105"
+                    ? "bg-gradient-to-r from-[#8f2f0a] via-[#b45309] to-[#9a3412] shadow-[0_14px_30px_rgba(154,52,18,0.24)] hover:brightness-105"
                     : "bg-[#21314b] shadow-[0_10px_24px_rgba(33,49,75,0.22)] hover:bg-[#2a3d5d] dark:bg-gradient-to-r dark:from-slate-100 dark:to-white dark:text-slate-950 dark:shadow-[0_0_32px_rgba(255,255,255,0.16)] dark:hover:brightness-110",
                 )}
               >

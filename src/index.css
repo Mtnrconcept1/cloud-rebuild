@@ -18,7 +18,7 @@
     --card-foreground: 220 20% 10%;
     --popover: 0 0% 100%;
     --popover-foreground: 220 20% 10%;
-    --primary: 24 95% 53%;
+    --primary: 24 90% 35%;
     --primary-foreground: 0 0% 100%;
     --secondary: 220 14% 96%;
     --secondary-foreground: 220 20% 10%;
@@ -30,11 +30,11 @@
     --destructive-foreground: 0 0% 100%;
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 24 95% 53%;
+    --ring: 24 90% 35%;
     --radius: 0.75rem;
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 24 95% 53%;
+    --sidebar-primary: 24 90% 35%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 220 14% 96%;
     --sidebar-accent-foreground: 220 20% 10%;
@@ -42,7 +42,7 @@
     --sidebar-ring: 24 95% 53%;
     --miamz-green: 152 55% 45%;
     --miamz-green-foreground: 0 0% 100%;
-    --miamz-orange: 24 95% 53%;
+    --miamz-orange: 24 90% 35%;
     --miamz-orange-light: 30 100% 96%;
     --miamz-warm: 35 100% 97%;
   }
@@ -54,7 +54,7 @@
     --card-foreground: 210 30% 98%;
     --popover: 222 29% 9%;
     --popover-foreground: 210 30% 98%;
-    --primary: 24 95% 53%;
+    --primary: 24 90% 35%;
     --primary-foreground: 0 0% 100%;
     --secondary: 219 22% 18%;
     --secondary-foreground: 210 28% 96%;
@@ -66,10 +66,10 @@
     --destructive-foreground: 0 0% 98%;
     --border: 218 18% 29%;
     --input: 218 20% 24%;
-    --ring: 24 95% 53%;
+    --ring: 24 90% 35%;
     --sidebar-background: 223 28% 8%;
     --sidebar-foreground: 210 25% 96%;
-    --sidebar-primary: 24 95% 53%;
+    --sidebar-primary: 24 90% 35%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 222 23% 16%;
     --sidebar-accent-foreground: 210 25% 96%;
@@ -77,7 +77,7 @@
     --sidebar-ring: 24 95% 53%;
     --miamz-green: 152 60% 48%;
     --miamz-green-foreground: 0 0% 100%;
-    --miamz-orange: 24 95% 53%;
+    --miamz-orange: 24 90% 35%;
     --miamz-orange-light: 222 27% 14%;
     --miamz-warm: 223 29% 8%;
   }
@@ -395,9 +395,9 @@
     text-shadow: 0 0 24px rgba(255, 255, 255, 0.08);
   }
   .tok-action-primary {
-    background: linear-gradient(135deg, #ff6a1a 0%, #ff7c22 46%, #ff9f1c 100%);
+    background: linear-gradient(135deg, #8f2f0a 0%, #b45309 46%, #92400e 100%);
     color: white;
-    box-shadow: 0 18px 44px rgba(255, 106, 26, 0.32), 0 0 28px rgba(255, 106, 26, 0.20);
+    box-shadow: 0 18px 44px rgba(154, 52, 18, 0.28), 0 0 28px rgba(180, 83, 9, 0.18);
   }
   .dark .tok-action-secondary {
     border-color: rgba(115, 145, 190, 0.40);
@@ -415,9 +415,9 @@
   }
   .tok-action-row > a:first-child,
   .tok-action-row > button:first-child {
-    background: linear-gradient(135deg, #ff6a1a 0%, #ff7c22 46%, #ff9f1c 100%);
+    background: linear-gradient(135deg, #8f2f0a 0%, #b45309 46%, #92400e 100%);
     color: white;
-    box-shadow: 0 18px 44px rgba(255, 106, 26, 0.32), 0 0 28px rgba(255, 106, 26, 0.20);
+    box-shadow: 0 18px 44px rgba(154, 52, 18, 0.28), 0 0 28px rgba(180, 83, 9, 0.18);
   }
   .dark .tok-action-row > a:not(:first-child),
   .dark .tok-action-row > button:not(:first-child) {
