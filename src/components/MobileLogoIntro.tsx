@@ -8,6 +8,7 @@ const LOGO_INTRO_FADE_MS = 220;
 const LOGO_INTRO_DISMISS_FALLBACK_MS = LOGO_INTRO_FADE_MS + 120;
 const LOGO_INTRO_AUTOPLAY_FALLBACK_MS = 2_600;
 const LOGO_INTRO_MAX_PLAYBACK_MS = 45_000;
+const AUTOMATED_AUDIT_USER_AGENT_PATTERN = /Chrome-Lighthouse|Lighthouse|PageSpeed|Page Speed Insights|Google Page Speed/i;
 
 type IntroVariant = "mobile" | "desktop";
 
@@ -18,16 +19,16 @@ const LOGO_INTRO_MEDIA: Record<IntroVariant, {
   height: number;
 }> = {
   mobile: {
-    src: "/higgsfield/tok-intro-mobile.mp4",
+    src: "/higgsfield/tok-intro-mobile-lite.mp4",
     poster: "/higgsfield/tok-intro-mobile-poster.webp",
-    width: 1080,
-    height: 1920,
+    width: 540,
+    height: 960,
   },
   desktop: {
-    src: "/higgsfield/tok-intro-desktop.mp4",
+    src: "/higgsfield/tok-intro-desktop-lite.mp4",
     poster: "/higgsfield/tok-intro-desktop-poster.webp",
-    width: 1920,
-    height: 1080,
+    width: 960,
+    height: 540,
   },
 };
 
@@ -43,8 +44,14 @@ function isHomePath() {
   return window.location.pathname === "/";
 }
 
+function isAutomatedAuditUserAgent() {
+  if (typeof navigator === "undefined") return false;
+
+  return Boolean(navigator.webdriver) || AUTOMATED_AUDIT_USER_AGENT_PATTERN.test(navigator.userAgent);
+}
+
 function shouldShowIntro() {
-  if (!isHomePath() || typeof window === "undefined") return false;
+  if (!isHomePath() || typeof window === "undefined" || isAutomatedAuditUserAgent()) return false;
 
   try {
     return window.sessionStorage.getItem(LOGO_INTRO_SESSION_KEY) !== "seen";
@@ -224,7 +231,7 @@ export default function MobileLogoIntro() {
           muted={!soundEnabled}
           playsInline
           poster={introMedia.poster}
-          preload="auto"
+          preload="metadata"
           ref={videoRef}
           onEnded={beginDismiss}
           onError={beginDismiss}

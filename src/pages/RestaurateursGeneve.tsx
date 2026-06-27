@@ -249,7 +249,7 @@ export default function RestaurateursGeneve() {
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
-              <Button asChild size="lg" className="bg-orange-500 text-white hover:bg-orange-600">
+              <Button asChild size="lg" className="bg-orange-700 text-white hover:bg-orange-800">
                 <a href={`mailto:contact@thetok.ch?subject=${demoSubject}&body=${demoBody}`}>
                   Demander une démo
                   <PhoneCall className="ml-2 h-5 w-5" />
@@ -293,7 +293,7 @@ export default function RestaurateursGeneve() {
         <div className="mx-auto grid max-w-7xl gap-6 md:grid-cols-2 lg:grid-cols-4">
           {platformModules.map(({ icon: Icon, title, body }) => (
             <article key={title} className="rounded-lg border bg-background p-5 shadow-sm">
-              <Icon className="h-6 w-6 text-orange-600" />
+              <Icon className="h-6 w-6 text-orange-700" />
               <h2 className="mt-4 text-lg font-bold">{title}</h2>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">{body}</p>
             </article>
@@ -304,7 +304,7 @@ export default function RestaurateursGeneve() {
       <section className="px-4 py-16 md:px-8 lg:px-12">
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.8fr_1.2fr]">
           <div className="space-y-4">
-            <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-600">Lecture simple</p>
+            <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-700">Lecture simple</p>
             <h2 className="text-3xl font-black md:text-4xl">Ce que TOK regroupe pour un restaurant genevois.</h2>
             <p className="text-muted-foreground">
               Un restaurateur doit comprendre en quelques secondes quel problème est traité, où l'action se pilote et
@@ -331,7 +331,7 @@ export default function RestaurateursGeneve() {
       <section className="px-4 py-16 md:px-8 lg:px-12">
         <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[420px_minmax(0,1fr)]">
           <div className="space-y-4">
-            <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-600">Plan d'activation Genève</p>
+            <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-700">Plan d'activation Genève</p>
             <h2 className="text-3xl font-black md:text-4xl">Dimensionnez votre lancement sans empiler les outils.</h2>
             <p className="text-muted-foreground">
               Le simulateur estime le volume que votre équipe devra suivre dans le dashboard : tables, commandes,
@@ -348,7 +348,7 @@ export default function RestaurateursGeneve() {
               <div className="space-y-2 sm:col-span-2">
                 <Label>Pack d'accompagnement</Label>
                 <Select value={pack} onValueChange={(value) => setPack(value as PackKey)}>
-                  <SelectTrigger>
+                  <SelectTrigger aria-label="Pack d'accompagnement">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -375,7 +375,7 @@ export default function RestaurateursGeneve() {
       <section className="bg-slate-50 px-4 py-16 md:px-8 lg:px-12">
         <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.85fr_1.15fr]">
           <div className="space-y-4">
-            <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-600">Cas d'usage locaux</p>
+            <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-700">Cas d'usage locaux</p>
             <h2 className="text-3xl font-black md:text-4xl">Une même plateforme, plusieurs réalités de salle.</h2>
             <p className="text-muted-foreground">
               La page Genève doit expliquer pourquoi TOK est indispensable pour l'opération quotidienne, pas seulement
@@ -396,13 +396,13 @@ export default function RestaurateursGeneve() {
       <section className="px-4 py-16 md:px-8 lg:px-12">
         <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.95fr_1.05fr]">
           <div className="space-y-4">
-            <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-600">Onboarding restaurateur</p>
+            <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-700">Onboarding restaurateur</p>
             <h2 className="text-3xl font-black md:text-4xl">De l'audit au pilotage, chaque étape a un livrable.</h2>
             <p className="text-muted-foreground">
               TOK doit permettre au restaurateur de savoir ce qui est configuré, ce qui est publié et ce qui convertit.
             </p>
             <div className="flex flex-wrap gap-3 pt-2">
-              <Button asChild className="bg-orange-500 text-white hover:bg-orange-600">
+              <Button asChild className="bg-orange-700 text-white hover:bg-orange-800">
                 <Link to="/packs-restaurateur">Voir les packs</Link>
               </Button>
               <Button asChild variant="outline">
@@ -475,7 +475,7 @@ export default function RestaurateursGeneve() {
             <div className="grid gap-2">
               <Label htmlFor="need">Priorité</Label>
               <Select name="besoin">
-                <SelectTrigger id="need">
+                <SelectTrigger id="need" aria-label="Priorité">
                   <SelectValue placeholder="Choisir une priorité" />
                 </SelectTrigger>
                 <SelectContent>
@@ -491,7 +491,7 @@ export default function RestaurateursGeneve() {
               <Label htmlFor="message">Contexte</Label>
               <Textarea id="message" name="message" placeholder="Horaires creux, canaux actuels, objectif à 30 jours..." />
             </div>
-            <Button type="submit" className="bg-orange-500 text-white hover:bg-orange-600">
+            <Button type="submit" className="bg-orange-700 text-white hover:bg-orange-800">
               Demander une démo
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
@@ -502,7 +502,7 @@ export default function RestaurateursGeneve() {
       <section className="px-4 py-16 md:px-8 lg:px-12">
         <div className="mx-auto max-w-5xl space-y-6">
           <div className="space-y-3">
-            <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-600">FAQ locale</p>
+            <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-700">FAQ locale</p>
             <h2 className="text-3xl font-black">Questions fréquentes des restaurants genevois</h2>
           </div>
           <div className="grid gap-3">

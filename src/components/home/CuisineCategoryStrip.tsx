@@ -79,6 +79,8 @@ function CuisinePhoto({
           aria-hidden="true"
           loading="lazy"
           decoding="async"
+          height={117}
+          width={117}
           className={[
             "h-full w-full object-cover transition-transform duration-500 ease-out",
             isActive ? "scale-110" : "group-hover:scale-110",
@@ -149,7 +151,7 @@ export default function CuisineCategoryStrip({ activeSlug }: { activeSlug?: stri
           subtitle="À votre goût"
           icon={Utensils}
           iconColor="text-primary"
-          imageSrc="/desig app/assiette.png"
+          imageSrc="/optimized/section-assiette-640.webp"
           theme="orange"
           className="mb-4"
           titleClassName="text-3xl sm:text-4xl md:text-5xl"
@@ -194,7 +196,6 @@ export default function CuisineCategoryStrip({ activeSlug }: { activeSlug?: stri
                 transition={{ delay: index * 0.03, type: "spring", stiffness: 260, damping: 20 }}
                 className="group flex shrink-0 snap-start flex-col items-center gap-2.5"
                 style={{ minWidth: 112 }}
-                aria-label={cat.label}
               >
                 <CuisinePhoto src={cat.imageSrc} label={cat.label} isActive={isActive} />
                 <span

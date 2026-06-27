@@ -11,11 +11,27 @@ function setViewportWidth(width: number) {
   });
 }
 
+function setUserAgent(userAgent: string) {
+  Object.defineProperty(window.navigator, "userAgent", {
+    configurable: true,
+    value: userAgent,
+  });
+}
+
+function setWebdriver(value: boolean | undefined) {
+  Object.defineProperty(window.navigator, "webdriver", {
+    configurable: true,
+    value,
+  });
+}
+
 describe("MobileLogoIntro", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     window.history.pushState({}, "", "/");
     setViewportWidth(390);
+    setUserAgent("Mozilla/5.0");
+    setWebdriver(undefined);
     window.sessionStorage.clear();
     document.body.style.overflow = "";
     vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue(undefined);
@@ -45,12 +61,12 @@ describe("MobileLogoIntro", () => {
     expect(document.body.style.overflow).toBe("");
     expect(video).toHaveAttribute("poster", "/higgsfield/tok-intro-mobile-poster.webp");
     expect(sources).toHaveLength(1);
-    expect(sources[0]).toHaveAttribute("src", "/higgsfield/tok-intro-mobile.mp4");
+    expect(sources[0]).toHaveAttribute("src", "/higgsfield/tok-intro-mobile-lite.mp4");
     expect(sources[0]).toHaveAttribute("type", "video/mp4");
     expect(video).toHaveAttribute("data-intro-variant", "mobile");
-    expect(video).toHaveAttribute("width", "1080");
-    expect(video).toHaveAttribute("height", "1920");
-    expect(video).toHaveAttribute("preload", "auto");
+    expect(video).toHaveAttribute("width", "540");
+    expect(video).toHaveAttribute("height", "960");
+    expect(video).toHaveAttribute("preload", "metadata");
     expect(video.autoplay).toBe(true);
     expect(video.muted).toBe(true);
     expect(video.playsInline).toBe(true);
@@ -77,12 +93,12 @@ describe("MobileLogoIntro", () => {
 
     expect(screen.getByTestId("mobile-logo-intro")).toBeInTheDocument();
     expect(video).toHaveAttribute("poster", "/higgsfield/tok-intro-desktop-poster.webp");
-    expect(source).toHaveAttribute("src", "/higgsfield/tok-intro-desktop.mp4");
+    expect(source).toHaveAttribute("src", "/higgsfield/tok-intro-desktop-lite.mp4");
     expect(source).toHaveAttribute("type", "video/mp4");
     expect(video).toHaveAttribute("data-intro-variant", "desktop");
-    expect(video).toHaveAttribute("width", "1920");
-    expect(video).toHaveAttribute("height", "1080");
-    expect(video).toHaveAttribute("preload", "auto");
+    expect(video).toHaveAttribute("width", "960");
+    expect(video).toHaveAttribute("height", "540");
+    expect(video).toHaveAttribute("preload", "metadata");
     expect(video.muted).toBe(true);
   });
 
@@ -166,6 +182,24 @@ describe("MobileLogoIntro", () => {
     fireEvent.transitionEnd(overlay);
 
     expect(screen.queryByTestId("mobile-logo-intro")).not.toBeInTheDocument();
+  });
+
+  it("does not load the intro media during Lighthouse audits", () => {
+    setUserAgent("Mozilla/5.0 Chrome-Lighthouse");
+
+    render(<MobileLogoIntro />);
+
+    expect(screen.queryByTestId("mobile-logo-intro")).not.toBeInTheDocument();
+    expect(HTMLMediaElement.prototype.play).not.toHaveBeenCalled();
+  });
+
+  it("does not load the intro media in automated browser audits", () => {
+    setWebdriver(true);
+
+    render(<MobileLogoIntro />);
+
+    expect(screen.queryByTestId("mobile-logo-intro")).not.toBeInTheDocument();
+    expect(HTMLMediaElement.prototype.play).not.toHaveBeenCalled();
   });
 
   it("removes the lightweight overlay even if the transition end event is not fired", () => {

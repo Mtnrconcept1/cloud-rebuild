@@ -1,4 +1,5 @@
-export const DEFAULT_TOK_LOGO_SRC = "/logotok.png";
+export const DEFAULT_TOK_LOGO_SRC = "/optimized/logotok-512.webp";
+export const TOK_DOCUMENT_ICON_SRC = "/favicon-48x48.png";
 export const TOK_LOGO_TIME_ZONE = "Europe/Zurich";
 
 export type TokEventLogo = {

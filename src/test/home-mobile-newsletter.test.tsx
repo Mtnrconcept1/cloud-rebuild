@@ -15,11 +15,9 @@ describe("HeroSection mobile newsletter", () => {
     const mobileHero = screen.getByTestId("mobile-hero-shell");
     expect(mobileHero).toHaveClass("min-h-[calc(100svh-64px)]");
     expect(screen.getByTestId("mobile-hero-panel")).toHaveClass("min-h-[calc(100svh-64px)]");
-    expect(mobileHero.innerHTML).toContain("fondacceuil.png");
-    expect((mobileHero.innerHTML.match(/fondacceuil\.png/g) ?? [])).toHaveLength(1);
-    expect(mobileHero.innerHTML).toContain("bg-[position:50%_0%]");
-    expect(mobileHero.innerHTML).toContain("bg-[length:100%_auto]");
-    expect(mobileHero.innerHTML).toContain("bg-no-repeat");
+    expect(mobileHero.innerHTML).toContain("/optimized/fondacceuil-mobile.webp");
+    expect(mobileHero.innerHTML).toContain("object-cover object-top");
+    expect(mobileHero.innerHTML).toContain('loading="eager"');
     expect(mobileHero.innerHTML).toContain("bottom-2 space-y-2");
     expect(mobileHero.innerHTML).toContain("pt-9 text-center min-[390px]:pt-10");
     expect(mobileHero.innerHTML).toContain("translate-x-[12px]");
@@ -35,7 +33,7 @@ describe("HeroSection mobile newsletter", () => {
     const newsletter = screen.getByTestId("mobile-newsletter");
     expect(newsletter).toHaveClass("rounded-[24px]");
     expect(newsletter.className).toContain("bg-[#2d1608]/78");
-    expect(newsletter.innerHTML).not.toContain("fondacceuil.png");
+    expect(newsletter.innerHTML).not.toContain("fondacceuil-mobile.webp");
 
     const signup = within(newsletter).getByRole("button", { name: "Inscrivez-vous" });
     expect(signup.className).not.toContain("-top-");

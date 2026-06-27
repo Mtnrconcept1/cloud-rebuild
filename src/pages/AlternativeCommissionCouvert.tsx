@@ -223,7 +223,7 @@ export default function AlternativeCommissionCouvert() {
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
-              <Button asChild size="lg" className="bg-orange-500 text-white hover:bg-orange-600">
+              <Button asChild size="lg" className="bg-orange-700 text-white hover:bg-orange-800">
                 <Link to="/contact">
                   Demander une comparaison
                   <Calculator className="ml-2 h-5 w-5" />
@@ -272,7 +272,7 @@ export default function AlternativeCommissionCouvert() {
             },
           ].map(({ icon: Icon, title, body }) => (
             <article key={title} className="rounded-lg border bg-background p-5 shadow-sm">
-              <Icon className="h-6 w-6 text-orange-600" />
+              <Icon className="h-6 w-6 text-orange-700" />
               <h2 className="mt-4 text-xl font-bold">{title}</h2>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">{body}</p>
             </article>
@@ -283,7 +283,7 @@ export default function AlternativeCommissionCouvert() {
       <section className="px-4 py-16 md:px-8 lg:px-12">
         <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[420px_minmax(0,1fr)]">
           <div className="space-y-4">
-            <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-600">Simulation économique</p>
+            <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-700">Simulation économique</p>
             <h2 className="text-3xl font-black md:text-4xl">Intégrez les no-shows et les couverts réels.</h2>
             <p className="text-muted-foreground">
               Le but n'est pas de promettre une économie automatique. Le bon comparatif met côte à côte coût variable,
@@ -317,7 +317,7 @@ export default function AlternativeCommissionCouvert() {
       <section className="bg-slate-50 px-4 py-16 md:px-8 lg:px-12">
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-2">
           <div className="space-y-4">
-            <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-600">Comparatif modèle économique</p>
+            <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-700">Comparatif modèle économique</p>
             <h2 className="text-3xl font-black">Modèle au couvert vs tarif fixe par table.</h2>
             <p className="text-muted-foreground">
               Cette page doit répondre aux objections financières : pas de répétition de la page Google, mais une lecture
@@ -349,7 +349,7 @@ export default function AlternativeCommissionCouvert() {
       <section className="px-4 py-16 md:px-8 lg:px-12">
         <div className="mx-auto max-w-7xl space-y-8">
           <div className="max-w-3xl space-y-4">
-            <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-600">Scénarios chiffrés</p>
+            <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-700">Scénarios chiffrés</p>
             <h2 className="text-3xl font-black">Le même prix par couvert ne raconte pas la même histoire.</h2>
             <p className="text-muted-foreground">
               Les scénarios ci-dessous montrent pourquoi le restaurateur doit comparer par situation de salle.
@@ -379,7 +379,7 @@ export default function AlternativeCommissionCouvert() {
         <div className="mx-auto grid max-w-7xl gap-6 md:grid-cols-2 lg:grid-cols-4">
           {objections.map(({ icon: Icon, title, body }) => (
             <article key={title} className="rounded-lg border bg-background p-6 shadow-sm">
-              <Icon className="h-7 w-7 text-orange-600" />
+              <Icon className="h-7 w-7 text-orange-700" />
               <h2 className="mt-5 text-lg font-bold">{title}</h2>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">{body}</p>
             </article>
@@ -398,7 +398,7 @@ export default function AlternativeCommissionCouvert() {
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <Button asChild size="lg" className="bg-orange-500 text-white hover:bg-orange-600">
+            <Button asChild size="lg" className="bg-orange-700 text-white hover:bg-orange-800">
               <Link to="/contact">
                 Parler à TOK
                 <ArrowRight className="ml-2 h-5 w-5" />
@@ -419,7 +419,7 @@ export default function AlternativeCommissionCouvert() {
       <section className="px-4 py-16 md:px-8 lg:px-12">
         <div className="mx-auto max-w-5xl space-y-6">
           <div className="space-y-3">
-            <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-600">FAQ comparative</p>
+            <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-700">FAQ comparative</p>
             <h2 className="text-3xl font-black">Questions fréquentes sur les commissions par couvert</h2>
           </div>
           <div className="grid gap-3">

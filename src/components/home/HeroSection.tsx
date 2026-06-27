@@ -47,6 +47,8 @@ const newsletterConditions = [
   "TOK peut modifier, suspendre ou arrêter l'offre si nécessaire, notamment en cas d'usage abusif, de comptes multiples ou de tentative de contournement.",
 ];
 
+const MOBILE_HERO_IMAGE_FETCH_PRIORITY_PROPS = { fetchpriority: "high" } as const;
+
 export default function HeroSection({ contentVisible = true }: { contentVisible?: boolean }) {
   const heroRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -84,11 +86,21 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
   return (
     <>
       <section data-testid="mobile-hero-shell" className="relative min-h-[calc(100svh-64px)] overflow-hidden bg-[#edf7ff] md:hidden">
-        <div className="absolute inset-0 bg-[url('/fondacceuil.png')] bg-[length:100%_auto] bg-[position:50%_0%] bg-no-repeat" aria-hidden="true" />
+        <img
+          src="/optimized/fondacceuil-mobile.webp"
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 h-full w-full object-cover object-top"
+          decoding="async"
+          height={852}
+          loading="eager"
+          width={393}
+          {...MOBILE_HERO_IMAGE_FETCH_PRIORITY_PROPS}
+        />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,250,240,0.68)_0%,rgba(255,250,240,0.12)_34%,rgba(67,32,11,0.06)_62%,rgba(22,10,4,0.54)_100%)]" aria-hidden="true" />
         <motion.div
           variants={stagger}
-          initial="hidden"
+          initial={false}
           animate={contentVisible ? "visible" : "hidden"}
           data-testid="mobile-hero-panel"
           className="relative z-10 min-h-[calc(100svh-64px)] overflow-hidden"
@@ -100,6 +112,9 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
                   src={logoSrc}
                   alt="Tok"
                   className="h-full w-auto translate-x-[12px] object-contain drop-shadow-[0_12px_30px_rgba(62,30,10,0.20)]"
+                  decoding="async"
+                  height={394}
+                  width={512}
                 />
               </motion.div>
 
@@ -113,7 +128,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
                 <p className="mx-auto mt-3 max-w-[300px] text-[0.98rem] font-extrabold leading-[1.16] text-[#111827] drop-shadow-[0_1px_0_rgba(255,255,255,0.80)] min-[390px]:text-[1.05rem]">
                   <span className="block">À Genève, cumulez des</span>
                   <span className="block">
-                    <span className="text-[#ff4017]">Miamz</span> solidaires à chaque repas
+                    <span className="text-[#c2410c]">Miamz</span> solidaires à chaque repas
                   </span>
                 </p>
               </motion.div>
@@ -122,7 +137,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
             <motion.div variants={scaleIn} className="absolute inset-x-0 bottom-2 space-y-2 px-7 pb-0 min-[390px]:bottom-3 min-[390px]:px-8">
               <form onSubmit={handleSearch} className="space-y-1.5">
               <div className="flex h-[40px] items-center gap-3 rounded-full bg-white px-5 shadow-[0_12px_22px_rgba(34,16,5,0.22)] min-[390px]:h-[42px]">
-                <MapPin className="h-4 w-4 shrink-0 text-[#ff4017]" />
+                <MapPin className="h-4 w-4 shrink-0 text-[#c2410c]" />
                 <CityAutocomplete
                   value={city}
                   onCitySelect={(selectedCity) => setCity(selectedCity)}
@@ -146,7 +161,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
                 <button
                   type="submit"
                   aria-label="Rechercher"
-                  className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#ff4017] text-white shadow-[0_10px_20px_rgba(255,64,23,0.30)] transition hover:bg-[#ff5a25] active:scale-95 min-[390px]:h-9 min-[390px]:w-9"
+                  className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#c2410c] text-white shadow-[0_10px_20px_rgba(154,52,18,0.26)] transition hover:bg-[#9a3412] active:scale-95 min-[390px]:h-9 min-[390px]:w-9"
                 >
                   <Search className="h-4 w-4" />
                 </button>
@@ -155,7 +170,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
               <div className="grid grid-cols-2 gap-2 pt-0">
                 <button
                   type="submit"
-                  className="flex h-[42px] items-center justify-center gap-2 rounded-full bg-[#ff4017] px-3 text-[0.74rem] font-extrabold text-white shadow-[0_12px_22px_rgba(255,64,23,0.32)] transition hover:bg-[#ff5a25] active:translate-y-px min-[390px]:h-[44px] min-[390px]:text-[0.8rem]"
+                  className="flex h-[42px] items-center justify-center gap-2 rounded-full bg-[#c2410c] px-3 text-[0.74rem] font-extrabold text-white shadow-[0_12px_22px_rgba(154,52,18,0.28)] transition hover:bg-[#9a3412] active:translate-y-px min-[390px]:h-[44px] min-[390px]:text-[0.8rem]"
                 >
                   <Utensils className="h-4 w-4 shrink-0" />
                   Je veux manger
@@ -192,7 +207,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
                     <button
                       type="button"
                       onClick={() => navigate("/auth")}
-                      className="h-[30px] rounded-full bg-[#ff6418] px-4 text-[0.7rem] font-extrabold text-white shadow-[0_10px_18px_rgba(255,100,24,0.30)] transition hover:bg-[#ff711f] min-[390px]:h-[32px] min-[390px]:text-[0.74rem]"
+                      className="h-[30px] rounded-full bg-[#c2410c] px-4 text-[0.7rem] font-extrabold text-white shadow-[0_10px_18px_rgba(154,52,18,0.26)] transition hover:bg-[#9a3412] min-[390px]:h-[32px] min-[390px]:text-[0.74rem]"
                     >
                       Inscrivez-vous
                     </button>
@@ -223,24 +238,27 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
           className="relative z-10 flex flex-1 flex-col items-center justify-start px-6 pb-14 pt-14 text-center lg:pt-16"
           style={{ transform: "translateY(calc(var(--scroll-y, 0px) * -0.12))" }}
           variants={stagger}
-          initial="hidden"
+          initial={false}
           animate={contentVisible ? "visible" : "hidden"}
         >
           <motion.img
             src={logoSrc}
             alt="Tok"
             className="mb-2 h-36 w-auto object-contain drop-shadow-[0_14px_30px_rgba(122,73,25,0.18)] dark:drop-shadow-[0_0_36px_rgba(255,123,24,0.34)] lg:h-40"
+            decoding="async"
+            height={394}
             variants={fadeUp}
+            width={512}
           />
 
           <motion.div variants={fadeUp} className="relative isolate max-w-[960px] space-y-3">
             <div className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[132%] w-[114%] -translate-x-1/2 -translate-y-1/2 rounded-[999px] bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,1)_0%,rgba(255,255,255,0.96)_38%,rgba(255,255,255,0.62)_64%,transparent_88%)] opacity-[0.94] blur-3xl" aria-hidden="true" />
             <h1 className="font-display text-[3.95rem] font-bold leading-[0.96] tracking-normal text-[#21314b] dark:text-white dark:drop-shadow-[0_0_30px_rgba(255,255,255,0.16)] lg:text-[5.15rem]">
               <span className="block">Réservez, commandez et profitez</span>
-              <span className="block italic text-[#ff6b1c]">des meilleures offres food à Genève</span>
+              <span className="block italic text-[#c2410c]">des meilleures offres food à Genève</span>
             </h1>
             <p className="mx-auto max-w-[760px] text-[1.35rem] font-medium text-[#33445e] dark:text-slate-100 md:text-[1.55rem]">
-              Gagnez du temps, cumulez des <span className="font-semibold text-[#ff6b1c]">Miamz</span> et transformez vos repas en impact solidaire.
+              Gagnez du temps, cumulez des <span className="font-semibold text-[#c2410c]">Miamz</span> et transformez vos repas en impact solidaire.
             </p>
           </motion.div>
 
@@ -276,7 +294,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
             <div className="grid gap-3 sm:grid-cols-2">
               <button
                 type="submit"
-                className="group relative h-[68px] overflow-hidden rounded-full bg-[#ff6b1c] px-6 text-base font-extrabold uppercase tracking-[0.06em] text-white shadow-[0_22px_46px_rgba(255,107,28,0.34)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#ff7528] hover:shadow-[0_26px_54px_rgba(255,107,28,0.42)] active:translate-y-0"
+                className="group relative h-[68px] overflow-hidden rounded-full bg-[#c2410c] px-6 text-base font-extrabold uppercase tracking-[0.06em] text-white shadow-[0_22px_46px_rgba(154,52,18,0.30)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#9a3412] hover:shadow-[0_26px_54px_rgba(154,52,18,0.36)] active:translate-y-0"
               >
                 <span className="pointer-events-none absolute inset-x-10 top-1 h-12 rounded-full bg-white/20 blur-2xl" />
                 <span className="relative inline-flex items-center justify-center gap-2">
@@ -290,7 +308,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
                 className="h-[68px] rounded-full border border-white/90 bg-white px-6 text-base font-extrabold uppercase tracking-[0.05em] text-[#25354e] shadow-[0_18px_40px_rgba(104,70,29,0.14)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#fff7f1] active:translate-y-0 dark:border-orange-200/30 dark:bg-slate-950/90 dark:text-white"
               >
                 <span className="inline-flex items-center justify-center gap-2">
-                  <ChefHat className="h-5 w-5 text-[#ff6b1c]" />
+                  <ChefHat className="h-5 w-5 text-[#c2410c]" />
                   Je suis restaurateur
                 </span>
               </button>
@@ -300,13 +318,13 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
           <motion.div variants={scaleIn} className="mt-8 flex flex-wrap items-center justify-center gap-4">
             <div className="neon-chip flex items-center gap-3 rounded-full border border-white/80 bg-white/90 px-5 py-3 shadow-[0_14px_28px_rgba(104,70,29,0.12)]">
               <span className="grid h-8 w-8 place-items-center rounded-full bg-[#fff2e8]">
-                <Star className="h-4 w-4 text-[#ff6b1c]" />
+                <Star className="h-4 w-4 text-[#c2410c]" />
               </span>
               <span className="text-sm font-bold text-[#25354e] dark:text-white">4.8/5</span>
             </div>
             <div className="neon-chip flex items-center gap-3 rounded-full border border-white/80 bg-white/90 px-5 py-3 shadow-[0_14px_28px_rgba(104,70,29,0.12)]">
               <span className="grid h-8 w-8 place-items-center rounded-full bg-[#fff2e8]">
-                <MapPin className="h-4 w-4 text-[#ff6b1c]" />
+                <MapPin className="h-4 w-4 text-[#c2410c]" />
               </span>
               <span className="text-sm font-bold text-[#25354e] dark:text-white">Restaurants locaux partenaires</span>
             </div>
