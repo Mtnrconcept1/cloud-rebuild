@@ -68,6 +68,43 @@ import { cn } from "@/lib/utils";
 
 const SPONSOR_TARGET_OPTIONS_LIMIT = 120;
 
+type SponsorTargetRestaurantRow = {
+  id?: string | null;
+  city?: string | null;
+  cuisine_type?: string | null;
+};
+
+type SponsorTargetCuisineRow = {
+  name?: string | null;
+};
+
+function asObjectRows(value: unknown): Array<Record<string, unknown>> {
+  return Array.isArray(value)
+    ? value.filter((row): row is Record<string, unknown> => row !== null && typeof row === "object" && !Array.isArray(row))
+    : [];
+}
+
+function readOptionalStringField(row: Record<string, unknown>, key: string) {
+  const value = row[key];
+  if (typeof value === "string") return value;
+  if (value === null || value === undefined) return null;
+  return String(value);
+}
+
+function toSponsorTargetRestaurantRows(value: unknown): SponsorTargetRestaurantRow[] {
+  return asObjectRows(value).map((row) => ({
+    id: readOptionalStringField(row, "id"),
+    city: readOptionalStringField(row, "city"),
+    cuisine_type: readOptionalStringField(row, "cuisine_type"),
+  }));
+}
+
+function toSponsorTargetCuisineRows(value: unknown): SponsorTargetCuisineRow[] {
+  return asObjectRows(value).map((row) => ({
+    name: readOptionalStringField(row, "name"),
+  }));
+}
+
 const SOCIAL_CROSS_POST_ICONS: Record<SocialCrossPostPlatform, ComponentType<{ className?: string }>> = {
   instagram: Instagram,
   facebook: Facebook,
@@ -325,12 +362,8 @@ export default function SocialComposer({
 
         if (cancelled) return;
 
-        const restaurantRows: Array<{ id?: string | null; city?: string | null; cuisine_type?: string | null }> = Array.isArray(restaurantsResult.data)
-          ? restaurantsResult.data
-          : [];
-        const cuisineRows: Array<{ name?: string | null }> = Array.isArray(cuisinesResult.data)
-          ? cuisinesResult.data
-          : [];
+        const restaurantRows = toSponsorTargetRestaurantRows(restaurantsResult.data);
+        const cuisineRows = toSponsorTargetCuisineRows(cuisinesResult.data);
         const currentRestaurant = restaurantRows.find((row) => String(row?.id || "") === String(restaurantId || ""));
         const cities = Array.from(new Set(
           restaurantRows
