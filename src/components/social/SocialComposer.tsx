@@ -325,18 +325,22 @@ export default function SocialComposer({
 
         if (cancelled) return;
 
-        const restaurantRows = Array.isArray(restaurantsResult.data) ? restaurantsResult.data : [];
-        const cuisineRows = Array.isArray(cuisinesResult.data) ? cuisinesResult.data : [];
-        const currentRestaurant = restaurantRows.find((row: any) => String(row?.id || "") === String(restaurantId || ""));
+        const restaurantRows: Array<{ id?: string | null; city?: string | null; cuisine_type?: string | null }> = Array.isArray(restaurantsResult.data)
+          ? restaurantsResult.data
+          : [];
+        const cuisineRows: Array<{ name?: string | null }> = Array.isArray(cuisinesResult.data)
+          ? cuisinesResult.data
+          : [];
+        const currentRestaurant = restaurantRows.find((row) => String(row?.id || "") === String(restaurantId || ""));
         const cities = Array.from(new Set(
           restaurantRows
-            .map((row: any) => String(row?.city || "").trim())
+            .map((row) => String(row?.city || "").trim())
             .filter(Boolean),
         )).sort((a, b) => a.localeCompare(b, "fr-CH"));
         const cuisines = Array.from(new Set([
-          ...cuisineRows.map((row: any) => String(row?.name || "").trim()).filter(Boolean),
+          ...cuisineRows.map((row) => String(row?.name || "").trim()).filter(Boolean),
           ...restaurantRows
-            .flatMap((row: any) => String(row?.cuisine_type || "").split(","))
+            .flatMap((row) => String(row?.cuisine_type || "").split(","))
             .map((value: string) => value.trim())
             .filter(Boolean),
         ])).sort((a, b) => a.localeCompare(b, "fr-CH"));
