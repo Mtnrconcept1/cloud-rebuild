@@ -12,7 +12,7 @@ describe("TOK button design", () => {
     const css = read("src/index.css");
     const buttonVariants = read("src/components/ui/button-variants.ts");
 
-    expect(css).toContain("--primary: 18 100% 42%;");
+    expect(css).toContain("--primary: 18 100% 41%;");
     expect(css).toContain("--muted-foreground: 214 26% 88%;");
     expect(css).toContain(".dark .text-primary");
     expect(css).toContain("color: hsl(22 100% 72%);");
@@ -38,7 +38,7 @@ describe("TOK button design", () => {
 
     const source = files.map(read).join("\n");
 
-    expect(source).toContain("bg-[#d64200]");
+    expect(source).toContain("bg-[#d13f00]");
     expect(source).toContain("hover:bg-[#b83200]");
     expect(source).not.toContain("bg-purple-500 hover:bg-purple-600");
     expect(source).not.toContain("bg-pink-500 hover:bg-pink-600");
