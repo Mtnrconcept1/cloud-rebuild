@@ -107,6 +107,9 @@ verify_jwt = false
 [functions.generate-campaign]
 verify_jwt = false
 
+[functions.google-actions-center]
+verify_jwt = false
+
 [functions.notification-dispatch]
 verify_jwt = false
 

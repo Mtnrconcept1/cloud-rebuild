@@ -407,6 +407,7 @@ function AppShell() {
           <Route path="/recherche" element={<ClientSurfaceRoute><Recherche /></ClientSurfaceRoute>} />
           <Route path="/restaurants/:city" element={<ClientSurfaceRoute><LocalRestaurants /></ClientSurfaceRoute>} />
           <Route path="/restaurants/:city/:category" element={<ClientSurfaceRoute><LocalRestaurants /></ClientSurfaceRoute>} />
+          <Route path="/r/:slug/reserver" element={<ClientSurfaceRoute><RestaurantBookingRedirect /></ClientSurfaceRoute>} />
           <Route path="/r/:slug" element={<ClientSurfaceRoute><RestaurantBookingRedirect /></ClientSurfaceRoute>} />
           <Route path="/restaurant/:id" element={<ClientSurfaceRoute><RestaurantDetail /></ClientSurfaceRoute>} />
           <Route path="/anti-gaspi" element={<ClientSurfaceRoute><FeatureSwitch enabled={antiWasteEnabled}><AntiGaspi /></FeatureSwitch></ClientSurfaceRoute>} />
