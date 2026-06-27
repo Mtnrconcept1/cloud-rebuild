@@ -3,6 +3,7 @@ import { HttpError, jsonResponse, writeAuditLog } from "../_shared/auth.ts";
 import { createRateLimiter } from "../_shared/rate-limit.ts";
 import {
   assertTokConnectScopes,
+  buildTokConnectAutopilotPlan,
   buildTokConnectEnvelope,
   createTokConnectCursor,
   getTokConnectIdempotencyDecision,
@@ -953,6 +954,70 @@ async function previewCampaign(req: Request, requestId: string, corsHeaders: Rec
   };
 }
 
+async function buildAutopilotPlan(req: Request, requestId: string, corsHeaders: Record<string, string>) {
+  const context = await authorize(req, ["autopilot:plan", "analytics:read", "campaigns:preview"]);
+  await assertTokConnectFeatureEnabled(context.adminClient, "tok-connect-autopilot");
+  const body = await req.json().catch(() => ({}));
+  if (!body.restaurant_id || !body.objective) throw new HttpError(400, "autopilot_plan_fields_required");
+
+  await assertTokConnectRestaurantGrant(context, String(body.restaurant_id), "campaigns:preview");
+  await assertTokConnectRestaurantGrant(context, String(body.restaurant_id), "analytics:read");
+
+  const autopilotPlan = buildTokConnectAutopilotPlan({
+    restaurant_id: String(body.restaurant_id),
+    objective: String(body.objective),
+    budget_chf: Number(body.budget_chf || 0),
+    requested_actions: body.requested_actions,
+    approval_mode: "human_required",
+  });
+
+  const { data: run, error: runError } = await context.adminClient.from("tok_connect_agent_runs").insert({
+    partner_id: context.partnerId,
+    restaurant_id: body.restaurant_id,
+    mode: "autopilot_bounded",
+    tool_name: "build_autopilot_plan",
+    status: "pending_approval",
+    scopes: ["autopilot:plan", "analytics:read", "campaigns:preview"],
+    input: body,
+    output: { autopilot_plan: autopilotPlan },
+    approval_required: true,
+    risk_level: autopilotPlan.risk_level,
+    execution_policy: {
+      human_approval_required: true,
+      autonomous_mutation_allowed: false,
+      max_budget_chf: autopilotPlan.budget_chf,
+    },
+    expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+  }).select("id, status, mode, approval_required, risk_level, expires_at").single();
+
+  if (runError) throw new HttpError(500, runError.message);
+
+  await writeAuditLog({
+    adminClient: context.adminClient,
+    functionName: "tok-connect-api",
+    action: "autopilot.plan",
+    status: "success",
+    request: req,
+    targetEntityType: "tok_connect_agent_run",
+    targetEntityId: run.id,
+    metadata: {
+      partner_id: context.partnerId,
+      client_id: context.clientUuid,
+      restaurant_id: body.restaurant_id,
+      request_id: requestId,
+      autonomous_mutation_allowed: false,
+    },
+  });
+
+  return {
+    response: ok(requestId, { autopilot_plan: autopilotPlan, run }, corsHeaders, 202),
+    context,
+    scopes: ["autopilot:plan", "analytics:read", "campaigns:preview"],
+    route: "POST /v1/autopilot/plan",
+    restaurantId: String(body.restaurant_id),
+  };
+}
+
 async function dispatch(req: Request, requestId: string, corsHeaders: Record<string, string>): Promise<DispatchResult> {
   const path = stripFunctionPrefix(new URL(req.url).pathname);
 
@@ -999,6 +1064,10 @@ async function dispatch(req: Request, requestId: string, corsHeaders: Record<str
 
   if (req.method === "POST" && path === "/v1/campaigns/preview") {
     return await previewCampaign(req, requestId, corsHeaders);
+  }
+
+  if (req.method === "POST" && path === "/v1/autopilot/plan") {
+    return await buildAutopilotPlan(req, requestId, corsHeaders);
   }
 
   throw new HttpError(404, "tok_connect_route_not_found");

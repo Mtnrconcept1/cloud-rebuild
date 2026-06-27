@@ -56,7 +56,7 @@ export type TokConnectAgent = {
 };
 
 export type TokConnectAccessLevel = {
-  name: "Discovery" | "Booking" | "Campaign Preview" | "Analytics" | "Enterprise MCP";
+  name: "Discovery" | "Booking" | "Campaign Preview" | "Analytics" | "Autopilot" | "Enterprise MCP";
   description: string;
   scopes: string[];
 };
@@ -141,6 +141,12 @@ export const tokConnectCoreEndpoints: TokConnectEndpoint[] = [
     purpose: "Génération de campagne en suggestion validable par un humain.",
     scopes: ["campaigns:preview"],
   },
+  {
+    method: "POST",
+    path: "/v1/autopilot/plan",
+    purpose: "Plan Autopilot avancé, borné et bloqué avant approbation humaine.",
+    scopes: ["autopilot:plan", "analytics:read", "campaigns:preview"],
+  },
 ];
 
 export const tokConnectPartnerWebhooks: TokConnectWebhook[] = [
@@ -211,6 +217,12 @@ export const tokConnectMcpTools: TokConnectMcpTool[] = [
     purpose: "Générer une campagne en brouillon validable par le restaurant.",
     execution: "suggest",
   },
+  {
+    name: "build_autopilot_plan",
+    scope: "autopilot:plan",
+    purpose: "Composer un plan Autopilot avancé qui reste en attente d'approbation humaine.",
+    execution: "autopilot_bounded",
+  },
 ];
 
 export const tokConnectMcpResources: TokConnectMcpResource[] = [
@@ -234,6 +246,11 @@ export const tokConnectMcpResources: TokConnectMcpResource[] = [
     scope: "campaigns:preview",
     purpose: "Contexte de preview marketing sans publication.",
   },
+  {
+    uri: "tok://autopilot-runs/{restaurant_id}",
+    scope: "autopilot:plan",
+    purpose: "Runs Autopilot bornés, statuts d'approbation et politiques d'exécution.",
+  },
 ];
 
 export const tokConnectMcpPrompts: TokConnectMcpPrompt[] = [
@@ -254,6 +271,12 @@ export const tokConnectMcpPrompts: TokConnectMcpPrompt[] = [
     purpose: "Résumer les signaux de performance sans déclencher d'action.",
     mode: "read_only",
     inputs: ["restaurant_id", "période"],
+  },
+  {
+    name: "build_bounded_autopilot_plan",
+    purpose: "Transformer un objectif restaurant en plan Autopilot validable.",
+    mode: "autopilot_bounded",
+    inputs: ["restaurant_id", "objectif", "budget", "actions demandées"],
   },
 ];
 
@@ -279,6 +302,13 @@ export const tokConnectAgentCatalog: TokConnectAgent[] = [
     promise: "Lit remplissage, conversions et opportunités pour préparer une recommandation.",
     guardrail: "Lecture uniquement, sans modification d'offre ni campagne.",
   },
+  {
+    id: "bounded_autopilot",
+    name: "Agent Autopilot contrôlé",
+    mode: "autopilot_bounded",
+    promise: "Assemble lecture, performance et preview campagne en plan d'action priorisé.",
+    guardrail: "Le run reste en attente d'approbation et n'exécute aucune mutation autonome.",
+  },
 ];
 
 export const tokConnectAccessLevels: TokConnectAccessLevel[] = [
@@ -301,6 +331,11 @@ export const tokConnectAccessLevels: TokConnectAccessLevel[] = [
     name: "Analytics",
     description: "Lire les performances restaurant pour recommandations et reporting.",
     scopes: ["analytics:read"],
+  },
+  {
+    name: "Autopilot",
+    description: "Construire des plans avancés, bornés et validables avant exécution.",
+    scopes: ["autopilot:plan", "analytics:read", "campaigns:preview"],
   },
   {
     name: "Enterprise MCP",
@@ -369,8 +404,8 @@ export const tokConnectSecurityControls: TokConnectSecurityControl[] = [
     detail: "Les clients sandbox utilisent des fixtures et ne mutent pas la production.",
   },
   {
-    title: "Autopilot désactivé",
-    detail: "Les offres et campagnes autonomes restent hors production v1.",
+    title: "Autopilot contrôlé",
+    detail: "Les plans avancés restent en attente d'approbation; aucune mutation autonome n'est lancée par défaut.",
   },
 ];
 
@@ -381,6 +416,7 @@ export const tokConnectDeveloperPortalModules = [
   "Logs et quotas",
   "Configuration webhooks",
   "Rotation de secrets",
+  "Runs Autopilot",
 ] as const;
 
 export const tokConnectRoadmap: TokConnectRoadmapStep[] = [
@@ -460,7 +496,7 @@ export function buildTokConnectIntentPlan(intent: string): TokConnectIntentPlan 
       guardrails: [
         "Aucune campagne diffusée sans validation humaine",
         "Aucune dépense de crédits en mode preview",
-        "Autopilot désactivé en v1",
+        "Autopilot contrôlé: plan autorisé, exécution autonome bloquée",
       ],
       limits: {
         maxPartySize: 0,

@@ -52,6 +52,7 @@ describe("TOK Connect Edge Functions", () => {
       "/v1/reservations",
       "/v1/reservations/{id}/cancel",
       "/v1/campaigns/preview",
+      "/v1/autopilot/plan",
       "Idempotency-Key",
       "validate_and_create_reservation_safe",
       "tok_connect_idempotency_keys",
@@ -68,6 +69,10 @@ describe("TOK Connect Edge Functions", () => {
       "reservation.cancelled",
       "get_restaurant_credit_usage",
       "source: \"get_restaurant_credit_usage\"",
+      "tok-connect-autopilot",
+      "buildTokConnectAutopilotPlan",
+      "pending_approval",
+      "autopilot_bounded",
     ]) {
       expect(source).toContain(marker);
     }
@@ -90,12 +95,18 @@ describe("TOK Connect Edge Functions", () => {
       "get_restaurant_performance",
       "estimate_campaign_credit_cost",
       "generate_campaign_preview",
+      "build_autopilot_plan",
     ]) {
       expect(source).toContain(tool);
     }
 
     expect(source).not.toContain("create_flash_offer");
     expect(source).not.toContain("redeem_miamz");
+    expect(source).toContain("tok-connect-autopilot");
+    expect(source).toContain("tok://autopilot-runs/{restaurant_id}");
+    expect(source).toContain("buildTokConnectAutopilotPlan");
+    expect(source).toContain("agent_runs");
+    expect(source).toContain(".limit(25)");
     expect(source).toContain("assertTokConnectFeatureEnabled");
     expect(source).toContain("assertTokConnectRestaurantGrant");
     expect(source).toContain("getTokConnectSandboxMcpToolResult");
@@ -114,6 +125,8 @@ describe("TOK Connect Edge Functions", () => {
     expect(source).toContain("upsert-restaurant-grant");
     expect(source).toContain("update-grant-status");
     expect(source).toContain("update-client-policy");
+    expect(source).toContain("approve-agent-run");
+    expect(source).toContain("reject-agent-run");
     expect(source).toContain("requireRestaurantAccess");
     expect(source).toContain("max_daily_reservations");
     expect(source).toContain("token_ttl_seconds");

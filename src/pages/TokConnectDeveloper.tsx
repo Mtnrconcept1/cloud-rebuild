@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Ban, KeyRound, RefreshCw, Send, ShieldCheck, Terminal, Webhook } from "lucide-react";
+import { Ban, Bot, FileDown, KeyRound, RefreshCw, Send, ShieldCheck, Terminal, Webhook } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +28,7 @@ type PortalOverview = {
   api_requests: Array<{ request_id: string; method: string; route: string; status_code: number; created_at: string }>;
   webhook_endpoints: Array<{ id: string; url: string; events: string[]; status: string }>;
   webhook_deliveries: Array<{ id: string; event_type: string; status: string; attempts: number; created_at: string }>;
+  agent_runs: Array<{ id: string; mode: string; tool_name: string; status: string; approval_required: boolean; created_at: string }>;
   quotas: Record<string, unknown>;
 };
 
@@ -92,6 +93,16 @@ export default function TokConnectDeveloper() {
     } finally {
       setBusy(null);
     }
+  }
+
+  function downloadOpenApi() {
+    const blob = new Blob([tokConnectOpenApiDocument], { type: "application/yaml;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "tok-connect-openapi.yaml";
+    link.click();
+    URL.revokeObjectURL(url);
   }
 
   return (
@@ -188,11 +199,27 @@ export default function TokConnectDeveloper() {
               ))}
             </div>
           </article>
+
+          <article className="rounded-lg border bg-white p-5 shadow-sm">
+            <Bot className="h-7 w-7 text-orange-600" />
+            <h2 className="mt-4 text-xl font-black">Autopilot avancé</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              Les plans Autopilot restent bornés, stockés dans tok_connect_agent_runs et bloqués avant validation humaine.
+            </p>
+            <p className="mt-4 text-3xl font-black">{overview?.agent_runs?.length || 0}</p>
+            <p className="mt-1 text-sm text-slate-600">runs visibles</p>
+          </article>
         </section>
 
         <section className="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
           <article className="rounded-lg border bg-white p-5 shadow-sm">
-            <h2 className="text-xl font-black">Documentation OpenAPI</h2>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="text-xl font-black">Documentation OpenAPI</h2>
+              <Button type="button" variant="outline" onClick={downloadOpenApi}>
+                <FileDown className="mr-2 h-4 w-4" />
+                Télécharger
+              </Button>
+            </div>
             <pre className="mt-4 overflow-x-auto rounded-lg bg-slate-950 p-4 text-xs leading-6 text-slate-100">{tokConnectOpenApiDocument}</pre>
           </article>
 
@@ -222,6 +249,7 @@ export default function TokConnectDeveloper() {
           <DataPanel title="Clients" loading={loading} rows={overview?.clients || []} />
           <DataPanel title="Logs API" loading={loading} rows={overview?.api_requests || []} />
           <DataPanel title="Webhooks" loading={loading} rows={overview?.webhook_endpoints || []} />
+          <DataPanel title="tok_connect_agent_runs" loading={loading} rows={overview?.agent_runs || []} />
         </section>
       </div>
     </main>

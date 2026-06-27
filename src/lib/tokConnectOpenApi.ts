@@ -404,6 +404,34 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CampaignPreviewEnvelope"
+  /v1/autopilot/plan:
+    post:
+      tags: [Campaigns]
+      operationId: buildAutopilotPlan
+      summary: Build a bounded Autopilot plan for human approval
+      description: Creates a tok_connect_agent_runs entry in pending_approval. It does not publish campaigns, create offers or spend credits.
+      security:
+        - bearerAuth: [autopilot:plan, analytics:read, campaigns:preview]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AutopilotPlanRequest"
+            examples:
+              x-tok-request-example:
+                value:
+                  restaurant_id: 00000000-0000-4000-8000-000000000101
+                  objective: Remplir le jeudi soir
+                  budget_chf: 120
+                  requested_actions: [campaign_preview, reservation_recommendation]
+      responses:
+        "202":
+          description: Bounded Autopilot plan awaiting approval
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AutopilotPlanEnvelope"
 webhooks:
   reservationCreated:
     post:
@@ -719,6 +747,31 @@ components:
           type: number
           minimum: 0
     CampaignPreviewEnvelope:
+      allOf:
+        - $ref: "#/components/schemas/TokConnectEnvelope"
+    AutopilotPlanRequest:
+      type: object
+      required: [restaurant_id, objective]
+      properties:
+        restaurant_id:
+          type: string
+          format: uuid
+        objective:
+          type: string
+          maxLength: 240
+        budget_chf:
+          type: number
+          minimum: 0
+        requested_actions:
+          type: array
+          items:
+            type: string
+            enum: [campaign_preview, reservation_recommendation, availability_alert]
+        approval_mode:
+          type: string
+          enum: [human_required, manual_review]
+          default: human_required
+    AutopilotPlanEnvelope:
       allOf:
         - $ref: "#/components/schemas/TokConnectEnvelope"
     WebhookReservationCreated:

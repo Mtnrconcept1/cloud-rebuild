@@ -104,6 +104,17 @@ describe("TOK Connect SQL foundation", () => {
     expect(sql).toContain("CREATE INDEX IF NOT EXISTS idx_tok_connect_access_tokens_client_revoked");
   });
 
+  it("adds bounded Autopilot governance columns without allowing autonomous writes by default", () => {
+    const sql = readAllMigrations();
+
+    expect(sql).toMatch(/ALTER\s+TABLE\s+public\.tok_connect_agent_runs\s+ADD\s+COLUMN\s+IF\s+NOT\s+EXISTS\s+approved_by/i);
+    expect(sql).toMatch(/ALTER\s+TABLE\s+public\.tok_connect_agent_runs\s+ADD\s+COLUMN\s+IF\s+NOT\s+EXISTS\s+execution_policy/i);
+    expect(sql).toContain("autopilot_bounded");
+    expect(sql).toContain("pending_approval");
+    expect(sql).toContain("idx_tok_connect_agent_runs_restaurant_status");
+    expect(sql).toMatch(/'tok-connect-autopilot'[\s\S]{0,220}false/i);
+  });
+
   it("does not expose webhook signing secrets through authenticated table reads", () => {
     const sql = readAllMigrations();
 

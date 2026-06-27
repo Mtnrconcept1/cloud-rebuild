@@ -30,6 +30,33 @@ Le socle actuel repose sur:
 
 Toutes les nouvelles tables TOK Connect ont RLS activee. Les mutations sensibles passent par Edge Functions avec client service-role cote serveur uniquement. Le navigateur ne doit jamais recevoir de secret service-role.
 
+## Autopilot controle
+
+TOK Connect dispose maintenant d'un Autopilot avance, mais borne. Il sait preparer un plan exploitable par un partenaire, un assistant IA ou un operateur TOK, sans publier ni depenser automatiquement.
+
+- Endpoint REST: `POST /v1/autopilot/plan`.
+- Tool MCP: `build_autopilot_plan`.
+- Scope requis: `autopilot:plan`, avec `analytics:read` et `campaigns:preview`.
+- Flag requis: `tok-connect-autopilot`.
+- Stockage: chaque plan cree une ligne `tok_connect_agent_runs` en `mode='autopilot_bounded'` et `status='pending_approval'`.
+- Politique d'execution: `execution_policy.autonomous_mutation_allowed=false`.
+- Validation humaine: un admin TOK ou un restaurateur autorise peut approuver/rejeter via `tok-connect-portal` avec `approve-agent-run` ou `reject-agent-run`.
+
+Ce que l'Autopilot fait:
+
+1. Lit les contraintes et signaux autorises.
+2. Prepare un plan multi-etapes.
+3. Estime le budget et les actions possibles.
+4. Journalise le run.
+5. Attend une approbation humaine.
+
+Ce qu'il ne fait pas encore:
+
+- Publier une campagne.
+- Creer une offre autonome.
+- Depenser des credits.
+- Modifier MIAMZ, Zero Attente ou les reservations sans confirmation explicite.
+
 ## API REST v1
 
 Toutes les reponses REST suivent l'enveloppe:
@@ -185,7 +212,7 @@ curl "https://www.thetok.ch/functions/v1/tok-connect-api/v1/restaurants?limit=25
    - `tok-connect-api`: actif.
    - `tok-connect-mcp`: actif seulement pour partenaires testes.
    - `tok-connect-webhooks`: actif.
-   - `tok-connect-autopilot`: inactif en v1.
+   - `tok-connect-autopilot`: desactive par defaut; a activer seulement pour la planification bornee.
 2. Appliquer les migrations via GitHub Actions, pas manuellement depuis Codex.
 3. Deployer les Edge Functions via le workflow production.
 4. Verifier `internal_cron_secret` dans Supabase Vault.
@@ -209,7 +236,7 @@ curl "https://www.thetok.ch/functions/v1/tok-connect-api/v1/restaurants?limit=25
 - Les webhooks sont signes et retries.
 - Les actions sensibles sont auditees avec `writeAuditLog`.
 - La sandbox ne mute pas la production.
-- L'autopilot reste desactive en v1.
+- L'autopilot reste borne: planification et approbation humaine, pas d'execution autonome.
 
 ## Observabilite
 
@@ -233,7 +260,6 @@ Les consoles existantes:
 - Finaliser les regles metier autour de l'annulation reelle: delais commerciaux, remboursements, notifications client et communication restaurateur.
 - Enrichir l'admin commercial: recherche, filtres avances, billing tier, export logs et vues detaillees par partenaire/client/restaurant.
 - Enrichir le dashboard restaurateur: demande de nouveaux grants, edition deleguee des limites, expiration et details partenaires.
-- Exporter l'OpenAPI en fichier telechargeable depuis le portail developpeur.
 - Ajouter une verification production health dediee pour `tok-connect-webhook-dispatcher`.
 - Mettre a niveau la compatibilite MCP vers la specification stable la plus recente apres validation client.
 - Ajouter des tests navigateur authentifies sur `/tok-connect/developer`, `/admin/tok-connect` et `/dashboard/tok-connect`.

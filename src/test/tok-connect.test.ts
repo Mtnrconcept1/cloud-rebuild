@@ -42,7 +42,7 @@ describe("TOK Connect public catalog", () => {
     expect(plan.primaryGoal).toBe("campaign");
     expect(plan.requiredScopes).toEqual(["restaurants:read", "analytics:read", "credits:read", "campaigns:preview"]);
     expect(plan.limits?.humanApprovalRequired).toBe(true);
-    expect(plan.guardrails).toContain("Autopilot désactivé en v1");
+    expect(plan.guardrails).toContain("Autopilot contrôlé: plan autorisé, exécution autonome bloquée");
   });
 
   it("documents the real v1 API, webhooks and safe MCP surface", () => {
@@ -57,6 +57,7 @@ describe("TOK Connect public catalog", () => {
       "/v1/reservations/{id}/cancel",
       "/v1/credits/balance",
       "/v1/campaigns/preview",
+      "/v1/autopilot/plan",
     ]);
     expect(tokConnectPartnerWebhooks.map((webhook) => webhook.event)).toEqual([
       "reservation.created",
@@ -71,6 +72,7 @@ describe("TOK Connect public catalog", () => {
       "get_restaurant_performance",
       "estimate_campaign_credit_cost",
       "generate_campaign_preview",
+      "build_autopilot_plan",
     ]);
     expect(tokConnectMcpResources.map((resource) => resource.uri)).toContain("tok://availability/{restaurant_id}");
     expect(tokConnectMcpPrompts.map((prompt) => prompt.name)).toContain("prepare_guest_reservation");
@@ -82,6 +84,7 @@ describe("TOK Connect public catalog", () => {
       "Booking",
       "Campaign Preview",
       "Analytics",
+      "Autopilot",
       "Enterprise MCP",
     ]);
     expect(tokConnectPricingTiers.map((tier) => tier.name)).toContain("Free Developer");
@@ -90,7 +93,7 @@ describe("TOK Connect public catalog", () => {
       "OAuth 2.0 avec scopes",
       "Secrets hashés et rotation",
       "Idempotence réservation",
-      "Autopilot désactivé",
+      "Autopilot contrôlé",
     ]));
     expect(tokConnectRoadmap).toHaveLength(5);
     expect(tokConnectRoadmap.at(-1)?.title).toBe("Autopilot contrôlé");
@@ -108,6 +111,8 @@ describe("TOK Connect public catalog", () => {
     expect(tokConnectOpenApiDocument).toContain("operationId: listRestaurants");
     expect(tokConnectOpenApiDocument).toContain("operationId: createReservation");
     expect(tokConnectOpenApiDocument).toContain("operationId: cancelReservation");
+    expect(tokConnectOpenApiDocument).toContain("operationId: buildAutopilotPlan");
+    expect(tokConnectOpenApiDocument).toContain("AutopilotPlanRequest");
     expect(tokConnectOpenApiDocument).toContain("TokConnectEnvelope");
     expect(tokConnectOpenApiDocument).toContain("TokConnectError");
     expect(tokConnectOpenApiDocument).toContain("ReservationCreateRequest");

@@ -94,6 +94,12 @@ const tokConnectHeroActions: Array<{
     href: "/tok-connect/developer",
     icon: Activity,
   },
+  {
+    label: "Autopilot avancé",
+    helper: "Plans bornés, validation humaine",
+    href: "#autopilot-avance",
+    icon: Bot,
+  },
 ];
 
 const tokConnectDeploymentSteps = [
@@ -147,11 +153,15 @@ const tokConnectCapabilityCards = [
   },
   {
     title: "MCP prudent",
-    body: "Exposer six tools sûrs, des resources et des prompts pour ChatGPT ou agents IA encadrés.",
+    body: "Exposer sept tools sûrs, des resources et des prompts pour ChatGPT ou agents IA encadrés.",
   },
   {
     title: "Observabilité",
     body: "Tracer request_id, quotas, logs API, livraisons webhook, révocations, rotations de secrets et audit admin.",
+  },
+  {
+    title: "Autopilot avancé",
+    body: "Composer un plan d'action multi-étapes, le stocker dans tok_connect_agent_runs et bloquer toute exécution avant approbation.",
   },
 ];
 
@@ -250,7 +260,7 @@ export default function TokConnect() {
 
             <div className="grid max-w-2xl gap-3 sm:grid-cols-3">
               <HeroStat value="9" label="endpoints v1" />
-              <HeroStat value="6" label="tools MCP sûrs" />
+              <HeroStat value="7" label="tools MCP sûrs" />
               <HeroStat value="0" label="autopilot prod" />
             </div>
           </div>
@@ -384,7 +394,7 @@ export default function TokConnect() {
             </div>
           </div>
 
-          <div>
+          <div id="autopilot-avance" className="scroll-mt-24">
             <h3 className="text-2xl font-black">Ce que TOK Connect sait faire</h3>
             <div className="mt-5 grid gap-4 md:grid-cols-2">
               {tokConnectCapabilityCards.map((capability) => (

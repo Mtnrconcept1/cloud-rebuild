@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Activity, Check, Clipboard, KeyRound, Network, ShieldAlert, ShieldCheck, ShieldX, SlidersHorizontal, Webhook } from "lucide-react";
+import { Activity, Bot, Check, Clipboard, KeyRound, Network, ShieldAlert, ShieldCheck, ShieldX, SlidersHorizontal, Webhook } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -27,6 +27,7 @@ type AdminTokConnectState = {
   requests: TokConnectRow[];
   deliveries: TokConnectRow[];
   grants: TokConnectRow[];
+  agentRuns: TokConnectRow[];
 };
 
 const emptyState: AdminTokConnectState = {
@@ -35,6 +36,7 @@ const emptyState: AdminTokConnectState = {
   requests: [],
   deliveries: [],
   grants: [],
+  agentRuns: [],
 };
 
 type TokConnectEnvelope<TData> = {
@@ -58,7 +60,7 @@ type GrantFormState = {
 const defaultGrantForm: GrantFormState = {
   partner_id: "",
   restaurant_id: "",
-  allowed_scopes: "restaurants:read availability:read reservations:create reservations:cancel",
+  allowed_scopes: "restaurants:read availability:read reservations:create reservations:cancel analytics:read campaigns:preview autopilot:plan",
   status: "pending",
   allow_mcp: false,
   max_daily_reservations: "25",
@@ -77,7 +79,7 @@ type ChatGptMcpSetupItem = {
 const CHATGPT_MCP_SERVER_URL = "https://www.thetok.ch/functions/v1/tok-connect-mcp";
 const CHATGPT_OAUTH_TOKEN_URL = "https://www.thetok.ch/functions/v1/tok-connect-oauth";
 const CHATGPT_MCP_DESCRIPTION = "TOK Connect: restaurants, disponibilités, réservations et campagnes preview via MCP sécurisé.";
-const CHATGPT_MCP_FALLBACK_SCOPES = "restaurants:read availability:read reservations:create reservations:cancel analytics:read credits:read campaigns:preview";
+const CHATGPT_MCP_FALLBACK_SCOPES = "restaurants:read availability:read reservations:create reservations:cancel analytics:read credits:read campaigns:preview autopilot:plan";
 
 function getStringValue(row: TokConnectRow | undefined, key: string) {
   const value = row?.[key];
@@ -115,15 +117,16 @@ async function callTokConnectAdminAction(body: Record<string, unknown>) {
 
 async function loadAdminTokConnectState(): Promise<AdminTokConnectState> {
   const supabase = getSupabase() as unknown as TokConnectSupabase;
-  const [partners, clients, requests, deliveries, grants] = await Promise.all([
+  const [partners, clients, requests, deliveries, grants, agentRuns] = await Promise.all([
     supabase.from("tok_connect_partners").select("*").order("created_at", { ascending: false }).limit(50),
     supabase.from("tok_connect_clients").select("*").order("created_at", { ascending: false }).limit(50),
     supabase.from("tok_connect_api_requests").select("*").order("created_at", { ascending: false }).limit(ADMIN_TOK_CONNECT_LOG_LIMIT),
     supabase.from("tok_connect_webhook_deliveries").select("*").order("created_at", { ascending: false }).limit(ADMIN_TOK_CONNECT_LOG_LIMIT),
     supabase.from("tok_connect_restaurant_grants").select("*").order("created_at", { ascending: false }).limit(100),
+    supabase.from("tok_connect_agent_runs").select("*").order("created_at", { ascending: false }).limit(ADMIN_TOK_CONNECT_LOG_LIMIT),
   ]);
 
-  const firstError = [partners.error, clients.error, requests.error, deliveries.error, grants.error].find(Boolean);
+  const firstError = [partners.error, clients.error, requests.error, deliveries.error, grants.error, agentRuns.error].find(Boolean);
   if (firstError) throw new Error(firstError.message);
 
   return {
@@ -132,6 +135,7 @@ async function loadAdminTokConnectState(): Promise<AdminTokConnectState> {
     requests: requests.data || [],
     deliveries: deliveries.data || [],
     grants: grants.data || [],
+    agentRuns: agentRuns.data || [],
   };
 }
 
@@ -144,6 +148,7 @@ export default function AdminTokConnect() {
   const [copiedChatGptField, setCopiedChatGptField] = useState<string | null>(null);
   const [selectedPartnerId, setSelectedPartnerId] = useState("");
   const [selectedClientUuid, setSelectedClientUuid] = useState("");
+  const [selectedAgentRunId, setSelectedAgentRunId] = useState("");
   const [clientScopesInput, setClientScopesInput] = useState("restaurants:read availability:read");
   const [clientTtlSeconds, setClientTtlSeconds] = useState("900");
   const [clientQuotaPerMinute, setClientQuotaPerMinute] = useState("240");
@@ -174,13 +179,18 @@ export default function AdminTokConnect() {
       const firstClientUuid = getStringValue(state.clients[0], "id");
       if (firstClientUuid) setSelectedClientUuid(firstClientUuid);
     }
-  }, [selectedClientUuid, selectedPartnerId, state.clients, state.partners]);
+    if (!selectedAgentRunId) {
+      const firstAgentRunId = getStringValue(state.agentRuns[0], "id");
+      if (firstAgentRunId) setSelectedAgentRunId(firstAgentRunId);
+    }
+  }, [selectedAgentRunId, selectedClientUuid, selectedPartnerId, state.agentRuns, state.clients, state.partners]);
 
   const metrics = useMemo(() => [
     { label: "Partenaires", value: state.partners.length, icon: Network },
     { label: "Requêtes API", value: state.requests.length, icon: Activity },
     { label: "Grants restaurants", value: state.grants.length, icon: KeyRound },
     { label: "Livraisons webhook", value: state.deliveries.length, icon: Webhook },
+    { label: "Runs Autopilot", value: state.agentRuns.length, icon: Bot },
   ], [state]);
 
   const selectedClient = useMemo(
@@ -356,6 +366,20 @@ export default function AdminTokConnect() {
     }
   }
 
+  async function runAgentRunAction(action: "approve-agent-run" | "reject-agent-run") {
+    setBusyAction(action);
+    setError(null);
+    try {
+      if (!selectedAgentRunId) throw new Error("Sélectionnez un run Autopilot.");
+      await callTokConnectAdminAction({ action, agent_run_id: selectedAgentRunId });
+      await load();
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError.message : "Action Autopilot impossible.");
+    } finally {
+      setBusyAction(null);
+    }
+  }
+
   async function runClientPolicyUpdate() {
     setBusyAction("update-client-policy");
     setError(null);
@@ -422,7 +446,7 @@ export default function AdminTokConnect() {
           <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">{error}</div>
         ) : null}
 
-        <section className="grid gap-4 md:grid-cols-4">
+        <section className="grid gap-4 md:grid-cols-5">
           {metrics.map(({ label, value, icon: Icon }) => (
             <article key={label} className="rounded-lg border bg-white p-5 shadow-sm">
               <Icon className="h-6 w-6 text-orange-600" />
@@ -594,12 +618,49 @@ export default function AdminTokConnect() {
           </article>
         </section>
 
+        <section className="rounded-lg border bg-white p-5 shadow-sm">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+            <div>
+              <div className="flex items-center gap-3">
+                <Bot className="h-5 w-5 text-orange-600" />
+                <h2 className="text-lg font-black">Autopilot contrôlé</h2>
+              </div>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
+                Les runs tok_connect_agent_runs peuvent être approuvés ou rejetés ici. L'approbation ne déclenche pas
+                de campagne ou dépense automatiquement.
+              </p>
+            </div>
+            <div className="grid w-full gap-3 xl:max-w-3xl">
+              <label className="text-xs font-bold uppercase text-slate-500">
+                Agent run ID
+                <input
+                  className="mt-1 w-full rounded-md border px-3 py-2 text-sm normal-case text-slate-900"
+                  value={selectedAgentRunId}
+                  onChange={(event) => setSelectedAgentRunId(event.target.value)}
+                  placeholder="uuid tok_connect_agent_runs"
+                />
+              </label>
+              <div className="flex flex-wrap gap-2">
+                <Button variant="outline" disabled={!selectedAgentRunId || busyAction === "approve-agent-run"} onClick={() => runAgentRunAction("approve-agent-run")}>
+                  <ShieldCheck className="mr-2 h-4 w-4" />
+                  Approuver le run
+                </Button>
+                <Button variant="outline" disabled={!selectedAgentRunId || busyAction === "reject-agent-run"} onClick={() => runAgentRunAction("reject-agent-run")}>
+                  <ShieldX className="mr-2 h-4 w-4" />
+                  Rejeter le run
+                </Button>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <section className="grid gap-5 xl:grid-cols-2">
           <AdminTokConnectPanel title="tok_connect_partners" rows={state.partners} loading={loading} />
           <AdminTokConnectPanel title="tok_connect_clients" rows={state.clients} loading={loading} />
           <AdminTokConnectPanel title="tok_connect_api_requests" rows={state.requests} loading={loading} />
           <AdminTokConnectPanel title="tok_connect_restaurant_grants" rows={state.grants} loading={loading} />
           <AdminTokConnectPanel title="tok_connect_webhook_deliveries" rows={state.deliveries} loading={loading} />
+          <AdminTokConnectPanel title="tok_connect_agent_runs" rows={state.agentRuns} loading={loading} />
         </section>
 
         <section className="rounded-lg border bg-white p-5 shadow-sm">

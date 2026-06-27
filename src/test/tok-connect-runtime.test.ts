@@ -5,6 +5,7 @@ import {
   TOK_CONNECT_REQUIRED_FEATURE_FLAGS,
   TOK_CONNECT_WEBHOOK_EVENTS,
   assertTokConnectScopes,
+  buildTokConnectAutopilotPlan,
   buildTokConnectWebhookHeaders,
   buildTokConnectEnvelope,
   createTokConnectCursor,
@@ -96,7 +97,7 @@ describe("TOK Connect shared runtime", () => {
     expect(campaign?.content[0]?.text).toContain("requires_human_approval");
   });
 
-  it("enforces scoped access without enabling autopilot tools in v1", () => {
+  it("enforces scoped access while exposing only bounded Autopilot planning", () => {
     expect(() => assertTokConnectScopes(["restaurants:read", "availability:read"], ["availability:read"]))
       .not.toThrow();
     expect(() => assertTokConnectScopes(["restaurants:read"], ["reservations:create"]))
@@ -109,9 +110,27 @@ describe("TOK Connect shared runtime", () => {
       "get_restaurant_performance",
       "estimate_campaign_credit_cost",
       "generate_campaign_preview",
+      "build_autopilot_plan",
     ]);
     expect(SAFE_TOK_CONNECT_MCP_TOOLS.map((tool) => tool.name)).not.toContain("create_flash_offer");
     expect(TOK_CONNECT_REQUIRED_FEATURE_FLAGS).toContain("tok-connect-autopilot");
+  });
+
+  it("builds a bounded Autopilot plan that cannot execute without human approval", () => {
+    const plan = buildTokConnectAutopilotPlan({
+      restaurant_id: "00000000-0000-4000-8000-000000000101",
+      objective: "Remplir le service du jeudi soir",
+      budget_chf: 120,
+      requested_actions: ["campaign_preview", "reservation_recommendation", "unsupported_action"],
+      approval_mode: "human_required",
+    });
+
+    expect(plan.mode).toBe("autopilot_bounded");
+    expect(plan.status).toBe("pending_approval");
+    expect(plan.approval_required).toBe(true);
+    expect(plan.can_execute).toBe(false);
+    expect(plan.actions.map((action) => action.type)).toEqual(["campaign_preview", "reservation_recommendation"]);
+    expect(plan.guardrails).toContain("Execution autonome bloquee tant qu'un humain n'a pas approuve le run.");
   });
 
   it("hashes client secrets and signs outgoing webhooks", async () => {

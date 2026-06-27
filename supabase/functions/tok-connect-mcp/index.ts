@@ -3,6 +3,7 @@ import { HttpError, jsonResponse } from "../_shared/auth.ts";
 import { createRateLimiter } from "../_shared/rate-limit.ts";
 import {
   SAFE_TOK_CONNECT_MCP_TOOLS,
+  buildTokConnectAutopilotPlan,
   buildTokConnectEnvelope,
   getTokConnectSandboxMcpToolResult,
   makeTokConnectRequestId,
@@ -48,6 +49,12 @@ const MCP_RESOURCES = [
     description: "Human-approved campaign preview context.",
     mimeType: "application/json",
   },
+  {
+    uri: "tok://autopilot-runs/{restaurant_id}",
+    name: "Bounded Autopilot runs",
+    description: "Autopilot plans, approval status and execution policy snapshots.",
+    mimeType: "application/json",
+  },
 ];
 
 const MCP_PROMPTS = [
@@ -68,6 +75,16 @@ const MCP_PROMPTS = [
       { name: "restaurant_id", required: true },
       { name: "objective", required: true },
       { name: "budget_chf", required: false },
+    ],
+  },
+  {
+    name: "build_bounded_autopilot_plan",
+    description: "Prepare a multi-step restaurant Autopilot plan that remains blocked until human approval.",
+    arguments: [
+      { name: "restaurant_id", required: true },
+      { name: "objective", required: true },
+      { name: "budget_chf", required: false },
+      { name: "requested_actions", required: false },
     ],
   },
 ];
@@ -223,6 +240,43 @@ async function callTool(
       return { content: [{ type: "text", text: JSON.stringify({ campaign_preview: preview }) }] };
     }
 
+    case "build_autopilot_plan": {
+      await assertTokConnectFeatureEnabled(context.adminClient, "tok-connect-autopilot");
+      await assertTokConnectRestaurantGrant(context, restaurantId, "campaigns:preview", {
+        requireMcp: true,
+      });
+      await assertTokConnectRestaurantGrant(context, restaurantId, "analytics:read", {
+        requireMcp: true,
+      });
+      const autopilotPlan = buildTokConnectAutopilotPlan({
+        restaurant_id: restaurantId,
+        objective: String(args.objective || ""),
+        budget_chf: Number(args.budget_chf || 0),
+        requested_actions: args.requested_actions,
+        approval_mode: "human_required",
+      });
+      const { data: run, error } = await context.adminClient.from("tok_connect_agent_runs").insert({
+        partner_id: context.partnerId,
+        restaurant_id: restaurantId,
+        mode: "autopilot_bounded",
+        tool_name: "build_autopilot_plan",
+        status: "pending_approval",
+        scopes: ["autopilot:plan", "analytics:read", "campaigns:preview"],
+        input: args,
+        output: { autopilot_plan: autopilotPlan },
+        approval_required: true,
+        risk_level: autopilotPlan.risk_level,
+        execution_policy: {
+          human_approval_required: true,
+          autonomous_mutation_allowed: false,
+          max_budget_chf: autopilotPlan.budget_chf,
+        },
+        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      }).select("id, status, mode, approval_required, risk_level, expires_at").single();
+      if (error) throw new HttpError(500, error.message);
+      return { content: [{ type: "text", text: JSON.stringify({ autopilot_plan: autopilotPlan, run }) }] };
+    }
+
     default:
       throw new HttpError(404, "mcp_tool_not_found");
   }
@@ -286,6 +340,7 @@ async function handleMcp(req: Request, rpc: JsonRpcRequest): Promise<McpHandleRe
       const uri = String(rpc.params?.uri || "tok://restaurants");
       let context: TokConnectTokenContext;
       let scopes: string[];
+      let resourceText = JSON.stringify({ status: "available", mutation_allowed: false });
       if (uri.startsWith("tok://availability/")) {
         scopes = ["availability:read"];
         context = await authorizeMcp(req, scopes);
@@ -304,6 +359,31 @@ async function handleMcp(req: Request, rpc: JsonRpcRequest): Promise<McpHandleRe
           "campaigns:preview",
           { requireMcp: true },
         );
+      } else if (uri.startsWith("tok://autopilot-runs/")) {
+        const restaurantId = uri.replace("tok://autopilot-runs/", "");
+        scopes = ["autopilot:plan", "analytics:read", "campaigns:preview"];
+        context = await authorizeMcp(req, scopes);
+        await assertTokConnectFeatureEnabled(context.adminClient, "tok-connect-autopilot");
+        await assertTokConnectRestaurantGrant(
+          context,
+          restaurantId,
+          "campaigns:preview",
+          { requireMcp: true },
+        );
+        await assertTokConnectRestaurantGrant(
+          context,
+          restaurantId,
+          "analytics:read",
+          { requireMcp: true },
+        );
+        const { data, error } = await context.adminClient
+          .from("tok_connect_agent_runs")
+          .select("id, mode, tool_name, status, approval_required, risk_level, execution_policy, created_at, approved_at, rejected_at, expires_at")
+          .eq("restaurant_id", restaurantId)
+          .order("created_at", { ascending: false })
+          .limit(25);
+        if (error) throw new HttpError(500, error.message);
+        resourceText = JSON.stringify({ agent_runs: data || [], mutation_allowed: false });
       } else {
         scopes = ["restaurants:read"];
         context = await authorizeMcp(req, scopes);
@@ -313,7 +393,7 @@ async function handleMcp(req: Request, rpc: JsonRpcRequest): Promise<McpHandleRe
         contents: [{
           uri,
           mimeType: "application/json",
-          text: JSON.stringify({ status: "available", mutation_allowed: false }),
+          text: resourceText,
         }],
         }),
         context,

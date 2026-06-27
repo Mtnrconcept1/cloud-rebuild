@@ -5,7 +5,8 @@ export type TokConnectScope =
   | "reservations:cancel"
   | "credits:read"
   | "campaigns:preview"
-  | "analytics:read";
+  | "analytics:read"
+  | "autopilot:plan";
 
 export type TokConnectEnvelope<TData = unknown> = {
   ok: boolean;
@@ -42,6 +43,37 @@ export type TokConnectIdempotencyDecision<TResponse = Record<string, unknown>> =
 
 export type TokConnectMcpContentResult = {
   content: Array<{ type: "text"; text: string }>;
+};
+
+export type TokConnectAutopilotActionType =
+  | "campaign_preview"
+  | "reservation_recommendation"
+  | "availability_alert";
+
+export type TokConnectAutopilotPlanInput = {
+  restaurant_id: string;
+  objective: string;
+  budget_chf?: number;
+  requested_actions?: unknown;
+  approval_mode?: "human_required" | "manual_review";
+};
+
+export type TokConnectAutopilotPlan = {
+  mode: "autopilot_bounded";
+  status: "pending_approval";
+  restaurant_id: string;
+  objective: string;
+  budget_chf: number;
+  approval_required: true;
+  can_execute: false;
+  risk_level: "low" | "medium" | "high";
+  actions: Array<{
+    type: TokConnectAutopilotActionType;
+    title: string;
+    execution_mode: "preview_only";
+    requires_human_approval: true;
+  }>;
+  guardrails: string[];
 };
 
 export const TOK_CONNECT_REQUIRED_FEATURE_FLAGS = [
@@ -148,6 +180,26 @@ export const SAFE_TOK_CONNECT_MCP_TOOLS: TokConnectMcpTool[] = [
         restaurant_id: { type: "string", format: "uuid" },
         objective: { type: "string" },
         budget_chf: { type: "number", minimum: 0 },
+      },
+    },
+  },
+  {
+    name: "build_autopilot_plan",
+    title: "Build bounded Autopilot plan",
+    description: "Prepare a multi-step Autopilot plan that remains blocked until human approval.",
+    requiredScopes: ["autopilot:plan", "analytics:read", "campaigns:preview"],
+    inputSchema: {
+      type: "object",
+      required: ["restaurant_id", "objective"],
+      properties: {
+        restaurant_id: { type: "string", format: "uuid" },
+        objective: { type: "string" },
+        budget_chf: { type: "number", minimum: 0 },
+        requested_actions: {
+          type: "array",
+          items: { type: "string", enum: ["campaign_preview", "reservation_recommendation", "availability_alert"] },
+        },
+        approval_mode: { type: "string", enum: ["human_required", "manual_review"] },
       },
     },
   },
@@ -321,6 +373,57 @@ function mcpJsonContent(value: Record<string, unknown>): TokConnectMcpContentRes
   return { content: [{ type: "text", text: JSON.stringify(value) }] };
 }
 
+const TOK_CONNECT_AUTOPILOT_ACTIONS: Record<TokConnectAutopilotActionType, {
+  title: string;
+}> = {
+  campaign_preview: { title: "Generer une campagne en preview" },
+  reservation_recommendation: { title: "Recommander les meilleurs creneaux a pousser" },
+  availability_alert: { title: "Surveiller les creux de disponibilite" },
+};
+
+function clampTokConnectBudget(value: unknown) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 0) return 0;
+  return Math.min(Math.round(parsed * 100) / 100, 5_000);
+}
+
+function normalizeTokConnectAutopilotActions(value: unknown): TokConnectAutopilotActionType[] {
+  const rawActions = Array.isArray(value) ? value : [];
+  const allowedActions = new Set(Object.keys(TOK_CONNECT_AUTOPILOT_ACTIONS));
+  const requested = rawActions
+    .map((action) => String(action || "").trim())
+    .filter((action): action is TokConnectAutopilotActionType => allowedActions.has(action));
+  const unique = [...new Set(requested)];
+  return unique.length > 0 ? unique : ["campaign_preview", "reservation_recommendation"];
+}
+
+export function buildTokConnectAutopilotPlan(input: TokConnectAutopilotPlanInput): TokConnectAutopilotPlan {
+  const budgetChf = clampTokConnectBudget(input.budget_chf);
+  const actions = normalizeTokConnectAutopilotActions(input.requested_actions).map((type) => ({
+    type,
+    title: TOK_CONNECT_AUTOPILOT_ACTIONS[type].title,
+    execution_mode: "preview_only" as const,
+    requires_human_approval: true as const,
+  }));
+
+  return {
+    mode: "autopilot_bounded",
+    status: "pending_approval",
+    restaurant_id: String(input.restaurant_id || ""),
+    objective: String(input.objective || "").trim().slice(0, 240),
+    budget_chf: budgetChf,
+    approval_required: true,
+    can_execute: false,
+    risk_level: budgetChf > 500 || actions.length >= 3 ? "medium" : "low",
+    actions,
+    guardrails: [
+      "Execution autonome bloquee tant qu'un humain n'a pas approuve le run.",
+      "Aucune campagne, offre, depense de credits ou modification restaurant n'est publiee par ce plan.",
+      "Chaque etape reste journalisee dans tok_connect_agent_runs avec request_id et scopes.",
+    ],
+  };
+}
+
 export function getTokConnectSandboxMcpToolResult(
   name: string,
   args: Record<string, unknown>,
@@ -406,6 +509,17 @@ export function getTokConnectSandboxMcpToolResult(
           status: "preview",
           environment: "sandbox",
         },
+      });
+
+    case "build_autopilot_plan":
+      return mcpJsonContent({
+        autopilot_plan: buildTokConnectAutopilotPlan({
+          restaurant_id: restaurantId,
+          objective: String(args.objective || "Remplir les services creux"),
+          budget_chf: Number(args.budget_chf || 0),
+          requested_actions: args.requested_actions,
+          approval_mode: "human_required",
+        }),
       });
 
     default:

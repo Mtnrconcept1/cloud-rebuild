@@ -25,6 +25,7 @@ const SANDBOX_SCOPES = [
   "credits:read",
   "campaigns:preview",
   "analytics:read",
+  "autopilot:plan",
 ];
 
 const GRANT_STATUSES = ["pending", "active", "suspended", "revoked"] as const;
@@ -77,12 +78,15 @@ type PortalBody = {
     | "revoke-partner"
     | "upsert-restaurant-grant"
     | "update-grant-status"
-    | "update-client-policy";
+    | "update-client-policy"
+    | "approve-agent-run"
+    | "reject-agent-run";
   client_uuid?: string;
   partner_id?: string;
   restaurant_id?: string;
   grant_id?: string;
   endpoint_id?: string;
+  agent_run_id?: string;
   webhook_url?: string;
   events?: string[];
   allowed_scopes?: string[] | string;
@@ -551,6 +555,71 @@ async function updateClientPolicy(
   return { client: updatedClient };
 }
 
+async function updateAgentRunApproval(
+  actor: PortalActor,
+  req: Request,
+  requestId: string,
+  agentRunId: string,
+  action: "approve-agent-run" | "reject-agent-run",
+) {
+  const { data: run, error: runError } = await actor.adminClient
+    .from("tok_connect_agent_runs")
+    .select("id, partner_id, restaurant_id, status, approval_required")
+    .eq("id", agentRunId)
+    .maybeSingle<{
+      id: string;
+      partner_id: string | null;
+      restaurant_id: string | null;
+      status: string;
+      approval_required: boolean;
+    }>();
+
+  if (runError) throw new HttpError(500, runError.message);
+  if (!run) throw new HttpError(404, "tok_connect_agent_run_not_found");
+  if (!["preview", "pending_approval"].includes(run.status)) {
+    throw new HttpError(409, "tok_connect_agent_run_not_approvable");
+  }
+
+  if (!actor.isAdmin) {
+    if (!run.restaurant_id) throw new HttpError(403, "restaurant_required_for_agent_run_approval");
+    await requireRestaurantAccess(actor, run.restaurant_id);
+  }
+
+  const now = new Date().toISOString();
+  const approving = action === "approve-agent-run";
+  const patch = approving
+    ? { status: "approved", approved_by: actor.userId, approved_at: now }
+    : { status: "rejected", rejected_by: actor.userId, rejected_at: now };
+
+  const { data: updatedRun, error } = await actor.adminClient
+    .from("tok_connect_agent_runs")
+    .update(patch)
+    .eq("id", run.id)
+    .select("id, partner_id, restaurant_id, status, mode, tool_name, approved_at, rejected_at, approval_required")
+    .single();
+
+  if (error) throw new HttpError(500, error.message);
+
+  await writeAuditLog({
+    adminClient: actor.adminClient,
+    functionName: "tok-connect-portal",
+    action,
+    status: "success",
+    actor,
+    request: req,
+    targetEntityType: "tok_connect_agent_run",
+    targetEntityId: run.id,
+    metadata: {
+      request_id: requestId,
+      partner_id: run.partner_id,
+      restaurant_id: run.restaurant_id,
+      next_status: approving ? "approved" : "rejected",
+    },
+  });
+
+  return { agent_run: updatedRun };
+}
+
 function isLocalTokConnectDevelopmentRuntime() {
   const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
   return supabaseUrl.includes("127.0.0.1") || supabaseUrl.includes("localhost");
@@ -566,7 +635,7 @@ async function overview(actor: PortalActor) {
   const memberships = await getMemberPartners(actor.adminClient, actor.userId || "");
   const partnerIds = memberships.map((membership) => membership.partner_id).filter(Boolean);
 
-  const [clients, logs, endpoints, deliveries] = await Promise.all([
+  const [clients, logs, endpoints, deliveries, agentRuns] = await Promise.all([
     partnerIds.length === 0
       ? Promise.resolve({ data: [] })
       : actor.adminClient.from("tok_connect_clients").select("id, partner_id, client_id, name, environment, allowed_scopes, status, created_at, last_rotated_at").in("partner_id", partnerIds).limit(20),
@@ -579,6 +648,9 @@ async function overview(actor: PortalActor) {
     partnerIds.length === 0
       ? Promise.resolve({ data: [] })
       : actor.adminClient.from("tok_connect_webhook_deliveries").select("id, partner_id, event_type, status, attempts, response_status, created_at").in("partner_id", partnerIds).order("created_at", { ascending: false }).limit(50),
+    partnerIds.length === 0
+      ? Promise.resolve({ data: [] })
+      : actor.adminClient.from("tok_connect_agent_runs").select("id, partner_id, restaurant_id, mode, tool_name, status, approval_required, risk_level, created_at, approved_at, rejected_at").in("partner_id", partnerIds).order("created_at", { ascending: false }).limit(50),
   ]);
 
   return {
@@ -587,6 +659,7 @@ async function overview(actor: PortalActor) {
     api_requests: logs.data || [],
     webhook_endpoints: endpoints.data || [],
     webhook_deliveries: deliveries.data || [],
+    agent_runs: agentRuns.data || [],
     quotas: {
       sandbox_requests_per_minute: 240,
       production_requests_per_minute: "sur validation admin",
@@ -782,6 +855,14 @@ Deno.serve(async (req) => {
       return jsonResponse(buildTokConnectEnvelope({
         requestId,
         data: await updateClientPolicy(actor, req, requestId, body),
+      }), 200, corsHeaders);
+    }
+
+    if (action === "approve-agent-run" || action === "reject-agent-run") {
+      if (!body.agent_run_id) throw new HttpError(400, "agent_run_id_required");
+      return jsonResponse(buildTokConnectEnvelope({
+        requestId,
+        data: await updateAgentRunApproval(actor, req, requestId, body.agent_run_id, action),
       }), 200, corsHeaders);
     }
 

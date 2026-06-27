@@ -31,6 +31,8 @@ describe("TOK Connect frontend integration", () => {
     expect(portal).toContain("revoke-client");
     expect(portal).toContain("create-webhook-endpoint");
     expect(portal).toContain("send-webhook-test");
+    expect(portal).toContain("Autopilot");
+    expect(portal).toContain("tok_connect_agent_runs");
     expect(portal).toContain("fetchWithFreshAccessToken");
     expect(portal).toContain("Documentation OpenAPI");
     expect(portal).toContain("Exemple MCP");
@@ -51,6 +53,7 @@ describe("TOK Connect frontend integration", () => {
     expect(page).toContain("Ce que TOK Connect sait faire");
     expect(page).toContain("https://www.thetok.ch/functions/v1/tok-connect-api");
     expect(page).toContain("https://www.thetok.ch/functions/v1/tok-connect-mcp");
+    expect(page).toContain("Autopilot avanc");
   });
 
   it("adds operational TOK Connect consoles for admins and restaurateurs", () => {
@@ -65,6 +68,8 @@ describe("TOK Connect frontend integration", () => {
     expect(admin).toContain("revoke-client");
     expect(admin).toContain("upsert-restaurant-grant");
     expect(admin).toContain("update-client-policy");
+    expect(admin).toContain("approve-agent-run");
+    expect(admin).toContain("reject-agent-run");
     expect(admin).toContain("selectedPartnerId");
     expect(admin).toContain("grantForm");
     expect(admin).toContain("fetchWithFreshAccessToken");
@@ -78,6 +83,7 @@ describe("TOK Connect frontend integration", () => {
     expect(admin).toContain("Secret affiché une seule fois");
     expect(admin).toContain("tok_connect_partners");
     expect(admin).toContain("tok_connect_api_requests");
+    expect(admin).toContain("tok_connect_agent_runs");
     expect(admin).toContain("ADMIN_TOK_CONNECT_LOG_LIMIT");
 
     expect(dashboard).toContain("Consentements TOK Connect");
