@@ -37,18 +37,18 @@ describe("navbar action stability", () => {
     expect(source).toContain('transform: isHeaderVisible ? "translateY(0)" : "translateY(-100%)"');
   });
 
-  it("keeps flash sales visibly distinct in desktop and mobile navigation", () => {
+  it("keeps flash sales visibly distinct and accessible in desktop and mobile navigation", () => {
     expect(source).toContain("Zap,");
     expect(source).toContain('<Zap className="h-4 w-4 fill-amber-400/35 text-amber-500 dark:text-amber-300" />');
-    expect(source).toContain("text-amber-600 transition-colors hover:text-orange-600");
-    expect(source).toContain("text-amber-600 hover:text-orange-600");
+    expect(source).toContain("text-amber-800 transition-colors hover:text-orange-800");
+    expect(source).toContain("text-amber-800 hover:text-orange-800");
   });
 
   it("keeps the desktop actualites tab immediately after explorer", () => {
     const desktopNavigationStart = source.indexOf('<NavigationMenu className="hidden lg:flex">');
     const explorerIndex = source.indexOf('to="/recherche" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"', desktopNavigationStart);
     const actualitesIndex = source.indexOf('to="/actualites" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"', desktopNavigationStart);
-    const antiWasteIndex = source.indexOf('to="/anti-gaspi" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-accent transition-colors hover:text-accent/80"', desktopNavigationStart);
+    const antiWasteIndex = source.indexOf('to="/anti-gaspi" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-orange-800 transition-colors hover:text-orange-900 dark:text-orange-300 dark:hover:text-orange-200"', desktopNavigationStart);
 
     expect(desktopNavigationStart).toBeGreaterThan(-1);
     expect(explorerIndex).toBeGreaterThan(desktopNavigationStart);
@@ -60,6 +60,7 @@ describe("navbar action stability", () => {
     expect(source).toContain('<NavigationMenu className="hidden lg:flex">');
     expect(source).toContain('className="hidden h-20 w-20 lg:flex"');
     expect(source).toContain("lg:hidden");
+    expect(source).toContain("order-2 text-slate-950 hover:bg-transparent dark:text-slate-950 dark:hover:text-slate-950");
     expect(source).not.toContain('<NavigationMenu className="hidden md:flex">');
   });
 

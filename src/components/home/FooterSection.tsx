@@ -27,7 +27,7 @@ export default function FooterSection({ deliveryEnabled = true }: FooterSectionP
               </div>
               <div className="flex-1 text-center md:text-left space-y-2">
                 <h2 className="font-display text-2xl font-semibold">Livraison à domicile</h2>
-                <p className="text-muted-foreground">Faites-vous livrer vos plats préférés directement chez vous. Rapide, simple et délicieux.</p>
+                <p className="text-foreground/80">Faites-vous livrer vos plats préférés directement chez vous. Rapide, simple et délicieux.</p>
               </div>
               <Button size="lg" asChild><Link to="/recherche">Commander maintenant</Link></Button>
             </div>
