@@ -6,7 +6,7 @@ export const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "border border-orange-900/10 bg-primary text-primary-foreground shadow-[0_12px_28px_rgba(214,66,0,0.26)] hover:bg-[#b83200] hover:shadow-[0_16px_34px_rgba(214,66,0,0.34)] dark:border-orange-300/30 dark:bg-primary dark:text-primary-foreground dark:shadow-[0_0_30px_rgba(255,106,26,0.22)] dark:hover:bg-[#b83200]",
+          "border border-orange-900/10 bg-primary text-primary-foreground shadow-[0_12px_28px_rgba(209,63,0,0.26)] hover:bg-[#b83200] hover:shadow-[0_16px_34px_rgba(209,63,0,0.34)] dark:border-orange-300/30 dark:bg-primary dark:text-primary-foreground dark:shadow-[0_0_30px_rgba(255,106,26,0.22)] dark:hover:bg-[#b83200]",
         destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline:
           "border border-primary/35 bg-background text-primary shadow-sm hover:border-primary hover:bg-orange-50 hover:text-primary dark:border-orange-300/45 dark:bg-slate-950/70 dark:text-orange-200 dark:hover:border-orange-200 dark:hover:bg-orange-400/16 dark:hover:text-orange-100",

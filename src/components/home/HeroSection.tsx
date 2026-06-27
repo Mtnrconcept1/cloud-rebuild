@@ -138,7 +138,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
                 <p className="mx-auto mt-3 max-w-[300px] text-[0.98rem] font-extrabold leading-[1.16] text-[#111827] drop-shadow-[0_1px_0_rgba(255,255,255,0.80)] min-[390px]:text-[1.05rem]">
                   <span className="block">À Genève, cumulez des</span>
                   <span className="block">
-                    <span className="text-[#d64200]">Miamz</span> solidaires à chaque repas
+                    <span className="text-[#d13f00]">Miamz</span> solidaires à chaque repas
                   </span>
                 </p>
               </motion.div>
@@ -147,7 +147,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
             <motion.div variants={scaleIn} className="absolute inset-x-0 bottom-2 space-y-2 px-7 pb-0 min-[390px]:bottom-3 min-[390px]:px-8">
               <form onSubmit={handleSearch} className="space-y-1.5">
               <div className="flex h-[40px] items-center gap-3 rounded-full bg-white px-5 shadow-[0_12px_22px_rgba(34,16,5,0.22)] min-[390px]:h-[42px]">
-                <MapPin className="h-4 w-4 shrink-0 text-[#d64200]" />
+                <MapPin className="h-4 w-4 shrink-0 text-[#d13f00]" />
                 <CityAutocomplete
                   value={city}
                   onCitySelect={(selectedCity) => setCity(selectedCity)}
@@ -171,7 +171,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
                 <button
                   type="submit"
                   aria-label="Rechercher"
-                  className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#d64200] text-white shadow-[0_10px_20px_rgba(214,66,0,0.30)] transition hover:bg-[#b83200] active:scale-95 min-[390px]:h-9 min-[390px]:w-9"
+                  className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#d13f00] text-white shadow-[0_10px_20px_rgba(209,63,0,0.30)] transition hover:bg-[#b83200] active:scale-95 min-[390px]:h-9 min-[390px]:w-9"
                 >
                   <Search className="h-4 w-4" />
                 </button>
@@ -180,7 +180,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
               <div className="grid grid-cols-2 gap-2 pt-0">
                 <button
                   type="submit"
-                  className="flex h-[42px] items-center justify-center gap-2 rounded-full bg-[#d64200] px-3 text-[0.74rem] font-extrabold text-white shadow-[0_12px_22px_rgba(214,66,0,0.30)] transition hover:bg-[#b83200] active:translate-y-px min-[390px]:h-[44px] min-[390px]:text-[0.8rem]"
+                  className="flex h-[42px] items-center justify-center gap-2 rounded-full bg-[#d13f00] px-3 text-[0.74rem] font-extrabold text-white shadow-[0_12px_22px_rgba(209,63,0,0.30)] transition hover:bg-[#b83200] active:translate-y-px min-[390px]:h-[44px] min-[390px]:text-[0.8rem]"
                 >
                   <Utensils className="h-4 w-4 shrink-0" />
                   Je veux manger
@@ -217,7 +217,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
                     <button
                       type="button"
                       onClick={() => navigate("/auth")}
-                      className="h-[30px] rounded-full bg-[#d64200] px-4 text-[0.7rem] font-extrabold text-white shadow-[0_10px_18px_rgba(214,66,0,0.30)] transition hover:bg-[#b83200] min-[390px]:h-[32px] min-[390px]:text-[0.74rem]"
+                      className="h-[30px] rounded-full bg-[#d13f00] px-4 text-[0.7rem] font-extrabold text-white shadow-[0_10px_18px_rgba(209,63,0,0.30)] transition hover:bg-[#b83200] min-[390px]:h-[32px] min-[390px]:text-[0.74rem]"
                     >
                       Inscrivez-vous
                     </button>
@@ -265,10 +265,10 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
             <div className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[132%] w-[114%] -translate-x-1/2 -translate-y-1/2 rounded-[999px] bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,1)_0%,rgba(255,255,255,0.96)_38%,rgba(255,255,255,0.62)_64%,transparent_88%)] opacity-[0.94] blur-3xl" aria-hidden="true" />
             <h1 className="font-display text-[3.95rem] font-bold leading-[0.96] tracking-normal text-[#21314b] dark:text-white dark:drop-shadow-[0_0_30px_rgba(255,255,255,0.16)] lg:text-[5.15rem]">
               <span className="block">Réservez, commandez et profitez</span>
-              <span className="block italic text-[#d64200]">des meilleures offres food à Genève</span>
+              <span className="block italic text-[#d13f00]">des meilleures offres food à Genève</span>
             </h1>
             <p className="mx-auto max-w-[760px] text-[1.35rem] font-medium text-[#33445e] dark:text-slate-100 md:text-[1.55rem]">
-              Gagnez du temps, cumulez des <span className="font-semibold text-[#d64200]">Miamz</span> et transformez vos repas en impact solidaire.
+              Gagnez du temps, cumulez des <span className="font-semibold text-[#d13f00]">Miamz</span> et transformez vos repas en impact solidaire.
             </p>
           </motion.div>
 
@@ -304,7 +304,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
             <div className="grid gap-3 sm:grid-cols-2">
               <button
                 type="submit"
-                className="group relative h-[68px] overflow-hidden rounded-full bg-[#d64200] px-6 text-base font-extrabold uppercase tracking-[0.06em] text-white shadow-[0_22px_46px_rgba(214,66,0,0.30)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#b83200] hover:shadow-[0_26px_54px_rgba(214,66,0,0.38)] active:translate-y-0"
+                className="group relative h-[68px] overflow-hidden rounded-full bg-[#d13f00] px-6 text-base font-extrabold uppercase tracking-[0.06em] text-white shadow-[0_22px_46px_rgba(209,63,0,0.30)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#b83200] hover:shadow-[0_26px_54px_rgba(209,63,0,0.38)] active:translate-y-0"
               >
                 <span className="pointer-events-none absolute inset-x-10 top-1 h-12 rounded-full bg-white/20 blur-2xl" />
                 <span className="relative inline-flex items-center justify-center gap-2">
@@ -318,7 +318,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
                 className="h-[68px] rounded-full border border-white/90 bg-white px-6 text-base font-extrabold uppercase tracking-[0.05em] text-[#25354e] shadow-[0_18px_40px_rgba(104,70,29,0.14)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#fff7f1] active:translate-y-0 dark:border-orange-200/30 dark:bg-slate-950/90 dark:text-white"
               >
                 <span className="inline-flex items-center justify-center gap-2">
-                  <ChefHat className="h-5 w-5 text-[#d64200]" />
+                  <ChefHat className="h-5 w-5 text-[#d13f00]" />
                   Je suis restaurateur
                 </span>
               </button>
@@ -328,13 +328,13 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
           <motion.div variants={scaleIn} className="mt-8 flex flex-wrap items-center justify-center gap-4">
             <div className="neon-chip flex items-center gap-3 rounded-full border border-white/80 bg-white/90 px-5 py-3 shadow-[0_14px_28px_rgba(104,70,29,0.12)]">
               <span className="grid h-8 w-8 place-items-center rounded-full bg-[#fff2e8]">
-                <Star className="h-4 w-4 text-[#d64200]" />
+                <Star className="h-4 w-4 text-[#d13f00]" />
               </span>
               <span className="text-sm font-bold text-[#25354e] dark:text-white">4.8/5</span>
             </div>
             <div className="neon-chip flex items-center gap-3 rounded-full border border-white/80 bg-white/90 px-5 py-3 shadow-[0_14px_28px_rgba(104,70,29,0.12)]">
               <span className="grid h-8 w-8 place-items-center rounded-full bg-[#fff2e8]">
-                <MapPin className="h-4 w-4 text-[#d64200]" />
+                <MapPin className="h-4 w-4 text-[#d13f00]" />
               </span>
               <span className="text-sm font-bold text-[#25354e] dark:text-white">Restaurants locaux partenaires</span>
             </div>
