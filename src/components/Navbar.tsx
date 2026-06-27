@@ -294,7 +294,7 @@ export default function Navbar() {
               ) : null}
               {antiWasteEnabled ? (
                 <NavigationMenuItem>
-                  <Link to="/anti-gaspi" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-accent transition-colors hover:text-accent/80">
+                  <Link to="/anti-gaspi" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-orange-800 transition-colors hover:text-orange-900 dark:text-orange-300 dark:hover:text-orange-200">
                     <Leaf className="h-4 w-4" />
                     Anti-gaspi
                     </Link>
@@ -302,7 +302,7 @@ export default function Navbar() {
                 ) : null}
                 {flashSalesEnabled ? (
                   <NavigationMenuItem>
-                    <Link to="/ventes-flash" className="flex items-center gap-1 px-3 py-2 text-sm font-semibold text-amber-600 transition-colors hover:text-orange-600 dark:text-amber-300 dark:hover:text-orange-300">
+                    <Link to="/ventes-flash" className="flex items-center gap-1 px-3 py-2 text-sm font-semibold text-amber-800 transition-colors hover:text-orange-800 dark:text-amber-300 dark:hover:text-orange-300">
                       <Zap className="h-4 w-4 fill-amber-400/35 text-amber-500 dark:text-amber-300" />
                       Ventes flash
                   </Link>
@@ -539,12 +539,12 @@ export default function Navbar() {
                     </Link>
                   ) : null}
                   {showClientSurface && antiWasteEnabled ? (
-                    <Link to="/anti-gaspi" className="text-sm font-medium text-accent" onClick={() => setMenuOpen(false)}>
+                    <Link to="/anti-gaspi" className="text-sm font-medium text-orange-800 dark:text-orange-300" onClick={() => setMenuOpen(false)}>
                       Anti-gaspi
                     </Link>
                   ) : null}
                   {showClientSurface && flashSalesEnabled ? (
-                    <Link to="/ventes-flash" className="flex items-center gap-2 text-sm font-semibold text-amber-600 hover:text-orange-600 dark:text-amber-300 dark:hover:text-orange-300" onClick={() => setMenuOpen(false)}>
+                    <Link to="/ventes-flash" className="flex items-center gap-2 text-sm font-semibold text-amber-800 hover:text-orange-800 dark:text-amber-300 dark:hover:text-orange-300" onClick={() => setMenuOpen(false)}>
                       <Zap className="h-4 w-4 fill-amber-400/35 text-amber-500 dark:text-amber-300" />
                       Ventes flash
                     </Link>
