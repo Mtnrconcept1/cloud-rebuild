@@ -16,6 +16,9 @@ describe("homepage positioning guards", () => {
     expect(hero).toContain("Réservez, commandez et profitez");
     expect(hero).toContain('data-testid="mobile-hero-shell"');
     expect(hero).toContain("/optimized/fondacceuil-mobile.webp");
+    expect(hero).toContain("/optimized/fondacceuil-mobile-dark.jpg");
+    expect(hero).toContain("object-cover object-top dark:hidden");
+    expect(hero).toContain("hidden h-full w-full object-cover object-top dark:block");
     expect(hero).toContain("MOBILE_HERO_IMAGE_FETCH_PRIORITY_PROPS");
     expect(hero).toContain('loading="eager"');
     expect(hero).toContain("object-cover object-top");
@@ -140,6 +143,7 @@ describe("homepage positioning guards", () => {
       "public/images/section-headers/gift-3d.png",
       "public/optimized/section-flamme-640.webp",
       "public/optimized/section-chefsection2-640.webp",
+      "public/optimized/fondacceuil-mobile-dark.jpg",
     ];
 
     for (const asset of requiredAssets) {

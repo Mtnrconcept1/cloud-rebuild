@@ -515,7 +515,7 @@ export default function Navbar() {
 
             <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className={`${isMobileHomeHeader ? "order-2 text-slate-950 hover:bg-transparent" : ""} lg:hidden`}>
+                <Button variant="ghost" size="icon" className={`${isMobileHomeHeader ? "order-2 text-slate-950 hover:bg-transparent dark:text-slate-950 dark:hover:text-slate-950" : ""} lg:hidden`}>
                   <Menu className={`${isMobileHomeHeader ? "h-8 w-8" : "h-5 w-5"}`} />
                   <span className="sr-only">Ouvrir le menu</span>
                 </Button>

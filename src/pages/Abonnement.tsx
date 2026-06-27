@@ -607,7 +607,7 @@ export default function Abonnement() {
           <Button
             onClick={handleSubscribe}
             disabled={summary.activeMealsCount === 0 || summary.isPaused}
-            className="w-full gap-2 bg-purple-500 hover:bg-purple-600"
+            className="w-full gap-2"
             size="lg"
           >
             <Sparkles className="h-5 w-5" />
@@ -623,7 +623,7 @@ export default function Abonnement() {
               </p>
               <p className="text-xs text-muted-foreground">Plats de plusieurs restaurants synchronises dans un seul panier, modifiable à tout moment</p>
             </div>
-            <Button onClick={handleGoToCart} className="w-full gap-2 bg-purple-500 hover:bg-purple-600" size="lg">
+            <Button onClick={handleGoToCart} className="w-full gap-2" size="lg">
               Voir le panier <ChevronRight className="h-4 w-4" />
             </Button>
           </div>

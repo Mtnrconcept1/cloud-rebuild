@@ -60,6 +60,7 @@ describe("navbar action stability", () => {
     expect(source).toContain('<NavigationMenu className="hidden lg:flex">');
     expect(source).toContain('className="hidden h-20 w-20 lg:flex"');
     expect(source).toContain("lg:hidden");
+    expect(source).toContain("order-2 text-slate-950 hover:bg-transparent dark:text-slate-950 dark:hover:text-slate-950");
     expect(source).not.toContain('<NavigationMenu className="hidden md:flex">');
   });
 

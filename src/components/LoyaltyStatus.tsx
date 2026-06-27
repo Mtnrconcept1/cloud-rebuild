@@ -113,7 +113,7 @@ export default function LoyaltyStatus() {
 
         <Dialog>
           <DialogTrigger asChild>
-            <Button variant="link" className="min-h-[44px] justify-start p-0 text-xs font-semibold text-pink-500 hover:text-pink-600">
+            <Button variant="link" className="min-h-[44px] justify-start p-0 text-xs font-semibold text-primary hover:text-[#b83200] dark:text-orange-200 dark:hover:text-orange-100">
               Découvrir les avantages <ArrowUpRight className="h-3 w-3" />
             </Button>
           </DialogTrigger>
