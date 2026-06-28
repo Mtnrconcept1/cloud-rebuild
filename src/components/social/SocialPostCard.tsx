@@ -1120,14 +1120,14 @@ export default function SocialPostCard({
   return (
     <Card
       className={cn(
-        "overflow-hidden rounded-[1.65rem] border bg-white shadow-lg shadow-slate-200/60 transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-orange-100/70 dark:border-white/10 dark:bg-slate-950 dark:shadow-none dark:hover:shadow-none max-sm:-mx-2 max-sm:overflow-visible max-sm:rounded-none max-sm:border-0 max-sm:shadow-none max-sm:hover:translate-y-0",
+        "overflow-hidden rounded-[1.65rem] border bg-white shadow-lg shadow-slate-200/60 transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-orange-100/70 dark:border-white/10 dark:bg-slate-950 dark:shadow-none dark:hover:shadow-none max-sm:-mx-2 max-sm:overflow-visible max-sm:rounded-[17px] max-sm:border-0 max-sm:shadow-none max-sm:hover:translate-y-0",
         highlighted &&
           "border-primary/60 ring-2 ring-primary/20 dark:border-orange-300/40 dark:ring-orange-300/20",
         isPremiumBanner &&
           "border-orange-300 bg-gradient-to-b from-orange-50/70 via-white to-white ring-2 ring-orange-100/80 dark:border-orange-300/35 dark:from-orange-500/12 dark:via-slate-950 dark:to-slate-950 dark:ring-orange-300/20",
       )}
     >
-      <CardContent className={cn("p-5 max-sm:px-0", compact && "p-4")}>
+      <CardContent className={cn("p-5 max-sm:px-0 max-sm:rounded-[17px]", compact && "p-4")}>
         {isPremiumBanner ? (
           <div className="mb-3 flex items-center justify-between gap-3 rounded-2xl border border-orange-200 bg-orange-500 px-3 py-2 text-xs font-extrabold uppercase tracking-[0.14em] text-white shadow-lg shadow-orange-500/20 max-sm:mx-3 max-sm:rounded-xl">
             <span className="inline-flex min-w-0 items-center gap-2">

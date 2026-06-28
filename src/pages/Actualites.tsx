@@ -210,8 +210,8 @@ export default function Actualites() {
   };
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top_left,rgba(249,115,22,0.12),transparent_28rem),linear-gradient(180deg,rgba(255,247,237,0.85),rgba(255,255,255,0.96)_13rem,rgba(248,250,252,0.85))] py-3 md:py-6">
-      <div className="container grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,21rem)]">
+    <main className="min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top_left,rgba(249,115,22,0.12),transparent_28rem),linear-gradient(180deg,rgba(255,247,237,0.85),rgba(255,255,255,0.96)_13rem,rgba(248,250,252,0.85))] py-3 text-slate-950 dark:bg-black dark:bg-none dark:text-slate-50 md:py-6">
+      <div className="container grid min-w-0 gap-5 dark:bg-black xl:grid-cols-[minmax(0,1fr)_minmax(18rem,21rem)]">
         <section className="min-w-0 max-w-full space-y-2 md:space-y-3">
           <div className="relative overflow-hidden rounded-[1.5rem] border border-orange-100/80 bg-background/95 p-2 shadow-lg shadow-orange-100/35 backdrop-blur md:p-3">
             <div className="hidden">
@@ -455,8 +455,8 @@ export default function Actualites() {
         </section>
 
         <aside className="min-w-0 space-y-4 xl:sticky xl:top-28 xl:self-start">
-          <Card className="overflow-hidden rounded-[2rem] border-orange-100 bg-background/95 shadow-xl shadow-orange-100/40">
-            <CardContent className="space-y-4 p-5">
+          <Card className="overflow-hidden rounded-[2rem] border-orange-100 bg-background/95 shadow-xl shadow-orange-100/40 dark:border-white/15 dark:bg-[#101826] dark:text-slate-50 dark:shadow-none">
+            <CardContent className="space-y-4 rounded-[17px] p-5">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-primary/10 text-primary">
@@ -470,32 +470,32 @@ export default function Actualites() {
                 <Badge variant="outline" className="rounded-full">Live</Badge>
               </div>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                <div className="rounded-2xl bg-gradient-to-br from-orange-50 to-white p-3 ring-1 ring-orange-100">
+                <div className="rounded-2xl bg-gradient-to-br from-orange-50 to-white p-3 text-slate-950 ring-1 ring-orange-100 dark:text-slate-950">
                   <Megaphone className="mb-2 h-4 w-4 text-primary" />
-                  <p className="text-xs text-muted-foreground">Posts</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-600">Posts</p>
                   <p className="text-2xl font-black">{posts.length}</p>
                 </div>
-                <div className="rounded-2xl bg-gradient-to-br from-violet-50 to-white p-3 ring-1 ring-violet-100">
+                <div className="rounded-2xl bg-gradient-to-br from-violet-50 to-white p-3 text-slate-950 ring-1 ring-violet-100 dark:text-slate-950">
                   <Store className="mb-2 h-4 w-4 text-violet-600" />
-                  <p className="text-xs text-muted-foreground">Restaurants</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-600">Restaurants</p>
                   <p className="text-2xl font-black">{feedStats.restaurantsCount}</p>
                 </div>
-                <div className="rounded-2xl bg-gradient-to-br from-emerald-50 to-white p-3 ring-1 ring-emerald-100">
+                <div className="rounded-2xl bg-gradient-to-br from-emerald-50 to-white p-3 text-slate-950 ring-1 ring-emerald-100 dark:text-slate-950">
                   <Bookmark className="mb-2 h-4 w-4 text-emerald-600" />
-                  <p className="text-xs text-muted-foreground">Sauvegardes</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-600">Sauvegardes</p>
                   <p className="text-2xl font-black">{feedStats.savedCount}</p>
                 </div>
-                <div className="rounded-2xl bg-gradient-to-br from-amber-50 to-white p-3 ring-1 ring-amber-100">
+                <div className="rounded-2xl bg-gradient-to-br from-amber-50 to-white p-3 text-slate-950 ring-1 ring-amber-100 dark:text-slate-950">
                   <Flame className="mb-2 h-4 w-4 text-amber-600" />
-                  <p className="text-xs text-muted-foreground">Offres</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-600">Offres</p>
                   <p className="text-2xl font-black">{feedStats.offersCount}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="overflow-hidden rounded-[2rem] border-orange-100 bg-gradient-to-br from-orange-50 via-white to-amber-50 shadow-sm">
-            <CardContent className="space-y-4 p-5">
+          <Card className="overflow-hidden rounded-[2rem] border-orange-100 bg-gradient-to-br from-orange-50 via-white to-amber-50 shadow-sm dark:border-white/15 dark:bg-[linear-gradient(135deg,rgba(35,24,24,0.92),rgba(8,17,34,0.96))] dark:text-slate-50">
+            <CardContent className="space-y-4 rounded-[17px] p-5">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <h2 className="font-display text-lg font-bold">Boostez votre visibilité</h2>
@@ -505,15 +505,15 @@ export default function Actualites() {
                   <Rocket className="h-5 w-5" />
                 </span>
               </div>
-              <div className="rounded-2xl bg-white/80 p-3 text-xs text-muted-foreground ring-1 ring-orange-100">
+              <div className="rounded-2xl bg-white/90 p-3 text-xs text-black ring-1 ring-orange-100 dark:bg-white/90 dark:text-black dark:ring-white/40">
                 {feedStats.mediaCount > 0 ? `${feedStats.mediaCount} médias enrichissent déjà le fil.` : "Les posts avec photo ou vidéo retiennent mieux l'attention."}
               </div>
             </CardContent>
           </Card>
 
           {suggestedRestaurants.length > 0 ? (
-            <Card className="rounded-[2rem] bg-background/95 shadow-sm">
-              <CardContent className="space-y-3 p-5">
+            <Card className="overflow-hidden rounded-[2rem] bg-background/95 shadow-sm dark:border-white/15 dark:bg-[#101826] dark:text-slate-50">
+              <CardContent className="space-y-3 rounded-[17px] p-5">
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-primary" />
                   <h2 className="font-semibold">À suivre</h2>
@@ -537,8 +537,8 @@ export default function Actualites() {
             </Card>
           ) : null}
 
-          <Card className="rounded-[2rem] bg-background/95 shadow-sm">
-            <CardContent className="space-y-3 p-5">
+          <Card className="overflow-hidden rounded-[2rem] bg-background/95 shadow-sm dark:border-white/15 dark:bg-[#101826] dark:text-slate-50">
+            <CardContent className="space-y-3 rounded-[17px] p-5">
               <div className="flex items-center gap-2">
                 <Flame className="h-4 w-4 text-primary" />
                 <h2 className="font-semibold">Tendances</h2>
