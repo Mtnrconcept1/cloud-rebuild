@@ -1401,7 +1401,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                   <Button
                     type="button"
                     onClick={() => setActiveStep(2)}
-                    className="gap-2 rounded-2xl bg-orange-600 hover:bg-orange-700"
+                    className="gap-2 rounded-2xl bg-[#ff5a00] text-[#111827] hover:bg-[#f45100]"
                   >
                     Continuer vers les références marketing
                     <ArrowRight className="h-4 w-4" />
@@ -1668,7 +1668,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
               ) : null}
 
               <div className={`${activeStep === 3 ? "flex" : "hidden"} min-w-0 flex-col gap-3 rounded-2xl border border-orange-200 bg-orange-50/80 p-3 sm:flex-row sm:items-center sm:rounded-3xl`}>
-                <Button type="button" onClick={requestGeneration} disabled={!restaurantId || loading} size="lg" className="h-auto min-h-12 w-full min-w-0 whitespace-normal rounded-2xl bg-orange-600 px-4 text-center text-base font-bold shadow-lg shadow-orange-500/20 hover:bg-orange-700 sm:w-auto sm:px-6">
+                <Button type="button" onClick={requestGeneration} disabled={!restaurantId || loading} size="lg" className="h-auto min-h-12 w-full min-w-0 whitespace-normal rounded-2xl bg-[#ff5a00] px-4 text-center text-base font-bold text-[#111827] shadow-lg shadow-orange-500/20 hover:bg-[#f45100] sm:w-auto sm:px-6">
                   {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                   {loading ? "Génération de l'image..." : `Générer l'image marketing (${outputPricing.photoCredits} cr.)`}
                 </Button>
@@ -1775,7 +1775,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                 </div>
               </div>
               <div className="flex justify-end">
-                <Button type="button" onClick={() => setActiveStep(3)} className="gap-2 rounded-2xl bg-orange-600 hover:bg-orange-700">
+                <Button type="button" onClick={() => setActiveStep(3)} className="gap-2 rounded-2xl bg-[#ff5a00] text-[#111827] hover:bg-[#f45100]">
                   Continuer vers le brief
                   <ArrowRight className="h-4 w-4" />
                 </Button>

@@ -6,7 +6,7 @@ export const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "border border-orange-900/10 bg-primary text-primary-foreground shadow-[0_12px_28px_rgba(209,63,0,0.26)] hover:bg-[#b83200] hover:shadow-[0_16px_34px_rgba(209,63,0,0.34)] dark:border-orange-300/30 dark:bg-primary dark:text-primary-foreground dark:shadow-[0_0_30px_rgba(255,106,26,0.22)] dark:hover:bg-[#b83200]",
+          "border border-orange-900/10 bg-primary text-primary-foreground shadow-[0_12px_28px_rgba(255,90,0,0.26)] hover:bg-[#f45100] hover:text-primary-foreground hover:shadow-[0_16px_34px_rgba(255,90,0,0.34)] dark:border-orange-300/30 dark:bg-primary dark:text-primary-foreground dark:shadow-[0_0_30px_rgba(255,106,26,0.22)] dark:hover:bg-[#f45100]",
         destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline:
           "border border-primary/35 bg-background text-primary shadow-sm hover:border-primary hover:bg-orange-50 hover:text-primary dark:border-orange-300/45 dark:bg-slate-950/70 dark:text-orange-200 dark:hover:border-orange-200 dark:hover:bg-orange-400/16 dark:hover:text-orange-100",
@@ -14,7 +14,7 @@ export const buttonVariants = cva(
           "border border-orange-200/80 bg-orange-50 text-orange-950 shadow-sm hover:bg-orange-100 dark:border-orange-300/25 dark:bg-orange-400/14 dark:text-orange-50 dark:hover:bg-orange-400/22",
         ghost:
           "text-foreground hover:bg-orange-50 hover:text-primary dark:text-slate-50 dark:hover:bg-orange-400/14 dark:hover:text-orange-100",
-        link: "text-primary underline-offset-4 hover:text-[#b83200] hover:underline dark:text-orange-200 dark:hover:text-orange-100",
+        link: "text-primary underline-offset-4 hover:text-[#c23700] hover:underline dark:text-orange-200 dark:hover:text-orange-100",
       },
       size: {
         default: "h-[44px] px-4 py-2 sm:h-10",
