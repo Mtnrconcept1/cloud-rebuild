@@ -18,7 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/lib/cart-context";
 import { trackGoogleBookingEvent } from "@/hooks/useGoogleBusinessBooking";
 import { trackEvent, trackImpression } from "@/lib/analytics";
-import { useActiveFeatures } from "@/lib/featureFlags";
+import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 import { buildAuthRedirectTarget } from "@/lib/stripeReturn";
 import { buildCanonicalUrl, useSeoMeta } from "@/hooks/useSeoMeta";
 import {
@@ -127,6 +127,26 @@ function parseReservationQueryPartySize(value: string | null) {
   return Math.max(1, Math.min(20, Math.round(partySize)));
 }
 
+function isReservationQueryIntent(searchParams: URLSearchParams) {
+  const openParam = searchParams.get("open");
+  return searchParams.get("reserve") === "true" || openParam === "reservation";
+}
+
+function getReservationQueryInitialStep(searchParams: URLSearchParams): "datetime" | "confirm" {
+  return searchParams.get("reservationStep") === "confirm" ? "confirm" : "datetime";
+}
+
+function getReservationQueryDefaults(searchParams: URLSearchParams) {
+  const timeParam = searchParams.get("time");
+  if (!timeParam) return {};
+
+  return {
+    date: parseReservationQueryDate(searchParams.get("date")),
+    time: timeParam.slice(0, 5),
+    partySize: parseReservationQueryPartySize(searchParams.get("party_size")),
+  };
+}
+
 function getReviewReplies(review: RestaurantReview) {
   if (!review.review_replies) return [];
   if (Array.isArray(review.review_replies)) return review.review_replies;
@@ -171,6 +191,20 @@ function RestaurantGalleryImageFrame({ photo, alt }: { photo: RestaurantGalleryP
         className="block max-h-full max-w-full rounded-lg object-contain"
         decoding="async"
       />
+    </div>
+  );
+}
+
+function ReservationDeeplinkLoading() {
+  return (
+    <div className="min-h-screen bg-background px-6 py-24">
+      <div className="mx-auto flex min-h-[52vh] max-w-sm flex-col items-center justify-center text-center">
+        <div className="mb-5 h-10 w-10 animate-spin rounded-full border-2 border-primary border-b-transparent" />
+        <p className="text-sm font-semibold text-foreground">Préparation de la réservation</p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Nous ouvrons directement le créneau demandé.
+        </p>
+      </div>
     </div>
   );
 }
@@ -237,24 +271,28 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
   const { user } = useAuth();
   const { toast } = useToast();
   const { addItem, setOrderMode, orderMode, items: cartItems } = useCart();
-  const activeFeatures = useActiveFeatures();
+  const { activeFeatures, loading: featureFlagsLoading } = useFeatureFlagSnapshot();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const location = useLocation();
-  const [reservationOpen, setReservationOpen] = useState(false);
+  const reservationQueryIntent = isReservationQueryIntent(searchParams);
+  const [reservationOpen, setReservationOpen] = useState(() => reservationQueryIntent);
   const [showReserveChoice, setShowReserveChoice] = useState(false);
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
-  const [reservationDefaults, setReservationDefaults] = useState<{ date?: Date; time?: string; partySize?: number; }>({});
-  const [reservationInitialStep, setReservationInitialStep] = useState<"datetime" | "confirm">("datetime");
-  const [reservationDialogResetKey, setReservationDialogResetKey] = useState(0);
-  const [reservationProgressiveOfferId, setReservationProgressiveOfferId] = useState<string | null | undefined>(undefined);
+  const [reservationDefaults, setReservationDefaults] = useState<{ date?: Date; time?: string; partySize?: number; }>(() => getReservationQueryDefaults(searchParams));
+  const [reservationInitialStep, setReservationInitialStep] = useState<"datetime" | "confirm">(() => getReservationQueryInitialStep(searchParams));
+  const [reservationDialogResetKey, setReservationDialogResetKey] = useState(() => reservationQueryIntent ? 1 : 0);
+  const [reservationProgressiveOfferId, setReservationProgressiveOfferId] = useState<string | null | undefined>(() =>
+    reservationQueryIntent ? searchParams.get("progressiveOfferId") : undefined,
+  );
   const [reservationWidgetSelection, setReservationWidgetSelection] = useState<{ date: Date; time: string; partySize: number } | null>(null);
   const [activeTab, setActiveTab] = useState("menu");
   const [nowMs, setNowMs] = useState(() => Date.now());
   const [reservationSidebarTop, setReservationSidebarTop] = useState(RESERVATION_SIDEBAR_PREFERRED_STICKY_TOP);
   const impressionTracked = useRef(false);
   const googleBookingStartTrackedRef = useRef(false);
+  const reservationQueryIntentAppliedRef = useRef<string | null>(reservationQueryIntent ? searchParams.toString() : null);
   const reservationSidebarRef = useRef<HTMLDivElement>(null);
   const deliveryEnabled = activeFeatures.has("livraison");
   const takeawayEnabled = activeFeatures.has("emporter");
@@ -273,25 +311,19 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
 
   useEffect(() => {
     const openParam = searchParams.get("open");
-    const shouldOpenReservation = searchParams.get("reserve") === "true" || openParam === "reservation";
+    const shouldOpenReservation = isReservationQueryIntent(searchParams);
 
     if (shouldOpenReservation && reservationEnabled) {
-      setReservationProgressiveOfferId(searchParams.get("progressiveOfferId"));
-      const timeParam = searchParams.get("time");
-      const requestedStep = searchParams.get("reservationStep") === "confirm" ? "confirm" : "datetime";
-      if (timeParam) {
-        setReservationDefaults({
-          date: parseReservationQueryDate(searchParams.get("date")),
-          time: timeParam.slice(0, 5),
-          partySize: parseReservationQueryPartySize(searchParams.get("party_size")),
-        });
-        setReservationInitialStep(requestedStep);
-      } else {
-        setReservationDefaults({});
-        setReservationInitialStep("datetime");
+      const reservationQueryKey = searchParams.toString();
+
+      if (reservationQueryIntentAppliedRef.current !== reservationQueryKey) {
+        setReservationProgressiveOfferId(searchParams.get("progressiveOfferId"));
+        setReservationDefaults(getReservationQueryDefaults(searchParams));
+        setReservationInitialStep(getReservationQueryInitialStep(searchParams));
+        setReservationDialogResetKey((current) => current + 1);
+        setReservationOpen(true);
+        reservationQueryIntentAppliedRef.current = reservationQueryKey;
       }
-      setReservationDialogResetKey((current) => current + 1);
-      setReservationOpen(true);
 
       if (
         openParam === "reservation"
@@ -612,6 +644,10 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
       return selection;
     });
   }, []);
+
+  if (reservationQueryIntent && reservationOpen && (featureFlagsLoading || !isRestaurantFetched)) {
+    return <ReservationDeeplinkLoading />;
+  }
 
   if (!restaurant) return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
 

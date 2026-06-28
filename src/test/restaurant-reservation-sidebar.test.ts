@@ -28,4 +28,30 @@ describe("restaurant reservation sidebar", () => {
     expect(restaurantDetail).toContain("if (!isRestaurantFetched) return;");
     expect(restaurantDetail).toContain("[isRestaurantFetched, reservationAvailable, reservationOpen]");
   });
+
+  it("opens card slot reservation deeplinks from initial state to avoid a detail-page flash", () => {
+    const restaurantDetail = read("src/pages/RestaurantDetail.tsx");
+
+    expect(restaurantDetail).toContain("function isReservationQueryIntent");
+    expect(restaurantDetail).toContain("function getReservationQueryDefaults");
+    expect(restaurantDetail).toContain("const [reservationOpen, setReservationOpen] = useState(() => reservationQueryIntent)");
+    expect(restaurantDetail).toContain("useState<{ date?: Date; time?: string; partySize?: number; }>(() => getReservationQueryDefaults(searchParams))");
+    expect(restaurantDetail).toContain("const reservationQueryIntentAppliedRef = useRef<string | null>(reservationQueryIntent ? searchParams.toString() : null)");
+  });
+
+  it("keeps reservation deeplinks on a loading surface until the dialog can mount", () => {
+    const restaurantDetail = read("src/pages/RestaurantDetail.tsx");
+
+    expect(restaurantDetail).toContain("function ReservationDeeplinkLoading");
+    expect(restaurantDetail).toContain("const { activeFeatures, loading: featureFlagsLoading } = useFeatureFlagSnapshot();");
+    expect(restaurantDetail).toContain("reservationQueryIntent && reservationOpen && (featureFlagsLoading || !isRestaurantFetched)");
+    expect(restaurantDetail).toContain("return <ReservationDeeplinkLoading />;");
+  });
+
+  it("preserves the clicked reservation slot when the dialog normalizes available times", () => {
+    const reservationDialog = read("src/components/ReservationDialog.tsx");
+
+    expect(reservationDialog).toContain("const normalizedInitialTime = initialTime?.slice(0, 5);");
+    expect(reservationDialog).toContain("if (normalizedInitialTime && time === normalizedInitialTime) return;");
+  });
 });

@@ -310,6 +310,7 @@ export default function ReservationDialog({
   });
 
   const selectedDateKey = date ? format(date, "yyyy-MM-dd") : null;
+  const normalizedInitialTime = initialTime?.slice(0, 5);
 
   const { data: slotAvailability = [], isLoading: isSlotAvailabilityLoading } = useQuery({
     queryKey: ["reservation-slot-availability", restaurantId, selectedDateKey],
@@ -370,10 +371,11 @@ export default function ReservationDialog({
   useEffect(() => {
     if (!open || !date) return;
     if (selectedSlot?.available) return;
+    if (normalizedInitialTime && time === normalizedInitialTime) return;
     if (availableSlots[0]) {
       setTime(availableSlots[0].time);
     }
-  }, [availableSlots, date, open, selectedSlot?.available]);
+  }, [availableSlots, date, normalizedInitialTime, open, selectedSlot, selectedSlot?.available, time]);
 
   useEffect(() => {
     if (!selectedPromo) return;
