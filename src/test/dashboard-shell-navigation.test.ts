@@ -89,8 +89,12 @@ describe("dashboard shell navigation", () => {
     const layout = read("src/components/DashboardLayout.tsx");
 
     expect(layout).toContain("fixed left-[calc(env(safe-area-inset-left,0px)+0.75rem)] top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-[40] md:hidden");
-    expect(layout).toContain("h-11 w-11 rounded-full");
-    expect(layout).toContain("flex h-9 w-9 items-center justify-center rounded-full");
+    expect(layout).toContain('data-testid="restaurant-mobile-menu-trigger"');
+    expect(layout).toContain("h-16 max-w-[10.75rem] rounded-[1.45rem]");
+    expect(layout).toContain("flex h-11 w-11 shrink-0 items-center justify-center rounded-[1rem]");
+    expect(layout).toContain("text-[10px] font-semibold uppercase tracking-[0.28em] text-orange-300");
+    expect(layout).toContain("Resto");
+    expect(layout).toContain('className="max-w-[6.25rem] truncate text-sm font-semibold"');
     expect(layout).toContain('<span className="sr-only">{activeNavItem?.label ?? "Ouvrir le menu"}</span>');
     expect(layout).toContain("pb-[calc(env(safe-area-inset-bottom,0px)+2rem)]");
     expect(layout).not.toContain("fixed inset-x-0 bottom-0 z-[40]");

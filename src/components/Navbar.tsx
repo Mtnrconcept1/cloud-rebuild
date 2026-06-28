@@ -1,4 +1,4 @@
-import { type MouseEvent, useEffect, useRef, useState } from "react";
+import { type MouseEvent, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   Bell,
@@ -118,6 +118,7 @@ export default function Navbar() {
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const lastScrollYRef = useRef(0);
+  const headerRef = useRef<HTMLElement | null>(null);
 
   const antiWasteEnabled = activeFeatures.has("anti-gaspi");
   const flashSalesEnabled = activeFeatures.has("ventes-flash");
@@ -199,6 +200,37 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [accountMenuOpen, menuOpen]);
 
+  useLayoutEffect(() => {
+    const root = document.documentElement;
+
+    const updatePublicNavbarOffset = () => {
+      const headerHeight = isHeaderVisible
+        ? Math.max(0, Math.round(headerRef.current?.getBoundingClientRect().height ?? 0))
+        : 0;
+
+      root.style.setProperty("--tok-public-navbar-offset", `${headerHeight}px`);
+    };
+
+    updatePublicNavbarOffset();
+
+    const resizeObserver =
+      typeof ResizeObserver !== "undefined" && headerRef.current
+        ? new ResizeObserver(updatePublicNavbarOffset)
+        : null;
+
+    if (resizeObserver && headerRef.current) {
+      resizeObserver.observe(headerRef.current);
+    }
+
+    window.addEventListener("resize", updatePublicNavbarOffset);
+
+    return () => {
+      resizeObserver?.disconnect();
+      window.removeEventListener("resize", updatePublicNavbarOffset);
+      root.style.removeProperty("--tok-public-navbar-offset");
+    };
+  }, [isHeaderVisible, isMobileHomeHeader]);
+
   const renderDashboardAccessLink = (item: DashboardAccessItem, options?: { onClick?: () => void }) => {
     const Icon = item.icon;
     const className = "group flex w-full items-center gap-3 rounded-2xl border border-primary/15 bg-background/90 p-3 text-left shadow-sm transition-all hover:border-primary/35 hover:bg-primary/5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40";
@@ -257,6 +289,7 @@ export default function Navbar() {
 
       {/* ─── Main header ─── */}
       <header
+        ref={headerRef}
         className={`fixed top-0 z-[70] w-full border-b shadow-sm safe-top transition-[opacity,transform] duration-300 ease-out md:sticky md:z-50 ${isHeaderVisible ? "" : "pointer-events-none"} ${isMobileHomeHeader ? "border-slate-200 bg-white backdrop-blur-none dark:border-slate-200 dark:bg-white" : "border-border/80 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:border-white/20 dark:bg-slate-950/80 dark:shadow-[0_14px_44px_rgba(0,0,0,0.48),0_0_34px_rgba(249,115,22,0.10)]"}`}
         style={{
           opacity: isHeaderVisible ? 1 : 0,

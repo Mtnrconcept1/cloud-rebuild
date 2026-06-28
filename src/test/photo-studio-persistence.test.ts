@@ -247,6 +247,28 @@ describe("TOK photo studio persistence", () => {
     expect(aiCreationsGallery).toContain('media_type: "photo_ai_tok"');
   });
 
+  it("shows the marketing references continuation action only from render settings", () => {
+    const continuationLabel = "Continuer vers les références marketing";
+    const continuationCount = marketingStudio.split(continuationLabel).length - 1;
+    const renderSettingsIndex = marketingStudio.indexOf("Paramétrer le rendu");
+    const continuationIndex = marketingStudio.indexOf(continuationLabel);
+
+    expect(continuationCount).toBe(1);
+    expect(renderSettingsIndex).toBeGreaterThan(-1);
+    expect(continuationIndex).toBeGreaterThan(renderSettingsIndex);
+  });
+
+  it("scrolls smoothly to render settings after selecting a marketing support", () => {
+    expect(marketingStudio).toContain("MARKETING_RENDER_SCROLL_DURATION_MS = 620");
+    expect(marketingStudio).toContain("MARKETING_RENDER_SCROLL_OFFSET_PX = 24");
+    expect(marketingStudio).toContain("function easeInOutCubic(progress: number)");
+    expect(marketingStudio).toContain("const renderSettingsRef = useRef<HTMLDivElement | null>(null)");
+    expect(marketingStudio).toContain("const scrollToMarketingRenderSettings = () => {");
+    expect(marketingStudio).toContain("window.requestAnimationFrame(scrollToMarketingRenderSettings)");
+    expect(marketingStudio).toContain("onClick={() => handleMarketingToolSelect(tool)}");
+    expect(marketingStudio).toContain("ref={renderSettingsRef}");
+  });
+
   it("offers print supports with support-specific Flyerline-inspired formats", () => {
     expect(marketingStudio).toContain("type MarketingFormatOption");
     expect(marketingStudio).toContain("formats: MarketingFormatOption[]");

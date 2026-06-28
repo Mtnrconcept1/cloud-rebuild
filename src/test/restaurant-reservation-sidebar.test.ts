@@ -77,6 +77,19 @@ describe("restaurant reservation sidebar", () => {
     expect(sponsoredTemplate).toContain("onTouchStart={stopNestedCardAction}");
   });
 
+  it("keeps the restaurant menu category rail aligned with the public navbar", () => {
+    const restaurantDetail = read("src/pages/RestaurantDetail.tsx");
+
+    expect(restaurantDetail).toContain("RESTAURANT_MENU_STICKY_STYLE");
+    expect(restaurantDetail).toContain('data-testid="restaurant-menu-category-rail"');
+    expect(restaurantDetail).toContain('top: "var(--tok-public-navbar-offset, 0px)"');
+    expect(restaurantDetail).toContain("transition-[top] duration-300 ease-out");
+    expect(restaurantDetail).toContain("RESTAURANT_MENU_SECTION_STYLE");
+    expect(restaurantDetail).toContain('scrollMarginTop: "calc(var(--tok-public-navbar-offset, 0px) + 5rem)"');
+    expect(restaurantDetail).not.toContain("sticky top-16 z-20 -mx-1");
+    expect(restaurantDetail).not.toContain("scroll-mt-32");
+  });
+
   it("preserves the clicked reservation slot when the dialog normalizes available times", () => {
     const reservationDialog = read("src/components/ReservationDialog.tsx");
 

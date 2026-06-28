@@ -37,6 +37,15 @@ describe("navbar action stability", () => {
     expect(source).toContain('transform: isHeaderVisible ? "translateY(0)" : "translateY(-100%)"');
   });
 
+  it("publishes the visible public navbar height for page-level sticky controls", () => {
+    expect(source).toContain("const headerRef = useRef<HTMLElement | null>(null)");
+    expect(source).toContain("useLayoutEffect(() => {");
+    expect(source).toContain("getBoundingClientRect().height");
+    expect(source).toContain('root.style.setProperty("--tok-public-navbar-offset"');
+    expect(source).toContain('root.style.removeProperty("--tok-public-navbar-offset")');
+    expect(source).toContain("ref={headerRef}");
+  });
+
   it("keeps flash sales visibly distinct in desktop and mobile navigation", () => {
     expect(source).toContain("Zap,");
     expect(source).toContain('<Zap className="h-4 w-4 fill-amber-400/35 text-amber-500 dark:text-amber-300" />');

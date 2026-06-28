@@ -137,6 +137,14 @@ const MAX_MARKETING_ASSET_BYTES = 15 * 1024 * 1024;
 const MARKETING_PROMPT_MAX_LENGTH = 900;
 const MARKETING_MENU_CONTEXT_LIMIT = 120;
 const MARKETING_MENU_PROMPT_ITEM_LIMIT = 80;
+const MARKETING_RENDER_SCROLL_DURATION_MS = 620;
+const MARKETING_RENDER_SCROLL_OFFSET_PX = 24;
+
+function easeInOutCubic(progress: number) {
+  return progress < 0.5
+    ? 4 * progress * progress * progress
+    : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+}
 
 const MARKETING_ASSET_KIND_LABELS: Record<MarketingAssetKind, string> = {
   logo: "Logo",
@@ -913,6 +921,8 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
   const [visibleNegativeIdeaCount, setVisibleNegativeIdeaCount] = useState(MARKETING_SUGGESTION_BATCH_SIZE);
   const generationRequestRef = useRef(0);
   const mountedRef = useRef(true);
+  const renderSettingsRef = useRef<HTMLDivElement | null>(null);
+  const renderSettingsScrollFrameRef = useRef<number | null>(null);
 
   const activeToolConfig = MARKETING_TOOLS.find((tool) => tool.id === activeTool) || MARKETING_TOOLS[0]!;
   const selectedFormat = getFormatByLabel(activeToolConfig.formats, format);
@@ -945,6 +955,9 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
 
   useEffect(() => () => {
     mountedRef.current = false;
+    if (renderSettingsScrollFrameRef.current !== null) {
+      window.cancelAnimationFrame(renderSettingsScrollFrameRef.current);
+    }
   }, []);
 
   const resourcesByKind = useMemo(() => {
@@ -961,6 +974,54 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
     generationRequestRef.current += 1;
     setLoading(false);
     setMarketingImageResult(null);
+  };
+
+  const scrollToMarketingRenderSettings = () => {
+    const target = renderSettingsRef.current;
+    if (!target || typeof window === "undefined") return;
+
+    if (renderSettingsScrollFrameRef.current !== null) {
+      window.cancelAnimationFrame(renderSettingsScrollFrameRef.current);
+      renderSettingsScrollFrameRef.current = null;
+    }
+
+    const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+    const startY = window.scrollY;
+    const targetY = Math.max(
+      0,
+      startY + target.getBoundingClientRect().top - MARKETING_RENDER_SCROLL_OFFSET_PX,
+    );
+    const distance = targetY - startY;
+
+    if (prefersReducedMotion || Math.abs(distance) < 2) {
+      window.scrollTo({ top: targetY, left: window.scrollX, behavior: "auto" });
+      return;
+    }
+
+    const startTime = window.performance.now();
+    const animateScroll = (currentTime: number) => {
+      const progress = Math.min((currentTime - startTime) / MARKETING_RENDER_SCROLL_DURATION_MS, 1);
+      const easedProgress = easeInOutCubic(progress);
+      window.scrollTo(0, startY + distance * easedProgress);
+
+      if (progress < 1) {
+        renderSettingsScrollFrameRef.current = window.requestAnimationFrame(animateScroll);
+        return;
+      }
+
+      renderSettingsScrollFrameRef.current = null;
+    };
+
+    renderSettingsScrollFrameRef.current = window.requestAnimationFrame(animateScroll);
+  };
+
+  const handleMarketingToolSelect = (tool: MarketingToolConfig) => {
+    const nextFormat = tool.formats[0] || DEFAULT_MARKETING_FORMAT;
+    invalidateMarketingGeneration();
+    setActiveTool(tool.id);
+    setFormat(nextFormat.label);
+    setOrientation(nextFormat.orientation);
+    window.requestAnimationFrame(scrollToMarketingRenderSettings);
   };
 
   useEffect(() => {
@@ -1371,13 +1432,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                     <button
                       key={tool.id}
                       type="button"
-                      onClick={() => {
-                        const nextFormat = tool.formats[0] || DEFAULT_MARKETING_FORMAT;
-                        invalidateMarketingGeneration();
-                        setActiveTool(tool.id);
-                        setFormat(nextFormat.label);
-                        setOrientation(nextFormat.orientation);
-                      }}
+                      onClick={() => handleMarketingToolSelect(tool)}
                       className={`min-w-0 rounded-2xl border p-4 text-center transition ${
                         selected
                           ? "border-orange-400 bg-orange-50 shadow-sm dark:bg-orange-950/20"
@@ -1396,16 +1451,6 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                     </button>
                   );
                 })}
-                </div>
-                <div className="mt-4 flex justify-end">
-                  <Button
-                    type="button"
-                    onClick={() => setActiveStep(2)}
-                    className="gap-2 rounded-2xl bg-orange-600 hover:bg-orange-700"
-                  >
-                    Continuer vers les références marketing
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
                 </div>
               </div>
 
@@ -1494,7 +1539,10 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                 </div>
               </div>
 
-              <div className={`${activeStep === 1 ? "" : "hidden"} min-w-0 rounded-2xl border border-orange-100 bg-white p-3 shadow-sm dark:bg-background sm:rounded-3xl`}>
+              <div
+                ref={renderSettingsRef}
+                className={`${activeStep === 1 ? "" : "hidden"} min-w-0 rounded-2xl border border-orange-100 bg-white p-3 shadow-sm dark:bg-background sm:rounded-3xl`}
+              >
                 <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-orange-600 text-xs font-bold text-white">2</span>
                   Paramétrer le rendu

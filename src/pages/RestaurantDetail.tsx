@@ -51,6 +51,10 @@ const RESTAURANT_PROMOTIONS_LIMIT = 4;
 const RESERVATION_SIDEBAR_PREFERRED_STICKY_TOP = 96;
 const RESERVATION_SIDEBAR_BOTTOM_GAP = 16;
 const HERO_IMAGE_FETCH_PRIORITY_PROPS = { fetchpriority: "high" } as const;
+const RESTAURANT_MENU_STICKY_STYLE: CSSProperties = { top: "var(--tok-public-navbar-offset, 0px)" };
+const RESTAURANT_MENU_SECTION_STYLE: CSSProperties = {
+  scrollMarginTop: "calc(var(--tok-public-navbar-offset, 0px) + 5rem)",
+};
 
 const RESTAURANT_PROMOTION_TARGET_LABELS: Record<string, string> = {
   all: "Tous les clients",
@@ -1207,7 +1211,11 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
                 )}
                 {/* Sticky category navigation */}
                 {categories.length > 1 && (
-                  <div className="sticky top-16 z-20 -mx-1 px-1 py-2 bg-background/95 backdrop-blur border-b">
+                  <div
+                    data-testid="restaurant-menu-category-rail"
+                    className="sticky z-20 -mx-1 border-b bg-background/95 px-1 py-2 backdrop-blur transition-[top] duration-300 ease-out"
+                    style={RESTAURANT_MENU_STICKY_STYLE}
+                  >
                     <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
                       {categories.map((cat) => (
                         <button
@@ -1223,7 +1231,12 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
                 )}
                 <div className="space-y-8">
                   {categories.map((category) => (
-                    <div key={category} id={category.replace(/\s+/g, '-').toLowerCase()} className="space-y-4 scroll-mt-32">
+                    <div
+                      key={category}
+                      id={category.replace(/\s+/g, '-').toLowerCase()}
+                      className="space-y-4"
+                      style={RESTAURANT_MENU_SECTION_STYLE}
+                    >
                       <h2 className="font-display text-xl font-bold border-b pb-2">{category}</h2>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {menuItems?.filter((item) => (item.category || "Autres") === category).map((item) => (
