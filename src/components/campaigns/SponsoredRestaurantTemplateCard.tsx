@@ -160,7 +160,7 @@ export function SponsoredRestaurantTemplateCard({
             )}
           >
             <div className="flex flex-wrap items-center gap-2.5">
-              <span className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-white shadow-[0_14px_28px_rgba(154,52,18,0.24)]">
+              <span className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-primary-foreground shadow-[0_14px_28px_rgba(255,90,0,0.24)]">
                 <Megaphone className="h-3.5 w-3.5" />
                 Sponsorisé
               </span>
@@ -287,7 +287,7 @@ export function SponsoredRestaurantTemplateCard({
         />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/62 via-slate-950/10 to-transparent" />
         <div className="absolute left-3 right-14 top-3 flex flex-wrap items-start gap-1.5">
-          <span className="inline-flex items-center gap-1 rounded-full border border-white/35 bg-primary/95 px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.12em] text-white shadow-sm backdrop-blur-md">
+          <span className="inline-flex items-center gap-1 rounded-full border border-white/35 bg-primary/95 px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.12em] text-primary-foreground shadow-sm backdrop-blur-md">
             <Megaphone className="h-3 w-3" />
             Sponsorisé
           </span>

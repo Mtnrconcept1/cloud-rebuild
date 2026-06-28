@@ -223,7 +223,7 @@ export default function AlternativeCommissionCouvert() {
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
-              <Button asChild size="lg" className="bg-orange-700 text-white hover:bg-orange-800">
+              <Button asChild size="lg" className="bg-[#ff5a00] text-[#111827] hover:bg-[#f45100]">
                 <Link to="/contact">
                   Demander une comparaison
                   <Calculator className="ml-2 h-5 w-5" />
@@ -398,7 +398,7 @@ export default function AlternativeCommissionCouvert() {
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <Button asChild size="lg" className="bg-orange-700 text-white hover:bg-orange-800">
+            <Button asChild size="lg" className="bg-[#ff5a00] text-[#111827] hover:bg-[#f45100]">
               <Link to="/contact">
                 Parler à TOK
                 <ArrowRight className="ml-2 h-5 w-5" />

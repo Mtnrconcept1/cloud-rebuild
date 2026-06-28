@@ -161,7 +161,7 @@ export default function MultiStop() {
             </div>
           )}
 
-          <Button onClick={() => setStep("restaurant")} disabled={!allAddressesFilled} className="w-full bg-orange-500 hover:bg-orange-600 gap-2">Choisir un restaurant <ChevronRight className="h-4 w-4" /></Button>
+          <Button onClick={() => setStep("restaurant")} disabled={!allAddressesFilled} className="w-full bg-[#ff5a00] text-[#111827] hover:bg-[#f45100] gap-2">Choisir un restaurant <ChevronRight className="h-4 w-4" /></Button>
         </div>)}
 
         {step === "restaurant" && (<div className="space-y-4">
@@ -196,7 +196,7 @@ export default function MultiStop() {
             <div className="flex justify-between text-sm"><span>{count} article{count > 1 ? "s" : ""}</span><span className="font-bold">{subtotal.toFixed(2)} CHF</span></div>
             <div className="flex justify-between text-xs text-muted-foreground"><span>Livraison multi-stop ({stops.length} adresses)</span><span>{totalWithSharing.toFixed(2)} CHF</span></div>
             <div className="flex justify-between font-bold"><span>Total</span><span>{(subtotal + totalWithSharing).toFixed(2)} CHF</span></div>
-            <Button onClick={handleAddToCart} className="w-full bg-orange-500 hover:bg-orange-600 gap-2"><ShoppingCart className="h-4 w-4" /> Valider</Button>
+            <Button onClick={handleAddToCart} className="w-full bg-[#ff5a00] text-[#111827] hover:bg-[#f45100] gap-2"><ShoppingCart className="h-4 w-4" /> Valider</Button>
           </div>}
         </div>)}
 
@@ -208,7 +208,7 @@ export default function MultiStop() {
             <div className="flex justify-between"><span className="text-muted-foreground">Livraison</span><span className="font-medium">{totalWithSharing.toFixed(2)} CHF</span></div>
             <div className="flex justify-between border-t pt-2"><span className="font-semibold">Total</span><span className="font-bold">{(subtotal + totalWithSharing).toFixed(2)} CHF</span></div>
           </div>
-          <Button onClick={handleCheckout} className="w-full bg-orange-500 hover:bg-orange-600 gap-2" size="lg">Procéder au paiement <ChevronRight className="h-4 w-4" /></Button>
+          <Button onClick={handleCheckout} className="w-full bg-[#ff5a00] text-[#111827] hover:bg-[#f45100] gap-2" size="lg">Procéder au paiement <ChevronRight className="h-4 w-4" /></Button>
         </div>)}
       </div>
     </main>

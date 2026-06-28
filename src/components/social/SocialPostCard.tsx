@@ -610,7 +610,7 @@ function SocialPostModalSummary({ post }: { post: SocialFeedPost }) {
                 <Button
                   asChild
                   size="sm"
-                  className="h-8 shrink-0 gap-1.5 rounded-full bg-orange-600 px-3 text-xs hover:bg-orange-700"
+                  className="h-8 shrink-0 gap-1.5 rounded-full bg-[#ff5a00] px-3 text-xs text-[#111827] hover:bg-[#f45100]"
                 >
                   <Link to={cta.to}>
                     {CtaIcon ? <CtaIcon className="h-3.5 w-3.5" /> : null}
@@ -1552,7 +1552,7 @@ export default function SocialPostCard({
               </div>
               <Button
                 type="button"
-                className="w-full justify-center gap-2 rounded-xl bg-orange-600 hover:bg-orange-700"
+                className="w-full justify-center gap-2 rounded-xl bg-[#ff5a00] text-[#111827] hover:bg-[#f45100]"
                 onClick={copyShareLink}
                 disabled={recordShare.isPending}
               >
@@ -1622,7 +1622,7 @@ export default function SocialPostCard({
               </Button>
               <Button
                 type="button"
-                className="bg-orange-600 hover:bg-orange-700"
+                className="bg-[#ff5a00] text-[#111827] hover:bg-[#f45100]"
                 onClick={submitReport}
                 disabled={
                   reportItem.isPending ||

@@ -171,7 +171,7 @@ function getRatingColor(rating: number): string {
   if (rating >= 8) return "bg-emerald-700 text-white";
   if (rating >= 7) return "bg-lime-700 text-white";
   if (rating >= 6) return "bg-amber-700 text-white";
-  return "bg-orange-700 text-white";
+  return "bg-primary text-primary-foreground";
 }
 
 export default function RestaurantCard({
@@ -455,7 +455,7 @@ export default function RestaurantCard({
               </>
             ) : null}
             {showDelivery ? (
-              <Badge className="gap-1 border-none bg-primary/95 text-[9px] font-bold uppercase text-white shadow-sm backdrop-blur-md">
+              <Badge className="gap-1 border-none bg-primary/95 text-[9px] font-bold uppercase text-primary-foreground shadow-sm backdrop-blur-md">
                 <Bike className="h-3 w-3" /> Livraison
               </Badge>
             ) : null}

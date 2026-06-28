@@ -211,7 +211,7 @@ export default function RestaurateursGoogleBusiness() {
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
-              <Button asChild size="lg" className="bg-orange-700 text-white hover:bg-orange-800">
+              <Button asChild size="lg" className="bg-[#ff5a00] text-[#111827] hover:bg-[#f45100]">
                 <a href={`mailto:contact@thetok.ch?subject=${auditSubject}&body=${auditBody}`}>
                   Auditer ma fiche Google
                   <ExternalLink className="ml-2 h-5 w-5" />
@@ -375,7 +375,7 @@ export default function RestaurateursGoogleBusiness() {
               source, conversion, coût et prochaines actions.
             </p>
             <div className="flex flex-wrap gap-3 pt-2">
-              <Button asChild size="lg" className="bg-orange-700 text-white hover:bg-orange-800">
+              <Button asChild size="lg" className="bg-[#ff5a00] text-[#111827] hover:bg-[#f45100]">
                 <a href={`mailto:contact@thetok.ch?subject=${auditSubject}&body=${auditBody}`}>
                   Lancer l'audit Google
                   <CheckCircle2 className="ml-2 h-5 w-5" />

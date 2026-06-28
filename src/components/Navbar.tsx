@@ -409,7 +409,7 @@ export default function Navbar() {
                     onMouseDown={preserveNavbarActionScrollPosition}
                     className={
                       isMobileHomeHeader
-                        ? "order-3 h-[48px] rounded-full bg-primary px-5 text-[0.88rem] font-bold text-white shadow-[0_10px_22px_rgba(255,107,28,0.24)] hover:bg-primary/90"
+                        ? "order-3 h-[48px] rounded-full bg-primary px-5 text-[0.88rem] font-bold text-primary-foreground shadow-[0_10px_22px_rgba(255,107,28,0.24)] hover:bg-[#f45100]"
                         : hasDashboardAccess
                           ? "hidden h-11 rounded-full border border-primary/25 bg-gradient-to-r from-[#8f2f0a] via-[#b45309] to-[#92400e] px-4 text-sm font-extrabold text-white shadow-[0_12px_26px_rgba(154,52,18,0.24)] transition-all hover:-translate-y-0.5 hover:text-white hover:shadow-[0_16px_34px_rgba(154,52,18,0.30)] lg:inline-flex"
                         : "rounded-full"
@@ -501,7 +501,7 @@ export default function Navbar() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button asChild size="sm" className={`${isMobileHomeHeader ? "order-3 h-[48px] rounded-full px-5 text-[0.88rem] shadow-[0_10px_22px_rgba(255,107,28,0.24)]" : "min-h-[44px] px-3 min-[380px]:px-5"} rounded-full bg-primary font-bold text-white shadow-md hover:bg-primary/90`}>
+              <Button asChild size="sm" className={`${isMobileHomeHeader ? "order-3 h-[48px] rounded-full px-5 text-[0.88rem] shadow-[0_10px_22px_rgba(255,107,28,0.24)]" : "min-h-[44px] px-3 min-[380px]:px-5"} rounded-full bg-primary font-bold text-primary-foreground shadow-md hover:bg-[#f45100]`}>
                 <Link to="/auth" className="flex items-center gap-2">
                   <User className={`${isMobileHomeHeader ? "h-5 w-5" : "h-4 w-4"}`} />
                   <span className={isMobileHomeHeader ? "inline" : "hidden min-[380px]:inline"}>CONNEXION</span>

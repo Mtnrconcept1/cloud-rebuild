@@ -53,7 +53,7 @@ export default function TokPulse() {
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
-              <Button asChild size="lg" className="bg-orange-500 text-white hover:bg-orange-600">
+              <Button asChild size="lg" className="bg-[#ff5a00] text-[#111827] hover:bg-[#f45100]">
                 <Link to="/recherche?mode=reservation">Trouver une table</Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="border-white/20 bg-white/10 text-white hover:bg-white/20">
@@ -89,7 +89,7 @@ export default function TokPulse() {
                       </div>
                       <p className="text-xl font-black">{preset.title}</p>
                       <p className="mt-1 text-sm text-orange-50/70">{preset.subtitle}</p>
-                      <span className="mt-4 inline-flex rounded-full bg-orange-500 px-4 py-2 text-sm font-bold text-white group-hover:bg-orange-400">
+                      <span className="mt-4 inline-flex rounded-full bg-[#ff5a00] px-4 py-2 text-sm font-bold text-[#111827] group-hover:bg-[#f45100]">
                         {preset.action}
                       </span>
                     </Link>
