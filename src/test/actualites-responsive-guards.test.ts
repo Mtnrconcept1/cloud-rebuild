@@ -73,7 +73,7 @@ describe("Actualites responsive guards", () => {
     expect(card).toContain("max-sm:max-h-6");
     expect(card).toContain("max-sm:px-2 max-sm:py-0.5 max-sm:text-[11px]");
     expect(card).toContain(
-      "hidden whitespace-pre-wrap text-sm font-medium leading-5 text-slate-950 max-sm:block",
+      "hidden whitespace-pre-wrap text-sm font-medium leading-5 text-slate-950 dark:text-slate-100 max-sm:block",
     );
     expect(card).toContain("Voir le menu");
     expect(card).toContain("grid-cols-[repeat(6,minmax(0,1fr))]");
