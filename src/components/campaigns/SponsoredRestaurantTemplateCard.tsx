@@ -1,5 +1,5 @@
 import { ArrowRight, BellRing, Heart, MapPin, Megaphone, Percent, Sparkles } from "lucide-react";
-import type { MouseEvent } from "react";
+import type { CSSProperties, MouseEvent } from "react";
 
 import PriceRangeIcons from "@/components/PriceRangeIcons";
 import {
@@ -61,11 +61,15 @@ function OfferText({
   headline,
   body,
   compact = false,
+  headlineColor,
+  bodyColor,
 }: {
   creative: CampaignCreativeConfig;
   headline: string;
   body: string;
   compact?: boolean;
+  headlineColor?: string;
+  bodyColor?: string;
 }) {
   const headlineStyle = creative.text.headline;
   const bodyStyle = creative.text.body;
@@ -78,7 +82,7 @@ function OfferText({
           compact ? "text-sm" : "text-base",
           getTypographyClass(headlineStyle),
         )}
-        style={{ color: headlineStyle.color }}
+        style={{ color: headlineColor || headlineStyle.color }}
       >
         {headline}
       </p>
@@ -89,7 +93,7 @@ function OfferText({
             compact ? "text-xs" : "text-sm",
             getTypographyClass(bodyStyle),
           )}
-          style={{ color: bodyStyle.color }}
+          style={{ color: bodyColor || bodyStyle.color }}
         >
           {body}
         </p>
@@ -133,6 +137,10 @@ export function SponsoredRestaurantTemplateCard({
   if (variant === "banner") {
     const secondaryBadge = discountLabel?.trim();
     const showSecondaryBadge = Boolean(secondaryBadge && !/^sponsor/i.test(secondaryBadge));
+    const bannerOfferVariableStyle = {
+      "--sponsored-banner-offer-headline-color": normalized.text.headline.color,
+      "--sponsored-banner-offer-body-color": normalized.text.body.color,
+    } as CSSProperties;
 
     return (
       <article
@@ -158,6 +166,7 @@ export function SponsoredRestaurantTemplateCard({
               "flex min-w-0 flex-col justify-center",
               compactBanner ? "p-4 pb-2 sm:p-5 sm:pb-3 lg:overflow-hidden lg:p-5 xl:p-6" : "p-5 pb-3 sm:p-8 sm:pb-4 lg:p-10 xl:p-12",
             )}
+            style={bannerOfferVariableStyle}
           >
             <div className="flex flex-wrap items-center gap-2.5">
               <span className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-primary-foreground shadow-[0_14px_28px_rgba(255,90,0,0.24)]">
@@ -196,7 +205,7 @@ export function SponsoredRestaurantTemplateCard({
 
             <div
               className={cn(
-                "rounded-[26px] border border-orange-100 bg-white/86 shadow-[0_16px_42px_rgba(15,23,42,0.08)] backdrop-blur dark:border-white/10 dark:bg-white/8",
+                "rounded-[26px] border border-orange-100 bg-white/86 shadow-[0_16px_42px_rgba(15,23,42,0.08)] backdrop-blur dark:border-white/10 dark:bg-white/8 dark:[--sponsored-banner-offer-body-color:#ffffff] dark:[--sponsored-banner-offer-headline-color:#ffbb00]",
                 compactBanner ? "mt-3 p-3 sm:p-3.5" : "mt-7 p-4 sm:p-5",
               )}
             >
@@ -209,7 +218,14 @@ export function SponsoredRestaurantTemplateCard({
                 >
                   <Sparkles className={compactBanner ? "h-4 w-4" : "h-6 w-6"} />
                 </div>
-                <OfferText creative={normalized} headline={displayHeadline} body={displayBody} compact={compactBanner} />
+                <OfferText
+                  creative={normalized}
+                  headline={displayHeadline}
+                  body={displayBody}
+                  compact={compactBanner}
+                  headlineColor="var(--sponsored-banner-offer-headline-color)"
+                  bodyColor="var(--sponsored-banner-offer-body-color)"
+                />
               </div>
             </div>
 
