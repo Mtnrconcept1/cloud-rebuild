@@ -89,9 +89,8 @@ describe("privileged admin AI chat", () => {
     expect(supportChat).toContain("Assistant IA Admin est indisponible");
     expect(supportChat).toContain("Assistant IA Admin");
     expect(supportChat).toContain("Acces administrateur principal");
-    expect(app).toContain('const SupportChat = lazy(() => import("./components/SupportChat"))');
-    expect(app).toContain("function DeferredGlobalWidgets()");
-    expect(app).toContain("<SupportChat />");
-    expect(app).toContain("<DeferredGlobalWidgets />");
+    expect(app).toContain('import SupportChat from "@/components/SupportChat"');
+    expect(app).not.toContain("const SupportChat = lazy");
+    expect(app).toContain("<SupportChat />\n      <Suspense fallback={null}>");
   });
 });

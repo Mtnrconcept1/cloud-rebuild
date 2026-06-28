@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { TOK_DOCUMENT_ICON_SRC, getNextZurichDayDelayMs, getTokLogoForDate } from "@/lib/tokLogo";
+import { DEFAULT_TOK_LOGO_SRC, getNextZurichDayDelayMs, getTokLogoForDate } from "@/lib/tokLogo";
 
 export function useTokLogo() {
   const [logo, setLogo] = useState(() => getTokLogoForDate());
@@ -28,7 +28,7 @@ export function useTokLogoSrc() {
 }
 
 export function useTokLogoDocumentIcons() {
-  const documentIconSrc = TOK_DOCUMENT_ICON_SRC;
+  const documentIconSrc = DEFAULT_TOK_LOGO_SRC;
 
   useEffect(() => {
     if (typeof document === "undefined") return;

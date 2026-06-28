@@ -427,7 +427,7 @@ export default function Recherche() {
           <div className="flex flex-col gap-5">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">Explorer</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary/80">Explorer</p>
                 <h1 className="font-display text-3xl font-bold dark:text-white">Trouvez le bon restaurant, plus vite</h1>
                 <p className="max-w-2xl text-sm text-muted-foreground dark:text-slate-300">
                   Recherchez par nom, cuisine ou ville, puis affinez uniquement si nécessaire.
@@ -485,7 +485,7 @@ export default function Recherche() {
                   inputClassName="h-[44px] text-xs dark:border-white/20 dark:bg-slate-950/80 dark:text-white dark:placeholder:text-slate-400"
                 />
                 <Select value={cuisine} onValueChange={(v) => updateFilter("cuisine", v)}>
-                  <SelectTrigger aria-label="Type de cuisine" className="h-[44px] w-40 text-xs dark:border-white/20 dark:bg-slate-950/80 dark:text-white"><SelectValue placeholder="Type de cuisine" /></SelectTrigger>
+                  <SelectTrigger className="h-[44px] w-40 text-xs dark:border-white/20 dark:bg-slate-950/80 dark:text-white"><SelectValue placeholder="Type de cuisine" /></SelectTrigger>
                   <SelectContent>
                     {sortedCuisineOptions.map((entry: any) => (
                       <SelectItem key={entry.id || entry.slug || entry.name} value={String(entry.slug || entry.name).toLowerCase()}>
@@ -495,7 +495,7 @@ export default function Recherche() {
                   </SelectContent>
                 </Select>
                 <Select value={price} onValueChange={(v) => updateFilter("price", v)}>
-                  <SelectTrigger aria-label="Budget" className="h-[44px] w-24 text-xs font-bold uppercase dark:border-white/20 dark:bg-slate-950/80 dark:text-white"><SelectValue placeholder="Budget" /></SelectTrigger>
+                  <SelectTrigger className="h-[44px] w-24 text-xs font-bold uppercase dark:border-white/20 dark:bg-slate-950/80 dark:text-white"><SelectValue placeholder="Budget" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="1">CHF</SelectItem>
                     <SelectItem value="2">CHF++</SelectItem>
@@ -503,7 +503,7 @@ export default function Recherche() {
                   </SelectContent>
                 </Select>
                 <Select value={minRatingSelectValue} onValueChange={(v) => updateFilter("rating", v)}>
-                  <SelectTrigger aria-label="Note minimum" className="h-[44px] w-28 text-xs dark:border-white/20 dark:bg-slate-950/80 dark:text-white"><SelectValue placeholder="Note minimum" /></SelectTrigger>
+                  <SelectTrigger className="h-[44px] w-28 text-xs dark:border-white/20 dark:bg-slate-950/80 dark:text-white"><SelectValue placeholder="Note minimum" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="0">Toutes les notes</SelectItem>
                     <SelectItem value="9">9.0+/10</SelectItem>
@@ -527,7 +527,7 @@ export default function Recherche() {
               <div className="flex flex-wrap items-center gap-2 xl:justify-end">
                 <span className="whitespace-nowrap text-sm font-medium text-muted-foreground dark:text-slate-300">Trier par :</span>
                 <Select value={sortBy} onValueChange={(v) => updateFilter("sort", v)}>
-                  <SelectTrigger aria-label="Trier par" className="h-[44px] bg-secondary/20 text-xs font-semibold dark:border-white/20 dark:bg-slate-950/80 dark:text-white xl:w-44"><SelectValue placeholder="Pertinence" /></SelectTrigger>
+                  <SelectTrigger className="h-[44px] bg-secondary/20 text-xs font-semibold dark:border-white/20 dark:bg-slate-950/80 dark:text-white xl:w-44"><SelectValue placeholder="Pertinence" /></SelectTrigger>
                   <SelectContent>
                     {SORT_OPTIONS.map((opt) => (
                       <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
@@ -535,7 +535,7 @@ export default function Recherche() {
                   </SelectContent>
                 </Select>
                 <Select value={sortDirection} onValueChange={(v) => updateFilter("order", v)}>
-                  <SelectTrigger aria-label="Ordre de tri" className="h-[44px] w-32 bg-secondary/20 text-xs dark:border-white/20 dark:bg-slate-950/80 dark:text-white"><SelectValue placeholder="Ordre" /></SelectTrigger>
+                  <SelectTrigger className="h-[44px] w-32 bg-secondary/20 text-xs dark:border-white/20 dark:bg-slate-950/80 dark:text-white"><SelectValue placeholder="Ordre" /></SelectTrigger>
                   <SelectContent>
                     {ORDER_OPTIONS.map((opt) => (
                       <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>

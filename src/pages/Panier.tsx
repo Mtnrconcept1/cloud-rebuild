@@ -1575,41 +1575,41 @@ export default function Panier() {
         ) : null}
 
         {isChefsTableCheckout ? (
-          <div className="space-y-4 rounded-3xl border border-amber-300 bg-gradient-to-br from-amber-100 via-white to-orange-50 p-5 shadow-[0_24px_70px_-38px_rgba(245,158,11,0.5)] dark:border-orange-300/35 dark:bg-none dark:bg-slate-950/95 dark:shadow-[0_24px_70px_-34px_rgba(255,90,0,0.45)]">
-            <div className="flex items-center gap-2 text-amber-700 dark:text-orange-200">
+          <div className="rounded-3xl border border-amber-300 bg-gradient-to-br from-amber-100 via-white to-orange-50 p-5 shadow-[0_24px_70px_-38px_rgba(245,158,11,0.5)] space-y-4">
+            <div className="flex items-center gap-2 text-amber-700">
               <ChefHat className="h-5 w-5" />
               <p className="font-semibold">Reservation La Table du Chef</p>
             </div>
-            <p className="text-sm text-muted-foreground dark:text-slate-200">
+            <p className="text-sm text-muted-foreground">
               Le paiement sécurisé confirme la réservation et les plats précommandés. Chaque drop garde son horaire de service et son nombre de convives.
             </p>
             <div className="space-y-3">
               {chefsTableReservationGroups.map((group) => (
-                <div key={group.key} className="rounded-2xl border bg-background/90 p-4 dark:border-white/10 dark:bg-slate-900/95">
+                <div key={group.key} className="rounded-2xl border bg-background/90 p-4">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="font-medium dark:text-slate-50">{group.restaurantName}</p>
-                    <span className="text-sm font-semibold text-amber-700 dark:text-orange-200">{group.total.toFixed(2)} CHF</span>
+                    <p className="font-medium">{group.restaurantName}</p>
+                    <span className="text-sm font-semibold text-amber-700">{group.total.toFixed(2)} CHF</span>
                   </div>
-                  <p className="mt-1 text-xs text-muted-foreground dark:text-slate-300">
+                  <p className="mt-1 text-xs text-muted-foreground">
                     {group.serviceDate
                       ? `${new Date(group.serviceDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })} à ${group.serviceTime || "--:--"}`
                       : "Horaire defini par le drop"}
                   </p>
-                  <p className="mt-1 text-xs text-amber-700 dark:text-orange-200">
+                  <p className="mt-1 text-xs text-amber-700">
                     {group.guestCount} convive{group.guestCount > 1 ? "s" : ""}
                   </p>
                 </div>
               ))}
             </div>
-            <div className="rounded-2xl border border-amber-200 bg-white/80 p-4 dark:border-orange-300/30 dark:bg-slate-900/95">
+            <div className="rounded-2xl border border-amber-200 bg-white/80 p-4">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-semibold text-foreground dark:text-slate-50">Paiement visible et prioritaire</p>
-                  <p className="text-xs text-muted-foreground dark:text-slate-300">
+                  <p className="text-sm font-semibold text-foreground">Paiement visible et prioritaire</p>
+                  <p className="text-xs text-muted-foreground">
                     Les convives choisis dans La Table du Chef sont déjà intégrés dans cette étape de paiement.
                   </p>
                 </div>
-                <span className="font-display text-2xl font-bold text-foreground dark:text-orange-100">{finalTotal.toFixed(2)} CHF</span>
+                <span className="font-display text-2xl font-bold text-foreground">{finalTotal.toFixed(2)} CHF</span>
               </div>
             </div>
           </div>

@@ -328,15 +328,6 @@ describe("prioritizeSponsoredCards", () => {
     expect(templateCard).toContain('compactBanner ? "object-contain" : "object-cover"');
   });
 
-  it("keeps dark sponsored banner offer text readable over translucent panels", () => {
-    const templateCard = readSource("src/components/campaigns/SponsoredRestaurantTemplateCard.tsx");
-
-    expect(templateCard).toContain("dark:[--sponsored-banner-offer-headline-color:#ffbb00]");
-    expect(templateCard).toContain("dark:[--sponsored-banner-offer-body-color:#ffffff]");
-    expect(templateCard).toContain('headlineColor="var(--sponsored-banner-offer-headline-color)"');
-    expect(templateCard).toContain('bodyColor="var(--sponsored-banner-offer-body-color)"');
-  });
-
   it("keeps the sponsored restaurant badge readable over restaurant photos", () => {
     const visual = readSource("src/components/campaigns/SponsoredVisual.tsx");
     const theme = readSource("src/components/campaigns/sponsoredVisualTheme.ts");

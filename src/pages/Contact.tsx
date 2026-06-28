@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Mail, MapPin, Send } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import TurnstileCaptcha from "@/components/security/TurnstileCaptcha";
@@ -64,27 +64,27 @@ export default function Contact() {
       <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
         <Card className="border-primary/10 shadow-lg">
           <CardHeader>
-            <h2 className="text-2xl font-semibold leading-none tracking-tight">Envoyez-nous un message</h2>
+            <CardTitle>Envoyez-nous un message</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <label htmlFor="contact-name" className="text-sm font-medium">Nom</label>
-                  <Input id="contact-name" name="name" placeholder="Votre nom" required />
+                  <label className="text-sm font-medium">Nom</label>
+                  <Input name="name" placeholder="Votre nom" required />
                 </div>
                 <div className="space-y-2">
-                  <label htmlFor="contact-email" className="text-sm font-medium">Email</label>
-                  <Input id="contact-email" name="email" type="email" placeholder="votre@email.com" required />
+                  <label className="text-sm font-medium">Email</label>
+                  <Input name="email" type="email" placeholder="votre@email.com" required />
                 </div>
               </div>
               <div className="space-y-2">
-                <label htmlFor="contact-subject" className="text-sm font-medium">Sujet</label>
-                <Input id="contact-subject" name="subject" placeholder="De quoi souhaitez-vous parler ?" required />
+                <label className="text-sm font-medium">Sujet</label>
+                <Input name="subject" placeholder="De quoi souhaitez-vous parler ?" required />
               </div>
               <div className="space-y-2">
-                <label htmlFor="contact-message" className="text-sm font-medium">Message</label>
-                <Textarea id="contact-message" name="message" placeholder="Votre message..." className="min-h-[150px]" required />
+                <label className="text-sm font-medium">Message</label>
+                <Textarea name="message" placeholder="Votre message..." className="min-h-[150px]" required />
               </div>
               <TurnstileCaptcha action="public_contact" onTokenChange={setCaptchaToken} />
               <Button type="submit" className="w-full gap-2" disabled={sending}>

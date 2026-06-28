@@ -16,8 +16,6 @@ describe("Actualites responsive guards", () => {
     expect(app).toContain("{publicNavbar}");
     expect(app).not.toContain('max-sm:hidden">{publicNavbar}</div>');
     expect(page).toContain("overflow-x-hidden");
-    expect(page).toContain("dark:bg-black dark:bg-none dark:text-slate-50");
-    expect(page).toContain("container grid min-w-0 gap-5 dark:bg-black");
     expect(page).toContain("xl:grid-cols-[minmax(0,1fr)_minmax(18rem,21rem)]");
     expect(page).toContain("container grid min-w-0 gap-5");
     expect(page).toContain("min-w-0 max-w-full space-y-2");
@@ -27,11 +25,6 @@ describe("Actualites responsive guards", () => {
       "min-w-0 space-y-4 xl:sticky xl:top-28 xl:self-start",
     );
     expect(page).toContain("grid-cols-1 gap-2 sm:grid-cols-2");
-    expect(page).toContain("space-y-4 rounded-[17px] p-5");
-    expect(page).toContain("space-y-3 rounded-[17px] p-5");
-    expect(page).toContain("bg-white/90 p-3 text-xs text-black");
-    expect(page).toContain("dark:bg-white/90 dark:text-black");
-    expect(page).toContain("text-slate-500 dark:text-slate-600");
     expect(page).not.toContain('src="/chef2.png"');
     expect(page).toContain('src="/chef3.png"');
     expect(page).toContain("bg-[image:url('/fondbanniere.png')]");
@@ -64,9 +57,9 @@ describe("Actualites responsive guards", () => {
     expect(card).toContain("max-sm:absolute max-sm:right-0 max-sm:top-0");
     expect(card).toContain("w-full min-w-0 flex-1");
     expect(card).toContain(
-      "max-sm:-mx-2 max-sm:overflow-visible max-sm:rounded-[17px] max-sm:border-0 max-sm:shadow-none",
+      "max-sm:-mx-2 max-sm:overflow-visible max-sm:rounded-none max-sm:border-0 max-sm:shadow-none",
     );
-    expect(card).toContain("p-5 max-sm:px-0 max-sm:rounded-[17px]");
+    expect(card).toContain("p-5 max-sm:px-0");
     expect(card).toContain(
       "lg:grid-cols-[minmax(0,0.78fr)_minmax(22rem,1.35fr)]",
     );
@@ -80,7 +73,7 @@ describe("Actualites responsive guards", () => {
     expect(card).toContain("max-sm:max-h-6");
     expect(card).toContain("max-sm:px-2 max-sm:py-0.5 max-sm:text-[11px]");
     expect(card).toContain(
-      "hidden whitespace-pre-wrap text-sm font-medium leading-5 text-slate-950 dark:text-slate-100 max-sm:block",
+      "hidden whitespace-pre-wrap text-sm font-medium leading-5 text-slate-950 max-sm:block",
     );
     expect(card).toContain("Voir le menu");
     expect(card).toContain("grid-cols-[repeat(6,minmax(0,1fr))]");

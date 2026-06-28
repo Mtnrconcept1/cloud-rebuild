@@ -751,7 +751,7 @@ export default function TokOne() {
                 <Button
                   size="lg"
                   asChild
-                  className="h-12 rounded-lg bg-[#ff5a00] px-6 text-base font-semibold text-[#111827] shadow-lg shadow-orange-500/20 hover:bg-[#f45100]"
+                  className="h-12 rounded-lg bg-orange-600 px-6 text-base font-semibold text-white shadow-lg shadow-orange-600/20 hover:bg-orange-700 dark:bg-orange-400 dark:text-slate-950 dark:hover:bg-orange-300"
                 >
                   <Link to="/profil?tab=abonnement">
                     Gérer mon abonnement
@@ -763,7 +763,7 @@ export default function TokOne() {
                   size="lg"
                   onClick={handleSubscribe}
                   disabled={checkoutLoading || plansLoading || !selectedPlan}
-                  className="h-12 rounded-lg bg-[#ff5a00] px-6 text-base font-semibold text-[#111827] shadow-lg shadow-orange-500/20 hover:bg-[#f45100]"
+                  className="h-12 rounded-lg bg-orange-600 px-6 text-base font-semibold text-white shadow-lg shadow-orange-600/20 hover:bg-orange-700 dark:bg-orange-400 dark:text-slate-950 dark:hover:bg-orange-300"
                 >
                   {checkoutLoading ? (
                     <Loader2
@@ -998,7 +998,7 @@ export default function TokOne() {
                 !selectedPlan ||
                 activeSubscription
               }
-              className="mt-8 h-12 w-full rounded-lg bg-[#ff5a00] text-base font-semibold text-[#111827] shadow-lg shadow-orange-500/20 hover:bg-[#f45100]"
+              className="mt-8 h-12 w-full rounded-lg bg-orange-600 text-base font-semibold text-white shadow-lg shadow-orange-600/20 hover:bg-orange-700 dark:bg-orange-400 dark:text-slate-950 dark:hover:bg-orange-300"
             >
               {checkoutLoading ? (
                 <Loader2

@@ -15,13 +15,11 @@ describe("homepage positioning guards", () => {
 
     expect(hero).toContain("Réservez, commandez et profitez");
     expect(hero).toContain('data-testid="mobile-hero-shell"');
-    expect(hero).toContain("/optimized/fondacceuil-mobile.webp");
-    expect(hero).toContain("/optimized/fondacceuil-mobile-dark.jpg");
-    expect(hero).toContain("object-cover object-top dark:hidden");
-    expect(hero).toContain("hidden h-full w-full object-cover object-top dark:block");
-    expect(hero).toContain("MOBILE_HERO_IMAGE_FETCH_PRIORITY_PROPS");
-    expect(hero).toContain('loading="eager"');
-    expect(hero).toContain("object-cover object-top");
+    expect(hero).toContain("fondacceuil.png");
+    expect((hero.match(/fondacceuil\.png/g) ?? []).length).toBe(1);
+    expect(hero).toContain("bg-[position:50%_0%]");
+    expect(hero).toContain("bg-[length:100%_auto]");
+    expect(hero).toContain("bg-no-repeat");
     expect(hero).toContain("min-h-[calc(100svh-64px)]");
     expect(hero).toContain("bottom-2 space-y-2");
     expect(hero).toContain("pt-9 text-center min-[390px]:pt-10");
@@ -89,7 +87,7 @@ describe("homepage positioning guards", () => {
     expect(showcaseHeader).not.toContain("bottom-0 right-0 h-48 w-48 translate-x-3");
     expect(restaurantSection).toContain("section-headers/gift-3d.png");
     expect(cuisineStrip).toContain("SectionShowcaseHeader");
-    expect(cuisineStrip).toContain("/optimized/section-assiette-640.webp");
+    expect(cuisineStrip).toContain("/desig app/assiette.png");
     expect(index).toContain("bg-rose-50/70");
     expect(index).toContain('headerTheme="rose"');
     expect(index).toContain("SECTION_HEADER_IMAGES.personal");
@@ -98,10 +96,10 @@ describe("homepage positioning guards", () => {
     expect(index).toContain("SECTION_HEADER_IMAGES.local");
     expect(index).toContain("bg-indigo-50/70");
     expect(index).toContain("SECTION_HEADER_IMAGES.reservation");
-    expect(index).toContain('reservation: "/optimized/section-calendrier-640.webp"');
-    expect(index).toContain('lunch: "/optimized/section-burger-640.webp"');
+    expect(index).toContain('reservation: "/desig app/calendrier.png"');
+    expect(index).toContain('lunch: "/desig app/burger.png"');
     expect(index).toContain("bg-orange-50/70");
-    expect(index).toContain('promo: "/optimized/section-chefsection-640.webp"');
+    expect(index).toContain('promo: "/desig app/chefsection.png"');
     expect(index).toContain('title={"Promotions\\u00a0et activations\\u00a0du moment"}');
     expect(index).toContain("className=\"-mx-4 min-h-[222px] pb-16 pt-5");
     expect(index).toContain("contentClassName=\"z-30 max-w-[12rem] pr-0");
@@ -110,11 +108,11 @@ describe("homepage positioning guards", () => {
     expect(index).toContain("bg-emerald-50/75");
     expect(index).toContain('headerTheme="emerald"');
     expect(index).toContain("SECTION_HEADER_IMAGES.offers");
-    expect(index).toContain('offers: "/optimized/section-cadeau-640.webp"');
+    expect(index).toContain('offers: "/desig app/cadeau.png"');
     expect(index).toContain("SECTION_HEADER_IMAGES.trending");
-    expect(index).toContain('trending: "/optimized/section-flamme-640.webp"');
+    expect(index).toContain('trending: "/desig app/flamme.png"');
     expect(index).toContain("SECTION_HEADER_IMAGES.nearby");
-    expect(index).toContain('nearby: "/optimized/section-chefsection2-640.webp"');
+    expect(index).toContain('nearby: "/desig app/chefsection2.png"');
     expect(solidarity).toContain("border-y border-pink-500/10");
     expect(features).toContain("border-y border-border/70");
     expect(features).toContain("border-primary/15 bg-primary/10");
@@ -129,32 +127,20 @@ describe("homepage positioning guards", () => {
     expect(index).not.toContain("const showTrendingRail = trendingCards.length > 0 && (!user");
   });
 
-  it("keeps the mobile hero city input visually hidden over the white pill", () => {
-    const hero = read("src/components/home/HeroSection.tsx");
-
-    expect(hero).toContain("const mobileCityInputClassName =");
-    expect(hero).toContain("bg-white px-0 py-0");
-    expect(hero).toContain("opacity-0");
-    expect(hero).toContain("dark:bg-white dark:text-[#1f2937]");
-    expect(hero).toContain("inputClassName={mobileCityInputClassName}");
-    expect(hero).toContain("const desktopFieldInputClassName =");
-  });
-
-  it("keeps locally hosted optimized illustrations for homepage section headers", () => {
+  it("keeps locally hosted 3D PNG illustrations for homepage section headers", () => {
     const requiredAssets = [
       "public/images/section-headers/heart-3d.png",
       "public/images/section-headers/pin-3d.png",
       "public/images/section-headers/plate-3d.png",
-      "public/optimized/section-burger-640.webp",
-      "public/optimized/section-assiette-640.webp",
-      "public/optimized/section-calendrier-640.webp",
-      "public/optimized/section-chefsection-640.webp",
-      "public/optimized/section-cadeau-640.webp",
+      "public/desig app/burger.png",
+      "public/desig app/assiette.png",
+      "public/desig app/calendrier.png",
+      "public/desig app/chefsection.png",
+      "public/desig app/cadeau.png",
       "public/images/section-headers/shopping-bags-3d.png",
       "public/images/section-headers/gift-3d.png",
-      "public/optimized/section-flamme-640.webp",
-      "public/optimized/section-chefsection2-640.webp",
-      "public/optimized/fondacceuil-mobile-dark.jpg",
+      "public/desig app/flamme.png",
+      "public/desig app/chefsection2.png",
     ];
 
     for (const asset of requiredAssets) {

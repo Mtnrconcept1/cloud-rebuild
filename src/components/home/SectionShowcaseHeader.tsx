@@ -181,8 +181,6 @@ export default function SectionShowcaseHeader({
           aria-hidden="true"
           loading="lazy"
           decoding="async"
-          height={640}
-          width={640}
           className={cn(
             "absolute inset-y-0 right-0 h-full max-h-none w-full object-contain object-center",
             imageClassName,

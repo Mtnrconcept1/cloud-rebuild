@@ -841,7 +841,7 @@ function TokOneTab({ userId, subscription, isActive, plans }: TokOneTabProps) {
               À partir de {Number(plans[0].price_monthly).toFixed(2)} CHF/mois
             </p>
           )}
-          <Button asChild>
+          <Button className="bg-violet-600 hover:bg-violet-700 text-white" asChild>
             <Link to="/tok-one">
               <Crown className="mr-2 h-4 w-4" />
               Decouvrir Tok One

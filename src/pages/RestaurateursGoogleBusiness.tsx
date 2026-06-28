@@ -211,7 +211,7 @@ export default function RestaurateursGoogleBusiness() {
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
-              <Button asChild size="lg" className="bg-[#ff5a00] text-[#111827] hover:bg-[#f45100]">
+              <Button asChild size="lg" className="bg-orange-500 text-white hover:bg-orange-600">
                 <a href={`mailto:contact@thetok.ch?subject=${auditSubject}&body=${auditBody}`}>
                   Auditer ma fiche Google
                   <ExternalLink className="ml-2 h-5 w-5" />
@@ -248,7 +248,7 @@ export default function RestaurateursGoogleBusiness() {
         <div className="mx-auto grid max-w-7xl gap-6 md:grid-cols-3">
           {channelMetrics.map(({ icon: Icon, title, body }) => (
             <article key={title} className="rounded-lg border bg-white p-5 shadow-sm">
-              <Icon className="h-6 w-6 text-orange-700" />
+              <Icon className="h-6 w-6 text-orange-600" />
               <h2 className="mt-4 text-xl font-bold">{title}</h2>
               <p className="mt-2 text-sm leading-6 text-slate-600">{body}</p>
             </article>
@@ -259,7 +259,7 @@ export default function RestaurateursGoogleBusiness() {
       <section className="px-4 py-16 md:px-8 lg:px-12">
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.78fr_1.22fr]">
           <div className="space-y-4">
-            <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-700">Bascule du bouton Google</p>
+            <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-600">Bascule du bouton Google</p>
             <h2 className="text-3xl font-black md:text-4xl">Le bon lien dépend de votre situation actuelle.</h2>
             <p className="text-slate-600">
               Le restaurateur doit pouvoir décider sans jargon : quel est le risque aujourd'hui, quelle action TOK
@@ -288,7 +288,7 @@ export default function RestaurateursGoogleBusiness() {
       <section className="px-4 py-16 md:px-8 lg:px-12">
         <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[420px_minmax(0,1fr)]">
           <div className="space-y-4">
-            <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-700">Simulateur du canal Google</p>
+            <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-600">Simulateur du canal Google</p>
             <h2 className="text-3xl font-black md:text-4xl">Mesurez le coût de conversion des tables issues de Google.</h2>
             <p className="text-slate-600">
               La page Google Business ne vend pas toute la plateforme. Elle aide le restaurateur à décider si son bouton
@@ -318,7 +318,7 @@ export default function RestaurateursGoogleBusiness() {
       <section className="bg-slate-50 px-4 py-16 md:px-8 lg:px-12">
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.85fr_1.15fr]">
           <div className="space-y-4">
-            <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-700">Checklist de bascule</p>
+            <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-600">Checklist de bascule</p>
             <h2 className="text-3xl font-black">Changer le bouton Google sans perdre la mesure.</h2>
             <p className="text-slate-600">
               Chaque étape doit laisser une trace : lien avant/après, source, date, service ouvert et conversion finale.
@@ -357,7 +357,7 @@ export default function RestaurateursGoogleBusiness() {
             },
           ].map(({ icon: Icon, title, body }) => (
             <article key={title} className="rounded-lg border bg-white p-6 shadow-sm">
-              <Icon className="h-7 w-7 text-orange-700" />
+              <Icon className="h-7 w-7 text-orange-600" />
               <h2 className="mt-5 text-xl font-bold">{title}</h2>
               <p className="mt-2 text-sm leading-6 text-slate-600">{body}</p>
             </article>
@@ -375,7 +375,7 @@ export default function RestaurateursGoogleBusiness() {
               source, conversion, coût et prochaines actions.
             </p>
             <div className="flex flex-wrap gap-3 pt-2">
-              <Button asChild size="lg" className="bg-[#ff5a00] text-[#111827] hover:bg-[#f45100]">
+              <Button asChild size="lg" className="bg-orange-500 text-white hover:bg-orange-600">
                 <a href={`mailto:contact@thetok.ch?subject=${auditSubject}&body=${auditBody}`}>
                   Lancer l'audit Google
                   <CheckCircle2 className="ml-2 h-5 w-5" />

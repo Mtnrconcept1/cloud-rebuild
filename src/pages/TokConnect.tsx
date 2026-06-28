@@ -229,7 +229,7 @@ export default function TokConnect() {
             </div>
 
             <div className="flex flex-wrap gap-3">
-              <Button asChild size="lg" className="bg-[#ff5a00] text-[#111827] hover:bg-[#f45100]">
+              <Button asChild size="lg" className="bg-orange-500 text-white hover:bg-orange-600">
                 <Link to="/tok-connect/developer">
                   Ouvrir le portail
                   <ArrowRight className="ml-2 h-5 w-5" />
@@ -354,7 +354,7 @@ export default function TokConnect() {
             <p className="mt-4 text-sm leading-6 text-slate-600">
               Le portail authentifié centralise sandbox, clients OAuth, logs, quotas, webhooks, OpenAPI et exemples MCP.
             </p>
-            <Button asChild className="mt-6 bg-[#ff5a00] text-[#111827] hover:bg-[#f45100]">
+            <Button asChild className="mt-6 bg-orange-500 text-white hover:bg-orange-600">
               <Link to="/tok-connect/developer">Accéder au portail</Link>
             </Button>
           </div>

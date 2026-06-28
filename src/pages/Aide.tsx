@@ -67,7 +67,7 @@ const CATEGORIES: HelpCategory[] = [
     title: "Premiers pas",
     description: "Créer son compte, chercher un restaurant, comprendre TOK.",
     icon: Smartphone,
-    color: "text-orange-700",
+    color: "text-orange-600",
     bg: "bg-orange-50",
   },
   {
@@ -163,7 +163,7 @@ const CATEGORIES: HelpCategory[] = [
     title: "Restaurateurs",
     description: "Inscription, dashboard, commandes, campagnes et facturation.",
     icon: Store,
-    color: "text-orange-700",
+    color: "text-orange-600",
     bg: "bg-orange-50",
   },
   {
@@ -912,13 +912,13 @@ export default function Aide() {
       <div className="bg-primary px-6 pb-14 pt-20 text-primary-foreground">
         <div className="container max-w-5xl space-y-7">
           <div className="mx-auto max-w-3xl space-y-4 text-center">
-            <p className="text-sm font-bold uppercase tracking-[0.2em] text-primary-foreground">
+            <p className="text-sm font-bold uppercase tracking-[0.2em] text-primary-foreground/70">
               Centre d'aide TOK
             </p>
             <h1 className="font-display text-4xl font-bold md:text-5xl">
               Trouvez une réponse claire avant de contacter le support
             </h1>
-            <p className="mx-auto max-w-2xl text-base leading-relaxed text-primary-foreground md:text-lg">
+            <p className="mx-auto max-w-2xl text-base leading-relaxed text-primary-foreground/80 md:text-lg">
               Commandes, paiements, réservations, livraison, fidélité, actualités,
               restaurateurs et sécurité : {totalQuestions} réponses détaillées pour vous guider.
             </p>
@@ -1097,7 +1097,7 @@ export default function Aide() {
                 <MessageSquare className="h-5 w-5 text-primary" />
                 Dépannage en direct
               </h3>
-              <p className="text-sm text-foreground/80">
+              <p className="text-sm text-muted-foreground">
                 Un problème urgent avec une commande ou un paiement ? Ouvrez le chat pour
                 transmettre les informations de contexte.
               </p>

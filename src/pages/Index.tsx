@@ -6,8 +6,15 @@ import { motion } from "framer-motion";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import PromoCarousel from "@/components/PromoCarousel";
+import LoyaltyStatus from "@/components/LoyaltyStatus";
+import CampaignBanner from "@/components/CampaignBanner";
 import HeroSection from "@/components/home/HeroSection";
 import CuisineCategoryStrip from "@/components/home/CuisineCategoryStrip";
+import SolidaritySection from "@/components/home/SolidaritySection";
+import RestaurantSection from "@/components/home/RestaurantSection";
+import SectionShowcaseHeader from "@/components/home/SectionShowcaseHeader";
+import FeaturesSection from "@/components/home/FeaturesSection";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { useCart } from "@/lib/cart-context";
@@ -29,25 +36,18 @@ import { prioritizeSponsoredCards } from "@/lib/sponsoredPlacement";
 
 const supabase = getSupabase();
 const NearbyRestaurantsMap = lazy(() => import("@/components/NearbyRestaurantsMap"));
-const PromoCarousel = lazy(() => import("@/components/PromoCarousel"));
-const LoyaltyStatus = lazy(() => import("@/components/LoyaltyStatus"));
-const CampaignBanner = lazy(() => import("@/components/CampaignBanner"));
-const SolidaritySection = lazy(() => import("@/components/home/SolidaritySection"));
-const RestaurantSection = lazy(() => import("@/components/home/RestaurantSection"));
-const SectionShowcaseHeader = lazy(() => import("@/components/home/SectionShowcaseHeader"));
-const FeaturesSection = lazy(() => import("@/components/home/FeaturesSection"));
 const HOME_MAP_RESTAURANTS_LIMIT = 80;
 const PROGRESSIVE_OFFERS_TABLE = "reservation_progressive_offers";
 
 const SECTION_HEADER_IMAGES = {
   personal: "/images/section-headers/heart-3d.png",
   local: "/images/section-headers/pin-3d.png",
-  lunch: "/optimized/section-burger-640.webp",
-  reservation: "/optimized/section-calendrier-640.webp",
-  promo: "/optimized/section-chefsection-640.webp",
-  offers: "/optimized/section-cadeau-640.webp",
-  trending: "/optimized/section-flamme-640.webp",
-  nearby: "/optimized/section-chefsection2-640.webp",
+  lunch: "/desig app/burger.png",
+  reservation: "/desig app/calendrier.png",
+  promo: "/desig app/chefsection.png",
+  offers: "/desig app/cadeau.png",
+  trending: "/desig app/flamme.png",
+  nearby: "/desig app/chefsection2.png",
 } as const;
 
 type SearchSort =
@@ -158,12 +158,16 @@ export default function Index() {
   const activeFeatures = useActiveFeatures();
   const deliveryEnabled = activeFeatures.has("livraison");
   const campaignsEnabled = activeFeatures.has("campagnes-pub");
-  const [isVisible] = useState(true);
-  const [shouldLoadHomeContent, setShouldLoadHomeContent] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
   const [shouldLoadMap, setShouldLoadMap] = useState(false);
   const [nowMs, setNowMs] = useState(() => Date.now());
   const mapSectionRef = useRef<HTMLElement | null>(null);
   const todayServiceDate = useMemo(() => toLocalDateInputValue(new Date(nowMs)), [nowMs]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsVisible(true), 400);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const interval = window.setInterval(() => setNowMs(Date.now()), 1000);
@@ -171,23 +175,7 @@ export default function Index() {
   }, []);
 
   useEffect(() => {
-    if (shouldLoadHomeContent) return;
-
-    const loadDeferredContent = () => setShouldLoadHomeContent(true);
-    const timer = window.setTimeout(loadDeferredContent, 4500);
-    const handleScroll = () => {
-      if (window.scrollY > 48) loadDeferredContent();
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => {
-      window.clearTimeout(timer);
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, [shouldLoadHomeContent]);
-
-  useEffect(() => {
-    if (!shouldLoadHomeContent || shouldLoadMap) return;
+    if (shouldLoadMap) return;
 
     const node = mapSectionRef.current;
     if (!node) return;
@@ -207,7 +195,7 @@ export default function Index() {
 
     observer.observe(node);
     return () => observer.disconnect();
-  }, [shouldLoadHomeContent, shouldLoadMap]);
+  }, [shouldLoadMap]);
 
   useEffect(() => {
     setAnalyticsUser(user?.id || null);
@@ -217,7 +205,7 @@ export default function Index() {
   const { data: sponsoredCampaigns } = useQuery({
     queryKey: ["sponsored-home"],
     queryFn: () => getActiveSponsoredRestaurants("home", "restaurant_cards"),
-    enabled: shouldLoadHomeContent && campaignsEnabled,
+    enabled: campaignsEnabled,
   });
 
   const { data: allRestaurants } = useQuery({
@@ -237,19 +225,16 @@ export default function Index() {
   const { data: lunchRail = [] } = useQuery({
     queryKey: ["home-rail-lunch", deliveryEnabled],
     queryFn: () => fetchHomeRail({ sortBy: "popularite", deliveryOnly: deliveryEnabled, limit: 4 }),
-    enabled: shouldLoadHomeContent,
   });
 
   const { data: dinnerRail = [] } = useQuery({
     queryKey: ["home-rail-dinner"],
     queryFn: () => fetchHomeRail({ sortBy: "plus_reserves_mois", limit: 4 }),
-    enabled: shouldLoadHomeContent,
   });
 
   const { data: offersRail = [] } = useQuery({
     queryKey: ["home-rail-offers"],
     queryFn: () => fetchHomeRail({ sortBy: "promotion", limit: 4 }),
-    enabled: shouldLoadHomeContent,
   });
 
   const { data: progressiveOffers = [] } = useQuery({
@@ -280,7 +265,6 @@ export default function Index() {
       return (data || []) as ProgressiveReservationOffer[];
     },
     staleTime: 30_000,
-    enabled: shouldLoadHomeContent,
   });
 
   const visibleProgressiveOffers = useMemo(
@@ -291,12 +275,11 @@ export default function Index() {
   const { data: trendingRail = [] } = useQuery({
     queryKey: ["home-rail-trending"],
     queryFn: () => fetchHomeRail({ sortBy: "note", limit: 6 }),
-    enabled: shouldLoadHomeContent,
   });
 
   const { data: userContext } = useQuery({
     queryKey: ["home-user-context", user?.id],
-    enabled: shouldLoadHomeContent && !!user?.id,
+    enabled: !!user?.id,
     queryFn: async () => {
       const [profileResponse, favoritesResponse, ordersResponse, reservationsResponse] = await Promise.all([
         supabase.from("profiles").select("city, full_name, phone").eq("user_id", user!.id).maybeSingle(),
@@ -372,7 +355,7 @@ export default function Index() {
 
   const { data: cityRail = [] } = useQuery({
     queryKey: ["home-rail-city", userContext?.city || ""],
-    enabled: shouldLoadHomeContent && Boolean(userContext?.city),
+    enabled: Boolean(userContext?.city),
     queryFn: () => fetchHomeRail({ city: userContext?.city || null, sortBy: "popularite", limit: 4 }),
   });
 
@@ -385,7 +368,6 @@ export default function Index() {
       if (fallbackError) return 0;
       return (rows || []).reduce((sum: number, row: any) => sum + (row.points_amount || 0), 0);
     },
-    enabled: shouldLoadHomeContent,
   });
 
   const sponsoredCards = (sponsoredCampaigns || [])
@@ -528,14 +510,12 @@ export default function Index() {
     <main className="min-h-screen pb-20">
       <HeroSection contentVisible={isVisible} />
       <CuisineCategoryStrip />
-      {shouldLoadHomeContent ? (
-        <Suspense fallback={<div className="min-h-[120vh]" aria-hidden="true" />}>
-          <section className="container py-4">
-            <CampaignBanner page="home" maxBanners={1} />
-          </section>
+      <section className="container py-4">
+        <CampaignBanner page="home" maxBanners={1} />
+      </section>
 
-          {visibleProgressiveOffers.length > 0 ? (
-            <section className="container py-4" aria-labelledby="progressive-offers-title">
+      {visibleProgressiveOffers.length > 0 ? (
+        <section className="container py-4" aria-labelledby="progressive-offers-title">
           <div className="overflow-hidden rounded-[28px] border border-orange-200 bg-orange-50/90 shadow-[0_18px_44px_rgba(249,115,22,0.12)] dark:bg-orange-950/20">
             <div className="flex flex-col gap-4 p-5 md:p-6">
               <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
@@ -621,14 +601,14 @@ export default function Index() {
               </div>
             </div>
           </div>
-            </section>
-          ) : null}
+        </section>
+      ) : null}
 
-          <motion.div
-            variants={sectionStagger}
-            initial="hidden"
-            animate={isVisible ? "visible" : "hidden"}
-          >
+      <motion.div
+        variants={sectionStagger}
+        initial="hidden"
+        animate={isVisible ? "visible" : "hidden"}
+      >
         {focusCards.length > 0 ? (
           <motion.div variants={sectionBounce}>
             <section className="py-6 md:py-8">
@@ -851,11 +831,7 @@ export default function Index() {
         <motion.div variants={sectionBounce}>
           <FeaturesSection activeFeatures={activeFeatures} />
         </motion.div>
-          </motion.div>
-        </Suspense>
-      ) : (
-        <div className="min-h-[120vh]" aria-hidden="true" />
-      )}
+      </motion.div>
     </main>
   );
 }

@@ -298,7 +298,7 @@ export default function DropsManagement() {
               <span>Expérience active</span>
             </label>
             <div className="md:col-span-2 flex gap-2">
-              <Button className="flex-1" disabled={createOrUpdateMutation.isPending}>
+              <Button className="flex-1 bg-pink-500 hover:bg-pink-600" disabled={createOrUpdateMutation.isPending}>
                 <Plus className="h-4 w-4 mr-2" />
                 {editingId ? "Mettre à jour l'expérience" : "Créer l'expérience"}
               </Button>

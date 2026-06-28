@@ -265,14 +265,7 @@ export default function Navbar() {
       >
         <div className={`mx-auto flex w-full max-w-[1400px] items-center justify-between gap-2 px-3 min-[380px]:px-4 md:h-20 md:px-8 ${isMobileHomeHeader ? "h-[66px] bg-white dark:bg-white" : "h-16"}`}>
           <Link to={homeTarget} className="flex min-h-[44px] min-w-[44px] shrink-0 items-center gap-2">
-            <img
-              src={logoSrc}
-              alt="Tok"
-              className={`${isMobileHomeHeader ? "h-[50px]" : "h-11 min-[380px]:h-12"} w-auto object-contain dark:drop-shadow-[0_0_20px_rgba(249,115,22,0.28)] md:h-16`}
-              decoding="async"
-              height={394}
-              width={512}
-            />
+            <img src={logoSrc} alt="Tok" className={`${isMobileHomeHeader ? "h-[50px]" : "h-11 min-[380px]:h-12"} w-auto object-contain dark:drop-shadow-[0_0_20px_rgba(249,115,22,0.28)] md:h-16`} />
           </Link>
 
           {showClientSurface ? (
@@ -294,7 +287,7 @@ export default function Navbar() {
               ) : null}
               {antiWasteEnabled ? (
                 <NavigationMenuItem>
-                  <Link to="/anti-gaspi" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-orange-800 transition-colors hover:text-orange-900 dark:text-orange-300 dark:hover:text-orange-200">
+                  <Link to="/anti-gaspi" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-accent transition-colors hover:text-accent/80">
                     <Leaf className="h-4 w-4" />
                     Anti-gaspi
                     </Link>
@@ -302,7 +295,7 @@ export default function Navbar() {
                 ) : null}
                 {flashSalesEnabled ? (
                   <NavigationMenuItem>
-                    <Link to="/ventes-flash" className="flex items-center gap-1 px-3 py-2 text-sm font-semibold text-amber-800 transition-colors hover:text-orange-800 dark:text-amber-300 dark:hover:text-orange-300">
+                    <Link to="/ventes-flash" className="flex items-center gap-1 px-3 py-2 text-sm font-semibold text-amber-600 transition-colors hover:text-orange-600 dark:text-amber-300 dark:hover:text-orange-300">
                       <Zap className="h-4 w-4 fill-amber-400/35 text-amber-500 dark:text-amber-300" />
                       Ventes flash
                   </Link>
@@ -409,9 +402,9 @@ export default function Navbar() {
                     onMouseDown={preserveNavbarActionScrollPosition}
                     className={
                       isMobileHomeHeader
-                        ? "order-3 h-[48px] rounded-full bg-primary px-5 text-[0.88rem] font-bold text-primary-foreground shadow-[0_10px_22px_rgba(255,107,28,0.24)] hover:bg-[#f45100]"
+                        ? "order-3 h-[48px] rounded-full bg-primary px-5 text-[0.88rem] font-bold text-white shadow-[0_10px_22px_rgba(255,107,28,0.24)] hover:bg-primary/90"
                         : hasDashboardAccess
-                          ? "hidden h-11 rounded-full border border-primary/25 bg-gradient-to-r from-[#8f2f0a] via-[#b45309] to-[#92400e] px-4 text-sm font-extrabold text-white shadow-[0_12px_26px_rgba(154,52,18,0.24)] transition-all hover:-translate-y-0.5 hover:text-white hover:shadow-[0_16px_34px_rgba(154,52,18,0.30)] lg:inline-flex"
+                          ? "hidden h-11 rounded-full border border-primary/25 bg-gradient-to-r from-primary via-orange-500 to-amber-500 px-4 text-sm font-extrabold text-white shadow-[0_12px_26px_rgba(255,107,28,0.26)] transition-all hover:-translate-y-0.5 hover:text-white hover:shadow-[0_16px_34px_rgba(255,107,28,0.32)] lg:inline-flex"
                         : "rounded-full"
                     }
                   >
@@ -501,7 +494,7 @@ export default function Navbar() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button asChild size="sm" className={`${isMobileHomeHeader ? "order-3 h-[48px] rounded-full px-5 text-[0.88rem] shadow-[0_10px_22px_rgba(255,107,28,0.24)]" : "min-h-[44px] px-3 min-[380px]:px-5"} rounded-full bg-primary font-bold text-primary-foreground shadow-md hover:bg-[#f45100]`}>
+              <Button asChild size="sm" className={`${isMobileHomeHeader ? "order-3 h-[48px] rounded-full px-5 text-[0.88rem] shadow-[0_10px_22px_rgba(255,107,28,0.24)]" : "min-h-[44px] px-3 min-[380px]:px-5"} rounded-full bg-primary font-bold text-white shadow-md hover:bg-primary/90`}>
                 <Link to="/auth" className="flex items-center gap-2">
                   <User className={`${isMobileHomeHeader ? "h-5 w-5" : "h-4 w-4"}`} />
                   <span className={isMobileHomeHeader ? "inline" : "hidden min-[380px]:inline"}>CONNEXION</span>
@@ -515,7 +508,7 @@ export default function Navbar() {
 
             <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className={`${isMobileHomeHeader ? "order-2 text-slate-950 hover:bg-transparent dark:text-slate-950 dark:hover:text-slate-950" : ""} lg:hidden`}>
+                <Button variant="ghost" size="icon" className={`${isMobileHomeHeader ? "order-2 text-slate-950 hover:bg-transparent" : ""} lg:hidden`}>
                   <Menu className={`${isMobileHomeHeader ? "h-8 w-8" : "h-5 w-5"}`} />
                   <span className="sr-only">Ouvrir le menu</span>
                 </Button>
@@ -539,12 +532,12 @@ export default function Navbar() {
                     </Link>
                   ) : null}
                   {showClientSurface && antiWasteEnabled ? (
-                    <Link to="/anti-gaspi" className="text-sm font-medium text-orange-800 dark:text-orange-300" onClick={() => setMenuOpen(false)}>
+                    <Link to="/anti-gaspi" className="text-sm font-medium text-accent" onClick={() => setMenuOpen(false)}>
                       Anti-gaspi
                     </Link>
                   ) : null}
                   {showClientSurface && flashSalesEnabled ? (
-                    <Link to="/ventes-flash" className="flex items-center gap-2 text-sm font-semibold text-amber-800 hover:text-orange-800 dark:text-amber-300 dark:hover:text-orange-300" onClick={() => setMenuOpen(false)}>
+                    <Link to="/ventes-flash" className="flex items-center gap-2 text-sm font-semibold text-amber-600 hover:text-orange-600 dark:text-amber-300 dark:hover:text-orange-300" onClick={() => setMenuOpen(false)}>
                       <Zap className="h-4 w-4 fill-amber-400/35 text-amber-500 dark:text-amber-300" />
                       Ventes flash
                     </Link>

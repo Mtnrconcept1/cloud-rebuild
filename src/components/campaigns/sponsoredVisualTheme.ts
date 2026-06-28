@@ -17,7 +17,7 @@ type SponsoredVisualConfig = {
 const SPONSORED_VISUALS: Record<SponsoredVisualTone, SponsoredVisualConfig> = {
   home: {
     badgeClassName:
-      "border-white/45 bg-gradient-to-r from-[#8f2f0a] via-[#b45309] to-[#be123c] text-white shadow-[0_16px_34px_rgba(154,52,18,0.34)] ring-white/45",
+      "border-white/45 bg-gradient-to-r from-[#ff7a18] via-[#ff9b2f] to-[#ff5f6d] text-white shadow-[0_16px_34px_rgba(249,115,22,0.38)] ring-white/45",
     contextClassName: "border-white/18 bg-white/12 text-white/88",
     bannerShellClassName:
       "border-[#ffb97d]/35 bg-[linear-gradient(135deg,rgba(18,23,37,0.88),rgba(49,28,20,0.78)_48%,rgba(88,39,17,0.76))]",
@@ -29,7 +29,7 @@ const SPONSORED_VISUALS: Record<SponsoredVisualTone, SponsoredVisualConfig> = {
   },
   search: {
     badgeClassName:
-      "border-white/45 bg-gradient-to-r from-[#8f2f0a] via-[#b45309] to-[#92400e] text-white shadow-[0_16px_34px_rgba(154,52,18,0.30)] ring-white/45",
+      "border-white/45 bg-gradient-to-r from-[#f97316] via-[#fb923c] to-[#f59e0b] text-white shadow-[0_16px_34px_rgba(249,115,22,0.34)] ring-white/45",
     contextClassName: "border-amber-100/20 bg-amber-50/12 text-amber-50",
     bannerShellClassName:
       "border-[#f4b26a]/35 bg-[linear-gradient(135deg,rgba(20,29,45,0.9),rgba(45,31,20,0.78)_48%,rgba(76,43,20,0.74))]",
@@ -41,7 +41,7 @@ const SPONSORED_VISUALS: Record<SponsoredVisualTone, SponsoredVisualConfig> = {
   },
   flash_sales: {
     badgeClassName:
-      "border-white/45 bg-gradient-to-r from-[#be123c] via-[#9a3412] to-[#92400e] text-white shadow-[0_16px_34px_rgba(190,18,60,0.28)] ring-white/45",
+      "border-white/45 bg-gradient-to-r from-[#fb7185] via-[#f97316] to-[#f59e0b] text-white shadow-[0_16px_34px_rgba(244,63,94,0.34)] ring-white/45",
     contextClassName: "border-white/16 bg-white/10 text-white/88",
     bannerShellClassName:
       "border-[#fb7185]/28 bg-[linear-gradient(135deg,rgba(28,20,37,0.92),rgba(66,26,20,0.82)_50%,rgba(106,46,13,0.76))]",
@@ -53,7 +53,7 @@ const SPONSORED_VISUALS: Record<SponsoredVisualTone, SponsoredVisualConfig> = {
   },
   anti_waste: {
     badgeClassName:
-      "border-white/45 bg-gradient-to-r from-[#8f2f0a] via-[#b45309] to-[#047857] text-white shadow-[0_16px_34px_rgba(16,185,129,0.26)] ring-white/45",
+      "border-white/45 bg-gradient-to-r from-[#f97316] via-[#f59e0b] to-[#10b981] text-white shadow-[0_16px_34px_rgba(16,185,129,0.30)] ring-white/45",
     contextClassName: "border-emerald-100/18 bg-emerald-50/10 text-emerald-50",
     bannerShellClassName:
       "border-[#7dd3a7]/30 bg-[linear-gradient(135deg,rgba(18,26,23,0.94),rgba(40,46,24,0.82)_48%,rgba(62,55,17,0.74))]",
@@ -65,7 +65,7 @@ const SPONSORED_VISUALS: Record<SponsoredVisualTone, SponsoredVisualConfig> = {
   },
   restaurant: {
     badgeClassName:
-      "border-white/60 bg-gradient-to-r from-[#8f2f0a] via-[#b45309] to-[#92400e] text-white shadow-[0_16px_34px_rgba(154,52,18,0.36)] ring-2 ring-white/80",
+      "border-white/60 bg-gradient-to-r from-[#e94f0a] via-[#f97316] to-[#f59e0b] text-white shadow-[0_16px_34px_rgba(249,115,22,0.42)] ring-2 ring-white/80",
     contextClassName: "border-white/45 bg-slate-950/82 text-white shadow-[0_14px_30px_rgba(15,23,42,0.46)] ring-white/35",
     bannerShellClassName:
       "border-[#f3c186]/55 bg-[linear-gradient(180deg,rgba(255,248,238,0.98),rgba(255,255,255,0.98))]",

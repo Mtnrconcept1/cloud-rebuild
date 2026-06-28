@@ -199,7 +199,7 @@ export default function MultiRestaurant() {
               <div className="flex items-center gap-2 text-xs font-medium text-pink-600 bg-pink-500/5 p-3 rounded-lg border border-pink-500/20 animate-in fade-in slide-in-from-top-2">
                 <MapPin className="h-4 w-4 shrink-0" />
                 <span>Restreint aux restaurants à moins de 500m de <strong>{originRestaurant.name}</strong></span>
-                <Button variant="ghost" size="sm" className="ml-auto h-6 text-[10px] hover:bg-orange-50 dark:hover:bg-orange-400/14" onClick={() => setSelections([])}>Réinitialiser</Button>
+                <Button variant="ghost" size="sm" className="ml-auto h-6 text-[10px] hover:bg-pink-500/10" onClick={() => setSelections([])}>Réinitialiser</Button>
               </div>
             )}
 
@@ -312,7 +312,7 @@ export default function MultiRestaurant() {
                 </div>
                 <div className="pt-6 border-t mt-4">
                   <Button
-                    className="w-full"
+                    className="w-full bg-pink-500 hover:bg-pink-600"
                     onClick={() => setSelectedRestaurantId(null)}
                   >
                     Valider mes choix pour ce restaurant

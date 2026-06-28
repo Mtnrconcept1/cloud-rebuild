@@ -669,7 +669,7 @@ export default function MatchGroupes() {
                             <Button
                               onClick={() => openGroup(group)}
                               variant="outline"
-                              className="w-full gap-2"
+                              className="w-full border-violet-500 text-violet-600 hover:bg-violet-500/10 gap-2"
                               size="sm"
                             >
                               <Truck className="h-4 w-4" />
@@ -693,7 +693,7 @@ export default function MatchGroupes() {
                   <p className="text-sm text-muted-foreground">
                     Créez un groupe : le compte à rebours de 30 minutes démarre automatiquement.
                   </p>
-                  <Button onClick={() => setCreateMode(true)} className="gap-2">
+                  <Button onClick={() => setCreateMode(true)} className="bg-violet-500 hover:bg-violet-600 gap-2">
                     Créer un groupe <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
@@ -840,7 +840,7 @@ export default function MatchGroupes() {
                 <Button
                   onClick={() => prepay.mutate()}
                   disabled={prepay.isPending || locked || prepaid}
-                  className="w-full gap-2"
+                  className="w-full bg-violet-500 hover:bg-violet-600 gap-2"
                 >
                   {prepay.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
                   {prepaid ? "Commande déjà prépayée" : "Prépayer ma commande"}
@@ -900,7 +900,7 @@ export default function MatchGroupes() {
               )}
             </div>
 
-            <Button onClick={() => setStep("browse")} className="w-full gap-2" size="lg">
+            <Button onClick={() => setStep("browse")} className="w-full bg-violet-500 hover:bg-violet-600 gap-2" size="lg">
               Retour aux groupes <ChevronRight className="h-4 w-4" />
             </Button>
           </div>

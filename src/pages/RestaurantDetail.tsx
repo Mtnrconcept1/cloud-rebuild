@@ -1029,7 +1029,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
                             </div>
                             <Button
                               type="button"
-                              className="w-full gap-2 bg-[#ff5a00] text-[#111827] hover:bg-[#f45100]"
+                              className="w-full gap-2 bg-orange-500 hover:bg-orange-600"
                               onClick={() => handleProgressiveOfferReserve(offer)}
                             >
                               {isSelectedOffer ? "Offre selectionnee" : "Reserver avec cette offre"}

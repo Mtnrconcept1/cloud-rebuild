@@ -295,7 +295,7 @@ export default function GiftPoints() {
                 <Button
                   onClick={() => { if (customAmount) setAmount(parseInt(customAmount)); setStep("recipient"); }}
                   disabled={effectiveAmount < 100 || effectiveAmount > loyaltyPoints}
-                  className="w-full gap-2"
+                  className="w-full bg-pink-500 hover:bg-pink-600 gap-2"
                 >
                   Continuer <ChevronRight className="h-4 w-4" />
                 </Button>
@@ -353,7 +353,7 @@ export default function GiftPoints() {
                 <Button
                   onClick={() => setStep("confirm")}
                   disabled={!recipientEmail.includes("@")}
-                  className="w-full gap-2"
+                  className="w-full bg-pink-500 hover:bg-pink-600 gap-2"
                 >
                   Vérifier et envoyer <ChevronRight className="h-4 w-4" />
                 </Button>
@@ -397,7 +397,7 @@ export default function GiftPoints() {
                 <Button
                   onClick={() => sendGiftMutation.mutate()}
                   disabled={sendGiftMutation.isPending}
-                  className="w-full gap-2"
+                  className="w-full bg-pink-500 hover:bg-pink-600 gap-2"
                   size="lg"
                 >
                   {sendGiftMutation.isPending ? (
@@ -453,7 +453,7 @@ export default function GiftPoints() {
                   <Button onClick={resetSendFlow} variant="outline" className="flex-1 gap-2">
                     <Gift className="h-4 w-4" /> Envoyer un autre
                   </Button>
-                  <Button onClick={() => navigate("/profil")} className="flex-1 gap-2">
+                  <Button onClick={() => navigate("/profil")} className="flex-1 bg-pink-500 hover:bg-pink-600 gap-2">
                     Mon profil <ArrowUpRight className="h-4 w-4" />
                   </Button>
                 </div>
