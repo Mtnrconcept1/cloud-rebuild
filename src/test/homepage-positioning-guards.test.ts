@@ -129,6 +129,17 @@ describe("homepage positioning guards", () => {
     expect(index).not.toContain("const showTrendingRail = trendingCards.length > 0 && (!user");
   });
 
+  it("keeps the mobile hero city input visually hidden over the white pill", () => {
+    const hero = read("src/components/home/HeroSection.tsx");
+
+    expect(hero).toContain("const mobileCityInputClassName =");
+    expect(hero).toContain("bg-white px-0 py-0");
+    expect(hero).toContain("opacity-0");
+    expect(hero).toContain("dark:bg-white dark:text-[#1f2937]");
+    expect(hero).toContain("inputClassName={mobileCityInputClassName}");
+    expect(hero).toContain("const desktopFieldInputClassName =");
+  });
+
   it("keeps locally hosted optimized illustrations for homepage section headers", () => {
     const requiredAssets = [
       "public/images/section-headers/heart-3d.png",

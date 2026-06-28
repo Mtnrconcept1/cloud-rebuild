@@ -39,6 +39,9 @@ const scaleIn = {
 const desktopFieldInputClassName =
   "h-auto border-none bg-transparent px-0 py-0 text-[1.03rem] font-semibold text-[#2d3950] placeholder:text-[#7d8897] shadow-none focus-visible:ring-0 md:text-[1.03rem] dark:text-slate-50 dark:placeholder:text-slate-200/90";
 
+const mobileCityInputClassName =
+  "h-auto border-none bg-white px-0 py-0 text-[0.92rem] font-extrabold text-[#1f2937] opacity-0 placeholder:text-[#7c8797] shadow-none focus-visible:ring-0 min-[390px]:text-[0.98rem] dark:bg-white dark:text-[#1f2937] dark:placeholder:text-[#7c8797]";
+
 const newsletterConditions = [
   "Le bonus de bienvenue est réservé aux nouveaux comptes TOK qui s'inscrivent à la newsletter depuis cette offre.",
   "Les 500 Miamz sont crédités une seule fois par personne après validation du compte et de l'inscription à la newsletter.",
@@ -154,7 +157,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
                   onValueChange={(value) => setCity(value)}
                   placeholder="Votre ville..."
                   className="min-w-0 flex-1"
-                  inputClassName="h-auto border-none bg-transparent px-0 py-0 text-[0.92rem] font-extrabold text-[#1f2937] placeholder:text-[#7c8797] shadow-none focus-visible:ring-0 min-[390px]:text-[0.98rem]"
+                  inputClassName={mobileCityInputClassName}
                   hideIcon
                 />
               </div>
