@@ -147,6 +147,21 @@ function getReservationQueryDefaults(searchParams: URLSearchParams) {
   };
 }
 
+function stripReservationQueryIntent(searchParams: URLSearchParams) {
+  const nextParams = new URLSearchParams(searchParams);
+  [
+    "reserve",
+    "open",
+    "date",
+    "time",
+    "party_size",
+    "reservationStep",
+    "reservationSource",
+    "progressiveOfferId",
+  ].forEach((param) => nextParams.delete(param));
+  return nextParams;
+}
+
 function getReviewReplies(review: RestaurantReview) {
   if (!review.review_replies) return [];
   if (Array.isArray(review.review_replies)) return review.review_replies;
@@ -312,6 +327,11 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
   useEffect(() => {
     const openParam = searchParams.get("open");
     const shouldOpenReservation = isReservationQueryIntent(searchParams);
+
+    if (!shouldOpenReservation) {
+      reservationQueryIntentAppliedRef.current = null;
+      return;
+    }
 
     if (shouldOpenReservation && reservationEnabled) {
       const reservationQueryKey = searchParams.toString();
@@ -661,6 +681,25 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
     setReservationProgressiveOfferId(null);
     setReservationDialogResetKey((current) => current + 1);
     setReservationOpen(true);
+  };
+
+  const handleReservationOpenChange = (open: boolean) => {
+    if (open || !isReservationQueryIntent(searchParams)) {
+      setReservationOpen(open);
+      return;
+    }
+
+    const nextParams = stripReservationQueryIntent(searchParams);
+    const nextSearch = nextParams.toString();
+
+    navigate(
+      {
+        pathname: location.pathname,
+        search: nextSearch ? `?${nextSearch}` : "",
+      },
+      { replace: true },
+    );
+    setReservationOpen(false);
   };
 
   const handleProgressiveOfferReserve = (offer: ProgressiveReservationOffer) => {
@@ -1320,7 +1359,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
       {reservationAvailable ? (
         <ReservationDialog
           open={reservationOpen}
-          onOpenChange={setReservationOpen}
+          onOpenChange={handleReservationOpenChange}
           restaurantId={restaurantId!}
           restaurantName={restaurant.name}
           initialDate={reservationDefaults?.date}

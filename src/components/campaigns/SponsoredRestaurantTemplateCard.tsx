@@ -1,5 +1,5 @@
 import { ArrowRight, BellRing, Heart, MapPin, Megaphone, Percent, Sparkles } from "lucide-react";
-import type { MouseEvent } from "react";
+import type { MouseEvent, SyntheticEvent } from "react";
 
 import PriceRangeIcons from "@/components/PriceRangeIcons";
 import {
@@ -43,6 +43,10 @@ type SponsoredRestaurantTemplateCardProps = {
 function getSlotDiscountLabel(discountLabel?: string): string {
   const match = discountLabel?.match(/-\s?\d+(?:[.,]\d+)?%/);
   return match ? match[0].replace(/\s/g, "").replace(",", ".") : "";
+}
+
+function stopNestedCardAction(event: SyntheticEvent) {
+  event.stopPropagation();
 }
 
 function getTypographyClass(style: CampaignCreativeTextStyle) {
@@ -356,8 +360,18 @@ export function SponsoredRestaurantTemplateCard({
               <button
                 key={slot}
                 type="button"
-                onClick={onSlotClick ? (event) => onSlotClick(event, slot) : undefined}
-                className="inline-flex h-12 min-w-[4.75rem] flex-col items-center justify-center gap-0.5 rounded-xl border border-emerald-500 bg-emerald-600 px-3.5 font-bold text-white shadow-[0_12px_24px_rgba(16,185,129,0.22)]"
+                aria-label={`Réserver ${restaurantName} à ${slot}`}
+                data-card-action="reservation-slot"
+                data-reservation-slot={slot}
+                data-testid="restaurant-card-reservation-slot"
+                onPointerDown={stopNestedCardAction}
+                onMouseDown={stopNestedCardAction}
+                onTouchStart={stopNestedCardAction}
+                onClick={(event) => {
+                  stopNestedCardAction(event);
+                  onSlotClick?.(event, slot);
+                }}
+                className="relative z-20 inline-flex h-12 min-w-[4.75rem] touch-manipulation select-none flex-col items-center justify-center gap-0.5 rounded-xl border border-emerald-500 bg-emerald-600 px-3.5 font-bold text-white shadow-[0_12px_24px_rgba(16,185,129,0.22)]"
               >
                 <span className="text-sm leading-none">{slot}</span>
                 {slotDiscountLabel ? (

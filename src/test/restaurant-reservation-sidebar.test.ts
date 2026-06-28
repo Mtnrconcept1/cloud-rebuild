@@ -48,6 +48,35 @@ describe("restaurant reservation sidebar", () => {
     expect(restaurantDetail).toContain("return <ReservationDeeplinkLoading />;");
   });
 
+  it("allows the same card slot deeplink to reopen after closing the reservation dialog", () => {
+    const restaurantDetail = read("src/pages/RestaurantDetail.tsx");
+
+    expect(restaurantDetail).toContain("function stripReservationQueryIntent");
+    expect(restaurantDetail).toContain("reservationQueryIntentAppliedRef.current = null;");
+    expect(restaurantDetail).toContain("reservationQueryIntentAppliedRef.current !== reservationQueryKey");
+    expect(restaurantDetail).toContain("const handleReservationOpenChange = (open: boolean) => {");
+    expect(restaurantDetail).toContain("stripReservationQueryIntent(searchParams)");
+    expect(restaurantDetail).toContain("onOpenChange={handleReservationOpenChange}");
+  });
+
+  it("keeps reservation slot tap handling isolated from card navigation", () => {
+    const restaurantCard = read("src/components/RestaurantCard.tsx");
+    const sponsoredTemplate = read("src/components/campaigns/SponsoredRestaurantTemplateCard.tsx");
+
+    expect(restaurantCard).toContain("function isNestedCardActionTarget");
+    expect(restaurantCard).toContain('target.closest("[data-card-action]")');
+    expect(restaurantCard).toContain('data-card-action="reservation-slot"');
+    expect(restaurantCard).toContain('data-testid="restaurant-card-reservation-slot"');
+    expect(restaurantCard).toContain("onPointerDown={stopNestedCardAction}");
+    expect(restaurantCard).toContain("onMouseDown={stopNestedCardAction}");
+    expect(restaurantCard).toContain("onTouchStart={stopNestedCardAction}");
+    expect(sponsoredTemplate).toContain('data-card-action="reservation-slot"');
+    expect(sponsoredTemplate).toContain('data-testid="restaurant-card-reservation-slot"');
+    expect(sponsoredTemplate).toContain("onPointerDown={stopNestedCardAction}");
+    expect(sponsoredTemplate).toContain("onMouseDown={stopNestedCardAction}");
+    expect(sponsoredTemplate).toContain("onTouchStart={stopNestedCardAction}");
+  });
+
   it("preserves the clicked reservation slot when the dialog normalizes available times", () => {
     const reservationDialog = read("src/components/ReservationDialog.tsx");
 

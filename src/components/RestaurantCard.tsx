@@ -174,6 +174,14 @@ function getRatingColor(rating: number): string {
   return "bg-orange-400 text-white";
 }
 
+function stopNestedCardAction(event: React.SyntheticEvent) {
+  event.stopPropagation();
+}
+
+function isNestedCardActionTarget(target: EventTarget | null) {
+  return target instanceof Element && Boolean(target.closest("[data-card-action]"));
+}
+
 export default function RestaurantCard({
   id,
   name,
@@ -351,7 +359,9 @@ export default function RestaurantCard({
     }
   }, [id, isSponsored, sponsoredCampaignId]);
 
-  const handleCardClick = () => {
+  const handleCardClick = (event?: React.MouseEvent) => {
+    if (event && isNestedCardActionTarget(event.target)) return;
+
     if (isSponsored && sponsoredCampaignId) {
       trackSponsoredClick(sponsoredCampaignId, id, "restaurant_card");
     } else {
@@ -361,12 +371,12 @@ export default function RestaurantCard({
   };
 
   const handleViewClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
+    stopNestedCardAction(e);
     handleCardClick();
   };
 
   const handleSlotClick = (e: React.MouseEvent, slot: string) => {
-    e.stopPropagation();
+    stopNestedCardAction(e);
     if (isSponsored && sponsoredCampaignId) {
       trackSponsoredClick(sponsoredCampaignId, id, "restaurant_card_slot");
     }
@@ -549,6 +559,7 @@ export default function RestaurantCard({
             <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
+                data-card-action="restaurant-view"
                 onClick={handleViewClick}
                 className={cn(
                   "inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl px-4 text-sm font-bold text-white transition-all",
@@ -564,9 +575,16 @@ export default function RestaurantCard({
                 <button
                   key={slot.time}
                   type="button"
+                  aria-label={`Réserver ${name} à ${slot.time}`}
+                  data-card-action="reservation-slot"
+                  data-reservation-slot={slot.time}
+                  data-testid="restaurant-card-reservation-slot"
+                  onPointerDown={stopNestedCardAction}
+                  onMouseDown={stopNestedCardAction}
+                  onTouchStart={stopNestedCardAction}
                   onClick={(e) => handleSlotClick(e, slot.time)}
                   className={cn(
-                    "inline-flex min-w-[4.75rem] items-center justify-center rounded-xl border px-3.5 font-bold transition-colors",
+                    "relative z-20 inline-flex min-w-[4.75rem] touch-manipulation select-none items-center justify-center rounded-xl border px-3.5 font-bold transition-colors",
                     hasDiscount
                       ? "h-12 flex-col gap-0.5 border-emerald-500 bg-emerald-600 text-white shadow-[0_12px_24px_rgba(16,185,129,0.22)] hover:bg-emerald-700 dark:border-emerald-300/60 dark:bg-emerald-500 dark:text-slate-950"
                       : "h-11 border-emerald-500/35 bg-emerald-50 text-sm text-emerald-700 hover:border-emerald-500 hover:bg-emerald-500 hover:text-white dark:bg-emerald-400/10 dark:text-emerald-200 dark:shadow-[0_0_20px_rgba(16,185,129,0.14)]",
