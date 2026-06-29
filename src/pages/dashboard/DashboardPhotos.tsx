@@ -236,15 +236,18 @@ function TokGalleryImageFrame({ item }: { item: MediaItem }) {
 
   return (
     <div
-      className="flex h-full min-h-0 w-full items-center justify-center overflow-hidden"
+      className="flex min-h-0 w-full items-center justify-center overflow-visible"
       data-testid="tok-gallery-image-frame"
     >
-      <div className="relative inline-flex max-h-full max-w-full items-center justify-center" data-testid="tok-gallery-image-bounds">
+      <div
+        className="relative inline-flex max-h-[calc(100dvh-12rem)] max-w-full items-center justify-center"
+        data-testid="tok-gallery-image-bounds"
+      >
         <TokGalleryWatermark style={watermarkStyle} />
         <img
           src={item.media_url}
           alt={item.alt_text || "Photo restaurant"}
-          className="block max-h-full max-w-full rounded-lg object-contain"
+          className="block h-auto max-h-[calc(100dvh-12rem)] w-auto max-w-full rounded-lg object-contain"
           onLoad={(event) => {
             const image = event.currentTarget;
             setImageSize({
@@ -592,9 +595,9 @@ export default function DashboardPhotos() {
                 ) : null}
               </div>
             </DialogHeader>
-            <div className="min-h-0 flex-1 bg-black p-0 sm:p-3">
+            <div className="min-h-0 flex-1 overflow-auto bg-black p-2 sm:p-3">
               {previewItem ? (
-                <div className="flex h-full min-h-0 w-full items-center justify-center overflow-hidden">
+                <div className="flex min-h-full w-full items-center justify-center">
                   <TokGalleryImageFrame item={previewItem} />
                 </div>
               ) : null}

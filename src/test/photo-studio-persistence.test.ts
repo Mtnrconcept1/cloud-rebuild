@@ -129,10 +129,12 @@ describe("TOK photo studio persistence", () => {
     expect(dashboardPhotos).toContain("TOK_GALLERY_WATERMARK_MARGIN = 24");
     expect(dashboardPhotos).toContain("getPreviewWatermarkStyle");
     expect(dashboardPhotos).toContain('data-testid="tok-gallery-image-bounds"');
-    expect(dashboardPhotos).toContain("relative inline-flex max-h-full max-w-full");
-    expect(dashboardPhotos).toContain("block max-h-full max-w-full rounded-lg object-contain");
+    expect(dashboardPhotos).toContain("relative inline-flex max-h-[calc(100dvh-12rem)] max-w-full");
+    expect(dashboardPhotos).toContain("block h-auto max-h-[calc(100dvh-12rem)] w-auto max-w-full rounded-lg object-contain");
+    expect(dashboardPhotos).toContain("min-h-0 flex-1 overflow-auto bg-black");
     expect(dashboardPhotos).not.toContain("block h-full w-full max-h-full max-w-full rounded-lg object-contain");
     expect(dashboardPhotos).not.toContain('className="relative h-full w-full"');
+    expect(dashboardPhotos).not.toContain("flex h-full min-h-0 w-full items-center justify-center overflow-hidden");
     expect(dashboardPhotos).toContain("watermarkSize: TOK_GALLERY_WATERMARK_SIZE");
     expect(dashboardPhotos).toContain("watermarkMargin: TOK_GALLERY_WATERMARK_MARGIN");
     expect(dashboardPhotos).toContain('.order("created_at", { ascending: false })');
