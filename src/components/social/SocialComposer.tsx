@@ -40,8 +40,6 @@ import {
   getCampaignPricing,
   type CampaignPricingStrategy,
 } from "@/lib/campaignPricing";
-import { buildCheckoutReturnUrl } from "@/lib/checkoutReturnUrl";
-import { redirectToTrustedCheckoutUrl } from "@/lib/securityUrls";
 import { invokeSupabaseFunction } from "@/lib/session";
 import {
   getSocialPostShareUrl,
@@ -299,7 +297,7 @@ export default function SocialComposer({
     }),
     [sponsorBudgetValue, sponsorDurationDays, sponsorPricing, sponsorStrategy],
   );
-  const canCreateSponsoredCheckout = sponsorPost && !scheduledAt && sponsorBudgetValue > 0;
+  const canCreateSponsoredCampaign = sponsorPost && !scheduledAt && sponsorBudgetValue > 0;
   const sponsorObjectiveLabel = CAMPAIGN_STRATEGY_CONFIG[sponsorStrategy].shortLabel;
   const premiumAudience = premiumBannerAudience.data || {
     hasAccess: false,
@@ -559,8 +557,8 @@ export default function SocialComposer({
     setAiCopyOpen(false);
   };
 
-  const createSponsoredCheckout = async (postId: string, postBody: string) => {
-    if (!restaurantId || !canCreateSponsoredCheckout) return false;
+  const createSponsoredCampaign = async (postId: string, postBody: string) => {
+    if (!restaurantId || !canCreateSponsoredCampaign) return;
 
     const targetCriteria = normalizeAudienceCriteria({
       ...DEFAULT_AUDIENCE_CRITERIA,
@@ -596,38 +594,10 @@ export default function SocialComposer({
     const campaignId = data?.campaign?.id;
     if (!campaignId) throw new Error("Impossible de créer la mise en avant.");
 
-    const checkout = await invokeSupabaseFunction<{ url?: string }>("create-checkout", {
-      body: {
-        checkout_kind: "campaign",
-        items: [
-          {
-            name: `Post sponsorisé Actualités - ${restaurantName || "restaurant"}`,
-            restaurant_name: restaurantName || "Restaurant",
-            price: sponsorBudgetValue,
-            quantity: 1,
-          },
-        ],
-        payment_method: "card",
-        return_url: buildCheckoutReturnUrl(`/dashboard/actualites?campaign_checkout=1&campaign_id=${campaignId}&post_id=${postId}`),
-        order_metadata: {
-          checkout_kind: "campaign",
-          order_reference: `social-post-campaign-${campaignId}`,
-          campaign_id: campaignId,
-          social_post_id: postId,
-          campaign_title: title,
-          restaurant_id: restaurantId,
-          target_page: "actualites",
-          disable_connected_account: true,
-        },
-      },
+    toast({
+      title: "Crédits TOK réservés",
+      description: "Le sponsoring est actif avec le budget réservé sur votre solde TOK.",
     });
-
-    if (checkout.error || !checkout.data?.url) {
-      throw new Error(checkout.error?.message || "Impossible de créer la session de paiement.");
-    }
-
-    redirectToTrustedCheckoutUrl(checkout.data.url);
-    return true;
   };
 
   const submit = async (crossPostPlatformsOverride?: SocialCrossPostPlatform[]) => {
@@ -694,14 +664,13 @@ export default function SocialComposer({
       }
     }
 
-    if (canCreateSponsoredCheckout) {
+    if (canCreateSponsoredCampaign) {
       try {
-        const redirected = await createSponsoredCheckout(postId, postBody);
-        if (redirected) return;
+        await createSponsoredCampaign(postId, postBody);
       } catch (error) {
         toast({
           title: "Mise en avant non créée",
-          description: error instanceof Error ? error.message : "Le post est publié, mais le paiement du sponsoring n'a pas pu démarrer.",
+          description: error instanceof Error ? error.message : "Le post est publié, mais les crédits TOK n'ont pas pu être réservés.",
           variant: "destructive",
         });
       }
@@ -892,7 +861,7 @@ export default function SocialComposer({
                   <span className="mt-0.5 block text-xs leading-5 text-muted-foreground [overflow-wrap:anywhere]">
                     {sponsorPost
                       ? `${sponsorObjectiveLabel} · ${formatChf(sponsorBudgetValue, 0)} · ${sponsorDurationDays} j · ${sponsorEstimate.estimatedPeopleReached.toLocaleString("fr-CH")} vues estimées`
-                      : "Mise en avant dans le fil Actualités après paiement."}
+                      : "Mise en avant dans le fil Actualités avec vos crédits TOK."}
                   </span>
                 </button>
               </div>
@@ -1003,7 +972,7 @@ export default function SocialComposer({
               Paramétrer la publication sponsorisée
             </DialogTitle>
             <DialogDescription>
-              Choisissez un objectif, une audience et un budget. Le post sera mis en avant après validation du paiement.
+              Choisissez un objectif, une audience et un budget. Le post sera mis en avant après réservation des crédits TOK.
             </DialogDescription>
           </DialogHeader>
 
@@ -1273,6 +1242,13 @@ export default function SocialComposer({
                 <p className="text-xs text-orange-700">Conversions</p>
                 <p className="font-bold">{sponsorEstimate.projectedConversions.toLocaleString("fr-CH")}</p>
               </div>
+            </div>
+
+            <div className="rounded-2xl border border-orange-200 bg-orange-50 p-3 text-sm text-orange-950">
+              <p className="font-semibold">Paiement par crédits TOK uniquement</p>
+              <p className="mt-1 text-xs leading-5 text-orange-800">
+                Le budget sera réservé sur vos crédits TOK. Si le solde est insuffisant, rechargez depuis Mon compte/Facturation ou attendez le prochain renouvellement de votre abonnement.
+              </p>
             </div>
 
             <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-between">

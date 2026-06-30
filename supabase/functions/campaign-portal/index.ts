@@ -202,6 +202,16 @@ function sanitizeCampaignPayload(raw: unknown, existingCampaign?: Record<string,
     sanitizedPaymentMethod = String(existingCampaign.payment_method);
   }
 
+  if (totalBudget > 0 && !isAlreadyPaid) {
+    if (sanitizedPaymentMethod && sanitizedPaymentMethod !== "credits") {
+      throw new HttpError(
+        400,
+        "Les campagnes se reglent uniquement avec les credits TOK.",
+      );
+    }
+    sanitizedPaymentMethod = "credits";
+  }
+
   let paymentStatus = isAlreadyPaid ? "paid" : "unpaid";
   let status = "draft";
 
@@ -209,9 +219,6 @@ function sanitizeCampaignPayload(raw: unknown, existingCampaign?: Record<string,
     status = VALID_EDITABLE_STATUSES.has(requestedStatus)
       ? requestedStatus
       : (VALID_EDITABLE_STATUSES.has(existingStatus) ? existingStatus : "draft");
-  } else if (totalBudget > 0 && sanitizedPaymentMethod === "cash") {
-    paymentStatus = "pending";
-    status = "pending_payment";
   } else if (totalBudget > 0 && sanitizedPaymentMethod === "credits") {
     paymentStatus = "paid";
     status = requestedStatus === "active" ? "active" : "draft";

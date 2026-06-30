@@ -7,7 +7,6 @@ import type { SocialFeedPost } from "@/lib/socialFeed";
 const boostMocks = vi.hoisted(() => ({
   from: vi.fn(),
   invokeSupabaseFunction: vi.fn(),
-  redirectToTrustedCheckoutUrl: vi.fn(),
 }));
 
 vi.mock("@/integrations/supabase/client", () => ({
@@ -18,18 +17,6 @@ vi.mock("@/integrations/supabase/client", () => ({
 
 vi.mock("@/lib/session", () => ({
   invokeSupabaseFunction: boostMocks.invokeSupabaseFunction,
-}));
-
-vi.mock("@/lib/securityUrls", async () => {
-  const actual = await vi.importActual<typeof import("@/lib/securityUrls")>("@/lib/securityUrls");
-  return {
-    ...actual,
-    redirectToTrustedCheckoutUrl: boostMocks.redirectToTrustedCheckoutUrl,
-  };
-});
-
-vi.mock("@/lib/checkoutReturnUrl", () => ({
-  buildCheckoutReturnUrl: (path: string) => `http://localhost${path}`,
 }));
 
 const post: SocialFeedPost = {
@@ -83,7 +70,6 @@ describe("SocialPostBoostDialog", () => {
     });
     boostMocks.from.mockReset();
     boostMocks.invokeSupabaseFunction.mockReset();
-    boostMocks.redirectToTrustedCheckoutUrl.mockReset();
     boostMocks.from.mockImplementation((table: string) => {
       if (table === "restaurants") {
         const chain = {
@@ -127,9 +113,6 @@ describe("SocialPostBoostDialog", () => {
       if (functionName === "create-social-post-boost") {
         return { data: { campaign: { id: "campaign-dashboard-1" } }, error: null };
       }
-      if (functionName === "create-checkout") {
-        return { data: { url: "https://checkout.stripe.com/pay/campaign-dashboard-1" }, error: null };
-      }
       return { data: null, error: null };
     });
 
@@ -153,7 +136,7 @@ describe("SocialPostBoostDialog", () => {
     fireEvent.click(screen.getByRole("checkbox", { name: /Midi/i }));
     fireEvent.change(screen.getByLabelText(/Budget total/i), { target: { value: "40" } });
     fireEvent.change(screen.getByLabelText(/Durée/i), { target: { value: "5" } });
-    fireEvent.click(screen.getByRole("button", { name: /Payer et sponsoriser/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Utiliser les crédits TOK/i }));
 
     await waitFor(() => {
       expect(boostMocks.invokeSupabaseFunction).toHaveBeenCalledWith(
@@ -180,25 +163,13 @@ describe("SocialPostBoostDialog", () => {
       );
     });
 
-    expect(boostMocks.invokeSupabaseFunction).toHaveBeenCalledWith(
-      "create-checkout",
-      expect.objectContaining({
-        body: expect.objectContaining({
-          checkout_kind: "campaign",
-          return_url: "http://localhost/dashboard/actualites?campaign_checkout=1&campaign_id=campaign-dashboard-1&post_id=post-boost-dashboard",
-        }),
-      }),
-    );
-    expect(boostMocks.redirectToTrustedCheckoutUrl).toHaveBeenCalledWith("https://checkout.stripe.com/pay/campaign-dashboard-1");
+    expect(boostMocks.invokeSupabaseFunction).not.toHaveBeenCalledWith("create-checkout", expect.anything());
   });
 
-  it("lets TOK AI choose the strongest sponsored settings before checkout", async () => {
+  it("lets TOK AI choose the strongest sponsored settings before reserving credits", async () => {
     boostMocks.invokeSupabaseFunction.mockImplementation(async (functionName: string) => {
       if (functionName === "create-social-post-boost") {
         return { data: { campaign: { id: "campaign-ai-1" } }, error: null };
-      }
-      if (functionName === "create-checkout") {
-        return { data: { url: "https://checkout.stripe.com/pay/campaign-ai-1" }, error: null };
       }
       return { data: null, error: null };
     });
@@ -215,7 +186,7 @@ describe("SocialPostBoostDialog", () => {
     expect(screen.getByRole("radio", { name: /Nouveaux clients/i })).toBeChecked();
     expect(screen.getByRole("checkbox", { name: /Midi/i })).toBeChecked();
 
-    fireEvent.click(screen.getByRole("button", { name: /Payer et sponsoriser/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Utiliser les crédits TOK/i }));
 
     await waitFor(() => {
       expect(boostMocks.invokeSupabaseFunction).toHaveBeenCalledWith(
@@ -237,5 +208,6 @@ describe("SocialPostBoostDialog", () => {
         }),
       );
     });
+    expect(boostMocks.invokeSupabaseFunction).not.toHaveBeenCalledWith("create-checkout", expect.anything());
   });
 });

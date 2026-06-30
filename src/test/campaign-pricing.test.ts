@@ -114,21 +114,35 @@ describe("campaign pricing helpers", () => {
     expect(sharedPricing).toContain("banner: 0.35");
   });
 
-  it("lets restaurant campaigns reserve subscription or top-up credits before Stripe checkout", () => {
+  it("requires restaurant campaigns to reserve TOK credits instead of opening Stripe checkout", () => {
     const portal = readSource("supabase/functions/campaign-portal/index.ts");
+    const checkout = readSource("supabase/functions/create-checkout/index.ts");
+    const socialBoost = readSource("supabase/functions/create-social-post-boost/index.ts");
     const dashboard = readSource("src/pages/dashboard/DashboardCampagnes.tsx");
     const paymentMethods = readSource("src/lib/paymentMethods.ts");
 
     expect(portal).toContain('"credits"');
     expect(portal).toContain("get_restaurant_credit_usage");
     expect(portal).toContain("getCampaignCreditBalance");
+    expect(portal).toContain("Les campagnes se reglent uniquement avec les credits TOK");
     expect(portal).toContain("Credits campagnes insuffisants");
     expect(portal).toContain("paid_amount: creditsBudget");
 
-    expect(dashboard).toContain('"credits"');
-    expect(dashboard).toContain('paymentMethod !== "credits"');
-    expect(dashboard).toContain("Utiliser les credits");
+    expect(checkout).toContain("Les campagnes se reglent uniquement avec les credits TOK");
+
+    expect(socialBoost).toContain('payment_method: "credits"');
+    expect(socialBoost).toContain('payment_status: "paid"');
+    expect(socialBoost).toContain('status: "active"');
+    expect(socialBoost).toContain("get_restaurant_credit_usage");
+    expect(socialBoost).not.toContain('payment_method: "card"');
+
+    expect(dashboard).toContain('const CAMPAIGN_PAYMENT_METHOD = "credits"');
+    expect(dashboard).toContain("Acheter un pack de recharge");
+    expect(dashboard).toContain("attendez le prochain renouvellement");
+    expect(dashboard).toContain("Utiliser les crédits TOK");
     expect(dashboard).toContain("Le budget de campagne a été réservé");
+    expect(dashboard).not.toContain("PaymentMethodSelector");
+    expect(dashboard).not.toContain('"create-checkout"');
 
     expect(paymentMethods).toContain('| "credits"');
     expect(paymentMethods).toContain('Exclude<PaymentMethodId, "credits">');

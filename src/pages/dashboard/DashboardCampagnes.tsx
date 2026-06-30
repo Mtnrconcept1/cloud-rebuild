@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ComponentType } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  ArrowRight,
+  AlertCircle,
   BarChart3,
   CalendarDays,
   CheckCircle2,
@@ -22,6 +22,7 @@ import {
   Trash2,
   TrendingUp,
   Wallet,
+  WalletCards,
 } from "lucide-react";
 
 import {
@@ -37,9 +38,7 @@ import AudienceTargeting from "@/components/AudienceTargeting";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import ImageUpload from "@/components/ImageUpload";
-import PaymentMethodSelector from "@/components/cart/PaymentMethodSelector";
 import SponsoredRestaurantTemplateCard from "@/components/campaigns/SponsoredRestaurantTemplateCard";
-import { redirectToTrustedCheckoutUrl } from "@/lib/securityUrls";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -47,7 +46,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { buildCheckoutReturnUrl } from "@/lib/checkoutReturnUrl";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
@@ -92,17 +90,13 @@ import {
   setRestaurantCampaignStatus,
 } from "@/lib/campaigns";
 import { SUPABASE_URL } from "@/lib/env";
-import { fetchWithFreshAccessToken, invokeSupabaseFunction } from "@/lib/session";
-import { useActiveFeatures } from "@/lib/featureFlags";
-import {
-  getAllowedPaymentMethods,
-  getFirstAvailablePaymentMethod,
-  type PaymentMethodId,
-} from "@/lib/paymentMethods";
+import { fetchWithFreshAccessToken } from "@/lib/session";
+import { TOK_CREDITS_PER_CAMPAIGN_CHF } from "@/lib/tokCredits";
 import { cn } from "@/lib/utils";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
 
 const supabase = getSupabase();
+const CAMPAIGN_PAYMENT_METHOD = "credits" as const;
 
 const CAMPAIGN_TYPES = [
   { value: "boost", label: "Boost (Sponsorisé)" },
@@ -148,9 +142,41 @@ const EMPTY_CONVERSIONS: ConversionByType = {
 };
 
 type CampaignRecord = Record<string, any>;
+type RestaurantCreditSummary = {
+  kind?: string | null;
+  balance?: number | string | null;
+};
+type RestaurantCreditUsage = {
+  credits?: RestaurantCreditSummary[] | null;
+};
 
 function formatChf(value: number, digits = 2) {
   return `${Number(value || 0).toFixed(digits)} CHF`;
+}
+
+function toFiniteNumber(value: unknown) {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : 0;
+}
+
+function getCampaignCreditBalanceFromUsage(usage: RestaurantCreditUsage | null | undefined) {
+  const credits = Array.isArray(usage?.credits) ? usage.credits : [];
+  const tokCredit = credits.find((credit) => credit.kind === "tok_credits");
+  if (tokCredit) {
+    return Math.max(0, toFiniteNumber(tokCredit.balance) / TOK_CREDITS_PER_CAMPAIGN_CHF);
+  }
+
+  const campaignCredit = credits.find((credit) => credit.kind === "campaign");
+  return Math.max(0, toFiniteNumber(campaignCredit?.balance));
+}
+
+async function fetchCampaignCreditBalance(restaurantId: string) {
+  const { data, error } = await (supabase.rpc as any)("get_restaurant_credit_usage", {
+    p_restaurant_id: restaurantId,
+  });
+
+  if (error) throw error;
+  return getCampaignCreditBalanceFromUsage(data as RestaurantCreditUsage);
 }
 
 function formatPercent(value: number, digits = 1) {
@@ -726,7 +752,7 @@ export default function DashboardCampagnes() {
                             ) : null}
                             {!isPaid ? (
                               <Button size="sm" variant="outline" onClick={() => { setEditing(campaign); setOpen(true); }}>
-                                Finaliser paiement
+                                Réserver crédits
                               </Button>
                             ) : null}
                             <Button size="icon" variant="ghost" onClick={() => { setEditing(campaign); setOpen(true); }}>
@@ -1323,7 +1349,6 @@ function CampaignAutoDecisionPanel({
   targetCriteria,
   totalBudgetValue,
   durationDays,
-  paymentMethod,
 }: {
   type: string;
   targetPages: string[];
@@ -1332,7 +1357,6 @@ function CampaignAutoDecisionPanel({
   targetCriteria: AudienceCriteria;
   totalBudgetValue: number;
   durationDays: number;
-  paymentMethod: PaymentMethodId;
 }) {
   const plan = buildAutomaticCampaignPlan({ preferredPages: targetPages });
   const strategyLabel = getCampaignStrategyConfig(strategy).label;
@@ -1359,7 +1383,7 @@ function CampaignAutoDecisionPanel({
             <Badge variant="outline" className="text-[10px]">Budget {formatChf(totalBudgetValue)}</Badge>
             <Badge variant="outline" className="text-[10px]">{durationDays} jours</Badge>
             <Badge variant="outline" className="text-[10px]">Objectif {strategyLabel}</Badge>
-            <Badge variant="outline" className="text-[10px]">Paiement {paymentMethod.toUpperCase()}</Badge>
+            <Badge variant="outline" className="text-[10px]">Paiement crédits TOK</Badge>
             {targetingParts.slice(0, 4).map((part) => (
               <Badge key={part} variant="outline" className="text-[10px]">{part}</Badge>
             ))}
@@ -1381,7 +1405,6 @@ function CampaignForm({
   onSaved: () => void;
 }) {
   const { toast } = useToast();
-  const activeFeatures = useActiveFeatures();
   const initialPlacementSelection = normalizeCampaignPlacementSelection(initial?.channels, initial?.type);
   const initialBaseBudget = initial?.total_budget
     ? calculateCampaignBaseBudget(initial.total_budget, initialPlacementSelection, initial?.type).toString()
@@ -1406,7 +1429,6 @@ function CampaignForm({
     getRecordStrategy(initial || null),
   );
   const [strategyTouched, setStrategyTouched] = useState(Boolean(initial?.pricing_strategy));
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId>((initial?.payment_method as PaymentMethodId) || "card");
   const [targetCriteria, setTargetCriteria] = useState<AudienceCriteria>(
     normalizeAudienceCriteria(initial?.target_criteria || DEFAULT_AUDIENCE_CRITERIA)
   );
@@ -1419,11 +1441,26 @@ function CampaignForm({
   const totalBudgetValue = calculateCampaignTotalCost(baseBudgetValue, placementSelection, type);
   const copyLimit = 250;
   const copyLength = title.length + body.length;
-  const allowedPaymentMethods = useMemo<PaymentMethodId[]>(() => {
-    const methods = getAllowedPaymentMethods(activeFeatures, []);
-    return methods.includes("credits") ? methods : [...methods, "credits"];
-  }, [activeFeatures]);
-  const requiresCheckout = totalBudgetValue > 0 && !isPaidCampaign && paymentMethod !== "cash" && paymentMethod !== "credits";
+  const creditBalanceQuery = useQuery({
+    queryKey: ["restaurant-campaign-credit-balance", restaurantId],
+    queryFn: () => fetchCampaignCreditBalance(restaurantId),
+    enabled: Boolean(restaurantId) && !isPaidCampaign,
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+  });
+  const availableCampaignCredits = isPaidCampaign
+    ? Math.max(0, Number(initial?.paid_amount || initial?.total_budget || 0))
+    : Math.max(0, creditBalanceQuery.data ?? 0);
+  const creditShortfall = Math.max(0, totalBudgetValue - availableCampaignCredits);
+  const isCheckingCredits = !isPaidCampaign && totalBudgetValue > 0 && creditBalanceQuery.isLoading;
+  const hasInsufficientCredits = !isPaidCampaign
+    && totalBudgetValue > 0
+    && !isCheckingCredits
+    && !creditBalanceQuery.isError
+    && creditShortfall > 0;
+  const cannotReserveCredits = !isPaidCampaign
+    && totalBudgetValue > 0
+    && (isCheckingCredits || creditBalanceQuery.isError || hasInsufficientCredits);
   const recommendedStrategy = useMemo(
     () => recommendCampaignStrategy({
       type,
@@ -1457,12 +1494,6 @@ function CampaignForm({
     () => addDaysToInputDate(startsAt, durationDays),
     [durationDays, startsAt],
   );
-
-  useEffect(() => {
-    if (allowedPaymentMethods.includes(paymentMethod)) return;
-    const nextMethod = getFirstAvailablePaymentMethod(activeFeatures, [], "card");
-    if (nextMethod) setPaymentMethod(nextMethod);
-  }, [activeFeatures, allowedPaymentMethods, paymentMethod]);
 
   useEffect(() => {
     if (!strategyTouched) {
@@ -1615,8 +1646,14 @@ function CampaignForm({
       toast({ title: "Restaurant requis", description: "Aucun restaurant sélectionné.", variant: "destructive" });
       return;
     }
-    if (allowedPaymentMethods.length === 0) {
-      toast({ title: "Paiement indisponible", description: "Aucun moyen de paiement global n'est actif.", variant: "destructive" });
+    if (cannotReserveCredits) {
+      toast({
+        title: hasInsufficientCredits ? "Crédits TOK insuffisants" : "Solde TOK indisponible",
+        description: hasInsufficientCredits
+          ? "Achetez un pack de recharge ou attendez le prochain renouvellement de votre abonnement avant de créer cette campagne."
+          : "Impossible de vérifier le solde de crédits TOK pour le moment.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -1631,7 +1668,6 @@ function CampaignForm({
     };
     const safeTitle = title.trim().slice(0, copyLimit);
     const safeBody = body.trim().slice(0, Math.max(0, copyLimit - safeTitle.length));
-    const usesCredits = paymentMethod === "credits" && totalBudgetValue > 0;
     const payload = {
       restaurant_id: restaurantId,
       title: safeTitle,
@@ -1648,58 +1684,16 @@ function CampaignForm({
       channels: campaignChannels,
       starts_at: startsAt ? new Date(startsAt).toISOString() : null,
       ends_at: endsAt ? new Date(endsAt).toISOString() : null,
-      payment_method: paymentMethod,
-      payment_status: isPaidCampaign || usesCredits ? "paid" : (paymentMethod === "cash" && totalBudgetValue > 0 ? "pending" : "unpaid"),
-      status: isPaidCampaign ? (initial?.status || "draft") : (paymentMethod === "cash" && totalBudgetValue > 0 ? "pending_payment" : "draft"),
+      payment_method: CAMPAIGN_PAYMENT_METHOD,
+      payment_status: isPaidCampaign || totalBudgetValue > 0 ? "paid" : "unpaid",
+      status: isPaidCampaign ? (initial?.status || "draft") : "draft",
     };
 
     try {
-      let campaignRecord: any = null;
-      const { data, error } = await saveRestaurantCampaign(restaurantId, payload, initial?.id);
+      const { error } = await saveRestaurantCampaign(restaurantId, payload, initial?.id);
       if (error) throw error;
-      campaignRecord = data;
 
-      if (requiresCheckout && campaignRecord?.id) {
-        const { data: checkoutData, error: checkoutError } = await invokeSupabaseFunction<{ url?: string }>("create-checkout", {
-          body: {
-            checkout_kind: "campaign",
-            items: [
-              {
-                name: `Campagne publicitaire - ${safeTitle || "Annonce"}`,
-                restaurant_name: null,
-                price: totalBudgetValue,
-                quantity: 1,
-              },
-            ],
-            payment_method: paymentMethod,
-            return_url: buildCheckoutReturnUrl(`/dashboard/campagnes?campaign_checkout=1&campaign_id=${campaignRecord.id}`),
-            order_metadata: {
-              checkout_kind: "campaign",
-              order_reference: `campaign-${campaignRecord.id}`,
-              campaign_id: campaignRecord.id,
-              campaign_title: safeTitle,
-              restaurant_id: restaurantId,
-              disable_connected_account: true,
-            },
-          },
-        });
-
-        if (checkoutError || !checkoutData?.url) {
-          throw new Error(checkoutError?.message || "Impossible de créer la session de paiement.");
-        }
-
-        redirectToTrustedCheckoutUrl(checkoutData.url);
-        return;
-      }
-
-      if (paymentMethod === "cash" && totalBudgetValue > 0 && !isPaidCampaign) {
-        toast({
-          title: "Campagne en attente",
-          description: "La campagne est en attente de règlement manuel avant activation.",
-        });
-      }
-
-      if (usesCredits && !isPaidCampaign) {
+      if (totalBudgetValue > 0 && !isPaidCampaign) {
         toast({
           title: "Crédits réservés",
           description: "Le budget de campagne a été réservé sur votre solde TOK.",
@@ -1782,7 +1776,6 @@ function CampaignForm({
         targetCriteria={targetCriteria}
         totalBudgetValue={totalBudgetValue}
         durationDays={durationDays}
-        paymentMethod={paymentMethod}
       />
 
       <div className="space-y-3">
@@ -1999,39 +1992,77 @@ function CampaignForm({
 
       <AudienceTargeting criteria={targetCriteria} onChange={setTargetCriteria} restaurantId={restaurantId} />
 
-      <div className="rounded-xl border p-4 space-y-3">
-        <div>
-          <p className="text-sm font-semibold">Paiement de la campagne</p>
-          <p className="text-xs text-muted-foreground">
-            Les paiements en ligne activent automatiquement la campagne. Le règlement manuel la laisse en attente.
-          </p>
+      <div className="space-y-4 rounded-xl border border-primary/25 bg-primary/5 p-4">
+        <div className="flex items-start gap-3">
+          <WalletCards className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+          <div>
+            <p className="text-sm font-semibold">Paiement de la campagne</p>
+            <p className="text-xs leading-5 text-muted-foreground">
+              Les campagnes se règlent uniquement avec vos crédits TOK. Si le solde est insuffisant, achetez un pack de recharge ou attendez le prochain renouvellement mensuel de votre abonnement.
+            </p>
+          </div>
         </div>
-        <PaymentMethodSelector
-          paymentMethod={paymentMethod}
-          setPaymentMethod={setPaymentMethod}
-          allowedMethods={allowedPaymentMethods}
-          cashDescription="Le règlement manuel n'active pas la campagne tant qu'il n'est pas validé."
-          secureDescription="Paiement sécurisé via Stripe. La campagne est activée après confirmation."
-        />
-        {paymentMethod === "credits" ? (
+
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="rounded-xl border bg-background/80 p-3">
+            <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Solde disponible</p>
+            <p className="mt-1 text-sm font-semibold">
+              {isCheckingCredits ? "Vérification..." : creditBalanceQuery.isError ? "À vérifier" : formatChf(availableCampaignCredits)}
+            </p>
+          </div>
+          <div className="rounded-xl border bg-background/80 p-3">
+            <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Budget campagne</p>
+            <p className="mt-1 text-sm font-semibold">{formatChf(totalBudgetValue)}</p>
+          </div>
+          <div className="rounded-xl border bg-background/80 p-3">
+            <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Après réservation</p>
+            <p className="mt-1 text-sm font-semibold">
+              {isCheckingCredits || creditBalanceQuery.isError ? "-" : formatChf(Math.max(0, availableCampaignCredits - totalBudgetValue))}
+            </p>
+          </div>
+        </div>
+
+        {hasInsufficientCredits ? (
+          <div className="space-y-3 rounded-xl border border-destructive/25 bg-destructive/10 p-3 text-sm text-destructive">
+            <div className="flex gap-2">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+              <div>
+                <p className="font-semibold">Crédits TOK insuffisants</p>
+                <p className="text-xs leading-5">
+                  Il manque {formatChf(creditShortfall)} pour réserver ce budget. Achetez un pack de recharge ou attendez les crédits inclus dans votre abonnement au prochain renouvellement.
+                </p>
+              </div>
+            </div>
+            <Button asChild type="button" variant="outline" className="h-9 rounded-xl border-destructive/30 bg-background text-destructive hover:bg-destructive/10">
+              <Link to="/dashboard/mon-compte-facturation">Acheter un pack de recharge</Link>
+            </Button>
+          </div>
+        ) : null}
+
+        {creditBalanceQuery.isError ? (
+          <p className="rounded-xl border border-destructive/25 bg-destructive/10 p-3 text-xs text-destructive">
+            Impossible de vérifier le solde de crédits TOK. Réessayez dans quelques instants avant de créer la campagne.
+          </p>
+        ) : null}
+
+        {!hasInsufficientCredits && !creditBalanceQuery.isError ? (
           <p className="text-xs text-primary">
             Le budget sera réservé sur le solde de crédits TOK de l'abonnement ou des packs achetés.
           </p>
         ) : null}
+
         {isPaidCampaign ? (
           <p className="text-xs text-green-600">
-            Campagne déjà payée à hauteur de {Number(initial?.paid_amount || 0).toFixed(2)} CHF via {String(initial?.payment_method || "card").toUpperCase()}.
+            Campagne déjà payée à hauteur de {Number(initial?.paid_amount || initial?.total_budget || 0).toFixed(2)} CHF via crédits TOK.
           </p>
         ) : null}
       </div>
 
-      <Button type="submit" disabled={loading} className="w-full">
+      <Button type="submit" disabled={loading || cannotReserveCredits} className="w-full">
         {loading
           ? "Enregistrement..."
-          : requiresCheckout
-            ? "Payer et lancer la campagne"
-            : paymentMethod === "credits" && totalBudgetValue > 0 && !isPaidCampaign
-              ? "Utiliser les credits et créer la campagne"
+          : totalBudgetValue > 0 && !isPaidCampaign
+              ? "Utiliser les crédits TOK et créer la campagne"
             : initial
               ? "Enregistrer la campagne"
               : "Créer la campagne"}

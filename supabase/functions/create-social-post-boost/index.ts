@@ -13,6 +13,8 @@ import {
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
 
+const TOK_CREDITS_PER_CAMPAIGN_CHF = 15;
+
 function text(value: unknown) {
   return String(value || "").trim();
 }
@@ -20,6 +22,11 @@ function text(value: unknown) {
 function positiveNumber(value: unknown, fallback = 0) {
   const next = Number(value);
   return Number.isFinite(next) && next > 0 ? next : fallback;
+}
+
+function nonNegativeNumber(value: unknown) {
+  const next = Number(value);
+  return Number.isFinite(next) && next > 0 ? next : 0;
 }
 
 function sanitizeDate(value: unknown) {
@@ -87,6 +94,31 @@ function normalizeTargetCriteria(value: unknown, restaurantId: string) {
   };
 }
 
+async function getCampaignCreditBalance(
+  adminClient: Awaited<ReturnType<typeof authenticateRequest>>["adminClient"],
+  restaurantId: string,
+) {
+  const { data, error } = await adminClient.rpc("get_restaurant_credit_usage", {
+    p_restaurant_id: restaurantId,
+  });
+
+  if (error) {
+    throw new HttpError(500, error.message);
+  }
+
+  const usage = data && typeof data === "object" && !Array.isArray(data)
+    ? data as Record<string, unknown>
+    : {};
+  const credits = Array.isArray(usage.credits) ? usage.credits as Array<Record<string, unknown>> : [];
+  const tokCredit = credits.find((credit) => String(credit.kind || "") === "tok_credits");
+  if (tokCredit) {
+    return nonNegativeNumber(tokCredit.balance) / TOK_CREDITS_PER_CAMPAIGN_CHF;
+  }
+
+  const campaignCredit = credits.find((credit) => String(credit.kind || "") === "campaign");
+  return nonNegativeNumber(campaignCredit?.balance);
+}
+
 Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req);
   const preflight = handleCorsPreflight(req, corsHeaders);
@@ -133,6 +165,14 @@ Deno.serve(async (req) => {
     const title = text(body.title) || "Post sponsorise Actualites";
     const campaignBody = text(body.body) || String(post.body || "").slice(0, 220);
     const targetCriteria = normalizeTargetCriteria(body.targetCriteria, restaurant.id);
+    const availableCredits = await getCampaignCreditBalance(adminClient, restaurant.id);
+
+    if (totalBudget > availableCredits) {
+      throw new HttpError(
+        402,
+        `Credits campagnes insuffisants. Solde disponible: ${availableCredits.toFixed(2)} CHF.`,
+      );
+    }
 
     const { data: campaign, error: campaignError } = await adminClient
       .from("ad_campaigns")
@@ -148,9 +188,12 @@ Deno.serve(async (req) => {
         budget_daily: dailyBudget,
         starts_at: startsAt,
         ends_at: endsAt,
-        payment_method: "card",
-        payment_status: "unpaid",
-        status: "draft",
+        payment_method: "credits",
+        payment_status: "paid",
+        paid_amount: totalBudget,
+        paid_at: new Date().toISOString(),
+        status: "active",
+        activated_at: new Date().toISOString(),
         pricing_strategy: strategy,
         cpm_rate: pricing.cpmRate || DEFAULT_CAMPAIGN_PRICING.cpmRate,
         cpc_rate: pricing.cpcRate || DEFAULT_CAMPAIGN_PRICING.cpcRate,
@@ -167,7 +210,7 @@ Deno.serve(async (req) => {
         post_id: post.id,
         campaign_id: campaign.id,
         restaurant_id: restaurant.id,
-        status: "pending_payment",
+        status: "active",
         starts_at: startsAt,
         ends_at: endsAt,
         budget_amount: totalBudget,
@@ -189,7 +232,12 @@ Deno.serve(async (req) => {
       status: "success",
       targetEntityType: "social_posts",
       targetEntityId: post.id,
-      metadata: { restaurant_id: restaurant.id, campaign_id: campaign.id },
+      metadata: {
+        restaurant_id: restaurant.id,
+        campaign_id: campaign.id,
+        payment_method: "credits",
+        total_budget: totalBudget,
+      },
     });
 
     return jsonResponse({ campaign }, 200, corsHeaders);

@@ -568,47 +568,10 @@ Deno.serve(async (req) => {
         authoritative_total: amount.toFixed(2),
       };
     } else if (effectiveKind === "campaign") {
-      const campaignId = String(order_metadata?.campaign_id || "");
-      if (!campaignId) {
-        throw new HttpError(400, "campaign_id requis");
-      }
-      auditTargetEntityType = "ad_campaigns";
-      auditTargetEntityId = campaignId;
-
-      const { data: campaign, error: campaignError } = await actor.adminClient
-        .from("ad_campaigns")
-        .select("id, restaurant_id, title, total_budget")
-        .eq("id", campaignId)
-        .maybeSingle();
-
-      if (campaignError) throw new HttpError(500, campaignError.message);
-      if (!campaign) throw new HttpError(404, "Campagne introuvable");
-
-      const restaurant = await requireRestaurantAccess(actor, campaign.restaurant_id);
-      const campaignAmount = toMoney(campaign.total_budget);
-      if (campaignAmount <= 0) {
-        throw new HttpError(400, "Budget de campagne invalide");
-      }
-
-      lineItems = [{
-        price_data: {
-          currency: "chf",
-          product_data: {
-            name: `Campagne publicitaire - ${campaign.title}`,
-            description: restaurant.name || undefined,
-          },
-          unit_amount: Math.round(campaignAmount * 100),
-        },
-        quantity: 1,
-      }];
-
-      sessionMetadata = {
-        ...sessionMetadata,
-        restaurant_id: campaign.restaurant_id,
-        campaign_id: campaign.id,
-        campaign_title: campaign.title,
-        authoritative_total: campaignAmount.toFixed(2),
-      };
+      throw new HttpError(
+        400,
+        "Les campagnes se reglent uniquement avec les credits TOK. Rechargez votre solde depuis Mon compte/Facturation ou attendez le prochain renouvellement.",
+      );
     } else if (effectiveKind === "chefs-table") {
       if (!Array.isArray(items) || items.length === 0) {
         throw new HttpError(400, "Aucune experience La Table du Chef.");

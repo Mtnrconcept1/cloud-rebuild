@@ -5,7 +5,7 @@ Ce scénario documente le parcours complet d'une Actualité sponsorisée, depuis
 ## Préconditions
 
 - Le restaurateur possède un restaurant actif avec le module Actualités et le module Campagnes activés.
-- Stripe Checkout est configuré pour les campagnes.
+- Le restaurateur dispose de crédits TOK suffisants pour réserver le budget de campagne, ou sait recharger son solde depuis `Mon compte/Facturation`.
 - Les migrations Actualités sponsorisées sont appliquées en production.
 - L'utilisateur test client n'est ni propriétaire du restaurant, ni administrateur, afin d'éviter les métriques internes.
 
@@ -13,8 +13,8 @@ Ce scénario documente le parcours complet d'une Actualité sponsorisée, depuis
 
 1. Le restaurateur publie un post depuis `/dashboard/actualites`.
 2. Le restaurateur clique sur `Mettre en avant`, choisit budget, durée, stratégie et ciblage.
-3. Le checkout Stripe est lancé avec `checkout_kind=campaign`.
-4. Après paiement réussi, la campagne liée passe en statut payé et la promotion devient éligible.
+3. Le budget est réservé sur les crédits TOK du restaurateur, sans checkout Stripe.
+4. Si le solde est suffisant, la campagne liée passe en statut payé et la promotion devient éligible.
 5. Le post apparaît dans `/actualites` avec le badge `Sponsorisé`.
 6. Une impression sponsorisée est enregistrée sans modifier les métriques organiques.
 7. Le client clique sur le post ou sur son CTA.

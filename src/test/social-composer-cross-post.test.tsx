@@ -14,7 +14,6 @@ const socialHooks = vi.hoisted(() => ({
   invoke: vi.fn(),
   invokeSupabaseFunction: vi.fn(),
   from: vi.fn(),
-  redirectToTrustedCheckoutUrl: vi.fn(),
 }));
 
 vi.mock("@/hooks/useSocialFeed", () => ({
@@ -46,18 +45,6 @@ vi.mock("@/lib/session", () => ({
   invokeSupabaseFunction: socialHooks.invokeSupabaseFunction,
 }));
 
-vi.mock("@/lib/securityUrls", async () => {
-  const actual = await vi.importActual<typeof import("@/lib/securityUrls")>("@/lib/securityUrls");
-  return {
-    ...actual,
-    redirectToTrustedCheckoutUrl: socialHooks.redirectToTrustedCheckoutUrl,
-  };
-});
-
-vi.mock("@/lib/checkoutReturnUrl", () => ({
-  buildCheckoutReturnUrl: (path: string) => `http://localhost${path}`,
-}));
-
 describe("SocialComposer external social publishing", () => {
   beforeEach(() => {
     socialHooks.createPost.mockClear();
@@ -66,7 +53,6 @@ describe("SocialComposer external social publishing", () => {
     socialHooks.invoke.mockReset();
     socialHooks.invokeSupabaseFunction.mockReset();
     socialHooks.from.mockReset();
-    socialHooks.redirectToTrustedCheckoutUrl.mockReset();
     socialHooks.from.mockImplementation((table: string) => {
       if (table === "restaurants") {
         const chain = {
@@ -299,14 +285,11 @@ describe("SocialComposer external social publishing", () => {
     expect(socialHooks.createPremiumBanner).toHaveBeenCalledWith("post-premium-1");
   });
 
-  it("lets restaurateurs sponsor the new post and starts the campaign checkout", async () => {
+  it("lets restaurateurs sponsor the new post by reserving TOK credits", async () => {
     socialHooks.createPost.mockResolvedValueOnce("post-boost-1");
     socialHooks.invokeSupabaseFunction.mockImplementation(async (functionName: string) => {
       if (functionName === "create-social-post-boost") {
         return { data: { campaign: { id: "campaign-1" } }, error: null };
-      }
-      if (functionName === "create-checkout") {
-        return { data: { url: "https://checkout.stripe.com/pay/campaign-1" }, error: null };
       }
       return { data: null, error: null };
     });
@@ -363,30 +346,14 @@ describe("SocialComposer external social publishing", () => {
         }),
       }),
     );
-    expect(socialHooks.invokeSupabaseFunction).toHaveBeenCalledWith(
-      "create-checkout",
-      expect.objectContaining({
-        body: expect.objectContaining({
-          checkout_kind: "campaign",
-          order_metadata: expect.objectContaining({
-            campaign_id: "campaign-1",
-            social_post_id: "post-boost-1",
-            target_page: "actualites",
-          }),
-        }),
-      }),
-    );
-    expect(socialHooks.redirectToTrustedCheckoutUrl).toHaveBeenCalledWith("https://checkout.stripe.com/pay/campaign-1");
+    expect(socialHooks.invokeSupabaseFunction).not.toHaveBeenCalledWith("create-checkout", expect.anything());
   });
 
-  it("lets TOK AI fill every sponsored setting for a new post before checkout", async () => {
+  it("lets TOK AI fill every sponsored setting for a new post before reserving credits", async () => {
     socialHooks.createPost.mockResolvedValueOnce("post-boost-ai-1");
     socialHooks.invokeSupabaseFunction.mockImplementation(async (functionName: string) => {
       if (functionName === "create-social-post-boost") {
         return { data: { campaign: { id: "campaign-ai-1" } }, error: null };
-      }
-      if (functionName === "create-checkout") {
-        return { data: { url: "https://checkout.stripe.com/pay/campaign-ai-1" }, error: null };
       }
       return { data: null, error: null };
     });
@@ -432,6 +399,6 @@ describe("SocialComposer external social publishing", () => {
       );
     });
 
-    expect(socialHooks.redirectToTrustedCheckoutUrl).toHaveBeenCalledWith("https://checkout.stripe.com/pay/campaign-ai-1");
+    expect(socialHooks.invokeSupabaseFunction).not.toHaveBeenCalledWith("create-checkout", expect.anything());
   });
 });

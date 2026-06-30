@@ -27,8 +27,6 @@ import {
   getCampaignPricing,
   type CampaignPricingStrategy,
 } from "@/lib/campaignPricing";
-import { buildCheckoutReturnUrl } from "@/lib/checkoutReturnUrl";
-import { redirectToTrustedCheckoutUrl } from "@/lib/securityUrls";
 import { invokeSupabaseFunction } from "@/lib/session";
 import type { SocialFeedPost } from "@/lib/socialFeed";
 import {
@@ -260,38 +258,13 @@ export default function SocialPostBoostDialog({
       const campaignId = data?.campaign?.id;
       if (!campaignId) throw new Error("Impossible de créer la mise en avant.");
 
-      const checkout = await invokeSupabaseFunction<{ url?: string }>("create-checkout", {
-        body: {
-          checkout_kind: "campaign",
-          items: [
-            {
-              name: `Post sponsorisé Actualités - ${post.restaurant.name}`,
-              restaurant_name: post.restaurant.name,
-              price: totalBudgetValue,
-              quantity: 1,
-            },
-          ],
-          payment_method: "card",
-          return_url: buildCheckoutReturnUrl(`/dashboard/actualites?campaign_checkout=1&campaign_id=${campaignId}&post_id=${post.id}`),
-          order_metadata: {
-            checkout_kind: "campaign",
-            order_reference: `social-post-campaign-${campaignId}`,
-            campaign_id: campaignId,
-            social_post_id: post.id,
-            campaign_title: title,
-            restaurant_id: restaurantId,
-            target_page: "actualites",
-            disable_connected_account: true,
-          },
-        },
+      toast({
+        title: "Crédits TOK réservés",
+        description: "Votre mise en avant est active avec le budget réservé sur votre solde TOK.",
       });
-
-      if (checkout.error || !checkout.data?.url) {
-        throw new Error(checkout.error?.message || "Impossible de créer la session de paiement.");
-      }
-
       onCreated?.();
-      redirectToTrustedCheckoutUrl(checkout.data.url);
+      setOpen(false);
+      setLoading(false);
     } catch (error) {
       toast({
         title: "Erreur",
@@ -317,7 +290,7 @@ export default function SocialPostBoostDialog({
             Paramétrer la publication sponsorisée
           </DialogTitle>
           <DialogDescription>
-            Choisissez un objectif, une audience et un budget. Le post sera mis en avant après validation du paiement.
+            Choisissez un objectif, une audience et un budget. Le post sera mis en avant après réservation des crédits TOK.
           </DialogDescription>
         </DialogHeader>
 
@@ -594,6 +567,13 @@ export default function SocialPostBoostDialog({
             </div>
           </div>
 
+          <div className="rounded-2xl border border-orange-200 bg-orange-50 p-3 text-sm text-orange-950">
+            <p className="font-semibold">Paiement par crédits TOK uniquement</p>
+            <p className="mt-1 text-xs leading-5 text-orange-800">
+              Le budget sera réservé sur vos crédits TOK. Si le solde est insuffisant, rechargez depuis Mon compte/Facturation ou attendez le prochain renouvellement de votre abonnement.
+            </p>
+          </div>
+
           <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-between">
             <Button type="button" variant="outline" className="rounded-xl" onClick={() => setOpen(false)}>
               Annuler
@@ -604,7 +584,7 @@ export default function SocialPostBoostDialog({
               disabled={loading || totalBudgetValue <= 0}
             >
               {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Megaphone className="mr-2 h-4 w-4" />}
-              {loading ? "Préparation..." : "Payer et sponsoriser"}
+              {loading ? "Réservation..." : "Utiliser les crédits TOK"}
             </Button>
           </div>
         </form>
