@@ -5,6 +5,7 @@ import {
   computeEnabledFeatures,
   getPackServiceFeatureMap,
   isEliteRestaurantSubscription,
+  isPremiumOrEliteRestaurantSubscription,
   type GatableFeatureKey,
 } from "@/lib/packFeatureGating";
 
@@ -103,7 +104,19 @@ describe("packFeatureGating", () => {
     expect(disabled).toContain("dashboard-campagnes");
   });
 
-  it("reserves the CRM dashboard to active Elite subscriptions", () => {
+  it("opens restaurant services on every active subscription and reserves CRM/news to Premium and Elite", () => {
+    const starterEnabled = computeEnabledFeatures([], {
+      subscription: {
+        plan: "starter",
+        status: "active",
+      },
+    });
+    const proEnabled = computeEnabledFeatures([], {
+      subscription: {
+        plan: "pro",
+        status: "active",
+      },
+    });
     const premiumEnabled = computeEnabledFeatures([], {
       subscription: {
         plan: "premium",
@@ -117,10 +130,24 @@ describe("packFeatureGating", () => {
       },
     });
 
-    expect(premiumEnabled).not.toContain("dashboard-crm");
+    for (const feature of ["dashboard-campagnes", "dashboard-plan-salle", "dashboard-photos", "dashboard-service"]) {
+      expect(starterEnabled).toContain(feature);
+      expect(proEnabled).toContain(feature);
+    }
+
+    expect(starterEnabled).not.toContain("dashboard-crm");
+    expect(starterEnabled).not.toContain("dashboard-actualites");
+    expect(proEnabled).not.toContain("dashboard-crm");
+    expect(proEnabled).not.toContain("dashboard-actualites");
+    expect(premiumEnabled).toContain("dashboard-crm");
+    expect(premiumEnabled).toContain("dashboard-actualites");
     expect(eliteEnabled).toContain("dashboard-crm");
+    expect(eliteEnabled).toContain("dashboard-actualites");
     expect(isEliteRestaurantSubscription({ plan: "premium", status: "active" })).toBe(false);
     expect(isEliteRestaurantSubscription({ plan: "elite", status: "active" })).toBe(true);
     expect(isEliteRestaurantSubscription({ plan: "elite", status: "cancelled" })).toBe(false);
+    expect(isPremiumOrEliteRestaurantSubscription({ plan: "premium", status: "active" })).toBe(true);
+    expect(isPremiumOrEliteRestaurantSubscription({ plan: "elite", status: "active" })).toBe(true);
+    expect(isPremiumOrEliteRestaurantSubscription({ plan: "pro", status: "active" })).toBe(false);
   });
 });

@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, type ReactNode } from "react";
 import { useOwnerRestaurants } from "./useOwnerRestaurants";
 import { DashboardContext, isRestaurantDashboardAccessApproved } from "./useDashboardRestaurant";
+import { ALL_GATABLE_FEATURES } from "@/lib/packFeatureGating";
 
 const STORAGE_KEY = "miamz-dashboard-restaurant";
 
@@ -56,9 +57,19 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
   const disabledFeatures = useMemo(() => {
     const lockedFeatures = new Set(selectedRestaurant?.disabled_dashboard_features || []);
+    const subscriptionEnabledFeatures = selectedRestaurant?.subscription_enabled_dashboard_features || [];
 
-    for (const feature of selectedRestaurant?.subscription_enabled_dashboard_features || []) {
+    for (const feature of subscriptionEnabledFeatures) {
       lockedFeatures.delete(feature);
+    }
+
+    if (selectedRestaurant?.restaurant_subscription && subscriptionEnabledFeatures.length > 0) {
+      const enabledBySubscription = new Set(subscriptionEnabledFeatures);
+      for (const feature of ALL_GATABLE_FEATURES) {
+        if (!enabledBySubscription.has(feature.key)) {
+          lockedFeatures.add(feature.key);
+        }
+      }
     }
 
     if (dashboardAccessLocked) {

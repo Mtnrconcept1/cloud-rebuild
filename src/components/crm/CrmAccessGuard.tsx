@@ -26,6 +26,9 @@ type CrmAccessGuardProps = {
   requiresElite?: boolean;
   hasEliteAccess?: boolean;
   eliteLoading?: boolean;
+  requiresPremiumCrm?: boolean;
+  hasPremiumCrmAccess?: boolean;
+  premiumCrmLoading?: boolean;
   restaurantName?: string | null;
 };
 
@@ -65,6 +68,9 @@ export default function CrmAccessGuard({
   requiresElite = surface === "restaurant",
   hasEliteAccess = false,
   eliteLoading = false,
+  requiresPremiumCrm,
+  hasPremiumCrmAccess,
+  premiumCrmLoading,
   restaurantName,
 }: CrmAccessGuardProps) {
   const { toast } = useToast();
@@ -77,10 +83,13 @@ export default function CrmAccessGuard({
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
+  const accessRequired = requiresPremiumCrm ?? requiresElite;
+  const accessGranted = hasPremiumCrmAccess ?? hasEliteAccess;
+  const accessLoading = premiumCrmLoading ?? eliteLoading;
   const gateTitle = surface === "admin" ? "CRM admin sécurisé" : "CRM clients sécurisé";
   const gateDescription = surface === "admin"
     ? "Une vérification à deux facteurs est requise avant de consulter les données CRM globales."
-    : "Le CRM clients contient des données personnelles. Il est réservé au pack Elite et protégé par une vérification à deux facteurs.";
+    : "Le CRM clients contient des données personnelles. Il est réservé aux abonnements Premium et Élite et protégé par une vérification à deux facteurs.";
 
   const startChallenge = useCallback(async (nextFactor: MfaFactor) => {
     const factorId = getFactorId(nextFactor);
@@ -144,10 +153,10 @@ export default function CrmAccessGuard({
   }, [startChallenge]);
 
   useEffect(() => {
-    if (eliteLoading) return;
-    if (requiresElite && !hasEliteAccess) return;
+    if (accessLoading) return;
+    if (accessRequired && !accessGranted) return;
     void refreshMfaStatus();
-  }, [eliteLoading, hasEliteAccess, refreshMfaStatus, requiresElite]);
+  }, [accessGranted, accessLoading, accessRequired, refreshMfaStatus]);
 
   const enrollTotp = async () => {
     const mfa = getMfaApi();
@@ -225,7 +234,7 @@ export default function CrmAccessGuard({
     [busy, challengeId, verificationCode],
   );
 
-  if (eliteLoading) {
+  if (accessLoading) {
     return (
       <Card className="border-orange-200 bg-orange-50/60">
         <CardContent className="flex items-center gap-3 p-6 text-sm text-orange-900">
@@ -236,20 +245,20 @@ export default function CrmAccessGuard({
     );
   }
 
-  if (requiresElite && !hasEliteAccess) {
+  if (accessRequired && !accessGranted) {
     return (
       <Card className="overflow-hidden border-orange-200 bg-gradient-to-br from-orange-50 via-background to-background">
         <CardContent className="grid gap-5 p-6 md:grid-cols-[1fr_auto] md:items-center">
           <div className="space-y-3">
             <Badge className="w-fit gap-1 bg-orange-100 text-orange-800">
               <Crown className="h-3.5 w-3.5" />
-              Abonnement Elite requis
+              Abonnement Premium ou Élite requis
             </Badge>
             <div>
-              <h2 className="font-display text-2xl font-bold">CRM clients réservé au pack Elite</h2>
+              <h2 className="font-display text-2xl font-bold">CRM clients réservé aux abonnements Premium et Élite</h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-                {restaurantName ? `${restaurantName} n'a pas encore accès au CRM Elite.` : "Ce restaurant n'a pas encore accès au CRM Elite."}
-                {" "}Activez le pack Elite pour exploiter les profils clients, habitudes de commande et réservations.
+                {restaurantName ? `${restaurantName} n'a pas encore accès au CRM Premium.` : "Ce restaurant n'a pas encore accès au CRM Premium."}
+                {" "}Passez à Premium ou Élite pour exploiter les profils clients, habitudes de commande et réservations.
               </p>
             </div>
           </div>

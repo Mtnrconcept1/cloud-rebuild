@@ -1,7 +1,7 @@
 import DashboardLayout from "@/components/DashboardLayout";
 import CrmAccessGuard from "@/components/crm/CrmAccessGuard";
 import CustomerCrmDashboard from "@/components/crm/CustomerCrmDashboard";
-import { isEliteRestaurantSubscription } from "@/lib/packFeatureGating";
+import { isPremiumOrEliteRestaurantSubscription } from "@/lib/packFeatureGating";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
 
 export default function DashboardCrm() {
@@ -14,7 +14,7 @@ export default function DashboardCrm() {
 
   const selectedRestaurant = restaurants.find((restaurant) => restaurant.id === selectedId) || null;
   const subscription = selectedRestaurant?.restaurant_subscription;
-  const hasEliteAccess = isEliteRestaurantSubscription(subscription
+  const hasPremiumCrmAccess = isPremiumOrEliteRestaurantSubscription(subscription
     ? {
       plan: subscription.plan,
       slug: subscription.plan_record?.slug || subscription.plan,
@@ -28,9 +28,9 @@ export default function DashboardCrm() {
     <DashboardLayout contentWidth="full">
       <CrmAccessGuard
         surface="restaurant"
-        requiresElite
-        hasEliteAccess={hasEliteAccess}
-        eliteLoading={loading}
+        requiresPremiumCrm
+        hasPremiumCrmAccess={hasPremiumCrmAccess}
+        premiumCrmLoading={loading}
         restaurantName={selectedRestaurant?.name}
       >
         <CustomerCrmDashboard

@@ -64,8 +64,8 @@ describe("admin mobile responsiveness guards", () => {
     expect(auditLogs).not.toContain('className="min-w-52 font-medium"');
 
     expect(reviews).toContain("w-full min-w-0 flex-col gap-2 md:w-auto md:min-w-[260px]");
-    expect(launchPacks).toContain("h-8 w-full text-xs sm:w-[140px]");
-    expect(launchPacks).toContain("w-full sm:w-[160px]");
+    expect(launchPacks).toContain("Abonnements restaurateur");
+    expect(launchPacks).toContain("w-full sm:w-[220px]");
   });
 
   it("lets accounting invoice cards wrap values and action buttons on mobile", () => {

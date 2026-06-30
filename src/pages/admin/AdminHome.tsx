@@ -191,9 +191,9 @@ const ADMIN_TOOLS = [
     color: "text-violet-500",
   },
   {
-    title: "Packs de lancement",
-    description: "Gérer les packs achetés et le suivi des services.",
-    icon: Rocket,
+    title: "Abonnements restaurateur",
+    description: "Superviser les abonnements, accès dashboard et droits Premium.",
+    icon: Crown,
     href: "/admin/packs",
     feature: "admin-packs",
     color: "text-violet-500",

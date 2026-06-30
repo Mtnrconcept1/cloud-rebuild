@@ -14,7 +14,6 @@ import {
   Menu,
   MessageSquareText,
   Newspaper,
-  Rocket,
   Settings2,
   Shield,
   ShieldAlert,
@@ -90,7 +89,7 @@ const ADMIN_NAV_SECTIONS: AdminNavSection[] = [
       { to: "/admin/audit", label: "Audit et securite", icon: Shield, feature: "admin-audit" },
       { to: "/admin/platform", label: "Configuration plateforme", icon: Settings2, feature: "admin-platform-config" },
       { to: "/admin/ai-operations", label: "Operations IA", icon: Brain, feature: "ai_admin_monitoring" },
-      { to: "/admin/packs", label: "Packs de lancement", icon: Rocket, feature: "admin-packs" },
+      { to: "/admin/packs", label: "Abonnements restaurateur", icon: Crown, feature: "admin-packs" },
     ],
   },
 ];

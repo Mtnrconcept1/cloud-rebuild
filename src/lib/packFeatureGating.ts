@@ -6,7 +6,7 @@ export const ALL_GATABLE_FEATURES = [
   { key: "dashboard-advisor", label: "Assistant IA" },
   { key: "dashboard-restaurant", label: "Mon restaurant" },
   { key: "dashboard-menu", label: "Menu" },
-  { key: "dashboard-photos", label: "Photos" },
+  { key: "dashboard-photos", label: "Studio Marketing" },
   { key: "dashboard-commandes", label: "Commandes" },
   { key: "dashboard-reservations", label: "Reservations" },
   { key: "dashboard-performances", label: "Performances" },
@@ -24,7 +24,7 @@ export const ALL_GATABLE_FEATURES = [
   { key: "dashboard-service", label: "Pilotage de service" },
   { key: "dashboard-plan-salle", label: "Plan de salle" },
   { key: "dashboard-support", label: "Aide et support" },
-  { key: "dashboard-pack", label: "Pack de lancement" },
+  { key: "dashboard-pack", label: "Abonnement restaurateur" },
 ] as const;
 
 export type GatableFeatureKey = typeof ALL_GATABLE_FEATURES[number]["key"];
@@ -86,8 +86,10 @@ const ACTIVE_SUBSCRIPTION_STATUSES = new Set(["active", "trialing"]);
 
 const BASE_RESTAURANT_DASHBOARD_FEATURES: GatableFeatureKey[] = [
   "dashboard-overview",
+  "dashboard-advisor",
   "dashboard-restaurant",
   "dashboard-menu",
+  "dashboard-photos",
   "dashboard-commandes",
   "dashboard-reservations",
   "dashboard-service",
@@ -98,36 +100,20 @@ const BASE_RESTAURANT_DASHBOARD_FEATURES: GatableFeatureKey[] = [
   "dashboard-factures",
   "dashboard-support",
   "dashboard-pack",
+  "dashboard-campagne-overview",
+  "dashboard-campagnes",
+  "dashboard-performances",
+  "dashboard-comparaison",
+  "dashboard-reseaux-sociaux",
+  "dashboard-plan-salle",
 ];
 
 const SUBSCRIPTION_PLAN_TO_FEATURES: Record<string, GatableFeatureKey[]> = {
-  starter: [
-    ...BASE_RESTAURANT_DASHBOARD_FEATURES,
-    "dashboard-advisor",
-    "dashboard-photos",
-    "dashboard-campagne-overview",
-  ],
-  pro: [
-    ...BASE_RESTAURANT_DASHBOARD_FEATURES,
-    "dashboard-advisor",
-    "dashboard-photos",
-    "dashboard-campagne-overview",
-    "dashboard-campagnes",
-    "dashboard-performances",
-    "dashboard-reseaux-sociaux",
-    "dashboard-actualites",
-  ],
+  starter: BASE_RESTAURANT_DASHBOARD_FEATURES,
+  pro: BASE_RESTAURANT_DASHBOARD_FEATURES,
   premium: [
     ...BASE_RESTAURANT_DASHBOARD_FEATURES,
-    "dashboard-advisor",
-    "dashboard-photos",
-    "dashboard-campagne-overview",
-    "dashboard-campagnes",
-    "dashboard-performances",
-    "dashboard-comparaison",
-    "dashboard-factures",
-    "dashboard-plan-salle",
-    "dashboard-reseaux-sociaux",
+    "dashboard-crm",
     "dashboard-actualites",
   ],
   elite: ALL_GATABLE_FEATURES.map((feature) => feature.key),
@@ -201,6 +187,12 @@ export function isActiveRestaurantSubscription(subscription: RestaurantSubscript
 export function isEliteRestaurantSubscription(subscription: RestaurantSubscriptionFeatureAccess | null | undefined) {
   if (!isActiveRestaurantSubscription(subscription)) return false;
   return normalizePlanSlug(subscription?.slug || subscription?.plan) === "elite";
+}
+
+export function isPremiumOrEliteRestaurantSubscription(subscription: RestaurantSubscriptionFeatureAccess | null | undefined) {
+  if (!isActiveRestaurantSubscription(subscription)) return false;
+  const planSlug = normalizePlanSlug(subscription?.slug || subscription?.plan);
+  return planSlug === "premium" || planSlug === "elite";
 }
 
 export function computeSubscriptionEnabledFeatures(

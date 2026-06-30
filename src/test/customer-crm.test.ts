@@ -82,6 +82,7 @@ describe("customer CRM", () => {
   it("guards CRM access server-side and seeds feature flags", () => {
     const migration = readSource("supabase/migrations/20260616164131_customer_crm_profiles.sql");
     const accessMigration = readSource("supabase/migrations/20260617110000_customer_crm_elite_mfa_gate.sql");
+    const premiumAccessMigration = readSource("supabase/migrations/20260630183000_premium_elite_crm_access.sql");
     const app = readSource("src/App.tsx");
     const guard = readSource("src/components/crm/CrmAccessGuard.tsx");
     const dashboardCrm = readSource("src/pages/dashboard/DashboardCrm.tsx");
@@ -101,11 +102,15 @@ describe("customer CRM", () => {
     expect(accessMigration).toContain("Elite subscription required for CRM.");
     expect(accessMigration).toContain("CRM two-factor authentication required.");
     expect(accessMigration).toContain("REVOKE EXECUTE ON FUNCTION public.get_customer_crm_profiles_source");
+    expect(premiumAccessMigration).toContain("restaurant_has_elite_crm_subscription");
+    expect(premiumAccessMigration).toContain("IN ('premium', 'elite')");
 
     expect(app).toContain('path="/dashboard/crm"');
     expect(app).toContain('path="/admin/crm"');
     expect(dashboardCrm).toContain("CrmAccessGuard");
-    expect(dashboardCrm).toContain("isEliteRestaurantSubscription");
+    expect(dashboardCrm).toContain("isPremiumOrEliteRestaurantSubscription");
+    expect(dashboardCrm).toContain("requiresPremiumCrm");
+    expect(guard).toContain("Premium ou Élite");
     expect(adminCrm).toContain("CrmAccessGuard");
     expect(guard).toContain("getAuthenticatorAssuranceLevel");
     expect(guard).toContain("listFactors");

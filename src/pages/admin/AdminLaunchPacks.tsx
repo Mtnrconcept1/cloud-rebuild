@@ -1,253 +1,149 @@
-import { useState, useMemo, useEffect } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import {
-  Package,
-  Search,
-  ChevronDown,
-  ChevronUp,
-  Calendar,
-  User,
-  MessageSquare,
-  CheckCircle2,
-  Clock,
-  Loader2,
-  ArrowLeft,
-  Lock,
-  Unlock,
-  RotateCcw,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { toast } from "sonner";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  useAdminLaunchPacks,
-  useUpdateFulfillment,
-  useUpdatePackStatus,
-  useUpdateRestaurantFeatures,
-  type AdminRestaurantPack,
-} from "@/hooks/useAdminLaunchPacks";
+  ArrowLeft,
+  Calendar,
+  CheckCircle2,
+  Crown,
+  CreditCard,
+  Loader2,
+  Lock,
+  RotateCcw,
+  Search,
+  ShieldCheck,
+  Unlock,
+} from "lucide-react";
+import { toast } from "sonner";
+
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { ALL_GATABLE_FEATURES, computeDisabledFeatures } from "@/lib/packFeatureGating";
-import type { LaunchPackServiceSlug, PackService } from "@/lib/launchPacks";
 import {
-  getServiceIcon,
-  getStatusColor,
-  getStatusLabel,
-  getPurchaseStatusLabel,
-  computePackProgress,
-  formatServiceDetail,
-  type FulfillmentStatus,
-  type PackPurchaseStatus,
-  type ServiceFulfillment,
-} from "@/lib/launchPacks";
+  useAdminRestaurantSubscriptions,
+  useUpdateRestaurantFeatures,
+  type AdminRestaurantSubscription,
+} from "@/hooks/useAdminLaunchPacks";
+import {
+  ALL_GATABLE_FEATURES,
+  computeDisabledFeatures,
+  isPremiumOrEliteRestaurantSubscription,
+  type GatableFeatureKey,
+  type RestaurantSubscriptionFeatureAccess,
+} from "@/lib/packFeatureGating";
 
-const STATUS_FILTER_OPTIONS: { value: string; label: string }[] = [
-  { value: "all", label: "Tous les statuts" },
-  { value: "paid", label: "Paye" },
-  { value: "in_progress", label: "En cours" },
-  { value: "completed", label: "Termine" },
-  { value: "cancelled", label: "Annule" },
-];
+const STATUS_FILTER_OPTIONS = [
+  { value: "all", label: "Tous les abonnements" },
+  { value: "active", label: "Actifs / essai" },
+  { value: "premium_elite", label: "Premium & Élite" },
+  { value: "starter_pro", label: "Starter & Pro" },
+  { value: "past_due", label: "Paiement en retard" },
+  { value: "cancelled", label: "Annulés" },
+] as const;
 
-const FULFILLMENT_STATUSES: { value: FulfillmentStatus; label: string }[] = [
-  { value: "pending", label: "En attente" },
-  { value: "scheduled", label: "Planifie" },
-  { value: "in_progress", label: "En cours" },
-  { value: "completed", label: "Termine" },
-  { value: "cancelled", label: "Annule" },
-];
+const ACTIVE_SUBSCRIPTION_STATUSES = new Set(["active", "trialing"]);
 
-const PACK_STATUSES: { value: PackPurchaseStatus; label: string }[] = [
-  { value: "paid", label: "Paye" },
-  { value: "in_progress", label: "En cours" },
-  { value: "completed", label: "Termine" },
-  { value: "cancelled", label: "Annule" },
-];
-
-function PackStatusBadge({ status }: { status: PackPurchaseStatus }) {
-  const colors: Record<PackPurchaseStatus, string> = {
-    pending_payment: "bg-gray-100 text-gray-700",
-    paid: "bg-blue-100 text-blue-700",
-    in_progress: "bg-amber-100 text-amber-700",
-    completed: "bg-green-100 text-green-700",
-    cancelled: "bg-red-100 text-red-700",
+function getSubscriptionAccess(subscription: AdminRestaurantSubscription): RestaurantSubscriptionFeatureAccess {
+  return {
+    plan: subscription.plan,
+    slug: subscription.plan_record?.slug || subscription.plan,
+    status: subscription.status,
+    current_period_end: subscription.current_period_end,
+    features: subscription.plan_record?.features || [],
   };
-
-  return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colors[status]}`}>
-      {getPurchaseStatusLabel(status)}
-    </span>
-  );
 }
 
-function ProgressBar({ fulfillments }: { fulfillments: ServiceFulfillment[] }) {
-  const progress = computePackProgress(fulfillments);
-  const completed = fulfillments.filter((f) => f.status === "completed").length;
-
-  return (
-    <div className="space-y-1">
-      <div className="flex items-center justify-between text-xs text-muted-foreground">
-        <span>{completed}/{fulfillments.length} services</span>
-        <span>{progress}%</span>
-      </div>
-      <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
-        <div
-          className="h-full bg-primary rounded-full transition-all duration-500"
-          style={{ width: `${progress}%` }}
-        />
-      </div>
-    </div>
-  );
+function getPlanSlug(subscription: AdminRestaurantSubscription) {
+  return String(subscription.plan_record?.slug || subscription.plan || "").toLowerCase();
 }
 
-function FulfillmentEditor({
-  fulfillment,
-  service,
-  onUpdate,
-  saving,
-}: {
-  fulfillment: ServiceFulfillment;
-  service?: PackService;
-  onUpdate: (id: string, patch: Partial<ServiceFulfillment>) => void;
-  saving: string | null;
-}) {
-  const Icon = getServiceIcon(fulfillment.service_slug);
-  const detail = service ? formatServiceDetail(service) : null;
-  const isSaving = saving === fulfillment.id;
-  const [editNotes, setEditNotes] = useState(fulfillment.notes || "");
-  const [editScheduled, setEditScheduled] = useState(
-    fulfillment.scheduled_at ? fulfillment.scheduled_at.slice(0, 10) : ""
-  );
+function isActiveSubscription(subscription: AdminRestaurantSubscription) {
+  return ACTIVE_SUBSCRIPTION_STATUSES.has(String(subscription.status || "").toLowerCase());
+}
 
-  function handleStatusChange(newStatus: string) {
-    onUpdate(fulfillment.id, { status: newStatus as FulfillmentStatus });
+function formatDate(value: string | null | undefined) {
+  if (!value) return "Non défini";
+  return new Date(value).toLocaleDateString("fr-CH", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
+function formatPlanPrice(subscription: AdminRestaurantSubscription) {
+  const price = Number(subscription.plan_record?.price_monthly_chf || 0);
+  if (!Number.isFinite(price) || price <= 0) return "Prix non défini";
+  return `${price.toLocaleString("fr-CH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} CHF / mois`;
+}
+
+function getStatusLabel(status: string | null | undefined) {
+  switch (status) {
+    case "trialing":
+      return "Essai actif";
+    case "active":
+      return "Actif";
+    case "past_due":
+      return "Paiement en retard";
+    case "paused":
+      return "En pause";
+    case "cancelled":
+    case "canceled":
+      return "Annulé";
+    default:
+      return "Non configuré";
   }
-
-  function handleSaveDetails() {
-    onUpdate(fulfillment.id, {
-      notes: editNotes || null,
-      scheduled_at: editScheduled ? new Date(editScheduled).toISOString() : null,
-    } as Partial<ServiceFulfillment>);
-  }
-
-  return (
-    <div className="border rounded-lg p-4 space-y-3">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex min-w-0 items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-            <Icon className="h-4 w-4 text-primary" />
-          </div>
-          <div className="min-w-0">
-            <p className="font-medium text-sm">{fulfillment.service_label}</p>
-            {detail && (
-              <p className="text-xs text-muted-foreground">{detail}</p>
-            )}
-            {fulfillment.completed_at && (
-              <p className="text-xs text-muted-foreground">
-                Termine le {new Date(fulfillment.completed_at).toLocaleDateString("fr-CH")}
-              </p>
-            )}
-          </div>
-        </div>
-
-        <div className="flex w-full min-w-0 items-center gap-2 sm:w-auto">
-          {isSaving && <Loader2 className="h-3 w-3 animate-spin" />}
-          <Select value={fulfillment.status} onValueChange={handleStatusChange}>
-            <SelectTrigger className="h-8 w-full text-xs sm:w-[140px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {FULFILLMENT_STATUSES.map((s) => (
-                <SelectItem key={s.value} value={s.value}>
-                  <span className={`inline-flex items-center gap-1.5`}>
-                    <span className={`w-2 h-2 rounded-full ${getStatusColor(s.value).split(" ")[0]}`} />
-                    {s.label}
-                  </span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div className="space-y-1.5">
-          <Label className="text-xs flex items-center gap-1">
-            <Calendar className="h-3 w-3" /> Date planifiée
-          </Label>
-          <Input
-            type="date"
-            value={editScheduled}
-            onChange={(e) => setEditScheduled(e.target.value)}
-            className="h-8 text-xs"
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label className="text-xs flex items-center gap-1">
-            <MessageSquare className="h-3 w-3" /> Notes
-          </Label>
-          <Textarea
-            value={editNotes}
-            onChange={(e) => setEditNotes(e.target.value)}
-            placeholder="Notes internes..."
-            className="text-xs min-h-[32px] h-8 resize-none"
-          />
-        </div>
-      </div>
-
-      {(editNotes !== (fulfillment.notes || "") ||
-        editScheduled !== (fulfillment.scheduled_at ? fulfillment.scheduled_at.slice(0, 10) : "")) && (
-        <div className="flex justify-end">
-          <Button size="sm" variant="outline" onClick={handleSaveDetails} disabled={isSaving}>
-            {isSaving ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
-            Enregistrer
-          </Button>
-        </div>
-      )}
-    </div>
-  );
 }
 
-function FeatureGatingEditor({ pack }: { pack: AdminRestaurantPack }) {
+function getStatusClass(status: string | null | undefined) {
+  switch (status) {
+    case "trialing":
+    case "active":
+      return "bg-emerald-100 text-emerald-800";
+    case "past_due":
+      return "bg-amber-100 text-amber-800";
+    case "paused":
+      return "bg-slate-100 text-slate-700";
+    case "cancelled":
+    case "canceled":
+      return "bg-red-100 text-red-800";
+    default:
+      return "bg-muted text-muted-foreground";
+  }
+}
+
+function FeatureGatingEditor({ subscription }: { subscription: AdminRestaurantSubscription }) {
   const updateFeatures = useUpdateRestaurantFeatures();
   const currentDisabled = new Set<string>(
-    Array.isArray(pack.restaurants?.disabled_dashboard_features)
-      ? pack.restaurants.disabled_dashboard_features
-      : []
+    Array.isArray(subscription.restaurants?.disabled_dashboard_features)
+      ? subscription.restaurants.disabled_dashboard_features
+      : [],
   );
   const [draft, setDraft] = useState<Set<string>>(currentDisabled);
   const [saving, setSaving] = useState(false);
+  const subscriptionDefault = new Set<GatableFeatureKey>(
+    computeDisabledFeatures([], { subscription: getSubscriptionAccess(subscription) }),
+  );
 
-  // Sync draft when pack data changes
   useEffect(() => {
     setDraft(new Set(
-      Array.isArray(pack.restaurants?.disabled_dashboard_features)
-        ? pack.restaurants.disabled_dashboard_features
-        : []
+      Array.isArray(subscription.restaurants?.disabled_dashboard_features)
+        ? subscription.restaurants.disabled_dashboard_features
+        : [],
     ));
-  }, [pack.restaurants?.disabled_dashboard_features]);
-
-  const packServices = (pack.launch_packs.services as PackService[]).map((s) => s.service);
-  const packDefault = new Set(computeDisabledFeatures(packServices as LaunchPackServiceSlug[]));
+  }, [subscription.restaurants?.disabled_dashboard_features]);
 
   const hasChanges = (() => {
     if (draft.size !== currentDisabled.size) return true;
-    for (const f of draft) if (!currentDisabled.has(f)) return true;
+    for (const feature of draft) if (!currentDisabled.has(feature)) return true;
     return false;
   })();
+
+  function resetToSubscriptionDefaults() {
+    setDraft(new Set(subscriptionDefault));
+  }
 
   function toggle(key: string) {
     setDraft((prev) => {
@@ -258,15 +154,12 @@ function FeatureGatingEditor({ pack }: { pack: AdminRestaurantPack }) {
     });
   }
 
-  function resetToPackDefaults() {
-    setDraft(new Set(packDefault));
-  }
-
   async function handleSave() {
+    if (!subscription.restaurants?.id) return;
     setSaving(true);
     try {
       await updateFeatures.mutateAsync({
-        restaurantId: pack.restaurant_id,
+        restaurantId: subscription.restaurants.id,
         disabledFeatures: Array.from(draft),
       });
       toast.success("Accès dashboard mis à jour");
@@ -280,53 +173,52 @@ function FeatureGatingEditor({ pack }: { pack: AdminRestaurantPack }) {
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-base">Accès dashboard</CardTitle>
-          <div className="flex items-center gap-2">
-            <Button size="sm" variant="ghost" onClick={resetToPackDefaults} title="Réinitialiser selon le pack">
-              <RotateCcw className="h-3 w-3 mr-1" /> Defaut pack
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <CardTitle className="text-base">Accès dashboard</CardTitle>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Tous les abonnements ouvrent les services restaurateur. CRM clients et Actualités restent réservés aux abonnements Premium et Élite.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button size="sm" variant="ghost" onClick={resetToSubscriptionDefaults} title="Réinitialiser selon l'abonnement">
+              <RotateCcw className="mr-1 h-3 w-3" /> Défaut abonnement
             </Button>
-            {hasChanges && (
-              <Button size="sm" onClick={handleSave} disabled={saving}>
-                {saving ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
+            {hasChanges ? (
+              <Button size="sm" onClick={handleSave} disabled={saving || !subscription.restaurants?.id}>
+                {saving ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : null}
                 Enregistrer
               </Button>
-            )}
+            ) : null}
           </div>
         </div>
-        <p className="text-xs text-muted-foreground">
-          Activez ou désactivez les onglets du dashboard pour ce restaurant. Les onglets désactivés sont grisés et inaccessibles.
-        </p>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {ALL_GATABLE_FEATURES.map((feature) => {
             const isEnabled = !draft.has(feature.key);
-            const isPackDefault = !packDefault.has(feature.key);
-            const isOverridden = isEnabled !== isPackDefault;
+            const isSubscriptionDefault = !subscriptionDefault.has(feature.key);
+            const isReserved = feature.key === "dashboard-crm" || feature.key === "dashboard-actualites";
+            const isOverridden = isEnabled !== isSubscriptionDefault;
 
             return (
               <div
                 key={feature.key}
-                className="flex items-center justify-between p-2 rounded-lg border hover:bg-muted/30"
+                className="flex items-center justify-between rounded-lg border p-2 hover:bg-muted/30"
               >
-                <div className="flex items-center gap-2 min-w-0">
+                <div className="flex min-w-0 items-center gap-2">
                   {isEnabled ? (
-                    <Unlock className="h-3 w-3 text-green-500 flex-shrink-0" />
+                    <Unlock className="h-3 w-3 flex-shrink-0 text-green-500" />
                   ) : (
-                    <Lock className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                    <Lock className="h-3 w-3 flex-shrink-0 text-muted-foreground" />
                   )}
-                  <span className={`text-sm truncate ${isEnabled ? "" : "text-muted-foreground"}`}>
+                  <span className={`truncate text-sm ${isEnabled ? "" : "text-muted-foreground"}`}>
                     {feature.label}
                   </span>
-                  {isOverridden && (
-                    <Badge variant="outline" className="text-[9px] px-1 py-0">override</Badge>
-                  )}
+                  {isReserved ? <Badge variant="outline" className="px-1 py-0 text-[9px]">Premium+</Badge> : null}
+                  {isOverridden ? <Badge variant="outline" className="px-1 py-0 text-[9px]">override</Badge> : null}
                 </div>
-                <Switch
-                  checked={isEnabled}
-                  onCheckedChange={() => toggle(feature.key)}
-                />
+                <Switch checked={isEnabled} onCheckedChange={() => toggle(feature.key)} />
               </div>
             );
           })}
@@ -336,196 +228,130 @@ function FeatureGatingEditor({ pack }: { pack: AdminRestaurantPack }) {
   );
 }
 
-function PackDetailView({
-  pack,
+function SubscriptionDetailView({
+  subscription,
   onBack,
 }: {
-  pack: AdminRestaurantPack;
+  subscription: AdminRestaurantSubscription;
   onBack: () => void;
 }) {
-  const updateFulfillment = useUpdateFulfillment();
-  const updatePackStatus = useUpdatePackStatus();
-  const [savingId, setSavingId] = useState<string | null>(null);
-
-  const fulfillments = pack.launch_pack_service_fulfillments || [];
-  const progress = computePackProgress(fulfillments);
-
-  async function handleFulfillmentUpdate(id: string, patch: Partial<ServiceFulfillment>) {
-    setSavingId(id);
-    try {
-      await updateFulfillment.mutateAsync({ id, ...patch } as Parameters<typeof updateFulfillment.mutateAsync>[0]);
-      toast.success("Service mis à jour");
-    } catch (e) {
-      toast.error("Erreur lors de la mise à jour");
-    } finally {
-      setSavingId(null);
-    }
-  }
-
-  async function handlePackStatusChange(newStatus: string) {
-    try {
-      await updatePackStatus.mutateAsync({
-        id: pack.id,
-        status: newStatus as PackPurchaseStatus,
-      });
-      toast.success("Statut du pack mis à jour");
-    } catch (e) {
-      toast.error("Erreur lors de la mise à jour du statut");
-    }
-  }
-
-  // Auto-detect if pack should move to in_progress or completed
-  const allCompleted = fulfillments.length > 0 && fulfillments.every((f) => f.status === "completed");
-  const anyStarted = fulfillments.some((f) => f.status !== "pending" && f.status !== "cancelled");
-  const suggestedStatus: PackPurchaseStatus | null =
-    allCompleted && pack.status !== "completed"
-      ? "completed"
-      : anyStarted && pack.status === "paid"
-      ? "in_progress"
-      : null;
+  const hasPremiumAccess = isPremiumOrEliteRestaurantSubscription(getSubscriptionAccess(subscription));
+  const stripeReference = subscription.stripe_subscription_id || subscription.stripe_checkout_session_id || "Non lié";
+  const planName = subscription.plan_record?.name || subscription.plan || "Abonnement restaurateur";
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="sm" onClick={onBack}>
-          <ArrowLeft className="h-4 w-4 mr-1" /> Retour
-        </Button>
-      </div>
+      <Button variant="ghost" size="sm" onClick={onBack}>
+        <ArrowLeft className="mr-1 h-4 w-4" /> Retour
+      </Button>
 
-      {/* Header */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between flex-wrap gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <CardTitle className="text-lg">
-                {pack.restaurants?.name || "Restaurant"}
-              </CardTitle>
-              <p className="text-sm text-muted-foreground mt-1">
-                {pack.launch_packs.name} — {pack.launch_packs.price_chf.toLocaleString("fr-CH")} CHF
-              </p>
-              {pack.paid_at && (
-                <p className="text-xs text-muted-foreground">
-                  Paye le {new Date(pack.paid_at).toLocaleDateString("fr-CH", { day: "numeric", month: "long", year: "numeric" })}
-                </p>
-              )}
+              <CardTitle className="text-xl">{subscription.restaurants?.name || "Restaurant"}</CardTitle>
+              <p className="mt-1 text-sm text-muted-foreground">{planName} - {formatPlanPrice(subscription)}</p>
             </div>
-            <div className="flex w-full min-w-0 items-center gap-3 sm:w-auto">
-              <Select value={pack.status} onValueChange={handlePackStatusChange}>
-                <SelectTrigger className="w-full sm:w-[160px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {PACK_STATUSES.map((s) => (
-                    <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <Badge className={getStatusClass(subscription.status)}>{getStatusLabel(subscription.status)}</Badge>
           </div>
         </CardHeader>
-        <CardContent>
-          <ProgressBar fulfillments={fulfillments} />
-
-          {suggestedStatus && (
-            <div className="mt-4 p-3 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-between">
-              <p className="text-sm text-blue-800">
-                {suggestedStatus === "completed"
-                  ? "Tous les services sont terminés. Marquer le pack comme terminé ?"
-                  : "Des services ont demarre. Passer le pack en cours ?"}
-              </p>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => handlePackStatusChange(suggestedStatus)}
-              >
-                {suggestedStatus === "completed" ? (
-                  <><CheckCircle2 className="h-3 w-3 mr-1" /> Terminer</>
-                ) : (
-                  <><Clock className="h-3 w-3 mr-1" /> En cours</>
-                )}
-              </Button>
-            </div>
-          )}
+        <CardContent className="grid gap-3 text-sm md:grid-cols-2">
+          <div className="rounded-xl border bg-muted/20 p-3">
+            <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Période</p>
+            <p className="mt-1 font-medium">
+              {formatDate(subscription.current_period_start)} - {formatDate(subscription.current_period_end)}
+            </p>
+          </div>
+          <div className="rounded-xl border bg-muted/20 p-3">
+            <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Stripe</p>
+            <p className="mt-1 break-all font-mono text-xs">{stripeReference}</p>
+          </div>
+          <div className="rounded-xl border bg-muted/20 p-3">
+            <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">CRM & Actualités</p>
+            <p className="mt-1 font-medium">
+              {hasPremiumAccess ? "Inclus dans cet abonnement" : "Réservé à Premium et Élite"}
+            </p>
+          </div>
+          <div className="rounded-xl border bg-muted/20 p-3">
+            <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Renouvellement</p>
+            <p className="mt-1 font-medium">
+              {subscription.cancel_at_period_end ? "Résiliation en fin de période" : "Renouvellement actif"}
+            </p>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Fulfillments */}
-      <div className="space-y-3">
-        <h2 className="text-base font-semibold">Services ({fulfillments.length})</h2>
-        {fulfillments.map((f) => (
-          <FulfillmentEditor
-            key={f.id}
-            fulfillment={f}
-            service={(pack.launch_packs.services as PackService[]).find(
-              (service) => service.service === f.service_slug,
-            )}
-            onUpdate={handleFulfillmentUpdate}
-            saving={savingId}
-          />
-        ))}
-      </div>
-
-      {/* Feature gating */}
-      <FeatureGatingEditor pack={pack} />
+      <FeatureGatingEditor subscription={subscription} />
     </div>
   );
 }
 
 export default function AdminLaunchPacks() {
-  const { data: packs, isLoading } = useAdminLaunchPacks();
+  const { data: subscriptions, isLoading } = useAdminRestaurantSubscriptions();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [selectedPackId, setSelectedPackId] = useState<string | null>(null);
+  const [selectedSubscriptionId, setSelectedSubscriptionId] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
-    if (!packs) return [];
-    return packs.filter((p) => {
+    if (!subscriptions) return [];
+    const normalizedSearch = search.trim().toLowerCase();
+    return subscriptions.filter((subscription) => {
+      const planSlug = getPlanSlug(subscription);
+      const hasPremiumAccess = isPremiumOrEliteRestaurantSubscription(getSubscriptionAccess(subscription));
       const matchesSearch =
-        !search ||
-        p.restaurants?.name?.toLowerCase().includes(search.toLowerCase()) ||
-        p.launch_packs?.name?.toLowerCase().includes(search.toLowerCase());
-      const matchesStatus = statusFilter === "all" || p.status === statusFilter;
+        !normalizedSearch ||
+        subscription.restaurants?.name?.toLowerCase().includes(normalizedSearch) ||
+        subscription.plan_record?.name?.toLowerCase().includes(normalizedSearch) ||
+        planSlug.includes(normalizedSearch);
+
+      const matchesStatus =
+        statusFilter === "all" ||
+        (statusFilter === "active" && isActiveSubscription(subscription)) ||
+        (statusFilter === "premium_elite" && hasPremiumAccess) ||
+        (statusFilter === "starter_pro" && (planSlug === "starter" || planSlug === "pro")) ||
+        subscription.status === statusFilter;
+
       return matchesSearch && matchesStatus;
     });
-  }, [packs, search, statusFilter]);
+  }, [search, statusFilter, subscriptions]);
 
-  const selectedPack = packs?.find((p) => p.id === selectedPackId) || null;
+  const selectedSubscription = subscriptions?.find((subscription) => subscription.id === selectedSubscriptionId) || null;
 
-  // Stats
   const stats = useMemo(() => {
-    if (!packs) return { total: 0, paid: 0, in_progress: 0, completed: 0 };
+    const rows = subscriptions || [];
     return {
-      total: packs.length,
-      paid: packs.filter((p) => p.status === "paid").length,
-      in_progress: packs.filter((p) => p.status === "in_progress").length,
-      completed: packs.filter((p) => p.status === "completed").length,
+      total: rows.length,
+      active: rows.filter(isActiveSubscription).length,
+      premiumElite: rows.filter((subscription) => isPremiumOrEliteRestaurantSubscription(getSubscriptionAccess(subscription))).length,
+      cancelAtPeriodEnd: rows.filter((subscription) => subscription.cancel_at_period_end).length,
     };
-  }, [packs]);
+  }, [subscriptions]);
 
-  if (selectedPack) {
+  if (selectedSubscription) {
     return (
-      <div className="container max-w-4xl mx-auto py-6 px-4">
-        <PackDetailView
-          pack={selectedPack}
-          onBack={() => setSelectedPackId(null)}
+      <div className="container mx-auto max-w-4xl px-4 py-6">
+        <SubscriptionDetailView
+          subscription={selectedSubscription}
+          onBack={() => setSelectedSubscriptionId(null)}
         />
       </div>
     );
   }
 
   return (
-    <div className="container max-w-6xl mx-auto py-6 px-4 space-y-6">
+    <div className="container mx-auto max-w-6xl space-y-6 px-4 py-6">
       <DashboardPageHero
         badge="Services admin"
-        title="Packs de lancement"
-        description="Suivez les packs achetes, les activations de fonctionnalités et l'avancement des services promis aux restaurants."
-        icon={Package}
+        title="Abonnements restaurateur"
+        description="Supervisez les abonnements actifs, les accès dashboard et les droits Premium réservés au CRM clients et au fil d'actualité."
+        icon={Crown}
         tone="violet"
-        visualLabel="Packs"
+        visualLabel="Abonnements"
         stats={[
-          { label: "Total", value: stats.total, icon: Package },
-          { label: "En cours", value: stats.in_progress, icon: Clock },
-          { label: "Completes", value: stats.completed, icon: CheckCircle2 },
+          { label: "Total", value: stats.total, icon: CreditCard },
+          { label: "Actifs", value: stats.active, icon: CheckCircle2 },
+          { label: "Premium+", value: stats.premiumElite, icon: ShieldCheck },
+          { label: "Fin de période", value: stats.cancelAtPeriodEnd, icon: Calendar },
         ]}
         actions={(
           <Button asChild variant="outline">
@@ -537,123 +363,112 @@ export default function AdminLaunchPacks() {
         )}
       />
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <Card className="border-orange-200 bg-orange-50/60">
+        <CardContent className="p-4 text-sm text-orange-900">
+          Les packs de lancement ne sont plus commercialisés. Les restaurateurs sont pilotés par abonnement : tous les services sont inclus, sauf CRM clients et accès au fil d'actualité, réservés aux offres Premium et Élite.
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <Card>
           <CardContent className="py-4 text-center">
             <p className="text-2xl font-bold">{stats.total}</p>
-            <p className="text-xs text-muted-foreground">Total</p>
+            <p className="text-xs text-muted-foreground">Abonnements</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="py-4 text-center">
-            <p className="text-2xl font-bold text-blue-600">{stats.paid}</p>
-            <p className="text-xs text-muted-foreground">Payes</p>
+            <p className="text-2xl font-bold text-emerald-600">{stats.active}</p>
+            <p className="text-xs text-muted-foreground">Actifs</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="py-4 text-center">
-            <p className="text-2xl font-bold text-amber-600">{stats.in_progress}</p>
-            <p className="text-xs text-muted-foreground">En cours</p>
+            <p className="text-2xl font-bold text-violet-600">{stats.premiumElite}</p>
+            <p className="text-xs text-muted-foreground">Premium / Élite</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="py-4 text-center">
-            <p className="text-2xl font-bold text-green-600">{stats.completed}</p>
-            <p className="text-xs text-muted-foreground">Termines</p>
+            <p className="text-2xl font-bold text-amber-600">{stats.cancelAtPeriodEnd}</p>
+            <p className="text-xs text-muted-foreground">Fin de période</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Rechercher un restaurant ou un pack..."
+            placeholder="Rechercher un restaurant ou un abonnement..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(event) => setSearch(event.target.value)}
             className="pl-9"
           />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full sm:w-[180px]">
+          <SelectTrigger className="w-full sm:w-[220px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {STATUS_FILTER_OPTIONS.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+            {STATUS_FILTER_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
 
-      {/* Pack list */}
       {isLoading ? (
         <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+          <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary" />
         </div>
       ) : filtered.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
-            <Package className="h-10 w-10 text-muted-foreground mb-3" />
-            <p className="text-muted-foreground text-sm">
-              {packs && packs.length > 0
-                ? "Aucun pack ne correspond aux filtres."
-                : "Aucun pack de lancement achete pour le moment."}
+            <Crown className="mb-3 h-10 w-10 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">
+              {subscriptions && subscriptions.length > 0
+                ? "Aucun abonnement ne correspond aux filtres."
+                : "Aucun abonnement restaurateur pour le moment."}
             </p>
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-3">
-          {filtered.map((pack) => {
-            const fulfillments = pack.launch_pack_service_fulfillments || [];
-            const progress = computePackProgress(fulfillments);
-            const completed = fulfillments.filter((f) => f.status === "completed").length;
+          {filtered.map((subscription) => {
+            const planName = subscription.plan_record?.name || subscription.plan || "Abonnement";
+            const hasPremiumAccess = isPremiumOrEliteRestaurantSubscription(getSubscriptionAccess(subscription));
 
             return (
               <Card
-                key={pack.id}
-                className="cursor-pointer hover:shadow-md transition-shadow"
-                onClick={() => setSelectedPackId(pack.id)}
+                key={subscription.id}
+                className="cursor-pointer transition-shadow hover:shadow-md"
+                onClick={() => setSelectedSubscriptionId(subscription.id)}
               >
                 <CardContent className="py-4">
-                  <div className="flex items-center justify-between flex-wrap gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="font-semibold text-sm">
-                          {pack.restaurants?.name || "Restaurant"}
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="text-sm font-semibold">
+                          {subscription.restaurants?.name || "Restaurant"}
                         </h3>
-                        <PackStatusBadge status={pack.status} />
-                        <Badge variant="outline" className="text-xs">
-                          {pack.launch_packs.name}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                        <span>{pack.launch_packs.price_chf.toLocaleString("fr-CH")} CHF</span>
-                        {pack.paid_at && (
-                          <span>
-                            Paye le {new Date(pack.paid_at).toLocaleDateString("fr-CH")}
-                          </span>
+                        <Badge className={getStatusClass(subscription.status)}>{getStatusLabel(subscription.status)}</Badge>
+                        <Badge variant="outline" className="text-xs">{planName}</Badge>
+                        {hasPremiumAccess ? (
+                          <Badge className="bg-violet-100 text-violet-800">CRM + Actualités</Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-xs">CRM / Actualités verrouillés</Badge>
                         )}
-                        <span>
-                          {completed}/{fulfillments.length} services terminés
-                        </span>
+                      </div>
+                      <div className="mt-2 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+                        <span>{formatPlanPrice(subscription)}</span>
+                        <span>Fin le {formatDate(subscription.current_period_end)}</span>
+                        <span>{subscription.cancel_at_period_end ? "Résiliation programmée" : "Renouvellement actif"}</span>
                       </div>
                     </div>
-
-                    <div className="flex items-center gap-4 w-full sm:w-48">
-                      <div className="flex-1">
-                        <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-primary rounded-full transition-all"
-                            style={{ width: `${progress}%` }}
-                          />
-                        </div>
-                      </div>
-                      <span className="text-xs font-medium w-8 text-right">{progress}%</span>
-                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                    </div>
+                    <Button variant="outline" size="sm" className="w-full sm:w-auto">
+                      Gérer les accès
+                    </Button>
                   </div>
                 </CardContent>
               </Card>

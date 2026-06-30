@@ -44,4 +44,21 @@ describe("admin Launch Pack governance", () => {
     expect(hook).not.toContain('.from("restaurants").update({ disabled_dashboard_features');
     expect(hook).not.toContain('.from("restaurant_launch_packs").update');
   });
+
+  it("uses the admin packs route as a restaurant subscription console", () => {
+    const hook = read("src/hooks/useAdminLaunchPacks.ts");
+    const page = read("src/pages/admin/AdminLaunchPacks.tsx");
+    const adminHome = read("src/pages/admin/AdminHome.tsx");
+    const adminMobileNavigation = read("src/components/admin/AdminMobileNavigation.tsx");
+
+    expect(hook).toContain("useAdminRestaurantSubscriptions");
+    expect(hook).toContain('"restaurant_ai_subscriptions"');
+    expect(hook).toContain('"restaurant_subscription_plans"');
+    expect(page).toContain("Abonnements restaurateur");
+    expect(page).toContain("Les packs de lancement ne sont plus commercialisés");
+    expect(page).toContain("CRM clients et Actualités restent réservés aux abonnements Premium et Élite");
+    expect(page).toContain("computeDisabledFeatures([], { subscription: getSubscriptionAccess(subscription) })");
+    expect(adminHome).toContain('title: "Abonnements restaurateur"');
+    expect(adminMobileNavigation).toContain('label: "Abonnements restaurateur"');
+  });
 });

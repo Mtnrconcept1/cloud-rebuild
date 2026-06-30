@@ -623,8 +623,8 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
   },
   {
     name: "dashboard-pack",
-    label: "Dashboard: Pack de lancement",
-    description: "Expose la page de gestion du pack de lancement restaurant.",
+    label: "Dashboard: Abonnement restaurateur",
+    description: "Expose la page de gestion de l'abonnement restaurateur.",
     defaultEnabled: true,
     group: "restaurant_dashboard",
     dependsOn: ["dashboard-restaurateur"],
@@ -810,8 +810,8 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
   },
   {
     name: "admin-packs",
-    label: "Admin: Packs de lancement",
-    description: "Expose la gestion admin des packs de lancement restaurateurs et le suivi des services.",
+    label: "Admin: Abonnements restaurateur",
+    description: "Expose la supervision admin des abonnements restaurateur et des droits dashboard.",
     defaultEnabled: true,
     group: "admin_tools",
     routeTargets: ["/admin/packs"],
