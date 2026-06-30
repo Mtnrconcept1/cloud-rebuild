@@ -9,6 +9,7 @@ import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import RestaurantCancellationDialog from "@/components/RestaurantCancellationDialog";
 import SortControls from "@/components/list/SortControls";
 import OperationViewToggle, { type OperationViewMode } from "@/components/operations/OperationViewToggle";
+import DayNotificationBadge from "@/components/notifications/DayNotificationBadge";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
 import { useToast } from "@/hooks/use-toast";
+import { useNotificationCenter } from "@/hooks/useNotificationCenter";
 import { dispatchQueuedNotifications } from "@/lib/notificationDispatch";
 import {
   cancelReservationByRestaurant,
@@ -30,6 +32,7 @@ import {
 import { getReservationStatusLockMessage } from "@/lib/statusLocks";
 import { AlertTriangle, Ban, CalendarDays, Check, CreditCard, Dot, MoonStar, Search, ShieldAlert, SunMedium, UserCheck, Utensils, X } from "lucide-react";
 import { getServicePeriodFromMetadata, getServicePeriodLabel } from "@/lib/serviceSettings";
+import { countUnreadOperationNotificationsByDate } from "@/lib/dashboardNotificationBadges";
 import { sortByColumn, type SortColumn, type SortDirection } from "@/lib/listSorting";
 import {
   DASHBOARD_TIME_RANGE_OPTIONS,
@@ -198,6 +201,7 @@ export default function DashboardReservations() {
   const [cancelTarget, setCancelTarget] = useState<ReservationWithProfile | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<OperationViewMode>("details");
+  const { unreadNotifications } = useNotificationCenter(100, { realtime: true });
 
   useEffect(() => {
     const reservationTarget = searchParams.get("reservation");
@@ -391,6 +395,16 @@ export default function DashboardReservations() {
     });
   }, [referenceDate, reservations, searchTerm, serviceFilter, statusFilter, timeRange]);
 
+  const unreadReservationNotificationsByDate = useMemo(() => (
+    countUnreadOperationNotificationsByDate({
+      notifications: unreadNotifications,
+      items: filteredReservations,
+      kind: "reservation",
+      getItemId: (reservation) => reservation.id,
+      getDateKey: (reservation) => reservation.date,
+    })
+  ), [filteredReservations, unreadNotifications]);
+
   const groupedReservations = useMemo(() => {
     const sorted = sortByColumn(filteredReservations, DASHBOARD_RESERVATION_SORT_COLUMNS, {
       key: sortKey,
@@ -420,9 +434,10 @@ export default function DashboardReservations() {
         groups,
         reservationCount: groups.reduce((sum, group) => sum + group.reservationCount, 0),
         totalGuests: groups.reduce((sum, group) => sum + group.totalGuests, 0),
+        unreadNotificationCount: unreadReservationNotificationsByDate.get(dateKey) || 0,
       };
     });
-  }, [filteredReservations, sortDirection, sortKey]);
+  }, [filteredReservations, sortDirection, sortKey, unreadReservationNotificationsByDate]);
 
   const serviceBreakdown = useMemo(() => {
     return filteredReservations.reduce(
@@ -595,7 +610,10 @@ export default function DashboardReservations() {
                   <section key={dateGroup.dateKey} className="rounded-2xl border bg-card/70 p-3 shadow-sm sm:p-4">
                     <div className="mb-3 flex flex-col gap-1 border-b pb-3 sm:flex-row sm:items-end sm:justify-between">
                       <div>
-                        <p className="text-sm font-bold capitalize">{dateGroup.dateLabel}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-bold capitalize">{dateGroup.dateLabel}</p>
+                          <DayNotificationBadge count={dateGroup.unreadNotificationCount} label="nouvelle réservation" />
+                        </div>
                         <p className="text-xs text-muted-foreground">
                           {dateGroup.reservationCount} réservation(s) - {dateGroup.totalGuests} couverts
                         </p>
@@ -733,7 +751,10 @@ export default function DashboardReservations() {
                     <AccordionTrigger className="px-4 py-3 text-left hover:no-underline">
                       <div className="flex flex-1 flex-wrap items-center justify-between gap-2 pr-4">
                         <div>
-                          <p className="text-sm font-semibold capitalize">{dateGroup.dateLabel}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-semibold capitalize">{dateGroup.dateLabel}</p>
+                            <DayNotificationBadge count={dateGroup.unreadNotificationCount} label="nouvelle réservation" />
+                          </div>
                           <p className="text-xs text-muted-foreground">
                             {dateGroup.reservationCount} réservation(s) - {dateGroup.totalGuests} couverts
                           </p>

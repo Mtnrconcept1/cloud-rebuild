@@ -4,6 +4,7 @@ import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const rpcMock = vi.hoisted(() => vi.fn());
+const unreadNotificationsMock = vi.hoisted(() => [] as any[]);
 
 vi.mock("@/integrations/supabase/client", () => ({
   getSupabase: () => ({
@@ -41,6 +42,12 @@ vi.mock("@/components/RestaurantCancellationDialog", () => ({
 vi.mock("@/hooks/use-toast", () => ({
   useToast: () => ({
     toast: vi.fn(),
+  }),
+}));
+
+vi.mock("@/hooks/useNotificationCenter", () => ({
+  useNotificationCenter: () => ({
+    unreadNotifications: unreadNotificationsMock,
   }),
 }));
 
@@ -86,6 +93,14 @@ describe("DashboardCommandes day accordion", () => {
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     vi.setSystemTime(new Date("2026-05-27T12:00:00"));
+    unreadNotificationsMock.length = 0;
+    unreadNotificationsMock.push({
+      id: "notif-order-1",
+      title: "Nouvelle commande",
+      body: "Commande a traiter",
+      data: { order_id: "order-1" },
+      read_at: null,
+    });
 
     rpcMock.mockResolvedValue({
       data: [
@@ -156,6 +171,7 @@ describe("DashboardCommandes day accordion", () => {
     expect(screen.queryByText(/Burger maison/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/Pizza verte/i)).not.toBeInTheDocument();
     expect(openedDayTrigger).toHaveAttribute("aria-expanded", "false");
+    expect(openedDayTrigger).toHaveAccessibleName(/1 nouvelle commande non lue sur cette journée/i);
 
     fireEvent.click(openedDayTrigger);
 

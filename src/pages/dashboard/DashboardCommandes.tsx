@@ -4,6 +4,7 @@ import { getSupabase } from "@/integrations/supabase/client";
 import DeliveryMap from "@/components/DeliveryMap";
 import SortControls from "@/components/list/SortControls";
 import OperationViewToggle, { type OperationViewMode } from "@/components/operations/OperationViewToggle";
+import DayNotificationBadge from "@/components/notifications/DayNotificationBadge";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
@@ -22,6 +23,7 @@ import { normalizeOrderStatus } from "@/lib/orderStatus";
 import { invokeSupabaseFunction } from "@/lib/session";
 import { getOrderStatusLockMessage } from "@/lib/statusLocks";
 import { dispatchQueuedNotifications } from "@/lib/notificationDispatch";
+import { useNotificationCenter } from "@/hooks/useNotificationCenter";
 import OrderPaymentBreakdown from "@/components/orders/OrderPaymentBreakdown";
 import type { CancellationReasonCode } from "@/lib/reservationMutations";
 import {
@@ -37,6 +39,7 @@ import {
   type DashboardTimeRange,
 } from "@/lib/dashboardTimeRange";
 import { groupItemsByDay } from "@/lib/dashboardGrouping";
+import { countUnreadOperationNotificationsByDate } from "@/lib/dashboardNotificationBadges";
 import { sortByColumn, type SortColumn, type SortDirection } from "@/lib/listSorting";
 import {
   DASHBOARD_ORDER_TYPE_ORDER,
@@ -243,6 +246,7 @@ export default function DashboardCommandes() {
   const [sortKey, setSortKey] = useState<DashboardOrderSortKey>("created_at");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [viewMode, setViewMode] = useState<OperationViewMode>("details");
+  const { unreadNotifications } = useNotificationCenter(100, { realtime: true });
 
   useEffect(() => {
     const orderTarget = searchParams.get("order");
@@ -316,6 +320,16 @@ export default function DashboardCommandes() {
     sortByColumn(filteredOrders, DASHBOARD_ORDER_SORT_COLUMNS, { key: sortKey, direction: sortDirection })
   ), [filteredOrders, sortDirection, sortKey]);
 
+  const unreadOrderNotificationsByDate = useMemo(() => (
+    countUnreadOperationNotificationsByDate({
+      notifications: unreadNotifications,
+      items: filteredOrders,
+      kind: "order",
+      getItemId: (order) => order.id,
+      getDateKey: (order) => order.created_at.slice(0, 10),
+    })
+  ), [filteredOrders, unreadNotifications]);
+
   const groupedOrders = useMemo(() => {
     const groups = groupItemsByDay(sortedOrders, (order) => order.created_at.slice(0, 10));
     if (sortKey === "created_at" && sortDirection === "desc") groups.reverse();
@@ -325,8 +339,9 @@ export default function DashboardCommandes() {
       dateLabel: formatDashboardDateHeading(group.dateKey),
       revenue: group.items.reduce((sum, order) => sum + Number(order.total_amount || 0), 0),
       orderTypeSummary: summarizeDashboardOrdersByType(group.items, (order) => order.total_amount),
+      unreadNotificationCount: unreadOrderNotificationsByDate.get(group.dateKey) || 0,
     }));
-  }, [sortDirection, sortKey, sortedOrders]);
+  }, [sortDirection, sortKey, sortedOrders, unreadOrderNotificationsByDate]);
 
   const cancelMutation = useMutation({
     mutationFn: async ({
@@ -673,7 +688,10 @@ export default function DashboardCommandes() {
                     <AccordionTrigger className="px-4 py-4 text-left hover:no-underline sm:px-5">
                       <div className="flex flex-1 flex-wrap items-center justify-between gap-3 pr-4">
                         <div className="space-y-1">
-                          <p className="text-sm font-semibold capitalize">{dayGroup.dateLabel}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-semibold capitalize">{dayGroup.dateLabel}</p>
+                            <DayNotificationBadge count={dayGroup.unreadNotificationCount} label="nouvelle commande" />
+                          </div>
                           <p className="text-xs text-muted-foreground">
                             {dayGroup.items.length} commande(s) - {dayGroup.revenue.toFixed(2)} CHF
                           </p>
