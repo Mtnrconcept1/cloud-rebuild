@@ -1115,6 +1115,36 @@ async function insertUsage(
   });
 }
 
+function readTokCreditBalance(usage: unknown) {
+  const credits = typeof usage === "object" && usage !== null && Array.isArray((usage as { credits?: unknown }).credits)
+    ? (usage as { credits: Array<Record<string, unknown>> }).credits
+    : [];
+  const tokCredit = credits.find((credit) => credit?.kind === "tok_credits");
+  const balance = Number(tokCredit?.balance ?? 0);
+
+  return Number.isFinite(balance) ? Math.max(0, Math.floor(balance)) : 0;
+}
+
+async function requireTokCreditBalance(
+  actor: Awaited<ReturnType<typeof authenticateRequest>>,
+  restaurantId: string,
+  requiredCredits: number,
+) {
+  const required = Math.max(1, Math.ceil(requiredCredits));
+  const { data, error } = await actor.adminClient.rpc("get_restaurant_credit_usage", {
+    p_restaurant_id: restaurantId,
+  });
+
+  if (error) throw new HttpError(500, error.message);
+
+  const balance = readTokCreditBalance(data);
+  if (balance < required) {
+    throw new HttpError(402, "ai_credits_exhausted");
+  }
+
+  return balance;
+}
+
 Deno.serve(async (req) => {
   const cors = buildCorsHeaders(req);
   const preflight = handleCorsPreflight(req, cors);
@@ -1148,6 +1178,8 @@ Deno.serve(async (req) => {
     const imageModelCreditMultiplier = getImageModelCreditMultiplier(imageModel);
     const outputConfig = getImageOutputConfig(format, body.outputResolution, imageModel);
     const variantCount = clampVariantCount(body.variantCount);
+    const billableImageCount = Math.max(1, variantCount);
+    const requestedOutputCreditUnits = outputConfig.creditUnits * billableImageCount;
     const generateImage = body.generateImage !== false;
     const imageOnly = true;
 
@@ -1163,6 +1195,7 @@ Deno.serve(async (req) => {
     await rl.consume(`user:${actor.userId}`, { maxRequests: 20, windowSeconds: 600 });
     await rl.consume(`restaurant:${restaurantId}`, { maxRequests: 60, windowSeconds: 600 });
     await rl.consume("global", { maxRequests: 180, windowSeconds: 60 });
+    const availableTokCredits = await requireTokCreditBalance(actor, restaurantId, requestedOutputCreditUnits);
 
     const sourceEditPrompt = sourceImageUrl
       ? buildPhotoStudioRetouchPrompt({ dishName, userPrompt: prompt })
@@ -1284,8 +1317,6 @@ Deno.serve(async (req) => {
     const actualOutputCostChf = baseActualOutputCostChf * imageModelCreditMultiplier;
     const actualCreditUnits = Math.max(1, Math.ceil(actualOutputCostChf / PHOTO_CREDIT_CHF));
     const photoCreditUnits = actualCreditUnits * Math.max(1, variantCount);
-    const billableImageCount = Math.max(1, variantCount);
-    const requestedOutputCreditUnits = outputConfig.creditUnits * billableImageCount;
     const baseEstimatedImageCostChf = estimateCostChf(
       imageUsage,
       billableImageCount,
@@ -1325,6 +1356,7 @@ Deno.serve(async (req) => {
         estimated_cost_credit_units: estimatedCostCreditUnits,
         billable_credit_units: billablePhotoCreditUnits,
         billing_credit_source: billingCreditSource,
+        preflight_available_tok_credits: availableTokCredits,
         estimated_openai_output_cost_usd: actualOutputCostUsd,
         estimated_openai_base_output_cost_chf: baseActualOutputCostChf,
         estimated_openai_output_cost_chf: actualOutputCostChf,
@@ -1399,6 +1431,7 @@ Deno.serve(async (req) => {
         output_credit_units: photoCreditUnits,
         estimated_cost_credit_units: estimatedCostCreditUnits,
         billing_credit_source: billingCreditSource,
+        preflight_available_tok_credits: availableTokCredits,
         output_resolution: outputConfig.outputResolution,
         output_size: usedImageOptions.size,
         output_quality: usedImageOptions.quality,

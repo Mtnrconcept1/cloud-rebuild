@@ -56,6 +56,8 @@ describe("restaurant account and billing dashboard", () => {
     expect(page).toContain("CreditPackCard");
     expect(page).toContain("BillingCreditEntry");
     expect(page).toContain("Solde");
+    expect(page).toContain("Recharges payees");
+    expect(page).toContain("Solde recharge");
     expect(page).toContain("Générations marketing");
     expect(page).toContain("Utilisations assistant IA");
     expect(page).toContain("Retouches photo");
@@ -134,9 +136,13 @@ describe("restaurant account and billing dashboard", () => {
 
     expect(page).toContain("complete-restaurant-credit-pack-checkout");
     expect(page).toContain("checkout_kind=restaurant-credit-pack");
+    expect(page).toContain("no_pending_purchase");
+    expect(page).toContain("restaurant_id: selectedId");
     expect(page).toContain("usageQuery.refetch()");
     expect(creditPackCompletion).toContain('checkoutKind !== "restaurant-credit-pack"');
     expect(creditPackCompletion).toContain('session.payment_status !== "paid"');
+    expect(creditPackCompletion).toContain("pending_payment");
+    expect(creditPackCompletion).toContain("no_pending_purchase");
     expect(creditPackCompletion).toContain("requireRestaurantAccess(actor, restaurantId)");
     expect(creditPackCompletion).toContain('status: "paid"');
     expect(creditPackCompletion).toContain("reconciled_from_return: true");
@@ -184,6 +190,25 @@ describe("restaurant account and billing dashboard", () => {
     expect(migration).toContain("payment_method, '')) = 'credits'");
     expect(migration).toContain("THEN 5 END");
     expect(migration).toContain("GRANT EXECUTE ON FUNCTION public.get_restaurant_credit_usage");
+  });
+
+  it("keeps paid credit recharges visible for twelve months in the wallet RPC", () => {
+    const migration = latestMigrationContaining(/topup_credits_expiry_months/);
+    const page = read("src/pages/dashboard/DashboardAccountBilling.tsx");
+    const imageFunction = read("supabase/functions/ai-image-enhance/index.ts");
+
+    expect(migration).toContain("interval '12 months'");
+    expect(migration).toContain("topup_allowance");
+    expect(migration).toContain("topup_balance");
+    expect(migration).toContain("subscription_balance");
+    expect(migration).toContain("topup_spent");
+    expect(migration).toContain("topup_credits_expiry_months");
+    expect(page).toContain("included_allowance");
+    expect(page).toContain("topup_allowance");
+    expect(page).toContain("topup_balance");
+    expect(imageFunction).toContain("requireTokCreditBalance");
+    expect(imageFunction).toContain("get_restaurant_credit_usage");
+    expect(imageFunction).toContain('throw new HttpError(402, "ai_credits_exhausted")');
   });
 
   it("adds non-destructive subscription self-service schema and RPC guards", () => {

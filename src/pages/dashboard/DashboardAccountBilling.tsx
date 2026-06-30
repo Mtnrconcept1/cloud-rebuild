@@ -100,8 +100,14 @@ type BillingCreditSummary = {
   label: string;
   unit: "CHF" | "crédit" | string;
   allowance: number;
+  included_allowance?: number;
+  topup_allowance?: number;
+  subscription_balance?: number;
+  topup_balance?: number;
+  topup_spent?: number;
   spent: number;
   balance: number;
+  metadata?: Record<string, unknown> | null;
 };
 
 type BillingCreditEntry = {
@@ -390,6 +396,9 @@ function CreditSummaryCard({ credit }: { credit: BillingCreditSummary }) {
   const meta = CREDIT_META[credit.kind] ?? CREDIT_META.ai_tools;
   const Icon = meta.icon;
   const allowance = toNumber(credit.allowance);
+  const includedAllowance = toNumber(credit.included_allowance ?? credit.metadata?.included_allowance ?? allowance);
+  const topupAllowance = toNumber(credit.topup_allowance ?? credit.metadata?.topup_allowance ?? 0);
+  const topupBalance = toNumber(credit.topup_balance ?? credit.metadata?.topup_balance ?? 0);
   const spent = toNumber(credit.spent);
   const progress = allowance > 0 ? Math.min(100, Math.round((spent / allowance) * 100)) : 0;
 
@@ -409,8 +418,20 @@ function CreditSummaryCard({ credit }: { credit: BillingCreditSummary }) {
           <p className="text-2xl font-bold">{formatTokCredits(credit.balance)}</p>
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>Dépensé: {formatTokCredits(spent)}</span>
-            <span>Inclus: {formatTokCredits(allowance)}</span>
+            <span>Inclus abonnement: {formatTokCredits(includedAllowance)}</span>
           </div>
+          {topupAllowance > 0 ? (
+            <div className="grid gap-1 rounded-xl border border-orange-200 bg-orange-50/70 p-3 text-xs text-orange-900 dark:border-orange-400/25 dark:bg-orange-500/10 dark:text-orange-100">
+              <div className="flex items-center justify-between gap-3">
+                <span>Recharges payees</span>
+                <span className="font-semibold">{formatTokCredits(topupAllowance)}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span>Solde recharge</span>
+                <span className="font-semibold">{formatTokCredits(topupBalance)}</span>
+              </div>
+            </div>
+          ) : null}
           <Progress value={progress} className="h-2" />
         </div>
       </CardContent>
@@ -584,6 +605,7 @@ export default function DashboardAccountBilling() {
   const [selfServiceAction, setSelfServiceAction] = useState<SubscriptionActionState | null>(null);
   const [pendingSubscriptionAction, setPendingSubscriptionAction] = useState<PendingSubscriptionAction | null>(null);
   const [completedCreditPackSessionId, setCompletedCreditPackSessionId] = useState<string | null>(null);
+  const [reconciledPendingCreditPackRestaurantId, setReconciledPendingCreditPackRestaurantId] = useState<string | null>(null);
 
   const paymentStatus = searchParams.get("status");
   const checkoutSessionId = searchParams.get("session_id");
@@ -672,6 +694,33 @@ export default function DashboardAccountBilling() {
       cancelled = true;
     };
   }, [checkoutSessionId, completedCreditPackSessionId, paymentStatus, returnCheckoutKind, usageQuery]);
+
+  useEffect(() => {
+    if (!selectedId || checkoutSessionId || reconciledPendingCreditPackRestaurantId === selectedId) return;
+
+    let cancelled = false;
+    setReconciledPendingCreditPackRestaurantId(selectedId);
+
+    invokeSupabaseFunction<{ ok?: boolean; already_paid?: boolean; no_pending_purchase?: boolean }>(
+      "complete-restaurant-credit-pack-checkout",
+      {
+        body: { restaurant_id: selectedId },
+      },
+    )
+      .then(async ({ data }) => {
+        if (cancelled || !data?.ok || data.no_pending_purchase) return;
+
+        await usageQuery.refetch();
+        if (!data.already_paid) {
+          toast.success("Recharge de crédits TOK activée.");
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [checkoutSessionId, reconciledPendingCreditPackRestaurantId, selectedId, usageQuery]);
 
   const totalBalanceLabel = useMemo(() => {
     if (!tokCreditSummary) return "0 crédit TOK";

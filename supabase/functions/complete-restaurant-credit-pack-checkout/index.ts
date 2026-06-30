@@ -39,7 +39,38 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     sessionId = typeof body?.session_id === "string" ? body.session_id.trim() : "";
-    if (!sessionId) throw new HttpError(400, "session_id requis");
+    const requestedRestaurantId = typeof body?.restaurant_id === "string" ? body.restaurant_id.trim() : "";
+    let fallbackPurchase: {
+      id: string;
+      restaurant_id: string;
+      credit_pack_id: string;
+      stripe_checkout_session_id: string | null;
+    } | null = null;
+
+    if (!sessionId) {
+      if (!requestedRestaurantId) throw new HttpError(400, "session_id requis");
+      await requireRestaurantAccess(actor, requestedRestaurantId);
+
+      const { data: pendingPurchase, error: pendingPurchaseError } = await actor.adminClient
+        .from("restaurant_credit_purchases")
+        .select("id, restaurant_id, credit_pack_id, stripe_checkout_session_id")
+        .eq("restaurant_id", requestedRestaurantId)
+        .eq("purchased_by", actor.userId)
+        .eq("status", "pending_payment")
+        .gte("created_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+        .not("stripe_checkout_session_id", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (pendingPurchaseError) throw new HttpError(500, pendingPurchaseError.message);
+      if (!pendingPurchase?.stripe_checkout_session_id) {
+        return jsonResponse({ ok: true, no_pending_purchase: true }, 200, corsHeaders);
+      }
+
+      fallbackPurchase = pendingPurchase;
+      sessionId = pendingPurchase.stripe_checkout_session_id;
+    }
 
     const stripeRuntime = getStripeRuntimeForCheckoutKind("restaurant-credit-pack");
     const session = await stripeRuntime.stripe.checkout.sessions.retrieve(sessionId, {
@@ -55,14 +86,18 @@ Deno.serve(async (req) => {
       throw new HttpError(400, "Session Stripe invalide pour une recharge de credits.");
     }
 
-    if (String(session.metadata?.user_id || "") !== actor.userId) {
+    const metadataUserId = String(session.metadata?.user_id || "");
+    if (metadataUserId && metadataUserId !== actor.userId) {
       throw new HttpError(403, "Forbidden");
     }
+    if (!metadataUserId && !fallbackPurchase) throw new HttpError(403, "Forbidden");
 
-    const restaurantId = String(session.metadata?.restaurant_id || "");
-    const creditPackId = String(session.metadata?.restaurant_credit_pack_id || session.metadata?.credit_pack_id || "");
+    const restaurantId = String(session.metadata?.restaurant_id || fallbackPurchase?.restaurant_id || "");
+    const creditPackId = String(
+      session.metadata?.restaurant_credit_pack_id || session.metadata?.credit_pack_id || fallbackPurchase?.credit_pack_id || "",
+    );
     const purchaseId = String(
-      session.metadata?.restaurant_credit_purchase_id || session.metadata?.credit_pack_purchase_id || "",
+      session.metadata?.restaurant_credit_purchase_id || session.metadata?.credit_pack_purchase_id || fallbackPurchase?.id || "",
     );
 
     if (!restaurantId || !creditPackId || !purchaseId) {
