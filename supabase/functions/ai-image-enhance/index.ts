@@ -797,7 +797,6 @@ async function callOpenAIImageEditWithReferences(prompt: string, imageUrls: stri
   form.append("n", String(n));
   form.append("quality", options.quality);
   form.append("output_format", "png");
-  form.append("input_fidelity", "high");
   form.append("moderation", "auto");
   sourceBlobs.forEach((sourceBlob, index) => {
     form.append("image[]", sourceBlob, `reference-${index + 1}-${getSourceImageFileName(sourceBlob.type)}`);
