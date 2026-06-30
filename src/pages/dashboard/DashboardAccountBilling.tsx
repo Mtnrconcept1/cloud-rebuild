@@ -53,8 +53,6 @@ import {
   formatTokCredits,
   getAiSimpleRequestEquivalent,
   getCampaignEquivalentChf,
-  getMarketingFlyerEquivalent,
-  getPhotoProEquivalent,
   getPhotoSimpleEquivalent,
   getTokCreditAmount,
   TOK_CREDITS_PER_CAMPAIGN_CHF,
@@ -267,6 +265,27 @@ function normalizeFeatures(value: string[] | null) {
   return Array.isArray(value) ? value.map(String).filter(Boolean) : [];
 }
 
+function normalizeFeatureForComparison(feature: string) {
+  return feature.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+function isCreditEquivalenceFeature(feature: string) {
+  const normalized = normalizeFeatureForComparison(feature);
+
+  return (
+    (/^\d/.test(normalized) && normalized.includes("credit") && normalized.includes("tok")) ||
+    normalized.includes("campagnes tok") ||
+    normalized.includes("requetes assistant") ||
+    normalized.includes("retouches photo") ||
+    normalized.includes("photos culinaires") ||
+    normalized.includes("affiches ou flyers")
+  );
+}
+
+function getConciseBillingFeatures(value: string[] | null) {
+  return normalizeFeatures(value).filter((feature) => !isCreditEquivalenceFeature(feature));
+}
+
 function toTokCreditUnits(amount: number, unit: string) {
   if (unit === "CHF") return Math.round(amount * TOK_CREDITS_PER_CAMPAIGN_CHF);
   return Math.round(amount);
@@ -289,34 +308,6 @@ function buildUnifiedTokCreditSummary(credits: BillingCreditSummary[]): BillingC
     spent,
     balance: Math.max(allowance - spent, 0),
   };
-}
-
-function getPlanExamples(plan: RestaurantSubscriptionPlan) {
-  const credits = getTokCreditAmount(plan);
-  const photoExample = plan.slug === "starter" || plan.slug === "pro"
-    ? `${getPhotoSimpleEquivalent(credits).toLocaleString("fr-CH")} retouches photo simples`
-    : `${getPhotoProEquivalent(credits).toLocaleString("fr-CH")} photos culinaires pro`;
-
-  return [
-    `${getCampaignEquivalentChf(credits).toLocaleString("fr-CH")} CHF de campagnes TOK`,
-    `${getAiSimpleRequestEquivalent(credits).toLocaleString("fr-CH")} requêtes assistant IA`,
-    photoExample,
-  ];
-}
-
-function getPackExamples(pack: RestaurantCreditPack) {
-  const credits = getTokCreditAmount(pack);
-  const examples = [
-    `${getCampaignEquivalentChf(credits).toLocaleString("fr-CH")} CHF de campagnes TOK`,
-    `${getAiSimpleRequestEquivalent(credits).toLocaleString("fr-CH")} requêtes assistant IA`,
-    `${getPhotoProEquivalent(credits).toLocaleString("fr-CH")} photos culinaires pro`,
-  ];
-
-  if (pack.slug.includes("growth") || pack.slug.includes("croissance")) {
-    examples[2] = `${getMarketingFlyerEquivalent(credits).toLocaleString("fr-CH")} affiches ou flyers IA`;
-  }
-
-  return examples;
 }
 
 function formatEntryTokCreditAmount(entry: BillingCreditEntry) {
@@ -437,9 +428,8 @@ function PlanCard({
   const isUpgrade = !isCurrent && plan.position > currentPosition;
   const isDowngrade = !isCurrent && plan.position < currentPosition;
   const isBusy = checkingOutPlanId === plan.id || selfServicePlanId === plan.id;
-  const features = normalizeFeatures(plan.features);
+  const features = getConciseBillingFeatures(plan.features);
   const tokCredits = getTokCreditAmount(plan);
-  const examples = getPlanExamples(plan);
 
   return (
     <Card className={cn("flex h-full flex-col", isCurrent && "border-primary/60 bg-primary/5")}>
@@ -447,7 +437,6 @@ function PlanCard({
         <div className="flex items-start justify-between gap-3">
           <div>
             <CardTitle className="text-lg">{plan.name}</CardTitle>
-            <p className="mt-1 text-sm text-muted-foreground">{plan.description}</p>
           </div>
           {isCurrent ? <Badge>Actuel</Badge> : isUpgrade ? <Badge variant="outline">Upgrade</Badge> : isDowngrade ? <Badge variant="secondary">Fin de période</Badge> : null}
         </div>
@@ -455,24 +444,19 @@ function PlanCard({
           {formatChf(plan.price_monthly_chf)}
           <span className="text-sm font-medium text-muted-foreground"> / mois</span>
         </p>
+        <p className="text-sm font-medium text-primary">{formatTokCredits(tokCredits)} / mois inclus</p>
       </CardHeader>
       <CardContent className="flex flex-1 flex-col gap-4">
-        <div className="grid gap-2 rounded-xl bg-muted/45 p-3 text-sm">
-          <span className="font-semibold">{formatTokCredits(tokCredits)} / mois</span>
-          <span className="text-muted-foreground">Utilisables librement pour campagnes, IA, photos, visuels et rendus impression.</span>
-          <span className="pt-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">Équivalence</span>
-          {examples.map((example) => (
-            <span key={example}>ou {example}</span>
-          ))}
-        </div>
-        <ul className="space-y-2 text-sm">
-          {features.slice(0, 5).map((feature) => (
-            <li key={feature} className="flex gap-2">
-              <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-              <span>{feature}</span>
-            </li>
-          ))}
-        </ul>
+        {features.length > 0 ? (
+          <ul className="space-y-2 text-sm">
+            {features.slice(0, 5).map((feature) => (
+              <li key={feature} className="flex gap-2">
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                <span>{feature}</span>
+              </li>
+            ))}
+          </ul>
+        ) : null}
         <Button
           className="mt-auto w-full"
           variant={isUpgrade ? "default" : "outline"}
@@ -508,10 +492,9 @@ function CreditPackCard({
   checkingOutPackId: string | null;
   onBuy: (pack: RestaurantCreditPack) => void;
 }) {
-  const features = normalizeFeatures(pack.features);
+  const features = getConciseBillingFeatures(pack.features);
   const isCheckingOut = checkingOutPackId === pack.id;
   const tokCredits = getTokCreditAmount(pack);
-  const examples = getPackExamples(pack);
 
   return (
     <Card className="flex h-full flex-col">
@@ -519,7 +502,6 @@ function CreditPackCard({
         <div className="flex items-start justify-between gap-3">
           <div>
             <CardTitle className="text-lg">{pack.name}</CardTitle>
-            <p className="mt-1 text-sm text-muted-foreground">{pack.description}</p>
           </div>
           <Badge variant="outline">Recharge</Badge>
         </div>
@@ -527,24 +509,19 @@ function CreditPackCard({
           {formatChf(pack.price_chf)}
           <span className="text-sm font-medium text-muted-foreground"> TTC</span>
         </p>
+        <p className="text-sm font-medium text-primary">{formatTokCredits(tokCredits)} recharge universelle</p>
       </CardHeader>
       <CardContent className="flex flex-1 flex-col gap-4">
-        <div className="grid gap-2 rounded-xl bg-muted/45 p-3 text-sm">
-          <span className="font-semibold">{formatTokCredits(tokCredits)}</span>
-          <span className="text-muted-foreground">Recharge universelle valable pour campagnes, assistant IA, photos et supports marketing.</span>
-          <span className="pt-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">Équivalence</span>
-          {examples.map((example) => (
-            <span key={example}>ou {example}</span>
-          ))}
-        </div>
-        <ul className="space-y-2 text-sm">
-          {features.slice(0, 4).map((feature) => (
-            <li key={feature} className="flex gap-2">
-              <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-              <span>{feature}</span>
-            </li>
-          ))}
-        </ul>
+        {features.length > 0 ? (
+          <ul className="space-y-2 text-sm">
+            {features.slice(0, 4).map((feature) => (
+              <li key={feature} className="flex gap-2">
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                <span>{feature}</span>
+              </li>
+            ))}
+          </ul>
+        ) : null}
         <Button
           className="mt-auto w-full"
           onClick={() => onBuy(pack)}

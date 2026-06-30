@@ -58,6 +58,20 @@ describe("restaurant account and billing dashboard", () => {
     expect(page).toContain("Solde");
   });
 
+  it("keeps subscription and credit pack cards concise without duplicated equivalence blocks", () => {
+    const page = read("src/pages/dashboard/DashboardAccountBilling.tsx");
+
+    expect(page).toContain("{formatTokCredits(tokCredits)} / mois inclus");
+    expect(page).toContain("{formatTokCredits(tokCredits)} recharge universelle");
+    expect(page).toContain("getConciseBillingFeatures");
+    expect(page).not.toContain("getPlanExamples");
+    expect(page).not.toContain("getPackExamples");
+    expect(page).not.toContain("{plan.description}");
+    expect(page).not.toContain("{pack.description}");
+    expect(page).not.toContain("Équivalence");
+    expect(page).not.toContain("rounded-xl bg-muted/45 p-3 text-sm");
+  });
+
   it("uses server-side Stripe Checkout and webhook reconciliation for upgrades and credit packs", () => {
     const checkout = read("supabase/functions/create-checkout/index.ts");
     const webhook = read("supabase/functions/stripe-webhook/index.ts");
