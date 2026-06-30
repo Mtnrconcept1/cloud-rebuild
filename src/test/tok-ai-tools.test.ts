@@ -314,6 +314,7 @@ describe("TOK AI tools foundation", () => {
       "output_quality",
       "creditUnitsFromEstimatedCost",
       "getBillablePhotoCreditUnits",
+      'form.append("input_fidelity", "high")',
       "estimatedCostChf?: number",
       "estimatedCostChf: estimatedImageCostChf",
       "credit_units: billablePhotoCreditUnits",

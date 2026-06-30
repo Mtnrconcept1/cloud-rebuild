@@ -65,12 +65,37 @@ export function formatAiImageGenerationError(error: unknown) {
     return "Le service image IA est temporairement indisponible. Réessayez dans quelques instants.";
   }
 
-  if (message.includes("source_image_edit_required") || message.includes("image_edit_failed")) {
-    return "La retouche IA n'a pas pu finaliser cette photo. Recadrez le sujet principal ou relancez avec une photo JPG, PNG ou WebP bien éclairée.";
+  if (message.includes("image_edit_timeout") || message.includes("image_generation_timeout")) {
+    return "La retouche PhotoPro a pris trop de temps. Relancez l'essai avec la même photo ou utilisez une version plus légère si le problème revient.";
   }
 
-  if (message.includes("image_edit_timeout") || message.includes("image_generation_timeout")) {
-    return "La génération a pris trop de temps. Essayez avec une image plus légère ou un prompt plus court.";
+  if (
+    message.includes("image_edit_transient_failure")
+    || message.includes("image_edit_failed:5")
+    || message.includes("server_error")
+  ) {
+    return "La retouche PhotoPro n'a pas abouti à cause d'une erreur temporaire du modèle. Relancez l'essai dans quelques instants.";
+  }
+
+  if (message.includes("content_policy") || message.includes("safety")) {
+    return "La demande image a été refusée par la sécurité du modèle. Reformulez sans personne réelle ou promesse sensible.";
+  }
+
+  if (
+    message.includes("source_image_edit_required")
+    || (
+      message.includes("image_edit_failed")
+      && (
+        message.includes("invalid_image")
+        || message.includes("image_parse")
+        || message.includes("unsupported")
+        || message.includes("too_large")
+        || message.includes("file")
+        || message.includes("format")
+      )
+    )
+  ) {
+    return "La retouche IA n'a pas pu finaliser cette photo. Recadrez le sujet principal ou relancez avec une photo JPG, PNG ou WebP bien éclairée.";
   }
 
   if (message.includes("source_image_unsupported_type")) {
@@ -95,10 +120,6 @@ export function formatAiImageGenerationError(error: unknown) {
 
   if (message.includes("ai_service_unavailable") || message.includes("requested function was not found") || message.includes("not_found")) {
     return "Le service image IA est temporairement indisponible. Réessayez dans quelques instants.";
-  }
-
-  if (message.includes("content_policy") || message.includes("safety")) {
-    return "La demande image a été refusée par la sécurité du modèle. Reformulez sans personne réelle ou promesse sensible.";
   }
 
   return toPublicErrorMessage(rawMessage, "La génération IA n'a pas pu aboutir. Réessayez dans quelques instants.");

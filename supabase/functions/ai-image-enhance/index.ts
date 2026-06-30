@@ -797,6 +797,7 @@ async function callOpenAIImageEditWithReferences(prompt: string, imageUrls: stri
   form.append("n", String(n));
   form.append("quality", options.quality);
   form.append("output_format", "png");
+  form.append("input_fidelity", "high");
   form.append("moderation", "auto");
   sourceBlobs.forEach((sourceBlob, index) => {
     form.append("image[]", sourceBlob, `reference-${index + 1}-${getSourceImageFileName(sourceBlob.type)}`);
@@ -841,6 +842,20 @@ function shouldRetryImageEdit(error: unknown) {
     "unsupported_parameter",
     "model",
   ].some((blockedReason) => message.includes(blockedReason));
+}
+
+function normalizeBlockedSourceImageEditFailure(error: unknown) {
+  if (isImageTimeoutError(error)) return new HttpError(503, "image_edit_timeout");
+  if (!(error instanceof HttpError)) return new HttpError(502, "image_edit_transient_failure");
+
+  const message = error.message.toLowerCase();
+  if (message.startsWith("image_edit_failed:5") || message.includes("server_error") || message.includes("temporar")) {
+    return new HttpError(502, "image_edit_transient_failure");
+  }
+  if (message.includes("rate")) return new HttpError(429, "ai_rate_limited");
+  if (message.includes("credits")) return new HttpError(402, "ai_credits_exhausted");
+
+  return new HttpError(502, "source_image_edit_required");
 }
 
 async function callOpenAIImageEditWithRetry(input: {
@@ -908,7 +923,7 @@ async function callOpenAIImageEditWithRetry(input: {
           size: retryOptions.size,
           mode: retryOptions.mode,
         });
-        throw new HttpError(502, "source_image_edit_required");
+        throw normalizeBlockedSourceImageEditFailure(retryError);
       }
 
       console.warn(`[${FUNCTION_NAME}] image_edit_fallback`, {

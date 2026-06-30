@@ -45,4 +45,12 @@ describe("public error messages", () => {
     expect(sources).toContain("formatAiImageGenerationError");
     expect(sources).not.toMatch(/fonction Supabase|côté Supabase|ai-image-enhance n'est pas disponible/i);
   });
+
+  it("distinguishes PhotoPro transient failures from source photo problems", () => {
+    expect(formatAiImageGenerationError(new Error("image_edit_transient_failure"))).toContain("erreur temporaire");
+    expect(formatAiImageGenerationError(new Error("image_edit_failed:500:server_error"))).toContain("erreur temporaire");
+    expect(formatAiImageGenerationError(new Error("image_edit_timeout"))).toContain("pris trop de temps");
+    expect(formatAiImageGenerationError(new Error("image_edit_failed:400:invalid_image"))).toContain("Recadrez le sujet principal");
+    expect(formatAiImageGenerationError(new Error("image_edit_failed:400:content_policy"))).toContain("refusée par la sécurité");
+  });
 });
