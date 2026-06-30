@@ -35,4 +35,15 @@ describe("restaurant dashboard campaign unification", () => {
     expect(campaigns).not.toContain('placementSelection.banner ? 250 : 100');
   });
 
+  it("keeps campaign detail headers responsive beside status badges", () => {
+    const campaigns = read("src/pages/dashboard/DashboardCampagnes.tsx");
+
+    expect(campaigns).toContain("xl:grid-cols-[minmax(0,1fr)_minmax(320px,360px)]");
+    expect(campaigns).toContain("2xl:grid-cols-[minmax(0,1fr)_minmax(360px,420px)]");
+    expect(campaigns).toContain('className="min-w-0 space-y-2"');
+    expect(campaigns).toContain("max-w-full break-words text-lg font-bold leading-tight");
+    expect(campaigns).toContain("max-w-full whitespace-normal text-left leading-tight");
+    expect(campaigns).toContain("sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2");
+  });
+
 });

@@ -642,7 +642,7 @@ export default function DashboardCampagnes() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(320px,360px)] 2xl:grid-cols-[minmax(0,1fr)_minmax(360px,420px)]">
             <Tabs defaultValue="active" className="min-w-0">
               <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <TabsList className="w-full justify-start sm:w-auto">
@@ -931,15 +931,21 @@ function CampaignDetailPanel({ campaign }: { campaign: CampaignRecord | null }) 
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
             Détail de campagne
           </p>
-          <div className="flex flex-wrap items-center gap-2">
-            <h3 className="min-w-0 flex-1 break-words text-lg font-bold">{campaign.title || "Campagne"}</h3>
-            <Badge variant={status.variant}>{status.label}</Badge>
-            <Badge variant={paymentStatus.variant}>{paymentStatus.label}</Badge>
+          <div className="min-w-0 space-y-2">
+            <h3 className="max-w-full break-words text-lg font-bold leading-tight">{campaign.title || "Campagne"}</h3>
+            <div className="flex max-w-full flex-wrap gap-2">
+              <Badge variant={status.variant} className="max-w-full whitespace-normal text-left leading-tight">
+                {status.label}
+              </Badge>
+              <Badge variant={paymentStatus.variant} className="max-w-full whitespace-normal text-left leading-tight">
+                {paymentStatus.label}
+              </Badge>
+            </div>
           </div>
           {campaign.body ? <p className="text-sm text-muted-foreground">{campaign.body}</p> : null}
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
           <CampaignDetailMetric label="Impressions" value={metrics.impressions.toLocaleString("fr-CH")} />
           <CampaignDetailMetric label="Clics" value={metrics.clicks.toLocaleString("fr-CH")} />
           <CampaignDetailMetric label="Conversions" value={metrics.conversions.toLocaleString("fr-CH")} />
