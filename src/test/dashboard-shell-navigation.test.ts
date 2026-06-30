@@ -27,6 +27,26 @@ describe("dashboard shell navigation", () => {
     expect(layout).toContain('feature: "dashboard-promotions"');
   });
 
+  it("places the photo workspace as a prominent Marketing Studio entry", () => {
+    const layout = read("src/components/DashboardLayout.tsx");
+    const marketingStart = layout.indexOf('title: "Marketing"');
+    const studioEntry = layout.indexOf('label: "Studio Marketing"');
+    const paymentsStart = layout.indexOf('title: "Paiements"');
+    const pageStart = layout.indexOf('title: "Page du restaurant"');
+    const supportStart = layout.indexOf('title: "Support"');
+    const pageRestaurantSection = layout.slice(pageStart, supportStart);
+
+    expect(marketingStart).toBeGreaterThan(-1);
+    expect(studioEntry).toBeGreaterThan(marketingStart);
+    expect(studioEntry).toBeLessThan(paymentsStart);
+    expect(pageStart).toBeGreaterThan(paymentsStart);
+    expect(layout).toContain('to: "/dashboard/photos"');
+    expect(layout).toContain('emphasis: "marketing-studio"');
+    expect(layout).toContain("isMarketingStudio");
+    expect(pageRestaurantSection).not.toContain('to: "/dashboard/photos"');
+    expect(pageRestaurantSection).not.toContain('label: "Photos"');
+  });
+
   it("removes the legacy recommendations dashboard surface in favor of Assistant IA", () => {
     const layout = read("src/components/DashboardLayout.tsx");
     const app = read("src/App.tsx");
