@@ -137,11 +137,11 @@ describe("TOK AI tools foundation", () => {
     const secrets = readProjectFile("scripts/write-supabase-secrets-env.mjs");
     const workflow = readProjectFile(".github/workflows/deploy-production.yml");
 
-    expect(source).toContain("normalizeImageQuality");
-    expect(source).toContain("TOK_ALLOW_HIGH_IMAGE_QUALITY");
+    expect(source).not.toContain("normalizeImageQuality");
+    expect(source).not.toContain("TOK_ALLOW_HIGH_IMAGE_QUALITY");
     expect(source).not.toContain('OPENAI_IMAGE_QUALITY")?.trim() || "high"');
     expect(source).toContain('return "medium"');
-    expect(source).toContain('return "high"');
+    expect(source).not.toContain('return "high"');
     expect(source).toContain("OPENAI_IMAGE_TIMEOUT_MS");
     expect(source).toContain("AbortController");
     expect(source).not.toContain("TOK_IMAGE_USE_AI_BRIEF");
@@ -149,7 +149,7 @@ describe("TOK AI tools foundation", () => {
     expect(source).toContain('const USE_FAST_INTERACTIVE_IMAGE = readEnvFlag("TOK_IMAGE_FAST_INTERACTIVE", false)');
     expect(source).toContain("buildMarketingImageRequestOptions");
     expect(source).not.toContain("FORCE_STRICT_SOURCE_EDIT ? false");
-    expect(source).toContain('const shouldUseFastInteractiveEdit = sourceImagePresent || (USE_FAST_INTERACTIVE_IMAGE && quality === "low")');
+    expect(source).toContain("const shouldUseFastInteractiveEdit = sourceImagePresent || USE_FAST_INTERACTIVE_IMAGE");
     expect(source).toContain("return buildConfiguredImageRequestOptions(formatSize, quality, model);");
     expect(source).toContain("allowGenerationFallback: false");
     expect(source).toContain("image_reference_edit_required");
@@ -157,11 +157,10 @@ describe("TOK AI tools foundation", () => {
     expect(source).toContain("buildMarketingImageRequestOptions(format.size, referenceImageUrls.length > 0, outputConfig.outputQuality, imageModel)");
     expect(source).not.toContain("TOK_INTERACTIVE_IMAGE_QUALITY");
     expect(source).not.toContain("TOK_INTERACTIVE_IMAGE_SIZE");
-    expect(source).toContain('"gpt-image-2": 1');
-    expect(source).toContain('"gpt-image-1.5": 32 / 30');
+    expect(source).not.toContain('"gpt-image-1.5"');
     expect(source).toContain("normalizeImageModel(body.imageModel ?? body.model)");
     expect(source).not.toContain("gpt-image-1-mini");
-    expect(source).toContain('"low"');
+    expect(source).not.toContain('quality: "low"');
     expect(source).toContain('"1024x1024"');
     expect(source).toContain("interactive_fast");
     expect(source).toContain("if (sourceImageUrl) {");
@@ -216,7 +215,7 @@ describe("TOK AI tools foundation", () => {
     expect(source).toContain("isImageTimeoutError");
     expect(source).toContain('error.message === "image_edit_timeout"');
     expect(source).toContain("buildFallbackImageRequestOptions");
-    expect(source).toContain('quality: "low"');
+    expect(source).toContain("quality: IMAGE_QUALITY");
     expect(source).toContain("shouldRetryImageEdit");
     expect(source).toContain("image_edit_retry");
     expect(source).toContain("image_edit_fallback");
@@ -254,16 +253,9 @@ describe("TOK AI tools foundation", () => {
     expect(publicErrors).toContain("failed to send a request");
 
     for (const name of [
-      "OPENAI_IMAGE_MODEL",
-      "OPENAI_IMAGE_QUALITY",
       "OPENAI_IMAGE_TIMEOUT_MS",
-      "TOK_IMAGE_USE_AI_BRIEF",
       "TOK_IMAGE_FAST_INTERACTIVE",
-      "TOK_IMAGE_USE_SOURCE_EDIT",
-      "TOK_INTERACTIVE_IMAGE_QUALITY",
-      "TOK_INTERACTIVE_IMAGE_SIZE",
       "TOK_INTERACTIVE_IMAGE_TIMEOUT_MS",
-      "TOK_ALLOW_HIGH_IMAGE_QUALITY",
       "TOK_AI_IMAGE_BUCKET",
       "TOK_GALLERY_IMAGE_BUCKET",
     ]) {
@@ -272,18 +264,27 @@ describe("TOK AI tools foundation", () => {
     }
   });
 
-  it("lets PhotoPro and Marketing Studio choose GPT image 2 or legacy 1.5 without env model overrides", () => {
+  it("locks PhotoPro and Marketing Studio to GPT image 2 medium without model or quality overrides", () => {
     const source = readProjectFile("supabase/functions/ai-image-enhance/index.ts");
+    const pricing = readProjectFile("src/lib/ai/imagePricing.ts");
     const secrets = readProjectFile("scripts/write-supabase-secrets-env.mjs");
     const workflow = readProjectFile(".github/workflows/deploy-production.yml");
 
     expect(source).toContain('const IMAGE_MODEL: TokImageModel = "gpt-image-2";');
-    expect(source).toContain('"gpt-image-1.5": 32 / 30');
+    expect(source).toContain('const IMAGE_QUALITY: ImageQuality = "medium";');
+    expect(source).toContain("GPT_IMAGE_2_MEDIUM_BASE_COST_CHF = 0.05");
     expect(source).toContain("normalizeImageModel(body.imageModel ?? body.model)");
+    expect(source).not.toContain('"gpt-image-1.5"');
+    expect(pricing).not.toContain("TOK_IMAGE_MODEL_OPTIONS");
     expect(source).not.toContain('Deno.env.get("OPENAI_IMAGE_MODEL")');
+    expect(source).not.toContain('Deno.env.get("OPENAI_IMAGE_QUALITY")');
     expect(source).not.toContain("gpt-image-1-mini");
+    expect(secrets).not.toContain('"OPENAI_IMAGE_MODEL"');
+    expect(secrets).not.toContain('"OPENAI_IMAGE_QUALITY"');
     expect(source).not.toContain('Deno.env.get("TOK_INTERACTIVE_IMAGE_MODEL")');
     expect(secrets).not.toContain('"TOK_INTERACTIVE_IMAGE_MODEL"');
+    expect(workflow).not.toContain("OPENAI_IMAGE_MODEL:");
+    expect(workflow).not.toContain("OPENAI_IMAGE_QUALITY:");
     expect(workflow).not.toContain("TOK_INTERACTIVE_IMAGE_MODEL");
   });
 
@@ -293,18 +294,14 @@ describe("TOK AI tools foundation", () => {
     const pricing = readProjectFile("src/lib/ai/imagePricing.ts");
     const photoStudio = readProjectFile("src/components/dashboard/TokAiPhotoStudioV2.tsx");
     const marketingStudio = readProjectFile("src/components/dashboard/TokAiMarketingStudio.tsx");
-    const migration = readMigrationContaining("openai_x10_credit_pricing");
-    const repriceMigration = migration;
+    const migration = readMigrationContaining("gpt_image_2_medium_only_pricing");
+    const repriceMigration = readMigrationContaining("openai_x10_credit_pricing");
 
     for (const expected of [
       "USD_TO_CHF_RATE = 0.81",
       "PHOTO_CREDIT_CHF = 0.009",
-      "GPT_IMAGE_15_TEXT_INPUT_USD_PER_TOKEN = 5 / 1_000_000",
-      "GPT_IMAGE_15_IMAGE_INPUT_USD_PER_TOKEN = 8 / 1_000_000",
-      "GPT_IMAGE_2_IMAGE_OUTPUT_USD_PER_TOKEN = 30 / 1_000_000",
-      '"1024x1024": 0.211',
-      '"1024x1536": 0.165',
-      '"1536x1024": 0.165',
+      "GPT_IMAGE_2_MEDIUM_BASE_COST_CHF = 0.05",
+      "GPT_IMAGE_2_MEDIUM_BASE_COST_USD = GPT_IMAGE_2_MEDIUM_BASE_COST_CHF / USD_TO_CHF_RATE",
       "normalizeOutputResolution",
       "getImageOutputConfig",
       "credit_units_per_image",
@@ -320,7 +317,6 @@ describe("TOK AI tools foundation", () => {
       "requested_output_credit_units",
       "estimated_cost_credit_units",
       "billing_credit_source",
-      "requested_output_resolution",
     ]) {
       expect(source).toContain(expected);
     }
@@ -328,23 +324,22 @@ describe("TOK AI tools foundation", () => {
     expect(client).toContain("outputResolution?: TokImageOutputResolution");
     expect(client).toContain("imageModel?: TokImageModel");
     expect(pricing).toContain("TOK_IMAGE_OUTPUT_OPTIONS");
-    expect(pricing).toContain("TOK_IMAGE_MODEL_OPTIONS");
-    expect(pricing).toContain('value: "gpt-image-2"');
+    expect(pricing).toContain("TOK_IMAGE_BASE_COST_CHF = 0.05");
     expect(pricing).toContain("TOK_IMAGE_DEFAULT_MODEL: TokImageModel = \"gpt-image-2\"");
-    expect(pricing).toContain("creditMultiplier: 32 / 30");
+    expect(pricing).not.toContain("gpt-image-1.5");
     expect(pricing).toContain("TOK_PHOTO_CREDIT_CHF = 0.009");
-    expect(photoStudio).toContain("Modele IA");
-    expect(photoStudio).toContain("imageModel: selectedImageModel");
-    expect(photoStudio).toContain("Resolution de sortie");
+    expect(photoStudio).toContain("Configuration image");
+    expect(photoStudio).not.toContain("imageModel: selectedImageModel");
+    expect(photoStudio).not.toContain("Resolution de sortie");
     expect(photoStudio).toContain("outputResolution: selectedOutputResolution");
-    expect(marketingStudio).toContain("marketing-image-model");
-    expect(marketingStudio).toContain("imageModel");
-    expect(marketingStudio).toContain("marketing-output-resolution");
+    expect(marketingStudio).not.toContain("marketing-image-model");
+    expect(marketingStudio).not.toContain("setImageModel");
+    expect(marketingStudio).not.toContain("marketing-output-resolution");
     expect(marketingStudio).toContain("outputResolution");
-    expect(migration).toContain("WHEN 'starter' THEN 187");
-    expect(migration).toContain("WHEN 'pro' THEN 356");
-    expect(migration).toContain("WHEN 'premium' THEN 551");
-    expect(migration).toContain("WHEN 'elite' THEN 1383");
+    expect(migration).toContain("WHEN 'starter' THEN 125");
+    expect(migration).toContain("WHEN 'pro' THEN 237");
+    expect(migration).toContain("WHEN 'premium' THEN 367");
+    expect(migration).toContain("WHEN 'elite' THEN 922");
     expect(repriceMigration).toContain("normalize_photo_ai_usage_credit_units");
     expect(repriceMigration).toContain("CEIL(GREATEST(COALESCE(NEW.estimated_cost_chf, 0), 0) / 0.009)");
     expect(repriceMigration).toContain("requested_output_credit_units");

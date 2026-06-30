@@ -33,9 +33,9 @@ type GeneratedImage = {
   model: string;
 };
 
-type ImageQuality = "low" | "medium" | "high";
+type ImageQuality = "medium";
 type ImageOutputResolution = "web" | "studio" | "print";
-type TokImageModel = "gpt-image-1.5" | "gpt-image-2";
+type TokImageModel = "gpt-image-2";
 
 type ImageRequestOptions = {
   model: string;
@@ -64,11 +64,7 @@ const FUNCTION_NAME = "ai-image-enhance";
 const IMAGE_GENERATIONS_URL = "https://api.openai.com/v1/images/generations";
 const IMAGE_EDITS_URL = "https://api.openai.com/v1/images/edits";
 const IMAGE_MODEL: TokImageModel = "gpt-image-2";
-const TOK_IMAGE_MODEL_CREDIT_MULTIPLIERS: Record<TokImageModel, number> = {
-  "gpt-image-2": 1,
-  "gpt-image-1.5": 32 / 30,
-};
-const IMAGE_QUALITY = normalizeImageQuality(Deno.env.get("OPENAI_IMAGE_QUALITY")?.trim());
+const IMAGE_QUALITY: ImageQuality = "medium";
 const IMAGE_TIMEOUT_MS = readPositiveIntEnv("OPENAI_IMAGE_TIMEOUT_MS", 95_000, 115_000);
 const GPT_IMAGE_2_TIMEOUT_FLOOR_MS = 110_000;
 const CONFIGURED_RETRY_IMAGE_TIMEOUT_MS = 70_000;
@@ -90,26 +86,8 @@ const MARKETING_REFERENCE_STORAGE_SEGMENT = "/marketing-assets/";
 const SUPPORTED_SOURCE_IMAGE_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const USD_TO_CHF_RATE = 0.81;
 const PHOTO_CREDIT_CHF = 0.009;
-const GPT_IMAGE_15_TEXT_INPUT_USD_PER_TOKEN = 5 / 1_000_000;
-const GPT_IMAGE_15_IMAGE_INPUT_USD_PER_TOKEN = 8 / 1_000_000;
-const GPT_IMAGE_2_IMAGE_OUTPUT_USD_PER_TOKEN = 30 / 1_000_000;
-const GPT_IMAGE_2_OUTPUT_COST_USD: Record<ImageQuality, Record<string, number>> = {
-  low: {
-    "1024x1024": 0.006,
-    "1024x1536": 0.005,
-    "1536x1024": 0.005,
-  },
-  medium: {
-    "1024x1024": 0.053,
-    "1024x1536": 0.041,
-    "1536x1024": 0.041,
-  },
-  high: {
-    "1024x1024": 0.211,
-    "1024x1536": 0.165,
-    "1536x1024": 0.165,
-  },
-};
+const GPT_IMAGE_2_MEDIUM_BASE_COST_CHF = 0.05;
+const GPT_IMAGE_2_MEDIUM_BASE_COST_USD = GPT_IMAGE_2_MEDIUM_BASE_COST_CHF / USD_TO_CHF_RATE;
 const PHOTO_STUDIO_RETOUCH_PROMPT = `
 Retouche cette photo de [TYPE_DE_PLAT] en conservant strictement le produit d'origine : mêmes ingrédients visibles, mêmes proportions, même structure, même angle de vue global, même composition générale, même position des éléments principaux et même identité visuelle. Ne pas remplacer ni redessiner le produit.
 
@@ -188,24 +166,12 @@ function readPositiveIntEnv(name: string, fallback: number, max: number) {
   return Math.min(Math.floor(value), max);
 }
 
-function normalizeImageQuality(raw: string | undefined): ImageQuality {
-  const value = raw?.toLowerCase();
-  if (value === "low" || value === "medium") return value;
-  if (value === "high" && readEnvFlag("TOK_ALLOW_HIGH_IMAGE_QUALITY", false)) return "high";
-  return "medium";
-}
-
-function normalizeImageModel(raw: unknown): TokImageModel {
-  const value = typeof raw === "string" ? raw.trim().toLowerCase().replace(/_/g, "-") : "";
-  if (["gpt-image-2", "gpt image 2", "gpt2", "gpt-2"].includes(value)) return "gpt-image-2";
-  if (["gpt-image-1.5", "gpt image 1.5", "gpt-image-15", "gpt-image-1-5", "gpt1.5", "gpt-1.5"].includes(value)) {
-    return "gpt-image-1.5";
-  }
+function normalizeImageModel(_raw: unknown): TokImageModel {
   return IMAGE_MODEL;
 }
 
-function getImageModelCreditMultiplier(model: TokImageModel) {
-  return TOK_IMAGE_MODEL_CREDIT_MULTIPLIERS[model] || 1;
+function getImageModelCreditMultiplier(_model: TokImageModel) {
+  return 1;
 }
 
 function getConfiguredImageTimeoutMs(model: TokImageModel) {
@@ -232,12 +198,12 @@ function buildConfiguredImageRequestOptions(formatSize: string, quality = IMAGE_
 }
 
 function buildImageRequestOptions(formatSize: string, sourceImagePresent: boolean, quality: ImageQuality, model: TokImageModel): ImageRequestOptions {
-  const shouldUseFastInteractiveEdit = sourceImagePresent || (USE_FAST_INTERACTIVE_IMAGE && quality === "low");
+  const shouldUseFastInteractiveEdit = sourceImagePresent || USE_FAST_INTERACTIVE_IMAGE;
   if (!shouldUseFastInteractiveEdit) return buildConfiguredImageRequestOptions(formatSize, quality, model);
 
   return {
     model,
-    quality: "low",
+    quality: IMAGE_QUALITY,
     size: formatSize,
     timeoutMs: INTERACTIVE_IMAGE_TIMEOUT_MS,
     mode: "interactive_fast",
@@ -251,7 +217,7 @@ function buildMarketingImageRequestOptions(formatSize: string, _hasReferenceImag
 function buildFallbackImageRequestOptions(options: ImageRequestOptions): ImageRequestOptions {
   return {
     ...options,
-    quality: "low",
+    quality: IMAGE_QUALITY,
     timeoutMs: getFallbackImageTimeoutMs(options),
     mode: "interactive_fast",
   };
@@ -472,20 +438,16 @@ function normalizeFormat(raw: unknown) {
   return { label: "landscape", size: "1536x1024" };
 }
 
-function normalizeOutputResolution(raw: unknown): ImageOutputResolution {
-  if (raw === "web") return "web";
-  if (raw === "print") return "print";
+function normalizeOutputResolution(_raw: unknown): ImageOutputResolution {
   return "studio";
 }
 
-function getQualityForOutputResolution(resolution: ImageOutputResolution): ImageQuality {
-  if (resolution === "web") return "low";
-  if (resolution === "print") return "high";
+function getQualityForOutputResolution(_resolution: ImageOutputResolution): ImageQuality {
   return "medium";
 }
 
-function getOpenAIOutputCostUsd(size: string, quality: ImageQuality) {
-  return GPT_IMAGE_2_OUTPUT_COST_USD[quality]?.[size] ?? GPT_IMAGE_2_OUTPUT_COST_USD.medium["1536x1024"];
+function getOpenAIOutputCostUsd(_size: string, _quality: ImageQuality) {
+  return GPT_IMAGE_2_MEDIUM_BASE_COST_USD;
 }
 
 function getImageOutputConfig(format: ReturnType<typeof normalizeFormat>, rawResolution: unknown, imageModel: TokImageModel) {
@@ -493,8 +455,8 @@ function getImageOutputConfig(format: ReturnType<typeof normalizeFormat>, rawRes
   const outputQuality = getQualityForOutputResolution(outputResolution);
   const imageModelCreditMultiplier = getImageModelCreditMultiplier(imageModel);
   const outputCostUsd = getOpenAIOutputCostUsd(format.size, outputQuality);
-  const baseOutputCostChf = outputCostUsd * USD_TO_CHF_RATE;
-  const outputCostChf = baseOutputCostChf * imageModelCreditMultiplier;
+  const baseOutputCostChf = GPT_IMAGE_2_MEDIUM_BASE_COST_CHF;
+  const outputCostChf = GPT_IMAGE_2_MEDIUM_BASE_COST_CHF;
   const creditUnits = Math.max(1, Math.ceil(outputCostChf / PHOTO_CREDIT_CHF));
 
   return {
@@ -524,18 +486,8 @@ type ImageUsage = {
   total_tokens?: number;
 };
 
-function estimateCostChf(usage: ImageUsage = {}, imageCount = 0, options?: Pick<ImageRequestOptions, "size" | "quality">) {
-  const inputTokens = Math.max(0, usage.input_tokens || 0);
-  const inputImageTokens = Math.max(0, usage.input_image_tokens || 0);
-  const inputTextTokens = Math.max(0, usage.input_text_tokens ?? inputTokens - inputImageTokens);
-  const outputTokens = Math.max(0, usage.output_tokens || 0);
-  const tokenCostUsd =
-    (inputTextTokens * GPT_IMAGE_15_TEXT_INPUT_USD_PER_TOKEN) +
-    (inputImageTokens * GPT_IMAGE_15_IMAGE_INPUT_USD_PER_TOKEN) +
-    (outputTokens * GPT_IMAGE_2_IMAGE_OUTPUT_USD_PER_TOKEN);
-  const fallbackOutputCostUsd = options ? getOpenAIOutputCostUsd(options.size, options.quality) * imageCount : 0;
-  const costUsd = tokenCostUsd > 0 ? tokenCostUsd : fallbackOutputCostUsd;
-  return Number((costUsd * USD_TO_CHF_RATE).toFixed(6));
+function estimateCostChf(_usage: ImageUsage = {}, imageCount = 0, _options?: Pick<ImageRequestOptions, "size" | "quality">) {
+  return Number((GPT_IMAGE_2_MEDIUM_BASE_COST_CHF * Math.max(1, imageCount)).toFixed(6));
 }
 
 function creditUnitsFromEstimatedCost(estimatedCostChf: number) {

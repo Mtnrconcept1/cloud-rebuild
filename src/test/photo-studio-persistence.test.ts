@@ -221,11 +221,13 @@ describe("TOK photo studio persistence", () => {
     expect(marketingStudio).toContain("Ils ne sont pas ajoutés à la galerie restaurant.");
     expect(marketingStudio).toContain("Brief & génération");
     expect(marketingStudio).toContain("Votre visuel est généré à partir du brief");
-    expect(marketingStudio).toContain("marketing-output-resolution");
-    expect(marketingStudio).toContain("TOK_IMAGE_OUTPUT_OPTIONS");
+    expect(marketingStudio).toContain("Image IA");
+    expect(marketingStudio).not.toContain("marketing-output-resolution");
+    expect(marketingStudio).not.toContain("TOK_IMAGE_OUTPUT_OPTIONS");
     expect(marketingStudio).toContain("outputResolution");
-    expect(source).toContain("Resolution de sortie");
-    expect(source).toContain("TOK_IMAGE_OUTPUT_OPTIONS");
+    expect(source).toContain("Configuration image");
+    expect(source).not.toContain("Resolution de sortie");
+    expect(source).not.toContain("TOK_IMAGE_OUTPUT_OPTIONS");
     expect(marketingStudio).not.toContain("Securite & confidentialite");
     expect(marketingStudio).not.toContain("Sécurité & confidentialité");
     expect(marketingStudio).not.toContain("Le module est pret pour une generation serveur");

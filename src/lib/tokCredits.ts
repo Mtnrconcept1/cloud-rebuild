@@ -1,9 +1,9 @@
 export const TOK_CREDITS_PER_CAMPAIGN_CHF = 15;
 export const TOK_AI_SIMPLE_REQUEST_CREDITS = 1;
 export const TOK_AI_STRATEGIC_REQUEST_CREDITS = 5;
-export const TOK_PHOTO_SIMPLE_CREDITS = 4;
-export const TOK_PHOTO_PRO_CREDITS = 19;
-export const TOK_MARKETING_FLYER_CREDITS = 19;
+export const TOK_PHOTO_SIMPLE_CREDITS = 6;
+export const TOK_PHOTO_PRO_CREDITS = 6;
+export const TOK_MARKETING_FLYER_CREDITS = 6;
 
 type TokCreditSource = {
   campaign_credit_chf?: number | string | null;

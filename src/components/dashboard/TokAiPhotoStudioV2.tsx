@@ -17,10 +17,7 @@ import {
   startTokImageCreationJob,
 } from "@/lib/ai/aiCreationJobs";
 import {
-  TOK_IMAGE_MODEL_OPTIONS,
-  TOK_IMAGE_OUTPUT_OPTIONS,
   getTokImageOutputPricing,
-  type TokImageModel,
   type TokImageOutputResolution,
 } from "@/lib/ai/imagePricing";
 import {
@@ -51,7 +48,6 @@ type PhotoStudioDraft = {
   dishName: string;
   format: TokImageFormat;
   outputResolution: TokImageOutputResolution;
-  imageModel: TokImageModel;
   result: TokImageGenerationResult | null;
 };
 
@@ -60,7 +56,6 @@ const DEFAULT_DRAFT: PhotoStudioDraft = {
   dishName: "",
   format: "landscape",
   outputResolution: "studio",
-  imageModel: "gpt-image-2",
   result: null,
 };
 
@@ -103,9 +98,8 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
   const result = draft.result;
   const generatedImageUrl = result?.gallery_image_url || result?.generated_image_url || "";
   const downloadFileName = buildTokPhotoDownloadFileName(draft.dishName || result?.title || "visuel-tok");
-  const selectedOutputResolution = draft.outputResolution || "studio";
-  const selectedImageModel = draft.imageModel || "gpt-image-2";
-  const outputPricing = getTokImageOutputPricing(draft.format, selectedOutputResolution, selectedImageModel);
+  const selectedOutputResolution: TokImageOutputResolution = "studio";
+  const outputPricing = getTokImageOutputPricing(draft.format, selectedOutputResolution);
   const shouldApplyTokWatermark = !isTokProOrHigherRestaurantSubscription(watermarkSubscription);
 
   const updateDraft = (nextDraft: Partial<PhotoStudioDraft>) => {
@@ -141,7 +135,6 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
         assetType: "menu_visual",
         format: draft.format,
         outputResolution: selectedOutputResolution,
-        imageModel: selectedImageModel,
         variantCount: 1,
         generateImage: true,
         imageOnly: true,
@@ -262,60 +255,18 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Modele IA</Label>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {TOK_IMAGE_MODEL_OPTIONS.map((option) => {
-                  const selected = selectedImageModel === option.value;
-                  const pricing = getTokImageOutputPricing(draft.format, selectedOutputResolution, option.value);
-                  return (
-                    <button
-                      key={option.value}
-                      type="button"
-                      onClick={() => updateDraft({ imageModel: option.value, result: null })}
-                      className={`min-w-0 rounded-2xl border p-3 text-left text-sm transition ${
-                        selected
-                          ? "border-orange-400 bg-orange-50 text-orange-950 shadow-sm"
-                          : "border-border bg-background hover:border-orange-200"
-                      }`}
-                    >
-                      <span className="block font-semibold">{option.label}</span>
-                      <span className="mt-1 block text-xs leading-5 text-muted-foreground">{option.description}</span>
-                      <span className="mt-2 inline-flex rounded-full bg-white px-2 py-1 text-xs font-bold text-orange-700">
-                        {pricing.photoCredits} credit{pricing.photoCredits > 1 ? "s" : ""}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>Resolution de sortie</Label>
-              <div className="grid gap-2 sm:grid-cols-3">
-                {TOK_IMAGE_OUTPUT_OPTIONS.map((option) => {
-                  const pricing = getTokImageOutputPricing(draft.format, option.value, selectedImageModel);
-                  const selected = selectedOutputResolution === option.value;
-                  return (
-                    <button
-                      key={option.value}
-                      type="button"
-                      onClick={() => updateDraft({ outputResolution: option.value, result: null })}
-                      className={`min-w-0 rounded-2xl border p-3 text-left text-sm transition ${
-                        selected
-                          ? "border-orange-400 bg-orange-50 text-orange-950 shadow-sm"
-                          : "border-border bg-background hover:border-orange-200"
-                      }`}
-                    >
-                      <span className="block font-semibold">{option.label}</span>
-                      <span className="mt-1 block text-xs leading-5 text-muted-foreground">{pricing.size} - qualite {option.quality}</span>
-                      <span className="mt-2 inline-flex rounded-full bg-white px-2 py-1 text-xs font-bold text-orange-700">
-                        {pricing.photoCredits} credit{pricing.photoCredits > 1 ? "s" : ""}
-                      </span>
-                    </button>
-                  );
-                })}
+              <Label>Configuration image</Label>
+              <div className="rounded-2xl border border-orange-200 bg-orange-50 p-3 text-sm text-orange-950">
+                <span className="block font-semibold">{outputPricing.modelLabel}</span>
+                <span className="mt-1 block text-xs leading-5">
+                  {outputPricing.size} - qualité {outputPricing.quality} - coût base {outputPricing.outputCostChf.toFixed(2)} CHF
+                </span>
+                <span className="mt-2 inline-flex rounded-full bg-white px-2 py-1 text-xs font-bold text-orange-700">
+                  {outputPricing.photoCredits} crédit{outputPricing.photoCredits > 1 ? "s" : ""}
+                </span>
               </div>
               <p className="text-xs leading-5 text-muted-foreground">
-                Estimation OpenAI: {outputPricing.outputCostChf.toFixed(3)} CHF par image, hors petite part de tokens d'entree.
+                TOK utilise uniquement GPT Image 2 en qualité medium pour les images.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">

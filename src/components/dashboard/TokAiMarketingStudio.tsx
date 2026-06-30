@@ -19,10 +19,7 @@ import {
   startTokImageCreationJob,
 } from "@/lib/ai/aiCreationJobs";
 import {
-  TOK_IMAGE_MODEL_OPTIONS,
-  TOK_IMAGE_OUTPUT_OPTIONS,
   getTokImageOutputPricing,
-  type TokImageModel,
   type TokImageOutputResolution,
 } from "@/lib/ai/imagePricing";
 import { optimizeImageUpload } from "@/lib/optimizedImages";
@@ -908,8 +905,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
   const [format, setFormat] = useState(DEFAULT_MARKETING_FORMAT.label);
   const [orientation, setOrientation] = useState<MarketingOrientation>(DEFAULT_MARKETING_FORMAT.orientation);
   const [styleMode, setStyleMode] = useState("Base sur mon identite");
-  const [outputResolution, setOutputResolution] = useState<TokImageOutputResolution>("studio");
-  const [imageModel, setImageModel] = useState<TokImageModel>("gpt-image-2");
+  const outputResolution: TokImageOutputResolution = "studio";
   const [resources, setResources] = useState<MarketingResource[]>([]);
   const [loading, setLoading] = useState(false);
   const [resourcesLoading, setResourcesLoading] = useState(false);
@@ -941,7 +937,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
   const hasLogo = persistedResources.some((resource) => resource.kind === "logo");
   const hasBrandResources = persistedResources.length >= 2;
   const marketingImageFormat = getMarketingImageFormat(selectedFormat.label, selectedFormat.orientation);
-  const outputPricing = getTokImageOutputPricing(marketingImageFormat, outputResolution, imageModel);
+  const outputPricing = getTokImageOutputPricing(marketingImageFormat, outputResolution);
   const { data: businessContext, isLoading: businessContextLoading } = useQuery({
     queryKey: ["marketing-studio-business-context", restaurantId],
     queryFn: () => fetchMarketingBusinessContext(restaurantId!),
@@ -1322,7 +1318,6 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
           assetType: "campaign_visual",
           format: marketingImageFormat,
           outputResolution,
-          imageModel,
           variantCount: 1,
           generateImage: true,
           imageOnly: true,
@@ -1547,7 +1542,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-orange-600 text-xs font-bold text-white">2</span>
                   Paramétrer le rendu
                 </div>
-              <div className="grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-5">
+              <div className="grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-4">
                 <div className="min-w-0 space-y-2">
                   <Label htmlFor="marketing-format">Format</Label>
                   <select
@@ -1605,54 +1600,15 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                   </select>
                 </div>
                 <div className="min-w-0 space-y-2">
-                  <Label htmlFor="marketing-output-resolution">Resolution</Label>
-                  <select
-                    id="marketing-output-resolution"
-                    value={outputResolution}
-                    onChange={(event) => {
-                      invalidateMarketingGeneration();
-                      setOutputResolution(event.target.value as TokImageOutputResolution);
-                    }}
-                    className="h-10 w-full rounded-md border bg-background px-3 text-sm"
-                  >
-                    {TOK_IMAGE_OUTPUT_OPTIONS.map((option) => {
-                      const pricing = getTokImageOutputPricing(marketingImageFormat, option.value, imageModel);
-                      return (
-                        <option key={option.value} value={option.value}>
-                          {option.label} - {pricing.photoCredits} cr.
-                        </option>
-                      );
-                    })}
-                  </select>
-                  <p className="text-xs leading-5 text-muted-foreground">
-                    {outputPricing.size} - qualite {outputPricing.quality}
-                  </p>
+                  <Label>Image IA</Label>
+                  <div className="rounded-md border bg-background px-3 py-2 text-sm">
+                    <p className="font-medium text-foreground">{outputPricing.modelLabel}</p>
+                    <p className="text-xs leading-5 text-muted-foreground">
+                      {outputPricing.size} - qualité {outputPricing.quality} - {outputPricing.photoCredits} cr.
+                    </p>
+                  </div>
                 </div>
-                <div className="min-w-0 space-y-2">
-                  <Label htmlFor="marketing-image-model">Modele IA</Label>
-                  <select
-                    id="marketing-image-model"
-                    value={imageModel}
-                    onChange={(event) => {
-                      invalidateMarketingGeneration();
-                      setImageModel(event.target.value as TokImageModel);
-                    }}
-                    className="h-10 w-full rounded-md border bg-background px-3 text-sm"
-                  >
-                    {TOK_IMAGE_MODEL_OPTIONS.map((option) => {
-                      const pricing = getTokImageOutputPricing(marketingImageFormat, outputResolution, option.value);
-                      return (
-                        <option key={option.value} value={option.value}>
-                          {option.label} - {pricing.photoCredits} cr.
-                        </option>
-                      );
-                    })}
-                  </select>
-                  <p className="text-xs leading-5 text-muted-foreground">
-                    {outputPricing.modelLabel} - cout x{outputPricing.creditMultiplier}
-                  </p>
-                </div>
-                <div className="mt-2 flex justify-stretch md:col-span-2 xl:col-span-5 md:justify-end">
+                <div className="mt-2 flex justify-stretch md:col-span-2 xl:col-span-4 md:justify-end">
                   <Button
                     type="button"
                     variant="outline"
