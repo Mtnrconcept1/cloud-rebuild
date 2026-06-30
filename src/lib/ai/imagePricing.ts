@@ -19,21 +19,21 @@ export type TokImageModelOption = {
 };
 
 export const TOK_IMAGE_USD_TO_CHF_RATE = 0.81;
-export const TOK_PHOTO_CREDIT_CHF = 0.015;
-export const TOK_IMAGE_DEFAULT_MODEL: TokImageModel = "gpt-image-1.5";
+export const TOK_PHOTO_CREDIT_CHF = 0.009;
+export const TOK_IMAGE_DEFAULT_MODEL: TokImageModel = "gpt-image-2";
 
 export const TOK_IMAGE_MODEL_OPTIONS: TokImageModelOption[] = [
   {
-    value: "gpt-image-1.5",
-    label: "GPT Image 1.5",
-    description: "Tarif standard Photo IA TOK.",
+    value: "gpt-image-2",
+    label: "GPT Image 2",
+    description: "Modèle image par défaut, aligné sur les crédits TOK x10.",
     creditMultiplier: 1,
   },
   {
-    value: "gpt-image-2",
-    label: "GPT Image 2",
-    description: "Rendu premium, cout x1.5.",
-    creditMultiplier: 1.5,
+    value: "gpt-image-1.5",
+    label: "GPT Image 1.5 legacy",
+    description: "Ancien modèle, conservé pour compatibilité jusqu'à sa dépréciation.",
+    creditMultiplier: 32 / 30,
   },
 ];
 

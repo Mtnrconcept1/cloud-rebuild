@@ -1,4 +1,11 @@
 import { HttpError } from "./auth.ts";
+export {
+  TOK_OPENAI_COST_CHF_PER_CREDIT,
+  TOK_OPENAI_USD_TO_CHF_RATE,
+  estimateOpenAITextCostChf,
+  getOpenAITextCreditUnits,
+  getTokAiCreditUnitsFromCostChf,
+} from "./ai-pricing.ts";
 
 export const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY")?.trim() || "";
 export const OPENAI_MODEL = Deno.env.get("OPENAI_MODEL")?.trim() || "gpt-5.5";

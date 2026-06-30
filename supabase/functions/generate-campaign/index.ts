@@ -12,7 +12,9 @@ import { makeLogger } from "../_shared/logging.ts";
 import {
   OPENAI_API_KEY,
   createOpenAIResponse,
+  estimateOpenAITextCostChf,
   extractUsage,
+  getOpenAITextCreditUnits,
   parseStructuredOutput,
   selectTokAiModel,
 } from "../_shared/openai.ts";
@@ -742,10 +744,14 @@ Retourne UNIQUEMENT le JSON, sans explication.`;
       input_tokens: aiUsage.input_tokens || 0,
       output_tokens: aiUsage.output_tokens || 0,
       total_tokens: aiUsage.total_tokens || 0,
-      estimated_cost_chf: 0,
+      estimated_cost_chf: generationSource === "ai"
+        ? estimateOpenAITextCostChf(aiModel, aiUsage.input_tokens, aiUsage.output_tokens)
+        : 0,
       metadata: {
         credit_kind: "ai_tools",
-        credit_units: 5,
+        credit_units: generationSource === "ai"
+          ? getOpenAITextCreditUnits(aiModel, aiUsage.input_tokens, aiUsage.output_tokens)
+          : 0,
         generation_source: generationSource,
         fallback_reason: fallbackReason,
         requested_settings: requestedSettings,

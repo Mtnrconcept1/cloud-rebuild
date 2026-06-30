@@ -909,7 +909,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
   const [orientation, setOrientation] = useState<MarketingOrientation>(DEFAULT_MARKETING_FORMAT.orientation);
   const [styleMode, setStyleMode] = useState("Base sur mon identite");
   const [outputResolution, setOutputResolution] = useState<TokImageOutputResolution>("studio");
-  const [imageModel, setImageModel] = useState<TokImageModel>("gpt-image-1.5");
+  const [imageModel, setImageModel] = useState<TokImageModel>("gpt-image-2");
   const [resources, setResources] = useState<MarketingResource[]>([]);
   const [loading, setLoading] = useState(false);
   const [resourcesLoading, setResourcesLoading] = useState(false);

@@ -10,6 +10,8 @@ import { createRateLimiter } from "../_shared/rate-limit.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import {
   OPENAI_API_KEY,
+  estimateOpenAITextCostChf,
+  getOpenAITextCreditUnits,
   selectTokAiModel,
 } from "../_shared/openai.ts";
 
@@ -70,8 +72,8 @@ function estimateTokens(text: string) {
   return Math.max(1, Math.ceil(text.length / 4));
 }
 
-function estimateCostChf(inputTokens = 0, outputTokens = 0) {
-  return Number(((inputTokens * 0.00000025) + (outputTokens * 0.000001)).toFixed(6));
+function estimateCostChf(model: string, inputTokens = 0, outputTokens = 0) {
+  return estimateOpenAITextCostChf(model, inputTokens, outputTokens);
 }
 
 async function insertUsage(
@@ -100,8 +102,13 @@ async function insertUsage(
     input_tokens: inputTokens,
     output_tokens: outputTokens,
     total_tokens: inputTokens + outputTokens,
-    estimated_cost_chf: estimateCostChf(inputTokens, outputTokens),
-    metadata: { feature: FEATURE_NAME, credit_kind: "ai_tools", credit_units: 5, ...(payload.metadata || {}) },
+    estimated_cost_chf: estimateCostChf(payload.model, inputTokens, outputTokens),
+    metadata: {
+      feature: FEATURE_NAME,
+      credit_kind: "ai_tools",
+      credit_units: getOpenAITextCreditUnits(payload.model, inputTokens, outputTokens),
+      ...(payload.metadata || {}),
+    },
   });
 }
 

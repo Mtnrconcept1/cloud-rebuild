@@ -63,10 +63,10 @@ type ImageOperationResult = {
 const FUNCTION_NAME = "ai-image-enhance";
 const IMAGE_GENERATIONS_URL = "https://api.openai.com/v1/images/generations";
 const IMAGE_EDITS_URL = "https://api.openai.com/v1/images/edits";
-const IMAGE_MODEL: TokImageModel = "gpt-image-1.5";
+const IMAGE_MODEL: TokImageModel = "gpt-image-2";
 const TOK_IMAGE_MODEL_CREDIT_MULTIPLIERS: Record<TokImageModel, number> = {
-  "gpt-image-1.5": 1,
-  "gpt-image-2": 1.5,
+  "gpt-image-2": 1,
+  "gpt-image-1.5": 32 / 30,
 };
 const IMAGE_QUALITY = normalizeImageQuality(Deno.env.get("OPENAI_IMAGE_QUALITY")?.trim());
 const IMAGE_TIMEOUT_MS = readPositiveIntEnv("OPENAI_IMAGE_TIMEOUT_MS", 95_000, 115_000);
@@ -89,11 +89,11 @@ const MARKETING_REFERENCE_MEDIA_TYPES = [...MARKETING_REFERENCE_MEDIA_TYPE_PRIOR
 const MARKETING_REFERENCE_STORAGE_SEGMENT = "/marketing-assets/";
 const SUPPORTED_SOURCE_IMAGE_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const USD_TO_CHF_RATE = 0.81;
-const PHOTO_CREDIT_CHF = 0.015;
+const PHOTO_CREDIT_CHF = 0.009;
 const GPT_IMAGE_15_TEXT_INPUT_USD_PER_TOKEN = 5 / 1_000_000;
 const GPT_IMAGE_15_IMAGE_INPUT_USD_PER_TOKEN = 8 / 1_000_000;
-const GPT_IMAGE_15_IMAGE_OUTPUT_USD_PER_TOKEN = 30 / 1_000_000;
-const GPT_IMAGE_15_OUTPUT_COST_USD: Record<ImageQuality, Record<string, number>> = {
+const GPT_IMAGE_2_IMAGE_OUTPUT_USD_PER_TOKEN = 30 / 1_000_000;
+const GPT_IMAGE_2_OUTPUT_COST_USD: Record<ImageQuality, Record<string, number>> = {
   low: {
     "1024x1024": 0.006,
     "1024x1536": 0.005,
@@ -485,7 +485,7 @@ function getQualityForOutputResolution(resolution: ImageOutputResolution): Image
 }
 
 function getOpenAIOutputCostUsd(size: string, quality: ImageQuality) {
-  return GPT_IMAGE_15_OUTPUT_COST_USD[quality]?.[size] ?? GPT_IMAGE_15_OUTPUT_COST_USD.medium["1536x1024"];
+  return GPT_IMAGE_2_OUTPUT_COST_USD[quality]?.[size] ?? GPT_IMAGE_2_OUTPUT_COST_USD.medium["1536x1024"];
 }
 
 function getImageOutputConfig(format: ReturnType<typeof normalizeFormat>, rawResolution: unknown, imageModel: TokImageModel) {
@@ -532,7 +532,7 @@ function estimateCostChf(usage: ImageUsage = {}, imageCount = 0, options?: Pick<
   const tokenCostUsd =
     (inputTextTokens * GPT_IMAGE_15_TEXT_INPUT_USD_PER_TOKEN) +
     (inputImageTokens * GPT_IMAGE_15_IMAGE_INPUT_USD_PER_TOKEN) +
-    (outputTokens * GPT_IMAGE_15_IMAGE_OUTPUT_USD_PER_TOKEN);
+    (outputTokens * GPT_IMAGE_2_IMAGE_OUTPUT_USD_PER_TOKEN);
   const fallbackOutputCostUsd = options ? getOpenAIOutputCostUsd(options.size, options.quality) * imageCount : 0;
   const costUsd = tokenCostUsd > 0 ? tokenCostUsd : fallbackOutputCostUsd;
   return Number((costUsd * USD_TO_CHF_RATE).toFixed(6));

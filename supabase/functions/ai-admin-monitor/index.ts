@@ -11,7 +11,9 @@ import { createRateLimiter } from "../_shared/rate-limit.ts";
 import {
   OPENAI_API_KEY,
   createOpenAIResponse,
+  estimateOpenAITextCostChf,
   extractUsage,
+  getOpenAITextCreditUnits,
   parseStructuredOutput,
   selectTokAiModel,
 } from "../_shared/openai.ts";
@@ -296,8 +298,8 @@ async function checkRestaurantQuota(
   };
 }
 
-function estimateCostChf(inputTokens = 0, outputTokens = 0) {
-  return Number(((inputTokens * 0.00000025) + (outputTokens * 0.000001)).toFixed(6));
+function estimateCostChf(model: string, inputTokens = 0, outputTokens = 0) {
+  return estimateOpenAITextCostChf(model, inputTokens, outputTokens);
 }
 
 function toHealthScore(value: unknown) {
@@ -441,6 +443,9 @@ async function insertUsage(
     metadata?: Record<string, unknown>;
   },
 ) {
+  const inputTokens = payload.usage?.input_tokens ?? 0;
+  const outputTokens = payload.usage?.output_tokens ?? 0;
+
   await actor.adminClient.from("ai_usage_logs").insert({
     function_name: FUNCTION_NAME,
     action: payload.action,
@@ -450,13 +455,15 @@ async function insertUsage(
     user_id: actor.userId,
     restaurant_id: payload.restaurantId || null,
     status: payload.status,
-    input_tokens: payload.usage?.input_tokens ?? 0,
-    output_tokens: payload.usage?.output_tokens ?? 0,
-    total_tokens: payload.usage?.total_tokens ?? 0,
-    estimated_cost_chf: estimateCostChf(payload.usage?.input_tokens, payload.usage?.output_tokens),
+    input_tokens: inputTokens,
+    output_tokens: outputTokens,
+    total_tokens: payload.usage?.total_tokens ?? inputTokens + outputTokens,
+    estimated_cost_chf: estimateCostChf(payload.model, inputTokens, outputTokens),
     metadata: {
       feature: FEATURE_NAME,
       ai_admin_event_id: payload.adminEventId || null,
+      credit_kind: "ai_tools",
+      credit_units: getOpenAITextCreditUnits(payload.model, inputTokens, outputTokens),
       ...(payload.metadata || {}),
     },
   });

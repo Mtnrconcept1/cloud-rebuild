@@ -12,7 +12,9 @@ import {
   OPENAI_API_KEY,
   OPENAI_MODEL,
   createOpenAIResponse,
+  estimateOpenAITextCostChf,
   extractUsage,
+  getOpenAITextCreditUnits,
   parseStructuredOutput,
 } from "../_shared/openai.ts";
 
@@ -92,6 +94,10 @@ async function insertUsage(
     metadata?: Record<string, unknown>;
   },
 ) {
+  const inputTokens = payload.usage?.input_tokens ?? 0;
+  const outputTokens = payload.usage?.output_tokens ?? 0;
+  const estimatedCostChf = estimateOpenAITextCostChf(OPENAI_MODEL, inputTokens, outputTokens);
+
   await actor.adminClient.from("ai_usage_logs").insert({
     function_name: FUNCTION_NAME,
     action: payload.action,
@@ -100,10 +106,15 @@ async function insertUsage(
     restaurant_id: payload.restaurantId || null,
     conversation_id: payload.conversationId || null,
     status: payload.status,
-    input_tokens: payload.usage?.input_tokens ?? 0,
-    output_tokens: payload.usage?.output_tokens ?? 0,
-    total_tokens: payload.usage?.total_tokens ?? 0,
-    metadata: { credit_kind: "ai_tools", credit_units: 5, ...(payload.metadata || {}) },
+    input_tokens: inputTokens,
+    output_tokens: outputTokens,
+    total_tokens: payload.usage?.total_tokens ?? inputTokens + outputTokens,
+    estimated_cost_chf: estimatedCostChf,
+    metadata: {
+      credit_kind: "ai_tools",
+      credit_units: getOpenAITextCreditUnits(OPENAI_MODEL, inputTokens, outputTokens),
+      ...(payload.metadata || {}),
+    },
   });
 }
 

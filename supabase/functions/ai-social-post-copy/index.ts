@@ -11,7 +11,9 @@ import { createRateLimiter } from "../_shared/rate-limit.ts";
 import {
   OPENAI_API_KEY,
   createOpenAIResponse,
+  estimateOpenAITextCostChf,
   extractUsage,
+  getOpenAITextCreditUnits,
   parseStructuredOutput,
   selectTokAiModel,
 } from "../_shared/openai.ts";
@@ -169,6 +171,8 @@ Respecte le contexte fourni. Si une offre ou quantite est absente, reste prudent
     if (variants.length !== 3) throw new HttpError(502, "ai_invalid_response");
 
     const usage = extractUsage(openAIResponse);
+    const inputTokens = usage.input_tokens ?? 0;
+    const outputTokens = usage.output_tokens ?? 0;
     await actor.adminClient.from("ai_usage_logs").insert({
       function_name: FUNCTION_NAME,
       action: "generate_social_post_copy",
@@ -178,11 +182,13 @@ Respecte le contexte fourni. Si une offre ou quantite est absente, reste prudent
       user_id: actor.userId,
       restaurant_id: restaurantId,
       status: "success",
-      input_tokens: usage.input_tokens ?? 0,
-      output_tokens: usage.output_tokens ?? 0,
-      total_tokens: usage.total_tokens ?? 0,
-      estimated_cost_chf: Number((((usage.input_tokens ?? 0) * 0.00000025) + ((usage.output_tokens ?? 0) * 0.000001)).toFixed(6)),
+      input_tokens: inputTokens,
+      output_tokens: outputTokens,
+      total_tokens: usage.total_tokens ?? inputTokens + outputTokens,
+      estimated_cost_chf: estimateOpenAITextCostChf(model, inputTokens, outputTokens),
       metadata: {
+        credit_kind: "ai_tools",
+        credit_units: getOpenAITextCreditUnits(model, inputTokens, outputTokens),
         objective: answers.objective,
         variant_count: variants.length,
       },

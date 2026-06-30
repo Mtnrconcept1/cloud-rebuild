@@ -60,7 +60,7 @@ const DEFAULT_DRAFT: PhotoStudioDraft = {
   dishName: "",
   format: "landscape",
   outputResolution: "studio",
-  imageModel: "gpt-image-1.5",
+  imageModel: "gpt-image-2",
   result: null,
 };
 
@@ -104,7 +104,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
   const generatedImageUrl = result?.gallery_image_url || result?.generated_image_url || "";
   const downloadFileName = buildTokPhotoDownloadFileName(draft.dishName || result?.title || "visuel-tok");
   const selectedOutputResolution = draft.outputResolution || "studio";
-  const selectedImageModel = draft.imageModel || "gpt-image-1.5";
+  const selectedImageModel = draft.imageModel || "gpt-image-2";
   const outputPricing = getTokImageOutputPricing(draft.format, selectedOutputResolution, selectedImageModel);
   const shouldApplyTokWatermark = !isTokProOrHigherRestaurantSubscription(watermarkSubscription);
 

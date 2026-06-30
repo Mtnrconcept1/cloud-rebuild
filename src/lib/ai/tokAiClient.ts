@@ -518,8 +518,19 @@ export async function getAdminDashboardChatMessages(conversationId: string) {
   return result.messages || [];
 }
 
-export function estimateAiCost(inputTokens = 0, outputTokens = 0) {
-  return Number(((inputTokens * 0.00000025) + (outputTokens * 0.000001)).toFixed(6));
+const TOK_OPENAI_USD_TO_CHF_RATE = 0.81;
+
+const TEXT_MODEL_PRICING_USD_PER_M_TOKEN: Record<string, { input: number; output: number }> = {
+  "gpt-5.5": { input: 5, output: 30 },
+  "gpt-5.4-mini": { input: 0.75, output: 4.5 },
+};
+
+export function estimateAiCost(inputTokens = 0, outputTokens = 0, model = "gpt-5.4-mini") {
+  const pricing = TEXT_MODEL_PRICING_USD_PER_M_TOKEN[model] || TEXT_MODEL_PRICING_USD_PER_M_TOKEN["gpt-5.5"]!;
+  const costUsd =
+    (Math.max(0, inputTokens) * pricing.input / 1_000_000)
+    + (Math.max(0, outputTokens) * pricing.output / 1_000_000);
+  return Number((costUsd * TOK_OPENAI_USD_TO_CHF_RATE).toFixed(6));
 }
 
 export async function getAiUsageForRestaurant(restaurantId: string, since?: string) {

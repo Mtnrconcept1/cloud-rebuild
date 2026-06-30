@@ -82,24 +82,31 @@ describe("TOK AI tools foundation", () => {
     }
   });
 
-  it("charges five ai_tools credits for every non-photo restaurant AI request", () => {
+  it("charges ai_tools credits from the current OpenAI model cost", () => {
+    const pricing = readProjectFile("supabase/functions/_shared/ai-pricing.ts");
+
+    expect(pricing).toContain("TOK_OPENAI_COST_CHF_PER_CREDIT = 0.009");
+    expect(pricing).toContain('"gpt-5.5": { inputUsdPerMillion: 5');
+    expect(pricing).toContain('"gpt-5.4-mini": { inputUsdPerMillion: 0.75');
+    expect(pricing).toContain("estimateOpenAITextCostChf");
+    expect(pricing).toContain("getOpenAITextCreditUnits");
+
     for (const fn of ["ai-restaurant-agent", "ai-restaurant-tools", "restaurant-advisor", "generate-campaign", "floorplan-ai", "ai-accounting-agent"]) {
       const source = readProjectFile(`supabase/functions/${fn}/index.ts`);
 
       expect(source).toContain("ai_usage_logs");
       expect(source).toContain('credit_kind: "ai_tools"');
-      expect(source).toContain("credit_units");
-      expect(source).toContain("5");
+      expect(source).toContain("getOpenAITextCreditUnits");
     }
 
     const photoSource = readProjectFile("supabase/functions/ai-image-enhance/index.ts");
     expect(photoSource).toContain('credit_kind: "photo_retouch"');
     expect(photoSource).not.toContain('credit_kind: "ai_tools"');
 
-    const migration = readProjectFile("supabase/migrations/20260615031500_campaign_credit_packs.sql");
-    expect(migration).toContain("'ai-restaurant-agent', 'ai-restaurant-tools', 'restaurant-advisor', 'generate-campaign', 'floorplan-ai', 'ai-accounting-agent'");
-    expect(migration).toContain("ul.metadata->>'credit_kind'");
-    expect(migration).toContain("THEN 5 END");
+    const migration = readMigrationContaining("openai_x10_credit_pricing");
+    expect(migration).toContain("Coût OpenAI inclus plafonné à 6.75 CHF / mois");
+    expect(migration).toContain("monthly_campaign_credit_chf = rsp.campaign_credit_chf");
+    expect(migration).toContain("/ 0.009");
   });
 
   it("keeps generated image storage on the governed private bucket by default", () => {
@@ -150,8 +157,8 @@ describe("TOK AI tools foundation", () => {
     expect(source).toContain("buildMarketingImageRequestOptions(format.size, referenceImageUrls.length > 0, outputConfig.outputQuality, imageModel)");
     expect(source).not.toContain("TOK_INTERACTIVE_IMAGE_QUALITY");
     expect(source).not.toContain("TOK_INTERACTIVE_IMAGE_SIZE");
-    expect(source).toContain('"gpt-image-1.5": 1');
-    expect(source).toContain('"gpt-image-2": 1.5');
+    expect(source).toContain('"gpt-image-2": 1');
+    expect(source).toContain('"gpt-image-1.5": 32 / 30');
     expect(source).toContain("normalizeImageModel(body.imageModel ?? body.model)");
     expect(source).not.toContain("gpt-image-1-mini");
     expect(source).toContain('"low"');
@@ -265,13 +272,13 @@ describe("TOK AI tools foundation", () => {
     }
   });
 
-  it("lets PhotoPro and Marketing Studio choose GPT image 1.5 or 2 without env model overrides", () => {
+  it("lets PhotoPro and Marketing Studio choose GPT image 2 or legacy 1.5 without env model overrides", () => {
     const source = readProjectFile("supabase/functions/ai-image-enhance/index.ts");
     const secrets = readProjectFile("scripts/write-supabase-secrets-env.mjs");
     const workflow = readProjectFile(".github/workflows/deploy-production.yml");
 
-    expect(source).toContain('const IMAGE_MODEL: TokImageModel = "gpt-image-1.5";');
-    expect(source).toContain('"gpt-image-2": 1.5');
+    expect(source).toContain('const IMAGE_MODEL: TokImageModel = "gpt-image-2";');
+    expect(source).toContain('"gpt-image-1.5": 32 / 30');
     expect(source).toContain("normalizeImageModel(body.imageModel ?? body.model)");
     expect(source).not.toContain('Deno.env.get("OPENAI_IMAGE_MODEL")');
     expect(source).not.toContain("gpt-image-1-mini");
@@ -286,15 +293,15 @@ describe("TOK AI tools foundation", () => {
     const pricing = readProjectFile("src/lib/ai/imagePricing.ts");
     const photoStudio = readProjectFile("src/components/dashboard/TokAiPhotoStudioV2.tsx");
     const marketingStudio = readProjectFile("src/components/dashboard/TokAiMarketingStudio.tsx");
-    const migration = readMigrationContaining("ai_image_resolution_credit_pricing");
-    const repriceMigration = readMigrationContaining("photo_ai_credit_units_from_estimated_cost");
+    const migration = readMigrationContaining("openai_x10_credit_pricing");
+    const repriceMigration = migration;
 
     for (const expected of [
       "USD_TO_CHF_RATE = 0.81",
-      "PHOTO_CREDIT_CHF = 0.015",
+      "PHOTO_CREDIT_CHF = 0.009",
       "GPT_IMAGE_15_TEXT_INPUT_USD_PER_TOKEN = 5 / 1_000_000",
       "GPT_IMAGE_15_IMAGE_INPUT_USD_PER_TOKEN = 8 / 1_000_000",
-      "GPT_IMAGE_15_IMAGE_OUTPUT_USD_PER_TOKEN = 30 / 1_000_000",
+      "GPT_IMAGE_2_IMAGE_OUTPUT_USD_PER_TOKEN = 30 / 1_000_000",
       '"1024x1024": 0.211',
       '"1024x1536": 0.165',
       '"1536x1024": 0.165',
@@ -323,8 +330,9 @@ describe("TOK AI tools foundation", () => {
     expect(pricing).toContain("TOK_IMAGE_OUTPUT_OPTIONS");
     expect(pricing).toContain("TOK_IMAGE_MODEL_OPTIONS");
     expect(pricing).toContain('value: "gpt-image-2"');
-    expect(pricing).toContain("creditMultiplier: 1.5");
-    expect(pricing).toContain("TOK_PHOTO_CREDIT_CHF = 0.015");
+    expect(pricing).toContain("TOK_IMAGE_DEFAULT_MODEL: TokImageModel = \"gpt-image-2\"");
+    expect(pricing).toContain("creditMultiplier: 32 / 30");
+    expect(pricing).toContain("TOK_PHOTO_CREDIT_CHF = 0.009");
     expect(photoStudio).toContain("Modele IA");
     expect(photoStudio).toContain("imageModel: selectedImageModel");
     expect(photoStudio).toContain("Resolution de sortie");
@@ -333,13 +341,12 @@ describe("TOK AI tools foundation", () => {
     expect(marketingStudio).toContain("imageModel");
     expect(marketingStudio).toContain("marketing-output-resolution");
     expect(marketingStudio).toContain("outputResolution");
-    expect(migration).toContain("WHEN 'starter' THEN 24");
-    expect(migration).toContain("WHEN 'pro' THEN 96");
-    expect(migration).toContain("WHEN 'premium' THEN 240");
-    expect(migration).toContain("WHEN 'elite' THEN 960");
-    expect(migration).toContain("ai_photo_credits = 120");
+    expect(migration).toContain("WHEN 'starter' THEN 187");
+    expect(migration).toContain("WHEN 'pro' THEN 356");
+    expect(migration).toContain("WHEN 'premium' THEN 551");
+    expect(migration).toContain("WHEN 'elite' THEN 1383");
     expect(repriceMigration).toContain("normalize_photo_ai_usage_credit_units");
-    expect(repriceMigration).toContain("CEIL(GREATEST(COALESCE(NEW.estimated_cost_chf, 0), 0) / 0.015)");
+    expect(repriceMigration).toContain("CEIL(GREATEST(COALESCE(NEW.estimated_cost_chf, 0), 0) / 0.009)");
     expect(repriceMigration).toContain("requested_output_credit_units");
     expect(repriceMigration).toContain("UPDATE public.ai_usage_logs");
     expect(repriceMigration).toContain("previous_credit_units");

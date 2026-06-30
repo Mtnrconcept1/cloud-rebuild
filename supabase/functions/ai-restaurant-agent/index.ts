@@ -11,7 +11,9 @@ import { createRateLimiter } from "../_shared/rate-limit.ts";
 import {
   OPENAI_API_KEY,
   createOpenAIResponse,
+  estimateOpenAITextCostChf,
   extractUsage,
+  getOpenAITextCreditUnits,
   parseStructuredOutput,
   selectTokAiModel,
 } from "../_shared/openai.ts";
@@ -125,8 +127,8 @@ async function checkRestaurantQuota(
   };
 }
 
-function estimateCostChf(inputTokens = 0, outputTokens = 0) {
-  return Number(((inputTokens * 0.00000025) + (outputTokens * 0.000001)).toFixed(6));
+function estimateCostChf(model: string, inputTokens = 0, outputTokens = 0) {
+  return estimateOpenAITextCostChf(model, inputTokens, outputTokens);
 }
 
 async function insertUsage(
@@ -143,6 +145,9 @@ async function insertUsage(
     metadata?: Record<string, unknown>;
   },
 ) {
+  const inputTokens = payload.usage?.input_tokens ?? 0;
+  const outputTokens = payload.usage?.output_tokens ?? 0;
+
   await actor.adminClient.from("ai_usage_logs").insert({
     function_name: FUNCTION_NAME,
     action: payload.action,
@@ -154,11 +159,16 @@ async function insertUsage(
     conversation_id: payload.conversationId || null,
     task_id: payload.taskId || null,
     status: payload.status,
-    input_tokens: payload.usage?.input_tokens ?? 0,
-    output_tokens: payload.usage?.output_tokens ?? 0,
-    total_tokens: payload.usage?.total_tokens ?? 0,
-    estimated_cost_chf: estimateCostChf(payload.usage?.input_tokens, payload.usage?.output_tokens),
-    metadata: { feature: payload.featureName, credit_kind: "ai_tools", credit_units: 5, ...(payload.metadata || {}) },
+    input_tokens: inputTokens,
+    output_tokens: outputTokens,
+    total_tokens: payload.usage?.total_tokens ?? inputTokens + outputTokens,
+    estimated_cost_chf: estimateCostChf(payload.model, inputTokens, outputTokens),
+    metadata: {
+      feature: payload.featureName,
+      credit_kind: "ai_tools",
+      credit_units: getOpenAITextCreditUnits(payload.model, inputTokens, outputTokens),
+      ...(payload.metadata || {}),
+    },
   });
 }
 
@@ -324,7 +334,7 @@ Reponds en francais operationnel, avec priorites courtes.`;
         result,
         status: "draft",
         model,
-        estimated_cost_chf: estimateCostChf(usage.input_tokens, usage.output_tokens),
+        estimated_cost_chf: estimateCostChf(model, usage.input_tokens, usage.output_tokens),
         metadata: { confidence: result.confidence, warnings: result.warnings },
       })
       .select("id")

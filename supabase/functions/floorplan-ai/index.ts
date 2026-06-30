@@ -8,13 +8,16 @@ import {
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { createRateLimiter } from "../_shared/rate-limit.ts";
 import { makeLogger } from "../_shared/logging.ts";
+import {
+  estimateOpenAITextCostChf,
+  getOpenAITextCreditUnits,
+} from "../_shared/openai.ts";
 
 const OPENAI_URL = "https://api.openai.com/v1/chat/completions";
 const MAX_IMAGE_DATA_URL_CHARS = 8_000_000;
 const IMAGE_MIME_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
 const FUNCTION_NAME = "floorplan-ai";
 const FEATURE_NAME = "floorplan_ai";
-const AI_TOOL_CREDIT_UNITS = 5;
 const CANONICAL_CANVAS_WIDTH = 1040;
 const CANONICAL_CANVAS_HEIGHT = 760;
 const CANVAS_ROOM_INSET = 46;
@@ -904,8 +907,8 @@ function extractChatUsage(value: unknown) {
   return { inputTokens, outputTokens, totalTokens };
 }
 
-function estimateCostChf(inputTokens = 0, outputTokens = 0) {
-  return Number(((inputTokens * 0.00000025) + (outputTokens * 0.000001)).toFixed(6));
+function estimateCostChf(model: string, inputTokens = 0, outputTokens = 0) {
+  return estimateOpenAITextCostChf(model, inputTokens, outputTokens);
 }
 
 async function insertUsage(
@@ -931,8 +934,12 @@ async function insertUsage(
     input_tokens: payload.usage.inputTokens,
     output_tokens: payload.usage.outputTokens,
     total_tokens: payload.usage.totalTokens,
-    estimated_cost_chf: estimateCostChf(payload.usage.inputTokens, payload.usage.outputTokens),
-    metadata: { credit_kind: "ai_tools", credit_units: AI_TOOL_CREDIT_UNITS, ...(payload.metadata || {}) },
+    estimated_cost_chf: estimateCostChf(payload.model, payload.usage.inputTokens, payload.usage.outputTokens),
+    metadata: {
+      credit_kind: "ai_tools",
+      credit_units: getOpenAITextCreditUnits(payload.model, payload.usage.inputTokens, payload.usage.outputTokens),
+      ...(payload.metadata || {}),
+    },
   });
 }
 
