@@ -25,6 +25,7 @@ import {
   isAntiWasteOfferPubliclyVisible,
   isFlashSalePubliclyVisible,
 } from "@/lib/specialOffers";
+import { shouldApplyTokWatermarkToRestaurantMedia } from "@/lib/ai/restaurantMediaMetadata";
 import {
   formatProgressiveCountdown,
   formatProgressiveServiceDate,
@@ -69,6 +70,7 @@ type RestaurantGalleryPhoto = {
   is_cover: boolean;
   position: number;
   media_type: string;
+  metadata?: unknown;
 };
 
 type RestaurantPromotion = {
@@ -195,13 +197,17 @@ function RestaurantGalleryWatermark({ className = "", sizeClassName = "h-12 w-12
 function RestaurantGalleryImageFrame({ photo, alt }: { photo: RestaurantGalleryPhoto; alt: string }) {
   const galleryImage = getOptimizedImageUrl(photo.media_url, "gallery");
   const gallerySrcSet = getOptimizedImageSrcSet(photo.media_url, "gallery");
+  const showWatermark = shouldApplyTokWatermarkToRestaurantMedia({
+    mediaType: photo.media_type,
+    metadata: photo.metadata,
+  });
 
   return (
     <div
       className="relative inline-flex max-h-full max-w-full items-center justify-center"
       data-testid="restaurant-gallery-image-frame"
     >
-      <RestaurantGalleryWatermark className="left-4 top-4" sizeClassName="h-16 w-16" />
+      {showWatermark ? <RestaurantGalleryWatermark className="left-4 top-4" sizeClassName="h-16 w-16" /> : null}
       <img
         src={galleryImage}
         srcSet={gallerySrcSet}
@@ -376,7 +382,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
     queryFn: async () => {
       const { data } = await supabase
         .from("restaurant_media")
-        .select("id, media_url, alt_text, is_cover, position, media_type")
+        .select("id, media_url, alt_text, is_cover, position, media_type, metadata")
         .eq("restaurant_id", restaurantId!)
         .in("media_type", ["photo", "photo_ai_tok"])
         .order("position", { ascending: true })
@@ -1312,28 +1318,35 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
                     <Badge variant="secondary" className="text-[10px]">{galleryPhotos.length} photo{galleryPhotos.length > 1 ? "s" : ""}</Badge>
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {galleryPhotos.map((photo, index) => (
-                      <button
-                        key={photo.id}
-                        onClick={() => openGalleryAtIndex(index)}
-                        className="group relative aspect-square rounded-xl overflow-hidden border bg-muted"
-                      >
-                        <RestaurantGalleryWatermark sizeClassName="h-10 w-10" />
-                        <img
-                          src={getOptimizedImageUrl(photo.media_url, "thumbnail")}
-                          alt={photo.alt_text || restaurant.name}
-                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                          loading="lazy"
-                          decoding="async"
-                        />
-                        {photo.is_cover && (
-                          <div className="absolute top-2 left-14 z-20 bg-primary text-primary-foreground text-[9px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-                            <Star className="h-3 w-3" /> Couverture
-                          </div>
-                        )}
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
-                      </button>
-                    ))}
+                    {galleryPhotos.map((photo, index) => {
+                      const showWatermark = shouldApplyTokWatermarkToRestaurantMedia({
+                        mediaType: photo.media_type,
+                        metadata: photo.metadata,
+                      });
+
+                      return (
+                        <button
+                          key={photo.id}
+                          onClick={() => openGalleryAtIndex(index)}
+                          className="group relative aspect-square rounded-xl overflow-hidden border bg-muted"
+                        >
+                          {showWatermark ? <RestaurantGalleryWatermark sizeClassName="h-10 w-10" /> : null}
+                          <img
+                            src={getOptimizedImageUrl(photo.media_url, "thumbnail")}
+                            alt={photo.alt_text || restaurant.name}
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          {photo.is_cover && (
+                            <div className={`absolute top-2 z-20 bg-primary text-primary-foreground text-[9px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 ${showWatermark ? "left-14" : "left-2"}`}>
+                              <Star className="h-3 w-3" /> Couverture
+                            </div>
+                          )}
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+                        </button>
+                      );
+                    })}
                   </div>
                 </TabsContent>
               )}

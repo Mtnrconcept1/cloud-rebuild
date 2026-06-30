@@ -4,6 +4,7 @@ import { useSearchParams } from "react-router-dom";
 import {
   AlertCircle,
   ArrowUpRight,
+  CalendarClock,
   Camera,
   Check,
   CheckCircle2,
@@ -12,14 +13,26 @@ import {
   Megaphone,
   PlusCircle,
   ReceiptText,
+  RotateCcw,
   Sparkles,
   WalletCards,
+  XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -136,6 +149,34 @@ type BillingCreditUsage = {
   entries: BillingCreditEntry[];
 };
 
+type ScheduledSubscriptionChange = {
+  action?: "cancel" | "downgrade" | string;
+  effective_at?: string | null;
+  requested_at?: string | null;
+  target_plan_id?: string | null;
+  target_plan_slug?: string | null;
+  target_plan_name?: string | null;
+  stripe_subscription_schedule_id?: string | null;
+};
+
+type RestaurantSubscriptionSelfServiceState = {
+  id: string;
+  restaurant_id: string;
+  status: string | null;
+  cancel_at_period_end: boolean;
+  scheduled_plan_change: ScheduledSubscriptionChange | null;
+  stripe_subscription_schedule_id: string | null;
+  current_period_start: string | null;
+  current_period_end: string | null;
+};
+
+type PendingSubscriptionAction =
+  | { type: "cancel" }
+  | { type: "resume" }
+  | { type: "downgrade"; plan: RestaurantSubscriptionPlan };
+
+type SubscriptionActionState = PendingSubscriptionAction["type"];
+
 const CREDIT_META: Record<CreditKind, {
   icon: typeof Megaphone;
   tone: string;
@@ -187,6 +228,39 @@ function formatDateTime(value: string | null | undefined) {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+function formatBillingPeriod(value: string | null | undefined) {
+  return value === "yearly" ? "Annuelle" : "Mensuelle";
+}
+
+function isScheduledSubscriptionChange(value: unknown): value is ScheduledSubscriptionChange {
+  return Boolean(value)
+    && typeof value === "object"
+    && !Array.isArray(value)
+    && typeof (value as ScheduledSubscriptionChange).action === "string"
+    && (value as ScheduledSubscriptionChange).action !== "";
+}
+
+function getScheduledChangeSummary(change: ScheduledSubscriptionChange | null | undefined) {
+  if (!isScheduledSubscriptionChange(change)) return null;
+  const effectiveAt = formatDateTime(change.effective_at);
+
+  if (change.action === "downgrade") {
+    return {
+      title: "Plan inférieur programmé",
+      description: `Le passage vers ${change.target_plan_name || "le plan inférieur"} prendra effet le ${effectiveAt}. Votre abonnement actuel reste actif avec tous ses avantages jusque-là.`,
+    };
+  }
+
+  if (change.action === "cancel") {
+    return {
+      title: "Résiliation programmée",
+      description: `Votre abonnement reste actif avec tous ses avantages jusqu'au ${effectiveAt}. Aucun renouvellement ne sera lancé après cette date.`,
+    };
+  }
+
+  return null;
 }
 
 function normalizeFeatures(value: string[] | null) {
@@ -277,6 +351,17 @@ async function fetchRestaurantCreditUsage(restaurantId: string): Promise<Billing
   return data as BillingCreditUsage;
 }
 
+async function fetchRestaurantSubscriptionSelfServiceState(
+  restaurantId: string,
+): Promise<RestaurantSubscriptionSelfServiceState | null> {
+  const { data, error } = await (supabase.rpc as any)("get_restaurant_subscription_self_service_state", {
+    p_restaurant_id: restaurantId,
+  });
+
+  if (error) throw error;
+  return data as RestaurantSubscriptionSelfServiceState | null;
+}
+
 async function fetchRestaurantSubscriptionPlans(): Promise<RestaurantSubscriptionPlan[]> {
   const { data, error } = await (supabase.from as any)("restaurant_subscription_plans")
     .select("id, slug, name, description, price_monthly_chf, campaign_credit_chf, ai_tool_credits, ai_photo_credits, monthly_image_limit, monthly_premium_image_limit, features, position, is_active")
@@ -334,16 +419,24 @@ function PlanCard({
   currentPosition,
   currentPlanId,
   checkingOutPlanId,
+  selfServicePlanId,
+  hasScheduledChange,
   onUpgrade,
+  onDowngrade,
 }: {
   plan: RestaurantSubscriptionPlan;
   currentPosition: number;
   currentPlanId: string | null;
   checkingOutPlanId: string | null;
+  selfServicePlanId: string | null;
+  hasScheduledChange: boolean;
   onUpgrade: (plan: RestaurantSubscriptionPlan) => void;
+  onDowngrade: (plan: RestaurantSubscriptionPlan) => void;
 }) {
   const isCurrent = currentPlanId === plan.id;
   const isUpgrade = !isCurrent && plan.position > currentPosition;
+  const isDowngrade = !isCurrent && plan.position < currentPosition;
+  const isBusy = checkingOutPlanId === plan.id || selfServicePlanId === plan.id;
   const features = normalizeFeatures(plan.features);
   const tokCredits = getTokCreditAmount(plan);
   const examples = getPlanExamples(plan);
@@ -356,7 +449,7 @@ function PlanCard({
             <CardTitle className="text-lg">{plan.name}</CardTitle>
             <p className="mt-1 text-sm text-muted-foreground">{plan.description}</p>
           </div>
-          {isCurrent ? <Badge>Actuel</Badge> : isUpgrade ? <Badge variant="outline">Upgrade</Badge> : null}
+          {isCurrent ? <Badge>Actuel</Badge> : isUpgrade ? <Badge variant="outline">Upgrade</Badge> : isDowngrade ? <Badge variant="secondary">Fin de période</Badge> : null}
         </div>
         <p className="text-3xl font-bold">
           {formatChf(plan.price_monthly_chf)}
@@ -383,11 +476,23 @@ function PlanCard({
         <Button
           className="mt-auto w-full"
           variant={isUpgrade ? "default" : "outline"}
-          disabled={!isUpgrade || checkingOutPlanId === plan.id}
-          onClick={() => onUpgrade(plan)}
+          disabled={isCurrent || hasScheduledChange || (!isUpgrade && !isDowngrade) || isBusy}
+          onClick={() => {
+            if (isUpgrade) {
+              onUpgrade(plan);
+            } else if (isDowngrade) {
+              onDowngrade(plan);
+            }
+          }}
         >
-          {checkingOutPlanId === plan.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ArrowUpRight className="mr-2 h-4 w-4" />}
-          {isCurrent ? "Abonnement actuel" : isUpgrade ? "Upgrader" : "Plan inférieur"}
+          {isBusy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ArrowUpRight className="mr-2 h-4 w-4" />}
+          {isCurrent
+            ? "Abonnement actuel"
+            : hasScheduledChange
+              ? "Changement programmé"
+              : isUpgrade
+                ? "Upgrader"
+                : "Programmer ce plan"}
         </Button>
       </CardContent>
     </Card>
@@ -470,6 +575,9 @@ export default function DashboardAccountBilling() {
   const [searchParams] = useSearchParams();
   const [checkingOutPlanId, setCheckingOutPlanId] = useState<string | null>(null);
   const [checkingOutCreditPackId, setCheckingOutCreditPackId] = useState<string | null>(null);
+  const [selfServicePlanId, setSelfServicePlanId] = useState<string | null>(null);
+  const [selfServiceAction, setSelfServiceAction] = useState<SubscriptionActionState | null>(null);
+  const [pendingSubscriptionAction, setPendingSubscriptionAction] = useState<PendingSubscriptionAction | null>(null);
 
   const paymentStatus = searchParams.get("status");
 
@@ -478,6 +586,13 @@ export default function DashboardAccountBilling() {
     enabled: !!selectedId,
     refetchInterval: 60_000,
     queryFn: () => fetchRestaurantCreditUsage(selectedId as string),
+  });
+
+  const selfServiceQuery = useQuery({
+    queryKey: ["restaurant-subscription-self-service", selectedId],
+    enabled: !!selectedId,
+    retry: false,
+    queryFn: () => fetchRestaurantSubscriptionSelfServiceState(selectedId as string),
   });
 
   const plansQuery = useQuery({
@@ -496,6 +611,18 @@ export default function DashboardAccountBilling() {
   const tokCreditSummary = useMemo(() => buildUnifiedTokCreditSummary(credits), [credits]);
   const currentPlan = usage?.subscription?.plan_record ?? null;
   const currentPosition = toNumber(currentPlan?.position);
+  const selfServiceState = selfServiceQuery.data ?? null;
+  const scheduledChange = isScheduledSubscriptionChange(selfServiceState?.scheduled_plan_change)
+    ? selfServiceState?.scheduled_plan_change ?? null
+    : null;
+  const scheduledChangeSummary = getScheduledChangeSummary(scheduledChange)
+    ?? (selfServiceState?.cancel_at_period_end
+      ? {
+        title: "Résiliation programmée",
+        description: `Votre abonnement reste actif avec tous ses avantages jusqu'au ${formatDateTime(selfServiceState.current_period_end || usage?.subscription?.current_period_end)}.`,
+      }
+      : null);
+  const hasScheduledChange = Boolean(scheduledChangeSummary || selfServiceState?.cancel_at_period_end);
   const activePlans = plansQuery.data ?? [];
   const activeCreditPacks = creditPacksQuery.data ?? [];
   const isUsageLoading = usageQuery.isLoading;
@@ -505,6 +632,16 @@ export default function DashboardAccountBilling() {
     if (!tokCreditSummary) return "0 crédit TOK";
     return formatTokCredits(tokCreditSummary.balance);
   }, [tokCreditSummary]);
+  const pendingActionTitle = pendingSubscriptionAction?.type === "downgrade"
+    ? `Programmer ${pendingSubscriptionAction.plan.name}`
+    : pendingSubscriptionAction?.type === "resume"
+      ? "Annuler le changement programmé"
+      : "Résilier l'abonnement";
+  const pendingActionDescription = pendingSubscriptionAction?.type === "downgrade"
+    ? `Votre abonnement actuel reste actif avec ses avantages jusqu'à la fin de la période payée. Le plan ${pendingSubscriptionAction.plan.name} prendra le relais ensuite.`
+    : pendingSubscriptionAction?.type === "resume"
+      ? "La résiliation ou la baisse de plan programmée sera annulée. L'abonnement continuera normalement au prochain renouvellement."
+      : `Votre abonnement restera actif jusqu'au ${formatDateTime(usage?.subscription?.current_period_end)}. Les avantages déjà payés restent disponibles jusqu'à cette date.`;
 
   async function handleUpgrade(plan: RestaurantSubscriptionPlan) {
     if (!selectedId) return;
@@ -532,6 +669,46 @@ export default function DashboardAccountBilling() {
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Erreur lors de la création de l'upgrade.");
       setCheckingOutPlanId(null);
+    }
+  }
+
+  async function handleSubscriptionSelfService(action: PendingSubscriptionAction) {
+    if (!selectedId) return;
+    const actionType = action.type;
+    setSelfServiceAction(actionType);
+    setSelfServicePlanId(action.type === "downgrade" ? action.plan.id : null);
+
+    try {
+      const { data, error } = await invokeSupabaseFunction<{ ok?: boolean }>("manage-restaurant-subscription", {
+        body: {
+          restaurant_id: selectedId,
+          action: actionType,
+          ...(action.type === "downgrade" ? { target_plan_id: action.plan.id } : {}),
+        },
+      });
+
+      if (error || !data?.ok) {
+        throw new Error((error as Error | null)?.message || "Impossible de modifier l'abonnement.");
+      }
+
+      await Promise.all([
+        usageQuery.refetch(),
+        selfServiceQuery.refetch(),
+      ]);
+
+      if (action.type === "cancel") {
+        toast.success("Résiliation programmée en fin de période payée.");
+      } else if (action.type === "resume") {
+        toast.success("Changement programmé annulé. L'abonnement continue normalement.");
+      } else {
+        toast.success(`Baisse vers ${action.plan.name} programmée en fin de période payée.`);
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Erreur lors de la modification de l'abonnement.");
+    } finally {
+      setSelfServiceAction(null);
+      setSelfServicePlanId(null);
+      setPendingSubscriptionAction(null);
     }
   }
 
@@ -658,12 +835,43 @@ export default function DashboardAccountBilling() {
                       </div>
                       <div className="rounded-xl bg-muted/45 p-3">
                         <p className="text-xs text-muted-foreground">Période</p>
-                        <p className="font-semibold">Mensuelle</p>
+                        <p className="font-semibold">{formatBillingPeriod(usage?.subscription?.billing_period)}</p>
                       </div>
                       <div className="rounded-xl bg-muted/45 p-3">
                         <p className="text-xs text-muted-foreground">Stripe</p>
                         <p className="truncate font-semibold">{usage?.subscription?.stripe_subscription_id ?? "En attente"}</p>
                       </div>
+                    </div>
+                  ) : null}
+                  {scheduledChangeSummary ? (
+                    <Alert className="border-amber-200 bg-amber-50 text-amber-950 dark:border-amber-400/25 dark:bg-amber-500/10 dark:text-amber-50">
+                      <CalendarClock className="h-4 w-4" />
+                      <AlertTitle>{scheduledChangeSummary.title}</AlertTitle>
+                      <AlertDescription>{scheduledChangeSummary.description}</AlertDescription>
+                    </Alert>
+                  ) : null}
+                  {currentPlan ? (
+                    <div className="flex flex-col gap-2 border-t pt-4 sm:flex-row sm:items-center sm:justify-end">
+                      {hasScheduledChange ? (
+                        <Button
+                          variant="outline"
+                          onClick={() => setPendingSubscriptionAction({ type: "resume" })}
+                          disabled={selfServiceAction === "resume"}
+                        >
+                          {selfServiceAction === "resume" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RotateCcw className="mr-2 h-4 w-4" />}
+                          Annuler le changement programmé
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          className="border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                          onClick={() => setPendingSubscriptionAction({ type: "cancel" })}
+                          disabled={selfServiceAction === "cancel"}
+                        >
+                          {selfServiceAction === "cancel" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <XCircle className="mr-2 h-4 w-4" />}
+                          Résilier en fin de période
+                        </Button>
+                      )}
                     </div>
                   ) : null}
                 </CardContent>
@@ -759,9 +967,9 @@ export default function DashboardAccountBilling() {
 
             <section className="space-y-4">
               <div>
-                <h2 className="text-xl font-bold">Upgrade de l'abonnement</h2>
+                <h2 className="text-xl font-bold">Changer d'abonnement</h2>
                 <p className="text-sm text-muted-foreground">
-                  Les upgrades passent par Stripe Checkout. Le prix et les crédits sont recalculés côté serveur.
+                  Les upgrades passent par Stripe Checkout. Les plans inférieurs sont programmés à la fin de la période payée pour conserver les avantages déjà réglés.
                 </p>
               </div>
               {plansQuery.isLoading ? (
@@ -777,7 +985,10 @@ export default function DashboardAccountBilling() {
                       currentPosition={currentPosition}
                       currentPlanId={currentPlan?.id ?? null}
                       checkingOutPlanId={checkingOutPlanId}
+                      selfServicePlanId={selfServicePlanId}
+                      hasScheduledChange={hasScheduledChange}
                       onUpgrade={handleUpgrade}
+                      onDowngrade={(plan) => setPendingSubscriptionAction({ type: "downgrade", plan })}
                     />
                   ))}
                 </div>
@@ -852,6 +1063,38 @@ export default function DashboardAccountBilling() {
               </Card>
             </section>
       </div>
+      <AlertDialog open={!!pendingSubscriptionAction} onOpenChange={(open) => {
+        if (!open && !selfServiceAction) {
+          setPendingSubscriptionAction(null);
+        }
+      }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{pendingActionTitle}</AlertDialogTitle>
+            <AlertDialogDescription>{pendingActionDescription}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={!!selfServiceAction}>Retour</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(event) => {
+                event.preventDefault();
+                if (pendingSubscriptionAction) {
+                  void handleSubscriptionSelfService(pendingSubscriptionAction);
+                }
+              }}
+              disabled={!!selfServiceAction}
+              className={cn(
+                pendingSubscriptionAction?.type === "cancel"
+                  ? "bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  : undefined,
+              )}
+            >
+              {selfServiceAction ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Confirmer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DashboardLayout>
   );
 }

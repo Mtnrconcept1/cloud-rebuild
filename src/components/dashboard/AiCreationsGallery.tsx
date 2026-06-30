@@ -12,7 +12,11 @@ import {
   subscribeAiCreationRecords,
   type AiCreationRecord,
 } from "@/lib/ai/aiCreationJobs";
-import { buildRestaurantMediaAiMetadata } from "@/lib/ai/restaurantMediaMetadata";
+import {
+  buildRestaurantMediaAiMetadata,
+  shouldApplyTokWatermarkToRestaurantMedia,
+  type RestaurantMediaWatermarkSubscription,
+} from "@/lib/ai/restaurantMediaMetadata";
 import { formatAiImageGenerationError, toPublicErrorMessage } from "@/lib/publicErrorMessages";
 import { CheckCircle2, ImagePlus, Loader2, Sparkles, Trash2, TriangleAlert } from "lucide-react";
 
@@ -22,6 +26,7 @@ type Props = {
   restaurantId: string | null | undefined;
   userId?: string | null;
   currentPhotoCount: number;
+  watermarkSubscription?: RestaurantMediaWatermarkSubscription;
   onGalleryUpdated: () => void;
 };
 
@@ -56,7 +61,7 @@ function getStatusBadge(record: AiCreationRecord) {
   return <Badge variant="outline" className="gap-1 border-emerald-200 bg-emerald-50 text-emerald-700"><CheckCircle2 className="h-3 w-3" /> Terminée</Badge>;
 }
 
-export default function AiCreationsGallery({ restaurantId, userId, currentPhotoCount, onGalleryUpdated }: Props) {
+export default function AiCreationsGallery({ restaurantId, userId, currentPhotoCount, watermarkSubscription, onGalleryUpdated }: Props) {
   const { toast } = useToast();
   const [records, setRecords] = useState<AiCreationRecord[]>(() => getAiCreationRecords());
   const [addingId, setAddingId] = useState<string | null>(null);
@@ -95,6 +100,11 @@ export default function AiCreationsGallery({ restaurantId, userId, currentPhotoC
         dishName: record.title,
         tool: record.tool,
         createdAt: record.completedAt || record.updatedAt || record.createdAt,
+        tokWatermarkRequired: shouldApplyTokWatermarkToRestaurantMedia({
+          mediaType: "photo_ai_tok",
+          metadata: { tool: record.tool },
+          subscription: watermarkSubscription,
+        }),
       }),
     });
     setAddingId(null);

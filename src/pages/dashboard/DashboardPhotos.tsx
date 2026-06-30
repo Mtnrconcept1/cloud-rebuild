@@ -12,7 +12,13 @@ import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 import { useAuth } from "@/lib/auth-context";
-import { getRestaurantMediaAiToolLabel, normalizeTokImageQuality } from "@/lib/ai/restaurantMediaMetadata";
+import {
+  getRestaurantMediaAiToolLabel,
+  isTokProOrHigherRestaurantSubscription,
+  normalizeTokImageQuality,
+  shouldApplyTokWatermarkToRestaurantMedia,
+  type RestaurantMediaWatermarkSubscription,
+} from "@/lib/ai/restaurantMediaMetadata";
 import { downloadImageWithWatermark } from "@/lib/media/downloadImageWithWatermark";
 import { deleteRestaurantMedia, setRestaurantCoverMedia } from "@/lib/restaurantMediaGovernance";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
@@ -230,9 +236,20 @@ function TokGalleryWatermark({
   );
 }
 
-function TokGalleryImageFrame({ item }: { item: MediaItem }) {
+function TokGalleryImageFrame({
+  item,
+  watermarkSubscription,
+}: {
+  item: MediaItem;
+  watermarkSubscription?: RestaurantMediaWatermarkSubscription;
+}) {
   const [imageSize, setImageSize] = useState<{ width: number; height: number } | null>(null);
   const watermarkStyle = getPreviewWatermarkStyle(imageSize);
+  const showWatermark = shouldApplyTokWatermarkToRestaurantMedia({
+    mediaType: item.media_type,
+    metadata: item.metadata,
+    subscription: watermarkSubscription,
+  });
 
   return (
     <div
@@ -243,7 +260,7 @@ function TokGalleryImageFrame({ item }: { item: MediaItem }) {
         className="relative inline-flex max-h-[calc(100dvh-12rem)] max-w-full items-center justify-center"
         data-testid="tok-gallery-image-bounds"
       >
-        <TokGalleryWatermark style={watermarkStyle} />
+        {showWatermark ? <TokGalleryWatermark style={watermarkStyle} /> : null}
         <img
           src={item.media_url}
           alt={item.alt_text || "Photo restaurant"}
@@ -265,7 +282,7 @@ export default function DashboardPhotos() {
   const { user } = useAuth();
   const { toast } = useToast();
   const logoSrc = useTokLogoSrc();
-  const { selectedId, loading: loadingRestaurant } = useDashboardRestaurant();
+  const { restaurants, selectedId, loading: loadingRestaurant } = useDashboardRestaurant();
   const [items, setItems] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -273,6 +290,21 @@ export default function DashboardPhotos() {
   const [previewItem, setPreviewItem] = useState<MediaItem | null>(null);
   const [form, setForm] = useState<MediaFormState>(EMPTY_MEDIA_FORM);
   const [activeTool, setActiveTool] = useState<PhotoWorkspaceTool | null>(null);
+  const selectedRestaurant = restaurants.find((restaurant) => restaurant.id === selectedId) || null;
+  const watermarkSubscription = selectedRestaurant?.restaurant_subscription
+    ? {
+        plan: selectedRestaurant.restaurant_subscription.plan,
+        slug: selectedRestaurant.restaurant_subscription.plan_record?.slug,
+        status: selectedRestaurant.restaurant_subscription.status,
+      }
+    : null;
+  const hasWatermarkFreePlan = isTokProOrHigherRestaurantSubscription(watermarkSubscription);
+
+  const shouldShowTokWatermark = (item: MediaItem) => shouldApplyTokWatermarkToRestaurantMedia({
+    mediaType: item.media_type,
+    metadata: item.metadata,
+    subscription: watermarkSubscription,
+  });
 
   const load = async () => {
     if (!selectedId) { setItems([]); setLoading(false); return; }
@@ -352,12 +384,12 @@ export default function DashboardPhotos() {
       await downloadImageWithWatermark({
         imageUrl: item.media_url,
         fileName: buildGalleryPhotoDownloadFileName(item),
-        watermarkUrl: logoSrc,
+        watermarkUrl: shouldShowTokWatermark(item) ? logoSrc : null,
         watermarkSize: TOK_GALLERY_WATERMARK_SIZE,
         watermarkMargin: TOK_GALLERY_WATERMARK_MARGIN,
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Le logo TOK n'a pas pu être appliqué au téléchargement.";
+      const message = error instanceof Error ? error.message : "La photo n'a pas pu être préparée au téléchargement.";
       toast({
         title: "Téléchargement impossible",
         description: message,
@@ -434,6 +466,7 @@ export default function DashboardPhotos() {
             restaurantId={selectedId}
             userId={user?.id || null}
             currentPhotoCount={items.length}
+            watermarkSubscription={watermarkSubscription}
             onGalleryUpdated={load}
           />
         ) : null}
@@ -443,6 +476,7 @@ export default function DashboardPhotos() {
             restaurantId={selectedId}
             userId={user?.id || null}
             currentPhotoCount={items.length}
+            watermarkSubscription={watermarkSubscription}
             onGalleryUpdated={load}
           />
         ) : null}
@@ -502,10 +536,11 @@ export default function DashboardPhotos() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((item) => {
             const aiDescription = getGalleryAiDescription(item);
+            const showWatermark = shouldShowTokWatermark(item);
             return (
             <Card key={item.id} className="overflow-hidden">
               <div className="relative">
-                <TokGalleryWatermark sizeClassName="h-14 w-14" />
+                {showWatermark ? <TokGalleryWatermark sizeClassName="h-14 w-14" /> : null}
                 <button
                   type="button"
                   onClick={() => setPreviewItem(item)}
@@ -519,7 +554,7 @@ export default function DashboardPhotos() {
                   </span>
                 </button>
                 {item.is_cover && (
-                  <div className="absolute left-14 top-2 bg-primary text-primary-foreground text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1">
+                  <div className={`absolute top-2 bg-primary text-primary-foreground text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1 ${showWatermark ? "left-14" : "left-2"}`}>
                     <Star className="h-3 w-3" /> Couverture
                   </div>
                 )}
@@ -533,6 +568,7 @@ export default function DashboardPhotos() {
                 {item.media_type === "photo_ai_tok" ? (
                   <div className="space-y-1 rounded-2xl border border-orange-100 bg-orange-50/60 p-3 text-xs leading-5 text-orange-950">
                     <p className="text-sm font-semibold text-foreground">{aiDescription.dishName}</p>
+                    <p><span className="font-medium">Logo TOK:</span> {showWatermark ? "appliqué au téléchargement" : hasWatermarkFreePlan ? "retiré avec Tok Pro ou plus" : "non appliqué"}</p>
                     <p><span className="font-medium">Modèle IA:</span> {aiDescription.model}</p>
                     <p><span className="font-medium">Résolution:</span> {aiDescription.quality}</p>
                     <p><span className="font-medium">Créée le:</span> {aiDescription.createdAt}</p>
@@ -598,7 +634,7 @@ export default function DashboardPhotos() {
             <div className="min-h-0 flex-1 overflow-auto bg-black p-2 sm:p-3">
               {previewItem ? (
                 <div className="flex min-h-full w-full items-center justify-center">
-                  <TokGalleryImageFrame item={previewItem} />
+                  <TokGalleryImageFrame item={previewItem} watermarkSubscription={watermarkSubscription} />
                 </div>
               ) : null}
             </div>

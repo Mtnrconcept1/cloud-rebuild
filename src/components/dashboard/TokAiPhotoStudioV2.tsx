@@ -23,7 +23,11 @@ import {
   type TokImageModel,
   type TokImageOutputResolution,
 } from "@/lib/ai/imagePricing";
-import { buildRestaurantMediaAiMetadata } from "@/lib/ai/restaurantMediaMetadata";
+import {
+  buildRestaurantMediaAiMetadata,
+  isTokProOrHigherRestaurantSubscription,
+  type RestaurantMediaWatermarkSubscription,
+} from "@/lib/ai/restaurantMediaMetadata";
 import { downloadImageWithWatermark } from "@/lib/media/downloadImageWithWatermark";
 import { formatAiImageGenerationError, toPublicErrorMessage } from "@/lib/publicErrorMessages";
 import { CheckCircle2, Download, Loader2, Maximize2, RotateCcw, Sparkles, Wand2 } from "lucide-react";
@@ -38,6 +42,7 @@ type Props = {
   restaurantId: string | null | undefined;
   userId?: string | null;
   currentPhotoCount: number;
+  watermarkSubscription?: RestaurantMediaWatermarkSubscription;
   onGalleryUpdated: () => void;
 };
 
@@ -87,7 +92,7 @@ function TokLogoWatermark({ logoSrc, className = "", sizeClassName = "h-[180px] 
   );
 }
 
-export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoCount, onGalleryUpdated }: Props) {
+export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoCount, watermarkSubscription, onGalleryUpdated }: Props) {
   const { toast } = useToast();
   const logoSrc = useTokLogoSrc();
   const mountedRef = useRef(true);
@@ -101,6 +106,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
   const selectedOutputResolution = draft.outputResolution || "studio";
   const selectedImageModel = draft.imageModel || "gpt-image-1.5";
   const outputPricing = getTokImageOutputPricing(draft.format, selectedOutputResolution, selectedImageModel);
+  const shouldApplyTokWatermark = !isTokProOrHigherRestaurantSubscription(watermarkSubscription);
 
   const updateDraft = (nextDraft: Partial<PhotoStudioDraft>) => {
     setDraft((previous) => ({ ...previous, ...nextDraft }));
@@ -182,6 +188,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
         result,
         dishName: draft.dishName,
         tool: "photopro",
+        tokWatermarkRequired: shouldApplyTokWatermark,
       }),
     });
     if (error) {
@@ -202,12 +209,12 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
       await downloadImageWithWatermark({
         imageUrl: generatedImageUrl,
         fileName: downloadFileName,
-        watermarkUrl: logoSrc,
+        watermarkUrl: shouldApplyTokWatermark ? logoSrc : null,
         watermarkSize: 180,
         watermarkMargin: 24,
       });
     } catch (error) {
-      const message = toPublicErrorMessage(error, "Le logo TOK n'a pas pu être appliqué au téléchargement.");
+      const message = toPublicErrorMessage(error, "Le visuel TOK n'a pas pu être préparé au téléchargement.");
       toast({
         title: "Téléchargement impossible",
         description: message,
@@ -331,7 +338,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
                 <ul className="space-y-2">
                   <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" /> Même produit ou plat que la source, immédiatement reconnaissable.</li>
                   <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" /> Packaging, contenant, marque, textes et couleurs préservés si présents.</li>
-                  <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" /> Éclairage studio, fond nettoyé, profondeur de champ douce, textures renforcées et logo TOK ajouté en calque transparent séparé.</li>
+                  <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" /> Éclairage studio, fond nettoyé, profondeur de champ douce, textures renforcées{shouldApplyTokWatermark ? " et logo TOK ajouté en calque transparent séparé." : ", sans logo TOK avec Tok Pro ou plus."}</li>
                   <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" /> Un emballage ne doit jamais devenir une assiette servie.</li>
                 </ul>
             </>
@@ -367,7 +374,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
                       onClick={() => setPreviewOpen(true)}
                       className="group relative block aspect-video w-full overflow-hidden rounded-xl border bg-muted text-left"
                     >
-                      <TokLogoWatermark logoSrc={logoSrc} sizeClassName="h-16 w-16" />
+                      {shouldApplyTokWatermark ? <TokLogoWatermark logoSrc={logoSrc} sizeClassName="h-16 w-16" /> : null}
                       <img
                         src={generatedImageUrl}
                         alt={result.alt_text || "Visuel TOK"}
@@ -410,7 +417,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
               {generatedImageUrl ? (
                 <div className="flex h-full w-full items-center justify-center">
                   <div className="relative inline-flex max-h-full max-w-full items-center justify-center">
-                    <TokLogoWatermark logoSrc={logoSrc} className="left-4 top-4" sizeClassName="h-16 w-16" />
+                    {shouldApplyTokWatermark ? <TokLogoWatermark logoSrc={logoSrc} className="left-4 top-4" sizeClassName="h-16 w-16" /> : null}
                     <img
                       src={generatedImageUrl}
                       alt={result?.alt_text || "Visuel TOK"}

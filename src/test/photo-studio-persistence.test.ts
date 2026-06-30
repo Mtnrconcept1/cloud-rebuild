@@ -15,6 +15,7 @@ describe("TOK photo studio persistence", () => {
   const aiCreationNotifications = readFileSync(resolve(process.cwd(), "src/components/AiCreationNotifications.tsx"), "utf8");
   const aiCreationsGallery = readFileSync(resolve(process.cwd(), "src/components/dashboard/AiCreationsGallery.tsx"), "utf8");
   const publicErrorMessages = readFileSync(resolve(process.cwd(), "src/lib/publicErrorMessages.ts"), "utf8");
+  const metadataHelper = readFileSync(resolve(process.cwd(), "src/lib/ai/restaurantMediaMetadata.ts"), "utf8");
 
   it("persists the generated result across component remounts and tab focus changes", () => {
     expect(source).toContain("useSessionStorageState");
@@ -76,7 +77,7 @@ describe("TOK photo studio persistence", () => {
     expect(source).toContain('aria-label="Agrandir le visuel TOK généré"');
     expect(source).toContain("downloadGeneratedPhoto");
     expect(source).toContain("downloadImageWithWatermark");
-    expect(source).toContain("watermarkUrl: logoSrc");
+    expect(source).toContain("watermarkUrl: shouldApplyTokWatermark ? logoSrc : null");
     expect((source.match(/Ajouter à la galerie/g) || []).length).toBeGreaterThanOrEqual(2);
     expect(watermarkDownloader).toContain("canvas.toBlob");
     expect(watermarkDownloader).toContain("context.drawImage(watermark.image");
@@ -91,7 +92,8 @@ describe("TOK photo studio persistence", () => {
     expect(dashboardPhotos).toContain("buildGalleryPhotoDownloadFileName");
     expect(dashboardPhotos).toContain("useTokLogoSrc");
     expect(dashboardPhotos).toContain("downloadImageWithWatermark");
-    expect(dashboardPhotos).toContain("watermarkUrl: logoSrc");
+    expect(dashboardPhotos).toContain("shouldApplyTokWatermarkToRestaurantMedia");
+    expect(dashboardPhotos).toContain("watermarkUrl: shouldShowTokWatermark(item) ? logoSrc : null");
     expect(dashboardPhotos).toContain('const GALLERY_MEDIA_TYPES = ["photo", "photo_ai_tok"]');
     expect(dashboardPhotos).toContain('.in("media_type", GALLERY_MEDIA_TYPES)');
     expect(dashboardPhotos).not.toContain('item.media_type === "photo_ai_tok" ? <TokGalleryWatermark');
@@ -99,7 +101,6 @@ describe("TOK photo studio persistence", () => {
   });
 
   it("shows generated image metadata in gallery descriptions", () => {
-    const metadataHelper = readFileSync(resolve(process.cwd(), "src/lib/ai/restaurantMediaMetadata.ts"), "utf8");
     const migration = readFileSync(resolve(process.cwd(), "supabase/migrations/20260625163000_restaurant_media_ai_metadata.sql"), "utf8");
 
     expect(migration).toContain("ADD COLUMN IF NOT EXISTS metadata jsonb");
@@ -110,12 +111,16 @@ describe("TOK photo studio persistence", () => {
     expect(metadataHelper).toContain("RESTAURANT_MEDIA_AI_TOOL_LABELS");
     expect(metadataHelper).toContain('marketing_studio: "Marketing Studio"');
     expect(metadataHelper).toContain('photopro: "Photopro"');
+    expect(metadataHelper).toContain("tok_watermark_required");
     expect(source).toContain('tool: "photopro"');
+    expect(source).toContain("tokWatermarkRequired: shouldApplyTokWatermark");
     expect(aiCreationsGallery).toContain("metadata: buildRestaurantMediaAiMetadata");
     expect(aiCreationsGallery).toContain("tool: record.tool");
+    expect(aiCreationsGallery).toContain("tokWatermarkRequired: shouldApplyTokWatermarkToRestaurantMedia");
     expect(aiCreationsGallery).toContain("createdAt: record.completedAt");
     expect(dashboardPhotos).toContain("metadata, created_at");
     expect(dashboardPhotos).toContain("getGalleryAiDescription");
+    expect(dashboardPhotos).toContain("Logo TOK:");
     expect(dashboardPhotos).toContain("Modèle IA:");
     expect(dashboardPhotos).toContain("Résolution:");
     expect(dashboardPhotos).toContain("Créée le:");
@@ -132,6 +137,9 @@ describe("TOK photo studio persistence", () => {
     expect(dashboardPhotos).toContain("relative inline-flex max-h-[calc(100dvh-12rem)] max-w-full");
     expect(dashboardPhotos).toContain("block h-auto max-h-[calc(100dvh-12rem)] w-auto max-w-full rounded-lg object-contain");
     expect(dashboardPhotos).toContain("min-h-0 flex-1 overflow-auto bg-black");
+    expect(dashboardPhotos).toContain("watermarkSubscription?: RestaurantMediaWatermarkSubscription");
+    expect(dashboardPhotos).toContain("isTokProOrHigherRestaurantSubscription(watermarkSubscription)");
+    expect(dashboardPhotos).toContain("{showWatermark ? <TokGalleryWatermark");
     expect(dashboardPhotos).not.toContain("block h-full w-full max-h-full max-w-full rounded-lg object-contain");
     expect(dashboardPhotos).not.toContain('className="relative h-full w-full"');
     expect(dashboardPhotos).not.toContain("flex h-full min-h-0 w-full items-center justify-center overflow-hidden");
@@ -143,6 +151,8 @@ describe("TOK photo studio persistence", () => {
     expect(restaurantDetail).toContain("RestaurantGalleryImageFrame");
     expect(restaurantDetail).toContain('data-testid="restaurant-gallery-image-frame"');
     expect(restaurantDetail).toContain("inline-flex max-h-full max-w-full");
+    expect(restaurantDetail).toContain("shouldApplyTokWatermarkToRestaurantMedia");
+    expect(restaurantDetail).toContain("{showWatermark ? <RestaurantGalleryWatermark");
     expect(restaurantDetail).not.toContain('className="relative max-w-4xl max-h-[80vh] px-12"');
 
     expect(watermarkDownloader).toContain("if (!options.watermarkUrl)");
@@ -198,6 +208,10 @@ describe("TOK photo studio persistence", () => {
     expect(marketingStudio).toContain("Empreinte des ressources actives");
     expect(marketingStudio).not.toContain("mascotte chef TOK");
     expect(marketingStudio).not.toContain("thetok.ch");
+    expect(marketingStudio).not.toContain("Lancement TOK");
+    expect(marketingStudio).not.toContain("Promotion Tok One");
+    expect(marketingStudio).toContain("Lancement nouvelle carte");
+    expect(marketingStudio).toContain("Programme fidelite");
     expect(marketingStudio).toContain("Image marketing générée");
     expect(marketingStudio).toContain("Flyer / affiche");
     expect(marketingStudio).toContain("Carte de visite");
@@ -452,6 +466,7 @@ describe("TOK photo studio persistence", () => {
     expect(restaurantDetail).toContain("useTokLogoSrc");
     expect(restaurantDetail).toContain("RestaurantGalleryWatermark");
     expect(restaurantDetail).toContain("media_type");
+    expect(restaurantDetail).toContain("metadata");
     expect(restaurantDetail).toContain('.in("media_type", ["photo", "photo_ai_tok"])');
     expect(restaurantDetail).toContain("openGalleryAtIndex");
     expect(restaurantDetail).toContain('aria-label="Ouvrir la galerie photo du restaurant"');
@@ -486,7 +501,9 @@ describe("TOK photo studio persistence", () => {
     expect(source).not.toContain("photographie culinaire de studio professionnel");
     expect(source).not.toContain("éclairage softbox premium");
     expect(source).toContain("calque transparent séparé");
+    expect(source).toContain("sans logo TOK avec Tok Pro ou plus");
     expect(source).toContain("TokLogoWatermark");
+    expect(source).toContain("shouldApplyTokWatermark ? <TokLogoWatermark");
     expect(source).toContain("useTokLogoSrc");
     expect(source).toContain('data-testid="tok-logo-watermark-layer"');
     expect(source).toContain('className="left-4 top-4" sizeClassName="h-16 w-16"');

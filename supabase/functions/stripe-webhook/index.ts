@@ -476,6 +476,44 @@ function normalizeRestaurantSubscriptionStatus(status: string | null | undefined
   return "active";
 }
 
+function getStripeSubscriptionScheduleId(value: unknown) {
+  if (!value) return null;
+  if (typeof value === "string") return value;
+  if (isJsonRecord(value) && typeof value.id === "string") return value.id;
+  return null;
+}
+
+function buildRestaurantScheduledPlanChange(
+  metadata: JsonRecord,
+  currentPeriodEnd: string,
+  stripeSubscriptionScheduleId: string | null,
+) {
+  const pendingChange = String(metadata.pending_restaurant_subscription_change || "");
+  if (pendingChange === "cancel_at_period_end") {
+    return {
+      action: "cancel",
+      effective_at: String(metadata.pending_restaurant_subscription_effective_at || currentPeriodEnd),
+      requested_at: String(metadata.pending_restaurant_subscription_requested_at || ""),
+      requested_by: String(metadata.pending_restaurant_subscription_requested_by || ""),
+    };
+  }
+
+  if (pendingChange === "downgrade_at_period_end") {
+    return {
+      action: "downgrade",
+      target_plan_id: String(metadata.pending_restaurant_subscription_plan_id || ""),
+      target_plan_slug: String(metadata.pending_restaurant_subscription_plan_slug || ""),
+      target_plan_name: String(metadata.pending_restaurant_subscription_plan_name || ""),
+      effective_at: String(metadata.pending_restaurant_subscription_effective_at || currentPeriodEnd),
+      requested_at: String(metadata.pending_restaurant_subscription_requested_at || ""),
+      requested_by: String(metadata.pending_restaurant_subscription_requested_by || ""),
+      stripe_subscription_schedule_id: String(metadata.pending_restaurant_subscription_schedule_id || stripeSubscriptionScheduleId || ""),
+    };
+  }
+
+  return {};
+}
+
 async function syncRestaurantSubscriptionRecord(input: {
   adminClient: ReturnType<typeof createClient>;
   subscription: Stripe.Subscription;
@@ -535,6 +573,7 @@ async function syncRestaurantSubscriptionRecord(input: {
   }
 
   const period = resolveRestaurantSubscriptionPeriod(subscription);
+  const stripeSubscriptionScheduleId = getStripeSubscriptionScheduleId(subscription.schedule);
   const payload = {
     restaurant_id: restaurantId,
     restaurant_subscription_plan_id: plan.id,
@@ -555,6 +594,9 @@ async function syncRestaurantSubscriptionRecord(input: {
     stripe_subscription_id: subscription.id,
     stripe_checkout_session_id: stripeCheckoutSessionId || String(metadata.stripe_checkout_session_id || ""),
     stripe_mode: stripeMode,
+    cancel_at_period_end: Boolean(subscription.cancel_at_period_end),
+    stripe_subscription_schedule_id: stripeSubscriptionScheduleId,
+    scheduled_plan_change: buildRestaurantScheduledPlanChange(metadata, period.currentPeriodEnd, stripeSubscriptionScheduleId),
     metadata: {
       ...(isJsonRecord(existing?.metadata) ? existing.metadata : {}),
       ...metadata,
@@ -564,6 +606,8 @@ async function syncRestaurantSubscriptionRecord(input: {
       stripe_subscription_id: subscription.id,
       stripe_checkout_session_id: stripeCheckoutSessionId || String(metadata.stripe_checkout_session_id || ""),
       stripe_subscription_status: subscription.status,
+      stripe_subscription_cancel_at_period_end: Boolean(subscription.cancel_at_period_end),
+      stripe_subscription_schedule_id: stripeSubscriptionScheduleId || "",
     },
   };
 

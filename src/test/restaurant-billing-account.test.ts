@@ -42,10 +42,14 @@ describe("restaurant account and billing dashboard", () => {
     const page = read("src/pages/dashboard/DashboardAccountBilling.tsx");
 
     expect(page).toContain("get_restaurant_credit_usage");
+    expect(page).toContain("get_restaurant_subscription_self_service_state");
     expect(page).toContain("restaurant_subscription_plans");
     expect(page).toContain("restaurant_credit_packs");
     expect(page).toContain("restaurant-subscription-upgrade");
     expect(page).toContain("restaurant-credit-pack");
+    expect(page).toContain("manage-restaurant-subscription");
+    expect(page).toContain("Résilier en fin de période");
+    expect(page).toContain("Programmer ce plan");
     expect(page).toContain("Recharger des crédits TOK");
     expect(page).toContain("Crédits TOK");
     expect(page).toContain("tok_credits");
@@ -78,6 +82,31 @@ describe("restaurant account and billing dashboard", () => {
     expect(webhook).toContain("restaurant_ai_subscriptions");
   });
 
+  it("lets restaurateurs cancel at period end or schedule a downgrade without changing current entitlements immediately", () => {
+    const page = read("src/pages/dashboard/DashboardAccountBilling.tsx");
+    const manage = read("supabase/functions/manage-restaurant-subscription/index.ts");
+    const webhook = read("supabase/functions/stripe-webhook/index.ts");
+
+    expect(page).toContain("Annuler le changement programmé");
+    expect(page).toContain("Votre abonnement actuel reste actif avec ses avantages jusqu'à la fin de la période payée");
+    expect(page).toContain('type: "downgrade"');
+    expect(page).toContain('type: "cancel"');
+
+    expect(manage).toContain("requireRestaurantAccess(actor, restaurantId)");
+    expect(manage).toContain("cancel_at_period_end: true");
+    expect(manage).toContain('pending_restaurant_subscription_change: "cancel_at_period_end"');
+    expect(manage).toContain('pending_restaurant_subscription_change: "downgrade_at_period_end"');
+    expect(manage).toContain("subscriptionSchedules.create");
+    expect(manage).toContain("subscriptionSchedules.update");
+    expect(manage).toContain('proration_behavior: "none"');
+    expect(manage).toContain("scheduled_plan_change");
+
+    expect(webhook).toContain("buildRestaurantScheduledPlanChange");
+    expect(webhook).toContain("cancel_at_period_end: Boolean(subscription.cancel_at_period_end)");
+    expect(webhook).toContain("stripe_subscription_schedule_id");
+    expect(webhook).toContain("scheduled_plan_change");
+  });
+
   it("adds secure credit-pack tables and enriches the billing credit usage RPC", () => {
     const migration = latestMigrationContaining(/CREATE TABLE IF NOT EXISTS public\.restaurant_credit_packs/);
 
@@ -94,5 +123,19 @@ describe("restaurant account and billing dashboard", () => {
     expect(migration).toContain("payment_method, '')) = 'credits'");
     expect(migration).toContain("THEN 5 END");
     expect(migration).toContain("GRANT EXECUTE ON FUNCTION public.get_restaurant_credit_usage");
+  });
+
+  it("adds non-destructive subscription self-service schema and RPC guards", () => {
+    const migration = latestMigrationContaining(/get_restaurant_subscription_self_service_state/);
+
+    expect(migration).toContain("ADD COLUMN IF NOT EXISTS cancel_at_period_end");
+    expect(migration).toContain("ADD COLUMN IF NOT EXISTS scheduled_plan_change");
+    expect(migration).toContain("ADD COLUMN IF NOT EXISTS stripe_subscription_schedule_id");
+    expect(migration).toContain("CHECK (billing_period IN ('monthly', 'yearly'))");
+    expect(migration).toContain("CREATE OR REPLACE FUNCTION public.get_restaurant_subscription_self_service_state");
+    expect(migration).toContain("public.auth_owns_restaurant(p_restaurant_id)");
+    expect(migration).toContain("public.has_role(auth.uid(), 'admin')");
+    expect(migration).toContain("REVOKE ALL ON FUNCTION public.get_restaurant_subscription_self_service_state");
+    expect(migration).toContain("GRANT EXECUTE ON FUNCTION public.get_restaurant_subscription_self_service_state");
   });
 });
