@@ -104,7 +104,12 @@ describe("TOK AI tools foundation", () => {
     expect(photoSource).not.toContain('credit_kind: "ai_tools"');
 
     const migration = readMigrationContaining("openai_x10_credit_pricing");
-    expect(migration).toContain("Coût OpenAI inclus plafonné à 6.75 CHF / mois");
+    const quotaMigration = readMigrationContaining("restaurant_subscription_ai_usage_quotas");
+    expect(quotaMigration).toContain("10 générations marketing, 10 utilisations assistant IA et 20 retouches photo par mois");
+    expect(quotaMigration).toContain("monthly_text_tool_limit = CASE slug");
+    expect(quotaMigration).toContain("monthly_image_limit = CASE slug");
+    expect(quotaMigration).toContain("monthly_premium_image_limit = CASE slug");
+    expect(quotaMigration).not.toContain("Coût OpenAI");
     expect(migration).toContain("monthly_campaign_credit_chf = rsp.campaign_credit_chf");
     expect(migration).toContain("/ 0.009");
   });
@@ -294,7 +299,6 @@ describe("TOK AI tools foundation", () => {
     const pricing = readProjectFile("src/lib/ai/imagePricing.ts");
     const photoStudio = readProjectFile("src/components/dashboard/TokAiPhotoStudioV2.tsx");
     const marketingStudio = readProjectFile("src/components/dashboard/TokAiMarketingStudio.tsx");
-    const migration = readMigrationContaining("gpt_image_2_medium_only_pricing");
     const repriceMigration = readMigrationContaining("openai_x10_credit_pricing");
 
     for (const expected of [
@@ -336,10 +340,11 @@ describe("TOK AI tools foundation", () => {
     expect(marketingStudio).not.toContain("setImageModel");
     expect(marketingStudio).not.toContain("marketing-output-resolution");
     expect(marketingStudio).toContain("outputResolution");
-    expect(migration).toContain("WHEN 'starter' THEN 125");
-    expect(migration).toContain("WHEN 'pro' THEN 237");
-    expect(migration).toContain("WHEN 'premium' THEN 367");
-    expect(migration).toContain("WHEN 'elite' THEN 922");
+    const quotaMigration = readMigrationContaining("restaurant_subscription_ai_usage_quotas");
+    expect(quotaMigration).toContain("WHEN 'starter' THEN 10");
+    expect(quotaMigration).toContain("WHEN 'pro' THEN 30");
+    expect(quotaMigration).toContain("WHEN 'premium' THEN 60");
+    expect(quotaMigration).toContain("WHEN 'elite' THEN 200");
     expect(repriceMigration).toContain("normalize_photo_ai_usage_credit_units");
     expect(repriceMigration).toContain("CEIL(GREATEST(COALESCE(NEW.estimated_cost_chf, 0), 0) / 0.009)");
     expect(repriceMigration).toContain("requested_output_credit_units");

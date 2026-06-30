@@ -7,11 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getSupabase } from "@/integrations/supabase/client";
 import {
   formatTokCredits,
-  getAiSimpleRequestEquivalent,
-  getCampaignEquivalentChf,
-  getMarketingFlyerEquivalent,
-  getPhotoProEquivalent,
-  getPhotoSimpleEquivalent,
   getTokCreditAmount,
 } from "@/lib/tokCredits";
 
@@ -26,6 +21,7 @@ type RestaurantSubscriptionPlan = {
   campaign_credit_chf: number;
   ai_tool_credits: number;
   ai_photo_credits: number;
+  monthly_text_tool_limit: number;
   monthly_image_limit: number;
   monthly_premium_image_limit: number;
   features: string[] | null;
@@ -51,28 +47,12 @@ function normalizeFeatures(value: string[] | null) {
   return Array.isArray(value) ? value.map(String).filter(Boolean) : [];
 }
 
-function getPlanExamples(plan: RestaurantSubscriptionPlan) {
-  const credits = getTokCreditAmount(plan);
-  const photoExample = plan.slug === "starter" || plan.slug === "pro"
-    ? `${getPhotoSimpleEquivalent(credits).toLocaleString("fr-CH")} retouches photo simples`
-    : `${getPhotoProEquivalent(credits).toLocaleString("fr-CH")} photos culinaires pro`;
-
-  return [
-    `${getCampaignEquivalentChf(credits).toLocaleString("fr-CH")} CHF de campagnes TOK`,
-    `${getAiSimpleRequestEquivalent(credits).toLocaleString("fr-CH")} requêtes assistant IA`,
-    photoExample,
-  ];
-}
-
-function getPackExamples(pack: RestaurantCreditPack) {
-  const credits = getTokCreditAmount(pack);
-  return [
-    `${getCampaignEquivalentChf(credits).toLocaleString("fr-CH")} CHF de campagnes TOK`,
-    `${getAiSimpleRequestEquivalent(credits).toLocaleString("fr-CH")} requêtes assistant IA`,
-    pack.slug.includes("growth") || pack.slug.includes("croissance")
-      ? `${getMarketingFlyerEquivalent(credits).toLocaleString("fr-CH")} affiches ou flyers IA`
-      : `${getPhotoProEquivalent(credits).toLocaleString("fr-CH")} photos culinaires pro`,
-  ];
+function getPlanIncludedUsage(plan: RestaurantSubscriptionPlan) {
+  return {
+    marketing: Math.max(0, Math.round(Number(plan.monthly_premium_image_limit || 0))),
+    assistant: Math.max(0, Math.round(Number(plan.monthly_text_tool_limit || 0))),
+    photos: Math.max(0, Math.round(Number(plan.monthly_image_limit || 0))),
+  };
 }
 
 function useRestaurantSubscriptionPlans() {
@@ -80,7 +60,7 @@ function useRestaurantSubscriptionPlans() {
     queryKey: ["public-restaurant-subscription-plans"],
     queryFn: async () => {
       const { data, error } = await (supabase.from as any)("restaurant_subscription_plans")
-        .select("id, slug, name, description, price_monthly_chf, campaign_credit_chf, ai_tool_credits, ai_photo_credits, monthly_image_limit, monthly_premium_image_limit, features")
+        .select("id, slug, name, description, price_monthly_chf, campaign_credit_chf, ai_tool_credits, ai_photo_credits, monthly_text_tool_limit, monthly_image_limit, monthly_premium_image_limit, features")
         .eq("is_active", true)
         .order("position", { ascending: true });
 
@@ -108,7 +88,7 @@ function useRestaurantCreditPacks() {
 function PlanCard({ plan }: { plan: RestaurantSubscriptionPlan }) {
   const features = normalizeFeatures(plan.features);
   const tokCredits = getTokCreditAmount(plan);
-  const examples = getPlanExamples(plan);
+  const usage = getPlanIncludedUsage(plan);
 
   return (
     <Card className="flex h-full flex-col">
@@ -122,12 +102,10 @@ function PlanCard({ plan }: { plan: RestaurantSubscriptionPlan }) {
           <span className="ml-1 text-muted-foreground">/ mois</span>
         </div>
         <div className="grid gap-2 rounded-xl bg-primary/5 p-3 text-sm text-primary">
-          <span className="font-semibold">{formatTokCredits(tokCredits)} / mois</span>
-          <span>Utilisables librement pour campagnes, IA, photos, visuels et rendus impression.</span>
-          <span className="pt-1 text-xs font-medium uppercase tracking-wide">Équivalence</span>
-          {examples.map((example) => (
-            <span key={example}>ou {example}</span>
-          ))}
+          <span className="font-semibold">{formatTokCredits(tokCredits)} inclus pour les outils IA</span>
+          <span>{usage.marketing.toLocaleString("fr-CH")} générations marketing / mois</span>
+          <span>{usage.assistant.toLocaleString("fr-CH")} utilisations assistant IA / mois</span>
+          <span>{usage.photos.toLocaleString("fr-CH")} retouches photo / mois</span>
         </div>
         {features.length ? (
           <ul className="space-y-2 text-sm">
@@ -150,7 +128,6 @@ function PlanCard({ plan }: { plan: RestaurantSubscriptionPlan }) {
 function CreditPackCard({ pack }: { pack: RestaurantCreditPack }) {
   const features = normalizeFeatures(pack.features);
   const tokCredits = getTokCreditAmount(pack);
-  const examples = getPackExamples(pack);
 
   return (
     <Card className="flex h-full flex-col">
@@ -166,10 +143,6 @@ function CreditPackCard({ pack }: { pack: RestaurantCreditPack }) {
         <div className="grid gap-2 rounded-xl bg-muted/60 p-3 text-sm">
           <span className="font-semibold">{formatTokCredits(tokCredits)}</span>
           <span>Recharge universelle pour campagnes, assistant IA, photos et supports marketing.</span>
-          <span className="pt-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">Équivalence</span>
-          {examples.map((example) => (
-            <span key={example}>ou {example}</span>
-          ))}
         </div>
         {features.length ? (
           <ul className="space-y-2 text-sm">

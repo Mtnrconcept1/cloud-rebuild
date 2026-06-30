@@ -56,12 +56,15 @@ describe("restaurant account and billing dashboard", () => {
     expect(page).toContain("CreditPackCard");
     expect(page).toContain("BillingCreditEntry");
     expect(page).toContain("Solde");
+    expect(page).toContain("Générations marketing");
+    expect(page).toContain("Utilisations assistant IA");
+    expect(page).toContain("Retouches photo");
   });
 
   it("keeps subscription and credit pack cards concise without duplicated equivalence blocks", () => {
     const page = read("src/pages/dashboard/DashboardAccountBilling.tsx");
 
-    expect(page).toContain("{formatTokCredits(tokCredits)} / mois inclus");
+    expect(page).toContain("{formatTokCredits(tokCredits)} inclus pour les outils IA");
     expect(page).toContain("{formatTokCredits(tokCredits)} recharge universelle");
     expect(page).toContain("getConciseBillingFeatures");
     expect(page).not.toContain("getPlanExamples");
@@ -69,7 +72,37 @@ describe("restaurant account and billing dashboard", () => {
     expect(page).not.toContain("{plan.description}");
     expect(page).not.toContain("{pack.description}");
     expect(page).not.toContain("Équivalence");
+    expect(page).not.toContain("Coût OpenAI");
     expect(page).not.toContain("rounded-xl bg-muted/45 p-3 text-sm");
+  });
+
+  it("locks restaurateur subscription plans to explicit marketing, assistant and photo quotas", () => {
+    const migration = latestMigrationContaining(/restaurant_subscription_ai_usage_quotas/);
+    const publicPacks = read("src/pages/PacksRestaurateur.tsx");
+
+    for (const expected of [
+      "WHEN 'starter' THEN 10",
+      "WHEN 'pro' THEN 30",
+      "WHEN 'premium' THEN 60",
+      "WHEN 'elite' THEN 200",
+      "WHEN 'starter' THEN 20",
+      "WHEN 'pro' THEN 50",
+      "WHEN 'premium' THEN 100",
+      "WHEN 'elite' THEN 500",
+      "10 générations marketing",
+      "200 générations marketing",
+      "500 retouches photo",
+    ]) {
+      expect(migration).toContain(expected);
+    }
+
+    expect(migration).toContain("monthly_premium_image_limit = CASE slug");
+    expect(migration).toContain("monthly_image_limit = CASE slug");
+    expect(migration).toContain("monthly_text_tool_limit = CASE slug");
+    expect(migration).not.toContain("Coût OpenAI");
+    expect(publicPacks).toContain("générations marketing");
+    expect(publicPacks).toContain("retouches photo");
+    expect(publicPacks).not.toContain("Équivalence");
   });
 
   it("uses server-side Stripe Checkout and webhook reconciliation for upgrades and credit packs", () => {

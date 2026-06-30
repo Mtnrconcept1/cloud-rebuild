@@ -73,6 +73,7 @@ type RestaurantSubscriptionPlan = {
   campaign_credit_chf: number;
   ai_tool_credits: number;
   ai_photo_credits: number;
+  monthly_text_tool_limit: number;
   monthly_image_limit: number;
   monthly_premium_image_limit: number;
   features: string[] | null;
@@ -276,14 +277,26 @@ function isCreditEquivalenceFeature(feature: string) {
     (/^\d/.test(normalized) && normalized.includes("credit") && normalized.includes("tok")) ||
     normalized.includes("campagnes tok") ||
     normalized.includes("requetes assistant") ||
+    normalized.includes("utilisations assistant") ||
     normalized.includes("retouches photo") ||
     normalized.includes("photos culinaires") ||
-    normalized.includes("affiches ou flyers")
+    normalized.includes("generations marketing") ||
+    normalized.includes("affiches ou flyers") ||
+    normalized.includes("cout openai") ||
+    normalized.includes("openai")
   );
 }
 
 function getConciseBillingFeatures(value: string[] | null) {
   return normalizeFeatures(value).filter((feature) => !isCreditEquivalenceFeature(feature));
+}
+
+function getPlanIncludedUsage(plan: RestaurantSubscriptionPlan) {
+  return {
+    marketing: Math.max(0, Math.round(toNumber(plan.monthly_premium_image_limit))),
+    assistant: Math.max(0, Math.round(toNumber(plan.monthly_text_tool_limit))),
+    photos: Math.max(0, Math.round(toNumber(plan.monthly_image_limit))),
+  };
 }
 
 function toTokCreditUnits(amount: number, unit: string) {
@@ -355,7 +368,7 @@ async function fetchRestaurantSubscriptionSelfServiceState(
 
 async function fetchRestaurantSubscriptionPlans(): Promise<RestaurantSubscriptionPlan[]> {
   const { data, error } = await (supabase.from as any)("restaurant_subscription_plans")
-    .select("id, slug, name, description, price_monthly_chf, campaign_credit_chf, ai_tool_credits, ai_photo_credits, monthly_image_limit, monthly_premium_image_limit, features, position, is_active")
+    .select("id, slug, name, description, price_monthly_chf, campaign_credit_chf, ai_tool_credits, ai_photo_credits, monthly_text_tool_limit, monthly_image_limit, monthly_premium_image_limit, features, position, is_active")
     .eq("is_active", true)
     .order("position", { ascending: true });
 
@@ -430,6 +443,7 @@ function PlanCard({
   const isBusy = checkingOutPlanId === plan.id || selfServicePlanId === plan.id;
   const features = getConciseBillingFeatures(plan.features);
   const tokCredits = getTokCreditAmount(plan);
+  const usage = getPlanIncludedUsage(plan);
 
   return (
     <Card className={cn("flex h-full flex-col", isCurrent && "border-primary/60 bg-primary/5")}>
@@ -444,9 +458,23 @@ function PlanCard({
           {formatChf(plan.price_monthly_chf)}
           <span className="text-sm font-medium text-muted-foreground"> / mois</span>
         </p>
-        <p className="text-sm font-medium text-primary">{formatTokCredits(tokCredits)} / mois inclus</p>
+        <p className="text-sm font-medium text-primary">{formatTokCredits(tokCredits)} inclus pour les outils IA</p>
       </CardHeader>
       <CardContent className="flex flex-1 flex-col gap-4">
+        <div className="grid gap-2 rounded-xl border bg-muted/35 p-3 text-sm">
+          <div className="flex items-center justify-between gap-3">
+            <span>Générations marketing</span>
+            <span className="font-semibold">{usage.marketing.toLocaleString("fr-CH")}</span>
+          </div>
+          <div className="flex items-center justify-between gap-3">
+            <span>Utilisations assistant IA</span>
+            <span className="font-semibold">{usage.assistant.toLocaleString("fr-CH")}</span>
+          </div>
+          <div className="flex items-center justify-between gap-3">
+            <span>Retouches photo</span>
+            <span className="font-semibold">{usage.photos.toLocaleString("fr-CH")}</span>
+          </div>
+        </div>
         {features.length > 0 ? (
           <ul className="space-y-2 text-sm">
             {features.slice(0, 5).map((feature) => (
@@ -767,8 +795,8 @@ export default function DashboardAccountBilling() {
               <AlertDescription>
                 Les crédits TOK sont utilisables sur tous les outils de la plateforme : campagnes sponsorisées,
                 assistant IA, retouches photo, création de visuels, rendus impression et optimisation marketing.
-                Chaque action affiche son coût avant utilisation. Exemple : 5 crédits pour une requête assistant IA,
-                25 crédits pour une retouche photo simple et 150 crédits pour 10 CHF de campagne.
+                Chaque action affiche son coût avant utilisation. Exemple : 1 crédit pour une utilisation assistant IA simple
+                et 6 crédits pour une retouche photo ou une génération marketing.
               </AlertDescription>
             </Alert>
             <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)]">
