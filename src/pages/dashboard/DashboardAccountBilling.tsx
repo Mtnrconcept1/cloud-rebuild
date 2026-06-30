@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import {
@@ -583,8 +583,11 @@ export default function DashboardAccountBilling() {
   const [selfServicePlanId, setSelfServicePlanId] = useState<string | null>(null);
   const [selfServiceAction, setSelfServiceAction] = useState<SubscriptionActionState | null>(null);
   const [pendingSubscriptionAction, setPendingSubscriptionAction] = useState<PendingSubscriptionAction | null>(null);
+  const [completedCreditPackSessionId, setCompletedCreditPackSessionId] = useState<string | null>(null);
 
   const paymentStatus = searchParams.get("status");
+  const checkoutSessionId = searchParams.get("session_id");
+  const returnCheckoutKind = searchParams.get("checkout_kind");
 
   const usageQuery = useQuery({
     queryKey: ["restaurant-credit-usage", selectedId],
@@ -632,6 +635,43 @@ export default function DashboardAccountBilling() {
   const activeCreditPacks = creditPacksQuery.data ?? [];
   const isUsageLoading = usageQuery.isLoading;
   const isUsageUnavailable = usageQuery.isError;
+
+  useEffect(() => {
+    if (paymentStatus !== "success" || !checkoutSessionId) return;
+    if (returnCheckoutKind && returnCheckoutKind !== "restaurant-credit-pack") return;
+    if (completedCreditPackSessionId === checkoutSessionId) return;
+
+    let cancelled = false;
+    setCompletedCreditPackSessionId(checkoutSessionId);
+
+    invokeSupabaseFunction<{ ok?: boolean; already_paid?: boolean }>("complete-restaurant-credit-pack-checkout", {
+      body: { session_id: checkoutSessionId },
+    })
+      .then(async ({ data, error }) => {
+        if (cancelled) return;
+        if (error || !data?.ok) {
+          if (returnCheckoutKind === "restaurant-credit-pack") {
+            toast.error((error as Error | null)?.message || "La recharge est payée, mais son activation doit être vérifiée.");
+          }
+          return;
+        }
+
+        await usageQuery.refetch();
+        if (returnCheckoutKind === "restaurant-credit-pack" && !data.already_paid) {
+          toast.success("Recharge de crédits TOK activée.");
+        }
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        if (returnCheckoutKind === "restaurant-credit-pack") {
+          toast.error(error instanceof Error ? error.message : "Activation de la recharge impossible.");
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [checkoutSessionId, completedCreditPackSessionId, paymentStatus, returnCheckoutKind, usageQuery]);
 
   const totalBalanceLabel = useMemo(() => {
     if (!tokCreditSummary) return "0 crédit TOK";
@@ -726,7 +766,7 @@ export default function DashboardAccountBilling() {
         body: {
           checkout_kind: "restaurant-credit-pack",
           payment_method: "card",
-          return_url: buildCheckoutReturnUrl("/dashboard/mon-compte-facturation"),
+          return_url: buildCheckoutReturnUrl("/dashboard/mon-compte-facturation?checkout_kind=restaurant-credit-pack"),
           order_metadata: {
             checkout_kind: "restaurant-credit-pack",
             restaurant_id: selectedId,

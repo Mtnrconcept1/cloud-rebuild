@@ -846,7 +846,7 @@ Deno.serve(async (req) => {
           const { cardBrand, cardLast4 } = await getStripePaymentMethodDetails(stripe, session, log);
           const paidAt = new Date().toISOString();
 
-          await supabaseAdmin
+          const { error: creditPackUpdateError } = await supabaseAdmin
             .from("restaurant_credit_purchases")
             .update({
               status: "paid",
@@ -866,6 +866,10 @@ Deno.serve(async (req) => {
               },
             })
             .eq("id", creditPackPurchaseId);
+
+          if (creditPackUpdateError) {
+            throw new Error(`restaurant_credit_pack_update_failed: ${creditPackUpdateError.message}`);
+          }
 
           await supabaseAdmin.from("payment_transactions").insert({
             user_id: userId,

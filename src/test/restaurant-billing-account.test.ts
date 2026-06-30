@@ -108,6 +108,9 @@ describe("restaurant account and billing dashboard", () => {
   it("uses server-side Stripe Checkout and webhook reconciliation for upgrades and credit packs", () => {
     const checkout = read("supabase/functions/create-checkout/index.ts");
     const webhook = read("supabase/functions/stripe-webhook/index.ts");
+    const creditPackCompletion = read("supabase/functions/complete-restaurant-credit-pack-checkout/index.ts");
+    const page = read("src/pages/dashboard/DashboardAccountBilling.tsx");
+    const config = read("supabase/config.toml");
 
     expect(checkout).toContain('effectiveKind === "restaurant-subscription-upgrade"');
     expect(checkout).toContain('effectiveKind === "restaurant-credit-pack"');
@@ -127,6 +130,17 @@ describe("restaurant account and billing dashboard", () => {
     expect(webhook).toContain("previous_stripe_subscription_id");
     expect(webhook).toContain("stripe.subscriptions.cancel");
     expect(webhook).toContain("restaurant_ai_subscriptions");
+    expect(webhook).toContain("creditPackUpdateError");
+
+    expect(page).toContain("complete-restaurant-credit-pack-checkout");
+    expect(page).toContain("checkout_kind=restaurant-credit-pack");
+    expect(page).toContain("usageQuery.refetch()");
+    expect(creditPackCompletion).toContain('checkoutKind !== "restaurant-credit-pack"');
+    expect(creditPackCompletion).toContain('session.payment_status !== "paid"');
+    expect(creditPackCompletion).toContain("requireRestaurantAccess(actor, restaurantId)");
+    expect(creditPackCompletion).toContain('status: "paid"');
+    expect(creditPackCompletion).toContain("reconciled_from_return: true");
+    expect(config).toContain("[functions.complete-restaurant-credit-pack-checkout]");
   });
 
   it("lets restaurateurs cancel at period end or schedule a downgrade without changing current entitlements immediately", () => {

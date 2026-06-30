@@ -65,6 +65,9 @@ verify_jwt = false
 [functions.complete-order-checkout]
 verify_jwt = false
 
+[functions.complete-restaurant-credit-pack-checkout]
+verify_jwt = false
+
 [functions.courier-portal]
 verify_jwt = false
 
