@@ -90,8 +90,11 @@ const GPT_IMAGE_2_MEDIUM_BASE_COST_CHF = 0.05;
 const GPT_IMAGE_2_MEDIUM_BASE_COST_USD = GPT_IMAGE_2_MEDIUM_BASE_COST_CHF / USD_TO_CHF_RATE;
 const PHOTO_STUDIO_MASTER_PROMPT =
   "Génère une image de qualité photographique professionnelle studio, digne des meilleurs food photographe. Au besoin, change l’angle de vue mais préserve les ingrédients du plat tout en améliorant la fraîcheur, l’éclairage, la profondeur de champ. Si le produit est coupé, tronqué, partiellement hors cadre ou sort de l'image, génère la partie manquante en élargissant l'angle ou en modifiant l'angle de vue, sans changer le produit, ses ingrédients, ses logos, ses textes ou son packaging. Le produit doit être parfaitement mis en valeur";
+const PHOTO_STUDIO_USER_DIRECTION_POLICY =
+  "Priorite haute aux consignes restaurateur: lorsqu'une consigne demande une transformation visible, applique-la clairement dans l'image finale, pas comme une retouche presque imperceptible. Les ajouts explicitement demandes comme fromage, cheddar, sauce, ingredient complementaire, produit separe, effet suspendu, mouvement ou levitation sont autorises s'ils valorisent le produit source sans le remplacer.";
 const PHOTO_STUDIO_RETOUCH_PROMPT = `
 ${PHOTO_STUDIO_MASTER_PROMPT}.
+${PHOTO_STUDIO_USER_DIRECTION_POLICY}
 
 Sujet source : [TYPE_DE_PLAT]. Préserver strictement le produit d'origine : mêmes ingrédients visibles, même catégorie alimentaire, même nombre d'éléments principaux, mêmes proportions générales et même identité visuelle reconnaissable. Ne pas remplacer ni redessiner librement le produit.
 
@@ -108,12 +111,14 @@ Instructions :
 - Ajouter une profondeur de champ élégante si utile.
 - Changer légèrement l'angle de vue uniquement si cela améliore le rendu studio sans perdre la reconnaissance du plat source.
 - Si le produit est coupé, tronqué, partiellement hors cadre ou sort de l'image, élargir le cadre ou ajuster l'angle de vue pour générer la partie manquante de manière réaliste, sans inventer un autre produit ni changer les ingrédients, logos, textes, packaging ou nombre d'éléments principaux.
+- Si la consigne restaurateur demande du cheddar dégoulinant, une sauce plus visible, un ingrédient complémentaire, une séparation du burger, une impression de mouvement, de suspension ou de lévitation, créer une composition culinaire publicitaire où cet effet est évident et appétissant.
 - Donner un rendu final réaliste, premium, propre, appétissant et commercial.
 
 Contraintes :
 - Ne pas modifier la nature du produit.
 - Ne jamais remplacer la categorie alimentaire source par une autre categorie alimentaire.
 - Si la source montre deux burgers, deux tacos, une pizza, un sandwich, un plat emballe ou un dessert, la sortie doit conserver ce meme nombre et cette meme categorie.
+- Un ajout complémentaire explicitement demandé par le restaurateur, comme cheddar, sauce ou garniture, est autorisé s'il ne remplace pas les ingrédients principaux existants et reste réaliste.
 - Ne pas ajouter de nouveau texte, logo ou élément graphique.
 - Conserver les logos, textes, étiquettes, packagings et marques déjà présents physiquement sur l'image source.
 - Ne pas changer le nombre d'éléments principaux.
@@ -135,6 +140,8 @@ Charte de retouche culinaire premium non brandee:
 - modele image cible: gpt-image-2, avec edition de l'image source quand elle existe;
 - REGLE BLOQUANTE: si une image source est fournie, l'image finale doit rester une retouche fidele du meme sujet, pas une reinterpretation;
 - conserver la nature exacte du sujet source: meme produit ou plat, meme contenant, meme packaging, meme forme generale et meme identite visuelle reconnaissable;
+- appliquer visiblement les consignes restaurateur explicites quand elles demandent un ajout culinaire ou une mise en scene creative: cheddar degoulinant, sauce, garniture, mouvement, produit separe, suspension ou levitation;
+- ces ajouts creatifs sont autorises uniquement comme amelioration du sujet source; ils ne doivent jamais remplacer la categorie alimentaire, le produit principal, les logos, les textes ou le packaging;
 - conserver la categorie alimentaire exacte du sujet source; ne jamais transformer des burgers en tartine, toast, salade, pizza, dessert, bowl, assiette gastronomique ou autre plat different;
 - conserver le nombre exact d'elements alimentaires principaux visibles dans la source;
 - conserver les logos, textes, inscriptions, marques, etiquettes, symboles, packagings et typographies visibles du sujet source seulement s'ils existent deja physiquement sur le plat, le contenant ou le packaging;
@@ -392,7 +399,7 @@ function stripPlatformBrandTerms(raw: string) {
 function buildPhotoStudioRetouchPrompt(input: { dishName: string; userPrompt: string }) {
   const dishLabel = input.dishName || "produit ou plat du restaurant";
   const extraInstruction = input.userPrompt
-    ? `Consigne restaurateur additionnelle: ${input.userPrompt}`
+    ? `Consigne restaurateur prioritaire a appliquer visiblement: ${input.userPrompt}`
     : "";
 
   return [
@@ -404,16 +411,21 @@ function buildPhotoStudioRetouchPrompt(input: { dishName: string; userPrompt: st
       .replace(/\[TYPE_DE_LUMI[^\]]+\]/g, DEFAULT_PHOTO_STUDIO_LIGHTING)
       .replace(/\[TEXTURES[^\]]+\]/g, DEFAULT_PHOTO_STUDIO_TEXTURES),
     extraInstruction,
-    "Retouche uniquement la photo source; ne cree pas une nouvelle scene libre.",
-    "La consigne restaurateur ne peut jamais autoriser le remplacement du plat, du produit, des ingredients principaux ou du nombre d'elements visibles.",
+    "Retouche et edite la photo source; tu peux modifier la mise en scene, ajouter un ingredient complementaire explicitement demande ou accentuer un effet de mouvement si cela reste coherent avec la source.",
+    "La consigne restaurateur ne peut jamais autoriser le remplacement du plat, du produit, de la categorie alimentaire ou du nombre d'elements principaux visibles.",
   ].filter(Boolean).join("\n\n").slice(0, 3600);
 }
 
-function buildCompactPhotoStudioRetouchPrompt(input: { dishName: string }) {
+function buildCompactPhotoStudioRetouchPrompt(input: { dishName: string; userPrompt: string }) {
   const dishLabel = input.dishName || "produit ou plat du restaurant";
+  const extraInstruction = input.userPrompt
+    ? `Consigne restaurateur prioritaire a appliquer visiblement: ${input.userPrompt}`
+    : "";
 
   return [
     `${PHOTO_STUDIO_MASTER_PROMPT}. Sujet source: ${dishLabel}.`,
+    PHOTO_STUDIO_USER_DIRECTION_POLICY,
+    extraInstruction,
     "Conserve le produit d'origine: meme categorie alimentaire, memes ingredients visibles, meme nombre d'elements principaux, memes proportions generales et meme identite reconnaissable. L'angle peut etre ajuste seulement si le plat reste clairement le meme.",
     "Si le sujet est coupe, tronque, partiellement hors cadre ou sort de l'image, elargis le cadre ou ajuste l'angle de vue pour completer la partie manquante de facon realiste sans inventer un autre produit.",
     "Ne remplace jamais le plat source par une tartine, un toast, une salade, un bol, une pizza, un dessert ou une assiette differente.",
@@ -1224,7 +1236,7 @@ Deno.serve(async (req) => {
       ? buildPhotoStudioRetouchPrompt({ dishName, userPrompt: prompt })
       : "";
     const compactSourceEditPrompt = sourceImageUrl
-      ? buildCompactPhotoStudioRetouchPrompt({ dishName })
+      ? buildCompactPhotoStudioRetouchPrompt({ dishName, userPrompt: prompt })
       : "";
 
     const result = marketingAssetMode

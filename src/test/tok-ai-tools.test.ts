@@ -191,6 +191,13 @@ describe("TOK AI tools foundation", () => {
     expect(source).toContain("Si le produit est coupé, tronqué, partiellement hors cadre ou sort de l'image");
     expect(source).toContain("génère la partie manquante en élargissant l'angle ou en modifiant l'angle de vue");
     expect(source).toContain("Le produit doit être parfaitement mis en valeur");
+    expect(source).toContain("PHOTO_STUDIO_USER_DIRECTION_POLICY");
+    expect(source).toContain("Priorite haute aux consignes restaurateur");
+    expect(source).toContain("cheddar degoulinant");
+    expect(source).toContain("produit separe");
+    expect(source).toContain("suspension ou levitation");
+    expect(source).toContain("Consigne restaurateur prioritaire a appliquer visiblement");
+    expect(source).toContain("Un ajout complémentaire explicitement demandé par le restaurateur");
     expect(source).toContain("recuperation de cadrage");
     expect(source).toContain("elargir le cadre ou ajuster l'angle de vue pour completer la partie manquante");
     expect(source).toContain("photographie culinaire publicitaire haut de gamme");

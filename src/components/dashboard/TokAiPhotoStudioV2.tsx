@@ -34,14 +34,17 @@ import { useTokLogoSrc } from "@/hooks/useTokLogo";
 const supabase = getSupabase();
 const STUDIO_BRIEF =
   "Génère une image de qualité photographique professionnelle studio, digne des meilleurs food photographe. Au besoin, change l’angle de vue mais préserve les ingrédients du plat tout en améliorant la fraîcheur, l’éclairage, la profondeur de champ. Si le produit est coupé, tronqué, partiellement hors cadre ou sort de l'image, génère la partie manquante en élargissant l'angle ou en modifiant l'angle de vue, sans changer le produit, ses ingrédients, ses logos, ses textes ou son packaging. Le produit doit être parfaitement mis en valeur.";
+const PHOTO_PRO_CREATIVE_DIRECTION =
+  "Priorité haute: si le restaurateur demande une modification créative visible, applique-la franchement dans l'image finale au lieu d'une retouche subtile. Les ajouts explicitement demandés comme fromage, cheddar, sauce, ingrédient complémentaire, effet de mouvement, produit séparé, suspendu ou en lévitation sont autorisés s'ils valorisent le produit source sans le remplacer.";
 
 function buildPhotoProPrompt(userInstructions: string) {
   const trimmedInstructions = userInstructions.trim();
 
   return [
     STUDIO_BRIEF,
+    PHOTO_PRO_CREATIVE_DIRECTION,
     "Si le produit est mal mis en scène ou n'a pas l'air appétissant, améliore sa présentation, son volume visuel, la gourmandise, les textures et la lumière tout en préservant le produit, les ingrédients, le packaging, les logos et les textes présents.",
-    trimmedInstructions ? `Consignes du restaurateur: ${trimmedInstructions}` : "",
+    trimmedInstructions ? `Consignes du restaurateur à appliquer visiblement: ${trimmedInstructions}` : "",
   ]
     .filter(Boolean)
     .join("\n\n");
