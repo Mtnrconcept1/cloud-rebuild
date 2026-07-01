@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Sparkles, Wand2 } from "lucide-react";
 
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
@@ -23,53 +23,44 @@ export default function AiGenerationProgressDialog({
   description = "TOK prepare le rendu, verifie les ressources et finalise un visuel pret a publier.",
   status = "Creation en cours",
   steps = DEFAULT_STEPS,
-  estimatedDurationMs = 110_000,
+  estimatedDurationMs = 28_000,
   className,
 }: AiGenerationProgressDialogProps) {
   const logoSrc = useTokLogoSrc();
   const [dismissed, setDismissed] = useState(false);
-  const [progress, setProgress] = useState(4);
-  const startTimeRef = useRef<number | null>(null);
+  const [elapsedMs, setElapsedMs] = useState(0);
   const normalizedSteps = useMemo(() => (steps.length ? steps : DEFAULT_STEPS), [steps]);
+  const durationMs = Math.max(6_000, estimatedDurationMs);
+  const progressRatio = Math.min(elapsedMs / durationMs, 1);
+  const progress = open && !dismissed
+    ? Math.min(98, Math.round(6 + (1 - Math.pow(1 - progressRatio, 2.2)) * 90))
+    : 4;
+  const stepRevealMs = Math.min(1_600, Math.max(700, durationMs / 16));
   const visibleStepCount = Math.min(
     normalizedSteps.length,
-    Math.max(1, Math.floor((progress + 18) / (100 / normalizedSteps.length))),
+    Math.max(1, 1 + Math.floor(elapsedMs / stepRevealMs)),
   );
 
   useEffect(() => {
     if (open) {
       setDismissed(false);
-      startTimeRef.current = performance.now();
-      setProgress(4);
+      setElapsedMs(0);
       return;
     }
 
-    startTimeRef.current = null;
-    setProgress(4);
+    setElapsedMs(0);
   }, [open]);
 
   useEffect(() => {
     if (!open || dismissed) return;
 
-    let frameId = 0;
-    const duration = Math.max(24_000, estimatedDurationMs);
+    const startedAt = Date.now();
+    const intervalId = window.setInterval(() => {
+      setElapsedMs(Date.now() - startedAt);
+    }, 180);
 
-    const tick = (now: number) => {
-      const startedAt = startTimeRef.current ?? now;
-      startTimeRef.current = startedAt;
-      const elapsed = now - startedAt;
-      const ratio = Math.min(elapsed / duration, 1);
-      const easedRatio = 1 - Math.pow(1 - ratio, 2.2);
-      const longWaitBonus = elapsed > duration ? Math.min((elapsed - duration) / duration, 1) * 5 : 0;
-      const nextProgress = Math.min(98, Math.max(4, 4 + easedRatio * 89 + longWaitBonus));
-
-      setProgress(nextProgress);
-      frameId = window.requestAnimationFrame(tick);
-    };
-
-    frameId = window.requestAnimationFrame(tick);
-    return () => window.cancelAnimationFrame(frameId);
-  }, [dismissed, estimatedDurationMs, open]);
+    return () => window.clearInterval(intervalId);
+  }, [dismissed, open]);
 
   return (
     <Dialog
@@ -183,13 +174,14 @@ export default function AiGenerationProgressDialog({
               aria-valuenow={Math.round(progress)}
             >
               <div className="relative h-2 overflow-hidden rounded-full bg-black/40">
-                <span
+                <div
                   className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-orange-500 via-amber-200 to-orange-500 shadow-[0_0_24px_rgba(251,146,60,0.95)] transition-[width] duration-500 ease-out"
+                  data-testid="ai-generation-progress-fill"
                   style={{ width: `${progress}%` }}
                   aria-hidden="true"
                 >
                   <span className="tok-ai-modal-motion absolute inset-y-0 left-0 w-1/2 rounded-full bg-gradient-to-r from-transparent via-white/75 to-transparent [animation:tokAiModalProgress_1.8s_ease-in-out_infinite]" />
-                </span>
+                </div>
               </div>
             </div>
 
