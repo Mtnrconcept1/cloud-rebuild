@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Sparkles, Wand2 } from "lucide-react";
 
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
@@ -11,6 +11,7 @@ type AiGenerationProgressDialogProps = {
   description?: string;
   status?: string;
   steps?: string[];
+  estimatedDurationMs?: number;
   className?: string;
 };
 
@@ -22,17 +23,53 @@ export default function AiGenerationProgressDialog({
   description = "TOK prepare le rendu, verifie les ressources et finalise un visuel pret a publier.",
   status = "Creation en cours",
   steps = DEFAULT_STEPS,
+  estimatedDurationMs = 110_000,
   className,
 }: AiGenerationProgressDialogProps) {
   const logoSrc = useTokLogoSrc();
   const [dismissed, setDismissed] = useState(false);
+  const [progress, setProgress] = useState(4);
+  const startTimeRef = useRef<number | null>(null);
   const normalizedSteps = useMemo(() => (steps.length ? steps : DEFAULT_STEPS), [steps]);
+  const visibleStepCount = Math.min(
+    normalizedSteps.length,
+    Math.max(1, Math.floor((progress + 18) / (100 / normalizedSteps.length))),
+  );
 
   useEffect(() => {
     if (open) {
       setDismissed(false);
+      startTimeRef.current = performance.now();
+      setProgress(4);
+      return;
     }
+
+    startTimeRef.current = null;
+    setProgress(4);
   }, [open]);
+
+  useEffect(() => {
+    if (!open || dismissed) return;
+
+    let frameId = 0;
+    const duration = Math.max(24_000, estimatedDurationMs);
+
+    const tick = (now: number) => {
+      const startedAt = startTimeRef.current ?? now;
+      startTimeRef.current = startedAt;
+      const elapsed = now - startedAt;
+      const ratio = Math.min(elapsed / duration, 1);
+      const easedRatio = 1 - Math.pow(1 - ratio, 2.2);
+      const longWaitBonus = elapsed > duration ? Math.min((elapsed - duration) / duration, 1) * 5 : 0;
+      const nextProgress = Math.min(98, Math.max(4, 4 + easedRatio * 89 + longWaitBonus));
+
+      setProgress(nextProgress);
+      frameId = window.requestAnimationFrame(tick);
+    };
+
+    frameId = window.requestAnimationFrame(tick);
+    return () => window.cancelAnimationFrame(frameId);
+  }, [dismissed, estimatedDurationMs, open]);
 
   return (
     <Dialog
@@ -82,13 +119,13 @@ export default function AiGenerationProgressDialog({
             100% { transform: translateY(120%); opacity: 0; }
           }
           @keyframes tokAiModalProgress {
-            0% { transform: translateX(-78%) scaleX(0.34); }
-            45% { transform: translateX(-8%) scaleX(0.72); }
-            100% { transform: translateX(86%) scaleX(0.42); }
+            0% { transform: translateX(-42%); opacity: 0; }
+            28% { opacity: 0.86; }
+            100% { transform: translateX(160%); opacity: 0; }
           }
           @keyframes tokAiModalStep {
-            0%, 100% { opacity: 0.52; transform: translateY(0); }
-            50% { opacity: 1; transform: translateY(-2px); }
+            from { opacity: 0; transform: translateY(12px) scale(0.96); filter: blur(4px); }
+            to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
           }
           @keyframes tokAiModalMarquee {
             0%, 12% { transform: translateX(0); }
@@ -138,21 +175,34 @@ export default function AiGenerationProgressDialog({
               {description}
             </DialogDescription>
 
-            <div className="mt-6 w-full overflow-hidden rounded-full border border-white/10 bg-white/10 p-1 shadow-inner shadow-black/60">
+            <div
+              className="mt-6 w-full overflow-hidden rounded-full border border-white/10 bg-white/10 p-1 shadow-inner shadow-black/60"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.round(progress)}
+            >
               <div className="relative h-2 overflow-hidden rounded-full bg-black/40">
-                <span className="tok-ai-modal-motion absolute inset-y-0 left-0 w-2/3 rounded-full bg-gradient-to-r from-orange-500 via-amber-200 to-orange-500 shadow-[0_0_24px_rgba(251,146,60,0.95)] [animation:tokAiModalProgress_2.6s_ease-in-out_infinite]" />
+                <span
+                  className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-orange-500 via-amber-200 to-orange-500 shadow-[0_0_24px_rgba(251,146,60,0.95)] transition-[width] duration-500 ease-out"
+                  style={{ width: `${progress}%` }}
+                  aria-hidden="true"
+                >
+                  <span className="tok-ai-modal-motion absolute inset-y-0 left-0 w-1/2 rounded-full bg-gradient-to-r from-transparent via-white/75 to-transparent [animation:tokAiModalProgress_1.8s_ease-in-out_infinite]" />
+                </span>
               </div>
             </div>
 
             <div className="mt-5 grid w-full gap-3">
-              {normalizedSteps.map((step, index) => (
+              {normalizedSteps.slice(0, visibleStepCount).map((step, index) => (
                 <div
                   key={step}
-                  className="rounded-[1.35rem] border border-white/10 bg-white/[0.08] px-4 py-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_18px_42px_rgba(0,0,0,0.22)]"
+                  className="tok-ai-modal-motion rounded-[1.35rem] border border-white/10 bg-white/[0.08] px-4 py-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_18px_42px_rgba(0,0,0,0.22)] [animation:tokAiModalStep_.55s_ease-out_both]"
+                  style={{ animationDelay: `${index * 0.08}s` }}
                 >
                   <span
                     className="tok-ai-modal-motion mb-2 block h-2 w-2 rounded-full bg-orange-300 shadow-[0_0_14px_rgba(253,186,116,0.85)]"
-                    style={{ animation: `tokAiModalStep 1.8s ease-in-out ${index * 0.18}s infinite` }}
+                    style={{ animation: `tokAiModalGlow 1.8s ease-in-out ${index * 0.18}s infinite` }}
                   />
                   <p className="text-xs font-semibold leading-4 text-white">{step}</p>
                 </div>

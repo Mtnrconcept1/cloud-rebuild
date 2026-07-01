@@ -26,6 +26,12 @@ describe("AI waiting animations wiring", () => {
 
     expect(dialog).toContain("tokAiModalStage");
     expect(dialog).toContain("tokAiModalOrbit");
+    expect(dialog).toContain("visibleStepCount");
+    expect(dialog).toContain("requestAnimationFrame");
+    expect(dialog).toContain('role="progressbar"');
+    expect(dialog).toContain("aria-valuenow={Math.round(progress)}");
+    expect(dialog).toContain("style={{ width: `${progress}%` }}");
+    expect(dialog).toContain("normalizedSteps.slice(0, visibleStepCount)");
     expect(dialog).toContain("shadow-[0_24px_90px_rgba(248,92,13,0.42)]");
     expect(dialog).toContain("bg-[radial-gradient(ellipse_at_center");
     expect(dialog).toContain("drop-shadow-[0_0_18px_rgba(251,191,36,0.95)]");
