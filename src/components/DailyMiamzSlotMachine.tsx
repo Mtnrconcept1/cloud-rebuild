@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { X } from "lucide-react";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { fetchWithFreshAccessToken } from "@/lib/session";
@@ -83,6 +84,7 @@ function normalizeAttemptCount(value: unknown, fallback: number) {
 
 export default function DailyMiamzSlotMachine() {
   const { user, role, roles, loading } = useAuth();
+  const queryClient = useQueryClient();
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const [open, setOpen] = useState(false);
   const [checking, setChecking] = useState(false);
@@ -173,15 +175,27 @@ export default function DailyMiamzSlotMachine() {
 
       const nextMaxAttempts = normalizeAttemptCount(payload.maxAttempts, maxAttempts || DEFAULT_MAX_ATTEMPTS) || DEFAULT_MAX_ATTEMPTS;
       const nextAttemptsRemaining = normalizeAttemptCount(payload.attemptsRemaining, Math.max(attemptsRemaining - 1, 0));
+      const nextTotalLoyaltyPoints = typeof payload.totalLoyaltyPoints === "number" ? payload.totalLoyaltyPoints : null;
 
       setMaxAttempts(nextMaxAttempts);
       setAttemptsRemaining(nextAttemptsRemaining);
+      if (nextTotalLoyaltyPoints !== null) {
+        queryClient.setQueryData(["profile-loyalty", userId], (currentProfile: Record<string, unknown> | undefined) => ({
+          ...(currentProfile || {}),
+          loyalty_points: nextTotalLoyaltyPoints,
+        }));
+        queryClient.setQueriesData<Record<string, unknown>>({ queryKey: ["profile-loyalty"] }, (currentProfile) => ({
+          ...(currentProfile || {}),
+          loyalty_points: nextTotalLoyaltyPoints,
+        }));
+        void queryClient.invalidateQueries({ queryKey: ["loyalty-transactions"] });
+      }
       postSlotFrameMessage({
         type: "TOK_SLOT_SPIN_RESULT",
         symbols: normalizeFrameSymbols(spin.symbols),
         rewardPoints: Number(spin.rewardPoints || 0),
         rewardLabel: spin.rewardLabel || "Gain TOK",
-        totalPoints: typeof payload.totalLoyaltyPoints === "number" ? payload.totalLoyaltyPoints : null,
+        totalPoints: nextTotalLoyaltyPoints,
         attemptNumber: typeof spin.attemptNumber === "number" ? spin.attemptNumber : null,
         attemptsRemaining: nextAttemptsRemaining,
         maxAttempts: nextMaxAttempts,
@@ -199,7 +213,7 @@ export default function DailyMiamzSlotMachine() {
     } finally {
       setSpinning(false);
     }
-  }, [attemptsRemaining, maxAttempts, postSlotFrameMessage, spinning]);
+  }, [attemptsRemaining, maxAttempts, postSlotFrameMessage, queryClient, spinning, userId]);
 
   useEffect(() => {
     const onFrameMessage = (event: MessageEvent) => {

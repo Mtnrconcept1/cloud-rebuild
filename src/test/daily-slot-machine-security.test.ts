@@ -96,10 +96,16 @@ describe("daily Miamz slot machine", () => {
   it("mounts only for client users and checks server availability at each eligible connection", () => {
     expect(appShell).toContain("DailyMiamzSlotMachine");
     expect(appShell).toContain("<DailyMiamzSlotMachine />");
+    expect(component).toContain("useQueryClient");
     expect(component).toContain('role !== "client"');
     expect(component).toContain("hasPrivilegedRole");
     expect(component).toContain("fetchWithFreshAccessToken(SLOT_ENDPOINT, { method: \"GET\" })");
     expect(component).toContain("fetchWithFreshAccessToken(SLOT_ENDPOINT, { method: \"POST\" })");
+    expect(component).toContain('queryClient.setQueryData(["profile-loyalty", userId]');
+    expect(component).toContain("queryClient.setQueriesData");
+    expect(component).toContain('queryKey: ["profile-loyalty"]');
+    expect(component).toContain("payload.totalLoyaltyPoints");
+    expect(component).toContain("loyalty_points");
     expect(component).toContain("Affichee a chaque connexion client eligible");
     expect(component).toContain("Le credit reste limite a trois essais par jour par Supabase.");
     expect(component).toContain("attemptsRemaining");
