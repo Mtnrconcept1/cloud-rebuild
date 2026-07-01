@@ -18,6 +18,22 @@ describe("vercel config", () => {
     });
   });
 
+  it("proxies Supabase Edge Functions before the SPA fallback", () => {
+    const configPath = path.resolve(process.cwd(), "vercel.json");
+    const config = JSON.parse(readFileSync(configPath, "utf8")) as {
+      rewrites?: Array<{ source?: string; destination?: string }>;
+    };
+    const rewrites = config.rewrites || [];
+    const edgeFunctionIndex = rewrites.findIndex((entry) =>
+      entry.source === "/functions/v1/:path*" &&
+      entry.destination === "https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1/:path*",
+    );
+    const spaFallbackIndex = rewrites.findIndex((entry) => entry.source === "/(.*)" && entry.destination === "/index.html");
+
+    expect(edgeFunctionIndex).toBeGreaterThan(-1);
+    expect(spaFallbackIndex).toBeGreaterThan(edgeFunctionIndex);
+  });
+
   it("keeps legacy public image aliases ahead of the SPA fallback", () => {
     const configPath = path.resolve(process.cwd(), "vercel.json");
     const config = JSON.parse(readFileSync(configPath, "utf8")) as {

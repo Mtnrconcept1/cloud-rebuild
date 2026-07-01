@@ -1,7 +1,21 @@
 export type TokConnectIntentPlan = {
   actor: "client" | "restaurant";
   mode: "read_only" | "suggest" | "autopilot_bounded";
-  primaryGoal: "discovery" | "reservation" | "campaign" | "restaurant_consent";
+  primaryGoal:
+    | "discovery"
+    | "reservation"
+    | "order"
+    | "loyalty"
+    | "support"
+    | "campaign"
+    | "restaurant_consent"
+    | "restaurant_reservations"
+    | "restaurant_orders"
+    | "restaurant_menu"
+    | "restaurant_marketing"
+    | "restaurant_analytics"
+    | "restaurant_customer_engagement"
+    | "restaurant_account";
   requiredScopes: string[];
   steps: Array<{ title: string; detail: string }>;
   guardrails: string[];
@@ -458,7 +472,343 @@ function includesAny(value: string, terms: string[]) {
   return terms.some((term) => value.includes(term));
 }
 
-export function buildTokConnectIntentPlan(intent: string): TokConnectIntentPlan {
+function detectTokConnectActor(
+  normalizedIntent: string,
+  forcedActor?: TokConnectIntentPlan["actor"],
+): TokConnectIntentPlan["actor"] {
+  if (forcedActor) return forcedActor;
+  return includesAny(normalizedIntent, [
+    "mon restaurant",
+    "mes tables",
+    "ma salle",
+    "mon menu",
+    "mes commandes",
+    "mes reservations",
+    "ma campagne",
+    "mes clients",
+    "mes credits",
+    "mon abonnement",
+    "restaurateur",
+    "restaurant",
+    "campagne",
+    "remplir",
+    "tables vides",
+    "heures creuses",
+    "crm",
+  ])
+    ? "restaurant"
+    : "client";
+}
+
+export function buildTokConnectIntentPlan(
+  intent: string,
+  forcedActor?: TokConnectIntentPlan["actor"],
+): TokConnectIntentPlan {
+  const normalizedIntent = normalizeIntent(intent);
+  const actor = detectTokConnectActor(normalizedIntent, forcedActor);
+
+  if (actor === "restaurant") {
+    if (includesAny(normalizedIntent, ["campagne", "promotion", "sponsor", "remplir", "tables vides", "heures creuses", "offre", "flash"])) {
+      return {
+        actor: "restaurant",
+        mode: "suggest",
+        primaryGoal: "campaign",
+        requiredScopes: ["restaurants:read", "analytics:read", "credits:read", "campaigns:preview"],
+        steps: [
+          { title: "Lire les signaux restaurant", detail: "Analyser disponibilite, performance et contraintes deja autorisees." },
+          { title: "Estimer le cout", detail: "Calculer les credits previsionnels sans engager de depense." },
+          { title: "Generer une preview", detail: "Preparer un brouillon de campagne avec audience, message et budget." },
+          { title: "Attendre validation", detail: "Bloquer publication, offre et depense tant que le restaurant n'a pas valide." },
+        ],
+        guardrails: [
+          "Aucune campagne diffusee sans validation humaine",
+          "Aucune depense de credits en mode preview",
+          "Autopilot contrôlé: plan autorisé, exécution autonome bloquée",
+        ],
+        limits: { maxPartySize: 0, maxDailyReservations: 0, humanApprovalRequired: true },
+      };
+    }
+
+    if (includesAny(normalizedIntent, ["reservation", "table", "couverts", "planning", "no show", "annulation"])) {
+      return {
+        actor: "restaurant",
+        mode: "suggest",
+        primaryGoal: "restaurant_reservations",
+        requiredScopes: ["restaurants:read", "availability:read", "reservations:create", "reservations:cancel"],
+        steps: [
+          { title: "Identifier le service concerné", detail: "Lire le restaurant, le jour, le service et les contraintes de capacité." },
+          { title: "Verifier les reservations existantes", detail: "Comparer couverts, tables bloquees, annulations et disponibilite temps reel." },
+          { title: "Preparer l'action proposee", detail: "Retourner une recommandation: confirmer, deplacer, annuler ou ouvrir des creneaux." },
+          { title: "Demander validation restaurant", detail: "Ne modifier aucune réservation ni capacité sans confirmation explicite." },
+        ],
+        guardrails: [
+          "Validation restaurateur requise avant toute mutation",
+          "Capacite relue cote serveur avant modification",
+          "Historique conserve avec request_id et idempotency key",
+        ],
+        limits: { maxPartySize: 20, maxDailyReservations: 0, humanApprovalRequired: true },
+      };
+    }
+
+    if (includesAny(normalizedIntent, ["commande", "livraison", "emporter", "pickup", "panier", "retard", "remboursement"])) {
+      return {
+        actor: "restaurant",
+        mode: "read_only",
+        primaryGoal: "restaurant_orders",
+        requiredScopes: ["restaurants:read", "analytics:read"],
+        steps: [
+          { title: "Lire la file commandes", detail: "Filtrer par jour, statut, canal et priorite operationnelle." },
+          { title: "Reperer les commandes a risque", detail: "Detecter retard, paiement incomplet, preparation longue ou livraison bloquee." },
+          { title: "Proposer l'action la plus sûre", detail: "Suggérer accepter, préparer, contacter le client ou escalader au support." },
+          { title: "Garder la mutation hors MCP v1", detail: "Les changements de statut restent dans le dashboard restaurant securise." },
+        ],
+        guardrails: [
+          "Lecture seule pour les commandes en v1",
+          "Aucune action paiement ou remboursement depuis le sandbox",
+          "Les statuts critiques restent controles par le dashboard authentifie",
+        ],
+        limits: { maxPartySize: 0, maxDailyReservations: 0, humanApprovalRequired: true },
+      };
+    }
+
+    if (includesAny(normalizedIntent, ["menu", "plat", "prix", "ingredient", "allergene", "photo", "galerie", "carte"])) {
+      return {
+        actor: "restaurant",
+        mode: "suggest",
+        primaryGoal: "restaurant_menu",
+        requiredScopes: ["restaurants:read"],
+        steps: [
+          { title: "Lire la fiche restaurant", detail: "Recuperer menus publics, categories, prix et informations visibles." },
+          { title: "Identifier les elements a ameliorer", detail: "Isoler plats, descriptions, prix, photos ou categories concernes par la demande." },
+          { title: "Generer une recommandation", detail: "Proposer corrections, enrichissements ou priorites sans publier automatiquement." },
+          { title: "Renvoyer vers l'outil proprietaire", detail: "Les modifications menu/photo restent faites dans le dashboard restaurant." },
+        ],
+        guardrails: [
+          "Aucune modification de prix depuis TOK Connect public",
+          "Les assets et menus restent soumis aux droits restaurateur",
+          "Le sandbox ne remplace pas les validations du dashboard",
+        ],
+        limits: { maxPartySize: 0, maxDailyReservations: 0, humanApprovalRequired: true },
+      };
+    }
+
+    if (includesAny(normalizedIntent, ["visuel", "studio", "marketing", "affiche", "post", "reseaux sociaux", "story", "flyer"])) {
+      return {
+        actor: "restaurant",
+        mode: "suggest",
+        primaryGoal: "restaurant_marketing",
+        requiredScopes: ["restaurants:read", "credits:read", "campaigns:preview"],
+        steps: [
+          { title: "Comprendre le support", detail: "Identifier format, audience, offre, ton et contraintes de marque restaurant." },
+          { title: "Verifier les credits", detail: "Lire le solde disponible avant de proposer une generation ou une campagne." },
+          { title: "Construire une preview", detail: "Preparer brief, message, creneau de diffusion et estimation credit." },
+          { title: "Attendre validation humaine", detail: "Aucune creation couteuse ni publication sans confirmation restaurateur." },
+        ],
+        guardrails: [
+          "Credits verifies avant generation payante",
+          "Publication reseaux sociaux bloquee sans validation",
+          "Preview uniquement tant que l'utilisateur n'a pas confirme",
+        ],
+        limits: { maxPartySize: 0, maxDailyReservations: 0, humanApprovalRequired: true },
+      };
+    }
+
+    if (includesAny(normalizedIntent, ["stat", "performance", "chiffre", "conversion", "remplissage", "analytics", "rapport"])) {
+      return {
+        actor: "restaurant",
+        mode: "read_only",
+        primaryGoal: "restaurant_analytics",
+        requiredScopes: ["restaurants:read", "analytics:read"],
+        steps: [
+          { title: "Definir la periode", detail: "Comprendre date, canal, service et indicateurs demandes." },
+          { title: "Lire les metriques autorisees", detail: "Recuperer reservations, commandes, conversions et signaux de remplissage." },
+          { title: "Comparer les tendances", detail: "Mettre en evidence ecarts, opportunites et jours a optimiser." },
+          { title: "Proposer des actions non mutantes", detail: "Retourner recommandations, sans changer offres, prix ou campagnes." },
+        ],
+        guardrails: [
+          "Lecture seule des performances",
+          "Donnees limitees aux restaurants autorises",
+          "Aucune action commerciale automatique",
+        ],
+        limits: { maxPartySize: 0, maxDailyReservations: 0, humanApprovalRequired: false },
+      };
+    }
+
+    if (includesAny(normalizedIntent, ["crm", "client", "fidelite", "actualite", "fil", "newsletter", "avis", "commentaire"])) {
+      return {
+        actor: "restaurant",
+        mode: "suggest",
+        primaryGoal: "restaurant_customer_engagement",
+        requiredScopes: ["restaurants:read", "analytics:read", "campaigns:preview"],
+        steps: [
+          { title: "Qualifier l'audience", detail: "Identifier clients proches, suivis, avis, actualites ou segment CRM vise." },
+          { title: "Verifier les droits du restaurant", detail: "Controler scopes, abonnement et consentements avant d'exposer les donnees." },
+          { title: "Preparer un message validable", detail: "Generer une reponse, publication ou action CRM sans envoi automatique." },
+          { title: "Bloquer l'envoi", detail: "Demander validation dans le dashboard avant publication ou notification." },
+        ],
+        guardrails: [
+          "CRM et fil d'actualite soumis aux droits d'abonnement",
+          "Aucun message client envoye automatiquement",
+          "Respect consentements et opt-out marketing",
+        ],
+        limits: { maxPartySize: 0, maxDailyReservations: 0, humanApprovalRequired: true },
+      };
+    }
+
+    if (includesAny(normalizedIntent, ["credit", "abonnement", "facture", "solde", "paiement", "wallet", "resilier", "downgrade"])) {
+      return {
+        actor: "restaurant",
+        mode: "read_only",
+        primaryGoal: "restaurant_account",
+        requiredScopes: ["credits:read"],
+        steps: [
+          { title: "Lire le contexte compte", detail: "Identifier abonnement, solde de credits ou facture visee par la demande." },
+          { title: "Verifier ce qui est consultable", detail: "Limiter la reponse au solde, aux periodes et aux informations non sensibles." },
+          { title: "Orienter vers le bon parcours", detail: "Proposer recharge, attente du renouvellement, upgrade, downgrade ou support." },
+          { title: "Bloquer les mutations sensibles", detail: "Aucun paiement, remboursement ou changement d'abonnement depuis le sandbox." },
+        ],
+        guardrails: [
+          "Paiement et abonnement restent traites par Stripe et Edge Functions",
+          "Aucun secret ni moyen de paiement expose",
+          "Operations sensibles confirmees dans le dashboard authentifie",
+        ],
+        limits: { maxPartySize: 0, maxDailyReservations: 0, humanApprovalRequired: true },
+      };
+    }
+
+    return {
+      actor: "restaurant",
+      mode: "suggest",
+      primaryGoal: "restaurant_consent",
+      requiredScopes: ["restaurants:read"],
+      steps: [
+        { title: "Clarifier le besoin restaurateur", detail: "Identifier restaurant, module concerne, objectif et niveau d'acces attendu." },
+        { title: "Verifier les consentements", detail: "Controler que le restaurant a accorde les scopes et limites necessaires." },
+        { title: "Composer une reponse prudente", detail: "Proposer une lecture, une preview ou un plan sans execution autonome." },
+        { title: "Demander validation", detail: "Renvoyer toute mutation sensible vers le dashboard restaurant." },
+      ],
+      guardrails: [
+        "Consentement restaurant requis avant acces aux donnees",
+        "Scopes limites a l'usage demande",
+        "Aucune execution autonome en production v1",
+      ],
+      limits: { maxPartySize: 0, maxDailyReservations: 0, humanApprovalRequired: true },
+    };
+  }
+
+  if (includesAny(normalizedIntent, ["aide", "support", "probleme", "bug", "remboursement", "annuler", "retard"])) {
+    return {
+      actor: "client",
+      mode: "read_only",
+      primaryGoal: "support",
+      requiredScopes: ["restaurants:read"],
+      steps: [
+        { title: "Comprendre le probleme", detail: "Identifier commande, reservation, paiement, compte ou incident signale." },
+        { title: "Recueillir les references utiles", detail: "Demander numero de commande/reservation uniquement si necessaire." },
+        { title: "Proposer le canal adapte", detail: "Orienter vers suivi, support TOK ou restaurant selon responsabilite." },
+        { title: "Proteger les actions sensibles", detail: "Remboursement, annulation et donnees personnelles restent hors sandbox." },
+      ],
+      guardrails: [
+        "Pas de remboursement depuis TOK Connect public",
+        "Pas d'exposition de donnees personnelles sans auth",
+        "Escalade support conservee dans les outils TOK",
+      ],
+      limits: { maxPartySize: 0, maxDailyReservations: 0, humanApprovalRequired: true },
+    };
+  }
+
+  if (includesAny(normalizedIntent, ["reservation", "reserver", "table", "couverts", "personnes"])) {
+    return buildLegacyTokConnectIntentPlan(intent);
+  }
+
+  if (includesAny(normalizedIntent, ["commande", "commander", "livraison", "emporter", "panier", "plat", "menu", "repas"])) {
+    return {
+      actor: "client",
+      mode: "suggest",
+      primaryGoal: "order",
+      requiredScopes: ["restaurants:read"],
+      steps: [
+        { title: "Comprendre l'envie repas", detail: "Extraire cuisine, adresse, budget, mode livraison/emporter et contraintes alimentaires." },
+        { title: "Chercher les restaurants compatibles", detail: "Lire restaurants actifs, menus publics, horaires et disponibilite de commande." },
+        { title: "Preparer une proposition de panier", detail: "Retourner plats et alternatives sans creer de commande ni paiement." },
+        { title: "Rediriger vers checkout TOK", detail: "Le paiement et la creation de commande restent dans le tunnel TOK securise." },
+      ],
+      guardrails: [
+        "Aucun paiement declenche depuis le sandbox",
+        "Prix et frais verifies cote serveur au checkout",
+        "Commande creee uniquement dans le tunnel TOK authentifie",
+      ],
+      limits: { maxPartySize: 0, maxDailyReservations: 0, humanApprovalRequired: true },
+    };
+  }
+
+  if (includesAny(normalizedIntent, ["miamz", "point", "fidelite", "cadeau", "abonnement", "profil", "compte"])) {
+    return {
+      actor: "client",
+      mode: "read_only",
+      primaryGoal: "loyalty",
+      requiredScopes: ["restaurants:read"],
+      steps: [
+        { title: "Qualifier la demande compte", detail: "Identifier points, cadeau, abonnement ou preference de profil." },
+        { title: "Limiter aux donnees autorisees", detail: "Ne lire que les informations accessibles a l'utilisateur authentifie." },
+        { title: "Expliquer le prochain geste", detail: "Orienter vers profil, recompenses, abonnement ou support selon le besoin." },
+        { title: "Bloquer toute action sensible", detail: "Pas de modification de compte ni achat depuis le sandbox public." },
+      ],
+      guardrails: [
+        "Donnees personnelles limitees au compte authentifie",
+        "Aucun achat ou modification d'abonnement automatique",
+        "Consentement marketing respecte",
+      ],
+      limits: { maxPartySize: 0, maxDailyReservations: 0, humanApprovalRequired: true },
+    };
+  }
+
+  if (includesAny(normalizedIntent, ["aide", "support", "probleme", "bug", "remboursement", "annuler", "retard"])) {
+    return {
+      actor: "client",
+      mode: "read_only",
+      primaryGoal: "support",
+      requiredScopes: ["restaurants:read"],
+      steps: [
+        { title: "Comprendre le probleme", detail: "Identifier commande, reservation, paiement, compte ou incident signale." },
+        { title: "Recueillir les references utiles", detail: "Demander numero de commande/reservation uniquement si necessaire." },
+        { title: "Proposer le canal adapte", detail: "Orienter vers suivi, support TOK ou restaurant selon responsabilite." },
+        { title: "Proteger les actions sensibles", detail: "Remboursement, annulation et donnees personnelles restent hors sandbox." },
+      ],
+      guardrails: [
+        "Pas de remboursement depuis TOK Connect public",
+        "Pas d'exposition de donnees personnelles sans auth",
+        "Escalade support conservee dans les outils TOK",
+      ],
+      limits: { maxPartySize: 0, maxDailyReservations: 0, humanApprovalRequired: true },
+    };
+  }
+
+  if (includesAny(normalizedIntent, ["decouvrir", "cherche", "trouve", "restaurant", "proche", "geneve", "italien", "burger", "halal", "vegetarien"])) {
+    return {
+      actor: "client",
+      mode: "read_only",
+      primaryGoal: "discovery",
+      requiredScopes: ["restaurants:read"],
+      steps: [
+        { title: "Comprendre les criteres", detail: "Extraire ville, cuisine, budget, distance, ambiance et contraintes alimentaires." },
+        { title: "Lire le catalogue autorise", detail: "Chercher restaurants actifs, menus publics et signaux utiles a la recommandation." },
+        { title: "Classer les options", detail: "Prioriser pertinence, proximite, disponibilite et qualite des informations." },
+        { title: "Proposer sans mutation", detail: "Retourner des restaurants et liens TOK sans reservation ni commande automatique." },
+      ],
+      guardrails: [
+        "Lecture seule du catalogue public",
+        "Aucune reservation ni commande sans action client",
+        "Resultats bornes par les restaurants autorises",
+      ],
+      limits: { maxPartySize: 0, maxDailyReservations: 0, humanApprovalRequired: false },
+    };
+  }
+
+  return buildLegacyTokConnectIntentPlan(intent);
+}
+
+function buildLegacyTokConnectIntentPlan(intent: string): TokConnectIntentPlan {
   const normalizedIntent = normalizeIntent(intent);
   const isRestaurantIntent = includesAny(normalizedIntent, [
     "mon restaurant",

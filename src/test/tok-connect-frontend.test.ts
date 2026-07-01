@@ -66,6 +66,20 @@ describe("TOK Connect frontend integration", () => {
     expect(page).toContain("https://www.thetok.ch/functions/v1/tok-connect-mcp");
     expect(page).toContain("https://www.thetok.ch/functions/v1/tok-connect-oauth/authorize");
     expect(page).toContain("Autopilot avanc");
+    expect(page).toContain("selectedActor");
+    expect(page).toContain("Envoyer");
+    expect(page).toContain("Simule une demande libre");
+    expect(page).toContain("tok-plan-step-enter");
+  });
+
+  it("keeps text selection visible across TOK pages", () => {
+    const css = read("src/index.css");
+
+    expect(css).toContain("::selection");
+    expect(css).toContain("::-moz-selection");
+    expect(css).toContain("rgba(255, 106, 26, 0.82)");
+    expect(css).toContain(".dark ::selection");
+    expect(css).toContain("rgba(255, 170, 64, 0.92)");
   });
 
   it("adds operational TOK Connect consoles for admins and restaurateurs", () => {

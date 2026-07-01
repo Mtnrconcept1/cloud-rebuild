@@ -45,6 +45,41 @@ describe("TOK Connect public catalog", () => {
     expect(plan.guardrails).toContain("Autopilot contrôlé: plan autorisé, exécution autonome bloquée");
   });
 
+  it("adapts the sandbox plan to client order and support requests", () => {
+    const orderPlan = buildTokConnectIntentPlan("Je veux commander deux plats halal en livraison ce soir", "client");
+    const supportPlan = buildTokConnectIntentPlan("J'ai un probleme de remboursement sur une commande", "client");
+
+    expect(orderPlan.actor).toBe("client");
+    expect(orderPlan.primaryGoal).toBe("order");
+    expect(orderPlan.steps.map((step) => step.title)).toContain("Rediriger vers checkout TOK");
+    expect(orderPlan.guardrails).toContain("Aucun paiement declenche depuis le sandbox");
+
+    expect(supportPlan.actor).toBe("client");
+    expect(supportPlan.mode).toBe("read_only");
+    expect(supportPlan.primaryGoal).toBe("support");
+    expect(supportPlan.guardrails).toContain("Pas de remboursement depuis TOK Connect public");
+  });
+
+  it("adapts the sandbox plan to restaurant operational requests", () => {
+    const reservationPlan = buildTokConnectIntentPlan("Montre mes reservations et les couverts de vendredi", "restaurant");
+    const accountPlan = buildTokConnectIntentPlan("Explique mon solde de credits et mon abonnement", "restaurant");
+
+    expect(reservationPlan.actor).toBe("restaurant");
+    expect(reservationPlan.primaryGoal).toBe("restaurant_reservations");
+    expect(reservationPlan.requiredScopes).toEqual([
+      "restaurants:read",
+      "availability:read",
+      "reservations:create",
+      "reservations:cancel",
+    ]);
+    expect(reservationPlan.guardrails).toContain("Validation restaurateur requise avant toute mutation");
+
+    expect(accountPlan.actor).toBe("restaurant");
+    expect(accountPlan.mode).toBe("read_only");
+    expect(accountPlan.primaryGoal).toBe("restaurant_account");
+    expect(accountPlan.requiredScopes).toEqual(["credits:read"]);
+  });
+
   it("documents the real v1 API, webhooks and safe MCP surface", () => {
     expect(tokConnectCoreEndpoints.map((endpoint) => endpoint.path)).toEqual([
       "/v1/restaurants",

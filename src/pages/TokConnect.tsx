@@ -7,6 +7,7 @@ import {
   Code2,
   KeyRound,
   LockKeyhole,
+  Send,
   ShieldCheck,
   Table2,
   Webhook,
@@ -326,9 +327,66 @@ function getActorLabel(actor: TokConnectIntentPlan["actor"]) {
   return actor === "restaurant" ? "Restaurateur" : "Client";
 }
 
+function getGoalLabel(goal: TokConnectIntentPlan["primaryGoal"]) {
+  switch (goal) {
+    case "discovery":
+      return "Découverte";
+    case "reservation":
+      return "Réservation";
+    case "order":
+      return "Commande";
+    case "loyalty":
+      return "Fidélité";
+    case "support":
+      return "Support";
+    case "campaign":
+      return "Campagne";
+    case "restaurant_reservations":
+      return "Planning tables";
+    case "restaurant_orders":
+      return "Opérations commandes";
+    case "restaurant_menu":
+      return "Menu et photos";
+    case "restaurant_marketing":
+      return "Studio marketing";
+    case "restaurant_analytics":
+      return "Performance";
+    case "restaurant_customer_engagement":
+      return "CRM et actualités";
+    case "restaurant_account":
+      return "Compte et crédits";
+    case "restaurant_consent":
+      return "Consentements";
+  }
+}
+
 export default function TokConnect() {
-  const [intent, setIntent] = useState(clientIntent);
-  const plan = useMemo(() => buildTokConnectIntentPlan(intent), [intent]);
+  const [draftIntent, setDraftIntent] = useState(clientIntent);
+  const [draftActor, setDraftActor] = useState<TokConnectIntentPlan["actor"]>("client");
+  const [submittedIntent, setSubmittedIntent] = useState(clientIntent);
+  const [submittedActor, setSubmittedActor] = useState<TokConnectIntentPlan["actor"]>("client");
+  const [simulationRun, setSimulationRun] = useState(1);
+  const plan = useMemo(
+    () => buildTokConnectIntentPlan(submittedIntent, submittedActor),
+    [submittedActor, submittedIntent],
+  );
+
+  const handleSandboxActorChange = (actor: TokConnectIntentPlan["actor"]) => {
+    setDraftActor(actor);
+    setDraftIntent((current) => {
+      const isSampleIntent = current === clientIntent || current === restaurantIntent || current.trim().length === 0;
+      if (!isSampleIntent) return current;
+      return actor === "restaurant" ? restaurantIntent : clientIntent;
+    });
+  };
+
+  const handleSandboxSubmit = () => {
+    const cleanIntent = draftIntent.trim();
+    if (!cleanIntent) return;
+    setSubmittedIntent(cleanIntent);
+    setSubmittedActor(draftActor);
+    setSimulationRun((current) => current + 1);
+  };
 
   const jsonLd = useMemo(
     () => ({
@@ -416,7 +474,16 @@ export default function TokConnect() {
             </div>
           </div>
 
-          <IntentConsole intent={intent} onIntentChange={setIntent} plan={plan} />
+          <IntentConsole
+            intent={draftIntent}
+            selectedActor={draftActor}
+            submittedIntent={submittedIntent}
+            simulationRun={simulationRun}
+            onActorChange={handleSandboxActorChange}
+            onIntentChange={setDraftIntent}
+            onSubmit={handleSandboxSubmit}
+            plan={plan}
+          />
         </div>
       </section>
 
@@ -773,11 +840,21 @@ function ChatGptFieldRow({ row }: { row: (typeof chatGptMcpFieldRows)[number] })
 
 function IntentConsole({
   intent,
+  selectedActor,
+  submittedIntent,
+  simulationRun,
+  onActorChange,
   onIntentChange,
+  onSubmit,
   plan,
 }: {
   intent: string;
+  selectedActor: TokConnectIntentPlan["actor"];
+  submittedIntent: string;
+  simulationRun: number;
+  onActorChange: (actor: TokConnectIntentPlan["actor"]) => void;
   onIntentChange: (intent: string) => void;
+  onSubmit: () => void;
   plan: TokConnectIntentPlan;
 }) {
   return (
@@ -788,22 +865,61 @@ function IntentConsole({
           <h2 className="mt-1 text-2xl font-black">Plan généré</h2>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => onIntentChange(clientIntent)}>Client</Button>
-          <Button variant="outline" size="sm" onClick={() => onIntentChange(restaurantIntent)}>Restaurant</Button>
+          <Button
+            type="button"
+            variant={selectedActor === "client" ? "default" : "outline"}
+            size="sm"
+            className={selectedActor === "client" ? "bg-slate-950 text-white hover:bg-slate-800" : undefined}
+            onClick={() => onActorChange("client")}
+          >
+            Client
+          </Button>
+          <Button
+            type="button"
+            variant={selectedActor === "restaurant" ? "default" : "outline"}
+            size="sm"
+            className={selectedActor === "restaurant" ? "bg-slate-950 text-white hover:bg-slate-800" : undefined}
+            onClick={() => onActorChange("restaurant")}
+          >
+            Restaurant
+          </Button>
         </div>
       </div>
 
-      <Textarea
-        value={intent}
-        onChange={(event) => onIntentChange(event.target.value)}
-        className="mt-4 min-h-28 resize-none border-slate-200 text-sm leading-6"
-        aria-label="Intention TOK Connect"
-      />
+      <form
+        className="mt-4 space-y-3"
+        onSubmit={(event) => {
+          event.preventDefault();
+          onSubmit();
+        }}
+      >
+        <Textarea
+          value={intent}
+          onChange={(event) => onIntentChange(event.target.value)}
+          className="min-h-28 resize-none border-slate-200 text-sm leading-6"
+          aria-label="Demande à simuler dans TOK Connect"
+          placeholder="Exemple: trouve une table, prépare une campagne, analyse mes commandes, explique mes crédits..."
+        />
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-xs font-semibold leading-5 text-slate-500">
+            Simule une demande libre: réservation, commande, menu, crédits, campagne, CRM, support ou performance.
+          </p>
+          <Button type="submit" className="bg-orange-500 text-white hover:bg-orange-600">
+            <Send className="mr-2 h-4 w-4" />
+            Envoyer
+          </Button>
+        </div>
+      </form>
+
+      <div className="mt-4 rounded-lg border border-orange-100 bg-orange-50 px-3 py-2 text-xs font-semibold leading-5 text-orange-900">
+        Demande analysée comme <span className="font-black">{getActorLabel(plan.actor).toLowerCase()}</span>:
+        <span className="ml-1 text-slate-700">{submittedIntent}</span>
+      </div>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
         <Metric icon={Activity} label="Acteur" value={getActorLabel(plan.actor)} />
         <Metric icon={LockKeyhole} label="Mode" value={getModeLabel(plan.mode)} />
-        <Metric icon={ShieldCheck} label="Objectif" value={plan.primaryGoal.replace(/_/g, " ")} />
+        <Metric icon={ShieldCheck} label="Objectif" value={getGoalLabel(plan.primaryGoal)} />
       </div>
 
       {plan.limits ? (
@@ -814,10 +930,14 @@ function IntentConsole({
         </div>
       ) : null}
 
-      <div className="mt-5 space-y-3">
+      <div key={simulationRun} className="mt-5 space-y-3">
         <h3 className="text-sm font-black uppercase tracking-[0.16em] text-slate-500">Étapes</h3>
         {plan.steps.map((step, index) => (
-          <div key={step.title} className="grid grid-cols-[32px_minmax(0,1fr)] gap-3 rounded-lg border bg-slate-50 p-3">
+          <div
+            key={`${simulationRun}-${step.title}`}
+            className="tok-plan-step-enter grid grid-cols-[32px_minmax(0,1fr)] gap-3 rounded-lg border bg-slate-50 p-3"
+            style={{ animationDelay: `${index * 90}ms` }}
+          >
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-100 text-sm font-black text-orange-700">
               {index + 1}
             </span>

@@ -143,8 +143,24 @@
     background-attachment: fixed;
   }
   ::selection {
-    background: hsla(var(--primary), 0.22);
-    color: hsl(var(--foreground));
+    background: rgba(255, 106, 26, 0.82);
+    color: #ffffff;
+    text-shadow: none;
+  }
+  ::-moz-selection {
+    background: rgba(255, 106, 26, 0.82);
+    color: #ffffff;
+    text-shadow: none;
+  }
+  .dark ::selection {
+    background: rgba(255, 170, 64, 0.92);
+    color: #020617;
+    text-shadow: none;
+  }
+  .dark ::-moz-selection {
+    background: rgba(255, 170, 64, 0.92);
+    color: #020617;
+    text-shadow: none;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -180,6 +196,20 @@
     min-width: 100%;
     padding-left: 100%;
     animation: tok-slot-marquee 12s linear infinite;
+  }
+  @keyframes tok-plan-step-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .tok-plan-step-enter {
+    opacity: 0;
+    animation: tok-plan-step-in 360ms ease-out both;
   }
   .glass-morphism {
     @apply bg-white/70 dark:bg-slate-950/70 backdrop-blur-md border border-white/20 dark:border-white/20 shadow-[0_10px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_70px_rgba(0,0,0,0.5),0_0_36px_rgba(249,115,22,0.12)];
