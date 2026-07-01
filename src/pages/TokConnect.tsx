@@ -141,6 +141,7 @@ const tokConnectDeploymentSteps = [
 ];
 
 const CHATGPT_MCP_SERVER_URL = "https://www.thetok.ch/functions/v1/tok-connect-mcp";
+const CHATGPT_OAUTH_AUTHORIZATION_URL = "https://www.thetok.ch/functions/v1/tok-connect-oauth/authorize";
 const CHATGPT_OAUTH_TOKEN_URL = "https://www.thetok.ch/functions/v1/tok-connect-oauth";
 const CHATGPT_REST_API_URL = "https://www.thetok.ch/functions/v1/tok-connect-api";
 const CHATGPT_MCP_DESCRIPTION =
@@ -196,8 +197,8 @@ const chatGptMcpFieldRows = [
   {
     group: "OAuth avancé",
     field: "Méthode d'authentification de l'endpoint du token",
-    value: "none",
-    note: "ChatGPT transmet le client_id et le client_secret au token endpoint TOK Connect.",
+    value: "client_secret_basic",
+    note: "Méthode affichée dans ChatGPT. TOK Connect accepte aussi les identifiants transmis dans le corps.",
   },
   {
     group: "Périmètres",
@@ -221,8 +222,9 @@ const chatGptMcpFieldRows = [
   {
     group: "Endpoints OAuth",
     field: "URL d'autorisation",
-    value: "Laisser vide",
-    note: "TOK Connect v1 utilise client-credentials, pas authorization-code.",
+    value: CHATGPT_OAUTH_AUTHORIZATION_URL,
+    note: "Obligatoire dans ChatGPT. Cette URL redirige vers l'URL de rappel avec un code OAuth court.",
+    highlight: true,
   },
   {
     group: "Endpoints OAuth",
@@ -540,8 +542,9 @@ export default function TokConnect() {
                   l'URL OAuth token dans URL du serveur.
                 </p>
               </div>
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 <MiniValue label="Serveur MCP" value={CHATGPT_MCP_SERVER_URL} />
+                <MiniValue label="URL autorisation" value={CHATGPT_OAUTH_AUTHORIZATION_URL} />
                 <MiniValue label="URL jeton" value={CHATGPT_OAUTH_TOKEN_URL} />
                 <MiniValue label="API REST" value={CHATGPT_REST_API_URL} />
               </div>
@@ -624,6 +627,7 @@ export default function TokConnect() {
               <h4 className="text-lg font-black text-orange-800">URLs à utiliser</h4>
               <div className="mt-4 space-y-3 text-sm">
                 <EndpointLine label="OAuth token" value={CHATGPT_OAUTH_TOKEN_URL} />
+                <EndpointLine label="OAuth autorisation" value={CHATGPT_OAUTH_AUTHORIZATION_URL} />
                 <EndpointLine label="API REST" value={CHATGPT_REST_API_URL} />
                 <EndpointLine label="MCP Server" value={CHATGPT_MCP_SERVER_URL} />
               </div>

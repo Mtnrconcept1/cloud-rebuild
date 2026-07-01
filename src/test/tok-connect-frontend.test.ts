@@ -52,6 +52,7 @@ describe("TOK Connect frontend integration", () => {
     expect(page).toContain("Déployer MCP/API en 5 actions");
     expect(page).toContain("ChatGPT MCP en 3 minutes");
     expect(page).toContain("CHATGPT_MCP_SERVER_URL");
+    expect(page).toContain("CHATGPT_OAUTH_AUTHORIZATION_URL");
     expect(page).toContain("CHATGPT_OAUTH_TOKEN_URL");
     expect(page).toContain("CHATGPT_REST_API_URL");
     expect(page).toContain("Champ ChatGPT");
@@ -63,6 +64,7 @@ describe("TOK Connect frontend integration", () => {
     expect(page).toContain("Ce que TOK Connect sait faire");
     expect(page).toContain("https://www.thetok.ch/functions/v1/tok-connect-api");
     expect(page).toContain("https://www.thetok.ch/functions/v1/tok-connect-mcp");
+    expect(page).toContain("https://www.thetok.ch/functions/v1/tok-connect-oauth/authorize");
     expect(page).toContain("Autopilot avanc");
   });
 
@@ -86,8 +88,10 @@ describe("TOK Connect frontend integration", () => {
     expect(admin).toContain("Checklist ChatGPT MCP");
     expect(admin).toContain("CHATGPT_MCP_SERVER_URL");
     expect(admin).toContain("tok-connect-mcp");
+    expect(admin).toContain("CHATGPT_OAUTH_AUTHORIZATION_URL");
     expect(admin).toContain("CHATGPT_OAUTH_TOKEN_URL");
     expect(admin).toContain("tok-connect-oauth");
+    expect(admin).toContain("client_secret_basic");
     expect(admin).toContain("Client OAuth défini par l'utilisateur");
     expect(admin).toContain("Périmètres par défaut");
     expect(admin).toContain("Secret affiché une seule fois");
@@ -103,5 +107,16 @@ describe("TOK Connect frontend integration", () => {
     expect(dashboard).toContain("fetchWithFreshAccessToken");
     expect(dashboard).toContain("public.auth_owns_restaurant");
     expect(dashboard).toContain("DASHBOARD_TOK_CONNECT_GRANTS_LIMIT");
+  });
+
+  it("keeps the OAuth Edge Function compatible with ChatGPT manual OAuth", () => {
+    const oauth = read("supabase/functions/tok-connect-oauth/index.ts");
+
+    expect(oauth).toContain("handleAuthorizationRequest");
+    expect(oauth).toContain("response_type_code_required");
+    expect(oauth).toContain("authorization_code");
+    expect(oauth).toContain("readBasicClientCredentials");
+    expect(oauth).toContain("redirect_uri_not_allowed");
+    expect(oauth).toContain("chatgpt.com");
   });
 });

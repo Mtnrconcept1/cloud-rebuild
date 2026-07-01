@@ -77,6 +77,7 @@ type ChatGptMcpSetupItem = {
 };
 
 const CHATGPT_MCP_SERVER_URL = "https://www.thetok.ch/functions/v1/tok-connect-mcp";
+const CHATGPT_OAUTH_AUTHORIZATION_URL = "https://www.thetok.ch/functions/v1/tok-connect-oauth/authorize";
 const CHATGPT_OAUTH_TOKEN_URL = "https://www.thetok.ch/functions/v1/tok-connect-oauth";
 const CHATGPT_MCP_DESCRIPTION = "TOK Connect: restaurants, disponibilités, réservations et campagnes preview via MCP sécurisé.";
 const CHATGPT_MCP_FALLBACK_SCOPES = "restaurants:read availability:read reservations:create reservations:cancel analytics:read credits:read campaigns:preview autopilot:plan";
@@ -268,7 +269,7 @@ export default function AdminTokConnect() {
     {
       step: 8,
       field: "Authentification endpoint token",
-      value: "none",
+      value: "client_secret_basic",
       note: "Menu Méthode d'authentification de l'endpoint du token.",
       copyable: true,
     },
@@ -296,9 +297,9 @@ export default function AdminTokConnect() {
     {
       step: 12,
       field: "URL d'autorisation",
-      value: "Laisser vide",
-      note: "TOK Connect v1 utilise client-credentials, pas authorization-code.",
-      copyable: false,
+      value: CHATGPT_OAUTH_AUTHORIZATION_URL,
+      note: "Endpoints OAuth > URL d'autorisation. Obligatoire pour ChatGPT.",
+      copyable: true,
     },
     {
       step: 13,
