@@ -193,9 +193,12 @@ describe("TOK AI tools foundation", () => {
     expect(source).toContain("mêmes ingrédients visibles");
     expect(source).toContain("Supprimer les éléments parasites");
     expect(source).toContain("profondeur de champ élégante");
-    expect(source).toContain("Ne pas ajouter de texte, logo ou éléments graphiques");
+    expect(source).toContain("Ne pas ajouter de nouveau texte, logo ou élément graphique");
+    expect(source).toContain("Conserver les logos, textes, étiquettes, packagings et marques déjà présents physiquement sur l'image source");
     expect(source).toContain("Préserver le ratio d'origine");
-    expect(source).toContain("ne jamais ajouter de logo");
+    expect(source).toContain("ne jamais ajouter de nouveau logo");
+    expect(source).toContain("conserver les logos, textes, inscriptions, marques, etiquettes, symboles, packagings et typographies visibles du sujet source");
+    expect(source).toContain("ne jamais inventer, remplacer, supprimer, deformer ou approximativement recreer une etiquette, un logo ou un texte visible deja present");
     expect(source).toContain("sans logo");
     expect(source).toContain("sans texte de marque");
     expect(source).toContain("SUPPORTED_SOURCE_IMAGE_MIME_TYPES");
@@ -211,7 +214,8 @@ describe("TOK AI tools foundation", () => {
     expect(source).not.toContain("TOK_BRAND_LOGO_URL");
     expect(source).not.toContain("TOK_BRAND_LOGO_PROMPT");
     expect(source).not.toContain('form.append("image[]", logoBlob, "tok-logo.png")');
-    expect(source).toContain("Interdiction explicite: ne pas ajouter de logo");
+    expect(source).toContain("Interdiction explicite: ne pas ajouter de nouveau logo");
+    expect(source).toContain("Si un logo, une etiquette, un texte de marque ou un packaging existe deja physiquement dans l'image source, il doit etre conserve");
     expect(source).toContain('brand_overlay_positioning: "frontend_transparent_layer"');
     expect(source).toContain('brand_overlay_size: "180x180"');
     expect(source).toContain("strict_source_edit_without_generation_fallback");

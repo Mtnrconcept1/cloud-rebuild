@@ -113,7 +113,8 @@ Contraintes :
 - Ne pas modifier la nature du produit.
 - Ne jamais remplacer la categorie alimentaire source par une autre categorie alimentaire.
 - Si la source montre deux burgers, deux tacos, une pizza, un sandwich, un plat emballe ou un dessert, la sortie doit conserver ce meme nombre et cette meme categorie.
-- Ne pas ajouter de texte, logo ou éléments graphiques.
+- Ne pas ajouter de nouveau texte, logo ou élément graphique.
+- Conserver les logos, textes, étiquettes, packagings et marques déjà présents physiquement sur l'image source.
 - Ne pas changer le nombre d'éléments principaux.
 - Ne pas déformer les ingrédients.
 - Rendu photographique réaliste uniquement.
@@ -135,9 +136,9 @@ Charte de retouche culinaire premium non brandee:
 - conserver la nature exacte du sujet source: meme produit ou plat, meme contenant, meme packaging, meme forme generale et meme identite visuelle reconnaissable;
 - conserver la categorie alimentaire exacte du sujet source; ne jamais transformer des burgers en tartine, toast, salade, pizza, dessert, bowl, assiette gastronomique ou autre plat different;
 - conserver le nombre exact d'elements alimentaires principaux visibles dans la source;
-- conserver les textes, inscriptions, marques, etiquettes, symboles et typographies visibles du sujet source seulement s'ils existent deja physiquement sur le plat, le contenant ou le packaging;
-- supprimer les logos de coin, les watermarks, les filigranes, les bulles de marque, les badges, les autocollants virtuels ou les marques superposees qui ne font pas partie de l'objet photographie;
-- ne jamais inventer, remplacer, deformer ou approximativement recreer une etiquette, un logo ou un texte visible;
+- conserver les logos, textes, inscriptions, marques, etiquettes, symboles, packagings et typographies visibles du sujet source seulement s'ils existent deja physiquement sur le plat, le contenant ou le packaging;
+- supprimer uniquement les overlays artificiels qui ne font pas partie de l'objet photographie: watermarks, filigranes, bulles de marque, badges, autocollants virtuels ou marques superposees;
+- ne jamais inventer, remplacer, supprimer, deformer ou approximativement recreer une etiquette, un logo ou un texte visible deja present sur l'objet photographie;
 - si le sujet source est un produit emballe, une boite, un sachet, une bouteille, une conserve ou un verre imprime, conserver cet objet comme sujet principal;
 - ne jamais transformer un produit emballe en plat servi, toast, assiette gastronomique ou scene culinaire differente;
 - ne jamais remplacer une salade, un dessert, une bouteille, une assiette ou un plat source par un autre type de nourriture;
@@ -148,7 +149,7 @@ Charte de retouche culinaire premium non brandee:
 - profondeur de champ: garder le produit principal net et ajouter un flou d'arriere-plan doux seulement si cela ne masque aucun detail important du sujet;
 - formes et volumes: renforcer les contours, volumes et textures par la lumiere et la nettete, sans remodeler le produit, ses ingredients, son emballage ou ses proportions;
 - style avant/apres: meme photo, meme sujet, mais plus premium, plus nette, mieux eclairee et plus vendable;
-- ne jamais ajouter de logo, filigrane, watermark, marque ou texte incruste dans l'image generee;
+- ne jamais ajouter de nouveau logo, filigrane, watermark, marque ou texte incruste dans l'image generee;
 - ne jamais ajouter de logo de plateforme, bulle de marque, mascotte, macaron, badge ou pictogramme de marque dans l'image generee;
 - interdit absolu: ne pas dessiner, simuler, reproduire ou integrer un element de marque de plateforme, un macaron de marque ou un filigrane;
 - ne pas ajouter de prix, faux logo tiers, fausse certification, visage, main, emballage concurrent ou claim medical;
@@ -415,7 +416,7 @@ function buildCompactPhotoStudioRetouchPrompt(input: { dishName: string }) {
     "Ne remplace jamais le plat source par une tartine, un toast, une salade, un bol, une pizza, un dessert ou une assiette differente.",
     "Nettoie la scene, supprime les elements parasites, simplifie l'arriere-plan, ameliore le support, applique un bel eclairage studio doux, corrige colorimetrie, contraste, volumes et nettete du sujet principal.",
     "Ajoute une profondeur de champ elegante seulement si elle garde tous les details importants du produit principal lisibles.",
-    "Contraintes: ne change pas la nature du produit, ne change pas le nombre d'elements principaux, ne deforme pas les ingredients, n'ajoute aucun texte, logo, badge, watermark ou element graphique.",
+    "Contraintes: ne change pas la nature du produit, ne change pas le nombre d'elements principaux, ne deforme pas les ingredients, conserve les logos ou etiquettes deja presents sur l'objet photographie, n'ajoute aucun nouveau texte, logo, badge, watermark ou element graphique.",
     "Rendu final realiste, premium, propre, appetissant et commercial.",
   ].join("\n");
 }
@@ -1271,7 +1272,7 @@ Deno.serve(async (req) => {
         "Contraintes finales non negociables:",
         TOK_PHOTO_DNA,
         "Rendu attendu: avant/apres fidele. Meme sujet reconnaissable immediatement, mais plus net, nettoye de tous les parasites, eclaire comme un studio photo, avec formes mieux valorisees, textures plus appetissantes, profondeur de champ douce et joli flou d'arriere-plan quand cela sert le produit.",
-        "Interdiction explicite: ne pas ajouter de logo, texte de marque, bulle de marque, badge, filigrane ou watermark. Si un logo, une bulle de marque ou un filigrane existe deja dans l'image source, il doit etre retire de l'image generee. Les elements de marque sont superposes par l'interface apres generation, jamais par le modele.",
+        "Interdiction explicite: ne pas ajouter de nouveau logo, texte de marque, bulle de marque, badge, filigrane ou watermark. Si un logo, une etiquette, un texte de marque ou un packaging existe deja physiquement dans l'image source, il doit etre conserve et rester reconnaissable. Seuls les filigranes, badges ou marques superposes qui ne font pas partie de l'objet photographie peuvent etre retires.",
       ].join("\n").slice(0, 7000)
       : [
         result.enhanced_prompt,
