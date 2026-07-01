@@ -49,7 +49,11 @@ describe("TOK photo studio persistence", () => {
     expect(source).toContain("Si le produit est coupé, tronqué, partiellement hors cadre ou sort de l'image");
     expect(source).toContain("génère la partie manquante en élargissant l'angle ou en modifiant l'angle de vue");
     expect(source).toContain("Le produit doit être parfaitement mis en valeur");
-    expect(source).toContain("Consignes du restaurateur");
+    expect(source).toContain("Priorité haute");
+    expect(source).toContain("si le restaurateur demande une modification créative visible");
+    expect(source).toContain("cheddar");
+    expect(source).toContain("suspendu ou en lévitation");
+    expect(source).toContain("Consignes du restaurateur à appliquer visiblement");
     expect(source).toContain("le produit, les ingrédients, le packaging");
     expect(source).toContain("les logos et les textes présents");
     expect(source).toContain("Mise en scène et aspect appétissant améliorés");
