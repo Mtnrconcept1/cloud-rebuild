@@ -62,13 +62,15 @@ describe("vercel config", () => {
     ]));
     expect(csp).toContain("default-src 'self'");
     expect(csp).toContain("object-src 'none'");
-    expect(csp).toContain("frame-ancestors 'none'");
+    expect(csp).toContain("frame-ancestors 'self'");
+    expect(csp).not.toContain("frame-ancestors 'none'");
     expect(csp).toContain("https://router.project-osrm.org");
     expect(csp).toContain("frame-src 'self'");
     expect(csp).toContain("https://www.thetok.ch");
     expect(csp).toContain("https://cloud-rebuild-recovered.vercel.app");
     expect(csp).toContain("https://js.stripe.com");
     expect(csp).toContain("https://hooks.stripe.com");
+    expect(globalHeaders.find((header) => header.key === "X-Frame-Options")?.value).toBe("SAMEORIGIN");
   });
 
   it("keeps delivery map routing compatible with production CSP and Leaflet cleanup", () => {

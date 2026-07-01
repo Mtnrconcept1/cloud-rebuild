@@ -8,6 +8,9 @@ const threeAttemptsMigration = readFileSync("supabase/migrations/20260625034551_
 const component = readFileSync("src/components/DailyMiamzSlotMachine.tsx", "utf8");
 const slotTemplate = readFileSync("public/tok-slot-machine/index.html", "utf8");
 const appShell = readFileSync("src/App.tsx", "utf8");
+const vercelConfig = JSON.parse(readFileSync("vercel.json", "utf8")) as {
+  headers?: Array<{ source?: string; headers?: Array<{ key?: string; value?: string }> }>;
+};
 const trackedFiles = new Set(
   execFileSync("git", ["ls-files", "-z"], { encoding: "utf8" })
     .split("\0")
@@ -42,6 +45,18 @@ function collectPrimarySlotSources() {
 }
 
 describe("daily Miamz slot machine", () => {
+  it("allows the hosted slot machine to be framed by the TOK app only", () => {
+    const globalHeaders = vercelConfig.headers?.find((entry) => entry.source === "/(.*)")?.headers || [];
+    const csp = globalHeaders.find((header) => header.key === "Content-Security-Policy")?.value || "";
+
+    expect(component).toContain('src={SLOT_MACHINE_FRAME_SRC}');
+    expect(component).toContain('sandbox="allow-scripts allow-same-origin"');
+    expect(csp).toContain("frame-src 'self'");
+    expect(csp).toContain("frame-ancestors 'self'");
+    expect(csp).not.toContain("frame-ancestors 'none'");
+    expect(globalHeaders.find((header) => header.key === "X-Frame-Options")?.value).toBe("SAMEORIGIN");
+  });
+
   it("keeps the random result and crediting path server-side", () => {
     expect(edgeFunction).toContain("crypto.getRandomValues");
     expect(edgeFunction).toContain("crypto.randomUUID");
