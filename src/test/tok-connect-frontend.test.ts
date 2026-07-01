@@ -50,6 +50,16 @@ describe("TOK Connect frontend integration", () => {
     expect(page).toContain("#webhooks");
     expect(page).toContain("#deployer-mcp-api");
     expect(page).toContain("Déployer MCP/API en 5 actions");
+    expect(page).toContain("ChatGPT MCP en 3 minutes");
+    expect(page).toContain("CHATGPT_MCP_SERVER_URL");
+    expect(page).toContain("CHATGPT_OAUTH_TOKEN_URL");
+    expect(page).toContain("CHATGPT_REST_API_URL");
+    expect(page).toContain("Champ ChatGPT");
+    expect(page).toContain("Valeur TOK à coller");
+    expect(page).toContain("Dynamic Client Registration");
+    expect(page).toContain("Ne collez jamais l'URL OAuth token dans URL du serveur");
+    expect(page).toContain("/images/tok-connect/chatgpt-mcp-new-app.png");
+    expect(page).toContain("/images/tok-connect/chatgpt-mcp-oauth-endpoints.png");
     expect(page).toContain("Ce que TOK Connect sait faire");
     expect(page).toContain("https://www.thetok.ch/functions/v1/tok-connect-api");
     expect(page).toContain("https://www.thetok.ch/functions/v1/tok-connect-mcp");

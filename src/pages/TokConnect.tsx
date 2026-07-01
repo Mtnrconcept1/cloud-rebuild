@@ -83,6 +83,12 @@ const tokConnectHeroActions: Array<{
     icon: KeyRound,
   },
   {
+    label: "Guide ChatGPT MCP",
+    helper: "Champs, OAuth, captures",
+    href: "#chatgpt-mcp",
+    icon: Bot,
+  },
+  {
     label: "Webhooks signés",
     helper: "Tests, retry, signatures",
     href: "#webhooks",
@@ -111,7 +117,7 @@ const tokConnectDeploymentSteps = [
   {
     title: "Brancher l'API REST",
     action:
-      "Demander un token OAuth sur https://www.thetok.ch/functions/v1/tok-connect-oauth/token, puis appeler https://www.thetok.ch/functions/v1/tok-connect-api.",
+      "Demander un token OAuth sur https://www.thetok.ch/functions/v1/tok-connect-oauth, puis appeler https://www.thetok.ch/functions/v1/tok-connect-api.",
     result: "Toutes les réponses suivent { ok, data, error, request_id, next_cursor } et les listes restent paginées.",
   },
   {
@@ -131,6 +137,149 @@ const tokConnectDeploymentSteps = [
     action:
       "TOK approuve le partenaire, les scopes et les quotas; le restaurateur accorde ses restaurants; la release part par GitHub Actions.",
     result: "La production reste contrôlée: pas de push DB manuel, pas d'autopilot autonome en v1.",
+  },
+];
+
+const CHATGPT_MCP_SERVER_URL = "https://www.thetok.ch/functions/v1/tok-connect-mcp";
+const CHATGPT_OAUTH_TOKEN_URL = "https://www.thetok.ch/functions/v1/tok-connect-oauth";
+const CHATGPT_REST_API_URL = "https://www.thetok.ch/functions/v1/tok-connect-api";
+const CHATGPT_MCP_DESCRIPTION =
+  "TOK Connect: restaurants, disponibilités, réservations et campagnes preview via MCP sécurisé.";
+const CHATGPT_MCP_SCOPES =
+  "restaurants:read availability:read reservations:create reservations:cancel analytics:read credits:read campaigns:preview autopilot:plan";
+
+const chatGptMcpFieldRows = [
+  {
+    group: "Identité",
+    field: "Nom",
+    value: "TOK Connect",
+    note: "Champ Nom dans la colonne de gauche.",
+  },
+  {
+    group: "Identité",
+    field: "Description",
+    value: CHATGPT_MCP_DESCRIPTION,
+    note: "Champ Description facultatif.",
+  },
+  {
+    group: "Connexion",
+    field: "URL du serveur",
+    value: CHATGPT_MCP_SERVER_URL,
+    note: "C'est le serveur MCP. Ne collez jamais l'URL OAuth token dans URL du serveur.",
+    highlight: true,
+  },
+  {
+    group: "Connexion",
+    field: "Authentification",
+    value: "OAuth",
+    note: "Menu Authentification dans la colonne de gauche.",
+  },
+  {
+    group: "OAuth avancé",
+    field: "Méthode d'enregistrement",
+    value: "Client OAuth défini par l'utilisateur",
+    note: "Évite l'erreur Dynamic Client Registration / RFC 7591.",
+    highlight: true,
+  },
+  {
+    group: "OAuth avancé",
+    field: "ID client OAuth",
+    value: "Client ID créé dans /tok-connect/developer",
+    note: "À copier depuis le client sandbox ou production TOK Connect.",
+  },
+  {
+    group: "OAuth avancé",
+    field: "Secret client OAuth",
+    value: "Secret affiché une seule fois lors de la création/rotation",
+    note: "TOK ne le ré-affiche pas: gardez-le dans votre coffre de secrets.",
+  },
+  {
+    group: "OAuth avancé",
+    field: "Méthode d'authentification de l'endpoint du token",
+    value: "none",
+    note: "ChatGPT transmet le client_id et le client_secret au token endpoint TOK Connect.",
+  },
+  {
+    group: "Périmètres",
+    field: "Périmètres par défaut",
+    value: CHATGPT_MCP_SCOPES,
+    note: "Une seule ligne ou valeurs séparées par des espaces.",
+  },
+  {
+    group: "Périmètres",
+    field: "Périmètres de base",
+    value: CHATGPT_MCP_SCOPES,
+    note: "Coller la même valeur que les périmètres par défaut.",
+  },
+  {
+    group: "Endpoints OAuth",
+    field: "URL jeton",
+    value: CHATGPT_OAUTH_TOKEN_URL,
+    note: "C'est l'URL token. Elle ne va pas dans URL du serveur.",
+    highlight: true,
+  },
+  {
+    group: "Endpoints OAuth",
+    field: "URL d'autorisation",
+    value: "Laisser vide",
+    note: "TOK Connect v1 utilise client-credentials, pas authorization-code.",
+  },
+  {
+    group: "Endpoints OAuth",
+    field: "URL d'enregistrement",
+    value: "Laisser vide",
+    note: "Dynamic Client Registration n'est pas activé côté TOK Connect.",
+  },
+  {
+    group: "Endpoints OAuth",
+    field: "Base du serveur d'autorisation",
+    value: "Laisser vide",
+    note: "Non requis pour le token endpoint TOK Connect v1.",
+  },
+  {
+    group: "Endpoints OAuth",
+    field: "Resource",
+    value: "Laisser vide",
+    note: "TOK Connect ignore le paramètre resource en v1.",
+  },
+  {
+    group: "OIDC",
+    field: "OIDC activé",
+    value: "Non, ne pas cocher",
+    note: "Laissez URL de configuration OIDC, userinfo et périmètres OIDC vides.",
+  },
+  {
+    group: "Référence",
+    field: "API REST TOK Connect",
+    value: CHATGPT_REST_API_URL,
+    note: "À garder pour vos tests API/cURL. Ne pas coller comme URL serveur ChatGPT.",
+  },
+];
+
+const chatGptMcpScreenshots = [
+  {
+    title: "Erreur à éviter",
+    src: "/images/tok-connect/chatgpt-mcp-dcr-error.png",
+    alt: "Erreur ChatGPT indiquant que TOK Connect ne supporte pas Dynamic Client Registration RFC 7591",
+    body: "Cette erreur apparaît quand ChatGPT essaie l'inscription dynamique. Choisissez Client OAuth défini par l'utilisateur.",
+  },
+  {
+    title: "Application et OAuth",
+    src: "/images/tok-connect/chatgpt-mcp-new-app.png",
+    alt: "Nouvelle application ChatGPT avec URL serveur et paramètres OAuth avancés",
+    body: "Renseignez le nom, l'URL serveur MCP, OAuth, puis l'ID client et le secret TOK Connect.",
+  },
+  {
+    title: "Périmètres et endpoints",
+    src: "/images/tok-connect/chatgpt-mcp-oauth-endpoints.png",
+    alt: "Champs ChatGPT pour périmètres et endpoints OAuth",
+    body: "Collez les scopes dans les deux champs de périmètres, puis l'URL jeton dans URL jeton.",
+  },
+  {
+    title: "OIDC désactivé",
+    src: "/images/tok-connect/chatgpt-mcp-oidc.png",
+    alt: "Section OIDC ChatGPT à laisser désactivée",
+    body: "Ne cochez pas OIDC: TOK Connect v1 fonctionne en OAuth client-credentials.",
   },
 ];
 
@@ -366,6 +515,72 @@ export default function TokConnect() {
         </div>
       </section>
 
+      <section id="chatgpt-mcp" className="scroll-mt-24 border-y bg-slate-950 px-4 py-16 text-white md:px-8 lg:px-12">
+        <div className="mx-auto max-w-7xl">
+          <div className="grid gap-8 lg:grid-cols-[0.82fr_1.18fr] lg:items-start">
+            <div className="space-y-5">
+              <div className="inline-flex items-center gap-2 rounded-full border border-orange-300/35 bg-orange-500/14 px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-orange-100">
+                <Bot className="h-4 w-4" />
+                ChatGPT MCP en 3 minutes
+              </div>
+              <div>
+                <h2 className="text-3xl font-black leading-tight md:text-5xl">
+                  Créer l'application MCP sans se tromper de champ.
+                </h2>
+                <p className="mt-4 max-w-2xl text-sm leading-6 text-white/70 md:text-base">
+                  Les captures ci-dessous correspondent à l'écran ChatGPT. Les valeurs TOK à coller sont alignées avec
+                  le champ ChatGPT exact pour éviter la confusion entre serveur MCP, token OAuth et API REST.
+                </p>
+              </div>
+              <div className="rounded-lg border border-red-300/30 bg-red-500/12 p-4">
+                <p className="text-sm font-black text-red-100">Erreur Dynamic Client Registration / RFC 7591</p>
+                <p className="mt-2 text-sm leading-6 text-red-50/78">
+                  Si ChatGPT affiche cette erreur, ouvrez Paramètres OAuth avancés et choisissez
+                  <span className="font-black text-white"> Client OAuth défini par l'utilisateur</span>. Ne collez jamais
+                  l'URL OAuth token dans URL du serveur.
+                </p>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <MiniValue label="Serveur MCP" value={CHATGPT_MCP_SERVER_URL} />
+                <MiniValue label="URL jeton" value={CHATGPT_OAUTH_TOKEN_URL} />
+                <MiniValue label="API REST" value={CHATGPT_REST_API_URL} />
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              {chatGptMcpScreenshots.map((screenshot) => (
+                <figure key={screenshot.src} className="overflow-hidden rounded-lg border border-white/12 bg-white/8">
+                  <div className="border-b border-white/10 bg-black/20 px-4 py-3">
+                    <figcaption className="text-sm font-black">{screenshot.title}</figcaption>
+                    <p className="mt-1 text-xs leading-5 text-white/58">{screenshot.body}</p>
+                  </div>
+                  <img
+                    src={screenshot.src}
+                    alt={screenshot.alt}
+                    loading="lazy"
+                    className="h-auto w-full bg-white object-contain"
+                  />
+                </figure>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-10 overflow-hidden rounded-lg border border-white/12 bg-white text-slate-950 shadow-2xl">
+            <div className="grid gap-3 bg-orange-500 px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-white md:grid-cols-[140px_minmax(180px,0.78fr)_minmax(0,1.2fr)_minmax(220px,0.9fr)]">
+              <span>Section</span>
+              <span>Champ ChatGPT</span>
+              <span>Valeur TOK à coller</span>
+              <span>Note</span>
+            </div>
+            <div className="divide-y divide-slate-200">
+              {chatGptMcpFieldRows.map((row) => (
+                <ChatGptFieldRow key={`${row.group}-${row.field}`} row={row} />
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section id="deployer-mcp-api" className="scroll-mt-24 border-y bg-white px-4 py-16 md:px-8 lg:px-12">
         <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.92fr_1.08fr]">
           <div>
@@ -408,9 +623,9 @@ export default function TokConnect() {
             <div className="mt-5 rounded-lg border border-orange-200 bg-orange-50 p-5">
               <h4 className="text-lg font-black text-orange-800">URLs à utiliser</h4>
               <div className="mt-4 space-y-3 text-sm">
-                <EndpointLine label="OAuth token" value="https://www.thetok.ch/functions/v1/tok-connect-oauth/token" />
-                <EndpointLine label="API REST" value="https://www.thetok.ch/functions/v1/tok-connect-api" />
-                <EndpointLine label="MCP Server" value="https://www.thetok.ch/functions/v1/tok-connect-mcp" />
+                <EndpointLine label="OAuth token" value={CHATGPT_OAUTH_TOKEN_URL} />
+                <EndpointLine label="API REST" value={CHATGPT_REST_API_URL} />
+                <EndpointLine label="MCP Server" value={CHATGPT_MCP_SERVER_URL} />
               </div>
             </div>
           </div>
@@ -520,6 +735,34 @@ function EndpointLine({ label, value }: { label: string; value: string }) {
     <div className="grid gap-2 rounded-md bg-white p-3 sm:grid-cols-[132px_minmax(0,1fr)]">
       <span className="text-xs font-black uppercase tracking-[0.12em] text-orange-700">{label}</span>
       <code className="min-w-0 break-words text-xs font-semibold text-slate-800">{value}</code>
+    </div>
+  );
+}
+
+function MiniValue({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-white/12 bg-white/8 p-3">
+      <p className="text-xs font-black uppercase tracking-[0.14em] text-orange-100">{label}</p>
+      <code className="mt-2 block min-w-0 break-all text-xs font-semibold leading-5 text-white/78">{value}</code>
+    </div>
+  );
+}
+
+function ChatGptFieldRow({ row }: { row: (typeof chatGptMcpFieldRows)[number] }) {
+  return (
+    <div
+      className={
+        row.highlight
+          ? "grid gap-3 bg-orange-50 p-4 text-sm md:grid-cols-[140px_minmax(180px,0.78fr)_minmax(0,1.2fr)_minmax(220px,0.9fr)] md:items-center"
+          : "grid gap-3 p-4 text-sm md:grid-cols-[140px_minmax(180px,0.78fr)_minmax(0,1.2fr)_minmax(220px,0.9fr)] md:items-center"
+      }
+    >
+      <span className="text-xs font-black uppercase tracking-[0.12em] text-orange-700">{row.group}</span>
+      <span className="font-black text-slate-950">{row.field}</span>
+      <code className="min-w-0 break-words rounded-md bg-slate-950 px-3 py-2 text-xs font-semibold leading-5 text-white">
+        {row.value}
+      </code>
+      <span className="text-xs font-semibold leading-5 text-slate-600">{row.note}</span>
     </div>
   );
 }
