@@ -6,6 +6,9 @@ on:
     branches:
       - main
       - master
+      - develop
+      - 'release/**'
+      - 'hotfix/**'
 
 env:
   NODE_VERSION: 22
@@ -22,6 +25,31 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+
+      - name: Guard sensitive and oversized files
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          blocked=0
+          while IFS= read -r -d '' file; do
+            case "$file" in
+              .env|.env.*|*.pem|*.key|*.p12|*.sqlite|*.db|service-account*.json|supabase/.branches/*)
+                if [[ "$file" != ".env.example" && "$file" != "supabase/.branches/_current_branch" ]]; then
+                  echo "::error file=$file::Sensitive or local-only file must not be committed."
+                  blocked=1
+                fi
+                ;;
+            esac
+
+            size=$(wc -c < "$file")
+            if (( size > 52428800 )); then
+              echo "::error file=$file::Tracked file is larger than 50 MB."
+              blocked=1
+            fi
+          done < <(git -c core.quotepath=false ls-files -z)
+
+          exit "$blocked"
 
       - name: Enable pnpm
         run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
