@@ -97,6 +97,10 @@ function rpcError(id: JsonRpcRequest["id"], code: number, message: string) {
   return { jsonrpc: "2.0", id: id ?? null, error: { code, message } };
 }
 
+function hasBearerToken(req: Request) {
+  return (req.headers.get("Authorization") || "").startsWith("Bearer ");
+}
+
 async function authorizeMcp(req: Request, requiredScopes: string[] = []) {
   const context = await authenticateTokConnectToken(req, requiredScopes);
   await assertTokConnectFeatureEnabled(context.adminClient, "tok-connect");
@@ -107,12 +111,27 @@ async function authorizeMcp(req: Request, requiredScopes: string[] = []) {
 }
 
 function toolDefinition(tool: typeof SAFE_TOK_CONNECT_MCP_TOOLS[number]) {
+  const securitySchemes = [
+    { type: "noauth" },
+    { type: "oauth2", scopes: tool.requiredScopes },
+  ];
+
   return {
     name: tool.name,
     title: tool.title,
     description: tool.description,
     inputSchema: tool.inputSchema,
+    securitySchemes,
+    _meta: {
+      securitySchemes,
+    },
   };
+}
+
+function callNoAuthSandboxTool(name: string, args: Record<string, unknown>) {
+  const sandboxResult = getTokConnectSandboxMcpToolResult(name, args);
+  if (sandboxResult) return { ...sandboxResult, isError: false };
+  throw new HttpError(404, "mcp_tool_not_found");
 }
 
 async function callTool(
@@ -285,29 +304,29 @@ async function callTool(
 async function handleMcp(req: Request, rpc: JsonRpcRequest): Promise<McpHandleResult> {
   switch (rpc.method) {
     case "initialize": {
-      const context = await authorizeMcp(req);
+      const context = hasBearerToken(req) ? await authorizeMcp(req) : null;
       return {
         payload: rpcResult(rpc.id, {
-        protocolVersion: "2025-06-18",
-        serverInfo: { name: "tok-connect-mcp", version: "1.0.0" },
-        capabilities: {
-          tools: {},
-          resources: {},
-          prompts: {},
-        },
+          protocolVersion: "2025-03-26",
+          serverInfo: { name: "tok-connect-mcp", version: "1.0.0" },
+          capabilities: {
+            tools: {},
+            resources: {},
+            prompts: {},
+          },
         }),
         context,
-        route: "MCP initialize",
+        route: context ? "MCP initialize" : "MCP initialize noauth",
         scopes: [],
       };
     }
 
     case "tools/list": {
-      const context = await authorizeMcp(req);
+      const context = hasBearerToken(req) ? await authorizeMcp(req) : null;
       return {
         payload: rpcResult(rpc.id, { tools: SAFE_TOK_CONNECT_MCP_TOOLS.map(toolDefinition) }),
         context,
-        route: "MCP tools/list",
+        route: context ? "MCP tools/list" : "MCP tools/list noauth",
         scopes: [],
       };
     }
@@ -316,6 +335,17 @@ async function handleMcp(req: Request, rpc: JsonRpcRequest): Promise<McpHandleRe
       const toolName = String(rpc.params?.name || "");
       const tool = SAFE_TOK_CONNECT_MCP_TOOLS.find((entry) => entry.name === toolName);
       if (!tool) throw new HttpError(404, "mcp_tool_not_found");
+      if (!hasBearerToken(req)) {
+        return {
+          payload: rpcResult(
+            rpc.id,
+            callNoAuthSandboxTool(toolName, (rpc.params?.arguments || {}) as Record<string, unknown>),
+          ),
+          context: null,
+          route: `MCP tools/call ${toolName} noauth`,
+          scopes: [],
+        };
+      }
       const context = await authorizeMcp(req, tool.requiredScopes);
       const result = await callTool(context, toolName, (rpc.params?.arguments || {}) as Record<string, unknown>);
       return {
@@ -327,17 +357,35 @@ async function handleMcp(req: Request, rpc: JsonRpcRequest): Promise<McpHandleRe
     }
 
     case "resources/list": {
-      const context = await authorizeMcp(req);
+      const context = hasBearerToken(req) ? await authorizeMcp(req) : null;
       return {
         payload: rpcResult(rpc.id, { resources: MCP_RESOURCES }),
         context,
-        route: "MCP resources/list",
+        route: context ? "MCP resources/list" : "MCP resources/list noauth",
         scopes: [],
       };
     }
 
     case "resources/read": {
       const uri = String(rpc.params?.uri || "tok://restaurants");
+      if (!hasBearerToken(req)) {
+        return {
+          payload: rpcResult(rpc.id, {
+            contents: [{
+              uri,
+              mimeType: "application/json",
+              text: JSON.stringify({
+                status: "sandbox",
+                mutation_allowed: false,
+                message: "TOK Connect DEV noauth expose uniquement des données de démonstration.",
+              }),
+            }],
+          }),
+          context: null,
+          route: "MCP resources/read noauth",
+          scopes: [],
+        };
+      }
       let context: TokConnectTokenContext;
       let scopes: string[];
       let resourceText = JSON.stringify({ status: "available", mutation_allowed: false });
@@ -390,11 +438,11 @@ async function handleMcp(req: Request, rpc: JsonRpcRequest): Promise<McpHandleRe
       }
       return {
         payload: rpcResult(rpc.id, {
-        contents: [{
-          uri,
-          mimeType: "application/json",
-          text: resourceText,
-        }],
+          contents: [{
+            uri,
+            mimeType: "application/json",
+            text: resourceText,
+          }],
         }),
         context,
         route: "MCP resources/read",
@@ -403,33 +451,33 @@ async function handleMcp(req: Request, rpc: JsonRpcRequest): Promise<McpHandleRe
     }
 
     case "prompts/list": {
-      const context = await authorizeMcp(req);
+      const context = hasBearerToken(req) ? await authorizeMcp(req) : null;
       return {
         payload: rpcResult(rpc.id, { prompts: MCP_PROMPTS }),
         context,
-        route: "MCP prompts/list",
+        route: context ? "MCP prompts/list" : "MCP prompts/list noauth",
         scopes: [],
       };
     }
 
     case "prompts/get": {
-      const context = await authorizeMcp(req);
+      const context = hasBearerToken(req) ? await authorizeMcp(req) : null;
       const name = String(rpc.params?.name || "");
       const prompt = MCP_PROMPTS.find((entry) => entry.name === name);
       if (!prompt) throw new HttpError(404, "mcp_prompt_not_found");
       return {
         payload: rpcResult(rpc.id, {
-        description: prompt.description,
-        messages: [{
-          role: "user",
-          content: {
-            type: "text",
-            text: `${prompt.description} Use TOK Connect scopes and return a preview before any real mutation.`,
-          },
-        }],
+          description: prompt.description,
+          messages: [{
+            role: "user",
+            content: {
+              type: "text",
+              text: `${prompt.description} Use TOK Connect scopes and return a preview before any real mutation.`,
+            },
+          }],
         }),
         context,
-        route: `MCP prompts/get ${name}`,
+        route: context ? `MCP prompts/get ${name}` : `MCP prompts/get ${name} noauth`,
         scopes: [],
       };
     }

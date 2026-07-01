@@ -113,6 +113,19 @@ describe("TOK Connect Edge Functions", () => {
     expect(source).toContain("context = result.context");
   });
 
+  it("allows ChatGPT DEV to discover noauth MCP tools before OAuth is configured", () => {
+    const source = read("supabase/functions/tok-connect-mcp/index.ts");
+
+    expect(source).toContain("function hasBearerToken");
+    expect(source).toContain('route: context ? "MCP initialize" : "MCP initialize noauth"');
+    expect(source).toContain('route: context ? "MCP tools/list" : "MCP tools/list noauth"');
+    expect(source).toContain("callNoAuthSandboxTool");
+    expect(source).toContain('{ type: "noauth" }');
+    expect(source).toContain('securitySchemes');
+    expect(source).toContain('protocolVersion: "2025-03-26"');
+    expect(source).toContain("TOK Connect DEV noauth");
+  });
+
   it("keeps developer portal actions authenticated by user JWT instead of public table writes", () => {
     const source = read("supabase/functions/tok-connect-portal/index.ts");
 
