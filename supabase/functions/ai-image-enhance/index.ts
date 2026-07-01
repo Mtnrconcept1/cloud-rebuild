@@ -89,7 +89,7 @@ const PHOTO_CREDIT_CHF = 0.009;
 const GPT_IMAGE_2_MEDIUM_BASE_COST_CHF = 0.05;
 const GPT_IMAGE_2_MEDIUM_BASE_COST_USD = GPT_IMAGE_2_MEDIUM_BASE_COST_CHF / USD_TO_CHF_RATE;
 const PHOTO_STUDIO_MASTER_PROMPT =
-  "Génère une image de qualité photographique professionnelle studio, digne des meilleurs food photographe. Au besoin, change l’angle de vue mais préserve les ingrédients du plat tout en améliorant la fraîcheur, l’éclairage, la profondeur de champ";
+  "Génère une image de qualité photographique professionnelle studio, digne des meilleurs food photographe. Au besoin, change l’angle de vue mais préserve les ingrédients du plat tout en améliorant la fraîcheur, l’éclairage, la profondeur de champ. Si le produit est coupé, tronqué, partiellement hors cadre ou sort de l'image, génère la partie manquante en élargissant l'angle ou en modifiant l'angle de vue, sans changer le produit, ses ingrédients, ses logos, ses textes ou son packaging. Le produit doit être parfaitement mis en valeur";
 const PHOTO_STUDIO_RETOUCH_PROMPT = `
 ${PHOTO_STUDIO_MASTER_PROMPT}.
 
@@ -107,6 +107,7 @@ Instructions :
 - Accentuer la netteté sur le sujet principal uniquement.
 - Ajouter une profondeur de champ élégante si utile.
 - Changer légèrement l'angle de vue uniquement si cela améliore le rendu studio sans perdre la reconnaissance du plat source.
+- Si le produit est coupé, tronqué, partiellement hors cadre ou sort de l'image, élargir le cadre ou ajuster l'angle de vue pour générer la partie manquante de manière réaliste, sans inventer un autre produit ni changer les ingrédients, logos, textes, packaging ou nombre d'éléments principaux.
 - Donner un rendu final réaliste, premium, propre, appétissant et commercial.
 
 Contraintes :
@@ -148,6 +149,7 @@ Charte de retouche culinaire premium non brandee:
 - rendu studio photo: eclairage softbox premium, contraste maitrise, blancs propres, sujet net, textures visibles, reflets propres et naturels;
 - profondeur de champ: garder le produit principal net et ajouter un flou d'arriere-plan doux seulement si cela ne masque aucun detail important du sujet;
 - formes et volumes: renforcer les contours, volumes et textures par la lumiere et la nettete, sans remodeler le produit, ses ingredients, son emballage ou ses proportions;
+- recuperation de cadrage: si le sujet source est coupe, tronque, partiellement hors cadre ou sort de l'image, elargir le cadre ou ajuster l'angle de vue pour completer la partie manquante de facon realiste sans changer le produit, ses ingredients, ses logos, ses textes, son packaging ou son nombre d'elements principaux;
 - style avant/apres: meme photo, meme sujet, mais plus premium, plus nette, mieux eclairee et plus vendable;
 - ne jamais ajouter de nouveau logo, filigrane, watermark, marque ou texte incruste dans l'image generee;
 - ne jamais ajouter de logo de plateforme, bulle de marque, mascotte, macaron, badge ou pictogramme de marque dans l'image generee;
@@ -413,6 +415,7 @@ function buildCompactPhotoStudioRetouchPrompt(input: { dishName: string }) {
   return [
     `${PHOTO_STUDIO_MASTER_PROMPT}. Sujet source: ${dishLabel}.`,
     "Conserve le produit d'origine: meme categorie alimentaire, memes ingredients visibles, meme nombre d'elements principaux, memes proportions generales et meme identite reconnaissable. L'angle peut etre ajuste seulement si le plat reste clairement le meme.",
+    "Si le sujet est coupe, tronque, partiellement hors cadre ou sort de l'image, elargis le cadre ou ajuste l'angle de vue pour completer la partie manquante de facon realiste sans inventer un autre produit.",
     "Ne remplace jamais le plat source par une tartine, un toast, une salade, un bol, une pizza, un dessert ou une assiette differente.",
     "Nettoie la scene, supprime les elements parasites, simplifie l'arriere-plan, ameliore le support, applique un bel eclairage studio doux, corrige colorimetrie, contraste, volumes et nettete du sujet principal.",
     "Ajoute une profondeur de champ elegante seulement si elle garde tous les details importants du produit principal lisibles.",

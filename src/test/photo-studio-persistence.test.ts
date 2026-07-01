@@ -46,7 +46,11 @@ describe("TOK photo studio persistence", () => {
     expect(source).toContain("Consignes PhotoPro");
     expect(source).toContain("buildPhotoProPrompt(draft.userInstructions || \"\")");
     expect(source).toContain("Si le produit est mal mis en scène ou n'a pas l'air appétissant");
+    expect(source).toContain("Si le produit est coupé, tronqué, partiellement hors cadre ou sort de l'image");
+    expect(source).toContain("génère la partie manquante en élargissant l'angle ou en modifiant l'angle de vue");
+    expect(source).toContain("Le produit doit être parfaitement mis en valeur");
     expect(source).toContain("Consignes du restaurateur");
+    expect(source).toContain("le produit, les ingrédients, le packaging");
     expect(source).toContain("les logos et les textes présents");
     expect(source).toContain("Mise en scène et aspect appétissant améliorés");
   });

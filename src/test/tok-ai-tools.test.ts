@@ -188,6 +188,11 @@ describe("TOK AI tools foundation", () => {
     expect(source).toContain("Génère une image de qualité photographique professionnelle studio");
     expect(source).toContain("Au besoin, change l’angle de vue");
     expect(source).toContain("préserve les ingrédients du plat");
+    expect(source).toContain("Si le produit est coupé, tronqué, partiellement hors cadre ou sort de l'image");
+    expect(source).toContain("génère la partie manquante en élargissant l'angle ou en modifiant l'angle de vue");
+    expect(source).toContain("Le produit doit être parfaitement mis en valeur");
+    expect(source).toContain("recuperation de cadrage");
+    expect(source).toContain("elargir le cadre ou ajuster l'angle de vue pour completer la partie manquante");
     expect(source).toContain("photographie culinaire publicitaire haut de gamme");
     expect(source).toContain("Préserver strictement le produit d'origine");
     expect(source).toContain("mêmes ingrédients visibles");
