@@ -4,6 +4,7 @@ import {
   AI_CREATION_COMPLETED_EVENT,
   AI_CREATION_FAILED_EVENT,
   getActiveAiCreationContext,
+  resumeAiCreationJobs,
   type AiCreationRecord,
 } from "@/lib/ai/aiCreationJobs";
 
@@ -32,6 +33,8 @@ function showBrowserNotification(title: string, body: string, tag: string) {
 
 export default function AiCreationNotifications() {
   useEffect(() => {
+    resumeAiCreationJobs();
+
     const handleCompleted = (event: Event) => {
       const record = (event as CustomEvent<AiCreationRecord>).detail;
       if (!record || !shouldNotifyOutOfContext(record)) return;

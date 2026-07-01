@@ -118,6 +118,25 @@ export type TokImageGenerationResult = {
   status: "generated" | "stored";
 };
 
+export type TokImageGenerationJobStatus = "queued" | "running" | "completed" | "failed" | "cancelled";
+
+export type TokImageGenerationJob = {
+  id: string;
+  restaurantId: string;
+  userId: string | null;
+  tool: "marketing_studio" | "photopro" | "menu_photo" | "advisor_photo" | "unknown";
+  title: string;
+  request: TokImageGenerationRequest;
+  result: TokImageGenerationResult | null;
+  status: TokImageGenerationJobStatus;
+  errorMessage: string | null;
+  generatedAssetId: string | null;
+  startedAt: string | null;
+  completedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type AccountingAgentRequest = {
   action: "monthly_summary" | "invoice_anomalies" | "revenue_forecast" | "margin_review";
   month: string;
@@ -464,6 +483,39 @@ export function generateTokDishImage(request: TokImageGenerationRequest) {
     variantCount: request.variantCount || 1,
     generateImage: request.generateImage !== false,
   });
+}
+
+export async function startTokImageGenerationJob(request: {
+  restaurantId: string;
+  tool: TokImageGenerationJob["tool"];
+  title: string;
+  imageRequest: TokImageGenerationRequest;
+}) {
+  const result = await invokeTokAiFunction<{ job: TokImageGenerationJob }>("ai-image-job", {
+    action: "start",
+    restaurantId: request.restaurantId,
+    tool: request.tool,
+    title: request.title,
+    request: {
+      ...request.imageRequest,
+      assetType: request.imageRequest.assetType || "menu_visual",
+      format: request.imageRequest.format || "landscape",
+      outputResolution: request.imageRequest.outputResolution || "studio",
+      variantCount: request.imageRequest.variantCount || 1,
+      generateImage: request.imageRequest.generateImage !== false,
+    },
+  });
+
+  return result.job;
+}
+
+export async function getTokImageGenerationJob(jobId: string) {
+  const result = await invokeTokAiFunction<{ job: TokImageGenerationJob }>("ai-image-job", {
+    action: "status",
+    jobId,
+  });
+
+  return result.job;
 }
 
 export function runAccountingAgent(request: AccountingAgentRequest) {

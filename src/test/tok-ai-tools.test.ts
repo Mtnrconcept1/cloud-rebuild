@@ -82,6 +82,46 @@ describe("TOK AI tools foundation", () => {
     }
   });
 
+  it("runs image generations through resumable server-side jobs", () => {
+    const jobFunction = readProjectFile("supabase/functions/ai-image-job/index.ts");
+    const config = readProjectFile("supabase/config.toml");
+    const migration = readMigrationContaining("ai_image_background_jobs");
+    const client = readProjectFile("src/lib/ai/tokAiClient.ts");
+    const jobs = readProjectFile("src/lib/ai/aiCreationJobs.ts");
+
+    expect(config).toContain("[functions.ai-image-job]");
+    expect(config).toMatch(/\[functions\.ai-image-job\]\s+verify_jwt\s*=\s*false/i);
+
+    expect(migration).toContain("CREATE TABLE IF NOT EXISTS public.ai_image_jobs");
+    expect(migration).toContain("ALTER TABLE public.ai_image_jobs ENABLE ROW LEVEL SECURITY");
+    expect(migration).toContain("ai_image_jobs_status_check");
+    expect(migration).toContain("status IN ('queued', 'running', 'completed', 'failed', 'cancelled')");
+    expect(migration).toContain("public.auth_owns_restaurant(restaurant_id)");
+    expect(migration).toContain("public.has_role(auth.uid(), 'admin')");
+    expect(migration).toContain("GRANT SELECT ON public.ai_image_jobs TO authenticated");
+
+    expect(jobFunction).toContain("authenticateRequest");
+    expect(jobFunction).toContain("requireRestaurantAccess");
+    expect(jobFunction).toContain("createRateLimiter");
+    expect(jobFunction).toContain("writeAuditLog");
+    expect(jobFunction).toContain("waitUntilBackground");
+    expect(jobFunction).toContain("EdgeRuntime");
+    expect(jobFunction).toContain('IMAGE_FUNCTION_NAME = "ai-image-enhance"');
+    expect(jobFunction).toContain(".from(\"ai_image_jobs\")");
+    expect(jobFunction).toContain('status: "queued"');
+    expect(jobFunction).toContain('status: "running"');
+    expect(jobFunction).toContain('status: "completed"');
+    expect(jobFunction).toContain('status: "failed"');
+
+    expect(client).toContain("startTokImageGenerationJob");
+    expect(client).toContain("getTokImageGenerationJob");
+    expect(client).toContain('"ai-image-job"');
+    expect(jobs).toContain("startTokImageGenerationJob");
+    expect(jobs).toContain("getTokImageGenerationJob");
+    expect(jobs).toContain("resumeAiCreationJobs");
+    expect(jobs).not.toContain("generateTokDishImage(input.request)");
+  });
+
   it("charges ai_tools credits from the current OpenAI model cost", () => {
     const pricing = readProjectFile("supabase/functions/_shared/ai-pricing.ts");
 

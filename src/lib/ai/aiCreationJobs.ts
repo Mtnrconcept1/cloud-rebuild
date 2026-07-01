@@ -1,6 +1,8 @@
 import {
-  generateTokDishImage,
+  getTokImageGenerationJob,
+  startTokImageGenerationJob,
   type TokImageFormat,
+  type TokImageGenerationJob,
   type TokImageGenerationRequest,
   type TokImageGenerationResult,
 } from "@/lib/ai/tokAiClient";
@@ -11,6 +13,7 @@ export const AI_CREATION_COMPLETED_EVENT = "tok-ai-creation-completed";
 export const AI_CREATION_FAILED_EVENT = "tok-ai-creation-failed";
 
 const AI_CREATIONS_STORAGE_KEY = "tok-ai-creations-v1";
+const AI_CREATION_JOB_POLL_INTERVAL_MS = 4_000;
 
 export type AiCreationTool =
   | "marketing_studio"
@@ -35,6 +38,9 @@ export type AiCreationRecord = {
   sourceImageUrl?: string | null;
   referenceImageUrls?: string[];
   referenceMediaIds?: string[];
+  serverJobId?: string | null;
+  serverStatus?: TokImageGenerationJob["status"] | null;
+  serverStartedAt?: string | null;
   status: AiCreationStatus;
   createdAt: string;
   updatedAt: string;
@@ -64,6 +70,7 @@ type AiCreationJob = {
 const listeners = new Set<AiCreationListener>();
 const activeJobs = new Map<string, Promise<TokImageGenerationResult>>();
 let storageListenerReady = false;
+let resumeListenerReady = false;
 let activeAiCreationContext: string | null = null;
 
 function hasBrowserStorage() {
@@ -116,6 +123,10 @@ function ensureStorageListener() {
   });
 }
 
+function delay(ms: number) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
 function upsertRecord(nextRecord: AiCreationRecord) {
   const records = readRecords();
   const index = records.findIndex((record) => record.id === nextRecord.id);
@@ -153,13 +164,108 @@ function dispatchAiCreationEvent(eventName: string, record: AiCreationRecord) {
   window.dispatchEvent(new CustomEvent<AiCreationRecord>(eventName, { detail: record }));
 }
 
+function mapServerJobStatus(job: TokImageGenerationJob): AiCreationStatus {
+  if (job.status === "completed") return "completed";
+  if (job.status === "failed" || job.status === "cancelled") return "failed";
+  return "running";
+}
+
+function patchRecordFromServerJob(recordId: string, job: TokImageGenerationJob) {
+  const status = mapServerJobStatus(job);
+  const completedAt = status === "completed" || status === "failed"
+    ? job.completedAt || new Date().toISOString()
+    : null;
+
+  return patchRecord(recordId, {
+    serverJobId: job.id,
+    serverStatus: job.status,
+    serverStartedAt: job.startedAt,
+    status,
+    completedAt,
+    result: job.result,
+    errorMessage: status === "failed" ? job.errorMessage || "La génération IA n'a pas pu aboutir." : null,
+  });
+}
+
+async function pollServerImageJob(recordId: string, serverJobId: string) {
+  while (true) {
+    const job = await getTokImageGenerationJob(serverJobId);
+    const syncedRecord = patchRecordFromServerJob(recordId, job);
+
+    if (job.status === "completed") {
+      if (!job.result) throw new Error("image_job_result_missing");
+      const completedRecord = syncedRecord || readRecords().find((record) => record.id === recordId);
+      if (completedRecord) dispatchAiCreationEvent(AI_CREATION_COMPLETED_EVENT, completedRecord);
+      return job.result;
+    }
+
+    if (job.status === "failed" || job.status === "cancelled") {
+      const error = new Error(job.errorMessage || "image_job_failed");
+      const failedRecord = syncedRecord || readRecords().find((record) => record.id === recordId);
+      if (failedRecord) dispatchAiCreationEvent(AI_CREATION_FAILED_EVENT, failedRecord);
+      throw error;
+    }
+
+    await delay(AI_CREATION_JOB_POLL_INTERVAL_MS);
+  }
+}
+
+function trackServerImageJob(recordId: string, serverJobId: string) {
+  const existing = activeJobs.get(recordId);
+  if (existing) return existing;
+
+  const promise = pollServerImageJob(recordId, serverJobId)
+    .finally(() => {
+      activeJobs.delete(recordId);
+    });
+  activeJobs.set(recordId, promise);
+  return promise;
+}
+
+async function refreshRunningAiCreationJobs() {
+  const runningRecords = readRecords().filter((record) => record.status === "running" && record.serverJobId);
+  await Promise.allSettled(runningRecords.map(async (record) => {
+    const job = await getTokImageGenerationJob(record.serverJobId!);
+    patchRecordFromServerJob(record.id, job);
+  }));
+}
+
+function ensureResumeListeners() {
+  if (resumeListenerReady || typeof window === "undefined" || typeof document === "undefined") return;
+  resumeListenerReady = true;
+
+  const resumeAndRefresh = () => {
+    resumeAiCreationJobs();
+    void refreshRunningAiCreationJobs();
+  };
+
+  window.addEventListener("focus", resumeAndRefresh);
+  window.addEventListener("online", resumeAndRefresh);
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) resumeAndRefresh();
+  });
+}
+
+export function resumeAiCreationJobs() {
+  ensureStorageListener();
+  ensureResumeListeners();
+  const records = readRecords();
+
+  for (const record of records) {
+    if (record.status !== "running" || !record.serverJobId || activeJobs.has(record.id)) continue;
+    trackServerImageJob(record.id, record.serverJobId).catch(() => {});
+  }
+}
+
 export function getAiCreationRecords() {
   ensureStorageListener();
+  resumeAiCreationJobs();
   return readRecords();
 }
 
 export function subscribeAiCreationRecords(listener: AiCreationListener) {
   ensureStorageListener();
+  resumeAiCreationJobs();
   listeners.add(listener);
   listener(readRecords());
 
@@ -205,6 +311,9 @@ export function startTokImageCreationJob(input: StartAiCreationJobInput): AiCrea
     sourceImageUrl: input.request.sourceImageUrl ?? null,
     referenceImageUrls: input.request.referenceImageUrls ?? [],
     referenceMediaIds: input.request.referenceMediaIds ?? [],
+    serverJobId: null,
+    serverStatus: null,
+    serverStartedAt: null,
     status: "running",
     createdAt: now,
     updatedAt: now,
@@ -218,23 +327,28 @@ export function startTokImageCreationJob(input: StartAiCreationJobInput): AiCrea
 
   upsertRecord(record);
 
-  const promise = generateTokDishImage(input.request)
-    .then((result) => {
-      const completed = patchRecord(id, {
-        status: "completed",
-        completedAt: new Date().toISOString(),
-        result,
-        errorMessage: null,
-      }) || {
-        ...record,
-        status: "completed" as const,
-        completedAt: new Date().toISOString(),
-        result,
-      };
-      dispatchAiCreationEvent(AI_CREATION_COMPLETED_EVENT, completed);
-      return result;
+  const promise = startTokImageGenerationJob({
+    restaurantId: input.restaurantId,
+    tool: input.tool,
+    title: input.title,
+    imageRequest: input.request,
+  })
+    .then((job) => {
+      patchRecord(id, {
+        serverJobId: job.id,
+        serverStatus: job.status,
+        serverStartedAt: job.startedAt,
+        status: mapServerJobStatus(job),
+      });
+      activeJobs.delete(id);
+      return trackServerImageJob(id, job.id);
     })
     .catch((error) => {
+      const current = readRecords().find((item) => item.id === id);
+      if (current?.serverJobId && current.status === "failed") {
+        throw error;
+      }
+
       const failed = patchRecord(id, {
         status: "failed",
         completedAt: new Date().toISOString(),

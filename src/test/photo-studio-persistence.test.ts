@@ -269,7 +269,13 @@ describe("TOK photo studio persistence", () => {
     expect(aiCreationJobs).toContain("AI_CREATION_COMPLETED_EVENT");
     expect(aiCreationJobs).toContain("AI_CREATIONS_STORAGE_KEY");
     expect(aiCreationJobs).toContain("startTokImageCreationJob");
-    expect(aiCreationJobs).toContain("generateTokDishImage(input.request)");
+    expect(aiCreationJobs).toContain("startTokImageGenerationJob");
+    expect(aiCreationJobs).toContain("getTokImageGenerationJob");
+    expect(aiCreationJobs).toContain("serverJobId");
+    expect(aiCreationJobs).toContain("resumeAiCreationJobs");
+    expect(aiCreationJobs).toContain('window.addEventListener("focus", resumeAndRefresh)');
+    expect(aiCreationJobs).toContain('window.addEventListener("online", resumeAndRefresh)');
+    expect(aiCreationJobs).toContain('document.addEventListener("visibilitychange"');
     expect(aiCreationJobs).toContain("window.localStorage");
     expect(aiCreationJobs).toContain("dispatchAiCreationEvent(AI_CREATION_COMPLETED_EVENT");
     expect(aiCreationJobs).toContain("setActiveAiCreationContext");
@@ -278,6 +284,7 @@ describe("TOK photo studio persistence", () => {
     expect(aiCreationNotifications).toContain("shouldNotifyOutOfContext");
     expect(aiCreationNotifications).toContain("record.originPathname");
     expect(aiCreationNotifications).toContain("getActiveAiCreationContext()");
+    expect(aiCreationNotifications).toContain("resumeAiCreationJobs()");
     expect(aiCreationNotifications).toContain("new Notification");
     expect(aiCreationNotifications).toContain("Photos > Mes créations");
 
