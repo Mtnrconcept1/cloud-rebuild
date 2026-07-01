@@ -46,9 +46,11 @@ describe("TOK photo studio persistence", () => {
       expect(file).not.toMatch(/\u00c3|\u00c2|\u00e2\u20ac\u2122|\u00e2\u20ac\u0153|\u00e2\u20ac|\ufffd/);
     }
 
-    expect(source).toContain("améliore cette photo pour un rendu professionnel, photographie culinaire");
-    expect(source).toContain("ajoute un fond esthétique");
-    expect(source).toContain("améliore la forme de l'aliment");
+    expect(source).toContain("Génère une image de qualité photographique professionnelle studio");
+    expect(source).toContain("digne des meilleurs food photographe");
+    expect(source).toContain("Au besoin, change l’angle de vue");
+    expect(source).toContain("préserve les ingrédients du plat");
+    expect(source).toContain("améliorant la fraîcheur, l’éclairage, la profondeur de champ");
     expect(source).toContain("Un emballage ne doit jamais devenir une assiette servie.");
     expect(source).toContain("Visuel TOK prêt");
     expect(source).toContain("Après TOK");
@@ -492,13 +494,10 @@ describe("TOK photo studio persistence", () => {
 
   it("requests image-only generation and does not render generated marketing copy", () => {
     expect(source).toContain("imageOnly: true");
-    expect(source).toContain("améliore cette photo pour un rendu professionnel, photographie culinaire");
-    expect(source).toContain("ajoute un fond esthétique");
-    expect(source).toContain("améliore la forme de l'aliment");
-    expect(source).toContain("sans remplacer le plat");
-    expect(source).toContain("les ingrédients");
-    expect(source).toContain("le nombre d'aliments");
-    expect(source).toContain("composition source");
+    expect(source).toContain("Génère une image de qualité photographique professionnelle studio");
+    expect(source).toContain("Au besoin, change l’angle de vue");
+    expect(source).toContain("préserve les ingrédients du plat");
+    expect(source).toContain("améliorant la fraîcheur, l’éclairage, la profondeur de champ");
     expect(source).toContain('assetType: "menu_visual"');
     expect(source).not.toContain("photographie culinaire de studio professionnel");
     expect(source).not.toContain("éclairage softbox premium");

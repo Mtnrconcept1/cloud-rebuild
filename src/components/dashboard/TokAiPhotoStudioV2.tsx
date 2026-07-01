@@ -32,7 +32,7 @@ import { useTokLogoSrc } from "@/hooks/useTokLogo";
 
 const supabase = getSupabase();
 const STUDIO_BRIEF =
-  "améliore cette photo pour un rendu professionnel, photographie culinaire. ajoute un fond esthétique et améliore la forme de l'aliment sans remplacer le plat, les ingrédients, le nombre d'aliments ni la composition source";
+  "Génère une image de qualité photographique professionnelle studio, digne des meilleurs food photographe. Au besoin, change l’angle de vue mais préserve les ingrédients du plat tout en améliorant la fraîcheur, l’éclairage, la profondeur de champ";
 
 
 type Props = {

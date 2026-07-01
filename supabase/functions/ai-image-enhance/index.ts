@@ -88,8 +88,12 @@ const USD_TO_CHF_RATE = 0.81;
 const PHOTO_CREDIT_CHF = 0.009;
 const GPT_IMAGE_2_MEDIUM_BASE_COST_CHF = 0.05;
 const GPT_IMAGE_2_MEDIUM_BASE_COST_USD = GPT_IMAGE_2_MEDIUM_BASE_COST_CHF / USD_TO_CHF_RATE;
+const PHOTO_STUDIO_MASTER_PROMPT =
+  "Génère une image de qualité photographique professionnelle studio, digne des meilleurs food photographe. Au besoin, change l’angle de vue mais préserve les ingrédients du plat tout en améliorant la fraîcheur, l’éclairage, la profondeur de champ";
 const PHOTO_STUDIO_RETOUCH_PROMPT = `
-Retouche cette photo de [TYPE_DE_PLAT] en conservant strictement le produit d'origine : mêmes ingrédients visibles, mêmes proportions, même structure, même angle de vue global, même composition générale, même position des éléments principaux et même identité visuelle. Ne pas remplacer ni redessiner le produit.
+${PHOTO_STUDIO_MASTER_PROMPT}.
+
+Sujet source : [TYPE_DE_PLAT]. Préserver strictement le produit d'origine : mêmes ingrédients visibles, même catégorie alimentaire, même nombre d'éléments principaux, mêmes proportions générales et même identité visuelle reconnaissable. Ne pas remplacer ni redessiner librement le produit.
 
 Objectif : transformer l'image en photographie culinaire publicitaire haut de gamme, style [STYLE_SOHAITÉ : studio premium / restaurant haut de gamme / fast-food premium / artisanal chic], avec une ambiance [AMBIANCE : chaude / élégante / gourmande / moderne / sombre premium / lumineuse naturelle].
 
@@ -102,6 +106,7 @@ Instructions :
 - Corriger la balance des blancs, la colorimétrie, le contraste et les volumes.
 - Accentuer la netteté sur le sujet principal uniquement.
 - Ajouter une profondeur de champ élégante si utile.
+- Changer légèrement l'angle de vue uniquement si cela améliore le rendu studio sans perdre la reconnaissance du plat source.
 - Donner un rendu final réaliste, premium, propre, appétissant et commercial.
 
 Contraintes :
@@ -112,7 +117,7 @@ Contraintes :
 - Ne pas changer le nombre d'éléments principaux.
 - Ne pas déformer les ingrédients.
 - Rendu photographique réaliste uniquement.
-- Préserver le cadrage et le ratio d'origine sauf indication contraire.
+- Préserver le ratio d'origine sauf indication contraire.
 `.trim();
 const SOURCE_IMAGE_EDIT_PROMPT = PHOTO_STUDIO_RETOUCH_PROMPT;
 const PREMIUM_SOURCE_IMAGE_EDIT_PROMPT = PHOTO_STUDIO_RETOUCH_PROMPT;
@@ -138,7 +143,7 @@ Charte de retouche culinaire premium non brandee:
 - ne jamais remplacer une salade, un dessert, une bouteille, une assiette ou un plat source par un autre type de nourriture;
 - ne jamais remplacer un burger, sandwich, tacos, pizza, kebab, wrap ou plateau source par une tartine, un toast, une salade, un bol ou une assiette differente;
 - nettoyage studio: supprimer les objets hors sujet, mains, couverts inutiles, miettes, taches, reflets sales, bords de table distrayants, fonds encombrants et parasites visuels;
-- composition: conserver une composition proche de la scene source; ameliorer seulement le cadrage lorsque cela ne change pas l'identite;
+- composition: conserver une composition reconnaissable depuis la scene source; ajuster l'angle ou le cadrage seulement si cela valorise le plat sans changer son identite;
 - rendu studio photo: eclairage softbox premium, contraste maitrise, blancs propres, sujet net, textures visibles, reflets propres et naturels;
 - profondeur de champ: garder le produit principal net et ajouter un flou d'arriere-plan doux seulement si cela ne masque aucun detail important du sujet;
 - formes et volumes: renforcer les contours, volumes et textures par la lumiere et la nettete, sans remodeler le produit, ses ingredients, son emballage ou ses proportions;
@@ -198,8 +203,8 @@ function buildConfiguredImageRequestOptions(formatSize: string, quality = IMAGE_
 }
 
 function buildImageRequestOptions(formatSize: string, sourceImagePresent: boolean, quality: ImageQuality, model: TokImageModel): ImageRequestOptions {
-  const shouldUseFastInteractiveEdit = sourceImagePresent || USE_FAST_INTERACTIVE_IMAGE;
-  if (!shouldUseFastInteractiveEdit) return buildConfiguredImageRequestOptions(formatSize, quality, model);
+  const shouldUseFastInteractiveGeneration = !sourceImagePresent && USE_FAST_INTERACTIVE_IMAGE;
+  if (!shouldUseFastInteractiveGeneration) return buildConfiguredImageRequestOptions(formatSize, quality, model);
 
   return {
     model,
@@ -405,8 +410,8 @@ function buildCompactPhotoStudioRetouchPrompt(input: { dishName: string }) {
   const dishLabel = input.dishName || "produit ou plat du restaurant";
 
   return [
-    `Retouche cette photo de ${dishLabel} comme une photographie culinaire publicitaire haut de gamme.`,
-    "Conserve strictement le produit d'origine: meme categorie alimentaire, memes ingredients visibles, meme nombre d'elements principaux, memes proportions, meme structure, meme angle global, meme cadrage et meme position des elements principaux.",
+    `${PHOTO_STUDIO_MASTER_PROMPT}. Sujet source: ${dishLabel}.`,
+    "Conserve le produit d'origine: meme categorie alimentaire, memes ingredients visibles, meme nombre d'elements principaux, memes proportions generales et meme identite reconnaissable. L'angle peut etre ajuste seulement si le plat reste clairement le meme.",
     "Ne remplace jamais le plat source par une tartine, un toast, une salade, un bol, une pizza, un dessert ou une assiette differente.",
     "Nettoie la scene, supprime les elements parasites, simplifie l'arriere-plan, ameliore le support, applique un bel eclairage studio doux, corrige colorimetrie, contraste, volumes et nettete du sujet principal.",
     "Ajoute une profondeur de champ elegante seulement si elle garde tous les details importants du produit principal lisibles.",
