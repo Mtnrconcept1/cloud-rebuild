@@ -41,6 +41,16 @@ describe("TOK photo studio persistence", () => {
     expect(source).not.toContain("assetId");
   });
 
+  it("lets restaurateurs guide PhotoPro without replacing the protected source product", () => {
+    expect(source).toContain("userInstructions: string");
+    expect(source).toContain("Consignes PhotoPro");
+    expect(source).toContain("buildPhotoProPrompt(draft.userInstructions || \"\")");
+    expect(source).toContain("Si le produit est mal mis en scène ou n'a pas l'air appétissant");
+    expect(source).toContain("Consignes du restaurateur");
+    expect(source).toContain("les logos et les textes présents");
+    expect(source).toContain("Mise en scène et aspect appétissant améliorés");
+  });
+
   it("keeps the restaurateur-facing photo studio copy readable in French", () => {
     for (const file of [source, dashboardPhotos, imageUpload]) {
       expect(file).not.toMatch(/\u00c3|\u00c2|\u00e2\u20ac\u2122|\u00e2\u20ac\u0153|\u00e2\u20ac|\ufffd/);

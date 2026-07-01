@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import AiGenerationProgressDialog from "@/components/ui/ai-generation-progress-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import ImageUpload from "@/components/ImageUpload";
 import { useToast } from "@/hooks/use-toast";
 import { useSessionStorageState } from "@/hooks/useSessionStorageState";
@@ -34,6 +35,17 @@ const supabase = getSupabase();
 const STUDIO_BRIEF =
   "Génère une image de qualité photographique professionnelle studio, digne des meilleurs food photographe. Au besoin, change l’angle de vue mais préserve les ingrédients du plat tout en améliorant la fraîcheur, l’éclairage, la profondeur de champ";
 
+function buildPhotoProPrompt(userInstructions: string) {
+  const trimmedInstructions = userInstructions.trim();
+
+  return [
+    STUDIO_BRIEF,
+    "Si le produit est mal mis en scène ou n'a pas l'air appétissant, améliore sa présentation, son volume visuel, la gourmandise, les textures et la lumière tout en préservant le produit, les ingrédients, le packaging, les logos et les textes présents.",
+    trimmedInstructions ? `Consignes du restaurateur: ${trimmedInstructions}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+}
 
 type Props = {
   restaurantId: string | null | undefined;
@@ -46,6 +58,7 @@ type Props = {
 type PhotoStudioDraft = {
   sourceImageUrl: string;
   dishName: string;
+  userInstructions: string;
   format: TokImageFormat;
   outputResolution: TokImageOutputResolution;
   result: TokImageGenerationResult | null;
@@ -54,6 +67,7 @@ type PhotoStudioDraft = {
 const DEFAULT_DRAFT: PhotoStudioDraft = {
   sourceImageUrl: "",
   dishName: "",
+  userInstructions: "",
   format: "landscape",
   outputResolution: "studio",
   result: null,
@@ -131,7 +145,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
         restaurantId,
         sourceImageUrl: draft.sourceImageUrl,
         dishName: draft.dishName || null,
-        prompt: STUDIO_BRIEF,
+        prompt: buildPhotoProPrompt(draft.userInstructions || ""),
         assetType: "menu_visual",
         format: draft.format,
         outputResolution: selectedOutputResolution,
@@ -255,6 +269,18 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
               </div>
             </div>
             <div className="space-y-2">
+              <Label>Consignes PhotoPro</Label>
+              <Textarea
+                value={draft.userInstructions || ""}
+                onChange={(event) => updateDraft({ userInstructions: event.target.value, result: null })}
+                placeholder="Ex. rendre le produit plus gourmand, corriger la mise en scène, ajouter une lumière plus chaude..."
+                className="min-h-[110px]"
+              />
+              <p className="text-xs leading-5 text-muted-foreground">
+                Optionnel. PhotoPro garde le produit source mais peut corriger une mise en scène faible ou rendre le rendu plus appétissant.
+              </p>
+            </div>
+            <div className="space-y-2">
               <Label>Configuration image</Label>
               <div className="rounded-2xl border border-orange-200 bg-orange-50 p-3 text-sm text-orange-950">
                 <span className="block font-semibold">{outputPricing.modelLabel}</span>
@@ -290,6 +316,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
                   <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" /> Même produit ou plat que la source, immédiatement reconnaissable.</li>
                   <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" /> Packaging, contenant, marque, textes et couleurs préservés si présents.</li>
                   <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" /> Éclairage studio, fond nettoyé, profondeur de champ douce, textures renforcées{shouldApplyTokWatermark ? " et logo TOK ajouté en calque transparent séparé." : ", sans logo TOK avec Tok Pro ou plus."}</li>
+                  <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" /> Mise en scène et aspect appétissant améliorés si la photo source ne valorise pas assez le produit.</li>
                   <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" /> Un emballage ne doit jamais devenir une assiette servie.</li>
                 </ul>
             </>
