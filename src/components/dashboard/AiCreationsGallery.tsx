@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
 import {
@@ -18,7 +19,7 @@ import {
   type RestaurantMediaWatermarkSubscription,
 } from "@/lib/ai/restaurantMediaMetadata";
 import { formatAiImageGenerationError, toPublicErrorMessage } from "@/lib/publicErrorMessages";
-import { CheckCircle2, ImagePlus, Loader2, Sparkles, Trash2, TriangleAlert } from "lucide-react";
+import { CheckCircle2, ImagePlus, Loader2, Maximize2, Sparkles, Trash2, TriangleAlert } from "lucide-react";
 
 const supabase = getSupabase();
 
@@ -65,6 +66,7 @@ export default function AiCreationsGallery({ restaurantId, userId, currentPhotoC
   const { toast } = useToast();
   const [records, setRecords] = useState<AiCreationRecord[]>(() => getAiCreationRecords());
   const [addingId, setAddingId] = useState<string | null>(null);
+  const [previewRecord, setPreviewRecord] = useState<AiCreationRecord | null>(null);
 
   useEffect(() => subscribeAiCreationRecords(setRecords), []);
 
@@ -72,6 +74,7 @@ export default function AiCreationsGallery({ restaurantId, userId, currentPhotoC
     if (!restaurantId) return [];
     return records.filter((record) => record.restaurantId === restaurantId);
   }, [records, restaurantId]);
+  const previewImageUrl = previewRecord ? getAiCreationImageUrl(previewRecord) : "";
 
   const addCreationToGallery = async (record: AiCreationRecord) => {
     if (!restaurantId || record.status !== "completed") return;
@@ -172,11 +175,22 @@ export default function AiCreationsGallery({ restaurantId, userId, currentPhotoC
             <Card key={record.id} className="min-w-0 overflow-hidden">
               <div className="relative aspect-[4/3] bg-muted">
                 {imageUrl ? (
-                  <img
-                    src={imageUrl}
-                    alt={record.result?.alt_text || record.title}
-                    className="h-full w-full object-contain"
-                  />
+                  <button
+                    type="button"
+                    onClick={() => setPreviewRecord(record)}
+                    className="group block h-full w-full cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2"
+                    aria-label={`Agrandir ${record.title || "la création IA"} dans Mes créations`}
+                  >
+                    <img
+                      src={imageUrl}
+                      alt={record.result?.alt_text || record.title}
+                      className="h-full w-full object-contain"
+                    />
+                    <span className="absolute bottom-3 right-3 inline-flex items-center gap-1 rounded-full bg-black/70 px-3 py-1 text-xs font-semibold text-white opacity-0 shadow-sm transition group-hover:opacity-100 group-focus-visible:opacity-100">
+                      <Maximize2 className="h-3.5 w-3.5" />
+                      Agrandir
+                    </span>
+                  </button>
                 ) : record.sourceImageUrl ? (
                   <img
                     src={record.sourceImageUrl}
@@ -244,6 +258,26 @@ export default function AiCreationsGallery({ restaurantId, userId, currentPhotoC
           );
         })}
       </div>
+
+      <Dialog open={Boolean(previewRecord && previewImageUrl)} onOpenChange={(open) => { if (!open) setPreviewRecord(null); }}>
+        <DialogContent className="flex h-[calc(100dvh-1rem)] max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-6xl flex-col gap-0 overflow-hidden p-0 sm:h-[92vh] sm:max-h-[92vh]">
+          <DialogHeader className="shrink-0 border-b px-4 py-4 pr-12 text-left sm:px-6">
+            <DialogTitle>{previewRecord?.title || "Création IA"}</DialogTitle>
+            <DialogDescription>Prévisualisation grand format de la création générée depuis Mes créations.</DialogDescription>
+          </DialogHeader>
+          <div className="min-h-0 flex-1 bg-black p-3 sm:p-5">
+            {previewRecord && previewImageUrl ? (
+              <div className="flex h-full w-full items-center justify-center">
+                <img
+                  src={previewImageUrl}
+                  alt={previewRecord.result?.alt_text || previewRecord.title || "Création IA TOK"}
+                  className="block max-h-full max-w-full rounded-lg object-contain"
+                />
+              </div>
+            ) : null}
+          </div>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }

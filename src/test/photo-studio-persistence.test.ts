@@ -112,6 +112,16 @@ describe("TOK photo studio persistence", () => {
     expect(dashboardPhotos).toContain("Prévisualisation grand format de l'image ajoutée à la galerie.");
   });
 
+  it("lets images stored in Mes creations open in a large preview", () => {
+    expect(aiCreationsGallery).toContain("previewRecord");
+    expect(aiCreationsGallery).toContain("setPreviewRecord(record)");
+    expect(aiCreationsGallery).toContain("DialogContent");
+    expect(aiCreationsGallery).toContain("cursor-zoom-in");
+    expect(aiCreationsGallery).toContain("Agrandir");
+    expect(aiCreationsGallery).toContain("Prévisualisation grand format de la création générée depuis Mes créations.");
+    expect(aiCreationsGallery).toContain("block max-h-full max-w-full rounded-lg object-contain");
+  });
+
   it("shows generated image metadata in gallery descriptions", () => {
     const migration = readFileSync(resolve(process.cwd(), "supabase/migrations/20260625163000_restaurant_media_ai_metadata.sql"), "utf8");
 
