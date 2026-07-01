@@ -37,6 +37,8 @@ const STUDIO_BRIEF =
 const PHOTO_PRO_CREATIVE_DIRECTION =
   "Priorité haute: si le restaurateur demande une modification créative visible, applique-la franchement dans l'image finale au lieu d'une retouche subtile. Les ajouts explicitement demandés comme fromage, cheddar, sauce, ingrédient complémentaire, effet de mouvement, produit séparé, suspendu ou en lévitation sont autorisés s'ils valorisent le produit source sans le remplacer.";
 
+const VERSION_COUNT_OPTIONS = [1, 2, 3, 4] as const;
+
 function buildPhotoProPrompt(userInstructions: string) {
   const trimmedInstructions = userInstructions.trim();
 
@@ -64,6 +66,7 @@ type PhotoStudioDraft = {
   userInstructions: string;
   format: TokImageFormat;
   outputResolution: TokImageOutputResolution;
+  versionCount: number;
   result: TokImageGenerationResult | null;
 };
 
@@ -73,6 +76,7 @@ const DEFAULT_DRAFT: PhotoStudioDraft = {
   userInstructions: "",
   format: "landscape",
   outputResolution: "studio",
+  versionCount: 1,
   result: null,
 };
 
@@ -117,6 +121,10 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
   const downloadFileName = buildTokPhotoDownloadFileName(draft.dishName || result?.title || "visuel-tok");
   const selectedOutputResolution: TokImageOutputResolution = "studio";
   const outputPricing = getTokImageOutputPricing(draft.format, selectedOutputResolution);
+  const versionCount = VERSION_COUNT_OPTIONS.includes(draft.versionCount as typeof VERSION_COUNT_OPTIONS[number])
+    ? draft.versionCount
+    : 1;
+  const totalPhotoCredits = outputPricing.photoCredits * versionCount;
   const shouldApplyTokWatermark = !isTokProOrHigherRestaurantSubscription(watermarkSubscription);
 
   const updateDraft = (nextDraft: Partial<PhotoStudioDraft>) => {
@@ -152,7 +160,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
         assetType: "menu_visual",
         format: draft.format,
         outputResolution: selectedOutputResolution,
-        variantCount: 1,
+        variantCount: versionCount,
         generateImage: true,
         imageOnly: true,
       } as const;
@@ -291,17 +299,36 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
                   {outputPricing.size} - qualité {outputPricing.quality} - coût base {outputPricing.outputCostChf.toFixed(2)} CHF
                 </span>
                 <span className="mt-2 inline-flex rounded-full bg-white px-2 py-1 text-xs font-bold text-orange-700">
-                  {outputPricing.photoCredits} crédit{outputPricing.photoCredits > 1 ? "s" : ""}
+                  {totalPhotoCredits} crédit{totalPhotoCredits > 1 ? "s" : ""} pour {versionCount} version{versionCount > 1 ? "s" : ""}
                 </span>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="photopro-version-count">Nombre de versions</Label>
+                <select
+                  id="photopro-version-count"
+                  value={versionCount}
+                  onChange={(event) => updateDraft({ versionCount: Number(event.target.value), result: null })}
+                  className="h-10 w-full rounded-md border bg-background px-3 text-sm"
+                >
+                  {VERSION_COUNT_OPTIONS.map((count) => (
+                    <option key={count} value={count}>{count} version{count > 1 ? "s" : ""}</option>
+                  ))}
+                </select>
+                <p className="text-xs font-semibold text-orange-700">
+                  Total: {totalPhotoCredits} crédits pour {versionCount} version{versionCount > 1 ? "s" : ""}.
+                </p>
               </div>
               <p className="text-xs leading-5 text-muted-foreground">
                 TOK utilise uniquement GPT Image 2 en qualité medium pour les images.
+              </p>
+              <p className="text-xs leading-5 text-muted-foreground">
+                La génération peut durer jusqu'à plusieurs minutes selon le nombre de versions.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
               <Button type="button" onClick={generate} disabled={!restaurantId || loading} className="gap-2">
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                Générer la version TOK ({outputPricing.photoCredits} cr.)
+                Générer la version TOK ({totalPhotoCredits} cr.)
               </Button>
               {result?.gallery_image_url ? <Button type="button" variant="outline" onClick={addToGallery}>Ajouter à la galerie</Button> : null}
               {draft.sourceImageUrl || result ? (

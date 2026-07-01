@@ -90,6 +90,29 @@ export type TokImageGenerationRequest = {
   marketingAssetMode?: boolean;
 };
 
+export function normalizeTokImageVersionCount(raw: unknown) {
+  const count = Math.floor(Number(raw || 1));
+  if (!Number.isFinite(count)) return 1;
+  return Math.min(4, Math.max(1, count));
+}
+
+export type TokImageGenerationVariant = {
+  assetId: string;
+  generated_image_url: string | null;
+  gallery_image_url: string | null;
+  storage_bucket: string | null;
+  storage_path: string | null;
+  gallery_storage_bucket: string | null;
+  gallery_storage_path: string | null;
+  model: string;
+  output_resolution?: TokImageOutputResolution;
+  output_size?: string;
+  output_quality?: "low" | "medium" | "high";
+  credit_units?: number;
+  version_index?: number;
+  version_count?: number;
+};
+
 export type TokImageGenerationResult = {
   title: string;
   enhanced_prompt: string;
@@ -114,6 +137,7 @@ export type TokImageGenerationResult = {
   credit_units?: number;
   estimated_cost_chf?: number;
   image_mode?: "interactive_fast" | "configured";
+  variants?: TokImageGenerationVariant[];
   reference_folder: string;
   status: "generated" | "stored";
 };
@@ -480,7 +504,7 @@ export function generateTokDishImage(request: TokImageGenerationRequest) {
     assetType: request.assetType || "menu_visual",
     format: request.format || "landscape",
     outputResolution: request.outputResolution || "studio",
-    variantCount: request.variantCount || 1,
+    variantCount: normalizeTokImageVersionCount(request.variantCount),
     generateImage: request.generateImage !== false,
   });
 }
@@ -501,7 +525,7 @@ export async function startTokImageGenerationJob(request: {
       assetType: request.imageRequest.assetType || "menu_visual",
       format: request.imageRequest.format || "landscape",
       outputResolution: request.imageRequest.outputResolution || "studio",
-      variantCount: request.imageRequest.variantCount || 1,
+      variantCount: normalizeTokImageVersionCount(request.imageRequest.variantCount),
       generateImage: request.imageRequest.generateImage !== false,
     },
   });

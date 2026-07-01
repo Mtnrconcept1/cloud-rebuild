@@ -176,7 +176,7 @@ function patchRecordFromServerJob(recordId: string, job: TokImageGenerationJob) 
     ? job.completedAt || new Date().toISOString()
     : null;
 
-  return patchRecord(recordId, {
+  const syncedRecord = patchRecord(recordId, {
     serverJobId: job.id,
     serverStatus: job.status,
     serverStartedAt: job.startedAt,
@@ -185,6 +185,42 @@ function patchRecordFromServerJob(recordId: string, job: TokImageGenerationJob) 
     result: job.result,
     errorMessage: status === "failed" ? job.errorMessage || "La génération IA n'a pas pu aboutir." : null,
   });
+
+  if (status === "completed" && syncedRecord && job.result) {
+    upsertVariantCreationRecords(syncedRecord, job.result);
+  }
+
+  return syncedRecord;
+}
+
+function buildVariantResult(result: TokImageGenerationResult, variantIndex: number): TokImageGenerationResult | null {
+  const variant = result.variants?.[variantIndex];
+  if (!variant) return null;
+
+  const baseResult = { ...result, variants: undefined };
+  return {
+    ...baseResult,
+    ...variant,
+    title: `${result.title} - version ${variantIndex + 1}`,
+  };
+}
+
+function upsertVariantCreationRecords(baseRecord: AiCreationRecord, result: TokImageGenerationResult) {
+  const variants = Array.isArray(result.variants) ? result.variants : [];
+  if (variants.length <= 1) return;
+
+  for (let index = 1; index < variants.length; index += 1) {
+    const variantResult = buildVariantResult(result, index);
+    if (!variantResult) continue;
+
+    upsertRecord({
+      ...baseRecord,
+      id: `${baseRecord.id}:v${index + 1}`,
+      title: `${baseRecord.title} - version ${index + 1}`,
+      result: variantResult,
+      galleryAdded: false,
+    });
+  }
 }
 
 async function pollServerImageJob(recordId: string, serverJobId: string) {

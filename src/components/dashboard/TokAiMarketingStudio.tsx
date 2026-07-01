@@ -136,6 +136,7 @@ const MARKETING_MENU_CONTEXT_LIMIT = 120;
 const MARKETING_MENU_PROMPT_ITEM_LIMIT = 80;
 const MARKETING_RENDER_SCROLL_DURATION_MS = 620;
 const MARKETING_RENDER_SCROLL_OFFSET_PX = 24;
+const VERSION_COUNT_OPTIONS = [1, 2, 3, 4] as const;
 
 function easeInOutCubic(progress: number) {
   return progress < 0.5
@@ -913,6 +914,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
   const [deletingResourceId, setDeletingResourceId] = useState<string | null>(null);
   const [marketingImageResult, setMarketingImageResult] = useState<MarketingImageResult | null>(null);
   const [activeStep, setActiveStep] = useState<MarketingWorkflowStep>(1);
+  const [versionCount, setVersionCount] = useState(1);
   const [visiblePromptIdeaCount, setVisiblePromptIdeaCount] = useState(MARKETING_SUGGESTION_BATCH_SIZE);
   const [visibleNegativeIdeaCount, setVisibleNegativeIdeaCount] = useState(MARKETING_SUGGESTION_BATCH_SIZE);
   const generationRequestRef = useRef(0);
@@ -938,6 +940,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
   const hasBrandResources = persistedResources.length >= 2;
   const marketingImageFormat = getMarketingImageFormat(selectedFormat.label, selectedFormat.orientation);
   const outputPricing = getTokImageOutputPricing(marketingImageFormat, outputResolution);
+  const totalPhotoCredits = outputPricing.photoCredits * versionCount;
   const { data: businessContext, isLoading: businessContextLoading } = useQuery({
     queryKey: ["marketing-studio-business-context", restaurantId],
     queryFn: () => fetchMarketingBusinessContext(restaurantId!),
@@ -1318,7 +1321,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
           assetType: "campaign_visual",
           format: marketingImageFormat,
           outputResolution,
-          variantCount: 1,
+          variantCount: versionCount,
           generateImage: true,
           imageOnly: true,
           marketingAssetMode: true,
@@ -1331,7 +1334,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
       setMarketingImageResult(imageResult);
       toast({
         title: "Image marketing générée",
-        description: `Le visuel a été produit avec ${imageResult.model || "OpenAI"} pour ${outputPricing.photoCredits} crédit(s) photo IA.`,
+        description: `Le visuel a été produit avec ${imageResult.model || "OpenAI"} pour ${totalPhotoCredits} crédit(s) photo IA.`,
       });
     } catch (error) {
       if (!mountedRef.current || generationRequestRef.current !== requestId) return;
@@ -1542,7 +1545,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-orange-600 text-xs font-bold text-white">2</span>
                   Paramétrer le rendu
                 </div>
-              <div className="grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <div className="grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-5">
                 <div className="min-w-0 space-y-2">
                   <Label htmlFor="marketing-format">Format</Label>
                   <select
@@ -1604,11 +1607,30 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                   <div className="rounded-md border bg-background px-3 py-2 text-sm">
                     <p className="font-medium text-foreground">{outputPricing.modelLabel}</p>
                     <p className="text-xs leading-5 text-muted-foreground">
-                      {outputPricing.size} - qualité {outputPricing.quality} - {outputPricing.photoCredits} cr.
+                      {outputPricing.size} - qualité {outputPricing.quality} - {totalPhotoCredits} cr.
                     </p>
                   </div>
                 </div>
-                <div className="mt-2 flex justify-stretch md:col-span-2 xl:col-span-4 md:justify-end">
+                <div className="min-w-0 space-y-2">
+                  <Label htmlFor="marketing-version-count">Nombre de versions</Label>
+                  <select
+                    id="marketing-version-count"
+                    value={versionCount}
+                    onChange={(event) => {
+                      invalidateMarketingGeneration();
+                      setVersionCount(Number(event.target.value));
+                    }}
+                    className="h-10 w-full rounded-md border bg-background px-3 text-sm"
+                  >
+                    {VERSION_COUNT_OPTIONS.map((count) => (
+                      <option key={count} value={count}>{count} version{count > 1 ? "s" : ""}</option>
+                    ))}
+                  </select>
+                  <p className="text-xs leading-5 text-muted-foreground">
+                    La génération peut durer jusqu'à plusieurs minutes selon le nombre de versions.
+                  </p>
+                </div>
+                <div className="mt-2 flex justify-stretch md:col-span-2 xl:col-span-5 md:justify-end">
                   <Button
                     type="button"
                     variant="outline"
@@ -1639,7 +1661,8 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Style: {styleMode}</span>
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Modele IA: {outputPricing.modelLabel}</span>
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Resolution: {outputPricing.size} / {outputPricing.quality}</span>
-                  <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Credits: {outputPricing.photoCredits}</span>
+                  <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Credits: {totalPhotoCredits}</span>
+                  <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Versions: {versionCount}</span>
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Références marketing: {persistedResources.length}</span>
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Logo: {hasLogo ? "oui" : "non"}</span>
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Fiche restaurant: {businessContextLoading ? "chargement" : businessContext?.restaurant ? "active" : "vide"}</span>
@@ -1674,7 +1697,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
               <div className={`${activeStep === 3 ? "flex" : "hidden"} min-w-0 flex-col gap-3 rounded-2xl border border-orange-200 bg-orange-50/80 p-3 sm:flex-row sm:items-center sm:rounded-3xl`}>
                 <Button type="button" onClick={requestGeneration} disabled={!restaurantId || loading} size="lg" className="h-auto min-h-12 w-full min-w-0 whitespace-normal rounded-2xl bg-orange-600 px-4 text-center text-base font-bold shadow-lg shadow-orange-500/20 hover:bg-orange-700 sm:w-auto sm:px-6">
                   {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                  {loading ? "Génération de l'image..." : `Générer l'image marketing (${outputPricing.photoCredits} cr.)`}
+                  {loading ? "Génération de l'image..." : `Générer l'image marketing (${totalPhotoCredits} cr.)`}
                 </Button>
                 <p className="min-w-0 break-words text-xs leading-5 text-muted-foreground">
                   Votre visuel est généré à partir du brief, du support choisi et des ressources de marque enregistrées.

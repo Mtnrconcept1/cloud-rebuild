@@ -496,7 +496,7 @@ function getImageOutputConfig(format: ReturnType<typeof normalizeFormat>, rawRes
 function clampVariantCount(raw: unknown) {
   const count = Math.floor(Number(raw || 1));
   if (!Number.isFinite(count)) return 1;
-  return Math.min(2, Math.max(1, count));
+  return Math.min(4, Math.max(1, count));
 }
 
 type ImageUsage = {
@@ -1046,20 +1046,30 @@ async function callOpenAIImageEditWithReferencesAndRecovery(input: {
   }
 }
 
-async function extractGeneratedImageBytes(imageResponse: unknown) {
-  const data = (imageResponse as Record<string, unknown>)?.data;
-  const first = Array.isArray(data) ? data[0] as Record<string, unknown> | undefined : undefined;
-  if (!first) throw new HttpError(502, "image_empty_response");
+async function extractGeneratedImageBytesFromItem(item: Record<string, unknown>) {
+  if (typeof item.b64_json === "string") return bytesFromBase64(item.b64_json);
 
-  if (typeof first.b64_json === "string") return bytesFromBase64(first.b64_json);
-
-  if (typeof first.url === "string") {
-    const response = await fetchWithTimeout(first.url, {}, SOURCE_IMAGE_TIMEOUT_MS, "image_url_timeout");
+  if (typeof item.url === "string") {
+    const response = await fetchWithTimeout(item.url, {}, SOURCE_IMAGE_TIMEOUT_MS, "image_url_timeout");
     if (!response.ok) throw new HttpError(502, "image_url_unreachable");
     return new Uint8Array(await response.arrayBuffer());
   }
 
   throw new HttpError(502, "image_missing_payload");
+}
+
+async function extractGeneratedImagePayloads(imageResponse: unknown) {
+  const data = (imageResponse as Record<string, unknown>)?.data;
+  const items = Array.isArray(data)
+    ? data.filter((item): item is Record<string, unknown> => item !== null && typeof item === "object")
+    : [];
+  if (!items.length) throw new HttpError(502, "image_empty_response");
+
+  return await Promise.all(items.map(extractGeneratedImageBytesFromItem));
+}
+
+async function extractGeneratedImageBytes(imageResponse: unknown) {
+  return (await extractGeneratedImagePayloads(imageResponse))[0]!;
 }
 
 async function storeGeneratedImage(
@@ -1344,8 +1354,10 @@ Deno.serve(async (req) => {
     }
 
     const imageUsage = extractImageUsage(imageResponse);
-    const imageBytes = await extractGeneratedImageBytes(imageResponse);
-    const stored = await storeGeneratedImage(actor, restaurantId, imageBytes);
+    const imagePayloads = (await extractGeneratedImagePayloads(imageResponse)).slice(0, billableImageCount);
+    const storedImages = await Promise.all(imagePayloads.map((imageBytes) => storeGeneratedImage(actor, restaurantId, imageBytes)));
+    const stored = storedImages[0];
+    if (!stored) throw new HttpError(502, "image_empty_response");
     usedImageOptions = usedImageOptions || imageOptions;
     const actualOutputCostUsd = getOpenAIOutputCostUsd(usedImageOptions.size, usedImageOptions.quality);
     const baseActualOutputCostChf = actualOutputCostUsd * USD_TO_CHF_RATE;
@@ -1447,6 +1459,22 @@ Deno.serve(async (req) => {
       gallery_storage_path: stored.galleryPath,
       model: usedImageOptions.model,
     };
+    const generatedVariants = storedImages.map((storedImage, index) => ({
+      assetId: index === 0 ? generatedAssetId : storedImage.id,
+      generated_image_url: storedImage.imageUrl,
+      gallery_image_url: storedImage.galleryImageUrl,
+      storage_bucket: IMAGE_BUCKET,
+      storage_path: storedImage.path,
+      gallery_storage_bucket: GALLERY_BUCKET,
+      gallery_storage_path: storedImage.galleryPath,
+      model: usedImageOptions.model,
+      output_resolution: outputConfig.outputResolution,
+      output_size: usedImageOptions.size,
+      output_quality: usedImageOptions.quality,
+      credit_units: actualCreditUnits,
+      version_index: index + 1,
+      version_count: storedImages.length,
+    }));
 
     await insertUsage(actor, {
       status: "success",
@@ -1568,6 +1596,7 @@ Deno.serve(async (req) => {
       credit_units: billablePhotoCreditUnits,
       estimated_cost_chf: estimatedImageCostChf,
       image_mode: usedImageOptions?.mode,
+      variants: generatedVariants,
       brand_overlay_positioning: "frontend_transparent_layer",
       brand_overlay_size: "180x180",
       reference_folder: marketingAssetMode ? null : `public${TOK_REFERENCE_FOLDER}`,

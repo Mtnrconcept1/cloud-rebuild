@@ -414,6 +414,27 @@ describe("TOK AI tools foundation", () => {
     expect(repriceMigration).toContain("estimated_total_cost");
   });
 
+  it("lets PhotoPro and Marketing Studio request one to four paid image versions", () => {
+    const source = readProjectFile("supabase/functions/ai-image-enhance/index.ts");
+    const client = readProjectFile("src/lib/ai/tokAiClient.ts");
+    const photoStudio = readProjectFile("src/components/dashboard/TokAiPhotoStudioV2.tsx");
+    const marketingStudio = readProjectFile("src/components/dashboard/TokAiMarketingStudio.tsx");
+
+    expect(source).toContain("Math.min(4, Math.max(1, count))");
+    expect(source).toContain("requestedOutputCreditUnits = outputConfig.creditUnits * billableImageCount");
+    expect(source).toContain("n: variantCount");
+    expect(client).toContain("normalizeTokImageVersionCount");
+    expect(client).toContain("variantCount: normalizeTokImageVersionCount(request.imageRequest.variantCount)");
+
+    for (const studio of [photoStudio, marketingStudio]) {
+      expect(studio).toContain("versionCount");
+      expect(studio).toContain("VERSION_COUNT_OPTIONS");
+      expect(studio).toContain("totalPhotoCredits");
+      expect(studio).toContain("variantCount: versionCount");
+      expect(studio).toContain("La génération peut durer jusqu'à plusieurs minutes");
+    }
+  });
+
   it("uses optimized WebP food references for the TOK photo studio style memory", () => {
     const source = readProjectFile("supabase/functions/ai-image-enhance/index.ts");
     const referencesDir = resolve(root, "public/tok-reference-food-webp");
