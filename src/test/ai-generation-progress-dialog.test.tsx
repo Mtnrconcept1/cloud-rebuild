@@ -17,7 +17,6 @@ describe("AiGenerationProgressDialog", () => {
         title="Retouche PhotoPro en cours"
         description="TOK prepare la version finale."
         status="PhotoPro travaille le visuel"
-        estimatedDurationMs={6_000}
         steps={["Analyse photo", "Retouche fidele", "Export galerie"]}
       />,
     );
@@ -33,21 +32,39 @@ describe("AiGenerationProgressDialog", () => {
     expect(screen.queryByText("Export galerie")).not.toBeInTheDocument();
 
     act(() => {
-      vi.advanceTimersByTime(900);
+      vi.advanceTimersByTime(11_900);
+    });
+
+    expect(screen.queryByText("Retouche fidele")).not.toBeInTheDocument();
+    expect(screen.queryByText("Export galerie")).not.toBeInTheDocument();
+
+    act(() => {
+      vi.advanceTimersByTime(200);
     });
 
     const secondProgress = Number(progressbar.getAttribute("aria-valuenow"));
     expect(secondProgress).toBeGreaterThan(initialProgress);
+    expect(secondProgress).toBeLessThan(100);
     expect(fill).toHaveStyle({ width: `${secondProgress}%` });
     expect(screen.getByText("Retouche fidele")).toBeInTheDocument();
+    expect(screen.queryByText("Export galerie")).not.toBeInTheDocument();
 
     act(() => {
-      vi.advanceTimersByTime(900);
+      vi.advanceTimersByTime(12_300);
     });
 
     const thirdProgress = Number(progressbar.getAttribute("aria-valuenow"));
     expect(thirdProgress).toBeGreaterThan(secondProgress);
+    expect(thirdProgress).toBeLessThan(100);
     expect(fill).toHaveStyle({ width: `${thirdProgress}%` });
     expect(screen.getByText("Export galerie")).toBeInTheDocument();
+
+    act(() => {
+      vi.advanceTimersByTime(24_000);
+    });
+
+    const finalProgress = Number(progressbar.getAttribute("aria-valuenow"));
+    expect(finalProgress).toBe(100);
+    expect(fill).toHaveStyle({ width: "100%" });
   });
 });

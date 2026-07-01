@@ -16,6 +16,9 @@ type AiGenerationProgressDialogProps = {
 };
 
 const DEFAULT_STEPS = ["Analyse", "Composition", "Export"];
+const DEFAULT_ESTIMATED_DURATION_MS = 48_000;
+const STEP_REVEAL_INTERVAL_MS = 12_000;
+const PROGRESS_START_PERCENT = 4;
 
 export default function AiGenerationProgressDialog({
   open,
@@ -23,22 +26,27 @@ export default function AiGenerationProgressDialog({
   description = "TOK prepare le rendu, verifie les ressources et finalise un visuel pret a publier.",
   status = "Creation en cours",
   steps = DEFAULT_STEPS,
-  estimatedDurationMs = 28_000,
+  estimatedDurationMs = DEFAULT_ESTIMATED_DURATION_MS,
   className,
 }: AiGenerationProgressDialogProps) {
   const logoSrc = useTokLogoSrc();
   const [dismissed, setDismissed] = useState(false);
   const [elapsedMs, setElapsedMs] = useState(0);
   const normalizedSteps = useMemo(() => (steps.length ? steps : DEFAULT_STEPS), [steps]);
-  const durationMs = Math.max(6_000, estimatedDurationMs);
+  const durationMs = Math.max(DEFAULT_ESTIMATED_DURATION_MS, estimatedDurationMs);
   const progressRatio = Math.min(elapsedMs / durationMs, 1);
   const progress = open && !dismissed
-    ? Math.min(98, Math.round(6 + (1 - Math.pow(1 - progressRatio, 2.2)) * 90))
-    : 4;
-  const stepRevealMs = Math.min(1_600, Math.max(700, durationMs / 16));
+    ? Math.min(
+      100,
+      Math.max(
+        PROGRESS_START_PERCENT,
+        Math.round(PROGRESS_START_PERCENT + progressRatio * (100 - PROGRESS_START_PERCENT)),
+      ),
+    )
+    : PROGRESS_START_PERCENT;
   const visibleStepCount = Math.min(
     normalizedSteps.length,
-    Math.max(1, 1 + Math.floor(elapsedMs / stepRevealMs)),
+    Math.max(1, 1 + Math.floor(elapsedMs / STEP_REVEAL_INTERVAL_MS)),
   );
 
   useEffect(() => {
