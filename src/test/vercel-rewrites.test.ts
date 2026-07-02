@@ -97,6 +97,7 @@ describe("vercel config", () => {
     expect(csp).toContain("frame-ancestors 'self'");
     expect(csp).not.toContain("frame-ancestors 'none'");
     expect(csp).toContain("https://router.project-osrm.org");
+    expect(csp).not.toContain("https://api.openai.com");
     expect(csp).toContain("frame-src 'self'");
     expect(csp).toContain("https://www.thetok.ch");
     expect(csp).toContain("https://cloud-rebuild-recovered.vercel.app");

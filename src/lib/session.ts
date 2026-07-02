@@ -88,7 +88,7 @@ async function normalizeHttpError(
 }
 
 async function normalizeFunctionError(error: unknown, response?: Response) {
-  const fallbackMessage = error instanceof Error ? error.message : "Erreur lors de l'appel Edge Function.";
+  const fallbackMessage = error instanceof Error ? error.message : "Erreur lors de l'appel au service TOK.";
   const normalizedError = await normalizeHttpError(
     fallbackMessage,
     response,

@@ -3,7 +3,8 @@ const URL_REPLACE_PATTERN = /https?:\/\/[^\s"'<>]+/gi;
 const SUPABASE_HOST_PATTERN = /\b[a-z0-9-]+\.supabase\.co\b/i;
 const SUPABASE_HOST_REPLACE_PATTERN = /\b[a-z0-9-]+\.supabase\.co\b/gi;
 const TECHNICAL_BACKEND_PATTERN =
-  /\b(Supabase|Edge Function|functions\/v1|service-role|JWT|apikey|anon key|RLS|PostgREST|PGRST|schema cache|row-level|ai-image-enhance)\b/i;
+  /\b(Supabase|Edge\s+Function|functions\/v1|service[-\s]+role|JWT|apikey|anon key|RLS|PostgREST|PGRST|schema cache|row-level|ai-image-enhance)\b/i;
+const SERVER_ENV_PATTERN = /\b[A-Z][A-Z0-9_]{8,}\b/;
 const SESSION_ERROR_PATTERN = /\b(Unauthorized|401|invalid jwt|jwt expired|session expir)/i;
 
 function getErrorText(error: unknown) {
@@ -15,7 +16,8 @@ function getErrorText(error: unknown) {
 export function containsTechnicalBackendDetails(message: string) {
   return URL_PATTERN.test(message)
     || SUPABASE_HOST_PATTERN.test(message)
-    || TECHNICAL_BACKEND_PATTERN.test(message);
+    || TECHNICAL_BACKEND_PATTERN.test(message)
+    || SERVER_ENV_PATTERN.test(message);
 }
 
 export function toPublicErrorMessage(

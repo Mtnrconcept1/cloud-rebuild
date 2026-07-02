@@ -32,6 +32,14 @@ describe("courier dispatch boundary", () => {
     expect(dashboardOrders).toContain("getDispatchFailureMessage");
     expect(dashboardOrders).toContain("missing_authorization");
     expect(dashboardOrders).toContain("firebase_config_invalid");
+    expect(dashboardOrders).toContain('code.startsWith("missing_")');
+    expect(dashboardOrders).toContain("l'alerte livreur n'a pas pu etre envoyee");
+    expect(dashboardOrders).toContain("notification push livreur est temporairement indisponible");
+    expect(dashboardOrders).not.toContain("missing_secret");
+    expect(dashboardOrders).not.toContain("dispatch-order a refuse");
+    expect(dashboardOrders).not.toContain("secret service-role");
+    expect(dashboardOrders).not.toContain("secret Edge Function");
+    expect(dashboardOrders).not.toContain("FIREBASE_SERVICE_ACCOUNT");
     expect(dashboardOrders).not.toContain("const dispatchError = typeof data?.dispatch?.error");
   });
 

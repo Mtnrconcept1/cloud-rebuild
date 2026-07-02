@@ -23,6 +23,7 @@ import { normalizeOrderStatus } from "@/lib/orderStatus";
 import { invokeSupabaseFunction } from "@/lib/session";
 import { getOrderStatusLockMessage } from "@/lib/statusLocks";
 import { dispatchQueuedNotifications } from "@/lib/notificationDispatch";
+import { toPublicErrorMessage } from "@/lib/publicErrorMessages";
 import { useNotificationCenter } from "@/hooks/useNotificationCenter";
 import OrderPaymentBreakdown from "@/components/orders/OrderPaymentBreakdown";
 import type { CancellationReasonCode } from "@/lib/reservationMutations";
@@ -188,19 +189,22 @@ function getDispatchFailureMessage(dispatch: unknown) {
 
   const code = String(diagnostic?.code || "");
   if (code === "missing_authorization" || code === "session_expired") {
-    return "Le statut est enregistre, mais dispatch-order a refuse l'appel interne. Action admin: verifier le secret service-role synchronise sur les Edge Functions.";
+    return "Le statut est enregistre, mais l'alerte livreur n'a pas pu etre envoyee. Contactez le support TOK si le probleme persiste.";
   }
   if (code === "role_failure") {
-    return "Le statut est enregistre, mais le dispatch a echoue sur un controle de role. Action admin: verifier les roles et l'acces restaurant.";
+    return "Le statut est enregistre, mais l'alerte livreur n'a pas pu etre autorisee. Contactez le support TOK si le probleme persiste.";
   }
-  if (code === "missing_secret") {
-    return `Le statut est enregistre, mais un secret Edge Function manque: ${diagnostic?.missing_secret || "secret inconnu"}.`;
+  if (code.startsWith("missing_")) {
+    return "Le statut est enregistre, mais la notification livreur est temporairement indisponible. Contactez le support TOK si le probleme persiste.";
   }
   if (code === "firebase_config_invalid") {
-    return "Le statut est enregistre, mais la configuration Firebase push est invalide. Action admin: verifier FIREBASE_SERVICE_ACCOUNT.";
+    return "Le statut est enregistre, mais la notification push livreur est temporairement indisponible. Contactez le support TOK si le probleme persiste.";
   }
 
-  return errorMessage;
+  return toPublicErrorMessage(
+    errorMessage,
+    "Le statut est enregistre, mais la notification livreur est temporairement indisponible. Contactez le support TOK si le probleme persiste.",
+  );
 }
 
 function getOrderRefundSnapshot(order: DashboardOrder) {

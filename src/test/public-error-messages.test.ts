@@ -12,6 +12,7 @@ const TECHNICAL_VISIBLE_PATTERN = /supabase\.co|functions\/v1|Unauthorized|fonct
 describe("public error messages", () => {
   it("detects backend details that must not be shown in the UI", () => {
     expect(containsTechnicalBackendDetails("https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1/ai-image-enhance")).toBe(true);
+    expect(containsTechnicalBackendDetails("Configuration invalide: FIREBASE_SERVICE_ACCOUNT")).toBe(true);
     expect(containsTechnicalBackendDetails("Photo trop lourde pour la retouche IA.")).toBe(false);
   });
 
