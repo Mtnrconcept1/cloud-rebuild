@@ -1,4 +1,4 @@
-import { normalizePublicImageUrl } from "@/lib/securityUrls";
+import { isSupabasePublicStorageUrl, normalizePublicImageUrl, toTokPublicAssetUrl } from "@/lib/securityUrls";
 
 export type OptimizedImagePreset = "thumbnail" | "card" | "hero" | "gallery";
 
@@ -23,13 +23,10 @@ const SRC_SET_WIDTHS: Record<OptimizedImagePreset, number[]> = {
   gallery: [480, 720, 960, 1280],
 };
 
-function isSupabasePublicStorageUrl(url: URL) {
-  return url.pathname.includes("/storage/v1/object/public/");
-}
-
 function buildTransformedSupabaseUrl(rawUrl: string, options: OptimizedImageOptions) {
   try {
-    const url = new URL(rawUrl);
+    const normalizedAssetUrl = toTokPublicAssetUrl(rawUrl, rawUrl);
+    const url = new URL(normalizedAssetUrl, "https://www.thetok.ch");
     if (!isSupabasePublicStorageUrl(url)) return rawUrl;
 
     url.pathname = url.pathname.replace("/storage/v1/object/public/", "/storage/v1/render/image/public/");
@@ -40,7 +37,7 @@ function buildTransformedSupabaseUrl(rawUrl: string, options: OptimizedImageOpti
     if (options.resize) url.searchParams.set("resize", options.resize);
     url.searchParams.set("format", "webp");
 
-    return url.toString();
+    return `${url.pathname}${url.search}${url.hash}`;
   } catch {
     return rawUrl;
   }

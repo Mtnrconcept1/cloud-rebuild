@@ -1,5 +1,6 @@
 import { getSupabase } from "@/integrations/supabase/client";
-import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "@/lib/env";
+import { buildBackendFunctionUrl } from "@/lib/backendFunctionUrls";
+import { SUPABASE_PUBLISHABLE_KEY } from "@/lib/env";
 
 export const COURIER_ACTIVE_JOB_STATUSES = [
   "accepted",
@@ -159,7 +160,7 @@ function isUnauthorizedFunctionsError(error: unknown) {
 }
 
 async function callCourierPortal<T>(accessToken: string, payload: Record<string, unknown>) {
-  const response = await fetch(`${SUPABASE_URL}/functions/v1/courier-portal`, {
+  const response = await fetch(buildBackendFunctionUrl("courier-portal"), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

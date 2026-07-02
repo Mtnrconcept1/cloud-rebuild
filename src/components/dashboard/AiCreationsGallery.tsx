@@ -19,6 +19,7 @@ import {
   type RestaurantMediaWatermarkSubscription,
 } from "@/lib/ai/restaurantMediaMetadata";
 import { formatAiImageGenerationError, toPublicErrorMessage } from "@/lib/publicErrorMessages";
+import { toTokPublicAssetUrl } from "@/lib/securityUrls";
 import { CheckCircle2, ImagePlus, Loader2, Maximize2, Sparkles, Trash2, TriangleAlert } from "lucide-react";
 
 const supabase = getSupabase();
@@ -169,6 +170,8 @@ export default function AiCreationsGallery({ restaurantId, userId, currentPhotoC
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {restaurantRecords.map((record) => {
           const imageUrl = getAiCreationImageUrl(record);
+          const imageDisplayUrl = toTokPublicAssetUrl(imageUrl, "");
+          const sourceImageDisplayUrl = toTokPublicAssetUrl(record.sourceImageUrl, record.sourceImageUrl || "");
           const canAddToGallery = record.status === "completed" && Boolean(record.result?.gallery_image_url) && !record.galleryAdded;
 
           return (
@@ -182,7 +185,7 @@ export default function AiCreationsGallery({ restaurantId, userId, currentPhotoC
                     aria-label={`Agrandir ${record.title || "la création IA"} dans Mes créations`}
                   >
                     <img
-                      src={imageUrl}
+                      src={imageDisplayUrl || imageUrl}
                       alt={record.result?.alt_text || record.title}
                       className="h-full w-full object-contain"
                     />
@@ -193,7 +196,7 @@ export default function AiCreationsGallery({ restaurantId, userId, currentPhotoC
                   </button>
                 ) : record.sourceImageUrl ? (
                   <img
-                    src={record.sourceImageUrl}
+                    src={sourceImageDisplayUrl}
                     alt="Photo source"
                     className="h-full w-full object-contain opacity-60"
                   />
@@ -269,7 +272,7 @@ export default function AiCreationsGallery({ restaurantId, userId, currentPhotoC
             {previewRecord && previewImageUrl ? (
               <div className="flex h-full w-full items-center justify-center">
                 <img
-                  src={previewImageUrl}
+                  src={toTokPublicAssetUrl(previewImageUrl, previewImageUrl)}
                   alt={previewRecord.result?.alt_text || previewRecord.title || "Création IA TOK"}
                   className="block max-h-full max-w-full rounded-lg object-contain"
                 />

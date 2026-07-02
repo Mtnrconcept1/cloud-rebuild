@@ -11,7 +11,7 @@ describe("optimized image URLs", () => {
     const url = "https://example.supabase.co/storage/v1/object/public/images/demo/photo.jpg";
 
     expect(getOptimizedImageUrl(url, "card")).toBe(
-      "https://example.supabase.co/storage/v1/render/image/public/images/demo/photo.jpg?width=720&height=450&quality=76&resize=cover&format=webp",
+      "/storage/v1/render/image/public/images/demo/photo.jpg?width=720&height=450&quality=76&resize=cover&format=webp",
     );
   });
 

@@ -28,6 +28,7 @@ import {
 } from "@/lib/ai/restaurantMediaMetadata";
 import { downloadImageWithWatermark } from "@/lib/media/downloadImageWithWatermark";
 import { formatAiImageGenerationError, toPublicErrorMessage } from "@/lib/publicErrorMessages";
+import { toTokPublicAssetUrl } from "@/lib/securityUrls";
 import { CheckCircle2, Download, Loader2, Maximize2, RotateCcw, Sparkles, Wand2 } from "lucide-react";
 import { useTokLogoSrc } from "@/hooks/useTokLogo";
 
@@ -118,6 +119,8 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
   const [previewOpen, setPreviewOpen] = useState(false);
   const result = draft.result;
   const generatedImageUrl = result?.gallery_image_url || result?.generated_image_url || "";
+  const generatedImageDisplayUrl = toTokPublicAssetUrl(generatedImageUrl, "");
+  const sourceImageDisplayUrl = toTokPublicAssetUrl(draft.sourceImageUrl, draft.sourceImageUrl);
   const downloadFileName = buildTokPhotoDownloadFileName(draft.dishName || result?.title || "visuel-tok");
   const selectedOutputResolution: TokImageOutputResolution = "studio";
   const outputPricing = getTokImageOutputPricing(draft.format, selectedOutputResolution);
@@ -366,7 +369,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
             <CardHeader><CardTitle>Version TOK prête</CardTitle></CardHeader>
             <CardContent>
               <div className="grid gap-3 md:grid-cols-2">
-                <div><p className="mb-2 text-sm font-semibold">Avant</p><img src={draft.sourceImageUrl} alt="Photo source" className="aspect-video w-full rounded-xl border object-cover" /></div>
+                <div><p className="mb-2 text-sm font-semibold">Avant</p><img src={sourceImageDisplayUrl} alt="Photo source" className="aspect-video w-full rounded-xl border object-cover" /></div>
                 {generatedImageUrl ? (
                   <div>
                     <div className="mb-2 flex items-center justify-between gap-2">
@@ -384,7 +387,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
                     >
                       {shouldApplyTokWatermark ? <TokLogoWatermark logoSrc={logoSrc} sizeClassName="h-16 w-16" /> : null}
                       <img
-                        src={generatedImageUrl}
+                        src={generatedImageDisplayUrl || generatedImageUrl}
                         alt={result.alt_text || "Visuel TOK"}
                         className="h-full w-full object-cover transition duration-200 group-hover:scale-[1.01]"
                       />
@@ -427,7 +430,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
                   <div className="relative inline-flex max-h-full max-w-full items-center justify-center">
                     {shouldApplyTokWatermark ? <TokLogoWatermark logoSrc={logoSrc} className="left-4 top-4" sizeClassName="h-16 w-16" /> : null}
                     <img
-                      src={generatedImageUrl}
+                      src={generatedImageDisplayUrl || generatedImageUrl}
                       alt={result?.alt_text || "Visuel TOK"}
                       className="block max-h-full max-w-full rounded-lg object-contain"
                     />

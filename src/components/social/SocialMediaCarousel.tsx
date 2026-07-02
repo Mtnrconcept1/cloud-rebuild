@@ -20,6 +20,7 @@ import {
   getOptimizedImageSrcSet,
   getOptimizedImageUrl,
 } from "@/lib/optimizedImages";
+import { toTokPublicAssetUrl } from "@/lib/securityUrls";
 import type { SocialFeedMedia } from "@/lib/socialFeed";
 import { cn } from "@/lib/utils";
 
@@ -118,7 +119,7 @@ function AutoPlayOnViewVideo({
   return (
     <video
       ref={videoRef}
-      src={item.mediaUrl}
+      src={toTokPublicAssetUrl(item.mediaUrl, item.mediaUrl)}
       controls
       muted
       playsInline
@@ -310,7 +311,7 @@ export default function SocialMediaCarousel({
     if (item.mediaType === "video") {
       return (
         <video
-          src={item.mediaUrl}
+          src={toTokPublicAssetUrl(item.mediaUrl, item.mediaUrl)}
           controls
           playsInline
           className="h-full w-full object-contain"

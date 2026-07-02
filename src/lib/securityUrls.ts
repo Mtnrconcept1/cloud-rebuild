@@ -19,6 +19,10 @@ const TOK_PUBLIC_ASSET_HOSTS = new Set([
   "thetok.ch",
   "www.thetok.ch",
 ]);
+const SUPABASE_STORAGE_PATH_PREFIXES = [
+  "/storage/v1/object/public/",
+  "/storage/v1/render/image/public/",
+];
 
 const PUBLIC_IMAGE_URL_ALIASES: Record<string, string> = {
   "/images/fondue moiti\u00e9 moiti\u00e9.jpg": "/images/fondue-moitie-moitie.jpg",
@@ -78,6 +82,20 @@ function isLocalHttpUrl(url: URL) {
 function isTokPublicAssetUrl(url: URL) {
   if (isLocalHttpUrl(url)) return true;
   return url.protocol === "https:" && TOK_PUBLIC_ASSET_HOSTS.has(normalizeHost(url.hostname));
+}
+
+function isSupabaseHost(hostname: string) {
+  return /\.supabase\.co$/i.test(normalizeHost(hostname));
+}
+
+export function isSupabasePublicStorageUrl(url: URL) {
+  if (url.protocol !== "https:" && !isLocalHttpUrl(url)) return false;
+  if (!isSupabaseHost(url.hostname) && !isTokPublicAssetUrl(url)) return false;
+  return SUPABASE_STORAGE_PATH_PREFIXES.some((prefix) => url.pathname.startsWith(prefix));
+}
+
+function toRelativeUrl(url: URL) {
+  return `${url.pathname}${url.search}${url.hash}`;
 }
 
 function getCurrentOrigin() {
@@ -180,12 +198,31 @@ export function normalizePublicImageUrl(
 
   try {
     const url = new URL(value);
+    if (isSupabasePublicStorageUrl(url)) return toRelativeUrl(url);
     if (url.protocol === "https:" || isLocalHttpUrl(url)) {
       if (!isTokPublicAssetUrl(url)) return url.toString();
       url.pathname = canonicalizeKnownPublicImageUrl(url.pathname);
       return url.toString();
     }
     return fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+export function toTokPublicAssetUrl(rawUrl: string | null | undefined, fallback = ""): string {
+  if (typeof rawUrl !== "string") return fallback;
+
+  const value = rawUrl.trim();
+  if (!value) return fallback;
+  if (value.startsWith("/storage/v1/")) return value;
+  if (value.startsWith("/") && !value.startsWith("//")) return normalizePublicImageUrl(value, fallback);
+
+  try {
+    const url = new URL(value);
+    if (isSupabasePublicStorageUrl(url)) return toRelativeUrl(url);
+    if (isTokPublicAssetUrl(url)) return toRelativeUrl(url);
+    return normalizePublicImageUrl(value, fallback);
   } catch {
     return fallback;
   }

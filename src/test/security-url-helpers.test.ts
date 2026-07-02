@@ -2,12 +2,14 @@ import { describe, expect, it } from "vitest";
 
 import {
   canonicalizeKnownPublicImageUrl,
+  isSupabasePublicStorageUrl,
   normalizeExternalHttpsUrl,
   normalizePublicImageUrl,
   normalizeSocialUrl,
   normalizeTrustedCheckoutRedirectUrl,
   openExternalHttpsUrl,
   redirectToTrustedCheckoutUrl,
+  toTokPublicAssetUrl,
 } from "@/lib/securityUrls";
 
 describe("security URL helpers", () => {
@@ -16,6 +18,17 @@ describe("security URL helpers", () => {
     expect(normalizePublicImageUrl("https://cdn.example.com/photo.webp")).toBe("https://cdn.example.com/photo.webp");
     expect(normalizePublicImageUrl("javascript:alert(1)", "/fallback.jpg")).toBe("/fallback.jpg");
     expect(normalizePublicImageUrl("data:image/svg+xml,<svg onload=alert(1)>", "/fallback.jpg")).toBe("/fallback.jpg");
+  });
+
+  it("renders Supabase public storage assets through same-origin TOK paths", () => {
+    const storageUrl = "https://wwcrtyoueexyxkkikaos.supabase.co/storage/v1/object/public/images/demo/photo.jpg?download=1";
+    const renderedUrl = "/storage/v1/object/public/images/demo/photo.jpg?download=1";
+
+    expect(normalizePublicImageUrl(storageUrl)).toBe(renderedUrl);
+    expect(toTokPublicAssetUrl(storageUrl)).toBe(renderedUrl);
+    expect(toTokPublicAssetUrl("https://www.thetok.ch/storage/v1/object/public/images/demo/photo.jpg"))
+      .toBe("/storage/v1/object/public/images/demo/photo.jpg");
+    expect(isSupabasePublicStorageUrl(new URL(storageUrl))).toBe(true);
   });
 
   it("canonicalizes legacy public image aliases before rendering", () => {

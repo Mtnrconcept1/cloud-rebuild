@@ -4,7 +4,7 @@ import { Activity, Bot, Check, Clipboard, KeyRound, Network, ShieldAlert, Shield
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
-import { SUPABASE_URL } from "@/lib/env";
+import { buildBackendFunctionUrl } from "@/lib/backendFunctionUrls";
 import { fetchWithFreshAccessToken } from "@/lib/session";
 
 export const ADMIN_TOK_CONNECT_LOG_LIMIT = 100;
@@ -104,7 +104,7 @@ function getMetadataNumber(row: TokConnectRow | undefined, key: string, fallback
 }
 
 async function callTokConnectAdminAction(body: Record<string, unknown>) {
-  const response = await fetchWithFreshAccessToken(`${SUPABASE_URL}/functions/v1/tok-connect-portal`, {
+  const response = await fetchWithFreshAccessToken(buildBackendFunctionUrl("tok-connect-portal"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),

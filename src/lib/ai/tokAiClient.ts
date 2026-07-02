@@ -1,6 +1,6 @@
 import { getSupabase } from "@/integrations/supabase/client";
 import type { TokImageModel, TokImageOutputResolution } from "@/lib/ai/imagePricing";
-import { SUPABASE_URL } from "@/lib/env";
+import { buildBackendFunctionUrl } from "@/lib/backendFunctionUrls";
 import { fetchWithFreshAccessToken, invokeSupabaseFunction } from "@/lib/session";
 
 const supabase = getSupabase();
@@ -433,7 +433,7 @@ export function runRestaurantAgent(request: RestaurantAgentRequest) {
 }
 
 export async function streamRestaurantAdvisor(request: RestaurantAdvisorStreamRequest) {
-  const response = await fetchWithFreshAccessToken(`${SUPABASE_URL}/functions/v1/restaurant-advisor`, {
+  const response = await fetchWithFreshAccessToken(buildBackendFunctionUrl("restaurant-advisor"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({

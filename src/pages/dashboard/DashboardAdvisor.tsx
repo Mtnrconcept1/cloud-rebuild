@@ -49,6 +49,7 @@ import {
   setActiveAiCreationContext,
   startTokImageCreationJob,
 } from "@/lib/ai/aiCreationJobs";
+import { toTokPublicAssetUrl } from "@/lib/securityUrls";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
 
 type Message = { role: "user" | "assistant"; content: string };
@@ -1028,6 +1029,7 @@ export default function DashboardAdvisor() {
                   <div className="grid max-h-72 grid-cols-2 gap-3 overflow-y-auto pr-1 sm:grid-cols-3">
                     {photoOptions.map((photo) => {
                       const checked = selectedPhotoIds.includes(photo.id);
+                      const imageDisplayUrl = toTokPublicAssetUrl(photo.mediaUrl, photo.mediaUrl);
 
                       return (
                         <label
@@ -1036,7 +1038,7 @@ export default function DashboardAdvisor() {
                         >
                           <div className="relative aspect-square bg-muted">
                             <img
-                              src={photo.mediaUrl}
+                              src={imageDisplayUrl}
                               alt={photo.altText || "Photo de galerie"}
                               className="h-full w-full object-cover transition group-hover:scale-[1.02]"
                             />
@@ -1067,6 +1069,7 @@ export default function DashboardAdvisor() {
                   <div className="grid max-h-72 gap-2 overflow-y-auto pr-1">
                     {dishOptions.map((dish) => {
                       const checked = selectedDishIds.includes(dish.id);
+                      const imageDisplayUrl = toTokPublicAssetUrl(dish.imageUrl, dish.imageUrl || "");
 
                       return (
                         <label
@@ -1079,7 +1082,7 @@ export default function DashboardAdvisor() {
                             aria-label={`Sélectionner ${dish.name}`}
                           />
                           {dish.imageUrl ? (
-                            <img src={dish.imageUrl} alt={dish.name} className="h-14 w-14 shrink-0 rounded-lg object-cover" />
+                            <img src={imageDisplayUrl} alt={dish.name} className="h-14 w-14 shrink-0 rounded-lg object-cover" />
                           ) : (
                             <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-muted">
                               <Camera className="h-5 w-5 text-muted-foreground" />

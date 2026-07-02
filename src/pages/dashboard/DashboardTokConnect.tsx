@@ -3,7 +3,7 @@ import { KeyRound, RefreshCw, ShieldCheck, ShieldX, type LucideIcon } from "luci
 
 import { Button } from "@/components/ui/button";
 import { getSupabase } from "@/integrations/supabase/client";
-import { SUPABASE_URL } from "@/lib/env";
+import { buildBackendFunctionUrl } from "@/lib/backendFunctionUrls";
 import { fetchWithFreshAccessToken } from "@/lib/session";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
 
@@ -57,7 +57,7 @@ async function fetchRestaurantGrants(restaurantId: string) {
 }
 
 async function updateGrantStatus(grantId: string, status: "active" | "revoked") {
-  const response = await fetchWithFreshAccessToken(`${SUPABASE_URL}/functions/v1/tok-connect-portal`, {
+  const response = await fetchWithFreshAccessToken(buildBackendFunctionUrl("tok-connect-portal"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({

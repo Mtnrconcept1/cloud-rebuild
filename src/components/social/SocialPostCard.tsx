@@ -74,6 +74,7 @@ import {
   useToggleSocialRepost,
 } from "@/hooks/useSocialFeed";
 import { useAuth } from "@/lib/auth-context";
+import { toTokPublicAssetUrl } from "@/lib/securityUrls";
 import { cn } from "@/lib/utils";
 import {
   SOCIAL_AUDIENCE_SEGMENTS,
@@ -576,6 +577,7 @@ function MobileCommentsPanel({
 function SocialPostModalSummary({ post }: { post: SocialFeedPost }) {
   const cta = getCta(post);
   const CtaIcon = cta?.icon;
+  const restaurantImageUrl = toTokPublicAssetUrl(post.restaurant.imageUrl, "");
 
   return (
     <div className="space-y-3">
@@ -583,7 +585,7 @@ function SocialPostModalSummary({ post }: { post: SocialFeedPost }) {
         <div className="flex items-start gap-3">
           <Avatar className="h-10 w-10 rounded-xl border border-orange-100">
             <AvatarImage
-              src={post.restaurant.imageUrl || undefined}
+              src={restaurantImageUrl || undefined}
               alt={post.restaurant.name}
             />
             <AvatarFallback className="rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 text-xs font-bold text-white">
@@ -1036,6 +1038,7 @@ export default function SocialPostCard({
   const canDeletePost = post.authorId === user?.id || isSuperAdmin;
   const cta = getCta(post);
   const CtaIcon = cta?.icon;
+  const restaurantImageUrl = toTokPublicAssetUrl(post.restaurant.imageUrl, "");
   const hasMedia = post.media.length > 0;
   const campaignGoalLabel = getCampaignGoalLabel(post);
   const audienceLabel = getAudienceLabel(post);
@@ -1152,7 +1155,7 @@ export default function SocialPostCard({
           >
             <Avatar className="h-14 w-14 rounded-2xl border-2 border-orange-100 shadow-sm max-sm:h-11 max-sm:w-11 max-sm:rounded-xl">
               <AvatarImage
-                src={post.restaurant.imageUrl || undefined}
+                src={restaurantImageUrl || undefined}
                 alt={post.restaurant.name}
               />
               <AvatarFallback className="rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 font-bold text-white max-sm:rounded-xl max-sm:text-xs">

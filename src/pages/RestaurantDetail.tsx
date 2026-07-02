@@ -20,7 +20,7 @@ import { trackGoogleBookingEvent } from "@/hooks/useGoogleBusinessBooking";
 import { trackEvent, trackImpression } from "@/lib/analytics";
 import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 import { buildAuthRedirectTarget } from "@/lib/stripeReturn";
-import { buildCanonicalUrl, useSeoMeta } from "@/hooks/useSeoMeta";
+import { buildCanonicalAssetUrl, buildCanonicalUrl, useSeoMeta } from "@/hooks/useSeoMeta";
 import {
   isAntiWasteOfferPubliclyVisible,
   isFlashSalePubliclyVisible,
@@ -251,7 +251,7 @@ function buildRestaurantDetailJsonLd({
 }) {
   if (!restaurant || !restaurantId) return null;
 
-  const imageUrl = heroImage.startsWith("http") ? heroImage : buildCanonicalUrl(heroImage);
+  const imageUrl = buildCanonicalAssetUrl(heroImage);
   const priceRange = "$".repeat(Math.max(1, Math.min(Number(restaurant.price_range || 2), 4)));
   const restaurantPath = canonicalPath || `/restaurant/${restaurantId}`;
 

@@ -89,7 +89,7 @@ import {
   saveRestaurantCampaign,
   setRestaurantCampaignStatus,
 } from "@/lib/campaigns";
-import { SUPABASE_URL } from "@/lib/env";
+import { buildBackendFunctionUrl } from "@/lib/backendFunctionUrls";
 import { fetchWithFreshAccessToken } from "@/lib/session";
 import { TOK_CREDITS_PER_CAMPAIGN_CHF } from "@/lib/tokCredits";
 import { cn } from "@/lib/utils";
@@ -1543,7 +1543,7 @@ function CampaignForm({
   const handleAiGenerate = async () => {
     setAiLoading(true);
     try {
-      const response = await fetchWithFreshAccessToken(`${SUPABASE_URL}/functions/v1/generate-campaign`, {
+      const response = await fetchWithFreshAccessToken(buildBackendFunctionUrl("generate-campaign"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

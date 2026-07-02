@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { toTokPublicAssetUrl } from "@/lib/securityUrls";
 
 const DEFAULT_BASE_URL = "https://www.thetok.ch";
 
@@ -37,10 +38,17 @@ export function buildCanonicalUrl(path: string) {
   return `${DEFAULT_BASE_URL}${normalizedPath}`;
 }
 
+export function buildCanonicalAssetUrl(path: string) {
+  const normalizedAssetPath = toTokPublicAssetUrl(path, path || "/fond3.png");
+  if (normalizedAssetPath.startsWith("http")) return normalizedAssetPath;
+  const prefixedPath = normalizedAssetPath.startsWith("/") ? normalizedAssetPath : `/${normalizedAssetPath}`;
+  return `${DEFAULT_BASE_URL}${prefixedPath}`;
+}
+
 export function useSeoMeta({ title, description, path, image = "/fond3.png", jsonLd = null }: SeoMetaInput) {
   useEffect(() => {
     const canonicalUrl = buildCanonicalUrl(path);
-    const imageUrl = image.startsWith("http") ? image : `${DEFAULT_BASE_URL}${image.startsWith("/") ? image : `/${image}`}`;
+    const imageUrl = buildCanonicalAssetUrl(image);
 
     document.title = title;
     upsertMeta("meta[name='description']", { name: "description", content: description });

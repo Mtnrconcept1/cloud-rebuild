@@ -975,6 +975,33 @@ function canonicalUrl(routePath) {
   return normalized === "/" ? `${CANONICAL_ORIGIN}/` : `${CANONICAL_ORIGIN}${normalized}`;
 }
 
+function toCanonicalAssetUrl(rawUrl) {
+  if (typeof rawUrl !== "string") return DEFAULT_IMAGE;
+
+  const value = rawUrl.trim();
+  if (!value) return DEFAULT_IMAGE;
+  if (value.startsWith("/storage/v1/")) return `${CANONICAL_ORIGIN}${value}`;
+  if (value.startsWith("/") && !value.startsWith("//")) return canonicalUrl(value);
+
+  try {
+    const url = new URL(value);
+    const isSupabaseStorage =
+      /\.supabase\.co$/i.test(url.hostname) &&
+      (
+        url.pathname.startsWith("/storage/v1/object/public/") ||
+        url.pathname.startsWith("/storage/v1/render/image/public/")
+      );
+
+    if (isSupabaseStorage) {
+      return `${CANONICAL_ORIGIN}${url.pathname}${url.search}${url.hash}`;
+    }
+
+    return url.toString();
+  } catch {
+    return DEFAULT_IMAGE;
+  }
+}
+
 function escapeXml(value) {
   return String(value)
     .replace(/&/g, "&amp;")
@@ -1190,7 +1217,7 @@ async function collectDynamicRestaurantPages() {
             priority: "0.7",
             changefreq: "weekly",
             lastmod: restaurant.updated_at,
-            image: restaurant.image_url || DEFAULT_IMAGE,
+            image: toCanonicalAssetUrl(restaurant.image_url || DEFAULT_IMAGE),
             jsonLd: {
               "@context": "https://schema.org",
               "@type": "Restaurant",
@@ -1199,7 +1226,7 @@ async function collectDynamicRestaurantPages() {
               description:
                 restaurant.description ||
                 `${restaurant.name} sur TOK : restaurant ${cuisine || "local"} a ${city}, avec reservation, commande et offres locales selon les services disponibles.`,
-              image: restaurant.image_url || undefined,
+              image: restaurant.image_url ? toCanonicalAssetUrl(restaurant.image_url) : undefined,
               servesCuisine: cuisine || undefined,
               telephone: restaurant.phone || undefined,
               priceRange: buildPriceRange(restaurant.price_range),
@@ -1333,7 +1360,7 @@ function renderStaticContent(page) {
 
 function renderPreRenderedHtml(baseHtml, page) {
   const canonical = canonicalUrl(page.path);
-  const image = page.image || DEFAULT_IMAGE;
+  const image = toCanonicalAssetUrl(page.image || DEFAULT_IMAGE);
   let html = upsertTitle(baseHtml, page.title);
   html = upsertTag(html, /<meta\s+name="description"[^>]*>/i, `<meta name="description" content="${escapeHtml(page.description)}" />`);
   html = upsertTag(html, /<link\s+rel="canonical"[^>]*>/i, `<link rel="canonical" href="${escapeHtml(canonical)}" />`);

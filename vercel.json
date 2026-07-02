@@ -40,6 +40,10 @@
       "destination": "https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1/:path*"
     },
     {
+      "source": "/storage/v1/:path*",
+      "destination": "https://wwcrtyoueexyxkkikaos.supabase.co/storage/v1/:path*"
+    },
+    {
       "source": "/api/photon",
       "destination": "https://photon.komoot.io/api"
     },

@@ -1,3 +1,5 @@
+import { toTokPublicAssetUrl } from "@/lib/securityUrls";
+
 type DownloadImageOptions = {
   imageUrl: string;
   fileName: string;
@@ -6,11 +8,25 @@ type DownloadImageOptions = {
   watermarkMargin?: number;
 };
 
+function sanitizeDownloadFileName(fileName: string) {
+  const cleaned = fileName
+    .trim()
+    .replace(/^https?:\/\/.+$/i, "visuel-tok.png")
+    .replace(/[\\/:*?"<>|]+/g, "-")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 96);
+
+  if (!cleaned) return "visuel-tok.png";
+  return /\.[a-z0-9]{2,5}$/i.test(cleaned) ? cleaned : `${cleaned}.png`;
+}
+
 function downloadBlob(blob: Blob, fileName: string) {
   const objectUrl = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = objectUrl;
-  link.download = fileName;
+  link.download = sanitizeDownloadFileName(fileName);
   document.body.appendChild(link);
   link.click();
   link.remove();
@@ -18,7 +34,7 @@ function downloadBlob(blob: Blob, fileName: string) {
 }
 
 async function fetchBlob(url: string) {
-  const response = await fetch(url);
+  const response = await fetch(toTokPublicAssetUrl(url, url));
   if (!response.ok) throw new Error("download_failed");
   return response.blob();
 }

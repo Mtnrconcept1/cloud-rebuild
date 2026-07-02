@@ -3,7 +3,7 @@ import { Ban, Bot, FileDown, KeyRound, RefreshCw, Send, ShieldCheck, Terminal, W
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { SUPABASE_URL } from "@/lib/env";
+import { buildBackendFunctionUrl } from "@/lib/backendFunctionUrls";
 import { fetchWithFreshAccessToken } from "@/lib/session";
 import { tokConnectOpenApiDocument } from "@/lib/tokConnectOpenApi";
 
@@ -35,7 +35,7 @@ type PortalOverview = {
 const DEFAULT_WEBHOOK_URL = "https://example.com/tok/webhooks";
 
 async function callTokConnectPortal<TData>(body: Record<string, unknown>) {
-  const response = await fetchWithFreshAccessToken(`${SUPABASE_URL}/functions/v1/tok-connect-portal`, {
+  const response = await fetchWithFreshAccessToken(buildBackendFunctionUrl("tok-connect-portal"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),

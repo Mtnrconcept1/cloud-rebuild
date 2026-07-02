@@ -81,6 +81,9 @@ describe("SEO growth readiness", () => {
     expect(prerender).toContain("no-show, groupes, coût d'acquisition");
     expect(prerender).toContain("Logiciel restaurateur à Genève");
     expect(prerender).toContain("Logiciel restaurateur pour réservations, commandes, anti-gaspi");
+    expect(prerender).toContain("toCanonicalAssetUrl");
+    expect(prerender).toContain('url.pathname.startsWith("/storage/v1/object/public/")');
+    expect(prerender).toContain("image: toCanonicalAssetUrl(restaurant.image_url || DEFAULT_IMAGE)");
     expect(prerender).not.toMatch(/SERVICE_ROLE|SUPABASE_SERVICE_ROLE_KEY|service_role/i);
   });
 
@@ -126,8 +129,11 @@ describe("SEO growth readiness", () => {
     expect(restaurantDetail).toContain('"@type": "Restaurant"');
     expect(restaurantDetail).toContain("const restaurantPath = canonicalPath || `/restaurant/${restaurantId}`");
     expect(restaurantDetail).toContain("buildCanonicalUrl(restaurantPath)");
+    expect(restaurantDetail).toContain("buildCanonicalAssetUrl(heroImage)");
     expect(seo).toContain("link[rel='canonical']");
     expect(seo).toContain("property='og:url'");
+    expect(seo).toContain("buildCanonicalAssetUrl");
+    expect(seo).toContain("toTokPublicAssetUrl(path, path || \"/fond3.png\")");
     expect(seo).toContain("https://www.thetok.ch");
   });
 });

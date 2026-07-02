@@ -34,6 +34,22 @@ describe("vercel config", () => {
     expect(spaFallbackIndex).toBeGreaterThan(edgeFunctionIndex);
   });
 
+  it("proxies Supabase public Storage before the SPA fallback", () => {
+    const configPath = path.resolve(process.cwd(), "vercel.json");
+    const config = JSON.parse(readFileSync(configPath, "utf8")) as {
+      rewrites?: Array<{ source?: string; destination?: string }>;
+    };
+    const rewrites = config.rewrites || [];
+    const storageIndex = rewrites.findIndex((entry) =>
+      entry.source === "/storage/v1/:path*" &&
+      entry.destination === "https://wwcrtyoueexyxkkikaos.supabase.co/storage/v1/:path*",
+    );
+    const spaFallbackIndex = rewrites.findIndex((entry) => entry.source === "/(.*)" && entry.destination === "/index.html");
+
+    expect(storageIndex).toBeGreaterThan(-1);
+    expect(spaFallbackIndex).toBeGreaterThan(storageIndex);
+  });
+
   it("keeps legacy public image aliases ahead of the SPA fallback", () => {
     const configPath = path.resolve(process.cwd(), "vercel.json");
     const config = JSON.parse(readFileSync(configPath, "utf8")) as {

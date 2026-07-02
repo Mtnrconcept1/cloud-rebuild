@@ -21,6 +21,7 @@ import {
   setActiveAiCreationContext,
   startTokImageCreationJob,
 } from "@/lib/ai/aiCreationJobs";
+import { toTokPublicAssetUrl } from "@/lib/securityUrls";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
 
 const supabase = getSupabase();
@@ -514,6 +515,7 @@ export default function DashboardMenu() {
                       <div className="grid max-h-72 gap-3 overflow-y-auto pr-1 sm:grid-cols-3">
                         {galleryItems.map((item) => {
                           const selected = item.media_url === form.image_url;
+                          const imageDisplayUrl = toTokPublicAssetUrl(item.media_url, item.media_url);
                           return (
                             <button
                               key={item.id}
@@ -522,7 +524,7 @@ export default function DashboardMenu() {
                               className={`group relative overflow-hidden rounded-lg border bg-background text-left transition ${selected ? "border-primary ring-2 ring-primary/30" : "hover:border-primary/60"}`}
                               aria-pressed={selected}
                             >
-                              <img src={item.media_url} alt={item.alt_text || "Photo de galerie"} className="aspect-square w-full object-cover transition group-hover:scale-[1.02]" />
+                              <img src={imageDisplayUrl} alt={item.alt_text || "Photo de galerie"} className="aspect-square w-full object-cover transition group-hover:scale-[1.02]" />
                               <div className="absolute inset-x-0 bottom-0 bg-black/60 px-2 py-1 text-[11px] font-medium text-white">
                                 <span className="line-clamp-1">{item.alt_text || (item.is_cover ? "Couverture" : "Photo galerie")}</span>
                               </div>

@@ -27,9 +27,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
 import { buildCurrentCheckoutReturnUrl } from "@/lib/checkoutReturnUrl";
+import { buildBackendFunctionUrl } from "@/lib/backendFunctionUrls";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { useAuth } from "@/lib/auth-context";
-import { SUPABASE_URL } from "@/lib/env";
 import { redirectToTrustedCheckoutUrl } from "@/lib/securityUrls";
 import { fetchWithFreshAccessToken } from "@/lib/session";
 import {
@@ -358,7 +358,7 @@ export default function DashboardRestaurant() {
     setConnectLoading(true);
     try {
       const response = await fetchWithFreshAccessToken(
-        `${SUPABASE_URL}/functions/v1/stripe-connect-onboard`,
+        buildBackendFunctionUrl("stripe-connect-onboard"),
         {
           method: "POST",
           headers: {

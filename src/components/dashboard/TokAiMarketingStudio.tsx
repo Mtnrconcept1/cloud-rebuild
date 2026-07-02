@@ -22,14 +22,17 @@ import {
   getTokImageOutputPricing,
   type TokImageOutputResolution,
 } from "@/lib/ai/imagePricing";
+import { downloadImageWithWatermark } from "@/lib/media/downloadImageWithWatermark";
 import { optimizeImageUpload } from "@/lib/optimizedImages";
-import { formatAiImageGenerationError } from "@/lib/publicErrorMessages";
+import { formatAiImageGenerationError, toPublicErrorMessage } from "@/lib/publicErrorMessages";
+import { toTokPublicAssetUrl } from "@/lib/securityUrls";
 import { assertSafeFileUpload, getSafeUploadExtension } from "@/lib/uploadSecurity";
 import {
   AlertTriangle,
   ArrowRight,
   BriefcaseBusiness,
   CheckCircle2,
+  Download,
   FileImage,
   FileText,
   ImagePlus,
@@ -653,6 +656,18 @@ function getMarketingPromptWarnings(prompt: string) {
 function formatBytes(bytes: number) {
   if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} Ko`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
+}
+
+function buildTokMarketingDownloadFileName(toolTitle: string, formatLabel: string) {
+  const normalized = `${toolTitle}-${formatLabel}`
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 72);
+
+  return `${normalized || "visuel-marketing"}-tok.png`;
 }
 
 function createPendingMarketingResource(file: File, kind: MarketingAssetKind): MarketingResource {
@@ -1349,6 +1364,26 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
   };
 
   const generatedMarketingImageUrl = marketingImageResult?.gallery_image_url || marketingImageResult?.generated_image_url || "";
+  const generatedMarketingImageDisplayUrl = toTokPublicAssetUrl(generatedMarketingImageUrl, "");
+  const marketingDownloadFileName = buildTokMarketingDownloadFileName(activeToolConfig.title, selectedFormat.label);
+
+  const downloadGeneratedMarketingImage = async () => {
+    if (!generatedMarketingImageUrl) return;
+
+    try {
+      await downloadImageWithWatermark({
+        imageUrl: generatedMarketingImageUrl,
+        fileName: marketingDownloadFileName,
+        watermarkUrl: null,
+      });
+    } catch (error) {
+      toast({
+        title: "Téléchargement impossible",
+        description: toPublicErrorMessage(error, "Le visuel marketing n'a pas pu être préparé au téléchargement."),
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <section className="max-w-full overflow-hidden rounded-3xl border border-orange-200 bg-gradient-to-br from-orange-50 via-background to-background shadow-sm dark:border-orange-900/50 dark:from-orange-950/20">
@@ -1678,15 +1713,14 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                       <p className="font-semibold text-foreground">Image marketing générée</p>
                       <p className="text-xs text-muted-foreground">Modele: {marketingImageResult?.model || "gpt-image-2"}</p>
                     </div>
-                    <Button type="button" variant="outline" size="sm" asChild>
-                      <a href={generatedMarketingImageUrl} target="_blank" rel="noreferrer">
-                        Ouvrir l'image
-                      </a>
+                    <Button type="button" variant="outline" size="sm" onClick={downloadGeneratedMarketingImage} className="gap-2">
+                      <Download className="h-4 w-4" />
+                      Télécharger
                     </Button>
                   </div>
                   <div className="bg-slate-950/5 p-3">
                     <img
-                      src={generatedMarketingImageUrl}
+                      src={generatedMarketingImageDisplayUrl || generatedMarketingImageUrl}
                       alt={marketingImageResult?.alt_text || `Visuel marketing ${activeToolConfig.title}`}
                       className="mx-auto max-h-[520px] w-full rounded-xl object-contain"
                     />
@@ -1751,7 +1785,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                             <div className="relative aspect-square bg-white">
                               {resource.mediaUrl ? (
                                 <img
-                                  src={resource.mediaUrl}
+                                  src={toTokPublicAssetUrl(resource.mediaUrl, resource.mediaUrl)}
                                   alt={resource.fileName}
                                   className="h-full w-full object-contain p-2"
                                 />

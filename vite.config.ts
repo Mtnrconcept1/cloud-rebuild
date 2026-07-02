@@ -71,6 +71,8 @@ export default defineConfig(({ mode }) => {
     process.env.VITE_SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_ANON_KEY;
   }
 
+  const supabaseProxyTarget = cleanEnvValue(process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || env.VITE_SUPABASE_URL);
+
   if (mode === "production") {
     const missingSupabaseEnvKeys = getMissingSupabasePublicEnvKeys(env);
 
@@ -91,6 +93,16 @@ export default defineConfig(({ mode }) => {
         overlay: false,
       },
       proxy: {
+        ...(supabaseProxyTarget ? {
+          "/storage/v1": {
+            target: supabaseProxyTarget,
+            changeOrigin: true,
+          },
+          "/functions/v1": {
+            target: supabaseProxyTarget,
+            changeOrigin: true,
+          },
+        } : {}),
         "/api/photon": {
           target: "https://photon.komoot.io",
           changeOrigin: true,

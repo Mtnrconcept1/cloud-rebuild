@@ -21,6 +21,7 @@ import {
 } from "@/lib/ai/restaurantMediaMetadata";
 import { downloadImageWithWatermark } from "@/lib/media/downloadImageWithWatermark";
 import { deleteRestaurantMedia, setRestaurantCoverMedia } from "@/lib/restaurantMediaGovernance";
+import { toTokPublicAssetUrl } from "@/lib/securityUrls";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
 import ImageUpload from "@/components/ImageUpload";
 import {
@@ -244,6 +245,7 @@ function TokGalleryImageFrame({
   watermarkSubscription?: RestaurantMediaWatermarkSubscription;
 }) {
   const [imageSize, setImageSize] = useState<{ width: number; height: number } | null>(null);
+  const imageDisplayUrl = toTokPublicAssetUrl(item.media_url, item.media_url);
   const watermarkStyle = getPreviewWatermarkStyle(imageSize);
   const showWatermark = shouldApplyTokWatermarkToRestaurantMedia({
     mediaType: item.media_type,
@@ -262,7 +264,7 @@ function TokGalleryImageFrame({
       >
         {showWatermark ? <TokGalleryWatermark style={watermarkStyle} /> : null}
         <img
-          src={item.media_url}
+          src={imageDisplayUrl}
           alt={item.alt_text || "Photo restaurant"}
           className="block h-auto max-h-[calc(100dvh-12rem)] w-auto max-w-full rounded-lg object-contain"
           onLoad={(event) => {
@@ -537,6 +539,7 @@ export default function DashboardPhotos() {
           {items.map((item) => {
             const aiDescription = getGalleryAiDescription(item);
             const showWatermark = shouldShowTokWatermark(item);
+            const imageDisplayUrl = toTokPublicAssetUrl(item.media_url, item.media_url);
             return (
             <Card key={item.id} className="overflow-hidden">
               <div className="relative">
@@ -547,7 +550,7 @@ export default function DashboardPhotos() {
                   aria-label="Agrandir la photo de galerie"
                   className="group block h-48 w-full overflow-hidden bg-muted text-left"
                 >
-                  <img src={item.media_url} alt={item.alt_text || "Photo restaurant"} className="h-full w-full object-cover transition duration-200 group-hover:scale-[1.02]" />
+                  <img src={imageDisplayUrl} alt={item.alt_text || "Photo restaurant"} className="h-full w-full object-cover transition duration-200 group-hover:scale-[1.02]" />
                   <span className="absolute bottom-3 right-3 inline-flex items-center gap-1 rounded-full bg-black/70 px-3 py-1 text-xs font-semibold text-white opacity-0 shadow-sm transition group-hover:opacity-100 group-focus-visible:opacity-100">
                     <Maximize2 className="h-3.5 w-3.5" />
                     Agrandir

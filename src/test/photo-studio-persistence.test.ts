@@ -186,6 +186,8 @@ describe("TOK photo studio persistence", () => {
     expect(restaurantDetail).not.toContain('className="relative max-w-4xl max-h-[80vh] px-12"');
 
     expect(watermarkDownloader).toContain("if (!options.watermarkUrl)");
+    expect(watermarkDownloader).toContain("toTokPublicAssetUrl(url, url)");
+    expect(watermarkDownloader).toContain("sanitizeDownloadFileName");
     expect(watermarkDownloader).not.toContain("} catch {\n    const blob = await fetchBlob(options.imageUrl);");
     expect(watermarkDownloader).toContain("const watermarkWidth = watermark.image.naturalWidth || watermark.image.width");
     expect(watermarkDownloader).toContain("const watermarkHeight = watermark.image.naturalHeight || watermark.image.height");
@@ -432,7 +434,9 @@ describe("TOK photo studio persistence", () => {
     expect(marketingStudio).toContain("Les nouveaux visuels ont été ajoutés aux références existantes.");
     expect(marketingStudio).toContain("Les anciens restent disponibles jusqu'à suppression manuelle.");
     expect(marketingStudio).toContain("grid max-h-80 grid-cols-2");
-    expect(marketingStudio).toContain("src={resource.mediaUrl}");
+    expect(marketingStudio).toContain("src={toTokPublicAssetUrl(resource.mediaUrl, resource.mediaUrl)}");
+    expect(marketingStudio).not.toContain("href={generatedMarketingImageUrl}");
+    expect(marketingStudio).toContain("downloadGeneratedMarketingImage");
     expect(marketingStudio).toContain("className=\"h-full w-full object-contain p-2\"");
     expect(marketingStudio).toContain("multiple");
     expect(marketingStudio).toContain("Ajoutez ici les visuels de référence utilisés uniquement par le Marketing Studio.");

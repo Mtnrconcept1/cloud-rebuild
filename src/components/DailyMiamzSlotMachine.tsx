@@ -2,11 +2,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { X } from "lucide-react";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { buildBackendFunctionUrl } from "@/lib/backendFunctionUrls";
 import { fetchWithFreshAccessToken } from "@/lib/session";
-import { SUPABASE_URL } from "@/lib/env";
 import { useAuth } from "@/lib/auth-context";
 
-const SLOT_ENDPOINT = `${SUPABASE_URL}/functions/v1/daily-slot-spin`;
+const SLOT_ENDPOINT = buildBackendFunctionUrl("daily-slot-spin");
 const SLOT_MACHINE_FRAME_SRC = "/tok-slot-machine/index.html";
 const DEFAULT_MAX_ATTEMPTS = 3;
 
@@ -100,7 +100,7 @@ export default function DailyMiamzSlotMachine() {
   }, []);
 
   useEffect(() => {
-    if (loading || !userId || role !== "client" || hasPrivilegedRole || !SUPABASE_URL) return;
+    if (loading || !userId || role !== "client" || hasPrivilegedRole) return;
 
     let cancelled = false;
     setChecking(true);
