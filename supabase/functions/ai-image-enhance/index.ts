@@ -864,6 +864,83 @@ function shouldRetryImageEdit(error: unknown) {
   ].some((blockedReason) => message.includes(blockedReason));
 }
 
+function shouldFallbackFromMarketingReferenceError(error: unknown) {
+  if (isImageTimeoutError(error)) return true;
+  if (!(error instanceof HttpError)) return false;
+
+  const message = error.message.toLowerCase();
+  if ([
+    "content_policy",
+    "safety",
+    "rate",
+    "credits",
+    ":401:",
+    ":403:",
+    "api key",
+    "model",
+    "unsupported_parameter",
+  ].some((blockedReason) => message.includes(blockedReason))) {
+    return false;
+  }
+
+  if (message.startsWith("source_image_")) return true;
+  if (!message.startsWith("image_edit_failed:")) return false;
+
+  return [
+    "invalid_image",
+    "image_parse",
+    "too_large",
+    "file",
+    "format",
+    "unsupported",
+  ].some((recoverableReason) => message.includes(recoverableReason));
+}
+
+function stripMarketingReferenceOnlyInstructions(raw: string) {
+  return raw
+    .split(/\r?\n+/)
+    .map((part) => part.trim())
+    .filter((part) => {
+      if (!part) return false;
+      const normalized = part
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
+
+      return ![
+        "ressources actives",
+        "empreinte des ressources",
+        "direction artistique",
+        "visuels actifs",
+        "references actives",
+        "fichiers actifs",
+        "seules references visuelles",
+        "source d'identite visuelle",
+        "source d identite visuelle",
+      ].some((blockedInstruction) => normalized.includes(blockedInstruction));
+    })
+    .join("\n")
+    .slice(0, 3600);
+}
+
+function buildMarketingReferenceFallbackPrompt(input: {
+  prompt: string;
+  format: string;
+}) {
+  const textBrief = stripMarketingReferenceOnlyInstructions(input.prompt);
+
+  return [
+    "Creer un visuel marketing final pour le restaurateur a partir du brief courant.",
+    "Les visuels de reference n'ont pas pu etre utilises par le modele image apres les tentatives d'edition: continuer sans bloquer la generation.",
+    "Regle de securite identite: ne pas inventer de logo, marque, personnage, mascotte, typographie proprietaire ou palette proprietaire si ces elements ne sont pas explicitement decrits dans le brief texte.",
+    "Produire une composition premium neutre si l'identite visuelle n'est pas exploitable. Ne jamais reutiliser une identite, un asset ou une preference d'une ancienne generation.",
+    "Ne pas utiliser l'identite visuelle TOK, la mascotte TOK, une URL TOK ou une marque de plateforme sauf demande explicite du restaurateur.",
+    `Format demande: ${input.format}.`,
+    "Brief texte courant:",
+    textBrief || "Brief indisponible: produire une affiche restaurant premium neutre, lisible et sans marque inventee.",
+  ].join("\n\n").slice(0, 5000);
+}
+
 function normalizeBlockedSourceImageEditFailure(error: unknown) {
   if (isImageTimeoutError(error)) return new HttpError(503, "image_edit_timeout");
   if (!(error instanceof HttpError)) return new HttpError(502, "image_edit_transient_failure");
@@ -973,6 +1050,29 @@ async function callOpenAIImageEditWithReferencesAndRecovery(input: {
   fallbackPrompt: string;
   allowGenerationFallback: boolean;
 }): Promise<ImageOperationResult> {
+  const runGenerationFallback = async (
+    reason: unknown,
+    options: ImageRequestOptions,
+    fallbackReason: string,
+  ): Promise<ImageOperationResult> => {
+    console.warn(`[${FUNCTION_NAME}] image_reference_generation_fallback`, {
+      reason: reason instanceof Error ? reason.message : "unknown",
+      model: options.model,
+      quality: options.quality,
+      size: options.size,
+      mode: options.mode,
+      referenceCount: input.imageUrls.length,
+    });
+
+    return {
+      response: await callOpenAIImageGeneration(input.fallbackPrompt, input.n, options),
+      options,
+      retryUsed: true,
+      fallbackUsed: true,
+      fallbackReason,
+    };
+  };
+
   try {
     return {
       response: await callOpenAIImageEditWithReferences(input.prompt, input.imageUrls, input.n, input.options),
@@ -982,7 +1082,17 @@ async function callOpenAIImageEditWithReferencesAndRecovery(input: {
       fallbackReason: null,
     };
   } catch (error) {
-    if (!shouldRetryImageEdit(error)) throw error;
+    if (!shouldRetryImageEdit(error)) {
+      if (input.allowGenerationFallback && shouldFallbackFromMarketingReferenceError(error)) {
+        return await runGenerationFallback(
+          error,
+          input.options,
+          error instanceof Error ? error.message : "image_reference_prepare_fallback",
+        );
+      }
+
+      throw error;
+    }
 
     const retryOptions = buildFallbackImageRequestOptions(input.options);
     console.warn(`[${FUNCTION_NAME}] image_reference_edit_retry`, {
@@ -1035,13 +1145,11 @@ async function callOpenAIImageEditWithReferencesAndRecovery(input: {
 
       if (!input.allowGenerationFallback) throw new HttpError(502, "image_reference_edit_required");
 
-      return {
-        response: await callOpenAIImageGeneration(input.fallbackPrompt, input.n, retryOptions),
-        options: retryOptions,
-        retryUsed: true,
-        fallbackUsed: true,
-        fallbackReason: retryError instanceof Error ? retryError.message : "image_reference_edit_fallback",
-      };
+      return await runGenerationFallback(
+        retryError,
+        retryOptions,
+        retryError instanceof Error ? retryError.message : "image_reference_edit_fallback",
+      );
     }
   }
 }
@@ -1264,7 +1372,7 @@ Deno.serve(async (req) => {
     let imageFallbackUsed = false;
     let imageFallbackReason: string | null = null;
     let sourceEditUsed = false;
-    const generationFallbackAllowed = !sourceImageUrl && !(marketingAssetMode && referenceImageUrls.length);
+    const generationFallbackAllowed = !sourceImageUrl;
     const imageOptions = generatedImageOptions;
     const finalPrompt = marketingAssetMode
       ? [
@@ -1304,12 +1412,11 @@ Deno.serve(async (req) => {
         imageUrls: referenceImageUrls,
         n: variantCount,
         options: imageOptions,
-        fallbackPrompt: [
-          result.enhanced_prompt,
-          "",
-          "Retouche source indisponible apres retry: creer un visuel marketing final coherent avec le brief courant, sans inventer de nouvelle marque et sans reprendre d'anciens assets.",
-        ].join("\n").slice(0, 4200),
-        allowGenerationFallback: false,
+        fallbackPrompt: buildMarketingReferenceFallbackPrompt({
+          prompt,
+          format: format.label,
+        }),
+        allowGenerationFallback: generationFallbackAllowed,
       });
       imageResponse = editResult.response;
       usedImageOptions = editResult.options;

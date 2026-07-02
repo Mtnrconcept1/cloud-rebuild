@@ -1,0 +1,23 @@
+packages:
+  - "."
+
+onlyBuiltDependencies:
+  - "@swc/core"
+  - esbuild
+  - supabase
+
+ignoredBuiltDependencies:
+  - "@firebase/util"
+  - protobufjs
+  - puppeteer
+
+overrides:
+  protobufjs: 7.6.4
+  ws: 8.21.0
+
+allowBuilds:
+  "@firebase/util": false
+  "@swc/core": true
+  esbuild: true
+  protobufjs: false
+  puppeteer: false

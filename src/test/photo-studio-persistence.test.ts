@@ -481,14 +481,19 @@ describe("TOK photo studio persistence", () => {
     expect(aiFunction).not.toContain("URL thetok.ch");
   });
 
-  it("does not fall back to prompt-only generation when marketing references are active", () => {
+  it("falls back safely when marketing references cannot be edited", () => {
     const aiFunction = readFileSync(resolve(process.cwd(), "supabase/functions/ai-image-enhance/index.ts"), "utf8");
     const marketingStudio = readFileSync(resolve(process.cwd(), "src/components/dashboard/TokAiMarketingStudio.tsx"), "utf8");
 
     expect(aiFunction).toContain("allowGenerationFallback: boolean");
     expect(aiFunction).toContain('throw new HttpError(502, "image_reference_edit_required")');
     expect(aiFunction).toContain("allowGenerationFallback: false");
-    expect(aiFunction).toContain("const generationFallbackAllowed = !sourceImageUrl && !(marketingAssetMode && referenceImageUrls.length)");
+    expect(aiFunction).toContain("const generationFallbackAllowed = !sourceImageUrl");
+    expect(aiFunction).toContain("buildMarketingReferenceFallbackPrompt");
+    expect(aiFunction).toContain("image_reference_generation_fallback");
+    expect(aiFunction).toContain("shouldFallbackFromMarketingReferenceError");
+    expect(aiFunction).toContain("Ne jamais reutiliser une identite, un asset ou une preference d'une ancienne generation.");
+    expect(aiFunction).toContain("allowGenerationFallback: generationFallbackAllowed");
     expect(aiFunction).toContain("return buildConfiguredImageRequestOptions(formatSize, quality, model);");
     expect(marketingStudio).toContain("formatAiImageGenerationError(error)");
     expect(publicErrorMessages).toContain("image_reference_edit_required");
