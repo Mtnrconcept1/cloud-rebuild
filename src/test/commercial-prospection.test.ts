@@ -51,6 +51,12 @@ describe("commercial prospecting surface", () => {
     expect(pageSource).toContain("#ef4444");
     expect(pageSource).toContain("CommercialWorkspaceChrome");
     expect(pageSource).toContain("RoleSpaceSwitcher");
+    expect(pageSource).toContain("commercialProspectMarkerIcon");
+    expect(pageSource).toContain("L.divIcon");
+    expect(pageSource).toContain("L.marker");
+    expect(pageSource).not.toContain("L.circleMarker");
+    expect(pageSource).toContain("CommercialProspectDetailsDialog");
+    expect(pageSource).toContain("Notes du commercial");
   });
 
   it("protects the route for admin and commercial roles behind the feature flag", () => {
