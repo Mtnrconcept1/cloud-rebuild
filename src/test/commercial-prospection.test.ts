@@ -55,6 +55,11 @@ describe("commercial prospecting surface", () => {
     expect(pageSource).toContain("L.divIcon");
     expect(pageSource).toContain("L.marker");
     expect(pageSource).not.toContain("L.circleMarker");
+    expect(pageSource).toContain("COMMERCIAL_CLUSTER_DISABLE_ZOOM");
+    expect(pageSource).toContain("buildCommercialMapClusters");
+    expect(pageSource).toContain("commercialProspectClusterIcon");
+    expect(pageSource).toContain("map.on(\"zoomend\"");
+    expect(pageSource).toContain("map.fitBounds(cluster.bounds");
     expect(pageSource).toContain("CommercialProspectDetailsDialog");
     expect(pageSource).toContain("Notes du commercial");
   });
