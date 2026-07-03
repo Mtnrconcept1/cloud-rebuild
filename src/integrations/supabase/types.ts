@@ -1795,6 +1795,42 @@ export type Database = {
         }
         Relationships: []
       }
+      commercial_prospect_followups: {
+        Row: {
+          assigned_to: string | null
+          created_at: string
+          last_contacted_by: string | null
+          next_follow_up_at: string | null
+          notes: string | null
+          source_objectid: number
+          status: Database["public"]["Enums"]["commercial_visit_status"]
+          updated_at: string
+          visited_at: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string
+          last_contacted_by?: string | null
+          next_follow_up_at?: string | null
+          notes?: string | null
+          source_objectid: number
+          status?: Database["public"]["Enums"]["commercial_visit_status"]
+          updated_at?: string
+          visited_at?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string
+          last_contacted_by?: string | null
+          next_follow_up_at?: string | null
+          notes?: string | null
+          source_objectid?: number
+          status?: Database["public"]["Enums"]["commercial_visit_status"]
+          updated_at?: string
+          visited_at?: string | null
+        }
+        Relationships: []
+      }
       feature_store: {
         Row: {
           computed_at: string
@@ -6872,7 +6908,8 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "client" | "restaurateur" | "admin" | "courier"
+      app_role: "client" | "restaurateur" | "admin" | "courier" | "commercial"
+      commercial_visit_status: "not_visited" | "visited" | "in_progress" | "signed" | "not_interested"
       loyalty_tier: "bronze" | "silver" | "gold" | "platinum"
     }
     CompositeTypes: {
@@ -7001,7 +7038,8 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["client", "restaurateur", "admin", "courier"],
+      app_role: ["client", "restaurateur", "admin", "courier", "commercial"],
+      commercial_visit_status: ["not_visited", "visited", "in_progress", "signed", "not_interested"],
       loyalty_tier: ["bronze", "silver", "gold", "platinum"],
     },
   },

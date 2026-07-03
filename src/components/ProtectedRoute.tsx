@@ -1,12 +1,13 @@
 import { useAuth } from "@/lib/auth-context";
+import type { UserRole } from "@/lib/auth-context";
 import { canAccessAnyRole, getRoleHomePath } from "@/lib/roleAccess";
 import { buildAuthRedirectTarget } from "@/lib/stripeReturn";
 import { Navigate, useLocation } from "react-router-dom";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: "client" | "restaurateur" | "admin" | "courier";
-  requiredRoles?: Array<"client" | "restaurateur" | "admin" | "courier">;
+  requiredRole?: UserRole;
+  requiredRoles?: UserRole[];
 }
 
 export default function ProtectedRoute({ children, requiredRole, requiredRoles }: ProtectedRouteProps) {

@@ -4,6 +4,7 @@ import {
   Bell,
   Bike,
   Brain,
+  BriefcaseBusiness,
   Calculator,
   ClipboardList,
   Crown,
@@ -81,6 +82,7 @@ const ADMIN_NAV_SECTIONS: AdminNavSection[] = [
       { to: "/admin/notifications", label: "Notifications", icon: Bell, feature: "admin-notifications" },
       { to: "/admin/actualites", label: "Actualites sociales", icon: Newspaper, feature: "admin-actualites" },
       { to: "/admin/crm", label: "CRM clients", icon: Users, feature: "admin-crm" },
+      { to: "/commercial", label: "Prospection commerciale", icon: BriefcaseBusiness, feature: "commercial-prospection" },
     ],
   },
   {
@@ -176,7 +178,7 @@ function AdminNavItems({
                 {item.pendingSignupBadge && pendingSignupApplicationsCount > 0 ? (
                   <span
                     className="ml-auto inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 text-[10px] font-bold leading-none text-white"
-                    aria-label={`${pendingSignupApplicationsCount} dossier restaurateur en attente`}
+                    aria-label={`${pendingSignupApplicationsCount} dossier d'inscription en attente`}
                   >
                     {pendingSignupApplicationsCount}
                   </span>
@@ -220,7 +222,7 @@ export default function AdminMobileNavigation() {
         const { count, error } = await getSupabase()
           .from("signup_applications")
           .select("id", { count: "exact", head: true })
-          .eq("requested_role", "restaurateur")
+          .in("requested_role", ["restaurateur", "courier", "commercial"])
           .eq("status", "pending_review");
         if (!cancelled && !error) {
           setPendingSignupApplicationsCount(count || 0);

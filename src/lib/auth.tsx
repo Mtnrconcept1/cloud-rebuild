@@ -44,7 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!error) {
       for (const row of data || []) {
         const role = row.role as UserRole;
-        if (role === "client" || role === "restaurateur" || role === "admin" || role === "courier") {
+        if (role === "client" || role === "restaurateur" || role === "admin" || role === "courier" || role === "commercial") {
           resolvedRoles.add(role);
         }
       }
@@ -56,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error("[auth] failed to read user_roles directly, trying has_role fallback", error.message);
     }
 
-    const privilegedRoles: UserRole[] = ["admin", "restaurateur", "courier"];
+    const privilegedRoles: UserRole[] = ["admin", "restaurateur", "courier", "commercial"];
 
     const fallbackChecks = await Promise.all(
       privilegedRoles.map(async (role) => {

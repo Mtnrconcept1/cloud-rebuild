@@ -51,18 +51,21 @@ describe("role access policy", () => {
   });
 
   it("hides feature-disabled roles from switchers without mutating assigned roles", () => {
-    const assignedRoles: UserRole[] = ["client", "admin", "restaurateur", "courier"];
+    const assignedRoles: UserRole[] = ["client", "admin", "commercial", "restaurateur", "courier"];
 
     expect(isRoleFeatureEnabled("courier", new Set())).toBe(false);
     expect(isRoleFeatureEnabled("courier", new Set(["espace-livreur"]))).toBe(true);
+    expect(isRoleFeatureEnabled("commercial", new Set())).toBe(false);
+    expect(isRoleFeatureEnabled("commercial", new Set(["commercial-prospection"]))).toBe(true);
     expect(isRoleFeatureEnabled("admin", new Set())).toBe(true);
 
     expect(getFeatureVisibleRoles(assignedRoles, new Set())).toEqual(["client", "admin", "restaurateur"]);
-    expect(getFeatureVisibleRoles(assignedRoles, new Set(["espace-livreur"]))).toEqual(assignedRoles);
+    expect(getFeatureVisibleRoles(assignedRoles, new Set(["espace-livreur"]))).toEqual(["client", "admin", "restaurateur", "courier"]);
+    expect(getFeatureVisibleRoles(assignedRoles, new Set(["espace-livreur", "commercial-prospection"]))).toEqual(assignedRoles);
   });
 
   it("allows cross-role dashboard access only for roles assigned by Supabase", () => {
-    const assignedRoles: UserRole[] = ["client", "admin", "restaurateur", "courier"];
+    const assignedRoles: UserRole[] = ["client", "admin", "commercial", "restaurateur", "courier"];
 
     expect(canAccessRole({
       requiredRole: "courier",
@@ -135,6 +138,7 @@ describe("role access policy", () => {
 
   it("selects a role-specific landing page from assigned roles", () => {
     expect(getDefaultActiveRole(["client", "restaurateur"])).toBe("restaurateur");
+    expect(getDefaultActiveRole(["client", "commercial", "restaurateur"])).toBe("commercial");
     expect(getDefaultActiveRole(["client", "courier"])).toBe("courier");
     expect(getDefaultActiveRole(["client", "admin"])).toBe("admin");
     expect(getDefaultActiveRole(["client", "admin", "courier"])).toBe("admin");
@@ -142,6 +146,7 @@ describe("role access policy", () => {
     expect(getRoleHomePath("client")).toBe("/");
     expect(getRoleHomePath("restaurateur")).toBe("/dashboard");
     expect(getRoleHomePath("courier")).toBe("/courier");
+    expect(getRoleHomePath("commercial")).toBe("/commercial");
     expect(getRoleHomePath("admin")).toBe("/admin");
   });
 
@@ -154,6 +159,7 @@ describe("role access policy", () => {
     expect(canUseClientRole({ activeRole: "client", roles: ["courier"] })).toBe(false);
     expect(canShowClientSurface({ activeRole: "restaurateur" })).toBe(false);
     expect(canShowClientSurface({ activeRole: "courier" })).toBe(false);
+    expect(canShowClientSurface({ activeRole: "commercial" })).toBe(false);
     expect(canShowClientSurface({ activeRole: "admin" })).toBe(false);
   });
 
@@ -163,6 +169,7 @@ describe("role access policy", () => {
     expect(canShowSocialFeedSurface({ activeRole: "client", roles: ["client", "admin"] })).toBe(true);
     expect(canShowSocialFeedSurface({ activeRole: "restaurateur", roles: ["client", "restaurateur"] })).toBe(true);
     expect(canShowSocialFeedSurface({ activeRole: "courier" })).toBe(false);
+    expect(canShowSocialFeedSurface({ activeRole: "commercial" })).toBe(false);
     expect(canShowSocialFeedSurface({ activeRole: "admin" })).toBe(false);
   });
 });
