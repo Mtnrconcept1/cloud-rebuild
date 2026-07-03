@@ -26,12 +26,26 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useInfiniteSocialFeed, useToggleRestaurantFollow } from "@/hooks/useSocialFeed";
+import { getSupabase } from "@/integrations/supabase/client";
 import { createActualitesFeedOrderSeed, orderActualitesFeedPosts } from "@/lib/actualitesFeedOrdering";
+import {
+  ACTUALITES_CLICK_SIGNAL_EVENT,
+  ACTUALITES_CLICK_SIGNAL_STORAGE_KEY,
+  buildPersonalizedActualitesTrends,
+  readActualitesPostSignals,
+  type ActualitesOrderTrendSignal,
+  type ActualitesPostClickSignal,
+  type ActualitesReservationTrendSignal,
+} from "@/lib/actualitesPersonalizedTrends";
 import { useAuth } from "@/lib/auth-context";
 import { SOCIAL_FEED_SCOPES, normalizeSocialFeedScope, type SocialFeedPost, type SocialFeedScope } from "@/lib/socialFeed";
 import { useOwnerRestaurants } from "@/pages/dashboard/useOwnerRestaurants";
 
-const ACTUALITES_TRENDS = ["Offre midi", "Arrivages", "Coulisses", "Tables libres"] as const;
+type ActualitesUserTrendSignals = {
+  orders: ActualitesOrderTrendSignal[];
+  reservations: ActualitesReservationTrendSignal[];
+  clickedPosts: Array<Partial<ActualitesPostClickSignal>>;
+};
 
 function normalizeActualitesSearch(value: string) {
   return value
@@ -64,6 +78,83 @@ function buildPostSearchIndex(post: SocialFeedPost) {
     .filter(Boolean)
     .join(" ");
   return `${normalizeActualitesSearch(fields)} ${compactActualitesSearch(fields)}`;
+}
+
+function getRelatedRow(value: unknown) {
+  if (Array.isArray(value)) return value[0] || null;
+  return value && typeof value === "object" ? value as Record<string, unknown> : null;
+}
+
+async function loadActualitesUserTrendSignals(userId: string): Promise<ActualitesUserTrendSignals> {
+  const supabase = getSupabase();
+  const [ordersResult, reservationsResult, eventsResult] = await Promise.all([
+    (supabase.from("orders" as any) as any)
+      .select("id,restaurant_id,created_at,scheduled_at,scheduled_for,restaurants(id,name,cuisine_type,city)")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(40),
+    (supabase.from("reservations" as any) as any)
+      .select("id,restaurant_id,created_at,date,time,party_size,restaurants(id,name,cuisine_type,city)")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(40),
+    (supabase.from("social_feed_events" as any) as any)
+      .select("post_id,restaurant_id,event_type,created_at,metadata,social_posts(id,body,post_type,cta_type,campaign_goal,restaurants(id,name,cuisine_type,city))")
+      .eq("user_id", userId)
+      .in("event_type", ["click", "cta_click", "reaction", "comment", "share", "save", "follow", "repost"])
+      .order("created_at", { ascending: false })
+      .limit(60),
+  ]);
+
+  if (ordersResult.error) console.warn("Actualites order trend signals unavailable", ordersResult.error);
+  if (reservationsResult.error) console.warn("Actualites reservation trend signals unavailable", reservationsResult.error);
+  if (eventsResult.error) console.warn("Actualites click trend signals unavailable", eventsResult.error);
+
+  const orders = ordersResult.error
+    ? []
+    : (ordersResult.data || []).map((row: any): ActualitesOrderTrendSignal => {
+        const restaurant = getRelatedRow(row.restaurants);
+        return {
+          restaurantCuisine: String(restaurant?.cuisine_type || ""),
+          restaurantCity: String(restaurant?.city || ""),
+          createdAt: row.created_at || null,
+          scheduledAt: row.scheduled_at || row.scheduled_for || null,
+        };
+      });
+
+  const reservations = reservationsResult.error
+    ? []
+    : (reservationsResult.data || []).map((row: any): ActualitesReservationTrendSignal => {
+        const restaurant = getRelatedRow(row.restaurants);
+        return {
+          restaurantCuisine: String(restaurant?.cuisine_type || ""),
+          restaurantCity: String(restaurant?.city || ""),
+          date: row.date || null,
+          time: row.time || null,
+          partySize: Number(row.party_size || 0),
+          createdAt: row.created_at || null,
+        };
+      });
+
+  const clickedPosts = eventsResult.error
+    ? []
+    : (eventsResult.data || []).map((row: any): Partial<ActualitesPostClickSignal> => {
+        const post = getRelatedRow(row.social_posts);
+        const restaurant = getRelatedRow(post?.restaurants);
+        return {
+          postId: String(row.post_id || ""),
+          restaurantId: String(row.restaurant_id || ""),
+          cuisineType: String(restaurant?.cuisine_type || ""),
+          city: String(restaurant?.city || ""),
+          postType: post?.post_type as ActualitesPostClickSignal["postType"],
+          ctaType: post?.cta_type as ActualitesPostClickSignal["ctaType"],
+          campaignGoal: String(post?.campaign_goal || ""),
+          body: String(post?.body || ""),
+          createdAt: row.created_at || null,
+        };
+      });
+
+  return { orders, reservations, clickedPosts };
 }
 
 function ActualitesBoostBanner({ onSponsorClick }: { onSponsorClick: () => void }) {
@@ -137,6 +228,12 @@ export default function Actualites() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [scope, setScope] = useState<SocialFeedScope>(() => normalizeSocialFeedScope(searchParams.get("scope")));
   const [searchQuery, setSearchQuery] = useState("");
+  const [localClickSignals, setLocalClickSignals] = useState(() => readActualitesPostSignals());
+  const [userTrendSignals, setUserTrendSignals] = useState<ActualitesUserTrendSignals>({
+    orders: [],
+    reservations: [],
+    clickedPosts: [],
+  });
   const [feedOrderSeed] = useState(() => createActualitesFeedOrderSeed());
   const [composerRestaurantId, setComposerRestaurantId] = useState<string | null>(null);
   const [sponsorDialogRequest, setSponsorDialogRequest] = useState(0);
@@ -185,6 +282,13 @@ export default function Actualites() {
 
     return { restaurantsCount, offersCount, savedCount, mediaCount };
   }, [filteredPosts]);
+  const personalizedTrends = useMemo(() => buildPersonalizedActualitesTrends({
+    orders: userTrendSignals.orders,
+    reservations: userTrendSignals.reservations,
+    clickedPosts: [...localClickSignals, ...userTrendSignals.clickedPosts],
+    feedPosts: posts,
+    max: 4,
+  }), [localClickSignals, posts, userTrendSignals]);
 
   useEffect(() => {
     if (!canManage || ownerRestaurants.loading) return;
@@ -196,6 +300,46 @@ export default function Actualites() {
       setComposerRestaurantId(restaurants[0].id);
     }
   }, [canManage, composerRestaurantId, ownerRestaurants.loading, restaurants]);
+
+  useEffect(() => {
+    let active = true;
+    if (!user?.id) {
+      setUserTrendSignals({ orders: [], reservations: [], clickedPosts: [] });
+      return () => {
+        active = false;
+      };
+    }
+
+    loadActualitesUserTrendSignals(user.id)
+      .then((signals) => {
+        if (active) setUserTrendSignals(signals);
+      })
+      .catch((error) => {
+        console.warn("Actualites personalized trends unavailable", error);
+        if (active) setUserTrendSignals({ orders: [], reservations: [], clickedPosts: [] });
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [user?.id]);
+
+  useEffect(() => {
+    const syncClickSignals = () => setLocalClickSignals(readActualitesPostSignals());
+    syncClickSignals();
+
+    if (typeof window === "undefined") return;
+    const handleStorage = (event: StorageEvent) => {
+      if (!event.key || event.key === ACTUALITES_CLICK_SIGNAL_STORAGE_KEY) syncClickSignals();
+    };
+
+    window.addEventListener(ACTUALITES_CLICK_SIGNAL_EVENT, syncClickSignals);
+    window.addEventListener("storage", handleStorage);
+    return () => {
+      window.removeEventListener(ACTUALITES_CLICK_SIGNAL_EVENT, syncClickSignals);
+      window.removeEventListener("storage", handleStorage);
+    };
+  }, []);
 
   const changeScope = (value: string) => {
     const nextScope = normalizeSocialFeedScope(value);
@@ -543,7 +687,7 @@ export default function Actualites() {
                 <Flame className="h-4 w-4 text-primary" />
                 <h2 className="font-semibold">Tendances</h2>
               </div>
-              {ACTUALITES_TRENDS.map((trend) => (
+              {personalizedTrends.map((trend) => (
                 <button
                   key={trend}
                   type="button"
