@@ -452,7 +452,7 @@ export default function DashboardLayout({
             <SheetHeader className="border-b px-6 pb-4 pt-6 pr-14">
               <SheetTitle>Dashboard</SheetTitle>
             </SheetHeader>
-            <div className="flex-1 overflow-y-auto overscroll-y-contain px-6 pb-6 pt-4">
+            <div data-sheet-scroll-area className="flex-1 overflow-y-auto overscroll-y-contain px-6 pb-6 pt-4">
               <RestaurantSelector />
               <div className="mb-4">
                 <RoleSpaceSwitcher className="w-full justify-between" align="start" onNavigate={() => setMobileMenuOpen(false)} />

@@ -52,18 +52,65 @@ interface SheetContentProps
     VariantProps<typeof sheetVariants> {}
 
 const SheetContent = React.forwardRef<React.ElementRef<typeof SheetPrimitive.Content>, SheetContentProps>(
-  ({ side = "right", className, children, ...props }, ref) => (
-    <SheetPortal>
-      <SheetOverlay />
-      <SheetPrimitive.Content ref={ref} className={cn(sheetVariants({ side }), className)} {...props}>
-        {children}
-        <SheetPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity data-[state=open]:bg-secondary hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none">
-          <X className="h-4 w-4" />
-          <span className="sr-only">Close</span>
-        </SheetPrimitive.Close>
-      </SheetPrimitive.Content>
-    </SheetPortal>
-  ),
+  ({ side = "right", className, children, onOpenAutoFocus, ...props }, ref) => {
+    const contentRef = React.useRef<React.ElementRef<typeof SheetPrimitive.Content> | null>(null);
+
+    const resetScrollableContent = React.useCallback(() => {
+      const content = contentRef.current;
+      if (!content) return;
+
+      content.scrollTo?.({ top: 0, left: 0, behavior: "auto" });
+      content.scrollTop = 0;
+      content.scrollLeft = 0;
+      content.querySelectorAll<HTMLElement>("[data-sheet-scroll-area]").forEach((scrollArea) => {
+        scrollArea.scrollTo?.({ top: 0, left: 0, behavior: "auto" });
+        scrollArea.scrollTop = 0;
+        scrollArea.scrollLeft = 0;
+      });
+    }, []);
+
+    const setContentRef = React.useCallback(
+      (node: React.ElementRef<typeof SheetPrimitive.Content> | null) => {
+        contentRef.current = node;
+
+        if (typeof ref === "function") {
+          ref(node);
+        } else if (ref) {
+          (ref as React.MutableRefObject<React.ElementRef<typeof SheetPrimitive.Content> | null>).current = node;
+        }
+      },
+      [ref],
+    );
+
+    React.useEffect(() => {
+      resetScrollableContent();
+      const frame = window.requestAnimationFrame(resetScrollableContent);
+
+      return () => window.cancelAnimationFrame(frame);
+    }, [resetScrollableContent]);
+
+    return (
+      <SheetPortal>
+        <SheetOverlay />
+        <SheetPrimitive.Content
+          ref={setContentRef}
+          className={cn(sheetVariants({ side }), className)}
+          onOpenAutoFocus={(event) => {
+            resetScrollableContent();
+            window.requestAnimationFrame(resetScrollableContent);
+            onOpenAutoFocus?.(event);
+          }}
+          {...props}
+        >
+          {children}
+          <SheetPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity data-[state=open]:bg-secondary hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none">
+            <X className="h-4 w-4" />
+            <span className="sr-only">Close</span>
+          </SheetPrimitive.Close>
+        </SheetPrimitive.Content>
+      </SheetPortal>
+    );
+  },
 );
 SheetContent.displayName = SheetPrimitive.Content.displayName;
 

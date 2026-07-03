@@ -330,6 +330,22 @@ export default function DashboardPhotos() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadingRestaurant, selectedId]);
 
+  useEffect(() => {
+    const resetScroll = () => {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      document.scrollingElement?.scrollTo?.({ top: 0, left: 0, behavior: "auto" });
+      if (document.scrollingElement) {
+        document.scrollingElement.scrollTop = 0;
+        document.scrollingElement.scrollLeft = 0;
+      }
+    };
+
+    resetScroll();
+    const frame = window.requestAnimationFrame(resetScroll);
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [activeTool]);
+
   const save = async (event: FormEvent) => {
     event.preventDefault();
     if (!selectedId || !form.media_url.trim()) {
@@ -631,7 +647,7 @@ export default function DashboardPhotos() {
                 ) : null}
               </div>
             </DialogHeader>
-            <div className="min-h-0 flex-1 overflow-auto bg-black p-2 sm:p-3">
+            <div data-dialog-scroll-area className="min-h-0 flex-1 overflow-auto bg-black p-2 sm:p-3">
               {previewItem ? (
                 <div className="flex min-h-full w-full items-center justify-center">
                   <TokGalleryImageFrame item={previewItem} watermarkSubscription={watermarkSubscription} />

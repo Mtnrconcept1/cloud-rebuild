@@ -1004,10 +1004,10 @@ export default function AdminSinistres() {
         ]}
       />
 
-      <Card>
+      <Card className="min-w-0 overflow-hidden">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <ClipboardList className="h-5 w-5 text-primary" />
+          <CardTitle className="flex min-w-0 items-start gap-2 break-words">
+            <ClipboardList className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
             File des sinistres remontés par le chat
           </CardTitle>
         </CardHeader>
@@ -1080,29 +1080,35 @@ export default function AdminSinistres() {
                         openIncident(incident);
                       }
                     }}
-                    className="rounded-xl border bg-card p-4 text-left shadow-sm transition hover:border-primary/40 hover:bg-muted/20"
+                    className="min-w-0 overflow-hidden rounded-xl border bg-card p-4 text-left shadow-sm transition hover:border-primary/40 hover:bg-muted/20"
                   >
                     <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                       <div className="min-w-0 space-y-2">
                         <div className="flex flex-wrap items-center gap-2">
-                          <Badge className={priorityClass(incident.priority)}>{incident.priority}</Badge>
-                          <Badge className={statusClass(incident.status)}>{formatStatus(incident.status)}</Badge>
-                          <Badge variant="outline">{incident.category}</Badge>
-                          <Badge variant="outline">
+                          <Badge className={cn("max-w-full whitespace-normal [overflow-wrap:anywhere]", priorityClass(incident.priority))}>{incident.priority}</Badge>
+                          <Badge className={cn("max-w-full whitespace-normal [overflow-wrap:anywhere]", statusClass(incident.status))}>{formatStatus(incident.status)}</Badge>
+                          <Badge variant="outline" className="max-w-full whitespace-normal [overflow-wrap:anywhere]">{incident.category}</Badge>
+                          <Badge variant="outline" className="max-w-full whitespace-normal [overflow-wrap:anywhere]">
                             {incidentReference}
                           </Badge>
                           {conversationNumber ? (
-                            <Badge variant="outline">
+                            <Badge variant="outline" className="max-w-full whitespace-normal [overflow-wrap:anywhere]">
                               Conversation #{formatIncidentReference(conversationNumber)}
                             </Badge>
                           ) : null}
                         </div>
                         <p className="break-words text-base font-semibold">{incident.subject}</p>
                         <p className="line-clamp-2 break-words text-sm text-muted-foreground">{summary}</p>
-                        <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-                          <span className="flex items-center gap-1"><User className="h-3.5 w-3.5" />{incident.customer?.full_name || "Client inconnu"}</span>
-                          <span className="flex items-center gap-1"><Store className="h-3.5 w-3.5" />{incident.restaurants?.name || "Restaurant inconnu"}</span>
-                          <span>{formatDateTime(getItemActivityDate(incident))}</span>
+                        <div className="flex min-w-0 flex-wrap gap-3 text-xs text-muted-foreground">
+                          <span className="inline-flex min-w-0 max-w-full items-start gap-1 [overflow-wrap:anywhere]">
+                            <User className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                            <span className="min-w-0 break-words">{incident.customer?.full_name || "Client inconnu"}</span>
+                          </span>
+                          <span className="inline-flex min-w-0 max-w-full items-start gap-1 [overflow-wrap:anywhere]">
+                            <Store className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                            <span className="min-w-0 break-words">{incident.restaurants?.name || "Restaurant inconnu"}</span>
+                          </span>
+                          <span className="min-w-0 break-words">{formatDateTime(getItemActivityDate(incident))}</span>
                         </div>
                       </div>
                       <div className="flex shrink-0 flex-wrap gap-2 lg:justify-end">

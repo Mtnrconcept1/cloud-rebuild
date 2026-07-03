@@ -284,7 +284,7 @@ export function AdminRouteFrame({
   );
 
   return (
-    <div className="min-h-screen bg-background pb-24 pt-[calc(env(safe-area-inset-top,0px)+3.75rem)] md:pb-0">
+    <div className="min-h-screen overflow-x-hidden bg-background pb-24 pt-[calc(env(safe-area-inset-top,0px)+3.75rem)] md:pb-0">
       {typeof document === "undefined" ? backButton : createPortal(backButton, document.body)}
       <div className="fixed right-[calc(env(safe-area-inset-right,0px)+0.75rem)] top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-[1200] flex items-center gap-2">
         <ChefHelpButton surface="admin" compact className="hidden w-auto md:flex" />

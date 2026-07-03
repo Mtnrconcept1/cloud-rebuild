@@ -334,7 +334,7 @@ export default function AdminMobileNavigation() {
               Navigation rapide vers les onglets du back-office TOK.
             </SheetDescription>
           </SheetHeader>
-          <div className="flex-1 overflow-y-auto overscroll-y-contain px-6 pb-6 pt-4">
+          <div data-sheet-scroll-area className="flex-1 overflow-y-auto overscroll-y-contain px-6 pb-6 pt-4">
             <div className="mb-4">
               <RoleSpaceSwitcher className="w-full justify-between" align="start" onNavigate={() => setMobileMenuOpen(false)} />
             </div>
