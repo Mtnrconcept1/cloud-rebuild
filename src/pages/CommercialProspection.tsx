@@ -12,11 +12,14 @@ import {
   ExternalLink,
   Filter,
   Mail,
+  Menu,
   MapPin,
   Navigation,
   Phone,
   Search,
+  ShieldCheck,
   Store,
+  UserRound,
   XCircle,
 } from "lucide-react";
 
@@ -30,25 +33,35 @@ import type { Database } from "@/integrations/supabase/types";
 import { useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import NotificationBell from "@/components/notifications/NotificationBell";
+import RoleSpaceSwitcher from "@/components/navigation/RoleSpaceSwitcher";
+import SignOutButton from "@/components/auth/SignOutButton";
+import ThemeToggleButton from "@/components/theme/ThemeToggleButton";
 import {
   fetchGenevaCommercialProspects,
   type GenevaCommercialProspect,
 } from "@/data/genevaCommercialProspects";
 
 type ProspectStatus = Database["public"]["Enums"]["commercial_visit_status"];
+type CommercialPipelineStatus = Exclude<ProspectStatus, "visited">;
 
 type CommercialProspectFollowup = {
   source_objectid: number;
   status: ProspectStatus;
   notes: string | null;
   assigned_to: string | null;
+  assigned_to_name: string | null;
   last_contacted_by: string | null;
+  last_contacted_by_name: string | null;
+  signed_by: string | null;
+  signed_by_name: string | null;
+  signed_at: string | null;
   visited_at: string | null;
   next_follow_up_at: string | null;
   updated_at: string | null;
 };
 
-const STATUS_OPTIONS: Array<{
+type StatusMeta = {
   value: ProspectStatus;
   label: string;
   shortLabel: string;
@@ -56,24 +69,17 @@ const STATUS_OPTIONS: Array<{
   marker: string;
   badge: string;
   icon: typeof Circle;
-}> = [
+};
+
+const PIPELINE_STATUS_OPTIONS: Array<StatusMeta & { value: CommercialPipelineStatus }> = [
   {
     value: "not_visited",
-    label: "À visiter",
+    label: "Pas encore visité",
     shortLabel: "À visiter",
-    color: "#64748b",
-    marker: "#64748b",
-    badge: "bg-slate-100 text-slate-700 border-slate-200",
+    color: "#facc15",
+    marker: "#facc15",
+    badge: "bg-yellow-100 text-yellow-800 border-yellow-200",
     icon: Circle,
-  },
-  {
-    value: "visited",
-    label: "Déjà visité",
-    shortLabel: "Visité",
-    color: "#2563eb",
-    marker: "#2563eb",
-    badge: "bg-blue-100 text-blue-700 border-blue-200",
-    icon: CheckCircle2,
   },
   {
     value: "in_progress",
@@ -86,30 +92,41 @@ const STATUS_OPTIONS: Array<{
   },
   {
     value: "signed",
-    label: "Signé",
+    label: "Signature",
     shortLabel: "Signé",
-    color: "#059669",
-    marker: "#059669",
+    color: "#16a34a",
+    marker: "#16a34a",
     badge: "bg-emerald-100 text-emerald-700 border-emerald-200",
     icon: BriefcaseBusiness,
   },
   {
     value: "not_interested",
-    label: "Pas intéressé",
+    label: "Refus",
     shortLabel: "Refus",
-    color: "#dc2626",
-    marker: "#dc2626",
+    color: "#ef4444",
+    marker: "#ef4444",
     badge: "bg-red-100 text-red-700 border-red-200",
     icon: XCircle,
   },
 ];
 
-const STATUS_META = STATUS_OPTIONS.reduce(
+const STATUS_META = [
+  ...PIPELINE_STATUS_OPTIONS,
+  {
+    value: "visited",
+    label: "En cours",
+    shortLabel: "En cours",
+    color: "#f97316",
+    marker: "#f97316",
+    badge: "bg-orange-100 text-orange-700 border-orange-200",
+    icon: CheckCircle2,
+  } satisfies StatusMeta,
+].reduce(
   (acc, item) => {
     acc[item.value] = item;
     return acc;
   },
-  {} as Record<ProspectStatus, (typeof STATUS_OPTIONS)[number]>,
+  {} as Record<ProspectStatus, StatusMeta>,
 );
 
 const ALL_STATUSES = "all";
@@ -159,6 +176,28 @@ function getProspectStatus(
   followupsByObjectId: Map<number, CommercialProspectFollowup>,
 ): ProspectStatus {
   return followupsByObjectId.get(prospect.sourceObjectId)?.status || "not_visited";
+}
+
+function toPipelineStatus(status: ProspectStatus): CommercialPipelineStatus {
+  return status === "visited" ? "in_progress" : status;
+}
+
+function getCommercialDisplayName(user: ReturnType<typeof useAuth>["user"]) {
+  if (!user) return null;
+  const metadata = user.user_metadata as Record<string, unknown> | null;
+  const fullName = typeof metadata?.full_name === "string" ? metadata.full_name.trim() : "";
+  return fullName || user.email || null;
+}
+
+function formatDateTime(value: string | null | undefined) {
+  if (!value) return null;
+  return new Date(value).toLocaleString("fr-CH", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 function getJitteredLatLng(
@@ -230,6 +269,46 @@ function ContactLink({
   );
 }
 
+function CommercialWorkspaceChrome({ activeLabel }: { activeLabel: string }) {
+  return (
+    <>
+      <div className="fixed right-[calc(env(safe-area-inset-right,0px)+0.75rem)] top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-[1200] flex items-center gap-2">
+        <RoleSpaceSwitcher compact className="border-border/70 bg-background/95 shadow-[0_14px_34px_rgba(15,23,42,0.14)] backdrop-blur-md" />
+        <ThemeToggleButton className="h-11 w-11 rounded-full border border-border/70 bg-background/95 text-foreground shadow-[0_14px_34px_rgba(15,23,42,0.16)] backdrop-blur-md hover:bg-background dark:border-[#5f7aad]/35 dark:bg-[#07142b]/95 dark:text-white" />
+        <NotificationBell />
+        <SignOutButton iconOnly />
+      </div>
+
+      <div className="pointer-events-none fixed left-[calc(env(safe-area-inset-left,0px)+0.75rem)] top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-[1190] md:hidden">
+        <div className="pointer-events-auto flex h-16 items-center gap-2.5 rounded-[1.45rem] border border-orange-300/55 bg-zinc-950 px-2.5 pr-5 text-white shadow-[0_16px_34px_rgba(255,106,26,0.34),0_8px_24px_rgba(15,23,42,0.32)] ring-1 ring-white/15 backdrop-blur-md">
+          <span className="flex h-11 w-11 items-center justify-center rounded-[1rem] bg-gradient-to-br from-[#ff5a14] to-[#ffb000] text-white shadow-[0_0_24px_rgba(255,106,26,0.58)]">
+            <Menu className="h-5 w-5" />
+          </span>
+          <span className="flex min-w-0 flex-col items-start leading-tight">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.28em] text-orange-300">
+              Commercial
+            </span>
+            <span className="max-w-[10rem] truncate text-sm font-semibold">{activeLabel}</span>
+          </span>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function CommercialMapLegend() {
+  return (
+    <div className="grid gap-2 rounded-2xl border bg-white/90 p-3 text-xs font-bold shadow-sm dark:border-white/10 dark:bg-slate-950/80 sm:grid-cols-2 xl:grid-cols-4">
+      {PIPELINE_STATUS_OPTIONS.map((item) => (
+        <div key={item.value} className="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 dark:bg-white/5">
+          <span className="h-3 w-3 rounded-full ring-2 ring-white" style={{ backgroundColor: item.marker }} />
+          <span>{item.label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function CommercialProspectionMap({
   prospects,
   followupsByObjectId,
@@ -292,11 +371,11 @@ function CommercialProspectionMap({
       const latLng = getJitteredLatLng(prospect, coordinateUseCount);
       const marker = L.circleMarker(latLng, {
         renderer,
-        radius: selected ? 8 : 5,
-        color: selected ? "#111827" : "#ffffff",
-        weight: selected ? 3 : 1.4,
+        radius: selected ? 10 : 6,
+        color: selected ? "#020617" : "#ffffff",
+        weight: selected ? 3.5 : 1.8,
         fillColor: meta.marker,
-        fillOpacity: status === "not_visited" ? 0.78 : 0.95,
+        fillOpacity: status === "not_visited" ? 0.9 : 0.96,
       });
 
       marker.bindTooltip(
@@ -327,12 +406,13 @@ export default function CommercialProspection() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const commercialName = getCommercialDisplayName(user);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<ProspectStatus | typeof ALL_STATUSES>(ALL_STATUSES);
+  const [statusFilter, setStatusFilter] = useState<CommercialPipelineStatus | typeof ALL_STATUSES>(ALL_STATUSES);
   const [communeFilter, setCommuneFilter] = useState(ALL_COMMUNES);
   const [categoryFilter, setCategoryFilter] = useState(ALL_CATEGORIES);
   const [selectedObjectId, setSelectedObjectId] = useState<number | null>(null);
-  const [draftStatus, setDraftStatus] = useState<ProspectStatus>("not_visited");
+  const [draftStatus, setDraftStatus] = useState<CommercialPipelineStatus>("not_visited");
   const [draftNotes, setDraftNotes] = useState("");
   const [draftFollowUpDate, setDraftFollowUpDate] = useState("");
 
@@ -358,7 +438,7 @@ export default function CommercialProspection() {
     queryFn: async () => {
       const { data, error } = await getSupabase()
         .from("commercial_prospect_followups")
-        .select("source_objectid,status,notes,assigned_to,last_contacted_by,visited_at,next_follow_up_at,updated_at");
+        .select("source_objectid,status,notes,assigned_to,assigned_to_name,last_contacted_by,last_contacted_by_name,signed_by,signed_by_name,signed_at,visited_at,next_follow_up_at,updated_at");
 
       if (error) throw error;
       return (data || []) as CommercialProspectFollowup[];
@@ -387,7 +467,7 @@ export default function CommercialProspection() {
         if (normalizedSearch && !haystack.includes(normalizedSearch)) return false;
         if (communeFilter !== ALL_COMMUNES && prospect.commune !== communeFilter) return false;
         if (categoryFilter !== ALL_CATEGORIES && prospect.category !== categoryFilter) return false;
-        if (statusFilter !== ALL_STATUSES && getProspectStatus(prospect, followupsByObjectId) !== statusFilter) return false;
+        if (statusFilter !== ALL_STATUSES && toPipelineStatus(getProspectStatus(prospect, followupsByObjectId)) !== statusFilter) return false;
         return true;
       })
       .map(({ prospect }) => prospect);
@@ -402,11 +482,15 @@ export default function CommercialProspection() {
   const selectedFollowup = selectedProspect
     ? followupsByObjectId.get(selectedProspect.sourceObjectId) || null
     : null;
+  const selectedAssignedName = selectedFollowup?.assigned_to_name || (selectedFollowup?.assigned_to ? "Commercial attribué" : null);
+  const selectedLastContactName = selectedFollowup?.last_contacted_by_name
+    || (selectedFollowup?.last_contacted_by ? "Commercial TOK" : null);
+  const selectedSignedName = selectedFollowup?.signed_by_name || (selectedFollowup?.signed_by ? "Commercial TOK" : null);
 
   useEffect(() => {
     if (!selectedProspect) return;
     const followup = followupsByObjectId.get(selectedProspect.sourceObjectId);
-    setDraftStatus(followup?.status || "not_visited");
+    setDraftStatus(followup ? toPipelineStatus(followup.status) : "not_visited");
     setDraftNotes(followup?.notes || "");
     setDraftFollowUpDate(followup?.next_follow_up_at || "");
   }, [followupsByObjectId, selectedProspect]);
@@ -428,13 +512,13 @@ export default function CommercialProspection() {
   }, [filteredProspects, selectedObjectId]);
 
   const stats = useMemo(() => {
-    const base = STATUS_OPTIONS.reduce((acc, item) => {
+    const base = PIPELINE_STATUS_OPTIONS.reduce((acc, item) => {
       acc[item.value] = 0;
       return acc;
-    }, {} as Record<ProspectStatus, number>);
+    }, {} as Record<CommercialPipelineStatus, number>);
 
     for (const prospect of prospects) {
-      base[getProspectStatus(prospect, followupsByObjectId)] += 1;
+      base[toPipelineStatus(getProspectStatus(prospect, followupsByObjectId))] += 1;
     }
 
     return base;
@@ -446,6 +530,11 @@ export default function CommercialProspection() {
       const now = new Date().toISOString();
       const existingVisitedAt = selectedFollowup?.visited_at || null;
       const shouldStampVisitedAt = draftStatus !== "not_visited" && !existingVisitedAt;
+      const currentUserId = user?.id || null;
+      const assignedTo = selectedFollowup?.assigned_to || currentUserId;
+      const assignedToName = selectedFollowup?.assigned_to_name || commercialName;
+      const isSigned = draftStatus === "signed";
+      const keepExistingSignature = isSigned && selectedFollowup?.status === "signed";
 
       const { error } = await getSupabase()
         .from("commercial_prospect_followups")
@@ -455,7 +544,13 @@ export default function CommercialProspection() {
           notes: draftNotes.trim() || null,
           next_follow_up_at: draftFollowUpDate || null,
           visited_at: shouldStampVisitedAt ? now : existingVisitedAt,
-          last_contacted_by: user?.id || null,
+          assigned_to: assignedTo,
+          assigned_to_name: assignedToName,
+          last_contacted_by: currentUserId,
+          last_contacted_by_name: commercialName,
+          signed_by: isSigned ? (keepExistingSignature ? selectedFollowup?.signed_by || currentUserId : currentUserId) : null,
+          signed_by_name: isSigned ? (keepExistingSignature ? selectedFollowup?.signed_by_name || commercialName : commercialName) : null,
+          signed_at: isSigned ? (keepExistingSignature ? selectedFollowup?.signed_at || now : now) : null,
         }, { onConflict: "source_objectid" });
 
       if (error) throw error;
@@ -480,25 +575,37 @@ export default function CommercialProspection() {
   const previewResults = filteredProspects.slice(0, RESULT_PREVIEW_LIMIT);
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top_left,rgba(255,106,26,0.12),transparent_34%),linear-gradient(135deg,#fff7ed_0%,#f8fafc_44%,#eef6ff_100%)] px-4 py-6 text-slate-950 dark:bg-[radial-gradient(circle_at_top_left,rgba(255,106,26,0.18),transparent_34%),linear-gradient(135deg,#020617_0%,#0f172a_52%,#08111f_100%)] dark:text-white md:px-6">
+    <>
+      <CommercialWorkspaceChrome activeLabel="Prospection" />
+      <main className="min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top_left,rgba(255,106,26,0.12),transparent_34%),linear-gradient(135deg,#fff7ed_0%,#f8fafc_44%,#eef6ff_100%)] px-4 pb-6 pt-[calc(env(safe-area-inset-top,0px)+5.5rem)] text-slate-950 dark:bg-[radial-gradient(circle_at_top_left,rgba(255,106,26,0.18),transparent_34%),linear-gradient(135deg,#020617_0%,#0f172a_52%,#08111f_100%)] dark:text-white md:px-6 md:pt-[calc(env(safe-area-inset-top,0px)+5rem)]">
       <div className="mx-auto flex max-w-[1800px] flex-col gap-5">
         <section className="rounded-[30px] border border-white/70 bg-white/88 p-5 shadow-[0_20px_80px_rgba(15,23,42,0.12)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/74">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl">
               <div className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-[11px] font-black uppercase tracking-[0.24em] text-orange-700 dark:border-orange-400/30 dark:bg-orange-500/10 dark:text-orange-200">
                 <BriefcaseBusiness className="h-3.5 w-3.5" />
-                Prospection terrain
+                Espace commercial
               </div>
               <h1 className="mt-4 font-display text-3xl font-black leading-tight md:text-5xl">
                 Carte commerciale des restaurants genevois
               </h1>
               <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600 dark:text-slate-300 md:text-base">
-                Recherchez un établissement, ouvrez sa fiche sur la carte, puis marquez l'avancement de la visite.
-                Le point change de couleur pour donner une vision terrain immédiate.
+                Connecté avec vos identifiants commerciaux, recherchez un établissement, ouvrez sa fiche sur la carte,
+                puis marquez l'avancement. Les signatures restent rattachées au commercial qui les enregistre.
               </p>
+              <div className="mt-4 flex flex-wrap gap-2 text-xs font-bold text-slate-600 dark:text-slate-300">
+                <span className="inline-flex items-center gap-2 rounded-full border bg-white/80 px-3 py-1.5 dark:border-white/10 dark:bg-white/5">
+                  <UserRound className="h-3.5 w-3.5 text-primary" />
+                  {commercialName || "Commercial TOK"}
+                </span>
+                <span className="inline-flex items-center gap-2 rounded-full border bg-white/80 px-3 py-1.5 dark:border-white/10 dark:bg-white/5">
+                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+                  Accès commercial sécurisé
+                </span>
+              </div>
             </div>
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-5 lg:min-w-[680px]">
-              {STATUS_OPTIONS.map((item) => (
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:min-w-[560px]">
+              {PIPELINE_STATUS_OPTIONS.map((item) => (
                 <StatCard key={item.value} label={item.shortLabel} value={stats[item.value]} color={item.color} />
               ))}
             </div>
@@ -528,11 +635,11 @@ export default function CommercialProspection() {
 
             <div className="space-y-2">
               <Label>Statut</Label>
-              <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as ProspectStatus | typeof ALL_STATUSES)}>
+              <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as CommercialPipelineStatus | typeof ALL_STATUSES)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value={ALL_STATUSES}>Tous les statuts</SelectItem>
-                  {STATUS_OPTIONS.map((item) => (
+                  {PIPELINE_STATUS_OPTIONS.map((item) => (
                     <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>
                   ))}
                 </SelectContent>
@@ -607,12 +714,15 @@ export default function CommercialProspection() {
           </aside>
 
           <section className="min-w-0">
-            <CommercialProspectionMap
-              prospects={filteredProspects}
-              followupsByObjectId={followupsByObjectId}
-              selectedObjectId={selectedProspect?.sourceObjectId || null}
-              onSelect={handleSelectProspect}
-            />
+            <div className="space-y-3">
+              <CommercialMapLegend />
+              <CommercialProspectionMap
+                prospects={filteredProspects}
+                followupsByObjectId={followupsByObjectId}
+                selectedObjectId={selectedProspect?.sourceObjectId || null}
+                onSelect={handleSelectProspect}
+              />
+            </div>
           </section>
 
           <aside className="space-y-4 rounded-[30px] border border-white/70 bg-white/92 p-5 shadow-sm dark:border-white/10 dark:bg-slate-950/78">
@@ -667,12 +777,25 @@ export default function CommercialProspection() {
                   {selectedFollowup?.updated_at ? (
                     <p><span className="font-bold">Dernière mise à jour:</span> {new Date(selectedFollowup.updated_at).toLocaleString("fr-CH")}</p>
                   ) : null}
+                  {selectedAssignedName ? (
+                    <p><span className="font-bold">Commercial assigné:</span> {selectedAssignedName}</p>
+                  ) : null}
+                  {selectedLastContactName ? (
+                    <p><span className="font-bold">Dernière action:</span> {selectedLastContactName}</p>
+                  ) : null}
+                  {selectedSignedName && selectedFollowup?.status === "signed" ? (
+                    <p>
+                      <span className="font-bold">Signature:</span>{" "}
+                      {selectedSignedName}
+                      {formatDateTime(selectedFollowup.signed_at) ? ` le ${formatDateTime(selectedFollowup.signed_at)}` : ""}
+                    </p>
+                  ) : null}
                 </div>
 
                 <div className="space-y-3">
                   <Label>Avancement terrain</Label>
                   <div className="grid grid-cols-2 gap-2">
-                    {STATUS_OPTIONS.map((item) => {
+                    {PIPELINE_STATUS_OPTIONS.map((item) => {
                       const Icon = item.icon;
                       const selected = draftStatus === item.value;
                       return (
@@ -736,6 +859,7 @@ export default function CommercialProspection() {
           </aside>
         </section>
       </div>
-    </main>
+      </main>
+    </>
   );
 }

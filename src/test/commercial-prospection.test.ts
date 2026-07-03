@@ -45,6 +45,12 @@ describe("commercial prospecting surface", () => {
     expect(dataSource).toContain("/data/geneva-commercial-prospects.json");
     expect(pageSource).toContain("not_interested");
     expect(pageSource).toContain("signed");
+    expect(pageSource).toContain("#facc15");
+    expect(pageSource).toContain("#f97316");
+    expect(pageSource).toContain("#16a34a");
+    expect(pageSource).toContain("#ef4444");
+    expect(pageSource).toContain("CommercialWorkspaceChrome");
+    expect(pageSource).toContain("RoleSpaceSwitcher");
   });
 
   it("protects the route for admin and commercial roles behind the feature flag", () => {
@@ -73,5 +79,22 @@ describe("commercial prospecting surface", () => {
     expect(followupMigration).toContain("ENABLE ROW LEVEL SECURITY");
     expect(followupMigration).toContain("ur.role::text IN ('admin', 'commercial')");
     expect(followupMigration).toContain("'commercial-prospection'");
+  });
+
+  it("tracks which commercial owns and signs a restaurant prospect", () => {
+    const pageSource = readFileSync(resolve(process.cwd(), "src/pages/CommercialProspection.tsx"), "utf8");
+    const typesSource = readFileSync(resolve(process.cwd(), "src/integrations/supabase/types.ts"), "utf8");
+    const signatureMigration = readFileSync(
+      resolve(process.cwd(), "supabase/migrations/20260703183553_commercial_followup_signatures.sql"),
+      "utf8",
+    );
+
+    expect(pageSource).toContain("assigned_to_name");
+    expect(pageSource).toContain("signed_by_name");
+    expect(pageSource).toContain("signed_at");
+    expect(pageSource).toContain('draftStatus === "signed"');
+    expect(typesSource).toContain("signed_by_name: string | null");
+    expect(signatureMigration).toContain("ADD COLUMN IF NOT EXISTS signed_by");
+    expect(signatureMigration).toContain("ADD COLUMN IF NOT EXISTS signed_at");
   });
 });
