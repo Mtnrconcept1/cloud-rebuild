@@ -24,6 +24,13 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -218,6 +225,53 @@ function getJitteredLatLng(
   ];
 }
 
+function escapeMapHtml(value: string | number | null | undefined) {
+  return String(value ?? "").replace(/[&<>"']/g, (character) => {
+    const replacements: Record<string, string> = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+    };
+    return replacements[character] || character;
+  });
+}
+
+function commercialProspectMarkerIcon(meta: StatusMeta, selected: boolean) {
+  const size = selected ? 40 : 34;
+  const innerSize = selected ? 22 : 18;
+  const ringColor = selected ? "#020617" : "#ffffff";
+
+  return L.divIcon({
+    html: `
+      <div style="
+        width:${size}px;
+        height:${size}px;
+        border-radius:9999px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        background:rgba(255,255,255,0.95);
+        border:2px solid ${ringColor};
+        box-shadow:0 14px 30px rgba(15,23,42,0.24),0 0 0 ${selected ? "5px" : "3px"} rgba(255,255,255,0.72);
+      ">
+        <span style="
+          width:${innerSize}px;
+          height:${innerSize}px;
+          border-radius:9999px;
+          display:block;
+          background:${meta.marker};
+          box-shadow:0 0 0 2px rgba(255,255,255,0.94),0 0 22px ${meta.marker};
+        "></span>
+      </div>
+    `,
+    className: "",
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+  });
+}
+
 function StatCard({
   label,
   value,
@@ -314,16 +368,17 @@ function CommercialProspectionMap({
   followupsByObjectId,
   selectedObjectId,
   onSelect,
+  onOpenDetails,
 }: {
   prospects: GenevaCommercialProspect[];
   followupsByObjectId: Map<number, CommercialProspectFollowup>;
   selectedObjectId: number | null;
   onSelect: (prospect: GenevaCommercialProspect) => void;
+  onOpenDetails: (prospect: GenevaCommercialProspect) => void;
 }) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markerLayerRef = useRef<L.LayerGroup | null>(null);
-  const canvasRendererRef = useRef<L.Renderer | null>(null);
 
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
@@ -331,7 +386,6 @@ function CommercialProspectionMap({
     const map = L.map(mapRef.current, {
       center: GENEVA_CENTER,
       zoom: 12,
-      preferCanvas: true,
       scrollWheelZoom: true,
     });
 
@@ -340,20 +394,17 @@ function CommercialProspectionMap({
     }).addTo(map);
 
     mapInstanceRef.current = map;
-    canvasRendererRef.current = L.canvas({ padding: 0.5 });
 
     return () => {
       map.remove();
       mapInstanceRef.current = null;
-      canvasRendererRef.current = null;
       markerLayerRef.current = null;
     };
   }, []);
 
   useEffect(() => {
     const map = mapInstanceRef.current;
-    const renderer = canvasRendererRef.current;
-    if (!map || !renderer) return;
+    if (!map) return;
 
     if (markerLayerRef.current) {
       markerLayerRef.current.clearLayers();
@@ -369,20 +420,22 @@ function CommercialProspectionMap({
       const meta = STATUS_META[status];
       const selected = selectedObjectId === prospect.sourceObjectId;
       const latLng = getJitteredLatLng(prospect, coordinateUseCount);
-      const marker = L.circleMarker(latLng, {
-        renderer,
-        radius: selected ? 10 : 6,
-        color: selected ? "#020617" : "#ffffff",
-        weight: selected ? 3.5 : 1.8,
-        fillColor: meta.marker,
-        fillOpacity: status === "not_visited" ? 0.9 : 0.96,
+      const marker = L.marker(latLng, {
+        icon: commercialProspectMarkerIcon(meta, selected),
+        keyboard: true,
+        riseOnHover: true,
+        title: prospect.name,
+        zIndexOffset: selected ? 1000 : 0,
       });
 
       marker.bindTooltip(
-        `<strong>${prospect.name}</strong><br>${meta.label}${prospect.commune ? ` · ${prospect.commune}` : ""}`,
+        `<strong>${escapeMapHtml(prospect.name)}</strong><br>${escapeMapHtml(meta.label)}${prospect.commune ? ` · ${escapeMapHtml(prospect.commune)}` : ""}`,
         { direction: "top", sticky: true, opacity: 0.95 },
       );
-      marker.on("click", () => onSelect(prospect));
+      marker.on("click", () => {
+        onSelect(prospect);
+        onOpenDetails(prospect);
+      });
       marker.addTo(layer);
       bounds.extend(latLng);
     }
@@ -392,13 +445,141 @@ function CommercialProspectionMap({
     if (prospects.length > 0 && bounds.isValid()) {
       map.fitBounds(bounds, { padding: [32, 32], maxZoom: prospects.length === 1 ? 17 : 13 });
     }
-  }, [followupsByObjectId, onSelect, prospects, selectedObjectId]);
+  }, [followupsByObjectId, onOpenDetails, onSelect, prospects, selectedObjectId]);
 
   return (
     <div
       ref={mapRef}
       className="h-[58vh] min-h-[420px] w-full overflow-hidden rounded-[28px] border border-slate-200 shadow-[0_22px_70px_rgba(15,23,42,0.16)] dark:border-white/10 md:h-[calc(100vh-12rem)]"
     />
+  );
+}
+
+function CommercialProspectDetailsDialog({
+  open,
+  onOpenChange,
+  prospect,
+  followup,
+  status,
+  assignedName,
+  lastContactName,
+  signedName,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  prospect: GenevaCommercialProspect | null;
+  followup: CommercialProspectFollowup | null;
+  status: ProspectStatus;
+  assignedName: string | null;
+  lastContactName: string | null;
+  signedName: string | null;
+}) {
+  if (!prospect) return null;
+
+  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${prospect.name} ${formatAddress(prospect)}`)}`;
+  const notes = followup?.notes?.trim();
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="overflow-hidden p-0 sm:max-w-2xl sm:rounded-[30px]">
+        <DialogHeader className="relative overflow-hidden border-b bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 px-6 pb-6 pt-7 text-left text-white">
+          <div className="absolute -right-16 -top-16 h-44 w-44 rounded-full bg-orange-500/20 blur-3xl" />
+          <div className="relative flex flex-wrap items-start justify-between gap-4 pr-8">
+            <div className="min-w-0">
+              <p className="text-[11px] font-black uppercase tracking-[0.26em] text-orange-300">
+                Fiche terrain
+              </p>
+              <DialogTitle className="mt-3 font-display text-3xl font-black leading-tight text-white">
+                {prospect.name}
+              </DialogTitle>
+              <DialogDescription className="mt-2 text-sm text-white/72">
+                {formatAddress(prospect) || "Adresse non renseignée"}
+              </DialogDescription>
+            </div>
+            <StatusPill status={status} />
+          </div>
+        </DialogHeader>
+
+        <div data-dialog-scroll-area className="max-h-[calc(100dvh-15rem)] space-y-4 overflow-y-auto p-5">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-2xl border bg-slate-50 p-4 dark:border-white/10 dark:bg-white/5">
+              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-muted-foreground">
+                Restaurant
+              </p>
+              <div className="mt-3 space-y-2 text-sm">
+                <p className="flex items-start gap-2">
+                  <Store className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                  <span>{prospect.category || prospect.branch || "Catégorie non renseignée"}</span>
+                </p>
+                <p className="flex items-start gap-2">
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                  <span>{formatAddress(prospect) || "Adresse non renseignée"}</span>
+                </p>
+                {prospect.legalName ? <p><span className="font-bold">Raison sociale:</span> {prospect.legalName}</p> : null}
+                {prospect.ideNumber ? <p><span className="font-bold">IDE:</span> {prospect.ideNumber}</p> : null}
+                <p><span className="font-bold">Object ID:</span> {prospect.sourceObjectId}</p>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border bg-slate-50 p-4 dark:border-white/10 dark:bg-white/5">
+              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-muted-foreground">
+                Suivi TOK
+              </p>
+              <div className="mt-3 space-y-2 text-sm">
+                {assignedName ? <p><span className="font-bold">Assigné à:</span> {assignedName}</p> : null}
+                {lastContactName ? <p><span className="font-bold">Dernière action:</span> {lastContactName}</p> : null}
+                {followup?.next_follow_up_at ? <p><span className="font-bold">Relance:</span> {followup.next_follow_up_at}</p> : null}
+                {followup?.updated_at ? <p><span className="font-bold">Mise à jour:</span> {formatDateTime(followup.updated_at)}</p> : null}
+                {signedName && followup?.status === "signed" ? (
+                  <p>
+                    <span className="font-bold">Signature:</span>{" "}
+                    {signedName}
+                    {formatDateTime(followup.signed_at) ? ` le ${formatDateTime(followup.signed_at)}` : ""}
+                  </p>
+                ) : null}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <ContactLink
+              icon={Phone}
+              href={prospect.phone ? `tel:${prospect.phone.replace(/\s+/g, "")}` : null}
+              label={prospect.phone}
+            />
+            <ContactLink
+              icon={Mail}
+              href={prospect.email ? `mailto:${prospect.email}` : null}
+              label={prospect.email}
+            />
+            <ContactLink
+              icon={ExternalLink}
+              href={normalizeExternalUrl(prospect.website)}
+              label={prospect.website ? "Site web" : null}
+            />
+            <ContactLink icon={Navigation} href={mapsUrl} label="Itinéraire" />
+          </div>
+
+          <div className="rounded-[24px] border border-orange-200 bg-orange-50/80 p-4 dark:border-orange-400/20 dark:bg-orange-500/10">
+            <p className="text-[11px] font-black uppercase tracking-[0.18em] text-primary">
+              Notes du commercial
+            </p>
+            <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-700 dark:text-slate-200">
+              {notes || "Aucune note terrain enregistrée pour ce restaurant."}
+            </p>
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            className="h-11 w-full rounded-2xl"
+            onClick={() => onOpenChange(false)}
+          >
+            Fermer
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -412,6 +593,7 @@ export default function CommercialProspection() {
   const [communeFilter, setCommuneFilter] = useState(ALL_COMMUNES);
   const [categoryFilter, setCategoryFilter] = useState(ALL_CATEGORIES);
   const [selectedObjectId, setSelectedObjectId] = useState<number | null>(null);
+  const [prospectDialogOpen, setProspectDialogOpen] = useState(false);
   const [draftStatus, setDraftStatus] = useState<CommercialPipelineStatus>("not_visited");
   const [draftNotes, setDraftNotes] = useState("");
   const [draftFollowUpDate, setDraftFollowUpDate] = useState("");
@@ -572,6 +754,11 @@ export default function CommercialProspection() {
     setSelectedObjectId(prospect.sourceObjectId);
   }, []);
 
+  const handleOpenProspectDetails = useCallback((prospect: GenevaCommercialProspect) => {
+    setSelectedObjectId(prospect.sourceObjectId);
+    setProspectDialogOpen(true);
+  }, []);
+
   const previewResults = filteredProspects.slice(0, RESULT_PREVIEW_LIMIT);
 
   return (
@@ -721,6 +908,7 @@ export default function CommercialProspection() {
                 followupsByObjectId={followupsByObjectId}
                 selectedObjectId={selectedProspect?.sourceObjectId || null}
                 onSelect={handleSelectProspect}
+                onOpenDetails={handleOpenProspectDetails}
               />
             </div>
           </section>
@@ -860,6 +1048,16 @@ export default function CommercialProspection() {
         </section>
       </div>
       </main>
+      <CommercialProspectDetailsDialog
+        open={prospectDialogOpen}
+        onOpenChange={setProspectDialogOpen}
+        prospect={selectedProspect}
+        followup={selectedFollowup}
+        status={selectedProspect ? getProspectStatus(selectedProspect, followupsByObjectId) : "not_visited"}
+        assignedName={selectedAssignedName}
+        lastContactName={selectedLastContactName}
+        signedName={selectedSignedName}
+      />
     </>
   );
 }
