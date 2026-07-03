@@ -76,11 +76,23 @@ type ChatGptMcpSetupItem = {
   copyable?: boolean;
 };
 
-const CHATGPT_MCP_SERVER_URL = "https://www.thetok.ch/functions/v1/tok-connect-mcp";
-const CHATGPT_OAUTH_AUTHORIZATION_URL = "https://www.thetok.ch/functions/v1/tok-connect-oauth/authorize";
-const CHATGPT_OAUTH_TOKEN_URL = "https://www.thetok.ch/functions/v1/tok-connect-oauth";
+const DEFAULT_CHATGPT_FUNCTIONS_BASE_URL = "https://www.thetok.ch/functions/v1";
+const LOCAL_SUPABASE_URL_PATTERN = /(?:localhost|127\.0\.0\.1)/i;
+
+function getChatGptFunctionsBaseUrl() {
+  const supabaseUrl = SUPABASE_URL.replace(/\/+$/, "");
+  if (!supabaseUrl || LOCAL_SUPABASE_URL_PATTERN.test(supabaseUrl)) return DEFAULT_CHATGPT_FUNCTIONS_BASE_URL;
+  return `${supabaseUrl}/functions/v1`;
+}
+
+const CHATGPT_FUNCTIONS_BASE_URL = getChatGptFunctionsBaseUrl();
+const CHATGPT_MCP_SERVER_URL = `${CHATGPT_FUNCTIONS_BASE_URL}/tok-connect-mcp`;
+const CHATGPT_OAUTH_AUTHORIZATION_URL = `${CHATGPT_FUNCTIONS_BASE_URL}/tok-connect-oauth/authorize`;
+const CHATGPT_OAUTH_TOKEN_URL = `${CHATGPT_FUNCTIONS_BASE_URL}/tok-connect-oauth`;
 const CHATGPT_MCP_DESCRIPTION = "TOK Connect: restaurants, disponibilités, réservations et campagnes preview via MCP sécurisé.";
 const CHATGPT_MCP_FALLBACK_SCOPES = "restaurants:read availability:read reservations:create reservations:cancel analytics:read credits:read campaigns:preview autopilot:plan";
+const CHATGPT_INVALID_CLIENT_HELP =
+  "Si ChatGPT renvoie invalid_client, le Client ID ou le secret ne correspond pas à l'endpoint OAuth. Utilisez un client créé dans le même environnement que ces URLs, puis copiez le dernier secret affiché une seule fois.";
 
 function getStringValue(row: TokConnectRow | undefined, key: string) {
   const value = row?.[key];
@@ -235,7 +247,7 @@ export default function AdminTokConnect() {
       step: 3,
       field: "Connexion - URL du serveur",
       value: CHATGPT_MCP_SERVER_URL,
-      note: "Utiliser le serveur MCP. Ne pas coller l'URL tok-connect-api ici.",
+      note: "Utiliser le serveur MCP du même environnement que le client OAuth sélectionné.",
       copyable: true,
     },
     {
@@ -256,7 +268,7 @@ export default function AdminTokConnect() {
       step: 6,
       field: "ID client OAuth",
       value: selectedClientPublicId,
-      note: "Utiliser le client OAuth sélectionné dans tok_connect_clients.",
+      note: "Utiliser le client OAuth sélectionné dans tok_connect_clients pour ce même environnement.",
       copyable: Boolean(getStringValue(selectedClient, "client_id")),
     },
     {
@@ -466,6 +478,9 @@ export default function AdminTokConnect() {
               </div>
               <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
                 Copiez les valeurs dans ChatGPT dans cet ordre. Les lignes marquées "Laisser vide" ne doivent pas être renseignées.
+              </p>
+              <p className="mt-2 max-w-3xl rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold leading-6 text-amber-900">
+                {CHATGPT_INVALID_CLIENT_HELP}
               </p>
             </div>
             <div className="rounded-md bg-orange-50 px-3 py-2 text-sm font-semibold text-orange-800">

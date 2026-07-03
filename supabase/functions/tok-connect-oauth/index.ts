@@ -47,6 +47,14 @@ function base64UrlDecode(input: string) {
   return atob(padded);
 }
 
+function decodeOAuthBasicComponent(value: string) {
+  try {
+    return decodeURIComponent(value.replace(/\+/g, "%20"));
+  } catch {
+    return value;
+  }
+}
+
 async function signCodePayload(payload: string) {
   const secret = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
   if (!secret) throw new HttpError(500, "oauth_signing_secret_missing");
@@ -102,12 +110,13 @@ function readBasicClientCredentials(req: Request): Pick<OAuthBody, "client_id" |
   const authorization = req.headers.get("authorization") || "";
   if (!authorization.toLowerCase().startsWith("basic ")) return {};
   try {
+    // ChatGPT manual OAuth uses client_secret_basic and may form-encode each component before Base64.
     const decoded = atob(authorization.slice("basic ".length).trim());
     const separatorIndex = decoded.indexOf(":");
     if (separatorIndex === -1) return {};
     return {
-      client_id: decoded.slice(0, separatorIndex),
-      client_secret: decoded.slice(separatorIndex + 1),
+      client_id: decodeOAuthBasicComponent(decoded.slice(0, separatorIndex)),
+      client_secret: decodeOAuthBasicComponent(decoded.slice(separatorIndex + 1)),
     };
   } catch {
     return {};
