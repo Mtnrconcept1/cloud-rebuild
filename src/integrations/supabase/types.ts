@@ -1798,10 +1798,15 @@ export type Database = {
       commercial_prospect_followups: {
         Row: {
           assigned_to: string | null
+          assigned_to_name: string | null
           created_at: string
           last_contacted_by: string | null
+          last_contacted_by_name: string | null
           next_follow_up_at: string | null
           notes: string | null
+          signed_at: string | null
+          signed_by: string | null
+          signed_by_name: string | null
           source_objectid: number
           status: Database["public"]["Enums"]["commercial_visit_status"]
           updated_at: string
@@ -1809,10 +1814,15 @@ export type Database = {
         }
         Insert: {
           assigned_to?: string | null
+          assigned_to_name?: string | null
           created_at?: string
           last_contacted_by?: string | null
+          last_contacted_by_name?: string | null
           next_follow_up_at?: string | null
           notes?: string | null
+          signed_at?: string | null
+          signed_by?: string | null
+          signed_by_name?: string | null
           source_objectid: number
           status?: Database["public"]["Enums"]["commercial_visit_status"]
           updated_at?: string
@@ -1820,10 +1830,15 @@ export type Database = {
         }
         Update: {
           assigned_to?: string | null
+          assigned_to_name?: string | null
           created_at?: string
           last_contacted_by?: string | null
+          last_contacted_by_name?: string | null
           next_follow_up_at?: string | null
           notes?: string | null
+          signed_at?: string | null
+          signed_by?: string | null
+          signed_by_name?: string | null
           source_objectid?: number
           status?: Database["public"]["Enums"]["commercial_visit_status"]
           updated_at?: string
