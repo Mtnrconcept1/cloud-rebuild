@@ -136,11 +136,38 @@ const STATUS_META = [
   {} as Record<ProspectStatus, StatusMeta>,
 );
 
+const CLUSTER_STATUS_PRIORITY: ProspectStatus[] = [
+  "not_visited",
+  "in_progress",
+  "visited",
+  "signed",
+  "not_interested",
+];
+
 const ALL_STATUSES = "all";
 const ALL_COMMUNES = "all";
 const ALL_CATEGORIES = "all";
 const RESULT_PREVIEW_LIMIT = 160;
 const GENEVA_CENTER: L.LatLngExpression = [46.2044, 6.1432];
+const COMMERCIAL_CLUSTER_DISABLE_ZOOM = 16;
+const COMMERCIAL_CLUSTER_VIEW_PADDING = 0.35;
+
+type CommercialMapProspectPoint = {
+  prospect: GenevaCommercialProspect;
+  latLng: L.LatLng;
+  status: ProspectStatus;
+  meta: StatusMeta;
+  selected: boolean;
+};
+
+type CommercialMapCluster = {
+  id: string;
+  points: CommercialMapProspectPoint[];
+  center: L.LatLng;
+  bounds: L.LatLngBounds;
+  statusCounts: Map<ProspectStatus, number>;
+  selected: boolean;
+};
 
 function normalizeSearchValue(value: string | number | null | undefined) {
   return String(value ?? "")
@@ -272,6 +299,141 @@ function commercialProspectMarkerIcon(meta: StatusMeta, selected: boolean) {
   });
 }
 
+function getCommercialClusterCellSize(zoom: number) {
+  if (zoom >= COMMERCIAL_CLUSTER_DISABLE_ZOOM) return 1;
+  if (zoom >= 15) return 46;
+  if (zoom >= 14) return 64;
+  if (zoom >= 13) return 88;
+  if (zoom >= 12) return 118;
+  if (zoom >= 11) return 150;
+  return 190;
+}
+
+function getCommercialClusterSize(count: number, zoom: number) {
+  const baseSize = count >= 250 ? 82 : count >= 100 ? 72 : count >= 35 ? 62 : 52;
+  const zoomReduction = Math.max(0, zoom - 11) * 3;
+  return Math.max(42, baseSize - zoomReduction);
+}
+
+function getDominantClusterStatus(statusCounts: Map<ProspectStatus, number>) {
+  return CLUSTER_STATUS_PRIORITY.reduce(
+    (best, status) => {
+      const count = statusCounts.get(status) || 0;
+      return count > best.count ? { status, count } : best;
+    },
+    { status: "not_visited" as ProspectStatus, count: -1 },
+  ).status;
+}
+
+function getClusterStatusSummary(statusCounts: Map<ProspectStatus, number>) {
+  return CLUSTER_STATUS_PRIORITY
+    .map((status) => {
+      const count = statusCounts.get(status) || 0;
+      return count > 0 ? `${escapeMapHtml(STATUS_META[status].shortLabel)}: ${count}` : null;
+    })
+    .filter(Boolean)
+    .join("<br>");
+}
+
+function commercialProspectClusterIcon(cluster: CommercialMapCluster, zoom: number) {
+  const count = cluster.points.length;
+  const size = getCommercialClusterSize(count, zoom);
+  const status = getDominantClusterStatus(cluster.statusCounts);
+  const color = STATUS_META[status].marker;
+  const selectedRing = cluster.selected ? "#020617" : "#ffffff";
+
+  return L.divIcon({
+    html: `
+      <div style="
+        width:${size}px;
+        height:${size}px;
+        border-radius:9999px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        background:${color};
+        border:3px solid ${selectedRing};
+        color:white;
+        font-weight:900;
+        font-size:${count >= 100 ? 16 : 15}px;
+        letter-spacing:-0.02em;
+        box-shadow:0 18px 42px rgba(15,23,42,0.28),0 0 0 5px rgba(255,255,255,0.7),0 0 30px ${color};
+      ">
+        ${count.toLocaleString("fr-CH")}
+      </div>
+    `,
+    className: "",
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+  });
+}
+
+function buildCommercialMapClusters({
+  map,
+  prospects,
+  followupsByObjectId,
+  selectedObjectId,
+}: {
+  map: L.Map;
+  prospects: GenevaCommercialProspect[];
+  followupsByObjectId: Map<number, CommercialProspectFollowup>;
+  selectedObjectId: number | null;
+}) {
+  const zoom = map.getZoom();
+  const cellSize = getCommercialClusterCellSize(zoom);
+  const shouldRenderSingles = zoom >= COMMERCIAL_CLUSTER_DISABLE_ZOOM;
+  const visibleBounds = map.getBounds().pad(COMMERCIAL_CLUSTER_VIEW_PADDING);
+  const coordinateUseCount = new Map<string, number>();
+  const buckets = new Map<string, CommercialMapCluster>();
+
+  for (const prospect of prospects) {
+    const latLng = L.latLng(getJitteredLatLng(prospect, coordinateUseCount));
+    if (!visibleBounds.contains(latLng)) continue;
+
+    const status = getProspectStatus(prospect, followupsByObjectId);
+    const meta = STATUS_META[status];
+    const selected = selectedObjectId === prospect.sourceObjectId;
+    const projectedPoint = map.project(latLng, zoom);
+    const bucketKey = shouldRenderSingles
+      ? `single:${prospect.sourceObjectId}`
+      : `${Math.floor(projectedPoint.x / cellSize)}:${Math.floor(projectedPoint.y / cellSize)}`;
+
+    const existingBucket = buckets.get(bucketKey);
+    const point: CommercialMapProspectPoint = { prospect, latLng, status, meta, selected };
+
+    if (existingBucket) {
+      existingBucket.points.push(point);
+      existingBucket.bounds.extend(latLng);
+      existingBucket.statusCounts.set(status, (existingBucket.statusCounts.get(status) || 0) + 1);
+      existingBucket.selected ||= selected;
+      continue;
+    }
+
+    const bounds = L.latLngBounds([latLng]);
+    const statusCounts = new Map<ProspectStatus, number>();
+    statusCounts.set(status, 1);
+    buckets.set(bucketKey, {
+      id: bucketKey,
+      points: [point],
+      center: latLng,
+      bounds,
+      statusCounts,
+      selected,
+    });
+  }
+
+  return Array.from(buckets.values()).map((cluster) => {
+    if (cluster.points.length === 1) return cluster;
+
+    const center = L.latLng(
+      cluster.points.reduce((sum, point) => sum + point.latLng.lat, 0) / cluster.points.length,
+      cluster.points.reduce((sum, point) => sum + point.latLng.lng, 0) / cluster.points.length,
+    );
+
+    return { ...cluster, center };
+  });
+}
+
 function StatCard({
   label,
   value,
@@ -379,6 +541,7 @@ function CommercialProspectionMap({
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markerLayerRef = useRef<L.LayerGroup | null>(null);
+  const fitSignatureRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
@@ -405,46 +568,96 @@ function CommercialProspectionMap({
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
+    let animationFrame: number | null = null;
 
-    if (markerLayerRef.current) {
-      markerLayerRef.current.clearLayers();
-      markerLayerRef.current.removeFrom(map);
-    }
+    const renderMapClusters = () => {
+      if (animationFrame !== null) {
+        window.cancelAnimationFrame(animationFrame);
+      }
 
-    const layer = L.layerGroup().addTo(map);
-    const bounds = L.latLngBounds([]);
-    const coordinateUseCount = new Map<string, number>();
+      animationFrame = window.requestAnimationFrame(() => {
+        if (markerLayerRef.current) {
+          markerLayerRef.current.clearLayers();
+          markerLayerRef.current.removeFrom(map);
+        }
 
-    for (const prospect of prospects) {
-      const status = getProspectStatus(prospect, followupsByObjectId);
-      const meta = STATUS_META[status];
-      const selected = selectedObjectId === prospect.sourceObjectId;
-      const latLng = getJitteredLatLng(prospect, coordinateUseCount);
-      const marker = L.marker(latLng, {
-        icon: commercialProspectMarkerIcon(meta, selected),
-        keyboard: true,
-        riseOnHover: true,
-        title: prospect.name,
-        zIndexOffset: selected ? 1000 : 0,
+        const layer = L.layerGroup().addTo(map);
+        const zoom = map.getZoom();
+        const clusters = buildCommercialMapClusters({
+          map,
+          prospects,
+          followupsByObjectId,
+          selectedObjectId,
+        });
+
+        for (const cluster of clusters) {
+          if (cluster.points.length > 1) {
+            const marker = L.marker(cluster.center, {
+              icon: commercialProspectClusterIcon(cluster, zoom),
+              keyboard: true,
+              riseOnHover: true,
+              title: `${cluster.points.length.toLocaleString("fr-CH")} restaurants`,
+              zIndexOffset: cluster.selected ? 900 : 0,
+            });
+
+            marker.bindTooltip(
+              `<strong>${cluster.points.length.toLocaleString("fr-CH")} restaurants</strong><br>${getClusterStatusSummary(cluster.statusCounts)}`,
+              { direction: "top", sticky: true, opacity: 0.95 },
+            );
+            marker.on("click", () => {
+              map.fitBounds(cluster.bounds, {
+                padding: [56, 56],
+                maxZoom: Math.min(Math.max(map.getZoom() + 2, 13), COMMERCIAL_CLUSTER_DISABLE_ZOOM),
+              });
+            });
+            marker.addTo(layer);
+            continue;
+          }
+
+          const point = cluster.points[0];
+          const marker = L.marker(point.latLng, {
+            icon: commercialProspectMarkerIcon(point.meta, point.selected),
+            keyboard: true,
+            riseOnHover: true,
+            title: point.prospect.name,
+            zIndexOffset: point.selected ? 1000 : 0,
+          });
+
+          marker.bindTooltip(
+            `<strong>${escapeMapHtml(point.prospect.name)}</strong><br>${escapeMapHtml(point.meta.label)}${point.prospect.commune ? ` · ${escapeMapHtml(point.prospect.commune)}` : ""}`,
+            { direction: "top", sticky: true, opacity: 0.95 },
+          );
+          marker.on("click", () => {
+            onSelect(point.prospect);
+            onOpenDetails(point.prospect);
+          });
+          marker.addTo(layer);
+        }
+
+        markerLayerRef.current = layer;
       });
+    };
 
-      marker.bindTooltip(
-        `<strong>${escapeMapHtml(prospect.name)}</strong><br>${escapeMapHtml(meta.label)}${prospect.commune ? ` · ${escapeMapHtml(prospect.commune)}` : ""}`,
-        { direction: "top", sticky: true, opacity: 0.95 },
-      );
-      marker.on("click", () => {
-        onSelect(prospect);
-        onOpenDetails(prospect);
-      });
-      marker.addTo(layer);
-      bounds.extend(latLng);
+    const fitSignature = prospects.map((prospect) => prospect.sourceObjectId).join("|");
+    if (prospects.length > 0 && fitSignatureRef.current !== fitSignature) {
+      const bounds = L.latLngBounds(prospects.map((prospect) => [prospect.latitude, prospect.longitude]));
+      fitSignatureRef.current = fitSignature;
+      if (bounds.isValid()) {
+        map.fitBounds(bounds, { padding: [32, 32], maxZoom: prospects.length === 1 ? 17 : 13 });
+      }
     }
 
-    markerLayerRef.current = layer;
+    renderMapClusters();
+    map.on("zoomend", renderMapClusters);
+    map.on("moveend", renderMapClusters);
 
-    if (prospects.length > 0 && bounds.isValid()) {
-      map.fitBounds(bounds, { padding: [32, 32], maxZoom: prospects.length === 1 ? 17 : 13 });
-    }
+    return () => {
+      if (animationFrame !== null) {
+        window.cancelAnimationFrame(animationFrame);
+      }
+      map.off("zoomend", renderMapClusters);
+      map.off("moveend", renderMapClusters);
+    };
   }, [followupsByObjectId, onOpenDetails, onSelect, prospects, selectedObjectId]);
 
   return (
