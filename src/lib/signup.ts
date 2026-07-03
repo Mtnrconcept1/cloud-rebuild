@@ -8,7 +8,7 @@ import {
   getSafeUploadExtension,
 } from "@/lib/uploadSecurity";
 
-export type SignupRole = Extract<UserRole, "client" | "restaurateur" | "courier">;
+export type SignupRole = Extract<UserRole, "client" | "restaurateur" | "courier" | "commercial">;
 export type SignupApplicationStatus = "pending_review" | "approved" | "needs_changes" | "rejected";
 export type SignupDocumentStatus = "pending" | "approved" | "rejected";
 export type SignupDocumentType =
@@ -104,6 +104,10 @@ export const SIGNUP_ROLE_META: Record<
   courier: {
     label: "Livreur",
     description: "Renseigner votre profil de course, vos documents et vos informations de paiement.",
+  },
+  commercial: {
+    label: "Commercial",
+    description: "Créer un accès de prospection terrain pour suivre les visites restaurants.",
   },
 };
 

@@ -1,16 +1,18 @@
 import type { UserRole } from "@/lib/auth-context";
 
-const VALID_ROLES: UserRole[] = ["client", "restaurateur", "admin", "courier"];
-const PRIVILEGED_ROLES: UserRole[] = ["admin", "restaurateur", "courier"];
-const DEFAULT_ROLE_PRIORITY: UserRole[] = ["admin", "restaurateur", "courier", "client"];
+const VALID_ROLES: UserRole[] = ["client", "restaurateur", "admin", "courier", "commercial"];
+const PRIVILEGED_ROLES: UserRole[] = ["admin", "restaurateur", "courier", "commercial"];
+const DEFAULT_ROLE_PRIORITY: UserRole[] = ["admin", "commercial", "restaurateur", "courier", "client"];
 const ROLE_FEATURE_REQUIREMENTS: Partial<Record<UserRole, string[]>> = {
   courier: ["espace-livreur"],
+  commercial: ["commercial-prospection"],
 };
 const ROLE_HOME_PATHS: Record<UserRole, string> = {
   client: "/",
   restaurateur: "/dashboard",
   admin: "/admin",
   courier: "/courier",
+  commercial: "/commercial",
 };
 
 export function getEffectiveRoles(roles: UserRole[] = []): UserRole[] {

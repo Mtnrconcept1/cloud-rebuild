@@ -320,6 +320,14 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     routeTargets: ["/points-cadeau"],
   },
   {
+    name: "commercial-prospection",
+    label: "Prospection commerciale",
+    description: "Expose la carte terrain et le suivi des restaurants visités par les commerciaux TOK.",
+    defaultEnabled: true,
+    group: "admin_tools",
+    routeTargets: ["/commercial", "/commercial/prospection"],
+  },
+  {
     name: "campagnes-pub",
     label: "Campagnes pub",
     description: "Active les mises en avant sponsorisées et la gestion des campagnes.",

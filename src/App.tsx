@@ -84,6 +84,7 @@ const TokOne = lazy(() => import("./pages/TokOne"));
 const TokPulse = lazy(() => import("./pages/TokPulse"));
 const TokConnect = lazy(() => import("./pages/TokConnect"));
 const TokConnectDeveloper = lazy(() => import("./pages/TokConnectDeveloper"));
+const CommercialProspection = lazy(() => import("./pages/CommercialProspection"));
 const DashboardHome = lazy(() => import("./pages/dashboard/DashboardHome"));
 const DashboardRestaurant = lazy(() => import("./pages/dashboard/DashboardRestaurant"));
 const DashboardMenu = lazy(() => import("./pages/dashboard/DashboardMenu"));
@@ -248,7 +249,9 @@ function shouldShowPublicNavbar(pathname: string) {
     pathname === "/admin" ||
     pathname.startsWith("/admin/") ||
     pathname === "/courier" ||
-    pathname.startsWith("/courier/")
+    pathname.startsWith("/courier/") ||
+    pathname === "/commercial" ||
+    pathname.startsWith("/commercial/")
   );
 }
 
@@ -368,6 +371,7 @@ function AppShell() {
   const dashboardPlanSalleEnabled = hasFeature("dashboard-plan-salle");
   const dashboardPackEnabled = hasFeature("dashboard-pack");
   const dashboardTokConnectEnabled = hasFeature("dashboard-tok-connect");
+  const commercialProspectionEnabled = hasFeature("commercial-prospection");
   const courierHomeEnabled = hasFeature("courier-home");
   const courierJobsEnabled = hasFeature("courier-jobs");
   const courierEarningsEnabled = hasFeature("courier-earnings");
@@ -432,6 +436,8 @@ function AppShell() {
           <Route path="/tok-pulse" element={<ClientSurfaceRoute><TokPulse /></ClientSurfaceRoute>} />
           <Route path="/tok-connect" element={<FeatureSwitch enabled={tokConnectEnabled} fallback="/"><TokConnect /></FeatureSwitch>} />
           <Route path="/tok-connect/developer" element={<ProtectedRoute><FeatureSwitch enabled={tokConnectEnabled} fallback="/tok-connect"><TokConnectDeveloper /></FeatureSwitch></ProtectedRoute>} />
+          <Route path="/commercial" element={<ProtectedRoute requiredRoles={["admin", "commercial"]}><FeatureSwitch enabled={commercialProspectionEnabled} fallback="/"><CommercialProspection /></FeatureSwitch></ProtectedRoute>} />
+          <Route path="/commercial/prospection" element={<Navigate to="/commercial" replace />} />
           <Route path="/miamz-solidaires" element={<MiamzSolidaires />} />
           <Route path="/points-cadeau" element={<ProtectedRoute requiredRole="client"><FeatureSwitch enabled={giftPointsEnabled}><GiftPoints /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/ventes-flash" element={<ClientSurfaceRoute><FeatureSwitch enabled={flashSalesEnabled}><VentesFlash /></FeatureSwitch></ClientSurfaceRoute>} />

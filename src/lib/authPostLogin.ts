@@ -5,6 +5,7 @@ const PRIVILEGED_ROUTE_ROOTS: Record<Exclude<UserRole, "client">, string> = {
   admin: "/admin",
   restaurateur: "/dashboard",
   courier: "/courier",
+  commercial: "/commercial",
 };
 
 function getPathname(target: string) {

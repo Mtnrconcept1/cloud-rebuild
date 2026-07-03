@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { Bike, ChefHat, CreditCard, Eye, EyeOff, FileText, Loader2, Shield, ShoppingBag, Upload } from "lucide-react";
+import { Bike, BriefcaseBusiness, ChefHat, CreditCard, Eye, EyeOff, FileText, Loader2, Shield, ShoppingBag, Upload } from "lucide-react";
 
 import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth, type UserRole } from "@/lib/auth-context";
@@ -142,6 +142,13 @@ const ROLE_CONFIG: Record<
     to: "/courier",
     color: "border-emerald-500 bg-emerald-500/5 text-emerald-600",
   },
+  commercial: {
+    label: "Commercial",
+    desc: "Carte de prospection terrain",
+    icon: BriefcaseBusiness,
+    to: "/commercial",
+    color: "border-sky-500 bg-sky-500/5 text-sky-700",
+  },
 };
 
 const EMPTY_SIGNUP_FORM: SignupFormState = {
@@ -174,6 +181,7 @@ function getInitialSignupRole(searchParams: URLSearchParams): SignupRole {
   const requestedType = String(searchParams.get("type") || "").toLowerCase();
   if (requestedType === "restaurateur") return "restaurateur";
   if (requestedType === "courier" || requestedType === "livreur") return "courier";
+  if (requestedType === "commercial") return "commercial";
   return "client";
 }
 
@@ -590,7 +598,7 @@ export default function Auth() {
     ? selectedSubscriptionPlan.price_monthly_chf
     : null;
   const isClientSignup = !isLogin && roleMode === "client";
-  const showExtendedIdentityFields = !isLogin && roleMode !== "client";
+  const showExtendedIdentityFields = !isLogin && (roleMode === "restaurateur" || roleMode === "courier");
   const showDocumentSection = !isLogin && requiredDocuments.length > 0;
   const switchableRoles = useMemo(
     () => getFeatureVisibleRoles(roles, activeFeatures),
@@ -1111,9 +1119,10 @@ export default function Auth() {
           ) : null}
           {!isLogin ? (
             <Tabs value={roleMode} onValueChange={(value) => setRoleMode(value as SignupRole)} className="w-full">
-              <TabsList className={`grid w-full ${courierSignupEnabled ? "grid-cols-3" : "grid-cols-2"}`}>
+              <TabsList className={`grid w-full ${courierSignupEnabled ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-3"}`}>
                 <TabsTrigger value="client">Client</TabsTrigger>
                 <TabsTrigger value="restaurateur">Restaurateur</TabsTrigger>
+                <TabsTrigger value="commercial">Commercial</TabsTrigger>
                 {courierSignupEnabled ? <TabsTrigger value="courier">Livreur</TabsTrigger> : null}
               </TabsList>
             </Tabs>

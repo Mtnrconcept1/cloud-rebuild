@@ -1,4 +1,4 @@
-import { Bike, Check, ChevronsUpDown, Shield, Store, User } from "lucide-react";
+import { Bike, BriefcaseBusiness, Check, ChevronsUpDown, Shield, Store, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,7 @@ const ROLE_LABELS: Record<UserRole, string> = {
   restaurateur: "Restaurateur",
   admin: "Admin",
   courier: "Livreur",
+  commercial: "Commercial",
 };
 
 const ROLE_DESCRIPTIONS: Record<UserRole, string> = {
@@ -35,6 +36,7 @@ const ROLE_DESCRIPTIONS: Record<UserRole, string> = {
   restaurateur: "Restaurant, commandes et opérations",
   admin: "Back-office TOK",
   courier: "Missions, gains et profil livreur",
+  commercial: "Carte terrain et prospection",
 };
 
 const ROLE_ICONS: Record<UserRole, typeof User> = {
@@ -42,6 +44,7 @@ const ROLE_ICONS: Record<UserRole, typeof User> = {
   restaurateur: Store,
   admin: Shield,
   courier: Bike,
+  commercial: BriefcaseBusiness,
 };
 
 function getRoleTarget(role: UserRole) {
