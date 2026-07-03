@@ -108,4 +108,30 @@ describe("commercial prospecting surface", () => {
     expect(signatureMigration).toContain("ADD COLUMN IF NOT EXISTS signed_by");
     expect(signatureMigration).toContain("ADD COLUMN IF NOT EXISTS signed_at");
   });
+
+  it("stores signed subscription snapshots and computes commercial commissions", () => {
+    const pageSource = readFileSync(resolve(process.cwd(), "src/pages/CommercialProspection.tsx"), "utf8");
+    const typesSource = readFileSync(resolve(process.cwd(), "src/integrations/supabase/types.ts"), "utf8");
+    const commissionMigration = readFileSync(
+      resolve(process.cwd(), "supabase/migrations/20260703205820_commercial_commission_tracking.sql"),
+      "utf8",
+    );
+
+    expect(pageSource).toContain("Abonnement signé et commission");
+    expect(pageSource).toContain("signed_subscription_plan_slug");
+    expect(pageSource).toContain("acquisition_commission_chf");
+    expect(pageSource).toContain("commercial_compensation_mode");
+    expect(pageSource).toContain("FIXED_RESERVATION_COMMISSION_RATE = 0.02");
+    expect(pageSource).toContain("get_commercial_prospect_commission_summary");
+    expect(pageSource).toContain("Fixe + 2% réservations");
+    expect(typesSource).toContain("acquisition_commission_chf: number");
+    expect(typesSource).toContain("reservation_commission_rate: number");
+    expect(typesSource).toContain("get_commercial_prospect_commission_summary");
+    expect(commissionMigration).toContain("ADD COLUMN IF NOT EXISTS signed_subscription_plan_slug");
+    expect(commissionMigration).toContain("reservation_commission_rate numeric(6, 4) NOT NULL DEFAULT 0");
+    expect(commissionMigration).toContain("CREATE OR REPLACE FUNCTION public.get_commercial_prospect_commission_summary");
+    expect(commissionMigration).toContain("v_followup.commercial_compensation_mode = 'fixed_plus_reservation'");
+    expect(commissionMigration).toContain("COALESCE(SUM(GREATEST(COALESCE(r.total_amount, 0), COALESCE(r.billing_fee_chf, 0)))");
+    expect(commissionMigration).toContain("DEFAULT 0.10");
+  });
 });

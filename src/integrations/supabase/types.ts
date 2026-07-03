@@ -1797,8 +1797,11 @@ export type Database = {
       }
       commercial_prospect_followups: {
         Row: {
+          acquisition_commission_chf: number
+          acquisition_commission_rate: number
           assigned_to: string | null
           assigned_to_name: string | null
+          commercial_compensation_mode: string
           created_at: string
           last_contacted_by: string | null
           last_contacted_by_name: string | null
@@ -1807,14 +1810,25 @@ export type Database = {
           signed_at: string | null
           signed_by: string | null
           signed_by_name: string | null
+          signed_restaurant_id: string | null
+          signed_subscription_billing_period: string
+          signed_subscription_contract_value_chf: number | null
+          signed_subscription_monthly_price_chf: number | null
+          signed_subscription_plan_name: string | null
+          signed_subscription_plan_slug: string | null
+          reservation_commission_rate: number
+          reservation_commission_starts_at: string | null
           source_objectid: number
           status: Database["public"]["Enums"]["commercial_visit_status"]
           updated_at: string
           visited_at: string | null
         }
         Insert: {
+          acquisition_commission_chf?: number
+          acquisition_commission_rate?: number
           assigned_to?: string | null
           assigned_to_name?: string | null
+          commercial_compensation_mode?: string
           created_at?: string
           last_contacted_by?: string | null
           last_contacted_by_name?: string | null
@@ -1823,14 +1837,25 @@ export type Database = {
           signed_at?: string | null
           signed_by?: string | null
           signed_by_name?: string | null
+          signed_restaurant_id?: string | null
+          signed_subscription_billing_period?: string
+          signed_subscription_contract_value_chf?: number | null
+          signed_subscription_monthly_price_chf?: number | null
+          signed_subscription_plan_name?: string | null
+          signed_subscription_plan_slug?: string | null
+          reservation_commission_rate?: number
+          reservation_commission_starts_at?: string | null
           source_objectid: number
           status?: Database["public"]["Enums"]["commercial_visit_status"]
           updated_at?: string
           visited_at?: string | null
         }
         Update: {
+          acquisition_commission_chf?: number
+          acquisition_commission_rate?: number
           assigned_to?: string | null
           assigned_to_name?: string | null
+          commercial_compensation_mode?: string
           created_at?: string
           last_contacted_by?: string | null
           last_contacted_by_name?: string | null
@@ -1839,6 +1864,14 @@ export type Database = {
           signed_at?: string | null
           signed_by?: string | null
           signed_by_name?: string | null
+          signed_restaurant_id?: string | null
+          signed_subscription_billing_period?: string
+          signed_subscription_contract_value_chf?: number | null
+          signed_subscription_monthly_price_chf?: number | null
+          signed_subscription_plan_name?: string | null
+          signed_subscription_plan_slug?: string | null
+          reservation_commission_rate?: number
+          reservation_commission_starts_at?: string | null
           source_objectid?: number
           status?: Database["public"]["Enums"]["commercial_visit_status"]
           updated_at?: string
@@ -6396,6 +6429,10 @@ export type Database = {
       }
       admin_toggle_feature_flag: {
         Args: { p_flag_name: string; p_is_active: boolean }
+        Returns: Json
+      }
+      get_commercial_prospect_commission_summary: {
+        Args: { p_source_objectid: number }
         Returns: Json
       }
       auth_can_manage_dispatch_job: {

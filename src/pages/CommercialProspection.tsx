@@ -15,7 +15,9 @@ import {
   Menu,
   MapPin,
   Navigation,
+  Percent,
   Phone,
+  ReceiptText,
   Search,
   ShieldCheck,
   Store,
@@ -51,6 +53,9 @@ import {
 
 type ProspectStatus = Database["public"]["Enums"]["commercial_visit_status"];
 type CommercialPipelineStatus = Exclude<ProspectStatus, "visited">;
+type CommercialSubscriptionPlanSlug = "starter" | "pro" | "premium" | "elite";
+type CommercialSubscriptionBillingPeriod = "monthly" | "yearly";
+type CommercialCompensationMode = "commission_only" | "fixed_plus_reservation";
 
 type CommercialProspectFollowup = {
   source_objectid: number;
@@ -63,9 +68,37 @@ type CommercialProspectFollowup = {
   signed_by: string | null;
   signed_by_name: string | null;
   signed_at: string | null;
+  signed_restaurant_id: string | null;
+  signed_subscription_plan_slug: string | null;
+  signed_subscription_plan_name: string | null;
+  signed_subscription_billing_period: string;
+  signed_subscription_monthly_price_chf: number | null;
+  signed_subscription_contract_value_chf: number | null;
+  acquisition_commission_rate: number;
+  acquisition_commission_chf: number;
+  commercial_compensation_mode: string;
+  reservation_commission_rate: number;
+  reservation_commission_starts_at: string | null;
   visited_at: string | null;
   next_follow_up_at: string | null;
   updated_at: string | null;
+};
+
+type CommercialCommissionSummary = {
+  exists?: boolean;
+  signed_restaurant_id?: string | null;
+  acquisition_commission?: {
+    rate?: number | null;
+    amount_chf?: number | null;
+  } | null;
+  reservation_commission?: {
+    enabled?: boolean;
+    rate?: number | null;
+    starts_at?: string | null;
+    reservations_count?: number | null;
+    base_chf?: number | null;
+    amount_chf?: number | null;
+  } | null;
 };
 
 type StatusMeta = {
@@ -151,6 +184,19 @@ const RESULT_PREVIEW_LIMIT = 160;
 const GENEVA_CENTER: L.LatLngExpression = [46.2044, 6.1432];
 const COMMERCIAL_CLUSTER_DISABLE_ZOOM = 16;
 const COMMERCIAL_CLUSTER_VIEW_PADDING = 0.35;
+const DEFAULT_ACQUISITION_COMMISSION_RATE = 0.1;
+const FIXED_RESERVATION_COMMISSION_RATE = 0.02;
+
+const COMMERCIAL_SUBSCRIPTION_PLANS: Array<{
+  slug: CommercialSubscriptionPlanSlug;
+  name: string;
+  monthlyPriceChf: number;
+}> = [
+  { slug: "starter", name: "TOK Starter", monthlyPriceChf: 69 },
+  { slug: "pro", name: "TOK Pro", monthlyPriceChf: 129 },
+  { slug: "premium", name: "TOK Premium", monthlyPriceChf: 199 },
+  { slug: "elite", name: "TOK Elite", monthlyPriceChf: 499 },
+];
 
 type CommercialMapProspectPoint = {
   prospect: GenevaCommercialProspect;
@@ -232,6 +278,59 @@ function formatDateTime(value: string | null | undefined) {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+function toFiniteNumber(value: unknown, fallback = 0) {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : fallback;
+}
+
+function roundChf(value: unknown) {
+  return Math.round(toFiniteNumber(value) * 100) / 100;
+}
+
+function formatChf(value: unknown) {
+  return `${roundChf(value).toLocaleString("fr-CH", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })} CHF`;
+}
+
+function formatPercentRate(value: unknown) {
+  return `${roundChf(toFiniteNumber(value) * 100).toLocaleString("fr-CH", {
+    maximumFractionDigits: 2,
+  })} %`;
+}
+
+function getCommercialSubscriptionPlan(slug: string | null | undefined) {
+  return COMMERCIAL_SUBSCRIPTION_PLANS.find((plan) => plan.slug === slug) || COMMERCIAL_SUBSCRIPTION_PLANS[0];
+}
+
+function getSubscriptionContractValueChf(
+  plan: { monthlyPriceChf: number },
+  billingPeriod: CommercialSubscriptionBillingPeriod,
+) {
+  return roundChf(plan.monthlyPriceChf * (billingPeriod === "yearly" ? 12 : 1));
+}
+
+function getAcquisitionCommissionChf(
+  plan: { monthlyPriceChf: number },
+  billingPeriod: CommercialSubscriptionBillingPeriod,
+  rate: number,
+) {
+  return roundChf(getSubscriptionContractValueChf(plan, billingPeriod) * Math.max(0, rate));
+}
+
+function normalizeBillingPeriod(value: string | null | undefined): CommercialSubscriptionBillingPeriod {
+  return value === "yearly" ? "yearly" : "monthly";
+}
+
+function normalizeCompensationMode(value: string | null | undefined): CommercialCompensationMode {
+  return value === "fixed_plus_reservation" ? "fixed_plus_reservation" : "commission_only";
+}
+
+function isUuidLike(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value.trim());
 }
 
 function getJitteredLatLng(
@@ -677,6 +776,7 @@ function CommercialProspectDetailsDialog({
   assignedName,
   lastContactName,
   signedName,
+  commissionSummary,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -686,11 +786,18 @@ function CommercialProspectDetailsDialog({
   assignedName: string | null;
   lastContactName: string | null;
   signedName: string | null;
+  commissionSummary: CommercialCommissionSummary | null | undefined;
 }) {
   if (!prospect) return null;
 
   const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${prospect.name} ${formatAddress(prospect)}`)}`;
   const notes = followup?.notes?.trim();
+  const signedPlanName = followup?.signed_subscription_plan_name || (
+    followup?.signed_subscription_plan_slug
+      ? getCommercialSubscriptionPlan(followup.signed_subscription_plan_slug).name
+      : null
+  );
+  const reservationCommission = commissionSummary?.reservation_commission;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -754,6 +861,45 @@ function CommercialProspectDetailsDialog({
             </div>
           </div>
 
+          {followup?.status === "signed" ? (
+            <div className="rounded-[24px] border border-emerald-200 bg-emerald-50/80 p-4 text-sm dark:border-emerald-400/20 dark:bg-emerald-500/10">
+              <p className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.18em] text-emerald-700 dark:text-emerald-200">
+                <ReceiptText className="h-4 w-4" />
+                Abonnement et commission
+              </p>
+              <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                <div>
+                  <p className="text-muted-foreground">Abonnement signé</p>
+                  <p className="font-black">{signedPlanName || "Non renseigné"}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {followup.signed_subscription_billing_period === "yearly" ? "Annuel" : "Mensuel"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Valeur contrat</p>
+                  <p className="font-black">{formatChf(followup.signed_subscription_contract_value_chf || 0)}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Commission acquisition</p>
+                  <p className="font-black">{formatChf(followup.acquisition_commission_chf || 0)}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {formatPercentRate(followup.acquisition_commission_rate || 0)}
+                  </p>
+                </div>
+              </div>
+              {followup.commercial_compensation_mode === "fixed_plus_reservation" ? (
+                <div className="mt-3 rounded-2xl border bg-white/70 p-3 dark:border-white/10 dark:bg-white/5">
+                  <p className="font-bold">Fixe + {formatPercentRate(followup.reservation_commission_rate || FIXED_RESERVATION_COMMISSION_RATE)} sur réservations</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {followup.signed_restaurant_id
+                      ? `${Number(reservationCommission?.reservations_count || 0).toLocaleString("fr-CH")} réservation(s) confirmée(s), ${formatChf(reservationCommission?.amount_chf || 0)} estimés.`
+                      : "Liez le restaurant TOK pour calculer les réservations réelles automatiquement."}
+                  </p>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
           <div className="flex flex-wrap gap-2">
             <ContactLink
               icon={Phone}
@@ -810,6 +956,11 @@ export default function CommercialProspection() {
   const [draftStatus, setDraftStatus] = useState<CommercialPipelineStatus>("not_visited");
   const [draftNotes, setDraftNotes] = useState("");
   const [draftFollowUpDate, setDraftFollowUpDate] = useState("");
+  const [draftSubscriptionPlanSlug, setDraftSubscriptionPlanSlug] = useState<CommercialSubscriptionPlanSlug>("starter");
+  const [draftSubscriptionBillingPeriod, setDraftSubscriptionBillingPeriod] = useState<CommercialSubscriptionBillingPeriod>("monthly");
+  const [draftAcquisitionCommissionPercent, setDraftAcquisitionCommissionPercent] = useState("10");
+  const [draftCompensationMode, setDraftCompensationMode] = useState<CommercialCompensationMode>("commission_only");
+  const [draftSignedRestaurantId, setDraftSignedRestaurantId] = useState("");
 
   const prospectsQuery = useQuery({
     queryKey: ["commercial-prospects-source"],
@@ -833,7 +984,7 @@ export default function CommercialProspection() {
     queryFn: async () => {
       const { data, error } = await getSupabase()
         .from("commercial_prospect_followups")
-        .select("source_objectid,status,notes,assigned_to,assigned_to_name,last_contacted_by,last_contacted_by_name,signed_by,signed_by_name,signed_at,visited_at,next_follow_up_at,updated_at");
+        .select("source_objectid,status,notes,assigned_to,assigned_to_name,last_contacted_by,last_contacted_by_name,signed_by,signed_by_name,signed_at,signed_restaurant_id,signed_subscription_plan_slug,signed_subscription_plan_name,signed_subscription_billing_period,signed_subscription_monthly_price_chf,signed_subscription_contract_value_chf,acquisition_commission_rate,acquisition_commission_chf,commercial_compensation_mode,reservation_commission_rate,reservation_commission_starts_at,visited_at,next_follow_up_at,updated_at");
 
       if (error) throw error;
       return (data || []) as CommercialProspectFollowup[];
@@ -881,6 +1032,37 @@ export default function CommercialProspection() {
   const selectedLastContactName = selectedFollowup?.last_contacted_by_name
     || (selectedFollowup?.last_contacted_by ? "Commercial TOK" : null);
   const selectedSignedName = selectedFollowup?.signed_by_name || (selectedFollowup?.signed_by ? "Commercial TOK" : null);
+  const draftSubscriptionPlan = getCommercialSubscriptionPlan(draftSubscriptionPlanSlug);
+  const draftAcquisitionCommissionRate = Math.min(1, Math.max(0, toFiniteNumber(draftAcquisitionCommissionPercent) / 100));
+  const draftContractValueChf = getSubscriptionContractValueChf(draftSubscriptionPlan, draftSubscriptionBillingPeriod);
+  const draftAcquisitionCommissionChf = getAcquisitionCommissionChf(
+    draftSubscriptionPlan,
+    draftSubscriptionBillingPeriod,
+    draftAcquisitionCommissionRate,
+  );
+
+  const commissionSummaryQuery = useQuery({
+    queryKey: [
+      "commercial-prospect-commission-summary",
+      selectedFollowup?.source_objectid,
+      selectedFollowup?.updated_at,
+      selectedFollowup?.signed_restaurant_id,
+      selectedFollowup?.commercial_compensation_mode,
+    ],
+    enabled: Boolean(selectedFollowup?.status === "signed"),
+    queryFn: async () => {
+      if (!selectedFollowup) return null;
+      const { data, error } = await getSupabase().rpc("get_commercial_prospect_commission_summary", {
+        p_source_objectid: selectedFollowup.source_objectid,
+      });
+
+      if (error) throw error;
+      return data as CommercialCommissionSummary;
+    },
+    staleTime: 15_000,
+  });
+
+  const commissionSummary = commissionSummaryQuery.data || null;
 
   useEffect(() => {
     if (!selectedProspect) return;
@@ -888,6 +1070,13 @@ export default function CommercialProspection() {
     setDraftStatus(followup ? toPipelineStatus(followup.status) : "not_visited");
     setDraftNotes(followup?.notes || "");
     setDraftFollowUpDate(followup?.next_follow_up_at || "");
+    setDraftSubscriptionPlanSlug(getCommercialSubscriptionPlan(followup?.signed_subscription_plan_slug).slug);
+    setDraftSubscriptionBillingPeriod(normalizeBillingPeriod(followup?.signed_subscription_billing_period));
+    setDraftAcquisitionCommissionPercent(String(
+      roundChf(toFiniteNumber(followup?.acquisition_commission_rate, DEFAULT_ACQUISITION_COMMISSION_RATE) * 100),
+    ));
+    setDraftCompensationMode(normalizeCompensationMode(followup?.commercial_compensation_mode));
+    setDraftSignedRestaurantId(followup?.signed_restaurant_id || "");
   }, [followupsByObjectId, selectedProspect]);
 
   useEffect(() => {
@@ -930,6 +1119,15 @@ export default function CommercialProspection() {
       const assignedToName = selectedFollowup?.assigned_to_name || commercialName;
       const isSigned = draftStatus === "signed";
       const keepExistingSignature = isSigned && selectedFollowup?.status === "signed";
+      const signedRestaurantId = draftSignedRestaurantId.trim() || null;
+      const isFixedPlusReservation = draftCompensationMode === "fixed_plus_reservation";
+      const reservationCommissionStartsAt = selectedFollowup?.reservation_commission_starts_at
+        || selectedFollowup?.signed_at
+        || now;
+
+      if (isSigned && signedRestaurantId && !isUuidLike(signedRestaurantId)) {
+        throw new Error("L'identifiant du restaurant TOK doit être un UUID valide.");
+      }
 
       const { error } = await getSupabase()
         .from("commercial_prospect_followups")
@@ -946,12 +1144,24 @@ export default function CommercialProspection() {
           signed_by: isSigned ? (keepExistingSignature ? selectedFollowup?.signed_by || currentUserId : currentUserId) : null,
           signed_by_name: isSigned ? (keepExistingSignature ? selectedFollowup?.signed_by_name || commercialName : commercialName) : null,
           signed_at: isSigned ? (keepExistingSignature ? selectedFollowup?.signed_at || now : now) : null,
+          signed_restaurant_id: isSigned ? signedRestaurantId : null,
+          signed_subscription_plan_slug: isSigned ? draftSubscriptionPlan.slug : null,
+          signed_subscription_plan_name: isSigned ? draftSubscriptionPlan.name : null,
+          signed_subscription_billing_period: isSigned ? draftSubscriptionBillingPeriod : "monthly",
+          signed_subscription_monthly_price_chf: isSigned ? draftSubscriptionPlan.monthlyPriceChf : null,
+          signed_subscription_contract_value_chf: isSigned ? draftContractValueChf : null,
+          acquisition_commission_rate: isSigned ? draftAcquisitionCommissionRate : DEFAULT_ACQUISITION_COMMISSION_RATE,
+          acquisition_commission_chf: isSigned ? draftAcquisitionCommissionChf : 0,
+          commercial_compensation_mode: isSigned ? draftCompensationMode : "commission_only",
+          reservation_commission_rate: isSigned && isFixedPlusReservation ? FIXED_RESERVATION_COMMISSION_RATE : 0,
+          reservation_commission_starts_at: isSigned && isFixedPlusReservation ? reservationCommissionStartsAt : null,
         }, { onConflict: "source_objectid" });
 
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["commercial-prospect-followups"] });
+      queryClient.invalidateQueries({ queryKey: ["commercial-prospect-commission-summary"] });
       toast({ title: "Suivi enregistré", description: "La carte et la fiche sont mises à jour." });
     },
     onError: (error) => {
@@ -1219,6 +1429,132 @@ export default function CommercialProspection() {
                   </div>
                 </div>
 
+                {draftStatus === "signed" ? (
+                  <div className="space-y-4 rounded-[24px] border border-emerald-200 bg-emerald-50/80 p-4 dark:border-emerald-400/20 dark:bg-emerald-500/10">
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-[0_12px_28px_rgba(22,163,74,0.24)]">
+                        <ReceiptText className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-black">Abonnement signé et commission</p>
+                        <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                          Ces informations figent la valeur du contrat signé et calculent la commission du commercial.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label>Abonnement restaurateur</Label>
+                        <Select
+                          value={draftSubscriptionPlanSlug}
+                          onValueChange={(value) => setDraftSubscriptionPlanSlug(value as CommercialSubscriptionPlanSlug)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {COMMERCIAL_SUBSCRIPTION_PLANS.map((plan) => (
+                              <SelectItem key={plan.slug} value={plan.slug}>
+                                {plan.name} - {formatChf(plan.monthlyPriceChf)}/mois
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Période de facturation</Label>
+                        <Select
+                          value={draftSubscriptionBillingPeriod}
+                          onValueChange={(value) => setDraftSubscriptionBillingPeriod(value as CommercialSubscriptionBillingPeriod)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="monthly">Mensuelle</SelectItem>
+                            <SelectItem value="yearly">Annuelle</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="commercial-acquisition-rate" className="flex items-center gap-2">
+                          <Percent className="h-4 w-4" />
+                          Commission acquisition
+                        </Label>
+                        <Input
+                          id="commercial-acquisition-rate"
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="0.5"
+                          value={draftAcquisitionCommissionPercent}
+                          onChange={(event) => setDraftAcquisitionCommissionPercent(event.target.value)}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Mode de rémunération</Label>
+                        <Select
+                          value={draftCompensationMode}
+                          onValueChange={(value) => setDraftCompensationMode(value as CommercialCompensationMode)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="commission_only">Commission acquisition seule</SelectItem>
+                            <SelectItem value="fixed_plus_reservation">Fixe + 2% réservations</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    {draftCompensationMode === "fixed_plus_reservation" ? (
+                      <div className="space-y-2">
+                        <Label htmlFor="commercial-signed-restaurant">Restaurant TOK lié</Label>
+                        <Input
+                          id="commercial-signed-restaurant"
+                          value={draftSignedRestaurantId}
+                          onChange={(event) => setDraftSignedRestaurantId(event.target.value)}
+                          placeholder="UUID du restaurant TOK lié"
+                        />
+                        <p className="text-xs leading-5 text-muted-foreground">
+                          Le commercial engagé en fixe touche {formatPercentRate(FIXED_RESERVATION_COMMISSION_RATE)} sur chaque réservation confirmée.
+                          Sans restaurant TOK lié, la règle est enregistrée mais les réservations réelles ne peuvent pas encore être calculées.
+                        </p>
+                      </div>
+                    ) : null}
+
+                    <div className="grid gap-2 sm:grid-cols-3">
+                      <div className="rounded-2xl border bg-white/80 p-3 dark:border-white/10 dark:bg-white/5">
+                        <p className="text-[11px] font-black uppercase tracking-[0.16em] text-muted-foreground">Valeur contrat</p>
+                        <p className="mt-1 text-lg font-black">{formatChf(draftContractValueChf)}</p>
+                      </div>
+                      <div className="rounded-2xl border bg-white/80 p-3 dark:border-white/10 dark:bg-white/5">
+                        <p className="text-[11px] font-black uppercase tracking-[0.16em] text-muted-foreground">Acquisition</p>
+                        <p className="mt-1 text-lg font-black">{formatChf(draftAcquisitionCommissionChf)}</p>
+                        <p className="text-xs text-muted-foreground">{formatPercentRate(draftAcquisitionCommissionRate)}</p>
+                      </div>
+                      <div className="rounded-2xl border bg-white/80 p-3 dark:border-white/10 dark:bg-white/5">
+                        <p className="text-[11px] font-black uppercase tracking-[0.16em] text-muted-foreground">Réservations</p>
+                        <p className="mt-1 text-lg font-black">
+                          {draftCompensationMode === "fixed_plus_reservation"
+                            ? formatChf(commissionSummary?.reservation_commission?.amount_chf || 0)
+                            : "0 CHF"}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {draftCompensationMode === "fixed_plus_reservation"
+                            ? `${Number(commissionSummary?.reservation_commission?.reservations_count || 0).toLocaleString("fr-CH")} réservation(s)`
+                            : "Non actif"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+
                 <div className="space-y-2">
                   <Label htmlFor="commercial-notes">Notes terrain</Label>
                   <Textarea
@@ -1270,6 +1606,7 @@ export default function CommercialProspection() {
         assignedName={selectedAssignedName}
         lastContactName={selectedLastContactName}
         signedName={selectedSignedName}
+        commissionSummary={commissionSummary}
       />
     </>
   );
