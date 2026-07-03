@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 
 import { getSupabase } from "@/integrations/supabase/client";
+import { rememberActualitesPostSignal } from "@/lib/actualitesPersonalizedTrends";
 import type { SocialFeedPost } from "@/lib/socialFeed";
 import SocialPostCard from "./SocialPostCard";
 
@@ -130,12 +131,12 @@ export default function TrackedSocialPostCard({
   ]);
 
   const handleClickCapture = (event: React.MouseEvent<HTMLDivElement>) => {
-    const link = getLinkMetadata(event.target);
-    if (!link) return;
-
     const now = Date.now();
     if (now - lastClickAtRef.current < 500) return;
     lastClickAtRef.current = now;
+
+    const link = getLinkMetadata(event.target);
+    rememberActualitesPostSignal(post);
 
     void recordActualitesEvent({
       postId: post.id,
@@ -144,9 +145,9 @@ export default function TrackedSocialPostCard({
         source,
         page: "actualites",
         viewerId: getOrCreateViewerId(),
-        action: "link_click",
-        href: link.href,
-        label: link.text,
+        action: link ? "link_click" : "card_click",
+        href: link?.href,
+        label: link?.text,
         activityId: post.activityId,
         activityType: post.activityType,
         restaurantId: post.restaurantId,
