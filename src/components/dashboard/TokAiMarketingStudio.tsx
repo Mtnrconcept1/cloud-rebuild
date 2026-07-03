@@ -136,6 +136,9 @@ const MARKETING_MENU_CONTEXT_LIMIT = 120;
 const MARKETING_MENU_PROMPT_ITEM_LIMIT = 80;
 const MARKETING_RENDER_SCROLL_DURATION_MS = 620;
 const MARKETING_RENDER_SCROLL_OFFSET_PX = 24;
+const MARKETING_VARIANT_OPTIONS = [1, 2, 3, 4] as const;
+
+type MarketingVariantCount = typeof MARKETING_VARIANT_OPTIONS[number];
 
 function easeInOutCubic(progress: number) {
   return progress < 0.5
@@ -742,6 +745,19 @@ function buildMarketingImagePrompt(input: {
   ].join("\n\n").slice(0, 5600);
 }
 
+function getNormalizedMarketingVariantCount(value: number | null | undefined): MarketingVariantCount {
+  return MARKETING_VARIANT_OPTIONS.includes(value as MarketingVariantCount) ? value as MarketingVariantCount : 1;
+}
+
+function buildMarketingVariantPrompt(basePrompt: string, index: number, total: number) {
+  if (total <= 1) return basePrompt;
+
+  return [
+    basePrompt,
+    `Variante ${index + 1}/${total}: produire une proposition distincte avec une composition, une hiérarchie visuelle, un cadrage ou un traitement graphique différent des autres variantes, tout en respectant strictement les mêmes références de marque, le même support, le même format et les mêmes informations restaurant.`,
+  ].join("\n\n");
+}
+
 function selectMarketingGenerationResources(resources: MarketingResource[]) {
   const activeResources = resources.filter((resource) => resource.persisted && resource.mediaUrl);
   const selected: MarketingResource[] = [];
@@ -912,6 +928,8 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
   const [uploadingKind, setUploadingKind] = useState<MarketingAssetKind | null>(null);
   const [deletingResourceId, setDeletingResourceId] = useState<string | null>(null);
   const [marketingImageResult, setMarketingImageResult] = useState<MarketingImageResult | null>(null);
+  const [marketingImageResults, setMarketingImageResults] = useState<MarketingImageResult[]>([]);
+  const [marketingVariantCount, setMarketingVariantCount] = useState<MarketingVariantCount>(1);
   const [activeStep, setActiveStep] = useState<MarketingWorkflowStep>(1);
   const [visiblePromptIdeaCount, setVisiblePromptIdeaCount] = useState(MARKETING_SUGGESTION_BATCH_SIZE);
   const [visibleNegativeIdeaCount, setVisibleNegativeIdeaCount] = useState(MARKETING_SUGGESTION_BATCH_SIZE);
@@ -938,6 +956,8 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
   const hasBrandResources = persistedResources.length >= 2;
   const marketingImageFormat = getMarketingImageFormat(selectedFormat.label, selectedFormat.orientation);
   const outputPricing = getTokImageOutputPricing(marketingImageFormat, outputResolution);
+  const selectedMarketingVariantCount = getNormalizedMarketingVariantCount(marketingVariantCount);
+  const totalMarketingCredits = outputPricing.photoCredits * selectedMarketingVariantCount;
   const { data: businessContext, isLoading: businessContextLoading } = useQuery({
     queryKey: ["marketing-studio-business-context", restaurantId],
     queryFn: () => fetchMarketingBusinessContext(restaurantId!),
@@ -970,6 +990,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
     generationRequestRef.current += 1;
     setLoading(false);
     setMarketingImageResult(null);
+    setMarketingImageResults([]);
   };
 
   const scrollToMarketingRenderSettings = () => {
@@ -1045,6 +1066,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
     generationRequestRef.current += 1;
     setLoading(false);
     setMarketingImageResult(null);
+    setMarketingImageResults([]);
 
     async function loadMarketingAssets() {
       if (!restaurantId) {
@@ -1262,6 +1284,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
     generationRequestRef.current = requestId;
     setLoading(true);
     setMarketingImageResult(null);
+    setMarketingImageResults([]);
 
     try {
       void requestAiCreationNotificationPermission();
@@ -1305,33 +1328,49 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
         businessContext: latestBusinessContext,
       });
 
-      const { promise } = startTokImageCreationJob({
-        restaurantId,
-        tool: "marketing_studio",
-        title: `${activeToolConfig.title} ${selectedFormat.label}`,
-        request: {
+      const jobs = Array.from({ length: selectedMarketingVariantCount }, (_, index) => {
+        const { promise } = startTokImageCreationJob({
           restaurantId,
-          prompt: imagePrompt,
-          referenceImageUrls: generationResources.map((resource) => resource.mediaUrl),
-          referenceMediaIds: generationResourceIds,
-          dishName: activeToolConfig.title,
-          assetType: "campaign_visual",
-          format: marketingImageFormat,
-          outputResolution,
-          variantCount: 1,
-          generateImage: true,
-          imageOnly: true,
-          marketingAssetMode: true,
-        },
+          tool: "marketing_studio",
+          title: selectedMarketingVariantCount > 1
+            ? `${activeToolConfig.title} ${selectedFormat.label} - variante ${index + 1}/${selectedMarketingVariantCount}`
+            : `${activeToolConfig.title} ${selectedFormat.label}`,
+          request: {
+            restaurantId,
+            prompt: buildMarketingVariantPrompt(imagePrompt, index, selectedMarketingVariantCount),
+            referenceImageUrls: generationResources.map((resource) => resource.mediaUrl),
+            referenceMediaIds: generationResourceIds,
+            dishName: activeToolConfig.title,
+            assetType: "campaign_visual",
+            format: marketingImageFormat,
+            outputResolution,
+            variantCount: 1,
+            generateImage: true,
+            imageOnly: true,
+            marketingAssetMode: true,
+          },
+        });
+        return promise;
       });
-      const imageResult = await promise;
+      const settledResults = await Promise.allSettled(jobs);
+      const successfulResults = settledResults
+        .filter((job): job is PromiseFulfilledResult<MarketingImageResult> => job.status === "fulfilled")
+        .map((job) => job.value);
+      const firstFailure = settledResults.find((job): job is PromiseRejectedResult => job.status === "rejected");
+
+      if (!successfulResults.length) {
+        throw firstFailure?.reason || new Error("Le studio marketing n'a pas pu générer de variante.");
+      }
 
       if (!mountedRef.current || generationRequestRef.current !== requestId) return;
 
-      setMarketingImageResult(imageResult);
+      setMarketingImageResult(successfulResults[0] || null);
+      setMarketingImageResults(successfulResults);
       toast({
-        title: "Image marketing générée",
-        description: `Le visuel a été produit avec ${imageResult.model || "OpenAI"} pour ${outputPricing.photoCredits} crédit(s) photo IA.`,
+        title: successfulResults.length > 1 ? "Variantes marketing générées" : "Image marketing générée",
+        description: firstFailure
+          ? `${successfulResults.length}/${selectedMarketingVariantCount} variante(s) générée(s). Les créations réussies sont disponibles dans Mes créations.`
+          : `Le studio a produit ${successfulResults.length} variante(s) pour ${totalMarketingCredits} crédit(s).`,
       });
     } catch (error) {
       if (!mountedRef.current || generationRequestRef.current !== requestId) return;
@@ -1345,7 +1384,10 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
     }
   };
 
-  const generatedMarketingImageUrl = marketingImageResult?.gallery_image_url || marketingImageResult?.generated_image_url || "";
+  const marketingResults = marketingImageResults.length ? marketingImageResults : marketingImageResult ? [marketingImageResult] : [];
+  const generatedMarketingImageUrl = marketingResults
+    .map((item) => item.gallery_image_url || item.generated_image_url || "")
+    .find(Boolean) || "";
 
   return (
     <section className="max-w-full overflow-hidden rounded-3xl border border-orange-200 bg-gradient-to-br from-orange-50 via-background to-background shadow-sm dark:border-orange-900/50 dark:from-orange-950/20">
@@ -1604,9 +1646,34 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                   <div className="rounded-md border bg-background px-3 py-2 text-sm">
                     <p className="font-medium text-foreground">{outputPricing.modelLabel}</p>
                     <p className="text-xs leading-5 text-muted-foreground">
-                      {outputPricing.size} - qualité {outputPricing.quality} - {outputPricing.photoCredits} cr.
+                      {outputPricing.size} - qualité {outputPricing.quality} - {outputPricing.photoCredits} cr. / variante
                     </p>
                   </div>
+                </div>
+                <div className="min-w-0 space-y-2 md:col-span-2 xl:col-span-4">
+                  <Label>Nombre de variantes</Label>
+                  <div className="grid grid-cols-4 gap-2 sm:max-w-md">
+                    {MARKETING_VARIANT_OPTIONS.map((count) => {
+                      const selected = selectedMarketingVariantCount === count;
+                      return (
+                        <Button
+                          key={count}
+                          type="button"
+                          variant={selected ? "default" : "outline"}
+                          onClick={() => {
+                            invalidateMarketingGeneration();
+                            setMarketingVariantCount(count);
+                          }}
+                          className={selected ? "bg-orange-600 text-white hover:bg-orange-700" : "border-orange-200 text-orange-800 hover:bg-orange-50"}
+                        >
+                          {count}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                  <p className="text-xs leading-5 text-muted-foreground">
+                    Chaque variante lance une génération indépendante. La génération peut durer jusqu'à plusieurs minutes.
+                  </p>
                 </div>
                 <div className="mt-2 flex justify-stretch md:col-span-2 xl:col-span-4 md:justify-end">
                   <Button
@@ -1639,7 +1706,8 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Style: {styleMode}</span>
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Modele IA: {outputPricing.modelLabel}</span>
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Resolution: {outputPricing.size} / {outputPricing.quality}</span>
-                  <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Credits: {outputPricing.photoCredits}</span>
+                  <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Variantes: {selectedMarketingVariantCount}</span>
+                  <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Credits: {totalMarketingCredits}</span>
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Références marketing: {persistedResources.length}</span>
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Logo: {hasLogo ? "oui" : "non"}</span>
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Fiche restaurant: {businessContextLoading ? "chargement" : businessContext?.restaurant ? "active" : "vide"}</span>
@@ -1652,21 +1720,40 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                 <div className="overflow-hidden rounded-2xl border border-emerald-200 bg-white shadow-sm dark:border-emerald-900/50 dark:bg-background">
                   <div className="flex flex-col gap-3 border-b border-emerald-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-between dark:border-emerald-900/50">
                     <div>
-                      <p className="font-semibold text-foreground">Image marketing générée</p>
-                      <p className="text-xs text-muted-foreground">Modele: {marketingImageResult?.model || "gpt-image-2"}</p>
+                      <p className="font-semibold text-foreground">{marketingResults.length > 1 ? "Variantes marketing générées" : "Image marketing générée"}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {marketingResults.length} variante{marketingResults.length > 1 ? "s" : ""} disponible{marketingResults.length > 1 ? "s" : ""} dans Mes créations.
+                      </p>
                     </div>
-                    <Button type="button" variant="outline" size="sm" asChild>
-                      <a href={generatedMarketingImageUrl} target="_blank" rel="noreferrer">
-                        Ouvrir l'image
-                      </a>
-                    </Button>
                   </div>
-                  <div className="bg-slate-950/5 p-3">
-                    <img
-                      src={generatedMarketingImageUrl}
-                      alt={marketingImageResult?.alt_text || `Visuel marketing ${activeToolConfig.title}`}
-                      className="mx-auto max-h-[520px] w-full rounded-xl object-contain"
-                    />
+                  <div className="grid gap-3 bg-slate-950/5 p-3 sm:grid-cols-2">
+                    {marketingResults.map((item, index) => {
+                      const itemImageUrl = item.gallery_image_url || item.generated_image_url || "";
+                      if (!itemImageUrl) return null;
+
+                      return (
+                        <div key={item.gallery_storage_path || item.generated_image_url || index} className="overflow-hidden rounded-2xl border bg-white shadow-sm dark:bg-background">
+                          <div className="flex items-center justify-between gap-2 border-b px-3 py-2">
+                            <div>
+                              <p className="text-sm font-semibold text-foreground">Variante {index + 1}</p>
+                              <p className="text-xs text-muted-foreground">Modele: {item.model || "gpt-image-2"}</p>
+                            </div>
+                            <Button type="button" variant="outline" size="sm" asChild>
+                              <a href={itemImageUrl} target="_blank" rel="noreferrer">
+                                Ouvrir
+                              </a>
+                            </Button>
+                          </div>
+                          <div className="bg-slate-950/5 p-2">
+                            <img
+                              src={itemImageUrl}
+                              alt={item.alt_text || `Visuel marketing ${activeToolConfig.title} variante ${index + 1}`}
+                              className="mx-auto max-h-[420px] w-full rounded-xl object-contain"
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               ) : null}
@@ -1674,10 +1761,10 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
               <div className={`${activeStep === 3 ? "flex" : "hidden"} min-w-0 flex-col gap-3 rounded-2xl border border-orange-200 bg-orange-50/80 p-3 sm:flex-row sm:items-center sm:rounded-3xl`}>
                 <Button type="button" onClick={requestGeneration} disabled={!restaurantId || loading} size="lg" className="h-auto min-h-12 w-full min-w-0 whitespace-normal rounded-2xl bg-orange-600 px-4 text-center text-base font-bold shadow-lg shadow-orange-500/20 hover:bg-orange-700 sm:w-auto sm:px-6">
                   {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                  {loading ? "Génération de l'image..." : `Générer l'image marketing (${outputPricing.photoCredits} cr.)`}
+                  {loading ? "Génération des variantes..." : `Générer ${selectedMarketingVariantCount} variante${selectedMarketingVariantCount > 1 ? "s" : ""} marketing (${totalMarketingCredits} cr.)`}
                 </Button>
                 <p className="min-w-0 break-words text-xs leading-5 text-muted-foreground">
-                  Votre visuel est généré à partir du brief, du support choisi et des ressources de marque enregistrées.
+                  Votre visuel est généré à partir du brief, du support choisi et des ressources de marque enregistrées. La génération peut durer jusqu'à plusieurs minutes.
                 </p>
               </div>
             </CardContent>

@@ -193,7 +193,7 @@ const chatGptMcpFieldRows = [
     group: "OAuth avancé",
     field: "Secret client OAuth",
     value: "Secret affiché une seule fois lors de la création/rotation",
-    note: "TOK ne le ré-affiche pas: gardez-le dans votre coffre de secrets.",
+    note: "TOK ne le ré-affiche pas: si ChatGPT renvoie invalid_client, faites une rotation du secret puis remplacez ID + secret dans ChatGPT.",
   },
   {
     group: "OAuth avancé",
@@ -218,6 +218,13 @@ const chatGptMcpFieldRows = [
     field: "URL jeton",
     value: CHATGPT_OAUTH_TOKEN_URL,
     note: "C'est l'URL token. Elle ne va pas dans URL du serveur.",
+    highlight: true,
+  },
+  {
+    group: "Dépannage",
+    field: "Erreur invalid_client",
+    value: "Régénérer le secret du client actif utilisé par ChatGPT",
+    note: "Cette erreur vient de la vérification OAuth: Client ID absent/inactif, secret expiré/rotaté, ou credentials créés sur un autre environnement.",
     highlight: true,
   },
   {

@@ -89,7 +89,7 @@ const PHOTO_CREDIT_CHF = 0.009;
 const GPT_IMAGE_2_MEDIUM_BASE_COST_CHF = 0.05;
 const GPT_IMAGE_2_MEDIUM_BASE_COST_USD = GPT_IMAGE_2_MEDIUM_BASE_COST_CHF / USD_TO_CHF_RATE;
 const PHOTO_STUDIO_MASTER_PROMPT =
-  "Génère une image de qualité photographique professionnelle studio, digne des meilleurs food photographe. Au besoin, change l’angle de vue mais préserve les ingrédients du plat tout en améliorant la fraîcheur, l’éclairage, la profondeur de champ. Si le produit est coupé, tronqué, partiellement hors cadre ou sort de l'image, génère la partie manquante en élargissant l'angle ou en modifiant l'angle de vue, sans changer le produit, ses ingrédients, ses logos, ses textes ou son packaging. Le produit doit être parfaitement mis en valeur";
+  "Génère une image de qualité photographique professionnelle studio, digne des meilleurs food photographe. Respecte toujours la consigne d'angle de vue explicite quand elle est présente; sinon, au besoin, change l’angle de vue mais préserve les ingrédients du plat tout en améliorant la fraîcheur, l’éclairage, la profondeur de champ. Si le produit est coupé, tronqué, partiellement hors cadre ou sort de l'image, génère la partie manquante en élargissant le cadre, ou en modifiant l'angle de vue seulement si la consigne d'angle choisie l'autorise, sans changer le produit, ses ingrédients, ses logos, ses textes ou son packaging. Le produit doit être parfaitement mis en valeur";
 const PHOTO_STUDIO_USER_DIRECTION_POLICY =
   "Priorite haute aux consignes restaurateur: lorsqu'une consigne demande une transformation visible, applique-la clairement dans l'image finale, pas comme une retouche presque imperceptible. Les ajouts explicitement demandes comme fromage, cheddar, sauce, ingredient complementaire, produit separe, effet suspendu, mouvement ou levitation sont autorises s'ils valorisent le produit source sans le remplacer.";
 const PHOTO_STUDIO_RETOUCH_PROMPT = `
@@ -109,8 +109,8 @@ Instructions :
 - Corriger la balance des blancs, la colorimétrie, le contraste et les volumes.
 - Accentuer la netteté sur le sujet principal uniquement.
 - Ajouter une profondeur de champ élégante si utile.
-- Changer légèrement l'angle de vue uniquement si cela améliore le rendu studio sans perdre la reconnaissance du plat source.
-- Si le produit est coupé, tronqué, partiellement hors cadre ou sort de l'image, élargir le cadre ou ajuster l'angle de vue pour générer la partie manquante de manière réaliste, sans inventer un autre produit ni changer les ingrédients, logos, textes, packaging ou nombre d'éléments principaux.
+- Respecter toute consigne d'angle explicite du restaurateur, y compris "Même angle de vue", vue du dessus, vue de face, 45 degrés, vue de profil, grand-angle ou closeup. Sans consigne d'angle explicite, changer légèrement l'angle de vue uniquement si cela améliore le rendu studio sans perdre la reconnaissance du plat source.
+- Si le produit est coupé, tronqué, partiellement hors cadre ou sort de l'image, élargir le cadre pour générer la partie manquante de manière réaliste; ajuster l'angle de vue uniquement si la consigne d'angle choisie l'autorise, sans inventer un autre produit ni changer les ingrédients, logos, textes, packaging ou nombre d'éléments principaux.
 - Si la consigne restaurateur demande du cheddar dégoulinant, une sauce plus visible, un ingrédient complémentaire, une séparation du burger, une impression de mouvement, de suspension ou de lévitation, créer une composition culinaire publicitaire où cet effet est évident et appétissant.
 - Donner un rendu final réaliste, premium, propre, appétissant et commercial.
 
@@ -152,11 +152,11 @@ Charte de retouche culinaire premium non brandee:
 - ne jamais remplacer une salade, un dessert, une bouteille, une assiette ou un plat source par un autre type de nourriture;
 - ne jamais remplacer un burger, sandwich, tacos, pizza, kebab, wrap ou plateau source par une tartine, un toast, une salade, un bol ou une assiette differente;
 - nettoyage studio: supprimer les objets hors sujet, mains, couverts inutiles, miettes, taches, reflets sales, bords de table distrayants, fonds encombrants et parasites visuels;
-- composition: conserver une composition reconnaissable depuis la scene source; ajuster l'angle ou le cadrage seulement si cela valorise le plat sans changer son identite;
+- composition: respecter l'angle de vue explicitement demande par le restaurateur; si "Même angle de vue" est demande, conserver la logique de cadrage de la photo source. Sans consigne d'angle explicite, conserver une composition reconnaissable depuis la scene source et ajuster l'angle ou le cadrage seulement si cela valorise le plat sans changer son identite;
 - rendu studio photo: eclairage softbox premium, contraste maitrise, blancs propres, sujet net, textures visibles, reflets propres et naturels;
 - profondeur de champ: garder le produit principal net et ajouter un flou d'arriere-plan doux seulement si cela ne masque aucun detail important du sujet;
 - formes et volumes: renforcer les contours, volumes et textures par la lumiere et la nettete, sans remodeler le produit, ses ingredients, son emballage ou ses proportions;
-- recuperation de cadrage: si le sujet source est coupe, tronque, partiellement hors cadre ou sort de l'image, elargir le cadre ou ajuster l'angle de vue pour completer la partie manquante de facon realiste sans changer le produit, ses ingredients, ses logos, ses textes, son packaging ou son nombre d'elements principaux;
+- recuperation de cadrage: si le sujet source est coupe, tronque, partiellement hors cadre ou sort de l'image, elargir le cadre pour completer la partie manquante de facon realiste; ajuster l'angle de vue uniquement si la consigne d'angle explicite l'autorise, sans changer le produit, ses ingredients, ses logos, ses textes, son packaging ou son nombre d'elements principaux;
 - style avant/apres: meme photo, meme sujet, mais plus premium, plus nette, mieux eclairee et plus vendable;
 - ne jamais ajouter de nouveau logo, filigrane, watermark, marque ou texte incruste dans l'image generee;
 - ne jamais ajouter de logo de plateforme, bulle de marque, mascotte, macaron, badge ou pictogramme de marque dans l'image generee;
@@ -426,8 +426,8 @@ function buildCompactPhotoStudioRetouchPrompt(input: { dishName: string; userPro
     `${PHOTO_STUDIO_MASTER_PROMPT}. Sujet source: ${dishLabel}.`,
     PHOTO_STUDIO_USER_DIRECTION_POLICY,
     extraInstruction,
-    "Conserve le produit d'origine: meme categorie alimentaire, memes ingredients visibles, meme nombre d'elements principaux, memes proportions generales et meme identite reconnaissable. L'angle peut etre ajuste seulement si le plat reste clairement le meme.",
-    "Si le sujet est coupe, tronque, partiellement hors cadre ou sort de l'image, elargis le cadre ou ajuste l'angle de vue pour completer la partie manquante de facon realiste sans inventer un autre produit.",
+    "Conserve le produit d'origine: meme categorie alimentaire, memes ingredients visibles, meme nombre d'elements principaux, memes proportions generales et meme identite reconnaissable. Respecte toute consigne d'angle explicite; sans consigne d'angle, l'angle peut etre ajuste seulement si le plat reste clairement le meme.",
+    "Si le sujet est coupe, tronque, partiellement hors cadre ou sort de l'image, elargis le cadre pour completer la partie manquante de facon realiste; ajuste l'angle de vue uniquement si la consigne d'angle explicite l'autorise, sans inventer un autre produit.",
     "Ne remplace jamais le plat source par une tartine, un toast, une salade, un bol, une pizza, un dessert ou une assiette differente.",
     "Nettoie la scene, supprime les elements parasites, simplifie l'arriere-plan, ameliore le support, applique un bel eclairage studio doux, corrige colorimetrie, contraste, volumes et nettete du sujet principal.",
     "Ajoute une profondeur de champ elegante seulement si elle garde tous les details importants du produit principal lisibles.",
@@ -1430,6 +1430,7 @@ Deno.serve(async (req) => {
           compactSourceEditPrompt,
           "",
           "Garde la retouche fidele a la photo source. Ne remplace pas le plat, le produit, la categorie alimentaire, les ingredients principaux ni le nombre d'elements visibles.",
+          "Respecte la consigne d'angle explicite presente dans le prompt; si elle demande le meme angle de vue, ne change pas l'angle de la photo source.",
         ].join("\n").slice(0, 2200),
         sourceImageUrl,
         n: variantCount,

@@ -263,7 +263,7 @@ export default function AdminTokConnect() {
       step: 7,
       field: "Secret client OAuth",
       value: "Secret affiché une seule fois lors de la création ou rotation du client OAuth.",
-      note: "Non copiable depuis l'admin: TOK ne stocke jamais le secret en clair.",
+      note: "Si ChatGPT renvoie invalid_client, faites une rotation du secret puis remplacez l'ID client et le secret dans ChatGPT.",
       copyable: false,
     },
     {

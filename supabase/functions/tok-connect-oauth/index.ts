@@ -47,6 +47,21 @@ function base64UrlDecode(input: string) {
   return atob(padded);
 }
 
+function normalizeOAuthCredential(value: string | null | undefined) {
+  const trimmed = String(value || "").trim();
+  if (!trimmed) return undefined;
+  const unquoted = trimmed.replace(/^["'](.+)["']$/, "$1").trim();
+  return unquoted || undefined;
+}
+
+function decodeOAuthBasicPart(value: string) {
+  try {
+    return decodeURIComponent(value.replace(/\+/g, " "));
+  } catch {
+    return value;
+  }
+}
+
 async function signCodePayload(payload: string) {
   const secret = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
   if (!secret) throw new HttpError(500, "oauth_signing_secret_missing");
@@ -106,8 +121,8 @@ function readBasicClientCredentials(req: Request): Pick<OAuthBody, "client_id" |
     const separatorIndex = decoded.indexOf(":");
     if (separatorIndex === -1) return {};
     return {
-      client_id: decoded.slice(0, separatorIndex),
-      client_secret: decoded.slice(separatorIndex + 1),
+      client_id: normalizeOAuthCredential(decodeOAuthBasicPart(decoded.slice(0, separatorIndex))),
+      client_secret: normalizeOAuthCredential(decodeOAuthBasicPart(decoded.slice(separatorIndex + 1))),
     };
   } catch {
     return {};
@@ -121,17 +136,26 @@ async function readOAuthBody(req: Request): Promise<OAuthBody> {
     const form = new URLSearchParams(await req.text());
     return {
       ...basicCredentials,
-      grant_type: form.get("grant_type") || undefined,
-      client_id: form.get("client_id") || basicCredentials.client_id,
-      client_secret: form.get("client_secret") || basicCredentials.client_secret,
-      code: form.get("code") || undefined,
-      redirect_uri: form.get("redirect_uri") || undefined,
-      scope: form.get("scope") || undefined,
+      grant_type: normalizeOAuthCredential(form.get("grant_type")),
+      client_id: normalizeOAuthCredential(form.get("client_id")) || basicCredentials.client_id,
+      client_secret: normalizeOAuthCredential(form.get("client_secret")) || basicCredentials.client_secret,
+      code: normalizeOAuthCredential(form.get("code")),
+      redirect_uri: normalizeOAuthCredential(form.get("redirect_uri")),
+      scope: form.get("scope")?.trim() || undefined,
     };
   }
 
-  const body = await req.json().catch(() => ({}));
-  return { ...body, ...basicCredentials };
+  const body = await req.json().catch(() => ({})) as OAuthBody;
+  return {
+    ...body,
+    ...basicCredentials,
+    grant_type: normalizeOAuthCredential(body.grant_type),
+    client_id: basicCredentials.client_id || normalizeOAuthCredential(body.client_id),
+    client_secret: basicCredentials.client_secret || normalizeOAuthCredential(body.client_secret),
+    code: normalizeOAuthCredential(body.code),
+    redirect_uri: normalizeOAuthCredential(body.redirect_uri),
+    scope: body.scope?.trim() || undefined,
+  };
 }
 
 async function getActiveClient(adminClient: ReturnType<typeof createAdminClient>, clientId: string) {
@@ -221,6 +245,7 @@ Deno.serve(async (req) => {
       if (!body.code || !body.redirect_uri) throw new HttpError(400, "authorization_code_required");
       const codePayload = await verifyAuthorizationCode(body.code);
       if (codePayload.redirect_uri !== body.redirect_uri) throw new HttpError(400, "redirect_uri_mismatch");
+      if (body.client_id && body.client_id !== codePayload.client_id) throw new HttpError(401, "invalid_client");
       body.client_id = body.client_id || codePayload.client_id;
       body.scope = codePayload.scope || body.scope;
     }

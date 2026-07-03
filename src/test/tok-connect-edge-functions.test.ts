@@ -32,6 +32,8 @@ describe("TOK Connect Edge Functions", () => {
     expect(source).toContain("assertTokConnectFeatureEnabled");
     expect(source).toContain("hashTokConnectSecret");
     expect(source).toContain("verifyTokConnectSecret");
+    expect(source).toContain("normalizeOAuthCredential");
+    expect(source).toContain("decodeOAuthBasicPart");
     expect(source).toContain("revoked_at");
     expect(source).toContain("createRateLimiter");
     expect(source).toContain("tok_connect_access_tokens");

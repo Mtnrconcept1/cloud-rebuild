@@ -21,7 +21,8 @@ describe("TOK photo studio persistence", () => {
     expect(source).toContain("useSessionStorageState");
     expect(source).toContain("tok-ai-photo-studio-v2:");
     expect(source).toContain("result: TokImageGenerationResult | null");
-    expect(source).toContain("updateDraft({ result: data })");
+    expect(source).toContain("results: TokImageGenerationResult[]");
+    expect(source).toContain("updateDraft({ result: successfulResults[0] || null, results: successfulResults })");
     expect(source).toContain("startTokImageCreationJob");
     expect(app).toContain("<AiCreationNotifications />");
     expect(app).toContain("refetchOnWindowFocus: false");
@@ -44,10 +45,10 @@ describe("TOK photo studio persistence", () => {
   it("lets restaurateurs guide PhotoPro without replacing the protected source product", () => {
     expect(source).toContain("userInstructions: string");
     expect(source).toContain("Consignes PhotoPro");
-    expect(source).toContain("buildPhotoProPrompt(draft.userInstructions || \"\")");
+    expect(source).toContain("buildPhotoProPrompt(draft.userInstructions || \"\", draft.viewAngle)");
     expect(source).toContain("Si le produit est mal mis en scène ou n'a pas l'air appétissant");
     expect(source).toContain("Si le produit est coupé, tronqué, partiellement hors cadre ou sort de l'image");
-    expect(source).toContain("génère la partie manquante en élargissant l'angle ou en modifiant l'angle de vue");
+    expect(source).toContain("génère la partie manquante en élargissant le cadre");
     expect(source).toContain("Le produit doit être parfaitement mis en valeur");
     expect(source).toContain("Priorité haute");
     expect(source).toContain("si le restaurateur demande une modification créative visible");
@@ -57,6 +58,17 @@ describe("TOK photo studio persistence", () => {
     expect(source).toContain("le produit, les ingrédients, le packaging");
     expect(source).toContain("les logos et les textes présents");
     expect(source).toContain("Mise en scène et aspect appétissant améliorés");
+    expect(source).toContain("PHOTO_PRO_VIEW_ANGLES");
+    expect(source).toContain("Même angle de vue");
+    expect(source).toContain("sans changer l'angle de vue ni la logique de cadrage de la photo source");
+    expect(source).toContain("Vue du dessus");
+    expect(source).toContain("Vue de face");
+    expect(source).toContain("45 degrés");
+    expect(source).toContain("Vue de profil");
+    expect(source).toContain("Grand-angle");
+    expect(source).toContain("Closeup");
+    expect(source).toContain("Angle requis");
+    expect(source).toContain("Angle de vue obligatoire sélectionné par le restaurateur");
   });
 
   it("keeps the restaurateur-facing photo studio copy readable in French", () => {
@@ -66,8 +78,9 @@ describe("TOK photo studio persistence", () => {
 
     expect(source).toContain("Génère une image de qualité photographique professionnelle studio");
     expect(source).toContain("digne des meilleurs food photographe");
-    expect(source).toContain("Au besoin, change l’angle de vue");
-    expect(source).toContain("préserve les ingrédients du plat");
+    expect(source).toContain("Respecte toujours l'angle de vue choisi par le restaurateur");
+    expect(source).toContain("uniquement si le bouton d'angle choisi l'autorise");
+    expect(source).toContain("Préserve les ingrédients du plat");
     expect(source).toContain("améliorant la fraîcheur, l’éclairage, la profondeur de champ");
     expect(source).toContain("Un emballage ne doit jamais devenir une assiette servie.");
     expect(source).toContain("Visuel TOK prêt");
@@ -82,19 +95,20 @@ describe("TOK photo studio persistence", () => {
   });
 
   it("adds generated images to the gallery through a stable public gallery URL", () => {
-    expect(source).toContain("result.gallery_image_url");
-    expect(source).toContain("media_url: result.gallery_image_url");
-    expect(source).toContain("storage_bucket: result.gallery_storage_bucket");
-    expect(source).toContain("storage_path: result.gallery_storage_path");
+    expect(source).toContain("result?.gallery_image_url");
+    expect(source).toContain("media_url: selectedResult.gallery_image_url");
+    expect(source).toContain("storage_bucket: selectedResult.gallery_storage_bucket");
+    expect(source).toContain("storage_path: selectedResult.gallery_storage_path");
     expect(source).toContain("metadata: buildRestaurantMediaAiMetadata");
-    expect(source).not.toContain("media_url: result.generated_image_url");
+    expect(source).not.toContain("media_url: selectedResult.generated_image_url");
   });
 
   it("lets generated TOK photos open in a large preview and download without losing the draft", () => {
     expect(source).toContain("DialogContent");
     expect(source).toContain("previewOpen");
+    expect(source).toContain("previewResult");
     expect(source).toContain("generatedImageUrl");
-    expect(source).toContain('aria-label="Agrandir le visuel TOK généré"');
+    expect(source).toContain("Agrandir le visuel TOK généré variante");
     expect(source).toContain("downloadGeneratedPhoto");
     expect(source).toContain("downloadImageWithWatermark");
     expect(source).toContain("watermarkUrl: shouldApplyTokWatermark ? logoSrc : null");
@@ -252,10 +266,24 @@ describe("TOK photo studio persistence", () => {
     expect(marketingStudio).toContain("Brief & génération");
     expect(marketingStudio).toContain("Votre visuel est généré à partir du brief");
     expect(marketingStudio).toContain("Image IA");
+    expect(marketingStudio).toContain("MARKETING_VARIANT_OPTIONS");
+    expect(marketingStudio).toContain("Nombre de variantes");
+    expect(marketingStudio).toContain("selectedMarketingVariantCount");
+    expect(marketingStudio).toContain("buildMarketingVariantPrompt");
+    expect(marketingStudio).toContain("const jobs = Array.from({ length: selectedMarketingVariantCount }");
+    expect(marketingStudio).toContain("Le studio a produit");
+    expect(marketingStudio).toContain("Générer ${selectedMarketingVariantCount} variante");
     expect(marketingStudio).not.toContain("marketing-output-resolution");
     expect(marketingStudio).not.toContain("TOK_IMAGE_OUTPUT_OPTIONS");
     expect(marketingStudio).toContain("outputResolution");
     expect(source).toContain("Configuration image");
+    expect(source).toContain("PHOTO_PRO_VARIANT_OPTIONS");
+    expect(source).toContain("selectedVariantCount");
+    expect(source).toContain("buildPhotoProVariantPrompt");
+    expect(source).toContain("buildPhotoProVariantPrompt(basePrompt, index, selectedVariantCount, draft.viewAngle)");
+    expect(source).toContain("const jobs = Array.from({ length: selectedVariantCount }");
+    expect(source).toContain("Générer {selectedVariantCount} version");
+    expect(source).toContain("Chaque variante lance une génération indépendante.");
     expect(source).not.toContain("Resolution de sortie");
     expect(source).not.toContain("TOK_IMAGE_OUTPUT_OPTIONS");
     expect(marketingStudio).not.toContain("Securite & confidentialite");
@@ -528,8 +556,8 @@ describe("TOK photo studio persistence", () => {
   it("requests image-only generation and does not render generated marketing copy", () => {
     expect(source).toContain("imageOnly: true");
     expect(source).toContain("Génère une image de qualité photographique professionnelle studio");
-    expect(source).toContain("Au besoin, change l’angle de vue");
-    expect(source).toContain("préserve les ingrédients du plat");
+    expect(source).toContain("Respecte toujours l'angle de vue choisi par le restaurateur");
+    expect(source).toContain("Préserve les ingrédients du plat");
     expect(source).toContain("améliorant la fraîcheur, l’éclairage, la profondeur de champ");
     expect(source).toContain('assetType: "menu_visual"');
     expect(source).not.toContain("photographie culinaire de studio professionnel");

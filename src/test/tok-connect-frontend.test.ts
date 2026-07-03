@@ -58,6 +58,8 @@ describe("TOK Connect frontend integration", () => {
     expect(page).toContain("Champ ChatGPT");
     expect(page).toContain("Valeur TOK à coller");
     expect(page).toContain("Dynamic Client Registration");
+    expect(page).toContain("Erreur invalid_client");
+    expect(page).toContain("Régénérer le secret du client actif");
     expect(page).toContain("Ne collez jamais l'URL OAuth token dans URL du serveur");
     expect(page).toContain("/images/tok-connect/chatgpt-mcp-new-app.png");
     expect(page).toContain("/images/tok-connect/chatgpt-mcp-oauth-endpoints.png");
@@ -109,6 +111,7 @@ describe("TOK Connect frontend integration", () => {
     expect(admin).toContain("Client OAuth défini par l'utilisateur");
     expect(admin).toContain("Périmètres par défaut");
     expect(admin).toContain("Secret affiché une seule fois");
+    expect(admin).toContain("invalid_client");
     expect(admin).toContain("tok_connect_partners");
     expect(admin).toContain("tok_connect_api_requests");
     expect(admin).toContain("tok_connect_agent_runs");
