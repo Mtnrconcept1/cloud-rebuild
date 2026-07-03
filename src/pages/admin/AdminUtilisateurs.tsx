@@ -1,10 +1,11 @@
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   AlertTriangle,
   Ban,
   Bike,
+  BriefcaseBusiness,
   Download,
   ExternalLink,
   FileText,
@@ -80,7 +81,7 @@ type AdminCourierRow = {
   updated_at: string;
 };
 
-const AVAILABLE_ROLES = ["client", "restaurateur", "admin", "courier"] as const;
+const AVAILABLE_ROLES = ["client", "restaurateur", "admin", "courier", "commercial"] as const;
 
 type ReviewStatus = "approved" | "needs_changes" | "rejected";
 type CourierReviewStatus = "approved" | "pending_approval" | "suspended" | "rejected";
@@ -94,6 +95,16 @@ type UserGovernanceAlert = {
   description: string;
   anomaly: string;
   metadata: Record<string, unknown> | null;
+};
+
+type CommercialCompensationProfile = {
+  user_id: string;
+  status: string;
+  sprint_started_at: string;
+  engaged_at: string | null;
+  employment_active: boolean;
+  team_lead_id: string | null;
+  notes: string | null;
 };
 
 type AdminUserDetail = {
@@ -137,6 +148,8 @@ function getRoleLabel(role: string) {
       return "Restaurateur";
     case "courier":
       return "Livreur";
+    case "commercial":
+      return "Commercial";
     default:
       return "Client";
   }
@@ -380,6 +393,7 @@ function UserDetailPanel({ userId, embedded = false }: { userId: string | null; 
 export default function AdminUtilisateurs() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
@@ -388,6 +402,7 @@ export default function AdminUtilisateurs() {
   const [createdFilter, setCreatedFilter] = useState("all");
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [savingUserId, setSavingUserId] = useState<string | null>(null);
+  const [savingCommercialProfileUserId, setSavingCommercialProfileUserId] = useState<string | null>(null);
   const [changingAccountUserId, setChangingAccountUserId] = useState<string | null>(null);
   const [draftRoles, setDraftRoles] = useState<Record<string, string[]>>({});
 
@@ -423,6 +438,19 @@ export default function AdminUtilisateurs() {
       const { data, error: rpcError } = await (supabase.rpc as any)("admin_get_user_governance_alerts");
       if (rpcError) throw rpcError;
       return (data || []) as UserGovernanceAlert[];
+    },
+  });
+
+  const { data: commercialProfiles = [] } = useQuery({
+    queryKey: ["admin-commercial-compensation-profiles"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("commercial_compensation_profiles" as any)
+        .select("user_id,status,sprint_started_at,engaged_at,employment_active,team_lead_id,notes")
+        .order("updated_at", { ascending: false });
+
+      if (error) throw error;
+      return (data || []) as CommercialCompensationProfile[];
     },
   });
 
@@ -472,6 +500,13 @@ export default function AdminUtilisateurs() {
     }, {} as Record<string, UserGovernanceAlert[]>);
   }, [governanceAlerts]);
 
+  const commercialProfilesByUserId = useMemo(() => {
+    return commercialProfiles.reduce((acc, profile) => {
+      acc[profile.user_id] = profile;
+      return acc;
+    }, {} as Record<string, CommercialCompensationProfile>);
+  }, [commercialProfiles]);
+
   const usersWithDraft = useMemo(
     () =>
       users.map((user) => ({
@@ -516,7 +551,7 @@ export default function AdminUtilisateurs() {
         acc[role] = (acc[role] || 0) + 1;
       }
       return acc;
-    }, { client: 0, restaurateur: 0, admin: 0, courier: 0 } as Record<string, number>);
+    }, { client: 0, restaurateur: 0, admin: 0, courier: 0, commercial: 0 } as Record<string, number>);
   }, [users]);
 
   const accountStatusCounts = useMemo(() => {
@@ -672,7 +707,46 @@ export default function AdminUtilisateurs() {
     toast({ title: "Rôles mis à jour" });
     queryClient.invalidateQueries({ queryKey: ["admin-users-full"] });
     queryClient.invalidateQueries({ queryKey: ["admin-user-governance-alerts"] });
+    queryClient.invalidateQueries({ queryKey: ["admin-commercial-compensation-profiles"] });
     queryClient.invalidateQueries({ queryKey: ["admin-user-detail", userId] });
+  };
+
+  const updateCommercialProfile = async (
+    userId: string,
+    patch: Partial<Pick<CommercialCompensationProfile, "status" | "sprint_started_at" | "engaged_at" | "employment_active" | "team_lead_id" | "notes">>,
+  ) => {
+    const current = commercialProfilesByUserId[userId];
+    const nextStatus = patch.status || current?.status || "sprint";
+    const nextEmploymentActive =
+      typeof patch.employment_active === "boolean"
+        ? patch.employment_active
+        : current?.employment_active || nextStatus === "engaged" || nextStatus === "team_lead";
+
+    setSavingCommercialProfileUserId(userId);
+    const { error } = await supabase
+      .from("commercial_compensation_profiles" as any)
+      .upsert({
+        user_id: userId,
+        status: nextStatus,
+        sprint_started_at: patch.sprint_started_at || current?.sprint_started_at || new Date().toISOString().slice(0, 10),
+        engaged_at:
+          patch.engaged_at !== undefined
+            ? patch.engaged_at || null
+            : current?.engaged_at || (nextStatus === "engaged" || nextStatus === "team_lead" ? new Date().toISOString().slice(0, 10) : null),
+        employment_active: nextStatus === "inactive" ? false : nextEmploymentActive,
+        team_lead_id: patch.team_lead_id !== undefined ? patch.team_lead_id || null : current?.team_lead_id || null,
+        notes: patch.notes !== undefined ? patch.notes || null : current?.notes || null,
+      }, { onConflict: "user_id" });
+    setSavingCommercialProfileUserId(null);
+
+    if (error) {
+      toast({ title: "Profil commercial non mis a jour", description: error.message, variant: "destructive" });
+      return;
+    }
+
+    toast({ title: "Profil commercial mis a jour" });
+    queryClient.invalidateQueries({ queryKey: ["admin-commercial-compensation-profiles"] });
+    queryClient.invalidateQueries({ queryKey: ["commercial-compensation-summary"] });
   };
 
   const changeAccountStatus = async (userId: string, nextStatus: "active" | "suspended") => {
@@ -841,6 +915,7 @@ export default function AdminUtilisateurs() {
         stats={[
           { label: "Utilisateurs", value: users.length, icon: Users },
           { label: "Restaurateurs", value: roleCounts.restaurateur, icon: FileText },
+          { label: "Commerciaux", value: roleCounts.commercial || 0, icon: BriefcaseBusiness },
           { label: "Livreurs à valider", value: courierCounts.pending_approval, icon: Bike },
         ]}
       />
@@ -863,7 +938,7 @@ export default function AdminUtilisateurs() {
         </TabsList>
 
         <TabsContent value="users" className="space-y-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <div className="rounded-xl border bg-card p-4 text-center">
               <p className="text-2xl font-bold">{roleCounts.client}</p>
               <p className="text-xs text-muted-foreground">Clients</p>
@@ -875,6 +950,10 @@ export default function AdminUtilisateurs() {
             <div className="rounded-xl border bg-card p-4 text-center">
               <p className="text-2xl font-bold">{roleCounts.admin}</p>
               <p className="text-xs text-muted-foreground">Admins</p>
+            </div>
+            <div className="rounded-xl border bg-card p-4 text-center">
+              <p className="text-2xl font-bold">{roleCounts.commercial || 0}</p>
+              <p className="text-xs text-muted-foreground">Commerciaux</p>
             </div>
             <div className="rounded-xl border bg-card p-4 text-center">
               <p className="text-2xl font-bold">{accountStatusCounts.suspended || 0}</p>
@@ -929,6 +1008,7 @@ export default function AdminUtilisateurs() {
               <option value="restaurateur">Restaurateur</option>
               <option value="admin">Admin</option>
               <option value="courier">Livreur</option>
+              <option value="commercial">Commercial</option>
             </select>
             <select
               value={accountStatusFilter}
@@ -989,6 +1069,8 @@ export default function AdminUtilisateurs() {
                     ACCOUNT_STATUS_META[user.account_status || "active"] || ACCOUNT_STATUS_META.active;
                   const anomalies = user.anomalies || [];
                   const userAlerts = governanceAlertsByUserId[user.user_id] || [];
+                  const commercialProfile = commercialProfilesByUserId[user.user_id];
+                  const hasCommercialRole = effectiveRoles.includes("commercial");
 
                   return (
                     <div key={user.user_id} className="rounded-xl border bg-card p-4 space-y-4">
@@ -1032,7 +1114,7 @@ export default function AdminUtilisateurs() {
                         </div>
                       ) : null}
 
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                      <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
                         {AVAILABLE_ROLES.map((role) => (
                           <label key={role} className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm">
                             <input
@@ -1044,6 +1126,76 @@ export default function AdminUtilisateurs() {
                           </label>
                         ))}
                       </div>
+
+                      {hasCommercialRole ? (
+                        <div className="rounded-xl border border-orange-200 bg-orange-50/70 p-4 text-sm">
+                          <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+                            <div>
+                              <div className="flex items-center gap-2 font-semibold text-orange-900">
+                                <BriefcaseBusiness className="h-4 w-4" />
+                                Paramètres commerciaux
+                              </div>
+                              <p className="mt-1 text-xs text-orange-900/70">
+                                Le rôle commercial crée un profil de rémunération. Ces champs pilotent le fixe, le sprint et les commissions récurrentes.
+                              </p>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className="w-full bg-white lg:w-auto"
+                              onClick={() => navigate(`/commercial/comptabilite?commercialUserId=${user.user_id}`)}
+                            >
+                              Voir comptabilité
+                            </Button>
+                          </div>
+
+                          <div className="mt-4 grid gap-3 md:grid-cols-4">
+                            <label className="space-y-1">
+                              <span className="text-xs font-medium uppercase tracking-[0.12em] text-orange-900/70">Statut</span>
+                              <select
+                                value={commercialProfile?.status || "sprint"}
+                                onChange={(event) => updateCommercialProfile(user.user_id, { status: event.target.value })}
+                                disabled={savingCommercialProfileUserId === user.user_id}
+                                className="h-10 w-full rounded-md border bg-white px-3 text-sm"
+                              >
+                                <option value="sprint">Sprint 60 jours</option>
+                                <option value="engaged">Commercial engagé</option>
+                                <option value="team_lead">Responsable commercial</option>
+                                <option value="inactive">Inactif</option>
+                              </select>
+                            </label>
+                            <label className="space-y-1">
+                              <span className="text-xs font-medium uppercase tracking-[0.12em] text-orange-900/70">Debut sprint</span>
+                              <Input
+                                type="date"
+                                value={commercialProfile?.sprint_started_at || new Date().toISOString().slice(0, 10)}
+                                onChange={(event) => updateCommercialProfile(user.user_id, { sprint_started_at: event.target.value })}
+                                disabled={savingCommercialProfileUserId === user.user_id}
+                                className="bg-white"
+                              />
+                            </label>
+                            <label className="space-y-1">
+                              <span className="text-xs font-medium uppercase tracking-[0.12em] text-orange-900/70">Date engagement</span>
+                              <Input
+                                type="date"
+                                value={commercialProfile?.engaged_at || ""}
+                                onChange={(event) => updateCommercialProfile(user.user_id, { engaged_at: event.target.value })}
+                                disabled={savingCommercialProfileUserId === user.user_id}
+                                className="bg-white"
+                              />
+                            </label>
+                            <label className="flex min-h-10 items-center gap-2 rounded-lg border bg-white px-3">
+                              <input
+                                type="checkbox"
+                                checked={Boolean(commercialProfile?.employment_active)}
+                                onChange={(event) => updateCommercialProfile(user.user_id, { employment_active: event.target.checked })}
+                                disabled={savingCommercialProfileUserId === user.user_id}
+                              />
+                              <span className="text-sm font-medium">Contrat actif</span>
+                            </label>
+                          </div>
+                        </div>
+                      ) : null}
 
                       {baseRoles.includes("admin") ? (
                         <div className="flex items-center gap-2 rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-900">

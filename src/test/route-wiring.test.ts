@@ -52,6 +52,7 @@ const CORE_ROUTES = new Set([
   "/tok-pulse",
   "/aide",
   "/admin",
+  "/commercial/comptabilite",
 ]);
 
 function escapeRegex(value: string) {
