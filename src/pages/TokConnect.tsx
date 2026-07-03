@@ -17,6 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useSeoMeta } from "@/hooks/useSeoMeta";
+import { SUPABASE_URL } from "@/lib/env";
 import {
   buildTokConnectIntentPlan,
   tokConnectAccessLevels,
@@ -40,6 +41,27 @@ const clientIntent =
 
 const restaurantIntent =
   "Prépare une campagne pour remplir mes tables vides jeudi soir, sans diffusion automatique et avec coût estimé.";
+
+const DEFAULT_CHATGPT_FUNCTIONS_BASE_URL = "https://www.thetok.ch/functions/v1";
+const LOCAL_SUPABASE_URL_PATTERN = /(?:localhost|127\.0\.0\.1)/i;
+
+function getChatGptFunctionsBaseUrl() {
+  const supabaseUrl = SUPABASE_URL.replace(/\/+$/, "");
+  if (!supabaseUrl || LOCAL_SUPABASE_URL_PATTERN.test(supabaseUrl)) return DEFAULT_CHATGPT_FUNCTIONS_BASE_URL;
+  return `${supabaseUrl}/functions/v1`;
+}
+
+const CHATGPT_FUNCTIONS_BASE_URL = getChatGptFunctionsBaseUrl();
+const CHATGPT_MCP_SERVER_URL = `${CHATGPT_FUNCTIONS_BASE_URL}/tok-connect-mcp`;
+const CHATGPT_OAUTH_AUTHORIZATION_URL = `${CHATGPT_FUNCTIONS_BASE_URL}/tok-connect-oauth/authorize`;
+const CHATGPT_OAUTH_TOKEN_URL = `${CHATGPT_FUNCTIONS_BASE_URL}/tok-connect-oauth`;
+const CHATGPT_REST_API_URL = `${CHATGPT_FUNCTIONS_BASE_URL}/tok-connect-api`;
+const CHATGPT_MCP_DESCRIPTION =
+  "TOK Connect: restaurants, disponibilités, réservations et campagnes preview via MCP sécurisé.";
+const CHATGPT_MCP_SCOPES =
+  "restaurants:read availability:read reservations:create reservations:cancel analytics:read credits:read campaigns:preview autopilot:plan";
+const CHATGPT_INVALID_CLIENT_HELP =
+  "Si ChatGPT renvoie invalid_client, recréez ou sélectionnez un client OAuth depuis le même environnement que ces URLs, puis collez le dernier secret affiché une seule fois. Une rotation invalide l'ancien secret.";
 
 const tokConnectHeroActions: Array<{
   label: string;
@@ -118,13 +140,13 @@ const tokConnectDeploymentSteps = [
   {
     title: "Brancher l'API REST",
     action:
-      "Demander un token OAuth sur https://www.thetok.ch/functions/v1/tok-connect-oauth, puis appeler https://www.thetok.ch/functions/v1/tok-connect-api.",
+      `Demander un token OAuth sur ${CHATGPT_OAUTH_TOKEN_URL}, puis appeler ${CHATGPT_REST_API_URL}.`,
     result: "Toutes les réponses suivent { ok, data, error, request_id, next_cursor } et les listes restent paginées.",
   },
   {
     title: "Brancher le MCP dans ChatGPT",
     action:
-      "Créer un connecteur MCP avec l'URL serveur https://www.thetok.ch/functions/v1/tok-connect-mcp et l'authentification OAuth.",
+      `Créer un connecteur MCP avec l'URL serveur ${CHATGPT_MCP_SERVER_URL} et l'authentification OAuth.`,
     result: "ChatGPT peut appeler les tools prudents sans accès libre aux mutations sensibles.",
   },
   {
@@ -140,15 +162,6 @@ const tokConnectDeploymentSteps = [
     result: "La production reste contrôlée: pas de push DB manuel, pas d'autopilot autonome en v1.",
   },
 ];
-
-const CHATGPT_MCP_SERVER_URL = "https://www.thetok.ch/functions/v1/tok-connect-mcp";
-const CHATGPT_OAUTH_AUTHORIZATION_URL = "https://www.thetok.ch/functions/v1/tok-connect-oauth/authorize";
-const CHATGPT_OAUTH_TOKEN_URL = "https://www.thetok.ch/functions/v1/tok-connect-oauth";
-const CHATGPT_REST_API_URL = "https://www.thetok.ch/functions/v1/tok-connect-api";
-const CHATGPT_MCP_DESCRIPTION =
-  "TOK Connect: restaurants, disponibilités, réservations et campagnes preview via MCP sécurisé.";
-const CHATGPT_MCP_SCOPES =
-  "restaurants:read availability:read reservations:create reservations:cancel analytics:read credits:read campaigns:preview autopilot:plan";
 
 const chatGptMcpFieldRows = [
   {
@@ -187,7 +200,7 @@ const chatGptMcpFieldRows = [
     group: "OAuth avancé",
     field: "ID client OAuth",
     value: "Client ID créé dans /tok-connect/developer",
-    note: "À copier depuis le client sandbox ou production TOK Connect.",
+    note: "À copier depuis le client TOK Connect créé dans le même environnement que les URLs ci-dessus.",
   },
   {
     group: "OAuth avancé",
@@ -608,6 +621,10 @@ export default function TokConnect() {
                   <span className="font-black text-white"> Client OAuth défini par l'utilisateur</span>. Ne collez jamais
                   l'URL OAuth token dans URL du serveur.
                 </p>
+              </div>
+              <div className="rounded-lg border border-amber-300/35 bg-amber-400/12 p-4">
+                <p className="text-sm font-black text-amber-100">Erreur invalid_client</p>
+                <p className="mt-2 text-sm leading-6 text-amber-50/82">{CHATGPT_INVALID_CLIENT_HELP}</p>
               </div>
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 <MiniValue label="Serveur MCP" value={CHATGPT_MCP_SERVER_URL} />

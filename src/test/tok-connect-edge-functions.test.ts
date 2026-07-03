@@ -36,6 +36,8 @@ describe("TOK Connect Edge Functions", () => {
     expect(source).toContain("createRateLimiter");
     expect(source).toContain("tok_connect_access_tokens");
     expect(source).toContain("writeAuditLog");
+    expect(source).toContain("decodeOAuthBasicComponent");
+    expect(source).toContain("client_secret_basic");
     expect(source).not.toContain("service_role_key");
     expect(authSource).toContain("tok_connect_token_client_mismatch");
     expect(authSource).toContain("tok_connect_token_scope_revoked");
