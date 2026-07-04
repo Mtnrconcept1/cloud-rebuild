@@ -34,7 +34,7 @@ function extractFunction(sql: string, functionName: string) {
 
 describe("admin compta governance", () => {
   it("adds audited accounting locks, Stripe reconciliation and invoice mutation guards", () => {
-    const sql = latestMigrationContaining(/admin_month_locks/i);
+    const sql = latestMigrationContaining(/CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+public\.admin_month_locks/i);
     const lockFn = extractFunction(sql, "admin_set_accounting_month_lock");
     const controlFn = extractFunction(sql, "admin_get_accounting_period_control");
     const reconciliationFn = extractFunction(sql, "admin_get_accounting_stripe_reconciliation");
