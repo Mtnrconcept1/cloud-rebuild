@@ -24,7 +24,7 @@ function latestMigrationContaining(pattern: RegExp) {
 
 describe("admin feature flag governance", () => {
   it("adds audited feature flag history, presets and guarded admin RPCs", () => {
-    const sql = latestMigrationContaining(/feature_flag_audit_logs/i);
+    const sql = latestMigrationContaining(/CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+public\.feature_flag_audit_logs/i);
 
     expect(sql).toMatch(/CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+public\.feature_flag_audit_logs/i);
     expect(sql).toMatch(/CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.admin_get_feature_flag_audit_logs/i);

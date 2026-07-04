@@ -191,7 +191,7 @@ describe("phase 1 launch audit plan readiness", () => {
   });
 
   it("adds business finance, sales and AI cost governance tables with RLS", () => {
-    const migration = latestMigrationContaining("platform_revenue_entries");
+    const migration = latestMigrationContaining("CREATE TABLE IF NOT EXISTS public.platform_revenue_entries");
     const adminCompta = readProjectFile("src/pages/admin/AdminCompta.tsx");
     const sql = migration.source;
 
