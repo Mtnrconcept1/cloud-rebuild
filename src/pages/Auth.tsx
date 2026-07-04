@@ -820,7 +820,7 @@ export default function Auth() {
 
       toast({
         title: "Connexion commerciale",
-        description: `${account.displayName} ouvre son espace TOK de demonstration.`,
+        description: `${account.displayName} ouvre son espace TOK de démonstration.`,
       });
     } catch (error) {
       commercialDemoAutoRedirectRef.current = false;
@@ -1169,9 +1169,9 @@ export default function Auth() {
                 </div>
                 <div className="min-w-0 flex-1 space-y-3">
                   <div>
-                    <p className="font-semibold">Acces direct commerciaux</p>
+                    <p className="font-semibold">Accès direct commerciaux</p>
                     <p className="pt-1 text-slate-600">
-                      Selectionnez un commercial pour ouvrir sa demo sans saisir de mot de passe.
+                      Sélectionnez un commercial pour ouvrir sa démo sans saisir de mot de passe.
                     </p>
                   </div>
                   <div className="space-y-2">
@@ -1186,7 +1186,7 @@ export default function Auth() {
                       disabled={loading}
                       className="flex h-11 w-full rounded-md border border-orange-200 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition-colors focus:border-orange-500 focus:ring-2 focus:ring-orange-500/30 disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      <option value="">Selectionner un commercial...</option>
+                      <option value="">Sélectionner un commercial...</option>
                       {COMMERCIAL_DEMO_LOGINS.map((account) => (
                         <option key={account.username} value={account.username}>
                           {account.displayName} - {account.restaurantName}
@@ -1194,7 +1194,7 @@ export default function Auth() {
                       ))}
                     </select>
                     <p className="text-xs text-slate-500">
-                      Le compte ouvre les espaces commercial, client et restaurateur prevus pour la demonstration.
+                      Le compte ouvre les espaces commercial, client et restaurateur prévus pour la démonstration.
                     </p>
                   </div>
                 </div>
