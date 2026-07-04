@@ -450,7 +450,7 @@ export default function AdminUtilisateurs() {
         .order("updated_at", { ascending: false });
 
       if (error) throw error;
-      return (data || []) as CommercialCompensationProfile[];
+      return ((data || []) as unknown) as CommercialCompensationProfile[];
     },
   });
 
