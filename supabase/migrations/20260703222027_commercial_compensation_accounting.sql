@@ -168,6 +168,114 @@ AS $$
   END::numeric;
 $$;
 
+ALTER TABLE public.commercial_prospect_followups
+  ALTER COLUMN acquisition_commission_rate SET DEFAULT 0;
+
+COMMENT ON COLUMN public.commercial_prospect_followups.acquisition_commission_chf
+  IS 'Fixed acquisition commission snapshot for the commercial on the signed subscription.';
+
+COMMENT ON COLUMN public.commercial_prospect_followups.reservation_commission_rate
+  IS 'Recurring commercial share on the 5 CHF TOK reservation base. 0.02 means 0.10 CHF per honored reservation.';
+
+CREATE OR REPLACE FUNCTION public.get_commercial_prospect_commission_summary(
+  p_source_objectid bigint
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_actor_id uuid := auth.uid();
+  v_followup public.commercial_prospect_followups%ROWTYPE;
+  v_reservations_count integer := 0;
+  v_reservation_base_chf numeric := 0;
+  v_reservation_commission_chf numeric := 0;
+  v_reservation_rate numeric := 0.02;
+  v_reservation_start timestamptz;
+BEGIN
+  IF p_source_objectid IS NULL THEN
+    RAISE EXCEPTION 'source_objectid_required';
+  END IF;
+
+  IF auth.role() <> 'service_role'
+    AND NOT EXISTS (
+      SELECT 1
+      FROM public.user_roles ur
+      WHERE ur.user_id = v_actor_id
+        AND ur.role::text IN ('admin', 'commercial')
+    )
+  THEN
+    RAISE EXCEPTION 'forbidden';
+  END IF;
+
+  SELECT *
+  INTO v_followup
+  FROM public.commercial_prospect_followups cpf
+  WHERE cpf.source_objectid = p_source_objectid;
+
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object(
+      'exists', false,
+      'source_objectid', p_source_objectid
+    );
+  END IF;
+
+  v_reservation_start := COALESCE(
+    v_followup.reservation_commission_starts_at,
+    v_followup.signed_at,
+    v_followup.created_at
+  );
+
+  IF v_followup.status = 'signed'
+    AND v_followup.commercial_compensation_mode = 'fixed_plus_reservation'
+    AND v_followup.signed_restaurant_id IS NOT NULL
+  THEN
+    SELECT
+      COUNT(*)::integer,
+      (COUNT(*)::numeric * 5)::numeric
+    INTO v_reservations_count, v_reservation_base_chf
+    FROM public.reservations r
+    WHERE r.restaurant_id = v_followup.signed_restaurant_id
+      AND r.confirmed_at IS NOT NULL
+      AND r.confirmed_at >= v_reservation_start
+      AND COALESCE(r.status, '') NOT IN ('cancelled', 'canceled', 'no_show', 'no-show', 'pending', 'refused')
+      AND r.cancelled_by IS NULL;
+
+    v_reservation_rate := COALESCE(NULLIF(v_followup.reservation_commission_rate, 0), 0.02);
+    v_reservation_commission_chf := v_reservation_base_chf * v_reservation_rate;
+  END IF;
+
+  RETURN jsonb_build_object(
+    'exists', true,
+    'source_objectid', v_followup.source_objectid,
+    'signed_restaurant_id', v_followup.signed_restaurant_id,
+    'subscription', jsonb_build_object(
+      'plan_slug', v_followup.signed_subscription_plan_slug,
+      'plan_name', v_followup.signed_subscription_plan_name,
+      'billing_period', v_followup.signed_subscription_billing_period,
+      'monthly_price_chf', v_followup.signed_subscription_monthly_price_chf,
+      'contract_value_chf', v_followup.signed_subscription_contract_value_chf
+    ),
+    'acquisition_commission', jsonb_build_object(
+      'rate', v_followup.acquisition_commission_rate,
+      'amount_chf', round(COALESCE(v_followup.acquisition_commission_chf, 0), 2)
+    ),
+    'reservation_commission', jsonb_build_object(
+      'enabled', v_followup.commercial_compensation_mode = 'fixed_plus_reservation',
+      'rate', v_reservation_rate,
+      'tok_base_per_reservation_chf', 5,
+      'amount_per_reservation_chf', round(5 * v_reservation_rate, 2),
+      'starts_at', v_reservation_start,
+      'reservations_count', v_reservations_count,
+      'base_chf', round(v_reservation_base_chf, 2),
+      'amount_chf', round(v_reservation_commission_chf, 2)
+    )
+  );
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION public.admin_set_user_roles(
   p_user_id uuid,
   p_roles public.app_role[]
@@ -572,12 +680,14 @@ $$;
 REVOKE ALL ON FUNCTION public.commercial_plan_key(text) FROM PUBLIC, anon;
 REVOKE ALL ON FUNCTION public.commercial_signature_commission_chf(text, text) FROM PUBLIC, anon;
 REVOKE ALL ON FUNCTION public.commercial_sprint_bonus_chf(integer) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.get_commercial_prospect_commission_summary(bigint) FROM PUBLIC, anon;
 REVOKE ALL ON FUNCTION public.get_commercial_compensation_summary(uuid, date, date) FROM PUBLIC, anon;
 REVOKE ALL ON FUNCTION public.admin_set_user_roles(uuid, public.app_role[]) FROM PUBLIC, anon;
 
 GRANT EXECUTE ON FUNCTION public.commercial_plan_key(text) TO authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.commercial_signature_commission_chf(text, text) TO authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.commercial_sprint_bonus_chf(integer) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.get_commercial_prospect_commission_summary(bigint) TO authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.get_commercial_compensation_summary(uuid, date, date) TO authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.admin_set_user_roles(uuid, public.app_role[]) TO authenticated, service_role;
 

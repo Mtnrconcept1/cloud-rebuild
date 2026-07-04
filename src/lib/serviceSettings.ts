@@ -149,6 +149,48 @@ const parseServiceSettings = (value: unknown, fallback: ServiceSettings): Servic
   };
 };
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  Boolean(value && typeof value === "object" && !Array.isArray(value));
+
+const buildClosedServiceSettings = (fallback: ServiceSettings): ServiceSettings => ({
+  ...fallback,
+  online_booking_enabled: false,
+  service_closed: true,
+  slot_capacity_windows: [],
+});
+
+const parseConfiguredServiceSettings = (
+  value: unknown,
+  fallback: ServiceSettings,
+): ServiceSettings | null => {
+  if (!isRecord(value)) return null;
+
+  const startTime = typeof value.start_time === "string" ? value.start_time : "";
+  const endTime = typeof value.end_time === "string" ? value.end_time : "";
+  const lastReservationTime =
+    typeof value.last_reservation_time === "string"
+      ? value.last_reservation_time
+      : endTime;
+
+  if (
+    parseServiceTime(startTime) === null
+    || parseServiceTime(endTime) === null
+    || parseServiceTime(lastReservationTime) === null
+  ) {
+    return null;
+  }
+
+  return parseServiceSettings(
+    {
+      ...value,
+      start_time: startTime,
+      end_time: endTime,
+      last_reservation_time: lastReservationTime,
+    },
+    fallback,
+  );
+};
+
 export const getServiceSettings = (openingHours: Json | null | undefined): ServiceSettingsMap => {
   if (!openingHours || typeof openingHours !== "object" || Array.isArray(openingHours)) {
     return DEFAULT_SERVICE_SETTINGS;
@@ -168,6 +210,25 @@ export const getServiceSettings = (openingHours: Json | null | undefined): Servi
     dinner: parseServiceSettings(serviceSettingsRecord.dinner, DEFAULT_SERVICE_SETTINGS.dinner),
   };
 };
+
+export const getConfiguredServiceSettings = (openingHours: Json | null | undefined): ServiceSettingsMap | null => {
+  if (!isRecord(openingHours)) return null;
+
+  const nestedSettings = openingHours.service_settings;
+  const source = isRecord(nestedSettings) ? nestedSettings : openingHours;
+  const lunch = parseConfiguredServiceSettings(source.lunch, DEFAULT_SERVICE_SETTINGS.lunch);
+  const dinner = parseConfiguredServiceSettings(source.dinner, DEFAULT_SERVICE_SETTINGS.dinner);
+
+  if (!lunch && !dinner) return null;
+
+  return {
+    lunch: lunch ?? buildClosedServiceSettings(DEFAULT_SERVICE_SETTINGS.lunch),
+    dinner: dinner ?? buildClosedServiceSettings(DEFAULT_SERVICE_SETTINGS.dinner),
+  };
+};
+
+export const hasConfiguredServiceSettings = (openingHours: Json | null | undefined): boolean =>
+  getConfiguredServiceSettings(openingHours) !== null;
 
 export const mergeOpeningHoursWithServiceSettings = (
   openingHours: Json | null | undefined,

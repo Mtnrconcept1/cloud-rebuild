@@ -67,6 +67,17 @@ describe("delivery slots helpers", () => {
     expect(nextDate).toBe("2026-03-16");
   });
 
+  it("returns no slots when the restaurant profile has no configured service hours", () => {
+    const groups = buildDeliverySlotGroups({
+      openingHours: null,
+      dateValue: "2026-03-16",
+      leadMinutes: 30,
+      now: new Date("2026-03-16T10:00:00"),
+    });
+
+    expect(groups).toEqual([]);
+  });
+
   it("formats the scheduled delivery label for display", () => {
     expect(formatScheduledDeliveryLabel("2026-03-16", "19:30")).toContain("19:30");
   });

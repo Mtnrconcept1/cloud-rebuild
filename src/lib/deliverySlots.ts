@@ -1,8 +1,10 @@
 import type { Json } from "@/integrations/supabase/types";
 import {
   SERVICE_PERIOD_LABELS,
-  getServiceSettings,
+  getConfiguredServiceSettings,
+  hasConfiguredServiceSettings,
   type ServicePeriod,
+  type ServiceSettings,
 } from "@/lib/serviceSettings";
 
 export type DeliveryScheduleMode = "asap" | "scheduled";
@@ -61,7 +63,7 @@ export const getFrenchDayKey = (dateValue: string) => {
 
 export const isRestaurantOpenOnDate = (openingHours: Json | null | undefined, dateValue: string) => {
   if (!openingHours || typeof openingHours !== "object" || Array.isArray(openingHours)) {
-    return true;
+    return false;
   }
 
   const dayKey = getFrenchDayKey(dateValue);
@@ -70,7 +72,7 @@ export const isRestaurantOpenOnDate = (openingHours: Json | null | undefined, da
   const record = openingHours as Record<string, unknown>;
   const dayValue = record[dayKey];
 
-  if (typeof dayValue === "undefined") return true;
+  if (typeof dayValue === "undefined") return hasConfiguredServiceSettings(openingHours);
   if (dayValue === null) return false;
   if (typeof dayValue === "boolean") return dayValue;
   if (typeof dayValue === "string") {
@@ -82,7 +84,7 @@ export const isRestaurantOpenOnDate = (openingHours: Json | null | undefined, da
     if (typeof normalized.open === "boolean") return normalized.open;
   }
 
-  return true;
+  return hasConfiguredServiceSettings(openingHours);
 };
 
 export const buildDeliverySlotGroups = ({
@@ -102,14 +104,16 @@ export const buildDeliverySlotGroups = ({
     return [];
   }
 
-  const settingsMap = getServiceSettings(openingHours);
+  const settingsMap = getConfiguredServiceSettings(openingHours);
+  if (!settingsMap) return [];
+
   const todayValue = getTodayDateValue(now);
   const thresholdMinutes =
     dateValue === todayValue
       ? now.getHours() * 60 + now.getMinutes() + leadMinutes
       : null;
 
-  return (Object.entries(settingsMap) as [ServicePeriod, ReturnType<typeof getServiceSettings>[ServicePeriod]][])
+  return (Object.entries(settingsMap) as [ServicePeriod, ServiceSettings][])
     .flatMap(([service, settings]) => {
       if (!settings.online_booking_enabled || settings.service_closed) {
         return [];

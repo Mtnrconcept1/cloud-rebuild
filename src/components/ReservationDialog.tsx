@@ -38,7 +38,7 @@ import {
   type ReservationSlotAvailability,
 } from "@/lib/reservationAvailability";
 import { createReservationWithValidation } from "@/lib/reservationMutations";
-import { detectServiceFromTime, getServiceSettings, isTimeWithinService } from "@/lib/serviceSettings";
+import { detectServiceFromTime, getConfiguredServiceSettings, isTimeWithinService } from "@/lib/serviceSettings";
 import { buildZeroAttenteReservationUrl } from "@/lib/zeroAttenteReservationContext";
 
 const supabase = getSupabase();
@@ -304,7 +304,7 @@ export default function ReservationDialog({
     queryFn: async () => {
       const { data, error } = await supabase.from("restaurants").select("opening_hours").eq("id", restaurantId).maybeSingle();
       if (error) throw error;
-      return getServiceSettings(data?.opening_hours);
+      return getConfiguredServiceSettings(data?.opening_hours);
     },
     enabled: open && !!restaurantId,
   });
@@ -340,31 +340,33 @@ export default function ReservationDialog({
     slotAvailability.map((slot) => [slot.slot_time, Number(slot.reserved_tables || 0)]),
   );
 
-  const slotGroups = buildReservationSlotGroups({
-    serviceSettings: restaurantSettings || getServiceSettings(null),
-    selectedDate: date,
-    reservedTablesByTime,
-  }).map((group) => ({
-    ...group,
-    slots: group.slots.map((slot) => {
-      const serverSlot = slotAvailabilityByTime.get(slot.time);
-      if (!serverSlot) return slot;
-      const remainingTables = Math.max(0, Number(serverSlot.remaining_tables || 0));
-      const available = Boolean(serverSlot.available) && remainingTables > 0;
-      return {
-        ...slot,
-        capacity: Number(serverSlot.capacity || slot.capacity),
-        reservedTables: Number(serverSlot.reserved_tables || 0),
-        remainingTables,
-        available,
-        disabledReason: available ? null : "Complet",
-      };
-    }),
-  }));
+  const slotGroups = restaurantSettings
+    ? buildReservationSlotGroups({
+        serviceSettings: restaurantSettings,
+        selectedDate: date,
+        reservedTablesByTime,
+      }).map((group) => ({
+        ...group,
+        slots: group.slots.map((slot) => {
+          const serverSlot = slotAvailabilityByTime.get(slot.time);
+          if (!serverSlot) return slot;
+          const remainingTables = Math.max(0, Number(serverSlot.remaining_tables || 0));
+          const available = Boolean(serverSlot.available) && remainingTables > 0;
+          return {
+            ...slot,
+            capacity: Number(serverSlot.capacity || slot.capacity),
+            reservedTables: Number(serverSlot.reserved_tables || 0),
+            remainingTables,
+            available,
+            disabledReason: available ? null : "Complet",
+          };
+        }),
+      }))
+    : [];
 
   const availableSlots = slotGroups.flatMap((group) => group.slots).filter((slot) => slot.available);
   const selectedSlot = slotGroups.flatMap((group) => group.slots).find((slot) => slot.time === time) || null;
-  const selectedServiceSettings = (restaurantSettings || getServiceSettings(null))[detectServiceFromTime(time)];
+  const selectedServiceSettings = restaurantSettings?.[detectServiceFromTime(time)];
   const partySizeMin = selectedServiceSettings?.min_party_size || 1;
   const partySizeMax = selectedServiceSettings?.max_party_size || 20;
 
@@ -395,7 +397,16 @@ export default function ReservationDialog({
   const handleSubmit = async () => {
     if (!user || !date) return;
 
-    const settingsMap = restaurantSettings || getServiceSettings(null);
+    if (!restaurantSettings) {
+      toast({
+        title: "Horaires indisponibles",
+        description: "Ce restaurant n'a pas encore configure ses horaires de reservation en ligne.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const settingsMap = restaurantSettings;
     const servicePeriod = detectServiceFromTime(time);
     const serviceSettings = settingsMap[servicePeriod];
 

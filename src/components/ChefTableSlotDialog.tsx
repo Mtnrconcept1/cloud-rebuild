@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
+  DEFAULT_SERVICE_SETTINGS,
   detectServiceFromTime,
   generateDailyTimeSlots,
   type ServiceSettingsMap,
@@ -26,7 +27,7 @@ interface ChefTableSlotDialogProps {
   dishName: string;
   chefName: string;
   restaurantName: string;
-  serviceSettings: ServiceSettingsMap;
+  serviceSettings: ServiceSettingsMap | null;
   pricePerGuest?: number | null;
   remainingPortions?: number | null;
   initialDate?: Date | null;
@@ -77,12 +78,15 @@ export default function ChefTableSlotDialog({
   const [partySize, setPartySize] = useState(1);
   const [popoverOpen, setPopoverOpen] = useState(false);
 
-  const slots = useMemo(() => generateDailyTimeSlots(serviceSettings, 30), [serviceSettings]);
-  const selectedService = useMemo(
-    () => detectServiceFromTime(selectedTime || initialTime || serviceSettings.dinner.start_time),
-    [initialTime, selectedTime, serviceSettings.dinner.start_time],
+  const slots = useMemo(
+    () => serviceSettings ? generateDailyTimeSlots(serviceSettings, 30) : { lunch: [], dinner: [], all: [] },
+    [serviceSettings],
   );
-  const partyBounds = serviceSettings[selectedService];
+  const selectedService = useMemo(
+    () => detectServiceFromTime(selectedTime || initialTime || serviceSettings?.dinner.start_time || DEFAULT_SERVICE_SETTINGS.dinner.start_time),
+    [initialTime, selectedTime, serviceSettings?.dinner.start_time],
+  );
+  const partyBounds = serviceSettings?.[selectedService] ?? DEFAULT_SERVICE_SETTINGS[selectedService];
   const totalAmount = Math.max(0, Number(pricePerGuest || 0) * partySize);
   const selectedDateLabel = format(selectedDate, "EEEE d MMMM", { locale: fr });
 
@@ -96,8 +100,8 @@ export default function ChefTableSlotDialog({
       : slots.dinner[0] ?? slots.lunch[0] ?? null;
     setSelectedTime(nextTime);
 
-    const nextService = detectServiceFromTime(nextTime || serviceSettings.dinner.start_time);
-    const nextSettings = serviceSettings[nextService];
+    const nextService = detectServiceFromTime(nextTime || serviceSettings?.dinner.start_time || DEFAULT_SERVICE_SETTINGS.dinner.start_time);
+    const nextSettings = serviceSettings?.[nextService] ?? DEFAULT_SERVICE_SETTINGS[nextService];
     const nextPartySize = Math.max(
       nextSettings.min_party_size,
       Math.min(initialPartySize || 1, nextSettings.max_party_size),
@@ -112,7 +116,7 @@ export default function ChefTableSlotDialog({
   }, [partyBounds.max_party_size, partyBounds.min_party_size]);
 
   const handleConfirm = () => {
-    if (!selectedTime) return;
+    if (!serviceSettings || !selectedTime) return;
     onConfirm(buildIsoFromDateAndTime(selectedDate, selectedTime), partySize);
     onOpenChange(false);
   };
@@ -334,7 +338,7 @@ export default function ChefTableSlotDialog({
           </Button>
           <Button
             onClick={handleConfirm}
-            disabled={!selectedTime}
+            disabled={!serviceSettings || !selectedTime}
             className="rounded-2xl bg-amber-500 text-white shadow-[0_20px_50px_-26px_rgba(245,158,11,0.92)] hover:bg-amber-600"
           >
             Continuer vers le paiement · {partySize} convive{partySize > 1 ? "s" : ""}

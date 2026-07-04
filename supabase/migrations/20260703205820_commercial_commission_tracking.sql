@@ -9,7 +9,7 @@ ALTER TABLE public.commercial_prospect_followups
   ADD COLUMN IF NOT EXISTS signed_subscription_billing_period text NOT NULL DEFAULT 'monthly',
   ADD COLUMN IF NOT EXISTS signed_subscription_monthly_price_chf numeric(10, 2),
   ADD COLUMN IF NOT EXISTS signed_subscription_contract_value_chf numeric(10, 2),
-  ADD COLUMN IF NOT EXISTS acquisition_commission_rate numeric(6, 4) NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS acquisition_commission_rate numeric(6, 4) NOT NULL DEFAULT 0.10,
   ADD COLUMN IF NOT EXISTS acquisition_commission_chf numeric(10, 2) NOT NULL DEFAULT 0,
   ADD COLUMN IF NOT EXISTS commercial_compensation_mode text NOT NULL DEFAULT 'commission_only',
   ADD COLUMN IF NOT EXISTS reservation_commission_rate numeric(6, 4) NOT NULL DEFAULT 0,
@@ -88,13 +88,13 @@ COMMENT ON COLUMN public.commercial_prospect_followups.signed_subscription_billi
   IS 'Billing period snapshot for the signed subscription: monthly or yearly.';
 
 COMMENT ON COLUMN public.commercial_prospect_followups.acquisition_commission_chf
-  IS 'Fixed acquisition commission snapshot for the commercial on the signed subscription.';
+  IS 'Calculated acquisition commission snapshot for the commercial on the signed subscription.';
 
 COMMENT ON COLUMN public.commercial_prospect_followups.commercial_compensation_mode
   IS 'Commercial compensation mode for this signed prospect.';
 
 COMMENT ON COLUMN public.commercial_prospect_followups.reservation_commission_rate
-  IS 'Recurring commercial share on the 5 CHF TOK reservation base. 0.02 means 0.10 CHF per honored reservation.';
+  IS 'Reservation commission rate for fixed commercial compensation mode. Defaults to 0 unless fixed mode applies.';
 
 CREATE OR REPLACE FUNCTION public.get_commercial_prospect_commission_summary(
   p_source_objectid bigint
@@ -111,7 +111,6 @@ DECLARE
   v_reservations_count integer := 0;
   v_reservation_base_chf numeric := 0;
   v_reservation_commission_chf numeric := 0;
-  v_reservation_rate numeric := 0.02;
   v_reservation_start timestamptz;
 BEGIN
   IF p_source_objectid IS NULL THEN
@@ -153,17 +152,15 @@ BEGIN
   THEN
     SELECT
       COUNT(*)::integer,
-      (COUNT(*)::numeric * 5)::numeric
+      COALESCE(SUM(GREATEST(COALESCE(r.total_amount, 0), COALESCE(r.billing_fee_chf, 0))), 0)::numeric
     INTO v_reservations_count, v_reservation_base_chf
     FROM public.reservations r
     WHERE r.restaurant_id = v_followup.signed_restaurant_id
       AND r.confirmed_at IS NOT NULL
       AND r.confirmed_at >= v_reservation_start
-      AND COALESCE(r.status, '') NOT IN ('cancelled', 'canceled', 'no_show', 'no-show', 'pending', 'refused')
-      AND r.cancelled_by IS NULL;
+      AND NOT (r.status = 'cancelled' AND r.cancelled_by IN ('customer', 'admin'));
 
-    v_reservation_rate := COALESCE(NULLIF(v_followup.reservation_commission_rate, 0), 0.02);
-    v_reservation_commission_chf := v_reservation_base_chf * v_reservation_rate;
+    v_reservation_commission_chf := v_reservation_base_chf * COALESCE(v_followup.reservation_commission_rate, 0);
   END IF;
 
   RETURN jsonb_build_object(
@@ -183,9 +180,7 @@ BEGIN
     ),
     'reservation_commission', jsonb_build_object(
       'enabled', v_followup.commercial_compensation_mode = 'fixed_plus_reservation',
-      'rate', v_reservation_rate,
-      'tok_base_per_reservation_chf', 5,
-      'amount_per_reservation_chf', round(5 * v_reservation_rate, 2),
+      'rate', v_followup.reservation_commission_rate,
       'starts_at', v_reservation_start,
       'reservations_count', v_reservations_count,
       'base_chf', round(v_reservation_base_chf, 2),

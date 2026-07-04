@@ -148,8 +148,9 @@ describe("commercial prospecting surface", () => {
     expect(commissionMigration).toContain("reservation_commission_rate numeric(6, 4) NOT NULL DEFAULT 0");
     expect(commissionMigration).toContain("CREATE OR REPLACE FUNCTION public.get_commercial_prospect_commission_summary");
     expect(commissionMigration).toContain("v_followup.commercial_compensation_mode = 'fixed_plus_reservation'");
-    expect(commissionMigration).toContain("COUNT(*)::numeric * 5");
-    expect(commissionMigration).toContain("'amount_per_reservation_chf'");
+    expect(accountingMigration).toContain("ALTER COLUMN acquisition_commission_rate SET DEFAULT 0");
+    expect(accountingMigration).toContain("COUNT(*)::numeric * 5");
+    expect(accountingMigration).toContain("'amount_per_reservation_chf'");
     expect(accountingMigration).toContain("CREATE TABLE IF NOT EXISTS public.commercial_compensation_profiles");
     expect(accountingMigration).toContain("CREATE TABLE IF NOT EXISTS public.commercial_compensation_adjustments");
     expect(accountingMigration).toContain("public.commercial_signature_commission_chf");

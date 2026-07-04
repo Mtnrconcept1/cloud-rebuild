@@ -16,7 +16,7 @@ import {
   isReservationCalendarDateDisabled,
   type ReservationSlotAvailability,
 } from "@/lib/reservationAvailability";
-import { getServiceSettings } from "@/lib/serviceSettings";
+import { getConfiguredServiceSettings, type ServiceSettingsMap } from "@/lib/serviceSettings";
 
 const supabase = getSupabase();
 
@@ -29,7 +29,7 @@ interface ReservationWidgetProps {
 
 const FALLBACK_PARTY_SIZES = [1, 2, 3, 4, 5, 6, 7, 8];
 
-function buildPartySizes(settings: ReturnType<typeof getServiceSettings>): number[] {
+function buildPartySizes(settings: ServiceSettingsMap): number[] {
   const min = Math.min(settings.lunch.min_party_size, settings.dinner.min_party_size);
   const max = Math.max(settings.lunch.max_party_size, settings.dinner.max_party_size);
   const sizes: number[] = [];
@@ -57,7 +57,7 @@ export default function ReservationWidget({ restaurantId, restaurantName, onRese
     queryFn: async () => {
       const { data, error } = await supabase.from("restaurants").select("opening_hours").eq("id", restaurantId).maybeSingle();
       if (error) throw error;
-      return getServiceSettings(data?.opening_hours);
+      return getConfiguredServiceSettings(data?.opening_hours);
     },
     enabled: !!restaurantId,
   });
@@ -93,8 +93,10 @@ export default function ReservationWidget({ restaurantId, restaurantName, onRese
     );
     const slotAvailabilityByTime = new Map(slotAvailability.map((slot) => [slot.slot_time, slot]));
 
+    if (!serviceSettingsData) return [];
+
     return buildReservationSlotGroups({
-      serviceSettings: serviceSettingsData || getServiceSettings(null),
+      serviceSettings: serviceSettingsData,
       selectedDate: date,
       reservedTablesByTime,
     }).map((group) => ({
@@ -128,12 +130,12 @@ export default function ReservationWidget({ restaurantId, restaurantName, onRese
 
   useEffect(() => {
     if (!onSelectionChange) return;
-    if (!date) {
+    if (!date || !selectedSlot?.available) {
       onSelectionChange(null);
       return;
     }
     onSelectionChange({ date, time, partySize: Number(partySize) });
-  }, [date, onSelectionChange, partySize, time]);
+  }, [date, onSelectionChange, partySize, selectedSlot?.available, time]);
 
   const PARTY_SIZES = useMemo(() => {
     if (!serviceSettingsData) return FALLBACK_PARTY_SIZES;
