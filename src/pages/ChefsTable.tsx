@@ -26,6 +26,7 @@ import { FeatureWizard, WizardNextButton } from "@/components/FeatureWizard";
 import ReservationDetailModal from "@/components/ReservationDetailModal";
 import ChefTableSlotDialog from "@/components/ChefTableSlotDialog";
 import { useIsTokOneMember } from "@/hooks/useTokOne";
+import { invokeSupabaseFunction } from "@/lib/session";
 import {
   generateDailyTimeSlots,
   getConfiguredServiceSettings,
@@ -598,7 +599,7 @@ export default function ChefsTable() {
     attemptedFinalizationRef.current.add(sessionId);
 
     try {
-      const { data, error } = await supabase.functions.invoke("create-chefs-table-reservation", {
+      const { data, error } = await invokeSupabaseFunction<{ reservations?: ConfirmedChefReservation[] }>("create-chefs-table-reservation", {
         body: { session_id: sessionId },
       });
 

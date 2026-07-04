@@ -776,7 +776,8 @@ export default function Panier() {
         }
 
         const { data: checkoutData, error: checkoutError } = await withTimeout(
-          supabase.functions.invoke("create-checkout", {
+          invokeSupabaseFunction<CreateCheckoutFunctionResponse>("create-checkout", {
+            accessToken,
             body: {
               checkout_kind: "chefs-table",
               items: chefsTableItems.map((item) => ({
@@ -1966,7 +1967,11 @@ export default function Panier() {
           paymentMethod={paymentMethod}
           setPaymentMethod={setPaymentMethod}
           allowedMethods={allowedPaymentMethods}
-          cashDescription="Le paiement en espèces n'est pas disponible pour ce parcours."
+          cashDescription={
+            allowedPaymentMethods.includes("cash")
+              ? "Le paiement sera effectué sur place lors du retrait ou de la livraison."
+              : "Le paiement en espèces n'est pas disponible pour ce parcours."
+          }
           variant={isChefsTableCheckout ? "chef-table" : "default"}
           secureDescription={isChefsTableCheckout
             ? "Paiement sécurisé requis pour confirmer votre réservation La Table du Chef"

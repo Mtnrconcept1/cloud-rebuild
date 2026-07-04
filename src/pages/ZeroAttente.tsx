@@ -33,6 +33,7 @@ import {
 } from "@/lib/paymentMethods";
 import { readZeroAttenteReservationContext } from "@/lib/zeroAttenteReservationContext";
 import { PUBLIC_MENU_ITEMS_LIMIT } from "@/lib/queryLimits";
+import { invokeSupabaseFunction } from "@/lib/session";
 
 const supabase = getSupabase();
 
@@ -340,6 +341,19 @@ export default function ZeroAttente() {
 
     setLoading(true);
     const pricingForCheckout: PricingSummary = { ...currentPricing };
+    let accessToken = "";
+
+    try {
+      accessToken = await getFreshAccessToken();
+    } catch {
+      setLoading(false);
+      toast({
+        title: "Reconnectez-vous",
+        description: "Votre session doit être revalidée avant de lancer le paiement Zéro Attente.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     const preorderItems = Object.entries(quantities)
       .filter(([, qty]) => qty > 0)
@@ -366,7 +380,11 @@ export default function ZeroAttente() {
         metadata: {},
       }));
 
-      const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke("create-checkout", {
+      const { data: checkoutData, error: checkoutError } = await invokeSupabaseFunction<{
+        error?: string | null;
+        url?: string | null;
+      }>("create-checkout", {
+        accessToken,
         body: {
           checkout_kind: "zero-attente",
           items: stripeItems,
@@ -443,7 +461,7 @@ export default function ZeroAttente() {
 
       if (!reservationRecord) {
         await getFreshAccessToken();
-        const { error: finalizeError } = await supabase.functions.invoke("create-zero-attente-reservation", {
+        const { error: finalizeError } = await invokeSupabaseFunction("create-zero-attente-reservation", {
           body: { session_id: checkoutSessionId },
         });
 

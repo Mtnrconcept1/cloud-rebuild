@@ -18,4 +18,14 @@ describe("user-facing error messages", () => {
       "Veuillez vous connecter pour continuer.",
     );
   });
+
+  it("does not rewrite product toast titles that only mention payment", () => {
+    expect(getUserFacingErrorMessage("Erreur lors du paiement")).toBe("Erreur lors du paiement");
+  });
+
+  it("still hides technical checkout and Stripe payment details", () => {
+    expect(getUserFacingErrorMessage("Stripe checkout session payment_intent failed")).toBe(
+      "Le paiement n'a pas pu être finalisé. Aucun détail technique n'a été affiché pour votre sécurité.",
+    );
+  });
 });

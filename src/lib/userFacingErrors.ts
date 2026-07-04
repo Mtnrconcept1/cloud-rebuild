@@ -49,7 +49,19 @@ const SENSITIVE_ERROR_PATTERNS = [
 
 const AUTH_ERROR_PATTERNS = [/connexion requise/i, /connecter/i, /session.*expir/i, /unauthorized/i, /jwt/i, /refresh token/i];
 const NETWORK_ERROR_PATTERNS = [/failed to fetch/i, /networkerror/i, /network/i, /connexion.*instable/i];
-const PAYMENT_ERROR_PATTERNS = [/stripe/i, /checkout/i, /paiement/i, /payment/i];
+const PAYMENT_ERROR_PATTERNS = [
+  /stripe/i,
+  /checkout/i,
+  /payment[_\s-]?intent/i,
+  /payment[_\s-]?method/i,
+  /session.*paiement/i,
+  /paiement.*session/i,
+  /paiement.*finalis/i,
+  /paiement.*impossible/i,
+  /payment.*final/i,
+  /payment.*failed/i,
+  /payment.*invalid/i,
+];
 
 function sanitizeMessage(message: string) {
   if (AUTH_ERROR_PATTERNS.some((pattern) => pattern.test(message))) return AUTH_ERROR_MESSAGE;
