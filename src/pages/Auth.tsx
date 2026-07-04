@@ -47,6 +47,7 @@ import { useTokLogoSrc } from "@/hooks/useTokLogo";
 import { COURIER_VEHICLE_OPTIONS } from "@/lib/courier";
 import TurnstileCaptcha from "@/components/security/TurnstileCaptcha";
 import { isCaptchaEnabled } from "@/lib/captcha";
+import { COMMERCIAL_DEMO_LOGINS, getCommercialDemoLogin } from "@/lib/commercialDemoLogins";
 import {
   buildSanitizedAuthRedirectUrl,
   getSupabaseAuthRedirectState,
@@ -578,7 +579,9 @@ export default function Auth() {
   const [contractSignatureDataUrl, setContractSignatureDataUrl] = useState("");
   const [subscriptionPlans, setSubscriptionPlans] = useState<RestaurantSubscriptionPlanOption[]>([]);
   const [subscriptionPlansLoading, setSubscriptionPlansLoading] = useState(false);
+  const [selectedCommercialDemoUsername, setSelectedCommercialDemoUsername] = useState("");
   const authRedirectHandledRef = useRef(false);
+  const commercialDemoAutoRedirectRef = useRef(false);
   const { activeFeatures, loading: featureFlagsLoading } = useFeatureFlagSnapshot();
   const courierSignupEnabled = activeFeatures.has("espace-livreur");
 
@@ -671,6 +674,13 @@ export default function Auth() {
   useEffect(() => {
     if (!user || roles.length === 0 || privilegedSignupSubmitting || featureFlagsLoading) return;
 
+    if (commercialDemoAutoRedirectRef.current && switchableRoles.includes("commercial")) {
+      commercialDemoAutoRedirectRef.current = false;
+      switchRole("commercial");
+      navigate(getPostAuthTarget("commercial"), { replace: true });
+      return;
+    }
+
     if (canSwitchRole && switchableRoles.length > 1) {
       if (!showRolePicker) setShowRolePicker(true);
       return;
@@ -680,7 +690,7 @@ export default function Auth() {
       ? role
       : switchableRoles[0] || getDefaultActiveRole(roles);
     navigate(getPostAuthTarget(targetRole), { replace: true });
-  }, [canSwitchRole, featureFlagsLoading, getPostAuthTarget, navigate, privilegedSignupSubmitting, role, roles, showRolePicker, switchableRoles, user]);
+  }, [canSwitchRole, featureFlagsLoading, getPostAuthTarget, navigate, privilegedSignupSubmitting, role, roles, showRolePicker, switchRole, switchableRoles, user]);
 
   useEffect(() => {
     if (!featureFlagsLoading && !courierSignupEnabled && roleMode === "courier") {
@@ -785,6 +795,40 @@ export default function Auth() {
       });
     }
     setResendLoading(false);
+  };
+
+  const handleCommercialDemoLogin = async (username: string) => {
+    const account = getCommercialDemoLogin(username);
+    setSelectedCommercialDemoUsername(username);
+    if (!account) return;
+
+    setLoading(true);
+    commercialDemoAutoRedirectRef.current = true;
+
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: account.email,
+        password: account.username,
+        options: {
+          captchaToken: captchaToken || undefined,
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Connexion commerciale",
+        description: `${account.displayName} ouvre son espace TOK de demonstration.`,
+      });
+    } catch (error) {
+      commercialDemoAutoRedirectRef.current = false;
+      const message = error instanceof Error ? error.message : "Connexion impossible.";
+      toast({ title: "Erreur", description: message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const updateSignupField = <K extends keyof SignupFormState>(key: K, value: SignupFormState[K]) => {
@@ -1115,6 +1159,46 @@ export default function Auth() {
               <p className="pt-1 text-muted-foreground">
                 Une fois connecté, vous reviendrez automatiquement à votre parcours en cours.
               </p>
+            </div>
+          ) : null}
+          {isLogin && !forgotPassword ? (
+            <div className="rounded-2xl border border-orange-200 bg-orange-50/80 p-4 text-sm text-slate-950 shadow-sm">
+              <div className="flex items-start gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-orange-500 text-white shadow-sm">
+                  <BriefcaseBusiness className="h-5 w-5" />
+                </div>
+                <div className="min-w-0 flex-1 space-y-3">
+                  <div>
+                    <p className="font-semibold">Acces direct commerciaux</p>
+                    <p className="pt-1 text-slate-600">
+                      Selectionnez un commercial pour ouvrir sa demo sans saisir de mot de passe.
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="commercial-demo-login">Nom du commercial</Label>
+                    <select
+                      id="commercial-demo-login"
+                      value={selectedCommercialDemoUsername}
+                      onChange={(event) => {
+                        const username = event.target.value;
+                        if (username) void handleCommercialDemoLogin(username);
+                      }}
+                      disabled={loading}
+                      className="flex h-11 w-full rounded-md border border-orange-200 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition-colors focus:border-orange-500 focus:ring-2 focus:ring-orange-500/30 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      <option value="">Selectionner un commercial...</option>
+                      {COMMERCIAL_DEMO_LOGINS.map((account) => (
+                        <option key={account.username} value={account.username}>
+                          {account.displayName} - {account.restaurantName}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-slate-500">
+                      Le compte ouvre les espaces commercial, client et restaurateur prevus pour la demonstration.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           ) : null}
           {!isLogin ? (

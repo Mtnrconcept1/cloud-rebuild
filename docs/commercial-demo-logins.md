@@ -11,6 +11,10 @@ Each login has three roles:
 
 The password/code is exactly the same text as the username.
 
+On the `/auth` page, the commercial demo selector signs these accounts in
+directly from the selected commercial name. The standard email/password login
+remains available for normal users.
+
 | Username | Login email | Code/password | Demo restaurant |
 | --- | --- | --- | --- |
 | `commercial01` | `commercial01@demo.thetok.ch` | `commercial01` | Bistro Demo Jet |

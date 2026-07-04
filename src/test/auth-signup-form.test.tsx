@@ -244,6 +244,37 @@ describe("Auth signup form", () => {
     expect(supabaseMocks.signInWithPassword).not.toHaveBeenCalled();
   });
 
+  it("opens a commercial demo session from the commercial selector without typing a password", async () => {
+    supabaseMocks.signInWithPassword.mockResolvedValue({
+      data: {
+        session: { access_token: "commercial-demo-session" },
+        user: { id: "commercial-demo-user" },
+      },
+      error: null,
+    });
+
+    await renderAuth("/auth?type=client");
+
+    fireEvent.change(screen.getByLabelText("Nom du commercial"), {
+      target: { value: "commercial03" },
+    });
+
+    await waitFor(() => {
+      expect(supabaseMocks.signInWithPassword).toHaveBeenCalledWith({
+        email: "commercial03@demo.thetok.ch",
+        password: "commercial03",
+        options: {
+          captchaToken: undefined,
+        },
+      });
+    });
+    expect(toastMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: "Connexion commerciale",
+      }),
+    );
+  });
+
   it("starts Google OAuth through the PKCE callback URL", async () => {
     supabaseMocks.signInWithOAuth.mockResolvedValue({ error: null });
     await renderAuth("/auth?type=client");

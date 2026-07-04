@@ -2,6 +2,8 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
+import { COMMERCIAL_DEMO_LOGINS, getCommercialDemoLogin } from "@/lib/commercialDemoLogins";
+
 const root = process.cwd();
 const functionSource = readFileSync(
   resolve(root, "supabase/functions/provision-commercial-demo-logins/index.ts"),
@@ -22,12 +24,19 @@ describe("commercial demo login provisioning", () => {
       .map((match) => ({ username: match[1], password: match[2] }));
 
     expect(accounts).toHaveLength(10);
+    expect(COMMERCIAL_DEMO_LOGINS).toHaveLength(10);
     expect(new Set(accounts.map((account) => account.username)).size).toBe(10);
 
     for (const account of accounts) {
       expect(account.password).toBe(account.username);
       expect(docsSource).toContain(`\`${account.username}\``);
       expect(docsSource).toContain(`\`${account.username}@demo.thetok.ch\``);
+      expect(getCommercialDemoLogin(account.username)).toEqual(
+        expect.objectContaining({
+          username: account.username,
+          email: `${account.username}@demo.thetok.ch`,
+        }),
+      );
     }
   });
 
