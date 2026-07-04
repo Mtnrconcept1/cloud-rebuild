@@ -56,9 +56,12 @@ describe("commercial demo login provisioning", () => {
     expect(functionSource).toContain("service_settings");
   });
 
-  it("keeps Auth user creation server-side and admin/service protected", () => {
+  it("keeps Auth user creation server-side and limits public bootstrap to demo usernames", () => {
     expect(functionSource).toContain("auth.admin.createUser");
     expect(functionSource).toContain("auth.admin.updateUserById");
+    expect(functionSource).toContain("findCommercialDemoAccount(body?.username)");
+    expect(functionSource).toContain("body?.demo_login === true");
+    expect(functionSource).toContain('action: "prepare_public_login"');
     expect(functionSource).toContain("authenticateRequest(req, { allowServiceRole: true })");
     expect(functionSource).toContain('requireRole(actor, ["admin"])');
     expect(scriptSource).toContain("SUPABASE_SERVICE_ROLE_KEY");

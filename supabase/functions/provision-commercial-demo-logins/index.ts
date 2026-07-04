@@ -349,6 +349,16 @@ const COMMERCIAL_DEMO_ACCOUNTS: DemoAccount[] = [
   },
 ];
 
+function normalizeDemoUsername(value: unknown) {
+  return typeof value === "string" ? value.trim().toLowerCase() : "";
+}
+
+function findCommercialDemoAccount(username: unknown) {
+  const normalizedUsername = normalizeDemoUsername(username);
+  if (!normalizedUsername) return null;
+  return COMMERCIAL_DEMO_ACCOUNTS.find((account) => account.username === normalizedUsername) || null;
+}
+
 function openingHours() {
   const weekday = { open: "10:30", close: "22:30", closed: false };
   const saturday = { open: "11:00", close: "23:00", closed: false };
@@ -831,10 +841,52 @@ Deno.serve(async (req) => {
       throw new HttpError(405, "Method not allowed");
     }
 
+    const body = await req.json().catch(() => ({}));
+    const publicDemoLogin = body?.demo_login === true;
+
+    if (publicDemoLogin) {
+      const account = findCommercialDemoAccount(body?.username);
+      if (!account) {
+        throw new HttpError(400, "Compte commercial démo inconnu.");
+      }
+
+      const adminClient = createAdminClient();
+      const credential = await provisionOne(adminClient, account);
+
+      log.info("commercial_demo_account_prepared_for_login", {
+        username: credential.username,
+        user_id: credential.user_id,
+      });
+
+      await writeAuditLog({
+        adminClient,
+        actor: null,
+        request: req,
+        functionName: "provision-commercial-demo-logins",
+        action: "prepare_public_login",
+        status: "success",
+        targetEntityType: "commercial_demo_account",
+        targetEntityId: credential.username,
+        metadata: {
+          public_demo_login: true,
+          username: credential.username,
+          restaurant_id: credential.restaurant_id,
+        },
+      });
+
+      return jsonResponse({
+        ok: true,
+        prepared: true,
+        username: credential.username,
+        email: credential.email,
+        restaurant_name: credential.restaurant_name,
+        roles: credential.roles,
+      }, 200, corsHeaders);
+    }
+
     actor = await authenticateRequest(req, { allowServiceRole: true });
     requireRole(actor, ["admin"]);
 
-    const body = await req.json().catch(() => ({}));
     const dryRun = body?.dry_run === true;
 
     if (dryRun) {

@@ -47,7 +47,7 @@ import { useTokLogoSrc } from "@/hooks/useTokLogo";
 import { COURIER_VEHICLE_OPTIONS } from "@/lib/courier";
 import TurnstileCaptcha from "@/components/security/TurnstileCaptcha";
 import { isCaptchaEnabled } from "@/lib/captcha";
-import { COMMERCIAL_DEMO_LOGINS, getCommercialDemoLogin } from "@/lib/commercialDemoLogins";
+import { COMMERCIAL_DEMO_LOGINS, getCommercialDemoLogin, type CommercialDemoLogin } from "@/lib/commercialDemoLogins";
 import {
   buildSanitizedAuthRedirectUrl,
   getSupabaseAuthRedirectState,
@@ -56,6 +56,15 @@ import { getPostAuthTargetForRole } from "@/lib/authPostLogin";
 
 const supabase = getSupabase();
 const LEGAL_ACCEPTANCE_VERSION = "2026-06-15";
+
+function getCommercialDemoCredentialErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message.toLowerCase() : "";
+}
+
+function isInvalidCommercialDemoCredentialError(error: unknown) {
+  const message = getCommercialDemoCredentialErrorMessage(error);
+  return message.includes("invalid") && message.includes("credential");
+}
 
 type SignupFormState = {
   fullName: string;
@@ -806,13 +815,45 @@ export default function Auth() {
     commercialDemoAutoRedirectRef.current = true;
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: account.email,
-        password: account.username,
-        options: {
-          captchaToken: captchaToken || undefined,
-        },
-      });
+      const signInCommercialDemoAccount = async (demoAccount: CommercialDemoLogin) =>
+        supabase.auth.signInWithPassword({
+          email: demoAccount.email,
+          password: demoAccount.username,
+          options: {
+            captchaToken: captchaToken || undefined,
+          },
+        });
+
+      let demoPreparationError: string | null = null;
+
+      try {
+        const { data: provisionData, error: provisionError } = await supabase.functions.invoke<{
+          ok?: boolean;
+          error?: string;
+        }>("provision-commercial-demo-logins", {
+          body: {
+            demo_login: true,
+            username: account.username,
+          },
+        });
+
+        if (provisionError || provisionData?.ok === false) {
+          demoPreparationError =
+            provisionError?.message ||
+            provisionData?.error ||
+            "Le compte commercial de démonstration n'a pas pu être préparé.";
+        }
+      } catch (preparationError) {
+        demoPreparationError = preparationError instanceof Error
+          ? preparationError.message
+          : "Le compte commercial de démonstration n'a pas pu être préparé.";
+      }
+
+      const { error } = await signInCommercialDemoAccount(account);
+
+      if (error && isInvalidCommercialDemoCredentialError(error) && demoPreparationError) {
+        throw new Error(demoPreparationError);
+      }
 
       if (error) {
         throw error;
