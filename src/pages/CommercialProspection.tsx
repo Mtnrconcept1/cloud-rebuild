@@ -546,10 +546,10 @@ function StatCard({
   color: string;
 }) {
   return (
-    <div className="rounded-2xl border bg-white/90 p-3 shadow-sm dark:border-white/10 dark:bg-slate-950/70">
-      <div className="flex items-center gap-2">
-        <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: color }} />
-        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">{label}</p>
+    <div className="min-w-0 rounded-2xl border bg-white/90 p-3 shadow-sm dark:border-white/10 dark:bg-slate-950/70">
+      <div className="flex min-w-0 items-center gap-2">
+        <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: color }} />
+        <p className="min-w-0 truncate text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">{label}</p>
       </div>
       <p className="mt-2 text-2xl font-black text-slate-950 dark:text-white">{value}</p>
     </div>
@@ -559,9 +559,9 @@ function StatCard({
 function StatusPill({ status }: { status: ProspectStatus }) {
   const meta = STATUS_META[status];
   return (
-    <span className={cn("inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-bold", meta.badge)}>
-      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: meta.color }} />
-      {meta.shortLabel}
+    <span className={cn("inline-flex max-w-full min-w-0 shrink-0 items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-bold", meta.badge)}>
+      <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: meta.color }} />
+      <span className="min-w-0 truncate">{meta.shortLabel}</span>
     </span>
   );
 }
@@ -579,10 +579,10 @@ function ContactLink({
   return (
     <a
       href={href}
-      className="inline-flex min-h-10 items-center gap-2 rounded-full border px-3 text-sm font-semibold text-slate-700 transition-colors hover:border-primary hover:text-primary dark:border-white/10 dark:text-slate-200"
+      className="inline-flex min-h-10 max-w-full min-w-0 flex-[1_1_11rem] items-center gap-2 rounded-full border px-3 text-sm font-semibold text-slate-700 transition-colors hover:border-primary hover:text-primary dark:border-white/10 dark:text-slate-200 sm:flex-none"
     >
-      <Icon className="h-4 w-4" />
-      <span className="truncate">{label}</span>
+      <Icon className="h-4 w-4 shrink-0" />
+      <span className="min-w-0 truncate">{label}</span>
     </a>
   );
 }
@@ -777,7 +777,7 @@ function CommercialProspectDetailsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="overflow-hidden p-0 sm:max-w-2xl sm:rounded-[30px]">
+      <DialogContent className="w-[calc(100vw-1rem)] max-w-[calc(100vw-1rem)] overflow-hidden p-0 sm:max-w-2xl sm:rounded-[30px]">
         <DialogHeader className="relative overflow-hidden border-b bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 px-6 pb-6 pt-7 text-left text-white">
           <div className="absolute -right-16 -top-16 h-44 w-44 rounded-full bg-orange-500/20 blur-3xl" />
           <div className="relative flex flex-wrap items-start justify-between gap-4 pr-8">
@@ -797,7 +797,7 @@ function CommercialProspectDetailsDialog({
         </DialogHeader>
 
         <div data-dialog-scroll-area className="max-h-[calc(100dvh-15rem)] space-y-4 overflow-y-auto p-5">
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid min-w-0 gap-3 sm:grid-cols-2">
             <div className="rounded-2xl border bg-slate-50 p-4 dark:border-white/10 dark:bg-white/5">
               <p className="text-[11px] font-black uppercase tracking-[0.18em] text-muted-foreground">
                 Restaurant
@@ -876,7 +876,7 @@ function CommercialProspectDetailsDialog({
             </div>
           ) : null}
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex min-w-0 flex-wrap gap-2">
             <ContactLink
               icon={Phone}
               href={prospect.phone ? `tel:${prospect.phone.replace(/\s+/g, "")}` : null}
@@ -1158,34 +1158,34 @@ export default function CommercialProspection() {
   return (
     <>
       <CommercialWorkspaceChrome activeLabel="Prospection" />
-      <main className="min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top_left,rgba(255,106,26,0.12),transparent_34%),linear-gradient(135deg,#fff7ed_0%,#f8fafc_44%,#eef6ff_100%)] px-4 pb-6 pt-[calc(env(safe-area-inset-top,0px)+5.5rem)] text-slate-950 dark:bg-[radial-gradient(circle_at_top_left,rgba(255,106,26,0.18),transparent_34%),linear-gradient(135deg,#020617_0%,#0f172a_52%,#08111f_100%)] dark:text-white md:px-6 md:pt-[calc(env(safe-area-inset-top,0px)+5rem)]">
-      <div className="mx-auto flex max-w-[1800px] flex-col gap-5">
-        <section className="rounded-[30px] border border-white/70 bg-white/88 p-5 shadow-[0_20px_80px_rgba(15,23,42,0.12)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/74">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-3xl">
+      <main className="min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top_left,rgba(255,106,26,0.12),transparent_34%),linear-gradient(135deg,#fff7ed_0%,#f8fafc_44%,#eef6ff_100%)] px-3 pb-6 pt-[calc(env(safe-area-inset-top,0px)+5.5rem)] text-slate-950 dark:bg-[radial-gradient(circle_at_top_left,rgba(255,106,26,0.18),transparent_34%),linear-gradient(135deg,#020617_0%,#0f172a_52%,#08111f_100%)] dark:text-white sm:px-4 md:px-6 md:pt-[calc(env(safe-area-inset-top,0px)+5rem)]">
+      <div className="mx-auto flex w-full max-w-[1800px] min-w-0 flex-col gap-5">
+        <section className="min-w-0 overflow-hidden rounded-[24px] border border-white/70 bg-white/88 p-4 shadow-[0_20px_80px_rgba(15,23,42,0.12)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/74 sm:rounded-[30px] sm:p-5">
+          <div className="flex min-w-0 flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+            <div className="min-w-0 max-w-3xl">
               <div className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-[11px] font-black uppercase tracking-[0.24em] text-orange-700 dark:border-orange-400/30 dark:bg-orange-500/10 dark:text-orange-200">
                 <BriefcaseBusiness className="h-3.5 w-3.5" />
                 Espace commercial
               </div>
-              <h1 className="mt-4 font-display text-3xl font-black leading-tight md:text-5xl">
+              <h1 className="mt-4 break-words font-display text-3xl font-black leading-tight md:text-5xl">
                 Carte commerciale des restaurants genevois
               </h1>
               <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600 dark:text-slate-300 md:text-base">
                 Connecté avec vos identifiants commerciaux, recherchez un établissement, ouvrez sa fiche sur la carte,
                 puis marquez l'avancement. Les signatures restent rattachées au commercial qui les enregistre.
               </p>
-              <div className="mt-4 flex flex-wrap gap-2 text-xs font-bold text-slate-600 dark:text-slate-300">
-                <span className="inline-flex items-center gap-2 rounded-full border bg-white/80 px-3 py-1.5 dark:border-white/10 dark:bg-white/5">
+              <div className="mt-4 flex min-w-0 flex-wrap gap-2 text-xs font-bold text-slate-600 dark:text-slate-300">
+                <span className="inline-flex max-w-full min-w-0 items-center gap-2 rounded-full border bg-white/80 px-3 py-1.5 dark:border-white/10 dark:bg-white/5">
                   <UserRound className="h-3.5 w-3.5 text-primary" />
-                  {commercialName || "Commercial TOK"}
+                  <span className="min-w-0 truncate">{commercialName || "Commercial TOK"}</span>
                 </span>
-                <span className="inline-flex items-center gap-2 rounded-full border bg-white/80 px-3 py-1.5 dark:border-white/10 dark:bg-white/5">
+                <span className="inline-flex max-w-full min-w-0 items-center gap-2 rounded-full border bg-white/80 px-3 py-1.5 dark:border-white/10 dark:bg-white/5">
                   <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
-                  Accès commercial sécurisé
+                  <span className="min-w-0 truncate">Accès commercial sécurisé</span>
                 </span>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:min-w-[560px]">
+            <div className="grid min-w-0 grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4 lg:flex-[0_1_560px]">
               {PIPELINE_STATUS_OPTIONS.map((item) => (
                 <StatCard key={item.value} label={item.shortLabel} value={stats[item.value]} color={item.color} />
               ))}
@@ -1193,8 +1193,8 @@ export default function CommercialProspection() {
           </div>
         </section>
 
-        <section className="grid gap-5 xl:grid-cols-[360px_minmax(0,1fr)_420px]">
-          <aside className="space-y-4 rounded-[30px] border border-white/70 bg-white/90 p-4 shadow-sm dark:border-white/10 dark:bg-slate-950/74">
+        <section className="grid min-w-0 gap-5 xl:grid-cols-[360px_minmax(0,1fr)_420px]">
+          <aside className="min-w-0 space-y-4 overflow-hidden rounded-[24px] border border-white/70 bg-white/90 p-4 shadow-sm dark:border-white/10 dark:bg-slate-950/74 sm:rounded-[30px]">
             <div className="flex items-center gap-2">
               <Filter className="h-5 w-5 text-primary" />
               <h2 className="text-lg font-black">Filtres</h2>
@@ -1294,7 +1294,7 @@ export default function CommercialProspection() {
             </div>
           </aside>
 
-          <section className="min-w-0">
+          <section className="min-w-0 overflow-hidden">
             <div className="space-y-3">
               <CommercialMapLegend />
               <CommercialProspectionMap
@@ -1307,13 +1307,13 @@ export default function CommercialProspection() {
             </div>
           </section>
 
-          <aside className="space-y-4 rounded-[30px] border border-white/70 bg-white/92 p-5 shadow-sm dark:border-white/10 dark:bg-slate-950/78">
+          <aside className="min-w-0 space-y-4 overflow-hidden rounded-[24px] border border-white/70 bg-white/92 p-4 shadow-sm dark:border-white/10 dark:bg-slate-950/78 sm:rounded-[30px] sm:p-5">
             {selectedProspect ? (
               <>
-                <div className="flex items-start justify-between gap-3">
-                  <div>
+                <div className="flex min-w-0 flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
                     <p className="text-[11px] font-black uppercase tracking-[0.22em] text-primary">Fiche restaurant</p>
-                    <h2 className="mt-2 font-display text-3xl font-black leading-tight">{selectedProspect.name}</h2>
+                    <h2 className="mt-2 break-words font-display text-3xl font-black leading-tight">{selectedProspect.name}</h2>
                   </div>
                   <StatusPill status={draftStatus} />
                 </div>
@@ -1321,15 +1321,15 @@ export default function CommercialProspection() {
                 <div className="space-y-2 text-sm text-slate-600 dark:text-slate-300">
                   <p className="flex items-start gap-2">
                     <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                    <span>{formatAddress(selectedProspect) || "Adresse non renseignée"}</span>
+                    <span className="min-w-0 break-words">{formatAddress(selectedProspect) || "Adresse non renseignée"}</span>
                   </p>
                   <p className="flex items-start gap-2">
                     <Store className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                    <span>{selectedProspect.category || selectedProspect.branch || "Catégorie non renseignée"}</span>
+                    <span className="min-w-0 break-words">{selectedProspect.category || selectedProspect.branch || "Catégorie non renseignée"}</span>
                   </p>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
+                <div className="flex min-w-0 flex-wrap gap-2">
                   <ContactLink
                     icon={Phone}
                     href={selectedProspect.phone ? `tel:${selectedProspect.phone.replace(/\s+/g, "")}` : null}
@@ -1352,7 +1352,7 @@ export default function CommercialProspection() {
                   />
                 </div>
 
-                <div className="rounded-2xl border bg-slate-50 p-3 text-xs text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300">
+                <div className="min-w-0 overflow-hidden rounded-2xl border bg-slate-50 p-3 text-xs text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 [&_p]:break-words">
                   <p><span className="font-bold">Object ID:</span> {selectedProspect.sourceObjectId}</p>
                   {selectedProspect.legalName ? <p><span className="font-bold">Raison sociale:</span> {selectedProspect.legalName}</p> : null}
                   {selectedProspect.ideNumber ? <p><span className="font-bold">IDE:</span> {selectedProspect.ideNumber}</p> : null}
@@ -1376,7 +1376,7 @@ export default function CommercialProspection() {
 
                 <div className="space-y-3">
                   <Label>Avancement terrain</Label>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid min-w-0 grid-cols-1 gap-2 min-[430px]:grid-cols-2">
                     {PIPELINE_STATUS_OPTIONS.map((item) => {
                       const Icon = item.icon;
                       const selected = draftStatus === item.value;
@@ -1386,14 +1386,14 @@ export default function CommercialProspection() {
                           type="button"
                           onClick={() => setDraftStatus(item.value)}
                           className={cn(
-                            "flex min-h-12 items-center gap-2 rounded-2xl border px-3 text-left text-sm font-bold transition-all",
+                            "flex min-h-12 min-w-0 items-center gap-2 overflow-hidden rounded-2xl border px-3 text-left text-sm font-bold transition-all",
                             selected
                               ? "border-primary bg-primary text-primary-foreground shadow-[0_14px_32px_rgba(255,106,26,0.25)]"
                               : "border-slate-200 bg-white hover:border-primary/50 dark:border-white/10 dark:bg-slate-900",
                           )}
                         >
-                          <Icon className="h-4 w-4" />
-                          {item.shortLabel}
+                          <Icon className="h-4 w-4 shrink-0" />
+                          <span className="min-w-0 truncate">{item.shortLabel}</span>
                         </button>
                       );
                     })}
@@ -1401,12 +1401,12 @@ export default function CommercialProspection() {
                 </div>
 
                 {draftStatus === "signed" ? (
-                  <div className="space-y-4 rounded-[24px] border border-emerald-200 bg-emerald-50/80 p-4 dark:border-emerald-400/20 dark:bg-emerald-500/10">
-                    <div className="flex items-start gap-3">
+                  <div className="min-w-0 space-y-4 overflow-hidden rounded-[24px] border border-emerald-200 bg-emerald-50/80 p-4 dark:border-emerald-400/20 dark:bg-emerald-500/10">
+                    <div className="flex min-w-0 items-start gap-3">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-[0_12px_28px_rgba(22,163,74,0.24)]">
                         <ReceiptText className="h-5 w-5" />
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <p className="text-sm font-black">Abonnement signé et commission</p>
                         <p className="mt-1 text-xs leading-5 text-muted-foreground">
                           Ces informations figent la valeur du contrat signé et calculent la commission du commercial.
@@ -1414,8 +1414,8 @@ export default function CommercialProspection() {
                       </div>
                     </div>
 
-                    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
-                      <div className="space-y-2">
+                    <div className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+                      <div className="min-w-0 space-y-2">
                         <Label>Abonnement restaurateur</Label>
                         <Select
                           value={draftSubscriptionPlanSlug}
@@ -1434,7 +1434,7 @@ export default function CommercialProspection() {
                         </Select>
                       </div>
 
-                      <div className="space-y-2">
+                      <div className="min-w-0 space-y-2">
                         <Label>Période de facturation</Label>
                         <Select
                           value={draftSubscriptionBillingPeriod}
@@ -1450,7 +1450,7 @@ export default function CommercialProspection() {
                         </Select>
                       </div>
 
-                      <div className="space-y-2 rounded-2xl border bg-white/80 p-3 dark:border-white/10 dark:bg-white/5">
+                      <div className="min-w-0 space-y-2 overflow-hidden rounded-2xl border bg-white/80 p-3 dark:border-white/10 dark:bg-white/5">
                         <Label className="flex items-center gap-2">
                           <Percent className="h-4 w-4" />
                           Commission signature officielle
@@ -1458,13 +1458,13 @@ export default function CommercialProspection() {
                         <p className="text-sm font-black text-slate-950 dark:text-white">
                           {formatChf(draftAcquisitionCommissionChf)}
                         </p>
-                        <p className="text-xs leading-5 text-muted-foreground">
+                        <p className="break-words text-xs leading-5 text-muted-foreground">
                           Sprint: {formatChf(draftSubscriptionPlan.sprintCommissionChf)} · Engagé:{" "}
                           {formatChf(draftSubscriptionPlan.engagedCommissionChf)}
                         </p>
                       </div>
 
-                      <div className="space-y-2">
+                      <div className="min-w-0 space-y-2">
                         <Label>Mode de rémunération</Label>
                         <Select
                           value={draftCompensationMode}
@@ -1482,7 +1482,7 @@ export default function CommercialProspection() {
                     </div>
 
                     {draftCompensationMode === "fixed_plus_reservation" ? (
-                      <div className="space-y-2">
+                      <div className="min-w-0 space-y-2">
                         <Label htmlFor="commercial-signed-restaurant">Restaurant TOK lié</Label>
                         <Input
                           id="commercial-signed-restaurant"
@@ -1498,20 +1498,20 @@ export default function CommercialProspection() {
                       </div>
                     ) : null}
 
-                    <div className="grid gap-2 sm:grid-cols-3">
-                      <div className="rounded-2xl border bg-white/80 p-3 dark:border-white/10 dark:bg-white/5">
-                        <p className="text-[11px] font-black uppercase tracking-[0.16em] text-muted-foreground">Valeur contrat</p>
+                    <div className="grid min-w-0 gap-2 sm:grid-cols-3">
+                      <div className="min-w-0 overflow-hidden rounded-2xl border bg-white/80 p-3 dark:border-white/10 dark:bg-white/5">
+                        <p className="truncate text-[11px] font-black uppercase tracking-[0.12em] text-muted-foreground">Valeur contrat</p>
                         <p className="mt-1 text-lg font-black">{formatChf(draftContractValueChf)}</p>
                       </div>
-                      <div className="rounded-2xl border bg-white/80 p-3 dark:border-white/10 dark:bg-white/5">
-                        <p className="text-[11px] font-black uppercase tracking-[0.16em] text-muted-foreground">Acquisition</p>
+                      <div className="min-w-0 overflow-hidden rounded-2xl border bg-white/80 p-3 dark:border-white/10 dark:bg-white/5">
+                        <p className="truncate text-[11px] font-black uppercase tracking-[0.12em] text-muted-foreground">Acquisition</p>
                         <p className="mt-1 text-lg font-black">{formatChf(draftAcquisitionCommissionChf)}</p>
                         <p className="text-xs text-muted-foreground">
                           {draftCompensationMode === "fixed_plus_reservation" ? "Barème engagé" : "Barème sprint"}
                         </p>
                       </div>
-                      <div className="rounded-2xl border bg-white/80 p-3 dark:border-white/10 dark:bg-white/5">
-                        <p className="text-[11px] font-black uppercase tracking-[0.16em] text-muted-foreground">Réservations</p>
+                      <div className="min-w-0 overflow-hidden rounded-2xl border bg-white/80 p-3 dark:border-white/10 dark:bg-white/5">
+                        <p className="truncate text-[11px] font-black uppercase tracking-[0.12em] text-muted-foreground">Réservations</p>
                         <p className="mt-1 text-lg font-black">
                           {draftCompensationMode === "fixed_plus_reservation"
                             ? formatChf(commissionSummary?.reservation_commission?.amount_chf || 0)
