@@ -28,7 +28,7 @@ import ChefTableSlotDialog from "@/components/ChefTableSlotDialog";
 import { useIsTokOneMember } from "@/hooks/useTokOne";
 import {
   generateDailyTimeSlots,
-  getServiceSettings,
+  getConfiguredServiceSettings,
   type ServiceSettingsMap,
 } from "@/lib/serviceSettings";
 import { cn } from "@/lib/utils";
@@ -59,7 +59,7 @@ interface FlashDrop {
   hasDiscount: boolean;
   isVip: boolean;
   requiredMiamzPoints: number;
-  serviceSettings: ServiceSettingsMap;
+  serviceSettings: ServiceSettingsMap | null;
   quickTimeSlots: string[];
 }
 
@@ -448,8 +448,10 @@ export default function ChefsTable() {
             ? Math.round((savingsAmount / originalPrice) * 100)
             : 0;
 
-        const serviceSettings = getServiceSettings(drop.restaurants?.opening_hours);
-        const slotsForService = generateDailyTimeSlots(serviceSettings, 30);
+        const serviceSettings = getConfiguredServiceSettings(drop.restaurants?.opening_hours);
+        const slotsForService = serviceSettings
+          ? generateDailyTimeSlots(serviceSettings, 30)
+          : { lunch: [], dinner: [], all: [] };
         const dropTime = new Date(drop.drop_time);
         const isLunchService = dropTime.getHours() < 16;
         const referenceServiceSlots = isLunchService ? slotsForService.lunch : slotsForService.dinner;
@@ -1042,7 +1044,7 @@ export default function ChefsTable() {
         dishName={slotDialogDrop?.dish ?? ""}
         chefName={slotDialogDrop?.chef ?? ""}
         restaurantName={slotDialogDrop?.restaurant ?? ""}
-        serviceSettings={slotDialogDrop?.serviceSettings ?? getServiceSettings(null)}
+        serviceSettings={slotDialogDrop?.serviceSettings ?? null}
         pricePerGuest={slotDialogDrop?.price ?? null}
         remainingPortions={slotDialogDrop?.remaining ?? null}
         initialDate={slotDialogDrop ? new Date(slotDialogDrop.dropTime) : null}

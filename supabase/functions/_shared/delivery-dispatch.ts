@@ -33,21 +33,6 @@ type ServiceSettings = {
   service_closed: boolean;
 };
 
-const DEFAULT_SERVICE_SETTINGS: Record<ServicePeriod, ServiceSettings> = {
-  lunch: {
-    start_time: "12:00",
-    end_time: "14:30",
-    online_booking_enabled: true,
-    service_closed: false,
-  },
-  dinner: {
-    start_time: "19:00",
-    end_time: "22:30",
-    online_booking_enabled: true,
-    service_closed: false,
-  },
-};
-
 const pad = (value: number) => String(value).padStart(2, "0");
 
 const parseTime = (value: string): number | null => {
@@ -62,47 +47,60 @@ function getDayKey(dateValue: string) {
   return DAY_KEYS[date.getDay()] || null;
 }
 
-function parseServiceSettings(value: unknown, fallback: ServiceSettings): ServiceSettings {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return fallback;
+function parseConfiguredServiceSettings(value: unknown): ServiceSettings | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const source = value as Record<string, unknown>;
+  const startTime = typeof source.order_start_time === "string"
+    ? source.order_start_time
+    : typeof source.start_time === "string"
+      ? source.start_time
+      : "";
+  const endTime = typeof source.order_end_time === "string"
+    ? source.order_end_time
+    : typeof source.end_time === "string"
+      ? source.end_time
+      : "";
+
+  if (parseTime(startTime) === null || parseTime(endTime) === null) return null;
 
   return {
-    start_time: typeof source.start_time === "string" ? source.start_time : fallback.start_time,
-    end_time: typeof source.end_time === "string" ? source.end_time : fallback.end_time,
+    start_time: startTime,
+    end_time: endTime,
     online_booking_enabled:
-      typeof source.online_booking_enabled === "boolean"
-        ? source.online_booking_enabled
-        : fallback.online_booking_enabled,
-    service_closed: typeof source.service_closed === "boolean" ? source.service_closed : fallback.service_closed,
+      typeof source.online_ordering_enabled === "boolean"
+        ? source.online_ordering_enabled
+        : typeof source.online_booking_enabled === "boolean"
+          ? source.online_booking_enabled
+          : true,
+    service_closed: Boolean(source.orders_closed === true || source.service_closed === true),
   };
 }
 
-function getServiceSettings(openingHours: unknown): Record<ServicePeriod, ServiceSettings> {
+function getConfiguredServiceSettings(openingHours: unknown): Record<ServicePeriod, ServiceSettings> | null {
   if (!openingHours || typeof openingHours !== "object" || Array.isArray(openingHours)) {
-    return DEFAULT_SERVICE_SETTINGS;
+    return null;
   }
 
-  const serviceSettings = (openingHours as Record<string, unknown>).service_settings;
-  if (!serviceSettings || typeof serviceSettings !== "object" || Array.isArray(serviceSettings)) {
-    return DEFAULT_SERVICE_SETTINGS;
-  }
+  const openingHoursRecord = openingHours as Record<string, unknown>;
+  const serviceSettings = openingHoursRecord.service_settings;
+  const source = serviceSettings && typeof serviceSettings === "object" && !Array.isArray(serviceSettings)
+    ? serviceSettings as Record<string, unknown>
+    : openingHoursRecord;
 
-  const record = serviceSettings as Record<string, unknown>;
-  return {
-    lunch: parseServiceSettings(record.lunch, DEFAULT_SERVICE_SETTINGS.lunch),
-    dinner: parseServiceSettings(record.dinner, DEFAULT_SERVICE_SETTINGS.dinner),
-  };
+  const lunch = parseConfiguredServiceSettings(source.lunch);
+  const dinner = parseConfiguredServiceSettings(source.dinner);
+  if (!lunch && !dinner) return null;
+
+  return Object.fromEntries(
+    ([
+      ["lunch", lunch],
+      ["dinner", dinner],
+    ] as const).filter((entry): entry is [ServicePeriod, ServiceSettings] => Boolean(entry[1])),
+  ) as Record<ServicePeriod, ServiceSettings>;
 }
 
 function hasConfiguredServiceSettings(openingHours: unknown) {
-  return Boolean(
-    openingHours
-      && typeof openingHours === "object"
-      && !Array.isArray(openingHours)
-      && (openingHours as Record<string, unknown>).service_settings
-      && typeof (openingHours as Record<string, unknown>).service_settings === "object"
-      && !Array.isArray((openingHours as Record<string, unknown>).service_settings),
-  );
+  return getConfiguredServiceSettings(openingHours) !== null;
 }
 
 function isRestaurantOpenOnDate(openingHours: unknown, dateValue: string) {
@@ -244,8 +242,9 @@ export async function resolveScheduledDelivery(
     throw new Error("Le restaurant est ferme a la date choisie pour la livraison.");
   }
 
-  const serviceEntries = hasConfiguredServiceSettings(restaurant?.opening_hours)
-    ? (Object.entries(getServiceSettings(restaurant?.opening_hours)) as [ResolvedServicePeriod, ServiceSettings][])
+  const configuredServiceSettings = getConfiguredServiceSettings(restaurant?.opening_hours);
+  const serviceEntries = configuredServiceSettings
+    ? (Object.entries(configuredServiceSettings) as [ResolvedServicePeriod, ServiceSettings][])
     : getOpeningHourWindows(restaurant?.opening_hours, dateValue)
         .map((settings): [ResolvedServicePeriod, ServiceSettings] => ["opening_hours", settings]);
   const matchingService = serviceEntries

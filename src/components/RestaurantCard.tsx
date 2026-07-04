@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils";
 import { getOptimizedImageSizes, getOptimizedImageSrcSet, getOptimizedImageUrl } from "@/lib/optimizedImages";
 import type { CampaignCreativeConfig } from "@/lib/campaignCreative";
 import { selectRestaurantCardReservationSlots } from "@/lib/reservationAvailability";
-import { getServiceSettings } from "@/lib/serviceSettings";
+import { getConfiguredServiceSettings } from "@/lib/serviceSettings";
 
 const supabase = getSupabase();
 
@@ -297,8 +297,8 @@ export default function RestaurantCard({
     ? supportsReservation
     : reservationProfile?.supports_reservation;
   const reservationProfileReady = !shouldFetchReservationProfile || reservationProfileFetched || supportsReservation === false;
-  const canShowReservationSlots = reservationProfileReady && resolvedSupportsReservation === true;
-  const serviceSettings = useMemo(() => getServiceSettings(resolvedOpeningHours), [resolvedOpeningHours]);
+  const serviceSettings = useMemo(() => getConfiguredServiceSettings(resolvedOpeningHours), [resolvedOpeningHours]);
+  const canShowReservationSlots = reservationProfileReady && resolvedSupportsReservation === true && serviceSettings !== null;
 
   const { data: slotAvailability = [] } = useQuery({
     queryKey: ["restaurant-card-slot-availability", id, reservationCardDate],
@@ -320,7 +320,7 @@ export default function RestaurantCard({
   });
 
   const timeSlots = useMemo(() => {
-    if (!canShowReservationSlots) return [];
+    if (!canShowReservationSlots || !serviceSettings) return [];
 
     const serverAvailabilityByTime = new Map(slotAvailability.map((row) => [row.slot_time, row]));
     const reservedTablesByTime = slotAvailability.reduce<Record<string, number>>((acc, row) => {

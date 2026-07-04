@@ -85,6 +85,7 @@ const TokPulse = lazy(() => import("./pages/TokPulse"));
 const TokConnect = lazy(() => import("./pages/TokConnect"));
 const TokConnectDeveloper = lazy(() => import("./pages/TokConnectDeveloper"));
 const CommercialProspection = lazy(() => import("./pages/CommercialProspection"));
+const CommercialComptabilite = lazy(() => import("./pages/CommercialComptabilite"));
 const DashboardHome = lazy(() => import("./pages/dashboard/DashboardHome"));
 const DashboardRestaurant = lazy(() => import("./pages/dashboard/DashboardRestaurant"));
 const DashboardMenu = lazy(() => import("./pages/dashboard/DashboardMenu"));
@@ -438,6 +439,7 @@ function AppShell() {
           <Route path="/tok-connect/developer" element={<ProtectedRoute><FeatureSwitch enabled={tokConnectEnabled} fallback="/tok-connect"><TokConnectDeveloper /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/commercial" element={<ProtectedRoute requiredRoles={["admin", "commercial"]}><FeatureSwitch enabled={commercialProspectionEnabled} fallback="/"><CommercialProspection /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/commercial/prospection" element={<Navigate to="/commercial" replace />} />
+          <Route path="/commercial/comptabilite" element={<ProtectedRoute requiredRoles={["admin", "commercial"]}><FeatureSwitch enabled={commercialProspectionEnabled} fallback="/"><CommercialComptabilite /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/miamz-solidaires" element={<MiamzSolidaires />} />
           <Route path="/points-cadeau" element={<ProtectedRoute requiredRole="client"><FeatureSwitch enabled={giftPointsEnabled}><GiftPoints /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/ventes-flash" element={<ClientSurfaceRoute><FeatureSwitch enabled={flashSalesEnabled}><VentesFlash /></FeatureSwitch></ClientSurfaceRoute>} />

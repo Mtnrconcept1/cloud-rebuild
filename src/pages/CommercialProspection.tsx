@@ -12,7 +12,6 @@ import {
   ExternalLink,
   Filter,
   Mail,
-  Menu,
   MapPin,
   Navigation,
   Percent,
@@ -42,10 +41,7 @@ import type { Database } from "@/integrations/supabase/types";
 import { useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import NotificationBell from "@/components/notifications/NotificationBell";
-import RoleSpaceSwitcher from "@/components/navigation/RoleSpaceSwitcher";
-import SignOutButton from "@/components/auth/SignOutButton";
-import ThemeToggleButton from "@/components/theme/ThemeToggleButton";
+import CommercialWorkspaceChrome from "@/components/commercial/CommercialWorkspaceChrome";
 import {
   fetchGenevaCommercialProspects,
   type GenevaCommercialProspect,
@@ -184,18 +180,22 @@ const RESULT_PREVIEW_LIMIT = 160;
 const GENEVA_CENTER: L.LatLngExpression = [46.2044, 6.1432];
 const COMMERCIAL_CLUSTER_DISABLE_ZOOM = 16;
 const COMMERCIAL_CLUSTER_VIEW_PADDING = 0.35;
-const DEFAULT_ACQUISITION_COMMISSION_RATE = 0.1;
+const DEFAULT_ACQUISITION_COMMISSION_RATE = 0;
 const FIXED_RESERVATION_COMMISSION_RATE = 0.02;
+const TOK_RESERVATION_BASE_CHF = 5;
+const COMMERCIAL_RESERVATION_COMMISSION_CHF = 0.1;
 
 const COMMERCIAL_SUBSCRIPTION_PLANS: Array<{
   slug: CommercialSubscriptionPlanSlug;
   name: string;
   monthlyPriceChf: number;
+  sprintCommissionChf: number;
+  engagedCommissionChf: number;
 }> = [
-  { slug: "starter", name: "TOK Starter", monthlyPriceChf: 69 },
-  { slug: "pro", name: "TOK Pro", monthlyPriceChf: 129 },
-  { slug: "premium", name: "TOK Premium", monthlyPriceChf: 199 },
-  { slug: "elite", name: "TOK Elite", monthlyPriceChf: 499 },
+  { slug: "starter", name: "TOK Starter", monthlyPriceChf: 69, sprintCommissionChf: 120, engagedCommissionChf: 60 },
+  { slug: "pro", name: "TOK Business / Pro", monthlyPriceChf: 129, sprintCommissionChf: 220, engagedCommissionChf: 120 },
+  { slug: "premium", name: "TOK Premium", monthlyPriceChf: 199, sprintCommissionChf: 350, engagedCommissionChf: 190 },
+  { slug: "elite", name: "TOK Elite", monthlyPriceChf: 499, sprintCommissionChf: 650, engagedCommissionChf: 300 },
 ];
 
 type CommercialMapProspectPoint = {
@@ -314,11 +314,14 @@ function getSubscriptionContractValueChf(
 }
 
 function getAcquisitionCommissionChf(
-  plan: { monthlyPriceChf: number },
-  billingPeriod: CommercialSubscriptionBillingPeriod,
-  rate: number,
+  plan: { sprintCommissionChf: number; engagedCommissionChf: number },
+  compensationMode: CommercialCompensationMode,
 ) {
-  return roundChf(getSubscriptionContractValueChf(plan, billingPeriod) * Math.max(0, rate));
+  return roundChf(
+    compensationMode === "fixed_plus_reservation"
+      ? plan.engagedCommissionChf
+      : plan.sprintCommissionChf,
+  );
 }
 
 function normalizeBillingPeriod(value: string | null | undefined): CommercialSubscriptionBillingPeriod {
@@ -581,33 +584,6 @@ function ContactLink({
       <Icon className="h-4 w-4" />
       <span className="truncate">{label}</span>
     </a>
-  );
-}
-
-function CommercialWorkspaceChrome({ activeLabel }: { activeLabel: string }) {
-  return (
-    <>
-      <div className="fixed right-[calc(env(safe-area-inset-right,0px)+0.75rem)] top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-[1200] flex items-center gap-2">
-        <RoleSpaceSwitcher compact className="border-border/70 bg-background/95 shadow-[0_14px_34px_rgba(15,23,42,0.14)] backdrop-blur-md" />
-        <ThemeToggleButton className="h-11 w-11 rounded-full border border-border/70 bg-background/95 text-foreground shadow-[0_14px_34px_rgba(15,23,42,0.16)] backdrop-blur-md hover:bg-background dark:border-[#5f7aad]/35 dark:bg-[#07142b]/95 dark:text-white" />
-        <NotificationBell />
-        <SignOutButton iconOnly />
-      </div>
-
-      <div className="pointer-events-none fixed left-[calc(env(safe-area-inset-left,0px)+0.75rem)] top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-[1190] md:hidden">
-        <div className="pointer-events-auto flex h-16 items-center gap-2.5 rounded-[1.45rem] border border-orange-300/55 bg-zinc-950 px-2.5 pr-5 text-white shadow-[0_16px_34px_rgba(255,106,26,0.34),0_8px_24px_rgba(15,23,42,0.32)] ring-1 ring-white/15 backdrop-blur-md">
-          <span className="flex h-11 w-11 items-center justify-center rounded-[1rem] bg-gradient-to-br from-[#ff5a14] to-[#ffb000] text-white shadow-[0_0_24px_rgba(255,106,26,0.58)]">
-            <Menu className="h-5 w-5" />
-          </span>
-          <span className="flex min-w-0 flex-col items-start leading-tight">
-            <span className="text-[10px] font-semibold uppercase tracking-[0.28em] text-orange-300">
-              Commercial
-            </span>
-            <span className="max-w-[10rem] truncate text-sm font-semibold">{activeLabel}</span>
-          </span>
-        </div>
-      </div>
-    </>
   );
 }
 
@@ -883,16 +859,16 @@ function CommercialProspectDetailsDialog({
                   <p className="text-muted-foreground">Commission acquisition</p>
                   <p className="font-black">{formatChf(followup.acquisition_commission_chf || 0)}</p>
                   <p className="text-xs text-muted-foreground">
-                    {formatPercentRate(followup.acquisition_commission_rate || 0)}
+                    {followup.commercial_compensation_mode === "fixed_plus_reservation" ? "Barème engagé" : "Barème sprint"}
                   </p>
                 </div>
               </div>
               {followup.commercial_compensation_mode === "fixed_plus_reservation" ? (
                 <div className="mt-3 rounded-2xl border bg-white/70 p-3 dark:border-white/10 dark:bg-white/5">
-                  <p className="font-bold">Fixe + {formatPercentRate(followup.reservation_commission_rate || FIXED_RESERVATION_COMMISSION_RATE)} sur réservations</p>
+                  <p className="font-bold">Fixe + {formatChf(COMMERCIAL_RESERVATION_COMMISSION_CHF)} par réservation honorée</p>
                   <p className="mt-1 text-xs text-muted-foreground">
                     {followup.signed_restaurant_id
-                      ? `${Number(reservationCommission?.reservations_count || 0).toLocaleString("fr-CH")} réservation(s) confirmée(s), ${formatChf(reservationCommission?.amount_chf || 0)} estimés.`
+                      ? `${Number(reservationCommission?.reservations_count || 0).toLocaleString("fr-CH")} réservation(s) honorée(s), ${formatChf(reservationCommission?.amount_chf || 0)} estimés.`
                       : "Liez le restaurant TOK pour calculer les réservations réelles automatiquement."}
                   </p>
                 </div>
@@ -958,7 +934,6 @@ export default function CommercialProspection() {
   const [draftFollowUpDate, setDraftFollowUpDate] = useState("");
   const [draftSubscriptionPlanSlug, setDraftSubscriptionPlanSlug] = useState<CommercialSubscriptionPlanSlug>("starter");
   const [draftSubscriptionBillingPeriod, setDraftSubscriptionBillingPeriod] = useState<CommercialSubscriptionBillingPeriod>("monthly");
-  const [draftAcquisitionCommissionPercent, setDraftAcquisitionCommissionPercent] = useState("10");
   const [draftCompensationMode, setDraftCompensationMode] = useState<CommercialCompensationMode>("commission_only");
   const [draftSignedRestaurantId, setDraftSignedRestaurantId] = useState("");
 
@@ -1033,13 +1008,12 @@ export default function CommercialProspection() {
     || (selectedFollowup?.last_contacted_by ? "Commercial TOK" : null);
   const selectedSignedName = selectedFollowup?.signed_by_name || (selectedFollowup?.signed_by ? "Commercial TOK" : null);
   const draftSubscriptionPlan = getCommercialSubscriptionPlan(draftSubscriptionPlanSlug);
-  const draftAcquisitionCommissionRate = Math.min(1, Math.max(0, toFiniteNumber(draftAcquisitionCommissionPercent) / 100));
   const draftContractValueChf = getSubscriptionContractValueChf(draftSubscriptionPlan, draftSubscriptionBillingPeriod);
   const draftAcquisitionCommissionChf = getAcquisitionCommissionChf(
     draftSubscriptionPlan,
-    draftSubscriptionBillingPeriod,
-    draftAcquisitionCommissionRate,
+    draftCompensationMode,
   );
+  const draftAcquisitionCommissionRate = DEFAULT_ACQUISITION_COMMISSION_RATE;
 
   const commissionSummaryQuery = useQuery({
     queryKey: [
@@ -1072,9 +1046,6 @@ export default function CommercialProspection() {
     setDraftFollowUpDate(followup?.next_follow_up_at || "");
     setDraftSubscriptionPlanSlug(getCommercialSubscriptionPlan(followup?.signed_subscription_plan_slug).slug);
     setDraftSubscriptionBillingPeriod(normalizeBillingPeriod(followup?.signed_subscription_billing_period));
-    setDraftAcquisitionCommissionPercent(String(
-      roundChf(toFiniteNumber(followup?.acquisition_commission_rate, DEFAULT_ACQUISITION_COMMISSION_RATE) * 100),
-    ));
     setDraftCompensationMode(normalizeCompensationMode(followup?.commercial_compensation_mode));
     setDraftSignedRestaurantId(followup?.signed_restaurant_id || "");
   }, [followupsByObjectId, selectedProspect]);
@@ -1479,20 +1450,18 @@ export default function CommercialProspection() {
                         </Select>
                       </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="commercial-acquisition-rate" className="flex items-center gap-2">
+                      <div className="space-y-2 rounded-2xl border bg-white/80 p-3 dark:border-white/10 dark:bg-white/5">
+                        <Label className="flex items-center gap-2">
                           <Percent className="h-4 w-4" />
-                          Commission acquisition
+                          Commission signature officielle
                         </Label>
-                        <Input
-                          id="commercial-acquisition-rate"
-                          type="number"
-                          min="0"
-                          max="100"
-                          step="0.5"
-                          value={draftAcquisitionCommissionPercent}
-                          onChange={(event) => setDraftAcquisitionCommissionPercent(event.target.value)}
-                        />
+                        <p className="text-sm font-black text-slate-950 dark:text-white">
+                          {formatChf(draftAcquisitionCommissionChf)}
+                        </p>
+                        <p className="text-xs leading-5 text-muted-foreground">
+                          Sprint: {formatChf(draftSubscriptionPlan.sprintCommissionChf)} · Engagé:{" "}
+                          {formatChf(draftSubscriptionPlan.engagedCommissionChf)}
+                        </p>
                       </div>
 
                       <div className="space-y-2">
@@ -1505,8 +1474,8 @@ export default function CommercialProspection() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="commission_only">Commission acquisition seule</SelectItem>
-                            <SelectItem value="fixed_plus_reservation">Fixe + 2% réservations</SelectItem>
+                            <SelectItem value="commission_only">Sprint 60 jours sans fixe</SelectItem>
+                            <SelectItem value="fixed_plus_reservation">Commercial engagé + réservations</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -1522,7 +1491,8 @@ export default function CommercialProspection() {
                           placeholder="UUID du restaurant TOK lié"
                         />
                         <p className="text-xs leading-5 text-muted-foreground">
-                          Le commercial engagé en fixe touche {formatPercentRate(FIXED_RESERVATION_COMMISSION_RATE)} sur chaque réservation confirmée.
+                          Le commercial engagé touche {formatChf(COMMERCIAL_RESERVATION_COMMISSION_CHF)} par réservation honorée
+                          ({formatPercentRate(FIXED_RESERVATION_COMMISSION_RATE)} de la base TOK {formatChf(TOK_RESERVATION_BASE_CHF)}).
                           Sans restaurant TOK lié, la règle est enregistrée mais les réservations réelles ne peuvent pas encore être calculées.
                         </p>
                       </div>
@@ -1536,7 +1506,9 @@ export default function CommercialProspection() {
                       <div className="rounded-2xl border bg-white/80 p-3 dark:border-white/10 dark:bg-white/5">
                         <p className="text-[11px] font-black uppercase tracking-[0.16em] text-muted-foreground">Acquisition</p>
                         <p className="mt-1 text-lg font-black">{formatChf(draftAcquisitionCommissionChf)}</p>
-                        <p className="text-xs text-muted-foreground">{formatPercentRate(draftAcquisitionCommissionRate)}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {draftCompensationMode === "fixed_plus_reservation" ? "Barème engagé" : "Barème sprint"}
+                        </p>
                       </div>
                       <div className="rounded-2xl border bg-white/80 p-3 dark:border-white/10 dark:bg-white/5">
                         <p className="text-[11px] font-black uppercase tracking-[0.16em] text-muted-foreground">Réservations</p>

@@ -36,6 +36,7 @@ describe("commercial prospecting surface", () => {
 
   it("uses a free map provider and persists only commercial follow-up state", () => {
     const pageSource = readFileSync(resolve(process.cwd(), "src/pages/CommercialProspection.tsx"), "utf8");
+    const chromeSource = readFileSync(resolve(process.cwd(), "src/components/commercial/CommercialWorkspaceChrome.tsx"), "utf8");
     const dataSource = readFileSync(resolve(process.cwd(), "src/data/genevaCommercialProspects.ts"), "utf8");
 
     expect(pageSource).toContain("tile.openstreetmap.org");
@@ -50,7 +51,8 @@ describe("commercial prospecting surface", () => {
     expect(pageSource).toContain("#16a34a");
     expect(pageSource).toContain("#ef4444");
     expect(pageSource).toContain("CommercialWorkspaceChrome");
-    expect(pageSource).toContain("RoleSpaceSwitcher");
+    expect(chromeSource).toContain("RoleSpaceSwitcher");
+    expect(chromeSource).toContain("/commercial/comptabilite");
     expect(pageSource).toContain("commercialProspectMarkerIcon");
     expect(pageSource).toContain("L.divIcon");
     expect(pageSource).toContain("L.marker");
@@ -69,6 +71,7 @@ describe("commercial prospecting surface", () => {
     const roleAccessSource = readFileSync(resolve(process.cwd(), "src/lib/roleAccess.ts"), "utf8");
 
     expect(appSource).toContain('path="/commercial"');
+    expect(appSource).toContain('path="/commercial/comptabilite"');
     expect(appSource).toContain('requiredRoles={["admin", "commercial"]}');
     expect(appSource).toContain('hasFeature("commercial-prospection")');
     expect(roleAccessSource).toContain('commercial: "/commercial"');
@@ -111,9 +114,15 @@ describe("commercial prospecting surface", () => {
 
   it("stores signed subscription snapshots and computes commercial commissions", () => {
     const pageSource = readFileSync(resolve(process.cwd(), "src/pages/CommercialProspection.tsx"), "utf8");
+    const accountingPageSource = readFileSync(resolve(process.cwd(), "src/pages/CommercialComptabilite.tsx"), "utf8");
+    const adminUsersSource = readFileSync(resolve(process.cwd(), "src/pages/admin/AdminUtilisateurs.tsx"), "utf8");
     const typesSource = readFileSync(resolve(process.cwd(), "src/integrations/supabase/types.ts"), "utf8");
     const commissionMigration = readFileSync(
       resolve(process.cwd(), "supabase/migrations/20260703205820_commercial_commission_tracking.sql"),
+      "utf8",
+    );
+    const accountingMigration = readFileSync(
+      resolve(process.cwd(), "supabase/migrations/20260703222027_commercial_compensation_accounting.sql"),
       "utf8",
     );
 
@@ -122,8 +131,16 @@ describe("commercial prospecting surface", () => {
     expect(pageSource).toContain("acquisition_commission_chf");
     expect(pageSource).toContain("commercial_compensation_mode");
     expect(pageSource).toContain("FIXED_RESERVATION_COMMISSION_RATE = 0.02");
+    expect(pageSource).toContain("COMMERCIAL_RESERVATION_COMMISSION_CHF = 0.1");
+    expect(pageSource).toContain("sprintCommissionChf");
+    expect(pageSource).toContain("engagedCommissionChf");
     expect(pageSource).toContain("get_commercial_prospect_commission_summary");
-    expect(pageSource).toContain("Fixe + 2% réservations");
+    expect(pageSource).toContain("Commercial engagé + réservations");
+    expect(accountingPageSource).toContain("get_commercial_compensation_summary");
+    expect(accountingPageSource).toContain("Pack Campaigns 100 crédits");
+    expect(accountingPageSource).toContain("0.10 CHF par réservation personnelle honorée");
+    expect(adminUsersSource).toContain('"commercial"');
+    expect(adminUsersSource).toContain("Paramètres commerciaux");
     expect(typesSource).toContain("acquisition_commission_chf: number");
     expect(typesSource).toContain("reservation_commission_rate: number");
     expect(typesSource).toContain("get_commercial_prospect_commission_summary");
@@ -131,7 +148,16 @@ describe("commercial prospecting surface", () => {
     expect(commissionMigration).toContain("reservation_commission_rate numeric(6, 4) NOT NULL DEFAULT 0");
     expect(commissionMigration).toContain("CREATE OR REPLACE FUNCTION public.get_commercial_prospect_commission_summary");
     expect(commissionMigration).toContain("v_followup.commercial_compensation_mode = 'fixed_plus_reservation'");
-    expect(commissionMigration).toContain("COALESCE(SUM(GREATEST(COALESCE(r.total_amount, 0), COALESCE(r.billing_fee_chf, 0)))");
-    expect(commissionMigration).toContain("DEFAULT 0.10");
+    expect(accountingMigration).toContain("ALTER COLUMN acquisition_commission_rate SET DEFAULT 0");
+    expect(accountingMigration).toContain("COUNT(*)::numeric * 5");
+    expect(accountingMigration).toContain("'amount_per_reservation_chf'");
+    expect(accountingMigration).toContain("CREATE TABLE IF NOT EXISTS public.commercial_compensation_profiles");
+    expect(accountingMigration).toContain("CREATE TABLE IF NOT EXISTS public.commercial_compensation_adjustments");
+    expect(accountingMigration).toContain("public.commercial_signature_commission_chf");
+    expect(accountingMigration).toContain("public.commercial_sprint_bonus_chf");
+    expect(accountingMigration).toContain("0.10");
+    expect(accountingMigration).toContain("0.05");
+    expect(accountingMigration).toContain("3500");
+    expect(accountingMigration).toContain("2500");
   });
 });
