@@ -31,6 +31,7 @@
     "release:readiness:strict": "node ./scripts/release-readiness.mjs --strict",
     "scale:readiness": "node ./scripts/scale-readiness-check.mjs",
     "google:actions:feeds": "node ./scripts/google-actions-center-export-feeds.mjs",
+    "commercial:demo-logins": "node ./scripts/provision-commercial-demo-logins.mjs",
     "supabase:doctor": "node ./scripts/supabase-doctor.mjs",
     "supabase:doctor:prod": "node ./scripts/supabase-doctor.mjs --mode=production",
     "supabase:doctor:all": "node ./scripts/supabase-doctor.mjs --mode=all",
