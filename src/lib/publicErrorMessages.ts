@@ -51,6 +51,20 @@ export function formatAiImageGenerationError(error: unknown) {
     return "Votre session a expiré. Reconnectez-vous puis relancez la génération.";
   }
 
+  if (message.includes("ai_credits_exhausted")) {
+    return "Votre solde de crédits TOK est insuffisant. Rechargez vos crédits ou attendez le prochain renouvellement de votre abonnement.";
+  }
+
+  if (
+    message.includes("ai_provider_billing_unavailable")
+    || message.includes("insufficient_quota")
+    || message.includes("billing")
+    || message.includes("quota")
+    || message.includes("402")
+  ) {
+    return "Le service image IA est temporairement indisponible. L'équipe TOK a été informée.";
+  }
+
   if (message.includes("rate_limited") || message.includes("ai_rate_limited") || message.includes("429")) {
     return "Trop de générations lancées. Patientez quelques minutes avant de relancer un essai.";
   }
@@ -112,10 +126,6 @@ export function formatAiImageGenerationError(error: unknown) {
 
   if (message.includes("marketing_reference_required")) {
     return "Ajoutez au moins un logo, une carte, un menu ou un visuel de marque avant de générer.";
-  }
-
-  if (message.includes("ai_credits_exhausted") || message.includes("402")) {
-    return "Le service image IA est temporairement indisponible. L'équipe TOK a été informée.";
   }
 
   if (message.includes("ai_service_unavailable") || message.includes("requested function was not found") || message.includes("not_found")) {

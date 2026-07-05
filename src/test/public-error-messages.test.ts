@@ -53,4 +53,10 @@ describe("public error messages", () => {
     expect(formatAiImageGenerationError(new Error("image_edit_failed:400:invalid_image"))).toContain("Recadrez le sujet principal");
     expect(formatAiImageGenerationError(new Error("image_edit_failed:400:content_policy"))).toContain("refusée par la sécurité");
   });
+
+  it("shows the right action for TOK credits without exposing provider billing failures", () => {
+    expect(formatAiImageGenerationError(new Error("ai_credits_exhausted"))).toContain("solde de crédits TOK est insuffisant");
+    expect(formatAiImageGenerationError(new Error("image_edit_failed:402:insufficient_quota"))).toContain("L'équipe TOK a été informée");
+    expect(formatAiImageGenerationError(new Error("ai_provider_billing_unavailable"))).toContain("L'équipe TOK a été informée");
+  });
 });

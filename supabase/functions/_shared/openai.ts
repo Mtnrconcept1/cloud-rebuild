@@ -130,7 +130,7 @@ export async function createOpenAIResponse(options: OpenAIRequestOptions) {
     }
 
     if (response.status === 402) {
-      throw new HttpError(402, "ai_credits_exhausted");
+      throw new HttpError(503, "ai_provider_billing_unavailable");
     }
 
     throw new HttpError(502, "ai_service_error");

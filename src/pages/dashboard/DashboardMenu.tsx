@@ -125,7 +125,7 @@ function getPhotoGenerationErrorMessage(error: unknown) {
   if (message.includes("Unauthorized") || message.includes("Session expir")) return "Session expirée. Reconnectez-vous puis relancez la génération.";
   if (message.includes("source_image_unsupported_type")) return "Format non pris en charge. Utilisez une photo JPG, PNG ou WebP.";
   if (message.includes("source_image_too_large")) return "Photo trop lourde pour la retouche IA. Utilisez une image plus légère.";
-  if (message.includes("ai_credits_exhausted")) return "Crédit IA indisponible pour le moment.";
+  if (message.includes("ai_credits_exhausted")) return "Solde de crédits TOK insuffisant. Rechargez vos crédits ou attendez le prochain renouvellement de votre abonnement.";
   return message || "Génération impossible";
 }
 

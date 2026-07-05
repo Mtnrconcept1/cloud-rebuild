@@ -620,8 +620,16 @@ async function readOpenAIImageError(response: Response): Promise<OpenAIImageErro
 }
 
 function publicOpenAIImageError(operation: "image_generation" | "image_edit", details: OpenAIImageErrorDetails) {
+  const providerReason = `${details.type} ${details.code} ${details.message}`.toLowerCase();
+  if (
+    details.status === 402 ||
+    providerReason.includes("insufficient_quota") ||
+    providerReason.includes("billing")
+  ) {
+    return new HttpError(503, "ai_provider_billing_unavailable");
+  }
+
   if (details.status === 429) return new HttpError(429, "ai_rate_limited");
-  if (details.status === 402) return new HttpError(402, "ai_credits_exhausted");
 
   const reason = details.code || details.type || details.message || "unknown";
   const publicMessage = `${operation}_failed:${details.status}:${reason}`.slice(0, 420);
@@ -950,6 +958,13 @@ function normalizeBlockedSourceImageEditFailure(error: unknown) {
     return new HttpError(502, "image_edit_transient_failure");
   }
   if (message.includes("rate")) return new HttpError(429, "ai_rate_limited");
+  if (
+    message.includes("ai_provider_billing_unavailable") ||
+    message.includes("insufficient_quota") ||
+    message.includes("billing")
+  ) {
+    return new HttpError(503, "ai_provider_billing_unavailable");
+  }
   if (message.includes("credits")) return new HttpError(402, "ai_credits_exhausted");
 
   return new HttpError(502, "source_image_edit_required");
