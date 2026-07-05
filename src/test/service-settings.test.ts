@@ -48,6 +48,31 @@ describe("service settings helpers", () => {
     expect(settings.lunch.deposit_amount_chf).toBe(0);
   });
 
+  it("parses order service controls without losing reservation settings", () => {
+    const settings = getServiceSettings({
+      service_settings: {
+        lunch: {
+          start_time: "11:30",
+          end_time: "14:30",
+          last_reservation_time: "14:00",
+          order_start_time: "11:45",
+          order_end_time: "13:45",
+          online_booking_enabled: true,
+          online_ordering_enabled: false,
+          service_closed: false,
+          orders_closed: true,
+        },
+      },
+    });
+
+    expect(settings.lunch.start_time).toBe("11:30");
+    expect(settings.lunch.order_start_time).toBe("11:45");
+    expect(settings.lunch.order_end_time).toBe("13:45");
+    expect(settings.lunch.online_booking_enabled).toBe(true);
+    expect(settings.lunch.online_ordering_enabled).toBe(false);
+    expect(settings.lunch.orders_closed).toBe(true);
+  });
+
   it("does not invent customer-facing service slots when profile hours are absent", () => {
     expect(getConfiguredServiceSettings(null)).toBeNull();
     expect(getConfiguredServiceSettings({ service_settings: {} })).toBeNull();

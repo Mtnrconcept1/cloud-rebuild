@@ -11,6 +11,8 @@ export type ServiceSettings = {
   start_time: string;
   end_time: string;
   last_reservation_time: string;
+  order_start_time: string;
+  order_end_time: string;
   confirmation_deadline_minutes: number;
   deposit_amount_chf: number;
   max_covers: number;
@@ -20,8 +22,10 @@ export type ServiceSettings = {
   min_party_size: number;
   max_party_size: number;
   online_booking_enabled: boolean;
+  online_ordering_enabled: boolean;
   restaurant_confirmation_required: boolean;
   service_closed: boolean;
+  orders_closed: boolean;
   service_note: string;
 };
 
@@ -38,6 +42,8 @@ export const DEFAULT_SERVICE_SETTINGS: ServiceSettingsMap = {
     start_time: "12:00",
     end_time: "14:30",
     last_reservation_time: "14:00",
+    order_start_time: "12:00",
+    order_end_time: "14:30",
     confirmation_deadline_minutes: 15,
     deposit_amount_chf: 0,
     max_covers: 60,
@@ -49,14 +55,18 @@ export const DEFAULT_SERVICE_SETTINGS: ServiceSettingsMap = {
     min_party_size: 1,
     max_party_size: 8,
     online_booking_enabled: true,
+    online_ordering_enabled: true,
     restaurant_confirmation_required: true,
     service_closed: false,
+    orders_closed: false,
     service_note: "",
   },
   dinner: {
     start_time: "19:00",
     end_time: "22:30",
     last_reservation_time: "22:00",
+    order_start_time: "19:00",
+    order_end_time: "22:30",
     confirmation_deadline_minutes: 15,
     deposit_amount_chf: 0,
     max_covers: 80,
@@ -68,8 +78,10 @@ export const DEFAULT_SERVICE_SETTINGS: ServiceSettingsMap = {
     min_party_size: 1,
     max_party_size: 10,
     online_booking_enabled: true,
+    online_ordering_enabled: true,
     restaurant_confirmation_required: true,
     service_closed: false,
+    orders_closed: false,
     service_note: "",
   },
 };
@@ -122,12 +134,26 @@ const parseSlotCapacityWindows = (
 const parseServiceSettings = (value: unknown, fallback: ServiceSettings): ServiceSettings => {
   if (!value || typeof value !== "object" || Array.isArray(value)) return fallback;
   const source = value as Record<string, unknown>;
+  const startTime = typeof source.start_time === "string" ? source.start_time : fallback.start_time;
+  const endTime = typeof source.end_time === "string" ? source.end_time : fallback.end_time;
+  const onlineBookingEnabled =
+    typeof source.online_booking_enabled === "boolean"
+      ? source.online_booking_enabled
+      : fallback.online_booking_enabled;
 
   return {
-    start_time: typeof source.start_time === "string" ? source.start_time : fallback.start_time,
-    end_time: typeof source.end_time === "string" ? source.end_time : fallback.end_time,
+    start_time: startTime,
+    end_time: endTime,
     last_reservation_time:
       typeof source.last_reservation_time === "string" ? source.last_reservation_time : fallback.last_reservation_time,
+    order_start_time:
+      typeof source.order_start_time === "string"
+        ? source.order_start_time
+        : startTime || fallback.order_start_time,
+    order_end_time:
+      typeof source.order_end_time === "string"
+        ? source.order_end_time
+        : endTime || fallback.order_end_time,
     confirmation_deadline_minutes: toBoundedInt(source.confirmation_deadline_minutes, fallback.confirmation_deadline_minutes, 1, 240),
     deposit_amount_chf: toNonNegativeMoney(source.deposit_amount_chf, fallback.deposit_amount_chf),
     max_covers: toPositiveInt(source.max_covers, fallback.max_covers),
@@ -136,15 +162,17 @@ const parseServiceSettings = (value: unknown, fallback: ServiceSettings): Servic
     slot_capacity_windows: parseSlotCapacityWindows(source.slot_capacity_windows, fallback.slot_capacity_windows),
     min_party_size: toPositiveInt(source.min_party_size, fallback.min_party_size),
     max_party_size: toPositiveInt(source.max_party_size, fallback.max_party_size),
-    online_booking_enabled:
-      typeof source.online_booking_enabled === "boolean"
-        ? source.online_booking_enabled
-        : fallback.online_booking_enabled,
+    online_booking_enabled: onlineBookingEnabled,
+    online_ordering_enabled:
+      typeof source.online_ordering_enabled === "boolean"
+        ? source.online_ordering_enabled
+        : onlineBookingEnabled,
     restaurant_confirmation_required:
       typeof source.restaurant_confirmation_required === "boolean"
         ? source.restaurant_confirmation_required
         : fallback.restaurant_confirmation_required,
     service_closed: typeof source.service_closed === "boolean" ? source.service_closed : fallback.service_closed,
+    orders_closed: typeof source.orders_closed === "boolean" ? source.orders_closed : fallback.orders_closed,
     service_note: typeof source.service_note === "string" ? source.service_note : fallback.service_note,
   };
 };
@@ -155,7 +183,9 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 const buildClosedServiceSettings = (fallback: ServiceSettings): ServiceSettings => ({
   ...fallback,
   online_booking_enabled: false,
+  online_ordering_enabled: false,
   service_closed: true,
+  orders_closed: true,
   slot_capacity_windows: [],
 });
 
@@ -270,13 +300,23 @@ export const validateServiceSettings = (settings: ServiceSettings): string | nul
   const start = parseServiceTime(settings.start_time);
   const end = parseServiceTime(settings.end_time);
   const lastReservation = parseServiceTime(settings.last_reservation_time);
+  const orderStart = parseServiceTime(settings.order_start_time);
+  const orderEnd = parseServiceTime(settings.order_end_time);
 
   if (start === null || end === null || lastReservation === null) {
     return "Les horaires doivent être au format HH:MM.";
   }
 
+  if (orderStart === null || orderEnd === null) {
+    return "Les horaires de commande doivent être au format HH:MM.";
+  }
+
   if (start >= end) {
     return "L'heure de début doit être antérieure à l'heure de fin.";
+  }
+
+  if (orderStart >= orderEnd) {
+    return "L'heure de début des commandes doit être antérieure à l'heure de fin.";
   }
 
   if (lastReservation < start || lastReservation > end) {

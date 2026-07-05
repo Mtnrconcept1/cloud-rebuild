@@ -394,6 +394,55 @@ export default function DashboardService() {
 
                   <div className="space-y-3 rounded-xl border bg-background p-3">
                     <div>
+                      <p className="text-sm font-semibold">Commandes, retrait et livraison</p>
+                      <p className="text-xs text-muted-foreground">
+                        Ces plages alimentent les heures proposées au panier pour le retrait et la livraison.
+                      </p>
+                    </div>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label>Début commandes</Label>
+                        <Input
+                          type="time"
+                          value={settings.order_start_time}
+                          onChange={(event) => updateServiceField(period.key, "order_start_time", event.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Fin commandes</Label>
+                        <Input
+                          type="time"
+                          value={settings.order_end_time}
+                          onChange={(event) => updateServiceField(period.key, "order_end_time", event.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <label className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm">
+                        <span>Commandes en ligne</span>
+                        <Switch
+                          checked={settings.online_ordering_enabled && !settings.orders_closed}
+                          onCheckedChange={(checked) => {
+                            updateServiceField(period.key, "online_ordering_enabled", checked);
+                            if (checked) updateServiceField(period.key, "orders_closed", false);
+                          }}
+                        />
+                      </label>
+                      <label className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm">
+                        <span>Suspendre commandes</span>
+                        <Switch
+                          checked={settings.orders_closed}
+                          onCheckedChange={(checked) => {
+                            updateServiceField(period.key, "orders_closed", checked);
+                            if (checked) updateServiceField(period.key, "online_ordering_enabled", false);
+                          }}
+                        />
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 rounded-xl border bg-background p-3">
+                    <div>
                       <p className="text-sm font-semibold">Confirmation et acompte</p>
                       <p className="text-xs text-muted-foreground">
                         Ces reglages alimentent la reservation client et le suivi operationnel du dashboard.

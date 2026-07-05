@@ -78,6 +78,70 @@ describe("delivery slots helpers", () => {
     expect(groups).toEqual([]);
   });
 
+  it("uses order-specific service windows for takeaway and delivery slots", () => {
+    const groups = buildDeliverySlotGroups({
+      openingHours: {
+        lundi: "11:30-22:30",
+        service_settings: {
+          lunch: {
+            start_time: "11:30",
+            end_time: "14:30",
+            last_reservation_time: "14:00",
+            order_start_time: "12:15",
+            order_end_time: "13:00",
+            online_booking_enabled: true,
+            online_ordering_enabled: true,
+            service_closed: false,
+            orders_closed: false,
+          },
+        },
+      },
+      dateValue: "2026-03-16",
+      leadMinutes: 0,
+      now: new Date("2026-03-15T10:00:00"),
+    });
+
+    expect(groups).toHaveLength(1);
+    expect(groups[0].slots.map((slot) => slot.time)).toEqual(["12:15", "12:30", "12:45", "13:00"]);
+  });
+
+  it("hides order slots when the service is closed to online ordering", () => {
+    const groups = buildDeliverySlotGroups({
+      openingHours: {
+        lundi: "11:30-22:30",
+        service_settings: {
+          lunch: {
+            start_time: "11:30",
+            end_time: "14:30",
+            last_reservation_time: "14:00",
+            order_start_time: "11:30",
+            order_end_time: "14:30",
+            online_booking_enabled: true,
+            online_ordering_enabled: false,
+            service_closed: false,
+            orders_closed: false,
+          },
+          dinner: {
+            start_time: "18:30",
+            end_time: "22:30",
+            last_reservation_time: "22:00",
+            order_start_time: "18:30",
+            order_end_time: "22:30",
+            online_booking_enabled: true,
+            online_ordering_enabled: true,
+            service_closed: false,
+            orders_closed: true,
+          },
+        },
+      },
+      dateValue: "2026-03-16",
+      leadMinutes: 0,
+      now: new Date("2026-03-15T10:00:00"),
+    });
+
+    expect(groups).toEqual([]);
+  });
+
   it("formats the scheduled delivery label for display", () => {
     expect(formatScheduledDeliveryLabel("2026-03-16", "19:30")).toContain("19:30");
   });

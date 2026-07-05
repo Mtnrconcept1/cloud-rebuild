@@ -39,4 +39,17 @@ describe("restaurant profile hours as slot source", () => {
     expect(migration).toContain("Les horaires du restaurant ne sont pas configures pour ce service.");
     expect(migration).toContain("missing_opening_hours");
   });
+
+  it("keeps cart order slots aligned with server order windows", () => {
+    const deliverySlotsSource = readSource("src/lib/deliverySlots.ts");
+    const validateOrderSource = readSource("supabase/functions/validate-order/index.ts");
+
+    expect(deliverySlotsSource).toContain("order_start_time");
+    expect(deliverySlotsSource).toContain("order_end_time");
+    expect(deliverySlotsSource).toContain("online_ordering_enabled");
+    expect(deliverySlotsSource).toContain("orders_closed");
+    expect(validateOrderSource).toContain("Europe/Zurich");
+    expect(validateOrderSource).toContain("toZurichScheduledUtcIso");
+    expect(validateOrderSource).not.toContain(":00+01:00`");
+  });
 });

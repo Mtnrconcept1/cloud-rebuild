@@ -47,6 +47,18 @@ const toDateInputValue = (date: Date) =>
 const ceilToStep = (minutes: number, stepMinutes: number) =>
   Math.ceil(minutes / stepMinutes) * stepMinutes;
 
+const getOrderServiceWindow = (settings: ServiceSettings) => {
+  const onlineOrderingEnabled = settings.online_ordering_enabled !== false;
+  const ordersClosed = settings.orders_closed === true;
+  if (!onlineOrderingEnabled || ordersClosed || settings.service_closed) return null;
+
+  const start = parseTime(settings.order_start_time || settings.start_time);
+  const end = parseTime(settings.order_end_time || settings.end_time);
+  if (start === null || end === null || start > end) return null;
+
+  return { start, end };
+};
+
 export const getTodayDateValue = (now = new Date()) => toDateInputValue(now);
 
 export const getMaxScheduledDateValue = (daysAhead = 7, now = new Date()) => {
@@ -115,16 +127,9 @@ export const buildDeliverySlotGroups = ({
 
   return (Object.entries(settingsMap) as [ServicePeriod, ServiceSettings][])
     .flatMap(([service, settings]) => {
-      if (!settings.online_booking_enabled || settings.service_closed) {
-        return [];
-      }
-
-      const start = parseTime(settings.start_time);
-      const end = parseTime(settings.end_time);
-
-      if (start === null || end === null || start > end) {
-        return [];
-      }
+      const orderWindow = getOrderServiceWindow(settings);
+      if (!orderWindow) return [];
+      const { start, end } = orderWindow;
 
       const firstSlot = thresholdMinutes === null
         ? start
@@ -197,4 +202,3 @@ export const formatScheduledDeliveryLabel = (dateValue: string, time: string) =>
     month: "long",
   })} a ${time}`;
 };
-

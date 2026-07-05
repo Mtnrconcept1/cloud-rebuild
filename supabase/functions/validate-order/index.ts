@@ -43,6 +43,32 @@ interface ValidateOrderPayload {
   preview_only?: boolean;
 }
 
+const SCHEDULING_TIME_ZONE = "Europe/Zurich";
+
+const pad = (value: number) => String(value).padStart(2, "0");
+
+function getTimeZoneOffset(date: Date, timeZone = SCHEDULING_TIME_ZONE) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    timeZoneName: "shortOffset",
+  }).formatToParts(date);
+  const value = parts.find((part) => part.type === "timeZoneName")?.value || "GMT+1";
+  const match = /GMT([+-]\d{1,2})(?::?(\d{2}))?/.exec(value);
+  if (!match) return "+01:00";
+
+  const numericHours = Number(match[1]);
+  const sign = numericHours >= 0 ? "+" : "-";
+  const hours = pad(Math.abs(numericHours));
+  const minutes = match[2] || "00";
+  return `${sign}${hours}:${minutes}`;
+}
+
+function toZurichScheduledUtcIso(dateValue: string, timeValue: string) {
+  const guess = new Date(`${dateValue}T${timeValue}:00Z`);
+  const offset = getTimeZoneOffset(guess);
+  return new Date(`${dateValue}T${timeValue}:00${offset}`).toISOString();
+}
+
 function buildItemsSummary(items: Array<{ quantity: number; name: string }>) {
   return items
     .slice(0, 3)
@@ -91,7 +117,7 @@ function resolveCapacityRequestedAt(
   const pickupDate = getRecordString(metadata, "pickup_date");
   const pickupTime = getRecordString(metadata, "pickup_time") || getRecordString(metadata, "arrival_time");
   if (pickupDate && pickupTime && /^\d{4}-\d{2}-\d{2}$/.test(pickupDate) && /^\d{2}:\d{2}/.test(pickupTime)) {
-    return `${pickupDate}T${pickupTime.slice(0, 5)}:00+01:00`;
+    return toZurichScheduledUtcIso(pickupDate, pickupTime.slice(0, 5));
   }
 
   return new Date().toISOString();
