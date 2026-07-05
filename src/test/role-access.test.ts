@@ -31,23 +31,23 @@ describe("role access policy", () => {
     const authSource = readFileSync(resolve(process.cwd(), "src/lib/auth.tsx"), "utf8");
     const authPageSource = readFileSync(resolve(process.cwd(), "src/pages/Auth.tsx"), "utf8");
     const navbarSource = readFileSync(resolve(process.cwd(), "src/components/Navbar.tsx"), "utf8");
-    const roleSwitcherSource = readFileSync(resolve(process.cwd(), "src/components/navigation/RoleSpaceSwitcher.tsx"), "utf8");
+    const roleMenuSource = readFileSync(resolve(process.cwd(), "src/components/navigation/RoleSpaceMenuSection.tsx"), "utf8");
     const dashboardLayoutSource = readFileSync(resolve(process.cwd(), "src/components/DashboardLayout.tsx"), "utf8");
     const customerLayoutSource = readFileSync(resolve(process.cwd(), "src/components/CustomerDashboardLayout.tsx"), "utf8");
     const courierLayoutSource = readFileSync(resolve(process.cwd(), "src/components/CourierDashboardLayout.tsx"), "utf8");
-    const adminFrameSource = readFileSync(resolve(process.cwd(), "src/App.tsx"), "utf8");
+    const adminNavigationSource = readFileSync(resolve(process.cwd(), "src/components/admin/AdminMobileNavigation.tsx"), "utf8");
 
     expect(authSource).not.toContain('role === "client" && hasPrivilegedRole(roles)');
     expect(authPageSource).toContain("getFeatureVisibleRoles(roles, activeFeatures)");
-    expect(navbarSource).toContain("getFeatureVisibleRoles(roles, activeFeatures)");
-    expect(roleSwitcherSource).toContain("getFeatureVisibleRoles(roles, activeFeatures)");
-    expect(roleSwitcherSource).toContain("switchableRoles.map");
-    expect(roleSwitcherSource).toContain("switchRole(nextRole)");
-    expect(roleSwitcherSource).toContain("getRoleTarget");
-    expect(dashboardLayoutSource).toContain("RoleSpaceSwitcher");
-    expect(customerLayoutSource).toContain("RoleSpaceSwitcher");
-    expect(courierLayoutSource).toContain("RoleSpaceSwitcher");
-    expect(adminFrameSource).toContain("RoleSpaceSwitcher");
+    expect(navbarSource).toContain("RoleSpaceMenuSection");
+    expect(roleMenuSource).toContain("getFeatureVisibleRoles(roles, activeFeatures)");
+    expect(roleMenuSource).toContain("switchableRoles.map");
+    expect(roleMenuSource).toContain("switchRole(nextRole)");
+    expect(roleMenuSource).toContain("getRoleTarget");
+    expect(dashboardLayoutSource).toContain("RoleSpaceMenuSection");
+    expect(customerLayoutSource).toContain("RoleSpaceMenuSection");
+    expect(courierLayoutSource).toContain("RoleSpaceMenuSection");
+    expect(adminNavigationSource).toContain("RoleSpaceMenuSection");
   });
 
   it("hides feature-disabled roles from switchers without mutating assigned roles", () => {

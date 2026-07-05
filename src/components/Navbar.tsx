@@ -7,9 +7,7 @@ import {
   ChefHat,
   Crown,
   Gift,
-  ArrowRight,
   Layers,
-  LayoutDashboard,
   Leaf,
   LogOut,
   Menu,
@@ -28,20 +26,19 @@ import {
   User,
   Users,
   Zap,
-  type LucideIcon,
 } from "lucide-react";
 
 import ChefHelpButton from "@/components/help/ChefHelpButton";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import NotificationMenuBadge from "@/components/notifications/NotificationMenuBadge";
+import RoleSpaceMenuSection from "@/components/navigation/RoleSpaceMenuSection";
 import ThemeToggleButton from "@/components/theme/ThemeToggleButton";
 import { useAuth } from "@/lib/auth-context";
 import { useCart } from "@/lib/cart-context";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { useNotificationCenter } from "@/hooks/useNotificationCenter";
 import { useTokLogoSrc } from "@/hooks/useTokLogo";
-import { getAdminNavigationHref } from "@/lib/adminDomains";
-import { canShowClientSurface, canShowSocialFeedSurface, getFeatureVisibleRoles, getRoleHomePath } from "@/lib/roleAccess";
+import { canShowClientSurface, canShowSocialFeedSurface, getRoleHomePath } from "@/lib/roleAccess";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -97,18 +94,8 @@ const FEATURES = [
   { icon: Repeat, label: "Abonnement", desc: "Repas récurrents planifiés", to: "/abonnement", feature: "abonnement", color: "text-purple-500", bg: "bg-purple-500/10", hoverBg: "group-hover:bg-purple-500/20" },
 ];
 
-type DashboardAccessItem = {
-  key: "restaurant" | "admin" | "courier";
-  label: string;
-  description: string;
-  href: string;
-  icon: LucideIcon;
-  iconClassName: string;
-  external?: boolean;
-};
-
 export default function Navbar() {
-  const { user, role, roles, canSwitchRole, switchRole, signOut } = useAuth();
+  const { user, role, roles, signOut } = useAuth();
   const location = useLocation();
   const { itemCount } = useCart();
   const activeFeatures = useActiveFeatures();
@@ -123,58 +110,16 @@ export default function Navbar() {
   const antiWasteEnabled = activeFeatures.has("anti-gaspi");
   const flashSalesEnabled = activeFeatures.has("ventes-flash");
   const actualitesEnabled = activeFeatures.has("actualites-sociales");
-  const courierEnabled = activeFeatures.has("espace-livreur");
   const reservationEnabled = activeFeatures.has("reservation");
-  const dashboardEnabled = activeFeatures.has("dashboard-restaurateur");
   const tokOneEnabled = activeFeatures.has("tok-one");
   const tokConnectEnabled = activeFeatures.has("tok-connect");
   const visibleFeatures = FEATURES.filter((feature) => activeFeatures.has(feature.feature));
   const discoveryFeatures = visibleFeatures.slice(0, 3);
   const showClientSurface = canShowClientSurface({ activeRole: role, roles });
-  const switchableRoles = getFeatureVisibleRoles(roles, activeFeatures);
-  const showRoleSwitcher = canSwitchRole && switchableRoles.length > 1;
   const showSocialFeedSurface = canShowSocialFeedSurface({ activeRole: role, roles });
   const homeTarget = showClientSurface ? "/" : getRoleHomePath(role);
   const showCartShortcut = showClientSurface && (user || itemCount > 0);
-  const showRestaurantDashboardLink = dashboardEnabled && roles.includes("restaurateur");
-  const showAdminDashboardLink = roles.includes("admin");
-  const showCourierDashboardLink = courierEnabled && roles.includes("courier");
   const isMobileHomeHeader = showClientSurface && location.pathname === "/";
-  const adminDashboardHref = getAdminNavigationHref("/admin");
-  const dashboardAccessItems: DashboardAccessItem[] = [
-    ...(showRestaurantDashboardLink
-      ? [{
-          key: "restaurant" as const,
-          label: "Dashboard restaurant",
-          description: "Commandes, réservations, menus",
-          href: "/dashboard",
-          icon: Store,
-          iconClassName: "bg-orange-500/10 text-orange-600",
-        }]
-      : []),
-    ...(showAdminDashboardLink
-      ? [{
-          key: "admin" as const,
-          label: "Administration",
-          description: "Supervision plateforme TOK",
-          href: adminDashboardHref,
-          icon: Shield,
-          iconClassName: "bg-sky-500/10 text-sky-600",
-          external: true,
-        }]
-      : []),
-    ...(showCourierDashboardLink
-      ? [{
-          key: "courier" as const,
-          label: "Espace livreur",
-          description: "Courses, revenus, profil",
-          href: "/courier",
-          icon: ShoppingBag,
-          iconClassName: "bg-emerald-500/10 text-emerald-600",
-        }]
-      : []),
-  ];
-  const hasDashboardAccess = dashboardAccessItems.length > 0;
 
   useEffect(() => {
     lastScrollYRef.current = window.scrollY;
@@ -230,33 +175,6 @@ export default function Navbar() {
       root.style.removeProperty("--tok-public-navbar-offset");
     };
   }, [isHeaderVisible, isMobileHomeHeader]);
-
-  const renderDashboardAccessLink = (item: DashboardAccessItem, options?: { onClick?: () => void }) => {
-    const Icon = item.icon;
-    const className = "group flex w-full items-center gap-3 rounded-2xl border border-primary/15 bg-background/90 p-3 text-left shadow-sm transition-all hover:border-primary/35 hover:bg-primary/5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40";
-    const content = (
-      <>
-        <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${item.iconClassName}`}>
-          <Icon className="h-5 w-5" />
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-extrabold leading-5 text-foreground">{item.label}</span>
-          <span className="mt-0.5 block text-xs leading-snug text-muted-foreground">{item.description}</span>
-        </span>
-        <ArrowRight className="h-4 w-4 shrink-0 text-primary opacity-70 transition-transform group-hover:translate-x-0.5" />
-      </>
-    );
-
-    return item.external ? (
-      <a href={item.href} className={className} onClick={options?.onClick}>
-        {content}
-      </a>
-    ) : (
-      <Link to={item.href} className={className} onClick={options?.onClick}>
-        {content}
-      </Link>
-    );
-  };
 
   const handleAccountMenuOpenChange = (open: boolean) => {
     setAccountMenuOpen(open);
@@ -430,43 +348,23 @@ export default function Navbar() {
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
-                    size={isMobileHomeHeader || hasDashboardAccess ? "sm" : "icon"}
-                    aria-label={hasDashboardAccess ? "Ouvrir mes espaces" : "Compte"}
+                    size={isMobileHomeHeader ? "sm" : "icon"}
+                    aria-label="Compte"
                     onMouseDown={preserveNavbarActionScrollPosition}
                     className={
                       isMobileHomeHeader
                         ? "order-3 h-[48px] rounded-full bg-primary px-5 text-[0.88rem] font-bold text-white shadow-[0_10px_22px_rgba(255,107,28,0.24)] hover:bg-primary/90"
-                        : hasDashboardAccess
-                          ? "hidden h-11 rounded-full border border-primary/25 bg-gradient-to-r from-primary via-orange-500 to-amber-500 px-4 text-sm font-extrabold text-white shadow-[0_12px_26px_rgba(255,107,28,0.26)] transition-all hover:-translate-y-0.5 hover:text-white hover:shadow-[0_16px_34px_rgba(255,107,28,0.32)] lg:inline-flex"
                         : "rounded-full"
                     }
                   >
-                    {hasDashboardAccess ? <LayoutDashboard className="h-5 w-5" /> : <User className="h-5 w-5" />}
-                    <span className={isMobileHomeHeader ? "ml-2 inline" : hasDashboardAccess ? "ml-2 inline" : "sr-only"}>
-                      {hasDashboardAccess ? "Mes espaces" : "COMPTE"}
+                    <User className="h-5 w-5" />
+                    <span className={isMobileHomeHeader ? "ml-2 inline" : "sr-only"}>
+                      COMPTE
                     </span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-72 data-[state=closed]:hidden">
-                  {showRoleSwitcher ? (
-                    <div className="mb-1 border-b px-2 py-2">
-                      <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Espace actif</p>
-                      <div className="flex flex-wrap gap-1">
-                        {switchableRoles.map((candidateRole) => (
-                          <button
-                            key={candidateRole}
-                            onClick={() => switchRole(candidateRole)}
-                            className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${role === candidateRole
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-muted text-muted-foreground hover:bg-muted/80"
-                              }`}
-                          >
-                            {{ client: "Client", restaurateur: "Restaurateur", admin: "Admin", courier: "Livreur" }[candidateRole]}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  ) : null}
+                  <RoleSpaceMenuSection className="mx-1 mb-2" onNavigate={() => setAccountMenuOpen(false)} />
                   {showClientSurface ? (
                     <DropdownMenuItem asChild>
                       <Link to="/profil">Mon profil</Link>
@@ -501,24 +399,10 @@ export default function Navbar() {
                       <Link to="/actualites">Actualités</Link>
                     </DropdownMenuItem>
                   ) : null}
-                  {courierEnabled && role === "courier" && !showClientSurface ? (
+                  {role === "courier" && !showClientSurface ? (
                     <DropdownMenuItem asChild>
                       <Link to="/courier/profile">Mon profil</Link>
                     </DropdownMenuItem>
-                  ) : null}
-                  {hasDashboardAccess ? (
-                    <div className="mx-1 my-2 rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-background to-orange-500/10 p-2 shadow-sm">
-                      <p className="px-2 pb-2 pt-1 text-[10px] font-extrabold uppercase tracking-wider text-primary">
-                        Accès rapides
-                      </p>
-                      <div className="space-y-1.5">
-                        {dashboardAccessItems.map((item) => (
-                          <DropdownMenuItem key={item.key} asChild className="rounded-2xl p-0 focus:bg-transparent">
-                            {renderDashboardAccessLink(item)}
-                          </DropdownMenuItem>
-                        ))}
-                      </div>
-                    </div>
                   ) : null}
                   <DropdownMenuItem onClick={signOut} className="mt-2 border-t pt-2 font-medium text-destructive">
                     <LogOut className="mr-2 h-4 w-4" />
@@ -639,28 +523,7 @@ export default function Navbar() {
 
                   {user ? (
                     <div className="mt-2 space-y-4 border-t pt-4">
-                      {showRoleSwitcher ? (
-                        <div className="space-y-2">
-                          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Espace actif</p>
-                          <div className="flex flex-wrap gap-1.5">
-                            {switchableRoles.map((candidateRole) => (
-                              <button
-                                key={candidateRole}
-                                onClick={() => {
-                                  switchRole(candidateRole);
-                                  setMenuOpen(false);
-                                }}
-                                className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${role === candidateRole
-                                    ? "bg-primary text-primary-foreground"
-                                    : "bg-muted text-muted-foreground hover:bg-muted/80"
-                                  }`}
-                              >
-                                {{ client: "Client", restaurateur: "Restaurateur", admin: "Admin", courier: "Livreur" }[candidateRole]}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      ) : null}
+                      <RoleSpaceMenuSection onNavigate={() => setMenuOpen(false)} />
 
                       {showClientSurface ? (
                         <Link to="/profil" className="flex items-center gap-2 text-sm font-medium hover:text-primary" onClick={() => setMenuOpen(false)}>
@@ -668,7 +531,7 @@ export default function Navbar() {
                           Mon profil
                         </Link>
                       ) : null}
-                      {courierEnabled && role === "courier" && !showClientSurface ? (
+                      {role === "courier" && !showClientSurface ? (
                         <Link to="/courier/profile" className="flex items-center gap-2 text-sm font-medium hover:text-primary" onClick={() => setMenuOpen(false)}>
                           <User className="h-4 w-4" />
                           Mon profil
@@ -694,21 +557,6 @@ export default function Navbar() {
                           <span>Notifications</span>
                           <NotificationMenuBadge route="/notifications" role={role} unreadNotifications={unreadNotifications} />
                         </Link>
-                      ) : null}
-                      {hasDashboardAccess ? (
-                        <div className="rounded-2xl border border-primary/25 bg-gradient-to-br from-primary/10 via-background to-orange-500/10 p-3 shadow-sm">
-                          <p className="mb-2 flex items-center gap-2 text-[10px] font-extrabold uppercase tracking-wider text-primary">
-                            <LayoutDashboard className="h-3.5 w-3.5" />
-                            Mes espaces
-                          </p>
-                          <div className="space-y-2">
-                            {dashboardAccessItems.map((item) => (
-                              <div key={item.key}>
-                                {renderDashboardAccessLink(item, { onClick: () => setMenuOpen(false) })}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
                       ) : null}
                     </div>
                   ) : null}

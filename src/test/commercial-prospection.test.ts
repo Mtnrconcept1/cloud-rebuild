@@ -51,7 +51,7 @@ describe("commercial prospecting surface", () => {
     expect(pageSource).toContain("#16a34a");
     expect(pageSource).toContain("#ef4444");
     expect(pageSource).toContain("CommercialWorkspaceChrome");
-    expect(chromeSource).toContain("RoleSpaceSwitcher");
+    expect(chromeSource).toContain("RoleSpaceMenuSection");
     expect(chromeSource).toContain("/commercial/comptabilite");
     expect(pageSource).toContain("commercialProspectMarkerIcon");
     expect(pageSource).toContain("L.divIcon");

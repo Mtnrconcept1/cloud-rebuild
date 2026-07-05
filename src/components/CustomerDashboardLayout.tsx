@@ -1,12 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { User, ShoppingCart, CalendarDays, LayoutDashboard, Settings, Bell, Crown, type LucideIcon } from "lucide-react";
+import { User, ShoppingCart, CalendarDays, Bell, Crown, type LucideIcon } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { BackNavigationButton } from "@/components/navigation/BackNavigationButton";
-import RoleSpaceSwitcher from "@/components/navigation/RoleSpaceSwitcher";
+import RoleSpaceMenuSection from "@/components/navigation/RoleSpaceMenuSection";
 import NotificationMenuBadge from "@/components/notifications/NotificationMenuBadge";
 import { useNotificationCenter } from "@/hooks/useNotificationCenter";
-import { getAdminNavigationHref } from "@/lib/adminDomains";
 import SignOutButton from "@/components/auth/SignOutButton";
 import { useActiveFeatures } from "@/lib/featureFlags";
 
@@ -27,10 +26,9 @@ const NAV_ITEMS: CustomerNavItem[] = [
 
 export default function CustomerDashboardLayout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation();
-  const { roles, role } = useAuth();
+  const { role } = useAuth();
   const activeFeatures = useActiveFeatures();
   const { unreadNotifications } = useNotificationCenter(50);
-  const adminDashboardHref = getAdminNavigationHref("/admin");
   const visibleNavItems = NAV_ITEMS.filter((item) => !item.feature || activeFeatures.has(item.feature));
 
   return (
@@ -39,7 +37,7 @@ export default function CustomerDashboardLayout({ children }: { children: React.
         <aside className="w-full md:w-64 shrink-0">
           <div className="bg-card border rounded-2xl p-4 flex flex-col gap-2 sticky top-24">
             <h2 className="font-display font-semibold px-3 py-2 mb-2 text-lg">Mon Espace</h2>
-            <RoleSpaceSwitcher className="mb-2 w-full justify-between" align="start" />
+            <RoleSpaceMenuSection className="mb-2" />
             {visibleNavItems.map((item) => (
               <Link key={item.to} to={item.to} className={cn("flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors", pathname === item.to ? "bg-primary text-primary-foreground shadow-sm" : "text-foreground hover:bg-muted")}>
                 <item.icon className="h-4 w-4" />
@@ -47,16 +45,6 @@ export default function CustomerDashboardLayout({ children }: { children: React.
                 <NotificationMenuBadge route={item.to} role={role} unreadNotifications={unreadNotifications} />
               </Link>
             ))}
-            {roles.includes("restaurateur") && (
-              <div className="mt-2 pt-2 border-t">
-                <Link to="/dashboard" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-primary hover:bg-primary/10 transition-colors"><LayoutDashboard className="h-4 w-4" />Espace Restaurateur</Link>
-              </div>
-            )}
-            {roles.includes("admin") && (
-              <div className="mt-2 pt-2 border-t">
-                <a href={adminDashboardHref} className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-primary hover:bg-primary/10 transition-colors"><Settings className="h-4 w-4" />Administration</a>
-              </div>
-            )}
             <div className="mt-4 pt-4 border-t">
               <SignOutButton className="w-full justify-start rounded-xl px-3 py-2.5 text-sm font-medium" />
             </div>

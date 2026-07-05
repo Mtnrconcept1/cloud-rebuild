@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import SignOutButton from "@/components/auth/SignOutButton";
 import NotificationBell from "@/components/notifications/NotificationBell";
-import RoleSpaceSwitcher from "@/components/navigation/RoleSpaceSwitcher";
+import RoleSpaceMenuSection from "@/components/navigation/RoleSpaceMenuSection";
 import ThemeToggleButton from "@/components/theme/ThemeToggleButton";
 import { Button } from "@/components/ui/button";
 import {
@@ -38,7 +38,6 @@ export default function CommercialWorkspaceChrome({ activeLabel }: { activeLabel
   return (
     <>
       <div className="fixed right-[calc(env(safe-area-inset-right,0px)+0.75rem)] top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-[1200] flex items-center gap-2">
-        <RoleSpaceSwitcher compact className="border-border/70 bg-background/95 shadow-[0_14px_34px_rgba(15,23,42,0.14)] backdrop-blur-md" />
         <ThemeToggleButton className="h-11 w-11 rounded-full border border-border/70 bg-background/95 text-foreground shadow-[0_14px_34px_rgba(15,23,42,0.16)] backdrop-blur-md hover:bg-background dark:border-[#5f7aad]/35 dark:bg-[#07142b]/95 dark:text-white" />
         <NotificationBell />
         <SignOutButton iconOnly />
@@ -87,6 +86,8 @@ export default function CommercialWorkspaceChrome({ activeLabel }: { activeLabel
                 </DropdownMenuItem>
               );
             })}
+            <DropdownMenuSeparator />
+            <RoleSpaceMenuSection className="my-2" onNavigate={() => undefined} />
             <DropdownMenuSeparator />
             <Button type="button" variant="outline" className="mt-1 h-10 w-full justify-start rounded-xl" onClick={() => navigate("/")}>
               Retour à l'accueil

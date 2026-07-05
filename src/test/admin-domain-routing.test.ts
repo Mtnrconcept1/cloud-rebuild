@@ -56,11 +56,13 @@ describe("admin domain routing", () => {
     const navbar = read("src/components/Navbar.tsx");
     const customerLayout = read("src/components/CustomerDashboardLayout.tsx");
     const courierLayout = read("src/components/CourierDashboardLayout.tsx");
+    const roleSpaceMenu = read("src/components/navigation/RoleSpaceMenuSection.tsx");
 
     expect(app).toContain("AdminHostBoundary");
     expect(app).toContain("getAdminHostRedirectTarget");
-    expect(navbar).toContain("getAdminNavigationHref");
-    expect(customerLayout).toContain("getAdminNavigationHref");
-    expect(courierLayout).toContain("getAdminNavigationHref");
+    expect(roleSpaceMenu).toContain("getAdminNavigationHref");
+    expect(navbar).toContain("RoleSpaceMenuSection");
+    expect(customerLayout).toContain("RoleSpaceMenuSection");
+    expect(courierLayout).toContain("RoleSpaceMenuSection");
   });
 });

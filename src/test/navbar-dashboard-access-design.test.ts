@@ -5,15 +5,18 @@ import { describe, expect, it } from "vitest";
 
 describe("navbar dashboard access design", () => {
   const source = readFileSync(resolve(process.cwd(), "src/components/Navbar.tsx"), "utf8");
+  const roleMenuSource = readFileSync(resolve(process.cwd(), "src/components/navigation/RoleSpaceMenuSection.tsx"), "utf8");
 
-  it("surfaces role dashboards as a visible CTA instead of plain menu links", () => {
-    expect(source).toContain("dashboardAccessItems");
-    expect(source).toContain("hasDashboardAccess");
-    expect(source).toContain("Mes espaces");
-    expect(source).toContain("Accès rapides");
-    expect(source).toContain("Ouvrir mes espaces");
-    expect(source).toContain("rounded-2xl border border-primary/15 bg-background/90 p-3");
-    expect(source).toContain("group-hover:translate-x-0.5");
-    expect(source).toContain("getAdminNavigationHref(\"/admin\")");
+  it("surfaces role dashboards inside menus instead of a header spaces CTA", () => {
+    expect(source).toContain("RoleSpaceMenuSection");
+    expect(source).toContain('aria-label="Compte"');
+    expect(source).not.toContain("dashboardAccessItems");
+    expect(source).not.toContain("hasDashboardAccess");
+    expect(source).not.toContain("Ouvrir mes espaces");
+    expect(roleMenuSource).toContain("Mes espaces");
+    expect(roleMenuSource).toContain("getFeatureVisibleRoles(roles, activeFeatures)");
+    expect(roleMenuSource).toContain("Dashboard restaurateur");
+    expect(roleMenuSource).toContain("Espace commercial");
+    expect(roleMenuSource).toContain("getAdminNavigationHref(\"/admin\")");
   });
 });

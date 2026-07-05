@@ -15,7 +15,8 @@ describe("navbar action stability", () => {
     expect(source).toContain("onMouseDown={preserveNavbarActionScrollPosition}");
     expect(source).toContain('aria-label="Mode sombre"');
     expect(notificationBell).toContain("aria-label={`Notifications");
-    expect(source).toContain('aria-label={hasDashboardAccess ? "Ouvrir mes espaces" : "Compte"}');
+    expect(source).toContain('aria-label="Compte"');
+    expect(source).not.toContain("Ouvrir mes espaces");
   });
 
   it("keeps desktop dropdown actions non-modal so scroll locking does not move the sticky header", () => {
@@ -72,7 +73,7 @@ describe("navbar action stability", () => {
     expect(source).not.toContain('<NavigationMenu className="hidden md:flex">');
   });
 
-  it("keeps the desktop Help button to the right of the account spaces CTA", () => {
+  it("keeps the desktop Help button to the right of the account menu", () => {
     const accountMenuIndex = source.indexOf('<DropdownMenu modal={false} open={accountMenuOpen}');
     const compactHelpIndex = source.indexOf('<ChefHelpButton surface="client" compact className="hidden h-20 w-20 lg:flex" />');
 

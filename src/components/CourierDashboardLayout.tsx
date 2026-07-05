@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Bell, Bike, Coins, LayoutDashboard, LogOut, Menu, Shield, Store, UserRound } from "lucide-react";
+import { Bell, Bike, Coins, LayoutDashboard, LogOut, Menu, UserRound } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import type { ComponentType } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -10,14 +10,13 @@ import ChefHelpButton from "@/components/help/ChefHelpButton";
 import { BackNavigationButton } from "@/components/navigation/BackNavigationButton";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import NotificationMenuBadge from "@/components/notifications/NotificationMenuBadge";
-import RoleSpaceSwitcher from "@/components/navigation/RoleSpaceSwitcher";
+import RoleSpaceMenuSection from "@/components/navigation/RoleSpaceMenuSection";
 import ThemeToggleButton from "@/components/theme/ThemeToggleButton";
 import SignOutButton from "@/components/auth/SignOutButton";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useNotificationCenter } from "@/hooks/useNotificationCenter";
 import { useRealtimeNotifications, type RealtimeNotification } from "@/hooks/useRealtimeNotifications";
-import { getAdminNavigationHref } from "@/lib/adminDomains";
 import { useAuth } from "@/lib/auth-context";
 import { respondToDispatchAttempt } from "@/lib/courier";
 import {
@@ -46,9 +45,7 @@ const NAV_ITEMS: CourierNavItem[] = [
 type CourierNavContentProps = {
   pathname: string;
   visibleNavItems: CourierNavItem[];
-  roles: string[];
   role: ReturnType<typeof useAuth>["role"];
-  activeFeatures: ReadonlySet<string>;
   unreadNotifications: ReturnType<typeof useNotificationCenter>["unreadNotifications"];
   onSignOut: () => void;
   onNavigate?: () => void;
@@ -57,15 +54,11 @@ type CourierNavContentProps = {
 function CourierNavContent({
   pathname,
   visibleNavItems,
-  roles,
   role,
-  activeFeatures,
   unreadNotifications,
   onSignOut,
   onNavigate,
 }: CourierNavContentProps) {
-  const adminDashboardHref = getAdminNavigationHref("/admin");
-
   return (
     <>
       <div className="px-3 py-2">
@@ -75,6 +68,10 @@ function CourierNavContent({
 
       <div className="px-1 pb-2">
         <ChefHelpButton surface="courier" onOpen={onNavigate} />
+      </div>
+
+      <div className="px-1 pb-2">
+        <RoleSpaceMenuSection onNavigate={onNavigate} />
       </div>
 
       {visibleNavItems.map((item) => (
@@ -95,31 +92,6 @@ function CourierNavContent({
         </Link>
       ))}
 
-      {roles.length > 1 ? (
-        <div className="mt-3 space-y-1 border-t pt-3">
-          {roles.includes("restaurateur") && activeFeatures.has("dashboard-restaurateur") ? (
-            <Link
-              to="/dashboard"
-              onClick={onNavigate}
-              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-primary/10"
-            >
-              <Store className="h-4 w-4" />
-              Espace Restaurateur
-            </Link>
-          ) : null}
-          {roles.includes("admin") ? (
-            <a
-              href={adminDashboardHref}
-              onClick={onNavigate}
-              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-primary/10"
-            >
-              <Shield className="h-4 w-4" />
-              Administration
-            </a>
-          ) : null}
-        </div>
-      ) : null}
-
       <div className="mt-3 border-t pt-3">
         <button
           onClick={onSignOut}
@@ -135,7 +107,7 @@ function CourierNavContent({
 
 export default function CourierDashboardLayout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation();
-  const { signOut, roles, role } = useAuth();
+  const { signOut, role } = useAuth();
   const activeFeatures = useActiveFeatures();
   const queryClient = useQueryClient();
   const { unreadNotifications } = useNotificationCenter(50);
@@ -232,9 +204,7 @@ export default function CourierDashboardLayout({ children }: { children: React.R
             <CourierNavContent
               pathname={pathname}
               visibleNavItems={visibleNavItems}
-              roles={roles}
               role={role}
-              activeFeatures={activeFeatures}
               unreadNotifications={unreadNotifications}
               onSignOut={() => signOut()}
             />
@@ -248,7 +218,6 @@ export default function CourierDashboardLayout({ children }: { children: React.R
       </div>
 
       <div className="fixed right-[calc(env(safe-area-inset-right,0px)+0.75rem)] top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-[70] flex items-center gap-2">
-        <RoleSpaceSwitcher compact />
         <ThemeToggleButton className="h-11 w-11 rounded-full border border-border/70 bg-background/95 text-foreground shadow-[0_14px_34px_rgba(15,23,42,0.16)] backdrop-blur-md hover:bg-background dark:border-[#5f7aad]/35 dark:bg-[#07142b]/95 dark:text-white dark:shadow-[0_20px_48px_rgba(0,0,0,0.5),0_0_30px_rgba(255,106,26,0.16)]" />
         <NotificationBell />
         <SignOutButton iconOnly />
@@ -297,16 +266,11 @@ export default function CourierDashboardLayout({ children }: { children: React.R
               </SheetDescription>
             </SheetHeader>
             <div data-sheet-scroll-area className="flex-1 overflow-y-auto overscroll-y-contain px-6 pb-6 pt-4">
-              <div className="mb-4">
-                <RoleSpaceSwitcher className="w-full justify-between" align="start" onNavigate={() => setMobileMenuOpen(false)} />
-              </div>
               <nav className="flex flex-col gap-1 pb-4">
                 <CourierNavContent
                   pathname={pathname}
                   visibleNavItems={visibleNavItems}
-                  roles={roles}
                   role={role}
-                  activeFeatures={activeFeatures}
                   unreadNotifications={unreadNotifications}
                   onSignOut={() => signOut()}
                   onNavigate={() => setMobileMenuOpen(false)}

@@ -47,7 +47,7 @@ import { BackNavigationButton } from "@/components/navigation/BackNavigationButt
 import ChefHelpButton from "@/components/help/ChefHelpButton";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import NotificationMenuBadge from "@/components/notifications/NotificationMenuBadge";
-import RoleSpaceSwitcher from "@/components/navigation/RoleSpaceSwitcher";
+import RoleSpaceMenuSection from "@/components/navigation/RoleSpaceMenuSection";
 import ThemeToggleButton from "@/components/theme/ThemeToggleButton";
 import SignOutButton from "@/components/auth/SignOutButton";
 
@@ -376,6 +376,12 @@ export default function DashboardLayout({
 
         <RestaurantSelector collapsed={collapsed} />
 
+        {!collapsed ? (
+          <div className="px-2 pb-2">
+            <RoleSpaceMenuSection />
+          </div>
+        ) : null}
+
         <div className="px-2 pb-2">
           <ChefHelpButton surface="restaurant" collapsed={collapsed} />
         </div>
@@ -405,7 +411,6 @@ export default function DashboardLayout({
       </aside>
 
       <div className="fixed right-[calc(env(safe-area-inset-right,0px)+0.75rem)] top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-[40] flex items-center gap-2">
-        <RoleSpaceSwitcher compact className="border-border/70 dark:border-[#5f7aad]/35 dark:bg-[#07142b]/95 dark:text-white" />
         <ThemeToggleButton className="h-11 w-11 rounded-full border border-border/70 bg-background/95 text-foreground shadow-[0_14px_34px_rgba(15,23,42,0.16)] backdrop-blur-md hover:bg-background dark:border-[#5f7aad]/35 dark:bg-[#07142b]/95 dark:text-white dark:shadow-[0_20px_48px_rgba(0,0,0,0.5),0_0_30px_rgba(255,106,26,0.16)]" />
         <NotificationBell />
         <SignOutButton iconOnly />
@@ -455,7 +460,7 @@ export default function DashboardLayout({
             <div data-sheet-scroll-area className="flex-1 overflow-y-auto overscroll-y-contain px-6 pb-6 pt-4">
               <RestaurantSelector />
               <div className="mb-4">
-                <RoleSpaceSwitcher className="w-full justify-between" align="start" onNavigate={() => setMobileMenuOpen(false)} />
+                <RoleSpaceMenuSection onNavigate={() => setMobileMenuOpen(false)} />
               </div>
               <div className="mb-4">
                 <ChefHelpButton surface="restaurant" onOpen={() => setMobileMenuOpen(false)} />
