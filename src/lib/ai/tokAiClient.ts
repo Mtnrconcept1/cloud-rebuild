@@ -85,6 +85,7 @@ export type TokImageGenerationRequest = {
   outputResolution?: TokImageOutputResolution;
   imageModel?: TokImageModel;
   variantCount?: number;
+  generationSeed?: string | null;
   generateImage?: boolean;
   imageOnly?: boolean;
   marketingAssetMode?: boolean;
@@ -114,6 +115,7 @@ export type TokImageGenerationResult = {
   credit_units?: number;
   estimated_cost_chf?: number;
   image_mode?: "interactive_fast" | "configured";
+  generation_seed?: string | null;
   reference_folder: string;
   status: "generated" | "stored";
 };

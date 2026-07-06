@@ -88,6 +88,7 @@ export function buildRestaurantMediaAiMetadata(input: {
     output_resolution: result?.output_resolution || null,
     output_quality: outputQuality,
     output_size: result?.output_size || null,
+    generation_seed: result?.generation_seed || null,
     generated_asset_id: result?.assetId || null,
     tok_watermark_required: input.tokWatermarkRequired ?? null,
     generated_at: input.createdAt || new Date().toISOString(),

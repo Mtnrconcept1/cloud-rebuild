@@ -55,6 +55,7 @@ import {
   getCampaignEquivalentChf,
   getPhotoSimpleEquivalent,
   getTokCreditAmount,
+  TOK_DEMO_UNLIMITED_CREDIT_THRESHOLD,
   TOK_CREDITS_PER_CAMPAIGN_CHF,
 } from "@/lib/tokCredits";
 import { cn } from "@/lib/utils";
@@ -334,6 +335,10 @@ function formatEntryTokCreditAmount(entry: BillingCreditEntry) {
   return formatTokCredits(credits);
 }
 
+function isDemoUnlimitedTokCreditBalance(value: unknown) {
+  return toNumber(value) >= TOK_DEMO_UNLIMITED_CREDIT_THRESHOLD;
+}
+
 function getSubscriptionStatusLabel(status: string | null | undefined) {
   switch (status) {
     case "trialing":
@@ -400,6 +405,7 @@ function CreditSummaryCard({ credit }: { credit: BillingCreditSummary }) {
   const topupAllowance = toNumber(credit.topup_allowance ?? credit.metadata?.topup_allowance ?? 0);
   const topupBalance = toNumber(credit.topup_balance ?? credit.metadata?.topup_balance ?? 0);
   const spent = toNumber(credit.spent);
+  const isDemoUnlimited = isDemoUnlimitedTokCreditBalance(credit.balance);
   const progress = allowance > 0 ? Math.min(100, Math.round((spent / allowance) * 100)) : 0;
 
   return (
@@ -416,11 +422,17 @@ function CreditSummaryCard({ credit }: { credit: BillingCreditSummary }) {
         </div>
         <div className="space-y-2">
           <p className="text-2xl font-bold">{formatTokCredits(credit.balance)}</p>
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>Dépensé: {formatTokCredits(spent)}</span>
-            <span>Inclus abonnement: {formatTokCredits(includedAllowance)}</span>
-          </div>
-          {topupAllowance > 0 ? (
+          {isDemoUnlimited ? (
+            <p className="text-xs text-muted-foreground">
+              Compte démo : les outils IA restent disponibles pour les présentations commerciales.
+            </p>
+          ) : (
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>Dépensé: {formatTokCredits(spent)}</span>
+              <span>Inclus abonnement: {formatTokCredits(includedAllowance)}</span>
+            </div>
+          )}
+          {topupAllowance > 0 && !isDemoUnlimited ? (
             <div className="grid gap-1 rounded-xl border border-orange-200 bg-orange-50/70 p-3 text-xs text-orange-900 dark:border-orange-400/25 dark:bg-orange-500/10 dark:text-orange-100">
               <div className="flex items-center justify-between gap-3">
                 <span>Recharges payees</span>
@@ -726,6 +738,7 @@ export default function DashboardAccountBilling() {
     if (!tokCreditSummary) return "0 crédit TOK";
     return formatTokCredits(tokCreditSummary.balance);
   }, [tokCreditSummary]);
+  const isDemoUnlimitedBalance = isDemoUnlimitedTokCreditBalance(tokCreditSummary?.balance);
   const pendingActionTitle = pendingSubscriptionAction?.type === "downgrade"
     ? `Programmer ${pendingSubscriptionAction.plan.name}`
     : pendingSubscriptionAction?.type === "resume"
@@ -994,11 +1007,18 @@ export default function DashboardAccountBilling() {
                           </div>
                           <p className="text-right text-sm font-bold">{formatTokCredits(tokCreditSummary.balance)}</p>
                         </div>
-                        <div className="grid gap-1 text-xs text-muted-foreground">
-                          <span>{getCampaignEquivalentChf(tokCreditSummary.balance).toLocaleString("fr-CH")} CHF de campagnes TOK</span>
-                          <span>ou {getAiSimpleRequestEquivalent(tokCreditSummary.balance).toLocaleString("fr-CH")} requêtes assistant IA</span>
-                          <span>ou {getPhotoSimpleEquivalent(tokCreditSummary.balance).toLocaleString("fr-CH")} retouches photo simples</span>
-                        </div>
+                        {isDemoUnlimitedBalance ? (
+                          <div className="grid gap-1 text-xs text-muted-foreground">
+                            <span>Présentation illimitée de PhotoPro, Studio Marketing et Assistant IA.</span>
+                            <span>Les coûts restent tracés dans les journaux IA.</span>
+                          </div>
+                        ) : (
+                          <div className="grid gap-1 text-xs text-muted-foreground">
+                            <span>{getCampaignEquivalentChf(tokCreditSummary.balance).toLocaleString("fr-CH")} CHF de campagnes TOK</span>
+                            <span>ou {getAiSimpleRequestEquivalent(tokCreditSummary.balance).toLocaleString("fr-CH")} requêtes assistant IA</span>
+                            <span>ou {getPhotoSimpleEquivalent(tokCreditSummary.balance).toLocaleString("fr-CH")} retouches photo simples</span>
+                          </div>
+                        )}
                       </div>
                   )}
                 </CardContent>

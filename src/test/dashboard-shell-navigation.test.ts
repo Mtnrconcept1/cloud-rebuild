@@ -42,6 +42,8 @@ describe("dashboard shell navigation", () => {
     expect(pageStart).toBeGreaterThan(paymentsStart);
     expect(layout).toContain('to: "/dashboard/photos"');
     expect(layout).toContain('emphasis: "marketing-studio"');
+    expect(layout).toContain("MARKETING_STUDIO_NAV_CLASS");
+    expect(layout).toContain("from-[#ff5a00]");
     expect(layout).toContain("isMarketingStudio");
     expect(pageRestaurantSection).not.toContain('to: "/dashboard/photos"');
     expect(pageRestaurantSection).not.toContain('label: "Photos"');

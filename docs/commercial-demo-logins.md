@@ -57,3 +57,4 @@ keeps the three roles, and refreshes each demo restaurant with:
 - menu items
 - restaurant media/gallery
 - commercial compensation demo follow-up
+- internal demo AI credit grant for PhotoPro, Studio Marketing and assistant tools

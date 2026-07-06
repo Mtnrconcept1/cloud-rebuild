@@ -54,6 +54,11 @@ describe("commercial demo login provisioning", () => {
     expect(functionSource).toContain('.from("restaurant_media")');
     expect(functionSource).toContain("opening_hours: openingHours()");
     expect(functionSource).toContain("service_settings");
+    expect(functionSource).toContain("DEMO_UNLIMITED_AI_CREDIT_PACK_SLUG");
+    expect(functionSource).toContain("seedDemoUnlimitedAiCredits");
+    expect(functionSource).toContain("restaurant_credit_purchases");
+    expect(functionSource).toContain("demo_unlimited_ai_credits");
+    expect(docsSource).toContain("internal demo AI credit grant");
   });
 
   it("keeps Auth user creation server-side and limits public bootstrap to demo usernames", () => {

@@ -170,6 +170,7 @@ export default function AiCreationsGallery({ restaurantId, userId, currentPhotoC
         {restaurantRecords.map((record) => {
           const imageUrl = getAiCreationImageUrl(record);
           const canAddToGallery = record.status === "completed" && Boolean(record.result?.gallery_image_url) && !record.galleryAdded;
+          const generationSeed = record.generationSeed || record.result?.generation_seed || "";
 
           return (
             <Card key={record.id} className="min-w-0 overflow-hidden">
@@ -214,6 +215,12 @@ export default function AiCreationsGallery({ restaurantId, userId, currentPhotoC
                       <>
                         <span>•</span>
                         <span>{record.result.model}</span>
+                      </>
+                    ) : null}
+                    {generationSeed ? (
+                      <>
+                        <span>&middot;</span>
+                        <span>Seed {generationSeed}</span>
                       </>
                     ) : null}
                   </div>

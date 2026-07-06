@@ -21,6 +21,7 @@ import {
   getTokImageOutputPricing,
   type TokImageOutputResolution,
 } from "@/lib/ai/imagePricing";
+import { createTokGenerationSeed, sanitizeTokGenerationSeed } from "@/lib/ai/generationSeed";
 import {
   buildRestaurantMediaAiMetadata,
   isTokProOrHigherRestaurantSubscription,
@@ -62,6 +63,7 @@ type PhotoStudioDraft = {
   sourceImageUrl: string;
   dishName: string;
   userInstructions: string;
+  generationSeed: string;
   format: TokImageFormat;
   outputResolution: TokImageOutputResolution;
   result: TokImageGenerationResult | null;
@@ -71,6 +73,7 @@ const DEFAULT_DRAFT: PhotoStudioDraft = {
   sourceImageUrl: "",
   dishName: "",
   userInstructions: "",
+  generationSeed: "",
   format: "landscape",
   outputResolution: "studio",
   result: null,
@@ -118,9 +121,14 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
   const selectedOutputResolution: TokImageOutputResolution = "studio";
   const outputPricing = getTokImageOutputPricing(draft.format, selectedOutputResolution);
   const shouldApplyTokWatermark = !isTokProOrHigherRestaurantSubscription(watermarkSubscription);
+  const normalizedGenerationSeed = sanitizeTokGenerationSeed(draft.generationSeed);
 
   const updateDraft = (nextDraft: Partial<PhotoStudioDraft>) => {
     setDraft((previous) => ({ ...previous, ...nextDraft }));
+  };
+
+  const generateNewSeed = () => {
+    updateDraft({ generationSeed: createTokGenerationSeed("photopro"), result: null });
   };
 
   useEffect(() => {
@@ -143,6 +151,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
     setPreviewOpen(false);
     updateDraft({ result: null });
     try {
+      const generationSeed = sanitizeTokGenerationSeed(draft.generationSeed);
       void requestAiCreationNotificationPermission();
       const request = {
         restaurantId,
@@ -153,6 +162,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
         format: draft.format,
         outputResolution: selectedOutputResolution,
         variantCount: 1,
+        generationSeed: generationSeed || null,
         generateImage: true,
         imageOnly: true,
       } as const;
@@ -165,7 +175,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
       });
       const data = await promise;
       if (!mountedRef.current) return;
-      updateDraft({ result: data });
+      updateDraft({ result: data, generationSeed: data.generation_seed || generationSeed });
       toast({ title: "Visuel TOK prêt", description: "Contrôlez que le produit source est toujours reconnaissable avant publication." });
     } catch (error) {
       if (!mountedRef.current) return;
@@ -282,6 +292,33 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
               <p className="text-xs leading-5 text-muted-foreground">
                 Optionnel. PhotoPro garde le produit source mais peut corriger une mise en scène faible ou rendre le rendu plus appétissant.
               </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="photopro-generation-seed">Seed de generation</Label>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Input
+                  id="photopro-generation-seed"
+                  value={draft.generationSeed}
+                  onChange={(event) => updateDraft({ generationSeed: sanitizeTokGenerationSeed(event.target.value), result: null })}
+                  placeholder="Ex. photopro-burger-cheddar-01"
+                  className="min-w-0"
+                />
+                <Button type="button" variant="outline" onClick={generateNewSeed} className="shrink-0">
+                  Nouvelle seed
+                </Button>
+              </div>
+              <p className="text-xs leading-5 text-muted-foreground">
+                Reutilisez la meme seed pour rapprocher le style, la lumiere et la composition d'une generation qui vous plait.
+              </p>
+              {result?.generation_seed ? (
+                <Badge variant="outline" className="border-orange-200 bg-white text-orange-700">
+                  Seed utilisee: {result.generation_seed}
+                </Badge>
+              ) : normalizedGenerationSeed ? (
+                <Badge variant="outline" className="border-orange-200 bg-white text-orange-700">
+                  Seed prete: {normalizedGenerationSeed}
+                </Badge>
+              ) : null}
             </div>
             <div className="space-y-2">
               <Label>Configuration image</Label>
