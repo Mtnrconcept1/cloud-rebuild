@@ -12,16 +12,19 @@ describe("TOK photo studio persistence", () => {
   const imageUpload = readFileSync(resolve(process.cwd(), "src/components/ImageUpload.tsx"), "utf8");
   const app = readFileSync(resolve(process.cwd(), "src/App.tsx"), "utf8");
   const aiCreationJobs = readFileSync(resolve(process.cwd(), "src/lib/ai/aiCreationJobs.ts"), "utf8");
+  const tokAiClient = readFileSync(resolve(process.cwd(), "src/lib/ai/tokAiClient.ts"), "utf8");
+  const generationSeedHelper = readFileSync(resolve(process.cwd(), "src/lib/ai/generationSeed.ts"), "utf8");
   const aiCreationNotifications = readFileSync(resolve(process.cwd(), "src/components/AiCreationNotifications.tsx"), "utf8");
   const aiCreationsGallery = readFileSync(resolve(process.cwd(), "src/components/dashboard/AiCreationsGallery.tsx"), "utf8");
   const publicErrorMessages = readFileSync(resolve(process.cwd(), "src/lib/publicErrorMessages.ts"), "utf8");
   const metadataHelper = readFileSync(resolve(process.cwd(), "src/lib/ai/restaurantMediaMetadata.ts"), "utf8");
+  const aiImageFunction = readFileSync(resolve(process.cwd(), "supabase/functions/ai-image-enhance/index.ts"), "utf8");
 
   it("persists the generated result across component remounts and tab focus changes", () => {
     expect(source).toContain("useSessionStorageState");
     expect(source).toContain("tok-ai-photo-studio-v2:");
     expect(source).toContain("result: TokImageGenerationResult | null");
-    expect(source).toContain("updateDraft({ result: data })");
+    expect(source).toContain("updateDraft({ result: data, generationSeed: data.generation_seed || generationSeed })");
     expect(source).toContain("startTokImageCreationJob");
     expect(app).toContain("<AiCreationNotifications />");
     expect(app).toContain("refetchOnWindowFocus: false");
@@ -57,6 +60,35 @@ describe("TOK photo studio persistence", () => {
     expect(source).toContain("le produit, les ingrédients, le packaging");
     expect(source).toContain("les logos et les textes présents");
     expect(source).toContain("Mise en scène et aspect appétissant améliorés");
+  });
+
+  it("lets PhotoPro and Marketing Studio reuse a TOK generation seed", () => {
+    expect(generationSeedHelper).toContain("createTokGenerationSeed");
+    expect(generationSeedHelper).toContain("sanitizeTokGenerationSeed");
+    expect(tokAiClient).toContain("generationSeed?: string | null");
+    expect(tokAiClient).toContain("generation_seed?: string | null");
+
+    expect(source).toContain("generationSeed: string");
+    expect(source).toContain("photopro-generation-seed");
+    expect(source).toContain('createTokGenerationSeed("photopro")');
+    expect(source).toContain("generationSeed: generationSeed || null");
+    expect(source).toContain("data.generation_seed || generationSeed");
+
+    expect(marketingStudio).toContain("marketing-generation-seed");
+    expect(marketingStudio).toContain('createTokGenerationSeed("marketing")');
+    expect(marketingStudio).toContain("generationSeed: safeGenerationSeed || null");
+    expect(marketingStudio).toContain("imageResult.generation_seed || safeGenerationSeed");
+
+    expect(aiCreationJobs).toContain("generationSeed?: string | null");
+    expect(aiCreationJobs).toContain("generationSeed: input.request.generationSeed ?? null");
+    expect(aiCreationsGallery).toContain("record.generationSeed || record.result?.generation_seed");
+    expect(metadataHelper).toContain("generation_seed: result?.generation_seed || null");
+
+    expect(aiImageFunction).toContain("function resolveGenerationSeed");
+    expect(aiImageFunction).toContain("function appendGenerationSeedToPrompt");
+    expect(aiImageFunction).toContain("body.generationSeed ?? body.generation_seed ?? body.seed");
+    expect(aiImageFunction).toContain("const finalPrompt = appendGenerationSeedToPrompt(baseFinalPrompt, activeGenerationSeed)");
+    expect(aiImageFunction).toContain("generation_seed: activeGenerationSeed");
   });
 
   it("keeps the restaurateur-facing photo studio copy readable in French", () => {

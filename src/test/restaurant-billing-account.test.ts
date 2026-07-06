@@ -211,6 +211,23 @@ describe("restaurant account and billing dashboard", () => {
     expect(imageFunction).toContain('throw new HttpError(402, "ai_credits_exhausted")');
   });
 
+  it("grants commercial demo restaurants an internal unlimited AI credit balance", () => {
+    const migration = latestMigrationContaining(/demo-unlimited-ai/);
+    const page = read("src/pages/dashboard/DashboardAccountBilling.tsx");
+    const credits = read("src/lib/tokCredits.ts");
+
+    expect(migration).toContain("demo-unlimited-ai");
+    expect(migration).toContain("restaurant_credit_purchases");
+    expect(migration).toContain("commercial(0[1-9]|10)@demo");
+    expect(migration).toContain("demo_unlimited_ai_credits");
+    expect(migration).toContain("1000000000");
+    expect(page).toContain("isDemoUnlimitedTokCreditBalance");
+    expect(page).toContain("Compte démo : les outils IA restent disponibles");
+    expect(page).toContain("Présentation illimitée de PhotoPro");
+    expect(credits).toContain("TOK_DEMO_UNLIMITED_CREDIT_THRESHOLD");
+    expect(credits).toContain("Crédits TOK démo illimités");
+  });
+
   it("adds non-destructive subscription self-service schema and RPC guards", () => {
     const migration = latestMigrationContaining(/get_restaurant_subscription_self_service_state/);
 

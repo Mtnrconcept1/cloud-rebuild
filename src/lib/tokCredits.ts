@@ -4,6 +4,7 @@ export const TOK_AI_STRATEGIC_REQUEST_CREDITS = 5;
 export const TOK_PHOTO_SIMPLE_CREDITS = 6;
 export const TOK_PHOTO_PRO_CREDITS = 6;
 export const TOK_MARKETING_FLYER_CREDITS = 6;
+export const TOK_DEMO_UNLIMITED_CREDIT_THRESHOLD = 1000000000;
 
 type TokCreditSource = {
   campaign_credit_chf?: number | string | null;
@@ -25,7 +26,11 @@ export function getTokCreditAmount(source: TokCreditSource) {
 }
 
 export function formatTokCredits(value: unknown) {
-  return `${toNumber(value).toLocaleString("fr-CH")} crédits TOK`;
+  const credits = toNumber(value);
+  if (credits >= TOK_DEMO_UNLIMITED_CREDIT_THRESHOLD) {
+    return "Crédits TOK démo illimités";
+  }
+  return `${credits.toLocaleString("fr-CH")} crédits TOK`;
 }
 
 export function getCampaignEquivalentChf(credits: unknown) {

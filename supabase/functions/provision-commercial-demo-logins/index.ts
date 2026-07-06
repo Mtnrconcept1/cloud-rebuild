@@ -45,6 +45,8 @@ type DemoAccount = {
 };
 
 const DEMO_ROLES = ["client", "restaurateur", "commercial"] as const;
+const DEMO_UNLIMITED_AI_CREDIT_PACK_SLUG = "demo-unlimited-ai";
+const DEMO_UNLIMITED_AI_CREDIT_UNITS = 1000000000;
 
 const COMMERCIAL_DEMO_ACCOUNTS: DemoAccount[] = [
   {
@@ -348,6 +350,16 @@ const COMMERCIAL_DEMO_ACCOUNTS: DemoAccount[] = [
     },
   },
 ];
+
+function normalizeDemoUsername(value: unknown) {
+  return typeof value === "string" ? value.trim().toLowerCase() : "";
+}
+
+function findCommercialDemoAccount(username: unknown) {
+  const normalizedUsername = normalizeDemoUsername(username);
+  if (!normalizedUsername) return null;
+  return COMMERCIAL_DEMO_ACCOUNTS.find((account) => account.username === normalizedUsername) || null;
+}
 
 function openingHours() {
   const weekday = { open: "10:30", close: "22:30", closed: false };
@@ -751,6 +763,80 @@ async function seedRestaurantSettings(adminClient: any, restaurantId: string, us
   }
 }
 
+async function ensureDemoUnlimitedAiCreditPack(adminClient: any) {
+  const { data, error } = await adminClient
+    .from("restaurant_credit_packs")
+    .upsert({
+      slug: DEMO_UNLIMITED_AI_CREDIT_PACK_SLUG,
+      name: "Demo IA illimitee",
+      description: "Grant interne pour les comptes commerciaux demo TOK.",
+      price_chf: 0,
+      campaign_credit_chf: 0,
+      ai_tool_credits: DEMO_UNLIMITED_AI_CREDIT_UNITS,
+      ai_photo_credits: DEMO_UNLIMITED_AI_CREDIT_UNITS,
+      features: ["Outils IA demo illimites", "Non achetable par les restaurateurs"],
+      position: 9999,
+      is_active: false,
+      metadata: {
+        demo_unlimited_ai_credits: true,
+        demo_scope: "commercial_sales_environment",
+      },
+    }, { onConflict: "slug" })
+    .select("id")
+    .single();
+
+  if (error) throw new HttpError(500, error.message);
+  if (!data?.id) throw new HttpError(500, "Demo credit pack unavailable");
+
+  return data.id as string;
+}
+
+async function seedDemoUnlimitedAiCredits(adminClient: any, restaurantId: string, userId: string, account: DemoAccount) {
+  const creditPackId = await ensureDemoUnlimitedAiCreditPack(adminClient);
+  const existing = await adminClient
+    .from("restaurant_credit_purchases")
+    .select("id")
+    .eq("restaurant_id", restaurantId)
+    .eq("credit_pack_id", creditPackId)
+    .contains("metadata", { demo_unlimited_ai_credits: true })
+    .maybeSingle();
+
+  if (existing.error) throw new HttpError(500, existing.error.message);
+
+  const payload = {
+    restaurant_id: restaurantId,
+    credit_pack_id: creditPackId,
+    purchased_by: userId,
+    status: "paid",
+    price_chf: 0,
+    currency: "chf",
+    campaign_credit_chf: 0,
+    ai_tool_credits: DEMO_UNLIMITED_AI_CREDIT_UNITS,
+    ai_photo_credits: DEMO_UNLIMITED_AI_CREDIT_UNITS,
+    stripe_checkout_session_id: null,
+    stripe_payment_intent_id: null,
+    stripe_mode: "demo",
+    paid_at: new Date().toISOString(),
+    metadata: {
+      demo_unlimited_ai_credits: true,
+      demo_scope: "commercial_sales_environment",
+      username: account.username,
+      source: "provision-commercial-demo-logins",
+    },
+  };
+
+  const result = existing.data?.id
+    ? await adminClient
+      .from("restaurant_credit_purchases")
+      .update(payload)
+      .eq("id", existing.data.id)
+    : await adminClient
+      .from("restaurant_credit_purchases")
+      .insert(payload);
+
+  if (result.error) throw new HttpError(500, result.error.message);
+}
+
 async function seedCommercialAccounting(adminClient: any, userId: string, restaurantId: string, account: DemoAccount) {
   const profileResult = await adminClient
     .from("commercial_compensation_profiles")
@@ -805,6 +891,7 @@ async function provisionOne(adminClient: any, account: DemoAccount) {
   await seedMenu(adminClient, restaurantId, account);
   await seedMedia(adminClient, restaurantId, userId, account);
   await seedRestaurantSettings(adminClient, restaurantId, userId);
+  await seedDemoUnlimitedAiCredits(adminClient, restaurantId, userId, account);
   await seedCommercialAccounting(adminClient, userId, restaurantId, account);
 
   return {
@@ -831,10 +918,52 @@ Deno.serve(async (req) => {
       throw new HttpError(405, "Method not allowed");
     }
 
+    const body = await req.json().catch(() => ({}));
+    const publicDemoLogin = body?.demo_login === true;
+
+    if (publicDemoLogin) {
+      const account = findCommercialDemoAccount(body?.username);
+      if (!account) {
+        throw new HttpError(400, "Compte commercial démo inconnu.");
+      }
+
+      const adminClient = createAdminClient();
+      const credential = await provisionOne(adminClient, account);
+
+      log.info("commercial_demo_account_prepared_for_login", {
+        username: credential.username,
+        user_id: credential.user_id,
+      });
+
+      await writeAuditLog({
+        adminClient,
+        actor: null,
+        request: req,
+        functionName: "provision-commercial-demo-logins",
+        action: "prepare_public_login",
+        status: "success",
+        targetEntityType: "commercial_demo_account",
+        targetEntityId: credential.username,
+        metadata: {
+          public_demo_login: true,
+          username: credential.username,
+          restaurant_id: credential.restaurant_id,
+        },
+      });
+
+      return jsonResponse({
+        ok: true,
+        prepared: true,
+        username: credential.username,
+        email: credential.email,
+        restaurant_name: credential.restaurant_name,
+        roles: credential.roles,
+      }, 200, corsHeaders);
+    }
+
     actor = await authenticateRequest(req, { allowServiceRole: true });
     requireRole(actor, ["admin"]);
 
-    const body = await req.json().catch(() => ({}));
     const dryRun = body?.dry_run === true;
 
     if (dryRun) {

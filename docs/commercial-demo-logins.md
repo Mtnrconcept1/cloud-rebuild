@@ -11,6 +11,11 @@ Each login has three roles:
 
 The password/code is exactly the same text as the username.
 
+On the `/auth` page, the commercial demo selector prepares the selected demo
+account through `provision-commercial-demo-logins`, then signs it in directly
+from the selected commercial name. The standard email/password login remains
+available for normal users.
+
 | Username | Login email | Code/password | Demo restaurant |
 | --- | --- | --- | --- |
 | `commercial01` | `commercial01@demo.thetok.ch` | `commercial01` | Bistro Demo Jet |
@@ -52,3 +57,4 @@ keeps the three roles, and refreshes each demo restaurant with:
 - menu items
 - restaurant media/gallery
 - commercial compensation demo follow-up
+- internal demo AI credit grant for PhotoPro, Studio Marketing and assistant tools

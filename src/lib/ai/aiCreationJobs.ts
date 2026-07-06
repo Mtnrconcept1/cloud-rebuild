@@ -32,6 +32,7 @@ export type AiCreationRecord = {
   format?: TokImageFormat;
   outputResolution?: TokImageOutputResolution;
   imageModel?: TokImageModel;
+  generationSeed?: string | null;
   sourceImageUrl?: string | null;
   referenceImageUrls?: string[];
   referenceMediaIds?: string[];
@@ -202,6 +203,7 @@ export function startTokImageCreationJob(input: StartAiCreationJobInput): AiCrea
     format: input.request.format,
     outputResolution: input.request.outputResolution,
     imageModel: input.request.imageModel,
+    generationSeed: input.request.generationSeed ?? null,
     sourceImageUrl: input.request.sourceImageUrl ?? null,
     referenceImageUrls: input.request.referenceImageUrls ?? [],
     referenceMediaIds: input.request.referenceMediaIds ?? [],
@@ -224,12 +226,14 @@ export function startTokImageCreationJob(input: StartAiCreationJobInput): AiCrea
         status: "completed",
         completedAt: new Date().toISOString(),
         result,
+        generationSeed: result.generation_seed ?? record.generationSeed ?? null,
         errorMessage: null,
       }) || {
         ...record,
         status: "completed" as const,
         completedAt: new Date().toISOString(),
         result,
+        generationSeed: result.generation_seed ?? record.generationSeed ?? null,
       };
       dispatchAiCreationEvent(AI_CREATION_COMPLETED_EVENT, completed);
       return result;

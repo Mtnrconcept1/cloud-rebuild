@@ -58,7 +58,9 @@ export function canUseClientRole({
 
 export function canSwitchRoles(roles: UserRole[]) {
   const effectiveRoles = getEffectiveRoles(roles);
-  return effectiveRoles.includes("admin") && effectiveRoles.length > 1;
+  return effectiveRoles.length > 1 && (
+    effectiveRoles.includes("admin") || effectiveRoles.includes("commercial")
+  );
 }
 
 export function canAccessRole({

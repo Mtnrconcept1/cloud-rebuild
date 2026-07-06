@@ -244,6 +244,75 @@ describe("Auth signup form", () => {
     expect(supabaseMocks.signInWithPassword).not.toHaveBeenCalled();
   });
 
+  it("opens a commercial demo session from the commercial selector without typing a password", async () => {
+    supabaseMocks.signInWithPassword.mockResolvedValue({
+      data: {
+        session: { access_token: "commercial-demo-session" },
+        user: { id: "commercial-demo-user" },
+      },
+      error: null,
+    });
+
+    await renderAuth("/auth?type=client");
+
+    fireEvent.change(screen.getByLabelText("Nom du commercial"), {
+      target: { value: "commercial03" },
+    });
+
+    await waitFor(() => {
+      expect(supabaseMocks.invoke).toHaveBeenCalledWith("provision-commercial-demo-logins", {
+        body: {
+          demo_login: true,
+          username: "commercial03",
+        },
+      });
+    });
+    await waitFor(() => {
+      expect(supabaseMocks.signInWithPassword).toHaveBeenCalledWith({
+        email: "commercial03@demo.thetok.ch",
+        password: "commercial03",
+        options: {
+          captchaToken: undefined,
+        },
+      });
+    });
+    expect(toastMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: "Connexion commerciale",
+      }),
+    );
+  });
+
+  it("shows the commercial demo provisioning error when credentials are still invalid", async () => {
+    supabaseMocks.invoke.mockResolvedValue({
+      data: null,
+      error: { message: "Compte demo non provisionne" },
+    });
+    supabaseMocks.signInWithPassword.mockResolvedValue({
+      data: {
+        session: null,
+        user: null,
+      },
+      error: new Error("Invalid login credentials"),
+    });
+
+    await renderAuth("/auth?type=client");
+
+    fireEvent.change(screen.getByLabelText("Nom du commercial"), {
+      target: { value: "commercial04" },
+    });
+
+    await waitFor(() => {
+      expect(toastMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: "Erreur",
+          description: "Compte demo non provisionne",
+          variant: "destructive",
+        }),
+      );
+    });
+  });
+
   it("starts Google OAuth through the PKCE callback URL", async () => {
     supabaseMocks.signInWithOAuth.mockResolvedValue({ error: null });
     await renderAuth("/auth?type=client");

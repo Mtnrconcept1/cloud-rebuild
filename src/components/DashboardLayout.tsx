@@ -65,6 +65,9 @@ type NavSection = {
   items: NavItem[];
 };
 
+const MARKETING_STUDIO_NAV_CLASS =
+  "rounded-[10px] bg-gradient-to-r from-[#ff5a00] via-[#ff7a1a] to-[#ffb000] font-bold text-white shadow-[0_12px_28px_rgba(255,106,26,0.28)] hover:from-[#ff6814] hover:via-[#ff8424] hover:to-[#ffba18] hover:text-white dark:text-white dark:shadow-[0_0_30px_rgba(255,122,26,0.35)]";
+
 const NAV_SECTIONS: NavSection[] = [
   {
     title: "Reussite et performances",
@@ -239,16 +242,14 @@ function NavItems({
                 to={item.to}
                 className={cn(
                   "flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold transition-all",
-                  isActive
-                    ? isMarketingStudio
-                      ? "bg-gradient-to-r from-[#ff5a00] via-[#ff7a1a] to-[#ffb000] text-white shadow-[0_12px_28px_rgba(255,106,26,0.28)] dark:text-white dark:shadow-[0_0_30px_rgba(255,122,26,0.35)]"
-                      : "bg-primary/10 text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] dark:bg-[#ff6a1a]/14 dark:text-[#ffd8c3] dark:shadow-[0_0_28px_rgba(255,106,26,0.22)]"
-                    : isMarketingStudio
-                      ? "border border-orange-200/80 bg-gradient-to-r from-orange-50 via-white to-amber-50 text-orange-700 shadow-sm hover:border-orange-300 hover:from-orange-100 hover:to-amber-100 dark:border-orange-400/30 dark:bg-gradient-to-r dark:from-[#2a1208] dark:via-[#141827] dark:to-[#2a1b06] dark:text-orange-200 dark:shadow-[0_0_22px_rgba(255,106,26,0.16)] dark:hover:border-orange-300/60"
+                  isMarketingStudio
+                    ? MARKETING_STUDIO_NAV_CLASS
+                    : isActive
+                      ? "bg-primary/10 text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] dark:bg-[#ff6a1a]/14 dark:text-[#ffd8c3] dark:shadow-[0_0_28px_rgba(255,106,26,0.22)]"
                       : "hover:bg-muted dark:text-slate-200 dark:hover:bg-[#102044]/72"
                 )}
               >
-                <item.icon className={cn("h-4 w-4", isMarketingStudio && isActive && "text-white")} />
+                <item.icon className={cn("h-4 w-4", isMarketingStudio && "text-white")} />
                 {!collapsed && (
                   <span className={cn(isMarketingStudio && "tracking-tight")}>{item.label}</span>
                 )}

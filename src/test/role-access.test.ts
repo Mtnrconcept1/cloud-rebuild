@@ -78,6 +78,12 @@ describe("role access policy", () => {
       activeRole: "admin",
       roles: ["client", "admin"],
     })).toBe(false);
+
+    expect(canAccessRole({
+      requiredRole: "restaurateur",
+      activeRole: "commercial",
+      roles: ["client", "restaurateur", "commercial"],
+    })).toBe(true);
   });
 
   it("allows routes that explicitly accept either client or restaurateur", () => {
@@ -100,7 +106,7 @@ describe("role access policy", () => {
     })).toBe(false);
   });
 
-  it("lets backend admins switch only between their assigned roles", () => {
+  it("lets backend admins and commercial demo accounts switch only between their assigned roles", () => {
     expect(canAccessRole({
       requiredRole: "restaurateur",
       activeRole: "restaurateur",
@@ -134,6 +140,7 @@ describe("role access policy", () => {
     expect(canSwitchRoles(["client"])).toBe(false);
     expect(canSwitchRoles(["client", "restaurateur"])).toBe(false);
     expect(canSwitchRoles(["client", "admin"])).toBe(true);
+    expect(canSwitchRoles(["client", "commercial", "restaurateur"])).toBe(true);
   });
 
   it("selects a role-specific landing page from assigned roles", () => {

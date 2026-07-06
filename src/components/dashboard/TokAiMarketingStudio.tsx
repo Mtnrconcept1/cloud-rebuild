@@ -22,6 +22,7 @@ import {
   getTokImageOutputPricing,
   type TokImageOutputResolution,
 } from "@/lib/ai/imagePricing";
+import { createTokGenerationSeed, sanitizeTokGenerationSeed } from "@/lib/ai/generationSeed";
 import { optimizeImageUpload } from "@/lib/optimizedImages";
 import { formatAiImageGenerationError } from "@/lib/publicErrorMessages";
 import { assertSafeFileUpload, getSafeUploadExtension } from "@/lib/uploadSecurity";
@@ -905,6 +906,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
   const [format, setFormat] = useState(DEFAULT_MARKETING_FORMAT.label);
   const [orientation, setOrientation] = useState<MarketingOrientation>(DEFAULT_MARKETING_FORMAT.orientation);
   const [styleMode, setStyleMode] = useState("Base sur mon identite");
+  const [generationSeed, setGenerationSeed] = useState("");
   const outputResolution: TokImageOutputResolution = "studio";
   const [resources, setResources] = useState<MarketingResource[]>([]);
   const [loading, setLoading] = useState(false);
@@ -938,6 +940,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
   const hasBrandResources = persistedResources.length >= 2;
   const marketingImageFormat = getMarketingImageFormat(selectedFormat.label, selectedFormat.orientation);
   const outputPricing = getTokImageOutputPricing(marketingImageFormat, outputResolution);
+  const sanitizedGenerationSeed = sanitizeTokGenerationSeed(generationSeed);
   const { data: businessContext, isLoading: businessContextLoading } = useQuery({
     queryKey: ["marketing-studio-business-context", restaurantId],
     queryFn: () => fetchMarketingBusinessContext(restaurantId!),
@@ -970,6 +973,15 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
     generationRequestRef.current += 1;
     setLoading(false);
     setMarketingImageResult(null);
+  };
+
+  const updateGenerationSeed = (value: string) => {
+    invalidateMarketingGeneration();
+    setGenerationSeed(sanitizeTokGenerationSeed(value));
+  };
+
+  const generateNewMarketingSeed = () => {
+    updateGenerationSeed(createTokGenerationSeed("marketing"));
   };
 
   const scrollToMarketingRenderSettings = () => {
@@ -1242,6 +1254,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
   const requestGeneration = async () => {
     const safePrompt = sanitizeMarketingPrompt(prompt);
     const warnings = getMarketingPromptWarnings(prompt);
+    const safeGenerationSeed = sanitizeTokGenerationSeed(generationSeed);
 
     if (!restaurantId) {
       toast({ title: "Restaurant requis", description: "Sélectionnez un restaurant avant de générer l'image marketing.", variant: "destructive" });
@@ -1319,6 +1332,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
           format: marketingImageFormat,
           outputResolution,
           variantCount: 1,
+          generationSeed: safeGenerationSeed || null,
           generateImage: true,
           imageOnly: true,
           marketingAssetMode: true,
@@ -1328,6 +1342,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
 
       if (!mountedRef.current || generationRequestRef.current !== requestId) return;
 
+      setGenerationSeed(imageResult.generation_seed || safeGenerationSeed);
       setMarketingImageResult(imageResult);
       toast({
         title: "Image marketing générée",
@@ -1599,6 +1614,24 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                     <option>Minimaliste imprime</option>
                   </select>
                 </div>
+                <div className="min-w-0 space-y-2 md:col-span-2 xl:col-span-2">
+                  <Label htmlFor="marketing-generation-seed">Seed de generation</Label>
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <Input
+                      id="marketing-generation-seed"
+                      value={generationSeed}
+                      onChange={(event) => updateGenerationSeed(event.target.value)}
+                      placeholder="Ex. marketing-menu-premium-01"
+                      className="min-w-0"
+                    />
+                    <Button type="button" variant="outline" onClick={generateNewMarketingSeed} className="shrink-0">
+                      Nouvelle seed
+                    </Button>
+                  </div>
+                  <p className="text-xs leading-5 text-muted-foreground">
+                    Reutilisez une seed deja reussie pour garder une famille visuelle proche sur vos prochains supports.
+                  </p>
+                </div>
                 <div className="min-w-0 space-y-2">
                   <Label>Image IA</Label>
                   <div className="rounded-md border bg-background px-3 py-2 text-sm">
@@ -1640,6 +1673,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Modele IA: {outputPricing.modelLabel}</span>
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Resolution: {outputPricing.size} / {outputPricing.quality}</span>
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Credits: {outputPricing.photoCredits}</span>
+                  <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Seed: {marketingImageResult?.generation_seed || sanitizedGenerationSeed || "auto"}</span>
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Références marketing: {persistedResources.length}</span>
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Logo: {hasLogo ? "oui" : "non"}</span>
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Fiche restaurant: {businessContextLoading ? "chargement" : businessContext?.restaurant ? "active" : "vide"}</span>
@@ -1654,6 +1688,9 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                     <div>
                       <p className="font-semibold text-foreground">Image marketing générée</p>
                       <p className="text-xs text-muted-foreground">Modele: {marketingImageResult?.model || "gpt-image-2"}</p>
+                      {marketingImageResult?.generation_seed ? (
+                        <p className="text-xs text-muted-foreground">Seed: {marketingImageResult.generation_seed}</p>
+                      ) : null}
                     </div>
                     <Button type="button" variant="outline" size="sm" asChild>
                       <a href={generatedMarketingImageUrl} target="_blank" rel="noreferrer">

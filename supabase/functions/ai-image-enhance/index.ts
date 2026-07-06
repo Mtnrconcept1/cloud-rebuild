@@ -84,6 +84,7 @@ const MARKETING_REFERENCE_MEDIA_TYPE_PRIORITY = [
 const MARKETING_REFERENCE_MEDIA_TYPES = [...MARKETING_REFERENCE_MEDIA_TYPE_PRIORITY];
 const MARKETING_REFERENCE_STORAGE_SEGMENT = "/marketing-assets/";
 const SUPPORTED_SOURCE_IMAGE_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const MAX_GENERATION_SEED_LENGTH = 64;
 const USD_TO_CHF_RATE = 0.81;
 const PHOTO_CREDIT_CHF = 0.009;
 const GPT_IMAGE_2_MEDIUM_BASE_COST_CHF = 0.05;
@@ -240,6 +241,35 @@ function buildFallbackImageRequestOptions(options: ImageRequestOptions): ImageRe
 
 function sanitizeText(raw: unknown, max = 3000) {
   return typeof raw === "string" ? raw.trim().slice(0, max) : "";
+}
+
+function sanitizeGenerationSeed(raw: unknown) {
+  return sanitizeText(raw, MAX_GENERATION_SEED_LENGTH * 2)
+    .replace(/[^a-zA-Z0-9_-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, MAX_GENERATION_SEED_LENGTH);
+}
+
+function createGenerationSeed() {
+  return `tok-${crypto.randomUUID().replace(/-/g, "").slice(0, 12)}`;
+}
+
+function resolveGenerationSeed(body: Record<string, unknown>) {
+  return sanitizeGenerationSeed(body.generationSeed ?? body.generation_seed ?? body.seed) || createGenerationSeed();
+}
+
+function appendGenerationSeedToPrompt(prompt: string, generationSeed: string) {
+  const seedInstructions = [
+    "Seed creative TOK:",
+    `- generation_seed: ${generationSeed}`,
+    "- Utiliser cette seed comme ancre de style, de lumiere et de composition pour rapprocher les generations futures qui reutilisent la meme seed.",
+    "- Les consignes explicites du restaurateur, les references actives et l'angle demande restent prioritaires.",
+    "- Ne jamais afficher cette seed sous forme de texte visible dans l'image.",
+  ].join("\n");
+  const maxPromptLength = 7000;
+  const basePrompt = prompt.slice(0, Math.max(0, maxPromptLength - seedInstructions.length - 2));
+
+  return `${basePrompt}\n\n${seedInstructions}`;
 }
 
 function sanitizeDiagnostic(raw: unknown, max = 220) {
@@ -1297,6 +1327,7 @@ Deno.serve(async (req) => {
   let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
   let restaurantId: string | null = null;
   let assetId: string | null = null;
+  let generationSeed: string | null = null;
 
   try {
     actor = await authenticateRequest(req, { allowServiceRole: false });
@@ -1304,6 +1335,7 @@ Deno.serve(async (req) => {
     if (!OPENAI_API_KEY) throw new HttpError(503, "ai_service_unavailable");
 
     const body = await req.json().catch(() => ({}));
+    generationSeed = resolveGenerationSeed(body as Record<string, unknown>);
     restaurantId = maybeUuid(body.restaurantId);
     const assetType = normalizeAssetType(body.assetType);
     const marketingAssetMode = assetType === "campaign_visual" && body.marketingAssetMode === true;
@@ -1374,7 +1406,7 @@ Deno.serve(async (req) => {
     let sourceEditUsed = false;
     const generationFallbackAllowed = !sourceImageUrl;
     const imageOptions = generatedImageOptions;
-    const finalPrompt = marketingAssetMode
+    const baseFinalPrompt = marketingAssetMode
       ? [
         result.enhanced_prompt,
         "",
@@ -1404,6 +1436,9 @@ Deno.serve(async (req) => {
         TOK_PHOTO_DNA,
         "Image finale de studio non brandee: sujet net, fond propre, eclairage softbox premium, formes valorisees, profondeur de champ douce, joli flou d'arriere-plan, sans texte incruste, sans logo, sans texte de marque, sans filigrane, sans watermark, sans badge, sans bulle de marque et sans mascotte. Les elements de marque seront ajoutes hors image par l'interface comme calque transparent separe, jamais par le modele image.",
       ].join("\n").slice(0, 7000);
+    const activeGenerationSeed = generationSeed || createGenerationSeed();
+    generationSeed = activeGenerationSeed;
+    const finalPrompt = appendGenerationSeedToPrompt(baseFinalPrompt, activeGenerationSeed);
 
     let imageResponse: unknown;
     if (marketingAssetMode && referenceImageUrls.length) {
@@ -1412,10 +1447,10 @@ Deno.serve(async (req) => {
         imageUrls: referenceImageUrls,
         n: variantCount,
         options: imageOptions,
-        fallbackPrompt: buildMarketingReferenceFallbackPrompt({
+        fallbackPrompt: appendGenerationSeedToPrompt(buildMarketingReferenceFallbackPrompt({
           prompt,
           format: format.label,
-        }),
+        }), activeGenerationSeed),
         allowGenerationFallback: generationFallbackAllowed,
       });
       imageResponse = editResult.response;
@@ -1426,11 +1461,11 @@ Deno.serve(async (req) => {
     } else if (sourceImageUrl) {
       const editResult = await callOpenAIImageEditWithRetry({
         primaryPrompt: finalPrompt,
-        retryPrompt: [
+        retryPrompt: appendGenerationSeedToPrompt([
           compactSourceEditPrompt,
           "",
           "Garde la retouche fidele a la photo source. Ne remplace pas le plat, le produit, la categorie alimentaire, les ingredients principaux ni le nombre d'elements visibles.",
-        ].join("\n").slice(0, 2200),
+        ].join("\n").slice(0, 2200), activeGenerationSeed),
         sourceImageUrl,
         n: variantCount,
         options: imageOptions,
@@ -1533,6 +1568,7 @@ Deno.serve(async (req) => {
         reference_fingerprint: marketingReferences?.fingerprint || null,
         reference_identity_scope: marketingAssetMode ? "current_uploaded_restaurant_resources" : "source_or_tok_photo_studio",
         original_prompt: prompt,
+        generation_seed: activeGenerationSeed,
         dish_name: dishName,
         format: format.label,
         source_preservation_policy: sourceImageUrl
@@ -1612,6 +1648,7 @@ Deno.serve(async (req) => {
         generation_fallback_allowed: generationFallbackAllowed,
         gallery_bucket: GALLERY_BUCKET,
         output_format: "png",
+        generation_seed: activeGenerationSeed,
         format: format.label,
       },
     });
@@ -1656,6 +1693,7 @@ Deno.serve(async (req) => {
         brand_overlay_positioning: "frontend_transparent_layer",
         brand_overlay_size: "180x180",
         gallery_bucket: GALLERY_BUCKET,
+        generation_seed: activeGenerationSeed,
       },
     });
 
@@ -1675,6 +1713,7 @@ Deno.serve(async (req) => {
       credit_units: billablePhotoCreditUnits,
       estimated_cost_chf: estimatedImageCostChf,
       image_mode: usedImageOptions?.mode,
+      generation_seed: activeGenerationSeed,
       brand_overlay_positioning: "frontend_transparent_layer",
       brand_overlay_size: "180x180",
       reference_folder: marketingAssetMode ? null : `public${TOK_REFERENCE_FOLDER}`,
@@ -1690,7 +1729,7 @@ Deno.serve(async (req) => {
         status: "failure",
         restaurantId,
         assetId,
-        metadata: { error: message, rid: log.rid },
+        metadata: { error: message, rid: log.rid, generation_seed: generationSeed },
       }).catch(() => {});
 
       await writeAuditLog({
@@ -1703,7 +1742,7 @@ Deno.serve(async (req) => {
         targetEntityType: "ai_generated_assets",
         targetEntityId: assetId,
         errorMessage: message,
-        metadata: { rid: log.rid, restaurant_id: restaurantId },
+        metadata: { rid: log.rid, restaurant_id: restaurantId, generation_seed: generationSeed },
       }).catch(() => {});
     }
 
