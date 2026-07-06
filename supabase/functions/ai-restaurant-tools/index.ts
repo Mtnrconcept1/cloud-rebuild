@@ -17,6 +17,10 @@ import {
   getOpenAITextCreditUnits,
   parseStructuredOutput,
 } from "../_shared/openai.ts";
+import {
+  estimateTextAiPreflightCredits,
+  requireRestaurantTokCreditBalance,
+} from "../_shared/restaurant-credits.ts";
 
 type RestaurantToolAction =
   | "dish_optimization"
@@ -230,6 +234,17 @@ Deno.serve(async (req) => {
       },
       campaigns: campaigns.slice(0, 12),
     };
+    const maxOutputTokens = 1600;
+    const preflightCredits = estimateTextAiPreflightCredits({
+      model: OPENAI_MODEL,
+      input: context,
+      maxOutputTokens,
+    });
+    const creditPreflight = await requireRestaurantTokCreditBalance({
+      adminClient: actor.adminClient,
+      restaurantId,
+      requiredCredits: preflightCredits,
+    });
 
     const systemPrompt = `Tu es l'agent IA restaurateur de TOK.
 Tu aides un restaurateur a produire des contenus et decisions actionnables.
@@ -266,7 +281,7 @@ Pour les prix et promotions, mentionne l'impact marge/valeur percue et les risqu
         { role: "system", content: systemPrompt },
         { role: "user", content: JSON.stringify(context) },
       ],
-      maxOutputTokens: 1600,
+      maxOutputTokens,
       jsonSchema: {
         name: "tok_restaurant_tool_result",
         description: "Restaurant AI tool output.",
@@ -299,7 +314,11 @@ Pour les prix et promotions, mentionne l'impact marge/valeur percue et les risqu
       restaurantId,
       conversationId,
       usage,
-      metadata: { confidence: result.confidence },
+      metadata: {
+        confidence: result.confidence,
+        preflight_required_credit_units: creditPreflight.requiredCredits,
+        preflight_available_tok_credits: creditPreflight.availableCredits,
+      },
     });
 
     await writeAuditLog({

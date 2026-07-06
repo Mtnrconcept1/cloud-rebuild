@@ -1,7 +1,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import Stripe from "npm:stripe@18.5.0";
+import type Stripe from "npm:stripe@18.5.0";
 
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
+import { createStripeClient } from "../_shared/stripe-client.ts";
 
 function json(payload: Record<string, unknown>, status: number, corsHeaders: Record<string, string>) {
   return new Response(JSON.stringify(payload), {
@@ -34,7 +35,7 @@ Deno.serve(async (req) => {
   const supabaseUrl = env("SUPABASE_URL");
   const anonKey = env("SUPABASE_ANON_KEY");
   const serviceKey = env("SUPABASE_SERVICE_ROLE_KEY");
-  const stripeKey = env("STRIPE_SECRET_KEY");
+  const stripeKey = env("STRIPE_SECRET_KEY_LIVE") || env("STRIPE_SECRET_KEY");
 
   if (!supabaseUrl || !anonKey || !serviceKey || !stripeKey) {
     return json({ error: "Server not configured" }, 503, corsHeaders);
@@ -78,7 +79,7 @@ Deno.serve(async (req) => {
     return json({ error: "Session de pre-paiement introuvable" }, 409, corsHeaders);
   }
 
-  const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+  const stripe = createStripeClient(stripeKey);
   const session = await stripe.checkout.sessions.retrieve(order.stripe_checkout_session_id, {
     expand: ["payment_intent"],
   });

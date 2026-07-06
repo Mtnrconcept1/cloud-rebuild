@@ -1,10 +1,9 @@
-import Stripe from "npm:stripe@18.5.0";
+import type Stripe from "npm:stripe@18.5.0";
 
 import {
   HttpError,
   authenticateRequest,
   createAdminClient,
-  getEnv,
   jsonResponse,
   requireRole,
   writeAuditLog,
@@ -16,6 +15,7 @@ import {
   getStripePaymentMethodDetails,
   markOrderCheckoutSessionState,
 } from "../_shared/order-checkout.ts";
+import { getStripeRuntimeForCheckoutKind } from "../_shared/stripe-client.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -68,14 +68,7 @@ Deno.serve(async (req) => {
     const dryRun = payload.dry_run === true;
     const since = new Date(Date.now() - (hours * 60 * 60 * 1000)).toISOString();
 
-    const stripeSecretKey = getEnv("STRIPE_SECRET_KEY");
-    if (!stripeSecretKey) {
-      throw new HttpError(503, "STRIPE_SECRET_KEY not configured");
-    }
-
-    const stripe = new Stripe(stripeSecretKey, {
-      apiVersion: "2025-08-27.basil",
-    });
+    const { stripe } = getStripeRuntimeForCheckoutKind("order");
 
     const { data: rows, error } = await actor.adminClient
       .from("orders")

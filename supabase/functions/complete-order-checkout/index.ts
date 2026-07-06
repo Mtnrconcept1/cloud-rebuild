@@ -1,11 +1,8 @@
-import Stripe from "npm:stripe@18.5.0";
-
 import {
   HttpError,
   authenticateRequest,
   buildRequestMetadata,
   createAdminClient,
-  getEnv,
   jsonResponse,
   writeAuditLog,
 } from "../_shared/auth.ts";
@@ -16,6 +13,7 @@ import {
   finalizePaidOrderCheckout,
   getStripePaymentMethodDetails,
 } from "../_shared/order-checkout.ts";
+import { getStripeRuntimeForCheckoutKind } from "../_shared/stripe-client.ts";
 
 Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req);
@@ -46,14 +44,7 @@ Deno.serve(async (req) => {
       throw new HttpError(400, "session_id requis");
     }
 
-    const stripeSecretKey = getEnv("STRIPE_SECRET_KEY");
-    if (!stripeSecretKey) {
-      throw new HttpError(503, "STRIPE_SECRET_KEY not configured");
-    }
-
-    const stripe = new Stripe(stripeSecretKey, {
-      apiVersion: "2025-08-27.basil",
-    });
+    const { stripe } = getStripeRuntimeForCheckoutKind("order");
 
     const session = await stripe.checkout.sessions.retrieve(sessionId, {
       expand: ["payment_intent.payment_method"],

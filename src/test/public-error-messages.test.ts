@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import {
   containsTechnicalBackendDetails,
   formatAiImageGenerationError,
+  isTokCreditError,
   toPublicErrorMessage,
 } from "@/lib/publicErrorMessages";
 
@@ -55,6 +56,8 @@ describe("public error messages", () => {
   });
 
   it("shows the right action for TOK credits without exposing provider billing failures", () => {
+    expect(isTokCreditError(new Error("ai_credits_exhausted"))).toBe(true);
+    expect(isTokCreditError(new Error("image_edit_failed:402:insufficient_quota"))).toBe(false);
     expect(formatAiImageGenerationError(new Error("ai_credits_exhausted"))).toContain("solde de crédits TOK est insuffisant");
     expect(formatAiImageGenerationError(new Error("image_edit_failed:402:insufficient_quota"))).toContain("L'équipe TOK a été informée");
     expect(formatAiImageGenerationError(new Error("ai_provider_billing_unavailable"))).toContain("L'équipe TOK a été informée");

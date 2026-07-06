@@ -137,7 +137,7 @@ describe("campaign pricing helpers", () => {
     expect(socialBoost).not.toContain('payment_method: "card"');
 
     expect(dashboard).toContain('const CAMPAIGN_PAYMENT_METHOD = "credits"');
-    expect(dashboard).toContain("Acheter un pack de recharge");
+    expect(dashboard).toContain("Recharger mes credits");
     expect(dashboard).toContain("attendez le prochain renouvellement");
     expect(dashboard).toContain("Utiliser les crédits TOK");
     expect(dashboard).toContain("Le budget de campagne a été réservé");

@@ -572,6 +572,9 @@ export default function SocialPostBoostDialog({
             <p className="mt-1 text-xs leading-5 text-orange-800">
               Le budget sera réservé sur vos crédits TOK. Si le solde est insuffisant, rechargez depuis Mon compte/Facturation ou attendez le prochain renouvellement de votre abonnement.
             </p>
+            <Button asChild type="button" variant="outline" className="mt-3 h-9 rounded-xl border-orange-300 bg-white text-orange-700 hover:bg-orange-100">
+              <a href="/dashboard/mon-compte-facturation">Recharger mes credits</a>
+            </Button>
           </div>
 
           <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-between">

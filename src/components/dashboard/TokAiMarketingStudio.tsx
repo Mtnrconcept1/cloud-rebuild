@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 import {
   type TokImageFormat,
   type TokImageGenerationResult,
@@ -28,7 +29,7 @@ import {
 } from "@/lib/ai/imagePricing";
 import { createTokGenerationSeed, sanitizeTokGenerationSeed } from "@/lib/ai/generationSeed";
 import { optimizeImageUpload } from "@/lib/optimizedImages";
-import { formatAiImageGenerationError } from "@/lib/publicErrorMessages";
+import { formatAiImageGenerationError, isTokCreditError } from "@/lib/publicErrorMessages";
 import { assertSafeFileUpload, getSafeUploadExtension } from "@/lib/uploadSecurity";
 import {
   AlertTriangle,
@@ -958,6 +959,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
   const [deletingResourceId, setDeletingResourceId] = useState<string | null>(null);
   const [marketingImageResult, setMarketingImageResult] = useState<MarketingImageResult | null>(null);
   const [activeStep, setActiveStep] = useState<MarketingWorkflowStep>(1);
+  const [creditError, setCreditError] = useState<string | null>(null);
   const [visiblePromptIdeaCount, setVisiblePromptIdeaCount] = useState(MARKETING_SUGGESTION_BATCH_SIZE);
   const [visibleNegativeIdeaCount, setVisibleNegativeIdeaCount] = useState(MARKETING_SUGGESTION_BATCH_SIZE);
   const generationRequestRef = useRef(0);
@@ -1332,6 +1334,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
     const requestId = generationRequestRef.current + 1;
     generationRequestRef.current = requestId;
     setLoading(true);
+    setCreditError(null);
     setMarketingImageResult(null);
 
     try {
@@ -1404,15 +1407,18 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
 
       setGenerationSeed(imageResult.generation_seed || safeGenerationSeed);
       setMarketingImageResult(imageResult);
+      setCreditError(null);
       toast({
         title: "Image marketing générée",
         description: `Le visuel a été produit avec ${imageResult.model || "OpenAI"} pour ${outputPricing.photoCredits} crédit(s) photo IA.`,
       });
     } catch (error) {
       if (!mountedRef.current || generationRequestRef.current !== requestId) return;
+      const message = formatMarketingImageGenerationError(error);
+      if (isTokCreditError(error)) setCreditError(message);
       toast({
         title: "Image impossible",
-        description: formatMarketingImageGenerationError(error),
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -1766,6 +1772,21 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                       className="mx-auto max-h-[520px] w-full rounded-xl object-contain"
                     />
                   </div>
+                </div>
+              ) : null}
+
+              {activeStep === 3 && creditError ? (
+                <div className="min-w-0 rounded-2xl border border-destructive/25 bg-destructive/10 p-3 text-sm text-destructive">
+                  <div className="flex gap-2">
+                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                    <div>
+                      <p className="font-semibold">Credits TOK insuffisants</p>
+                      <p className="mt-1 text-xs leading-5">{creditError}</p>
+                    </div>
+                  </div>
+                  <Button asChild type="button" variant="outline" className="mt-3 h-9 rounded-xl border-destructive/30 bg-background text-destructive hover:bg-destructive/10">
+                    <Link to="/dashboard/mon-compte-facturation">Recharger mes credits</Link>
+                  </Button>
                 </div>
               ) : null}
 

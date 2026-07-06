@@ -14,6 +14,10 @@ import {
   getOpenAITextCreditUnits,
   selectTokAiModel,
 } from "../_shared/openai.ts";
+import {
+  estimateTextAiPreflightCredits,
+  requireRestaurantTokCreditBalance,
+} from "../_shared/restaurant-credits.ts";
 
 // Restaurant columns sent to the AI. Keep this list minimal and business-only:
 // never send owner_id, stripe_account_id, internal flags, raw addresses, etc.
@@ -330,6 +334,22 @@ RÈGLES :
 - Propose des actions prioritaires classées par impact`;
 
     model = selectTokAiModel("strategy");
+    const advisorPromptInput = {
+      systemPrompt,
+      messages,
+    };
+    estimatedInputTokens = estimateTokens(systemPrompt)
+      + messages.reduce((sum, message) => sum + estimateTokens(message.content), 0);
+    const preflightCredits = estimateTextAiPreflightCredits({
+      model,
+      input: advisorPromptInput,
+      maxOutputTokens: 1800,
+    });
+    const creditPreflight = await requireRestaurantTokCreditBalance({
+      adminClient: actor.adminClient,
+      restaurantId,
+      requiredCredits: preflightCredits,
+    });
 
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -359,8 +379,6 @@ RÈGLES :
       throw new HttpError(502, "ai_service_error");
     }
 
-    estimatedInputTokens = estimateTokens(systemPrompt)
-      + messages.reduce((sum, message) => sum + estimateTokens(message.content), 0);
     await insertUsage(actor, {
       status: "success",
       restaurantId,
@@ -372,6 +390,8 @@ RÈGLES :
         quota,
         streaming: true,
         usage_estimated: true,
+        preflight_required_credit_units: creditPreflight.requiredCredits,
+        preflight_available_tok_credits: creditPreflight.availableCredits,
       },
     });
 

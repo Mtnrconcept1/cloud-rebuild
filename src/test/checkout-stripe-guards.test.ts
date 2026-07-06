@@ -72,6 +72,8 @@ describe("checkout and Stripe webhook safety guards", () => {
     expect(confirmMatchGroupSource).toContain('Deno.env.get("STRIPE_SECRET_KEY_LIVE")');
     expect(stripeClientSource).toContain("isPlatformStripeSecretName");
     expect(stripeClientSource).toContain('"STRIPE_SECRET_KEY_LIVE"');
+    expect(stripeClientSource).toContain('"STRIPE_WEBHOOK_SECRET_LIVE"');
+    expect(stripeClientSource).toContain('"STRIPE_WEBHOOK_SIGNING_SECRET_LIVE"');
     expect(secretsScriptSource).toContain('"STRIPE_SECRET_KEY_LIVE"');
     expect(workflowSource).toContain("STRIPE_SECRET_KEY_LIVE: ${{ secrets.STRIPE_SECRET_KEY }}");
   });

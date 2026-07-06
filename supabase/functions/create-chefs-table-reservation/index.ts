@@ -1,10 +1,7 @@
-import Stripe from "npm:stripe@18.5.0";
-
 import {
   HttpError,
   authenticateRequest,
   createAdminClient,
-  getEnv,
   jsonResponse,
   writeAuditLog,
 } from "../_shared/auth.ts";
@@ -12,6 +9,7 @@ import { finalizeChefsTableCheckout } from "../_shared/chefs-table.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import { getStripePaymentMethodDetails } from "../_shared/order-checkout.ts";
+import { getStripeRuntimeForCheckoutKind } from "../_shared/stripe-client.ts";
 
 Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req);
@@ -34,14 +32,7 @@ Deno.serve(async (req) => {
       throw new HttpError(400, "session_id requis");
     }
 
-    const stripeSecretKey = getEnv("STRIPE_SECRET_KEY");
-    if (!stripeSecretKey) {
-      throw new HttpError(503, "STRIPE_SECRET_KEY not configured");
-    }
-
-    const stripe = new Stripe(stripeSecretKey, {
-      apiVersion: "2025-08-27.basil",
-    });
+    const { stripe } = getStripeRuntimeForCheckoutKind("chefs-table");
 
     const session = await stripe.checkout.sessions.retrieve(sessionId, {
       expand: ["payment_intent.payment_method"],

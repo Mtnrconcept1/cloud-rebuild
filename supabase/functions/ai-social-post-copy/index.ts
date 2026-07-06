@@ -17,6 +17,10 @@ import {
   parseStructuredOutput,
   selectTokAiModel,
 } from "../_shared/openai.ts";
+import {
+  estimateTextAiPreflightCredits,
+  requireRestaurantTokCreditBalance,
+} from "../_shared/restaurant-credits.ts";
 
 const FUNCTION_NAME = "ai-social-post-copy";
 
@@ -145,6 +149,16 @@ Deno.serve(async (req) => {
       current_text: currentText || null,
       answers,
     };
+    const preflightCredits = estimateTextAiPreflightCredits({
+      model,
+      input: promptContext,
+      maxOutputTokens: 1200,
+    });
+    const creditPreflight = await requireRestaurantTokCreditBalance({
+      adminClient: actor.adminClient,
+      restaurantId,
+      requiredCredits: preflightCredits,
+    });
 
     const openAIResponse = await createOpenAIResponse({
       model,
@@ -189,6 +203,8 @@ Respecte le contexte fourni. Si une offre ou quantite est absente, reste prudent
       metadata: {
         credit_kind: "ai_tools",
         credit_units: getOpenAITextCreditUnits(model, inputTokens, outputTokens),
+        preflight_required_credit_units: creditPreflight.requiredCredits,
+        preflight_available_tok_credits: creditPreflight.availableCredits,
         objective: answers.objective,
         variant_count: variants.length,
       },

@@ -12,6 +12,11 @@ function getErrorText(error: unknown) {
   return "";
 }
 
+export function isTokCreditError(error: unknown) {
+  const message = getErrorText(error).toLowerCase();
+  return message.includes("ai_credits_exhausted") || message.includes("credits tok insuffisants");
+}
+
 export function containsTechnicalBackendDetails(message: string) {
   return URL_PATTERN.test(message)
     || SUPABASE_HOST_PATTERN.test(message)

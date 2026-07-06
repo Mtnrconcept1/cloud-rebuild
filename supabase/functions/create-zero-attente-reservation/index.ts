@@ -1,16 +1,16 @@
-import Stripe from "npm:stripe@18.5.0";
+import type Stripe from "npm:stripe@18.5.0";
 
 import {
   HttpError,
   authenticateRequest,
   createAdminClient,
-  getEnv,
   jsonResponse,
   writeAuditLog,
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import { finalizeZeroAttenteCheckout } from "../_shared/zero-attente.ts";
+import { getStripeRuntimeForCheckoutKind } from "../_shared/stripe-client.ts";
 
 function getPaymentDetails(session: Stripe.Checkout.Session) {
   const paymentMethodData = session.payment_intent && typeof session.payment_intent === "object"
@@ -41,12 +41,7 @@ Deno.serve(async (req) => {
     sessionId = typeof body?.session_id === "string" ? body.session_id.trim() : "";
     if (!sessionId) throw new HttpError(400, "session_id requis");
 
-    const stripeSecretKey = getEnv("STRIPE_SECRET_KEY");
-    if (!stripeSecretKey) throw new HttpError(503, "STRIPE_SECRET_KEY not configured");
-
-    const stripe = new Stripe(stripeSecretKey, {
-      apiVersion: "2025-08-27.basil",
-    });
+    const { stripe } = getStripeRuntimeForCheckoutKind("zero-attente");
 
     const session = await stripe.checkout.sessions.retrieve(sessionId, {
       expand: ["payment_intent.payment_method"],

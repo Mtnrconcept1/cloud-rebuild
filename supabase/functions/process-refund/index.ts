@@ -1,10 +1,7 @@
-import Stripe from "npm:stripe@18.5.0";
-
 import {
   HttpError,
   authenticateRequest,
   createAdminClient,
-  getEnv,
   jsonResponse,
   requireRestaurantAccess,
   writeAuditLog,
@@ -19,6 +16,7 @@ import {
   toMoney,
   type RefundTargetType,
 } from "./refund-utils.ts";
+import { getStripeRuntimeForCheckoutKind } from "../_shared/stripe-client.ts";
 
 type RefundableEntity = {
   targetType: RefundTargetType;
@@ -225,14 +223,7 @@ Deno.serve(async (req) => {
       throw new HttpError(400, "PaymentIntent Stripe introuvable pour ce remboursement.");
     }
 
-    const stripeSecretKey = getEnv("STRIPE_SECRET_KEY");
-    if (!stripeSecretKey) {
-      throw new HttpError(503, "STRIPE_SECRET_KEY not configured");
-    }
-
-    const stripe = new Stripe(stripeSecretKey, {
-      apiVersion: "2025-08-27.basil",
-    });
+    const { stripe } = getStripeRuntimeForCheckoutKind("refund");
 
     persistFailureState = true;
     const stripeRefund = await stripe.refunds.create({

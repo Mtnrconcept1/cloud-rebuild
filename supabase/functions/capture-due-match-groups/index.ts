@@ -1,8 +1,7 @@
-import Stripe from "npm:stripe@18.5.0";
-
-import { authenticateRequest, getEnv, jsonResponse, writeAuditLog } from "../_shared/auth.ts";
+import { authenticateRequest, jsonResponse, writeAuditLog } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
+import { getStripeRuntimeForCheckoutKind } from "../_shared/stripe-client.ts";
 
 function toCents(value: unknown) {
   const parsed = Number(value);
@@ -29,12 +28,7 @@ Deno.serve(async (req) => {
       allowSchedulerSecret: true,
     });
 
-    const stripeSecretKey = getEnv("STRIPE_SECRET_KEY");
-    if (!stripeSecretKey) {
-      return jsonResponse({ error: "STRIPE_SECRET_KEY not configured" }, 503, corsHeaders);
-    }
-
-    const stripe = new Stripe(stripeSecretKey, { apiVersion: "2025-08-27.basil" });
+    const { stripe } = getStripeRuntimeForCheckoutKind("match-group");
 
     await actor.adminClient.rpc("close_due_match_groups");
 

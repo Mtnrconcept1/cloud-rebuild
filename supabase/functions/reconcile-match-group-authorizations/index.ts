@@ -1,7 +1,8 @@
-import Stripe from "npm:stripe@18.5.0";
+import type Stripe from "npm:stripe@18.5.0";
 
-import { authenticateRequest, getEnv, jsonResponse, writeAuditLog } from "../_shared/auth.ts";
+import { authenticateRequest, jsonResponse, writeAuditLog } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
+import { getStripeRuntimeForCheckoutKind } from "../_shared/stripe-client.ts";
 
 function getIntentId(session: Stripe.Checkout.Session) {
   if (typeof session.payment_intent === "string") return session.payment_intent;
@@ -21,10 +22,7 @@ Deno.serve(async (req) => {
       allowSchedulerSecret: true,
     });
 
-    const stripeKey = getEnv("STRIPE_SECRET_KEY");
-    if (!stripeKey) return jsonResponse({ error: "STRIPE_SECRET_KEY not configured" }, 503, corsHeaders);
-
-    const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+    const { stripe } = getStripeRuntimeForCheckoutKind("match-group");
     const { data: rows, error } = await actor.adminClient.rpc("get_match_group_pending_authorizations", { p_limit: 100 });
     if (error) throw error;
 

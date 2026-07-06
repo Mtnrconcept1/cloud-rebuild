@@ -1,8 +1,7 @@
-import Stripe from "npm:stripe@18.5.0";
-
 import { HttpError, authenticateRequest, getEnv, jsonResponse, writeAuditLog } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { normalizeCheckoutReturnUrl } from "../_shared/return-url.ts";
+import { getStripeRuntimeForCheckoutKind } from "../_shared/stripe-client.ts";
 
 const cents = (value: unknown) => Math.max(50, Math.round(Math.max(0, Number(value) || 0) * 100));
 
@@ -19,9 +18,6 @@ Deno.serve(async (req) => {
     const { group_member_order_id, return_url } = await req.json();
     if (!actor.userId) throw new HttpError(401, "Connexion requise");
     if (!group_member_order_id) throw new HttpError(400, "group_member_order_id requis");
-
-    const stripeSecretKey = getEnv("STRIPE_SECRET_KEY");
-    if (!stripeSecretKey) throw new HttpError(503, "STRIPE_SECRET_KEY not configured");
 
     const safeReturnUrl = normalizeCheckoutReturnUrl(return_url || `${getEnv("PUBLIC_APP_URL") || getEnv("SITE_URL")}/match-groupes`);
     if (!safeReturnUrl) throw new HttpError(400, "URL de retour invalide");
@@ -46,7 +42,7 @@ Deno.serve(async (req) => {
     }
 
     const items = Array.isArray(order.items) ? order.items : [];
-    const stripe = new Stripe(stripeSecretKey, { apiVersion: "2025-08-27.basil" });
+    const { stripe } = getStripeRuntimeForCheckoutKind("match-group");
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],

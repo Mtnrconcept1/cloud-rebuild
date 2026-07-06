@@ -12,6 +12,10 @@ import {
   estimateOpenAITextCostChf,
   getOpenAITextCreditUnits,
 } from "../_shared/openai.ts";
+import {
+  estimateTextAiPreflightCredits,
+  requireRestaurantTokCreditBalance,
+} from "../_shared/restaurant-credits.ts";
 
 const OPENAI_URL = "https://api.openai.com/v1/chat/completions";
 const MAX_IMAGE_DATA_URL_CHARS = 8_000_000;
@@ -1058,6 +1062,30 @@ Deno.serve(async (req) => {
         { type: "image_url", image_url: { url: image.dataUrl, detail: "high" } },
       ]
       : userPrompt;
+    const maxTokens = action === "image-import" ? 4000 : 1800;
+    const preflightCredits = estimateTextAiPreflightCredits({
+      model: selectedModel,
+      input: {
+        systemPrompt,
+        userPrompt,
+        canvasWidth,
+        canvasHeight,
+        currentLayoutSummary,
+        image: image
+          ? {
+            mimeType: image.mimeType,
+            width: image.width,
+            height: image.height,
+          }
+          : null,
+      },
+      maxOutputTokens: maxTokens,
+    });
+    const creditPreflight = await requireRestaurantTokCreditBalance({
+      adminClient: actor.adminClient,
+      restaurantId,
+      requiredCredits: preflightCredits,
+    });
 
     const aiResponse = await fetch(OPENAI_URL, {
       method: "POST",
@@ -1072,7 +1100,7 @@ Deno.serve(async (req) => {
           { role: "user", content: userContent },
         ],
         temperature: action === "image-import" ? 0 : 0.7,
-        max_tokens: action === "image-import" ? 4000 : 1800,
+        max_tokens: maxTokens,
         response_format: { type: "json_object" },
       }),
     });
@@ -1114,6 +1142,8 @@ Deno.serve(async (req) => {
         requested_canvas_height: requestedCanvasHeight,
         source_image_width: image?.width || null,
         source_image_height: image?.height || null,
+        preflight_required_credit_units: creditPreflight.requiredCredits,
+        preflight_available_tok_credits: creditPreflight.availableCredits,
       },
     });
 

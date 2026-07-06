@@ -17,6 +17,10 @@ import {
   parseStructuredOutput,
   selectTokAiModel,
 } from "../_shared/openai.ts";
+import {
+  estimateTextAiPreflightCredits,
+  requireRestaurantTokCreditBalance,
+} from "../_shared/restaurant-credits.ts";
 
 type RestaurantAgentAction =
   | "general"
@@ -274,6 +278,17 @@ Deno.serve(async (req) => {
       generated_assets_sample: assetsResult.data || [],
       quota,
     };
+    const maxOutputTokens = action === "sales_insights" ? 1800 : 1400;
+    const preflightCredits = estimateTextAiPreflightCredits({
+      model,
+      input: context,
+      maxOutputTokens,
+    });
+    const creditPreflight = await requireRestaurantTokCreditBalance({
+      adminClient: actor.adminClient,
+      restaurantId,
+      requiredCredits: preflightCredits,
+    });
 
     const { data: conversation, error: conversationError } = await actor.adminClient
       .from("ai_conversations")
@@ -310,7 +325,7 @@ Reponds en francais operationnel, avec priorites courtes.`;
         { role: "system", content: systemPrompt },
         { role: "user", content: JSON.stringify(context) },
       ],
-      maxOutputTokens: action === "sales_insights" ? 1800 : 1400,
+      maxOutputTokens,
       jsonSchema: {
         name: "tok_ai_restaurant_agent_result",
         description: "Restaurant AI draft recommendation.",
@@ -366,7 +381,11 @@ Reponds en francais operationnel, avec priorites courtes.`;
       taskId,
       model,
       usage,
-      metadata: { confidence: result.confidence },
+      metadata: {
+        confidence: result.confidence,
+        preflight_required_credit_units: creditPreflight.requiredCredits,
+        preflight_available_tok_credits: creditPreflight.availableCredits,
+      },
     });
 
     await writeAuditLog({

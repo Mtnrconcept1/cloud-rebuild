@@ -18,6 +18,10 @@ import {
   parseStructuredOutput,
   selectTokAiModel,
 } from "../_shared/openai.ts";
+import {
+  estimateTextAiPreflightCredits,
+  requireRestaurantTokCreditBalance,
+} from "../_shared/restaurant-credits.ts";
 
 const VALID_CAMPAIGN_TYPES = new Set(["boost", "banner", "push"]);
 const VALID_TARGET_PAGES = new Set(["home", "search", "flash_sales", "anti_waste"]);
@@ -649,10 +653,25 @@ REGLES:
 - Adapte le message aux forces du restaurant
 
 Retourne UNIQUEMENT le JSON, sans explication.`;
+    let creditPreflight: { availableCredits: number; requiredCredits: number } | null = null;
 
     if (!OPENAI_API_KEY) {
       fallbackReason = "openai_key_missing";
     } else {
+      const preflightCredits = estimateTextAiPreflightCredits({
+        model: aiModel,
+        input: {
+          systemPrompt,
+          userPrompt: "Genere une campagne publicitaire optimisee pour ce restaurant.",
+        },
+        maxOutputTokens: 500,
+      });
+      creditPreflight = await requireRestaurantTokCreditBalance({
+        adminClient: actor.adminClient,
+        restaurantId,
+        requiredCredits: preflightCredits,
+      });
+
       try {
         const aiData = await createOpenAIResponse({
           model: aiModel,
@@ -752,6 +771,8 @@ Retourne UNIQUEMENT le JSON, sans explication.`;
         credit_units: generationSource === "ai"
           ? getOpenAITextCreditUnits(aiModel, aiUsage.input_tokens, aiUsage.output_tokens)
           : 0,
+        preflight_required_credit_units: creditPreflight?.requiredCredits ?? null,
+        preflight_available_tok_credits: creditPreflight?.availableCredits ?? null,
         generation_source: generationSource,
         fallback_reason: fallbackReason,
         requested_settings: requestedSettings,

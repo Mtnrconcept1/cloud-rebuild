@@ -2114,7 +2114,7 @@ function CampaignForm({
               </div>
             </div>
             <Button asChild type="button" variant="outline" className="h-9 rounded-xl border-destructive/30 bg-background text-destructive hover:bg-destructive/10">
-              <Link to="/dashboard/mon-compte-facturation">Acheter un pack de recharge</Link>
+              <Link to="/dashboard/mon-compte-facturation">Recharger mes credits</Link>
             </Button>
           </div>
         ) : null}

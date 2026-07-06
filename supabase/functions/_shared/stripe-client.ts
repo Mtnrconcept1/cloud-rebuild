@@ -91,14 +91,14 @@ export function getStripeRuntimeForCheckoutKind(checkoutKind: unknown) {
   const kind = normalizeCheckoutKind(checkoutKind);
   if (kind === "tok-one") {
     return selectRuntime({
-      names: ["STRIPE_TOK_ONE_SECRET_KEY", "STRIPE_TOK_ONE_TEST_SECRET_KEY", "STRIPE_SECRET_KEY", "STRIPE_SECRET_KEY_LIVE"],
+      names: ["STRIPE_TOK_ONE_SECRET_KEY", "STRIPE_TOK_ONE_TEST_SECRET_KEY", "STRIPE_SECRET_KEY_LIVE", "STRIPE_SECRET_KEY"],
       purpose: "Tok One Stripe secret",
       isolatedTokOneKey: true,
     });
   }
 
   return selectRuntime({
-    names: ["STRIPE_SECRET_KEY", "STRIPE_SECRET_KEY_LIVE"],
+    names: ["STRIPE_SECRET_KEY_LIVE", "STRIPE_SECRET_KEY"],
     purpose: "STRIPE_SECRET_KEY",
   });
 }
@@ -117,7 +117,7 @@ export function getTokOneStripeRuntime(preferredMode?: unknown) {
 
   if (mode === "live") {
     return selectRuntime({
-      names: ["STRIPE_TOK_ONE_SECRET_KEY", "STRIPE_SECRET_KEY", "STRIPE_SECRET_KEY_LIVE"],
+      names: ["STRIPE_TOK_ONE_SECRET_KEY", "STRIPE_SECRET_KEY_LIVE", "STRIPE_SECRET_KEY"],
       purpose: "Tok One Stripe secret",
       expectedMode: "live",
       isolatedTokOneKey: true,
@@ -135,7 +135,7 @@ export function getTokOneStripeRuntimeForCheckoutSession(sessionId: string) {
 
 export function getStripeVerificationRuntime() {
   return selectRuntime({
-    names: ["STRIPE_SECRET_KEY", "STRIPE_SECRET_KEY_LIVE", "STRIPE_TOK_ONE_TEST_SECRET_KEY", "STRIPE_TOK_ONE_SECRET_KEY"],
+    names: ["STRIPE_SECRET_KEY_LIVE", "STRIPE_SECRET_KEY", "STRIPE_TOK_ONE_TEST_SECRET_KEY", "STRIPE_TOK_ONE_SECRET_KEY"],
     purpose: "Stripe verification secret",
   });
 }
@@ -144,7 +144,9 @@ export function getStripeWebhookSigningSecrets() {
   return Array.from(
     new Set([
       ...splitSecrets(getEnv("STRIPE_WEBHOOK_SECRET")),
+      ...splitSecrets(getEnv("STRIPE_WEBHOOK_SECRET_LIVE")),
       ...splitSecrets(getEnv("STRIPE_WEBHOOK_SIGNING_SECRET")),
+      ...splitSecrets(getEnv("STRIPE_WEBHOOK_SIGNING_SECRET_LIVE")),
       ...splitSecrets(getEnv("STRIPE_TOK_ONE_TEST_WEBHOOK_SECRET")),
       ...splitSecrets(getEnv("STRIPE_TOK_ONE_TEST_WEBHOOK_SIGNING_SECRET")),
       ...splitSecrets(getEnv("STRIPE_TOK_ONE_WEBHOOK_SECRET")),

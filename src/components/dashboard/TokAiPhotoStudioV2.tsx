@@ -29,9 +29,10 @@ import {
   type RestaurantMediaWatermarkSubscription,
 } from "@/lib/ai/restaurantMediaMetadata";
 import { downloadImageWithWatermark } from "@/lib/media/downloadImageWithWatermark";
-import { formatAiImageGenerationError, toPublicErrorMessage } from "@/lib/publicErrorMessages";
-import { CheckCircle2, Download, Loader2, Maximize2, RotateCcw, Sparkles, Wand2 } from "lucide-react";
+import { formatAiImageGenerationError, isTokCreditError, toPublicErrorMessage } from "@/lib/publicErrorMessages";
+import { AlertCircle, CheckCircle2, Download, Loader2, Maximize2, RotateCcw, Sparkles, Wand2 } from "lucide-react";
 import { useTokLogoSrc } from "@/hooks/useTokLogo";
+import { Link } from "react-router-dom";
 
 const supabase = getSupabase();
 const STUDIO_BRIEF =
@@ -121,6 +122,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
   const [draft, setDraft, clearDraft] = useSessionStorageState<PhotoStudioDraft>(storageKey, DEFAULT_DRAFT);
   const [loading, setLoading] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [creditError, setCreditError] = useState<string | null>(null);
   const result = draft.result;
   const generatedImageUrl = result?.gallery_image_url || result?.generated_image_url || "";
   const downloadFileName = buildTokPhotoDownloadFileName(draft.dishName || result?.title || "visuel-tok");
@@ -155,6 +157,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
 
     setLoading(true);
     setPreviewOpen(false);
+    setCreditError(null);
     updateDraft({ result: null });
     try {
       const generationSeed = sanitizeTokGenerationSeed(draft.generationSeed);
@@ -186,10 +189,13 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
       const data = await promise;
       if (!mountedRef.current) return;
       updateDraft({ result: data, generationSeed: data.generation_seed || generationSeed });
+      setCreditError(null);
       toast({ title: "Visuel TOK prêt", description: "Contrôlez que le produit source est toujours reconnaissable avant publication." });
     } catch (error) {
       if (!mountedRef.current) return;
-      toast({ title: "Erreur IA", description: formatPhotoGenerationError(error), variant: "destructive" });
+      const message = formatPhotoGenerationError(error);
+      if (isTokCreditError(error)) setCreditError(message);
+      toast({ title: "Erreur IA", description: message, variant: "destructive" });
     } finally {
       if (mountedRef.current) setLoading(false);
     }
@@ -364,6 +370,20 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
                 </Button>
               ) : null}
             </div>
+            {creditError ? (
+              <div className="rounded-2xl border border-destructive/25 bg-destructive/10 p-3 text-sm text-destructive">
+                <div className="flex gap-2">
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                  <div>
+                    <p className="font-semibold">Credits TOK insuffisants</p>
+                    <p className="mt-1 text-xs leading-5">{creditError}</p>
+                  </div>
+                </div>
+                <Button asChild type="button" variant="outline" className="mt-3 h-9 rounded-xl border-destructive/30 bg-background text-destructive hover:bg-destructive/10">
+                  <Link to="/dashboard/mon-compte-facturation">Recharger mes credits</Link>
+                </Button>
+              </div>
+            ) : null}
           </div>
           <div className="rounded-2xl border bg-background p-4 text-sm text-muted-foreground shadow-sm">
             <>

@@ -1,10 +1,7 @@
-import Stripe from "npm:stripe@18.5.0";
-
 import {
   HttpError,
   authenticateRequest,
   createAdminClient,
-  getEnv,
   jsonResponse,
   requireRestaurantAccess,
   writeAuditLog,
@@ -12,6 +9,7 @@ import {
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import { normalizeCheckoutReturnUrl } from "../_shared/return-url.ts";
+import { getStripeRuntimeForCheckoutKind } from "../_shared/stripe-client.ts";
 
 function text(value: unknown) {
   return String(value || "").trim();
@@ -38,12 +36,7 @@ Deno.serve(async (req) => {
     if (!restaurantId) throw new HttpError(400, "restaurant_id requis");
 
     const restaurant = await requireRestaurantAccess(actor, restaurantId);
-    const stripeSecretKey = getEnv("STRIPE_SECRET_KEY");
-    if (!stripeSecretKey) throw new HttpError(503, "STRIPE_SECRET_KEY not configured");
-
-    const stripe = new Stripe(stripeSecretKey, {
-      apiVersion: "2025-08-27.basil",
-    });
+    const { stripe } = getStripeRuntimeForCheckoutKind("stripe-connect");
 
     accountId = text(restaurant.stripe_account_id);
 

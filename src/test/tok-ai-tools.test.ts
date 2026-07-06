@@ -114,6 +114,53 @@ describe("TOK AI tools foundation", () => {
     expect(migration).toContain("/ 0.009");
   });
 
+  it("blocks paid restaurateur AI text tools when the TOK credit wallet is insufficient", () => {
+    const creditHelper = readProjectFile("supabase/functions/_shared/restaurant-credits.ts");
+
+    expect(creditHelper).toContain("get_restaurant_credit_usage");
+    expect(creditHelper).toContain("ai_credits_exhausted");
+    expect(creditHelper).toContain("requireRestaurantTokCreditBalance");
+    expect(creditHelper).toContain("estimateTextAiPreflightCredits");
+
+    for (const fn of [
+      "ai-social-post-copy",
+      "ai-restaurant-agent",
+      "ai-restaurant-tools",
+      "restaurant-advisor",
+      "generate-campaign",
+      "floorplan-ai",
+    ]) {
+      const source = readProjectFile(`supabase/functions/${fn}/index.ts`);
+
+      expect(source).toContain("requireRestaurantTokCreditBalance");
+      expect(source).toContain("estimateTextAiPreflightCredits");
+      expect(source).toContain("preflight_required_credit_units");
+      expect(source).toContain("preflight_available_tok_credits");
+    }
+
+    const photoSource = readProjectFile("supabase/functions/ai-image-enhance/index.ts");
+    expect(photoSource).toContain("requireTokCreditBalance");
+    expect(photoSource).toContain('throw new HttpError(402, "ai_credits_exhausted")');
+  });
+
+  it("shows a direct recharge action when AI or campaign credits are insufficient", () => {
+    const publicErrors = readProjectFile("src/lib/publicErrorMessages.ts");
+    const photoStudio = readProjectFile("src/components/dashboard/TokAiPhotoStudioV2.tsx");
+    const marketingStudio = readProjectFile("src/components/dashboard/TokAiMarketingStudio.tsx");
+    const socialBoost = readProjectFile("src/components/social/SocialPostBoostDialog.tsx");
+    const dashboardCampaigns = readProjectFile("src/pages/dashboard/DashboardCampagnes.tsx");
+
+    expect(publicErrors).toContain("isTokCreditError");
+
+    for (const source of [photoStudio, marketingStudio, socialBoost, dashboardCampaigns]) {
+      expect(source).toContain("/dashboard/mon-compte-facturation");
+      expect(source).toContain("Recharger mes credits");
+    }
+
+    expect(photoStudio).toContain("isTokCreditError");
+    expect(marketingStudio).toContain("isTokCreditError");
+  });
+
   it("keeps generated image storage on the governed private bucket by default", () => {
     const source = readProjectFile("supabase/functions/ai-image-enhance/index.ts");
 
