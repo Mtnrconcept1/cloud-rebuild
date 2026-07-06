@@ -27,6 +27,7 @@ import {
   type SocialReactionCounts,
   type SocialReactionType,
 } from "@/lib/socialFeed";
+import { registerRestaurantImageForAnalysis } from "@/lib/uploadRestaurantImage";
 import {
   filterSocialPostsByHiddenFeedback,
   readSocialFeedHiddenFeedback,
@@ -48,6 +49,7 @@ const RESTAURANT_SOCIAL_POSTS_LIMIT = 50;
 const SOCIAL_COMMENTS_LIMIT = 50;
 const SOCIAL_INSIGHTS_BASE_SELECT = "id,likes_count,comments_count,reposts_count,shares_count,status,post_type,cta_type,created_at,scheduled_at";
 const SOCIAL_INSIGHTS_MARKETING_SELECT = `${SOCIAL_INSIGHTS_BASE_SELECT},campaign_goal,audience_segment`;
+const ANALYZABLE_SOCIAL_IMAGE_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 let socialMarketingSchemaAvailable: boolean | null = null;
 
@@ -662,7 +664,54 @@ async function assertRestaurantAccess(restaurantId: string, userId: string) {
   if (!data) throw new Error("Restaurant non autorise.");
 }
 
-async function uploadPostMedia(restaurantId: string, postId: string, files: PreparedSocialPostMediaFile[]) {
+function canAnalyzeSocialImage(file: File, mediaType: PreparedSocialPostMediaFile["mediaType"]) {
+  return mediaType === "image" && ANALYZABLE_SOCIAL_IMAGE_MIME_TYPES.has(file.type);
+}
+
+async function registerActualitesImageAnalysisBestEffort({
+  restaurantId,
+  postId,
+  userId,
+  file,
+  storagePath,
+  publicUrl,
+  sortOrder,
+}: {
+  restaurantId: string;
+  postId: string;
+  userId: string;
+  file: File;
+  storagePath: string;
+  publicUrl: string | null;
+  sortOrder: number;
+}) {
+  try {
+    await registerRestaurantImageForAnalysis({
+      restaurantId,
+      userId,
+      bucket: SOCIAL_FEED_BUCKET,
+      storagePath,
+      publicUrl,
+      originalFilename: file.name,
+      mimeType: file.type,
+      sizeBytes: file.size,
+      sourceType: "actualites",
+      sourceTable: "social_posts",
+      sourceId: postId,
+      sourceContext: {
+        socialPostId: postId,
+        mediaBucket: SOCIAL_FEED_BUCKET,
+        mediaPath: storagePath,
+        mediaType: "image",
+        sortOrder,
+      },
+    });
+  } catch (error) {
+    console.warn("Actualites image analysis registration skipped", error);
+  }
+}
+
+async function uploadPostMedia(restaurantId: string, postId: string, userId: string, files: PreparedSocialPostMediaFile[]) {
   for (let index = 0; index < files.length; index += 1) {
     const item = files[index];
     const file = item.file;
@@ -687,6 +736,18 @@ async function uploadPostMedia(restaurantId: string, postId: string, files: Prep
     });
 
     if (insertError) throw insertError;
+
+    if (canAnalyzeSocialImage(file, item.mediaType)) {
+      await registerActualitesImageAnalysisBestEffort({
+        restaurantId,
+        postId,
+        userId,
+        file,
+        storagePath: path,
+        publicUrl: data.publicUrl || null,
+        sortOrder: index,
+      });
+    }
   }
 }
 
@@ -1217,7 +1278,7 @@ export function useCreateSocialPost() {
       if (error) throw error;
 
       try {
-        await uploadPostMedia(restaurantId, post.id, preparedMediaFiles);
+        await uploadPostMedia(restaurantId, post.id, user.id, preparedMediaFiles);
       } catch (mediaError) {
         await (supabase.from("social_posts" as any) as any)
           .update({

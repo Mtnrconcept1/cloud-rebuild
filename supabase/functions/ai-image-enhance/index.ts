@@ -1473,6 +1473,25 @@ Deno.serve(async (req) => {
       imageEditRetryUsed = editResult.retryUsed;
       imageFallbackUsed = editResult.fallbackUsed;
       imageFallbackReason = editResult.fallbackReason;
+    } else if (sourceImageUrl && referenceImageUrls.length) {
+      const editResult = await callOpenAIImageEditWithReferencesAndRecovery({
+        prompt: finalPrompt,
+        imageUrls: [sourceImageUrl, ...referenceImageUrls],
+        n: variantCount,
+        options: imageOptions,
+        fallbackPrompt: appendGenerationSeedToPrompt([
+          compactSourceEditPrompt,
+          "",
+          "Garde la retouche fidele a la photo source. Utilise les images de style uniquement pour l'ambiance, la lumiere, la palette, le cadrage et le rendu. Ne remplace pas le plat, le produit, la categorie alimentaire, les ingredients principaux ni le nombre d'elements visibles.",
+        ].join("\n").slice(0, 2400), activeGenerationSeed),
+        allowGenerationFallback: false,
+      });
+      imageResponse = editResult.response;
+      usedImageOptions = editResult.options;
+      imageEditRetryUsed = editResult.retryUsed;
+      imageFallbackUsed = editResult.fallbackUsed;
+      imageFallbackReason = editResult.fallbackReason;
+      sourceEditUsed = true;
     } else if (sourceImageUrl) {
       const editResult = await callOpenAIImageEditWithRetry({
         primaryPrompt: finalPrompt,

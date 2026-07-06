@@ -1,0 +1,15 @@
+{
+  "name": "tok-image-ai-worker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.28.1",
+  "scripts": {
+    "check": "node check.mjs",
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.106.2",
+    "dotenv": "^17.3.1"
+  }
+}

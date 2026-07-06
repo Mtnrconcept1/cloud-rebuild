@@ -32,6 +32,8 @@
     "scale:readiness": "node ./scripts/scale-readiness-check.mjs",
     "google:actions:feeds": "node ./scripts/google-actions-center-export-feeds.mjs",
     "commercial:demo-logins": "node ./scripts/provision-commercial-demo-logins.mjs",
+    "image-ai-worker:check": "pnpm --filter tok-image-ai-worker check",
+    "image-ai-worker:start": "pnpm --filter tok-image-ai-worker start",
     "supabase:doctor": "node ./scripts/supabase-doctor.mjs",
     "supabase:doctor:prod": "node ./scripts/supabase-doctor.mjs --mode=production",
     "supabase:doctor:all": "node ./scripts/supabase-doctor.mjs --mode=all",

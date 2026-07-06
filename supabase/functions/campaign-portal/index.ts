@@ -26,16 +26,50 @@ const VALID_SERVICE_MOMENTS = new Set(["lunch", "dinner", "weekend"]);
 const VALID_CREATIVE_TEMPLATES = new Set(["tok_spotlight"]);
 const VALID_BANNER_TEXT_PLACEMENTS = new Set(["left", "right", "top", "bottom"]);
 const VALID_BANNER_SEPARATORS = new Set(["fade", "wave", "curve", "straight"]);
-const VALID_CREATIVE_TEXT_ELEMENTS = ["badge", "discount", "restaurant", "headline", "body", "cta"] as const;
+const VALID_CREATIVE_TEXT_ELEMENTS = [
+  "badge",
+  "discount",
+  "eyebrow",
+  "restaurant",
+  "tagline",
+  "address",
+  "headline",
+  "body",
+  "sealTop",
+  "sealMain",
+  "sealBottom",
+  "cta",
+] as const;
 const TOK_CREDITS_PER_CAMPAIGN_CHF = 15;
 
 const DEFAULT_CREATIVE_TEXT = {
   badge: { x: 0, y: 0, scale: 100, rotation: 0, color: "#ffffff", font: "sans", style: "bold" },
   discount: { x: 0, y: 0, scale: 100, rotation: 0, color: "#ffffff", font: "sans", style: "bold" },
+  eyebrow: { x: 0, y: 0, scale: 100, rotation: 0, color: "#64748b", font: "sans", style: "bold" },
   restaurant: { x: 0, y: 0, scale: 100, rotation: 0, color: "#111827", font: "display", style: "bold" },
+  tagline: { x: 0, y: 0, scale: 100, rotation: 0, color: "#f97316", font: "serif", style: "italic" },
+  address: { x: 0, y: 0, scale: 100, rotation: 0, color: "#64748b", font: "sans", style: "normal" },
   headline: { x: 0, y: 0, scale: 100, rotation: 0, color: "#111827", font: "sans", style: "bold" },
   body: { x: 0, y: 0, scale: 100, rotation: 0, color: "#334155", font: "sans", style: "normal" },
+  sealTop: { x: 0, y: 0, scale: 100, rotation: 0, color: "#f97316", font: "sans", style: "bold" },
+  sealMain: { x: 0, y: 0, scale: 100, rotation: 0, color: "#f97316", font: "display", style: "bold" },
+  sealBottom: { x: 0, y: 0, scale: 100, rotation: 0, color: "#f97316", font: "sans", style: "bold" },
   cta: { x: 0, y: 0, scale: 100, rotation: 0, color: "#ffffff", font: "sans", style: "bold" },
+};
+
+const DEFAULT_CREATIVE_COPY: Record<typeof VALID_CREATIVE_TEXT_ELEMENTS[number], string> = {
+  badge: "",
+  discount: "",
+  eyebrow: "",
+  restaurant: "",
+  tagline: "Savourez l'instant",
+  address: "",
+  headline: "",
+  body: "",
+  sealTop: "Offres",
+  sealMain: "Flash",
+  sealBottom: "Quantités limitées",
+  cta: "",
 };
 
 type CampaignPortalAction = "list" | "save" | "update_status" | "delete" | "estimate_audience";
@@ -88,7 +122,7 @@ function sanitizeHexColor(value: unknown, fallback: string) {
 
 function sanitizeCreativeTextStyle(raw: unknown, fallback: typeof DEFAULT_CREATIVE_TEXT.badge) {
   const source = isRecord(raw) ? raw : {};
-  const font = sanitizeChoice(source.font, new Set(["display", "sans", "serif"]), fallback.font);
+  const font = sanitizeChoice(source.font, new Set(["display", "sans", "serif", "rounded", "mono"]), fallback.font);
   const style = sanitizeChoice(source.style, new Set(["normal", "bold", "italic"]), fallback.style);
 
   return {
@@ -100,6 +134,15 @@ function sanitizeCreativeTextStyle(raw: unknown, fallback: typeof DEFAULT_CREATI
     font,
     style,
   };
+}
+
+function sanitizeCreativeCopy(raw: unknown) {
+  const source = isRecord(raw) ? raw : {};
+
+  return VALID_CREATIVE_TEXT_ELEMENTS.reduce((acc, key) => {
+    acc[key] = normalizeText(source[key] ?? DEFAULT_CREATIVE_COPY[key]).replace(/\s+/g, " ").slice(0, 90);
+    return acc;
+  }, {} as Record<typeof VALID_CREATIVE_TEXT_ELEMENTS[number], string>);
 }
 
 function sanitizeCreativeText(raw: unknown) {
@@ -120,6 +163,7 @@ function sanitizeCampaignCreative(raw: unknown, existingRaw?: unknown) {
     bannerTextPlacement: sanitizeChoice(source.bannerTextPlacement, VALID_BANNER_TEXT_PLACEMENTS, "left"),
     bannerSeparator: sanitizeChoice(source.bannerSeparator, VALID_BANNER_SEPARATORS, "fade"),
     text: sanitizeCreativeText(source.text),
+    copy: sanitizeCreativeCopy(source.copy),
   };
 }
 

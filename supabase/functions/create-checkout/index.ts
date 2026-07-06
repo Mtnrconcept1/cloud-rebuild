@@ -23,6 +23,16 @@ import { buildVerifiedOrderPricing } from "../_shared/order-pricing.ts";
 
 const toMoney = (value: unknown) => Math.max(0, Number(value) || 0);
 type CheckoutItem = Record<string, unknown>;
+const CLIENT_STRIPE_CHECKOUT_KINDS = new Set(["order", "zero-attente", "chefs-table"]);
+const RESTAURANT_CREDIT_ONLY_CHECKOUT_KINDS = new Set(["campaign"]);
+
+function normalizeCheckoutKind(value: unknown) {
+  return String(value || "order").trim().toLowerCase();
+}
+
+function normalizePaymentMethod(value: unknown) {
+  return String(value || "card").trim().toLowerCase();
+}
 
 function getCheckoutItemRestaurantId(item: CheckoutItem, fallbackRestaurantId: string) {
   return String(item?.restaurant_id || item?.restaurantId || fallbackRestaurantId);
@@ -77,7 +87,18 @@ Deno.serve(async (req) => {
       checkout_kind,
     } = await req.json();
 
-    const effectiveKind = checkout_kind || order_metadata?.checkout_kind || "order";
+    const effectiveKind = normalizeCheckoutKind(checkout_kind || order_metadata?.checkout_kind || "order");
+    const normalizedPaymentMethod = normalizePaymentMethod(payment_method);
+    if (RESTAURANT_CREDIT_ONLY_CHECKOUT_KINDS.has(effectiveKind)) {
+      throw new HttpError(
+        400,
+        "Les campagnes se reglent uniquement avec les credits TOK. Rechargez votre solde depuis Mon compte/Facturation ou attendez le prochain renouvellement.",
+      );
+    }
+    if (CLIENT_STRIPE_CHECKOUT_KINDS.has(effectiveKind) && ["cash", "credits"].includes(normalizedPaymentMethod)) {
+      throw new HttpError(400, "Ce parcours client doit etre regle avec un moyen de paiement Stripe.");
+    }
+
     const isSubscriptionCheckout =
       effectiveKind === "tok-one"
       || effectiveKind === "restaurant-onboarding"
@@ -91,14 +112,18 @@ Deno.serve(async (req) => {
 
     auditKind = effectiveKind;
     const activeFlags = await getEffectiveFeatureFlagSet(actor.adminClient);
-    assertPaymentMethodAllowed({
-      activeFlags,
-      paymentMethod: payment_method,
-      cashAllowed: effectiveKind === "campaign",
-    });
+    try {
+      assertPaymentMethodAllowed({
+        activeFlags,
+        paymentMethod: normalizedPaymentMethod,
+        cashAllowed: false,
+      });
+    } catch (error) {
+      throw new HttpError(400, error instanceof Error ? error.message : "Moyen de paiement indisponible.");
+    }
 
     const paymentMethodTypes: string[] = [];
-    switch (payment_method) {
+    switch (normalizedPaymentMethod) {
       case "twint":
         paymentMethodTypes.push("twint");
         break;
@@ -126,7 +151,7 @@ Deno.serve(async (req) => {
       checkout_kind: effectiveKind,
       stripe_mode: stripeRuntime.mode,
       stripe_key_scope: stripeRuntime.isolatedTokOneKey ? "tok_one" : "default",
-      payment_method_label: String(payment_method || "card"),
+      payment_method_label: normalizedPaymentMethod,
       order_reference: String(order_metadata?.order_reference || ""),
       restaurant_id: String(order_metadata?.restaurant_id || ""),
       campaign_id: String(order_metadata?.campaign_id || ""),
@@ -174,7 +199,7 @@ Deno.serve(async (req) => {
       if (!planId) throw new HttpError(400, "plan_id requis");
       if (!restaurantId) throw new HttpError(400, "restaurant_id requis");
       if (billingPeriod !== "monthly") throw new HttpError(400, "Les abonnements restaurateur sont mensuels");
-      if (payment_method !== "card") {
+      if (normalizedPaymentMethod !== "card") {
         throw new HttpError(400, "L'onboarding restaurateur requiert un paiement par carte");
       }
 
@@ -292,7 +317,7 @@ Deno.serve(async (req) => {
 
       if (!planId) throw new HttpError(400, "plan_id requis");
       if (!restaurantId) throw new HttpError(400, "restaurant_id requis");
-      if (payment_method !== "card") {
+      if (normalizedPaymentMethod !== "card") {
         throw new HttpError(400, "L'upgrade d'abonnement restaurateur requiert un paiement par carte");
       }
 
@@ -415,7 +440,7 @@ Deno.serve(async (req) => {
 
       if (!packId) throw new HttpError(400, "credit_pack_id requis");
       if (!restaurantId) throw new HttpError(400, "restaurant_id requis");
-      if (!["card", "twint"].includes(String(payment_method || "card"))) {
+      if (!["card", "twint"].includes(normalizedPaymentMethod)) {
         throw new HttpError(400, "Les packs de credits acceptent la carte bancaire ou TWINT");
       }
 
@@ -519,7 +544,7 @@ Deno.serve(async (req) => {
       if (amount <= 0) throw new HttpError(400, "Prix du plan invalide");
 
       // Check no existing active subscription
-      if (payment_method !== "card") {
+      if (normalizedPaymentMethod !== "card") {
         throw new HttpError(400, "Tok One requiert un paiement par carte");
       }
 
@@ -766,7 +791,7 @@ Deno.serve(async (req) => {
         const deliveryFeeShare = paymentGroupKeys.length > 0 ? totalDeliveryFee / paymentGroupKeys.length : totalDeliveryFee;
         const groupMetadata = {
           ...(order_metadata || {}),
-          payment_method,
+          payment_method: normalizedPaymentMethod,
           delivery_fee: deliveryFeeShare,
           points_discount_amount: pointsByPaymentGroup.get(paymentGroupKey) || 0,
           flex_discount_amount: flexByPaymentGroup.get(paymentGroupKey) || 0,
@@ -993,7 +1018,7 @@ Deno.serve(async (req) => {
             checkout_session_state: "pending_payment",
             paid: false,
             total_amount: sessionMetadata.authoritative_total,
-            payment_method: String(payment_method || "card"),
+            payment_method: normalizedPaymentMethod,
           },
           p_notes: "Hold Zero Attente cree avant redirection Stripe.",
         },
@@ -1065,7 +1090,7 @@ Deno.serve(async (req) => {
       metadata: {
         checkout_kind: auditKind,
         session_id: session.id,
-        payment_method: payment_method || "card",
+        payment_method: normalizedPaymentMethod,
         stripe_mode: stripeRuntime.mode,
         stripe_key_scope: stripeRuntime.isolatedTokOneKey ? "tok_one" : "default",
         line_items: lineItems.length,

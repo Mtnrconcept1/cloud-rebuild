@@ -3,6 +3,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import AiGenerationProgressDialog from "@/components/ui/ai-generation-progress-dialog";
+import AiStyleReferencePicker, {
+  type AiStyleReferenceUploadedResource,
+  type AiStyleReferenceValue,
+} from "@/components/dashboard/AiStyleReferencePicker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -708,6 +712,7 @@ function buildMarketingImagePrompt(input: {
   orientation: string;
   styleMode: string;
   resources: MarketingResource[];
+  styleReference?: AiStyleReferenceValue | null;
   businessContext?: MarketingBusinessContext | null;
 }) {
   const orderedResources = [...input.resources].sort((a, b) => {
@@ -733,6 +738,9 @@ function buildMarketingImagePrompt(input: {
     `Contexte restaurant public autorise pour pied de page, carte de visite, affiche ou menu: ${buildMarketingRestaurantContext(input.businessContext)}`,
     `Informations de menu disponibles pour creer une carte ou un menu: ${buildMarketingMenuContext(input.businessContext)}`,
     `Ressources actives à utiliser comme seules références visuelles: ${resourceSummary}`,
+    input.styleReference
+      ? `Référence de style prioritaire: ${input.styleReference.fileName}. Reprendre son ambiance, sa lumière, sa palette, son cadrage et son rendu, sans copier son contenu ni inventer une autre marque.`
+      : "Référence de style prioritaire: aucune image de style spécifique sélectionnée.",
     `Empreinte des ressources actives: ${resourceFingerprint || "aucune"}`,
     "Direction artistique: reprendre l'identité visuelle observable dans les fichiers actifs fournis pour cette génération: logo, couleurs, typographies, textures, style photo, formes, composition, hiérarchie et ton commercial.",
     "Interdictions: ne pas utiliser l'identité visuelle de la plateforme par défaut, ne pas réutiliser une identité ou un prompt d'une génération précédente, ne pas inventer une autre marque si les références indiquent une marque précise.",
@@ -757,6 +765,25 @@ function selectMarketingGenerationResources(resources: MarketingResource[]) {
   }
 
   return selected;
+}
+
+function withStyleReferenceResource(
+  generationResources: MarketingResource[],
+  styleReference: AiStyleReferenceValue | null,
+  latestResources: MarketingResource[],
+) {
+  if (!styleReference?.mediaId && !styleReference?.mediaUrl) return generationResources;
+
+  const matchedResource = latestResources.find((resource) =>
+    Boolean(resource.persisted && resource.mediaUrl) &&
+    ((styleReference.mediaId && resource.mediaId === styleReference.mediaId) || resource.mediaUrl === styleReference.mediaUrl)
+  );
+  if (!matchedResource?.mediaId) return generationResources;
+
+  return [
+    matchedResource,
+    ...generationResources.filter((resource) => resource.mediaId !== matchedResource.mediaId && resource.mediaUrl !== matchedResource.mediaUrl),
+  ].slice(0, MARKETING_REFERENCE_LIMIT);
 }
 
 function createMarketingAssetPath(userId: string, restaurantId: string, file: File) {
@@ -784,6 +811,21 @@ function rowToMarketingResource(row: Record<string, unknown>): MarketingResource
     mediaUrl,
     storageBucket: typeof row.storage_bucket === "string" ? row.storage_bucket : null,
     storagePath,
+    persisted: true,
+  };
+}
+
+function styleReferenceToMarketingResource(resource: AiStyleReferenceUploadedResource): MarketingResource {
+  return {
+    id: resource.mediaId,
+    mediaId: resource.mediaId,
+    kind: "brand_visuals",
+    fileName: resource.fileName,
+    fileSize: 0,
+    mimeType: "image/*",
+    mediaUrl: resource.mediaUrl,
+    storageBucket: resource.storageBucket,
+    storagePath: resource.storagePath,
     persisted: true,
   };
 }
@@ -907,6 +949,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
   const [orientation, setOrientation] = useState<MarketingOrientation>(DEFAULT_MARKETING_FORMAT.orientation);
   const [styleMode, setStyleMode] = useState("Base sur mon identite");
   const [generationSeed, setGenerationSeed] = useState("");
+  const [styleReference, setStyleReference] = useState<AiStyleReferenceValue | null>(null);
   const outputResolution: TokImageOutputResolution = "studio";
   const [resources, setResources] = useState<MarketingResource[]>([]);
   const [loading, setLoading] = useState(false);
@@ -984,6 +1027,20 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
     updateGenerationSeed(createTokGenerationSeed("marketing"));
   };
 
+  const handleStyleReferenceUploaded = (resource: AiStyleReferenceUploadedResource) => {
+    const marketingResource = styleReferenceToMarketingResource(resource);
+    setResources((current) => [
+      marketingResource,
+      ...current.filter((item) => item.mediaId !== resource.mediaId && item.mediaUrl !== resource.mediaUrl),
+    ]);
+    invalidateMarketingGeneration();
+  };
+
+  const handleStyleReferenceChange = (nextStyleReference: AiStyleReferenceValue | null) => {
+    setStyleReference(nextStyleReference);
+    invalidateMarketingGeneration();
+  };
+
   const scrollToMarketingRenderSettings = () => {
     const target = renderSettingsRef.current;
     if (!target || typeof window === "undefined") return;
@@ -1057,6 +1114,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
     generationRequestRef.current += 1;
     setLoading(false);
     setMarketingImageResult(null);
+    setStyleReference(null);
 
     async function loadMarketingAssets() {
       if (!restaurantId) {
@@ -1285,7 +1343,8 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
       if (!mountedRef.current || generationRequestRef.current !== requestId) return;
 
       setResources(latestResources);
-      const generationResources = selectMarketingGenerationResources(latestResources);
+      const baseGenerationResources = selectMarketingGenerationResources(latestResources);
+      const generationResources = withStyleReferenceResource(baseGenerationResources, styleReference, latestResources);
       const generationResourceIds = generationResources
         .map((resource) => resource.mediaId)
         .filter((mediaId): mediaId is string => Boolean(mediaId));
@@ -1315,6 +1374,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
         orientation: selectedFormat.orientation,
         styleMode,
         resources: generationResources,
+        styleReference,
         businessContext: latestBusinessContext,
       });
 
@@ -1674,6 +1734,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Resolution: {outputPricing.size} / {outputPricing.quality}</span>
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Credits: {outputPricing.photoCredits}</span>
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Seed: {marketingImageResult?.generation_seed || sanitizedGenerationSeed || "auto"}</span>
+                  <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Style réutilisé: {styleReference ? styleReference.fileName : "non"}</span>
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Références marketing: {persistedResources.length}</span>
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Logo: {hasLogo ? "oui" : "non"}</span>
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Fiche restaurant: {businessContextLoading ? "chargement" : businessContext?.restaurant ? "active" : "vide"}</span>
@@ -1734,6 +1795,13 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
               <CardDescription>Ajoutez ici les visuels de référence utilisés uniquement par le Marketing Studio. Ils ne sont pas ajoutés à la galerie restaurant.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
+              <AiStyleReferencePicker
+                restaurantId={restaurantId}
+                value={styleReference}
+                onChange={handleStyleReferenceChange}
+                onUploaded={handleStyleReferenceUploaded}
+                galleryMediaTypes={MARKETING_MEDIA_TYPES}
+              />
               {resourcesLoading ? (
                 <div className="flex items-center gap-2 rounded-2xl border bg-muted/40 p-3 text-sm text-muted-foreground">
                   <Loader2 className="h-4 w-4 animate-spin" />

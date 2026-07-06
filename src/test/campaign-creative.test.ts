@@ -94,6 +94,40 @@ describe("campaign creative studio", () => {
         },
       },
     });
+
+    expect(normalizeCampaignCreative({
+      copy: {
+        badge: "À l'affiche",
+        restaurant: "L'adega",
+        sealMain: "Flash",
+      },
+      text: {
+        restaurant: {
+          font: "rounded",
+          style: "italic",
+        },
+        sealMain: {
+          font: "mono",
+          style: "bold",
+        },
+      },
+    })).toMatchObject({
+      copy: {
+        badge: "À l'affiche",
+        restaurant: "L'adega",
+        sealMain: "Flash",
+      },
+      text: {
+        restaurant: {
+          font: "rounded",
+          style: "italic",
+        },
+        sealMain: {
+          font: "mono",
+          style: "bold",
+        },
+      },
+    });
   });
 
   it("keeps a readable summary for campaign operators", () => {
@@ -122,7 +156,9 @@ describe("campaign creative studio", () => {
   it("keeps the sponsored restaurant hero title prominent on desktop", () => {
     const templateCard = readSource("src/components/campaigns/SponsoredRestaurantTemplateCard.tsx");
 
-    expect(templateCard).toContain("text-4xl sm:text-5xl lg:text-[3.9rem]");
+    expect(templateCard).toContain("break-words pb-3 leading-[1.14]");
+    expect(templateCard).toContain("text-4xl sm:text-5xl lg:text-[3rem] xl:text-[3.8rem] 2xl:text-[4.8rem]");
+    expect(templateCard).not.toContain("mt-1 line-clamp-2 overflow-visible pb-2 leading-[1.04]");
   });
 
   it("persists creative choices in channels and normalizes them server-side", () => {
@@ -133,6 +169,15 @@ describe("campaign creative studio", () => {
     expect(dashboard).toContain("CampaignCreativeStudio");
     expect(dashboard).toContain("CREATIVE_BANNER_PLACEMENT_OPTIONS");
     expect(dashboard).toContain("CREATIVE_BANNER_SEPARATOR_OPTIONS");
+    expect(dashboard).toContain("Textes personnalisables");
+    expect(dashboard).toContain("Tous les textes de la bannière sont personnalisables");
+    expect(dashboard).toContain("Chaque zone de texte dispose de son champ");
+    expect(dashboard).toContain("Police");
+    expect(dashboard).toContain("Style");
+    expect(dashboard).toContain("Couleur");
+    expect(dashboard).toContain("Rond centre");
+    expect(dashboard).toContain("Arrondie");
+    expect(dashboard).toContain("Compacte");
     expect(dashboard).toContain("creative: campaignCreative");
     expect(dashboard).toContain("getCampaignCreativeFromChannels(initial?.channels)");
     expect(dashboard).not.toContain("Nuancier des blocs");
@@ -143,11 +188,17 @@ describe("campaign creative studio", () => {
     expect(portal).toContain("tok_spotlight");
     expect(portal).toContain("VALID_BANNER_TEXT_PLACEMENTS");
     expect(portal).toContain("VALID_BANNER_SEPARATORS");
+    expect(portal).toContain("DEFAULT_CREATIVE_COPY");
+    expect(portal).toContain("sanitizeCreativeCopy");
+    expect(portal).toContain("rounded");
+    expect(portal).toContain("mono");
     expect(portal).not.toContain("VALID_CREATIVE_TONES");
     expect(portal).toContain("creative,");
 
     expect(card).toContain("ad-card-spotlight");
     expect(card).toContain("ad-banner-spotlight");
+    expect(card).toContain("getCreativeCopy");
+    expect(card).toContain("displaySealMain");
     expect(card).not.toContain("Photo mise en avant");
     expect(card).not.toContain("mt-6 inline-flex h-12 w-fit");
     expect(card).not.toContain("getBannerSeparatorClass");

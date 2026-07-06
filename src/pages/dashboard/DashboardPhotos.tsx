@@ -21,6 +21,7 @@ import {
 } from "@/lib/ai/restaurantMediaMetadata";
 import { downloadImageWithWatermark } from "@/lib/media/downloadImageWithWatermark";
 import { deleteRestaurantMedia, setRestaurantCoverMedia } from "@/lib/restaurantMediaGovernance";
+import { registerRestaurantImageForAnalysis } from "@/lib/uploadRestaurantImage";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
 import ImageUpload from "@/components/ImageUpload";
 import {
@@ -365,6 +366,21 @@ export default function DashboardPhotos() {
       ? await supabase.from("restaurant_media").update(payload).eq("id", editingId)
       : await supabase.from("restaurant_media").insert(payload);
     if (error) return toast({ title: "Erreur", description: error.message, variant: "destructive" });
+    if (!editingId && form.storage_bucket && form.storage_path) {
+      try {
+        await registerRestaurantImageForAnalysis({
+          restaurantId: selectedId,
+          userId: user?.id || null,
+          bucket: form.storage_bucket,
+          storagePath: form.storage_path,
+          publicUrl: form.media_url.trim(),
+          mimeType: null,
+          originalFilename: null,
+        });
+      } catch (analysisError) {
+        console.warn("[restaurant-images] analysis registration failed", analysisError);
+      }
+    }
     toast({ title: editingId ? "Photo mise à jour" : "Photo ajoutée" });
     setEditingId(null);
     setForm(EMPTY_MEDIA_FORM);

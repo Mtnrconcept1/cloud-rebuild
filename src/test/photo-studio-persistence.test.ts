@@ -47,7 +47,7 @@ describe("TOK photo studio persistence", () => {
   it("lets restaurateurs guide PhotoPro without replacing the protected source product", () => {
     expect(source).toContain("userInstructions: string");
     expect(source).toContain("Consignes PhotoPro");
-    expect(source).toContain("buildPhotoProPrompt(draft.userInstructions || \"\")");
+    expect(source).toContain("buildPhotoProPrompt(draft.userInstructions || \"\", Boolean(styleReferenceImageUrl))");
     expect(source).toContain("Si le produit est mal mis en scène ou n'a pas l'air appétissant");
     expect(source).toContain("Si le produit est coupé, tronqué, partiellement hors cadre ou sort de l'image");
     expect(source).toContain("génère la partie manquante en élargissant l'angle ou en modifiant l'angle de vue");
@@ -466,7 +466,8 @@ describe("TOK photo studio persistence", () => {
   it("refreshes marketing references before image generation to avoid stale uploaded assets", () => {
     expect(marketingStudio).toContain("function fetchMarketingResources");
     expect(marketingStudio).toContain("const latestResources = await fetchMarketingResources(restaurantId)");
-    expect(marketingStudio).toContain("const generationResources = selectMarketingGenerationResources(latestResources)");
+    expect(marketingStudio).toContain("const baseGenerationResources = selectMarketingGenerationResources(latestResources)");
+    expect(marketingStudio).toContain("const generationResources = withStyleReferenceResource(baseGenerationResources, styleReference, latestResources)");
     expect(marketingStudio).toContain("if (!generationResources.length)");
     expect(marketingStudio).toContain("Reference requise");
     expect(marketingStudio).toContain("resources: generationResources");

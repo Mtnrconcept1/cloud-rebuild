@@ -345,8 +345,14 @@ Deno.serve(async (req) => {
     const checkoutSessionState = String(metadataRecord.checkout_session_state || "");
     const requiresStripeCheckout = metadataRecord.requires_stripe_checkout === true;
     const isAwaitingOnlinePayment = hasStripeSession || checkoutSessionState === "pending" || requiresStripeCheckout;
-    const paymentMethod = String(metadataRecord.payment_method || "cash");
+    const paymentMethod = String(metadataRecord.payment_method || "card");
     const isSettledWithoutStripe = !isAwaitingOnlinePayment && paymentMethod !== "cash" && pricing.total <= 0.01;
+    if (!isAwaitingOnlinePayment && !isSettledWithoutStripe && pricing.total > 0.01) {
+      throw new HttpError(
+        402,
+        "Le paiement Stripe est requis pour finaliser cette commande.",
+      );
+    }
 
     const finalMetadata = isDelivery
       ? enrichDeliveryMetadata(capacityAwareMetadata)

@@ -1,5 +1,6 @@
 packages:
   - "."
+  - "workers/image-ai-worker"
 
 onlyBuiltDependencies:
   - "@swc/core"

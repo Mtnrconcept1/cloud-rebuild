@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import ImageUpload from "@/components/ImageUpload";
+import AiStyleReferencePicker, { type AiStyleReferenceValue } from "@/components/dashboard/AiStyleReferencePicker";
 import { useToast } from "@/hooks/use-toast";
 import { useSessionStorageState } from "@/hooks/useSessionStorageState";
 import { getSupabase } from "@/integrations/supabase/client";
@@ -38,13 +39,16 @@ const STUDIO_BRIEF =
 const PHOTO_PRO_CREATIVE_DIRECTION =
   "Priorité haute: si le restaurateur demande une modification créative visible, applique-la franchement dans l'image finale au lieu d'une retouche subtile. Les ajouts explicitement demandés comme fromage, cheddar, sauce, ingrédient complémentaire, effet de mouvement, produit séparé, suspendu ou en lévitation sont autorisés s'ils valorisent le produit source sans le remplacer.";
 
-function buildPhotoProPrompt(userInstructions: string) {
+function buildPhotoProPrompt(userInstructions: string, hasStyleReference: boolean) {
   const trimmedInstructions = userInstructions.trim();
 
   return [
     STUDIO_BRIEF,
     PHOTO_PRO_CREATIVE_DIRECTION,
     "Si le produit est mal mis en scène ou n'a pas l'air appétissant, améliore sa présentation, son volume visuel, la gourmandise, les textures et la lumière tout en préservant le produit, les ingrédients, le packaging, les logos et les textes présents.",
+    hasStyleReference
+      ? "Référence de style active: reprendre l'ambiance, la lumière, la palette, la profondeur de champ, le cadrage et le traitement visuel de l'image de style fournie, sans copier son contenu ni remplacer le produit source."
+      : "",
     trimmedInstructions ? `Consignes du restaurateur à appliquer visiblement: ${trimmedInstructions}` : "",
   ]
     .filter(Boolean)
@@ -61,6 +65,7 @@ type Props = {
 
 type PhotoStudioDraft = {
   sourceImageUrl: string;
+  styleReference: AiStyleReferenceValue | null;
   dishName: string;
   userInstructions: string;
   generationSeed: string;
@@ -71,6 +76,7 @@ type PhotoStudioDraft = {
 
 const DEFAULT_DRAFT: PhotoStudioDraft = {
   sourceImageUrl: "",
+  styleReference: null,
   dishName: "",
   userInstructions: "",
   generationSeed: "",
@@ -152,12 +158,16 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
     updateDraft({ result: null });
     try {
       const generationSeed = sanitizeTokGenerationSeed(draft.generationSeed);
+      const styleReferenceImageUrl = draft.styleReference?.mediaUrl || "";
+      const styleReferenceMediaId = draft.styleReference?.mediaId || "";
       void requestAiCreationNotificationPermission();
       const request = {
         restaurantId,
         sourceImageUrl: draft.sourceImageUrl,
         dishName: draft.dishName || null,
-        prompt: buildPhotoProPrompt(draft.userInstructions || ""),
+        prompt: buildPhotoProPrompt(draft.userInstructions || "", Boolean(styleReferenceImageUrl)),
+        referenceImageUrls: styleReferenceImageUrl ? [styleReferenceImageUrl] : [],
+        referenceMediaIds: styleReferenceMediaId ? [styleReferenceMediaId] : [],
         assetType: "menu_visual",
         format: draft.format,
         outputResolution: selectedOutputResolution,
@@ -263,6 +273,12 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
               onChange={(sourceImageUrl) => updateDraft({ sourceImageUrl, result: null })}
               showUrlInput={false}
             />
+            <AiStyleReferencePicker
+              restaurantId={restaurantId}
+              userId={userId}
+              value={draft.styleReference}
+              onChange={(styleReference) => updateDraft({ styleReference, result: null })}
+            />
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label>Nom du produit ou plat</Label>
@@ -341,7 +357,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
                 Générer la version TOK ({outputPricing.photoCredits} cr.)
               </Button>
               {result?.gallery_image_url ? <Button type="button" variant="outline" onClick={addToGallery}>Ajouter à la galerie</Button> : null}
-              {draft.sourceImageUrl || result ? (
+              {draft.sourceImageUrl || draft.styleReference || result ? (
                 <Button type="button" variant="ghost" onClick={clearDraft} className="gap-2">
                   <RotateCcw className="h-4 w-4" />
                   Nouveau

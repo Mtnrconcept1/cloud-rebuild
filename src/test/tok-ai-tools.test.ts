@@ -134,6 +134,35 @@ describe("TOK AI tools foundation", () => {
     expect(studio).not.toContain("media_url: result.generated_image_url");
   });
 
+  it("lets PhotoPro and Marketing Studio reuse a selected image style safely", () => {
+    const picker = readProjectFile("src/components/dashboard/AiStyleReferencePicker.tsx");
+    const photoStudio = readProjectFile("src/components/dashboard/TokAiPhotoStudioV2.tsx");
+    const marketingStudio = readProjectFile("src/components/dashboard/TokAiMarketingStudio.tsx");
+    const imageFunction = readProjectFile("supabase/functions/ai-image-enhance/index.ts");
+
+    expect(picker).toContain("Réutiliser le style d'une image");
+    expect(picker).toContain("restaurant_media");
+    expect(picker).toContain("marketing-assets");
+    expect(picker).toContain("marketing_brand_visual");
+    expect(picker).toContain("assertSafeFileUpload");
+    expect(picker).toContain("optimizeImageUpload");
+
+    expect(photoStudio).toContain("AiStyleReferencePicker");
+    expect(photoStudio).toContain("styleReference");
+    expect(photoStudio).toContain("referenceImageUrls");
+    expect(photoStudio).toContain("referenceMediaIds");
+    expect(photoStudio).toContain("Référence de style active");
+
+    expect(marketingStudio).toContain("AiStyleReferencePicker");
+    expect(marketingStudio).toContain("withStyleReferenceResource");
+    expect(marketingStudio).toContain("Style réutilisé");
+    expect(marketingStudio).toContain("galleryMediaTypes={MARKETING_MEDIA_TYPES}");
+
+    expect(imageFunction).toContain("sourceImageUrl && referenceImageUrls.length");
+    expect(imageFunction).toContain("[sourceImageUrl, ...referenceImageUrls]");
+    expect(imageFunction).toContain("Utilise les images de style uniquement");
+  });
+
   it("keeps interactive photo generation inside Supabase Edge timeout budgets", () => {
     const source = readProjectFile("supabase/functions/ai-image-enhance/index.ts");
     const client = readProjectFile("src/lib/ai/tokAiClient.ts");
