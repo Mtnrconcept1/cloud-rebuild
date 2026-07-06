@@ -307,25 +307,25 @@ describe("prioritizeSponsoredCards", () => {
     expect(banner).toContain("rotateSponsoredCardsWithinRestaurants");
     expect(banner).toContain("rotationSeed");
     expect(banner).toContain('variant="banner"');
-    expect(banner).toContain('compactBanner={page === "home" || page === "flash_sales"}');
+    expect(banner).not.toContain("compactBanner");
     expect(banner).toContain("SponsoredRestaurantTemplateCard");
     expect(analytics).toContain("avoidCompanionPlacementDuplicates");
     expect(analytics).toContain("campaignSupportsPlacement(campaign, placement)");
   });
 
-  it("keeps home and flash sales campaign banners vertically compact", () => {
+  it("keeps campaign banners on a single shared wide ratio", () => {
     const banner = readSource("src/components/CampaignBanner.tsx");
     const templateCard = readSource("src/components/campaigns/SponsoredRestaurantTemplateCard.tsx");
     const flashSalesPage = readSource("src/pages/VentesFlash.tsx");
 
     expect(flashSalesPage).toContain('<CampaignBanner page="flash_sales" maxBanners={1} />');
-    expect(banner).toContain('compactBanner={page === "home" || page === "flash_sales"}');
-    expect(templateCard).toContain("compactBanner");
-    expect(templateCard).toContain("min-h-[268px] grid-rows-[auto_minmax(116px,1fr)]");
-    expect(templateCard).toContain("lg:h-[268px]");
-    expect(templateCard).toContain("min-h-[116px] bg-white sm:min-h-[136px]");
-    expect(templateCard).toContain("lg:min-h-0");
-    expect(templateCard).toContain('compactBanner ? "object-contain" : "object-cover"');
+    expect(banner).not.toContain("compactBanner");
+    expect(templateCard).not.toContain("compactBanner");
+    expect(templateCard).toContain("lg:aspect-[16/5]");
+    expect(templateCard).toContain("lg:grid-cols-[minmax(0,0.45fr)_minmax(0,0.55fr)]");
+    expect(templateCard).toContain("Quantit");
+    expect(templateCard).toContain("object-cover");
+    expect(templateCard).not.toContain("object-contain");
   });
 
   it("keeps the sponsored restaurant badge readable over restaurant photos", () => {

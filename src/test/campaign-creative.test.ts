@@ -122,7 +122,7 @@ describe("campaign creative studio", () => {
   it("keeps the sponsored restaurant hero title prominent on desktop", () => {
     const templateCard = readSource("src/components/campaigns/SponsoredRestaurantTemplateCard.tsx");
 
-    expect(templateCard).toContain("text-4xl sm:text-5xl lg:text-[3.9rem]");
+    expect(templateCard).toContain("text-4xl sm:text-5xl lg:text-[3.15rem] xl:text-[4.1rem] 2xl:text-[5.25rem]");
   });
 
   it("persists creative choices in channels and normalizes them server-side", () => {
