@@ -219,6 +219,17 @@ export type RestaurantActualitesPremiumBannerAudience = {
   activeBannerCount: number;
 };
 
+export type RestaurantActualitesAccess = {
+  hasAccess: boolean;
+  planSlug: string | null;
+  weeklyPostLimit: number | null;
+  weeklyPostsUsed: number;
+  remainingWeeklyPosts: number | null;
+  unlimitedPosts: boolean;
+  weekStartedAt: string | null;
+  weekEndsAt: string | null;
+};
+
 type SocialFeedFeedbackInput = {
   post: SocialFeedPost;
   feedbackType: "hide_post" | "hide_restaurant" | "not_interested" | "show_more";
@@ -417,6 +428,7 @@ function invalidateSocialQueries(queryClient: QueryClient) {
   queryClient.invalidateQueries({ queryKey: ["admin-social"] });
   queryClient.invalidateQueries({ queryKey: ["admin-actualites-sponsored"] });
   queryClient.invalidateQueries({ queryKey: ["restaurant-actualites-premium-banner-audience"] });
+  queryClient.invalidateQueries({ queryKey: ["restaurant-actualites-access"] });
 }
 
 function patchSocialPost(queryClient: QueryClient, postId: string, updater: (post: SocialFeedPost) => SocialFeedPost) {
@@ -738,6 +750,25 @@ function normalizePremiumBannerAudience(value: unknown): RestaurantActualitesPre
   };
 }
 
+function normalizeActualitesAccess(value: unknown): RestaurantActualitesAccess {
+  const raw = value && typeof value === "object" ? value as Record<string, unknown> : {};
+  const weeklyPostLimit = raw.weeklyPostLimit == null ? null : Math.max(0, Number(raw.weeklyPostLimit || 0));
+  const remainingWeeklyPosts = raw.remainingWeeklyPosts == null
+    ? null
+    : Math.max(0, Number(raw.remainingWeeklyPosts || 0));
+
+  return {
+    hasAccess: Boolean(raw.hasAccess),
+    planSlug: typeof raw.planSlug === "string" ? raw.planSlug : null,
+    weeklyPostLimit,
+    weeklyPostsUsed: Math.max(0, Number(raw.weeklyPostsUsed || 0)),
+    remainingWeeklyPosts,
+    unlimitedPosts: Boolean(raw.unlimitedPosts),
+    weekStartedAt: typeof raw.weekStartedAt === "string" ? raw.weekStartedAt : null,
+    weekEndsAt: typeof raw.weekEndsAt === "string" ? raw.weekEndsAt : null,
+  };
+}
+
 async function getPremiumBannerRows(scope: SocialFeedScope, limit: number) {
   if (typeof (supabase.rpc as any) !== "function" || scope === "saved") return [] as SocialFeedRpcRow[];
 
@@ -895,6 +926,34 @@ export function useRestaurantActualitesPremiumBannerAudience(restaurantId?: stri
       }
 
       return normalizePremiumBannerAudience(data);
+    },
+    enabled: !!restaurantId,
+  });
+}
+
+export function useRestaurantActualitesAccess(restaurantId?: string | null) {
+  return useQuery({
+    queryKey: ["restaurant-actualites-access", restaurantId],
+    queryFn: async () => {
+      const { data, error } = await (supabase.rpc as any)("get_restaurant_actualites_access", {
+        p_restaurant_id: restaurantId,
+      });
+
+      if (error && !isMissingRpc(error)) throw error;
+      if (error) {
+        return {
+          hasAccess: true,
+          planSlug: null,
+          weeklyPostLimit: null,
+          weeklyPostsUsed: 0,
+          remainingWeeklyPosts: null,
+          unlimitedPosts: true,
+          weekStartedAt: null,
+          weekEndsAt: null,
+        } satisfies RestaurantActualitesAccess;
+      }
+
+      return normalizeActualitesAccess(data);
     },
     enabled: !!restaurantId,
   });
@@ -1073,8 +1132,6 @@ export function useCreateSocialPost() {
       utmCampaign = null,
     }: CreateSocialPostInput) => {
       if (!user?.id) throw new Error("Connexion requise.");
-      const preparedMediaFiles = await prepareSocialPostMediaFiles(files);
-
       const cleanBody = body.trim();
       const errors = validateSocialPostDraft({
         body: cleanBody,
@@ -1085,6 +1142,22 @@ export function useCreateSocialPost() {
       });
       if (errors.length > 0) throw new Error(errors[0]);
 
+      const accessResult = await (supabase.rpc as any)("get_restaurant_actualites_access", {
+        p_restaurant_id: restaurantId,
+      });
+
+      if (accessResult.error && !isMissingRpc(accessResult.error)) throw accessResult.error;
+      if (!accessResult.error) {
+        const access = normalizeActualitesAccess(accessResult.data);
+        if (!access.hasAccess) {
+          throw new Error("Actualités est inclus à partir de TOK Pro.");
+        }
+        if (!access.unlimitedPosts && access.remainingWeeklyPosts === 0) {
+          throw new Error("Quota Pro atteint: 1 post Actualités par semaine.");
+        }
+      }
+
+      const preparedMediaFiles = await prepareSocialPostMediaFiles(files);
       const scheduledDate = scheduledAt ? new Date(scheduledAt) : null;
       const scheduledIso = scheduledDate && Number.isFinite(scheduledDate.getTime()) ? scheduledDate.toISOString() : null;
       const status = scheduledIso ? "scheduled" : "published";

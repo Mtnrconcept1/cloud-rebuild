@@ -19,6 +19,7 @@ export const ALL_GATABLE_FEATURES = [
   "dashboard-performances",
   "dashboard-comparaison",
   "dashboard-avis",
+  "dashboard-crm",
   "dashboard-campagne-overview",
   "dashboard-reseaux-sociaux",
   "dashboard-actualites",

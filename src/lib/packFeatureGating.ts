@@ -110,13 +110,17 @@ const BASE_RESTAURANT_DASHBOARD_FEATURES: GatableFeatureKey[] = [
 
 const SUBSCRIPTION_PLAN_TO_FEATURES: Record<string, GatableFeatureKey[]> = {
   starter: BASE_RESTAURANT_DASHBOARD_FEATURES,
-  pro: BASE_RESTAURANT_DASHBOARD_FEATURES,
+  pro: [
+    ...BASE_RESTAURANT_DASHBOARD_FEATURES,
+    "dashboard-actualites",
+  ],
   premium: [
     ...BASE_RESTAURANT_DASHBOARD_FEATURES,
     "dashboard-crm",
     "dashboard-actualites",
   ],
   elite: ALL_GATABLE_FEATURES.map((feature) => feature.key),
+  custom: ALL_GATABLE_FEATURES.map((feature) => feature.key),
 };
 
 const SUBSCRIPTION_FEATURE_LABEL_MAP: Array<{ match: string[]; features: GatableFeatureKey[] }> = [
