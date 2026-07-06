@@ -11,7 +11,10 @@ function json(payload: Record<string, unknown>, status: number, corsHeaders: Rec
 }
 
 function env(name: string) {
-  return Deno.env.get(name)?.trim() || "";
+  const value = Deno.env.get(name)?.trim();
+  if (value) return value;
+  if (name === "STRIPE_SECRET_KEY") return Deno.env.get("STRIPE_SECRET_KEY_LIVE")?.trim() || "";
+  return "";
 }
 
 function getIntentId(session: Stripe.Checkout.Session) {

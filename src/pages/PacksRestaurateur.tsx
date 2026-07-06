@@ -1,4 +1,4 @@
-import { Check, CreditCard, Loader2, Sparkles, WalletCards } from "lucide-react";
+import { Check, CreditCard, Loader2, Sparkles, WalletCards, XCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 
@@ -9,6 +9,12 @@ import {
   formatTokCredits,
   getTokCreditAmount,
 } from "@/lib/tokCredits";
+import {
+  getRestaurantSubscriptionToolAccessState,
+  normalizeRestaurantSubscriptionPlanSlug,
+  RESTAURANT_SUBSCRIPTION_TOOL_ACCESS_ROWS,
+} from "@/lib/restaurantSubscriptionToolAccess";
+import { cn } from "@/lib/utils";
 
 const supabase = getSupabase();
 
@@ -89,6 +95,7 @@ function PlanCard({ plan }: { plan: RestaurantSubscriptionPlan }) {
   const features = normalizeFeatures(plan.features);
   const tokCredits = getTokCreditAmount(plan);
   const usage = getPlanIncludedUsage(plan);
+  const planSlug = normalizeRestaurantSubscriptionPlanSlug(plan.slug);
 
   return (
     <Card className="flex h-full flex-col">
@@ -117,6 +124,33 @@ function PlanCard({ plan }: { plan: RestaurantSubscriptionPlan }) {
             ))}
           </ul>
         ) : null}
+        <div className="space-y-2 rounded-xl border bg-background/80 p-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Accès outils</p>
+          <div className="grid gap-1.5 text-xs">
+            {RESTAURANT_SUBSCRIPTION_TOOL_ACCESS_ROWS.map((row) => {
+              const { enabled, note } = getRestaurantSubscriptionToolAccessState(row, planSlug);
+
+              return (
+                <div key={row.label} className="flex min-w-0 items-center justify-between gap-2">
+                  <span className="min-w-0 truncate">{row.label}</span>
+                  <span className={cn(
+                    "inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 font-medium",
+                    enabled
+                      ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-200"
+                      : "bg-muted text-muted-foreground",
+                  )}>
+                    {enabled ? (
+                      <Check className="h-3.5 w-3.5" aria-hidden="true" />
+                    ) : (
+                      <XCircle className="h-3.5 w-3.5" aria-hidden="true" />
+                    )}
+                    {note}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
         <Button asChild className="mt-auto w-full">
           <Link to="/auth?role=restaurateur">Choisir cet abonnement</Link>
         </Button>

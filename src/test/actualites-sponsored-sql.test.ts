@@ -147,4 +147,19 @@ describe("Actualites sponsored SQL safety guards", () => {
     expect(sql).toContain("COALESCE(d.impression_count, 0) < b.impressions_per_viewer");
     expect(sql).toContain("premium_banner_id");
   });
+
+  it("enforces subscription access and the Pro weekly quota before creating Actualites posts", () => {
+    const sql = readMigration("actualites_subscription_access_quota");
+
+    expect(sql).toContain("CREATE OR REPLACE FUNCTION public.restaurant_actualites_subscription_plan");
+    expect(sql).toContain("slug IN ('pro', 'premium', 'elite', 'custom')");
+    expect(sql).toContain("WHEN (SELECT slug FROM selected_plan) = 'pro' THEN 1");
+    expect(sql).toContain("CREATE OR REPLACE FUNCTION public.restaurant_can_create_actualites_post");
+    expect(sql).toContain("CREATE OR REPLACE FUNCTION public.get_restaurant_actualites_access");
+    expect(sql).toContain("DROP POLICY IF EXISTS \"social_posts_insert\"");
+    expect(sql).toContain("public.restaurant_can_create_actualites_post(restaurant_id)");
+    expect(sql).toContain("status IN ('draft', 'scheduled', 'published')");
+    expect(sql).toContain("auth_owns_restaurant(p_restaurant_id)");
+    expect(sql).toContain("GRANT EXECUTE ON FUNCTION public.get_restaurant_actualites_access");
+  });
 });

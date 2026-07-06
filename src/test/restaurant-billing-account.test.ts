@@ -40,6 +40,8 @@ describe("restaurant account and billing dashboard", () => {
 
   it("shows subscription, upgrade plans, balances, top-up packs and credit spend", () => {
     const page = read("src/pages/dashboard/DashboardAccountBilling.tsx");
+    const publicPacks = read("src/pages/PacksRestaurateur.tsx");
+    const toolAccess = read("src/lib/restaurantSubscriptionToolAccess.ts");
 
     expect(page).toContain("get_restaurant_credit_usage");
     expect(page).toContain("get_restaurant_subscription_self_service_state");
@@ -61,6 +63,13 @@ describe("restaurant account and billing dashboard", () => {
     expect(page).toContain("Générations marketing");
     expect(page).toContain("Utilisations assistant IA");
     expect(page).toContain("Retouches photo");
+    expect(page).toContain("RESTAURANT_SUBSCRIPTION_TOOL_ACCESS_ROWS");
+    expect(publicPacks).toContain("RESTAURANT_SUBSCRIPTION_TOOL_ACCESS_ROWS");
+    expect(toolAccess).toContain('label: "Actualités"');
+    expect(toolAccess).toContain('label: "CRM clients"');
+    expect(toolAccess).toContain('"pro", "premium", "elite", "custom"');
+    expect(toolAccess).toContain("1 post/semaine");
+    expect(toolAccess).toContain("Premium/Élite");
   });
 
   it("keeps subscription and credit pack cards concise without duplicated equivalence blocks", () => {

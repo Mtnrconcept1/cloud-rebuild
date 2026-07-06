@@ -59,6 +59,23 @@ describe("checkout and Stripe webhook safety guards", () => {
     );
   });
 
+  it("accepts the Supabase live Stripe secret alias used in production Edge Functions", () => {
+    const authSource = readFileSync(resolve(process.cwd(), "supabase/functions/_shared/auth.ts"), "utf8");
+    const confirmMatchGroupSource = readFileSync(
+      resolve(process.cwd(), "supabase/functions/confirm-match-group-authorization/index.ts"),
+      "utf8",
+    );
+    const workflowSource = readFileSync(resolve(process.cwd(), ".github/workflows/deploy-production.yml"), "utf8");
+    const secretsScriptSource = readFileSync(resolve(process.cwd(), "scripts/write-supabase-secrets-env.mjs"), "utf8");
+
+    expect(authSource).toContain('Deno.env.get("STRIPE_SECRET_KEY_LIVE")');
+    expect(confirmMatchGroupSource).toContain('Deno.env.get("STRIPE_SECRET_KEY_LIVE")');
+    expect(stripeClientSource).toContain("isPlatformStripeSecretName");
+    expect(stripeClientSource).toContain('"STRIPE_SECRET_KEY_LIVE"');
+    expect(secretsScriptSource).toContain('"STRIPE_SECRET_KEY_LIVE"');
+    expect(workflowSource).toContain("STRIPE_SECRET_KEY_LIVE: ${{ secrets.STRIPE_SECRET_KEY }}");
+  });
+
   it("does not acknowledge claimed Stripe events when processing fails", () => {
     expect(stripeWebhookSource).toContain("markStripeWebhookEventSucceeded");
     expect(stripeWebhookSource).toContain("markStripeWebhookEventFailed");

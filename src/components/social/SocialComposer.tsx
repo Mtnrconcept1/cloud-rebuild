@@ -20,6 +20,7 @@ import {
   useCreateSocialPost,
   useRecordExternalShare,
   useRestaurantActualitesPremiumBannerAudience,
+  type RestaurantActualitesAccess,
 } from "@/hooks/useSocialFeed";
 import { getSupabase } from "@/integrations/supabase/client";
 import {
@@ -231,12 +232,16 @@ export default function SocialComposer({
   socialLinks,
   sponsorDialogRequest = 0,
   compact = false,
+  actualitesAccess = null,
+  actualitesAccessLoading = false,
 }: {
   restaurantId: string | null;
   restaurantName?: string | null;
   socialLinks?: RestaurantSocialLinks | null;
   sponsorDialogRequest?: number;
   compact?: boolean;
+  actualitesAccess?: RestaurantActualitesAccess | null;
+  actualitesAccessLoading?: boolean;
 }) {
   const [body, setBody] = useState("");
   const [files, setFiles] = useState<File[]>([]);
@@ -310,6 +315,23 @@ export default function SocialComposer({
   const premiumAudienceCount = Number(premiumAudience.audienceCount || 0);
   const premiumImpressionsPerViewer = Number(premiumAudience.impressionsPerViewer || 5);
   const canCreatePremiumBanner = premiumBannerPost && !scheduledAt && hasPremiumBannerAccess;
+  const actualitesAccessDenied = actualitesAccess ? !actualitesAccess.hasAccess : false;
+  const actualitesWeeklyQuotaReached = Boolean(
+    actualitesAccess
+    && !actualitesAccess.unlimitedPosts
+    && actualitesAccess.remainingWeeklyPosts === 0,
+  );
+  const actualitesAccessMessage = actualitesAccessLoading
+    ? "Vérification du quota Actualités..."
+    : actualitesAccessDenied
+      ? "Actualités est inclus à partir de TOK Pro. Le plan Starter ne peut pas publier."
+      : actualitesWeeklyQuotaReached
+        ? "Quota Pro atteint: 1 post par semaine. Vous pourrez republier la semaine prochaine."
+        : actualitesAccess?.unlimitedPosts
+          ? "Actualités illimitées avec votre abonnement."
+          : actualitesAccess?.weeklyPostLimit
+            ? `${actualitesAccess.remainingWeeklyPosts ?? 0}/${actualitesAccess.weeklyPostLimit} post disponible cette semaine.`
+            : null;
 
   useEffect(() => {
     const nextPreviews = files.slice(0, 10).map((file) => ({ file, url: URL.createObjectURL(file) }));
@@ -414,6 +436,9 @@ export default function SocialComposer({
     body.trim() &&
     validationErrors.length === 0 &&
     !fileError &&
+    !actualitesAccessLoading &&
+    !actualitesAccessDenied &&
+    !actualitesWeeklyQuotaReached &&
     !createPost.isPending &&
     !createPremiumBanner.isPending,
   );
@@ -800,6 +825,19 @@ export default function SocialComposer({
                   </button>
                 </div>
               ))}
+            </div>
+          ) : null}
+
+          {actualitesAccessMessage ? (
+            <div
+              className={cn(
+                "rounded-2xl border px-3 py-2 text-sm",
+                actualitesAccessDenied || actualitesWeeklyQuotaReached
+                  ? "border-red-200 bg-red-50 text-red-800"
+                  : "border-emerald-200 bg-emerald-50 text-emerald-800",
+              )}
+            >
+              {actualitesAccessMessage}
             </div>
           ) : null}
 

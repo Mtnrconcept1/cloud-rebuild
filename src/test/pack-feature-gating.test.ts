@@ -104,7 +104,7 @@ describe("packFeatureGating", () => {
     expect(disabled).toContain("dashboard-campagnes");
   });
 
-  it("opens restaurant services on every active subscription and reserves CRM/news to Premium and Elite", () => {
+  it("opens restaurant services on every active subscription, grants Pro news, and reserves CRM to Premium and Elite", () => {
     const starterEnabled = computeEnabledFeatures([], {
       subscription: {
         plan: "starter",
@@ -129,6 +129,12 @@ describe("packFeatureGating", () => {
         status: "active",
       },
     });
+    const customEnabled = computeEnabledFeatures([], {
+      subscription: {
+        plan: "custom",
+        status: "active",
+      },
+    });
 
     for (const feature of ["dashboard-campagnes", "dashboard-plan-salle", "dashboard-photos", "dashboard-service"]) {
       expect(starterEnabled).toContain(feature);
@@ -138,11 +144,13 @@ describe("packFeatureGating", () => {
     expect(starterEnabled).not.toContain("dashboard-crm");
     expect(starterEnabled).not.toContain("dashboard-actualites");
     expect(proEnabled).not.toContain("dashboard-crm");
-    expect(proEnabled).not.toContain("dashboard-actualites");
+    expect(proEnabled).toContain("dashboard-actualites");
     expect(premiumEnabled).toContain("dashboard-crm");
     expect(premiumEnabled).toContain("dashboard-actualites");
     expect(eliteEnabled).toContain("dashboard-crm");
     expect(eliteEnabled).toContain("dashboard-actualites");
+    expect(customEnabled).toContain("dashboard-crm");
+    expect(customEnabled).toContain("dashboard-actualites");
     expect(isEliteRestaurantSubscription({ plan: "premium", status: "active" })).toBe(false);
     expect(isEliteRestaurantSubscription({ plan: "elite", status: "active" })).toBe(true);
     expect(isEliteRestaurantSubscription({ plan: "elite", status: "cancelled" })).toBe(false);

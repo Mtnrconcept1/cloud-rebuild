@@ -33,7 +33,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
-import { useRestaurantSocialPosts, useSocialInsights } from "@/hooks/useSocialFeed";
+import { useRestaurantActualitesAccess, useRestaurantSocialPosts, useSocialInsights } from "@/hooks/useSocialFeed";
 import { SOCIAL_MARKETING_GOALS } from "@/lib/socialFeed";
 import type { SocialFeedPost } from "@/lib/socialFeed";
 import { useDashboardRestaurant } from "@/pages/dashboard/useDashboardRestaurant";
@@ -238,6 +238,7 @@ export default function DashboardActualites() {
   const selectedRestaurant = restaurants.find((restaurant) => restaurant.id === selectedId) || null;
   const postsQuery = useRestaurantSocialPosts(selectedId);
   const insightsQuery = useSocialInsights(selectedId);
+  const actualitesAccessQuery = useRestaurantActualitesAccess(selectedId);
   const posts = postsQuery.data || [];
   const insights = insightsQuery.data as any;
   const publishedCount = posts.filter((post) => post.status === "published").length;
@@ -338,6 +339,8 @@ export default function DashboardActualites() {
               restaurantId={selectedRestaurant.id}
               restaurantName={selectedRestaurant.name}
               socialLinks={selectedRestaurant.socialLinks || null}
+              actualitesAccess={actualitesAccessQuery.data || null}
+              actualitesAccessLoading={actualitesAccessQuery.isLoading}
             />
 
             <div className="min-w-0 space-y-4">
