@@ -63,7 +63,14 @@ type AuditLogInput = {
 };
 
 export function getEnv(name: string) {
-  return Deno.env.get(name)?.trim() || "";
+  const value = Deno.env.get(name)?.trim();
+  if (value) return value;
+
+  if (name === "STRIPE_SECRET_KEY") {
+    return Deno.env.get("STRIPE_SECRET_KEY_LIVE")?.trim() || "";
+  }
+
+  return "";
 }
 
 export function createAdminClient() {

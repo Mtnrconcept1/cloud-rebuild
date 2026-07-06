@@ -23,7 +23,7 @@ describe("Tok One Stripe test mode", () => {
     expect(stripeClientSource).toContain("STRIPE_TOK_ONE_TEST_WEBHOOK_SECRET");
     expect(stripeClientSource).toContain("STRIPE_TOK_ONE_TEST_WEBHOOK_SIGNING_SECRET");
     expect(stripeClientSource).toContain('kind === "tok-one"');
-    expect(stripeClientSource).toContain('names: ["STRIPE_TOK_ONE_SECRET_KEY", "STRIPE_TOK_ONE_TEST_SECRET_KEY", "STRIPE_SECRET_KEY"]');
+    expect(stripeClientSource).toContain('names: ["STRIPE_TOK_ONE_SECRET_KEY", "STRIPE_TOK_ONE_TEST_SECRET_KEY", "STRIPE_SECRET_KEY", "STRIPE_SECRET_KEY_LIVE"]');
     expect(stripeClientSource).toContain('purpose: "Tok One Stripe secret"');
     expect(stripeClientSource).toContain("getTokOneStripeRuntimeForCheckoutSession");
     expect(stripeClientSource).toContain('sessionId.startsWith("cs_test_")');
@@ -38,7 +38,7 @@ describe("Tok One Stripe test mode", () => {
       stripeClientSource.indexOf('if (mode === "live")'),
     );
 
-    expect(testRuntimeBlock).toContain('names: ["STRIPE_TOK_ONE_TEST_SECRET_KEY", "STRIPE_TOK_ONE_SECRET_KEY", "STRIPE_SECRET_KEY"]');
+    expect(testRuntimeBlock).toContain('names: ["STRIPE_TOK_ONE_TEST_SECRET_KEY", "STRIPE_TOK_ONE_SECRET_KEY", "STRIPE_SECRET_KEY", "STRIPE_SECRET_KEY_LIVE"]');
     expect(testRuntimeBlock).toContain('purpose: "Tok One Stripe test secret"');
     expect(testRuntimeBlock).toContain('expectedMode: "test"');
   });
@@ -77,8 +77,10 @@ describe("Tok One Stripe test mode", () => {
   it("syncs the new Tok One Stripe secret names in production without storing values", () => {
     expect(secretsScriptSource).toContain('"STRIPE_TOK_ONE_TEST_SECRET_KEY"');
     expect(secretsScriptSource).toContain('"STRIPE_TOK_ONE_TEST_WEBHOOK_SECRET"');
+    expect(secretsScriptSource).toContain('"STRIPE_SECRET_KEY_LIVE"');
     expect(workflowSource).toContain("STRIPE_TOK_ONE_TEST_SECRET_KEY: ${{ secrets.STRIPE_TOK_ONE_TEST_SECRET_KEY }}");
     expect(workflowSource).toContain("STRIPE_TOK_ONE_TEST_WEBHOOK_SECRET: ${{ secrets.STRIPE_TOK_ONE_TEST_WEBHOOK_SECRET }}");
+    expect(workflowSource).toContain("STRIPE_SECRET_KEY_LIVE: ${{ secrets.STRIPE_SECRET_KEY }}");
     expect(workflowSource).not.toMatch(/sk_test_[A-Za-z0-9]/);
     expect(workflowSource).not.toMatch(/whsec_[A-Za-z0-9]/);
   });
