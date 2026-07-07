@@ -56,6 +56,9 @@ verify_jwt = false
 [functions.close-due-match-groups]
 verify_jwt = false
 
+[functions.commercial-followup-reminder]
+verify_jwt = false
+
 [functions.confirm-match-group-authorization]
 verify_jwt = false
 
