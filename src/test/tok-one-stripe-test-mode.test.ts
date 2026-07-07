@@ -57,6 +57,26 @@ describe("Tok One Stripe test mode", () => {
     expect(createCheckoutSource).toContain("subscription_data");
   });
 
+  it("locks Tok One billing to monthly recurring Stripe subscriptions with a three-day cancellation notice", () => {
+    expect(createCheckoutSource).toContain('"Les abonnements Tok One sont mensuels et renouveles automatiquement."');
+    expect(createCheckoutSource).toContain('name: `Tok One - ${plan.name} (Mensuel)`');
+    expect(createCheckoutSource).toContain('interval: "month"');
+    expect(createCheckoutSource).toContain('billing_renewal: "auto_monthly"');
+    expect(createCheckoutSource).toContain('cancellation_notice_days: "3"');
+    expect(createCheckoutSource).not.toContain('price_yearly, stripe_product_id');
+    expect(createCheckoutSource).not.toContain('billingPeriod === "yearly"');
+
+    expect(manageTokOneSource).toContain("SUBSCRIPTION_CANCELLATION_NOTICE_DAYS = 3");
+    expect(manageTokOneSource).toContain("assertCancellationNoticeWindow(subscription.current_period_end)");
+    expect(manageTokOneSource).toContain("l'abonnement repart pour 30 jours");
+
+    expect(tokOnePageSource).toContain('billing_period: "monthly"');
+    expect(tokOnePageSource).toContain("Renouvellement mensuel automatique");
+    expect(tokOnePageSource).toContain("Résiliation possible jusqu'à 3 jours avant le renouvellement.");
+    expect(tokOnePageSource).not.toContain("setSelectedPeriod");
+    expect(tokOnePageSource).not.toContain("<PeriodButton");
+  });
+
   it("verifies Tok One test webhooks and syncs subscription events with live/test mode", () => {
     expect(stripeWebhookSource).toContain("getStripeWebhookSigningSecrets");
     expect(stripeWebhookSource).toContain('checkoutKind === "tok-one"');

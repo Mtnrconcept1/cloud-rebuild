@@ -153,7 +153,7 @@ const ENTITLEMENT_BENEFITS: Record<string, BenefitPresentation> = {
 
 const TRUST_PILLS = [
   "Sans engagement",
-  "Annulation en ligne",
+  "Résiliation J-3",
   "Paiement sécurisé",
   "Avantages Genève",
 ];
@@ -162,7 +162,7 @@ const HOW_IT_WORKS = [
   {
     title: "Choisissez votre formule",
     description:
-      "Mensuelle pour garder la main, annuelle pour maximiser l'économie sur vos usages réguliers.",
+      "Votre formule Tok One est facturée automatiquement chaque mois tant qu'elle n'est pas résiliée.",
     icon: WalletCards,
   },
   {
@@ -430,30 +430,6 @@ function PlanButton({
   );
 }
 
-function PeriodButton({
-  children,
-  active,
-  onClick,
-}: {
-  children: ReactNode;
-  active: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`rounded-lg px-4 py-3 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 ${
-        active
-          ? "bg-slate-950 text-white dark:bg-white dark:text-slate-950"
-          : "text-muted-foreground hover:bg-muted dark:text-white/70 dark:hover:bg-white/10"
-      }`}
-    >
-      {children}
-    </button>
-  );
-}
-
 function StepCard({
   item,
   index,
@@ -502,9 +478,6 @@ export default function TokOne() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
-  const [selectedPeriod, setSelectedPeriod] = useState<"monthly" | "yearly">(
-    "monthly",
-  );
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
   const [expandedBenefit, setExpandedBenefit] = useState<string | null>(null);
@@ -614,18 +587,10 @@ export default function TokOne() {
   const displayedBenefits =
     enabledBenefits.length > 0 ? enabledBenefits : CORE_BENEFITS;
 
-  const monthlyPrice = selectedPlan?.price_monthly ?? 0;
-  const yearlyPrice = selectedPlan?.price_yearly ?? 0;
-  const selectedPrice =
-    selectedPeriod === "monthly"
-      ? selectedPlan?.price_monthly
-      : selectedPlan?.price_yearly;
-  const annualSaving = Math.max(monthlyPrice * 12 - yearlyPrice, 0);
+  const selectedPrice = selectedPlan?.price_monthly;
   const selectedPriceLabel =
     selectedPrice !== undefined && selectedPrice > 0
-      ? `${currency(selectedPrice)} / ${
-          selectedPeriod === "monthly" ? "mois" : "an"
-        }`
+      ? `${currency(selectedPrice)} / mois`
       : "Prix indisponible";
 
   const handleSubscribe = async () => {
@@ -660,7 +625,7 @@ export default function TokOne() {
             checkout_kind: "tok-one",
             order_metadata: {
               plan_id: selectedPlan.id,
-              billing_period: selectedPeriod,
+              billing_period: "monthly",
             },
           },
         },
@@ -687,7 +652,7 @@ export default function TokOne() {
   const cancelSubscription = async () => {
     if (!subscription) return;
     const confirmed = window.confirm(
-      "Résilier Tok One à la fin de la période en cours ?",
+      "Résilier Tok One à la fin de la période en cours ? La demande doit être faite au plus tard 3 jours avant le renouvellement mensuel.",
     );
     if (!confirmed) return;
 
@@ -899,10 +864,10 @@ export default function TokOne() {
           <div>
             <SectionHeader
               eyebrow="Souscription"
-              title="Choisissez le rythme qui correspond à votre usage"
+              title="Choisissez votre formule mensuelle"
             >
-              La formule annuelle est pensée pour les habitués. La formule
-              mensuelle reste simple et sans engagement long.
+              Tok One est facturé automatiquement chaque mois. Vous pouvez
+              résilier jusqu'à 3 jours avant la fin de la période payée.
             </SectionHeader>
             <div className="grid gap-4">
               {plansLoading ? (
@@ -940,26 +905,9 @@ export default function TokOne() {
                     "Une formule premium pour profiter de TOK plus souvent."}
                 </p>
               </div>
-              {annualSaving > 0 ? (
-                <span className="rounded-lg bg-emerald-100 px-3 py-2 text-sm font-semibold text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-200">
-                  {currency(annualSaving)} économisés par an
-                </span>
-              ) : null}
-            </div>
-
-            <div className="mt-6 grid grid-cols-2 gap-2 rounded-lg border border-border bg-background p-1 dark:border-white/10 dark:bg-slate-950/70">
-              <PeriodButton
-                active={selectedPeriod === "monthly"}
-                onClick={() => setSelectedPeriod("monthly")}
-              >
-                Mensuel
-              </PeriodButton>
-              <PeriodButton
-                active={selectedPeriod === "yearly"}
-                onClick={() => setSelectedPeriod("yearly")}
-              >
-                Annuel
-              </PeriodButton>
+              <span className="rounded-lg bg-orange-100 px-3 py-2 text-sm font-semibold text-orange-800 dark:bg-orange-500/20 dark:text-orange-200">
+                Renouvellement mensuel automatique
+              </span>
             </div>
 
             <div className="mt-8 rounded-lg border border-border bg-background p-5 dark:border-white/10 dark:bg-slate-950/70">
@@ -970,15 +918,16 @@ export default function TokOne() {
                 {selectedPriceLabel}
               </p>
               <p className="mt-3 text-sm leading-6 text-muted-foreground dark:text-white/60">
-                Le paiement est traité par Stripe. TOK applique ensuite vos
-                avantages automatiquement sur les parcours éligibles.
+                Le paiement est traité par Stripe. Le montant est débité
+                automatiquement chaque mois tant que l'abonnement n'est pas
+                résilié.
               </p>
             </div>
 
             <div className="mt-6 grid gap-3 text-sm text-muted-foreground dark:text-white/60">
               <p className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-300" />
-                Sans engagement long sur la formule mensuelle.
+                Résiliation possible jusqu'à 3 jours avant le renouvellement.
               </p>
               <p className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-300" />

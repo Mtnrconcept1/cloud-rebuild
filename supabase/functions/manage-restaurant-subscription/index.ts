@@ -15,6 +15,9 @@ import { getStripeRuntimeForCheckoutKind } from "../_shared/stripe-client.ts";
 type JsonRecord = Record<string, unknown>;
 type SubscriptionAction = "cancel" | "resume" | "downgrade";
 
+const SUBSCRIPTION_CANCELLATION_NOTICE_DAYS = 3;
+const SUBSCRIPTION_CANCELLATION_NOTICE_MS = SUBSCRIPTION_CANCELLATION_NOTICE_DAYS * 24 * 60 * 60 * 1000;
+
 type RestaurantSubscriptionRow = {
   id: string;
   restaurant_id: string;
@@ -153,6 +156,22 @@ function getAuditAction(action: SubscriptionAction) {
   return "cancel_restaurant_subscription_at_period_end";
 }
 
+function assertCancellationNoticeWindow(periodEndIso: string, action: "cancel" | "downgrade") {
+  const periodEnd = Date.parse(periodEndIso);
+  if (!Number.isFinite(periodEnd)) {
+    throw new HttpError(409, "Periode d'abonnement invalide");
+  }
+
+  const latestChangeAt = periodEnd - SUBSCRIPTION_CANCELLATION_NOTICE_MS;
+  if (Date.now() > latestChangeAt) {
+    const actionLabel = action === "downgrade" ? "changer de plan" : "resilier";
+    throw new HttpError(
+      409,
+      `Il faut ${actionLabel} au plus tard ${SUBSCRIPTION_CANCELLATION_NOTICE_DAYS} jours avant la fin de la periode payee. Passe ce delai, l'abonnement repart pour 30 jours.`,
+    );
+  }
+}
+
 function clearPendingMetadata(metadata: JsonRecord | null | undefined) {
   const next = { ...(isJsonRecord(metadata) ? metadata : {}) };
   delete next.pending_restaurant_subscription_change;
@@ -285,6 +304,8 @@ Deno.serve(async (req) => {
     const currentMetadata = isJsonRecord(subscription.metadata) ? subscription.metadata : {};
 
     if (action === "cancel") {
+      assertCancellationNoticeWindow(period.endIso, "cancel");
+
       const scheduledPlanChange = {
         action: "cancel",
         effective_at: period.endIso,
@@ -409,6 +430,8 @@ Deno.serve(async (req) => {
     if (!targetPlanId) {
       throw new HttpError(400, "target_plan_id requis");
     }
+
+    assertCancellationNoticeWindow(period.endIso, "downgrade");
 
     const [currentPlan, targetPlan] = await Promise.all([
       getCurrentPlan(actor.adminClient, subscription),

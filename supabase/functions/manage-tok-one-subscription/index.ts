@@ -18,6 +18,9 @@ import {
 
 type SubscriptionAction = "cancel" | "resume" | "sync_checkout_session";
 
+const SUBSCRIPTION_CANCELLATION_NOTICE_DAYS = 3;
+const SUBSCRIPTION_CANCELLATION_NOTICE_MS = SUBSCRIPTION_CANCELLATION_NOTICE_DAYS * 24 * 60 * 60 * 1000;
+
 function normalizeAction(value: unknown): SubscriptionAction {
   if (value === "sync_checkout_session") return "sync_checkout_session";
   return value === "resume" ? "resume" : "cancel";
@@ -32,6 +35,21 @@ function getSubscriptionFromCheckoutSession(session: Stripe.Checkout.Session) {
 function getAuditAction(action: SubscriptionAction) {
   if (action === "sync_checkout_session") return "sync_tok_one_subscription_checkout";
   return action === "cancel" ? "cancel_tok_one_subscription" : "resume_tok_one_subscription";
+}
+
+function assertCancellationNoticeWindow(periodEndIso: string | null | undefined) {
+  const periodEnd = Date.parse(periodEndIso || "");
+  if (!Number.isFinite(periodEnd)) {
+    throw new HttpError(409, "Periode Tok One non synchronisee");
+  }
+
+  const latestCancellationAt = periodEnd - SUBSCRIPTION_CANCELLATION_NOTICE_MS;
+  if (Date.now() > latestCancellationAt) {
+    throw new HttpError(
+      409,
+      `Il faut resilier Tok One au plus tard ${SUBSCRIPTION_CANCELLATION_NOTICE_DAYS} jours avant la fin de la periode payee. Passe ce delai, l'abonnement repart pour 30 jours.`,
+    );
+  }
 }
 
 Deno.serve(async (req) => {
@@ -123,6 +141,10 @@ Deno.serve(async (req) => {
 
     if (!isTokOneEntitledStatus(subscription.status) && action === "cancel") {
       throw new HttpError(409, "Aucun abonnement actif a resilier");
+    }
+
+    if (action === "cancel") {
+      assertCancellationNoticeWindow(subscription.current_period_end);
     }
 
     if (subscription.stripe_subscription_id) {

@@ -778,10 +778,10 @@ export default function DashboardAccountBilling() {
       ? "Annuler le changement programmé"
       : "Résilier l'abonnement";
   const pendingActionDescription = pendingSubscriptionAction?.type === "downgrade"
-    ? `Votre abonnement actuel reste actif avec ses avantages jusqu'à la fin de la période payée. Le plan ${pendingSubscriptionAction.plan.name} prendra le relais ensuite.`
+    ? `Votre abonnement actuel reste actif avec ses avantages jusqu'à la fin de la période payée. Le plan ${pendingSubscriptionAction.plan.name} prendra le relais ensuite si la demande est faite au plus tard 3 jours avant le renouvellement.`
     : pendingSubscriptionAction?.type === "resume"
       ? "La résiliation ou la baisse de plan programmée sera annulée. L'abonnement continuera normalement au prochain renouvellement."
-      : `Votre abonnement restera actif jusqu'au ${formatDateTime(usage?.subscription?.current_period_end)}. Les avantages déjà payés restent disponibles jusqu'à cette date.`;
+      : `Votre abonnement restera actif jusqu'au ${formatDateTime(usage?.subscription?.current_period_end)}. Les avantages déjà payés restent disponibles jusqu'à cette date. La résiliation doit être demandée au plus tard 3 jours avant le renouvellement mensuel.`;
 
   async function handleUpgrade(plan: RestaurantSubscriptionPlan) {
     if (!selectedId) return;
@@ -944,6 +944,10 @@ export default function DashboardAccountBilling() {
                         {usage?.period
                           ? `Période du ${formatDateTime(usage.period.start)} au ${formatDateTime(usage.period.end)}`
                           : "Période non synchronisée"}
+                      </p>
+                      <p className="mt-2 text-sm text-muted-foreground">
+                        Facturation automatique chaque mois tant que l'abonnement n'est pas résilié.
+                        La résiliation ou la baisse de plan doit être demandée au plus tard 3 jours avant la fin de la période payée.
                       </p>
                     </div>
                     <Badge variant="outline">{getSubscriptionStatusLabel(usage?.subscription?.status)}</Badge>
@@ -1116,7 +1120,7 @@ export default function DashboardAccountBilling() {
               <div>
                 <h2 className="text-xl font-bold">Changer d'abonnement</h2>
                 <p className="text-sm text-muted-foreground">
-                  Les upgrades passent par Stripe Checkout. Les plans inférieurs sont programmés à la fin de la période payée pour conserver les avantages déjà réglés.
+                  Les upgrades passent par Stripe Checkout. Les plans inférieurs sont programmés à la fin de la période payée pour conserver les avantages déjà réglés, avec un préavis minimum de 3 jours avant le renouvellement.
                 </p>
               </div>
               {plansQuery.isLoading ? (

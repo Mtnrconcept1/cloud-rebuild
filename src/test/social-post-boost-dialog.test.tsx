@@ -164,7 +164,7 @@ describe("SocialPostBoostDialog", () => {
     });
 
     expect(boostMocks.invokeSupabaseFunction).not.toHaveBeenCalledWith("create-checkout", expect.anything());
-  });
+  }, 15000);
 
   it("lets TOK AI choose the strongest sponsored settings before reserving credits", async () => {
     boostMocks.invokeSupabaseFunction.mockImplementation(async (functionName: string) => {

@@ -165,10 +165,16 @@ describe("restaurant account and billing dashboard", () => {
 
     expect(page).toContain("Annuler le changement programmé");
     expect(page).toContain("Votre abonnement actuel reste actif avec ses avantages jusqu'à la fin de la période payée");
+    expect(page).toContain("Facturation automatique chaque mois tant que l'abonnement n'est pas résilié");
+    expect(page).toContain("au plus tard 3 jours avant la fin de la période payée");
     expect(page).toContain('type: "downgrade"');
     expect(page).toContain('type: "cancel"');
 
     expect(manage).toContain("requireRestaurantAccess(actor, restaurantId)");
+    expect(manage).toContain("SUBSCRIPTION_CANCELLATION_NOTICE_DAYS = 3");
+    expect(manage).toContain('assertCancellationNoticeWindow(period.endIso, "cancel")');
+    expect(manage).toContain('assertCancellationNoticeWindow(period.endIso, "downgrade")');
+    expect(manage).toContain("l'abonnement repart pour 30 jours");
     expect(manage).toContain("cancel_at_period_end: true");
     expect(manage).toContain('pending_restaurant_subscription_change: "cancel_at_period_end"');
     expect(manage).toContain('pending_restaurant_subscription_change: "downgrade_at_period_end"');

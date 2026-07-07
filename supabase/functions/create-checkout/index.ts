@@ -528,7 +528,7 @@ Deno.serve(async (req) => {
 
       const { data: plan, error: planError } = await actor.adminClient
         .from("user_subscription_plans")
-        .select("id, name, price_monthly, price_yearly, stripe_product_id, status")
+        .select("id, name, price_monthly, stripe_product_id, status")
         .eq("id", planId)
         .eq("status", "active")
         .maybeSingle();
@@ -537,9 +537,10 @@ Deno.serve(async (req) => {
       if (!plan) throw new HttpError(404, "Plan introuvable ou inactif");
 
       const billingPeriod = String(order_metadata?.billing_period || "monthly");
-      const amount = billingPeriod === "yearly"
-        ? Number(plan.price_yearly)
-        : Number(plan.price_monthly);
+      if (billingPeriod !== "monthly") {
+        throw new HttpError(400, "Les abonnements Tok One sont mensuels et renouveles automatiquement.");
+      }
+      const amount = Number(plan.price_monthly);
 
       if (amount <= 0) throw new HttpError(400, "Prix du plan invalide");
 
@@ -573,10 +574,10 @@ Deno.serve(async (req) => {
         price_data: {
           currency: "chf",
           product_data: {
-            name: `Tok One - ${plan.name} (${billingPeriod === "yearly" ? "Annuel" : "Mensuel"})`,
+            name: `Tok One - ${plan.name} (Mensuel)`,
           },
           recurring: {
-            interval: billingPeriod === "yearly" ? "year" : "month",
+            interval: "month",
           },
           unit_amount: Math.round(amount * 100),
         },
@@ -588,6 +589,8 @@ Deno.serve(async (req) => {
         plan_id: plan.id,
         plan_name: plan.name,
         billing_period: billingPeriod,
+        billing_renewal: "auto_monthly",
+        cancellation_notice_days: "3",
         stripe_mode: stripeRuntime.mode,
         stripe_key_scope: stripeRuntime.isolatedTokOneKey ? "tok_one" : "default",
         authoritative_total: amount.toFixed(2),
