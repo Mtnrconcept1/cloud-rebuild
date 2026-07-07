@@ -8,6 +8,8 @@ const allowedNames = [
   "SUPABASE_URL",
   "SUPABASE_ANON_KEY",
   "SUPABASE_SERVICE_ROLE_KEY",
+  "STRIPE_PERSONNAL_SECRET_KEY",
+  "STRIPE_PERSONAL_SECRET_KEY",
   "STRIPE_SECRET_KEY",
   "STRIPE_SECRET_KEY_LIVE",
   "STRIPE_LIVE_WEBHOOK",
@@ -63,13 +65,21 @@ if (derivedAllowedOrigins && !entries.some(([name]) => name === "ALLOWED_ORIGINS
   entries.push(["ALLOWED_ORIGINS", derivedAllowedOrigins]);
 }
 
+const stripePersonalSecretKey = cleanValue(process.env.STRIPE_PERSONNAL_SECRET_KEY);
+const stripePersonalSecretKeyAlt = cleanValue(process.env.STRIPE_PERSONAL_SECRET_KEY);
 const stripeSecretKey = cleanValue(process.env.STRIPE_SECRET_KEY);
 const stripeSecretKeyLive = cleanValue(process.env.STRIPE_SECRET_KEY_LIVE);
-if (stripeSecretKey?.startsWith("sk_live_")) {
-  ensureDefault(entries, "STRIPE_SECRET_KEY_LIVE", stripeSecretKey);
-}
-if (stripeSecretKeyLive) {
-  ensureDefault(entries, "STRIPE_SECRET_KEY", stripeSecretKeyLive);
+const platformStripeSecretKey = [
+  stripePersonalSecretKey,
+  stripePersonalSecretKeyAlt,
+  stripeSecretKeyLive,
+  stripeSecretKey?.startsWith("sk_") ? stripeSecretKey : null,
+].find((value) => value?.startsWith("sk_"));
+
+removePublicStripeKeyAliases(entries);
+if (platformStripeSecretKey) {
+  ensureDefault(entries, "STRIPE_SECRET_KEY_LIVE", platformStripeSecretKey);
+  ensureDefault(entries, "STRIPE_SECRET_KEY", platformStripeSecretKey);
 }
 
 const liveWebhookSecret = cleanValue(process.env.STRIPE_LIVE_WEBHOOK);
@@ -114,6 +124,15 @@ function ensureDefault(entries, name, value) {
   }
 
   entries.push([name, value]);
+}
+
+function removePublicStripeKeyAliases(entries) {
+  for (let index = entries.length - 1; index >= 0; index--) {
+    const [name, value] = entries[index];
+    if ((name === "STRIPE_SECRET_KEY" || name === "STRIPE_SECRET_KEY_LIVE") && value.startsWith("pk_")) {
+      entries.splice(index, 1);
+    }
+  }
 }
 
 function deriveAllowedOrigins(entries) {

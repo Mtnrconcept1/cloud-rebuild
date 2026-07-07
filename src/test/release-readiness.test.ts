@@ -48,6 +48,9 @@ describe("release readiness inspection", () => {
     expect(result.errors).toEqual([]);
     expect(result.warnings).toContain("Missing public/.well-known/apple-app-site-association for iOS Universal Links.");
     expect(result.warnings).toContain("Missing STRIPE_WEBHOOK_SECRET or STRIPE_LIVE_WEBHOOK for production payment capture.");
+    expect(result.warnings).toContain(
+      "Missing STRIPE_PERSONNAL_SECRET_KEY, STRIPE_PERSONAL_SECRET_KEY, STRIPE_SECRET_KEY_LIVE or STRIPE_SECRET_KEY live secret for production payments.",
+    );
     expect(result.warnings).toContain("Missing SUPABASE_LEAKED_PASSWORD_PROTECTION_EVIDENCE with Dashboard/API proof for issue #204.");
   });
 
@@ -66,6 +69,9 @@ describe("release readiness inspection", () => {
     expect(result.errors).toContain("Missing public/.well-known/assetlinks.json for Android App Links.");
     expect(result.errors).toContain("Missing Android release keystore config at android/keystore.properties.");
     expect(result.errors).toContain("Missing STRIPE_WEBHOOK_SECRET or STRIPE_LIVE_WEBHOOK for production payment capture.");
+    expect(result.errors).toContain(
+      "Missing STRIPE_PERSONNAL_SECRET_KEY, STRIPE_PERSONAL_SECRET_KEY, STRIPE_SECRET_KEY_LIVE or STRIPE_SECRET_KEY live secret for production payments.",
+    );
     expect(result.errors).toContain("Missing SUPABASE_LEAKED_PASSWORD_PROTECTION_CONFIRMED=true after verifying Supabase Auth leaked password protection for production.");
     expect(result.errors).toContain("Missing SUPABASE_LEAKED_PASSWORD_PROTECTION_EVIDENCE with Dashboard/API proof for issue #204.");
   });
@@ -139,6 +145,51 @@ describe("release readiness inspection", () => {
       env: {
         VITE_STRIPE_PUBLISHABLE_KEY: "pk_live_123",
         STRIPE_SECRET_KEY: "sk_live_123",
+        STRIPE_LIVE_WEBHOOK: "whsec_live_alias",
+        FIREBASE_SERVICE_ACCOUNT: firebaseServiceAccountJson(),
+        INTERNAL_CRON_SECRET: "long-random-secret",
+        RESEND_API_KEY: "re_123",
+        EMAIL_FROM: "Tok <noreply@thetok.ch>",
+        APP_BASE_URL: "https://app.thetok.ch",
+        PUBLIC_APP_URL: "https://www.thetok.ch",
+        ALLOWED_ORIGINS: "https://app.thetok.ch,https://www.thetok.ch",
+        APPLE_TEAM_ID: "TEAM123456",
+        SUPABASE_LEAKED_PASSWORD_PROTECTION_CONFIRMED: "true",
+        SUPABASE_LEAKED_PASSWORD_PROTECTION_EVIDENCE: "GitHub issue #204 dashboard proof 2026-06-16",
+      },
+      strict: true,
+    });
+
+    expect(result.ok).toBe(true);
+    expect(result.errors).toEqual([]);
+  });
+
+  it("accepts STRIPE_PERSONNAL_SECRET_KEY when STRIPE_SECRET_KEY stores the public key", () => {
+    const root = makeFixture("ready-personnal-secret-alias");
+    writeJson(root, "public/.well-known/apple-app-site-association", {
+      applinks: {
+        apps: [],
+        details: [{ appIDs: ["TEAM123456.com.tok.app"], components: [{ "/": "/*" }] }],
+      },
+    });
+    writeJson(root, "public/.well-known/assetlinks.json", [
+      {
+        relation: ["delegate_permission/common.handle_all_urls"],
+        target: {
+          namespace: "android_app",
+          package_name: "com.tok.app",
+          sha256_cert_fingerprints: ["AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99"],
+        },
+      },
+    ]);
+    writeFileSync(path.join(root, "android", "keystore.properties"), "storeFile=release.jks\n", "utf8");
+
+    const result = inspectReleaseReadiness({
+      root,
+      env: {
+        VITE_STRIPE_PUBLISHABLE_KEY: "pk_live_123",
+        STRIPE_SECRET_KEY: "pk_live_123",
+        STRIPE_PERSONNAL_SECRET_KEY: "sk_live_123",
         STRIPE_LIVE_WEBHOOK: "whsec_live_alias",
         FIREBASE_SERVICE_ACCOUNT: firebaseServiceAccountJson(),
         INTERNAL_CRON_SECRET: "long-random-secret",

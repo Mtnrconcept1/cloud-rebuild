@@ -19,7 +19,12 @@ type SecretCandidate = {
 };
 
 function isPlatformStripeSecretName(name: string) {
-  return name === "STRIPE_SECRET_KEY" || name === "STRIPE_SECRET_KEY_LIVE";
+  return (
+    name === "STRIPE_PERSONNAL_SECRET_KEY" ||
+    name === "STRIPE_PERSONAL_SECRET_KEY" ||
+    name === "STRIPE_SECRET_KEY" ||
+    name === "STRIPE_SECRET_KEY_LIVE"
+  );
 }
 
 function normalizeCheckoutKind(value: unknown) {
@@ -91,14 +96,21 @@ export function getStripeRuntimeForCheckoutKind(checkoutKind: unknown) {
   const kind = normalizeCheckoutKind(checkoutKind);
   if (kind === "tok-one") {
     return selectRuntime({
-      names: ["STRIPE_TOK_ONE_SECRET_KEY", "STRIPE_TOK_ONE_TEST_SECRET_KEY", "STRIPE_SECRET_KEY_LIVE", "STRIPE_SECRET_KEY"],
+      names: [
+        "STRIPE_TOK_ONE_SECRET_KEY",
+        "STRIPE_TOK_ONE_TEST_SECRET_KEY",
+        "STRIPE_PERSONNAL_SECRET_KEY",
+        "STRIPE_PERSONAL_SECRET_KEY",
+        "STRIPE_SECRET_KEY_LIVE",
+        "STRIPE_SECRET_KEY",
+      ],
       purpose: "Tok One Stripe secret",
       isolatedTokOneKey: true,
     });
   }
 
   return selectRuntime({
-    names: ["STRIPE_SECRET_KEY_LIVE", "STRIPE_SECRET_KEY"],
+    names: ["STRIPE_PERSONNAL_SECRET_KEY", "STRIPE_PERSONAL_SECRET_KEY", "STRIPE_SECRET_KEY_LIVE", "STRIPE_SECRET_KEY"],
     purpose: "STRIPE_SECRET_KEY",
   });
 }
@@ -108,7 +120,14 @@ export function getTokOneStripeRuntime(preferredMode?: unknown) {
 
   if (mode === "test") {
     return selectRuntime({
-      names: ["STRIPE_TOK_ONE_TEST_SECRET_KEY", "STRIPE_TOK_ONE_SECRET_KEY", "STRIPE_SECRET_KEY", "STRIPE_SECRET_KEY_LIVE"],
+      names: [
+        "STRIPE_TOK_ONE_TEST_SECRET_KEY",
+        "STRIPE_TOK_ONE_SECRET_KEY",
+        "STRIPE_PERSONNAL_SECRET_KEY",
+        "STRIPE_PERSONAL_SECRET_KEY",
+        "STRIPE_SECRET_KEY",
+        "STRIPE_SECRET_KEY_LIVE",
+      ],
       purpose: "Tok One Stripe test secret",
       expectedMode: "test",
       isolatedTokOneKey: true,
@@ -117,7 +136,13 @@ export function getTokOneStripeRuntime(preferredMode?: unknown) {
 
   if (mode === "live") {
     return selectRuntime({
-      names: ["STRIPE_TOK_ONE_SECRET_KEY", "STRIPE_SECRET_KEY_LIVE", "STRIPE_SECRET_KEY"],
+      names: [
+        "STRIPE_TOK_ONE_SECRET_KEY",
+        "STRIPE_PERSONNAL_SECRET_KEY",
+        "STRIPE_PERSONAL_SECRET_KEY",
+        "STRIPE_SECRET_KEY_LIVE",
+        "STRIPE_SECRET_KEY",
+      ],
       purpose: "Tok One Stripe secret",
       expectedMode: "live",
       isolatedTokOneKey: true,
@@ -135,7 +160,14 @@ export function getTokOneStripeRuntimeForCheckoutSession(sessionId: string) {
 
 export function getStripeVerificationRuntime() {
   return selectRuntime({
-    names: ["STRIPE_SECRET_KEY_LIVE", "STRIPE_SECRET_KEY", "STRIPE_TOK_ONE_TEST_SECRET_KEY", "STRIPE_TOK_ONE_SECRET_KEY"],
+    names: [
+      "STRIPE_PERSONNAL_SECRET_KEY",
+      "STRIPE_PERSONAL_SECRET_KEY",
+      "STRIPE_SECRET_KEY_LIVE",
+      "STRIPE_SECRET_KEY",
+      "STRIPE_TOK_ONE_TEST_SECRET_KEY",
+      "STRIPE_TOK_ONE_SECRET_KEY",
+    ],
     purpose: "Stripe verification secret",
   });
 }

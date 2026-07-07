@@ -59,6 +59,7 @@ describe("phase 1 launch audit plan readiness", () => {
 
     for (const requiredSecret of [
       "secrets.VITE_STRIPE_PUBLISHABLE_KEY",
+      "secrets.STRIPE_PERSONNAL_SECRET_KEY",
       "secrets.STRIPE_SECRET_KEY",
       "secrets.STRIPE_WEBHOOK_SECRET",
       "secrets.INTERNAL_CRON_SECRET",

@@ -67,7 +67,16 @@ export function getEnv(name: string) {
   if (value) return value;
 
   if (name === "STRIPE_SECRET_KEY") {
-    return Deno.env.get("STRIPE_SECRET_KEY_LIVE")?.trim() || "";
+    return Deno.env.get("STRIPE_PERSONNAL_SECRET_KEY")?.trim() ||
+      Deno.env.get("STRIPE_PERSONAL_SECRET_KEY")?.trim() ||
+      Deno.env.get("STRIPE_SECRET_KEY_LIVE")?.trim() ||
+      "";
+  }
+
+  if (name === "STRIPE_SECRET_KEY_LIVE") {
+    return Deno.env.get("STRIPE_PERSONNAL_SECRET_KEY")?.trim() ||
+      Deno.env.get("STRIPE_PERSONAL_SECRET_KEY")?.trim() ||
+      "";
   }
 
   return "";

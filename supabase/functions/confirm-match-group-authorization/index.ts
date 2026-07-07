@@ -14,7 +14,17 @@ function json(payload: Record<string, unknown>, status: number, corsHeaders: Rec
 function env(name: string) {
   const value = Deno.env.get(name)?.trim();
   if (value) return value;
-  if (name === "STRIPE_SECRET_KEY") return Deno.env.get("STRIPE_SECRET_KEY_LIVE")?.trim() || "";
+  if (name === "STRIPE_SECRET_KEY") {
+    return Deno.env.get("STRIPE_PERSONNAL_SECRET_KEY")?.trim() ||
+      Deno.env.get("STRIPE_PERSONAL_SECRET_KEY")?.trim() ||
+      Deno.env.get("STRIPE_SECRET_KEY_LIVE")?.trim() ||
+      "";
+  }
+  if (name === "STRIPE_SECRET_KEY_LIVE") {
+    return Deno.env.get("STRIPE_PERSONNAL_SECRET_KEY")?.trim() ||
+      Deno.env.get("STRIPE_PERSONAL_SECRET_KEY")?.trim() ||
+      "";
+  }
   return "";
 }
 
