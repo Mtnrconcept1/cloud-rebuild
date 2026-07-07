@@ -1242,6 +1242,8 @@ export default function Panier() {
       promotion_discount_amount: resPromoDiscount > 0 ? Number(resPromoDiscount.toFixed(2)) : 0,
       tok_one_discount_amount: tokOneDiscountAmount > 0 ? Number(tokOneDiscountAmount.toFixed(2)) : 0,
       tok_one_discount_percent: resTokOneDiscountPercent > 0 ? Number(resTokOneDiscountPercent.toFixed(2)) : 0,
+      points_to_redeem: pointsDiscountAmount > 0 ? Math.round(pointsDiscountAmount * 100) : 0,
+      points_discount: pointsDiscountAmount > 0 ? Number(pointsDiscountAmount.toFixed(2)) : 0,
       points_discount_amount: pointsDiscountAmount > 0 ? Number(pointsDiscountAmount.toFixed(2)) : 0,
       flex_discount_amount: flexDiscountAmount > 0 ? Number(flexDiscountAmount.toFixed(2)) : 0,
       pre_discount_subtotal: Number(resSubtotal.toFixed(2)),

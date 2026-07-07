@@ -793,6 +793,8 @@ Deno.serve(async (req) => {
           ...(order_metadata || {}),
           payment_method: normalizedPaymentMethod,
           delivery_fee: deliveryFeeShare,
+          points_to_redeem: Math.round((pointsByPaymentGroup.get(paymentGroupKey) || 0) * 100),
+          points_discount: pointsByPaymentGroup.get(paymentGroupKey) || 0,
           points_discount_amount: pointsByPaymentGroup.get(paymentGroupKey) || 0,
           flex_discount_amount: flexByPaymentGroup.get(paymentGroupKey) || 0,
           formula_discount_amount: groupRestaurantId === primaryRestaurantId ? order_metadata?.formula_discount_amount || order_metadata?.formula_discount : 0,

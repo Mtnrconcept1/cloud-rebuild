@@ -7,6 +7,7 @@ const stripeWebhookSource = readFileSync(resolve(process.cwd(), "supabase/functi
 const stripeWorkerSource = readFileSync(resolve(process.cwd(), "supabase/functions/stripe-worker/index.ts"), "utf8");
 const stripeClientSource = readFileSync(resolve(process.cwd(), "supabase/functions/_shared/stripe-client.ts"), "utf8");
 const orderCheckoutSource = readFileSync(resolve(process.cwd(), "supabase/functions/_shared/order-checkout.ts"), "utf8");
+const orderPricingSource = readFileSync(resolve(process.cwd(), "supabase/functions/_shared/order-pricing.ts"), "utf8");
 const chefsTableSource = readFileSync(resolve(process.cwd(), "supabase/functions/_shared/chefs-table.ts"), "utf8");
 const zeroAttenteSource = readFileSync(resolve(process.cwd(), "supabase/functions/_shared/zero-attente.ts"), "utf8");
 const validateOrderSource = readFileSync(resolve(process.cwd(), "supabase/functions/validate-order/index.ts"), "utf8");
@@ -166,6 +167,13 @@ describe("checkout and Stripe webhook safety guards", () => {
       .toBeGreaterThan(onlineCheckoutBlock.indexOf("const pendingOrderResults = await Promise.all"));
     expect(onlineCheckoutBlock.indexOf("writePendingOrderCheckoutSessionId"))
       .toBeGreaterThan(createCheckoutIndex);
+  });
+
+  it("sends loyalty point redemption count to server validation metadata", () => {
+    expect(cartSource).toContain("points_to_redeem: pointsDiscountAmount > 0 ? Math.round(pointsDiscountAmount * 100) : 0");
+    expect(cartSource).toContain("points_discount_amount: pointsDiscountAmount > 0 ? Number(pointsDiscountAmount.toFixed(2)) : 0");
+    expect(createCheckoutSource).toContain("points_to_redeem: Math.round((pointsByPaymentGroup.get(paymentGroupKey) || 0) * 100)");
+    expect(orderPricingSource).toContain("const requestedPointsToRedeem = Math.max(0, Math.floor(toNumber(metadata.points_to_redeem)))");
   });
 
   it("preserves fixed pickup slots from Anti-Gaspi and flash sale tools in order metadata", () => {
