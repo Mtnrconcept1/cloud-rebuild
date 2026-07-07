@@ -215,6 +215,25 @@ type CommercialMapCluster = {
   selected: boolean;
 };
 
+type CommercialSearchFilters = {
+  search: string;
+  status: CommercialPipelineStatus | typeof ALL_STATUSES;
+  commune: string;
+  category: string;
+};
+
+type CommercialFollowupReminderResult = {
+  reminderNotificationStatus: "not_requested" | "queued" | "failed";
+  reminderError?: string | null;
+};
+
+const DEFAULT_COMMERCIAL_SEARCH_FILTERS: CommercialSearchFilters = {
+  search: "",
+  status: ALL_STATUSES,
+  commune: ALL_COMMUNES,
+  category: ALL_CATEGORIES,
+};
+
 function normalizeSearchValue(value: string | number | null | undefined) {
   return String(value ?? "")
     .normalize("NFD")
@@ -927,6 +946,8 @@ export default function CommercialProspection() {
   const [statusFilter, setStatusFilter] = useState<CommercialPipelineStatus | typeof ALL_STATUSES>(ALL_STATUSES);
   const [communeFilter, setCommuneFilter] = useState(ALL_COMMUNES);
   const [categoryFilter, setCategoryFilter] = useState(ALL_CATEGORIES);
+  const [hasLaunchedSearch, setHasLaunchedSearch] = useState(false);
+  const [appliedFilters, setAppliedFilters] = useState<CommercialSearchFilters>(DEFAULT_COMMERCIAL_SEARCH_FILTERS);
   const [selectedObjectId, setSelectedObjectId] = useState<number | null>(null);
   const [prospectDialogOpen, setProspectDialogOpen] = useState(false);
   const [draftStatus, setDraftStatus] = useState<CommercialPipelineStatus>("not_visited");
@@ -982,23 +1003,28 @@ export default function CommercialProspection() {
   }, [prospects]);
 
   const filteredProspects = useMemo(() => {
-    const normalizedSearch = normalizeSearchValue(search);
+    const normalizedSearch = normalizeSearchValue(appliedFilters.search);
     return prospectsWithSearch
       .filter(({ prospect, haystack }) => {
         if (normalizedSearch && !haystack.includes(normalizedSearch)) return false;
-        if (communeFilter !== ALL_COMMUNES && prospect.commune !== communeFilter) return false;
-        if (categoryFilter !== ALL_CATEGORIES && prospect.category !== categoryFilter) return false;
-        if (statusFilter !== ALL_STATUSES && toPipelineStatus(getProspectStatus(prospect, followupsByObjectId)) !== statusFilter) return false;
+        if (appliedFilters.commune !== ALL_COMMUNES && prospect.commune !== appliedFilters.commune) return false;
+        if (appliedFilters.category !== ALL_CATEGORIES && prospect.category !== appliedFilters.category) return false;
+        if (
+          appliedFilters.status !== ALL_STATUSES
+          && toPipelineStatus(getProspectStatus(prospect, followupsByObjectId)) !== appliedFilters.status
+        ) return false;
         return true;
       })
       .map(({ prospect }) => prospect);
-  }, [categoryFilter, communeFilter, followupsByObjectId, prospectsWithSearch, search, statusFilter]);
+  }, [appliedFilters, followupsByObjectId, prospectsWithSearch]);
+
+  const mapProspects = hasLaunchedSearch ? filteredProspects : prospects;
 
   const selectedProspect = useMemo(() => {
     return prospects.find((prospect) => prospect.sourceObjectId === selectedObjectId)
-      || filteredProspects[0]
+      || mapProspects[0]
       || null;
-  }, [filteredProspects, prospects, selectedObjectId]);
+  }, [mapProspects, prospects, selectedObjectId]);
 
   const selectedFollowup = selectedProspect
     ? followupsByObjectId.get(selectedProspect.sourceObjectId) || null
@@ -1056,15 +1082,15 @@ export default function CommercialProspection() {
   }, [prospects, selectedObjectId]);
 
   useEffect(() => {
-    if (!filteredProspects.length) {
+    if (!mapProspects.length) {
       setSelectedObjectId(null);
       return;
     }
 
-    if (!selectedObjectId || !filteredProspects.some((prospect) => prospect.sourceObjectId === selectedObjectId)) {
-      setSelectedObjectId(filteredProspects[0].sourceObjectId);
+    if (!selectedObjectId || !mapProspects.some((prospect) => prospect.sourceObjectId === selectedObjectId)) {
+      setSelectedObjectId(mapProspects[0].sourceObjectId);
     }
-  }, [filteredProspects, selectedObjectId]);
+  }, [mapProspects, selectedObjectId]);
 
   const stats = useMemo(() => {
     const base = PIPELINE_STATUS_OPTIONS.reduce((acc, item) => {
@@ -1079,7 +1105,7 @@ export default function CommercialProspection() {
     return base;
   }, [followupsByObjectId, prospects]);
 
-  const saveFollowupMutation = useMutation({
+  const saveFollowupMutation = useMutation<CommercialFollowupReminderResult>({
     mutationFn: async () => {
       if (!selectedProspect) throw new Error("Aucun restaurant sélectionné.");
       const now = new Date().toISOString();
@@ -1095,6 +1121,9 @@ export default function CommercialProspection() {
       const reservationCommissionStartsAt = selectedFollowup?.reservation_commission_starts_at
         || selectedFollowup?.signed_at
         || now;
+      const shouldNotifyFollowUp = Boolean(
+        draftFollowUpDate && draftFollowUpDate !== (selectedFollowup?.next_follow_up_at || ""),
+      );
 
       if (isSigned && signedRestaurantId && !isUuidLike(signedRestaurantId)) {
         throw new Error("L'identifiant du restaurant TOK doit être un UUID valide.");
@@ -1129,11 +1158,52 @@ export default function CommercialProspection() {
         }, { onConflict: "source_objectid" });
 
       if (error) throw error;
+
+      let reminderNotificationStatus: CommercialFollowupReminderResult["reminderNotificationStatus"] = "not_requested";
+      let reminderError: string | null = null;
+
+      if (shouldNotifyFollowUp) {
+        const { data: reminderData, error: reminderInvokeError } = await getSupabase().functions.invoke(
+          "commercial-followup-reminder",
+          {
+            body: {
+              sourceObjectId: selectedProspect.sourceObjectId,
+              prospectName: selectedProspect.name,
+              prospectAddress: formatAddress(selectedProspect),
+            },
+          },
+        );
+
+        if (reminderInvokeError || (reminderData as { error?: string } | null)?.error) {
+          reminderNotificationStatus = "failed";
+          reminderError = reminderInvokeError?.message
+            || (reminderData as { error?: string } | null)?.error
+            || "La relance est enregistrée, mais l'alerte n'a pas pu être envoyée.";
+          console.warn("[commercial] follow-up reminder dispatch failed", reminderError);
+        } else {
+          reminderNotificationStatus = "queued";
+        }
+      }
+
+      return { reminderNotificationStatus, reminderError };
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["commercial-prospect-followups"] });
       queryClient.invalidateQueries({ queryKey: ["commercial-prospect-commission-summary"] });
-      toast({ title: "Suivi enregistré", description: "La carte et la fiche sont mises à jour." });
+      toast({
+        title: "Suivi enregistré",
+        description: result.reminderNotificationStatus === "queued"
+          ? "La relance est planifiée et l'alerte push/SMS est préparée pour le commercial."
+          : "La carte et la fiche sont mises à jour.",
+      });
+
+      if (result.reminderNotificationStatus === "failed") {
+        toast({
+          title: "Alerte de relance non envoyée",
+          description: result.reminderError || "Le suivi est enregistré, mais l'envoi push/SMS a échoué.",
+          variant: "destructive",
+        });
+      }
     },
     onError: (error) => {
       toast({
@@ -1153,7 +1223,28 @@ export default function CommercialProspection() {
     setProspectDialogOpen(true);
   }, []);
 
-  const previewResults = filteredProspects.slice(0, RESULT_PREVIEW_LIMIT);
+  const handleRunSearch = useCallback(() => {
+    setAppliedFilters({
+      search: search.trim(),
+      status: statusFilter,
+      commune: communeFilter,
+      category: categoryFilter,
+    });
+    setHasLaunchedSearch(true);
+    setSelectedObjectId(null);
+  }, [categoryFilter, communeFilter, search, statusFilter]);
+
+  const handleResetSearch = useCallback(() => {
+    setSearch("");
+    setStatusFilter(ALL_STATUSES);
+    setCommuneFilter(ALL_COMMUNES);
+    setCategoryFilter(ALL_CATEGORIES);
+    setAppliedFilters(DEFAULT_COMMERCIAL_SEARCH_FILTERS);
+    setHasLaunchedSearch(false);
+    setSelectedObjectId(null);
+  }, []);
+
+  const previewResults = hasLaunchedSearch ? filteredProspects.slice(0, RESULT_PREVIEW_LIMIT) : [];
 
   return (
     <>
@@ -1208,6 +1299,12 @@ export default function CommercialProspection() {
                   id="commercial-search"
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                      handleRunSearch();
+                    }
+                  }}
                   placeholder="Nom, commune, téléphone, email..."
                   className="pl-10"
                 />
@@ -1253,52 +1350,80 @@ export default function CommercialProspection() {
               </Select>
             </div>
 
-            <div className="rounded-2xl border bg-slate-50 p-3 text-sm dark:border-white/10 dark:bg-white/5">
-              <p className="font-bold">{filteredProspects.length.toLocaleString("fr-CH")} restaurants affichés</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Source: grand fichier CSV/JSON `outputs`, chargé depuis `/data/geneva-commercial-prospects.json`.
-              </p>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-1">
+              <Button type="button" className="h-11 rounded-2xl" onClick={handleRunSearch}>
+                <Search className="mr-2 h-4 w-4" />
+                Lancer la recherche
+              </Button>
+              <Button type="button" variant="outline" className="h-11 rounded-2xl" onClick={handleResetSearch}>
+                Réinitialiser
+              </Button>
             </div>
 
-            <div className="max-h-[480px] space-y-2 overflow-auto pr-1">
-              {previewResults.map((prospect) => {
-                const status = getProspectStatus(prospect, followupsByObjectId);
-                const selected = selectedProspect?.sourceObjectId === prospect.sourceObjectId;
-                return (
-                  <button
-                    key={prospect.sourceObjectId}
-                    type="button"
-                    onClick={() => handleSelectProspect(prospect)}
-                    className={cn(
-                      "w-full rounded-2xl border p-3 text-left transition-all hover:border-primary/50 hover:bg-orange-50/80 dark:hover:bg-orange-500/10",
-                      selected
-                        ? "border-primary bg-orange-50 shadow-[0_12px_34px_rgba(255,106,26,0.14)] dark:bg-orange-500/10"
-                        : "border-slate-200 bg-white dark:border-white/10 dark:bg-slate-900/70",
-                    )}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="truncate font-bold">{prospect.name}</p>
-                        <p className="mt-1 truncate text-xs text-muted-foreground">{formatAddress(prospect) || "Adresse non renseignée"}</p>
-                      </div>
-                      <StatusPill status={status} />
-                    </div>
-                  </button>
-                );
-              })}
-              {filteredProspects.length > RESULT_PREVIEW_LIMIT ? (
-                <p className="rounded-2xl border border-dashed p-3 text-center text-xs text-muted-foreground">
-                  {filteredProspects.length - RESULT_PREVIEW_LIMIT} autres points sont visibles sur la carte. Affinez la recherche pour réduire la liste.
-                </p>
-              ) : null}
+            <div className="rounded-2xl border bg-slate-50 p-3 text-sm dark:border-white/10 dark:bg-white/5">
+              {hasLaunchedSearch ? (
+                <>
+                  <p className="font-bold">{filteredProspects.length.toLocaleString("fr-CH")} restaurants trouvés</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Recherche lancée sur le grand fichier CSV/JSON `outputs`, chargé depuis `/data/geneva-commercial-prospects.json`.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="font-bold">Liste masquée avant recherche</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Renseignez les filtres puis cliquez sur Lancer la recherche. Vous pouvez aussi lancer avec tous les filtres sur Tous.
+                  </p>
+                </>
+              )}
             </div>
+
+            {hasLaunchedSearch ? (
+              <div className="max-h-[480px] space-y-2 overflow-auto pr-1">
+                {previewResults.map((prospect) => {
+                  const status = getProspectStatus(prospect, followupsByObjectId);
+                  const selected = selectedProspect?.sourceObjectId === prospect.sourceObjectId;
+                  return (
+                    <button
+                      key={prospect.sourceObjectId}
+                      type="button"
+                      onClick={() => handleSelectProspect(prospect)}
+                      className={cn(
+                        "w-full rounded-2xl border p-3 text-left transition-all hover:border-primary/50 hover:bg-orange-50/80 dark:hover:bg-orange-500/10",
+                        selected
+                          ? "border-primary bg-orange-50 shadow-[0_12px_34px_rgba(255,106,26,0.14)] dark:bg-orange-500/10"
+                          : "border-slate-200 bg-white dark:border-white/10 dark:bg-slate-900/70",
+                      )}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="truncate font-bold">{prospect.name}</p>
+                          <p className="mt-1 truncate text-xs text-muted-foreground">{formatAddress(prospect) || "Adresse non renseignée"}</p>
+                        </div>
+                        <StatusPill status={status} />
+                      </div>
+                    </button>
+                  );
+                })}
+                {filteredProspects.length === 0 ? (
+                  <p className="rounded-2xl border border-dashed p-3 text-center text-xs text-muted-foreground">
+                    Aucun restaurant ne correspond à cette recherche.
+                  </p>
+                ) : null}
+                {filteredProspects.length > RESULT_PREVIEW_LIMIT ? (
+                  <p className="rounded-2xl border border-dashed p-3 text-center text-xs text-muted-foreground">
+                    {filteredProspects.length - RESULT_PREVIEW_LIMIT} autres points sont visibles sur la carte. Affinez la recherche pour réduire la liste.
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
           </aside>
 
           <section className="min-w-0 overflow-hidden">
             <div className="space-y-3">
               <CommercialMapLegend />
               <CommercialProspectionMap
-                prospects={filteredProspects}
+                prospects={mapProspects}
                 followupsByObjectId={followupsByObjectId}
                 selectedObjectId={selectedProspect?.sourceObjectId || null}
                 onSelect={handleSelectProspect}

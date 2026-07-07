@@ -64,6 +64,30 @@ describe("commercial prospecting surface", () => {
     expect(pageSource).toContain("map.fitBounds(cluster.bounds");
     expect(pageSource).toContain("CommercialProspectDetailsDialog");
     expect(pageSource).toContain("Notes du commercial");
+    expect(pageSource).toContain("hasLaunchedSearch");
+    expect(pageSource).toContain("Lancer la recherche");
+    expect(pageSource).toContain("Liste masquée avant recherche");
+    expect(pageSource).toContain("prospects={mapProspects}");
+  });
+
+  it("sends commercial follow-up reminders through a server-side notification function", () => {
+    const pageSource = readFileSync(resolve(process.cwd(), "src/pages/CommercialProspection.tsx"), "utf8");
+    const functionSource = readFileSync(
+      resolve(process.cwd(), "supabase/functions/commercial-followup-reminder/index.ts"),
+      "utf8",
+    );
+
+    expect(pageSource).toContain('functions.invoke(\n          "commercial-followup-reminder"');
+    expect(pageSource).toContain("shouldNotifyFollowUp");
+    expect(functionSource).toContain("requireUserRole(actor, [\"admin\", \"commercial\"])");
+    expect(functionSource).toContain("commercial_prospect_followups");
+    expect(functionSource).toContain("commercial_followup_reminder");
+    expect(functionSource).toContain("enqueueNotification");
+    expect(functionSource).toContain("triggerNotificationDispatch");
+    expect(functionSource).toContain("notification_deliveries");
+    expect(functionSource).toContain("SMS_WEBHOOK_URL");
+    expect(functionSource).toContain("TWILIO_ACCOUNT_SID");
+    expect(functionSource).toContain("deduped");
   });
 
   it("protects the route for admin and commercial roles behind the feature flag", () => {
