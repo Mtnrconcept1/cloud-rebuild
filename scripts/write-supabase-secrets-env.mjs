@@ -63,6 +63,15 @@ if (derivedAllowedOrigins && !entries.some(([name]) => name === "ALLOWED_ORIGINS
   entries.push(["ALLOWED_ORIGINS", derivedAllowedOrigins]);
 }
 
+const stripeSecretKey = cleanValue(process.env.STRIPE_SECRET_KEY);
+const stripeSecretKeyLive = cleanValue(process.env.STRIPE_SECRET_KEY_LIVE);
+if (stripeSecretKey?.startsWith("sk_live_")) {
+  ensureDefault(entries, "STRIPE_SECRET_KEY_LIVE", stripeSecretKey);
+}
+if (stripeSecretKeyLive) {
+  ensureDefault(entries, "STRIPE_SECRET_KEY", stripeSecretKeyLive);
+}
+
 const liveWebhookSecret = cleanValue(process.env.STRIPE_LIVE_WEBHOOK);
 if (liveWebhookSecret) {
   ensureDefault(entries, "STRIPE_WEBHOOK_SECRET", liveWebhookSecret);

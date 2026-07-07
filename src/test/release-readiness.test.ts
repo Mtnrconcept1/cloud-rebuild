@@ -94,7 +94,7 @@ describe("release readiness inspection", () => {
       root,
       env: {
         VITE_STRIPE_PUBLISHABLE_KEY: "pk_live_123",
-        STRIPE_SECRET_KEY: "sk_live_123",
+        STRIPE_SECRET_KEY_LIVE: "sk_live_123",
         STRIPE_WEBHOOK_SECRET: "whsec_123",
         FIREBASE_SERVICE_ACCOUNT: firebaseServiceAccountJson(),
         INTERNAL_CRON_SECRET: "long-random-secret",

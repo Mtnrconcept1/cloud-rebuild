@@ -80,7 +80,8 @@ describe("Tok One Stripe test mode", () => {
     expect(secretsScriptSource).toContain('"STRIPE_SECRET_KEY_LIVE"');
     expect(workflowSource).toContain("STRIPE_TOK_ONE_TEST_SECRET_KEY: ${{ secrets.STRIPE_TOK_ONE_TEST_SECRET_KEY }}");
     expect(workflowSource).toContain("STRIPE_TOK_ONE_TEST_WEBHOOK_SECRET: ${{ secrets.STRIPE_TOK_ONE_TEST_WEBHOOK_SECRET }}");
-    expect(workflowSource).toContain("STRIPE_SECRET_KEY_LIVE: ${{ secrets.STRIPE_SECRET_KEY }}");
+    expect(workflowSource).toContain("STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY || secrets.STRIPE_SECRET_KEY_LIVE }}");
+    expect(workflowSource).toContain("STRIPE_SECRET_KEY_LIVE: ${{ secrets.STRIPE_SECRET_KEY_LIVE || secrets.STRIPE_SECRET_KEY }}");
     expect(workflowSource).not.toMatch(/sk_test_[A-Za-z0-9]/);
     expect(workflowSource).not.toMatch(/whsec_[A-Za-z0-9]/);
   });

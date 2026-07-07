@@ -6,7 +6,11 @@ import { parse as parseDotenv } from "dotenv";
 
 const DEFAULT_ENV_FILES = [".env.production", ".env.production.local"];
 const REQUIRED_EDGE_SECRETS = [
-  ["STRIPE_SECRET_KEY", /^sk_live_/, "Missing STRIPE_SECRET_KEY live secret for production payments."],
+  [
+    ["STRIPE_SECRET_KEY", "STRIPE_SECRET_KEY_LIVE"],
+    /^sk_live_/,
+    "Missing STRIPE_SECRET_KEY or STRIPE_SECRET_KEY_LIVE live secret for production payments.",
+  ],
   [
     ["STRIPE_WEBHOOK_SECRET", "STRIPE_LIVE_WEBHOOK"],
     /^whsec_/,

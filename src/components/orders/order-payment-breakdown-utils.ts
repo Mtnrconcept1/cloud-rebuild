@@ -3,7 +3,7 @@ import { Banknote, CreditCard, Crown, Gift, type LucideIcon } from "lucide-react
 export type OrderLike = {
   total_amount?: number | string | null;
   delivery_fee?: number | string | null;
-  metadata?: Record<string, unknown> | null;
+  metadata?: unknown;
   order_items?: Array<{ total_price?: number | string | null }> | null;
 };
 
@@ -29,12 +29,12 @@ function toNumber(value: unknown) {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
-function getMetadata(order: OrderLike) {
+function getMetadata(order: OrderLike): Record<string, unknown> {
   if (!order.metadata || typeof order.metadata !== "object" || Array.isArray(order.metadata)) {
     return {} as Record<string, unknown>;
   }
 
-  return order.metadata;
+  return order.metadata as Record<string, unknown>;
 }
 
 function getBenefitCoveredPaymentSummary({
