@@ -7,6 +7,63 @@
   "buildCommand": "pnpm run build:prod",
   "devCommand": "pnpm run dev",
   "outputDirectory": "dist",
+  "redirects": [
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "admin.thetok.ch"
+        }
+      ],
+      "destination": "/admin",
+      "permanent": false
+    },
+    {
+      "source": "/admin",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.thetok.ch"
+        }
+      ],
+      "destination": "https://admin.thetok.ch/admin",
+      "permanent": false
+    },
+    {
+      "source": "/admin/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.thetok.ch"
+        }
+      ],
+      "destination": "https://admin.thetok.ch/admin/:path*",
+      "permanent": false
+    },
+    {
+      "source": "/admin",
+      "has": [
+        {
+          "type": "host",
+          "value": "thetok.ch"
+        }
+      ],
+      "destination": "https://admin.thetok.ch/admin",
+      "permanent": false
+    },
+    {
+      "source": "/admin/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "thetok.ch"
+        }
+      ],
+      "destination": "https://admin.thetok.ch/admin/:path*",
+      "permanent": false
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",

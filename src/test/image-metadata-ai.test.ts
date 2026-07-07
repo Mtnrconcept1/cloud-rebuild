@@ -61,6 +61,8 @@ describe("restaurant image metadata AI pipeline", () => {
     expect(uploadHelper).toContain("source_type: sourceType");
     expect(uploadHelper).toContain("source_context: sourceContext || {}");
     expect(uploadHelper).toContain('analysis_status: "pending"');
+    expect(uploadHelper).toContain('functions');
+    expect(uploadHelper).toContain('"analyze-restaurant-image"');
     expect(uploadHelper).not.toContain("SERVICE_ROLE");
     expect(uploadHelper).not.toContain("SUPABASE_SERVICE_ROLE_KEY");
 
@@ -73,6 +75,26 @@ describe("restaurant image metadata AI pipeline", () => {
     expect(socialFeedHook).toContain("sourceTable: \"social_posts\"");
     expect(socialFeedHook).toContain("sourceId: postId");
     expect(socialFeedHook).toContain("Actualites image analysis registration skipped");
+  });
+
+  it("adds a Supabase Edge Function that analyzes uploaded images through OpenAI", () => {
+    const config = readProjectFile("supabase/config.toml");
+    const migration = readProjectFile("supabase/migrations/20260707200452_claim_image_analysis_job_by_image_id.sql");
+    const edgeFunction = readProjectFile("supabase/functions/analyze-restaurant-image/index.ts");
+
+    expect(config).toContain("[functions.analyze-restaurant-image]");
+    expect(config).toMatch(/\[functions\.analyze-restaurant-image\]\s+verify_jwt\s*=\s*false/i);
+    expect(migration).toContain("CREATE OR REPLACE FUNCTION public.claim_image_analysis_job_by_image_id");
+    expect(migration).toContain("FOR UPDATE SKIP LOCKED");
+    expect(migration).toContain("GRANT EXECUTE ON FUNCTION public.claim_image_analysis_job_by_image_id(text, uuid) TO service_role");
+    expect(edgeFunction).toContain("authenticateRequest(req, { allowServiceRole: true, allowSchedulerSecret: true })");
+    expect(edgeFunction).toContain("createOpenAIResponse");
+    expect(edgeFunction).toContain('type: "input_image"');
+    expect(edgeFunction).toContain('rpc("claim_image_analysis_job_by_image_id"');
+    expect(edgeFunction).toContain('rpc("complete_image_analysis_job"');
+    expect(edgeFunction).toContain('rpc("fail_image_analysis_job"');
+    expect(edgeFunction).toContain('from("social_post_media")');
+    expect(edgeFunction).not.toContain("SUPABASE_SERVICE_ROLE_KEY");
   });
 
   it("adds a separate Ollama worker that claims, completes and fails jobs through service RPCs", () => {
@@ -91,12 +113,14 @@ describe("restaurant image metadata AI pipeline", () => {
     expect(packageJson).toContain('"check": "node check.mjs"');
     expect(packageJson).toContain('"@supabase/supabase-js"');
     expect(envExample).toContain("SUPABASE_SERVICE_ROLE_KEY=YOUR_SERVICE_ROLE_KEY");
+    expect(envExample).toContain("OLLAMA_API_KEY=");
     expect(envExample).toContain("OLLAMA_VISION_MODEL=llava");
     expect(readinessCheck).toContain("SUPABASE_SERVICE_ROLE_KEY");
     expect(readinessCheck).toContain("/api/tags");
     expect(readinessCheck).not.toContain("console.log(SUPABASE_SERVICE_ROLE_KEY");
     expect(readme).toContain("pnpm image-ai-worker:check");
     expect(readme).toContain("pnpm image-ai-worker:start");
+    expect(worker).toContain("OLLAMA_API_KEY");
     expect(worker).toContain("SUPABASE_SERVICE_ROLE_KEY");
     expect(worker).toContain('persistSession: false');
     expect(worker).toContain('rpc("claim_image_analysis_jobs"');

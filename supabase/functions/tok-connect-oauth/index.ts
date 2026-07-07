@@ -37,6 +37,18 @@ type ClientRow = {
   token_ttl_seconds: number;
 };
 
+type OAuthTokenPayload = {
+  access_token: string;
+  token_type: "Bearer";
+  expires_in: number;
+  scope: string;
+};
+
+type OAuthErrorPayload = {
+  error: string;
+  error_description: string;
+};
+
 function base64UrlEncode(input: string) {
   return btoa(input).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
 }
@@ -53,6 +65,42 @@ function decodeOAuthBasicComponent(value: string) {
   } catch {
     return value;
   }
+}
+
+function oauthHeaders(corsHeaders: Record<string, string>) {
+  return {
+    ...corsHeaders,
+    "Cache-Control": "no-store",
+    "Pragma": "no-cache",
+  };
+}
+
+function oauthTokenResponse(payload: OAuthTokenPayload, corsHeaders: Record<string, string>) {
+  return jsonResponse(payload, 200, oauthHeaders(corsHeaders));
+}
+
+function getOAuthErrorCode(message: string, status: number) {
+  if (message === "invalid_client" || status === 401) return "invalid_client";
+  if (message === "unsupported_grant_type") return "unsupported_grant_type";
+  if (message.includes("scope")) return "invalid_scope";
+  if (
+    message === "invalid_authorization_code" ||
+    message === "authorization_code_expired" ||
+    message === "redirect_uri_mismatch"
+  ) {
+    return "invalid_grant";
+  }
+  if (status === 403) return "unauthorized_client";
+  if (status === 400) return "invalid_request";
+  return "server_error";
+}
+
+function oauthErrorResponse(message: string, status: number, corsHeaders: Record<string, string>) {
+  const payload: OAuthErrorPayload = {
+    error: getOAuthErrorCode(message, status),
+    error_description: message,
+  };
+  return jsonResponse(payload, status, oauthHeaders(corsHeaders));
 }
 
 async function signCodePayload(payload: string) {
@@ -285,19 +333,12 @@ Deno.serve(async (req) => {
       metadata: { request_id: requestId, scopes: issuedScopes },
     });
 
-    return jsonResponse(
-      buildTokConnectEnvelope({
-        requestId,
-        data: {
-          access_token: accessToken,
-          token_type: "Bearer",
-          expires_in: expiresIn,
-          scope: issuedScopes.join(" "),
-        },
-      }),
-      200,
-      corsHeaders,
-    );
+    return oauthTokenResponse({
+      access_token: accessToken,
+      token_type: "Bearer",
+      expires_in: expiresIn,
+      scope: issuedScopes.join(" "),
+    }, corsHeaders);
   } catch (error) {
     const status = error instanceof HttpError ? error.status : 500;
     const message = error instanceof Error ? error.message : "tok_connect_oauth_error";
@@ -311,6 +352,10 @@ Deno.serve(async (req) => {
       errorMessage: message,
       metadata: { request_id: requestId },
     });
+
+    if (req.method === "POST") {
+      return oauthErrorResponse(message, status, corsHeaders);
+    }
 
     return jsonResponse(
       buildTokConnectEnvelope({

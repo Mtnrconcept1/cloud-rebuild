@@ -32,6 +32,9 @@ verify_jwt = false
 [functions.ai-image-enhance]
 verify_jwt = false
 
+[functions.analyze-restaurant-image]
+verify_jwt = false
+
 [functions.ai-restaurant-agent]
 verify_jwt = false
 

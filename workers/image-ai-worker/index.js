@@ -6,6 +6,7 @@ const {
   SUPABASE_SERVICE_ROLE_KEY,
   WORKER_ID = "tok-image-worker-1",
   OLLAMA_URL = "http://127.0.0.1:11434",
+  OLLAMA_API_KEY = "",
   OLLAMA_VISION_MODEL = "llava",
   OLLAMA_EMBEDDING_MODEL = "all-minilm",
   POLL_INTERVAL_MS = "5000",
@@ -24,6 +25,13 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
 });
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+function buildOllamaHeaders(extraHeaders = {}) {
+  return {
+    ...extraHeaders,
+    ...(OLLAMA_API_KEY ? { Authorization: `Bearer ${OLLAMA_API_KEY}` } : {}),
+  };
+}
 
 function cleanArray(value) {
   if (!Array.isArray(value)) return [];
@@ -132,9 +140,9 @@ Format JSON obligatoire:
 
   const response = await fetch(`${OLLAMA_URL}/api/generate`, {
     method: "POST",
-    headers: {
+    headers: buildOllamaHeaders({
       "Content-Type": "application/json",
-    },
+    }),
     body: JSON.stringify({
       model: OLLAMA_VISION_MODEL,
       prompt,
@@ -178,9 +186,9 @@ function buildSearchText(metadata) {
 async function generateEmbeddingWithOllama(text) {
   const response = await fetch(`${OLLAMA_URL}/api/embeddings`, {
     method: "POST",
-    headers: {
+    headers: buildOllamaHeaders({
       "Content-Type": "application/json",
-    },
+    }),
     body: JSON.stringify({
       model: OLLAMA_EMBEDDING_MODEL,
       prompt: text,

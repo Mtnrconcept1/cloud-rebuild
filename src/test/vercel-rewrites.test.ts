@@ -3,6 +3,41 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 describe("vercel config", () => {
+  it("routes admin paths through the dedicated admin domain", () => {
+    const configPath = path.resolve(process.cwd(), "vercel.json");
+    const config = JSON.parse(readFileSync(configPath, "utf8")) as {
+      redirects?: Array<{
+        source?: string;
+        destination?: string;
+        permanent?: boolean;
+        has?: Array<{ type?: string; value?: string }>;
+      }>;
+    };
+    const redirects = config.redirects || [];
+
+    expect(redirects).toContainEqual({
+      source: "/",
+      has: [{ type: "host", value: "admin.thetok.ch" }],
+      destination: "/admin",
+      permanent: false,
+    });
+
+    for (const publicHost of ["www.thetok.ch", "thetok.ch"]) {
+      expect(redirects).toContainEqual({
+        source: "/admin",
+        has: [{ type: "host", value: publicHost }],
+        destination: "https://admin.thetok.ch/admin",
+        permanent: false,
+      });
+      expect(redirects).toContainEqual({
+        source: "/admin/:path*",
+        has: [{ type: "host", value: publicHost }],
+        destination: "https://admin.thetok.ch/admin/:path*",
+        permanent: false,
+      });
+    }
+  });
+
   it("defines a SPA rewrite so deep links resolve to index.html", () => {
     const configPath = path.resolve(process.cwd(), "vercel.json");
 

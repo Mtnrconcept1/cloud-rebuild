@@ -74,6 +74,7 @@ function buildPostSearchIndex(post: SocialFeedPost) {
     post.audienceSegment,
     post.offerCode,
     post.recommendationReasons?.join(" "),
+    post.media?.map((media) => media.altText).filter(Boolean).join(" "),
   ]
     .filter(Boolean)
     .join(" ");

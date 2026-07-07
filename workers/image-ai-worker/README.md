@@ -18,11 +18,13 @@ Copier `.env.example` vers `.env`, puis renseigner :
 SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=...
 OLLAMA_URL=http://127.0.0.1:11434
+OLLAMA_API_KEY= # optionnel, pour un endpoint Ollama heberge protege par Bearer token
 OLLAMA_VISION_MODEL=llava
 OLLAMA_EMBEDDING_MODEL=all-minilm
 ```
 
 La cle `SUPABASE_SERVICE_ROLE_KEY` ne doit jamais etre exposee au navigateur, a Vercel public env ou a une page React.
+La cle `OLLAMA_API_KEY` est optionnelle et ne sert que si `OLLAMA_URL` pointe vers un service Ollama distant qui exige un token.
 
 ## Verification
 

@@ -4,6 +4,7 @@ const {
   SUPABASE_URL,
   SUPABASE_SERVICE_ROLE_KEY,
   OLLAMA_URL = "http://127.0.0.1:11434",
+  OLLAMA_API_KEY = "",
   OLLAMA_VISION_MODEL = "llava",
   OLLAMA_EMBEDDING_MODEL = "all-minilm",
 } = process.env;
@@ -24,7 +25,10 @@ if (SUPABASE_SERVICE_ROLE_KEY && !SUPABASE_SERVICE_ROLE_KEY.startsWith("eyJ")) {
 
 try {
   const response = await fetch(`${OLLAMA_URL.replace(/\/+$/, "")}/api/tags`, {
-    headers: { Accept: "application/json" },
+    headers: {
+      Accept: "application/json",
+      ...(OLLAMA_API_KEY ? { Authorization: `Bearer ${OLLAMA_API_KEY}` } : {}),
+    },
   });
 
   if (!response.ok) {

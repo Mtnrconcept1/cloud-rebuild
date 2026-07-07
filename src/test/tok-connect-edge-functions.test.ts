@@ -45,6 +45,22 @@ describe("TOK Connect Edge Functions", () => {
     expect(authSource).toContain("tok_connect_quota_per_minute");
   });
 
+  it("returns OAuth token exchange responses at the JSON root for ChatGPT compatibility", () => {
+    const source = read("supabase/functions/tok-connect-oauth/index.ts");
+
+    expect(source).toContain("type OAuthTokenPayload");
+    expect(source).toContain("function oauthTokenResponse");
+    expect(source).toContain("return oauthTokenResponse({");
+    expect(source).toContain("access_token: accessToken");
+    expect(source).toContain('token_type: "Bearer"');
+    expect(source).toContain("expires_in: expiresIn");
+    expect(source).toContain('scope: issuedScopes.join(" ")');
+    expect(source).toContain('"Cache-Control": "no-store"');
+    expect(source).toContain('"Pragma": "no-cache"');
+    expect(source).not.toMatch(/buildTokConnectEnvelope\(\{[\s\S]{0,240}access_token/i);
+    expect(source).not.toMatch(/data:\s*\{\s*access_token/i);
+  });
+
   it("implements the versioned REST API with scoped access, pagination and idempotent reservation writes", () => {
     const source = read("supabase/functions/tok-connect-api/index.ts");
 

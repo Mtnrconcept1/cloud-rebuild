@@ -50,6 +50,22 @@ export type RegisterRestaurantImageForAnalysisParams = {
 
 const RESTAURANT_IMAGE_BUCKET = "restaurant-images";
 
+function triggerRestaurantImageAnalysis(imageId: string) {
+  if (!imageId) return;
+
+  const supabase = getSupabase() as any;
+  void supabase.functions
+    .invoke("analyze-restaurant-image", { body: { imageId } })
+    .then(({ error }: { error?: { message?: string } | null }) => {
+      if (error) {
+        console.warn("Analyse image TOK non demarree:", error.message || error);
+      }
+    })
+    .catch((error: unknown) => {
+      console.warn("Analyse image TOK non demarree:", error);
+    });
+}
+
 function getImageDimensions(file: File) {
   if (typeof URL === "undefined" || typeof Image === "undefined") {
     return Promise.resolve({ width: null, height: null });
@@ -130,7 +146,9 @@ export async function registerRestaurantImageForAnalysis({
     throw new Error(`Analyse image non planifiée: ${error.message}`);
   }
 
-  return data as RestaurantImageAnalysisRow;
+  const row = data as RestaurantImageAnalysisRow;
+  triggerRestaurantImageAnalysis(row.id);
+  return row;
 }
 
 export async function uploadRestaurantImage({
