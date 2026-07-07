@@ -81,7 +81,9 @@ describe("checkout and Stripe webhook safety guards", () => {
     expect(secretsScriptSource).toContain('"STRIPE_LIVE_WEBHOOK"');
     expect(secretsScriptSource).toContain('"STRIPE_WEBHOOK_SECRET_LIVE"');
     expect(secretsScriptSource).toContain('"STRIPE_WEBHOOK_SIGNING_SECRET_LIVE"');
-    expect(workflowSource).toContain("STRIPE_SECRET_KEY_LIVE: ${{ secrets.STRIPE_SECRET_KEY }}");
+    expect(workflowSource).toContain(
+      "STRIPE_SECRET_KEY_LIVE: ${{ secrets.STRIPE_SECRET_KEY_LIVE || secrets.STRIPE_SECRET_KEY }}",
+    );
     expect(workflowSource).toContain("STRIPE_LIVE_WEBHOOK: ${{ secrets.STRIPE_LIVE_WEBHOOK }}");
     expect(workflowSource).toContain(
       "STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET || secrets.STRIPE_LIVE_WEBHOOK }}",
