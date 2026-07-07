@@ -10,6 +10,7 @@ const allowedNames = [
   "SUPABASE_SERVICE_ROLE_KEY",
   "STRIPE_SECRET_KEY",
   "STRIPE_SECRET_KEY_LIVE",
+  "STRIPE_LIVE_WEBHOOK",
   "STRIPE_WEBHOOK_SECRET",
   "STRIPE_WEBHOOK_SECRET_LIVE",
   "STRIPE_WEBHOOK_SIGNING_SECRET",
@@ -60,6 +61,14 @@ for (const name of allowedNames) {
 const derivedAllowedOrigins = deriveAllowedOrigins(entries);
 if (derivedAllowedOrigins && !entries.some(([name]) => name === "ALLOWED_ORIGINS")) {
   entries.push(["ALLOWED_ORIGINS", derivedAllowedOrigins]);
+}
+
+const liveWebhookSecret = cleanValue(process.env.STRIPE_LIVE_WEBHOOK);
+if (liveWebhookSecret) {
+  ensureDefault(entries, "STRIPE_WEBHOOK_SECRET", liveWebhookSecret);
+  ensureDefault(entries, "STRIPE_WEBHOOK_SECRET_LIVE", liveWebhookSecret);
+  ensureDefault(entries, "STRIPE_WEBHOOK_SIGNING_SECRET", liveWebhookSecret);
+  ensureDefault(entries, "STRIPE_WEBHOOK_SIGNING_SECRET_LIVE", liveWebhookSecret);
 }
 
 ensureDefault(entries, "ENVIRONMENT", "production");

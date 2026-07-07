@@ -7,7 +7,11 @@ import { parse as parseDotenv } from "dotenv";
 const DEFAULT_ENV_FILES = [".env.production", ".env.production.local"];
 const REQUIRED_EDGE_SECRETS = [
   ["STRIPE_SECRET_KEY", /^sk_live_/, "Missing STRIPE_SECRET_KEY live secret for production payments."],
-  ["STRIPE_WEBHOOK_SECRET", /^whsec_/, "Missing STRIPE_WEBHOOK_SECRET for production payment capture."],
+  [
+    ["STRIPE_WEBHOOK_SECRET", "STRIPE_LIVE_WEBHOOK"],
+    /^whsec_/,
+    "Missing STRIPE_WEBHOOK_SECRET or STRIPE_LIVE_WEBHOOK for production payment capture.",
+  ],
   ["INTERNAL_CRON_SECRET", /^.{16,}$/, "Missing INTERNAL_CRON_SECRET with at least 16 characters."],
   ["RESEND_API_KEY", /^re_/, "Missing RESEND_API_KEY for production email delivery."],
   ["EMAIL_FROM", /@/, "Missing EMAIL_FROM for production transactional email."],
@@ -162,8 +166,9 @@ function inspectAndroidSigning(root, env, report) {
 }
 
 function inspectEdgeSecrets(env, report) {
-  for (const [name, pattern, message] of REQUIRED_EDGE_SECRETS) {
-    const value = clean(env[name]);
+  for (const [names, pattern, message] of REQUIRED_EDGE_SECRETS) {
+    const candidates = Array.isArray(names) ? names : [names];
+    const value = candidates.map((name) => clean(env[name])).find((candidate) => candidate);
     if (!pattern.test(value) || isPlaceholder(value)) {
       report.required(message);
     }

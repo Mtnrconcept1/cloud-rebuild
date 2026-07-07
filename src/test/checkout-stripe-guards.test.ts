@@ -73,15 +73,23 @@ describe("checkout and Stripe webhook safety guards", () => {
     expect(confirmMatchGroupSource).toContain('Deno.env.get("STRIPE_SECRET_KEY_LIVE")');
     expect(stripeClientSource).toContain("isPlatformStripeSecretName");
     expect(stripeClientSource).toContain('"STRIPE_SECRET_KEY_LIVE"');
+    expect(stripeClientSource).toContain('"STRIPE_LIVE_WEBHOOK"');
     expect(stripeClientSource).toContain('"STRIPE_WEBHOOK_SECRET_LIVE"');
     expect(stripeClientSource).toContain('"STRIPE_WEBHOOK_SIGNING_SECRET_LIVE"');
     expect(secretsScriptSource).toContain('"STRIPE_SECRET_KEY_LIVE"');
+    expect(secretsScriptSource).toContain('"STRIPE_LIVE_WEBHOOK"');
     expect(secretsScriptSource).toContain('"STRIPE_WEBHOOK_SECRET_LIVE"');
     expect(secretsScriptSource).toContain('"STRIPE_WEBHOOK_SIGNING_SECRET_LIVE"');
     expect(workflowSource).toContain("STRIPE_SECRET_KEY_LIVE: ${{ secrets.STRIPE_SECRET_KEY }}");
-    expect(workflowSource).toContain("STRIPE_WEBHOOK_SECRET_LIVE: ${{ secrets.STRIPE_WEBHOOK_SECRET }}");
+    expect(workflowSource).toContain("STRIPE_LIVE_WEBHOOK: ${{ secrets.STRIPE_LIVE_WEBHOOK }}");
     expect(workflowSource).toContain(
-      "STRIPE_WEBHOOK_SIGNING_SECRET_LIVE: ${{ secrets.STRIPE_WEBHOOK_SIGNING_SECRET }}",
+      "STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET || secrets.STRIPE_LIVE_WEBHOOK }}",
+    );
+    expect(workflowSource).toContain(
+      "STRIPE_WEBHOOK_SECRET_LIVE: ${{ secrets.STRIPE_LIVE_WEBHOOK || secrets.STRIPE_WEBHOOK_SECRET }}",
+    );
+    expect(workflowSource).toContain(
+      "STRIPE_WEBHOOK_SIGNING_SECRET_LIVE: ${{ secrets.STRIPE_LIVE_WEBHOOK || secrets.STRIPE_WEBHOOK_SIGNING_SECRET }}",
     );
   });
 

@@ -143,6 +143,7 @@ export function getStripeVerificationRuntime() {
 export function getStripeWebhookSigningSecrets() {
   return Array.from(
     new Set([
+      ...splitSecrets(getEnv("STRIPE_LIVE_WEBHOOK")),
       ...splitSecrets(getEnv("STRIPE_WEBHOOK_SECRET")),
       ...splitSecrets(getEnv("STRIPE_WEBHOOK_SECRET_LIVE")),
       ...splitSecrets(getEnv("STRIPE_WEBHOOK_SIGNING_SECRET")),
