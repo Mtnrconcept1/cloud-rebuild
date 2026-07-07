@@ -275,8 +275,10 @@ export default function SuiviCommande() {
   const restaurantLabel = orders.length > 1 ? `${orders.length} restaurants` : liveOrder.restaurants?.name || "Restaurant";
   const ordersWithPricing = orders.filter((entry: any) => {
     const breakdown = getOrderPaymentBreakdown(entry);
-    return breakdown.total > 0 || breakdown.subtotal > 0 || breakdown.tokOneTotalSaved > 0;
+    return breakdown.total > 0 || breakdown.subtotal > 0 || breakdown.tokOneTotalSaved > 0 || breakdown.pointsDiscount > 0;
   });
+  const primaryPaymentSummary = getOrderPaymentBreakdown(liveOrder).paymentSummary;
+  const PrimaryPaymentIcon = primaryPaymentSummary.icon;
 
   if (!isDelivery) {
     return (
@@ -551,12 +553,21 @@ export default function SuiviCommande() {
             <span>{totalAmount.toFixed(2)} CHF</span>
           </div>
 
-          <div className="flex items-center gap-3 pt-2">
-            <div className="w-10 h-10 rounded-xl bg-black text-white flex items-center justify-center shrink-0">
-              <span className="font-bold text-xs tracking-tighter italic">TWINT</span>
+          {primaryPaymentSummary.coveredByBenefits ? (
+            <div className="flex items-center gap-3 pt-2">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                <PrimaryPaymentIcon className="h-4 w-4" />
+              </div>
+              <span className="text-sm font-medium">{primaryPaymentSummary.label}</span>
             </div>
-            <span className="text-sm font-medium">{orderMeta.payment_method === "twint" ? "Twint" : "Carte Bancaire"}</span>
-          </div>
+          ) : (
+            <div className="flex items-center gap-3 pt-2">
+              <div className="w-10 h-10 rounded-xl bg-black text-white flex items-center justify-center shrink-0">
+                <span className="font-bold text-xs tracking-tighter italic">TWINT</span>
+              </div>
+              <span className="text-sm font-medium">{orderMeta.payment_method === "twint" ? "Twint" : "Carte Bancaire"}</span>
+            </div>
+          )}
         </div>
 
         <div className="mt-8 mb-12 bg-accent/5 rounded-2xl p-4 flex items-center gap-4 border border-accent/20">

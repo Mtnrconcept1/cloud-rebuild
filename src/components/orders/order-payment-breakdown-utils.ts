@@ -1,4 +1,4 @@
-import { Banknote, CreditCard } from "lucide-react";
+import { Banknote, CreditCard, Crown, Gift, type LucideIcon } from "lucide-react";
 
 export type OrderLike = {
   total_amount?: number | string | null;
@@ -7,11 +7,22 @@ export type OrderLike = {
   order_items?: Array<{ total_price?: number | string | null }> | null;
 };
 
-const PAYMENT_LABELS: Record<string, { label: string; icon: typeof CreditCard }> = {
+type PaymentDisplay = {
+  label: string;
+  icon: LucideIcon;
+};
+
+type PaymentSummary = PaymentDisplay & {
+  coveredByBenefits: boolean;
+};
+
+const PAYMENT_LABELS: Record<string, PaymentDisplay> = {
   card: { label: "Carte bancaire", icon: CreditCard },
   twint: { label: "TWINT", icon: CreditCard },
   cash: { label: "Espèces", icon: Banknote },
 };
+
+const MONEY_EPSILON = 0.01;
 
 function toNumber(value: unknown) {
   const parsed = Number(value);
@@ -24,6 +35,47 @@ function getMetadata(order: OrderLike) {
   }
 
   return order.metadata;
+}
+
+function getBenefitCoveredPaymentSummary({
+  total,
+  pointsDiscount,
+  tokOneDiscount,
+  tokOneDeliverySaved,
+}: {
+  total: number;
+  pointsDiscount: number;
+  tokOneDiscount: number;
+  tokOneDeliverySaved: number;
+}): PaymentSummary | null {
+  if (total > MONEY_EPSILON) return null;
+
+  const coveredByMiamz = pointsDiscount > MONEY_EPSILON;
+  const coveredByTokOne = tokOneDiscount > MONEY_EPSILON || tokOneDeliverySaved > MONEY_EPSILON;
+
+  if (!coveredByMiamz && !coveredByTokOne) return null;
+
+  if (coveredByMiamz && coveredByTokOne) {
+    return {
+      label: "Montant payé intégralement avec les Miamz/Tok One",
+      icon: Gift,
+      coveredByBenefits: true,
+    };
+  }
+
+  if (coveredByMiamz) {
+    return {
+      label: "Montant payé intégralement avec les Miamz",
+      icon: Gift,
+      coveredByBenefits: true,
+    };
+  }
+
+  return {
+    label: "Montant payé intégralement avec Tok One",
+    icon: Crown,
+    coveredByBenefits: true,
+  };
 }
 
 export function isTokCommissionApplicable(order: OrderLike) {
@@ -80,6 +132,17 @@ export function getOrderPaymentBreakdown(order: OrderLike) {
   const paymentMethodRaw = String(meta.payment_method || "card");
   const paymentMethodKey = paymentMethodRaw.toLowerCase();
   const paymentMethod = PAYMENT_LABELS[paymentMethodKey] || PAYMENT_LABELS.card;
+  const benefitCoveredPaymentSummary = getBenefitCoveredPaymentSummary({
+    total,
+    pointsDiscount,
+    tokOneDiscount,
+    tokOneDeliverySaved,
+  });
+  const paymentSummary = benefitCoveredPaymentSummary || {
+    label: `Payé par ${paymentMethod.label}`,
+    icon: paymentMethod.icon,
+    coveredByBenefits: false,
+  };
 
   return {
     subtotal,
@@ -99,6 +162,7 @@ export function getOrderPaymentBreakdown(order: OrderLike) {
     deliveryFee,
     total,
     paymentMethod,
+    paymentSummary,
     paymentMethodRaw,
     cardLast4: typeof meta.card_last4 === "string" ? meta.card_last4 : "",
   };

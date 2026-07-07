@@ -2,23 +2,18 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Navigate, Link, useLocation, useNavigate } from "react-router-dom";
 import {
-  Banknote,
   ChevronDown,
   ChevronRight,
   CreditCard,
-  Crown,
-  Gift,
   MapPin,
   Package,
-  Percent,
   RefreshCcw,
   ShoppingCart,
-  Sparkles,
-  Truck,
   XCircle,
 } from "lucide-react";
 
 import CustomerDashboardLayout from "@/components/CustomerDashboardLayout";
+import OrderPaymentBreakdown from "@/components/orders/OrderPaymentBreakdown";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
 import TokAiSupportChat from "@/components/support/TokAiSupportChat";
 import SortControls from "@/components/list/SortControls";
@@ -46,123 +41,6 @@ import { parseStripeReturnSearch } from "@/lib/stripeReturn";
 import { useToast } from "@/hooks/use-toast";
 
 const supabase = getSupabase();
-
-const PAYMENT_LABELS: Record<string, { label: string; icon: typeof CreditCard }> = {
-  card: { label: "Carte bancaire", icon: CreditCard },
-  twint: { label: "TWINT", icon: CreditCard },
-  cash: { label: "Espèces", icon: Banknote },
-};
-
-function PaymentBreakdown({ order }: { order: any }) {
-  const meta = (order.metadata || {}) as any;
-  const subtotalFromItems = Array.isArray(order.order_items)
-    ? order.order_items.reduce((sum: number, item: any) => sum + Number(item.total_price || 0), 0)
-    : 0;
-  const formulaDiscount = Number(meta.formula_discount_amount || 0);
-  const promotionDiscount = Number(meta.promotion_discount_amount || 0);
-  const tokOneDiscount = Number(meta.tok_one_discount_amount || 0);
-  const tokOneDiscountPercent = Number(meta.tok_one_discount_percent || 0);
-  const flexDiscount = Number(meta.flex_discount || meta.flex_discount_amount || 0);
-  const pointsDiscount = Number(meta.points_discount || meta.points_discount_amount || 0);
-  const deliveryFee = Number(order.delivery_fee || 0);
-  const qualityFee = Number(meta.quality_fee_amount || 0);
-  const total = Number(order.total_amount);
-  const subtotal = Number(
-    meta.pre_discount_subtotal
-      || subtotalFromItems
-      || Math.max(0, total - deliveryFee - qualityFee + formulaDiscount + promotionDiscount + tokOneDiscount + flexDiscount + pointsDiscount),
-  );
-  const tokOneMember = !!meta.tok_one_member;
-  const tokOneDeliverySaved = Number(meta.tok_one_delivery_saved || 0);
-  const paymentMethod = meta.payment_method || "card";
-  const formulaName = meta.formula_applied;
-  const promotionName = meta.promotion_applied;
-  const flexOption = meta.flex_option;
-  const hasBreakdown = subtotal > 0
-    || formulaDiscount > 0
-    || promotionDiscount > 0
-    || tokOneDiscount > 0
-    || tokOneDeliverySaved > 0
-    || flexDiscount > 0
-    || pointsDiscount > 0
-    || deliveryFee > 0
-    || qualityFee > 0;
-
-  if (!hasBreakdown) return null;
-
-  const pm = PAYMENT_LABELS[paymentMethod] || PAYMENT_LABELS.card;
-  const PmIcon = pm.icon;
-
-  return (
-    <div className="mt-3 space-y-1.5 border-t border-dashed pt-3 text-xs">
-      <div className="flex justify-between text-muted-foreground">
-        <span>Sous-total</span>
-        <span>{subtotal.toFixed(2)} CHF</span>
-      </div>
-      {formulaDiscount > 0 ? (
-        <div className="flex justify-between text-emerald-600">
-          <span className="flex items-center gap-1"><Percent className="h-3 w-3" />{formulaName || "Formule"}</span>
-          <span>-{formulaDiscount.toFixed(2)} CHF</span>
-        </div>
-      ) : null}
-      {promotionDiscount > 0 ? (
-        <div className="flex justify-between text-emerald-600">
-          <span className="flex items-center gap-1"><Percent className="h-3 w-3" />{promotionName || "Promotion"}</span>
-          <span>-{promotionDiscount.toFixed(2)} CHF</span>
-        </div>
-      ) : null}
-      {tokOneDiscount > 0 ? (
-        <div className="flex justify-between text-violet-600">
-          <span className="flex items-center gap-1"><Crown className="h-3 w-3" />Tok One{tokOneDiscountPercent > 0 ? ` (-${tokOneDiscountPercent.toFixed(0)}%)` : ""}</span>
-          <span>-{tokOneDiscount.toFixed(2)} CHF</span>
-        </div>
-      ) : null}
-      {flexDiscount > 0 ? (
-        <div className="flex justify-between text-emerald-600">
-          <span className="flex items-center gap-1"><Sparkles className="h-3 w-3" />Remise Flex</span>
-          <span>-{flexDiscount.toFixed(2)} CHF</span>
-        </div>
-      ) : null}
-      {pointsDiscount > 0 ? (
-        <div className="flex justify-between text-emerald-600">
-          <span className="flex items-start gap-1">
-            <Gift className="h-3 w-3" />
-            <span>
-              <span className="block">Miamz pris en charge par Tok</span>
-              <span className="block text-[10px] leading-4 text-muted-foreground">Réduction fidélité appliquée</span>
-            </span>
-          </span>
-          <span>-{pointsDiscount.toFixed(2)} CHF</span>
-        </div>
-      ) : null}
-      {tokOneMember && tokOneDeliverySaved > 0 ? (
-        <div className="flex justify-between text-violet-600">
-          <span className="flex items-center gap-1"><Crown className="h-3 w-3" />Livraison offerte (Tok One)</span>
-          <span>-{tokOneDeliverySaved.toFixed(2)} CHF</span>
-        </div>
-      ) : deliveryFee > 0 ? (
-        <div className="flex justify-between text-muted-foreground">
-          <span className="flex items-center gap-1"><Truck className="h-3 w-3" />Livraison{flexOption ? ` (${flexOption})` : ""}</span>
-          <span>+{deliveryFee.toFixed(2)} CHF</span>
-        </div>
-      ) : null}
-      {qualityFee > 0 ? (
-        <div className="flex justify-between text-muted-foreground">
-          <span>Garantie qualité</span>
-          <span>+{qualityFee.toFixed(2)} CHF</span>
-        </div>
-      ) : null}
-      <div className="flex justify-between pt-1 font-bold text-foreground">
-        <span>Total</span>
-        <span>{total.toFixed(2)} CHF</span>
-      </div>
-      <div className="flex items-center gap-1.5 pt-1 text-muted-foreground">
-        <PmIcon className="h-3 w-3" />
-        <span>Paye par {pm.label}</span>
-      </div>
-    </div>
-  );
-}
 
 function getDisplayStatus(order: any) {
   const dispatchStatus = String(order.dispatch_job?.status || "");
@@ -465,7 +343,7 @@ export default function Commandes() {
                               </div>
                             ))}
                           </div>
-                          <PaymentBreakdown order={order} />
+                          <OrderPaymentBreakdown order={order} className="mt-3" />
                           {(order.metadata as any)?.scheduled_delivery_label ? (
                             <p className="text-xs text-muted-foreground">
                               Livraison planifiée : {(order.metadata as any).scheduled_delivery_label}

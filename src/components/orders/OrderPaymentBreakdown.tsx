@@ -1,5 +1,4 @@
 import {
-  CreditCard,
   Crown,
   Gift,
   Percent,
@@ -49,7 +48,7 @@ export default function OrderPaymentBreakdown({
     qualityFee,
     deliveryFee,
     total,
-    paymentMethod,
+    paymentSummary,
     cardLast4,
   } = breakdown;
 
@@ -66,7 +65,7 @@ export default function OrderPaymentBreakdown({
 
   if (!hasBreakdown) return null;
 
-  const PaymentIcon = paymentMethod.icon;
+  const PaymentIcon = paymentSummary.icon;
 
   return (
     <div className={`${showDivider ? "border-t border-dashed pt-3" : ""} space-y-1.5 text-xs ${className}`.trim()}>
@@ -154,8 +153,8 @@ export default function OrderPaymentBreakdown({
       {showPaymentMethod ? (
         <div className="flex items-center gap-1.5 pt-1 text-muted-foreground">
           <PaymentIcon className="h-3 w-3" />
-          <span>Payé par {paymentMethod.label}</span>
-          {cardLast4 ? (
+          <span>{paymentSummary.label}</span>
+          {!paymentSummary.coveredByBenefits && cardLast4 ? (
             <span className="rounded bg-secondary px-1 py-0.5 font-mono text-[10px]">**** {cardLast4}</span>
           ) : null}
         </div>
