@@ -505,7 +505,7 @@ RETURNS TABLE (
 )
 LANGUAGE sql
 STABLE
-SET search_path = public
+SET search_path = public, extensions
 AS $$
   SELECT
     i.id,
