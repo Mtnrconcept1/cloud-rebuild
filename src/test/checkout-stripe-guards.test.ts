@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 const createCheckoutSource = readFileSync(resolve(process.cwd(), "supabase/functions/create-checkout/index.ts"), "utf8");
 const stripeWebhookSource = readFileSync(resolve(process.cwd(), "supabase/functions/stripe-webhook/index.ts"), "utf8");
+const stripeWorkerSource = readFileSync(resolve(process.cwd(), "supabase/functions/stripe-worker/index.ts"), "utf8");
 const stripeClientSource = readFileSync(resolve(process.cwd(), "supabase/functions/_shared/stripe-client.ts"), "utf8");
 const orderCheckoutSource = readFileSync(resolve(process.cwd(), "supabase/functions/_shared/order-checkout.ts"), "utf8");
 const chefsTableSource = readFileSync(resolve(process.cwd(), "supabase/functions/_shared/chefs-table.ts"), "utf8");
@@ -75,7 +76,24 @@ describe("checkout and Stripe webhook safety guards", () => {
     expect(stripeClientSource).toContain('"STRIPE_WEBHOOK_SECRET_LIVE"');
     expect(stripeClientSource).toContain('"STRIPE_WEBHOOK_SIGNING_SECRET_LIVE"');
     expect(secretsScriptSource).toContain('"STRIPE_SECRET_KEY_LIVE"');
+    expect(secretsScriptSource).toContain('"STRIPE_WEBHOOK_SECRET_LIVE"');
+    expect(secretsScriptSource).toContain('"STRIPE_WEBHOOK_SIGNING_SECRET_LIVE"');
     expect(workflowSource).toContain("STRIPE_SECRET_KEY_LIVE: ${{ secrets.STRIPE_SECRET_KEY }}");
+    expect(workflowSource).toContain("STRIPE_WEBHOOK_SECRET_LIVE: ${{ secrets.STRIPE_WEBHOOK_SECRET }}");
+    expect(workflowSource).toContain(
+      "STRIPE_WEBHOOK_SIGNING_SECRET_LIVE: ${{ secrets.STRIPE_WEBHOOK_SIGNING_SECRET }}",
+    );
+  });
+
+  it("keeps the legacy stripe-worker endpoint as a raw webhook proxy", () => {
+    const configSource = readFileSync(resolve(process.cwd(), "supabase/config.toml"), "utf8");
+
+    expect(configSource).toContain("[functions.stripe-worker]");
+    expect(configSource).toContain("[functions.stripe-worker]\nverify_jwt = false");
+    expect(stripeWorkerSource).toContain("/functions/v1/stripe-webhook");
+    expect(stripeWorkerSource).toContain("body: req.body");
+    expect(stripeWorkerSource).toContain("stripe-signature");
+    expect(stripeWorkerSource).toContain('"x-tok-forwarded-from", "stripe-worker"');
   });
 
   it("does not acknowledge claimed Stripe events when processing fails", () => {

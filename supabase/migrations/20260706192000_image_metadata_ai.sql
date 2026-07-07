@@ -55,35 +55,8 @@ CREATE TABLE IF NOT EXISTS public.restaurant_images (
   has_text boolean DEFAULT false,
   quality_score numeric(4,2) CHECK (quality_score IS NULL OR quality_score BETWEEN 0 AND 10),
   ai_metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
-  search_text text GENERATED ALWAYS AS (
-    trim(
-      coalesce(description, '') || ' ' ||
-      coalesce(short_description, '') || ' ' ||
-      coalesce(alt_text, '') || ' ' ||
-      coalesce(seo_title, '') || ' ' ||
-      coalesce(seo_description, '') || ' ' ||
-      array_to_string(detected_objects, ' ') || ' ' ||
-      array_to_string(food_items, ' ') || ' ' ||
-      array_to_string(ingredients, ' ') || ' ' ||
-      array_to_string(cuisine_types, ' ') || ' ' ||
-      array_to_string(moods, ' ') || ' ' ||
-      array_to_string(colors, ' ') || ' ' ||
-      array_to_string(hashtags, ' ') || ' ' ||
-      coalesce(image_type, '')
-    )
-  ) STORED,
-  search_vector tsvector GENERATED ALWAYS AS (
-    setweight(to_tsvector('french', coalesce(seo_title, '')), 'A') ||
-    setweight(to_tsvector('french', coalesce(alt_text, '')), 'A') ||
-    setweight(to_tsvector('french', coalesce(description, '')), 'B') ||
-    setweight(to_tsvector('french', coalesce(seo_description, '')), 'B') ||
-    setweight(to_tsvector('french', array_to_string(food_items, ' ')), 'A') ||
-    setweight(to_tsvector('french', array_to_string(ingredients, ' ')), 'A') ||
-    setweight(to_tsvector('french', array_to_string(detected_objects, ' ')), 'C') ||
-    setweight(to_tsvector('french', array_to_string(cuisine_types, ' ')), 'B') ||
-    setweight(to_tsvector('french', array_to_string(moods, ' ')), 'C') ||
-    setweight(to_tsvector('french', array_to_string(hashtags, ' ')), 'C')
-  ) STORED,
+  search_text text NOT NULL DEFAULT '',
+  search_vector tsvector NOT NULL DEFAULT ''::tsvector,
   embedding extensions.vector(384),
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
@@ -156,6 +129,64 @@ CREATE TRIGGER set_image_analysis_jobs_updated_at
 BEFORE UPDATE ON public.image_analysis_jobs
 FOR EACH ROW
 EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE OR REPLACE FUNCTION public.update_restaurant_images_search_fields()
+RETURNS trigger
+LANGUAGE plpgsql
+SET search_path = public
+AS $$
+BEGIN
+  NEW.search_text := trim(
+    coalesce(NEW.description, '') || ' ' ||
+    coalesce(NEW.short_description, '') || ' ' ||
+    coalesce(NEW.alt_text, '') || ' ' ||
+    coalesce(NEW.seo_title, '') || ' ' ||
+    coalesce(NEW.seo_description, '') || ' ' ||
+    array_to_string(coalesce(NEW.detected_objects, '{}'), ' ') || ' ' ||
+    array_to_string(coalesce(NEW.food_items, '{}'), ' ') || ' ' ||
+    array_to_string(coalesce(NEW.ingredients, '{}'), ' ') || ' ' ||
+    array_to_string(coalesce(NEW.cuisine_types, '{}'), ' ') || ' ' ||
+    array_to_string(coalesce(NEW.moods, '{}'), ' ') || ' ' ||
+    array_to_string(coalesce(NEW.colors, '{}'), ' ') || ' ' ||
+    array_to_string(coalesce(NEW.hashtags, '{}'), ' ') || ' ' ||
+    coalesce(NEW.image_type, '')
+  );
+
+  NEW.search_vector :=
+    setweight(to_tsvector('french', coalesce(NEW.seo_title, '')), 'A') ||
+    setweight(to_tsvector('french', coalesce(NEW.alt_text, '')), 'A') ||
+    setweight(to_tsvector('french', coalesce(NEW.description, '')), 'B') ||
+    setweight(to_tsvector('french', coalesce(NEW.seo_description, '')), 'B') ||
+    setweight(to_tsvector('french', array_to_string(coalesce(NEW.food_items, '{}'), ' ')), 'A') ||
+    setweight(to_tsvector('french', array_to_string(coalesce(NEW.ingredients, '{}'), ' ')), 'A') ||
+    setweight(to_tsvector('french', array_to_string(coalesce(NEW.detected_objects, '{}'), ' ')), 'C') ||
+    setweight(to_tsvector('french', array_to_string(coalesce(NEW.cuisine_types, '{}'), ' ')), 'B') ||
+    setweight(to_tsvector('french', array_to_string(coalesce(NEW.moods, '{}'), ' ')), 'C') ||
+    setweight(to_tsvector('french', array_to_string(coalesce(NEW.hashtags, '{}'), ' ')), 'C');
+
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS update_restaurant_images_search_fields_on_change ON public.restaurant_images;
+CREATE TRIGGER update_restaurant_images_search_fields_on_change
+BEFORE INSERT OR UPDATE OF
+  description,
+  short_description,
+  alt_text,
+  seo_title,
+  seo_description,
+  detected_objects,
+  food_items,
+  ingredients,
+  cuisine_types,
+  moods,
+  colors,
+  hashtags,
+  image_type
+ON public.restaurant_images
+FOR EACH ROW
+EXECUTE FUNCTION public.update_restaurant_images_search_fields();
 
 CREATE OR REPLACE FUNCTION public.enqueue_image_analysis_job()
 RETURNS trigger
@@ -625,6 +656,7 @@ GRANT SELECT ON public.image_analysis_jobs TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.image_analysis_jobs TO service_role;
 
 REVOKE ALL ON FUNCTION public.enqueue_image_analysis_job() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.update_restaurant_images_search_fields() FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.claim_image_analysis_jobs(text, integer) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.complete_image_analysis_job(uuid, uuid, text, text, text, text, text, text[], text[], text[], text[], text[], text[], text[], text, boolean, boolean, boolean, boolean, numeric, jsonb, extensions.vector) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.fail_image_analysis_job(uuid, uuid, text) FROM PUBLIC;

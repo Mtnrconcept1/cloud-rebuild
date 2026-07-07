@@ -98,6 +98,9 @@ verify_jwt = false
 [functions.stripe-webhook]
 verify_jwt = false
 
+[functions.stripe-worker]
+verify_jwt = false
+
 [functions.dispatch-timeout]
 verify_jwt = false
 

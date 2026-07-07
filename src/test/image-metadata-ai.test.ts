@@ -24,8 +24,10 @@ describe("restaurant image metadata AI pipeline", () => {
     expect(migration).toContain("source_id uuid");
     expect(migration).toContain("source_context jsonb NOT NULL DEFAULT '{}'::jsonb");
     expect(migration).toContain("CREATE INDEX IF NOT EXISTS restaurant_images_source_idx");
-    expect(migration).toContain("search_text text GENERATED ALWAYS");
-    expect(migration).toContain("search_vector tsvector GENERATED ALWAYS");
+    expect(migration).toContain("search_text text NOT NULL DEFAULT ''");
+    expect(migration).toContain("search_vector tsvector NOT NULL DEFAULT ''::tsvector");
+    expect(migration).toContain("CREATE OR REPLACE FUNCTION public.update_restaurant_images_search_fields");
+    expect(migration).toContain("CREATE TRIGGER update_restaurant_images_search_fields_on_change");
     expect(migration).toContain("USING gin (search_vector)");
     expect(migration).toContain("USING hnsw (embedding extensions.vector_cosine_ops)");
     expect(migration).toContain("CREATE OR REPLACE FUNCTION public.claim_image_analysis_jobs");
