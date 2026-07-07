@@ -18,6 +18,7 @@ import {
   selectTokAiModel,
 } from "../_shared/openai.ts";
 import {
+  assertTokCreditSpendRecorded,
   estimateTextAiPreflightCredits,
   requireRestaurantTokCreditBalance,
 } from "../_shared/restaurant-credits.ts";
@@ -152,7 +153,7 @@ async function insertUsage(
   const inputTokens = payload.usage?.input_tokens ?? 0;
   const outputTokens = payload.usage?.output_tokens ?? 0;
 
-  await actor.adminClient.from("ai_usage_logs").insert({
+  const { error } = await actor.adminClient.from("ai_usage_logs").insert({
     function_name: FUNCTION_NAME,
     action: payload.action,
     feature_name: payload.featureName,
@@ -174,6 +175,7 @@ async function insertUsage(
       ...(payload.metadata || {}),
     },
   });
+  assertTokCreditSpendRecorded(error);
 }
 
 Deno.serve(async (req) => {

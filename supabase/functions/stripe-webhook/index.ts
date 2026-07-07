@@ -1728,64 +1728,80 @@ Deno.serve(async (req) => {
           .eq("status", "succeeded");
         const successfulChargeTransactions = (chargeTransactions || []) as PaymentTransactionRow[];
 
-        const refundAmount = (charge.amount_refunded || 0) / 100;
+        const totalRefundedAmount = (charge.amount_refunded || 0) / 100;
+        const { data: existingRefundTransactions } = await supabaseAdmin
+          .from("payment_transactions")
+          .select("amount")
+          .eq("stripe_payment_intent_id", paymentIntentId)
+          .eq("type", "refund")
+          .eq("status", "succeeded");
+        const alreadyRecordedRefundAmount = ((existingRefundTransactions || []) as Array<{ amount: number | string | null }>)
+          .reduce((sum, transaction) => sum + Number(transaction.amount || 0), 0);
+        const refundAmount = Math.max(
+          0,
+          Math.round((totalRefundedAmount - alreadyRecordedRefundAmount) * 100) / 100,
+        );
+
+        if (refundAmount <= 0) {
+          log.info("charge_refund_already_recorded", {
+            payment_intent_id: paymentIntentId,
+            stripe_charge_id: charge.id,
+            stripe_refunded_total_chf: totalRefundedAmount,
+            recorded_refund_total_chf: alreadyRecordedRefundAmount,
+          });
+          break;
+        }
+
         const allocations = allocateAmounts(
           refundAmount,
           successfulChargeTransactions.map((transaction) => ({ amount: Number(transaction.amount || 0) })),
         );
 
-        const creditedUsers = new Set<string>();
+        const notifiedUsers = new Map<string, number>();
 
         for (const [index, transaction] of successfulChargeTransactions.entries()) {
+          const allocatedAmount = allocations[index] || 0;
+          if (allocatedAmount <= 0) continue;
+
           await supabaseAdmin.from("payment_transactions").insert({
             order_id: transaction.order_id,
             user_id: transaction.user_id,
             stripe_payment_intent_id: paymentIntentId,
-            amount: allocations[index] || 0,
+            amount: allocatedAmount,
             currency: charge.currency || "chf",
             type: "refund",
             status: "succeeded",
+            metadata: {
+              stripe_charge_id: charge.id,
+              stripe_refunded_total_chf: totalRefundedAmount,
+              stripe_refund_delta_chf: refundAmount,
+              stripe_webhook_event_id: event.id,
+            },
           });
 
-          if (transaction.user_id && !creditedUsers.has(transaction.user_id)) {
-            creditedUsers.add(transaction.user_id);
+          if (transaction.user_id) {
+            const previousAmount = notifiedUsers.get(transaction.user_id) || 0;
+            notifiedUsers.set(transaction.user_id, Math.round((previousAmount + allocatedAmount) * 100) / 100);
           }
         }
 
-        for (const userId of creditedUsers) {
-          const { data: wallet } = await supabaseAdmin
-            .from("user_wallets")
-            .select("id, balance")
-            .eq("user_id", userId)
-            .maybeSingle();
-
-          if (wallet) {
-            await supabaseAdmin
-              .from("user_wallets")
-              .update({ balance: wallet.balance + refundAmount, updated_at: new Date().toISOString() })
-              .eq("id", wallet.id);
-          } else {
-            await supabaseAdmin.from("user_wallets").insert({
-              user_id: userId,
-              balance: refundAmount,
-            });
-          }
-
+        for (const [userId, userRefundAmount] of notifiedUsers.entries()) {
           await enqueueNotification({
             adminClient: supabaseAdmin,
             userId,
             title: "Remboursement effectue",
-            body: `${refundAmount.toFixed(2)} CHF ont ete credites sur votre portefeuille.`,
+            body: `${userRefundAmount.toFixed(2)} CHF sont rembourses sur le moyen de paiement d'origine.`,
             type: "payment",
             category: "transactional",
             data: {
-              amount: refundAmount,
+              amount: userRefundAmount,
+              stripe_payment_intent_id: paymentIntentId,
               url: "/notifications",
             },
           });
         }
 
-        if (creditedUsers.size > 0) {
+        if (notifiedUsers.size > 0) {
           try {
             await triggerNotificationDispatch({ source: "stripe-webhook-refund", push: true, email: true });
           } catch (error) {

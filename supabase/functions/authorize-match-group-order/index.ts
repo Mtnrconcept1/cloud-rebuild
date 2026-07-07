@@ -45,7 +45,6 @@ Deno.serve(async (req) => {
     const { stripe } = getStripeRuntimeForCheckoutKind("match-group");
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      payment_method_types: ["card"],
       line_items: items.length > 0 ? items.map((item) => ({
         price_data: {
           currency: "chf",

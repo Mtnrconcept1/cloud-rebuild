@@ -9,6 +9,7 @@ import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import { createRateLimiter } from "../_shared/rate-limit.ts";
 import { OPENAI_API_KEY } from "../_shared/openai.ts";
+import { assertTokCreditSpendRecorded } from "../_shared/restaurant-credits.ts";
 
 type ImageEnhanceResult = {
   title: string;
@@ -1287,7 +1288,7 @@ async function insertUsage(
     metadata?: Record<string, unknown>;
   },
 ) {
-  await actor.adminClient.from("ai_usage_logs").insert({
+  const { error } = await actor.adminClient.from("ai_usage_logs").insert({
     function_name: FUNCTION_NAME,
     action: "image_enhance",
     model: payload.model || IMAGE_MODEL,
@@ -1301,6 +1302,7 @@ async function insertUsage(
     estimated_cost_chf: payload.estimatedCostChf ?? estimateCostChf(payload.usage, payload.imageCount || 0, payload.costOptions),
     metadata: payload.metadata || {},
   });
+  assertTokCreditSpendRecorded(error);
 }
 
 function readTokCreditBalance(usage: unknown) {

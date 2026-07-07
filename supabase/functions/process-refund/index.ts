@@ -48,6 +48,39 @@ function isPaidOrder(paymentStatus: unknown) {
   return normalized === "paid" || normalized === "captured";
 }
 
+const FINAL_ORDER_STATUSES = ["delivered", "picked_up", "completed"] as const;
+const FINAL_RESERVATION_STATUSES = ["completed", "served", "no_show"] as const;
+const ADMIN_REFUND_REASON_MIN_LENGTH = 12;
+
+async function hasFinalServiceEvidence(
+  adminClient: ReturnType<typeof createAdminClient>,
+  entity: RefundableEntity,
+) {
+  if (entity.targetType === "order") {
+    const { data, error } = await adminClient
+      .from("order_status_history")
+      .select("id")
+      .eq("order_id", entity.id)
+      .in("status", FINAL_ORDER_STATUSES as unknown as string[])
+      .limit(1)
+      .maybeSingle();
+
+    if (error) throw new HttpError(500, error.message);
+    return Boolean(data);
+  }
+
+  const { data, error } = await adminClient
+    .from("reservation_status_history")
+    .select("id")
+    .eq("reservation_id", entity.id)
+    .in("status", FINAL_RESERVATION_STATUSES as unknown as string[])
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw new HttpError(500, error.message);
+  return Boolean(data);
+}
+
 async function lookupOrder(adminClient: ReturnType<typeof createAdminClient>, orderId: string) {
   const { data, error } = await adminClient
     .from("orders")
@@ -208,6 +241,14 @@ Deno.serve(async (req) => {
       throw new HttpError(409, "Le remboursement n'est possible qu'apres annulation.");
     }
 
+    const finalServiceEvidence = await hasFinalServiceEvidence(actor.adminClient, entity);
+    if (finalServiceEvidence && !actor.isAdmin) {
+      throw new HttpError(403, "Une commande ou reservation deja servie requiert un remboursement admin.");
+    }
+    if (finalServiceEvidence && reason.length < ADMIN_REFUND_REASON_MIN_LENGTH) {
+      throw new HttpError(400, "Un motif admin detaille est requis pour rembourser un service deja execute.");
+    }
+
     if (entity.targetType === "order" && !isPaidOrder(entity.paymentStatus)) {
       throw new HttpError(400, "Cette commande n'a pas de paiement capture a rembourser.");
     }
@@ -226,6 +267,13 @@ Deno.serve(async (req) => {
     const { stripe } = getStripeRuntimeForCheckoutKind("refund");
 
     persistFailureState = true;
+    const refundIdempotencyKey = [
+      "tok-refund",
+      entity.targetType,
+      entity.id,
+      Math.round(entity.refundedAmount * 100),
+      Math.round(refundAmount * 100),
+    ].join(":");
     const stripeRefund = await stripe.refunds.create({
       payment_intent: entity.paymentIntentId,
       amount: Math.round(refundAmount * 100),
@@ -236,7 +284,10 @@ Deno.serve(async (req) => {
         restaurant_id: entity.restaurantId,
         cancelled_by: entity.cancelledBy || "",
         reference: entity.reference || "",
+        idempotency_key: refundIdempotencyKey,
       },
+    }, {
+      idempotencyKey: refundIdempotencyKey,
     });
     persistFailureState = false;
 

@@ -3,10 +3,16 @@ import { estimateOpenAITextCostChf, getTokAiCreditUnitsFromCostChf } from "./ai-
 
 export const TOK_CREDIT_EXHAUSTED_ERROR = "ai_credits_exhausted";
 
+type SupabaseMutationError = {
+  code?: string | null;
+  message?: string | null;
+} | null | undefined;
+
 type CreditUsageRecord = {
   available_tok_credits?: unknown;
   available_total_credits?: unknown;
   available_credits?: unknown;
+  credits?: unknown;
 };
 
 function readCreditUsageRecord(value: unknown): CreditUsageRecord {
@@ -17,9 +23,10 @@ function readCreditUsageRecord(value: unknown): CreditUsageRecord {
 
 export function readRestaurantTokCreditBalance(value: unknown) {
   const record = readCreditUsageRecord(value);
-  const balance = Number(
-    record.available_tok_credits ?? record.available_total_credits ?? record.available_credits ?? 0,
-  );
+  const explicitBalance = record.available_tok_credits ?? record.available_total_credits ?? record.available_credits;
+  const credits = Array.isArray(record.credits) ? record.credits as Array<Record<string, unknown>> : [];
+  const tokCredit = credits.find((credit) => String(credit?.kind || "") === "tok_credits");
+  const balance = Number(explicitBalance ?? tokCredit?.balance ?? 0);
 
   return Number.isFinite(balance) ? Math.max(0, Math.floor(balance)) : 0;
 }
@@ -52,6 +59,17 @@ export async function requireRestaurantTokCreditBalance(input: {
     availableCredits,
     requiredCredits,
   };
+}
+
+export function assertTokCreditSpendRecorded(error: SupabaseMutationError) {
+  if (!error) return;
+
+  const message = String(error.message || "");
+  if (error.code === "P0001" || message.includes("TOK credits exhausted")) {
+    throw new HttpError(402, TOK_CREDIT_EXHAUSTED_ERROR);
+  }
+
+  throw new HttpError(500, message || "tok_credit_spend_record_failed");
 }
 
 export function estimateTextAiPreflightCredits(input: {

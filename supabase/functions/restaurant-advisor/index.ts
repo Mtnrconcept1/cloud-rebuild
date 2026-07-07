@@ -15,6 +15,7 @@ import {
   selectTokAiModel,
 } from "../_shared/openai.ts";
 import {
+  assertTokCreditSpendRecorded,
   estimateTextAiPreflightCredits,
   requireRestaurantTokCreditBalance,
 } from "../_shared/restaurant-credits.ts";
@@ -94,7 +95,7 @@ async function insertUsage(
   const inputTokens = payload.inputTokens || 0;
   const outputTokens = payload.outputTokens || 0;
 
-  await actor.adminClient.from("ai_usage_logs").insert({
+  const { error } = await actor.adminClient.from("ai_usage_logs").insert({
     function_name: FUNCTION_NAME,
     action: "streaming_chat",
     feature_name: FEATURE_NAME,
@@ -114,6 +115,7 @@ async function insertUsage(
       ...(payload.metadata || {}),
     },
   });
+  assertTokCreditSpendRecorded(error);
 }
 
 Deno.serve(async (req) => {

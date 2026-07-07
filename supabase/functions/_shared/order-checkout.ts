@@ -375,6 +375,27 @@ export async function finalizePaidOrderCheckout(input: {
     || orders.find((order) => order.order_number === session.metadata?.order_reference)
     || orders[0];
 
+  if (primaryOrder?.user_id) {
+    const pointsToRedeem = Math.max(0, Number(session.metadata?.points_to_redeem || 0));
+    const promoCodeId = parseUuid(session.metadata?.promo_code_id);
+    const promoCodeDiscountAmount = Math.max(0, Number(session.metadata?.promo_code_discount_amount || 0));
+
+    if (pointsToRedeem > 0 || promoCodeId) {
+      const { error: benefitsError } = await adminClient.rpc("apply_checkout_benefits", {
+        p_user_id: primaryOrder.user_id,
+        p_order_id: primaryOrder.id,
+        p_points_to_redeem: pointsToRedeem,
+        p_promo_code_id: promoCodeId,
+        p_discount_applied: promoCodeDiscountAmount,
+        p_description: `Paiement commande ${primaryOrder.order_number || primaryOrder.id}`,
+      });
+
+      if (benefitsError) {
+        throw benefitsError;
+      }
+    }
+  }
+
   const finalizedOrders: FinalizedOrderSummary[] = [];
   let shouldDispatch = false;
 
@@ -552,27 +573,6 @@ export async function finalizePaidOrderCheckout(input: {
         orderId: order.id,
         message: emailError instanceof Error ? emailError.message : "unknown",
       });
-    }
-  }
-
-  if (primaryOrder?.user_id) {
-    const pointsToRedeem = Math.max(0, Number(session.metadata?.points_to_redeem || 0));
-    const promoCodeId = parseUuid(session.metadata?.promo_code_id);
-    const promoCodeDiscountAmount = Math.max(0, Number(session.metadata?.promo_code_discount_amount || 0));
-
-    if (pointsToRedeem > 0 || promoCodeId) {
-      const { error: benefitsError } = await adminClient.rpc("apply_checkout_benefits", {
-        p_user_id: primaryOrder.user_id,
-        p_order_id: primaryOrder.id,
-        p_points_to_redeem: pointsToRedeem,
-        p_promo_code_id: promoCodeId,
-        p_discount_applied: promoCodeDiscountAmount,
-        p_description: `Paiement commande ${primaryOrder.order_number || primaryOrder.id}`,
-      });
-
-      if (benefitsError) {
-        throw benefitsError;
-      }
     }
   }
 

@@ -8,6 +8,11 @@ const stripeWorkerSource = readFileSync(resolve(process.cwd(), "supabase/functio
 const stripeClientSource = readFileSync(resolve(process.cwd(), "supabase/functions/_shared/stripe-client.ts"), "utf8");
 const orderCheckoutSource = readFileSync(resolve(process.cwd(), "supabase/functions/_shared/order-checkout.ts"), "utf8");
 const orderPricingSource = readFileSync(resolve(process.cwd(), "supabase/functions/_shared/order-pricing.ts"), "utf8");
+const processRefundSource = readFileSync(resolve(process.cwd(), "supabase/functions/process-refund/index.ts"), "utf8");
+const authorizeMatchGroupOrderSource = readFileSync(
+  resolve(process.cwd(), "supabase/functions/authorize-match-group-order/index.ts"),
+  "utf8",
+);
 const chefsTableSource = readFileSync(resolve(process.cwd(), "supabase/functions/_shared/chefs-table.ts"), "utf8");
 const zeroAttenteSource = readFileSync(resolve(process.cwd(), "supabase/functions/_shared/zero-attente.ts"), "utf8");
 const validateOrderSource = readFileSync(resolve(process.cwd(), "supabase/functions/validate-order/index.ts"), "utf8");
@@ -43,6 +48,11 @@ describe("checkout and Stripe webhook safety guards", () => {
     expect(createCheckoutSource).toContain("restaurant_id:");
     expect(createCheckoutSource).toContain("authoritative_total");
     expect(createCheckoutSource).toContain("payment_method_label");
+  });
+
+  it("lets Stripe live configuration control payment methods instead of hardcoded checkout methods", () => {
+    expect(createCheckoutSource).not.toContain("payment_method_types");
+    expect(authorizeMatchGroupOrderSource).not.toContain("payment_method_types");
   });
 
   it("verifies Stripe webhook signatures and records event ids for idempotency before processing", () => {
@@ -162,6 +172,40 @@ describe("checkout and Stripe webhook safety guards", () => {
     expect(orderCheckoutSource).toContain('payment_status: "captured"');
     expect(orderCheckoutSource).toContain('checkout_session_state: "completed"');
     expect(orderCheckoutSource).toContain("recordOrderChargeIfMissing");
+  });
+
+  it("applies Miamz and promo benefits before confirming captured orders", () => {
+    const benefitsIndex = orderCheckoutSource.indexOf("apply_checkout_benefits");
+    const confirmIndex = orderCheckoutSource.indexOf('status: "confirmed"');
+
+    expect(benefitsIndex).toBeGreaterThan(-1);
+    expect(confirmIndex).toBeGreaterThan(-1);
+    expect(benefitsIndex).toBeLessThan(confirmIndex);
+  });
+
+  it("creates Stripe refunds with stable idempotency and admin-only service evidence overrides", () => {
+    expect(processRefundSource).toContain("refundIdempotencyKey");
+    expect(processRefundSource).toContain("idempotencyKey: refundIdempotencyKey");
+    expect(processRefundSource).toContain("entity.refundedAmount");
+    expect(processRefundSource).toContain("Math.round(refundAmount * 100)");
+    expect(processRefundSource).toContain("hasFinalServiceEvidence");
+    expect(processRefundSource).toContain("order_status_history");
+    expect(processRefundSource).toContain("reservation_status_history");
+    expect(processRefundSource).toContain("Une commande ou reservation deja servie requiert un remboursement admin.");
+  });
+
+  it("does not create wallet credit on top of a Stripe refund", () => {
+    const refundBlock = stripeWebhookSource.slice(
+      stripeWebhookSource.indexOf('case "charge.refunded"'),
+      stripeWebhookSource.indexOf('case "customer.subscription.created"'),
+    );
+
+    expect(refundBlock).toContain("existingRefundTransactions");
+    expect(refundBlock).toContain("charge_refund_already_recorded");
+    expect(refundBlock).toContain("stripe_refund_delta_chf");
+    expect(refundBlock).toContain("moyen de paiement d'origine");
+    expect(refundBlock).not.toContain('from("user_wallets")');
+    expect(refundBlock).not.toContain("balance: wallet.balance + refundAmount");
   });
 
   it("creates pending online order rows before opening the Stripe redirect", () => {

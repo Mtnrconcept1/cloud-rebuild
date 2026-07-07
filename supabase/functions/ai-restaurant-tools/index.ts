@@ -18,6 +18,7 @@ import {
   parseStructuredOutput,
 } from "../_shared/openai.ts";
 import {
+  assertTokCreditSpendRecorded,
   estimateTextAiPreflightCredits,
   requireRestaurantTokCreditBalance,
 } from "../_shared/restaurant-credits.ts";
@@ -102,7 +103,7 @@ async function insertUsage(
   const outputTokens = payload.usage?.output_tokens ?? 0;
   const estimatedCostChf = estimateOpenAITextCostChf(OPENAI_MODEL, inputTokens, outputTokens);
 
-  await actor.adminClient.from("ai_usage_logs").insert({
+  const { error } = await actor.adminClient.from("ai_usage_logs").insert({
     function_name: FUNCTION_NAME,
     action: payload.action,
     model: OPENAI_MODEL,
@@ -120,6 +121,7 @@ async function insertUsage(
       ...(payload.metadata || {}),
     },
   });
+  assertTokCreditSpendRecorded(error);
 }
 
 Deno.serve(async (req) => {

@@ -118,9 +118,18 @@ describe("TOK AI tools foundation", () => {
     const creditHelper = readProjectFile("supabase/functions/_shared/restaurant-credits.ts");
 
     expect(creditHelper).toContain("get_restaurant_credit_usage");
+    expect(creditHelper).toContain("tokCredit?.balance");
     expect(creditHelper).toContain("ai_credits_exhausted");
     expect(creditHelper).toContain("requireRestaurantTokCreditBalance");
     expect(creditHelper).toContain("estimateTextAiPreflightCredits");
+
+    const creditGuardMigration = readMigrationContaining("guard_tok_credit_spend");
+    expect(creditGuardMigration).toContain("CREATE OR REPLACE FUNCTION public.guard_restaurant_tok_credit_spend");
+    expect(creditGuardMigration).toContain("pg_advisory_xact_lock");
+    expect(creditGuardMigration).toContain("public.get_restaurant_credit_usage(v_restaurant_id)");
+    expect(creditGuardMigration).toContain("TOK credits exhausted");
+    expect(creditGuardMigration).toContain("guard_tok_credit_spend_ai_usage_logs");
+    expect(creditGuardMigration).toContain("guard_tok_credit_spend_ad_campaigns");
 
     for (const fn of [
       "ai-social-post-copy",

@@ -122,10 +122,8 @@ Deno.serve(async (req) => {
       throw new HttpError(400, error instanceof Error ? error.message : "Moyen de paiement indisponible.");
     }
 
-    const paymentMethodTypes: string[] = [];
     switch (normalizedPaymentMethod) {
       case "twint":
-        paymentMethodTypes.push("twint");
         break;
       case "postfinance_card":
       case "postfinance_efinance":
@@ -135,7 +133,6 @@ Deno.serve(async (req) => {
         );
       case "card":
       default:
-        paymentMethodTypes.push("card");
         break;
     }
 
@@ -930,7 +927,6 @@ Deno.serve(async (req) => {
     const userEmail = userLookup?.data.user?.email || undefined;
 
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
-      payment_method_types: isSubscriptionCheckout ? ["card"] : paymentMethodTypes,
       line_items: lineItems,
       mode: isSubscriptionCheckout ? "subscription" : "payment",
       success_url: `${safeReturnUrl}${urlSeparator}session_id={CHECKOUT_SESSION_ID}&status=success`,

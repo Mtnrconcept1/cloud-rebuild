@@ -13,6 +13,7 @@ import {
   getOpenAITextCreditUnits,
 } from "../_shared/openai.ts";
 import {
+  assertTokCreditSpendRecorded,
   estimateTextAiPreflightCredits,
   requireRestaurantTokCreditBalance,
 } from "../_shared/restaurant-credits.ts";
@@ -926,7 +927,7 @@ async function insertUsage(
     metadata?: Record<string, unknown>;
   },
 ) {
-  await actor.adminClient.from("ai_usage_logs").insert({
+  const { error } = await actor.adminClient.from("ai_usage_logs").insert({
     function_name: FUNCTION_NAME,
     action: payload.action,
     feature_name: FEATURE_NAME,
@@ -945,6 +946,7 @@ async function insertUsage(
       ...(payload.metadata || {}),
     },
   });
+  assertTokCreditSpendRecorded(error);
 }
 
 Deno.serve(async (req) => {

@@ -19,6 +19,7 @@ import {
   selectTokAiModel,
 } from "../_shared/openai.ts";
 import {
+  assertTokCreditSpendRecorded,
   estimateTextAiPreflightCredits,
   requireRestaurantTokCreditBalance,
 } from "../_shared/restaurant-credits.ts";
@@ -751,7 +752,7 @@ Retourne UNIQUEMENT le JSON, sans explication.`;
       }
     }
 
-    await actor.adminClient.from("ai_usage_logs").insert({
+    const { error: usageInsertError } = await actor.adminClient.from("ai_usage_logs").insert({
       function_name: "generate-campaign",
       action: "generate_campaign_copy",
       feature_name: "campaign_assistant",
@@ -778,6 +779,7 @@ Retourne UNIQUEMENT le JSON, sans explication.`;
         requested_settings: requestedSettings,
       },
     });
+    assertTokCreditSpendRecorded(usageInsertError);
 
     await writeAuditLog({
       adminClient: actor.adminClient,
