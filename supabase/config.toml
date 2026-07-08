@@ -188,6 +188,9 @@ verify_jwt = false
 [functions.tok-connect-mcp]
 verify_jwt = false
 
+[functions.tok-connect-full-app-mcp]
+verify_jwt = false
+
 [functions.tok-connect-portal]
 verify_jwt = false
 
