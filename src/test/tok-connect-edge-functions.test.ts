@@ -131,6 +131,49 @@ describe("TOK Connect Edge Functions", () => {
     expect(source).toContain("context = result.context");
   });
 
+  it("exposes a ChatGPT Apps action window for visible MCP actions", () => {
+    const source = read("supabase/functions/tok-connect-mcp/index.ts");
+
+    expect(source).toContain("ACTION_WINDOW_RESOURCE_URI");
+    expect(source).toContain("ui://tok-connect/actions-window-v1.html");
+    expect(source).toContain("text/html;profile=mcp-app");
+    expect(source).toContain("TOK_CONNECT_ACTION_WINDOW_TOOL");
+    expect(source).toContain("open_action_window");
+    expect(source).toContain("TOK_CONNECT_APP_MODULES");
+    expect(source).toContain("toolUiMeta");
+    expect(source).toContain("studio_marketing");
+    expect(source).toContain("photopro");
+    expect(source).toContain("reservation");
+    expect(source).toContain("commande");
+    expect(source).toContain("zero_attente");
+    expect(source).toContain("multi_resto");
+    expect(source).toContain("query_application_tool");
+    expect(source).toContain("open_application_sandbox");
+    expect(source).toContain("buildApplicationToolQueryResult");
+    expect(source).toContain("buildApplicationSandboxResult");
+    expect(source).toContain("mutation_allowed");
+    expect(source).toContain("requires_human_confirmation");
+    expect(source).toContain("Sandbox parcours TOK");
+    expect(source).toContain("https://www.thetok.ch/logo.png");
+    expect(source).toContain("https://www.thetok.ch/chef.png");
+    expect(source).toContain("tok-topbar");
+    expect(source).toContain("tok-mascot");
+    expect(source).toContain("floating-menu");
+    expect(source).toContain("Mes espaces");
+    expect(source).toContain("Journal technique");
+    expect(source).toContain("resourceDomains");
+    expect(source).toContain("tok-restaurant-card");
+    expect(source).toContain("renderRestaurantCards");
+    expect(source).toContain("renderToolPayload");
+    expect(source).toContain("parseToolPayload");
+    expect(source).toContain("MCP_TOOLS.map(toolDefinition)");
+    expect(source).toContain("buildActionWindowResult");
+    expect(source).toContain('"openai/outputTemplate"');
+    expect(source).toContain("window.openai.requestDisplayMode");
+    expect(source).toContain("window.openai.sendFollowUpMessage");
+    expect(source).toContain("MCP resources/read action-window");
+  });
+
   it("allows ChatGPT DEV to discover noauth MCP tools before OAuth is configured", () => {
     const source = read("supabase/functions/tok-connect-mcp/index.ts");
 
