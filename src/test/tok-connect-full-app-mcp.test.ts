@@ -78,6 +78,35 @@ describe("TOK Connect Full App MCP", () => {
     expect(source).toContain("window.openai.sendFollowUpMessage");
   });
 
+  it("matches the TOK application visual system instead of a generic MCP skin", () => {
+    const source = read("supabase/functions/tok-connect-full-app-mcp/index.ts");
+
+    for (const marker of [
+      "DM Sans",
+      "Playfair Display",
+      "Bubblegum Sans",
+      "Playball",
+      "--primary: 24 95% 53%",
+      "--miamz-green",
+      "--miamz-orange",
+      "tok-dashboard-shell",
+      "tok-dashboard-sidebar",
+      "tok-dashboard-hero",
+      "tok-dashboard-panel",
+      "tok-dashboard-kpi",
+      "tok-action-primary",
+      "tok-public-utility",
+      "tok-navbar",
+      "tok-main-nav",
+      "Mes espaces",
+      "https://www.thetok.ch/logotok.png",
+      "https://www.thetok.ch/chef.png",
+      "design_system: \"tok-dashboard\"",
+    ]) {
+      expect(source).toContain(marker);
+    }
+  });
+
   it("keeps risky app actions behind confirmation packets", () => {
     const source = read("supabase/functions/tok-connect-full-app-mcp/index.ts");
 
