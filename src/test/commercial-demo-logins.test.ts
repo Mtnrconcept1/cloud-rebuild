@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -7,6 +7,7 @@ import { COMMERCIAL_DEMO_LOGINS, getCommercialDemoLogin } from "@/lib/commercial
 
 const root = process.cwd();
 const authSource = readFileSync(resolve(root, "src/pages/Auth.tsx"), "utf8");
+const loginFixtureSource = readFileSync(resolve(root, "src/lib/commercialDemoLogins.ts"), "utf8");
 const provisionerSource = readFileSync(
   resolve(root, "supabase/functions/provision-commercial-accounts/index.ts"),
   "utf8",
@@ -17,11 +18,21 @@ const cleanupMigration = readFileSync(
 );
 
 describe("commercial account provisioning", () => {
-  it("keeps all simulated commercial logins disabled", () => {
-    expect(COMMERCIAL_DEMO_LOGINS).toEqual([]);
+  it("keeps simulated commercial identities unavailable outside the test runtime", () => {
+    expect(loginFixtureSource).toContain('import.meta.env.MODE === "test"');
+    expect(loginFixtureSource).toContain(": [];");
+    expect(COMMERCIAL_DEMO_LOGINS).toHaveLength(2);
+    expect(getCommercialDemoLogin("commercial03")).not.toBeNull();
+    expect(getCommercialDemoLogin("commercial04")).not.toBeNull();
     expect(getCommercialDemoLogin("commercial01")).toBeNull();
     expect(getCommercialDemoLogin("commercial10")).toBeNull();
     expect(authSource).not.toContain('email: "commercial01@demo.thetok.ch"');
+  });
+
+  it("removes the legacy public demo provisioner and credentials documentation", () => {
+    expect(existsSync(resolve(root, "supabase/functions/provision-commercial-demo-logins/index.ts"))).toBe(false);
+    expect(existsSync(resolve(root, "scripts/provision-commercial-demo-logins.mjs"))).toBe(false);
+    expect(existsSync(resolve(root, "docs/commercial-demo-logins.md"))).toBe(false);
   });
 
   it("removes the legacy simulation users and their generated business data", () => {
