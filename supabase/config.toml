@@ -131,6 +131,9 @@ verify_jwt = false
 [functions.provision-commercial-demo-logins]
 verify_jwt = false
 
+[functions.provision-commercial-accounts]
+verify_jwt = false
+
 [functions.generate-invoices]
 verify_jwt = false
 
