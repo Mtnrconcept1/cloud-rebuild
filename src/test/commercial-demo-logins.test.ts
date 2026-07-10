@@ -18,8 +18,9 @@ const cleanupMigration = readFileSync(
 );
 
 describe("commercial account provisioning", () => {
-  it("keeps simulated commercial identities unavailable outside the test runtime", () => {
-    expect(loginFixtureSource).toContain('import.meta.env.MODE === "test"');
+  it("keeps simulated commercial identities available only inside Vitest", () => {
+    expect(loginFixtureSource).toContain("process.env.VITEST");
+    expect(loginFixtureSource).toContain("process.env.VITEST_WORKER_ID");
     expect(loginFixtureSource).toContain(": [];");
     expect(COMMERCIAL_DEMO_LOGINS).toHaveLength(2);
     expect(getCommercialDemoLogin("commercial03")).not.toBeNull();
