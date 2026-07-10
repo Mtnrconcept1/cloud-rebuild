@@ -51,9 +51,6 @@ Deno.serve(async (req) => {
     if (!accountId) {
       const userLookup = actor.userClient ? await actor.userClient.auth.getUser() : null;
       const ownerEmail = text(userLookup?.data.user?.email);
-      const businessName = text(restaurant.legal_name || restaurant.name);
-      const restaurantAddress = text(restaurant.address);
-      const restaurantCity = text(restaurant.city);
       const restaurantPhone = text(restaurant.phone);
 
       const account = await stripe.accounts.create({
@@ -64,24 +61,12 @@ Deno.serve(async (req) => {
           card_payments: { requested: true },
           transfers: { requested: true },
         },
-        business_type: "company",
         business_profile: {
-          name: text(restaurant.name) || businessName,
+          name: text(restaurant.name),
           mcc: "5812",
           product_description: "Restaurant partenaire de la plateforme TOK",
           support_phone: restaurantPhone || undefined,
           url: text(restaurant.website_url) || undefined,
-        },
-        company: {
-          name: businessName || undefined,
-          phone: restaurantPhone || undefined,
-          address: restaurantAddress || restaurantCity
-            ? {
-                line1: restaurantAddress || undefined,
-                city: restaurantCity || undefined,
-                country: "CH",
-              }
-            : undefined,
         },
         metadata: {
           restaurant_id: restaurant.id,
