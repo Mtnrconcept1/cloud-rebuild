@@ -55,10 +55,12 @@ describe("authenticated security audit hardening", () => {
       "generate-campaign",
       "manage-tok-one-subscription",
       "process-refund",
+      "provision-commercial-accounts",
       "restaurant-advisor",
       "restaurant-order-status",
       "restaurant-media-governance",
       "stripe-connect-onboard",
+      "stripe-connect-status",
       "submit-signup-application",
       "validate-order",
     ]) {
