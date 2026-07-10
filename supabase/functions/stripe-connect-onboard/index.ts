@@ -15,6 +15,14 @@ function text(value: unknown) {
   return String(value || "").trim();
 }
 
+function getEnv(name: string) {
+  return text(Deno.env.get(name));
+}
+
+function stringArray(value: unknown) {
+  return Array.isArray(value) ? value.map((entry) => text(entry)).filter(Boolean) : [];
+}
+
 Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req);
   const preflight = handleCorsPreflight(req, corsHeaders);
@@ -41,20 +49,46 @@ Deno.serve(async (req) => {
     accountId = text(restaurant.stripe_account_id);
 
     if (!accountId) {
+      const userLookup = actor.userClient ? await actor.userClient.auth.getUser() : null;
+      const ownerEmail = text(userLookup?.data.user?.email);
+      const businessName = text(restaurant.legal_name || restaurant.name);
+      const restaurantAddress = text(restaurant.address);
+      const restaurantCity = text(restaurant.city);
+      const restaurantPhone = text(restaurant.phone);
+
       const account = await stripe.accounts.create({
         type: "express",
         country: "CH",
+        email: ownerEmail || undefined,
         capabilities: {
           card_payments: { requested: true },
           transfers: { requested: true },
         },
+        business_type: "company",
         business_profile: {
-          name: restaurant.name,
+          name: text(restaurant.name) || businessName,
           mcc: "5812",
+          product_description: "Restaurant partenaire de la plateforme TOK",
+          support_phone: restaurantPhone || undefined,
+          url: text(restaurant.website_url) || undefined,
+        },
+        company: {
+          name: businessName || undefined,
+          phone: restaurantPhone || undefined,
+          address: restaurantAddress || restaurantCity
+            ? {
+                line1: restaurantAddress || undefined,
+                city: restaurantCity || undefined,
+                country: "CH",
+              }
+            : undefined,
         },
         metadata: {
           restaurant_id: restaurant.id,
           owner_id: actor.userId || "",
+          platform: "TOK",
+          payout_share_percent: "90",
+          platform_fee_percent: "10",
         },
       }, {
         idempotencyKey: `stripe-connect-account:${restaurant.id}`,
@@ -75,15 +109,56 @@ Deno.serve(async (req) => {
       }
     }
 
+    const account = await stripe.accounts.retrieve(accountId);
+    const currentlyDue = stringArray(account.requirements?.currently_due);
+    const ready = Boolean(
+      account.details_submitted
+      && account.charges_enabled
+      && account.payouts_enabled
+      && currentlyDue.length === 0,
+    );
+
+    const { error: syncError } = await adminClient
+      .from("restaurants")
+      .update({
+        stripe_connect_details_submitted: Boolean(account.details_submitted),
+        stripe_connect_charges_enabled: Boolean(account.charges_enabled),
+        stripe_connect_payouts_enabled: Boolean(account.payouts_enabled),
+        stripe_connect_requirements_due: currentlyDue,
+        stripe_connect_disabled_reason: text(account.requirements?.disabled_reason) || null,
+        stripe_connect_onboarding_completed_at: ready
+          ? text(restaurant.stripe_connect_onboarding_completed_at) || new Date().toISOString()
+          : null,
+        stripe_connect_last_synced_at: new Date().toISOString(),
+      })
+      .eq("id", restaurantId);
+
+    if (syncError) throw new HttpError(500, syncError.message);
+
     const siteUrl = getEnv("SITE_URL") || "https://www.thetok.ch";
-    const fallbackReturn = `${siteUrl}/dashboard/restaurant`;
+    const fallbackReturn = `${siteUrl}/dashboard/restaurant?stripe_connect=returned`;
     const safeReturnUrl = normalizeCheckoutReturnUrl(body.return_url) || fallbackReturn;
+
+    if (ready) {
+      return jsonResponse({
+        account_id: accountId,
+        ready: true,
+        details_submitted: true,
+        charges_enabled: true,
+        payouts_enabled: true,
+        requirements_due: [],
+      }, 200, corsHeaders);
+    }
 
     const accountLink = await stripe.accountLinks.create({
       account: accountId,
       refresh_url: safeReturnUrl,
       return_url: safeReturnUrl,
       type: "account_onboarding",
+      collection_options: {
+        fields: "eventually_due",
+        future_requirements: "include",
+      },
     });
 
     await writeAuditLog({
@@ -98,10 +173,21 @@ Deno.serve(async (req) => {
       metadata: {
         stripe_account_id: accountId,
         reused_existing_account: Boolean(restaurant.stripe_account_id),
+        collection_fields: "eventually_due",
+        future_requirements: "include",
+        requirements_due: currentlyDue,
       },
     });
 
-    return jsonResponse({ url: accountLink.url, account_id: accountId }, 200, corsHeaders);
+    return jsonResponse({
+      url: accountLink.url,
+      account_id: accountId,
+      ready: false,
+      details_submitted: Boolean(account.details_submitted),
+      charges_enabled: Boolean(account.charges_enabled),
+      payouts_enabled: Boolean(account.payouts_enabled),
+      requirements_due: currentlyDue,
+    }, 200, corsHeaders);
   } catch (error) {
     log.error("request_failed", { message: error instanceof Error ? error.message : "unknown" });
 
