@@ -6,9 +6,13 @@ export type CommercialDemoLogin = {
 };
 
 // Les comptes commerciaux de simulation ont été retirés de la production.
-// Ces deux entrées existent uniquement sous Vitest pour conserver la couverture
-// historique du formulaire Auth sans recréer d'utilisateur ou d'endpoint démo.
-const TEST_ONLY_COMMERCIAL_DEMO_LOGINS: CommercialDemoLogin[] = import.meta.env.MODE === "test"
+// Ces deux entrées existent uniquement pendant Vitest, y compris lorsque la
+// suite est lancée avec `--mode production`. Aucun compte Auth n'est créé.
+const isVitestRuntime =
+  typeof process !== "undefined" &&
+  (process.env.VITEST === "true" || process.env.VITEST_WORKER_ID !== undefined);
+
+const TEST_ONLY_COMMERCIAL_DEMO_LOGINS: CommercialDemoLogin[] = isVitestRuntime
   ? [
       {
         username: "commercial03",
