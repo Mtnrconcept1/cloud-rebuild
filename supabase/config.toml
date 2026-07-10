@@ -167,6 +167,9 @@ verify_jwt = false
 [functions.stripe-connect-onboard]
 verify_jwt = false
 
+[functions.stripe-connect-status]
+verify_jwt = false
+
 [functions.track-analytics]
 verify_jwt = false
 
