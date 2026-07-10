@@ -52,13 +52,20 @@ Deno.serve(async (req) => {
 
   const body = await req.json().catch(() => ({}));
   const accounts = Array.isArray(body?.accounts) ? body.accounts as CommercialAccountInput[] : [];
-  if (accounts.length !== 4) return json({ error: "Exactly four commercial accounts are required" }, 400);
+  if (accounts.length < 1 || accounts.length > 20) {
+    return json({ error: "Provide between one and twenty commercial accounts" }, 400);
+  }
 
   const normalized = accounts.map((account) => ({
     full_name: String(account.full_name || "").trim(),
     email: String(account.email || "").trim().toLowerCase(),
     password: String(account.password || ""),
   }));
+
+  const uniqueEmails = new Set(normalized.map((account) => account.email));
+  if (uniqueEmails.size !== normalized.length) {
+    return json({ error: "Duplicate commercial email in request" }, 400);
+  }
 
   for (const account of normalized) {
     if (!account.full_name || !account.email || account.password.length < 8) {
