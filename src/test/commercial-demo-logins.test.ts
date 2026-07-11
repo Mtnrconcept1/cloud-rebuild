@@ -13,7 +13,7 @@ const provisionerSource = readFileSync(
   "utf8",
 );
 const cleanupMigration = readFileSync(
-  resolve(root, "supabase/migrations/20260710185500_remove_commercial_demo_accounts.sql"),
+  resolve(root, "supabase/migrations/20260710190500_remove_commercial_demo_accounts.sql"),
   "utf8",
 );
 
