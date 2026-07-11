@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { SUPPORT_EMAIL } from "@/lib/contact";
+import { useSeoMeta } from "@/hooks/useSeoMeta";
 
 const updatedAt = "26 juin 2026";
 
@@ -10,15 +11,6 @@ const quickPoints = [
   "TOK Connect donne acces a des partenaires uniquement avec autorisation, scopes, quotas et revocation possible par restaurant.",
   "Les outils IA, CRM, campagnes et exports sont des aides: le restaurateur valide et assume les contenus publies.",
   "Le contournement de la plateforme, la fraude, les faux avis et les fausses declarations peuvent entrainer suspension, resiliation et facturation retroactive.",
-];
-
-const addedProtections = [
-  "Onboarding et verification documentaire avant activation complete du compte.",
-  "Regles de paiement, facturation, taxes, impayes, remboursements et chargebacks.",
-  "Cadre CRM, exports CSV/XLS, confidentialite, LPD suisse et preferences de notification.",
-  "Cadre TOK Connect: API, OAuth, MCP, webhooks, sandbox, autorisations restaurant et audit.",
-  "Regles sur photos, videos, logos, IA, droits de marque, allergenes et communications commerciales.",
-  "Clauses de securite, disponibilite, sous-traitants, preuve numerique et cooperation en cas de litige.",
 ];
 
 const sections = [
@@ -250,6 +242,12 @@ const sections = [
 ];
 
 export default function ConditionsRestaurateurs() {
+  useSeoMeta({
+    title: "Conditions générales restaurateurs | TOK",
+    description: "Cadre contractuel applicable aux établissements partenaires utilisant les services TOK.",
+    path: "/conditions-restaurateurs",
+  });
+
   return (
     <main className="bg-background">
       <section className="border-b bg-gradient-to-br from-orange-50 via-background to-background">
@@ -260,7 +258,7 @@ export default function ConditionsRestaurateurs() {
             </p>
             <div className="space-y-3">
               <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">
-                Conditions Generales Restaurateurs TOK
+                Conditions générales restaurateurs TOK
               </h1>
               <p className="max-w-3xl text-base leading-7 text-muted-foreground">
                 Cadre contractuel entre TOK et les etablissements partenaires utilisant les outils de reservation,
@@ -303,21 +301,6 @@ export default function ConditionsRestaurateurs() {
         </aside>
 
         <div className="space-y-8">
-          <section className="rounded-3xl border border-amber-200 bg-amber-50 p-5 text-sm leading-6 text-amber-900">
-            <h2 className="font-display text-xl font-bold text-amber-950">Ajouts recommandes integres</h2>
-            <p className="mt-2">
-              Le texte initial a ete conserve dans son esprit, puis complete pour couvrir les points B2B sensibles d'une plateforme
-              transactionnelle suisse.
-            </p>
-            <ul className="mt-4 grid gap-2 sm:grid-cols-2">
-              {addedProtections.map((item) => (
-                <li key={item} className="rounded-2xl border border-amber-200 bg-white/70 px-4 py-3">
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </section>
-
           <div className="prose prose-foodhub max-w-none space-y-8">
             {sections.map((section) => (
               <section key={section.title} id={`article-${section.title.split(".")[0]}`} className="scroll-mt-28 rounded-3xl border bg-card p-5 shadow-sm md:p-7">
@@ -342,9 +325,6 @@ export default function ConditionsRestaurateurs() {
                 <li><span className="font-medium text-foreground">Formulaire :</span> <Link to="/contact" className="text-primary hover:underline font-medium">page de contact</Link></li>
                 <li><span className="font-medium text-foreground">Centre d'aide :</span> <Link to="/aide" className="text-primary hover:underline font-medium">Centre d'aide TOK</Link></li>
               </ul>
-              <p className="mt-5 text-sm text-muted-foreground">
-                Ce document est un modele operationnel. Pour une validation definitive, TOK doit le faire relire par un conseil juridique suisse.
-              </p>
             </section>
           </div>
         </div>

@@ -300,7 +300,7 @@ export default function RestaurantCard({
   const serviceSettings = useMemo(() => getConfiguredServiceSettings(resolvedOpeningHours), [resolvedOpeningHours]);
   const canShowReservationSlots = reservationProfileReady && resolvedSupportsReservation === true && serviceSettings !== null;
 
-  const { data: slotAvailability = [] } = useQuery({
+  const { data: slotAvailability = [], isError: slotAvailabilityError } = useQuery({
     queryKey: ["restaurant-card-slot-availability", id, reservationCardDate],
     queryFn: async () => {
       const { data, error } = await (supabase.rpc as any)("get_restaurant_reservation_slot_availability", {
@@ -309,18 +309,18 @@ export default function RestaurantCard({
       });
 
       if (error) {
-        console.warn("Restaurant card reservation availability fallback:", error.message);
-        return [] as ReservationCardSlotAvailabilityRow[];
+        throw new Error(error.message);
       }
 
       return normalizeSlotAvailabilityRows(data);
     },
     enabled: canShowReservationSlots,
     staleTime: 30_000,
+    retry: 1,
   });
 
   const timeSlots = useMemo(() => {
-    if (!canShowReservationSlots || !serviceSettings) return [];
+    if (!canShowReservationSlots || !serviceSettings || slotAvailabilityError) return [];
 
     const serverAvailabilityByTime = new Map(slotAvailability.map((row) => [row.slot_time, row]));
     const reservedTablesByTime = slotAvailability.reduce<Record<string, number>>((acc, row) => {
@@ -336,10 +336,10 @@ export default function RestaurantCard({
       limit: 2,
     }).filter((slot) => {
       const serverSlot = serverAvailabilityByTime.get(slot.time);
-      if (!serverSlot) return slotAvailability.length === 0;
+      if (!serverSlot) return false;
       return serverSlot.available && serverSlot.remaining_tables > 0;
     });
-  }, [canShowReservationSlots, reservationCardNow, serviceSettings, slotAvailability]);
+  }, [canShowReservationSlots, reservationCardNow, serviceSettings, slotAvailability, slotAvailabilityError]);
   const visibleSlots = timeSlots.slice(0, 2);
   const discountPercentLabel = formatDiscountPercent(bestDiscount);
   const hasDiscount = discountPercentLabel.length > 0;
