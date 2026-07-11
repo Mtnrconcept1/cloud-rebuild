@@ -43,6 +43,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
+import { useSeoMeta } from "@/hooks/useSeoMeta";
 import { useTokLogoSrc } from "@/hooks/useTokLogo";
 import { COURIER_VEHICLE_OPTIONS } from "@/lib/courier";
 import TurnstileCaptcha from "@/components/security/TurnstileCaptcha";
@@ -563,6 +564,13 @@ async function submitPrivilegedSignupDraft(input: {
 }
 
 export default function Auth() {
+  useSeoMeta({
+    title: "Connexion et inscription | TOK",
+    description: "Connectez-vous à votre compte TOK ou créez votre espace sécurisé.",
+    path: "/auth",
+    robots: "noindex,nofollow",
+  });
+
   const logoSrc = useTokLogoSrc();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -1202,7 +1210,7 @@ export default function Auth() {
               </p>
             </div>
           ) : null}
-          {isLogin && !forgotPassword ? (
+          {isLogin && !forgotPassword && COMMERCIAL_DEMO_LOGINS.length > 0 ? (
             <div className="rounded-2xl border border-orange-200 bg-orange-50/80 p-4 text-sm text-slate-950 shadow-sm">
               <div className="flex items-start gap-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-orange-500 text-white shadow-sm">
