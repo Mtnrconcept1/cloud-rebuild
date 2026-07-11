@@ -32,7 +32,7 @@ describe("full audit remediation", () => {
     const email = source("src/lib/email-service.ts");
     expect(email).toContain("crypto?.randomUUID");
     expect(email).not.toContain("console.log");
-    expect(email).not.toContain("customerEmail:");
+    expect(email).not.toContain("console.info");
     expect(email).not.toContain("Email Fallback");
   });
 
