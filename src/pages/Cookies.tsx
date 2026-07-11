@@ -1,6 +1,14 @@
 import { Link } from "react-router-dom";
 
+import { useSeoMeta } from "@/hooks/useSeoMeta";
+
 export default function Cookies() {
+  useSeoMeta({
+    title: "Politique cookies | TOK",
+    description: "Découvrez comment TOK utilise les cookies et comment gérer vos préférences.",
+    path: "/cookies",
+  });
+
   return (
     <div className="container max-w-4xl space-y-12 py-12 md:py-20">
       <div className="space-y-4">
