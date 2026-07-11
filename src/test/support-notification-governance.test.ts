@@ -44,7 +44,9 @@ describe("support and notification governance", () => {
     expect(edge).toContain('.from("support_incidents")');
     expect(edge).toContain("writeAuditLog");
     expect(emailService).not.toContain("email_queue");
-    expect(emailService).toContain("queued by checkout Edge Functions");
+    expect(emailService).toContain("Checkout Edge Functions own transactional email delivery");
+    expect(emailService).not.toContain("console.log");
+    expect(emailService).not.toContain("console.info");
   });
 
   it("governs admin notification campaign mutations with audited RPCs", () => {
