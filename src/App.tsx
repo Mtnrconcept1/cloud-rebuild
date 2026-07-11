@@ -145,14 +145,12 @@ const AdminCrm = lazy(() => import("./pages/admin/AdminCrm"));
 const AdminSinistres = lazy(() => import("./pages/admin/AdminSinistres"));
 const AdminTokConnect = lazy(() => import("./pages/admin/AdminTokConnect"));
 
-focusManager.setEventListener(() => () => undefined);
-
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 30_000,
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: false,
+      refetchOnWindowFocus: true,
+      refetchOnReconnect: true,
       retry: 1,
     },
   },
