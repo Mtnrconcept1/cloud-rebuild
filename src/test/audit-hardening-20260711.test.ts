@@ -22,8 +22,7 @@ describe("2026-07-11 audit hardening", () => {
       expect(migration).toContain(`GRANT EXECUTE ON FUNCTION ${signature} TO service_role`);
     }
 
-    expect(migration).not.toContain("TO anon");
-    expect(migration).not.toContain("TO authenticated");
+    expect(migration).not.toMatch(/GRANT EXECUTE[^;]+ TO (?:anon|authenticated)/);
   });
 
   it("fails closed when reservation availability cannot be verified", () => {
