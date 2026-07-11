@@ -4,7 +4,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { focusManager, QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { AuthProvider } from "@/lib/auth";
 import { useAuth } from "@/lib/auth-context";
@@ -145,14 +145,12 @@ const AdminCrm = lazy(() => import("./pages/admin/AdminCrm"));
 const AdminSinistres = lazy(() => import("./pages/admin/AdminSinistres"));
 const AdminTokConnect = lazy(() => import("./pages/admin/AdminTokConnect"));
 
-focusManager.setEventListener(() => () => undefined);
-
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 30_000,
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: false,
+      refetchOnWindowFocus: true,
+      refetchOnReconnect: true,
       retry: 1,
     },
   },

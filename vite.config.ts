@@ -86,9 +86,9 @@ export default defineConfig(({ mode }) => {
       host: "::",
       port: 8080,
       strictPort: false,
-      allowedHosts: true,
+      allowedHosts: ["localhost", "127.0.0.1", ".local"],
       hmr: {
-        overlay: false,
+        overlay: true,
       },
       proxy: {
         "/api/photon": {

@@ -17,14 +17,19 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useSeoMeta } from "@/hooks/useSeoMeta";
+import { useToast } from "@/hooks/use-toast";
+import TurnstileCaptcha from "@/components/security/TurnstileCaptcha";
+import { isCaptchaEnabled } from "@/lib/captcha";
+import { submitContactSupport } from "@/lib/support/contactSupport";
 
 const PAGE_PATH = "/restaurateurs/geneve";
 const CANONICAL_ORIGIN = "https://www.thetok.ch";
 
 const PACKS = {
-  starter: { label: "Starter", monthlyFee: 0, aiPhotos: 10, launchDays: 7 },
-  croissance: { label: "Croissance", monthlyFee: 149, aiPhotos: 30, launchDays: 14 },
-  premium: { label: "Premium", monthlyFee: 349, aiPhotos: 80, launchDays: 21 },
+  starter: { label: "Starter", monthlyFee: 69, aiPhotos: 10, launchDays: 7 },
+  business: { label: "Business", monthlyFee: 129, aiPhotos: 30, launchDays: 14 },
+  premium: { label: "Premium", monthlyFee: 199, aiPhotos: 80, launchDays: 21 },
+  elite: { label: "Elite", monthlyFee: 499, aiPhotos: 160, launchDays: 30 },
 } as const;
 
 type PackKey = keyof typeof PACKS;
@@ -143,7 +148,56 @@ export default function RestaurateursGeneve() {
   const [ordersPerMonth, setOrdersPerMonth] = useState(180);
   const [postsPerWeek, setPostsPerWeek] = useState(3);
   const [averageTicket, setAverageTicket] = useState(42);
-  const [pack, setPack] = useState<PackKey>("croissance");
+  const [pack, setPack] = useState<PackKey>("business");
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [sendingLead, setSendingLead] = useState(false);
+  const { toast } = useToast();
+
+  const handleLeadSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (isCaptchaEnabled() && !captchaToken) {
+      toast({ title: "Validation requise", description: "Validez le contrôle anti-abus.", variant: "destructive" });
+      return;
+    }
+
+    const form = event.currentTarget;
+    const data = new FormData(form);
+    const restaurant = String(data.get("restaurant") || "").trim();
+    const email = String(data.get("email") || "").trim();
+    const details = [
+      `Restaurant: ${restaurant}`,
+      `Ville: ${String(data.get("ville") || "").trim()}`,
+      `Tables: ${String(data.get("tables") || "").trim() || "non renseigné"}`,
+      `Téléphone: ${String(data.get("telephone") || "").trim()}`,
+      `Priorité: ${String(data.get("besoin") || "").trim() || "non renseignée"}`,
+      `Pack pressenti: ${PACKS[pack].label} (${PACKS[pack].monthlyFee} CHF/mois)`,
+      "",
+      String(data.get("message") || "").trim(),
+    ].join("\n");
+
+    setSendingLead(true);
+    try {
+      await submitContactSupport({
+        source: "public_contact",
+        name: restaurant,
+        email,
+        subject: "Demande de démo restaurateur TOK Genève",
+        message: details,
+        captchaToken,
+      });
+      form.reset();
+      setCaptchaToken(null);
+      toast({ title: "Demande envoyée", description: "L’équipe TOK vous contactera rapidement." });
+    } catch (error) {
+      toast({
+        title: "Envoi impossible",
+        description: error instanceof Error ? error.message : "Veuillez réessayer.",
+        variant: "destructive",
+      });
+    } finally {
+      setSendingLead(false);
+    }
+  };
 
   const activation = useMemo(() => {
     const packConfig = PACKS[pack];
@@ -250,7 +304,7 @@ export default function RestaurateursGeneve() {
             </div>
             <div className="flex flex-wrap gap-3">
               <Button asChild size="lg" className="bg-orange-500 text-white hover:bg-orange-600">
-                <a href={`mailto:contact@thetok.ch?subject=${demoSubject}&body=${demoBody}`}>
+                <a href="#demande-demo">
                   Demander une démo
                   <PhoneCall className="ml-2 h-5 w-5" />
                 </a>
@@ -443,14 +497,13 @@ export default function RestaurateursGeneve() {
           </div>
 
           <form
+            id="demande-demo"
             className="grid gap-4 rounded-lg border border-white/12 bg-white p-5 text-slate-950 shadow-2xl"
-            action={`mailto:contact@thetok.ch?subject=${demoSubject}`}
-            method="post"
-            encType="text/plain"
+            onSubmit={handleLeadSubmit}
           >
             <div className="grid gap-2">
               <Label htmlFor="restaurant-name">Nom du restaurant</Label>
-              <Input id="restaurant-name" name="restaurant" placeholder="Restaurant du Rhône" />
+              <Input id="restaurant-name" name="restaurant" placeholder="Restaurant du Rhône" required />
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="grid gap-2">
@@ -465,11 +518,11 @@ export default function RestaurateursGeneve() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="grid gap-2">
                 <Label htmlFor="phone">Téléphone</Label>
-                <Input id="phone" name="telephone" type="tel" placeholder="+41 ..." />
+                <Input id="phone" name="telephone" type="tel" placeholder="+41 ..." required />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" name="email" type="email" placeholder="contact@restaurant.ch" />
+                <Input id="email" name="email" type="email" placeholder="contact@restaurant.ch" required />
               </div>
             </div>
             <div className="grid gap-2">
@@ -491,8 +544,9 @@ export default function RestaurateursGeneve() {
               <Label htmlFor="message">Contexte</Label>
               <Textarea id="message" name="message" placeholder="Horaires creux, canaux actuels, objectif à 30 jours..." />
             </div>
-            <Button type="submit" className="bg-orange-500 text-white hover:bg-orange-600">
-              Demander une démo
+            <TurnstileCaptcha action="restaurant_lead" onTokenChange={setCaptchaToken} />
+            <Button type="submit" className="bg-orange-500 text-white hover:bg-orange-600" disabled={sendingLead}>
+              {sendingLead ? "Envoi..." : "Demander une démo"}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </form>
