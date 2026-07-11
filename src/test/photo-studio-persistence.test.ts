@@ -27,9 +27,9 @@ describe("TOK photo studio persistence", () => {
     expect(source).toContain("updateDraft({ result: data, generationSeed: data.generation_seed || generationSeed })");
     expect(source).toContain("startTokImageCreationJob");
     expect(app).toContain("<AiCreationNotifications />");
-    expect(app).toContain("refetchOnWindowFocus: false");
-    expect(app).toContain("refetchOnReconnect: false");
-    expect(app).toContain("focusManager.setEventListener");
+    expect(app).toContain("refetchOnWindowFocus: true");
+    expect(app).toContain("refetchOnReconnect: true");
+    expect(app).not.toContain("focusManager.setEventListener");
   });
 
   it("keeps the legacy studio entry point aligned with the V2 implementation", () => {
