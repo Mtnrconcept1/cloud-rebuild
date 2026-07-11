@@ -7,6 +7,7 @@ type SeoMetaInput = {
   description: string;
   path: string;
   image?: string;
+  robots?: string;
   jsonLd?: Record<string, unknown> | Record<string, unknown>[] | null;
 };
 
@@ -37,14 +38,14 @@ export function buildCanonicalUrl(path: string) {
   return `${DEFAULT_BASE_URL}${normalizedPath}`;
 }
 
-export function useSeoMeta({ title, description, path, image = "/fond3.png", jsonLd = null }: SeoMetaInput) {
+export function useSeoMeta({ title, description, path, image = "/fond3.png", robots = "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1", jsonLd = null }: SeoMetaInput) {
   useEffect(() => {
     const canonicalUrl = buildCanonicalUrl(path);
     const imageUrl = image.startsWith("http") ? image : `${DEFAULT_BASE_URL}${image.startsWith("/") ? image : `/${image}`}`;
 
     document.title = title;
     upsertMeta("meta[name='description']", { name: "description", content: description });
-    upsertMeta("meta[name='robots']", { name: "robots", content: "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" });
+    upsertMeta("meta[name='robots']", { name: "robots", content: robots });
     upsertCanonical(canonicalUrl);
     upsertMeta("meta[property='og:type']", { property: "og:type", content: "website" });
     upsertMeta("meta[property='og:title']", { property: "og:title", content: title });
@@ -69,5 +70,5 @@ export function useSeoMeta({ title, description, path, image = "/fond3.png", jso
     return () => {
       document.getElementById(scriptId)?.remove();
     };
-  }, [description, image, jsonLd, path, title]);
+  }, [description, image, jsonLd, path, robots, title]);
 }
