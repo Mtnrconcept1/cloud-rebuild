@@ -105,6 +105,9 @@ describe("checkout and Stripe webhook safety guards", () => {
       "STRIPE_SECRET_KEY: ${{ secrets.STRIPE_PERSONNAL_SECRET_KEY || secrets.STRIPE_PERSONAL_SECRET_KEY || secrets.STRIPE_SECRET_KEY_LIVE }}",
     );
     expect(workflowSource).toContain(
+      "VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}",
+    );
+    expect(workflowSource).not.toContain(
       "VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY || secrets.STRIPE_SECRET_KEY }}",
     );
     expect(workflowSource).toContain("STRIPE_LIVE_WEBHOOK: ${{ secrets.STRIPE_LIVE_WEBHOOK }}");
