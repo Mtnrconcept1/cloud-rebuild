@@ -9,7 +9,7 @@
       name="description"
       content="Plan de table intelligent pour restaurant avec placement automatique des réservations."
     />
-    <title>TOK TABLE 2 — Plan de salle intelligent</title>
+    <title>TOK TABLE 2 — Plan de salle connecté</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -25,7 +25,7 @@
           <span class="brand-mark">T</span>
           <span>
             <strong>TOK TABLE 2</strong>
-            <small>Plan de salle intelligent</small>
+            <small>Plan de salle connecté</small>
           </span>
         </a>
 
@@ -44,7 +44,7 @@
         </div>
 
         <div class="top-actions">
-          <button class="btn btn-ghost" id="data-button" type="button">
+          <button class="btn btn-ghost local-only" id="data-button" type="button">
             <span aria-hidden="true">⇅</span> Données
           </button>
           <button class="btn btn-primary" id="auto-place-button" type="button">
@@ -60,7 +60,7 @@
             <h1 id="page-title">Votre salle, parfaitement organisée.</h1>
             <p id="service-summary">Préparez votre service en quelques secondes.</p>
           </div>
-          <div class="live-pill"><i></i> Sauvegarde automatique</div>
+          <div class="live-pill"><i></i> <span id="connection-label">Sauvegarde locale</span></div>
         </section>
 
         <section class="stats-grid" id="stats-grid" aria-label="Résumé du service"></section>
@@ -78,24 +78,36 @@
                   <span><i class="dot dot-occupied"></i> Placée</span>
                   <span><i class="dot dot-blocked"></i> Indisponible</span>
                 </div>
-                <button class="icon-button" id="add-table-button" type="button" title="Ajouter une table" aria-label="Ajouter une table">+</button>
+                <button class="icon-button local-only" id="add-table-button" type="button" title="Ajouter une table" aria-label="Ajouter une table">+</button>
               </div>
             </div>
 
             <div class="zone-tabs" id="zone-tabs" role="tablist" aria-label="Zones de la salle"></div>
 
             <div class="floor-wrap">
-              <div class="floor" id="floor" aria-label="Plan de salle. Les tables peuvent être déplacées.">
-                <div class="floor-grid"></div>
-                <div class="floor-empty hidden" id="floor-empty">
-                  <span>□</span>
-                  <h3>Aucune table dans cette zone</h3>
-                  <p>Ajoutez votre première table pour commencer.</p>
-                  <button class="btn btn-primary" type="button" data-action="add-table">Ajouter une table</button>
+              <div class="zoom-controls" aria-label="Zoom du plan">
+                <button id="zoom-out-button" type="button" aria-label="Dézoomer" title="Dézoomer">−</button>
+                <button id="zoom-reset-button" type="button" aria-label="Réinitialiser le zoom" title="Zoom à 100 %">
+                  <span id="zoom-value">100 %</span>
+                </button>
+                <button id="zoom-fit-button" type="button" aria-label="Ajuster le plan à la fenêtre" title="Ajuster à la fenêtre">⊡</button>
+                <button id="zoom-in-button" type="button" aria-label="Zoomer" title="Zoomer">+</button>
+              </div>
+              <div class="floor-viewport" id="floor-viewport">
+                <div class="floor-stage" id="floor-stage">
+                  <div class="floor" id="floor" aria-label="Plan de salle zoomable">
+                    <div class="floor-grid"></div>
+                    <div class="floor-empty hidden" id="floor-empty">
+                      <span>□</span>
+                      <h3>Aucune table dans cette zone</h3>
+                      <p>Configurez d’abord les tables du restaurant.</p>
+                      <button class="btn btn-primary local-only" type="button" data-action="add-table">Ajouter une table</button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-            <p class="drag-hint">Astuce : faites glisser les tables pour reproduire la disposition réelle de votre salle.</p>
+            <p class="drag-hint">Zoom : boutons, Ctrl/Cmd + molette ou pincement. Faites glisser le fond pour vous déplacer.</p>
           </article>
 
           <aside class="panel reservations-panel">
@@ -104,7 +116,7 @@
                 <p class="eyebrow">RÉSERVATIONS</p>
                 <h2>Liste des clients</h2>
               </div>
-              <button class="icon-button" id="add-reservation-button" type="button" title="Ajouter une réservation" aria-label="Ajouter une réservation">+</button>
+              <button class="icon-button local-only" id="add-reservation-button" type="button" title="Ajouter une réservation" aria-label="Ajouter une réservation">+</button>
             </div>
 
             <div class="search-row">
