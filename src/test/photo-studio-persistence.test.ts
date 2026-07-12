@@ -429,6 +429,16 @@ describe("TOK photo studio persistence", () => {
     expect(marketingStudio).toContain("À éviter");
   });
 
+  it("stores marketing uploads in the restaurant media bucket and cleans up failed inserts", () => {
+    expect(marketingStudio).toContain('const MARKETING_STORAGE_BUCKET = "restaurant-images";');
+    expect(marketingStudio).toContain('return \`${restaurantId}/marketing-assets/${userId}/${id}.${ext}\`;');
+    expect(marketingStudio).toContain("if (insertError) {");
+    expect(marketingStudio).toContain(".remove([storagePath])");
+    expect(marketingStudio).toContain("throw insertError");
+    expect(marketingStudio).not.toContain('const MARKETING_STORAGE_BUCKET = "images";');
+    expect(marketingStudio).not.toContain('return \`${userId}/marketing-assets/${restaurantId}/${id}.${ext}\`;');
+  });
+
   it("lets restaurateurs remove uploaded marketing resources safely", () => {
     expect(marketingStudio).toContain("deleteMarketingResource");
     expect(marketingStudio).toContain("MARKETING_STORAGE_BUCKET");
