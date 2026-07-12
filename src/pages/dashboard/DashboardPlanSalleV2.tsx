@@ -13,15 +13,14 @@ import {
   buildFloorPlanV2Assignments,
   computeFloorPlanV2AutoAssignments,
   getFloorPlanV2AssignmentError,
-  mapFloorPlanV2Object,
   mapFloorPlanV2Table,
   parseFloorPlanV2ObjectDrafts,
   parseFloorPlanV2TableDrafts,
   serializeFloorPlanV2Layout,
+  serializeFloorPlanV2Object,
   type FloorPlanV2Period,
   type FloorPlanV2Reservation,
   type FloorPlanV2Table,
-  type PersistedFloorPlanObject,
 } from "@/lib/floorPlanV2";
 import { getServicePeriodFromMetadata } from "@/lib/serviceSettings";
 
@@ -36,7 +35,6 @@ type TableRow = Database["public"]["Tables"]["reservation_tables"]["Row"];
 type ReservationRow = Database["public"]["Tables"]["reservations"]["Row"];
 type SlotRow = Database["public"]["Tables"]["reservation_slots"]["Row"];
 type LayoutOverrideRow = Database["public"]["Tables"]["reservation_table_layout_overrides"]["Row"];
-type FloorPlanObjectRow = PersistedFloorPlanObject & { branch_id: string };
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 type ReservationWithCustomer = ReservationRow & {
   customer: Pick<ProfileRow, "full_name"> | null;
@@ -194,21 +192,6 @@ export default function DashboardPlanSalleV2() {
     enabled: Boolean(selectedBranchId),
   });
 
-  const { data: floorPlanObjectRows = [], error: floorPlanObjectsError } = useQuery({
-    queryKey: ["floor-plan-v2-objects", selectedBranchId],
-    queryFn: async () => {
-      const { data, error } = await (supabase as any)
-        .from("floor_plan_objects")
-        .select("id,branch_id,object_type,label,zone,x,y,width,height,rotation,locked,z_index,style")
-        .eq("branch_id", selectedBranchId!)
-        .order("z_index", { ascending: true })
-        .order("created_at", { ascending: true });
-      if (error) throw error;
-      return (data || []) as FloorPlanObjectRow[];
-    },
-    enabled: Boolean(selectedBranchId),
-  });
-
   const { data: reservationRows = [], isLoading: reservationsLoading, error: reservationsError } = useQuery({
     queryKey: ["floor-plan-v2-reservations", selectedId, serviceDate],
     queryFn: async () => {
@@ -242,7 +225,9 @@ export default function DashboardPlanSalleV2() {
     enabled: Boolean(selectedId),
   });
 
-  const tableIds = useMemo(() => tableRows.map((table) => table.id), [tableRows]);
+  const tableIds = useMemo(() => tableRows
+    .filter((table, index) => mapFloorPlanV2Table(table, index).editable)
+    .map((table) => table.id), [tableRows]);
   const { data: slotRows = [], error: slotsError } = useQuery({
     queryKey: ["floor-plan-v2-slots", selectedBranchId, tableIds.join(",")],
     queryFn: async () => {
@@ -275,8 +260,8 @@ export default function DashboardPlanSalleV2() {
     [overridesByTableId, tableRows],
   );
   const furnitureObjects = useMemo(
-    () => floorPlanObjectRows.map((object) => mapFloorPlanV2Object(object)),
-    [floorPlanObjectRows],
+    () => templateTables.filter((item) => !item.editable),
+    [templateTables],
   );
   const allReservations = useMemo(() => reservationRows
     .filter((reservation) => !reservation.branch_id || reservation.branch_id === selectedBranchId)
@@ -306,9 +291,9 @@ export default function DashboardPlanSalleV2() {
       branchId: selectedBranchId,
       selectedDate: serviceDate,
       selectedPeriod: servicePeriod,
-      templateTables,
-      serviceTables,
-      tables: serviceTables,
+      templateTables: templateTables.filter((item) => item.editable),
+      serviceTables: serviceTables.filter((item) => item.editable),
+      tables: serviceTables.filter((item) => item.editable),
       furniture: furnitureObjects,
       reservations: visibleReservations,
     });
@@ -412,21 +397,25 @@ export default function DashboardPlanSalleV2() {
         .map((row) => row.id)
         .filter((id) => !requestedExistingIds.has(id));
 
-      const objectUpserts = objectDrafts.map((object) => ({
-        client_id: object.id,
-        id: object.id.startsWith("tmp_") ? null : object.id,
-        object_type: object.kind,
-        label: object.name,
-        zone: object.zone,
-        x: object.x,
-        y: object.y,
-        width: object.width,
-        height: object.height,
-        rotation: object.rotation,
-        locked: object.locked,
-        z_index: object.zIndex,
-        style: {},
-      }));
+      const existingFurnitureRows = tableRows.filter(
+        (row, index) => !mapFloorPlanV2Table(row, index).editable,
+      );
+      const existingFurnitureRowsById = new Map(existingFurnitureRows.map((row) => [row.id, row]));
+      const objectUpserts = objectDrafts.map((object) => {
+        const existing = existingFurnitureRowsById.get(object.id);
+        if (!existing && !object.id.startsWith("tmp_")) {
+          throw new Error("Un objet du brouillon n’appartient plus à cette salle. Actualisez le plan.");
+        }
+        return {
+          client_id: object.id,
+          id: existing?.id || null,
+          table_number: object.name,
+          capacity: 0,
+          is_active: false,
+          sector: object.zone,
+          layout: serializeFloorPlanV2Object(object, existing?.layout) as Json,
+        };
+      });
 
       const { data, error } = await (supabase.rpc as any)("restaurant_save_floor_plan_workspace", {
         p_branch_id: selectedBranchId,
@@ -446,15 +435,11 @@ export default function DashboardPlanSalleV2() {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["floor-plan-v2-tables", selectedBranchId] }),
         queryClient.invalidateQueries({ queryKey: ["floor-plan-v2-layout-overrides", selectedBranchId] }),
-        queryClient.invalidateQueries({ queryKey: ["floor-plan-v2-objects", selectedBranchId] }),
         queryClient.invalidateQueries({ queryKey: ["floor-plan-v2-slots", selectedBranchId] }),
         queryClient.invalidateQueries({ queryKey: ["floor-plan-tables", selectedBranchId] }),
         queryClient.invalidateQueries({ queryKey: ["floor-plan-layout-overrides", selectedBranchId] }),
       ]);
-      await Promise.all([
-        queryClient.refetchQueries({ queryKey: ["floor-plan-v2-tables", selectedBranchId] }),
-        queryClient.refetchQueries({ queryKey: ["floor-plan-v2-objects", selectedBranchId] }),
-      ]);
+      await queryClient.refetchQueries({ queryKey: ["floor-plan-v2-tables", selectedBranchId] });
       sendToIframe("tok-table-v2:operation-success", {
         requestId: request.requestId,
         kind: "template",
@@ -658,7 +643,7 @@ export default function DashboardPlanSalleV2() {
   ]);
 
   const hasError = Boolean(
-    branchesError || tablesError || layoutOverridesError || floorPlanObjectsError || reservationsError || slotsError,
+    branchesError || tablesError || layoutOverridesError || reservationsError || slotsError,
   );
   const loading = restaurantsLoading || branchesLoading || tablesLoading || reservationsLoading;
 
