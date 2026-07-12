@@ -2,9 +2,12 @@
 
 const STORAGE_KEY = "tok-table-v2";
 const BRIDGE_SOURCE = "tok-table-v2";
-const MIN_ZOOM = 0.45;
+const CANVAS_WIDTH = 1040;
+const CANVAS_HEIGHT = 760;
+const MIN_ZOOM = 0.3;
 const MAX_ZOOM = 1.8;
 const ZOOM_STEP = 0.1;
+const HISTORY_LIMIT = 40;
 const DEFAULT_RESERVATION_DURATION_MINUTES = 120;
 
 const todayIso = () => {
@@ -14,46 +17,51 @@ const todayIso = () => {
 };
 
 const uid = (prefix) => `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+const clone = (value) => JSON.parse(JSON.stringify(value));
 
-const initialState = () => ({
-  connected: false,
-  branchId: null,
-  selectedDate: todayIso(),
-  selectedPeriod: "soir",
-  selectedZone: "Salle principale",
-  tables: [
-    { id: "t1", name: "T1", capacity: 2, zone: "Salle principale", shape: "round", x: 8, y: 12, blocked: false },
-    { id: "t2", name: "T2", capacity: 4, zone: "Salle principale", shape: "square", x: 30, y: 10, blocked: false },
-    { id: "t3", name: "T3", capacity: 4, zone: "Salle principale", shape: "square", x: 57, y: 10, blocked: false },
-    { id: "t4", name: "T4", capacity: 6, zone: "Salle principale", shape: "rectangle", x: 78, y: 10, blocked: false },
-    { id: "t5", name: "T5", capacity: 2, zone: "Salle principale", shape: "round", x: 10, y: 42, blocked: false },
-    { id: "t6", name: "T6", capacity: 4, zone: "Salle principale", shape: "round", x: 35, y: 41, blocked: false },
-    { id: "t7", name: "T7", capacity: 8, zone: "Salle principale", shape: "rectangle", x: 62, y: 42, blocked: false },
-    { id: "t8", name: "T8", capacity: 2, zone: "Salle principale", shape: "square", x: 9, y: 72, blocked: false },
-    { id: "t9", name: "T9", capacity: 4, zone: "Salle principale", shape: "square", x: 33, y: 70, blocked: false },
-    { id: "t10", name: "T10", capacity: 6, zone: "Salle principale", shape: "rectangle", x: 61, y: 70, blocked: false },
-    { id: "t11", name: "T11", capacity: 4, zone: "Terrasse", shape: "square", x: 10, y: 15, blocked: false },
-    { id: "t12", name: "T12", capacity: 4, zone: "Terrasse", shape: "square", x: 40, y: 15, blocked: false },
-    { id: "t13", name: "T13", capacity: 2, zone: "Terrasse", shape: "round", x: 72, y: 15, blocked: false },
-    { id: "t14", name: "T14", capacity: 6, zone: "Terrasse", shape: "rectangle", x: 12, y: 55, blocked: false },
-    { id: "t15", name: "T15", capacity: 8, zone: "Salon privé", shape: "rectangle", x: 18, y: 30, blocked: false },
-    { id: "t16", name: "T16", capacity: 10, zone: "Salon privé", shape: "rectangle", x: 58, y: 30, blocked: false }
-  ],
-  reservations: [
-    { id: "r1", name: "Famille Martin", size: 4, time: "19:30", date: todayIso(), period: "soir", preferredZone: "Salle principale", note: "Chaise bébé", tableId: null },
-    { id: "r2", name: "Sophie Bernard", size: 2, time: "19:45", date: todayIso(), period: "soir", preferredZone: "Terrasse", note: "", tableId: null },
-    { id: "r3", name: "Groupe Dubois", size: 7, time: "20:00", date: todayIso(), period: "soir", preferredZone: "", note: "Anniversaire", tableId: null },
-    { id: "r4", name: "Marc Rossi", size: 3, time: "20:15", date: todayIso(), period: "soir", preferredZone: "Salle principale", note: "", tableId: null },
-    { id: "r5", name: "Claire Lopez", size: 2, time: "20:30", date: todayIso(), period: "soir", preferredZone: "", note: "Allergie aux noix", tableId: null }
-  ]
-});
+const sampleTables = () => [
+  { id: "t1", name: "T1", capacity: 2, zone: "Salle principale", shape: "round", x: 8, y: 10, blocked: false, editable: true, kind: "table" },
+  { id: "t2", name: "T2", capacity: 4, zone: "Salle principale", shape: "square", x: 28, y: 10, blocked: false, editable: true, kind: "table" },
+  { id: "t3", name: "T3", capacity: 6, zone: "Salle principale", shape: "rectangle", x: 52, y: 10, blocked: false, editable: true, kind: "table" },
+  { id: "t4", name: "T4", capacity: 4, zone: "Salle principale", shape: "round", x: 10, y: 38, blocked: false, editable: true, kind: "table" },
+  { id: "t5", name: "T5", capacity: 8, zone: "Salle principale", shape: "rectangle", x: 38, y: 40, blocked: false, editable: true, kind: "table" },
+  { id: "t6", name: "T6", capacity: 4, zone: "Terrasse", shape: "square", x: 10, y: 12, blocked: false, editable: true, kind: "table" },
+  { id: "t7", name: "T7", capacity: 2, zone: "Terrasse", shape: "round", x: 36, y: 12, blocked: false, editable: true, kind: "table" }
+];
+
+const sampleReservations = () => [
+  { id: "r1", name: "Famille Martin", size: 4, time: "19:30", date: todayIso(), period: "soir", preferredZone: "Salle principale", note: "Chaise bébé", durationMinutes: 120, tableId: null, status: "confirmed" },
+  { id: "r2", name: "Sophie Bernard", size: 2, time: "19:45", date: todayIso(), period: "soir", preferredZone: "Terrasse", note: "", durationMinutes: 120, tableId: null, status: "confirmed" },
+  { id: "r3", name: "Groupe Dubois", size: 7, time: "20:00", date: todayIso(), period: "soir", preferredZone: "", note: "Anniversaire", durationMinutes: 120, tableId: null, status: "confirmed" }
+];
+
+const initialState = () => {
+  const tables = sampleTables();
+  return {
+    connected: false,
+    branchId: null,
+    mode: "service",
+    selectedDate: todayIso(),
+    selectedPeriod: new Date().getHours() < 16 ? "midi" : "soir",
+    selectedZone: "Salle principale",
+    tables: clone(tables),
+    serverTemplateTables: clone(tables),
+    serverServiceTables: clone(tables),
+    reservations: sampleReservations(),
+    dirty: false
+  };
+};
 
 let state = loadState();
+let history = { past: [], future: [], baseline: clone(state.tables) };
+let selectedReservationId = null;
 let dragState = null;
+let dragFrame = 0;
 let canvasZoom = 1;
 let zoomWasChanged = false;
-let floorBaseWidth = 0;
-let floorBaseHeight = 560;
+let pendingOperation = null;
+let pendingAssignment = null;
+let pendingConfirmAction = null;
 const viewportPointers = new Map();
 let viewportGesture = null;
 
@@ -63,8 +71,9 @@ const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 const elements = {
   date: $("#service-date"),
   period: $("#service-period"),
-  summary: $("#service-summary"),
-  stats: $("#stats-grid"),
+  floorSummary: $("#floor-summary"),
+  floorModeLabel: $("#floor-mode-label"),
+  clientSummary: $("#client-summary"),
   zones: $("#zone-tabs"),
   floor: $("#floor"),
   floorViewport: $("#floor-viewport"),
@@ -73,89 +82,106 @@ const elements = {
   reservationList: $("#reservation-list"),
   search: $("#reservation-search"),
   filter: $("#reservation-filter"),
+  placementBanner: $("#placement-banner"),
+  placementTitle: $("#placement-title"),
+  placementCopy: $("#placement-copy"),
   tableModal: $("#table-modal"),
   tableForm: $("#table-form"),
-  reservationModal: $("#reservation-modal"),
-  reservationForm: $("#reservation-form"),
-  dataModal: $("#data-modal"),
+  confirmModal: $("#confirm-modal"),
   toastRegion: $("#toast-region"),
   zoomValue: $("#zoom-value"),
-  connectionLabel: $("#connection-label")
+  connectionLabel: $("#connection-label"),
+  dragHint: $("#drag-hint"),
+  saveButton: $("#save-plan-button"),
+  cancelChangesButton: $("#cancel-changes-button"),
+  undoButton: $("#undo-button"),
+  redoButton: $("#redo-button"),
+  autoPlaceButton: $("#auto-place-button"),
+  modeServiceButton: $("#mode-service-button"),
+  modeTemplateButton: $("#mode-template-button")
 };
 
 function loadState() {
   try {
     const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY));
     if (!parsed || !Array.isArray(parsed.tables) || !Array.isArray(parsed.reservations)) return initialState();
-    return sanitizeState({ ...initialState(), ...parsed });
+    const fallback = initialState();
+    const tables = sanitizeTables(parsed.tables);
+    const reservations = sanitizeReservations(parsed.reservations, tables, parsed.selectedDate || fallback.selectedDate);
+    return {
+      ...fallback,
+      mode: parsed.mode === "template" ? "template" : "service",
+      selectedDate: /^\d{4}-\d{2}-\d{2}$/.test(parsed.selectedDate) ? parsed.selectedDate : fallback.selectedDate,
+      selectedPeriod: parsed.selectedPeriod === "midi" ? "midi" : "soir",
+      selectedZone: String(parsed.selectedZone || tables[0]?.zone || "Salle principale"),
+      tables: clone(tables),
+      serverTemplateTables: clone(tables),
+      serverServiceTables: clone(tables),
+      reservations,
+      dirty: false
+    };
   } catch {
     return initialState();
   }
 }
 
-function sanitizeState(candidate) {
-  const fallback = initialState();
-  const seenTableIds = new Set();
-  const seenTableNames = new Set();
-  const cleanTables = [];
-
-  candidate.tables.forEach((raw, index) => {
-    const id = String(raw?.id || uid("table"));
-    let name = String(raw?.name || `T${index + 1}`).trim().slice(0, 20);
-    if (!name) name = `T${index + 1}`;
-    const nameKey = name.toLocaleLowerCase("fr");
-    if (seenTableIds.has(id) || seenTableNames.has(nameKey)) return;
-    seenTableIds.add(id);
-    seenTableNames.add(nameKey);
-    cleanTables.push({
-      id,
-      name,
-      capacity: Math.max(1, Math.min(30, Number(raw?.capacity) || 1)),
-      zone: String(raw?.zone || "Salle principale").trim().slice(0, 30) || "Salle principale",
-      shape: ["round", "square", "rectangle"].includes(raw?.shape) ? raw.shape : "round",
-      x: Math.max(0, Math.min(94, Number(raw?.x) || 0)),
-      y: Math.max(0, Math.min(86, Number(raw?.y) || 0)),
-      blocked: Boolean(raw?.blocked)
-    });
-  });
-
-  const tableById = new Map(cleanTables.map((table) => [table.id, table]));
-  const cleanReservations = [];
-  candidate.reservations.forEach((raw) => {
-    const name = String(raw?.name || "").trim().slice(0, 60);
-    if (!name) return;
-    const size = Math.max(1, Math.min(30, Number(raw?.size) || 1));
-    const date = /^\d{4}-\d{2}-\d{2}$/.test(raw?.date) ? raw.date : fallback.selectedDate;
-    const period = raw?.period === "midi" ? "midi" : "soir";
-    let tableId = tableById.has(raw?.tableId) ? raw.tableId : null;
-    const table = tableById.get(tableId);
-    if (!table || table.blocked || table.capacity < size) tableId = null;
-    cleanReservations.push({
-      id: String(raw?.id || uid("reservation")),
-      name,
-      size,
-      time: /^\d{2}:\d{2}$/.test(raw?.time) ? raw.time : (period === "midi" ? "12:30" : "19:30"),
-      date,
-      period,
-      preferredZone: String(raw?.preferredZone || "").trim().slice(0, 30),
-      note: String(raw?.note || "").trim().slice(0, 180),
-      tableId
-    });
-  });
-
-  const availableZones = [...new Set(cleanTables.map((table) => table.zone))];
-  return {
-    selectedDate: /^\d{4}-\d{2}-\d{2}$/.test(candidate.selectedDate) ? candidate.selectedDate : fallback.selectedDate,
-    selectedPeriod: candidate.selectedPeriod === "midi" ? "midi" : "soir",
-    selectedZone: availableZones.includes(candidate.selectedZone) ? candidate.selectedZone : (availableZones[0] || "Salle principale"),
-    tables: cleanTables,
-    reservations: cleanReservations
-  };
-}
-
 function saveState() {
   if (state.connected) return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({
+    mode: state.mode,
+    selectedDate: state.selectedDate,
+    selectedPeriod: state.selectedPeriod,
+    selectedZone: state.selectedZone,
+    tables: state.tables,
+    reservations: state.reservations
+  }));
+}
+
+function sanitizeTables(input) {
+  if (!Array.isArray(input)) return [];
+  const seenIds = new Set();
+  return input.flatMap((raw, index) => {
+    const id = String(raw?.id || "").trim();
+    if (!id || seenIds.has(id)) return [];
+    seenIds.add(id);
+    const rawX = Number(raw?.x);
+    const rawY = Number(raw?.y);
+    const editable = raw?.editable !== false && String(raw?.kind || "table") === "table";
+    return [{
+      id,
+      name: String(raw?.name || `T${index + 1}`).trim().slice(0, 40) || `T${index + 1}`,
+      capacity: editable ? Math.max(1, Math.min(30, Math.round(Number(raw?.capacity) || 1))) : 0,
+      zone: String(raw?.zone || "Salle principale").trim().slice(0, 60) || "Salle principale",
+      shape: ["round", "square", "rectangle"].includes(raw?.shape) ? raw.shape : "rectangle",
+      x: Math.max(0, Math.min(94, Number.isFinite(rawX) ? rawX : 0)),
+      y: Math.max(0, Math.min(86, Number.isFinite(rawY) ? rawY : 0)),
+      blocked: Boolean(raw?.blocked),
+      editable,
+      kind: editable ? "table" : String(raw?.kind || "furniture")
+    }];
+  });
+}
+
+function sanitizeReservations(input, tables, selectedDate) {
+  if (!Array.isArray(input)) return [];
+  const tableIds = new Set(tables.filter((table) => table.editable).map((table) => table.id));
+  return input.flatMap((raw) => {
+    const id = String(raw?.id || "").trim();
+    if (!id) return [];
+    return [{
+      id,
+      name: String(raw?.name || "Client sans nom").trim().slice(0, 80) || "Client sans nom",
+      size: Math.max(1, Math.min(30, Math.round(Number(raw?.size) || 1))),
+      time: /^\d{2}:\d{2}/.test(String(raw?.time || "")) ? String(raw.time).slice(0, 5) : "00:00",
+      date: /^\d{4}-\d{2}-\d{2}$/.test(String(raw?.date || "")) ? String(raw.date) : selectedDate,
+      period: raw?.period === "midi" ? "midi" : "soir",
+      preferredZone: String(raw?.preferredZone || "").slice(0, 60),
+      note: String(raw?.note || "").slice(0, 240),
+      durationMinutes: Math.max(30, Number(raw?.durationMinutes) || DEFAULT_RESERVATION_DURATION_MINUTES),
+      tableId: tableIds.has(raw?.tableId) ? raw.tableId : null,
+      status: String(raw?.status || "pending")
+    }];
+  });
 }
 
 function postToDashboard(type, payload = {}) {
@@ -167,15 +193,88 @@ function escapeHtml(value = "") {
   return String(value).replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char]);
 }
 
-function serviceReservations() {
-  return state.reservations
-    .filter((reservation) => reservation.date === state.selectedDate && reservation.period === state.selectedPeriod)
-    .sort((a, b) => a.time.localeCompare(b.time) || a.name.localeCompare(b.name));
+function editableTables(tables = state.tables) {
+  return tables.filter((table) => table.editable);
+}
+
+function tableSignature(tables) {
+  return JSON.stringify(editableTables(tables)
+    .map((table) => ({
+      id: table.id,
+      name: table.name,
+      capacity: table.capacity,
+      zone: table.zone,
+      shape: table.shape,
+      x: Math.round(table.x * 1000) / 1000,
+      y: Math.round(table.y * 1000) / 1000,
+      blocked: table.blocked
+    }))
+    .sort((left, right) => left.id.localeCompare(right.id)));
+}
+
+function setDirty(nextDirty) {
+  const dirty = Boolean(nextDirty);
+  if (state.dirty === dirty) return;
+  state.dirty = dirty;
+  document.body.classList.toggle("dirty", dirty);
+  if (state.connected) postToDashboard("tok-table-v2:dirty-change", { dirty });
+}
+
+function updateDirty() {
+  setDirty(tableSignature(state.tables) !== tableSignature(history.baseline));
+}
+
+function resetHistory(tables) {
+  history = { past: [], future: [], baseline: clone(tables) };
+  setDirty(false);
+}
+
+function commitTables(nextTables, beforeTables = state.tables) {
+  if (tableSignature(nextTables) === tableSignature(beforeTables)) return false;
+  history.past.push(clone(beforeTables));
+  if (history.past.length > HISTORY_LIMIT) history.past.shift();
+  history.future = [];
+  state.tables = clone(nextTables);
+  updateDirty();
+  render();
+  return true;
+}
+
+function undo() {
+  if (!history.past.length || pendingOperation) return;
+  history.future.unshift(clone(state.tables));
+  state.tables = history.past.pop();
+  updateDirty();
+  render();
+}
+
+function redo() {
+  if (!history.future.length || pendingOperation) return;
+  history.past.push(clone(state.tables));
+  state.tables = history.future.shift();
+  updateDirty();
+  render();
+}
+
+function cancelChanges() {
+  if (!state.dirty || pendingOperation) return;
+  state.tables = clone(history.baseline);
+  history.past = [];
+  history.future = [];
+  setDirty(false);
+  render();
+  showToast("Modifications annulées.");
 }
 
 function zones() {
   const values = [...new Set(state.tables.map((table) => table.zone.trim()).filter(Boolean))];
   return values.length ? values.sort((a, b) => a.localeCompare(b, "fr")) : ["Salle principale"];
+}
+
+function serviceReservations() {
+  return state.reservations
+    .filter((reservation) => reservation.date === state.selectedDate && reservation.period === state.selectedPeriod)
+    .sort((a, b) => a.time.localeCompare(b.time) || a.name.localeCompare(b.name, "fr"));
 }
 
 function currentAssignmentMap() {
@@ -203,89 +302,143 @@ function reservationsConflict(left, right) {
   return leftStart < rightStart + rightDuration && rightStart < leftStart + leftDuration;
 }
 
+function getTablePlacementError(table, reservation, assignments = currentAssignmentMap()) {
+  if (!table?.editable || table.blocked) return `${table?.name || "Cette table"} est indisponible.`;
+  if (table.capacity < reservation.size) return `${table.name} n’a que ${table.capacity} place${table.capacity > 1 ? "s" : ""}.`;
+  const conflict = (assignments.get(table.id) || []).find((candidate) => reservationsConflict(candidate, reservation));
+  return conflict ? `${table.name} est déjà occupée autour de ${conflict.time}.` : "";
+}
+
 function tableCanHostReservation(table, reservation, assignments = currentAssignmentMap()) {
-  if (!table || !reservation || table.blocked || table.capacity < reservation.size) return false;
-  return !(assignments.get(table.id) || []).some((candidate) => reservationsConflict(candidate, reservation));
+  return !getTablePlacementError(table, reservation, assignments);
+}
+
+function showToast(message, kind = "") {
+  const toast = document.createElement("div");
+  toast.className = `toast ${kind}`;
+  toast.textContent = message;
+  elements.toastRegion.appendChild(toast);
+  window.setTimeout(() => toast.remove(), 3600);
 }
 
 function render() {
   const availableZones = zones();
   if (!availableZones.includes(state.selectedZone)) state.selectedZone = availableZones[0];
   document.body.classList.toggle("connected-mode", Boolean(state.connected));
-  elements.connectionLabel.textContent = state.connected ? "Données réelles synchronisées" : "Sauvegarde locale";
+  document.body.classList.toggle("service-mode", state.mode === "service");
+  document.body.classList.toggle("template-mode", state.mode === "template");
+  document.body.classList.toggle("dirty", state.dirty);
+  document.body.classList.toggle("saving", Boolean(pendingOperation));
   elements.date.value = state.selectedDate;
   elements.period.value = state.selectedPeriod;
+  elements.modeServiceButton.classList.toggle("active", state.mode === "service");
+  elements.modeServiceButton.setAttribute("aria-pressed", String(state.mode === "service"));
+  elements.modeTemplateButton.classList.toggle("active", state.mode === "template");
+  elements.modeTemplateButton.setAttribute("aria-pressed", String(state.mode === "template"));
   renderSummary();
-  renderStats();
   renderZones();
   renderFloor();
   renderReservations();
+  renderPlacementBanner();
+  renderControls();
   refreshZoneFields();
   saveState();
-  window.requestAnimationFrame(() => syncCanvasZoom(false));
+  window.requestAnimationFrame(() => syncCanvasZoom(true));
 }
 
 function renderSummary() {
-  const date = new Date(`${state.selectedDate}T12:00:00`);
-  const formatted = new Intl.DateTimeFormat("fr-CH", { weekday: "long", day: "numeric", month: "long" }).format(date);
-  elements.summary.textContent = `Service du ${formatted} · ${state.selectedPeriod === "midi" ? "midi" : "soir"}`;
+  const reservations = serviceReservations();
+  const assigned = reservations.filter((item) => item.tableId).length;
+  const seats = editableTables().filter((table) => !table.blocked).reduce((sum, table) => sum + table.capacity, 0);
+  elements.floorModeLabel.textContent = state.mode === "template" ? "MODÈLE DE SALLE" : "SERVICE";
+  elements.floorSummary.textContent = state.mode === "template"
+    ? `${editableTables().length} table${editableTables().length > 1 ? "s" : ""} · ${seats} assise${seats > 1 ? "s" : ""}`
+    : `${assigned}/${reservations.length} réservation${reservations.length > 1 ? "s" : ""} placée${assigned > 1 ? "s" : ""}`;
+  elements.clientSummary.textContent = `${assigned}/${reservations.length} placée${assigned > 1 ? "s" : ""}`;
+  elements.dragHint.textContent = state.mode === "template"
+    ? "Faites glisser une table pour la déplacer. Cliquez dessus pour modifier ses assises, sa forme ou sa zone."
+    : "Sélectionnez un client puis cliquez sur une table. Faites glisser une table pour modifier uniquement ce service.";
 }
 
-function renderStats() {
-  const reservations = serviceReservations();
-  const guests = reservations.reduce((sum, item) => sum + Number(item.size), 0);
-  const assigned = reservations.filter((item) => item.tableId).length;
-  const occupiedTables = new Set(reservations.filter((item) => item.tableId).map((item) => item.tableId)).size;
-  const usableTables = state.tables.filter((table) => !table.blocked).length;
-  const totalSeats = state.tables.filter((table) => !table.blocked).reduce((sum, table) => sum + Number(table.capacity), 0);
-  const seatedGuests = reservations.filter((item) => item.tableId).reduce((sum, item) => sum + Number(item.size), 0);
-  const occupancy = totalSeats ? Math.min(100, Math.round((seatedGuests / totalSeats) * 100)) : 0;
+function renderControls() {
+  elements.undoButton.disabled = history.past.length === 0 || Boolean(pendingOperation);
+  elements.redoButton.disabled = history.future.length === 0 || Boolean(pendingOperation);
+  elements.saveButton.disabled = !state.dirty || Boolean(pendingOperation);
+  elements.cancelChangesButton.disabled = !state.dirty || Boolean(pendingOperation);
+  elements.autoPlaceButton.disabled = Boolean(pendingOperation);
+  elements.saveButton.textContent = state.mode === "template" ? "Enregistrer le modèle" : "Enregistrer ce service";
 
-  const stats = [
-    ["♟", guests, "Convives attendus"],
-    ["▦", `${occupiedTables}/${usableTables}`, "Tables occupées"],
-    ["✓", `${assigned}/${reservations.length}`, "Réservations placées"],
-    ["◔", `${occupancy}%`, "Taux d’occupation"]
-  ];
-
-  elements.stats.innerHTML = stats.map(([icon, value, label]) => `
-    <article class="stat-card">
-      <span class="stat-icon" aria-hidden="true">${icon}</span>
-      <div class="stat-copy"><strong>${value}</strong><span>${label}</span></div>
-    </article>`).join("");
+  if (pendingOperation) {
+    elements.connectionLabel.textContent = "Enregistrement…";
+  } else if (state.dirty) {
+    elements.connectionLabel.textContent = "Modifications à enregistrer";
+  } else if (state.connected) {
+    elements.connectionLabel.textContent = "Synchronisé";
+  } else {
+    elements.connectionLabel.textContent = "Sauvegarde locale";
+  }
 }
 
 function renderZones() {
   elements.zones.innerHTML = zones().map((zone) => {
-    const count = state.tables.filter((table) => table.zone === zone).length;
+    const count = state.tables.filter((table) => table.zone === zone && table.editable).length;
     return `<button class="zone-tab ${zone === state.selectedZone ? "active" : ""}" data-zone="${escapeHtml(zone)}" role="tab" aria-selected="${zone === state.selectedZone}">${escapeHtml(zone)} · ${count}</button>`;
+  }).join("");
+}
+
+function getNodeDimensions(table) {
+  if (!table.editable) return { width: 112, height: 68 };
+  return { width: table.shape === "rectangle" ? 132 : 92, height: 92 };
+}
+
+function getChairMarkup(table) {
+  if (!table.editable) return "";
+  const distance = table.shape === "rectangle" ? -72 : -55;
+  return Array.from({ length: table.capacity }, (_, index) => {
+    const angle = (360 / table.capacity) * index;
+    return `<i class="chair" aria-hidden="true" style="--chair-angle:${angle}deg;--chair-counter-angle:${-angle}deg;--chair-distance:${distance}px"></i>`;
   }).join("");
 }
 
 function renderFloor() {
   $$(".table-node", elements.floor).forEach((node) => node.remove());
-  const assignment = currentAssignmentMap();
+  const assignments = currentAssignmentMap();
   const visibleTables = state.tables.filter((table) => table.zone === state.selectedZone);
+  const selectedReservation = state.reservations.find((item) => item.id === selectedReservationId) || null;
   elements.floorEmpty.classList.toggle("hidden", visibleTables.length > 0);
 
   visibleTables.forEach((table) => {
-    const reservations = assignment.get(table.id) || [];
+    const reservations = assignments.get(table.id) || [];
     const reservation = reservations[0] || null;
     const guestLabel = reservations.length > 1
       ? `${reservation.name} +${reservations.length - 1}`
       : reservation?.name || "";
+    const dimensions = getNodeDimensions(table);
+    const maxX = CANVAS_WIDTH - dimensions.width - 2;
+    const maxY = CANVAS_HEIGHT - dimensions.height - 2;
+    const left = Math.max(2, Math.min(maxX, (table.x / 100) * CANVAS_WIDTH));
+    const top = Math.max(2, Math.min(maxY, (table.y / 100) * CANVAS_HEIGHT));
+    const placementError = selectedReservation && table.editable
+      ? getTablePlacementError(table, selectedReservation, assignments)
+      : "";
+    const targetClass = selectedReservation
+      ? placementError ? "invalid-target" : "valid-target"
+      : "";
+    const currentClass = selectedReservation?.tableId === table.id ? "current-target" : "";
     const node = document.createElement("button");
     node.type = "button";
-    node.className = `table-node ${table.shape} ${table.blocked ? "blocked" : reservation ? "occupied" : ""}`;
+    node.className = `table-node ${table.shape} ${table.editable ? "" : "furniture"} ${table.blocked ? "blocked" : reservation ? "occupied" : ""} ${targetClass} ${currentClass}`.trim();
     node.dataset.tableId = table.id;
-    const nodeWidth = table.shape === "rectangle" ? 134 : 94;
-    node.style.left = `clamp(2px, ${table.x}%, calc(100% - ${nodeWidth}px))`;
-    node.style.top = `clamp(2px, ${table.y}%, calc(100% - 94px))`;
-    node.setAttribute("aria-label", `${table.name}, ${table.capacity} places${reservation ? `, ${reservations.map((item) => item.name).join(", ")}` : table.blocked ? ", indisponible" : ", libre"}`);
+    node.style.left = `${left}px`;
+    node.style.top = `${top}px`;
+    node.setAttribute("aria-label", table.editable
+      ? `${table.name}, ${table.capacity} places${reservation ? `, ${reservations.map((item) => item.name).join(", ")}` : table.blocked ? ", indisponible" : ", libre"}${placementError ? `, ${placementError}` : ""}`
+      : `${table.name}, mobilier`);
+    if (!table.editable) node.tabIndex = -1;
     node.innerHTML = `
-      <i class="chair top"></i><i class="chair right"></i><i class="chair bottom"></i><i class="chair left"></i>
+      ${getChairMarkup(table)}
       <span class="table-name">${escapeHtml(table.name)}</span>
-      <span class="table-capacity">${table.capacity} place${table.capacity > 1 ? "s" : ""}</span>
+      ${table.editable ? `<span class="table-capacity">${table.capacity} assise${table.capacity > 1 ? "s" : ""}</span>` : `<span class="table-capacity">Mobilier</span>`}
       ${reservation ? `<span class="table-guest">${escapeHtml(guestLabel)}</span>` : ""}`;
     elements.floor.appendChild(node);
   });
@@ -308,8 +461,9 @@ function renderReservations() {
   elements.reservationList.innerHTML = reservations.map((reservation) => {
     const table = state.tables.find((item) => item.id === reservation.tableId);
     const initials = reservation.name.split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
+    const selected = reservation.id === selectedReservationId;
     return `
-      <article class="reservation-card">
+      <article class="reservation-card ${selected ? "selected" : ""}" draggable="true" data-reservation-id="${reservation.id}" aria-selected="${selected}">
         <span class="guest-avatar">${escapeHtml(initials)}</span>
         <div class="reservation-main">
           <div class="reservation-name">
@@ -319,324 +473,370 @@ function renderReservations() {
           <div class="reservation-meta"><span>${escapeHtml(reservation.time)}</span><span>•</span><span>${reservation.size} convive${reservation.size > 1 ? "s" : ""}</span>${reservation.preferredZone ? `<span>•</span><span>${escapeHtml(reservation.preferredZone)}</span>` : ""}</div>
           ${reservation.note ? `<div class="reservation-note">${escapeHtml(reservation.note)}</div>` : ""}
         </div>
-        <button class="assignment-button ${table ? "assigned" : ""}" type="button" data-action="assign" data-reservation-id="${reservation.id}">${table ? escapeHtml(table.name) : "Placer"}</button>
-        <button class="edit-reservation" type="button" data-action="edit-reservation" data-reservation-id="${reservation.id}" aria-label="Modifier ${escapeHtml(reservation.name)}"></button>
+        <button class="assignment-button ${table ? "assigned" : ""}" type="button" data-action="select-reservation" data-reservation-id="${reservation.id}" aria-pressed="${selected}">${table ? escapeHtml(table.name) : "Placer"}</button>
       </article>`;
   }).join("");
 }
 
-function refreshZoneFields() {
-  const options = zones();
-  $("#zone-list").innerHTML = options.map((zone) => `<option value="${escapeHtml(zone)}"></option>`).join("");
-  const select = elements.reservationForm.elements.preferredZone;
-  const value = select.value;
-  select.innerHTML = `<option value="">Aucune préférence</option>${options.map((zone) => `<option value="${escapeHtml(zone)}">${escapeHtml(zone)}</option>`).join("")}`;
-  if ([...select.options].some((option) => option.value === value)) select.value = value;
+function renderPlacementBanner() {
+  const reservation = state.reservations.find((item) => item.id === selectedReservationId);
+  elements.placementBanner.classList.toggle("hidden", !reservation || state.mode !== "service");
+  if (!reservation) return;
+  elements.placementTitle.textContent = `Placer ${reservation.name}`;
+  elements.placementCopy.textContent = `Cliquez sur une table compatible pour ${reservation.size} convive${reservation.size > 1 ? "s" : ""}.`;
+  $("#unassign-button").classList.toggle("hidden", !reservation.tableId);
 }
 
-function showToast(message, kind = "") {
-  const toast = document.createElement("div");
-  toast.className = `toast ${kind}`;
-  toast.textContent = message;
-  elements.toastRegion.appendChild(toast);
-  setTimeout(() => toast.remove(), 3600);
+function refreshZoneFields() {
+  $("#zone-list").innerHTML = zones().map((zone) => `<option value="${escapeHtml(zone)}"></option>`).join("");
+}
+
+function selectReservation(reservationId) {
+  if (state.mode !== "service" || pendingOperation) return;
+  selectedReservationId = selectedReservationId === reservationId ? null : reservationId;
+  renderFloor();
+  renderReservations();
+  renderPlacementBanner();
+}
+
+function createRequestId(kind) {
+  return `${kind}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function beginOperation(kind, requestId) {
+  pendingOperation = { kind, requestId };
+  document.body.classList.remove("sync-error");
+  renderControls();
+  document.body.classList.add("saving");
+}
+
+function finishOperation() {
+  pendingOperation = null;
+  document.body.classList.remove("saving");
+  renderControls();
+}
+
+function assignReservation(reservationId, tableId) {
+  if (pendingOperation) return;
+  const reservation = state.reservations.find((item) => item.id === reservationId);
+  if (!reservation) return;
+  const table = tableId ? state.tables.find((item) => item.id === tableId) : null;
+  if (table) {
+    const error = getTablePlacementError(table, reservation);
+    if (error) {
+      showToast(error, "warning");
+      return;
+    }
+  }
+
+  const previousTableId = reservation.tableId;
+  reservation.tableId = tableId;
+  selectedReservationId = null;
+  render();
+
+  if (!state.connected) {
+    saveState();
+    showToast(tableId ? `Client placé sur ${table.name}.` : "Placement retiré.", "success");
+    return;
+  }
+
+  const requestId = createRequestId("assignment");
+  pendingAssignment = { reservationId, previousTableId };
+  beginOperation("assignment", requestId);
+  postToDashboard("tok-table-v2:assign", { requestId, reservationId, tableId });
+}
+
+function unassignSelectedReservation() {
+  if (!selectedReservationId) return;
+  assignReservation(selectedReservationId, null);
 }
 
 function openTableModal(table = null) {
+  if (state.mode !== "template" || (table && !table.editable) || pendingOperation) return;
   elements.tableForm.reset();
   const fields = elements.tableForm.elements;
   fields.id.value = table?.id ?? "";
-  fields.name.value = table?.name ?? `T${state.tables.length + 1}`;
+  fields.name.value = table?.name ?? nextTableName();
   fields.capacity.value = table?.capacity ?? 4;
   fields.zone.value = table?.zone ?? state.selectedZone;
   fields.shape.value = table?.shape ?? "round";
-  fields.blocked.checked = table?.blocked ?? false;
+  fields.active.checked = table ? !table.blocked : true;
   $("#table-modal-title").textContent = table ? `Modifier ${table.name}` : "Ajouter une table";
   $("#delete-table-button").classList.toggle("hidden", !table);
+  $("#duplicate-table-button").classList.toggle("hidden", !table);
   elements.tableModal.showModal();
-  setTimeout(() => fields.name.select(), 30);
+  window.setTimeout(() => fields.name.select(), 30);
 }
 
-function openReservationModal(reservation = null) {
-  elements.reservationForm.reset();
-  refreshZoneFields();
-  const fields = elements.reservationForm.elements;
-  fields.id.value = reservation?.id ?? "";
-  fields.name.value = reservation?.name ?? "";
-  fields.size.value = reservation?.size ?? 2;
-  fields.time.value = reservation?.time ?? (state.selectedPeriod === "midi" ? "12:30" : "19:30");
-  fields.preferredZone.value = reservation?.preferredZone ?? "";
-  fields.note.value = reservation?.note ?? "";
-  $("#reservation-modal-title").textContent = reservation ? `Modifier ${reservation.name}` : "Ajouter une réservation";
-  $("#delete-reservation-button").classList.toggle("hidden", !reservation);
-  elements.reservationModal.showModal();
-  setTimeout(() => fields.name.focus(), 30);
+function nextTableName() {
+  const names = new Set(state.tables.map((table) => table.name.toLocaleLowerCase("fr")));
+  let number = editableTables().length + 1;
+  while (names.has(`t${number}`.toLocaleLowerCase("fr"))) number += 1;
+  return `T${number}`;
 }
 
 function saveTableFromForm() {
   const form = new FormData(elements.tableForm);
   const id = String(form.get("id") || "");
-  const table = {
-    id: id || uid("table"),
-    name: String(form.get("name")).trim(),
-    capacity: Number(form.get("capacity")),
-    zone: String(form.get("zone")).trim(),
-    shape: String(form.get("shape")),
-    blocked: form.get("blocked") === "on"
-  };
-  if (!table.name || !table.zone || table.capacity < 1) return false;
+  const name = String(form.get("name") || "").trim();
+  const capacity = Math.round(Number(form.get("capacity")));
+  const zone = String(form.get("zone") || "").trim();
+  const shape = String(form.get("shape") || "round");
+  const blocked = form.get("active") !== "on";
+  if (!name || name.length > 40 || !zone || zone.length > 60 || capacity < 1 || capacity > 30) return false;
 
-  const duplicate = state.tables.find((item) => item.id !== id && item.name.toLocaleLowerCase("fr") === table.name.toLocaleLowerCase("fr"));
+  const duplicate = editableTables().find((item) => item.id !== id && item.name.toLocaleLowerCase("fr") === name.toLocaleLowerCase("fr"));
   if (duplicate) {
     showToast("Une table porte déjà ce nom.", "warning");
     return false;
   }
 
-  const existing = state.tables.find((item) => item.id === id);
-  if (existing) Object.assign(existing, table);
-  else state.tables.push({ ...table, x: 8 + (state.tables.length * 13) % 72, y: 12 + (state.tables.length * 17) % 68 });
-
-  state.reservations.forEach((reservation) => {
-    if (reservation.tableId === table.id && (table.blocked || reservation.size > table.capacity)) reservation.tableId = null;
-  });
-  state.selectedZone = table.zone;
-  render();
-  showToast(existing ? "Table mise à jour." : "Table ajoutée.", "success");
-  return true;
-}
-
-function saveReservationFromForm() {
-  const form = new FormData(elements.reservationForm);
-  const id = String(form.get("id") || "");
-  const existing = state.reservations.find((item) => item.id === id);
-  const reservation = {
-    id: id || uid("reservation"),
-    name: String(form.get("name")).trim(),
-    size: Number(form.get("size")),
-    time: String(form.get("time")),
-    preferredZone: String(form.get("preferredZone")),
-    note: String(form.get("note")).trim(),
-    date: existing?.date ?? state.selectedDate,
-    period: existing?.period ?? state.selectedPeriod,
-    tableId: existing?.tableId ?? null
-  };
-  if (!reservation.name || !reservation.time || reservation.size < 1) return false;
-
-  if (reservation.tableId) {
-    const currentTable = state.tables.find((table) => table.id === reservation.tableId);
-    if (!currentTable || currentTable.blocked || currentTable.capacity < reservation.size) reservation.tableId = null;
+  const incompatible = state.reservations.find((reservation) => (
+    reservation.tableId === id && (blocked || reservation.size > capacity)
+  ));
+  if (incompatible) {
+    showToast(`Retirez d’abord le placement de ${incompatible.name}.`, "warning");
+    return false;
   }
 
-  if (existing) Object.assign(existing, reservation);
-  else state.reservations.push(reservation);
-  render();
-  showToast(existing ? "Réservation mise à jour." : "Réservation ajoutée.", "success");
+  const before = clone(state.tables);
+  const next = clone(state.tables);
+  const existing = next.find((item) => item.id === id);
+  if (existing) {
+    Object.assign(existing, { name, capacity, zone, shape, blocked });
+  } else {
+    next.push({
+      id: uid("tmp_table"),
+      name,
+      capacity,
+      zone,
+      shape,
+      blocked,
+      editable: true,
+      kind: "table",
+      x: 8 + (editableTables().length * 13) % 72,
+      y: 10 + (editableTables().length * 16) % 68
+    });
+  }
+  state.selectedZone = zone;
+  commitTables(next, before);
+  showToast(existing ? "Table modifiée dans le brouillon." : "Table ajoutée au brouillon.", "success");
   return true;
 }
 
-function deleteTable() {
+function duplicateCurrentTable() {
   const id = elements.tableForm.elements.id.value;
-  const table = state.tables.find((item) => item.id === id);
-  if (!table || !confirm(`Supprimer définitivement la table ${table.name} ?`)) return;
-  state.tables = state.tables.filter((item) => item.id !== id);
-  state.reservations.forEach((reservation) => { if (reservation.tableId === id) reservation.tableId = null; });
+  const source = state.tables.find((item) => item.id === id && item.editable);
+  if (!source) return;
+  const names = new Set(editableTables().map((table) => table.name.toLocaleLowerCase("fr")));
+  let name = `${source.name} copie`;
+  let suffix = 2;
+  while (names.has(name.toLocaleLowerCase("fr"))) name = `${source.name} copie ${suffix++}`;
+  const next = clone(state.tables);
+  next.push({
+    ...clone(source),
+    id: uid("tmp_table"),
+    name,
+    x: Math.min(86, source.x + 5),
+    y: Math.min(80, source.y + 5)
+  });
   elements.tableModal.close();
-  render();
-  showToast("Table supprimée.");
+  commitTables(next);
+  showToast(`${name} ajoutée au brouillon.`, "success");
 }
 
-function deleteReservation() {
-  const id = elements.reservationForm.elements.id.value;
-  const reservation = state.reservations.find((item) => item.id === id);
-  if (!reservation || !confirm(`Supprimer la réservation de ${reservation.name} ?`)) return;
-  state.reservations = state.reservations.filter((item) => item.id !== id);
-  elements.reservationModal.close();
-  render();
-  showToast("Réservation supprimée.");
-}
-
-function assignReservationManually(reservationId) {
-  const reservation = state.reservations.find((item) => item.id === reservationId);
-  if (!reservation) return;
-  const assignments = currentAssignmentMap();
-  const available = state.tables
-    .filter((table) => table.id === reservation.tableId || tableCanHostReservation(table, reservation, assignments))
-    .sort((a, b) => (a.capacity - reservation.size) - (b.capacity - reservation.size) || a.name.localeCompare(b.name, "fr"));
-
-  if (!available.length && !reservation.tableId) {
-    showToast(`Aucune table libre ne peut accueillir ${reservation.size} convives.`, "warning");
+function requestDeleteCurrentTable() {
+  const id = elements.tableForm.elements.id.value;
+  const table = state.tables.find((item) => item.id === id && item.editable);
+  if (!table) return;
+  const assigned = state.reservations.find((reservation) => reservation.tableId === id);
+  if (assigned) {
+    showToast(`Retirez d’abord le placement de ${assigned.name}.`, "warning");
     return;
   }
-
-  const choices = [`0 — Retirer le placement`, ...available.map((table, index) => `${index + 1} — ${table.name} · ${table.capacity} places · ${table.zone}`)];
-  const answer = prompt(`Choisissez une table pour ${reservation.name} :\n\n${choices.join("\n")}`, reservation.tableId ? "0" : "1");
-  if (answer === null) return;
-  const index = Number.parseInt(answer, 10);
-  if (index === 0) reservation.tableId = null;
-  else if (available[index - 1]) reservation.tableId = available[index - 1].id;
-  else {
-    showToast("Choix de table invalide.", "warning");
-    return;
-  }
-  render();
-  if (state.connected) {
-    postToDashboard("tok-table-v2:assign", {
-      reservationId: reservation.id,
-      tableId: reservation.tableId
-    });
-  }
-}
-
-// Graphe de flot à coût minimum. L'affectation valorise d'abord le nombre de
-// convives placés, puis réduit les places perdues et respecte la zone souhaitée.
-function computeOptimalAssignments(reservations, tables) {
-  const source = 0;
-  const partyOffset = 1;
-  const tableOffset = partyOffset + reservations.length;
-  const sink = tableOffset + tables.length;
-  const graph = Array.from({ length: sink + 1 }, () => []);
-
-  const addEdge = (from, to, capacity, cost, meta = null) => {
-    const forward = { to, rev: graph[to].length, capacity, cost, meta, originalCapacity: capacity };
-    const reverse = { to: from, rev: graph[from].length, capacity: 0, cost: -cost, meta: null, originalCapacity: 0 };
-    graph[from].push(forward);
-    graph[to].push(reverse);
+  elements.tableModal.close();
+  $("#confirm-title").textContent = `Supprimer ${table.name} ?`;
+  $("#confirm-copy").textContent = "La suppression sera définitive après l’enregistrement du modèle.";
+  pendingConfirmAction = () => {
+    const next = state.tables.filter((item) => item.id !== id);
+    commitTables(next);
+    showToast(`${table.name} retirée du brouillon.`);
   };
+  elements.confirmModal.showModal();
+}
 
-  reservations.forEach((reservation, partyIndex) => {
-    addEdge(source, partyOffset + partyIndex, 1, 0);
-    tables.forEach((table, tableIndex) => {
-      if (table.capacity < reservation.size || table.blocked) return;
-      const wastedSeats = table.capacity - reservation.size;
-      const zonePenalty = reservation.preferredZone && reservation.preferredZone !== table.zone ? 35 : 0;
-      const exactZoneBonus = reservation.preferredZone === table.zone ? -8 : 0;
-      const score = -reservation.size * 10000 + wastedSeats * 20 + zonePenalty + exactZoneBonus;
-      addEdge(partyOffset + partyIndex, tableOffset + tableIndex, 1, score, { partyIndex, tableIndex });
-    });
-  });
-  tables.forEach((_, tableIndex) => addEdge(tableOffset + tableIndex, sink, 1, 0));
-
-  while (true) {
-    const distance = Array(graph.length).fill(Infinity);
-    const previousNode = Array(graph.length).fill(-1);
-    const previousEdge = Array(graph.length).fill(-1);
-    const inQueue = Array(graph.length).fill(false);
-    const queue = [source];
-    distance[source] = 0;
-    inQueue[source] = true;
-
-    while (queue.length) {
-      const node = queue.shift();
-      inQueue[node] = false;
-      graph[node].forEach((edge, edgeIndex) => {
-        if (edge.capacity <= 0 || distance[edge.to] <= distance[node] + edge.cost) return;
-        distance[edge.to] = distance[node] + edge.cost;
-        previousNode[edge.to] = node;
-        previousEdge[edge.to] = edgeIndex;
-        if (!inQueue[edge.to]) {
-          queue.push(edge.to);
-          inQueue[edge.to] = true;
-        }
-      });
-    }
-
-    if (!Number.isFinite(distance[sink]) || distance[sink] >= 0) break;
-    let node = sink;
-    while (node !== source) {
-      const previous = previousNode[node];
-      const edge = graph[previous][previousEdge[node]];
-      edge.capacity -= 1;
-      graph[node][edge.rev].capacity += 1;
-      node = previous;
-    }
+function savePlan() {
+  if (!state.dirty || pendingOperation) return;
+  if (!state.connected) {
+    history.baseline = clone(state.tables);
+    setDirty(false);
+    saveState();
+    render();
+    showToast(state.mode === "template" ? "Modèle enregistré localement." : "Service enregistré localement.", "success");
+    return;
   }
+  const requestId = createRequestId(state.mode === "template" ? "template" : "service_layout");
+  const tables = editableTables().map((table) => ({
+    id: table.id,
+    name: table.name,
+    capacity: table.capacity,
+    zone: table.zone,
+    shape: table.shape,
+    x: table.x,
+    y: table.y,
+    blocked: table.blocked
+  }));
+  beginOperation(state.mode === "template" ? "template" : "service-layout", requestId);
+  postToDashboard(
+    state.mode === "template" ? "tok-table-v2:save-template" : "tok-table-v2:save-service-layout",
+    { requestId, tables }
+  );
+}
 
-  const matches = [];
-  reservations.forEach((_, partyIndex) => {
-    graph[partyOffset + partyIndex].forEach((edge) => {
-      if (edge.meta && edge.originalCapacity === 1 && edge.capacity === 0) matches.push(edge.meta);
-    });
-  });
-  return matches;
+function switchMode(nextMode) {
+  if (nextMode === state.mode) return;
+  if (state.dirty) {
+    showToast("Enregistrez ou annulez les modifications avant de changer de mode.", "warning");
+    return;
+  }
+  state.mode = nextMode;
+  selectedReservationId = null;
+  state.tables = clone(nextMode === "template" ? state.serverTemplateTables : state.serverServiceTables);
+  resetHistory(state.tables);
+  render();
 }
 
 function autoPlace() {
-  if (state.connected) {
-    postToDashboard("tok-table-v2:auto-place-request", {
-      date: state.selectedDate,
-      period: state.selectedPeriod
-    });
-    showToast("Placement automatique en cours…");
-    return;
-  }
-  const reservations = serviceReservations();
-  const usableTables = state.tables.filter((table) => !table.blocked);
+  if (state.mode !== "service" || pendingOperation) return;
+  const reservations = serviceReservations().filter((reservation) => !reservation.tableId);
   if (!reservations.length) {
-    showToast("Ajoutez d’abord une réservation à ce service.", "warning");
+    showToast("Toutes les réservations sont déjà placées.");
     return;
   }
-  if (!usableTables.length) {
-    showToast("Aucune table disponible pour ce service.", "warning");
+  if (state.connected) {
+    const requestId = createRequestId("auto_place");
+    beginOperation("assignment", requestId);
+    postToDashboard("tok-table-v2:auto-place-request", { requestId, date: state.selectedDate, period: state.selectedPeriod });
     return;
   }
 
-  reservations.forEach((reservation) => { reservation.tableId = null; });
-  const matches = computeOptimalAssignments(reservations, usableTables);
-  matches.forEach(({ partyIndex, tableIndex }) => { reservations[partyIndex].tableId = usableTables[tableIndex].id; });
+  const assignments = currentAssignmentMap();
+  let placed = 0;
+  reservations
+    .slice()
+    .sort((left, right) => right.size - left.size || left.time.localeCompare(right.time))
+    .forEach((reservation) => {
+      const table = editableTables()
+        .filter((candidate) => tableCanHostReservation(candidate, reservation, assignments))
+        .sort((left, right) => (
+          (left.capacity - reservation.size) - (right.capacity - reservation.size)
+          || Number(right.zone === reservation.preferredZone) - Number(left.zone === reservation.preferredZone)
+        ))[0];
+      if (!table) return;
+      reservation.tableId = table.id;
+      const list = assignments.get(table.id) || [];
+      list.push(reservation);
+      assignments.set(table.id, list);
+      placed += 1;
+    });
   render();
-
-  const placedGuests = reservations.filter((r) => r.tableId).reduce((sum, r) => sum + r.size, 0);
-  const totalGuests = reservations.reduce((sum, r) => sum + r.size, 0);
-  if (matches.length === reservations.length) showToast(`${matches.length} réservations et ${placedGuests} convives placés automatiquement.`, "success");
-  else showToast(`${matches.length}/${reservations.length} réservations placées (${placedGuests}/${totalGuests} convives).`, "warning");
+  showToast(`${placed}/${reservations.length} réservation${reservations.length > 1 ? "s" : ""} placée${placed > 1 ? "s" : ""}.`, placed ? "success" : "warning");
 }
 
 function startDragging(event, node, table) {
-  if (state.connected) return;
-  if (event.button !== 0) return;
-  const floorRect = elements.floor.getBoundingClientRect();
-  const nodeRect = node.getBoundingClientRect();
+  if (!table.editable || pendingOperation || event.button !== 0) return;
+  const rect = elements.floor.getBoundingClientRect();
+  const scaleX = rect.width / CANVAS_WIDTH || canvasZoom;
+  const scaleY = rect.height / CANVAS_HEIGHT || canvasZoom;
+  const nodeLeft = (table.x / 100) * CANVAS_WIDTH;
+  const nodeTop = (table.y / 100) * CANVAS_HEIGHT;
   dragState = {
-    table,
+    pointerId: event.pointerId,
+    tableId: table.id,
     node,
-    floorRect,
-    offsetX: (event.clientX - nodeRect.left) / canvasZoom,
-    offsetY: (event.clientY - nodeRect.top) / canvasZoom,
-    moved: false,
+    beforeTables: clone(state.tables),
     startX: event.clientX,
-    startY: event.clientY
+    startY: event.clientY,
+    offsetX: (event.clientX - rect.left) / scaleX - nodeLeft,
+    offsetY: (event.clientY - rect.top) / scaleY - nodeTop,
+    nextLeft: nodeLeft,
+    nextTop: nodeTop,
+    moved: false
   };
   node.setPointerCapture(event.pointerId);
   node.classList.add("dragging");
+  event.preventDefault();
+  event.stopPropagation();
+}
+
+function paintDragging(clientX, clientY) {
+  if (!dragState) return;
+  const table = state.tables.find((item) => item.id === dragState.tableId);
+  if (!table) return;
+  const rect = elements.floor.getBoundingClientRect();
+  const scaleX = rect.width / CANVAS_WIDTH || canvasZoom;
+  const scaleY = rect.height / CANVAS_HEIGHT || canvasZoom;
+  const dimensions = getNodeDimensions(table);
+  const left = Math.max(2, Math.min(
+    CANVAS_WIDTH - dimensions.width - 2,
+    (clientX - rect.left) / scaleX - dragState.offsetX
+  ));
+  const top = Math.max(2, Math.min(
+    CANVAS_HEIGHT - dimensions.height - 2,
+    (clientY - rect.top) / scaleY - dragState.offsetY
+  ));
+  dragState.nextLeft = left;
+  dragState.nextTop = top;
+  dragState.node.style.left = `${left}px`;
+  dragState.node.style.top = `${top}px`;
 }
 
 function moveDragging(event) {
-  if (!dragState) return;
-  const { node, floorRect } = dragState;
-  if (Math.hypot(event.clientX - dragState.startX, event.clientY - dragState.startY) > 4) dragState.moved = true;
-  const logicalWidth = elements.floor.offsetWidth;
-  const logicalHeight = elements.floor.offsetHeight;
-  const maxLeft = logicalWidth - node.offsetWidth - 2;
-  const maxTop = logicalHeight - node.offsetHeight - 2;
-  const left = Math.min(maxLeft, Math.max(2, (event.clientX - floorRect.left) / canvasZoom - dragState.offsetX));
-  const top = Math.min(maxTop, Math.max(2, (event.clientY - floorRect.top) / canvasZoom - dragState.offsetY));
-  node.style.left = `${(left / logicalWidth) * 100}%`;
-  node.style.top = `${(top / logicalHeight) * 100}%`;
+  if (!dragState || event.pointerId !== dragState.pointerId) return;
+  if (Math.hypot(event.clientX - dragState.startX, event.clientY - dragState.startY) > 5) dragState.moved = true;
+  dragState.latestX = event.clientX;
+  dragState.latestY = event.clientY;
+  if (!dragFrame) {
+    dragFrame = window.requestAnimationFrame(() => {
+      dragFrame = 0;
+      if (dragState) paintDragging(dragState.latestX, dragState.latestY);
+    });
+  }
+  event.preventDefault();
+  event.stopPropagation();
 }
 
-function stopDragging(event) {
-  if (!dragState) return;
-  const { table, node, floorRect, moved } = dragState;
-  node.classList.remove("dragging");
-  if (moved) {
-    table.x = Math.max(0, Math.min(94, (node.offsetLeft / elements.floor.offsetWidth) * 100));
-    table.y = Math.max(0, Math.min(86, (node.offsetTop / elements.floor.offsetHeight) * 100));
-    saveState();
-  } else {
-    openTableModal(table);
+function finishDragging(event, cancelled = false) {
+  if (!dragState || (event.pointerId !== undefined && event.pointerId !== dragState.pointerId)) return;
+  if (dragFrame) {
+    window.cancelAnimationFrame(dragFrame);
+    dragFrame = 0;
+    if (!cancelled) paintDragging(dragState.latestX ?? event.clientX, dragState.latestY ?? event.clientY);
   }
-  if (node.hasPointerCapture(event.pointerId)) node.releasePointerCapture(event.pointerId);
+  const current = dragState;
+  const table = state.tables.find((item) => item.id === current.tableId);
   dragState = null;
+  current.node.classList.remove("dragging");
+  if (current.node.hasPointerCapture?.(current.pointerId)) current.node.releasePointerCapture(current.pointerId);
+
+  if (cancelled || !table) {
+    renderFloor();
+    return;
+  }
+  if (current.moved) {
+    const next = clone(state.tables);
+    const movedTable = next.find((item) => item.id === current.tableId);
+    movedTable.x = Math.max(0, Math.min(94, (current.nextLeft / CANVAS_WIDTH) * 100));
+    movedTable.y = Math.max(0, Math.min(86, (current.nextTop / CANVAS_HEIGHT) * 100));
+    commitTables(next, current.beforeTables);
+    return;
+  }
+
+  if (state.mode === "template") {
+    openTableModal(table);
+  } else if (selectedReservationId) {
+    assignReservation(selectedReservationId, table.id);
+  }
 }
 
 function clampZoom(value) {
@@ -645,40 +845,26 @@ function clampZoom(value) {
 
 function getViewportCenter() {
   const viewport = elements.floorViewport;
-  return {
-    clientX: viewport.getBoundingClientRect().left + viewport.clientWidth / 2,
-    clientY: viewport.getBoundingClientRect().top + viewport.clientHeight / 2
-  };
+  const rect = viewport.getBoundingClientRect();
+  return { clientX: rect.left + viewport.clientWidth / 2, clientY: rect.top + viewport.clientHeight / 2 };
 }
 
 function syncCanvasZoom(preserveCenter = true) {
   const viewport = elements.floorViewport;
-  const floor = elements.floor;
-  const stage = elements.floorStage;
-  if (!viewport || !floor || !stage) return;
-
-  const previousZoom = Number(floor.dataset.zoom) || canvasZoom || 1;
+  if (!viewport) return;
+  const previousZoom = Number(elements.floor.dataset.zoom) || canvasZoom || 1;
   const logicalCenterX = (viewport.scrollLeft + viewport.clientWidth / 2) / previousZoom;
   const logicalCenterY = (viewport.scrollTop + viewport.clientHeight / 2) / previousZoom;
-  const nextBaseWidth = Math.max(720, Math.round(viewport.clientWidth));
-  const nextBaseHeight = window.matchMedia("(max-width: 720px)").matches ? 500 : 560;
 
-  if (!floorBaseWidth) {
-    floorBaseWidth = nextBaseWidth;
-    floorBaseHeight = nextBaseHeight;
-    if (!zoomWasChanged) canvasZoom = clampZoom(Math.min(1, viewport.clientWidth / floorBaseWidth));
-  } else if (floorBaseWidth !== nextBaseWidth || floorBaseHeight !== nextBaseHeight) {
-    floorBaseWidth = nextBaseWidth;
-    floorBaseHeight = nextBaseHeight;
-    if (!zoomWasChanged) canvasZoom = clampZoom(Math.min(1, viewport.clientWidth / floorBaseWidth));
+  if (!zoomWasChanged) {
+    canvasZoom = clampZoom(Math.min(1, viewport.clientWidth / CANVAS_WIDTH, viewport.clientHeight / CANVAS_HEIGHT));
   }
-
-  floor.style.width = `${floorBaseWidth}px`;
-  floor.style.height = `${floorBaseHeight}px`;
-  floor.style.transform = `scale(${canvasZoom})`;
-  floor.dataset.zoom = String(canvasZoom);
-  stage.style.width = `${Math.ceil(floorBaseWidth * canvasZoom)}px`;
-  stage.style.height = `${Math.ceil(floorBaseHeight * canvasZoom)}px`;
+  elements.floor.style.width = `${CANVAS_WIDTH}px`;
+  elements.floor.style.height = `${CANVAS_HEIGHT}px`;
+  elements.floor.style.transform = `scale(${canvasZoom})`;
+  elements.floor.dataset.zoom = String(canvasZoom);
+  elements.floorStage.style.width = `${Math.max(viewport.clientWidth, Math.ceil(CANVAS_WIDTH * canvasZoom))}px`;
+  elements.floorStage.style.height = `${Math.max(viewport.clientHeight, Math.ceil(CANVAS_HEIGHT * canvasZoom))}px`;
   elements.zoomValue.textContent = `${Math.round(canvasZoom * 100)} %`;
 
   if (preserveCenter) {
@@ -695,7 +881,6 @@ function updateCanvasZoom(nextZoom, focus = getViewportCenter()) {
   const focusY = Math.max(0, Math.min(viewport.clientHeight, focus.clientY - bounds.top));
   const logicalX = (viewport.scrollLeft + focusX) / previousZoom;
   const logicalY = (viewport.scrollTop + focusY) / previousZoom;
-
   zoomWasChanged = true;
   canvasZoom = clampZoom(nextZoom);
   syncCanvasZoom(false);
@@ -706,11 +891,7 @@ function updateCanvasZoom(nextZoom, focus = getViewportCenter()) {
 function fitCanvasToViewport() {
   const viewport = elements.floorViewport;
   zoomWasChanged = true;
-  canvasZoom = clampZoom(Math.min(
-    1,
-    viewport.clientWidth / floorBaseWidth,
-    viewport.clientHeight / floorBaseHeight
-  ));
+  canvasZoom = clampZoom(Math.min(1, viewport.clientWidth / CANVAS_WIDTH, viewport.clientHeight / CANVAS_HEIGHT));
   syncCanvasZoom(false);
   viewport.scrollTo({ left: 0, top: 0, behavior: "smooth" });
 }
@@ -727,10 +908,7 @@ function pointerDistance(pointers) {
 }
 
 function pointerMidpoint(pointers) {
-  return {
-    clientX: (pointers[0].clientX + pointers[1].clientX) / 2,
-    clientY: (pointers[0].clientY + pointers[1].clientY) / 2
-  };
+  return { clientX: (pointers[0].clientX + pointers[1].clientX) / 2, clientY: (pointers[0].clientY + pointers[1].clientY) / 2 };
 }
 
 function beginViewportGesture(event) {
@@ -738,24 +916,11 @@ function beginViewportGesture(event) {
   if (event.pointerType === "mouse" && event.button !== 0) return;
   viewportPointers.set(event.pointerId, { clientX: event.clientX, clientY: event.clientY });
   elements.floorViewport.setPointerCapture?.(event.pointerId);
-
   const pointers = [...viewportPointers.values()];
-  if (pointers.length >= 2) {
-    viewportGesture = {
-      type: "pinch",
-      startDistance: pointerDistance(pointers.slice(0, 2)),
-      startZoom: canvasZoom
-    };
-  } else {
-    viewportGesture = {
-      type: "pan",
-      pointerId: event.pointerId,
-      startX: event.clientX,
-      startY: event.clientY,
-      scrollLeft: elements.floorViewport.scrollLeft,
-      scrollTop: elements.floorViewport.scrollTop
-    };
-  }
+  viewportGesture = pointers.length >= 2
+    ? { type: "pinch", startDistance: pointerDistance(pointers.slice(0, 2)), startZoom: canvasZoom }
+    : { type: "pan", pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, scrollLeft: elements.floorViewport.scrollLeft, scrollTop: elements.floorViewport.scrollTop };
+  elements.floorViewport.classList.add("panning");
   event.preventDefault();
 }
 
@@ -763,17 +928,11 @@ function moveViewportGesture(event) {
   if (!viewportPointers.has(event.pointerId)) return;
   viewportPointers.set(event.pointerId, { clientX: event.clientX, clientY: event.clientY });
   const pointers = [...viewportPointers.values()];
-
   if (pointers.length >= 2) {
     if (viewportGesture?.type !== "pinch") {
-      viewportGesture = {
-        type: "pinch",
-        startDistance: pointerDistance(pointers.slice(0, 2)),
-        startZoom: canvasZoom
-      };
+      viewportGesture = { type: "pinch", startDistance: pointerDistance(pointers.slice(0, 2)), startZoom: canvasZoom };
     }
-    const distance = pointerDistance(pointers.slice(0, 2));
-    const ratio = viewportGesture.startDistance ? distance / viewportGesture.startDistance : 1;
+    const ratio = pointerDistance(pointers.slice(0, 2)) / (viewportGesture.startDistance || 1);
     updateCanvasZoom(viewportGesture.startZoom * ratio, pointerMidpoint(pointers.slice(0, 2)));
   } else if (viewportGesture?.type === "pan" && viewportGesture.pointerId === event.pointerId) {
     elements.floorViewport.scrollLeft = viewportGesture.scrollLeft - (event.clientX - viewportGesture.startX);
@@ -784,152 +943,153 @@ function moveViewportGesture(event) {
 
 function endViewportGesture(event) {
   viewportPointers.delete(event.pointerId);
-  if (elements.floorViewport.hasPointerCapture?.(event.pointerId)) {
-    elements.floorViewport.releasePointerCapture(event.pointerId);
-  }
+  if (elements.floorViewport.hasPointerCapture?.(event.pointerId)) elements.floorViewport.releasePointerCapture(event.pointerId);
   const remaining = [...viewportPointers.entries()];
   if (remaining.length === 1) {
     const [pointerId, pointer] = remaining[0];
-    viewportGesture = {
-      type: "pan",
-      pointerId,
-      startX: pointer.clientX,
-      startY: pointer.clientY,
-      scrollLeft: elements.floorViewport.scrollLeft,
-      scrollTop: elements.floorViewport.scrollTop
-    };
-  } else if (remaining.length === 0) {
+    viewportGesture = { type: "pan", pointerId, startX: pointer.clientX, startY: pointer.clientY, scrollLeft: elements.floorViewport.scrollLeft, scrollTop: elements.floorViewport.scrollTop };
+  } else if (!remaining.length) {
     viewportGesture = null;
+    elements.floorViewport.classList.remove("panning");
   }
 }
 
-function exportData() {
-  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = `tok-table-${state.selectedDate}.json`;
-  link.click();
-  URL.revokeObjectURL(link.href);
-  showToast("Sauvegarde exportée.", "success");
-}
-
-async function importData(file) {
-  try {
-    const parsed = JSON.parse(await file.text());
-    if (!parsed || !Array.isArray(parsed.tables) || !Array.isArray(parsed.reservations)) throw new Error("invalid");
-    state = sanitizeState({ ...initialState(), ...parsed });
-    elements.dataModal.close();
-    render();
-    showToast("Sauvegarde restaurée.", "success");
-  } catch {
-    showToast("Ce fichier de sauvegarde est invalide.", "warning");
-  }
+function applyIdMap(idMap) {
+  if (!idMap || typeof idMap !== "object") return;
+  const replace = (tables) => tables.map((table) => ({ ...table, id: typeof idMap[table.id] === "string" ? idMap[table.id] : table.id }));
+  state.tables = replace(state.tables);
+  state.serverTemplateTables = replace(state.serverTemplateTables);
+  state.serverServiceTables = replace(state.serverServiceTables);
 }
 
 function hydrateConnectedState(payload) {
-  if (!payload || !Array.isArray(payload.tables) || !Array.isArray(payload.reservations)) return;
-  const tables = payload.tables.map((table, index) => ({
-    id: String(table.id || ""),
-    name: String(table.name || `T${index + 1}`).slice(0, 30),
-    capacity: Math.max(0, Number(table.capacity) || 0),
-    zone: String(table.zone || "Salle principale").slice(0, 60),
-    shape: ["round", "square", "rectangle"].includes(table.shape) ? table.shape : "square",
-    x: Math.max(0, Math.min(94, Number(table.x) || 0)),
-    y: Math.max(0, Math.min(86, Number(table.y) || 0)),
-    blocked: Boolean(table.blocked)
-  })).filter((table) => table.id);
-  const tableIds = new Set(tables.map((table) => table.id));
-  const reservations = payload.reservations.map((reservation) => ({
-    id: String(reservation.id || ""),
-    name: String(reservation.name || "Client sans nom").slice(0, 80),
-    size: Math.max(1, Number(reservation.size) || 1),
-    time: /^\d{2}:\d{2}/.test(String(reservation.time || "")) ? String(reservation.time).slice(0, 5) : "00:00",
-    date: /^\d{4}-\d{2}-\d{2}$/.test(String(reservation.date || "")) ? String(reservation.date) : payload.selectedDate,
-    period: reservation.period === "midi" ? "midi" : "soir",
-    preferredZone: String(reservation.preferredZone || "").slice(0, 60),
-    note: String(reservation.note || "").slice(0, 240),
-    durationMinutes: Math.max(30, Number(reservation.durationMinutes) || DEFAULT_RESERVATION_DURATION_MINUTES),
-    tableId: tableIds.has(reservation.tableId) ? reservation.tableId : null,
-    status: String(reservation.status || "pending")
-  })).filter((reservation) => reservation.id);
+  if (!payload || !Array.isArray(payload.reservations)) return;
+  const templateTables = sanitizeTables(payload.templateTables || payload.tables || []);
+  const serviceTables = sanitizeTables(payload.serviceTables || payload.tables || []);
+  const incomingBranchId = String(payload.branchId || "");
+  const reservations = sanitizeReservations(payload.reservations, serviceTables, payload.selectedDate || todayIso());
+  const branchChanged = state.branchId && state.branchId !== incomingBranchId;
 
-  state = {
-    connected: true,
-    branchId: String(payload.branchId || ""),
-    selectedDate: /^\d{4}-\d{2}-\d{2}$/.test(String(payload.selectedDate || "")) ? payload.selectedDate : todayIso(),
-    selectedPeriod: payload.selectedPeriod === "midi" ? "midi" : "soir",
-    selectedZone: tables.some((table) => table.zone === state.selectedZone)
-      ? state.selectedZone
-      : (tables[0]?.zone || "Salle principale"),
-    tables,
-    reservations
-  };
+  state.connected = true;
+  state.branchId = incomingBranchId;
+  state.selectedDate = /^\d{4}-\d{2}-\d{2}$/.test(String(payload.selectedDate || "")) ? payload.selectedDate : todayIso();
+  state.selectedPeriod = payload.selectedPeriod === "midi" ? "midi" : "soir";
+  state.reservations = reservations;
+  state.serverTemplateTables = clone(templateTables);
+  state.serverServiceTables = clone(serviceTables);
+
+  if (!state.dirty || branchChanged) {
+    state.tables = clone(state.mode === "template" ? templateTables : serviceTables);
+    resetHistory(state.tables);
+  }
+  if (!state.tables.some((table) => table.zone === state.selectedZone)) {
+    state.selectedZone = state.tables[0]?.zone || "Salle principale";
+  }
+  if (selectedReservationId && !reservations.some((reservation) => reservation.id === selectedReservationId)) {
+    selectedReservationId = null;
+  }
   render();
+}
+
+function handleOperationSuccess(payload) {
+  if (pendingOperation && payload?.requestId && payload.requestId !== pendingOperation.requestId) return;
+  const kind = payload?.kind || pendingOperation?.kind;
+  if (kind === "template") {
+    applyIdMap(payload?.idMap);
+    state.serverTemplateTables = clone(state.tables);
+    history.baseline = clone(state.tables);
+    history.past = [];
+    history.future = [];
+    setDirty(false);
+  }
+  if (kind === "service-layout") {
+    state.serverServiceTables = clone(state.tables);
+    history.baseline = clone(state.tables);
+    history.past = [];
+    history.future = [];
+    setDirty(false);
+  }
+  pendingAssignment = null;
+  finishOperation();
+  render();
+  if (payload?.message) showToast(payload.message, "success");
+}
+
+function handleOperationError(payload) {
+  if (pendingOperation && payload?.requestId && payload.requestId !== pendingOperation.requestId) return;
+  if (pendingAssignment) {
+    const reservation = state.reservations.find((item) => item.id === pendingAssignment.reservationId);
+    if (reservation) reservation.tableId = pendingAssignment.previousTableId;
+  }
+  pendingAssignment = null;
+  finishOperation();
+  document.body.classList.add("sync-error");
+  render();
+  showToast(payload?.message || "L’opération n’a pas pu être enregistrée.", "warning");
 }
 
 window.addEventListener("message", (event) => {
   if (event.origin !== window.location.origin || event.source !== window.parent) return;
   const message = event.data;
   if (!message || message.source !== "tok-dashboard") return;
-
   if (message.type === "tok-table-v2:hydrate") hydrateConnectedState(message.payload);
-  if (message.type === "tok-table-v2:saving") {
-    document.body.classList.add("saving");
-    elements.connectionLabel.textContent = "Synchronisation…";
-    $("#auto-place-button").disabled = true;
+  if (message.type === "tok-table-v2:operation-start") {
+    if (!pendingOperation) beginOperation(message.payload?.kind || "save", message.payload?.requestId || createRequestId("save"));
   }
-  if (message.type === "tok-table-v2:saved") {
-    document.body.classList.remove("saving");
-    elements.connectionLabel.textContent = "Données réelles synchronisées";
-    $("#auto-place-button").disabled = false;
-    if (message.payload?.message) showToast(message.payload.message, "success");
-  }
-  if (message.type === "tok-table-v2:error") {
-    document.body.classList.remove("saving");
-    elements.connectionLabel.textContent = "Synchronisation à vérifier";
-    $("#auto-place-button").disabled = false;
-    showToast(message.payload?.message || "Le placement n’a pas pu être enregistré.", "warning");
-  }
+  if (message.type === "tok-table-v2:operation-success") handleOperationSuccess(message.payload);
+  if (message.type === "tok-table-v2:operation-error") handleOperationError(message.payload);
 });
 
 elements.date.addEventListener("change", () => {
+  if (state.dirty || pendingOperation) {
+    elements.date.value = state.selectedDate;
+    showToast("Enregistrez ou annulez les modifications avant de changer de date.", "warning");
+    return;
+  }
   state.selectedDate = elements.date.value;
+  selectedReservationId = null;
   if (state.connected) postToDashboard("tok-table-v2:service-change", { date: state.selectedDate, period: state.selectedPeriod });
   render();
 });
 elements.period.addEventListener("change", () => {
+  if (state.dirty || pendingOperation) {
+    elements.period.value = state.selectedPeriod;
+    showToast("Enregistrez ou annulez les modifications avant de changer de service.", "warning");
+    return;
+  }
   state.selectedPeriod = elements.period.value;
+  selectedReservationId = null;
   if (state.connected) postToDashboard("tok-table-v2:service-change", { date: state.selectedDate, period: state.selectedPeriod });
   render();
 });
+elements.modeServiceButton.addEventListener("click", () => switchMode("service"));
+elements.modeTemplateButton.addEventListener("click", () => switchMode("template"));
 elements.search.addEventListener("input", renderReservations);
 elements.filter.addEventListener("change", renderReservations);
-$("#auto-place-button").addEventListener("click", autoPlace);
+elements.autoPlaceButton.addEventListener("click", autoPlace);
 $("#add-table-button").addEventListener("click", () => openTableModal());
-$("#add-reservation-button").addEventListener("click", () => openReservationModal());
-$("#data-button").addEventListener("click", () => elements.dataModal.showModal());
-$("#delete-table-button").addEventListener("click", deleteTable);
-$("#delete-reservation-button").addEventListener("click", deleteReservation);
-$("#export-button").addEventListener("click", exportData);
-$("#import-input").addEventListener("change", (event) => event.target.files[0] && importData(event.target.files[0]));
-$("#reset-button").addEventListener("click", () => {
-  if (!confirm("Réinitialiser toutes les tables et réservations ?")) return;
-  state = initialState();
-  elements.dataModal.close();
-  render();
-  showToast("Données de démonstration restaurées.");
+elements.saveButton.addEventListener("click", savePlan);
+elements.cancelChangesButton.addEventListener("click", cancelChanges);
+elements.undoButton.addEventListener("click", undo);
+elements.redoButton.addEventListener("click", redo);
+$("#delete-table-button").addEventListener("click", requestDeleteCurrentTable);
+$("#duplicate-table-button").addEventListener("click", duplicateCurrentTable);
+$("#cancel-placement-button").addEventListener("click", () => {
+  selectedReservationId = null;
+  renderFloor();
+  renderReservations();
+  renderPlacementBanner();
 });
+$("#unassign-button").addEventListener("click", unassignSelectedReservation);
 
 elements.tableForm.addEventListener("submit", (event) => {
   if (event.submitter?.value === "cancel") return;
   event.preventDefault();
   if (saveTableFromForm()) elements.tableModal.close();
 });
-
-elements.reservationForm.addEventListener("submit", (event) => {
-  if (event.submitter?.value === "cancel") return;
-  event.preventDefault();
-  if (saveReservationFromForm()) elements.reservationModal.close();
+elements.confirmModal.addEventListener("close", () => {
+  if (elements.confirmModal.returnValue === "default" && pendingConfirmAction) pendingConfirmAction();
+  pendingConfirmAction = null;
 });
 
 elements.zones.addEventListener("click", (event) => {
@@ -940,11 +1100,21 @@ elements.zones.addEventListener("click", (event) => {
 });
 
 elements.reservationList.addEventListener("click", (event) => {
-  const action = event.target.closest("[data-action]");
-  if (!action) return;
-  const reservation = state.reservations.find((item) => item.id === action.dataset.reservationId);
-  if (action.dataset.action === "assign") assignReservationManually(action.dataset.reservationId);
-  if (action.dataset.action === "edit-reservation" && reservation) openReservationModal(reservation);
+  const action = event.target.closest('[data-action="select-reservation"]');
+  if (action) selectReservation(action.dataset.reservationId);
+});
+elements.reservationList.addEventListener("dragstart", (event) => {
+  const card = event.target.closest("[data-reservation-id]");
+  if (!card || state.mode !== "service" || pendingOperation) return;
+  selectedReservationId = card.dataset.reservationId;
+  event.dataTransfer.effectAllowed = "move";
+  event.dataTransfer.setData("text/plain", selectedReservationId);
+  card.classList.add("dragging-card", "selected");
+  renderFloor();
+  renderPlacementBanner();
+});
+elements.reservationList.addEventListener("dragend", (event) => {
+  event.target.closest("[data-reservation-id]")?.classList.remove("dragging-card");
 });
 
 elements.floor.addEventListener("click", (event) => {
@@ -957,8 +1127,26 @@ elements.floor.addEventListener("pointerdown", (event) => {
   if (table) startDragging(event, node, table);
 });
 elements.floor.addEventListener("pointermove", moveDragging);
-elements.floor.addEventListener("pointerup", stopDragging);
-elements.floor.addEventListener("pointercancel", stopDragging);
+elements.floor.addEventListener("pointerup", (event) => finishDragging(event, false));
+elements.floor.addEventListener("pointercancel", (event) => finishDragging(event, true));
+elements.floor.addEventListener("lostpointercapture", (event) => {
+  if (dragState && event.pointerId === dragState.pointerId) finishDragging(event, true);
+});
+elements.floor.addEventListener("dragover", (event) => {
+  const node = event.target.closest(".table-node");
+  const table = node && state.tables.find((item) => item.id === node.dataset.tableId);
+  const reservation = state.reservations.find((item) => item.id === selectedReservationId);
+  if (table && reservation && tableCanHostReservation(table, reservation)) {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+  }
+});
+elements.floor.addEventListener("drop", (event) => {
+  event.preventDefault();
+  const node = event.target.closest(".table-node");
+  const reservationId = event.dataTransfer.getData("text/plain") || selectedReservationId;
+  if (node && reservationId) assignReservation(reservationId, node.dataset.tableId);
+});
 
 $("#zoom-out-button").addEventListener("click", () => updateCanvasZoom(canvasZoom - ZOOM_STEP));
 $("#zoom-reset-button").addEventListener("click", resetCanvasZoom);
@@ -974,19 +1162,34 @@ elements.floorViewport.addEventListener("pointermove", moveViewportGesture);
 elements.floorViewport.addEventListener("pointerup", endViewportGesture);
 elements.floorViewport.addEventListener("pointercancel", endViewportGesture);
 
+window.addEventListener("keydown", (event) => {
+  if (event.target.closest?.("input, select, textarea")) return;
+  const modifier = event.ctrlKey || event.metaKey;
+  if (modifier && event.key.toLowerCase() === "z") {
+    event.preventDefault();
+    if (event.shiftKey) redo(); else undo();
+  }
+  if (modifier && event.key.toLowerCase() === "s") {
+    event.preventDefault();
+    savePlan();
+  }
+  if (event.key === "Escape" && selectedReservationId) {
+    selectedReservationId = null;
+    renderFloor();
+    renderReservations();
+    renderPlacementBanner();
+  }
+});
+window.addEventListener("beforeunload", (event) => {
+  if (!state.dirty) return;
+  event.preventDefault();
+  event.returnValue = "";
+});
+
 if (typeof ResizeObserver !== "undefined") {
   new ResizeObserver(() => syncCanvasZoom(true)).observe(elements.floorViewport);
 }
 
-if (window.parent === window) {
-  state = {
-    ...initialState(),
-    tables: [],
-    reservations: []
-  };
-  window.setTimeout(() => showToast("Ouvrez Plan de salle 2 depuis le dashboard TOK pour charger les vrais clients."), 250);
-} else {
-  postToDashboard("tok-table-v2:ready");
-}
-
+if (window.parent !== window) postToDashboard("tok-table-v2:ready");
+resetHistory(state.tables);
 render();
