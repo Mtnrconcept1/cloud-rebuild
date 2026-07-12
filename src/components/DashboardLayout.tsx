@@ -93,7 +93,7 @@ const NAV_SECTIONS: NavSection[] = [
     ],
   },
   {
-    title: "Finances",
+    title: "Paiements",
     items: [
       { to: "/dashboard/mon-compte-facturation", label: "Mon compte/Facturation", icon: CreditCard, feature: "dashboard-billing" },
       { to: "/dashboard/factures", label: "Comptabilité & factures", icon: ReceiptText, feature: "dashboard-factures" },
