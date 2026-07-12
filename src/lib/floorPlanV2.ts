@@ -7,6 +7,17 @@ import {
 
 export type FloorPlanV2Period = "midi" | "soir";
 export type FloorPlanV2Shape = "round" | "square" | "rectangle";
+export type FloorPlanV2ObjectType =
+  | "wall"
+  | "door"
+  | "window"
+  | "bar"
+  | "plant"
+  | "service_station"
+  | "host_stand"
+  | "buffet"
+  | "sofa"
+  | "divider";
 
 export type FloorPlanV2Table = {
   id: string;
@@ -18,7 +29,12 @@ export type FloorPlanV2Table = {
   y: number;
   blocked: boolean;
   editable: boolean;
-  kind: FloorPlanItemKind;
+  kind: FloorPlanItemKind | FloorPlanV2ObjectType;
+  width?: number;
+  height?: number;
+  rotation?: number;
+  locked?: boolean;
+  zIndex?: number;
 };
 
 export type FloorPlanV2Reservation = {
@@ -44,6 +60,21 @@ type PersistedFloorPlanTable = {
   is_active: boolean | null;
   sector: string | null;
   layout: unknown;
+};
+
+export type PersistedFloorPlanObject = {
+  id: string;
+  object_type: string;
+  label: string;
+  zone: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  rotation: number;
+  locked: boolean;
+  z_index: number;
+  style?: unknown;
 };
 
 const RELEASED_STATUSES = new Set([
@@ -108,6 +139,32 @@ export function mapFloorPlanV2Table(
     blocked: table.is_active === false || !editable || Number(table.capacity) < 1,
     editable,
     kind,
+  };
+}
+
+export function mapFloorPlanV2Object(object: PersistedFloorPlanObject): FloorPlanV2Table {
+  const objectType = String(object.object_type || "divider") as FloorPlanV2ObjectType;
+  const allowedTypes: FloorPlanV2ObjectType[] = [
+    "wall", "door", "window", "bar", "plant", "service_station",
+    "host_stand", "buffet", "sofa", "divider",
+  ];
+
+  return {
+    id: object.id,
+    name: object.label?.trim() || "Mobilier",
+    capacity: 0,
+    zone: object.zone?.trim() || "Salle principale",
+    shape: "rectangle",
+    x: clamp(Number(object.x) || 0, 0, 94),
+    y: clamp(Number(object.y) || 0, 0, 86),
+    blocked: false,
+    editable: false,
+    kind: allowedTypes.includes(objectType) ? objectType : "divider",
+    width: clamp(Number(object.width) || 96, 24, 520),
+    height: clamp(Number(object.height) || 56, 16, 360),
+    rotation: ((Math.round(Number(object.rotation) || 0) % 360) + 360) % 360,
+    locked: object.locked === true,
+    zIndex: clamp(Math.round(Number(object.z_index) || 0), -100, 100),
   };
 }
 
@@ -208,6 +265,63 @@ export function parseFloorPlanV2TableDrafts(value: unknown): FloorPlanV2Table[] 
       blocked: raw.blocked === true,
       editable: true,
       kind: "table",
+    };
+  });
+}
+
+export function parseFloorPlanV2ObjectDrafts(value: unknown): FloorPlanV2Table[] {
+  if (!Array.isArray(value)) throw new Error("La liste du mobilier est invalide.");
+  if (value.length > 250) throw new Error("Le plan ne peut pas contenir plus de 250 objets de mobilier.");
+
+  const allowedTypes: FloorPlanV2ObjectType[] = [
+    "wall", "door", "window", "bar", "plant", "service_station",
+    "host_stand", "buffet", "sofa", "divider",
+  ];
+  const seenIds = new Set<string>();
+
+  return value.map((candidate, index) => {
+    const raw = asRecord(candidate);
+    const id = String(raw.id || "").trim();
+    const name = String(raw.name || raw.label || "").trim();
+    const zone = String(raw.zone || "").trim();
+    const kind = String(raw.kind || raw.object_type || "") as FloorPlanV2ObjectType;
+    const x = Number(raw.x);
+    const y = Number(raw.y);
+    const width = Number(raw.width);
+    const height = Number(raw.height);
+    const rotation = Number(raw.rotation || 0);
+    const zIndex = Number(raw.zIndex ?? raw.z_index ?? 0);
+
+    if (!id || id.length > 100 || seenIds.has(id)) throw new Error(`Objet de mobilier invalide à la ligne ${index + 1}.`);
+    if (!name || name.length > 80 || !zone || zone.length > 60) throw new Error(`Nom ou zone invalide pour l'objet ${index + 1}.`);
+    if (!allowedTypes.includes(kind)) throw new Error(`Type de mobilier invalide pour ${name}.`);
+    if (!Number.isFinite(x) || x < 0 || x > 94 || !Number.isFinite(y) || y < 0 || y > 86) {
+      throw new Error(`La position de ${name} est invalide.`);
+    }
+    if (!Number.isFinite(width) || width < 24 || width > 520 || !Number.isFinite(height) || height < 16 || height > 360) {
+      throw new Error(`Les dimensions de ${name} sont invalides.`);
+    }
+    if (!Number.isFinite(rotation) || !Number.isFinite(zIndex) || zIndex < -100 || zIndex > 100) {
+      throw new Error(`La rotation ou le niveau de ${name} est invalide.`);
+    }
+    seenIds.add(id);
+
+    return {
+      id,
+      name,
+      capacity: 0,
+      zone,
+      shape: "rectangle",
+      x,
+      y,
+      blocked: false,
+      editable: false,
+      kind,
+      width,
+      height,
+      rotation: ((Math.round(rotation) % 360) + 360) % 360,
+      locked: raw.locked === true,
+      zIndex: Math.round(zIndex),
     };
   });
 }
