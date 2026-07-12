@@ -22,25 +22,71 @@ type FirebaseServiceAccount = {
 
 function maybeDecodeBase64(raw: string) {
   try {
-    const decoded = atob(raw.replace(/\s/g, ""));
-    return decoded.trim().startsWith("{") ? decoded : null;
+    const normalized = raw
+      .replace(/\s/g, "")
+      .replace(/-/g, "+")
+      .replace(/_/g, "/");
+    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
+    const decoded = atob(padded);
+    return decoded.trim().startsWith("{") || decoded.trim().startsWith("\"")
+      ? decoded
+      : null;
   } catch {
     return null;
   }
 }
 
 function parseFirebaseServiceAccount(raw: string): FirebaseServiceAccount {
+  const candidates = new Set<string>();
+  const addCandidate = (value: string | null | undefined) => {
+    const normalized = String(value || "").trim();
+    if (normalized) candidates.add(normalized);
+  };
+
   const trimmed = raw.trim();
-  const candidates = [trimmed, maybeDecodeBase64(trimmed)].filter((value): value is string => Boolean(value));
+  addCandidate(trimmed);
+
+  if (
+    (trimmed.startsWith("'") && trimmed.endsWith("'")) ||
+    (trimmed.startsWith("`") && trimmed.endsWith("`"))
+  ) {
+    addCandidate(trimmed.slice(1, -1));
+  }
+
+  try {
+    addCandidate(decodeURIComponent(trimmed));
+  } catch {
+    // Not URL-encoded.
+  }
+
+  for (const candidate of Array.from(candidates)) {
+    addCandidate(maybeDecodeBase64(candidate));
+    if (candidate.includes('\\\"')) {
+      addCandidate(candidate.replace(/\\\"/g, '"'));
+    }
+
+    try {
+      const decoded = JSON.parse(candidate);
+      if (typeof decoded === "string") {
+        addCandidate(decoded);
+        addCandidate(maybeDecodeBase64(decoded));
+      }
+    } catch {
+      // The validation loop below will try all supported representations.
+    }
+  }
+
   let formatError: HttpError | null = null;
 
   for (const candidate of candidates) {
     try {
-      const parsed = JSON.parse(candidate) as Partial<FirebaseServiceAccount>;
+      const firstPass = JSON.parse(candidate) as unknown;
+      const parsed = typeof firstPass === "string"
+        ? JSON.parse(firstPass) as Partial<FirebaseServiceAccount>
+        : firstPass as Partial<FirebaseServiceAccount>;
       return validateFirebaseServiceAccount(parsed);
     } catch (error) {
       if (error instanceof HttpError) formatError = error;
-      // Try the next supported representation.
     }
   }
 
