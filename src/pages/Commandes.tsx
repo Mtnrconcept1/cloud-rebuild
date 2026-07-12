@@ -80,21 +80,41 @@ export default function Commandes() {
   const stripeReturn = parseStripeReturnSearch(location.search);
 
   const handleReorder = (order: any) => {
+    const items = ((order.order_items as any[]) || []).map((item) => {
+      const quantity = Math.max(1, Math.trunc(Number(item.quantity) || 1));
+      const totalPrice = Number(item.total_price);
+      const unitPrice = totalPrice / quantity;
+      return { ...item, quantity, unitPrice };
+    });
+    const validItems = items.filter((item) =>
+      typeof item.menu_item_id === "string"
+      && item.menu_item_id.length > 0
+      && Number.isFinite(item.unitPrice)
+      && item.unitPrice >= 0
+    );
+
+    if (validItems.length === 0 || validItems.length !== items.length) {
+      toast({
+        title: "Commande non disponible",
+        description: "Certains anciens articles ne peuvent plus être ajoutés automatiquement. Votre panier actuel a été conservé.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     clearCart();
-    const items = (order.order_items as any[]) || [];
-    for (const item of items) {
-      const unitPrice = Number(item.total_price) / Math.max(item.quantity, 1);
+    for (const item of validItems) {
       for (let i = 0; i < item.quantity; i += 1) {
         addItem({
           menuItemId: item.menu_item_id,
           name: item.name || "Article",
-          price: unitPrice,
+          price: item.unitPrice,
           restaurantId: order.restaurant_id,
           restaurantName: order.restaurant?.name || "Restaurant",
         });
       }
     }
-    toast({ title: "Panier rempli", description: "Vos articles ont été ajoutes au panier." });
+    toast({ title: "Panier rempli", description: "Vos articles ont été ajoutés au panier." });
     navigate("/panier");
   };
 
@@ -114,7 +134,7 @@ export default function Commandes() {
     },
   });
 
-  const { data: ordersData, isLoading, error } = useQuery({
+  const { data: ordersData, isLoading, error, refetch } = useQuery({
     queryKey: ["my-orders", user?.id],
     enabled: !!user,
     queryFn: async () => {
@@ -204,8 +224,12 @@ export default function Commandes() {
             {[1, 2, 3].map((i) => <div key={i} className="h-24 animate-pulse rounded-xl bg-muted" />)}
           </div>
         ) : error ? (
-          <div className="rounded-2xl border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive">
-            Erreur lors du chargement des commandes : {(error as Error).message}
+          <div role="alert" className="rounded-2xl border border-destructive/30 bg-destructive/5 p-6 text-center">
+            <p className="font-semibold text-destructive">Impossible de charger vos commandes.</p>
+            <p className="mt-1 text-sm text-muted-foreground">Vos commandes restent enregistrées. Réessayez dans un instant.</p>
+            <Button type="button" variant="outline" className="mt-4 gap-2" onClick={() => void refetch()}>
+              <RefreshCcw className="h-4 w-4" />Réessayer
+            </Button>
           </div>
         ) : orderGroups.length > 0 ? (
           viewMode !== "details" ? (
@@ -256,6 +280,18 @@ export default function Commandes() {
                         {group.orders.flatMap((order) => (order.order_items as any[]).slice(0, 2).map((item) => `${item.quantity}x ${item.name || "Article"}`)).slice(0, 4).join(" · ")}
                       </p>
                     ) : null}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="mt-3"
+                      onClick={() => {
+                        setExpandedGroups((current) => new Set(current).add(group.groupKey));
+                        setViewMode("details");
+                      }}
+                    >
+                      Voir le détail
+                    </Button>
                   </article>
                 );
               })}
@@ -287,7 +323,7 @@ export default function Commandes() {
                     type="button"
                     onClick={() => toggleGroup(groupKey)}
                     aria-expanded={isExpanded}
-                    className="flex w-full items-center justify-between gap-4 bg-muted/30 p-4 text-left transition-colors hover:bg-muted/50"
+                    className="flex w-full flex-col items-stretch gap-3 bg-muted/30 p-4 text-left transition-colors hover:bg-muted/50 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
                   >
                     <div className="flex min-w-0 items-center gap-3">
                       <div className="shrink-0 rounded-lg bg-primary/10 p-2"><Package className="h-5 w-5 text-primary" /></div>
@@ -384,7 +420,7 @@ export default function Commandes() {
                                   <AlertDialogHeader>
                                     <AlertDialogTitle>Annuler la commande ?</AlertDialogTitle>
                                     <AlertDialogDescription>
-                                      Cette action est irréversible. Vous serez remboursé sous 5 à 10 jours ouvrables.
+                                      Cette action est irréversible. Si un paiement a été encaissé, le remboursement sera traité selon le moyen de paiement utilisé.
                                     </AlertDialogDescription>
                                   </AlertDialogHeader>
                                   <AlertDialogFooter>
@@ -392,8 +428,9 @@ export default function Commandes() {
                                     <AlertDialogAction
                                       className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                       onClick={() => cancelMutation.mutate(order.id)}
+                                      disabled={cancelMutation.isPending}
                                     >
-                                      Oui, annuler
+                                      {cancelMutation.isPending ? "Annulation..." : "Oui, annuler"}
                                     </AlertDialogAction>
                                   </AlertDialogFooter>
                                 </AlertDialogContent>
@@ -418,9 +455,10 @@ export default function Commandes() {
           </div>
           )
         ) : (
-          <div className="space-y-2 py-12 text-center">
+          <div className="space-y-3 py-12 text-center">
             <ShoppingCart className="mx-auto h-10 w-10 text-muted-foreground" />
-            <p className="text-muted-foreground">Aucune commande pour le moment</p>
+            <p className="text-muted-foreground">Aucune commande pour le moment.</p>
+            <Button asChild variant="outline"><Link to="/recherche">Découvrir les restaurants</Link></Button>
           </div>
         )}
         <TokAiSupportChat context={{ page: "commandes" }} compact />

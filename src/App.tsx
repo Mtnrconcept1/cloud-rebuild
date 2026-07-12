@@ -53,6 +53,8 @@ const Commandes = lazy(() => import("./pages/Commandes"));
 const OrderConfirmation = lazy(() => import("./pages/OrderConfirmation"));
 const Reservations = lazy(() => import("./pages/Reservations"));
 const Profil = lazy(() => import("./pages/Profil"));
+const ClientDashboardHome = lazy(() => import("./pages/ClientDashboardHome"));
+const ClientReviews = lazy(() => import("./pages/ClientReviews"));
 const Notifications = lazy(() => import("./pages/Notifications"));
 const SuiviCommande = lazy(() => import("./pages/SuiviCommande"));
 const Contact = lazy(() => import("./pages/Contact"));
@@ -420,7 +422,11 @@ function AppShell() {
           <Route path="/commandes" element={<ProtectedRoute requiredRole="client"><FeatureSwitch enabled={commandesEnabled} fallback="/"><Commandes /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/commande/confirmation" element={<ClientSurfaceRoute><FeatureSwitch enabled={commandesEnabled} fallback="/"><OrderConfirmation /></FeatureSwitch></ClientSurfaceRoute>} />
           <Route path="/commande/:id" element={<ProtectedRoute requiredRole="client"><FeatureSwitch enabled={commandesEnabled} fallback="/"><SuiviCommande /></FeatureSwitch></ProtectedRoute>} />
-          <Route path="/reservations" element={<ProtectedRoute requiredRole="client"><FeatureSwitch enabled={reservationEnabled} fallback="/"><Reservations /></FeatureSwitch></ProtectedRoute>} />
+          <Route path="/mon-espace" element={<ProtectedRoute requiredRole="client"><ClientDashboardHome /></ProtectedRoute>} />
+          <Route path="/compte" element={<Navigate to="/mon-espace" replace />} />
+          <Route path="/espace-client" element={<Navigate to="/mon-espace" replace />} />
+          <Route path="/reservations" element={<ProtectedRoute requiredRole="client"><FeatureSwitch enabled={reservationEnabled} fallback="/mon-espace"><Reservations /></FeatureSwitch></ProtectedRoute>} />
+          <Route path="/mes-avis" element={<ProtectedRoute requiredRole="client"><ClientReviews /></ProtectedRoute>} />
           <Route path="/profil" element={<ProtectedRoute requiredRole="client"><Profil /></ProtectedRoute>} />
           <Route path="/notifications" element={<ProtectedRoute requiredRole="client"><Notifications /></ProtectedRoute>} />
           <Route path="/creneaux-garantis" element={<ClientSurfaceRoute><FeatureSwitch enabled={hasFeature("creneaux-garantis")}><CreneauxGarantis /></FeatureSwitch></ClientSurfaceRoute>} />
@@ -434,7 +440,7 @@ function AppShell() {
           <Route path="/budget-auto" element={<ClientSurfaceRoute><FeatureSwitch enabled={hasFeature("budget-auto")}><BudgetAuto /></FeatureSwitch></ClientSurfaceRoute>} />
           <Route path="/abonnement" element={<ClientSurfaceRoute><FeatureSwitch enabled={abonnementEnabled}><Abonnement /></FeatureSwitch></ClientSurfaceRoute>} />
           <Route path="/tok-one" element={<ClientSurfaceRoute><FeatureSwitch enabled={tokOneEnabled}><TokOne /></FeatureSwitch></ClientSurfaceRoute>} />
-          <Route path="/tok-pulse" element={<ClientSurfaceRoute><TokPulse /></ClientSurfaceRoute>} />
+          <Route path="/tok-pulse" element={<ClientSurfaceRoute><FeatureSwitch enabled={hasFeature("tok-pulse")} fallback="/"><TokPulse /></FeatureSwitch></ClientSurfaceRoute>} />
           <Route path="/tok-connect" element={<FeatureSwitch enabled={tokConnectEnabled} fallback="/"><TokConnect /></FeatureSwitch>} />
           <Route path="/tok-connect/developer" element={<ProtectedRoute><FeatureSwitch enabled={tokConnectEnabled} fallback="/tok-connect"><TokConnectDeveloper /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/commercial" element={<ProtectedRoute requiredRoles={["admin", "commercial"]}><FeatureSwitch enabled={commercialProspectionEnabled} fallback="/"><CommercialProspection /></FeatureSwitch></ProtectedRoute>} />
@@ -523,7 +529,7 @@ function AppShell() {
       <Suspense fallback={null}>
         <OrderConflictDialog />
       </Suspense>
-      <DailyMiamzSlotMachine />
+      {pathname === "/" ? <DailyMiamzSlotMachine /> : null}
       {showPublicFooter ? <FooterSection deliveryEnabled={pathname === "/" && deliveryEnabled === true} /> : null}
       <LegalConsentBanner />
     </>

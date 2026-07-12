@@ -1,3 +1,5 @@
+import { getBusinessDateKey, parseBusinessDateTime } from "@/lib/businessTime";
+
 type QuantityValue = number | string | null | undefined;
 
 type AntiWasteLike = {
@@ -20,14 +22,6 @@ function parseQuantity(value: QuantityValue): number {
   return Number.isFinite(quantity) ? quantity : 0;
 }
 
-function isFiniteDate(date: Date): boolean {
-  return Number.isFinite(date.getTime());
-}
-
-function toIsoDateKey(date: Date): string {
-  return date.toISOString().slice(0, 10);
-}
-
 export function hasRemainingSpecialOfferStock(quantity: QuantityValue): boolean {
   return parseQuantity(quantity) > 0;
 }
@@ -48,12 +42,12 @@ export function isAntiWasteOfferPubliclyVisible(offer: AntiWasteLike, now = new 
   if (!hasRemainingSpecialOfferStock(offer.quantity_available)) return false;
   if (!offer.available_date) return false;
 
-  const today = toIsoDateKey(now);
+  const today = getBusinessDateKey(now);
   if (offer.available_date < today) return false;
 
   if (offer.available_date === today && offer.pickup_end) {
-    const pickupEnd = new Date(`${offer.available_date}T${offer.pickup_end}`);
-    if (isFiniteDate(pickupEnd) && pickupEnd.getTime() <= now.getTime()) {
+    const pickupEnd = parseBusinessDateTime(offer.available_date, offer.pickup_end);
+    if (pickupEnd && pickupEnd.getTime() <= now.getTime()) {
       return false;
     }
   }
@@ -66,10 +60,10 @@ export function isFlashSalePubliclyVisible(offer: FlashSaleLike, now = new Date(
   if (!hasRemainingSpecialOfferStock(offer.quantity_available)) return false;
   if (!offer.sale_date || !offer.sale_start || !offer.sale_end) return false;
 
-  const start = new Date(`${offer.sale_date}T${offer.sale_start}`);
-  const end = new Date(`${offer.sale_date}T${offer.sale_end}`);
+  const start = parseBusinessDateTime(offer.sale_date, offer.sale_start);
+  const end = parseBusinessDateTime(offer.sale_date, offer.sale_end);
 
-  if (!isFiniteDate(start) || !isFiniteDate(end)) return false;
+  if (!start || !end) return false;
 
   return start.getTime() <= now.getTime() && end.getTime() > now.getTime();
 }

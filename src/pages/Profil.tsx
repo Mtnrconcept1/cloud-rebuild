@@ -40,6 +40,7 @@ import { buildTokOneEntitlements } from "@/lib/subscriptionEntitlements";
 import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 
 const supabase = getSupabase();
+const PROFILE_TABS = new Set(["infos", "favoris", "abonnement", "notifications", "fidelite", "securite"]);
 
 function splitFullName(value: string) {
   const parts = value.trim().split(/\s+/).filter(Boolean);
@@ -102,7 +103,8 @@ export default function Profil() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const requestedTab = searchParams.get("tab") || "infos";
+  const requestedTabParam = searchParams.get("tab") || "infos";
+  const requestedTab = PROFILE_TABS.has(requestedTabParam) ? requestedTabParam : "infos";
   const [loading, setLoading] = useState(false);
   const [deleteConfirmEmail, setDeleteConfirmEmail] = useState("");
   const [deleting, setDeleting] = useState(false);
@@ -175,30 +177,16 @@ export default function Profil() {
     const { firstName, lastName } = splitFullName(fullName);
 
     setLoading(true);
-    const { error: profileError } = await supabase
-      .from("profiles")
-      .upsert({
-        user_id: user.id,
-        full_name: fullName,
-        phone,
-        address,
-        city,
-        avatar_url: avatarUrl,
-        date_of_birth: normalizedBirthDate,
-      }, { onConflict: "user_id" });
-    const { error: accountProfileError } = profileError
-      ? { error: null }
-      : await supabase
-        .from("user_profiles")
-        .upsert({
-          user_id: user.id,
-          first_name: firstName,
-          last_name: lastName,
-          phone_number: phone,
-          avatar_url: avatarUrl,
-          date_of_birth: normalizedBirthDate,
-        }, { onConflict: "user_id" });
-    const error = profileError || accountProfileError;
+    const { error } = await (supabase.rpc as any)("update_client_profile", {
+      p_full_name: fullName,
+      p_first_name: firstName,
+      p_last_name: lastName,
+      p_phone: phone,
+      p_address: address,
+      p_city: city,
+      p_avatar_url: avatarUrl,
+      p_date_of_birth: normalizedBirthDate,
+    });
     setLoading(false);
     if (error) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
@@ -446,7 +434,10 @@ export default function Profil() {
                 );
               })
             ) : (
-              <p className="text-muted-foreground text-center py-8">Aucun favori</p>
+              <div className="space-y-3 py-8 text-center">
+                <p className="text-muted-foreground">Aucun favori pour le moment.</p>
+                <Button asChild variant="outline"><Link to="/recherche">Découvrir des restaurants</Link></Button>
+              </div>
             )}
           </TabsContent>
 
@@ -952,21 +943,29 @@ function TokOneTab({ userId, subscription, isActive, plans }: TokOneTabProps) {
 }
 
 function LoyaltyHistory({ userId }: { userId?: string }) {
-  const { data: transactions, isLoading } = useQuery({
-    queryKey: ["loyalty-transactions", userId],
+  const [limit, setLimit] = useState(20);
+  const { data: transactions, isLoading, error, refetch } = useQuery({
+    queryKey: ["loyalty-transactions", userId, limit],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error: queryError } = await supabase
         .from("loyalty_transactions")
         .select("*")
         .eq("user_id", userId!)
         .order("created_at", { ascending: false })
-        .limit(20);
+        .limit(limit);
+      if (queryError) throw queryError;
       return (data || []) as LoyaltyTransaction[];
     },
     enabled: !!userId,
   });
 
   if (isLoading) return <p className="text-sm text-muted-foreground">Chargement...</p>;
+  if (error) return (
+    <div role="alert" className="space-y-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm">
+      <p className="text-destructive">Impossible de charger l’historique Miamz.</p>
+      <Button type="button" size="sm" variant="outline" onClick={() => void refetch()}>Réessayer</Button>
+    </div>
+  );
   if (!transactions || transactions.length === 0) {
     return <p className="text-sm text-muted-foreground">Aucune transaction pour le moment.</p>;
   }
@@ -974,16 +973,21 @@ function LoyaltyHistory({ userId }: { userId?: string }) {
   return (
     <div className="space-y-3">
       {transactions.map((transaction) => (
-        <div key={transaction.id} className="flex items-center justify-between p-3 border rounded-xl bg-card">
-          <div>
-            <p className="font-semibold text-sm">{transaction.description || "Mouvement de points"}</p>
+        <div key={transaction.id} className="flex min-w-0 items-center justify-between gap-3 rounded-xl border bg-card p-3">
+          <div className="min-w-0">
+            <p className="break-words text-sm font-semibold">{transaction.description || "Mouvement de points"}</p>
             <p className="text-xs text-muted-foreground">{new Date(transaction.created_at).toLocaleDateString()}</p>
           </div>
-          <div className={`font-bold ${transaction.amount > 0 ? "text-green-600" : "text-destructive"}`}>
+          <div className={`shrink-0 font-bold tabular-nums ${transaction.amount > 0 ? "text-green-600" : "text-destructive"}`}>
             {transaction.amount > 0 ? "+" : ""}{transaction.amount} pts
           </div>
         </div>
       ))}
+      {transactions.length >= limit ? (
+        <Button type="button" variant="outline" className="w-full" onClick={() => setLimit((current) => current + 20)}>
+          Charger plus de mouvements
+        </Button>
+      ) : null}
     </div>
   );
 }

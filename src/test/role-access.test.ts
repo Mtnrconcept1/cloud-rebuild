@@ -150,7 +150,7 @@ describe("role access policy", () => {
     expect(getDefaultActiveRole(["client", "admin"])).toBe("admin");
     expect(getDefaultActiveRole(["client", "admin", "courier"])).toBe("admin");
 
-    expect(getRoleHomePath("client")).toBe("/");
+    expect(getRoleHomePath("client")).toBe("/mon-espace");
     expect(getRoleHomePath("restaurateur")).toBe("/dashboard");
     expect(getRoleHomePath("courier")).toBe("/courier");
     expect(getRoleHomePath("commercial")).toBe("/commercial");
