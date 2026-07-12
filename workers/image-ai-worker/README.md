@@ -15,6 +15,40 @@ Le chemin par défaut ne lit aucune clé OpenAI et n’effectue aucun appel Open
 
 Le texte alternatif reste une phrase naturelle d’accessibilité. Les plats, ingrédients, ambiances et mots-clés internes sont stockés dans des champs séparés. Aucun hashtag n’est ajouté à `alt_text`. Le prompt interdit l’identification de personnes et toute déduction d’origine, religion, santé, handicap, orientation sexuelle, opinion politique, nom ou âge exact. La validation rejette également les sorties qui enfreignent ces règles détectables.
 
+## Windows — installation automatique recommandée
+
+L’installateur Windows natif configure le projet TOK, télécharge uniquement les modèles manquants, protège le secret Supabase par ACL, exécute les tests, vérifie Supabase/Ollama et peut installer un démarrage automatique avec reprise après panne.
+
+Depuis PowerShell, à la racine du dépôt :
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass
+.\workers\image-ai-worker\setup-windows.ps1 -InstallAutoStart
+```
+
+Le script demande la Secret key Supabase de manière masquée. Créer de préférence une clé `sb_secret_...` dédiée au worker dans **Supabase → Project Settings → API Keys** afin de pouvoir la révoquer indépendamment. La clé n’est jamais placée dans les arguments de la tâche planifiée ni dans les logs.
+
+L’état local est disponible sur :
+
+```text
+http://127.0.0.1:18080/healthz
+http://127.0.0.1:18080/readyz
+```
+
+Les logs sont conservés dans `%LOCALAPPDATA%\TOK\image-ai-worker`. Pour relancer manuellement le worker :
+
+```powershell
+.\workers\image-ai-worker\run-windows-worker.ps1
+```
+
+Pour retirer uniquement le démarrage automatique, sans supprimer la clé locale ni les modèles :
+
+```powershell
+.\workers\image-ai-worker\setup-windows.ps1 -RemoveAutoStart
+```
+
+Le worker Windows attend qu’Ollama, `qwen2.5vl:3b`, `all-minilm` et Supabase soient réellement disponibles avant de réclamer un job. Son serveur de santé écoute exclusivement sur `127.0.0.1`. Garder le PC protégé par un mot de passe et, idéalement, BitLocker, car la clé locale possède les droits serveur Supabase.
+
 ## Démarrage Docker recommandé
 
 Prérequis : Docker avec Compose v2 et environ 8 Gio de RAM disponibles. Le modèle visuel est téléchargé une seule fois dans le volume `ollama-data`.
@@ -96,7 +130,9 @@ Variables utiles :
 | `OLLAMA_VISION_TIMEOUT_MS` | `300000` | Délai maximal d’analyse locale |
 | `HTTP_RETRY_ATTEMPTS` | `3` | Nombre maximal d’essais réseau |
 | `POLL_INTERVAL_MS` | `5000` | Pause lorsque la file est vide |
-| `BATCH_SIZE` | `3` | Jobs réclamés par cycle |
+| `BATCH_SIZE` | `1` | Jobs réclamés par cycle, pour éviter plusieurs échecs lors d’une panne locale |
+| `HEALTH_HOST` | `127.0.0.1` | Adresse locale de l’endpoint de santé |
+| `HEALTH_PORT` | `8080` | Port de santé (l’installateur Windows utilise `18080`) |
 
 ## Validation avant mise en service
 
