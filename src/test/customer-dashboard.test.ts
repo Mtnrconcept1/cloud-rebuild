@@ -95,10 +95,12 @@ describe("espace client central", () => {
     expect(lifecycle).toContain("v_payment_status in ('paid', 'captured')");
     expect(lifecycle).toContain("v_status in ('arrived', 'seated', 'completed')");
     expect(lifecycle).toContain("after insert or update of status, payment_status");
+    expect(lifecycle).toContain("create or replace trigger trg_credit_order_loyalty");
+    expect(lifecycle).not.toContain("drop trigger if exists trg_credit_order_loyalty");
     expect(lifecycle).toContain("reverses_transaction_id");
     expect(lifecycle).toContain("reinstates_transaction_id");
     expect(lifecycle).toContain("migration_reward_not_yet_eligible");
-    expect(lifecycle).toContain("lock table public.profiles in access exclusive mode");
+    expect(lifecycle).toContain("lock table public.profiles in exclusive mode");
     expect(lifecycle).toContain("lock table public.orders, public.reservations in share row exclusive mode");
     expect(lifecycle).toContain("v_effective_multiplier := least(5");
     expect(lifecycle).not.toContain("new.status = 'pending'");
