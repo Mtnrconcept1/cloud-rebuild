@@ -401,27 +401,33 @@ export default function DashboardPlanSalleV2() {
         (row, index) => !mapFloorPlanV2Table(row, index).editable,
       );
       const existingFurnitureRowsById = new Map(existingFurnitureRows.map((row) => [row.id, row]));
+      const requestedExistingFurnitureIds = new Set<string>();
       const objectUpserts = objectDrafts.map((object) => {
         const existing = existingFurnitureRowsById.get(object.id);
         if (!existing && !object.id.startsWith("tmp_")) {
           throw new Error("Un objet du brouillon n’appartient plus à cette salle. Actualisez le plan.");
         }
+        if (existing) requestedExistingFurnitureIds.add(existing.id);
         return {
           client_id: object.id,
           id: existing?.id || null,
           table_number: object.name,
           capacity: 0,
-          is_active: false,
+          is_active: true,
           sector: object.zone,
           layout: serializeFloorPlanV2Object(object, existing?.layout) as Json,
         };
       });
+      const objectDeleteIds = existingFurnitureRows
+        .map((row) => row.id)
+        .filter((id) => !requestedExistingFurnitureIds.has(id));
 
       const { data, error } = await (supabase.rpc as any)("restaurant_save_floor_plan_workspace", {
         p_branch_id: selectedBranchId,
         p_table_upserts: upserts,
         p_table_delete_ids: deleteIds,
         p_objects: objectUpserts,
+        p_object_delete_ids: objectDeleteIds,
         p_reason: "Modèle et mobilier enregistrés depuis Plan de salle 2",
       });
       if (error) throw error;
