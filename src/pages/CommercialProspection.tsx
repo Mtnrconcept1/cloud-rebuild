@@ -623,13 +623,11 @@ function CommercialProspectionMap({
   prospects,
   followupsByObjectId,
   selectedObjectId,
-  onSelect,
   onOpenDetails,
 }: {
   prospects: GenevaCommercialProspect[];
   followupsByObjectId: Map<number, CommercialProspectFollowup>;
   selectedObjectId: number | null;
-  onSelect: (prospect: GenevaCommercialProspect) => void;
   onOpenDetails: (prospect: GenevaCommercialProspect) => void;
 }) {
   const mapRef = useRef<HTMLDivElement>(null);
@@ -721,8 +719,8 @@ function CommercialProspectionMap({
             `<strong>${escapeMapHtml(point.prospect.name)}</strong><br>${escapeMapHtml(point.meta.label)}${point.prospect.commune ? ` · ${escapeMapHtml(point.prospect.commune)}` : ""}`,
             { direction: "top", sticky: true, opacity: 0.95 },
           );
-          marker.on("click", () => {
-            onSelect(point.prospect);
+          marker.on("click", (event) => {
+            L.DomEvent.stopPropagation(event);
             onOpenDetails(point.prospect);
           });
           marker.addTo(layer);
@@ -752,7 +750,7 @@ function CommercialProspectionMap({
       map.off("zoomend", renderMapClusters);
       map.off("moveend", renderMapClusters);
     };
-  }, [followupsByObjectId, onOpenDetails, onSelect, prospects, selectedObjectId]);
+  }, [followupsByObjectId, onOpenDetails, prospects, selectedObjectId]);
 
   return (
     <div
@@ -1426,7 +1424,6 @@ export default function CommercialProspection() {
                 prospects={mapProspects}
                 followupsByObjectId={followupsByObjectId}
                 selectedObjectId={selectedProspect?.sourceObjectId || null}
-                onSelect={handleSelectProspect}
                 onOpenDetails={handleOpenProspectDetails}
               />
             </div>
