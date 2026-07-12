@@ -1,3 +1,5 @@
+import Stripe from "npm:stripe@18.5.0";
+
 import {
   HttpError,
   authenticateRequest,
@@ -274,10 +276,18 @@ Deno.serve(async (req) => {
       Math.round(entity.refundedAmount * 100),
       Math.round(refundAmount * 100),
     ].join(":");
-    const stripeRefund = await stripe.refunds.create({
+    const originalPaymentIntent = await stripe.paymentIntents.retrieve(entity.paymentIntentId);
+    const isDestinationCharge = Boolean(originalPaymentIntent.transfer_data?.destination);
+    const refundParams: Stripe.RefundCreateParams = {
       payment_intent: entity.paymentIntentId,
       amount: Math.round(refundAmount * 100),
       reason: getStripeRefundReason(entity.cancelledBy),
+      ...(isDestinationCharge
+        ? {
+            reverse_transfer: true,
+            refund_application_fee: true,
+          }
+        : {}),
       metadata: {
         target_type: entity.targetType,
         target_id: entity.id,
@@ -285,8 +295,10 @@ Deno.serve(async (req) => {
         cancelled_by: entity.cancelledBy || "",
         reference: entity.reference || "",
         idempotency_key: refundIdempotencyKey,
+        connect_destination_charge: isDestinationCharge ? "true" : "false",
       },
-    }, {
+    };
+    const stripeRefund = await stripe.refunds.create(refundParams, {
       idempotencyKey: refundIdempotencyKey,
     });
     persistFailureState = false;
@@ -321,6 +333,9 @@ Deno.serve(async (req) => {
       metadata: {
         refund_amount_chf: refundAmount,
         stripe_refund_id: stripeRefund.id,
+        connect_destination_charge: isDestinationCharge,
+        reverse_transfer: isDestinationCharge,
+        refund_application_fee: isDestinationCharge,
       },
     });
 
