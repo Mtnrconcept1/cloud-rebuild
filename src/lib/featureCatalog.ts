@@ -627,7 +627,7 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     defaultEnabled: true,
     group: "restaurant_dashboard",
     dependsOn: ["dashboard-restaurateur", "reservation"],
-    routeTargets: ["/dashboard/plan-salle"],
+    routeTargets: ["/dashboard/plan-salle", "/dashboard/plan-salle-v2"],
   },
   {
     name: "dashboard-pack",
