@@ -14,8 +14,11 @@ import {
   computeFloorPlanV2AutoAssignments,
   getFloorPlanV2AssignmentError,
   mapFloorPlanV2Table,
+  parseFloorPlanV2TableDrafts,
+  serializeFloorPlanV2Layout,
   type FloorPlanV2Period,
   type FloorPlanV2Reservation,
+  type FloorPlanV2Table,
 } from "@/lib/floorPlanV2";
 import { getServicePeriodFromMetadata } from "@/lib/serviceSettings";
 
@@ -36,13 +39,23 @@ type ReservationWithCustomer = ReservationRow & {
 };
 
 type AssignmentRequest = {
+  requestId: string;
   assignments: Record<string, string | null>;
   successMessage: string;
 };
 
-function asRecord(value: Json | null | undefined): Record<string, Json> {
+type TableSaveRequest = {
+  requestId: string;
+  rawTables: unknown;
+};
+
+type TemplateSaveResult = {
+  idMap: Record<string, string>;
+};
+
+function asRecord(value: unknown): Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value)
-    ? value as Record<string, Json>
+    ? value as Record<string, unknown>
     : {};
 }
 
@@ -82,6 +95,34 @@ function toFloorPlanV2Reservation(
   };
 }
 
+function getOperationId(value: unknown) {
+  const id = String(value || "").trim();
+  return id && id.length <= 100 ? id : `floor-plan-${Date.now()}`;
+}
+
+function getErrorMessage(error: Error) {
+  const message = error.message || "La sauvegarde n’a pas pu être effectuée.";
+  if (message.includes("Table already occupied")) {
+    const time = message.match(/around ([0-9:]+)/)?.[1];
+    return `Cette table est déjà occupée${time ? ` autour de ${time}` : " à cette heure"}.`;
+  }
+  if (message.includes("Table capacity is too low")) return "Cette table n’a pas assez de places.";
+  if (message.includes("Table is inactive")) return "Cette table est indisponible.";
+  if (message.includes("Not allowed")) return "Vous n’avez pas l’autorisation de modifier cette salle.";
+  return message;
+}
+
+function getIdMap(value: unknown) {
+  return Object.fromEntries(
+    Object.entries(asRecord(value))
+      .filter((entry): entry is [string, string] => typeof entry[1] === "string"),
+  );
+}
+
+function tablePositionChanged(left: FloorPlanV2Table, right: FloorPlanV2Table) {
+  return Math.abs(left.x - right.x) > 0.05 || Math.abs(left.y - right.y) > 0.05;
+}
+
 export default function DashboardPlanSalleV2() {
   const { selectedId, loading: restaurantsLoading } = useDashboardRestaurant();
   const { toast } = useToast();
@@ -94,6 +135,7 @@ export default function DashboardPlanSalleV2() {
   const [servicePeriod, setServicePeriod] = useState<FloorPlanV2Period>(() => (
     new Date().getHours() < 16 ? "midi" : "soir"
   ));
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   const { data: branches = [], isLoading: branchesLoading, error: branchesError } = useQuery({
     queryKey: ["floor-plan-v2-branches", selectedId],
@@ -202,7 +244,11 @@ export default function DashboardPlanSalleV2() {
     () => new Map(layoutOverrides.map((override) => [override.reservation_table_id, override.layout])),
     [layoutOverrides],
   );
-  const tables = useMemo(
+  const templateTables = useMemo(
+    () => tableRows.map((table, index) => mapFloorPlanV2Table(table, index)),
+    [tableRows],
+  );
+  const serviceTables = useMemo(
     () => tableRows.map((table, index) => (
       mapFloorPlanV2Table(table, index, overridesByTableId.get(table.id))
     )),
@@ -236,10 +282,21 @@ export default function DashboardPlanSalleV2() {
       branchId: selectedBranchId,
       selectedDate: serviceDate,
       selectedPeriod: servicePeriod,
-      tables,
+      templateTables,
+      serviceTables,
+      tables: serviceTables,
       reservations: visibleReservations,
     });
-  }, [iframeReady, selectedBranchId, sendToIframe, serviceDate, servicePeriod, tables, visibleReservations]);
+  }, [
+    iframeReady,
+    selectedBranchId,
+    sendToIframe,
+    serviceDate,
+    servicePeriod,
+    serviceTables,
+    templateTables,
+    visibleReservations,
+  ]);
 
   useEffect(() => {
     sendHydrate();
@@ -250,14 +307,14 @@ export default function DashboardPlanSalleV2() {
       if (!selectedBranchId) throw new Error("Aucune salle sélectionnée.");
       const nextAssignments = { ...assignments };
       for (const [reservationId, tableId] of Object.entries(changes)) {
-        const error = getFloorPlanV2AssignmentError({
+        const validationError = getFloorPlanV2AssignmentError({
           reservationId,
           tableId,
           reservations: allReservations,
-          tables,
+          tables: serviceTables,
           assignments: nextAssignments,
         });
-        if (error) throw new Error(error);
+        if (validationError) throw new Error(validationError);
         nextAssignments[reservationId] = tableId;
       }
 
@@ -268,8 +325,8 @@ export default function DashboardPlanSalleV2() {
       });
       if (error) throw error;
     },
-    onMutate: () => {
-      sendToIframe("tok-table-v2:saving");
+    onMutate: (request) => {
+      sendToIframe("tok-table-v2:operation-start", { requestId: request.requestId, kind: "assignment" });
     },
     onSuccess: async (_data, request) => {
       await Promise.all([
@@ -278,32 +335,203 @@ export default function DashboardPlanSalleV2() {
         queryClient.invalidateQueries({ queryKey: ["dashboard-all-reservations", selectedId] }),
       ]);
       await queryClient.refetchQueries({ queryKey: ["floor-plan-v2-slots", selectedBranchId] });
-      sendToIframe("tok-table-v2:saved", { message: request.successMessage });
+      sendToIframe("tok-table-v2:operation-success", {
+        requestId: request.requestId,
+        kind: "assignment",
+        message: request.successMessage,
+      });
       toast({ title: "Plan synchronisé", description: request.successMessage });
     },
-    onError: (error: Error) => {
-      sendToIframe("tok-table-v2:error", { message: error.message });
+    onError: (error: Error, request) => {
+      const message = getErrorMessage(error);
+      sendToIframe("tok-table-v2:operation-error", {
+        requestId: request.requestId,
+        kind: "assignment",
+        message,
+      });
       window.setTimeout(sendHydrate, 0);
-      toast({ title: "Placement refusé", description: error.message, variant: "destructive" });
+      toast({ title: "Placement refusé", description: message, variant: "destructive" });
     },
   });
 
-  const autoPlace = useCallback(() => {
+  const templateMutation = useMutation({
+    mutationFn: async ({ rawTables }: TableSaveRequest): Promise<TemplateSaveResult> => {
+      if (!selectedBranchId) throw new Error("Aucune salle sélectionnée.");
+      const drafts = parseFloorPlanV2TableDrafts(rawTables);
+      const existingEditableRows = tableRows.filter((row, index) => mapFloorPlanV2Table(row, index).editable);
+      const existingRowsById = new Map(existingEditableRows.map((row) => [row.id, row]));
+      const requestedExistingIds = new Set<string>();
+
+      const upserts = drafts.map((draft, draftIndex) => {
+        const existing = existingRowsById.get(draft.id);
+        if (!existing && !draft.id.startsWith("tmp_")) {
+          throw new Error("Une table du brouillon n’appartient plus à cette salle. Actualisez le plan.");
+        }
+        if (existing) requestedExistingIds.add(existing.id);
+        const fallbackIndex = existing
+          ? tableRows.findIndex((row) => row.id === existing.id)
+          : tableRows.length + draftIndex;
+        return {
+          client_id: draft.id,
+          id: existing?.id || null,
+          table_number: draft.name,
+          capacity: draft.capacity,
+          is_active: !draft.blocked,
+          sector: draft.zone,
+          layout: serializeFloorPlanV2Layout(draft, existing?.layout, fallbackIndex) as Json,
+        };
+      });
+      const deleteIds = existingEditableRows
+        .map((row) => row.id)
+        .filter((id) => !requestedExistingIds.has(id));
+
+      const { data, error } = await (supabase.rpc as any)("restaurant_save_floor_plan_template", {
+        p_branch_id: selectedBranchId,
+        p_upserts: upserts,
+        p_delete_ids: deleteIds,
+        p_reason: "Modèle enregistré depuis Plan de salle 2",
+      });
+      if (error) throw error;
+      return { idMap: getIdMap(asRecord(data).id_map) };
+    },
+    onMutate: (request) => {
+      sendToIframe("tok-table-v2:operation-start", { requestId: request.requestId, kind: "template" });
+    },
+    onSuccess: async (result, request) => {
+      setHasUnsavedChanges(false);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["floor-plan-v2-tables", selectedBranchId] }),
+        queryClient.invalidateQueries({ queryKey: ["floor-plan-v2-layout-overrides", selectedBranchId] }),
+        queryClient.invalidateQueries({ queryKey: ["floor-plan-v2-slots", selectedBranchId] }),
+        queryClient.invalidateQueries({ queryKey: ["floor-plan-tables", selectedBranchId] }),
+        queryClient.invalidateQueries({ queryKey: ["floor-plan-layout-overrides", selectedBranchId] }),
+      ]);
+      await queryClient.refetchQueries({ queryKey: ["floor-plan-v2-tables", selectedBranchId] });
+      sendToIframe("tok-table-v2:operation-success", {
+        requestId: request.requestId,
+        kind: "template",
+        idMap: result.idMap,
+        message: "Le modèle de salle est enregistré.",
+      });
+      toast({ title: "Modèle enregistré", description: "La V1 et la V2 utilisent maintenant cette configuration." });
+    },
+    onError: (error: Error, request) => {
+      const message = getErrorMessage(error);
+      sendToIframe("tok-table-v2:operation-error", {
+        requestId: request.requestId,
+        kind: "template",
+        message,
+      });
+      toast({ title: "Modèle non enregistré", description: message, variant: "destructive" });
+    },
+  });
+
+  const serviceLayoutMutation = useMutation({
+    mutationFn: async ({ rawTables }: TableSaveRequest) => {
+      if (!selectedBranchId) throw new Error("Aucune salle sélectionnée.");
+      const drafts = parseFloorPlanV2TableDrafts(rawTables);
+      const templateById = new Map(templateTables.filter((table) => table.editable).map((table) => [table.id, table]));
+      const serviceById = new Map(serviceTables.filter((table) => table.editable).map((table) => [table.id, table]));
+      const rowById = new Map(tableRows.map((row) => [row.id, row]));
+      const overrideById = new Map(layoutOverrides.map((override) => [override.reservation_table_id, override]));
+
+      if (drafts.length !== templateById.size) {
+        throw new Error("La salle a changé depuis son chargement. Actualisez avant d’enregistrer.");
+      }
+
+      const layouts = drafts.map((draft) => {
+        const template = templateById.get(draft.id);
+        const service = serviceById.get(draft.id);
+        const row = rowById.get(draft.id);
+        if (!template || !service || !row) throw new Error("Table introuvable dans cette salle.");
+        if (
+          draft.name !== service.name
+          || draft.capacity !== service.capacity
+          || draft.zone !== service.zone
+          || draft.shape !== service.shape
+          || draft.blocked !== service.blocked
+        ) {
+          throw new Error("En mode Service, seule la position des tables peut être modifiée.");
+        }
+
+        const override = overrideById.get(draft.id);
+        const hasExistingOverride = Boolean(override);
+        const unchangedFromTemplate = !tablePositionChanged(draft, template);
+        const mergedLayout = {
+          ...asRecord(row.layout),
+          ...asRecord(override?.layout),
+        };
+        return {
+          table_id: draft.id,
+          layout: unchangedFromTemplate && !hasExistingOverride
+            ? null
+            : serializeFloorPlanV2Layout(draft, mergedLayout, tableRows.findIndex((item) => item.id === draft.id)),
+        };
+      });
+
+      const { error } = await (supabase.rpc as any)("restaurant_save_floor_plan_layouts", {
+        p_branch_id: selectedBranchId,
+        p_service_date: serviceDate,
+        p_layouts: layouts,
+        p_reason: "Disposition du service enregistrée depuis Plan de salle 2",
+      });
+      if (error) throw error;
+    },
+    onMutate: (request) => {
+      sendToIframe("tok-table-v2:operation-start", { requestId: request.requestId, kind: "service-layout" });
+    },
+    onSuccess: async (_data, request) => {
+      setHasUnsavedChanges(false);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["floor-plan-v2-layout-overrides", selectedBranchId, serviceDate] }),
+        queryClient.invalidateQueries({ queryKey: ["floor-plan-layout-overrides", selectedBranchId, serviceDate] }),
+      ]);
+      await queryClient.refetchQueries({
+        queryKey: ["floor-plan-v2-layout-overrides", selectedBranchId, serviceDate],
+      });
+      sendToIframe("tok-table-v2:operation-success", {
+        requestId: request.requestId,
+        kind: "service-layout",
+        message: "La disposition de ce service est enregistrée.",
+      });
+      toast({ title: "Disposition enregistrée", description: `Le plan du ${serviceDate} est à jour.` });
+    },
+    onError: (error: Error, request) => {
+      const message = getErrorMessage(error);
+      sendToIframe("tok-table-v2:operation-error", {
+        requestId: request.requestId,
+        kind: "service-layout",
+        message,
+      });
+      toast({ title: "Disposition non enregistrée", description: message, variant: "destructive" });
+    },
+  });
+
+  const autoPlace = useCallback((requestId: string) => {
     const result = computeFloorPlanV2AutoAssignments({
       visibleReservations,
       allReservations,
-      tables,
+      tables: serviceTables,
       assignments,
     });
     if (!result.placedReservationIds.length) {
-      sendToIframe("tok-table-v2:error", { message: "Aucun placement supplémentaire n’est possible." });
+      sendToIframe("tok-table-v2:operation-error", {
+        requestId,
+        kind: "assignment",
+        message: "Aucun placement supplémentaire n’est possible.",
+      });
       return;
     }
     assignmentMutation.mutate({
+      requestId,
       assignments: result.changedAssignments,
       successMessage: `${result.placedReservationIds.length} réservation(s) placée(s) automatiquement.`,
     });
-  }, [allReservations, assignmentMutation, assignments, sendToIframe, tables, visibleReservations]);
+  }, [allReservations, assignmentMutation, assignments, sendToIframe, serviceTables, visibleReservations]);
+
+  const operationPending = assignmentMutation.isPending
+    || templateMutation.isPending
+    || serviceLayoutMutation.isPending;
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -320,11 +548,25 @@ export default function DashboardPlanSalleV2() {
         setIframeReady(true);
         return;
       }
+      if (message.type === "tok-table-v2:dirty-change") {
+        setHasUnsavedChanges(message.payload?.dirty === true);
+        return;
+      }
       if (message.type === "tok-table-v2:service-change") {
         const date = String(message.payload?.date || "");
         const period = message.payload?.period;
         if (/^\d{4}-\d{2}-\d{2}$/.test(date)) setServiceDate(date);
         if (period === "midi" || period === "soir") setServicePeriod(period);
+        return;
+      }
+
+      const requestId = getOperationId(message.payload?.requestId);
+      if (operationPending) {
+        sendToIframe("tok-table-v2:operation-error", {
+          requestId,
+          kind: "busy",
+          message: "Une sauvegarde est déjà en cours.",
+        });
         return;
       }
       if (message.type === "tok-table-v2:assign") {
@@ -333,17 +575,35 @@ export default function DashboardPlanSalleV2() {
         const tableId = typeof tableIdValue === "string" && tableIdValue ? tableIdValue : null;
         if (!reservationId) return;
         assignmentMutation.mutate({
+          requestId,
           assignments: { [reservationId]: tableId },
           successMessage: tableId ? "Le client a été placé." : "Le placement a été retiré.",
         });
         return;
       }
-      if (message.type === "tok-table-v2:auto-place-request") autoPlace();
+      if (message.type === "tok-table-v2:auto-place-request") {
+        autoPlace(requestId);
+        return;
+      }
+      if (message.type === "tok-table-v2:save-template") {
+        templateMutation.mutate({ requestId, rawTables: message.payload?.tables });
+        return;
+      }
+      if (message.type === "tok-table-v2:save-service-layout") {
+        serviceLayoutMutation.mutate({ requestId, rawTables: message.payload?.tables });
+      }
     };
 
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
-  }, [assignmentMutation, autoPlace]);
+  }, [
+    assignmentMutation,
+    autoPlace,
+    operationPending,
+    sendToIframe,
+    serviceLayoutMutation,
+    templateMutation,
+  ]);
 
   const hasError = Boolean(
     branchesError || tablesError || layoutOverridesError || reservationsError || slotsError,
@@ -374,14 +634,18 @@ export default function DashboardPlanSalleV2() {
                 </span>
               </div>
               <p className="text-xs text-muted-foreground">
-                Les placements sont partagés avec la V1 et enregistrés dans TOK.
+                Tables, modèle et placements sont partagés avec la V1 et enregistrés dans TOK.
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
             {branches.length > 1 ? (
-              <Select value={selectedBranchId || ""} onValueChange={setSelectedBranchId}>
+              <Select
+                value={selectedBranchId || ""}
+                onValueChange={setSelectedBranchId}
+                disabled={hasUnsavedChanges || operationPending}
+              >
                 <SelectTrigger className="h-9 w-[180px] rounded-xl">
                   <SelectValue placeholder="Salle" />
                 </SelectTrigger>
@@ -392,7 +656,13 @@ export default function DashboardPlanSalleV2() {
                 </SelectContent>
               </Select>
             ) : null}
-            <Button type="button" variant="outline" size="sm" onClick={sendHydrate} disabled={!iframeReady}>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={sendHydrate}
+              disabled={!iframeReady || hasUnsavedChanges || operationPending}
+            >
               <RefreshCw className="mr-2 h-4 w-4" />
               Actualiser
             </Button>
@@ -417,7 +687,7 @@ export default function DashboardPlanSalleV2() {
 
         {selectedId && !branchesLoading && branches.length === 0 ? (
           <div className="rounded-2xl border border-dashed p-10 text-center text-sm text-muted-foreground">
-            Configurez d’abord une salle et ses tables dans la V1.
+            Créez d’abord une salle pour utiliser le plan de table.
           </div>
         ) : null}
 
@@ -429,14 +699,14 @@ export default function DashboardPlanSalleV2() {
             {loading ? (
               <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-center gap-2 bg-background/90 px-3 py-2 text-xs text-muted-foreground backdrop-blur">
                 <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                Chargement des clients réels…
+                Chargement du plan et des clients…
               </div>
             ) : null}
             <iframe
               ref={iframeRef}
               src={PROTOTYPE_URL}
               title="TOK TABLE 2 connecté"
-              className="h-[calc(100vh-11rem)] min-h-[720px] w-full border-0"
+              className="h-[calc(100vh-11rem)] min-h-[760px] w-full border-0"
               sandbox="allow-scripts allow-same-origin"
               allow="fullscreen"
               allowFullScreen
