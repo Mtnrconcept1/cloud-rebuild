@@ -81,7 +81,7 @@ describe("accounting dashboard clarity and responsiveness", () => {
 
     expect(app).toContain('path="/dashboard/compta"');
     expect(app).toContain('dashboardFacturesEnabled ? "/dashboard/factures"');
-    expect(layout).toContain('title: "Finances"');
+    expect(layout).toContain('title: "Paiements"');
     expect(layout).toContain('label: "Comptabilité & factures"');
   });
 });
