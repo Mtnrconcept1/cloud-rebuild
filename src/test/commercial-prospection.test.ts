@@ -63,6 +63,7 @@ describe("commercial prospecting surface", () => {
     expect(pageSource).toContain("map.on(\"zoomend\"");
     expect(pageSource).toContain("map.fitBounds(cluster.bounds");
     expect(pageSource).toContain("CommercialProspectDetailsDialog");
+    expect(pageSource).toContain('className="relative isolate z-0 h-[58vh]');
     expect(pageSource).toContain('marker.on("click", (event) => {');
     expect(pageSource).toContain("L.DomEvent.stopPropagation(event)");
     expect(pageSource).toContain("onOpenDetails(point.prospect)");
