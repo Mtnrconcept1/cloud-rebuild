@@ -1,6 +1,11 @@
 "use strict";
 
 const STORAGE_KEY = "tok-table-v2";
+const BRIDGE_SOURCE = "tok-table-v2";
+const MIN_ZOOM = 0.45;
+const MAX_ZOOM = 1.8;
+const ZOOM_STEP = 0.1;
+const DEFAULT_RESERVATION_DURATION_MINUTES = 120;
 
 const todayIso = () => {
   const date = new Date();
@@ -11,6 +16,8 @@ const todayIso = () => {
 const uid = (prefix) => `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 
 const initialState = () => ({
+  connected: false,
+  branchId: null,
   selectedDate: todayIso(),
   selectedPeriod: "soir",
   selectedZone: "Salle principale",
@@ -43,6 +50,12 @@ const initialState = () => ({
 
 let state = loadState();
 let dragState = null;
+let canvasZoom = 1;
+let zoomWasChanged = false;
+let floorBaseWidth = 0;
+let floorBaseHeight = 560;
+const viewportPointers = new Map();
+let viewportGesture = null;
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -54,6 +67,8 @@ const elements = {
   stats: $("#stats-grid"),
   zones: $("#zone-tabs"),
   floor: $("#floor"),
+  floorViewport: $("#floor-viewport"),
+  floorStage: $("#floor-stage"),
   floorEmpty: $("#floor-empty"),
   reservationList: $("#reservation-list"),
   search: $("#reservation-search"),
@@ -63,7 +78,9 @@ const elements = {
   reservationModal: $("#reservation-modal"),
   reservationForm: $("#reservation-form"),
   dataModal: $("#data-modal"),
-  toastRegion: $("#toast-region")
+  toastRegion: $("#toast-region"),
+  zoomValue: $("#zoom-value"),
+  connectionLabel: $("#connection-label")
 };
 
 function loadState() {
@@ -103,7 +120,6 @@ function sanitizeState(candidate) {
   });
 
   const tableById = new Map(cleanTables.map((table) => [table.id, table]));
-  const usedByService = new Set();
   const cleanReservations = [];
   candidate.reservations.forEach((raw) => {
     const name = String(raw?.name || "").trim().slice(0, 60);
@@ -113,9 +129,7 @@ function sanitizeState(candidate) {
     const period = raw?.period === "midi" ? "midi" : "soir";
     let tableId = tableById.has(raw?.tableId) ? raw.tableId : null;
     const table = tableById.get(tableId);
-    const assignmentKey = `${date}|${period}|${tableId}`;
-    if (!table || table.blocked || table.capacity < size || usedByService.has(assignmentKey)) tableId = null;
-    if (tableId) usedByService.add(assignmentKey);
+    if (!table || table.blocked || table.capacity < size) tableId = null;
     cleanReservations.push({
       id: String(raw?.id || uid("reservation")),
       name,
@@ -140,7 +154,13 @@ function sanitizeState(candidate) {
 }
 
 function saveState() {
+  if (state.connected) return;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function postToDashboard(type, payload = {}) {
+  if (window.parent === window) return;
+  window.parent.postMessage({ source: BRIDGE_SOURCE, type, payload }, window.location.origin);
 }
 
 function escapeHtml(value = "") {
@@ -159,12 +179,40 @@ function zones() {
 }
 
 function currentAssignmentMap() {
-  return new Map(serviceReservations().filter((r) => r.tableId).map((r) => [r.tableId, r]));
+  const assignments = new Map();
+  serviceReservations().filter((reservation) => reservation.tableId).forEach((reservation) => {
+    const current = assignments.get(reservation.tableId) || [];
+    current.push(reservation);
+    assignments.set(reservation.tableId, current);
+  });
+  assignments.forEach((reservations) => reservations.sort((a, b) => a.time.localeCompare(b.time)));
+  return assignments;
+}
+
+function timeToMinutes(value) {
+  const [hours, minutes] = String(value || "00:00").split(":").map(Number);
+  return (Number.isFinite(hours) ? hours : 0) * 60 + (Number.isFinite(minutes) ? minutes : 0);
+}
+
+function reservationsConflict(left, right) {
+  if (!left || !right || left.id === right.id || left.date !== right.date) return false;
+  const leftStart = timeToMinutes(left.time);
+  const rightStart = timeToMinutes(right.time);
+  const leftDuration = Math.max(30, Number(left.durationMinutes) || DEFAULT_RESERVATION_DURATION_MINUTES);
+  const rightDuration = Math.max(30, Number(right.durationMinutes) || DEFAULT_RESERVATION_DURATION_MINUTES);
+  return leftStart < rightStart + rightDuration && rightStart < leftStart + leftDuration;
+}
+
+function tableCanHostReservation(table, reservation, assignments = currentAssignmentMap()) {
+  if (!table || !reservation || table.blocked || table.capacity < reservation.size) return false;
+  return !(assignments.get(table.id) || []).some((candidate) => reservationsConflict(candidate, reservation));
 }
 
 function render() {
   const availableZones = zones();
   if (!availableZones.includes(state.selectedZone)) state.selectedZone = availableZones[0];
+  document.body.classList.toggle("connected-mode", Boolean(state.connected));
+  elements.connectionLabel.textContent = state.connected ? "Données réelles synchronisées" : "Sauvegarde locale";
   elements.date.value = state.selectedDate;
   elements.period.value = state.selectedPeriod;
   renderSummary();
@@ -174,6 +222,7 @@ function render() {
   renderReservations();
   refreshZoneFields();
   saveState();
+  window.requestAnimationFrame(() => syncCanvasZoom(false));
 }
 
 function renderSummary() {
@@ -190,7 +239,7 @@ function renderStats() {
   const usableTables = state.tables.filter((table) => !table.blocked).length;
   const totalSeats = state.tables.filter((table) => !table.blocked).reduce((sum, table) => sum + Number(table.capacity), 0);
   const seatedGuests = reservations.filter((item) => item.tableId).reduce((sum, item) => sum + Number(item.size), 0);
-  const occupancy = totalSeats ? Math.round((seatedGuests / totalSeats) * 100) : 0;
+  const occupancy = totalSeats ? Math.min(100, Math.round((seatedGuests / totalSeats) * 100)) : 0;
 
   const stats = [
     ["♟", guests, "Convives attendus"],
@@ -220,7 +269,11 @@ function renderFloor() {
   elements.floorEmpty.classList.toggle("hidden", visibleTables.length > 0);
 
   visibleTables.forEach((table) => {
-    const reservation = assignment.get(table.id);
+    const reservations = assignment.get(table.id) || [];
+    const reservation = reservations[0] || null;
+    const guestLabel = reservations.length > 1
+      ? `${reservation.name} +${reservations.length - 1}`
+      : reservation?.name || "";
     const node = document.createElement("button");
     node.type = "button";
     node.className = `table-node ${table.shape} ${table.blocked ? "blocked" : reservation ? "occupied" : ""}`;
@@ -228,12 +281,12 @@ function renderFloor() {
     const nodeWidth = table.shape === "rectangle" ? 134 : 94;
     node.style.left = `clamp(2px, ${table.x}%, calc(100% - ${nodeWidth}px))`;
     node.style.top = `clamp(2px, ${table.y}%, calc(100% - 94px))`;
-    node.setAttribute("aria-label", `${table.name}, ${table.capacity} places${reservation ? `, ${reservation.name}` : table.blocked ? ", indisponible" : ", libre"}`);
+    node.setAttribute("aria-label", `${table.name}, ${table.capacity} places${reservation ? `, ${reservations.map((item) => item.name).join(", ")}` : table.blocked ? ", indisponible" : ", libre"}`);
     node.innerHTML = `
       <i class="chair top"></i><i class="chair right"></i><i class="chair bottom"></i><i class="chair left"></i>
       <span class="table-name">${escapeHtml(table.name)}</span>
       <span class="table-capacity">${table.capacity} place${table.capacity > 1 ? "s" : ""}</span>
-      ${reservation ? `<span class="table-guest">${escapeHtml(reservation.name)}</span>` : ""}`;
+      ${reservation ? `<span class="table-guest">${escapeHtml(guestLabel)}</span>` : ""}`;
     elements.floor.appendChild(node);
   });
 }
@@ -407,7 +460,7 @@ function assignReservationManually(reservationId) {
   if (!reservation) return;
   const assignments = currentAssignmentMap();
   const available = state.tables
-    .filter((table) => !table.blocked && table.capacity >= reservation.size && (!assignments.has(table.id) || table.id === reservation.tableId))
+    .filter((table) => table.id === reservation.tableId || tableCanHostReservation(table, reservation, assignments))
     .sort((a, b) => (a.capacity - reservation.size) - (b.capacity - reservation.size) || a.name.localeCompare(b.name, "fr"));
 
   if (!available.length && !reservation.tableId) {
@@ -426,6 +479,12 @@ function assignReservationManually(reservationId) {
     return;
   }
   render();
+  if (state.connected) {
+    postToDashboard("tok-table-v2:assign", {
+      reservationId: reservation.id,
+      tableId: reservation.tableId
+    });
+  }
 }
 
 // Graphe de flot à coût minimum. L'affectation valorise d'abord le nombre de
@@ -502,6 +561,14 @@ function computeOptimalAssignments(reservations, tables) {
 }
 
 function autoPlace() {
+  if (state.connected) {
+    postToDashboard("tok-table-v2:auto-place-request", {
+      date: state.selectedDate,
+      period: state.selectedPeriod
+    });
+    showToast("Placement automatique en cours…");
+    return;
+  }
   const reservations = serviceReservations();
   const usableTables = state.tables.filter((table) => !table.blocked);
   if (!reservations.length) {
@@ -525,6 +592,7 @@ function autoPlace() {
 }
 
 function startDragging(event, node, table) {
+  if (state.connected) return;
   if (event.button !== 0) return;
   const floorRect = elements.floor.getBoundingClientRect();
   const nodeRect = node.getBoundingClientRect();
@@ -532,8 +600,8 @@ function startDragging(event, node, table) {
     table,
     node,
     floorRect,
-    offsetX: event.clientX - nodeRect.left,
-    offsetY: event.clientY - nodeRect.top,
+    offsetX: (event.clientX - nodeRect.left) / canvasZoom,
+    offsetY: (event.clientY - nodeRect.top) / canvasZoom,
     moved: false,
     startX: event.clientX,
     startY: event.clientY
@@ -546,12 +614,14 @@ function moveDragging(event) {
   if (!dragState) return;
   const { node, floorRect } = dragState;
   if (Math.hypot(event.clientX - dragState.startX, event.clientY - dragState.startY) > 4) dragState.moved = true;
-  const maxLeft = floorRect.width - node.offsetWidth - 2;
-  const maxTop = floorRect.height - node.offsetHeight - 2;
-  const left = Math.min(maxLeft, Math.max(2, event.clientX - floorRect.left - dragState.offsetX));
-  const top = Math.min(maxTop, Math.max(2, event.clientY - floorRect.top - dragState.offsetY));
-  node.style.left = `${(left / floorRect.width) * 100}%`;
-  node.style.top = `${(top / floorRect.height) * 100}%`;
+  const logicalWidth = elements.floor.offsetWidth;
+  const logicalHeight = elements.floor.offsetHeight;
+  const maxLeft = logicalWidth - node.offsetWidth - 2;
+  const maxTop = logicalHeight - node.offsetHeight - 2;
+  const left = Math.min(maxLeft, Math.max(2, (event.clientX - floorRect.left) / canvasZoom - dragState.offsetX));
+  const top = Math.min(maxTop, Math.max(2, (event.clientY - floorRect.top) / canvasZoom - dragState.offsetY));
+  node.style.left = `${(left / logicalWidth) * 100}%`;
+  node.style.top = `${(top / logicalHeight) * 100}%`;
 }
 
 function stopDragging(event) {
@@ -559,14 +629,178 @@ function stopDragging(event) {
   const { table, node, floorRect, moved } = dragState;
   node.classList.remove("dragging");
   if (moved) {
-    table.x = Math.max(0, Math.min(94, (node.offsetLeft / floorRect.width) * 100));
-    table.y = Math.max(0, Math.min(86, (node.offsetTop / floorRect.height) * 100));
+    table.x = Math.max(0, Math.min(94, (node.offsetLeft / elements.floor.offsetWidth) * 100));
+    table.y = Math.max(0, Math.min(86, (node.offsetTop / elements.floor.offsetHeight) * 100));
     saveState();
   } else {
     openTableModal(table);
   }
   if (node.hasPointerCapture(event.pointerId)) node.releasePointerCapture(event.pointerId);
   dragState = null;
+}
+
+function clampZoom(value) {
+  return Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, Math.round(value * 100) / 100));
+}
+
+function getViewportCenter() {
+  const viewport = elements.floorViewport;
+  return {
+    clientX: viewport.getBoundingClientRect().left + viewport.clientWidth / 2,
+    clientY: viewport.getBoundingClientRect().top + viewport.clientHeight / 2
+  };
+}
+
+function syncCanvasZoom(preserveCenter = true) {
+  const viewport = elements.floorViewport;
+  const floor = elements.floor;
+  const stage = elements.floorStage;
+  if (!viewport || !floor || !stage) return;
+
+  const previousZoom = Number(floor.dataset.zoom) || canvasZoom || 1;
+  const logicalCenterX = (viewport.scrollLeft + viewport.clientWidth / 2) / previousZoom;
+  const logicalCenterY = (viewport.scrollTop + viewport.clientHeight / 2) / previousZoom;
+  const nextBaseWidth = Math.max(720, Math.round(viewport.clientWidth));
+  const nextBaseHeight = window.matchMedia("(max-width: 720px)").matches ? 500 : 560;
+
+  if (!floorBaseWidth) {
+    floorBaseWidth = nextBaseWidth;
+    floorBaseHeight = nextBaseHeight;
+    if (!zoomWasChanged) canvasZoom = clampZoom(Math.min(1, viewport.clientWidth / floorBaseWidth));
+  } else if (floorBaseWidth !== nextBaseWidth || floorBaseHeight !== nextBaseHeight) {
+    floorBaseWidth = nextBaseWidth;
+    floorBaseHeight = nextBaseHeight;
+    if (!zoomWasChanged) canvasZoom = clampZoom(Math.min(1, viewport.clientWidth / floorBaseWidth));
+  }
+
+  floor.style.width = `${floorBaseWidth}px`;
+  floor.style.height = `${floorBaseHeight}px`;
+  floor.style.transform = `scale(${canvasZoom})`;
+  floor.dataset.zoom = String(canvasZoom);
+  stage.style.width = `${Math.ceil(floorBaseWidth * canvasZoom)}px`;
+  stage.style.height = `${Math.ceil(floorBaseHeight * canvasZoom)}px`;
+  elements.zoomValue.textContent = `${Math.round(canvasZoom * 100)} %`;
+
+  if (preserveCenter) {
+    viewport.scrollLeft = Math.max(0, logicalCenterX * canvasZoom - viewport.clientWidth / 2);
+    viewport.scrollTop = Math.max(0, logicalCenterY * canvasZoom - viewport.clientHeight / 2);
+  }
+}
+
+function updateCanvasZoom(nextZoom, focus = getViewportCenter()) {
+  const viewport = elements.floorViewport;
+  const bounds = viewport.getBoundingClientRect();
+  const previousZoom = canvasZoom;
+  const focusX = Math.max(0, Math.min(viewport.clientWidth, focus.clientX - bounds.left));
+  const focusY = Math.max(0, Math.min(viewport.clientHeight, focus.clientY - bounds.top));
+  const logicalX = (viewport.scrollLeft + focusX) / previousZoom;
+  const logicalY = (viewport.scrollTop + focusY) / previousZoom;
+
+  zoomWasChanged = true;
+  canvasZoom = clampZoom(nextZoom);
+  syncCanvasZoom(false);
+  viewport.scrollLeft = Math.max(0, logicalX * canvasZoom - focusX);
+  viewport.scrollTop = Math.max(0, logicalY * canvasZoom - focusY);
+}
+
+function fitCanvasToViewport() {
+  const viewport = elements.floorViewport;
+  zoomWasChanged = true;
+  canvasZoom = clampZoom(Math.min(
+    1,
+    viewport.clientWidth / floorBaseWidth,
+    viewport.clientHeight / floorBaseHeight
+  ));
+  syncCanvasZoom(false);
+  viewport.scrollTo({ left: 0, top: 0, behavior: "smooth" });
+}
+
+function resetCanvasZoom() {
+  zoomWasChanged = true;
+  canvasZoom = 1;
+  syncCanvasZoom(false);
+  elements.floorViewport.scrollTo({ left: 0, top: 0, behavior: "smooth" });
+}
+
+function pointerDistance(pointers) {
+  return Math.hypot(pointers[0].clientX - pointers[1].clientX, pointers[0].clientY - pointers[1].clientY);
+}
+
+function pointerMidpoint(pointers) {
+  return {
+    clientX: (pointers[0].clientX + pointers[1].clientX) / 2,
+    clientY: (pointers[0].clientY + pointers[1].clientY) / 2
+  };
+}
+
+function beginViewportGesture(event) {
+  if (event.target.closest("button, input, select, .table-node")) return;
+  if (event.pointerType === "mouse" && event.button !== 0) return;
+  viewportPointers.set(event.pointerId, { clientX: event.clientX, clientY: event.clientY });
+  elements.floorViewport.setPointerCapture?.(event.pointerId);
+
+  const pointers = [...viewportPointers.values()];
+  if (pointers.length >= 2) {
+    viewportGesture = {
+      type: "pinch",
+      startDistance: pointerDistance(pointers.slice(0, 2)),
+      startZoom: canvasZoom
+    };
+  } else {
+    viewportGesture = {
+      type: "pan",
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      scrollLeft: elements.floorViewport.scrollLeft,
+      scrollTop: elements.floorViewport.scrollTop
+    };
+  }
+  event.preventDefault();
+}
+
+function moveViewportGesture(event) {
+  if (!viewportPointers.has(event.pointerId)) return;
+  viewportPointers.set(event.pointerId, { clientX: event.clientX, clientY: event.clientY });
+  const pointers = [...viewportPointers.values()];
+
+  if (pointers.length >= 2) {
+    if (viewportGesture?.type !== "pinch") {
+      viewportGesture = {
+        type: "pinch",
+        startDistance: pointerDistance(pointers.slice(0, 2)),
+        startZoom: canvasZoom
+      };
+    }
+    const distance = pointerDistance(pointers.slice(0, 2));
+    const ratio = viewportGesture.startDistance ? distance / viewportGesture.startDistance : 1;
+    updateCanvasZoom(viewportGesture.startZoom * ratio, pointerMidpoint(pointers.slice(0, 2)));
+  } else if (viewportGesture?.type === "pan" && viewportGesture.pointerId === event.pointerId) {
+    elements.floorViewport.scrollLeft = viewportGesture.scrollLeft - (event.clientX - viewportGesture.startX);
+    elements.floorViewport.scrollTop = viewportGesture.scrollTop - (event.clientY - viewportGesture.startY);
+  }
+  event.preventDefault();
+}
+
+function endViewportGesture(event) {
+  viewportPointers.delete(event.pointerId);
+  if (elements.floorViewport.hasPointerCapture?.(event.pointerId)) {
+    elements.floorViewport.releasePointerCapture(event.pointerId);
+  }
+  const remaining = [...viewportPointers.entries()];
+  if (remaining.length === 1) {
+    const [pointerId, pointer] = remaining[0];
+    viewportGesture = {
+      type: "pan",
+      pointerId,
+      startX: pointer.clientX,
+      startY: pointer.clientY,
+      scrollLeft: elements.floorViewport.scrollLeft,
+      scrollTop: elements.floorViewport.scrollTop
+    };
+  } else if (remaining.length === 0) {
+    viewportGesture = null;
+  }
 }
 
 function exportData() {
@@ -592,8 +826,82 @@ async function importData(file) {
   }
 }
 
-elements.date.addEventListener("change", () => { state.selectedDate = elements.date.value; render(); });
-elements.period.addEventListener("change", () => { state.selectedPeriod = elements.period.value; render(); });
+function hydrateConnectedState(payload) {
+  if (!payload || !Array.isArray(payload.tables) || !Array.isArray(payload.reservations)) return;
+  const tables = payload.tables.map((table, index) => ({
+    id: String(table.id || ""),
+    name: String(table.name || `T${index + 1}`).slice(0, 30),
+    capacity: Math.max(0, Number(table.capacity) || 0),
+    zone: String(table.zone || "Salle principale").slice(0, 60),
+    shape: ["round", "square", "rectangle"].includes(table.shape) ? table.shape : "square",
+    x: Math.max(0, Math.min(94, Number(table.x) || 0)),
+    y: Math.max(0, Math.min(86, Number(table.y) || 0)),
+    blocked: Boolean(table.blocked)
+  })).filter((table) => table.id);
+  const tableIds = new Set(tables.map((table) => table.id));
+  const reservations = payload.reservations.map((reservation) => ({
+    id: String(reservation.id || ""),
+    name: String(reservation.name || "Client sans nom").slice(0, 80),
+    size: Math.max(1, Number(reservation.size) || 1),
+    time: /^\d{2}:\d{2}/.test(String(reservation.time || "")) ? String(reservation.time).slice(0, 5) : "00:00",
+    date: /^\d{4}-\d{2}-\d{2}$/.test(String(reservation.date || "")) ? String(reservation.date) : payload.selectedDate,
+    period: reservation.period === "midi" ? "midi" : "soir",
+    preferredZone: String(reservation.preferredZone || "").slice(0, 60),
+    note: String(reservation.note || "").slice(0, 240),
+    durationMinutes: Math.max(30, Number(reservation.durationMinutes) || DEFAULT_RESERVATION_DURATION_MINUTES),
+    tableId: tableIds.has(reservation.tableId) ? reservation.tableId : null,
+    status: String(reservation.status || "pending")
+  })).filter((reservation) => reservation.id);
+
+  state = {
+    connected: true,
+    branchId: String(payload.branchId || ""),
+    selectedDate: /^\d{4}-\d{2}-\d{2}$/.test(String(payload.selectedDate || "")) ? payload.selectedDate : todayIso(),
+    selectedPeriod: payload.selectedPeriod === "midi" ? "midi" : "soir",
+    selectedZone: tables.some((table) => table.zone === state.selectedZone)
+      ? state.selectedZone
+      : (tables[0]?.zone || "Salle principale"),
+    tables,
+    reservations
+  };
+  render();
+}
+
+window.addEventListener("message", (event) => {
+  if (event.origin !== window.location.origin || event.source !== window.parent) return;
+  const message = event.data;
+  if (!message || message.source !== "tok-dashboard") return;
+
+  if (message.type === "tok-table-v2:hydrate") hydrateConnectedState(message.payload);
+  if (message.type === "tok-table-v2:saving") {
+    document.body.classList.add("saving");
+    elements.connectionLabel.textContent = "Synchronisation…";
+    $("#auto-place-button").disabled = true;
+  }
+  if (message.type === "tok-table-v2:saved") {
+    document.body.classList.remove("saving");
+    elements.connectionLabel.textContent = "Données réelles synchronisées";
+    $("#auto-place-button").disabled = false;
+    if (message.payload?.message) showToast(message.payload.message, "success");
+  }
+  if (message.type === "tok-table-v2:error") {
+    document.body.classList.remove("saving");
+    elements.connectionLabel.textContent = "Synchronisation à vérifier";
+    $("#auto-place-button").disabled = false;
+    showToast(message.payload?.message || "Le placement n’a pas pu être enregistré.", "warning");
+  }
+});
+
+elements.date.addEventListener("change", () => {
+  state.selectedDate = elements.date.value;
+  if (state.connected) postToDashboard("tok-table-v2:service-change", { date: state.selectedDate, period: state.selectedPeriod });
+  render();
+});
+elements.period.addEventListener("change", () => {
+  state.selectedPeriod = elements.period.value;
+  if (state.connected) postToDashboard("tok-table-v2:service-change", { date: state.selectedDate, period: state.selectedPeriod });
+  render();
+});
 elements.search.addEventListener("input", renderReservations);
 elements.filter.addEventListener("change", renderReservations);
 $("#auto-place-button").addEventListener("click", autoPlace);
@@ -651,5 +959,34 @@ elements.floor.addEventListener("pointerdown", (event) => {
 elements.floor.addEventListener("pointermove", moveDragging);
 elements.floor.addEventListener("pointerup", stopDragging);
 elements.floor.addEventListener("pointercancel", stopDragging);
+
+$("#zoom-out-button").addEventListener("click", () => updateCanvasZoom(canvasZoom - ZOOM_STEP));
+$("#zoom-reset-button").addEventListener("click", resetCanvasZoom);
+$("#zoom-fit-button").addEventListener("click", fitCanvasToViewport);
+$("#zoom-in-button").addEventListener("click", () => updateCanvasZoom(canvasZoom + ZOOM_STEP));
+elements.floorViewport.addEventListener("wheel", (event) => {
+  if (!event.ctrlKey && !event.metaKey) return;
+  event.preventDefault();
+  updateCanvasZoom(canvasZoom + (event.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP), event);
+}, { passive: false });
+elements.floorViewport.addEventListener("pointerdown", beginViewportGesture);
+elements.floorViewport.addEventListener("pointermove", moveViewportGesture);
+elements.floorViewport.addEventListener("pointerup", endViewportGesture);
+elements.floorViewport.addEventListener("pointercancel", endViewportGesture);
+
+if (typeof ResizeObserver !== "undefined") {
+  new ResizeObserver(() => syncCanvasZoom(true)).observe(elements.floorViewport);
+}
+
+if (window.parent === window) {
+  state = {
+    ...initialState(),
+    tables: [],
+    reservations: []
+  };
+  window.setTimeout(() => showToast("Ouvrez Plan de salle 2 depuis le dashboard TOK pour charger les vrais clients."), 250);
+} else {
+  postToDashboard("tok-table-v2:ready");
+}
 
 render();
