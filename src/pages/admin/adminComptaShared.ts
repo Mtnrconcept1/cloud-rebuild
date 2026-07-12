@@ -964,7 +964,7 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
         .maybeSingle();
 
       if (error) throw error;
-      return (data || null) as PlatformFinanceMonthlySnapshot | null;
+      return (data || null) as unknown as PlatformFinanceMonthlySnapshot | null;
     },
   });
 
