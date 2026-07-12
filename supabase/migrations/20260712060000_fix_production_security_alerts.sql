@@ -143,6 +143,24 @@ WHERE delivery.notification_id = notification.id
       AND token.enabled = true
   );
 
+-- Do not resend months-old transactional messages once the provider is
+-- restored. Preserve the original provider failure as archived history while
+-- removing it from the active delivery backlog; new failures remain visible.
+UPDATE public.email_queue
+SET
+  status = 'skipped',
+  error = 'Archived stale delivery: RESEND_API_KEY not configured'
+WHERE status = 'failed'
+  AND error = 'RESEND_API_KEY not configured';
+
+UPDATE public.notification_deliveries
+SET
+  status = 'skipped',
+  last_error = 'Archived stale delivery: RESEND_API_KEY not configured'
+WHERE channel = 'email'
+  AND status = 'failed'
+  AND last_error = 'RESEND_API_KEY not configured';
+
 DO $$
 DECLARE
   v_base text := 'https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1';
