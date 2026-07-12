@@ -1403,7 +1403,7 @@ export default function CommercialProspection() {
                 ) : null}
 
                 <div className="space-y-2">
-                  <Label htmlFor="commercial-notes">Notes terrain</Label>
+                  <Label htmlFor="commercial-notes">Notes du commercial</Label>
                   <Textarea
                     id="commercial-notes"
                     value={draftNotes}
