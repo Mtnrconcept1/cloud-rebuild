@@ -165,11 +165,28 @@ export async function authenticateRequest(
     const configuredSecret = Deno.env.get("INTERNAL_CRON_SECRET") ||
       Deno.env.get("CRON_SECRET") || "";
 
-    if (
+    let schedulerSecretValid = Boolean(
       configuredSecret &&
       providedSecret &&
       safeEqual(providedSecret, configuredSecret)
-    ) {
+    );
+
+    // pg_cron stores its secret in Postgres Vault. This fallback keeps the
+    // scheduler operational even when the Edge runtime secret and Vault are
+    // provisioned independently. The verifier RPC is service-role only and
+    // compares digests server-side, so the Vault value never leaves Postgres.
+    if (!schedulerSecretValid && providedSecret) {
+      try {
+        const { data, error } = await adminClient.rpc("verify_internal_cron_secret", {
+          p_secret: providedSecret,
+        });
+        schedulerSecretValid = !error && data === true;
+      } catch {
+        schedulerSecretValid = false;
+      }
+    }
+
+    if (schedulerSecretValid) {
       return {
         adminClient,
         userClient: null,

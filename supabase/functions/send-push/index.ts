@@ -22,25 +22,71 @@ type FirebaseServiceAccount = {
 
 function maybeDecodeBase64(raw: string) {
   try {
-    const decoded = atob(raw.replace(/\s/g, ""));
-    return decoded.trim().startsWith("{") ? decoded : null;
+    const normalized = raw
+      .replace(/\s/g, "")
+      .replace(/-/g, "+")
+      .replace(/_/g, "/");
+    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
+    const decoded = atob(padded);
+    return decoded.trim().startsWith("{") || decoded.trim().startsWith("\"")
+      ? decoded
+      : null;
   } catch {
     return null;
   }
 }
 
 function parseFirebaseServiceAccount(raw: string): FirebaseServiceAccount {
+  const candidates = new Set<string>();
+  const addCandidate = (value: string | null | undefined) => {
+    const normalized = String(value || "").trim();
+    if (normalized) candidates.add(normalized);
+  };
+
   const trimmed = raw.trim();
-  const candidates = [trimmed, maybeDecodeBase64(trimmed)].filter((value): value is string => Boolean(value));
+  addCandidate(trimmed);
+
+  if (
+    (trimmed.startsWith("'") && trimmed.endsWith("'")) ||
+    (trimmed.startsWith("`") && trimmed.endsWith("`"))
+  ) {
+    addCandidate(trimmed.slice(1, -1));
+  }
+
+  try {
+    addCandidate(decodeURIComponent(trimmed));
+  } catch {
+    // Not URL-encoded.
+  }
+
+  for (const candidate of Array.from(candidates)) {
+    addCandidate(maybeDecodeBase64(candidate));
+    if (candidate.includes('\\\"')) {
+      addCandidate(candidate.replace(/\\\"/g, '"'));
+    }
+
+    try {
+      const decoded = JSON.parse(candidate);
+      if (typeof decoded === "string") {
+        addCandidate(decoded);
+        addCandidate(maybeDecodeBase64(decoded));
+      }
+    } catch {
+      // The validation loop below will try all supported representations.
+    }
+  }
+
   let formatError: HttpError | null = null;
 
   for (const candidate of candidates) {
     try {
-      const parsed = JSON.parse(candidate) as Partial<FirebaseServiceAccount>;
+      const firstPass = JSON.parse(candidate) as unknown;
+      const parsed = typeof firstPass === "string"
+        ? JSON.parse(firstPass) as Partial<FirebaseServiceAccount>
+        : firstPass as Partial<FirebaseServiceAccount>;
       return validateFirebaseServiceAccount(parsed);
     } catch (error) {
       if (error instanceof HttpError) formatError = error;
-      // Try the next supported representation.
     }
   }
 
@@ -201,9 +247,6 @@ Deno.serve(async (req) => {
       ? body.user_id.trim()
       : null;
 
-    const serviceAccount = readFirebaseServiceAccountFromEnv();
-    const projectId = serviceAccount.project_id;
-
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -239,12 +282,16 @@ Deno.serve(async (req) => {
       return jsonResponse({ processed: 0 }, 200, corsHeaders);
     }
 
-    // Get Firebase access token
-    const accessToken = await getFirebaseAccessToken(serviceAccount);
-    const fcmUrl = `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`;
+    // Firebase credentials are loaded lazily only when at least one active
+    // device token exists. Deliveries for users without a token can therefore
+    // be closed honestly without turning missing Firebase configuration into a
+    // platform incident.
+    let accessToken: string | null = null;
+    let projectId: string | null = null;
 
     let sent = 0;
     let failed = 0;
+    let skipped = 0;
 
     for (const delivery of deliveries) {
       try {
@@ -268,12 +315,18 @@ Deno.serve(async (req) => {
         if (!tokens || tokens.length === 0) {
           await supabaseAdmin
             .from("notification_deliveries")
-            .update({ status: "failed", last_error: "No active device tokens" })
+            .update({ status: "skipped", last_error: "No active device tokens" })
             .eq("id", delivery.id);
-          failed++;
+          skipped++;
           continue;
         }
 
+        if (!accessToken || !projectId) {
+          const serviceAccount = readFirebaseServiceAccountFromEnv();
+          projectId = serviceAccount.project_id;
+          accessToken = await getFirebaseAccessToken(serviceAccount);
+        }
+        const fcmUrl = `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`;
         let anySent = false;
 
         for (const deviceToken of tokens) {
@@ -368,15 +421,16 @@ Deno.serve(async (req) => {
     await writeAuditLog({
       adminClient: actor.adminClient,
       actor,
-        request: req,
-        functionName: "send-push",
-        action: "process_push_queue",
-        status: "success",
-        targetEntityType: "notification_deliveries",
-        metadata: { processed: deliveries.length, sent, failed, user_id: userIdFilter },
-      });
+      request: req,
+      functionName: "send-push",
+      action: "process_push_queue",
+      status: failed > 0 ? "failure" : "success",
+      targetEntityType: "notification_deliveries",
+      errorMessage: failed > 0 ? `${failed} livraison(s) push en échec` : null,
+      metadata: { processed: deliveries.length, sent, failed, skipped, user_id: userIdFilter },
+    });
 
-    return jsonResponse({ processed: deliveries.length, sent, failed }, 200, corsHeaders);
+    return jsonResponse({ processed: deliveries.length, sent, failed, skipped }, 200, corsHeaders);
   } catch (error) {
     log.error("send-push error", { message: error instanceof Error ? error.message : "unknown" });
     await writeAuditLog({

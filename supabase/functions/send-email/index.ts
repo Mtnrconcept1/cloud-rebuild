@@ -145,6 +145,9 @@ Deno.serve(async (req) => {
 
     let queuedProcessed = 0;
     let notificationProcessed = 0;
+    let queuedFailed = 0;
+    let notificationFailed = 0;
+    let lastDeliveryError: string | null = null;
 
     for (const email of emails) {
       try {
@@ -167,6 +170,8 @@ Deno.serve(async (req) => {
           .from("email_queue")
           .update({ status: "failed", error: errMsg })
           .eq("id", email.id);
+        queuedFailed++;
+        lastDeliveryError = errMsg;
       }
     }
 
@@ -207,8 +212,12 @@ Deno.serve(async (req) => {
           .from("notification_deliveries")
           .update({ status: "failed", last_error: errMsg })
           .eq("id", delivery.id);
+        notificationFailed++;
+        lastDeliveryError = errMsg;
       }
     }
+
+    const failed = queuedFailed + notificationFailed;
 
     await writeAuditLog({
       adminClient: actor.adminClient,
@@ -216,21 +225,30 @@ Deno.serve(async (req) => {
       request: req,
       functionName: "send-email",
       action: "process_email_queue",
-      status: "success",
+      status: failed > 0 ? "failure" : "success",
       targetEntityType: "email_queue",
+      errorMessage: failed > 0 ? lastDeliveryError || `${failed} email(s) en échec` : null,
       metadata: {
         queued_processed: queuedProcessed,
         notification_processed: notificationProcessed,
-        processed: queuedProcessed + notificationProcessed,
+        queued_failed: queuedFailed,
+        notification_failed: notificationFailed,
+        processed: queuedProcessed + notificationProcessed + failed,
+        sent: queuedProcessed + notificationProcessed,
+        failed,
         user_id: userIdFilter,
       },
     });
 
     return jsonResponse(
       {
-        processed: queuedProcessed + notificationProcessed,
+        processed: queuedProcessed + notificationProcessed + failed,
+        sent: queuedProcessed + notificationProcessed,
+        failed,
         queued_processed: queuedProcessed,
         notification_processed: notificationProcessed,
+        queued_failed: queuedFailed,
+        notification_failed: notificationFailed,
       },
       200,
       corsHeaders,
