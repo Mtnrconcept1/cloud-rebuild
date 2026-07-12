@@ -98,7 +98,8 @@ describe("espace client central", () => {
     expect(lifecycle).toContain("reverses_transaction_id");
     expect(lifecycle).toContain("reinstates_transaction_id");
     expect(lifecycle).toContain("migration_reward_not_yet_eligible");
-    expect(lifecycle).toContain("lock table public.profiles in share row exclusive mode");
+    expect(lifecycle).toContain("lock table public.profiles in access exclusive mode");
+    expect(lifecycle).toContain("lock table public.orders, public.reservations in share row exclusive mode");
     expect(lifecycle).toContain("v_effective_multiplier := least(5");
     expect(lifecycle).not.toContain("new.status = 'pending'");
     expect(reservationDialog).toContain("donate_earned_xp: donatePoints");

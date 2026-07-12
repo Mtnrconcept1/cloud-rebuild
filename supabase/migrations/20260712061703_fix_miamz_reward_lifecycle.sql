@@ -500,10 +500,15 @@ execute function public.credit_reservation_loyalty_points();
 -- eligible state. Missing legacy profiles stay in the ledger for manual review.
 -- Keep the balance preflight and the compensating updates atomic with respect
 -- to gifts, donations and any other concurrent profile balance change.
-lock table public.profiles in share row exclusive mode;
-
 do $$
 begin
+  -- Acquire workflow tables first, then the balance/ledger tables, so a
+  -- delivery update or gift already in flight can finish without deadlocking.
+  lock table public.orders, public.reservations in share row exclusive mode;
+  lock table public.profiles in access exclusive mode;
+  lock table public.loyalty_transactions, public.solidarity_donations
+    in share row exclusive mode;
+
   if exists (
     with invalid_rewards as (
       select lt.user_id, sum(lt.amount)::integer as amount
@@ -554,10 +559,8 @@ begin
   ) then
     raise exception 'MIAMZ compensation aborted: an existing profile would become negative';
   end if;
-end;
-$$;
 
-with candidates as (
+  with candidates as (
   select lt.id as source_transaction_id, lt.user_id, lt.order_id, lt.amount,
          o.status, o.payment_status, o.refund_status
   from public.loyalty_transactions lt
@@ -708,8 +711,11 @@ with candidates as (
   returning user_id, amount
 )
 insert into public.solidarity_donations (user_id, points_amount, meals_count)
-select user_id, amount, -floor(abs(amount)::numeric / 1000)::integer
-from inserted;
+  select user_id, amount, -floor(abs(amount)::numeric / 1000)::integer
+  from inserted;
+
+end;
+$$;
 
 revoke execute on function public.credit_order_loyalty_points() from public, anon, authenticated;
 revoke execute on function public.credit_reservation_loyalty_points() from public, anon, authenticated;
