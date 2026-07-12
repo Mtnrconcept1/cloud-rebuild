@@ -55,9 +55,10 @@ function StudioPresetCard({
   return (
     <button
       type="button"
-      className="h-auto min-w-0 whitespace-normal rounded-2xl border border-slate-200/90 bg-white px-3 py-3 text-left shadow-sm transition hover:border-slate-300 hover:bg-slate-50 disabled:pointer-events-none disabled:opacity-50"
+      className="h-auto min-w-0 touch-manipulation whitespace-normal rounded-2xl border border-slate-200/90 bg-white px-3 py-3 text-left shadow-sm transition hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
       onClick={onClick}
       disabled={disabled}
+      aria-label={`Ajouter ${preset.label}${meta ? `, ${meta}` : ""}`}
     >
       <div className="w-full min-w-0 space-y-3">
         <div className={cn("flex h-24 items-center justify-center overflow-hidden rounded-xl border px-3 py-2 shadow-inner", tone)}>
@@ -155,7 +156,7 @@ export default function StudioPalette({
             </div>
 
             {activePresets.length > 0 ? (
-              <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-2 xl:grid-cols-1">
                 {activePresets.map((preset) => (
                   <StudioPresetCard
                     key={preset.id}
