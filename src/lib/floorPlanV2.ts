@@ -121,8 +121,14 @@ export function mapFloorPlanV2Table(
   };
   const rawX = Number(layout.x);
   const rawY = Number(layout.y);
-  const kind = getKind(layout.kind);
-  const editable = isReservableFloorPlanItem(kind);
+  const persistedKind = getKind(layout.kind);
+  const editable = isReservableFloorPlanItem(persistedKind);
+  const v2ObjectType = String(layout.v2_object_type || persistedKind) as FloorPlanV2ObjectType;
+  const allowedObjectTypes: FloorPlanV2ObjectType[] = [
+    "wall", "door", "window", "bar", "plant", "service_station",
+    "host_stand", "buffet", "sofa", "divider",
+  ];
+  const kind = editable || !allowedObjectTypes.includes(v2ObjectType) ? persistedKind : v2ObjectType;
 
   return {
     id: table.id,
@@ -139,6 +145,11 @@ export function mapFloorPlanV2Table(
     blocked: table.is_active === false || !editable || Number(table.capacity) < 1,
     editable,
     kind,
+    width: editable ? undefined : clamp(Number(layout.w) || 96, 24, 520),
+    height: editable ? undefined : clamp(Number(layout.h) || 56, 16, 360),
+    rotation: editable ? 0 : ((Math.round(Number(layout.rotation) || 0) % 360) + 360) % 360,
+    locked: editable ? false : layout.v2_locked === true,
+    zIndex: editable ? 0 : clamp(Math.round(Number(layout.v2_z_index) || 0), -100, 100),
   };
 }
 
@@ -216,6 +227,34 @@ export function serializeFloorPlanV2Layout(
     ...source,
     ...layoutToRecord(normalized),
     v2_shape: table.shape,
+  };
+}
+
+function getPersistedFurnitureKind(kind: FloorPlanV2ObjectType): FloorPlanItemKind {
+  if (kind === "wall" || kind === "door" || kind === "window" || kind === "divider") return "divider";
+  if (kind === "service_station" || kind === "buffet") return "service-station";
+  if (kind === "host_stand") return "host-stand";
+  if (kind === "sofa") return "banquette";
+  return kind;
+}
+
+export function serializeFloorPlanV2Object(object: FloorPlanV2Table, existingLayout: unknown) {
+  const source = asRecord(existingLayout);
+  const kind = object.kind as FloorPlanV2ObjectType;
+  return {
+    ...source,
+    x: Math.round((object.x / 100) * FLOOR_PLAN_V2_CANVAS_WIDTH),
+    y: Math.round((object.y / 100) * FLOOR_PLAN_V2_CANVAS_HEIGHT),
+    w: Math.round(object.width || 96),
+    h: Math.round(object.height || 56),
+    rotation: ((Math.round(object.rotation || 0) % 360) + 360) % 360,
+    shape: "rect",
+    kind: getPersistedFurnitureKind(kind),
+    v2_object_type: kind,
+    v2_locked: object.locked === true,
+    v2_z_index: Math.round(object.zIndex || 0),
+    seat_labels: [],
+    seat_placements: [],
   };
 }
 
