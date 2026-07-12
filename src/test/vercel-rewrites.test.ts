@@ -145,8 +145,13 @@ describe("vercel config", () => {
     expect(config.git?.deploymentEnabled).toBe(false);
     expect(workflow).not.toContain("VERCEL_DEPLOY_HOOK_URL");
     expect(workflow).not.toContain("Trigger Vercel production deploy hook");
-    expect(workflow).toContain("pnpm dlx vercel@latest build --prod --token=\"$VERCEL_TOKEN\"");
-    expect(workflow).toContain("pnpm dlx vercel@latest deploy --prebuilt --prod --token=\"$VERCEL_TOKEN\"");
+    expect(workflow).toContain("VERCEL_CLI_VERSION: 55.0.0");
+    expect(workflow).not.toContain("vercel@latest");
+    expect(workflow).toContain('pnpm dlx "vercel@${VERCEL_CLI_VERSION}" build --prod --token="$VERCEL_TOKEN"');
+    expect(workflow).toContain('pnpm dlx "vercel@${VERCEL_CLI_VERSION}" deploy --prebuilt --prod --token="$VERCEL_TOKEN"');
+    expect(workflow).toContain("tar -czf \"$RUNNER_TEMP/vercel-output.tgz\"");
+    expect(workflow).toContain("actions/upload-artifact@v4");
+    expect(workflow).toContain("actions/download-artifact@v5");
     expect(workflow).toContain("deploy_frontend:");
     expect(workflow).toContain("VITE_SUPABASE_URL: https://wwcrtyoueexyxkkikaos.supabase.co");
     expect(workflow).toContain("VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}");

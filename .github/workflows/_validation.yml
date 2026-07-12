@@ -1,0 +1,379 @@
+name: Reusable validation
+
+on:
+  workflow_call:
+    inputs:
+      base_sha:
+        description: Commit used as the impact-analysis baseline.
+        required: false
+        type: string
+        default: ""
+      head_sha:
+        description: Commit to validate.
+        required: true
+        type: string
+      force_full:
+        description: Run the complete validation suite.
+        required: false
+        type: boolean
+        default: false
+      force_deploy:
+        description: Mark every production surface for deployment.
+        required: false
+        type: boolean
+        default: false
+      skip_build:
+        description: Skip the generic Vite build when a production Vercel build follows.
+        required: false
+        type: boolean
+        default: false
+    outputs:
+      deploy_frontend:
+        value: ${{ jobs.plan.outputs.deploy_frontend }}
+      deploy_database:
+        value: ${{ jobs.plan.outputs.deploy_database }}
+      deploy_functions:
+        value: ${{ jobs.plan.outputs.deploy_functions }}
+      deploy_all_functions:
+        value: ${{ jobs.plan.outputs.deploy_all_functions }}
+      function_names:
+        value: ${{ jobs.plan.outputs.function_names }}
+      sync_supabase_secrets:
+        value: ${{ jobs.plan.outputs.sync_supabase_secrets }}
+      has_deployable_changes:
+        value: ${{ jobs.plan.outputs.has_deployable_changes }}
+      test_mode:
+        value: ${{ jobs.plan.outputs.test_mode }}
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: 22
+  PNPM_VERSION: 10.28.1
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  VITE_SUPABASE_URL: https://example.supabase.co
+  VITE_SUPABASE_PUBLISHABLE_KEY: ci-public-placeholder
+  VITE_SUPABASE_ANON_KEY: ci-public-placeholder
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      base_sha: ${{ steps.impact.outputs.base_sha }}
+      test_mode: ${{ steps.impact.outputs.test_mode }}
+      run_lint: ${{ steps.impact.outputs.run_lint }}
+      run_typecheck: ${{ steps.impact.outputs.run_typecheck }}
+      run_build: ${{ steps.impact.outputs.run_build }}
+      run_worker_tests: ${{ steps.impact.outputs.run_worker_tests }}
+      dependency_audit: ${{ steps.impact.outputs.dependency_audit }}
+      payment_critical: ${{ steps.impact.outputs.payment_critical }}
+      accounting_critical: ${{ steps.impact.outputs.accounting_critical }}
+      auth_critical: ${{ steps.impact.outputs.auth_critical }}
+      supabase_critical: ${{ steps.impact.outputs.supabase_critical }}
+      deploy_frontend: ${{ steps.impact.outputs.deploy_frontend }}
+      deploy_database: ${{ steps.impact.outputs.deploy_database }}
+      deploy_functions: ${{ steps.impact.outputs.deploy_functions }}
+      deploy_all_functions: ${{ steps.impact.outputs.deploy_all_functions }}
+      function_names: ${{ steps.impact.outputs.function_names }}
+      sync_supabase_secrets: ${{ steps.impact.outputs.sync_supabase_secrets }}
+      has_deployable_changes: ${{ steps.impact.outputs.has_deployable_changes }}
+      contract_tests: ${{ steps.impact.outputs.contract_tests }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.head_sha }}
+          fetch-depth: 1
+
+      - name: Fetch comparison commit
+        if: ${{ inputs.base_sha != '' }}
+        shell: bash
+        env:
+          BASE_SHA: ${{ inputs.base_sha }}
+        run: |
+          set -euo pipefail
+          if git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
+            exit 0
+          fi
+
+          if ! git fetch --no-tags --depth=1 origin "$BASE_SHA"; then
+            echo "::warning::Comparison commit unavailable; the classifier will fail safe to a full validation."
+          fi
+
+      - name: Test CI classifiers
+        run: node --test scripts/ci-change-plan.test.mjs scripts/ci-critical-tests.test.mjs
+
+      - name: Detect validation and deployment impact
+        id: impact
+        env:
+          CI_BASE_SHA: ${{ inputs.base_sha }}
+          CI_HEAD_SHA: ${{ inputs.head_sha }}
+          CI_FORCE_FULL: ${{ inputs.force_full }}
+          CI_FORCE_DEPLOY: ${{ inputs.force_deploy }}
+        run: node scripts/ci-change-plan.mjs
+
+      - name: Reject unsupported Supabase deployment paths
+        if: ${{ steps.impact.outputs.unsupported_supabase == 'true' }}
+        env:
+          UNSUPPORTED_PATHS: ${{ steps.impact.outputs.unsupported_supabase_paths }}
+        run: |
+          echo "::error::These files are not deployed by 'supabase db push': ${UNSUPPORTED_PATHS}. Add an explicit, reviewed deployment command before merging."
+          exit 1
+
+      - name: Guard sensitive and oversized files
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          blocked=0
+          while IFS= read -r -d '' file; do
+            case "$file" in
+              .env|.env.*|*.pem|*.key|*.p12|*.sqlite|*.db|service-account*.json|supabase/.branches/*)
+                if [[ "$file" != ".env.example" && "$file" != "supabase/.branches/_current_branch" ]]; then
+                  echo "::error file=$file::Sensitive or local-only file must not be committed."
+                  blocked=1
+                fi
+                ;;
+            esac
+
+            size=$(wc -c < "$file")
+            if (( size > 52428800 )); then
+              echo "::error file=$file::Tracked file is larger than 50 MB."
+              blocked=1
+            fi
+          done < <(git -c core.quotepath=false ls-files -z)
+
+          exit "$blocked"
+
+  quality:
+    needs: plan
+    if: >-
+      ${{ needs.plan.outputs.dependency_audit == 'true' ||
+          needs.plan.outputs.run_lint == 'true' ||
+          needs.plan.outputs.run_typecheck == 'true' ||
+          (needs.plan.outputs.run_build == 'true' && !inputs.skip_build) }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.head_sha }}
+          fetch-depth: 1
+
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Audit production dependencies
+        if: ${{ needs.plan.outputs.dependency_audit == 'true' }}
+        run: pnpm audit --prod --audit-level high
+
+      - name: Lint all sources
+        if: ${{ needs.plan.outputs.run_lint == 'true' }}
+        run: pnpm run lint
+
+      - name: Typecheck application
+        if: ${{ needs.plan.outputs.run_typecheck == 'true' }}
+        run: pnpm run typecheck
+
+      - name: Build production application
+        if: ${{ needs.plan.outputs.run_build == 'true' && !inputs.skip_build }}
+        run: pnpm run build:prod
+
+  related_tests:
+    needs: plan
+    if: ${{ needs.plan.outputs.test_mode == 'affected' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.head_sha }}
+          fetch-depth: 1
+
+      - name: Fetch comparison commit
+        env:
+          BASE_SHA: ${{ needs.plan.outputs.base_sha }}
+        run: git fetch --no-tags --depth=1 origin "$BASE_SHA"
+
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests related to changed files
+        env:
+          BASE_SHA: ${{ needs.plan.outputs.base_sha }}
+        run: pnpm exec vitest run --mode production --changed "$BASE_SHA" --passWithNoTests
+
+  full_tests:
+    needs: plan
+    if: ${{ needs.plan.outputs.test_mode == 'full' }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.head_sha }}
+          fetch-depth: 1
+
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run production tests (shard ${{ matrix.shard }}/4)
+        run: pnpm exec vitest run --mode production --shard=${{ matrix.shard }}/4
+
+  critical_tests:
+    needs: plan
+    if: >-
+      ${{ needs.plan.outputs.test_mode == 'affected' &&
+          (needs.plan.outputs.payment_critical == 'true' ||
+           needs.plan.outputs.accounting_critical == 'true' ||
+           needs.plan.outputs.auth_critical == 'true' ||
+           needs.plan.outputs.supabase_critical == 'true' ||
+           needs.plan.outputs.contract_tests != '') }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.head_sha }}
+          fetch-depth: 1
+
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run explicit critical contract packs
+        env:
+          CI_PAYMENT_CRITICAL: ${{ needs.plan.outputs.payment_critical }}
+          CI_ACCOUNTING_CRITICAL: ${{ needs.plan.outputs.accounting_critical }}
+          CI_AUTH_CRITICAL: ${{ needs.plan.outputs.auth_critical }}
+          CI_SUPABASE_CRITICAL: ${{ needs.plan.outputs.supabase_critical }}
+          CI_CONTRACT_TESTS: ${{ needs.plan.outputs.contract_tests }}
+        run: node scripts/ci-critical-tests.mjs
+
+  worker_tests:
+    needs: plan
+    if: ${{ needs.plan.outputs.run_worker_tests == 'true' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.head_sha }}
+          fetch-depth: 1
+
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check worker syntax
+        run: pnpm --filter tok-image-ai-worker run syntax
+
+      - name: Test worker without external services
+        run: pnpm --filter tok-image-ai-worker test
+
+  validate:
+    name: validate
+    if: ${{ always() }}
+    needs:
+      - plan
+      - quality
+      - related_tests
+      - full_tests
+      - critical_tests
+      - worker_tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Verify required validation jobs
+        shell: bash
+        env:
+          PLAN_RESULT: ${{ needs.plan.result }}
+          QUALITY_RESULT: ${{ needs.quality.result }}
+          RELATED_RESULT: ${{ needs.related_tests.result }}
+          FULL_RESULT: ${{ needs.full_tests.result }}
+          CRITICAL_RESULT: ${{ needs.critical_tests.result }}
+          WORKER_RESULT: ${{ needs.worker_tests.result }}
+          QUALITY_REQUIRED: ${{ needs.plan.outputs.dependency_audit == 'true' || needs.plan.outputs.run_lint == 'true' || needs.plan.outputs.run_typecheck == 'true' || (needs.plan.outputs.run_build == 'true' && !inputs.skip_build) }}
+          RELATED_REQUIRED: ${{ needs.plan.outputs.test_mode == 'affected' }}
+          FULL_REQUIRED: ${{ needs.plan.outputs.test_mode == 'full' }}
+          CRITICAL_REQUIRED: ${{ needs.plan.outputs.test_mode == 'affected' && (needs.plan.outputs.payment_critical == 'true' || needs.plan.outputs.accounting_critical == 'true' || needs.plan.outputs.auth_critical == 'true' || needs.plan.outputs.supabase_critical == 'true' || needs.plan.outputs.contract_tests != '') }}
+          WORKER_REQUIRED: ${{ needs.plan.outputs.run_worker_tests == 'true' }}
+        run: |
+          set -euo pipefail
+
+          require_success() {
+            local job_name="$1"
+            local result="$2"
+            local required="$3"
+
+            if [[ "$result" == "failure" || "$result" == "cancelled" ]]; then
+              echo "::error::${job_name} finished with ${result}."
+              return 1
+            fi
+
+            if [[ "$required" == "true" && "$result" != "success" ]]; then
+              echo "::error::${job_name} was required but finished with ${result}."
+              return 1
+            fi
+          }
+
+          require_success "plan" "$PLAN_RESULT" "true"
+          require_success "quality" "$QUALITY_RESULT" "$QUALITY_REQUIRED"
+          require_success "related_tests" "$RELATED_RESULT" "$RELATED_REQUIRED"
+          require_success "full_tests" "$FULL_RESULT" "$FULL_REQUIRED"
+          require_success "critical_tests" "$CRITICAL_RESULT" "$CRITICAL_REQUIRED"
+          require_success "worker_tests" "$WORKER_RESULT" "$WORKER_REQUIRED"
