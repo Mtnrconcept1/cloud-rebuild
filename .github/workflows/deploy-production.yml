@@ -10,14 +10,16 @@ on:
 concurrency:
   group: production-deploy
   cancel-in-progress: false
+  queue: max
 
 permissions:
-  contents: read
+  contents: write
 
 env:
   NODE_VERSION: 22
   PNPM_VERSION: 10.28.1
   SUPABASE_CLI_VERSION: 2.102.0
+  VERCEL_CLI_VERSION: 55.0.0
   SUPABASE_PROJECT_REF: wwcrtyoueexyxkkikaos
   PRODUCTION_SUPABASE_URL: https://wwcrtyoueexyxkkikaos.supabase.co
   APP_BASE_URL: https://www.thetok.ch
@@ -26,13 +28,56 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
-  validate:
+  baseline:
+    runs-on: ubuntu-latest
+    outputs:
+      base_sha: ${{ steps.baseline.outputs.base_sha }}
+
+    steps:
+      - name: Checkout production commit
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+
+      - name: Resolve last successfully deployed commit
+        id: baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          base_sha="$(git ls-remote --heads origin refs/heads/automation/production-deployed | awk '{print $1}')"
+          echo "base_sha=${base_sha}" >> "$GITHUB_OUTPUT"
+
+          if [[ -n "$base_sha" ]]; then
+            echo "Production baseline: $base_sha"
+          else
+            echo "No production baseline found; validation and deployment will fail safe to full mode."
+          fi
+
+  validation:
+    needs: baseline
+    uses: ./.github/workflows/_validation.yml
+    with:
+      base_sha: ${{ needs.baseline.outputs.base_sha }}
+      head_sha: ${{ github.sha }}
+      force_full: ${{ github.event_name == 'workflow_dispatch' || needs.baseline.outputs.base_sha == '' }}
+      force_deploy: ${{ github.event_name == 'workflow_dispatch' || needs.baseline.outputs.base_sha == '' }}
+      skip_build: true
+
+  preflight:
+    needs: validation
+    if: >-
+      ${{ vars.PRODUCTION_DEPLOY_ENABLED == 'true' &&
+          needs.validation.outputs.has_deployable_changes == 'true' }}
     runs-on: ubuntu-latest
     environment: production
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
 
       - name: Enable pnpm
         run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
@@ -96,22 +141,106 @@ jobs:
           SUPABASE_LEAKED_PASSWORD_PROTECTION_CONFIRMED: ${{ vars.SUPABASE_LEAKED_PASSWORD_PROTECTION_CONFIRMED }}
           SUPABASE_LEAKED_PASSWORD_PROTECTION_EVIDENCE: ${{ vars.SUPABASE_LEAKED_PASSWORD_PROTECTION_EVIDENCE }}
 
-      - name: Lint
-        run: pnpm run lint
+  build_frontend:
+    needs: validation
+    if: >-
+      ${{ vars.PRODUCTION_DEPLOY_ENABLED == 'true' &&
+          needs.validation.outputs.deploy_frontend == 'true' }}
+    runs-on: ubuntu-latest
+    environment: production
 
-      - name: Typecheck
-        run: pnpm run typecheck
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VITE_SUPABASE_PROJECT_ID: wwcrtyoueexyxkkikaos
+      VITE_SUPABASE_URL: https://wwcrtyoueexyxkkikaos.supabase.co
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+      VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
+      VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+      VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+      VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+      VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+      VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+      VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+      VITE_FIREBASE_VAPID_KEY: ${{ secrets.VITE_FIREBASE_VAPID_KEY }}
 
-      - name: Test
-        run: pnpm run test:prod
+    steps:
+      - name: Assert Vercel production secrets
+        run: |
+          test -n "$VERCEL_TOKEN" || (echo "Missing VERCEL_TOKEN" && exit 1)
+          test -n "$VERCEL_ORG_ID" || (echo "Missing VERCEL_ORG_ID" && exit 1)
+          test -n "$VERCEL_PROJECT_ID" || (echo "Missing VERCEL_PROJECT_ID" && exit 1)
 
-      - name: Build production app
-        run: pnpm run build:prod
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Write production frontend env
+        run: node ./scripts/write-production-env.mjs --out=.env.production
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+          VITE_SUPABASE_PROJECT_ID: wwcrtyoueexyxkkikaos
+          VITE_SUPABASE_URL: https://wwcrtyoueexyxkkikaos.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
+          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+          VITE_FIREBASE_VAPID_KEY: ${{ secrets.VITE_FIREBASE_VAPID_KEY }}
+
+      - name: Pull Vercel production project settings
+        run: pnpm dlx "vercel@${VERCEL_CLI_VERSION}" pull --yes --environment=production --token="$VERCEL_TOKEN"
+
+      - name: Build Vercel production output
+        run: pnpm dlx "vercel@${VERCEL_CLI_VERSION}" build --prod --token="$VERCEL_TOKEN"
+
+      - name: Package prebuilt Vercel output
+        run: tar -czf "$RUNNER_TEMP/vercel-output.tgz" .vercel/output .vercel/project.json
+
+      - name: Upload prebuilt Vercel output
+        uses: actions/upload-artifact@v4
+        with:
+          name: vercel-output-${{ github.sha }}
+          path: ${{ runner.temp }}/vercel-output.tgz
+          if-no-files-found: error
+          retention-days: 2
+          compression-level: 0
 
   deploy_supabase:
-    if: ${{ vars.PRODUCTION_DEPLOY_ENABLED == 'true' }}
+    needs:
+      - validation
+      - preflight
+      - build_frontend
+    if: >-
+      ${{ always() &&
+          vars.PRODUCTION_DEPLOY_ENABLED == 'true' &&
+          needs.validation.result == 'success' &&
+          needs.preflight.result == 'success' &&
+          (needs.build_frontend.result == 'success' || needs.build_frontend.result == 'skipped') &&
+          (needs.validation.outputs.deploy_database == 'true' ||
+           needs.validation.outputs.deploy_functions == 'true' ||
+           needs.validation.outputs.sync_supabase_secrets == 'true') }}
     runs-on: ubuntu-latest
-    needs: validate
     environment: production
 
     env:
@@ -157,134 +286,207 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-
-      - name: Enable pnpm
-        run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
 
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
 
-      - name: Write production frontend env
-        run: node ./scripts/write-production-env.mjs --out=.env.production
-        env:
-          GITHUB_SHA: ${{ github.sha }}
-          VITE_SUPABASE_PROJECT_ID: wwcrtyoueexyxkkikaos
-          VITE_SUPABASE_URL: https://wwcrtyoueexyxkkikaos.supabase.co
-          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-          VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
-          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
-          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
-          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
-          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
-          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
-          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
-          VITE_FIREBASE_VAPID_KEY: ${{ secrets.VITE_FIREBASE_VAPID_KEY }}
-
-      - name: Align repo to production Supabase target
-        run: pnpm run supabase:target:prod
-
-      - name: Verify production Supabase target
-        run: pnpm run supabase:doctor:prod
+      - name: Assert production Supabase target
+        run: test "$SUPABASE_PROJECT_REF" = "wwcrtyoueexyxkkikaos"
 
       - name: Prepare Supabase function secrets env
+        if: >-
+          ${{ needs.validation.outputs.deploy_functions == 'true' ||
+              needs.validation.outputs.sync_supabase_secrets == 'true' }}
         run: node ./scripts/write-supabase-secrets-env.mjs --out=${RUNNER_TEMP}/supabase.functions.env
 
       - name: Link Supabase production project
+        if: ${{ needs.validation.outputs.deploy_database == 'true' }}
         run: |
           source ./scripts/supabase-ci-retry.sh
           supabase_ci_retry link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
 
       - name: Sync Supabase production secrets
+        if: >-
+          ${{ needs.validation.outputs.deploy_functions == 'true' ||
+              needs.validation.outputs.sync_supabase_secrets == 'true' }}
         run: |
           source ./scripts/supabase-ci-retry.sh
           supabase_ci_retry secrets set --env-file "${RUNNER_TEMP}/supabase.functions.env" --project-ref "$SUPABASE_PROJECT_REF"
 
       - name: Push database migrations
+        if: ${{ needs.validation.outputs.deploy_database == 'true' }}
         run: |
           source ./scripts/supabase-ci-retry.sh
           supabase_ci_retry db push --linked --yes --password "$SUPABASE_DB_PASSWORD"
 
-      - name: Deploy Edge Functions
+      - name: Deploy impacted Edge Functions
+        if: ${{ needs.validation.outputs.deploy_functions == 'true' }}
+        shell: bash
+        env:
+          DEPLOY_ALL_FUNCTIONS: ${{ needs.validation.outputs.deploy_all_functions }}
+          FUNCTION_NAMES: ${{ needs.validation.outputs.function_names }}
         run: |
+          set -euo pipefail
           source ./scripts/supabase-ci-retry.sh
-          supabase_ci_retry functions deploy --project-ref "$SUPABASE_PROJECT_REF" --use-api
+
+          if [[ "$DEPLOY_ALL_FUNCTIONS" == "true" ]]; then
+            supabase_ci_retry functions deploy --project-ref "$SUPABASE_PROJECT_REF" --use-api --jobs 4
+            exit 0
+          fi
+
+          read -r -a functions <<< "$FUNCTION_NAMES"
+          if (( ${#functions[@]} == 0 )); then
+            echo "::error::No Edge Function was selected."
+            exit 1
+          fi
+
+          for function_name in "${functions[@]}"; do
+            if [[ ! "$function_name" =~ ^[A-Za-z0-9_-]+$ ]]; then
+              echo "::error::Invalid Edge Function name: $function_name"
+              exit 1
+            fi
+            if [[ ! -d "supabase/functions/$function_name" ]]; then
+              echo "::error::Edge Function '$function_name' was deleted. Automatic prune is disabled; review and delete it explicitly."
+              exit 1
+            fi
+          done
+
+          supabase_ci_retry functions deploy "${functions[@]}" --project-ref "$SUPABASE_PROJECT_REF" --use-api --jobs 4
 
   deploy_frontend:
-    if: ${{ vars.PRODUCTION_DEPLOY_ENABLED == 'true' }}
-    runs-on: ubuntu-latest
     needs:
-      - validate
+      - validation
+      - preflight
+      - build_frontend
       - deploy_supabase
+    if: >-
+      ${{ always() &&
+          vars.PRODUCTION_DEPLOY_ENABLED == 'true' &&
+          needs.validation.result == 'success' &&
+          needs.validation.outputs.deploy_frontend == 'true' &&
+          needs.preflight.result == 'success' &&
+          needs.build_frontend.result == 'success' &&
+          (needs.deploy_supabase.result == 'success' || needs.deploy_supabase.result == 'skipped') }}
+    runs-on: ubuntu-latest
     environment: production
 
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-      VITE_SUPABASE_PROJECT_ID: wwcrtyoueexyxkkikaos
-      VITE_SUPABASE_URL: https://wwcrtyoueexyxkkikaos.supabase.co
-      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
-      VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-      VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
-      VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
-      VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
-      VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
-      VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
-      VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
-      VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
-      VITE_FIREBASE_VAPID_KEY: ${{ secrets.VITE_FIREBASE_VAPID_KEY }}
 
     steps:
-      - name: Assert Vercel production secrets
-        run: |
-          test -n "$VERCEL_TOKEN" || (echo "Missing VERCEL_TOKEN" && exit 1)
-          test -n "$VERCEL_ORG_ID" || (echo "Missing VERCEL_ORG_ID" && exit 1)
-          test -n "$VERCEL_PROJECT_ID" || (echo "Missing VERCEL_PROJECT_ID" && exit 1)
-
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Enable pnpm
-        run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
-
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
 
-      - name: Write production frontend env
-        run: node ./scripts/write-production-env.mjs --out=.env.production
+      - name: Download prebuilt Vercel output
+        uses: actions/download-artifact@v5
+        with:
+          name: vercel-output-${{ github.sha }}
+          path: ${{ runner.temp }}/vercel-artifact
+
+      - name: Restore prebuilt Vercel output
+        run: tar -xzf "$RUNNER_TEMP/vercel-artifact/vercel-output.tgz" -C "$GITHUB_WORKSPACE"
+
+      - name: Deploy prebuilt Vercel production output
+        run: pnpm dlx "vercel@${VERCEL_CLI_VERSION}" deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+
+  deployment_gate:
+    name: deployment-gate
+    if: ${{ always() }}
+    needs:
+      - baseline
+      - validation
+      - preflight
+      - build_frontend
+      - deploy_supabase
+      - deploy_frontend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Verify production workflow outcome
+        shell: bash
         env:
-          GITHUB_SHA: ${{ github.sha }}
-          VITE_SUPABASE_PROJECT_ID: wwcrtyoueexyxkkikaos
-          VITE_SUPABASE_URL: https://wwcrtyoueexyxkkikaos.supabase.co
-          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-          VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
-          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
-          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
-          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
-          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
-          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
-          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
-          VITE_FIREBASE_VAPID_KEY: ${{ secrets.VITE_FIREBASE_VAPID_KEY }}
+          DEPLOY_ENABLED: ${{ vars.PRODUCTION_DEPLOY_ENABLED }}
+          BASELINE_RESULT: ${{ needs.baseline.result }}
+          VALIDATION_RESULT: ${{ needs.validation.result }}
+          PREFLIGHT_RESULT: ${{ needs.preflight.result }}
+          BUILD_RESULT: ${{ needs.build_frontend.result }}
+          SUPABASE_RESULT: ${{ needs.deploy_supabase.result }}
+          FRONTEND_RESULT: ${{ needs.deploy_frontend.result }}
+          HAS_DEPLOYABLE_CHANGES: ${{ needs.validation.outputs.has_deployable_changes }}
+          FRONTEND_REQUIRED: ${{ needs.validation.outputs.deploy_frontend }}
+          SUPABASE_REQUIRED: ${{ needs.validation.outputs.deploy_database == 'true' || needs.validation.outputs.deploy_functions == 'true' || needs.validation.outputs.sync_supabase_secrets == 'true' }}
+        run: |
+          set -euo pipefail
 
-      - name: Pull Vercel production project settings
-        run: pnpm dlx vercel@latest pull --yes --environment=production --token="$VERCEL_TOKEN"
+          require_success() {
+            local name="$1"
+            local result="$2"
+            if [[ "$result" != "success" ]]; then
+              echo "::error::${name} finished with ${result}."
+              exit 1
+            fi
+          }
 
-      - name: Build Vercel production output
-        run: pnpm dlx vercel@latest build --prod --token="$VERCEL_TOKEN"
+          require_success "baseline" "$BASELINE_RESULT"
+          require_success "validation" "$VALIDATION_RESULT"
 
-      - name: Deploy Vercel prebuilt production output
-        run: pnpm dlx vercel@latest deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+          if [[ "$DEPLOY_ENABLED" != "true" ]]; then
+            echo "Production deployment is disabled; validation completed without advancing the deployment baseline."
+            exit 0
+          fi
+
+          if [[ "$HAS_DEPLOYABLE_CHANGES" == "true" ]]; then
+            require_success "preflight" "$PREFLIGHT_RESULT"
+          fi
+
+          if [[ "$FRONTEND_REQUIRED" == "true" ]]; then
+            require_success "build_frontend" "$BUILD_RESULT"
+            require_success "deploy_frontend" "$FRONTEND_RESULT"
+          fi
+
+          if [[ "$SUPABASE_REQUIRED" == "true" ]]; then
+            require_success "deploy_supabase" "$SUPABASE_RESULT"
+          fi
+
+  record_production_baseline:
+    needs:
+      - baseline
+      - deployment_gate
+    if: ${{ vars.PRODUCTION_DEPLOY_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout deployed commit
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+
+      - name: Record successful production baseline
+        shell: bash
+        env:
+          PREVIOUS_BASELINE: ${{ needs.baseline.outputs.base_sha }}
+        run: |
+          set -euo pipefail
+          target_ref="refs/heads/automation/production-deployed"
+
+          if [[ -n "$PREVIOUS_BASELINE" ]]; then
+            git push --force-with-lease="${target_ref}:${PREVIOUS_BASELINE}" origin "HEAD:${target_ref}"
+          else
+            git push origin "HEAD:${target_ref}"
+          fi

@@ -2,78 +2,46 @@ name: CI
 
 on:
   pull_request:
+  merge_group:
   push:
     branches:
-      - main
-      - master
       - develop
-      - 'release/**'
-      - 'hotfix/**'
+      - "release/**"
+      - "hotfix/**"
+  schedule:
+    - cron: "23 2 * * *"
+  workflow_dispatch:
 
-env:
-  NODE_VERSION: 22
-  PNPM_VERSION: 10.28.1
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  VITE_SUPABASE_URL: https://example.supabase.co
-  VITE_SUPABASE_PUBLISHABLE_KEY: ci-public-placeholder
-  VITE_SUPABASE_ANON_KEY: ci-public-placeholder
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  validation:
+    uses: ./.github/workflows/_validation.yml
+    with:
+      base_sha: ${{ github.event.pull_request.base.sha || github.event.before || '' }}
+      head_sha: ${{ github.sha }}
+      force_full: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group' }}
+      force_deploy: false
+      skip_build: false
+
   validate:
+    name: validate
+    if: ${{ always() }}
+    needs: validation
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Guard sensitive and oversized files
-        shell: bash
+      - name: Verify reusable validation
+        env:
+          VALIDATION_RESULT: ${{ needs.validation.result }}
         run: |
-          set -euo pipefail
+          if [[ "$VALIDATION_RESULT" != "success" ]]; then
+            echo "::error::Reusable validation finished with ${VALIDATION_RESULT}."
+            exit 1
+          fi
 
-          blocked=0
-          while IFS= read -r -d '' file; do
-            case "$file" in
-              .env|.env.*|*.pem|*.key|*.p12|*.sqlite|*.db|service-account*.json|supabase/.branches/*)
-                if [[ "$file" != ".env.example" && "$file" != "supabase/.branches/_current_branch" ]]; then
-                  echo "::error file=$file::Sensitive or local-only file must not be committed."
-                  blocked=1
-                fi
-                ;;
-            esac
-
-            size=$(wc -c < "$file")
-            if (( size > 52428800 )); then
-              echo "::error file=$file::Tracked file is larger than 50 MB."
-              blocked=1
-            fi
-          done < <(git -c core.quotepath=false ls-files -z)
-
-          exit "$blocked"
-
-      - name: Enable pnpm
-        run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
-
-      - name: Setup Node
-        uses: actions/setup-node@v6
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Audit production dependencies
-        run: pnpm audit --prod --audit-level high
-
-      - name: Lint all sources
-        run: pnpm run lint
-
-      - name: Typecheck application
-        run: pnpm run typecheck
-
-      - name: Run production-mode tests
-        run: pnpm run test:prod
-
-      - name: Build production application
-        run: pnpm run build:prod

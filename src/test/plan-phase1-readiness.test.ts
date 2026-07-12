@@ -34,12 +34,14 @@ function latestMigrationContaining(marker: string) {
 describe("phase 1 launch audit plan readiness", () => {
   it("keeps CI, production deploy, package engines, and docs on the same runtime contract", () => {
     const ciWorkflow = readProjectFile(".github/workflows/ci.yml");
+    const validationWorkflow = readProjectFile(".github/workflows/_validation.yml");
     const deployWorkflow = readProjectFile(".github/workflows/deploy-production.yml");
     const docs = readProjectFile("docs/skills/TOK_APPLICATION_SKILL.md");
     const pkg = readJsonFile<{ engines: Record<string, string>; packageManager: string }>("package.json");
 
-    expect(ciWorkflow).toMatch(/NODE_VERSION:\s*22/);
-    expect(ciWorkflow).not.toMatch(/NODE_VERSION:\s*24/);
+    expect(ciWorkflow).toContain("uses: ./.github/workflows/_validation.yml");
+    expect(validationWorkflow).toMatch(/NODE_VERSION:\s*22/);
+    expect(validationWorkflow).not.toMatch(/NODE_VERSION:\s*24/);
     expect(deployWorkflow).toMatch(/NODE_VERSION:\s*22/);
     expect(deployWorkflow).toMatch(/SUPABASE_CLI_VERSION:\s*2\.102\.0/);
     expect(pkg.engines.node).toBe(">=22.0.0");
