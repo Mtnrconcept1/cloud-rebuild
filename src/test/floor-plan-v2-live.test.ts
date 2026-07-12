@@ -97,7 +97,7 @@ describe("floor plan v2 live assignments", () => {
       id: "object-1",
       table_number: "Entrée",
       capacity: 0,
-      is_active: false,
+      is_active: true,
       sector: "Salle principale",
       layout: {
         x: 260,
