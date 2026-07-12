@@ -496,6 +496,10 @@ BEGIN
     RAISE EXCEPTION 'Forbidden';
   END IF;
 
+  -- Detailed coverage inherited from admin_get_production_health_raw:
+  -- internal_cron_secret, public.admin_supabase_advisor_snapshots,
+  -- checkoutReconciliation.paidOrdersNotFinalized and notificationQueue
+  -- backed by public.notification_deliveries and public.email_queue.
   v_report := public.admin_get_production_health_raw();
 
   WITH stripe_logs AS (
@@ -616,6 +620,10 @@ BEGIN
   IF to_regclass('cron.job') IS NOT NULL AND to_regclass('cron.job_run_details') IS NOT NULL THEN
     WITH expected(jobname, label, priority, schedule, action_url) AS (
       VALUES
+        ('send-email-worker', 'Emails transactionnels', 'P0', '* * * * *', '/admin/notifications'),
+        ('tok-close-due-match-groups', 'Cloture Match group', 'P0', '* * * * *', '/admin/commandes-reservations'),
+        ('tok-reconcile-paid-order-checkouts', 'Reconciliation commandes payees', 'P0', '*/5 * * * *', '/admin/commandes-reservations'),
+        ('tok-sync-social-post-promotions', 'Synchronisation Actualites sponsorisees', 'P1', '*/5 * * * *', '/admin/actualites'),
         ('tok-capture-due-match-groups', 'Capture Match group', 'P0', '*/5 * * * *', '/admin/commandes-reservations'),
         ('tok-reconcile-match-group-authorizations', 'Rapprochement Match group', 'P1', '*/5 * * * *', '/admin/commandes-reservations'),
         ('send-push-worker', 'Notifications push', 'P1', '*/5 * * * *', '/admin/notifications')
@@ -657,7 +665,21 @@ BEGIN
     LEFT JOIN latest ON latest.jobid = j.jobid;
   END IF;
 
-  v_cron_jobs := COALESCE(v_cron_jobs, '[]'::jsonb) || COALESCE(v_extra_crons, '[]'::jsonb);
+  -- Keep the remediation/next-run metadata from the legacy collector while
+  -- letting the complete expected-job inventory above own live state.
+  SELECT COALESCE(jsonb_agg(
+    COALESCE(previous.item, '{}'::jsonb) || fresh.item
+    ORDER BY fresh.item->>'priority', fresh.item->>'jobName'
+  ), '[]'::jsonb)
+  INTO v_cron_jobs
+  FROM jsonb_array_elements(COALESCE(v_extra_crons, '[]'::jsonb)) AS fresh(item)
+  LEFT JOIN LATERAL (
+    SELECT existing.item
+    FROM jsonb_array_elements(COALESCE(v_cron_jobs, '[]'::jsonb)) AS existing(item)
+    WHERE existing.item->>'jobName' = fresh.item->>'jobName'
+    LIMIT 1
+  ) AS previous ON true;
+
   v_payment := public.get_payment_integrity_anomalies(48);
 
   SELECT COALESCE(jsonb_agg(
