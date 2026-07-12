@@ -3165,7 +3165,7 @@ export default function DashboardPlanSalle() {
                     <SelectValue placeholder="Plan actif" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="current">Plan actif</SelectItem>
+                    <SelectItem value="current">Template actif</SelectItem>
                     {floorPlanVariants.map((variant) => (
                       <SelectItem key={variant.id} value={variant.id}>{variant.name}</SelectItem>
                     ))}
