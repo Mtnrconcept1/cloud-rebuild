@@ -366,7 +366,11 @@ function DockableFloorPlanPanel({
   };
 
   if (!detached) {
-    return <div className={cn("h-full min-h-0", className)}>{children}</div>;
+    return (
+      <div className={cn("h-[min(72svh,720px)] min-h-[480px] xl:h-full xl:min-h-0", className)}>
+        {children}
+      </div>
+    );
   }
 
   return (
@@ -904,9 +908,15 @@ export default function DashboardPlanSalle() {
   ));
   const [selectedReservationId, setSelectedReservationId] = useState<string | null>(null);
   const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
-  const [dragState, setDragState] = useState<{ tableId: string; offsetX: number; offsetY: number } | null>(null);
+  const [dragState, setDragState] = useState<{
+    tableId: string;
+    pointerId: number;
+    offsetX: number;
+    offsetY: number;
+  } | null>(null);
   const [resizeState, setResizeState] = useState<{
     tableId: string;
+    pointerId: number;
     handle: ResizeHandle;
     startX: number;
     startY: number;
@@ -925,6 +935,7 @@ export default function DashboardPlanSalle() {
   } | null>(null);
   const [rotateState, setRotateState] = useState<{
     tableId: string;
+    pointerId: number;
     startAngle: number;
     startRotation: number;
   } | null>(null);
@@ -1003,56 +1014,6 @@ export default function DashboardPlanSalle() {
   useEffect(() => {
     selectedTableIdRef.current = selectedTableId;
   }, [selectedTableId]);
-
-  useEffect(() => {
-    let observedViewport: HTMLDivElement | null = null;
-    let observer: ResizeObserver | null = null;
-    let frameId: number | null = null;
-    let lastViewportWidth = 0;
-    let lastViewportHeight = 0;
-
-    const updateSize = (viewport = canvasViewportRef.current) => {
-      if (!viewport) return;
-      lastViewportWidth = viewport.clientWidth;
-      lastViewportHeight = viewport.clientHeight;
-      const nextSize = getAutoFitCanvasSize(viewport.clientWidth, viewport.clientHeight);
-      setCanvasWidth((current) => (current === nextSize.width ? current : nextSize.width));
-      setCanvasHeight((current) => (current === nextSize.height ? current : nextSize.height));
-    };
-    const handleResize = () => updateSize();
-
-    const observeCurrentViewport = () => {
-      const viewport = canvasViewportRef.current;
-      if (viewport && viewport !== observedViewport) {
-        observer?.disconnect();
-        observedViewport = viewport;
-        updateSize(viewport);
-
-        if (typeof ResizeObserver !== "undefined") {
-          observer = new ResizeObserver(() => updateSize(viewport));
-          observer.observe(viewport);
-        }
-      } else if (
-        viewport
-        && (viewport.clientWidth !== lastViewportWidth || viewport.clientHeight !== lastViewportHeight)
-      ) {
-        updateSize(viewport);
-      }
-
-      frameId = window.requestAnimationFrame(observeCurrentViewport);
-    };
-
-    observeCurrentViewport();
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      if (frameId !== null) {
-        window.cancelAnimationFrame(frameId);
-      }
-      observer?.disconnect();
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
 
   const { data: restaurantDetails } = useQuery({
     queryKey: ["floor-plan-restaurant", selectedId],
@@ -1723,13 +1684,17 @@ export default function DashboardPlanSalle() {
     };
     const pointerMoveScheduler = createFloorPlanFrameScheduler(applyPointerMove);
 
+    const activePointerId = dragState?.pointerId ?? resizeState?.pointerId ?? rotateState?.pointerId;
+
     const handlePointerMove = (event: PointerEvent) => {
+      if (event.pointerId !== activePointerId) return;
       const point = getCanvasPointFromClient(event.clientX, event.clientY);
       if (!point) return;
       pointerMoveScheduler.schedule(point);
     };
 
-    const handlePointerUp = () => {
+    const finishPointerInteraction = (event: PointerEvent) => {
+      if (event.pointerId !== activePointerId) return;
       pointerMoveScheduler.flush();
       const activeTableId = dragState?.tableId || resizeState?.tableId || rotateState?.tableId || selectedTableIdRef.current;
       const nextSnapshot = buildHistorySnapshot(draftTablesRef.current, draftAssignmentsRef.current, activeTableId);
@@ -1742,12 +1707,14 @@ export default function DashboardPlanSalle() {
     };
 
     window.addEventListener("pointermove", handlePointerMove);
-    window.addEventListener("pointerup", handlePointerUp);
+    window.addEventListener("pointerup", finishPointerInteraction);
+    window.addEventListener("pointercancel", finishPointerInteraction);
 
     return () => {
       pointerMoveScheduler.cancel();
       window.removeEventListener("pointermove", handlePointerMove);
-      window.removeEventListener("pointerup", handlePointerUp);
+      window.removeEventListener("pointerup", finishPointerInteraction);
+      window.removeEventListener("pointercancel", finishPointerInteraction);
     };
   }, [canvasHeight, canvasWidth, dragState, effectiveCanvasZoom, floorPlanViewport.anchor, getRenderedDraftTableFrame, resizeState, rotateState, tableMap]);
 
@@ -2013,6 +1980,11 @@ export default function DashboardPlanSalle() {
           .map((table) => table.id)
           .filter((tableId) => !nextPersistedIds.includes(tableId));
 
+        // Clear or move every reservation assignment before deleting a table.
+        // This ordering keeps the operation valid even when reservation_slots
+        // enforces a foreign key to reservation_tables.
+        const normalizedAssignments = await persistAssignments(tempIdToPersistedId);
+
         if (removedIds.length > 0) {
           const { error } = await (supabase.from("reservation_tables" as any))
             .delete()
@@ -2020,7 +1992,7 @@ export default function DashboardPlanSalle() {
           if (error) throw error;
         }
 
-        return persistAssignments(tempIdToPersistedId);
+        return normalizedAssignments;
       }
 
       if (hasUnpersistedDraftTables) {
@@ -2571,6 +2543,7 @@ export default function DashboardPlanSalle() {
 
     setDragState({
       tableId,
+      pointerId: event.pointerId,
       offsetX: point.x - renderedFrame.x,
       offsetY: point.y - renderedFrame.y,
     });
@@ -2595,6 +2568,7 @@ export default function DashboardPlanSalle() {
 
     setRotateState({
       tableId,
+      pointerId: event.pointerId,
       startAngle,
       startRotation: table.layout.rotation,
     });
@@ -2611,6 +2585,7 @@ export default function DashboardPlanSalle() {
     event.stopPropagation();
     event.currentTarget.setPointerCapture?.(event.pointerId);
     setDragState(null);
+    setRotateState(null);
 
     const table = tableMap.get(tableId);
     const point = getCanvasPointFromClient(event.clientX, event.clientY);
@@ -2619,6 +2594,7 @@ export default function DashboardPlanSalle() {
 
     setResizeState({
       tableId,
+      pointerId: event.pointerId,
       handle,
       startX: point.x,
       startY: point.y,
@@ -2869,6 +2845,12 @@ export default function DashboardPlanSalle() {
     setCanvasZoom(clampCanvasZoom(nextZoom));
   };
 
+  const revealResponsivePanel = (panelId: string) => {
+    window.requestAnimationFrame(() => {
+      document.getElementById(panelId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  };
+
   const handleCanvasWheel = (event: React.WheelEvent<HTMLDivElement>) => {
     if (!event.ctrlKey && !event.metaKey) return;
     event.preventDefault();
@@ -2995,7 +2977,7 @@ export default function DashboardPlanSalle() {
   })();
 
   return (
-    <DashboardLayout contentWidth="full" mainClassName="p-3 pb-24 md:p-4">
+    <DashboardLayout contentWidth="full" mainClassName="p-2 pb-24 sm:p-3 md:p-4">
       <div className="flex min-h-[calc(100vh-2rem)] flex-col gap-3 xl:h-[calc(100vh-2rem)] xl:min-h-0 xl:overflow-hidden">
         <div className="shrink-0">
           <div className="rounded-2xl border border-slate-200/80 bg-white/95 px-4 py-3 shadow-sm">
@@ -3032,11 +3014,11 @@ export default function DashboardPlanSalle() {
               </div>
 
               <div className="flex flex-col gap-3 xl:items-end">
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="-mx-1 flex max-w-full items-center gap-2 overflow-x-auto px-1 pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0">
                   <Button
                     type="button"
                     variant="outline"
-                    className="h-11 rounded-xl border-slate-200 bg-white px-3 text-sm shadow-sm"
+                    className="h-11 shrink-0 rounded-xl border-slate-200 bg-white px-3 text-sm shadow-sm"
                     onClick={() => createDefaultBranchMutation.mutate()}
                     disabled={!selectedId || createDefaultBranchMutation.isPending}
                   >
@@ -3048,7 +3030,7 @@ export default function DashboardPlanSalle() {
                   <Button
                     type="button"
                     variant="outline"
-                    className="h-11 rounded-xl border-slate-200 bg-white px-3 text-sm shadow-sm"
+                    className="h-11 shrink-0 rounded-xl border-slate-200 bg-white px-3 text-sm shadow-sm"
                     onClick={() => saveMutation.mutate({
                       silent: false,
                       source: "manual",
@@ -3067,7 +3049,7 @@ export default function DashboardPlanSalle() {
                     <Button
                       type="button"
                       variant="outline"
-                      className="h-11 rounded-xl border-slate-200 bg-white px-3 text-sm shadow-sm"
+                      className="h-11 shrink-0 rounded-xl border-slate-200 bg-white px-3 text-sm shadow-sm"
                       onClick={() => saveFloorPlanVariantMutation.mutate({ source: "manual" })}
                       disabled={!selectedBranch || saveFloorPlanVariantMutation.isPending}
                     >
@@ -3083,7 +3065,7 @@ export default function DashboardPlanSalle() {
                     <Button
                       type="button"
                       variant="outline"
-                      className="h-11 rounded-xl border-orange-200 bg-orange-50 px-3 text-sm text-orange-900 shadow-sm hover:bg-orange-100"
+                      className="h-11 shrink-0 rounded-xl border-orange-200 bg-orange-50 px-3 text-sm text-orange-900 shadow-sm hover:bg-orange-100"
                       onClick={autoPlaceVisibleReservations}
                       disabled={!selectedBranch || unassignedVisibleReservations.length === 0 || saveMutation.isPending}
                     >
@@ -3093,7 +3075,7 @@ export default function DashboardPlanSalle() {
                       </div>
                     </Button>
                   ) : null}
-                  <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm">
+                  <div className="flex shrink-0 items-center gap-2 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm">
                     <Button
                       type="button"
                       variant="ghost"
@@ -3138,7 +3120,7 @@ export default function DashboardPlanSalle() {
                   </div>
                   <Button
                     type="button"
-                    className="h-11 rounded-xl px-4 text-sm shadow-sm"
+                    className="h-11 shrink-0 rounded-xl px-4 text-sm shadow-sm"
                     onClick={() => window.print()}
                     disabled={!selectedBranch}
                   >
@@ -3168,7 +3150,7 @@ export default function DashboardPlanSalle() {
                       Structure
                     </Button>
                   </div>
-                  <div className={cn("rounded-xl border px-3 py-2 text-sm shadow-sm", saveStatus.tone)}>
+                  <div aria-live="polite" className={cn("rounded-xl border px-3 py-2 text-sm shadow-sm", saveStatus.tone)}>
                     <p className="font-semibold">{saveStatus.label}</p>
                   </div>
                   <div className={cn("rounded-xl border px-3 py-2 text-sm shadow-sm", floorPlanHealthTone)}>
@@ -3221,7 +3203,7 @@ export default function DashboardPlanSalle() {
         {selectedBranch ? (
           <div className="flex min-h-0 flex-1 flex-col gap-3 xl:overflow-hidden">
             <div className={cn(
-              "grid shrink-0 gap-2 rounded-2xl border border-slate-200/80 bg-white/95 p-3 shadow-sm",
+              "grid shrink-0 grid-cols-2 gap-2 rounded-2xl border border-slate-200/80 bg-white/95 p-3 shadow-sm",
               isTemplateMode ? "md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_220px]" : "md:grid-cols-2 xl:grid-cols-7",
             )}>
               <div className="space-y-1.5">
@@ -3291,7 +3273,11 @@ export default function DashboardPlanSalle() {
                     type="button"
                     variant="outline"
                     className="h-10 rounded-xl bg-white px-3"
-                    onClick={() => setToolPanelTab("library")}
+                    onClick={() => {
+                      setToolsPanelCollapsed(false);
+                      setToolPanelTab("library");
+                      revealResponsivePanel("floor-plan-studio-tools");
+                    }}
                   >
                     <Plus className="mr-2 h-4 w-4" />
                     Ajouter
@@ -3388,7 +3374,10 @@ export default function DashboardPlanSalle() {
                     visibleTables={visibleTables}
                     selectedTableId={selectedTableId}
                     draggingTableId={dragState?.tableId || resizeState?.tableId || rotateState?.tableId || null}
-                    onTablePress={setSelectedTableId}
+                    onTablePress={(tableId) => {
+                      setSelectedTableId(tableId);
+                      setToolPanelTab("inspector");
+                    }}
                     onCanvasWheel={handleCanvasWheel}
                     onCanvasBackgroundPress={() => setSelectedTableId(null)}
                     onStartDraggingTable={startDraggingTable}
@@ -3400,10 +3389,38 @@ export default function DashboardPlanSalle() {
                     onDeleteTable={removeDraftTable}
                     getRenderedFrame={getRenderedDraftTableFrame}
                   />
-
+                  <div className="sticky bottom-3 z-30 grid grid-cols-2 gap-2 rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-xl backdrop-blur xl:hidden">
+                    <Button
+                      type="button"
+                      className="h-12 rounded-xl"
+                      onClick={() => {
+                        setToolsPanelCollapsed(false);
+                        setToolPanelTab("library");
+                        revealResponsivePanel("floor-plan-studio-tools");
+                      }}
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      Ajouter
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="h-12 rounded-xl"
+                      disabled={!selectedTable}
+                      onClick={() => {
+                        setToolsPanelCollapsed(false);
+                        setToolPanelTab("inspector");
+                        revealResponsivePanel("floor-plan-studio-tools");
+                      }}
+                    >
+                      <PanelRightOpen className="mr-2 h-4 w-4" />
+                      Réglages
+                    </Button>
+                  </div>
                 </div>
 
-                <DockableFloorPlanPanel
+                <div id="floor-plan-studio-tools" className="min-h-0 scroll-mt-3 xl:h-full">
+                  <DockableFloorPlanPanel
                   detached={toolsPanelDetached}
                   position={toolsPanelPosition}
                   snapTargets={toolsPanelSnapTargets}
@@ -3551,7 +3568,8 @@ export default function DashboardPlanSalle() {
                       </TabsContent>
                     </Tabs>
                   )}
-                </DockableFloorPlanPanel>
+                  </DockableFloorPlanPanel>
+                </div>
               </div>
             ) : (
               <div className={cn(
@@ -3605,7 +3623,18 @@ export default function DashboardPlanSalle() {
                   getTableContentPadding={getTableContentPadding}
                 />
 
-                <DockableFloorPlanPanel
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="sticky bottom-3 z-30 h-12 rounded-2xl border-slate-200 bg-white/95 shadow-xl backdrop-blur xl:hidden"
+                  onClick={() => revealResponsivePanel("floor-plan-reservation-queue")}
+                >
+                  <Grip className="mr-2 h-4 w-4" />
+                  Voir les réservations ({unassignedVisibleReservations.length} sans table)
+                </Button>
+
+                <div id="floor-plan-reservation-queue" className="min-h-0 scroll-mt-3 xl:h-full">
+                  <DockableFloorPlanPanel
                   detached={serviceQueueDetached}
                   position={serviceQueuePosition}
                   snapTargets={serviceQueueSnapTargets}
@@ -3635,7 +3664,8 @@ export default function DashboardPlanSalle() {
                     onAssignReservationToTable={assignReservationToTable}
                     getReservationDropState={getReservationDropState}
                   />
-                </DockableFloorPlanPanel>
+                  </DockableFloorPlanPanel>
+                </div>
               </div>
             )}
           </div>
