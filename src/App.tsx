@@ -80,6 +80,7 @@ const Abonnement = lazy(() => import("./pages/Abonnement"));
 const GiftPoints = lazy(() => import("./pages/GiftPoints"));
 const VentesFlash = lazy(() => import("./pages/VentesFlash"));
 const Actualites = lazy(() => import("./pages/Actualites"));
+const ActualitePost = lazy(() => import("./pages/ActualitePost"));
 const TokOne = lazy(() => import("./pages/TokOne"));
 const TokPulse = lazy(() => import("./pages/TokPulse"));
 const TokConnect = lazy(() => import("./pages/TokConnect"));
@@ -442,6 +443,7 @@ function AppShell() {
           <Route path="/points-cadeau" element={<ProtectedRoute requiredRole="client"><FeatureSwitch enabled={giftPointsEnabled}><GiftPoints /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/ventes-flash" element={<ClientSurfaceRoute><FeatureSwitch enabled={flashSalesEnabled}><VentesFlash /></FeatureSwitch></ClientSurfaceRoute>} />
           <Route path="/actualites" element={<FeatureSwitch enabled={actualitesSocialesEnabled} fallback="/"><Actualites /></FeatureSwitch>} />
+          <Route path="/actualites/:postId" element={<FeatureSwitch enabled={actualitesSocialesEnabled} fallback="/"><ActualitePost /></FeatureSwitch>} />
           <Route path="/dashboard" element={<DashboardRoute><FeatureSwitch enabled={dashboardOverviewEnabled} fallback="/"><DashboardHome /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/restaurant" element={<DashboardRoute><FeatureSwitch enabled={dashboardRestaurantEnabled} fallback="/dashboard"><DashboardRestaurant /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/advisor" element={<DashboardRoute><FeatureSwitch enabled={dashboardAdvisorEnabled} fallback="/dashboard"><DashboardAdvisor /></FeatureSwitch></DashboardRoute>} />

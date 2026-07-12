@@ -1,0 +1,56 @@
+name: tok-image-ai
+
+services:
+  ollama:
+    image: ollama/ollama:0.31.1
+    restart: unless-stopped
+    volumes:
+      - ollama-data:/root/.ollama
+    ports:
+      - "127.0.0.1:${OLLAMA_PORT:-11434}:11434"
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
+
+  model-init:
+    image: ollama/ollama:0.31.1
+    restart: "no"
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+      OLLAMA_VISION_MODEL: ${OLLAMA_VISION_MODEL:-qwen2.5vl:3b}
+      OLLAMA_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL:-all-minilm}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >-
+        ollama pull "$${OLLAMA_VISION_MODEL}" &&
+        ollama pull "$${OLLAMA_EMBEDDING_MODEL}"
+    depends_on:
+      ollama:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      OLLAMA_URL: http://ollama:11434
+      OLLAMA_VISION_MODEL: ${OLLAMA_VISION_MODEL:-qwen2.5vl:3b}
+      OLLAMA_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL:-all-minilm}
+      HEALTH_PORT: "8080"
+    ports:
+      - "127.0.0.1:${WORKER_HEALTH_PORT:-8080}:8080"
+    depends_on:
+      model-init:
+        condition: service_completed_successfully
+    init: true
+    stop_grace_period: 30s
+
+volumes:
+  ollama-data:
+

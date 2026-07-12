@@ -198,6 +198,7 @@ export type SocialFeedMedia = {
   mediaType: "image" | "video";
   sortOrder: number;
   altText?: string | null;
+  metadata?: Record<string, unknown> | null;
 };
 
 export type SocialPostDashboardMetrics = {
@@ -216,6 +217,7 @@ export type SocialFeedPost = {
   body: string;
   status: "draft" | "scheduled" | "published" | "hidden" | "deleted";
   createdAt: string;
+  updatedAt?: string | null;
   publishedAt: string | null;
   likesCount: number;
   reactionCounts: SocialReactionCounts;
@@ -627,6 +629,7 @@ export function rankSocialFeedItems<T extends SocialFeedRankableItem>(
 }
 
 export function getSocialPostShareUrl(postId: string) {
-  if (typeof window === "undefined") return `/actualites?post=${encodeURIComponent(postId)}`;
-  return `${window.location.origin}/actualites?post=${encodeURIComponent(postId)}`;
+  const path = `/actualites/${encodeURIComponent(postId)}`;
+  if (typeof window === "undefined") return path;
+  return `${window.location.origin}${path}`;
 }

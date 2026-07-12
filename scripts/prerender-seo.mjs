@@ -11,6 +11,8 @@ const DIST_DIR = path.resolve(ROOT, "dist");
 const PUBLIC_DIR = path.resolve(ROOT, "public");
 const PUBLIC_ONLY = process.argv.includes("--public-only");
 const MAX_DYNAMIC_RESTAURANTS = Number(process.env.SEO_SITEMAP_MAX_RESTAURANTS || 500);
+const MAX_DYNAMIC_ACTUALITES = Math.max(1, Number(process.env.SEO_SITEMAP_MAX_ACTUALITES || 5000) || 5000);
+const ACTUALITES_PRERENDER_BATCH_SIZE = 500;
 
 const STATIC_LOCAL_PAGES = [
   ["geneve", "Genève"],
@@ -282,6 +284,22 @@ const PUBLIC_SEO_PAGES = [
       "Recherchez un restaurant par ville, cuisine, offre, note ou mode de service avec TOK.",
     priority: "0.9",
     changefreq: "daily",
+  },
+  {
+    path: "/actualites",
+    title: "Actualités des restaurants à Genève et en Suisse romande | TOK",
+    description:
+      "Découvrez les plats, nouveautés, offres et événements publiés par les restaurants locaux sur TOK.",
+    priority: "0.9",
+    changefreq: "hourly",
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      name: "Actualités des restaurants TOK",
+      url: `${CANONICAL_ORIGIN}/actualites`,
+      description:
+        "Les publications, nouveautés, offres et événements des restaurants présents sur TOK.",
+    },
   },
   ...RICH_LOCAL_PAGES.map((page) => buildLocalSeoPage(page)),
   ...STATIC_LOCAL_PAGES.map(([slug, label]) => {
@@ -1233,9 +1251,141 @@ async function collectDynamicRestaurantPages() {
   }
 }
 
+function compactActualitesSeoText(value, maxLength) {
+  const clean = String(value || "").replace(/\s+/g, " ").trim();
+  if (!clean) return "";
+  if (clean.length <= maxLength) return clean;
+  return `${clean.slice(0, Math.max(1, maxLength - 1)).trimEnd()}…`;
+}
+
+function readActualitesImageAnalysis(metadata) {
+  if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) return {};
+  const analysis = metadata.image_analysis;
+  return analysis && typeof analysis === "object" && !Array.isArray(analysis) ? analysis : {};
+}
+
+async function collectDynamicActualitesPages() {
+  loadPublicEnvFiles();
+
+  const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+  const supabaseKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
+  if (!supabaseUrl || !supabaseKey) return [];
+
+  try {
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const data = [];
+    for (let offset = 0; offset < MAX_DYNAMIC_ACTUALITES; offset += ACTUALITES_PRERENDER_BATCH_SIZE) {
+      const batchSize = Math.min(ACTUALITES_PRERENDER_BATCH_SIZE, MAX_DYNAMIC_ACTUALITES - offset);
+      const { data: batch, error } = await supabase
+        .from("social_posts")
+        .select("id,body,post_type,published_at,created_at,updated_at,status,visibility,restaurants(id,name,city,cuisine_type,image_url),social_post_media(id,media_url,alt_text,metadata,sort_order,media_type)")
+        .eq("status", "published")
+        .eq("visibility", "public")
+        .order("published_at", { ascending: false, nullsFirst: false })
+        .range(offset, offset + batchSize - 1);
+
+      if (error || !Array.isArray(batch)) return [];
+      data.push(...batch);
+      if (batch.length < batchSize) break;
+    }
+
+    return data.flatMap((post) => {
+      if (!post?.id) return [];
+      const restaurant = Array.isArray(post.restaurants) ? post.restaurants[0] : post.restaurants;
+      const restaurantName = String(restaurant?.name || "Restaurant TOK").trim() || "Restaurant TOK";
+      const media = Array.isArray(post.social_post_media)
+        ? [...post.social_post_media].sort((left, right) => Number(left?.sort_order || 0) - Number(right?.sort_order || 0))
+        : [];
+      const primaryImage = media.find((item) => item?.media_type === "image" && item?.media_url) || null;
+      const analysis = readActualitesImageAnalysis(primaryImage?.metadata);
+      const city = String(restaurant?.city || "").trim();
+      const cuisine = String(restaurant?.cuisine_type || "").trim();
+      const fallbackTitle = `${restaurantName} — actualité restaurant`;
+      const title = compactActualitesSeoText(analysis.seo_title || fallbackTitle, 70);
+      const contextualDescription = `Découvrez cette publication de ${restaurantName}${city ? ` à ${city}` : ""} sur TOK.`;
+      const description = compactActualitesSeoText(
+        analysis.seo_description || post.body || analysis.short_description || contextualDescription,
+        170,
+      );
+      const imageAlt = compactActualitesSeoText(
+        primaryImage?.alt_text || analysis.alt_text || `Actualité publiée par ${restaurantName}`,
+        180,
+      );
+      const postPath = `/actualites/${post.id}`;
+      const publishedAt = post.published_at || post.created_at;
+      const updatedAt = post.updated_at || publishedAt;
+
+      return [{
+        path: postPath,
+        title: `${title} | TOK`,
+        description,
+        priority: "0.7",
+        changefreq: "weekly",
+        lastmod: updatedAt,
+        image: primaryImage?.media_url || restaurant?.image_url || DEFAULT_IMAGE,
+        imageAlt,
+        ogType: "article",
+        publishedAt,
+        modifiedAt: updatedAt,
+        staticContent: {
+          heading: title,
+          paragraphs: [compactActualitesSeoText(post.body || analysis.description || description, 1200)],
+          sections: [
+            {
+              heading: "À propos du restaurant",
+              items: [restaurantName, city, cuisine].filter(Boolean),
+            },
+          ],
+          links: [
+            { href: "/actualites", label: "Toutes les actualités" },
+            { href: "/recherche", label: "Rechercher un restaurant" },
+          ],
+        },
+        jsonLd: {
+          "@context": "https://schema.org",
+          "@type": "Article",
+          "@id": canonicalUrl(postPath),
+          mainEntityOfPage: canonicalUrl(postPath),
+          headline: title,
+          description,
+          articleBody: compactActualitesSeoText(post.body || analysis.description || description, 5000),
+          datePublished: publishedAt,
+          dateModified: updatedAt,
+          author: {
+            "@type": "Organization",
+            name: restaurantName,
+          },
+          publisher: {
+            "@type": "Organization",
+            name: "TOK",
+            logo: {
+              "@type": "ImageObject",
+              url: `${CANONICAL_ORIGIN}/logotok.png`,
+            },
+          },
+          image: primaryImage?.media_url
+            ? {
+              "@type": "ImageObject",
+              url: primaryImage.media_url,
+              caption: imageAlt,
+            }
+            : undefined,
+        },
+      }];
+    });
+  } catch {
+    return [];
+  }
+}
+
 async function collectSeoPages() {
-  const dynamicPages = await collectDynamicRestaurantPages();
-  return dedupePages([...PUBLIC_SEO_PAGES, ...dynamicPages]);
+  const [restaurantPages, actualitesPages] = await Promise.all([
+    collectDynamicRestaurantPages(),
+    collectDynamicActualitesPages(),
+  ]);
+  return dedupePages([...PUBLIC_SEO_PAGES, ...restaurantPages, ...actualitesPages]);
 }
 
 function renderSitemap(pages) {
@@ -1334,18 +1484,32 @@ function renderStaticContent(page) {
 function renderPreRenderedHtml(baseHtml, page) {
   const canonical = canonicalUrl(page.path);
   const image = page.image || DEFAULT_IMAGE;
+  const imageAlt = page.imageAlt || page.title;
   let html = upsertTitle(baseHtml, page.title);
   html = upsertTag(html, /<meta\s+name="description"[^>]*>/i, `<meta name="description" content="${escapeHtml(page.description)}" />`);
   html = upsertTag(html, /<link\s+rel="canonical"[^>]*>/i, `<link rel="canonical" href="${escapeHtml(canonical)}" />`);
+  html = upsertTag(html, /<meta\s+property="og:type"[^>]*>/i, `<meta property="og:type" content="${escapeHtml(page.ogType || "website")}" />`);
   html = upsertTag(html, /<meta\s+property="og:title"[^>]*>/i, `<meta property="og:title" content="${escapeHtml(page.title)}" />`);
   html = upsertTag(html, /<meta\s+property="og:description"[^>]*>/i, `<meta property="og:description" content="${escapeHtml(page.description)}" />`);
   html = upsertTag(html, /<meta\s+property="og:url"[^>]*>/i, `<meta property="og:url" content="${escapeHtml(canonical)}" />`);
   html = upsertTag(html, /<meta\s+property="og:image"[^>]*>/i, `<meta property="og:image" content="${escapeHtml(image)}" />`);
-  html = upsertTag(html, /<meta\s+property="og:image:alt"[^>]*>/i, `<meta property="og:image:alt" content="${escapeHtml(page.title)}" />`);
+  html = upsertTag(html, /<meta\s+property="og:image:alt"[^>]*>/i, `<meta property="og:image:alt" content="${escapeHtml(imageAlt)}" />`);
+  if (page.imageWidth) {
+    html = upsertTag(html, /<meta\s+property="og:image:width"[^>]*>/i, `<meta property="og:image:width" content="${escapeHtml(String(page.imageWidth))}" />`);
+  }
+  if (page.imageHeight) {
+    html = upsertTag(html, /<meta\s+property="og:image:height"[^>]*>/i, `<meta property="og:image:height" content="${escapeHtml(String(page.imageHeight))}" />`);
+  }
   html = upsertTag(html, /<meta\s+name="twitter:title"[^>]*>/i, `<meta name="twitter:title" content="${escapeHtml(page.title)}" />`);
   html = upsertTag(html, /<meta\s+name="twitter:description"[^>]*>/i, `<meta name="twitter:description" content="${escapeHtml(page.description)}" />`);
   html = upsertTag(html, /<meta\s+name="twitter:image"[^>]*>/i, `<meta name="twitter:image" content="${escapeHtml(image)}" />`);
-  html = upsertTag(html, /<meta\s+name="twitter:image:alt"[^>]*>/i, `<meta name="twitter:image:alt" content="${escapeHtml(page.title)}" />`);
+  html = upsertTag(html, /<meta\s+name="twitter:image:alt"[^>]*>/i, `<meta name="twitter:image:alt" content="${escapeHtml(imageAlt)}" />`);
+  if (page.publishedAt) {
+    html = upsertTag(html, /<meta\s+property="article:published_time"[^>]*>/i, `<meta property="article:published_time" content="${escapeHtml(page.publishedAt)}" />`);
+  }
+  if (page.modifiedAt) {
+    html = upsertTag(html, /<meta\s+property="article:modified_time"[^>]*>/i, `<meta property="article:modified_time" content="${escapeHtml(page.modifiedAt)}" />`);
+  }
   html = html.replace(/\s*<script\s+id="tok-page-json-ld"[\s\S]*?<\/script>/i, "");
   if (page.jsonLd) {
     html = html.replace(

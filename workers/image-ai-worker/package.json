@@ -1,12 +1,17 @@
 {
   "name": "tok-image-ai-worker",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@10.28.1",
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "scripts": {
     "check": "node check.mjs",
-    "start": "node index.js"
+    "start": "node index.js",
+    "syntax": "node --check config.js && node --check metadata.js && node --check ollama.js && node --check index.js && node --check check.mjs",
+    "test": "node --test *.test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.106.2",
