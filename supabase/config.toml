@@ -140,6 +140,9 @@ verify_jwt = false
 [functions.manage-restaurant-subscription]
 verify_jwt = false
 
+[functions.menu-image-import]
+verify_jwt = false
+
 [functions.reconcile-match-group-authorizations]
 verify_jwt = false
 
