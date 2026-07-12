@@ -247,9 +247,6 @@ Deno.serve(async (req) => {
       ? body.user_id.trim()
       : null;
 
-    const serviceAccount = readFirebaseServiceAccountFromEnv();
-    const projectId = serviceAccount.project_id;
-
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -285,9 +282,12 @@ Deno.serve(async (req) => {
       return jsonResponse({ processed: 0 }, 200, corsHeaders);
     }
 
-    // Get Firebase access token
-    const accessToken = await getFirebaseAccessToken(serviceAccount);
-    const fcmUrl = `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`;
+    // Firebase credentials are loaded lazily only when at least one active
+    // device token exists. Deliveries for users without a token can therefore
+    // be closed honestly without turning missing Firebase configuration into a
+    // platform incident.
+    let accessToken: string | null = null;
+    let projectId: string | null = null;
 
     let sent = 0;
     let failed = 0;
@@ -320,6 +320,12 @@ Deno.serve(async (req) => {
           continue;
         }
 
+        if (!accessToken || !projectId) {
+          const serviceAccount = readFirebaseServiceAccountFromEnv();
+          projectId = serviceAccount.project_id;
+          accessToken = await getFirebaseAccessToken(serviceAccount);
+        }
+        const fcmUrl = `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`;
         let anySent = false;
 
         for (const deviceToken of tokens) {
