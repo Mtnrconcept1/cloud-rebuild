@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f55a1c" />
+    <meta
+      name="description"
+      content="Plan de table intelligent pour restaurant avec placement automatique des réservations."
+    />
+    <title>TOK TABLE 2 — Plan de salle intelligent</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#" aria-label="Tok Table, accueil">
+          <span class="brand-mark">T</span>
+          <span>
+            <strong>TOK TABLE 2</strong>
+            <small>Plan de salle intelligent</small>
+          </span>
+        </a>
+
+        <div class="service-picker" aria-label="Service affiché">
+          <label>
+            <span>Date</span>
+            <input id="service-date" type="date" />
+          </label>
+          <label>
+            <span>Service</span>
+            <select id="service-period">
+              <option value="midi">Midi</option>
+              <option value="soir">Soir</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="top-actions">
+          <button class="btn btn-ghost" id="data-button" type="button">
+            <span aria-hidden="true">⇅</span> Données
+          </button>
+          <button class="btn btn-primary" id="auto-place-button" type="button">
+            <span aria-hidden="true">✦</span> Placement automatique
+          </button>
+        </div>
+      </header>
+
+      <main>
+        <section class="hero-row" aria-labelledby="page-title">
+          <div>
+            <p class="eyebrow">ORGANISATION DU SERVICE</p>
+            <h1 id="page-title">Votre salle, parfaitement organisée.</h1>
+            <p id="service-summary">Préparez votre service en quelques secondes.</p>
+          </div>
+          <div class="live-pill"><i></i> Sauvegarde automatique</div>
+        </section>
+
+        <section class="stats-grid" id="stats-grid" aria-label="Résumé du service"></section>
+
+        <section class="workspace-grid">
+          <article class="panel floor-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">PLAN INTERACTIF</p>
+                <h2>Plan de salle</h2>
+              </div>
+              <div class="heading-actions">
+                <div class="legend">
+                  <span><i class="dot dot-free"></i> Libre</span>
+                  <span><i class="dot dot-occupied"></i> Placée</span>
+                  <span><i class="dot dot-blocked"></i> Indisponible</span>
+                </div>
+                <button class="icon-button" id="add-table-button" type="button" title="Ajouter une table" aria-label="Ajouter une table">+</button>
+              </div>
+            </div>
+
+            <div class="zone-tabs" id="zone-tabs" role="tablist" aria-label="Zones de la salle"></div>
+
+            <div class="floor-wrap">
+              <div class="floor" id="floor" aria-label="Plan de salle. Les tables peuvent être déplacées.">
+                <div class="floor-grid"></div>
+                <div class="floor-empty hidden" id="floor-empty">
+                  <span>□</span>
+                  <h3>Aucune table dans cette zone</h3>
+                  <p>Ajoutez votre première table pour commencer.</p>
+                  <button class="btn btn-primary" type="button" data-action="add-table">Ajouter une table</button>
+                </div>
+              </div>
+            </div>
+            <p class="drag-hint">Astuce : faites glisser les tables pour reproduire la disposition réelle de votre salle.</p>
+          </article>
+
+          <aside class="panel reservations-panel">
+            <div class="panel-heading compact">
+              <div>
+                <p class="eyebrow">RÉSERVATIONS</p>
+                <h2>Liste des clients</h2>
+              </div>
+              <button class="icon-button" id="add-reservation-button" type="button" title="Ajouter une réservation" aria-label="Ajouter une réservation">+</button>
+            </div>
+
+            <div class="search-row">
+              <label class="search-box">
+                <span aria-hidden="true">⌕</span>
+                <input id="reservation-search" type="search" placeholder="Rechercher un client…" />
+              </label>
+              <select id="reservation-filter" aria-label="Filtrer les réservations">
+                <option value="all">Toutes</option>
+                <option value="unassigned">À placer</option>
+                <option value="assigned">Placées</option>
+              </select>
+            </div>
+
+            <div class="reservation-list" id="reservation-list"></div>
+          </aside>
+        </section>
+      </main>
+    </div>
+
+    <div class="toast-region" id="toast-region" aria-live="polite"></div>
+
+    <dialog class="modal" id="table-modal">
+      <form method="dialog" id="table-form">
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow">CONFIGURATION</p>
+            <h2 id="table-modal-title">Ajouter une table</h2>
+          </div>
+          <button class="close-button" value="cancel" aria-label="Fermer" type="submit">×</button>
+        </div>
+        <input type="hidden" name="id" />
+        <div class="form-grid">
+          <label>
+            <span>Nom de la table</span>
+            <input name="name" required maxlength="20" placeholder="Ex. T12" />
+          </label>
+          <label>
+            <span>Nombre de places</span>
+            <input name="capacity" required type="number" min="1" max="30" value="4" />
+          </label>
+          <label>
+            <span>Zone</span>
+            <input name="zone" required list="zone-list" maxlength="30" placeholder="Ex. Salle" />
+            <datalist id="zone-list"></datalist>
+          </label>
+          <label>
+            <span>Forme</span>
+            <select name="shape">
+              <option value="round">Ronde</option>
+              <option value="square">Carrée</option>
+              <option value="rectangle">Rectangulaire</option>
+            </select>
+          </label>
+          <label class="full-field checkbox-field">
+            <input name="blocked" type="checkbox" />
+            <span>Table indisponible pour ce service</span>
+          </label>
+        </div>
+        <div class="modal-actions split-actions">
+          <button class="btn btn-danger hidden" id="delete-table-button" type="button">Supprimer</button>
+          <span></span>
+          <button class="btn btn-ghost" value="cancel" type="submit">Annuler</button>
+          <button class="btn btn-primary" value="default" type="submit">Enregistrer</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="modal" id="reservation-modal">
+      <form method="dialog" id="reservation-form">
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow">CLIENT</p>
+            <h2 id="reservation-modal-title">Ajouter une réservation</h2>
+          </div>
+          <button class="close-button" value="cancel" aria-label="Fermer" type="submit">×</button>
+        </div>
+        <input type="hidden" name="id" />
+        <div class="form-grid">
+          <label>
+            <span>Nom du client</span>
+            <input name="name" required maxlength="60" placeholder="Ex. Famille Martin" />
+          </label>
+          <label>
+            <span>Nombre de convives</span>
+            <input name="size" required type="number" min="1" max="30" value="2" />
+          </label>
+          <label>
+            <span>Heure d’arrivée</span>
+            <input name="time" required type="time" value="19:30" />
+          </label>
+          <label>
+            <span>Zone souhaitée</span>
+            <select name="preferredZone"></select>
+          </label>
+          <label class="full-field">
+            <span>Note</span>
+            <textarea name="note" maxlength="180" rows="3" placeholder="Anniversaire, chaise bébé, allergie…"></textarea>
+          </label>
+        </div>
+        <div class="modal-actions split-actions">
+          <button class="btn btn-danger hidden" id="delete-reservation-button" type="button">Supprimer</button>
+          <span></span>
+          <button class="btn btn-ghost" value="cancel" type="submit">Annuler</button>
+          <button class="btn btn-primary" value="default" type="submit">Enregistrer</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="modal small-modal" id="data-modal">
+      <form method="dialog">
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow">SAUVEGARDE</p>
+            <h2>Gérer les données</h2>
+          </div>
+          <button class="close-button" value="cancel" aria-label="Fermer" type="submit">×</button>
+        </div>
+        <div class="data-actions">
+          <button class="data-card" id="export-button" type="button">
+            <span>↓</span><strong>Exporter</strong><small>Télécharger une sauvegarde JSON</small>
+          </button>
+          <label class="data-card" for="import-input">
+            <span>↑</span><strong>Importer</strong><small>Restaurer une sauvegarde JSON</small>
+          </label>
+          <input id="import-input" type="file" accept="application/json,.json" hidden />
+          <button class="data-card danger-card" id="reset-button" type="button">
+            <span>↻</span><strong>Réinitialiser</strong><small>Recharger les données de démonstration</small>
+          </button>
+        </div>
+      </form>
+    </dialog>
+
+    <script src="app.js" defer></script>
+  </body>
+</html>

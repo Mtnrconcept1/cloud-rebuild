@@ -114,6 +114,7 @@ const NAV_SECTIONS: NavSection[] = [
       { to: "/dashboard/formules", label: "Formules", icon: Percent, feature: "dashboard-formules" },
       { to: "/dashboard/service", label: "Pilotage de service", icon: SlidersHorizontal, feature: "dashboard-service" },
       { to: "/dashboard/plan-salle", label: "Plan de salle", icon: Map, feature: "dashboard-plan-salle" },
+      { to: "/dashboard/plan-salle-v2", label: "Plan de salle 2", icon: Map, feature: "dashboard-plan-salle" },
     ],
   },
   {
