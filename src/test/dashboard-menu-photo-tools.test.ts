@@ -9,6 +9,7 @@ function read(path: string) {
 describe("dashboard menu photo tools", () => {
   const dashboardMenu = read("src/pages/dashboard/DashboardMenu.tsx");
   const imageUpload = read("src/components/ImageUpload.tsx");
+  const menuImageImport = read("supabase/functions/menu-image-import/index.ts");
 
   it("hides manual URL input by default and keeps it hidden in the dish modal", () => {
     expect(imageUpload).toContain("showUrlInput = false");
@@ -22,6 +23,22 @@ describe("dashboard menu photo tools", () => {
     expect(dashboardMenu).toContain('.in("media_type", ["photo", "photo_ai_tok"])');
     expect(dashboardMenu).toContain(".limit(24)");
     expect(dashboardMenu).toContain("selectDishImage(item.media_url)");
+  });
+
+  it("extracts a photographed menu into an editable preview before batch creation", () => {
+    expect(dashboardMenu).toContain("Importer une photo du menu");
+    expect(dashboardMenu).toContain('accept="image/jpeg,image/png,image/webp"');
+    expect(dashboardMenu).toContain('supabase.functions.invoke<MenuImportResponse>("menu-image-import"');
+    expect(dashboardMenu).toContain("optimizeImageUpload(file)");
+    expect(dashboardMenu).toContain("updateImportedMenuItem");
+    expect(dashboardMenu).toContain('from("menu_items").insert(selectedItems)');
+    expect(dashboardMenu).toContain("Les plats ne sont créés qu'après votre validation.");
+
+    expect(menuImageImport).toContain('const FUNCTION_NAME = "menu-image-import"');
+    expect(menuImageImport).toContain("requireRestaurantAccess(actor, restaurantId)");
+    expect(menuImageImport).toContain('type: "input_image"');
+    expect(menuImageImport).toContain('name: "restaurant_menu_extraction"');
+    expect(menuImageImport).toContain("Fusionne les doublons");
   });
 
   it("generates a menu visual from the modal photo studio and applies it to the dish form", () => {
