@@ -119,7 +119,7 @@ describe("floor plan v2 live assignments", () => {
       x: 25,
       y: 25,
       editable: false,
-      blocked: true,
+      blocked: false,
       kind: "door",
       width: 84,
       height: 18,
