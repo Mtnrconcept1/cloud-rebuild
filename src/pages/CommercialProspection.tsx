@@ -755,7 +755,7 @@ function CommercialProspectionMap({
   return (
     <div
       ref={mapRef}
-      className="h-[58vh] min-h-[420px] w-full overflow-hidden rounded-[28px] border border-slate-200 shadow-[0_22px_70px_rgba(15,23,42,0.16)] dark:border-white/10 md:h-[calc(100vh-12rem)]"
+      className="relative isolate z-0 h-[58vh] min-h-[420px] w-full overflow-hidden rounded-[28px] border border-slate-200 shadow-[0_22px_70px_rgba(15,23,42,0.16)] dark:border-white/10 md:h-[calc(100vh-12rem)]"
     />
   );
 }
