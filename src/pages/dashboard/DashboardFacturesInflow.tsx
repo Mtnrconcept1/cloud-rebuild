@@ -10,9 +10,9 @@ import { COMMISSION_SOURCE_LABELS, COMMISSION_SOURCE_ORDER } from "@/lib/comptaC
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
+import { getInvoiceStatusLabel } from "@/lib/invoicePresentation";
 import {
   formatAmount,
   formatDate,
@@ -30,7 +30,7 @@ function getErrorMessage(error: unknown) {
   return error ? String(error) : "";
 }
 
-function InvoiceTableRow({
+function InvoiceListItem({
   invoice,
   canMarkPaid,
   isExpanded,
@@ -47,48 +47,73 @@ function InvoiceTableRow({
 }) {
   const detailQuery = useDashboardPayoutInvoiceDetailLines(isExpanded ? invoice.id : null);
   const isPaid = String(invoice.status || "").trim().toLowerCase() === "paid";
-  const detailButtonLabel = isExpanded ? "Masquer le détail" : "Voir le détail";
+  const reference = invoice.invoice_number || invoice.id.slice(0, 8);
+  const detailId = `invoice-detail-${invoice.id}`;
 
   return (
-    <>
-      <TableRow key={invoice.id}>
-        <TableCell>
-          <div className="font-mono text-xs">{invoice.invoice_number || invoice.id.slice(0, 8)}</div>
-          <div className="text-xs text-muted-foreground">{formatDate(invoice.created_at)}</div>
-          <div className="text-xs text-muted-foreground">Restaurant concerne : {restaurantName || "-"}</div>
-        </TableCell>
-        <TableCell className="text-sm">{formatPeriod(invoice.period_start, invoice.period_end)}</TableCell>
-        <TableCell className="text-right font-semibold whitespace-nowrap">{formatAmount(invoice.amount_ttc)}</TableCell>
-        <TableCell>
-          <span className={`inline-flex rounded-full px-2 py-1 text-[10px] font-medium ${getInvoiceStatusClass(invoice.status)}`}>
-            {invoice.status || "draft"}
-          </span>
-        </TableCell>
-        <TableCell className="text-sm whitespace-nowrap">{formatDate(invoice.due_at)}</TableCell>
-        <TableCell className="text-right">
-          <div className="flex justify-end gap-2">
-            {invoice.pdf_url ? (
-              <Button asChild size="sm" variant="outline">
-                <a href={invoice.pdf_url} target="_blank" rel="noreferrer">
-                  <Download className="mr-2 h-4 w-4" />
-                  PDF
-                </a>
-              </Button>
-            ) : null}
-            <Button size="sm" variant="ghost" onClick={() => onToggleDetail(invoice.id)}>
-              {detailButtonLabel}
-            </Button>
-            {canMarkPaid && !isPaid ? (
-              <Button size="sm" variant="outline" onClick={() => void onMarkPaid(invoice.id)}>
-                Marquer payée
-              </Button>
-            ) : null}
+    <Card role="article" aria-label={`Facture ${reference}`}>
+      <CardContent className="space-y-4 p-4 sm:p-5">
+        <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0 space-y-1">
+            <p className="break-all font-mono text-xs">{reference}</p>
+            <p className="text-xs text-muted-foreground">{formatDate(invoice.created_at)}</p>
+            <p className="break-words text-xs text-muted-foreground">Restaurant : {restaurantName || "-"}</p>
           </div>
-        </TableCell>
-      </TableRow>
-      {isExpanded ? (
-        <TableRow className="bg-muted/30">
-          <TableCell colSpan={6} className="px-4 py-5">
+          <span className={`inline-flex w-fit rounded-full px-2 py-1 text-[10px] font-medium ${getInvoiceStatusClass(invoice.status)}`}>
+            {getInvoiceStatusLabel(invoice.status)}
+          </span>
+        </div>
+
+        <dl className="grid min-w-0 gap-3 text-sm sm:grid-cols-2">
+          <div className="min-w-0">
+            <dt className="text-xs text-muted-foreground">Période</dt>
+            <dd className="break-words font-medium">{formatPeriod(invoice.period_start, invoice.period_end)}</dd>
+          </div>
+          <div className="min-w-0">
+            <dt className="text-xs text-muted-foreground">Échéance</dt>
+            <dd className="break-words font-medium">{formatDate(invoice.due_at)}</dd>
+          </div>
+          <div className="min-w-0 sm:col-span-2">
+            <dt className="text-xs text-muted-foreground">Montant TTC</dt>
+            <dd className="break-words text-lg font-bold">{formatAmount(invoice.amount_ttc)}</dd>
+          </div>
+        </dl>
+
+        <div className="flex min-w-0 flex-wrap gap-2">
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            className="h-auto min-h-[44px] max-w-full whitespace-normal text-left"
+            aria-expanded={isExpanded}
+            aria-controls={detailId}
+            onClick={() => onToggleDetail(invoice.id)}
+          >
+            {isExpanded ? "Masquer le détail" : "Voir le détail"}
+          </Button>
+          {invoice.pdf_url ? (
+            <Button asChild size="sm" variant="outline" className="h-auto min-h-[44px] max-w-full whitespace-normal">
+              <a href={invoice.pdf_url} target="_blank" rel="noreferrer" aria-label={`Ouvrir le PDF de la facture ${reference} dans un nouvel onglet`}>
+                <Download className="mr-2 h-4 w-4" />
+                PDF
+              </a>
+            </Button>
+          ) : null}
+          {canMarkPaid && !isPaid ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="h-auto min-h-[44px] max-w-full whitespace-normal"
+              onClick={() => void onMarkPaid(invoice.id)}
+            >
+              Marquer payée
+            </Button>
+          ) : null}
+        </div>
+
+        {isExpanded ? (
+          <div id={detailId} role="region" aria-label={`Détail de la facture ${reference}`} className="border-t pt-4">
             <InvoiceDetailAccordion
               mode="payout"
               lines={detailQuery.data || []}
@@ -96,10 +121,10 @@ function InvoiceTableRow({
               error={detailQuery.error}
               invoiceAmountTtc={invoice.amount_ttc}
             />
-          </TableCell>
-        </TableRow>
-      ) : null}
-    </>
+          </div>
+        ) : null}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -120,95 +145,28 @@ function InvoiceTable({
     return (
       <Card className="border-dashed">
         <CardContent className="py-8 text-center text-sm text-muted-foreground">
-          Aucune facturé sur cette section.
+          Aucune facture dans cette section.
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <>
-      <div className="space-y-3 md:hidden">
-        {invoices.map((invoice) => {
-          const isPaid = String(invoice.status || "").trim().toLowerCase() === "paid";
-          return (
-            <Card key={invoice.id}>
-              <CardContent className="space-y-3 p-4">
-                <div>
-                  <div className="font-mono text-xs">{invoice.invoice_number || invoice.id.slice(0, 8)}</div>
-                  <div className="text-xs text-muted-foreground">{formatDate(invoice.created_at)}</div>
-                  <div className="text-xs text-muted-foreground">Restaurant concerne : {restaurantName || "-"}</div>
-                </div>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div>
-                    <p className="text-muted-foreground">Période</p>
-                    <p>{formatPeriod(invoice.period_start, invoice.period_end)}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Echeance</p>
-                    <p>{formatDate(invoice.due_at)}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Montant TTC</p>
-                    <p className="font-semibold">{formatAmount(invoice.amount_ttc)}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Statut</p>
-                    <span className={`inline-flex rounded-full px-2 py-1 text-[10px] font-medium ${getInvoiceStatusClass(invoice.status)}`}>
-                      {invoice.status || "draft"}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {invoice.pdf_url ? (
-                    <Button asChild size="sm" variant="outline">
-                      <a href={invoice.pdf_url} target="_blank" rel="noreferrer">
-                        <Download className="mr-2 h-4 w-4" />
-                        PDF
-                      </a>
-                    </Button>
-                  ) : null}
-                  {canMarkPaid && !isPaid ? (
-                    <Button size="sm" variant="outline" onClick={() => void onMarkPaid(invoice.id)}>
-                      Marquer payée
-                    </Button>
-                  ) : null}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-      <div className="hidden overflow-x-auto rounded-xl border md:block">
-        <Table className="min-w-full md:min-w-[760px] [&_th]:px-2 [&_td]:px-2 md:[&_th]:px-4 md:[&_td]:px-4">
-        <TableHeader>
-          <TableRow>
-            <TableHead>Facture</TableHead>
-            <TableHead>Période</TableHead>
-            <TableHead className="text-right whitespace-nowrap">Montant TTC</TableHead>
-            <TableHead>Statut</TableHead>
-            <TableHead className="whitespace-nowrap">Echeance</TableHead>
-            <TableHead className="text-right">Action</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {invoices.map((invoice) => (
-            <InvoiceTableRow
-              key={invoice.id}
-              invoice={invoice}
-              canMarkPaid={canMarkPaid}
-              isExpanded={expandedInvoiceId === invoice.id}
-              restaurantName={restaurantName}
-              onToggleDetail={(invoiceId) => {
-                setExpandedInvoiceId((current) => (current === invoiceId ? null : invoiceId));
-              }}
-              onMarkPaid={onMarkPaid}
-            />
-          ))}
-        </TableBody>
-        </Table>
-      </div>
-    </>
+    <div className="space-y-3">
+      {invoices.map((invoice) => (
+        <InvoiceListItem
+          key={invoice.id}
+          invoice={invoice}
+          canMarkPaid={canMarkPaid}
+          isExpanded={expandedInvoiceId === invoice.id}
+          restaurantName={restaurantName}
+          onToggleDetail={(invoiceId) => {
+            setExpandedInvoiceId((current) => (current === invoiceId ? null : invoiceId));
+          }}
+          onMarkPaid={onMarkPaid}
+        />
+      ))}
+    </div>
   );
 }
 

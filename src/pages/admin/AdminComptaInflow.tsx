@@ -8,9 +8,9 @@ import { TokPayableInvoiceDialog } from "@/components/invoices/TokPayableInvoice
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
+import { getInvoiceStatusLabel } from "@/lib/invoicePresentation";
 import { openExternalHttpsUrl } from "@/lib/securityUrls";
 import {
   generateAdminTokPayableInvoices,
@@ -43,64 +43,6 @@ function downloadInvoicePdf(invoice: AdminInvoiceRow) {
   }
 }
 
-function InvoiceTableRow({
-  invoice,
-  onMarkPaid,
-  payingInvoiceId,
-}: {
-  invoice: PayableInvoiceRow;
-  onMarkPaid: (invoice: PayableInvoiceRow) => Promise<void>;
-  payingInvoiceId: string | null;
-}) {
-  const [previewOpen, setPreviewOpen] = useState(false);
-  const isPaid = String(invoice.status || "").trim().toLowerCase() === "paid";
-  const isPaying = payingInvoiceId === invoice.id;
-
-  return (
-    <>
-      <TableRow key={invoice.id}>
-        <TableCell>
-          <div className="font-mono text-xs">{invoice.invoice_number || invoice.id.slice(0, 8)}</div>
-          <div className="text-xs text-muted-foreground">{formatDate(invoice.created_at)}</div>
-          <div className="text-xs text-muted-foreground">
-            Facture adressée à : {invoice.restaurants?.name || "-"}
-          </div>
-        </TableCell>
-        <TableCell className="text-sm">{invoice.restaurants?.name || "-"}</TableCell>
-        <TableCell className="text-sm">{formatPeriod(invoice.period_start, invoice.period_end)}</TableCell>
-        <TableCell className="text-right font-semibold whitespace-nowrap">{formatAmount(invoice.amount_ttc)}</TableCell>
-        <TableCell>
-          <span className={`inline-flex rounded-full px-2 py-1 text-[10px] font-medium ${getInvoiceStatusClass(invoice.status)}`}>
-            {invoice.status || "draft"}
-          </span>
-        </TableCell>
-        <TableCell className="text-sm whitespace-nowrap">{formatDate(invoice.due_at)}</TableCell>
-        <TableCell className="text-right">
-          <div className="flex flex-col items-end gap-2">
-            <Button size="sm" variant="ghost" onClick={() => setPreviewOpen(true)}>
-              Voir la facture
-            </Button>
-            {invoice.pdf_url ? (
-              <Button size="sm" variant="ghost" onClick={() => downloadInvoicePdf(invoice)}>
-                PDF
-              </Button>
-            ) : null}
-            {isPaid ? (
-              <span className="text-xs text-muted-foreground">Reglee</span>
-            ) : (
-              <Button type="button" size="sm" variant="outline" disabled={isPaying} onClick={() => void onMarkPaid(invoice)}>
-                {isPaying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                {isPaying ? "Marquage..." : "Marquer payée"}
-              </Button>
-            )}
-          </div>
-        </TableCell>
-      </TableRow>
-      <TokPayableInvoiceDialog invoice={previewOpen ? invoice : null} open={previewOpen} onOpenChange={setPreviewOpen} />
-    </>
-  );
-}
-
 function InvoiceTable({
   invoices,
   onMarkPaid,
@@ -114,54 +56,27 @@ function InvoiceTable({
     return (
       <Card className="border-dashed">
         <CardContent className="py-8 text-center text-sm text-muted-foreground">
-          Aucune facturé sur cette section.
+          Aucune facture dans cette section.
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <>
-      <div className="space-y-3 md:hidden">
-        {invoices.map((invoice) => (
-          <MobileInvoiceCard
-            key={invoice.id}
-            invoice={invoice}
-            onMarkPaid={onMarkPaid}
-            payingInvoiceId={payingInvoiceId}
-          />
-        ))}
-      </div>
-      <div className="hidden overflow-x-auto rounded-xl border md:block">
-        <Table className="min-w-full md:min-w-[820px] [&_th]:px-2 [&_td]:px-2 md:[&_th]:px-4 md:[&_td]:px-4">
-          <TableHeader>
-            <TableRow>
-              <TableHead>Facture</TableHead>
-              <TableHead>Restaurant</TableHead>
-              <TableHead>Période</TableHead>
-              <TableHead className="text-right whitespace-nowrap">Montant TTC</TableHead>
-              <TableHead>Statut</TableHead>
-              <TableHead className="whitespace-nowrap">Echeance</TableHead>
-              <TableHead className="text-right">Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {invoices.map((invoice) => (
-              <InvoiceTableRow
-                key={invoice.id}
-                invoice={invoice}
-                onMarkPaid={onMarkPaid}
-                payingInvoiceId={payingInvoiceId}
-              />
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    </>
+    <div className="space-y-3">
+      {invoices.map((invoice) => (
+        <InvoiceListItem
+          key={invoice.id}
+          invoice={invoice}
+          onMarkPaid={onMarkPaid}
+          payingInvoiceId={payingInvoiceId}
+        />
+      ))}
+    </div>
   );
 }
 
-function MobileInvoiceCard({
+function InvoiceListItem({
   invoice,
   onMarkPaid,
   payingInvoiceId,
@@ -173,13 +88,14 @@ function MobileInvoiceCard({
   const [previewOpen, setPreviewOpen] = useState(false);
   const isPaid = String(invoice.status || "").trim().toLowerCase() === "paid";
   const isPaying = payingInvoiceId === invoice.id;
+  const reference = invoice.invoice_number || invoice.id.slice(0, 8);
 
   return (
     <>
-      <Card>
+      <Card role="article" aria-label={`Facture ${reference}`}>
         <CardContent className="space-y-3 p-4">
           <div>
-            <div className="font-mono text-xs">{invoice.invoice_number || invoice.id.slice(0, 8)}</div>
+            <div className="font-mono text-xs">{reference}</div>
             <div className="text-xs text-muted-foreground">{formatDate(invoice.created_at)}</div>
             <div className="text-xs text-muted-foreground">Restaurant : {invoice.restaurants?.name || "-"}</div>
           </div>
@@ -199,16 +115,16 @@ function MobileInvoiceCard({
             <div>
               <p className="text-muted-foreground">Statut</p>
               <span className={`inline-flex rounded-full px-2 py-1 text-[10px] font-medium ${getInvoiceStatusClass(invoice.status)}`}>
-                {invoice.status || "draft"}
+                {getInvoiceStatusLabel(invoice.status)}
               </span>
             </div>
           </div>
           <div className="flex min-w-0 flex-wrap gap-2">
-            <Button size="sm" variant="ghost" className="h-auto min-h-[44px] max-w-full whitespace-normal text-left sm:h-9 sm:whitespace-nowrap" onClick={() => setPreviewOpen(true)}>
+            <Button size="sm" variant="ghost" className="h-auto min-h-[44px] max-w-full whitespace-normal text-left sm:h-9 sm:whitespace-nowrap" aria-label={`Voir la facture ${reference}`} onClick={() => setPreviewOpen(true)}>
               Voir la facture
             </Button>
             {invoice.pdf_url ? (
-              <Button size="sm" variant="ghost" className="h-auto min-h-[44px] max-w-full whitespace-normal sm:h-9 sm:whitespace-nowrap" onClick={() => downloadInvoicePdf(invoice)}>
+              <Button size="sm" variant="ghost" className="h-auto min-h-[44px] max-w-full whitespace-normal sm:h-9 sm:whitespace-nowrap" aria-label={`Télécharger le PDF de la facture ${reference}`} onClick={() => downloadInvoicePdf(invoice)}>
                 PDF
               </Button>
             ) : null}
@@ -219,6 +135,8 @@ function MobileInvoiceCard({
                 variant="outline"
                 className="h-auto min-h-[44px] max-w-full whitespace-normal text-left sm:h-9 sm:whitespace-nowrap"
                 disabled={isPaying}
+                aria-busy={isPaying}
+                aria-label={`Marquer la facture ${reference} comme payée`}
                 onClick={() => void onMarkPaid(invoice)}
               >
                 {isPaying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}

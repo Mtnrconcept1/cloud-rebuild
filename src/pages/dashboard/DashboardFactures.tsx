@@ -5,6 +5,7 @@ import { ArrowDownRight, ArrowUpRight, Bot, Coins, FileDown, FileText, HandCoins
 
 import DashboardLayout from "@/components/DashboardLayout";
 import { AccountingDigestCard, AccountingFactList, AccountingHero, AccountingPanel } from "@/components/invoices/AccountingCockpit";
+import { AccountingBreakdownCard, type AccountingBreakdownItem } from "@/components/invoices/AccountingBreakdownCard";
 import { Badge } from "@/components/ui/badge";
 import { AiLoadingState } from "@/components/ui/ai-loading-state";
 import {
@@ -257,6 +258,39 @@ export default function DashboardFactures() {
   const totalReceivable = summary.inflow.receivableFromTok + uninvoicedRestaurantShareTotal;
   const totalPayable = summary.outflow.totalOutstanding;
   const netOpen = totalReceivable - totalPayable;
+  const restaurantRevenueTones = ["emerald", "sky", "violet", "orange", "amber"] as const;
+  const restaurantRevenueBreakdown: AccountingBreakdownItem[] = COMMISSION_SOURCE_ORDER.map((source, index) => ({
+    label: COMMISSION_SOURCE_LABELS[source],
+    amount: summary.inflow.bySource[source],
+    helper: "Votre part restaurant sur les ventes éligibles de cette activité.",
+    tone: restaurantRevenueTones[index] || "emerald",
+  }));
+  const upcomingTokCostBreakdown: AccountingBreakdownItem[] = [
+    {
+      label: "Commissions sur commandes",
+      amount: payableAccruals.orderCommissionAmount,
+      helper: "Commission TOK pas encore portée sur une facture.",
+      tone: "orange",
+    },
+    {
+      label: "Commissions sur réservations payantes",
+      amount: payableAccruals.reservationCommissionAmount,
+      helper: "Commission TOK sur les réservations avec paiement.",
+      tone: "violet",
+    },
+    {
+      label: "Frais fixes de réservation",
+      amount: payableAccruals.reservationFeeAmount,
+      helper: "Frais par table confirmée, encore non facturés.",
+      tone: "amber",
+    },
+    {
+      label: "Campagnes publicitaires",
+      amount: payableAccruals.campaignAmount,
+      helper: "Campagnes payées ou engagées, encore non facturées.",
+      tone: "sky",
+    },
+  ];
   const exportPeriod = useMemo(
     () => buildAccountingPeriodRange(exportPeriodPreset),
     [exportPeriodPreset],
@@ -448,10 +482,29 @@ export default function DashboardFactures() {
                   icon: Wallet,
                   label: "Net ouvert",
                   value: formatAmount(netOpen),
-                  helper: "A recevoir moins a payer.",
+                  helper: "Créances moins dettes ouvertes. Ce montant n’est pas votre bénéfice.",
                 },
               ]}
             />
+
+            <div className="grid min-w-0 gap-4 xl:grid-cols-2">
+              <AccountingBreakdownCard
+                title="Vos recettes par activité"
+                description="Répartition cumulée de votre part restaurant. Les pourcentages montrent le poids de chaque activité dans le total chargé."
+                totalLabel="Part restaurant"
+                total={totalRestaurantShare}
+                items={restaurantRevenueBreakdown}
+                formatValue={formatAmount}
+              />
+              <AccountingBreakdownCard
+                title="Vos coûts Tok en préparation"
+                description="Postes calculés mais pas encore ajoutés à une facture TOK. Les factures déjà émises restent dans Sorties."
+                totalLabel="Non facturé"
+                total={payableAccruals.totalAmount}
+                items={upcomingTokCostBreakdown}
+                formatValue={formatAmount}
+              />
+            </div>
 
             <DashboardAccountingAiPanel
               restaurantId={selectedRestaurant.id}

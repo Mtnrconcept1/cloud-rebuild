@@ -368,7 +368,7 @@ export const TokPayableInvoiceDocument = forwardRef<HTMLDivElement, TokPayableIn
               Détail de la facturation
             </h2>
             {!isPrintMode ? (
-              <div className="space-y-3 md:hidden">
+              <div className="space-y-3">
                 {data.groups.map((group) => (
                   <InvoiceDetailCard key={group.kind} group={group} />
                 ))}
@@ -381,10 +381,10 @@ export const TokPayableInvoiceDocument = forwardRef<HTMLDivElement, TokPayableIn
             <div
               className={cn(
                 "overflow-hidden border border-[#f6b790]",
-                isPrintMode ? "rounded-[24px]" : "hidden rounded-[24px] md:block",
+                isPrintMode ? "rounded-[24px]" : "hidden",
               )}
             >
-              <div className="overflow-x-auto">
+              <div className="overflow-hidden">
                 <table className="min-w-full border-collapse text-left">
                   <thead
                     className={cn(

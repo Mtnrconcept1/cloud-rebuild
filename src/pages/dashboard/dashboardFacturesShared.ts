@@ -181,7 +181,12 @@ export function toAmount(value: unknown) {
 }
 
 export function formatAmount(value: number | string | null | undefined, currency = "CHF") {
-  return `${toAmount(value).toFixed(2)} ${currency}`;
+  const formatted = new Intl.NumberFormat("fr-CH", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(toAmount(value));
+
+  return `${formatted} ${currency}`;
 }
 
 function getCampaignPaidAmount(campaign: Pick<RestaurantPaidCampaignRow, "paid_amount" | "total_budget">) {
