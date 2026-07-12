@@ -53,6 +53,7 @@ describe("production security alert remediation", () => {
   });
 
   it("reports real delivery failures and skips push work without an active token", () => {
+    expect(migration).toContain("Archived stale delivery: RESEND_API_KEY not configured");
     expect(sendEmail).toContain('status: failed > 0 ? "failure" : "success"');
     expect(sendEmail).toContain("notification_failed");
     expect(sendPush).toContain('.update({ status: "skipped", last_error: "No active device tokens" })');
