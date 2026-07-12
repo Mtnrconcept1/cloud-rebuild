@@ -63,6 +63,13 @@ describe("commercial prospecting surface", () => {
     expect(pageSource).toContain("map.on(\"zoomend\"");
     expect(pageSource).toContain("map.fitBounds(cluster.bounds");
     expect(pageSource).toContain("CommercialProspectDetailsDialog");
+    expect(pageSource).toContain('marker.on("click", (event) => {');
+    expect(pageSource).toContain("L.DomEvent.stopPropagation(event)");
+    expect(pageSource).toContain("onOpenDetails(point.prospect)");
+    expect(pageSource).not.toContain(`marker.on("click", () => {
+            onSelect(point.prospect);
+            onOpenDetails(point.prospect);
+          });`);
     expect(pageSource).toContain("Notes du commercial");
     expect(pageSource).toContain("hasLaunchedSearch");
     expect(pageSource).toContain("Lancer la recherche");
