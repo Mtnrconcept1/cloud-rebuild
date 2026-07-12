@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
+import { getInvoiceStatusLabel } from "@/lib/invoicePresentation";
 import { InvoiceDetailAccordion } from "@/components/invoices/InvoiceDetailAccordion";
 import { openExternalHttpsUrl } from "@/lib/securityUrls";
 import {
@@ -76,13 +77,15 @@ function InvoiceListItem({
   const isPaid = String(invoice.status || "").trim().toLowerCase() === "paid";
   const isPaying = payingInvoiceId === invoice.id;
   const detailButtonLabel = isExpanded ? "Masquer le détail" : "Voir le détail";
+  const reference = invoice.invoice_number || invoice.id.slice(0, 8);
+  const detailId = `invoice-detail-${invoice.id}`;
 
   return (
-    <div className="rounded-xl border bg-background p-4">
+    <article className="rounded-xl border bg-background p-4" aria-label={`Facture ${reference}`}>
       <div className="space-y-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0 space-y-1">
-            <div className="break-all font-mono text-xs">{invoice.invoice_number || invoice.id.slice(0, 8)}</div>
+            <div className="break-all font-mono text-xs">{reference}</div>
             <div className="text-xs text-muted-foreground">{formatDate(invoice.created_at)}</div>
             <div className="break-words text-xs text-muted-foreground">
               Facture emise par : {invoice.restaurants?.name || "-"}
@@ -90,11 +93,11 @@ function InvoiceListItem({
           </div>
 
           <div className="flex min-w-0 flex-wrap gap-2 sm:shrink-0 sm:justify-end">
-            <Button size="sm" variant="ghost" className="h-auto min-h-[44px] max-w-full whitespace-normal text-left sm:h-9 sm:whitespace-nowrap" onClick={() => onToggleDetail(invoice.id)}>
+            <Button size="sm" variant="ghost" className="h-auto min-h-[44px] max-w-full whitespace-normal text-left sm:h-9 sm:whitespace-nowrap" aria-expanded={isExpanded} aria-controls={detailId} onClick={() => onToggleDetail(invoice.id)}>
               {detailButtonLabel}
             </Button>
             {invoice.pdf_url ? (
-              <Button size="sm" variant="ghost" className="h-auto min-h-[44px] max-w-full whitespace-normal sm:h-9 sm:whitespace-nowrap" onClick={() => downloadInvoicePdf(invoice)}>
+              <Button size="sm" variant="ghost" className="h-auto min-h-[44px] max-w-full whitespace-normal sm:h-9 sm:whitespace-nowrap" aria-label={`Télécharger le PDF de la facture ${reference}`} onClick={() => downloadInvoicePdf(invoice)}>
                 PDF
               </Button>
             ) : null}
@@ -109,6 +112,8 @@ function InvoiceListItem({
                 variant="outline"
                 className="h-auto min-h-[44px] max-w-full whitespace-normal text-left sm:h-9 sm:whitespace-nowrap"
                 disabled={isPaying}
+                aria-busy={isPaying}
+                aria-label={`Marquer la facture ${reference} comme payée`}
                 onClick={() => void onMarkPaid(invoice)}
               >
                 {isPaying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
@@ -126,14 +131,14 @@ function InvoiceListItem({
           <div className="min-w-0">
             <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Statut</p>
             <span className={`mt-1 inline-flex rounded-full px-2 py-1 text-[10px] font-medium ${getInvoiceStatusClass(invoice.status)}`}>
-              {invoice.status || "draft"}
+              {getInvoiceStatusLabel(invoice.status)}
             </span>
           </div>
         </div>
       </div>
 
       {isExpanded ? (
-        <div className="mt-4 border-t pt-4">
+        <div id={detailId} role="region" aria-label={`Détail de la facture ${reference}`} className="mt-4 border-t pt-4">
           <InvoiceDetailAccordion
             mode="payout"
             lines={detailQuery.data || []}
@@ -143,7 +148,7 @@ function InvoiceListItem({
           />
         </div>
       ) : null}
-    </div>
+    </article>
   );
 }
 
@@ -161,7 +166,7 @@ function InvoiceTable({
   if (invoices.length === 0) {
     return (
       <div className="rounded-xl border border-dashed py-8 text-center text-sm text-muted-foreground">
-        Aucune facturé sur cette section.
+        Aucune facture dans cette section.
       </div>
     );
   }

@@ -149,6 +149,19 @@ export type AccountingPeriodControl = {
   stripe_reconciliation: AccountingStripeReconciliationRow[];
 };
 
+export type PlatformFinanceMonthlySnapshot = {
+  period_month: string;
+  revenue_chf: number | string | null;
+  marketing_authorized_chf: number | string | null;
+  marketing_spent_chf: number | string | null;
+  marketing_available_chf: number | string | null;
+  commercial_cost_chf: number | string | null;
+  ai_cost_chf: number | string | null;
+  other_cost_chf: number | string | null;
+  reserve_minimum_chf: number | string | null;
+  net_margin_chf: number | string | null;
+};
+
 export type AdminReservationFeeAccrualRow = {
   id: string;
   restaurant_id: string;
@@ -236,7 +249,12 @@ export function toAmount(value: unknown) {
 }
 
 export function formatAmount(value: number | string | null | undefined, currency = "CHF") {
-  return `${toAmount(value).toFixed(2)} ${currency}`;
+  const formatted = new Intl.NumberFormat("fr-CH", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(toAmount(value));
+
+  return `${formatted} ${currency}`;
 }
 
 export function formatDate(value: string | null | undefined) {
@@ -935,6 +953,21 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
     },
   });
 
+  const platformFinanceSnapshotQuery = useQuery({
+    queryKey: ["admin-platform-finance-monthly-snapshot", selectedMonth, selectedRestaurant],
+    enabled: selectedRestaurant === "all",
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("admin_platform_finance_monthly_snapshot" as any)
+        .select("period_month,revenue_chf,marketing_authorized_chf,marketing_spent_chf,marketing_available_chf,commercial_cost_chf,ai_cost_chf,other_cost_chf,reserve_minimum_chf,net_margin_chf")
+        .eq("period_month", monthBounds.monthStart)
+        .maybeSingle();
+
+      if (error) throw error;
+      return (data || null) as PlatformFinanceMonthlySnapshot | null;
+    },
+  });
+
   const restaurantsQuery = useQuery({
     queryKey: ["admin-restaurants-list"],
     queryFn: async () => {
@@ -1522,10 +1555,12 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
     financialHealth,
     periodControl: periodControlQuery.data || null,
     stripeReconciliation: stripeReconciliationQuery.data || [],
+    platformFinanceSnapshot: platformFinanceSnapshotQuery.data || null,
     isPeriodClosed: isAccountingPeriodClosed(periodControlQuery.data),
     monthOptions,
     isLoading: periodControlQuery.isLoading
       || stripeReconciliationQuery.isLoading
+      || platformFinanceSnapshotQuery.isLoading
       || restaurantsQuery.isLoading
       || ordersQuery.isLoading
       || financialHealthOrdersQuery.isLoading
@@ -1540,6 +1575,7 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
       || refundedReservationsQuery.isLoading,
     error: periodControlQuery.error
       || stripeReconciliationQuery.error
+      || platformFinanceSnapshotQuery.error
       || restaurantsQuery.error
       || ordersQuery.error
       || financialHealthOrdersQuery.error

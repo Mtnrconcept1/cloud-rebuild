@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, ArrowDownRight, ArrowUpRight, Coins, FileDown, FileText, HandCoins, Loader2, Lock, Megaphone, Percent, Receipt, Store, Target, Unlock, Wallet } from "lucide-react";
 
 import { AccountingDigestCard, AccountingFactList, AccountingHero, AccountingPanel } from "@/components/invoices/AccountingCockpit";
+import { AccountingBreakdownCard, type AccountingBreakdownItem } from "@/components/invoices/AccountingBreakdownCard";
 import {
   ACCOUNTING_PERIOD_PRESETS,
   buildAccountingPeriodRange,
@@ -69,6 +70,7 @@ export default function AdminCompta() {
     financialHealth,
     periodControl,
     stripeReconciliation,
+    platformFinanceSnapshot,
     isPeriodClosed,
     isLoading,
     error,
@@ -82,13 +84,83 @@ export default function AdminCompta() {
   const reserveMinimum = totalRevenue * 0.07;
   const estimatedControllableEnvelope = Math.max(
     0,
-    totalRevenue - marketingBudgetAuthorized - commercialBudgetCap - aiBudgetCap - reserveMinimum,
+    totalRevenue
+      - marketingBudgetAuthorized
+      - commercialBudgetCap
+      - aiBudgetCap
+      - reserveMinimum
+      - developerReservedShare,
   );
   const commercialGoalCapacity = [10, 15, 25, 30, 50].map((restaurantsSigned) => ({
     label: `${restaurantsSigned} restaurants signes`,
     value: formatAmount(commercialBudgetCap / restaurantsSigned),
     helper: "Commission moyenne disponible par restaurant signe, avant bonus d'activation.",
   }));
+  const adminRevenueBreakdown: AccountingBreakdownItem[] = [
+    {
+      label: "Commissions marketplace",
+      amount: summary.inflow.totalCommissions,
+      helper: "Part TOK de 10 % sur les paiements marketplace.",
+      tone: "emerald",
+    },
+    {
+      label: "Frais de réservation",
+      amount: reservationFeeRevenueAmount,
+      helper: "Frais fixes liés aux réservations confirmées.",
+      tone: "sky",
+    },
+    {
+      label: "Campagnes publicitaires",
+      amount: paidCampaignsTotal,
+      helper: "Budgets publicitaires réellement encaissés.",
+      tone: "violet",
+    },
+    {
+      label: "Abonnements Tok One",
+      amount: tokOneSubscriptionAmount,
+      helper: "Encaissements Tok One de la période.",
+      tone: "orange",
+    },
+    {
+      label: "Abonnements, packs et crédits",
+      amount: directTokPurchaseRevenueAmount,
+      helper: "Achats directs des restaurateurs auprès de TOK.",
+      tone: "amber",
+    },
+  ];
+  const recordedPlatformExpenseBreakdown: AccountingBreakdownItem[] = [
+    {
+      label: "Charges marketing enregistrées",
+      amount: toAmount(platformFinanceSnapshot?.marketing_spent_chf),
+      helper: "Dépenses marketing réellement saisies pour le mois.",
+      tone: "orange",
+    },
+    {
+      label: "Coûts commerciaux enregistrés",
+      amount: toAmount(platformFinanceSnapshot?.commercial_cost_chf),
+      helper: "Commissions, primes et coûts commerciaux comptabilisés.",
+      tone: "amber",
+    },
+    {
+      label: "Coûts IA enregistrés",
+      amount: toAmount(platformFinanceSnapshot?.ai_cost_chf),
+      helper: "Consommation OpenAI et autres usages IA suivis.",
+      tone: "sky",
+    },
+    {
+      label: "Autres charges enregistrées",
+      amount: toAmount(platformFinanceSnapshot?.other_cost_chf),
+      helper: "Hébergement, outils, support, juridique et autres fournisseurs saisis.",
+      tone: "rose",
+    },
+    {
+      label: "Part développeur réservée",
+      amount: developerReservedShare,
+      helper: "Engagement séparé correspondant à 10 % du revenu TOK reconnu.",
+      tone: "violet",
+    },
+  ];
+  const recordedPlatformExpenseTotal = recordedPlatformExpenseBreakdown.reduce((sum, item) => sum + item.amount, 0);
   const selectedRestaurantName = selectedRestaurant === "all"
     ? "Tous les restaurateurs"
     : restaurants.find((restaurant) => restaurant.id === selectedRestaurant)?.name || "Restaurateur";
@@ -437,11 +509,32 @@ export default function AdminCompta() {
             ]}
           />
 
+          <div className="grid min-w-0 gap-4 xl:grid-cols-2">
+            <AccountingBreakdownCard
+              title="D'où viennent les recettes Tok"
+              description="Chaque poste est rapporté au revenu Tok total du mois sélectionné."
+              totalLabel="Recettes Tok"
+              total={totalRevenue}
+              items={adminRevenueBreakdown}
+              formatValue={formatAmount}
+            />
+            <AccountingBreakdownCard
+              title="Dépenses réelles et engagements"
+              description={selectedRestaurant === "all"
+                ? "Charges réellement enregistrées dans le suivi plateforme, plus la part développeur. Les reversements restaurants restent séparés car ils ne sont pas une charge TOK."
+                : "Les charges plateforme sont disponibles dans la vue Tous les restaurateurs. La part développeur reste calculée sur la portée sélectionnée."}
+              totalLabel="Charges suivies"
+              total={recordedPlatformExpenseTotal}
+              items={recordedPlatformExpenseBreakdown}
+              formatValue={formatAmount}
+            />
+          </div>
+
           <AccountingPanel
             tone="violet"
             icon={Megaphone}
             title="Budget marketing 60 %"
-            description="Pilotage du modèle TOK : les dépenses restent plafonnées sur le CA réellement encaissé, avec garde-fous commerciaux, IA et réserve."
+            description="Politique théorique distincte des dépenses réelles : les plafonds marketing, commercial, IA, réserve et développeur s’additionnent sur le revenu TOK."
             value={formatAmount(marketingBudgetAuthorized)}
             valueLabel="Marketing autorise"
           >
@@ -468,7 +561,12 @@ export default function AdminCompta() {
                   value: formatAmount(reserveMinimum),
                 },
                 {
-                  label: "Reste pilotable",
+                  label: "Part développeur 10 %",
+                  value: formatAmount(developerReservedShare),
+                  helper: "Engagement soustrait avant de calculer le reste pilotable.",
+                },
+                {
+                  label: "Reste pilotable après politiques",
                   value: formatAmount(estimatedControllableEnvelope),
                   helper: "Hébergement, outils, support, admin, juridique et marge nette.",
                 },
