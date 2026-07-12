@@ -746,7 +746,7 @@ export default function AdminAuditLogs() {
   const calculatedHealthScore = calculateHealthScore(productionHealth);
   const healthScoreExplanation = calculatedHealthScore === null
     ? "Score indisponible : aucun contrôle exploitable n’a encore été remonté."
-    : `Score calculé sur ${formatNumber((productionHealth?.counts?.ok || 0) + (productionHealth?.counts?.watch || 0) + (productionHealth?.counts?.critical || 0))} contrôles : OK = 100 points, à surveiller = 60 points, critique = 0 point. Moyenne pondérée arrondie : ${calculatedHealthScore}/100.`;
+    : `Score calculé sur ${formatNumber((productionHealth?.counts?.ok || 0) + (productionHealth?.counts?.watch || 0) + (productionHealth?.counts?.critical || 0))} contrôles opérationnels : OK = 100 points, à surveiller = 60 points, critique = 0 point. Moyenne pondérée arrondie : ${calculatedHealthScore}/100. Les recommandations Supabase INFO/WARN restent consultables mais sont exclues du score opérationnel. Seules les erreurs ERROR/CRITICAL entrent dans le score opérationnel.`;
   const securityAbuseStatus = normalizeHealthStatus(securityAbuse?.status);
   const paymentAnomalies = paymentIntegrity?.items || [];
   const securityAbuseSections = [
@@ -861,7 +861,7 @@ export default function AdminAuditLogs() {
                     { label: "Contrôles OK", value: productionHealth?.counts?.ok },
                     { label: "À surveiller", value: productionHealth?.counts?.watch },
                     { label: "Critiques", value: productionHealth?.counts?.critical },
-                    { label: "Règle de calcul", value: "OK = 100, à surveiller = 60, critique = 0 ; moyenne de tous les contrôles." },
+                    { label: "Règle de calcul", value: "OK = 100, à surveiller = 60, critique = 0 ; moyenne des contrôles opérationnels. Advisors INFO/WARN hors score, ERROR/CRITICAL inclus." },
                     { label: "Interprétation", value: calculatedHealthScore === null ? "Données insuffisantes" : calculatedHealthScore >= 90 ? "Plateforme saine" : calculatedHealthScore >= 70 ? "Corrections recommandées" : "Intervention prioritaire" },
                   ], productionHealth))}
                 >
@@ -935,10 +935,12 @@ export default function AdminAuditLogs() {
                     { label: "Sécurité", value: productionHealth?.advisors?.security },
                     { label: "Performance", value: productionHealth?.advisors?.performance },
                     { label: "Résumé", value: productionHealth?.advisors?.message },
+                    { label: "Impact sur le score", value: (productionHealth?.advisors?.critical || 0) > 0 ? "Erreur Advisor critique incluse dans le score opérationnel." : "INFO/WARN consultables, hors score opérationnel." },
                   ], productionHealth?.advisors))}
                 >
                   <h3 className="flex items-center justify-between gap-2 font-semibold"><span>Supabase advisors</span><UrgentIndicator show={normalizeHealthStatus(productionHealth?.advisors?.status) === "critical"} /></h3>
                   <p className="mt-2 text-sm text-muted-foreground">{productionHealth?.advisors?.message || "Aucun snapshot synchronisé."}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">INFO/WARN décrivent la posture et restent consultables ; seules les erreurs critiques affectent la santé opérationnelle.</p>
                   <HealthBadge status={productionHealth?.advisors?.status} />
                 </button>
                 <button
