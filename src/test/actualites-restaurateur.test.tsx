@@ -64,6 +64,17 @@ vi.mock("@/hooks/useSocialFeed", () => ({
     isLoading: false,
     refetch: vi.fn(),
   }),
+  useSearchActualitesPosts: () => ({
+    data: { pages: [{ posts: [], totalCount: 0, nextOffset: null }] },
+    error: null,
+    fetchNextPage: vi.fn(),
+    hasNextPage: false,
+    isError: false,
+    isFetching: false,
+    isFetchingNextPage: false,
+    isLoading: false,
+    refetch: vi.fn(),
+  }),
   useToggleRestaurantFollow: () => ({
     mutate: vi.fn(),
     isPending: false,

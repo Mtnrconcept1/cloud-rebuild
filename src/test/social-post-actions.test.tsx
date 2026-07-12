@@ -249,7 +249,7 @@ describe("SocialPostCard actions", () => {
 
     await waitFor(() =>
       expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
-        expect.stringContaining("/actualites?post=post-1"),
+        expect.stringContaining("/actualites/post-1"),
       ),
     );
     expect(socialHooks.mutateAsync).toHaveBeenCalledWith({
@@ -276,7 +276,7 @@ describe("SocialPostCard actions", () => {
     expect(share).toHaveBeenCalledWith({
       title: "Quirinale sur Tok",
       text: "Plat du jour",
-      url: expect.stringContaining("/actualites?post=post-1"),
+      url: expect.stringContaining("/actualites/post-1"),
     });
     expect(socialHooks.mutateAsync).toHaveBeenCalledWith({
       postId: "post-1",

@@ -307,7 +307,10 @@ export default function SocialMediaCarousel({
     return (
       <button
         type="button"
-        className="flex min-h-11 w-full cursor-zoom-in items-center justify-center rounded-[inherit] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-orange-500/70 focus-visible:ring-inset"
+        className={cn(
+          "flex min-h-11 w-full cursor-zoom-in items-center justify-center rounded-[inherit] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-orange-500/70 focus-visible:ring-inset",
+          constrainedPreview && "max-h-[min(62dvh,36rem)]",
+        )}
         aria-label={`Agrandir l’image : ${item.altText || "média du restaurant"}`}
         onClick={(event) => openLightbox(item, event.currentTarget)}
       >
@@ -455,49 +458,3 @@ export default function SocialMediaCarousel({
         <div
           className={cn(
             getContainerClassName(item),
-            getFrameClassName(item),
-            "cursor-zoom-in",
-          )}
-        >
-          {renderMedia(item)}
-          <div className="absolute left-3 top-3 rounded-full bg-black/55 px-2 py-1 text-xs font-medium text-white backdrop-blur">
-            {item.mediaType === "video" ? (
-              <Video className="mr-1 inline h-3 w-3" />
-            ) : (
-              <ImageIcon className="mr-1 inline h-3 w-3" />
-            )}
-            1/1
-          </div>
-          {renderMobileOverlay(item)}
-        </div>
-        {lightbox}
-      </>
-    );
-  }
-
-  return (
-    <Carousel className={containerClassName} opts={{ loop: false }}>
-      <CarouselContent className="-ml-2">
-        {media.map((item, index) => (
-          <CarouselItem key={item.id} className="pl-2">
-            <div className={cn(getFrameClassName(item), "cursor-zoom-in")}>
-              {renderMedia(item)}
-              <div className="absolute left-3 top-3 rounded-full bg-black/55 px-2 py-1 text-xs font-medium text-white backdrop-blur">
-                {item.mediaType === "video" ? (
-                  <Video className="mr-1 inline h-3 w-3" />
-                ) : (
-                  <ImageIcon className="mr-1 inline h-3 w-3" />
-                )}
-                {index + 1}/{media.length}
-              </div>
-              {renderMobileOverlay(item)}
-            </div>
-          </CarouselItem>
-        ))}
-      </CarouselContent>
-      <CarouselPrevious className="left-3 border-white/40 bg-background/90 text-foreground hover:bg-background" />
-      <CarouselNext className="right-3 border-white/40 bg-background/90 text-foreground hover:bg-background" />
-      {lightbox}
-    </Carousel>
-  );
-}
