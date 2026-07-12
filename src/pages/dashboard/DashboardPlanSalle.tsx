@@ -3042,19 +3042,33 @@ export default function DashboardPlanSalle() {
               </div>
 
               {isTemplateMode ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="h-11 rounded-xl"
-                  onClick={() => {
-                    setToolPanelTab("library");
+                <>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-11 w-11 rounded-xl"
+                    onClick={() => saveFloorPlanVariantMutation.mutate({ source: "manual" })}
+                    disabled={!selectedBranch || saveFloorPlanVariantMutation.isPending}
+                    aria-label="Sauver variante"
+                    title="Sauver variante"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-11 rounded-xl"
+                    onClick={() => {
+                      setToolPanelTab("library");
                     revealResponsivePanel("floor-plan-studio-tools");
                   }}
                   disabled={!selectedBranch}
                 >
                   <Plus className="mr-2 h-4 w-4" />
-                  Ajouter
-                </Button>
+                    Ajouter
+                  </Button>
+                </>
               ) : (
                 <Button
                   type="button"
