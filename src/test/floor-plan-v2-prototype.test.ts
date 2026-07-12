@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 const readSource = (relativePath: string) =>
   readFileSync(join(process.cwd(), relativePath), "utf8");
 
-describe("floor plan v2 prototype", () => {
+describe("floor plan v2", () => {
   it("exposes a separate protected dashboard route without replacing v1", () => {
     const app = readSource("src/App.tsx");
     const navigation = readSource("src/components/DashboardLayout.tsx");
@@ -22,14 +22,17 @@ describe("floor plan v2 prototype", () => {
     expect(navigation).toContain('feature: "dashboard-plan-salle"');
   });
 
-  it("keeps the prototype data isolated from v1 and production data", () => {
+  it("keeps the iframe isolated from credentials while sharing official assignments with v1", () => {
     const page = readSource("src/pages/dashboard/DashboardPlanSalleV2.tsx");
     const prototype = readSource("public/tok-table-v2/app.js");
 
     expect(page).toContain('src={PROTOTYPE_URL}');
-    expect(page).toContain("la V1 est inchangée");
+    expect(page).toContain("Les placements sont partagés avec la V1");
+    expect(page).toContain('"restaurant_save_floor_plan_assignments"');
     expect(prototype).toContain('const STORAGE_KEY = "tok-table-v2"');
     expect(prototype).not.toContain('const STORAGE_KEY = "tok-table-v1"');
     expect(prototype).not.toContain("supabase");
+    expect(prototype).not.toContain("service_role");
   });
 });
+
