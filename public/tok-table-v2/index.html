@@ -78,7 +78,7 @@
 
             <div class="zone-tabs" id="zone-tabs" role="tablist" aria-label="Zones de la salle"></div>
 
-            <section class="furniture-library template-only hidden" id="furniture-library" aria-labelledby="furniture-library-title">
+            <section class="furniture-library template-only" id="furniture-library" aria-labelledby="furniture-library-title">
               <div class="furniture-library-heading">
                 <div>
                   <p class="eyebrow">AMÉNAGEMENT</p>
@@ -86,44 +86,44 @@
                 </div>
                 <p>Ajoutez un élément, puis déplacez-le directement sur le plan.</p>
               </div>
-              <div class="furniture-palette" id="furniture-palette" role="list" aria-label="Éléments à ajouter au plan">
-                <button class="furniture-tool" type="button" data-furniture-type="wall" role="listitem">
+              <div class="furniture-palette" id="furniture-palette" role="toolbar" aria-label="Éléments à ajouter au plan">
+                <button class="furniture-tool" type="button" data-furniture-type="wall">
                   <span class="furniture-tool-icon" aria-hidden="true">▰</span>
                   <span>Paroi</span>
                 </button>
-                <button class="furniture-tool" type="button" data-furniture-type="door" role="listitem">
+                <button class="furniture-tool" type="button" data-furniture-type="door">
                   <span class="furniture-tool-icon" aria-hidden="true">↪</span>
                   <span>Porte</span>
                 </button>
-                <button class="furniture-tool" type="button" data-furniture-type="window" role="listitem">
+                <button class="furniture-tool" type="button" data-furniture-type="window">
                   <span class="furniture-tool-icon" aria-hidden="true">▭</span>
                   <span>Fenêtre</span>
                 </button>
-                <button class="furniture-tool" type="button" data-furniture-type="bar" role="listitem">
+                <button class="furniture-tool" type="button" data-furniture-type="bar">
                   <span class="furniture-tool-icon" aria-hidden="true">▤</span>
                   <span>Bar</span>
                 </button>
-                <button class="furniture-tool" type="button" data-furniture-type="plant" role="listitem">
+                <button class="furniture-tool" type="button" data-furniture-type="plant">
                   <span class="furniture-tool-icon" aria-hidden="true">✿</span>
                   <span>Plante</span>
                 </button>
-                <button class="furniture-tool" type="button" data-furniture-type="service_station" role="listitem">
+                <button class="furniture-tool" type="button" data-furniture-type="service_station">
                   <span class="furniture-tool-icon" aria-hidden="true">▦</span>
                   <span>Station service</span>
                 </button>
-                <button class="furniture-tool" type="button" data-furniture-type="host_stand" role="listitem">
+                <button class="furniture-tool" type="button" data-furniture-type="host_stand">
                   <span class="furniture-tool-icon" aria-hidden="true">⌂</span>
                   <span>Accueil</span>
                 </button>
-                <button class="furniture-tool" type="button" data-furniture-type="buffet" role="listitem">
+                <button class="furniture-tool" type="button" data-furniture-type="buffet">
                   <span class="furniture-tool-icon" aria-hidden="true">▥</span>
                   <span>Buffet</span>
                 </button>
-                <button class="furniture-tool" type="button" data-furniture-type="sofa" role="listitem">
+                <button class="furniture-tool" type="button" data-furniture-type="sofa">
                   <span class="furniture-tool-icon" aria-hidden="true">▰</span>
                   <span>Banquette</span>
                 </button>
-                <button class="furniture-tool" type="button" data-furniture-type="divider" role="listitem">
+                <button class="furniture-tool" type="button" data-furniture-type="divider">
                   <span class="furniture-tool-icon" aria-hidden="true">━</span>
                   <span>Séparateur</span>
                 </button>
@@ -291,11 +291,11 @@
             <input id="furniture-zone-input" name="zone" required list="zone-list" maxlength="60" placeholder="Ex. Salle principale" />
           </label>
           <label>
-            <span>Largeur (cm)</span>
+            <span>Largeur sur le plan</span>
             <input id="furniture-width-input" name="width" required type="number" min="16" max="600" step="1" inputmode="numeric" />
           </label>
           <label>
-            <span>Hauteur (cm)</span>
+            <span>Hauteur sur le plan</span>
             <input id="furniture-height-input" name="height" required type="number" min="16" max="600" step="1" inputmode="numeric" />
           </label>
           <label class="full-field">
