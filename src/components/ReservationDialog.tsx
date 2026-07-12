@@ -451,6 +451,7 @@ export default function ReservationDialog({
       restaurant_confirmation_required: serviceSettings.restaurant_confirmation_required,
       confirmation_deadline_minutes: serviceSettings.confirmation_deadline_minutes,
       deposit_amount_chf: serviceSettings.deposit_amount_chf,
+      donate_earned_xp: donatePoints,
       acquisition_source:
         typeof window !== "undefined" && new URLSearchParams(window.location.search).get("utm_source") === "google_business"
           ? "google_business"
@@ -515,13 +516,6 @@ export default function ReservationDialog({
       await dispatchQueuedNotifications("reservation-create");
     } catch (dispatchError) {
       console.error("Reservation notification dispatch failed:", dispatchError);
-    }
-
-    if (donatePoints && loyaltyPoints >= 0 && earnedXp > 0) {
-      await (supabase.rpc as any)("donate_points_for_meal", {
-        points_param: earnedXp,
-        description_param: `Don solidaire (réservation chez ${restaurantName})`,
-      });
     }
 
     queryClient.invalidateQueries({ queryKey: ["my-reservations"] });

@@ -50,10 +50,10 @@
   ],
   "shortcuts": [
     {
-      "name": "TOK Pulse",
-      "short_name": "Pulse",
-      "description": "Ouvrir le widget bouton TOK pour l'écran d'accueil iPhone",
-      "url": "/tok-pulse?source=pwa-shortcut",
+      "name": "Mon espace",
+      "short_name": "Mon espace",
+      "description": "Retrouver vos réservations, commandes, avis et avantages TOK",
+      "url": "/mon-espace?source=pwa-shortcut",
       "icons": [
         {
           "src": "/favicon-192x192.png",
@@ -89,10 +89,10 @@
       ]
     },
     {
-      "name": "Scanner fidélité",
-      "short_name": "Fidélité",
-      "description": "Ouvrir les points et avantages Miamz",
-      "url": "/points-cadeau",
+      "name": "Actualités",
+      "short_name": "Actualités",
+      "description": "Voir les nouveautés de vos restaurants",
+      "url": "/actualites",
       "icons": [
         {
           "src": "/favicon-192x192.png",

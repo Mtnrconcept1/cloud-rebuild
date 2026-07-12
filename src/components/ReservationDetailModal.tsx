@@ -30,6 +30,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { dispatchQueuedNotifications } from "@/lib/notificationDispatch";
 import { cancelReservationByCustomer } from "@/lib/reservationMutations";
+import { parseBusinessDateTime } from "@/lib/businessTime";
 
 export type Json =
   | string
@@ -62,6 +63,10 @@ export interface ReservationDetail {
   progressive_offer_id?: string | null;
   progressive_offer_discount_percent?: number | null;
   progressive_offer_discount_status?: string | null;
+  payment_method?: string | null;
+  refund_status?: string | null;
+  refunded_amount_chf?: number | null;
+  reservation_time?: string | null;
 }
 
 interface Props {
@@ -111,9 +116,11 @@ const canCancel = (reservation: ReservationDetail) => {
     if (typeof arrivalTime === "string" && arrivalTime) effectiveTime = arrivalTime;
   }
 
-  const reservationDateTime = new Date(`${reservation.date}T${effectiveTime}`);
-  const now = new Date();
-  const hoursUntil = (reservationDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+  const reservationDateTime = reservation.reservation_time
+    ? new Date(reservation.reservation_time)
+    : parseBusinessDateTime(reservation.date, effectiveTime);
+  if (!reservationDateTime || !Number.isFinite(reservationDateTime.getTime())) return false;
+  const hoursUntil = (reservationDateTime.getTime() - Date.now()) / (1000 * 60 * 60);
   return hoursUntil >= 2;
 };
 
@@ -250,22 +257,30 @@ export default function ReservationDetailModal({ reservation, open, onOpenChange
 
   const handleCancel = async () => {
     setCancelling(true);
-    const result = await cancelReservationByCustomer(reservation.id);
-    setCancelling(false);
-    if (!result.ok) {
-      toast({ title: "Annulation impossible", description: result.errorMessage ?? "Annulation impossible.", variant: "destructive" });
-      return;
-    }
-
     try {
-      await dispatchQueuedNotifications("reservation-cancel");
-    } catch (dispatchError) {
-      console.error("Reservation cancellation notification dispatch failed:", dispatchError);
+      const result = await cancelReservationByCustomer(reservation.id);
+      if (!result.ok) {
+        throw new Error(result.errorMessage ?? "Annulation impossible.");
+      }
+
+      try {
+        await dispatchQueuedNotifications("reservation-cancel");
+      } catch (dispatchError) {
+        console.error("Reservation cancellation notification dispatch failed:", dispatchError);
+      }
+      toast({ title: "Réservation annulée", description: "Votre réservation a bien été annulée." });
+      queryClient.invalidateQueries({ queryKey: ["my-reservations"] });
+      setConfirmCancel(false);
+      onOpenChange(false);
+    } catch (cancellationError) {
+      toast({
+        title: "Annulation impossible",
+        description: cancellationError instanceof Error ? cancellationError.message : "Réessayez dans un instant.",
+        variant: "destructive",
+      });
+    } finally {
+      setCancelling(false);
     }
-    toast({ title: "Réservation annulée", description: "Votre réservation a bien été annulée." });
-    queryClient.invalidateQueries({ queryKey: ["my-reservations"] });
-    setConfirmCancel(false);
-    onOpenChange(false);
   };
 
   return (
@@ -363,7 +378,7 @@ export default function ReservationDetailModal({ reservation, open, onOpenChange
 
           {(reservation.total_amount > 0 || (isJsonRecord(reservation.metadata) && Number(reservation.metadata.points_discount_amount || reservation.metadata.points_discount || 0) > 0)) && (() => {
             const meta = isJsonRecord(reservation.metadata) ? reservation.metadata : {};
-            const paymentMethod = String(meta.payment_method || "card");
+            const paymentMethod = String(reservation.payment_method || meta.payment_method || "card");
             const formulaDiscountPercent = Number(meta.formula_discount_percent || 0);
             const promoDiscountPercent = Number(meta.promo_discount_percent || 0);
             const subtotalFromMeta = Number(meta.pre_discount_subtotal || 0);
@@ -447,13 +462,22 @@ export default function ReservationDetailModal({ reservation, open, onOpenChange
                     </div>
                   )}
                   <div className="flex justify-between font-bold text-foreground pt-1 border-t">
-                    <span>Total payé</span>
+                    <span>Total de la réservation</span>
                     <span>{Number(reservation.total_amount).toFixed(2)} CHF</span>
                   </div>
                   <div className="flex items-center gap-1.5 pt-1 text-muted-foreground">
                     <PaymentIcon className="h-3 w-3" />
-                    <span>Payé par {paymentLabel}</span>
+                    <span>Mode de paiement : {paymentLabel}</span>
                   </div>
+                  {reservation.refund_status ? (
+                    <div className="flex items-center justify-between gap-3 rounded-lg bg-muted px-2 py-1 text-muted-foreground">
+                      <span>Remboursement</span>
+                      <span className="font-medium">
+                        {reservation.refund_status === "pending" ? "En cours" : reservation.refund_status}
+                        {Number(reservation.refunded_amount_chf || 0) > 0 ? ` · ${Number(reservation.refunded_amount_chf).toFixed(2)} CHF` : ""}
+                      </span>
+                    </div>
+                  ) : null}
                   {paymentMethod === "card" && cardDetails && (
                     <div className="flex items-center justify-between gap-3 text-muted-foreground">
                       <span className="flex items-center gap-1.5">

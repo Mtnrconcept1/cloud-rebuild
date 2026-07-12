@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useSearchParams } from "react-router-dom";
-import { CalendarDays, ChevronDown, ChevronRight, Clock, Receipt, Users, Utensils } from "lucide-react";
+import { Link, useSearchParams } from "react-router-dom";
+import { CalendarDays, ChevronDown, ChevronRight, Clock, Receipt, RefreshCcw, Users, Utensils } from "lucide-react";
 
 import CustomerDashboardLayout from "@/components/CustomerDashboardLayout";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
@@ -25,6 +25,10 @@ type ProgressiveReservationFields = {
   progressive_offer_id?: string | null;
   progressive_offer_discount_percent?: number | null;
   progressive_offer_discount_status?: string | null;
+  payment_method?: string | null;
+  refund_status?: string | null;
+  refunded_amount_chf?: number | null;
+  reservation_time?: string | null;
 };
 type ReservationWithRestaurant = ReservationRow & {
   restaurants: RestaurantName | RestaurantName[] | null;
@@ -154,14 +158,15 @@ export default function Reservations() {
   const [expandedReservations, setExpandedReservations] = useState<Set<string>>(new Set());
   const [viewMode, setViewMode] = useState<OperationViewMode>("details");
 
-  const { data: reservations, isLoading } = useQuery({
+  const { data: reservations, isLoading, error, refetch } = useQuery({
     queryKey: ["my-reservations", user?.id],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error: queryError } = await supabase
         .from("reservations")
         .select("*, restaurants(name)")
         .eq("user_id", user!.id)
         .order("date", { ascending: false });
+      if (queryError) throw queryError;
       return (data || []) as ReservationWithRestaurant[];
     },
     enabled: !!user,
@@ -207,6 +212,10 @@ export default function Reservations() {
     progressive_offer_id: selectedReservation.progressive_offer_id,
     progressive_offer_discount_percent: selectedReservation.progressive_offer_discount_percent,
     progressive_offer_discount_status: selectedReservation.progressive_offer_discount_status,
+    payment_method: selectedReservation.payment_method,
+    refund_status: selectedReservation.refund_status,
+    refunded_amount_chf: selectedReservation.refunded_amount_chf,
+    reservation_time: selectedReservation.reservation_time,
   } : null;
 
   return (
@@ -233,6 +242,14 @@ export default function Reservations() {
 
         {isLoading ? (
           <div className="space-y-4">{[1, 2, 3].map((i) => <div key={i} className="h-20 animate-pulse rounded-xl bg-muted" />)}</div>
+        ) : error ? (
+          <div role="alert" className="rounded-2xl border border-destructive/30 bg-destructive/5 p-6 text-center">
+            <p className="font-semibold text-destructive">Impossible de charger vos réservations.</p>
+            <p className="mt-1 text-sm text-muted-foreground">Vos réservations restent enregistrées. Réessayez dans un instant.</p>
+            <Button type="button" variant="outline" className="mt-4 gap-2" onClick={() => void refetch()}>
+              <RefreshCcw className="h-4 w-4" />Réessayer
+            </Button>
+          </div>
         ) : sortedReservations.length > 0 ? (
           viewMode !== "details" ? (
             <div className={viewMode === "gallery" ? "grid gap-3 md:grid-cols-2 xl:grid-cols-3" : "space-y-3"}>
@@ -301,7 +318,7 @@ export default function Reservations() {
                     type="button"
                     onClick={() => toggleReservation(reservation.id)}
                     aria-expanded={isExpanded}
-                    className="flex w-full items-center justify-between gap-4 p-4 text-left transition-colors hover:bg-muted/40"
+                    className="flex w-full flex-col items-stretch gap-3 p-4 text-left transition-colors hover:bg-muted/40 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
                   >
                     <div className="min-w-0 space-y-1">
                       <div className="flex min-w-0 flex-wrap items-center gap-2">
@@ -314,7 +331,7 @@ export default function Reservations() {
                         {reservation.party_size ? <span>{reservation.party_size} personne(s)</span> : null}
                       </div>
                     </div>
-                    <div className="flex shrink-0 items-center gap-3 text-right">
+                    <div className="flex w-full items-center justify-between gap-3 sm:w-auto sm:shrink-0 sm:justify-end sm:text-right">
                       <div>
                         <p className="text-sm font-bold text-primary">
                           {Number(reservation.total_amount || 0) > 0 ? `${Number(reservation.total_amount).toFixed(2)} CHF` : "A regler sur place"}
@@ -367,8 +384,8 @@ export default function Reservations() {
                           <div className="divide-y rounded-lg border">
                             {preorderItems.map((item, index) => (
                               <div key={`${item.name}-${index}`} className="flex items-center justify-between gap-3 px-3 py-2 text-sm">
-                                <span>{item.quantity}x {item.name}</span>
-                                <span className="font-medium">{item.totalPrice.toFixed(2)} CHF</span>
+                                <span className="min-w-0 break-words pr-2">{item.quantity}x {item.name}</span>
+                                <span className="shrink-0 font-medium tabular-nums">{item.totalPrice.toFixed(2)} CHF</span>
                               </div>
                             ))}
                           </div>
@@ -406,9 +423,10 @@ export default function Reservations() {
           </div>
           )
         ) : (
-          <div className="space-y-2 py-12 text-center">
+          <div className="space-y-3 py-12 text-center">
             <CalendarDays className="mx-auto h-10 w-10 text-muted-foreground" />
-            <p className="text-muted-foreground">Aucune réservation pour le moment</p>
+            <p className="text-muted-foreground">Aucune réservation pour le moment.</p>
+            <Button asChild variant="outline"><Link to="/recherche">Trouver une table</Link></Button>
           </div>
         )}
       </div>

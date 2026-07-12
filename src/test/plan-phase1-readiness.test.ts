@@ -130,10 +130,10 @@ describe("phase 1 launch audit plan readiness", () => {
     expect(manifest.start_url).toBe("/?source=pwa");
     expect(manifest.screenshots?.map((screenshot) => screenshot.form_factor).sort()).toEqual(["narrow", "wide"]);
     expect(manifest.shortcuts?.map((shortcut) => shortcut.name)).toEqual([
-      "TOK Pulse",
+      "Mon espace",
       "Réserver",
       "Offres flash",
-      "Scanner fidélité",
+      "Actualités",
     ]);
   });
 
@@ -142,7 +142,7 @@ describe("phase 1 launch audit plan readiness", () => {
     const page = readProjectFile("src/pages/TokPulse.tsx");
 
     expect(app).toContain('const TokPulse = lazy(() => import("./pages/TokPulse"))');
-    expect(app).toContain('<Route path="/tok-pulse" element={<ClientSurfaceRoute><TokPulse /></ClientSurfaceRoute>} />');
+    expect(app).toContain('<FeatureSwitch enabled={hasFeature("tok-pulse")} fallback="/">');
     expect(page).toContain("TOK Pulse · présence iPhone");
     expect(page).toContain("Un widget TOK qui agit comme un gros bouton vivant.");
     expect(page).toContain("Aucun faux compteur marketing.");

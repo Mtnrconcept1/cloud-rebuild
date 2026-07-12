@@ -99,7 +99,7 @@ export default function Navbar() {
   const location = useLocation();
   const { itemCount } = useCart();
   const activeFeatures = useActiveFeatures();
-  const { unreadNotifications } = useNotificationCenter(50);
+  const { unreadNotifications } = useNotificationCenter(50, { realtime: true });
   const logoSrc = useTokLogoSrc();
   const [menuOpen, setMenuOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
@@ -317,7 +317,7 @@ export default function Navbar() {
             />
 
             {showCartShortcut ? (
-              <Button variant="ghost" size="icon" asChild aria-label="Panier" onMouseDown={preserveNavbarActionScrollPosition} className={`${isMobileHomeHeader ? "hidden lg:inline-flex" : ""} relative`}>
+              <Button variant="ghost" size="icon" asChild aria-label="Panier" onMouseDown={preserveNavbarActionScrollPosition} className="relative">
                 <Link to="/panier">
                   <ShoppingCart className="h-5 w-5" />
                   <span className="sr-only">Panier</span>
@@ -353,12 +353,12 @@ export default function Navbar() {
                     onMouseDown={preserveNavbarActionScrollPosition}
                     className={
                       isMobileHomeHeader
-                        ? "order-3 h-[48px] rounded-full bg-primary px-5 text-[0.88rem] font-bold text-white shadow-[0_10px_22px_rgba(255,107,28,0.24)] hover:bg-primary/90"
+                        ? "order-3 h-[48px] w-[48px] rounded-full bg-primary p-0 text-[0.88rem] font-bold text-white shadow-[0_10px_22px_rgba(255,107,28,0.24)] hover:bg-primary/90 min-[380px]:w-auto min-[380px]:px-5"
                         : "rounded-full"
                     }
                   >
                     <User className="h-5 w-5" />
-                    <span className={isMobileHomeHeader ? "ml-2 inline" : "sr-only"}>
+                    <span className={isMobileHomeHeader ? "hidden min-[380px]:ml-2 min-[380px]:inline" : "sr-only"}>
                       COMPTE
                     </span>
                   </Button>
@@ -367,7 +367,7 @@ export default function Navbar() {
                   <RoleSpaceMenuSection className="mx-1 mb-2" onNavigate={() => setAccountMenuOpen(false)} />
                   {showClientSurface ? (
                     <DropdownMenuItem asChild>
-                      <Link to="/profil">Mon profil</Link>
+                      <Link to="/mon-espace">Mon espace</Link>
                     </DropdownMenuItem>
                   ) : null}
                   {showClientSurface && activeFeatures.has("commandes") ? (
@@ -472,7 +472,7 @@ export default function Navbar() {
                     </Link>
                   ) : null}
 
-                  {!user && itemCount > 0 ? (
+                  {showClientSurface && itemCount > 0 ? (
                     <Link to="/panier" className="flex items-center gap-2 text-sm font-medium text-primary" onClick={() => setMenuOpen(false)}>
                       <ShoppingCart className="h-4 w-4" />
                       Voir mon panier ({itemCount})
@@ -526,9 +526,9 @@ export default function Navbar() {
                       <RoleSpaceMenuSection onNavigate={() => setMenuOpen(false)} />
 
                       {showClientSurface ? (
-                        <Link to="/profil" className="flex items-center gap-2 text-sm font-medium hover:text-primary" onClick={() => setMenuOpen(false)}>
+                        <Link to="/mon-espace" className="flex items-center gap-2 text-sm font-medium hover:text-primary" onClick={() => setMenuOpen(false)}>
                           <User className="h-4 w-4" />
-                          Mon profil
+                          Mon espace
                         </Link>
                       ) : null}
                       {role === "courier" && !showClientSurface ? (

@@ -1,10 +1,12 @@
-import { Leaf, Clock, MapPin, Star, Gift, Heart, Zap, ShoppingCart } from "lucide-react";
+import { Clock, Gift, Heart, Leaf, MapPin, ShoppingCart, Star, Zap } from "lucide-react";
+import { Link } from "react-router-dom";
+
+import CountdownTimer from "@/components/CountdownTimer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
-import { useCart } from "@/lib/cart-context";
 import { useToast } from "@/hooks/use-toast";
-import CountdownTimer from "@/components/CountdownTimer";
+import { parseBusinessDateTime } from "@/lib/businessTime";
+import { useCart } from "@/lib/cart-context";
 import { getOptimizedImageUrl } from "@/lib/optimizedImages";
 
 interface AntiWasteCardProps {
@@ -20,7 +22,7 @@ interface AntiWasteCardProps {
   pickupEnd: string;
   imageUrl: string;
   quantityAvailable: number;
-  offerType?: 'regular' | 'surprise_bag' | 'solidarity' | 'flash_alert';
+  offerType?: "regular" | "surprise_bag" | "solidarity" | "flash_alert";
   availableDate?: string;
   isFlash?: boolean;
   offerId?: string;
@@ -39,47 +41,81 @@ const CUISINE_IMAGES: Record<string, string> = {
 };
 
 function getBestImage(offerImage: string, restaurantImage?: string, title?: string): string {
-  // Always use local images based on title keywords
-  if (title) {
-    const lower = title.toLowerCase();
-    for (const [key, url] of Object.entries(CUISINE_IMAGES)) {
-      if (key !== "default" && lower.includes(key)) return url;
-    }
+  const directOfferImage = offerImage?.trim();
+  if (directOfferImage) return directOfferImage;
+  const directRestaurantImage = restaurantImage?.trim();
+  if (directRestaurantImage) return directRestaurantImage;
+
+  const normalizedTitle = title?.toLowerCase() || "";
+  for (const [key, url] of Object.entries(CUISINE_IMAGES)) {
+    if (key !== "default" && normalizedTitle.includes(key)) return url;
   }
-  // Use local restaurant image if available
-  if (restaurantImage && restaurantImage.startsWith("/images/")) return restaurantImage;
-  if (offerImage && offerImage.startsWith("/images/")) return offerImage;
   return CUISINE_IMAGES.default;
 }
 
+function formatAvailableDate(value?: string) {
+  if (!value) return "";
+  const parsed = new Date(`${value}T12:00:00Z`);
+  if (!Number.isFinite(parsed.getTime())) return value;
+  return parsed.toLocaleDateString("fr-CH", {
+    timeZone: "Europe/Zurich",
+    day: "2-digit",
+    month: "short",
+  });
+}
+
 export default function AntiWasteCard({
-  title, restaurant, restaurantId, restaurantCity, restaurantRating, restaurantImageUrl,
-  originalPrice, discountedPrice, pickupStart, pickupEnd, imageUrl, quantityAvailable,
-  offerType, availableDate, isFlash, offerId,
+  title,
+  restaurant,
+  restaurantId,
+  restaurantCity,
+  restaurantRating,
+  restaurantImageUrl,
+  originalPrice,
+  discountedPrice,
+  pickupStart,
+  pickupEnd,
+  imageUrl,
+  quantityAvailable,
+  offerType,
+  availableDate,
+  isFlash,
+  offerId,
 }: AntiWasteCardProps) {
-  const discount = Math.round((1 - discountedPrice / originalPrice) * 100);
+  const safeOriginalPrice = Number.isFinite(originalPrice) && originalPrice > 0 ? originalPrice : 0;
+  const safeDiscountedPrice = Number.isFinite(discountedPrice) && discountedPrice >= 0 ? discountedPrice : 0;
+  const discount = safeOriginalPrice > 0
+    ? Math.max(0, Math.min(100, Math.round((1 - safeDiscountedPrice / safeOriginalPrice) * 100)))
+    : 0;
   const resolvedImage = getBestImage(imageUrl, restaurantImageUrl, title);
   const optimizedImage = getOptimizedImageUrl(resolvedImage, "card");
-  const flashTarget = (isFlash && availableDate && pickupEnd) ? new Date(`${availableDate}T${pickupEnd}`) : null;
-  const showCountdown = flashTarget && flashTarget.getTime() > Date.now();
-  const { addItem } = useCart();
+  const flashTarget = isFlash && availableDate && pickupEnd
+    ? parseBusinessDateTime(availableDate, pickupEnd)
+    : null;
+  const showCountdown = Boolean(flashTarget && flashTarget.getTime() > Date.now());
+  const { items, addItem } = useCart();
   const { toast } = useToast();
+  const stock = Math.max(0, Math.trunc(Number(quantityAvailable) || 0));
+  const quantityInCart = offerId
+    ? items
+      .filter((item) => item.metadata?.anti_waste_offer_id === offerId)
+      .reduce((total, item) => total + Math.max(0, Number(item.quantity) || 0), 0)
+    : 0;
+  const soldOutForCart = stock === 0 || quantityInCart >= stock;
 
-  const handleAddToCart = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!restaurantId) return;
+  const handleAddToCart = () => {
+    if (!restaurantId || soldOutForCart) return;
     addItem({
       menuItemId: `antigaspi-${offerId || title}`,
       name: `[Anti-gaspi] ${title}`,
-      price: discountedPrice,
+      price: safeDiscountedPrice,
       restaurantId,
       restaurantName: restaurant,
       metadata: {
         is_anti_waste: true,
         anti_waste_offer_id: offerId,
         offer_id: offerId,
-        original_price: originalPrice,
+        original_price: safeOriginalPrice,
         pickup_start: pickupStart,
         pickup_end: pickupEnd,
         available_date: availableDate || null,
@@ -89,87 +125,95 @@ export default function AntiWasteCard({
     });
     toast({
       title: "Ajouté au panier !",
-      description: `${title} — ${discountedPrice.toFixed(2)} CHF (à emporter)`,
+      description: `${title} — ${safeDiscountedPrice.toFixed(2)} CHF (à emporter)`,
     });
   };
 
-  const content = (
-    <div className="premium-card rounded-2xl bg-card border shadow-sm h-full flex flex-col">
-      <div className="aspect-[4/3] overflow-hidden relative shrink-0">
+  return (
+    <article className="group premium-card flex h-full flex-col rounded-2xl border bg-card shadow-sm">
+      <div className="relative aspect-[4/3] shrink-0 overflow-hidden rounded-t-2xl">
         <img
           src={optimizedImage}
-          alt={title}
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+          alt={`${title} – offre anti-gaspi de ${restaurant}`}
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           loading="lazy"
           decoding="async"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-        <div className="absolute top-3 left-3">
-          {offerType === 'surprise_bag' ? (
-            <Badge className="bg-purple-600/90 backdrop-blur-md text-white gap-1 border-none shadow-lg uppercase font-bold text-[10px]"><Gift className="h-3 w-3" />Surprise</Badge>
-          ) : offerType === 'solidarity' ? (
-            <Badge className="bg-rose-600/90 backdrop-blur-md text-white gap-1 border-none shadow-lg uppercase font-bold text-[10px]"><Heart className="h-3 w-3" />Solidaire</Badge>
-          ) : offerType === 'flash_alert' ? (
-            <Badge className="bg-amber-600/90 backdrop-blur-md text-white gap-1 border-none shadow-lg uppercase font-bold text-[10px]"><Zap className="h-3 w-3" />Flash</Badge>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+        <div className="absolute left-3 top-3">
+          {offerType === "surprise_bag" ? (
+            <Badge className="gap-1 border-none bg-purple-600/90 text-[10px] font-bold uppercase text-white shadow-lg"><Gift className="h-3 w-3" />Surprise</Badge>
+          ) : offerType === "solidarity" ? (
+            <Badge className="gap-1 border-none bg-rose-600/90 text-[10px] font-bold uppercase text-white shadow-lg"><Heart className="h-3 w-3" />Solidaire</Badge>
+          ) : offerType === "flash_alert" ? (
+            <Badge className="gap-1 border-none bg-amber-600/90 text-[10px] font-bold uppercase text-white shadow-lg"><Zap className="h-3 w-3" />Flash</Badge>
           ) : (
-            <Badge className="bg-emerald-600/90 backdrop-blur-md text-white gap-1 border-none shadow-lg uppercase font-bold text-[10px]"><Leaf className="h-3 w-3" />-{discount}%</Badge>
+            <Badge className="gap-1 border-none bg-emerald-600/90 text-[10px] font-bold uppercase text-white shadow-lg"><Leaf className="h-3 w-3" />{discount > 0 ? `-${discount}%` : "Anti-gaspi"}</Badge>
           )}
         </div>
-        {quantityAvailable <= 3 && (
-          <Badge variant="destructive" className="absolute top-3 right-3 text-[10px] font-black uppercase shadow-lg animate-pulse">Plus que {quantityAvailable}!</Badge>
-        )}
+        {stock <= 3 ? (
+          <Badge variant="destructive" className="absolute right-3 top-3 text-[10px] font-black uppercase shadow-lg">Plus que {stock} !</Badge>
+        ) : null}
       </div>
-      <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
+
+      <div className="flex flex-1 flex-col justify-between space-y-3 p-4">
         <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <p className="text-[10px] text-primary font-black uppercase tracking-widest truncate max-w-[120px]">{restaurant}</p>
-            {restaurantRating && restaurantRating > 0 && (
-              <div className="flex items-center gap-1 bg-amber-400/10 px-1.5 py-0.5 rounded-md">
+          <div className="flex items-center justify-between gap-2">
+            <p className="min-w-0 truncate text-[10px] font-black uppercase tracking-widest text-primary">{restaurant}</p>
+            {restaurantRating && restaurantRating > 0 ? (
+              <div className="flex shrink-0 items-center gap-1 rounded-md bg-amber-400/10 px-1.5 py-0.5">
                 <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
                 <span className="text-[10px] font-bold text-amber-600">{restaurantRating.toFixed(1)}</span>
               </div>
-            )}
+            ) : null}
           </div>
-          <h3 className="font-display font-bold text-base leading-tight group-hover:text-primary transition-colors line-clamp-2">{title}</h3>
-          {restaurantCity && (
+          <h3 className="line-clamp-2 break-words font-display text-base font-bold leading-tight transition-colors group-hover:text-primary">{title}</h3>
+          {restaurantCity ? (
             <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
               <MapPin className="h-3 w-3 text-primary/60" /><span>{restaurantCity}</span>
             </div>
-          )}
+          ) : null}
         </div>
+
         <div className="space-y-3 pt-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-xl font-black text-foreground">{discountedPrice.toFixed(2)}</span>
-              <span className="text-xs font-bold text-muted-foreground uppercase">CHF</span>
-              <span className="text-xs text-muted-foreground/60 line-through ml-1">{originalPrice.toFixed(2)}</span>
-            </div>
+          <div className="flex min-w-0 flex-wrap items-baseline gap-1.5">
+            <span className="text-xl font-black tabular-nums text-foreground">{safeDiscountedPrice.toFixed(2)}</span>
+            <span className="text-xs font-bold uppercase text-muted-foreground">CHF</span>
+            {safeOriginalPrice > 0 ? <span className="ml-1 text-xs tabular-nums text-muted-foreground/60 line-through">{safeOriginalPrice.toFixed(2)}</span> : null}
           </div>
+
           {showCountdown ? (
             <CountdownTimer targetDate={flashTarget!} variant="default" color="amber" label="Expire dans" />
           ) : (
-            <div className="flex items-center gap-2 p-2 rounded-xl bg-secondary/30 border border-secondary/50">
-              <Clock className="h-3.5 w-3.5 text-primary" />
-              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight">Retrait {pickupStart} - {pickupEnd}</span>
+            <div className="flex items-center gap-2 rounded-xl border border-secondary/50 bg-secondary/30 p-2">
+              <Clock className="h-3.5 w-3.5 shrink-0 text-primary" />
+              <span className="break-words text-[10px] font-bold uppercase tracking-tight text-muted-foreground">
+                Retrait {formatAvailableDate(availableDate)} · {pickupStart}–{pickupEnd}
+              </span>
             </div>
           )}
-          {restaurantId && (
-            <Button
-              onClick={handleAddToCart}
-              size="sm"
-              className="w-full gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
-            >
-              <ShoppingCart className="h-4 w-4" />
-              Ajouter au panier · À emporter
-            </Button>
-          )}
+
+          <div className="grid gap-2 sm:grid-cols-2">
+            {restaurantId ? (
+              <Button asChild size="sm" variant="outline" className="w-full">
+                <Link to={`/restaurant/${restaurantId}`}>Voir le restaurant</Link>
+              </Button>
+            ) : null}
+            {restaurantId ? (
+              <Button
+                type="button"
+                onClick={handleAddToCart}
+                size="sm"
+                disabled={soldOutForCart}
+                className="w-full gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
+              >
+                <ShoppingCart className="h-4 w-4" />
+                {soldOutForCart ? "Stock atteint" : "Ajouter"}
+              </Button>
+            ) : null}
+          </div>
         </div>
       </div>
-    </div>
+    </article>
   );
-
-  if (restaurantId) {
-    return <Link to={`/restaurant/${restaurantId}`} className="group block">{content}</Link>;
-  }
-  return <div className="group block">{content}</div>;
 }

@@ -15,7 +15,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import CountdownTimer from "@/components/CountdownTimer";
-import { getTargetFromMinutes } from "@/components/countdown-timer-utils";
+import { getBusinessDateKey, parseBusinessDateTime } from "@/lib/businessTime";
 import { isFlashSalePubliclyVisible } from "@/lib/specialOffers";
 
 const supabase = getSupabase();
@@ -25,7 +25,7 @@ const PUBLIC_SPECIAL_OFFERS_STALE_MS = 30_000;
 type Step = "browse" | "confirm";
 
 export default function VentesFlash() {
-  const { addItem, clearCart, updateCartMetadata, setOrderMode } = useCart();
+  const { replaceCartItems } = useCart();
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -34,15 +34,16 @@ export default function VentesFlash() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [expiredIds, setExpiredIds] = useState<Set<string>>(new Set());
   const [selectedOrderMode, setSelectedOrderMode] = useState<"delivery" | "takeaway" | null>(null);
+  const [notificationPending, setNotificationPending] = useState(false);
   const activeFeatures = useActiveFeatures();
   const deliveryEnabled = activeFeatures.has("livraison");
   const multiRestoEnabled = activeFeatures.has("multi-restaurant");
 
-  const { data: allOffers, isLoading } = useQuery({
+  const { data: allOffers, isLoading, error, refetch } = useQuery({
     queryKey: ["flash-sales-page"],
     queryFn: async () => {
-      const today = new Date().toISOString().slice(0, 10);
-      const { data } = await supabase
+      const today = getBusinessDateKey();
+      const { data, error: queryError } = await supabase
         .from("flash_sales" as any)
         .select("*, restaurants(id, name, city, image_url, rating, cuisine_type)")
         .eq("is_active", true)
@@ -50,6 +51,7 @@ export default function VentesFlash() {
         .gt("quantity_available", 0)
         .order("sale_start")
         .limit(PUBLIC_FLASH_SALES_LIMIT);
+      if (queryError) throw queryError;
       return (data || []) as any[];
     },
     staleTime: PUBLIC_SPECIAL_OFFERS_STALE_MS,
@@ -80,19 +82,21 @@ export default function VentesFlash() {
 
   const targetDates = useMemo(() => {
     const map: Record<string, Date> = {};
-    const now = new Date();
-    flashOffers.forEach((offer: any, i: number) => {
-      if (offer.sale_end && offer.sale_date) {
-        const end = new Date(`${offer.sale_date}T${offer.sale_end}`);
-        const diffMinutes = (end.getTime() - now.getTime()) / (1000 * 60);
-        if (diffMinutes > 0) {
-          map[offer.id] = end;
-          return;
-        }
-      }
-      map[offer.id] = getTargetFromMinutes(10 + (i * 4) % 50);
+    const now = Date.now();
+    flashOffers.forEach((offer: any) => {
+      if (!offer.sale_end || !offer.sale_date) return;
+      const end = parseBusinessDateTime(offer.sale_date, offer.sale_end);
+      if (end && end.getTime() > now) map[offer.id] = end;
     });
     return map;
+  }, [flashOffers]);
+
+  useEffect(() => {
+    const activeOfferIds = new Set(flashOffers.map((offer: any) => offer.id));
+    setSelected((current) => {
+      const next = new Set(Array.from(current).filter((id) => activeOfferIds.has(id)));
+      return next.size === current.size ? current : next;
+    });
   }, [flashOffers]);
 
   const handleExpire = (id: string) => {
@@ -157,9 +161,9 @@ export default function VentesFlash() {
     // Re-check for expired offers at checkout time
     const now = new Date();
     const newlyExpired = selectedOffers.filter((offer: any) => {
-      if (!offer.sale_end || !offer.sale_date) return false;
-      const end = new Date(`${offer.sale_date}T${offer.sale_end}`);
-      return end.getTime() <= now.getTime();
+      if (!offer.sale_end || !offer.sale_date) return true;
+      const end = parseBusinessDateTime(offer.sale_date, offer.sale_end);
+      return !end || end.getTime() <= now.getTime();
     });
     if (newlyExpired.length > 0) {
       newlyExpired.forEach((offer: any) => handleExpire(offer.id));
@@ -200,43 +204,52 @@ export default function VentesFlash() {
       return;
     }
 
-    clearCart();
-    setOrderMode(selectedOrderMode);
-
-    updateCartMetadata({ feature: "ventes-flash", flashCount: selectedOffers.length });
-
-    selectedOffers.forEach((offer: any) => {
-      const restaurant = offer.restaurants;
-      addItem({
-        menuItemId: `flash-${offer.id}`,
-        name: `[Flash] ${offer.title}`,
-        price: Number(offer.discounted_price),
-        restaurantId: restaurant?.id || offer.restaurant_id,
-        restaurantName: restaurant?.name || "Restaurant",
-        metadata: {
-          is_flash_sale: true,
-          flash_sale_id: offer.id,
-          sale_date: offer.sale_date,
-          sale_start: offer.sale_start,
-          sale_end: offer.sale_end,
-          delivery_available: deliveryEnabled && !!offer.delivery_available,
-          takeaway_available: !!offer.takeaway_available,
-        },
-      });
-    });
+    replaceCartItems(
+      selectedOffers.map((offer: any) => {
+        const restaurant = offer.restaurants;
+        return {
+          menuItemId: `flash-${offer.id}`,
+          name: `[Flash] ${offer.title}`,
+          price: Number(offer.discounted_price),
+          restaurantId: restaurant?.id || offer.restaurant_id,
+          restaurantName: restaurant?.name || "Restaurant",
+          metadata: {
+            is_flash_sale: true,
+            flash_sale_id: offer.id,
+            sale_date: offer.sale_date,
+            sale_start: offer.sale_start,
+            sale_end: offer.sale_end,
+            delivery_available: deliveryEnabled && !!offer.delivery_available,
+            takeaway_available: !!offer.takeaway_available,
+          },
+        };
+      }),
+      {
+        feature: "ventes-flash",
+        flashCount: selectedOffers.length,
+        multi_restaurant: uniqueResIds.size > 1,
+      },
+      selectedOrderMode,
+    );
 
     setStep("confirm");
   };
 
   const handleGoToCart = () => {
     toast({
-      title: "Ventes flash réservées !",
+      title: "Ventes flash ajoutées au panier !",
       description: `${selectedOffers.length} offre${selectedOffers.length > 1 ? "s" : ""} · ${totalDiscounted.toFixed(2)} CHF`,
     });
     navigate("/panier");
   };
 
   const activeCount = flashOffers.filter((o: any) => !expiredIds.has(o.id)).length;
+  const maxDiscount = flashOffers.reduce((maximum: number, offer: any) => {
+    const original = Number(offer.original_price);
+    const discounted = Number(offer.discounted_price);
+    if (!Number.isFinite(original) || original <= 0 || !Number.isFinite(discounted)) return maximum;
+    return Math.max(maximum, Math.max(0, Math.min(100, Math.round((1 - discounted / original) * 100))));
+  }, 0);
 
   return (
     <main className="min-h-screen bg-background">
@@ -260,23 +273,34 @@ export default function VentesFlash() {
                 toast({ title: "Connectez-vous", description: "Activez les alertes après connexion.", variant: "destructive" });
                 return;
               }
-              if (notifyEnabled) {
-                await supabase
-                  .from("notification_subscriptions" as any)
-                  .delete()
-                  .eq("user_id", user.id)
-                  .eq("topic", "flash_sales");
-              } else {
-                await supabase
-                  .from("notification_subscriptions" as any)
-                  .upsert({ user_id: user.id, topic: "flash_sales", filters: {} }, { onConflict: "user_id,topic" });
+              setNotificationPending(true);
+              try {
+                const response = notifyEnabled
+                  ? await supabase
+                    .from("notification_subscriptions" as any)
+                    .delete()
+                    .eq("user_id", user.id)
+                    .eq("topic", "flash_sales")
+                  : await supabase
+                    .from("notification_subscriptions" as any)
+                    .upsert({ user_id: user.id, topic: "flash_sales", filters: {} }, { onConflict: "user_id,topic" });
+                if (response.error) throw response.error;
+                await queryClient.invalidateQueries({ queryKey: ["flash-subscription", user.id] });
+                toast({
+                  title: notifyEnabled ? "Alertes désactivées" : "Alertes flash activées",
+                  description: notifyEnabled ? "" : "Vous serez notifié des prochaines ventes flash",
+                });
+              } catch (notificationError) {
+                toast({
+                  title: "Impossible de modifier les alertes",
+                  description: notificationError instanceof Error ? notificationError.message : "Réessayez dans un instant.",
+                  variant: "destructive",
+                });
+              } finally {
+                setNotificationPending(false);
               }
-              queryClient.invalidateQueries({ queryKey: ["flash-subscription", user.id] });
-              toast({
-                title: notifyEnabled ? "Alertes désactivées" : "Alertes flash activées",
-                description: notifyEnabled ? "" : "Vous serez notifié des prochaines ventes flash",
-              });
             }}
+            disabled={notificationPending}
             className="gap-1.5"
           >
             <Bell className={`h-4 w-4 ${notifyEnabled ? "fill-current" : ""}`} />
@@ -299,7 +323,7 @@ export default function VentesFlash() {
               </div>
               <div className="rounded-xl bg-emerald-500/5 border border-emerald-500/10 p-3 text-center">
                 <TrendingDown className="h-4 w-4 text-emerald-500 mx-auto mb-1" />
-                <p className="text-lg font-bold">-70%</p>
+                <p className="text-lg font-bold">{maxDiscount > 0 ? `-${maxDiscount}%` : "—"}</p>
                 <p className="text-[10px] text-muted-foreground">Jusqu'à</p>
               </div>
             </div>
@@ -315,6 +339,12 @@ export default function VentesFlash() {
             {isLoading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {[1, 2, 3, 4].map((i) => <div key={i} className="h-64 rounded-xl bg-muted animate-pulse" />)}
+              </div>
+            ) : error ? (
+              <div role="alert" className="rounded-2xl border border-destructive/30 bg-destructive/5 p-6 text-center">
+                <p className="font-semibold text-destructive">Impossible de charger les ventes flash.</p>
+                <p className="mt-1 text-sm text-muted-foreground">Aucune urgence artificielle n’est affichée. Réessayez pour obtenir les horaires réels.</p>
+                <Button type="button" variant="outline" className="mt-4" onClick={() => void refetch()}>Réessayer</Button>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -383,15 +413,6 @@ export default function VentesFlash() {
                           <p className="text-xs text-muted-foreground line-clamp-2">{offer.description}</p>
                         )}
 
-                        {target && !isExpired && (
-                          <CountdownTimer
-                            targetDate={target}
-                            variant="default"
-                            label="Expire dans"
-                            onExpire={() => handleExpire(offer.id)}
-                          />
-                        )}
-
                         <div className="flex items-center justify-between">
                           <div>
                             <div className="flex items-baseline gap-1.5">
@@ -404,6 +425,7 @@ export default function VentesFlash() {
                           {!isExpired && (
                             <Button
                               onClick={() => toggleSelect(offer.id)}
+                              aria-pressed={isSelected}
                               variant={isSelected ? "outline" : "default"}
                               size="sm"
                               className={isSelected
@@ -504,7 +526,7 @@ export default function VentesFlash() {
           <div className="space-y-6">
             <div className="rounded-2xl bg-amber-500/5 border border-amber-500/20 p-6 text-center space-y-3">
               <CheckCircle2 className="h-14 w-14 text-amber-500 mx-auto" />
-              <h2 className="font-display text-xl font-bold">Ventes flash réservées !</h2>
+              <h2 className="font-display text-xl font-bold">Ventes flash ajoutées au panier !</h2>
               <p className="text-sm text-muted-foreground">
                 {selectedOffers.length} offre{selectedOffers.length > 1 ? "s" : ""} ajoutee{selectedOffers.length > 1 ? "s" : ""} à votre panier
               </p>

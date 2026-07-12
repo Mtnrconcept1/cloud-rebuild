@@ -11,9 +11,9 @@ describe("post-auth role routing", () => {
   });
 
   it("does not send client users to privileged routes after sign-in", () => {
-    expect(getPostAuthTargetForRole("client", "/admin/restaurants")).toBe("/");
-    expect(getPostAuthTargetForRole("client", "/dashboard/reservations")).toBe("/");
-    expect(getPostAuthTargetForRole("client", "/courier/jobs")).toBe("/");
+    expect(getPostAuthTargetForRole("client", "/admin/restaurants")).toBe("/mon-espace");
+    expect(getPostAuthTargetForRole("client", "/dashboard/reservations")).toBe("/mon-espace");
+    expect(getPostAuthTargetForRole("client", "/courier/jobs")).toBe("/mon-espace");
   });
 
   it("preserves role-specific dashboard redirects for privileged users", () => {

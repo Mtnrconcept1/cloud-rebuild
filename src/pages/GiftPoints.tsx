@@ -31,6 +31,21 @@ const GIFT_MESSAGES = [
 
 type Step = "choose" | "recipient" | "confirm" | "done";
 
+type GiftSendResult = {
+  ok: boolean;
+  gift_id: string;
+  claim_code: string;
+  debited_points: number;
+  recipient_points: number;
+  expires_at: string;
+};
+
+type GiftClaimResult = {
+  ok: boolean;
+  claimed_points: number;
+  reason?: string;
+};
+
 export default function GiftPoints() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -106,20 +121,24 @@ export default function GiftPoints() {
   // Send gift mutation
   const sendGiftMutation = useMutation({
     mutationFn: async () => {
-      const { data, error } = await (supabase.rpc as any)("send_gift_points", {
-        recipient_email_param: recipientEmail,
+      const { data, error } = await (supabase.rpc as any)("send_gift_points_v2", {
+        recipient_email_param: recipientEmail.trim().toLowerCase(),
         points_param: amount,
         message_param: message || null,
       });
       if (error) throw error;
-      return data;
+      const result = data as GiftSendResult;
+      if (!result?.ok || !result.gift_id || !result.claim_code) {
+        throw new Error("Le cadeau n’a pas pu être créé.");
+      }
+      return result;
     },
-    onSuccess: (giftId: string) => {
+    onSuccess: (result: GiftSendResult) => {
       queryClient.invalidateQueries({ queryKey: ["profile-loyalty"] });
       queryClient.invalidateQueries({ queryKey: ["gift-stats"] });
       queryClient.invalidateQueries({ queryKey: ["gifts-sent"] });
       queryClient.invalidateQueries({ queryKey: ["loyalty-transactions"] });
-      setGiftResult({ id: giftId });
+      setGiftResult({ id: result.gift_id, claimCode: result.claim_code });
       setStep("done");
       toast({
         title: "Cadeau envoyé !",
@@ -138,13 +157,18 @@ export default function GiftPoints() {
   // Claim gift mutation
   const claimGiftMutation = useMutation({
     mutationFn: async () => {
-      const { data, error } = await (supabase.rpc as any)("claim_gift_points", {
-        claim_code_param: claimCode.trim(),
+      const { data, error } = await (supabase.rpc as any)("claim_gift_points_v2", {
+        claim_code_param: claimCode.trim().toLowerCase(),
       });
       if (error) throw error;
-      return data as number;
+      const result = data as GiftClaimResult;
+      if (!result?.ok || result.claimed_points <= 0) {
+        throw new Error(result?.reason || "Code invalide, expiré ou destiné à une autre adresse.");
+      }
+      return result;
     },
-    onSuccess: (pointsClaimed: number) => {
+    onSuccess: (result: GiftClaimResult) => {
+      const pointsClaimed = result.claimed_points;
       queryClient.invalidateQueries({ queryKey: ["profile-loyalty"] });
       queryClient.invalidateQueries({ queryKey: ["gift-stats"] });
       queryClient.invalidateQueries({ queryKey: ["gifts-received"] });
@@ -166,7 +190,11 @@ export default function GiftPoints() {
 
   const loyaltyPoints = profile?.loyalty_points || 0;
   const effectiveAmount = customAmount ? parseInt(customAmount) || 0 : amount;
-  const canSend = effectiveAmount >= 100 && effectiveAmount <= loyaltyPoints && recipientEmail.includes("@");
+  const normalizedRecipientEmail = recipientEmail.trim().toLowerCase();
+  const canSend = effectiveAmount >= 100
+    && effectiveAmount <= loyaltyPoints
+    && normalizedRecipientEmail.includes("@")
+    && normalizedRecipientEmail !== user?.email?.trim().toLowerCase();
 
   const resetSendFlow = () => {
     setStep("choose");
@@ -250,8 +278,8 @@ export default function GiftPoints() {
                     <h3 className="font-semibold">Offrez du bonheur gourmand</h3>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Envoyez des Miamz à un ami par email. S'il a déjà un compte, les points sont crédités instantanément.
-                    Sinon, il recevra un code à utiliser lors de son inscription.
+                    Envoyez des Miamz à une adresse email précise. Partagez ensuite le code cadeau avec cette personne :
+                    seule cette adresse pourra le réclamer pendant 30 jours.
                   </p>
                 </div>
 
@@ -352,7 +380,7 @@ export default function GiftPoints() {
 
                 <Button
                   onClick={() => setStep("confirm")}
-                  disabled={!recipientEmail.includes("@")}
+                  disabled={!canSend}
                   className="w-full bg-pink-500 hover:bg-pink-600 gap-2"
                 >
                   Vérifier et envoyer <ChevronRight className="h-4 w-4" />
@@ -396,7 +424,7 @@ export default function GiftPoints() {
 
                 <Button
                   onClick={() => sendGiftMutation.mutate()}
-                  disabled={sendGiftMutation.isPending}
+                  disabled={!canSend || sendGiftMutation.isPending}
                   className="w-full bg-pink-500 hover:bg-pink-600 gap-2"
                   size="lg"
                 >
@@ -421,25 +449,25 @@ export default function GiftPoints() {
                   <CheckCircle2 className="h-14 w-14 text-emerald-500 mx-auto" />
                   <h2 className="font-display text-xl font-bold">Cadeau envoyé !</h2>
                   <p className="text-sm text-muted-foreground">
-                    {effectiveAmount.toLocaleString()} Miamz ont été envoyés à <strong>{recipientEmail}</strong>
+                    {effectiveAmount.toLocaleString()} Miamz sont réservés pour <strong>{recipientEmail}</strong> jusqu’à la réclamation du code.
                   </p>
                 </div>
 
                 {giftResult && (
                   <div className="rounded-xl bg-secondary/50 p-4 text-center space-y-2">
                     <p className="text-xs text-muted-foreground">
-                      Si le destinataire n'a pas encore de compte, il pourra réclamer les points avec ce code :
+                      Transmettez ce code au destinataire. Il devra se connecter avec l’adresse email indiquée :
                     </p>
                     <div className="flex items-center justify-center gap-2">
                       <code className="bg-background border rounded-lg px-4 py-2 font-mono font-bold text-lg tracking-widest">
-                        {giftResult.id?.slice(0, 12) || "—"}
+                        {giftResult.claimCode || "—"}
                       </code>
                       <Button
                         size="icon"
                         variant="outline"
                         className="h-9 w-9"
                         onClick={() => {
-                          navigator.clipboard.writeText(giftResult.id?.slice(0, 12) || "");
+                          navigator.clipboard.writeText(giftResult.claimCode || "");
                           toast({ title: "Code copié !" });
                         }}
                       >

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Bell, CheckCheck, ExternalLink, Inbox } from "lucide-react";
 
@@ -43,6 +44,7 @@ export default function NotificationHistoryList({
   className,
 }: NotificationHistoryListProps) {
   const navigate = useNavigate();
+  const [visibleLimit, setVisibleLimit] = useState(() => Math.min(limit, 20));
   const { user, role } = useAuth();
   const {
     inAppEnabled,
@@ -54,6 +56,7 @@ export default function NotificationHistoryList({
     markAllRead,
   } = useNotificationCenter(limit, { realtime: true });
   const notificationCenterTarget = fallbackTarget || getNotificationCenterPathForRole(role);
+  const visibleNotifications = notifications.slice(0, visibleLimit);
 
   const openNotification = (notification: TokNotification) => {
     const target = getNotificationTarget(notification, role, notificationCenterTarget);
@@ -121,49 +124,51 @@ export default function NotificationHistoryList({
         </div>
       ) : (
         <div className="space-y-3">
-          {notifications.map((notification) => (
-            <div
+          {visibleNotifications.map((notification) => (
+            <article
               key={notification.id}
-              role="button"
-              tabIndex={0}
-              onClick={() => openNotification(notification)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" || event.key === " ") {
-                  event.preventDefault();
-                  openNotification(notification);
-                }
-              }}
               className={cn(
-                "flex w-full cursor-pointer items-start justify-between gap-4 rounded-2xl border p-4 text-left transition-colors hover:border-primary/35 hover:bg-primary/5",
+                "flex w-full items-start justify-between gap-2 rounded-2xl border p-2 transition-colors hover:border-primary/35 hover:bg-primary/5 sm:gap-4 sm:p-3",
                 notification.read_at ? "bg-card" : "border-primary/25 bg-primary/5",
               )}
             >
-              <div className="min-w-0 space-y-1">
-                <div className="flex min-w-0 flex-wrap items-center gap-2">
-                  <h2 className="break-words text-sm font-semibold leading-5">{notification.title}</h2>
+              <button
+                type="button"
+                onClick={() => openNotification(notification)}
+                className="min-w-0 flex-1 rounded-xl p-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              >
+                <span className="flex min-w-0 flex-wrap items-center gap-2">
+                  <span className="break-words text-sm font-semibold leading-5">{notification.title}</span>
                   {!notification.read_at ? <Badge className="text-[10px]">Nouveau</Badge> : null}
-                </div>
-                <p className="break-words text-sm leading-5 text-muted-foreground">{notification.body}</p>
-                <p className="text-xs text-muted-foreground">{formatNotificationDate(notification.created_at)}</p>
-              </div>
-              <div className="flex shrink-0 items-center gap-1">
+                </span>
+                <span className="mt-1 block break-words text-sm leading-5 text-muted-foreground">{notification.body}</span>
+                <span className="mt-1 block text-xs text-muted-foreground">{formatNotificationDate(notification.created_at)}</span>
+              </button>
+              <div className="flex shrink-0 flex-col items-end gap-1 sm:flex-row sm:items-center">
                 {!notification.read_at ? (
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      void markNotificationRead(notification.id);
-                    }}
+                    onClick={() => void markNotificationRead(notification.id)}
                   >
                     Marquer lu
                   </Button>
                 ) : null}
-                <ExternalLink className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                <ExternalLink className="mr-2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
               </div>
-            </div>
+            </article>
           ))}
+          {visibleNotifications.length < notifications.length ? (
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() => setVisibleLimit((current) => Math.min(current + 20, notifications.length))}
+            >
+              Charger plus de notifications
+            </Button>
+          ) : null}
         </div>
       )}
     </section>

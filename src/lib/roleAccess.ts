@@ -8,7 +8,7 @@ const ROLE_FEATURE_REQUIREMENTS: Partial<Record<UserRole, string[]>> = {
   commercial: ["commercial-prospection"],
 };
 const ROLE_HOME_PATHS: Record<UserRole, string> = {
-  client: "/",
+  client: "/mon-espace",
   restaurateur: "/dashboard",
   admin: "/admin",
   courier: "/courier",
