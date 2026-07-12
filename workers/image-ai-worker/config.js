@@ -29,6 +29,14 @@ function readRequired(env, name) {
   return value;
 }
 
+function readHealthHost(env) {
+  const host = String(env.HEALTH_HOST || "127.0.0.1").trim().toLowerCase();
+  if (!new Set(["127.0.0.1", "localhost", "::1", "0.0.0.0", "::"]).has(host)) {
+    throw new Error("HEALTH_HOST must be a local or wildcard bind address.");
+  }
+  return host;
+}
+
 function readBuckets(env) {
   const buckets = String(env.ALLOWED_STORAGE_BUCKETS || DEFAULT_ALLOWED_BUCKETS.join(","))
     .split(",")
@@ -70,7 +78,7 @@ export function loadConfig(env = process.env) {
     }),
     expectedEmbeddingDimensions: readInteger(env, "EMBEDDING_DIMENSIONS", 384, { min: 1, max: 4096 }),
     pollIntervalMs: readInteger(env, "POLL_INTERVAL_MS", 5000, { min: 500, max: 60000 }),
-    batchSize: readInteger(env, "BATCH_SIZE", 3, { min: 1, max: 25 }),
+    batchSize: readInteger(env, "BATCH_SIZE", 1, { min: 1, max: 25 }),
     downloadTimeoutMs: readInteger(env, "DOWNLOAD_TIMEOUT_MS", 30000, { min: 1000, max: 300000 }),
     ollamaVisionTimeoutMs: readInteger(env, "OLLAMA_VISION_TIMEOUT_MS", 300000, { min: 5000, max: 900000 }),
     ollamaEmbeddingTimeoutMs: readInteger(env, "OLLAMA_EMBEDDING_TIMEOUT_MS", 60000, { min: 1000, max: 300000 }),
@@ -78,6 +86,7 @@ export function loadConfig(env = process.env) {
     httpRetryAttempts: readInteger(env, "HTTP_RETRY_ATTEMPTS", 3, { min: 1, max: 5 }),
     retryBaseMs: readInteger(env, "RETRY_BASE_MS", 1000, { min: 0, max: 30000 }),
     jobRetryBaseMs: readInteger(env, "JOB_RETRY_BASE_MS", 5000, { min: 0, max: 60000 }),
+    healthHost: readHealthHost(env),
     healthPort: readInteger(env, "HEALTH_PORT", 8080, { min: 1, max: 65535 }),
   });
 }

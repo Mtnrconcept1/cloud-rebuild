@@ -130,8 +130,8 @@ jobs:
           blocked=0
           while IFS= read -r -d '' file; do
             case "$file" in
-              .env|.env.*|*.pem|*.key|*.p12|*.sqlite|*.db|service-account*.json|supabase/.branches/*)
-                if [[ "$file" != ".env.example" && "$file" != "supabase/.branches/_current_branch" ]]; then
+              .env|.env.*|*/.env|*/.env.*|*.pem|*.key|*.p12|*.sqlite|*.db|service-account*.json|*/service-account*.json|supabase/.branches/*)
+                if [[ "$file" != ".env.example" && "$file" != */.env.example && "$file" != "supabase/.branches/_current_branch" ]]; then
                   echo "::error file=$file::Sensitive or local-only file must not be committed."
                   blocked=1
                 fi
@@ -325,6 +325,51 @@ jobs:
       - name: Test worker without external services
         run: pnpm --filter tok-image-ai-worker test
 
+  windows_worker_tests:
+    needs: plan
+    if: ${{ needs.plan.outputs.run_worker_tests == 'true' }}
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.head_sha }}
+          fetch-depth: 1
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Validate Windows PowerShell 5.1 syntax
+        shell: powershell
+        run: |
+          $ErrorActionPreference = "Stop"
+          $files = @(
+            "workers/image-ai-worker/setup-windows.ps1",
+            "workers/image-ai-worker/run-windows-worker.ps1"
+          )
+          foreach ($file in $files) {
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile(
+              (Resolve-Path $file),
+              [ref]$tokens,
+              [ref]$errors
+            ) | Out-Null
+            if ($errors.Count -gt 0) {
+              $errors | ForEach-Object { Write-Error "${file}: $($_.Message)" }
+              exit 1
+            }
+          }
+
+      - name: Test Windows worker contracts
+        run: >-
+          node --test
+          workers/image-ai-worker/windows-setup.test.mjs
+          workers/image-ai-worker/runtime-hardening.test.mjs
+
   validate:
     name: validate
     if: ${{ always() }}
@@ -335,6 +380,7 @@ jobs:
       - full_tests
       - critical_tests
       - worker_tests
+      - windows_worker_tests
     runs-on: ubuntu-latest
 
     steps:
@@ -347,6 +393,7 @@ jobs:
           FULL_RESULT: ${{ needs.full_tests.result }}
           CRITICAL_RESULT: ${{ needs.critical_tests.result }}
           WORKER_RESULT: ${{ needs.worker_tests.result }}
+          WINDOWS_WORKER_RESULT: ${{ needs.windows_worker_tests.result }}
           QUALITY_REQUIRED: ${{ needs.plan.outputs.dependency_audit == 'true' || needs.plan.outputs.run_lint == 'true' || needs.plan.outputs.run_typecheck == 'true' || (needs.plan.outputs.run_build == 'true' && !inputs.skip_build) }}
           RELATED_REQUIRED: ${{ needs.plan.outputs.test_mode == 'affected' }}
           FULL_REQUIRED: ${{ needs.plan.outputs.test_mode == 'full' }}
@@ -377,3 +424,5 @@ jobs:
           require_success "full_tests" "$FULL_RESULT" "$FULL_REQUIRED"
           require_success "critical_tests" "$CRITICAL_RESULT" "$CRITICAL_REQUIRED"
           require_success "worker_tests" "$WORKER_RESULT" "$WORKER_REQUIRED"
+          require_success "windows_worker_tests" "$WINDOWS_WORKER_RESULT" "$WORKER_REQUIRED"
+

@@ -262,7 +262,7 @@ function startHealthServer(config, state) {
       last_success_at: state.lastSuccessAt,
     }));
   });
-  server.listen(config.healthPort, "0.0.0.0");
+  server.listen(config.healthPort, config.healthHost);
   return server;
 }
 
@@ -295,6 +295,12 @@ export async function runWorker(config = loadConfig()) {
 
   while (!state.shuttingDown) {
     try {
+      await probeDependencies(supabase, config, state);
+      if (!state.supabaseReady || !state.ollamaReady) {
+        await sleep(config.pollIntervalMs);
+        continue;
+      }
+
       const jobs = await claimJobs(supabase, config);
       state.supabaseReady = true;
       loopFailures = 0;
@@ -314,6 +320,7 @@ export async function runWorker(config = loadConfig()) {
           state.lastError = null;
           console.log(JSON.stringify({ event: "job_completed", job_id: job.job_id, image_id: result.imageId, sha256: result.sha256 }));
         } catch (error) {
+          state.ollamaReady = false;
           state.lastError = errorMessage(error);
           console.error(JSON.stringify({ event: "job_failed", job_id: job.job_id, image_id: job.image_id, error: state.lastError }));
           if (!(error instanceof CommitUncertainError)) await failJob(supabase, job, error, config);

@@ -12,6 +12,8 @@ test("defaults to local Ollama and free open models", () => {
   assert.equal(config.ollamaUrl, "http://127.0.0.1:11434");
   assert.equal(config.visionModel, "qwen2.5vl:3b");
   assert.equal(config.embeddingModel, "all-minilm");
+  assert.equal(config.healthHost, "127.0.0.1");
+  assert.equal(config.batchSize, 1);
   assert.deepEqual([...config.allowedStorageBuckets], ["restaurant-images", "social-post-media"]);
   assert.equal("openAiApiKey" in config, false);
 });
@@ -27,4 +29,10 @@ test("rejects unsafe limits and bucket names before starting", () => {
   assert.throws(() => loadConfig({ ...baseEnv, ALLOWED_STORAGE_BUCKETS: "restaurant-images,../private" }), /invalid bucket/);
   assert.throws(() => loadConfig({ ...baseEnv, OLLAMA_URL: "file:///tmp/ollama" }), /HTTP or HTTPS/);
   assert.throws(() => loadConfig({ ...baseEnv, OLLAMA_URL: "http://ollama.example.com", OLLAMA_API_KEY: "secret" }), /over HTTPS/);
+});
+
+
+test("restricts the health endpoint bind address", () => {
+  assert.equal(loadConfig({ ...baseEnv, HEALTH_HOST: "0.0.0.0" }).healthHost, "0.0.0.0");
+  assert.throws(() => loadConfig({ ...baseEnv, HEALTH_HOST: "192.168.1.10" }), /HEALTH_HOST/);
 });
