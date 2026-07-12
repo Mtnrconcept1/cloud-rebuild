@@ -13,8 +13,9 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { BookOpen, Image as ImageIcon, Images, Loader2, Pencil, Plus, Sparkles, Trash2 } from "lucide-react";
+import { BookOpen, CheckCircle2, Image as ImageIcon, Images, Loader2, Pencil, Plus, ScanLine, Sparkles, Trash2, Upload } from "lucide-react";
 import ImageUpload from "@/components/ImageUpload";
+import { optimizeImageUpload } from "@/lib/optimizedImages";
 import type { TokImageGenerationResult } from "@/lib/ai/tokAiClient";
 import {
   requestAiCreationNotificationPermission,
@@ -43,6 +44,19 @@ type MenuItemRecord = {
   category: string | null;
   image_url: string | null;
   is_available: boolean | null;
+};
+
+type ImportedMenuItem = {
+  name: string;
+  description: string;
+  price: number;
+  category: string;
+  selected: boolean;
+};
+
+type MenuImportResponse = {
+  items: Array<Omit<ImportedMenuItem, "selected">>;
+  warnings: string[];
 };
 
 type RestaurantMediaRecord = {
@@ -139,6 +153,13 @@ export default function DashboardMenu() {
   const [categoryMode, setCategoryMode] = useState<"preset" | "custom">("preset");
   const [generatingPhoto, setGeneratingPhoto] = useState(false);
   const [photoStudioResult, setPhotoStudioResult] = useState<TokImageGenerationResult | null>(null);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [menuImportFiles, setMenuImportFiles] = useState<File[]>([]);
+  const [importedMenuItems, setImportedMenuItems] = useState<ImportedMenuItem[]>([]);
+  const [menuImportWarnings, setMenuImportWarnings] = useState<string[]>([]);
+  const [analyzingMenu, setAnalyzingMenu] = useState(false);
+  const [savingImportedMenu, setSavingImportedMenu] = useState(false);
+  const menuImportInputRef = useRef<HTMLInputElement | null>(null);
   const mountedRef = useRef(true);
 
   const restaurant = selectedId ? { id: selectedId } : null;
@@ -338,6 +359,101 @@ export default function DashboardMenu() {
     }
   };
 
+  const openMenuImport = () => {
+    setMenuImportFiles([]);
+    setImportedMenuItems([]);
+    setMenuImportWarnings([]);
+    setImportDialogOpen(true);
+  };
+
+  const fileToDataUrl = (file: File) => new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => typeof reader.result === "string" ? resolve(reader.result) : reject(new Error("image_read_failed"));
+    reader.onerror = () => reject(new Error("image_read_failed"));
+    reader.readAsDataURL(file);
+  });
+
+  const handleMenuImportFiles = (files: FileList | null) => {
+    const selected = Array.from(files || []).filter((file) => /^image\/(jpeg|png|webp)$/i.test(file.type)).slice(0, 3);
+    if (!selected.length) {
+      toast({ title: "Photos requises", description: "Utilisez jusqu'à 3 images JPG, PNG ou WebP.", variant: "destructive" });
+      return;
+    }
+    setMenuImportFiles(selected);
+    setImportedMenuItems([]);
+    setMenuImportWarnings([]);
+  };
+
+  const analyzeMenuPhotos = async () => {
+    if (!restaurant || !menuImportFiles.length) return;
+    setAnalyzingMenu(true);
+    setImportedMenuItems([]);
+    setMenuImportWarnings([]);
+
+    try {
+      const images = await Promise.all(menuImportFiles.map(async (file) => {
+        const optimized = await optimizeImageUpload(file);
+        return fileToDataUrl(optimized);
+      }));
+      const { data, error } = await supabase.functions.invoke<MenuImportResponse>("menu-image-import", {
+        body: { restaurantId: restaurant.id, images },
+      });
+      if (error) throw error;
+      if (!data?.items?.length) throw new Error("Aucun plat détecté sur les photos.");
+
+      setImportedMenuItems(data.items.map((item) => ({
+        name: item.name,
+        description: item.description || "",
+        price: Number(item.price) || 0,
+        category: item.category || "Autres",
+        selected: true,
+      })));
+      setMenuImportWarnings(data.warnings || []);
+      toast({ title: "Menu analysé", description: `${data.items.length} élément(s) détecté(s). Vérifiez-les avant l'import.` });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Analyse impossible";
+      toast({ title: "Analyse impossible", description: message, variant: "destructive" });
+    } finally {
+      setAnalyzingMenu(false);
+    }
+  };
+
+  const updateImportedMenuItem = (index: number, patch: Partial<ImportedMenuItem>) => {
+    setImportedMenuItems((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, ...patch } : item));
+  };
+
+  const saveImportedMenu = async () => {
+    if (!restaurant) return;
+    const selectedItems = importedMenuItems
+      .filter((item) => item.selected && item.name.trim() && Number.isFinite(item.price) && item.price >= 0)
+      .map((item) => ({
+        restaurant_id: restaurant.id,
+        name: item.name.trim(),
+        description: item.description.trim(),
+        price: Math.round(item.price * 100) / 100,
+        category: item.category.trim() || "Autres",
+        image_url: "",
+        is_available: true,
+      }));
+
+    if (!selectedItems.length) {
+      toast({ title: "Aucun plat sélectionné", description: "Sélectionnez au moins un élément valide.", variant: "destructive" });
+      return;
+    }
+
+    setSavingImportedMenu(true);
+    const { error } = await supabase.from("menu_items").insert(selectedItems);
+    setSavingImportedMenu(false);
+    if (error) {
+      toast({ title: "Import impossible", description: error.message, variant: "destructive" });
+      return;
+    }
+
+    refreshMenu();
+    setImportDialogOpen(false);
+    toast({ title: "Menu créé", description: `${selectedItems.length} élément(s) ajouté(s) au menu.` });
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -354,10 +470,16 @@ export default function DashboardMenu() {
             { label: "Restaurant", value: restaurant ? "Selectionne" : "Aucun", icon: BookOpen },
           ]}
           actions={(
-          <Button onClick={openNew} disabled={!restaurant}>
-            <Plus className="mr-2 h-4 w-4" />
-            Ajouter un plat
-          </Button>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Button variant="outline" onClick={openMenuImport} disabled={!restaurant}>
+                <ScanLine className="mr-2 h-4 w-4" />
+                Importer une photo du menu
+              </Button>
+              <Button onClick={openNew} disabled={!restaurant}>
+                <Plus className="mr-2 h-4 w-4" />
+                Ajouter un plat
+              </Button>
+            </div>
           )}
         />
 
@@ -403,6 +525,90 @@ export default function DashboardMenu() {
             )}
           </div>
         )}
+
+        <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
+          <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-5xl">
+            <DialogHeader>
+              <DialogTitle>Créer le menu depuis des photos</DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-5">
+              <div className="rounded-2xl border border-dashed bg-muted/30 p-5 text-center">
+                <input
+                  ref={menuImportInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  multiple
+                  className="hidden"
+                  onChange={(event) => handleMenuImportFiles(event.target.files)}
+                />
+                <Upload className="mx-auto mb-3 h-9 w-9 text-primary" />
+                <p className="font-semibold">Photographiez chaque page bien à plat et sans reflet</p>
+                <p className="mt-1 text-sm text-muted-foreground">Jusqu'à 3 photos JPG, PNG ou WebP. Les plats ne sont créés qu'après votre validation.</p>
+                <Button className="mt-4" variant="outline" onClick={() => menuImportInputRef.current?.click()}>
+                  Choisir les photos
+                </Button>
+                {menuImportFiles.length > 0 && (
+                  <div className="mt-4 flex flex-wrap justify-center gap-2">
+                    {menuImportFiles.map((file) => (
+                      <span key={file.name} className="max-w-full truncate rounded-full bg-background px-3 py-1 text-xs">
+                        {file.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <Button className="w-full" onClick={analyzeMenuPhotos} disabled={!menuImportFiles.length || analyzingMenu}>
+                {analyzingMenu ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ScanLine className="mr-2 h-4 w-4" />}
+                {analyzingMenu ? "Lecture du menu en cours…" : "Analyser les photos"}
+              </Button>
+
+              {menuImportWarnings.length > 0 && (
+                <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
+                  <p className="font-semibold">Points à vérifier</p>
+                  <ul className="mt-2 list-disc space-y-1 pl-5">
+                    {menuImportWarnings.map((warning) => <li key={warning}>{warning}</li>)}
+                  </ul>
+                </div>
+              )}
+
+              {importedMenuItems.length > 0 && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                    <p className="font-semibold">{importedMenuItems.length} élément(s) détecté(s) — corrigez avant d'enregistrer</p>
+                  </div>
+                  {importedMenuItems.map((item, index) => (
+                    <div key={`${index}-${item.name}`} className={`grid gap-3 rounded-xl border p-3 sm:grid-cols-[auto_1.4fr_0.8fr_0.55fr] ${item.selected ? "bg-card" : "opacity-55"}`}>
+                      <input
+                        type="checkbox"
+                        aria-label={`Importer ${item.name}`}
+                        checked={item.selected}
+                        onChange={(event) => updateImportedMenuItem(index, { selected: event.target.checked })}
+                        className="mt-3 h-4 w-4"
+                      />
+                      <div className="space-y-2">
+                        <Input value={item.name} onChange={(event) => updateImportedMenuItem(index, { name: event.target.value })} placeholder="Nom du plat" />
+                        <Textarea value={item.description} onChange={(event) => updateImportedMenuItem(index, { description: event.target.value })} placeholder="Description (facultative)" rows={2} />
+                      </div>
+                      <Input value={item.category} onChange={(event) => updateImportedMenuItem(index, { category: event.target.value })} placeholder="Catégorie" />
+                      <Input type="number" min="0" step="0.01" value={item.price} onChange={(event) => updateImportedMenuItem(index, { price: Number(event.target.value) })} aria-label={`Prix de ${item.name}`} />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setImportDialogOpen(false)}>Annuler</Button>
+              <Button onClick={saveImportedMenu} disabled={!importedMenuItems.some((item) => item.selected) || savingImportedMenu}>
+                {savingImportedMenu && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Ajouter les plats sélectionnés
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         <Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
           <DialogContent className="max-h-[min(92vh,900px)] overflow-y-auto sm:max-w-3xl">
