@@ -28,6 +28,7 @@ const CORE_ROUTES = new Set([
   "/auth",
   "/auth/callback",
   "/recherche",
+  "/actualites/:postId",
   "/restaurants/:city",
   "/restaurants/:city/:category",
   "/r/:slug/reserver",

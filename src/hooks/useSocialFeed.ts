@@ -27,7 +27,6 @@ import {
   type SocialReactionCounts,
   type SocialReactionType,
 } from "@/lib/socialFeed";
-import { registerRestaurantImageForAnalysis } from "@/lib/uploadRestaurantImage";
 import {
   filterSocialPostsByHiddenFeedback,
   readSocialFeedHiddenFeedback,
@@ -49,7 +48,6 @@ const RESTAURANT_SOCIAL_POSTS_LIMIT = 50;
 const SOCIAL_COMMENTS_LIMIT = 50;
 const SOCIAL_INSIGHTS_BASE_SELECT = "id,likes_count,comments_count,reposts_count,shares_count,status,post_type,cta_type,created_at,scheduled_at";
 const SOCIAL_INSIGHTS_MARKETING_SELECT = `${SOCIAL_INSIGHTS_BASE_SELECT},campaign_goal,audience_segment`;
-const ANALYZABLE_SOCIAL_IMAGE_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 let socialMarketingSchemaAvailable: boolean | null = null;
 
@@ -113,6 +111,7 @@ type SocialFeedRpcRow = {
   body: string;
   status: "draft" | "scheduled" | "published" | "hidden" | "deleted";
   created_at: string;
+  updated_at?: string | null;
   published_at: string | null;
   likes_count: number | null;
   comments_count: number | null;
@@ -195,6 +194,18 @@ type SocialPostMetricsRow = {
 type ViewerPostReactionRow = {
   post_id?: string | null;
   reaction_type?: string | null;
+};
+
+type ActualitesSearchRpcRow = {
+  post_id?: string | null;
+  rank?: number | null;
+  total_count?: number | null;
+};
+
+export type ActualitesSearchPage = {
+  posts: SocialFeedPost[];
+  totalCount: number;
+  nextOffset: number | null;
 };
 
 type SetPostReactionInput = {
@@ -319,6 +330,7 @@ function mapSocialPost(row: SocialFeedRpcRow): SocialFeedPost {
     body: row.body,
     status: row.status,
     createdAt: row.created_at,
+    updatedAt: row.updated_at || null,
     publishedAt: row.published_at,
     likesCount: Number(row.likes_count || countReactions(reactionCounts)),
     reactionCounts,
@@ -368,6 +380,7 @@ function mapRestaurantPostRow(row: any): SocialFeedPost {
           mediaType: item.media_type,
           sortOrder: Number(item.sort_order || 0),
           altText: item.alt_text,
+          metadata: item.metadata && typeof item.metadata === "object" ? item.metadata : null,
         }))
     : [];
   const reactionCounts = normalizeReactionCounts(row.reaction_counts);
@@ -382,6 +395,7 @@ function mapRestaurantPostRow(row: any): SocialFeedPost {
     body: row.body,
     status: row.status,
     createdAt: row.created_at,
+    updatedAt: row.updated_at || null,
     publishedAt: row.published_at,
     likesCount: Number(row.likes_count || countReactions(reactionCounts)),
     reactionCounts,
@@ -390,9 +404,9 @@ function mapRestaurantPostRow(row: any): SocialFeedPost {
     repostsCount: Number(row.reposts_count || 0),
     sharesCount: Number(row.shares_count || 0),
     likedByMe: Boolean(row.liked_by_me) || Boolean(myReaction),
-    followedByMe: false,
-    repostedByMe: false,
-    savedByMe: false,
+    followedByMe: Boolean(row.followed_by_me),
+    repostedByMe: Boolean(row.reposted_by_me),
+    savedByMe: Boolean(row.saved_by_me),
     score: 0,
     media,
     restaurant: {
@@ -400,6 +414,7 @@ function mapRestaurantPostRow(row: any): SocialFeedPost {
       name: row.restaurants?.name || "Restaurant",
       city: row.restaurants?.city || null,
       imageUrl: row.restaurants?.image_url || null,
+      cuisineType: row.restaurants?.cuisine_type || null,
     },
     repost: null,
     postType: normalizeSocialPostType(row.post_type),
@@ -426,6 +441,8 @@ function invalidateSocialQueries(queryClient: QueryClient) {
   queryClient.invalidateQueries({ queryKey: ["restaurant-social-posts"] });
   queryClient.invalidateQueries({ queryKey: ["social-insights"] });
   queryClient.invalidateQueries({ queryKey: ["social-post-thread"] });
+  queryClient.invalidateQueries({ queryKey: ["actualites-search"] });
+  queryClient.invalidateQueries({ queryKey: ["social-post-by-id"] });
   queryClient.invalidateQueries({ queryKey: ["social-comments"] });
   queryClient.invalidateQueries({ queryKey: ["admin-social"] });
   queryClient.invalidateQueries({ queryKey: ["admin-actualites-sponsored"] });
@@ -448,6 +465,22 @@ function patchSocialPost(queryClient: QueryClient, postId: string, updater: (pos
   queryClient.setQueriesData({ queryKey: ["restaurant-social-posts"] }, (oldData: any) => {
     if (!Array.isArray(oldData)) return oldData;
     return oldData.map((post: SocialFeedPost) => post.id === postId ? updater(post) : post);
+  });
+
+  queryClient.setQueriesData({ queryKey: ["actualites-search"] }, (oldData: any) => {
+    if (!oldData?.pages) return oldData;
+    return {
+      ...oldData,
+      pages: oldData.pages.map((page: ActualitesSearchPage) => ({
+        ...page,
+        posts: page.posts.map((post) => post.id === postId ? updater(post) : post),
+      })),
+    };
+  });
+
+  queryClient.setQueriesData({ queryKey: ["social-post-by-id", postId] }, (oldData: unknown) => {
+    if (!oldData || typeof oldData !== "object") return oldData;
+    return updater(oldData as SocialFeedPost);
   });
 }
 
@@ -653,6 +686,95 @@ async function getViewerPostReactionsByPostId(postIds: string[], viewerId?: stri
   return reactionByPostId;
 }
 
+async function getViewerSocialState(
+  postIds: string[],
+  restaurantIds: string[],
+  viewerId?: string | null,
+) {
+  const followedRestaurantIds = new Set<string>();
+  const repostedPostIds = new Set<string>();
+  const savedPostIds = new Set<string>();
+  if (!viewerId || postIds.length === 0) {
+    return { followedRestaurantIds, repostedPostIds, savedPostIds };
+  }
+
+  const [followsResult, repostsResult, savesResult] = await Promise.all([
+    restaurantIds.length
+      ? (supabase.from("restaurant_follows" as any) as any)
+          .select("restaurant_id")
+          .eq("user_id", viewerId)
+          .in("restaurant_id", Array.from(new Set(restaurantIds)))
+      : Promise.resolve({ data: [], error: null }),
+    (supabase.from("social_post_reposts" as any) as any)
+      .select("post_id")
+      .eq("user_id", viewerId)
+      .eq("status", "published")
+      .in("post_id", postIds),
+    (supabase.from("social_post_saves" as any) as any)
+      .select("post_id")
+      .eq("user_id", viewerId)
+      .in("post_id", postIds),
+  ]);
+
+  if (!followsResult.error) {
+    for (const row of followsResult.data || []) {
+      if (row.restaurant_id) followedRestaurantIds.add(String(row.restaurant_id));
+    }
+  }
+  if (!repostsResult.error) {
+    for (const row of repostsResult.data || []) {
+      if (row.post_id) repostedPostIds.add(String(row.post_id));
+    }
+  }
+  if (!savesResult.error) {
+    for (const row of savesResult.data || []) {
+      if (row.post_id) savedPostIds.add(String(row.post_id));
+    }
+  }
+
+  return { followedRestaurantIds, repostedPostIds, savedPostIds };
+}
+
+async function loadPublicSocialPostsById(postIds: string[], viewerId?: string | null) {
+  const uniquePostIds = Array.from(new Set(postIds.filter(Boolean)));
+  if (uniquePostIds.length === 0) return [] as SocialFeedPost[];
+
+  const { data, error } = await (supabase.from("social_posts" as any) as any)
+    .select("*, restaurants(id,name,image_url,city,cuisine_type), social_post_media(*)")
+    .in("id", uniquePostIds)
+    .eq("status", "published")
+    .eq("visibility", "public")
+    .or(`published_at.is.null,published_at.lte.${new Date().toISOString()}`);
+
+  if (error) throw error;
+  const rows = Array.isArray(data) ? data : [];
+  const restaurantIds = rows.map((row: any) => String(row.restaurant_id || "")).filter(Boolean);
+  const [viewerReactionByPostId, viewerState] = await Promise.all([
+    getViewerPostReactionsByPostId(uniquePostIds, viewerId),
+    getViewerSocialState(uniquePostIds, restaurantIds, viewerId),
+  ]);
+
+  const postById = new Map<string, SocialFeedPost>();
+  for (const row of rows) {
+    const postId = String(row.id || "");
+    const restaurantId = String(row.restaurant_id || "");
+    const viewerReaction = viewerReactionByPostId.get(postId) || null;
+    postById.set(postId, mapRestaurantPostRow({
+      ...row,
+      my_reaction: viewerReaction,
+      liked_by_me: Boolean(viewerReaction),
+      followed_by_me: viewerState.followedRestaurantIds.has(restaurantId),
+      reposted_by_me: viewerState.repostedPostIds.has(postId),
+      saved_by_me: viewerState.savedPostIds.has(postId),
+    }));
+  }
+
+  return uniquePostIds.flatMap((postId) => {
+    const post = postById.get(postId);
+    return post ? [post] : [];
+  });
+}
+
 async function assertRestaurantAccess(restaurantId: string, userId: string) {
   const { data, error } = await (supabase.from("restaurants" as any) as any)
     .select("id")
@@ -664,54 +786,7 @@ async function assertRestaurantAccess(restaurantId: string, userId: string) {
   if (!data) throw new Error("Restaurant non autorise.");
 }
 
-function canAnalyzeSocialImage(file: File, mediaType: PreparedSocialPostMediaFile["mediaType"]) {
-  return mediaType === "image" && ANALYZABLE_SOCIAL_IMAGE_MIME_TYPES.has(file.type);
-}
-
-async function registerActualitesImageAnalysisBestEffort({
-  restaurantId,
-  postId,
-  userId,
-  file,
-  storagePath,
-  publicUrl,
-  sortOrder,
-}: {
-  restaurantId: string;
-  postId: string;
-  userId: string;
-  file: File;
-  storagePath: string;
-  publicUrl: string | null;
-  sortOrder: number;
-}) {
-  try {
-    await registerRestaurantImageForAnalysis({
-      restaurantId,
-      userId,
-      bucket: SOCIAL_FEED_BUCKET,
-      storagePath,
-      publicUrl,
-      originalFilename: file.name,
-      mimeType: file.type,
-      sizeBytes: file.size,
-      sourceType: "actualites",
-      sourceTable: "social_posts",
-      sourceId: postId,
-      sourceContext: {
-        socialPostId: postId,
-        mediaBucket: SOCIAL_FEED_BUCKET,
-        mediaPath: storagePath,
-        mediaType: "image",
-        sortOrder,
-      },
-    });
-  } catch (error) {
-    console.warn("Actualites image analysis registration skipped", error);
-  }
-}
-
-async function uploadPostMedia(restaurantId: string, postId: string, userId: string, files: PreparedSocialPostMediaFile[]) {
+async function uploadPostMedia(restaurantId: string, postId: string, files: PreparedSocialPostMediaFile[]) {
   for (let index = 0; index < files.length; index += 1) {
     const item = files[index];
     const file = item.file;
@@ -736,18 +811,6 @@ async function uploadPostMedia(restaurantId: string, postId: string, userId: str
     });
 
     if (insertError) throw insertError;
-
-    if (canAnalyzeSocialImage(file, item.mediaType)) {
-      await registerActualitesImageAnalysisBestEffort({
-        restaurantId,
-        postId,
-        userId,
-        file,
-        storagePath: path,
-        publicUrl: data.publicUrl || null,
-        sortOrder: index,
-      });
-    }
   }
 }
 
@@ -922,6 +985,55 @@ export function useInfiniteSocialFeed(scope: SocialFeedScope = "for_you", limit 
     },
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
+  });
+}
+
+export function useSearchActualitesPosts(query: string, limit = 20) {
+  const { user } = useAuth();
+  const viewerId = user?.id || null;
+  const normalizedQuery = query.replace(/\s+/g, " ").trim();
+  const safeLimit = Math.max(1, Math.min(50, Math.trunc(limit || 20)));
+
+  return useInfiniteQuery({
+    queryKey: ["actualites-search", normalizedQuery, safeLimit, viewerId],
+    queryFn: async ({ pageParam }): Promise<ActualitesSearchPage> => {
+      const offset = Math.max(0, Number(pageParam || 0));
+      const { data, error } = await (supabase.rpc as any)("search_actualites_posts", {
+        p_query: normalizedQuery,
+        p_limit: safeLimit,
+        p_offset: offset,
+      });
+
+      if (error) throw error;
+      const rows = (Array.isArray(data) ? data : []) as ActualitesSearchRpcRow[];
+      const postIds = rows.map((row) => String(row.post_id || "")).filter(Boolean);
+      const posts = await loadPublicSocialPostsById(postIds, viewerId);
+      const totalCount = Math.max(0, Number(rows[0]?.total_count || 0));
+      const consumed = rows.length;
+      const nextOffset = consumed > 0 && offset + consumed < totalCount
+        ? offset + consumed
+        : null;
+
+      return { posts, totalCount, nextOffset };
+    },
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => lastPage.nextOffset,
+    enabled: normalizedQuery.length >= 2,
+  });
+}
+
+export function useSocialPostById(postId?: string | null) {
+  useSocialRealtime(Boolean(postId));
+  const { user } = useAuth();
+  const viewerId = user?.id || null;
+
+  return useQuery({
+    queryKey: ["social-post-by-id", postId, viewerId],
+    queryFn: async () => {
+      const posts = await loadPublicSocialPostsById(postId ? [postId] : [], viewerId);
+      return posts[0] || null;
+    },
+    enabled: Boolean(postId),
   });
 }
 
@@ -1278,7 +1390,7 @@ export function useCreateSocialPost() {
       if (error) throw error;
 
       try {
-        await uploadPostMedia(restaurantId, post.id, user.id, preparedMediaFiles);
+        await uploadPostMedia(restaurantId, post.id, preparedMediaFiles);
       } catch (mediaError) {
         await (supabase.from("social_posts" as any) as any)
           .update({

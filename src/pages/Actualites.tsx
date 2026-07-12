@@ -1,20 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   BellRing,
   Bookmark,
   ChevronRight,
   Flame,
-  MapPin,
   Megaphone,
-  Newspaper,
   RefreshCw,
   Rocket,
   Search,
   Sparkles,
   Store,
   TrendingUp,
-  Utensils,
   X,
 } from "lucide-react";
 
@@ -25,7 +22,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useInfiniteSocialFeed, useToggleRestaurantFollow } from "@/hooks/useSocialFeed";
+import {
+  useInfiniteSocialFeed,
+  useSearchActualitesPosts,
+  useToggleRestaurantFollow,
+} from "@/hooks/useSocialFeed";
+import { useSeoMeta } from "@/hooks/useSeoMeta";
 import { getSupabase } from "@/integrations/supabase/client";
 import { createActualitesFeedOrderSeed, orderActualitesFeedPosts } from "@/lib/actualitesFeedOrdering";
 import {
@@ -45,6 +47,19 @@ type ActualitesUserTrendSignals = {
   orders: ActualitesOrderTrendSignal[];
   reservations: ActualitesReservationTrendSignal[];
   clickedPosts: Array<Partial<ActualitesPostClickSignal>>;
+};
+
+const ACTUALITES_SEO_JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  name: "Actualités des restaurants TOK",
+  url: "https://www.thetok.ch/actualites",
+  description: "Les plats, nouveautés, offres et événements publiés par les restaurants présents sur TOK.",
+  isPartOf: {
+    "@type": "WebSite",
+    name: "TOK",
+    url: "https://www.thetok.ch",
+  },
 };
 
 function normalizeActualitesSearch(value: string) {
@@ -226,9 +241,11 @@ function ActualitesBoostBanner({ onSponsorClick }: { onSponsorClick: () => void 
 
 export default function Actualites() {
   const { role, isSuperAdmin, user } = useAuth();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [scope, setScope] = useState<SocialFeedScope>(() => normalizeSocialFeedScope(searchParams.get("scope")));
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [localClickSignals, setLocalClickSignals] = useState(() => readActualitesPostSignals());
   const [userTrendSignals, setUserTrendSignals] = useState<ActualitesUserTrendSignals>({
     orders: [],
@@ -240,11 +257,12 @@ export default function Actualites() {
   const [sponsorDialogRequest, setSponsorDialogRequest] = useState(0);
   const highlightedPostId = searchParams.get("post");
   const feed = useInfiniteSocialFeed(scope, 12);
+  const globalSearch = useSearchActualitesPosts(debouncedSearchQuery, 20);
   const canManage = role === "restaurateur" || isSuperAdmin;
   const ownerRestaurants = useOwnerRestaurants({ enabled: canManage });
   const rawPosts = useMemo(() => (feed.data?.pages.flatMap((page) => page.posts) || []) as SocialFeedPost[], [feed.data]);
   const posts = useMemo(() => orderActualitesFeedPosts(rawPosts, `${feedOrderSeed}:${scope}`), [feedOrderSeed, rawPosts, scope]);
-  const filteredPosts = useMemo(() => {
+  const fallbackFilteredPosts = useMemo(() => {
     const normalizedQuery = normalizeActualitesSearch(searchQuery);
     const compactQuery = compactActualitesSearch(searchQuery);
 
@@ -258,6 +276,25 @@ export default function Actualites() {
       );
     });
   }, [posts, searchQuery]);
+  const normalizedSearchQuery = searchQuery.replace(/\s+/g, " ").trim();
+  const normalizedDebouncedSearchQuery = debouncedSearchQuery.replace(/\s+/g, " ").trim();
+  const globalSearchEnabled = normalizedSearchQuery.length >= 2
+    && normalizedDebouncedSearchQuery.length >= 2;
+  const searchIsSettling = normalizedSearchQuery.length >= 2
+    && normalizedSearchQuery !== normalizedDebouncedSearchQuery;
+  const globallyMatchedPosts = useMemo(
+    () => (globalSearch.data?.pages.flatMap((page) => page.posts) || []) as SocialFeedPost[],
+    [globalSearch.data],
+  );
+  const filteredPosts = globalSearchEnabled && !globalSearch.isError
+    ? globallyMatchedPosts
+    : fallbackFilteredPosts;
+  const globalSearchTotal = globalSearch.data?.pages[0]?.totalCount || 0;
+  const searchLoading = globalSearchEnabled && (globalSearch.isLoading || searchIsSettling);
+  const contentLoading = globalSearchEnabled ? searchLoading : feed.isLoading;
+  const contentError = normalizedSearchQuery ? null : feed.error;
+  const canLoadMore = globalSearchEnabled ? globalSearch.hasNextPage : feed.hasNextPage;
+  const isLoadingMore = globalSearchEnabled ? globalSearch.isFetchingNextPage : feed.isFetchingNextPage;
   const restaurants = useMemo(
     () => canManage ? ownerRestaurants.restaurants : [],
     [canManage, ownerRestaurants.restaurants],
@@ -290,6 +327,23 @@ export default function Actualites() {
     feedPosts: posts,
     max: 4,
   }), [localClickSignals, posts, userTrendSignals]);
+
+  useSeoMeta({
+    title: "Actualités des restaurants à Genève et en Suisse romande | TOK",
+    description: "Découvrez les plats, nouveautés, offres et événements publiés par les restaurants locaux sur TOK, sans avoir besoin de connaître un hashtag.",
+    path: "/actualites",
+    jsonLd: ACTUALITES_SEO_JSON_LD,
+  });
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => setDebouncedSearchQuery(searchQuery), 300);
+    return () => window.clearTimeout(timeout);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    if (!highlightedPostId) return;
+    navigate(`/actualites/${encodeURIComponent(highlightedPostId)}`, { replace: true });
+  }, [highlightedPostId, navigate]);
 
   useEffect(() => {
     if (!canManage || ownerRestaurants.loading) return;
@@ -356,56 +410,10 @@ export default function Actualites() {
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top_left,rgba(249,115,22,0.12),transparent_28rem),linear-gradient(180deg,rgba(255,247,237,0.85),rgba(255,255,255,0.96)_13rem,rgba(248,250,252,0.85))] py-3 md:py-6">
+      <h1 className="sr-only">Actualités, plats, offres et événements des restaurants TOK</h1>
       <div className="container grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,21rem)]">
         <section className="min-w-0 max-w-full space-y-2 md:space-y-3">
           <div className="relative overflow-hidden rounded-[1.5rem] border border-orange-100/80 bg-background/95 p-2 shadow-lg shadow-orange-100/35 backdrop-blur md:p-3">
-            <div className="hidden">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge className="gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] text-primary hover:bg-primary/15">
-                    <Newspaper className="h-3 w-3" />
-                    Actualités restaurants
-                  </Badge>
-                  <Badge variant="outline" className="hidden rounded-full border-orange-200 bg-white/70 px-2.5 py-0.5 text-[11px] sm:inline-flex">
-                    <Flame className="mr-1 h-3 w-3 text-orange-500" />
-                    Offres locales en direct
-                  </Badge>
-                </div>
-                <div>
-                  <h1 className="mt-1 font-display text-2xl font-black tracking-tight text-slate-950 md:text-3xl">
-                    Fil restaurant
-                  </h1>
-                  <p className="hidden">
-                    Découvrez les plats du moment, les coulisses, les tables libres et les offres courtes près de chez vous.
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                  <span className="inline-flex items-center gap-1 rounded-full bg-white/80 px-2.5 py-0.5 text-[11px] font-medium shadow-sm ring-1 ring-border/70">
-                    <Utensils className="h-3 w-3 text-primary" />
-                    {filteredPosts.length} posts
-                  </span>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-white/80 px-2.5 py-0.5 text-[11px] font-medium shadow-sm ring-1 ring-border/70">
-                    <Store className="h-3 w-3 text-primary" />
-                    {feedStats.restaurantsCount} restaurants
-                  </span>
-                  <span className="hidden items-center gap-1 rounded-full bg-white/80 px-2.5 py-0.5 text-[11px] font-medium shadow-sm ring-1 ring-border/70">
-                    <MapPin className="h-3.5 w-3.5 text-primary" />
-                    Suggestions proches
-                  </span>
-                </div>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-2 sm:flex-row lg:items-center">
-                <Button size="sm" className="h-9 gap-2 rounded-full px-3 shadow-md shadow-primary/15" onClick={() => feed.refetch()} disabled={feed.isFetching}>
-                  <RefreshCw className={`h-3.5 w-3.5 ${feed.isFetching ? "animate-spin" : ""}`} />
-                  Actualiser
-                </Button>
-                <p className="hidden text-xs text-muted-foreground lg:text-right">Flux enrichi par les publications restaurateurs.</p>
-              </div>
-            </div>
-
             <div className="relative z-10 flex min-w-0 flex-col gap-2 lg:flex-row lg:items-center">
               <div className="relative min-w-0 flex-1">
                 <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -414,8 +422,9 @@ export default function Actualites() {
                   type="search"
                   value={searchQuery}
                   aria-label="Rechercher dans les actualités"
+                  aria-describedby="actualites-search-status"
                   data-testid="actualites-search"
-                  placeholder="Rechercher par #, restaurant, cuisine, ville..."
+                  placeholder="Rechercher un plat, ingrédient, restaurant, cuisine, ville..."
                   className="h-10 rounded-2xl border-orange-100 bg-white pl-10 pr-10 text-sm shadow-sm"
                   onChange={(event) => setSearchQuery(event.target.value)}
                 />
@@ -433,20 +442,44 @@ export default function Actualites() {
                 ) : null}
               </div>
 
-              <Tabs value={scope} onValueChange={changeScope} className="min-w-0 lg:w-[29rem]">
-                <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-2xl bg-muted/50 p-1 sm:grid-cols-5">
-                  {SOCIAL_FEED_SCOPES.map((item) => (
-                    <TabsTrigger
-                      key={item.value}
-                      value={item.value}
-                      className="min-w-0 whitespace-normal rounded-xl px-1.5 py-2 text-center text-[11px] font-semibold leading-tight data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm sm:text-xs"
-                    >
-                      {item.label}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </Tabs>
+              {normalizedSearchQuery.length >= 2 ? (
+                <Badge variant="outline" className="h-10 justify-center gap-2 rounded-2xl border-orange-200 bg-orange-50 px-4 text-orange-800 lg:w-[29rem]">
+                  <Search className="h-4 w-4" aria-hidden="true" />
+                  Recherche globale dans tout le fil
+                </Badge>
+              ) : (
+                <Tabs value={scope} onValueChange={changeScope} className="min-w-0 lg:w-[29rem]">
+                  <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-2xl bg-muted/50 p-1 sm:grid-cols-5">
+                    {SOCIAL_FEED_SCOPES.map((item) => (
+                      <TabsTrigger
+                        key={item.value}
+                        value={item.value}
+                        className="min-w-0 whitespace-normal rounded-xl px-1.5 py-2 text-center text-[11px] font-semibold leading-tight data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm sm:text-xs"
+                      >
+                        {item.label}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                </Tabs>
+              )}
             </div>
+            <p
+              id="actualites-search-status"
+              role="status"
+              aria-live="polite"
+              className="px-2 pt-1 text-xs text-muted-foreground"
+            >
+              {searchLoading
+                ? "Recherche dans toutes les actualités…"
+                : globalSearchEnabled && !globalSearch.isError
+                  ? `${globalSearchTotal} publication${globalSearchTotal > 1 ? "s" : ""} trouvée${globalSearchTotal > 1 ? "s" : ""} dans tout le fil.`
+                  : normalizedSearchQuery.length === 1
+                    ? "Saisissez au moins deux caractères pour lancer la recherche globale."
+                    : normalizedSearchQuery
+                      ? `${filteredPosts.length} résultat${filteredPosts.length > 1 ? "s" : ""} visible${filteredPosts.length > 1 ? "s" : ""}.`
+                      : "La recherche porte aussi sur les plats, ingrédients et descriptions d’images, sans hashtag."
+              }
+            </p>
           </div>
 
           {canManage ? <ActualitesBoostBanner onSponsorClick={() => setSponsorDialogRequest((request) => request + 1)} /> : null}
@@ -479,58 +512,26 @@ export default function Actualites() {
             </div>
           ) : null}
 
-          <div className="hidden" aria-hidden="true">
-            <div className="flex flex-col gap-3 md:flex-row md:items-center">
-              <div className="relative min-w-0 flex-1">
-                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  id="actualites-search-legacy"
-                  type="search"
-                  value={searchQuery}
-                  aria-label="Rechercher dans les actualités"
-                  data-testid="actualites-search-legacy"
-                  placeholder="Rechercher par #, restaurant, cuisine, ville..."
-                  className="h-12 rounded-2xl border-orange-100 bg-white pl-11 pr-12 shadow-sm"
-                  onChange={(event) => setSearchQuery(event.target.value)}
-                />
-                {searchQuery ? (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-1.5 top-1/2 h-9 w-9 -translate-y-1/2 rounded-full text-muted-foreground hover:bg-orange-50 hover:text-primary"
-                    aria-label="Effacer la recherche"
-                    onClick={() => setSearchQuery("")}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                ) : null}
-              </div>
-              <p className="text-xs text-muted-foreground md:w-64">
-                {searchQuery.trim()
-                  ? `${filteredPosts.length}/${posts.length} post(s) correspondent à votre recherche.`
-                  : "Recherchez un #, un restaurant, une cuisine, une ville ou un mot-clé."}
+          {globalSearchEnabled && globalSearch.isError ? (
+            <div className="flex flex-col gap-3 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 shadow-sm sm:flex-row sm:items-center sm:justify-between" role="alert">
+              <p>
+                La recherche globale est momentanément indisponible. Les résultats déjà chargés restent affichés.
               </p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="shrink-0 rounded-full bg-white"
+                onClick={() => globalSearch.refetch()}
+                disabled={globalSearch.isFetching}
+              >
+                <RefreshCw className={`mr-2 h-3.5 w-3.5 ${globalSearch.isFetching ? "animate-spin" : ""}`} />
+                Réessayer
+              </Button>
             </div>
-          </div>
+          ) : null}
 
-          <Tabs value={scope} onValueChange={changeScope}>
-            <div className="hidden">
-              <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-xl bg-muted/50 p-1 sm:grid-cols-5">
-                {SOCIAL_FEED_SCOPES.map((item) => (
-                  <TabsTrigger
-                    key={item.value}
-                    value={item.value}
-                    className="rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm sm:text-sm"
-                  >
-                    {item.label}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </div>
-          </Tabs>
-
-          {feed.isLoading ? (
+          {contentLoading ? (
             <div className="space-y-3">
               {[0, 1, 2].map((item) => (
                 <div key={item} className="overflow-hidden rounded-2xl border bg-background/90 p-5 shadow-sm">
@@ -545,9 +546,9 @@ export default function Actualites() {
                 </div>
               ))}
             </div>
-          ) : feed.isError ? (
+          ) : contentError ? (
             <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-6 text-sm text-destructive shadow-sm">
-              {(feed.error as Error).message}
+              {(contentError as Error).message}
             </div>
           ) : filteredPosts.length > 0 ? (
             <div className="space-y-4" data-testid="actualites-feed">
@@ -562,11 +563,11 @@ export default function Actualites() {
               <div className="flex justify-center pt-2">
                 <Button
                   variant="outline"
-                  onClick={() => feed.fetchNextPage()}
-                  disabled={!feed.hasNextPage || feed.isFetchingNextPage}
+                  onClick={() => globalSearchEnabled ? globalSearch.fetchNextPage() : feed.fetchNextPage()}
+                  disabled={!canLoadMore || isLoadingMore}
                   className="min-w-44 rounded-full"
                 >
-                  {feed.isFetchingNextPage ? "Chargement..." : feed.hasNextPage ? "Charger plus" : "Fin du fil"}
+                  {isLoadingMore ? "Chargement..." : canLoadMore ? "Charger plus" : globalSearchEnabled ? "Tous les résultats sont affichés" : "Fin du fil"}
                 </Button>
               </div>
             </div>
@@ -618,7 +619,7 @@ export default function Actualites() {
                 <div className="rounded-2xl bg-gradient-to-br from-orange-50 to-white p-3 ring-1 ring-orange-100">
                   <Megaphone className="mb-2 h-4 w-4 text-primary" />
                   <p className="text-xs text-muted-foreground">Posts</p>
-                  <p className="text-2xl font-black">{posts.length}</p>
+                  <p className="text-2xl font-black">{globalSearchEnabled ? globalSearchTotal : posts.length}</p>
                 </div>
                 <div className="rounded-2xl bg-gradient-to-br from-violet-50 to-white p-3 ring-1 ring-violet-100">
                   <Store className="mb-2 h-4 w-4 text-violet-600" />

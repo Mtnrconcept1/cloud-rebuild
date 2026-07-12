@@ -15,6 +15,7 @@ import {
 } from "@/lib/uploadSecurity";
 
 const supabase = getSupabase();
+const UUID_NAMESPACE_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export type ImageUploadMetadata = {
   storageBucket: string;
@@ -26,23 +27,26 @@ interface ImageUploadProps {
   onChange: (url: string, metadata?: ImageUploadMetadata) => void;
   label?: string;
   bucket?: string;
+  pathPrefix?: string;
   className?: string;
   showUrlInput?: boolean;
 }
 
-function createImagePath(userId: string, file: File) {
+function createImagePath(namespace: string, file: File) {
   assertSafeFileUpload(file, {
     allowedMimeTypes: IMAGE_MIME_EXTENSIONS,
     maxBytes: MAX_IMAGE_UPLOAD_BYTES,
     label: "Image",
   });
+  if (!UUID_NAMESPACE_PATTERN.test(namespace)) {
+    throw new Error("L’espace de stockage de l’image est invalide.");
+  }
   const ext = getSafeUploadExtension(file, IMAGE_MIME_EXTENSIONS);
-
   const id = typeof crypto.randomUUID === "function"
     ? crypto.randomUUID()
     : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
-  return `${userId}/${id}.${ext}`;
+  return `${namespace}/${id}.${ext}`;
 }
 
 export default function ImageUpload({
@@ -50,6 +54,7 @@ export default function ImageUpload({
   onChange,
   label = "Image",
   bucket = "images",
+  pathPrefix,
   className = "",
   showUrlInput = false,
 }: ImageUploadProps) {
@@ -75,7 +80,7 @@ export default function ImageUpload({
         maxBytes: MAX_IMAGE_UPLOAD_BYTES,
         label: "Image optimisée",
       });
-      const filePath = createImagePath(userData.user.id, file);
+      const filePath = createImagePath(pathPrefix || userData.user.id, file);
       const { error: uploadError } = await supabase.storage.from(bucket).upload(filePath, file, {
         contentType: file.type,
         upsert: false,
@@ -123,7 +128,7 @@ export default function ImageUpload({
           <div className="relative w-full aspect-video rounded-lg overflow-hidden border bg-muted">
             <img
               src={getOptimizedImageUrl(normalizePublicImageUrl(value), "card")}
-              alt="Preview"
+              alt={`Aperçu — ${label}`}
               className="w-full h-full object-cover"
               loading="lazy"
               decoding="async"
@@ -134,6 +139,7 @@ export default function ImageUpload({
               size="icon"
               className="absolute top-2 right-2 h-8 w-8"
               onClick={() => onChange("")}
+              aria-label="Supprimer l’image sélectionnée"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -152,7 +158,13 @@ export default function ImageUpload({
                   </>
                 )}
               </div>
-              <Input type="file" className="hidden" accept="image/png,image/jpeg,image/webp,image/gif" onChange={handleUpload} disabled={uploading} />
+              <Input
+                type="file"
+                className="hidden"
+                accept="image/png,image/jpeg,image/webp,image/gif"
+                onChange={handleUpload}
+                disabled={uploading}
+              />
             </label>
           </div>
         )}

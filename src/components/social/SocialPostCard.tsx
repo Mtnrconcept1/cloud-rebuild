@@ -1053,7 +1053,9 @@ export default function SocialPostCard({
     try {
       if (navigator.share) {
         await navigator.share({ title, text: post.body, url });
-        await recordShare.mutateAsync({ postId: post.id, channel: "native" });
+        if (user?.id) {
+          await recordShare.mutateAsync({ postId: post.id, channel: "native" });
+        }
         return;
       }
 
@@ -1070,7 +1072,9 @@ export default function SocialPostCard({
 
     try {
       await navigator.clipboard.writeText(url);
-      await recordShare.mutateAsync({ postId: post.id, channel: "link" });
+      if (user?.id) {
+        await recordShare.mutateAsync({ postId: post.id, channel: "link" });
+      }
       setShareDialogOpen(false);
       toast.success("Lien copié.");
     } catch {
@@ -1117,14 +1121,15 @@ export default function SocialPostCard({
   };
 
   return (
-    <Card
-      className={cn(
-        "overflow-hidden rounded-[1.65rem] border bg-white shadow-lg shadow-slate-200/60 transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-orange-100/70 max-sm:-mx-2 max-sm:overflow-visible max-sm:rounded-none max-sm:border-0 max-sm:shadow-none max-sm:hover:translate-y-0",
-        highlighted && "border-primary/60 ring-2 ring-primary/20",
-        isPremiumBanner &&
-          "border-orange-300 bg-gradient-to-b from-orange-50/70 via-white to-white ring-2 ring-orange-100/80",
-      )}
-    >
+    <article aria-labelledby={`social-post-title-${post.activityId}`}>
+      <Card
+        className={cn(
+          "overflow-hidden rounded-[1.65rem] border bg-white shadow-lg shadow-slate-200/60 transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-orange-100/70 max-sm:-mx-2 max-sm:overflow-visible max-sm:rounded-none max-sm:border-0 max-sm:shadow-none max-sm:hover:translate-y-0",
+          highlighted && "border-primary/60 ring-2 ring-primary/20",
+          isPremiumBanner &&
+            "border-orange-300 bg-gradient-to-b from-orange-50/70 via-white to-white ring-2 ring-orange-100/80",
+        )}
+      >
       <CardContent className={cn("p-5 max-sm:px-0", compact && "p-4")}>
         {isPremiumBanner ? (
           <div className="mb-3 flex items-center justify-between gap-3 rounded-2xl border border-orange-200 bg-orange-500 px-3 py-2 text-xs font-extrabold uppercase tracking-[0.14em] text-white shadow-lg shadow-orange-500/20 max-sm:mx-3 max-sm:rounded-xl">
@@ -1146,23 +1151,24 @@ export default function SocialPostCard({
         ) : null}
 
         <div className="flex items-start justify-between gap-3 max-sm:relative max-sm:block max-sm:pt-9">
-          <Link
-            to={`/restaurant/${post.restaurantId}`}
-            className="flex w-full min-w-0 flex-1 items-center gap-3 max-sm:gap-2.5"
-          >
-            <Avatar className="h-14 w-14 rounded-2xl border-2 border-orange-100 shadow-sm max-sm:h-11 max-sm:w-11 max-sm:rounded-xl">
-              <AvatarImage
-                src={post.restaurant.imageUrl || undefined}
-                alt={post.restaurant.name}
-              />
-              <AvatarFallback className="rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 font-bold text-white max-sm:rounded-xl max-sm:text-xs">
-                {getInitials(post.restaurant.name)}
-              </AvatarFallback>
-            </Avatar>
+          <div className="flex w-full min-w-0 flex-1 items-center gap-3 max-sm:gap-2.5">
+            <Link to={`/restaurant/${post.restaurantId}`} aria-label={`Voir ${post.restaurant.name}`}>
+              <Avatar className="h-14 w-14 rounded-2xl border-2 border-orange-100 shadow-sm max-sm:h-11 max-sm:w-11 max-sm:rounded-xl">
+                <AvatarImage
+                  src={post.restaurant.imageUrl || undefined}
+                  alt={post.restaurant.name}
+                />
+                <AvatarFallback className="rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 font-bold text-white max-sm:rounded-xl max-sm:text-xs">
+                  {getInitials(post.restaurant.name)}
+                </AvatarFallback>
+              </Avatar>
+            </Link>
             <div className="min-w-0">
               <div className="flex min-w-0 flex-wrap items-center gap-2">
-                <h3 className="truncate text-base font-bold leading-tight text-slate-950 max-sm:text-base">
-                  {post.restaurant.name}
+                <h3 id={`social-post-title-${post.activityId}`} className="truncate text-base font-bold leading-tight text-slate-950 max-sm:text-base">
+                  <Link to={`/restaurant/${post.restaurantId}`} className="rounded-sm hover:text-orange-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500">
+                    {post.restaurant.name}
+                  </Link>
                 </h3>
                 {post.isSponsored ? (
                   <Badge
@@ -1178,13 +1184,22 @@ export default function SocialPostCard({
                 ) : null}
               </div>
               <p className="mt-0.5 flex flex-wrap items-center gap-1 text-xs text-muted-foreground max-sm:text-[11px]">
-                {[
-                  post.restaurant.cuisineType,
-                  post.restaurant.city,
-                  formatPostDate(post.createdAt),
-                ]
+                {[post.restaurant.cuisineType, post.restaurant.city]
                   .filter(Boolean)
                   .join(" · ")}
+                {post.restaurant.cuisineType || post.restaurant.city ? " · " : null}
+                <Link
+                  to={`/actualites/${encodeURIComponent(post.id)}`}
+                  aria-label="Ouvrir cette actualité"
+                  className="rounded-sm underline-offset-2 hover:text-orange-700 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
+                >
+                  <time
+                    dateTime={post.publishedAt || post.createdAt}
+                    title={new Date(post.publishedAt || post.createdAt).toLocaleString("fr-CH")}
+                  >
+                    {formatPostDate(post.publishedAt || post.createdAt)}
+                  </time>
+                </Link>
                 {post.followedByMe ? (
                   <span className="ml-1 inline-flex items-center gap-1 text-emerald-600 max-sm:hidden">
                     <span className="h-2 w-2 rounded-full bg-emerald-500" />
@@ -1199,7 +1214,7 @@ export default function SocialPostCard({
                 </p>
               ) : null}
             </div>
-          </Link>
+          </div>
           <div className="flex shrink-0 items-center justify-end gap-2 max-sm:absolute max-sm:right-0 max-sm:top-0">
             <Button
               variant={post.followedByMe ? "secondary" : "outline"}
@@ -1667,7 +1682,8 @@ export default function SocialPostCard({
             />
           </DrawerContent>
         </Drawer>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </article>
   );
 }

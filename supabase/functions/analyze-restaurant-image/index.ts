@@ -19,10 +19,14 @@ import {
 } from "../_shared/openai.ts";
 
 const FUNCTION_NAME = "analyze-restaurant-image";
-const WORKER_ID = "supabase-openai-image-metadata";
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 const SUPPORTED_IMAGE_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
-const MODEL = Deno.env.get("OPENAI_MODEL_IMAGE_ANALYSIS")?.trim() || selectTokAiModel("image_economy");
+const ANALYSIS_PROVIDER = (Deno.env.get("IMAGE_ANALYSIS_PROVIDER")?.trim().toLowerCase() || "contextual") as
+  | "contextual"
+  | "openai";
+const OPENAI_MODEL = Deno.env.get("OPENAI_MODEL_IMAGE_ANALYSIS")?.trim() || selectTokAiModel("image_economy");
+const ACTIVE_MODEL = ANALYSIS_PROVIDER === "openai" ? OPENAI_MODEL : "tok-contextual-metadata-v1";
+const WORKER_ID = `supabase-${ANALYSIS_PROVIDER}-image-metadata`;
 
 type ImageAnalysisJob = {
   job_id: string;
@@ -42,11 +46,30 @@ type RestaurantImageRow = {
   source_type: string;
   source_table: string | null;
   source_id: string | null;
-  source_context: Record<string, unknown> | null;
+  social_post_media_id: string | null;
+  restaurant_media_id: string | null;
   original_filename: string | null;
   mime_type: string | null;
   analysis_status: string;
+  ai_metadata: Record<string, unknown> | null;
 };
+
+type TrustedImageContext = {
+  restaurantName: string;
+  restaurantCity: string;
+  cuisineType: string | null;
+  postBody: string | null;
+  postType: string | null;
+  mediaAltText: string | null;
+};
+
+type TokenUsage = {
+  input_tokens?: number;
+  output_tokens?: number;
+  total_tokens?: number;
+};
+
+class CompletionConfirmationError extends Error {}
 
 type ImageMetadata = {
   description: string;
@@ -127,6 +150,14 @@ function safeText(raw: unknown, maxLength = 900) {
   return typeof raw === "string" ? raw.trim().slice(0, maxLength) : "";
 }
 
+function cleanAltText(raw: unknown, maxLength = 260) {
+  return safeText(raw, 900)
+    .replace(/#[\p{L}\p{N}_]+/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, maxLength);
+}
+
 function safeBoolean(raw: unknown) {
   return raw === true;
 }
@@ -157,7 +188,7 @@ function normalizeMetadata(raw: ImageMetadata): ImageMetadata {
   return {
     description: safeText(raw.description, 900),
     short_description: safeText(raw.short_description, 180),
-    alt_text: safeText(raw.alt_text, 260),
+    alt_text: cleanAltText(raw.alt_text),
     seo_title: safeText(raw.seo_title, 90),
     seo_description: safeText(raw.seo_description, 180),
     detected_objects: cleanArray(raw.detected_objects, 16),
@@ -195,28 +226,25 @@ function bytesToBase64(bytes: Uint8Array) {
   return btoa(chunks.join(""));
 }
 
-function buildSearchAltText(metadata: ImageMetadata) {
-  const keywords = [
-    ...metadata.food_items,
-    ...metadata.ingredients,
-    ...metadata.cuisine_types,
-    ...metadata.moods,
-    ...metadata.hashtags,
-  ].filter(Boolean).slice(0, 14);
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
 
-  return [
-    metadata.alt_text || metadata.short_description || metadata.description,
-    keywords.length ? `Elements detectes: ${keywords.join(", ")}` : "",
-  ]
-    .filter(Boolean)
-    .join(" ")
-    .slice(0, 420);
+function parseImageRequest(value: unknown) {
+  if (!isRecord(value)) throw new HttpError(400, "invalid_request_body");
+  const keys = Object.keys(value);
+  if (keys.length !== 1 || keys[0] !== "imageId") {
+    throw new HttpError(400, "only_image_id_is_accepted");
+  }
+  const imageId = maybeUuid(value.imageId);
+  if (!imageId) throw new HttpError(400, "image_id_required");
+  return imageId;
 }
 
 async function loadRestaurantImage(actor: Awaited<ReturnType<typeof authenticateRequest>>, imageId: string) {
   const { data, error } = await actor.adminClient
     .from("restaurant_images")
-    .select("id,restaurant_id,bucket,storage_path,public_url,source_type,source_table,source_id,source_context,original_filename,mime_type,analysis_status")
+    .select("id,restaurant_id,bucket,storage_path,public_url,source_type,source_table,source_id,social_post_media_id,restaurant_media_id,original_filename,mime_type,analysis_status,ai_metadata")
     .eq("id", imageId)
     .maybeSingle();
 
@@ -224,6 +252,122 @@ async function loadRestaurantImage(actor: Awaited<ReturnType<typeof authenticate
   if (!data) throw new HttpError(404, "image_not_found");
   await requireRestaurantAccess(actor, data.restaurant_id);
   return data as RestaurantImageRow;
+}
+
+async function loadTrustedImageContext(
+  actor: Awaited<ReturnType<typeof authenticateRequest>>,
+  image: RestaurantImageRow,
+): Promise<TrustedImageContext> {
+  const { data: restaurant, error: restaurantError } = await actor.adminClient
+    .from("restaurants")
+    .select("id,name,city,cuisine_type")
+    .eq("id", image.restaurant_id)
+    .maybeSingle();
+
+  if (restaurantError) throw new HttpError(500, restaurantError.message);
+  if (!restaurant) throw new HttpError(409, "image_restaurant_not_found");
+
+  let postBody: string | null = null;
+  let postType: string | null = null;
+  let mediaAltText: string | null = null;
+
+  if (image.social_post_media_id) {
+    const { data: media, error: mediaError } = await actor.adminClient
+      .from("social_post_media")
+      .select("id,post_id,media_path,alt_text")
+      .eq("id", image.social_post_media_id)
+      .maybeSingle();
+
+    if (mediaError) throw new HttpError(500, mediaError.message);
+    if (!media || media.media_path !== image.storage_path || image.bucket !== "social-post-media") {
+      throw new HttpError(409, "social_media_identity_mismatch");
+    }
+
+    const { data: post, error: postError } = await actor.adminClient
+      .from("social_posts")
+      .select("id,restaurant_id,body,post_type")
+      .eq("id", media.post_id)
+      .maybeSingle();
+
+    if (postError) throw new HttpError(500, postError.message);
+    if (!post || post.restaurant_id !== image.restaurant_id) {
+      throw new HttpError(409, "social_post_identity_mismatch");
+    }
+
+    postBody = safeText(post.body, 2000) || null;
+    postType = safeText(post.post_type, 40) || null;
+    mediaAltText = safeText(media.alt_text, 260) || null;
+  } else if (image.restaurant_media_id) {
+    const { data: media, error: mediaError } = await actor.adminClient
+      .from("restaurant_media")
+      .select("id,restaurant_id,storage_bucket,storage_path,alt_text")
+      .eq("id", image.restaurant_media_id)
+      .maybeSingle();
+
+    if (mediaError) throw new HttpError(500, mediaError.message);
+    if (
+      !media
+      || media.restaurant_id !== image.restaurant_id
+      || media.storage_bucket !== image.bucket
+      || media.storage_path !== image.storage_path
+    ) {
+      throw new HttpError(409, "restaurant_media_identity_mismatch");
+    }
+
+    mediaAltText = safeText(media.alt_text, 260) || null;
+  } else {
+    throw new HttpError(409, "verified_media_source_required");
+  }
+
+  return {
+    restaurantName: safeText(restaurant.name, 160) || "Restaurant",
+    restaurantCity: safeText(restaurant.city, 120),
+    cuisineType: safeText(restaurant.cuisine_type, 120) || null,
+    postBody,
+    postType,
+    mediaAltText,
+  };
+}
+
+function buildContextualMetadata(context: TrustedImageContext): ImageMetadata {
+  const restaurantLabel = [context.restaurantName, context.restaurantCity].filter(Boolean).join(" à ");
+  const fallback = context.cuisineType
+    ? `Photo du restaurant ${restaurantLabel}, cuisine ${context.cuisineType}.`
+    : `Photo du restaurant ${restaurantLabel}.`;
+  const description = safeText(context.postBody || context.mediaAltText || fallback, 900) || fallback;
+  const altText = cleanAltText(context.mediaAltText || (
+    context.postBody
+      ? `Photo publiée par ${context.restaurantName} : ${context.postBody}`
+      : fallback
+  ), 260);
+  const imageType = context.postType === "plat"
+    ? "plat"
+    : context.postType === "promo"
+    ? "promotion"
+    : context.postType === "evenement" || context.postType === "coulisses"
+    ? "ambiance"
+    : "restaurant";
+
+  return {
+    description,
+    short_description: safeText(description, 180),
+    alt_text: altText,
+    seo_title: safeText(`${context.restaurantName} — Actualité`, 90),
+    seo_description: safeText(description, 180),
+    detected_objects: [],
+    food_items: [],
+    ingredients: [],
+    cuisine_types: context.cuisineType ? [context.cuisineType] : [],
+    moods: [],
+    colors: [],
+    hashtags: [],
+    image_type: imageType,
+    is_food_photo: context.postType === "plat",
+    has_people: false,
+    has_logo: false,
+    has_text: false,
+    quality_score: 0,
+  };
 }
 
 async function claimJob(actor: Awaited<ReturnType<typeof authenticateRequest>>, imageId: string): Promise<ImageAnalysisJob | null> {
@@ -260,9 +404,13 @@ async function downloadImageAsDataUrl(
   return `data:${mimeType};base64,${bytesToBase64(bytes)}`;
 }
 
-async function analyzeImage(dataUrl: string, image: RestaurantImageRow) {
+async function analyzeImage(
+  dataUrl: string,
+  image: RestaurantImageRow,
+  context: TrustedImageContext,
+) {
   const response = await createOpenAIResponse({
-    model: MODEL,
+    model: OPENAI_MODEL,
     maxOutputTokens: 1200,
     input: [
       {
@@ -279,8 +427,13 @@ Ne fabrique pas de marque, de certification, de prix ou d'offre si ce n'est pas 
             text: JSON.stringify({
               objectif: "Creer des metadonnees recherche pour une image restaurant.",
               source_type: image.source_type,
-              original_filename: image.original_filename,
-              contexte: image.source_context || {},
+              contexte_verifie: {
+                restaurant: context.restaurantName,
+                ville: context.restaurantCity,
+                cuisine: context.cuisineType,
+                publication: context.postBody,
+                type_publication: context.postType,
+              },
             }),
           },
           { type: "input_image", image_url: dataUrl },
@@ -305,7 +458,7 @@ async function completeJob(
   job: ImageAnalysisJob,
   metadata: ImageMetadata,
 ) {
-  const { error } = await actor.adminClient.rpc("complete_image_analysis_job", {
+  const { data, error } = await actor.adminClient.rpc("complete_image_analysis_job", {
     p_job_id: job.job_id,
     p_image_id: job.image_id,
     p_description: metadata.description,
@@ -328,14 +481,22 @@ async function completeJob(
     p_quality_score: metadata.quality_score,
     p_ai_metadata: {
       ...metadata,
-      provider: "openai",
-      model: MODEL,
+      provider: ANALYSIS_PROVIDER,
+      model: ACTIVE_MODEL,
       generated_by: FUNCTION_NAME,
     },
     p_embedding: null,
   });
 
   if (error) throw new HttpError(500, error.message);
+  if (
+    !Array.isArray(data)
+    || data.length !== 1
+    || data[0]?.completed_image_id !== job.image_id
+    || !["completed", "already_completed"].includes(data[0]?.completion_status)
+  ) {
+    throw new CompletionConfirmationError("image_analysis_completion_not_confirmed");
+  }
 }
 
 async function failJob(
@@ -352,50 +513,6 @@ async function failJob(
   });
 }
 
-async function syncActualitesMediaMetadata(
-  actor: Awaited<ReturnType<typeof authenticateRequest>>,
-  image: RestaurantImageRow,
-  metadata: ImageMetadata,
-) {
-  if (image.source_type !== "actualites" || image.source_table !== "social_posts" || !image.source_id) return;
-
-  const mediaPath = typeof image.source_context?.mediaPath === "string"
-    ? image.source_context.mediaPath
-    : image.storage_path;
-  const { data: mediaRow } = await actor.adminClient
-    .from("social_post_media")
-    .select("id,metadata")
-    .eq("post_id", image.source_id)
-    .eq("media_path", mediaPath)
-    .maybeSingle();
-
-  const currentMetadata = mediaRow?.metadata && typeof mediaRow.metadata === "object" && !Array.isArray(mediaRow.metadata)
-    ? mediaRow.metadata as Record<string, unknown>
-    : {};
-
-  await actor.adminClient
-    .from("social_post_media")
-    .update({
-      alt_text: buildSearchAltText(metadata),
-      metadata: {
-        ...currentMetadata,
-        image_analysis: {
-          restaurant_image_id: image.id,
-          provider: "openai",
-          model: MODEL,
-          analyzed_at: new Date().toISOString(),
-          food_items: metadata.food_items,
-          ingredients: metadata.ingredients,
-          cuisine_types: metadata.cuisine_types,
-          hashtags: metadata.hashtags,
-          quality_score: metadata.quality_score,
-        },
-      },
-    })
-    .eq("post_id", image.source_id)
-    .eq("media_path", mediaPath);
-}
-
 async function recordUsage(
   actor: Awaited<ReturnType<typeof authenticateRequest>>,
   image: RestaurantImageRow,
@@ -408,7 +525,7 @@ async function recordUsage(
       action: "analyze_restaurant_image",
       feature_name: "actualites_image_metadata",
       source: FUNCTION_NAME,
-      model: MODEL,
+      model: ACTIVE_MODEL,
       user_id: actor.userId,
       restaurant_id: image.restaurant_id,
       status,
@@ -432,18 +549,33 @@ Deno.serve(async (req) => {
   let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
   let image: RestaurantImageRow | null = null;
   let job: ImageAnalysisJob | null = null;
+  let jobFinalized = false;
 
   try {
     if (req.method !== "POST") throw new HttpError(405, "Method not allowed");
     actor = await authenticateRequest(req, { allowServiceRole: true, allowSchedulerSecret: true });
-    if (!OPENAI_API_KEY) throw new HttpError(503, "ai_service_unavailable");
+    if (!["contextual", "openai"].includes(ANALYSIS_PROVIDER)) {
+      throw new HttpError(503, "image_analysis_provider_not_configured");
+    }
+    if (ANALYSIS_PROVIDER === "openai" && !OPENAI_API_KEY) {
+      throw new HttpError(503, "openai_image_analysis_not_configured");
+    }
 
-    const body = await req.json().catch(() => ({}));
-    const imageId = maybeUuid(body.imageId);
-    if (!imageId) throw new HttpError(400, "image_id_required");
+    const body = await req.json().catch(() => null);
+    const imageId = parseImageRequest(body);
 
     image = await loadRestaurantImage(actor, imageId);
-    if (image.analysis_status === "completed") {
+    const trustedContext = await loadTrustedImageContext(actor, image);
+    const existingProvider = isRecord(image.ai_metadata)
+      ? safeText(image.ai_metadata.provider, 60).toLowerCase()
+      : "";
+    if (
+      image.analysis_status === "completed"
+      && (
+        ANALYSIS_PROVIDER === "contextual"
+        || existingProvider === ANALYSIS_PROVIDER
+      )
+    ) {
       return jsonResponse({ ok: true, status: "already_completed", imageId }, 200, cors);
     }
 
@@ -459,10 +591,24 @@ Deno.serve(async (req) => {
       return jsonResponse({ ok: true, status: "not_claimed", imageId }, 202, cors);
     }
 
-    const dataUrl = await downloadImageAsDataUrl(actor, image);
-    const { metadata, usage } = await analyzeImage(dataUrl, image);
+    let metadata: ImageMetadata;
+    let usage: TokenUsage = {
+      input_tokens: 0,
+      output_tokens: 0,
+      total_tokens: 0,
+    };
+
+    if (ANALYSIS_PROVIDER === "openai") {
+      const dataUrl = await downloadImageAsDataUrl(actor, image);
+      const openAiResult = await analyzeImage(dataUrl, image, trustedContext);
+      metadata = openAiResult.metadata;
+      usage = openAiResult.usage;
+    } else {
+      metadata = buildContextualMetadata(trustedContext);
+    }
+
     await completeJob(actor, job, metadata);
-    await syncActualitesMediaMetadata(actor, image, metadata);
+    jobFinalized = true;
 
     const inputTokens = usage.input_tokens ?? 0;
     const outputTokens = usage.output_tokens ?? 0;
@@ -474,8 +620,14 @@ Deno.serve(async (req) => {
       input_tokens: inputTokens,
       output_tokens: outputTokens,
       total_tokens: usage.total_tokens ?? inputTokens + outputTokens,
-      estimated_cost_chf: estimateOpenAITextCostChf(MODEL, inputTokens, outputTokens),
-      credit_units: getOpenAITextCreditUnits(MODEL, inputTokens, outputTokens),
+      provider: ANALYSIS_PROVIDER,
+      model: ACTIVE_MODEL,
+      estimated_cost_chf: ANALYSIS_PROVIDER === "openai"
+        ? estimateOpenAITextCostChf(OPENAI_MODEL, inputTokens, outputTokens)
+        : 0,
+      credit_units: ANALYSIS_PROVIDER === "openai"
+        ? getOpenAITextCreditUnits(OPENAI_MODEL, inputTokens, outputTokens)
+        : 0,
     });
 
     await writeAuditLog({
@@ -487,7 +639,11 @@ Deno.serve(async (req) => {
       request: req,
       targetEntityType: "restaurant_image",
       targetEntityId: imageId,
-      metadata: { model: MODEL, source_type: image.source_type },
+      metadata: {
+        provider: ANALYSIS_PROVIDER,
+        model: ACTIVE_MODEL,
+        source_type: image.source_type,
+      },
     });
 
     return jsonResponse({ ok: true, status: "completed", imageId, metadata }, 200, cors);
@@ -497,10 +653,14 @@ Deno.serve(async (req) => {
     log.error("request failed", { status, message });
 
     if (actor && image) {
-      await failJob(actor, job, image.id, message);
+      if (!jobFinalized && !(error instanceof CompletionConfirmationError)) {
+        await failJob(actor, job, image.id, message);
+      }
       await recordUsage(actor, image, "failure", {
         image_id: image.id,
         source_type: image.source_type,
+        provider: ANALYSIS_PROVIDER,
+        model: ACTIVE_MODEL,
         error: message,
       });
       await writeAuditLog({

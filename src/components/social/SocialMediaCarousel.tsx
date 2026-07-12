@@ -1,5 +1,5 @@
-import { type ReactNode, useEffect, useRef, useState } from "react";
-import { ImageIcon, MessageCircle, ThumbsUp, Video, X } from "lucide-react";
+import { type MouseEvent, type ReactNode, useEffect, useRef, useState } from "react";
+import { ChevronLeft, ChevronRight, ImageIcon, MessageCircle, ThumbsUp, Video, X } from "lucide-react";
 
 import {
   Dialog,
@@ -48,7 +48,7 @@ function AutoPlayOnViewVideo({
   className?: string;
   onLoadedMetadata: (video: HTMLVideoElement) => void;
   onPlaybackChange: (playing: boolean) => void;
-  onClick?: () => void;
+  onClick?: (event: MouseEvent<HTMLVideoElement>) => void;
 }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
@@ -157,6 +157,40 @@ export default function SocialMediaCarousel({
     () => new Set(),
   );
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const lightboxTriggerRef = useRef<HTMLElement | null>(null);
+  const lightboxWasOpenRef = useRef(false);
+
+  useEffect(() => {
+    if (lightboxIndex === null || media.length < 2) return undefined;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const target = event.target;
+      if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target instanceof HTMLVideoElement) return;
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        setLightboxIndex((current) => current === null ? current : (current - 1 + media.length) % media.length);
+      }
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        setLightboxIndex((current) => current === null ? current : (current + 1) % media.length);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [lightboxIndex, media.length]);
+
+  useEffect(() => {
+    if (lightboxIndex !== null) {
+      lightboxWasOpenRef.current = true;
+      return undefined;
+    }
+    if (!lightboxWasOpenRef.current) return undefined;
+
+    lightboxWasOpenRef.current = false;
+    const frame = window.requestAnimationFrame(() => lightboxTriggerRef.current?.focus());
+    return () => window.cancelAnimationFrame(frame);
+  }, [lightboxIndex]);
 
   if (!media.length) return null;
 
@@ -183,8 +217,9 @@ export default function SocialMediaCarousel({
   const isPortraitMedia = (item: SocialFeedMedia) =>
     (item.mediaType === "video" && verticalVideoIds.has(item.id)) ||
     (item.mediaType === "image" && portraitImageIds.has(item.id));
-  const openLightbox = (item: SocialFeedMedia) => {
+  const openLightbox = (item: SocialFeedMedia, trigger?: HTMLElement | null) => {
     const index = media.findIndex((mediaItem) => mediaItem.id === item.id);
+    lightboxTriggerRef.current = trigger || null;
     setLightboxIndex(index >= 0 ? index : 0);
   };
   const getContainerClassName = (item: SocialFeedMedia) =>
@@ -264,13 +299,22 @@ export default function SocialMediaCarousel({
             });
           }}
           onPlaybackChange={(playing) => updateVideoPlayback(item.id, playing)}
-          onClick={() => openLightbox(item)}
+          onClick={(event) => openLightbox(item, event.currentTarget)}
         />
       );
     }
 
     return (
-      <img
+      <button
+        type="button"
+        className={cn(
+          "flex min-h-11 w-full cursor-zoom-in items-center justify-center rounded-[inherit] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-orange-500/70 focus-visible:ring-inset",
+          constrainedPreview && "max-h-[min(62dvh,36rem)]",
+        )}
+        aria-label={`Agrandir l’image : ${item.altText || "média du restaurant"}`}
+        onClick={(event) => openLightbox(item, event.currentTarget)}
+      >
+        <img
         // Guarded by actualites-responsive-guards: height: undefined, resize: "contain"
         src={getOptimizedImageUrl(item.mediaUrl, imagePreset, {
           height: undefined,
@@ -290,7 +334,6 @@ export default function SocialMediaCarousel({
               : "h-auto w-full",
         )}
         loading="lazy"
-        onClick={() => openLightbox(item)}
         onLoad={(event) => {
           const image = event.currentTarget;
           if (image.naturalHeight <= image.naturalWidth) return;
@@ -302,7 +345,8 @@ export default function SocialMediaCarousel({
           });
         }}
         decoding="async"
-      />
+        />
+      </button>
     );
   };
 
@@ -359,8 +403,28 @@ export default function SocialMediaCarousel({
           <X className="h-7 w-7" />
         </button>
         <div className="absolute right-5 top-[calc(env(safe-area-inset-top,0px)+1.25rem)] z-10 rounded-full bg-black/45 px-3 py-1 text-sm font-semibold text-white">
-          {lightboxIndex === null ? 0 : lightboxIndex + 1}/{media.length}
+          <span aria-live="polite">{lightboxIndex === null ? 0 : lightboxIndex + 1}/{media.length}</span>
         </div>
+        {media.length > 1 ? (
+          <>
+            <button
+              type="button"
+              aria-label="Média précédent"
+              onClick={() => setLightboxIndex((current) => current === null ? current : (current - 1 + media.length) % media.length)}
+              className="absolute left-3 top-1/2 z-10 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/55 text-white transition hover:bg-black/75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            >
+              <ChevronLeft className="h-7 w-7" />
+            </button>
+            <button
+              type="button"
+              aria-label="Média suivant"
+              onClick={() => setLightboxIndex((current) => current === null ? current : (current + 1) % media.length)}
+              className="absolute right-3 top-1/2 z-10 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/55 text-white transition hover:bg-black/75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            >
+              <ChevronRight className="h-7 w-7" />
+            </button>
+          </>
+        ) : null}
         <div className="flex min-h-0 flex-1 items-center justify-center bg-black px-0 pt-[calc(env(safe-area-inset-top,0px)+4.5rem)]">
           {lightboxItem ? renderLightboxMedia(lightboxItem) : null}
         </div>
