@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#f55a1c" />
     <meta
       name="description"
-      content="Plan de table intelligent pour restaurant avec placement automatique des réservations."
+      content="Plan de table TOK connecté aux tables et aux réservations réelles du restaurant."
     />
     <title>TOK TABLE 2 — Plan de salle connecté</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -21,15 +21,20 @@
   <body>
     <div class="app-shell">
       <header class="topbar">
-        <a class="brand" href="#" aria-label="Tok Table, accueil">
+        <div class="brand" aria-label="TOK TABLE 2">
           <span class="brand-mark">T</span>
           <span>
             <strong>TOK TABLE 2</strong>
-            <small>Plan de salle connecté</small>
+            <small>Plan de salle</small>
           </span>
-        </a>
+        </div>
 
-        <div class="service-picker" aria-label="Service affiché">
+        <nav class="mode-switch" aria-label="Mode du plan">
+          <button id="mode-service-button" class="active" type="button" aria-pressed="true">Service</button>
+          <button id="mode-template-button" type="button" aria-pressed="false">Modifier le modèle</button>
+        </nav>
+
+        <div class="service-picker" id="service-controls" aria-label="Service affiché">
           <label>
             <span>Date</span>
             <input id="service-date" type="date" />
@@ -44,53 +49,53 @@
         </div>
 
         <div class="top-actions">
-          <button class="btn btn-ghost local-only" id="data-button" type="button">
-            <span aria-hidden="true">⇅</span> Données
-          </button>
-          <button class="btn btn-primary" id="auto-place-button" type="button">
+          <span class="sync-pill"><i></i><span id="connection-label">Connexion…</span></span>
+          <button class="btn btn-ghost change-action hidden" id="cancel-changes-button" type="button">Annuler</button>
+          <button class="btn btn-ghost change-action hidden" id="save-plan-button" type="button">Enregistrer</button>
+          <button class="btn btn-primary service-only" id="auto-place-button" type="button">
             <span aria-hidden="true">✦</span> Placement automatique
           </button>
         </div>
       </header>
 
       <main>
-        <section class="hero-row" aria-labelledby="page-title">
-          <div>
-            <p class="eyebrow">ORGANISATION DU SERVICE</p>
-            <h1 id="page-title">Votre salle, parfaitement organisée.</h1>
-            <p id="service-summary">Préparez votre service en quelques secondes.</p>
-          </div>
-          <div class="live-pill"><i></i> <span id="connection-label">Sauvegarde locale</span></div>
-        </section>
-
-        <section class="stats-grid" id="stats-grid" aria-label="Résumé du service"></section>
-
         <section class="workspace-grid">
           <article class="panel floor-panel">
             <div class="panel-heading">
               <div>
-                <p class="eyebrow">PLAN INTERACTIF</p>
-                <h2>Plan de salle</h2>
+                <p class="eyebrow" id="floor-mode-label">SERVICE</p>
+                <h1>Plan de salle</h1>
+                <p class="panel-summary" id="floor-summary">Chargement du plan…</p>
               </div>
               <div class="heading-actions">
-                <div class="legend">
-                  <span><i class="dot dot-free"></i> Libre</span>
-                  <span><i class="dot dot-occupied"></i> Placée</span>
-                  <span><i class="dot dot-blocked"></i> Indisponible</span>
-                </div>
-                <button class="icon-button local-only" id="add-table-button" type="button" title="Ajouter une table" aria-label="Ajouter une table">+</button>
+                <button class="small-icon" id="undo-button" type="button" title="Annuler (Ctrl/Cmd + Z)" aria-label="Annuler" disabled>↶</button>
+                <button class="small-icon" id="redo-button" type="button" title="Rétablir (Ctrl/Cmd + Maj + Z)" aria-label="Rétablir" disabled>↷</button>
+                <button class="btn btn-ghost template-only hidden" id="add-table-button" type="button">
+                  <span aria-hidden="true">＋</span> Table
+                </button>
               </div>
             </div>
 
             <div class="zone-tabs" id="zone-tabs" role="tablist" aria-label="Zones de la salle"></div>
 
+            <div class="placement-banner hidden" id="placement-banner" role="status">
+              <div>
+                <strong id="placement-title">Choisissez une table</strong>
+                <span id="placement-copy">Les tables compatibles sont indiquées en vert.</span>
+              </div>
+              <div>
+                <button class="btn btn-ghost hidden" id="unassign-button" type="button">Retirer</button>
+                <button class="btn btn-ghost" id="cancel-placement-button" type="button">Fermer</button>
+              </div>
+            </div>
+
             <div class="floor-wrap">
               <div class="zoom-controls" aria-label="Zoom du plan">
                 <button id="zoom-out-button" type="button" aria-label="Dézoomer" title="Dézoomer">−</button>
-                <button id="zoom-reset-button" type="button" aria-label="Réinitialiser le zoom" title="Zoom à 100 %">
+                <button id="zoom-reset-button" type="button" aria-label="Zoom à 100 %" title="Zoom à 100 %">
                   <span id="zoom-value">100 %</span>
                 </button>
-                <button id="zoom-fit-button" type="button" aria-label="Ajuster le plan à la fenêtre" title="Ajuster à la fenêtre">⊡</button>
+                <button id="zoom-fit-button" type="button" aria-label="Ajuster à la fenêtre" title="Ajuster à la fenêtre">⊡</button>
                 <button id="zoom-in-button" type="button" aria-label="Zoomer" title="Zoomer">+</button>
               </div>
               <div class="floor-viewport" id="floor-viewport">
@@ -98,25 +103,25 @@
                   <div class="floor" id="floor" aria-label="Plan de salle zoomable">
                     <div class="floor-grid"></div>
                     <div class="floor-empty hidden" id="floor-empty">
-                      <span>□</span>
-                      <h3>Aucune table dans cette zone</h3>
-                      <p>Configurez d’abord les tables du restaurant.</p>
-                      <button class="btn btn-primary local-only" type="button" data-action="add-table">Ajouter une table</button>
+                      <span aria-hidden="true">□</span>
+                      <h2>Aucune table dans cette zone</h2>
+                      <p>Passez en mode « Modifier le modèle » pour en ajouter une.</p>
+                      <button class="btn btn-primary template-only hidden" type="button" data-action="add-table">Ajouter une table</button>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-            <p class="drag-hint">Zoom : boutons, Ctrl/Cmd + molette ou pincement. Faites glisser le fond pour vous déplacer.</p>
+            <p class="drag-hint" id="drag-hint">Sélectionnez un client puis cliquez sur une table. Faites glisser une table pour modifier uniquement ce service.</p>
           </article>
 
-          <aside class="panel reservations-panel">
+          <aside class="panel reservations-panel service-only">
             <div class="panel-heading compact">
               <div>
-                <p class="eyebrow">RÉSERVATIONS</p>
-                <h2>Liste des clients</h2>
+                <p class="eyebrow">CLIENTS</p>
+                <h2>Réservations</h2>
+                <p class="panel-summary" id="client-summary">Aucun client</p>
               </div>
-              <button class="icon-button local-only" id="add-reservation-button" type="button" title="Ajouter une réservation" aria-label="Ajouter une réservation">+</button>
             </div>
 
             <div class="search-row">
@@ -143,7 +148,7 @@
       <form method="dialog" id="table-form">
         <div class="modal-header">
           <div>
-            <p class="eyebrow">CONFIGURATION</p>
+            <p class="eyebrow">TABLE</p>
             <h2 id="table-modal-title">Ajouter une table</h2>
           </div>
           <button class="close-button" value="cancel" aria-label="Fermer" type="submit">×</button>
@@ -151,16 +156,16 @@
         <input type="hidden" name="id" />
         <div class="form-grid">
           <label>
-            <span>Nom de la table</span>
-            <input name="name" required maxlength="20" placeholder="Ex. T12" />
+            <span>Nom</span>
+            <input name="name" required maxlength="40" placeholder="Ex. T12" />
           </label>
           <label>
-            <span>Nombre de places</span>
+            <span>Nombre d’assises</span>
             <input name="capacity" required type="number" min="1" max="30" value="4" />
           </label>
           <label>
             <span>Zone</span>
-            <input name="zone" required list="zone-list" maxlength="30" placeholder="Ex. Salle" />
+            <input name="zone" required list="zone-list" maxlength="60" placeholder="Ex. Terrasse" />
             <datalist id="zone-list"></datalist>
           </label>
           <label>
@@ -172,80 +177,33 @@
             </select>
           </label>
           <label class="full-field checkbox-field">
-            <input name="blocked" type="checkbox" />
-            <span>Table indisponible pour ce service</span>
+            <input name="active" type="checkbox" checked />
+            <span>Table active et réservable</span>
           </label>
         </div>
         <div class="modal-actions split-actions">
           <button class="btn btn-danger hidden" id="delete-table-button" type="button">Supprimer</button>
+          <button class="btn btn-ghost hidden" id="duplicate-table-button" type="button">Dupliquer</button>
           <span></span>
           <button class="btn btn-ghost" value="cancel" type="submit">Annuler</button>
-          <button class="btn btn-primary" value="default" type="submit">Enregistrer</button>
+          <button class="btn btn-primary" value="default" type="submit">Appliquer</button>
         </div>
       </form>
     </dialog>
 
-    <dialog class="modal" id="reservation-modal">
-      <form method="dialog" id="reservation-form">
-        <div class="modal-header">
-          <div>
-            <p class="eyebrow">CLIENT</p>
-            <h2 id="reservation-modal-title">Ajouter une réservation</h2>
-          </div>
-          <button class="close-button" value="cancel" aria-label="Fermer" type="submit">×</button>
-        </div>
-        <input type="hidden" name="id" />
-        <div class="form-grid">
-          <label>
-            <span>Nom du client</span>
-            <input name="name" required maxlength="60" placeholder="Ex. Famille Martin" />
-          </label>
-          <label>
-            <span>Nombre de convives</span>
-            <input name="size" required type="number" min="1" max="30" value="2" />
-          </label>
-          <label>
-            <span>Heure d’arrivée</span>
-            <input name="time" required type="time" value="19:30" />
-          </label>
-          <label>
-            <span>Zone souhaitée</span>
-            <select name="preferredZone"></select>
-          </label>
-          <label class="full-field">
-            <span>Note</span>
-            <textarea name="note" maxlength="180" rows="3" placeholder="Anniversaire, chaise bébé, allergie…"></textarea>
-          </label>
-        </div>
-        <div class="modal-actions split-actions">
-          <button class="btn btn-danger hidden" id="delete-reservation-button" type="button">Supprimer</button>
-          <span></span>
-          <button class="btn btn-ghost" value="cancel" type="submit">Annuler</button>
-          <button class="btn btn-primary" value="default" type="submit">Enregistrer</button>
-        </div>
-      </form>
-    </dialog>
-
-    <dialog class="modal small-modal" id="data-modal">
+    <dialog class="modal confirm-modal" id="confirm-modal">
       <form method="dialog">
         <div class="modal-header">
           <div>
-            <p class="eyebrow">SAUVEGARDE</p>
-            <h2>Gérer les données</h2>
+            <p class="eyebrow">CONFIRMATION</p>
+            <h2 id="confirm-title">Supprimer la table ?</h2>
           </div>
           <button class="close-button" value="cancel" aria-label="Fermer" type="submit">×</button>
         </div>
-        <div class="data-actions">
-          <button class="data-card" id="export-button" type="button">
-            <span>↓</span><strong>Exporter</strong><small>Télécharger une sauvegarde JSON</small>
-          </button>
-          <label class="data-card" for="import-input">
-            <span>↑</span><strong>Importer</strong><small>Restaurer une sauvegarde JSON</small>
-          </label>
-          <input id="import-input" type="file" accept="application/json,.json" hidden />
-          <button class="data-card danger-card" id="reset-button" type="button">
-            <span>↻</span><strong>Réinitialiser</strong><small>Recharger les données de démonstration</small>
-          </button>
+        <p id="confirm-copy">Cette action sera appliquée lors de la sauvegarde du modèle.</p>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" value="cancel" type="submit">Annuler</button>
+          <button class="btn btn-danger" id="confirm-action-button" value="default" type="submit">Supprimer</button>
         </div>
       </form>
     </dialog>

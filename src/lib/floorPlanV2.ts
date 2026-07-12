@@ -1,7 +1,8 @@
 import {
   isReservableFloorPlanItem,
-  reservationsOverlap,
+  normalizeFloorPlanLayout,
   type FloorPlanItemKind,
+  type FloorPlanTableLayout,
 } from "@/lib/floorPlan";
 
 export type FloorPlanV2Period = "midi" | "soir";
@@ -16,6 +17,8 @@ export type FloorPlanV2Table = {
   x: number;
   y: number;
   blocked: boolean;
+  editable: boolean;
+  kind: FloorPlanItemKind;
 };
 
 export type FloorPlanV2Reservation = {
@@ -50,8 +53,9 @@ const RELEASED_STATUSES = new Set([
   "completed",
   "archived",
 ]);
-const CANVAS_WIDTH = 1040;
-const CANVAS_HEIGHT = 760;
+
+export const FLOOR_PLAN_V2_CANVAS_WIDTH = 1040;
+export const FLOOR_PLAN_V2_CANVAS_HEIGHT = 760;
 
 function asRecord(value: unknown): Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value)
@@ -66,8 +70,13 @@ function clamp(value: number, min: number, max: number) {
 function getShape(value: unknown): FloorPlanV2Shape {
   const shape = String(value || "").toLowerCase();
   if (shape === "round" || shape === "circle" || shape === "oval") return "round";
-  if (shape === "rectangle" || shape === "rect") return "rectangle";
-  return "square";
+  if (shape === "square") return "square";
+  return "rectangle";
+}
+
+function getKind(value: unknown): FloorPlanItemKind {
+  const kind = String(value || "table") as FloorPlanItemKind;
+  return isReservableFloorPlanItem(kind) ? "table" : kind;
 }
 
 export function mapFloorPlanV2Table(
@@ -81,23 +90,126 @@ export function mapFloorPlanV2Table(
   };
   const rawX = Number(layout.x);
   const rawY = Number(layout.y);
-  const kind = typeof layout.kind === "string" ? layout.kind as FloorPlanItemKind : "table";
-  const isReservable = isReservableFloorPlanItem(kind);
+  const kind = getKind(layout.kind);
+  const editable = isReservableFloorPlanItem(kind);
 
   return {
     id: table.id,
     name: table.table_number,
     capacity: Math.max(0, Math.round(Number(table.capacity) || 0)),
     zone: table.sector?.trim() || "Salle principale",
-    shape: getShape(layout.shape),
+    shape: getShape(layout.v2_shape ?? layout.shape),
     x: Number.isFinite(rawX)
-      ? clamp((rawX / CANVAS_WIDTH) * 100, 0, 94)
+      ? clamp((rawX / FLOOR_PLAN_V2_CANVAS_WIDTH) * 100, 0, 94)
       : 8 + (index * 17) % 78,
     y: Number.isFinite(rawY)
-      ? clamp((rawY / CANVAS_HEIGHT) * 100, 0, 86)
+      ? clamp((rawY / FLOOR_PLAN_V2_CANVAS_HEIGHT) * 100, 0, 86)
       : 10 + (index * 19) % 70,
-    blocked: table.is_active === false || !isReservable || Number(table.capacity) < 1,
+    blocked: table.is_active === false || !editable || Number(table.capacity) < 1,
+    editable,
+    kind,
   };
+}
+
+function layoutToRecord(layout: FloorPlanTableLayout): Record<string, unknown> {
+  return {
+    x: Math.round(layout.x),
+    y: Math.round(layout.y),
+    w: Math.round(layout.w),
+    h: Math.round(layout.h),
+    rotation: layout.rotation,
+    shape: layout.shape,
+    kind: layout.kind,
+    seat_labels: layout.seatLabels,
+    seat_type: layout.seatType || "chair",
+    seat_placements: layout.seatPlacements || [],
+    corner_bench_corners: layout.cornerBenchCorners || [],
+    corner_bench_configs: layout.cornerBenchConfigs || [],
+    table_width: layout.tableWidth ? Math.round(layout.tableWidth) : undefined,
+    table_height: layout.tableHeight ? Math.round(layout.tableHeight) : undefined,
+    corner_bench_horizontal: layout.cornerBenchHorizontal
+      ? Math.round(layout.cornerBenchHorizontal)
+      : undefined,
+    corner_bench_vertical: layout.cornerBenchVertical
+      ? Math.round(layout.cornerBenchVertical)
+      : undefined,
+    corner_bench_depth: layout.cornerBenchDepth
+      ? Math.round(layout.cornerBenchDepth)
+      : undefined,
+  };
+}
+
+export function serializeFloorPlanV2Layout(
+  table: FloorPlanV2Table,
+  existingLayout: unknown,
+  fallbackIndex: number,
+) {
+  const source = asRecord(existingLayout);
+  const canonicalShape = table.shape === "round" ? "round" : "rect";
+  const normalized = normalizeFloorPlanLayout({
+    ...source,
+    x: Math.round((table.x / 100) * FLOOR_PLAN_V2_CANVAS_WIDTH),
+    y: Math.round((table.y / 100) * FLOOR_PLAN_V2_CANVAS_HEIGHT),
+    shape: canonicalShape,
+    kind: "table",
+    v2_shape: table.shape,
+  }, fallbackIndex, table.capacity, canonicalShape, "table");
+
+  return {
+    ...source,
+    ...layoutToRecord(normalized),
+    v2_shape: table.shape,
+  };
+}
+
+export function parseFloorPlanV2TableDrafts(value: unknown): FloorPlanV2Table[] {
+  if (!Array.isArray(value)) throw new Error("La liste des tables est invalide.");
+  if (value.length > 200) throw new Error("Le plan ne peut pas contenir plus de 200 tables.");
+
+  const seenIds = new Set<string>();
+  const seenNames = new Set<string>();
+
+  return value.map((candidate, index) => {
+    const raw = asRecord(candidate);
+    const id = String(raw.id || "").trim();
+    const name = String(raw.name || "").trim();
+    const zone = String(raw.zone || "").trim();
+    const capacity = Number(raw.capacity);
+    const x = Number(raw.x);
+    const y = Number(raw.y);
+    const shape = String(raw.shape || "") as FloorPlanV2Shape;
+    const nameKey = name.toLocaleLowerCase("fr");
+
+    if (!id || id.length > 100) throw new Error(`Identifiant invalide à la table ${index + 1}.`);
+    if (!name || name.length > 40) throw new Error(`Nom invalide à la table ${index + 1}.`);
+    if (!zone || zone.length > 60) throw new Error(`Zone invalide pour ${name}.`);
+    if (!Number.isInteger(capacity) || capacity < 1 || capacity > 30) {
+      throw new Error(`${name} doit avoir entre 1 et 30 places.`);
+    }
+    if (!Number.isFinite(x) || x < 0 || x > 94 || !Number.isFinite(y) || y < 0 || y > 86) {
+      throw new Error(`La position de ${name} est invalide.`);
+    }
+    if (!(["round", "square", "rectangle"] as string[]).includes(shape)) {
+      throw new Error(`La forme de ${name} est invalide.`);
+    }
+    if (seenIds.has(id)) throw new Error("Une table est présente deux fois dans le plan.");
+    if (seenNames.has(nameKey)) throw new Error(`Le nom ${name} est utilisé deux fois.`);
+    seenIds.add(id);
+    seenNames.add(nameKey);
+
+    return {
+      id,
+      name,
+      capacity,
+      zone,
+      shape,
+      x,
+      y,
+      blocked: raw.blocked === true,
+      editable: true,
+      kind: "table",
+    };
+  });
 }
 
 export function buildFloorPlanV2Assignments(
@@ -108,14 +220,21 @@ export function buildFloorPlanV2Assignments(
   );
 }
 
-function buildSchedule(reservation: FloorPlanV2Reservation) {
-  return {
-    id: reservation.id,
-    date: reservation.date,
-    time: reservation.time,
-    partySize: reservation.size,
-    status: reservation.status,
-  };
+function timeToMinutes(value: string) {
+  const [hours = "0", minutes = "0"] = value.split(":");
+  return (Number.parseInt(hours, 10) || 0) * 60 + (Number.parseInt(minutes, 10) || 0);
+}
+
+export function floorPlanV2ReservationsOverlap(
+  left: FloorPlanV2Reservation,
+  right: FloorPlanV2Reservation,
+) {
+  if (!left.date || left.date !== right.date || left.id === right.id) return false;
+  const leftStart = timeToMinutes(left.time);
+  const rightStart = timeToMinutes(right.time);
+  const leftDuration = Math.max(30, Number(left.durationMinutes) || 120);
+  const rightDuration = Math.max(30, Number(right.durationMinutes) || 120);
+  return leftStart < rightStart + rightDuration && rightStart < leftStart + leftDuration;
 }
 
 export function getFloorPlanV2AssignmentError({
@@ -137,7 +256,7 @@ export function getFloorPlanV2AssignmentError({
 
   const table = tables.find((candidate) => candidate.id === tableId);
   if (!table) return "Table introuvable dans la salle sélectionnée.";
-  if (table.blocked) return `${table.name} est indisponible.`;
+  if (!table.editable || table.blocked) return `${table.name} est indisponible.`;
   if (reservation.size > table.capacity) {
     return `${table.name} ne peut pas accueillir ${reservation.size} personnes.`;
   }
@@ -146,7 +265,7 @@ export function getFloorPlanV2AssignmentError({
     if (candidate.id === reservation.id) return false;
     if (RELEASED_STATUSES.has(candidate.status.toLowerCase())) return false;
     if (assignments[candidate.id] !== tableId) return false;
-    return reservationsOverlap(buildSchedule(reservation), buildSchedule(candidate));
+    return floorPlanV2ReservationsOverlap(reservation, candidate);
   });
 
   return conflict
@@ -168,7 +287,7 @@ export function computeFloorPlanV2AutoAssignments({
   const nextAssignments = { ...assignments };
   const changedAssignments: FloorPlanV2Assignments = {};
   const placedReservationIds: string[] = [];
-  const activeTables = tables.filter((table) => !table.blocked);
+  const activeTables = tables.filter((table) => table.editable && !table.blocked);
   const reservationsToPlace = visibleReservations
     .filter((reservation) => (
       !nextAssignments[reservation.id]
@@ -217,4 +336,3 @@ export function computeFloorPlanV2AutoAssignments({
     placedReservationIds,
   };
 }
-
