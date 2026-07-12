@@ -63,6 +63,13 @@ describe("commercial prospecting surface", () => {
     expect(pageSource).toContain("map.on(\"zoomend\"");
     expect(pageSource).toContain("map.fitBounds(cluster.bounds");
     expect(pageSource).toContain("CommercialProspectDetailsDialog");
+    expect(pageSource).toContain("workflowContent: ReactNode");
+    expect(pageSource).toContain("Inscription et suivi commercial");
+    expect(pageSource).toContain("workflowContent={workflowContent}");
+    expect(pageSource).toContain('xl:grid-cols-[360px_minmax(0,1fr)]');
+    expect(pageSource).not.toContain('xl:grid-cols-[360px_minmax(0,1fr)_420px]');
+    expect(pageSource).toContain("onClick={() => handleOpenProspectDetails(prospect)}");
+    expect((pageSource.match(/Avancement terrain/g) || []).length).toBe(1);
     expect(pageSource).toContain('className="relative isolate z-0 h-[58vh]');
     expect(pageSource).toContain('marker.on("click", (event) => {');
     expect(pageSource).toContain("L.DomEvent.stopPropagation(event)");

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -770,6 +771,7 @@ function CommercialProspectDetailsDialog({
   lastContactName,
   signedName,
   commissionSummary,
+  workflowContent,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -780,11 +782,11 @@ function CommercialProspectDetailsDialog({
   lastContactName: string | null;
   signedName: string | null;
   commissionSummary: CommercialCommissionSummary | null | undefined;
+  workflowContent: ReactNode;
 }) {
   if (!prospect) return null;
 
   const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${prospect.name} ${formatAddress(prospect)}`)}`;
-  const notes = followup?.notes?.trim();
   const signedPlanName = followup?.signed_subscription_plan_name || (
     followup?.signed_subscription_plan_slug
       ? getCommercialSubscriptionPlan(followup.signed_subscription_plan_slug).name
@@ -794,7 +796,7 @@ function CommercialProspectDetailsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100vw-1rem)] max-w-[calc(100vw-1rem)] overflow-hidden p-0 sm:max-w-2xl sm:rounded-[30px]">
+      <DialogContent className="w-[calc(100vw-1rem)] max-w-[calc(100vw-1rem)] overflow-hidden p-0 sm:max-w-4xl sm:rounded-[30px]">
         <DialogHeader className="relative overflow-hidden border-b bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 px-6 pb-6 pt-7 text-left text-white">
           <div className="absolute -right-16 -top-16 h-44 w-44 rounded-full bg-orange-500/20 blur-3xl" />
           <div className="relative flex flex-wrap items-start justify-between gap-4 pr-8">
@@ -912,13 +914,16 @@ function CommercialProspectDetailsDialog({
             <ContactLink icon={Navigation} href={mapsUrl} label="Itinéraire" />
           </div>
 
-          <div className="rounded-[24px] border border-orange-200 bg-orange-50/80 p-4 dark:border-orange-400/20 dark:bg-orange-500/10">
-            <p className="text-[11px] font-black uppercase tracking-[0.18em] text-primary">
-              Notes du commercial
-            </p>
-            <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-700 dark:text-slate-200">
-              {notes || "Aucune note terrain enregistrée pour ce restaurant."}
-            </p>
+          <div className="space-y-5 rounded-[24px] border border-orange-200 bg-orange-50/40 p-4 dark:border-orange-400/20 dark:bg-orange-500/5">
+            <div>
+              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-primary">
+                Inscription et suivi commercial
+              </p>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                Gérez ici toute la procédure du restaurant, du premier passage jusqu'à la signature ou au refus.
+              </p>
+            </div>
+            {workflowContent}
           </div>
 
           <Button
@@ -1242,260 +1247,8 @@ export default function CommercialProspection() {
     setSelectedObjectId(null);
   }, []);
 
-  const previewResults = hasLaunchedSearch ? filteredProspects.slice(0, RESULT_PREVIEW_LIMIT) : [];
-
-  return (
-    <>
-      <CommercialWorkspaceChrome activeLabel="Prospection" />
-      <main className="min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top_left,rgba(255,106,26,0.12),transparent_34%),linear-gradient(135deg,#fff7ed_0%,#f8fafc_44%,#eef6ff_100%)] px-3 pb-6 pt-[calc(env(safe-area-inset-top,0px)+5.5rem)] text-slate-950 dark:bg-[radial-gradient(circle_at_top_left,rgba(255,106,26,0.18),transparent_34%),linear-gradient(135deg,#020617_0%,#0f172a_52%,#08111f_100%)] dark:text-white sm:px-4 md:px-6 md:pt-[calc(env(safe-area-inset-top,0px)+5rem)]">
-      <div className="mx-auto flex w-full max-w-[1800px] min-w-0 flex-col gap-5">
-        <section className="min-w-0 overflow-hidden rounded-[24px] border border-white/70 bg-white/88 p-4 shadow-[0_20px_80px_rgba(15,23,42,0.12)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/74 sm:rounded-[30px] sm:p-5">
-          <div className="flex min-w-0 flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-            <div className="min-w-0 max-w-3xl">
-              <div className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-[11px] font-black uppercase tracking-[0.24em] text-orange-700 dark:border-orange-400/30 dark:bg-orange-500/10 dark:text-orange-200">
-                <BriefcaseBusiness className="h-3.5 w-3.5" />
-                Espace commercial
-              </div>
-              <h1 className="mt-4 break-words font-display text-3xl font-black leading-tight md:text-5xl">
-                Carte commerciale des restaurants genevois
-              </h1>
-              <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600 dark:text-slate-300 md:text-base">
-                Connecté avec vos identifiants commerciaux, recherchez un établissement, ouvrez sa fiche sur la carte,
-                puis marquez l'avancement. Les signatures restent rattachées au commercial qui les enregistre.
-              </p>
-              <div className="mt-4 flex min-w-0 flex-wrap gap-2 text-xs font-bold text-slate-600 dark:text-slate-300">
-                <span className="inline-flex max-w-full min-w-0 items-center gap-2 rounded-full border bg-white/80 px-3 py-1.5 dark:border-white/10 dark:bg-white/5">
-                  <UserRound className="h-3.5 w-3.5 text-primary" />
-                  <span className="min-w-0 truncate">{commercialName || "Commercial TOK"}</span>
-                </span>
-                <span className="inline-flex max-w-full min-w-0 items-center gap-2 rounded-full border bg-white/80 px-3 py-1.5 dark:border-white/10 dark:bg-white/5">
-                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
-                  <span className="min-w-0 truncate">Accès commercial sécurisé</span>
-                </span>
-              </div>
-            </div>
-            <div className="grid min-w-0 grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4 lg:flex-[0_1_560px]">
-              {PIPELINE_STATUS_OPTIONS.map((item) => (
-                <StatCard key={item.value} label={item.shortLabel} value={stats[item.value]} color={item.color} />
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="grid min-w-0 gap-5 xl:grid-cols-[360px_minmax(0,1fr)_420px]">
-          <aside className="min-w-0 space-y-4 overflow-hidden rounded-[24px] border border-white/70 bg-white/90 p-4 shadow-sm dark:border-white/10 dark:bg-slate-950/74 sm:rounded-[30px]">
-            <div className="flex items-center gap-2">
-              <Filter className="h-5 w-5 text-primary" />
-              <h2 className="text-lg font-black">Filtres</h2>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="commercial-search">Recherche</Label>
-              <div className="relative">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  id="commercial-search"
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter") {
-                      event.preventDefault();
-                      handleRunSearch();
-                    }
-                  }}
-                  placeholder="Nom, commune, téléphone, email..."
-                  className="pl-10"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Statut</Label>
-              <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as CommercialPipelineStatus | typeof ALL_STATUSES)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={ALL_STATUSES}>Tous les statuts</SelectItem>
-                  {PIPELINE_STATUS_OPTIONS.map((item) => (
-                    <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Commune</Label>
-              <Select value={communeFilter} onValueChange={setCommuneFilter}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={ALL_COMMUNES}>Toutes les communes</SelectItem>
-                  {communeOptions.map((commune) => (
-                    <SelectItem key={commune} value={commune}>{commune}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Catégorie</Label>
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={ALL_CATEGORIES}>Toutes les catégories</SelectItem>
-                  {categoryOptions.map((category) => (
-                    <SelectItem key={category} value={category}>{category}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-1">
-              <Button type="button" className="h-11 rounded-2xl" onClick={handleRunSearch}>
-                <Search className="mr-2 h-4 w-4" />
-                Lancer la recherche
-              </Button>
-              <Button type="button" variant="outline" className="h-11 rounded-2xl" onClick={handleResetSearch}>
-                Réinitialiser
-              </Button>
-            </div>
-
-            <div className="rounded-2xl border bg-slate-50 p-3 text-sm dark:border-white/10 dark:bg-white/5">
-              {hasLaunchedSearch ? (
-                <>
-                  <p className="font-bold">{filteredProspects.length.toLocaleString("fr-CH")} restaurants trouvés</p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Recherche lancée sur le grand fichier CSV/JSON `outputs`, chargé depuis `/data/geneva-commercial-prospects.json`.
-                  </p>
-                </>
-              ) : (
-                <>
-                  <p className="font-bold">Liste masquée avant recherche</p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Renseignez les filtres puis cliquez sur Lancer la recherche. Vous pouvez aussi lancer avec tous les filtres sur Tous.
-                  </p>
-                </>
-              )}
-            </div>
-
-            {hasLaunchedSearch ? (
-              <div className="max-h-[480px] space-y-2 overflow-auto pr-1">
-                {previewResults.map((prospect) => {
-                  const status = getProspectStatus(prospect, followupsByObjectId);
-                  const selected = selectedProspect?.sourceObjectId === prospect.sourceObjectId;
-                  return (
-                    <button
-                      key={prospect.sourceObjectId}
-                      type="button"
-                      onClick={() => handleSelectProspect(prospect)}
-                      className={cn(
-                        "w-full rounded-2xl border p-3 text-left transition-all hover:border-primary/50 hover:bg-orange-50/80 dark:hover:bg-orange-500/10",
-                        selected
-                          ? "border-primary bg-orange-50 shadow-[0_12px_34px_rgba(255,106,26,0.14)] dark:bg-orange-500/10"
-                          : "border-slate-200 bg-white dark:border-white/10 dark:bg-slate-900/70",
-                      )}
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="truncate font-bold">{prospect.name}</p>
-                          <p className="mt-1 truncate text-xs text-muted-foreground">{formatAddress(prospect) || "Adresse non renseignée"}</p>
-                        </div>
-                        <StatusPill status={status} />
-                      </div>
-                    </button>
-                  );
-                })}
-                {filteredProspects.length === 0 ? (
-                  <p className="rounded-2xl border border-dashed p-3 text-center text-xs text-muted-foreground">
-                    Aucun restaurant ne correspond à cette recherche.
-                  </p>
-                ) : null}
-                {filteredProspects.length > RESULT_PREVIEW_LIMIT ? (
-                  <p className="rounded-2xl border border-dashed p-3 text-center text-xs text-muted-foreground">
-                    {filteredProspects.length - RESULT_PREVIEW_LIMIT} autres points sont visibles sur la carte. Affinez la recherche pour réduire la liste.
-                  </p>
-                ) : null}
-              </div>
-            ) : null}
-          </aside>
-
-          <section className="min-w-0 overflow-hidden">
-            <div className="space-y-3">
-              <CommercialMapLegend />
-              <CommercialProspectionMap
-                prospects={mapProspects}
-                followupsByObjectId={followupsByObjectId}
-                selectedObjectId={selectedProspect?.sourceObjectId || null}
-                onOpenDetails={handleOpenProspectDetails}
-              />
-            </div>
-          </section>
-
-          <aside className="min-w-0 space-y-4 overflow-hidden rounded-[24px] border border-white/70 bg-white/92 p-4 shadow-sm dark:border-white/10 dark:bg-slate-950/78 sm:rounded-[30px] sm:p-5">
-            {selectedProspect ? (
-              <>
-                <div className="flex min-w-0 flex-wrap items-start justify-between gap-3">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[11px] font-black uppercase tracking-[0.22em] text-primary">Fiche restaurant</p>
-                    <h2 className="mt-2 break-words font-display text-3xl font-black leading-tight">{selectedProspect.name}</h2>
-                  </div>
-                  <StatusPill status={draftStatus} />
-                </div>
-
-                <div className="space-y-2 text-sm text-slate-600 dark:text-slate-300">
-                  <p className="flex items-start gap-2">
-                    <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                    <span className="min-w-0 break-words">{formatAddress(selectedProspect) || "Adresse non renseignée"}</span>
-                  </p>
-                  <p className="flex items-start gap-2">
-                    <Store className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                    <span className="min-w-0 break-words">{selectedProspect.category || selectedProspect.branch || "Catégorie non renseignée"}</span>
-                  </p>
-                </div>
-
-                <div className="flex min-w-0 flex-wrap gap-2">
-                  <ContactLink
-                    icon={Phone}
-                    href={selectedProspect.phone ? `tel:${selectedProspect.phone.replace(/\s+/g, "")}` : null}
-                    label={selectedProspect.phone}
-                  />
-                  <ContactLink
-                    icon={Mail}
-                    href={selectedProspect.email ? `mailto:${selectedProspect.email}` : null}
-                    label={selectedProspect.email}
-                  />
-                  <ContactLink
-                    icon={ExternalLink}
-                    href={normalizeExternalUrl(selectedProspect.website)}
-                    label={selectedProspect.website ? "Site web" : null}
-                  />
-                  <ContactLink
-                    icon={Navigation}
-                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${selectedProspect.name} ${formatAddress(selectedProspect)}`)}`}
-                    label="Itinéraire"
-                  />
-                </div>
-
-                <div className="min-w-0 overflow-hidden rounded-2xl border bg-slate-50 p-3 text-xs text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 [&_p]:break-words">
-                  <p><span className="font-bold">Object ID:</span> {selectedProspect.sourceObjectId}</p>
-                  {selectedProspect.legalName ? <p><span className="font-bold">Raison sociale:</span> {selectedProspect.legalName}</p> : null}
-                  {selectedProspect.ideNumber ? <p><span className="font-bold">IDE:</span> {selectedProspect.ideNumber}</p> : null}
-                  {selectedFollowup?.updated_at ? (
-                    <p><span className="font-bold">Dernière mise à jour:</span> {new Date(selectedFollowup.updated_at).toLocaleString("fr-CH")}</p>
-                  ) : null}
-                  {selectedAssignedName ? (
-                    <p><span className="font-bold">Commercial assigné:</span> {selectedAssignedName}</p>
-                  ) : null}
-                  {selectedLastContactName ? (
-                    <p><span className="font-bold">Dernière action:</span> {selectedLastContactName}</p>
-                  ) : null}
-                  {selectedSignedName && selectedFollowup?.status === "signed" ? (
-                    <p>
-                      <span className="font-bold">Signature:</span>{" "}
-                      {selectedSignedName}
-                      {formatDateTime(selectedFollowup.signed_at) ? ` le ${formatDateTime(selectedFollowup.signed_at)}` : ""}
-                    </p>
-                  ) : null}
-                </div>
-
+  const workflowContent = selectedProspect ? (
+    <div className="space-y-5">
                 <div className="space-y-3">
                   <Label>Avancement terrain</Label>
                   <div className="grid min-w-0 grid-cols-1 gap-2 min-[430px]:grid-cols-2">
@@ -1681,13 +1434,197 @@ export default function CommercialProspection() {
                   {saveFollowupMutation.isPending ? "Enregistrement..." : "Enregistrer le suivi"}
                   <ArrowUpRight className="h-4 w-4" />
                 </Button>
-              </>
-            ) : (
-              <div className="rounded-2xl border border-dashed p-6 text-center text-muted-foreground">
-                Sélectionnez un restaurant sur la carte ou dans la liste.
+    </div>
+  ) : null;
+
+  const previewResults = hasLaunchedSearch ? filteredProspects.slice(0, RESULT_PREVIEW_LIMIT) : [];
+
+  return (
+    <>
+      <CommercialWorkspaceChrome activeLabel="Prospection" />
+      <main className="min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top_left,rgba(255,106,26,0.12),transparent_34%),linear-gradient(135deg,#fff7ed_0%,#f8fafc_44%,#eef6ff_100%)] px-3 pb-6 pt-[calc(env(safe-area-inset-top,0px)+5.5rem)] text-slate-950 dark:bg-[radial-gradient(circle_at_top_left,rgba(255,106,26,0.18),transparent_34%),linear-gradient(135deg,#020617_0%,#0f172a_52%,#08111f_100%)] dark:text-white sm:px-4 md:px-6 md:pt-[calc(env(safe-area-inset-top,0px)+5rem)]">
+      <div className="mx-auto flex w-full max-w-[1800px] min-w-0 flex-col gap-5">
+        <section className="min-w-0 overflow-hidden rounded-[24px] border border-white/70 bg-white/88 p-4 shadow-[0_20px_80px_rgba(15,23,42,0.12)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/74 sm:rounded-[30px] sm:p-5">
+          <div className="flex min-w-0 flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+            <div className="min-w-0 max-w-3xl">
+              <div className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-[11px] font-black uppercase tracking-[0.24em] text-orange-700 dark:border-orange-400/30 dark:bg-orange-500/10 dark:text-orange-200">
+                <BriefcaseBusiness className="h-3.5 w-3.5" />
+                Espace commercial
               </div>
-            )}
+              <h1 className="mt-4 break-words font-display text-3xl font-black leading-tight md:text-5xl">
+                Carte commerciale des restaurants genevois
+              </h1>
+              <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600 dark:text-slate-300 md:text-base">
+                Connecté avec vos identifiants commerciaux, recherchez un établissement, ouvrez sa fiche sur la carte,
+                puis marquez l'avancement. Les signatures restent rattachées au commercial qui les enregistre.
+              </p>
+              <div className="mt-4 flex min-w-0 flex-wrap gap-2 text-xs font-bold text-slate-600 dark:text-slate-300">
+                <span className="inline-flex max-w-full min-w-0 items-center gap-2 rounded-full border bg-white/80 px-3 py-1.5 dark:border-white/10 dark:bg-white/5">
+                  <UserRound className="h-3.5 w-3.5 text-primary" />
+                  <span className="min-w-0 truncate">{commercialName || "Commercial TOK"}</span>
+                </span>
+                <span className="inline-flex max-w-full min-w-0 items-center gap-2 rounded-full border bg-white/80 px-3 py-1.5 dark:border-white/10 dark:bg-white/5">
+                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+                  <span className="min-w-0 truncate">Accès commercial sécurisé</span>
+                </span>
+              </div>
+            </div>
+            <div className="grid min-w-0 grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4 lg:flex-[0_1_560px]">
+              {PIPELINE_STATUS_OPTIONS.map((item) => (
+                <StatCard key={item.value} label={item.shortLabel} value={stats[item.value]} color={item.color} />
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="grid min-w-0 gap-5 xl:grid-cols-[360px_minmax(0,1fr)]">
+          <aside className="min-w-0 space-y-4 overflow-hidden rounded-[24px] border border-white/70 bg-white/90 p-4 shadow-sm dark:border-white/10 dark:bg-slate-950/74 sm:rounded-[30px]">
+            <div className="flex items-center gap-2">
+              <Filter className="h-5 w-5 text-primary" />
+              <h2 className="text-lg font-black">Filtres</h2>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="commercial-search">Recherche</Label>
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="commercial-search"
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                      handleRunSearch();
+                    }
+                  }}
+                  placeholder="Nom, commune, téléphone, email..."
+                  className="pl-10"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Statut</Label>
+              <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as CommercialPipelineStatus | typeof ALL_STATUSES)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL_STATUSES}>Tous les statuts</SelectItem>
+                  {PIPELINE_STATUS_OPTIONS.map((item) => (
+                    <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Commune</Label>
+              <Select value={communeFilter} onValueChange={setCommuneFilter}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL_COMMUNES}>Toutes les communes</SelectItem>
+                  {communeOptions.map((commune) => (
+                    <SelectItem key={commune} value={commune}>{commune}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Catégorie</Label>
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL_CATEGORIES}>Toutes les catégories</SelectItem>
+                  {categoryOptions.map((category) => (
+                    <SelectItem key={category} value={category}>{category}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-1">
+              <Button type="button" className="h-11 rounded-2xl" onClick={handleRunSearch}>
+                <Search className="mr-2 h-4 w-4" />
+                Lancer la recherche
+              </Button>
+              <Button type="button" variant="outline" className="h-11 rounded-2xl" onClick={handleResetSearch}>
+                Réinitialiser
+              </Button>
+            </div>
+
+            <div className="rounded-2xl border bg-slate-50 p-3 text-sm dark:border-white/10 dark:bg-white/5">
+              {hasLaunchedSearch ? (
+                <>
+                  <p className="font-bold">{filteredProspects.length.toLocaleString("fr-CH")} restaurants trouvés</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Recherche lancée sur le grand fichier CSV/JSON `outputs`, chargé depuis `/data/geneva-commercial-prospects.json`.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="font-bold">Liste masquée avant recherche</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Renseignez les filtres puis cliquez sur Lancer la recherche. Vous pouvez aussi lancer avec tous les filtres sur Tous.
+                  </p>
+                </>
+              )}
+            </div>
+
+            {hasLaunchedSearch ? (
+              <div className="max-h-[480px] space-y-2 overflow-auto pr-1">
+                {previewResults.map((prospect) => {
+                  const status = getProspectStatus(prospect, followupsByObjectId);
+                  const selected = selectedProspect?.sourceObjectId === prospect.sourceObjectId;
+                  return (
+                    <button
+                      key={prospect.sourceObjectId}
+                      type="button"
+                      onClick={() => handleOpenProspectDetails(prospect)}
+                      className={cn(
+                        "w-full rounded-2xl border p-3 text-left transition-all hover:border-primary/50 hover:bg-orange-50/80 dark:hover:bg-orange-500/10",
+                        selected
+                          ? "border-primary bg-orange-50 shadow-[0_12px_34px_rgba(255,106,26,0.14)] dark:bg-orange-500/10"
+                          : "border-slate-200 bg-white dark:border-white/10 dark:bg-slate-900/70",
+                      )}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="truncate font-bold">{prospect.name}</p>
+                          <p className="mt-1 truncate text-xs text-muted-foreground">{formatAddress(prospect) || "Adresse non renseignée"}</p>
+                        </div>
+                        <StatusPill status={status} />
+                      </div>
+                    </button>
+                  );
+                })}
+                {filteredProspects.length === 0 ? (
+                  <p className="rounded-2xl border border-dashed p-3 text-center text-xs text-muted-foreground">
+                    Aucun restaurant ne correspond à cette recherche.
+                  </p>
+                ) : null}
+                {filteredProspects.length > RESULT_PREVIEW_LIMIT ? (
+                  <p className="rounded-2xl border border-dashed p-3 text-center text-xs text-muted-foreground">
+                    {filteredProspects.length - RESULT_PREVIEW_LIMIT} autres points sont visibles sur la carte. Affinez la recherche pour réduire la liste.
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
           </aside>
+
+          <section className="min-w-0 overflow-hidden">
+            <div className="space-y-3">
+              <CommercialMapLegend />
+              <CommercialProspectionMap
+                prospects={mapProspects}
+                followupsByObjectId={followupsByObjectId}
+                selectedObjectId={selectedProspect?.sourceObjectId || null}
+                onOpenDetails={handleOpenProspectDetails}
+              />
+            </div>
+          </section>
+
+          
         </section>
       </div>
       </main>
@@ -1696,11 +1633,12 @@ export default function CommercialProspection() {
         onOpenChange={setProspectDialogOpen}
         prospect={selectedProspect}
         followup={selectedFollowup}
-        status={selectedProspect ? getProspectStatus(selectedProspect, followupsByObjectId) : "not_visited"}
+        status={draftStatus}
         assignedName={selectedAssignedName}
         lastContactName={selectedLastContactName}
         signedName={selectedSignedName}
         commissionSummary={commissionSummary}
+        workflowContent={workflowContent}
       />
     </>
   );
