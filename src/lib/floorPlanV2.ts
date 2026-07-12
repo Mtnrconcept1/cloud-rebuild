@@ -62,21 +62,6 @@ type PersistedFloorPlanTable = {
   layout: unknown;
 };
 
-export type PersistedFloorPlanObject = {
-  id: string;
-  object_type: string;
-  label: string;
-  zone: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  rotation: number;
-  locked: boolean;
-  z_index: number;
-  style?: unknown;
-};
-
 const RELEASED_STATUSES = new Set([
   "cancelled",
   "canceled",
@@ -110,6 +95,22 @@ function getKind(value: unknown): FloorPlanItemKind {
   return isReservableFloorPlanItem(kind) ? "table" : kind;
 }
 
+function getV2ObjectType(layout: Record<string, unknown>, persistedKind: FloorPlanItemKind): FloorPlanV2ObjectType {
+  const explicitType = String(layout.v2_object_type || "");
+  const allowedTypes: FloorPlanV2ObjectType[] = [
+    "wall", "door", "window", "bar", "plant", "service_station",
+    "host_stand", "buffet", "sofa", "divider",
+  ];
+  if (allowedTypes.includes(explicitType as FloorPlanV2ObjectType)) {
+    return explicitType as FloorPlanV2ObjectType;
+  }
+  if (persistedKind === "host-stand") return "host_stand";
+  if (persistedKind === "service-station") return "service_station";
+  if (persistedKind === "banquette" || persistedKind === "booth" || persistedKind === "corner-bench") return "sofa";
+  if (persistedKind === "bar" || persistedKind === "plant") return persistedKind;
+  return "divider";
+}
+
 export function mapFloorPlanV2Table(
   table: PersistedFloorPlanTable,
   index: number,
@@ -123,12 +124,7 @@ export function mapFloorPlanV2Table(
   const rawY = Number(layout.y);
   const persistedKind = getKind(layout.kind);
   const editable = isReservableFloorPlanItem(persistedKind);
-  const v2ObjectType = String(layout.v2_object_type || persistedKind) as FloorPlanV2ObjectType;
-  const allowedObjectTypes: FloorPlanV2ObjectType[] = [
-    "wall", "door", "window", "bar", "plant", "service_station",
-    "host_stand", "buffet", "sofa", "divider",
-  ];
-  const kind = editable || !allowedObjectTypes.includes(v2ObjectType) ? persistedKind : v2ObjectType;
+  const kind = editable ? persistedKind : getV2ObjectType(layout, persistedKind);
 
   return {
     id: table.id,
@@ -142,7 +138,7 @@ export function mapFloorPlanV2Table(
     y: Number.isFinite(rawY)
       ? clamp((rawY / FLOOR_PLAN_V2_CANVAS_HEIGHT) * 100, 0, 86)
       : 10 + (index * 19) % 70,
-    blocked: table.is_active === false || !editable || Number(table.capacity) < 1,
+    blocked: editable ? table.is_active === false || Number(table.capacity) < 1 : false,
     editable,
     kind,
     width: editable ? undefined : clamp(Number(layout.w) || 96, 24, 520),
@@ -150,32 +146,6 @@ export function mapFloorPlanV2Table(
     rotation: editable ? 0 : ((Math.round(Number(layout.rotation) || 0) % 360) + 360) % 360,
     locked: editable ? false : layout.v2_locked === true,
     zIndex: editable ? 0 : clamp(Math.round(Number(layout.v2_z_index) || 0), -100, 100),
-  };
-}
-
-export function mapFloorPlanV2Object(object: PersistedFloorPlanObject): FloorPlanV2Table {
-  const objectType = String(object.object_type || "divider") as FloorPlanV2ObjectType;
-  const allowedTypes: FloorPlanV2ObjectType[] = [
-    "wall", "door", "window", "bar", "plant", "service_station",
-    "host_stand", "buffet", "sofa", "divider",
-  ];
-
-  return {
-    id: object.id,
-    name: object.label?.trim() || "Mobilier",
-    capacity: 0,
-    zone: object.zone?.trim() || "Salle principale",
-    shape: "rectangle",
-    x: clamp(Number(object.x) || 0, 0, 94),
-    y: clamp(Number(object.y) || 0, 0, 86),
-    blocked: false,
-    editable: false,
-    kind: allowedTypes.includes(objectType) ? objectType : "divider",
-    width: clamp(Number(object.width) || 96, 24, 520),
-    height: clamp(Number(object.height) || 56, 16, 360),
-    rotation: ((Math.round(Number(object.rotation) || 0) % 360) + 360) % 360,
-    locked: object.locked === true,
-    zIndex: clamp(Math.round(Number(object.z_index) || 0), -100, 100),
   };
 }
 
@@ -317,6 +287,7 @@ export function parseFloorPlanV2ObjectDrafts(value: unknown): FloorPlanV2Table[]
     "host_stand", "buffet", "sofa", "divider",
   ];
   const seenIds = new Set<string>();
+  const seenNames = new Set<string>();
 
   return value.map((candidate, index) => {
     const raw = asRecord(candidate);
@@ -332,7 +303,7 @@ export function parseFloorPlanV2ObjectDrafts(value: unknown): FloorPlanV2Table[]
     const zIndex = Number(raw.zIndex ?? raw.z_index ?? 0);
 
     if (!id || id.length > 100 || seenIds.has(id)) throw new Error(`Objet de mobilier invalide à la ligne ${index + 1}.`);
-    if (!name || name.length > 80 || !zone || zone.length > 60) throw new Error(`Nom ou zone invalide pour l'objet ${index + 1}.`);
+    if (!name || name.length > 40 || !zone || zone.length > 60) throw new Error(`Nom ou zone invalide pour l'objet ${index + 1}.`);
     if (!allowedTypes.includes(kind)) throw new Error(`Type de mobilier invalide pour ${name}.`);
     if (!Number.isFinite(x) || x < 0 || x > 94 || !Number.isFinite(y) || y < 0 || y > 86) {
       throw new Error(`La position de ${name} est invalide.`);
@@ -343,7 +314,15 @@ export function parseFloorPlanV2ObjectDrafts(value: unknown): FloorPlanV2Table[]
     if (!Number.isFinite(rotation) || !Number.isFinite(zIndex) || zIndex < -100 || zIndex > 100) {
       throw new Error(`La rotation ou le niveau de ${name} est invalide.`);
     }
+    const maxX = ((x / 100) * FLOOR_PLAN_V2_CANVAS_WIDTH) + width;
+    const maxY = ((y / 100) * FLOOR_PLAN_V2_CANVAS_HEIGHT) + height;
+    if (maxX > FLOOR_PLAN_V2_CANVAS_WIDTH + 0.01 || maxY > FLOOR_PLAN_V2_CANVAS_HEIGHT + 0.01) {
+      throw new Error(`${name} dépasse les limites de la salle.`);
+    }
+    const nameKey = name.toLocaleLowerCase("fr");
+    if (seenNames.has(nameKey)) throw new Error(`Le nom ${name} est utilisé deux fois.`);
     seenIds.add(id);
+    seenNames.add(nameKey);
 
     return {
       id,
