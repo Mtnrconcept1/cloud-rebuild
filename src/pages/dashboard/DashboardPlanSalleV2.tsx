@@ -329,9 +329,9 @@ export default function DashboardPlanSalleV2() {
         nextAssignments[reservationId] = tableId;
       }
 
-      const { error } = await (supabase.rpc as any)("restaurant_save_floor_plan_assignments", {
+      const { error } = await supabase.rpc("restaurant_save_floor_plan_assignments", {
         p_branch_id: selectedBranchId,
-        p_assignments: changes,
+        p_assignments: changes as Json,
         p_reason: "Placement depuis Plan de salle 2",
       });
       if (error) throw error;
@@ -422,11 +422,11 @@ export default function DashboardPlanSalleV2() {
         .map((row) => row.id)
         .filter((id) => !requestedExistingFurnitureIds.has(id));
 
-      const { data, error } = await (supabase.rpc as any)("restaurant_save_floor_plan_workspace", {
+      const { data, error } = await supabase.rpc("restaurant_save_floor_plan_workspace", {
         p_branch_id: selectedBranchId,
-        p_table_upserts: upserts,
+        p_table_upserts: upserts as Json,
         p_table_delete_ids: deleteIds,
-        p_objects: objectUpserts,
+        p_objects: objectUpserts as Json,
         p_object_delete_ids: objectDeleteIds,
         p_reason: "Modèle et mobilier enregistrés depuis Plan de salle 2",
       });
@@ -508,10 +508,10 @@ export default function DashboardPlanSalleV2() {
         };
       });
 
-      const { error } = await (supabase.rpc as any)("restaurant_save_floor_plan_layouts", {
+      const { error } = await supabase.rpc("restaurant_save_floor_plan_layouts", {
         p_branch_id: selectedBranchId,
         p_service_date: serviceDate,
-        p_layouts: layouts,
+        p_layouts: layouts as Json,
         p_reason: "Disposition du service enregistrée depuis Plan de salle 2",
       });
       if (error) throw error;
