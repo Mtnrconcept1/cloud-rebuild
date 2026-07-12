@@ -721,8 +721,8 @@ function CommercialProspectionMap({
             `<strong>${escapeMapHtml(point.prospect.name)}</strong><br>${escapeMapHtml(point.meta.label)}${point.prospect.commune ? ` · ${escapeMapHtml(point.prospect.commune)}` : ""}`,
             { direction: "top", sticky: true, opacity: 0.95 },
           );
-          marker.on("click", () => {
-            onSelect(point.prospect);
+          marker.on("click", (event) => {
+            L.DomEvent.stopPropagation(event);
             onOpenDetails(point.prospect);
           });
           marker.addTo(layer);
