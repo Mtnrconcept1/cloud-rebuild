@@ -78,6 +78,58 @@
 
             <div class="zone-tabs" id="zone-tabs" role="tablist" aria-label="Zones de la salle"></div>
 
+            <section class="furniture-library template-only" id="furniture-library" aria-labelledby="furniture-library-title">
+              <div class="furniture-library-heading">
+                <div>
+                  <p class="eyebrow">AMÉNAGEMENT</p>
+                  <h2 id="furniture-library-title">Mobilier et architecture</h2>
+                </div>
+                <p>Ajoutez un élément, puis déplacez-le directement sur le plan.</p>
+              </div>
+              <div class="furniture-palette" id="furniture-palette" role="toolbar" aria-label="Éléments à ajouter au plan">
+                <button class="furniture-tool" type="button" data-furniture-type="wall">
+                  <span class="furniture-tool-icon" aria-hidden="true">▰</span>
+                  <span>Paroi</span>
+                </button>
+                <button class="furniture-tool" type="button" data-furniture-type="door">
+                  <span class="furniture-tool-icon" aria-hidden="true">↪</span>
+                  <span>Porte</span>
+                </button>
+                <button class="furniture-tool" type="button" data-furniture-type="window">
+                  <span class="furniture-tool-icon" aria-hidden="true">▭</span>
+                  <span>Fenêtre</span>
+                </button>
+                <button class="furniture-tool" type="button" data-furniture-type="bar">
+                  <span class="furniture-tool-icon" aria-hidden="true">▤</span>
+                  <span>Bar</span>
+                </button>
+                <button class="furniture-tool" type="button" data-furniture-type="plant">
+                  <span class="furniture-tool-icon" aria-hidden="true">✿</span>
+                  <span>Plante</span>
+                </button>
+                <button class="furniture-tool" type="button" data-furniture-type="service_station">
+                  <span class="furniture-tool-icon" aria-hidden="true">▦</span>
+                  <span>Station service</span>
+                </button>
+                <button class="furniture-tool" type="button" data-furniture-type="host_stand">
+                  <span class="furniture-tool-icon" aria-hidden="true">⌂</span>
+                  <span>Accueil</span>
+                </button>
+                <button class="furniture-tool" type="button" data-furniture-type="buffet">
+                  <span class="furniture-tool-icon" aria-hidden="true">▥</span>
+                  <span>Buffet</span>
+                </button>
+                <button class="furniture-tool" type="button" data-furniture-type="sofa">
+                  <span class="furniture-tool-icon" aria-hidden="true">▰</span>
+                  <span>Banquette</span>
+                </button>
+                <button class="furniture-tool" type="button" data-furniture-type="divider">
+                  <span class="furniture-tool-icon" aria-hidden="true">━</span>
+                  <span>Séparateur</span>
+                </button>
+              </div>
+            </section>
+
             <div class="placement-banner hidden" id="placement-banner" role="status">
               <div>
                 <strong id="placement-title">Choisissez une table</strong>
@@ -124,6 +176,14 @@
               </div>
             </div>
 
+            <div class="assignment-autosave-note" id="assignment-autosave-note" role="status">
+              <span class="assignment-autosave-icon" aria-hidden="true">✓</span>
+              <span>
+                <strong>Placements enregistrés automatiquement</strong>
+                <small>Chaque placement, déplacement ou retrait est sauvegardé immédiatement.</small>
+              </span>
+            </div>
+
             <div class="search-row">
               <label class="search-box">
                 <span aria-hidden="true">⌕</span>
@@ -161,7 +221,11 @@
           </label>
           <label>
             <span>Nombre d’assises</span>
-            <input name="capacity" required type="number" min="1" max="30" value="4" />
+            <div class="number-stepper" data-stepper="capacity">
+              <button id="capacity-decrease-button" type="button" data-step="-1" aria-label="Retirer une assise">−</button>
+              <input id="table-capacity-input" name="capacity" required type="number" min="1" max="30" value="4" inputmode="numeric" aria-label="Nombre d’assises" />
+              <button id="capacity-increase-button" type="button" data-step="1" aria-label="Ajouter une assise">+</button>
+            </div>
           </label>
           <label>
             <span>Zone</span>
@@ -184,6 +248,75 @@
         <div class="modal-actions split-actions">
           <button class="btn btn-danger hidden" id="delete-table-button" type="button">Supprimer</button>
           <button class="btn btn-ghost hidden" id="duplicate-table-button" type="button">Dupliquer</button>
+          <span></span>
+          <button class="btn btn-ghost" value="cancel" type="submit">Annuler</button>
+          <button class="btn btn-primary" value="default" type="submit">Appliquer</button>
+        </div>
+      </form>
+    </dialog>
+
+
+    <dialog class="modal furniture-modal" id="furniture-modal">
+      <form method="dialog" id="furniture-form">
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow">AMÉNAGEMENT</p>
+            <h2 id="furniture-modal-title">Modifier l’élément</h2>
+          </div>
+          <button class="close-button" value="cancel" aria-label="Fermer" type="submit">×</button>
+        </div>
+        <input type="hidden" name="id" />
+        <div class="form-grid furniture-form-grid">
+          <label>
+            <span>Type d’élément</span>
+            <select id="furniture-type-input" name="type" required>
+              <option value="wall">Paroi</option>
+              <option value="door">Porte d’entrée</option>
+              <option value="window">Fenêtre</option>
+              <option value="bar">Bar</option>
+              <option value="plant">Plante</option>
+              <option value="service_station">Station de service</option>
+              <option value="host_stand">Accueil</option>
+              <option value="buffet">Buffet</option>
+              <option value="sofa">Banquette</option>
+              <option value="divider">Séparateur</option>
+            </select>
+          </label>
+          <label>
+            <span>Libellé</span>
+            <input id="furniture-name-input" name="name" required maxlength="40" placeholder="Ex. Bar principal" />
+          </label>
+          <label class="full-field">
+            <span>Zone</span>
+            <input id="furniture-zone-input" name="zone" required list="zone-list" maxlength="60" placeholder="Ex. Salle principale" />
+          </label>
+          <label>
+            <span>Largeur sur le plan</span>
+            <input id="furniture-width-input" name="width" required type="number" min="24" max="520" step="1" inputmode="numeric" />
+          </label>
+          <label>
+            <span>Hauteur sur le plan</span>
+            <input id="furniture-height-input" name="height" required type="number" min="16" max="360" step="1" inputmode="numeric" />
+          </label>
+          <label class="full-field">
+            <span>Rotation (degrés)</span>
+            <div class="rotation-field">
+              <input id="furniture-rotation-range" type="range" min="-180" max="180" step="5" value="0" aria-label="Rotation de l’élément" />
+              <input id="furniture-rotation-input" name="rotation" required type="number" min="-180" max="180" step="5" value="0" inputmode="numeric" aria-label="Rotation en degrés" />
+              <output id="furniture-rotation-output" for="furniture-rotation-range furniture-rotation-input">0°</output>
+            </div>
+          </label>
+          <label class="full-field checkbox-field lock-field">
+            <input id="furniture-locked-input" name="locked" type="checkbox" />
+            <span>
+              <strong>Verrouiller la position</strong>
+              <small>Empêche tout déplacement accidentel sur le plan.</small>
+            </span>
+          </label>
+        </div>
+        <div class="modal-actions split-actions">
+          <button class="btn btn-danger" id="delete-furniture-button" type="button">Supprimer</button>
+          <button class="btn btn-ghost" id="duplicate-furniture-button" type="button">Dupliquer</button>
           <span></span>
           <button class="btn btn-ghost" value="cancel" type="submit">Annuler</button>
           <button class="btn btn-primary" value="default" type="submit">Appliquer</button>

@@ -14,8 +14,10 @@ import {
   computeFloorPlanV2AutoAssignments,
   getFloorPlanV2AssignmentError,
   mapFloorPlanV2Table,
+  parseFloorPlanV2ObjectDrafts,
   parseFloorPlanV2TableDrafts,
   serializeFloorPlanV2Layout,
+  serializeFloorPlanV2Object,
   type FloorPlanV2Period,
   type FloorPlanV2Reservation,
   type FloorPlanV2Table,
@@ -47,6 +49,7 @@ type AssignmentRequest = {
 type TableSaveRequest = {
   requestId: string;
   rawTables: unknown;
+  rawObjects?: unknown;
 };
 
 type TemplateSaveResult = {
@@ -222,7 +225,9 @@ export default function DashboardPlanSalleV2() {
     enabled: Boolean(selectedId),
   });
 
-  const tableIds = useMemo(() => tableRows.map((table) => table.id), [tableRows]);
+  const tableIds = useMemo(() => tableRows
+    .filter((table, index) => mapFloorPlanV2Table(table, index).editable)
+    .map((table) => table.id), [tableRows]);
   const { data: slotRows = [], error: slotsError } = useQuery({
     queryKey: ["floor-plan-v2-slots", selectedBranchId, tableIds.join(",")],
     queryFn: async () => {
@@ -254,6 +259,10 @@ export default function DashboardPlanSalleV2() {
     )),
     [overridesByTableId, tableRows],
   );
+  const furnitureObjects = useMemo(
+    () => templateTables.filter((item) => !item.editable),
+    [templateTables],
+  );
   const allReservations = useMemo(() => reservationRows
     .filter((reservation) => !reservation.branch_id || reservation.branch_id === selectedBranchId)
     .map((reservation) => toFloorPlanV2Reservation(
@@ -282,9 +291,10 @@ export default function DashboardPlanSalleV2() {
       branchId: selectedBranchId,
       selectedDate: serviceDate,
       selectedPeriod: servicePeriod,
-      templateTables,
-      serviceTables,
-      tables: serviceTables,
+      templateTables: templateTables.filter((item) => item.editable),
+      serviceTables: serviceTables.filter((item) => item.editable),
+      tables: serviceTables.filter((item) => item.editable),
+      furniture: furnitureObjects,
       reservations: visibleReservations,
     });
   }, [
@@ -295,6 +305,7 @@ export default function DashboardPlanSalleV2() {
     servicePeriod,
     serviceTables,
     templateTables,
+    furnitureObjects,
     visibleReservations,
   ]);
 
@@ -318,9 +329,9 @@ export default function DashboardPlanSalleV2() {
         nextAssignments[reservationId] = tableId;
       }
 
-      const { error } = await (supabase.rpc as any)("restaurant_save_floor_plan_assignments", {
+      const { error } = await supabase.rpc("restaurant_save_floor_plan_assignments", {
         p_branch_id: selectedBranchId,
-        p_assignments: changes,
+        p_assignments: changes as Json,
         p_reason: "Placement depuis Plan de salle 2",
       });
       if (error) throw error;
@@ -355,9 +366,10 @@ export default function DashboardPlanSalleV2() {
   });
 
   const templateMutation = useMutation({
-    mutationFn: async ({ rawTables }: TableSaveRequest): Promise<TemplateSaveResult> => {
+    mutationFn: async ({ rawTables, rawObjects }: TableSaveRequest): Promise<TemplateSaveResult> => {
       if (!selectedBranchId) throw new Error("Aucune salle sélectionnée.");
       const drafts = parseFloorPlanV2TableDrafts(rawTables);
+      const objectDrafts = parseFloorPlanV2ObjectDrafts(rawObjects || []);
       const existingEditableRows = tableRows.filter((row, index) => mapFloorPlanV2Table(row, index).editable);
       const existingRowsById = new Map(existingEditableRows.map((row) => [row.id, row]));
       const requestedExistingIds = new Set<string>();
@@ -385,11 +397,38 @@ export default function DashboardPlanSalleV2() {
         .map((row) => row.id)
         .filter((id) => !requestedExistingIds.has(id));
 
-      const { data, error } = await (supabase.rpc as any)("restaurant_save_floor_plan_template", {
+      const existingFurnitureRows = tableRows.filter(
+        (row, index) => !mapFloorPlanV2Table(row, index).editable,
+      );
+      const existingFurnitureRowsById = new Map(existingFurnitureRows.map((row) => [row.id, row]));
+      const requestedExistingFurnitureIds = new Set<string>();
+      const objectUpserts = objectDrafts.map((object) => {
+        const existing = existingFurnitureRowsById.get(object.id);
+        if (!existing && !object.id.startsWith("tmp_")) {
+          throw new Error("Un objet du brouillon n’appartient plus à cette salle. Actualisez le plan.");
+        }
+        if (existing) requestedExistingFurnitureIds.add(existing.id);
+        return {
+          client_id: object.id,
+          id: existing?.id || null,
+          table_number: object.name,
+          capacity: 0,
+          is_active: true,
+          sector: object.zone,
+          layout: serializeFloorPlanV2Object(object, existing?.layout) as Json,
+        };
+      });
+      const objectDeleteIds = existingFurnitureRows
+        .map((row) => row.id)
+        .filter((id) => !requestedExistingFurnitureIds.has(id));
+
+      const { data, error } = await supabase.rpc("restaurant_save_floor_plan_workspace", {
         p_branch_id: selectedBranchId,
-        p_upserts: upserts,
-        p_delete_ids: deleteIds,
-        p_reason: "Modèle enregistré depuis Plan de salle 2",
+        p_table_upserts: upserts as Json,
+        p_table_delete_ids: deleteIds,
+        p_objects: objectUpserts as Json,
+        p_object_delete_ids: objectDeleteIds,
+        p_reason: "Modèle et mobilier enregistrés depuis Plan de salle 2",
       });
       if (error) throw error;
       return { idMap: getIdMap(asRecord(data).id_map) };
@@ -469,10 +508,10 @@ export default function DashboardPlanSalleV2() {
         };
       });
 
-      const { error } = await (supabase.rpc as any)("restaurant_save_floor_plan_layouts", {
+      const { error } = await supabase.rpc("restaurant_save_floor_plan_layouts", {
         p_branch_id: selectedBranchId,
         p_service_date: serviceDate,
-        p_layouts: layouts,
+        p_layouts: layouts as Json,
         p_reason: "Disposition du service enregistrée depuis Plan de salle 2",
       });
       if (error) throw error;
@@ -586,7 +625,11 @@ export default function DashboardPlanSalleV2() {
         return;
       }
       if (message.type === "tok-table-v2:save-template") {
-        templateMutation.mutate({ requestId, rawTables: message.payload?.tables });
+        templateMutation.mutate({
+          requestId,
+          rawTables: message.payload?.tables,
+          rawObjects: message.payload?.objects,
+        });
         return;
       }
       if (message.type === "tok-table-v2:save-service-layout") {

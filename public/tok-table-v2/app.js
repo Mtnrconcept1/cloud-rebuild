@@ -10,6 +10,20 @@ const ZOOM_STEP = 0.1;
 const HISTORY_LIMIT = 40;
 const DEFAULT_RESERVATION_DURATION_MINUTES = 120;
 
+const FURNITURE_LIBRARY = Object.freeze({
+  wall: { label: "Paroi", icon: "▰", width: 180, height: 24 },
+  door: { label: "Porte d’entrée", icon: "↪", width: 84, height: 24 },
+  window: { label: "Fenêtre", icon: "▭", width: 120, height: 24 },
+  bar: { label: "Bar", icon: "▤", width: 220, height: 72 },
+  plant: { label: "Plante", icon: "✿", width: 52, height: 52 },
+  service_station: { label: "Station de service", icon: "▦", width: 100, height: 60 },
+  host_stand: { label: "Accueil", icon: "⌂", width: 70, height: 55 },
+  buffet: { label: "Buffet", icon: "▥", width: 140, height: 60 },
+  sofa: { label: "Banquette", icon: "▰", width: 150, height: 70 },
+  divider: { label: "Séparateur", icon: "━", width: 140, height: 24 }
+});
+const FURNITURE_TYPES = Object.freeze(Object.keys(FURNITURE_LIBRARY));
+
 const todayIso = () => {
   const date = new Date();
   date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
@@ -87,6 +101,18 @@ const elements = {
   placementCopy: $("#placement-copy"),
   tableModal: $("#table-modal"),
   tableForm: $("#table-form"),
+  furnitureLibrary: $("#furniture-library"),
+  furniturePalette: $("#furniture-palette"),
+  furnitureModal: $("#furniture-modal"),
+  furnitureForm: $("#furniture-form"),
+  furnitureTypeInput: $("#furniture-type-input"),
+  furnitureRotationRange: $("#furniture-rotation-range"),
+  furnitureRotationInput: $("#furniture-rotation-input"),
+  furnitureRotationOutput: $("#furniture-rotation-output"),
+  capacityDecreaseButton: $("#capacity-decrease-button"),
+  capacityIncreaseButton: $("#capacity-increase-button"),
+  tableCapacityInput: $("#table-capacity-input"),
+  assignmentAutosaveNote: $("#assignment-autosave-note"),
   confirmModal: $("#confirm-modal"),
   toastRegion: $("#toast-region"),
   zoomValue: $("#zoom-value"),
@@ -144,20 +170,35 @@ function sanitizeTables(input) {
     const id = String(raw?.id || "").trim();
     if (!id || seenIds.has(id)) return [];
     seenIds.add(id);
+
+    const rawKind = String(raw?.kind || "table");
+    const editable = raw?.editable !== false && rawKind === "table";
+    const kind = editable || FURNITURE_TYPES.includes(rawKind) ? rawKind : "divider";
+    const furnitureDefaults = FURNITURE_LIBRARY[kind] || FURNITURE_LIBRARY.divider;
+    const width = editable ? undefined : Math.max(24, Math.min(520, Math.round(Number(raw?.width) || furnitureDefaults.width)));
+    const height = editable ? undefined : Math.max(16, Math.min(360, Math.round(Number(raw?.height) || furnitureDefaults.height)));
     const rawX = Number(raw?.x);
     const rawY = Number(raw?.y);
-    const editable = raw?.editable !== false && String(raw?.kind || "table") === "table";
+    const maxX = editable ? 94 : Math.max(0, ((CANVAS_WIDTH - width) / CANVAS_WIDTH) * 100);
+    const maxY = editable ? 86 : Math.max(0, ((CANVAS_HEIGHT - height) / CANVAS_HEIGHT) * 100);
+
     return [{
       id,
-      name: String(raw?.name || `T${index + 1}`).trim().slice(0, 40) || `T${index + 1}`,
+      name: String(raw?.name || (editable ? `T${index + 1}` : furnitureDefaults.label)).trim().slice(0, 40)
+        || (editable ? `T${index + 1}` : furnitureDefaults.label),
       capacity: editable ? Math.max(1, Math.min(30, Math.round(Number(raw?.capacity) || 1))) : 0,
       zone: String(raw?.zone || "Salle principale").trim().slice(0, 60) || "Salle principale",
-      shape: ["round", "square", "rectangle"].includes(raw?.shape) ? raw.shape : "rectangle",
-      x: Math.max(0, Math.min(94, Number.isFinite(rawX) ? rawX : 0)),
-      y: Math.max(0, Math.min(86, Number.isFinite(rawY) ? rawY : 0)),
-      blocked: Boolean(raw?.blocked),
+      shape: editable && ["round", "square", "rectangle"].includes(raw?.shape) ? raw.shape : "rectangle",
+      x: Math.max(0, Math.min(maxX, Number.isFinite(rawX) ? rawX : 0)),
+      y: Math.max(0, Math.min(maxY, Number.isFinite(rawY) ? rawY : 0)),
+      blocked: editable ? Boolean(raw?.blocked) : false,
       editable,
-      kind: editable ? "table" : String(raw?.kind || "furniture")
+      kind,
+      width,
+      height,
+      rotation: editable ? 0 : ((Math.round(Number(raw?.rotation) || 0) % 360) + 360) % 360,
+      locked: editable ? false : raw?.locked === true,
+      zIndex: editable ? 0 : Math.max(-100, Math.min(100, Math.round(Number(raw?.zIndex) || 0)))
     }];
   });
 }
@@ -198,7 +239,7 @@ function editableTables(tables = state.tables) {
 }
 
 function tableSignature(tables) {
-  return JSON.stringify(editableTables(tables)
+  return JSON.stringify(tables
     .map((table) => ({
       id: table.id,
       name: table.name,
@@ -207,7 +248,14 @@ function tableSignature(tables) {
       shape: table.shape,
       x: Math.round(table.x * 1000) / 1000,
       y: Math.round(table.y * 1000) / 1000,
-      blocked: table.blocked
+      blocked: table.blocked,
+      editable: table.editable,
+      kind: table.kind,
+      width: table.editable ? null : table.width,
+      height: table.editable ? null : table.height,
+      rotation: table.editable ? null : table.rotation,
+      locked: table.editable ? null : table.locked,
+      zIndex: table.editable ? null : table.zIndex
     }))
     .sort((left, right) => left.id.localeCompare(right.id)));
 }
@@ -351,13 +399,14 @@ function renderSummary() {
   const assigned = reservations.filter((item) => item.tableId).length;
   const seats = editableTables().filter((table) => !table.blocked).reduce((sum, table) => sum + table.capacity, 0);
   elements.floorModeLabel.textContent = state.mode === "template" ? "MODÈLE DE SALLE" : "SERVICE";
+  const furnitureCount = state.tables.filter((table) => !table.editable).length;
   elements.floorSummary.textContent = state.mode === "template"
-    ? `${editableTables().length} table${editableTables().length > 1 ? "s" : ""} · ${seats} assise${seats > 1 ? "s" : ""}`
+    ? `${editableTables().length} table${editableTables().length > 1 ? "s" : ""} · ${seats} assise${seats > 1 ? "s" : ""} · ${furnitureCount} élément${furnitureCount > 1 ? "s" : ""}`
     : `${assigned}/${reservations.length} réservation${reservations.length > 1 ? "s" : ""} placée${assigned > 1 ? "s" : ""}`;
   elements.clientSummary.textContent = `${assigned}/${reservations.length} placée${assigned > 1 ? "s" : ""}`;
   elements.dragHint.textContent = state.mode === "template"
-    ? "Faites glisser une table pour la déplacer. Cliquez dessus pour modifier ses assises, sa forme ou sa zone."
-    : "Sélectionnez un client puis cliquez sur une table. Faites glisser une table pour modifier uniquement ce service.";
+    ? "Déplacez tables et mobilier. Touchez un élément pour modifier ses assises, dimensions, rotation ou verrouillage."
+    : "Sélectionnez un client puis cliquez sur une table. Chaque placement est enregistré immédiatement.";
 }
 
 function renderControls() {
@@ -387,8 +436,15 @@ function renderZones() {
 }
 
 function getNodeDimensions(table) {
-  if (!table.editable) return { width: 112, height: 68 };
+  if (!table.editable) return {
+    width: Math.max(24, Math.min(520, Number(table.width) || 112)),
+    height: Math.max(16, Math.min(360, Number(table.height) || 68))
+  };
   return { width: table.shape === "rectangle" ? 132 : 92, height: 92 };
+}
+
+function getFurnitureIcon(kind) {
+  return FURNITURE_LIBRARY[kind]?.icon || FURNITURE_LIBRARY.divider.icon;
 }
 
 function getChairMarkup(table) {
@@ -408,7 +464,7 @@ function renderFloor() {
   elements.floorEmpty.classList.toggle("hidden", visibleTables.length > 0);
 
   visibleTables.forEach((table) => {
-    const reservations = assignments.get(table.id) || [];
+    const reservations = table.editable ? assignments.get(table.id) || [] : [];
     const reservation = reservations[0] || null;
     const guestLabel = reservations.length > 1
       ? `${reservation.name} +${reservations.length - 1}`
@@ -421,25 +477,37 @@ function renderFloor() {
     const placementError = selectedReservation && table.editable
       ? getTablePlacementError(table, selectedReservation, assignments)
       : "";
-    const targetClass = selectedReservation
+    const targetClass = selectedReservation && table.editable
       ? placementError ? "invalid-target" : "valid-target"
       : "";
     const currentClass = selectedReservation?.tableId === table.id ? "current-target" : "";
     const node = document.createElement("button");
     node.type = "button";
-    node.className = `table-node ${table.shape} ${table.editable ? "" : "furniture"} ${table.blocked ? "blocked" : reservation ? "occupied" : ""} ${targetClass} ${currentClass}`.trim();
+    node.className = `table-node ${table.shape} ${table.editable ? "" : "furniture"} ${table.locked ? "locked" : ""} ${table.blocked ? "blocked" : reservation ? "occupied" : ""} ${targetClass} ${currentClass}`.trim();
     node.dataset.tableId = table.id;
     node.style.left = `${left}px`;
     node.style.top = `${top}px`;
-    node.setAttribute("aria-label", table.editable
-      ? `${table.name}, ${table.capacity} places${reservation ? `, ${reservations.map((item) => item.name).join(", ")}` : table.blocked ? ", indisponible" : ", libre"}${placementError ? `, ${placementError}` : ""}`
-      : `${table.name}, mobilier`);
-    if (!table.editable) node.tabIndex = -1;
-    node.innerHTML = `
-      ${getChairMarkup(table)}
-      <span class="table-name">${escapeHtml(table.name)}</span>
-      ${table.editable ? `<span class="table-capacity">${table.capacity} assise${table.capacity > 1 ? "s" : ""}</span>` : `<span class="table-capacity">Mobilier</span>`}
-      ${reservation ? `<span class="table-guest">${escapeHtml(guestLabel)}</span>` : ""}`;
+
+    if (table.editable) {
+      node.setAttribute("aria-label", `${table.name}, ${table.capacity} places${reservation ? `, ${reservations.map((item) => item.name).join(", ")}` : table.blocked ? ", indisponible" : ", libre"}${placementError ? `, ${placementError}` : ""}`);
+      node.innerHTML = `
+        ${getChairMarkup(table)}
+        <span class="table-name">${escapeHtml(table.name)}</span>
+        <span class="table-capacity">${table.capacity} assise${table.capacity > 1 ? "s" : ""}</span>
+        ${reservation ? `<span class="table-guest">${escapeHtml(guestLabel)}</span>` : ""}`;
+    } else {
+      node.dataset.objectType = table.kind;
+      node.dataset.locked = String(Boolean(table.locked));
+      node.style.width = `${dimensions.width}px`;
+      node.style.height = `${dimensions.height}px`;
+      node.style.setProperty("--object-rotation", `${Number(table.rotation) || 0}deg`);
+      node.style.zIndex = String(Math.max(1, 4 + (Number(table.zIndex) || 0)));
+      node.tabIndex = state.mode === "template" ? 0 : -1;
+      node.setAttribute("aria-label", `${table.name}, ${FURNITURE_LIBRARY[table.kind]?.label || "mobilier"}${table.locked ? ", position verrouillée" : ""}`);
+      node.innerHTML = `
+        <span class="furniture-icon" aria-hidden="true">${escapeHtml(getFurnitureIcon(table.kind))}</span>
+        <span class="furniture-label">${escapeHtml(table.name)}</span>`;
+    }
     elements.floor.appendChild(node);
   });
 }
@@ -665,6 +733,157 @@ function requestDeleteCurrentTable() {
   elements.confirmModal.showModal();
 }
 
+function nextFurnitureName(kind) {
+  const base = FURNITURE_LIBRARY[kind]?.label || "Mobilier";
+  const names = new Set(state.tables.map((item) => item.name.toLocaleLowerCase("fr")));
+  if (!names.has(base.toLocaleLowerCase("fr"))) return base;
+  let suffix = 2;
+  while (names.has(`${base} ${suffix}`.toLocaleLowerCase("fr"))) suffix += 1;
+  return `${base} ${suffix}`.slice(0, 40);
+}
+
+function addFurniture(kind) {
+  if (state.mode !== "template" || pendingOperation || !FURNITURE_TYPES.includes(kind)) return;
+  const defaults = FURNITURE_LIBRARY[kind];
+  const furnitureCount = state.tables.filter((item) => !item.editable).length;
+  const maxX = Math.max(0, ((CANVAS_WIDTH - defaults.width) / CANVAS_WIDTH) * 100);
+  const maxY = Math.max(0, ((CANVAS_HEIGHT - defaults.height) / CANVAS_HEIGHT) * 100);
+  const object = {
+    id: uid("tmp_object"),
+    name: nextFurnitureName(kind),
+    capacity: 0,
+    zone: state.selectedZone,
+    shape: "rectangle",
+    x: Math.min(maxX, 6 + (furnitureCount * 9) % 72),
+    y: Math.min(maxY, 8 + (furnitureCount * 11) % 64),
+    blocked: false,
+    editable: false,
+    kind,
+    width: defaults.width,
+    height: defaults.height,
+    rotation: 0,
+    locked: false,
+    zIndex: Math.min(100, furnitureCount)
+  };
+  const next = clone(state.tables);
+  next.push(object);
+  commitTables(next);
+  showToast(`${object.name} ajouté au brouillon.`, "success");
+  window.setTimeout(() => openFurnitureModal(object), 0);
+}
+
+function toSignedRotation(value) {
+  return ((((Math.round(Number(value) || 0) + 180) % 360) + 360) % 360) - 180;
+}
+
+function syncFurnitureRotation(value) {
+  const rotation = Math.max(-180, Math.min(180, Math.round(Number(value) || 0)));
+  elements.furnitureRotationRange.value = String(rotation);
+  elements.furnitureRotationInput.value = String(rotation);
+  elements.furnitureRotationOutput.textContent = `${rotation}°`;
+}
+
+function openFurnitureModal(object) {
+  if (state.mode !== "template" || !object || object.editable || pendingOperation) return;
+  elements.furnitureForm.reset();
+  const fields = elements.furnitureForm.elements;
+  fields.id.value = object.id;
+  fields.type.value = FURNITURE_TYPES.includes(object.kind) ? object.kind : "divider";
+  fields.name.value = object.name;
+  fields.zone.value = object.zone;
+  fields.width.value = object.width;
+  fields.height.value = object.height;
+  fields.locked.checked = Boolean(object.locked);
+  syncFurnitureRotation(toSignedRotation(object.rotation));
+  $("#furniture-modal-title").textContent = `Modifier ${object.name}`;
+  if (!elements.furnitureModal.open) elements.furnitureModal.showModal();
+  window.setTimeout(() => fields.name.select(), 30);
+}
+
+function saveFurnitureFromForm() {
+  const form = new FormData(elements.furnitureForm);
+  const id = String(form.get("id") || "");
+  const kind = String(form.get("type") || "");
+  const name = String(form.get("name") || "").trim();
+  const zone = String(form.get("zone") || "").trim();
+  const width = Math.round(Number(form.get("width")));
+  const height = Math.round(Number(form.get("height")));
+  const rotation = Math.round(Number(form.get("rotation")));
+  const locked = form.get("locked") === "on";
+  const existing = state.tables.find((item) => item.id === id && !item.editable);
+
+  if (!existing || !FURNITURE_TYPES.includes(kind)) return false;
+  if (!name || name.length > 40 || !zone || zone.length > 60) {
+    showToast("Renseignez un nom et une zone valides.", "warning");
+    return false;
+  }
+  if (width < 24 || width > 520 || height < 16 || height > 360 || rotation < -180 || rotation > 180) {
+    showToast("Les dimensions ou la rotation sont invalides.", "warning");
+    return false;
+  }
+  const duplicate = state.tables.find((item) => (
+    item.id !== id && item.name.toLocaleLowerCase("fr") === name.toLocaleLowerCase("fr")
+  ));
+  if (duplicate) {
+    showToast("Un élément du plan porte déjà ce nom.", "warning");
+    return false;
+  }
+
+  const next = clone(state.tables);
+  const object = next.find((item) => item.id === id && !item.editable);
+  const maxX = Math.max(0, ((CANVAS_WIDTH - width) / CANVAS_WIDTH) * 100);
+  const maxY = Math.max(0, ((CANVAS_HEIGHT - height) / CANVAS_HEIGHT) * 100);
+  Object.assign(object, {
+    name,
+    zone,
+    kind,
+    width,
+    height,
+    rotation: ((rotation % 360) + 360) % 360,
+    locked,
+    x: Math.min(maxX, object.x),
+    y: Math.min(maxY, object.y)
+  });
+  state.selectedZone = zone;
+  commitTables(next);
+  showToast(`${name} modifié dans le brouillon.`, "success");
+  return true;
+}
+
+function duplicateCurrentFurniture() {
+  const id = elements.furnitureForm.elements.id.value;
+  const source = state.tables.find((item) => item.id === id && !item.editable);
+  if (!source) return;
+  const next = clone(state.tables);
+  const duplicate = {
+    ...clone(source),
+    id: uid("tmp_object"),
+    name: nextFurnitureName(source.kind),
+    x: Math.min(Math.max(0, ((CANVAS_WIDTH - source.width) / CANVAS_WIDTH) * 100), source.x + 4),
+    y: Math.min(Math.max(0, ((CANVAS_HEIGHT - source.height) / CANVAS_HEIGHT) * 100), source.y + 4),
+    locked: false,
+    zIndex: Math.min(100, (Number(source.zIndex) || 0) + 1)
+  };
+  next.push(duplicate);
+  elements.furnitureModal.close();
+  commitTables(next);
+  showToast(`${duplicate.name} ajouté au brouillon.`, "success");
+}
+
+function requestDeleteCurrentFurniture() {
+  const id = elements.furnitureForm.elements.id.value;
+  const object = state.tables.find((item) => item.id === id && !item.editable);
+  if (!object) return;
+  elements.furnitureModal.close();
+  $("#confirm-title").textContent = `Supprimer ${object.name} ?`;
+  $("#confirm-copy").textContent = "La suppression sera définitive après l’enregistrement du modèle.";
+  pendingConfirmAction = () => {
+    commitTables(state.tables.filter((item) => item.id !== id));
+    showToast(`${object.name} retiré du brouillon.`);
+  };
+  elements.confirmModal.showModal();
+}
+
 function savePlan() {
   if (!state.dirty || pendingOperation) return;
   if (!state.connected) {
@@ -686,10 +905,23 @@ function savePlan() {
     y: table.y,
     blocked: table.blocked
   }));
+  const objects = state.tables.filter((item) => !item.editable).map((object) => ({
+    id: object.id,
+    name: object.name,
+    zone: object.zone,
+    kind: object.kind,
+    x: object.x,
+    y: object.y,
+    width: object.width,
+    height: object.height,
+    rotation: object.rotation,
+    locked: object.locked,
+    zIndex: object.zIndex
+  }));
   beginOperation(state.mode === "template" ? "template" : "service-layout", requestId);
   postToDashboard(
     state.mode === "template" ? "tok-table-v2:save-template" : "tok-table-v2:save-service-layout",
-    { requestId, tables }
+    state.mode === "template" ? { requestId, tables, objects } : { requestId, tables }
   );
 }
 
@@ -744,7 +976,8 @@ function autoPlace() {
 }
 
 function startDragging(event, node, table) {
-  if (!table.editable || pendingOperation || event.button !== 0) return;
+  const furnitureCanMove = !table.editable && state.mode === "template" && !table.locked;
+  if ((!table.editable && !furnitureCanMove) || pendingOperation || event.button !== 0) return;
   const rect = elements.floor.getBoundingClientRect();
   const scaleX = rect.width / CANVAS_WIDTH || canvasZoom;
   const scaleY = rect.height / CANVAS_HEIGHT || canvasZoom;
@@ -826,15 +1059,19 @@ function finishDragging(event, cancelled = false) {
   if (current.moved) {
     const next = clone(state.tables);
     const movedTable = next.find((item) => item.id === current.tableId);
-    movedTable.x = Math.max(0, Math.min(94, (current.nextLeft / CANVAS_WIDTH) * 100));
-    movedTable.y = Math.max(0, Math.min(86, (current.nextTop / CANVAS_HEIGHT) * 100));
+    const dimensions = getNodeDimensions(movedTable);
+    const maxX = Math.max(0, ((CANVAS_WIDTH - dimensions.width) / CANVAS_WIDTH) * 100);
+    const maxY = Math.max(0, ((CANVAS_HEIGHT - dimensions.height) / CANVAS_HEIGHT) * 100);
+    movedTable.x = Math.max(0, Math.min(maxX, (current.nextLeft / CANVAS_WIDTH) * 100));
+    movedTable.y = Math.max(0, Math.min(maxY, (current.nextTop / CANVAS_HEIGHT) * 100));
     commitTables(next, current.beforeTables);
     return;
   }
 
   if (state.mode === "template") {
-    openTableModal(table);
-  } else if (selectedReservationId) {
+    if (table.editable) openTableModal(table);
+    else openFurnitureModal(table);
+  } else if (selectedReservationId && table.editable) {
     assignReservation(selectedReservationId, table.id);
   }
 }
@@ -964,8 +1201,14 @@ function applyIdMap(idMap) {
 
 function hydrateConnectedState(payload) {
   if (!payload || !Array.isArray(payload.reservations)) return;
-  const templateTables = sanitizeTables(payload.templateTables || payload.tables || []);
-  const serviceTables = sanitizeTables(payload.serviceTables || payload.tables || []);
+  const furniture = sanitizeTables(payload.furniture || []).filter((item) => !item.editable);
+  const mergeFurniture = (input) => {
+    const tables = sanitizeTables(input || []).filter((item) => item.editable);
+    const ids = new Set(tables.map((item) => item.id));
+    return [...tables, ...furniture.filter((item) => !ids.has(item.id))];
+  };
+  const templateTables = mergeFurniture(payload.templateTables || payload.tables || []);
+  const serviceTables = mergeFurniture(payload.serviceTables || payload.tables || []);
   const incomingBranchId = String(payload.branchId || "");
   const reservations = sanitizeReservations(payload.reservations, serviceTables, payload.selectedDate || todayIso());
   const branchChanged = state.branchId && state.branchId !== incomingBranchId;
@@ -997,6 +1240,11 @@ function handleOperationSuccess(payload) {
   if (kind === "template") {
     applyIdMap(payload?.idMap);
     state.serverTemplateTables = clone(state.tables);
+    const savedFurniture = state.tables.filter((item) => !item.editable);
+    state.serverServiceTables = [
+      ...state.serverServiceTables.filter((item) => item.editable),
+      ...clone(savedFurniture)
+    ];
     history.baseline = clone(state.tables);
     history.past = [];
     history.future = [];
@@ -1068,12 +1316,33 @@ elements.search.addEventListener("input", renderReservations);
 elements.filter.addEventListener("change", renderReservations);
 elements.autoPlaceButton.addEventListener("click", autoPlace);
 $("#add-table-button").addEventListener("click", () => openTableModal());
+elements.furniturePalette.addEventListener("click", (event) => {
+  const tool = event.target.closest("[data-furniture-type]");
+  if (tool) addFurniture(tool.dataset.furnitureType);
+});
 elements.saveButton.addEventListener("click", savePlan);
 elements.cancelChangesButton.addEventListener("click", cancelChanges);
 elements.undoButton.addEventListener("click", undo);
 elements.redoButton.addEventListener("click", redo);
 $("#delete-table-button").addEventListener("click", requestDeleteCurrentTable);
 $("#duplicate-table-button").addEventListener("click", duplicateCurrentTable);
+$("#delete-furniture-button").addEventListener("click", requestDeleteCurrentFurniture);
+$("#duplicate-furniture-button").addEventListener("click", duplicateCurrentFurniture);
+
+function stepTableCapacity(delta) {
+  const current = Math.round(Number(elements.tableCapacityInput.value) || 1);
+  elements.tableCapacityInput.value = String(Math.max(1, Math.min(30, current + delta)));
+  elements.tableCapacityInput.dispatchEvent(new Event("input", { bubbles: true }));
+}
+elements.capacityDecreaseButton.addEventListener("click", () => stepTableCapacity(-1));
+elements.capacityIncreaseButton.addEventListener("click", () => stepTableCapacity(1));
+
+elements.furnitureRotationRange.addEventListener("input", () => {
+  syncFurnitureRotation(elements.furnitureRotationRange.value);
+});
+elements.furnitureRotationInput.addEventListener("input", () => {
+  syncFurnitureRotation(elements.furnitureRotationInput.value);
+});
 $("#cancel-placement-button").addEventListener("click", () => {
   selectedReservationId = null;
   renderFloor();
@@ -1086,6 +1355,11 @@ elements.tableForm.addEventListener("submit", (event) => {
   if (event.submitter?.value === "cancel") return;
   event.preventDefault();
   if (saveTableFromForm()) elements.tableModal.close();
+});
+elements.furnitureForm.addEventListener("submit", (event) => {
+  if (event.submitter?.value === "cancel") return;
+  event.preventDefault();
+  if (saveFurnitureFromForm()) elements.furnitureModal.close();
 });
 elements.confirmModal.addEventListener("close", () => {
   if (elements.confirmModal.returnValue === "default" && pendingConfirmAction) pendingConfirmAction();
@@ -1118,7 +1392,15 @@ elements.reservationList.addEventListener("dragend", (event) => {
 });
 
 elements.floor.addEventListener("click", (event) => {
-  if (event.target.closest('[data-action="add-table"]')) openTableModal();
+  if (event.target.closest('[data-action="add-table"]')) {
+    openTableModal();
+    return;
+  }
+  const node = event.target.closest(".table-node.furniture");
+  const object = node && state.tables.find((item) => item.id === node.dataset.tableId && !item.editable);
+  if (object && state.mode === "template" && (object.locked || event.detail === 0)) {
+    openFurnitureModal(object);
+  }
 });
 elements.floor.addEventListener("pointerdown", (event) => {
   const node = event.target.closest(".table-node");

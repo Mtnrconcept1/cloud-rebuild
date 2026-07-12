@@ -6783,6 +6783,48 @@ export type Database = {
         }
         Returns: boolean
       }
+      restaurant_save_floor_plan_assignments: {
+        Args: { p_assignments: Json; p_branch_id: string; p_reason?: string }
+        Returns: Json
+      }
+      restaurant_save_floor_plan_furniture: {
+        Args: {
+          p_branch_id: string
+          p_delete_ids?: string[]
+          p_objects: Json
+          p_reason?: string
+        }
+        Returns: Json
+      }
+      restaurant_save_floor_plan_layouts: {
+        Args: {
+          p_branch_id: string
+          p_layouts: Json
+          p_reason?: string
+          p_service_date: string
+        }
+        Returns: Json
+      }
+      restaurant_save_floor_plan_template: {
+        Args: {
+          p_branch_id: string
+          p_delete_ids?: string[]
+          p_reason?: string
+          p_upserts: Json
+        }
+        Returns: Json
+      }
+      restaurant_save_floor_plan_workspace: {
+        Args: {
+          p_branch_id: string
+          p_object_delete_ids?: string[]
+          p_objects: Json
+          p_reason?: string
+          p_table_delete_ids: string[]
+          p_table_upserts: Json
+        }
+        Returns: Json
+      }
       recompute_restaurant_review_stats: {
         Args: { p_restaurant_id: string }
         Returns: undefined
