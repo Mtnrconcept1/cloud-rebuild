@@ -15,7 +15,7 @@ describe("role separation, storage and audit security", () => {
     const app = read("src/App.tsx");
 
     expect(authContext).toContain('UserRole = "client" | "restaurateur" | "admin" | "courier"');
-    expect(roleAccess).toContain('client: "/"');
+    expect(roleAccess).toContain('client: "/mon-espace"');
     expect(roleAccess).toContain('restaurateur: "/dashboard"');
     expect(roleAccess).toContain('admin: "/admin"');
     expect(roleAccess).toContain('courier: "/courier"');

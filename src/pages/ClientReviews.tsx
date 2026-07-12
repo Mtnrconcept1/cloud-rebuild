@@ -38,10 +38,9 @@ type ClientReview = {
   speed_rating: number | null;
   comment: string | null;
   status: string | null;
-  moderation_reason: string | null;
   created_at: string;
   restaurants: ReviewRestaurant | ReviewRestaurant[] | null;
-  review_replies: ReviewReply[] | null;
+  review_replies: ReviewReply | ReviewReply[] | null;
 };
 
 const FILTERS: Array<{ id: ReviewFilter; label: string }> = [
@@ -111,7 +110,6 @@ export default function ClientReviews() {
           speed_rating,
           comment,
           status,
-          moderation_reason,
           created_at,
           restaurants(id, name, city, image_url),
           review_replies(id, reply_text, author_type, created_at)
@@ -193,7 +191,9 @@ export default function ClientReviews() {
               const restaurant = firstRestaurant(review.restaurants);
               const status = statusPresentation(review.status);
               const rating = Number(review.rating || review.restaurant_rating || review.food_rating || 0);
-              const replies = [...(review.review_replies || [])].sort((left, right) => left.created_at.localeCompare(right.created_at));
+              const rawReplies = review.review_replies;
+              const replies = (Array.isArray(rawReplies) ? rawReplies : rawReplies ? [rawReplies] : [])
+                .sort((left, right) => left.created_at.localeCompare(right.created_at));
 
               return (
                 <article key={review.id} className="overflow-hidden rounded-2xl border bg-card shadow-sm">
@@ -230,11 +230,6 @@ export default function ClientReviews() {
                       {review.speed_rating ? <span className="rounded-full bg-muted px-2.5 py-1">Rapidité {review.speed_rating}/5</span> : null}
                     </div>
 
-                    {status.label === "Non publié" && review.moderation_reason ? (
-                      <p className="mt-4 rounded-xl bg-muted p-3 text-xs text-muted-foreground">
-                        Motif de modération : {review.moderation_reason}
-                      </p>
-                    ) : null}
                   </div>
 
                   {replies.length > 0 ? (

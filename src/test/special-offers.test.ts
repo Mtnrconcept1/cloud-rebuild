@@ -14,7 +14,7 @@ describe("isAntiWasteOfferPubliclyVisible", () => {
       quantity_available: 2,
       available_date: "2026-04-23",
       pickup_end: "20:00:00",
-    }, new Date("2026-04-22T12:00:00"))).toBe(true);
+    }, new Date("2026-04-22T10:00:00.000Z"))).toBe(true);
   });
 
   it("hides anti-gaspi offers with no stock", () => {
@@ -23,7 +23,7 @@ describe("isAntiWasteOfferPubliclyVisible", () => {
       quantity_available: 0,
       available_date: "2026-04-23",
       pickup_end: "20:00:00",
-    }, new Date("2026-04-22T12:00:00"))).toBe(false);
+    }, new Date("2026-04-22T10:00:00.000Z"))).toBe(false);
   });
 
   it("hides offers whose pickup window already ended today", () => {
@@ -32,7 +32,7 @@ describe("isAntiWasteOfferPubliclyVisible", () => {
       quantity_available: 1,
       available_date: "2026-04-22",
       pickup_end: "11:00:00",
-    }, new Date("2026-04-22T12:00:00"))).toBe(false);
+    }, new Date("2026-04-22T10:00:00.000Z"))).toBe(false);
   });
 });
 
@@ -44,7 +44,7 @@ describe("isFlashSalePubliclyVisible", () => {
       sale_date: "2026-04-22",
       sale_start: "11:00:00",
       sale_end: "13:00:00",
-    }, new Date("2026-04-22T12:00:00"))).toBe(true);
+    }, new Date("2026-04-22T10:00:00.000Z"))).toBe(true);
   });
 
   it("hides flash sales when stock is depleted", () => {
@@ -54,7 +54,7 @@ describe("isFlashSalePubliclyVisible", () => {
       sale_date: "2026-04-22",
       sale_start: "11:00:00",
       sale_end: "13:00:00",
-    }, new Date("2026-04-22T12:00:00"))).toBe(false);
+    }, new Date("2026-04-22T10:00:00.000Z"))).toBe(false);
   });
 });
 

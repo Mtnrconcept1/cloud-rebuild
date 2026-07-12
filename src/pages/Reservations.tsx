@@ -25,6 +25,10 @@ type ProgressiveReservationFields = {
   progressive_offer_id?: string | null;
   progressive_offer_discount_percent?: number | null;
   progressive_offer_discount_status?: string | null;
+  payment_method?: string | null;
+  refund_status?: string | null;
+  refunded_amount_chf?: number | null;
+  reservation_time?: string | null;
 };
 type ReservationWithRestaurant = ReservationRow & {
   restaurants: RestaurantName | RestaurantName[] | null;

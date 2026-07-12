@@ -74,7 +74,7 @@ function isNavItemActive(pathname: string, search: string, item: CustomerNavItem
   if (pathname !== target.pathname) return false;
 
   const currentTab = new URLSearchParams(search).get("tab");
-  if (item.tab) return currentTab === item.tab;
+  if (item.tab) return (currentTab || "infos") === item.tab;
   return true;
 }
 

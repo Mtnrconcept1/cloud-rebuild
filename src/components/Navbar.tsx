@@ -353,12 +353,12 @@ export default function Navbar() {
                     onMouseDown={preserveNavbarActionScrollPosition}
                     className={
                       isMobileHomeHeader
-                        ? "order-3 h-[48px] rounded-full bg-primary px-5 text-[0.88rem] font-bold text-white shadow-[0_10px_22px_rgba(255,107,28,0.24)] hover:bg-primary/90"
+                        ? "order-3 h-[48px] w-[48px] rounded-full bg-primary p-0 text-[0.88rem] font-bold text-white shadow-[0_10px_22px_rgba(255,107,28,0.24)] hover:bg-primary/90 min-[380px]:w-auto min-[380px]:px-5"
                         : "rounded-full"
                     }
                   >
                     <User className="h-5 w-5" />
-                    <span className={isMobileHomeHeader ? "ml-2 inline" : "sr-only"}>
+                    <span className={isMobileHomeHeader ? "hidden min-[380px]:ml-2 min-[380px]:inline" : "sr-only"}>
                       COMPTE
                     </span>
                   </Button>

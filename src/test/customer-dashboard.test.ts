@@ -65,9 +65,15 @@ describe("espace client central", () => {
   it("ferme les écritures client qui pouvaient contourner les workflows", () => {
     const security = readSource("supabase/migrations/20260712061702_harden_client_dashboard_boundaries.sql");
 
-    expect(security).toContain("revoke insert, update on public.profiles from anon, authenticated");
-    expect(security).toContain("revoke insert, update, delete, truncate on public.gift_points from anon, authenticated");
-    expect(security).toContain("revoke insert, update, delete, truncate on public.loyalty_transactions from anon, authenticated");
+    expect(security).toContain("revoke insert, update, delete, truncate on public.profiles from public, anon, authenticated");
+    expect(security).toContain("revoke insert, update, delete, truncate on public.gift_points from public, anon, authenticated");
+    expect(security).toContain("revoke insert, update, delete, truncate on public.loyalty_transactions from public, anon, authenticated");
+    expect(security).toContain("revoke insert, update, delete, truncate on public.user_profiles from public, anon, authenticated");
+    expect(security).toContain('drop policy if exists "Anyone can view solidarity donations"');
+    expect(security).toContain("revoke select on public.solidarity_donations from public, anon, authenticated");
+    expect(security).toContain('drop policy if exists "Users manage own orders" on public.orders');
+    expect(security).toContain('drop policy if exists "Users manage own reservations" on public.reservations');
+    expect(security).toContain('create policy "user_profiles_self_select"');
     expect(security).toContain("create or replace function public.update_client_profile");
     expect(security).toContain("create or replace function public.send_gift_points_v2");
     expect(security).toContain("create or replace function public.claim_gift_points_v2");
@@ -84,6 +90,10 @@ describe("espace client central", () => {
     expect(lifecycle).toContain("v_status in ('arrived', 'seated', 'completed')");
     expect(lifecycle).toContain("after insert or update of status, payment_status");
     expect(lifecycle).toContain("reverses_transaction_id");
+    expect(lifecycle).toContain("reinstates_transaction_id");
+    expect(lifecycle).toContain("migration_reward_not_yet_eligible");
+    expect(lifecycle).toContain("lock table public.profiles in share row exclusive mode");
+    expect(lifecycle).toContain("v_effective_multiplier := least(5");
     expect(lifecycle).not.toContain("new.status = 'pending'");
     expect(reservationDialog).toContain("donate_earned_xp: donatePoints");
     expect(reservationDialog).not.toContain('("donate_points_for_meal"');

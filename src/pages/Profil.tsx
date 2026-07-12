@@ -40,7 +40,7 @@ import { buildTokOneEntitlements } from "@/lib/subscriptionEntitlements";
 import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 
 const supabase = getSupabase();
-const PROFILE_TABS = new Set(["infos", "favoris", "abonnement", "notifications", "fidelite", "securite"]);
+const PROFILE_TABS = new Set(["infos", "favoris", "abonnement", "notifications", "fidelite", "parametres"]);
 
 function splitFullName(value: string) {
   const parts = value.trim().split(/\s+/).filter(Boolean);
@@ -102,7 +102,7 @@ export default function Profil() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const requestedTabParam = searchParams.get("tab") || "infos";
   const requestedTab = PROFILE_TABS.has(requestedTabParam) ? requestedTabParam : "infos";
   const [loading, setLoading] = useState(false);
@@ -300,7 +300,15 @@ export default function Profil() {
           <h1 className="font-display text-3xl font-bold">Mon profil</h1>
         </div>
 
-        <Tabs key={defaultTab} defaultValue={defaultTab}>
+        <Tabs
+          value={defaultTab}
+          onValueChange={(value) => {
+            const next = new URLSearchParams(searchParams);
+            if (value === "infos") next.delete("tab");
+            else next.set("tab", value);
+            setSearchParams(next, { replace: true });
+          }}
+        >
           <TabsList
             className={`!grid h-auto w-full grid-cols-3 gap-1 rounded-2xl bg-muted/60 p-1 ${
               tokOneFeatureEnabled ? "sm:grid-cols-6" : "sm:grid-cols-5"

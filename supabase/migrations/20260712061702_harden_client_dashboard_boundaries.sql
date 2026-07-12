@@ -27,7 +27,7 @@ create index if not exists idx_loyalty_transactions_user_created_at
 
 -- Profiles: RLS protects rows, while column privileges protect the
 -- server-owned MIAMZ balance/tier inside each row.
-revoke insert, update on public.profiles from anon, authenticated;
+revoke insert, update, delete, truncate on public.profiles from public, anon, authenticated;
 drop policy if exists "profiles_self_all" on public.profiles;
 
 grant insert (user_id, full_name, avatar_url, phone, address, city, date_of_birth, gender)
@@ -36,14 +36,14 @@ grant update (full_name, avatar_url, phone, address, city, date_of_birth, gender
   on public.profiles to authenticated;
 
 create or replace function public.update_client_profile(
-  p_full_name text default null,
-  p_first_name text default null,
-  p_last_name text default null,
-  p_phone text default null,
-  p_address text default null,
-  p_city text default null,
-  p_avatar_url text default null,
-  p_date_of_birth date default null
+  p_full_name text,
+  p_first_name text,
+  p_last_name text,
+  p_phone text,
+  p_address text,
+  p_city text,
+  p_avatar_url text,
+  p_date_of_birth date
 )
 returns void
 language plpgsql
@@ -116,14 +116,35 @@ revoke all on function public.update_client_profile(text, text, text, text, text
 grant execute on function public.update_client_profile(text, text, text, text, text, text, text, date)
   to authenticated, service_role;
 
+-- The same atomic RPC owns the mirrored account profile. Prevent a client from
+-- deleting this parent row (and cascading into addresses/payment data) or
+-- performing a second, partial write through PostgREST.
+drop policy if exists "user_profiles_self_all" on public.user_profiles;
+drop policy if exists "user_profiles_owner_delete" on public.user_profiles;
+drop policy if exists "user_profiles_owner_insert" on public.user_profiles;
+drop policy if exists "user_profiles_owner_update" on public.user_profiles;
+drop policy if exists "user_profiles_owner_select" on public.user_profiles;
+drop policy if exists "Require auth for user_profiles" on public.user_profiles;
+drop policy if exists "user_profiles_self_select" on public.user_profiles;
+revoke insert, update, delete, truncate on public.user_profiles from public, anon, authenticated;
+
+create policy "user_profiles_self_select"
+  on public.user_profiles
+  for select
+  to authenticated
+  using ((select auth.uid()) = user_id);
+
 -- Orders/reservations must enter through the canonical Edge workflows. A
 -- browser insert bypasses pricing, capacity, idempotency and payment checks.
 drop policy if exists "Users can create orders" on public.orders;
+drop policy if exists "Users manage own orders" on public.orders;
 drop policy if exists "Users can create order items" on public.order_items;
 drop policy if exists "Users can create reservations" on public.reservations;
-revoke insert, delete, truncate, references, trigger on public.orders from anon, authenticated;
-revoke insert, delete, truncate, references, trigger on public.order_items from anon, authenticated;
-revoke insert, delete, truncate, references, trigger on public.reservations from anon, authenticated;
+drop policy if exists "Users can cancel their reservations" on public.reservations;
+drop policy if exists "Users manage own reservations" on public.reservations;
+revoke insert, delete, truncate, references, trigger on public.orders from public, anon, authenticated;
+revoke insert, delete, truncate, references, trigger on public.order_items from public, anon, authenticated;
+revoke insert, delete, truncate, references, trigger on public.reservations from public, anon, authenticated;
 
 revoke execute on function public.validate_and_create_reservation_safe(
   uuid, date, time without time zone, integer, text, jsonb, text
@@ -144,14 +165,17 @@ grant execute on function public.validate_and_create_reservation_safe(
 -- Subscription state is Stripe/server owned. Clients retain SELECT and use
 -- the existing management Edge function for changes.
 drop policy if exists "tok_one_subscriptions_own_update" on public.tok_one_subscriptions;
-revoke insert, update, delete, truncate on public.tok_one_subscriptions from anon, authenticated;
+revoke insert, update, delete, truncate on public.tok_one_subscriptions from public, anon, authenticated;
 
 -- Ledger, solidarity totals and gift rows are append-only through the RPCs
 -- below. Direct REST writes would otherwise mint or erase MIAMZ.
 drop policy if exists "Authenticated users can send gifts" on public.gift_points;
-revoke insert, update, delete, truncate on public.gift_points from anon, authenticated;
-revoke insert, update, delete, truncate on public.loyalty_transactions from anon, authenticated;
-revoke insert, update, delete, truncate on public.solidarity_donations from anon, authenticated;
+revoke insert, update, delete, truncate on public.gift_points from public, anon, authenticated;
+revoke insert, update, delete, truncate on public.loyalty_transactions from public, anon, authenticated;
+revoke insert, update, delete, truncate on public.solidarity_donations from public, anon, authenticated;
+drop policy if exists "Anyone can view solidarity donations" on public.solidarity_donations;
+drop policy if exists "Authenticated users can create donations" on public.solidarity_donations;
+revoke select on public.solidarity_donations from public, anon, authenticated;
 
 do $$
 begin
@@ -302,6 +326,7 @@ declare
   v_gift public.gift_points%rowtype;
   v_user_id uuid := auth.uid();
   v_claimant_email text;
+  v_transaction_id uuid;
 begin
   if v_user_id is null then
     raise exception 'Authentication required';
@@ -326,11 +351,6 @@ begin
   set status = 'claimed', claimed_at = now(), recipient_id = v_user_id
   where id = v_gift.id;
 
-  insert into public.profiles (user_id, loyalty_points)
-  values (v_user_id, v_gift.points_amount)
-  on conflict (user_id) do update
-  set loyalty_points = coalesce(profiles.loyalty_points, 0) + excluded.loyalty_points;
-
   insert into public.loyalty_transactions (
     user_id, amount, transaction_type, description, metadata
   ) values (
@@ -344,7 +364,17 @@ begin
       'base_points', v_gift.points_amount,
       'miamz_bonus_points', 0
     )
-  ) on conflict do nothing;
+  ) on conflict do nothing
+  returning id into v_transaction_id;
+
+  if v_transaction_id is null then
+    raise exception 'Gift was already credited';
+  end if;
+
+  insert into public.profiles (user_id, loyalty_points)
+  values (v_user_id, v_gift.points_amount)
+  on conflict (user_id) do update
+  set loyalty_points = coalesce(profiles.loyalty_points, 0) + excluded.loyalty_points;
 
   return v_gift.points_amount;
 end;
