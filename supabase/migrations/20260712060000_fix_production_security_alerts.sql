@@ -26,7 +26,7 @@ CREATE OR REPLACE FUNCTION public.verify_internal_cron_secret(p_secret text)
 RETURNS boolean
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public, vault
+SET search_path = pg_catalog, public, vault
 AS $$
 DECLARE
   v_matches boolean := false;
@@ -55,7 +55,7 @@ CREATE OR REPLACE FUNCTION public.get_stripe_webhook_signing_secrets()
 RETURNS text[]
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = pg_catalog, public
 AS $$
 DECLARE
   v_secrets text[] := ARRAY[]::text[];
@@ -67,8 +67,9 @@ BEGIN
   EXECUTE $sql$
     SELECT COALESCE(array_agg(DISTINCT secret), ARRAY[]::text[])
     FROM stripe._managed_webhooks
-    WHERE status = 'enabled'
-      AND url = 'https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1/stripe-webhook'
+    WHERE (enabled IS TRUE OR status = 'enabled')
+      AND rtrim(url, '/') LIKE '%/functions/v1/stripe-webhook'
+      AND NULLIF(secret, '') IS NOT NULL
       AND secret LIKE 'whsec\_%' ESCAPE '\'
   $sql$
   INTO v_secrets;
@@ -80,25 +81,45 @@ $$;
 REVOKE EXECUTE ON FUNCTION public.get_stripe_webhook_signing_secrets() FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.get_stripe_webhook_signing_secrets() TO service_role;
 
+-- Guest/system orders can legitimately have no user_id. Their status still
+-- needs to move forward, but a user notification cannot be enqueued because
+-- notifications.user_id is NOT NULL.
+DROP TRIGGER IF EXISTS after_order_status_update ON public.orders;
+CREATE TRIGGER after_order_status_update
+AFTER UPDATE OF status ON public.orders
+FOR EACH ROW
+WHEN (NEW.user_id IS NOT NULL)
+EXECUTE FUNCTION public.trigger_order_status_notification();
+
 -- Close abandoned online-card orders that never reached Stripe. Cash orders
 -- and stock-bearing special offers are deliberately excluded.
 UPDATE public.orders
 SET
   status = 'payment_failed',
-  payment_status = 'expired',
+  payment_status = 'failed',
   metadata = COALESCE(metadata, '{}'::jsonb) || jsonb_build_object(
     'checkout_session_state', 'expired',
     'checkout_expired_at', now(),
     'checkout_expiry_reason', 'stripe_session_not_created'
   ),
   updated_at = now()
-WHERE created_at < now() - interval '2 hours'
+WHERE created_at < now() - interval '48 hours'
+  AND COALESCE(total_amount, 0) > 0
   AND lower(COALESCE(metadata->>'payment_method', '')) IN ('card', 'twint', 'postfinance_card', 'postfinance_efinance')
+  AND lower(COALESCE(metadata->>'checkout_kind', 'order')) = 'order'
   AND lower(COALESCE(status, '')) IN ('pending', 'pending_payment')
   AND lower(COALESCE(payment_status, '')) IN ('pending', 'pending_payment', 'requires_payment')
   AND NULLIF(metadata->>'stripe_session_id', '') IS NULL
+  AND NULLIF(metadata->>'checkout_session_id', '') IS NULL
   AND COALESCE(metadata->>'has_anti_gaspi', 'false') <> 'true'
-  AND COALESCE(metadata->>'has_flash_sale', 'false') <> 'true';
+  AND COALESCE(metadata->>'has_flash_sale', 'false') <> 'true'
+  AND NOT EXISTS (
+    SELECT 1
+    FROM public.payment_transactions transaction
+    WHERE transaction.order_id = orders.id
+      AND transaction.type = 'charge'
+      AND transaction.status = 'succeeded'
+  );
 
 -- Paid campaigns that reached their end date are not payment incidents.
 UPDATE public.ad_campaigns
@@ -121,6 +142,24 @@ WHERE delivery.notification_id = notification.id
     WHERE token.user_id = notification.user_id
       AND token.enabled = true
   );
+
+-- Do not resend months-old transactional messages once the provider is
+-- restored. Preserve the original provider failure as archived history while
+-- removing it from the active delivery backlog; new failures remain visible.
+UPDATE public.email_queue
+SET
+  status = 'skipped',
+  error = 'Archived stale delivery: RESEND_API_KEY not configured'
+WHERE status = 'failed'
+  AND error = 'RESEND_API_KEY not configured';
+
+UPDATE public.notification_deliveries
+SET
+  status = 'skipped',
+  last_error = 'Archived stale delivery: RESEND_API_KEY not configured'
+WHERE channel = 'email'
+  AND status = 'failed'
+  AND last_error = 'RESEND_API_KEY not configured';
 
 DO $$
 DECLARE
@@ -154,7 +193,8 @@ BEGIN
         'Content-Type', 'application/json',
         'x-internal-cron-secret', (
           SELECT decrypted_secret FROM vault.decrypted_secrets
-          WHERE name = 'internal_cron_secret' LIMIT 1
+          WHERE name = 'internal_cron_secret' AND NULLIF(decrypted_secret, '') IS NOT NULL
+          ORDER BY updated_at DESC LIMIT 1
         )
       ),
       body := '{}'::jsonb
@@ -168,7 +208,8 @@ BEGIN
         'Content-Type', 'application/json',
         'x-internal-cron-secret', (
           SELECT decrypted_secret FROM vault.decrypted_secrets
-          WHERE name = 'internal_cron_secret' LIMIT 1
+          WHERE name = 'internal_cron_secret' AND NULLIF(decrypted_secret, '') IS NOT NULL
+          ORDER BY updated_at DESC LIMIT 1
         )
       ),
       body := '{}'::jsonb
@@ -182,7 +223,8 @@ BEGIN
         'Content-Type', 'application/json',
         'x-internal-cron-secret', (
           SELECT decrypted_secret FROM vault.decrypted_secrets
-          WHERE name = 'internal_cron_secret' LIMIT 1
+          WHERE name = 'internal_cron_secret' AND NULLIF(decrypted_secret, '') IS NOT NULL
+          ORDER BY updated_at DESC LIMIT 1
         )
       ),
       body := '{"source":"cron","limit":50,"hours":72}'::jsonb
@@ -196,21 +238,23 @@ BEGIN
         'Content-Type', 'application/json',
         'x-internal-cron-secret', (
           SELECT decrypted_secret FROM vault.decrypted_secrets
-          WHERE name = 'internal_cron_secret' LIMIT 1
+          WHERE name = 'internal_cron_secret' AND NULLIF(decrypted_secret, '') IS NOT NULL
+          ORDER BY updated_at DESC LIMIT 1
         )
       ),
       body := '{}'::jsonb
     );
   $job$, v_base || '/reconcile-match-group-authorizations'));
 
-  PERFORM cron.schedule('tok-capture-due-match-groups', '* * * * *', format($job$
+  PERFORM cron.schedule('tok-capture-due-match-groups', '*/5 * * * *', format($job$
     SELECT net.http_post(
       url := %L,
       headers := jsonb_build_object(
         'Content-Type', 'application/json',
         'x-internal-cron-secret', (
           SELECT decrypted_secret FROM vault.decrypted_secrets
-          WHERE name = 'internal_cron_secret' LIMIT 1
+          WHERE name = 'internal_cron_secret' AND NULLIF(decrypted_secret, '') IS NOT NULL
+          ORDER BY updated_at DESC LIMIT 1
         )
       ),
       body := '{}'::jsonb
@@ -223,7 +267,7 @@ CREATE OR REPLACE FUNCTION public.get_payment_integrity_anomalies(p_hours intege
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = pg_catalog, public
 AS $$
 DECLARE
   v_hours integer := GREATEST(1, LEAST(COALESCE(p_hours, 48), 720));
@@ -275,6 +319,8 @@ BEGIN
     WHERE lower(COALESCE(o.status, '')) = 'confirmed'
       AND lower(COALESCE(o.payment_status, '')) = 'captured'
       AND COALESCE(o.total_amount, 0) > 0
+      AND lower(COALESCE(o.metadata->>'payment_method', 'card')) NOT IN ('cash', 'cash_on_delivery', 'restaurant', 'pay_at_restaurant')
+      AND lower(COALESCE(o.metadata->>'checkout_kind', 'order')) = 'order'
       AND o.created_at >= now() - interval '90 days'
       AND NOT EXISTS (
         SELECT 1 FROM public.payment_transactions pt
@@ -301,9 +347,12 @@ BEGIN
     WHERE pt.type = 'charge'
       AND pt.status = 'succeeded'
       AND pt.order_id IS NULL
-      AND lower(COALESCE(pt.metadata->>'checkout_kind', '')) = 'order'
+      AND COALESCE(pt.amount, 0) > 0
+      AND lower(COALESCE(pt.metadata->>'checkout_kind', 'order')) = 'order'
       AND NULLIF(pt.metadata->>'reservation_id', '') IS NULL
-      AND lower(COALESCE(pt.metadata->>'feature', '')) NOT IN ('zero-attente', 'chefs-table', 'chefs_table')
+      AND lower(COALESCE(pt.metadata->>'feature', '')) NOT IN (
+        'zero-attente', 'reservation_zero_attente', 'chefs-table', 'chefs_table'
+      )
       AND pt.created_at >= now() - interval '90 days'
     ORDER BY pt.created_at DESC
     LIMIT 100
@@ -442,7 +491,7 @@ CREATE OR REPLACE FUNCTION public.admin_get_production_health()
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = pg_catalog, public
 AS $$
 DECLARE
   v_now timestamptz := now();
@@ -465,6 +514,10 @@ BEGIN
     RAISE EXCEPTION 'Forbidden';
   END IF;
 
+  -- Detailed coverage inherited from admin_get_production_health_raw:
+  -- internal_cron_secret, public.admin_supabase_advisor_snapshots,
+  -- checkoutReconciliation.paidOrdersNotFinalized and notificationQueue
+  -- backed by public.notification_deliveries and public.email_queue.
   v_report := public.admin_get_production_health_raw();
 
   WITH stripe_logs AS (
@@ -475,8 +528,14 @@ BEGIN
   ),
   classified AS (
     SELECT *,
-      (COALESCE(request_metadata->>'user_agent', '') LIKE 'pg_net/%'
-       AND COALESCE(error_message, '') ILIKE '%Missing stripe-signature%') AS ignored
+      (
+        action = 'verify_signature'
+        AND is_service_role = true
+        AND COALESCE(request_metadata->>'user_agent', '') LIKE 'pg_net/%'
+        AND COALESCE(request_metadata->>'method', '') = 'POST'
+        AND COALESCE(request_metadata->>'path', '') = '/stripe-webhook'
+        AND COALESCE(error_message, '') = 'Missing stripe-signature header'
+      ) AS ignored
     FROM stripe_logs
   ),
   totals AS (
@@ -486,7 +545,8 @@ BEGIN
       count(*) FILTER (WHERE NOT ignored AND status = 'failure')::integer AS failures_24h,
       count(*) FILTER (WHERE ignored)::integer AS ignored_24h,
       max(created_at) FILTER (WHERE NOT ignored AND status = 'success') AS last_success_at,
-      max(created_at) FILTER (WHERE NOT ignored AND status = 'failure') AS last_failure_at
+      max(created_at) FILTER (WHERE NOT ignored AND status = 'failure') AS last_failure_at,
+      COALESCE(array_length(public.get_stripe_webhook_signing_secrets(), 1), 0) > 0 AS secret_available
     FROM classified
   ),
   latest_failure AS (
@@ -498,11 +558,9 @@ BEGIN
   )
   SELECT jsonb_build_object(
     'status', CASE
+      WHEN NOT secret_available THEN 'critical'
       WHEN last_failure_at IS NOT NULL
-       AND last_failure_at > COALESCE(last_success_at, '-infinity'::timestamptz)
-       AND last_failure_at >= v_now - interval '2 hours' THEN 'critical'
-      WHEN last_failure_at IS NOT NULL
-       AND last_failure_at > COALESCE(last_success_at, '-infinity'::timestamptz) THEN 'watch'
+       AND last_failure_at > COALESCE(last_success_at, '-infinity'::timestamptz) THEN 'critical'
       ELSE 'ok'
     END,
     'total24h', total_24h,
@@ -512,15 +570,17 @@ BEGIN
     'failureRate', CASE WHEN total_24h = 0 THEN NULL ELSE round(failures_24h::numeric / total_24h * 100, 2) END,
     'lastSuccessAt', last_success_at,
     'lastFailureAt', last_failure_at,
-    'lastError', latest_failure.error_message,
+    'lastError', CASE
+      WHEN last_failure_at IS NOT NULL
+       AND last_failure_at > COALESCE(last_success_at, '-infinity'::timestamptz)
+      THEN latest_failure.error_message
+      ELSE NULL
+    END,
     'message', CASE
+      WHEN NOT secret_available THEN 'Aucun secret de signature associe au webhook Stripe actif.'
       WHEN last_failure_at IS NOT NULL
        AND last_failure_at > COALESCE(last_success_at, '-infinity'::timestamptz)
-       AND last_failure_at >= v_now - interval '2 hours'
         THEN COALESCE(latest_failure.error_message, 'Webhook Stripe actuellement en echec.')
-      WHEN last_failure_at IS NOT NULL
-       AND last_failure_at > COALESCE(last_success_at, '-infinity'::timestamptz)
-        THEN 'Dernier incident Stripe ancien, sans nouvel echec recent.'
       WHEN success_24h > 0 THEN 'Webhooks Stripe recus avec succes.'
       ELSE 'Aucun evenement Stripe attendu dans la fenetre observee.'
     END,
@@ -535,11 +595,21 @@ BEGIN
     CASE
       WHEN item->>'functionName' = 'stripe-webhook' THEN
         item || v_stripe || jsonb_build_object('label', 'Stripe webhook')
-      WHEN COALESCE((item->>'total24h')::integer, 0) = 0 THEN
+      WHEN COALESCE((item->>'total24h')::integer, 0) = 0
+       AND item->>'functionName' IN (
+         'create-checkout', 'complete-order-checkout', 'dispatch-order',
+         'campaign-portal', 'notification-dispatch', 'validate-order'
+       ) THEN
         item || jsonb_build_object(
           'status', 'ok',
           'activityState', 'idle',
           'message', 'Fonction deployee, aucun travail attendu dans la fenetre observee.'
+        )
+      WHEN COALESCE((item->>'total24h')::integer, 0) = 0 THEN
+        item || jsonb_build_object(
+          'status', 'watch',
+          'activityState', 'awaiting_first_run',
+          'message', 'Worker planifie, premiere execution auditee en attente.'
         )
       WHEN COALESCE((item->>'failures24h')::integer, 0) > 0
        AND NULLIF(item->>'lastSuccessAt', '')::timestamptz > NULLIF(item->>'lastFailureAt', '')::timestamptz THEN
@@ -568,7 +638,11 @@ BEGIN
   IF to_regclass('cron.job') IS NOT NULL AND to_regclass('cron.job_run_details') IS NOT NULL THEN
     WITH expected(jobname, label, priority, schedule, action_url) AS (
       VALUES
-        ('tok-capture-due-match-groups', 'Capture Match group', 'P0', '* * * * *', '/admin/commandes-reservations'),
+        ('send-email-worker', 'Emails transactionnels', 'P0', '* * * * *', '/admin/notifications'),
+        ('tok-close-due-match-groups', 'Cloture Match group', 'P0', '* * * * *', '/admin/commandes-reservations'),
+        ('tok-reconcile-paid-order-checkouts', 'Reconciliation commandes payees', 'P0', '*/5 * * * *', '/admin/commandes-reservations'),
+        ('tok-sync-social-post-promotions', 'Synchronisation Actualites sponsorisees', 'P1', '*/5 * * * *', '/admin/actualites'),
+        ('tok-capture-due-match-groups', 'Capture Match group', 'P0', '*/5 * * * *', '/admin/commandes-reservations'),
         ('tok-reconcile-match-group-authorizations', 'Rapprochement Match group', 'P1', '*/5 * * * *', '/admin/commandes-reservations'),
         ('send-push-worker', 'Notifications push', 'P1', '*/5 * * * *', '/admin/notifications')
     ),
@@ -609,7 +683,21 @@ BEGIN
     LEFT JOIN latest ON latest.jobid = j.jobid;
   END IF;
 
-  v_cron_jobs := COALESCE(v_cron_jobs, '[]'::jsonb) || COALESCE(v_extra_crons, '[]'::jsonb);
+  -- Keep the remediation/next-run metadata from the legacy collector while
+  -- letting the complete expected-job inventory above own live state.
+  SELECT COALESCE(jsonb_agg(
+    COALESCE(previous.item, '{}'::jsonb) || fresh.item
+    ORDER BY fresh.item->>'priority', fresh.item->>'jobName'
+  ), '[]'::jsonb)
+  INTO v_cron_jobs
+  FROM jsonb_array_elements(COALESCE(v_extra_crons, '[]'::jsonb)) AS fresh(item)
+  LEFT JOIN LATERAL (
+    SELECT existing.item
+    FROM jsonb_array_elements(COALESCE(v_cron_jobs, '[]'::jsonb)) AS existing(item)
+    WHERE existing.item->>'jobName' = fresh.item->>'jobName'
+    LIMIT 1
+  ) AS previous ON true;
+
   v_payment := public.get_payment_integrity_anomalies(48);
 
   SELECT COALESCE(jsonb_agg(
@@ -647,6 +735,8 @@ BEGIN
     SELECT 'config:' || COALESCE(item->>'key', 'unknown'), item
     FROM jsonb_array_elements(v_configuration_checks) item
     WHERE item->>'key' <> 'stripe_webhook_secret'
+    UNION ALL SELECT 'checkout_reconciliation', COALESCE(v_report->'checkoutReconciliation', '{}'::jsonb)
+    UNION ALL SELECT 'notification_queue', COALESCE(v_report->'notificationQueue', '{}'::jsonb)
     UNION ALL SELECT 'supabase_advisors', COALESCE(v_report->'advisors', '{}'::jsonb)
   ), ranked AS (
     SELECT DISTINCT ON (root_id) root_id, item
@@ -715,10 +805,18 @@ BEGIN
 END;
 $$;
 
-REVOKE EXECUTE ON FUNCTION public.admin_get_production_health_raw() FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.admin_get_production_health_raw() TO authenticated, service_role;
-REVOKE EXECUTE ON FUNCTION public.admin_get_production_health() FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.admin_get_production_health_raw() FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_get_production_health_raw() TO service_role;
+REVOKE EXECUTE ON FUNCTION public.admin_get_production_health() FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.admin_get_production_health() FROM anon;
 GRANT EXECUTE ON FUNCTION public.admin_get_production_health() TO authenticated, service_role;
+
+-- Keep the privilege contract explicit for the companion advisor snapshot RPC.
+-- Existing regression tests intentionally require separate PUBLIC and anon
+-- revocations so a later broad GRANT cannot accidentally make it anonymous.
+REVOKE EXECUTE ON FUNCTION public.admin_record_supabase_advisor_snapshot(jsonb, text) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.admin_record_supabase_advisor_snapshot(jsonb, text) FROM anon;
+GRANT EXECUTE ON FUNCTION public.admin_record_supabase_advisor_snapshot(jsonb, text) TO authenticated, service_role;
 
 DO $$
 BEGIN
@@ -732,7 +830,7 @@ CREATE OR REPLACE FUNCTION public.admin_get_security_abuse_summary(p_hours integ
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public, auth
+SET search_path = pg_catalog, public, auth
 AS $$
 DECLARE
   v_hours integer := GREATEST(1, LEAST(COALESCE(p_hours, 24), 720));
@@ -877,9 +975,10 @@ BEGIN
 END;
 $$;
 
-REVOKE EXECUTE ON FUNCTION public.admin_get_security_abuse_summary_raw(integer) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.admin_get_security_abuse_summary_raw(integer) TO authenticated, service_role;
-REVOKE EXECUTE ON FUNCTION public.admin_get_security_abuse_summary(integer) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.admin_get_security_abuse_summary_raw(integer) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_get_security_abuse_summary_raw(integer) TO service_role;
+REVOKE EXECUTE ON FUNCTION public.admin_get_security_abuse_summary(integer) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.admin_get_security_abuse_summary(integer) FROM anon;
 GRANT EXECUTE ON FUNCTION public.admin_get_security_abuse_summary(integer) TO authenticated, service_role;
 
 NOTIFY pgrst, 'reload schema';

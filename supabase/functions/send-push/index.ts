@@ -61,8 +61,8 @@ function parseFirebaseServiceAccount(raw: string): FirebaseServiceAccount {
 
   for (const candidate of Array.from(candidates)) {
     addCandidate(maybeDecodeBase64(candidate));
-    if (candidate.includes('\\\"')) {
-      addCandidate(candidate.replace(/\\\"/g, '"'));
+    if (candidate.includes('\\"')) {
+      addCandidate(candidate.replace(/\\"/g, '"'));
     }
 
     try {

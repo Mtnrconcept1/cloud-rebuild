@@ -37,7 +37,7 @@ describe("production security alert remediation", () => {
 
   it("removes known payment false positives and expired campaign noise", () => {
     expect(migration).toContain("COALESCE(o.total_amount, 0) > 0");
-    expect(migration).toContain("lower(COALESCE(pt.metadata->>'checkout_kind', '')) = 'order'");
+    expect(migration).toContain("lower(COALESCE(pt.metadata->>'checkout_kind', 'order')) = 'order'");
     expect(migration).toContain("ac.ends_at > now()");
     expect(migration).toContain("cs_live\\_%");
     expect(migration).toContain("checkout_expiry_reason");
@@ -53,6 +53,7 @@ describe("production security alert remediation", () => {
   });
 
   it("reports real delivery failures and skips push work without an active token", () => {
+    expect(migration).toContain("Archived stale delivery: RESEND_API_KEY not configured");
     expect(sendEmail).toContain('status: failed > 0 ? "failure" : "success"');
     expect(sendEmail).toContain("notification_failed");
     expect(sendPush).toContain('.update({ status: "skipped", last_error: "No active device tokens" })');
