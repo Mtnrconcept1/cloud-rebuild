@@ -149,6 +149,12 @@ describe("floor plan v2 live assignments", () => {
       .toThrow("Type de mobilier invalide");
     expect(() => parseFloorPlanV2ObjectDrafts([{ ...valid, width: 12 }]))
       .toThrow("dimensions");
+    expect(() => parseFloorPlanV2ObjectDrafts([
+      valid,
+      { ...valid, id: "tmp_object_2", name: valid.name.toLocaleUpperCase("fr") },
+    ])).toThrow("utilisé deux fois");
+    expect(() => parseFloorPlanV2ObjectDrafts([{ ...valid, x: 94, width: 100 }]))
+      .toThrow("dépasse les limites");
   });
 
   it.each([
@@ -348,6 +354,7 @@ describe("floor plan v2 secure bridge and zoom", () => {
     expect(page).toContain("parseFloorPlanV2ObjectDrafts");
     expect(page).toContain("serializeFloorPlanV2Object");
     expect(page).toContain("p_objects: objectUpserts");
+    expect(page).toContain("p_object_delete_ids: objectDeleteIds");
     expect(iframe).toMatch(/tok-table-v2:save-template[\s\S]{0,500}objects/);
 
     expect(migration).toContain("restaurant_save_floor_plan_workspace");
@@ -355,7 +362,13 @@ describe("floor plan v2 secure bridge and zoom", () => {
     expect(migration).toContain("public.restaurant_save_floor_plan_template");
     expect(migration).toContain("public.reservation_tables");
     expect(migration).toContain("capacity, is_active");
+    expect(migration).toContain("p_object_delete_ids uuid[]");
+    expect(migration).toContain("Tables and furniture must be explicit JSON arrays");
+    expect(migration).toContain("Duplicate floor plan client identifier");
+    expect(migration).toContain("Furniture names must be unique");
+    expect(migration).toContain("ux_reservation_tables_branch_item_name_ci");
     expect(migration).toContain("COALESCE(rt.layout->>'kind', 'table') <> 'table'");
+    expect(migration).not.toContain("NOT (rt.id = ANY(v_ids))");
     expect(migration).not.toContain("CREATE TABLE public.floor_plan_objects");
   });
 
