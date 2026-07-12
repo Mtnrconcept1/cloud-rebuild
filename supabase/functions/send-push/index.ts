@@ -291,6 +291,7 @@ Deno.serve(async (req) => {
 
     let sent = 0;
     let failed = 0;
+    let skipped = 0;
 
     for (const delivery of deliveries) {
       try {
@@ -314,9 +315,9 @@ Deno.serve(async (req) => {
         if (!tokens || tokens.length === 0) {
           await supabaseAdmin
             .from("notification_deliveries")
-            .update({ status: "failed", last_error: "No active device tokens" })
+            .update({ status: "skipped", last_error: "No active device tokens" })
             .eq("id", delivery.id);
-          failed++;
+          skipped++;
           continue;
         }
 
@@ -420,15 +421,16 @@ Deno.serve(async (req) => {
     await writeAuditLog({
       adminClient: actor.adminClient,
       actor,
-        request: req,
-        functionName: "send-push",
-        action: "process_push_queue",
-        status: "success",
-        targetEntityType: "notification_deliveries",
-        metadata: { processed: deliveries.length, sent, failed, user_id: userIdFilter },
-      });
+      request: req,
+      functionName: "send-push",
+      action: "process_push_queue",
+      status: failed > 0 ? "failure" : "success",
+      targetEntityType: "notification_deliveries",
+      errorMessage: failed > 0 ? `${failed} livraison(s) push en échec` : null,
+      metadata: { processed: deliveries.length, sent, failed, skipped, user_id: userIdFilter },
+    });
 
-    return jsonResponse({ processed: deliveries.length, sent, failed }, 200, corsHeaders);
+    return jsonResponse({ processed: deliveries.length, sent, failed, skipped }, 200, corsHeaders);
   } catch (error) {
     log.error("send-push error", { message: error instanceof Error ? error.message : "unknown" });
     await writeAuditLog({
