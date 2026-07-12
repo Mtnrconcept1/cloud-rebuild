@@ -112,6 +112,11 @@ describe("admin production health", () => {
     expect(page).toContain("Transaction");
     expect(page).toContain("Compte déclencheur");
     expect(page).toContain("Métadonnées complètes");
+    expect(page).toContain("calculateHealthScore");
+    expect(page).toContain("OK = 100, à surveiller = 60, critique = 0");
+    expect(page).toContain("Comprendre le score de santé");
+    expect(page).toContain("UrgentIndicator");
+    expect(page).toContain("Urgence critique à régler");
     expect(page).toContain('role="button"');
     expect(page).not.toContain("refetchInterval");
   });

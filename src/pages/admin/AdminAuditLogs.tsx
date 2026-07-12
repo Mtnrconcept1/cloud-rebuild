@@ -275,6 +275,29 @@ function HealthBadge({ status }: { status?: string | null }) {
   );
 }
 
+function calculateHealthScore(report?: ProductionHealthReport) {
+  const ok = Math.max(0, Number(report?.counts?.ok || 0));
+  const watch = Math.max(0, Number(report?.counts?.watch || 0));
+  const critical = Math.max(0, Number(report?.counts?.critical || 0));
+  const total = ok + watch + critical;
+  if (total === 0) return null;
+  return Math.round(((ok * 100) + (watch * 60)) / total);
+}
+
+function UrgentIndicator({ show, label = "Urgence critique à régler" }: { show: boolean; label?: string }) {
+  if (!show) return null;
+  return (
+    <span
+      role="img"
+      aria-label={label}
+      title={label}
+      className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-red-600 text-xl font-black text-white shadow-lg shadow-red-600/30 ring-4 ring-red-100 dark:ring-red-950"
+    >
+      !
+    </span>
+  );
+}
+
 function MetricCard({ label, value, icon: Icon }: { label: string; value: string | number; icon: typeof Shield }) {
   return (
     <Card>
@@ -720,6 +743,10 @@ export default function AdminAuditLogs() {
   }, [logs, filteredLogs.length, paymentIntegrity, securityAbuse]);
 
   const healthStatus = normalizeHealthStatus(productionHealth?.status);
+  const calculatedHealthScore = calculateHealthScore(productionHealth);
+  const healthScoreExplanation = calculatedHealthScore === null
+    ? "Score indisponible : aucun contrôle exploitable n’a encore été remonté."
+    : `Score calculé sur ${formatNumber((productionHealth?.counts?.ok || 0) + (productionHealth?.counts?.watch || 0) + (productionHealth?.counts?.critical || 0))} contrôles : OK = 100 points, à surveiller = 60 points, critique = 0 point. Moyenne pondérée arrondie : ${calculatedHealthScore}/100.`;
   const securityAbuseStatus = normalizeHealthStatus(securityAbuse?.status);
   const paymentAnomalies = paymentIntegrity?.items || [];
   const securityAbuseSections = [
@@ -826,11 +853,34 @@ export default function AdminAuditLogs() {
           ) : (
             <div className="space-y-5">
               <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-                <div className="rounded-lg border bg-muted/20 p-3"><p className="text-xs text-muted-foreground">Score</p><p className="mt-2 text-2xl font-bold">{productionHealth?.score ?? 0}/100</p></div>
+                <button
+                  type="button"
+                  className="rounded-lg border bg-muted/20 p-3 text-left transition hover:border-primary/40 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                  onClick={() => setSelectedDetail(buildHealthDetail("Comprendre le score de santé", healthStatus, [
+                    { label: "Score calculé", value: calculatedHealthScore === null ? "Indisponible" : `${calculatedHealthScore}/100` },
+                    { label: "Contrôles OK", value: productionHealth?.counts?.ok },
+                    { label: "À surveiller", value: productionHealth?.counts?.watch },
+                    { label: "Critiques", value: productionHealth?.counts?.critical },
+                    { label: "Règle de calcul", value: "OK = 100, à surveiller = 60, critique = 0 ; moyenne de tous les contrôles." },
+                    { label: "Interprétation", value: calculatedHealthScore === null ? "Données insuffisantes" : calculatedHealthScore >= 90 ? "Plateforme saine" : calculatedHealthScore >= 70 ? "Corrections recommandées" : "Intervention prioritaire" },
+                  ], productionHealth))}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs text-muted-foreground">Score expliqué</p>
+                    <UrgentIndicator show={healthStatus === "critical"} label="Le score contient au moins une urgence critique" />
+                  </div>
+                  <p className="mt-2 text-2xl font-bold">{calculatedHealthScore === null ? "—" : `${calculatedHealthScore}/100`}</p>
+                  <p className="mt-2 text-xs text-muted-foreground">Cliquez pour voir le calcul complet.</p>
+                </button>
                 <div className="rounded-lg border bg-muted/20 p-3"><p className="text-xs text-muted-foreground">Critiques</p><p className="mt-2 text-2xl font-bold">{formatNumber(productionHealth?.counts?.critical)}</p></div>
                 <div className="rounded-lg border bg-muted/20 p-3"><p className="text-xs text-muted-foreground">À surveiller</p><p className="mt-2 text-2xl font-bold">{formatNumber(productionHealth?.counts?.watch)}</p></div>
                 <div className="rounded-lg border bg-muted/20 p-3"><p className="text-xs text-muted-foreground">Crons suivis</p><p className="mt-2 text-2xl font-bold">{formatNumber(productionHealth?.counts?.cronJobs)}</p></div>
                 <div className="rounded-lg border bg-muted/20 p-3"><p className="text-xs text-muted-foreground">Edge suivies</p><p className="mt-2 text-2xl font-bold">{formatNumber(productionHealth?.counts?.edgeFunctions)}</p></div>
+              </div>
+              <div className="rounded-lg border border-blue-500/25 bg-blue-500/5 p-4 text-sm">
+                <p className="font-semibold">Comment lire le score de santé ?</p>
+                <p className="mt-1 text-muted-foreground">{healthScoreExplanation}</p>
+                <p className="mt-2 text-xs text-muted-foreground">Le score résume la situation, mais une seule urgence critique suffit à classer la plateforme « Critique ». Ouvrez chaque bloc marqué d’un point d’exclamation pour consulter les contrôles concernés.</p>
               </div>
               <div className="grid gap-4 xl:grid-cols-3">
                 <button
@@ -842,7 +892,7 @@ export default function AdminAuditLogs() {
                     { label: "Statut", value: productionHealth?.cron?.status },
                   ], productionHealth?.cron))}
                 >
-                  <h3 className="flex items-center gap-2 font-semibold"><TimerReset className="h-4 w-4" />Cron jobs</h3>
+                  <h3 className="flex items-center gap-2 font-semibold"><TimerReset className="h-4 w-4" />Cron jobs <UrgentIndicator show={normalizeHealthStatus(productionHealth?.cron?.status) === "critical"} /></h3>
                   <p className="mt-2 text-sm text-muted-foreground">{formatNumber(productionHealth?.cron?.jobs?.length)} jobs suivis.</p>
                   <HealthBadge status={productionHealth?.cron?.status} />
                 </button>
@@ -855,7 +905,7 @@ export default function AdminAuditLogs() {
                     { label: "Statut", value: productionHealth?.edgeFunctions?.status },
                   ], productionHealth?.edgeFunctions))}
                 >
-                  <h3 className="flex items-center gap-2 font-semibold"><TerminalSquare className="h-4 w-4" />Edge Functions critiques</h3>
+                  <h3 className="flex items-center gap-2 font-semibold"><TerminalSquare className="h-4 w-4" />Edge Functions critiques <UrgentIndicator show={normalizeHealthStatus(productionHealth?.edgeFunctions?.status) === "critical"} /></h3>
                   <p className="mt-2 text-sm text-muted-foreground">{formatNumber(productionHealth?.edgeFunctions?.functions?.length)} fonctions suivies.</p>
                   <HealthBadge status={productionHealth?.edgeFunctions?.status} />
                 </button>
@@ -870,7 +920,7 @@ export default function AdminAuditLogs() {
                     { label: "Résumé", value: productionHealth?.stripe?.message },
                   ], productionHealth?.stripe))}
                 >
-                  <h3 className="flex items-center gap-2 font-semibold"><CreditCard className="h-4 w-4" />Stripe webhook</h3>
+                  <h3 className="flex items-center gap-2 font-semibold"><CreditCard className="h-4 w-4" />Stripe webhook <UrgentIndicator show={normalizeHealthStatus(productionHealth?.stripe?.status) === "critical"} /></h3>
                   <p className="mt-2 text-sm text-muted-foreground">{productionHealth?.stripe?.message || "Aucun signal Stripe disponible."}</p>
                   <HealthBadge status={productionHealth?.stripe?.status} />
                 </button>
@@ -887,7 +937,7 @@ export default function AdminAuditLogs() {
                     { label: "Résumé", value: productionHealth?.advisors?.message },
                   ], productionHealth?.advisors))}
                 >
-                  <h3 className="font-semibold">Supabase advisors</h3>
+                  <h3 className="flex items-center justify-between gap-2 font-semibold"><span>Supabase advisors</span><UrgentIndicator show={normalizeHealthStatus(productionHealth?.advisors?.status) === "critical"} /></h3>
                   <p className="mt-2 text-sm text-muted-foreground">{productionHealth?.advisors?.message || "Aucun snapshot synchronisé."}</p>
                   <HealthBadge status={productionHealth?.advisors?.status} />
                 </button>
@@ -900,7 +950,7 @@ export default function AdminAuditLogs() {
                     { label: "Statut", value: productionHealth?.configuration?.status },
                   ], productionHealth?.configuration))}
                 >
-                  <h3 className="flex items-center gap-2 font-semibold"><KeyRound className="h-4 w-4" />Variables critiques</h3>
+                  <h3 className="flex items-center gap-2 font-semibold"><KeyRound className="h-4 w-4" />Variables critiques <UrgentIndicator show={normalizeHealthStatus(productionHealth?.configuration?.status) === "critical"} /></h3>
                   <p className="mt-2 text-sm text-muted-foreground">{formatNumber(productionHealth?.configuration?.checks?.length)} contrôles configurés.</p>
                   <HealthBadge status={productionHealth?.configuration?.status} />
                 </button>
@@ -914,7 +964,7 @@ export default function AdminAuditLogs() {
                     { label: "À surveiller", value: productionHealth?.counts?.watch },
                   ], productionHealth?.alerts))}
                 >
-                  <h3 className="flex items-center gap-2 font-semibold"><CheckCircle2 className="h-4 w-4" />Alertes prioritaires</h3>
+                  <h3 className="flex items-center gap-2 font-semibold"><CheckCircle2 className="h-4 w-4" />Alertes prioritaires <UrgentIndicator show={(productionHealth?.counts?.critical || 0) > 0} /></h3>
                   <p className="mt-2 text-sm text-muted-foreground">{formatNumber(productionHealth?.alerts?.length)} signalements actifs.</p>
                 </button>
               </div>
@@ -980,7 +1030,10 @@ export default function AdminAuditLogs() {
                 >
                   <div className="flex items-center justify-between gap-2">
                     <p className="text-xs font-medium text-muted-foreground">{section.title}</p>
-                    <HealthBadge status={section.status} />
+                    <div className="flex items-center gap-2">
+                      <UrgentIndicator show={normalizeHealthStatus(section.status) === "critical"} />
+                      <HealthBadge status={section.status} />
+                    </div>
                   </div>
                   <p className="mt-2 text-2xl font-bold">{section.value}</p>
                   <p className="mt-2 line-clamp-3 text-xs text-muted-foreground">{section.message || "Aucun signal disponible."}</p>
