@@ -217,6 +217,19 @@ describe("floor plan v2 live assignments", () => {
       .toThrow("entre 1 et 30");
   });
 
+  it("never allows a client assignment to a furniture object", () => {
+    const client = reservation("r1", "19:00");
+    const object = furniture({ id: "object-1", name: "Bar", kind: "bar" });
+
+    expect(getFloorPlanV2AssignmentError({
+      reservationId: client.id,
+      tableId: object.id,
+      reservations: [client],
+      tables: [table(), object],
+      assignments: { [client.id]: null },
+    })).toContain("indisponible");
+  });
+
   it("rejects capacity errors and overlapping reservations", () => {
     const reservations = [
       reservation("r1", "19:00", { size: 5 }),
