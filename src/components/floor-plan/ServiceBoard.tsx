@@ -1,4 +1,4 @@
-import { useEffect, type DragEvent, type PointerEvent, type RefObject, type WheelEvent } from "react";
+import { useEffect, type DragEvent, type KeyboardEvent, type PointerEvent, type RefObject, type WheelEvent } from "react";
 import { Grip, LayoutPanelTop, RotateCw, ZoomIn, ZoomOut } from "lucide-react";
 
 import { FloorPlanItemIllustration } from "@/components/floor-plan/FloorPlanItemIllustration";
@@ -207,7 +207,6 @@ export default function ServiceBoard({
     const viewport = canvasViewportRef.current;
     if (!viewport) return undefined;
 
-    let frameId: number | null = null;
     let lastWidth = 0;
     let lastHeight = 0;
 
@@ -222,20 +221,12 @@ export default function ServiceBoard({
       onCanvasViewportResize(width, height);
     };
 
-    const observeFrame = () => {
-      notifySize();
-      frameId = window.requestAnimationFrame(observeFrame);
-    };
-
-    observeFrame();
+    notifySize();
     const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(notifySize) : null;
     observer?.observe(viewport);
     window.addEventListener("resize", notifySize);
 
     return () => {
-      if (frameId !== null) {
-        window.cancelAnimationFrame(frameId);
-      }
       observer?.disconnect();
       window.removeEventListener("resize", notifySize);
     };
@@ -250,8 +241,18 @@ export default function ServiceBoard({
     onStartDraggingTable(event, table.id);
   };
 
+  const handleTableKeyDown = (
+    event: KeyboardEvent<HTMLDivElement>,
+    table: ServiceDraftTable,
+  ) => {
+    if ((event.target as HTMLElement).closest("button,input,textarea,select")) return;
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    onTablePress(table.id);
+  };
+
   return (
-    <Card className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <Card className="flex h-[min(68svh,680px)] min-h-[430px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm xl:h-full xl:min-h-0">
       <CardHeader className="space-y-3 border-b border-slate-200/80 px-4 py-3">
         <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
           <div>
@@ -275,9 +276,10 @@ export default function ServiceBoard({
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="h-9 w-9 rounded-xl"
+                className="h-11 w-11 rounded-xl sm:h-9 sm:w-9"
                 onClick={() => onUpdateCanvasZoom(canvasZoom - CANVAS_ZOOM_STEP)}
                 disabled={canvasZoom <= MIN_CANVAS_ZOOM}
+                aria-label="Réduire le zoom"
               >
                 <ZoomOut className="h-4 w-4" />
               </Button>
@@ -285,9 +287,10 @@ export default function ServiceBoard({
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="h-9 w-9 rounded-xl"
+                className="h-11 w-11 rounded-xl sm:h-9 sm:w-9"
                 onClick={() => onUpdateCanvasZoom(canvasZoom + CANVAS_ZOOM_STEP)}
                 disabled={canvasZoom >= MAX_CANVAS_ZOOM}
+                aria-label="Augmenter le zoom"
               >
                 <ZoomIn className="h-4 w-4" />
               </Button>
@@ -312,7 +315,7 @@ export default function ServiceBoard({
       <CardContent className="flex min-h-0 flex-1 flex-col p-2">
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 p-2">
           <div className="flex min-h-0 flex-1 flex-col rounded-xl border border-slate-200/80 bg-white/80 p-2 shadow-inner">
-            <div ref={canvasViewportRef} className="min-h-0 min-w-0 flex-1 overflow-hidden">
+            <div ref={canvasViewportRef} className="min-h-0 min-w-0 flex-1 overflow-hidden" role="region" aria-label={`Plan de service du secteur ${selectedSector}`}>
               <div className="flex h-full w-full items-start justify-start overflow-hidden">
                 <div
                   ref={canvasRef}
@@ -365,7 +368,7 @@ export default function ServiceBoard({
                       <LayoutPanelTop className="h-10 w-10 text-primary/60" />
                       <div className="space-y-1">
                         <p className="font-medium text-slate-900">Aucun élément dans ce secteur</p>
-                        <p className="text-sm">Passez en mode structure pour ajouter des tables et du mobilier.</p>
+                        <p className="max-w-[280px] text-sm">Passez en « Structure » pour ajouter des tables, puis revenez au plan du jour.</p>
                       </div>
                     </div>
                   ) : null}
@@ -401,7 +404,10 @@ export default function ServiceBoard({
                     return (
                       <div
                         key={table.id}
-                        className="absolute select-none focus:outline-none"
+                        className={cn(
+                          "absolute select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2",
+                          isReservable ? "touch-manipulation" : "touch-none",
+                        )}
                         style={{
                           left: interactiveFrame.x,
                           top: interactiveFrame.y,
@@ -412,6 +418,11 @@ export default function ServiceBoard({
                         }}
                         onClick={() => onTablePress(table.id)}
                         onPointerDown={(event) => startFurnitureSurfaceDrag(event, table)}
+                        onKeyDown={(event) => handleTableKeyDown(event, table)}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`${table.table_number}, ${surfaceState.label}`}
+                        aria-pressed={isSelected}
                       >
                         <div className={cn(
                           "pointer-events-none absolute inset-0 rounded-[28px] blur-[16px]",
@@ -561,7 +572,7 @@ export default function ServiceBoard({
                                         onReservationStatusChange(primaryAssignment.id, "arrived");
                                       }}
                                     >
-                                      Arrive
+                                      Arrivé
                                     </button>
                                     <button
                                       type="button"
@@ -572,7 +583,7 @@ export default function ServiceBoard({
                                         onReservationStatusChange(primaryAssignment.id, "seated");
                                       }}
                                     >
-                                      Installe
+                                      Installé
                                     </button>
                                     <button
                                       type="button"
@@ -594,7 +605,7 @@ export default function ServiceBoard({
                                         onReleaseReservation(primaryAssignment.id);
                                       }}
                                     >
-                                      Liberer
+                                      Libérer
                                     </button>
                                   </div>
                                 ) : null}
@@ -626,7 +637,7 @@ export default function ServiceBoard({
                             <button
                               type="button"
                               aria-label={`Déplacer ${table.table_number}`}
-                              className="absolute left-1 top-1 flex h-6 w-6 items-center justify-center rounded-full border border-slate-900/15 bg-white shadow-md"
+                              className="absolute left-1 top-1 flex h-11 w-11 touch-none items-center justify-center rounded-full border border-slate-900/15 bg-white shadow-md sm:h-9 sm:w-9 xl:h-7 xl:w-7"
                               onPointerDown={(event) => onStartDraggingTable(event, table.id)}
                             >
                               <Grip className="h-3.5 w-3.5 text-slate-700" />
@@ -640,7 +651,7 @@ export default function ServiceBoard({
                                 type="button"
                                 aria-label={`Redimensionner ${table.table_number}`}
                                 className={cn(
-                                "absolute h-6 w-6 touch-none rounded-full border border-slate-900/15 bg-white shadow-sm transition-transform hover:scale-110",
+                                "absolute h-10 w-10 touch-none rounded-full border border-slate-900/15 bg-white shadow-sm transition-transform hover:scale-110 sm:h-8 sm:w-8 xl:h-7 xl:w-7",
                                 handle.className,
                               )}
                               style={{ cursor: handle.cursor }}
@@ -663,7 +674,7 @@ export default function ServiceBoard({
                             }}
                             onPointerDown={(event) => onStartRotatingTable(event, table.id)}
                           >
-                            <div className="flex h-6 w-6 items-center justify-center rounded-full border border-slate-900/15 bg-white shadow-md">
+                            <div className="flex h-11 w-11 touch-none items-center justify-center rounded-full border border-slate-900/15 bg-white shadow-md sm:h-9 sm:w-9 xl:h-7 xl:w-7">
                               <RotateCw className="h-3.5 w-3.5 text-slate-700" />
                             </div>
                             <div className="absolute top-6 h-2 w-px bg-slate-900/25" />
