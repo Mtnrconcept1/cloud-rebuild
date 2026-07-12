@@ -14,7 +14,7 @@ function readProjectFile(path: string) {
 
 describe("restaurant image metadata and Actualites indexing", () => {
   it("derives trusted media relationships server-side and removes arbitrary client registration", () => {
-    const migration = readProjectFile("supabase/migrations/20260712011820_actualites_image_indexing_security.sql");
+    const migration = readProjectFile("supabase/migrations/20260712014949_actualites_image_indexing_security.sql");
     const dashboardPhotos = readProjectFile("src/pages/dashboard/DashboardPhotos.tsx");
     const imageUpload = readProjectFile("src/components/ImageUpload.tsx");
     const socialFeed = readProjectFile("src/hooks/useSocialFeed.ts");
@@ -45,7 +45,7 @@ describe("restaurant image metadata and Actualites indexing", () => {
   });
 
   it("provides immediate free contextual SEO metadata and global public search", () => {
-    const migration = readProjectFile("supabase/migrations/20260712011820_actualites_image_indexing_security.sql");
+    const migration = readProjectFile("supabase/migrations/20260712014949_actualites_image_indexing_security.sql");
 
     expect(migration).toContain("'provider', 'contextual'");
     expect(migration).toContain("'visual_analysis_available_via', jsonb_build_array('ollama')");
@@ -68,7 +68,7 @@ describe("restaurant image metadata and Actualites indexing", () => {
   });
 
   it("keeps contextual results searchable while Ollama retries and finalizes all rows atomically", () => {
-    const migration = readProjectFile("supabase/migrations/20260712011820_actualites_image_indexing_security.sql");
+    const migration = readProjectFile("supabase/migrations/20260712014949_actualites_image_indexing_security.sql");
 
     expect(migration).toContain("CREATE OR REPLACE FUNCTION public.fail_image_analysis_job");
     expect(migration).toContain("WHEN v_contextual THEN 'completed'");
