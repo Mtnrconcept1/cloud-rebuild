@@ -20,6 +20,10 @@ import {
   getEffectiveFeatureFlagSet,
 } from "../_shared/feature-flags.ts";
 import { buildVerifiedOrderPricing } from "../_shared/order-pricing.ts";
+import {
+  MARKETPLACE_CHECKOUT_KINDS,
+  resolveMarketplaceRouting,
+} from "../_shared/marketplace-finance.ts";
 
 const toMoney = (value: unknown) => Math.max(0, Number(value) || 0);
 type CheckoutItem = Record<string, unknown>;
@@ -142,6 +146,7 @@ Deno.serve(async (req) => {
     let zeroAttenteHoldReservationId = "";
     let chefTableHoldCount = 0;
     let creditPackPurchaseId = "";
+    let marketplaceRestaurantId = "";
     const chefTableHoldItems: Array<{ drop_id: string; quantity: number }> = [];
     let sessionMetadata: Record<string, string> = {
       user_id: actor.userId || "",
@@ -633,6 +638,20 @@ Deno.serve(async (req) => {
         tokOnePeriodEnd > new Date(),
       );
       const dropMap = new Map((dropRows || []).map((row: any) => [row.id, row]));
+      const dropRestaurantIds = Array.from(new Set(
+        (dropRows || []).map((row: any) => String(row.restaurant_id || "")).filter(Boolean),
+      ));
+      if (dropRestaurantIds.length !== 1) {
+        throw new HttpError(
+          400,
+          "Une session La Table du Chef doit concerner un seul restaurant. Separez les reservations.",
+        );
+      }
+      marketplaceRestaurantId = dropRestaurantIds[0];
+      const requestedRestaurantId = String(order_metadata?.restaurant_id || "");
+      if (requestedRestaurantId && requestedRestaurantId !== marketplaceRestaurantId) {
+        throw new HttpError(400, "Le restaurant de la session ne correspond pas aux experiences selectionnees.");
+      }
       let authoritativeTotal = 0;
       let totalPartySize = 0;
       let vipDropCount = 0;
@@ -701,7 +720,7 @@ Deno.serve(async (req) => {
 
       sessionMetadata = {
         ...sessionMetadata,
-        restaurant_id: String(order_metadata?.restaurant_id || ""),
+        restaurant_id: marketplaceRestaurantId,
         authoritative_total: authoritativeTotal.toFixed(2),
         party_size: String(totalPartySize),
         chef_table_vip_drop_count: String(vipDropCount),
@@ -736,6 +755,16 @@ Deno.serve(async (req) => {
       }
 
       const paymentGroupKeys = Array.from(groupedItems.keys());
+      const checkoutRestaurantIds = Array.from(new Set(
+        Array.from(groupedItems.values()).map((group) => group.groupRestaurantId).filter(Boolean),
+      ));
+      if (checkoutRestaurantIds.length !== 1 || checkoutRestaurantIds[0] !== primaryRestaurantId) {
+        throw new HttpError(
+          400,
+          "Une session de paiement doit concerner un seul restaurant. Separez le panier par restaurant.",
+        );
+      }
+      marketplaceRestaurantId = primaryRestaurantId;
       const totalDeliveryFee = toMoney(order_metadata?.delivery_fee);
       const requestedPointsToRedeem = Math.max(0, Math.floor(Number(order_metadata?.points_to_redeem || 0)));
       const requestedPointsDiscount = toMoney(order_metadata?.points_discount_amount || order_metadata?.points_discount);
@@ -921,6 +950,25 @@ Deno.serve(async (req) => {
       0,
     );
     discountCents = Math.min(discountCents, totalBeforeDiscountCents);
+    const finalCheckoutTotalCents = Math.max(0, totalBeforeDiscountCents - discountCents);
+
+    const marketplaceRouting = await resolveMarketplaceRouting({
+      adminClient: actor.adminClient,
+      checkoutKind: effectiveKind,
+      restaurantId: marketplaceRestaurantId || sessionMetadata.restaurant_id,
+      grossCents: finalCheckoutTotalCents,
+    });
+
+    if (MARKETPLACE_CHECKOUT_KINDS.has(effectiveKind)) {
+      sessionMetadata = {
+        ...sessionMetadata,
+        finance_routing_mode: marketplaceRouting.mode,
+        platform_fee_bps: String(marketplaceRouting.platformFeeBps),
+        platform_fee_amount_cents: String(marketplaceRouting.platformFeeCents),
+        restaurant_share_amount_cents: String(marketplaceRouting.restaurantShareCents),
+        developer_share_bps: String(marketplaceRouting.developerShareBps || 1000),
+      };
+    }
 
     const urlSeparator = safeReturnUrl.includes("?") ? "&" : "?";
     const userLookup = actor.userClient ? await actor.userClient.auth.getUser() : null;
@@ -935,6 +983,16 @@ Deno.serve(async (req) => {
       client_reference_id: actor.userId || undefined,
       metadata: sessionMetadata,
     };
+
+    if (marketplaceRouting.enabled && marketplaceRouting.destinationAccountId) {
+      sessionParams.payment_intent_data = {
+        application_fee_amount: marketplaceRouting.platformFeeCents,
+        transfer_data: {
+          destination: marketplaceRouting.destinationAccountId,
+        },
+        metadata: sessionMetadata,
+      };
+    }
 
     if (isSubscriptionCheckout) {
       sessionParams.payment_method_collection = "always";
@@ -971,10 +1029,18 @@ Deno.serve(async (req) => {
       sessionParams.discounts = [{ coupon: coupon.id }];
     }
 
-    // Tok encaisse 100% du paiement via Stripe.
-    // Le restaurateur genere ensuite ses factures de reversement (90%) depuis son dashboard.
+    const idempotencySource = String(
+      sessionMetadata.checkout_id
+      || sessionMetadata.checkout_group_id
+      || sessionMetadata.primary_order_id
+      || sessionMetadata.order_reference
+      || "",
+    ).trim();
+    const checkoutRequestOptions = idempotencySource
+      ? { idempotencyKey: `tok-checkout:${effectiveKind}:${actor.userId}:${idempotencySource}`.slice(0, 255) }
+      : undefined;
 
-    const session = await stripe.checkout.sessions.create(sessionParams);
+    const session = await stripe.checkout.sessions.create(sessionParams, checkoutRequestOptions);
 
     if (effectiveKind === "restaurant-credit-pack" && creditPackPurchaseId) {
       const { error: purchaseUpdateError } = await actor.adminClient
@@ -1094,6 +1160,9 @@ Deno.serve(async (req) => {
         payment_method: normalizedPaymentMethod,
         stripe_mode: stripeRuntime.mode,
         stripe_key_scope: stripeRuntime.isolatedTokOneKey ? "tok_one" : "default",
+        finance_routing_mode: marketplaceRouting.mode,
+        platform_fee_cents: marketplaceRouting.platformFeeCents,
+        restaurant_share_cents: marketplaceRouting.restaurantShareCents,
         line_items: lineItems.length,
         zero_attente_hold_reservation_id: zeroAttenteHoldReservationId || null,
         chef_table_hold_count: chefTableHoldCount || null,
