@@ -33,7 +33,7 @@ describe("floor plan page layout", () => {
     expect(page).toContain('value="library"');
     expect(page).toContain('value="inspector"');
     expect(page).toContain('id="floor-plan-studio-tools"');
-    expect(page).not.toContain("Sauver variante");
+    expect(page).toContain('aria-label="Sauver variante"');
     expect(page).not.toContain("Aperçu");
   });
 
