@@ -24,6 +24,10 @@ import {
   getTokOneStripeRuntime,
 } from "../_shared/stripe-client.ts";
 import { computeDisabledDashboardFeatures } from "../_shared/pack-entitlements.ts";
+import {
+  recordCheckoutFinance,
+  recordRefundFinance,
+} from "../_shared/marketplace-finance.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -746,11 +750,21 @@ Deno.serve(async (req) => {
 
   try {
     switch (event.type) {
-      case "checkout.session.completed": {
+      case "checkout.session.completed":
+      case "checkout.session.async_payment_succeeded": {
         const session = event.data.object as Stripe.Checkout.Session;
         const checkoutKind = String(session.metadata?.checkout_kind || "order");
         const userId = session.metadata?.user_id || null;
         const campaignId = session.metadata?.campaign_id || null;
+
+        if (session.mode === "payment" && session.payment_status !== "paid") {
+          log.info("checkout_waiting_for_async_payment", {
+            sessionId: session.id,
+            checkoutKind,
+            paymentStatus: session.payment_status,
+          });
+          break;
+        }
 
         if (checkoutKind === "campaign" && campaignId) {
           const { cardBrand, cardLast4 } = await getStripePaymentMethodDetails(stripe, session, log);
@@ -1612,18 +1626,22 @@ Deno.serve(async (req) => {
         break;
       }
 
-      case "checkout.session.expired": {
+      case "checkout.session.expired":
+      case "checkout.session.async_payment_failed": {
         const session = event.data.object as Stripe.Checkout.Session;
         const checkoutKind = String(session.metadata?.checkout_kind || "order");
+        const asyncPaymentFailed = event.type === "checkout.session.async_payment_failed";
 
         if (checkoutKind === "order") {
           await markOrderCheckoutSessionState({
             adminClient: supabaseAdmin,
             session,
             orderStatus: "payment_failed",
-            paymentStatus: "expired",
-            checkoutState: "expired",
-            failureMessage: "Session Stripe expiree avant paiement.",
+            paymentStatus: asyncPaymentFailed ? "failed" : "expired",
+            checkoutState: asyncPaymentFailed ? "payment_failed" : "expired",
+            failureMessage: asyncPaymentFailed
+              ? "Le moyen de paiement asynchrone a echoue."
+              : "Session Stripe expiree avant paiement.",
           });
         } else if (isZeroAttenteCheckoutKind(checkoutKind)) {
           const { error: releaseError } = await supabaseAdmin
@@ -1752,6 +1770,20 @@ Deno.serve(async (req) => {
           break;
         }
 
+        await recordRefundFinance({
+          adminClient: supabaseAdmin,
+          eventId: event.id,
+          paymentIntentId,
+          refundSourceId: `${charge.id}:${charge.amount_refunded || Math.round(totalRefundedAmount * 100)}`,
+          refundAmountCents: Math.round(refundAmount * 100),
+          currency: charge.currency || "chf",
+          metadata: {
+            stripe_charge_id: charge.id,
+            stripe_refunded_total_cents: charge.amount_refunded || 0,
+          },
+          log,
+        });
+
         const allocations = allocateAmounts(
           refundAmount,
           successfulChargeTransactions.map((transaction) => ({ amount: Number(transaction.amount || 0) })),
@@ -1870,8 +1902,90 @@ Deno.serve(async (req) => {
         break;
       }
 
+      case "invoice.paid":
+      case "invoice.payment_succeeded": {
+        // Revenue recognition is handled once, after the switch, so both Stripe
+        // event names remain supported without duplicating ledger entries.
+        break;
+      }
+
       default:
         log.info("unhandled_event_type", { eventType: event.type });
+    }
+
+    if (
+      event.type === "checkout.session.completed"
+      || event.type === "checkout.session.async_payment_succeeded"
+    ) {
+      const session = event.data.object as Stripe.Checkout.Session;
+      if (session.mode === "payment" && session.payment_status === "paid") {
+        await recordCheckoutFinance({
+          adminClient: supabaseAdmin,
+          eventId: event.id,
+          checkoutSessionId: session.id,
+          paymentIntentId: typeof session.payment_intent === "string" ? session.payment_intent : null,
+          checkoutKind: String(session.metadata?.checkout_kind || "order"),
+          restaurantId: session.metadata?.restaurant_id || null,
+          grossCents: Number(session.amount_total || 0),
+          currency: session.currency || "chf",
+          livemode: event.livemode,
+          metadata: {
+            payment_status: session.payment_status,
+            finance_routing_mode: session.metadata?.finance_routing_mode || "legacy_manual",
+            platform_fee_amount_cents: session.metadata?.platform_fee_amount_cents || null,
+            restaurant_share_amount_cents: session.metadata?.restaurant_share_amount_cents || null,
+          },
+          log,
+        });
+      }
+    }
+
+    if (event.type === "invoice.paid" || event.type === "invoice.payment_succeeded") {
+      const invoice = event.data.object as Stripe.Invoice;
+      const invoiceRecord = invoice as unknown as Record<string, any>;
+      const amountPaid = Number(invoiceRecord.amount_paid || 0);
+      if (amountPaid > 0) {
+        const subscriptionDetails = invoiceRecord.parent?.subscription_details
+          || invoiceRecord.subscription_details
+          || {};
+        const subscriptionId = typeof invoiceRecord.subscription === "string"
+          ? invoiceRecord.subscription
+          : typeof subscriptionDetails.subscription === "string"
+            ? subscriptionDetails.subscription
+            : null;
+        let subscriptionMetadata = subscriptionDetails.metadata && typeof subscriptionDetails.metadata === "object"
+          ? subscriptionDetails.metadata as Record<string, string>
+          : {};
+
+        if (subscriptionId && Object.keys(subscriptionMetadata).length === 0) {
+          const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+          subscriptionMetadata = subscription.metadata || {};
+        }
+
+        const checkoutKind = String(
+          subscriptionMetadata.checkout_kind
+          || (subscriptionMetadata.restaurant_id ? "restaurant-onboarding" : "tok-one"),
+        );
+
+        await recordCheckoutFinance({
+          adminClient: supabaseAdmin,
+          eventId: event.id,
+          checkoutSessionId: invoice.id,
+          paymentIntentId: typeof invoiceRecord.payment_intent === "string" ? invoiceRecord.payment_intent : null,
+          checkoutKind,
+          restaurantId: subscriptionMetadata.restaurant_id || null,
+          grossCents: amountPaid,
+          currency: invoice.currency || "chf",
+          livemode: event.livemode,
+          sourceType: "stripe_invoice",
+          metadata: {
+            stripe_invoice_id: invoice.id,
+            stripe_subscription_id: subscriptionId,
+            billing_reason: invoiceRecord.billing_reason || null,
+          },
+          log,
+        });
+      }
     }
 
     await writeAuditLog({
