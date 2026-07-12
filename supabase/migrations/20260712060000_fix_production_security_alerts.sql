@@ -81,6 +81,16 @@ $$;
 REVOKE EXECUTE ON FUNCTION public.get_stripe_webhook_signing_secrets() FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.get_stripe_webhook_signing_secrets() TO service_role;
 
+-- Guest/system orders can legitimately have no user_id. Their status still
+-- needs to move forward, but a user notification cannot be enqueued because
+-- notifications.user_id is NOT NULL.
+DROP TRIGGER IF EXISTS after_order_status_update ON public.orders;
+CREATE TRIGGER after_order_status_update
+AFTER UPDATE OF status ON public.orders
+FOR EACH ROW
+WHEN (NEW.user_id IS NOT NULL)
+EXECUTE FUNCTION public.trigger_order_status_notification();
+
 -- Close abandoned online-card orders that never reached Stripe. Cash orders
 -- and stock-bearing special offers are deliberately excluded.
 UPDATE public.orders
