@@ -130,7 +130,7 @@ type MarketingWorkflowStep = 1 | 2 | 3;
 const supabase = getSupabase();
 
 const MARKETING_UPLOAD_ACCEPT = "image/png,image/jpeg,image/webp";
-const MARKETING_STORAGE_BUCKET = "images";
+const MARKETING_STORAGE_BUCKET = "restaurant-images";
 const MARKETING_IMAGE_MIME_EXTENSIONS: Record<string, string> = {
   "image/jpeg": "jpg",
   "image/png": "png",
@@ -793,7 +793,7 @@ function createMarketingAssetPath(userId: string, restaurantId: string, file: Fi
     ? crypto.randomUUID()
     : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
-  return `${userId}/marketing-assets/${restaurantId}/${id}.${ext}`;
+  return `${restaurantId}/marketing-assets/${userId}/${id}.${ext}`;
 }
 
 function rowToMarketingResource(row: Record<string, unknown>): MarketingResource {
@@ -938,7 +938,10 @@ async function uploadMarketingResource(input: {
     .select("id, media_url, alt_text, media_type, storage_bucket, storage_path")
     .single();
 
-  if (insertError) throw insertError;
+  if (insertError) {
+      await supabase.storage.from(storageBucket).remove([storagePath]);
+      throw insertError;
+    }
   return rowToMarketingResource(media as Record<string, unknown>);
 }
 
