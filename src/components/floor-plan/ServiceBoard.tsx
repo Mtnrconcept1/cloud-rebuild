@@ -253,41 +253,40 @@ export default function ServiceBoard({
 
   return (
     <Card className="flex h-[min(68svh,680px)] min-h-[430px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm xl:h-full xl:min-h-0">
-      <CardHeader className="space-y-3 border-b border-slate-200/80 px-4 py-3">
-        <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <CardTitle className="text-lg text-slate-950">{selectedSector}</CardTitle>
-            <CardDescription className="mt-1 text-sm text-slate-500">{subtitle}</CardDescription>
+      <CardHeader className="border-b border-slate-200/80 px-4 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0">
+            <CardTitle className="truncate text-base text-slate-950">{selectedSector}</CardTitle>
+            <CardDescription className="mt-0.5 truncate text-xs text-slate-500">{subtitle}</CardDescription>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="outline" className="rounded-full border-slate-200 bg-slate-50 text-slate-700">
-              Tables {visibleTablesCount}
-            </Badge>
-            <Badge variant="outline" className="rounded-full border-emerald-200 bg-emerald-50 text-emerald-700">
-              Libres {availableTablesCount}
-            </Badge>
-            <Badge variant="outline" className="rounded-full border-amber-200 bg-amber-50 text-amber-700">
-              Sans table {unassignedReservationsCount}
-            </Badge>
-            <div className="flex items-center gap-1 rounded-2xl border border-slate-200 bg-white px-1 py-1 shadow-sm">
-              <span className="min-w-14 text-center text-sm font-semibold">{canvasZoomLabel}</span>
+          <div className="flex items-center gap-2">
+            {activeReservationLabel ? (
+              <span className="hidden max-w-[180px] truncate rounded-full border border-orange-200 bg-orange-50 px-2.5 py-1 text-xs font-semibold text-orange-800 sm:inline-flex">
+                {activeReservationLabel}
+              </span>
+            ) : null}
+            <span className="hidden text-xs font-medium text-slate-500 md:inline">
+              {availableTablesCount}/{visibleTablesCount} libres · {unassignedReservationsCount} à placer
+            </span>
+            <div className="flex items-center rounded-xl border border-slate-200 bg-white p-1">
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="h-11 w-11 rounded-xl sm:h-9 sm:w-9"
+                className="h-8 w-8 rounded-lg"
                 onClick={() => onUpdateCanvasZoom(canvasZoom - CANVAS_ZOOM_STEP)}
                 disabled={canvasZoom <= MIN_CANVAS_ZOOM}
                 aria-label="Réduire le zoom"
               >
                 <ZoomOut className="h-4 w-4" />
               </Button>
+              <span className="min-w-12 text-center text-xs font-semibold">{canvasZoomLabel}</span>
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="h-11 w-11 rounded-xl sm:h-9 sm:w-9"
+                className="h-8 w-8 rounded-lg"
                 onClick={() => onUpdateCanvasZoom(canvasZoom + CANVAS_ZOOM_STEP)}
                 disabled={canvasZoom >= MAX_CANVAS_ZOOM}
                 aria-label="Augmenter le zoom"
@@ -297,19 +296,6 @@ export default function ServiceBoard({
             </div>
           </div>
         </div>
-
-        {activeReservationLabel ? (
-          <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-amber-700 shadow-sm">
-              <Grip className="h-4 w-4" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-700">Placement en cours</p>
-              <p className="mt-1 truncate text-sm font-semibold text-amber-950">{activeReservationLabel}</p>
-              <p className="text-xs text-amber-800">Glissez vers une table compatible.</p>
-            </div>
-          </div>
-        ) : null}
       </CardHeader>
 
       <CardContent className="flex min-h-0 flex-1 flex-col p-2">
