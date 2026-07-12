@@ -363,10 +363,8 @@ export default function Index() {
     queryKey: ["donated-points-total"],
     queryFn: async () => {
       const { data, error } = await (supabase as any).rpc("get_total_donated_points");
-      if (!error) return Number(data) || 0;
-      const { data: rows, error: fallbackError } = await supabase.from("solidarity_donations" as any).select("points_amount");
-      if (fallbackError) return 0;
-      return (rows || []).reduce((sum: number, row: any) => sum + (row.points_amount || 0), 0);
+      if (error) throw error;
+      return Number(data) || 0;
     },
   });
 

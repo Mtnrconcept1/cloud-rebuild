@@ -64,6 +64,7 @@ describe("espace client central", () => {
 
   it("ferme les écritures client qui pouvaient contourner les workflows", () => {
     const security = readSource("supabase/migrations/20260712061702_harden_client_dashboard_boundaries.sql");
+    const publicHome = readSource("src/pages/Index.tsx");
 
     expect(security).toContain("revoke insert, update, delete, truncate on public.profiles from public, anon, authenticated");
     expect(security).toContain("revoke insert, update, delete, truncate on public.gift_points from public, anon, authenticated");
@@ -79,6 +80,8 @@ describe("espace client central", () => {
     expect(security).toContain("create or replace function public.claim_gift_points_v2");
     expect(security).toContain("'miamz_bonus_points', 0");
     expect(security).toContain("at time zone 'Europe/Zurich'");
+    expect(publicHome).toContain('rpc("get_total_donated_points")');
+    expect(publicHome).not.toContain('from("solidarity_donations"');
   });
 
   it("crédite les Miamz à la livraison ou à la présence, jamais au pending", () => {
