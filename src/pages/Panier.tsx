@@ -755,6 +755,17 @@ export default function Panier() {
         return navigate("/auth");
       }
 
+      const checkoutRestaurantIds = Array.from(new Set(
+        items.map((item) => item.restaurantId).filter(Boolean),
+      ));
+      if (checkoutRestaurantIds.length > 1) {
+        return toast({
+          title: "Un paiement par restaurant",
+          description: "Pour sécuriser la répartition des fonds, finalisez séparément les articles de chaque restaurant.",
+          variant: "destructive",
+        });
+      }
+
       if (isChefsTableCheckout) {
         const chefsTablePartySize = chefsTableItems.reduce(
           (sum, item) => sum + Math.max(1, Number(item.metadata?.party_size || item.quantity || 1)),
