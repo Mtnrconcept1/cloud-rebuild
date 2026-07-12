@@ -16,7 +16,7 @@ GRANT EXECUTE ON FUNCTION public.fail_image_analysis_job(uuid, uuid, text) TO se
 
 -- Pin the search path of Stripe helper functions flagged by the database advisor.
 -- Supabase preview branches do not always provision the managed Stripe schema.
-DO $
+DO $$
 BEGIN
   IF to_regprocedure('stripe.set_updated_at()') IS NOT NULL THEN
     EXECUTE 'ALTER FUNCTION stripe.set_updated_at() SET search_path = stripe, pg_catalog';
@@ -28,6 +28,6 @@ BEGIN
     EXECUTE 'ALTER FUNCTION stripe.check_rate_limit(text, integer, integer) SET search_path = stripe, pg_catalog';
   END IF;
 END;
-$;
+$$;
 
 NOTIFY pgrst, 'reload schema';

@@ -64,6 +64,7 @@ describe("espace client central", () => {
 
   it("ferme les écritures client qui pouvaient contourner les workflows", () => {
     const security = readSource("supabase/migrations/20260712061702_harden_client_dashboard_boundaries.sql");
+    const stripeHardening = readSource("supabase/migrations/20260711120000_audit_security_hardening.sql");
     const publicHome = readSource("src/pages/Index.tsx");
 
     expect(security).toContain("revoke insert, update, delete, truncate on public.profiles from public, anon, authenticated");
@@ -82,6 +83,8 @@ describe("espace client central", () => {
     expect(security).toContain("at time zone 'Europe/Zurich'");
     expect(publicHome).toContain('rpc("get_total_donated_points")');
     expect(publicHome).not.toContain('from("solidarity_donations"');
+    expect(stripeHardening).toContain("DO $$");
+    expect(stripeHardening).toContain("to_regprocedure('stripe.set_updated_at()')");
   });
 
   it("crédite les Miamz à la livraison ou à la présence, jamais au pending", () => {
