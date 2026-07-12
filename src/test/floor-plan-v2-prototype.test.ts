@@ -27,12 +27,12 @@ describe("floor plan v2", () => {
     const prototype = readSource("public/tok-table-v2/app.js");
 
     expect(page).toContain('src={PROTOTYPE_URL}');
-    expect(page).toContain("Les placements sont partagés avec la V1");
+    expect(page).toContain("partagés avec la V1");
     expect(page).toContain('"restaurant_save_floor_plan_assignments"');
+    expect(page).toContain('"restaurant_save_floor_plan_template"');
     expect(prototype).toContain('const STORAGE_KEY = "tok-table-v2"');
     expect(prototype).not.toContain('const STORAGE_KEY = "tok-table-v1"');
     expect(prototype).not.toContain("supabase");
     expect(prototype).not.toContain("service_role");
   });
 });
-
