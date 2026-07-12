@@ -88,7 +88,6 @@ export default function StudioCanvas({
     const viewport = canvasViewportRef.current;
     if (!viewport) return undefined;
 
-    let frameId: number | null = null;
     let lastWidth = 0;
     let lastHeight = 0;
 
@@ -103,20 +102,12 @@ export default function StudioCanvas({
       onCanvasViewportResize(width, height);
     };
 
-    const observeFrame = () => {
-      notifySize();
-      frameId = window.requestAnimationFrame(observeFrame);
-    };
-
-    observeFrame();
+    notifySize();
     const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(notifySize) : null;
     observer?.observe(viewport);
     window.addEventListener("resize", notifySize);
 
     return () => {
-      if (frameId !== null) {
-        window.cancelAnimationFrame(frameId);
-      }
       observer?.disconnect();
       window.removeEventListener("resize", notifySize);
     };
@@ -185,12 +176,12 @@ export default function StudioCanvas({
   };
 
   return (
-    <Card className="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <Card className="flex h-[min(68svh,680px)] min-h-[430px] flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm xl:h-full xl:min-h-0">
       <CardHeader className="border-b border-slate-200/80 px-4 py-3">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <CardTitle className="text-lg text-slate-950">{selectedSector}</CardTitle>
-            <CardDescription className="mt-1 text-sm text-slate-500">Glissez, redimensionnez, configurez.</CardDescription>
+            <CardDescription className="mt-1 text-sm text-slate-500">Touchez un élément, puis déplacez-le ou ouvrez ses réglages.</CardDescription>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
@@ -203,9 +194,10 @@ export default function StudioCanvas({
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="h-9 w-9 rounded-xl"
+                className="h-11 w-11 rounded-xl sm:h-9 sm:w-9"
                 onClick={() => onUpdateCanvasZoom(canvasZoom - CANVAS_ZOOM_STEP)}
                 disabled={canvasZoom <= MIN_CANVAS_ZOOM}
+                aria-label="Réduire le zoom"
               >
                 <ZoomOut className="h-4 w-4" />
               </Button>
@@ -213,14 +205,15 @@ export default function StudioCanvas({
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="h-9 w-9 rounded-xl"
+                className="h-11 w-11 rounded-xl sm:h-9 sm:w-9"
                 onClick={() => onUpdateCanvasZoom(canvasZoom + CANVAS_ZOOM_STEP)}
                 disabled={canvasZoom >= MAX_CANVAS_ZOOM}
+                aria-label="Augmenter le zoom"
               >
                 <ZoomIn className="h-4 w-4" />
               </Button>
             </div>
-            <Button type="button" variant="outline" className="rounded-2xl border-slate-200 bg-white" onClick={recenterCanvas}>
+            <Button type="button" variant="outline" className="h-11 rounded-2xl border-slate-200 bg-white" onClick={recenterCanvas}>
               <Move className="mr-2 h-4 w-4" />
               Recentrer
             </Button>
@@ -230,7 +223,7 @@ export default function StudioCanvas({
 
       <CardContent className="flex min-h-0 flex-1 flex-col p-2">
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 p-2">
-          <div ref={canvasViewportRef} className="min-h-0 min-w-0 flex-1 overflow-hidden rounded-xl border border-slate-200/80 bg-white/80 shadow-inner">
+          <div ref={canvasViewportRef} className="min-h-0 min-w-0 flex-1 overflow-hidden rounded-xl border border-slate-200/80 bg-white/80 shadow-inner" role="region" aria-label={`Plan du secteur ${selectedSector}`}>
             <div className="flex h-full w-full items-start justify-start overflow-hidden">
               <div
                 ref={canvasRef}
@@ -280,7 +273,7 @@ export default function StudioCanvas({
                     <LayoutPanelTop className="h-10 w-10 text-primary/60" />
                     <div className="space-y-1">
                       <p className="font-medium text-slate-900">Aucun élément dans ce secteur</p>
-                      <p className="text-sm">Ajoutez un preset depuis le panneau Outils.</p>
+                      <p className="max-w-[260px] text-sm">Utilisez « Ajouter » sous le plan pour poser votre première table.</p>
                     </div>
                   </div>
                 ) : null}
@@ -309,7 +302,7 @@ export default function StudioCanvas({
                       onKeyDown={(event) => handleObjectKeyDown(event, table)}
                       role="button"
                       tabIndex={0}
-                      aria-label={`Selectionner ${table.table_number}`}
+                      aria-label={`Sélectionner ${table.table_number}`}
                       aria-pressed={isSelected}
                     >
                       <div className={cn(
@@ -366,7 +359,7 @@ export default function StudioCanvas({
                           <button
                             type="button"
                             aria-label={`Déplacer ${table.table_number}`}
-                            className="absolute left-[-12px] top-1/2 flex h-10 w-10 touch-none -translate-y-1/2 items-center justify-center rounded-full border border-slate-900/10 bg-white text-slate-700 shadow-[0_18px_28px_-18px_rgba(15,23,42,0.55)]"
+                            className="absolute left-[-12px] top-1/2 flex h-11 w-11 touch-none -translate-y-1/2 items-center justify-center rounded-full border border-slate-900/10 bg-white text-slate-700 shadow-[0_18px_28px_-18px_rgba(15,23,42,0.55)] sm:h-10 sm:w-10"
                             onPointerDown={(event) => onStartDraggingTable(event, table.id)}
                           >
                             <Grip className="h-4 w-4" />
@@ -384,7 +377,7 @@ export default function StudioCanvas({
                                 type="button"
                                 aria-label={`Redimensionner ${table.table_number}`}
                                 className={cn(
-                                  "absolute h-7 w-7 touch-none rounded-full border-2 border-white bg-slate-950/92 shadow-[0_18px_28px_-18px_rgba(15,23,42,0.7)] transition-transform hover:scale-110",
+                                  "absolute h-10 w-10 touch-none rounded-full border-2 border-white bg-slate-950/92 shadow-[0_18px_28px_-18px_rgba(15,23,42,0.7)] transition-transform hover:scale-110 sm:h-8 sm:w-8",
                                   handle.className,
                                 )}
                                 style={{ cursor: handle.cursor }}
@@ -408,7 +401,7 @@ export default function StudioCanvas({
                           }}
                           onPointerDown={(event) => onStartRotatingTable(event, table.id)}
                         >
-                          <div className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-900/10 bg-white shadow-[0_18px_28px_-18px_rgba(15,23,42,0.55)]">
+                          <div className="flex h-11 w-11 touch-none items-center justify-center rounded-full border border-slate-900/10 bg-white shadow-[0_18px_28px_-18px_rgba(15,23,42,0.55)] sm:h-9 sm:w-9">
                             <RotateCw className="h-4 w-4 text-slate-700" />
                           </div>
                           <div className="absolute top-9 h-3 w-px bg-slate-900/20" />
