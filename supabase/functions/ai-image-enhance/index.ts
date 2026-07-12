@@ -84,6 +84,7 @@ const MARKETING_REFERENCE_MEDIA_TYPE_PRIORITY = [
 ] as const;
 const MARKETING_REFERENCE_MEDIA_TYPES = [...MARKETING_REFERENCE_MEDIA_TYPE_PRIORITY];
 const MARKETING_REFERENCE_STORAGE_SEGMENT = "/marketing-assets/";
+const MARKETING_REFERENCE_BUCKET = Deno.env.get("TOK_MARKETING_REFERENCE_BUCKET")?.trim() || "restaurant-images";
 const SUPPORTED_SOURCE_IMAGE_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const MAX_GENERATION_SEED_LENGTH = 64;
 const USD_TO_CHF_RATE = 0.81;
@@ -330,8 +331,13 @@ function toMarketingReferenceRow(raw: Record<string, unknown>): MarketingReferen
 }
 
 function isCurrentMarketingStudioReference(row: MarketingReferenceRow, restaurantId: string) {
-  return row.storage_bucket === GALLERY_BUCKET &&
-    Boolean(row.storage_path?.includes(`${MARKETING_REFERENCE_STORAGE_SEGMENT}${restaurantId}/`));
+  const canonicalPath = `${restaurantId}${MARKETING_REFERENCE_STORAGE_SEGMENT}`;
+  const legacyPath = `${MARKETING_REFERENCE_STORAGE_SEGMENT}${restaurantId}/`;
+
+  return Boolean(
+    (row.storage_bucket === MARKETING_REFERENCE_BUCKET && row.storage_path?.startsWith(canonicalPath)) ||
+      (row.storage_bucket === GALLERY_BUCKET && row.storage_path?.includes(legacyPath)),
+  );
 }
 
 function selectMarketingReferenceRows(rows: MarketingReferenceRow[]) {

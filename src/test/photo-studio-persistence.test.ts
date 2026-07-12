@@ -501,6 +501,10 @@ describe("TOK photo studio persistence", () => {
     expect(aiFunction).toContain("reference_folder: marketingAssetMode ? null");
     expect(aiFunction).toContain("resolveCurrentMarketingReferences(actor, restaurantId, requestedReferenceMediaIds)");
     expect(aiFunction).toContain("MARKETING_REFERENCE_STORAGE_SEGMENT");
+    expect(aiFunction).toContain('const MARKETING_REFERENCE_BUCKET = Deno.env.get("TOK_MARKETING_REFERENCE_BUCKET")?.trim() || "restaurant-images";');
+    expect(aiFunction).toContain("row.storage_path?.startsWith(canonicalPath)");
+    expect(aiFunction).toContain("row.storage_path?.includes(legacyPath)");
+
     expect(aiFunction).toContain("marketing_reference_required");
     expect(aiFunction).toContain("marketing_reference_ids_required");
     expect(aiFunction).toContain("marketing_reference_mismatch");
