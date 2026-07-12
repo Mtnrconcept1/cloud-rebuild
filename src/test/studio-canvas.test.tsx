@@ -278,7 +278,7 @@ describe("StudioCanvas", () => {
         getRenderedFrame={() => ({ x: 80, y: 90, w: 8, h: 6 })}
       />,
     );
-    const selectedObject = getByLabelText("Selectionner Plante");
+    const selectedObject = getByLabelText("Sélectionner Plante");
 
     fireEvent.keyDown(selectedObject, { key: "ArrowRight" });
     fireEvent.keyDown(selectedObject, { key: "ArrowUp", shiftKey: true });
