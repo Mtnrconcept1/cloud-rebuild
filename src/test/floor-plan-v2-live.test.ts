@@ -362,6 +362,8 @@ describe("floor plan v2 secure bridge and zoom", () => {
     expect(migration).toContain("public.restaurant_save_floor_plan_template");
     expect(migration).toContain("public.reservation_tables");
     expect(migration).toContain("capacity, is_active");
+    expect(migration).toContain("p_branch_id, v_name, 0, true, v_zone, v_layout");
+    expect(migration).toContain("is_active = true");
     expect(migration).toContain("p_object_delete_ids uuid[]");
     expect(migration).toContain("Tables and furniture must be explicit JSON arrays");
     expect(migration).toContain("Duplicate floor plan client identifier");
