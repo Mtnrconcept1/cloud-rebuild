@@ -49,6 +49,12 @@
         </div>
 
         <div class="top-actions">
+          <div class="variant-controls template-only" aria-label="Plans sauvegardés">
+            <select id="variant-select" aria-label="Choisir une variante du plan">
+              <option value="current">Modèle actif</option>
+            </select>
+            <button class="btn btn-ghost" id="save-variant-button" type="button">Sauver une variante</button>
+          </div>
           <span class="sync-pill"><i></i><span id="connection-label">Connexion…</span></span>
           <button class="btn btn-ghost change-action hidden" id="cancel-changes-button" type="button">Annuler</button>
           <button class="btn btn-ghost change-action hidden" id="save-plan-button" type="button">Enregistrer</button>
@@ -77,6 +83,16 @@
             </div>
 
             <div class="zone-tabs" id="zone-tabs" role="tablist" aria-label="Zones de la salle"></div>
+
+            <div class="service-state-legend service-only" aria-label="Légende des états de table">
+              <span class="service-free">Libre</span>
+              <span class="service-upcoming">Réservée</span>
+              <span class="service-arrived">Arrivé</span>
+              <span class="service-occupied">Occupée</span>
+              <span class="service-soon-free">Bientôt libre</span>
+              <span class="service-late">Retard</span>
+              <span class="service-conflict">Conflit</span>
+            </div>
 
             <section class="furniture-library template-only" id="furniture-library" aria-labelledby="furniture-library-title">
               <div class="furniture-library-heading">
@@ -180,7 +196,7 @@
               <span class="assignment-autosave-icon" aria-hidden="true">✓</span>
               <span>
                 <strong>Placements enregistrés automatiquement</strong>
-                <small>Chaque placement, déplacement ou retrait est sauvegardé immédiatement.</small>
+                <small>Chaque placement est immédiat ; les déplacements du plan sont enregistrés après 900 ms.</small>
               </span>
             </div>
 
@@ -320,6 +336,35 @@
           <span></span>
           <button class="btn btn-ghost" value="cancel" type="submit">Annuler</button>
           <button class="btn btn-primary" value="default" type="submit">Appliquer</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="modal service-table-modal" id="service-table-modal">
+      <form method="dialog">
+        <button class="close-button service-table-close" value="cancel" aria-label="Fermer" type="submit">×</button>
+        <div id="service-table-content"></div>
+      </form>
+    </dialog>
+
+    <dialog class="modal variant-modal" id="variant-modal">
+      <form method="dialog" id="variant-form">
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow">PLAN SAUVEGARDÉ</p>
+            <h2>Sauver une variante</h2>
+          </div>
+          <button class="close-button" value="cancel" aria-label="Fermer" type="submit">×</button>
+        </div>
+        <div class="form-grid">
+          <label class="full-field">
+            <span>Nom de la variante</span>
+            <input name="name" required maxlength="80" placeholder="Ex. Terrasse d’été" />
+          </label>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" value="cancel" type="submit">Annuler</button>
+          <button class="btn btn-primary" value="default" type="submit">Enregistrer</button>
         </div>
       </form>
     </dialog>
