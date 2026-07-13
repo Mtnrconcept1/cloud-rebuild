@@ -82,9 +82,15 @@ describe("floor plan v2", () => {
 
     expect(html).toContain('id="assignment-autosave-note"');
     expect(html).toContain("Placements enregistrés automatiquement");
-    expect(html).toContain("Chaque placement, déplacement ou retrait est sauvegardé immédiatement.");
+    expect(html).toContain("les déplacements du plan sont enregistrés après 900 ms");
     expect(prototype).toContain('postToDashboard("tok-table-v2:assign"');
+    expect(prototype).toContain("startReservationPointerDrag");
+    expect(prototype).toContain("scheduleServiceAutosave");
+    expect(prototype).toContain("renderServiceTableModal");
+    expect(html).toContain('id="service-table-modal"');
+    expect(html).toContain("Légende des états de table");
     expect(page).toContain('"restaurant_save_floor_plan_assignments"');
     expect(page).toContain("p_assignments: changes");
+    expect(page).toContain("updateRestaurantReservationStatus");
   });
 });

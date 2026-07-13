@@ -9,6 +9,9 @@ const MAX_ZOOM = 1.8;
 const ZOOM_STEP = 0.1;
 const HISTORY_LIMIT = 40;
 const DEFAULT_RESERVATION_DURATION_MINUTES = 120;
+const SERVICE_AUTOSAVE_DELAY_MS = 900;
+const EDITABLE_RESERVATION_STATUSES = Object.freeze(["pending", "confirmed", "arrived", "seated", "no_show"]);
+const ACTIVE_OCCUPANCY_STATUSES = new Set(["seated", "installed", "occupied", "order_taken", "served", "dessert", "bill_requested"]);
 
 const FURNITURE_LIBRARY = Object.freeze({
   wall: { label: "Paroi", icon: "▰", width: 180, height: 24 },
@@ -62,12 +65,16 @@ const initialState = () => {
     serverTemplateTables: clone(tables),
     serverServiceTables: clone(tables),
     reservations: sampleReservations(),
+    recommendations: {},
+    variants: [],
+    activeVariantId: "current",
     dirty: false
   };
 };
 
 let state = loadState();
 let history = { past: [], future: [], baseline: clone(state.tables) };
+let assignmentHistory = { past: [], future: [], context: "local" };
 let selectedReservationId = null;
 let dragState = null;
 let dragFrame = 0;
@@ -75,7 +82,12 @@ let canvasZoom = 1;
 let zoomWasChanged = false;
 let pendingOperation = null;
 let pendingAssignment = null;
+let pendingStatusChange = null;
 let pendingConfirmAction = null;
+let reservationPointerDrag = null;
+let reservationPointerFrame = 0;
+let serviceAutosaveTimer = null;
+let selectedServiceTableId = null;
 const viewportPointers = new Map();
 let viewportGesture = null;
 
@@ -113,6 +125,12 @@ const elements = {
   capacityIncreaseButton: $("#capacity-increase-button"),
   tableCapacityInput: $("#table-capacity-input"),
   assignmentAutosaveNote: $("#assignment-autosave-note"),
+  serviceTableModal: $("#service-table-modal"),
+  serviceTableContent: $("#service-table-content"),
+  variantSelect: $("#variant-select"),
+  saveVariantButton: $("#save-variant-button"),
+  variantModal: $("#variant-modal"),
+  variantForm: $("#variant-form"),
   confirmModal: $("#confirm-modal"),
   toastRegion: $("#toast-region"),
   zoomValue: $("#zoom-value"),
@@ -144,6 +162,9 @@ function loadState() {
       serverTemplateTables: clone(tables),
       serverServiceTables: clone(tables),
       reservations,
+      recommendations: {},
+      variants: [],
+      activeVariantId: "current",
       dirty: false
     };
   } catch {
@@ -220,8 +241,42 @@ function sanitizeReservations(input, tables, selectedDate) {
       note: String(raw?.note || "").slice(0, 240),
       durationMinutes: Math.max(30, Number(raw?.durationMinutes) || DEFAULT_RESERVATION_DURATION_MINUTES),
       tableId: tableIds.has(raw?.tableId) ? raw.tableId : null,
-      status: String(raw?.status || "pending")
+      status: String(raw?.status || "pending"),
+      feature: String(raw?.feature || "standard").slice(0, 60),
+      miamzPriority: Math.max(0, Math.round(Number(raw?.miamzPriority) || 0))
     }];
+  });
+}
+
+function sanitizeRecommendations(input, tables, reservations) {
+  if (!input || typeof input !== "object" || Array.isArray(input)) return {};
+  const tableIds = new Set(tables.filter((table) => table.editable).map((table) => table.id));
+  const reservationIds = new Set(reservations.map((reservation) => reservation.id));
+  return Object.fromEntries(Object.entries(input).flatMap(([reservationId, raw]) => {
+    if (!reservationIds.has(reservationId) || !raw || typeof raw !== "object") return [];
+    const tableId = String(raw.tableId || "");
+    if (!tableIds.has(tableId)) return [];
+    return [[reservationId, {
+      tableId,
+      tableName: String(raw.tableName || "Table").slice(0, 40),
+      score: Math.max(0, Math.min(100, Math.round(Number(raw.score) || 0))),
+      wastedSeats: Math.max(0, Math.round(Number(raw.wastedSeats) || 0)),
+      reasons: Array.isArray(raw.reasons)
+        ? raw.reasons.filter((reason) => typeof reason === "string").slice(0, 4)
+        : []
+    }]];
+  }));
+}
+
+function sanitizeVariants(input) {
+  if (!Array.isArray(input)) return [];
+  const seen = new Set();
+  return input.flatMap((raw) => {
+    const id = String(raw?.id || "").trim();
+    const name = String(raw?.name || "").trim();
+    if (!id || !name || seen.has(id)) return [];
+    seen.add(id);
+    return [{ id, name: name.slice(0, 80) }];
   });
 }
 
@@ -272,6 +327,25 @@ function updateDirty() {
   setDirty(tableSignature(state.tables) !== tableSignature(history.baseline));
 }
 
+function clearServiceAutosave() {
+  if (!serviceAutosaveTimer) return;
+  window.clearTimeout(serviceAutosaveTimer);
+  serviceAutosaveTimer = null;
+}
+
+function scheduleServiceAutosave() {
+  clearServiceAutosave();
+  if (state.mode !== "service" || !state.dirty) return;
+  serviceAutosaveTimer = window.setTimeout(() => {
+    serviceAutosaveTimer = null;
+    if (pendingOperation || dragState || reservationPointerDrag) {
+      scheduleServiceAutosave();
+      return;
+    }
+    savePlan();
+  }, SERVICE_AUTOSAVE_DELAY_MS);
+}
+
 function resetHistory(tables) {
   history = { past: [], future: [], baseline: clone(tables) };
   setDirty(false);
@@ -285,23 +359,42 @@ function commitTables(nextTables, beforeTables = state.tables) {
   state.tables = clone(nextTables);
   updateDirty();
   render();
+  scheduleServiceAutosave();
   return true;
 }
 
 function undo() {
-  if (!history.past.length || pendingOperation) return;
-  history.future.unshift(clone(state.tables));
-  state.tables = history.past.pop();
-  updateDirty();
-  render();
+  if (pendingOperation) return;
+  if (history.past.length) {
+    history.future.unshift(clone(state.tables));
+    state.tables = history.past.pop();
+    updateDirty();
+    render();
+    scheduleServiceAutosave();
+    return;
+  }
+  if (state.mode === "service" && assignmentHistory.past.length) {
+    const action = assignmentHistory.past.pop();
+    assignmentHistory.future.unshift(action);
+    assignReservation(action.reservationId, action.fromTableId, { historyMode: "undo", historyAction: action });
+  }
 }
 
 function redo() {
-  if (!history.future.length || pendingOperation) return;
-  history.past.push(clone(state.tables));
-  state.tables = history.future.shift();
-  updateDirty();
-  render();
+  if (pendingOperation) return;
+  if (history.future.length) {
+    history.past.push(clone(state.tables));
+    state.tables = history.future.shift();
+    updateDirty();
+    render();
+    scheduleServiceAutosave();
+    return;
+  }
+  if (state.mode === "service" && assignmentHistory.future.length) {
+    const action = assignmentHistory.future.shift();
+    assignmentHistory.past.push(action);
+    assignReservation(action.reservationId, action.toTableId, { historyMode: "redo", historyAction: action });
+  }
 }
 
 function cancelChanges() {
@@ -309,6 +402,7 @@ function cancelChanges() {
   state.tables = clone(history.baseline);
   history.past = [];
   history.future = [];
+  clearServiceAutosave();
   setDirty(false);
   render();
   showToast("Modifications annulées.");
@@ -361,6 +455,77 @@ function tableCanHostReservation(table, reservation, assignments = currentAssign
   return !getTablePlacementError(table, reservation, assignments);
 }
 
+function getReservationStatusLabel(status) {
+  return ({
+    pending: "En attente",
+    confirmed: "Confirmé",
+    arrived: "Arrivé",
+    seated: "Installé",
+    no_show: "No-show"
+  })[String(status || "").toLowerCase()] || String(status || "Inconnu");
+}
+
+function getReservationStatusOptions(status) {
+  return EDITABLE_RESERVATION_STATUSES.map((value) => (
+    `<option value="${value}" ${value === status ? "selected" : ""}>${escapeHtml(getReservationStatusLabel(value))}</option>`
+  )).join("");
+}
+
+function isToday(value, now = new Date()) {
+  const local = new Date(now.getTime() - now.getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
+  return value === local;
+}
+
+function addMinutesToTime(value, minutes) {
+  const total = timeToMinutes(value) + Math.max(0, Number(minutes) || 0);
+  const normalized = ((total % 1440) + 1440) % 1440;
+  return `${String(Math.floor(normalized / 60)).padStart(2, "0")}:${String(normalized % 60).padStart(2, "0")}`;
+}
+
+function getTableServiceState(table, reservations, now = new Date()) {
+  if (table.blocked) return { key: "blocked", label: "Indisponible", detail: null };
+  if (!reservations.length) return { key: "free", label: "Libre", detail: null };
+
+  const primary = reservations[0];
+  const primaryStatus = String(primary.status || "pending").toLowerCase();
+  if (primaryStatus === "no_show") return { key: "no-show", label: "No-show", detail: primary.time };
+
+  const active = reservations.filter((reservation) => !["cancelled", "canceled", "no_show", "completed", "archived"].includes(String(reservation.status || "").toLowerCase()));
+  if (!active.length) return { key: "free", label: "Libre", detail: null };
+  const conflict = active.some((reservation, index) => active.slice(index + 1).some((candidate) => reservationsConflict(reservation, candidate)));
+  if (conflict) return { key: "conflict", label: "Conflit horaire", detail: `${active.length} réservations` };
+
+  const current = active[0];
+  const status = String(current.status || "pending").toLowerCase();
+  if (status === "arrived") return { key: "arrived", label: "Arrivé", detail: current.time };
+  if (ACTIVE_OCCUPANCY_STATUSES.has(status)) {
+    const releaseTime = addMinutesToTime(current.time, current.durationMinutes);
+    const minutesUntilRelease = isToday(current.date, now)
+      ? timeToMinutes(releaseTime) - (now.getHours() * 60 + now.getMinutes())
+      : null;
+    return minutesUntilRelease !== null && minutesUntilRelease >= 0 && minutesUntilRelease <= 15
+      ? { key: "soon-free", label: "Bientôt libre", detail: `vers ${releaseTime}` }
+      : { key: "occupied", label: "Occupée", detail: `libre vers ${releaseTime}` };
+  }
+  if (String(current.feature || "").toLowerCase().replace(/[_\s]+/g, "-") === "zero-attente") {
+    return { key: "zero-attente", label: "Zéro Attente", detail: current.time };
+  }
+  const delay = isToday(current.date, now)
+    ? now.getHours() * 60 + now.getMinutes() - timeToMinutes(current.time)
+    : 0;
+  if (delay >= 15 && ["confirmed", "pending"].includes(status)) {
+    return { key: "late", label: "Retard", detail: `${delay} min` };
+  }
+  return { key: "upcoming", label: "Réservée", detail: current.time };
+}
+
+function getReservationRecommendation(reservationId) {
+  const recommendation = state.recommendations?.[reservationId];
+  if (!recommendation) return null;
+  const table = state.tables.find((candidate) => candidate.id === recommendation.tableId && candidate.editable);
+  return table ? { ...recommendation, tableName: table.name } : null;
+}
+
 function showToast(message, kind = "") {
   const toast = document.createElement("div");
   toast.className = `toast ${kind}`;
@@ -385,11 +550,13 @@ function render() {
   elements.modeTemplateButton.setAttribute("aria-pressed", String(state.mode === "template"));
   renderSummary();
   renderZones();
+  renderVariants();
   renderFloor();
   renderReservations();
   renderPlacementBanner();
   renderControls();
   refreshZoneFields();
+  if (selectedServiceTableId && elements.serviceTableModal?.open) renderServiceTableModal();
   saveState();
   window.requestAnimationFrame(() => syncCanvasZoom(true));
 }
@@ -406,26 +573,42 @@ function renderSummary() {
   elements.clientSummary.textContent = `${assigned}/${reservations.length} placée${assigned > 1 ? "s" : ""}`;
   elements.dragHint.textContent = state.mode === "template"
     ? "Déplacez tables et mobilier. Touchez un élément pour modifier ses assises, dimensions, rotation ou verrouillage."
-    : "Sélectionnez un client puis cliquez sur une table. Chaque placement est enregistré immédiatement.";
+    : "Glissez un client sur une table, ou sélectionnez-le puis touchez sa destination. Les placements sont enregistrés immédiatement.";
 }
 
 function renderControls() {
-  elements.undoButton.disabled = history.past.length === 0 || Boolean(pendingOperation);
-  elements.redoButton.disabled = history.future.length === 0 || Boolean(pendingOperation);
+  const canUndoAssignment = state.mode === "service" && assignmentHistory.past.length > 0;
+  const canRedoAssignment = state.mode === "service" && assignmentHistory.future.length > 0;
+  elements.undoButton.disabled = (history.past.length === 0 && !canUndoAssignment) || Boolean(pendingOperation);
+  elements.redoButton.disabled = (history.future.length === 0 && !canRedoAssignment) || Boolean(pendingOperation);
   elements.saveButton.disabled = !state.dirty || Boolean(pendingOperation);
   elements.cancelChangesButton.disabled = !state.dirty || Boolean(pendingOperation);
   elements.autoPlaceButton.disabled = Boolean(pendingOperation);
+  if (elements.variantSelect) elements.variantSelect.disabled = Boolean(pendingOperation);
+  if (elements.saveVariantButton) elements.saveVariantButton.disabled = Boolean(pendingOperation) || !state.connected;
   elements.saveButton.textContent = state.mode === "template" ? "Enregistrer le modèle" : "Enregistrer ce service";
 
   if (pendingOperation) {
     elements.connectionLabel.textContent = "Enregistrement…";
   } else if (state.dirty) {
-    elements.connectionLabel.textContent = "Modifications à enregistrer";
+    elements.connectionLabel.textContent = state.mode === "service" ? "Enregistrement automatique…" : "Modifications à enregistrer";
   } else if (state.connected) {
     elements.connectionLabel.textContent = "Synchronisé";
   } else {
     elements.connectionLabel.textContent = "Sauvegarde locale";
   }
+}
+
+function renderVariants() {
+  if (!elements.variantSelect) return;
+  const activeExists = state.activeVariantId === "current"
+    || state.variants.some((variant) => variant.id === state.activeVariantId);
+  if (!activeExists) state.activeVariantId = "current";
+  elements.variantSelect.innerHTML = [
+    '<option value="current">Modèle actif</option>',
+    ...state.variants.map((variant) => `<option value="${escapeHtml(variant.id)}">${escapeHtml(variant.name)}</option>`)
+  ].join("");
+  elements.variantSelect.value = state.activeVariantId;
 }
 
 function renderZones() {
@@ -466,6 +649,7 @@ function renderFloor() {
   visibleTables.forEach((table) => {
     const reservations = table.editable ? assignments.get(table.id) || [] : [];
     const reservation = reservations[0] || null;
+    const serviceState = table.editable ? getTableServiceState(table, reservations) : null;
     const guestLabel = reservations.length > 1
       ? `${reservation.name} +${reservations.length - 1}`
       : reservation?.name || "";
@@ -483,15 +667,16 @@ function renderFloor() {
     const currentClass = selectedReservation?.tableId === table.id ? "current-target" : "";
     const node = document.createElement("button");
     node.type = "button";
-    node.className = `table-node ${table.shape} ${table.editable ? "" : "furniture"} ${table.locked ? "locked" : ""} ${table.blocked ? "blocked" : reservation ? "occupied" : ""} ${targetClass} ${currentClass}`.trim();
+    node.className = `table-node ${table.shape} ${table.editable ? `service-${serviceState.key}` : "furniture"} ${table.locked ? "locked" : ""} ${table.blocked ? "blocked" : ""} ${targetClass} ${currentClass}`.trim();
     node.dataset.tableId = table.id;
     node.style.left = `${left}px`;
     node.style.top = `${top}px`;
 
     if (table.editable) {
-      node.setAttribute("aria-label", `${table.name}, ${table.capacity} places${reservation ? `, ${reservations.map((item) => item.name).join(", ")}` : table.blocked ? ", indisponible" : ", libre"}${placementError ? `, ${placementError}` : ""}`);
+      node.setAttribute("aria-label", `${table.name}, ${table.capacity} places, ${serviceState.label}${reservation ? `, ${reservations.map((item) => item.name).join(", ")}` : ""}${placementError ? `, ${placementError}` : ""}`);
       node.innerHTML = `
         ${getChairMarkup(table)}
+        <span class="table-state-chip">${escapeHtml(serviceState.label)}${serviceState.detail ? ` · ${escapeHtml(serviceState.detail)}` : ""}</span>
         <span class="table-name">${escapeHtml(table.name)}</span>
         <span class="table-capacity">${table.capacity} assise${table.capacity > 1 ? "s" : ""}</span>
         ${reservation ? `<span class="table-guest">${escapeHtml(guestLabel)}</span>` : ""}`;
@@ -528,6 +713,7 @@ function renderReservations() {
 
   elements.reservationList.innerHTML = reservations.map((reservation) => {
     const table = state.tables.find((item) => item.id === reservation.tableId);
+    const recommendation = table ? null : getReservationRecommendation(reservation.id);
     const initials = reservation.name.split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
     const selected = reservation.id === selectedReservationId;
     return `
@@ -536,12 +722,21 @@ function renderReservations() {
         <div class="reservation-main">
           <div class="reservation-name">
             <strong>${escapeHtml(reservation.name)}</strong>
-            <span class="status-tag ${table ? "assigned" : "unassigned"}">${table ? "Placée" : "À placer"}</span>
+            <span class="status-tag reservation-status status-${escapeHtml(reservation.status)}">${escapeHtml(getReservationStatusLabel(reservation.status))}</span>
+            <span class="status-tag ${table ? "assigned" : "unassigned"}">${table ? escapeHtml(table.name) : "À placer"}</span>
           </div>
           <div class="reservation-meta"><span>${escapeHtml(reservation.time)}</span><span>•</span><span>${reservation.size} convive${reservation.size > 1 ? "s" : ""}</span>${reservation.preferredZone ? `<span>•</span><span>${escapeHtml(reservation.preferredZone)}</span>` : ""}</div>
           ${reservation.note ? `<div class="reservation-note">${escapeHtml(reservation.note)}</div>` : ""}
+          ${recommendation ? `<button class="recommendation-button" type="button" data-action="assign-recommended" data-reservation-id="${reservation.id}" data-table-id="${recommendation.tableId}" title="${escapeHtml(recommendation.reasons.join(" · "))}"><span aria-hidden="true">✦</span> Conseil ${escapeHtml(recommendation.tableName)} · ${recommendation.score}/100</button>` : ""}
         </div>
-        <button class="assignment-button ${table ? "assigned" : ""}" type="button" data-action="select-reservation" data-reservation-id="${reservation.id}" aria-pressed="${selected}">${table ? escapeHtml(table.name) : "Placer"}</button>
+        <div class="reservation-actions">
+          <select class="reservation-status-select" data-action="reservation-status" data-reservation-id="${reservation.id}" aria-label="Statut de ${escapeHtml(reservation.name)}">${getReservationStatusOptions(reservation.status)}</select>
+          <div class="reservation-action-row">
+            ${table ? `<button class="remove-assignment-button" type="button" data-action="unassign-reservation" data-reservation-id="${reservation.id}" aria-label="Retirer ${escapeHtml(reservation.name)} de ${escapeHtml(table.name)}">×</button>` : ""}
+            <button class="assignment-button ${table ? "assigned" : ""}" type="button" data-action="select-reservation" data-reservation-id="${reservation.id}" aria-pressed="${selected}">${table ? "Déplacer" : "Placer"}</button>
+            <button class="reservation-drag-handle" type="button" data-action="drag-reservation" data-reservation-id="${reservation.id}" aria-label="Glisser ${escapeHtml(reservation.name)} vers une table" title="Glisser vers une table"><span aria-hidden="true">⠿</span></button>
+          </div>
+        </div>
       </article>`;
   }).join("");
 }
@@ -550,8 +745,11 @@ function renderPlacementBanner() {
   const reservation = state.reservations.find((item) => item.id === selectedReservationId);
   elements.placementBanner.classList.toggle("hidden", !reservation || state.mode !== "service");
   if (!reservation) return;
+  const recommendation = getReservationRecommendation(reservation.id);
   elements.placementTitle.textContent = `Placer ${reservation.name}`;
-  elements.placementCopy.textContent = `Cliquez sur une table compatible pour ${reservation.size} convive${reservation.size > 1 ? "s" : ""}.`;
+  elements.placementCopy.textContent = recommendation
+    ? `Conseil : ${recommendation.tableName} (${recommendation.score}/100). Touchez une table compatible ou glissez la carte.`
+    : `Touchez une table compatible pour ${reservation.size} convive${reservation.size > 1 ? "s" : ""}.`;
   $("#unassign-button").classList.toggle("hidden", !reservation.tableId);
 }
 
@@ -572,6 +770,7 @@ function createRequestId(kind) {
 }
 
 function beginOperation(kind, requestId) {
+  clearServiceAutosave();
   pendingOperation = { kind, requestId };
   document.body.classList.remove("sync-error");
   renderControls();
@@ -582,9 +781,10 @@ function finishOperation() {
   pendingOperation = null;
   document.body.classList.remove("saving");
   renderControls();
+  if (state.dirty) scheduleServiceAutosave();
 }
 
-function assignReservation(reservationId, tableId) {
+function assignReservation(reservationId, tableId, options = {}) {
   if (pendingOperation) return;
   const reservation = state.reservations.find((item) => item.id === reservationId);
   if (!reservation) return;
@@ -598,6 +798,21 @@ function assignReservation(reservationId, tableId) {
   }
 
   const previousTableId = reservation.tableId;
+  if (previousTableId === tableId) {
+    selectedReservationId = null;
+    render();
+    return;
+  }
+  const historyAction = options.historyAction || {
+    reservationId,
+    fromTableId: previousTableId,
+    toTableId: tableId
+  };
+  if (!options.historyMode) {
+    assignmentHistory.past.push(historyAction);
+    if (assignmentHistory.past.length > HISTORY_LIMIT) assignmentHistory.past.shift();
+    assignmentHistory.future = [];
+  }
   reservation.tableId = tableId;
   selectedReservationId = null;
   render();
@@ -609,7 +824,12 @@ function assignReservation(reservationId, tableId) {
   }
 
   const requestId = createRequestId("assignment");
-  pendingAssignment = { reservationId, previousTableId };
+  pendingAssignment = {
+    reservationId,
+    previousTableId,
+    historyMode: options.historyMode || "record",
+    historyAction
+  };
   beginOperation("assignment", requestId);
   postToDashboard("tok-table-v2:assign", { requestId, reservationId, tableId });
 }
@@ -617,6 +837,178 @@ function assignReservation(reservationId, tableId) {
 function unassignSelectedReservation() {
   if (!selectedReservationId) return;
   assignReservation(selectedReservationId, null);
+}
+
+function updateReservationStatus(reservationId, status) {
+  if (pendingOperation || !EDITABLE_RESERVATION_STATUSES.includes(status)) return;
+  const reservation = state.reservations.find((item) => item.id === reservationId);
+  if (!reservation || reservation.status === status) return;
+  const previousStatus = reservation.status;
+  reservation.status = status;
+  render();
+  if (selectedServiceTableId && elements.serviceTableModal?.open) renderServiceTableModal();
+
+  if (!state.connected) {
+    saveState();
+    showToast(`Statut « ${getReservationStatusLabel(status)} » enregistré.`, "success");
+    return;
+  }
+
+  const requestId = createRequestId("reservation_status");
+  pendingStatusChange = { reservationId, previousStatus };
+  beginOperation("reservation-status", requestId);
+  postToDashboard("tok-table-v2:update-reservation-status", { requestId, reservationId, status });
+}
+
+function renderServiceTableModal() {
+  if (!elements.serviceTableContent || !selectedServiceTableId) return;
+  const table = state.tables.find((item) => item.id === selectedServiceTableId && item.editable);
+  if (!table) {
+    elements.serviceTableModal?.close();
+    selectedServiceTableId = null;
+    return;
+  }
+  const reservations = currentAssignmentMap().get(table.id) || [];
+  const serviceState = getTableServiceState(table, reservations);
+  elements.serviceTableContent.innerHTML = `
+    <div class="service-table-heading">
+      <div>
+        <p class="eyebrow">TABLE · ${escapeHtml(table.zone)}</p>
+        <h2>${escapeHtml(table.name)}</h2>
+        <p>${table.capacity} assise${table.capacity > 1 ? "s" : ""}</p>
+      </div>
+      <span class="service-state-badge service-${serviceState.key}">${escapeHtml(serviceState.label)}${serviceState.detail ? ` · ${escapeHtml(serviceState.detail)}` : ""}</span>
+    </div>
+    <div class="service-table-reservations">
+      ${reservations.length ? reservations.map((reservation) => `
+        <article class="service-table-reservation" data-reservation-id="${reservation.id}">
+          <div>
+            <strong>${escapeHtml(reservation.name)}</strong>
+            <span>${escapeHtml(reservation.time)} · ${reservation.size} convive${reservation.size > 1 ? "s" : ""}</span>
+            ${reservation.note ? `<small>${escapeHtml(reservation.note)}</small>` : ""}
+          </div>
+          <select data-action="modal-reservation-status" data-reservation-id="${reservation.id}" aria-label="Statut de ${escapeHtml(reservation.name)}">${getReservationStatusOptions(reservation.status)}</select>
+          <button class="btn btn-ghost" type="button" data-action="move-modal-reservation" data-reservation-id="${reservation.id}">Déplacer</button>
+          <button class="btn btn-danger" type="button" data-action="unassign-reservation" data-reservation-id="${reservation.id}">Libérer</button>
+        </article>`).join("") : `<div class="empty-service-table">Cette table est libre pour ce service.</div>`}
+    </div>`;
+}
+
+function openServiceTableModal(table) {
+  if (state.mode !== "service" || !table?.editable || pendingOperation || !elements.serviceTableModal) return;
+  selectedServiceTableId = table.id;
+  renderServiceTableModal();
+  if (!elements.serviceTableModal.open) elements.serviceTableModal.showModal();
+}
+
+function getReservationPointerTarget(clientX, clientY, reservationId) {
+  const node = document.elementFromPoint(clientX, clientY)?.closest?.(".table-node");
+  const table = node && state.tables.find((item) => item.id === node.dataset.tableId && item.editable);
+  const reservation = state.reservations.find((item) => item.id === reservationId);
+  if (!node || !table || !reservation) return { node: null, table: null, error: "" };
+  return { node, table, error: getTablePlacementError(table, reservation) };
+}
+
+function paintReservationPointerDrag() {
+  if (!reservationPointerDrag) return;
+  const drag = reservationPointerDrag;
+  drag.ghost.style.transform = `translate3d(${drag.clientX + 14}px, ${drag.clientY + 14}px, 0)`;
+
+  const edge = 68;
+  if (drag.clientY < edge) window.scrollBy({ top: -14, behavior: "auto" });
+  if (drag.clientY > window.innerHeight - edge) window.scrollBy({ top: 14, behavior: "auto" });
+
+  const target = getReservationPointerTarget(drag.clientX, drag.clientY, drag.reservationId);
+  if (drag.targetNode !== target.node) drag.targetNode?.classList.remove("drag-over");
+  drag.targetNode = target.node;
+  drag.targetTableId = target.table?.id || null;
+  drag.targetError = target.error;
+  target.node?.classList.add("drag-over");
+  drag.ghost.classList.toggle("invalid", Boolean(target.table && target.error));
+  drag.ghost.classList.toggle("valid", Boolean(target.table && !target.error));
+}
+
+function startReservationPointerDrag(event, reservationId) {
+  if (state.mode !== "service" || pendingOperation || (event.pointerType === "mouse" && event.button !== 0)) return;
+  const reservation = state.reservations.find((item) => item.id === reservationId);
+  const handle = event.target.closest?.('[data-action="drag-reservation"]');
+  if (!reservation || !handle) return;
+  clearReservationPointerDrag(false);
+  selectedReservationId = reservationId;
+  const ghost = document.createElement("div");
+  ghost.className = "reservation-drag-ghost";
+  ghost.innerHTML = `<strong>${escapeHtml(reservation.name)}</strong><span>${reservation.size} convive${reservation.size > 1 ? "s" : ""}</span>`;
+  document.body.appendChild(ghost);
+  reservationPointerDrag = {
+    reservationId,
+    pointerId: event.pointerId,
+    handle,
+    ghost,
+    startX: event.clientX,
+    startY: event.clientY,
+    clientX: event.clientX,
+    clientY: event.clientY,
+    moved: false,
+    targetNode: null,
+    targetTableId: null,
+    targetError: ""
+  };
+  handle.setPointerCapture?.(event.pointerId);
+  document.body.classList.add("reservation-pointer-dragging");
+  renderFloor();
+  renderPlacementBanner();
+  paintReservationPointerDrag();
+  event.preventDefault();
+  event.stopPropagation();
+}
+
+function moveReservationPointerDrag(event) {
+  if (!reservationPointerDrag || event.pointerId !== reservationPointerDrag.pointerId) return;
+  reservationPointerDrag.clientX = event.clientX;
+  reservationPointerDrag.clientY = event.clientY;
+  if (Math.hypot(event.clientX - reservationPointerDrag.startX, event.clientY - reservationPointerDrag.startY) > 7) {
+    reservationPointerDrag.moved = true;
+  }
+  if (!reservationPointerFrame) {
+    reservationPointerFrame = window.requestAnimationFrame(() => {
+      reservationPointerFrame = 0;
+      paintReservationPointerDrag();
+    });
+  }
+  event.preventDefault();
+}
+
+function clearReservationPointerDrag(renderAfter = true) {
+  if (!reservationPointerDrag) return;
+  const drag = reservationPointerDrag;
+  reservationPointerDrag = null;
+  if (reservationPointerFrame) {
+    window.cancelAnimationFrame(reservationPointerFrame);
+    reservationPointerFrame = 0;
+  }
+  drag.targetNode?.classList.remove("drag-over");
+  drag.ghost.remove();
+  if (drag.handle.hasPointerCapture?.(drag.pointerId)) drag.handle.releasePointerCapture(drag.pointerId);
+  document.body.classList.remove("reservation-pointer-dragging");
+  if (renderAfter) render();
+}
+
+function finishReservationPointerDrag(event, cancelled = false) {
+  if (!reservationPointerDrag || event.pointerId !== reservationPointerDrag.pointerId) return;
+  if (reservationPointerFrame) {
+    window.cancelAnimationFrame(reservationPointerFrame);
+    reservationPointerFrame = 0;
+    paintReservationPointerDrag();
+  }
+  const drag = { ...reservationPointerDrag };
+  clearReservationPointerDrag(false);
+
+  if (!cancelled && drag.moved && drag.targetTableId && !drag.targetError) {
+    assignReservation(drag.reservationId, drag.targetTableId);
+    return;
+  }
+  if (!cancelled && drag.moved && drag.targetError) showToast(drag.targetError, "warning");
+  render();
 }
 
 function openTableModal(table = null) {
@@ -886,6 +1278,7 @@ function requestDeleteCurrentFurniture() {
 
 function savePlan() {
   if (!state.dirty || pendingOperation) return;
+  clearServiceAutosave();
   if (!state.connected) {
     history.baseline = clone(state.tables);
     setDirty(false);
@@ -932,10 +1325,80 @@ function switchMode(nextMode) {
     return;
   }
   state.mode = nextMode;
+  clearServiceAutosave();
+  clearReservationPointerDrag(false);
   selectedReservationId = null;
   state.tables = clone(nextMode === "template" ? state.serverTemplateTables : state.serverServiceTables);
   resetHistory(state.tables);
   render();
+}
+
+function loadVariant(variantId) {
+  if (state.mode !== "template" || pendingOperation) return;
+  if (state.dirty) {
+    elements.variantSelect.value = state.activeVariantId;
+    showToast("Enregistrez ou annulez le brouillon avant de charger une autre variante.", "warning");
+    return;
+  }
+  if (variantId === "current") {
+    state.activeVariantId = "current";
+    state.tables = clone(state.serverTemplateTables);
+    resetHistory(state.tables);
+    render();
+    return;
+  }
+  if (!state.connected || !state.variants.some((variant) => variant.id === variantId)) {
+    elements.variantSelect.value = state.activeVariantId;
+    showToast("Cette variante n’est pas disponible.", "warning");
+    return;
+  }
+  const requestId = createRequestId("variant_load");
+  beginOperation("variant-load", requestId);
+  postToDashboard("tok-table-v2:load-variant", { requestId, variantId });
+}
+
+function openVariantModal() {
+  if (state.mode !== "template" || pendingOperation || !state.connected || !elements.variantModal) return;
+  elements.variantForm.reset();
+  const now = new Date().toLocaleString("fr-CH", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+  elements.variantForm.elements.name.value = `Plan enregistré · ${now}`;
+  elements.variantModal.showModal();
+  window.setTimeout(() => elements.variantForm.elements.name.select(), 30);
+}
+
+function saveVariantFromForm() {
+  const name = String(new FormData(elements.variantForm).get("name") || "").trim();
+  if (!name || name.length > 80) {
+    showToast("Donnez un nom valide à cette variante.", "warning");
+    return false;
+  }
+  const requestId = createRequestId("variant");
+  const tables = editableTables().map((table) => ({
+    id: table.id,
+    name: table.name,
+    capacity: table.capacity,
+    zone: table.zone,
+    shape: table.shape,
+    x: table.x,
+    y: table.y,
+    blocked: table.blocked
+  }));
+  const objects = state.tables.filter((item) => !item.editable).map((object) => ({
+    id: object.id,
+    name: object.name,
+    zone: object.zone,
+    kind: object.kind,
+    x: object.x,
+    y: object.y,
+    width: object.width,
+    height: object.height,
+    rotation: object.rotation,
+    locked: object.locked,
+    zIndex: object.zIndex
+  }));
+  beginOperation("variant", requestId);
+  postToDashboard("tok-table-v2:save-variant", { requestId, name, tables, objects });
+  return true;
 }
 
 function autoPlace() {
@@ -977,6 +1440,7 @@ function autoPlace() {
 
 function startDragging(event, node, table) {
   const furnitureCanMove = !table.editable && state.mode === "template" && !table.locked;
+  const placementOnly = table.editable && state.mode === "service" && Boolean(selectedReservationId);
   if ((!table.editable && !furnitureCanMove) || pendingOperation || event.button !== 0) return;
   const rect = elements.floor.getBoundingClientRect();
   const scaleX = rect.width / CANVAS_WIDTH || canvasZoom;
@@ -994,7 +1458,8 @@ function startDragging(event, node, table) {
     offsetY: (event.clientY - rect.top) / scaleY - nodeTop,
     nextLeft: nodeLeft,
     nextTop: nodeTop,
-    moved: false
+    moved: false,
+    placementOnly
   };
   node.setPointerCapture(event.pointerId);
   node.classList.add("dragging");
@@ -1004,6 +1469,7 @@ function startDragging(event, node, table) {
 
 function paintDragging(clientX, clientY) {
   if (!dragState) return;
+  if (dragState.placementOnly) return;
   const table = state.tables.find((item) => item.id === dragState.tableId);
   if (!table) return;
   const rect = elements.floor.getBoundingClientRect();
@@ -1026,7 +1492,8 @@ function paintDragging(clientX, clientY) {
 
 function moveDragging(event) {
   if (!dragState || event.pointerId !== dragState.pointerId) return;
-  if (Math.hypot(event.clientX - dragState.startX, event.clientY - dragState.startY) > 5) dragState.moved = true;
+  const movementThreshold = event.pointerType === "touch" ? 13 : 5;
+  if (Math.hypot(event.clientX - dragState.startX, event.clientY - dragState.startY) > movementThreshold) dragState.moved = true;
   dragState.latestX = event.clientX;
   dragState.latestY = event.clientY;
   if (!dragFrame) {
@@ -1056,6 +1523,10 @@ function finishDragging(event, cancelled = false) {
     renderFloor();
     return;
   }
+  if (current.placementOnly && table.editable) {
+    assignReservation(selectedReservationId, table.id);
+    return;
+  }
   if (current.moved) {
     const next = clone(state.tables);
     const movedTable = next.find((item) => item.id === current.tableId);
@@ -1073,6 +1544,8 @@ function finishDragging(event, cancelled = false) {
     else openFurnitureModal(table);
   } else if (selectedReservationId && table.editable) {
     assignReservation(selectedReservationId, table.id);
+  } else if (table.editable) {
+    openServiceTableModal(table);
   }
 }
 
@@ -1211,19 +1684,35 @@ function hydrateConnectedState(payload) {
   const serviceTables = mergeFurniture(payload.serviceTables || payload.tables || []);
   const incomingBranchId = String(payload.branchId || "");
   const reservations = sanitizeReservations(payload.reservations, serviceTables, payload.selectedDate || todayIso());
+  const recommendations = sanitizeRecommendations(payload.recommendations, serviceTables, reservations);
   const branchChanged = state.branchId && state.branchId !== incomingBranchId;
+  const incomingDate = /^\d{4}-\d{2}-\d{2}$/.test(String(payload.selectedDate || "")) ? payload.selectedDate : todayIso();
+  const incomingPeriod = payload.selectedPeriod === "midi" ? "midi" : "soir";
+  const assignmentContext = `${incomingBranchId}:${incomingDate}:${incomingPeriod}`;
+  const serviceChanged = assignmentHistory.context !== assignmentContext;
+  if (serviceChanged) {
+    assignmentHistory = { past: [], future: [], context: assignmentContext };
+  }
 
   state.connected = true;
   state.branchId = incomingBranchId;
-  state.selectedDate = /^\d{4}-\d{2}-\d{2}$/.test(String(payload.selectedDate || "")) ? payload.selectedDate : todayIso();
-  state.selectedPeriod = payload.selectedPeriod === "midi" ? "midi" : "soir";
+  state.selectedDate = incomingDate;
+  state.selectedPeriod = incomingPeriod;
   state.reservations = reservations;
+  state.recommendations = recommendations;
+  state.variants = sanitizeVariants(payload.variants);
+  if (state.activeVariantId !== "current" && !state.variants.some((variant) => variant.id === state.activeVariantId)) {
+    state.activeVariantId = "current";
+  }
   state.serverTemplateTables = clone(templateTables);
   state.serverServiceTables = clone(serviceTables);
 
   if (!state.dirty || branchChanged) {
-    state.tables = clone(state.mode === "template" ? templateTables : serviceTables);
-    resetHistory(state.tables);
+    const incomingTables = state.mode === "template" ? templateTables : serviceTables;
+    if (branchChanged || serviceChanged || tableSignature(incomingTables) !== tableSignature(state.tables)) {
+      state.tables = clone(incomingTables);
+      resetHistory(state.tables);
+    }
   }
   if (!state.tables.some((table) => table.zone === state.selectedZone)) {
     state.selectedZone = state.tables[0]?.zone || "Salle principale";
@@ -1231,12 +1720,33 @@ function hydrateConnectedState(payload) {
   if (selectedReservationId && !reservations.some((reservation) => reservation.id === selectedReservationId)) {
     selectedReservationId = null;
   }
+  if (selectedServiceTableId && !serviceTables.some((table) => table.id === selectedServiceTableId && table.editable)) {
+    elements.serviceTableModal?.close();
+    selectedServiceTableId = null;
+  }
   render();
 }
 
 function handleOperationSuccess(payload) {
   if (pendingOperation && payload?.requestId && payload.requestId !== pendingOperation.requestId) return;
   const kind = payload?.kind || pendingOperation?.kind;
+  if (kind === "variant-load") {
+    const loadedTables = sanitizeTables(payload?.tables || []).filter((item) => item.editable);
+    const loadedFurniture = sanitizeTables(payload?.furniture || []).filter((item) => !item.editable);
+    if (loadedTables.length) {
+      const previous = clone(state.serverTemplateTables);
+      state.mode = "template";
+      state.activeVariantId = String(payload?.variantId || "current");
+      state.tables = [...loadedTables, ...loadedFurniture];
+      history = { past: [previous], future: [], baseline: previous };
+      updateDirty();
+      selectedReservationId = null;
+      state.selectedZone = state.tables[0]?.zone || "Salle principale";
+    }
+  }
+  if (kind === "variant" && payload?.variantId) {
+    state.activeVariantId = String(payload.variantId);
+  }
   if (kind === "template") {
     applyIdMap(payload?.idMap);
     state.serverTemplateTables = clone(state.tables);
@@ -1253,11 +1763,10 @@ function handleOperationSuccess(payload) {
   if (kind === "service-layout") {
     state.serverServiceTables = clone(state.tables);
     history.baseline = clone(state.tables);
-    history.past = [];
-    history.future = [];
     setDirty(false);
   }
   pendingAssignment = null;
+  pendingStatusChange = null;
   finishOperation();
   render();
   if (payload?.message) showToast(payload.message, "success");
@@ -1268,8 +1777,25 @@ function handleOperationError(payload) {
   if (pendingAssignment) {
     const reservation = state.reservations.find((item) => item.id === pendingAssignment.reservationId);
     if (reservation) reservation.tableId = pendingAssignment.previousTableId;
+    if (pendingAssignment.historyMode === "record") {
+      const last = assignmentHistory.past[assignmentHistory.past.length - 1];
+      if (last === pendingAssignment.historyAction) assignmentHistory.past.pop();
+    } else if (pendingAssignment.historyMode === "undo") {
+      const first = assignmentHistory.future[0];
+      if (first === pendingAssignment.historyAction) assignmentHistory.future.shift();
+      assignmentHistory.past.push(pendingAssignment.historyAction);
+    } else if (pendingAssignment.historyMode === "redo") {
+      const last = assignmentHistory.past[assignmentHistory.past.length - 1];
+      if (last === pendingAssignment.historyAction) assignmentHistory.past.pop();
+      assignmentHistory.future.unshift(pendingAssignment.historyAction);
+    }
+  }
+  if (pendingStatusChange) {
+    const reservation = state.reservations.find((item) => item.id === pendingStatusChange.reservationId);
+    if (reservation) reservation.status = pendingStatusChange.previousStatus;
   }
   pendingAssignment = null;
+  pendingStatusChange = null;
   finishOperation();
   document.body.classList.add("sync-error");
   render();
@@ -1295,6 +1821,8 @@ elements.date.addEventListener("change", () => {
     return;
   }
   state.selectedDate = elements.date.value;
+  assignmentHistory = { past: [], future: [], context: `${state.branchId || "local"}:${state.selectedDate}:${state.selectedPeriod}` };
+  resetHistory(state.tables);
   selectedReservationId = null;
   if (state.connected) postToDashboard("tok-table-v2:service-change", { date: state.selectedDate, period: state.selectedPeriod });
   render();
@@ -1306,12 +1834,16 @@ elements.period.addEventListener("change", () => {
     return;
   }
   state.selectedPeriod = elements.period.value;
+  assignmentHistory = { past: [], future: [], context: `${state.branchId || "local"}:${state.selectedDate}:${state.selectedPeriod}` };
+  resetHistory(state.tables);
   selectedReservationId = null;
   if (state.connected) postToDashboard("tok-table-v2:service-change", { date: state.selectedDate, period: state.selectedPeriod });
   render();
 });
 elements.modeServiceButton.addEventListener("click", () => switchMode("service"));
 elements.modeTemplateButton.addEventListener("click", () => switchMode("template"));
+elements.variantSelect?.addEventListener("change", () => loadVariant(elements.variantSelect.value));
+elements.saveVariantButton?.addEventListener("click", openVariantModal);
 elements.search.addEventListener("input", renderReservations);
 elements.filter.addEventListener("change", renderReservations);
 elements.autoPlaceButton.addEventListener("click", autoPlace);
@@ -1361,6 +1893,11 @@ elements.furnitureForm.addEventListener("submit", (event) => {
   event.preventDefault();
   if (saveFurnitureFromForm()) elements.furnitureModal.close();
 });
+elements.variantForm?.addEventListener("submit", (event) => {
+  if (event.submitter?.value === "cancel") return;
+  event.preventDefault();
+  if (saveVariantFromForm()) elements.variantModal.close();
+});
 elements.confirmModal.addEventListener("close", () => {
   if (elements.confirmModal.returnValue === "default" && pendingConfirmAction) pendingConfirmAction();
   pendingConfirmAction = null;
@@ -1374,10 +1911,25 @@ elements.zones.addEventListener("click", (event) => {
 });
 
 elements.reservationList.addEventListener("click", (event) => {
-  const action = event.target.closest('[data-action="select-reservation"]');
-  if (action) selectReservation(action.dataset.reservationId);
+  const action = event.target.closest("[data-action]");
+  if (!action) return;
+  if (action.dataset.action === "select-reservation") selectReservation(action.dataset.reservationId);
+  if (action.dataset.action === "assign-recommended") assignReservation(action.dataset.reservationId, action.dataset.tableId);
+  if (action.dataset.action === "unassign-reservation") assignReservation(action.dataset.reservationId, null);
+});
+elements.reservationList.addEventListener("change", (event) => {
+  const select = event.target.closest('[data-action="reservation-status"]');
+  if (select) updateReservationStatus(select.dataset.reservationId, select.value);
+});
+elements.reservationList.addEventListener("pointerdown", (event) => {
+  const handle = event.target.closest('[data-action="drag-reservation"]');
+  if (handle) startReservationPointerDrag(event, handle.dataset.reservationId);
 });
 elements.reservationList.addEventListener("dragstart", (event) => {
+  if (event.target.closest("button, select")) {
+    event.preventDefault();
+    return;
+  }
   const card = event.target.closest("[data-reservation-id]");
   if (!card || state.mode !== "service" || pendingOperation) return;
   selectedReservationId = card.dataset.reservationId;
@@ -1400,6 +1952,13 @@ elements.floor.addEventListener("click", (event) => {
   const object = node && state.tables.find((item) => item.id === node.dataset.tableId && !item.editable);
   if (object && state.mode === "template" && (object.locked || event.detail === 0)) {
     openFurnitureModal(object);
+    return;
+  }
+  const tableNode = event.target.closest(".table-node:not(.furniture)");
+  const table = tableNode && state.tables.find((item) => item.id === tableNode.dataset.tableId && item.editable);
+  if (table && event.detail === 0) {
+    if (selectedReservationId) assignReservation(selectedReservationId, table.id);
+    else openServiceTableModal(table);
   }
 });
 elements.floor.addEventListener("pointerdown", (event) => {
@@ -1444,6 +2003,32 @@ elements.floorViewport.addEventListener("pointermove", moveViewportGesture);
 elements.floorViewport.addEventListener("pointerup", endViewportGesture);
 elements.floorViewport.addEventListener("pointercancel", endViewportGesture);
 
+window.addEventListener("pointermove", moveReservationPointerDrag, { passive: false });
+window.addEventListener("pointerup", (event) => finishReservationPointerDrag(event, false));
+window.addEventListener("pointercancel", (event) => finishReservationPointerDrag(event, true));
+
+elements.serviceTableContent?.addEventListener("change", (event) => {
+  const select = event.target.closest('[data-action="modal-reservation-status"]');
+  if (select) updateReservationStatus(select.dataset.reservationId, select.value);
+});
+elements.serviceTableContent?.addEventListener("click", (event) => {
+  const action = event.target.closest("[data-action]");
+  if (!action) return;
+  if (action.dataset.action === "unassign-reservation") {
+    elements.serviceTableModal.close();
+    assignReservation(action.dataset.reservationId, null);
+  }
+  if (action.dataset.action === "move-modal-reservation") {
+    elements.serviceTableModal.close();
+    selectedReservationId = action.dataset.reservationId;
+    selectedServiceTableId = null;
+    render();
+  }
+});
+elements.serviceTableModal?.addEventListener("close", () => {
+  selectedServiceTableId = null;
+});
+
 window.addEventListener("keydown", (event) => {
   if (event.target.closest?.("input, select, textarea")) return;
   const modifier = event.ctrlKey || event.metaKey;
@@ -1471,6 +2056,12 @@ window.addEventListener("beforeunload", (event) => {
 if (typeof ResizeObserver !== "undefined") {
   new ResizeObserver(() => syncCanvasZoom(true)).observe(elements.floorViewport);
 }
+
+window.setInterval(() => {
+  if (state.mode !== "service" || pendingOperation || reservationPointerDrag) return;
+  renderFloor();
+  if (selectedServiceTableId && elements.serviceTableModal?.open) renderServiceTableModal();
+}, 60_000);
 
 if (window.parent !== window) postToDashboard("tok-table-v2:ready");
 resetHistory(state.tables);

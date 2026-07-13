@@ -49,6 +49,16 @@ export type FloorPlanV2Reservation = {
   durationMinutes: number;
   tableId: string | null;
   status: string;
+  feature?: string;
+  miamzPriority?: number;
+};
+
+export type FloorPlanV2PlacementRecommendation = {
+  tableId: string;
+  tableName: string;
+  score: number;
+  wastedSeats: number;
+  reasons: string[];
 };
 
 export type FloorPlanV2Assignments = Record<string, string | null>;
@@ -357,6 +367,153 @@ function timeToMinutes(value: string) {
   return (Number.parseInt(hours, 10) || 0) * 60 + (Number.parseInt(minutes, 10) || 0);
 }
 
+function getClosestRotationGapMinutes(
+  reservation: FloorPlanV2Reservation,
+  tableReservations: readonly FloorPlanV2Reservation[],
+) {
+  const sameDateReservations = tableReservations.filter((candidate) => (
+    candidate.id !== reservation.id && candidate.date === reservation.date
+  ));
+  if (!sameDateReservations.length) return null;
+
+  const start = timeToMinutes(reservation.time);
+  const end = start + Math.max(30, Number(reservation.durationMinutes) || 120);
+  let closestGap: number | null = null;
+
+  sameDateReservations.forEach((candidate) => {
+    const candidateStart = timeToMinutes(candidate.time);
+    const candidateEnd = candidateStart
+      + Math.max(30, Number(candidate.durationMinutes) || 120);
+    const gap = candidateEnd <= start
+      ? start - candidateEnd
+      : candidateStart >= end
+        ? candidateStart - end
+        : 0;
+    closestGap = closestGap === null ? gap : Math.min(closestGap, gap);
+  });
+
+  return closestGap;
+}
+
+export function scoreFloorPlanV2ReservationPlacement({
+  reservation,
+  table,
+  currentTableReservations = [],
+}: {
+  reservation: FloorPlanV2Reservation;
+  table: FloorPlanV2Table;
+  currentTableReservations?: readonly FloorPlanV2Reservation[];
+}) {
+  const partySize = Math.max(0, Number(reservation.size) || 0);
+  const capacity = Math.max(0, Number(table.capacity) || 0);
+  const load = currentTableReservations.length;
+  const reasons: string[] = [];
+
+  if (!table.editable || table.blocked || capacity <= 0 || partySize <= 0 || partySize > capacity) {
+    return { score: 0, wastedSeats: Math.max(0, capacity - partySize), reasons: ["Table incompatible"] };
+  }
+
+  const wastedSeats = capacity - partySize;
+  let score = 100 - wastedSeats * 12 - load * 5;
+
+  if (wastedSeats === 0) {
+    score += 8;
+    reasons.push("Capacité parfaite");
+  } else if (wastedSeats <= 2) {
+    score += 3;
+    reasons.push(`${wastedSeats} place(s) de marge`);
+  } else {
+    reasons.push(`${wastedSeats} place(s) libre(s)`);
+  }
+
+  if (capacity >= 6 && partySize <= 2) {
+    score -= 24;
+    reasons.push("Préserve les grandes tables");
+  } else if (capacity >= 8 && partySize <= 4) {
+    score -= 12;
+    reasons.push("Garde une option groupe");
+  }
+
+  const rotationGap = getClosestRotationGapMinutes(reservation, currentTableReservations);
+  if (rotationGap !== null && rotationGap < 30) {
+    score -= 16;
+    reasons.push("Rotation serrée");
+  } else if (rotationGap !== null && rotationGap < 60) {
+    score -= 6;
+    reasons.push(`${rotationGap} min de battement`);
+  } else if (rotationGap !== null) {
+    score += 4;
+    reasons.push("Rotation confortable");
+  } else {
+    reasons.push("Rotation simple");
+  }
+
+  if (String(reservation.feature || "").toLowerCase().replace(/[_\s]+/g, "-") === "zero-attente") {
+    score += 4;
+    reasons.push("Zéro Attente priorisé");
+  }
+
+  const miamzPriority = Math.max(0, Number(reservation.miamzPriority) || 0);
+  if (miamzPriority > 0) {
+    score += Math.min(12, Math.ceil(miamzPriority / 10));
+    reasons.push("Priorité Miamz");
+  }
+
+  if (reservation.preferredZone && reservation.preferredZone === table.zone) {
+    score += 6;
+    reasons.push("Zone souhaitée");
+  }
+
+  return {
+    score: Math.max(1, Math.min(100, Math.round(score))),
+    wastedSeats,
+    reasons,
+  };
+}
+
+export function getFloorPlanV2ReservationRecommendation({
+  reservation,
+  allReservations,
+  tables,
+  assignments,
+}: {
+  reservation: FloorPlanV2Reservation;
+  allReservations: readonly FloorPlanV2Reservation[];
+  tables: readonly FloorPlanV2Table[];
+  assignments: FloorPlanV2Assignments;
+}): FloorPlanV2PlacementRecommendation | null {
+  return tables
+    .filter((table) => !getFloorPlanV2AssignmentError({
+      reservationId: reservation.id,
+      tableId: table.id,
+      reservations: allReservations,
+      tables,
+      assignments,
+    }))
+    .map((table) => {
+      const currentTableReservations = allReservations.filter((candidate) => (
+        candidate.id !== reservation.id
+        && assignments[candidate.id] === table.id
+        && !RELEASED_STATUSES.has(candidate.status.toLowerCase())
+      ));
+      const placement = scoreFloorPlanV2ReservationPlacement({
+        reservation,
+        table,
+        currentTableReservations,
+      });
+      return {
+        tableId: table.id,
+        tableName: table.name,
+        ...placement,
+      };
+    })
+    .sort((left, right) => (
+      right.score - left.score
+      || left.wastedSeats - right.wastedSeats
+      || left.tableName.localeCompare(right.tableName, "fr")
+    ))[0] || null;
+}
+
 export function floorPlanV2ReservationsOverlap(
   left: FloorPlanV2Reservation,
   right: FloorPlanV2Reservation,
@@ -432,29 +589,15 @@ export function computeFloorPlanV2AutoAssignments({
     ));
 
   reservationsToPlace.forEach((reservation) => {
-    const bestTable = activeTables
-      .filter((table) => !getFloorPlanV2AssignmentError({
-        reservationId: reservation.id,
-        tableId: table.id,
-        reservations: allReservations,
-        tables,
-        assignments: nextAssignments,
-      }))
-      .map((table) => {
-        const currentUseCount = Object.values(nextAssignments)
-          .filter((tableId) => tableId === table.id).length;
-        const zoneBonus = reservation.preferredZone === table.zone ? 1_000 : 0;
-        const wastedSeats = table.capacity - reservation.size;
-        return {
-          table,
-          score: zoneBonus - wastedSeats * 20 - currentUseCount,
-        };
-      })
-      .sort((left, right) => (
-        right.score - left.score
-        || left.table.capacity - right.table.capacity
-        || left.table.name.localeCompare(right.table.name, "fr")
-      ))[0]?.table;
+    const recommendation = getFloorPlanV2ReservationRecommendation({
+      reservation,
+      allReservations,
+      tables: activeTables,
+      assignments: nextAssignments,
+    });
+    const bestTable = recommendation
+      ? activeTables.find((table) => table.id === recommendation.tableId)
+      : null;
 
     if (!bestTable) return;
     nextAssignments[reservation.id] = bestTable.id;

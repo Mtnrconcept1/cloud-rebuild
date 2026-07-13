@@ -7,11 +7,13 @@ import {
   computeFloorPlanV2AutoAssignments,
   floorPlanV2ReservationsOverlap,
   getFloorPlanV2AssignmentError,
+  getFloorPlanV2ReservationRecommendation,
   mapFloorPlanV2Table,
   parseFloorPlanV2ObjectDrafts,
   parseFloorPlanV2TableDrafts,
   serializeFloorPlanV2Layout,
   serializeFloorPlanV2Object,
+  scoreFloorPlanV2ReservationPlacement,
   type FloorPlanV2Reservation,
   type FloorPlanV2Table,
 } from "@/lib/floorPlanV2";
@@ -298,6 +300,29 @@ describe("floor plan v2 live assignments", () => {
     expect(result.assignments).toEqual({ r1: "table-1", r2: "table-1" });
     expect(result.changedAssignments).toEqual({ r2: "table-1" });
   });
+
+  it("uses the V1 placement priorities for recommendations", () => {
+    const client = reservation("r1", "19:00", {
+      size: 2,
+      feature: "zero-attente",
+      miamzPriority: 40,
+    });
+    const exact = table({ id: "table-2", name: "T2", capacity: 2 });
+    const oversized = table({ id: "table-8", name: "T8", capacity: 8 });
+
+    const exactScore = scoreFloorPlanV2ReservationPlacement({ reservation: client, table: exact });
+    const oversizedScore = scoreFloorPlanV2ReservationPlacement({ reservation: client, table: oversized });
+    expect(exactScore.score).toBeGreaterThan(oversizedScore.score);
+    expect(exactScore.reasons).toContain("Zéro Attente priorisé");
+    expect(exactScore.reasons).toContain("Priorité Miamz");
+
+    expect(getFloorPlanV2ReservationRecommendation({
+      reservation: client,
+      allReservations: [client],
+      tables: [oversized, exact],
+      assignments: { r1: null },
+    })).toMatchObject({ tableId: "table-2", tableName: "T2" });
+  });
 });
 
 describe("floor plan v2 secure bridge and zoom", () => {
@@ -313,6 +338,10 @@ describe("floor plan v2 secure bridge and zoom", () => {
     expect(page).toContain('"restaurant_save_floor_plan_assignments"');
     expect(page).toContain('"restaurant_save_floor_plan_workspace"');
     expect(page).toContain('"restaurant_save_floor_plan_layouts"');
+    expect(page).toContain("updateRestaurantReservationStatus");
+    expect(page).toContain('"tok-table-v2:update-reservation-status"');
+    expect(page).toContain('from("floor_plan_variants" as any)');
+    expect(page).toContain('"tok-table-v2:save-variant"');
     expect(page).toContain("event.origin !== window.location.origin");
     expect(page).toContain("event.source !== iframeRef.current?.contentWindow");
     expect(iframe).not.toContain("getSupabase");
@@ -331,6 +360,15 @@ describe("floor plan v2 secure bridge and zoom", () => {
     expect(html).toContain('id="zoom-fit-button"');
     expect(iframe).toContain("updateCanvasZoom");
     expect(iframe).toContain("pointerDistance");
+    expect(iframe).toContain("startReservationPointerDrag");
+    expect(iframe).toContain("finishReservationPointerDrag");
+    expect(iframe).toContain("scheduleServiceAutosave");
+    expect(iframe).toContain("renderServiceTableModal");
+    expect(html).toContain('id="service-table-modal"');
+    expect(html).toContain('id="variant-select"');
+    expect(html).toContain('id="save-variant-button"');
+    expect(iframe).toContain("loadVariant");
+    expect(iframe).toContain("saveVariantFromForm");
     expect(iframe).toContain('"tok-table-v2:save-template"');
     expect(iframe).toContain('"tok-table-v2:save-service-layout"');
     expect(iframe).not.toMatch(/\bprompt\s*\(/);
