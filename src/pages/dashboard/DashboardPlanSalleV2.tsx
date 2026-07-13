@@ -13,6 +13,7 @@ import {
   buildFloorPlanV2Assignments,
   computeFloorPlanV2AutoAssignments,
   getFloorPlanV2AssignmentError,
+  getFloorPlanV2ReservationRecommendation,
   mapFloorPlanV2Table,
   parseFloorPlanV2ObjectDrafts,
   parseFloorPlanV2TableDrafts,
@@ -22,6 +23,7 @@ import {
   type FloorPlanV2Reservation,
   type FloorPlanV2Table,
 } from "@/lib/floorPlanV2";
+import { updateRestaurantReservationStatus } from "@/lib/reservationMutations";
 import { getServicePeriodFromMetadata } from "@/lib/serviceSettings";
 
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
@@ -29,6 +31,8 @@ import { useDashboardRestaurant } from "./useDashboardRestaurant";
 const supabase = getSupabase();
 const PROTOTYPE_URL = "/tok-table-v2/index.html?connected=1";
 const RELEASED_STATUSES = new Set(["cancelled", "canceled", "no_show", "completed", "archived"]);
+const EDITABLE_RESERVATION_STATUSES = new Set(["pending", "confirmed", "arrived", "seated", "no_show"]);
+const LIVE_REFRESH_INTERVAL_MS = 15_000;
 
 type BranchRow = Database["public"]["Tables"]["restaurant_branches"]["Row"];
 type TableRow = Database["public"]["Tables"]["reservation_tables"]["Row"];
@@ -36,6 +40,17 @@ type ReservationRow = Database["public"]["Tables"]["reservations"]["Row"];
 type SlotRow = Database["public"]["Tables"]["reservation_slots"]["Row"];
 type LayoutOverrideRow = Database["public"]["Tables"]["reservation_table_layout_overrides"]["Row"];
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
+type FloorPlanVariantRow = {
+  id: string;
+  restaurant_id: string;
+  branch_id: string;
+  name: string;
+  source: "manual" | "ai-image" | "ai-generated";
+  snapshot: unknown;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
 type ReservationWithCustomer = ReservationRow & {
   customer: Pick<ProfileRow, "full_name"> | null;
 };
@@ -50,6 +65,16 @@ type TableSaveRequest = {
   requestId: string;
   rawTables: unknown;
   rawObjects?: unknown;
+};
+
+type ReservationStatusRequest = {
+  requestId: string;
+  reservationId: string;
+  status: string;
+};
+
+type VariantSaveRequest = TableSaveRequest & {
+  name: string;
 };
 
 type TemplateSaveResult = {
@@ -79,6 +104,19 @@ function getReservationDuration(reservation: ReservationRow) {
   return Number.isFinite(value) ? Math.max(30, value) : 120;
 }
 
+function getReservationFeature(reservation: ReservationRow) {
+  const metadata = asRecord(reservation.metadata);
+  const value = metadata.feature ?? reservation.feature;
+  return typeof value === "string" ? value : "standard";
+}
+
+function getReservationMiamzPriority(reservation: ReservationRow) {
+  const metadata = asRecord(reservation.metadata);
+  const miamz = asRecord(metadata.miamz);
+  const value = Number(metadata.miamz_priority_score ?? miamz.reservation_priority_score);
+  return Number.isFinite(value) ? Math.max(0, Math.round(value)) : 0;
+}
+
 function toFloorPlanV2Reservation(
   reservation: ReservationWithCustomer,
   tableId: string | null,
@@ -95,6 +133,8 @@ function toFloorPlanV2Reservation(
     durationMinutes: getReservationDuration(reservation),
     tableId,
     status: String(reservation.status || "pending"),
+    feature: getReservationFeature(reservation),
+    miamzPriority: getReservationMiamzPriority(reservation),
   };
 }
 
@@ -124,6 +164,39 @@ function getIdMap(value: unknown) {
 
 function tablePositionChanged(left: FloorPlanV2Table, right: FloorPlanV2Table) {
   return Math.abs(left.x - right.x) > 0.05 || Math.abs(left.y - right.y) > 0.05;
+}
+
+function mapFloorPlanV2Variant(
+  variant: FloorPlanVariantRow,
+  existingRows: readonly TableRow[],
+) {
+  const snapshot = asRecord(variant.snapshot);
+  const rows = Array.isArray(snapshot.tables) ? snapshot.tables : [];
+  const usedExistingIds = new Set<string>();
+
+  return rows.flatMap((candidate, index) => {
+    const row = asRecord(candidate);
+    const name = String(row.table_number || "").trim() || `Élément ${index + 1}`;
+    const layout = asRecord(row.layout);
+    const provisional = mapFloorPlanV2Table({
+      id: `tmp_variant_${variant.id}_${index}`,
+      table_number: name,
+      capacity: Math.max(0, Math.round(Number(row.capacity) || 0)),
+      is_active: row.is_active !== false,
+      sector: typeof row.sector === "string" ? row.sector : "Salle principale",
+      layout,
+    }, index);
+    const existing = existingRows.find((existingRow, existingIndex) => {
+      if (usedExistingIds.has(existingRow.id)) return false;
+      if (existingRow.table_number.toLocaleLowerCase("fr") !== name.toLocaleLowerCase("fr")) return false;
+      return mapFloorPlanV2Table(existingRow, existingIndex).editable === provisional.editable;
+    });
+    if (existing) usedExistingIds.add(existing.id);
+    return [{
+      ...provisional,
+      id: existing?.id || `${provisional.editable ? "tmp_table" : "tmp_object"}_variant_${index}`,
+    }];
+  });
 }
 
 export default function DashboardPlanSalleV2() {
@@ -164,6 +237,19 @@ export default function DashboardPlanSalleV2() {
     }
   }, [branches, selectedBranchId]);
 
+  const { data: floorPlanVariants = [], error: floorPlanVariantsError } = useQuery({
+    queryKey: ["floor-plan-v2-variants", selectedBranchId],
+    queryFn: async () => {
+      const { data, error } = await (supabase.from("floor_plan_variants" as any))
+        .select("*")
+        .eq("branch_id", selectedBranchId!)
+        .order("updated_at", { ascending: false });
+      if (error) throw error;
+      return (data || []) as unknown as FloorPlanVariantRow[];
+    },
+    enabled: Boolean(selectedBranchId),
+  });
+
   const { data: tableRows = [], isLoading: tablesLoading, error: tablesError } = useQuery({
     queryKey: ["floor-plan-v2-tables", selectedBranchId],
     queryFn: async () => {
@@ -176,6 +262,8 @@ export default function DashboardPlanSalleV2() {
       return (data || []) as TableRow[];
     },
     enabled: Boolean(selectedBranchId),
+    refetchInterval: LIVE_REFRESH_INTERVAL_MS,
+    refetchIntervalInBackground: true,
   });
 
   const { data: layoutOverrides = [], error: layoutOverridesError } = useQuery({
@@ -190,6 +278,8 @@ export default function DashboardPlanSalleV2() {
       return (data || []) as LayoutOverrideRow[];
     },
     enabled: Boolean(selectedBranchId),
+    refetchInterval: LIVE_REFRESH_INTERVAL_MS,
+    refetchIntervalInBackground: true,
   });
 
   const { data: reservationRows = [], isLoading: reservationsLoading, error: reservationsError } = useQuery({
@@ -223,6 +313,8 @@ export default function DashboardPlanSalleV2() {
       })) as ReservationWithCustomer[];
     },
     enabled: Boolean(selectedId),
+    refetchInterval: LIVE_REFRESH_INTERVAL_MS,
+    refetchIntervalInBackground: true,
   });
 
   const tableIds = useMemo(() => tableRows
@@ -239,6 +331,8 @@ export default function DashboardPlanSalleV2() {
       return (data || []) as SlotRow[];
     },
     enabled: Boolean(selectedBranchId) && tableIds.length > 0,
+    refetchInterval: LIVE_REFRESH_INTERVAL_MS,
+    refetchIntervalInBackground: true,
   });
 
   const slotsByReservationId = useMemo(
@@ -277,6 +371,20 @@ export default function DashboardPlanSalleV2() {
     () => buildFloorPlanV2Assignments(allReservations),
     [allReservations],
   );
+  const placementRecommendations = useMemo(() => Object.fromEntries(
+    visibleReservations
+      .filter((reservation) => !reservation.tableId)
+      .map((reservation) => [
+        reservation.id,
+        getFloorPlanV2ReservationRecommendation({
+          reservation,
+          allReservations,
+          tables: serviceTables,
+          assignments,
+        }),
+      ])
+      .filter((entry) => entry[1] !== null),
+  ), [allReservations, assignments, serviceTables, visibleReservations]);
 
   const sendToIframe = useCallback((type: string, payload: Record<string, unknown> = {}) => {
     iframeRef.current?.contentWindow?.postMessage(
@@ -296,6 +404,8 @@ export default function DashboardPlanSalleV2() {
       tables: serviceTables.filter((item) => item.editable),
       furniture: furnitureObjects,
       reservations: visibleReservations,
+      recommendations: placementRecommendations,
+      variants: floorPlanVariants.map((variant) => ({ id: variant.id, name: variant.name })),
     });
   }, [
     iframeReady,
@@ -306,6 +416,8 @@ export default function DashboardPlanSalleV2() {
     serviceTables,
     templateTables,
     furnitureObjects,
+    floorPlanVariants,
+    placementRecommendations,
     visibleReservations,
   ]);
 
@@ -362,6 +474,48 @@ export default function DashboardPlanSalleV2() {
       });
       window.setTimeout(sendHydrate, 0);
       toast({ title: "Placement refusé", description: message, variant: "destructive" });
+    },
+  });
+
+  const reservationStatusMutation = useMutation({
+    mutationFn: async ({ reservationId, status }: ReservationStatusRequest) => {
+      if (!EDITABLE_RESERVATION_STATUSES.has(status)) {
+        throw new Error("Ce statut de réservation n’est pas autorisé.");
+      }
+      if (!allReservations.some((reservation) => reservation.id === reservationId)) {
+        throw new Error("Réservation introuvable pour ce restaurant.");
+      }
+      const result = await updateRestaurantReservationStatus(reservationId, status);
+      if (!result.ok) throw new Error(result.errorMessage || "Mise à jour impossible.");
+    },
+    onMutate: (request) => {
+      sendToIframe("tok-table-v2:operation-start", {
+        requestId: request.requestId,
+        kind: "reservation-status",
+      });
+    },
+    onSuccess: async (_data, request) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["floor-plan-v2-reservations", selectedId] }),
+        queryClient.invalidateQueries({ queryKey: ["dashboard-all-reservations", selectedId] }),
+      ]);
+      await queryClient.refetchQueries({ queryKey: ["floor-plan-v2-reservations", selectedId] });
+      sendToIframe("tok-table-v2:operation-success", {
+        requestId: request.requestId,
+        kind: "reservation-status",
+        message: "Le statut de la réservation est à jour.",
+      });
+      toast({ title: "Statut mis à jour", description: "Le service a été synchronisé." });
+    },
+    onError: (error: Error, request) => {
+      const message = getErrorMessage(error);
+      sendToIframe("tok-table-v2:operation-error", {
+        requestId: request.requestId,
+        kind: "reservation-status",
+        message,
+      });
+      window.setTimeout(sendHydrate, 0);
+      toast({ title: "Statut non modifié", description: message, variant: "destructive" });
     },
   });
 
@@ -462,6 +616,81 @@ export default function DashboardPlanSalleV2() {
         message,
       });
       toast({ title: "Modèle non enregistré", description: message, variant: "destructive" });
+    },
+  });
+
+  const variantMutation = useMutation({
+    mutationFn: async ({ name, rawTables, rawObjects }: VariantSaveRequest) => {
+      if (!selectedId || !selectedBranchId) throw new Error("Aucune salle sélectionnée.");
+      const variantName = name.trim();
+      if (!variantName || variantName.length > 80) throw new Error("Donnez un nom valide à cette variante.");
+      const drafts = parseFloorPlanV2TableDrafts(rawTables);
+      const objectDrafts = parseFloorPlanV2ObjectDrafts(rawObjects || []);
+      const existingRowsById = new Map(tableRows.map((row) => [row.id, row]));
+      const snapshotTables = [
+        ...drafts.map((draft, index) => {
+          const existing = existingRowsById.get(draft.id);
+          return {
+            table_number: draft.name,
+            capacity: draft.capacity,
+            is_active: !draft.blocked,
+            sector: draft.zone,
+            layout: serializeFloorPlanV2Layout(draft, existing?.layout, index),
+          };
+        }),
+        ...objectDrafts.map((object) => {
+          const existing = existingRowsById.get(object.id);
+          return {
+            table_number: object.name,
+            capacity: 0,
+            is_active: true,
+            sector: object.zone,
+            layout: serializeFloorPlanV2Object(object, existing?.layout),
+          };
+        }),
+      ];
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+      if (authError || !authData.user) throw new Error("Session invalide.");
+      const { data, error } = await (supabase.from("floor_plan_variants" as any))
+        .insert({
+          restaurant_id: selectedId,
+          branch_id: selectedBranchId,
+          name: variantName,
+          source: "manual",
+          snapshot: {
+            version: 1,
+            canvas: { width: 1040, height: 760 },
+            tables: snapshotTables,
+          },
+          created_by: authData.user.id,
+        })
+        .select("*")
+        .single();
+      if (error) throw error;
+      return data as unknown as FloorPlanVariantRow;
+    },
+    onMutate: (request) => {
+      sendToIframe("tok-table-v2:operation-start", { requestId: request.requestId, kind: "variant" });
+    },
+    onSuccess: async (variant, request) => {
+      await queryClient.invalidateQueries({ queryKey: ["floor-plan-v2-variants", selectedBranchId] });
+      await queryClient.refetchQueries({ queryKey: ["floor-plan-v2-variants", selectedBranchId] });
+      sendToIframe("tok-table-v2:operation-success", {
+        requestId: request.requestId,
+        kind: "variant",
+        variantId: variant.id,
+        message: `La variante « ${variant.name} » est enregistrée.`,
+      });
+      toast({ title: "Variante enregistrée", description: variant.name });
+    },
+    onError: (error: Error, request) => {
+      const message = getErrorMessage(error);
+      sendToIframe("tok-table-v2:operation-error", {
+        requestId: request.requestId,
+        kind: "variant",
+        message,
+      });
+      toast({ title: "Variante non enregistrée", description: message, variant: "destructive" });
     },
   });
 
@@ -569,7 +798,9 @@ export default function DashboardPlanSalleV2() {
   }, [allReservations, assignmentMutation, assignments, sendToIframe, serviceTables, visibleReservations]);
 
   const operationPending = assignmentMutation.isPending
+    || reservationStatusMutation.isPending
     || templateMutation.isPending
+    || variantMutation.isPending
     || serviceLayoutMutation.isPending;
 
   useEffect(() => {
@@ -620,8 +851,46 @@ export default function DashboardPlanSalleV2() {
         });
         return;
       }
+      if (message.type === "tok-table-v2:update-reservation-status") {
+        const reservationId = String(message.payload?.reservationId || "");
+        const status = String(message.payload?.status || "").toLowerCase();
+        if (!reservationId || !EDITABLE_RESERVATION_STATUSES.has(status)) return;
+        reservationStatusMutation.mutate({ requestId, reservationId, status });
+        return;
+      }
       if (message.type === "tok-table-v2:auto-place-request") {
         autoPlace(requestId);
+        return;
+      }
+      if (message.type === "tok-table-v2:load-variant") {
+        const variantId = String(message.payload?.variantId || "");
+        const variant = floorPlanVariants.find((item) => item.id === variantId);
+        const items = variant ? mapFloorPlanV2Variant(variant, tableRows) : [];
+        if (!variant || !items.some((item) => item.editable)) {
+          sendToIframe("tok-table-v2:operation-error", {
+            requestId,
+            kind: "variant-load",
+            message: "Cette variante est introuvable ou vide.",
+          });
+          return;
+        }
+        sendToIframe("tok-table-v2:operation-success", {
+          requestId,
+          kind: "variant-load",
+          variantId,
+          tables: items.filter((item) => item.editable),
+          furniture: items.filter((item) => !item.editable),
+          message: `La variante « ${variant.name} » est chargée comme brouillon.`,
+        });
+        return;
+      }
+      if (message.type === "tok-table-v2:save-variant") {
+        variantMutation.mutate({
+          requestId,
+          name: String(message.payload?.name || ""),
+          rawTables: message.payload?.tables,
+          rawObjects: message.payload?.objects,
+        });
         return;
       }
       if (message.type === "tok-table-v2:save-template") {
@@ -642,14 +911,18 @@ export default function DashboardPlanSalleV2() {
   }, [
     assignmentMutation,
     autoPlace,
+    floorPlanVariants,
     operationPending,
+    reservationStatusMutation,
     sendToIframe,
     serviceLayoutMutation,
     templateMutation,
+    tableRows,
+    variantMutation,
   ]);
 
   const hasError = Boolean(
-    branchesError || tablesError || layoutOverridesError || reservationsError || slotsError,
+    branchesError || floorPlanVariantsError || tablesError || layoutOverridesError || reservationsError || slotsError,
   );
   const loading = restaurantsLoading || branchesLoading || tablesLoading || reservationsLoading;
 
