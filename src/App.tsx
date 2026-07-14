@@ -354,6 +354,10 @@ const COMMERCIAL_DEMO_FRAME_ROUTE_POLICY: Record<
     home: "/courier",
     allowedPaths: ["/courier", "/courier/jobs", "/courier/notifications", "/courier/earnings", "/courier/profile"],
   },
+  commercial: {
+    home: "/commercial",
+    allowedPaths: ["/commercial", "/commercial/comptabilite"],
+  },
 };
 
 function CommercialDemoFrameRouteBoundary({
