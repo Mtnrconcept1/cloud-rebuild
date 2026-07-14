@@ -313,13 +313,21 @@ ALTER TABLE public.commercial_prospect_followups
         status = 'signed'
         AND signed_by IS NOT NULL
         AND signed_at IS NOT NULL
+        AND signed_subscription_plan_slug IS NOT NULL
         AND signed_subscription_plan_slug IN ('starter', 'pro', 'premium', 'elite')
         AND NULLIF(trim(COALESCE(signed_subscription_plan_name, '')), '') IS NOT NULL
+        AND signed_subscription_billing_period IS NOT NULL
         AND signed_subscription_billing_period IN ('monthly', 'yearly')
+        AND signed_subscription_monthly_price_chf IS NOT NULL
         AND signed_subscription_monthly_price_chf > 0
+        AND signed_subscription_contract_value_chf IS NOT NULL
         AND signed_subscription_contract_value_chf >= signed_subscription_monthly_price_chf
+        AND acquisition_commission_rate IS NOT NULL
         AND acquisition_commission_rate = 0
+        AND acquisition_commission_chf IS NOT NULL
         AND acquisition_commission_chf >= 0
+        AND commercial_compensation_mode IS NOT NULL
+        AND reservation_commission_rate IS NOT NULL
         AND (
           (
             commercial_compensation_mode = 'commission_only'
@@ -511,8 +519,30 @@ CREATE TRIGGER audit_commercial_prospect_followup
 REVOKE ALL ON FUNCTION public.audit_commercial_prospect_followup()
   FROM PUBLIC, anon, authenticated, service_role;
 
--- Direct commercial writes are removed. The super admin can still repair a
--- row explicitly; ordinary commercial changes must pass the guarded RPC.
+CREATE OR REPLACE FUNCTION public.prevent_commercial_prospect_followup_delete()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+BEGIN
+  RAISE EXCEPTION USING
+    ERRCODE = '55000',
+    MESSAGE = 'commercial prospect followups are append-only; record a new status instead';
+END;
+$$;
+
+DROP TRIGGER IF EXISTS prevent_commercial_prospect_followup_delete
+  ON public.commercial_prospect_followups;
+CREATE TRIGGER prevent_commercial_prospect_followup_delete
+  BEFORE DELETE ON public.commercial_prospect_followups
+  FOR EACH ROW EXECUTE FUNCTION public.prevent_commercial_prospect_followup_delete();
+
+REVOKE ALL ON FUNCTION public.prevent_commercial_prospect_followup_delete()
+  FROM PUBLIC, anon, authenticated, service_role;
+
+-- Direct writes are removed for every Data API role. Commercial changes must
+-- pass the guarded RPC; corrections remain auditable status events.
 ALTER TABLE public.commercial_prospect_followups ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "commercial_prospect_followups_admin_commercial_select"
@@ -547,25 +577,11 @@ CREATE POLICY commercial_prospect_followups_owner_select
     )
   );
 
-CREATE POLICY commercial_prospect_followups_admin_insert
-  ON public.commercial_prospect_followups
-  FOR INSERT TO authenticated
-  WITH CHECK (public.auth_is_super_admin());
-
-CREATE POLICY commercial_prospect_followups_admin_update
-  ON public.commercial_prospect_followups
-  FOR UPDATE TO authenticated
-  USING (public.auth_is_super_admin())
-  WITH CHECK (public.auth_is_super_admin());
-
-CREATE POLICY commercial_prospect_followups_admin_delete
-  ON public.commercial_prospect_followups
-  FOR DELETE TO authenticated
-  USING (public.auth_is_super_admin());
-
 REVOKE ALL ON TABLE public.commercial_prospect_followups FROM anon;
-GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.commercial_prospect_followups TO authenticated;
-GRANT ALL ON TABLE public.commercial_prospect_followups TO service_role;
+REVOKE INSERT, UPDATE, DELETE ON TABLE public.commercial_prospect_followups
+  FROM authenticated, service_role;
+GRANT SELECT ON TABLE public.commercial_prospect_followups
+  TO authenticated, service_role;
 
 CREATE OR REPLACE FUNCTION public.get_commercial_prospect_followups()
 RETURNS jsonb
@@ -605,15 +621,21 @@ BEGIN
         'assigned_to', CASE WHEN v_is_super_admin OR cpf.assigned_to = v_actor_id THEN cpf.assigned_to ELSE NULL END,
         'assigned_to_name', cpf.assigned_to_name,
         'last_contacted_by', CASE WHEN v_is_super_admin OR cpf.last_contacted_by = v_actor_id THEN cpf.last_contacted_by ELSE NULL END,
-        'last_contacted_by_name', cpf.last_contacted_by_name,
+        'last_contacted_by_name', CASE WHEN v_is_super_admin OR cpf.last_contacted_by = v_actor_id THEN cpf.last_contacted_by_name ELSE NULL END,
         'signed_by', CASE WHEN v_is_super_admin OR cpf.signed_by = v_actor_id THEN cpf.signed_by ELSE NULL END,
-        'signed_by_name', cpf.signed_by_name,
+        'signed_by_name', CASE WHEN v_is_super_admin OR cpf.signed_by = v_actor_id THEN cpf.signed_by_name ELSE NULL END,
         'signed_at', CASE WHEN v_is_super_admin OR cpf.signed_by = v_actor_id THEN cpf.signed_at ELSE NULL END,
+        'signed_restaurant_id', CASE WHEN v_is_super_admin OR cpf.signed_by = v_actor_id THEN cpf.signed_restaurant_id ELSE NULL END,
         'signed_subscription_plan_slug', CASE WHEN v_is_super_admin OR cpf.signed_by = v_actor_id THEN cpf.signed_subscription_plan_slug ELSE NULL END,
         'signed_subscription_plan_name', CASE WHEN v_is_super_admin OR cpf.signed_by = v_actor_id THEN cpf.signed_subscription_plan_name ELSE NULL END,
         'signed_subscription_billing_period', CASE WHEN v_is_super_admin OR cpf.signed_by = v_actor_id THEN cpf.signed_subscription_billing_period ELSE NULL END,
         'signed_subscription_monthly_price_chf', CASE WHEN v_is_super_admin OR cpf.signed_by = v_actor_id THEN cpf.signed_subscription_monthly_price_chf ELSE NULL END,
         'signed_subscription_contract_value_chf', CASE WHEN v_is_super_admin OR cpf.signed_by = v_actor_id THEN cpf.signed_subscription_contract_value_chf ELSE NULL END,
+        'acquisition_commission_rate', CASE WHEN v_is_super_admin OR cpf.signed_by = v_actor_id THEN cpf.acquisition_commission_rate ELSE NULL END,
+        'acquisition_commission_chf', CASE WHEN v_is_super_admin OR cpf.signed_by = v_actor_id THEN cpf.acquisition_commission_chf ELSE NULL END,
+        'commercial_compensation_mode', CASE WHEN v_is_super_admin OR cpf.signed_by = v_actor_id THEN cpf.commercial_compensation_mode ELSE NULL END,
+        'reservation_commission_rate', CASE WHEN v_is_super_admin OR cpf.signed_by = v_actor_id THEN cpf.reservation_commission_rate ELSE NULL END,
+        'reservation_commission_starts_at', CASE WHEN v_is_super_admin OR cpf.signed_by = v_actor_id THEN cpf.reservation_commission_starts_at ELSE NULL END,
         'visited_at', CASE WHEN v_is_super_admin OR cpf.assigned_to = v_actor_id THEN cpf.visited_at ELSE NULL END,
         'next_follow_up_at', CASE WHEN v_is_super_admin OR cpf.assigned_to = v_actor_id THEN cpf.next_follow_up_at ELSE NULL END,
         'updated_at', cpf.updated_at
@@ -665,7 +687,7 @@ BEGIN
     RAISE EXCEPTION USING ERRCODE = '42501', MESSAGE = 'authentication_required';
   END IF;
 
-  IF NOT v_is_super_admin AND NOT v_is_commercial THEN
+  IF NOT v_is_commercial THEN
     RAISE EXCEPTION USING ERRCODE = '42501', MESSAGE = 'commercial_access_required';
   END IF;
 
@@ -762,7 +784,7 @@ BEGIN
       v_owner_id,
       lower(trim(p_subscription_plan_slug)),
       lower(trim(p_subscription_billing_period)),
-      v_now
+      COALESCE(v_existing.signed_at, v_now)
     );
   ELSE
     v_snapshot := '{}'::jsonb;
@@ -811,7 +833,7 @@ BEGIN
     v_refusal_other,
     CASE WHEN p_status = 'signed' THEN v_owner_id ELSE NULL END,
     CASE WHEN p_status = 'signed' THEN v_owner_name ELSE NULL END,
-    CASE WHEN p_status = 'signed' THEN v_now ELSE NULL END,
+    CASE WHEN p_status = 'signed' THEN COALESCE(v_existing.signed_at, v_now) ELSE NULL END,
     CASE WHEN p_status = 'signed' THEN v_existing.signed_restaurant_id ELSE NULL END,
     CASE WHEN p_status = 'signed' THEN v_snapshot->>'plan_slug' ELSE NULL END,
     CASE WHEN p_status = 'signed' THEN v_snapshot->>'plan_name' ELSE NULL END,
@@ -1115,7 +1137,13 @@ BEGIN
   FROM grouped;
 
   WITH personal_restaurants AS (
-    SELECT DISTINCT cpf.signed_restaurant_id AS restaurant_id
+    SELECT
+      cpf.signed_restaurant_id AS restaurant_id,
+      GREATEST(
+        cpf.signed_at,
+        COALESCE(cpf.reservation_commission_starts_at, cpf.signed_at),
+        COALESCE(v_profile.engaged_at::timestamptz, cpf.signed_at)
+      ) AS commission_starts_at
     FROM public.commercial_prospect_followups cpf
     WHERE cpf.signed_by = v_target_user_id
       AND cpf.status = 'signed'
@@ -1129,6 +1157,7 @@ BEGIN
   JOIN personal_restaurants pr ON pr.restaurant_id = r.restaurant_id
   WHERE r.confirmed_at IS NOT NULL
     AND r.confirmed_at >= v_period_start_ts
+    AND r.confirmed_at >= pr.commission_starts_at
     AND r.confirmed_at < v_period_end_ts
     AND COALESCE(r.status, '') NOT IN ('cancelled', 'canceled', 'no_show', 'no-show', 'pending', 'refused')
     AND r.cancelled_by IS NULL;
@@ -1140,13 +1169,19 @@ BEGIN
 
   IF v_employment_active AND v_status = 'team_lead' THEN
     WITH team_commercials AS (
-      SELECT ccp.user_id
+      SELECT ccp.user_id, ccp.engaged_at
       FROM public.commercial_compensation_profiles ccp
       WHERE ccp.team_lead_id = v_target_user_id
         AND ccp.user_id <> v_target_user_id
     ),
     team_restaurants AS (
-      SELECT DISTINCT cpf.signed_restaurant_id AS restaurant_id
+      SELECT
+        cpf.signed_restaurant_id AS restaurant_id,
+        GREATEST(
+          cpf.signed_at,
+          COALESCE(cpf.reservation_commission_starts_at, cpf.signed_at),
+          COALESCE(tc.engaged_at::timestamptz, cpf.signed_at)
+        ) AS commission_starts_at
       FROM public.commercial_prospect_followups cpf
       JOIN team_commercials tc ON tc.user_id = cpf.signed_by
       WHERE cpf.status = 'signed'
@@ -1160,6 +1195,7 @@ BEGIN
     JOIN team_restaurants tr ON tr.restaurant_id = r.restaurant_id
     WHERE r.confirmed_at IS NOT NULL
       AND r.confirmed_at >= v_period_start_ts
+      AND r.confirmed_at >= tr.commission_starts_at
       AND r.confirmed_at < v_period_end_ts
       AND COALESCE(r.status, '') NOT IN ('cancelled', 'canceled', 'no_show', 'no-show', 'pending', 'refused')
       AND r.cancelled_by IS NULL;
@@ -1262,7 +1298,7 @@ REVOKE ALL ON FUNCTION public.get_commercial_prospect_followups()
 REVOKE ALL ON FUNCTION public.record_commercial_prospect_followup(
   bigint, public.commercial_visit_status, text, date, text[], text, text, text, timestamptz
 )
-  FROM PUBLIC, anon;
+  FROM PUBLIC, anon, service_role;
 REVOKE ALL ON FUNCTION public.get_admin_commercial_commission_summary(date, date)
   FROM PUBLIC, anon;
 REVOKE ALL ON FUNCTION public.get_commercial_compensation_summary(uuid, date, date)
@@ -1273,7 +1309,7 @@ GRANT EXECUTE ON FUNCTION public.get_commercial_prospect_followups()
 GRANT EXECUTE ON FUNCTION public.record_commercial_prospect_followup(
   bigint, public.commercial_visit_status, text, date, text[], text, text, text, timestamptz
 )
-  TO authenticated, service_role;
+  TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_admin_commercial_commission_summary(date, date)
   TO authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.get_commercial_compensation_summary(uuid, date, date)
