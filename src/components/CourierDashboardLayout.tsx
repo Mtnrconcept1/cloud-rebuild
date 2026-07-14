@@ -26,6 +26,7 @@ import {
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { normalizeInternalNavigationTarget } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
+import { isCommercialDemoFrameWindow } from "@/lib/commercialDemoFrame";
 
 type CourierNavItem = {
   to: string;
@@ -92,15 +93,17 @@ function CourierNavContent({
         </Link>
       ))}
 
-      <div className="mt-3 border-t pt-3">
-        <button
-          onClick={onSignOut}
-          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
-        >
-          <LogOut className="h-4 w-4" />
-          Deconnexion
-        </button>
-      </div>
+      {!isCommercialDemoFrameWindow() ? (
+        <div className="mt-3 border-t pt-3">
+          <button
+            onClick={onSignOut}
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
+          >
+            <LogOut className="h-4 w-4" />
+            Deconnexion
+          </button>
+        </div>
+      ) : null}
     </>
   );
 }
