@@ -294,9 +294,9 @@ export default function DashboardLayout({
   const { pathname } = useLocation();
   const queryClient = useQueryClient();
   const { selectedId, disabledFeatures, dashboardAccessLocked, dashboardAccessLockReason, isDemoMode } = useDashboardRestaurant();
-  const activeFeatures = useActiveFeatures();
   const { role } = useAuth();
   const commercialDemoFrame = useCommercialDemoFrame();
+  const activeFeatures = useActiveFeatures({ enabled: !commercialDemoFrame });
   const { unreadNotifications } = useNotificationCenter(50);
 
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -418,22 +418,24 @@ export default function DashboardLayout({
           />
         </nav>
 
-        <div className="mt-auto border-t px-3 py-3 dark:border-[#5f7aad]/28">
-          <SignOutButton
-            iconOnly={collapsed}
-            className={cn(
-              collapsed
-                ? "mx-auto border-destructive/20 bg-transparent shadow-none"
-                : "w-full justify-start rounded-xl px-3",
-            )}
-          />
-        </div>
+        {!commercialDemoFrame ? (
+          <div className="mt-auto border-t px-3 py-3 dark:border-[#5f7aad]/28">
+            <SignOutButton
+              iconOnly={collapsed}
+              className={cn(
+                collapsed
+                  ? "mx-auto border-destructive/20 bg-transparent shadow-none"
+                  : "w-full justify-start rounded-xl px-3",
+              )}
+            />
+          </div>
+        ) : null}
       </aside>
 
       <div className="fixed right-[calc(env(safe-area-inset-right,0px)+0.75rem)] top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-[40] flex items-center gap-2">
         <ThemeToggleButton className="h-11 w-11 rounded-full border border-border/70 bg-background/95 text-foreground shadow-[0_14px_34px_rgba(15,23,42,0.16)] backdrop-blur-md hover:bg-background dark:border-[#5f7aad]/35 dark:bg-[#07142b]/95 dark:text-white dark:shadow-[0_20px_48px_rgba(0,0,0,0.5),0_0_30px_rgba(255,106,26,0.16)]" />
         <NotificationBell />
-        <SignOutButton iconOnly />
+        {!commercialDemoFrame ? <SignOutButton iconOnly /> : null}
       </div>
 
       {/* MOBILE */}
@@ -498,12 +500,14 @@ export default function DashboardLayout({
                   role={role}
                   dashboardAccessLocked={dashboardAccessLocked}
                 />
-                <div className="mt-3 border-t pt-3">
-                  <SignOutButton
-                    onSignedOut={() => setMobileMenuOpen(false)}
-                    className="w-full justify-start rounded-xl px-3"
-                  />
-                </div>
+                {!commercialDemoFrame ? (
+                  <div className="mt-3 border-t pt-3">
+                    <SignOutButton
+                      onSignedOut={() => setMobileMenuOpen(false)}
+                      className="w-full justify-start rounded-xl px-3"
+                    />
+                  </div>
+                ) : null}
               </nav>
             </div>
           </SheetContent>
