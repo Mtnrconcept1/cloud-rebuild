@@ -13,6 +13,7 @@ describe("commercial real multi-dashboard demonstration", () => {
   const browsers = read("src/components/commercial/CommercialDemoBrowserGrid.tsx");
   const courierLayout = read("src/components/CourierDashboardLayout.tsx");
   const courierHome = read("src/pages/courier/CourierHome.tsx");
+  const commercialChrome = read("src/components/commercial/CommercialWorkspaceChrome.tsx");
   const frame = read("src/lib/commercialDemoFrame.ts");
   const provider = read("src/components/commercial/CommercialDemoFrameProvider.tsx");
   const workspace = read("src/components/commercial/CommercialDemoActorWorkspace.tsx");
@@ -52,10 +53,22 @@ describe("commercial real multi-dashboard demonstration", () => {
     expect(app).toContain('allowedPaths: ["/mon-espace", "/commandes", "/notifications"]');
     expect(app).toContain('allowedPaths: ["/dashboard", "/dashboard/commandes", "/dashboard/notifications"]');
     expect(app).toContain('allowedPaths: ["/courier", "/courier/jobs", "/courier/notifications", "/courier/earnings", "/courier/profile"]');
+    expect(app).toContain('allowedPaths: ["/commercial", "/commercial/comptabilite"]');
     expect(app).toContain("if (!policy.allowedPaths.includes(pathname))");
     expect(app).toContain("<Navigate to={policy.home} replace />");
     expect(app).toContain("<CommercialDemoFrameRouteBoundary config={commercialDemoFrame}>");
     expect(app).toContain("const publicNavbar = !commercialDemoFrame && shouldShowPublicNavbar(pathname)");
+  });
+
+  it("runs the real commercial workspace inside the same validated session boundary", () => {
+    expect(frame).toContain('CommercialDemoActorSurface | "commercial"');
+    expect(frame).toContain('(client|restaurant|courier|commercial)');
+    expect(frame).toContain('commercial: "commercial"');
+    expect(provider).toContain('type: "commercial-demo:escape"');
+    expect(commercialChrome).toContain('commercialDemoFrame?.surface === "commercial"');
+    expect(commercialChrome).toContain('item.to !== "/commercial/demo-live"');
+    expect(commercialChrome).toContain('!isEmbeddedCommercial ? <SignOutButton iconOnly /> : null');
+    expect(notifications).toContain('commercialDemoFrame.surface !== "commercial"');
   });
 
   it("keeps the courier role virtual and validates every frame through the isolated snapshot RPC", () => {
