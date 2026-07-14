@@ -8,6 +8,17 @@ export type CommercialDemoFrameConfig = {
   basename: string;
 };
 
+export type CommercialDemoFrameStateMessage = {
+  type: "commercial-demo:frame-state";
+  sessionId: string;
+  surface: CommercialDemoFrameSurface;
+  path: string;
+  search: string;
+  historyIndex: number;
+  unreadCount: number;
+  realtimeStatus: "connecting" | "connected" | "reconnecting" | "offline";
+};
+
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const FRAME_PATH_PATTERN = /^\/commercial\/demo-live\/frame\/(client|restaurant|courier)\/([^/]+)(?=\/|$)/i;
 
@@ -77,4 +88,37 @@ export function isCommercialDemoFrameMessage(value: unknown): value is {
     && typeof record.sessionId === "string"
     && UUID_PATTERN.test(record.sessionId)
     && typeof record.checkoutUrl === "string";
+}
+
+export function isCommercialDemoFrameStateMessage(value: unknown): value is CommercialDemoFrameStateMessage {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const record = value as Record<string, unknown>;
+  const surface = record.surface;
+  const path = record.path;
+  const search = record.search;
+  const historyIndex = record.historyIndex;
+  const unreadCount = record.unreadCount;
+  const realtimeStatus = record.realtimeStatus;
+
+  return record.type === "commercial-demo:frame-state"
+    && typeof record.sessionId === "string"
+    && UUID_PATTERN.test(record.sessionId)
+    && (surface === "client" || surface === "restaurant" || surface === "courier")
+    && typeof path === "string"
+    && path.startsWith("/")
+    && !path.startsWith("//")
+    && typeof search === "string"
+    && (search === "" || search.startsWith("?"))
+    && typeof historyIndex === "number"
+    && Number.isInteger(historyIndex)
+    && historyIndex >= 0
+    && typeof unreadCount === "number"
+    && Number.isInteger(unreadCount)
+    && unreadCount >= 0
+    && (
+      realtimeStatus === "connecting"
+      || realtimeStatus === "connected"
+      || realtimeStatus === "reconnecting"
+      || realtimeStatus === "offline"
+    );
 }
