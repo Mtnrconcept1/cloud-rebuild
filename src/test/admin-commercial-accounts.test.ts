@@ -91,6 +91,8 @@ describe("commercial demo account security", () => {
       "block_commercial_demo_side_effect_row",
       "block_commercial_demo_social_side_effect_row",
       "guard_commercial_demo_image_analysis_job",
+      "prevent_restaurant_demo_status_change",
+      "prevent_restaurant_image_reassignment",
     ]) {
       expect(aclHardening).toContain(`FUNCTION public.${helper}()`);
     }
@@ -98,8 +100,14 @@ describe("commercial demo account security", () => {
     expect(aclHardening).toContain("FROM PUBLIC, anon, authenticated, service_role");
     expect(aclHardening).toContain("commercial_demo_accounts_created_by_idx");
     expect(aclHardening).toContain("Commercial role requires an active administrator-managed demo account");
+    expect(aclHardening).toContain("UPDATE OF user_id, role ON public.user_roles");
+    expect(aclHardening).toContain("AND NEW.user_id IS NOT DISTINCT FROM OLD.user_id");
+    expect(aclHardening).toContain("DELETE FROM public.user_roles ur");
+    expect(aclHardening).toContain("IF NOT (v_role = ANY(v_old_roles))");
     expect(aclHardening).toContain("BEFORE INSERT OR UPDATE ON public.image_analysis_jobs");
     expect(aclHardening).toContain("AND restaurant.is_demo");
     expect(aclHardening).toContain("RETURN NULL");
+    expect(aclHardening).toContain("Restaurant demonstration status is immutable");
+    expect(aclHardening).toContain("Indexed restaurant image ownership is immutable");
   });
 });
