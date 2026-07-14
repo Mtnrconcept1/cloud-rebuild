@@ -14,8 +14,11 @@ STRIPE_SECRET_KEY_TEST=rk_test_...   # recommandé
 
 Une clé `sk_test_...` est également acceptée. Toute clé live, publishable ou
 absente provoque respectivement `INVALID_TEST_STRIPE_KEY` ou
-`DEMO_STRIPE_NOT_CONFIGURED`. Il n'existe aucun fallback vers
-`STRIPE_SECRET_KEY`, `STRIPE_SECRET_KEY_LIVE`, Tok One ou Stripe Connect.
+`DEMO_STRIPE_NOT_CONFIGURED`. La clé test existante
+`STRIPE_TOK_ONE_TEST_SECRET_KEY` peut servir de repli afin d'activer la démo
+sans nouvelle configuration ; son préfixe test est contrôlé de la même manière.
+Il n'existe aucun fallback vers `STRIPE_SECRET_KEY`,
+`STRIPE_SECRET_KEY_LIVE`, une clé Tok One live ou Stripe Connect.
 
 Pour une clé restreinte Stripe, accorder seulement les permissions nécessaires
 à la création/lecture de Checkout Sessions et à la lecture des Payment Intents.
