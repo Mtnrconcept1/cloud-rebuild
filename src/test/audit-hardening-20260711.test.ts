@@ -34,10 +34,11 @@ describe("2026-07-11 audit hardening", () => {
     expect(card).not.toContain("Restaurant card reservation availability fallback");
   });
 
-  it("does not render test commercial access in production", () => {
+  it("keeps commercial demo access out of the public authentication page", () => {
     const auth = readProjectFile("src/pages/Auth.tsx");
 
-    expect(auth).toContain("COMMERCIAL_DEMO_LOGINS.length > 0");
+    expect(auth).not.toContain("COMMERCIAL_DEMO_LOGINS");
+    expect(auth).not.toContain("provision-commercial-demo-logins");
     expect(auth).toContain('robots: "noindex,nofollow"');
   });
 });
