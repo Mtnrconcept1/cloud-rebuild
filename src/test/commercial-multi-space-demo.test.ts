@@ -118,6 +118,7 @@ describe("commercial real multi-dashboard demonstration", () => {
 
     expect(courierHome).toContain("function CourierHomePresentation");
     expect(courierHome).toContain("<CourierHomePresentation");
+    expect(courierHome).toContain("pushStatusCard={<CourierPushStatusCard />}");
     expect(courierHome).toContain("commercial-demo-courier-home");
     expect(courierHome).toContain("buildCommercialDemoCourierHomeViewModel(snapshot, isOnline)");
     expect(courierHome).toContain("commercialDemoFrame.snapshot");
