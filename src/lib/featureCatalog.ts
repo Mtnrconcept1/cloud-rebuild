@@ -333,7 +333,7 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     description: "Expose la carte terrain et le suivi des restaurants visités par les commerciaux TOK.",
     defaultEnabled: true,
     group: "admin_tools",
-    routeTargets: ["/commercial", "/commercial/prospection"],
+    routeTargets: ["/commercial", "/commercial/prospection", "/commercial/demo-live"],
   },
   {
     name: "campagnes-pub",
