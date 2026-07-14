@@ -27,7 +27,6 @@ import {
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { normalizeInternalNavigationTarget } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
-import { isCommercialDemoFrameWindow } from "@/lib/commercialDemoFrame";
 
 type CourierNavItem = {
   to: string;
@@ -49,6 +48,7 @@ type CourierNavContentProps = {
   visibleNavItems: CourierNavItem[];
   role: ReturnType<typeof useAuth>["role"];
   unreadNotifications: ReturnType<typeof useNotificationCenter>["unreadNotifications"];
+  isCommercialDemoFrame: boolean;
   onSignOut: () => void;
   onNavigate?: () => void;
 };
@@ -58,6 +58,7 @@ function CourierNavContent({
   visibleNavItems,
   role,
   unreadNotifications,
+  isCommercialDemoFrame,
   onSignOut,
   onNavigate,
 }: CourierNavContentProps) {
@@ -68,13 +69,17 @@ function CourierNavContent({
         <h2 className="font-display text-lg font-semibold">Espace Livreur</h2>
       </div>
 
-      <div className="px-1 pb-2">
-        <ChefHelpButton surface="courier" onOpen={onNavigate} />
-      </div>
+      {!isCommercialDemoFrame ? (
+        <>
+          <div className="px-1 pb-2">
+            <ChefHelpButton surface="courier" onOpen={onNavigate} />
+          </div>
 
-      <div className="px-1 pb-2">
-        <RoleSpaceMenuSection onNavigate={onNavigate} />
-      </div>
+          <div className="px-1 pb-2">
+            <RoleSpaceMenuSection onNavigate={onNavigate} />
+          </div>
+        </>
+      ) : null}
 
       {visibleNavItems.map((item) => (
         <Link
@@ -94,7 +99,7 @@ function CourierNavContent({
         </Link>
       ))}
 
-      {!isCommercialDemoFrameWindow() ? (
+      {!isCommercialDemoFrame ? (
         <div className="mt-3 border-t pt-3">
           <button
             onClick={onSignOut}
@@ -219,6 +224,7 @@ export default function CourierDashboardLayout({ children }: { children: React.R
               visibleNavItems={visibleNavItems}
               role={role}
               unreadNotifications={unreadNotifications}
+              isCommercialDemoFrame={isCommercialDemoFrame}
               onSignOut={() => signOut()}
             />
           </div>
@@ -233,7 +239,7 @@ export default function CourierDashboardLayout({ children }: { children: React.R
       <div className="fixed right-[calc(env(safe-area-inset-right,0px)+0.75rem)] top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-[70] flex items-center gap-2">
         <ThemeToggleButton className="h-11 w-11 rounded-full border border-border/70 bg-background/95 text-foreground shadow-[0_14px_34px_rgba(15,23,42,0.16)] backdrop-blur-md hover:bg-background dark:border-[#5f7aad]/35 dark:bg-[#07142b]/95 dark:text-white dark:shadow-[0_20px_48px_rgba(0,0,0,0.5),0_0_30px_rgba(255,106,26,0.16)]" />
         <NotificationBell />
-        <SignOutButton iconOnly />
+        {!isCommercialDemoFrame ? <SignOutButton iconOnly /> : null}
       </div>
 
       <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[60] flex justify-end px-4 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] md:hidden">
@@ -285,6 +291,7 @@ export default function CourierDashboardLayout({ children }: { children: React.R
                   visibleNavItems={visibleNavItems}
                   role={role}
                   unreadNotifications={unreadNotifications}
+                  isCommercialDemoFrame={isCommercialDemoFrame}
                   onSignOut={() => signOut()}
                   onNavigate={() => setMobileMenuOpen(false)}
                 />
