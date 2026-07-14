@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildCommercialDemoFrameUrl,
   getCommercialDemoFrameRole,
+  isCommercialDemoFrameStateMessage,
   parseCommercialDemoFramePath,
 } from "../lib/commercialDemoFrame";
 
@@ -35,5 +36,23 @@ describe("commercial demo browser frames", () => {
       .toBe(`/commercial/demo-live/frame/restaurant/${sessionId}/dashboard/commandes`);
     expect(buildCommercialDemoFrameUrl("courier", sessionId, "/courier/jobs"))
       .toBe(`/commercial/demo-live/frame/courier/${sessionId}/courier/jobs`);
+  });
+
+  it("accepts only strictly shaped same-origin frame state payloads", () => {
+    const message = {
+      type: "commercial-demo:frame-state",
+      sessionId,
+      surface: "client",
+      path: "/commandes",
+      search: "?demo=1",
+      historyIndex: 2,
+      unreadCount: 3,
+      realtimeStatus: "connected",
+    };
+    expect(isCommercialDemoFrameStateMessage(message)).toBe(true);
+    expect(isCommercialDemoFrameStateMessage({ ...message, surface: "admin" })).toBe(false);
+    expect(isCommercialDemoFrameStateMessage({ ...message, path: "https://evil.test" })).toBe(false);
+    expect(isCommercialDemoFrameStateMessage({ ...message, unreadCount: -1 })).toBe(false);
+    expect(isCommercialDemoFrameStateMessage({ ...message, realtimeStatus: "unknown" })).toBe(false);
   });
 });
