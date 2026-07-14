@@ -133,8 +133,9 @@ export function CommercialDemoFrameAuthBoundary({
   const value = useMemo<AuthContextType>(() => ({
     ...auth,
     role: forcedRole,
-    roles: [forcedRole],
-    isSuperAdmin: false,
+    // Keep the authenticated identity and its authoritative roles intact.
+    // Only the active presentation role is virtual inside this frame.
+    roles: auth.roles,
     canSwitchRole: false,
     switchRole: () => undefined,
     // Signing out one same-origin frame would terminate all three windows and

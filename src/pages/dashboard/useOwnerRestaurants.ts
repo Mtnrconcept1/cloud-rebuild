@@ -5,6 +5,11 @@ import { useAuth } from "@/lib/auth-context";
 import { computeSubscriptionEnabledFeatures, type GatableFeatureKey } from "@/lib/packFeatureGating";
 import { getRestaurantSocialLinks, type RestaurantSocialLinks } from "@/lib/socialCrossPosting";
 import { useCommercialDemoAccount } from "@/hooks/useCommercialDemoAccount";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
+import {
+  filterCommercialDemoRestaurants,
+  normalizeCommercialDemoRestaurantId,
+} from "@/lib/commercialDemoRestaurantScope";
 
 const supabase = getSupabase();
 
@@ -103,7 +108,12 @@ async function fetchActiveRestaurantSubscriptions(restaurantIds: string[]) {
 
 export function useOwnerRestaurants(options?: { enabled?: boolean }) {
   const { user, roles } = useAuth();
+  const commercialDemoFrame = useCommercialDemoFrame();
   const enabled = options?.enabled ?? true;
+  const isCommercialDemoFrame = Boolean(commercialDemoFrame);
+  const frameDemoRestaurantId = normalizeCommercialDemoRestaurantId(
+    commercialDemoFrame?.snapshot.session.demo_restaurant_id,
+  );
   const isCommercialUser = roles.includes("commercial");
   const isMarkedCommercialDemoIdentity = isCommercialUser
     && user?.app_metadata?.account_type === "commercial_demo";
@@ -113,31 +123,56 @@ export function useOwnerRestaurants(options?: { enabled?: boolean }) {
     loading: demoAccountLoading,
     error: demoAccountError,
   } = useCommercialDemoAccount({
-    enabled: enabled && isCommercialUser,
+    // The already validated frame snapshot is authoritative in embedded mode.
+    // Never replace it with another account lookup or a cached mapping.
+    enabled: enabled && isCommercialUser && !isCommercialDemoFrame,
   });
-  const isManagedCommercialIdentity = isMarkedCommercialDemoIdentity || Boolean(demoAccount);
+  const effectiveDemoRestaurantId = isCommercialDemoFrame
+    ? frameDemoRestaurantId
+    : demoRestaurantId;
+  const isManagedCommercialIdentity = isCommercialDemoFrame
+    || isMarkedCommercialDemoIdentity
+    || Boolean(demoAccount);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["owner-restaurants", user?.id, isManagedCommercialIdentity, demoRestaurantId],
+    queryKey: [
+      "owner-restaurants",
+      user?.id,
+      isManagedCommercialIdentity,
+      effectiveDemoRestaurantId,
+      commercialDemoFrame?.config.sessionId || null,
+    ],
     queryFn: async () => {
       // Commercial identities are fail-closed: without their authoritative
       // mapping they receive no restaurateur workspace, never a real one.
-      if (isManagedCommercialIdentity && !demoRestaurantId) return [] as OwnedRestaurant[];
+      if (isManagedCommercialIdentity && !effectiveDemoRestaurantId) return [] as OwnedRestaurant[];
 
       let restaurantQuery = (supabase.from as any)("restaurants")
-        .select("id, name, opening_hours, disabled_dashboard_features, is_active, is_demo, status")
-        .eq("owner_id", user!.id);
+        .select("id, name, opening_hours, disabled_dashboard_features, is_active, is_demo, status");
 
-      if (demoRestaurantId) {
+      if (isCommercialDemoFrame) {
+        // Frame access is derived only from the server-validated session
+        // snapshot. Admin previews may target a commercial-owned restaurant,
+        // so filtering by the current actor's owner_id would be incorrect.
+        restaurantQuery = restaurantQuery
+          .eq("id", effectiveDemoRestaurantId)
+          .eq("is_demo", true);
+      } else {
+        restaurantQuery = restaurantQuery.eq("owner_id", user!.id);
+      }
+
+      if (!isCommercialDemoFrame && effectiveDemoRestaurantId) {
         // An admin-managed commercial account must never see a real restaurant
         // in its restaurateur surface, even if it owns legacy rows.
-        restaurantQuery = restaurantQuery.eq("id", demoRestaurantId);
+        restaurantQuery = restaurantQuery.eq("id", effectiveDemoRestaurantId);
       }
 
       const { data, error } = await restaurantQuery.order("created_at", { ascending: true });
 
       if (error) throw error;
-      const restaurantRows = data || [];
+      const restaurantRows = isCommercialDemoFrame
+        ? filterCommercialDemoRestaurants(data || [], effectiveDemoRestaurantId)
+        : (data || []);
       const subscriptionsByRestaurant = await fetchActiveRestaurantSubscriptions(
         restaurantRows.map((restaurant) => restaurant.id),
       );
