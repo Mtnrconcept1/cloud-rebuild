@@ -55,6 +55,23 @@ describe("commercial multi-space delivery demonstration", () => {
     expect(experience).toContain("updateDemoSessionUrl(nextSessionId)");
   });
 
+  it("surfaces the Realtime connection lifecycle and resynchronizes uncertain states", () => {
+    expect(service).toContain("getCommercialDemoRealtimeUpdate(channelStatus, isOnline())");
+    expect(service).toContain("if (update.shouldResync) resync()");
+    expect(service).toContain('window.addEventListener("online", handleOnline)');
+    expect(service).toContain('window.addEventListener("offline", handleOffline)');
+    expect(experience).toContain("Temps réel connecté");
+    expect(experience).toContain("Reconnexion temps réel…");
+    expect(experience).toContain("Temps réel hors ligne");
+  });
+
+  it("announces live progress and errors to assistive technologies", () => {
+    expect(experience).toContain('role="status" aria-live="polite"');
+    expect(experience).toContain('role="alert" aria-live="assertive"');
+    expect(experience).toContain('aria-current={active ? "step" : undefined}');
+    expect(experience).toContain('role="log" aria-live="polite"');
+  });
+
   it("connects only to the dedicated Stripe Test edge and confirms payment server-side", () => {
     expect(service).toContain('invokeSupabaseFunction<CommercialDemoCheckoutCreateResult>("commercial-demo-checkout"');
     expect(service).toContain('invokeSupabaseFunction<CommercialDemoCheckoutConfirmResult>("commercial-demo-checkout"');
@@ -87,5 +104,14 @@ describe("commercial multi-space delivery demonstration", () => {
     }
     expect(experience).toContain("allowed_actions.includes(action)");
     expect(experience).toContain("Interactions en temps réel");
+    expect(experience).toContain("Commande livrée : le parcours de démonstration est terminé.");
+    expect(experience).toContain("Livraison terminée : aucune autre action n'est requise.");
+  });
+
+  it("makes Stripe Test cancellation and test-card usage explicit", () => {
+    expect(experience).toContain('params.get("demo_checkout") === "cancelled"');
+    expect(experience).toContain("Paiement test annulé");
+    expect(experience).toContain("4242 4242 4242 4242");
+    expect(experience).toContain("N'utilisez jamais une vraie carte bancaire");
   });
 });

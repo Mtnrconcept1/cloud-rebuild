@@ -13,12 +13,14 @@ describe("commercial demo Stripe test isolation", () => {
   const edge = read("supabase/functions/commercial-demo-checkout/index.ts");
   const liveCheckout = read("supabase/functions/create-checkout/index.ts");
   const stripeClient = read("supabase/functions/_shared/stripe-client.ts");
+  const marketplaceFinance = read("supabase/functions/_shared/marketplace-finance.ts");
   const stripeWebhook = read("supabase/functions/stripe-webhook/index.ts");
   const config = read("supabase/config.toml");
   const runbook = read("docs/runbooks/commercial-demo-stripe-test.md");
   const deployWorkflowPath = resolve(root, ".github/workflows/deploy-production.yml");
   const secretWriterPath = resolve(root, "scripts/write-supabase-secrets-env.mjs");
   const journeyMigration = read("supabase/migrations/20260714232001_commercial_demo_realtime_order_journey.sql");
+  const financeGuardMigration = read("supabase/migrations/20260714233500_commercial_demo_finance_isolation_guard.sql");
 
   it("uses one dedicated test-only Stripe secret without a live fallback", () => {
     const helper = stripeClient.slice(
@@ -125,17 +127,53 @@ describe("commercial demo Stripe test isolation", () => {
     expect(journeyMigration).not.toContain("GRANT EXECUTE ON FUNCTION public.commercial_demo_confirm_test_payment(uuid, text, text)\n  TO authenticated");
   });
 
-  it("prevents demo checkout events from falling into live order fulfillment", () => {
-    const guardIndex = stripeWebhook.indexOf("commercial_demo_checkout_ignored_by_live_webhook");
+  it("returns before live fulfillment and shared finance for demo checkout events", () => {
+    const guardIndex = stripeWebhook.indexOf("commercial_demo_event_ignored_by_live_webhook");
+    const earlyReturnIndex = stripeWebhook.indexOf('ignored: "commercial_demo_test"', guardIndex);
     const liveFinalizeIndex = stripeWebhook.indexOf("const finalizedOrders = await finalizePaidOrderCheckout", guardIndex);
+    const sharedFinanceIndex = stripeWebhook.indexOf("await recordCheckoutFinance({", guardIndex);
 
     expect(guardIndex).toBeGreaterThan(-1);
     expect(stripeWebhook).toContain("event.livemode === false");
     expect(stripeWebhook).toContain('checkoutKind === "commercial-demo-order"');
-    expect(stripeWebhook).toContain('session.metadata?.demo_environment === "commercial_demo"');
+    expect(stripeWebhook).toContain('demoEnvironment === "commercial_demo"');
+    expect(stripeWebhook).toContain('action: "ignore_commercial_demo_test_event"');
+    expect(stripeWebhook).toContain("await markStripeWebhookEventSucceeded({ adminClient: supabaseAdmin, event })");
+    expect(earlyReturnIndex).toBeGreaterThan(guardIndex);
     expect(liveFinalizeIndex).toBeGreaterThan(guardIndex);
+    expect(sharedFinanceIndex).toBeGreaterThan(earlyReturnIndex);
     expect(liveCheckout).toContain('effectiveKind === "commercial-demo-order"');
     expect(liveCheckout).toContain("paiement Stripe Test dedie");
+  });
+
+  it("also blocks demo refunds before suspense-ledger reconciliation", () => {
+    const genericGuardIndex = stripeWebhook.indexOf("commercial_demo_event_ignored_by_live_webhook");
+    const refundCaseIndex = stripeWebhook.indexOf('case "charge.refunded"');
+    const refundFinanceIndex = stripeWebhook.indexOf("await recordRefundFinance({", refundCaseIndex);
+
+    expect(stripeWebhook).toContain('event.type === "charge.refunded"');
+    expect(stripeWebhook).toContain('.from("commercial_demo_orders")');
+    expect(stripeWebhook).toContain('.eq("stripe_payment_intent_id", paymentIntentId)');
+    expect(genericGuardIndex).toBeGreaterThan(-1);
+    expect(refundCaseIndex).toBeGreaterThan(genericGuardIndex);
+    expect(refundFinanceIndex).toBeGreaterThan(refundCaseIndex);
+    expect(marketplaceFinance).toContain("commercial_demo_refund_finance_write_blocked");
+    expect(marketplaceFinance).toContain('.from("commercial_demo_orders")');
+    expect(marketplaceFinance).toContain('.eq("stripe_payment_intent_id", input.paymentIntentId)');
+    expect(stripeWebhook).toContain("no_financial_ledger: charge.metadata?.no_financial_ledger || null");
+  });
+
+  it("keeps defense-in-depth guards in the finance service and database", () => {
+    expect(marketplaceFinance).toContain('normalizeKind(input.checkoutKind) === "commercial-demo-order"');
+    expect(marketplaceFinance).toContain('normalizeKind(metadata.demo_environment) === "commercial_demo"');
+    expect(marketplaceFinance).toContain('normalizeKind(metadata.finance_routing_mode) === "demo_isolated"');
+    expect(marketplaceFinance).toContain("metadata.no_financial_ledger");
+    expect(marketplaceFinance).toContain("commercial_demo_finance_write_blocked");
+    expect(financeGuardMigration).toContain("financial_ledger_reject_commercial_demo");
+    expect(financeGuardMigration).toContain("platform_revenue_reject_commercial_demo");
+    expect(financeGuardMigration.match(/commercial-demo-order/g)?.length).toBeGreaterThanOrEqual(2);
+    expect(financeGuardMigration.match(/demo_isolated/g)?.length).toBeGreaterThanOrEqual(2);
+    expect(financeGuardMigration.match(/no_financial_ledger/g)?.length).toBeGreaterThanOrEqual(2);
   });
 
   it.skipIf(!existsSync(deployWorkflowPath) || !existsSync(secretWriterPath))(

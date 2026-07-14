@@ -28,6 +28,17 @@ function toInteger(value: unknown) {
   return Number.isFinite(parsed) ? Math.round(parsed) : 0;
 }
 
+function isFinanceExcludedDemo(input: {
+  checkoutKind: unknown;
+  metadata?: Record<string, unknown>;
+}) {
+  const metadata = input.metadata || {};
+  return normalizeKind(input.checkoutKind) === "commercial-demo-order"
+    || normalizeKind(metadata.demo_environment) === "commercial_demo"
+    || normalizeKind(metadata.finance_routing_mode) === "demo_isolated"
+    || String(metadata.no_financial_ledger || "").trim().toLowerCase() === "true";
+}
+
 export function calculateMarketplaceSplit(grossCents: number, platformFeeBps = TOK_PLATFORM_FEE_BPS) {
   const safeGrossCents = Math.max(0, toInteger(grossCents));
   const safePlatformFeeBps = Math.min(10000, Math.max(0, toInteger(platformFeeBps)));
@@ -141,6 +152,14 @@ export async function recordCheckoutFinance(input: {
   log?: LoggerLike;
 }) {
   if (input.grossCents <= 0) return;
+  if (isFinanceExcludedDemo(input)) {
+    input.log?.warn?.("commercial_demo_finance_write_blocked", {
+      event_id: input.eventId,
+      checkout_session_id: input.checkoutSessionId,
+      checkout_kind: input.checkoutKind,
+    });
+    return;
+  }
 
   const { error } = await input.adminClient.rpc("record_marketplace_checkout_ledger", {
     p_stripe_event_id: input.eventId,
@@ -175,6 +194,32 @@ export async function recordRefundFinance(input: {
   log?: LoggerLike;
 }) {
   if (input.refundAmountCents <= 0) return;
+  if (isFinanceExcludedDemo({
+    checkoutKind: input.metadata?.checkout_kind,
+    metadata: input.metadata,
+  })) {
+    input.log?.warn?.("commercial_demo_refund_finance_write_blocked", {
+      event_id: input.eventId,
+      payment_intent_id: input.paymentIntentId,
+      refund_source_id: input.refundSourceId,
+    });
+    return;
+  }
+
+  const { data: demoOrder, error: demoOrderError } = await input.adminClient
+    .from("commercial_demo_orders")
+    .select("id")
+    .eq("stripe_payment_intent_id", input.paymentIntentId)
+    .maybeSingle();
+  if (demoOrderError) throw new Error(demoOrderError.message);
+  if (demoOrder) {
+    input.log?.warn?.("commercial_demo_refund_finance_write_blocked", {
+      event_id: input.eventId,
+      payment_intent_id: input.paymentIntentId,
+      refund_source_id: input.refundSourceId,
+    });
+    return;
+  }
 
   const { error } = await input.adminClient.rpc("record_marketplace_refund_ledger", {
     p_stripe_event_id: input.eventId,

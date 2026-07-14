@@ -20,6 +20,7 @@ import {
   TestTube2,
   UserRound,
   Wifi,
+  WifiOff,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -40,6 +41,7 @@ import {
   type CommercialDemoSurface,
   type CommercialDemoTransitionAction,
 } from "@/lib/commercialDemoJourney";
+import type { CommercialDemoRealtimeStatus } from "@/lib/commercialDemoRealtime";
 import { cn } from "@/lib/utils";
 
 type DemoAction = CommercialDemoTransitionAction | "create_order" | "reset";
@@ -90,6 +92,38 @@ const JOURNEY_STEPS = [
   { label: "Livrée", statuses: ["delivered"] },
 ] as const;
 
+const REALTIME_PRESENTATION = {
+  connecting: {
+    label: "Connexion temps réel…",
+    className: "border-sky-300 text-sky-700 dark:text-sky-200",
+    icon: Loader2,
+    animate: true,
+  },
+  connected: {
+    label: "Temps réel connecté",
+    className: "border-emerald-300 text-emerald-700 dark:text-emerald-200",
+    icon: Wifi,
+    animate: false,
+  },
+  reconnecting: {
+    label: "Reconnexion temps réel…",
+    className: "border-amber-300 text-amber-700 dark:text-amber-200",
+    icon: RefreshCw,
+    animate: true,
+  },
+  offline: {
+    label: "Temps réel hors ligne",
+    className: "border-red-300 text-red-700 dark:text-red-200",
+    icon: WifiOff,
+    animate: false,
+  },
+} satisfies Record<CommercialDemoRealtimeStatus, {
+  label: string;
+  className: string;
+  icon: ComponentType<{ className?: string }>;
+  animate: boolean;
+}>;
+
 function formatChf(cents: number) {
   return new Intl.NumberFormat("fr-CH", { style: "currency", currency: "CHF" }).format((Number(cents) || 0) / 100);
 }
@@ -99,12 +133,15 @@ function formatTime(value: string) {
 }
 
 function getInitialCheckoutParams() {
-  if (typeof window === "undefined") return { sessionId: "", stripeSessionId: "", returnedFromCheckout: false };
+  if (typeof window === "undefined") {
+    return { sessionId: "", stripeSessionId: "", returnedFromCheckout: false, checkoutCancelled: false };
+  }
   const params = new URLSearchParams(window.location.search);
   return {
     sessionId: params.get("demo_session_id") || "",
     stripeSessionId: params.get("stripe_session_id") || "",
     returnedFromCheckout: params.get("demo_checkout") === "success",
+    checkoutCancelled: params.get("demo_checkout") === "cancelled",
   };
 }
 
@@ -185,7 +222,7 @@ function WaitingState({ icon: Icon, title, detail }: { icon: ComponentType<{ cla
 
 function LiveStatus({ label, detail }: { label: string; detail?: string }) {
   return (
-    <div className="rounded-2xl border bg-muted/25 p-4">
+    <div className="rounded-2xl border bg-muted/25 p-4" role="status" aria-live="polite" aria-atomic="true">
       <p className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.18em] text-muted-foreground">
         <CircleDot className="h-3.5 w-3.5 text-emerald-600" />
         Statut en direct
@@ -193,6 +230,20 @@ function LiveStatus({ label, detail }: { label: string; detail?: string }) {
       <p className="mt-2 break-words text-lg font-black">{label}</p>
       {detail ? <p className="mt-1 break-words text-xs leading-5 text-muted-foreground">{detail}</p> : null}
     </div>
+  );
+}
+
+function RealtimeConnectionBadge({ status }: { status: CommercialDemoRealtimeStatus }) {
+  const current = REALTIME_PRESENTATION[status];
+  const Icon = current.icon;
+
+  return (
+    <span role="status" aria-live="polite" aria-atomic="true">
+      <Badge variant="outline" className={cn("rounded-full", current.className)}>
+        <Icon className={cn("mr-1.5 h-3.5 w-3.5", current.animate && "animate-spin")} />
+        {current.label}
+      </Badge>
+    </span>
   );
 }
 
@@ -221,6 +272,7 @@ function ClientSurface({
   checkoutPending,
   confirmPending,
   checkoutError,
+  checkoutCancelled,
   onCreateOrder,
   onOpenCheckout,
   onConfirmCheckout,
@@ -230,6 +282,7 @@ function ClientSurface({
   checkoutPending: boolean;
   confirmPending: boolean;
   checkoutError: unknown;
+  checkoutCancelled: boolean;
   onCreateOrder: () => void;
   onOpenCheckout: () => void;
   onConfirmCheckout: () => void;
@@ -279,6 +332,17 @@ function ClientSurface({
           </div>
           {paymentPending ? (
             <div className="space-y-3">
+              {checkoutCancelled ? (
+                <div className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-400/25 dark:bg-amber-400/10 dark:text-amber-100" role="status" aria-live="polite">
+                  <p className="font-black">Paiement test annulé</p>
+                  <p className="mt-1 leading-5">Aucun débit n'a été effectué. La commande est conservée : vous pouvez relancer le paiement.</p>
+                </div>
+              ) : null}
+              <div className="rounded-2xl border border-violet-200 bg-violet-50 p-4 text-sm text-violet-950 dark:border-violet-400/20 dark:bg-violet-400/10 dark:text-violet-100">
+                <p className="font-black">Carte Stripe Test à utiliser</p>
+                <p className="mt-1 leading-5"><code className="font-mono font-bold">4242 4242 4242 4242</code> · date future · CVC à 3 chiffres au choix.</p>
+                <p className="mt-1 text-xs">N'utilisez jamais une vraie carte bancaire dans cette démonstration.</p>
+              </div>
               <Button type="button" className="h-12 w-full rounded-2xl bg-[#635bff] text-white hover:bg-[#5148e5]" onClick={onOpenCheckout} disabled={checkoutPending}>
                 {checkoutPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CreditCard className="mr-2 h-4 w-4" />}
                 Payer avec Stripe Test
@@ -298,7 +362,7 @@ function ClientSurface({
             </div>
           )}
           {checkoutError ? (
-            <div className={cn(
+            <div role="alert" aria-live="assertive" className={cn(
               "rounded-2xl border p-4 text-sm",
               stripeConfigMissing
                 ? "border-amber-300 bg-amber-50 text-amber-950 dark:border-amber-400/25 dark:bg-amber-400/10 dark:text-amber-100"
@@ -350,7 +414,9 @@ function RestaurantSurface({
             </div>
           ) : (
             <p className="rounded-2xl border border-dashed p-4 text-center text-sm text-muted-foreground">
-              La prochaine action appartient au client ou au livreur.
+              {order.status === "delivered"
+                ? "Commande livrée : le parcours de démonstration est terminé."
+                : "La prochaine action appartient au client ou au livreur."}
             </p>
           )}
         </>
@@ -401,7 +467,9 @@ function CourierSurface({
             </div>
           ) : (
             <p className="rounded-2xl border border-dashed p-4 text-center text-sm text-muted-foreground">
-              En attente de la prochaine étape du restaurant.
+              {mission.status === "delivered"
+                ? "Livraison terminée : aucune autre action n'est requise."
+                : "En attente de la prochaine étape du restaurant."}
             </p>
           )}
         </>
@@ -414,22 +482,26 @@ function JourneyProgress({ snapshot }: { snapshot: CommercialDemoSnapshot }) {
   const orderStatus = snapshot.order?.status || "";
   const currentIndex = JOURNEY_STEPS.findIndex((step) => (step.statuses as readonly string[]).includes(orderStatus));
   const completedIndex = currentIndex >= 0 ? currentIndex : -1;
+  const currentLabel = currentIndex >= 0 ? JOURNEY_STEPS[currentIndex].label : "Aucune commande créée";
 
   return (
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-8" aria-label="Progression de la démonstration">
-      {JOURNEY_STEPS.map((step, index) => {
-        const done = index <= completedIndex;
-        const active = index === completedIndex;
-        return (
-          <div key={step.label} className={cn(
-            "min-w-0 rounded-2xl border px-3 py-2.5 text-center text-xs font-bold transition-colors",
-            done ? "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-100" : "bg-muted/20 text-muted-foreground",
-            active && "ring-2 ring-emerald-500/25",
-          )}>
-            <span className="block truncate">{step.label}</span>
-          </div>
-        );
-      })}
+    <div>
+      <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">Étape actuelle : {currentLabel}</p>
+      <ol className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-8" aria-label="Progression de la démonstration">
+        {JOURNEY_STEPS.map((step, index) => {
+          const done = index <= completedIndex;
+          const active = index === completedIndex;
+          return (
+            <li key={step.label} aria-current={active ? "step" : undefined} className={cn(
+              "min-w-0 rounded-2xl border px-3 py-2.5 text-center text-xs font-bold transition-colors",
+              done ? "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-100" : "bg-muted/20 text-muted-foreground",
+              active && "ring-2 ring-emerald-500/25",
+            )}>
+              <span className="block truncate">{step.label}</span>
+            </li>
+          );
+        })}
+      </ol>
     </div>
   );
 }
@@ -441,7 +513,7 @@ function ActivityFeed({ snapshot }: { snapshot: CommercialDemoSnapshot }) {
       <CardHeader className="pb-3"><CardTitle className="flex items-center gap-2 text-lg"><Wifi className="h-5 w-5 text-emerald-600" />Interactions en temps réel</CardTitle></CardHeader>
       <CardContent>
         {events.length > 0 ? (
-          <ol className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <ol className="grid gap-3 md:grid-cols-2 xl:grid-cols-4" role="log" aria-live="polite" aria-relevant="additions text">
             {events.map((event) => (
               <li key={event.id} className="min-w-0 rounded-2xl border bg-muted/20 p-3 text-sm">
                 <div className="flex items-center justify-between gap-2">
@@ -462,6 +534,10 @@ export default function CommercialMultiSpaceDemo() {
   const [initialParams] = useState(getInitialCheckoutParams);
   const [sessionId, setSessionId] = useState(initialParams.sessionId);
   const [stripeSessionId, setStripeSessionId] = useState(initialParams.stripeSessionId);
+  const [checkoutCancelled, setCheckoutCancelled] = useState(initialParams.checkoutCancelled);
+  const [realtimeStatus, setRealtimeStatus] = useState<CommercialDemoRealtimeStatus>(() => (
+    typeof navigator !== "undefined" && navigator.onLine === false ? "offline" : "connecting"
+  ));
   const [selectedScenario, setSelectedScenario] = useState("delivery_order");
   const queryClient = useQueryClient();
   const automaticConfirmationRef = useRef("");
@@ -491,10 +567,16 @@ export default function CommercialMultiSpaceDemo() {
 
   useEffect(() => {
     if (!effectiveSessionId) return;
+    setRealtimeStatus(typeof navigator !== "undefined" && navigator.onLine === false ? "offline" : "connecting");
     return subscribeToCommercialDemoSession(effectiveSessionId, () => {
       void queryClient.invalidateQueries({ queryKey: ["commercial-demo-snapshot", effectiveSessionId] });
-    });
+    }, setRealtimeStatus);
   }, [effectiveSessionId, queryClient]);
+
+  useEffect(() => {
+    if (!initialParams.checkoutCancelled || !effectiveSessionId) return;
+    updateDemoSessionUrl(effectiveSessionId);
+  }, [effectiveSessionId, initialParams.checkoutCancelled]);
 
   const actionMutation = useMutation({
     mutationFn: async (action: DemoAction) => {
@@ -513,11 +595,13 @@ export default function CommercialMultiSpaceDemo() {
         updateDemoSessionUrl(nextSessionId);
         queryClient.removeQueries({ queryKey: ["commercial-demo-snapshot", effectiveSessionId], exact: true });
       }
+      if (action === "reset") setCheckoutCancelled(false);
       setStripeSessionId("");
     },
   });
 
   const checkoutMutation = useMutation({
+    onMutate: () => setCheckoutCancelled(false),
     mutationFn: async () => {
       if (!snapshot?.session.demo_restaurant_id) throw new Error("Restaurant de démonstration introuvable.");
       const result = await createCommercialDemoCheckout({
@@ -564,7 +648,7 @@ export default function CommercialMultiSpaceDemo() {
 
   if (bootstrapQuery.isLoading || (effectiveSessionId && snapshotQuery.isLoading)) {
     return (
-      <div className="flex min-h-[56vh] flex-col items-center justify-center rounded-[2rem] border bg-background/80 p-8 text-center">
+      <div className="flex min-h-[56vh] flex-col items-center justify-center rounded-[2rem] border bg-background/80 p-8 text-center" role="status" aria-live="polite" aria-busy="true">
         <Loader2 className="h-8 w-8 animate-spin text-orange-600" />
         <p className="mt-4 font-black">Préparation des trois espaces de démonstration…</p>
         <p className="mt-2 text-sm text-muted-foreground">La session isolée et ses flux temps réel sont en cours d'initialisation.</p>
@@ -574,7 +658,7 @@ export default function CommercialMultiSpaceDemo() {
 
   if (!snapshot) {
     return (
-      <div className="rounded-[2rem] border border-red-200 bg-red-50 p-6 text-red-900 dark:border-red-400/20 dark:bg-red-400/10 dark:text-red-100">
+      <div className="rounded-[2rem] border border-red-200 bg-red-50 p-6 text-red-900 dark:border-red-400/20 dark:bg-red-400/10 dark:text-red-100" role="alert" aria-live="assertive">
         <p className="font-black">Impossible d'ouvrir la démonstration multi-espace</p>
         <p className="mt-2 text-sm leading-6">{errorMessage(combinedError)}</p>
         <Button
@@ -599,7 +683,7 @@ export default function CommercialMultiSpaceDemo() {
           <div className="min-w-0 max-w-3xl">
             <div className="flex flex-wrap items-center gap-2">
               <Badge className="rounded-full bg-orange-100 px-3 py-1 text-orange-700 hover:bg-orange-100"><Sparkles className="mr-1.5 h-3.5 w-3.5" />Démonstration multi-espace</Badge>
-              <Badge variant="outline" className="rounded-full border-emerald-300 text-emerald-700"><Wifi className="mr-1.5 h-3.5 w-3.5" />Temps réel</Badge>
+              <RealtimeConnectionBadge status={realtimeStatus} />
               <Badge variant="outline" className="rounded-full border-violet-300 text-violet-700"><TestTube2 className="mr-1.5 h-3.5 w-3.5" />Stripe Test uniquement</Badge>
             </div>
             <h1 className="mt-4 break-words font-serif text-3xl font-black tracking-tight sm:text-4xl lg:text-5xl">Un parcours complet, trois espaces synchronisés</h1>
@@ -634,7 +718,7 @@ export default function CommercialMultiSpaceDemo() {
       <JourneyProgress snapshot={snapshot} />
 
       {combinedError ? (
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-400/20 dark:bg-red-400/10 dark:text-red-100">
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-400/20 dark:bg-red-400/10 dark:text-red-100" role="alert" aria-live="assertive">
           <strong>Action non exécutée.</strong> {errorMessage(combinedError)}
         </div>
       ) : null}
@@ -646,6 +730,7 @@ export default function CommercialMultiSpaceDemo() {
           checkoutPending={checkoutMutation.isPending}
           confirmPending={confirmMutation.isPending}
           checkoutError={checkoutMutation.error || confirmMutation.error}
+          checkoutCancelled={checkoutCancelled}
           onCreateOrder={() => actionMutation.mutate("create_order")}
           onOpenCheckout={() => checkoutMutation.mutate()}
           onConfirmCheckout={() => confirmMutation.mutate()}
