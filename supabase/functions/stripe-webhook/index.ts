@@ -785,6 +785,24 @@ Deno.serve(async (req) => {
           break;
         }
 
+        // Commercial demo payments are confirmed synchronously by the
+        // dedicated test-only Edge Function. They must never fall through to
+        // live order fulfilment, accounting, notifications, or finance rows.
+        if (
+          event.livemode === false &&
+          (
+            checkoutKind === "commercial-demo-order" ||
+            session.metadata?.demo_environment === "commercial_demo"
+          )
+        ) {
+          log.info("commercial_demo_checkout_ignored_by_live_webhook", {
+            sessionId: session.id,
+            paymentStatus: session.payment_status,
+            livemode: event.livemode,
+          });
+          break;
+        }
+
         if (checkoutKind === "campaign" && campaignId) {
           const { cardBrand, cardLast4 } = await getStripePaymentMethodDetails(stripe, session, log);
           const { data: campaign } = await supabaseAdmin

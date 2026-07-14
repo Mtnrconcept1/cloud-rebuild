@@ -94,6 +94,9 @@ function selectRuntime(input: {
 
 export function getStripeRuntimeForCheckoutKind(checkoutKind: unknown) {
   const kind = normalizeCheckoutKind(checkoutKind);
+  if (kind === "commercial-demo-order") {
+    throw new HttpError(400, "DEMO_CHECKOUT_REQUIRES_TEST_ENDPOINT");
+  }
   if (kind === "tok-one") {
     return selectRuntime({
       names: [
@@ -113,6 +116,31 @@ export function getStripeRuntimeForCheckoutKind(checkoutKind: unknown) {
     names: ["STRIPE_PERSONNAL_SECRET_KEY", "STRIPE_PERSONAL_SECRET_KEY", "STRIPE_SECRET_KEY_LIVE", "STRIPE_SECRET_KEY"],
     purpose: "STRIPE_SECRET_KEY",
   });
+}
+
+/**
+ * Stripe runtime reserved for the interactive commercial demonstration.
+ *
+ * This intentionally has no fallback to any platform/Tok One key. A missing
+ * or accidentally-live key must make the demo checkout unavailable instead
+ * of ever creating a live Stripe object.
+ */
+export function getCommercialDemoStripeRuntime() {
+  const candidates = readCandidates([
+    "STRIPE_SECRET_KEY_TEST",
+    "STRIPE_TOK_ONE_TEST_SECRET_KEY",
+  ]);
+
+  if (candidates.length === 0) {
+    throw new HttpError(503, "DEMO_STRIPE_NOT_CONFIGURED");
+  }
+
+  const candidate = candidates.find((entry) => inferStripeRuntimeMode(entry.value) === "test");
+  if (!candidate) {
+    throw new HttpError(503, "INVALID_TEST_STRIPE_KEY");
+  }
+
+  return buildRuntime(candidate, candidate.name === "STRIPE_TOK_ONE_TEST_SECRET_KEY");
 }
 
 export function getTokOneStripeRuntime(preferredMode?: unknown) {

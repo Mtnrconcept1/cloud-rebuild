@@ -62,6 +62,9 @@ verify_jwt = false
 [functions.commercial-followup-reminder]
 verify_jwt = false
 
+[functions.commercial-demo-checkout]
+verify_jwt = false
+
 [functions.confirm-match-group-authorization]
 verify_jwt = false
 
@@ -206,4 +209,3 @@ verify_jwt = false
 # Legacy public demo credentials endpoint: permanent authenticated tombstone.
 [functions.provision-commercial-demo-logins]
 verify_jwt = true
-
