@@ -121,14 +121,15 @@ export function getStripeRuntimeForCheckoutKind(checkoutKind: unknown) {
 /**
  * Stripe runtime reserved for the interactive commercial demonstration.
  *
- * This intentionally has no fallback to any platform/Tok One key. A missing
- * or accidentally-live key must make the demo checkout unavailable instead
- * of ever creating a live Stripe object.
+ * Only values whose actual prefix identifies Stripe Test are accepted. The
+ * historical Tok One name is supported for compatibility, but a live value
+ * under that name is ignored and can never become the demo runtime.
  */
 export function getCommercialDemoStripeRuntime() {
   const candidates = readCandidates([
     "STRIPE_SECRET_KEY_TEST",
     "STRIPE_TOK_ONE_TEST_SECRET_KEY",
+    "STRIPE_TOK_ONE_SECRET_KEY",
   ]);
 
   if (candidates.length === 0) {
@@ -140,7 +141,7 @@ export function getCommercialDemoStripeRuntime() {
     throw new HttpError(503, "INVALID_TEST_STRIPE_KEY");
   }
 
-  return buildRuntime(candidate, candidate.name === "STRIPE_TOK_ONE_TEST_SECRET_KEY");
+  return buildRuntime(candidate, candidate.name.startsWith("STRIPE_TOK_ONE"));
 }
 
 export function getTokOneStripeRuntime(preferredMode?: unknown) {
