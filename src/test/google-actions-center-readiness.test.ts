@@ -4,6 +4,8 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const root = process.cwd();
+const googleBookingsTableCreation =
+  "CREATE TABLE IF NOT EXISTS public.google_actions_center_bookings";
 
 function read(relativePath: string) {
   const absolutePath = resolve(root, relativePath);
@@ -71,7 +73,7 @@ describe("Google Actions Center readiness", () => {
 
   it("aligns Booking Server status, list and availability lookups with Google request shapes", () => {
     const fn = read("supabase/functions/google-actions-center/index.ts");
-    const migration = readLatestMigrationContaining("google_actions_center_bookings");
+    const migration = readLatestMigrationContaining(googleBookingsTableCreation);
 
     expect(fn).toContain("fallbackMerchantId");
     expect(fn).toContain("const rootMerchantId");
@@ -113,7 +115,7 @@ describe("Google Actions Center readiness", () => {
   });
 
   it("stores Google booking mappings behind service-role-only RLS", () => {
-    const migration = readLatestMigrationContaining("google_actions_center_bookings");
+    const migration = readLatestMigrationContaining(googleBookingsTableCreation);
 
     expect(migration).toContain("CREATE TABLE IF NOT EXISTS public.google_actions_center_bookings");
     expect(migration).toContain("google_booking_id text NOT NULL");
