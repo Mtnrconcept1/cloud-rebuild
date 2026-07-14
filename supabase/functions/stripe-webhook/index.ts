@@ -768,6 +768,72 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const stripeObject = event.data.object as unknown as Record<string, any>;
+    const stripeObjectMetadata = stripeObject.metadata && typeof stripeObject.metadata === "object"
+      ? stripeObject.metadata as Record<string, unknown>
+      : {};
+    const checkoutKind = String(stripeObjectMetadata.checkout_kind || "").trim().toLowerCase();
+    const demoEnvironment = String(stripeObjectMetadata.demo_environment || "").trim().toLowerCase();
+    const paymentIntentId = typeof stripeObject.payment_intent === "string"
+      ? stripeObject.payment_intent
+      : typeof stripeObject.payment_intent?.id === "string"
+        ? stripeObject.payment_intent.id
+        : event.type.startsWith("payment_intent.") && typeof stripeObject.id === "string"
+          ? stripeObject.id
+          : null;
+    let isCommercialDemoTestEvent = event.livemode === false && (
+      checkoutKind === "commercial-demo-order"
+      || demoEnvironment === "commercial_demo"
+    );
+
+    // Stripe normally copies PaymentIntent metadata to the Charge. The
+    // authoritative demo-order lookup closes the gap if a refund payload ever
+    // arrives without those copied metadata fields.
+    if (!isCommercialDemoTestEvent && event.livemode === false && event.type === "charge.refunded" && paymentIntentId) {
+      const { data: demoOrder, error: demoOrderError } = await supabaseAdmin
+        .from("commercial_demo_orders")
+        .select("id")
+        .eq("stripe_payment_intent_id", paymentIntentId)
+        .maybeSingle();
+      if (demoOrderError) throw new Error(`commercial_demo_refund_lookup_failed:${demoOrderError.message}`);
+      isCommercialDemoTestEvent = Boolean(demoOrder);
+    }
+
+    if (isCommercialDemoTestEvent) {
+      // Stop the handler itself, not only the switch case. A `break` here
+      // would still reach shared finance recorders below the switch and could
+      // pollute production ledgers with a Stripe Test payment or refund.
+      log.info("commercial_demo_event_ignored_by_live_webhook", {
+        eventType: event.type,
+        stripeObjectId: stripeObject.id || null,
+        paymentIntentId,
+        livemode: event.livemode,
+      });
+      await writeAuditLog({
+        adminClient: supabaseAdmin,
+        actor: { roles: ["service_role"], isServiceRole: true },
+        request: req,
+        functionName: "stripe-webhook",
+        action: "ignore_commercial_demo_test_event",
+        status: "success",
+        targetEntityType: "stripe_event",
+        targetEntityId: event.id,
+        metadata: {
+          livemode: false,
+          type: event.type,
+          checkout_kind: checkoutKind || "commercial-demo-order",
+          stripe_object_id: stripeObject.id || null,
+          stripe_payment_intent_id: paymentIntentId,
+          finance_routing_mode: "demo_isolated",
+        },
+      });
+      await markStripeWebhookEventSucceeded({ adminClient: supabaseAdmin, event });
+      return new Response(JSON.stringify({ received: true, ignored: "commercial_demo_test" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     switch (event.type) {
       case "checkout.session.completed":
       case "checkout.session.async_payment_succeeded": {
@@ -781,24 +847,6 @@ Deno.serve(async (req) => {
             sessionId: session.id,
             checkoutKind,
             paymentStatus: session.payment_status,
-          });
-          break;
-        }
-
-        // Commercial demo payments are confirmed synchronously by the
-        // dedicated test-only Edge Function. They must never fall through to
-        // live order fulfilment, accounting, notifications, or finance rows.
-        if (
-          event.livemode === false &&
-          (
-            checkoutKind === "commercial-demo-order" ||
-            session.metadata?.demo_environment === "commercial_demo"
-          )
-        ) {
-          log.info("commercial_demo_checkout_ignored_by_live_webhook", {
-            sessionId: session.id,
-            paymentStatus: session.payment_status,
-            livemode: event.livemode,
           });
           break;
         }
@@ -1817,6 +1865,10 @@ Deno.serve(async (req) => {
           metadata: {
             stripe_charge_id: charge.id,
             stripe_refunded_total_cents: charge.amount_refunded || 0,
+            checkout_kind: charge.metadata?.checkout_kind || null,
+            demo_environment: charge.metadata?.demo_environment || null,
+            finance_routing_mode: charge.metadata?.finance_routing_mode || null,
+            no_financial_ledger: charge.metadata?.no_financial_ledger || null,
           },
           log,
         });
@@ -1969,6 +2021,8 @@ Deno.serve(async (req) => {
           metadata: {
             payment_status: session.payment_status,
             finance_routing_mode: session.metadata?.finance_routing_mode || "legacy_manual",
+            demo_environment: session.metadata?.demo_environment || null,
+            no_financial_ledger: session.metadata?.no_financial_ledger || null,
             platform_fee_amount_cents: session.metadata?.platform_fee_amount_cents || null,
             restaurant_share_amount_cents: session.metadata?.restaurant_share_amount_cents || null,
           },
