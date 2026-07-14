@@ -90,11 +90,16 @@ describe("commercial demo account security", () => {
       "guard_commercial_role_assignment",
       "block_commercial_demo_side_effect_row",
       "block_commercial_demo_social_side_effect_row",
+      "guard_commercial_demo_image_analysis_job",
     ]) {
       expect(aclHardening).toContain(`FUNCTION public.${helper}()`);
     }
 
     expect(aclHardening).toContain("FROM PUBLIC, anon, authenticated, service_role");
     expect(aclHardening).toContain("commercial_demo_accounts_created_by_idx");
+    expect(aclHardening).toContain("Commercial role requires an active administrator-managed demo account");
+    expect(aclHardening).toContain("BEFORE INSERT OR UPDATE ON public.image_analysis_jobs");
+    expect(aclHardening).toContain("AND restaurant.is_demo");
+    expect(aclHardening).toContain("RETURN NULL");
   });
 });
