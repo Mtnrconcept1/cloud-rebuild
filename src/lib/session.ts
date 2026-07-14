@@ -4,11 +4,58 @@ import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "@/lib/env";
 const ACCESS_TOKEN_REFRESH_THRESHOLD_MS = 60_000;
 const SESSION_EXPIRED_MESSAGE = "Session expirée. Reconnectez-vous.";
 
-function getFunctionsErrorStatus(error: unknown) {
-  if (!error || typeof error !== "object" || !("status" in error)) return null;
+type ErrorWithHttpContext = {
+  status?: unknown;
+  code?: unknown;
+  context?: unknown;
+};
 
-  const status = (error as { status?: unknown }).status;
-  return typeof status === "number" ? status : null;
+export class SessionExpiredError extends Error {
+  readonly status = 401;
+  readonly code = "session_expired";
+
+  constructor() {
+    super(SESSION_EXPIRED_MESSAGE);
+    this.name = "SessionExpiredError";
+  }
+}
+
+function readHttpStatus(value: unknown) {
+  if (!value || typeof value !== "object") return null;
+  const status = (value as { status?: unknown }).status;
+  return typeof status === "number" && Number.isFinite(status) ? status : null;
+}
+
+function getFunctionsErrorStatus(error: unknown, response?: Response) {
+  const directStatus = readHttpStatus(error);
+  if (directStatus !== null) return directStatus;
+
+  const contextStatus = readHttpStatus((error as ErrorWithHttpContext | null)?.context);
+  if (contextStatus !== null) return contextStatus;
+
+  return readHttpStatus(response);
+}
+
+export function isSessionExpiredError(error: unknown) {
+  if (!error || typeof error !== "object") return false;
+  const candidate = error as ErrorWithHttpContext;
+  return candidate.code === "session_expired"
+    || getFunctionsErrorStatus(error) === 401
+    || (error instanceof Error && error.message === SESSION_EXPIRED_MESSAGE);
+}
+
+async function throwSessionExpired(): Promise<never> {
+  // A revoked server session can remain in browser storage. Clearing only the
+  // local session prevents an invalid JWT from being retried indefinitely and
+  // lets the existing auth guard route the user back to the sign-in screen.
+  try {
+    await getSupabase().auth.signOut({ scope: "local" });
+  } catch {
+    // The user-facing error below remains deterministic even if local storage
+    // is temporarily unavailable.
+  }
+
+  throw new SessionExpiredError();
 }
 
 function mergeFunctionHeaders(headers: Record<string, string> | undefined, accessToken: string) {
@@ -94,8 +141,8 @@ async function normalizeFunctionError(error: unknown, response?: Response) {
     response,
     error instanceof Error ? error.name : "FunctionsHttpError",
   );
-  normalizedError.status = response?.status ?? getFunctionsErrorStatus(error) ?? undefined;
-  normalizedError.context = response ?? (error as { context?: unknown } | null)?.context;
+  normalizedError.status = getFunctionsErrorStatus(error, response) ?? undefined;
+  normalizedError.context = response ?? (error as ErrorWithHttpContext | null)?.context;
   return normalizedError;
 }
 
@@ -103,7 +150,7 @@ export async function getFreshAccessToken(forceRefresh = false) {
   const { data: sessionData, error: sessionError } = await getSupabase().auth.getSession();
 
   if (sessionError) {
-    throw new Error(SESSION_EXPIRED_MESSAGE);
+    return throwSessionExpired();
   }
 
   let activeSession = sessionData.session;
@@ -115,14 +162,14 @@ export async function getFreshAccessToken(forceRefresh = false) {
   if (forceRefresh || !activeSession || expiresSoon) {
     const { data: refreshedData, error: refreshError } = await getSupabase().auth.refreshSession();
     if (refreshError) {
-      throw new Error(SESSION_EXPIRED_MESSAGE);
+      return throwSessionExpired();
     }
 
     activeSession = refreshedData.session;
   }
 
   if (!activeSession?.access_token) {
-    throw new Error(SESSION_EXPIRED_MESSAGE);
+    return throwSessionExpired();
   }
 
   return activeSession.access_token;
@@ -144,7 +191,7 @@ export async function invokeSupabaseFunction<TData = unknown>(
     headers: mergeFunctionHeaders(invokeOptions.headers, accessToken),
   });
 
-  if (getFunctionsErrorStatus(result.error) !== 401) {
+  if (getFunctionsErrorStatus(result.error, result.response) !== 401) {
     if (result.error) {
       return {
         ...result,
