@@ -390,8 +390,11 @@ export default function CommercialComptabilite() {
       const ownSignatures = followups.filter(
         (followup) => followup.status === "signed" && followup.signed_by === commercialUserId,
       );
-      const prospects = await fetchGenevaCommercialProspects().catch(() => []);
-      const prospectsByObjectId = new Map(prospects.map((prospect) => [prospect.sourceObjectId, prospect]));
+      const prospects: GenevaCommercialProspect[] = await fetchGenevaCommercialProspects()
+        .catch((): GenevaCommercialProspect[] => []);
+      const prospectsByObjectId = new Map<number, GenevaCommercialProspect>(
+        prospects.map((prospect): [number, GenevaCommercialProspect] => [prospect.sourceObjectId, prospect]),
+      );
 
       return ownSignatures
         .map((followup) => ({
