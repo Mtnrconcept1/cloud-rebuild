@@ -509,210 +509,43 @@ function LiveCourierHome() {
     );
   }
 
+  const viewModel: CourierHomeViewModel = {
+    courierName: formatCourierName(profile),
+    identityDetail: user?.email || "Compte livreur",
+    approvalLabel: approvalMeta?.label || profile?.status || "En attente",
+    approvalTone: approvalMeta?.tone || "",
+    isApproved: profile?.status === "approved",
+    isOnline: Boolean(profile?.is_online),
+    positionLabel: position
+      ? `Position ${position.lat.toFixed(4)}, ${position.lng.toFixed(4)}`
+      : null,
+    isWatching,
+    locationError,
+    metrics,
+    activeJob: activeJob
+      ? {
+          id: activeJob.id,
+          status: activeJob.status,
+          orderNumber: activeOrder?.order_number || activeJob.order_id,
+          restaurantName: activeOrder?.restaurants?.name || "Restaurant",
+          pickupAddress: activeOrder?.restaurants?.address || "-",
+          deliveryAddress: activeOrder?.delivery_address || "-",
+        }
+      : null,
+    acceptanceRate: Number(profile?.acceptance_rate || 0),
+    averageDeliveryMinutes: Number(profile?.avg_delivery_time_min || 0),
+    totalDeliveries: Number(profile?.total_deliveries || 0),
+  };
+
   return (
-    <CourierDashboardLayout>
-      <div className="space-y-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <h1 className="font-display text-3xl font-bold">Vue d'ensemble</h1>
-              <Badge className={approvalMeta?.tone}>{approvalMeta?.label || profile?.status}</Badge>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              {formatCourierName(profile)} · {user?.email}
-            </p>
-          </div>
-
-          <Button
-            onClick={handleToggleOnline}
-            disabled={isToggling || onlineMutation.isPending}
-            variant={profile?.is_online ? "destructive" : "default"}
-            className="min-w-44"
-          >
-            {profile?.is_online ? "Passer hors ligne" : "Passer en ligne"}
-          </Button>
-        </div>
-
-        {profile?.status !== "approved" ? (
-          <Card className="border-amber-300 bg-amber-50 dark:bg-amber-950/20">
-            <CardContent className="flex flex-col gap-3 py-5 md:flex-row md:items-center md:justify-between">
-              <div className="space-y-1">
-                <p className="font-semibold">Profil en attente de validation</p>
-                <p className="text-sm text-muted-foreground">
-                  Completez votre profil et vos documents pour accelerer l'approbation avant la mise en ligne.
-                </p>
-              </div>
-              <Button asChild variant="outline">
-                <Link to="/courier/profile">Completer mon profil</Link>
-              </Button>
-            </CardContent>
-          </Card>
-        ) : null}
-
-        {(profile?.is_online || activeJob) ? (
-          <Card className="border-emerald-300 bg-emerald-50 dark:bg-emerald-950/20">
-            <CardContent className="flex flex-col gap-3 py-5 md:flex-row md:items-center md:justify-between">
-              <div className="space-y-1">
-                <p className="flex items-center gap-2 font-semibold text-emerald-700 dark:text-emerald-300">
-                  <Navigation className="h-4 w-4" />
-                  Présence synchronisée
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {position
-                    ? `Position ${position.lat.toFixed(4)}, ${position.lng.toFixed(4)}`
-                    : "En attente d'une position GPS"}
-                  {isWatching ? " · suivi actif" : ""}
-                </p>
-              </div>
-              <div className="text-sm text-muted-foreground">
-                {locationError ? (
-                  <span className="flex items-center gap-2 text-destructive">
-                    <AlertTriangle className="h-4 w-4" />
-                    {locationError}
-                  </span>
-                ) : (
-                  <span>Les missions seront geolocalisees en temps réel.</span>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ) : null}
-
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Gains du jour</CardDescription>
-              <CardTitle className="flex items-center gap-2 text-2xl">
-                <Coins className="h-5 w-5 text-primary" />
-                {formatCurrency(metrics.todayEarnings)}
-              </CardTitle>
-            </CardHeader>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Gains cette semaine</CardDescription>
-              <CardTitle className="text-2xl">{formatCurrency(metrics.weekEarnings)}</CardTitle>
-            </CardHeader>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Missions actives</CardDescription>
-              <CardTitle className="text-2xl">{metrics.activeJobs}</CardTitle>
-            </CardHeader>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Offres en attente</CardDescription>
-              <CardTitle className="text-2xl">{metrics.pendingOffers}</CardTitle>
-            </CardHeader>
-          </Card>
-        </div>
-
-        <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-          <Card>
-            <CardHeader>
-              <CardTitle>Mission prioritaire</CardTitle>
-              <CardDescription>
-                {activeJob ? "Votre mission en cours." : "Aucune mission active pour le moment."}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {activeJob ? (
-                <div className="space-y-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="space-y-1">
-                      <p className="text-lg font-semibold">
-                        {activeOrder?.restaurants?.name || "Restaurant"}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Commande {activeOrder?.order_number || activeJob.order_id}
-                      </p>
-                    </div>
-                    <Badge className="bg-primary/10 text-primary">{activeJob.status}</Badge>
-                  </div>
-                  <div className="grid gap-3 md:grid-cols-2">
-                    <div className="rounded-xl border p-3">
-                      <p className="mb-1 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                        <MapPin className="h-3.5 w-3.5" />
-                        Retrait
-                      </p>
-                      <p className="text-sm font-medium">{activeOrder?.restaurants?.address || "-"}</p>
-                    </div>
-                    <div className="rounded-xl border p-3">
-                      <p className="mb-1 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                        <Bike className="h-3.5 w-3.5" />
-                        Livraison
-                      </p>
-                      <p className="text-sm font-medium">{activeOrder?.delivery_address || "-"}</p>
-                    </div>
-                  </div>
-                  <Button asChild>
-                    <Link to="/courier/jobs">Ouvrir la mission</Link>
-                  </Button>
-                </div>
-              ) : (
-                <div className="rounded-xl border border-dashed p-6 text-sm text-muted-foreground">
-                  Passez en ligne pour recevoir des propositions de livraison autour de votre position.
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <div className="space-y-6">
-            <CourierPushStatusCard />
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Performance</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center justify-between rounded-xl border p-3">
-                  <div className="flex items-center gap-2 text-sm">
-                    <ShieldCheck className="h-4 w-4 text-muted-foreground" />
-                    Taux d'acceptation
-                  </div>
-                  <span className="font-semibold">{Number(profile?.acceptance_rate || 0).toFixed(0)}%</span>
-                </div>
-                <div className="flex items-center justify-between rounded-xl border p-3">
-                  <div className="flex items-center gap-2 text-sm">
-                    <Clock3 className="h-4 w-4 text-muted-foreground" />
-                    Temps moyen
-                  </div>
-                  <span className="font-semibold">{profile?.avg_delivery_time_min || 0} min</span>
-                </div>
-                <div className="flex items-center justify-between rounded-xl border p-3">
-                  <div className="flex items-center gap-2 text-sm">
-                    <Bike className="h-4 w-4 text-muted-foreground" />
-                    Livraisons totales
-                  </div>
-                  <span className="font-semibold">{profile?.total_deliveries || 0}</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Actions rapides</CardTitle>
-              </CardHeader>
-              <CardContent className="grid gap-3">
-                <Button asChild variant="outline">
-                  <Link to="/courier/jobs">Voir mes missions</Link>
-                </Button>
-                <Button asChild variant="outline">
-                  <Link to="/courier/earnings">Consulter mes gains</Link>
-                </Button>
-                <Button asChild variant="outline">
-                  <Link to="/courier/profile">Mettre à jour mon profil</Link>
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </div>
-    </CourierDashboardLayout>
+    <CourierHomePresentation
+      viewModel={viewModel}
+      isToggling={isToggling || onlineMutation.isPending}
+      onToggleOnline={() => {
+        void handleToggleOnline();
+      }}
+      pushStatusCard={<CourierPushStatusCard />}
+    />
   );
 }
 
