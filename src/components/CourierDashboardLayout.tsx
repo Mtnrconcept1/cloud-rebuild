@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Bell, Bike, Coins, LayoutDashboard, LogOut, Menu, UserRound } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import type { ComponentType } from "react";
@@ -6,6 +6,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import CourierMissionDialog from "@/components/courier/CourierMissionDialog";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import ChefHelpButton from "@/components/help/ChefHelpButton";
 import { BackNavigationButton } from "@/components/navigation/BackNavigationButton";
 import NotificationBell from "@/components/notifications/NotificationBell";
@@ -110,6 +111,9 @@ function CourierNavContent({
 
 export default function CourierDashboardLayout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemoFrame = Boolean(commercialDemoFrame);
   const { signOut, role } = useAuth();
   const activeFeatures = useActiveFeatures();
   const queryClient = useQueryClient();
@@ -117,7 +121,9 @@ export default function CourierDashboardLayout({ children }: { children: React.R
   const [missionDialogOpen, setMissionDialogOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [missionPreview, setMissionPreview] = useState<CourierMissionPreview | null>(null);
-  const visibleNavItems = NAV_ITEMS.filter((item) => !item.feature || activeFeatures.has(item.feature));
+  const visibleNavItems = NAV_ITEMS.filter(
+    (item) => isCommercialDemoFrame || !item.feature || activeFeatures.has(item.feature),
+  );
   const backFallback = pathname === "/courier" ? "/" : "/courier";
   const activeNavItem = visibleNavItems.find((item) => item.to === pathname);
 
@@ -134,14 +140,18 @@ export default function CourierDashboardLayout({ children }: { children: React.R
   }, [queryClient]);
 
   const respondMutation = useMutation({
-    mutationFn: async ({ attemptId, decision }: { attemptId: string; decision: "accept" | "decline" }) =>
-      respondToDispatchAttempt(attemptId, decision),
+    mutationFn: async ({ attemptId, decision }: { attemptId: string; decision: "accept" | "decline" }) => {
+      if (isCommercialDemoFrame) {
+        throw new Error("Les actions de livraison production sont désactivées dans la démonstration commerciale.");
+      }
+      return respondToDispatchAttempt(attemptId, decision);
+    },
     onSuccess: (_, variables) => {
       toast.success(variables.decision === "accept" ? "Mission acceptée" : "Mission refusée");
       setMissionDialogOpen(false);
       refreshCourierQueries();
       if (variables.decision === "accept") {
-        window.location.href = "/courier/jobs";
+        navigate("/courier/jobs");
       }
     },
     onError: (error) => {
@@ -168,7 +178,7 @@ export default function CourierDashboardLayout({ children }: { children: React.R
         ? {
             label: "Ouvrir",
             onClick: () => {
-              window.location.href = normalizeInternalNavigationTarget(data.url as string, "/courier/jobs");
+              navigate(normalizeInternalNavigationTarget(data.url as string, "/courier/jobs"));
             },
           }
         : undefined,
@@ -181,10 +191,10 @@ export default function CourierDashboardLayout({ children }: { children: React.R
     }
 
     refreshCourierQueries();
-  }, [refreshCourierQueries]);
+  }, [navigate, refreshCourierQueries]);
 
   useRealtimeNotifications({
-    enabled: true,
+    enabled: !isCommercialDemoFrame,
     onInsert: handleRealtimeNotification,
   });
 
@@ -284,18 +294,20 @@ export default function CourierDashboardLayout({ children }: { children: React.R
         </Sheet>
       </div>
 
-      <CourierMissionDialog
-        mission={missionPreview}
-        open={missionDialogOpen}
-        onOpenChange={setMissionDialogOpen}
-        onAccept={missionPreview?.dispatchAttemptId
-          ? () => respondMutation.mutate({ attemptId: missionPreview.dispatchAttemptId!, decision: "accept" })
-          : undefined}
-        onDecline={missionPreview?.dispatchAttemptId
-          ? () => respondMutation.mutate({ attemptId: missionPreview.dispatchAttemptId!, decision: "decline" })
-          : undefined}
-        decisionPending={respondMutation.isPending}
-      />
+      {!isCommercialDemoFrame ? (
+        <CourierMissionDialog
+          mission={missionPreview}
+          open={missionDialogOpen}
+          onOpenChange={setMissionDialogOpen}
+          onAccept={missionPreview?.dispatchAttemptId
+            ? () => respondMutation.mutate({ attemptId: missionPreview.dispatchAttemptId!, decision: "accept" })
+            : undefined}
+          onDecline={missionPreview?.dispatchAttemptId
+            ? () => respondMutation.mutate({ attemptId: missionPreview.dispatchAttemptId!, decision: "decline" })
+            : undefined}
+          decisionPending={respondMutation.isPending}
+        />
+      ) : null}
     </div>
   );
 }

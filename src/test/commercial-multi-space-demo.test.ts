@@ -11,6 +11,7 @@ describe("commercial real multi-dashboard demonstration", () => {
   const page = read("src/pages/CommercialDemoLive.tsx");
   const experience = read("src/components/commercial/CommercialMultiSpaceDemo.tsx");
   const browsers = read("src/components/commercial/CommercialDemoBrowserGrid.tsx");
+  const courierLayout = read("src/components/CourierDashboardLayout.tsx");
   const frame = read("src/lib/commercialDemoFrame.ts");
   const provider = read("src/components/commercial/CommercialDemoFrameProvider.tsx");
   const workspace = read("src/components/commercial/CommercialDemoActorWorkspace.tsx");
@@ -74,6 +75,16 @@ describe("commercial real multi-dashboard demonstration", () => {
     expect(notifications).toContain("commercialDemoFrame.markNotificationRead");
     expect(notifications).toContain("commercialDemoFrame.markAllNotificationsRead");
     expect(notifications).toContain("!isCommercialDemoFrame");
+  });
+
+  it("isolates the courier frame from production dispatch and exposes every adapted tab", () => {
+    expect(courierLayout).toContain("const isCommercialDemoFrame = Boolean(commercialDemoFrame)");
+    expect(courierLayout).toContain("(item) => isCommercialDemoFrame || !item.feature");
+    expect(courierLayout).toContain("enabled: !isCommercialDemoFrame");
+    expect(courierLayout).toContain("if (isCommercialDemoFrame)");
+    expect(courierLayout).toContain('navigate("/courier/jobs")');
+    expect(courierLayout).toContain("navigate(normalizeInternalNavigationTarget");
+    expect(courierLayout).not.toContain('window.location.href = "/courier/jobs"');
   });
 
   it("opens Stripe Test in the parent only after strict origin and hostname validation", () => {
