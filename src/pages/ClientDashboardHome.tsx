@@ -21,6 +21,8 @@ import {
 } from "lucide-react";
 
 import CustomerDashboardLayout from "@/components/CustomerDashboardLayout";
+import CommercialDemoActorWorkspace from "@/components/commercial/CommercialDemoActorWorkspace";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useNotificationCenter } from "@/hooks/useNotificationCenter";
@@ -208,7 +210,7 @@ function MetricCard({
   );
 }
 
-export default function ClientDashboardHome() {
+function LiveClientDashboardHome() {
   const { user } = useAuth();
   const { activeFeatures, loading: featuresLoading } = useFeatureFlagSnapshot();
   const {
@@ -470,4 +472,17 @@ export default function ClientDashboardHome() {
       </div>
     </CustomerDashboardLayout>
   );
+}
+
+
+export default function ClientDashboardHome() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  if (commercialDemoFrame?.surface === "client") {
+    return (
+      <CustomerDashboardLayout>
+        <CommercialDemoActorWorkspace surface="client" />
+      </CustomerDashboardLayout>
+    );
+  }
+  return <LiveClientDashboardHome />;
 }
