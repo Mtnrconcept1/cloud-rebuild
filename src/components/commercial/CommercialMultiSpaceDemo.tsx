@@ -255,7 +255,7 @@ export default function CommercialMultiSpaceDemo() {
       <div className="flex min-h-[56vh] flex-col items-center justify-center rounded-[2rem] border bg-background/80 p-8 text-center" role="status" aria-live="polite" aria-busy="true">
         <Loader2 className="h-8 w-8 animate-spin text-orange-600" />
         <p className="mt-4 font-black">Ouverture des trois vrais dashboards…</p>
-        <p className="mt-2 text-sm text-muted-foreground">Chaque fenêtre initialise son propre routeur et sa connexion temps réel.</p>
+        <p className="mt-2 text-sm text-muted-foreground">Chaque fenêtre initialise son propre routeur, son historique et sa connexion temps réel.</p>
       </div>
     );
   }
@@ -281,7 +281,7 @@ export default function CommercialMultiSpaceDemo() {
               <Badge variant="outline" className="rounded-full border-violet-300 text-violet-700"><TestTube2 className="mr-1.5 h-3.5 w-3.5" />Stripe Test uniquement</Badge>
             </div>
             <h1 className="mt-2 break-words font-serif text-2xl font-black tracking-tight sm:text-3xl">Contrôle à distance des trois comptes</h1>
-            <p className="mt-1 max-w-3xl text-sm text-muted-foreground">La console commerciale pilote simultanément les véritables interfaces Client, Restaurateur et Livreur.</p>
+            <p className="mt-1 max-w-3xl text-sm text-muted-foreground">La console pilote simultanément les véritables interfaces Client, Restaurateur et Commercial. Basculez la troisième fenêtre sur Livreur pour jouer tout le parcours de commande.</p>
           </div>
           <Button type="button" variant="outline" className="h-10 shrink-0 rounded-xl" onClick={() => resetMutation.mutate()} disabled={resetMutation.isPending}>
             {resetMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RotateCcw className="mr-2 h-4 w-4" />}Réinitialiser
@@ -289,7 +289,7 @@ export default function CommercialMultiSpaceDemo() {
         </div>
         <details className="mt-2 text-xs text-muted-foreground">
           <summary className="cursor-pointer select-none font-semibold text-sky-700"><ShieldCheck className="mr-1.5 inline h-3.5 w-3.5" />Isolation de la démonstration</summary>
-          <p className="mt-2 rounded-xl border border-sky-200 bg-sky-50/80 p-3 leading-5 text-sky-950 dark:border-sky-400/20 dark:bg-sky-400/10 dark:text-sky-100">Chaque fenêtre charge sa propre SPA et son propre historique. Toutes les actions du parcours restent dans les tables <code>commercial_demo_*</code>.</p>
+          <p className="mt-2 rounded-xl border border-sky-200 bg-sky-50/80 p-3 leading-5 text-sky-950 dark:border-sky-400/20 dark:bg-sky-400/10 dark:text-sky-100">Chaque fenêtre charge sa propre SPA et son propre historique. Toutes les actions du parcours de commande restent dans les tables <code>commercial_demo_*</code>.</p>
         </details>
         {initialParams.checkoutCancelled ? <div className="mt-3 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950" role="status"><strong>Paiement test annulé.</strong> Aucun débit n'a eu lieu ; relancez-le depuis la fenêtre client.</div> : null}
         {confirmMutation.isPending ? <div className="mt-3 flex items-center gap-2 rounded-2xl border bg-muted/30 p-4 text-sm" role="status"><Loader2 className="h-4 w-4 animate-spin" />Vérification serveur du paiement Stripe Test…</div> : null}
@@ -314,7 +314,7 @@ export default function CommercialMultiSpaceDemo() {
         <Card className="overflow-hidden rounded-[1.75rem] border-emerald-200 bg-gradient-to-br from-emerald-50 to-sky-50 dark:border-emerald-400/20 dark:from-emerald-400/10 dark:to-sky-400/10">
           <CardContent className="flex flex-col items-center gap-4 p-6 text-center sm:flex-row sm:text-left">
             <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-emerald-600 text-white"><PackageCheck className="h-6 w-6" /></span>
-            <div className="min-w-0 flex-1"><p className="text-xl font-black">Démonstration terminée</p><p className="mt-1 text-sm text-muted-foreground">Les trois vrais dashboards affichent le statut livré et leur notification correspondante.</p></div>
+            <div className="min-w-0 flex-1"><p className="text-xl font-black">Démonstration terminée</p><p className="mt-1 text-sm text-muted-foreground">Les vrais dashboards concernés affichent le statut livré et leur notification correspondante.</p></div>
             <Button type="button" className="rounded-2xl" onClick={() => resetMutation.mutate()}><Play className="mr-2 h-4 w-4" />Rejouer</Button>
           </CardContent>
         </Card>
