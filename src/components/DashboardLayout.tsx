@@ -52,6 +52,7 @@ import NotificationMenuBadge from "@/components/notifications/NotificationMenuBa
 import RoleSpaceMenuSection from "@/components/navigation/RoleSpaceMenuSection";
 import ThemeToggleButton from "@/components/theme/ThemeToggleButton";
 import SignOutButton from "@/components/auth/SignOutButton";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 
 type NavItem = {
   to: string;
@@ -129,6 +130,12 @@ const NAV_SECTIONS: NavSection[] = [
     ],
   },
 ];
+
+const COMMERCIAL_DEMO_SAFE_RESTAURANT_PATHS = new Set([
+  "/dashboard",
+  "/dashboard/commandes",
+  "/dashboard/notifications",
+]);
 
 function isDashboardNavItemActive(pathname: string, itemTo: string) {
   if (itemTo === "/dashboard") return pathname === itemTo;
@@ -289,6 +296,7 @@ export default function DashboardLayout({
   const { selectedId, disabledFeatures, dashboardAccessLocked, dashboardAccessLockReason, isDemoMode } = useDashboardRestaurant();
   const activeFeatures = useActiveFeatures();
   const { role } = useAuth();
+  const commercialDemoFrame = useCommercialDemoFrame();
   const { unreadNotifications } = useNotificationCenter(50);
 
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -321,11 +329,15 @@ export default function DashboardLayout({
   const sections = useMemo(() => {
     return NAV_SECTIONS.map((section) => ({
       ...section,
-      items: section.items.filter(
-        (i) => isDemoMode || !i.feature || activeFeatures.has(i.feature)
-      ),
-    }));
-  }, [activeFeatures, isDemoMode]);
+      items: section.items.filter((item) => {
+        if (commercialDemoFrame) {
+          return commercialDemoFrame.surface === "restaurant"
+            && COMMERCIAL_DEMO_SAFE_RESTAURANT_PATHS.has(item.to);
+        }
+        return isDemoMode || !item.feature || activeFeatures.has(item.feature);
+      }),
+    })).filter((section) => section.items.length > 0);
+  }, [activeFeatures, commercialDemoFrame, isDemoMode]);
 
   const activeNavItem = useMemo(
     () =>
@@ -355,7 +367,7 @@ export default function DashboardLayout({
   );
 
   useRealtimeNotifications({
-    enabled: !!selectedId && !isDemoMode,
+    enabled: !!selectedId && !isDemoMode && !commercialDemoFrame,
     onInsert: handleNotification,
   });
 
@@ -382,15 +394,17 @@ export default function DashboardLayout({
 
         <RestaurantSelector collapsed={collapsed} />
 
-        {!collapsed ? (
+        {!collapsed && !commercialDemoFrame ? (
           <div className="px-2 pb-2">
             <RoleSpaceMenuSection />
           </div>
         ) : null}
 
-        <div className="px-2 pb-2">
-          <ChefHelpButton surface="restaurant" collapsed={collapsed} />
-        </div>
+        {!commercialDemoFrame ? (
+          <div className="px-2 pb-2">
+            <ChefHelpButton surface="restaurant" collapsed={collapsed} />
+          </div>
+        ) : null}
 
         <nav className="flex flex-col gap-1 px-2 pb-3">
           <NavItems
@@ -465,12 +479,16 @@ export default function DashboardLayout({
             </SheetHeader>
             <div data-sheet-scroll-area className="flex-1 overflow-y-auto overscroll-y-contain px-6 pb-6 pt-4">
               <RestaurantSelector />
-              <div className="mb-4">
-                <RoleSpaceMenuSection onNavigate={() => setMobileMenuOpen(false)} />
-              </div>
-              <div className="mb-4">
-                <ChefHelpButton surface="restaurant" onOpen={() => setMobileMenuOpen(false)} />
-              </div>
+              {!commercialDemoFrame ? (
+                <>
+                  <div className="mb-4">
+                    <RoleSpaceMenuSection onNavigate={() => setMobileMenuOpen(false)} />
+                  </div>
+                  <div className="mb-4">
+                    <ChefHelpButton surface="restaurant" onOpen={() => setMobileMenuOpen(false)} />
+                  </div>
+                </>
+              ) : null}
               <nav className="flex flex-col gap-1 pb-4">
                 <NavItems
                   pathname={pathname}
