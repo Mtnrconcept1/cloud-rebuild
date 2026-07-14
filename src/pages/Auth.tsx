@@ -48,7 +48,6 @@ import { useTokLogoSrc } from "@/hooks/useTokLogo";
 import { COURIER_VEHICLE_OPTIONS } from "@/lib/courier";
 import TurnstileCaptcha from "@/components/security/TurnstileCaptcha";
 import { isCaptchaEnabled } from "@/lib/captcha";
-import { COMMERCIAL_DEMO_LOGINS, getCommercialDemoLogin, type CommercialDemoLogin } from "@/lib/commercialDemoLogins";
 import {
   buildSanitizedAuthRedirectUrl,
   getSupabaseAuthRedirectState,
@@ -57,15 +56,6 @@ import { getPostAuthTargetForRole } from "@/lib/authPostLogin";
 
 const supabase = getSupabase();
 const LEGAL_ACCEPTANCE_VERSION = "2026-06-15";
-
-function getCommercialDemoCredentialErrorMessage(error: unknown) {
-  return error instanceof Error ? error.message.toLowerCase() : "";
-}
-
-function isInvalidCommercialDemoCredentialError(error: unknown) {
-  const message = getCommercialDemoCredentialErrorMessage(error);
-  return message.includes("invalid") && message.includes("credential");
-}
 
 type SignupFormState = {
   fullName: string;
@@ -192,7 +182,6 @@ function getInitialSignupRole(searchParams: URLSearchParams): SignupRole {
   const requestedType = String(searchParams.get("type") || "").toLowerCase();
   if (requestedType === "restaurateur") return "restaurateur";
   if (requestedType === "courier" || requestedType === "livreur") return "courier";
-  if (requestedType === "commercial") return "commercial";
   return "client";
 }
 
@@ -596,9 +585,7 @@ export default function Auth() {
   const [contractSignatureDataUrl, setContractSignatureDataUrl] = useState("");
   const [subscriptionPlans, setSubscriptionPlans] = useState<RestaurantSubscriptionPlanOption[]>([]);
   const [subscriptionPlansLoading, setSubscriptionPlansLoading] = useState(false);
-  const [selectedCommercialDemoUsername, setSelectedCommercialDemoUsername] = useState("");
   const authRedirectHandledRef = useRef(false);
-  const commercialDemoAutoRedirectRef = useRef(false);
   const { activeFeatures, loading: featureFlagsLoading } = useFeatureFlagSnapshot();
   const courierSignupEnabled = activeFeatures.has("espace-livreur");
 
@@ -690,13 +677,6 @@ export default function Auth() {
 
   useEffect(() => {
     if (!user || roles.length === 0 || privilegedSignupSubmitting || featureFlagsLoading) return;
-
-    if (commercialDemoAutoRedirectRef.current && switchableRoles.includes("commercial")) {
-      commercialDemoAutoRedirectRef.current = false;
-      switchRole("commercial");
-      navigate(getPostAuthTarget("commercial"), { replace: true });
-      return;
-    }
 
     if (canSwitchRole && switchableRoles.length > 1) {
       if (!showRolePicker) setShowRolePicker(true);
@@ -814,72 +794,6 @@ export default function Auth() {
     setResendLoading(false);
   };
 
-  const handleCommercialDemoLogin = async (username: string) => {
-    const account = getCommercialDemoLogin(username);
-    setSelectedCommercialDemoUsername(username);
-    if (!account) return;
-
-    setLoading(true);
-    commercialDemoAutoRedirectRef.current = true;
-
-    try {
-      const signInCommercialDemoAccount = async (demoAccount: CommercialDemoLogin) =>
-        supabase.auth.signInWithPassword({
-          email: demoAccount.email,
-          password: demoAccount.username,
-          options: {
-            captchaToken: captchaToken || undefined,
-          },
-        });
-
-      let demoPreparationError: string | null = null;
-
-      try {
-        const { data: provisionData, error: provisionError } = await supabase.functions.invoke<{
-          ok?: boolean;
-          error?: string;
-        }>("provision-commercial-demo-logins", {
-          body: {
-            demo_login: true,
-            username: account.username,
-          },
-        });
-
-        if (provisionError || provisionData?.ok === false) {
-          demoPreparationError =
-            provisionError?.message ||
-            provisionData?.error ||
-            "Le compte commercial de démonstration n'a pas pu être préparé.";
-        }
-      } catch (preparationError) {
-        demoPreparationError = preparationError instanceof Error
-          ? preparationError.message
-          : "Le compte commercial de démonstration n'a pas pu être préparé.";
-      }
-
-      const { error } = await signInCommercialDemoAccount(account);
-
-      if (error && isInvalidCommercialDemoCredentialError(error) && demoPreparationError) {
-        throw new Error(demoPreparationError);
-      }
-
-      if (error) {
-        throw error;
-      }
-
-      toast({
-        title: "Connexion commerciale",
-        description: `${account.displayName} ouvre son espace TOK de démonstration.`,
-      });
-    } catch (error) {
-      commercialDemoAutoRedirectRef.current = false;
-      const message = error instanceof Error ? error.message : "Connexion impossible.";
-      toast({ title: "Erreur", description: message, variant: "destructive" });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const updateSignupField = <K extends keyof SignupFormState>(key: K, value: SignupFormState[K]) => {
     setSignupForm((current) => ({ ...current, [key]: value }));
   };
@@ -955,7 +869,7 @@ export default function Auth() {
         options: {
           data: {
             full_name: signupForm.fullName,
-            role: submittedRole,
+            signup_intent: submittedRole,
             ...toLegalAcceptanceMetadata(submittedLegalAcceptance),
           },
           emailRedirectTo: `${window.location.origin}/auth?confirmed=1`,
@@ -1210,52 +1124,11 @@ export default function Auth() {
               </p>
             </div>
           ) : null}
-          {isLogin && !forgotPassword && COMMERCIAL_DEMO_LOGINS.length > 0 ? (
-            <div className="rounded-2xl border border-orange-200 bg-orange-50/80 p-4 text-sm text-slate-950 shadow-sm">
-              <div className="flex items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-orange-500 text-white shadow-sm">
-                  <BriefcaseBusiness className="h-5 w-5" />
-                </div>
-                <div className="min-w-0 flex-1 space-y-3">
-                  <div>
-                    <p className="font-semibold">Accès direct commerciaux</p>
-                    <p className="pt-1 text-slate-600">
-                      Sélectionnez un commercial pour ouvrir sa démo sans saisir de mot de passe.
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="commercial-demo-login">Nom du commercial</Label>
-                    <select
-                      id="commercial-demo-login"
-                      value={selectedCommercialDemoUsername}
-                      onChange={(event) => {
-                        const username = event.target.value;
-                        if (username) void handleCommercialDemoLogin(username);
-                      }}
-                      disabled={loading}
-                      className="flex h-11 w-full rounded-md border border-orange-200 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition-colors focus:border-orange-500 focus:ring-2 focus:ring-orange-500/30 disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      <option value="">Sélectionner un commercial...</option>
-                      {COMMERCIAL_DEMO_LOGINS.map((account) => (
-                        <option key={account.username} value={account.username}>
-                          {account.displayName} - {account.restaurantName}
-                        </option>
-                      ))}
-                    </select>
-                    <p className="text-xs text-slate-500">
-                      Le compte ouvre les espaces commercial, client et restaurateur prévus pour la démonstration.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : null}
           {!isLogin ? (
             <Tabs value={roleMode} onValueChange={(value) => setRoleMode(value as SignupRole)} className="w-full">
-              <TabsList className={`grid w-full ${courierSignupEnabled ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-3"}`}>
+              <TabsList className={`grid w-full ${courierSignupEnabled ? "grid-cols-3" : "grid-cols-2"}`}>
                 <TabsTrigger value="client">Client</TabsTrigger>
                 <TabsTrigger value="restaurateur">Restaurateur</TabsTrigger>
-                <TabsTrigger value="commercial">Commercial</TabsTrigger>
                 {courierSignupEnabled ? <TabsTrigger value="courier">Livreur</TabsTrigger> : null}
               </TabsList>
             </Tabs>
@@ -1842,3 +1715,4 @@ export default function Auth() {
     </div>
   );
 }
+
