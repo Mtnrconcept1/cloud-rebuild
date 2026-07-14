@@ -73,7 +73,10 @@ describe("authenticated security audit hardening", () => {
       ).toBe(true);
     }
 
-    expect(config).not.toMatch(/verify_jwt\s*=\s*true/i);
+    expect(getVerifyJwt(config, "provision-commercial-demo-logins")).toBe("true");
+    const retiredProvisioner = read("supabase/functions/provision-commercial-demo-logins/index.ts");
+    expect(retiredProvisioner).toContain("LEGACY_DEMO_PROVISIONING_DISABLED");
+    expect(retiredProvisioner).toContain("status: 410");
   });
 
   it("keeps webhook, scheduler, internal secret and public collector endpoints without gateway JWT verification", () => {
@@ -138,3 +141,4 @@ describe("authenticated security audit hardening", () => {
     expect(sql).toContain("NOTIFY pgrst, 'reload schema';");
   });
 });
+

@@ -343,10 +343,11 @@ export function requireUserRole(
 export async function requireRestaurantAccess(
   actor: RequestActor,
   restaurantId: string,
+  options: { allowDemo?: boolean } = {},
 ) {
   const { data: restaurant, error } = await actor.adminClient
     .from("restaurants")
-    .select("id, owner_id, name, city, cuisine_type, stripe_account_id")
+    .select("id, owner_id, name, city, cuisine_type, stripe_account_id, is_demo")
     .eq("id", restaurantId)
     .maybeSingle();
 
@@ -364,6 +365,15 @@ export async function requireRestaurantAccess(
     restaurant.owner_id !== actor.userId
   ) {
     throw new HttpError(403, "Forbidden");
+  }
+
+  // Check ownership before returning a demo-specific response so callers
+  // cannot probe arbitrary restaurant UUIDs to discover their demo status.
+  if (restaurant.is_demo && options.allowDemo !== true) {
+    throw new HttpError(
+      409,
+      "DEMO_SIDE_EFFECT_BLOCKED: cette action externe est désactivée dans le restaurant de démonstration.",
+    );
   }
 
   return restaurant;

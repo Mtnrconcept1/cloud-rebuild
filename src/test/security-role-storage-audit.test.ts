@@ -28,28 +28,16 @@ describe("role separation, storage and audit security", () => {
   });
 
 
-  it("keeps pending restaurateur signups in the restaurateur role without activating the restaurant", () => {
-    const migration = read("supabase/migrations/20260613120000_restaurateur_pending_dashboard_access.sql");
-
-    expect(migration).toContain("IF v_role_text = 'restaurateur' THEN");
-    expect(migration).toContain("VALUES (v_actor_id, 'restaurateur')");
-    expect(migration).toContain("status IN ('pending_review', 'needs_changes', 'rejected')");
-    expect(migration).toContain("ELSIF v_application.requested_role = 'courier' THEN");
-    expect(migration).toContain("WHEN v_next_status = 'approved' THEN 'active'");
-    expect(migration).toContain("is_active = (v_next_status = 'approved')");
-  });
-
-  it("assigns the chosen signup role before email-confirmation redirects choose a surface", () => {
-    const migration = read("supabase/migrations/20260613130000_auth_signup_role_routing.sql");
+  it("keeps public signup metadata from granting privileged roles", () => {
+    const migration = read("supabase/migrations/20260714120000_commercial_demo_accounts.sql");
 
     expect(migration).toContain("CREATE OR REPLACE FUNCTION public.handle_new_user()");
-    expect(migration).toContain("NEW.raw_user_meta_data->>'role'");
-    expect(migration).toContain("WHEN v_requested_role = 'restaurateur' THEN 'restaurateur'::public.app_role");
-    expect(migration).toContain("WHEN v_requested_role IN ('courier', 'livreur') THEN 'courier'::public.app_role");
-    expect(migration).toContain("VALUES (NEW.id, v_signup_role)");
-    expect(migration).toContain("FROM auth.users u");
-    expect(migration).toContain("ON CONFLICT (user_id, role) DO NOTHING");
+    expect(migration).toContain("VALUES (NEW.id, 'client'::public.app_role)");
+    expect(migration).not.toContain("NEW.raw_user_meta_data->>'role'");
+    expect(migration).toContain("guard_commercial_role_assignment");
+    expect(migration).toContain("REVOKE ALL PRIVILEGES ON TABLE public.user_roles FROM anon, authenticated");
   });
+
 
   it("audits sensitive Edge actions and restricts Storage buckets by ownership and MIME type", () => {
     const edgeAudit = read("supabase/migrations/20260312160000_search_audience_and_edge_audit.sql");
@@ -69,3 +57,4 @@ describe("role separation, storage and audit security", () => {
     expect(tokAiStorage).toContain("public.auth_owns_restaurant");
   });
 });
+

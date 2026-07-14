@@ -36,6 +36,7 @@ import { canShowClientSurface, getRoleHomePath } from "@/lib/roleAccess";
 import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 import { isNative } from "@/lib/platform";
 import { useTokLogoDocumentIcons } from "@/hooks/useTokLogo";
+import { useCommercialDemoAccount } from "@/hooks/useCommercialDemoAccount";
 
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
@@ -337,8 +338,20 @@ function AdminProtectedRoute({
 function AppShell() {
   const { pathname } = useLocation();
   useTokLogoDocumentIcons();
+  const { role, roles } = useAuth();
   const { activeFeatures, loading: featureFlagsLoading } = useFeatureFlagSnapshot();
-  const hasFeature = (flagName: string) => (featureFlagsLoading ? null : activeFeatures.has(flagName));
+  const commercialRestaurantSurface = role === "restaurateur" && roles.includes("commercial");
+  const commercialSurface = role === "commercial" && roles.includes("commercial");
+  const { isDemoAccount, loading: demoAccountLoading } = useCommercialDemoAccount({
+    enabled: roles.includes("commercial"),
+  });
+  const hasFeature = (flagName: string) => {
+    const needsDemoResolution = (commercialRestaurantSurface && flagName.startsWith("dashboard-"))
+      || (commercialSurface && flagName === "commercial-prospection");
+    if (featureFlagsLoading || (needsDemoResolution && demoAccountLoading)) return null;
+    if (isDemoAccount && needsDemoResolution) return true;
+    return activeFeatures.has(flagName);
+  };
   const commandesEnabled = hasFeature("commandes");
   const antiWasteEnabled = hasFeature("anti-gaspi");
   const flashSalesEnabled = hasFeature("ventes-flash");
@@ -558,3 +571,4 @@ const App = () => (
 );
 
 export default App;
+

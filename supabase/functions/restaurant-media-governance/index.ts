@@ -87,7 +87,9 @@ Deno.serve(async (req) => {
     if (mediaError) throw new HttpError(500, mediaError.message);
     if (!media?.restaurant_id) throw new HttpError(404, "media_not_found");
 
-    await requireRestaurantAccess(actor, media.restaurant_id);
+    // Metadata/storage cleanup is a local, non-billable demo action. Keeping
+    // it available makes the photo-gallery presentation fully reversible.
+    await requireRestaurantAccess(actor, media.restaurant_id, { allowDemo: true });
 
     const storageBucket = storageString(media.storage_bucket);
     const storagePath = storageString(media.storage_path);

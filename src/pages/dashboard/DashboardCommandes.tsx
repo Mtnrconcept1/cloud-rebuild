@@ -8,6 +8,7 @@ import DayNotificationBadge from "@/components/notifications/DayNotificationBadg
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import { CommercialDemoOrders } from "@/components/dashboard/CommercialDemoScenario";
 import RestaurantCancellationDialog from "@/components/RestaurantCancellationDialog";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
@@ -233,6 +234,11 @@ function formatAcceptanceDeadline(value: string | null | undefined) {
 }
 
 export default function DashboardCommandes() {
+  const { isDemoMode } = useDashboardRestaurant();
+  return isDemoMode ? <CommercialDemoOrders /> : <LiveDashboardCommandes />;
+}
+
+function LiveDashboardCommandes() {
   const { selectedId, restaurants, loading: restaurantsLoading, error: restaurantsError } = useDashboardRestaurant();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();

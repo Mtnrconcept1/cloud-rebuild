@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { getSupabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import { CommercialDemoHome } from "@/components/dashboard/CommercialDemoScenario";
 import GoogleBusinessBookingCard from "@/components/dashboard/GoogleBusinessBookingCard";
 import SignupApplicationStatusCard, { type SignupApplicationCorrectionPayload } from "@/components/signup/SignupApplicationStatusCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -195,6 +196,11 @@ function ActualitesBoostBanner() {
 }
 
 export default function Dashboard() {
+  const { isDemoMode } = useDashboardRestaurant();
+  return isDemoMode ? <CommercialDemoHome /> : <LiveDashboard />;
+}
+
+function LiveDashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { selectedId, dashboardAccessLocked } = useDashboardRestaurant();

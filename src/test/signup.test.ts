@@ -76,17 +76,13 @@ describe("signup and admin moderation SQL", () => {
     expect(syncSignupApplication).toContain("IF array_length(v_required_docs, 1) IS NOT NULL THEN");
   });
 
-  it("grants pending restaurateurs their dashboard role while keeping courier roles approval-only", () => {
-    const syncSql = latestMigrationContaining(/CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.sync_signup_application/i);
-    const syncSignupApplication = extractFunction(syncSql, "sync_signup_application");
+  it("assigns every public signup the client role until an approved server-side workflow promotes it", () => {
     const handleUserSql = latestMigrationContaining(/CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.handle_new_user/i);
     const handleNewUser = extractFunction(handleUserSql, "handle_new_user");
 
-    expect(syncSignupApplication).toContain("IF v_role_text = 'restaurateur' THEN");
-    expect(syncSignupApplication).toContain("VALUES (v_actor_id, 'restaurateur')");
-    expect(syncSignupApplication).not.toContain("VALUES (v_actor_id, 'courier')");
-    expect(handleNewUser).toContain("ELSE 'client'::public.app_role");
-    expect(handleNewUser).not.toContain("VALUES (NEW.id, 'client'::public.app_role)");
+    expect(handleNewUser).toContain("VALUES (NEW.id, 'client'::public.app_role)");
+    expect(handleNewUser).not.toContain("NEW.raw_user_meta_data->>'role'");
+    expect(handleNewUser).not.toContain("v_signup_role");
   });
 
   it("grants approved roles and only revokes courier roles from the admin review RPC", () => {
@@ -207,3 +203,4 @@ describe("signup and admin moderation SQL", () => {
     expect(authPage).toContain('"error" in payload');
   });
 });
+
