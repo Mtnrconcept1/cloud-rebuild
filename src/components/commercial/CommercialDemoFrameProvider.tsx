@@ -210,6 +210,20 @@ export default function CommercialDemoFrameProvider({
     };
   }, [config.surface]);
 
+  useEffect(() => {
+    if (window.parent === window) return;
+    const relayEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      window.parent.postMessage({
+        type: "commercial-demo:escape",
+        sessionId: config.sessionId,
+        surface: config.surface,
+      }, window.location.origin);
+    };
+    window.addEventListener("keydown", relayEscape);
+    return () => window.removeEventListener("keydown", relayEscape);
+  }, [config.sessionId, config.surface]);
+
   const unreadCount = useMemo(() => (snapshotQuery.data?.events || [])
     .map((event) => commercialDemoEventToNotification(event, config.surface))
     .filter((notification): notification is NonNullable<typeof notification> => Boolean(notification))
