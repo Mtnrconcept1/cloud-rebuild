@@ -229,7 +229,10 @@ export default function AdminCompta() {
       ["Tok One", tokOneSubscriptionAmount],
       ["Miamz Tok", tokCoveredMiamzAmount],
       ["Remboursements emis", refundsIssuedTotal],
-      ["Commissions commerciales de signature", commercialCommissionsQuery.data?.total_commission_chf || 0],
+      [
+        "Commissions commerciales de signature",
+        selectedRestaurant === "all" ? commercialCommissionsQuery.data?.total_commission_chf || 0 : 0,
+      ],
     ]);
   };
 
