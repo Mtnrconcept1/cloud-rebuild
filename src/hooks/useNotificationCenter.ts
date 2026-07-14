@@ -41,7 +41,9 @@ export function useNotificationCenter(limit = 50, options: { realtime?: boolean 
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const commercialDemoFrame = useCommercialDemoFrame();
-  const isCommercialDemoFrame = Boolean(commercialDemoFrame);
+  // Actor frames consume isolated journey events. The embedded commercial
+  // workspace keeps the authenticated user's real notification centre.
+  const isCommercialDemoFrame = Boolean(commercialDemoFrame && commercialDemoFrame.surface !== "commercial");
 
   useRealtimeNotifications({ enabled: Boolean(options.realtime && user?.id && !isCommercialDemoFrame) });
 
@@ -118,7 +120,7 @@ export function useNotificationCenter(limit = 50, options: { realtime?: boolean 
   }, [queryClient, user?.id]);
 
   const markNotificationRead = useCallback(async (notificationId: string) => {
-    if (commercialDemoFrame) {
+    if (isCommercialDemoFrame && commercialDemoFrame) {
       commercialDemoFrame.markNotificationRead(notificationId);
       return;
     }
@@ -138,10 +140,10 @@ export function useNotificationCenter(limit = 50, options: { realtime?: boolean 
       queryClient.invalidateQueries({ queryKey: ["notifications", user.id] });
       queryClient.invalidateQueries({ queryKey: ["navbar-notifications", user.id] });
     }
-  }, [commercialDemoFrame, queryClient, updateNotificationCaches, user?.id]);
+  }, [commercialDemoFrame, isCommercialDemoFrame, queryClient, updateNotificationCaches, user?.id]);
 
   const markAllRead = useCallback(async () => {
-    if (commercialDemoFrame) {
+    if (isCommercialDemoFrame && commercialDemoFrame) {
       commercialDemoFrame.markAllNotificationsRead();
       return;
     }
@@ -160,7 +162,7 @@ export function useNotificationCenter(limit = 50, options: { realtime?: boolean 
       queryClient.invalidateQueries({ queryKey: ["notifications", user.id] });
       queryClient.invalidateQueries({ queryKey: ["navbar-notifications", user.id] });
     }
-  }, [commercialDemoFrame, queryClient, unreadNotifications.length, updateNotificationCaches, user?.id]);
+  }, [commercialDemoFrame, isCommercialDemoFrame, queryClient, unreadNotifications.length, updateNotificationCaches, user?.id]);
 
   return {
     inAppEnabled,
