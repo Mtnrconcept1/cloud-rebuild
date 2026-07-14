@@ -92,6 +92,12 @@ Deno.serve(async (req) => {
     } = await req.json();
 
     const effectiveKind = normalizeCheckoutKind(checkout_kind || order_metadata?.checkout_kind || "order");
+    if (effectiveKind === "commercial-demo-order" || effectiveKind === "commercial_demo_order") {
+      throw new HttpError(
+        400,
+        "Les commandes de demonstration commerciale utilisent exclusivement le paiement Stripe Test dedie.",
+      );
+    }
     const normalizedPaymentMethod = normalizePaymentMethod(payment_method);
     if (RESTAURANT_CREDIT_ONLY_CHECKOUT_KINDS.has(effectiveKind)) {
       throw new HttpError(
