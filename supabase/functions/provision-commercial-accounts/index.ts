@@ -64,17 +64,27 @@ function assertValidUuid(value: string) {
   }
 }
 
-async function findUserByEmail(adminClient: any, email: string) {
-  for (let page = 1; page <= 50; page += 1) {
-    const { data, error } = await adminClient.auth.admin.listUsers({ page, perPage: 1000 });
-    if (error) throw new HttpError(500, error.message);
-
-    const user = data?.users?.find((entry: any) => normalizeEmail(entry.email) === email);
-    if (user) return user;
-    if (!data?.users || data.users.length < 1000) return null;
+function authErrorMessage(error: unknown, fallback: string) {
+  if (error && typeof error === "object" && "message" in error) {
+    const message = String((error as { message?: unknown }).message || "").trim();
+    if (message && message !== "{}" && message !== "[object Object]") return message;
   }
 
-  throw new HttpError(503, "La recherche d'identifiant a dépassé la limite de sécurité.");
+  if (typeof error === "string" && error.trim()) return error.trim();
+  return fallback;
+}
+
+function isExistingAuthUserError(error: unknown) {
+  if (!error || typeof error !== "object") return false;
+
+  const authError = error as { code?: unknown; message?: unknown; status?: unknown };
+  const code = String(authError.code || "").toLowerCase();
+  const message = String(authError.message || "").toLowerCase();
+  const status = Number(authError.status);
+
+  return code === "email_exists"
+    || code === "user_already_exists"
+    || (status === 422 && /(already|exists|registered|déjà)/i.test(message));
 }
 
 async function getAuthUsersById(adminClient: any, userIds: string[]) {
@@ -237,14 +247,6 @@ Deno.serve(async (req) => {
         throw new HttpError(400, "Le nom doit contenir entre 2 et 120 caractères.");
       }
 
-      const existingUser = await findUserByEmail(actor.adminClient, email);
-      if (existingUser) {
-        throw new HttpError(
-          409,
-          "Cet identifiant existe déjà. Aucun mot de passe ni rôle n'a été modifié.",
-        );
-      }
-
       const { data: createdUser, error: createError } = await actor.adminClient.auth.admin.createUser({
         email,
         password: createBody.password,
@@ -257,7 +259,17 @@ Deno.serve(async (req) => {
       });
 
       if (createError || !createdUser?.user) {
-        throw new HttpError(500, createError?.message || "Impossible de créer le compte.");
+        if (isExistingAuthUserError(createError)) {
+          throw new HttpError(
+            409,
+            "Cet identifiant existe déjà. Aucun mot de passe ni rôle n'a été modifié.",
+          );
+        }
+
+        throw new HttpError(
+          500,
+          authErrorMessage(createError, "Impossible de créer le compte Auth."),
+        );
       }
 
       targetUserId = createdUser.user.id;
