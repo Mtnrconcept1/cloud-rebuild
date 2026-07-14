@@ -12,6 +12,7 @@ describe("commercial real multi-dashboard demonstration", () => {
   const experience = read("src/components/commercial/CommercialMultiSpaceDemo.tsx");
   const browsers = read("src/components/commercial/CommercialDemoBrowserGrid.tsx");
   const courierLayout = read("src/components/CourierDashboardLayout.tsx");
+  const courierHome = read("src/pages/courier/CourierHome.tsx");
   const frame = read("src/lib/commercialDemoFrame.ts");
   const provider = read("src/components/commercial/CommercialDemoFrameProvider.tsx");
   const workspace = read("src/components/commercial/CommercialDemoActorWorkspace.tsx");
@@ -107,6 +108,37 @@ describe("commercial real multi-dashboard demonstration", () => {
     expect(courierLayout).toContain('navigate("/courier/jobs")');
     expect(courierLayout).toContain("navigate(normalizeInternalNavigationTarget");
     expect(courierLayout).not.toContain('window.location.href = "/courier/jobs"');
+  });
+
+  it("renders the production courier home presentation from the isolated demo snapshot", () => {
+    const demoHomeSource = courierHome.slice(
+      courierHome.indexOf("function buildCommercialDemoCourierHomeViewModel"),
+      courierHome.indexOf("function LiveCourierHome"),
+    );
+
+    expect(courierHome).toContain("function CourierHomePresentation");
+    expect(courierHome).toContain("<CourierHomePresentation");
+    expect(courierHome).toContain("commercial-demo-courier-home");
+    expect(courierHome).toContain("buildCommercialDemoCourierHomeViewModel(snapshot, isOnline)");
+    expect(courierHome).toContain("commercialDemoFrame.snapshot");
+    expect(demoHomeSource).toContain('allowedActions.includes("courier_accept")');
+    expect(demoHomeSource).toContain('order?.status === "delivered"');
+    expect(demoHomeSource).not.toContain("fetchCourierOffers");
+    expect(demoHomeSource).not.toContain("fetchCourierActiveJobs");
+    expect(demoHomeSource).not.toContain("fetchCourierEarnings");
+    expect(demoHomeSource).not.toContain("syncCourierPresence");
+    expect(demoHomeSource).not.toContain("useCourierProfile");
+    expect(demoHomeSource).not.toContain("useQuery(");
+    expect(demoHomeSource).not.toContain("useMutation(");
+  });
+
+  it("keeps the embedded courier actor inside its own dashboard chrome", () => {
+    expect(courierLayout).toContain("isCommercialDemoFrame={isCommercialDemoFrame}");
+    expect(courierLayout).toContain("!isCommercialDemoFrame ? (");
+    expect(courierLayout).toContain("<RoleSpaceMenuSection");
+    expect(courierLayout).toContain("<ChefHelpButton");
+    expect(courierLayout).toContain("!isCommercialDemoFrame ? <SignOutButton iconOnly /> : null");
+    expect(courierLayout).not.toContain("isCommercialDemoFrameWindow()");
   });
 
   it("opens Stripe Test in the parent only after strict origin and hostname validation", () => {
