@@ -90,7 +90,7 @@ function BrowserWindow({ definition, sessionId }: { definition: BrowserDefinitio
 
 export default function CommercialDemoBrowserGrid({ sessionId }: { sessionId: string }) {
   return (
-    <section className="grid min-w-0 gap-5 xl:grid-cols-3" aria-label="Trois vrais dashboards synchronisés">
+    <section className="grid min-w-0 gap-4 lg:grid-cols-3 xl:gap-5" aria-label="Trois vrais dashboards synchronisés">
       {BROWSERS.map((definition) => (
         <BrowserWindow key={definition.surface} definition={definition} sessionId={sessionId} />
       ))}
