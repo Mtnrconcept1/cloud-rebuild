@@ -559,20 +559,25 @@ DECLARE
   v_order public.commercial_demo_orders%ROWTYPE;
   v_session_status text;
 BEGIN
-  SELECT demo_order, session.status
-  INTO v_order, v_session_status
-  FROM public.commercial_demo_orders demo_order
-  JOIN public.commercial_demo_order_sessions session
-    ON session.id = demo_order.session_id
-  WHERE demo_order.session_id = p_session_id;
-
-  IF v_order.id IS NULL OR v_session_status <> 'active' THEN
-    RAISE EXCEPTION 'Active commercial demo checkout order not found' USING ERRCODE = 'P0002';
-  END IF;
-
   IF COALESCE(auth.jwt()->>'role', '') <> 'service_role' THEN
     RAISE EXCEPTION 'Service role required for commercial demo checkout lookup'
       USING ERRCODE = '42501';
+  END IF;
+
+  SELECT demo_order.*
+  INTO v_order
+  FROM public.commercial_demo_orders demo_order
+  WHERE demo_order.session_id = p_session_id;
+
+  IF v_order.id IS NOT NULL THEN
+    SELECT session.status
+    INTO v_session_status
+    FROM public.commercial_demo_order_sessions session
+    WHERE session.id = v_order.session_id;
+  END IF;
+
+  IF v_order.id IS NULL OR v_session_status <> 'active' THEN
+    RAISE EXCEPTION 'Active commercial demo checkout order not found' USING ERRCODE = 'P0002';
   END IF;
 
   RETURN jsonb_build_object(
