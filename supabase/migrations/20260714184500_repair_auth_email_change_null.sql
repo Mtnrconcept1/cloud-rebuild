@@ -2,7 +2,7 @@
 -- commercial users had been inserted with NULL, which made the Admin users
 -- endpoint fail for every account creation attempt.
 --
--- Supabase's documented repair is to use the empty string expected by GoTrue.
+-- GoTrue expects an empty string for this field when no change is pending.
 -- This update is deliberately idempotent and does not alter valid Auth rows.
 UPDATE auth.users
 SET email_change = ''
