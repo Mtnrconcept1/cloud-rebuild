@@ -6,89 +6,48 @@ import { describe, expect, it } from "vitest";
 const root = process.cwd();
 const read = (path: string) => readFileSync(resolve(root, path), "utf8");
 
-describe("commercial multi-space delivery demonstration", () => {
+describe("commercial real multi-dashboard demonstration", () => {
   const app = read("src/App.tsx");
   const page = read("src/pages/CommercialDemoLive.tsx");
-  const chrome = read("src/components/commercial/CommercialWorkspaceChrome.tsx");
   const experience = read("src/components/commercial/CommercialMultiSpaceDemo.tsx");
+  const browsers = read("src/components/commercial/CommercialDemoBrowserGrid.tsx");
+  const frame = read("src/lib/commercialDemoFrame.ts");
+  const provider = read("src/components/commercial/CommercialDemoFrameProvider.tsx");
+  const workspace = read("src/components/commercial/CommercialDemoActorWorkspace.tsx");
+  const restaurantOrders = read("src/pages/dashboard/DashboardCommandes.tsx");
+  const notifications = read("src/hooks/useNotificationCenter.ts");
   const service = read("src/lib/commercialDemoJourney.ts");
 
-  it("exposes the feature from the protected commercial workspace", () => {
-    expect(app).toContain('const CommercialDemoLive = lazy(() => import("./pages/CommercialDemoLive"))');
-    expect(app).toContain('path="/commercial/demo-live"');
-    expect(app).toContain('requiredRoles={["admin", "commercial"]}');
-    expect(chrome).toContain('to: "/commercial/demo-live"');
-    expect(chrome).toContain("Démo multi-espace");
-  });
-
-  it("shows three responsive facsimiles without granting courier access or embedding live dashboards", () => {
-    expect(experience).toContain('data-demo-surface={surface}');
-    expect(experience).toContain('surface="client"');
-    expect(experience).toContain('surface="restaurant"');
-    expect(experience).toContain('surface="courier"');
-    expect(experience).toContain("xl:grid-cols-3");
+  it("mounts three real same-origin SPA instances with isolated browser histories", () => {
+    expect(app).toContain("getCommercialDemoFrameConfig()");
+    expect(app).toContain("<BrowserRouter basename={commercialDemoFrame?.basename}>");
+    expect(app).toContain("<CommercialDemoFrameAuthBoundary");
+    expect(app).toContain("<CommercialDemoFrameProvider");
+    expect(browsers).toContain("<iframe");
+    expect(browsers).toContain('surface: "client"');
+    expect(browsers).toContain('surface: "restaurant"');
+    expect(browsers).toContain('surface: "courier"');
+    expect(browsers).toContain('initialPath: "/commandes"');
+    expect(browsers).toContain('initialPath: "/dashboard/commandes"');
+    expect(browsers).toContain('initialPath: "/courier/jobs"');
     expect(page).toContain("overflow-x-hidden");
-    expect(experience).not.toContain("<iframe");
-    expect(experience).not.toContain('requiredRole="courier"');
-    expect(experience).not.toContain("user_roles");
   });
 
-  it("uses the isolated server session as the only journey source of truth", () => {
-    for (const rpc of [
-      "commercial_demo_create_session",
-      "commercial_demo_create_order",
-      "commercial_demo_get_snapshot",
-      "commercial_demo_transition",
-      "commercial_demo_reset_session",
-    ]) {
-      expect(service).toContain(rpc);
-    }
-    expect(service).toContain("invokeSupabaseRpc<T | T[]>");
-    expect(service).toContain("commercial_demo_orders");
-    expect(service).toContain("commercial_demo_delivery_missions");
-    expect(service).toContain("commercial_demo_order_events");
-    expect(service).not.toContain("localStorage");
-    expect(service).not.toContain("sessionStorage");
-    expect(experience).not.toContain("setOrder(");
-    expect(experience).not.toContain("setMission(");
-    expect(experience).toContain('action === "reset" && nextSessionId !== effectiveSessionId');
-    expect(experience).toContain("updateDemoSessionUrl(nextSessionId)");
+  it("keeps the courier role virtual and validates every frame through the isolated snapshot RPC", () => {
+    expect(frame).toContain("/commercial/demo-live/frame/");
+    expect(provider).toContain('roles: [forcedRole]');
+    expect(provider).toContain("canSwitchRole: false");
+    expect(provider).toContain("signOut: async () => undefined");
+    expect(provider).toContain("getCommercialDemoSnapshot(config.sessionId)");
+    expect(provider).not.toContain("user_roles");
+    expect(provider).not.toContain("courier_profiles");
+    expect(workspace).not.toContain("dispatch-order");
+    expect(workspace).not.toContain("restaurant-order-status");
   });
 
-  it("surfaces the Realtime connection lifecycle and resynchronizes uncertain states", () => {
-    expect(service).toContain("getCommercialDemoRealtimeUpdate(channelStatus, isOnline())");
-    expect(service).toContain("if (update.shouldResync) resync()");
-    expect(service).toContain('window.addEventListener("online", handleOnline)');
-    expect(service).toContain('window.addEventListener("offline", handleOffline)');
-    expect(experience).toContain("Temps réel connecté");
-    expect(experience).toContain("Reconnexion temps réel…");
-    expect(experience).toContain("Temps réel hors ligne");
-  });
-
-  it("announces live progress and errors to assistive technologies", () => {
-    expect(experience).toContain('role="status" aria-live="polite"');
-    expect(experience).toContain('role="alert" aria-live="assertive"');
-    expect(experience).toContain('aria-current={active ? "step" : undefined}');
-    expect(experience).toContain('role="log" aria-live="polite"');
-  });
-
-  it("connects only to the dedicated Stripe Test edge and confirms payment server-side", () => {
-    expect(service).toContain('invokeSupabaseFunction<CommercialDemoCheckoutCreateResult>("commercial-demo-checkout"');
-    expect(service).toContain('invokeSupabaseFunction<CommercialDemoCheckoutConfirmResult>("commercial-demo-checkout"');
-    expect(service).not.toContain(".functions.invoke");
-    expect(service).toContain('action: "create"');
-    expect(service).toContain('action: "confirm"');
-    expect(service).toContain('record.mode !== "test"');
-    expect(service).not.toContain('invokeSupabaseFunction("create-checkout"');
-    expect(service).not.toContain("confirm_test_payment");
-    expect(experience).toContain("Stripe Test uniquement");
-    expect(experience).toContain("STRIPE_SECRET_KEY_TEST");
-    expect(experience).toContain("DEMO_STRIPE_NOT_CONFIGURED");
-    expect(experience).toContain('params.get("demo_checkout") === "success"');
-    expect(experience).toContain('params.get("stripe_session_id")');
-  });
-
-  it("covers the restaurant and delivery transitions in the presentation flow", () => {
+  it("uses actual dashboard pages and the isolated demo adapter for operational actions", () => {
+    expect(restaurantOrders).toContain("<DashboardLayout");
+    expect(restaurantOrders).toContain('<CommercialDemoActorWorkspace surface="restaurant"');
     for (const action of [
       "restaurant_accept",
       "restaurant_start_preparing",
@@ -99,19 +58,49 @@ describe("commercial multi-space delivery demonstration", () => {
       "courier_start_delivery",
       "courier_confirm_delivery",
     ]) {
-      expect(experience).toContain(action);
+      expect(workspace).toContain(action);
       expect(service).toContain(action);
     }
-    expect(experience).toContain("allowed_actions.includes(action)");
-    expect(experience).toContain("Interactions en temps réel");
-    expect(experience).toContain("Commande livrée : le parcours de démonstration est terminé.");
-    expect(experience).toContain("Livraison terminée : aucune autre action n'est requise.");
+    expect(workspace).toContain("allowedActions.includes(action)");
   });
 
-  it("makes Stripe Test cancellation and test-card usage explicit", () => {
-    expect(experience).toContain('params.get("demo_checkout") === "cancelled"');
-    expect(experience).toContain("Paiement test annulé");
-    expect(experience).toContain("4242 4242 4242 4242");
-    expect(experience).toContain("N'utilisez jamais une vraie carte bancaire");
+  it("delivers surface-specific realtime notifications to the real bell and history components", () => {
+    expect(provider).toContain("EVENT_RECIPIENTS");
+    expect(provider).toContain('preparation_started: ["client", "courier"]');
+    expect(provider).toContain('courier_accepted: ["client", "restaurant"]');
+    expect(provider).toContain('order_delivered: ["client", "restaurant", "courier"]');
+    expect(provider).toContain("subscribeToCommercialDemoSession");
+    expect(notifications).toContain("commercialDemoEventToNotification");
+    expect(notifications).toContain("commercialDemoFrame.markNotificationRead");
+    expect(notifications).toContain("commercialDemoFrame.markAllNotificationsRead");
+    expect(notifications).toContain("!isCommercialDemoFrame");
+  });
+
+  it("opens Stripe Test in the parent only after strict origin and hostname validation", () => {
+    expect(workspace).toContain('type: "commercial-demo:open-checkout"');
+    expect(workspace).toContain('url.hostname !== "checkout.stripe.com"');
+    expect(experience).toContain("event.origin !== window.location.origin");
+    expect(experience).toContain('checkoutUrl.hostname !== "checkout.stripe.com"');
+    expect(experience).toContain("confirmCommercialDemoCheckout");
+    expect(workspace).toContain("4242 4242 4242 4242");
+    expect(experience).toContain("Stripe Test uniquement");
+    expect(service).toContain('"commercial-demo-checkout"');
+  });
+
+  it("keeps the demo source of truth outside production orders, dispatch and accounting", () => {
+    for (const rpc of [
+      "commercial_demo_create_session",
+      "commercial_demo_create_order",
+      "commercial_demo_get_snapshot",
+      "commercial_demo_transition",
+      "commercial_demo_reset_session",
+    ]) {
+      expect(service).toContain(rpc);
+    }
+    expect(service).toContain("commercial_demo_orders");
+    expect(service).toContain("commercial_demo_delivery_missions");
+    expect(service).toContain("commercial_demo_order_events");
+    expect(experience).not.toContain("setOrder(");
+    expect(experience).not.toContain("setMission(");
   });
 });
