@@ -25,7 +25,7 @@ import {
   subscribeToCommercialDemoSession,
   type CommercialDemoSnapshot,
 } from "@/lib/commercialDemoJourney";
-import { isCommercialDemoFrameMessage } from "@/lib/commercialDemoFrame";
+import { isCommercialDemoFrameMessage, parseCommercialDemoFramePath } from "@/lib/commercialDemoFrame";
 import type { CommercialDemoRealtimeStatus } from "@/lib/commercialDemoRealtime";
 import { cn } from "@/lib/utils";
 
@@ -228,6 +228,13 @@ export default function CommercialMultiSpaceDemo() {
     const handleMessage = (event: MessageEvent) => {
       if (event.origin !== window.location.origin || event.source === window || !isCommercialDemoFrameMessage(event.data)) return;
       if (event.data.sessionId !== effectiveSessionId) return;
+      let sourceFrame;
+      try {
+        sourceFrame = parseCommercialDemoFramePath((event.source as Window | null)?.location.pathname || "");
+      } catch {
+        return;
+      }
+      if (!sourceFrame || sourceFrame.surface !== "client" || sourceFrame.sessionId !== effectiveSessionId) return;
       let checkoutUrl: URL;
       try {
         checkoutUrl = new URL(event.data.checkoutUrl);
