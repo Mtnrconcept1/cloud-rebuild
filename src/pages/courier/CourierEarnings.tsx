@@ -4,6 +4,8 @@ import { Bike, Calendar, Coins, Download, PiggyBank, Wallet } from "lucide-react
 import { toast } from "sonner";
 
 import CourierDashboardLayout from "@/components/CourierDashboardLayout";
+import CommercialDemoCourierSecondary from "@/components/commercial/CommercialDemoCourierSecondary";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCourierProfile } from "@/hooks/useCourierProfile";
@@ -27,7 +29,7 @@ function exportEarningsCsv(rows: any[]) {
   URL.revokeObjectURL(link.href);
 }
 
-export default function CourierEarnings() {
+function LiveCourierEarnings() {
   const { data: profile, isLoading: profileLoading } = useCourierProfile();
 
   const { data: earnings = [], isLoading } = useQuery({
@@ -194,4 +196,17 @@ export default function CourierEarnings() {
       </div>
     </CourierDashboardLayout>
   );
+}
+
+
+export default function CourierEarnings() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  if (commercialDemoFrame?.surface === "courier") {
+    return (
+      <CourierDashboardLayout>
+        <CommercialDemoCourierSecondary view="earnings" />
+      </CourierDashboardLayout>
+    );
+  }
+  return <LiveCourierEarnings />;
 }

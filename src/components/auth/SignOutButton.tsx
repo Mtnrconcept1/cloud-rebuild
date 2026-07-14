@@ -3,6 +3,7 @@ import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
+import { isCommercialDemoFrameWindow } from "@/lib/commercialDemoFrame";
 
 type SignOutButtonProps = {
   className?: string;
@@ -16,6 +17,7 @@ export default function SignOutButton({
   onSignedOut,
 }: SignOutButtonProps) {
   const { signOut } = useAuth();
+  if (isCommercialDemoFrameWindow()) return null;
 
   const handleSignOut = async () => {
     await signOut();

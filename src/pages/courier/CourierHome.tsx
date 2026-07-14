@@ -6,6 +6,8 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
 import CourierDashboardLayout from "@/components/CourierDashboardLayout";
+import CommercialDemoActorOverview from "@/components/commercial/CommercialDemoActorOverview";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import CourierPushStatusCard from "@/components/courier/CourierPushStatusCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -39,7 +41,7 @@ type CourierActiveJobOrder = {
   } | null;
 };
 
-export default function CourierHome() {
+function LiveCourierHome() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [isToggling, setIsToggling] = useState(false);
@@ -373,4 +375,17 @@ export default function CourierHome() {
       </div>
     </CourierDashboardLayout>
   );
+}
+
+
+export default function CourierHome() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  if (commercialDemoFrame?.surface === "courier") {
+    return (
+      <CourierDashboardLayout>
+        <CommercialDemoActorOverview surface="courier" />
+      </CourierDashboardLayout>
+    );
+  }
+  return <LiveCourierHome />;
 }

@@ -9,6 +9,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { CommercialDemoOrders } from "@/components/dashboard/CommercialDemoScenario";
+import CommercialDemoActorWorkspace from "@/components/commercial/CommercialDemoActorWorkspace";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import RestaurantCancellationDialog from "@/components/RestaurantCancellationDialog";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
@@ -234,7 +236,15 @@ function formatAcceptanceDeadline(value: string | null | undefined) {
 }
 
 export default function DashboardCommandes() {
+  const commercialDemoFrame = useCommercialDemoFrame();
   const { isDemoMode } = useDashboardRestaurant();
+  if (commercialDemoFrame?.surface === "restaurant") {
+    return (
+      <DashboardLayout contentWidth="full">
+        <CommercialDemoActorWorkspace surface="restaurant" />
+      </DashboardLayout>
+    );
+  }
   return isDemoMode ? <CommercialDemoOrders /> : <LiveDashboardCommandes />;
 }
 

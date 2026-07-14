@@ -4,6 +4,10 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { useAuth } from "@/lib/auth-context";
+import {
+  commercialDemoEventToNotification,
+  useCommercialDemoFrame,
+} from "@/components/commercial/CommercialDemoFrameProvider";
 
 const supabase = getSupabase();
 
@@ -36,8 +40,10 @@ function normalizeNotification(row: any): TokNotification {
 export function useNotificationCenter(limit = 50, options: { realtime?: boolean } = {}) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemoFrame = Boolean(commercialDemoFrame);
 
-  useRealtimeNotifications({ enabled: Boolean(options.realtime && user?.id) });
+  useRealtimeNotifications({ enabled: Boolean(options.realtime && user?.id && !isCommercialDemoFrame) });
 
   const notificationsQuery = useQuery({
     queryKey: ["notifications", user?.id, limit],
@@ -52,7 +58,7 @@ export function useNotificationCenter(limit = 50, options: { realtime?: boolean 
       if (error) throw error;
       return (data || []).map(normalizeNotification);
     },
-    enabled: Boolean(user?.id),
+    enabled: Boolean(user?.id && !isCommercialDemoFrame),
   });
 
   const preferencesQuery = useQuery({
@@ -67,19 +73,32 @@ export function useNotificationCenter(limit = 50, options: { realtime?: boolean 
       if (error) throw error;
       return data;
     },
-    enabled: Boolean(user?.id),
+    enabled: Boolean(user?.id && !isCommercialDemoFrame),
   });
 
-  const inAppEnabled = (preferencesQuery.data as any)?.channels?.in_app ?? true;
+  const inAppEnabled = isCommercialDemoFrame ? true : ((preferencesQuery.data as any)?.channels?.in_app ?? true);
   const allowedCategories = useMemo(
     () => (preferencesQuery.data as any)?.categories ?? DEFAULT_NOTIFICATION_CATEGORIES,
     [preferencesQuery.data],
   );
 
-  const visibleNotifications = useMemo(
-    () => (notificationsQuery.data || []).filter((notification) => allowedCategories?.[notification.category || ""] !== false),
-    [allowedCategories, notificationsQuery.data],
-  );
+  const demoNotifications = useMemo<TokNotification[]>(() => {
+    if (!commercialDemoFrame) return [];
+    return commercialDemoFrame.snapshot.events
+      .map((event) => commercialDemoEventToNotification(event, commercialDemoFrame.surface))
+      .filter((notification): notification is NonNullable<typeof notification> => Boolean(notification))
+      .map((notification) => ({
+        ...notification,
+        read_at: commercialDemoFrame.readNotificationIds.has(notification.id) ? notification.created_at : null,
+      }))
+      .reverse()
+      .slice(0, limit);
+  }, [commercialDemoFrame, limit]);
+
+  const visibleNotifications = useMemo(() => {
+    if (isCommercialDemoFrame) return demoNotifications;
+    return (notificationsQuery.data || []).filter((notification) => allowedCategories?.[notification.category || ""] !== false);
+  }, [allowedCategories, demoNotifications, isCommercialDemoFrame, notificationsQuery.data]);
 
   const unreadNotifications = useMemo(
     () => (inAppEnabled ? visibleNotifications.filter((notification) => !notification.read_at) : []),
@@ -99,6 +118,10 @@ export function useNotificationCenter(limit = 50, options: { realtime?: boolean 
   }, [queryClient, user?.id]);
 
   const markNotificationRead = useCallback(async (notificationId: string) => {
+    if (commercialDemoFrame) {
+      commercialDemoFrame.markNotificationRead(notificationId);
+      return;
+    }
     if (!user?.id) return;
 
     const readAt = new Date().toISOString();
@@ -115,9 +138,13 @@ export function useNotificationCenter(limit = 50, options: { realtime?: boolean 
       queryClient.invalidateQueries({ queryKey: ["notifications", user.id] });
       queryClient.invalidateQueries({ queryKey: ["navbar-notifications", user.id] });
     }
-  }, [queryClient, updateNotificationCaches, user?.id]);
+  }, [commercialDemoFrame, queryClient, updateNotificationCaches, user?.id]);
 
   const markAllRead = useCallback(async () => {
+    if (commercialDemoFrame) {
+      commercialDemoFrame.markAllNotificationsRead();
+      return;
+    }
     if (!user?.id || unreadNotifications.length === 0) return;
 
     const readAt = new Date().toISOString();
@@ -133,15 +160,15 @@ export function useNotificationCenter(limit = 50, options: { realtime?: boolean 
       queryClient.invalidateQueries({ queryKey: ["notifications", user.id] });
       queryClient.invalidateQueries({ queryKey: ["navbar-notifications", user.id] });
     }
-  }, [queryClient, unreadNotifications.length, updateNotificationCaches, user?.id]);
+  }, [commercialDemoFrame, queryClient, unreadNotifications.length, updateNotificationCaches, user?.id]);
 
   return {
     inAppEnabled,
     notifications: visibleNotifications,
     unreadNotifications,
     unreadCount: unreadNotifications.length,
-    isLoading: notificationsQuery.isLoading,
-    error: notificationsQuery.error,
+    isLoading: isCommercialDemoFrame ? false : notificationsQuery.isLoading,
+    error: isCommercialDemoFrame ? null : notificationsQuery.error,
     markNotificationRead,
     markAllRead,
   };

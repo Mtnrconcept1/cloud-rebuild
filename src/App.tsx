@@ -37,6 +37,8 @@ import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 import { isNative } from "@/lib/platform";
 import { useTokLogoDocumentIcons } from "@/hooks/useTokLogo";
 import { useCommercialDemoAccount } from "@/hooks/useCommercialDemoAccount";
+import CommercialDemoFrameProvider, { CommercialDemoFrameAuthBoundary } from "@/components/commercial/CommercialDemoFrameProvider";
+import { getCommercialDemoFrameConfig, type CommercialDemoFrameConfig } from "@/lib/commercialDemoFrame";
 
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
@@ -336,7 +338,42 @@ function AdminProtectedRoute({
   );
 }
 
-function AppShell() {
+const COMMERCIAL_DEMO_FRAME_ROUTE_POLICY: Record<
+  CommercialDemoFrameConfig["surface"],
+  { home: string; allowedPaths: readonly string[] }
+> = {
+  client: {
+    home: "/mon-espace",
+    allowedPaths: ["/mon-espace", "/commandes", "/notifications"],
+  },
+  restaurant: {
+    home: "/dashboard",
+    allowedPaths: ["/dashboard", "/dashboard/commandes", "/dashboard/notifications"],
+  },
+  courier: {
+    home: "/courier",
+    allowedPaths: ["/courier", "/courier/jobs", "/courier/notifications", "/courier/earnings", "/courier/profile"],
+  },
+};
+
+function CommercialDemoFrameRouteBoundary({
+  config,
+  children,
+}: {
+  config: CommercialDemoFrameConfig;
+  children: React.ReactNode;
+}) {
+  const { pathname } = useLocation();
+  const policy = COMMERCIAL_DEMO_FRAME_ROUTE_POLICY[config.surface];
+
+  if (!policy.allowedPaths.includes(pathname)) {
+    return <Navigate to={policy.home} replace />;
+  }
+
+  return <>{children}</>;
+}
+
+function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: CommercialDemoFrameConfig | null }) {
   const { pathname } = useLocation();
   useTokLogoDocumentIcons();
   const { role, roles } = useAuth();
@@ -347,6 +384,7 @@ function AppShell() {
     enabled: roles.includes("commercial"),
   });
   const hasFeature = (flagName: string) => {
+    if (commercialDemoFrame) return true;
     const needsDemoResolution = (commercialRestaurantSurface && flagName.startsWith("dashboard-"))
       || (commercialSurface && flagName === "commercial-prospection");
     if (featureFlagsLoading || (needsDemoResolution && demoAccountLoading)) return null;
@@ -412,14 +450,14 @@ function AppShell() {
   const adminTokConnectEnabled = hasFeature("admin-tok-connect");
   const deliveryEnabled = hasFeature("livraison");
   const showPublicFooter = shouldShowPublicFooter(pathname);
-  const publicNavbar = shouldShowPublicNavbar(pathname) ? <Navbar /> : null;
+  const publicNavbar = !commercialDemoFrame && shouldShowPublicNavbar(pathname) ? <Navbar /> : null;
 
   return (
     <>
-      <MobileLogoIntro />
-      <AiCreationNotifications />
+      {!commercialDemoFrame ? <MobileLogoIntro /> : null}
+      {!commercialDemoFrame ? <AiCreationNotifications /> : null}
       {publicNavbar}
-      <FloatingRouteBackButton />
+      {!commercialDemoFrame ? <FloatingRouteBackButton /> : null}
       <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}>
         <Routes>
           <Route path="/" element={<ClientSurfaceRoute><Index /></ClientSurfaceRoute>} />
@@ -540,36 +578,55 @@ function AppShell() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
-      <SupportChat />
-      <Suspense fallback={null}>
-        <OrderConflictDialog />
-      </Suspense>
-      {pathname === "/" ? <DailyMiamzSlotMachine /> : null}
-      {showPublicFooter ? <FooterSection deliveryEnabled={pathname === "/" && deliveryEnabled === true} /> : null}
-      <LegalConsentBanner />
+      {!commercialDemoFrame ? <SupportChat /> : null}
+      {!commercialDemoFrame ? (
+        <Suspense fallback={null}>
+          <OrderConflictDialog />
+        </Suspense>
+      ) : null}
+      {!commercialDemoFrame && pathname === "/" ? <DailyMiamzSlotMachine /> : null}
+      {!commercialDemoFrame && showPublicFooter ? <FooterSection deliveryEnabled={pathname === "/" && deliveryEnabled === true} /> : null}
+      {!commercialDemoFrame ? <LegalConsentBanner /> : null}
     </>
   );
 }
 
-const App = () => (
-  <ErrorBoundary>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <ScrollToTop />
-          <AdminHostBoundary />
-          <AuthProvider>
-            <NativeIntegration />
-            <CartProvider>
-              <AppShell />
-            </CartProvider>
-          </AuthProvider>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
-  </ErrorBoundary>
-);
+const App = () => {
+  const commercialDemoFrame = getCommercialDemoFrameConfig();
+  const shell = (
+    <>
+      <NativeIntegration />
+      <CartProvider>
+        <AppShell commercialDemoFrame={commercialDemoFrame} />
+      </CartProvider>
+    </>
+  );
+
+  return (
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter basename={commercialDemoFrame?.basename}>
+            <ScrollToTop />
+            <AdminHostBoundary />
+            <AuthProvider>
+              {commercialDemoFrame ? (
+                <CommercialDemoFrameAuthBoundary config={commercialDemoFrame}>
+                  <CommercialDemoFrameRouteBoundary config={commercialDemoFrame}>
+                    <CommercialDemoFrameProvider config={commercialDemoFrame}>
+                      {shell}
+                    </CommercialDemoFrameProvider>
+                  </CommercialDemoFrameRouteBoundary>
+                </CommercialDemoFrameAuthBoundary>
+              ) : shell}
+            </AuthProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
+  );
+};
 
 export default App;
