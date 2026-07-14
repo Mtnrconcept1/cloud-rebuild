@@ -26,7 +26,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getSupabase } from "@/integrations/supabase/client";
 import { getCommercialRefusalReasonLabel } from "@/lib/commercialSales";
-import { invokeSupabaseFunction } from "@/lib/session";
+import { invokeSupabaseFunction, isSessionExpiredError } from "@/lib/session";
 
 export type ManagedCommercialAccount = {
   user_id: string;
@@ -52,6 +52,15 @@ type OneTimeCredentials = {
   email: string;
   password: string;
   kind: "created" | "reset";
+};
+
+type CommercialRefusalOverview = {
+  total_refusal_events: number | string | null;
+  unique_prospects: number | string | null;
+  reasons: Array<{
+    code: string;
+    count: number | string;
+  }>;
 };
 
 const PASSWORD_SYMBOLS = "!@#$%*-_+?";
@@ -142,6 +151,7 @@ export default function AdminCommercialAccountsPanel() {
       if (error) throw error;
       return data?.accounts || [];
     },
+    retry: (failureCount, error) => !isSessionExpiredError(error) && failureCount < 2,
   });
 
   const accounts = accountsQuery.data || [];
@@ -150,26 +160,20 @@ export default function AdminCommercialAccountsPanel() {
   const objectionsQuery = useQuery({
     queryKey: ["admin-commercial-refusal-overview"],
     queryFn: async () => {
-      const { data, error } = await getSupabase()
-        .from("commercial_prospect_followups" as any)
-        .select("source_objectid,refusal_reason_codes")
-        .eq("status", "not_interested");
+      const { data, error } = await (getSupabase().rpc as any)("get_admin_commercial_refusal_overview");
       if (error) throw error;
-      return (data || []) as unknown as Array<{ source_objectid: number; refusal_reason_codes: string[] | null }>;
+      return (data || {
+        total_refusal_events: 0,
+        unique_prospects: 0,
+        reasons: [],
+      }) as CommercialRefusalOverview;
     },
     staleTime: 30_000,
   });
 
   const refusalOverview = useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const followup of objectionsQuery.data || []) {
-      const reasons = followup.refusal_reason_codes?.length
-        ? new Set(followup.refusal_reason_codes)
-        : new Set(["not_interested_unspecified"]);
-      for (const reason of reasons) counts.set(reason, (counts.get(reason) || 0) + 1);
-    }
-    return Array.from(counts.entries())
-      .map(([code, count]) => ({ code, label: getCommercialRefusalReasonLabel(code), count }))
+    return (objectionsQuery.data?.reasons || [])
+      .map(({ code, count }) => ({ code, label: getCommercialRefusalReasonLabel(code), count: Number(count) || 0 }))
       .sort((left, right) => right.count - left.count || left.label.localeCompare(right.label, "fr"));
   }, [objectionsQuery.data]);
 
@@ -412,18 +416,33 @@ export default function AdminCommercialAccountsPanel() {
             <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
               Les motifs de refus ne peuvent pas être chargés.
             </div>
-          ) : refusalOverview.length === 0 ? (
-            <div className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">
-              Aucun refus qualifié pour le moment.
-            </div>
           ) : (
-            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-              {refusalOverview.map((reason) => (
-                <div key={reason.code} className="flex min-w-0 items-center justify-between gap-3 rounded-2xl border bg-muted/25 p-3">
-                  <p className="min-w-0 text-sm font-medium">{reason.label}</p>
-                  <Badge variant="secondary" className="shrink-0">{reason.count}</Badge>
+            <div className="space-y-4">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-2xl border bg-muted/25 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Refus enregistrés</p>
+                  <p className="mt-1 text-2xl font-bold">{Number(objectionsQuery.data?.total_refusal_events) || 0}</p>
                 </div>
-              ))}
+                <div className="rounded-2xl border bg-muted/25 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Restaurants distincts</p>
+                  <p className="mt-1 text-2xl font-bold">{Number(objectionsQuery.data?.unique_prospects) || 0}</p>
+                </div>
+              </div>
+
+              {refusalOverview.length === 0 ? (
+                <div className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">
+                  Aucun refus qualifié pour le moment.
+                </div>
+              ) : (
+                <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                  {refusalOverview.map((reason) => (
+                    <div key={reason.code} className="flex min-w-0 items-center justify-between gap-3 rounded-2xl border bg-muted/25 p-3">
+                      <p className="min-w-0 text-sm font-medium">{reason.label}</p>
+                      <Badge variant="secondary" className="shrink-0">{reason.count}</Badge>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </CardContent>
@@ -445,8 +464,13 @@ export default function AdminCommercialAccountsPanel() {
               {[1, 2].map((value) => <div key={value} className="h-36 animate-pulse rounded-xl bg-muted" />)}
             </div>
           ) : accountsQuery.error ? (
-            <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
-              {accountsQuery.error instanceof Error ? accountsQuery.error.message : "Impossible de charger les comptes."}
+            <div className="flex flex-col items-start gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+              <p>{accountsQuery.error instanceof Error ? accountsQuery.error.message : "Impossible de charger les comptes."}</p>
+              {isSessionExpiredError(accountsQuery.error) ? (
+                <Button type="button" size="sm" variant="outline" onClick={() => window.location.assign("/auth")}>
+                  Se reconnecter
+                </Button>
+              ) : null}
             </div>
           ) : accounts.length === 0 ? (
             <div className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">
@@ -457,17 +481,8 @@ export default function AdminCommercialAccountsPanel() {
               {accounts.map((account) => (
                 <article
                   key={account.user_id}
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`Ouvrir le profil commercial de ${account.full_name}`}
                   onClick={() => setSelectedAccount(account)}
-                  onKeyDown={(event) => {
-                    if (event.target === event.currentTarget && (event.key === "Enter" || event.key === " ")) {
-                      event.preventDefault();
-                      setSelectedAccount(account);
-                    }
-                  }}
-                  className={`cursor-pointer rounded-2xl border bg-card p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${getAccountIntegrityIssues(account).length > 0 ? "border-destructive/50" : ""}`}
+                  className={`cursor-pointer rounded-2xl border bg-card p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md ${getAccountIntegrityIssues(account).length > 0 ? "border-destructive/50" : ""}`}
                 >
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0">
@@ -513,8 +528,19 @@ export default function AdminCommercialAccountsPanel() {
                     <div><dt>Créé le</dt><dd className="font-medium text-foreground">{formatDate(account.created_at)}</dd></div>
                     <div><dt>Dernière connexion</dt><dd className="font-medium text-foreground">{formatDate(account.last_sign_in_at)}</dd></div>
                   </dl>
-                  <div className="mt-4 flex items-center justify-end gap-1 text-sm font-semibold text-primary">
-                    Activité et comptabilité <ChevronRight className="h-4 w-4" />
+                  <div className="mt-4 flex justify-end">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="gap-1 font-semibold text-primary hover:text-primary"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setSelectedAccount(account);
+                      }}
+                    >
+                      Activité et comptabilité <ChevronRight className="h-4 w-4" />
+                    </Button>
                   </div>
                 </article>
               ))}
