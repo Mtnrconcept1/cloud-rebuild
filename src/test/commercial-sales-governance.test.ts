@@ -35,13 +35,25 @@ describe("commercial sales governance", () => {
   });
 
   it("limits direct row changes and exposes a privacy-aware read model", () => {
-    expect(migration).toContain("commercial_prospect_followups_admin_insert");
-    expect(migration).toContain("commercial_prospect_followups_admin_update");
+    expect(migration).toContain(
+      "REVOKE INSERT, UPDATE, DELETE ON TABLE public.commercial_prospect_followups",
+    );
+    expect(migration).not.toContain(
+      "CREATE POLICY commercial_prospect_followups_admin_insert",
+    );
+    expect(migration).not.toContain(
+      "CREATE POLICY commercial_prospect_followups_admin_update",
+    );
+    expect(migration).toContain(
+      "prevent_commercial_prospect_followup_delete",
+    );
     expect(migration).toContain("get_commercial_prospect_followups");
     expect(prospecting).toContain('"get_commercial_prospect_followups"');
     expect(migration).toContain("commercial_prospect_followup_history");
     expect(migration).toContain("commercial_followup_changed_reload_required");
     expect(migration).toContain("prospect_claimed_by_another_commercial_reload_required");
+    expect(migration).toContain("FROM PUBLIC, anon, service_role;");
+    expect(migration).toContain("IF NOT v_is_commercial THEN");
     expect(commercialAccounting).toContain("isAdmin ? (requestedCommercialUserId");
   });
 
