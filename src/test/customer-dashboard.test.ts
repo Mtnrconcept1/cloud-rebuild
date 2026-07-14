@@ -25,8 +25,8 @@ describe("espace client central", () => {
     expect(dashboard).toContain('.eq("user_id", user!.id)');
     expect(dashboard).toContain('from("favorites")');
     expect(dashboard).toContain('from("reviews")');
-    expect(dashboard).toContain('to="/profil?tab=fidelite"');
-    expect(dashboard).toContain('to="/contact"');
+    expect(dashboard).toContain('to={clientTarget("/profil?tab=fidelite")}');
+    expect(dashboard).toContain('to={clientTarget("/contact")}');
     expect(dashboard).not.toContain("SUPABASE_SERVICE_ROLE_KEY");
   });
 
