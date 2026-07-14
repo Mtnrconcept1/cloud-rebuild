@@ -57,4 +57,10 @@ describe("admin-managed commercial demo accounts", () => {
     expect(provisionerSource).toContain("audit_warning");
     expect(panelSource).toContain("ne pourra pas être relu ensuite");
   });
+
+  it("stops retrying the admin provisioner when the browser session was revoked", () => {
+    expect(panelSource).toContain("isSessionExpiredError");
+    expect(panelSource).toContain("!isSessionExpiredError(error) && failureCount < 2");
+    expect(panelSource).toContain('window.location.assign("/auth")');
+  });
 });
