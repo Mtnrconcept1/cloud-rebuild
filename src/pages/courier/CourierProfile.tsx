@@ -5,6 +5,8 @@ import { toast } from "sonner";
 
 import CourierPushStatusCard from "@/components/courier/CourierPushStatusCard";
 import CourierDashboardLayout from "@/components/CourierDashboardLayout";
+import CommercialDemoCourierSecondary from "@/components/commercial/CommercialDemoCourierSecondary";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import SignupApplicationStatusCard from "@/components/signup/SignupApplicationStatusCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -86,7 +88,7 @@ function toShiftPayload(groups: Record<number, ShiftSlotFormRow[]>): CourierShif
     });
 }
 
-export default function CourierProfile() {
+function LiveCourierProfile() {
   const queryClient = useQueryClient();
   const { signOut, user } = useAuth();
   const { data: profile, isLoading: profileLoading } = useCourierProfile();
@@ -415,4 +417,17 @@ export default function CourierProfile() {
       </div>
     </CourierDashboardLayout>
   );
+}
+
+
+export default function CourierProfile() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  if (commercialDemoFrame?.surface === "courier") {
+    return (
+      <CourierDashboardLayout>
+        <CommercialDemoCourierSecondary view="profile" />
+      </CourierDashboardLayout>
+    );
+  }
+  return <LiveCourierProfile />;
 }
