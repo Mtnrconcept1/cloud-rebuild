@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import CourierMissionDialog from "@/components/courier/CourierMissionDialog";
 import DeliveryProofPanel from "@/components/courier/DeliveryProofPanel";
 import CourierDashboardLayout from "@/components/CourierDashboardLayout";
+import CommercialDemoActorWorkspace from "@/components/commercial/CommercialDemoActorWorkspace";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,7 +43,7 @@ function mapsLink(address: string) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
 }
 
-export default function CourierJobs() {
+function LiveCourierJobs() {
   const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
   const { data: profile, isLoading: profileLoading } = useCourierProfile();
@@ -443,4 +445,17 @@ export default function CourierJobs() {
       </div>
     </CourierDashboardLayout>
   );
+}
+
+
+export default function CourierJobs() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  if (commercialDemoFrame?.surface === "courier") {
+    return (
+      <CourierDashboardLayout>
+        <CommercialDemoActorWorkspace surface="courier" />
+      </CourierDashboardLayout>
+    );
+  }
+  return <LiveCourierJobs />;
 }
