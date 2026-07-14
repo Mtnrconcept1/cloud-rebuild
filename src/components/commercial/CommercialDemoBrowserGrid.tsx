@@ -39,8 +39,10 @@ import {
 } from "@/lib/commercialDemoFrame";
 import { cn } from "@/lib/utils";
 
+type RemoteBrowserSurface = CommercialDemoFrameSurface | "commercial";
+
 type BrowserDefinition = {
-  surface: CommercialDemoFrameSurface;
+  surface: RemoteBrowserSurface;
   title: string;
   accountLabel: string;
   initialPath: string;
@@ -78,6 +80,14 @@ const BROWSERS: BrowserDefinition[] = [
     badgeClassName: "border-orange-300 bg-orange-50 text-orange-700 dark:bg-orange-400/10 dark:text-orange-100",
   },
   {
+    surface: "commercial",
+    title: "Compte commercial",
+    accountLabel: "Votre espace commercial",
+    initialPath: "/commercial",
+    icon: PanelsTopLeft,
+    badgeClassName: "border-violet-300 bg-violet-50 text-violet-700 dark:bg-violet-400/10 dark:text-violet-100",
+  },
+  {
     surface: "courier",
     title: "Compte livreur",
     accountLabel: "Alex · livreur démo",
@@ -86,6 +96,17 @@ const BROWSERS: BrowserDefinition[] = [
     badgeClassName: "border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-100",
   },
 ];
+
+function buildRemoteBrowserUrl(
+  surface: RemoteBrowserSurface,
+  sessionId: string,
+  targetPath: string,
+) {
+  if (surface === "commercial") {
+    return targetPath.startsWith("/commercial") ? targetPath : "/commercial";
+  }
+  return buildCommercialDemoFrameUrl(surface, sessionId, targetPath);
+}
 
 const VIEWPORTS: Record<ViewportPreset, {
   label: string;
@@ -118,7 +139,7 @@ function RemoteViewport({
 }: {
   frameRef: RefObject<HTMLIFrameElement>;
   preset: ViewportPreset;
-  surface: CommercialDemoFrameSurface;
+  surface: RemoteBrowserSurface;
   title: string;
   src: string;
 }) {
@@ -203,13 +224,13 @@ function BrowserWindow({
   fullscreen: boolean;
   onActivate: () => void;
   onToggleFullscreen: () => void;
-  onRuntimeChange: (surface: CommercialDemoFrameSurface, runtime: FrameRuntime) => void;
+  onRuntimeChange: (surface: RemoteBrowserSurface, runtime: FrameRuntime) => void;
 }) {
   const frameRef = useRef<HTMLIFrameElement>(null);
   const [preset, setPreset] = useState<ViewportPreset>("desktop");
   const [runtime, setRuntime] = useState<FrameRuntime>(() => initialRuntime(definition));
   const initialUrl = useMemo(
-    () => buildCommercialDemoFrameUrl(definition.surface, sessionId, definition.initialPath),
+    () => buildRemoteBrowserUrl(definition.surface, sessionId, definition.initialPath),
     [definition.initialPath, definition.surface, sessionId],
   );
   const Icon = definition.icon;
@@ -220,6 +241,8 @@ function BrowserWindow({
   }, [definition, sessionId]);
 
   useEffect(() => {
+    if (definition.surface === "commercial") return;
+
     const handleMessage = (event: MessageEvent) => {
       if (event.origin !== window.location.origin || event.source !== frameRef.current?.contentWindow) return;
       if (!isCommercialDemoFrameStateMessage(event.data)) return;
@@ -243,6 +266,63 @@ function BrowserWindow({
     return () => window.removeEventListener("message", handleMessage);
   }, [definition.surface, onRuntimeChange, sessionId]);
 
+  useEffect(() => {
+    if (definition.surface !== "commercial") return;
+
+    const frame = frameRef.current;
+    let stopped = false;
+    const syncCommercialFrame = () => {
+      if (stopped) return;
+      const frameWindow = frame?.contentWindow;
+      if (!frameWindow) return;
+
+      try {
+        const { pathname, search } = frameWindow.location;
+        // Never recursively open this console inside its own commercial
+        // window. Every other commercial route stays fully navigable.
+        if (pathname.startsWith("/commercial/demo-live")) {
+          frameWindow.location.replace("/commercial");
+          return;
+        }
+
+        const historyIndex = Number(frameWindow.history.state?.idx ?? 0);
+        setRuntime((current) => {
+          const next = {
+            path: pathname || "/commercial",
+            search,
+            historyIndex,
+            maxHistoryIndex: Math.max(current.maxHistoryIndex, historyIndex),
+            unreadCount: 0,
+            realtimeStatus: "connected",
+          } satisfies FrameRuntime;
+          if (
+            current.path === next.path
+            && current.search === next.search
+            && current.historyIndex === next.historyIndex
+            && current.maxHistoryIndex === next.maxHistoryIndex
+            && current.realtimeStatus === next.realtimeStatus
+          ) {
+            return current;
+          }
+          onRuntimeChange(definition.surface, next);
+          return next;
+        });
+      } catch {
+        // A same-origin frame can be unavailable for a few milliseconds while
+        // its document is replaced. The following tick resynchronises it.
+      }
+    };
+
+    frame?.addEventListener("load", syncCommercialFrame);
+    syncCommercialFrame();
+    const timer = window.setInterval(syncCommercialFrame, 500);
+    return () => {
+      stopped = true;
+      frame?.removeEventListener("load", syncCommercialFrame);
+      window.clearInterval(timer);
+    };
+  }, [definition.surface, onRuntimeChange, sessionId]);
+
   const withFrameWindow = (action: (frameWindow: Window) => void) => {
     const frameWindow = frameRef.current?.contentWindow;
     if (!frameWindow) return;
@@ -255,7 +335,7 @@ function BrowserWindow({
   };
 
   const currentUrl = useMemo(
-    () => buildCommercialDemoFrameUrl(definition.surface, sessionId, `${runtime.path}${runtime.search}`),
+    () => buildRemoteBrowserUrl(definition.surface, sessionId, `${runtime.path}${runtime.search}`),
     [definition.surface, runtime.path, runtime.search, sessionId],
   );
 
@@ -368,16 +448,18 @@ function BrowserWindow({
 }
 
 export default function CommercialDemoBrowserGrid({ sessionId }: { sessionId: string }) {
-  const [activeSurface, setActiveSurface] = useState<CommercialDemoFrameSurface>("client");
+  const [activeSurface, setActiveSurface] = useState<RemoteBrowserSurface>("client");
+  const [thirdSurface, setThirdSurface] = useState<"commercial" | "courier">("commercial");
   const [layout, setLayout] = useState<ConsoleLayout>("control");
-  const [fullscreenSurface, setFullscreenSurface] = useState<CommercialDemoFrameSurface | null>(null);
-  const [runtimes, setRuntimes] = useState<Record<CommercialDemoFrameSurface, FrameRuntime>>(() => ({
+  const [fullscreenSurface, setFullscreenSurface] = useState<RemoteBrowserSurface | null>(null);
+  const [runtimes, setRuntimes] = useState<Record<RemoteBrowserSurface, FrameRuntime>>(() => ({
     client: initialRuntime(BROWSERS[0]),
     restaurant: initialRuntime(BROWSERS[1]),
-    courier: initialRuntime(BROWSERS[2]),
+    commercial: initialRuntime(BROWSERS[2]),
+    courier: initialRuntime(BROWSERS[3]),
   }));
 
-  const updateRuntime = useCallback((surface: CommercialDemoFrameSurface, runtime: FrameRuntime) => {
+  const updateRuntime = useCallback((surface: RemoteBrowserSurface, runtime: FrameRuntime) => {
     setRuntimes((current) => current[surface] === runtime ? current : { ...current, [surface]: runtime });
   }, []);
 
@@ -395,16 +477,35 @@ export default function CommercialDemoBrowserGrid({ sessionId }: { sessionId: st
     };
   }, [fullscreenSurface]);
 
+  const visibleSurfaces = useMemo<RemoteBrowserSurface[]>(
+    () => ["client", "restaurant", thirdSurface],
+    [thirdSurface],
+  );
+  const visibleBrowsers = useMemo(
+    () => visibleSurfaces
+      .map((surface) => BROWSERS.find((browser) => browser.surface === surface))
+      .filter((browser): browser is BrowserDefinition => Boolean(browser)),
+    [visibleSurfaces],
+  );
   const orderedBrowsers = useMemo(() => {
-    const active = BROWSERS.find((browser) => browser.surface === activeSurface) || BROWSERS[0];
-    return [active, ...BROWSERS.filter((browser) => browser.surface !== active.surface)];
-  }, [activeSurface]);
+    const active = visibleBrowsers.find((browser) => browser.surface === activeSurface) || visibleBrowsers[0];
+    const visible = [active, ...visibleBrowsers.filter((browser) => browser.surface !== active.surface)];
+    return [...visible, ...BROWSERS.filter((browser) => !visibleSurfaces.includes(browser.surface))];
+  }, [activeSurface, visibleBrowsers, visibleSurfaces]);
+
+  const selectThirdSurface = (surface: "commercial" | "courier") => {
+    const replacingActiveSurface = activeSurface === thirdSurface;
+    const replacingFullscreenSurface = fullscreenSurface === thirdSurface;
+    setThirdSurface(surface);
+    if (replacingActiveSurface) setActiveSurface(surface);
+    if (replacingFullscreenSurface) setFullscreenSurface(null);
+  };
 
   return (
     <section className="min-w-0" aria-label="Console commerciale de contrôle à distance">
       <div className="mb-3 flex flex-col gap-3 rounded-2xl border border-border/70 bg-background/90 p-2.5 shadow-sm backdrop-blur sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 gap-1 overflow-x-auto" role="tablist" aria-label="Choisir le compte distant">
-          {BROWSERS.map((browser) => {
+          {visibleBrowsers.map((browser) => {
             const BrowserIcon = browser.icon;
             const selected = browser.surface === activeSurface;
             const unreadCount = runtimes[browser.surface].unreadCount;
@@ -427,13 +528,23 @@ export default function CommercialDemoBrowserGrid({ sessionId }: { sessionId: st
             );
           })}
         </div>
-        <div className="flex shrink-0 items-center gap-1 rounded-xl border bg-muted/30 p-1" aria-label="Disposition des écrans">
-          <button type="button" className={cn("flex h-9 items-center gap-2 rounded-lg px-3 text-xs font-semibold", layout === "control" && "bg-background shadow-sm")} onClick={() => setLayout("control")} aria-pressed={layout === "control"}>
-            <PanelsTopLeft className="h-4 w-4" />Contrôle
-          </button>
-          <button type="button" className={cn("flex h-9 items-center gap-2 rounded-lg px-3 text-xs font-semibold", layout === "mosaic" && "bg-background shadow-sm")} onClick={() => setLayout("mosaic")} aria-pressed={layout === "mosaic"}>
-            <LayoutGrid className="h-4 w-4" />Mosaïque
-          </button>
+        <div className="flex shrink-0 flex-wrap items-center gap-1">
+          <div className="flex items-center rounded-xl border bg-muted/30 p-1" aria-label="Troisième session affichée">
+            <button type="button" className={cn("flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold", thirdSurface === "commercial" && "bg-background shadow-sm")} onClick={() => selectThirdSurface("commercial")} aria-pressed={thirdSurface === "commercial"}>
+              <PanelsTopLeft className="h-4 w-4" />Commercial
+            </button>
+            <button type="button" className={cn("flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold", thirdSurface === "courier" && "bg-background shadow-sm")} onClick={() => selectThirdSurface("courier")} aria-pressed={thirdSurface === "courier"}>
+              <Bike className="h-4 w-4" />Livreur
+            </button>
+          </div>
+          <div className="flex items-center rounded-xl border bg-muted/30 p-1" aria-label="Disposition des écrans">
+            <button type="button" className={cn("flex h-9 items-center gap-2 rounded-lg px-3 text-xs font-semibold", layout === "control" && "bg-background shadow-sm")} onClick={() => setLayout("control")} aria-pressed={layout === "control"}>
+              <PanelsTopLeft className="h-4 w-4" />Contrôle
+            </button>
+            <button type="button" className={cn("flex h-9 items-center gap-2 rounded-lg px-3 text-xs font-semibold", layout === "mosaic" && "bg-background shadow-sm")} onClick={() => setLayout("mosaic")} aria-pressed={layout === "mosaic"}>
+              <LayoutGrid className="h-4 w-4" />Mosaïque
+            </button>
+          </div>
         </div>
       </div>
 
@@ -447,6 +558,7 @@ export default function CommercialDemoBrowserGrid({ sessionId }: { sessionId: st
         data-console-layout={layout}
       >
         {orderedBrowsers.map((definition, index) => {
+          const visible = visibleSurfaces.includes(definition.surface);
           const active = definition.surface === activeSurface;
           const compact = layout === "control" && index > 0;
           return (
@@ -454,7 +566,8 @@ export default function CommercialDemoBrowserGrid({ sessionId }: { sessionId: st
               key={definition.surface}
               className={cn(
                 "min-h-0 min-w-0",
-                !active && (layout === "control" ? "hidden lg:block" : "hidden xl:block"),
+                !visible && "hidden",
+                visible && !active && (layout === "control" ? "hidden lg:block" : "hidden xl:block"),
                 layout === "control" && index === 0 && "lg:row-span-2",
                 layout === "control" && index > 0 && "lg:col-start-2",
                 layout === "mosaic" && "xl:min-h-[42rem]",
@@ -475,7 +588,7 @@ export default function CommercialDemoBrowserGrid({ sessionId }: { sessionId: st
         })}
       </div>
       <p className="mt-3 text-center text-xs text-muted-foreground">
-        Les trois comptes restent connectés en permanence. Sélectionnez une fenêtre puis naviguez dedans comme sur un ordinateur distant.
+        Les sessions restent connectées en permanence. Sélectionnez une fenêtre puis naviguez dedans comme sur un ordinateur distant.
       </p>
     </section>
   );
