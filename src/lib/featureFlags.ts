@@ -357,7 +357,7 @@ export function useFeatureFlags(isAdmin = false) {
   };
 }
 
-export function useFeatureFlagSnapshot(): {
+export function useFeatureFlagSnapshot(options: { enabled?: boolean } = {}): {
   activeFeatures: Set<string>;
   flags: FeatureFlag[];
   featureMap: Map<string, FeatureFlag>;
@@ -365,10 +365,17 @@ export function useFeatureFlagSnapshot(): {
   isEnabled: (featureName: string) => boolean;
   isExplicitlyEnabled: (featureName: string) => boolean;
 } {
+  const enabled = options.enabled ?? true;
   const [flags, setFlags] = useState<FeatureFlag[]>(buildSafeFallbackFlags());
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(enabled);
 
   useEffect(() => {
+    if (!enabled) {
+      setFlags(buildSafeFallbackFlags());
+      setLoading(false);
+      return undefined;
+    }
+
     let cancelled = false;
 
     const loadFlags = () => {
@@ -386,7 +393,7 @@ export function useFeatureFlagSnapshot(): {
       cancelled = true;
       window.removeEventListener("feature-flags-changed", loadFlags);
     };
-  }, []);
+  }, [enabled]);
 
   const featureMap = useMemo(() => buildFeatureMap(flags), [flags]);
   const activeFeatures = useMemo(
@@ -404,6 +411,6 @@ export function useFeatureFlagSnapshot(): {
   };
 }
 
-export function useActiveFeatures(): Set<string> {
-  return useFeatureFlagSnapshot().activeFeatures;
+export function useActiveFeatures(options: { enabled?: boolean } = {}): Set<string> {
+  return useFeatureFlagSnapshot(options).activeFeatures;
 }
