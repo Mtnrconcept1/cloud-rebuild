@@ -1,4 +1,8 @@
 import { getSupabase } from "@/integrations/supabase/client";
+import {
+  getCommercialDemoRealtimeUpdate,
+  type CommercialDemoRealtimeStatus,
+} from "@/lib/commercialDemoRealtime";
 import { invokeSupabaseFunction, invokeSupabaseRpc } from "@/lib/session";
 
 export type CommercialDemoSurface = "client" | "restaurant" | "courier" | "system";
@@ -239,28 +243,61 @@ export async function confirmCommercialDemoCheckout({
   return assertTestMode(data) as CommercialDemoCheckoutConfirmResult;
 }
 
-export function subscribeToCommercialDemoSession(sessionId: string, onChange: () => void) {
+export function subscribeToCommercialDemoSession(
+  sessionId: string,
+  onChange: () => void,
+  onStatus: (status: CommercialDemoRealtimeStatus) => void = () => undefined,
+) {
   const supabase = getSupabase();
+  let disposed = false;
+  const isOnline = () => typeof navigator === "undefined" || navigator.onLine !== false;
+  const emitStatus = (status: CommercialDemoRealtimeStatus) => {
+    if (!disposed) onStatus(status);
+  };
+  const resync = () => {
+    if (!disposed) onChange();
+  };
+  const handleOnline = () => {
+    emitStatus("reconnecting");
+    resync();
+  };
+  const handleOffline = () => emitStatus("offline");
+
+  emitStatus(isOnline() ? "connecting" : "offline");
+  if (typeof window !== "undefined") {
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+  }
+
   const channel = supabase
     .channel(`commercial-demo-session:${sessionId}`)
     .on(
       "postgres_changes",
       { event: "*", schema: "public", table: "commercial_demo_orders", filter: `session_id=eq.${sessionId}` },
-      onChange,
+      resync,
     )
     .on(
       "postgres_changes",
       { event: "*", schema: "public", table: "commercial_demo_delivery_missions", filter: `session_id=eq.${sessionId}` },
-      onChange,
+      resync,
     )
     .on(
       "postgres_changes",
       { event: "INSERT", schema: "public", table: "commercial_demo_order_events", filter: `session_id=eq.${sessionId}` },
-      onChange,
+      resync,
     )
-    .subscribe();
+    .subscribe((channelStatus) => {
+      const update = getCommercialDemoRealtimeUpdate(channelStatus, isOnline());
+      emitStatus(update.status);
+      if (update.shouldResync) resync();
+    });
 
   return () => {
+    disposed = true;
+    if (typeof window !== "undefined") {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    }
     void supabase.removeChannel(channel);
   };
 }
