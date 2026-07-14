@@ -15,14 +15,16 @@ export const COMMERCIAL_REFUSAL_REASONS = [
   { value: "technical_constraints", label: "Contraintes techniques ou d’intégration" },
   { value: "budget_unavailable", label: "Budget indisponible actuellement" },
   { value: "seasonal_or_closing", label: "Activité saisonnière, vente ou fermeture prévue" },
-  { value: "not_interested_unspecified", label: "Pas intéressé, sans motif précisé" },
   { value: "other", label: "Autre motif" },
 ] as const;
 
 export type CommercialRefusalReasonCode = (typeof COMMERCIAL_REFUSAL_REASONS)[number]["value"];
 
 const COMMERCIAL_REFUSAL_REASON_LABELS = new Map<string, string>(
-  COMMERCIAL_REFUSAL_REASONS.map((reason) => [reason.value, reason.label] as const),
+  [
+    ...COMMERCIAL_REFUSAL_REASONS.map((reason) => [reason.value, reason.label] as const),
+    ["not_interested_unspecified", "Refus historique sans motif précisé"] as const,
+  ],
 );
 
 export function getCommercialRefusalReasonLabel(code: string) {

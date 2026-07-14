@@ -10,7 +10,7 @@ function read(path: string) {
 }
 
 describe("commercial sales governance", () => {
-  const migration = read("supabase/migrations/20260714195229_secure_commercial_sales_governance.sql");
+  const migration = read("supabase/migrations/20260714232000_commercial_sales_governance_followup.sql");
   const prospecting = read("src/pages/CommercialProspection.tsx");
   const commercialAccounting = read("src/pages/CommercialComptabilite.tsx");
   const accountList = read("src/components/admin/AdminCommercialAccountsPanel.tsx");
@@ -26,8 +26,9 @@ describe("commercial sales governance", () => {
     expect(prospecting).not.toContain("Sprint 60 jours sans fixe");
     expect(prospecting).not.toContain("signed_restaurant_id:");
     expect(prospecting).not.toContain("acquisition_commission_chf:");
-    expect(prospecting).toContain("p_subscription_plan_slug");
-    expect(prospecting).toContain("p_subscription_billing_period");
+    expect(prospecting).toContain("p_subscription_plan_slug: null");
+    expect(prospecting).toContain("p_subscription_billing_period: null");
+    expect(prospecting).not.toContain("draftSubscriptionPlanSlug");
     expect(migration).toContain("CREATE OR REPLACE FUNCTION public.record_commercial_prospect_followup");
     expect(migration).toContain("SECURITY DEFINER");
     expect(migration).toContain("commercial_signature_commission_chf");
@@ -35,9 +36,7 @@ describe("commercial sales governance", () => {
   });
 
   it("limits direct row changes and exposes a privacy-aware read model", () => {
-    expect(migration).toContain(
-      "REVOKE INSERT, UPDATE, DELETE ON TABLE public.commercial_prospect_followups",
-    );
+    expect(migration).toContain("REVOKE ALL ON TABLE public.commercial_prospect_followups");
     expect(migration).not.toContain(
       "CREATE POLICY commercial_prospect_followups_admin_insert",
     );
@@ -54,7 +53,23 @@ describe("commercial sales governance", () => {
     expect(migration).toContain("prospect_claimed_by_another_commercial_reload_required");
     expect(migration).toContain("FROM PUBLIC, anon, service_role;");
     expect(migration).toContain("IF NOT v_is_commercial THEN");
+    expect(migration).toContain("commercial_account_inactive");
+    expect(migration).toContain("commercial_prospect_catalog");
     expect(commercialAccounting).toContain("isAdmin ? (requestedCommercialUserId");
+  });
+
+  it("keeps commercial accounting read-only and lists the commercial's signed restaurants", () => {
+    expect(commercialAccounting).toContain('data-testid="commercial-accounting-readonly"');
+    expect(commercialAccounting).toContain("Votre comptabilité est en lecture seule");
+    expect(commercialAccounting).toContain("AdminCompensationAdjustmentForm");
+    expect(commercialAccounting).toContain("if (!isAdmin) return null");
+    expect(commercialAccounting).toContain('"admin_add_commercial_compensation_adjustment"');
+    expect(commercialAccounting).not.toContain('.from("commercial_compensation_adjustments"');
+    expect(commercialAccounting).toContain('.from("commercial_prospect_followups"');
+    expect(commercialAccounting).toContain('.eq("signed_by", commercialUserId)');
+    expect(commercialAccounting).toContain("fetchGenevaCommercialProspects");
+    expect(commercialAccounting).toContain("Mes restaurants signés");
+    expect(commercialAccounting).toContain("Historique complet de toutes les signatures");
   });
 
   it("offers distinct field outcomes and requires structured refusal reasons", () => {
@@ -71,6 +86,8 @@ describe("commercial sales governance", () => {
     expect(prospecting).toContain("p_refusal_other_text");
     expect(migration).toContain("refusal_reason_codes");
     expect(migration).toContain("not_interested_unspecified");
+    expect(salesRules).not.toContain('{ value: "not_interested_unspecified"');
+    expect(migration).toContain("get_admin_commercial_refusal_overview");
   });
 
   it("opens a complete admin profile with activity, objections and accounting", () => {
@@ -80,7 +97,23 @@ describe("commercial sales governance", () => {
     expect(accountDetail).toContain("Restaurants suivis");
     expect(accountDetail).toContain("Régime décidé par l’admin");
     expect(accountDetail).toContain('"get_commercial_compensation_summary"');
+    expect(accountDetail).toContain('"get_admin_commercial_activity"');
+    expect(accountDetail).toContain('"admin_correct_commercial_signature"');
+    expect(accountDetail).toContain('"admin_correct_commercial_signature_status"');
+    expect(accountDetail).toContain("Annuler la signature");
     expect(accountDetail).toContain("Comptabilité du mois");
+    expect(migration).toContain("commercial_compensation_profile_events");
+    expect(migration).toContain("'period_chf'");
+  });
+
+  it("keeps commercial compensation read-only and prevents duplicate bonuses", () => {
+    expect(migration).toContain("REVOKE INSERT, UPDATE, DELETE");
+    expect(migration).toContain("admin_add_commercial_compensation_adjustment");
+    expect(migration).toContain("WHEN cca.kind = 'sprint_bonus' THEN 0");
+    expect(migration).toContain("cpf.commercial_compensation_mode = 'commission_only'");
+    expect(migration).toContain("NOT isfinite(v_period_start)");
+    expect(migration).toContain("v_period_end - v_period_start > 366");
+    expect(migration).not.toContain("WITH secured AS (");
   });
 
   it("shows server-generated signature commissions in central admin accounting", () => {

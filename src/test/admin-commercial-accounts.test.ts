@@ -14,6 +14,7 @@ describe("commercial demo account security", () => {
   const aclHardening = read("supabase/migrations/20260714181500_commercial_demo_function_acl_hardening.sql");
   const authRepair = read("supabase/migrations/20260714184500_repair_auth_email_change_null.sql");
   const sharedAuth = read("supabase/functions/_shared/auth.ts");
+  const sessionHelper = read("src/lib/session.ts");
   const ownerHook = read("src/pages/dashboard/useOwnerRestaurants.ts");
   const app = read("src/App.tsx");
   const layout = read("src/components/DashboardLayout.tsx");
@@ -91,6 +92,16 @@ describe("commercial demo account security", () => {
     expect(provisionFunction).toContain("isExistingAuthUserError");
     expect(provisionFunction).toContain('code === "email_exists"');
     expect(provisionFunction).toContain("authErrorMessage(createError");
+  });
+
+  it("recovers once from an expired Edge Function session without weakening admin authorization", () => {
+    expect(sessionHelper).toContain("(error as ErrorWithHttpContext | null)?.context");
+    expect(sessionHelper).toContain("getFunctionsErrorStatus(result.error, result.response)");
+    expect(sessionHelper).toContain("await getFreshAccessToken(true)");
+    expect(sessionHelper).toContain('auth.signOut({ scope: "local" })');
+    expect(sessionHelper).toContain("throw new SessionExpiredError()");
+    expect(provisionFunction).toContain("authenticateRequest(req)");
+    expect(provisionFunction).toContain('requireUserRole(actor, ["admin"])');
   });
 
   it("classifies only explicit duplicate Auth failures as an existing account", () => {
