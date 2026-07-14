@@ -47,7 +47,8 @@ describe("commercial real multi-dashboard demonstration", () => {
 
   it("keeps the courier role virtual and validates every frame through the isolated snapshot RPC", () => {
     expect(frame).toContain("/commercial/demo-live/frame/");
-    expect(provider).toContain('roles: [forcedRole]');
+    expect(provider).toContain("roles: auth.roles");
+    expect(provider).not.toContain("roles: [forcedRole]");
     expect(provider).toContain("canSwitchRole: false");
     expect(provider).toContain("signOut: async () => undefined");
     expect(provider).toContain("getCommercialDemoSnapshot(config.sessionId)");

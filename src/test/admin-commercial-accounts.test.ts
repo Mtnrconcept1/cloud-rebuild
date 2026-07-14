@@ -33,11 +33,14 @@ describe("commercial demo account security", () => {
   });
 
   it("restricts the restaurateur surface to the mapped demo restaurant", () => {
-    expect(ownerHook).toContain('.eq("id", demoRestaurantId)');
+    expect(ownerHook).toContain('.eq("id", effectiveDemoRestaurantId)');
+    expect(ownerHook).toContain('.eq("is_demo", true)');
+    expect(ownerHook).toContain("filterCommercialDemoRestaurants(data || [], effectiveDemoRestaurantId)");
     expect(ownerHook).toContain("must never see a real restaurant");
     expect(ownerHook).toContain('user?.app_metadata?.account_type === "commercial_demo"');
-    expect(ownerHook).toContain("isMarkedCommercialDemoIdentity || Boolean(demoAccount)");
-    expect(ownerHook).toContain("if (isManagedCommercialIdentity && !demoRestaurantId) return []");
+    expect(ownerHook).toContain("isMarkedCommercialDemoIdentity");
+    expect(ownerHook).toContain("Boolean(demoAccount)");
+    expect(ownerHook).toContain("if (isManagedCommercialIdentity && !effectiveDemoRestaurantId) return []");
   });
 
   it("shows every demo tool while centrally blocking paid or external effects", () => {
