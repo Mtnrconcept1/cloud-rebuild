@@ -56,8 +56,6 @@ import {
 
 type ProspectStatus = Database["public"]["Enums"]["commercial_visit_status"];
 type EditableProspectStatus = Exclude<ProspectStatus, "not_visited">;
-type CommercialSubscriptionPlanSlug = "starter" | "pro" | "premium" | "elite";
-type CommercialSubscriptionBillingPeriod = "monthly" | "yearly";
 
 type CommercialProspectFollowup = {
   source_objectid: number;
@@ -170,17 +168,6 @@ const GENEVA_CENTER: L.LatLngExpression = [46.2044, 6.1432];
 const COMMERCIAL_CLUSTER_DISABLE_ZOOM = 16;
 const COMMERCIAL_CLUSTER_VIEW_PADDING = 0.35;
 
-const COMMERCIAL_SUBSCRIPTION_PLANS: Array<{
-  slug: CommercialSubscriptionPlanSlug;
-  name: string;
-  monthlyPriceChf: number;
-}> = [
-  { slug: "starter", name: "TOK Starter", monthlyPriceChf: 69 },
-  { slug: "pro", name: "TOK Business / Pro", monthlyPriceChf: 129 },
-  { slug: "premium", name: "TOK Premium", monthlyPriceChf: 199 },
-  { slug: "elite", name: "TOK Elite", monthlyPriceChf: 499 },
-];
-
 type CommercialMapProspectPoint = {
   prospect: GenevaCommercialProspect;
   latLng: L.LatLng;
@@ -292,14 +279,6 @@ function formatChf(value: unknown) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })} CHF`;
-}
-
-function getCommercialSubscriptionPlan(slug: string | null | undefined) {
-  return COMMERCIAL_SUBSCRIPTION_PLANS.find((plan) => plan.slug === slug) || COMMERCIAL_SUBSCRIPTION_PLANS[0];
-}
-
-function normalizeBillingPeriod(value: string | null | undefined): CommercialSubscriptionBillingPeriod {
-  return value === "yearly" ? "yearly" : "monthly";
 }
 
 function getLocalTodayDateInputValue() {
@@ -737,11 +716,9 @@ function CommercialProspectDetailsDialog({
   if (!prospect) return null;
 
   const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${prospect.name} ${formatAddress(prospect)}`)}`;
-  const signedPlanName = followup?.signed_subscription_plan_name || (
-    followup?.signed_subscription_plan_slug
-      ? getCommercialSubscriptionPlan(followup.signed_subscription_plan_slug).name
-      : null
-  );
+  const signedPlanName = followup?.signed_subscription_plan_name
+    || followup?.signed_subscription_plan_slug
+    || null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -912,8 +889,6 @@ export default function CommercialProspection() {
   const [draftFollowUpDate, setDraftFollowUpDate] = useState("");
   const [draftRefusalReasons, setDraftRefusalReasons] = useState<CommercialRefusalReasonCode[]>([]);
   const [draftRefusalOther, setDraftRefusalOther] = useState("");
-  const [draftSubscriptionPlanSlug, setDraftSubscriptionPlanSlug] = useState<CommercialSubscriptionPlanSlug>("starter");
-  const [draftSubscriptionBillingPeriod, setDraftSubscriptionBillingPeriod] = useState<CommercialSubscriptionBillingPeriod>("monthly");
 
   const prospectsQuery = useQuery({
     queryKey: ["commercial-prospects-source"],
@@ -1003,8 +978,6 @@ export default function CommercialProspection() {
       ),
     );
     setDraftRefusalOther(followup?.refusal_other_text || "");
-    setDraftSubscriptionPlanSlug(getCommercialSubscriptionPlan(followup?.signed_subscription_plan_slug).slug);
-    setDraftSubscriptionBillingPeriod(normalizeBillingPeriod(followup?.signed_subscription_billing_period));
   }, [followupsByObjectId, prospectDialogOpen, selectedProspect]);
 
   useEffect(() => {
@@ -1076,8 +1049,8 @@ export default function CommercialProspection() {
         p_refusal_other_text: draftStatus === "not_interested" && draftRefusalReasons.includes("other")
           ? draftRefusalOther.trim()
           : null,
-        p_subscription_plan_slug: draftStatus === "signed" ? draftSubscriptionPlanSlug : null,
-        p_subscription_billing_period: draftStatus === "signed" ? draftSubscriptionBillingPeriod : null,
+        p_subscription_plan_slug: null,
+        p_subscription_billing_period: null,
         p_expected_updated_at: selectedFollowup?.updated_at || null,
       });
 
@@ -1205,52 +1178,15 @@ export default function CommercialProspection() {
                         <ReceiptText className="h-5 w-5" />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-black">Abonnement signé</p>
+                        <p className="text-sm font-black">Restaurant signé</p>
                         <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                          Choisissez uniquement l'offre acceptée. Les valeurs financières et l'attribution sont calculées et sécurisées côté serveur.
+                          Vous confirmez uniquement la signature. L’offre, le compte restaurateur et la rémunération sont qualifiés par l’administration.
                         </p>
                       </div>
                     </div>
-
-                    <div className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
-                      <div className="min-w-0 space-y-2">
-                        <Label>Abonnement restaurateur</Label>
-                        <Select
-                          value={draftSubscriptionPlanSlug}
-                          onValueChange={(value) => setDraftSubscriptionPlanSlug(value as CommercialSubscriptionPlanSlug)}
-                          disabled={selectedFollowup?.status === "signed"}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {COMMERCIAL_SUBSCRIPTION_PLANS.map((plan) => (
-                              <SelectItem key={plan.slug} value={plan.slug}>
-                                {plan.name} - {formatChf(plan.monthlyPriceChf)}/mois
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="min-w-0 space-y-2">
-                        <Label>Période de facturation</Label>
-                        <Select
-                          value={draftSubscriptionBillingPeriod}
-                          onValueChange={(value) => setDraftSubscriptionBillingPeriod(value as CommercialSubscriptionBillingPeriod)}
-                          disabled={selectedFollowup?.status === "signed"}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="monthly">Mensuelle</SelectItem>
-                            <SelectItem value="yearly">Annuelle</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Une commission Starter provisoire est créée côté serveur, puis corrigée par l’admin selon le contrat réellement signé.
+                    </p>
                   </div>
                 ) : null}
 
