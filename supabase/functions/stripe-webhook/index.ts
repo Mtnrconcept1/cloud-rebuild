@@ -629,21 +629,6 @@ async function syncRestaurantSubscriptionRecord(input: {
   return { updated: true, row };
 }
 
-async function getManagedWebhookSigningSecrets(
-  adminClient: ReturnType<typeof createClient>,
-) {
-  try {
-    const { data, error } = await adminClient.rpc("get_stripe_webhook_signing_secrets");
-    if (error || !Array.isArray(data)) return [];
-
-    return data
-      .map((value) => String(value || "").trim())
-      .filter((value) => value.startsWith("whsec_"));
-  } catch {
-    return [];
-  }
-}
-
 Deno.serve(async (req) => {
   const log = makeLogger("stripe-webhook");
 
@@ -666,11 +651,7 @@ Deno.serve(async (req) => {
 
   const body = await req.text();
   const signature = req.headers.get("stripe-signature");
-  const managedWebhookSecrets = await getManagedWebhookSigningSecrets(supabaseAdmin);
-  const webhookSecrets = Array.from(new Set([
-    ...getStripeWebhookSigningSecrets(),
-    ...managedWebhookSecrets,
-  ]));
+  const webhookSecrets = getStripeWebhookSigningSecrets();
 
   if (webhookSecrets.length === 0) {
     await writeAuditLog({
@@ -781,6 +762,24 @@ Deno.serve(async (req) => {
             sessionId: session.id,
             checkoutKind,
             paymentStatus: session.payment_status,
+          });
+          break;
+        }
+
+        // Commercial demo payments are confirmed synchronously by the
+        // dedicated test-only Edge Function. They must never fall through to
+        // live order fulfilment, accounting, notifications, or finance rows.
+        if (
+          event.livemode === false &&
+          (
+            checkoutKind === "commercial-demo-order" ||
+            session.metadata?.demo_environment === "commercial_demo"
+          )
+        ) {
+          log.info("commercial_demo_checkout_ignored_by_live_webhook", {
+            sessionId: session.id,
+            paymentStatus: session.payment_status,
+            livemode: event.livemode,
           });
           break;
         }
