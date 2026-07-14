@@ -1,125 +1,413 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  HttpError,
+  authenticateRequest,
+  jsonResponse,
+  requireUserRole,
+  writeAuditLog,
+} from "../_shared/auth.ts";
+import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
+import { makeLogger, maskEmail } from "../_shared/logging.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-
-type CommercialAccountInput = {
+type CreateCommercialAccountBody = {
+  action: "create";
   full_name: string;
   email: string;
   password: string;
 };
 
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
+type ResetCommercialPasswordBody = {
+  action: "reset_password";
+  user_id: string;
+  password: string;
+};
+
+type RequestBody =
+  | CreateCommercialAccountBody
+  | ResetCommercialPasswordBody
+  | { action: "list" };
+
+const PASSWORD_MIN_LENGTH = 12;
+
+function normalizeEmail(value: unknown) {
+  return typeof value === "string" ? value.trim().toLowerCase() : "";
+}
+
+function normalizeName(value: unknown) {
+  return typeof value === "string" ? value.trim().replace(/\s+/g, " ") : "";
+}
+
+function assertStrongPassword(password: unknown): asserts password is string {
+  const value = typeof password === "string" ? password : "";
+  const isStrong = value.length >= PASSWORD_MIN_LENGTH
+    && /[a-z]/.test(value)
+    && /[A-Z]/.test(value)
+    && /\d/.test(value)
+    && /[^A-Za-z0-9]/.test(value);
+
+  if (!isStrong) {
+    throw new HttpError(
+      400,
+      `Le mot de passe doit contenir au moins ${PASSWORD_MIN_LENGTH} caractères, avec majuscule, minuscule, chiffre et symbole.`,
+    );
+  }
+}
+
+function assertValidEmail(email: string) {
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
+    throw new HttpError(400, "Identifiant e-mail invalide.");
+  }
+}
+
+function assertValidUuid(value: string) {
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)) {
+    throw new HttpError(400, "Identifiant de compte invalide.");
+  }
+}
+
+async function findUserByEmail(adminClient: any, email: string) {
+  for (let page = 1; page <= 50; page += 1) {
+    const { data, error } = await adminClient.auth.admin.listUsers({ page, perPage: 1000 });
+    if (error) throw new HttpError(500, error.message);
+
+    const user = data?.users?.find((entry: any) => normalizeEmail(entry.email) === email);
+    if (user) return user;
+    if (!data?.users || data.users.length < 1000) return null;
+  }
+
+  throw new HttpError(503, "La recherche d'identifiant a dépassé la limite de sécurité.");
+}
+
+async function getAuthUsersById(adminClient: any, userIds: string[]) {
+  const usersById = new Map<string, any>();
+  const batchSize = 10;
+
+  for (let index = 0; index < userIds.length; index += batchSize) {
+    const batch = userIds.slice(index, index + batchSize);
+    const results = await Promise.all(
+      batch.map((userId) => adminClient.auth.admin.getUserById(userId)),
+    );
+
+    results.forEach((result: any, resultIndex: number) => {
+      if (!result.error && result.data?.user) {
+        usersById.set(batch[resultIndex], result.data.user);
+      }
+    });
+  }
+
+  return usersById;
+}
+
+async function rollbackCreatedAuthUser(adminClient: any, userId: string, log: any) {
+  try {
+    const { error: deleteError } = await adminClient.auth.admin.deleteUser(userId);
+    if (!deleteError) return { deleted: true, banned: false, error: null };
+
+    const { error: banError } = await adminClient.auth.admin.updateUserById(userId, {
+      ban_duration: "876000h",
+    });
+    log.error("commercial_auth_rollback_failed", {
+      target_user_id: userId,
+      delete_error: deleteError.message,
+      ban_error: banError?.message || null,
+      severity: "critical",
+    });
+    return {
+      deleted: false,
+      banned: !banError,
+      error: banError?.message || deleteError.message,
+    };
+  } catch (error) {
+    log.error("commercial_auth_rollback_failed", {
+      target_user_id: userId,
+      error: error instanceof Error ? error.message : "unknown",
+      severity: "critical",
+    });
+    return {
+      deleted: false,
+      banned: false,
+      error: error instanceof Error ? error.message : "unknown",
+    };
+  }
+}
+
+async function listManagedAccounts(adminClient: any) {
+  const { data: mappings, error: mappingError } = await adminClient
+    .from("commercial_demo_accounts")
+    .select("user_id,demo_restaurant_id,is_active,template_version,last_password_reset_at,created_at,updated_at")
+    .order("created_at", { ascending: false });
+
+  if (mappingError) throw new HttpError(500, mappingError.message);
+  if (!mappings?.length) return [];
+
+  const userIds = mappings.map((entry: any) => entry.user_id);
+  const restaurantIds = mappings.map((entry: any) => entry.demo_restaurant_id);
+
+  const [profilesResult, restaurantsResult, rolesResult, authByUser] = await Promise.all([
+    adminClient.from("profiles").select("user_id,full_name").in("user_id", userIds),
+    adminClient.from("restaurants").select("id,name,is_demo,is_active,status").in("id", restaurantIds),
+    adminClient.from("user_roles").select("user_id,role").in("user_id", userIds),
+    getAuthUsersById(adminClient, userIds),
+  ]);
+
+  if (profilesResult.error) throw new HttpError(500, profilesResult.error.message);
+  if (restaurantsResult.error) throw new HttpError(500, restaurantsResult.error.message);
+  if (rolesResult.error) throw new HttpError(500, rolesResult.error.message);
+
+  const profilesByUser = new Map(
+    (profilesResult.data || []).map((entry: any) => [entry.user_id, entry]),
+  );
+  const restaurantsById = new Map(
+    (restaurantsResult.data || []).map((entry: any) => [entry.id, entry]),
+  );
+  const rolesByUser = new Map<string, string[]>();
+
+  for (const row of rolesResult.data || []) {
+    const current = rolesByUser.get(row.user_id) || [];
+    current.push(String(row.role));
+    rolesByUser.set(row.user_id, current);
+  }
+
+  return mappings.map((mapping: any) => {
+    const authUser = authByUser.get(mapping.user_id);
+    const restaurant = restaurantsById.get(mapping.demo_restaurant_id);
+    const profile = profilesByUser.get(mapping.user_id);
+    const bannedUntil = Date.parse(String(authUser?.banned_until || ""));
+    const isCurrentlyBanned = Number.isFinite(bannedUntil) && bannedUntil > Date.now();
+
+    return {
+      user_id: mapping.user_id,
+      full_name: profile?.full_name || authUser?.user_metadata?.full_name || "Commercial TOK",
+      email: authUser?.email || null,
+      roles: rolesByUser.get(mapping.user_id) || [],
+      created_at: mapping.created_at,
+      last_sign_in_at: authUser?.last_sign_in_at || null,
+      last_password_reset_at: mapping.last_password_reset_at,
+      enabled: Boolean(mapping.is_active && authUser && !isCurrentlyBanned),
+      template_version: mapping.template_version,
+      demo_restaurant: restaurant
+        ? {
+          id: restaurant.id,
+          name: restaurant.name,
+          is_demo: restaurant.is_demo,
+          is_active: restaurant.is_active,
+          status: restaurant.status,
+        }
+        : null,
+    };
   });
 }
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
-  if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
+  const corsHeaders = buildCorsHeaders(req);
+  const preflight = handleCorsPreflight(req, corsHeaders);
+  if (preflight) return preflight;
 
-  const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
-  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
-  const authHeader = req.headers.get("Authorization") || "";
+  const log = makeLogger("provision-commercial-accounts");
+  let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
+  let action = "unknown";
+  let targetUserId: string | null = null;
 
-  if (!supabaseUrl || !serviceRoleKey) return json({ error: "Missing server configuration" }, 500);
-  if (!authHeader.startsWith("Bearer ")) return json({ error: "Unauthorized" }, 401);
+  try {
+    if (req.method !== "POST") throw new HttpError(405, "Method not allowed");
 
-  const admin = createClient(supabaseUrl, serviceRoleKey, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-  const callerClient = createClient(supabaseUrl, serviceRoleKey, {
-    global: { headers: { Authorization: authHeader } },
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
+    actor = await authenticateRequest(req);
+    requireUserRole(actor, ["admin"]);
 
-  const { data: callerData, error: callerError } = await callerClient.auth.getUser();
-  if (callerError || !callerData.user) return json({ error: "Unauthorized" }, 401);
-
-  const { data: callerRoles, error: roleError } = await admin
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", callerData.user.id);
-
-  if (roleError) return json({ error: roleError.message }, 500);
-  if (!(callerRoles || []).some((row) => String(row.role) === "admin")) {
-    return json({ error: "Admin role required" }, 403);
-  }
-
-  const body = await req.json().catch(() => ({}));
-  const accounts = Array.isArray(body?.accounts) ? body.accounts as CommercialAccountInput[] : [];
-  if (accounts.length < 1 || accounts.length > 20) {
-    return json({ error: "Provide between one and twenty commercial accounts" }, 400);
-  }
-
-  const normalized = accounts.map((account) => ({
-    full_name: String(account.full_name || "").trim(),
-    email: String(account.email || "").trim().toLowerCase(),
-    password: String(account.password || ""),
-  }));
-
-  const uniqueEmails = new Set(normalized.map((account) => account.email));
-  if (uniqueEmails.size !== normalized.length) {
-    return json({ error: "Duplicate commercial email in request" }, 400);
-  }
-
-  for (const account of normalized) {
-    if (!account.full_name || !account.email || account.password.length < 8) {
-      return json({ error: `Invalid account payload for ${account.full_name || account.email || "unknown"}` }, 400);
+    let body: RequestBody;
+    try {
+      body = await req.json() as RequestBody;
+    } catch {
+      throw new HttpError(400, "Corps JSON invalide.");
     }
-  }
+    action = typeof body?.action === "string" ? body.action : "list";
 
-  const demoUsers = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
-  if (demoUsers.error) return json({ error: demoUsers.error.message }, 500);
-
-  const legacyDemoUsers = demoUsers.data.users.filter((user) =>
-    /^commercial(0[1-9]|10)@demo\.thetok\.ch$/i.test(user.email || "")
-  );
-
-  for (const user of legacyDemoUsers) {
-    const { error } = await admin.auth.admin.deleteUser(user.id, true);
-    if (error) return json({ error: `Unable to remove ${user.email}: ${error.message}` }, 500);
-  }
-
-  const created = [];
-  for (const account of normalized) {
-    const existing = demoUsers.data.users.find((user) => user.email?.toLowerCase() === account.email);
-    let userId = existing?.id || "";
-
-    if (existing) {
-      const { error } = await admin.auth.admin.updateUserById(existing.id, {
-        password: account.password,
-        email_confirm: true,
-        user_metadata: { ...existing.user_metadata, full_name: account.full_name, role: "commercial" },
-      });
-      if (error) return json({ error: `Unable to update ${account.email}: ${error.message}` }, 500);
-    } else {
-      const { data, error } = await admin.auth.admin.createUser({
-        email: account.email,
-        password: account.password,
-        email_confirm: true,
-        user_metadata: { full_name: account.full_name, role: "commercial" },
-      });
-      if (error || !data.user) return json({ error: `Unable to create ${account.email}: ${error?.message || "unknown error"}` }, 500);
-      userId = data.user.id;
+    if (action === "list") {
+      const accounts = await listManagedAccounts(actor.adminClient);
+      return jsonResponse({ ok: true, accounts }, 200, corsHeaders);
     }
 
-    const { error: profileError } = await admin
-      .from("profiles")
-      .upsert({ user_id: userId, full_name: account.full_name }, { onConflict: "user_id" });
-    if (profileError) return json({ error: profileError.message }, 500);
+    if (action === "create") {
+      const createBody = body as CreateCommercialAccountBody;
+      const fullName = normalizeName(createBody.full_name);
+      const email = normalizeEmail(createBody.email);
+      assertStrongPassword(createBody.password);
+      assertValidEmail(email);
 
-    const { error: roleUpsertError } = await admin
-      .from("user_roles")
-      .upsert({ user_id: userId, role: "commercial" }, { onConflict: "user_id,role" });
-    if (roleUpsertError) return json({ error: roleUpsertError.message }, 500);
+      if (fullName.length < 2 || fullName.length > 120) {
+        throw new HttpError(400, "Le nom doit contenir entre 2 et 120 caractères.");
+      }
 
-    created.push({ user_id: userId, email: account.email, full_name: account.full_name });
+      const existingUser = await findUserByEmail(actor.adminClient, email);
+      if (existingUser) {
+        throw new HttpError(
+          409,
+          "Cet identifiant existe déjà. Aucun mot de passe ni rôle n'a été modifié.",
+        );
+      }
+
+      const { data: createdUser, error: createError } = await actor.adminClient.auth.admin.createUser({
+        email,
+        password: createBody.password,
+        email_confirm: true,
+        user_metadata: { full_name: fullName },
+        app_metadata: {
+          account_type: "commercial_demo",
+          managed_by: "admin",
+        },
+      });
+
+      if (createError || !createdUser?.user) {
+        throw new HttpError(500, createError?.message || "Impossible de créer le compte.");
+      }
+
+      targetUserId = createdUser.user.id;
+      if (!actor.userClient) {
+        const rollback = await rollbackCreatedAuthUser(actor.adminClient, targetUserId, log);
+        if (rollback.deleted) targetUserId = null;
+        throw new HttpError(403, "Une session administrateur est requise.");
+      }
+
+      const { data: provisioned, error: provisionError } = await actor.userClient.rpc(
+        "provision_commercial_demo_account",
+        {
+          p_user_id: targetUserId,
+          p_full_name: fullName,
+          p_email: email,
+        },
+      );
+
+      if (provisionError) {
+        // Hard-delete only the Auth user created by this request so the e-mail
+        // can be reused after a failed database provisioning transaction.
+        const failedUserId = targetUserId;
+        const rollback = await rollbackCreatedAuthUser(actor.adminClient, failedUserId, log);
+        if (rollback.deleted) {
+          targetUserId = null;
+          throw new HttpError(500, `Le compte Auth a été annulé: ${provisionError.message}`);
+        }
+
+        throw new HttpError(
+          500,
+          `Le provisioning a échoué. Le compte Auth ${failedUserId} a été ${rollback.banned ? "bloqué" : "signalé pour intervention manuelle"}.`,
+        );
+      }
+
+      log.info("managed_commercial_account_created", {
+        actor_user_id: actor.userId,
+        target_user_id: targetUserId,
+        email: maskEmail(email),
+      });
+
+      await writeAuditLog({
+        adminClient: actor.adminClient,
+        actor,
+        request: req,
+        functionName: "provision-commercial-accounts",
+        action: "create",
+        status: "success",
+        targetEntityType: "commercial_demo_account",
+        targetEntityId: targetUserId,
+        metadata: {
+          roles: ["client", "commercial", "restaurateur"],
+          demo_restaurant_id: provisioned?.restaurant_id || null,
+        },
+      });
+
+      return jsonResponse({
+        ok: true,
+        account: {
+          user_id: targetUserId,
+          full_name: fullName,
+          email,
+          roles: ["client", "commercial", "restaurateur"],
+          demo_restaurant_id: provisioned?.restaurant_id || null,
+          demo_restaurant_name: provisioned?.restaurant_name || null,
+        },
+      }, 201, corsHeaders);
+    }
+
+    if (action === "reset_password") {
+      const resetBody = body as ResetCommercialPasswordBody;
+      targetUserId = typeof resetBody.user_id === "string" ? resetBody.user_id.trim() : "";
+      assertStrongPassword(resetBody.password);
+      assertValidUuid(targetUserId);
+
+      const { data: managedAccount, error: managedError } = await actor.adminClient
+        .from("commercial_demo_accounts")
+        .select("user_id")
+        .eq("user_id", targetUserId)
+        .maybeSingle();
+
+      if (managedError) throw new HttpError(500, managedError.message);
+      if (!managedAccount) throw new HttpError(404, "Compte commercial géré introuvable.");
+
+      const { error: passwordError } = await actor.adminClient.auth.admin.updateUserById(
+        targetUserId,
+        { password: resetBody.password },
+      );
+      if (passwordError) throw new HttpError(500, passwordError.message);
+
+      const { error: resetAuditError } = await actor.adminClient
+        .from("commercial_demo_accounts")
+        .update({ last_password_reset_at: new Date().toISOString() })
+        .eq("user_id", targetUserId);
+      const auditWarning = resetAuditError
+        ? `Mot de passe remplacé, mais horodatage non enregistré: ${resetAuditError.message}`
+        : null;
+
+      if (auditWarning) {
+        log.error("commercial_password_reset_audit_warning", {
+          actor_user_id: actor.userId,
+          target_user_id: targetUserId,
+          message: auditWarning,
+        });
+      }
+
+      await writeAuditLog({
+        adminClient: actor.adminClient,
+        actor,
+        request: req,
+        functionName: "provision-commercial-accounts",
+        action: "reset_password",
+        status: "success",
+        targetEntityType: "commercial_demo_account",
+        targetEntityId: targetUserId,
+        metadata: auditWarning ? { audit_warning: auditWarning } : {},
+      });
+
+      return jsonResponse({ ok: true, audit_warning: auditWarning }, 200, corsHeaders);
+    }
+
+    throw new HttpError(400, "Action inconnue.");
+  } catch (error) {
+    const status = error instanceof HttpError ? error.status : 500;
+    const message = error instanceof Error ? error.message : "Internal error";
+
+    log.error("managed_commercial_account_action_failed", {
+      action,
+      actor_user_id: actor?.userId || null,
+      target_user_id: targetUserId,
+      message,
+    });
+
+    if (actor) {
+      await writeAuditLog({
+        adminClient: actor.adminClient,
+        actor,
+        request: req,
+        functionName: "provision-commercial-accounts",
+        action,
+        status: "failure",
+        targetEntityType: "commercial_demo_account",
+        targetEntityId: targetUserId,
+        errorMessage: message,
+      });
+    }
+
+    return jsonResponse({
+      ok: false,
+      error: message,
+      ...(targetUserId ? { target_user_id: targetUserId } : {}),
+    }, status, corsHeaders);
   }
-
-  return json({ ok: true, removed_demo_accounts: legacyDemoUsers.length, accounts: created });
 });
