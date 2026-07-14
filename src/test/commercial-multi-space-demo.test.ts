@@ -28,9 +28,16 @@ describe("commercial real multi-dashboard demonstration", () => {
     expect(browsers).toContain('surface: "client"');
     expect(browsers).toContain('surface: "restaurant"');
     expect(browsers).toContain('surface: "courier"');
-    expect(browsers).toContain('initialPath: "/commandes"');
-    expect(browsers).toContain('initialPath: "/dashboard/commandes"');
-    expect(browsers).toContain('initialPath: "/courier/jobs"');
+    expect(browsers).toContain('initialPath: "/mon-espace"');
+    expect(browsers).toContain('initialPath: "/dashboard"');
+    expect(browsers).toContain('initialPath: "/courier"');
+    expect(browsers).toContain("ResizeObserver");
+    expect(browsers).toContain("frameWindow.history.back()");
+    expect(browsers).toContain("frameWindow.history.forward()");
+    expect(browsers).toContain("frameWindow.location.reload()");
+    expect(browsers).toContain('layout === "control"');
+    expect(browsers).toContain('layout === "mosaic"');
+    expect(browsers).toContain("event.source !== frameRef.current?.contentWindow");
     expect(page).toContain("overflow-x-hidden");
   });
 
@@ -52,6 +59,9 @@ describe("commercial real multi-dashboard demonstration", () => {
     expect(provider).toContain("canSwitchRole: false");
     expect(provider).toContain("signOut: async () => undefined");
     expect(provider).toContain("getCommercialDemoSnapshot(config.sessionId)");
+    expect(provider).toContain('type: "commercial-demo:frame-state"');
+    expect(provider).toContain("location.pathname");
+    expect(provider).toContain("window.parent.postMessage(message, window.location.origin)");
     expect(provider).not.toContain("user_roles");
     expect(provider).not.toContain("courier_profiles");
     expect(workspace).not.toContain("dispatch-order");
