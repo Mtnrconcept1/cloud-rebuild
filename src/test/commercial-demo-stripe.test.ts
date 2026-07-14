@@ -26,13 +26,14 @@ describe("commercial demo Stripe test isolation", () => {
       stripeClient.indexOf("export function getTokOneStripeRuntime"),
     );
 
-    expect(helper).toContain('readCandidates(["STRIPE_SECRET_KEY_TEST"])');
-    expect(helper).toContain('inferStripeRuntimeMode(candidate.value) !== "test"');
+    expect(helper).toContain('"STRIPE_SECRET_KEY_TEST"');
+    expect(helper).toContain('"STRIPE_TOK_ONE_TEST_SECRET_KEY"');
+    expect(helper).toContain('candidates.find((entry) => inferStripeRuntimeMode(entry.value) === "test")');
     expect(helper).toContain("DEMO_STRIPE_NOT_CONFIGURED");
     expect(helper).toContain("INVALID_TEST_STRIPE_KEY");
     expect(helper).not.toContain("STRIPE_SECRET_KEY_LIVE");
     expect(helper).not.toContain("STRIPE_PERSONNAL_SECRET_KEY");
-    expect(helper).not.toContain("STRIPE_TOK_ONE");
+    expect(helper).not.toContain("STRIPE_TOK_ONE_SECRET_KEY");
     expect(edge).not.toContain("VITE_STRIPE");
     expect(stripeClient).toContain('kind === "commercial-demo-order"');
     expect(stripeClient).toContain("DEMO_CHECKOUT_REQUIRES_TEST_ENDPOINT");
