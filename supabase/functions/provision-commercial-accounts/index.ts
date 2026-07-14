@@ -289,13 +289,17 @@ Deno.serve(async (req) => {
       );
 
       if (provisionError) {
+        const provisionErrorMessage = authErrorMessage(
+          provisionError,
+          "Impossible de préparer le restaurant de démonstration.",
+        );
         // Hard-delete only the Auth user created by this request so the e-mail
         // can be reused after a failed database provisioning transaction.
         const failedUserId = targetUserId;
         const rollback = await rollbackCreatedAuthUser(actor.adminClient, failedUserId, log);
         if (rollback.deleted) {
           targetUserId = null;
-          throw new HttpError(500, `Le compte Auth a été annulé: ${provisionError.message}`);
+          throw new HttpError(500, `Le compte Auth a été annulé: ${provisionErrorMessage}`);
         }
 
         throw new HttpError(
@@ -357,7 +361,12 @@ Deno.serve(async (req) => {
         targetUserId,
         { password: resetBody.password },
       );
-      if (passwordError) throw new HttpError(500, passwordError.message);
+      if (passwordError) {
+        throw new HttpError(
+          500,
+          authErrorMessage(passwordError, "Impossible de remplacer le mot de passe Auth."),
+        );
+      }
 
       const { error: resetAuditError } = await actor.adminClient
         .from("commercial_demo_accounts")
