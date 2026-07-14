@@ -338,6 +338,41 @@ function AdminProtectedRoute({
   );
 }
 
+const COMMERCIAL_DEMO_FRAME_ROUTE_POLICY: Record<
+  CommercialDemoFrameConfig["surface"],
+  { home: string; allowedPaths: readonly string[] }
+> = {
+  client: {
+    home: "/mon-espace",
+    allowedPaths: ["/mon-espace", "/commandes", "/notifications"],
+  },
+  restaurant: {
+    home: "/dashboard",
+    allowedPaths: ["/dashboard", "/dashboard/commandes", "/dashboard/notifications"],
+  },
+  courier: {
+    home: "/courier",
+    allowedPaths: ["/courier", "/courier/jobs", "/courier/notifications", "/courier/earnings", "/courier/profile"],
+  },
+};
+
+function CommercialDemoFrameRouteBoundary({
+  config,
+  children,
+}: {
+  config: CommercialDemoFrameConfig;
+  children: React.ReactNode;
+}) {
+  const { pathname } = useLocation();
+  const policy = COMMERCIAL_DEMO_FRAME_ROUTE_POLICY[config.surface];
+
+  if (!policy.allowedPaths.includes(pathname)) {
+    return <Navigate to={policy.home} replace />;
+  }
+
+  return <>{children}</>;
+}
+
 function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: CommercialDemoFrameConfig | null }) {
   const { pathname } = useLocation();
   useTokLogoDocumentIcons();
@@ -415,7 +450,7 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
   const adminTokConnectEnabled = hasFeature("admin-tok-connect");
   const deliveryEnabled = hasFeature("livraison");
   const showPublicFooter = shouldShowPublicFooter(pathname);
-  const publicNavbar = shouldShowPublicNavbar(pathname) ? <Navbar /> : null;
+  const publicNavbar = !commercialDemoFrame && shouldShowPublicNavbar(pathname) ? <Navbar /> : null;
 
   return (
     <>
@@ -579,9 +614,11 @@ const App = () => {
             <AuthProvider>
               {commercialDemoFrame ? (
                 <CommercialDemoFrameAuthBoundary config={commercialDemoFrame}>
-                  <CommercialDemoFrameProvider config={commercialDemoFrame}>
-                    {shell}
-                  </CommercialDemoFrameProvider>
+                  <CommercialDemoFrameRouteBoundary config={commercialDemoFrame}>
+                    <CommercialDemoFrameProvider config={commercialDemoFrame}>
+                      {shell}
+                    </CommercialDemoFrameProvider>
+                  </CommercialDemoFrameRouteBoundary>
                 </CommercialDemoFrameAuthBoundary>
               ) : shell}
             </AuthProvider>
