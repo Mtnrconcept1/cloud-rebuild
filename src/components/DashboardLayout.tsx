@@ -31,6 +31,8 @@ import {
   Lock,
   ShieldCheck,
   Users,
+  Package,
+  Plug,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -102,6 +104,8 @@ const NAV_SECTIONS: NavSection[] = [
   {
     title: "Mon offre",
     items: [
+      { to: "/dashboard/pack", label: "Mon pack", icon: Package, feature: "dashboard-pack" },
+      { to: "/dashboard/tok-connect", label: "Tok Connect", icon: Plug, feature: "dashboard-tok-connect" },
     ],
   },
   {
@@ -282,7 +286,7 @@ export default function DashboardLayout({
 }: DashboardLayoutProps) {
   const { pathname } = useLocation();
   const queryClient = useQueryClient();
-  const { selectedId, disabledFeatures, dashboardAccessLocked, dashboardAccessLockReason } = useDashboardRestaurant();
+  const { selectedId, disabledFeatures, dashboardAccessLocked, dashboardAccessLockReason, isDemoMode } = useDashboardRestaurant();
   const activeFeatures = useActiveFeatures();
   const { role } = useAuth();
   const { unreadNotifications } = useNotificationCenter(50);
@@ -318,10 +322,10 @@ export default function DashboardLayout({
     return NAV_SECTIONS.map((section) => ({
       ...section,
       items: section.items.filter(
-        (i) => !i.feature || activeFeatures.has(i.feature)
+        (i) => isDemoMode || !i.feature || activeFeatures.has(i.feature)
       ),
     }));
-  }, [activeFeatures]);
+  }, [activeFeatures, isDemoMode]);
 
   const activeNavItem = useMemo(
     () =>
@@ -351,7 +355,7 @@ export default function DashboardLayout({
   );
 
   useRealtimeNotifications({
-    enabled: !!selectedId,
+    enabled: !!selectedId && !isDemoMode,
     onInsert: handleNotification,
   });
 
@@ -502,6 +506,24 @@ export default function DashboardLayout({
           )}
         >
           <BackNavigationButton fallback={backFallback} className="mb-4" />
+          {isDemoMode ? (
+            <div className="mb-6 rounded-3xl border border-sky-200 bg-sky-50/95 p-5 text-sky-950 shadow-sm dark:border-sky-400/25 dark:bg-sky-500/10 dark:text-sky-50" role="status" data-testid="commercial-demo-banner">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-sky-100 text-sky-700 dark:bg-sky-400/15 dark:text-sky-100">
+                  <ShieldCheck className="h-6 w-6" />
+                </span>
+                <div className="space-y-1">
+                  <p className="font-semibold">Mode démonstration — données simulées</p>
+                  <p className="text-sm text-sky-800 dark:text-sky-100/80">
+                    Tous les outils du dashboard sont visibles. Les paiements, appels IA payants, publications et envois externes sont bloqués côté serveur.
+                  </p>
+                  <p className="text-xs text-sky-700 dark:text-sky-100/70">
+                    Ce restaurant est isolé du catalogue public et ne contient aucune donnée réelle de restaurateur ou de client.
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : null}
           {dashboardAccessLocked ? (
             <div className="mb-6 rounded-3xl border border-amber-200 bg-amber-50/90 p-5 text-amber-950 shadow-sm dark:border-amber-400/25 dark:bg-amber-500/10 dark:text-amber-50">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
