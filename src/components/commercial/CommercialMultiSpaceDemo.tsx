@@ -271,36 +271,44 @@ export default function CommercialMultiSpaceDemo() {
   }
 
   return (
-    <div className="min-w-0 space-y-5">
-      <section className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/90 p-4 shadow-[0_22px_80px_rgba(15,23,42,0.12)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/78 sm:p-6">
-        <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+    <div className="min-w-0 space-y-3">
+      <section className="overflow-hidden rounded-2xl border border-white/70 bg-white/90 p-3 shadow-[0_16px_50px_rgba(15,23,42,0.1)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/78 sm:p-4">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="min-w-0 max-w-4xl">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge className="rounded-full bg-orange-100 px-3 py-1 text-orange-700 hover:bg-orange-100"><Sparkles className="mr-1.5 h-3.5 w-3.5" />Trois vrais dashboards</Badge>
+              <Badge className="rounded-full bg-orange-100 px-3 py-1 text-orange-700 hover:bg-orange-100"><Sparkles className="mr-1.5 h-3.5 w-3.5" />Console commerciale</Badge>
               <RealtimeConnectionBadge status={realtimeStatus} />
               <Badge variant="outline" className="rounded-full border-violet-300 text-violet-700"><TestTube2 className="mr-1.5 h-3.5 w-3.5" />Stripe Test uniquement</Badge>
             </div>
-            <h1 className="mt-4 break-words font-serif text-3xl font-black tracking-tight sm:text-4xl lg:text-5xl">Trois fenêtres navigateur, une interaction en direct</h1>
-            <p className="mt-3 max-w-3xl text-sm leading-7 text-muted-foreground sm:text-base">Naviguez librement dans les vrais onglets client, restaurateur et livreur. Une commande créée dans la première fenêtre apparaît dans les deux autres au bon moment, avec badges, historique et notifications temps réel.</p>
+            <h1 className="mt-2 break-words font-serif text-2xl font-black tracking-tight sm:text-3xl">Contrôle à distance des trois comptes</h1>
+            <p className="mt-1 max-w-3xl text-sm text-muted-foreground">La console commerciale pilote simultanément les véritables interfaces Client, Restaurateur et Livreur.</p>
           </div>
-          <Button type="button" variant="outline" className="h-11 shrink-0 rounded-2xl" onClick={() => resetMutation.mutate()} disabled={resetMutation.isPending}>
+          <Button type="button" variant="outline" className="h-10 shrink-0 rounded-xl" onClick={() => resetMutation.mutate()} disabled={resetMutation.isPending}>
             {resetMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RotateCcw className="mr-2 h-4 w-4" />}Réinitialiser
           </Button>
         </div>
-        <div className="mt-5 flex items-start gap-3 rounded-2xl border border-sky-200 bg-sky-50/80 p-4 text-sm text-sky-950 dark:border-sky-400/20 dark:bg-sky-400/10 dark:text-sky-100">
-          <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0" />
-          <p className="leading-6"><strong>Instances réelles, permissions isolées.</strong> Chaque fenêtre charge la SPA complète avec son propre historique. Le rôle livreur est virtuel dans sa frame seulement ; toutes les mutations restent dans les tables <code>commercial_demo_*</code>.</p>
-        </div>
+        <details className="mt-2 text-xs text-muted-foreground">
+          <summary className="cursor-pointer select-none font-semibold text-sky-700"><ShieldCheck className="mr-1.5 inline h-3.5 w-3.5" />Isolation de la démonstration</summary>
+          <p className="mt-2 rounded-xl border border-sky-200 bg-sky-50/80 p-3 leading-5 text-sky-950 dark:border-sky-400/20 dark:bg-sky-400/10 dark:text-sky-100">Chaque fenêtre charge sa propre SPA et son propre historique. Toutes les actions du parcours restent dans les tables <code>commercial_demo_*</code>.</p>
+        </details>
         {initialParams.checkoutCancelled ? <div className="mt-3 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950" role="status"><strong>Paiement test annulé.</strong> Aucun débit n'a eu lieu ; relancez-le depuis la fenêtre client.</div> : null}
         {confirmMutation.isPending ? <div className="mt-3 flex items-center gap-2 rounded-2xl border bg-muted/30 p-4 text-sm" role="status"><Loader2 className="h-4 w-4 animate-spin" />Vérification serveur du paiement Stripe Test…</div> : null}
       </section>
 
-      <JourneyProgress snapshot={snapshot} />
-
       {combinedError ? <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-400/20 dark:bg-red-400/10 dark:text-red-100" role="alert"><strong>Action non exécutée.</strong> {errorMessage(combinedError)}</div> : null}
 
       <CommercialDemoBrowserGrid sessionId={snapshot.session.id} />
-      <ActivityFeed snapshot={snapshot} />
+
+      <details className="group rounded-2xl border border-border/70 bg-background/80 p-3 shadow-sm">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-xl px-2 py-1 font-semibold marker:hidden">
+          <span className="flex items-center gap-2"><Wifi className="h-4 w-4 text-emerald-600" />Progression et journal partagé</span>
+          <Badge variant="outline" className="rounded-full">{ORDER_STATUS_LABELS[snapshot.order?.status || ""] || "En attente"}</Badge>
+        </summary>
+        <div className="mt-4 space-y-4 border-t pt-4">
+          <JourneyProgress snapshot={snapshot} />
+          <ActivityFeed snapshot={snapshot} />
+        </div>
+      </details>
 
       {snapshot.order?.status === "delivered" ? (
         <Card className="overflow-hidden rounded-[1.75rem] border-emerald-200 bg-gradient-to-br from-emerald-50 to-sky-50 dark:border-emerald-400/20 dark:from-emerald-400/10 dark:to-sky-400/10">
