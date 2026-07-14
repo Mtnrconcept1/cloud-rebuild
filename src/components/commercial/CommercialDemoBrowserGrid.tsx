@@ -280,7 +280,7 @@ function BrowserWindow({
         const { pathname, search } = frameWindow.location;
         // Never recursively open this console inside its own commercial
         // window. Every other commercial route stays fully navigable.
-        if (pathname.startsWith("/commercial/demo-live")) {
+        if (!pathname.startsWith("/commercial") || pathname.startsWith("/commercial/demo-live")) {
           frameWindow.location.replace("/commercial");
           return;
         }
