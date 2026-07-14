@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 
 import CustomerDashboardLayout from "@/components/CustomerDashboardLayout";
+import CommercialDemoActorWorkspace from "@/components/commercial/CommercialDemoActorWorkspace";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import OrderPaymentBreakdown from "@/components/orders/OrderPaymentBreakdown";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
 import TokAiSupportChat from "@/components/support/TokAiSupportChat";
@@ -66,7 +68,7 @@ const CUSTOMER_ORDER_SORT_COLUMNS: SortColumn<CustomerOrderGroup, CustomerOrderS
   { key: "status", label: "Statut", type: "text", getValue: (group) => getDisplayStatus(group.mainOrder) },
 ];
 
-export default function Commandes() {
+function LiveCommandes() {
   const { user } = useAuth();
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [sortKey, setSortKey] = useState<CustomerOrderSortKey>("created_at");
@@ -465,4 +467,17 @@ export default function Commandes() {
       </div>
     </CustomerDashboardLayout>
   );
+}
+
+
+export default function Commandes() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  if (commercialDemoFrame?.surface === "client") {
+    return (
+      <CustomerDashboardLayout>
+        <CommercialDemoActorWorkspace surface="client" />
+      </CustomerDashboardLayout>
+    );
+  }
+  return <LiveCommandes />;
 }
