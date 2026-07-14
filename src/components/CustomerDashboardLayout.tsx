@@ -84,8 +84,8 @@ function isNavItemActive(pathname: string, search: string, item: CustomerNavItem
 export default function CustomerDashboardLayout({ children }: { children: React.ReactNode }) {
   const { pathname, search } = useLocation();
   const { role } = useAuth();
-  const activeFeatures = useActiveFeatures();
   const commercialDemoFrame = useCommercialDemoFrame();
+  const activeFeatures = useActiveFeatures({ enabled: !commercialDemoFrame });
   const { unreadNotifications } = useNotificationCenter(50);
   const visibleSections = NAV_SECTIONS
     .map((section) => ({
