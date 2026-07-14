@@ -10,6 +10,7 @@ export interface DashboardContextValue {
   disabledFeatures: Set<string>;
   dashboardAccessLocked: boolean;
   dashboardAccessLockReason: string | null;
+  isDemoMode: boolean;
 }
 
 export function isRestaurantDashboardAccessApproved(restaurant: OwnedRestaurant | null | undefined) {
@@ -27,3 +28,4 @@ export function useDashboardRestaurant() {
   if (!ctx) throw new Error("useDashboardRestaurant must be inside DashboardProvider");
   return ctx;
 }
+
