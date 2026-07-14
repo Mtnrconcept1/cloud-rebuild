@@ -383,7 +383,7 @@ describe("floor plan v2 secure bridge and zoom", () => {
     const page = readSource("src/pages/dashboard/DashboardPlanSalleV2.tsx");
     const iframe = readSource("public/tok-table-v2/app.js");
     const migration = readSource(
-      "supabase/migrations/20260712190000_floor_plan_v2_furniture.sql",
+      "supabase/migrations/20260712210714_floor_plan_v2_furniture.sql",
     );
 
     expect(page).toContain('.from("reservation_tables")');
