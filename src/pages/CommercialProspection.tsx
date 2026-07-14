@@ -15,7 +15,6 @@ import {
   Mail,
   MapPin,
   Navigation,
-  Percent,
   Phone,
   ReceiptText,
   Search,
@@ -26,6 +25,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -40,6 +40,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { getSupabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { useAuth } from "@/lib/auth-context";
+import {
+  COMMERCIAL_FOLLOWUP_STATUS_LABELS,
+  COMMERCIAL_REFUSAL_REASONS,
+  getCommercialRefusalReasonLabel,
+  type CommercialRefusalReasonCode,
+} from "@/lib/commercialSales";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import CommercialWorkspaceChrome from "@/components/commercial/CommercialWorkspaceChrome";
@@ -49,53 +55,33 @@ import {
 } from "@/data/genevaCommercialProspects";
 
 type ProspectStatus = Database["public"]["Enums"]["commercial_visit_status"];
-type CommercialPipelineStatus = Exclude<ProspectStatus, "visited">;
+type EditableProspectStatus = Exclude<ProspectStatus, "not_visited">;
 type CommercialSubscriptionPlanSlug = "starter" | "pro" | "premium" | "elite";
 type CommercialSubscriptionBillingPeriod = "monthly" | "yearly";
-type CommercialCompensationMode = "commission_only" | "fixed_plus_reservation";
 
 type CommercialProspectFollowup = {
   source_objectid: number;
   status: ProspectStatus;
-  notes: string | null;
-  assigned_to: string | null;
-  assigned_to_name: string | null;
-  last_contacted_by: string | null;
-  last_contacted_by_name: string | null;
-  signed_by: string | null;
-  signed_by_name: string | null;
-  signed_at: string | null;
-  signed_restaurant_id: string | null;
-  signed_subscription_plan_slug: string | null;
-  signed_subscription_plan_name: string | null;
-  signed_subscription_billing_period: string;
-  signed_subscription_monthly_price_chf: number | null;
-  signed_subscription_contract_value_chf: number | null;
-  acquisition_commission_rate: number;
-  acquisition_commission_chf: number;
-  commercial_compensation_mode: string;
-  reservation_commission_rate: number;
-  reservation_commission_starts_at: string | null;
-  visited_at: string | null;
-  next_follow_up_at: string | null;
+  can_edit: boolean;
+  is_own: boolean;
+  notes?: string | null;
+  refusal_reason_codes?: string[] | null;
+  refusal_other_text?: string | null;
+  assigned_to?: string | null;
+  assigned_to_name?: string | null;
+  last_contacted_by?: string | null;
+  last_contacted_by_name?: string | null;
+  signed_by?: string | null;
+  signed_by_name?: string | null;
+  signed_at?: string | null;
+  signed_subscription_plan_slug?: string | null;
+  signed_subscription_plan_name?: string | null;
+  signed_subscription_billing_period?: string | null;
+  signed_subscription_monthly_price_chf?: number | null;
+  signed_subscription_contract_value_chf?: number | null;
+  visited_at?: string | null;
+  next_follow_up_at?: string | null;
   updated_at: string | null;
-};
-
-type CommercialCommissionSummary = {
-  exists?: boolean;
-  signed_restaurant_id?: string | null;
-  acquisition_commission?: {
-    rate?: number | null;
-    amount_chf?: number | null;
-  } | null;
-  reservation_commission?: {
-    enabled?: boolean;
-    rate?: number | null;
-    starts_at?: string | null;
-    reservations_count?: number | null;
-    base_chf?: number | null;
-    amount_chf?: number | null;
-  } | null;
 };
 
 type StatusMeta = {
@@ -108,20 +94,29 @@ type StatusMeta = {
   icon: typeof Circle;
 };
 
-const PIPELINE_STATUS_OPTIONS: Array<StatusMeta & { value: CommercialPipelineStatus }> = [
+const STATUS_OPTIONS: StatusMeta[] = [
   {
     value: "not_visited",
-    label: "Pas encore visité",
-    shortLabel: "À visiter",
+    label: COMMERCIAL_FOLLOWUP_STATUS_LABELS.not_visited,
+    shortLabel: COMMERCIAL_FOLLOWUP_STATUS_LABELS.not_visited,
     color: "#facc15",
     marker: "#facc15",
     badge: "bg-yellow-100 text-yellow-800 border-yellow-200",
     icon: Circle,
   },
   {
+    value: "visited",
+    label: COMMERCIAL_FOLLOWUP_STATUS_LABELS.visited,
+    shortLabel: COMMERCIAL_FOLLOWUP_STATUS_LABELS.visited,
+    color: "#2563eb",
+    marker: "#2563eb",
+    badge: "bg-blue-100 text-blue-700 border-blue-200",
+    icon: CheckCircle2,
+  },
+  {
     value: "in_progress",
-    label: "En cours",
-    shortLabel: "En cours",
+    label: COMMERCIAL_FOLLOWUP_STATUS_LABELS.in_progress,
+    shortLabel: COMMERCIAL_FOLLOWUP_STATUS_LABELS.in_progress,
     color: "#f97316",
     marker: "#f97316",
     badge: "bg-orange-100 text-orange-700 border-orange-200",
@@ -129,8 +124,8 @@ const PIPELINE_STATUS_OPTIONS: Array<StatusMeta & { value: CommercialPipelineSta
   },
   {
     value: "signed",
-    label: "Signature",
-    shortLabel: "Signé",
+    label: COMMERCIAL_FOLLOWUP_STATUS_LABELS.signed,
+    shortLabel: COMMERCIAL_FOLLOWUP_STATUS_LABELS.signed,
     color: "#16a34a",
     marker: "#16a34a",
     badge: "bg-emerald-100 text-emerald-700 border-emerald-200",
@@ -138,8 +133,8 @@ const PIPELINE_STATUS_OPTIONS: Array<StatusMeta & { value: CommercialPipelineSta
   },
   {
     value: "not_interested",
-    label: "Refus",
-    shortLabel: "Refus",
+    label: COMMERCIAL_FOLLOWUP_STATUS_LABELS.not_interested,
+    shortLabel: COMMERCIAL_FOLLOWUP_STATUS_LABELS.not_interested,
     color: "#ef4444",
     marker: "#ef4444",
     badge: "bg-red-100 text-red-700 border-red-200",
@@ -147,18 +142,11 @@ const PIPELINE_STATUS_OPTIONS: Array<StatusMeta & { value: CommercialPipelineSta
   },
 ];
 
-const STATUS_META = [
-  ...PIPELINE_STATUS_OPTIONS,
-  {
-    value: "visited",
-    label: "En cours",
-    shortLabel: "En cours",
-    color: "#f97316",
-    marker: "#f97316",
-    badge: "bg-orange-100 text-orange-700 border-orange-200",
-    icon: CheckCircle2,
-  } satisfies StatusMeta,
-].reduce(
+const EDITABLE_STATUS_OPTIONS = STATUS_OPTIONS.filter(
+  (item): item is StatusMeta & { value: EditableProspectStatus } => item.value !== "not_visited",
+);
+
+const STATUS_META = STATUS_OPTIONS.reduce(
   (acc, item) => {
     acc[item.value] = item;
     return acc;
@@ -181,22 +169,16 @@ const RESULT_PREVIEW_LIMIT = 160;
 const GENEVA_CENTER: L.LatLngExpression = [46.2044, 6.1432];
 const COMMERCIAL_CLUSTER_DISABLE_ZOOM = 16;
 const COMMERCIAL_CLUSTER_VIEW_PADDING = 0.35;
-const DEFAULT_ACQUISITION_COMMISSION_RATE = 0;
-const FIXED_RESERVATION_COMMISSION_RATE = 0.02;
-const TOK_RESERVATION_BASE_CHF = 5;
-const COMMERCIAL_RESERVATION_COMMISSION_CHF = 0.1;
 
 const COMMERCIAL_SUBSCRIPTION_PLANS: Array<{
   slug: CommercialSubscriptionPlanSlug;
   name: string;
   monthlyPriceChf: number;
-  sprintCommissionChf: number;
-  engagedCommissionChf: number;
 }> = [
-  { slug: "starter", name: "TOK Starter", monthlyPriceChf: 69, sprintCommissionChf: 120, engagedCommissionChf: 60 },
-  { slug: "pro", name: "TOK Business / Pro", monthlyPriceChf: 129, sprintCommissionChf: 220, engagedCommissionChf: 120 },
-  { slug: "premium", name: "TOK Premium", monthlyPriceChf: 199, sprintCommissionChf: 350, engagedCommissionChf: 190 },
-  { slug: "elite", name: "TOK Elite", monthlyPriceChf: 499, sprintCommissionChf: 650, engagedCommissionChf: 300 },
+  { slug: "starter", name: "TOK Starter", monthlyPriceChf: 69 },
+  { slug: "pro", name: "TOK Business / Pro", monthlyPriceChf: 129 },
+  { slug: "premium", name: "TOK Premium", monthlyPriceChf: 199 },
+  { slug: "elite", name: "TOK Elite", monthlyPriceChf: 499 },
 ];
 
 type CommercialMapProspectPoint = {
@@ -218,7 +200,7 @@ type CommercialMapCluster = {
 
 type CommercialSearchFilters = {
   search: string;
-  status: CommercialPipelineStatus | typeof ALL_STATUSES;
+  status: ProspectStatus | typeof ALL_STATUSES;
   commune: string;
   category: string;
 };
@@ -278,10 +260,6 @@ function getProspectStatus(
   return followupsByObjectId.get(prospect.sourceObjectId)?.status || "not_visited";
 }
 
-function toPipelineStatus(status: ProspectStatus): CommercialPipelineStatus {
-  return status === "visited" ? "in_progress" : status;
-}
-
 function getCommercialDisplayName(user: ReturnType<typeof useAuth>["user"]) {
   if (!user) return null;
   const metadata = user.user_metadata as Record<string, unknown> | null;
@@ -316,44 +294,18 @@ function formatChf(value: unknown) {
   })} CHF`;
 }
 
-function formatPercentRate(value: unknown) {
-  return `${roundChf(toFiniteNumber(value) * 100).toLocaleString("fr-CH", {
-    maximumFractionDigits: 2,
-  })} %`;
-}
-
 function getCommercialSubscriptionPlan(slug: string | null | undefined) {
   return COMMERCIAL_SUBSCRIPTION_PLANS.find((plan) => plan.slug === slug) || COMMERCIAL_SUBSCRIPTION_PLANS[0];
-}
-
-function getSubscriptionContractValueChf(
-  plan: { monthlyPriceChf: number },
-  billingPeriod: CommercialSubscriptionBillingPeriod,
-) {
-  return roundChf(plan.monthlyPriceChf * (billingPeriod === "yearly" ? 12 : 1));
-}
-
-function getAcquisitionCommissionChf(
-  plan: { sprintCommissionChf: number; engagedCommissionChf: number },
-  compensationMode: CommercialCompensationMode,
-) {
-  return roundChf(
-    compensationMode === "fixed_plus_reservation"
-      ? plan.engagedCommissionChf
-      : plan.sprintCommissionChf,
-  );
 }
 
 function normalizeBillingPeriod(value: string | null | undefined): CommercialSubscriptionBillingPeriod {
   return value === "yearly" ? "yearly" : "monthly";
 }
 
-function normalizeCompensationMode(value: string | null | undefined): CommercialCompensationMode {
-  return value === "fixed_plus_reservation" ? "fixed_plus_reservation" : "commission_only";
-}
-
-function isUuidLike(value: string) {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value.trim());
+function getLocalTodayDateInputValue() {
+  const now = new Date();
+  const localNow = new Date(now.getTime() - now.getTimezoneOffset() * 60_000);
+  return localNow.toISOString().slice(0, 10);
 }
 
 function getJitteredLatLng(
@@ -609,8 +561,8 @@ function ContactLink({
 
 function CommercialMapLegend() {
   return (
-    <div className="grid gap-2 rounded-2xl border bg-white/90 p-3 text-xs font-bold shadow-sm dark:border-white/10 dark:bg-slate-950/80 sm:grid-cols-2 xl:grid-cols-4">
-      {PIPELINE_STATUS_OPTIONS.map((item) => (
+    <div className="grid gap-2 rounded-2xl border bg-white/90 p-3 text-xs font-bold shadow-sm dark:border-white/10 dark:bg-slate-950/80 sm:grid-cols-2 xl:grid-cols-5">
+      {STATUS_OPTIONS.map((item) => (
         <div key={item.value} className="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 dark:bg-white/5">
           <span className="h-3 w-3 rounded-full ring-2 ring-white" style={{ backgroundColor: item.marker }} />
           <span>{item.label}</span>
@@ -770,7 +722,6 @@ function CommercialProspectDetailsDialog({
   assignedName,
   lastContactName,
   signedName,
-  commissionSummary,
   workflowContent,
 }: {
   open: boolean;
@@ -781,7 +732,6 @@ function CommercialProspectDetailsDialog({
   assignedName: string | null;
   lastContactName: string | null;
   signedName: string | null;
-  commissionSummary: CommercialCommissionSummary | null | undefined;
   workflowContent: ReactNode;
 }) {
   if (!prospect) return null;
@@ -792,7 +742,6 @@ function CommercialProspectDetailsDialog({
       ? getCommercialSubscriptionPlan(followup.signed_subscription_plan_slug).name
       : null
   );
-  const reservationCommission = commissionSummary?.reservation_commission;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -856,13 +805,13 @@ function CommercialProspectDetailsDialog({
             </div>
           </div>
 
-          {followup?.status === "signed" ? (
+          {followup?.status === "signed" && followup.can_edit ? (
             <div className="rounded-[24px] border border-emerald-200 bg-emerald-50/80 p-4 text-sm dark:border-emerald-400/20 dark:bg-emerald-500/10">
               <p className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.18em] text-emerald-700 dark:text-emerald-200">
                 <ReceiptText className="h-4 w-4" />
-                Abonnement et commission
+                Abonnement signé
               </p>
-              <div className="mt-3 grid gap-3 sm:grid-cols-3">
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
                 <div>
                   <p className="text-muted-foreground">Abonnement signé</p>
                   <p className="font-black">{signedPlanName || "Non renseigné"}</p>
@@ -874,24 +823,29 @@ function CommercialProspectDetailsDialog({
                   <p className="text-muted-foreground">Valeur contrat</p>
                   <p className="font-black">{formatChf(followup.signed_subscription_contract_value_chf || 0)}</p>
                 </div>
-                <div>
-                  <p className="text-muted-foreground">Commission acquisition</p>
-                  <p className="font-black">{formatChf(followup.acquisition_commission_chf || 0)}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {followup.commercial_compensation_mode === "fixed_plus_reservation" ? "Barème engagé" : "Barème sprint"}
-                  </p>
-                </div>
               </div>
-              {followup.commercial_compensation_mode === "fixed_plus_reservation" ? (
-                <div className="mt-3 rounded-2xl border bg-white/70 p-3 dark:border-white/10 dark:bg-white/5">
-                  <p className="font-bold">Fixe + {formatChf(COMMERCIAL_RESERVATION_COMMISSION_CHF)} par réservation honorée</p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {followup.signed_restaurant_id
-                      ? `${Number(reservationCommission?.reservations_count || 0).toLocaleString("fr-CH")} réservation(s) honorée(s), ${formatChf(reservationCommission?.amount_chf || 0)} estimés.`
-                      : "Liez le restaurant TOK pour calculer les réservations réelles automatiquement."}
-                  </p>
-                </div>
-              ) : null}
+            </div>
+          ) : null}
+
+          {followup?.status === "not_interested" && (
+            (followup.refusal_reason_codes?.length || 0) > 0 || followup.refusal_other_text
+          ) ? (
+            <div className="rounded-[24px] border border-red-200 bg-red-50/80 p-4 text-sm dark:border-red-400/20 dark:bg-red-500/10">
+              <p className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.18em] text-red-700 dark:text-red-200">
+                <XCircle className="h-4 w-4" />
+                Motifs du refus
+              </p>
+              <ul className="mt-3 list-disc space-y-1 pl-5">
+                {(followup.refusal_reason_codes || []).map((reason) => (
+                  <li key={reason}>
+                    {getCommercialRefusalReasonLabel(reason)}
+                    {reason === "other" && followup.refusal_other_text ? ` : ${followup.refusal_other_text}` : ""}
+                  </li>
+                ))}
+                {followup.refusal_other_text && !(followup.refusal_reason_codes || []).includes("other") ? (
+                  <li>{followup.refusal_other_text}</li>
+                ) : null}
+              </ul>
             </div>
           ) : null}
 
@@ -946,20 +900,20 @@ export default function CommercialProspection() {
   const queryClient = useQueryClient();
   const commercialName = getCommercialDisplayName(user);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<CommercialPipelineStatus | typeof ALL_STATUSES>(ALL_STATUSES);
+  const [statusFilter, setStatusFilter] = useState<ProspectStatus | typeof ALL_STATUSES>(ALL_STATUSES);
   const [communeFilter, setCommuneFilter] = useState(ALL_COMMUNES);
   const [categoryFilter, setCategoryFilter] = useState(ALL_CATEGORIES);
   const [hasLaunchedSearch, setHasLaunchedSearch] = useState(false);
   const [appliedFilters, setAppliedFilters] = useState<CommercialSearchFilters>(DEFAULT_COMMERCIAL_SEARCH_FILTERS);
   const [selectedObjectId, setSelectedObjectId] = useState<number | null>(null);
   const [prospectDialogOpen, setProspectDialogOpen] = useState(false);
-  const [draftStatus, setDraftStatus] = useState<CommercialPipelineStatus>("not_visited");
+  const [draftStatus, setDraftStatus] = useState<EditableProspectStatus | null>(null);
   const [draftNotes, setDraftNotes] = useState("");
   const [draftFollowUpDate, setDraftFollowUpDate] = useState("");
+  const [draftRefusalReasons, setDraftRefusalReasons] = useState<CommercialRefusalReasonCode[]>([]);
+  const [draftRefusalOther, setDraftRefusalOther] = useState("");
   const [draftSubscriptionPlanSlug, setDraftSubscriptionPlanSlug] = useState<CommercialSubscriptionPlanSlug>("starter");
   const [draftSubscriptionBillingPeriod, setDraftSubscriptionBillingPeriod] = useState<CommercialSubscriptionBillingPeriod>("monthly");
-  const [draftCompensationMode, setDraftCompensationMode] = useState<CommercialCompensationMode>("commission_only");
-  const [draftSignedRestaurantId, setDraftSignedRestaurantId] = useState("");
 
   const prospectsQuery = useQuery({
     queryKey: ["commercial-prospects-source"],
@@ -981,12 +935,12 @@ export default function CommercialProspection() {
   const followupsQuery = useQuery({
     queryKey: ["commercial-prospect-followups"],
     queryFn: async () => {
-      const { data, error } = await getSupabase()
-        .from("commercial_prospect_followups")
-        .select("source_objectid,status,notes,assigned_to,assigned_to_name,last_contacted_by,last_contacted_by_name,signed_by,signed_by_name,signed_at,signed_restaurant_id,signed_subscription_plan_slug,signed_subscription_plan_name,signed_subscription_billing_period,signed_subscription_monthly_price_chf,signed_subscription_contract_value_chf,acquisition_commission_rate,acquisition_commission_chf,commercial_compensation_mode,reservation_commission_rate,reservation_commission_starts_at,visited_at,next_follow_up_at,updated_at");
+      const { data, error } = await (getSupabase().rpc as any)("get_commercial_prospect_followups");
 
       if (error) throw error;
-      return (data || []) as CommercialProspectFollowup[];
+      const payload = data as { followups?: unknown } | CommercialProspectFollowup[] | null;
+      const followups = Array.isArray(payload) ? payload : payload?.followups;
+      return (Array.isArray(followups) ? followups : []) as CommercialProspectFollowup[];
     },
     staleTime: 15_000,
   });
@@ -1014,7 +968,7 @@ export default function CommercialProspection() {
         if (appliedFilters.category !== ALL_CATEGORIES && prospect.category !== appliedFilters.category) return false;
         if (
           appliedFilters.status !== ALL_STATUSES
-          && toPipelineStatus(getProspectStatus(prospect, followupsByObjectId)) !== appliedFilters.status
+          && getProspectStatus(prospect, followupsByObjectId) !== appliedFilters.status
         ) return false;
         return true;
       })
@@ -1036,48 +990,22 @@ export default function CommercialProspection() {
   const selectedLastContactName = selectedFollowup?.last_contacted_by_name
     || (selectedFollowup?.last_contacted_by ? "Commercial TOK" : null);
   const selectedSignedName = selectedFollowup?.signed_by_name || (selectedFollowup?.signed_by ? "Commercial TOK" : null);
-  const draftSubscriptionPlan = getCommercialSubscriptionPlan(draftSubscriptionPlanSlug);
-  const draftContractValueChf = getSubscriptionContractValueChf(draftSubscriptionPlan, draftSubscriptionBillingPeriod);
-  const draftAcquisitionCommissionChf = getAcquisitionCommissionChf(
-    draftSubscriptionPlan,
-    draftCompensationMode,
-  );
-  const draftAcquisitionCommissionRate = DEFAULT_ACQUISITION_COMMISSION_RATE;
-
-  const commissionSummaryQuery = useQuery({
-    queryKey: [
-      "commercial-prospect-commission-summary",
-      selectedFollowup?.source_objectid,
-      selectedFollowup?.updated_at,
-      selectedFollowup?.signed_restaurant_id,
-      selectedFollowup?.commercial_compensation_mode,
-    ],
-    enabled: Boolean(selectedFollowup?.status === "signed"),
-    queryFn: async () => {
-      if (!selectedFollowup) return null;
-      const { data, error } = await getSupabase().rpc("get_commercial_prospect_commission_summary", {
-        p_source_objectid: selectedFollowup.source_objectid,
-      });
-
-      if (error) throw error;
-      return data as CommercialCommissionSummary;
-    },
-    staleTime: 15_000,
-  });
-
-  const commissionSummary = commissionSummaryQuery.data || null;
-
+  const selectedCanEdit = selectedFollowup?.can_edit !== false;
   useEffect(() => {
-    if (!selectedProspect) return;
+    if (!selectedProspect || !prospectDialogOpen) return;
     const followup = followupsByObjectId.get(selectedProspect.sourceObjectId);
-    setDraftStatus(followup ? toPipelineStatus(followup.status) : "not_visited");
+    setDraftStatus(followup && followup.status !== "not_visited" ? followup.status : null);
     setDraftNotes(followup?.notes || "");
     setDraftFollowUpDate(followup?.next_follow_up_at || "");
+    setDraftRefusalReasons(
+      (followup?.refusal_reason_codes || []).filter(
+        (reason): reason is CommercialRefusalReasonCode => COMMERCIAL_REFUSAL_REASONS.some((item) => item.value === reason),
+      ),
+    );
+    setDraftRefusalOther(followup?.refusal_other_text || "");
     setDraftSubscriptionPlanSlug(getCommercialSubscriptionPlan(followup?.signed_subscription_plan_slug).slug);
     setDraftSubscriptionBillingPeriod(normalizeBillingPeriod(followup?.signed_subscription_billing_period));
-    setDraftCompensationMode(normalizeCompensationMode(followup?.commercial_compensation_mode));
-    setDraftSignedRestaurantId(followup?.signed_restaurant_id || "");
-  }, [followupsByObjectId, selectedProspect]);
+  }, [followupsByObjectId, prospectDialogOpen, selectedProspect]);
 
   useEffect(() => {
     if (selectedObjectId || !prospects[0]) return;
@@ -1096,13 +1024,13 @@ export default function CommercialProspection() {
   }, [mapProspects, selectedObjectId]);
 
   const stats = useMemo(() => {
-    const base = PIPELINE_STATUS_OPTIONS.reduce((acc, item) => {
+    const base = STATUS_OPTIONS.reduce((acc, item) => {
       acc[item.value] = 0;
       return acc;
-    }, {} as Record<CommercialPipelineStatus, number>);
+    }, {} as Record<ProspectStatus, number>);
 
     for (const prospect of prospects) {
-      base[toPipelineStatus(getProspectStatus(prospect, followupsByObjectId))] += 1;
+      base[getProspectStatus(prospect, followupsByObjectId)] += 1;
     }
 
     return base;
@@ -1111,54 +1039,47 @@ export default function CommercialProspection() {
   const saveFollowupMutation = useMutation<CommercialFollowupReminderResult>({
     mutationFn: async () => {
       if (!selectedProspect) throw new Error("Aucun restaurant sélectionné.");
-      const now = new Date().toISOString();
-      const existingVisitedAt = selectedFollowup?.visited_at || null;
-      const shouldStampVisitedAt = draftStatus !== "not_visited" && !existingVisitedAt;
-      const currentUserId = user?.id || null;
-      const assignedTo = selectedFollowup?.assigned_to || currentUserId;
-      const assignedToName = selectedFollowup?.assigned_to_name || commercialName;
-      const isSigned = draftStatus === "signed";
-      const keepExistingSignature = isSigned && selectedFollowup?.status === "signed";
-      const signedRestaurantId = draftSignedRestaurantId.trim() || null;
-      const isFixedPlusReservation = draftCompensationMode === "fixed_plus_reservation";
-      const reservationCommissionStartsAt = selectedFollowup?.reservation_commission_starts_at
-        || selectedFollowup?.signed_at
-        || now;
-      const shouldNotifyFollowUp = Boolean(
-        draftFollowUpDate && draftFollowUpDate !== (selectedFollowup?.next_follow_up_at || ""),
-      );
-
-      if (isSigned && signedRestaurantId && !isUuidLike(signedRestaurantId)) {
-        throw new Error("L'identifiant du restaurant TOK doit être un UUID valide.");
+      if (!selectedCanEdit) {
+        throw new Error("Ce suivi appartient déjà à un autre commercial et est disponible en lecture seule.");
+      }
+      if (!draftStatus) {
+        throw new Error("Choisissez le résultat de la visite avant d'enregistrer.");
+      }
+      if (draftStatus === "in_progress" && !draftFollowUpDate) {
+        throw new Error("Choisissez la date du prochain passage.");
+      }
+      if (draftStatus === "in_progress" && draftFollowUpDate < getLocalTodayDateInputValue()) {
+        throw new Error("La date du prochain passage ne peut pas être dans le passé.");
+      }
+      if (draftStatus === "not_interested" && draftRefusalReasons.length === 0) {
+        throw new Error("Sélectionnez au moins un motif de refus.");
+      }
+      if (
+        draftStatus === "not_interested"
+        && draftRefusalReasons.includes("other")
+        && !draftRefusalOther.trim()
+      ) {
+        throw new Error("Précisez le motif de refus dans le champ Autre.");
       }
 
-      const { error } = await getSupabase()
-        .from("commercial_prospect_followups")
-        .upsert({
-          source_objectid: selectedProspect.sourceObjectId,
-          status: draftStatus,
-          notes: draftNotes.trim() || null,
-          next_follow_up_at: draftFollowUpDate || null,
-          visited_at: shouldStampVisitedAt ? now : existingVisitedAt,
-          assigned_to: assignedTo,
-          assigned_to_name: assignedToName,
-          last_contacted_by: currentUserId,
-          last_contacted_by_name: commercialName,
-          signed_by: isSigned ? (keepExistingSignature ? selectedFollowup?.signed_by || currentUserId : currentUserId) : null,
-          signed_by_name: isSigned ? (keepExistingSignature ? selectedFollowup?.signed_by_name || commercialName : commercialName) : null,
-          signed_at: isSigned ? (keepExistingSignature ? selectedFollowup?.signed_at || now : now) : null,
-          signed_restaurant_id: isSigned ? signedRestaurantId : null,
-          signed_subscription_plan_slug: isSigned ? draftSubscriptionPlan.slug : null,
-          signed_subscription_plan_name: isSigned ? draftSubscriptionPlan.name : null,
-          signed_subscription_billing_period: isSigned ? draftSubscriptionBillingPeriod : "monthly",
-          signed_subscription_monthly_price_chf: isSigned ? draftSubscriptionPlan.monthlyPriceChf : null,
-          signed_subscription_contract_value_chf: isSigned ? draftContractValueChf : null,
-          acquisition_commission_rate: isSigned ? draftAcquisitionCommissionRate : DEFAULT_ACQUISITION_COMMISSION_RATE,
-          acquisition_commission_chf: isSigned ? draftAcquisitionCommissionChf : 0,
-          commercial_compensation_mode: isSigned ? draftCompensationMode : "commission_only",
-          reservation_commission_rate: isSigned && isFixedPlusReservation ? FIXED_RESERVATION_COMMISSION_RATE : 0,
-          reservation_commission_starts_at: isSigned && isFixedPlusReservation ? reservationCommissionStartsAt : null,
-        }, { onConflict: "source_objectid" });
+      const nextFollowUpAt = draftStatus === "in_progress" ? draftFollowUpDate : null;
+      const shouldNotifyFollowUp = Boolean(
+        nextFollowUpAt && nextFollowUpAt !== (selectedFollowup?.next_follow_up_at || ""),
+      );
+
+      const { error } = await (getSupabase().rpc as any)("record_commercial_prospect_followup", {
+        p_source_objectid: selectedProspect.sourceObjectId,
+        p_status: draftStatus,
+        p_notes: draftNotes.trim() || null,
+        p_next_follow_up_at: nextFollowUpAt,
+        p_refusal_reason_codes: draftStatus === "not_interested" ? draftRefusalReasons : [],
+        p_refusal_other_text: draftStatus === "not_interested" && draftRefusalReasons.includes("other")
+          ? draftRefusalOther.trim()
+          : null,
+        p_subscription_plan_slug: draftStatus === "signed" ? draftSubscriptionPlanSlug : null,
+        p_subscription_billing_period: draftStatus === "signed" ? draftSubscriptionBillingPeriod : null,
+        p_expected_updated_at: selectedFollowup?.updated_at || null,
+      });
 
       if (error) throw error;
 
@@ -1192,7 +1113,6 @@ export default function CommercialProspection() {
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["commercial-prospect-followups"] });
-      queryClient.invalidateQueries({ queryKey: ["commercial-prospect-commission-summary"] });
       toast({
         title: "Suivi enregistré",
         description: result.reminderNotificationStatus === "queued"
@@ -1247,24 +1167,27 @@ export default function CommercialProspection() {
     setSelectedObjectId(null);
   }, []);
 
-  const workflowContent = selectedProspect ? (
+  const workflowContent = selectedProspect ? (selectedCanEdit ? (
     <div className="space-y-5">
                 <div className="space-y-3">
                   <Label>Avancement terrain</Label>
                   <div className="grid min-w-0 grid-cols-1 gap-2 min-[430px]:grid-cols-2">
-                    {PIPELINE_STATUS_OPTIONS.map((item) => {
+                    {EDITABLE_STATUS_OPTIONS.map((item) => {
                       const Icon = item.icon;
                       const selected = draftStatus === item.value;
+                      const locked = selectedFollowup?.status === "signed" && item.value !== "signed";
                       return (
                         <button
                           key={item.value}
                           type="button"
                           onClick={() => setDraftStatus(item.value)}
+                          disabled={locked}
                           className={cn(
                             "flex min-h-12 min-w-0 items-center gap-2 overflow-hidden rounded-2xl border px-3 text-left text-sm font-bold transition-all",
                             selected
                               ? "border-primary bg-primary text-primary-foreground shadow-[0_14px_32px_rgba(255,106,26,0.25)]"
                               : "border-slate-200 bg-white hover:border-primary/50 dark:border-white/10 dark:bg-slate-900",
+                            locked && "cursor-not-allowed opacity-45",
                           )}
                         >
                           <Icon className="h-4 w-4 shrink-0" />
@@ -1282,9 +1205,9 @@ export default function CommercialProspection() {
                         <ReceiptText className="h-5 w-5" />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-black">Abonnement signé et commission</p>
+                        <p className="text-sm font-black">Abonnement signé</p>
                         <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                          Ces informations figent la valeur du contrat signé et calculent la commission du commercial.
+                          Choisissez uniquement l'offre acceptée. Les valeurs financières et l'attribution sont calculées et sécurisées côté serveur.
                         </p>
                       </div>
                     </div>
@@ -1295,6 +1218,7 @@ export default function CommercialProspection() {
                         <Select
                           value={draftSubscriptionPlanSlug}
                           onValueChange={(value) => setDraftSubscriptionPlanSlug(value as CommercialSubscriptionPlanSlug)}
+                          disabled={selectedFollowup?.status === "signed"}
                         >
                           <SelectTrigger>
                             <SelectValue />
@@ -1314,6 +1238,7 @@ export default function CommercialProspection() {
                         <Select
                           value={draftSubscriptionBillingPeriod}
                           onValueChange={(value) => setDraftSubscriptionBillingPeriod(value as CommercialSubscriptionBillingPeriod)}
+                          disabled={selectedFollowup?.status === "signed"}
                         >
                           <SelectTrigger>
                             <SelectValue />
@@ -1325,80 +1250,60 @@ export default function CommercialProspection() {
                         </Select>
                       </div>
 
-                      <div className="min-w-0 space-y-2 overflow-hidden rounded-2xl border bg-white/80 p-3 dark:border-white/10 dark:bg-white/5">
-                        <Label className="flex items-center gap-2">
-                          <Percent className="h-4 w-4" />
-                          Commission signature officielle
-                        </Label>
-                        <p className="text-sm font-black text-slate-950 dark:text-white">
-                          {formatChf(draftAcquisitionCommissionChf)}
-                        </p>
-                        <p className="break-words text-xs leading-5 text-muted-foreground">
-                          Sprint: {formatChf(draftSubscriptionPlan.sprintCommissionChf)} · Engagé:{" "}
-                          {formatChf(draftSubscriptionPlan.engagedCommissionChf)}
-                        </p>
-                      </div>
-
-                      <div className="min-w-0 space-y-2">
-                        <Label>Mode de rémunération</Label>
-                        <Select
-                          value={draftCompensationMode}
-                          onValueChange={(value) => setDraftCompensationMode(value as CommercialCompensationMode)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="commission_only">Sprint 60 jours sans fixe</SelectItem>
-                            <SelectItem value="fixed_plus_reservation">Commercial engagé + réservations</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
                     </div>
+                  </div>
+                ) : null}
 
-                    {draftCompensationMode === "fixed_plus_reservation" ? (
-                      <div className="min-w-0 space-y-2">
-                        <Label htmlFor="commercial-signed-restaurant">Restaurant TOK lié</Label>
-                        <Input
-                          id="commercial-signed-restaurant"
-                          value={draftSignedRestaurantId}
-                          onChange={(event) => setDraftSignedRestaurantId(event.target.value)}
-                          placeholder="UUID du restaurant TOK lié"
+                {draftStatus === "not_interested" ? (
+                  <div className="space-y-4 rounded-[24px] border border-red-200 bg-red-50/70 p-4 dark:border-red-400/20 dark:bg-red-500/10">
+                    <div>
+                      <p className="text-sm font-black">Pourquoi le restaurant refuse-t-il ?</p>
+                      <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                        Plusieurs motifs peuvent être cochés. Ces informations permettent d'améliorer l'offre et les prochains passages.
+                      </p>
+                    </div>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {COMMERCIAL_REFUSAL_REASONS.map((reason) => {
+                        const checked = draftRefusalReasons.includes(reason.value);
+                        return (
+                          <label
+                            key={reason.value}
+                            htmlFor={`commercial-refusal-${reason.value}`}
+                            className={cn(
+                              "flex min-w-0 cursor-pointer items-start gap-3 rounded-2xl border bg-white/80 p-3 text-sm leading-5 transition-colors dark:border-white/10 dark:bg-white/5",
+                              checked && "border-red-400 bg-red-100/70 dark:border-red-400/50 dark:bg-red-500/15",
+                            )}
+                          >
+                            <Checkbox
+                              id={`commercial-refusal-${reason.value}`}
+                              checked={checked}
+                              onCheckedChange={(nextChecked) => {
+                                setDraftRefusalReasons((current) => nextChecked
+                                  ? [...current, reason.value]
+                                  : current.filter((value) => value !== reason.value));
+                                if (reason.value === "other" && !nextChecked) setDraftRefusalOther("");
+                              }}
+                              className="mt-0.5 shrink-0"
+                            />
+                            <span>{reason.label}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                    {draftRefusalReasons.includes("other") ? (
+                      <div className="space-y-2">
+                        <Label htmlFor="commercial-refusal-other">Précisez l'autre motif</Label>
+                        <Textarea
+                          id="commercial-refusal-other"
+                          value={draftRefusalOther}
+                          onChange={(event) => setDraftRefusalOther(event.target.value.slice(0, 500))}
+                          placeholder="Décrivez brièvement le motif..."
+                          className="min-h-24 bg-white dark:bg-slate-950"
+                          maxLength={500}
                         />
-                        <p className="text-xs leading-5 text-muted-foreground">
-                          Le commercial engagé touche {formatChf(COMMERCIAL_RESERVATION_COMMISSION_CHF)} par réservation honorée
-                          ({formatPercentRate(FIXED_RESERVATION_COMMISSION_RATE)} de la base TOK {formatChf(TOK_RESERVATION_BASE_CHF)}).
-                          Sans restaurant TOK lié, la règle est enregistrée mais les réservations réelles ne peuvent pas encore être calculées.
-                        </p>
+                        <p className="text-right text-xs text-muted-foreground">{draftRefusalOther.length}/500</p>
                       </div>
                     ) : null}
-
-                    <div className="grid min-w-0 gap-2 sm:grid-cols-3">
-                      <div className="min-w-0 overflow-hidden rounded-2xl border bg-white/80 p-3 dark:border-white/10 dark:bg-white/5">
-                        <p className="truncate text-[11px] font-black uppercase tracking-[0.12em] text-muted-foreground">Valeur contrat</p>
-                        <p className="mt-1 text-lg font-black">{formatChf(draftContractValueChf)}</p>
-                      </div>
-                      <div className="min-w-0 overflow-hidden rounded-2xl border bg-white/80 p-3 dark:border-white/10 dark:bg-white/5">
-                        <p className="truncate text-[11px] font-black uppercase tracking-[0.12em] text-muted-foreground">Acquisition</p>
-                        <p className="mt-1 text-lg font-black">{formatChf(draftAcquisitionCommissionChf)}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {draftCompensationMode === "fixed_plus_reservation" ? "Barème engagé" : "Barème sprint"}
-                        </p>
-                      </div>
-                      <div className="min-w-0 overflow-hidden rounded-2xl border bg-white/80 p-3 dark:border-white/10 dark:bg-white/5">
-                        <p className="truncate text-[11px] font-black uppercase tracking-[0.12em] text-muted-foreground">Réservations</p>
-                        <p className="mt-1 text-lg font-black">
-                          {draftCompensationMode === "fixed_plus_reservation"
-                            ? formatChf(commissionSummary?.reservation_commission?.amount_chf || 0)
-                            : "0 CHF"}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {draftCompensationMode === "fixed_plus_reservation"
-                            ? `${Number(commissionSummary?.reservation_commission?.reservations_count || 0).toLocaleString("fr-CH")} réservation(s)`
-                            : "Non actif"}
-                        </p>
-                      </div>
-                    </div>
                   </div>
                 ) : null}
 
@@ -1410,21 +1315,25 @@ export default function CommercialProspection() {
                     onChange={(event) => setDraftNotes(event.target.value)}
                     placeholder="Décideur rencontré, objections, intérêt pour réservation Google, prochain contact..."
                     className="min-h-32"
+                    maxLength={4000}
                   />
                 </div>
 
+                {draftStatus === "in_progress" ? (
                 <div className="space-y-2">
                   <Label htmlFor="commercial-follow-up" className="flex items-center gap-2">
                     <CalendarClock className="h-4 w-4" />
-                    Prochaine relance
+                    Date du prochain passage
                   </Label>
                   <Input
                     id="commercial-follow-up"
                     type="date"
                     value={draftFollowUpDate}
                     onChange={(event) => setDraftFollowUpDate(event.target.value)}
+                    min={getLocalTodayDateInputValue()}
                   />
                 </div>
+                ) : null}
 
                 <Button
                   className="h-12 w-full rounded-2xl bg-orange-500 text-base font-black text-white hover:bg-orange-600"
@@ -1435,7 +1344,18 @@ export default function CommercialProspection() {
                   <ArrowUpRight className="h-4 w-4" />
                 </Button>
     </div>
-  ) : null;
+  ) : (
+    <div className="rounded-2xl border border-slate-200 bg-white/80 p-4 text-sm dark:border-white/10 dark:bg-white/5">
+      <p className="flex items-center gap-2 font-black">
+        <ShieldCheck className="h-4 w-4 text-emerald-600" />
+        Suivi en lecture seule
+      </p>
+      <p className="mt-2 leading-6 text-muted-foreground">
+        Ce restaurant est déjà suivi par {selectedAssignedName || "un autre commercial"}. Son statut reste visible sur la carte,
+        tandis que ses notes et informations commerciales restent protégées.
+      </p>
+    </div>
+  )) : null;
 
   const previewResults = hasLaunchedSearch ? filteredProspects.slice(0, RESULT_PREVIEW_LIMIT) : [];
 
@@ -1469,8 +1389,8 @@ export default function CommercialProspection() {
                 </span>
               </div>
             </div>
-            <div className="grid min-w-0 grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4 lg:flex-[0_1_560px]">
-              {PIPELINE_STATUS_OPTIONS.map((item) => (
+            <div className="grid min-w-0 grid-cols-2 gap-2 sm:gap-3 md:grid-cols-5 lg:flex-[0_1_700px]">
+              {STATUS_OPTIONS.map((item) => (
                 <StatCard key={item.value} label={item.shortLabel} value={stats[item.value]} color={item.color} />
               ))}
             </div>
@@ -1506,11 +1426,11 @@ export default function CommercialProspection() {
 
             <div className="space-y-2">
               <Label>Statut</Label>
-              <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as CommercialPipelineStatus | typeof ALL_STATUSES)}>
+              <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as ProspectStatus | typeof ALL_STATUSES)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value={ALL_STATUSES}>Tous les statuts</SelectItem>
-                  {PIPELINE_STATUS_OPTIONS.map((item) => (
+                  {STATUS_OPTIONS.map((item) => (
                     <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>
                   ))}
                 </SelectContent>
@@ -1633,11 +1553,10 @@ export default function CommercialProspection() {
         onOpenChange={setProspectDialogOpen}
         prospect={selectedProspect}
         followup={selectedFollowup}
-        status={draftStatus}
+        status={draftStatus || selectedFollowup?.status || "not_visited"}
         assignedName={selectedAssignedName}
         lastContactName={selectedLastContactName}
         signedName={selectedSignedName}
-        commissionSummary={commissionSummary}
         workflowContent={workflowContent}
       />
     </>
