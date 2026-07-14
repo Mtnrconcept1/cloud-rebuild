@@ -147,18 +147,22 @@ export default function CustomerDashboardLayout({ children }: { children: React.
                 </div>
               ))}
             </nav>
-            <div className="mt-4 border-t pt-4">
-              <SignOutButton className="w-full justify-start rounded-xl px-3 py-2.5 text-sm font-medium" />
-            </div>
+            {!commercialDemoFrame ? (
+              <div className="mt-4 border-t pt-4">
+                <SignOutButton className="w-full justify-start rounded-xl px-3 py-2.5 text-sm font-medium" />
+              </div>
+            ) : null}
           </div>
         </aside>
 
         <main className="min-h-[500px] min-w-0 flex-1 overflow-x-hidden rounded-2xl border bg-card p-4 shadow-sm sm:p-6 md:p-8">
           {!isHome ? <BackNavigationButton fallback="/mon-espace" className="mb-4" /> : null}
           {children}
-          <div className="mt-8 border-t pt-4 md:hidden">
-            <SignOutButton className="min-h-11 w-full justify-center rounded-xl text-sm font-medium" />
-          </div>
+          {!commercialDemoFrame ? (
+            <div className="mt-8 border-t pt-4 md:hidden">
+              <SignOutButton className="min-h-11 w-full justify-center rounded-xl text-sm font-medium" />
+            </div>
+          ) : null}
         </main>
       </div>
     </div>
