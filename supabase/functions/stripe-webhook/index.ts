@@ -629,6 +629,21 @@ async function syncRestaurantSubscriptionRecord(input: {
   return { updated: true, row };
 }
 
+async function getManagedWebhookSigningSecrets(
+  adminClient: ReturnType<typeof createClient>,
+) {
+  try {
+    const { data, error } = await adminClient.rpc("get_stripe_webhook_signing_secrets");
+    if (error || !Array.isArray(data)) return [];
+
+    return data
+      .map((value) => String(value || "").trim())
+      .filter((value) => value.startsWith("whsec_"));
+  } catch {
+    return [];
+  }
+}
+
 Deno.serve(async (req) => {
   const log = makeLogger("stripe-webhook");
 
@@ -651,7 +666,11 @@ Deno.serve(async (req) => {
 
   const body = await req.text();
   const signature = req.headers.get("stripe-signature");
-  const webhookSecrets = getStripeWebhookSigningSecrets();
+  const managedWebhookSecrets = await getManagedWebhookSigningSecrets(supabaseAdmin);
+  const webhookSecrets = Array.from(new Set([
+    ...getStripeWebhookSigningSecrets(),
+    ...managedWebhookSecrets,
+  ]));
 
   if (webhookSecrets.length === 0) {
     await writeAuditLog({
