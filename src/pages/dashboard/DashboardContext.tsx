@@ -46,16 +46,20 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     [restaurants, selectedId],
   );
 
+  const isDemoMode = selectedRestaurant?.is_demo === true;
+
   const dashboardAccessLocked = useMemo(() => {
-    if (loading) return false;
+    if (loading || isDemoMode) return false;
     return !isRestaurantDashboardAccessApproved(selectedRestaurant);
-  }, [loading, selectedRestaurant]);
+  }, [isDemoMode, loading, selectedRestaurant]);
 
   const dashboardAccessLockReason = dashboardAccessLocked
     ? "Votre dossier restaurateur doit être validé par l'admin TOK avant d'activer les onglets et fonctionnalités."
     : null;
 
   const disabledFeatures = useMemo(() => {
+    if (isDemoMode) return new Set<string>();
+
     const lockedFeatures = new Set(selectedRestaurant?.disabled_dashboard_features || []);
     const subscriptionEnabledFeatures = selectedRestaurant?.subscription_enabled_dashboard_features || [];
 
@@ -103,7 +107,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     }
 
     return lockedFeatures;
-  }, [dashboardAccessLocked, selectedRestaurant]);
+  }, [dashboardAccessLocked, isDemoMode, selectedRestaurant]);
 
   return (
     <DashboardContext.Provider value={{
@@ -115,8 +119,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       disabledFeatures,
       dashboardAccessLocked,
       dashboardAccessLockReason,
+      isDemoMode,
     }}>
       {children}
     </DashboardContext.Provider>
   );
 }
+
