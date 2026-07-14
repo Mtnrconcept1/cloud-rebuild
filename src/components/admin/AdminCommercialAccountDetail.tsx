@@ -229,7 +229,7 @@ export default function AdminCommercialAccountDetail({
     },
   });
 
-  const followups = followupsQuery.data || [];
+  const followups = useMemo(() => followupsQuery.data || [], [followupsQuery.data]);
   const prospectsById = useMemo(
     () => new Map((prospectsQuery.data || []).map((prospect) => [prospect.sourceObjectId, prospect])),
     [prospectsQuery.data],
