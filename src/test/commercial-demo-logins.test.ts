@@ -28,7 +28,10 @@ describe("admin-managed commercial demo accounts", () => {
     expect(provisionerSource).toContain("authenticateRequest(req)");
     expect(provisionerSource).toContain('requireUserRole(actor, ["admin"])');
     expect(provisionerSource).toContain("auth.admin.createUser");
-    expect(provisionerSource).toContain("findUserByEmail");
+    expect(provisionerSource).not.toContain("findUserByEmail");
+    expect(provisionerSource).not.toContain("auth.admin.listUsers");
+    expect(provisionerSource).toContain("isExistingAuthUserError");
+    expect(provisionerSource).toContain('code === "email_exists"');
     expect(provisionerSource).toContain("Aucun mot de passe ni rôle n'a été modifié");
     expect(provisionerSource).not.toContain("user_metadata: { role:");
     expect(provisionerSource).not.toContain("updateUserById(existing");

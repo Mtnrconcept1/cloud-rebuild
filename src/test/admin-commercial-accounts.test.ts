@@ -12,10 +12,12 @@ function read(path: string) {
 describe("commercial demo account security", () => {
   const migration = read("supabase/migrations/20260714120000_commercial_demo_accounts.sql");
   const aclHardening = read("supabase/migrations/20260714181500_commercial_demo_function_acl_hardening.sql");
+  const authRepair = read("supabase/migrations/20260714184500_repair_auth_email_change_null.sql");
   const sharedAuth = read("supabase/functions/_shared/auth.ts");
   const ownerHook = read("src/pages/dashboard/useOwnerRestaurants.ts");
   const app = read("src/App.tsx");
   const layout = read("src/components/DashboardLayout.tsx");
+  const adminUsersPage = read("src/pages/admin/AdminUtilisateurs.tsx");
   const provisionFunction = read("supabase/functions/provision-commercial-accounts/index.ts");
   const mediaGovernance = read("supabase/functions/restaurant-media-governance/index.ts");
   const stripeConnectStatus = read("supabase/functions/stripe-connect-status/index.ts");
@@ -81,6 +83,60 @@ describe("commercial demo account security", () => {
     expect(provisionFunction).toContain("assertValidUuid(targetUserId)");
     expect(provisionFunction).toContain("commercial_password_reset_audit_warning");
     expect(provisionFunction).toContain("target_user_id: targetUserId");
+  });
+
+  it("creates accounts atomically without scanning every Auth user", () => {
+    expect(provisionFunction).not.toContain("auth.admin.listUsers");
+    expect(provisionFunction).not.toContain("findUserByEmail");
+    expect(provisionFunction).toContain("isExistingAuthUserError");
+    expect(provisionFunction).toContain('code === "email_exists"');
+    expect(provisionFunction).toContain("authErrorMessage(createError");
+  });
+
+  it("classifies only explicit duplicate Auth failures as an existing account", () => {
+    const duplicateClassifier = provisionFunction.slice(
+      provisionFunction.indexOf("function isExistingAuthUserError"),
+      provisionFunction.indexOf("async function getAuthUsersById"),
+    );
+
+    expect(duplicateClassifier).toContain('code === "email_exists"');
+    expect(duplicateClassifier).toContain('code === "user_already_exists"');
+    expect(duplicateClassifier).toContain("status === 422 &&");
+    expect(duplicateClassifier).toContain(".test(message)");
+    expect(duplicateClassifier).not.toContain('code === "weak_password"');
+    expect(duplicateClassifier).not.toMatch(/\|\|\s*status\s*===\s*422\s*;?/);
+  });
+
+  it("replaces empty structured Auth messages with a useful fallback", () => {
+    const errorMessageNormalizer = provisionFunction.slice(
+      provisionFunction.indexOf("function authErrorMessage"),
+      provisionFunction.indexOf("function isExistingAuthUserError"),
+    );
+
+    expect(errorMessageNormalizer).toContain('message !== "{}"');
+    expect(errorMessageNormalizer).toContain('message !== "[object Object]"');
+    expect(errorMessageNormalizer).toContain("return fallback");
+    expect(provisionFunction).toContain(
+      'authErrorMessage(passwordError, "Impossible de remplacer le mot de passe Auth.")',
+    );
+  });
+
+  it("repairs only malformed legacy Auth e-mail change values", () => {
+    expect(authRepair).toContain("UPDATE auth.users");
+    expect(authRepair).toContain("SET email_change = ''");
+    expect(authRepair).toContain("WHERE email_change IS NULL");
+    expect(authRepair).not.toMatch(/INSERT\s+INTO\s+auth\.users/i);
+  });
+
+  it("routes new commercial identities through the managed provisioning tab", () => {
+    expect(adminUsersPage).toContain(
+      '!currentRoles.includes("commercial") && nextRoles.includes("commercial")',
+    );
+    expect(adminUsersPage).toContain('nextParams.set("tab", "commercials")');
+    expect(adminUsersPage).toContain(
+      '.filter((role) => role !== "commercial" || baseRoles.includes("commercial"))',
+    );
+    expect(adminUsersPage).toContain("Ouvrir Commerciaux");
   });
 
   it("keeps trigger-only security definer helpers out of the Data API", () => {

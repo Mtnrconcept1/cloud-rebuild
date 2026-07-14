@@ -682,6 +682,22 @@ export default function AdminUtilisateurs() {
     if (!nextRoles) return;
 
     const currentRoles = users.find((user) => user.user_id === userId)?.roles || ["client"];
+    if (!currentRoles.includes("commercial") && nextRoles.includes("commercial")) {
+      const rolesWithoutCommercial = nextRoles.filter((role) => role !== "commercial");
+      setDraftRoles((prev) => ({
+        ...prev,
+        [userId]: rolesWithoutCommercial.length > 0 ? rolesWithoutCommercial : ["client"],
+      }));
+      toast({
+        title: "Création commerciale dédiée",
+        description: "Créez le compte depuis l’onglet Commerciaux afin d’activer automatiquement son environnement de démonstration.",
+      });
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.set("tab", "commercials");
+      setSearchParams(nextParams, { replace: true });
+      return;
+    }
+
     if (currentRoles.includes("admin") && !nextRoles.includes("admin")) {
       const confirmed = window.confirm(
         "Dernier admin : la base bloque la suppression du dernier rôle admin. Confirmer ce changement sensible ?",
@@ -1053,6 +1069,24 @@ export default function AdminUtilisateurs() {
             </Button>
           </div>
 
+          <div className="flex flex-col gap-3 rounded-xl border border-orange-200 bg-orange-50/70 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-orange-950">Comptes commerciaux dédiés</p>
+              <p className="mt-1 text-xs text-orange-900/75">
+                Créez les identifiants commerciaux depuis l’onglet dédié pour provisionner automatiquement les accès et les restaurants de démonstration.
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              className="shrink-0 gap-2 bg-white"
+              onClick={() => handleAdminTabChange("commercials")}
+            >
+              <BriefcaseBusiness className="h-4 w-4" />
+              Ouvrir Commerciaux
+            </Button>
+          </div>
+
           {isLoading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((index) => (
@@ -1120,17 +1154,23 @@ export default function AdminUtilisateurs() {
                         </div>
                       ) : null}
 
-                      <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-                        {AVAILABLE_ROLES.map((role) => (
-                          <label key={role} className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm">
-                            <input
-                              type="checkbox"
-                              checked={effectiveRoles.includes(role)}
-                              onChange={() => toggleRole(user.user_id, role)}
-                            />
-                            <span>{getRoleLabel(role)}</span>
-                          </label>
-                        ))}
+                      <div
+                        className={`grid grid-cols-2 gap-2 ${
+                          baseRoles.includes("commercial") ? "md:grid-cols-5" : "md:grid-cols-4"
+                        }`}
+                      >
+                        {AVAILABLE_ROLES
+                          .filter((role) => role !== "commercial" || baseRoles.includes("commercial"))
+                          .map((role) => (
+                            <label key={role} className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm">
+                              <input
+                                type="checkbox"
+                                checked={effectiveRoles.includes(role)}
+                                onChange={() => toggleRole(user.user_id, role)}
+                              />
+                              <span>{getRoleLabel(role)}</span>
+                            </label>
+                          ))}
                       </div>
 
                       {hasCommercialRole ? (
