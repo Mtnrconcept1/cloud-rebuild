@@ -2,25 +2,36 @@ import { useState, useEffect, useMemo, type ReactNode } from "react";
 import { useOwnerRestaurants } from "./useOwnerRestaurants";
 import { DashboardContext, isRestaurantDashboardAccessApproved } from "./useDashboardRestaurant";
 import { ALL_GATABLE_FEATURES } from "@/lib/packFeatureGating";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
+import { resolveCommercialDemoRestaurantSelection } from "@/lib/commercialDemoRestaurantScope";
 
 const STORAGE_KEY = "miamz-dashboard-restaurant";
 
 export function DashboardProvider({ children }: { children: ReactNode }) {
+  const commercialDemoFrame = useCommercialDemoFrame();
   const { restaurants, loading, error } = useOwnerRestaurants();
-  const [selectedId, setSelectedIdState] = useState<string | null>(() => {
+  const [storedSelectedId, setStoredSelectedId] = useState<string | null>(() => {
     try {
       return localStorage.getItem(STORAGE_KEY);
     } catch {
       return null;
     }
   });
+  const frameDemoRestaurantId = commercialDemoFrame?.snapshot.session.demo_restaurant_id || null;
+  const selectedId = commercialDemoFrame
+    ? resolveCommercialDemoRestaurantSelection(restaurants, frameDemoRestaurantId)
+    : storedSelectedId;
 
   // Auto-select first owned restaurant, or clear stale selection
   useEffect(() => {
     if (loading) return;
 
+    // The frame snapshot is the only selector authority. Do not read, write or
+    // recover a different restaurant from the shared browser storage.
+    if (commercialDemoFrame) return;
+
     if (restaurants.length === 0) {
-      setSelectedIdState(null);
+      setStoredSelectedId(null);
       try {
         localStorage.removeItem(STORAGE_KEY);
       } catch {
@@ -31,13 +42,18 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
     if (!selectedId || !restaurants.find((r) => r.id === selectedId)) {
       const id = restaurants[0].id;
-      setSelectedIdState(id);
+      setStoredSelectedId(id);
       localStorage.setItem(STORAGE_KEY, id);
     }
-  }, [loading, restaurants, selectedId]);
+  }, [commercialDemoFrame, loading, restaurants, selectedId]);
 
   const setSelectedId = (id: string) => {
-    setSelectedIdState(id);
+    if (commercialDemoFrame) {
+      // Ignore attempts to switch the embedded dashboard to a real or unrelated
+      // restaurant, including calls from an overlooked legacy selector.
+      return;
+    }
+    setStoredSelectedId(id);
     localStorage.setItem(STORAGE_KEY, id);
   };
 
