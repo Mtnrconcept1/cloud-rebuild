@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, ArrowDownRight, ArrowUpRight, Coins, FileDown, FileText, HandCoins, Loader2, Lock, Megaphone, Percent, Receipt, Store, Target, Unlock, Wallet } from "lucide-react";
 
 import { AccountingDigestCard, AccountingFactList, AccountingHero, AccountingPanel } from "@/components/invoices/AccountingCockpit";
@@ -30,9 +30,28 @@ import {
 
 const supabase = getSupabase();
 
+type AdminCommercialCommissionSummary = {
+  period?: { start?: string; end?: string };
+  total_commission_chf?: number;
+  signed_restaurants_count?: number;
+  commercials?: Array<{
+    commercial_user_id?: string;
+    commercial_name?: string;
+    signatures_count?: number;
+    commission_chf?: number;
+  }>;
+};
+
 function getErrorMessage(error: unknown) {
   if (error instanceof Error) return error.message;
   return error ? String(error) : "";
+}
+
+function getMonthDateBounds(monthValue: string) {
+  const [year, month] = monthValue.split("-").map(Number);
+  const start = new Date(Date.UTC(year, month - 1, 1));
+  const end = new Date(Date.UTC(year, month, 0));
+  return { start: start.toISOString().slice(0, 10), end: end.toISOString().slice(0, 10) };
 }
 
 export default function AdminCompta() {
@@ -45,6 +64,20 @@ export default function AdminCompta() {
   });
   const [exportPeriodPreset, setExportPeriodPreset] = useState<AccountingPeriodPreset>("current_month");
   const [exporting, setExporting] = useState<"csv" | AccountingStatementKind | null>(null);
+  const commercialCommissionPeriod = useMemo(() => getMonthDateBounds(selectedMonth), [selectedMonth]);
+
+  const commercialCommissionsQuery = useQuery({
+    queryKey: ["admin-commercial-commission-summary", commercialCommissionPeriod.start, commercialCommissionPeriod.end],
+    enabled: selectedRestaurant === "all",
+    queryFn: async () => {
+      const { data, error } = await (supabase.rpc as any)("get_admin_commercial_commission_summary", {
+        p_period_start: commercialCommissionPeriod.start,
+        p_period_end: commercialCommissionPeriod.end,
+      });
+      if (error) throw error;
+      return (data || {}) as AdminCommercialCommissionSummary;
+    },
+  });
 
   const {
     restaurants,
@@ -136,9 +169,15 @@ export default function AdminCompta() {
       tone: "orange",
     },
     {
-      label: "Coûts commerciaux enregistrés",
+      label: "Commissions de signature générées",
+      amount: selectedRestaurant === "all" ? toAmount(commercialCommissionsQuery.data?.total_commission_chf) : 0,
+      helper: `${toAmount(commercialCommissionsQuery.data?.signed_restaurants_count)} restaurant(s) signé(s), calcul serveur selon le régime défini par l’admin.`,
+      tone: "amber",
+    },
+    {
+      label: "Autres coûts commerciaux saisis",
       amount: toAmount(platformFinanceSnapshot?.commercial_cost_chf),
-      helper: "Commissions, primes et coûts commerciaux comptabilisés.",
+      helper: "Fixes, primes, ajustements et autres coûts commerciaux comptabilisés séparément.",
       tone: "amber",
     },
     {
@@ -190,6 +229,7 @@ export default function AdminCompta() {
       ["Tok One", tokOneSubscriptionAmount],
       ["Miamz Tok", tokCoveredMiamzAmount],
       ["Remboursements emis", refundsIssuedTotal],
+      ["Commissions commerciales de signature", commercialCommissionsQuery.data?.total_commission_chf || 0],
     ]);
   };
 
@@ -573,6 +613,41 @@ export default function AdminCompta() {
               ]}
             />
           </AccountingPanel>
+
+          {selectedRestaurant === "all" ? (
+            <AccountingPanel
+              tone="amber"
+              icon={HandCoins}
+              title="Commissions commerciales générées"
+              description="Chaque restaurant signé crée immédiatement une commission calculée côté serveur selon le régime choisi par l’admin."
+              value={commercialCommissionsQuery.isLoading
+                ? "Calcul…"
+                : formatAmount(toAmount(commercialCommissionsQuery.data?.total_commission_chf))}
+              valueLabel={`${toAmount(commercialCommissionsQuery.data?.signed_restaurants_count)} restaurant(s) signé(s)`}
+            >
+              {commercialCommissionsQuery.error ? (
+                <p className="text-sm text-destructive">Impossible de charger les commissions commerciales du mois.</p>
+              ) : (
+                <AccountingFactList
+                  tone="amber"
+                  items={(commercialCommissionsQuery.data?.commercials || []).length > 0
+                    ? (commercialCommissionsQuery.data?.commercials || []).map((commercial) => ({
+                      label: commercial.commercial_name || "Commercial TOK",
+                      value: formatAmount(toAmount(commercial.commission_chf)),
+                      helper: `${toAmount(commercial.signatures_count)} signature(s) sur la période.`,
+                    }))
+                    : [{
+                      label: "Signatures du mois",
+                      value: formatAmount(0),
+                      helper: "Aucune commission de signature générée sur cette période.",
+                    }]}
+                />
+              )}
+              <Button asChild variant="outline">
+                <Link to="/admin/utilisateurs?tab=commercials">Ouvrir les profils commerciaux</Link>
+              </Button>
+            </AccountingPanel>
+          ) : null}
 
           <AccountingPanel
             tone="amber"

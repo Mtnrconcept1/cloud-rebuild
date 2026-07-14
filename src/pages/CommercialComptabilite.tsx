@@ -184,7 +184,8 @@ export default function CommercialComptabilite() {
   const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
   const isAdmin = roles.includes("admin");
-  const commercialUserId = searchParams.get("commercialUserId") || user?.id || null;
+  const requestedCommercialUserId = searchParams.get("commercialUserId");
+  const commercialUserId = isAdmin ? (requestedCommercialUserId || user?.id || null) : (user?.id || null);
   const [month, setMonth] = useState(currentMonthValue());
   const [adjustmentKind, setAdjustmentKind] = useState<(typeof ADJUSTMENT_OPTIONS)[number]["value"]>("manual_bonus");
   const [adjustmentAmount, setAdjustmentAmount] = useState("0");

@@ -1,7 +1,9 @@
 import { useMemo, useState, type FormEvent } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  BarChart3,
   CheckCircle2,
+  ChevronRight,
   Copy,
   Eye,
   EyeOff,
@@ -15,15 +17,18 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+import AdminCommercialAccountDetail from "@/components/admin/AdminCommercialAccountDetail";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { getSupabase } from "@/integrations/supabase/client";
+import { getCommercialRefusalReasonLabel } from "@/lib/commercialSales";
 import { invokeSupabaseFunction } from "@/lib/session";
 
-type ManagedCommercialAccount = {
+export type ManagedCommercialAccount = {
   user_id: string;
   full_name: string;
   email: string | null;
@@ -125,6 +130,7 @@ export default function AdminCommercialAccountsPanel() {
   const [resetPassword, setResetPassword] = useState(() => generateStrongPassword());
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [resetting, setResetting] = useState(false);
+  const [selectedAccount, setSelectedAccount] = useState<ManagedCommercialAccount | null>(null);
 
   const accountsQuery = useQuery({
     queryKey: ["admin-managed-commercial-accounts"],
@@ -140,6 +146,32 @@ export default function AdminCommercialAccountsPanel() {
 
   const accounts = accountsQuery.data || [];
   const activeCount = useMemo(() => accounts.filter((account) => account.enabled).length, [accounts]);
+
+  const objectionsQuery = useQuery({
+    queryKey: ["admin-commercial-refusal-overview"],
+    queryFn: async () => {
+      const { data, error } = await getSupabase()
+        .from("commercial_prospect_followups" as any)
+        .select("source_objectid,refusal_reason_codes")
+        .eq("status", "not_interested");
+      if (error) throw error;
+      return (data || []) as unknown as Array<{ source_objectid: number; refusal_reason_codes: string[] | null }>;
+    },
+    staleTime: 30_000,
+  });
+
+  const refusalOverview = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const followup of objectionsQuery.data || []) {
+      const reasons = followup.refusal_reason_codes?.length
+        ? new Set(followup.refusal_reason_codes)
+        : new Set(["not_interested_unspecified"]);
+      for (const reason of reasons) counts.set(reason, (counts.get(reason) || 0) + 1);
+    }
+    return Array.from(counts.entries())
+      .map(([code, count]) => ({ code, label: getCommercialRefusalReasonLabel(code), count }))
+      .sort((left, right) => right.count - left.count || left.label.localeCompare(right.label, "fr"));
+  }, [objectionsQuery.data]);
 
   async function handleCreate(event: FormEvent) {
     event.preventDefault();
@@ -364,6 +396,40 @@ export default function AdminCommercialAccountsPanel() {
       ) : null}
 
       <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5 text-rose-600" />
+            Vue globale des refus
+          </CardTitle>
+          <CardDescription>
+            Motifs cochés par les commerciaux, classés par fréquence pour adapter l’argumentaire et l’offre.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {objectionsQuery.isLoading ? (
+            <div className="h-24 animate-pulse rounded-2xl bg-muted" />
+          ) : objectionsQuery.error ? (
+            <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+              Les motifs de refus ne peuvent pas être chargés.
+            </div>
+          ) : refusalOverview.length === 0 ? (
+            <div className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">
+              Aucun refus qualifié pour le moment.
+            </div>
+          ) : (
+            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+              {refusalOverview.map((reason) => (
+                <div key={reason.code} className="flex min-w-0 items-center justify-between gap-3 rounded-2xl border bg-muted/25 p-3">
+                  <p className="min-w-0 text-sm font-medium">{reason.label}</p>
+                  <Badge variant="secondary" className="shrink-0">{reason.count}</Badge>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
         <CardHeader className="flex-row items-start justify-between gap-4">
           <div>
             <CardTitle>Comptes commerciaux</CardTitle>
@@ -391,7 +457,17 @@ export default function AdminCommercialAccountsPanel() {
               {accounts.map((account) => (
                 <article
                   key={account.user_id}
-                  className={`rounded-2xl border bg-card p-4 shadow-sm ${getAccountIntegrityIssues(account).length > 0 ? "border-destructive/50" : ""}`}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Ouvrir le profil commercial de ${account.full_name}`}
+                  onClick={() => setSelectedAccount(account)}
+                  onKeyDown={(event) => {
+                    if (event.target === event.currentTarget && (event.key === "Enter" || event.key === " ")) {
+                      event.preventDefault();
+                      setSelectedAccount(account);
+                    }
+                  }}
+                  className={`cursor-pointer rounded-2xl border bg-card p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${getAccountIntegrityIssues(account).length > 0 ? "border-destructive/50" : ""}`}
                 >
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0">
@@ -401,7 +477,7 @@ export default function AdminCommercialAccountsPanel() {
                       </div>
                       <p className="mt-1 break-all text-sm text-muted-foreground">{account.email || "E-mail indisponible"}</p>
                     </div>
-                    <Button type="button" variant="outline" size="sm" className="shrink-0 gap-2" onClick={() => openPasswordReset(account)}>
+                    <Button type="button" variant="outline" size="sm" className="shrink-0 gap-2" onClick={(event) => { event.stopPropagation(); openPasswordReset(account); }}>
                       <KeyRound className="h-4 w-4" /> Nouveau mot de passe
                     </Button>
                   </div>
@@ -437,6 +513,9 @@ export default function AdminCommercialAccountsPanel() {
                     <div><dt>Créé le</dt><dd className="font-medium text-foreground">{formatDate(account.created_at)}</dd></div>
                     <div><dt>Dernière connexion</dt><dd className="font-medium text-foreground">{formatDate(account.last_sign_in_at)}</dd></div>
                   </dl>
+                  <div className="mt-4 flex items-center justify-end gap-1 text-sm font-semibold text-primary">
+                    Activité et comptabilité <ChevronRight className="h-4 w-4" />
+                  </div>
                 </article>
               ))}
             </div>
@@ -473,6 +552,12 @@ export default function AdminCommercialAccountsPanel() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AdminCommercialAccountDetail
+        account={selectedAccount}
+        open={Boolean(selectedAccount)}
+        onOpenChange={(open) => !open && setSelectedAccount(null)}
+      />
     </div>
   );
 }
