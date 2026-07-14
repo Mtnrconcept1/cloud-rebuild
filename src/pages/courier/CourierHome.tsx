@@ -1,12 +1,11 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, Bike, Coins, Clock3, MapPin, Navigation, ShieldCheck } from "lucide-react";
+import { AlertTriangle, BellRing, Bike, Coins, Clock3, MapPin, Navigation, ShieldCheck, Smartphone } from "lucide-react";
 import { getCurrentPosition } from "@/lib/geolocation-native";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
 import CourierDashboardLayout from "@/components/CourierDashboardLayout";
-import CommercialDemoActorOverview from "@/components/commercial/CommercialDemoActorOverview";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import CourierPushStatusCard from "@/components/courier/CourierPushStatusCard";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +25,7 @@ import {
 import { useCourierProfile } from "@/hooks/useCourierProfile";
 import { useCourierPushStatus } from "@/hooks/useCourierPushStatus";
 import { useCourierPresenceSync } from "@/hooks/useCourierPresenceSync";
+import type { CommercialDemoSnapshot } from "@/lib/commercialDemoJourney";
 
 type CourierEarningRow = {
   created_at: string;
@@ -40,6 +40,345 @@ type CourierActiveJobOrder = {
     address?: string | null;
   } | null;
 };
+
+type CourierHomeMission = {
+  id: string;
+  status: string;
+  orderNumber: string;
+  restaurantName: string;
+  pickupAddress: string;
+  deliveryAddress: string;
+};
+
+type CourierHomeViewModel = {
+  courierName: string;
+  identityDetail: string;
+  approvalLabel: string;
+  approvalTone: string;
+  isApproved: boolean;
+  isOnline: boolean;
+  positionLabel: string | null;
+  isWatching: boolean;
+  locationError: string | null;
+  metrics: {
+    todayEarnings: number;
+    weekEarnings: number;
+    activeJobs: number;
+    pendingOffers: number;
+  };
+  activeJob: CourierHomeMission | null;
+  acceptanceRate: number;
+  averageDeliveryMinutes: number;
+  totalDeliveries: number;
+};
+
+type CourierHomePresentationProps = {
+  viewModel: CourierHomeViewModel;
+  onToggleOnline: () => void;
+  isToggling: boolean;
+  pushStatusCard: ReactNode;
+  demo?: boolean;
+};
+
+function DemoCourierPushStatusCard() {
+  return (
+    <Card data-testid="commercial-demo-courier-push-status">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <BellRing className="h-5 w-5 text-primary" />
+          Alertes livreur
+        </CardTitle>
+        <CardDescription>
+          Les alertes de cette fenêtre proviennent uniquement des événements de la session commerciale.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-center justify-between rounded-xl border p-3">
+          <div className="flex items-center gap-3">
+            <div className="rounded-full bg-primary/10 p-2">
+              <Smartphone className="h-4 w-4 text-primary" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm font-medium">Fenêtre de démonstration</p>
+              <p className="text-xs text-muted-foreground">Synchronisation temps réel active</p>
+            </div>
+          </div>
+          <Badge className="bg-emerald-100 text-emerald-700">Actives</Badge>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function CourierHomePresentation({
+  viewModel,
+  onToggleOnline,
+  isToggling,
+  pushStatusCard,
+  demo = false,
+}: CourierHomePresentationProps) {
+  const activeJob = viewModel.activeJob;
+
+  return (
+    <CourierDashboardLayout>
+      <div className="space-y-6" data-testid={demo ? "commercial-demo-courier-home" : "courier-home"}>
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <h1 className="font-display text-3xl font-bold">Vue d'ensemble</h1>
+              <Badge className={viewModel.approvalTone}>{viewModel.approvalLabel}</Badge>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {viewModel.courierName} · {viewModel.identityDetail}
+            </p>
+          </div>
+
+          <Button
+            onClick={onToggleOnline}
+            disabled={isToggling}
+            variant={viewModel.isOnline ? "destructive" : "default"}
+            className="min-w-44"
+          >
+            {viewModel.isOnline ? "Passer hors ligne" : "Passer en ligne"}
+          </Button>
+        </div>
+
+        {!viewModel.isApproved ? (
+          <Card className="border-amber-300 bg-amber-50 dark:bg-amber-950/20">
+            <CardContent className="flex flex-col gap-3 py-5 md:flex-row md:items-center md:justify-between">
+              <div className="space-y-1">
+                <p className="font-semibold">Profil en attente de validation</p>
+                <p className="text-sm text-muted-foreground">
+                  Completez votre profil et vos documents pour accelerer l'approbation avant la mise en ligne.
+                </p>
+              </div>
+              <Button asChild variant="outline">
+                <Link to="/courier/profile">Completer mon profil</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        ) : null}
+
+        {(viewModel.isOnline || activeJob) ? (
+          <Card className="border-emerald-300 bg-emerald-50 dark:bg-emerald-950/20">
+            <CardContent className="flex flex-col gap-3 py-5 md:flex-row md:items-center md:justify-between">
+              <div className="space-y-1">
+                <p className="flex items-center gap-2 font-semibold text-emerald-700 dark:text-emerald-300">
+                  <Navigation className="h-4 w-4" />
+                  Présence synchronisée
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {viewModel.positionLabel || "En attente d'une position GPS"}
+                  {viewModel.isWatching ? " · suivi actif" : ""}
+                </p>
+              </div>
+              <div className="text-sm text-muted-foreground">
+                {viewModel.locationError ? (
+                  <span className="flex items-center gap-2 text-destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    {viewModel.locationError}
+                  </span>
+                ) : (
+                  <span>Les missions seront geolocalisees en temps réel.</span>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        ) : null}
+
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription>Gains du jour</CardDescription>
+              <CardTitle className="flex items-center gap-2 text-2xl">
+                <Coins className="h-5 w-5 text-primary" />
+                {formatCurrency(viewModel.metrics.todayEarnings)}
+              </CardTitle>
+            </CardHeader>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription>Gains cette semaine</CardDescription>
+              <CardTitle className="text-2xl">{formatCurrency(viewModel.metrics.weekEarnings)}</CardTitle>
+            </CardHeader>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription>Missions actives</CardDescription>
+              <CardTitle className="text-2xl">{viewModel.metrics.activeJobs}</CardTitle>
+            </CardHeader>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription>Offres en attente</CardDescription>
+              <CardTitle className="text-2xl">{viewModel.metrics.pendingOffers}</CardTitle>
+            </CardHeader>
+          </Card>
+        </div>
+
+        <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+          <Card>
+            <CardHeader>
+              <CardTitle>Mission prioritaire</CardTitle>
+              <CardDescription>
+                {activeJob ? "Votre mission en cours." : "Aucune mission active pour le moment."}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {activeJob ? (
+                <div className="space-y-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-1">
+                      <p className="text-lg font-semibold">{activeJob.restaurantName}</p>
+                      <p className="text-sm text-muted-foreground">Commande {activeJob.orderNumber}</p>
+                    </div>
+                    <Badge className="bg-primary/10 text-primary">{activeJob.status}</Badge>
+                  </div>
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <div className="rounded-xl border p-3">
+                      <p className="mb-1 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                        <MapPin className="h-3.5 w-3.5" />
+                        Retrait
+                      </p>
+                      <p className="text-sm font-medium">{activeJob.pickupAddress}</p>
+                    </div>
+                    <div className="rounded-xl border p-3">
+                      <p className="mb-1 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                        <Bike className="h-3.5 w-3.5" />
+                        Livraison
+                      </p>
+                      <p className="text-sm font-medium">{activeJob.deliveryAddress}</p>
+                    </div>
+                  </div>
+                  <Button asChild>
+                    <Link to="/courier/jobs">Ouvrir la mission</Link>
+                  </Button>
+                </div>
+              ) : (
+                <div className="rounded-xl border border-dashed p-6 text-sm text-muted-foreground">
+                  Passez en ligne pour recevoir des propositions de livraison autour de votre position.
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <div className="space-y-6">
+            {pushStatusCard}
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Performance</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-center justify-between rounded-xl border p-3">
+                  <div className="flex items-center gap-2 text-sm">
+                    <ShieldCheck className="h-4 w-4 text-muted-foreground" />
+                    Taux d'acceptation
+                  </div>
+                  <span className="font-semibold">{viewModel.acceptanceRate.toFixed(0)}%</span>
+                </div>
+                <div className="flex items-center justify-between rounded-xl border p-3">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Clock3 className="h-4 w-4 text-muted-foreground" />
+                    Temps moyen
+                  </div>
+                  <span className="font-semibold">{viewModel.averageDeliveryMinutes} min</span>
+                </div>
+                <div className="flex items-center justify-between rounded-xl border p-3">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Bike className="h-4 w-4 text-muted-foreground" />
+                    Livraisons totales
+                  </div>
+                  <span className="font-semibold">{viewModel.totalDeliveries}</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Actions rapides</CardTitle>
+              </CardHeader>
+              <CardContent className="grid gap-3">
+                <Button asChild variant="outline">
+                  <Link to="/courier/jobs">Voir mes missions</Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link to="/courier/earnings">Consulter mes gains</Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link to="/courier/profile">Mettre à jour mon profil</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </CourierDashboardLayout>
+  );
+}
+
+function buildCommercialDemoCourierHomeViewModel(
+  snapshot: CommercialDemoSnapshot,
+  isOnline: boolean,
+): CourierHomeViewModel {
+  const { session, order, mission, events, allowed_actions: allowedActions } = snapshot;
+  const delivered = order?.status === "delivered" || mission?.status === "delivered";
+  const hasPendingOffer = allowedActions.includes("courier_accept");
+  const hasActiveMission = Boolean(mission && !delivered && !hasPendingOffer);
+  const courierAccepted = events.some((event) => event.event_type === "courier_accepted");
+
+  return {
+    courierName: mission?.courier_name || "Alex · Livreur démo",
+    identityDetail: `Session ${session.id.slice(0, 8)}`,
+    approvalLabel: "Approuvé",
+    approvalTone: "bg-emerald-100 text-emerald-700",
+    isApproved: true,
+    isOnline,
+    positionLabel: "Zone Genève centre · session isolée",
+    isWatching: isOnline,
+    locationError: null,
+    metrics: {
+      todayEarnings: delivered ? 8.5 : 0,
+      weekEarnings: delivered ? 42.5 : 34,
+      activeJobs: hasActiveMission ? 1 : 0,
+      pendingOffers: hasPendingOffer ? 1 : 0,
+    },
+    activeJob: hasActiveMission && mission
+      ? {
+          id: mission.id,
+          status: mission.status,
+          orderNumber: order?.order_number || session.id.slice(0, 8).toUpperCase(),
+          restaurantName: "Restaurant Démo TOK",
+          pickupAddress: "Restaurant de démonstration · Genève",
+          deliveryAddress: order?.delivery_address || "Adresse de démonstration",
+        }
+      : null,
+    acceptanceRate: courierAccepted ? 100 : 96,
+    averageDeliveryMinutes: 18,
+    totalDeliveries: delivered ? 5 : 4,
+  };
+}
+
+function CommercialDemoCourierHome({ snapshot }: { snapshot: CommercialDemoSnapshot }) {
+  const [isOnline, setIsOnline] = useState(true);
+  const viewModel = useMemo(
+    () => buildCommercialDemoCourierHomeViewModel(snapshot, isOnline),
+    [isOnline, snapshot],
+  );
+
+  return (
+    <CourierHomePresentation
+      demo
+      viewModel={viewModel}
+      isToggling={false}
+      onToggleOnline={() => setIsOnline((current) => !current)}
+      pushStatusCard={<DemoCourierPushStatusCard />}
+    />
+  );
+}
 
 function LiveCourierHome() {
   const { user } = useAuth();
@@ -381,11 +720,7 @@ function LiveCourierHome() {
 export default function CourierHome() {
   const commercialDemoFrame = useCommercialDemoFrame();
   if (commercialDemoFrame?.surface === "courier") {
-    return (
-      <CourierDashboardLayout>
-        <CommercialDemoActorOverview surface="courier" />
-      </CourierDashboardLayout>
-    );
+    return <CommercialDemoCourierHome snapshot={commercialDemoFrame.snapshot} />;
   }
   return <LiveCourierHome />;
 }
