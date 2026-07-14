@@ -34,6 +34,17 @@ describe("commercial real multi-dashboard demonstration", () => {
     expect(page).toContain("overflow-x-hidden");
   });
 
+  it("strictly confines every frame to its demo-safe route allowlist", () => {
+    expect(app).toContain("COMMERCIAL_DEMO_FRAME_ROUTE_POLICY");
+    expect(app).toContain('allowedPaths: ["/mon-espace", "/commandes", "/notifications"]');
+    expect(app).toContain('allowedPaths: ["/dashboard", "/dashboard/commandes", "/dashboard/notifications"]');
+    expect(app).toContain('allowedPaths: ["/courier", "/courier/jobs", "/courier/notifications", "/courier/earnings", "/courier/profile"]');
+    expect(app).toContain("if (!policy.allowedPaths.includes(pathname))");
+    expect(app).toContain("<Navigate to={policy.home} replace />");
+    expect(app).toContain("<CommercialDemoFrameRouteBoundary config={commercialDemoFrame}>");
+    expect(app).toContain("const publicNavbar = !commercialDemoFrame && shouldShowPublicNavbar(pathname)");
+  });
+
   it("keeps the courier role virtual and validates every frame through the isolated snapshot RPC", () => {
     expect(frame).toContain("/commercial/demo-live/frame/");
     expect(provider).toContain('roles: [forcedRole]');
