@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 
 import CustomerDashboardLayout from "@/components/CustomerDashboardLayout";
-import CommercialDemoActorWorkspace from "@/components/commercial/CommercialDemoActorWorkspace";
+import CommercialDemoActorOverview from "@/components/commercial/CommercialDemoActorOverview";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -480,7 +480,7 @@ export default function ClientDashboardHome() {
   if (commercialDemoFrame?.surface === "client") {
     return (
       <CustomerDashboardLayout>
-        <CommercialDemoActorWorkspace surface="client" />
+        <CommercialDemoActorOverview surface="client" />
       </CustomerDashboardLayout>
     );
   }
