@@ -323,7 +323,11 @@ Deno.serve(async (req) => {
     const stripeRuntime = getCommercialDemoStripeRuntime();
     if (
       stripeRuntime.mode !== "test" ||
-      !["STRIPE_SECRET_KEY_TEST", "STRIPE_TOK_ONE_TEST_SECRET_KEY"].includes(stripeRuntime.secretKeyName)
+      ![
+        "STRIPE_SECRET_KEY_TEST",
+        "STRIPE_TOK_ONE_TEST_SECRET_KEY",
+        "STRIPE_TOK_ONE_SECRET_KEY",
+      ].includes(stripeRuntime.secretKeyName)
     ) {
       throw new DemoCheckoutError(503, "INVALID_TEST_STRIPE_KEY", "Clé Stripe test dédiée invalide");
     }
