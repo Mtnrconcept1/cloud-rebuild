@@ -10,6 +10,7 @@ import {
 } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, ShieldAlert } from "lucide-react";
+import { useLocation } from "react-router-dom";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ import {
   getCommercialDemoFrameRole,
   getCommercialDemoNotificationPath,
   type CommercialDemoFrameConfig,
+  type CommercialDemoFrameStateMessage,
   type CommercialDemoFrameSurface,
 } from "@/lib/commercialDemoFrame";
 
@@ -155,6 +157,7 @@ export default function CommercialDemoFrameProvider({
   children: ReactNode;
 }) {
   const { user, loading: authLoading } = useAuth();
+  const location = useLocation();
   const queryClient = useQueryClient();
   const [realtimeStatus, setRealtimeStatus] = useState<CommercialDemoRealtimeStatus>(() => (
     typeof navigator !== "undefined" && navigator.onLine === false ? "offline" : "connecting"
@@ -206,6 +209,38 @@ export default function CommercialDemoFrameProvider({
       delete document.documentElement.dataset.commercialDemoFrame;
     };
   }, [config.surface]);
+
+  const unreadCount = useMemo(() => (snapshotQuery.data?.events || [])
+    .map((event) => commercialDemoEventToNotification(event, config.surface))
+    .filter((notification): notification is NonNullable<typeof notification> => Boolean(notification))
+    .filter((notification) => !readNotificationIds.has(notification.id))
+    .length, [config.surface, readNotificationIds, snapshotQuery.data?.events]);
+
+  useEffect(() => {
+    if (window.parent === window || !snapshotQuery.data) return;
+    const rawHistoryIndex = window.history.state && typeof window.history.state.idx === "number"
+      ? window.history.state.idx
+      : 0;
+    const message: CommercialDemoFrameStateMessage = {
+      type: "commercial-demo:frame-state",
+      sessionId: config.sessionId,
+      surface: config.surface,
+      path: location.pathname,
+      search: location.search,
+      historyIndex: Math.max(0, Math.trunc(rawHistoryIndex)),
+      unreadCount,
+      realtimeStatus,
+    };
+    window.parent.postMessage(message, window.location.origin);
+  }, [
+    config.sessionId,
+    config.surface,
+    location.pathname,
+    location.search,
+    realtimeStatus,
+    snapshotQuery.data,
+    unreadCount,
+  ]);
 
   const markNotificationRead = useCallback((notificationId: string) => {
     setReadNotificationIds((current) => {
