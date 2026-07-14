@@ -734,14 +734,11 @@ export default function AdminUtilisateurs() {
 
   const updateCommercialProfile = async (
     userId: string,
-    patch: Partial<Pick<CommercialCompensationProfile, "status" | "sprint_started_at" | "engaged_at" | "employment_active" | "team_lead_id" | "notes">>,
+    patch: Partial<Pick<CommercialCompensationProfile, "status" | "sprint_started_at" | "engaged_at" | "team_lead_id" | "notes">>,
   ) => {
     const current = commercialProfilesByUserId[userId];
     const nextStatus = patch.status || current?.status || "sprint";
-    const nextEmploymentActive =
-      typeof patch.employment_active === "boolean"
-        ? patch.employment_active
-        : current?.employment_active || nextStatus === "engaged" || nextStatus === "team_lead";
+    const nextEmploymentActive = nextStatus === "engaged" || nextStatus === "team_lead";
 
     setSavingCommercialProfileUserId(userId);
     const { error } = await supabase
@@ -751,10 +748,12 @@ export default function AdminUtilisateurs() {
         status: nextStatus,
         sprint_started_at: patch.sprint_started_at || current?.sprint_started_at || new Date().toISOString().slice(0, 10),
         engaged_at:
-          patch.engaged_at !== undefined
-            ? patch.engaged_at || null
-            : current?.engaged_at || (nextStatus === "engaged" || nextStatus === "team_lead" ? new Date().toISOString().slice(0, 10) : null),
-        employment_active: nextStatus === "inactive" ? false : nextEmploymentActive,
+          nextEmploymentActive
+            ? (patch.engaged_at !== undefined
+              ? patch.engaged_at || null
+              : current?.engaged_at || new Date().toISOString().slice(0, 10))
+            : null,
+        employment_active: nextEmploymentActive,
         team_lead_id: patch.team_lead_id !== undefined ? patch.team_lead_id || null : current?.team_lead_id || null,
         notes: patch.notes !== undefined ? patch.notes || null : current?.notes || null,
       }, { onConflict: "user_id" });
@@ -1195,7 +1194,7 @@ export default function AdminUtilisateurs() {
                             </Button>
                           </div>
 
-                          <div className="mt-4 grid gap-3 md:grid-cols-4">
+                          <div className="mt-4 grid gap-3 md:grid-cols-3">
                             <label className="space-y-1">
                               <span className="text-xs font-medium uppercase tracking-[0.12em] text-orange-900/70">Statut</span>
                               <select
@@ -1226,18 +1225,9 @@ export default function AdminUtilisateurs() {
                                 type="date"
                                 value={commercialProfile?.engaged_at || ""}
                                 onChange={(event) => updateCommercialProfile(user.user_id, { engaged_at: event.target.value })}
-                                disabled={savingCommercialProfileUserId === user.user_id}
+                                disabled={savingCommercialProfileUserId === user.user_id || !["engaged", "team_lead"].includes(commercialProfile?.status || "sprint")}
                                 className="bg-white"
                               />
-                            </label>
-                            <label className="flex min-h-10 items-center gap-2 rounded-lg border bg-white px-3">
-                              <input
-                                type="checkbox"
-                                checked={Boolean(commercialProfile?.employment_active)}
-                                onChange={(event) => updateCommercialProfile(user.user_id, { employment_active: event.target.checked })}
-                                disabled={savingCommercialProfileUserId === user.user_id}
-                              />
-                              <span className="text-sm font-medium">Contrat actif</span>
                             </label>
                           </div>
                         </div>
