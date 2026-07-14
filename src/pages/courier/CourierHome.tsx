@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
 import CourierDashboardLayout from "@/components/CourierDashboardLayout";
-import CommercialDemoActorWorkspace from "@/components/commercial/CommercialDemoActorWorkspace";
+import CommercialDemoActorOverview from "@/components/commercial/CommercialDemoActorOverview";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import CourierPushStatusCard from "@/components/courier/CourierPushStatusCard";
 import { Badge } from "@/components/ui/badge";
@@ -383,7 +383,7 @@ export default function CourierHome() {
   if (commercialDemoFrame?.surface === "courier") {
     return (
       <CourierDashboardLayout>
-        <CommercialDemoActorWorkspace surface="courier" />
+        <CommercialDemoActorOverview surface="courier" />
       </CourierDashboardLayout>
     );
   }
