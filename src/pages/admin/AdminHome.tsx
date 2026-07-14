@@ -4,6 +4,7 @@ import {
   Bell,
   Bike,
   Brain,
+  BriefcaseBusiness,
   ClipboardList,
   Crown,
   DollarSign,
@@ -101,6 +102,14 @@ const ADMIN_TOOLS = [
     href: "/admin/utilisateurs",
     feature: "admin-utilisateurs",
     color: "text-sky-500",
+  },
+  {
+    title: "Comptes commerciaux",
+    description: "Créer les accès de démonstration des commerciaux.",
+    icon: BriefcaseBusiness,
+    href: "/admin/utilisateurs?tab=commercials",
+    feature: "admin-utilisateurs",
+    color: "text-violet-500",
   },
   {
     title: "Dossiers d'inscription",
