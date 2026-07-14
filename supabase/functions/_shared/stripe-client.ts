@@ -126,18 +126,21 @@ export function getStripeRuntimeForCheckoutKind(checkoutKind: unknown) {
  * of ever creating a live Stripe object.
  */
 export function getCommercialDemoStripeRuntime() {
-  const candidates = readCandidates(["STRIPE_SECRET_KEY_TEST"]);
-  const candidate = candidates[0];
+  const candidates = readCandidates([
+    "STRIPE_SECRET_KEY_TEST",
+    "STRIPE_TOK_ONE_TEST_SECRET_KEY",
+  ]);
 
-  if (!candidate) {
+  if (candidates.length === 0) {
     throw new HttpError(503, "DEMO_STRIPE_NOT_CONFIGURED");
   }
 
-  if (inferStripeRuntimeMode(candidate.value) !== "test") {
+  const candidate = candidates.find((entry) => inferStripeRuntimeMode(entry.value) === "test");
+  if (!candidate) {
     throw new HttpError(503, "INVALID_TEST_STRIPE_KEY");
   }
 
-  return buildRuntime(candidate);
+  return buildRuntime(candidate, candidate.name === "STRIPE_TOK_ONE_TEST_SECRET_KEY");
 }
 
 export function getTokOneStripeRuntime(preferredMode?: unknown) {
