@@ -1,0 +1,84 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
+import { describe, expect, it } from "vitest";
+
+const root = process.cwd();
+
+function read(path: string) {
+  return readFileSync(resolve(root, path), "utf8");
+}
+
+describe("commercial demo account security", () => {
+  const migration = read("supabase/migrations/20260714120000_commercial_demo_accounts.sql");
+  const sharedAuth = read("supabase/functions/_shared/auth.ts");
+  const ownerHook = read("src/pages/dashboard/useOwnerRestaurants.ts");
+  const app = read("src/App.tsx");
+  const layout = read("src/components/DashboardLayout.tsx");
+  const provisionFunction = read("supabase/functions/provision-commercial-accounts/index.ts");
+  const mediaGovernance = read("supabase/functions/restaurant-media-governance/index.ts");
+  const stripeConnectStatus = read("supabase/functions/stripe-connect-status/index.ts");
+
+  it("ignores untrusted signup metadata for role assignment", () => {
+    expect(migration).toContain("CREATE OR REPLACE FUNCTION public.handle_new_user()");
+    expect(migration).toContain("VALUES (NEW.id, 'client'::public.app_role)");
+    expect(migration).not.toContain("NEW.raw_user_meta_data->>'role'");
+    expect(migration).toContain("guard_commercial_role_assignment");
+    expect(migration).toContain("Commercial role requires an active administrator-managed demo account");
+    expect(migration).toContain("REVOKE ALL PRIVILEGES ON TABLE public.user_roles FROM anon, authenticated");
+  });
+
+  it("restricts the restaurateur surface to the mapped demo restaurant", () => {
+    expect(ownerHook).toContain('.eq("id", demoRestaurantId)');
+    expect(ownerHook).toContain("must never see a real restaurant");
+    expect(ownerHook).toContain('user?.app_metadata?.account_type === "commercial_demo"');
+    expect(ownerHook).toContain("isMarkedCommercialDemoIdentity || Boolean(demoAccount)");
+    expect(ownerHook).toContain("if (isManagedCommercialIdentity && !demoRestaurantId) return []");
+  });
+
+  it("shows every demo tool while centrally blocking paid or external effects", () => {
+    expect(app).toContain('flagName.startsWith("dashboard-")');
+    expect(sharedAuth).toContain("DEMO_SIDE_EFFECT_BLOCKED");
+    expect(sharedAuth).toContain("options.allowDemo !== true");
+    expect(layout).toContain("Mode démonstration");
+    expect(layout).toContain("paiements");
+    expect(mediaGovernance).toContain("{ allowDemo: true }");
+    expect(stripeConnectStatus).toContain('disabled_reason: "commercial_demo"');
+    expect(stripeConnectStatus).toContain("if (restaurant.is_demo)");
+  });
+
+  it("does not seed accounting, payment, order, reservation or customer data", () => {
+    for (const table of [
+      "orders",
+      "reservations",
+      "payments",
+      "financial_ledger",
+      "restaurant_invoices",
+      "restaurant_credit_purchases",
+    ]) {
+      expect(migration).not.toMatch(new RegExp(`INSERT\\s+INTO\\s+public\\.${table}\\b`, "i"));
+    }
+  });
+
+  it("allows local demo posts while excluding them from public and engagement flows", () => {
+    expect(migration).toContain("hide_commercial_demo_post_rows");
+    expect(migration).toContain("block_commercial_demo_social_side_effect_row");
+    expect(migration).toContain("'planSlug', 'commercial-demo'");
+    expect(migration).toContain("AND r.is_demo IS FALSE");
+  });
+
+  it("derives the provisioning administrator from the authenticated JWT", () => {
+    expect(migration).toContain("v_created_by uuid := auth.uid()");
+    expect(migration).toContain("IF NOT public.auth_is_admin()");
+    expect(migration).not.toContain("p_created_by");
+    expect(provisionFunction).toContain("actor.userClient.rpc(");
+  });
+
+  it("keeps credentials in Supabase Auth and validates password resets", () => {
+    expect(migration).not.toMatch(/password\s+(text|varchar)/i);
+    expect(provisionFunction).toContain("assertStrongPassword(resetBody.password)");
+    expect(provisionFunction).toContain("assertValidUuid(targetUserId)");
+    expect(provisionFunction).toContain("commercial_password_reset_audit_warning");
+    expect(provisionFunction).toContain("target_user_id: targetUserId");
+  });
+});
