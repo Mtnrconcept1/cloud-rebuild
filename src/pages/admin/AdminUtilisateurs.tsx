@@ -32,6 +32,7 @@ import {
 import { COURIER_APPROVAL_STATUS_META, COURIER_VEHICLE_OPTIONS } from "@/lib/courier";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import AdminCommercialAccountsPanel from "@/components/admin/AdminCommercialAccountsPanel";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import {
   Dialog,
@@ -85,7 +86,7 @@ const AVAILABLE_ROLES = ["client", "restaurateur", "admin", "courier", "commerci
 
 type ReviewStatus = "approved" | "needs_changes" | "rejected";
 type CourierReviewStatus = "approved" | "pending_approval" | "suspended" | "rejected";
-type AdminTab = "users" | "applications" | "couriers";
+type AdminTab = "users" | "commercials" | "applications" | "couriers";
 
 type UserGovernanceAlert = {
   alert_key: string;
@@ -418,7 +419,11 @@ export default function AdminUtilisateurs() {
   const [reviewingCourierId, setReviewingCourierId] = useState<string | null>(null);
   const requestedAdminTab = searchParams.get("tab");
   const activeAdminTab: AdminTab =
-    requestedAdminTab === "applications" || requestedAdminTab === "couriers" ? requestedAdminTab : "users";
+    requestedAdminTab === "commercials" ||
+    requestedAdminTab === "applications" ||
+    requestedAdminTab === "couriers"
+      ? requestedAdminTab
+      : "users";
 
   const { data: users = [], isLoading, error } = useQuery({
     queryKey: ["admin-users-full"],
@@ -895,7 +900,7 @@ export default function AdminUtilisateurs() {
 
   const handleAdminTabChange = (value: string) => {
     const nextParams = new URLSearchParams(searchParams);
-    if (value === "applications" || value === "couriers") {
+    if (value === "commercials" || value === "applications" || value === "couriers") {
       nextParams.set("tab", value);
     } else {
       nextParams.delete("tab");
@@ -921,8 +926,9 @@ export default function AdminUtilisateurs() {
       />
 
       <Tabs value={activeAdminTab} onValueChange={handleAdminTabChange} className="space-y-6">
-        <TabsList className="grid w-full max-w-xl grid-cols-3">
+        <TabsList className="grid h-auto w-full grid-cols-2 gap-1 sm:max-w-3xl sm:grid-cols-4">
           <TabsTrigger value="users">Comptes</TabsTrigger>
+          <TabsTrigger value="commercials">Commerciaux</TabsTrigger>
           <TabsTrigger value="applications" className="relative gap-2">
             Dossiers
             {pendingRestaurantApplicationsCount > 0 ? (
@@ -1287,6 +1293,10 @@ export default function AdminUtilisateurs() {
               </Dialog>
             </>
           )}
+        </TabsContent>
+
+        <TabsContent value="commercials" className="space-y-6">
+          <AdminCommercialAccountsPanel />
         </TabsContent>
 
         <TabsContent value="applications" className="space-y-6">
