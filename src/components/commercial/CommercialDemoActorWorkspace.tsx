@@ -32,7 +32,7 @@ import {
   transitionCommercialDemoOrder,
   type CommercialDemoTransitionAction,
 } from "@/lib/commercialDemoJourney";
-import { getCommercialDemoNotificationPath, type CommercialDemoFrameSurface } from "@/lib/commercialDemoFrame";
+import { getCommercialDemoNotificationPath, type CommercialDemoActorSurface } from "@/lib/commercialDemoFrame";
 import { cn } from "@/lib/utils";
 
 const ORDER_STATUS_LABELS: Record<string, string> = {
@@ -55,7 +55,7 @@ const MISSION_STATUS_LABELS: Record<string, string> = {
   delivered: "Mission terminée",
 };
 
-const ACTIONS: Record<CommercialDemoFrameSurface, CommercialDemoTransitionAction[]> = {
+const ACTIONS: Record<CommercialDemoActorSurface, CommercialDemoTransitionAction[]> = {
   client: [],
   restaurant: ["restaurant_accept", "restaurant_start_preparing", "restaurant_mark_ready"],
   courier: ["courier_accept", "courier_arrived_pickup", "courier_confirm_pickup", "courier_start_delivery", "courier_confirm_delivery"],
@@ -76,7 +76,7 @@ const SURFACE_META = {
   client: { title: "Mes commandes", eyebrow: "Espace client", icon: UserRound, tone: "text-sky-600" },
   restaurant: { title: "Commandes", eyebrow: "Espace restaurateur", icon: Store, tone: "text-orange-600" },
   courier: { title: "Missions", eyebrow: "Espace livreur", icon: Bike, tone: "text-emerald-600" },
-} satisfies Record<CommercialDemoFrameSurface, { title: string; eyebrow: string; icon: typeof UserRound; tone: string }>;
+} satisfies Record<CommercialDemoActorSurface, { title: string; eyebrow: string; icon: typeof UserRound; tone: string }>;
 
 function formatChf(cents: number) {
   return new Intl.NumberFormat("fr-CH", { style: "currency", currency: "CHF" }).format((Number(cents) || 0) / 100);
@@ -120,7 +120,7 @@ function RealtimeBadge({ status }: { status: string }) {
   );
 }
 
-function DemoBanner({ surface }: { surface: CommercialDemoFrameSurface }) {
+function DemoBanner({ surface }: { surface: CommercialDemoActorSurface }) {
   return (
     <div className="flex flex-col gap-3 rounded-2xl border border-violet-200 bg-violet-50/80 p-4 text-violet-950 sm:flex-row sm:items-center dark:border-violet-400/20 dark:bg-violet-400/10 dark:text-violet-100" role="status">
       <TestTube2 className="h-5 w-5 shrink-0" />
@@ -277,7 +277,7 @@ function OperationalWorkspace({ surface, pending, onAction }: {
   );
 }
 
-export default function CommercialDemoActorWorkspace({ surface }: { surface: CommercialDemoFrameSurface }) {
+export default function CommercialDemoActorWorkspace({ surface }: { surface: CommercialDemoActorSurface }) {
   const frame = useCommercialDemoFrame();
   const queryClient = useQueryClient();
   const meta = SURFACE_META[surface];
