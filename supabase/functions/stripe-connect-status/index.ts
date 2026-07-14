@@ -35,7 +35,21 @@ Deno.serve(async (req) => {
     restaurantId = text(body.restaurant_id);
     if (!restaurantId) throw new HttpError(400, "restaurant_id requis");
 
-    const restaurant = await requireRestaurantAccess(actor, restaurantId);
+    const restaurant = await requireRestaurantAccess(actor, restaurantId, { allowDemo: true });
+
+    if (restaurant.is_demo) {
+      return jsonResponse({
+        account_id: null,
+        ready: false,
+        details_submitted: false,
+        charges_enabled: false,
+        payouts_enabled: false,
+        requirements_due: [],
+        disabled_reason: "commercial_demo",
+        demo: true,
+      }, 200, corsHeaders);
+    }
+
     const accountId = text(restaurant.stripe_account_id);
 
     if (!accountId) {
