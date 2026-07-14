@@ -4,6 +4,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { ArrowDownRight, ArrowUpRight, Bot, Coins, FileDown, FileText, HandCoins, History, Loader2, Megaphone, ReceiptText, Settings, Wallet } from "lucide-react";
 
 import DashboardLayout from "@/components/DashboardLayout";
+import { CommercialDemoAccounting } from "@/components/dashboard/CommercialDemoScenario";
 import { AccountingDigestCard, AccountingFactList, AccountingHero, AccountingPanel } from "@/components/invoices/AccountingCockpit";
 import { AccountingBreakdownCard, type AccountingBreakdownItem } from "@/components/invoices/AccountingBreakdownCard";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +32,7 @@ import {
   formatAmount,
   useDashboardFacturesData,
 } from "./dashboardFacturesShared";
+import { useDashboardRestaurant } from "./useDashboardRestaurant";
 
 type DashboardAccountingAiDraft = {
   month: string;
@@ -226,6 +228,11 @@ function DashboardAccountingAiPanel({
 }
 
 export default function DashboardFactures() {
+  const { isDemoMode } = useDashboardRestaurant();
+  return isDemoMode ? <CommercialDemoAccounting /> : <LiveDashboardFactures />;
+}
+
+function LiveDashboardFactures() {
   const { toast } = useToast();
   const [exportPeriodPreset, setExportPeriodPreset] = useState<AccountingPeriodPreset>("current_month");
   const [exporting, setExporting] = useState<"csv" | AccountingStatementKind | null>(null);
