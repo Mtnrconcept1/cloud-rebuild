@@ -6,6 +6,7 @@ import type { Database, Json } from "@/integrations/supabase/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import { CommercialDemoReservations } from "@/components/dashboard/CommercialDemoScenario";
 import RestaurantCancellationDialog from "@/components/RestaurantCancellationDialog";
 import SortControls from "@/components/list/SortControls";
 import OperationViewToggle, { type OperationViewMode } from "@/components/operations/OperationViewToggle";
@@ -186,6 +187,11 @@ const DASHBOARD_RESERVATION_SORT_COLUMNS: SortColumn<ReservationWithProfile, Res
 ];
 
 export default function DashboardReservations() {
+  const { isDemoMode } = useDashboardRestaurant();
+  return isDemoMode ? <CommercialDemoReservations /> : <LiveDashboardReservations />;
+}
+
+function LiveDashboardReservations() {
   const { selectedId, restaurants, loading: restaurantsLoading, error: restaurantsError } = useDashboardRestaurant();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
