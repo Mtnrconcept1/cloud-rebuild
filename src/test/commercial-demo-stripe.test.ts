@@ -142,10 +142,16 @@ describe("commercial demo Stripe test isolation", () => {
     () => {
       const deployWorkflow = read(".github/workflows/deploy-production.yml");
       const secretWriter = read("scripts/write-supabase-secrets-env.mjs");
+      const deployJob = deployWorkflow.slice(
+        deployWorkflow.indexOf("  deploy_supabase:"),
+        deployWorkflow.indexOf("  deploy_frontend:"),
+      );
+      const beforeDeployJob = deployWorkflow.slice(0, deployWorkflow.indexOf("  deploy_supabase:"));
 
-      expect(deployWorkflow).toContain(
+      expect(deployJob).toContain(
         "STRIPE_SECRET_KEY_TEST: ${{ secrets.STRIPE_SECRET_KEY_TEST }}",
       );
+      expect(beforeDeployJob).not.toContain("STRIPE_SECRET_KEY_TEST");
       expect(deployWorkflow).not.toContain("VITE_STRIPE_SECRET_KEY_TEST");
       expect(secretWriter).toContain('"STRIPE_SECRET_KEY_TEST"');
     },
