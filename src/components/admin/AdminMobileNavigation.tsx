@@ -59,6 +59,7 @@ const ADMIN_NAV_SECTIONS: AdminNavSection[] = [
       { to: "/admin/restaurants", label: "Restaurants", icon: Store, feature: "admin-restaurants" },
       { to: "/admin/restaurants/google-business", label: "Boutons Google", icon: MapPin, feature: "admin-restaurants" },
       { to: "/admin/utilisateurs", label: "Utilisateurs", icon: Users, feature: "admin-utilisateurs" },
+      { to: "/admin/utilisateurs?tab=commercials", label: "Comptes commerciaux", icon: BriefcaseBusiness, feature: "admin-utilisateurs" },
       { to: "/admin/utilisateurs?tab=applications", label: "Dossiers d'inscription", icon: FileText, feature: "admin-utilisateurs", pendingSignupBadge: true },
       { to: "/admin/utilisateurs?tab=couriers", label: "Profils livreurs", icon: Bike, feature: "admin-utilisateurs" },
     ],
@@ -289,7 +290,11 @@ export default function AdminMobileNavigation() {
       sections
         .flatMap((section) => section.items)
         .filter((item) => isAdminNavItemActive(pathname, search, item.to))
-        .sort((left, right) => splitAdminTarget(right.to).pathname.length - splitAdminTarget(left.to).pathname.length)[0],
+        .sort((left, right) => {
+          const leftTarget = splitAdminTarget(left.to);
+          const rightTarget = splitAdminTarget(right.to);
+          return rightTarget.pathname.length - leftTarget.pathname.length || rightTarget.search.length - leftTarget.search.length;
+        })[0],
     [pathname, search, sections],
   );
 
