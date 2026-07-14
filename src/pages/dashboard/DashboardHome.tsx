@@ -3,6 +3,8 @@ import { useState, type ComponentType } from "react";
 import { Link } from "react-router-dom";
 import { getSupabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/DashboardLayout";
+import CommercialDemoActorOverview from "@/components/commercial/CommercialDemoActorOverview";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { CommercialDemoHome } from "@/components/dashboard/CommercialDemoScenario";
 import GoogleBusinessBookingCard from "@/components/dashboard/GoogleBusinessBookingCard";
@@ -196,7 +198,15 @@ function ActualitesBoostBanner() {
 }
 
 export default function Dashboard() {
+  const commercialDemoFrame = useCommercialDemoFrame();
   const { isDemoMode } = useDashboardRestaurant();
+  if (commercialDemoFrame?.surface === "restaurant") {
+    return (
+      <DashboardLayout>
+        <CommercialDemoActorOverview surface="restaurant" />
+      </DashboardLayout>
+    );
+  }
   return isDemoMode ? <CommercialDemoHome /> : <LiveDashboard />;
 }
 
