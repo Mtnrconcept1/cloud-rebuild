@@ -1,6 +1,6 @@
 import { useMemo, useState, type ComponentType } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CalendarClock, Coins, Gift, PiggyBank, ReceiptText, TrendingUp, Users } from "lucide-react";
+import { CalendarClock, Coins, Gift, MapPin, PiggyBank, ReceiptText, Store, TrendingUp, Users } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 
 import CommercialWorkspaceChrome from "@/components/commercial/CommercialWorkspaceChrome";
@@ -11,6 +11,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { getSupabase } from "@/integrations/supabase/client";
+import {
+  fetchGenevaCommercialProspects,
+  type GenevaCommercialProspect,
+} from "@/data/genevaCommercialProspects";
 import { useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -33,6 +37,8 @@ type CommercialCompensationSummary = {
   };
   fixed_salary?: {
     monthly_chf?: number;
+    nominal_monthly_chf?: number;
+    period_chf?: number;
     rule?: string;
   };
   signatures?: {
@@ -81,10 +87,29 @@ type CommercialCompensationSummary = {
   total_chf?: number;
 };
 
+type CommercialSignedFollowup = {
+  source_objectid: number;
+  status?: string | null;
+  signed_by?: string | null;
+  signed_at?: string | null;
+  signed_restaurant_id?: string | null;
+  signed_subscription_plan_slug?: string | null;
+  signed_subscription_plan_name?: string | null;
+  signed_subscription_billing_period?: string | null;
+  signed_subscription_monthly_price_chf?: number | null;
+  signed_subscription_contract_value_chf?: number | null;
+  acquisition_commission_chf?: number | null;
+  commercial_compensation_mode?: string | null;
+  updated_at?: string | null;
+};
+
+type CommercialSignedRestaurant = CommercialSignedFollowup & {
+  prospect: GenevaCommercialProspect | null;
+};
+
 const ADJUSTMENT_OPTIONS = [
   { value: "manual_bonus", label: "Bonus manuel", defaultAmount: 0 },
   { value: "manual_prime", label: "Prime manuelle", defaultAmount: 0 },
-  { value: "sprint_bonus", label: "Bonus sprint versé", defaultAmount: 0 },
   { value: "upgrade_starter_business", label: "Upgrade Starter vers Business", defaultAmount: 60 },
   { value: "upgrade_business_premium", label: "Upgrade Business vers Premium", defaultAmount: 70 },
   { value: "upgrade_premium_elite", label: "Upgrade Premium vers Elite", defaultAmount: 110 },
@@ -104,6 +129,10 @@ function formatChf(value: unknown) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })} CHF`;
+}
+
+function formatOptionalChf(value: unknown, fallback = "À qualifier") {
+  return value === null || value === undefined || value === "" ? fallback : formatChf(value);
 }
 
 function formatDate(value: string | null | undefined) {
@@ -139,7 +168,27 @@ function profileStatusLabel(status: string | undefined) {
 }
 
 function adjustmentOptionLabel(kind: string | undefined) {
+  if (kind === "sprint_bonus") return "Ancien suivi de paiement du bonus sprint";
   return ADJUSTMENT_OPTIONS.find((option) => option.value === kind)?.label || kind || "Ajustement";
+}
+
+function billingPeriodLabel(value: string | null | undefined) {
+  switch (value) {
+    case "monthly":
+      return "Mensuel";
+    case "yearly":
+    case "annual":
+      return "Annuel";
+    default:
+      return null;
+  }
+}
+
+function prospectAddress(prospect: GenevaCommercialProspect | null) {
+  if (!prospect) return null;
+  return [prospect.address, prospect.postalCode, prospect.locality || prospect.commune]
+    .filter(Boolean)
+    .join(", ");
 }
 
 function MetricCard({
@@ -178,64 +227,34 @@ function MetricCard({
   );
 }
 
-export default function CommercialComptabilite() {
-  const { user, roles } = useAuth();
+function AdminCompensationAdjustmentForm({ commercialUserId }: { commercialUserId: string }) {
+  const { roles } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [searchParams] = useSearchParams();
   const isAdmin = roles.includes("admin");
-  const requestedCommercialUserId = searchParams.get("commercialUserId");
-  const commercialUserId = isAdmin ? (requestedCommercialUserId || user?.id || null) : (user?.id || null);
-  const [month, setMonth] = useState(currentMonthValue());
   const [adjustmentKind, setAdjustmentKind] = useState<(typeof ADJUSTMENT_OPTIONS)[number]["value"]>("manual_bonus");
   const [adjustmentAmount, setAdjustmentAmount] = useState("0");
   const [adjustmentLabel, setAdjustmentLabel] = useState("");
   const [adjustmentNotes, setAdjustmentNotes] = useState("");
   const [adjustmentDate, setAdjustmentDate] = useState(new Date().toISOString().slice(0, 10));
   const selectedAdjustmentOption = ADJUSTMENT_OPTIONS.find((option) => option.value === adjustmentKind) || ADJUSTMENT_OPTIONS[0];
-  const period = useMemo(() => monthBounds(month), [month]);
-
-  const summaryQuery = useQuery({
-    queryKey: ["commercial-compensation-summary", commercialUserId, period.start, period.end],
-    enabled: Boolean(commercialUserId),
-    queryFn: async () => {
-      const { data, error } = await (getSupabase().rpc as any)("get_commercial_compensation_summary", {
-        p_commercial_user_id: commercialUserId,
-        p_period_start: period.start,
-        p_period_end: period.end,
-      });
-
-      if (error) throw error;
-      return (data || {}) as CommercialCompensationSummary;
-    },
-  });
-
-  const summary = summaryQuery.data;
-  const profile = summary?.profile;
-  const signatures = summary?.signatures;
-  const reservations = summary?.reservations;
-  const adjustments = summary?.adjustments?.items || [];
-  const sprintCount = toNumber(signatures?.sprint_count);
-  const sprintTarget = toNumber(signatures?.target_for_engagement) || 50;
-  const sprintProgress = Math.min(100, Math.round((sprintCount / sprintTarget) * 100));
 
   const addAdjustmentMutation = useMutation({
     mutationFn: async () => {
-      if (!commercialUserId) throw new Error("Aucun commercial sélectionné.");
+      if (!isAdmin) throw new Error("Seul un administrateur peut attribuer une prime ou un bonus.");
       const amount = toNumber(adjustmentAmount);
       if (amount === 0) throw new Error("Le montant doit être différent de zéro.");
 
-      const { error } = await getSupabase()
-        .from("commercial_compensation_adjustments" as any)
-        .insert({
-          commercial_user_id: commercialUserId,
-          kind: adjustmentKind,
-          label: adjustmentLabel.trim() || selectedAdjustmentOption.label,
-          amount_chf: amount,
-          occurred_at: `${adjustmentDate}T12:00:00.000Z`,
-          notes: adjustmentNotes.trim() || null,
-          created_by: user?.id || null,
-        });
+      const { error } = await (getSupabase().rpc as any)("admin_add_commercial_compensation_adjustment", {
+        p_commercial_user_id: commercialUserId,
+        p_kind: adjustmentKind,
+        p_label: adjustmentLabel.trim() || selectedAdjustmentOption.label,
+        p_amount_chf: amount,
+        p_occurred_at: `${adjustmentDate}T12:00:00.000Z`,
+        p_notes: adjustmentNotes.trim() || null,
+        p_restaurant_id: null,
+        p_source_objectid: null,
+      });
 
       if (error) throw error;
     },
@@ -255,6 +274,148 @@ export default function CommercialComptabilite() {
     },
   });
 
+  if (!isAdmin) return null;
+
+  return (
+    <div className="rounded-[1.6rem] border bg-white/90 p-5 shadow-sm dark:border-white/10 dark:bg-slate-950/70">
+      <div className="flex items-center gap-2">
+        <Gift className="h-5 w-5 text-orange-600" />
+        <h2 className="text-xl font-black">Ajouter bonus, prime ou pack</h2>
+      </div>
+      <div className="mt-4 space-y-3">
+        <div className="space-y-2">
+          <Label>Type</Label>
+          <Select
+            value={adjustmentKind}
+            onValueChange={(value) => {
+              const next = value as typeof adjustmentKind;
+              const option = ADJUSTMENT_OPTIONS.find((item) => item.value === next);
+              setAdjustmentKind(next);
+              setAdjustmentAmount(String(option?.defaultAmount ?? 0));
+              setAdjustmentLabel(option?.label || "");
+            }}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {ADJUSTMENT_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label>Montant CHF</Label>
+            <Input value={adjustmentAmount} onChange={(event) => setAdjustmentAmount(event.target.value)} />
+          </div>
+          <div className="space-y-2">
+            <Label>Date</Label>
+            <Input type="date" value={adjustmentDate} onChange={(event) => setAdjustmentDate(event.target.value)} />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Label>Libellé</Label>
+          <Input value={adjustmentLabel} onChange={(event) => setAdjustmentLabel(event.target.value)} />
+        </div>
+        <div className="space-y-2">
+          <Label>Notes internes</Label>
+          <Textarea value={adjustmentNotes} onChange={(event) => setAdjustmentNotes(event.target.value)} />
+        </div>
+        <Button
+          type="button"
+          className="w-full rounded-2xl bg-orange-500 text-white hover:bg-orange-600"
+          onClick={() => addAdjustmentMutation.mutate()}
+          disabled={addAdjustmentMutation.isPending}
+        >
+          {addAdjustmentMutation.isPending ? "Ajout..." : "Ajouter à la comptabilité"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+export default function CommercialComptabilite() {
+  const { user, roles } = useAuth();
+  const [searchParams] = useSearchParams();
+  const isAdmin = roles.includes("admin");
+  const requestedCommercialUserId = searchParams.get("commercialUserId");
+  const commercialUserId = isAdmin ? (requestedCommercialUserId || user?.id || null) : (user?.id || null);
+  const [month, setMonth] = useState(currentMonthValue());
+  const period = useMemo(() => monthBounds(month), [month]);
+
+  const summaryQuery = useQuery({
+    queryKey: ["commercial-compensation-summary", commercialUserId, period.start, period.end],
+    enabled: Boolean(commercialUserId),
+    queryFn: async () => {
+      const { data, error } = await (getSupabase().rpc as any)("get_commercial_compensation_summary", {
+        p_commercial_user_id: commercialUserId,
+        p_period_start: period.start,
+        p_period_end: period.end,
+      });
+
+      if (error) throw error;
+      return (data || {}) as CommercialCompensationSummary;
+    },
+  });
+
+  const signedRestaurantsQuery = useQuery({
+    queryKey: ["commercial-signed-restaurants", commercialUserId, isAdmin],
+    enabled: Boolean(commercialUserId),
+    queryFn: async (): Promise<CommercialSignedRestaurant[]> => {
+      if (!commercialUserId) return [];
+
+      let followups: CommercialSignedFollowup[] = [];
+      if (isAdmin) {
+        const { data, error } = await (getSupabase().rpc as any)("get_admin_commercial_activity", {
+          p_commercial_user_id: commercialUserId,
+        });
+        if (error) throw error;
+        followups = Array.isArray(data?.followups) ? data.followups : [];
+      } else {
+        const { data, error } = await (getSupabase()
+          .from("commercial_prospect_followups" as any)
+          .select(
+            "source_objectid,status,signed_by,signed_at,signed_restaurant_id,signed_subscription_plan_slug,signed_subscription_plan_name,signed_subscription_billing_period,signed_subscription_monthly_price_chf,signed_subscription_contract_value_chf,acquisition_commission_chf,commercial_compensation_mode,updated_at",
+          )
+          .eq("status", "signed")
+          .eq("signed_by", commercialUserId) as any);
+        if (error) throw error;
+        followups = Array.isArray(data) ? data : [];
+      }
+
+      const ownSignatures = followups.filter(
+        (followup) => followup.status === "signed" && followup.signed_by === commercialUserId,
+      );
+      const prospects = await fetchGenevaCommercialProspects().catch(() => []);
+      const prospectsByObjectId = new Map(prospects.map((prospect) => [prospect.sourceObjectId, prospect]));
+
+      return ownSignatures
+        .map((followup) => ({
+          ...followup,
+          prospect: prospectsByObjectId.get(followup.source_objectid) || null,
+        }))
+        .sort((left, right) => {
+          const leftTime = new Date(left.signed_at || left.updated_at || 0).getTime();
+          const rightTime = new Date(right.signed_at || right.updated_at || 0).getTime();
+          return rightTime - leftTime;
+        });
+    },
+  });
+
+  const summary = summaryQuery.data;
+  const profile = summary?.profile;
+  const signatures = summary?.signatures;
+  const reservations = summary?.reservations;
+  const adjustments = summary?.adjustments?.items || [];
+  const signedRestaurants = signedRestaurantsQuery.data || [];
+  const sprintCount = toNumber(signatures?.sprint_count);
+  const sprintTarget = toNumber(signatures?.target_for_engagement) || 50;
+  const sprintProgress = Math.min(100, Math.round((sprintCount / sprintTarget) * 100));
+
   return (
     <>
       <CommercialWorkspaceChrome activeLabel="Comptabilité" />
@@ -264,14 +425,15 @@ export default function CommercialComptabilite() {
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div>
                 <Badge className="rounded-full bg-orange-100 px-3 py-1 text-orange-700 hover:bg-orange-100">
-                  Plan rémunération commerciaux
+                  {isAdmin ? "Administration des rémunérations" : "Lecture seule"}
                 </Badge>
                 <h1 className="mt-4 font-serif text-4xl font-black tracking-tight md:text-5xl">
                   Comptabilité commerciale
                 </h1>
                 <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground md:text-base">
-                  Suivez les commissions de signature, le sprint 60 jours, le fixe, les réservations honorées,
-                  les bonus, primes, upgrades et packs attribués au commercial.
+                  {isAdmin
+                    ? "Consultez la rémunération et attribuez les éventuels bonus, primes ou ajustements depuis votre accès administrateur."
+                    : "Consultez vos commissions, votre fixe, vos bonus et vos restaurants signés. Les montants sont calculés côté serveur et ne peuvent pas être modifiés depuis votre compte commercial."}
                 </p>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
@@ -287,11 +449,28 @@ export default function CommercialComptabilite() {
                 </div>
                 <div className="rounded-2xl border bg-slate-50 p-3 text-xs dark:border-white/10 dark:bg-white/5">
                   <p className="font-bold uppercase tracking-[0.18em] text-muted-foreground">Commercial</p>
-                  <p className="mt-1 break-all font-semibold">{commercialUserId || "Non connecté"}</p>
+                  <p className="mt-1 break-all font-semibold">
+                    {isAdmin ? (commercialUserId || "Non sélectionné") : "Mon compte · lecture seule"}
+                  </p>
                 </div>
               </div>
             </div>
           </section>
+
+          {!isAdmin ? (
+            <section
+              data-testid="commercial-accounting-readonly"
+              className="flex items-start gap-3 rounded-2xl border border-sky-200 bg-sky-50/90 p-4 text-sm text-sky-950 dark:border-sky-400/20 dark:bg-sky-950/30 dark:text-sky-100"
+            >
+              <ReceiptText className="mt-0.5 h-5 w-5 shrink-0 text-sky-600" />
+              <div>
+                <p className="font-black">Votre comptabilité est en lecture seule</p>
+                <p className="mt-1 leading-6 text-sky-800 dark:text-sky-200">
+                  Vous ne pouvez pas vous attribuer de prime, bonus ou correction. Seule l’administration peut enregistrer un ajustement, qui restera visible dans votre historique.
+                </p>
+              </div>
+            </section>
+          ) : null}
 
           {summaryQuery.isLoading ? (
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -315,7 +494,7 @@ export default function CommercialComptabilite() {
                 />
                 <MetricCard
                   label="Fixe"
-                  value={formatChf(summary?.fixed_salary?.monthly_chf)}
+                  value={formatChf(summary?.fixed_salary?.period_chf ?? summary?.fixed_salary?.monthly_chf)}
                   detail={summary?.fixed_salary?.rule}
                   icon={Coins}
                   tone="slate"
@@ -444,66 +623,111 @@ export default function CommercialComptabilite() {
                 </div>
               </section>
 
-              <section className="grid gap-4 xl:grid-cols-[0.95fr_1.05fr]">
-                {isAdmin ? (
-                  <div className="rounded-[1.6rem] border bg-white/90 p-5 shadow-sm dark:border-white/10 dark:bg-slate-950/70">
-                    <div className="flex items-center gap-2">
-                      <Gift className="h-5 w-5 text-orange-600" />
-                      <h2 className="text-xl font-black">Ajouter bonus, prime ou pack</h2>
-                    </div>
-                    <div className="mt-4 space-y-3">
-                      <div className="space-y-2">
-                        <Label>Type</Label>
-                        <Select
-                          value={adjustmentKind}
-                          onValueChange={(value) => {
-                            const next = value as typeof adjustmentKind;
-                            const option = ADJUSTMENT_OPTIONS.find((item) => item.value === next);
-                            setAdjustmentKind(next);
-                            setAdjustmentAmount(String(option?.defaultAmount ?? 0));
-                            setAdjustmentLabel(option?.label || "");
-                          }}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {ADJUSTMENT_OPTIONS.map((option) => (
-                              <SelectItem key={option.value} value={option.value}>
-                                {option.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        <div className="space-y-2">
-                          <Label>Montant CHF</Label>
-                          <Input value={adjustmentAmount} onChange={(event) => setAdjustmentAmount(event.target.value)} />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Date</Label>
-                          <Input type="date" value={adjustmentDate} onChange={(event) => setAdjustmentDate(event.target.value)} />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Libellé</Label>
-                        <Input value={adjustmentLabel} onChange={(event) => setAdjustmentLabel(event.target.value)} />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Notes internes</Label>
-                        <Textarea value={adjustmentNotes} onChange={(event) => setAdjustmentNotes(event.target.value)} />
-                      </div>
-                      <Button
-                        type="button"
-                        className="w-full rounded-2xl bg-orange-500 text-white hover:bg-orange-600"
-                        onClick={() => addAdjustmentMutation.mutate()}
-                        disabled={addAdjustmentMutation.isPending}
-                      >
-                        {addAdjustmentMutation.isPending ? "Ajout..." : "Ajouter à la comptabilité"}
-                      </Button>
+              <section className="rounded-[1.6rem] border bg-white/90 p-5 shadow-sm dark:border-white/10 dark:bg-slate-950/70" aria-labelledby="signed-restaurants-title">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="flex min-w-0 items-start gap-3">
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-emerald-200 bg-emerald-50 text-emerald-700">
+                      <Store className="h-5 w-5" />
+                    </span>
+                    <div className="min-w-0">
+                      <h2 id="signed-restaurants-title" className="text-xl font-black">
+                        {isAdmin ? "Restaurants signés par ce commercial" : "Mes restaurants signés"}
+                      </h2>
+                      <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                        Historique complet de toutes les signatures, indépendamment du mois sélectionné.
+                      </p>
                     </div>
                   </div>
+                  <Badge variant="outline" className="w-fit shrink-0 rounded-full px-3 py-1">
+                    {signedRestaurants.length} signature{signedRestaurants.length > 1 ? "s" : ""}
+                  </Badge>
+                </div>
+
+                {signedRestaurantsQuery.isLoading ? (
+                  <div className="mt-5 grid gap-4 md:grid-cols-2">
+                    {[1, 2].map((item) => (
+                      <div key={item} className="h-44 animate-pulse rounded-2xl bg-slate-100 dark:bg-white/5" />
+                    ))}
+                  </div>
+                ) : signedRestaurantsQuery.error ? (
+                  <p className="mt-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-400/20 dark:bg-red-950/30 dark:text-red-200">
+                    Impossible de charger la liste des restaurants signés.
+                  </p>
+                ) : signedRestaurants.length > 0 ? (
+                  <div className="mt-5 grid gap-4 md:grid-cols-2">
+                    {signedRestaurants.map((signature) => {
+                      const address = prospectAddress(signature.prospect);
+                      const billingLabel = billingPeriodLabel(signature.signed_subscription_billing_period);
+                      const planName = signature.signed_subscription_plan_name || signature.signed_subscription_plan_slug;
+
+                      return (
+                        <article
+                          key={signature.source_objectid}
+                          className="min-w-0 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 dark:border-white/10 dark:bg-white/5"
+                        >
+                          <div className="flex min-w-0 items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="break-words text-base font-black text-slate-950 dark:text-white">
+                                {signature.prospect?.name || `Restaurant #${signature.source_objectid}`}
+                              </p>
+                              {signature.prospect?.category ? (
+                                <p className="mt-1 break-words text-xs text-muted-foreground">{signature.prospect.category}</p>
+                              ) : null}
+                            </div>
+                            <Badge className="shrink-0 rounded-full bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
+                              Signé
+                            </Badge>
+                          </div>
+
+                          {address ? (
+                            <p className="mt-3 flex min-w-0 items-start gap-2 text-sm text-muted-foreground">
+                              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-orange-600" />
+                              <span className="min-w-0 break-words">{address}</span>
+                            </p>
+                          ) : null}
+
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {planName ? <Badge variant="secondary">{planName}</Badge> : null}
+                            {billingLabel ? <Badge variant="outline">{billingLabel}</Badge> : null}
+                            <Badge variant="outline">
+                              {signature.signed_restaurant_id ? "Compte restaurant associé" : "Association admin en attente"}
+                            </Badge>
+                          </div>
+
+                          <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+                            <div className="min-w-0">
+                              <dt className="text-xs text-muted-foreground">Signature</dt>
+                              <dd className="mt-1 break-words font-bold">{formatDate(signature.signed_at)}</dd>
+                            </div>
+                            <div className="min-w-0">
+                              <dt className="text-xs text-muted-foreground">Mensuel</dt>
+                              <dd className="mt-1 break-words font-bold">{formatOptionalChf(signature.signed_subscription_monthly_price_chf)}</dd>
+                            </div>
+                            <div className="min-w-0">
+                              <dt className="text-xs text-muted-foreground">Contrat</dt>
+                              <dd className="mt-1 break-words font-bold">{formatOptionalChf(signature.signed_subscription_contract_value_chf)}</dd>
+                            </div>
+                            <div className="min-w-0">
+                              <dt className="text-xs text-muted-foreground">Commission</dt>
+                              <dd className="mt-1 break-words font-black text-emerald-700 dark:text-emerald-400">
+                                {formatOptionalChf(signature.acquisition_commission_chf, "En attente")}
+                              </dd>
+                            </div>
+                          </dl>
+                        </article>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="mt-5 rounded-2xl border border-dashed p-5 text-sm text-muted-foreground dark:border-white/10">
+                    Aucun restaurant signé pour le moment. Les futures signatures apparaîtront automatiquement ici.
+                  </p>
+                )}
+              </section>
+
+              <section className={cn("grid gap-4", isAdmin && "xl:grid-cols-[0.95fr_1.05fr]")}>
+                {isAdmin && commercialUserId ? (
+                  <AdminCompensationAdjustmentForm commercialUserId={commercialUserId} />
                 ) : null}
 
                 <div className="rounded-[1.6rem] border bg-white/90 p-5 shadow-sm dark:border-white/10 dark:bg-slate-950/70">
@@ -527,6 +751,11 @@ export default function CommercialComptabilite() {
                             </p>
                           </div>
                           {item.notes ? <p className="mt-2 text-xs text-muted-foreground">{item.notes}</p> : null}
+                          {item.kind === "sprint_bonus" ? (
+                            <p className="mt-2 text-xs font-medium text-amber-700 dark:text-amber-300">
+                              Marqueur historique : ce montant n’est pas additionné une seconde fois au total.
+                            </p>
+                          ) : null}
                         </div>
                       ))
                     ) : (
