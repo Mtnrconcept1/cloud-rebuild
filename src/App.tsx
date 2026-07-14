@@ -377,11 +377,13 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
   const { pathname } = useLocation();
   useTokLogoDocumentIcons();
   const { role, roles } = useAuth();
-  const { activeFeatures, loading: featureFlagsLoading } = useFeatureFlagSnapshot();
+  const { activeFeatures, loading: featureFlagsLoading } = useFeatureFlagSnapshot({
+    enabled: !commercialDemoFrame,
+  });
   const commercialRestaurantSurface = role === "restaurateur" && roles.includes("commercial");
   const commercialSurface = role === "commercial" && roles.includes("commercial");
   const { isDemoAccount, loading: demoAccountLoading } = useCommercialDemoAccount({
-    enabled: roles.includes("commercial"),
+    enabled: roles.includes("commercial") && !commercialDemoFrame,
   });
   const hasFeature = (flagName: string) => {
     if (commercialDemoFrame) return true;
