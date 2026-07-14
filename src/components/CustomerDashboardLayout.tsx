@@ -18,6 +18,7 @@ import { BackNavigationButton } from "@/components/navigation/BackNavigationButt
 import NotificationMenuBadge from "@/components/notifications/NotificationMenuBadge";
 import RoleSpaceMenuSection from "@/components/navigation/RoleSpaceMenuSection";
 import { useNotificationCenter } from "@/hooks/useNotificationCenter";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { useAuth } from "@/lib/auth-context";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { cn } from "@/lib/utils";
@@ -35,6 +36,8 @@ type CustomerNavSection = {
   label: string;
   items: CustomerNavItem[];
 };
+
+const COMMERCIAL_DEMO_SAFE_CLIENT_PATHS = new Set(["/mon-espace", "/commandes", "/notifications"]);
 
 const NAV_SECTIONS: CustomerNavSection[] = [
   {
@@ -82,11 +85,18 @@ export default function CustomerDashboardLayout({ children }: { children: React.
   const { pathname, search } = useLocation();
   const { role } = useAuth();
   const activeFeatures = useActiveFeatures();
+  const commercialDemoFrame = useCommercialDemoFrame();
   const { unreadNotifications } = useNotificationCenter(50);
   const visibleSections = NAV_SECTIONS
     .map((section) => ({
       ...section,
-      items: section.items.filter((item) => !item.feature || activeFeatures.has(item.feature)),
+      items: section.items.filter((item) => {
+        if (commercialDemoFrame) {
+          const target = new URL(item.to, "https://thetok.ch");
+          return commercialDemoFrame.surface === "client" && COMMERCIAL_DEMO_SAFE_CLIENT_PATHS.has(target.pathname);
+        }
+        return !item.feature || activeFeatures.has(item.feature);
+      }),
     }))
     .filter((section) => section.items.length > 0);
   const visibleItems = visibleSections.flatMap((section) => section.items);
@@ -128,7 +138,7 @@ export default function CustomerDashboardLayout({ children }: { children: React.
         <aside className="hidden w-64 shrink-0 md:block">
           <div className="sticky top-24 rounded-2xl border bg-card p-4 shadow-sm">
             <h2 className="px-3 py-2 font-display text-lg font-semibold">Mon espace</h2>
-            <RoleSpaceMenuSection className="mb-3" />
+            {!commercialDemoFrame ? <RoleSpaceMenuSection className="mb-3" /> : null}
             <nav aria-label="Navigation de l’espace client" className="space-y-4">
               {visibleSections.map((section) => (
                 <div key={section.label} className="space-y-1">
