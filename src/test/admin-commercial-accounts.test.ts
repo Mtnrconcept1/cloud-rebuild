@@ -12,6 +12,7 @@ function read(path: string) {
 describe("commercial demo account security", () => {
   const migration = read("supabase/migrations/20260714120000_commercial_demo_accounts.sql");
   const aclHardening = read("supabase/migrations/20260714181500_commercial_demo_function_acl_hardening.sql");
+  const authRepair = read("supabase/migrations/20260714184500_repair_auth_email_change_null.sql");
   const sharedAuth = read("supabase/functions/_shared/auth.ts");
   const ownerHook = read("src/pages/dashboard/useOwnerRestaurants.ts");
   const app = read("src/App.tsx");
@@ -81,6 +82,21 @@ describe("commercial demo account security", () => {
     expect(provisionFunction).toContain("assertValidUuid(targetUserId)");
     expect(provisionFunction).toContain("commercial_password_reset_audit_warning");
     expect(provisionFunction).toContain("target_user_id: targetUserId");
+  });
+
+  it("creates accounts atomically without scanning every Auth user", () => {
+    expect(provisionFunction).not.toContain("auth.admin.listUsers");
+    expect(provisionFunction).not.toContain("findUserByEmail");
+    expect(provisionFunction).toContain("isExistingAuthUserError");
+    expect(provisionFunction).toContain('code === "email_exists"');
+    expect(provisionFunction).toContain("authErrorMessage(createError");
+  });
+
+  it("repairs only malformed legacy Auth e-mail change values", () => {
+    expect(authRepair).toContain("UPDATE auth.users");
+    expect(authRepair).toContain("SET email_change = ''");
+    expect(authRepair).toContain("WHERE email_change IS NULL");
+    expect(authRepair).not.toMatch(/INSERT\s+INTO\s+auth\.users/i);
   });
 
   it("keeps trigger-only security definer helpers out of the Data API", () => {
