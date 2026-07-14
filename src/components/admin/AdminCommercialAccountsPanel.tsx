@@ -154,7 +154,7 @@ export default function AdminCommercialAccountsPanel() {
     retry: (failureCount, error) => !isSessionExpiredError(error) && failureCount < 2,
   });
 
-  const accounts = accountsQuery.data || [];
+  const accounts = useMemo(() => accountsQuery.data || [], [accountsQuery.data]);
   const activeCount = useMemo(() => accounts.filter((account) => account.enabled).length, [accounts]);
 
   const objectionsQuery = useQuery({
