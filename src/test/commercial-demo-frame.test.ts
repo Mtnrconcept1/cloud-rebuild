@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildCommercialDemoFrameUrl,
   getCommercialDemoFrameRole,
+  isCommercialDemoFrameEscapeMessage,
   isCommercialDemoFrameStateMessage,
   parseCommercialDemoFramePath,
 } from "../lib/commercialDemoFrame";
@@ -14,6 +15,7 @@ describe("commercial demo browser frames", () => {
     ["client", "client"],
     ["restaurant", "restaurateur"],
     ["courier", "courier"],
+    ["commercial", "commercial"],
   ] as const)("parses the %s basename and exposes only its virtual role", (surface, role) => {
     const path = `/commercial/demo-live/frame/${surface}/${sessionId}/commandes`;
     expect(parseCommercialDemoFramePath(path)).toEqual({
@@ -36,6 +38,8 @@ describe("commercial demo browser frames", () => {
       .toBe(`/commercial/demo-live/frame/restaurant/${sessionId}/dashboard/commandes`);
     expect(buildCommercialDemoFrameUrl("courier", sessionId, "/courier/jobs"))
       .toBe(`/commercial/demo-live/frame/courier/${sessionId}/courier/jobs`);
+    expect(buildCommercialDemoFrameUrl("commercial", sessionId, "/commercial/comptabilite"))
+      .toBe(`/commercial/demo-live/frame/commercial/${sessionId}/commercial/comptabilite`);
   });
 
   it("accepts only strictly shaped same-origin frame state payloads", () => {
@@ -54,5 +58,16 @@ describe("commercial demo browser frames", () => {
     expect(isCommercialDemoFrameStateMessage({ ...message, path: "https://evil.test" })).toBe(false);
     expect(isCommercialDemoFrameStateMessage({ ...message, unreadCount: -1 })).toBe(false);
     expect(isCommercialDemoFrameStateMessage({ ...message, realtimeStatus: "unknown" })).toBe(false);
+  });
+
+  it("accepts only a strictly shaped fullscreen escape relay", () => {
+    const message = {
+      type: "commercial-demo:escape",
+      sessionId,
+      surface: "commercial",
+    };
+    expect(isCommercialDemoFrameEscapeMessage(message)).toBe(true);
+    expect(isCommercialDemoFrameEscapeMessage({ ...message, surface: "admin" })).toBe(false);
+    expect(isCommercialDemoFrameEscapeMessage({ ...message, sessionId: "invalid" })).toBe(false);
   });
 });
