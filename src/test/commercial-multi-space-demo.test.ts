@@ -20,7 +20,7 @@ describe("commercial real multi-dashboard demonstration", () => {
   const notifications = read("src/hooks/useNotificationCenter.ts");
   const service = read("src/lib/commercialDemoJourney.ts");
 
-  it("mounts three real same-origin SPA instances with isolated browser histories", () => {
+  it("mounts real same-origin SPA instances with isolated browser histories", () => {
     expect(app).toContain("getCommercialDemoFrameConfig()");
     expect(app).toContain("<BrowserRouter basename={commercialDemoFrame?.basename}>");
     expect(app).toContain("<CommercialDemoFrameAuthBoundary");
@@ -28,9 +28,11 @@ describe("commercial real multi-dashboard demonstration", () => {
     expect(browsers).toContain("<iframe");
     expect(browsers).toContain('surface: "client"');
     expect(browsers).toContain('surface: "restaurant"');
+    expect(browsers).toContain('surface: "commercial"');
     expect(browsers).toContain('surface: "courier"');
     expect(browsers).toContain('initialPath: "/mon-espace"');
     expect(browsers).toContain('initialPath: "/dashboard"');
+    expect(browsers).toContain('initialPath: "/commercial"');
     expect(browsers).toContain('initialPath: "/courier"');
     expect(browsers).toContain("ResizeObserver");
     expect(browsers).toContain("frameWindow.history.back()");
@@ -38,6 +40,9 @@ describe("commercial real multi-dashboard demonstration", () => {
     expect(browsers).toContain("frameWindow.location.reload()");
     expect(browsers).toContain('layout === "control"');
     expect(browsers).toContain('layout === "mosaic"');
+    expect(browsers).toContain('thirdSurface === "commercial"');
+    expect(browsers).toContain('selectThirdSurface("courier")');
+    expect(browsers).toContain('pathname.startsWith("/commercial/demo-live")');
     expect(browsers).toContain("event.source !== frameRef.current?.contentWindow");
     expect(page).toContain("overflow-x-hidden");
   });
