@@ -11,6 +11,7 @@ function read(path: string) {
 
 describe("commercial demo account security", () => {
   const migration = read("supabase/migrations/20260714120000_commercial_demo_accounts.sql");
+  const aclHardening = read("supabase/migrations/20260714181500_commercial_demo_function_acl_hardening.sql");
   const sharedAuth = read("supabase/functions/_shared/auth.ts");
   const ownerHook = read("src/pages/dashboard/useOwnerRestaurants.ts");
   const app = read("src/App.tsx");
@@ -80,5 +81,33 @@ describe("commercial demo account security", () => {
     expect(provisionFunction).toContain("assertValidUuid(targetUserId)");
     expect(provisionFunction).toContain("commercial_password_reset_audit_warning");
     expect(provisionFunction).toContain("target_user_id: targetUserId");
+  });
+
+  it("keeps trigger-only security definer helpers out of the Data API", () => {
+    for (const helper of [
+      "protect_demo_restaurant_identity",
+      "protect_commercial_demo_account_mapping",
+      "guard_commercial_role_assignment",
+      "block_commercial_demo_side_effect_row",
+      "block_commercial_demo_social_side_effect_row",
+      "guard_commercial_demo_image_analysis_job",
+      "prevent_restaurant_demo_status_change",
+      "prevent_restaurant_image_reassignment",
+    ]) {
+      expect(aclHardening).toContain(`FUNCTION public.${helper}()`);
+    }
+
+    expect(aclHardening).toContain("FROM PUBLIC, anon, authenticated, service_role");
+    expect(aclHardening).toContain("commercial_demo_accounts_created_by_idx");
+    expect(aclHardening).toContain("Commercial role requires an active administrator-managed demo account");
+    expect(aclHardening).toContain("UPDATE OF user_id, role ON public.user_roles");
+    expect(aclHardening).toContain("AND NEW.user_id IS NOT DISTINCT FROM OLD.user_id");
+    expect(aclHardening).toContain("DELETE FROM public.user_roles ur");
+    expect(aclHardening).toContain("IF NOT (v_role = ANY(v_old_roles))");
+    expect(aclHardening).toContain("BEFORE INSERT OR UPDATE ON public.image_analysis_jobs");
+    expect(aclHardening).toContain("AND restaurant.is_demo");
+    expect(aclHardening).toContain("RETURN NULL");
+    expect(aclHardening).toContain("Restaurant demonstration status is immutable");
+    expect(aclHardening).toContain("Indexed restaurant image ownership is immutable");
   });
 });
