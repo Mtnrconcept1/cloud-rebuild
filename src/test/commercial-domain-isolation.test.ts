@@ -218,7 +218,7 @@ describe("commercial.thetok.ch canonical isolation", () => {
       isAuthenticated: true,
       activeRole: "admin",
       roles: ["admin", "commercial"],
-      hasCommercialDemoMapping: true,
+      serverCommercialDemoRestricted: true,
     })).toBe(`${TOK_COMMERCIAL_APP_ORIGIN}/commercial`);
 
     expect(getCommercialHostRedirectTarget({
@@ -331,7 +331,8 @@ describe("commercial.thetok.ch canonical isolation", () => {
     expect(boundary).toContain("getCommercialReauthenticationHref");
     expect(boundary).toContain("redirectIsCrossOrigin");
     expect(boundary).toContain("accountType");
-    expect(boundary).toContain("hasCommercialDemoMapping");
+    expect(boundary).toContain('"commercial_demo_current_user_is_restricted"');
+    expect(boundary).toContain("serverCommercialDemoRestricted");
     expect(boundary).toContain("shouldWaitForRoleResolution");
     expect(boundary).toContain("if (shouldRedirect || shouldWaitForRoleResolution) return <LoadingCommercialRedirect />");
     expect(frameProvider).toContain("[...auth.roles, forcedRole]");
