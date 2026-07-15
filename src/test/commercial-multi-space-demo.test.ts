@@ -85,7 +85,8 @@ describe("commercial real multi-dashboard demonstration", () => {
   it("confines every frame to its demo-safe routes while exposing active restaurant tools", () => {
     expect(app).toContain("COMMERCIAL_DEMO_FRAME_ROUTE_POLICY");
     expect(app).toContain('allowedPaths: ["/mon-espace", "/recherche", "/panier", "/commandes", "/reservations", "/notifications"]');
-    expect(app).toContain('allowedPrefixes: ["/restaurant/", "/commande/"]');
+    expect(app).toContain('allowedPrefixes: ["/restaurant/"]');
+    expect(app).not.toContain('allowedPrefixes: ["/restaurant/", "/commande/"]');
     expect(app).toContain('allowedPaths: ["/dashboard"]');
     expect(app).toContain('allowedPrefixes: ["/dashboard/"]');
     expect(app).toContain('allowedPaths: ["/courier", "/courier/jobs", "/courier/notifications", "/courier/earnings", "/courier/profile"]');
