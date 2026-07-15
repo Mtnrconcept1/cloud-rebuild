@@ -749,13 +749,17 @@ export default function TokOne() {
       ? `${currency(selectedPrice)} / mois`
       : "Prix indisponible";
 
-  const processSubscribe = async () => {
+  const handleSubscribe = async () => {
+    if (checkoutLockRef.current) return;
+    checkoutLockRef.current = true;
+
     if (!selectedPlan) {
       toast({
         title: "Formule indisponible",
         description: "Sélectionnez une formule Tok One configurée.",
         variant: "destructive",
       });
+      checkoutLockRef.current = false;
       return;
     }
 
@@ -766,6 +770,7 @@ export default function TokOne() {
         variant: "destructive",
       });
       navigate("/auth");
+      checkoutLockRef.current = false;
       return;
     }
 
@@ -779,6 +784,7 @@ export default function TokOne() {
         title: "Tok One activé",
         description: "L'abonnement test est simulé localement, sans débit ni modification d'un compte réel.",
       });
+      checkoutLockRef.current = false;
       return;
     }
     try {
@@ -806,9 +812,12 @@ export default function TokOne() {
       const checkout = await createCheckoutWithRecovery({
         paymentAttemptId,
         create: async () => {
-          const { data, error } = await supabase.functions.invoke("create-checkout", {
-            body: checkoutPayload,
-          });
+          const { data, error } = await supabase.functions.invoke(
+        "create-checkout",
+            {
+              body: checkoutPayload,
+            },
+          );
           if (error) throw error;
           return data;
         },
@@ -839,15 +848,8 @@ export default function TokOne() {
       });
     } finally {
       setCheckoutLoading(false);
-    }
-  };
-
-  const handleSubscribe = () => {
-    if (checkoutLockRef.current) return;
-    checkoutLockRef.current = true;
-    void processSubscribe().finally(() => {
       checkoutLockRef.current = false;
-    });
+    }
   };
 
   const cancelSubscription = async () => {
@@ -1312,4 +1314,3 @@ export default function TokOne() {
     </main>
   );
 }
-

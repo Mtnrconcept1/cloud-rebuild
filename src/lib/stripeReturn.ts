@@ -17,7 +17,7 @@ export function parseStripeReturnSearch(search: string) {
   return {
     status,
     sessionId,
-    paymentAttemptId,
+    ...(paymentAttemptId ? { paymentAttemptId } : {}),
     isStripeReturn: status === "cancelled"
       || (status === "success" && Boolean(sessionId || paymentAttemptId)),
   };
