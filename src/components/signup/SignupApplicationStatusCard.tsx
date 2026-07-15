@@ -128,6 +128,16 @@ export default function SignupApplicationStatusCard({
   const documents = application.signup_application_documents || [];
   const onboardingSelection = getSignupRestaurateurOnboardingSelection(application);
   const onboardingPaymentReady = isSignupRestaurateurOnboardingPaymentReady(application);
+  const onboardingPaymentStatus = typeof application.metadata?.onboarding_payment_status === "string"
+    ? application.metadata.onboarding_payment_status
+    : "payment_method_required";
+  const onboardingInvoicePaid = onboardingPaymentStatus === "paid";
+  const onboardingSubscriptionActive = ["paid", "active", "trialing"].includes(onboardingPaymentStatus);
+  const onboardingPaymentRecoveryRequired = [
+    "payment_failed",
+    "payment_action_required",
+    "past_due",
+  ].includes(onboardingPaymentStatus);
   const canResubmitCorrection =
     application.requested_role === "restaurateur" && application.status === "needs_changes" && Boolean(onResubmitApplication);
   const restaurateurRequirements = getRequiredSignupDocuments("restaurateur");
@@ -183,18 +193,38 @@ export default function SignupApplicationStatusCard({
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-sm font-medium">
                   <CreditCard className="h-4 w-4 text-primary" />
-                  Paiement onboarding
+                  {onboardingSubscriptionActive
+                    ? "Abonnement déjà démarré"
+                    : onboardingPaymentRecoveryRequired
+                      ? "Paiement de l’abonnement à relancer"
+                      : "Facture d’abonnement réservée"}
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Pack et abonnement {onboardingSelection.subscriptionBillingPeriod === "yearly" ? "annuel" : "mensuel"}
-                  {" "}associés au dossier.
+                  {onboardingSubscriptionActive ? (
+                    <>L’abonnement {onboardingSelection.subscriptionBillingPeriod === "yearly" ? "annuel" : "mensuel"} est déjà en cours.</>
+                  ) : onboardingPaymentRecoveryRequired ? (
+                    <>La première activité client a démarré l’abonnement, mais la facture est encore due. Enregistrez une carte valide pour relancer immédiatement le paiement.</>
+                  ) : (
+                    <>Abonnement {onboardingSelection.subscriptionBillingPeriod === "yearly" ? "annuel" : "mensuel"}
+                      {" "}associé au dossier. Aucun débit n’est effectué avant la première réservation client ou la première commande.</>
+                  )}
                 </p>
               </div>
               <Badge className={onboardingPaymentReady ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}>
-                {onboardingPaymentReady ? "Paiement confirmé" : "Paiement requis"}
+                {onboardingSubscriptionActive
+                  ? "Abonnement actif"
+                  : onboardingPaymentRecoveryRequired
+                    ? "Paiement à relancer"
+                  : onboardingInvoicePaid
+                  ? "Facture payée"
+                  : onboardingPaymentReady
+                    ? "Carte enregistrée"
+                    : "Carte à enregistrer"}
               </Badge>
             </div>
-            {!onboardingPaymentReady && application.status !== "approved" && onStartRestaurantOnboardingPayment ? (
+            {!onboardingPaymentReady
+              && (application.status !== "approved" || onboardingPaymentRecoveryRequired)
+              && onStartRestaurantOnboardingPayment ? (
               <Button
                 type="button"
                 className="mt-4 gap-2"
@@ -202,8 +232,15 @@ export default function SignupApplicationStatusCard({
                 disabled={onboardingPaymentLoading}
               >
                 {onboardingPaymentLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
-                Payer l'abonnement
+                {onboardingPaymentRecoveryRequired
+                  ? "Mettre à jour la carte et relancer le paiement"
+                  : "Enregistrer la carte sans débit"}
               </Button>
+            ) : null}
+            {onboardingPaymentReady && !onboardingInvoicePaid && !onboardingSubscriptionActive ? (
+              <p className="mt-3 text-xs font-medium text-emerald-700 dark:text-emerald-300">
+                Le montant reste réservé dans TOK. L’abonnement démarrera automatiquement à la première activité client.
+              </p>
             ) : null}
           </div>
         ) : null}
