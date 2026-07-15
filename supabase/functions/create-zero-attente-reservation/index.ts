@@ -3,6 +3,7 @@ import type Stripe from "npm:stripe@18.5.0";
 import {
   HttpError,
   authenticateRequest,
+  assertProductionFlowAllowed,
   createAdminClient,
   jsonResponse,
   writeAuditLog,
@@ -36,6 +37,7 @@ Deno.serve(async (req) => {
   try {
     actor = await authenticateRequest(req, { allowServiceRole: false });
     if (!actor.userId) throw new HttpError(401, "Unauthorized");
+    await assertProductionFlowAllowed(actor, "réservation Zéro Attente réelle");
 
     const body = await req.json().catch(() => ({}));
     sessionId = typeof body?.session_id === "string" ? body.session_id.trim() : "";
@@ -140,3 +142,4 @@ Deno.serve(async (req) => {
     );
   }
 });
+

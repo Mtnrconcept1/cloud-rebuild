@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle, BarChart3, TrendingUp } from "lucide-react";
 
 import DashboardLayout from "@/components/DashboardLayout";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import PerformanceBusinessTab from "@/components/dashboard/performance/PerformanceBusinessTab";
 import PerformanceTodayTab from "@/components/dashboard/performance/PerformanceTodayTab";
@@ -26,6 +27,7 @@ import {
   type ReviewPerformanceRow,
 } from "@/lib/dashboardPerformance";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
+import { buildCommercialDemoPerformanceRows } from "@/lib/commercialDemoRestaurantTools";
 
 const supabase = getSupabase();
 
@@ -76,10 +78,19 @@ function getCurrentServiceLabel(now = new Date()) {
 }
 
 export default function DashboardPerformances() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemo = commercialDemoFrame?.surface === "restaurant";
   const { restaurants, selectedId, loading: loadingRestaurants, error: restaurantError } = useDashboardRestaurant();
   const [period, setPeriod] = useState("30");
 
   const selectedRestaurant = restaurants.find((restaurant) => restaurant.id === selectedId) || null;
+  const commercialDemoDataVersion = isCommercialDemo && commercialDemoFrame
+    ? [
+      commercialDemoFrame.snapshot.order?.version || 0,
+      commercialDemoFrame.snapshot.order?.payment_status || "none",
+      ...commercialDemoFrame.snapshot.reservations.map((reservation) => `${reservation.id}:${reservation.version}`),
+    ].join("|")
+    : "live";
   const { fromDay, toDay, fromTimestamp, toTimestampExclusive } = useMemo(
     () => getPerformancePeriodBounds(Number(period)),
     [period],
@@ -90,9 +101,22 @@ export default function DashboardPerformances() {
     isLoading: loadingPerformance,
     error: performanceError,
   } = useQuery({
-    queryKey: ["dashboard-performance", selectedId, fromDay, toDay],
+    queryKey: ["dashboard-performance", selectedId, fromDay, toDay, commercialDemoFrame?.config.sessionId || "live", commercialDemoDataVersion],
     queryFn: async () => {
       if (!selectedId) return null;
+
+      if (isCommercialDemo && commercialDemoFrame) {
+        const demoRows = buildCommercialDemoPerformanceRows(commercialDemoFrame.snapshot);
+        const orders = demoRows.orders as OrderPerformanceRow[];
+        const reservations = demoRows.reservations as ReservationPerformanceRow[];
+        const reviews = demoRows.reviews as ReviewPerformanceRow[];
+        return {
+          orders,
+          reservations,
+          reviews,
+          summary: buildPerformanceSummary({ orders, reservations, reviews, fromDay, toDay }),
+        };
+      }
 
       const [ordersRes, reservationsRes, reviewsRes] = await Promise.all([
         supabase
@@ -145,9 +169,10 @@ export default function DashboardPerformances() {
     isLoading: loadingInvoices,
     error: invoicesError,
   } = useQuery({
-    queryKey: ["dashboard-performance-invoices", selectedId],
+    queryKey: ["dashboard-performance-invoices", selectedId, commercialDemoFrame?.config.sessionId || "live"],
     queryFn: async () => {
       if (!selectedId) return [];
+      if (isCommercialDemo) return [];
       const { data, error: invoiceError } = await supabase
         .from("restaurant_invoices")
         .select("*")

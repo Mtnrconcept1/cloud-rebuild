@@ -1,5 +1,6 @@
 import {
   HttpError,
+  assertProductionFlowAllowed,
   authenticateRequest,
   createAdminClient,
   jsonResponse,
@@ -205,6 +206,7 @@ Deno.serve(async (req) => {
 
   try {
     actor = await authenticateRequest(req, { allowServiceRole: false });
+    await assertProductionFlowAllowed(actor, "mise à jour de commande réelle");
 
     if (!actor.userId) {
       throw new HttpError(401, "Unauthorized");

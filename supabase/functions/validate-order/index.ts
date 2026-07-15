@@ -1,6 +1,7 @@
 import {
   HttpError,
   authenticateRequest,
+  assertProductionFlowAllowed,
   buildRequestMetadata,
   createAdminClient,
   jsonResponse,
@@ -165,6 +166,7 @@ Deno.serve(async (req) => {
     if (!actor.userId) {
       throw new HttpError(401, "Unauthorized");
     }
+    await assertProductionFlowAllowed(actor, "commande réelle");
 
     const requestMetadata = buildRequestMetadata(req);
     const rateLimiter = createRateLimiter(actor.adminClient, "validate-order");
@@ -561,3 +563,4 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: message }, 500, corsHeaders);
   }
 });
+

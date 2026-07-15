@@ -3,6 +3,7 @@ import {
   getCommercialDemoRealtimeUpdate,
   type CommercialDemoRealtimeStatus,
 } from "@/lib/commercialDemoRealtime";
+import { isStripeTestCheckoutSessionId } from "@/lib/commercialDemoHostSecurity";
 import { invokeSupabaseFunction, invokeSupabaseRpc } from "@/lib/session";
 
 export type CommercialDemoSurface = "client" | "restaurant" | "courier" | "system";
@@ -197,9 +198,9 @@ async function toFunctionApiError(error: unknown, fallback: string) {
 
 function assertTestMode(value: unknown) {
   const record = asRecord(value);
-  if (record.mode !== "test") {
+  if (record.mode !== "test" || !isStripeTestCheckoutSessionId(record.stripe_session_id)) {
     throw new CommercialDemoApiError(
-      "Le serveur n'a pas confirmé le mode Stripe Test. Le paiement a été bloqué par sécurité.",
+      "Le serveur n'a pas confirmé une session Stripe Test. Le paiement a été bloqué par sécurité.",
       "DEMO_STRIPE_MODE_REQUIRED",
     );
   }
@@ -331,7 +332,10 @@ export function buildCommercialDemoCheckoutReturnUrl(sessionId: string) {
   return url.toString();
 }
 
-export function openCommercialDemoCheckout(sessionId: string, checkoutUrl: string) {
+export function openCommercialDemoCheckout(sessionId: string, checkoutUrl: string, stripeSessionId: string) {
+  if (!isStripeTestCheckoutSessionId(stripeSessionId)) {
+    throw new CommercialDemoApiError("Session Stripe Test invalide. Ouverture bloquée.", "INVALID_TEST_STRIPE_SESSION");
+  }
   const url = new URL(checkoutUrl);
   if (url.protocol !== "https:" || url.hostname !== "checkout.stripe.com") {
     throw new CommercialDemoApiError("URL Stripe Test invalide. Ouverture bloquée.", "INVALID_CHECKOUT_URL");
@@ -343,6 +347,7 @@ export function openCommercialDemoCheckout(sessionId: string, checkoutUrl: strin
   window.parent.postMessage({
     type: "commercial-demo:open-checkout",
     sessionId,
+    stripeSessionId,
     checkoutUrl: url.toString(),
   }, window.location.origin);
 }
@@ -444,3 +449,5 @@ export function getCommercialDemoPresetItems(
     unit_amount_cents: Math.round(Number(item.price) * 100),
   }));
 }
+
+

@@ -1,5 +1,6 @@
 import {
   HttpError,
+  assertProductionFlowAllowed,
   authenticateRequest,
   jsonResponse,
   writeAuditLog,
@@ -31,6 +32,7 @@ Deno.serve(async (req) => {
     }
 
     actor = await authenticateRequest(req);
+    await assertProductionFlowAllowed(actor, "annulation de commande réelle");
     const body = await req.json().catch(() => ({}));
     const orderIds = Array.isArray(body.order_ids)
       ? Array.from(new Set(

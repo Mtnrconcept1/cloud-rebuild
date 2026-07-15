@@ -3,6 +3,7 @@ import Stripe from "npm:stripe@18.5.0";
 import {
   HttpError,
   authenticateRequest,
+  assertProductionFlowAllowed,
   buildRequestMetadata,
   createAdminClient,
   jsonResponse,
@@ -10,6 +11,10 @@ import {
   writeAuditLog,
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
+import {
+  isCommercialDemoHostRequest,
+  isCommercialDemoUrl,
+} from "../_shared/commercial-demo-host.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import { normalizeCheckoutReturnUrl } from "../_shared/return-url.ts";
 import { getStripeRuntimeForCheckoutKind } from "../_shared/stripe-client.ts";
@@ -70,10 +75,20 @@ Deno.serve(async (req) => {
   let auditTargetEntityId = "";
 
   try {
+    // Origin/Referer is only defense in depth; the authoritative account
+    // check below is still required because non-browser clients can omit it.
+    if (isCommercialDemoHostRequest(req)) {
+      throw new HttpError(
+        403,
+        "COMMERCIAL_DEMO_LIVE_CHECKOUT_BLOCKED: utilisez le paiement Stripe Test de la démonstration commerciale.",
+      );
+    }
+
     actor = await authenticateRequest(req, { allowServiceRole: false });
     if (!actor.userId) {
       throw new HttpError(401, "Unauthorized");
     }
+    await assertProductionFlowAllowed(actor, "paiement réel");
 
     const requestMetadata = buildRequestMetadata(req);
     const rateLimiter = createRateLimiter(actor.adminClient, "create-checkout");
@@ -90,6 +105,13 @@ Deno.serve(async (req) => {
       order_metadata,
       checkout_kind,
     } = await req.json();
+
+    if (isCommercialDemoUrl(return_url)) {
+      throw new HttpError(
+        403,
+        "COMMERCIAL_DEMO_LIVE_CHECKOUT_BLOCKED: une URL commerciale ne peut pas être utilisée par le paiement réel.",
+      );
+    }
 
     const effectiveKind = normalizeCheckoutKind(checkout_kind || order_metadata?.checkout_kind || "order");
     if (effectiveKind === "commercial-demo-order" || effectiveKind === "commercial_demo_order") {
@@ -1199,3 +1221,4 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: message }, 500, corsHeaders);
   }
 });
+

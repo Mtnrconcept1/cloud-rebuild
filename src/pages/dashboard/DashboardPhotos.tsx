@@ -39,6 +39,13 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useTokLogoSrc } from "@/hooks/useTokLogo";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
+import {
+  getCommercialDemoVisualHistory,
+  type CommercialDemoAiRuntime,
+  type CommercialDemoVisualHistoryItem,
+} from "@/lib/commercialDemoAi";
+import { readCommercialDemoToolState, writeCommercialDemoToolState } from "@/lib/commercialDemoRestaurantTools";
 
 const supabase = getSupabase();
 
@@ -278,7 +285,86 @@ function TokGalleryImageFrame({
   );
 }
 
+function CommercialDemoVisualGallery({
+  runtime,
+  onAddToGallery,
+}: {
+  runtime: CommercialDemoAiRuntime;
+  onAddToGallery: (creation: CommercialDemoVisualHistoryItem) => void;
+}) {
+  const [creations, setCreations] = useState<CommercialDemoVisualHistoryItem[]>([]);
+  const [loadingCreations, setLoadingCreations] = useState(true);
+  const [creationError, setCreationError] = useState<string | null>(null);
+
+  const loadCreations = async () => {
+    setLoadingCreations(true);
+    setCreationError(null);
+    try {
+      setCreations(await getCommercialDemoVisualHistory(runtime, undefined, 60));
+    } catch (loadError) {
+      setCreationError(loadError instanceof Error ? loadError.message : "Historique Démo indisponible.");
+    } finally {
+      setLoadingCreations(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadCreations();
+    // The runtime is immutable for the lifetime of an embedded frame.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [runtime.sessionId, runtime.surface]);
+
+  return (
+    <Card className="rounded-3xl">
+      <CardHeader className="flex-row items-start justify-between gap-4">
+        <div>
+          <CardTitle>Créations IA Démo</CardTitle>
+          <p className="mt-1 text-sm text-muted-foreground">Historique persistant de cette session, sans crédit ni stockage de production.</p>
+        </div>
+        <Button type="button" variant="outline" onClick={() => void loadCreations()} disabled={loadingCreations}>Actualiser</Button>
+      </CardHeader>
+      <CardContent>
+        {loadingCreations ? (
+          <p className="text-sm text-muted-foreground">Chargement des créations Démo…</p>
+        ) : creationError ? (
+          <p className="text-sm text-destructive">{creationError}</p>
+        ) : creations.length === 0 ? (
+          <p className="rounded-2xl border border-dashed p-6 text-center text-sm text-muted-foreground">
+            Générez un visuel dans Marketing Studio ou Photopro pour le retrouver ici.
+          </p>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {creations.map((creation) => (
+              <div key={creation.assetId} className="overflow-hidden rounded-2xl border bg-card">
+                <img
+                  src={creation.generated_image_url || creation.gallery_image_url || ""}
+                  alt={creation.alt_text || "Visuel IA de démonstration"}
+                  className="aspect-square w-full bg-muted object-contain"
+                />
+                <div className="space-y-3 p-4">
+                  <div>
+                    <p className="truncate text-sm font-semibold">{creation.title}</p>
+                    <p className="line-clamp-2 text-xs text-muted-foreground">{creation.prompt}</p>
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-medium text-emerald-700">0 crédit · 0 CHF</span>
+                    <Button type="button" size="sm" variant="outline" onClick={() => onAddToGallery(creation)}>
+                      Ajouter à la galerie Démo
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function DashboardPhotos() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemo = commercialDemoFrame?.surface === "restaurant";
   const { user } = useAuth();
   const { toast } = useToast();
   const logoSrc = useTokLogoSrc();
@@ -300,6 +386,16 @@ export default function DashboardPhotos() {
     : null;
   const hasWatermarkFreePlan = isTokProOrHigherRestaurantSubscription(watermarkSubscription);
 
+  const updateCommercialDemoItems = (updater: (current: MediaItem[]) => MediaItem[]) => {
+    setItems((current) => {
+      const next = updater(current);
+      if (isCommercialDemo && commercialDemoFrame) {
+        writeCommercialDemoToolState(commercialDemoFrame.config.sessionId, "photos-gallery", next);
+      }
+      return next;
+    });
+  };
+
   const shouldShowTokWatermark = (item: MediaItem) => shouldApplyTokWatermarkToRestaurantMedia({
     mediaType: item.media_type,
     metadata: item.metadata,
@@ -309,6 +405,43 @@ export default function DashboardPhotos() {
   const load = async () => {
     if (!selectedId) { setItems([]); setLoading(false); return; }
     setLoading(true);
+    if (isCommercialDemo && commercialDemoFrame) {
+      const snapshot = commercialDemoFrame.snapshot;
+      const candidates = [
+        snapshot.demo_restaurant.image_url ? {
+          id: `restaurant-${snapshot.demo_restaurant.id}`,
+          url: snapshot.demo_restaurant.image_url,
+          alt: `${snapshot.demo_restaurant.name} — photo de couverture Démo`,
+        } : null,
+        ...snapshot.catalog_items.map((item) => item.image_url ? {
+          id: `catalog-${item.id}`,
+          url: item.image_url,
+          alt: `${item.name} — menu du restaurant Démo`,
+        } : null),
+      ].filter((candidate): candidate is { id: string; url: string; alt: string } => Boolean(candidate?.url));
+      const seenUrls = new Set<string>();
+      const seeded = candidates.flatMap((candidate, index): MediaItem[] => {
+        if (seenUrls.has(candidate.url)) return [];
+        seenUrls.add(candidate.url);
+        return [{
+          id: `demo-media-${snapshot.session.id}-${candidate.id}`,
+          restaurant_id: selectedId,
+          media_url: candidate.url,
+          alt_text: candidate.alt,
+          media_type: "photo",
+          is_cover: index === 0,
+          position: index,
+          storage_bucket: null,
+          storage_path: null,
+          metadata: { commercial_demo: true, source: "isolated_snapshot" },
+          created_at: snapshot.session.created_at || new Date().toISOString(),
+        }];
+      });
+      setItems(readCommercialDemoToolState(snapshot.session.id, "photos-gallery", seeded));
+      setError(null);
+      setLoading(false);
+      return;
+    }
     const { data, error } = await supabase
       .from("restaurant_media")
       .select("id, restaurant_id, media_url, alt_text, media_type, is_cover, position, storage_bucket, storage_path, metadata, created_at")
@@ -361,6 +494,23 @@ export default function DashboardPhotos() {
       storage_bucket: form.storage_bucket,
       storage_path: form.storage_path,
     };
+    if (isCommercialDemo) {
+      const now = new Date().toISOString();
+      updateCommercialDemoItems((current) => editingId
+        ? current.map((item) => (item.id === editingId ? { ...item, ...payload } as MediaItem : item))
+        : [{
+            ...payload,
+            id: globalThis.crypto?.randomUUID?.() || `demo-photo-${Date.now()}`,
+            is_cover: current.length === 0,
+            metadata: null,
+            created_at: now,
+          } as MediaItem, ...current]);
+      toast({ title: editingId ? "Photo mise à jour dans la démonstration" : "Photo ajoutée à la galerie de démonstration" });
+      setEditingId(null);
+      setForm(EMPTY_MEDIA_FORM);
+      setActiveTool("gallery");
+      return;
+    }
     const { error } = editingId
       ? await supabase.from("restaurant_media").update(payload).eq("id", editingId)
       : await supabase.from("restaurant_media").insert(payload);
@@ -373,6 +523,11 @@ export default function DashboardPhotos() {
   };
 
   const setCover = async (id: string) => {
+    if (isCommercialDemo) {
+      updateCommercialDemoItems((current) => current.map((item) => ({ ...item, is_cover: item.id === id })));
+      toast({ title: "Photo de couverture définie dans la démonstration" });
+      return;
+    }
     try {
       await setRestaurantCoverMedia(id);
       toast({ title: "Photo de couverture définie" });
@@ -384,6 +539,12 @@ export default function DashboardPhotos() {
   };
 
   const remove = async (id: string) => {
+    if (isCommercialDemo) {
+      updateCommercialDemoItems((current) => current.filter((item) => item.id !== id));
+      if (previewItem?.id === id) setPreviewItem(null);
+      toast({ title: "Photo supprimée de la démonstration" });
+      return;
+    }
     try {
       await deleteRestaurantMedia(id);
       if (previewItem?.id === id) setPreviewItem(null);
@@ -420,6 +581,35 @@ export default function DashboardPhotos() {
       setForm(EMPTY_MEDIA_FORM);
     }
     setActiveTool(tool);
+  };
+
+  const addCommercialDemoCreationToGallery = (creation: CommercialDemoVisualHistoryItem) => {
+    if (!isCommercialDemo || !commercialDemoFrame || !selectedId) return;
+    const mediaUrl = creation.gallery_image_url || creation.generated_image_url;
+    if (!mediaUrl) return;
+    updateCommercialDemoItems((current) => {
+      if (current.some((item) => item.id === `demo-generation-${creation.assetId}`)) return current;
+      return [{
+        id: `demo-generation-${creation.assetId}`,
+        restaurant_id: selectedId,
+        media_url: mediaUrl,
+        alt_text: creation.alt_text || "Création IA du restaurant Démo",
+        media_type: "photo_ai_tok",
+        is_cover: current.length === 0,
+        position: current.length,
+        storage_bucket: null,
+        storage_path: null,
+        metadata: {
+          commercial_demo: true,
+          ai_model: creation.model || "tok-demo-zero-cost-v1",
+          generated_at: creation.created_at,
+          tool: creation.tool,
+          credit_units: 0,
+        },
+        created_at: creation.created_at,
+      }, ...current];
+    });
+    toast({ title: "Création ajoutée à la galerie Démo", description: "Aucun média de production n'a été modifié." });
   };
 
   const activeHeading = activeTool ? PHOTO_TOOL_HEADINGS[activeTool] : null;
@@ -488,13 +678,20 @@ export default function DashboardPhotos() {
         ) : null}
 
         {activeTool === "creations" ? (
-          <AiCreationsGallery
-            restaurantId={selectedId}
-            userId={user?.id || null}
-            currentPhotoCount={items.length}
-            watermarkSubscription={watermarkSubscription}
-            onGalleryUpdated={load}
-          />
+          isCommercialDemo && commercialDemoFrame ? (
+            <CommercialDemoVisualGallery
+              runtime={{ sessionId: commercialDemoFrame.config.sessionId, surface: "restaurant" }}
+              onAddToGallery={addCommercialDemoCreationToGallery}
+            />
+          ) : (
+            <AiCreationsGallery
+              restaurantId={selectedId}
+              userId={user?.id || null}
+              currentPhotoCount={items.length}
+              watermarkSubscription={watermarkSubscription}
+              onGalleryUpdated={load}
+            />
+          )
         ) : null}
 
         {activeTool === "add_photo" ? (
@@ -513,19 +710,42 @@ export default function DashboardPhotos() {
                 />
               </div>
               <div className="md:col-span-2">
-                <ImageUpload
-                  label="Image"
-                  value={form.media_url}
-                  bucket="restaurant-images"
-                  pathPrefix={selectedId}
-                  onChange={(url, metadata) => setForm((v) => ({
-                    ...v,
-                    media_url: url,
-                    storage_bucket: metadata?.storageBucket ?? null,
-                    storage_path: metadata?.storagePath ?? null,
-                  }))}
-                  showUrlInput={false}
-                />
+                {isCommercialDemo ? (
+                  <div className="space-y-2 rounded-2xl border border-dashed p-4">
+                    <Label htmlFor="commercial-demo-gallery-file">Image Démo</Label>
+                    <Input
+                      id="commercial-demo-gallery-file"
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      onChange={(event) => {
+                        const file = event.target.files?.[0];
+                        if (!file) return;
+                        const url = URL.createObjectURL(file);
+                        setForm((current) => ({
+                          ...current,
+                          media_url: url,
+                          storage_bucket: null,
+                          storage_path: null,
+                        }));
+                      }}
+                    />
+                    <p className="text-xs text-muted-foreground">Le fichier reste dans cette fenêtre Démo et n'est jamais envoyé au Storage de production.</p>
+                  </div>
+                ) : (
+                  <ImageUpload
+                    label="Image"
+                    value={form.media_url}
+                    bucket="restaurant-images"
+                    pathPrefix={selectedId}
+                    onChange={(url, metadata) => setForm((v) => ({
+                      ...v,
+                      media_url: url,
+                      storage_bucket: metadata?.storageBucket ?? null,
+                      storage_path: metadata?.storagePath ?? null,
+                    }))}
+                    showUrlInput={false}
+                  />
+                )}
               </div>
               <div className="flex gap-2">
                 <Button type="submit">Enregistrer</Button>

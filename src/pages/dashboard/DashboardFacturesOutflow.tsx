@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ArrowUpRight, ReceiptText, Settings, Wallet } from "lucide-react";
 
 import DashboardLayout from "@/components/DashboardLayout";
+import { CommercialDemoAccounting } from "@/components/dashboard/CommercialDemoScenario";
 import { AccountingFactList, AccountingHero, AccountingMetricCard, AccountingPanel } from "@/components/invoices/AccountingCockpit";
 import { TokPayableInvoiceDialog } from "@/components/invoices/TokPayableInvoiceDialog";
 import { useAuth } from "@/lib/auth-context";
@@ -20,6 +21,7 @@ import {
   getInvoiceStatusClass,
   useDashboardFacturesData,
 } from "./dashboardFacturesShared";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 
 const supabase = getSupabase();
 
@@ -140,6 +142,14 @@ function InvoiceTable({
 }
 
 export default function DashboardFacturesOutflow() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  if (commercialDemoFrame?.surface === "restaurant") return <CommercialDemoAccounting />;
+  return <LiveDashboardFacturesOutflow />;
+}
+
+function LiveDashboardFacturesOutflow() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemo = commercialDemoFrame?.surface === "restaurant";
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { isSuperAdmin } = useAuth();
@@ -155,6 +165,10 @@ export default function DashboardFacturesOutflow() {
   } = useDashboardFacturesData();
 
   const handleMarkPaid = async (invoiceId: string) => {
+    if (isCommercialDemo) {
+      toast({ title: "Paiement simulé", description: `La facture ${invoiceId.slice(0, 8)} reste inchangée en production.` });
+      return;
+    }
     const { error: updateError } = await (supabase.rpc as any)("admin_mark_restaurant_invoice_paid", {
       p_invoice_id: invoiceId,
       p_paid_at: new Date().toISOString(),

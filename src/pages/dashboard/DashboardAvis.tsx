@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
 import { runRestaurantAgent } from "@/lib/ai/tokAiClient";
+import {
+  buildCommercialDemoReviewReply,
+  buildCommercialDemoReviewSeeds,
+  readCommercialDemoToolState,
+  writeCommercialDemoToolState,
+} from "@/lib/commercialDemoRestaurantTools";
 import {
   Bot,
   CheckCheck,
@@ -110,6 +117,8 @@ function isSchemaDriftError(error: { message?: string; code?: string } | null | 
 }
 
 export default function DashboardAvis() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemo = commercialDemoFrame?.surface === "restaurant";
   const { restaurants, restaurantIds, loading: loadingRestaurants, error: restaurantError } = useOwnerRestaurants();
   const { toast } = useToast();
   const [items, setItems] = useState<ReviewItem[]>([]);
@@ -137,6 +146,14 @@ export default function DashboardAvis() {
     const ids = restaurantIdsKey ? restaurantIdsKey.split(",") : [];
     if (!ids.length) {
       setItems([]);
+      setLoading(false);
+      return;
+    }
+
+    if (isCommercialDemo && commercialDemoFrame) {
+      const seeded = buildCommercialDemoReviewSeeds(commercialDemoFrame.snapshot) as ReviewItem[];
+      setItems(readCommercialDemoToolState(commercialDemoFrame.config.sessionId, "reviews", seeded));
+      setError(null);
       setLoading(false);
       return;
     }
@@ -186,11 +203,21 @@ export default function DashboardAvis() {
       setItems((data || []) as ReviewItem[]);
     }
     setLoading(false);
-  }, [restaurantIdsKey]);
+  }, [commercialDemoFrame, isCommercialDemo, restaurantIdsKey]);
 
   const loadAiProfile = useCallback(async (restaurantId: string) => {
     if (!restaurantId) {
       setAiProfile(DEFAULT_AI_PROFILE);
+      return;
+    }
+
+    if (isCommercialDemo && commercialDemoFrame) {
+      setAiProfile(readCommercialDemoToolState(
+        commercialDemoFrame.config.sessionId,
+        "review-ai-profile",
+        DEFAULT_AI_PROFILE,
+      ));
+      setLoadingAiProfile(false);
       return;
     }
 
@@ -233,7 +260,7 @@ export default function DashboardAvis() {
           ? guardrails.review_reply_policy
           : DEFAULT_AI_PROFILE.review_reply_policy,
     });
-  }, [toast]);
+  }, [commercialDemoFrame, isCommercialDemo, toast]);
 
   useEffect(() => {
     if (!loadingRestaurants) {
@@ -281,6 +308,17 @@ export default function DashboardAvis() {
 
   const markRead = async (review: ReviewItem) => {
     setSavingReviewId(review.id);
+    if (isCommercialDemo && commercialDemoFrame) {
+      const now = new Date().toISOString();
+      setItems((current) => {
+        const next = current.map((item) => (item.id === review.id ? { ...item, restaurant_read_at: now } : item));
+        writeCommercialDemoToolState(commercialDemoFrame.config.sessionId, "reviews", next);
+        return next;
+      });
+      setSavingReviewId(null);
+      toast({ title: "Avis Démo marqué comme lu", description: "État isolé dans cette session de démonstration." });
+      return;
+    }
     const { error: rpcError } = await (supabase.rpc as any)("restaurant_mark_review_read", {
       p_review_id: review.id,
     });
@@ -306,6 +344,27 @@ export default function DashboardAvis() {
     }
 
     setSavingReviewId(review.id);
+    if (isCommercialDemo && commercialDemoFrame) {
+      const now = new Date().toISOString();
+      setItems((current) => {
+        const next = current.map((item) => item.id === review.id ? {
+          ...item,
+          restaurant_read_at: item.restaurant_read_at || now,
+          review_replies: [{
+            id: `demo-reply-${review.id}`,
+            reply_text: replyText,
+            author_type: "restaurant",
+            created_at: now,
+          }],
+        } : item);
+        writeCommercialDemoToolState(commercialDemoFrame.config.sessionId, "reviews", next);
+        return next;
+      });
+      setReplyDrafts((current) => ({ ...current, [review.id]: replyText }));
+      setSavingReviewId(null);
+      toast({ title: "Réponse Démo publiée", description: "Aucun avis ni client de production n'a été modifié." });
+      return;
+    }
     const { error: rpcError } = await (supabase.rpc as any)("restaurant_reply_review", {
       p_review_id: review.id,
       p_reply_text: replyText,
@@ -325,6 +384,20 @@ export default function DashboardAvis() {
   const generateAiReply = async (review: ReviewItem) => {
     setGeneratingReviewId(review.id);
     try {
+      if (isCommercialDemo && commercialDemoFrame) {
+        const draft = buildCommercialDemoReviewReply({
+          rating: review.rating,
+          comment: review.comment,
+          brandTone: aiProfile.brand_tone,
+        });
+        setReplyDrafts((current) => ({ ...current, [review.id]: draft }));
+        toast({
+          title: "Réponse IA Démo générée",
+          description: "Moteur local zéro coût : aucun appel payant, crédit ou message de production.",
+        });
+        return;
+      }
+
       const response = await runRestaurantAgent({
         restaurantId: review.restaurant_id,
         action: "review_reply",
@@ -375,6 +448,24 @@ export default function DashboardAvis() {
     }
 
     setSavingReviewId(review.id);
+    if (isCommercialDemo && commercialDemoFrame) {
+      const now = new Date().toISOString();
+      setItems((current) => {
+        const next = current.map((item) => item.id === review.id ? {
+          ...item,
+          status: "flagged",
+          reported_at: now,
+          report_reason: reason,
+          restaurant_read_at: item.restaurant_read_at || now,
+        } : item);
+        writeCommercialDemoToolState(commercialDemoFrame.config.sessionId, "reviews", next);
+        return next;
+      });
+      setReportDrafts((current) => ({ ...current, [review.id]: "" }));
+      setSavingReviewId(null);
+      toast({ title: "Signalement Démo enregistré", description: "Simulation isolée : aucun signalement admin réel n'a été créé." });
+      return;
+    }
     const { error: rpcError } = await (supabase.rpc as any)("restaurant_report_review", {
       p_review_id: review.id,
       p_reason: reason,
@@ -405,6 +496,12 @@ export default function DashboardAvis() {
     if (!selectedAiRestaurantId) return;
 
     setSavingAiProfile(true);
+    if (isCommercialDemo && commercialDemoFrame) {
+      writeCommercialDemoToolState(commercialDemoFrame.config.sessionId, "review-ai-profile", aiProfile);
+      setSavingAiProfile(false);
+      toast({ title: "Style IA Démo enregistré", description: "Consignes conservées uniquement dans cette session Démo." });
+      return;
+    }
     const { error: saveError } = await (supabase.from as any)("restaurant_ai_profiles").upsert(
       {
         restaurant_id: selectedAiRestaurantId,
@@ -434,7 +531,9 @@ export default function DashboardAvis() {
         <DashboardPageHero
           badge="Relation client"
           title="Avis clients"
-          description="Suivez les retours, traitez les avis non lus, préparez les réponses et signalez les contenus à vérifier."
+          description={isCommercialDemo
+            ? "Avis, réponses et signalements entièrement simulés dans cette session Démo isolée."
+            : "Suivez les retours, traitez les avis non lus, préparez les réponses et signalez les contenus à vérifier."}
           icon={MessageSquareText}
           tone="sky"
           visualLabel="Réputation"

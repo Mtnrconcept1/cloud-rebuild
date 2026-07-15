@@ -18,6 +18,7 @@ describe("commercial demo account security", () => {
   const ownerHook = read("src/pages/dashboard/useOwnerRestaurants.ts");
   const app = read("src/App.tsx");
   const layout = read("src/components/DashboardLayout.tsx");
+  const commercialAccountsPanel = read("src/components/admin/AdminCommercialAccountsPanel.tsx");
   const adminUsersPage = read("src/pages/admin/AdminUtilisateurs.tsx");
   const provisionFunction = read("supabase/functions/provision-commercial-accounts/index.ts");
   const mediaGovernance = read("supabase/functions/restaurant-media-governance/index.ts");
@@ -151,6 +152,9 @@ describe("commercial demo account security", () => {
       '.filter((role) => role !== "commercial" || baseRoles.includes("commercial"))',
     );
     expect(adminUsersPage).toContain("Ouvrir Commerciaux");
+    expect(commercialAccountsPanel).toContain("TOK_COMMERCIAL_APP_ORIGIN");
+    expect(commercialAccountsPanel).toContain("/auth?redirect=/commercial");
+    expect(commercialAccountsPanel).toContain("Adresse de connexion commerciale isolée");
   });
 
   it("keeps trigger-only security definer helpers out of the Data API", () => {

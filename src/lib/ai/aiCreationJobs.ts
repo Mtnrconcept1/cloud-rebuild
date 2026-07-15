@@ -6,11 +6,19 @@ import {
 } from "@/lib/ai/tokAiClient";
 import type { TokImageModel, TokImageOutputResolution } from "@/lib/ai/imagePricing";
 import { formatAiImageGenerationError } from "@/lib/publicErrorMessages";
+import { getCommercialDemoAiRuntime } from "@/lib/commercialDemoAi";
 
 export const AI_CREATION_COMPLETED_EVENT = "tok-ai-creation-completed";
 export const AI_CREATION_FAILED_EVENT = "tok-ai-creation-failed";
 
 const AI_CREATIONS_STORAGE_KEY = "tok-ai-creations-v1";
+
+function getAiCreationsStorageKey() {
+  const runtime = getCommercialDemoAiRuntime();
+  return runtime
+    ? `${AI_CREATIONS_STORAGE_KEY}:commercial-demo:${runtime.sessionId}:${runtime.surface}`
+    : AI_CREATIONS_STORAGE_KEY;
+}
 
 export type AiCreationTool =
   | "marketing_studio"
@@ -96,12 +104,12 @@ function sortRecords(records: AiCreationRecord[]) {
 
 function readRecords() {
   if (!hasBrowserStorage()) return [];
-  return sortRecords(parseStoredRecords(window.localStorage.getItem(AI_CREATIONS_STORAGE_KEY)));
+  return sortRecords(parseStoredRecords(window.localStorage.getItem(getAiCreationsStorageKey())));
 }
 
 function writeRecords(records: AiCreationRecord[]) {
   if (!hasBrowserStorage()) return;
-  window.localStorage.setItem(AI_CREATIONS_STORAGE_KEY, JSON.stringify(sortRecords(records).slice(0, 120)));
+  window.localStorage.setItem(getAiCreationsStorageKey(), JSON.stringify(sortRecords(records).slice(0, 120)));
 }
 
 function emitRecords() {
@@ -113,7 +121,7 @@ function ensureStorageListener() {
   if (storageListenerReady || typeof window === "undefined") return;
   storageListenerReady = true;
   window.addEventListener("storage", (event) => {
-    if (event.key === AI_CREATIONS_STORAGE_KEY) emitRecords();
+    if (event.key === getAiCreationsStorageKey()) emitRecords();
   });
 }
 

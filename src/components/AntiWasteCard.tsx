@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { parseBusinessDateTime } from "@/lib/businessTime";
 import { useCart } from "@/lib/cart-context";
 import { getOptimizedImageUrl } from "@/lib/optimizedImages";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 
 interface AntiWasteCardProps {
   title: string;
@@ -82,6 +83,8 @@ export default function AntiWasteCard({
   isFlash,
   offerId,
 }: AntiWasteCardProps) {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
   const safeOriginalPrice = Number.isFinite(originalPrice) && originalPrice > 0 ? originalPrice : 0;
   const safeDiscountedPrice = Number.isFinite(discountedPrice) && discountedPrice >= 0 ? discountedPrice : 0;
   const discount = safeOriginalPrice > 0
@@ -106,7 +109,7 @@ export default function AntiWasteCard({
   const handleAddToCart = () => {
     if (!restaurantId || soldOutForCart) return;
     addItem({
-      menuItemId: `antigaspi-${offerId || title}`,
+      menuItemId: isCommercialDemoClient && offerId ? offerId : `antigaspi-${offerId || title}`,
       name: `[Anti-gaspi] ${title}`,
       price: safeDiscountedPrice,
       restaurantId,

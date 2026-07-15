@@ -23,7 +23,7 @@ export type OwnedRestaurant = {
   is_active: boolean | null;
   is_demo: boolean;
   status: string | null;
-  socialLinks?: RestaurantSocialLinks;
+  socialLinks?: RestaurantSocialLinks | null;
 };
 
 type OwnedRestaurantSubscription = {
@@ -134,7 +134,7 @@ export function useOwnerRestaurants(options?: { enabled?: boolean }) {
     || isMarkedCommercialDemoIdentity
     || Boolean(demoAccount);
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error } = useQuery<OwnedRestaurant[]>({
     queryKey: [
       "owner-restaurants",
       user?.id,
@@ -146,6 +146,40 @@ export function useOwnerRestaurants(options?: { enabled?: boolean }) {
       // Commercial identities are fail-closed: without their authoritative
       // mapping they receive no restaurateur workspace, never a real one.
       if (isManagedCommercialIdentity && !effectiveDemoRestaurantId) return [] as OwnedRestaurant[];
+
+      if (isCommercialDemoFrame && commercialDemoFrame && effectiveDemoRestaurantId) {
+        const demoSubscription: OwnedRestaurantSubscription = {
+          id: `commercial-demo:${effectiveDemoRestaurantId}`,
+          restaurant_id: effectiveDemoRestaurantId,
+          plan: "elite",
+          status: "active",
+          current_period_end: null,
+          restaurant_subscription_plan_id: null,
+          plan_record: {
+            id: "commercial-demo-elite",
+            slug: "elite",
+            features: commercialDemoFrame.snapshot.active_features,
+          },
+        };
+        return [{
+          id: effectiveDemoRestaurantId,
+          name: commercialDemoFrame.snapshot.demo_restaurant.name,
+          opening_hours: null,
+          disabled_dashboard_features: [],
+          subscription_enabled_dashboard_features: computeSubscriptionEnabledFeatures({
+            plan: demoSubscription.plan,
+            slug: demoSubscription.plan_record?.slug || demoSubscription.plan,
+            status: demoSubscription.status,
+            current_period_end: demoSubscription.current_period_end,
+            features: demoSubscription.plan_record?.features || [],
+          }),
+          restaurant_subscription: demoSubscription,
+          is_active: true,
+          is_demo: true,
+          status: "active",
+          socialLinks: null,
+        }] satisfies OwnedRestaurant[];
+      }
 
       let restaurantQuery = (supabase.from as any)("restaurants")
         .select("id, name, opening_hours, disabled_dashboard_features, is_active, is_demo, status");

@@ -10,6 +10,12 @@ import {
   writeAuditLog,
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
+import {
+  COMMERCIAL_DEMO_HOSTNAME,
+  isCommercialDemoCheckoutRequestAllowed,
+  isCommercialDemoLocalOrTestHostname,
+  isCommercialDemoProductionRuntime,
+} from "../_shared/commercial-demo-host.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import { createRateLimiter } from "../_shared/rate-limit.ts";
 import { normalizeCheckoutReturnUrl } from "../_shared/return-url.ts";
@@ -23,14 +29,6 @@ const MAX_DEMO_TOTAL_CENTS = 100_000;
 // request processing time; one extra minute avoids boundary/clock skew errors.
 const CHECKOUT_TTL_SECONDS = 31 * 60;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const DEMO_RETURN_HOSTS = new Set([
-  "thetok.ch",
-  "www.thetok.ch",
-  "app.thetok.ch",
-  "admin.thetok.ch",
-  "cloud-rebuild-recovered.vercel.app",
-]);
-const OWNED_PREVIEW_HOST = /^cloud-rebuild-recovered-[a-z0-9-]+-mtnrconcepts-projects\.vercel\.app$/;
 
 type DemoCheckoutAction = "create" | "confirm";
 
@@ -130,34 +128,20 @@ async function sha256Hex(value: string) {
 }
 
 function buildReturnUrl(rawReturnUrl: unknown, state: "success" | "cancelled") {
-  const normalized = normalizeCheckoutReturnUrl(rawReturnUrl);
+  const normalized = normalizeCheckoutReturnUrl(rawReturnUrl, {
+    additionalAllowedHosts: [COMMERCIAL_DEMO_HOSTNAME],
+  });
   if (!normalized) {
     throw new DemoCheckoutError(400, "INVALID_RETURN_URL", "URL de retour invalide");
   }
 
   const url = new URL(normalized);
-  const configuredHosts = [
-    Deno.env.get("APP_BASE_URL")?.trim() || "",
-    Deno.env.get("PUBLIC_APP_URL")?.trim() || "",
-    Deno.env.get("SITE_URL")?.trim() || "",
-    ...(Deno.env.get("ALLOWED_ORIGINS") || "").split(",").map((value) => value.trim()),
-  ]
-    .map((value) => {
-      try {
-        return new URL(value).hostname.toLowerCase();
-      } catch {
-        return "";
-      }
-    })
-    .filter(Boolean);
-  const returnHost = url.hostname.toLowerCase();
-  const isLocal = returnHost === "localhost" || returnHost === "127.0.0.1";
-  if (
-    !DEMO_RETURN_HOSTS.has(returnHost) &&
-    !configuredHosts.includes(returnHost) &&
-    !OWNED_PREVIEW_HOST.test(returnHost) &&
-    !isLocal
-  ) {
+  const returnHost = url.hostname.toLowerCase().replace(/\.$/, "");
+  const productionRuntime = isCommercialDemoProductionRuntime();
+  const isAllowedProductionReturn = returnHost === COMMERCIAL_DEMO_HOSTNAME;
+  const isAllowedDevelopmentReturn = !productionRuntime
+    && isCommercialDemoLocalOrTestHostname(returnHost);
+  if (!isAllowedProductionReturn && !isAllowedDevelopmentReturn) {
     throw new DemoCheckoutError(400, "INVALID_RETURN_URL", "Origine de retour non autorisée");
   }
   // The commercial demonstration always returns to its isolated orchestrator.
@@ -289,6 +273,13 @@ Deno.serve(async (req) => {
   try {
     if (req.method !== "POST") {
       throw new DemoCheckoutError(405, "METHOD_NOT_ALLOWED", "Méthode non autorisée");
+    }
+    if (!isCommercialDemoCheckoutRequestAllowed(req)) {
+      throw new DemoCheckoutError(
+        403,
+        "COMMERCIAL_DEMO_HOST_REQUIRED",
+        "Le paiement de démonstration est réservé au domaine commercial.thetok.ch.",
+      );
     }
 
     actor = await authenticateRequest(req, { allowServiceRole: false });

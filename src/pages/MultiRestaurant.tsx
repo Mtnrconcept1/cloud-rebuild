@@ -13,6 +13,8 @@ import { useNavigate } from "react-router-dom";
 import { calculateDistance } from "@/lib/geo";
 import { FeatureWizard, WizardBackButton, WizardNextButton } from "@/components/FeatureWizard";
 import { PUBLIC_MENU_ITEMS_LIMIT, PUBLIC_RESTAURANTS_LIMIT } from "@/lib/queryLimits";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
+import { getCommercialDemoClientMenuItems, getCommercialDemoClientRestaurants } from "@/lib/commercialDemoClientCatalog";
 
 const supabase = getSupabase();
 
@@ -34,6 +36,8 @@ const COURSES = ["Entrée", "Plat", "Dessert"];
 type Step = "courses" | "confirm";
 
 export default function MultiRestaurant() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
   const { addItem, clearCart, updateCartMetadata, setOrderMode } = useCart();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -42,7 +46,7 @@ export default function MultiRestaurant() {
   const [selections, setSelections] = useState<CourseSelection[]>([]);
   const [selectedRestaurantId, setSelectedRestaurantId] = useState<string | null>(null);
 
-  const { data: restaurants } = useQuery({
+  const restaurantsQuery = useQuery({
     queryKey: ["restaurants-multi"],
     queryFn: async () => {
       const { data } = await supabase
@@ -54,9 +58,13 @@ export default function MultiRestaurant() {
         .limit(PUBLIC_RESTAURANTS_LIMIT);
       return data || [];
     },
+    enabled: !isCommercialDemoClient,
   });
+  const restaurants = isCommercialDemoClient && commercialDemoFrame
+    ? getCommercialDemoClientRestaurants(commercialDemoFrame.snapshot)
+    : restaurantsQuery.data;
 
-  const { data: menuItems } = useQuery({
+  const menuItemsQuery = useQuery({
     queryKey: ["menu-multi", selectedRestaurantId],
     queryFn: async () => {
       const { data } = await supabase
@@ -68,8 +76,11 @@ export default function MultiRestaurant() {
         .limit(PUBLIC_MENU_ITEMS_LIMIT);
       return data || [];
     },
-    enabled: !!selectedRestaurantId,
+    enabled: Boolean(selectedRestaurantId && !isCommercialDemoClient),
   });
+  const menuItems = isCommercialDemoClient && commercialDemoFrame
+    ? getCommercialDemoClientMenuItems(commercialDemoFrame.snapshot, selectedRestaurantId)
+    : menuItemsQuery.data;
 
   const currentCourse = COURSES[activeCourse];
 

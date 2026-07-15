@@ -7,6 +7,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { CommercialDemoReservations } from "@/components/dashboard/CommercialDemoScenario";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import RestaurantCancellationDialog from "@/components/RestaurantCancellationDialog";
 import SortControls from "@/components/list/SortControls";
 import OperationViewToggle, { type OperationViewMode } from "@/components/operations/OperationViewToggle";
@@ -42,6 +43,12 @@ import {
   isDateInDashboardTimeRange,
   type DashboardTimeRange,
 } from "@/lib/dashboardTimeRange";
+import {
+  transitionCommercialDemoReservation,
+  type CommercialDemoReservation,
+  type CommercialDemoReservationTransitionAction,
+  type CommercialDemoSnapshot,
+} from "@/lib/commercialDemoJourney";
 
 const supabase = getSupabase();
 const DASHBOARD_RESERVATIONS_FETCH_LIMIT = 300;
@@ -186,12 +193,57 @@ const DASHBOARD_RESERVATION_SORT_COLUMNS: SortColumn<ReservationWithProfile, Res
   { key: "status", label: "Statut", type: "text", getValue: (reservation) => reservation.status },
 ];
 
+function getCommercialDemoReservationTransition(
+  reservation: CommercialDemoReservation,
+  targetStatus: string,
+): CommercialDemoReservationTransitionAction | null {
+  if (reservation.status === "pending" && targetStatus === "confirmed") return "restaurant_confirm";
+  if (reservation.status === "confirmed" && targetStatus === "arrived") return "restaurant_mark_arrived";
+  if (reservation.status === "confirmed" && targetStatus === "no_show") return "restaurant_mark_no_show";
+  return null;
+}
+
+function buildCommercialDemoDashboardReservations(snapshot: CommercialDemoSnapshot): ReservationWithProfile[] {
+  return snapshot.reservations.map((reservation) => ({
+    id: reservation.id,
+    restaurant_id: snapshot.session.demo_restaurant_id,
+    user_id: "commercial-demo-client",
+    date: reservation.reservation_date,
+    time: reservation.reservation_time,
+    party_size: reservation.party_size,
+    status: reservation.status,
+    notes: reservation.notes || null,
+    order_reference: reservation.reference,
+    total_amount: 0,
+    feature: "classic",
+    preorder_items: [],
+    metadata: {
+      commercial_demo: true,
+      commercial_demo_version: reservation.version,
+      service: Number(reservation.reservation_time.slice(0, 2)) < 17 ? "lunch" : "dinner",
+    } as Json,
+    created_at: reservation.created_at,
+    updated_at: reservation.updated_at,
+    customer: {
+      full_name: reservation.customer_name,
+      phone: reservation.customer_phone || null,
+    },
+  } as unknown as ReservationWithProfile));
+}
+
 export default function DashboardReservations() {
+  const commercialDemoFrame = useCommercialDemoFrame();
   const { isDemoMode } = useDashboardRestaurant();
+  if (commercialDemoFrame?.surface === "restaurant") return <LiveDashboardReservations />;
   return isDemoMode ? <CommercialDemoReservations /> : <LiveDashboardReservations />;
 }
 
 function LiveDashboardReservations() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const commercialDemoSnapshot = commercialDemoFrame?.surface === "restaurant"
+    ? commercialDemoFrame.snapshot
+    : null;
+  const isCommercialDemoRestaurant = Boolean(commercialDemoSnapshot);
   const { selectedId, restaurants, loading: restaurantsLoading, error: restaurantsError } = useDashboardRestaurant();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
@@ -214,7 +266,12 @@ function LiveDashboardReservations() {
     if (reservationTarget) setSearchTerm(reservationTarget);
   }, [searchParams]);
 
-  const selectedRestaurant = restaurants.find((restaurant) => restaurant.id === selectedId);
+  const effectiveSelectedId = commercialDemoSnapshot?.session.demo_restaurant_id || selectedId;
+  const selectedRestaurant = commercialDemoSnapshot?.demo_restaurant
+    || restaurants.find((restaurant) => restaurant.id === selectedId);
+  const effectiveRestaurantsLoading = isCommercialDemoRestaurant ? false : restaurantsLoading;
+  const effectiveRestaurantsError = isCommercialDemoRestaurant ? null : restaurantsError;
+  const hasRestaurant = isCommercialDemoRestaurant || restaurants.length > 0;
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.matchMedia("(max-width: 640px)").matches) {
@@ -222,13 +279,13 @@ function LiveDashboardReservations() {
     }
   }, []);
 
-  const { data: reservations = [], error: reservationsError } = useQuery({
-    queryKey: ["dashboard-all-reservations", selectedId],
+  const productionReservationsQuery = useQuery({
+    queryKey: ["dashboard-all-reservations", effectiveSelectedId],
     queryFn: async () => {
       const { data: reservationRows, error: reservationError } = await supabase
         .from("reservations")
         .select("*")
-        .eq("restaurant_id", selectedId!)
+        .eq("restaurant_id", effectiveSelectedId!)
         .order("date", { ascending: false })
         .order("time", { ascending: false })
         .limit(DASHBOARD_RESERVATIONS_FETCH_LIMIT);
@@ -237,7 +294,7 @@ function LiveDashboardReservations() {
       if (!reservationRows?.length) return [] as ReservationWithProfile[];
 
       const { data: profilesData } = await supabase.rpc("get_reservation_customers" as any, {
-        p_restaurant_id: selectedId!,
+        p_restaurant_id: effectiveSelectedId!,
       });
       const profilesByUserId = new Map(
         (profilesData || []).map((profile: any) => [
@@ -251,11 +308,41 @@ function LiveDashboardReservations() {
         customer: (profilesByUserId.get(reservation.user_id) as Pick<ProfileRow, "full_name" | "phone">) || null,
       })) as ReservationWithProfile[];
     },
-    enabled: !!selectedId,
+    enabled: Boolean(effectiveSelectedId && !isCommercialDemoRestaurant),
   });
+  const commercialDemoReservations = useMemo(
+    () => commercialDemoSnapshot ? buildCommercialDemoDashboardReservations(commercialDemoSnapshot) : [],
+    [commercialDemoSnapshot],
+  );
+  const reservations = useMemo(
+    () => isCommercialDemoRestaurant
+      ? commercialDemoReservations
+      : (productionReservationsQuery.data || []),
+    [commercialDemoReservations, isCommercialDemoRestaurant, productionReservationsQuery.data],
+  );
+  const reservationsError = isCommercialDemoRestaurant ? null : productionReservationsQuery.error;
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      if (commercialDemoSnapshot && commercialDemoFrame) {
+        const demoReservation = commercialDemoSnapshot.reservations.find((reservation) => reservation.id === id);
+        const action = demoReservation
+          ? getCommercialDemoReservationTransition(demoReservation, status)
+          : null;
+
+        if (!demoReservation || !action) {
+          throw new Error("Cette étape n'est pas disponible dans le parcours de réservation simulé.");
+        }
+
+        await transitionCommercialDemoReservation({
+          reservationId: demoReservation.id,
+          action,
+          expectedVersion: demoReservation.version,
+        });
+        await commercialDemoFrame.refresh();
+        return { id, status };
+      }
+
       const result = await updateRestaurantReservationStatus(id, status);
       if (!result.ok) {
         throw new Error(result.errorMessage);
@@ -270,6 +357,9 @@ function LiveDashboardReservations() {
       return { id, status };
     },
     onMutate: async ({ id, status }) => {
+      if (isCommercialDemoRestaurant) {
+        return { previousReservations: [] as ReservationWithProfile[], queryKey: null };
+      }
       const queryKey = ["dashboard-all-reservations", selectedId];
       await queryClient.cancelQueries({ queryKey });
       const previousReservations = queryClient.getQueryData<ReservationWithProfile[]>(queryKey) || [];
@@ -304,6 +394,9 @@ function LiveDashboardReservations() {
       refundNow: boolean;
       refundEligible: boolean;
     }) => {
+      if (isCommercialDemoRestaurant) {
+        throw new Error("L'annulation restaurateur est désactivée dans ce parcours de démonstration isolé.");
+      }
       const result = await cancelReservationByRestaurant(id, reasonCode, details);
       if (!result.ok) {
         throw new Error(result.errorMessage);
@@ -460,9 +553,21 @@ function LiveDashboardReservations() {
     );
   }, [filteredReservations]);
 
+  const canUpdateReservationTo = (reservation: ReservationWithProfile, targetStatus: string) => {
+    if (!commercialDemoSnapshot) return true;
+    const demoReservation = commercialDemoSnapshot.reservations.find((item) => item.id === reservation.id);
+    return Boolean(
+      demoReservation
+      && getCommercialDemoReservationTransition(demoReservation, targetStatus),
+    );
+  };
+
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div
+        className="space-y-6"
+        data-commercial-demo-source={isCommercialDemoRestaurant ? "isolated-snapshot" : undefined}
+      >
         <DashboardPageHero
           badge="Salle et couverts"
           title="Reservations"
@@ -482,12 +587,18 @@ function LiveDashboardReservations() {
           )}
         />
 
-        {restaurantsLoading ? <p className="text-muted-foreground">Chargement des restaurants...</p> : null}
-        {restaurantsError ? <p className="text-destructive">Erreur lors du chargement des restaurants : {restaurantsError}</p> : null}
-        {!restaurantsLoading && !restaurantsError && restaurants.length === 0 ? (
+        {isCommercialDemoRestaurant ? (
+          <div className="rounded-2xl border border-sky-200 bg-sky-50/80 px-4 py-3 text-sm text-sky-950 dark:border-sky-500/30 dark:bg-sky-500/10 dark:text-sky-50" role="status">
+            <strong>Vrai écran Réservations.</strong> Les réservations et changements de statut restent exclusivement dans la session commerciale simulée.
+          </div>
+        ) : null}
+
+        {effectiveRestaurantsLoading ? <p className="text-muted-foreground">Chargement des restaurants...</p> : null}
+        {effectiveRestaurantsError ? <p className="text-destructive">Erreur lors du chargement des restaurants : {effectiveRestaurantsError}</p> : null}
+        {!effectiveRestaurantsLoading && !effectiveRestaurantsError && !hasRestaurant ? (
           <p className="text-muted-foreground">Aucun restaurant lié à votre compte.</p>
         ) : null}
-        {!restaurantsLoading && !restaurantsError && restaurants.length > 0 && !selectedRestaurant ? (
+        {!effectiveRestaurantsLoading && !effectiveRestaurantsError && hasRestaurant && !selectedRestaurant ? (
           <p className="text-muted-foreground">Sélectionnez un restaurant depuis la barre latérale pour afficher les réservations.</p>
         ) : null}
         {reservationsError ? (
@@ -699,7 +810,7 @@ function LiveDashboardReservations() {
                             size="sm"
                             variant="outline"
                             onClick={() => updateStatusMutation.mutate({ id: reservation.id, status: "arrived" })}
-                            disabled={updateStatusMutation.isPending || isCardLocked}
+                            disabled={updateStatusMutation.isPending || isCardLocked || !canUpdateReservationTo(reservation, "arrived")}
                             className={isArrived ? "border-emerald-200 bg-emerald-600 text-white hover:bg-emerald-600 disabled:opacity-100" : undefined}
                           >
                             <UserCheck className="mr-1 h-4 w-4" />
@@ -708,7 +819,7 @@ function LiveDashboardReservations() {
                           <Button
                             size="sm"
                             onClick={() => updateStatusMutation.mutate({ id: reservation.id, status: "confirmed" })}
-                            disabled={updateStatusMutation.isPending || isCardLocked || isConfirmedAck}
+                            disabled={updateStatusMutation.isPending || isCardLocked || isConfirmedAck || !canUpdateReservationTo(reservation, "confirmed")}
                             className={isConfirmedAck ? "bg-emerald-600 text-white hover:bg-emerald-600 disabled:opacity-100" : undefined}
                           >
                             <Check className="mr-1 h-4 w-4" />
@@ -718,7 +829,7 @@ function LiveDashboardReservations() {
                             size="sm"
                             variant="outline"
                             onClick={() => setCancelTarget(reservation)}
-                            disabled={isArrived || reservation.status === "cancelled" || reservation.status === "no_show" || cancelMutation.isPending}
+                            disabled={isCommercialDemoRestaurant || isArrived || reservation.status === "cancelled" || reservation.status === "no_show" || cancelMutation.isPending}
                             className="text-destructive"
                           >
                             <Ban className="mr-1 h-4 w-4" />
@@ -965,7 +1076,7 @@ function LiveDashboardReservations() {
                                           size="sm"
                                           variant="outline"
                                           onClick={() => updateStatusMutation.mutate({ id: reservation.id, status: "arrived" })}
-                                          disabled={updateStatusMutation.isPending || isCardLocked}
+                                          disabled={updateStatusMutation.isPending || isCardLocked || !canUpdateReservationTo(reservation, "arrived")}
                                           className={isArrived ? "border-emerald-200 bg-emerald-600 text-white hover:bg-emerald-600 disabled:opacity-100" : undefined}
                                         >
                                           <UserCheck className="mr-1 h-4 w-4" />
@@ -976,6 +1087,7 @@ function LiveDashboardReservations() {
                                           variant="outline"
                                           onClick={() => setCancelTarget(reservation)}
                                           disabled={
+                                            isCommercialDemoRestaurant ||
                                             isArrived ||
                                             reservation.status === "cancelled" ||
                                             reservation.status === "no_show" ||
@@ -995,7 +1107,7 @@ function LiveDashboardReservations() {
                                           size="sm"
                                           variant="outline"
                                           onClick={() => updateStatusMutation.mutate({ id: reservation.id, status: "no_show" })}
-                                          disabled={updateStatusMutation.isPending || isCardLocked}
+                                          disabled={updateStatusMutation.isPending || isCardLocked || !canUpdateReservationTo(reservation, "no_show")}
                                           className="text-destructive"
                                         >
                                           <X className="mr-1 h-4 w-4" />
@@ -1004,7 +1116,7 @@ function LiveDashboardReservations() {
                                         <Button
                                           size="sm"
                                           onClick={() => updateStatusMutation.mutate({ id: reservation.id, status: "confirmed" })}
-                                          disabled={updateStatusMutation.isPending || isCardLocked || isConfirmedAck}
+                                          disabled={updateStatusMutation.isPending || isCardLocked || isConfirmedAck || !canUpdateReservationTo(reservation, "confirmed")}
                                           className={isConfirmedAck ? "bg-emerald-600 text-white hover:bg-emerald-600 disabled:opacity-100" : undefined}
                                         >
                                           <Check className="mr-1 h-4 w-4" />
@@ -1040,7 +1152,7 @@ function LiveDashboardReservations() {
         ) : null}
       </div>
       <RestaurantCancellationDialog
-        open={Boolean(cancelTarget)}
+        open={Boolean(cancelTarget) && !isCommercialDemoRestaurant}
         targetLabel={
           cancelTarget
             ? `${cancelTarget.customer?.full_name ?? "Client"} - ${cancelTarget.date} ${getSafeTime(cancelTarget.time)}`
@@ -1058,7 +1170,7 @@ function LiveDashboardReservations() {
           }
         }}
         onConfirm={({ reasonCode, details, refundNow }) => {
-          if (!cancelTarget) return;
+          if (!cancelTarget || isCommercialDemoRestaurant) return;
           const refundSnapshot = getReservationRefundSnapshot(cancelTarget);
           cancelMutation.mutate({
             id: cancelTarget.id,

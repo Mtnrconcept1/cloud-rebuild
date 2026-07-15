@@ -39,6 +39,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 
 const ALLOWED_PAYMENT_METHODS: PaymentMethodId[] = [
   "card",
@@ -270,6 +271,8 @@ function EmptyState({
 }
 
 export default function DashboardPack() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemo = commercialDemoFrame?.surface === "restaurant";
   const { selectedId } = useDashboardRestaurant();
   const { data: restaurantPack, isLoading } = useRestaurantLaunchPack(selectedId);
   const { data: packs = [] } = useLaunchPacks();
@@ -291,6 +294,13 @@ export default function DashboardPack() {
   async function handleCheckout(paymentMethod: PaymentMethodId) {
     if (!selectedPack || !selectedId) return;
     setCheckingOut(true);
+
+    if (isCommercialDemo) {
+      toast.success(`Parcours ${selectedPack.name} simulé avec ${paymentMethod === "card" ? "la carte test" : "TWINT test"}.`);
+      setDialogOpen(false);
+      setCheckingOut(false);
+      return;
+    }
 
     try {
       const { data: checkoutData, error: checkoutError } = await invokeSupabaseFunction<{

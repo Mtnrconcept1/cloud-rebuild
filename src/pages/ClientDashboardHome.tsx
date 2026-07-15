@@ -28,6 +28,7 @@ import { useNotificationCenter } from "@/hooks/useNotificationCenter";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { getBusinessDateKey, parseBusinessDateTime } from "@/lib/businessTime";
+import { getCommercialDemoClientTarget } from "@/lib/commercialDemoClientRoutes";
 import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 import { cn } from "@/lib/utils";
 
@@ -101,15 +102,7 @@ type QuickAction = {
 
 function getClientDashboardHomeTarget(target: string, isCommercialDemoClientFrame: boolean) {
   if (!isCommercialDemoClientFrame) return target;
-
-  const pathname = new URL(target, "https://thetok.ch").pathname;
-  if (pathname.startsWith("/commande/")) return "/commandes";
-  if (["/notifications", "/mon-espace", "/recherche", "/reservations", "/commandes"].includes(pathname)) {
-    return pathname;
-  }
-  // Client discovery is intentionally reduced to the one restaurant attached
-  // to the commercial demonstration session.
-  return "/recherche";
+  return getCommercialDemoClientTarget(target);
 }
 
 const QUICK_ACTIONS: QuickAction[] = [

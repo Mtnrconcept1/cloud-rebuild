@@ -34,6 +34,9 @@ import {
 import { readZeroAttenteReservationContext } from "@/lib/zeroAttenteReservationContext";
 import { PUBLIC_MENU_ITEMS_LIMIT } from "@/lib/queryLimits";
 import { invokeSupabaseFunction } from "@/lib/session";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
+import { getCommercialDemoClientMenuItems, getCommercialDemoClientRestaurants } from "@/lib/commercialDemoClientCatalog";
+import { createCommercialDemoReservation } from "@/lib/commercialDemoJourney";
 
 const supabase = getSupabase();
 
@@ -103,10 +106,18 @@ function getFunctionsErrorStatus(error: unknown) {
 }
 
 export default function ZeroAttente() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
   const { user, session, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const activeFeatures = useActiveFeatures();
+  const globalActiveFeatures = useActiveFeatures({ enabled: !isCommercialDemoClient });
+  const activeFeatures = useMemo(
+    () => isCommercialDemoClient && commercialDemoFrame
+      ? new Set(commercialDemoFrame.snapshot.active_features)
+      : globalActiveFeatures,
+    [commercialDemoFrame, globalActiveFeatures, isCommercialDemoClient],
+  );
   const [searchParams] = useSearchParams();
   const preSelectedRestaurantId = searchParams.get("restaurant");
   const initialReservationContext = useMemo(
@@ -131,7 +142,7 @@ export default function ZeroAttente() {
   const [pendingCheckoutSessionId, setPendingCheckoutSessionId] = useState<string | null>(() => readPendingZeroAttenteSessionId());
   const attemptedProcessingKeyRef = useRef<string | null>(null);
   const authPromptKeyRef = useRef<string | null>(null);
-  const { isMember: isTokOneMember, subscription: tokOneSubscription } = useIsTokOneMember();
+  const { isMember: isTokOneMember, subscription: tokOneSubscription } = useIsTokOneMember({ enabled: !isCommercialDemoClient });
   const { data: tokOneBenefits } = useTokOneBenefits(tokOneSubscription?.plan_id);
   const { data: profile } = useQuery({
     queryKey: ["profile-loyalty", user?.id],
@@ -139,7 +150,7 @@ export default function ZeroAttente() {
       const { data } = await supabase.from("profiles" as any).select("loyalty_points").eq("user_id", user?.id).single();
       return data as any;
     },
-    enabled: !!user,
+    enabled: Boolean(user && !isCommercialDemoClient),
   });
   const allowedPaymentMethods = useMemo(() => {
     const disabled = (selectedRestaurant as Record<string, unknown>)?.disabled_payment_methods as string[] || [];
@@ -156,7 +167,7 @@ export default function ZeroAttente() {
     }
   }, []);
 
-  const { data: restaurants } = useQuery({
+  const restaurantsQuery = useQuery({
     queryKey: ["restaurants-zero-wait", preSelectedRestaurantId],
     queryFn: async () => {
       const filterEligible = (rows: any[] | null | undefined) =>
@@ -173,7 +184,11 @@ export default function ZeroAttente() {
       const { data } = await supabase.from("restaurants").select("*").eq("is_active", true).order("rating", { ascending: false }).limit(9);
       return filterEligible(data);
     },
+    enabled: !isCommercialDemoClient,
   });
+  const restaurants = isCommercialDemoClient && commercialDemoFrame
+    ? getCommercialDemoClientRestaurants(commercialDemoFrame.snapshot)
+    : restaurantsQuery.data;
 
   useEffect(() => {
     if (preSelectedRestaurantId && restaurants && !selectedRestaurant) {
@@ -195,14 +210,17 @@ export default function ZeroAttente() {
     }
   }, [activeFeatures, allowedPaymentMethods, paymentMethod, selectedRestaurant]);
 
-  const { data: menuItems } = useQuery({
+  const menuItemsQuery = useQuery({
     queryKey: ["menu-zero-wait", selectedRestaurant?.id],
     queryFn: async () => {
       const { data } = await supabase.from("menu_items").select("*").eq("restaurant_id", selectedRestaurant.id).eq("is_available", true).order("category").limit(PUBLIC_MENU_ITEMS_LIMIT);
       return data || [];
     },
-    enabled: !!selectedRestaurant,
+    enabled: Boolean(selectedRestaurant && !isCommercialDemoClient),
   });
+  const menuItems = isCommercialDemoClient && commercialDemoFrame
+    ? getCommercialDemoClientMenuItems(commercialDemoFrame.snapshot, selectedRestaurant?.id)
+    : menuItemsQuery.data;
 
   const updateQty = (id: string, d: number) => setQuantities((p) => {
     const n = Math.max(0, (p[id] || 0) + d);
@@ -243,7 +261,7 @@ export default function ZeroAttente() {
     reservationDate: arrivalDate,
     reservationTime: arrivalTime,
     context: "zero-attente",
-    enabled: !!selectedRestaurant,
+    enabled: Boolean(selectedRestaurant && !isCommercialDemoClient),
   });
 
   const formulaDiscount = roundCurrency(formulaDiscountRaw);
@@ -306,6 +324,37 @@ export default function ZeroAttente() {
       return;
     }
     if (!selectedRestaurant || !menuItems) return;
+
+    if (isCommercialDemoClient && commercialDemoFrame) {
+      setLoading(true);
+      try {
+        const snapshot = await createCommercialDemoReservation({
+          sessionId: commercialDemoFrame.config.sessionId,
+          reservationDate: arrivalDate,
+          reservationTime: arrivalTime,
+          partySize,
+          customerName: user?.email?.split("@")[0] || "Client démo",
+          notes: `[Zéro Attente] ${count} plat(s) précommandé(s) · paiement de démonstration`,
+        });
+        const reservation = snapshot.reservations.at(-1);
+        setReservationId(reservation?.id || `demo-${Date.now()}`);
+        setConfirmedPricing({ ...currentPricing });
+        setStep("confirm");
+        toast({
+          title: "Réservation Zéro Attente simulée",
+          description: "La réservation est synchronisée avec le vrai dashboard restaurateur, sans écriture de production.",
+        });
+      } catch (error) {
+        toast({
+          title: "Démonstration indisponible",
+          description: error instanceof Error ? error.message : "Impossible de créer la réservation simulée.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
     if (!selectedRestaurant.supports_reservation || !selectedRestaurant.supports_dinein) {
       toast({
         title: "Restaurant indisponible",
@@ -567,6 +616,7 @@ export default function ZeroAttente() {
 
   // Handle return from Stripe
   useEffect(() => {
+    if (isCommercialDemoClient) return;
     const params = new URLSearchParams(window.location.search);
     const status = params.get("status");
     const sessionId = params.get("session_id");
@@ -579,9 +629,10 @@ export default function ZeroAttente() {
       toast({ title: "Paiement annulé", description: "Vous pouvez réessayer.", variant: "destructive" });
       window.history.replaceState({}, "", window.location.pathname);
     }
-  }, [syncPendingCheckoutSessionId, toast]);
+  }, [isCommercialDemoClient, syncPendingCheckoutSessionId, toast]);
 
   useEffect(() => {
+    if (isCommercialDemoClient) return;
     if (!pendingCheckoutSessionId || reservationId || authLoading) return;
 
     const processingKey = `${user?.id || "guest"}:${pendingCheckoutSessionId}`;
@@ -601,7 +652,7 @@ export default function ZeroAttente() {
     if (attemptedProcessingKeyRef.current === processingKey) return;
     attemptedProcessingKeyRef.current = processingKey;
     void completePaidReservation(pendingCheckoutSessionId);
-  }, [authLoading, completePaidReservation, pendingCheckoutSessionId, reservationId, session?.access_token, toast, user]);
+  }, [authLoading, completePaidReservation, isCommercialDemoClient, pendingCheckoutSessionId, reservationId, session?.access_token, toast, user]);
 
   const handleGoToReservations = () => {
     setShowDetailModal(true);

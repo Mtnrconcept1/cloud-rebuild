@@ -8,6 +8,7 @@ const LOCAL_RETURN_HOSTS = new Set(["localhost", "127.0.0.1"]);
 
 export type CheckoutReturnUrlOptions = {
   env?: (name: string) => string | undefined;
+  additionalAllowedHosts?: readonly string[];
 };
 
 function defaultEnv(name: string) {
@@ -28,7 +29,10 @@ function parseHostFromUrl(rawUrl: string | undefined) {
   }
 }
 
-function parseAllowedHosts(env: (name: string) => string | undefined) {
+function parseAllowedHosts(
+  env: (name: string) => string | undefined,
+  additionalAllowedHosts: readonly string[],
+) {
   const configuredHosts = (env("CHECKOUT_RETURN_HOSTS") || "")
     .split(",")
     .map((entry) => normalizeHost(entry.trim()))
@@ -47,6 +51,7 @@ function parseAllowedHosts(env: (name: string) => string | undefined) {
     ...DEFAULT_ALLOWED_RETURN_HOSTS.map(normalizeHost),
     ...configuredHosts,
     ...appHosts,
+    ...additionalAllowedHosts.map(normalizeHost),
   ]);
 }
 
@@ -70,7 +75,7 @@ export function normalizeCheckoutReturnUrl(
 
     if (url.protocol !== "https:") return null;
     if (hostname.endsWith(".vercel.app")) return url.toString();
-    if (!parseAllowedHosts(env).has(hostname)) return null;
+    if (!parseAllowedHosts(env, options.additionalAllowedHosts || []).has(hostname)) return null;
 
     return url.toString();
   } catch {

@@ -23,12 +23,16 @@ describe("post-auth role routing", () => {
     expect(getPostAuthTargetForRole("courier", "/courier/jobs")).toBe("/courier/jobs");
   });
 
-  it("resumes OAuth consent after sign-in for every TOK role", () => {
+  it("resumes OAuth consent for production roles but keeps commercial identities on their demo origin", () => {
     const consentTarget = "/oauth/consent?authorization_id=authorization-123";
 
-    for (const role of ["client", "admin", "restaurateur", "courier", "commercial"] as const) {
+    for (const role of ["client", "admin", "restaurateur", "courier"] as const) {
       expect(getPostAuthTargetForRole(role, consentTarget)).toBe(consentTarget);
     }
+
+    expect(getPostAuthTargetForRole("commercial", consentTarget)).toBe(
+      "https://commercial.thetok.ch/commercial",
+    );
   });
 
   it("does not treat invalid or cross-origin consent targets as OAuth continuations", () => {
@@ -47,4 +51,3 @@ describe("post-auth role routing", () => {
     expect(getPostAuthTargetForRole("courier", "/recherche?q=sushi")).toBe("/courier");
   });
 });
-

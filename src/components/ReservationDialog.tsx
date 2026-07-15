@@ -40,7 +40,13 @@ import {
 import { createReservationWithValidation } from "@/lib/reservationMutations";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { createCommercialDemoReservation } from "@/lib/commercialDemoJourney";
-import { detectServiceFromTime, getConfiguredServiceSettings, isTimeWithinService } from "@/lib/serviceSettings";
+import {
+  DEFAULT_SERVICE_SETTINGS,
+  detectServiceFromTime,
+  generateDailyTimeSlots,
+  getConfiguredServiceSettings,
+  isTimeWithinService,
+} from "@/lib/serviceSettings";
 import { buildZeroAttenteReservationUrl } from "@/lib/zeroAttenteReservationContext";
 
 const supabase = getSupabase();
@@ -113,6 +119,8 @@ export default function ReservationDialog({
 }: ReservationDialogProps) {
   const { user } = useAuth();
   const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
+  const demoSessionKey = isCommercialDemoClient ? commercialDemoFrame.config.sessionId : "production";
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -162,8 +170,9 @@ export default function ReservationDialog({
   }, [step, zeroWaitEnabled]);
 
   const { data: profile } = useQuery({
-    queryKey: ["profile-loyalty", user?.id],
+    queryKey: ["profile-loyalty", user?.id, demoSessionKey],
     queryFn: async () => {
+      if (isCommercialDemoClient) return { loyalty_points: 0 };
       const { data } = await supabase.from("profiles" as any).select("loyalty_points").eq("user_id", user?.id).single();
       return data as any;
     },
@@ -174,8 +183,9 @@ export default function ReservationDialog({
   const earnedXp = 100;
 
   const { data: initialProgressiveOffer } = useQuery({
-    queryKey: ["reservation-progressive-offer", restaurantId, progressiveOfferId],
+    queryKey: ["reservation-progressive-offer", restaurantId, progressiveOfferId, demoSessionKey],
     queryFn: async () => {
+      if (isCommercialDemoClient) return null;
       if (!progressiveOfferId) return null;
       const { data, error } = await (supabase.from("reservation_progressive_offers" as any) as any)
         .select("*")
@@ -202,8 +212,9 @@ export default function ReservationDialog({
   }, [initialProgressiveOffer, open]);
 
   const { data: promos = [], isLoading: isPromosLoading } = useQuery({
-    queryKey: ["reservation-promos", restaurantId, date ? format(date, "yyyy-MM-dd") : null, time, user?.id || null, progressiveOfferId || null],
+    queryKey: ["reservation-promos", restaurantId, date ? format(date, "yyyy-MM-dd") : null, time, user?.id || null, progressiveOfferId || null, demoSessionKey],
     queryFn: async () => {
+      if (isCommercialDemoClient) return [] as PromoOffer[];
       const reservationDate = date ? format(date, "yyyy-MM-dd") : undefined;
 
       const { data, error } = await supabase
@@ -306,8 +317,9 @@ export default function ReservationDialog({
   });
 
   const { data: restaurantSettings } = useQuery({
-    queryKey: ["restaurant-service-settings", restaurantId],
+    queryKey: ["restaurant-service-settings", restaurantId, demoSessionKey],
     queryFn: async () => {
+      if (isCommercialDemoClient) return DEFAULT_SERVICE_SETTINGS;
       const { data, error } = await supabase.from("restaurants").select("opening_hours").eq("id", restaurantId).maybeSingle();
       if (error) throw error;
       return getConfiguredServiceSettings(data?.opening_hours);
@@ -318,10 +330,32 @@ export default function ReservationDialog({
   const selectedDateKey = date ? format(date, "yyyy-MM-dd") : null;
   const normalizedInitialTime = initialTime?.slice(0, 5);
 
-  const { data: slotAvailability = [], isLoading: isSlotAvailabilityLoading } = useQuery({
-    queryKey: ["reservation-slot-availability", restaurantId, selectedDateKey],
+  const { data: slotAvailability = [], isLoading: isSlotAvailabilityLoading } = useQuery<SlotAvailabilityRow[]>({
+    queryKey: ["reservation-slot-availability", restaurantId, selectedDateKey, demoSessionKey],
     queryFn: async () => {
       if (!selectedDateKey) return [] as SlotAvailabilityRow[];
+      if (isCommercialDemoClient) {
+        const occupiedByTime = new Map<string, number>();
+        commercialDemoFrame.snapshot.reservations
+          .filter((reservation) => reservation.reservation_date === selectedDateKey)
+          .filter((reservation) => !["cancelled", "no_show"].includes(reservation.status))
+          .forEach((reservation) => {
+            const slotTime = String(reservation.reservation_time || "").slice(0, 5);
+            occupiedByTime.set(slotTime, (occupiedByTime.get(slotTime) || 0) + 1);
+          });
+        return generateDailyTimeSlots(DEFAULT_SERVICE_SETTINGS).all.map((slotTime) => {
+          const reservedTables = occupiedByTime.get(slotTime) || 0;
+          const capacity = DEFAULT_SERVICE_SETTINGS[detectServiceFromTime(slotTime)].max_tables_per_slot;
+          const remainingTables = Math.max(0, capacity - reservedTables);
+          return {
+            slot_time: slotTime,
+            reserved_tables: reservedTables,
+            capacity,
+            remaining_tables: remainingTables,
+            available: remainingTables > 0,
+          } satisfies SlotAvailabilityRow;
+        });
+      }
 
       const { data, error } = await (supabase.rpc as any)("get_restaurant_reservation_slot_availability", {
         p_restaurant_id: restaurantId,

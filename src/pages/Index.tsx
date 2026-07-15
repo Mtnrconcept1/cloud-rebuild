@@ -19,6 +19,8 @@ import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { useCart } from "@/lib/cart-context";
 import { useActiveFeatures } from "@/lib/featureFlags";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
+import { getCommercialDemoClientRestaurants } from "@/lib/commercialDemoClientCatalog";
 import { getActiveSponsoredRestaurants, setAnalyticsUser, trackEvent } from "@/lib/analytics";
 import {
   formatProgressiveCountdown,
@@ -155,7 +157,19 @@ const sectionBounce = {
 export default function Index() {
   const { user } = useAuth();
   const { itemCount } = useCart();
-  const activeFeatures = useActiveFeatures();
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
+  const demoSessionKey = isCommercialDemoClient ? commercialDemoFrame.config.sessionId : "production";
+  const globalActiveFeatures = useActiveFeatures({ enabled: !isCommercialDemoClient });
+  const activeFeatures = isCommercialDemoClient
+    ? new Set(commercialDemoFrame.snapshot.active_features)
+    : globalActiveFeatures;
+  const demoRestaurants = useMemo(
+    () => isCommercialDemoClient
+      ? getCommercialDemoClientRestaurants(commercialDemoFrame.snapshot).map(mapSearchRailRestaurant)
+      : [],
+    [commercialDemoFrame, isCommercialDemoClient],
+  );
   const deliveryEnabled = activeFeatures.has("livraison");
   const campaignsEnabled = activeFeatures.has("campagnes-pub");
   const [isVisible, setIsVisible] = useState(false);
@@ -198,20 +212,22 @@ export default function Index() {
   }, [shouldLoadMap]);
 
   useEffect(() => {
+    if (isCommercialDemoClient) return;
     setAnalyticsUser(user?.id || null);
     if (user) trackEvent({ eventType: "page_view", eventData: { page: "home" } });
-  }, [user]);
+  }, [isCommercialDemoClient, user]);
 
   const { data: sponsoredCampaigns } = useQuery({
-    queryKey: ["sponsored-home"],
+    queryKey: ["sponsored-home", demoSessionKey],
     queryFn: () => getActiveSponsoredRestaurants("home", "restaurant_cards"),
-    enabled: campaignsEnabled,
+    enabled: campaignsEnabled && !isCommercialDemoClient,
   });
 
   const { data: allRestaurants } = useQuery({
-    queryKey: ["all-restaurants-map"],
+    queryKey: ["all-restaurants-map", demoSessionKey],
     enabled: shouldLoadMap,
     queryFn: async () => {
+      if (isCommercialDemoClient) return demoRestaurants;
       const { data } = await supabase
         .from("restaurants")
         .select("id, name, cuisine_type, rating, city, address, image_url")
@@ -223,23 +239,34 @@ export default function Index() {
   });
 
   const { data: lunchRail = [] } = useQuery({
-    queryKey: ["home-rail-lunch", deliveryEnabled],
-    queryFn: () => fetchHomeRail({ sortBy: "popularite", deliveryOnly: deliveryEnabled, limit: 4 }),
+    queryKey: ["home-rail-lunch", deliveryEnabled, demoSessionKey],
+    queryFn: () => isCommercialDemoClient
+      ? demoRestaurants
+      : fetchHomeRail({ sortBy: "popularite", deliveryOnly: deliveryEnabled, limit: 4 }),
   });
 
   const { data: dinnerRail = [] } = useQuery({
-    queryKey: ["home-rail-dinner"],
-    queryFn: () => fetchHomeRail({ sortBy: "plus_reserves_mois", limit: 4 }),
+    queryKey: ["home-rail-dinner", demoSessionKey],
+    queryFn: () => isCommercialDemoClient
+      ? demoRestaurants
+      : fetchHomeRail({ sortBy: "plus_reserves_mois", limit: 4 }),
   });
 
   const { data: offersRail = [] } = useQuery({
-    queryKey: ["home-rail-offers"],
-    queryFn: () => fetchHomeRail({ sortBy: "promotion", limit: 4 }),
+    queryKey: ["home-rail-offers", demoSessionKey],
+    queryFn: () => isCommercialDemoClient
+      ? demoRestaurants
+      : fetchHomeRail({ sortBy: "promotion", limit: 4 }),
   });
 
-  const { data: progressiveOffers = [] } = useQuery({
+  const progressiveOffersBaseQuery = {
     queryKey: ["home-progressive-reservation-offers", todayServiceDate],
+  };
+
+  const { data: progressiveOffers = [] } = useQuery({
+    queryKey: [...progressiveOffersBaseQuery.queryKey, demoSessionKey],
     queryFn: async () => {
+      if (isCommercialDemoClient) return [] as ProgressiveReservationOffer[];
       const { data, error } = await (supabase.from(PROGRESSIVE_OFFERS_TABLE as any) as any)
         .select(`
           *,
@@ -273,14 +300,25 @@ export default function Index() {
   );
 
   const { data: trendingRail = [] } = useQuery({
-    queryKey: ["home-rail-trending"],
-    queryFn: () => fetchHomeRail({ sortBy: "note", limit: 6 }),
+    queryKey: ["home-rail-trending", demoSessionKey],
+    queryFn: () => isCommercialDemoClient
+      ? demoRestaurants
+      : fetchHomeRail({ sortBy: "note", limit: 6 }),
   });
 
   const { data: userContext } = useQuery({
-    queryKey: ["home-user-context", user?.id],
-    enabled: !!user?.id,
+    queryKey: ["home-user-context", user?.id, demoSessionKey],
+    enabled: Boolean(isCommercialDemoClient || user?.id),
     queryFn: async () => {
+      if (isCommercialDemoClient) {
+        const demoOrder = commercialDemoFrame.snapshot.order;
+        return {
+          city: commercialDemoFrame.snapshot.demo_restaurant.city || "Genève",
+          fullName: demoOrder?.customer_name || "Client Démo",
+          phone: "",
+          personalRestaurants: demoRestaurants,
+        };
+      }
       const [profileResponse, favoritesResponse, ordersResponse, reservationsResponse] = await Promise.all([
         supabase.from("profiles").select("city, full_name, phone").eq("user_id", user!.id).maybeSingle(),
         supabase
@@ -354,14 +392,17 @@ export default function Index() {
   });
 
   const { data: cityRail = [] } = useQuery({
-    queryKey: ["home-rail-city", userContext?.city || ""],
+    queryKey: ["home-rail-city", userContext?.city || "", demoSessionKey],
     enabled: Boolean(userContext?.city),
-    queryFn: () => fetchHomeRail({ city: userContext?.city || null, sortBy: "popularite", limit: 4 }),
+    queryFn: () => isCommercialDemoClient
+      ? demoRestaurants
+      : fetchHomeRail({ city: userContext?.city || null, sortBy: "popularite", limit: 4 }),
   });
 
   const { data: donatedPoints = 0 } = useQuery({
-    queryKey: ["donated-points-total"],
+    queryKey: ["donated-points-total", demoSessionKey],
     queryFn: async () => {
+      if (isCommercialDemoClient) return 0;
       const { data, error } = await (supabase as any).rpc("get_total_donated_points");
       if (error) throw error;
       return Number(data) || 0;
@@ -508,9 +549,11 @@ export default function Index() {
     <main className="min-h-screen pb-20">
       <HeroSection contentVisible={isVisible} />
       <CuisineCategoryStrip />
-      <section className="container py-4">
-        <CampaignBanner page="home" maxBanners={1} />
-      </section>
+      {!isCommercialDemoClient ? (
+        <section className="container py-4">
+          <CampaignBanner page="home" maxBanners={1} />
+        </section>
+      ) : null}
 
       {visibleProgressiveOffers.length > 0 ? (
         <section className="container py-4" aria-labelledby="progressive-offers-title">
@@ -653,7 +696,7 @@ export default function Index() {
           </motion.div>
         ) : null}
 
-        {user ? (
+        {user && !isCommercialDemoClient ? (
           <motion.div variants={sectionBounce}>
             <section className="bg-gradient-to-b from-background to-secondary/10 py-8">
               <div className="container">
@@ -732,7 +775,11 @@ export default function Index() {
                 titleClassName="text-[1.9rem] leading-[1.05] sm:text-4xl md:text-5xl"
               />
               <div className="space-y-4">
-                <PromoCarousel />
+                {isCommercialDemoClient ? (
+                  <div className="rounded-2xl border border-dashed bg-background/80 p-5 text-sm text-muted-foreground">
+                    Les promotions de démonstration restent limitées au restaurant simulé.
+                  </div>
+                ) : <PromoCarousel />}
               </div>
             </div>
           </section>

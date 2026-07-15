@@ -2,6 +2,10 @@ import { getSupabase } from "@/integrations/supabase/client";
 import type { TokImageModel, TokImageOutputResolution } from "@/lib/ai/imagePricing";
 import { SUPABASE_URL } from "@/lib/env";
 import { fetchWithFreshAccessToken, invokeSupabaseFunction } from "@/lib/session";
+import {
+  generateCommercialDemoVisual,
+  getCommercialDemoAiRuntime,
+} from "@/lib/commercialDemoAi";
 
 const supabase = getSupabase();
 
@@ -89,6 +93,14 @@ export type TokImageGenerationRequest = {
   generateImage?: boolean;
   imageOnly?: boolean;
   marketingAssetMode?: boolean;
+  styleMode?: string | null;
+  demoReferencePalette?: {
+    primaryColor: string;
+    secondaryColor: string;
+    backgroundColor: string;
+    fingerprint: string;
+    label: string;
+  } | null;
 };
 
 export type TokImageGenerationResult = {
@@ -116,6 +128,7 @@ export type TokImageGenerationResult = {
   estimated_cost_chf?: number;
   image_mode?: "interactive_fast" | "configured";
   generation_seed?: string | null;
+  created_at?: string;
   reference_folder: string;
   status: "generated" | "stored";
 };
@@ -458,6 +471,10 @@ export async function streamRestaurantAdvisor(request: RestaurantAdvisorStreamRe
 }
 
 export function generateTokDishImage(request: TokImageGenerationRequest) {
+  const commercialDemoRuntime = getCommercialDemoAiRuntime();
+  if (commercialDemoRuntime) {
+    return generateCommercialDemoVisual(commercialDemoRuntime, request);
+  }
   return invokeTokAiFunction<TokImageGenerationResult>("ai-image-enhance", {
     ...request,
     assetType: request.assetType || "menu_visual",

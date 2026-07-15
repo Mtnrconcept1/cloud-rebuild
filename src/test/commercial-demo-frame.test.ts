@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildCommercialDemoFrameUrl,
   getCommercialDemoFrameRole,
+  isCommercialDemoFrameMessage,
   isCommercialDemoFrameEscapeMessage,
   isCommercialDemoFrameNavigateMessage,
   isCommercialDemoFrameStateMessage,
@@ -72,6 +73,18 @@ describe("commercial demo browser frames", () => {
     expect(isCommercialDemoFrameEscapeMessage(message)).toBe(true);
     expect(isCommercialDemoFrameEscapeMessage({ ...message, surface: "admin" })).toBe(false);
     expect(isCommercialDemoFrameEscapeMessage({ ...message, sessionId: "invalid" })).toBe(false);
+  });
+
+  it("relays checkout navigation only with a Stripe Test session", () => {
+    const message = {
+      type: "commercial-demo:open-checkout",
+      sessionId,
+      stripeSessionId: "cs_test_demo_123",
+      checkoutUrl: "https://checkout.stripe.com/c/pay/cs_test_demo_123",
+    };
+    expect(isCommercialDemoFrameMessage(message)).toBe(true);
+    expect(isCommercialDemoFrameMessage({ ...message, stripeSessionId: "cs_live_demo_123" })).toBe(false);
+    expect(isCommercialDemoFrameMessage({ ...message, stripeSessionId: "" })).toBe(false);
   });
 
   it("accepts only same-session relative frame navigation commands", () => {

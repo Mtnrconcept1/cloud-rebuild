@@ -1,6 +1,7 @@
 import {
   HttpError,
   authenticateRequest,
+  assertProductionFlowAllowed,
   createAdminClient,
   jsonResponse,
   writeAuditLog,
@@ -25,6 +26,7 @@ Deno.serve(async (req) => {
     if (!actor.userId) {
       throw new HttpError(401, "Unauthorized");
     }
+    await assertProductionFlowAllowed(actor, "réservation Table du Chef réelle");
 
     const body = await req.json().catch(() => ({}));
     sessionId = typeof body?.session_id === "string" ? body.session_id.trim() : "";
@@ -110,3 +112,4 @@ Deno.serve(async (req) => {
     );
   }
 });
+

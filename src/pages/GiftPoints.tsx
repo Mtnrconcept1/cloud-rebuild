@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import LoyaltyStatus from "@/components/LoyaltyStatus";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 
 const supabase = getSupabase();
 
@@ -46,11 +47,23 @@ type GiftClaimResult = {
   reason?: string;
 };
 
+type GiftHistoryItem = {
+  id: string;
+  recipient_email?: string;
+  points_amount: number;
+  message?: string | null;
+  status: "pending" | "claimed" | "expired";
+  created_at: string;
+  claimed_at?: string | null;
+};
+
 export default function GiftPoints() {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
 
   // Send flow states
   const [step, setStep] = useState<Step>("choose");
@@ -62,9 +75,12 @@ export default function GiftPoints() {
 
   // Claim flow
   const [claimCode, setClaimCode] = useState("");
+  const [demoBalance, setDemoBalance] = useState(2_500);
+  const [demoSentGifts, setDemoSentGifts] = useState<GiftHistoryItem[]>([]);
+  const [demoReceivedGifts, setDemoReceivedGifts] = useState<GiftHistoryItem[]>([]);
 
   // Fetch user profile for points balance
-  const { data: profile } = useQuery({
+  const profileQuery = useQuery({
     queryKey: ["profile-loyalty", user?.id],
     queryFn: async () => {
       const { data } = await supabase
@@ -74,22 +90,25 @@ export default function GiftPoints() {
         .single();
       return data as any;
     },
-    enabled: !!user,
+    enabled: Boolean(user && !isCommercialDemoClient),
   });
+  const profile = isCommercialDemoClient
+    ? { loyalty_points: demoBalance, current_tier: "bronze", full_name: "Client démo" }
+    : profileQuery.data;
 
   // Fetch gift stats
-  const { data: giftStats } = useQuery({
+  const giftStatsQuery = useQuery({
     queryKey: ["gift-stats", user?.id],
     queryFn: async () => {
       const { data, error } = await (supabase.rpc as any)("get_gift_stats");
       if (error) throw error;
       return data;
     },
-    enabled: !!user,
+    enabled: Boolean(user && !isCommercialDemoClient),
   });
 
   // Fetch sent gifts
-  const { data: sentGifts } = useQuery({
+  const sentGiftsQuery = useQuery({
     queryKey: ["gifts-sent", user?.id],
     queryFn: async () => {
       const { data } = await supabase
@@ -100,11 +119,11 @@ export default function GiftPoints() {
         .limit(20);
       return data || [];
     },
-    enabled: !!user,
+    enabled: Boolean(user && !isCommercialDemoClient),
   });
 
   // Fetch received gifts
-  const { data: receivedGifts } = useQuery({
+  const receivedGiftsQuery = useQuery({
     queryKey: ["gifts-received", user?.id],
     queryFn: async () => {
       const { data } = await supabase
@@ -115,12 +134,35 @@ export default function GiftPoints() {
         .limit(20);
       return data || [];
     },
-    enabled: !!user,
+    enabled: Boolean(user && !isCommercialDemoClient),
   });
+
+  const sentGifts = isCommercialDemoClient ? demoSentGifts : sentGiftsQuery.data;
+  const receivedGifts = isCommercialDemoClient ? demoReceivedGifts : receivedGiftsQuery.data;
+  const giftStats = isCommercialDemoClient
+    ? {
+      gifts_sent_count: demoSentGifts.length,
+      gifts_received_count: demoReceivedGifts.length,
+      points_sent: demoSentGifts.reduce((total, gift) => total + gift.points_amount, 0),
+      pending_gifts: demoSentGifts.filter((gift) => gift.status === "pending").length,
+    }
+    : giftStatsQuery.data;
 
   // Send gift mutation
   const sendGiftMutation = useMutation({
     mutationFn: async () => {
+      if (isCommercialDemoClient) {
+        const giftId = `demo-gift-${Date.now()}`;
+        const claimCode = `TOK-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+        return {
+          ok: true,
+          gift_id: giftId,
+          claim_code: claimCode,
+          debited_points: amount,
+          recipient_points: 0,
+          expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1_000).toISOString(),
+        } satisfies GiftSendResult;
+      }
       const { data, error } = await (supabase.rpc as any)("send_gift_points_v2", {
         recipient_email_param: recipientEmail.trim().toLowerCase(),
         points_param: amount,
@@ -134,6 +176,17 @@ export default function GiftPoints() {
       return result;
     },
     onSuccess: (result: GiftSendResult) => {
+      if (isCommercialDemoClient) {
+        setDemoBalance((balance) => Math.max(0, balance - amount));
+        setDemoSentGifts((gifts) => [{
+          id: result.gift_id,
+          recipient_email: recipientEmail.trim().toLowerCase(),
+          points_amount: amount,
+          message,
+          status: "pending",
+          created_at: new Date().toISOString(),
+        }, ...gifts]);
+      }
       queryClient.invalidateQueries({ queryKey: ["profile-loyalty"] });
       queryClient.invalidateQueries({ queryKey: ["gift-stats"] });
       queryClient.invalidateQueries({ queryKey: ["gifts-sent"] });
@@ -157,6 +210,9 @@ export default function GiftPoints() {
   // Claim gift mutation
   const claimGiftMutation = useMutation({
     mutationFn: async () => {
+      if (isCommercialDemoClient) {
+        return { ok: true, claimed_points: 250 } satisfies GiftClaimResult;
+      }
       const { data, error } = await (supabase.rpc as any)("claim_gift_points_v2", {
         claim_code_param: claimCode.trim().toLowerCase(),
       });
@@ -169,6 +225,17 @@ export default function GiftPoints() {
     },
     onSuccess: (result: GiftClaimResult) => {
       const pointsClaimed = result.claimed_points;
+      if (isCommercialDemoClient) {
+        setDemoBalance((balance) => balance + pointsClaimed);
+        setDemoReceivedGifts((gifts) => [{
+          id: `demo-claimed-${Date.now()}`,
+          points_amount: pointsClaimed,
+          message: "Cadeau de démonstration",
+          status: "claimed",
+          created_at: new Date().toISOString(),
+          claimed_at: new Date().toISOString(),
+        }, ...gifts]);
+      }
       queryClient.invalidateQueries({ queryKey: ["profile-loyalty"] });
       queryClient.invalidateQueries({ queryKey: ["gift-stats"] });
       queryClient.invalidateQueries({ queryKey: ["gifts-received"] });
@@ -233,7 +300,12 @@ export default function GiftPoints() {
         </div>
 
         {/* Loyalty Status */}
-        <LoyaltyStatus />
+        <LoyaltyStatus
+          demoPoints={isCommercialDemoClient ? demoBalance : undefined}
+          onDemoPointsAwarded={isCommercialDemoClient
+            ? (points) => setDemoBalance((balance) => balance + points)
+            : undefined}
+        />
 
         {/* Gift Stats */}
         {giftStats && (

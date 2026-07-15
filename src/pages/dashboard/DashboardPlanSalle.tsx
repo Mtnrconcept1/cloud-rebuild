@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 
 import DashboardLayout from "@/components/DashboardLayout";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import type { AIFloorPlanResult } from "@/components/floor-plan/FloorPlanAIPanel";
 import SimpleReservationQueue from "@/components/floor-plan/SimpleReservationQueue";
 import ServiceBoard from "@/components/floor-plan/ServiceBoard";
@@ -104,6 +105,14 @@ import {
 import { updateRestaurantReservationStatus } from "@/lib/reservationMutations";
 import { getServicePeriodFromMetadata, getServicePeriodLabel } from "@/lib/serviceSettings";
 import { cn } from "@/lib/utils";
+import {
+  readCommercialDemoToolState,
+  writeCommercialDemoToolState,
+} from "@/lib/commercialDemoRestaurantTools";
+import {
+  transitionCommercialDemoReservation,
+  type CommercialDemoReservationTransitionAction,
+} from "@/lib/commercialDemoJourney";
 
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
 
@@ -246,6 +255,124 @@ const EMPTY_RESERVATIONS: ReservationWithCustomer[] = [];
 const EMPTY_SLOTS: SlotRow[] = [];
 const EMPTY_LAYOUT_OVERRIDES: LayoutOverrideRow[] = [];
 const EMPTY_FLOOR_PLAN_VARIANTS: FloorPlanVariantRow[] = [];
+
+function buildCommercialDemoBranch(restaurantId: string, restaurant: Record<string, unknown>): BranchRow {
+  return {
+    id: restaurantId,
+    restaurant_id: restaurantId,
+    name: "Salle Démo principale",
+    address: typeof restaurant.address === "string" ? restaurant.address : "18 rue de la Démonstration",
+    city: typeof restaurant.city === "string" ? restaurant.city : "Genève",
+    postal_code: typeof restaurant.postal_code === "string" ? restaurant.postal_code : "1204",
+    country: typeof restaurant.country === "string" ? restaurant.country : DEFAULT_COUNTRY,
+    is_active: true,
+    created_at: "2026-07-15T08:00:00.000Z",
+  };
+}
+
+function buildCommercialDemoTables(branchId: string): TableRow[] {
+  return [
+    { id: `${branchId}-t1`, branch_id: branchId, table_number: "Table 1", capacity: 2, is_active: true, sector: DEFAULT_SECTOR, layout: null },
+    { id: `${branchId}-t2`, branch_id: branchId, table_number: "Table 2", capacity: 2, is_active: true, sector: DEFAULT_SECTOR, layout: null },
+    { id: `${branchId}-t3`, branch_id: branchId, table_number: "Table 3", capacity: 4, is_active: true, sector: DEFAULT_SECTOR, layout: null },
+    { id: `${branchId}-t4`, branch_id: branchId, table_number: "Table 4", capacity: 4, is_active: true, sector: DEFAULT_SECTOR, layout: null },
+    { id: `${branchId}-t5`, branch_id: branchId, table_number: "Table 5", capacity: 6, is_active: true, sector: "Terrasse", layout: null },
+    { id: `${branchId}-t6`, branch_id: branchId, table_number: "Table 6", capacity: 8, is_active: true, sector: "Terrasse", layout: null },
+  ];
+}
+
+type CommercialDemoFloorPlanAiAction = "generate" | "optimize" | "suggest-furniture" | "custom";
+
+function buildCommercialDemoFloorPlanAiResult(input: {
+  action: CommercialDemoFloorPlanAiAction;
+  currentTables: DraftTable[];
+  canvasWidth: number;
+  canvasHeight: number;
+  prompt?: string;
+}): AIFloorPlanResult {
+  const prompt = String(input.prompt || "").trim();
+  const inferredAction: CommercialDemoFloorPlanAiAction = input.action === "custom"
+    ? /mobilier|plante|bar|séparateur|separateur/i.test(prompt)
+      ? "suggest-furniture"
+      : input.currentTables.length > 0
+        ? "optimize"
+        : "generate"
+    : input.action;
+  const shouldGenerate = inferredAction === "generate" || input.currentTables.length === 0;
+  const sourceTables = shouldGenerate
+    ? Array.from({ length: 6 }, (_, index) => ({
+      table_number: `Table ${index + 1}`,
+      capacity: index < 2 ? 2 : index < 5 ? 4 : 6,
+      kind: "table",
+      shape: index % 3 === 0 ? "round" as const : "rect" as const,
+      seatType: "chair",
+      seatPlacements: undefined,
+      seatLabels: Array.from({ length: index < 2 ? 2 : index < 5 ? 4 : 6 }, (_value, seatIndex) => seatIndex + 1),
+    }))
+    : input.currentTables.map((table) => ({
+      table_number: table.table_number,
+      capacity: table.capacity,
+      kind: table.layout.kind,
+      shape: table.layout.shape,
+      seatType: table.layout.seatType,
+      seatPlacements: table.layout.seatPlacements,
+      seatLabels: table.layout.seatLabels || [],
+    }));
+  const columns = Math.max(1, Math.min(3, Math.ceil(Math.sqrt(sourceTables.length))));
+  const horizontalGap = Math.max(150, Math.floor((input.canvasWidth - 120) / columns));
+  const verticalGap = Math.max(130, Math.floor((input.canvasHeight - 120) / Math.max(1, Math.ceil(sourceTables.length / columns))));
+  const tables: AIFloorPlanResult["tables"] = sourceTables.map((table, index) => ({
+    ...table,
+    x: 50 + (index % columns) * horizontalGap,
+    y: 50 + Math.floor(index / columns) * verticalGap,
+    w: table.shape === "round" ? 112 : Math.max(130, table.capacity * 28),
+    h: table.shape === "round" ? 112 : 96,
+    rotation: 0,
+  }));
+
+  if (inferredAction === "suggest-furniture") {
+    tables.push(
+      {
+        table_number: "Bar Démo",
+        capacity: 0,
+        kind: "bar",
+        shape: "rect",
+        seatType: undefined,
+        seatPlacements: undefined,
+        seatLabels: [],
+        x: Math.max(40, input.canvasWidth - 300),
+        y: 40,
+        w: 230,
+        h: 72,
+        rotation: 0,
+      },
+      {
+        table_number: "Plante Démo",
+        capacity: 0,
+        kind: "plant",
+        shape: "round",
+        seatType: undefined,
+        seatPlacements: undefined,
+        seatLabels: [],
+        x: Math.max(40, input.canvasWidth - 130),
+        y: Math.max(40, input.canvasHeight - 130),
+        w: 72,
+        h: 72,
+        rotation: 0,
+      },
+    );
+  }
+
+  return {
+    tables,
+    explanation: prompt
+      ? `Disposition Démo créée localement selon la demande « ${prompt.slice(0, 140)} ».`
+      : "Disposition Démo calculée localement pour équilibrer capacités, circulation et zones de service.",
+    source: input.action,
+    variantName: `Plan Démo zéro coût - ${new Date().toLocaleTimeString("fr-CH", { hour: "2-digit", minute: "2-digit" })}`,
+    analysis: { engine: "tok-demo-floor-plan-local-v1", zero_cost: true, production_data: false },
+  };
+}
 
 const isJsonRecord = (value: Json): value is Record<string, Json> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -873,6 +1000,9 @@ function getPersistableCapacity(table: DraftTable) {
 }
 
 export default function DashboardPlanSalle() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemo = commercialDemoFrame?.surface === "restaurant";
+  const commercialDemoSessionId = commercialDemoFrame?.config.sessionId || null;
   const { selectedId, restaurants, loading: restaurantsLoading, error: restaurantsError } = useDashboardRestaurant();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -952,6 +1082,8 @@ export default function DashboardPlanSalle() {
   const [tableConfigDialogOpen, setTableConfigDialogOpen] = useState(false);
   const [pendingPresetId, setPendingPresetId] = useState<string | null>(null);
   const [editingSeatingTableId, setEditingSeatingTableId] = useState<string | null>(null);
+  const [demoAiPrompt, setDemoAiPrompt] = useState("");
+  const [demoReservationStatusOverrides, setDemoReservationStatusOverrides] = useState<Record<string, string>>({});
 
   const selectedRestaurant = restaurants.find((restaurant) => restaurant.id === selectedId) || null;
   const canUndoFloorPlan = floorPlanHistory.past.length > 0;
@@ -1016,9 +1148,24 @@ export default function DashboardPlanSalle() {
     selectedTableIdRef.current = selectedTableId;
   }, [selectedTableId]);
 
+  useEffect(() => {
+    if (!isCommercialDemo || !commercialDemoSessionId) {
+      setDemoReservationStatusOverrides({});
+      return;
+    }
+    setDemoReservationStatusOverrides(readCommercialDemoToolState<Record<string, string>>(
+      commercialDemoSessionId,
+      "floor-plan-reservation-statuses",
+      {},
+    ));
+  }, [commercialDemoSessionId, isCommercialDemo]);
+
   const { data: restaurantDetails } = useQuery({
-    queryKey: ["floor-plan-restaurant", selectedId],
+    queryKey: ["floor-plan-restaurant", selectedId, commercialDemoFrame?.config.sessionId || "live"],
     queryFn: async () => {
+      if (isCommercialDemo && commercialDemoFrame) {
+        return commercialDemoFrame.snapshot.demo_restaurant as unknown as Record<string, unknown>;
+      }
       const { data, error } = await supabase.from("restaurants").select("*").eq("id", selectedId!).single();
       if (error) throw error;
       return data as Record<string, unknown>;
@@ -1027,8 +1174,14 @@ export default function DashboardPlanSalle() {
   });
 
   const { data: branchesData, isLoading: branchesLoading, error: branchesError } = useQuery({
-    queryKey: ["floor-plan-branches", selectedId],
+    queryKey: ["floor-plan-branches", selectedId, commercialDemoFrame?.config.sessionId || "live"],
     queryFn: async () => {
+      if (isCommercialDemo && commercialDemoFrame) {
+        return [buildCommercialDemoBranch(
+          commercialDemoFrame.snapshot.demo_restaurant.id,
+          commercialDemoFrame.snapshot.demo_restaurant as unknown as Record<string, unknown>,
+        )];
+      }
       const { data, error } = await (supabase.from("restaurant_branches" as any))
         .select("*")
         .eq("restaurant_id", selectedId!)
@@ -1043,8 +1196,15 @@ export default function DashboardPlanSalle() {
   const selectedBranch = branches.find((branch) => branch.id === selectedBranchId) || null;
 
   const { data: floorPlanVariantsData, error: floorPlanVariantsError } = useQuery({
-    queryKey: ["floor-plan-variants", selectedBranchId],
+    queryKey: ["floor-plan-variants", selectedBranchId, commercialDemoFrame?.config.sessionId || "live"],
     queryFn: async () => {
+      if (isCommercialDemo && commercialDemoFrame) {
+        return readCommercialDemoToolState<FloorPlanVariantRow[]>(
+          commercialDemoFrame.config.sessionId,
+          "floor-plan-variants",
+          [],
+        );
+      }
       const { data, error } = await (supabase.from("floor_plan_variants" as any))
         .select("*")
         .eq("branch_id", selectedBranchId!)
@@ -1060,8 +1220,15 @@ export default function DashboardPlanSalle() {
     : null;
 
   const { data: persistedTablesData, isLoading: tablesLoading, error: tablesError } = useQuery({
-    queryKey: ["floor-plan-tables", selectedBranchId],
+    queryKey: ["floor-plan-tables", selectedBranchId, commercialDemoFrame?.config.sessionId || "live"],
     queryFn: async () => {
+      if (isCommercialDemo && commercialDemoFrame && selectedBranchId) {
+        return readCommercialDemoToolState<TableRow[]>(
+          commercialDemoFrame.config.sessionId,
+          "floor-plan-tables",
+          buildCommercialDemoTables(selectedBranchId),
+        );
+      }
       const { data, error } = await (supabase.from("reservation_tables" as any))
         .select("*")
         .eq("branch_id", selectedBranchId!)
@@ -1074,8 +1241,15 @@ export default function DashboardPlanSalle() {
   const persistedTables = persistedTablesData ?? EMPTY_TABLES;
 
   const { data: layoutOverridesData, error: layoutOverridesError } = useQuery({
-    queryKey: ["floor-plan-layout-overrides", selectedBranchId, referenceDate],
+    queryKey: ["floor-plan-layout-overrides", selectedBranchId, referenceDate, commercialDemoFrame?.config.sessionId || "live"],
     queryFn: async () => {
+      if (isCommercialDemo && commercialDemoFrame) {
+        return readCommercialDemoToolState<LayoutOverrideRow[]>(
+          commercialDemoFrame.config.sessionId,
+          `floor-plan-overrides:${referenceDate}`,
+          [],
+        );
+      }
       const { data, error } = await (supabase.from("reservation_table_layout_overrides" as any))
         .select("*")
         .eq("branch_id", selectedBranchId!)
@@ -1091,10 +1265,41 @@ export default function DashboardPlanSalle() {
     () => getReservationDateQueryBounds(referenceDate, timeRange),
     [referenceDate, timeRange],
   );
+  const floorPlanReservationsBaseQuery = {
+    queryKey: ["floor-plan-reservations", selectedId, referenceDate, timeRange],
+  };
 
   const { data: reservationsData, isLoading: reservationsLoading, error: reservationsError } = useQuery({
-    queryKey: ["floor-plan-reservations", selectedId, referenceDate, timeRange],
+    queryKey: [
+      ...floorPlanReservationsBaseQuery.queryKey,
+      commercialDemoFrame?.config.sessionId || "live",
+      commercialDemoFrame?.snapshot.reservations.map((reservation) => `${reservation.id}:${reservation.version}`).join("|") || "",
+    ],
     queryFn: async () => {
+      if (isCommercialDemo && commercialDemoFrame) {
+        return commercialDemoFrame.snapshot.reservations.map((reservation) => ({
+          id: reservation.id,
+          restaurant_id: commercialDemoFrame.snapshot.demo_restaurant.id,
+          branch_id: commercialDemoFrame.snapshot.demo_restaurant.id,
+          user_id: commercialDemoFrame.snapshot.session.id,
+          date: reservation.reservation_date,
+          time: reservation.reservation_time,
+          party_size: reservation.party_size,
+          status: reservation.status,
+          notes: reservation.notes,
+          feature: "reservation",
+          metadata: {
+            commercial_demo: true,
+            reference: reservation.reference,
+          },
+          created_at: reservation.created_at,
+          updated_at: reservation.updated_at,
+          customer: {
+            full_name: reservation.customer_name,
+            phone: reservation.customer_phone || null,
+          },
+        })) as unknown as ReservationWithCustomer[];
+      }
       let reservationsQuery = supabase
         .from("reservations")
         .select("*")
@@ -1131,7 +1336,19 @@ export default function DashboardPlanSalle() {
     },
     enabled: !!selectedId,
   });
-  const reservations = reservationsData ?? EMPTY_RESERVATIONS;
+  const reservations = useMemo(() => {
+    const source = reservationsData ?? EMPTY_RESERVATIONS;
+    if (!isCommercialDemo) return source;
+    return source.map((reservation) => {
+      const override = demoReservationStatusOverrides[reservation.id];
+      // `seated` is a restaurant-only operational state layered on the server
+      // transition `arrived`; discard it automatically if the shared journey
+      // later moves to another terminal state.
+      return override === "seated" && reservation.status === "arrived"
+        ? { ...reservation, status: "seated" }
+        : reservation;
+    }) as ReservationWithCustomer[];
+  }, [demoReservationStatusOverrides, isCommercialDemo, reservationsData]);
 
   const persistedTableIds = useMemo(() => persistedTables.map((table) => table.id), [persistedTables]);
   const layoutOverridesByTableId = useMemo(
@@ -1155,8 +1372,15 @@ export default function DashboardPlanSalle() {
   ), [editMode, layoutOverridesByTableId, persistedTables]);
 
   const { data: reservationSlotsData, error: slotsError } = useQuery({
-    queryKey: ["floor-plan-slots", selectedBranchId, persistedTableIds.join(",")],
+    queryKey: ["floor-plan-slots", selectedBranchId, persistedTableIds.join(","), commercialDemoFrame?.config.sessionId || "live"],
     queryFn: async () => {
+      if (isCommercialDemo && commercialDemoFrame) {
+        return readCommercialDemoToolState<SlotRow[]>(
+          commercialDemoFrame.config.sessionId,
+          "floor-plan-slots",
+          [],
+        );
+      }
       const { data, error } = await (supabase.from("reservation_slots" as any))
         .select("*")
         .in("table_id", persistedTableIds);
@@ -1807,6 +2031,13 @@ export default function DashboardPlanSalle() {
     mutationFn: async () => {
       if (!selectedId) throw new Error("Aucun restaurant sélectionné.");
 
+      if (isCommercialDemo && commercialDemoFrame) {
+        return buildCommercialDemoBranch(
+          commercialDemoFrame.snapshot.demo_restaurant.id,
+          commercialDemoFrame.snapshot.demo_restaurant as unknown as Record<string, unknown>,
+        );
+      }
+
       const branchCount = branches.length + 1;
       const address = typeof restaurantDetails?.address === "string" && restaurantDetails.address.trim()
         ? restaurantDetails.address.trim()
@@ -1863,6 +2094,23 @@ export default function DashboardPlanSalle() {
 
       const tables = input?.tables ?? draftTables;
       const snapshot = buildFloorPlanVariantSnapshot(tables, canvasWidth, canvasHeight);
+      if (isCommercialDemo && commercialDemoFrame) {
+        const now = new Date().toISOString();
+        const variant: FloorPlanVariantRow = {
+          id: `demo-variant-${Date.now()}`,
+          restaurant_id: selectedId,
+          branch_id: selectedBranchId,
+          name: input?.name?.trim() || (input?.source === "ai-image" ? "Plan IA image Démo" : "Plan enregistré Démo"),
+          source: input?.source || "manual",
+          snapshot,
+          created_by: null,
+          created_at: now,
+          updated_at: now,
+        };
+        const variants = [variant, ...floorPlanVariants.filter((item) => item.id !== variant.id)];
+        writeCommercialDemoToolState(commercialDemoFrame.config.sessionId, "floor-plan-variants", variants);
+        return variant;
+      }
       const {
         data: { user },
         error: userError,
@@ -1911,6 +2159,67 @@ export default function DashboardPlanSalle() {
     mutationFn: async (options?: SaveMutationOptions) => {
       void options;
       if (!selectedBranchId) throw new Error("Sélectionnez d'abord une salle.");
+
+      if (isCommercialDemo && commercialDemoFrame) {
+        const tables = draftTables.map((table) => ({
+          id: table.id,
+          branch_id: selectedBranchId,
+          table_number: table.table_number,
+          capacity: getPersistableCapacity(table),
+          is_active: table.is_active,
+          sector: table.sector,
+          layout: layoutToRecord(table.layout),
+        })) satisfies TableRow[];
+        const slots = Object.entries(draftAssignments).flatMap(([reservationId, tableId]) => tableId ? [{
+          id: `demo-slot-${reservationId}`,
+          reservation_id: reservationId,
+          table_id: tableId,
+          created_at: new Date().toISOString(),
+        }] : []);
+        writeCommercialDemoToolState(commercialDemoFrame.config.sessionId, "floor-plan-slots", slots);
+        if (isTemplateMode) {
+          writeCommercialDemoToolState(commercialDemoFrame.config.sessionId, "floor-plan-tables", tables);
+          queryClient.setQueryData(
+            ["floor-plan-tables", selectedBranchId, commercialDemoFrame.config.sessionId],
+            tables,
+          );
+        } else {
+          const templateLayoutsByTableId = new Map(
+            persistedTables.map((table, index) => [
+              table.id,
+              buildTemplateLayout(table.layout, index, Number.isFinite(Number(table.capacity)) ? Number(table.capacity) : 2),
+            ]),
+          );
+          const now = new Date().toISOString();
+          const overrides = draftTables.flatMap((table) => {
+            const templateLayout = templateLayoutsByTableId.get(table.id);
+            if (!templateLayout || areLayoutsEquivalent(table.layout, templateLayout)) return [];
+            return [{
+              id: `demo-override-${referenceDate}-${table.id}`,
+              reservation_table_id: table.id,
+              branch_id: selectedBranchId,
+              service_date: referenceDate,
+              layout: layoutToRecord(table.layout),
+              created_at: now,
+              updated_at: now,
+            } satisfies LayoutOverrideRow];
+          });
+          writeCommercialDemoToolState(
+            commercialDemoFrame.config.sessionId,
+            `floor-plan-overrides:${referenceDate}`,
+            overrides,
+          );
+          queryClient.setQueryData(
+            ["floor-plan-layout-overrides", selectedBranchId, referenceDate, commercialDemoFrame.config.sessionId],
+            overrides,
+          );
+        }
+        queryClient.setQueryData(
+          ["floor-plan-slots", selectedBranchId, tables.map((table) => table.id).join(","), commercialDemoFrame.config.sessionId],
+          slots,
+        );
+        return { ...draftAssignments };
+      }
 
       const persistAssignments = async (tempIdToPersistedId: Map<string, string>) => {
         const normalizedAssignments = Object.fromEntries(
@@ -2125,6 +2434,69 @@ export default function DashboardPlanSalle() {
 
   const updateReservationStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      if (isCommercialDemo && commercialDemoFrame) {
+        const reservation = commercialDemoFrame.snapshot.reservations.find((item) => item.id === id);
+        if (!reservation) throw new Error("Réservation Démo introuvable.");
+        const localStatus = demoReservationStatusOverrides[id] === "seated" && reservation.status === "arrived"
+          ? "seated"
+          : reservation.status;
+        if (localStatus === status) return { id, status };
+
+        const persistLocalStatus = (nextStatus: string | null) => {
+          setDemoReservationStatusOverrides((current) => {
+            const next = { ...current };
+            if (nextStatus) next[id] = nextStatus;
+            else delete next[id];
+            writeCommercialDemoToolState(
+              commercialDemoFrame.config.sessionId,
+              "floor-plan-reservation-statuses",
+              next,
+            );
+            return next;
+          });
+        };
+
+        if (status === "seated") {
+          if (localStatus === "pending") {
+            throw new Error("Confirmez d'abord la réservation avant d'installer le client.");
+          }
+          if (localStatus === "confirmed") {
+            await transitionCommercialDemoReservation({
+              reservationId: reservation.id,
+              action: "restaurant_mark_arrived",
+              expectedVersion: reservation.version,
+            });
+            await commercialDemoFrame.refresh();
+          } else if (localStatus !== "arrived") {
+            throw new Error("Cette réservation ne peut plus être installée.");
+          }
+          persistLocalStatus("seated");
+          return { id, status: "seated" };
+        }
+
+        const actionByStatus: Partial<Record<string, CommercialDemoReservationTransitionAction>> = {
+          confirmed: "restaurant_confirm",
+          arrived: "restaurant_mark_arrived",
+          no_show: "restaurant_mark_no_show",
+          cancelled: "client_cancel",
+        };
+        const action = actionByStatus[status];
+        if (!action) throw new Error("Cette transition n'est pas disponible dans le parcours Démo.");
+        if (status === "confirmed" && localStatus !== "pending") {
+          throw new Error("Seule une réservation en attente peut être confirmée.");
+        }
+        if (["arrived", "no_show"].includes(status) && localStatus !== "confirmed") {
+          throw new Error("Confirmez d'abord la réservation avant cette action.");
+        }
+        await transitionCommercialDemoReservation({
+          reservationId: reservation.id,
+          action,
+          expectedVersion: reservation.version,
+        });
+        persistLocalStatus(null);
+        await commercialDemoFrame.refresh();
+        return { id, status };
+      }
       const result = await updateRestaurantReservationStatus(id, status);
       if (!result.ok) {
         throw new Error(result.errorMessage);
@@ -2527,6 +2899,19 @@ export default function DashboardPlanSalle() {
       title: "Disposition IA appliquée",
       description: `${newTables.length} éléments placés, ${newTables.reduce((s, t) => s + t.capacity, 0)} couverts au total.`,
     });
+  };
+
+  const runCommercialDemoFloorPlanAi = (action: CommercialDemoFloorPlanAiAction) => {
+    if (!isCommercialDemo) return;
+    const result = buildCommercialDemoFloorPlanAiResult({
+      action,
+      currentTables: draftTables,
+      canvasWidth,
+      canvasHeight,
+      prompt: demoAiPrompt,
+    });
+    applyAILayout(result);
+    if (action === "custom") setDemoAiPrompt("");
   };
 
   const startDraggingTable = (event: React.PointerEvent<HTMLElement>, tableId: string) => {
@@ -3061,11 +3446,12 @@ export default function DashboardPlanSalle() {
                     className="h-11 rounded-xl"
                     onClick={() => {
                       setToolPanelTab("library");
-                    revealResponsivePanel("floor-plan-studio-tools");
-                  }}
-                  disabled={!selectedBranch}
-                >
-                  <Plus className="mr-2 h-4 w-4" />
+                      revealResponsivePanel("floor-plan-studio-tools");
+                    }}
+                    disabled={!selectedBranch}
+                    aria-controls="floor-plan-studio-tools"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
                     Ajouter
                   </Button>
                 </>
@@ -3234,8 +3620,29 @@ export default function DashboardPlanSalle() {
                       <TabsTrigger value="inspector" className="rounded-lg text-xs">Régler</TabsTrigger>
                     </TabsList>
                     <TabsContent value="library" className="mt-3 min-h-0 flex-1 data-[state=inactive]:hidden">
+                      {isCommercialDemo ? (
+                        <div className="mb-3 space-y-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3">
+                          <p className="text-xs font-semibold text-emerald-900">Assistant plan Démo · zéro coût</p>
+                          <div className="grid grid-cols-3 gap-2">
+                            <Button type="button" size="sm" variant="outline" onClick={() => runCommercialDemoFloorPlanAi("generate")}>Générer</Button>
+                            <Button type="button" size="sm" variant="outline" onClick={() => runCommercialDemoFloorPlanAi("optimize")}>Optimiser</Button>
+                            <Button type="button" size="sm" variant="outline" onClick={() => runCommercialDemoFloorPlanAi("suggest-furniture")}>Mobilier</Button>
+                          </div>
+                          <div className="flex gap-2">
+                            <Input
+                              value={demoAiPrompt}
+                              onChange={(event) => setDemoAiPrompt(event.target.value)}
+                              onKeyDown={(event) => {
+                                if (event.key === "Enter" && demoAiPrompt.trim()) runCommercialDemoFloorPlanAi("custom");
+                              }}
+                              placeholder="Décris la disposition souhaitée"
+                            />
+                            <Button type="button" size="sm" disabled={!demoAiPrompt.trim()} onClick={() => runCommercialDemoFloorPlanAi("custom")}>Créer</Button>
+                          </div>
+                        </div>
+                      ) : null}
                       <StudioPalette
-                        selectedId={selectedId}
+                        selectedId={isCommercialDemo ? null : selectedId}
                         selectedSector={selectedSector}
                         sectorOptions={sectorOptions}
                         libraryTab={libraryTab}
@@ -3353,6 +3760,8 @@ export default function DashboardPlanSalle() {
                   variant="outline"
                   className="sticky bottom-3 z-30 h-12 rounded-2xl border-slate-200 bg-white shadow-xl xl:hidden"
                   onClick={() => revealResponsivePanel("floor-plan-reservation-queue")}
+                  aria-controls="floor-plan-reservation-queue"
+                  aria-label={`Afficher les clients : ${unassignedVisibleReservations.length} à placer`}
                 >
                   <Users className="mr-2 h-4 w-4" />
                   Clients ({unassignedVisibleReservations.length} à placer)

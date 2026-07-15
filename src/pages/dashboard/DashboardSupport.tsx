@@ -23,6 +23,7 @@ import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { submitContactSupport } from "@/lib/support/contactSupport";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 
 const supabase = getSupabase();
 
@@ -96,6 +97,8 @@ function getCategoryLabel(category: string) {
 }
 
 export default function DashboardSupport() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemo = commercialDemoFrame?.surface === "restaurant";
   const { toast } = useToast();
   const { user } = useAuth();
   const { selectedId, restaurants } = useDashboardRestaurant();
@@ -134,6 +137,15 @@ export default function DashboardSupport() {
     e.preventDefault();
     if (!subject.trim() || !message.trim()) {
       return toast({ title: "Validation", description: "Veuillez remplir tous les champs.", variant: "destructive" });
+    }
+    if (isCommercialDemo) {
+      toast({
+        title: "Demande simulée",
+        description: "Le parcours support a été validé sans ouvrir d'incident de production.",
+      });
+      setSubject("");
+      setMessage("");
+      return;
     }
     setSending(true);
 

@@ -3,6 +3,31 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 describe("vercel config", () => {
+  it("opens the dedicated commercial host on the isolated workspace", () => {
+    const configPath = path.resolve(process.cwd(), "vercel.json");
+    const config = JSON.parse(readFileSync(configPath, "utf8")) as {
+      redirects?: Array<{
+        source?: string;
+        destination?: string;
+        permanent?: boolean;
+        has?: Array<{ type?: string; value?: string }>;
+      }>;
+    };
+
+    expect(config.redirects).toContainEqual({
+      source: "/",
+      has: [{ type: "host", value: "commercial.thetok.ch" }],
+      destination: "/commercial",
+      permanent: false,
+    });
+
+    // Cross-origin redirects remain in the role-aware browser boundary so it
+    // can strip PKCE codes and legacy URL fragments before changing origins.
+    expect(config.redirects).not.toContainEqual(expect.objectContaining({
+      destination: expect.stringMatching(/^https:\/\/commercial\.thetok\.ch/),
+    }));
+  });
+
   it("routes admin paths through the dedicated admin domain", () => {
     const configPath = path.resolve(process.cwd(), "vercel.json");
     const config = JSON.parse(readFileSync(configPath, "utf8")) as {
@@ -122,6 +147,25 @@ describe("vercel config", () => {
     expect(csp).toContain("https://js.stripe.com");
     expect(csp).toContain("https://hooks.stripe.com");
     expect(globalHeaders.find((header) => header.key === "X-Frame-Options")?.value).toBe("SAMEORIGIN");
+  });
+
+  it("keeps the commercial demo out of search indexes and same-origin framed", () => {
+    const config = JSON.parse(readFileSync(path.resolve(process.cwd(), "vercel.json"), "utf8")) as {
+      headers?: Array<{
+        has?: Array<{ type?: string; value?: string }>;
+        headers?: Array<{ key?: string; value?: string }>;
+      }>;
+    };
+    const commercialHeaders = config.headers?.find((entry) => entry.has?.some(
+      (condition) => condition.type === "host" && condition.value === "commercial.thetok.ch",
+    ))?.headers || [];
+
+    expect(commercialHeaders).toContainEqual({
+      key: "X-Robots-Tag",
+      value: "noindex, nofollow, noarchive",
+    });
+    expect(commercialHeaders).toContainEqual({ key: "Referrer-Policy", value: "no-referrer" });
+    expect(commercialHeaders).toContainEqual({ key: "X-Frame-Options", value: "SAMEORIGIN" });
   });
 
   it("keeps delivery map routing compatible with production CSP and Leaflet cleanup", () => {

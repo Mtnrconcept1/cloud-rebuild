@@ -10,20 +10,32 @@ import { isCaptchaEnabled } from "@/lib/captcha";
 import { SUPPORT_EMAIL } from "@/lib/contact";
 import { submitContactSupport } from "@/lib/support/contactSupport";
 import { useToast } from "@/hooks/use-toast";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 
 export default function Contact() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
   const { toast } = useToast();
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const form = event.currentTarget;
+    if (isCommercialDemoClient) {
+      form.reset();
+      setCaptchaToken(null);
+      toast({
+        title: "Message simulé",
+        description: "Le parcours support a été présenté sans créer de ticket en production.",
+      });
+      return;
+    }
     if (isCaptchaEnabled() && !captchaToken) {
       toast({ title: "Validation requise", description: "Validez le contrôle anti-abus avant d'envoyer.", variant: "destructive" });
       return;
     }
 
-    const form = event.currentTarget;
     const formData = new FormData(form);
     const name = String(formData.get("name") || "");
     const email = String(formData.get("email") || "");
@@ -86,7 +98,7 @@ export default function Contact() {
                 <label className="text-sm font-medium">Message</label>
                 <Textarea name="message" placeholder="Votre message..." className="min-h-[150px]" required />
               </div>
-              <TurnstileCaptcha action="public_contact" onTokenChange={setCaptchaToken} />
+              {!isCommercialDemoClient ? <TurnstileCaptcha action="public_contact" onTokenChange={setCaptchaToken} /> : null}
               <Button type="submit" className="w-full gap-2" disabled={sending}>
                 <Send className="h-4 w-4" /> {sending ? "Envoi..." : "Envoyer"}
               </Button>

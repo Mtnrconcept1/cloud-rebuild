@@ -13,6 +13,17 @@
       "has": [
         {
           "type": "host",
+          "value": "commercial.thetok.ch"
+        }
+      ],
+      "destination": "/commercial",
+      "permanent": false
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
           "value": "admin.thetok.ch"
         }
       ],
@@ -89,15 +100,50 @@
           "value": "SAMEORIGIN"
         }
       ]
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "commercial.thetok.ch"
+        }
+      ],
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        }
+      ]
     }
   ],
   "rewrites": [
     {
       "source": "/mcp",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.thetok.ch"
+        }
+      ],
       "destination": "https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1/tok-connect-mcp"
     },
     {
       "source": "/.well-known/oauth-protected-resource",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.thetok.ch"
+        }
+      ],
       "destination": "https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1/tok-connect-mcp?tok_connect_route=protected-resource"
     },
     {

@@ -1,6 +1,7 @@
 import {
   HttpError,
   authenticateRequest,
+  assertProductionFlowAllowed,
   jsonResponse,
   requireRestaurantAccess,
   writeAuditLog,
@@ -132,6 +133,7 @@ Deno.serve(async (req) => {
   try {
     if (req.method !== "POST") throw new HttpError(405, "Method not allowed");
     actor = await authenticateRequest(req, { allowServiceRole: false });
+    await assertProductionFlowAllowed(actor, "boost publicitaire réel");
     const body = await req.json().catch(() => ({}));
 
     restaurantId = text(body.restaurantId);
@@ -261,3 +263,4 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: error instanceof Error ? error.message : "Erreur interne" }, 500, corsHeaders);
   }
 });
+

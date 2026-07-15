@@ -9,10 +9,12 @@ const read = (path: string) => readFileSync(resolve(root, path), "utf8");
 describe("commercial demo active tools and reservations", () => {
   const migration = read("supabase/migrations/20260715003424_commercial_demo_reservations_and_active_tools.sql");
   const app = read("src/App.tsx");
+  const clientRoutes = read("src/lib/commercialDemoClientRoutes.ts");
   const layout = read("src/components/DashboardLayout.tsx");
   const clientLayout = read("src/components/CustomerDashboardLayout.tsx");
   const provider = read("src/components/commercial/CommercialDemoFrameProvider.tsx");
-  const safeTools = read("src/components/commercial/CommercialDemoToolBoundary.tsx");
+  const safeTools = read("src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx");
+  const safeEffects = read("src/lib/commercialDemoEffects.ts");
   const service = read("src/lib/commercialDemoJourney.ts");
   const actorWorkspace = read("src/components/commercial/CommercialDemoActorWorkspace.tsx");
   const reservations = read("src/components/dashboard/CommercialDemoScenario.tsx");
@@ -82,9 +84,11 @@ describe("commercial demo active tools and reservations", () => {
   });
 
   it("keeps demo client navigation away from production order details", () => {
-    expect(app).toContain('allowedPrefixes: ["/restaurant/"]');
-    expect(app).not.toContain('allowedPrefixes: ["/restaurant/", "/commande/"]');
-    expect(clientHome).toContain('if (pathname.startsWith("/commande/")) return "/commandes";');
+    expect(app).toContain("isPathAllowed: isCommercialDemoClientPathAllowed");
+    expect(clientRoutes).toContain('"/restaurant/"');
+    expect(clientRoutes).not.toContain('"/commande/",');
+    expect(clientRoutes).toContain('if (url.pathname.startsWith("/commande/")) return "/commandes";');
+    expect(clientHome).toContain("getCommercialDemoClientTarget(target)");
     expect(clientLayout).toContain('featuresAny: ["reservation", "commandes"]');
     expect(clientLayout).toContain("demoOnly: true");
     expect(clientLayout).toContain("return !item.demoOnly && hasActiveFeature");
@@ -132,7 +136,7 @@ describe("commercial demo active tools and reservations", () => {
     expect(migration).toContain("p_party_size IS NULL OR p_party_size NOT BETWEEN 1 AND 20");
   });
 
-  it("replaces external or financial side effects with explicit tool sandboxes", () => {
+  it("renders every real tool page behind the isolated side-effect guard", () => {
     for (const tool of [
       "advisor",
       "billing",
@@ -146,13 +150,17 @@ describe("commercial demo active tools and reservations", () => {
       "accounting-inflow",
       "accounting-outflow",
     ]) {
-      expect(app).toContain(`<CommercialDemoToolBoundary tool="${tool}">`);
+      expect(app).toContain(`<CommercialDemoSafeEffectsBoundary tool="${tool}">`);
     }
+    expect(app).toContain('<CommercialDemoSafeEffectsBoundary tool="advisor"><DashboardAdvisor /></CommercialDemoSafeEffectsBoundary>');
+    expect(app).toContain('<CommercialDemoSafeEffectsBoundary tool="photos"><DashboardPhotos /></CommercialDemoSafeEffectsBoundary>');
     expect(safeTools).toContain('frame?.surface === "restaurant"');
-    expect(safeTools).toContain("effets externes remplacés par une sandbox");
-    expect(safeTools).not.toContain("invokeSupabaseFunction");
-    expect(safeTools).not.toContain("supabase.from");
-    expect(safeTools).not.toContain("fetch(");
+    expect(safeTools).toContain("shouldProtectCommercialDemoRequest");
+    expect(safeEffects).toContain("SAFE_SCOPED_READ_RPCS");
+    expect(safeTools).toContain("buildProtectedResponse");
+    expect(safeTools).toContain("{children}");
+    expect(safeTools).toContain("vraies interfaces, effets simulés");
+    expect(safeTools).not.toContain("CommercialDemoToolSandbox");
   });
 
   it("blocks paid menu AI actions while keeping normal demo menu mutations available", () => {

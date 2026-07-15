@@ -33,6 +33,8 @@ import {
   type ServiceSettingsMap,
 } from "@/lib/serviceSettings";
 import { cn } from "@/lib/utils";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
+import { getCommercialDemoClientMenuItems } from "@/lib/commercialDemoClientCatalog";
 
 const supabase = getSupabase();
 const CHEFS_TABLE_DROPS_LIMIT = 24;
@@ -412,6 +414,8 @@ function ChefTableDropCard({
 }
 
 export default function ChefsTable() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
   const { user, session, loading: authLoading } = useAuth();
   const { items, addItem, removeItem, clearCart, updateCartMetadata } = useCart();
   const { toast } = useToast();
@@ -425,10 +429,11 @@ export default function ChefsTable() {
   const [slotDialogDrop, setSlotDialogDrop] = useState<FlashDrop | null>(null);
   const [slotDialogPresetTime, setSlotDialogPresetTime] = useState<string | null>(null);
   const [slotDialogPresetPartySize, setSlotDialogPresetPartySize] = useState<number | null>(null);
+  const [demoAlertsEnabled, setDemoAlertsEnabled] = useState(false);
   const attemptedFinalizationRef = useRef<Set<string>>(new Set());
-  const { isMember: isTokOneMember, isLoading: tokOneLoading } = useIsTokOneMember();
+  const { isMember: isTokOneMember, isLoading: tokOneLoading } = useIsTokOneMember({ enabled: !isCommercialDemoClient });
 
-  const { data: drops = [] } = useQuery({
+  const dropsQuery = useQuery({
     queryKey: ["chefs-table-drops"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -493,9 +498,44 @@ export default function ChefsTable() {
         } as FlashDrop;
       });
     },
+    enabled: !isCommercialDemoClient,
   });
+  const demoDrops = useMemo<FlashDrop[]>(() => {
+    if (!isCommercialDemoClient || !commercialDemoFrame) return [];
+    const restaurant = commercialDemoFrame.snapshot.demo_restaurant;
+    const dropTime = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    dropTime.setHours(19, 30, 0, 0);
 
-  const { data: chefsSubscription } = useQuery({
+    return getCommercialDemoClientMenuItems(commercialDemoFrame.snapshot).slice(0, 3).map((item, index) => ({
+      id: item.id,
+      chef: "Chef du restaurant démo",
+      restaurant: restaurant.name,
+      restaurantAddress: buildRestaurantAddress(restaurant),
+      restaurantId: restaurant.id,
+      dish: item.name,
+      description: item.description || "Création du menu du restaurant simulé, proposée pour le parcours Table du Chef.",
+      price: Number(item.price),
+      originalPrice: Number(item.price),
+      savingsAmount: 0,
+      discountPercent: 0,
+      totalPortions: 8,
+      remaining: Math.max(2, 6 - index),
+      image: item.image_url || restaurant.image_url || "/images/octopus-fine-dining.jpeg",
+      rating: Number(restaurant.rating || 0),
+      cuisine: restaurant.cuisine_type || "Édition exclusive",
+      dropTime: dropTime.toISOString(),
+      serviceTimeLabel: serviceTimeFormatter.format(dropTime),
+      dropMomentLabel: dropMomentFormatter.format(dropTime),
+      hasDiscount: false,
+      isVip: false,
+      requiredMiamzPoints: 0,
+      serviceSettings: null,
+      quickTimeSlots: ["19:00", "19:30", "20:00", "20:30"],
+    }));
+  }, [commercialDemoFrame, isCommercialDemoClient]);
+  const drops = isCommercialDemoClient ? demoDrops : dropsQuery.data || [];
+
+  const chefsSubscriptionQuery = useQuery({
     queryKey: ["chefs-table-subscription", user?.id],
     queryFn: async () => {
       const { data } = await supabase
@@ -506,8 +546,11 @@ export default function ChefsTable() {
         .maybeSingle();
       return data;
     },
-    enabled: !!user,
+    enabled: Boolean(user && !isCommercialDemoClient),
   });
+  const chefsSubscription = isCommercialDemoClient
+    ? (demoAlertsEnabled ? { topic: "chefs_table" } : null)
+    : chefsSubscriptionQuery.data;
 
   const chefsTableCartItems = useMemo(
     () => items.filter((item) => item.metadata?.is_chefs_table),
@@ -642,6 +685,7 @@ export default function ChefsTable() {
   }, [clearCart, queryClient, toast]);
 
   useEffect(() => {
+    if (isCommercialDemoClient) return;
     const params = new URLSearchParams(window.location.search);
     const status = params.get("status");
     const sessionId = params.get("session_id");
@@ -662,9 +706,10 @@ export default function ChefsTable() {
       });
       window.history.replaceState({}, "", window.location.pathname);
     }
-  }, [toast]);
+  }, [isCommercialDemoClient, toast]);
 
   useEffect(() => {
+    if (isCommercialDemoClient) return;
     if (!pendingCheckoutSessionId || confirmed || authLoading || isFinalizingCheckout) return;
     if (attemptedFinalizationRef.current.has(pendingCheckoutSessionId)) return;
 
@@ -684,6 +729,7 @@ export default function ChefsTable() {
     completePaidReservations,
     confirmed,
     isFinalizingCheckout,
+    isCommercialDemoClient,
     pendingCheckoutSessionId,
     session?.access_token,
     toast,
@@ -736,7 +782,7 @@ export default function ChefsTable() {
   };
 
   const upsertDropInCart = (drop: FlashDrop, selectedIso: string, partySize: number) => {
-    const menuItemId = buildChefTableMenuItemId(drop.id);
+    const menuItemId = isCommercialDemoClient ? drop.id : buildChefTableMenuItemId(drop.id);
     const selectedDate = new Date(selectedIso);
     const safePartySize = Math.max(1, Math.round(partySize));
 
@@ -775,7 +821,7 @@ export default function ChefsTable() {
   };
 
   const handleToggleReserve = (drop: FlashDrop) => {
-    const menuItemId = buildChefTableMenuItemId(drop.id);
+    const menuItemId = isCommercialDemoClient ? drop.id : buildChefTableMenuItemId(drop.id);
 
     if (selectedDropIds.has(drop.id)) {
       removeItem(menuItemId);
@@ -863,6 +909,15 @@ export default function ChefsTable() {
                   title: "Connectez-vous",
                   description: "Activez les alertes après connexion.",
                   variant: "destructive",
+                });
+                return;
+              }
+
+              if (isCommercialDemoClient) {
+                setDemoAlertsEnabled((enabled) => !enabled);
+                toast({
+                  title: notifyAll ? "Alertes démo désactivées" : "Alertes démo activées",
+                  description: "Aucune préférence de notification de production n’a été modifiée.",
                 });
                 return;
               }

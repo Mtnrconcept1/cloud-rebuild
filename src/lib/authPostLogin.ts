@@ -1,4 +1,5 @@
 import type { UserRole } from "@/lib/auth-context";
+import { TOK_COMMERCIAL_APP_ORIGIN } from "@/lib/commercialDomains";
 import { getRoleHomePath } from "@/lib/roleAccess";
 
 const INTERNAL_NAVIGATION_ORIGIN = "https://www.thetok.ch";
@@ -43,27 +44,41 @@ function getPrivilegedRouteOwner(pathname: string) {
   return null;
 }
 
+function getCanonicalCommercialTarget(target = "/commercial") {
+  const url = new URL(target, TOK_COMMERCIAL_APP_ORIGIN);
+  return `${TOK_COMMERCIAL_APP_ORIGIN}${url.pathname}${url.search}${url.hash}`;
+}
+
 export function getPostAuthTargetForRole(
   selectedRole: UserRole,
   postAuthRedirectTarget: string | null,
 ) {
+  const defaultTarget = selectedRole === "commercial"
+    ? getCanonicalCommercialTarget()
+    : getRoleHomePath(selectedRole);
+
   if (!postAuthRedirectTarget) {
-    return getRoleHomePath(selectedRole);
+    return defaultTarget;
   }
 
-  if (isOAuthConsentTarget(postAuthRedirectTarget)) {
+  // The OAuth consent continuation belongs to the production application.
+  // A commercial identity remains confined to the dedicated demo origin.
+  if (selectedRole !== "commercial" && isOAuthConsentTarget(postAuthRedirectTarget)) {
     return postAuthRedirectTarget;
   }
 
   const pathname = getPathname(postAuthRedirectTarget);
   const privilegedRouteOwner = getPrivilegedRouteOwner(pathname);
 
+  if (privilegedRouteOwner === "commercial" && ["admin", "commercial"].includes(selectedRole)) {
+    return getCanonicalCommercialTarget(postAuthRedirectTarget);
+  }
+
   if (!privilegedRouteOwner) {
-    return selectedRole === "client" ? postAuthRedirectTarget : getRoleHomePath(selectedRole);
+    return selectedRole === "client" ? postAuthRedirectTarget : defaultTarget;
   }
 
   return privilegedRouteOwner === selectedRole
     ? postAuthRedirectTarget
-    : getRoleHomePath(selectedRole);
+    : defaultTarget;
 }
-

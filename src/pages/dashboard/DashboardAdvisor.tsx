@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import {
   BarChart3,
   Bot,
@@ -14,7 +14,7 @@ import {
   User,
   type LucideIcon,
 } from "lucide-react";
-import ReactMarkdown from "react-markdown";
+import ReactMarkdown, { defaultUrlTransform, type UrlTransform } from "react-markdown";
 
 import DashboardLayout from "@/components/DashboardLayout";
 import { Badge } from "@/components/ui/badge";
@@ -50,6 +50,14 @@ import {
   startTokImageCreationJob,
 } from "@/lib/ai/aiCreationJobs";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
+import {
+  archiveCommercialDemoAiConversation,
+  askCommercialDemoAi,
+  getCommercialDemoAiHistory,
+  toTokAiMessages,
+  type CommercialDemoAiRuntime,
+} from "@/lib/commercialDemoAi";
 
 type Message = { role: "user" | "assistant"; content: string };
 type AdvisorSelectionMode = "gallery_photos" | "menu_dishes";
@@ -161,11 +169,28 @@ const AI_HISTORY_STORAGE_PREFIX = "tok-dashboard-advisor-history";
 const MAX_ADVISOR_HISTORY_ENTRIES = 12;
 const SUPABASE_VISIBLE_URL_PATTERN = /https?:\/\/[^\s)"']*supabase\.co[^\s)"']*/gi;
 const SUPABASE_HOST_PATTERN = /\b[a-z0-9-]+\.supabase\.co\b/gi;
+const DEMO_SVG_DATA_URL_PREFIX = "data:image/svg+xml;charset=utf-8,%3Csvg";
+
+const advisorMarkdownUrlTransform: UrlTransform = (url, key, node) => {
+  if (
+    key === "src"
+    && node.tagName === "img"
+    && url.startsWith(DEMO_SVG_DATA_URL_PREFIX)
+    && url.length <= 400_000
+  ) {
+    return url;
+  }
+  return defaultUrlTransform(url);
+};
 
 function sanitizeAdvisorVisibleText(value: string) {
   return value
     .replace(SUPABASE_VISIBLE_URL_PATTERN, "[image de reference]")
     .replace(SUPABASE_HOST_PATTERN, "[service image]");
+}
+
+function sanitizeAdvisorVisibleContent(value: string) {
+  return sanitizeAdvisorVisibleText(value);
 }
 
 function getShortAdvisorReference(id: string) {
@@ -176,8 +201,8 @@ function createAdvisorHistoryEntryId() {
   return globalThis.crypto?.randomUUID?.() || `history-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
-function getAdvisorHistoryStorageKey(restaurantId: string) {
-  return `${AI_HISTORY_STORAGE_PREFIX}:${restaurantId}`;
+function getAdvisorHistoryStorageKey(storageScope: string) {
+  return `${AI_HISTORY_STORAGE_PREFIX}:${storageScope}`;
 }
 
 function getAdvisorHistoryTitle(messages: Message[]) {
@@ -186,11 +211,11 @@ function getAdvisorHistoryTitle(messages: Message[]) {
   return sanitizeAdvisorVisibleText(firstLine).trim().slice(0, 80);
 }
 
-function loadAdvisorHistory(restaurantId: string): AdvisorHistoryEntry[] {
+function loadAdvisorHistory(storageScope: string): AdvisorHistoryEntry[] {
   if (typeof window === "undefined") return [];
 
   try {
-    const parsed = JSON.parse(window.localStorage.getItem(getAdvisorHistoryStorageKey(restaurantId)) || "[]");
+    const parsed = JSON.parse(window.localStorage.getItem(getAdvisorHistoryStorageKey(storageScope)) || "[]");
     if (!Array.isArray(parsed)) return [];
     return parsed.flatMap((entry): AdvisorHistoryEntry[] => {
       if (!entry || typeof entry !== "object") return [];
@@ -218,17 +243,28 @@ function loadAdvisorHistory(restaurantId: string): AdvisorHistoryEntry[] {
   }
 }
 
-function writeAdvisorHistory(restaurantId: string, entries: AdvisorHistoryEntry[]) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(
-    getAdvisorHistoryStorageKey(restaurantId),
-    JSON.stringify(entries.slice(0, MAX_ADVISOR_HISTORY_ENTRIES)),
-  );
+function writeAdvisorHistory(storageScope: string, entries: AdvisorHistoryEntry[]) {
+  if (typeof window === "undefined") return false;
+  try {
+    window.localStorage.setItem(
+      getAdvisorHistoryStorageKey(storageScope),
+      JSON.stringify(entries.slice(0, MAX_ADVISOR_HISTORY_ENTRIES)),
+    );
+    return true;
+  } catch {
+    // Private browsing and full storage must not turn a successful backend reply into an error.
+    return false;
+  }
 }
 
-function saveAdvisorHistoryEntry(restaurantId: string, messages: Message[]) {
+function getAdvisorHistoryEntryKey(entry: AdvisorHistoryEntry) {
+  const firstUserMessage = entry.messages.find((message) => message.role === "user")?.content.trim() || entry.title;
+  return `${entry.restaurantId}:${firstUserMessage}`;
+}
+
+function saveAdvisorHistoryEntry(storageScope: string, restaurantId: string, messages: Message[]) {
   if (!messages.some((message) => message.role === "assistant" && message.content.trim().length > 0)) {
-    return loadAdvisorHistory(restaurantId);
+    return loadAdvisorHistory(storageScope);
   }
 
   const entry: AdvisorHistoryEntry = {
@@ -240,16 +276,19 @@ function saveAdvisorHistoryEntry(restaurantId: string, messages: Message[]) {
   };
   const nextEntries = [
     entry,
-    ...loadAdvisorHistory(restaurantId).filter((candidate) => candidate.title !== entry.title),
+    ...loadAdvisorHistory(storageScope).filter((candidate) => getAdvisorHistoryEntryKey(candidate) !== getAdvisorHistoryEntryKey(entry)),
   ].slice(0, MAX_ADVISOR_HISTORY_ENTRIES);
 
-  writeAdvisorHistory(restaurantId, nextEntries);
+  writeAdvisorHistory(storageScope, nextEntries);
   return nextEntries;
 }
 
-function deleteAdvisorHistoryEntry(restaurantId: string, entryId: string) {
-  const nextEntries = loadAdvisorHistory(restaurantId).filter((entry) => entry.id !== entryId);
-  writeAdvisorHistory(restaurantId, nextEntries);
+function deleteAdvisorHistoryEntry(storageScope: string, targetEntry: AdvisorHistoryEntry) {
+  const targetKey = getAdvisorHistoryEntryKey(targetEntry);
+  const nextEntries = loadAdvisorHistory(storageScope).filter((entry) => (
+    entry.id !== targetEntry.id && getAdvisorHistoryEntryKey(entry) !== targetKey
+  ));
+  writeAdvisorHistory(storageScope, nextEntries);
   return nextEntries;
 }
 
@@ -282,8 +321,7 @@ function mergeAdvisorHistoryEntries(remoteEntries: AdvisorHistoryEntry[], localE
   const entries: AdvisorHistoryEntry[] = [];
 
   for (const entry of [...remoteEntries, ...localEntries]) {
-    const firstUserMessage = entry.messages.find((message) => message.role === "user")?.content.trim() || entry.title;
-    const key = `${entry.restaurantId}:${entry.backendConversationId || entry.title}:${firstUserMessage}`;
+    const key = getAdvisorHistoryEntryKey(entry);
     if (seen.has(key)) continue;
     seen.add(key);
     entries.push(entry);
@@ -329,6 +367,16 @@ function formatToolResponse(toolLabel: string, data: Record<string, unknown>) {
 }
 
 export default function DashboardAdvisor() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const demoAiRuntime = useMemo<CommercialDemoAiRuntime | null>(() => (
+    commercialDemoFrame?.surface === "restaurant"
+      ? {
+          sessionId: commercialDemoFrame.config.sessionId,
+          surface: "restaurant",
+        }
+      : null
+  ), [commercialDemoFrame?.config.sessionId, commercialDemoFrame?.surface]);
+  const isCommercialDemo = Boolean(demoAiRuntime);
   const { selectedId, restaurants } = useDashboardRestaurant();
   const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -353,10 +401,33 @@ export default function DashboardAdvisor() {
     ? { id: selectedId, name: restaurants.find((item) => item.id === selectedId)?.name || "Mon restaurant" }
     : null;
   const restaurantId = restaurant?.id;
+  const advisorHistoryStorageScope = demoAiRuntime
+    ? `commercial-demo:${demoAiRuntime.sessionId}:${demoAiRuntime.surface}:${restaurantId || "none"}`
+    : `restaurant:${restaurantId || "none"}`;
 
   const refreshAdvisorHistoryEntries = useCallback(async (targetRestaurantId: string) => {
-    const localEntries = loadAdvisorHistory(targetRestaurantId);
+    const localEntries = loadAdvisorHistory(advisorHistoryStorageScope);
     setHistoryEntries(localEntries);
+
+    if (demoAiRuntime) {
+      try {
+        const conversations = await getCommercialDemoAiHistory(demoAiRuntime, "assistant");
+        const remoteEntries: AdvisorHistoryEntry[] = conversations.map((conversation) => ({
+          id: conversation.id,
+          backendConversationId: conversation.id,
+          restaurantId: targetRestaurantId,
+          title: conversation.title,
+          createdAt: conversation.created_at,
+          messages: toTokAiMessages(conversation.messages),
+        }));
+        if (mountedRef.current) {
+          setHistoryEntries(mergeAdvisorHistoryEntries(remoteEntries, localEntries));
+        }
+      } catch {
+        if (mountedRef.current) setHistoryEntries(localEntries);
+      }
+      return;
+    }
 
     try {
       const conversations = await getRestaurantAdvisorConversations(targetRestaurantId, MAX_ADVISOR_HISTORY_ENTRIES);
@@ -373,12 +444,13 @@ export default function DashboardAdvisor() {
         setHistoryEntries(localEntries);
       }
     }
-  }, []);
+  }, [advisorHistoryStorageScope, demoAiRuntime]);
 
   useEffect(() => {
+    if (isCommercialDemo) return;
     setActiveAiCreationContext("dashboard-advisor:image-tool");
     return () => setActiveAiCreationContext(null);
-  }, []);
+  }, [isCommercialDemo]);
 
   useEffect(() => () => {
     mountedRef.current = false;
@@ -403,6 +475,39 @@ export default function DashboardAdvisor() {
 
   useEffect(() => {
     if (!restaurantId) return;
+
+    if (isCommercialDemo && commercialDemoFrame) {
+      const snapshot = commercialDemoFrame.snapshot;
+      const restaurantImage = snapshot.demo_restaurant.image_url;
+      const catalogPhotos = snapshot.catalog_items.flatMap((item): AdvisorPhotoOption[] => {
+        if (!item.image_url) return [];
+        return [{
+          id: item.id,
+          mediaUrl: item.image_url,
+          altText: item.name,
+          createdAt: snapshot.session.created_at || "",
+        }];
+      });
+      setPhotoOptions([
+        ...(restaurantImage ? [{
+          id: `demo-cover-${snapshot.demo_restaurant.id}`,
+          mediaUrl: restaurantImage,
+          altText: snapshot.demo_restaurant.name,
+          createdAt: snapshot.session.created_at || "",
+        }] : []),
+        ...catalogPhotos,
+      ].slice(0, ADVISOR_PHOTOS_LIMIT));
+      setDishOptions(snapshot.catalog_items.slice(0, ADVISOR_MENU_ITEMS_LIMIT).map((item) => ({
+        id: item.id,
+        name: item.name,
+        description: item.description || null,
+        imageUrl: item.image_url || null,
+        category: item.category || null,
+        price: Number(item.price) || 0,
+      })));
+      setIsSelectionLoading(false);
+      return;
+    }
 
     let cancelled = false;
     setIsSelectionLoading(true);
@@ -468,10 +573,28 @@ export default function DashboardAdvisor() {
     return () => {
       cancelled = true;
     };
-  }, [restaurantId, toast]);
+  }, [commercialDemoFrame, isCommercialDemo, restaurantId, toast]);
 
   const streamChat = async (allMessages: Message[]) => {
     if (!restaurant) return "";
+
+    if (demoAiRuntime) {
+      const lastQuestion = allMessages[allMessages.length - 1]?.content || "votre activité";
+      const result = await askCommercialDemoAi({
+        runtime: demoAiRuntime,
+        tool: "assistant",
+        message: lastQuestion.slice(0, 4000),
+        conversationId: activeConversationId,
+        context: {
+          restaurant_id: restaurant.id,
+          restaurant_name: restaurant.name,
+          previous_message_count: Math.max(0, allMessages.length - 1),
+          recent_topics: allMessages.slice(-3, -1).map((message) => message.content.slice(0, 180)),
+        },
+      });
+      setActiveConversationId(result.conversation_id);
+      return result.reply;
+    }
 
     let assistantSoFar = "";
     const upsertAssistant = (nextChunk: string) => {
@@ -514,9 +637,9 @@ export default function DashboardAdvisor() {
           ...newMessages,
           assistantMsg,
         ];
-        setHistoryEntries(saveAdvisorHistoryEntry(restaurant.id, completedMessages));
+        setHistoryEntries(saveAdvisorHistoryEntry(advisorHistoryStorageScope, restaurant.id, completedMessages));
 
-        try {
+        if (!isCommercialDemo) try {
           if (activeConversationId) {
             await appendRestaurantAdvisorConversationMessages({
               conversationId: activeConversationId,
@@ -569,7 +692,27 @@ export default function DashboardAdvisor() {
     try {
       let data: unknown;
 
-      if (tool.mode === "image") {
+      if (demoAiRuntime && tool.mode !== "image") {
+        const result = await askCommercialDemoAi({
+          runtime: demoAiRuntime,
+          tool: "assistant",
+          message: `${tool.label}\n\n${prompt}`.slice(0, 4000),
+          conversationId: activeConversationId,
+          context: {
+            action: tool.action,
+            restaurant_id: restaurant.id,
+            selected_dishes: payload?.selectedDishes || [],
+          },
+        });
+        setActiveConversationId(result.conversation_id);
+        data = {
+          title: tool.label,
+          summary: result.reply,
+          conversationId: result.conversation_id,
+          next_steps: ["Prévisualiser le résultat", "Tester le parcours", "Comparer les performances"],
+          checklist: ["Données démo isolées", "Aucun crédit débité", "Aucun effet de production"],
+        };
+      } else if (tool.mode === "image") {
         void requestAiCreationNotificationPermission();
         const { promise } = startTokImageCreationJob({
           restaurantId: restaurant.id,
@@ -613,12 +756,12 @@ export default function DashboardAdvisor() {
       };
       const nextMessages = [...newMessages, assistantMsg];
       setMessages(nextMessages);
-      setHistoryEntries(saveAdvisorHistoryEntry(restaurant.id, nextMessages));
+      setHistoryEntries(saveAdvisorHistoryEntry(advisorHistoryStorageScope, restaurant.id, nextMessages));
 
       const toolResult = data as Record<string, unknown>;
       const backendConversationId = typeof toolResult.conversationId === "string" ? toolResult.conversationId : null;
 
-      try {
+      if (!isCommercialDemo) try {
         if (backendConversationId) {
           setActiveConversationId(backendConversationId);
         } else if (activeConversationId) {
@@ -770,15 +913,24 @@ export default function DashboardAdvisor() {
 
   const handleDeleteHistory = async (entry: AdvisorHistoryEntry) => {
     if (!restaurant) return;
-    if (entry.backendConversationId) {
+    if (demoAiRuntime && entry.backendConversationId) {
+      try {
+        await archiveCommercialDemoAiConversation(demoAiRuntime, entry.backendConversationId);
+      } catch {
+        // Keep deletion responsive locally if the isolated demo history is temporarily unavailable.
+      }
+    } else if (entry.backendConversationId) {
       try {
         await archiveRestaurantAdvisorConversation(entry.backendConversationId);
       } catch {
         // Keep deletion responsive locally even if backend archival is temporarily unavailable.
       }
     }
-    setHistoryEntries((current) => current.filter((candidate) => candidate.id !== entry.id));
-    deleteAdvisorHistoryEntry(restaurant.id, entry.id);
+    const targetKey = getAdvisorHistoryEntryKey(entry);
+    setHistoryEntries((current) => current.filter((candidate) => (
+      candidate.id !== entry.id && getAdvisorHistoryEntryKey(candidate) !== targetKey
+    )));
+    deleteAdvisorHistoryEntry(advisorHistoryStorageScope, entry);
   };
 
   const isPhotoPreparation = preparationTool?.selectionMode === "gallery_photos";
@@ -938,7 +1090,11 @@ export default function DashboardAdvisor() {
                 >
                   {message.role === "assistant" ? (
                     <div className="prose prose-sm max-w-none dark:prose-invert [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
-                      <ReactMarkdown>{sanitizeAdvisorVisibleText(message.content)}</ReactMarkdown>
+                      {message.content.includes(DEMO_SVG_DATA_URL_PREFIX) ? (
+                        <ReactMarkdown urlTransform={advisorMarkdownUrlTransform}>{sanitizeAdvisorVisibleContent(message.content)}</ReactMarkdown>
+                      ) : (
+                        <ReactMarkdown>{sanitizeAdvisorVisibleText(message.content)}</ReactMarkdown>
+                      )}
                     </div>
                   ) : (
                     <p className="whitespace-pre-wrap text-sm">{sanitizeAdvisorVisibleText(message.content)}</p>
@@ -976,6 +1132,7 @@ export default function DashboardAdvisor() {
               ref={textareaRef}
               value={input}
               onChange={(event) => setInput(event.target.value)}
+              maxLength={4000}
               onKeyDown={handleKeyDown}
               placeholder="Posez une question sur vos performances..."
               className="max-h-32 min-h-[48px] resize-none"
@@ -1106,6 +1263,7 @@ export default function DashboardAdvisor() {
                 <Textarea
                   value={toolInstructions}
                   onChange={(event) => setToolInstructions(event.target.value)}
+                  maxLength={1800}
                   placeholder={isPhotoPreparation ? "Ex: rendre le plat plus lumineux, garder le cadrage, supprimer les ombres..." : "Ex: rendre la description plus premium, proposer un prix, mettre en avant les ingrédients locaux..."}
                   className="min-h-24 resize-none"
                   disabled={isLoading}

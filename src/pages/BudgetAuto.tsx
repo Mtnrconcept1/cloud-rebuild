@@ -17,6 +17,8 @@ import {
 import { useNavigate } from "react-router-dom";
 import { FeatureWizard, WizardCartSummary, WizardNextButton } from "@/components/FeatureWizard";
 import { resolveMenuItemImageUrl } from "@/lib/menu-item-images";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
+import { getCommercialDemoClientMenuItems, getCommercialDemoClientRestaurants } from "@/lib/commercialDemoClientCatalog";
 
 const supabase = getSupabase();
 
@@ -46,6 +48,8 @@ function getCourseType(category: string | null): "starter" | "main" | "dessert" 
 }
 
 export default function BudgetAuto() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
   const { addItem, clearCart, updateCartMetadata, setOrderMode } = useCart();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -74,7 +78,7 @@ export default function BudgetAuto() {
   const [confirmed, setConfirmed] = useState(false);
 
   // Fetch preferences
-  const { data: prefs } = useQuery({
+  const preferencesQuery = useQuery({
     queryKey: ["user-preferences", user?.id],
     queryFn: async () => {
       if (!user) return null;
@@ -86,11 +90,12 @@ export default function BudgetAuto() {
       if (error) throw error;
       return data;
     },
-    enabled: !!user,
+    enabled: Boolean(user && !isCommercialDemoClient),
   });
+  const prefs = isCommercialDemoClient ? null : preferencesQuery.data;
 
   // Fetch all distinct cuisine types
-  const { data: cuisineTypes } = useQuery({
+  const cuisineTypesQuery = useQuery({
     queryKey: ["budget-auto-cuisines"],
     queryFn: async () => {
       const { data } = await supabase
@@ -102,11 +107,15 @@ export default function BudgetAuto() {
       ).sort() as string[];
       return types;
     },
+    enabled: !isCommercialDemoClient,
   });
+  const cuisineTypes = isCommercialDemoClient && commercialDemoFrame
+    ? [commercialDemoFrame.snapshot.demo_restaurant.cuisine_type || "Cuisine démo"]
+    : cuisineTypesQuery.data;
 
   // Fetch menu items
   const cuisineKey = Array.from(selectedCuisines).sort().join(",");
-  const { data: menuItemsRaw } = useQuery({
+  const menuItemsQuery = useQuery({
     queryKey: ["budget-auto-items", cuisineKey],
     queryFn: async () => {
       let query = supabase
@@ -140,7 +149,14 @@ export default function BudgetAuto() {
       }
       return uniqueItems;
     },
+    enabled: !isCommercialDemoClient,
   });
+  const menuItemsRaw = isCommercialDemoClient && commercialDemoFrame
+    ? getCommercialDemoClientMenuItems(commercialDemoFrame.snapshot).map((item) => ({
+      ...item,
+      restaurants: getCommercialDemoClientRestaurants(commercialDemoFrame.snapshot)[0],
+    }))
+    : menuItemsQuery.data;
 
   // Sync state with fetched prefs
   useEffect(() => {
@@ -161,6 +177,7 @@ export default function BudgetAuto() {
 
   const savePrefsMutation = useMutation({
     mutationFn: async (newPrefs: { max_budget: number; dietary_tags: string[] }) => {
+      if (isCommercialDemoClient) return;
       if (!user) return;
       const { error } = await supabase
         .from("user_preferences" as any)

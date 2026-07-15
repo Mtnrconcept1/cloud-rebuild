@@ -33,6 +33,7 @@ import {
   type CommercialDemoTransitionAction,
 } from "@/lib/commercialDemoJourney";
 import { getCommercialDemoNotificationPath, type CommercialDemoActorSurface } from "@/lib/commercialDemoFrame";
+import { isStripeTestCheckoutSessionId } from "@/lib/commercialDemoHostSecurity";
 import { cn } from "@/lib/utils";
 
 const ORDER_STATUS_LABELS: Record<string, string> = {
@@ -88,7 +89,10 @@ function checkoutReturnUrl(sessionId: string) {
   return url.toString();
 }
 
-function sendCheckoutToParent(sessionId: string, checkoutUrl: string) {
+function sendCheckoutToParent(sessionId: string, checkoutUrl: string, stripeSessionId: string) {
+  if (!isStripeTestCheckoutSessionId(stripeSessionId)) {
+    throw new CommercialDemoApiError("Session Stripe Test invalide. Ouverture bloquée.", "INVALID_TEST_STRIPE_SESSION");
+  }
   const url = new URL(checkoutUrl);
   if (url.protocol !== "https:" || url.hostname !== "checkout.stripe.com") {
     throw new CommercialDemoApiError("URL Stripe Test invalide. Ouverture bloquée.", "INVALID_CHECKOUT_URL");
@@ -100,6 +104,7 @@ function sendCheckoutToParent(sessionId: string, checkoutUrl: string) {
   window.parent.postMessage({
     type: "commercial-demo:open-checkout",
     sessionId,
+    stripeSessionId,
     checkoutUrl: url.toString(),
   }, window.location.origin);
 }
@@ -307,7 +312,7 @@ export default function CommercialDemoActorWorkspace({ surface }: { surface: Com
         demoSessionId: frame.config.sessionId,
         returnUrl: checkoutReturnUrl(frame.config.sessionId),
       });
-      sendCheckoutToParent(frame.config.sessionId, result.checkout_url);
+      sendCheckoutToParent(frame.config.sessionId, result.checkout_url, result.stripe_session_id);
       return result;
     },
   });
@@ -346,3 +351,5 @@ export default function CommercialDemoActorWorkspace({ surface }: { surface: Com
     </div>
   );
 }
+
+

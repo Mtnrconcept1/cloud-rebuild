@@ -2,6 +2,7 @@ import Stripe from "npm:stripe@18.5.0";
 
 import {
   HttpError,
+  assertProductionFlowAllowed,
   authenticateRequest,
   createAdminClient,
   jsonResponse,
@@ -64,6 +65,7 @@ Deno.serve(async (req) => {
 
   try {
     actor = await authenticateRequest(req, { allowServiceRole: false });
+    await assertProductionFlowAllowed(actor, "abonnement Tok One réel");
     if (!actor.userId) throw new HttpError(401, "Unauthorized");
 
     const body = await req.json().catch(() => ({}));

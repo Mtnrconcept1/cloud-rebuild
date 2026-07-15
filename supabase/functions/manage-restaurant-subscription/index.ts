@@ -3,6 +3,7 @@ import Stripe from "npm:stripe@18.5.0";
 import {
   HttpError,
   authenticateRequest,
+  assertProductionFlowAllowed,
   createAdminClient,
   jsonResponse,
   requireRestaurantAccess,
@@ -277,6 +278,7 @@ Deno.serve(async (req) => {
   try {
     actor = await authenticateRequest(req, { allowServiceRole: false });
     if (!actor.userId) throw new HttpError(401, "Unauthorized");
+    await assertProductionFlowAllowed(actor, "abonnement restaurateur réel");
 
     const body = await req.json().catch(() => ({}));
     action = normalizeAction(body?.action);
@@ -647,3 +649,4 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: message }, 500, corsHeaders);
   }
 });
+
