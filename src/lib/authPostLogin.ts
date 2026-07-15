@@ -1,5 +1,5 @@
 import type { UserRole } from "@/lib/auth-context";
-import { getCommercialNavigationHref } from "@/lib/commercialDomains";
+import { TOK_COMMERCIAL_APP_ORIGIN } from "@/lib/commercialDomains";
 import { getRoleHomePath } from "@/lib/roleAccess";
 
 const PRIVILEGED_ROUTE_ROOTS: Record<Exclude<UserRole, "client">, string> = {
@@ -31,12 +31,17 @@ function getPrivilegedRouteOwner(pathname: string) {
   return null;
 }
 
+function getCanonicalCommercialTarget(target = "/commercial") {
+  const url = new URL(target, TOK_COMMERCIAL_APP_ORIGIN);
+  return `${TOK_COMMERCIAL_APP_ORIGIN}${url.pathname}${url.search}${url.hash}`;
+}
+
 export function getPostAuthTargetForRole(
   selectedRole: UserRole,
   postAuthRedirectTarget: string | null,
 ) {
   const defaultTarget = selectedRole === "commercial"
-    ? getCommercialNavigationHref("/commercial")
+    ? getCanonicalCommercialTarget()
     : getRoleHomePath(selectedRole);
 
   if (!postAuthRedirectTarget) {
@@ -47,8 +52,7 @@ export function getPostAuthTargetForRole(
   const privilegedRouteOwner = getPrivilegedRouteOwner(pathname);
 
   if (privilegedRouteOwner === "commercial" && ["admin", "commercial"].includes(selectedRole)) {
-    const targetUrl = new URL(postAuthRedirectTarget, "https://www.thetok.ch");
-    return getCommercialNavigationHref(`${targetUrl.pathname}${targetUrl.search}${targetUrl.hash}`);
+    return getCanonicalCommercialTarget(postAuthRedirectTarget);
   }
 
   if (!privilegedRouteOwner) {
@@ -59,4 +63,3 @@ export function getPostAuthTargetForRole(
     ? postAuthRedirectTarget
     : defaultTarget;
 }
-

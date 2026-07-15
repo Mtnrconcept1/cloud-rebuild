@@ -1264,13 +1264,13 @@ export default function DashboardPlanSalle() {
     () => getReservationDateQueryBounds(referenceDate, timeRange),
     [referenceDate, timeRange],
   );
+  const floorPlanReservationsBaseQuery = {
+    queryKey: ["floor-plan-reservations", selectedId, referenceDate, timeRange],
+  };
 
   const { data: reservationsData, isLoading: reservationsLoading, error: reservationsError } = useQuery({
     queryKey: [
-      "floor-plan-reservations",
-      selectedId,
-      referenceDate,
-      timeRange,
+      ...floorPlanReservationsBaseQuery.queryKey,
       commercialDemoFrame?.config.sessionId || "live",
       commercialDemoFrame?.snapshot.reservations.map((reservation) => `${reservation.id}:${reservation.version}`).join("|") || "",
     ],
