@@ -1,8 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "alias": [
-    "commercial.thetok.ch"
-  ],
   "git": {
     "deploymentEnabled": false
   },
