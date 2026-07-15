@@ -273,7 +273,7 @@ function LiveDashboard() {
 
     if (!signupApplication?.id || !restaurantId || !onboardingSelection) {
       toast({
-        title: "Paiement indisponible",
+        title: "Enregistrement de la carte indisponible",
         description: "Le dossier restaurateur ne contient pas encore tous les choix requis.",
         variant: "destructive",
       });
@@ -299,13 +299,13 @@ function LiveDashboard() {
       });
 
       if (error || !data?.url) {
-        throw new Error((error as Error | null)?.message || "Impossible de créer la session de paiement.");
+        throw new Error((error as Error | null)?.message || "Impossible de créer la session sécurisée.");
       }
 
       redirectToTrustedCheckoutUrl(data.url);
     } catch (error) {
       toast({
-        title: "Paiement impossible",
+        title: "Enregistrement impossible",
         description: error instanceof Error ? error.message : "Veuillez réessayer dans quelques instants.",
         variant: "destructive",
       });
