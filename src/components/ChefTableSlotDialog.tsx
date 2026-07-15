@@ -157,7 +157,7 @@ export default function ChefTableSlotDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[calc(100dvh-1rem)] flex-col overflow-hidden border-amber-200 bg-white p-0 shadow-[0_40px_120px_-48px_rgba(120,53,15,0.55)] dark:border-amber-300/25 dark:bg-slate-950 dark:text-white dark:shadow-[0_40px_130px_-40px_rgba(0,0,0,0.82),0_0_48px_rgba(245,158,11,0.18)] sm:max-w-[780px] sm:rounded-[32px]">
+      <DialogContent className="flex max-h-[calc(100dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)-1rem)] flex-col overflow-hidden border-amber-200 bg-white p-0 shadow-[0_40px_120px_-48px_rgba(120,53,15,0.55)] dark:border-amber-300/25 dark:bg-slate-950 dark:text-white dark:shadow-[0_40px_130px_-40px_rgba(0,0,0,0.82),0_0_48px_rgba(245,158,11,0.18)] sm:max-w-[780px] sm:rounded-[32px]">
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
           <DialogHeader className="border-b border-amber-200/70 bg-gradient-to-br from-stone-950 via-neutral-900 to-amber-950 px-6 pb-6 pt-6 text-left">
           <div className="flex flex-wrap items-start justify-between gap-3">

@@ -28,7 +28,7 @@ describe("space Help chat access", () => {
     expect(existsSync(resolve(root, "public/help.png"))).toBe(true);
     expect(button).toContain("openHelpChat({ surface })");
     expect(navbar).toContain('ChefHelpButton surface="client"');
-    expect(navbar).toContain('className="hidden h-20 w-20 lg:flex"');
+    expect(navbar).toContain('className="hidden h-20 w-20 xl:flex"');
     expect(dashboardLayout).toContain('ChefHelpButton surface="restaurant"');
     expect(adminNavigation).toContain('ChefHelpButton surface="admin"');
     expect(app).toContain('ChefHelpButton surface="admin" compact');

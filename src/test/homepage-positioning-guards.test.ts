@@ -20,7 +20,7 @@ describe("homepage positioning guards", () => {
     expect(hero).toContain("bg-[position:50%_0%]");
     expect(hero).toContain("bg-[length:100%_auto]");
     expect(hero).toContain("bg-no-repeat");
-    expect(hero).toContain("min-h-[calc(100svh-64px)]");
+    expect(hero).toContain("min-h-[calc(100svh_-_66px_-_env(safe-area-inset-top,0px))]");
     expect(hero).toContain("mt-auto space-y-2");
     expect(hero).toContain("pt-5 text-center");
     expect(hero).toContain("translate-x-[12px]");

@@ -1467,7 +1467,7 @@ export default function SocialPostCard({
             aria-label={
               post.savedByMe
                 ? "Retirer des sauvegardes"
-                : "Sauvegarder ce post"
+                : "Sauver"
             }
           >
             <Bookmark
