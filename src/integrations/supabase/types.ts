@@ -6805,6 +6805,17 @@ export type Database = {
         }
         Returns: Json
       }
+      restaurant_save_floor_plan_layouts_v2: {
+        Args: {
+          p_branch_id: string
+          p_expected_snapshot: Json
+          p_layouts: Json
+          p_reason?: string
+          p_request_id: string
+          p_service_date: string
+        }
+        Returns: Json
+      }
       restaurant_save_floor_plan_template: {
         Args: {
           p_branch_id: string
@@ -6814,12 +6825,35 @@ export type Database = {
         }
         Returns: Json
       }
+      restaurant_save_floor_plan_variant_v2: {
+        Args: {
+          p_branch_id: string
+          p_name: string
+          p_request_id: string
+          p_snapshot: Json
+          p_source?: string
+        }
+        Returns: Json
+      }
       restaurant_save_floor_plan_workspace: {
         Args: {
           p_branch_id: string
           p_object_delete_ids?: string[]
           p_objects: Json
           p_reason?: string
+          p_table_delete_ids: string[]
+          p_table_upserts: Json
+        }
+        Returns: Json
+      }
+      restaurant_save_floor_plan_workspace_v2: {
+        Args: {
+          p_branch_id: string
+          p_expected_snapshot: Json
+          p_object_delete_ids?: string[]
+          p_objects: Json
+          p_reason?: string
+          p_request_id: string
           p_table_delete_ids: string[]
           p_table_upserts: Json
         }

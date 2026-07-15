@@ -533,8 +533,12 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
     staleTime: RESTAURANT_DETAIL_STALE_MS,
   });
 
+  const activePromotionsBaseQuery = {
+    queryKey: ["restaurant-active-promotions", restaurantId],
+  };
+
   const { data: activePromotions = [] } = useQuery({
-    queryKey: ["restaurant-active-promotions", restaurantId, demoSessionKey],
+    queryKey: [...activePromotionsBaseQuery.queryKey, demoSessionKey],
     queryFn: async () => {
       if (isCommercialDemoClient) return [] as RestaurantPromotion[];
       const now = new Date().toISOString();

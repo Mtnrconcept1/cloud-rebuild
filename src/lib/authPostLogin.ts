@@ -2,6 +2,8 @@ import type { UserRole } from "@/lib/auth-context";
 import { TOK_COMMERCIAL_APP_ORIGIN } from "@/lib/commercialDomains";
 import { getRoleHomePath } from "@/lib/roleAccess";
 
+const INTERNAL_NAVIGATION_ORIGIN = "https://www.thetok.ch";
+
 const PRIVILEGED_ROUTE_ROOTS: Record<Exclude<UserRole, "client">, string> = {
   admin: "/admin",
   restaurateur: "/dashboard",
@@ -11,9 +13,20 @@ const PRIVILEGED_ROUTE_ROOTS: Record<Exclude<UserRole, "client">, string> = {
 
 function getPathname(target: string) {
   try {
-    return new URL(target, "https://www.thetok.ch").pathname;
+    return new URL(target, INTERNAL_NAVIGATION_ORIGIN).pathname;
   } catch {
     return "/";
+  }
+}
+
+function isOAuthConsentTarget(target: string) {
+  try {
+    const url = new URL(target, INTERNAL_NAVIGATION_ORIGIN);
+    return url.origin === INTERNAL_NAVIGATION_ORIGIN
+      && url.pathname === "/oauth/consent"
+      && Boolean(url.searchParams.get("authorization_id")?.trim());
+  } catch {
+    return false;
   }
 }
 
@@ -46,6 +59,12 @@ export function getPostAuthTargetForRole(
 
   if (!postAuthRedirectTarget) {
     return defaultTarget;
+  }
+
+  // The OAuth consent continuation belongs to the production application.
+  // A commercial identity remains confined to the dedicated demo origin.
+  if (selectedRole !== "commercial" && isOAuthConsentTarget(postAuthRedirectTarget)) {
+    return postAuthRedirectTarget;
   }
 
   const pathname = getPathname(postAuthRedirectTarget);

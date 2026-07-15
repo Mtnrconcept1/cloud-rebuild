@@ -29,7 +29,7 @@ describe("floor plan v2", () => {
     expect(page).toContain('src={PROTOTYPE_URL}');
     expect(page).toContain("partagés avec la V1");
     expect(page).toContain('"restaurant_save_floor_plan_assignments"');
-    expect(page).toContain('"restaurant_save_floor_plan_workspace"');
+    expect(page).toContain('"restaurant_save_floor_plan_workspace_v2"');
     expect(prototype).toContain('const STORAGE_KEY = "tok-table-v2"');
     expect(prototype).not.toContain('const STORAGE_KEY = "tok-table-v1"');
     expect(prototype).not.toContain("supabase");
@@ -92,5 +92,53 @@ describe("floor plan v2", () => {
     expect(page).toContain('"restaurant_save_floor_plan_assignments"');
     expect(page).toContain("p_assignments: changes");
     expect(page).toContain("updateRestaurantReservationStatus");
+  });
+
+  it("closes modals independently from sandboxed form submission", () => {
+    const page = readSource("src/pages/dashboard/DashboardPlanSalleV2.tsx");
+    const html = readSource("public/tok-table-v2/index.html");
+    const prototype = readSource("public/tok-table-v2/app.js");
+
+    expect(page).toContain('sandbox="allow-scripts allow-same-origin"');
+    expect(page).not.toContain("allow-forms");
+    expect(html).not.toContain('method="dialog"');
+
+    const closeButtons = html.match(/<button[^>]*data-dialog-close[^>]*>/g) || [];
+    expect(closeButtons.length).toBeGreaterThanOrEqual(8);
+    closeButtons.forEach((button) => expect(button).toContain('type="button"'));
+    ["table", "furniture", "variant"].forEach((kind) => {
+      expect(html).toMatch(new RegExp(`id="apply-${kind}-button"[^>]*type="button"`));
+      expect(html).toContain(`id="${kind}-modal-error"`);
+    });
+
+    expect(prototype).toContain('dialog.addEventListener("cancel"');
+    expect(prototype).toContain("event.target === dialog");
+    expect(prototype).toContain("dialog.returnValue = \"cancel\"");
+    expect(prototype).toContain("form?.addEventListener(\"keydown\"");
+    expect(prototype).toContain('closest?.("button, select, textarea")');
+    expect(prototype).toContain("reportValidity()");
+    expect(prototype).toContain('postToDashboard("tok-table-v2:editor-lock"');
+  });
+
+  it("keeps sample data inert until a valid connected hydrate arrives", () => {
+    const prototype = readSource("public/tok-table-v2/app.js");
+
+    expect(prototype).toContain("const firstHydration = awaitingHydration || !state.connected");
+    expect(prototype).toContain("if (awaitingHydration || pendingOperation) return false");
+    expect(prototype).toContain("elements.appShell.inert = awaitingHydration");
+    expect(prototype).toContain("Number(payload.protocolVersion) !== BRIDGE_PROTOCOL_VERSION");
+    expect(prototype).toContain("if (firstHydration || !state.dirty || branchChanged)");
+  });
+
+  it("preserves dirty snapshots across remote hydrations and retries variants idempotently", () => {
+    const prototype = readSource("public/tok-table-v2/app.js");
+
+    expect(prototype).toContain("const protectServerState = !firstHydration");
+    expect(prototype).toContain("remoteRevisionConflicts.template = incomingTemplateRevision");
+    expect(prototype).toContain('remoteRevisionConflicts["service-layout"] = incomingServiceRevision');
+    expect(prototype).toContain("if (hasCurrentRevisionConflict())");
+    expect(prototype).toContain("snapshot: Array.isArray(options.snapshot)");
+    expect(prototype).toContain('retryableSaveOperation.kind === "variant"');
+    expect(prototype).toContain("completedOperation.snapshot || state.tables");
   });
 });

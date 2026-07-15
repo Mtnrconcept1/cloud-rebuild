@@ -10,6 +10,11 @@ const ZOOM_STEP = 0.1;
 const HISTORY_LIMIT = 40;
 const DEFAULT_RESERVATION_DURATION_MINUTES = 120;
 const SERVICE_AUTOSAVE_DELAY_MS = 900;
+const SERVICE_AUTOSAVE_MAX_DELAY_MS = 12_000;
+const SERVICE_AUTOSAVE_MAX_FAILURES = 3;
+const OPERATION_TIMEOUT_MS = 60_000;
+const BRIDGE_PROTOCOL_VERSION = 2;
+const EXPECTS_DASHBOARD_HYDRATION = new URLSearchParams(window.location.search).get("connected") === "1";
 const EDITABLE_RESERVATION_STATUSES = Object.freeze(["pending", "confirmed", "arrived", "seated", "no_show"]);
 const ACTIVE_OCCUPANCY_STATUSES = new Set(["seated", "installed", "occupied", "order_taken", "served", "dessert", "bill_requested"]);
 
@@ -68,11 +73,14 @@ const initialState = () => {
     recommendations: {},
     variants: [],
     activeVariantId: "current",
+    templateRevision: "",
+    serviceRevision: "",
     dirty: false
   };
 };
 
 let state = loadState();
+let awaitingHydration = EXPECTS_DASHBOARD_HYDRATION;
 let history = { past: [], future: [], baseline: clone(state.tables) };
 let assignmentHistory = { past: [], future: [], context: "local" };
 let selectedReservationId = null;
@@ -84,9 +92,14 @@ let pendingOperation = null;
 let pendingAssignment = null;
 let pendingStatusChange = null;
 let pendingConfirmAction = null;
+let pendingFurnitureDraft = null;
 let reservationPointerDrag = null;
 let reservationPointerFrame = 0;
 let serviceAutosaveTimer = null;
+let serviceAutosaveFailures = 0;
+let operationTimeout = null;
+let retryableSaveOperation = null;
+let remoteRevisionConflicts = { template: null, "service-layout": null };
 let selectedServiceTableId = null;
 const viewportPointers = new Map();
 let viewportGesture = null;
@@ -95,6 +108,7 @@ const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 
 const elements = {
+  appShell: $(".app-shell"),
   date: $("#service-date"),
   period: $("#service-period"),
   floorSummary: $("#floor-summary"),
@@ -113,10 +127,12 @@ const elements = {
   placementCopy: $("#placement-copy"),
   tableModal: $("#table-modal"),
   tableForm: $("#table-form"),
+  tableModalError: $("#table-modal-error"),
   furnitureLibrary: $("#furniture-library"),
   furniturePalette: $("#furniture-palette"),
   furnitureModal: $("#furniture-modal"),
   furnitureForm: $("#furniture-form"),
+  furnitureModalError: $("#furniture-modal-error"),
   furnitureTypeInput: $("#furniture-type-input"),
   furnitureRotationRange: $("#furniture-rotation-range"),
   furnitureRotationInput: $("#furniture-rotation-input"),
@@ -131,6 +147,8 @@ const elements = {
   saveVariantButton: $("#save-variant-button"),
   variantModal: $("#variant-modal"),
   variantForm: $("#variant-form"),
+  variantModalError: $("#variant-modal-error"),
+  variantModalProgress: $("#variant-modal-progress"),
   confirmModal: $("#confirm-modal"),
   toastRegion: $("#toast-region"),
   zoomValue: $("#zoom-value"),
@@ -165,6 +183,8 @@ function loadState() {
       recommendations: {},
       variants: [],
       activeVariantId: "current",
+      templateRevision: "",
+      serviceRevision: "",
       dirty: false
     };
   } catch {
@@ -289,6 +309,88 @@ function escapeHtml(value = "") {
   return String(value).replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char]);
 }
 
+function notifyEditorLock() {
+  if (!state.connected) return;
+  postToDashboard("tok-table-v2:editor-lock", {
+    locked: $$("dialog").some((dialog) => dialog.open)
+  });
+}
+
+function clearModalError(dialog) {
+  const error = dialog?.querySelector(".modal-error");
+  if (!error) return;
+  error.textContent = "";
+  error.classList.add("hidden");
+}
+
+function showModalError(dialog, message, field = null) {
+  const error = dialog?.querySelector(".modal-error");
+  if (error) {
+    error.textContent = message;
+    error.classList.remove("hidden");
+  }
+  field?.focus?.({ preventScroll: true });
+}
+
+function setDialogBusy(dialog, busy) {
+  if (!dialog) return;
+  dialog.setAttribute("aria-busy", String(Boolean(busy)));
+  $$('button, input, select, textarea', dialog).forEach((control) => {
+    control.disabled = Boolean(busy);
+  });
+}
+
+function safeShowModal(dialog) {
+  if (!dialog) return false;
+  clearModalError(dialog);
+  dialog.returnValue = "cancel";
+  if (!dialog.open) dialog.showModal();
+  window.setTimeout(notifyEditorLock, 0);
+  return true;
+}
+
+function closeDialog(dialog, returnValue = "cancel") {
+  if (!dialog?.open || dialog.getAttribute("aria-busy") === "true") return false;
+  dialog.close(returnValue);
+  return true;
+}
+
+function closeAllDialogs() {
+  $$("dialog").forEach((dialog) => {
+    if (!dialog.open) return;
+    dialog.removeAttribute("aria-busy");
+    dialog.close("cancel");
+  });
+}
+
+function bindDialog(dialog) {
+  if (!dialog) return;
+  dialog.addEventListener("cancel", (event) => {
+    event.preventDefault();
+    closeDialog(dialog, "cancel");
+  });
+  dialog.addEventListener("click", (event) => {
+    if (event.target === dialog) closeDialog(dialog, "cancel");
+  });
+  $$('[data-dialog-close]', dialog).forEach((button) => {
+    button.addEventListener("click", () => closeDialog(dialog, "cancel"));
+  });
+  dialog.addEventListener("close", () => {
+    clearModalError(dialog);
+    if (dialog === elements.furnitureModal) pendingFurnitureDraft = null;
+    window.setTimeout(notifyEditorLock, 0);
+  });
+}
+
+function bindEnterAction(form, action) {
+  form?.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" || event.isComposing) return;
+    if (event.target.closest?.("button, select, textarea")) return;
+    event.preventDefault();
+    action();
+  });
+}
+
 function editableTables(tables = state.tables) {
   return tables.filter((table) => table.editable);
 }
@@ -327,6 +429,37 @@ function updateDirty() {
   setDirty(tableSignature(state.tables) !== tableSignature(history.baseline));
 }
 
+function currentPersistenceKind() {
+  return state.mode === "template" ? "template" : "service-layout";
+}
+
+function hasCurrentRevisionConflict() {
+  return Boolean(remoteRevisionConflicts[currentPersistenceKind()]);
+}
+
+function clearRevisionConflict(kind) {
+  if (!Object.hasOwn(remoteRevisionConflicts, kind)) return;
+  remoteRevisionConflicts[kind] = null;
+}
+
+function showRevisionConflict() {
+  clearServiceAutosave();
+  document.body.classList.add("sync-error");
+  renderControls();
+  showToast(
+    "Ce plan a été modifié ailleurs. Annulez votre brouillon puis actualisez pour repartir de la dernière version.",
+    "warning"
+  );
+}
+
+function blockDraftMutationWhileSaving(dialog = null) {
+  if (!pendingOperation) return false;
+  const message = "Attendez la fin de l’enregistrement avant de modifier le plan.";
+  if (dialog) showModalError(dialog, message);
+  showToast(message, "warning");
+  return true;
+}
+
 function clearServiceAutosave() {
   if (!serviceAutosaveTimer) return;
   window.clearTimeout(serviceAutosaveTimer);
@@ -335,15 +468,24 @@ function clearServiceAutosave() {
 
 function scheduleServiceAutosave() {
   clearServiceAutosave();
-  if (state.mode !== "service" || !state.dirty) return;
+  if (
+    state.mode !== "service"
+    || !state.dirty
+    || hasCurrentRevisionConflict()
+    || serviceAutosaveFailures >= SERVICE_AUTOSAVE_MAX_FAILURES
+  ) return;
+  const retryDelay = Math.min(
+    SERVICE_AUTOSAVE_MAX_DELAY_MS,
+    SERVICE_AUTOSAVE_DELAY_MS * (2 ** serviceAutosaveFailures)
+  );
   serviceAutosaveTimer = window.setTimeout(() => {
     serviceAutosaveTimer = null;
     if (pendingOperation || dragState || reservationPointerDrag) {
       scheduleServiceAutosave();
       return;
     }
-    savePlan();
-  }, SERVICE_AUTOSAVE_DELAY_MS);
+    savePlan({ automatic: true });
+  }, retryDelay);
 }
 
 function resetHistory(tables) {
@@ -352,11 +494,14 @@ function resetHistory(tables) {
 }
 
 function commitTables(nextTables, beforeTables = state.tables) {
+  if (awaitingHydration || pendingOperation) return false;
   if (tableSignature(nextTables) === tableSignature(beforeTables)) return false;
+  retryableSaveOperation = null;
   history.past.push(clone(beforeTables));
   if (history.past.length > HISTORY_LIMIT) history.past.shift();
   history.future = [];
   state.tables = clone(nextTables);
+  serviceAutosaveFailures = 0;
   updateDirty();
   render();
   scheduleServiceAutosave();
@@ -399,13 +544,17 @@ function redo() {
 
 function cancelChanges() {
   if (!state.dirty || pendingOperation) return;
+  const needsCleanHydration = hasCurrentRevisionConflict();
   state.tables = clone(history.baseline);
   history.past = [];
   history.future = [];
   clearServiceAutosave();
+  serviceAutosaveFailures = 0;
+  retryableSaveOperation = null;
   setDirty(false);
   render();
-  showToast("Modifications annulées.");
+  showToast(needsCleanHydration ? "Brouillon annulé · récupération de la version distante…" : "Modifications annulées.");
+  if (needsCleanHydration && state.connected) postToDashboard("tok-table-v2:ready");
 }
 
 function zones() {
@@ -542,6 +691,7 @@ function render() {
   document.body.classList.toggle("template-mode", state.mode === "template");
   document.body.classList.toggle("dirty", state.dirty);
   document.body.classList.toggle("saving", Boolean(pendingOperation));
+  document.body.classList.toggle("awaiting-hydration", awaitingHydration);
   elements.date.value = state.selectedDate;
   elements.period.value = state.selectedPeriod;
   elements.modeServiceButton.classList.toggle("active", state.mode === "service");
@@ -577,19 +727,53 @@ function renderSummary() {
 }
 
 function renderControls() {
+  if (elements.appShell) {
+    elements.appShell.inert = awaitingHydration;
+    elements.appShell.setAttribute("aria-busy", String(awaitingHydration));
+  }
   const canUndoAssignment = state.mode === "service" && assignmentHistory.past.length > 0;
   const canRedoAssignment = state.mode === "service" && assignmentHistory.future.length > 0;
-  elements.undoButton.disabled = (history.past.length === 0 && !canUndoAssignment) || Boolean(pendingOperation);
-  elements.redoButton.disabled = (history.future.length === 0 && !canRedoAssignment) || Boolean(pendingOperation);
-  elements.saveButton.disabled = !state.dirty || Boolean(pendingOperation);
-  elements.cancelChangesButton.disabled = !state.dirty || Boolean(pendingOperation);
-  elements.autoPlaceButton.disabled = Boolean(pendingOperation);
-  if (elements.variantSelect) elements.variantSelect.disabled = Boolean(pendingOperation);
-  if (elements.saveVariantButton) elements.saveVariantButton.disabled = Boolean(pendingOperation) || !state.connected;
+  elements.undoButton.disabled = awaitingHydration || (history.past.length === 0 && !canUndoAssignment) || Boolean(pendingOperation);
+  elements.redoButton.disabled = awaitingHydration || (history.future.length === 0 && !canRedoAssignment) || Boolean(pendingOperation);
+  elements.saveButton.disabled = awaitingHydration || !state.dirty || Boolean(pendingOperation);
+  elements.cancelChangesButton.disabled = awaitingHydration || !state.dirty || Boolean(pendingOperation);
+  elements.autoPlaceButton.disabled = awaitingHydration || Boolean(pendingOperation);
+  elements.date.disabled = awaitingHydration || Boolean(pendingOperation);
+  elements.period.disabled = awaitingHydration || Boolean(pendingOperation);
+  elements.modeServiceButton.disabled = awaitingHydration || Boolean(pendingOperation);
+  elements.modeTemplateButton.disabled = awaitingHydration || Boolean(pendingOperation);
+  $("#add-table-button").disabled = awaitingHydration || Boolean(pendingOperation);
+  $$('[data-furniture-type]', elements.furniturePalette).forEach((button) => {
+    button.disabled = awaitingHydration || Boolean(pendingOperation);
+  });
+  if (elements.variantSelect) elements.variantSelect.disabled = awaitingHydration || Boolean(pendingOperation);
+  if (elements.saveVariantButton) elements.saveVariantButton.disabled = awaitingHydration || Boolean(pendingOperation) || !state.connected;
   elements.saveButton.textContent = state.mode === "template" ? "Enregistrer le modèle" : "Enregistrer ce service";
+  const variantSaving = pendingOperation?.kind === "variant";
+  const serviceTableBusy = ["assignment", "reservation-status"].includes(pendingOperation?.kind);
+  setDialogBusy(elements.variantModal, variantSaving);
+  setDialogBusy(elements.serviceTableModal, serviceTableBusy);
+  elements.variantModalProgress?.classList.toggle("hidden", !variantSaving);
+  [
+    "#apply-table-button",
+    "#duplicate-table-button",
+    "#delete-table-button",
+    "#apply-furniture-button",
+    "#duplicate-furniture-button",
+    "#delete-furniture-button",
+    "#apply-variant-button",
+    "#confirm-action-button"
+  ].forEach((selector) => {
+    const control = $(selector);
+    if (control) control.disabled = awaitingHydration || Boolean(pendingOperation);
+  });
 
-  if (pendingOperation) {
+  if (awaitingHydration) {
+    elements.connectionLabel.textContent = "Chargement sécurisé…";
+  } else if (pendingOperation) {
     elements.connectionLabel.textContent = "Enregistrement…";
+  } else if (hasCurrentRevisionConflict()) {
+    elements.connectionLabel.textContent = "Conflit distant · actualisation requise";
   } else if (state.dirty) {
     elements.connectionLabel.textContent = state.mode === "service" ? "Enregistrement automatique…" : "Modifications à enregistrer";
   } else if (state.connected) {
@@ -769,23 +953,41 @@ function createRequestId(kind) {
   return `${kind}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
-function beginOperation(kind, requestId) {
+function beginOperation(kind, requestId, options = {}) {
   clearServiceAutosave();
-  pendingOperation = { kind, requestId };
+  if (operationTimeout) window.clearTimeout(operationTimeout);
+  pendingOperation = {
+    kind,
+    requestId,
+    automatic: options.automatic === true,
+    baseRevision: String(options.baseRevision || ""),
+    signature: String(options.signature || tableSignature(state.tables)),
+    snapshot: Array.isArray(options.snapshot) ? clone(options.snapshot) : null
+  };
+  operationTimeout = window.setTimeout(() => {
+    if (pendingOperation?.requestId !== requestId) return;
+    handleOperationError({
+      requestId,
+      kind,
+      message: "Le serveur met trop de temps à répondre. Vos modifications restent dans le brouillon ; réessayez manuellement."
+    });
+  }, OPERATION_TIMEOUT_MS);
   document.body.classList.remove("sync-error");
   renderControls();
   document.body.classList.add("saving");
 }
 
-function finishOperation() {
+function finishOperation({ reschedule = true } = {}) {
+  if (operationTimeout) window.clearTimeout(operationTimeout);
+  operationTimeout = null;
   pendingOperation = null;
   document.body.classList.remove("saving");
   renderControls();
-  if (state.dirty) scheduleServiceAutosave();
+  if (reschedule && state.dirty) scheduleServiceAutosave();
 }
 
 function assignReservation(reservationId, tableId, options = {}) {
-  if (pendingOperation) return;
+  if (awaitingHydration || pendingOperation) return;
   const reservation = state.reservations.find((item) => item.id === reservationId);
   if (!reservation) return;
   const table = tableId ? state.tables.find((item) => item.id === tableId) : null;
@@ -864,7 +1066,7 @@ function renderServiceTableModal() {
   if (!elements.serviceTableContent || !selectedServiceTableId) return;
   const table = state.tables.find((item) => item.id === selectedServiceTableId && item.editable);
   if (!table) {
-    elements.serviceTableModal?.close();
+    closeDialog(elements.serviceTableModal, "cancel");
     selectedServiceTableId = null;
     return;
   }
@@ -898,7 +1100,7 @@ function openServiceTableModal(table) {
   if (state.mode !== "service" || !table?.editable || pendingOperation || !elements.serviceTableModal) return;
   selectedServiceTableId = table.id;
   renderServiceTableModal();
-  if (!elements.serviceTableModal.open) elements.serviceTableModal.showModal();
+  safeShowModal(elements.serviceTableModal);
 }
 
 function getReservationPointerTarget(clientX, clientY, reservationId) {
@@ -1024,8 +1226,10 @@ function openTableModal(table = null) {
   $("#table-modal-title").textContent = table ? `Modifier ${table.name}` : "Ajouter une table";
   $("#delete-table-button").classList.toggle("hidden", !table);
   $("#duplicate-table-button").classList.toggle("hidden", !table);
-  elements.tableModal.showModal();
-  window.setTimeout(() => fields.name.select(), 30);
+  safeShowModal(elements.tableModal);
+  window.setTimeout(() => {
+    if (elements.tableModal.open) fields.name.select();
+  }, 30);
 }
 
 function nextTableName() {
@@ -1036,6 +1240,7 @@ function nextTableName() {
 }
 
 function saveTableFromForm() {
+  if (blockDraftMutationWhileSaving(elements.tableModal)) return false;
   const form = new FormData(elements.tableForm);
   const id = String(form.get("id") || "");
   const name = String(form.get("name") || "").trim();
@@ -1043,10 +1248,16 @@ function saveTableFromForm() {
   const zone = String(form.get("zone") || "").trim();
   const shape = String(form.get("shape") || "round");
   const blocked = form.get("active") !== "on";
-  if (!name || name.length > 40 || !zone || zone.length > 60 || capacity < 1 || capacity > 30) return false;
+  if (!name || name.length > 40 || !zone || zone.length > 60 || capacity < 1 || capacity > 30) {
+    showModalError(elements.tableModal, "Renseignez un nom, une zone et un nombre d’assises valides.");
+    return false;
+  }
 
-  const duplicate = editableTables().find((item) => item.id !== id && item.name.toLocaleLowerCase("fr") === name.toLocaleLowerCase("fr"));
+  const duplicate = state.tables.find((item) => (
+    item.id !== id && item.name.toLocaleLowerCase("fr") === name.toLocaleLowerCase("fr")
+  ));
   if (duplicate) {
+    showModalError(elements.tableModal, "Une table ou un élément de mobilier porte déjà ce nom.", elements.tableForm.elements.name);
     showToast("Une table porte déjà ce nom.", "warning");
     return false;
   }
@@ -1055,6 +1266,7 @@ function saveTableFromForm() {
     reservation.tableId === id && (blocked || reservation.size > capacity)
   ));
   if (incompatible) {
+    showModalError(elements.tableModal, `Retirez d’abord le placement de ${incompatible.name}.`);
     showToast(`Retirez d’abord le placement de ${incompatible.name}.`, "warning");
     return false;
   }
@@ -1085,6 +1297,7 @@ function saveTableFromForm() {
 }
 
 function duplicateCurrentTable() {
+  if (blockDraftMutationWhileSaving(elements.tableModal)) return;
   const id = elements.tableForm.elements.id.value;
   const source = state.tables.find((item) => item.id === id && item.editable);
   if (!source) return;
@@ -1100,12 +1313,22 @@ function duplicateCurrentTable() {
     x: Math.min(86, source.x + 5),
     y: Math.min(80, source.y + 5)
   });
-  elements.tableModal.close();
+  closeDialog(elements.tableModal, "default");
   commitTables(next);
   showToast(`${name} ajoutée au brouillon.`, "success");
 }
 
+function openConfirmDialog(title, copy, action) {
+  if (blockDraftMutationWhileSaving()) return false;
+  pendingConfirmAction = action;
+  $("#confirm-title").textContent = title;
+  $("#confirm-copy").textContent = copy;
+  safeShowModal(elements.confirmModal);
+  return true;
+}
+
 function requestDeleteCurrentTable() {
+  if (blockDraftMutationWhileSaving(elements.tableModal)) return;
   const id = elements.tableForm.elements.id.value;
   const table = state.tables.find((item) => item.id === id && item.editable);
   if (!table) return;
@@ -1114,15 +1337,16 @@ function requestDeleteCurrentTable() {
     showToast(`Retirez d’abord le placement de ${assigned.name}.`, "warning");
     return;
   }
-  elements.tableModal.close();
-  $("#confirm-title").textContent = `Supprimer ${table.name} ?`;
-  $("#confirm-copy").textContent = "La suppression sera définitive après l’enregistrement du modèle.";
-  pendingConfirmAction = () => {
+  closeDialog(elements.tableModal, "default");
+  openConfirmDialog(
+    `Supprimer ${table.name} ?`,
+    "La suppression sera définitive après l’enregistrement du modèle.",
+    () => {
     const next = state.tables.filter((item) => item.id !== id);
     commitTables(next);
     showToast(`${table.name} retirée du brouillon.`);
-  };
-  elements.confirmModal.showModal();
+    }
+  );
 }
 
 function nextFurnitureName(kind) {
@@ -1135,7 +1359,7 @@ function nextFurnitureName(kind) {
 }
 
 function addFurniture(kind) {
-  if (state.mode !== "template" || pendingOperation || !FURNITURE_TYPES.includes(kind)) return;
+  if (awaitingHydration || state.mode !== "template" || pendingOperation || !FURNITURE_TYPES.includes(kind)) return;
   const defaults = FURNITURE_LIBRARY[kind];
   const furnitureCount = state.tables.filter((item) => !item.editable).length;
   const maxX = Math.max(0, ((CANVAS_WIDTH - defaults.width) / CANVAS_WIDTH) * 100);
@@ -1157,11 +1381,8 @@ function addFurniture(kind) {
     locked: false,
     zIndex: Math.min(100, furnitureCount)
   };
-  const next = clone(state.tables);
-  next.push(object);
-  commitTables(next);
-  showToast(`${object.name} ajouté au brouillon.`, "success");
-  window.setTimeout(() => openFurnitureModal(object), 0);
+  pendingFurnitureDraft = clone(object);
+  openFurnitureModal(object, { isNew: true });
 }
 
 function toSignedRotation(value) {
@@ -1175,8 +1396,9 @@ function syncFurnitureRotation(value) {
   elements.furnitureRotationOutput.textContent = `${rotation}°`;
 }
 
-function openFurnitureModal(object) {
+function openFurnitureModal(object, { isNew = false } = {}) {
   if (state.mode !== "template" || !object || object.editable || pendingOperation) return;
+  pendingFurnitureDraft = isNew ? clone(object) : null;
   elements.furnitureForm.reset();
   const fields = elements.furnitureForm.elements;
   fields.id.value = object.id;
@@ -1188,11 +1410,16 @@ function openFurnitureModal(object) {
   fields.locked.checked = Boolean(object.locked);
   syncFurnitureRotation(toSignedRotation(object.rotation));
   $("#furniture-modal-title").textContent = `Modifier ${object.name}`;
-  if (!elements.furnitureModal.open) elements.furnitureModal.showModal();
-  window.setTimeout(() => fields.name.select(), 30);
+  $("#delete-furniture-button").classList.toggle("hidden", isNew);
+  $("#duplicate-furniture-button").classList.toggle("hidden", isNew);
+  safeShowModal(elements.furnitureModal);
+  window.setTimeout(() => {
+    if (elements.furnitureModal.open) fields.name.select();
+  }, 30);
 }
 
 function saveFurnitureFromForm() {
+  if (blockDraftMutationWhileSaving(elements.furnitureModal)) return false;
   const form = new FormData(elements.furnitureForm);
   const id = String(form.get("id") || "");
   const kind = String(form.get("type") || "");
@@ -1202,14 +1429,17 @@ function saveFurnitureFromForm() {
   const height = Math.round(Number(form.get("height")));
   const rotation = Math.round(Number(form.get("rotation")));
   const locked = form.get("locked") === "on";
-  const existing = state.tables.find((item) => item.id === id && !item.editable);
+  const persisted = state.tables.find((item) => item.id === id && !item.editable);
+  const existing = persisted || (pendingFurnitureDraft?.id === id ? pendingFurnitureDraft : null);
 
   if (!existing || !FURNITURE_TYPES.includes(kind)) return false;
   if (!name || name.length > 40 || !zone || zone.length > 60) {
+    showModalError(elements.furnitureModal, "Renseignez un nom et une zone valides.");
     showToast("Renseignez un nom et une zone valides.", "warning");
     return false;
   }
   if (width < 24 || width > 520 || height < 16 || height > 360 || rotation < -180 || rotation > 180) {
+    showModalError(elements.furnitureModal, "Les dimensions ou la rotation sont invalides.");
     showToast("Les dimensions ou la rotation sont invalides.", "warning");
     return false;
   }
@@ -1217,12 +1447,18 @@ function saveFurnitureFromForm() {
     item.id !== id && item.name.toLocaleLowerCase("fr") === name.toLocaleLowerCase("fr")
   ));
   if (duplicate) {
+    showModalError(elements.furnitureModal, "Un élément du plan porte déjà ce nom.", elements.furnitureForm.elements.name);
     showToast("Un élément du plan porte déjà ce nom.", "warning");
     return false;
   }
 
   const next = clone(state.tables);
-  const object = next.find((item) => item.id === id && !item.editable);
+  let object = next.find((item) => item.id === id && !item.editable);
+  if (!object && pendingFurnitureDraft?.id === id) {
+    object = clone(pendingFurnitureDraft);
+    next.push(object);
+  }
+  if (!object) return false;
   const maxX = Math.max(0, ((CANVAS_WIDTH - width) / CANVAS_WIDTH) * 100);
   const maxY = Math.max(0, ((CANVAS_HEIGHT - height) / CANVAS_HEIGHT) * 100);
   Object.assign(object, {
@@ -1238,11 +1474,13 @@ function saveFurnitureFromForm() {
   });
   state.selectedZone = zone;
   commitTables(next);
-  showToast(`${name} modifié dans le brouillon.`, "success");
+  pendingFurnitureDraft = null;
+  showToast(persisted ? `${name} modifié dans le brouillon.` : `${name} ajouté au brouillon.`, "success");
   return true;
 }
 
 function duplicateCurrentFurniture() {
+  if (blockDraftMutationWhileSaving(elements.furnitureModal)) return;
   const id = elements.furnitureForm.elements.id.value;
   const source = state.tables.find((item) => item.id === id && !item.editable);
   if (!source) return;
@@ -1257,27 +1495,31 @@ function duplicateCurrentFurniture() {
     zIndex: Math.min(100, (Number(source.zIndex) || 0) + 1)
   };
   next.push(duplicate);
-  elements.furnitureModal.close();
+  closeDialog(elements.furnitureModal, "default");
   commitTables(next);
   showToast(`${duplicate.name} ajouté au brouillon.`, "success");
 }
 
 function requestDeleteCurrentFurniture() {
+  if (blockDraftMutationWhileSaving(elements.furnitureModal)) return;
   const id = elements.furnitureForm.elements.id.value;
   const object = state.tables.find((item) => item.id === id && !item.editable);
   if (!object) return;
-  elements.furnitureModal.close();
-  $("#confirm-title").textContent = `Supprimer ${object.name} ?`;
-  $("#confirm-copy").textContent = "La suppression sera définitive après l’enregistrement du modèle.";
-  pendingConfirmAction = () => {
-    commitTables(state.tables.filter((item) => item.id !== id));
-    showToast(`${object.name} retiré du brouillon.`);
-  };
-  elements.confirmModal.showModal();
+  closeDialog(elements.furnitureModal, "default");
+  openConfirmDialog(
+    `Supprimer ${object.name} ?`,
+    "La suppression sera définitive après l’enregistrement du modèle.",
+    () => {
+      commitTables(state.tables.filter((item) => item.id !== id));
+      showToast(`${object.name} retiré du brouillon.`);
+    }
+  );
 }
 
-function savePlan() {
-  if (!state.dirty || pendingOperation) return;
+function savePlan(options = {}) {
+  if (awaitingHydration || !state.dirty || pendingOperation) return;
+  const automatic = options?.automatic === true;
+  if (!automatic) serviceAutosaveFailures = 0;
   clearServiceAutosave();
   if (!state.connected) {
     history.baseline = clone(state.tables);
@@ -1287,7 +1529,12 @@ function savePlan() {
     showToast(state.mode === "template" ? "Modèle enregistré localement." : "Service enregistré localement.", "success");
     return;
   }
-  const requestId = createRequestId(state.mode === "template" ? "template" : "service_layout");
+  const operationKind = state.mode === "template" ? "template" : "service-layout";
+  if (hasCurrentRevisionConflict()) {
+    showRevisionConflict();
+    return;
+  }
+  const operationSnapshot = clone(state.tables);
   const tables = editableTables().map((table) => ({
     id: table.id,
     name: table.name,
@@ -1311,15 +1558,45 @@ function savePlan() {
     locked: object.locked,
     zIndex: object.zIndex
   }));
-  beginOperation(state.mode === "template" ? "template" : "service-layout", requestId);
+  const baselineTableIds = history.baseline.filter((item) => item.editable).map((item) => item.id);
+  const baselineObjectIds = history.baseline.filter((item) => !item.editable).map((item) => item.id);
+  const baseRevision = state.mode === "template" ? state.templateRevision : state.serviceRevision;
+  const signature = tableSignature(state.tables);
+  const canReplayRequest = retryableSaveOperation
+    && retryableSaveOperation.kind === operationKind
+    && retryableSaveOperation.signature === signature
+    && retryableSaveOperation.baseRevision === baseRevision;
+  const requestId = canReplayRequest
+    ? retryableSaveOperation.requestId
+    : createRequestId(state.mode === "template" ? "template" : "service_layout");
+  beginOperation(
+    operationKind,
+    requestId,
+    { automatic, baseRevision, signature, snapshot: operationSnapshot }
+  );
   postToDashboard(
     state.mode === "template" ? "tok-table-v2:save-template" : "tok-table-v2:save-service-layout",
-    state.mode === "template" ? { requestId, tables, objects } : { requestId, tables }
+    state.mode === "template"
+      ? {
+        protocolVersion: BRIDGE_PROTOCOL_VERSION,
+        requestId,
+        baseRevision,
+        baselineTableIds,
+        baselineObjectIds,
+        tables,
+        objects
+      }
+      : {
+        protocolVersion: BRIDGE_PROTOCOL_VERSION,
+        requestId,
+        baseRevision,
+        tables
+      }
   );
 }
 
 function switchMode(nextMode) {
-  if (nextMode === state.mode) return;
+  if (awaitingHydration || pendingOperation || nextMode === state.mode) return;
   if (state.dirty) {
     showToast("Enregistrez ou annulez les modifications avant de changer de mode.", "warning");
     return;
@@ -1362,17 +1639,28 @@ function openVariantModal() {
   elements.variantForm.reset();
   const now = new Date().toLocaleString("fr-CH", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
   elements.variantForm.elements.name.value = `Plan enregistré · ${now}`;
-  elements.variantModal.showModal();
-  window.setTimeout(() => elements.variantForm.elements.name.select(), 30);
+  safeShowModal(elements.variantModal);
+  window.setTimeout(() => {
+    if (elements.variantModal.open) elements.variantForm.elements.name.select();
+  }, 30);
 }
 
 function saveVariantFromForm() {
+  if (blockDraftMutationWhileSaving(elements.variantModal)) return false;
   const name = String(new FormData(elements.variantForm).get("name") || "").trim();
   if (!name || name.length > 80) {
+    showModalError(elements.variantModal, "Donnez un nom valide à cette variante.", elements.variantForm.elements.name);
     showToast("Donnez un nom valide à cette variante.", "warning");
     return false;
   }
-  const requestId = createRequestId("variant");
+  const operationSnapshot = clone(state.tables);
+  const signature = JSON.stringify({ name, tables: JSON.parse(tableSignature(operationSnapshot)) });
+  const canReplayRequest = retryableSaveOperation
+    && retryableSaveOperation.kind === "variant"
+    && retryableSaveOperation.signature === signature;
+  const requestId = canReplayRequest
+    ? retryableSaveOperation.requestId
+    : createRequestId("variant");
   const tables = editableTables().map((table) => ({
     id: table.id,
     name: table.name,
@@ -1396,8 +1684,14 @@ function saveVariantFromForm() {
     locked: object.locked,
     zIndex: object.zIndex
   }));
-  beginOperation("variant", requestId);
-  postToDashboard("tok-table-v2:save-variant", { requestId, name, tables, objects });
+  beginOperation("variant", requestId, { signature, snapshot: operationSnapshot });
+  postToDashboard("tok-table-v2:save-variant", {
+    protocolVersion: BRIDGE_PROTOCOL_VERSION,
+    requestId,
+    name,
+    tables,
+    objects
+  });
   return true;
 }
 
@@ -1664,16 +1958,25 @@ function endViewportGesture(event) {
   }
 }
 
+function replaceTableIds(tables, idMap) {
+  if (!idMap || typeof idMap !== "object") return clone(tables);
+  return tables.map((table) => ({
+    ...clone(table),
+    id: typeof idMap[table.id] === "string" ? idMap[table.id] : table.id
+  }));
+}
+
 function applyIdMap(idMap) {
   if (!idMap || typeof idMap !== "object") return;
-  const replace = (tables) => tables.map((table) => ({ ...table, id: typeof idMap[table.id] === "string" ? idMap[table.id] : table.id }));
-  state.tables = replace(state.tables);
-  state.serverTemplateTables = replace(state.serverTemplateTables);
-  state.serverServiceTables = replace(state.serverServiceTables);
+  state.tables = replaceTableIds(state.tables, idMap);
+  state.serverTemplateTables = replaceTableIds(state.serverTemplateTables, idMap);
+  state.serverServiceTables = replaceTableIds(state.serverServiceTables, idMap);
 }
 
 function hydrateConnectedState(payload) {
   if (!payload || !Array.isArray(payload.reservations)) return;
+  if (Number(payload.protocolVersion) !== BRIDGE_PROTOCOL_VERSION) return;
+  const firstHydration = awaitingHydration || !state.connected;
   const furniture = sanitizeTables(payload.furniture || []).filter((item) => !item.editable);
   const mergeFurniture = (input) => {
     const tables = sanitizeTables(input || []).filter((item) => item.editable);
@@ -1688,6 +1991,41 @@ function hydrateConnectedState(payload) {
   const branchChanged = state.branchId && state.branchId !== incomingBranchId;
   const incomingDate = /^\d{4}-\d{2}-\d{2}$/.test(String(payload.selectedDate || "")) ? payload.selectedDate : todayIso();
   const incomingPeriod = payload.selectedPeriod === "midi" ? "midi" : "soir";
+  const incomingTemplateRevision = String(payload.templateRevision || "");
+  const incomingServiceRevision = String(payload.serviceRevision || "");
+  if (branchChanged) {
+    closeAllDialogs();
+    clearReservationPointerDrag(false);
+    if (pendingOperation) finishOperation({ reschedule: false });
+    pendingAssignment = null;
+    pendingStatusChange = null;
+    pendingFurnitureDraft = null;
+    retryableSaveOperation = null;
+    selectedReservationId = null;
+    selectedServiceTableId = null;
+  }
+  const protectServerState = !firstHydration
+    && !branchChanged
+    && (state.dirty || Boolean(pendingOperation));
+  let discoveredCurrentConflict = false;
+  if (protectServerState) {
+    if (incomingTemplateRevision !== state.templateRevision) {
+      discoveredCurrentConflict = state.mode === "template" && !remoteRevisionConflicts.template;
+      remoteRevisionConflicts.template = incomingTemplateRevision || "revision-distante";
+    }
+    if (incomingServiceRevision !== state.serviceRevision) {
+      discoveredCurrentConflict = discoveredCurrentConflict
+        || (state.mode === "service" && !remoteRevisionConflicts["service-layout"]);
+      remoteRevisionConflicts["service-layout"] = incomingServiceRevision || "revision-distante";
+    }
+  } else {
+    state.templateRevision = incomingTemplateRevision;
+    state.serviceRevision = incomingServiceRevision;
+    state.serverTemplateTables = clone(templateTables);
+    state.serverServiceTables = clone(serviceTables);
+    remoteRevisionConflicts = { template: null, "service-layout": null };
+    document.body.classList.remove("sync-error");
+  }
   const assignmentContext = `${incomingBranchId}:${incomingDate}:${incomingPeriod}`;
   const serviceChanged = assignmentHistory.context !== assignmentContext;
   if (serviceChanged) {
@@ -1695,6 +2033,7 @@ function hydrateConnectedState(payload) {
   }
 
   state.connected = true;
+  awaitingHydration = false;
   state.branchId = incomingBranchId;
   state.selectedDate = incomingDate;
   state.selectedPeriod = incomingPeriod;
@@ -1704,10 +2043,8 @@ function hydrateConnectedState(payload) {
   if (state.activeVariantId !== "current" && !state.variants.some((variant) => variant.id === state.activeVariantId)) {
     state.activeVariantId = "current";
   }
-  state.serverTemplateTables = clone(templateTables);
-  state.serverServiceTables = clone(serviceTables);
 
-  if (!state.dirty || branchChanged) {
+  if (firstHydration || !state.dirty || branchChanged) {
     const incomingTables = state.mode === "template" ? templateTables : serviceTables;
     if (branchChanged || serviceChanged || tableSignature(incomingTables) !== tableSignature(state.tables)) {
       state.tables = clone(incomingTables);
@@ -1721,15 +2058,18 @@ function hydrateConnectedState(payload) {
     selectedReservationId = null;
   }
   if (selectedServiceTableId && !serviceTables.some((table) => table.id === selectedServiceTableId && table.editable)) {
-    elements.serviceTableModal?.close();
+    closeDialog(elements.serviceTableModal, "cancel");
     selectedServiceTableId = null;
   }
   render();
+  if (discoveredCurrentConflict && !pendingOperation) showRevisionConflict();
 }
 
 function handleOperationSuccess(payload) {
-  if (pendingOperation && payload?.requestId && payload.requestId !== pendingOperation.requestId) return;
-  const kind = payload?.kind || pendingOperation?.kind;
+  if (!pendingOperation || !payload?.requestId || payload.requestId !== pendingOperation.requestId) return;
+  if (payload?.kind && payload.kind !== pendingOperation.kind) return;
+  const completedOperation = pendingOperation;
+  const kind = payload?.kind || completedOperation.kind;
   if (kind === "variant-load") {
     const loadedTables = sanitizeTables(payload?.tables || []).filter((item) => item.editable);
     const loadedFurniture = sanitizeTables(payload?.furniture || []).filter((item) => !item.editable);
@@ -1744,25 +2084,48 @@ function handleOperationSuccess(payload) {
       state.selectedZone = state.tables[0]?.zone || "Salle principale";
     }
   }
+  if (kind === "variant") retryableSaveOperation = null;
   if (kind === "variant" && payload?.variantId) {
     state.activeVariantId = String(payload.variantId);
+    elements.variantModal.removeAttribute("aria-busy");
+    closeDialog(elements.variantModal, "default");
   }
   if (kind === "template") {
+    retryableSaveOperation = null;
+    clearRevisionConflict("template");
+    const savedSnapshot = replaceTableIds(completedOperation.snapshot || state.tables, payload?.idMap);
     applyIdMap(payload?.idMap);
-    state.serverTemplateTables = clone(state.tables);
-    const savedFurniture = state.tables.filter((item) => !item.editable);
+    state.tables = clone(savedSnapshot);
+    if (typeof payload?.templateRevision === "string") state.templateRevision = payload.templateRevision;
+    state.serverTemplateTables = clone(savedSnapshot);
+    const savedTables = savedSnapshot.filter((item) => item.editable);
+    const savedFurniture = savedSnapshot.filter((item) => !item.editable);
+    const servicePositions = new Map(
+      state.serverServiceTables
+        .filter((item) => item.editable)
+        .map((item) => [item.id, { x: item.x, y: item.y }])
+    );
     state.serverServiceTables = [
-      ...state.serverServiceTables.filter((item) => item.editable),
+      ...savedTables.map((item) => ({
+        ...clone(item),
+        ...(servicePositions.get(item.id) || {})
+      })),
       ...clone(savedFurniture)
     ];
-    history.baseline = clone(state.tables);
+    history.baseline = clone(savedSnapshot);
     history.past = [];
     history.future = [];
     setDirty(false);
   }
   if (kind === "service-layout") {
-    state.serverServiceTables = clone(state.tables);
-    history.baseline = clone(state.tables);
+    retryableSaveOperation = null;
+    clearRevisionConflict("service-layout");
+    serviceAutosaveFailures = 0;
+    const savedSnapshot = clone(completedOperation.snapshot || state.tables);
+    state.tables = clone(savedSnapshot);
+    if (typeof payload?.serviceRevision === "string") state.serviceRevision = payload.serviceRevision;
+    state.serverServiceTables = clone(savedSnapshot);
+    history.baseline = clone(savedSnapshot);
     setDirty(false);
   }
   pendingAssignment = null;
@@ -1773,7 +2136,9 @@ function handleOperationSuccess(payload) {
 }
 
 function handleOperationError(payload) {
-  if (pendingOperation && payload?.requestId && payload.requestId !== pendingOperation.requestId) return;
+  if (!pendingOperation || !payload?.requestId || payload.requestId !== pendingOperation.requestId) return;
+  if (payload?.kind && payload.kind !== pendingOperation.kind) return;
+  const failedOperation = pendingOperation;
   if (pendingAssignment) {
     const reservation = state.reservations.find((item) => item.id === pendingAssignment.reservationId);
     if (reservation) reservation.tableId = pendingAssignment.previousTableId;
@@ -1796,10 +2161,33 @@ function handleOperationError(payload) {
   }
   pendingAssignment = null;
   pendingStatusChange = null;
-  finishOperation();
+  if (failedOperation.kind === "variant" && elements.variantModal?.open) {
+    showModalError(elements.variantModal, payload?.message || "La variante n’a pas pu être enregistrée.");
+  }
+  const shouldRetryAutosave = failedOperation.kind === "service-layout" && failedOperation.automatic;
+  if (["template", "service-layout", "variant"].includes(failedOperation.kind)) {
+    retryableSaveOperation = {
+      requestId: failedOperation.requestId,
+      kind: failedOperation.kind,
+      signature: failedOperation.signature,
+      baseRevision: failedOperation.baseRevision
+    };
+  }
+  if (shouldRetryAutosave) serviceAutosaveFailures += 1;
+  finishOperation({ reschedule: false });
   document.body.classList.add("sync-error");
   render();
-  showToast(payload?.message || "L’opération n’a pas pu être enregistrée.", "warning");
+  showToast(
+    hasCurrentRevisionConflict()
+      ? "La version distante a changé pendant l’enregistrement. Annulez le brouillon puis actualisez avant de réessayer."
+      : (payload?.message || "L’opération n’a pas pu être enregistrée."),
+    "warning"
+  );
+  if (shouldRetryAutosave && serviceAutosaveFailures < SERVICE_AUTOSAVE_MAX_FAILURES) {
+    scheduleServiceAutosave();
+  } else if (shouldRetryAutosave) {
+    showToast("Sauvegarde automatique suspendue après plusieurs échecs. Utilisez Enregistrer pour réessayer.", "warning");
+  }
 }
 
 window.addEventListener("message", (event) => {
@@ -1883,24 +2271,64 @@ $("#cancel-placement-button").addEventListener("click", () => {
 });
 $("#unassign-button").addEventListener("click", unassignSelectedReservation);
 
-elements.tableForm.addEventListener("submit", (event) => {
-  if (event.submitter?.value === "cancel") return;
-  event.preventDefault();
-  if (saveTableFromForm()) elements.tableModal.close();
-});
-elements.furnitureForm.addEventListener("submit", (event) => {
-  if (event.submitter?.value === "cancel") return;
-  event.preventDefault();
-  if (saveFurnitureFromForm()) elements.furnitureModal.close();
-});
-elements.variantForm?.addEventListener("submit", (event) => {
-  if (event.submitter?.value === "cancel") return;
-  event.preventDefault();
-  if (saveVariantFromForm()) elements.variantModal.close();
-});
+function applyTableModal() {
+  if (blockDraftMutationWhileSaving(elements.tableModal)) return;
+  clearModalError(elements.tableModal);
+  if (!elements.tableForm.reportValidity()) {
+    showModalError(elements.tableModal, "Corrigez les champs indiqués avant d’appliquer.");
+    return;
+  }
+  if (saveTableFromForm()) closeDialog(elements.tableModal, "default");
+}
+
+function applyFurnitureModal() {
+  if (blockDraftMutationWhileSaving(elements.furnitureModal)) return;
+  clearModalError(elements.furnitureModal);
+  if (!elements.furnitureForm.reportValidity()) {
+    showModalError(elements.furnitureModal, "Corrigez les champs indiqués avant d’appliquer.");
+    return;
+  }
+  if (saveFurnitureFromForm()) closeDialog(elements.furnitureModal, "default");
+}
+
+function applyVariantModal() {
+  if (blockDraftMutationWhileSaving(elements.variantModal)) return;
+  clearModalError(elements.variantModal);
+  if (!elements.variantForm.reportValidity()) {
+    showModalError(elements.variantModal, "Donnez un nom à cette variante.");
+    return;
+  }
+  saveVariantFromForm();
+}
+
+elements.tableForm.addEventListener("submit", (event) => event.preventDefault());
+elements.furnitureForm.addEventListener("submit", (event) => event.preventDefault());
+elements.variantForm?.addEventListener("submit", (event) => event.preventDefault());
+$("#apply-table-button").addEventListener("click", applyTableModal);
+$("#apply-furniture-button").addEventListener("click", applyFurnitureModal);
+$("#apply-variant-button").addEventListener("click", applyVariantModal);
+bindEnterAction(elements.tableForm, applyTableModal);
+bindEnterAction(elements.furnitureForm, applyFurnitureModal);
+bindEnterAction(elements.variantForm, applyVariantModal);
+
+[
+  elements.tableModal,
+  elements.furnitureModal,
+  elements.serviceTableModal,
+  elements.variantModal,
+  elements.confirmModal
+].forEach(bindDialog);
+
 elements.confirmModal.addEventListener("close", () => {
-  if (elements.confirmModal.returnValue === "default" && pendingConfirmAction) pendingConfirmAction();
   pendingConfirmAction = null;
+});
+$("#confirm-action-button").addEventListener("click", () => {
+  if (blockDraftMutationWhileSaving(elements.confirmModal)) return;
+  const action = pendingConfirmAction;
+  pendingConfirmAction = null;
+  if (!action) return;
+  closeDialog(elements.confirmModal, "default");
+  action();
 });
 
 elements.zones.addEventListener("click", (event) => {
@@ -1958,6 +2386,7 @@ elements.floor.addEventListener("click", (event) => {
   const table = tableNode && state.tables.find((item) => item.id === tableNode.dataset.tableId && item.editable);
   if (table && event.detail === 0) {
     if (selectedReservationId) assignReservation(selectedReservationId, table.id);
+    else if (state.mode === "template") openTableModal(table);
     else openServiceTableModal(table);
   }
 });
@@ -2015,11 +2444,11 @@ elements.serviceTableContent?.addEventListener("click", (event) => {
   const action = event.target.closest("[data-action]");
   if (!action) return;
   if (action.dataset.action === "unassign-reservation") {
-    elements.serviceTableModal.close();
+    closeDialog(elements.serviceTableModal, "default");
     assignReservation(action.dataset.reservationId, null);
   }
   if (action.dataset.action === "move-modal-reservation") {
-    elements.serviceTableModal.close();
+    closeDialog(elements.serviceTableModal, "default");
     selectedReservationId = action.dataset.reservationId;
     selectedServiceTableId = null;
     render();
@@ -2031,6 +2460,49 @@ elements.serviceTableModal?.addEventListener("close", () => {
 
 window.addEventListener("keydown", (event) => {
   if (event.target.closest?.("input, select, textarea")) return;
+  if (awaitingHydration) return;
+  const focusedNode = document.activeElement?.closest?.(".table-node");
+  const focusedItem = focusedNode
+    ? state.tables.find((item) => item.id === focusedNode.dataset.tableId)
+    : null;
+  if (focusedItem && state.mode === "template" && !pendingOperation) {
+    if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) {
+      event.preventDefault();
+      if (focusedItem.locked) {
+        showToast(`${focusedItem.name} est verrouillé.`, "warning");
+        return;
+      }
+      const dimensions = getNodeDimensions(focusedItem);
+      const step = event.shiftKey ? 16 : 4;
+      const maxX = Math.max(0, ((CANVAS_WIDTH - dimensions.width) / CANVAS_WIDTH) * 100);
+      const maxY = Math.max(0, ((CANVAS_HEIGHT - dimensions.height) / CANVAS_HEIGHT) * 100);
+      const next = clone(state.tables);
+      const item = next.find((candidate) => candidate.id === focusedItem.id);
+      if (!item) return;
+      if (event.key === "ArrowLeft") item.x = Math.max(0, item.x - (step / CANVAS_WIDTH) * 100);
+      if (event.key === "ArrowRight") item.x = Math.min(maxX, item.x + (step / CANVAS_WIDTH) * 100);
+      if (event.key === "ArrowUp") item.y = Math.max(0, item.y - (step / CANVAS_HEIGHT) * 100);
+      if (event.key === "ArrowDown") item.y = Math.min(maxY, item.y + (step / CANVAS_HEIGHT) * 100);
+      commitTables(next);
+      window.requestAnimationFrame(() => {
+        $$(".table-node", elements.floor)
+          .find((node) => node.dataset.tableId === focusedItem.id)
+          ?.focus();
+      });
+      return;
+    }
+    if (event.key === "Delete" || event.key === "Backspace") {
+      event.preventDefault();
+      if (focusedItem.editable) {
+        openTableModal(focusedItem);
+        requestDeleteCurrentTable();
+      } else {
+        openFurnitureModal(focusedItem);
+        requestDeleteCurrentFurniture();
+      }
+      return;
+    }
+  }
   const modifier = event.ctrlKey || event.metaKey;
   if (modifier && event.key.toLowerCase() === "z") {
     event.preventDefault();

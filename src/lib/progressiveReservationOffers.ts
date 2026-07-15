@@ -16,6 +16,8 @@ export type ProgressiveReservationOffer = {
   final_discount_percent?: number | null;
   status: string;
   metadata?: Record<string, unknown> | null;
+  created_at?: string | null;
+  updated_at?: string | null;
   restaurants?: {
     id?: string;
     name?: string | null;

@@ -259,8 +259,12 @@ export default function Index() {
       : fetchHomeRail({ sortBy: "promotion", limit: 4 }),
   });
 
+  const progressiveOffersBaseQuery = {
+    queryKey: ["home-progressive-reservation-offers", todayServiceDate],
+  };
+
   const { data: progressiveOffers = [] } = useQuery({
-    queryKey: ["home-progressive-reservation-offers", todayServiceDate, demoSessionKey],
+    queryKey: [...progressiveOffersBaseQuery.queryKey, demoSessionKey],
     queryFn: async () => {
       if (isCommercialDemoClient) return [] as ProgressiveReservationOffer[];
       const { data, error } = await (supabase.from(PROGRESSIVE_OFFERS_TABLE as any) as any)

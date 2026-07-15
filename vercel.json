@@ -127,6 +127,26 @@
   ],
   "rewrites": [
     {
+      "source": "/mcp",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.thetok.ch"
+        }
+      ],
+      "destination": "https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1/tok-connect-mcp"
+    },
+    {
+      "source": "/.well-known/oauth-protected-resource",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.thetok.ch"
+        }
+      ],
+      "destination": "https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1/tok-connect-mcp?tok_connect_route=protected-resource"
+    },
+    {
       "source": "/functions/v1/:path*",
       "destination": "https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1/:path*"
     },

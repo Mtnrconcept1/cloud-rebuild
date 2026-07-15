@@ -173,9 +173,11 @@ describe("commercial.thetok.ch production transaction isolation", () => {
   });
 
   it("allows the commercial return host only when the demo checkout opts in", () => {
+    const demoCheckout = read("supabase/functions/commercial-demo-checkout/index.ts");
     const emptyEnv = () => undefined;
     const returnUrl = "https://commercial.thetok.ch/commercial/demo-live?demo_checkout=success";
 
+    expect(demoCheckout).toContain("additionalAllowedHosts: [COMMERCIAL_DEMO_HOSTNAME]");
     expect(normalizeCheckoutReturnUrl(returnUrl, { env: emptyEnv })).toBeNull();
     expect(normalizeCheckoutReturnUrl(returnUrl, {
       env: emptyEnv,

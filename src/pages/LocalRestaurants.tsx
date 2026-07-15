@@ -202,8 +202,11 @@ export default function LocalRestaurants() {
   const knownDistrictSegment = Boolean(routeSegment && DISTRICT_LABELS[routeSegment]);
   const knownCategorySegment = Boolean(routeSegment && CATEGORY_LABELS[routeSegment]);
   const slugCandidate = Boolean(routeSegment && !knownDistrictSegment && !knownCategorySegment);
+  const restaurantSlugBaseQuery = {
+    queryKey: ["restaurant-slug", city, routeSegment],
+  };
   const { data: restaurantBySlug, isLoading: isSlugLoading } = useQuery({
-    queryKey: ["restaurant-slug", city, routeSegment, demoSessionKey],
+    queryKey: [...restaurantSlugBaseQuery.queryKey, demoSessionKey],
     enabled: Boolean(city && slugCandidate && !isCommercialDemoClient),
     queryFn: async () => {
       const { data, error } = await supabase
