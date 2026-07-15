@@ -91,8 +91,9 @@ describe("privileged admin AI chat", () => {
     expect(supportChat).toContain("Acces administrateur principal");
     expect(app).toContain('import SupportChat from "@/components/SupportChat"');
     expect(app).not.toContain("const SupportChat = lazy");
-    expect(app).toContain("!commercialDemoFrame ? <SupportChat /> : null");
-    expect(app).toContain("!commercialDemoFrame ? (");
+    expect(app).toContain('const oauthConsentFrame = pathname === "/oauth/consent"');
+    expect(app).toContain("!commercialDemoFrame && !oauthConsentFrame ? <SupportChat /> : null");
+    expect(app).toContain("!commercialDemoFrame && !oauthConsentFrame ? (");
     expect(app).toContain("<Suspense fallback={null}>");
   });
 });
