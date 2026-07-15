@@ -15,7 +15,6 @@ describe("commercial demo AI workspaces", () => {
   const provider = read("src/components/commercial/CommercialDemoFrameProvider.tsx");
   const advisor = read("src/pages/dashboard/DashboardAdvisor.tsx");
   const embeddedChat = read("src/components/support/TokAiSupportChat.tsx");
-  const floatingChat = read("src/components/SupportChat.tsx");
   const marketingStudio = read("src/components/dashboard/TokAiMarketingStudio.tsx");
   const photos = read("src/pages/dashboard/DashboardPhotos.tsx");
   const photoStudio = read("src/components/dashboard/TokAiPhotoStudioV2.tsx");
@@ -159,28 +158,12 @@ describe("commercial demo AI workspaces", () => {
     expect(effects).toContain("isTrustedSupabaseOrigin");
   });
 
-  it("mounts the real Chat IA behind the admin flag and isolates every demo effect", () => {
+  it("keeps the production support chat outside every commercial demo frame", () => {
     expect(app).toContain('const aiSupportChatEnabled = hasFeature("ai_support_chat")');
     expect(app).toContain("aiSupportChatEnabled === true");
-    expect(app).toContain('commercialDemoFrame.surface !== "commercial"');
+    expect(app).toContain("aiSupportChatEnabled === true && !commercialDemoFrame && !oauthConsentFrame");
     expect(app).toContain("<SupportChat />");
-
-    expect(floatingChat).toContain("useCommercialDemoFrame()");
-    expect(floatingChat).toContain('getCommercialDemoAiHistory(demoRuntime, "support_chat")');
-    expect(floatingChat).toContain('tool: "support_chat"');
-    expect(floatingChat).toContain("conversationId: activeConversationId");
-    expect(floatingChat).toContain("conversation.surface === demoRuntime.surface");
-    expect(floatingChat).toContain("isCommercialDemo || !isChatAvailable || !activeConversationId");
-    expect(floatingChat).toContain("isCommercialDemo || !isChatAvailable || !topic");
-    expect(floatingChat).toContain("Isolé · 0 crédit · 0 CHF");
-
-    const demoSend = floatingChat.slice(
-      floatingChat.indexOf("if (demoRuntime) {", floatingChat.indexOf("const handleSendMessage")),
-      floatingChat.indexOf("const messages: TokAiMessage[]", floatingChat.indexOf("const handleSendMessage")),
-    );
-    expect(demoSend).toContain("askCommercialDemoAi");
-    expect(demoSend).not.toContain("askClientSupport");
-    expect(demoSend).not.toContain("askAdminDashboardChat");
+    expect(app).not.toContain('commercialDemoFrame.surface !== "commercial"');
   });
 
   it("runs the real Marketing Studio with in-memory references and no production fallback", () => {
