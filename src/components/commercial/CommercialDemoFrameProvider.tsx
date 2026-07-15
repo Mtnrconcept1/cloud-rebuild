@@ -10,6 +10,7 @@ import {
 } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, ShieldAlert } from "lucide-react";
+import { useLocation, useNavigate, useNavigationType } from "react-router-dom";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -24,7 +25,9 @@ import type { CommercialDemoRealtimeStatus } from "@/lib/commercialDemoRealtime"
 import {
   getCommercialDemoFrameRole,
   getCommercialDemoNotificationPath,
+  isCommercialDemoFrameNavigateMessage,
   type CommercialDemoFrameConfig,
+  type CommercialDemoFrameStateMessage,
   type CommercialDemoFrameSurface,
 } from "@/lib/commercialDemoFrame";
 
@@ -155,6 +158,9 @@ export default function CommercialDemoFrameProvider({
   children: ReactNode;
 }) {
   const { user, loading: authLoading } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const navigationType = useNavigationType();
   const queryClient = useQueryClient();
   const [realtimeStatus, setRealtimeStatus] = useState<CommercialDemoRealtimeStatus>(() => (
     typeof navigator !== "undefined" && navigator.onLine === false ? "offline" : "connecting"
@@ -206,6 +212,66 @@ export default function CommercialDemoFrameProvider({
       delete document.documentElement.dataset.commercialDemoFrame;
     };
   }, [config.surface]);
+
+  useEffect(() => {
+    if (window.parent === window) return;
+    const relayEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      window.parent.postMessage({
+        type: "commercial-demo:escape",
+        sessionId: config.sessionId,
+        surface: config.surface,
+      }, window.location.origin);
+    };
+    window.addEventListener("keydown", relayEscape);
+    return () => window.removeEventListener("keydown", relayEscape);
+  }, [config.sessionId, config.surface]);
+
+  useEffect(() => {
+    if (window.parent === window) return;
+    const handleParentNavigation = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin || event.source !== window.parent) return;
+      if (!isCommercialDemoFrameNavigateMessage(event.data)) return;
+      if (event.data.sessionId !== config.sessionId || event.data.surface !== config.surface) return;
+      navigate(event.data.path);
+    };
+    window.addEventListener("message", handleParentNavigation);
+    return () => window.removeEventListener("message", handleParentNavigation);
+  }, [config.sessionId, config.surface, navigate]);
+
+  const unreadCount = useMemo(() => (snapshotQuery.data?.events || [])
+    .map((event) => commercialDemoEventToNotification(event, config.surface))
+    .filter((notification): notification is NonNullable<typeof notification> => Boolean(notification))
+    .filter((notification) => !readNotificationIds.has(notification.id))
+    .length, [config.surface, readNotificationIds, snapshotQuery.data?.events]);
+
+  useEffect(() => {
+    if (window.parent === window || !snapshotQuery.data) return;
+    const rawHistoryIndex = window.history.state && typeof window.history.state.idx === "number"
+      ? window.history.state.idx
+      : 0;
+    const message: CommercialDemoFrameStateMessage = {
+      type: "commercial-demo:frame-state",
+      sessionId: config.sessionId,
+      surface: config.surface,
+      path: location.pathname,
+      search: location.search,
+      historyIndex: Math.max(0, Math.trunc(rawHistoryIndex)),
+      navigationType,
+      unreadCount,
+      realtimeStatus,
+    };
+    window.parent.postMessage(message, window.location.origin);
+  }, [
+    config.sessionId,
+    config.surface,
+    location.pathname,
+    location.search,
+    navigationType,
+    realtimeStatus,
+    snapshotQuery.data,
+    unreadCount,
+  ]);
 
   const markNotificationRead = useCallback((notificationId: string) => {
     setReadNotificationIds((current) => {

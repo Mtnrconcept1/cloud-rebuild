@@ -21,7 +21,6 @@ import {
 } from "lucide-react";
 
 import CustomerDashboardLayout from "@/components/CustomerDashboardLayout";
-import CommercialDemoActorOverview from "@/components/commercial/CommercialDemoActorOverview";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -78,6 +77,19 @@ type DashboardOrder = {
   restaurants: DashboardRestaurant | DashboardRestaurant[] | null;
 };
 
+type ClientDashboardOverviewData = {
+  profile: {
+    full_name?: string | null;
+    loyalty_points?: number | null;
+    current_tier?: string | null;
+    avatar_url?: string | null;
+  } | null;
+  reservations: DashboardReservation[];
+  orders: DashboardOrder[];
+  favoritesCount: number;
+  reviewsCount: number;
+};
+
 type QuickAction = {
   label: string;
   description: string;
@@ -86,6 +98,18 @@ type QuickAction = {
   feature?: string;
   accent: string;
 };
+
+function getClientDashboardHomeTarget(target: string, isCommercialDemoClientFrame: boolean) {
+  if (!isCommercialDemoClientFrame) return target;
+
+  const pathname = new URL(target, "https://thetok.ch").pathname;
+  if (pathname === "/notifications") return "/notifications";
+  if (pathname === "/mon-espace") return "/mon-espace";
+  if (pathname === "/profil" || pathname === "/mes-avis" || pathname === "/reservations" || pathname === "/contact") {
+    return "/mon-espace";
+  }
+  return "/commandes";
+}
 
 const QUICK_ACTIONS: QuickAction[] = [
   {
@@ -173,11 +197,17 @@ function orderStatusLabel(status: string | null) {
   const labels: Record<string, string> = {
     pending: "En attente",
     pending_payment: "Paiement à confirmer",
+    awaiting_payment: "Paiement à confirmer",
+    restaurant_received: "Reçue par le restaurant",
+    restaurant_accepted: "Acceptée par le restaurant",
     confirmed: "Confirmée",
     preparing: "En préparation",
     ready: "Prête",
+    ready_for_pickup: "Prête",
     assigned: "Livreur assigné",
     picked_up: "En livraison",
+    delivering: "En livraison",
+    delivered: "Livrée",
     out_for_delivery: "En livraison",
   };
   return labels[normalized] || "En cours";
@@ -212,19 +242,22 @@ function MetricCard({
 
 function LiveClientDashboardHome() {
   const { user } = useAuth();
-  const { activeFeatures, loading: featuresLoading } = useFeatureFlagSnapshot();
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemoClientFrame = commercialDemoFrame?.surface === "client";
+  const { activeFeatures, loading: featuresLoading } = useFeatureFlagSnapshot({ enabled: !isCommercialDemoClientFrame });
   const {
     unreadCount,
     isLoading: notificationsLoading,
   } = useNotificationCenter(50, { realtime: true });
 
-  const reservationEnabled = activeFeatures.has("reservation");
-  const ordersEnabled = activeFeatures.has("commandes");
+  const reservationEnabled = isCommercialDemoClientFrame || activeFeatures.has("reservation");
+  const ordersEnabled = isCommercialDemoClientFrame || activeFeatures.has("commandes");
   const today = useMemo(() => getBusinessDateKey(), []);
 
-  const overviewQuery = useQuery({
+  const overviewQuery = useQuery<ClientDashboardOverviewData>({
     queryKey: [
       "client-dashboard-overview",
+      "production",
       user?.id,
       reservationEnabled,
       ordersEnabled,
@@ -285,33 +318,75 @@ function LiveClientDashboardHome() {
         reviewsCount: reviews.count || 0,
       };
     },
-    enabled: Boolean(user?.id && !featuresLoading),
+    enabled: Boolean(!isCommercialDemoClientFrame && user?.id && !featuresLoading),
     staleTime: 30_000,
   });
 
+  const demoOverviewData = useMemo<ClientDashboardOverviewData | undefined>(() => {
+    if (!isCommercialDemoClientFrame || !commercialDemoFrame) return undefined;
+
+    const demoOrder = commercialDemoFrame.snapshot.order;
+    return {
+      profile: {
+        full_name: demoOrder?.customer_name || "Sophie Martin",
+        loyalty_points: 0,
+        current_tier: "demo",
+        avatar_url: null,
+      },
+      reservations: [],
+      orders: demoOrder ? [{
+        id: demoOrder.id,
+        order_number: demoOrder.order_number,
+        created_at: demoOrder.created_at
+          || demoOrder.updated_at
+          || commercialDemoFrame.snapshot.session.created_at
+          || "1970-01-01T00:00:00.000Z",
+        status: demoOrder.status,
+        payment_status: demoOrder.payment_status,
+        total_amount: demoOrder.total_amount_cents / 100,
+        restaurants: {
+          id: commercialDemoFrame.snapshot.session.demo_restaurant_id,
+          name: "Restaurant Démo TOK",
+        },
+      }] : [],
+      favoritesCount: 0,
+      reviewsCount: 0,
+    };
+  }, [
+    commercialDemoFrame,
+    isCommercialDemoClientFrame,
+  ]);
+
+  const overviewData = isCommercialDemoClientFrame ? demoOverviewData : overviewQuery.data;
+  const clientTarget = (target: string) => getClientDashboardHomeTarget(target, isCommercialDemoClientFrame);
+
   const upcomingReservations = useMemo(() => {
     const now = Date.now();
-    return (overviewQuery.data?.reservations || [])
+    return (overviewData?.reservations || [])
       .filter((reservation) => {
         const status = String(reservation.status || "").toLowerCase();
         return !INACTIVE_RESERVATION_STATUSES.has(status) && reservationTimestamp(reservation) >= now;
       })
       .sort((left, right) => reservationTimestamp(left) - reservationTimestamp(right));
-  }, [overviewQuery.data?.reservations]);
+  }, [overviewData?.reservations]);
 
   const activeOrders = useMemo(
-    () => (overviewQuery.data?.orders || []).filter(isActiveOrder),
-    [overviewQuery.data?.orders],
+    () => (overviewData?.orders || []).filter(isActiveOrder),
+    [overviewData?.orders],
   );
 
-  const visibleActions = QUICK_ACTIONS.filter((action) => !action.feature || activeFeatures.has(action.feature));
-  const profile = overviewQuery.data?.profile;
+  const visibleActions = QUICK_ACTIONS.filter(
+    (action) => isCommercialDemoClientFrame || !action.feature || activeFeatures.has(action.feature),
+  );
+  const profile = overviewData?.profile;
   const firstName = String(profile?.full_name || user?.email?.split("@")[0] || "").trim().split(/\s+/)[0];
   const points = Number(profile?.loyalty_points || 0);
   const priorityOrder = activeOrders.find((order) => ["preparing", "ready", "assigned", "picked_up", "out_for_delivery"].includes(String(order.status || "").toLowerCase())) || activeOrders[0];
   const nextReservation = upcomingReservations[0];
-  const isLoading = featuresLoading || overviewQuery.isLoading || notificationsLoading;
-  const hasError = Boolean(overviewQuery.error);
+  const isLoading = isCommercialDemoClientFrame
+    ? false
+    : featuresLoading || overviewQuery.isLoading || notificationsLoading;
+  const hasError = !isCommercialDemoClientFrame && Boolean(overviewQuery.error);
 
   return (
     <CustomerDashboardLayout>
@@ -327,7 +402,7 @@ function LiveClientDashboardHome() {
             </p>
           </div>
           <Button asChild className="min-h-11 w-full gap-2 sm:w-auto">
-            <Link to="/recherche">
+            <Link to={clientTarget("/recherche")}>
               <Search className="h-4 w-4" />
               Trouver un restaurant
             </Link>
@@ -370,7 +445,7 @@ function LiveClientDashboardHome() {
                         {priorityOrder.order_number ? ` · #${priorityOrder.order_number}` : ""}
                       </p>
                       <Button asChild variant="outline" className="mt-4 min-h-11 w-full bg-background/80 sm:w-auto">
-                        <Link to={`/commande/${priorityOrder.id}`}>
+                        <Link to={clientTarget(`/commande/${priorityOrder.id}`)}>
                           Suivre ma commande <ArrowRight className="ml-2 h-4 w-4" />
                         </Link>
                       </Button>
@@ -387,7 +462,7 @@ function LiveClientDashboardHome() {
                         {nextReservation.party_size ? ` · ${nextReservation.party_size} personne${nextReservation.party_size > 1 ? "s" : ""}` : ""}
                       </p>
                       <Button asChild variant="outline" className="mt-4 min-h-11 w-full bg-background/80 sm:w-auto">
-                        <Link to={`/reservations?reservation=${nextReservation.id}`}>
+                        <Link to={clientTarget(`/reservations?reservation=${nextReservation.id}`)}>
                           Voir les détails <ArrowRight className="ml-2 h-4 w-4" />
                         </Link>
                       </Button>
@@ -400,7 +475,7 @@ function LiveClientDashboardHome() {
                         Réservez une table, préparez vos plats avec Zéro attente ou profitez d’une offre locale.
                       </p>
                       <Button asChild variant="outline" className="mt-4 min-h-11 w-full bg-background/80 sm:w-auto">
-                        <Link to="/recherche">Explorer les restaurants <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                        <Link to={clientTarget("/recherche")}>Explorer les restaurants <ArrowRight className="ml-2 h-4 w-4" /></Link>
                       </Button>
                     </>
                   )}
@@ -413,13 +488,13 @@ function LiveClientDashboardHome() {
 
             <section aria-label="Résumé de votre activité" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
               {reservationEnabled ? (
-                <MetricCard icon={CalendarDays} label="Réservations à venir" value={upcomingReservations.length} to="/reservations" accent="bg-orange-500/10 text-orange-600" />
+                <MetricCard icon={CalendarDays} label="Réservations à venir" value={upcomingReservations.length} to={clientTarget("/reservations")} accent="bg-orange-500/10 text-orange-600" />
               ) : null}
               {ordersEnabled ? (
-                <MetricCard icon={ShoppingBag} label="Commandes en cours" value={activeOrders.length} to="/commandes" accent="bg-indigo-500/10 text-indigo-600" />
+                <MetricCard icon={ShoppingBag} label="Commandes en cours" value={activeOrders.length} to={clientTarget("/commandes")} accent="bg-indigo-500/10 text-indigo-600" />
               ) : null}
-              <MetricCard icon={Trophy} label="Miamz disponibles" value={points.toLocaleString("fr-CH")} to="/profil?tab=fidelite" accent="bg-pink-500/10 text-pink-600" />
-              <MetricCard icon={Bell} label="Notifications non lues" value={unreadCount} to="/notifications" accent="bg-sky-500/10 text-sky-600" />
+              <MetricCard icon={Trophy} label="Miamz disponibles" value={points.toLocaleString("fr-CH")} to={clientTarget("/profil?tab=fidelite")} accent="bg-pink-500/10 text-pink-600" />
+              <MetricCard icon={Bell} label="Notifications non lues" value={unreadCount} to={clientTarget("/notifications")} accent="bg-sky-500/10 text-sky-600" />
             </section>
 
             <section className="space-y-3">
@@ -431,7 +506,7 @@ function LiveClientDashboardHome() {
                 {visibleActions.map((action) => (
                   <Link
                     key={action.to}
-                    to={action.to}
+                    to={clientTarget(action.to)}
                     className="group min-w-0 rounded-2xl border bg-card p-4 transition hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:p-5"
                   >
                     <div className={cn("mb-3 flex h-10 w-10 items-center justify-center rounded-xl", action.accent)}>
@@ -445,21 +520,21 @@ function LiveClientDashboardHome() {
             </section>
 
             <section className="grid gap-3 sm:grid-cols-3">
-              <Link to="/profil?tab=favoris" className="flex min-w-0 items-center gap-3 rounded-2xl border bg-card p-4 transition hover:border-primary/35">
+              <Link to={clientTarget("/profil?tab=favoris")} className="flex min-w-0 items-center gap-3 rounded-2xl border bg-card p-4 transition hover:border-primary/35">
                 <Heart className="h-5 w-5 shrink-0 text-rose-500" />
                 <div className="min-w-0">
                   <p className="font-semibold">Mes favoris</p>
-                  <p className="text-xs text-muted-foreground">{overviewQuery.data?.favoritesCount || 0} restaurant(s)</p>
+                  <p className="text-xs text-muted-foreground">{overviewData?.favoritesCount || 0} restaurant(s)</p>
                 </div>
               </Link>
-              <Link to="/mes-avis" className="flex min-w-0 items-center gap-3 rounded-2xl border bg-card p-4 transition hover:border-primary/35">
+              <Link to={clientTarget("/mes-avis")} className="flex min-w-0 items-center gap-3 rounded-2xl border bg-card p-4 transition hover:border-primary/35">
                 <Star className="h-5 w-5 shrink-0 text-amber-500" />
                 <div className="min-w-0">
                   <p className="font-semibold">Mes avis</p>
-                  <p className="text-xs text-muted-foreground">{overviewQuery.data?.reviewsCount || 0} avis publié(s)</p>
+                  <p className="text-xs text-muted-foreground">{overviewData?.reviewsCount || 0} avis publié(s)</p>
                 </div>
               </Link>
-              <Link to="/contact" className="flex min-w-0 items-center gap-3 rounded-2xl border bg-card p-4 transition hover:border-primary/35">
+              <Link to={clientTarget("/contact")} className="flex min-w-0 items-center gap-3 rounded-2xl border bg-card p-4 transition hover:border-primary/35">
                 <MessageSquareText className="h-5 w-5 shrink-0 text-primary" />
                 <div className="min-w-0">
                   <p className="font-semibold">Besoin d’aide ?</p>
@@ -476,13 +551,5 @@ function LiveClientDashboardHome() {
 
 
 export default function ClientDashboardHome() {
-  const commercialDemoFrame = useCommercialDemoFrame();
-  if (commercialDemoFrame?.surface === "client") {
-    return (
-      <CustomerDashboardLayout>
-        <CommercialDemoActorOverview surface="client" />
-      </CustomerDashboardLayout>
-    );
-  }
   return <LiveClientDashboardHome />;
 }

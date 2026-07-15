@@ -2,6 +2,7 @@ import { Calculator, Check, MapPinned, Menu, PanelsTopLeft } from "lucide-react"
 import { useLocation, useNavigate } from "react-router-dom";
 
 import SignOutButton from "@/components/auth/SignOutButton";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import RoleSpaceMenuSection from "@/components/navigation/RoleSpaceMenuSection";
 import ThemeToggleButton from "@/components/theme/ThemeToggleButton";
@@ -40,13 +41,18 @@ const COMMERCIAL_NAV_ITEMS = [
 export default function CommercialWorkspaceChrome({ activeLabel }: { activeLabel: string }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isEmbeddedCommercial = commercialDemoFrame?.surface === "commercial";
+  const visibleNavItems = isEmbeddedCommercial
+    ? COMMERCIAL_NAV_ITEMS.filter((item) => item.to !== "/commercial/demo-live")
+    : COMMERCIAL_NAV_ITEMS;
 
   return (
     <>
       <div className="fixed right-[calc(env(safe-area-inset-right,0px)+0.75rem)] top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-[1200] flex items-center gap-2">
         <ThemeToggleButton className="h-11 w-11 rounded-full border border-border/70 bg-background/95 text-foreground shadow-[0_14px_34px_rgba(15,23,42,0.16)] backdrop-blur-md hover:bg-background dark:border-[#5f7aad]/35 dark:bg-[#07142b]/95 dark:text-white" />
         <NotificationBell />
-        <SignOutButton iconOnly />
+        {!isEmbeddedCommercial ? <SignOutButton iconOnly /> : null}
       </div>
 
       <div className="pointer-events-none fixed left-[calc(env(safe-area-inset-left,0px)+0.75rem)] top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-[1190]">
@@ -69,7 +75,7 @@ export default function CommercialWorkspaceChrome({ activeLabel }: { activeLabel
           <DropdownMenuContent align="start" className="w-[min(20rem,calc(100vw-1.5rem))] rounded-2xl p-2">
             <DropdownMenuLabel>Espace commercial</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            {COMMERCIAL_NAV_ITEMS.map((item) => {
+            {visibleNavItems.map((item) => {
               const Icon = item.icon;
               const selected = location.pathname === item.to || (item.to === "/commercial" && location.pathname === "/commercial/prospection");
 
@@ -90,10 +96,14 @@ export default function CommercialWorkspaceChrome({ activeLabel }: { activeLabel
                 </DropdownMenuItem>
               );
             })}
-            <DropdownMenuSeparator />
-            <RoleSpaceMenuSection className="my-2" onNavigate={() => undefined} />
-            <DropdownMenuSeparator />
-            <Button type="button" variant="outline" className="mt-1 h-10 w-full justify-start rounded-xl" onClick={() => navigate("/")}>Retour à l'accueil</Button>
+            {!isEmbeddedCommercial ? (
+              <>
+                <DropdownMenuSeparator />
+                <RoleSpaceMenuSection className="my-2" onNavigate={() => undefined} />
+                <DropdownMenuSeparator />
+                <Button type="button" variant="outline" className="mt-1 h-10 w-full justify-start rounded-xl" onClick={() => navigate("/")}>Retour à l'accueil</Button>
+              </>
+            ) : null}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

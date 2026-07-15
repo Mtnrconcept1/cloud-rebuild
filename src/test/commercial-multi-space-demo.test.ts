@@ -12,6 +12,8 @@ describe("commercial real multi-dashboard demonstration", () => {
   const experience = read("src/components/commercial/CommercialMultiSpaceDemo.tsx");
   const browsers = read("src/components/commercial/CommercialDemoBrowserGrid.tsx");
   const courierLayout = read("src/components/CourierDashboardLayout.tsx");
+  const courierHome = read("src/pages/courier/CourierHome.tsx");
+  const commercialChrome = read("src/components/commercial/CommercialWorkspaceChrome.tsx");
   const frame = read("src/lib/commercialDemoFrame.ts");
   const provider = read("src/components/commercial/CommercialDemoFrameProvider.tsx");
   const workspace = read("src/components/commercial/CommercialDemoActorWorkspace.tsx");
@@ -19,7 +21,7 @@ describe("commercial real multi-dashboard demonstration", () => {
   const notifications = read("src/hooks/useNotificationCenter.ts");
   const service = read("src/lib/commercialDemoJourney.ts");
 
-  it("mounts three real same-origin SPA instances with isolated browser histories", () => {
+  it("mounts real same-origin SPA instances with isolated browser histories", () => {
     expect(app).toContain("getCommercialDemoFrameConfig()");
     expect(app).toContain("<BrowserRouter basename={commercialDemoFrame?.basename}>");
     expect(app).toContain("<CommercialDemoFrameAuthBoundary");
@@ -27,11 +29,57 @@ describe("commercial real multi-dashboard demonstration", () => {
     expect(browsers).toContain("<iframe");
     expect(browsers).toContain('surface: "client"');
     expect(browsers).toContain('surface: "restaurant"');
+    expect(browsers).toContain('surface: "commercial"');
     expect(browsers).toContain('surface: "courier"');
-    expect(browsers).toContain('initialPath: "/commandes"');
-    expect(browsers).toContain('initialPath: "/dashboard/commandes"');
-    expect(browsers).toContain('initialPath: "/courier/jobs"');
+    expect(browsers).toContain('initialPath: "/mon-espace"');
+    expect(browsers).toContain('initialPath: "/dashboard"');
+    expect(browsers).toContain('initialPath: "/commercial"');
+    expect(browsers).toContain('initialPath: "/courier"');
+    expect(browsers).toContain("ResizeObserver");
+    expect(browsers).toContain("frameWindow.history.back()");
+    expect(browsers).toContain("frameWindow.history.forward()");
+    expect(browsers).toContain("frameWindow.location.reload()");
+    expect(browsers).toContain('type: "commercial-demo:navigate"');
+    expect(browsers).not.toContain("frameWindow.location.assign(initialUrl)");
+    expect(browsers).toContain('layout === "control"');
+    expect(browsers).toContain('layout === "mosaic"');
+    expect(browsers).toContain('thirdSurface === "commercial"');
+    expect(browsers).toContain('selectThirdSurface("courier")');
+    expect(browsers).toContain("isCommercialDemoFrameEscapeMessage");
+    expect(browsers).toContain("event.source !== frameRef.current?.contentWindow");
+    expect(browsers).toContain("buildCommercialDemoFrameUrl(definition.surface");
+    expect(browsers).not.toContain("buildRemoteBrowserUrl");
+    expect(browsers).not.toContain("setInterval(");
     expect(page).toContain("overflow-x-hidden");
+  });
+
+  it("keeps the remote-control console responsive, observable and safe to reset", () => {
+    const stateBridgeSource = browsers.slice(
+      browsers.indexOf("const handleMessage"),
+      browsers.indexOf("const withFrameWindow"),
+    );
+
+    expect(browsers).toContain('type ViewportMode = "auto" | ViewportPreset');
+    expect(browsers).toContain("useResponsiveViewportPreset()");
+    expect(browsers).toContain("VIEWPORT_MODE_ORDER.map");
+    expect(browsers).toContain('referrerPolicy="no-referrer"');
+    expect(browsers).toContain('key={`${definition.surface}:${sessionId}`}');
+    expect(browsers).toContain("<CommercialDemoBrowserGridSession key={sessionId}");
+    expect(browsers).toContain("runtimes.courier.unreadCount");
+    expect(browsers).toContain("const visibleOrder = useMemo");
+    expect(browsers).toContain("{BROWSERS.map((definition) => {");
+    expect(browsers).toContain("style={{ order: visualIndex >= 0 ? visualIndex : BROWSERS.length }}");
+    expect(browsers).not.toContain("orderedBrowsers");
+    expect(browsers).toContain("h-[clamp(28rem,calc(100svh-18rem),48rem)]");
+    expect(browsers).toContain("md:grid-cols-2 md:grid-rows-2 xl:grid-cols-3 xl:grid-rows-1");
+    expect(browsers).toContain('layout === "control" ? "hidden lg:block" : "hidden md:block"');
+    expect(browsers).toContain("z-[1600]");
+    expect(browsers).toContain('event.data.navigationType === "PUSH"');
+    expect(browsers).toContain("sameRuntime(current[surface], runtime)");
+    expect(stateBridgeSource).toContain("sameRuntime(current, next)");
+    expect(stateBridgeSource).toContain("runtimeRef.current = next");
+    expect(stateBridgeSource).toContain("onRuntimeChange(definition.surface, next)");
+    expect(stateBridgeSource).not.toContain("setRuntime((current)");
   });
 
   it("strictly confines every frame to its demo-safe route allowlist", () => {
@@ -39,10 +87,22 @@ describe("commercial real multi-dashboard demonstration", () => {
     expect(app).toContain('allowedPaths: ["/mon-espace", "/commandes", "/notifications"]');
     expect(app).toContain('allowedPaths: ["/dashboard", "/dashboard/commandes", "/dashboard/notifications"]');
     expect(app).toContain('allowedPaths: ["/courier", "/courier/jobs", "/courier/notifications", "/courier/earnings", "/courier/profile"]');
+    expect(app).toContain('allowedPaths: ["/commercial", "/commercial/comptabilite"]');
     expect(app).toContain("if (!policy.allowedPaths.includes(pathname))");
     expect(app).toContain("<Navigate to={policy.home} replace />");
     expect(app).toContain("<CommercialDemoFrameRouteBoundary config={commercialDemoFrame}>");
     expect(app).toContain("const publicNavbar = !commercialDemoFrame && shouldShowPublicNavbar(pathname)");
+  });
+
+  it("runs the real commercial workspace inside the same validated session boundary", () => {
+    expect(frame).toContain('CommercialDemoActorSurface | "commercial"');
+    expect(frame).toContain('(client|restaurant|courier|commercial)');
+    expect(frame).toContain('commercial: "commercial"');
+    expect(provider).toContain('type: "commercial-demo:escape"');
+    expect(commercialChrome).toContain('commercialDemoFrame?.surface === "commercial"');
+    expect(commercialChrome).toContain('item.to !== "/commercial/demo-live"');
+    expect(commercialChrome).toContain('!isEmbeddedCommercial ? <SignOutButton iconOnly /> : null');
+    expect(notifications).toContain('commercialDemoFrame.surface !== "commercial"');
   });
 
   it("keeps the courier role virtual and validates every frame through the isolated snapshot RPC", () => {
@@ -52,6 +112,9 @@ describe("commercial real multi-dashboard demonstration", () => {
     expect(provider).toContain("canSwitchRole: false");
     expect(provider).toContain("signOut: async () => undefined");
     expect(provider).toContain("getCommercialDemoSnapshot(config.sessionId)");
+    expect(provider).toContain('type: "commercial-demo:frame-state"');
+    expect(provider).toContain("location.pathname");
+    expect(provider).toContain("window.parent.postMessage(message, window.location.origin)");
     expect(provider).not.toContain("user_roles");
     expect(provider).not.toContain("courier_profiles");
     expect(workspace).not.toContain("dispatch-order");
@@ -91,12 +154,45 @@ describe("commercial real multi-dashboard demonstration", () => {
 
   it("isolates the courier frame from production dispatch and exposes every adapted tab", () => {
     expect(courierLayout).toContain("const isCommercialDemoFrame = Boolean(commercialDemoFrame)");
+    expect(courierLayout).toContain("useActiveFeatures({ enabled: !isCommercialDemoFrame })");
     expect(courierLayout).toContain("(item) => isCommercialDemoFrame || !item.feature");
     expect(courierLayout).toContain("enabled: !isCommercialDemoFrame");
     expect(courierLayout).toContain("if (isCommercialDemoFrame)");
     expect(courierLayout).toContain('navigate("/courier/jobs")');
     expect(courierLayout).toContain("navigate(normalizeInternalNavigationTarget");
     expect(courierLayout).not.toContain('window.location.href = "/courier/jobs"');
+  });
+
+  it("renders the production courier home presentation from the isolated demo snapshot", () => {
+    const demoHomeSource = courierHome.slice(
+      courierHome.indexOf("function buildCommercialDemoCourierHomeViewModel"),
+      courierHome.indexOf("function LiveCourierHome"),
+    );
+
+    expect(courierHome).toContain("function CourierHomePresentation");
+    expect(courierHome).toContain("<CourierHomePresentation");
+    expect(courierHome).toContain("pushStatusCard={<CourierPushStatusCard />}");
+    expect(courierHome).toContain("commercial-demo-courier-home");
+    expect(courierHome).toContain("buildCommercialDemoCourierHomeViewModel(snapshot, isOnline)");
+    expect(courierHome).toContain("commercialDemoFrame.snapshot");
+    expect(demoHomeSource).toContain('allowedActions.includes("courier_accept")');
+    expect(demoHomeSource).toContain('order?.status === "delivered"');
+    expect(demoHomeSource).not.toContain("fetchCourierOffers");
+    expect(demoHomeSource).not.toContain("fetchCourierActiveJobs");
+    expect(demoHomeSource).not.toContain("fetchCourierEarnings");
+    expect(demoHomeSource).not.toContain("syncCourierPresence");
+    expect(demoHomeSource).not.toContain("useCourierProfile");
+    expect(demoHomeSource).not.toContain("useQuery(");
+    expect(demoHomeSource).not.toContain("useMutation(");
+  });
+
+  it("keeps the embedded courier actor inside its own dashboard chrome", () => {
+    expect(courierLayout).toContain("isCommercialDemoFrame={isCommercialDemoFrame}");
+    expect(courierLayout).toContain("!isCommercialDemoFrame ? (");
+    expect(courierLayout).toContain("<RoleSpaceMenuSection");
+    expect(courierLayout).toContain("<ChefHelpButton");
+    expect(courierLayout).toContain("!isCommercialDemoFrame ? <SignOutButton iconOnly /> : null");
+    expect(courierLayout).not.toContain("isCommercialDemoFrameWindow()");
   });
 
   it("opens Stripe Test in the parent only after strict origin and hostname validation", () => {
@@ -125,5 +221,9 @@ describe("commercial real multi-dashboard demonstration", () => {
     expect(service).toContain("commercial_demo_order_events");
     expect(experience).not.toContain("setOrder(");
     expect(experience).not.toContain("setMission(");
+    expect(experience).toContain("tok:commercial-demo:active-session");
+    expect(experience).toContain("window.sessionStorage.setItem");
+    expect(experience).toContain('url.searchParams.delete("demo_session_id")');
+    expect(experience).not.toContain('url.searchParams.set("demo_session_id"');
   });
 });

@@ -12,17 +12,18 @@ function read(path: string) {
 describe("dashboard overview summaries", () => {
   it("surfaces the key restaurant overview metrics and compact Google configured state", () => {
     const dashboard = read("src/pages/dashboard/DashboardHome.tsx");
+    const overview = read("src/components/dashboard/RestaurantDashboardHomeView.tsx");
     const googleCard = read("src/components/dashboard/GoogleBusinessBookingCard.tsx");
 
     expect(dashboard).toContain("dashboard-today-revenue");
     expect(dashboard).toContain("dashboard-active-campaigns-count");
-    expect(dashboard).toContain("Commandes à venir");
-    expect(dashboard).toContain("Réservations à venir");
-    expect(dashboard).toContain("Chiffre d'affaires du jour");
-    expect(dashboard).toContain("Campagnes pub actives");
-    expect(dashboard).toContain("/fondbanniere.png");
-    expect(dashboard).toContain("/chef3.png");
-    expect(dashboard).toContain("Mettre mon restaurant en avant");
+    expect(overview).toContain("Commandes à venir");
+    expect(overview).toContain("Réservations à venir");
+    expect(overview).toContain("Chiffre d'affaires du jour");
+    expect(overview).toContain("Campagnes pub actives");
+    expect(overview).toContain("/fondbanniere.png");
+    expect(overview).toContain("/chef3.png");
+    expect(overview).toContain("Mettre mon restaurant en avant");
 
     expect(googleCard).toContain('if (isConfigured)');
     expect(googleCard).toContain("Bouton google configuré");

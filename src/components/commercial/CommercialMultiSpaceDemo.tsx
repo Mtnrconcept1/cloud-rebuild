@@ -51,6 +51,8 @@ const JOURNEY_STEPS = [
   { label: "Livrée", statuses: ["delivered"] },
 ] as const;
 
+const DEMO_SESSION_STORAGE_KEY = "tok:commercial-demo:active-session";
+
 const REALTIME_PRESENTATION = {
   connecting: { label: "Connexion temps réel…", className: "border-sky-300 text-sky-700", icon: Loader2, animate: true },
   connected: { label: "Temps réel connecté", className: "border-emerald-300 text-emerald-700", icon: Wifi, animate: false },
@@ -68,20 +70,33 @@ function getInitialCheckoutParams() {
     return { sessionId: "", stripeSessionId: "", returnedFromCheckout: false, checkoutCancelled: false };
   }
   const params = new URLSearchParams(window.location.search);
+  let storedSessionId = "";
+  try {
+    storedSessionId = window.sessionStorage.getItem(DEMO_SESSION_STORAGE_KEY) || "";
+  } catch {
+    // The demo still works without persistence in restrictive privacy modes.
+  }
   return {
-    sessionId: params.get("demo_session_id") || "",
+    sessionId: params.get("demo_session_id") || storedSessionId,
     stripeSessionId: params.get("stripe_session_id") || "",
     returnedFromCheckout: params.get("demo_checkout") === "success",
     checkoutCancelled: params.get("demo_checkout") === "cancelled",
   };
 }
 
-function updateDemoSessionUrl(sessionId: string) {
+function updateDemoSessionUrl(sessionId: string, clearCheckoutParams = true) {
   if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.setItem(DEMO_SESSION_STORAGE_KEY, sessionId);
+  } catch {
+    // The in-memory query state remains authoritative for this tab.
+  }
   const url = new URL(window.location.href);
-  url.searchParams.set("demo_session_id", sessionId);
-  url.searchParams.delete("stripe_session_id");
-  url.searchParams.delete("demo_checkout");
+  url.searchParams.delete("demo_session_id");
+  if (clearCheckoutParams) {
+    url.searchParams.delete("stripe_session_id");
+    url.searchParams.delete("demo_checkout");
+  }
   window.history.replaceState(window.history.state, "", url);
 }
 
@@ -165,10 +180,10 @@ export default function CommercialMultiSpaceDemo() {
   const effectiveSessionId = sessionId || bootstrapQuery.data?.id || "";
 
   useEffect(() => {
-    if (!effectiveSessionId || sessionId) return;
-    setSessionId(effectiveSessionId);
-    updateDemoSessionUrl(effectiveSessionId);
-  }, [effectiveSessionId, sessionId]);
+    if (!effectiveSessionId) return;
+    if (!sessionId) setSessionId(effectiveSessionId);
+    updateDemoSessionUrl(effectiveSessionId, !initialParams.returnedFromCheckout);
+  }, [effectiveSessionId, initialParams.returnedFromCheckout, sessionId]);
 
   const snapshotQuery = useQuery({
     queryKey: ["commercial-demo-snapshot", effectiveSessionId],
@@ -215,13 +230,14 @@ export default function CommercialMultiSpaceDemo() {
       updateDemoSessionUrl(effectiveSessionId);
     },
   });
+  const confirmCheckout = confirmMutation.mutate;
 
   useEffect(() => {
     if (!initialParams.returnedFromCheckout || !initialParams.stripeSessionId || !snapshot) return;
     if (automaticConfirmationRef.current === initialParams.stripeSessionId) return;
     automaticConfirmationRef.current = initialParams.stripeSessionId;
-    confirmMutation.mutate();
-  }, [confirmMutation.mutate, initialParams.returnedFromCheckout, initialParams.stripeSessionId, snapshot]);
+    confirmCheckout();
+  }, [confirmCheckout, initialParams.returnedFromCheckout, initialParams.stripeSessionId, snapshot]);
 
   useEffect(() => {
     if (!effectiveSessionId) return;
@@ -249,13 +265,21 @@ export default function CommercialMultiSpaceDemo() {
   }, [effectiveSessionId]);
 
   const combinedError = bootstrapQuery.error || snapshotQuery.error || resetMutation.error || confirmMutation.error;
+  const startFreshSession = () => {
+    try {
+      window.sessionStorage.removeItem(DEMO_SESSION_STORAGE_KEY);
+    } catch {
+      // A fresh URL is sufficient when storage is unavailable.
+    }
+    window.location.replace(new URL("/commercial/demo-live", window.location.origin).toString());
+  };
 
   if (bootstrapQuery.isLoading || (effectiveSessionId && snapshotQuery.isLoading)) {
     return (
       <div className="flex min-h-[56vh] flex-col items-center justify-center rounded-[2rem] border bg-background/80 p-8 text-center" role="status" aria-live="polite" aria-busy="true">
         <Loader2 className="h-8 w-8 animate-spin text-orange-600" />
         <p className="mt-4 font-black">Ouverture des trois vrais dashboards…</p>
-        <p className="mt-2 text-sm text-muted-foreground">Chaque fenêtre initialise son propre routeur et sa connexion temps réel.</p>
+        <p className="mt-2 text-sm text-muted-foreground">Chaque fenêtre initialise son propre routeur, son historique et sa connexion temps réel.</p>
       </div>
     );
   }
@@ -265,48 +289,59 @@ export default function CommercialMultiSpaceDemo() {
       <div className="rounded-[2rem] border border-red-200 bg-red-50 p-6 text-red-900 dark:border-red-400/20 dark:bg-red-400/10 dark:text-red-100" role="alert">
         <p className="font-black">Impossible d'ouvrir la démonstration multi-dashboard</p>
         <p className="mt-2 text-sm">{errorMessage(combinedError)}</p>
-        <Button type="button" variant="outline" className="mt-4" onClick={() => void snapshotQuery.refetch()}><RefreshCw className="mr-2 h-4 w-4" />Réessayer</Button>
+        <div className="mt-4 flex flex-wrap justify-center gap-2">
+          <Button type="button" variant="outline" onClick={() => void snapshotQuery.refetch()}><RefreshCw className="mr-2 h-4 w-4" />Réessayer</Button>
+          <Button type="button" onClick={startFreshSession}><Play className="mr-2 h-4 w-4" />Nouvelle session</Button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-w-0 space-y-5">
-      <section className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/90 p-4 shadow-[0_22px_80px_rgba(15,23,42,0.12)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/78 sm:p-6">
-        <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+    <div className="min-w-0 space-y-3">
+      <section className="overflow-hidden rounded-2xl border border-white/70 bg-white/90 p-3 shadow-[0_16px_50px_rgba(15,23,42,0.1)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/78 sm:p-4">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="min-w-0 max-w-4xl">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge className="rounded-full bg-orange-100 px-3 py-1 text-orange-700 hover:bg-orange-100"><Sparkles className="mr-1.5 h-3.5 w-3.5" />Trois vrais dashboards</Badge>
+              <Badge className="rounded-full bg-orange-100 px-3 py-1 text-orange-700 hover:bg-orange-100"><Sparkles className="mr-1.5 h-3.5 w-3.5" />Console commerciale</Badge>
               <RealtimeConnectionBadge status={realtimeStatus} />
               <Badge variant="outline" className="rounded-full border-violet-300 text-violet-700"><TestTube2 className="mr-1.5 h-3.5 w-3.5" />Stripe Test uniquement</Badge>
             </div>
-            <h1 className="mt-4 break-words font-serif text-3xl font-black tracking-tight sm:text-4xl lg:text-5xl">Trois fenêtres navigateur, une interaction en direct</h1>
-            <p className="mt-3 max-w-3xl text-sm leading-7 text-muted-foreground sm:text-base">Naviguez librement dans les vrais onglets client, restaurateur et livreur. Une commande créée dans la première fenêtre apparaît dans les deux autres au bon moment, avec badges, historique et notifications temps réel.</p>
+            <h1 className="mt-2 break-words font-serif text-2xl font-black tracking-tight sm:text-3xl">Contrôle à distance des trois comptes</h1>
+            <p className="mt-1 max-w-3xl text-sm text-muted-foreground">La console pilote simultanément les véritables interfaces Client, Restaurateur et Commercial. Basculez la troisième fenêtre sur Livreur pour jouer tout le parcours de commande.</p>
           </div>
-          <Button type="button" variant="outline" className="h-11 shrink-0 rounded-2xl" onClick={() => resetMutation.mutate()} disabled={resetMutation.isPending}>
+          <Button type="button" variant="outline" className="h-10 shrink-0 rounded-xl" onClick={() => resetMutation.mutate()} disabled={resetMutation.isPending}>
             {resetMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RotateCcw className="mr-2 h-4 w-4" />}Réinitialiser
           </Button>
         </div>
-        <div className="mt-5 flex items-start gap-3 rounded-2xl border border-sky-200 bg-sky-50/80 p-4 text-sm text-sky-950 dark:border-sky-400/20 dark:bg-sky-400/10 dark:text-sky-100">
-          <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0" />
-          <p className="leading-6"><strong>Instances réelles, permissions isolées.</strong> Chaque fenêtre charge la SPA complète avec son propre historique. Le rôle livreur est virtuel dans sa frame seulement ; toutes les mutations restent dans les tables <code>commercial_demo_*</code>.</p>
-        </div>
+        <details className="mt-2 text-xs text-muted-foreground">
+          <summary className="cursor-pointer select-none font-semibold text-sky-700"><ShieldCheck className="mr-1.5 inline h-3.5 w-3.5" />Isolation de la démonstration</summary>
+          <p className="mt-2 rounded-xl border border-sky-200 bg-sky-50/80 p-3 leading-5 text-sky-950 dark:border-sky-400/20 dark:bg-sky-400/10 dark:text-sky-100">Chaque fenêtre charge sa propre SPA et son propre historique. Toutes les actions du parcours de commande restent dans les tables <code>commercial_demo_*</code>.</p>
+        </details>
         {initialParams.checkoutCancelled ? <div className="mt-3 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950" role="status"><strong>Paiement test annulé.</strong> Aucun débit n'a eu lieu ; relancez-le depuis la fenêtre client.</div> : null}
         {confirmMutation.isPending ? <div className="mt-3 flex items-center gap-2 rounded-2xl border bg-muted/30 p-4 text-sm" role="status"><Loader2 className="h-4 w-4 animate-spin" />Vérification serveur du paiement Stripe Test…</div> : null}
       </section>
 
-      <JourneyProgress snapshot={snapshot} />
-
       {combinedError ? <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-400/20 dark:bg-red-400/10 dark:text-red-100" role="alert"><strong>Action non exécutée.</strong> {errorMessage(combinedError)}</div> : null}
 
       <CommercialDemoBrowserGrid sessionId={snapshot.session.id} />
-      <ActivityFeed snapshot={snapshot} />
+
+      <details className="group rounded-2xl border border-border/70 bg-background/80 p-3 shadow-sm">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-xl px-2 py-1 font-semibold marker:hidden">
+          <span className="flex items-center gap-2"><Wifi className="h-4 w-4 text-emerald-600" />Progression et journal partagé</span>
+          <Badge variant="outline" className="rounded-full">{ORDER_STATUS_LABELS[snapshot.order?.status || ""] || "En attente"}</Badge>
+        </summary>
+        <div className="mt-4 space-y-4 border-t pt-4">
+          <JourneyProgress snapshot={snapshot} />
+          <ActivityFeed snapshot={snapshot} />
+        </div>
+      </details>
 
       {snapshot.order?.status === "delivered" ? (
         <Card className="overflow-hidden rounded-[1.75rem] border-emerald-200 bg-gradient-to-br from-emerald-50 to-sky-50 dark:border-emerald-400/20 dark:from-emerald-400/10 dark:to-sky-400/10">
           <CardContent className="flex flex-col items-center gap-4 p-6 text-center sm:flex-row sm:text-left">
             <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-emerald-600 text-white"><PackageCheck className="h-6 w-6" /></span>
-            <div className="min-w-0 flex-1"><p className="text-xl font-black">Démonstration terminée</p><p className="mt-1 text-sm text-muted-foreground">Les trois vrais dashboards affichent le statut livré et leur notification correspondante.</p></div>
+            <div className="min-w-0 flex-1"><p className="text-xl font-black">Démonstration terminée</p><p className="mt-1 text-sm text-muted-foreground">Les vrais dashboards concernés affichent le statut livré et leur notification correspondante.</p></div>
             <Button type="button" className="rounded-2xl" onClick={() => resetMutation.mutate()}><Play className="mr-2 h-4 w-4" />Rejouer</Button>
           </CardContent>
         </Card>

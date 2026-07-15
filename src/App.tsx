@@ -354,6 +354,10 @@ const COMMERCIAL_DEMO_FRAME_ROUTE_POLICY: Record<
     home: "/courier",
     allowedPaths: ["/courier", "/courier/jobs", "/courier/notifications", "/courier/earnings", "/courier/profile"],
   },
+  commercial: {
+    home: "/commercial",
+    allowedPaths: ["/commercial", "/commercial/comptabilite"],
+  },
 };
 
 function CommercialDemoFrameRouteBoundary({
@@ -377,11 +381,13 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
   const { pathname } = useLocation();
   useTokLogoDocumentIcons();
   const { role, roles } = useAuth();
-  const { activeFeatures, loading: featureFlagsLoading } = useFeatureFlagSnapshot();
+  const { activeFeatures, loading: featureFlagsLoading } = useFeatureFlagSnapshot({
+    enabled: !commercialDemoFrame,
+  });
   const commercialRestaurantSurface = role === "restaurateur" && roles.includes("commercial");
   const commercialSurface = role === "commercial" && roles.includes("commercial");
   const { isDemoAccount, loading: demoAccountLoading } = useCommercialDemoAccount({
-    enabled: roles.includes("commercial"),
+    enabled: roles.includes("commercial") && !commercialDemoFrame,
   });
   const hasFeature = (flagName: string) => {
     if (commercialDemoFrame) return true;

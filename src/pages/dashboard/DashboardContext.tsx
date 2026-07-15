@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, type ReactNode } from "react";
-import { useOwnerRestaurants } from "./useOwnerRestaurants";
+import { useOwnerRestaurants, type OwnedRestaurant } from "./useOwnerRestaurants";
 import { DashboardContext, isRestaurantDashboardAccessApproved } from "./useDashboardRestaurant";
 import { ALL_GATABLE_FEATURES } from "@/lib/packFeatureGating";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
@@ -9,15 +9,32 @@ const STORAGE_KEY = "miamz-dashboard-restaurant";
 
 export function DashboardProvider({ children }: { children: ReactNode }) {
   const commercialDemoFrame = useCommercialDemoFrame();
-  const { restaurants, loading, error } = useOwnerRestaurants();
+  const ownerRestaurants = useOwnerRestaurants({ enabled: !commercialDemoFrame });
+  const frameDemoRestaurantId = commercialDemoFrame?.snapshot.session.demo_restaurant_id || null;
+  const frameRestaurants = useMemo<OwnedRestaurant[]>(() => {
+    if (!commercialDemoFrame || !frameDemoRestaurantId) return [];
+
+    return [{
+      id: frameDemoRestaurantId,
+      name: "Restaurant Démo TOK",
+      disabled_dashboard_features: [],
+      subscription_enabled_dashboard_features: [],
+      is_active: true,
+      is_demo: true,
+      status: "active",
+    }];
+  }, [commercialDemoFrame, frameDemoRestaurantId]);
+  const restaurants = commercialDemoFrame ? frameRestaurants : ownerRestaurants.restaurants;
+  const loading = commercialDemoFrame ? false : ownerRestaurants.loading;
+  const error = commercialDemoFrame ? null : ownerRestaurants.error;
   const [storedSelectedId, setStoredSelectedId] = useState<string | null>(() => {
+    if (commercialDemoFrame) return null;
     try {
       return localStorage.getItem(STORAGE_KEY);
     } catch {
       return null;
     }
   });
-  const frameDemoRestaurantId = commercialDemoFrame?.snapshot.session.demo_restaurant_id || null;
   const selectedId = commercialDemoFrame
     ? resolveCommercialDemoRestaurantSelection(restaurants, frameDemoRestaurantId)
     : storedSelectedId;
