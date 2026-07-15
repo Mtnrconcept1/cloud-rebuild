@@ -55,9 +55,10 @@ function cartFeatureAllowsCrossRestaurant(metadata: Record<string, any>) {
 export function CartProvider({ children }: { children: ReactNode }) {
   const { user, role, roles = [] } = useAuth();
   const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemoFrame = Boolean(commercialDemoFrame);
   const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
-  const storageNamespace = isCommercialDemoClient
-    ? `miamz-demo:${commercialDemoFrame.config.sessionId}:client`
+  const storageNamespace = commercialDemoFrame
+    ? `miamz-demo:${commercialDemoFrame.config.sessionId}:${commercialDemoFrame.surface}`
     : "miamz";
   const cartStorageKey = `${storageNamespace}-cart`;
   const cartMetadataStorageKey = `${storageNamespace}-cart-metadata`;
@@ -97,14 +98,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setCartMetadata({});
     setConflict(null);
     setOrderModeState("delivery");
-    if (isCommercialDemoClient) {
+    if (isCommercialDemoFrame) {
       localStorage.removeItem(cartStorageKey);
       localStorage.removeItem(cartMetadataStorageKey);
       localStorage.removeItem(orderModeStorageKey);
     } else {
       clearCartBrowserState();
     }
-  }, [cartMetadataStorageKey, cartStorageKey, isCommercialDemoClient, orderModeStorageKey]);
+  }, [cartMetadataStorageKey, cartStorageKey, isCommercialDemoFrame, orderModeStorageKey]);
 
   useEffect(() => {
     localStorage.setItem(cartStorageKey, JSON.stringify(items));
@@ -130,10 +131,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [resetCartState, user?.id]);
 
   useEffect(() => {
-    if (!isCommercialDemoClient && user && hasPrivilegedRole(roles)) {
+    if (!isCommercialDemoFrame && user && hasPrivilegedRole(roles)) {
       resetCartState();
     }
-  }, [isCommercialDemoClient, resetCartState, roles, user]);
+  }, [isCommercialDemoFrame, resetCartState, roles, user]);
 
   const setOrderMode = (mode: "delivery" | "takeaway", options?: { force?: boolean }) => {
     if (options?.force) {
@@ -246,11 +247,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
         Math.round(Number(item.quantity ?? item.metadata?.party_size ?? 1) || 1),
       );
 
-      trackEvent({
-        eventType: "add_to_cart",
-        eventData: { item_name: item.name, price: item.price },
-        restaurantId: item.restaurantId,
-      });
+      if (!isCommercialDemoClient) {
+        trackEvent({
+          eventType: "add_to_cart",
+          eventData: { item_name: item.name, price: item.price },
+          restaurantId: item.restaurantId,
+        });
+      }
 
       return { ...item, quantity };
     });
