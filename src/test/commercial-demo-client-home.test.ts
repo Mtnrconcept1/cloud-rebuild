@@ -30,11 +30,10 @@ describe("commercial demo real client dashboard home", () => {
     expect(notifications).toContain("commercialDemoFrame.snapshot.events");
   });
 
-  it("keeps every client-home link inside the unchanged frame allowlist", () => {
+  it("keeps every client-home link inside the isolated frame allowlist", () => {
     expect(clientHome).toContain("function getClientDashboardHomeTarget");
-    expect(clientHome).toContain('if (pathname === "/notifications") return "/notifications"');
-    expect(clientHome).toContain('if (pathname === "/mon-espace") return "/mon-espace"');
-    expect(clientHome).toContain('return "/commandes"');
+    expect(clientHome).toContain('if (pathname.startsWith("/commande/")) return "/commandes";');
+    expect(clientHome).toContain('["/notifications", "/mon-espace", "/recherche", "/reservations", "/commandes"]');
     expect(clientHome).toContain("to={clientTarget(action.to)}");
     expect(clientHome).toContain('to={clientTarget(`/commande/');
   });
