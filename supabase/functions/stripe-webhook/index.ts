@@ -97,7 +97,7 @@ async function claimStripeWebhookEvent(input: {
   if (error.code === "23505") {
     const { data: existingEvent, error: lookupError } = await input.adminClient
       .from("stripe_webhook_events")
-      .select("processing_status, attempt_count")
+      .select("processing_status, processing_started_at, attempt_count")
       .eq("event_id", input.event.id)
       .maybeSingle();
 
@@ -111,8 +111,16 @@ async function claimStripeWebhookEvent(input: {
       return { claimed: false, duplicate: false, errorMessage: lookupError.message };
     }
 
-    if (existingEvent?.processing_status === "failed") {
-      const { data: retriedEvent, error: retryError } = await input.adminClient
+    const staleProcessingCutoff = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+    const failedEvent = existingEvent?.processing_status === "failed";
+    const staleProcessingEvent = existingEvent?.processing_status === "processing"
+      && (
+        !existingEvent.processing_started_at
+        || String(existingEvent.processing_started_at) < staleProcessingCutoff
+      );
+
+    if (failedEvent || staleProcessingEvent) {
+      let retryClaim = input.adminClient
         .from("stripe_webhook_events")
         .update({
           processing_status: "processing",
@@ -122,8 +130,17 @@ async function claimStripeWebhookEvent(input: {
           last_error: null,
           last_error_at: null,
         })
-        .eq("event_id", input.event.id)
-        .eq("processing_status", "failed")
+        .eq("event_id", input.event.id);
+      retryClaim = failedEvent
+        ? retryClaim.eq("processing_status", "failed")
+        : existingEvent?.processing_started_at
+          ? retryClaim
+            .eq("processing_status", "processing")
+            .lt("processing_started_at", staleProcessingCutoff)
+          : retryClaim
+            .eq("processing_status", "processing")
+            .is("processing_started_at", null);
+      const { data: retriedEvent, error: retryError } = await retryClaim
         .select("event_id")
         .maybeSingle();
 
@@ -138,9 +155,10 @@ async function claimStripeWebhookEvent(input: {
       }
 
       if (retriedEvent?.event_id) {
-        input.log.info?.("failed_event_retry_claimed", {
+        input.log.info?.("stripe_webhook_event_retry_claimed", {
           eventId: input.event.id,
           type: input.event.type,
+          previousStatus: existingEvent?.processing_status || null,
         });
         return { claimed: true, duplicate: false, errorMessage: null };
       }
@@ -477,7 +495,117 @@ function normalizeRestaurantSubscriptionStatus(status: string | null | undefined
   if (["trialing", "active", "past_due", "paused", "cancelled"].includes(normalized)) {
     return normalized;
   }
-  return "active";
+  // A Stripe subscription is never entitled before its first invoice is paid,
+  // nor after Stripe has exhausted collection retries. Keep the persisted
+  // vocabulary compatible with the existing DB constraint while failing
+  // closed for new/unknown Stripe statuses.
+  if (normalized === "incomplete" || normalized === "unpaid") return "past_due";
+  if (normalized === "incomplete_expired") return "cancelled";
+  return "paused";
+}
+
+function getExpandableStripeId(value: unknown) {
+  if (typeof value === "string") return value;
+  if (isJsonRecord(value) && typeof value.id === "string") return value.id;
+  return null;
+}
+
+async function resolveRestaurantInvoiceContext(
+  stripe: Stripe,
+  invoice: Stripe.Invoice,
+) {
+  const invoiceRecord = invoice as unknown as Record<string, any>;
+  const subscriptionDetails = invoiceRecord.parent?.subscription_details
+    || invoiceRecord.subscription_details
+    || {};
+  const subscriptionId = getExpandableStripeId(invoiceRecord.subscription)
+    || getExpandableStripeId(subscriptionDetails.subscription);
+  let subscription: Stripe.Subscription | null = null;
+  let subscriptionMetadata = isJsonRecord(subscriptionDetails.metadata)
+    ? subscriptionDetails.metadata as Record<string, string>
+    : {};
+
+  const metadataCheckoutKind = String(subscriptionMetadata.checkout_kind || "");
+  const metadataIdentifiesTokOne = metadataCheckoutKind === "tok-one"
+    && !subscriptionMetadata.restaurant_id;
+
+  // Tok One can use an isolated Stripe account/key. Avoid retrieving those
+  // subscriptions with the platform client when the invoice already carries
+  // enough metadata to classify it.
+  if (subscriptionId && !metadataIdentifiesTokOne) {
+    subscription = await stripe.subscriptions.retrieve(subscriptionId);
+    subscriptionMetadata = {
+      ...subscriptionMetadata,
+      ...(subscription.metadata || {}),
+    };
+  }
+
+  const checkoutKind = String(
+    subscriptionMetadata.checkout_kind
+    || (subscriptionMetadata.restaurant_id ? "restaurant-onboarding" : "tok-one"),
+  );
+  const isRestaurantSubscription = Boolean(
+    subscriptionMetadata.restaurant_id
+    || checkoutKind === "restaurant-onboarding"
+    || checkoutKind.startsWith("restaurant-subscription"),
+  );
+  const stripeCustomerId = getExpandableStripeId(invoiceRecord.customer)
+    || getExpandableStripeId(subscription?.customer);
+  const period = subscription ? resolveRestaurantSubscriptionPeriod(subscription) : null;
+
+  return {
+    invoiceRecord,
+    subscription,
+    subscriptionId,
+    subscriptionMetadata,
+    checkoutKind,
+    isRestaurantSubscription,
+    stripeCustomerId,
+    restaurantId: String(subscriptionMetadata.restaurant_id || "") || null,
+    periodStart: period?.currentPeriodStart || null,
+    periodEnd: period?.currentPeriodEnd || null,
+  };
+}
+
+async function resolveInvoiceContextFromPaymentIntent(
+  stripe: Stripe,
+  paymentIntentId: string | null,
+) {
+  if (!paymentIntentId) return null;
+
+  const invoicePayments = await stripe.invoicePayments.list({
+    payment: {
+      type: "payment_intent",
+      payment_intent: paymentIntentId,
+    },
+    limit: 1,
+  });
+  const stripeInvoiceId = getExpandableStripeId(invoicePayments.data[0]?.invoice);
+  if (!stripeInvoiceId) return null;
+
+  const invoice = await stripe.invoices.retrieve(stripeInvoiceId);
+  return {
+    invoice,
+    context: await resolveRestaurantInvoiceContext(stripe, invoice),
+  };
+}
+
+async function resolveLocalRestaurantIdForStripeSubscription(
+  adminClient: ReturnType<typeof createClient>,
+  stripeSubscriptionId: string | null,
+) {
+  if (!stripeSubscriptionId) return null;
+
+  const { data, error } = await adminClient
+    .from("restaurant_ai_subscriptions")
+    .select("restaurant_id")
+    .eq("stripe_subscription_id", stripeSubscriptionId)
+    .limit(1)
+    .maybeSingle();
+  if (error) {
+    throw new Error(`restaurant_subscription_lookup_failed:${error.message}`);
+  }
+  return String(data?.restaurant_id || "") || null;
 }
 
 function getStripeSubscriptionScheduleId(value: unknown) {
@@ -523,6 +651,7 @@ async function syncRestaurantSubscriptionRecord(input: {
   subscription: Stripe.Subscription;
   stripeMode: "live" | "test";
   stripeCheckoutSessionId?: string | null;
+  expectedPreviousStripeSubscriptionId?: string | null;
   log?: LoggerLike;
 }) {
   const {
@@ -530,23 +659,88 @@ async function syncRestaurantSubscriptionRecord(input: {
     subscription,
     stripeMode,
     stripeCheckoutSessionId = null,
+    expectedPreviousStripeSubscriptionId = null,
     log,
   } = input;
   const metadata = subscription.metadata || {};
   const checkoutKind = String(metadata.checkout_kind || "");
+  const localSubscriptionId = String(metadata.local_subscription_id || "");
 
   let restaurantId = String(metadata.restaurant_id || "");
   let planId = String(metadata.restaurant_subscription_plan_id || metadata.plan_id || "");
   let planSlug = String(metadata.restaurant_subscription_plan_slug || metadata.plan_slug || "");
 
-  const { data: existing, error: existingError } = await adminClient
+  const { data: exactExisting, error: existingError } = await adminClient
     .from("restaurant_ai_subscriptions")
-    .select("id, restaurant_id, restaurant_subscription_plan_id, plan, metadata")
+    .select("id, restaurant_id, restaurant_subscription_plan_id, signup_application_id, plan, status, stripe_subscription_id, metadata")
     .eq("stripe_subscription_id", subscription.id)
     .maybeSingle();
 
   if (existingError) {
     log?.error?.("restaurant_subscription_lookup_failed", { message: existingError.message });
+    return { updated: false, row: null };
+  }
+
+  let existing = exactExisting;
+  if (!existing && localSubscriptionId) {
+    const { data: localExisting, error: localExistingError } = await adminClient
+      .from("restaurant_ai_subscriptions")
+      .select("id, restaurant_id, restaurant_subscription_plan_id, signup_application_id, plan, status, stripe_subscription_id, metadata")
+      .eq("id", localSubscriptionId)
+      .maybeSingle();
+    if (localExistingError) {
+      log?.error?.("restaurant_subscription_local_lookup_failed", {
+        message: localExistingError.message,
+      });
+      return { updated: false, row: null };
+    }
+    existing = localExisting;
+  }
+
+  if (!existing && restaurantId) {
+    const { data: restaurantExisting, error: restaurantExistingError } = await adminClient
+      .from("restaurant_ai_subscriptions")
+      .select("id, restaurant_id, restaurant_subscription_plan_id, signup_application_id, plan, status, stripe_subscription_id, metadata")
+      .eq("restaurant_id", restaurantId)
+      .maybeSingle();
+    if (restaurantExistingError) {
+      log?.error?.("restaurant_subscription_restaurant_lookup_failed", {
+        message: restaurantExistingError.message,
+      });
+      return { updated: false, row: null };
+    }
+    existing = restaurantExisting;
+  }
+
+  const existingStripeSubscriptionId = String(existing?.stripe_subscription_id || "");
+  const replacingExpectedUpgrade = Boolean(
+    existingStripeSubscriptionId
+    && expectedPreviousStripeSubscriptionId
+    && existingStripeSubscriptionId === expectedPreviousStripeSubscriptionId,
+  );
+  if (
+    existingStripeSubscriptionId
+    && existingStripeSubscriptionId !== subscription.id
+    && !replacingExpectedUpgrade
+  ) {
+    log?.info?.("restaurant_subscription_stale_event_ignored", {
+      incomingSubscriptionId: subscription.id,
+      currentSubscriptionId: existingStripeSubscriptionId,
+      restaurantId: existing?.restaurant_id || restaurantId || null,
+    });
+    return { updated: false, row: null };
+  }
+
+  if (
+    existing
+    && restaurantId
+    && String(existing.restaurant_id || "") !== restaurantId
+  ) {
+    log?.error?.("restaurant_subscription_identity_mismatch", {
+      incomingSubscriptionId: subscription.id,
+      incomingRestaurantId: restaurantId,
+      currentRestaurantId: existing.restaurant_id || null,
+    });
     return { updated: false, row: null };
   }
 
@@ -578,11 +772,22 @@ async function syncRestaurantSubscriptionRecord(input: {
 
   const period = resolveRestaurantSubscriptionPeriod(subscription);
   const stripeSubscriptionScheduleId = getStripeSubscriptionScheduleId(subscription.schedule);
+  const normalizedStatus = normalizeRestaurantSubscriptionStatus(subscription.status);
+  const isDeferredOnboardingSubscription = checkoutKind === "restaurant-onboarding"
+    && Boolean(metadata.activation_job_id || existing?.signup_application_id);
+  // Stripe can emit subscription.created/updated before invoice.paid. For the
+  // deferred onboarding contract, only the invoice-paid RPC may grant the
+  // active entitlement (and make the commercial commission payable).
+  const persistedStatus = isDeferredOnboardingSubscription
+      && existing?.status !== "active"
+      && ["active", "trialing"].includes(normalizedStatus)
+    ? "activation_pending"
+    : normalizedStatus;
   const payload = {
     restaurant_id: restaurantId,
     restaurant_subscription_plan_id: plan.id,
     plan: plan.slug,
-    status: normalizeRestaurantSubscriptionStatus(subscription.status),
+    status: persistedStatus,
     monthly_conversation_limit: Number(plan.monthly_conversation_limit || 0),
     monthly_text_tool_limit: Number(plan.monthly_text_tool_limit || 0),
     monthly_image_limit: Number(plan.monthly_image_limit || 0),
@@ -615,9 +820,15 @@ async function syncRestaurantSubscriptionRecord(input: {
     },
   };
 
-  const { data: row, error: upsertError } = await adminClient
-    .from("restaurant_ai_subscriptions")
-    .upsert(payload, { onConflict: "restaurant_id" })
+  const mutation = existing
+    ? adminClient
+      .from("restaurant_ai_subscriptions")
+      .update(payload)
+      .eq("id", existing.id)
+    : adminClient
+      .from("restaurant_ai_subscriptions")
+      .insert(payload);
+  const { data: row, error: upsertError } = await mutation
     .select("id, restaurant_id, plan, status")
     .maybeSingle();
 
@@ -789,7 +1000,12 @@ Deno.serve(async (req) => {
     // Stripe normally copies PaymentIntent metadata to the Charge. The
     // authoritative demo-order lookup closes the gap if a refund payload ever
     // arrives without those copied metadata fields.
-    if (!isCommercialDemoTestEvent && event.livemode === false && event.type === "charge.refunded" && paymentIntentId) {
+    if (
+      !isCommercialDemoTestEvent
+      && event.livemode === false
+      && ["charge.refunded", "charge.dispute.created"].includes(event.type)
+      && paymentIntentId
+    ) {
       const { data: demoOrder, error: demoOrderError } = await supabaseAdmin
         .from("commercial_demo_orders")
         .select("id")
@@ -833,6 +1049,8 @@ Deno.serve(async (req) => {
         headers: { "Content-Type": "application/json" },
       });
     }
+
+    let currentSubscriptionEvent: Stripe.Subscription | null = null;
 
     switch (event.type) {
       case "checkout.session.completed":
@@ -1111,280 +1329,114 @@ Deno.serve(async (req) => {
         }
 
         if (checkoutKind === "restaurant-onboarding") {
-          const restaurantLaunchPackId = session.metadata?.restaurant_launch_pack_id || null;
-          const packId = session.metadata?.pack_id || null;
           const planId = session.metadata?.plan_id || null;
           const planSlug = session.metadata?.restaurant_subscription_plan_slug || null;
-          const billingPeriod = "monthly";
           const restaurantId = session.metadata?.restaurant_id || null;
           const signupApplicationId = session.metadata?.signup_application_id || null;
-          const packAmount = Number(session.metadata?.launch_pack_amount || 0);
-          const subscriptionAmount = Number(session.metadata?.subscription_amount || 0);
-          const campaignCreditChf = Number(session.metadata?.campaign_credit_chf || 0);
-          const aiToolCredits = Number(session.metadata?.ai_tool_credits || 0);
-          const aiPhotoCredits = Number(session.metadata?.ai_photo_credits || 0);
 
-          if (!userId || !planId || !planSlug || !restaurantId) {
-            log.warn("restaurant_onboarding_missing_metadata", { sessionId: session.id });
-            break;
+          if (
+            session.mode !== "setup"
+            || !userId
+            || !signupApplicationId
+            || !planId
+            || !planSlug
+            || !restaurantId
+          ) {
+            throw new Error(`restaurant_onboarding_setup_invalid_metadata:${session.id}`);
           }
 
-          let stripeSubscription: Stripe.Subscription | null = null;
-          if (typeof session.subscription === "string") {
-            stripeSubscription = await stripe.subscriptions.retrieve(session.subscription);
-          } else {
-            log.warn("restaurant_onboarding_no_subscription", { sessionId: session.id });
+          const setupIntent = typeof session.setup_intent === "string"
+            ? await stripe.setupIntents.retrieve(session.setup_intent)
+            : session.setup_intent;
+
+          if (!setupIntent || setupIntent.status !== "succeeded") {
+            throw new Error(`restaurant_onboarding_setup_not_succeeded:${session.id}`);
           }
 
-          const { cardBrand, cardLast4 } = await getStripePaymentMethodDetails(stripe, session, log);
-          const period = resolveRestaurantSubscriptionPeriod(stripeSubscription);
-          const paidAt = new Date().toISOString();
+          const setupIntentRecord = setupIntent as unknown as Record<string, unknown>;
+          const setupPaymentMethod = setupIntentRecord.payment_method;
+          const setupCustomer = setupIntentRecord.customer;
+          const stripePaymentMethodId = typeof setupPaymentMethod === "string"
+            ? setupPaymentMethod
+            : isJsonRecord(setupPaymentMethod) && typeof setupPaymentMethod.id === "string"
+              ? setupPaymentMethod.id
+              : null;
+          const stripeCustomerId = typeof session.customer === "string"
+            ? session.customer
+            : isJsonRecord(session.customer) && typeof session.customer.id === "string"
+              ? session.customer.id
+              : typeof setupCustomer === "string"
+                ? setupCustomer
+                : isJsonRecord(setupCustomer) && typeof setupCustomer.id === "string"
+                  ? setupCustomer.id
+                  : null;
 
-          if (restaurantLaunchPackId) {
-            await supabaseAdmin
-              .from("restaurant_launch_packs")
-              .update({
-                status: "paid",
-                stripe_checkout_session_id: session.id,
-                stripe_payment_intent_id: typeof session.payment_intent === "string" ? session.payment_intent : null,
-                paid_at: paidAt,
-                metadata: {
-                  checkout_kind: "restaurant-onboarding",
-                  signup_application_id: signupApplicationId,
-                  plan_id: planId,
-                  restaurant_subscription_plan_id: planId,
-                  restaurant_subscription_plan_slug: planSlug,
-                  billing_period: billingPeriod,
-                  stripe_subscription_id: stripeSubscription?.id || null,
-                },
-              })
-              .eq("id", restaurantLaunchPackId);
+          if (!stripePaymentMethodId || !stripeCustomerId) {
+            throw new Error(`restaurant_onboarding_setup_missing_payment_method:${session.id}`);
           }
 
-          const { data: restaurantSubscriptionRow, error: restaurantSubscriptionError } = await supabaseAdmin
-            .from("restaurant_ai_subscriptions")
-            .upsert({
-              restaurant_id: restaurantId,
-              restaurant_subscription_plan_id: planId,
-              plan: planSlug,
-              status: normalizeRestaurantSubscriptionStatus(stripeSubscription?.status || "active"),
-              monthly_conversation_limit: Number(session.metadata?.monthly_conversation_limit || 0),
-              monthly_text_tool_limit: Number(session.metadata?.monthly_text_tool_limit || 0),
-              monthly_image_limit: Number(session.metadata?.monthly_image_limit || 0),
-              monthly_premium_image_limit: Number(session.metadata?.monthly_premium_image_limit || 0),
-              monthly_voice_minutes_limit: Number(session.metadata?.monthly_voice_minutes_limit || 0),
-              monthly_campaign_credit_chf: campaignCreditChf,
-              monthly_ai_tool_credits: aiToolCredits,
-              monthly_photo_retouch_credits: aiPhotoCredits,
-              current_period_start: period.currentPeriodStart,
-              current_period_end: period.currentPeriodEnd,
-              started_at: period.currentPeriodStart,
-              billing_period: "monthly",
-              stripe_subscription_id: stripeSubscription?.id || null,
-              stripe_checkout_session_id: session.id,
-              stripe_mode: event.livemode ? "live" : "test",
-              metadata: {
+          const { error: setupReadyError } = await supabaseAdmin.rpc(
+            "record_restaurant_onboarding_payment_method_ready",
+            {
+              p_signup_application_id: signupApplicationId,
+              p_restaurant_id: restaurantId,
+              p_plan_id: planId,
+              p_stripe_checkout_session_id: session.id,
+              p_stripe_setup_intent_id: setupIntent.id,
+              p_stripe_customer_id: stripeCustomerId,
+              p_stripe_payment_method_id: stripePaymentMethodId,
+              p_stripe_mode: event.livemode ? "live" : "test",
+              p_stripe_event_id: event.id,
+              p_metadata: {
                 checkout_kind: "restaurant-onboarding",
-                signup_application_id: signupApplicationId,
-                restaurant_launch_pack_id: restaurantLaunchPackId,
-                pack_id: packId,
-                plan_id: planId,
-                plan_slug: planSlug,
-                campaign_credit_chf: campaignCreditChf,
-                ai_tool_credits: aiToolCredits,
-                ai_photo_credits: aiPhotoCredits,
-              },
-            }, { onConflict: "restaurant_id" })
-            .select("id")
-            .maybeSingle();
-
-          if (restaurantSubscriptionError) {
-            log.error("restaurant_onboarding_subscription_upsert_failed", { message: restaurantSubscriptionError.message });
-          }
-
-          const { data: pack } = restaurantLaunchPackId && packId
-            ? await supabaseAdmin
-              .from("launch_packs")
-              .select("name, services")
-              .eq("id", packId)
-              .maybeSingle()
-            : { data: null };
-
-          if (restaurantLaunchPackId && pack?.services && Array.isArray(pack.services)) {
-            const fulfillments = (pack.services as Array<{ service: string; label: string }>).map((svc) => ({
-              restaurant_pack_id: restaurantLaunchPackId,
-              service_slug: svc.service,
-              service_label: svc.label,
-              status: "pending",
-            }));
-
-            if (fulfillments.length > 0) {
-              await supabaseAdmin
-                .from("launch_pack_service_fulfillments")
-                .upsert(fulfillments, { onConflict: "restaurant_pack_id,service_slug" });
-            }
-
-            const disabledFeatures = computeDisabledDashboardFeatures(
-              pack.services as Array<{ service?: string | null }>,
-            );
-
-            await supabaseAdmin
-              .from("restaurants")
-              .update({ disabled_dashboard_features: disabledFeatures })
-              .eq("id", restaurantId);
-          }
-
-          if (restaurantLaunchPackId && packId && packAmount > 0) {
-            await supabaseAdmin.from("payment_transactions").insert({
-              user_id: userId,
-              stripe_checkout_session_id: session.id,
-              stripe_payment_intent_id: typeof session.payment_intent === "string" ? session.payment_intent : null,
-              amount: packAmount,
-              currency: (session.currency || "chf").toLowerCase(),
-              type: "charge",
-              status: "succeeded",
-              metadata: {
-                checkout_kind: "restaurant-onboarding",
-                charge_component: "launch-pack",
-                pack_id: packId,
-                restaurant_launch_pack_id: restaurantLaunchPackId,
-                restaurant_id: restaurantId,
-                plan_id: planId,
-                restaurant_subscription_plan_id: planId,
+                user_id: userId,
                 restaurant_subscription_plan_slug: planSlug,
-                billing_period: billingPeriod,
-                card_brand: cardBrand,
-                card_last4: cardLast4,
+                billing_period: "monthly",
+                activation_recovery: session.metadata?.activation_recovery || "false",
+                setup_intent_status: setupIntent.status,
               },
-            });
-          }
-
-          await recordTokOnePaymentIfMissing({
-            adminClient: supabaseAdmin,
-            session,
-            userId,
-            planId,
-            billingPeriod,
-            stripeSubscriptionId: stripeSubscription?.id || null,
-            stripeMode: event.livemode ? "live" : "test",
-            eventId: event.id,
-            amountOverride: subscriptionAmount,
-            checkoutKind: "restaurant-onboarding",
-            metadata: {
-              charge_component: "subscription",
-              restaurant_id: restaurantId,
-              restaurant_subscription_plan_id: planId,
-              restaurant_subscription_plan_slug: planSlug,
             },
-            log,
-          });
+          );
 
-          if (restaurantLaunchPackId && packId && packAmount > 0) {
-          await recordRestaurantTokPurchaseInvoiceIfMissing({
-            adminClient: supabaseAdmin,
-            session,
-            restaurantId,
-            itemKind: "launch_pack",
-            sourceTable: "restaurant_launch_packs",
-            sourceId: restaurantLaunchPackId,
-            sourceLabel: "Pack de lancement TOK",
-            amount: packAmount > 0 ? packAmount : (session.amount_total || 0) / 100,
-            paidAt,
-            metadata: {
-              checkout_kind: "restaurant-onboarding",
-              plan_id: planId,
-              restaurant_subscription_plan_id: planId,
-              restaurant_subscription_plan_slug: planSlug,
-              billing_period: billingPeriod,
-              card_brand: cardBrand,
-              card_last4: cardLast4,
-            },
-            log,
-          });
-          }
-
-          await recordRestaurantTokPurchaseInvoiceIfMissing({
-            adminClient: supabaseAdmin,
-            session,
-            restaurantId,
-            itemKind: "restaurant_subscription",
-            sourceTable: "restaurant_ai_subscriptions",
-            sourceId: restaurantSubscriptionRow?.id || null,
-            sourceLabel: `Abonnement restaurateur TOK - ${planSlug}`,
-            amount: subscriptionAmount,
-            paidAt,
-            metadata: {
-              checkout_kind: "restaurant-onboarding",
-              charge_component: "subscription",
-              plan_id: planId,
-              restaurant_subscription_plan_id: planId,
-              restaurant_subscription_plan_slug: planSlug,
-              billing_period: billingPeriod,
-              stripe_subscription_id: stripeSubscription?.id || null,
-              card_brand: cardBrand,
-              card_last4: cardLast4,
-            },
-            log,
-          });
-
-          if (signupApplicationId) {
-            const { data: application } = await supabaseAdmin
-              .from("signup_applications")
-              .select("metadata")
-              .eq("id", signupApplicationId)
-              .maybeSingle();
-            const metadata = isJsonRecord(application?.metadata) ? application.metadata : {};
-
-            await supabaseAdmin
-              .from("signup_applications")
-              .update({
-                metadata: {
-                  ...metadata,
-                  onboarding_payment_status: "paid",
-                  onboarding_checkout_session_id: session.id,
-                  onboarding_paid_at: paidAt,
-                  restaurant_subscription_plan_id: planId,
-                  restaurant_subscription_plan_slug: planSlug,
-                  stripe_subscription_id: stripeSubscription?.id || null,
-                },
-              })
-              .eq("id", signupApplicationId);
+          if (setupReadyError) {
+            throw new Error(`restaurant_onboarding_setup_rpc_failed:${setupReadyError.message}`);
           }
 
           try {
-            const { data: restaurant } = await supabaseAdmin
-              .from("restaurants")
-              .select("owner_id, name")
-              .eq("id", restaurantId)
-              .maybeSingle();
-
-            if (restaurant?.owner_id) {
-              const paidAmount = ((session.amount_total || 0) / 100).toFixed(2);
-              await enqueueNotification({
-                adminClient: supabaseAdmin,
-                userId: restaurant.owner_id,
-                title: "Onboarding restaurateur paye",
-                body: `Votre abonnement TOK a ete paye avec succes (${paidAmount} CHF). L'administration peut finaliser la validation de votre compte.`,
-                type: "payment",
-                category: "transactional",
-                data: {
-                  signup_application_id: signupApplicationId,
-                  plan_id: planId,
-                  restaurant_id: restaurantId,
-                  restaurant_name: restaurant.name,
-                  paid_amount: paidAmount,
-                  url: "/dashboard",
-                },
-              });
-              await triggerNotificationDispatch({ source: "stripe-webhook-restaurant-onboarding", push: true, email: true });
-            }
+            await enqueueNotification({
+              adminClient: supabaseAdmin,
+              userId,
+              title: "Moyen de paiement enregistré",
+              body: session.metadata?.activation_recovery === "true"
+                ? "Votre nouvelle carte est enregistrée. TOK va retenter le règlement de la facture d’abonnement en attente."
+                : "Votre carte est prête. L’abonnement TOK démarrera lors de la première réservation ou commande client.",
+              type: "payment",
+              category: "transactional",
+              data: {
+                signup_application_id: signupApplicationId,
+                plan_id: planId,
+                restaurant_id: restaurantId,
+                url: "/dashboard",
+              },
+            });
+            await triggerNotificationDispatch({
+              source: "stripe-webhook-restaurant-onboarding-setup",
+              push: true,
+              email: true,
+            });
           } catch (error) {
-            log.error("restaurant_onboarding_notification_failed", { message: error instanceof Error ? error.message : "unknown" });
+            log.error("restaurant_onboarding_setup_notification_failed", {
+              message: error instanceof Error ? error.message : "unknown",
+            });
           }
 
+          log.info("restaurant_onboarding_payment_method_ready", {
+            sessionId: session.id,
+            restaurantId,
+            signupApplicationId,
+          });
           break;
         }
-
         if (checkoutKind === "restaurant-subscription-upgrade") {
           const planId = session.metadata?.plan_id || session.metadata?.restaurant_subscription_plan_id || null;
           const planSlug = session.metadata?.restaurant_subscription_plan_slug || null;
@@ -1410,6 +1462,7 @@ Deno.serve(async (req) => {
             subscription: stripeSubscription,
             stripeMode: event.livemode ? "live" : "test",
             stripeCheckoutSessionId: session.id,
+            expectedPreviousStripeSubscriptionId: previousStripeSubscriptionId,
             log,
           });
 
@@ -1932,10 +1985,21 @@ Deno.serve(async (req) => {
         break;
       }
 
+      case "charge.dispute.created": {
+        // Subscription invoice/commission reversal is handled once after the
+        // switch. Order dispute policy remains independent.
+        break;
+      }
+
       case "customer.subscription.created":
       case "customer.subscription.updated":
       case "customer.subscription.deleted": {
-        const subscription = event.data.object as Stripe.Subscription;
+        const eventSubscription = event.data.object as Stripe.Subscription;
+        // Subscription events can arrive out of order. Stripe's current object
+        // is authoritative; syncing the event snapshot could otherwise revive
+        // a canceled subscription or overwrite a newer replacement.
+        const subscription = await stripe.subscriptions.retrieve(eventSubscription.id);
+        currentSubscriptionEvent = subscription;
         const syncResult = await syncTokOneSubscriptionRecord({
           adminClient: supabaseAdmin,
           subscription,
@@ -1998,6 +2062,12 @@ Deno.serve(async (req) => {
         break;
       }
 
+      case "invoice.payment_failed":
+      case "invoice.payment_action_required": {
+        // Subscription/invoice state is synchronized once after the switch.
+        break;
+      }
+
       default:
         log.info("unhandled_event_type", { eventType: event.type });
     }
@@ -2033,49 +2103,300 @@ Deno.serve(async (req) => {
 
     if (event.type === "invoice.paid" || event.type === "invoice.payment_succeeded") {
       const invoice = event.data.object as Stripe.Invoice;
-      const invoiceRecord = invoice as unknown as Record<string, any>;
-      const amountPaid = Number(invoiceRecord.amount_paid || 0);
-      if (amountPaid > 0) {
-        const subscriptionDetails = invoiceRecord.parent?.subscription_details
-          || invoiceRecord.subscription_details
-          || {};
-        const subscriptionId = typeof invoiceRecord.subscription === "string"
-          ? invoiceRecord.subscription
-          : typeof subscriptionDetails.subscription === "string"
-            ? subscriptionDetails.subscription
-            : null;
-        let subscriptionMetadata = subscriptionDetails.metadata && typeof subscriptionDetails.metadata === "object"
-          ? subscriptionDetails.metadata as Record<string, string>
-          : {};
-
-        if (subscriptionId && Object.keys(subscriptionMetadata).length === 0) {
-          const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-          subscriptionMetadata = subscription.metadata || {};
-        }
-
-        const checkoutKind = String(
-          subscriptionMetadata.checkout_kind
-          || (subscriptionMetadata.restaurant_id ? "restaurant-onboarding" : "tok-one"),
+      const context = await resolveRestaurantInvoiceContext(stripe, invoice);
+      const amountPaid = Number(context.invoiceRecord.amount_paid || 0);
+      const restaurantId = context.restaurantId
+        || await resolveLocalRestaurantIdForStripeSubscription(
+          supabaseAdmin,
+          context.subscriptionId,
         );
 
+      if ((context.isRestaurantSubscription || restaurantId) && context.subscriptionId && amountPaid > 0) {
+        const paidAtTimestamp = finiteUnixTimestamp(context.invoiceRecord.status_transitions?.paid_at)
+          || finiteUnixTimestamp(event.created);
+        const { error: invoicePaidError } = await supabaseAdmin.rpc(
+          "record_restaurant_subscription_invoice_paid",
+          {
+            p_stripe_event_id: event.id,
+            p_stripe_invoice_id: invoice.id,
+            p_stripe_subscription_id: context.subscriptionId,
+            p_stripe_customer_id: context.stripeCustomerId,
+            p_restaurant_id: restaurantId,
+            p_amount_paid_cents: Math.round(amountPaid),
+            p_currency: String(invoice.currency || "chf").toLowerCase(),
+            p_billing_reason: String(context.invoiceRecord.billing_reason || ""),
+            p_paid_at: paidAtTimestamp
+              ? new Date(paidAtTimestamp * 1000).toISOString()
+              : new Date().toISOString(),
+            p_period_start: context.periodStart,
+            p_period_end: context.periodEnd,
+            p_stripe_mode: event.livemode ? "live" : "test",
+            p_metadata: {
+              event_type: event.type,
+              invoice_status: invoice.status || null,
+              stripe_subscription_status: context.subscription?.status || null,
+              activation_job_id: context.subscriptionMetadata.activation_job_id || null,
+              internal_invoice_id: context.subscriptionMetadata.internal_invoice_id || null,
+              restaurant_subscription_plan_id:
+                context.subscriptionMetadata.restaurant_subscription_plan_id || null,
+            },
+          },
+        );
+
+        if (invoicePaidError) {
+          throw new Error(`restaurant_subscription_invoice_paid_rpc_failed:${invoicePaidError.message}`);
+        }
+      }
+
+      if (amountPaid > 0) {
         await recordCheckoutFinance({
           adminClient: supabaseAdmin,
           eventId: event.id,
           checkoutSessionId: invoice.id,
-          paymentIntentId: typeof invoiceRecord.payment_intent === "string" ? invoiceRecord.payment_intent : null,
-          checkoutKind,
-          restaurantId: subscriptionMetadata.restaurant_id || null,
+          paymentIntentId: getExpandableStripeId(context.invoiceRecord.payment_intent),
+          checkoutKind: context.checkoutKind,
+          restaurantId,
           grossCents: amountPaid,
           currency: invoice.currency || "chf",
           livemode: event.livemode,
           sourceType: "stripe_invoice",
           metadata: {
             stripe_invoice_id: invoice.id,
-            stripe_subscription_id: subscriptionId,
-            billing_reason: invoiceRecord.billing_reason || null,
+            stripe_subscription_id: context.subscriptionId,
+            billing_reason: context.invoiceRecord.billing_reason || null,
           },
           log,
         });
+      }
+    }
+
+    if (
+      event.type === "invoice.payment_failed"
+      || event.type === "invoice.payment_action_required"
+    ) {
+      const eventInvoice = event.data.object as Stripe.Invoice;
+      // Stripe does not guarantee event delivery order. Re-read the Invoice so
+      // a delayed failure/action-required event cannot regress an invoice that
+      // has since been paid.
+      const invoice = await stripe.invoices.retrieve(eventInvoice.id);
+      if (invoice.status === "paid") {
+        log.info("restaurant_subscription_stale_invoice_failure_ignored", {
+          eventType: event.type,
+          invoiceId: invoice.id,
+        });
+      } else {
+        const context = await resolveRestaurantInvoiceContext(stripe, invoice);
+        const restaurantId = context.restaurantId
+          || await resolveLocalRestaurantIdForStripeSubscription(
+            supabaseAdmin,
+            context.subscriptionId,
+          );
+
+        if ((context.isRestaurantSubscription || restaurantId) && context.subscriptionId) {
+          const nextPaymentAttempt = finiteUnixTimestamp(context.invoiceRecord.next_payment_attempt);
+          const { error: invoiceFailedError } = await supabaseAdmin.rpc(
+            "record_restaurant_subscription_invoice_payment_failed",
+            {
+              p_stripe_event_id: event.id,
+              p_stripe_invoice_id: invoice.id,
+              p_stripe_subscription_id: context.subscriptionId,
+              p_stripe_customer_id: context.stripeCustomerId,
+              p_restaurant_id: restaurantId,
+              p_amount_due_cents: Math.max(0, Math.round(Number(context.invoiceRecord.amount_due || 0))),
+              p_currency: String(invoice.currency || "chf").toLowerCase(),
+              p_attempt_count: Math.max(0, Math.round(Number(context.invoiceRecord.attempt_count || 0))),
+              p_next_payment_attempt: nextPaymentAttempt
+                ? new Date(nextPaymentAttempt * 1000).toISOString()
+                : null,
+              p_stripe_mode: event.livemode ? "live" : "test",
+              p_metadata: {
+                event_type: event.type,
+                payment_action_required: event.type === "invoice.payment_action_required",
+                invoice_status: invoice.status || null,
+                stripe_subscription_status: context.subscription?.status || null,
+                activation_job_id: context.subscriptionMetadata.activation_job_id || null,
+                internal_invoice_id: context.subscriptionMetadata.internal_invoice_id || null,
+                restaurant_subscription_plan_id:
+                  context.subscriptionMetadata.restaurant_subscription_plan_id || null,
+              },
+            },
+          );
+
+          if (invoiceFailedError) {
+            throw new Error(`restaurant_subscription_invoice_failed_rpc_failed:${invoiceFailedError.message}`);
+          }
+        }
+      }
+    }
+
+    if (event.type === "charge.refunded") {
+      const charge = event.data.object as Stripe.Charge;
+      const paymentIntentId = getExpandableStripeId(charge.payment_intent);
+      const resolvedInvoice = await resolveInvoiceContextFromPaymentIntent(
+        stripe,
+        paymentIntentId,
+      );
+      const restaurantId = resolvedInvoice?.context.restaurantId
+        || await resolveLocalRestaurantIdForStripeSubscription(
+          supabaseAdmin,
+          resolvedInvoice?.context.subscriptionId || null,
+        );
+
+      if (
+        resolvedInvoice
+        && (resolvedInvoice.context.isRestaurantSubscription || restaurantId)
+        && resolvedInvoice.context.subscriptionId
+      ) {
+        const amountReversedCents = Math.max(0, Math.round(Number(charge.amount_refunded || 0)));
+        const fullReversal = Boolean(
+          charge.refunded
+          || (Number(charge.amount || 0) > 0 && amountReversedCents >= Number(charge.amount || 0)),
+        );
+        const chargeRefunds = charge.refunds?.data || [];
+        const latestRefund = chargeRefunds[chargeRefunds.length - 1];
+        const { error: reversalError } = await supabaseAdmin.rpc(
+          "record_restaurant_subscription_payment_reversed",
+          {
+            p_stripe_event_id: event.id,
+            p_event_type: "charge_refunded",
+            p_stripe_charge_id: charge.id,
+            p_stripe_dispute_id: null,
+            p_stripe_invoice_id: resolvedInvoice.invoice.id,
+            p_stripe_subscription_id: resolvedInvoice.context.subscriptionId,
+            p_restaurant_id: restaurantId,
+            p_amount_reversed_cents: amountReversedCents,
+            p_currency: String(charge.currency || resolvedInvoice.invoice.currency || "chf").toLowerCase(),
+            p_full_reversal: fullReversal,
+            p_reason: latestRefund?.reason || null,
+            p_stripe_mode: event.livemode ? "live" : "test",
+            p_metadata: {
+              payment_intent_id: paymentIntentId,
+              activation_job_id:
+                resolvedInvoice.context.subscriptionMetadata.activation_job_id || null,
+              internal_invoice_id:
+                resolvedInvoice.context.subscriptionMetadata.internal_invoice_id || null,
+              charge_amount_cents: Number(charge.amount || 0),
+            },
+          },
+        );
+
+        if (reversalError) {
+          throw new Error(`restaurant_subscription_reversal_rpc_failed:${reversalError.message}`);
+        }
+      }
+    }
+
+    if (event.type === "charge.dispute.created") {
+      const dispute = event.data.object as Stripe.Dispute;
+      const stripeChargeId = getExpandableStripeId(dispute.charge);
+      let paymentIntentId = getExpandableStripeId(dispute.payment_intent);
+      if (!paymentIntentId && stripeChargeId) {
+        const disputeCharge = await stripe.charges.retrieve(stripeChargeId);
+        paymentIntentId = getExpandableStripeId(disputeCharge.payment_intent);
+      }
+
+      const resolvedInvoice = await resolveInvoiceContextFromPaymentIntent(
+        stripe,
+        paymentIntentId,
+      );
+      const restaurantId = resolvedInvoice?.context.restaurantId
+        || await resolveLocalRestaurantIdForStripeSubscription(
+          supabaseAdmin,
+          resolvedInvoice?.context.subscriptionId || null,
+        );
+      if (
+        resolvedInvoice
+        && (resolvedInvoice.context.isRestaurantSubscription || restaurantId)
+        && resolvedInvoice.context.subscriptionId
+      ) {
+        const amountReversedCents = Math.max(0, Math.round(Number(dispute.amount || 0)));
+        const invoiceAmountPaid = Math.max(
+          0,
+          Math.round(Number(resolvedInvoice.context.invoiceRecord.amount_paid || 0)),
+        );
+        const { error: disputeError } = await supabaseAdmin.rpc(
+          "record_restaurant_subscription_payment_reversed",
+          {
+            p_stripe_event_id: event.id,
+            p_event_type: "charge_dispute_created",
+            p_stripe_charge_id: stripeChargeId,
+            p_stripe_dispute_id: dispute.id,
+            p_stripe_invoice_id: resolvedInvoice.invoice.id,
+            p_stripe_subscription_id: resolvedInvoice.context.subscriptionId,
+            p_restaurant_id: restaurantId,
+            p_amount_reversed_cents: amountReversedCents,
+            p_currency: String(dispute.currency || resolvedInvoice.invoice.currency || "chf").toLowerCase(),
+            p_full_reversal: invoiceAmountPaid > 0 && amountReversedCents >= invoiceAmountPaid,
+            p_reason: dispute.reason || null,
+            p_stripe_mode: event.livemode ? "live" : "test",
+            p_metadata: {
+              payment_intent_id: paymentIntentId,
+              dispute_status: dispute.status,
+              activation_job_id:
+                resolvedInvoice.context.subscriptionMetadata.activation_job_id || null,
+              internal_invoice_id:
+                resolvedInvoice.context.subscriptionMetadata.internal_invoice_id || null,
+            },
+          },
+        );
+
+        if (disputeError) {
+          throw new Error(`restaurant_subscription_dispute_rpc_failed:${disputeError.message}`);
+        }
+      }
+    }
+
+    if (
+      currentSubscriptionEvent
+      && ["canceled", "incomplete_expired"].includes(
+        String(currentSubscriptionEvent.status || ""),
+      )
+    ) {
+      const subscription = currentSubscriptionEvent;
+      const metadata = subscription.metadata || {};
+      const checkoutKind = String(metadata.checkout_kind || "");
+      const restaurantId = String(metadata.restaurant_id || "")
+        || await resolveLocalRestaurantIdForStripeSubscription(
+          supabaseAdmin,
+          subscription.id,
+        );
+      const isRestaurantSubscription = Boolean(
+        restaurantId
+        || checkoutKind === "restaurant-onboarding"
+        || checkoutKind.startsWith("restaurant-subscription"),
+      );
+
+      if (isRestaurantSubscription) {
+        const cancelledAt = finiteUnixTimestamp(subscription.canceled_at)
+          || finiteUnixTimestamp(event.created);
+        const cancellationDetails = subscription.cancellation_details;
+        const cancellationReason = cancellationDetails?.reason
+          || cancellationDetails?.feedback
+          || cancellationDetails?.comment
+          || null;
+        const { error: cancellationError } = await supabaseAdmin.rpc(
+          "record_restaurant_subscription_cancelled_before_payment",
+          {
+            p_stripe_event_id: event.id,
+            p_stripe_subscription_id: subscription.id,
+            p_restaurant_id: restaurantId,
+            p_cancelled_at: cancelledAt
+              ? new Date(cancelledAt * 1000).toISOString()
+              : new Date().toISOString(),
+            p_reason: cancellationReason,
+            p_stripe_mode: event.livemode ? "live" : "test",
+            p_metadata: {
+              event_type: event.type,
+              stripe_subscription_status: subscription.status,
+              activation_job_id: metadata.activation_job_id || null,
+              internal_invoice_id: metadata.internal_invoice_id || null,
+            },
+          },
+        );
+
+        if (cancellationError) {
+          throw new Error(`restaurant_subscription_cancellation_rpc_failed:${cancellationError.message}`);
+        }
       }
     }
 
