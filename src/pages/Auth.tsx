@@ -625,8 +625,10 @@ export default function Auth() {
   }, [searchParams]);
 
   const getPostAuthTarget = useCallback((selectedRole: UserRole) => {
-    return getPostAuthTargetForRole(selectedRole, postAuthRedirectTarget);
-  }, [postAuthRedirectTarget]);
+    return getPostAuthTargetForRole(selectedRole, postAuthRedirectTarget, {
+      isCommercialAuthHost,
+    });
+  }, [isCommercialAuthHost, postAuthRedirectTarget]);
 
   const navigateToPostAuthTarget = useCallback((selectedRole: UserRole, replace = false) => {
     const target = getPostAuthTarget(selectedRole);
