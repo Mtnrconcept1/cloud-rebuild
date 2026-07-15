@@ -13,6 +13,17 @@
       "has": [
         {
           "type": "host",
+          "value": "commercial.thetok.ch"
+        }
+      ],
+      "destination": "/commercial",
+      "permanent": false
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
           "value": "admin.thetok.ch"
         }
       ],

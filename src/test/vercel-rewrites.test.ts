@@ -3,6 +3,31 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 describe("vercel config", () => {
+  it("opens the dedicated commercial host on the isolated workspace", () => {
+    const configPath = path.resolve(process.cwd(), "vercel.json");
+    const config = JSON.parse(readFileSync(configPath, "utf8")) as {
+      redirects?: Array<{
+        source?: string;
+        destination?: string;
+        permanent?: boolean;
+        has?: Array<{ type?: string; value?: string }>;
+      }>;
+    };
+
+    expect(config.redirects).toContainEqual({
+      source: "/",
+      has: [{ type: "host", value: "commercial.thetok.ch" }],
+      destination: "/commercial",
+      permanent: false,
+    });
+
+    // Cross-origin redirects remain in the role-aware browser boundary so it
+    // can strip PKCE codes and legacy URL fragments before changing origins.
+    expect(config.redirects).not.toContainEqual(expect.objectContaining({
+      destination: expect.stringMatching(/^https:\/\/commercial\.thetok\.ch/),
+    }));
+  });
+
   it("routes admin paths through the dedicated admin domain", () => {
     const configPath = path.resolve(process.cwd(), "vercel.json");
     const config = JSON.parse(readFileSync(configPath, "utf8")) as {

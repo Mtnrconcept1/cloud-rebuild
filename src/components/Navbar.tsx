@@ -39,6 +39,7 @@ import { useActiveFeatures } from "@/lib/featureFlags";
 import { useNotificationCenter } from "@/hooks/useNotificationCenter";
 import { useTokLogoSrc } from "@/hooks/useTokLogo";
 import { canShowClientSurface, canShowSocialFeedSurface, getRoleHomePath } from "@/lib/roleAccess";
+import { getCommercialNavigationHref } from "@/lib/commercialDomains";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -117,7 +118,11 @@ export default function Navbar() {
   const discoveryFeatures = visibleFeatures.slice(0, 3);
   const showClientSurface = canShowClientSurface({ activeRole: role, roles });
   const showSocialFeedSurface = canShowSocialFeedSurface({ activeRole: role, roles });
-  const homeTarget = showClientSurface ? "/" : getRoleHomePath(role);
+  const homeTarget = showClientSurface
+    ? "/"
+    : role === "commercial"
+      ? getCommercialNavigationHref("/commercial")
+      : getRoleHomePath(role);
   const showCartShortcut = showClientSurface && (user || itemCount > 0);
   const isMobileHomeHeader = showClientSurface && location.pathname === "/";
 

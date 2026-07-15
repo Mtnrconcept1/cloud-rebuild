@@ -37,7 +37,9 @@ import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 import { isNative } from "@/lib/platform";
 import { useTokLogoDocumentIcons } from "@/hooks/useTokLogo";
 import CommercialDemoFrameProvider, { CommercialDemoFrameAuthBoundary, useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
+import CommercialDemoHostSecurityBoundary from "@/components/commercial/CommercialDemoHostSecurityBoundary";
 import CommercialDemoSafeEffectsBoundary from "@/components/commercial/CommercialDemoSafeEffectsBoundary";
+import CommercialHostBoundary from "@/components/commercial/CommercialHostBoundary";
 import { isCommercialDemoClientPathAllowed } from "@/lib/commercialDemoClientRoutes";
 import { getCommercialDemoFrameConfig, type CommercialDemoFrameConfig } from "@/lib/commercialDemoFrame";
 
@@ -455,6 +457,7 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
   const adminComptaEnabled = hasFeature("admin-compta");
   const adminComptaAiEnabled = hasFeature("ai_accounting_insights");
   const adminAiOperationsEnabled = hasFeature("ai_admin_monitoring");
+  const aiSupportChatEnabled = hasFeature("ai_support_chat");
   const adminActualitesEnabled = hasFeature("admin-actualites");
   const adminCrmEnabled = hasFeature("admin-crm");
   const adminPlatformConfigEnabled = hasFeature("admin-platform-config");
@@ -546,7 +549,7 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           <Route path="/dashboard/support" element={<DashboardRoute><FeatureSwitch enabled={dashboardSupportEnabled} fallback="/dashboard"><CommercialDemoSafeEffectsBoundary tool="support"><DashboardSupport /></CommercialDemoSafeEffectsBoundary></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/service" element={<DashboardRoute><FeatureSwitch enabled={dashboardServiceEnabled} fallback="/dashboard"><DashboardService /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/plan-salle" element={<DashboardRoute><FeatureSwitch enabled={dashboardPlanSalleEnabled} fallback="/dashboard"><DashboardPlanSalle /></FeatureSwitch></DashboardRoute>} />
-          <Route path="/dashboard/plan-salle-v2" element={<DashboardRoute><FeatureSwitch enabled={dashboardPlanSalleEnabled} fallback="/dashboard"><DashboardPlanSalleV2 /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/plan-salle-v2" element={<DashboardRoute><FeatureSwitch enabled={dashboardPlanSalleEnabled} fallback="/dashboard">{commercialDemoFrame?.surface === "restaurant" ? <DashboardPlanSalle /> : <DashboardPlanSalleV2 />}</FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/pack" element={<DashboardRoute><FeatureSwitch enabled={dashboardPackEnabled} fallback="/dashboard"><CommercialDemoSafeEffectsBoundary tool="pack"><DashboardPack /></CommercialDemoSafeEffectsBoundary></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/tok-connect" element={<DashboardRoute><FeatureSwitch enabled={dashboardTokConnectEnabled} fallback="/dashboard"><CommercialDemoSafeEffectsBoundary tool="tok-connect"><DashboardTokConnect /></CommercialDemoSafeEffectsBoundary></FeatureSwitch></DashboardRoute>} />
           <Route path="/courier" element={<ProtectedRoute requiredRole="courier"><FeatureSwitch enabled={courierHomeEnabled}><CourierHome /></FeatureSwitch></ProtectedRoute>} />
@@ -590,7 +593,10 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
-      {!commercialDemoFrame ? <SupportChat /> : null}
+      {aiSupportChatEnabled === true
+        && (!commercialDemoFrame || commercialDemoFrame.surface !== "commercial")
+        ? <SupportChat />
+        : null}
       {!commercialDemoFrame ? (
         <Suspense fallback={null}>
           <OrderConflictDialog />
@@ -622,18 +628,22 @@ const App = () => {
           <Sonner />
           <BrowserRouter basename={commercialDemoFrame?.basename}>
             <ScrollToTop />
-            <AdminHostBoundary />
-            <AuthProvider>
-              {commercialDemoFrame ? (
-                <CommercialDemoFrameAuthBoundary config={commercialDemoFrame}>
-                  <CommercialDemoFrameRouteBoundary config={commercialDemoFrame}>
-                    <CommercialDemoFrameProvider config={commercialDemoFrame}>
-                      {shell}
-                    </CommercialDemoFrameProvider>
-                  </CommercialDemoFrameRouteBoundary>
-                </CommercialDemoFrameAuthBoundary>
-              ) : shell}
-            </AuthProvider>
+            <CommercialDemoHostSecurityBoundary>
+              <AuthProvider>
+                <CommercialHostBoundary>
+                  <AdminHostBoundary />
+                  {commercialDemoFrame ? (
+                    <CommercialDemoFrameAuthBoundary config={commercialDemoFrame}>
+                      <CommercialDemoFrameRouteBoundary config={commercialDemoFrame}>
+                        <CommercialDemoFrameProvider config={commercialDemoFrame}>
+                          {shell}
+                        </CommercialDemoFrameProvider>
+                      </CommercialDemoFrameRouteBoundary>
+                    </CommercialDemoFrameAuthBoundary>
+                  ) : shell}
+                </CommercialHostBoundary>
+              </AuthProvider>
+            </CommercialDemoHostSecurityBoundary>
           </BrowserRouter>
         </TooltipProvider>
       </QueryClientProvider>
@@ -642,3 +652,4 @@ const App = () => {
 };
 
 export default App;
+

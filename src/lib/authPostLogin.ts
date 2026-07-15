@@ -1,4 +1,5 @@
 import type { UserRole } from "@/lib/auth-context";
+import { getCommercialNavigationHref } from "@/lib/commercialDomains";
 import { getRoleHomePath } from "@/lib/roleAccess";
 
 const PRIVILEGED_ROUTE_ROOTS: Record<Exclude<UserRole, "client">, string> = {
@@ -34,18 +35,27 @@ export function getPostAuthTargetForRole(
   selectedRole: UserRole,
   postAuthRedirectTarget: string | null,
 ) {
+  const defaultTarget = selectedRole === "commercial"
+    ? getCommercialNavigationHref("/commercial")
+    : getRoleHomePath(selectedRole);
+
   if (!postAuthRedirectTarget) {
-    return getRoleHomePath(selectedRole);
+    return defaultTarget;
   }
 
   const pathname = getPathname(postAuthRedirectTarget);
   const privilegedRouteOwner = getPrivilegedRouteOwner(pathname);
 
+  if (privilegedRouteOwner === "commercial" && ["admin", "commercial"].includes(selectedRole)) {
+    const targetUrl = new URL(postAuthRedirectTarget, "https://www.thetok.ch");
+    return getCommercialNavigationHref(`${targetUrl.pathname}${targetUrl.search}${targetUrl.hash}`);
+  }
+
   if (!privilegedRouteOwner) {
-    return selectedRole === "client" ? postAuthRedirectTarget : getRoleHomePath(selectedRole);
+    return selectedRole === "client" ? postAuthRedirectTarget : defaultTarget;
   }
 
   return privilegedRouteOwner === selectedRole
     ? postAuthRedirectTarget
-    : getRoleHomePath(selectedRole);
+    : defaultTarget;
 }

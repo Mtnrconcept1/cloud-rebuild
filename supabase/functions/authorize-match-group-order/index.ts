@@ -1,4 +1,11 @@
-import { HttpError, authenticateRequest, getEnv, jsonResponse, writeAuditLog } from "../_shared/auth.ts";
+import {
+  HttpError,
+  assertProductionFlowAllowed,
+  authenticateRequest,
+  getEnv,
+  jsonResponse,
+  writeAuditLog,
+} from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { normalizeCheckoutReturnUrl } from "../_shared/return-url.ts";
 import { getStripeRuntimeForCheckoutKind } from "../_shared/stripe-client.ts";
@@ -15,8 +22,10 @@ Deno.serve(async (req) => {
 
   try {
     actor = await authenticateRequest(req);
-    const { group_member_order_id, return_url } = await req.json();
     if (!actor.userId) throw new HttpError(401, "Connexion requise");
+    await assertProductionFlowAllowed(actor, "commande de groupe réelle");
+
+    const { group_member_order_id, return_url } = await req.json();
     if (!group_member_order_id) throw new HttpError(400, "group_member_order_id requis");
 
     const { data: featureFlag, error: featureFlagError } = await actor.adminClient

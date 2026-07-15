@@ -53,6 +53,7 @@ import {
   getSupabaseAuthRedirectState,
 } from "@/lib/authRedirect";
 import { getPostAuthTargetForRole } from "@/lib/authPostLogin";
+import { isCommercialAppHost } from "@/lib/commercialDomains";
 
 const supabase = getSupabase();
 const LEGAL_ACCEPTANCE_VERSION = "2026-06-15";
@@ -553,9 +554,14 @@ async function submitPrivilegedSignupDraft(input: {
 }
 
 export default function Auth() {
+  const isCommercialAuthHost = typeof window !== "undefined"
+    && isCommercialAppHost(window.location.hostname);
+
   useSeoMeta({
-    title: "Connexion et inscription | TOK",
-    description: "Connectez-vous à votre compte TOK ou créez votre espace sécurisé.",
+    title: isCommercialAuthHost ? "Connexion commerciale | TOK" : "Connexion et inscription | TOK",
+    description: isCommercialAuthHost
+      ? "Connectez-vous directement à l'environnement commercial de démonstration TOK."
+      : "Connectez-vous à votre compte TOK ou créez votre espace sécurisé.",
     path: "/auth",
     robots: "noindex,nofollow",
   });
@@ -567,7 +573,7 @@ export default function Auth() {
   const { user, roles, role, switchRole, canSwitchRole } = useAuth();
 
   const initialRole = getInitialSignupRole(searchParams);
-  const [isLogin, setIsLogin] = useState(initialRole === "client");
+  const [isLogin, setIsLogin] = useState(isCommercialAuthHost || initialRole === "client");
   const [roleMode, setRoleMode] = useState<SignupRole>(initialRole);
   const [signupForm, setSignupForm] = useState<SignupFormState>(EMPTY_SIGNUP_FORM);
   const [loading, setLoading] = useState(false);
@@ -607,10 +613,11 @@ export default function Auth() {
   const isClientSignup = !isLogin && roleMode === "client";
   const showExtendedIdentityFields = !isLogin && (roleMode === "restaurateur" || roleMode === "courier");
   const showDocumentSection = !isLogin && requiredDocuments.length > 0;
-  const switchableRoles = useMemo(
-    () => getFeatureVisibleRoles(roles, activeFeatures),
-    [activeFeatures, roles],
-  );
+  const switchableRoles = useMemo(() => {
+    const visibleRoles = getFeatureVisibleRoles(roles, activeFeatures);
+    if (!isCommercialAuthHost) return visibleRoles;
+    return visibleRoles.filter((candidateRole) => candidateRole === "commercial" || candidateRole === "admin");
+  }, [activeFeatures, isCommercialAuthHost, roles]);
   const postAuthRedirectTarget = useMemo(() => {
     const redirectTarget = searchParams.get("redirect");
     if (!redirectTarget) return null;
@@ -620,6 +627,19 @@ export default function Auth() {
   const getPostAuthTarget = useCallback((selectedRole: UserRole) => {
     return getPostAuthTargetForRole(selectedRole, postAuthRedirectTarget);
   }, [postAuthRedirectTarget]);
+
+  const navigateToPostAuthTarget = useCallback((selectedRole: UserRole, replace = false) => {
+    const target = getPostAuthTarget(selectedRole);
+    const targetUrl = new URL(target, window.location.origin);
+
+    if (targetUrl.origin !== window.location.origin) {
+      if (replace) window.location.replace(targetUrl.href);
+      else window.location.assign(targetUrl.href);
+      return;
+    }
+
+    navigate(`${targetUrl.pathname}${targetUrl.search}${targetUrl.hash}`, { replace });
+  }, [getPostAuthTarget, navigate]);
 
   useEffect(() => {
     if (typeof window === "undefined" || authRedirectHandledRef.current) return;
@@ -686,8 +706,9 @@ export default function Auth() {
     const targetRole = role && switchableRoles.includes(role)
       ? role
       : switchableRoles[0] || getDefaultActiveRole(roles);
-    navigate(getPostAuthTarget(targetRole), { replace: true });
-  }, [canSwitchRole, featureFlagsLoading, getPostAuthTarget, navigate, privilegedSignupSubmitting, role, roles, showRolePicker, switchRole, switchableRoles, user]);
+    if (targetRole !== role) switchRole(targetRole);
+    navigateToPostAuthTarget(targetRole, true);
+  }, [canSwitchRole, featureFlagsLoading, navigateToPostAuthTarget, privilegedSignupSubmitting, role, roles, showRolePicker, switchRole, switchableRoles, user]);
 
   useEffect(() => {
     if (!featureFlagsLoading && !courierSignupEnabled && roleMode === "courier") {
@@ -736,7 +757,7 @@ export default function Auth() {
 
   const handleRoleSelect = (selectedRole: UserRole) => {
     switchRole(selectedRole);
-    navigate(getPostAuthTarget(selectedRole));
+    navigateToPostAuthTarget(selectedRole);
   };
 
   const handleResetPassword = async () => {
@@ -1103,10 +1124,18 @@ export default function Auth() {
         <CardHeader className="text-center space-y-3">
           <img src={logoSrc} alt="Tok" className="mx-auto h-20 w-auto object-contain" />
           <CardTitle className="font-display text-2xl">
-            {isLogin ? "Bon retour" : isClientSignup ? "Créer votre compte" : "Créer un compte vérifié"}
+            {isCommercialAuthHost
+              ? "Connexion commerciale sécurisée"
+              : isLogin
+                ? "Bon retour"
+                : isClientSignup
+                  ? "Créer votre compte"
+                  : "Créer un compte vérifié"}
           </CardTitle>
           <CardDescription>
-            {isLogin
+            {isCommercialAuthHost
+              ? "Connectez-vous ici avec votre compte commercial. Cette session reste séparée des espaces clients et restaurants réels."
+              : isLogin
               ? postAuthRedirectTarget
                 ? "Connectez-vous pour reprendre votre commande, réservation ou parcours en cours."
                 : "Connectez-vous pour acceder à vos espaces client, restaurateur, livreur ou admin."
@@ -1116,11 +1145,15 @@ export default function Auth() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {isLogin && postAuthRedirectTarget ? (
+          {isLogin && (postAuthRedirectTarget || searchParams.get("domain") === "required") ? (
             <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-sm">
-              <p className="font-medium">Connexion requise pour continuer</p>
+              <p className="font-medium">
+                {isCommercialAuthHost ? "Reconnexion requise sur le domaine commercial" : "Connexion requise pour continuer"}
+              </p>
               <p className="pt-1 text-muted-foreground">
-                Une fois connecté, vous reviendrez automatiquement à votre parcours en cours.
+                {isCommercialAuthHost
+                  ? "Aucun jeton de session n’est transféré depuis un autre domaine."
+                  : "Une fois connecté, vous reviendrez automatiquement à votre parcours en cours."}
               </p>
             </div>
           ) : null}
@@ -1698,21 +1731,22 @@ export default function Auth() {
             </div>
           ) : null}
 
-          <div className="text-center">
-            <button
-              type="button"
-              onClick={() => {
-                setIsLogin((current) => !current);
-                setForgotPassword(false);
-              }}
-              className="text-sm text-muted-foreground transition-colors hover:text-primary"
-            >
-              {isLogin ? "Pas encore de compte ? S'inscrire" : "Déjà un compte ? Se connecter"}
-            </button>
-          </div>
+          {!isCommercialAuthHost ? (
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsLogin((current) => !current);
+                  setForgotPassword(false);
+                }}
+                className="text-sm text-muted-foreground transition-colors hover:text-primary"
+              >
+                {isLogin ? "Pas encore de compte ? S'inscrire" : "Déjà un compte ? Se connecter"}
+              </button>
+            </div>
+          ) : null}
         </CardContent>
       </Card>
     </div>
   );
 }
-

@@ -4,6 +4,12 @@ Le scénario multi-espace commercial utilise exclusivement l'Edge Function
 `commercial-demo-checkout`. Il ne doit jamais appeler `create-checkout`, écrire
 dans `orders`, produire une facture, un ledger ou déclencher un virement.
 
+En production, ce parcours est servi uniquement depuis
+`https://commercial.thetok.ch`. Les requêtes et les URL de retour provenant de
+`thetok.ch`, `www.thetok.ch`, `app.thetok.ch`, `admin.thetok.ch` ou d'un aperçu
+Vercel sont refusées. `localhost` et les domaines `.test` restent acceptés
+uniquement hors runtime Supabase de production.
+
 ## Secret requis
 
 Configurer **uniquement côté Supabase Edge Functions** :
@@ -56,7 +62,7 @@ Création :
   "action": "create",
   "demo_restaurant_id": "uuid",
   "demo_session_id": "uuid",
-  "return_url": "https://www.thetok.ch/commercial/demo-live"
+  "return_url": "https://commercial.thetok.ch/commercial/demo-live"
 }
 ```
 
@@ -107,3 +113,9 @@ confirmation explicite est le seul chemin qui fait avancer la commande démo.
 5. Vérifier l'absence de nouvelle ligne liée à ce scénario dans `orders`,
    `payment_transactions`, `financial_ledger`, les factures et les payouts.
 6. Rejouer `confirm` : le snapshot doit être identique, sans double transition.
+7. Appeler un flux réel (`create-checkout`, `validate-order` ou
+   `create-reservation`) avec le JWT commercial : vérifier un `403` avant toute
+   écriture, notification ou création de session Stripe.
+8. Vérifier qu'un compte commercial non administrateur ne lit aucun restaurant,
+   menu, commande, réservation ou paiement réel et ne voit que son restaurant
+   de démonstration associé.

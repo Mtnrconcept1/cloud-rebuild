@@ -1,6 +1,7 @@
 import {
   HttpError,
   authenticateRequest,
+  assertProductionFlowAllowed,
   buildRequestMetadata,
   createAdminClient,
   jsonResponse,
@@ -28,6 +29,7 @@ Deno.serve(async (req) => {
   try {
     actor = await authenticateRequest(req, { allowServiceRole: false });
     if (!actor.userId) throw new HttpError(401, "Unauthorized");
+    await assertProductionFlowAllowed(actor, "achat de crédits réel");
 
     const requestMetadata = buildRequestMetadata(req);
     const rateLimiter = createRateLimiter(actor.adminClient, "complete-restaurant-credit-pack-checkout");

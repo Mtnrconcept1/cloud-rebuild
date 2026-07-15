@@ -103,6 +103,7 @@ export function buildCommercialDemoFrameUrl(
 export function isCommercialDemoFrameMessage(value: unknown): value is {
   type: "commercial-demo:open-checkout";
   sessionId: string;
+  stripeSessionId: string;
   checkoutUrl: string;
 } {
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;
@@ -110,6 +111,8 @@ export function isCommercialDemoFrameMessage(value: unknown): value is {
   return record.type === "commercial-demo:open-checkout"
     && typeof record.sessionId === "string"
     && UUID_PATTERN.test(record.sessionId)
+    && typeof record.stripeSessionId === "string"
+    && /^cs_test_[A-Za-z0-9_]+$/.test(record.stripeSessionId)
     && typeof record.checkoutUrl === "string";
 }
 
@@ -178,3 +181,4 @@ export function isCommercialDemoFrameNavigateMessage(value: unknown): value is C
     && record.path.startsWith("/")
     && !record.path.startsWith("//");
 }
+

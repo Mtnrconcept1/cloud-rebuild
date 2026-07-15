@@ -340,6 +340,61 @@ export function requireUserRole(
   }
 }
 
+/**
+ * Prevent a managed commercial-demo identity from entering any production
+ * transaction flow. Roles are loaded from `user_roles` by authenticateRequest
+ * with the service-role client; the active account mapping is checked as a
+ * second authoritative signal so a stale/missing role cannot bypass the
+ * isolation boundary.
+ *
+ * Admin and explicit service-role actors remain available for support and
+ * operational tasks. Every other actor fails closed when the mapping cannot
+ * be verified.
+ */
+export async function assertProductionFlowAllowed(
+  actor: RequestActor,
+  operation = "production transaction",
+) {
+  if (actor.isServiceRole || actor.isAdmin) return;
+  if (!actor.userId) {
+    throw new HttpError(401, "Unauthorized");
+  }
+
+  const hasCommercialRole = actor.roles
+    .map((role) => normalizeRole(role))
+    .includes("commercial");
+
+  const { data: demoAccount, error: demoAccountError } = await actor.adminClient
+    .from("commercial_demo_accounts")
+    .select("user_id,is_active")
+    .eq("user_id", actor.userId)
+    .eq("is_active", true)
+    .maybeSingle();
+
+  if (demoAccountError) {
+    // A known commercial role is blocked even if the mapping lookup fails.
+    // Other callers also fail closed: a sensitive production operation must
+    // never continue while its isolation status is unknown.
+    if (hasCommercialRole) {
+      throw new HttpError(
+        403,
+        `COMMERCIAL_DEMO_PRODUCTION_FLOW_BLOCKED: ${operation} indisponible pour un compte commercial.`,
+      );
+    }
+    throw new HttpError(
+      503,
+      "COMMERCIAL_DEMO_ACCOUNT_CHECK_UNAVAILABLE: vérification du cloisonnement impossible.",
+    );
+  }
+
+  if (hasCommercialRole || demoAccount) {
+    throw new HttpError(
+      403,
+      `COMMERCIAL_DEMO_PRODUCTION_FLOW_BLOCKED: ${operation} indisponible pour un compte commercial.`,
+    );
+  }
+}
+
 export async function requireRestaurantAccess(
   actor: RequestActor,
   restaurantId: string,

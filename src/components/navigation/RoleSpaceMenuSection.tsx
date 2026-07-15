@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import { getAdminNavigationHref } from "@/lib/adminDomains";
 import { useAuth, type UserRole } from "@/lib/auth-context";
+import { getCommercialNavigationHref } from "@/lib/commercialDomains";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { getFeatureVisibleRoles, getRoleHomePath } from "@/lib/roleAccess";
 import { cn } from "@/lib/utils";
@@ -49,7 +50,9 @@ const ROLE_MENU_ITEMS: Record<UserRole, RoleMenuItem> = {
 };
 
 function getRoleTarget(role: UserRole) {
-  return role === "admin" ? getAdminNavigationHref("/admin") : getRoleHomePath(role);
+  if (role === "admin") return getAdminNavigationHref("/admin");
+  if (role === "commercial") return getCommercialNavigationHref("/commercial");
+  return getRoleHomePath(role);
 }
 
 export default function RoleSpaceMenuSection({

@@ -87,7 +87,10 @@ describe("commercial demo Stripe test isolation", () => {
     expect(edge).toContain('stripeSession.livemode !== false');
     expect(edge).toContain('startsWith("cs_test_")');
     expect(edge).toContain('url.pathname = "/commercial/demo-live"');
-    expect(edge).toContain("OWNED_PREVIEW_HOST");
+    expect(edge).toContain("returnHost === COMMERCIAL_DEMO_HOSTNAME");
+    expect(edge).toContain("isCommercialDemoProductionRuntime()");
+    expect(edge).toContain("isCommercialDemoLocalOrTestHostname(returnHost)");
+    expect(edge).not.toContain("OWNED_PREVIEW_HOST");
     expect(edge).not.toContain('hostname.endsWith(".vercel.app")');
     expect(edge).toContain('replace("%7BCHECKOUT_SESSION_ID%7D", "{CHECKOUT_SESSION_ID}")');
   });
@@ -145,6 +148,10 @@ describe("commercial demo Stripe test isolation", () => {
     expect(sharedFinanceIndex).toBeGreaterThan(earlyReturnIndex);
     expect(liveCheckout).toContain('effectiveKind === "commercial-demo-order"');
     expect(liveCheckout).toContain("paiement Stripe Test dedie");
+    expect(liveCheckout).toContain("if (isCommercialDemoHostRequest(req))");
+    expect(liveCheckout).toContain('await assertProductionFlowAllowed(actor, "paiement réel")');
+    expect(edge).toContain("if (!isCommercialDemoCheckoutRequestAllowed(req))");
+    expect(runbook).toContain("https://commercial.thetok.ch/commercial/demo-live");
   });
 
   it("also blocks demo refunds before suspense-ledger reconciliation", () => {

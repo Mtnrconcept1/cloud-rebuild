@@ -26,6 +26,7 @@ import {
   type CommercialDemoSnapshot,
 } from "@/lib/commercialDemoJourney";
 import { isCommercialDemoFrameMessage, parseCommercialDemoFramePath } from "@/lib/commercialDemoFrame";
+import { isStripeTestCheckoutSessionId } from "@/lib/commercialDemoHostSecurity";
 import type { CommercialDemoRealtimeStatus } from "@/lib/commercialDemoRealtime";
 import { cn } from "@/lib/utils";
 
@@ -76,10 +77,12 @@ function getInitialCheckoutParams() {
   } catch {
     // The demo still works without persistence in restrictive privacy modes.
   }
+  const stripeSessionId = params.get("stripe_session_id") || "";
   return {
     sessionId: params.get("demo_session_id") || storedSessionId,
-    stripeSessionId: params.get("stripe_session_id") || "",
-    returnedFromCheckout: params.get("demo_checkout") === "success",
+    stripeSessionId: isStripeTestCheckoutSessionId(stripeSessionId) ? stripeSessionId : "",
+    returnedFromCheckout: params.get("demo_checkout") === "success"
+      && isStripeTestCheckoutSessionId(stripeSessionId),
     checkoutCancelled: params.get("demo_checkout") === "cancelled",
   };
 }
@@ -349,3 +352,4 @@ export default function CommercialMultiSpaceDemo() {
     </div>
   );
 }
+

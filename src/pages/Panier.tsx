@@ -140,6 +140,7 @@ export default function Panier() {
   const queryClient = useQueryClient();
   const commercialDemoFrame = useCommercialDemoFrame();
   const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
+  const demoSessionKey = isCommercialDemoClient ? commercialDemoFrame.config.sessionId : "production";
   const globalActiveFeatures = useActiveFeatures({ enabled: !commercialDemoFrame });
   const activeFeatures = useMemo(
     () => commercialDemoFrame
@@ -300,8 +301,17 @@ export default function Panier() {
   });
 
   const { data: deliveryRestaurant } = useQuery({
-    queryKey: ["cart-restaurant-hours", restaurantId],
+    queryKey: ["cart-restaurant-hours", restaurantId, demoSessionKey],
     queryFn: async () => {
+      if (isCommercialDemoClient) {
+        const restaurant = commercialDemoFrame.snapshot.demo_restaurant;
+        return {
+          id: restaurant.id,
+          name: restaurant.name,
+          opening_hours: null,
+          delivery_available: restaurant.delivery_available ?? true,
+        };
+      }
       const { data, error } = await supabase
         .from("restaurants")
         .select("id, name, opening_hours, delivery_available")
@@ -314,8 +324,16 @@ export default function Panier() {
   });
 
   const { data: restaurantPaymentConfig } = useQuery({
-    queryKey: ["restaurant-payment-config", restaurantId],
+    queryKey: ["restaurant-payment-config", restaurantId, demoSessionKey],
     queryFn: async () => {
+      if (isCommercialDemoClient) {
+        const restaurant = commercialDemoFrame.snapshot.demo_restaurant;
+        return {
+          disabled_payment_methods: [],
+          delivery_available: restaurant.delivery_available ?? true,
+          supports_pickup: restaurant.supports_pickup ?? true,
+        };
+      }
       const { data } = await supabase
         .from("restaurants")
         .select("disabled_payment_methods, delivery_available, supports_pickup")
@@ -800,7 +818,11 @@ export default function Panier() {
           returnUrl: buildCommercialDemoCheckoutReturnUrl(commercialDemoFrame.config.sessionId),
         });
         clearCart();
-        openCommercialDemoCheckout(commercialDemoFrame.config.sessionId, checkout.checkout_url);
+        openCommercialDemoCheckout(
+          commercialDemoFrame.config.sessionId,
+          checkout.checkout_url,
+          checkout.stripe_session_id,
+        );
         return;
       }
 
@@ -2091,3 +2113,4 @@ export default function Panier() {
     </main>
   );
 }
+
