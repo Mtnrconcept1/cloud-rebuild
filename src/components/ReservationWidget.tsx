@@ -16,7 +16,14 @@ import {
   isReservationCalendarDateDisabled,
   type ReservationSlotAvailability,
 } from "@/lib/reservationAvailability";
-import { getConfiguredServiceSettings, type ServiceSettingsMap } from "@/lib/serviceSettings";
+import {
+  DEFAULT_SERVICE_SETTINGS,
+  detectServiceFromTime,
+  generateDailyTimeSlots,
+  getConfiguredServiceSettings,
+  type ServiceSettingsMap,
+} from "@/lib/serviceSettings";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 
 const supabase = getSupabase();
 
@@ -47,14 +54,18 @@ type SlotAvailabilityRow = {
 
 export default function ReservationWidget({ restaurantId, restaurantName, onReserve, onSelectionChange }: ReservationWidgetProps) {
   const { user } = useAuth();
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
+  const demoSessionKey = isCommercialDemoClient ? commercialDemoFrame.config.sessionId : "production";
   const navigate = useNavigate();
   const [date, setDate] = useState<Date>();
   const [time, setTime] = useState("19:00");
   const [partySize, setPartySize] = useState("2");
 
   const { data: serviceSettingsData } = useQuery({
-    queryKey: ["reservation-widget-settings", restaurantId],
+    queryKey: ["reservation-widget-settings", restaurantId, demoSessionKey],
     queryFn: async () => {
+      if (isCommercialDemoClient) return DEFAULT_SERVICE_SETTINGS;
       const { data, error } = await supabase.from("restaurants").select("opening_hours").eq("id", restaurantId).maybeSingle();
       if (error) throw error;
       return getConfiguredServiceSettings(data?.opening_hours);
@@ -64,10 +75,32 @@ export default function ReservationWidget({ restaurantId, restaurantName, onRese
 
   const selectedDateKey = date ? format(date, "yyyy-MM-dd") : null;
 
-  const { data: slotAvailability = [], isLoading: isSlotAvailabilityLoading } = useQuery({
-    queryKey: ["reservation-slot-availability", restaurantId, selectedDateKey],
+  const { data: slotAvailability = [], isLoading: isSlotAvailabilityLoading } = useQuery<SlotAvailabilityRow[]>({
+    queryKey: ["reservation-slot-availability", restaurantId, selectedDateKey, demoSessionKey],
     queryFn: async () => {
       if (!selectedDateKey) return [] as SlotAvailabilityRow[];
+      if (isCommercialDemoClient) {
+        const occupiedByTime = new Map<string, number>();
+        commercialDemoFrame.snapshot.reservations
+          .filter((reservation) => reservation.reservation_date === selectedDateKey)
+          .filter((reservation) => !["cancelled", "no_show"].includes(reservation.status))
+          .forEach((reservation) => {
+            const slotTime = String(reservation.reservation_time || "").slice(0, 5);
+            occupiedByTime.set(slotTime, (occupiedByTime.get(slotTime) || 0) + 1);
+          });
+        return generateDailyTimeSlots(DEFAULT_SERVICE_SETTINGS).all.map((slotTime) => {
+          const reservedTables = occupiedByTime.get(slotTime) || 0;
+          const capacity = DEFAULT_SERVICE_SETTINGS[detectServiceFromTime(slotTime)].max_tables_per_slot;
+          const remainingTables = Math.max(0, capacity - reservedTables);
+          return {
+            slot_time: slotTime,
+            reserved_tables: reservedTables,
+            capacity,
+            remaining_tables: remainingTables,
+            available: remainingTables > 0,
+          } satisfies SlotAvailabilityRow;
+        });
+      }
 
       const { data, error } = await (supabase.rpc as any)("get_restaurant_reservation_slot_availability", {
         p_restaurant_id: restaurantId,
@@ -143,8 +176,9 @@ export default function ReservationWidget({ restaurantId, restaurantName, onRese
   }, [serviceSettingsData]);
 
   const { data: reservationDiscounts = [] } = useQuery({
-    queryKey: ["reservation-widget-promos", restaurantId, date ? format(date, "yyyy-MM-dd") : null, time],
+    queryKey: ["reservation-widget-promos", restaurantId, date ? format(date, "yyyy-MM-dd") : null, time, demoSessionKey],
     queryFn: async () => {
+      if (isCommercialDemoClient) return [] as number[];
       const { data, error } = await (supabase.from("meal_formulas" as any)
         .select("discount_percent, availability")
         .eq("restaurant_id", restaurantId)

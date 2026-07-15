@@ -19,6 +19,7 @@ export type RequestActor = {
   roles: string[];
   isAdmin: boolean;
   isServiceRole: boolean;
+  accountType?: string | null;
   authMode: "user_jwt" | "service_role" | "scheduler_secret";
 };
 
@@ -267,6 +268,7 @@ export async function authenticateRequest(
     roles,
     isAdmin: roles.includes("admin"),
     isServiceRole: false,
+    accountType: normalizeRole(userData.user.app_metadata?.account_type) || null,
     authMode: "user_jwt",
   };
 }
@@ -343,19 +345,19 @@ export function requireUserRole(
 /**
  * Prevent a managed commercial-demo identity from entering any production
  * transaction flow. Roles are loaded from `user_roles` by authenticateRequest
- * with the service-role client; the active account mapping is checked as a
- * second authoritative signal so a stale/missing role cannot bypass the
- * isolation boundary.
+ * with the service-role client; the durable account mapping and Auth metadata
+ * are checked as additional authoritative signals so a stale/missing role or
+ * a disabled account cannot bypass the isolation boundary.
  *
- * Admin and explicit service-role actors remain available for support and
- * operational tasks. Every other actor fails closed when the mapping cannot
- * be verified.
+ * Only an explicit service-role actor bypasses this identity check. A user JWT
+ * remains blocked when it combines commercial and admin roles. Every other
+ * actor fails closed when the mapping cannot be verified.
  */
 export async function assertProductionFlowAllowed(
   actor: RequestActor,
   operation = "production transaction",
 ) {
-  if (actor.isServiceRole || actor.isAdmin) return;
+  if (actor.isServiceRole) return;
   if (!actor.userId) {
     throw new HttpError(401, "Unauthorized");
   }
@@ -363,19 +365,19 @@ export async function assertProductionFlowAllowed(
   const hasCommercialRole = actor.roles
     .map((role) => normalizeRole(role))
     .includes("commercial");
+  const hasCommercialAccountType = normalizeRole(actor.accountType) === "commercial_demo";
 
   const { data: demoAccount, error: demoAccountError } = await actor.adminClient
     .from("commercial_demo_accounts")
-    .select("user_id,is_active")
+    .select("user_id")
     .eq("user_id", actor.userId)
-    .eq("is_active", true)
     .maybeSingle();
 
   if (demoAccountError) {
     // A known commercial role is blocked even if the mapping lookup fails.
     // Other callers also fail closed: a sensitive production operation must
     // never continue while its isolation status is unknown.
-    if (hasCommercialRole) {
+    if (hasCommercialRole || hasCommercialAccountType) {
       throw new HttpError(
         403,
         `COMMERCIAL_DEMO_PRODUCTION_FLOW_BLOCKED: ${operation} indisponible pour un compte commercial.`,
@@ -387,7 +389,7 @@ export async function assertProductionFlowAllowed(
     );
   }
 
-  if (hasCommercialRole || demoAccount) {
+  if (hasCommercialRole || hasCommercialAccountType || demoAccount) {
     throw new HttpError(
       403,
       `COMMERCIAL_DEMO_PRODUCTION_FLOW_BLOCKED: ${operation} indisponible pour un compte commercial.`,

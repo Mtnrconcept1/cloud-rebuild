@@ -41,6 +41,13 @@ import {
 import { useTokLogoSrc } from "@/hooks/useTokLogo";
 import { getOptimizedImageSizes, getOptimizedImageSrcSet, getOptimizedImageUrl } from "@/lib/optimizedImages";
 import { getRestaurantAmenityOptions } from "@/lib/restaurantAmenities";
+import {
+  getCommercialDemoAntiWasteOffers,
+  getCommercialDemoClientMenuItems,
+  getCommercialDemoClientRestaurants,
+  getCommercialDemoFlashSales,
+} from "@/lib/commercialDemoClientCatalog";
+import { buildCommercialDemoReviewSeeds } from "@/lib/commercialDemoRestaurantTools";
 
 const supabase = getSupabase();
 const RESTAURANT_DETAIL_STALE_MS = 60_000;
@@ -293,8 +300,10 @@ type RestaurantDetailProps = {
 export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }: RestaurantDetailProps = {}) {
   const { id } = useParams<{ id: string }>();
   const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
+  const demoSessionKey = isCommercialDemoClient ? commercialDemoFrame.config.sessionId : "production";
   const requestedRestaurantId = resolvedRestaurantId || id;
-  const restaurantId = commercialDemoFrame?.surface === "client"
+  const restaurantId = isCommercialDemoClient
     ? commercialDemoFrame.snapshot.demo_restaurant.id
     : requestedRestaurantId;
   const [searchParams] = useSearchParams();
@@ -384,10 +393,10 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
   }, [commercialDemoFrame, reservationEnabled, restaurantId, searchParams]);
 
   const { data: restaurant, isFetched: isRestaurantFetched } = useQuery({
-    queryKey: ["restaurant", restaurantId],
+    queryKey: ["restaurant", restaurantId, demoSessionKey],
     queryFn: async () => {
-      if (commercialDemoFrame?.surface === "client") {
-        return commercialDemoFrame.snapshot.demo_restaurant as any;
+      if (isCommercialDemoClient) {
+        return getCommercialDemoClientRestaurants(commercialDemoFrame.snapshot)[0] as any;
       }
       const { data } = await supabase.from("restaurants").select("*").eq("id", restaurantId!).single();
       return data;
@@ -397,8 +406,24 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
   });
 
   const { data: mediaPhotos } = useQuery({
-    queryKey: ["restaurant-media", restaurantId],
+    queryKey: ["restaurant-media", restaurantId, demoSessionKey],
     queryFn: async () => {
+      if (isCommercialDemoClient) {
+        const demoRestaurant = commercialDemoFrame.snapshot.demo_restaurant;
+        const urls = [
+          demoRestaurant.image_url,
+          ...commercialDemoFrame.snapshot.catalog_items.map((item) => item.image_url),
+        ].filter((value): value is string => Boolean(value));
+        return [...new Set(urls)].slice(0, RESTAURANT_MEDIA_LIMIT).map((mediaUrl, index) => ({
+          id: `commercial-demo-media-${commercialDemoFrame.config.sessionId}-${index}`,
+          media_url: mediaUrl,
+          alt_text: index === 0 ? `${demoRestaurant.name}, restaurant de démonstration` : `Plat de démonstration chez ${demoRestaurant.name}`,
+          is_cover: index === 0,
+          position: index,
+          media_type: "photo",
+          metadata: { commercial_demo: true },
+        })) satisfies RestaurantGalleryPhoto[];
+      }
       const { data } = await supabase
         .from("restaurant_media")
         .select("id, media_url, alt_text, is_cover, position, media_type, metadata")
@@ -425,13 +450,10 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
   }, [commercialDemoFrame, restaurantId, restaurant]);
 
   const { data: menuItems } = useQuery({
-    queryKey: ["menu-items", restaurantId],
+    queryKey: ["menu-items", restaurantId, demoSessionKey],
     queryFn: async () => {
-      if (commercialDemoFrame?.surface === "client") {
-        return commercialDemoFrame.snapshot.catalog_items.map((item) => ({
-          ...item,
-          restaurant_id: commercialDemoFrame.snapshot.demo_restaurant.id,
-        })) as any[];
+      if (isCommercialDemoClient) {
+        return getCommercialDemoClientMenuItems(commercialDemoFrame.snapshot, restaurantId) as any[];
       }
       const { data } = await supabase.from("menu_items").select("*").eq("restaurant_id", restaurantId!).eq("is_available", true).order("category").limit(RESTAURANT_MENU_ITEMS_LIMIT);
       return data || [];
@@ -441,8 +463,11 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
   });
 
   const { data: reviews } = useQuery({
-    queryKey: ["reviews", restaurantId],
+    queryKey: ["reviews", restaurantId, demoSessionKey],
     queryFn: async () => {
+      if (isCommercialDemoClient) {
+        return buildCommercialDemoReviewSeeds(commercialDemoFrame.snapshot) as unknown as RestaurantReview[];
+      }
       const { data, error } = await supabase
         .from("reviews")
         .select("*, review_replies(id, reply_text, author_type, created_at)")
@@ -458,15 +483,20 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
   });
 
   const { data: formulas } = useQuery({
-    queryKey: ["restaurant-formulas", restaurantId],
-    queryFn: async () => { const { data } = await supabase.from("meal_formulas").select("*, meal_formula_categories(*)").eq("restaurant_id", restaurantId!).eq("is_active", true).limit(RESTAURANT_FORMULAS_LIMIT); return data || []; },
+    queryKey: ["restaurant-formulas", restaurantId, demoSessionKey],
+    queryFn: async () => {
+      if (isCommercialDemoClient) return [];
+      const { data } = await supabase.from("meal_formulas").select("*, meal_formula_categories(*)").eq("restaurant_id", restaurantId!).eq("is_active", true).limit(RESTAURANT_FORMULAS_LIMIT);
+      return data || [];
+    },
     enabled: !!restaurantId,
     staleTime: RESTAURANT_DETAIL_STALE_MS,
   });
 
   const { data: progressiveOffers = [] } = useQuery({
-    queryKey: ["restaurant-progressive-offers", restaurantId],
+    queryKey: ["restaurant-progressive-offers", restaurantId, demoSessionKey],
     queryFn: async () => {
+      if (isCommercialDemoClient) return [] as ProgressiveReservationOffer[];
       const { data, error } = await (supabase.from("reservation_progressive_offers" as any) as any)
         .select("*")
         .eq("restaurant_id", restaurantId!)
@@ -482,8 +512,9 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
   });
 
   const { data: flashSales } = useQuery({
-    queryKey: ["restaurant-flash-sales", restaurantId],
+    queryKey: ["restaurant-flash-sales", restaurantId, demoSessionKey],
     queryFn: async () => {
+      if (isCommercialDemoClient) return getCommercialDemoFlashSales(commercialDemoFrame.snapshot);
       const { data } = await supabase.from("flash_sales").select("*").eq("restaurant_id", restaurantId!).eq("is_active", true).gt("quantity_available", 0).order("created_at", { ascending: false }).limit(RESTAURANT_SPECIAL_OFFERS_LIMIT);
       return data || [];
     },
@@ -492,8 +523,9 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
   });
 
   const { data: antiWasteOffers } = useQuery({
-    queryKey: ["restaurant-anti-waste", restaurantId],
+    queryKey: ["restaurant-anti-waste", restaurantId, demoSessionKey],
     queryFn: async () => {
+      if (isCommercialDemoClient) return getCommercialDemoAntiWasteOffers(commercialDemoFrame.snapshot);
       const { data } = await supabase.from("anti_waste_offers").select("*").eq("restaurant_id", restaurantId!).eq("is_active", true).gt("quantity_available", 0).order("created_at", { ascending: false }).limit(RESTAURANT_SPECIAL_OFFERS_LIMIT);
       return data || [];
     },
@@ -502,8 +534,9 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
   });
 
   const { data: activePromotions = [] } = useQuery({
-    queryKey: ["restaurant-active-promotions", restaurantId],
+    queryKey: ["restaurant-active-promotions", restaurantId, demoSessionKey],
     queryFn: async () => {
+      if (isCommercialDemoClient) return [] as RestaurantPromotion[];
       const now = new Date().toISOString();
       const { data, error } = await supabase
         .from("restaurant_promotions")
@@ -522,7 +555,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
   });
 
   const { data: isFavorite } = useQuery({
-    queryKey: ["favorite", restaurantId, user?.id],
+    queryKey: ["favorite", restaurantId, user?.id, demoSessionKey],
     queryFn: async () => {
       if (!user) return false;
       const { data } = await supabase.from("favorites").select("id").eq("restaurant_id", restaurantId!).eq("user_id", user.id).maybeSingle();

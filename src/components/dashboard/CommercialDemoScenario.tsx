@@ -714,19 +714,26 @@ export function CommercialDemoReservations() {
 }
 
 export function CommercialDemoAccounting() {
+  const commercialDemoFrame = useCommercialDemoFrame();
   const { restaurants, selectedId } = useDashboardRestaurant();
   const selectedRestaurant = restaurants.find((restaurant) => restaurant.id === selectedId);
-  const grossSales = 12_480;
-  const tokCommission = 1_248;
+  const paidOrder = commercialDemoFrame?.snapshot.order?.payment_status === "test_paid"
+    ? commercialDemoFrame.snapshot.order
+    : null;
+  const grossSales = commercialDemoFrame
+    ? Number(paidOrder?.total_amount_cents || 0) / 100
+    : 12_480;
+  const tokCommission = grossSales * 0.1;
   const restaurantShare = grossSales - tokCommission;
-  const advertising = 240;
-  const subscription = 149;
-  const refunds = 83.5;
+  const advertising = commercialDemoFrame ? 0 : 240;
+  const subscription = commercialDemoFrame ? 0 : 149;
+  const refunds = commercialDemoFrame ? 0 : 83.5;
   const openNet = restaurantShare - advertising - subscription - refunds;
+  const shareOfGross = (value: number) => grossSales > 0 ? `${Math.round((value / grossSales) * 100)} %` : "0 %";
   const revenueRows = [
-    { label: "Commandes", value: 7_865, share: "63 %" },
-    { label: "Réservations et précommandes", value: 2_975, share: "24 %" },
-    { label: "Ventes flash et offres", value: 1_640, share: "13 %" },
+    { label: "Commande Stripe Test", value: grossSales, share: shareOfGross(grossSales) },
+    { label: "Réservations", value: 0, share: "0 %" },
+    { label: "Ventes flash et offres", value: 0, share: "0 %" },
   ];
   const expenseRows = [
     { label: "Commission TOK (10 %)", value: tokCommission, helper: "Prélevée sur les ventes éligibles" },
@@ -741,7 +748,9 @@ export function CommercialDemoAccounting() {
         <DashboardPageHero
           badge="Comptabilité · démonstration"
           title="Vue comptable simulée"
-          description="Montrez en un coup d'œil les recettes, les commissions et le montant net, sans charger ni exporter aucune donnée financière réelle."
+          description={commercialDemoFrame
+            ? "Les montants suivent en temps réel le paiement Stripe Test de cette session, sans charger ni écrire de donnée financière réelle."
+            : "Montrez en un coup d'œil les recettes, les commissions et le montant net, sans charger ni exporter aucune donnée financière réelle."}
           icon={CircleDollarSign}
           tone="orange"
           visualLabel="Chiffres démo"
@@ -753,6 +762,18 @@ export function CommercialDemoAccounting() {
         />
 
         <DemoSafetyNotice />
+
+        {commercialDemoFrame && !paidOrder ? (
+          <Card className="rounded-3xl border-dashed">
+            <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="font-semibold">Aucun paiement Démo comptabilisé</p>
+                <p className="text-sm text-muted-foreground">Créez puis réglez une fausse commande avec Stripe Test dans la fenêtre Client : le chiffre d'affaires apparaîtra ici en temps réel.</p>
+              </div>
+              <Button asChild variant="outline"><Link to="/dashboard/commandes">Voir les commandes</Link></Button>
+            </CardContent>
+          </Card>
+        ) : null}
 
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {[
@@ -830,6 +851,31 @@ export function CommercialDemoAccounting() {
             </Button>
           </CardContent>
         </Card>
+
+        {commercialDemoFrame ? (
+          <Card className="rounded-3xl border-border/70">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <Clock3 className="h-5 w-5 text-sky-600" />
+                Historique comptable de la session
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">Événements Démo uniquement. Ils ne créent ni facture, ni commission, ni écriture dans le grand livre de production.</p>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {commercialDemoFrame.snapshot.events.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Aucun événement dans cette session.</p>
+              ) : commercialDemoFrame.snapshot.events.slice().reverse().map((event) => (
+                <div key={event.id} className="flex flex-col gap-1 rounded-2xl border bg-muted/20 p-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="font-semibold">{event.label}</p>
+                    <p className="text-xs text-muted-foreground">{new Date(event.created_at).toLocaleString("fr-CH")}</p>
+                  </div>
+                  <Badge variant="outline">SIMULÉ</Badge>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        ) : null}
       </div>
     </DashboardLayout>
   );

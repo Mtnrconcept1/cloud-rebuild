@@ -135,3 +135,4 @@ describe("supabase edge function cors", () => {
     expect(buildCorsHeaders(req)["Access-Control-Allow-Origin"]).toBeUndefined();
   });
 });
+

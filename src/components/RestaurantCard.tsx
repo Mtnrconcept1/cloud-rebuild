@@ -20,6 +20,7 @@ import { getOptimizedImageSizes, getOptimizedImageSrcSet, getOptimizedImageUrl }
 import type { CampaignCreativeConfig } from "@/lib/campaignCreative";
 import { selectRestaurantCardReservationSlots } from "@/lib/reservationAvailability";
 import { getConfiguredServiceSettings } from "@/lib/serviceSettings";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 
 const supabase = getSupabase();
 
@@ -206,7 +207,13 @@ export default function RestaurantCard({
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const activeFeatures = useActiveFeatures();
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
+  const demoSessionKey = isCommercialDemoClient ? commercialDemoFrame.config.sessionId : "production";
+  const globalActiveFeatures = useActiveFeatures({ enabled: !isCommercialDemoClient });
+  const activeFeatures = isCommercialDemoClient
+    ? new Set(commercialDemoFrame.snapshot.active_features)
+    : globalActiveFeatures;
   const resolvedImage = getImageUrl(sponsoredPromoImage || imageUrl, cuisine);
   const optimizedImage = getOptimizedImageUrl(resolvedImage, "card");
   const optimizedSrcSet = getOptimizedImageSrcSet(resolvedImage, "card");
@@ -218,11 +225,11 @@ export default function RestaurantCard({
     restaurantId: id,
     source: "restaurant_card",
     placementKey: `restaurant_card:${id}:${sponsoredCampaignId || "organic"}`,
-    enabled: isSponsored && Boolean(sponsoredCampaignId),
+    enabled: !isCommercialDemoClient && isSponsored && Boolean(sponsoredCampaignId),
   });
 
   const { data: isFavorite } = useQuery({
-    queryKey: ["favorite", id, user?.id],
+    queryKey: ["favorite", id, user?.id, demoSessionKey],
     queryFn: async () => {
       if (!user) return false;
       const { data } = await supabase
@@ -233,11 +240,15 @@ export default function RestaurantCard({
         .maybeSingle();
       return Boolean(data);
     },
-    enabled: Boolean(user),
+    enabled: Boolean(user && !isCommercialDemoClient),
   });
 
   const toggleFavorite = async (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (isCommercialDemoClient) {
+      toast({ title: "Favori simulé", description: "Le compte et les favoris de production restent inchangés." });
+      return;
+    }
     if (!user) {
       toast({ title: "Connectez-vous pour ajouter des favoris", variant: "destructive" });
       return;
@@ -253,7 +264,7 @@ export default function RestaurantCard({
   };
 
   const { data: bestDiscount = 0 } = useQuery({
-    queryKey: ["restaurant-best-discount", id],
+    queryKey: ["restaurant-best-discount", id, demoSessionKey],
     queryFn: async () => {
       const { data } = await supabase
         .from("meal_formulas")
@@ -264,6 +275,7 @@ export default function RestaurantCard({
         .limit(1);
       return data?.[0]?.discount_percent || 0;
     },
+    enabled: !isCommercialDemoClient,
   });
 
   const reservationCardNow = useMemo(() => new Date(), []);
@@ -273,7 +285,7 @@ export default function RestaurantCard({
   const shouldFetchReservationProfile = !hasPropOpeningHours || !hasPropSupportsReservation;
 
   const { data: reservationProfile, isFetched: reservationProfileFetched } = useQuery({
-    queryKey: ["restaurant-card-reservation-profile", id],
+    queryKey: ["restaurant-card-reservation-profile", id, demoSessionKey],
     queryFn: async (): Promise<ReservationCardProfile | null> => {
       const { data, error } = await supabase
         .from("restaurants")
@@ -288,7 +300,7 @@ export default function RestaurantCard({
 
       return (data as ReservationCardProfile | null) || null;
     },
-    enabled: shouldFetchReservationProfile && supportsReservation !== false,
+    enabled: !isCommercialDemoClient && shouldFetchReservationProfile && supportsReservation !== false,
     staleTime: 60_000,
   });
 
@@ -301,7 +313,7 @@ export default function RestaurantCard({
   const canShowReservationSlots = reservationProfileReady && resolvedSupportsReservation === true && serviceSettings !== null;
 
   const { data: slotAvailability = [], isError: slotAvailabilityError } = useQuery({
-    queryKey: ["restaurant-card-slot-availability", id, reservationCardDate],
+    queryKey: ["restaurant-card-slot-availability", id, reservationCardDate, demoSessionKey],
     queryFn: async () => {
       const { data, error } = await (supabase.rpc as any)("get_restaurant_reservation_slot_availability", {
         p_restaurant_id: id,
@@ -314,7 +326,7 @@ export default function RestaurantCard({
 
       return normalizeSlotAvailabilityRows(data);
     },
-    enabled: canShowReservationSlots,
+    enabled: !isCommercialDemoClient && canShowReservationSlots,
     staleTime: 30_000,
     retry: 1,
   });
@@ -351,17 +363,22 @@ export default function RestaurantCard({
   }, []);
 
   useEffect(() => {
+    if (isCommercialDemoClient) return;
     if (isSponsored && sponsoredCampaignId) return;
     if (organicImpressionTracked.current) return;
     organicImpressionTracked.current = true;
     if (!isSponsored) {
       trackImpression("restaurant", id);
     }
-  }, [id, isSponsored, sponsoredCampaignId]);
+  }, [id, isCommercialDemoClient, isSponsored, sponsoredCampaignId]);
 
   const handleCardClick = (event?: React.MouseEvent) => {
     if (event && isNestedCardActionTarget(event.target)) return;
 
+    if (isCommercialDemoClient) {
+      navigate(buildRestaurantSeoPath({ id, name, city, slug }));
+      return;
+    }
     if (isSponsored && sponsoredCampaignId) {
       trackSponsoredClick(sponsoredCampaignId, id, "restaurant_card");
     } else {

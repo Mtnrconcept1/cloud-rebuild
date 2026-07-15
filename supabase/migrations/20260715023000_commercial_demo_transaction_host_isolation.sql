@@ -5,9 +5,8 @@
 BEGIN;
 
 -- Internal predicate used by privileged trigger/RPC code. It fails closed for
--- every commercial role, including accounts not yet mapped to a demo
--- restaurant. An administrator is deliberately excluded so an admin can still
--- inspect production data while testing the commercial workspace.
+-- every durable signal of a managed commercial identity: role, mapping (active
+-- or inactive), or Auth account type. Extra roles must never reopen production.
 CREATE OR REPLACE FUNCTION public.commercial_demo_user_is_restricted(
   p_user_id uuid
 )
@@ -30,20 +29,59 @@ AS $$
         SELECT 1
         FROM public.commercial_demo_accounts AS account
         WHERE account.user_id = p_user_id
-          AND account.is_active
       )
-    )
-    AND NOT EXISTS (
-      SELECT 1
-      FROM public.user_roles AS role_assignment
-      WHERE role_assignment.user_id = p_user_id
-        AND role_assignment.role = 'admin'::public.app_role
+      OR EXISTS (
+        SELECT 1
+        FROM auth.users AS managed_user
+        WHERE managed_user.id = p_user_id
+          AND lower(btrim(COALESCE(
+            managed_user.raw_app_meta_data ->> 'account_type',
+            ''
+          ))) = 'commercial_demo'
+      )
     )
 $$;
 
 REVOKE ALL
   ON FUNCTION public.commercial_demo_user_is_restricted(uuid)
   FROM PUBLIC, anon, authenticated, service_role;
+
+-- A disabled mapping is a security tombstone, not an ordinary row that may be
+-- deleted or reassigned. Deactivation remains possible through is_active.
+CREATE OR REPLACE FUNCTION public.protect_commercial_demo_account_boundary()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+  IF TG_OP = 'DELETE' THEN
+    RAISE EXCEPTION
+      'COMMERCIAL_DEMO_ACCOUNT_TOMBSTONE_REQUIRED: deactivate the mapping instead of deleting it'
+      USING ERRCODE = '42501';
+  END IF;
+
+  IF NEW.user_id IS DISTINCT FROM OLD.user_id
+     OR NEW.demo_restaurant_id IS DISTINCT FROM OLD.demo_restaurant_id THEN
+    RAISE EXCEPTION
+      'COMMERCIAL_DEMO_ACCOUNT_IDENTITY_IMMUTABLE: create a new managed account instead'
+      USING ERRCODE = '42501';
+  END IF;
+
+  RETURN NEW;
+END
+$$;
+
+REVOKE ALL
+  ON FUNCTION public.protect_commercial_demo_account_boundary()
+  FROM PUBLIC, anon, authenticated, service_role;
+
+DROP TRIGGER IF EXISTS protect_commercial_demo_account_boundary
+  ON public.commercial_demo_accounts;
+CREATE TRIGGER protect_commercial_demo_account_boundary
+  BEFORE UPDATE OR DELETE ON public.commercial_demo_accounts
+  FOR EACH ROW
+  EXECUTE FUNCTION public.protect_commercial_demo_account_boundary();
 
 -- RLS-safe, caller-scoped helpers. They expose only the caller's own boolean
 -- status and mapped demo restaurant; they cannot enumerate another account.
@@ -312,8 +350,26 @@ BEGIN
     'reservations',
     'reservation_slots',
     'reservation_status_history',
+    'payments',
     'payment_intents',
     'payment_transactions',
+    'stripe_checkout_sessions',
+    'financial_ledger',
+    'platform_revenue_entries',
+    'platform_cost_entries',
+    'restaurant_invoices',
+    'restaurant_invoice_line_items',
+    'restaurant_credit_ledger',
+    'restaurant_credit_purchases',
+    'restaurant_subscriptions',
+    'subscriptions',
+    'invoices',
+    'invoice_line_items',
+    'credit_notes',
+    'delivery_tracking',
+    'dispatch_jobs',
+    'commercial_commissions',
+    'commercial_compensation_adjustments',
     'user_payment_methods',
     'tok_one_subscriptions',
     'user_subscriptions',
@@ -377,6 +433,16 @@ BEGIN
 
   FOREACH v_row IN ARRAY v_rows
   LOOP
+    -- Service-role writes do not carry auth.uid(). Reject production rows that
+    -- target a demo restaurant even when the payload has no user subject.
+    v_raw_id := NULLIF(v_row ->> 'restaurant_id', '');
+    IF v_raw_id ~* v_uuid_pattern
+      AND public.restaurant_is_demo(v_raw_id::uuid) THEN
+      RAISE EXCEPTION
+        'COMMERCIAL_DEMO_PRODUCTION_TRANSACTION_BLOCKED: use commercial_demo_* RPCs'
+        USING ERRCODE = '42501';
+    END IF;
+
     -- Direct subjects used by current production tables.
     FOREACH v_key IN ARRAY ARRAY[
       'user_id',
@@ -539,8 +605,26 @@ BEGIN
     'reservations',
     'reservation_slots',
     'reservation_status_history',
+    'payments',
     'payment_intents',
     'payment_transactions',
+    'stripe_checkout_sessions',
+    'financial_ledger',
+    'platform_revenue_entries',
+    'platform_cost_entries',
+    'restaurant_invoices',
+    'restaurant_invoice_line_items',
+    'restaurant_credit_ledger',
+    'restaurant_credit_purchases',
+    'restaurant_subscriptions',
+    'subscriptions',
+    'invoices',
+    'invoice_line_items',
+    'credit_notes',
+    'delivery_tracking',
+    'dispatch_jobs',
+    'commercial_commissions',
+    'commercial_compensation_adjustments',
     'user_payment_methods',
     'tok_one_subscriptions',
     'user_subscriptions',
@@ -633,10 +717,12 @@ BEGIN
         'create_order_with_items',
         'get_customer_orders_dashboard',
         'get_order_customers',
+        'get_payout_invoice_lines',
         'get_reservation_customers',
         'get_reservation_fee_invoice_lines',
         'get_restaurant_orders_dashboard',
         'get_restaurant_payment_history',
+        'get_restaurant_performance',
         'get_restaurant_reservation_slot_availability',
         'get_restaurant_subscription_self_service_state',
         'mark_order_seen_by_restaurant',
@@ -646,7 +732,8 @@ BEGIN
         'track_order_event',
         'update_restaurant_reservation_status_safe',
         'upsert_match_group_member_order',
-        'validate_and_create_reservation'
+        'validate_and_create_reservation',
+        'validate_and_create_reservation_safe'
       ]::name[])
   LOOP
     v_definition := pg_catalog.pg_get_functiondef(v_proc.oid);
@@ -741,10 +828,27 @@ BEGIN
 END
 $commercial_demo_sql_rpc_hardening$;
 
+-- These helpers reveal or calculate production payment state and have no
+-- browser call site. Keep them service-role only instead of relying on RLS
+-- beneath SECURITY DEFINER.
+DO $commercial_demo_sensitive_rpc_revoke$
+BEGIN
+  IF to_regprocedure('public.restaurant_stripe_connect_ready(uuid)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.restaurant_stripe_connect_ready(uuid) FROM PUBLIC, anon, authenticated';
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.restaurant_stripe_connect_ready(uuid) TO service_role';
+  END IF;
+
+  IF to_regprocedure('public.compute_restaurant_reservation_fees(uuid,date,date)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.compute_restaurant_reservation_fees(uuid,date,date) FROM PUBLIC, anon, authenticated';
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.compute_restaurant_reservation_fees(uuid,date,date) TO service_role';
+  END IF;
+END
+$commercial_demo_sensitive_rpc_revoke$;
+
 COMMENT ON FUNCTION public.commercial_demo_user_is_restricted(uuid) IS
-  'Internal fail-closed predicate for a non-admin commercial role or active commercial demo mapping.';
+  'Internal fail-closed predicate for any commercial role, durable mapping, or commercial_demo Auth identity.';
 COMMENT ON FUNCTION public.commercial_demo_current_user_is_restricted() IS
-  'Caller-scoped RLS predicate; returns only whether auth.uid() is a non-admin commercial role or active commercial demo mapping.';
+  'Caller-scoped RLS predicate; returns only whether auth.uid() is a managed commercial identity.';
 COMMENT ON FUNCTION public.commercial_demo_current_restaurant_id() IS
   'Returns only the authenticated commercial demo account own mapped demo restaurant id.';
 COMMENT ON FUNCTION public.can_view_commercial_demo_restaurant(uuid) IS
@@ -754,7 +858,7 @@ COMMENT ON FUNCTION public.can_view_commercial_demo_branch(uuid) IS
 COMMENT ON FUNCTION public.can_view_commercial_demo_post(uuid) IS
   'Fail-closed social post scope derived from can_view_commercial_demo_restaurant.';
 COMMENT ON FUNCTION public.block_commercial_demo_account_production_transaction() IS
-  'Blocks authenticated and service-role production transaction mutations attributable to non-admin commercial identities.';
+  'Blocks authenticated and service-role production transaction mutations attributable to managed commercial identities or demo restaurants.';
 COMMENT ON FUNCTION public.assert_commercial_demo_production_rpc_allowed() IS
   'Internal assertion prepended to SQL SECURITY DEFINER production RPCs for commercial demo isolation.';
 

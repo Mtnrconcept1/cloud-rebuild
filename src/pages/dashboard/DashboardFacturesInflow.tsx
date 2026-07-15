@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ArrowDownRight, Coins, Download, FileUp, Megaphone, RefreshCcw, Settings, Wallet } from "lucide-react";
 
 import DashboardLayout from "@/components/DashboardLayout";
+import { CommercialDemoAccounting } from "@/components/dashboard/CommercialDemoScenario";
 import { AccountingFactList, AccountingHero, AccountingMetricCard, AccountingPanel } from "@/components/invoices/AccountingCockpit";
 import { InvoiceDetailAccordion } from "@/components/invoices/InvoiceDetailAccordion";
 import { COMMISSION_SOURCE_LABELS, COMMISSION_SOURCE_ORDER } from "@/lib/comptaCommissionSources";
@@ -172,6 +173,12 @@ function InvoiceTable({
 }
 
 export default function DashboardFacturesInflow() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  if (commercialDemoFrame?.surface === "restaurant") return <CommercialDemoAccounting />;
+  return <LiveDashboardFacturesInflow />;
+}
+
+function LiveDashboardFacturesInflow() {
   const commercialDemoFrame = useCommercialDemoFrame();
   const isCommercialDemo = commercialDemoFrame?.surface === "restaurant";
   const { toast } = useToast();

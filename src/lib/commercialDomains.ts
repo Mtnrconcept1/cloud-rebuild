@@ -18,6 +18,15 @@ type CommercialHostRedirectInput = {
 };
 
 const LOCAL_APP_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
+const TOK_PRODUCTION_HOSTS = new Set([
+  "thetok.ch",
+  "www.thetok.ch",
+  "app.thetok.ch",
+  "admin.thetok.ch",
+  "auth.thetok.ch",
+  "cloud-rebuild-recovered.vercel.app",
+]);
+const TOK_OWNED_PREVIEW_HOST = /^cloud-rebuild-recovered-[a-z0-9-]+-mtnrconcepts-projects\.vercel\.app$/;
 const AUTH_CALLBACK_QUERY_KEYS = ["code", "error", "error_code", "error_description", "state"];
 const SENSITIVE_AUTH_FRAGMENT_KEYS = [
   "access_token",
@@ -50,9 +59,18 @@ function isLocalAppHost(hostname: string | null | undefined) {
   return LOCAL_APP_HOSTS.has(normalizeHostname(hostname));
 }
 
+function isTokProductionHost(hostname: string | null | undefined) {
+  return TOK_PRODUCTION_HOSTS.has(normalizeHostname(hostname));
+}
+
+export function isOwnedTokPreviewHost(hostname: string | null | undefined) {
+  return TOK_OWNED_PREVIEW_HOST.test(normalizeHostname(hostname));
+}
+
 function normalizePath(pathname: string | null | undefined) {
   const value = String(pathname || "/").trim();
-  return `/${value.replace(/^\/+/, "")}`;
+  const normalized = `/${value.replace(/^\/+/, "")}`;
+  return normalized === "/" ? normalized : normalized.replace(/\/+$/, "");
 }
 
 function withUrlParts(pathname: string, search = "", hash = "") {
@@ -106,8 +124,15 @@ export function isCommercialHostPathAllowed(pathname: string | null | undefined)
     || isCommercialDemoFrameHostPath(path);
 }
 
+export function isCommercialNamespacePath(pathname: string | null | undefined) {
+  const path = normalizePath(pathname).toLowerCase();
+  return path === "/commercial" || path.startsWith("/commercial/");
+}
+
 export function isManagedCommercialAccount(roles: readonly UserRole[] = []) {
-  return roles.includes("commercial") && !roles.includes("admin");
+  // Extra role assignments must never reopen the production application for
+  // a managed commercial identity, including an accidental admin assignment.
+  return roles.includes("commercial");
 }
 
 export function canOperateCommercialDemoHost(roles: readonly UserRole[] = []) {
@@ -122,7 +147,11 @@ export function getCommercialNavigationHref(
   const currentHostname = hostname
     ?? (typeof window !== "undefined" ? window.location.hostname : "");
 
-  if (isLocalAppHost(currentHostname) || isCommercialAppHost(currentHostname)) {
+  if (
+    isLocalAppHost(currentHostname)
+    || isOwnedTokPreviewHost(currentHostname)
+    || isCommercialAppHost(currentHostname)
+  ) {
     return targetPath;
   }
 
@@ -161,6 +190,30 @@ export function getCommercialReauthenticationHref(
   return `${TOK_COMMERCIAL_APP_ORIGIN}/auth?${params.toString()}`;
 }
 
+function getCommercialAuthIntent(search: string) {
+  const params = new URLSearchParams(String(search || "").replace(/^\?/, ""));
+
+  // A callback must be exchanged on the origin that created its PKCE verifier.
+  if (AUTH_CALLBACK_QUERY_KEYS.some((key) => params.has(key))) return null;
+
+  const rawRedirect = params.get("redirect");
+  const explicitlyRequired = params.get("domain") === "required";
+  if (!rawRedirect) return explicitlyRequired ? "/commercial" : null;
+
+  try {
+    if (!rawRedirect.startsWith("/") || rawRedirect.startsWith("//")) {
+      return explicitlyRequired ? "/commercial" : null;
+    }
+    const target = new URL(rawRedirect, TOK_PUBLIC_APP_ORIGIN);
+    if (target.origin !== TOK_PUBLIC_APP_ORIGIN || !isCommercialNamespacePath(target.pathname)) {
+      return explicitlyRequired ? "/commercial" : null;
+    }
+    return `${target.pathname}${target.search}${target.hash}`;
+  } catch {
+    return explicitlyRequired ? "/commercial" : null;
+  }
+}
+
 /**
  * Computes a canonical cross-host redirect without ever forwarding an unsafe
  * production path or Supabase callback credential to the commercial origin.
@@ -180,6 +233,7 @@ export function getCommercialHostRedirectTarget({
   const path = normalizePath(pathname);
   const targetPath = withoutCrossOriginAuthSecrets(path, search, hash);
   const isAllowedCommercialPath = isCommercialHostPathAllowed(path);
+  const isCommercialNamespace = isCommercialNamespacePath(path);
   const isManagedCommercial = isManagedCommercialAccount(roles);
   const canOperateHost = canOperateCommercialDemoHost(roles);
 
@@ -195,11 +249,27 @@ export function getCommercialHostRedirectTarget({
     return getNonCommercialRoleTarget(activeRole);
   }
 
+  // Owned branch previews stay self-contained for testing. The same route and
+  // identity barriers still apply, but a preview never signs the user out or
+  // transfers them into the production commercial origin.
+  if (isOwnedTokPreviewHost(hostname)) {
+    if (isCommercialNamespace) return isAllowedCommercialPath ? null : "/commercial";
+    if (authResolved && isAuthenticated && isManagedCommercial) return "/commercial";
+    return null;
+  }
+
+  const authIntent = path === "/auth" ? getCommercialAuthIntent(search) : null;
+  if (authIntent && isTokProductionHost(hostname)) {
+    return getCommercialReauthenticationHref(authIntent);
+  }
+
   // Commercial workspaces and copied frame URLs must never execute on the
   // public/admin deployment. Redirect before authentication so credentials
   // are entered directly on the canonical origin (web storage is origin-bound).
-  if (isAllowedCommercialPath && path !== "/auth" && path !== "/auth/callback") {
-    return `${TOK_COMMERCIAL_APP_ORIGIN}${targetPath}`;
+  if (isCommercialNamespace) {
+    return isAllowedCommercialPath
+      ? `${TOK_COMMERCIAL_APP_ORIGIN}${targetPath}`
+      : `${TOK_COMMERCIAL_APP_ORIGIN}/commercial`;
   }
 
   if (!authResolved || !isAuthenticated || !isManagedCommercial) return null;

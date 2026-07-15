@@ -10,7 +10,6 @@ import {
 import {
   getCommercialHostRedirectTarget,
   getCommercialReauthenticationHref,
-  isCommercialAppHost,
   isManagedCommercialAccount,
 } from "@/lib/commercialDomains";
 
@@ -66,11 +65,16 @@ export default function CommercialHostBoundary({ children }: { children: ReactNo
     && redirectTarget
     && redirectTarget !== browserLocation.href,
   );
+  const redirectIsCrossOrigin = Boolean(
+    browserLocation
+    && redirectTarget
+    && new URL(redirectTarget, browserLocation.origin).origin !== browserLocation.origin,
+  );
   const shouldRequireCommercialReauthentication = Boolean(
     shouldRedirect
     && browserLocation
     && user
-    && !isCommercialAppHost(browserLocation.hostname)
+    && redirectIsCrossOrigin
     && isManagedCommercialAccount(roles),
   );
   const currentPath = browserLocation?.pathname.toLowerCase() || "";

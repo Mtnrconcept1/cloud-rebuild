@@ -1,7 +1,19 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+// The focused workspace snapshot does not include the unrelated roleAccess
+// module. Keep this suite scoped to commercial post-login routing.
+vi.mock("@/lib/roleAccess", () => ({
+  getRoleHomePath: (role: string) => ({
+    admin: "/admin",
+    restaurateur: "/dashboard",
+    courier: "/courier",
+    commercial: "/commercial",
+    client: "/mon-espace",
+  })[role] || "/",
+}));
 
 import {
   TOK_COMMERCIAL_APP_ORIGIN,
@@ -12,7 +24,9 @@ import {
   isCommercialAppHost,
   isCommercialDemoFrameHostPath,
   isCommercialHostPathAllowed,
+  isCommercialNamespacePath,
   isManagedCommercialAccount,
+  isOwnedTokPreviewHost,
 } from "@/lib/commercialDomains";
 import { getPostAuthTargetForRole } from "@/lib/authPostLogin";
 
@@ -77,11 +91,68 @@ describe("commercial.thetok.ch canonical isolation", () => {
     })).toBe(`${TOK_COMMERCIAL_APP_ORIGIN}/commercial/comptabilite?month=2026-07`);
 
     expect(getCommercialHostRedirectTarget({
-      hostname: "preview.example",
+      hostname: "unrelated-preview.vercel.app",
       pathname: framePath,
       search: "?panel=client",
       hash: "#order",
     })).toBe(`${TOK_COMMERCIAL_APP_ORIGIN}${framePath}?panel=client#order`);
+  });
+
+  it("keeps only owned Vercel previews same-origin", () => {
+    const ownedPreview = "cloud-rebuild-recovered-qvfp8r7yn-mtnrconcepts-projects.vercel.app";
+    expect(isOwnedTokPreviewHost(ownedPreview)).toBe(true);
+    expect(isOwnedTokPreviewHost("unrelated-qvfp8r7yn-other-project.vercel.app")).toBe(false);
+    expect(getCommercialHostRedirectTarget({
+      hostname: ownedPreview,
+      pathname: framePath,
+    })).toBeNull();
+    expect(getCommercialNavigationHref("/commercial/demo-live", ownedPreview))
+      .toBe("/commercial/demo-live");
+    expect(getCommercialHostRedirectTarget({
+      hostname: ownedPreview,
+      pathname: "/restaurants/geneve",
+      authResolved: true,
+      isAuthenticated: true,
+      roles: ["commercial"],
+    })).toBe("/commercial");
+  });
+
+  it("canonicalizes the complete commercial namespace without exposing invalid routes", () => {
+    expect(isCommercialNamespacePath("/commercial/anything")).toBe(true);
+    expect(isCommercialNamespacePath("/commercially")).toBe(false);
+    expect(getCommercialHostRedirectTarget({
+      hostname: "www.thetok.ch",
+      pathname: "/commercial/",
+    })).toBe(`${TOK_COMMERCIAL_APP_ORIGIN}/commercial`);
+    expect(getCommercialHostRedirectTarget({
+      hostname: "admin.thetok.ch",
+      pathname: "/commercial/demo-live/",
+    })).toBe(`${TOK_COMMERCIAL_APP_ORIGIN}/commercial/demo-live`);
+    expect(getCommercialHostRedirectTarget({
+      hostname: "www.thetok.ch",
+      pathname: "/commercial/route-inconnue",
+      search: "?code=must-not-cross",
+    })).toBe(`${TOK_COMMERCIAL_APP_ORIGIN}/commercial`);
+  });
+
+  it("moves commercial login intent before credentials but keeps PKCE callbacks on-origin", () => {
+    expect(getCommercialHostRedirectTarget({
+      hostname: "www.thetok.ch",
+      pathname: "/auth",
+      search: "?redirect=%2Fcommercial%2Fdemo-live",
+    })).toBe(
+      `${TOK_COMMERCIAL_APP_ORIGIN}/auth?redirect=%2Fcommercial%2Fdemo-live&domain=required`,
+    );
+    expect(getCommercialHostRedirectTarget({
+      hostname: "www.thetok.ch",
+      pathname: "/auth",
+      search: "?domain=required&redirect=https%3A%2F%2Fevil.example%2Fcommercial",
+    })).toBe(`${TOK_COMMERCIAL_APP_ORIGIN}/auth?redirect=%2Fcommercial&domain=required`);
+    expect(getCommercialHostRedirectTarget({
+      hostname: "www.thetok.ch",
+      pathname: "/auth",
+      search: "?code=pkce-code&redirect=%2Fcommercial",
+    })).toBeNull();
   });
 
   it("never forwards Supabase callback credentials across origins", () => {
@@ -115,8 +186,8 @@ describe("commercial.thetok.ch canonical isolation", () => {
     })).toBe(`${TOK_COMMERCIAL_APP_ORIGIN}/commercial`);
   });
 
-  it("preserves admin access while confining non-admin commercial accounts", () => {
-    expect(isManagedCommercialAccount(["admin", "commercial"])).toBe(false);
+  it("confines dual-role identities while keeping admin-only demo access", () => {
+    expect(isManagedCommercialAccount(["admin", "commercial"])).toBe(true);
     expect(canOperateCommercialDemoHost(["admin"])).toBe(true);
     expect(getCommercialHostRedirectTarget({
       hostname: "admin.thetok.ch",
@@ -125,7 +196,7 @@ describe("commercial.thetok.ch canonical isolation", () => {
       isAuthenticated: true,
       activeRole: "admin",
       roles: ["admin", "commercial"],
-    })).toBeNull();
+    })).toBe(`${TOK_COMMERCIAL_APP_ORIGIN}/commercial`);
 
     expect(getCommercialHostRedirectTarget({
       hostname: "commercial.thetok.ch",
@@ -229,6 +300,7 @@ describe("commercial.thetok.ch canonical isolation", () => {
     expect(boundary).toContain("buildSanitizedAuthRedirectUrl");
     expect(boundary).toContain('signOut({ scope: "local" })');
     expect(boundary).toContain("getCommercialReauthenticationHref");
+    expect(boundary).toContain("redirectIsCrossOrigin");
     expect(boundary).toContain("shouldWaitForRoleResolution");
     expect(boundary).toContain("if (shouldRedirect || shouldWaitForRoleResolution) return <LoadingCommercialRedirect />");
     expect(frameProvider).toContain("[...auth.roles, forcedRole]");

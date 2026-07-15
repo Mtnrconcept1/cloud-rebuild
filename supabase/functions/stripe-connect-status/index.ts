@@ -1,5 +1,6 @@
 import {
   HttpError,
+  assertProductionFlowAllowed,
   authenticateRequest,
   createAdminClient,
   jsonResponse,
@@ -31,6 +32,7 @@ Deno.serve(async (req) => {
     if (req.method !== "POST") throw new HttpError(405, "Method not allowed");
 
     actor = await authenticateRequest(req, { allowServiceRole: false });
+    await assertProductionFlowAllowed(actor, "consultation Stripe Connect réelle");
     const body = await req.json().catch(() => ({}));
     restaurantId = text(body.restaurant_id);
     if (!restaurantId) throw new HttpError(400, "restaurant_id requis");

@@ -251,3 +251,4 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: error instanceof Error ? error.message : "Erreur interne" }, 500, corsHeaders);
   }
 });
+

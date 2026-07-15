@@ -51,3 +51,4 @@ export function isCommercialDemoCheckoutRequestAllowed(req: Request) {
   return isCommercialDemoLocalOrTestHostname(hostname);
 }
 
+

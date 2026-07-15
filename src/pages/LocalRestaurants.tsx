@@ -11,6 +11,8 @@ import { formatRestaurantCategorySummary } from "@/lib/restaurantCategories";
 import { buildRestaurantSeoPath, slugifyRestaurantSegment } from "@/lib/restaurantSlugs";
 import { buildCanonicalUrl, useSeoMeta } from "@/hooks/useSeoMeta";
 import RestaurantDetail from "./RestaurantDetail";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
+import { getCommercialDemoClientRestaurants } from "@/lib/commercialDemoClientCatalog";
 
 const supabase = getSupabase();
 
@@ -191,6 +193,9 @@ function buildLocalSeoLinks(citySlug: string | undefined, city: string, category
 }
 
 export default function LocalRestaurants() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
+  const demoSessionKey = isCommercialDemoClient ? commercialDemoFrame.config.sessionId : "production";
   const params = useParams();
   const city = slugToLabel(params.city, CITY_LABELS);
   const routeSegment = String(params.category || "").trim().toLowerCase();
@@ -198,8 +203,8 @@ export default function LocalRestaurants() {
   const knownCategorySegment = Boolean(routeSegment && CATEGORY_LABELS[routeSegment]);
   const slugCandidate = Boolean(routeSegment && !knownDistrictSegment && !knownCategorySegment);
   const { data: restaurantBySlug, isLoading: isSlugLoading } = useQuery({
-    queryKey: ["restaurant-slug", city, routeSegment],
-    enabled: Boolean(city && slugCandidate),
+    queryKey: ["restaurant-slug", city, routeSegment, demoSessionKey],
+    enabled: Boolean(city && slugCandidate && !isCommercialDemoClient),
     queryFn: async () => {
       const { data, error } = await supabase
         .from("restaurants")
@@ -222,9 +227,12 @@ export default function LocalRestaurants() {
   const path = params.category ? `/restaurants/${params.city}/${params.category}` : `/restaurants/${params.city}`;
 
   const { data: restaurants = [], isLoading } = useQuery({
-    queryKey: ["local-restaurants", city, category, district],
+    queryKey: ["local-restaurants", city, category, district, demoSessionKey],
     enabled: Boolean(city) && !resolvedRestaurantId && !(slugCandidate && isSlugLoading),
     queryFn: async () => {
+      if (isCommercialDemoClient) {
+        return getCommercialDemoClientRestaurants(commercialDemoFrame.snapshot);
+      }
       const { data, error } = await (supabase.rpc as any)("search_restaurants_catalog", {
         p_query: district || null,
         p_city: city,

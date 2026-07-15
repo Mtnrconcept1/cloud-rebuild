@@ -149,6 +149,25 @@ describe("vercel config", () => {
     expect(globalHeaders.find((header) => header.key === "X-Frame-Options")?.value).toBe("SAMEORIGIN");
   });
 
+  it("keeps the commercial demo out of search indexes and same-origin framed", () => {
+    const config = JSON.parse(readFileSync(path.resolve(process.cwd(), "vercel.json"), "utf8")) as {
+      headers?: Array<{
+        has?: Array<{ type?: string; value?: string }>;
+        headers?: Array<{ key?: string; value?: string }>;
+      }>;
+    };
+    const commercialHeaders = config.headers?.find((entry) => entry.has?.some(
+      (condition) => condition.type === "host" && condition.value === "commercial.thetok.ch",
+    ))?.headers || [];
+
+    expect(commercialHeaders).toContainEqual({
+      key: "X-Robots-Tag",
+      value: "noindex, nofollow, noarchive",
+    });
+    expect(commercialHeaders).toContainEqual({ key: "Referrer-Policy", value: "no-referrer" });
+    expect(commercialHeaders).toContainEqual({ key: "X-Frame-Options", value: "SAMEORIGIN" });
+  });
+
   it("keeps delivery map routing compatible with production CSP and Leaflet cleanup", () => {
     const mapPath = path.resolve(process.cwd(), "src/components/DeliveryMap.tsx");
     const mapSource = readFileSync(mapPath, "utf8");

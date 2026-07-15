@@ -1,5 +1,6 @@
 import {
   HttpError,
+  assertProductionFlowAllowed,
   authenticateRequest,
   jsonResponse,
   requireRestaurantAccess,
@@ -554,6 +555,7 @@ Deno.serve(async (req) => {
   try {
     if (req.method !== "POST") throw new HttpError(405, "Method not allowed");
     actor = await authenticateRequest(req, { allowServiceRole: true, allowSchedulerSecret: true });
+    await assertProductionFlowAllowed(actor, "analyse d'image réelle");
     if (!["contextual", "openai"].includes(ANALYSIS_PROVIDER)) {
       throw new HttpError(503, "image_analysis_provider_not_configured");
     }

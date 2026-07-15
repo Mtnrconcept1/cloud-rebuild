@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Bot, History, Loader2, MessageSquarePlus, Send, ShieldCheck, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
@@ -21,6 +21,13 @@ import { useAuth } from "@/lib/auth-context";
 import { isAdminAppHost, isAdminPath } from "@/lib/adminDomains";
 import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 import { type HelpChatAgentId, type HelpChatOpenOptions, type HelpChatSurface } from "@/lib/helpChat";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
+import {
+  askCommercialDemoAi,
+  getCommercialDemoAiHistory,
+  type CommercialDemoAiConversation,
+  type CommercialDemoAiRuntime,
+} from "@/lib/commercialDemoAi";
 
 type ChatMessage = {
   id?: string;
@@ -99,16 +106,41 @@ function normalizeOpenOptions(options?: HelpChatOpenOptions) {
   };
 }
 
-function getInitialHistory(agentId: HelpChatAgentId, surface: HelpChatSurface): ChatMessage[] {
+function getInitialHistory(
+  agentId: HelpChatAgentId,
+  surface: HelpChatSurface,
+  commercialDemo = false,
+): ChatMessage[] {
   const agent = AGENTS[agentId];
   const surfaceLabel = SURFACE_LABELS[surface] || SURFACE_LABELS.client;
 
   return [
     {
       type: "bot",
-      text: `Bonjour, je suis ${agent.label}, piloté par OpenAI pour ${surfaceLabel}. Décrivez votre question ou le blocage à résoudre.`,
+      text: commercialDemo
+        ? `Bonjour, je suis ${agent.label} dans la session de démonstration de ${surfaceLabel}. Testez librement le parcours : mes réponses restent isolées et n'utilisent aucune API payante.`
+        : `Bonjour, je suis ${agent.label}, piloté par OpenAI pour ${surfaceLabel}. Décrivez votre question ou le blocage à résoudre.`,
     },
   ];
+}
+
+function toClientSupportConversation(conversation: CommercialDemoAiConversation): ClientSupportConversation {
+  return {
+    id: conversation.id,
+    scope: conversation.surface === "restaurant" ? "restaurant" : "client",
+    title: conversation.title,
+    status: conversation.status,
+    support_incident_id: null,
+    restaurant_id: null,
+    order_id: null,
+    reservation_id: null,
+    metadata: {
+      commercial_demo: true,
+      context: { surface: conversation.surface },
+    },
+    created_at: conversation.created_at,
+    updated_at: conversation.updated_at,
+  };
 }
 
 function isHelpChatSurface(value: unknown): value is HelpChatSurface {
@@ -184,18 +216,32 @@ function getChatUnavailableMessage({
 
 export default function SupportChat() {
   const location = useLocation();
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const demoRuntime = useMemo<CommercialDemoAiRuntime | null>(() => {
+    if (!commercialDemoFrame || commercialDemoFrame.surface === "commercial") return null;
+    return {
+      sessionId: commercialDemoFrame.config.sessionId,
+      surface: commercialDemoFrame.surface,
+    };
+  }, [commercialDemoFrame]);
+  const isCommercialDemo = Boolean(demoRuntime);
+  const initialSurface: HelpChatSurface = demoRuntime?.surface || "client";
+  const initialAgent = getDefaultAgentForSurface(initialSurface);
   const { user, loading, roles } = useAuth();
-  const { activeFeatures, loading: featureFlagsLoading } = useFeatureFlagSnapshot();
+  const { activeFeatures, loading: featureFlagsLoading } = useFeatureFlagSnapshot({
+    enabled: !isCommercialDemo,
+  });
   const [isOpen, setIsOpen] = useState(false);
-  const [chatSurface, setChatSurface] = useState<HelpChatSurface>("client");
-  const [selectedAgent, setSelectedAgent] = useState<HelpChatAgentId>("support_ai");
+  const [chatSurface, setChatSurface] = useState<HelpChatSurface>(initialSurface);
+  const [selectedAgent, setSelectedAgent] = useState<HelpChatAgentId>(initialAgent);
   const [history, setHistory] = useState<ChatMessage[]>(() =>
-    getInitialHistory("support_ai", "client")
+    getInitialHistory(initialAgent, initialSurface, isCommercialDemo)
   );
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [supportTicketId, setSupportTicketId] = useState<string | null>(null);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [conversationHistory, setConversationHistory] = useState<ClientSupportConversation[]>([]);
+  const [demoConversationHistory, setDemoConversationHistory] = useState<CommercialDemoAiConversation[]>([]);
   const [historyError, setHistoryError] = useState<string | null>(null);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
   const [loadingConversationId, setLoadingConversationId] = useState<string | null>(null);
@@ -220,7 +266,7 @@ export default function SupportChat() {
   const isChatAvailable = Boolean(user)
     && !loading
     && (!isAdminPrivilegedSurface || (roles.includes("admin") && adminDashboardAiChatEnabled));
-  const availableAgents = isAdminRoute && chatSurface === "admin"
+  const availableAgents = !isCommercialDemo && isAdminRoute && chatSurface === "admin"
     ? [AGENTS.admin_dashboard_ai]
     : Object.values(AGENTS).filter((agent) => agent.id !== "admin_dashboard_ai");
 
@@ -236,8 +282,10 @@ export default function SupportChat() {
       const openingFromAdminSurface = isAdminPath(location.pathname)
         || (typeof window !== "undefined" && isAdminAppHost(window.location.hostname));
       const canOpenAdminAgent = openingFromAdminSurface
+        && !isCommercialDemo
         && (normalized.surface === "admin" || !options?.surface);
-      const nextSurface = canOpenAdminAgent ? "admin" : normalized.surface === "admin" ? "public" : normalized.surface;
+      const nextSurface = demoRuntime?.surface
+        || (canOpenAdminAgent ? "admin" : normalized.surface === "admin" ? "public" : normalized.surface);
       const nextAgentId = canOpenAdminAgent
         ? "admin_dashboard_ai"
         : normalized.agentId === "admin_dashboard_ai"
@@ -246,7 +294,7 @@ export default function SupportChat() {
 
       setChatSurface(nextSurface);
       setSelectedAgent(nextAgentId);
-      setHistory(getInitialHistory(nextAgentId, nextSurface));
+      setHistory(getInitialHistory(nextAgentId, nextSurface, isCommercialDemo));
       setActiveConversationId(null);
       setSupportTicketId(null);
       setIsHistoryOpen(false);
@@ -261,15 +309,15 @@ export default function SupportChat() {
     return () => {
       window.openChat = undefined;
     };
-  }, [location.pathname]);
+  }, [demoRuntime?.surface, isCommercialDemo, location.pathname]);
 
   useEffect(() => {
-    if (!isAdminRoute || featureFlagsLoading) return;
+    if (isCommercialDemo || !isAdminRoute || featureFlagsLoading) return;
     if (chatSurface === "admin" && selectedAgent === "admin_dashboard_ai") return;
 
     setChatSurface("admin");
     setSelectedAgent("admin_dashboard_ai");
-    setHistory(getInitialHistory("admin_dashboard_ai", "admin"));
+    setHistory(getInitialHistory("admin_dashboard_ai", "admin", false));
     setActiveConversationId(null);
     setSupportTicketId(null);
     setIsHistoryOpen(false);
@@ -278,7 +326,7 @@ export default function SupportChat() {
     setIsTyping(false);
     setRemoteTyping(false);
     setHumanHandoffActive(false);
-  }, [chatSurface, featureFlagsLoading, isAdminRoute, selectedAgent]);
+  }, [chatSurface, featureFlagsLoading, isAdminRoute, isCommercialDemo, selectedAgent]);
 
   useEffect(() => {
     if (!isChatAvailable) {
@@ -293,7 +341,7 @@ export default function SupportChat() {
   }, [isChatAvailable]);
 
   useEffect(() => {
-    if (!isChatAvailable || !activeConversationId || isAdminPrivilegedSurface) return;
+    if (isCommercialDemo || !isChatAvailable || !activeConversationId || isAdminPrivilegedSurface) return;
 
     const messageChannel = supabase
       .channel(`support-chat-messages-${activeConversationId}`)
@@ -326,11 +374,11 @@ export default function SupportChat() {
     return () => {
       void supabase.removeChannel(messageChannel);
     };
-  }, [activeConversationId, isAdminPrivilegedSurface, isChatAvailable]);
+  }, [activeConversationId, isAdminPrivilegedSurface, isChatAvailable, isCommercialDemo]);
 
   useEffect(() => {
     const topic = getSupportTypingTopic(activeConversationId, supportTicketId);
-    if (!isChatAvailable || !topic || isAdminPrivilegedSurface) return;
+    if (isCommercialDemo || !isChatAvailable || !topic || isAdminPrivilegedSurface) return;
 
     const typingChannel = supabase
       .channel(topic, { config: { broadcast: { self: false } } })
@@ -357,10 +405,10 @@ export default function SupportChat() {
       void supabase.removeChannel(typingChannel);
       if (typingChannelRef.current === typingChannel) typingChannelRef.current = null;
     };
-  }, [activeConversationId, chatSurface, isAdminPrivilegedSurface, isChatAvailable, supportTicketId]);
+  }, [activeConversationId, chatSurface, isAdminPrivilegedSurface, isChatAvailable, isCommercialDemo, supportTicketId]);
 
   const resetChat = () => {
-    setHistory(getInitialHistory(selectedAgent, chatSurface));
+    setHistory(getInitialHistory(selectedAgent, chatSurface, isCommercialDemo));
     setActiveConversationId(null);
     setSupportTicketId(null);
     setHistoryError(null);
@@ -372,7 +420,7 @@ export default function SupportChat() {
 
   const handleAgentChange = (agentId: HelpChatAgentId) => {
     setSelectedAgent(agentId);
-    setHistory(getInitialHistory(agentId, chatSurface));
+    setHistory(getInitialHistory(agentId, chatSurface, isCommercialDemo));
     setActiveConversationId(null);
     setSupportTicketId(null);
     setInputValue("");
@@ -394,7 +442,7 @@ export default function SupportChat() {
 
   const handleInputChange = (value: string) => {
     setInputValue(value);
-    if (isAdminPrivilegedSurface) return;
+    if (isCommercialDemo || isAdminPrivilegedSurface) return;
 
     broadcastClientTyping(Boolean(value.trim()));
     if (localTypingStopTimeoutRef.current) clearTimeout(localTypingStopTimeoutRef.current);
@@ -409,6 +457,13 @@ export default function SupportChat() {
     setIsHistoryLoading(true);
 
     try {
+      if (demoRuntime) {
+        const conversations = (await getCommercialDemoAiHistory(demoRuntime, "support_chat"))
+          .filter((conversation) => conversation.surface === demoRuntime.surface);
+        setDemoConversationHistory(conversations);
+        setConversationHistory(conversations.map(toClientSupportConversation));
+        return;
+      }
       const conversations = isAdminPrivilegedSurface
         ? await getAdminDashboardChatConversations()
         : await getClientSupportConversations();
@@ -425,6 +480,38 @@ export default function SupportChat() {
     setHistoryError(null);
 
     try {
+      if (demoRuntime) {
+        let demoConversation = demoConversationHistory.find((item) => item.id === conversation.id);
+        if (!demoConversation) {
+          const conversations = (await getCommercialDemoAiHistory(demoRuntime, "support_chat"))
+            .filter((item) => item.surface === demoRuntime.surface);
+          setDemoConversationHistory(conversations);
+          demoConversation = conversations.find((item) => item.id === conversation.id);
+        }
+        if (!demoConversation) throw new Error("Conversation de démonstration introuvable.");
+
+        const nextHistory = demoConversation.messages
+          .filter((message) => message.role === "user" || message.role === "assistant")
+          .map((message) => ({
+            id: message.id,
+            type: message.role === "user" ? "user" as const : "bot" as const,
+            text: normalizeVisibleAiSupportText(message.content),
+          }));
+        const nextSurface = demoConversation.surface;
+        const nextAgentId = getDefaultAgentForSurface(nextSurface);
+        setChatSurface(nextSurface);
+        setSelectedAgent(nextAgentId);
+        setActiveConversationId(demoConversation.id);
+        setSupportTicketId(null);
+        setHumanHandoffActive(false);
+        setHistory(nextHistory.length > 0
+          ? nextHistory
+          : getInitialHistory(nextAgentId, nextSurface, true));
+        setInputValue("");
+        setIsTyping(false);
+        setIsHistoryOpen(false);
+        return;
+      }
       const { surface, agentId } = getConversationContext(conversation);
       const nextSurface = surface || chatSurface;
       const nextAgentId = agentId || selectedAgent;
@@ -444,7 +531,7 @@ export default function SupportChat() {
       setActiveConversationId(conversation.id);
       setSupportTicketId(null);
       setHumanHandoffActive(isConversationHandedOff(conversation));
-      setHistory(nextHistory.length > 0 ? nextHistory : getInitialHistory(nextAgentId, nextSurface));
+      setHistory(nextHistory.length > 0 ? nextHistory : getInitialHistory(nextAgentId, nextSurface, false));
       setInputValue("");
       setIsTyping(false);
       setIsHistoryOpen(false);
@@ -472,6 +559,31 @@ export default function SupportChat() {
     setIsTyping(true);
 
     try {
+      if (demoRuntime) {
+        const data = await askCommercialDemoAi({
+          runtime: demoRuntime,
+          tool: "support_chat",
+          message: userMsg,
+          conversationId: activeConversationId,
+          context: {
+            agentId: selectedAgent,
+            surface: demoRuntime.surface,
+            currentPath: location.pathname,
+          },
+        });
+        setActiveConversationId(data.conversation_id);
+        setSupportTicketId(null);
+        setHumanHandoffActive(false);
+        setHistory((previous) => [
+          ...previous,
+          {
+            type: "bot",
+            text: normalizeVisibleAiSupportText(data.reply),
+          },
+        ]);
+        return;
+      }
+
       const messages: TokAiMessage[] = nextHistory
         .filter((message) => message.text.trim().length > 0)
         .map((message) => ({
@@ -545,7 +657,9 @@ export default function SupportChat() {
               "L'Assistant IA Admin est indisponible pour le moment.",
               errorMessage ? `Détail technique : ${errorMessage}` : "",
             ].filter(Boolean).join("\n")
-            : "L'Assistant IA OpenAI est indisponible pour le moment. Réessayez dans quelques instants.",
+            : isCommercialDemo
+              ? "L'Assistant IA de démonstration est momentanément indisponible. Vérifiez que le flag Chat IA est actif puis réessayez."
+              : "L'Assistant IA OpenAI est indisponible pour le moment. Réessayez dans quelques instants.",
         },
       ]);
     } finally {
@@ -579,7 +693,11 @@ export default function SupportChat() {
                     <div className="flex items-center gap-1.5">
                       <span className={`h-2 w-2 rounded-full ${isChatAvailable ? "animate-pulse bg-green-400" : "bg-amber-200"}`} />
                       <span className="text-[10px] font-bold uppercase tracking-widest opacity-80">
-                        {isChatAvailable ? (humanHandoffActive ? "TOK prend le relais" : "OpenAI en ligne") : "Connexion requise"}
+                        {isChatAvailable
+                          ? (humanHandoffActive
+                            ? "TOK prend le relais"
+                            : isCommercialDemo ? "Démo zéro coût en ligne" : "OpenAI en ligne")
+                          : "Connexion requise"}
                       </span>
                     </div>
                     {activeChatReference ? (
@@ -616,7 +734,11 @@ export default function SupportChat() {
               {isChatAvailable ? (
                 <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_auto] sm:items-end">
                   <label className="block text-[10px] font-bold uppercase tracking-widest opacity-80">
-                    {humanHandoffActive ? "Conversation prise en charge" : isAdminPrivilegedSurface ? "Assistant admin" : "Assistant OpenAI"}
+                    {humanHandoffActive
+                      ? "Conversation prise en charge"
+                      : isAdminPrivilegedSurface
+                        ? "Assistant admin"
+                        : isCommercialDemo ? "Assistant IA Démo" : "Assistant OpenAI"}
                     <select
                       value={selectedAgent}
                       onChange={(event) => handleAgentChange(event.target.value as HelpChatAgentId)}
@@ -740,7 +862,9 @@ export default function SupportChat() {
                         variant="outline"
                         className="text-[10px] uppercase tracking-tighter opacity-60"
                       >
-                        {humanHandoffActive ? "TOK en direct" : activeAgent.badge}
+                        {humanHandoffActive
+                          ? "TOK en direct"
+                          : isCommercialDemo ? "Isolé · 0 crédit · 0 CHF" : activeAgent.badge}
                       </Badge>
                       {activeChatReference ? (
                         <p className="mt-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -754,7 +878,12 @@ export default function SupportChat() {
                     <Input
                       value={inputValue}
                       onChange={(event) => handleInputChange(event.target.value)}
-                      placeholder={isAdminPrivilegedSurface ? "Question sur les données admin, logs ou opérations..." : "Écrivez votre message à l'Assistant IA OpenAI..."}
+                      maxLength={4000}
+                      placeholder={isAdminPrivilegedSurface
+                        ? "Question sur les données admin, logs ou opérations..."
+                        : isCommercialDemo
+                          ? "Testez une question dans cette session Démo..."
+                          : "Écrivez votre message à l'Assistant IA OpenAI..."}
                       className="h-10 rounded-full border-0 bg-muted/50 text-xs focus-visible:ring-1 focus-visible:ring-primary/30"
                       disabled={isTyping}
                     />

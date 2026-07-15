@@ -1,5 +1,6 @@
 import {
   HttpError,
+  assertProductionFlowAllowed,
   authenticateRequest,
   jsonResponse,
   requireRestaurantAccess,
@@ -69,6 +70,7 @@ Deno.serve(async (req) => {
     if (req.method !== "POST") throw new HttpError(405, "method_not_allowed");
 
     actor = await authenticateRequest(req, { allowServiceRole: false });
+    await assertProductionFlowAllowed(actor, "gestion de média réelle");
     if (!actor.userId || !actor.userClient) throw new HttpError(401, "Unauthorized");
 
     const body = await req.json().catch(() => ({}));

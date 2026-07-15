@@ -1,10 +1,18 @@
 const SAFE_SCOPED_READ_RPCS = new Set([
+  "commercial_demo_ai_generation_history",
+  "commercial_demo_ai_history",
   "get_reservation_fee_invoice_lines",
   "get_restaurant_actualites_access",
   "get_restaurant_actualites_insights",
   "get_restaurant_actualites_premium_banner_audience",
   "get_restaurant_credit_usage",
   "get_restaurant_subscription_self_service_state",
+]);
+
+const SAFE_COMMERCIAL_DEMO_MUTATION_RPCS = new Set([
+  "commercial_demo_ai_respond",
+  "commercial_demo_ai_archive_conversation",
+  "commercial_demo_ai_generate_visual",
 ]);
 
 function getRpcName(url: URL) {
@@ -29,6 +37,7 @@ export function shouldProtectCommercialDemoRequest(rawUrl: string, method: strin
 
   if (isSupabaseFunctions) return true;
   if (rpcName && SAFE_SCOPED_READ_RPCS.has(rpcName) && isTrustedSupabaseOrigin) return false;
+  if (rpcName && SAFE_COMMERCIAL_DEMO_MUTATION_RPCS.has(rpcName) && isTrustedSupabaseOrigin) return false;
   if (isStorageMutation || isPostgrestMutation) return true;
 
   const isExternalMutation = url.origin !== currentOrigin

@@ -218,6 +218,12 @@ const CREDIT_META: Record<CreditKind, {
 
 const EMPTY_CREDITS: BillingCreditSummary[] = [];
 const EMPTY_ENTRIES: BillingCreditEntry[] = [];
+const COMMERCIAL_DEMO_BILLING_TOOLS = [
+  { title: "Studio marketing", description: "Visuels Démo sans consommation de crédit payant.", icon: Camera, feature: "dashboard-photos" },
+  { title: "Assistant IA", description: "Conversations isolées, moteur Démo à coût nul.", icon: Sparkles, feature: "dashboard-advisor" },
+  { title: "Chat IA", description: "Assistance temps réel conservée dans les tables Démo.", icon: Sparkles, feature: "ai_support_chat" },
+  { title: "Campagnes", description: "Prévisualisation complète sans débit publicitaire réel.", icon: Megaphone, feature: "dashboard-campagnes" },
+] as const;
 
 function toNumber(value: unknown) {
   const numeric = Number(value);
@@ -642,7 +648,78 @@ function CreditKindBadge({ kind }: { kind: CreditKind }) {
   );
 }
 
+function CommercialDemoAccountBilling() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  if (!commercialDemoFrame) return null;
+  const activeFeatures = commercialDemoFrame.snapshot.active_features;
+  const activeFeatureSet = new Set(activeFeatures);
+
+  return (
+    <DashboardLayout>
+      <div className="space-y-6">
+        <DashboardPageHero
+          badge="Abonnement · Démonstration"
+          title="Outils et crédits Démo"
+          description="Tous les outils activés par l'admin sont disponibles dans ce restaurant simulé. Aucun achat, crédit payant ou abonnement réel ne peut être modifié ici."
+          icon={WalletCards}
+          tone="violet"
+          visualLabel="Illimité"
+          stats={[
+            { label: "Fonctionnalités actives", value: activeFeatures.length, icon: CheckCircle2 },
+            { label: "Crédits Démo", value: "Illimités", icon: Sparkles },
+            { label: "Coût réel", value: "0 CHF", icon: CreditCard },
+          ]}
+        />
+
+        <Alert className="border-emerald-300 bg-emerald-50/70 dark:border-emerald-500/30 dark:bg-emerald-500/10">
+          <CheckCircle2 className="h-4 w-4" />
+          <AlertTitle>Environnement commercial isolé</AlertTitle>
+          <AlertDescription>
+            Les générations et parcours présentés utilisent les espaces Démo dédiés. Les boutons d'achat et de changement de formule sont volontairement désactivés.
+          </AlertDescription>
+        </Alert>
+
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {COMMERCIAL_DEMO_BILLING_TOOLS.map(({ title, description, icon: Icon, feature }) => {
+            const isActive = activeFeatureSet.has(feature);
+            return (
+              <Card key={title} className="rounded-3xl border-border/70">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg"><Icon className="h-5 w-5 text-primary" />{title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">{description}</p>
+                  <Badge variant={isActive ? "outline" : "secondary"} className="mt-4">
+                    {isActive ? "Actif en Démo" : "Désactivé par l'admin"}
+                  </Badge>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+
+        <Card className="rounded-3xl border-border/70">
+          <CardHeader>
+            <CardTitle>Fonctionnalités activées par l'administrateur</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-wrap gap-2">
+            {activeFeatures.length ? activeFeatures.map((feature) => (
+              <Badge key={feature} variant="secondary">{feature}</Badge>
+            )) : <p className="text-sm text-muted-foreground">Aucune fonctionnalité activée.</p>}
+          </CardContent>
+        </Card>
+      </div>
+    </DashboardLayout>
+  );
+}
+
 export default function DashboardAccountBilling() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  if (commercialDemoFrame?.surface === "restaurant") return <CommercialDemoAccountBilling />;
+  return <LiveDashboardAccountBilling />;
+}
+
+function LiveDashboardAccountBilling() {
   const commercialDemoFrame = useCommercialDemoFrame();
   const isCommercialDemo = commercialDemoFrame?.surface === "restaurant";
   const { selectedId } = useDashboardRestaurant();

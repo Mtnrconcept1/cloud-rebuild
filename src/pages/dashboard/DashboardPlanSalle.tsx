@@ -25,12 +25,12 @@ import {
   Sparkles,
   Store,
   Undo2,
-  Users,
 } from "lucide-react";
 
 import DashboardLayout from "@/components/DashboardLayout";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import type { AIFloorPlanResult } from "@/components/floor-plan/FloorPlanAIPanel";
-import SimpleReservationQueue from "@/components/floor-plan/SimpleReservationQueue";
+import ReservationQueue from "@/components/floor-plan/ReservationQueue";
 import ServiceBoard from "@/components/floor-plan/ServiceBoard";
 import StudioCanvas from "@/components/floor-plan/StudioCanvas";
 import StudioInspector from "@/components/floor-plan/StudioInspector";
@@ -104,6 +104,14 @@ import {
 import { updateRestaurantReservationStatus } from "@/lib/reservationMutations";
 import { getServicePeriodFromMetadata, getServicePeriodLabel } from "@/lib/serviceSettings";
 import { cn } from "@/lib/utils";
+import {
+  readCommercialDemoToolState,
+  writeCommercialDemoToolState,
+} from "@/lib/commercialDemoRestaurantTools";
+import {
+  transitionCommercialDemoReservation,
+  type CommercialDemoReservationTransitionAction,
+} from "@/lib/commercialDemoJourney";
 
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
 
@@ -246,6 +254,124 @@ const EMPTY_RESERVATIONS: ReservationWithCustomer[] = [];
 const EMPTY_SLOTS: SlotRow[] = [];
 const EMPTY_LAYOUT_OVERRIDES: LayoutOverrideRow[] = [];
 const EMPTY_FLOOR_PLAN_VARIANTS: FloorPlanVariantRow[] = [];
+
+function buildCommercialDemoBranch(restaurantId: string, restaurant: Record<string, unknown>): BranchRow {
+  return {
+    id: restaurantId,
+    restaurant_id: restaurantId,
+    name: "Salle Démo principale",
+    address: typeof restaurant.address === "string" ? restaurant.address : "18 rue de la Démonstration",
+    city: typeof restaurant.city === "string" ? restaurant.city : "Genève",
+    postal_code: typeof restaurant.postal_code === "string" ? restaurant.postal_code : "1204",
+    country: typeof restaurant.country === "string" ? restaurant.country : DEFAULT_COUNTRY,
+    is_active: true,
+    created_at: "2026-07-15T08:00:00.000Z",
+  };
+}
+
+function buildCommercialDemoTables(branchId: string): TableRow[] {
+  return [
+    { id: `${branchId}-t1`, branch_id: branchId, table_number: "Table 1", capacity: 2, is_active: true, sector: DEFAULT_SECTOR, layout: null },
+    { id: `${branchId}-t2`, branch_id: branchId, table_number: "Table 2", capacity: 2, is_active: true, sector: DEFAULT_SECTOR, layout: null },
+    { id: `${branchId}-t3`, branch_id: branchId, table_number: "Table 3", capacity: 4, is_active: true, sector: DEFAULT_SECTOR, layout: null },
+    { id: `${branchId}-t4`, branch_id: branchId, table_number: "Table 4", capacity: 4, is_active: true, sector: DEFAULT_SECTOR, layout: null },
+    { id: `${branchId}-t5`, branch_id: branchId, table_number: "Table 5", capacity: 6, is_active: true, sector: "Terrasse", layout: null },
+    { id: `${branchId}-t6`, branch_id: branchId, table_number: "Table 6", capacity: 8, is_active: true, sector: "Terrasse", layout: null },
+  ];
+}
+
+type CommercialDemoFloorPlanAiAction = "generate" | "optimize" | "suggest-furniture" | "custom";
+
+function buildCommercialDemoFloorPlanAiResult(input: {
+  action: CommercialDemoFloorPlanAiAction;
+  currentTables: DraftTable[];
+  canvasWidth: number;
+  canvasHeight: number;
+  prompt?: string;
+}): AIFloorPlanResult {
+  const prompt = String(input.prompt || "").trim();
+  const inferredAction: CommercialDemoFloorPlanAiAction = input.action === "custom"
+    ? /mobilier|plante|bar|séparateur|separateur/i.test(prompt)
+      ? "suggest-furniture"
+      : input.currentTables.length > 0
+        ? "optimize"
+        : "generate"
+    : input.action;
+  const shouldGenerate = inferredAction === "generate" || input.currentTables.length === 0;
+  const sourceTables = shouldGenerate
+    ? Array.from({ length: 6 }, (_, index) => ({
+      table_number: `Table ${index + 1}`,
+      capacity: index < 2 ? 2 : index < 5 ? 4 : 6,
+      kind: "table",
+      shape: index % 3 === 0 ? "round" as const : "rect" as const,
+      seatType: "chair",
+      seatPlacements: undefined,
+      seatLabels: Array.from({ length: index < 2 ? 2 : index < 5 ? 4 : 6 }, (_value, seatIndex) => seatIndex + 1),
+    }))
+    : input.currentTables.map((table) => ({
+      table_number: table.table_number,
+      capacity: table.capacity,
+      kind: table.layout.kind,
+      shape: table.layout.shape,
+      seatType: table.layout.seatType,
+      seatPlacements: table.layout.seatPlacements,
+      seatLabels: table.layout.seatLabels || [],
+    }));
+  const columns = Math.max(1, Math.min(3, Math.ceil(Math.sqrt(sourceTables.length))));
+  const horizontalGap = Math.max(150, Math.floor((input.canvasWidth - 120) / columns));
+  const verticalGap = Math.max(130, Math.floor((input.canvasHeight - 120) / Math.max(1, Math.ceil(sourceTables.length / columns))));
+  const tables: AIFloorPlanResult["tables"] = sourceTables.map((table, index) => ({
+    ...table,
+    x: 50 + (index % columns) * horizontalGap,
+    y: 50 + Math.floor(index / columns) * verticalGap,
+    w: table.shape === "round" ? 112 : Math.max(130, table.capacity * 28),
+    h: table.shape === "round" ? 112 : 96,
+    rotation: 0,
+  }));
+
+  if (inferredAction === "suggest-furniture") {
+    tables.push(
+      {
+        table_number: "Bar Démo",
+        capacity: 0,
+        kind: "bar",
+        shape: "rect",
+        seatType: undefined,
+        seatPlacements: undefined,
+        seatLabels: [],
+        x: Math.max(40, input.canvasWidth - 300),
+        y: 40,
+        w: 230,
+        h: 72,
+        rotation: 0,
+      },
+      {
+        table_number: "Plante Démo",
+        capacity: 0,
+        kind: "plant",
+        shape: "round",
+        seatType: undefined,
+        seatPlacements: undefined,
+        seatLabels: [],
+        x: Math.max(40, input.canvasWidth - 130),
+        y: Math.max(40, input.canvasHeight - 130),
+        w: 72,
+        h: 72,
+        rotation: 0,
+      },
+    );
+  }
+
+  return {
+    tables,
+    explanation: prompt
+      ? `Disposition Démo créée localement selon la demande « ${prompt.slice(0, 140)} ».`
+      : "Disposition Démo calculée localement pour équilibrer capacités, circulation et zones de service.",
+    source: input.action,
+    variantName: `Plan Démo zéro coût - ${new Date().toLocaleTimeString("fr-CH", { hour: "2-digit", minute: "2-digit" })}`,
+    analysis: { engine: "tok-demo-floor-plan-local-v1", zero_cost: true, production_data: false },
+  };
+}
 
 const isJsonRecord = (value: Json): value is Record<string, Json> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -873,6 +999,9 @@ function getPersistableCapacity(table: DraftTable) {
 }
 
 export default function DashboardPlanSalle() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemo = commercialDemoFrame?.surface === "restaurant";
+  const commercialDemoSessionId = commercialDemoFrame?.config.sessionId || null;
   const { selectedId, restaurants, loading: restaurantsLoading, error: restaurantsError } = useDashboardRestaurant();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -952,6 +1081,8 @@ export default function DashboardPlanSalle() {
   const [tableConfigDialogOpen, setTableConfigDialogOpen] = useState(false);
   const [pendingPresetId, setPendingPresetId] = useState<string | null>(null);
   const [editingSeatingTableId, setEditingSeatingTableId] = useState<string | null>(null);
+  const [demoAiPrompt, setDemoAiPrompt] = useState("");
+  const [demoReservationStatusOverrides, setDemoReservationStatusOverrides] = useState<Record<string, string>>({});
 
   const selectedRestaurant = restaurants.find((restaurant) => restaurant.id === selectedId) || null;
   const canUndoFloorPlan = floorPlanHistory.past.length > 0;
@@ -1016,9 +1147,24 @@ export default function DashboardPlanSalle() {
     selectedTableIdRef.current = selectedTableId;
   }, [selectedTableId]);
 
+  useEffect(() => {
+    if (!isCommercialDemo || !commercialDemoSessionId) {
+      setDemoReservationStatusOverrides({});
+      return;
+    }
+    setDemoReservationStatusOverrides(readCommercialDemoToolState<Record<string, string>>(
+      commercialDemoSessionId,
+      "floor-plan-reservation-statuses",
+      {},
+    ));
+  }, [commercialDemoSessionId, isCommercialDemo]);
+
   const { data: restaurantDetails } = useQuery({
-    queryKey: ["floor-plan-restaurant", selectedId],
+    queryKey: ["floor-plan-restaurant", selectedId, commercialDemoFrame?.config.sessionId || "live"],
     queryFn: async () => {
+      if (isCommercialDemo && commercialDemoFrame) {
+        return commercialDemoFrame.snapshot.demo_restaurant as unknown as Record<string, unknown>;
+      }
       const { data, error } = await supabase.from("restaurants").select("*").eq("id", selectedId!).single();
       if (error) throw error;
       return data as Record<string, unknown>;
@@ -1027,8 +1173,14 @@ export default function DashboardPlanSalle() {
   });
 
   const { data: branchesData, isLoading: branchesLoading, error: branchesError } = useQuery({
-    queryKey: ["floor-plan-branches", selectedId],
+    queryKey: ["floor-plan-branches", selectedId, commercialDemoFrame?.config.sessionId || "live"],
     queryFn: async () => {
+      if (isCommercialDemo && commercialDemoFrame) {
+        return [buildCommercialDemoBranch(
+          commercialDemoFrame.snapshot.demo_restaurant.id,
+          commercialDemoFrame.snapshot.demo_restaurant as unknown as Record<string, unknown>,
+        )];
+      }
       const { data, error } = await (supabase.from("restaurant_branches" as any))
         .select("*")
         .eq("restaurant_id", selectedId!)
@@ -1043,8 +1195,15 @@ export default function DashboardPlanSalle() {
   const selectedBranch = branches.find((branch) => branch.id === selectedBranchId) || null;
 
   const { data: floorPlanVariantsData, error: floorPlanVariantsError } = useQuery({
-    queryKey: ["floor-plan-variants", selectedBranchId],
+    queryKey: ["floor-plan-variants", selectedBranchId, commercialDemoFrame?.config.sessionId || "live"],
     queryFn: async () => {
+      if (isCommercialDemo && commercialDemoFrame) {
+        return readCommercialDemoToolState<FloorPlanVariantRow[]>(
+          commercialDemoFrame.config.sessionId,
+          "floor-plan-variants",
+          [],
+        );
+      }
       const { data, error } = await (supabase.from("floor_plan_variants" as any))
         .select("*")
         .eq("branch_id", selectedBranchId!)
@@ -1060,8 +1219,15 @@ export default function DashboardPlanSalle() {
     : null;
 
   const { data: persistedTablesData, isLoading: tablesLoading, error: tablesError } = useQuery({
-    queryKey: ["floor-plan-tables", selectedBranchId],
+    queryKey: ["floor-plan-tables", selectedBranchId, commercialDemoFrame?.config.sessionId || "live"],
     queryFn: async () => {
+      if (isCommercialDemo && commercialDemoFrame && selectedBranchId) {
+        return readCommercialDemoToolState<TableRow[]>(
+          commercialDemoFrame.config.sessionId,
+          "floor-plan-tables",
+          buildCommercialDemoTables(selectedBranchId),
+        );
+      }
       const { data, error } = await (supabase.from("reservation_tables" as any))
         .select("*")
         .eq("branch_id", selectedBranchId!)
@@ -1074,8 +1240,15 @@ export default function DashboardPlanSalle() {
   const persistedTables = persistedTablesData ?? EMPTY_TABLES;
 
   const { data: layoutOverridesData, error: layoutOverridesError } = useQuery({
-    queryKey: ["floor-plan-layout-overrides", selectedBranchId, referenceDate],
+    queryKey: ["floor-plan-layout-overrides", selectedBranchId, referenceDate, commercialDemoFrame?.config.sessionId || "live"],
     queryFn: async () => {
+      if (isCommercialDemo && commercialDemoFrame) {
+        return readCommercialDemoToolState<LayoutOverrideRow[]>(
+          commercialDemoFrame.config.sessionId,
+          `floor-plan-overrides:${referenceDate}`,
+          [],
+        );
+      }
       const { data, error } = await (supabase.from("reservation_table_layout_overrides" as any))
         .select("*")
         .eq("branch_id", selectedBranchId!)
@@ -1093,8 +1266,39 @@ export default function DashboardPlanSalle() {
   );
 
   const { data: reservationsData, isLoading: reservationsLoading, error: reservationsError } = useQuery({
-    queryKey: ["floor-plan-reservations", selectedId, referenceDate, timeRange],
+    queryKey: [
+      "floor-plan-reservations",
+      selectedId,
+      referenceDate,
+      timeRange,
+      commercialDemoFrame?.config.sessionId || "live",
+      commercialDemoFrame?.snapshot.reservations.map((reservation) => `${reservation.id}:${reservation.version}`).join("|") || "",
+    ],
     queryFn: async () => {
+      if (isCommercialDemo && commercialDemoFrame) {
+        return commercialDemoFrame.snapshot.reservations.map((reservation) => ({
+          id: reservation.id,
+          restaurant_id: commercialDemoFrame.snapshot.demo_restaurant.id,
+          branch_id: commercialDemoFrame.snapshot.demo_restaurant.id,
+          user_id: commercialDemoFrame.snapshot.session.id,
+          date: reservation.reservation_date,
+          time: reservation.reservation_time,
+          party_size: reservation.party_size,
+          status: reservation.status,
+          notes: reservation.notes,
+          feature: "reservation",
+          metadata: {
+            commercial_demo: true,
+            reference: reservation.reference,
+          },
+          created_at: reservation.created_at,
+          updated_at: reservation.updated_at,
+          customer: {
+            full_name: reservation.customer_name,
+            phone: reservation.customer_phone || null,
+          },
+        })) as unknown as ReservationWithCustomer[];
+      }
       let reservationsQuery = supabase
         .from("reservations")
         .select("*")
@@ -1131,7 +1335,19 @@ export default function DashboardPlanSalle() {
     },
     enabled: !!selectedId,
   });
-  const reservations = reservationsData ?? EMPTY_RESERVATIONS;
+  const reservations = useMemo(() => {
+    const source = reservationsData ?? EMPTY_RESERVATIONS;
+    if (!isCommercialDemo) return source;
+    return source.map((reservation) => {
+      const override = demoReservationStatusOverrides[reservation.id];
+      // `seated` is a restaurant-only operational state layered on the server
+      // transition `arrived`; discard it automatically if the shared journey
+      // later moves to another terminal state.
+      return override === "seated" && reservation.status === "arrived"
+        ? { ...reservation, status: "seated" }
+        : reservation;
+    }) as ReservationWithCustomer[];
+  }, [demoReservationStatusOverrides, isCommercialDemo, reservationsData]);
 
   const persistedTableIds = useMemo(() => persistedTables.map((table) => table.id), [persistedTables]);
   const layoutOverridesByTableId = useMemo(
@@ -1155,8 +1371,15 @@ export default function DashboardPlanSalle() {
   ), [editMode, layoutOverridesByTableId, persistedTables]);
 
   const { data: reservationSlotsData, error: slotsError } = useQuery({
-    queryKey: ["floor-plan-slots", selectedBranchId, persistedTableIds.join(",")],
+    queryKey: ["floor-plan-slots", selectedBranchId, persistedTableIds.join(","), commercialDemoFrame?.config.sessionId || "live"],
     queryFn: async () => {
+      if (isCommercialDemo && commercialDemoFrame) {
+        return readCommercialDemoToolState<SlotRow[]>(
+          commercialDemoFrame.config.sessionId,
+          "floor-plan-slots",
+          [],
+        );
+      }
       const { data, error } = await (supabase.from("reservation_slots" as any))
         .select("*")
         .in("table_id", persistedTableIds);
@@ -1807,6 +2030,13 @@ export default function DashboardPlanSalle() {
     mutationFn: async () => {
       if (!selectedId) throw new Error("Aucun restaurant sélectionné.");
 
+      if (isCommercialDemo && commercialDemoFrame) {
+        return buildCommercialDemoBranch(
+          commercialDemoFrame.snapshot.demo_restaurant.id,
+          commercialDemoFrame.snapshot.demo_restaurant as unknown as Record<string, unknown>,
+        );
+      }
+
       const branchCount = branches.length + 1;
       const address = typeof restaurantDetails?.address === "string" && restaurantDetails.address.trim()
         ? restaurantDetails.address.trim()
@@ -1863,6 +2093,23 @@ export default function DashboardPlanSalle() {
 
       const tables = input?.tables ?? draftTables;
       const snapshot = buildFloorPlanVariantSnapshot(tables, canvasWidth, canvasHeight);
+      if (isCommercialDemo && commercialDemoFrame) {
+        const now = new Date().toISOString();
+        const variant: FloorPlanVariantRow = {
+          id: `demo-variant-${Date.now()}`,
+          restaurant_id: selectedId,
+          branch_id: selectedBranchId,
+          name: input?.name?.trim() || (input?.source === "ai-image" ? "Plan IA image Démo" : "Plan enregistré Démo"),
+          source: input?.source || "manual",
+          snapshot,
+          created_by: null,
+          created_at: now,
+          updated_at: now,
+        };
+        const variants = [variant, ...floorPlanVariants.filter((item) => item.id !== variant.id)];
+        writeCommercialDemoToolState(commercialDemoFrame.config.sessionId, "floor-plan-variants", variants);
+        return variant;
+      }
       const {
         data: { user },
         error: userError,
@@ -1911,6 +2158,67 @@ export default function DashboardPlanSalle() {
     mutationFn: async (options?: SaveMutationOptions) => {
       void options;
       if (!selectedBranchId) throw new Error("Sélectionnez d'abord une salle.");
+
+      if (isCommercialDemo && commercialDemoFrame) {
+        const tables = draftTables.map((table) => ({
+          id: table.id,
+          branch_id: selectedBranchId,
+          table_number: table.table_number,
+          capacity: getPersistableCapacity(table),
+          is_active: table.is_active,
+          sector: table.sector,
+          layout: layoutToRecord(table.layout),
+        })) satisfies TableRow[];
+        const slots = Object.entries(draftAssignments).flatMap(([reservationId, tableId]) => tableId ? [{
+          id: `demo-slot-${reservationId}`,
+          reservation_id: reservationId,
+          table_id: tableId,
+          created_at: new Date().toISOString(),
+        }] : []);
+        writeCommercialDemoToolState(commercialDemoFrame.config.sessionId, "floor-plan-slots", slots);
+        if (isTemplateMode) {
+          writeCommercialDemoToolState(commercialDemoFrame.config.sessionId, "floor-plan-tables", tables);
+          queryClient.setQueryData(
+            ["floor-plan-tables", selectedBranchId, commercialDemoFrame.config.sessionId],
+            tables,
+          );
+        } else {
+          const templateLayoutsByTableId = new Map(
+            persistedTables.map((table, index) => [
+              table.id,
+              buildTemplateLayout(table.layout, index, Number.isFinite(Number(table.capacity)) ? Number(table.capacity) : 2),
+            ]),
+          );
+          const now = new Date().toISOString();
+          const overrides = draftTables.flatMap((table) => {
+            const templateLayout = templateLayoutsByTableId.get(table.id);
+            if (!templateLayout || areLayoutsEquivalent(table.layout, templateLayout)) return [];
+            return [{
+              id: `demo-override-${referenceDate}-${table.id}`,
+              reservation_table_id: table.id,
+              branch_id: selectedBranchId,
+              service_date: referenceDate,
+              layout: layoutToRecord(table.layout),
+              created_at: now,
+              updated_at: now,
+            } satisfies LayoutOverrideRow];
+          });
+          writeCommercialDemoToolState(
+            commercialDemoFrame.config.sessionId,
+            `floor-plan-overrides:${referenceDate}`,
+            overrides,
+          );
+          queryClient.setQueryData(
+            ["floor-plan-layout-overrides", selectedBranchId, referenceDate, commercialDemoFrame.config.sessionId],
+            overrides,
+          );
+        }
+        queryClient.setQueryData(
+          ["floor-plan-slots", selectedBranchId, tables.map((table) => table.id).join(","), commercialDemoFrame.config.sessionId],
+          slots,
+        );
+        return { ...draftAssignments };
+      }
 
       const persistAssignments = async (tempIdToPersistedId: Map<string, string>) => {
         const normalizedAssignments = Object.fromEntries(
@@ -2125,6 +2433,69 @@ export default function DashboardPlanSalle() {
 
   const updateReservationStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      if (isCommercialDemo && commercialDemoFrame) {
+        const reservation = commercialDemoFrame.snapshot.reservations.find((item) => item.id === id);
+        if (!reservation) throw new Error("Réservation Démo introuvable.");
+        const localStatus = demoReservationStatusOverrides[id] === "seated" && reservation.status === "arrived"
+          ? "seated"
+          : reservation.status;
+        if (localStatus === status) return { id, status };
+
+        const persistLocalStatus = (nextStatus: string | null) => {
+          setDemoReservationStatusOverrides((current) => {
+            const next = { ...current };
+            if (nextStatus) next[id] = nextStatus;
+            else delete next[id];
+            writeCommercialDemoToolState(
+              commercialDemoFrame.config.sessionId,
+              "floor-plan-reservation-statuses",
+              next,
+            );
+            return next;
+          });
+        };
+
+        if (status === "seated") {
+          if (localStatus === "pending") {
+            throw new Error("Confirmez d'abord la réservation avant d'installer le client.");
+          }
+          if (localStatus === "confirmed") {
+            await transitionCommercialDemoReservation({
+              reservationId: reservation.id,
+              action: "restaurant_mark_arrived",
+              expectedVersion: reservation.version,
+            });
+            await commercialDemoFrame.refresh();
+          } else if (localStatus !== "arrived") {
+            throw new Error("Cette réservation ne peut plus être installée.");
+          }
+          persistLocalStatus("seated");
+          return { id, status: "seated" };
+        }
+
+        const actionByStatus: Partial<Record<string, CommercialDemoReservationTransitionAction>> = {
+          confirmed: "restaurant_confirm",
+          arrived: "restaurant_mark_arrived",
+          no_show: "restaurant_mark_no_show",
+          cancelled: "client_cancel",
+        };
+        const action = actionByStatus[status];
+        if (!action) throw new Error("Cette transition n'est pas disponible dans le parcours Démo.");
+        if (status === "confirmed" && localStatus !== "pending") {
+          throw new Error("Seule une réservation en attente peut être confirmée.");
+        }
+        if (["arrived", "no_show"].includes(status) && localStatus !== "confirmed") {
+          throw new Error("Confirmez d'abord la réservation avant cette action.");
+        }
+        await transitionCommercialDemoReservation({
+          reservationId: reservation.id,
+          action,
+          expectedVersion: reservation.version,
+        });
+        persistLocalStatus(null);
+        await commercialDemoFrame.refresh();
+        return { id, status };
+      }
       const result = await updateRestaurantReservationStatus(id, status);
       if (!result.ok) {
         throw new Error(result.errorMessage);
@@ -2527,6 +2898,19 @@ export default function DashboardPlanSalle() {
       title: "Disposition IA appliquée",
       description: `${newTables.length} éléments placés, ${newTables.reduce((s, t) => s + t.capacity, 0)} couverts au total.`,
     });
+  };
+
+  const runCommercialDemoFloorPlanAi = (action: CommercialDemoFloorPlanAiAction) => {
+    if (!isCommercialDemo) return;
+    const result = buildCommercialDemoFloorPlanAiResult({
+      action,
+      currentTables: draftTables,
+      canvasWidth,
+      canvasHeight,
+      prompt: demoAiPrompt,
+    });
+    applyAILayout(result);
+    if (action === "custom") setDemoAiPrompt("");
   };
 
   const startDraggingTable = (event: React.PointerEvent<HTMLElement>, tableId: string) => {
@@ -2980,151 +3364,223 @@ export default function DashboardPlanSalle() {
   return (
     <DashboardLayout contentWidth="full" mainClassName="p-2 pb-24 sm:p-3 md:p-4">
       <div className="flex min-h-[calc(100vh-2rem)] flex-col gap-3 xl:h-[calc(100vh-2rem)] xl:min-h-0 xl:overflow-hidden">
-        <header className="shrink-0 rounded-2xl border border-slate-200 bg-white px-3 py-3 shadow-sm sm:px-4">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <h1 className="font-display text-xl font-bold tracking-tight text-slate-950 sm:text-2xl">Plan de salle</h1>
-                <span aria-live="polite" className={cn("hidden rounded-full border px-2.5 py-1 text-[11px] font-semibold sm:inline-flex", saveStatus.tone)}>
-                  {saveStatus.label}
-                </span>
-              </div>
-              <p className="mt-1 truncate text-sm text-slate-500">
-                {selectedRestaurant?.name || "Sélectionnez un restaurant"}
-              </p>
-            </div>
-
-            <div className="flex min-w-0 flex-wrap items-center gap-2">
-              <div className="inline-flex rounded-xl border border-slate-200 bg-slate-50 p-1">
-                <Button
-                  type="button"
-                  size="sm"
-                  variant={editMode === "service" ? "default" : "ghost"}
-                  className="h-9 rounded-lg px-3"
-                  onClick={() => setEditMode("service")}
-                >
-                  Service
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant={editMode === "template" ? "default" : "ghost"}
-                  className="h-9 rounded-lg px-3"
-                  onClick={() => setEditMode("template")}
-                >
-                  Configurer
-                </Button>
+        <div className="shrink-0">
+          <div className="rounded-2xl border border-slate-200/80 bg-white/95 px-4 py-3 shadow-sm">
+            <div className="flex flex-col gap-3 2xl:flex-row 2xl:items-center 2xl:justify-between">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200/80 bg-slate-50">
+                  <LayoutPanelTop className="h-5 w-5 text-primary" />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h1 className="font-display text-2xl font-bold tracking-tight text-slate-950">Plan de salle</h1>
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em]",
+                        isTemplateMode
+                          ? "border-amber-200 bg-amber-50 text-amber-800"
+                          : "border-sky-200 bg-sky-50 text-sky-700",
+                      )}
+                    >
+                      {isTemplateMode ? "Structure" : "Service"}
+                    </Badge>
+                  </div>
+                  <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-slate-500">
+                    <span>{isTemplateMode ? "Structure permanente de la salle." : "Placement du service en cours."}</span>
+                    {selectedRestaurant ? (
+                      <span className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-700">
+                        <Store className="h-3.5 w-3.5 text-slate-500" />
+                        <span className="truncate">{selectedRestaurant.name}</span>
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
               </div>
 
-              <div className="flex items-center rounded-xl border border-slate-200 bg-white p-1">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-9 w-9 rounded-lg"
-                  onClick={undoFloorPlan}
-                  disabled={!canUndoFloorPlan || saveMutation.isPending}
-                  aria-label="Annuler"
-                >
-                  <Undo2 className="h-4 w-4" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-9 w-9 rounded-lg"
-                  onClick={redoFloorPlan}
-                  disabled={!canRedoFloorPlan || saveMutation.isPending}
-                  aria-label="Rétablir"
-                >
-                  <Redo2 className="h-4 w-4" />
-                </Button>
-              </div>
-
-              {isTemplateMode ? (
-                <>
+              <div className="flex flex-col gap-3 xl:items-end">
+                <div className="-mx-1 flex max-w-full items-center gap-2 overflow-x-auto px-1 pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0">
                   <Button
                     type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-11 w-11 rounded-xl"
-                    onClick={() => saveFloorPlanVariantMutation.mutate({ source: "manual" })}
-                    disabled={!selectedBranch || saveFloorPlanVariantMutation.isPending}
-                    aria-label="Sauver variante"
-                    title="Sauver variante"
+                    variant="outline"
+                    className="h-11 shrink-0 rounded-xl border-slate-200 bg-white px-3 text-sm shadow-sm"
+                    onClick={() => createDefaultBranchMutation.mutate()}
+                    disabled={!selectedId || createDefaultBranchMutation.isPending}
                   >
-                    <Copy className="h-4 w-4" />
+                    <div className="flex items-center gap-3">
+                      <Plus className="h-4 w-4 text-slate-700" />
+                      <span className="font-semibold text-slate-900">Nouveau</span>
+                    </div>
                   </Button>
                   <Button
                     type="button"
                     variant="outline"
-                    className="h-11 rounded-xl"
-                    onClick={() => {
-                      setToolPanelTab("library");
-                    revealResponsivePanel("floor-plan-studio-tools");
-                  }}
-                  disabled={!selectedBranch}
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                    Ajouter
+                    className="h-11 shrink-0 rounded-xl border-slate-200 bg-white px-3 text-sm shadow-sm"
+                    onClick={() => saveMutation.mutate({
+                      silent: false,
+                      source: "manual",
+                      layoutSignature: isTemplateMode ? null : servicePersistenceSignature,
+                    })}
+                    disabled={!canPersist || saveMutation.isPending}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Save className="h-4 w-4 text-slate-700" />
+                      <span className="font-semibold text-slate-900">
+                        {saveMutation.isPending ? "Sauvegarde..." : "Enregistrer"}
+                      </span>
+                    </div>
                   </Button>
-                </>
-              ) : (
-                <Button
-                  type="button"
-                  className="h-11 rounded-xl bg-orange-600 px-4 text-white hover:bg-orange-700"
-                  onClick={autoPlaceVisibleReservations}
-                  disabled={!selectedBranch || unassignedVisibleReservations.length === 0 || saveMutation.isPending}
-                >
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  Placer automatiquement
-                </Button>
-              )}
+                  {isTemplateMode ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="h-11 shrink-0 rounded-xl border-slate-200 bg-white px-3 text-sm shadow-sm"
+                      onClick={() => saveFloorPlanVariantMutation.mutate({ source: "manual" })}
+                      disabled={!selectedBranch || saveFloorPlanVariantMutation.isPending}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Copy className="h-4 w-4 text-slate-700" />
+                        <span className="font-semibold text-slate-900">
+                          {saveFloorPlanVariantMutation.isPending ? "Sauvegarde..." : "Sauver variante"}
+                        </span>
+                      </div>
+                    </Button>
+                  ) : null}
+                  {!isTemplateMode ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="h-11 shrink-0 rounded-xl border-orange-200 bg-orange-50 px-3 text-sm text-orange-900 shadow-sm hover:bg-orange-100"
+                      onClick={autoPlaceVisibleReservations}
+                      disabled={!selectedBranch || unassignedVisibleReservations.length === 0 || saveMutation.isPending}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Sparkles className="h-4 w-4 text-orange-700" />
+                        <span className="font-semibold">Optimiser</span>
+                      </div>
+                    </Button>
+                  ) : null}
+                  <div className="flex shrink-0 items-center gap-2 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9 rounded-lg"
+                      onClick={undoFloorPlan}
+                      disabled={!canUndoFloorPlan || saveMutation.isPending}
+                      title="Annuler la dernière action"
+                    >
+                      <Undo2 className={cn("h-4 w-4", canUndoFloorPlan ? "text-slate-700" : "text-slate-400")} />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9 rounded-lg"
+                      onClick={redoFloorPlan}
+                      disabled={!canRedoFloorPlan || saveMutation.isPending}
+                      title="Rétablir l'action annulée"
+                    >
+                      <Redo2 className={cn("h-4 w-4", canRedoFloorPlan ? "text-slate-700" : "text-slate-400")} />
+                    </Button>
+                  </div>
+                  <div className="hidden items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm sm:flex">
+                    <Select value={String(effectiveCanvasZoom)} onValueChange={(value) => updateCanvasZoom(Number(value))}>
+                      <SelectTrigger className="h-9 w-[96px] rounded-lg border-0 bg-transparent px-2 shadow-none focus:ring-0">
+                        <SelectValue placeholder={canvasZoomLabel} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[0.5, 0.75, 1, 1.25, 1.5].includes(effectiveCanvasZoom) ? null : (
+                          <SelectItem value={String(effectiveCanvasZoom)}>
+                            {canvasZoomLabel}
+                          </SelectItem>
+                        )}
+                        {[0.5, 0.75, 1, 1.25, 1.5].map((zoom) => (
+                          <SelectItem key={zoom} value={String(zoom)}>
+                            {Math.round(zoom * 100)}%
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button
+                    type="button"
+                    className="h-11 shrink-0 rounded-xl px-4 text-sm shadow-sm"
+                    onClick={() => window.print()}
+                    disabled={!selectedBranch}
+                  >
+                    <Printer className="mr-2 h-4 w-4" />
+                    Aperçu
+                  </Button>
+                </div>
 
-              <Button
-                type="button"
-                variant={isTemplateMode ? "default" : "outline"}
-                className="h-11 rounded-xl"
-                onClick={() => saveMutation.mutate({
-                  silent: false,
-                  source: "manual",
-                  layoutSignature: isTemplateMode ? null : servicePersistenceSignature,
-                })}
-                disabled={!canPersist || saveMutation.isPending}
-              >
-                <Save className="mr-2 h-4 w-4" />
-                {saveMutation.isPending ? "Sauvegarde…" : "Enregistrer"}
-              </Button>
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="inline-flex items-center rounded-2xl border border-slate-200 bg-slate-50 p-1 shadow-sm">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={editMode === "service" ? "default" : "ghost"}
+                      className="rounded-xl px-4"
+                      onClick={() => setEditMode("service")}
+                    >
+                      Plan du jour
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={editMode === "template" ? "default" : "ghost"}
+                      className="rounded-xl px-4"
+                      onClick={() => setEditMode("template")}
+                    >
+                      Structure
+                    </Button>
+                  </div>
+                  <div aria-live="polite" className={cn("rounded-xl border px-3 py-2 text-sm shadow-sm", saveStatus.tone)}>
+                    <p className="font-semibold">{saveStatus.label}</p>
+                  </div>
+                  <div className={cn("rounded-xl border px-3 py-2 text-sm shadow-sm", floorPlanHealthTone)}>
+                    <p className="font-semibold">{floorPlanHealth.headline}</p>
+                    <p className="text-xs opacity-80">{floorPlanHealth.assignedCovers}/{floorPlanHealth.totalReservableCapacity} couverts placés</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </header>
+        </div>
 
-        {restaurantsLoading ? <p className="text-sm text-slate-500">Chargement…</p> : null}
-        {restaurantsError || branchesError || tablesError || floorPlanVariantsError || layoutOverridesError || reservationsError || slotsError ? (
-          <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
-            Une partie du plan n’a pas pu être chargée. Réessayez dans un instant.
-          </div>
-        ) : null}
+        {restaurantsLoading ? <p className="text-muted-foreground">Chargement des restaurants...</p> : null}
+        {restaurantsError ? <p className="text-destructive">Erreur restaurants : {restaurantsError}</p> : null}
+        {branchesError ? <p className="text-destructive">Erreur salles : {(branchesError as Error).message}</p> : null}
+        {tablesError ? <p className="text-destructive">Erreur tables : {(tablesError as Error).message}</p> : null}
+        {floorPlanVariantsError ? <p className="text-destructive">Erreur plans : {(floorPlanVariantsError as Error).message}</p> : null}
+        {layoutOverridesError ? <p className="text-destructive">Erreur plan du jour : {(layoutOverridesError as Error).message}</p> : null}
+        {reservationsError ? <p className="text-destructive">Erreur réservations : {(reservationsError as Error).message}</p> : null}
+        {slotsError ? <p className="text-destructive">Erreur affectations : {(slotsError as Error).message}</p> : null}
 
         {!selectedId && !restaurantsLoading ? (
           <Card>
-            <CardContent className="py-10 text-center text-slate-500">
-              Sélectionnez un restaurant pour ouvrir son plan de salle.
+            <CardContent className="py-10 text-center text-muted-foreground">
+              Sélectionnez un restaurant depuis la barre latérale pour ouvrir son plan de salle.
             </CardContent>
           </Card>
         ) : null}
 
         {selectedId && !branchesLoading && branches.length === 0 ? (
           <Card className="border-dashed">
-            <CardContent className="flex flex-col items-center gap-4 py-12 text-center">
-              <div>
-                <h2 className="text-lg font-bold text-slate-950">Créez votre salle principale</h2>
-                <p className="mt-1 text-sm text-slate-500">Vous pourrez ensuite ajouter et déplacer vos tables.</p>
-              </div>
+            <CardHeader>
+              <CardTitle>Commencer par une salle principale</CardTitle>
+              <CardDescription>
+                Le plan de salle s'appuie sur une branche de service. Créez-en une première, puis ajoutez vos tables et vos secteurs.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-wrap items-center gap-3">
               <Button onClick={() => createDefaultBranchMutation.mutate()} disabled={createDefaultBranchMutation.isPending}>
-                <Plus className="mr-2 h-4 w-4" />
-                {createDefaultBranchMutation.isPending ? "Création…" : "Créer la salle"}
+                <Sparkles className="mr-2 h-4 w-4" />
+                {createDefaultBranchMutation.isPending ? "Création..." : "Créer la salle principale"}
               </Button>
+              <p className="text-sm text-muted-foreground">
+                Adresse pré-remplie à partir de la fiche restaurant, editable ensuite si besoin.
+              </p>
             </CardContent>
           </Card>
         ) : null}
@@ -3132,184 +3588,423 @@ export default function DashboardPlanSalle() {
         {selectedBranch ? (
           <div className="flex min-h-0 flex-1 flex-col gap-3 xl:overflow-hidden">
             <div className={cn(
-              "grid shrink-0 gap-2 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm",
-              isTemplateMode
-                ? "grid-cols-2 lg:grid-cols-[minmax(180px,1fr)_minmax(180px,1fr)_minmax(200px,1fr)]"
-                : "grid-cols-2 lg:grid-cols-[minmax(180px,1fr)_minmax(180px,1fr)_170px_150px]",
+              "grid shrink-0 grid-cols-2 gap-2 rounded-2xl border border-slate-200/80 bg-white/95 p-3 shadow-sm",
+              isTemplateMode ? "md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_220px]" : "md:grid-cols-2 xl:grid-cols-7",
             )}>
-              <Select value={selectedBranchId || ""} onValueChange={setSelectedBranchId}>
-                <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-white">
-                  <SelectValue placeholder="Salle" />
-                </SelectTrigger>
-                <SelectContent>
-                  {branches.map((branch) => (
-                    <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={selectedSector} onValueChange={setSelectedSector}>
-                <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-white">
-                  <SelectValue placeholder="Zone" />
-                </SelectTrigger>
-                <SelectContent>
-                  {sectorOptions.map((sector) => (
-                    <SelectItem key={sector} value={sector}>{sector}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {isTemplateMode ? (
-                <Select value={activeVariantId || "current"} onValueChange={loadFloorPlanVariant}>
-                  <SelectTrigger className="col-span-2 h-11 rounded-xl border-slate-200 bg-white lg:col-span-1">
-                    <SelectValue placeholder="Plan actif" />
+              <div className="space-y-1.5">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Salle</p>
+                <Select value={selectedBranchId || ""} onValueChange={setSelectedBranchId}>
+                  <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white">
+                    <SelectValue placeholder="Choisir" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="current">Template actif</SelectItem>
-                    {floorPlanVariants.map((variant) => (
-                      <SelectItem key={variant.id} value={variant.id}>{variant.name}</SelectItem>
+                    {branches.map((branch) => (
+                      <SelectItem key={branch.id} value={branch.id}>
+                        {branch.name}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-              ) : (
-                <>
-                  <Input
-                    type="date"
-                    value={referenceDate}
-                    className="h-11 rounded-xl border-slate-200 bg-white"
-                    onChange={(event) => setReferenceDate(event.target.value)}
-                    aria-label="Date du service"
-                  />
-                  <Select value={serviceFilter} onValueChange={(value) => setServiceFilter(value as ServiceFilter)}>
-                    <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-white">
-                      <SelectValue placeholder="Service" />
+              </div>
+
+              <div className="space-y-1.5">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Secteur</p>
+                <Select value={selectedSector} onValueChange={setSelectedSector}>
+                  <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white">
+                    <SelectValue placeholder="Secteur" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sectorOptions.map((sector) => (
+                      <SelectItem key={sector} value={sector}>
+                        {sector}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {isTemplateMode ? (
+                <div className="space-y-1.5">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Plan</p>
+                  <Select value={activeVariantId || "current"} onValueChange={loadFloorPlanVariant}>
+                    <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white">
+                      <SelectValue placeholder="Template actif" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Toute la journée</SelectItem>
-                      <SelectItem value="lunch">Midi</SelectItem>
-                      <SelectItem value="dinner">Soir</SelectItem>
+                      <SelectItem value="current">Template actif</SelectItem>
+                      {floorPlanVariants.map((variant) => (
+                        <SelectItem key={variant.id} value={variant.id}>
+                          {variant.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
+                  {activeVariant ? (
+                    <p className="flex items-center gap-1 text-[11px] text-slate-500">
+                      <Layers className="h-3 w-3" />
+                      Variante chargée, non publiée tant que vous n'enregistrez pas.
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
+
+              {isTemplateMode ? (
+                <div className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Éléments</p>
+                    <p className="mt-1 text-lg font-bold text-slate-950">{visibleTables.length}</p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-10 rounded-xl bg-white px-3"
+                    onClick={() => {
+                      setToolsPanelCollapsed(false);
+                      setToolPanelTab("library");
+                      revealResponsivePanel("floor-plan-studio-tools");
+                    }}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Ajouter
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <div className="space-y-1.5">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Période</p>
+                    <Select value={timeRange} onValueChange={(value) => setTimeRange(value as DashboardTimeRange)}>
+                      <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white">
+                        <SelectValue placeholder="Période" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {DASHBOARD_TIME_RANGE_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Date</p>
+                    <Input type="date" value={referenceDate} className="h-12 rounded-2xl border-slate-200 bg-white" onChange={(event) => setReferenceDate(event.target.value)} />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Service</p>
+                    <Select value={serviceFilter} onValueChange={(value) => setServiceFilter(value as ServiceFilter)}>
+                      <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white">
+                        <SelectValue placeholder="Tous" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Tous</SelectItem>
+                        <SelectItem value="lunch">Midi</SelectItem>
+                        <SelectItem value="dinner">Soir</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Statut</p>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white">
+                        <SelectValue placeholder="Tous" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {statusOptions.map((status) => (
+                          <SelectItem key={status} value={status}>
+                            {status === "all" ? "Tous" : status}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Tri</p>
+                    <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortBy)}>
+                      <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white">
+                        <SelectValue placeholder="Heure" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="time">Heure d'arrivée</SelectItem>
+                        <SelectItem value="party_size">Taille du groupe</SelectItem>
+                        <SelectItem value="status">Statut</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </>
               )}
             </div>
 
             {isTemplateMode ? (
-              <div className="grid min-h-0 flex-1 gap-3 xl:grid-cols-[minmax(0,1fr)_340px] xl:auto-rows-[minmax(0,1fr)] xl:overflow-hidden">
-                <StudioCanvas
-                  selectedSector={selectedSector}
-                  canvasWidth={canvasWidth}
-                  canvasHeight={canvasHeight}
-                  canvasZoom={effectiveCanvasZoom}
-                  canvasZoomLabel={canvasZoomLabel}
-                  canvasRef={canvasRef}
-                  canvasViewportRef={canvasViewportRef}
-                  visibleTables={visibleTables}
-                  selectedTableId={selectedTableId}
-                  draggingTableId={dragState?.tableId || resizeState?.tableId || rotateState?.tableId || null}
-                  onTablePress={(tableId) => {
-                    setSelectedTableId(tableId);
-                    setToolPanelTab("inspector");
-                  }}
-                  onCanvasWheel={handleCanvasWheel}
-                  onCanvasBackgroundPress={() => setSelectedTableId(null)}
-                  onStartDraggingTable={startDraggingTable}
-                  onStartResizingTable={(event, tableId, handle) => startResizingTable(event, tableId, handle)}
-                  onStartRotatingTable={startRotatingTable}
-                  onUpdateCanvasZoom={updateCanvasZoom}
-                  onCanvasViewportResize={syncCanvasSizeFromViewport}
-                  onNudgeTable={nudgeDraftTable}
-                  onDeleteTable={removeDraftTable}
-                  getRenderedFrame={getRenderedDraftTableFrame}
-                />
+              <div className={cn(
+                "grid min-h-0 flex-1 gap-3 xl:auto-rows-[minmax(0,1fr)] xl:overflow-hidden",
+                toolsPanelDetached
+                  ? "xl:grid-cols-1"
+                  : toolsPanelCollapsed
+                    ? "xl:grid-cols-[minmax(0,1fr)_72px]"
+                    : "xl:grid-cols-[minmax(0,1fr)_360px] 2xl:grid-cols-[minmax(0,1fr)_380px]",
+              )}>
+                <div className="flex min-h-0 flex-1 flex-col gap-5 xl:overflow-hidden">
+                  <StudioCanvas
+                    selectedSector={selectedSector}
+                    canvasWidth={canvasWidth}
+                    canvasHeight={canvasHeight}
+                    canvasZoom={effectiveCanvasZoom}
+                    canvasZoomLabel={canvasZoomLabel}
+                    canvasRef={canvasRef}
+                    canvasViewportRef={canvasViewportRef}
+                    visibleTables={visibleTables}
+                    selectedTableId={selectedTableId}
+                    draggingTableId={dragState?.tableId || resizeState?.tableId || rotateState?.tableId || null}
+                    onTablePress={(tableId) => {
+                      setSelectedTableId(tableId);
+                      setToolPanelTab("inspector");
+                    }}
+                    onCanvasWheel={handleCanvasWheel}
+                    onCanvasBackgroundPress={() => setSelectedTableId(null)}
+                    onStartDraggingTable={startDraggingTable}
+                    onStartResizingTable={(event, tableId, handle) => startResizingTable(event, tableId, handle)}
+                    onStartRotatingTable={startRotatingTable}
+                    onUpdateCanvasZoom={updateCanvasZoom}
+                    onCanvasViewportResize={syncCanvasSizeFromViewport}
+                    onNudgeTable={nudgeDraftTable}
+                    onDeleteTable={removeDraftTable}
+                    getRenderedFrame={getRenderedDraftTableFrame}
+                  />
+                  <div className="sticky bottom-3 z-30 grid grid-cols-2 gap-2 rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-xl backdrop-blur xl:hidden">
+                    <Button
+                      type="button"
+                      className="h-12 rounded-xl"
+                      onClick={() => {
+                        setToolsPanelCollapsed(false);
+                        setToolPanelTab("library");
+                        revealResponsivePanel("floor-plan-studio-tools");
+                      }}
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      Ajouter
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="h-12 rounded-xl"
+                      disabled={!selectedTable}
+                      onClick={() => {
+                        setToolsPanelCollapsed(false);
+                        setToolPanelTab("inspector");
+                        revealResponsivePanel("floor-plan-studio-tools");
+                      }}
+                    >
+                      <PanelRightOpen className="mr-2 h-4 w-4" />
+                      Réglages
+                    </Button>
+                  </div>
+                </div>
 
-                <div id="floor-plan-studio-tools" className="min-h-[460px] scroll-mt-3 xl:min-h-0">
-                  <Tabs
-                    value={toolPanelTab}
-                    onValueChange={(value) => setToolPanelTab(value as "library" | "inspector")}
-                    className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"
-                  >
-                    <TabsList className="grid h-10 w-full shrink-0 grid-cols-2 rounded-xl bg-slate-100 p-1">
-                      <TabsTrigger value="library" className="rounded-lg text-xs">Ajouter</TabsTrigger>
-                      <TabsTrigger value="inspector" className="rounded-lg text-xs">Régler</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="library" className="mt-3 min-h-0 flex-1 data-[state=inactive]:hidden">
-                      <StudioPalette
-                        selectedId={selectedId}
-                        selectedSector={selectedSector}
-                        sectorOptions={sectorOptions}
-                        libraryTab={libraryTab}
-                        libraryQuery={libraryQuery}
-                        canvasWidth={canvasWidth}
-                        canvasHeight={canvasHeight}
-                        draftTables={draftTables}
-                        tablesLoading={tablesLoading}
-                        newSectorName={newSectorName}
-                        onLibraryTabChange={setLibraryTab}
-                        onLibraryQueryChange={setLibraryQuery}
-                        onPresetClick={(presetId) => {
-                          addTableFromPreset(presetId);
-                          setToolPanelTab("inspector");
-                        }}
-                        onSectorSelect={setSelectedSector}
-                        onNewSectorNameChange={setNewSectorName}
-                        onAddSector={addSector}
-                        onApplyAILayout={(layout) => {
-                          applyAILayout(layout);
-                          setToolPanelTab("inspector");
-                        }}
-                        presetsByTab={filteredLibraryPresets}
-                      />
-                    </TabsContent>
-                    <TabsContent value="inspector" className="mt-3 min-h-0 flex-1 data-[state=inactive]:hidden">
-                      <StudioInspector
-                        selectedTable={selectedTable}
-                        selectedTableIsReservable={selectedTableIsReservable}
-                        selectedTableDimensions={selectedTableDimensions}
-                        sectorOptions={sectorOptions}
-                        onRename={(value) => {
-                          if (!selectedTable) return;
-                          updateDraftTable(selectedTable.id, (table) => ({ ...table, table_number: value }));
-                        }}
-                        onSectorChange={(value) => {
-                          if (!selectedTable) return;
-                          updateDraftTable(selectedTable.id, (table) => ({ ...table, sector: value }));
-                        }}
-                        onRotationChange={(value) => {
-                          if (!selectedTable) return;
-                          updateDraftTable(selectedTable.id, (table) => ({ ...table, layout: { ...table.layout, rotation: value } }));
-                        }}
-                        onRotateIncrement={() => {
-                          if (!selectedTable) return;
-                          updateDraftTable(selectedTable.id, (table) => ({
-                            ...table,
-                            layout: { ...table.layout, rotation: (table.layout.rotation + 45) % 360 },
-                          }));
-                        }}
-                        onToggleActive={(checked) => {
-                          if (!selectedTable) return;
-                          updateDraftTable(selectedTable.id, (table) => ({ ...table, is_active: checked }));
-                        }}
-                        onConfigureTable={() => {
-                          if (!selectedTable) return;
-                          setEditingSeatingTableId(selectedTable.id);
-                          setTableConfigDialogOpen(true);
-                        }}
-                        onDuplicate={() => selectedTable && duplicateTable(selectedTable.id)}
-                        onRemove={() => selectedTable && removeDraftTable(selectedTable.id)}
-                        onUpdateFurnitureWidth={(value) => selectedTable && updateDraftTableFootprint(selectedTable.id, value, selectedTable.layout.h)}
-                        onUpdateFurnitureHeight={(value) => selectedTable && updateDraftTableFootprint(selectedTable.id, selectedTable.layout.w, value)}
-                        onUpdateFurnitureSize={(width, height) => selectedTable && updateDraftTableFootprint(selectedTable.id, width, height)}
-                      />
-                    </TabsContent>
-                  </Tabs>
+                <div id="floor-plan-studio-tools" className="min-h-0 scroll-mt-3 xl:h-full">
+                  <DockableFloorPlanPanel
+                  detached={toolsPanelDetached}
+                  position={toolsPanelPosition}
+                  snapTargets={toolsPanelSnapTargets}
+                  onPositionChange={setToolsPanelPosition}
+                >
+                  {toolsPanelCollapsed ? (
+                    <Card className="flex min-h-0 flex-col items-center gap-3 rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-sm">
+                      <Button type="button" variant="ghost" size="icon" className="h-9 w-9 rounded-xl" data-panel-drag-handle title="Déplacer le panneau outils">
+                        <Grip className="h-4 w-4" />
+                      </Button>
+                      <Button type="button" variant="outline" size="icon" className="h-9 w-9 rounded-xl" onClick={() => setToolsPanelCollapsed(false)} title="Déplier les outils">
+                        <PanelRightOpen className="h-4 w-4" />
+                      </Button>
+                      <Button type="button" variant="ghost" size="icon" className="h-9 w-9 rounded-xl" onClick={() => setToolsPanelDetached((value) => !value)} title={toolsPanelDetached ? "Rattacher les outils" : "Détacher les outils"}>
+                        {toolsPanelDetached ? <Pin className="h-4 w-4" /> : <PinOff className="h-4 w-4" />}
+                      </Button>
+                    </Card>
+                  ) : (
+                    <Tabs
+                      value={toolPanelTab}
+                      onValueChange={(value) => setToolPanelTab(value as "library" | "inspector")}
+                      className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-sm"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-slate-950">Outils</p>
+                          <p className="truncate text-xs text-slate-500">
+                            {selectedTable ? selectedTable.table_number : "Ajoutez ou réglez un élément"}
+                          </p>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-1">
+                          <Button type="button" variant="ghost" size="icon" className="h-9 w-9 rounded-xl" data-panel-drag-handle title="Déplacer le panneau outils">
+                            <Grip className="h-4 w-4" />
+                          </Button>
+                          <Button type="button" variant="ghost" size="icon" className="h-9 w-9 rounded-xl" onClick={() => setToolsPanelDetached((value) => !value)} title={toolsPanelDetached ? "Rattacher" : "Détacher"}>
+                            {toolsPanelDetached ? <Pin className="h-4 w-4" /> : <PinOff className="h-4 w-4" />}
+                          </Button>
+                          <Button type="button" variant="ghost" size="icon" className="h-9 w-9 rounded-xl" onClick={() => setToolsPanelCollapsed(true)} title="Replier les outils">
+                            <PanelRightClose className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      <TabsList className="mt-3 grid h-10 w-full shrink-0 grid-cols-2 rounded-xl bg-slate-100 p-1">
+                        <TabsTrigger value="library" className="rounded-lg text-xs">Ajouter</TabsTrigger>
+                        <TabsTrigger value="inspector" className="rounded-lg text-xs">Réglages</TabsTrigger>
+                      </TabsList>
+                      <TabsContent value="library" className="mt-3 min-h-0 flex-1 data-[state=inactive]:hidden">
+                        <div className="flex h-full min-h-0 flex-col gap-3">
+                          {isCommercialDemo ? (
+                            <Card className="shrink-0 border-sky-200 bg-sky-50/80 shadow-none">
+                              <CardContent className="space-y-3 p-3">
+                                <div className="flex items-start gap-2">
+                                  <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-sky-700" />
+                                  <div>
+                                    <p className="text-xs font-bold text-sky-950">Assistant plan Démo · zéro coût</p>
+                                    <p className="text-[11px] text-sky-800">Calcul local isolé, sans fonction IA payante ni donnée de production.</p>
+                                  </div>
+                                </div>
+                                <div className="grid grid-cols-3 gap-1.5">
+                                  <Button type="button" size="sm" variant="outline" className="h-auto whitespace-normal px-2 py-2 text-[10px]" onClick={() => runCommercialDemoFloorPlanAi("generate")}>Générer</Button>
+                                  <Button type="button" size="sm" variant="outline" className="h-auto whitespace-normal px-2 py-2 text-[10px]" onClick={() => runCommercialDemoFloorPlanAi("optimize")}>Optimiser</Button>
+                                  <Button type="button" size="sm" variant="outline" className="h-auto whitespace-normal px-2 py-2 text-[10px]" onClick={() => runCommercialDemoFloorPlanAi("suggest-furniture")}>Mobilier</Button>
+                                </div>
+                                <div className="flex gap-2">
+                                  <Input
+                                    value={demoAiPrompt}
+                                    onChange={(event) => setDemoAiPrompt(event.target.value)}
+                                    placeholder="Demande personnalisée…"
+                                    className="h-9 bg-white text-xs"
+                                    onKeyDown={(event) => {
+                                      if (event.key === "Enter" && demoAiPrompt.trim()) {
+                                        event.preventDefault();
+                                        runCommercialDemoFloorPlanAi("custom");
+                                      }
+                                    }}
+                                  />
+                                  <Button type="button" size="sm" disabled={!demoAiPrompt.trim()} onClick={() => runCommercialDemoFloorPlanAi("custom")}>Créer</Button>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ) : null}
+                          <div className="min-h-0 flex-1">
+                            <StudioPalette
+                              selectedId={isCommercialDemo ? null : selectedId}
+                              selectedSector={selectedSector}
+                              sectorOptions={sectorOptions}
+                              libraryTab={libraryTab}
+                              libraryQuery={libraryQuery}
+                              canvasWidth={canvasWidth}
+                              canvasHeight={canvasHeight}
+                              draftTables={draftTables}
+                              tablesLoading={tablesLoading}
+                              newSectorName={newSectorName}
+                              onLibraryTabChange={setLibraryTab}
+                              onLibraryQueryChange={setLibraryQuery}
+                              onPresetClick={(presetId) => {
+                                addTableFromPreset(presetId);
+                                setToolPanelTab("inspector");
+                              }}
+                              onSectorSelect={setSelectedSector}
+                              onNewSectorNameChange={setNewSectorName}
+                              onAddSector={addSector}
+                              onApplyAILayout={(layout) => {
+                                applyAILayout(layout);
+                                setToolPanelTab("inspector");
+                              }}
+                              presetsByTab={filteredLibraryPresets}
+                            />
+                          </div>
+                        </div>
+                      </TabsContent>
+                      <TabsContent value="inspector" className="mt-3 min-h-0 flex-1 data-[state=inactive]:hidden">
+                        <StudioInspector
+                          selectedTable={selectedTable}
+                          selectedTableIsReservable={selectedTableIsReservable}
+                          selectedTableDimensions={selectedTableDimensions}
+                          sectorOptions={sectorOptions}
+                          onRename={(value) => {
+                            if (!selectedTable) return;
+                            updateDraftTable(selectedTable.id, (table) => ({
+                              ...table,
+                              table_number: value,
+                            }));
+                          }}
+                          onSectorChange={(value) => {
+                            if (!selectedTable) return;
+                            updateDraftTable(selectedTable.id, (table) => ({
+                              ...table,
+                              sector: value,
+                            }));
+                          }}
+                          onRotationChange={(value) => {
+                            if (!selectedTable) return;
+                            updateDraftTable(selectedTable.id, (table) => ({
+                              ...table,
+                              layout: { ...table.layout, rotation: value },
+                            }));
+                          }}
+                          onRotateIncrement={() => {
+                            if (!selectedTable) return;
+                            updateDraftTable(selectedTable.id, (table) => ({
+                              ...table,
+                              layout: {
+                                ...table.layout,
+                                rotation: (table.layout.rotation + 45) % 360,
+                              },
+                            }));
+                          }}
+                          onToggleActive={(checked) => {
+                            if (!selectedTable) return;
+                            updateDraftTable(selectedTable.id, (table) => ({
+                              ...table,
+                              is_active: checked,
+                            }));
+                          }}
+                          onConfigureTable={() => {
+                            if (!selectedTable) return;
+                            setEditingSeatingTableId(selectedTable.id);
+                            setTableConfigDialogOpen(true);
+                          }}
+                          onDuplicate={() => {
+                            if (!selectedTable) return;
+                            duplicateTable(selectedTable.id);
+                          }}
+                          onRemove={() => {
+                            if (!selectedTable) return;
+                            removeDraftTable(selectedTable.id);
+                          }}
+                          onUpdateFurnitureWidth={(value) => {
+                            if (!selectedTable) return;
+                            updateDraftTableFootprint(selectedTable.id, value, selectedTable.layout.h);
+                          }}
+                          onUpdateFurnitureHeight={(value) => {
+                            if (!selectedTable) return;
+                            updateDraftTableFootprint(selectedTable.id, selectedTable.layout.w, value);
+                          }}
+                          onUpdateFurnitureSize={(width, height) => {
+                            if (!selectedTable) return;
+                            updateDraftTableFootprint(selectedTable.id, width, height);
+                          }}
+                        />
+                      </TabsContent>
+                    </Tabs>
+                  )}
+                  </DockableFloorPlanPanel>
                 </div>
               </div>
             ) : (
-              <div className="grid min-h-0 flex-1 gap-3 xl:grid-cols-[minmax(0,1fr)_320px] 2xl:grid-cols-[minmax(0,1fr)_340px] xl:auto-rows-[minmax(0,1fr)] xl:overflow-hidden">
+              <div className={cn(
+                "grid min-h-0 flex-1 gap-3 xl:auto-rows-[minmax(0,1fr)] xl:overflow-hidden",
+                serviceQueueDetached
+                  ? "xl:grid-cols-1"
+                  : serviceQueueCollapsed
+                    ? "xl:grid-cols-[minmax(0,1fr)_72px]"
+                    : "xl:grid-cols-[minmax(0,1fr)_320px] 2xl:grid-cols-[minmax(0,1fr)_340px]",
+              )}>
                 <ServiceBoard
                   selectedSector={selectedSector}
-                  subtitle={`${formatDashboardDateHeading(referenceDate)} · ${filteredReservations.length} réservation(s)`}
+                  subtitle={`${formatDashboardDateHeading(referenceDate)} · ${filteredReservations.length} réservation(s) visibles`}
                   activeReservationLabel={activeServiceReservation ? getReservationCustomerLabel(activeServiceReservation) : null}
                   canvasWidth={canvasWidth}
                   canvasHeight={canvasHeight}
@@ -3331,7 +4026,9 @@ export default function DashboardPlanSalle() {
                     setSelectedReservationId(reservationId);
                     setSelectedTableId(tableId);
                   }}
-                  onReservationStatusChange={(reservationId, status) => updateReservationStatusMutation.mutate({ id: reservationId, status })}
+                  onReservationStatusChange={(reservationId, status) => {
+                    updateReservationStatusMutation.mutate({ id: reservationId, status });
+                  }}
                   onReleaseReservation={clearReservationAssignment}
                   onCanvasWheel={handleCanvasWheel}
                   onCanvasDragOver={handleCanvasDragOver}
@@ -3351,15 +4048,21 @@ export default function DashboardPlanSalle() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="sticky bottom-3 z-30 h-12 rounded-2xl border-slate-200 bg-white shadow-xl xl:hidden"
+                  className="sticky bottom-3 z-30 h-12 rounded-2xl border-slate-200 bg-white/95 shadow-xl backdrop-blur xl:hidden"
                   onClick={() => revealResponsivePanel("floor-plan-reservation-queue")}
                 >
-                  <Users className="mr-2 h-4 w-4" />
-                  Clients ({unassignedVisibleReservations.length} à placer)
+                  <Grip className="mr-2 h-4 w-4" />
+                  Voir les réservations ({unassignedVisibleReservations.length} sans table)
                 </Button>
 
-                <div id="floor-plan-reservation-queue" className="min-h-[420px] scroll-mt-3 xl:min-h-0">
-                  <SimpleReservationQueue
+                <div id="floor-plan-reservation-queue" className="min-h-0 scroll-mt-3 xl:h-full">
+                  <DockableFloorPlanPanel
+                  detached={serviceQueueDetached}
+                  position={serviceQueuePosition}
+                  snapTargets={serviceQueueSnapTargets}
+                  onPositionChange={setServiceQueuePosition}
+                >
+                  <ReservationQueue
                     reservationQuery={reservationQuery}
                     reservationsLoading={reservationsLoading}
                     selectedReservationId={selectedReservationId}
@@ -3370,6 +4073,10 @@ export default function DashboardPlanSalle() {
                     draftAssignments={draftAssignments}
                     tableMap={tableMap}
                     recommendedTablesByReservationId={recommendedTablesByReservationId}
+                    collapsed={serviceQueueCollapsed}
+                    detached={serviceQueueDetached}
+                    onToggleCollapsed={() => setServiceQueueCollapsed((value) => !value)}
+                    onToggleDetached={() => setServiceQueueDetached((value) => !value)}
                     onReservationQueryChange={setReservationQuery}
                     onReservationPress={handleServiceReservationPress}
                     onReservationDragStart={handleReservationDragStart}
@@ -3379,22 +4086,32 @@ export default function DashboardPlanSalle() {
                     onAssignReservationToTable={assignReservationToTable}
                     getReservationDropState={getReservationDropState}
                   />
+                  </DockableFloorPlanPanel>
                 </div>
               </div>
             )}
           </div>
         ) : null}
       </div>
-
       {pointerDraggedReservation && reservationPointerPosition ? (
         <div
-          className="pointer-events-none fixed z-[120] max-w-[220px] -translate-y-1/2 rounded-full border border-orange-200 bg-white px-3 py-2 shadow-xl"
-          style={{ left: reservationPointerPosition.clientX + 16, top: reservationPointerPosition.clientY - 16 }}
+          className="pointer-events-none fixed z-[120] hidden max-w-[240px] -translate-y-1/2 rounded-full border border-amber-200 bg-white/96 px-4 py-2 shadow-[0_18px_55px_-28px_rgba(15,23,42,0.45)] sm:flex"
+          style={{
+            left: reservationPointerPosition.clientX + 18,
+            top: reservationPointerPosition.clientY - 18,
+          }}
         >
-          <p className="truncate text-sm font-semibold text-slate-950">{getReservationCustomerLabel(pointerDraggedReservation)}</p>
+          <div className="flex min-w-0 items-center gap-2">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-700">
+              <Grip className="h-4 w-4" />
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-slate-950">{getReservationCustomerLabel(pointerDraggedReservation)}</p>
+              <p className="text-xs text-slate-500">Déposer sur une table</p>
+            </div>
+          </div>
         </div>
       ) : null}
-
       <TableContextDrawer
         open={!isTemplateMode && !draggedReservationId && !reservationPointerDrag && (!!selectedReservation || !!selectedTable)}
         selectedReservation={selectedReservation}
@@ -3409,18 +4126,23 @@ export default function DashboardPlanSalle() {
         selectedPairDropState={selectedReservationAssignedTableDropState}
         compatibleTables={compatibleTablesForSelectedReservation}
         compatibleReservations={compatibleReservationsForSelectedTable}
-        onOpenChange={(open) => !open && clearServiceSelection()}
+        onOpenChange={(open) => {
+          if (!open) {
+            clearServiceSelection();
+          }
+        }}
         onClearSelection={clearServiceSelection}
         onAssignReservationToTable={assignReservationToTable}
         onReleaseReservation={clearReservationAssignment}
         onSelectReservation={(reservationId) => {
           setSelectedReservationId(reservationId);
           const assignedTableId = draftAssignments[reservationId];
-          if (assignedTableId) setSelectedTableId(assignedTableId);
+          if (assignedTableId) {
+            setSelectedTableId(assignedTableId);
+          }
         }}
         onSelectTable={setSelectedTableId}
       />
-
       <TableConfigDialog
         open={tableConfigDialogOpen}
         onOpenChange={(next) => {
@@ -3431,35 +4153,35 @@ export default function DashboardPlanSalle() {
           }
         }}
         initialConfig={editingSeatingTableId ? (() => {
-          const table = draftTables.find((draft) => draft.id === editingSeatingTableId);
-          if (!table) return null;
+          const t = draftTables.find((d) => d.id === editingSeatingTableId);
+          if (!t) return null;
           const resolved = getResolvedFloorPlanDimensions({
-            capacity: table.capacity,
-            shape: table.layout.shape,
-            kind: table.layout.kind,
-            seatType: table.layout.seatType,
-            seatPlacements: table.layout.seatPlacements,
-            cornerBenchCorners: table.layout.cornerBenchCorners,
-            cornerBenchConfigs: table.layout.cornerBenchConfigs,
-            tableWidth: table.layout.tableWidth,
-            tableHeight: table.layout.tableHeight,
-            footprintWidth: table.layout.w,
-            footprintHeight: table.layout.h,
-            cornerBenchHorizontal: table.layout.cornerBenchHorizontal,
-            cornerBenchVertical: table.layout.cornerBenchVertical,
-            cornerBenchDepth: table.layout.cornerBenchDepth,
+            capacity: t.capacity,
+            shape: t.layout.shape,
+            kind: t.layout.kind,
+            seatType: t.layout.seatType,
+            seatPlacements: t.layout.seatPlacements,
+            cornerBenchCorners: t.layout.cornerBenchCorners,
+            cornerBenchConfigs: t.layout.cornerBenchConfigs,
+            tableWidth: t.layout.tableWidth,
+            tableHeight: t.layout.tableHeight,
+            footprintWidth: t.layout.w,
+            footprintHeight: t.layout.h,
+            cornerBenchHorizontal: t.layout.cornerBenchHorizontal,
+            cornerBenchVertical: t.layout.cornerBenchVertical,
+            cornerBenchDepth: t.layout.cornerBenchDepth,
           });
           return {
-            capacity: table.capacity,
-            shape: table.layout.shape,
-            seatType: (table.layout.seatType || "chair") as FloorPlanSeatType,
+            capacity: t.capacity,
+            shape: t.layout.shape,
+            seatType: (t.layout.seatType || "chair") as FloorPlanSeatType,
             seatPlacements: resolved.seatPlacements,
             cornerBenchConfigs: resolved.cornerBenchConfigs,
             tableWidth: resolved.tableWidth,
             tableHeight: resolved.tableHeight,
           };
         })() : null}
-        preset={pendingPresetId ? FLOOR_PLAN_PRESETS.find((preset) => preset.id === pendingPresetId) || null : null}
+        preset={pendingPresetId ? FLOOR_PLAN_PRESETS.find((p) => p.id === pendingPresetId) || null : null}
         onConfirm={confirmTableConfig}
       />
     </DashboardLayout>

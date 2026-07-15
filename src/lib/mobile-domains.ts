@@ -16,3 +16,4 @@ const allowedAppLinkHosts = new Set<string>(TOK_APP_LINK_HOSTS);
 export function isAllowedAppLinkHost(hostname: string) {
   return allowedAppLinkHosts.has(hostname.toLowerCase());
 }
+

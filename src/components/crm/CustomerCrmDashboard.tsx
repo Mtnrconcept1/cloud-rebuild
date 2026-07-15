@@ -24,6 +24,7 @@ import {
 import { toast } from "sonner";
 
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,6 +33,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { getSupabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { buildCommercialDemoCrmRows } from "@/lib/commercialDemoRestaurantTools";
 import {
   buildCustomerCrmInsights,
   buildCustomerCrmCsv,
@@ -416,6 +418,8 @@ export default function CustomerCrmDashboard({
   restaurantLoading = false,
   restaurantError = null,
 }: CustomerCrmDashboardProps) {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemo = surface === "restaurant" && commercialDemoFrame?.surface === "restaurant";
   const [search, setSearch] = useState("");
   const [segment, setSegment] = useState<SegmentFilter>("all");
   const [exportScope, setExportScope] = useState<ExportScope>("visible");
@@ -427,8 +431,27 @@ export default function CustomerCrmDashboard({
   const [isExporting, setIsExporting] = useState(false);
 
   const crmQuery = useQuery({
-    queryKey: ["customer-crm-profiles", surface, restaurantId || "all", search],
+    queryKey: [
+      "customer-crm-profiles",
+      surface,
+      restaurantId || "all",
+      search,
+      commercialDemoFrame?.config.sessionId || "live",
+      commercialDemoFrame?.snapshot.order?.version || 0,
+      commercialDemoFrame?.snapshot.reservations.map((reservation) => `${reservation.id}:${reservation.version}`).join("|") || "",
+    ],
     queryFn: async () => {
+      if (isCommercialDemo && commercialDemoFrame) {
+        const normalizedSearch = search.trim().toLocaleLowerCase("fr");
+        return buildCommercialDemoCrmRows(commercialDemoFrame.snapshot)
+          .map((row) => normalizeCustomerCrmProfile(row))
+          .filter((profile) => !normalizedSearch || [
+            profile.fullName,
+            profile.email,
+            profile.phone,
+            profile.city,
+          ].some((value) => value?.toLocaleLowerCase("fr").includes(normalizedSearch)));
+      }
       const { data, error } = await (supabase.rpc as any)("get_customer_crm_profiles", {
         p_restaurant_id: restaurantId,
         p_search: search.trim() || null,
@@ -475,9 +498,21 @@ export default function CustomerCrmDashboard({
   const title = surface === "admin" ? "CRM clients TOK" : "CRM clients";
   const description = surface === "admin"
     ? "Vue globale des clients qui commandent ou reservent sur TOK, avec segmentation commerciale et habitudes detectees."
-    : "Clients issus des commandes et reservations de votre restaurant, enrichis par leurs habitudes et preferences detectees.";
+    : isCommercialDemo
+      ? "Profil client construit uniquement à partir des commandes et réservations de cette session Démo isolée."
+      : "Clients issus des commandes et reservations de votre restaurant, enrichis par leurs habitudes et preferences detectees.";
 
   async function fetchAllExportProfiles() {
+    if (isCommercialDemo && commercialDemoFrame) {
+      return sortCrmProfiles(
+        buildCommercialDemoCrmRows(commercialDemoFrame.snapshot)
+          .map((row) => normalizeCustomerCrmProfile(row))
+          .filter((profile) => filterBySegment(profile, segment)),
+        sortBy,
+        sortDirection,
+      );
+    }
+
     const collected: CustomerCrmProfile[] = [];
 
     for (let offset = 0; offset < CRM_EXPORT_MAX_ROWS; offset += CRM_EXPORT_PAGE_SIZE) {

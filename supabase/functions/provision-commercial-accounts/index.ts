@@ -1,5 +1,6 @@
 import {
   HttpError,
+  assertProductionFlowAllowed,
   authenticateRequest,
   jsonResponse,
   requireUserRole,
@@ -221,6 +222,7 @@ Deno.serve(async (req) => {
     if (req.method !== "POST") throw new HttpError(405, "Method not allowed");
 
     actor = await authenticateRequest(req);
+    await assertProductionFlowAllowed(actor, "administration des comptes commerciaux");
     requireUserRole(actor, ["admin"]);
 
     let body: RequestBody;

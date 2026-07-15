@@ -182,3 +182,4 @@ export function isCommercialDemoFrameNavigateMessage(value: unknown): value is C
     && !record.path.startsWith("//");
 }
 
+

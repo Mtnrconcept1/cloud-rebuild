@@ -119,3 +119,4 @@ confirmation explicite est le seul chemin qui fait avancer la commande démo.
 8. Vérifier qu'un compte commercial non administrateur ne lit aucun restaurant,
    menu, commande, réservation ou paiement réel et ne voit que son restaurant
    de démonstration associé.
+

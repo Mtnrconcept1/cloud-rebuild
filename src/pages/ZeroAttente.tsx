@@ -261,7 +261,7 @@ export default function ZeroAttente() {
     reservationDate: arrivalDate,
     reservationTime: arrivalTime,
     context: "zero-attente",
-    enabled: !!selectedRestaurant,
+    enabled: Boolean(selectedRestaurant && !isCommercialDemoClient),
   });
 
   const formulaDiscount = roundCurrency(formulaDiscountRaw);

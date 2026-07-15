@@ -649,3 +649,4 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: message }, 500, corsHeaders);
   }
 });
+

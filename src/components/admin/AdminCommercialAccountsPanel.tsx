@@ -7,6 +7,7 @@ import {
   Copy,
   Eye,
   EyeOff,
+  ExternalLink,
   KeyRound,
   Loader2,
   Plus,
@@ -26,6 +27,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getSupabase } from "@/integrations/supabase/client";
 import { getCommercialRefusalReasonLabel } from "@/lib/commercialSales";
+import { TOK_COMMERCIAL_APP_ORIGIN } from "@/lib/commercialDomains";
 import { invokeSupabaseFunction, isSessionExpiredError } from "@/lib/session";
 
 export type ManagedCommercialAccount = {
@@ -71,6 +73,7 @@ const ROLE_LABELS: Record<string, string> = {
   client: "Client",
   restaurateur: "Restaurateur",
 };
+const COMMERCIAL_LOGIN_URL = `${TOK_COMMERCIAL_APP_ORIGIN}/auth?redirect=/commercial`;
 
 function getAccountIntegrityIssues(account: ManagedCommercialAccount) {
   const issues: string[] = [];
@@ -298,7 +301,7 @@ export default function AdminCommercialAccountsPanel() {
             <div>
               <CardTitle className="text-lg">Créer un compte commercial</CardTitle>
               <CardDescription className="mt-1">
-                Le compte reçoit les espaces Commercial, Client et Restaurateur. Son espace restaurateur contient uniquement un restaurant de démonstration non public.
+                Le compte reçoit les espaces Commercial, Client et Restaurateur sur commercial.thetok.ch. Son espace restaurateur contient uniquement un restaurant de démonstration non public.
               </CardDescription>
             </div>
           </div>
@@ -391,6 +394,25 @@ export default function AdminCommercialAccountsPanel() {
                   <Copy className="h-4 w-4" />
                 </Button>
               </div>
+            </div>
+            <div className="rounded-xl border border-emerald-200 bg-background p-3 md:col-span-2">
+              <p className="text-xs text-muted-foreground">Adresse de connexion commerciale isolée</p>
+              <div className="mt-1 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <code className="break-all text-sm font-semibold">{COMMERCIAL_LOGIN_URL}</code>
+                <div className="flex shrink-0 gap-2">
+                  <Button type="button" variant="ghost" size="icon" aria-label="Copier l'adresse de connexion commerciale" onClick={() => copyText(COMMERCIAL_LOGIN_URL, "Adresse de connexion") }>
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                  <Button asChild type="button" variant="outline" size="sm" className="gap-2">
+                    <a href={COMMERCIAL_LOGIN_URL} target="_blank" rel="noreferrer">
+                      Ouvrir <ExternalLink className="h-4 w-4" />
+                    </a>
+                  </Button>
+                </div>
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Réservations, commandes, restaurant et paiements de ce compte restent dans l'environnement de démonstration.
+              </p>
             </div>
             <div className="md:col-span-2 flex justify-end">
               <Button type="button" variant="outline" onClick={() => setOneTimeCredentials(null)}>J'ai copié les identifiants</Button>

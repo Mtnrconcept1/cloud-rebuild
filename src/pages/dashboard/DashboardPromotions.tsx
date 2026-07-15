@@ -14,8 +14,57 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, BadgePercent, Trash2, Edit2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
+import {
+  readCommercialDemoToolState,
+  writeCommercialDemoToolState,
+} from "@/lib/commercialDemoRestaurantTools";
 
 const supabase = getSupabase();
+
+const COMMERCIAL_DEMO_PROMOTIONS_TOOL = "promotions";
+
+type PromotionRecord = {
+  id: string;
+  restaurant_id: string;
+  name: string;
+  promotion_type: string;
+  promotion_value: number;
+  target: string;
+  start_at: string;
+  end_at: string;
+  active: boolean;
+  created_at?: string;
+};
+
+type PromotionPayload = Omit<PromotionRecord, "id" | "active" | "created_at">;
+
+function commercialDemoPromotionId(sessionId: string) {
+  const suffix = typeof globalThis.crypto?.randomUUID === "function"
+    ? globalThis.crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  return `commercial-demo-promotion-${sessionId}-${suffix}`;
+}
+
+function buildCommercialDemoPromotionSeed(sessionId: string, restaurantId: string): PromotionRecord[] {
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 14);
+
+  return [{
+    id: `commercial-demo-promotion-${sessionId}-welcome`,
+    restaurant_id: restaurantId,
+    name: "Offre découverte",
+    promotion_type: "percentage",
+    promotion_value: 15,
+    target: "new",
+    start_at: start.toISOString(),
+    end_at: end.toISOString(),
+    active: true,
+    created_at: start.toISOString(),
+  }];
+}
 
 const PROMO_TYPES = [
   { value: "percentage", label: "Pourcentage" },
@@ -30,33 +79,83 @@ const TARGET_OPTIONS = [
 ];
 
 export default function DashboardPromotions() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemo = commercialDemoFrame?.surface === "restaurant";
+  const demoSessionId = isCommercialDemo ? commercialDemoFrame.config.sessionId : null;
   const { restaurantIds } = useOwnerRestaurants();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
-  const [editing, setEditing] = useState<any>(null);
+  const [editing, setEditing] = useState<PromotionRecord | null>(null);
+  const effectiveRestaurantIds = isCommercialDemo && commercialDemoFrame
+    ? [commercialDemoFrame.snapshot.demo_restaurant.id]
+    : restaurantIds;
+  const promotionsQueryKey = ["dashboard-promotions", effectiveRestaurantIds, demoSessionId] as const;
+  const demoSeed = isCommercialDemo && commercialDemoFrame
+    ? buildCommercialDemoPromotionSeed(
+      commercialDemoFrame.config.sessionId,
+      commercialDemoFrame.snapshot.demo_restaurant.id,
+    )
+    : [];
 
-  const { data: promotions, isLoading } = useQuery({
-    queryKey: ["dashboard-promotions", restaurantIds],
+  const { data: promotions, isLoading } = useQuery<PromotionRecord[]>({
+    queryKey: promotionsQueryKey,
     queryFn: async () => {
-      if (!restaurantIds.length) return [];
+      if (!effectiveRestaurantIds.length) return [];
+
+      if (demoSessionId) {
+        return readCommercialDemoToolState(
+          demoSessionId,
+          COMMERCIAL_DEMO_PROMOTIONS_TOOL,
+          demoSeed,
+        );
+      }
+
       const { data } = await supabase
         .from("restaurant_promotions")
         .select("*")
-        .in("restaurant_id", restaurantIds)
+        .in("restaurant_id", effectiveRestaurantIds)
         .order("created_at", { ascending: false });
-      return data || [];
+      return (data || []) as PromotionRecord[];
     },
-    enabled: restaurantIds.length > 0,
+    enabled: effectiveRestaurantIds.length > 0,
   });
 
+  const updateCommercialDemoPromotions = (
+    updater: (current: PromotionRecord[]) => PromotionRecord[],
+  ) => {
+    if (!demoSessionId) return false;
+    const current = queryClient.getQueryData<PromotionRecord[]>(promotionsQueryKey)
+      ?? readCommercialDemoToolState(
+        demoSessionId,
+        COMMERCIAL_DEMO_PROMOTIONS_TOOL,
+        demoSeed,
+      );
+    const next = updater(current);
+    writeCommercialDemoToolState(demoSessionId, COMMERCIAL_DEMO_PROMOTIONS_TOOL, next);
+    queryClient.setQueryData(promotionsQueryKey, next);
+    return true;
+  };
+
   const toggleActive = async (id: string, current: boolean) => {
+    if (updateCommercialDemoPromotions((items) => items.map((promotion) => (
+      promotion.id === id ? { ...promotion, active: !current } : promotion
+    )))) {
+      toast({ title: current ? "Promotion désactivée" : "Promotion activée" });
+      return;
+    }
+
     await supabase.from("restaurant_promotions").update({ active: !current }).eq("id", id);
     queryClient.invalidateQueries({ queryKey: ["dashboard-promotions"] });
     toast({ title: current ? "Promotion désactivée" : "Promotion activée" });
   };
 
   const deletePromo = async (id: string) => {
+    if (updateCommercialDemoPromotions((items) => items.filter((promotion) => promotion.id !== id))) {
+      toast({ title: "Promotion supprimée" });
+      return;
+    }
+
     await supabase.from("restaurant_promotions").delete().eq("id", id);
     queryClient.invalidateQueries({ queryKey: ["dashboard-promotions"] });
     toast({ title: "Promotion supprimée" });
@@ -74,8 +173,8 @@ export default function DashboardPromotions() {
           visualLabel="Promos"
           stats={[
             { label: "Promotions", value: promotions?.length || 0, icon: BadgePercent },
-            { label: "Actives", value: promotions?.filter((promo: any) => promo.active).length || 0, icon: Plus },
-            { label: "Restaurants", value: restaurantIds.length, icon: BadgePercent },
+            { label: "Actives", value: promotions?.filter((promo) => promo.active).length || 0, icon: Plus },
+            { label: "Restaurants", value: effectiveRestaurantIds.length, icon: BadgePercent },
           ]}
           actions={(
           <Dialog open={open} onOpenChange={v => { setOpen(v); if (!v) setEditing(null); }}>
@@ -85,12 +184,29 @@ export default function DashboardPromotions() {
             <DialogContent className="max-w-lg">
               <DialogHeader><DialogTitle>{editing ? "Modifier la promotion" : "Nouvelle promotion"}</DialogTitle></DialogHeader>
               <PromoForm
-                restaurantIds={restaurantIds}
+                restaurantIds={effectiveRestaurantIds}
                 initial={editing}
+                demoSessionId={demoSessionId}
+                saveCommercialDemo={(payload) => updateCommercialDemoPromotions((items) => {
+                  const now = new Date().toISOString();
+                  if (editing) {
+                    return items.map((promotion) => promotion.id === editing.id
+                      ? { ...promotion, ...payload }
+                      : promotion);
+                  }
+                  return [{
+                    ...payload,
+                    id: commercialDemoPromotionId(demoSessionId!),
+                    active: true,
+                    created_at: now,
+                  }, ...items];
+                })}
                 onSaved={() => {
                   setOpen(false);
                   setEditing(null);
-                  queryClient.invalidateQueries({ queryKey: ["dashboard-promotions"] });
+                  if (!demoSessionId) {
+                    queryClient.invalidateQueries({ queryKey: ["dashboard-promotions"] });
+                  }
                   toast({ title: editing ? "Promotion modifiée" : "Promotion créée" });
                 }}
               />
@@ -105,7 +221,7 @@ export default function DashboardPromotions() {
           <Card><CardContent className="py-12 text-center text-muted-foreground">Aucune promotion active. Créez-en une pour attirer plus de clients !</CardContent></Card>
         ) : (
           <div className="space-y-3">
-            {promotions.map((promo: any) => {
+            {promotions.map((promo) => {
               const isExpired = new Date(promo.end_at) < new Date();
               return (
                 <Card key={promo.id}>
@@ -144,7 +260,19 @@ export default function DashboardPromotions() {
   );
 }
 
-function PromoForm({ restaurantIds, initial, onSaved }: { restaurantIds: string[]; initial?: any; onSaved: () => void }) {
+function PromoForm({
+  restaurantIds,
+  initial,
+  demoSessionId,
+  saveCommercialDemo,
+  onSaved,
+}: {
+  restaurantIds: string[];
+  initial?: PromotionRecord | null;
+  demoSessionId?: string | null;
+  saveCommercialDemo: (payload: PromotionPayload) => boolean;
+  onSaved: () => void;
+}) {
   const [name, setName] = useState(initial?.name || "");
   const [promoType, setPromoType] = useState(initial?.promotion_type || "percentage");
   const [promoValue, setPromoValue] = useState(initial?.promotion_value?.toString() || "10");
@@ -156,9 +284,14 @@ function PromoForm({ restaurantIds, initial, onSaved }: { restaurantIds: string[
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    const restaurantId = initial?.restaurant_id || restaurantIds[0];
+    if (!restaurantId) {
+      setLoading(false);
+      return;
+    }
     const normalizedPromotionValue = promoType === "free_delivery" ? 0 : Number(promoValue);
-    const payload = {
-      restaurant_id: initial?.restaurant_id || restaurantIds[0],
+    const payload: PromotionPayload = {
+      restaurant_id: restaurantId,
       name,
       promotion_type: promoType,
       promotion_value: normalizedPromotionValue,
@@ -166,6 +299,14 @@ function PromoForm({ restaurantIds, initial, onSaved }: { restaurantIds: string[
       start_at: new Date(startAt).toISOString(),
       end_at: endAt ? new Date(endAt).toISOString() : new Date(Date.now() + 30 * 86400000).toISOString(),
     };
+
+    if (demoSessionId) {
+      const saved = saveCommercialDemo(payload);
+      setLoading(false);
+      if (saved) onSaved();
+      return;
+    }
+
     if (initial) {
       await supabase.from("restaurant_promotions").update(payload).eq("id", initial.id);
     } else {

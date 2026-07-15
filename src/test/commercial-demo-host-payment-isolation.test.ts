@@ -1,7 +1,10 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+import { buildCorsHeaders } from "../../supabase/functions/_shared/cors";
+import { normalizeCheckoutReturnUrl } from "../../supabase/functions/_shared/return-url";
 
 import {
   isCommercialDemoHost,
@@ -20,6 +23,8 @@ const commercialInput = (rawUrl: string, method = "POST") => ({
 });
 
 describe("commercial.thetok.ch production transaction isolation", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
   it("matches only the dedicated exact host and requires cs_test sessions", () => {
     expect(isCommercialDemoHost("commercial.thetok.ch")).toBe(true);
     expect(isCommercialDemoHost("COMMERCIAL.THETOK.CH.")).toBe(true);
@@ -38,6 +43,8 @@ describe("commercial.thetok.ch production transaction isolation", () => {
     expect(shouldBlockCommercialDemoHostRequest(commercialInput(`${supabase}/functions/v1/process-refund`))).toBe(true);
     expect(shouldBlockCommercialDemoHostRequest(commercialInput(`${supabase}/functions/v1/manage-tok-one-subscription`))).toBe(true);
     expect(shouldBlockCommercialDemoHostRequest(commercialInput(`${supabase}/functions/v1/create-social-post-boost`))).toBe(true);
+    expect(shouldBlockCommercialDemoHostRequest(commercialInput(`${supabase}/functions/v1/generate-marketing-visual`))).toBe(true);
+    expect(shouldBlockCommercialDemoHostRequest(commercialInput("https://api.openai.com/v1/images/generations"))).toBe(true);
     expect(shouldBlockCommercialDemoHostRequest(commercialInput(`${supabase}/rest/v1/orders?select=*`, "GET"))).toBe(true);
     expect(shouldBlockCommercialDemoHostRequest(commercialInput(`${supabase}/rest/v1/group_members?select=*`, "GET"))).toBe(true);
     expect(shouldBlockCommercialDemoHostRequest(commercialInput(`${supabase}/rest/v1/invoices?select=*`, "GET"))).toBe(true);
@@ -116,7 +123,10 @@ describe("commercial.thetok.ch production transaction isolation", () => {
     expect(auth).toContain("export async function assertProductionFlowAllowed(");
     expect(auth).toContain('.from("commercial_demo_accounts")');
     expect(auth).toContain('.includes("commercial")');
-    expect(auth).toContain("if (actor.isServiceRole || actor.isAdmin) return");
+    expect(auth).not.toContain('.eq("is_active", true)');
+    expect(auth).toContain("if (actor.isServiceRole) return");
+    expect(auth).not.toContain("if (actor.isServiceRole || actor.isAdmin) return");
+    expect(auth).toContain('normalizeRole(actor.accountType) === "commercial_demo"');
     expect(auth).toContain("COMMERCIAL_DEMO_PRODUCTION_FLOW_BLOCKED");
     expect(auth).toContain("COMMERCIAL_DEMO_ACCOUNT_CHECK_UNAVAILABLE");
 
@@ -132,6 +142,14 @@ describe("commercial.thetok.ch production transaction isolation", () => {
       "complete-restaurant-credit-pack-checkout",
       "create-social-post-boost",
       "process-refund",
+      "cancel-pending-order-checkout",
+      "complete-order-checkout",
+      "restaurant-order-status",
+      "stripe-connect-onboard",
+      "stripe-connect-status",
+      "analyze-restaurant-image",
+      "restaurant-media-governance",
+      "provision-commercial-accounts",
     ];
 
     for (const functionName of guardedFunctions) {
@@ -143,13 +161,47 @@ describe("commercial.thetok.ch production transaction isolation", () => {
     }
   });
 
+  it("allows browser preflights from the dedicated commercial origin", () => {
+    vi.stubGlobal("Deno", { env: { get: () => undefined } });
+    const headers = buildCorsHeaders(new Request("https://project.supabase.co/functions/v1/commercial-demo-checkout", {
+      method: "OPTIONS",
+      headers: { Origin: "https://commercial.thetok.ch" },
+    }));
+
+    expect(headers["Access-Control-Allow-Origin"]).toBe("https://commercial.thetok.ch");
+    expect(headers.Vary).toBe("Origin");
+  });
+
+  it("allows the commercial return host only when the demo checkout opts in", () => {
+    const emptyEnv = () => undefined;
+    const returnUrl = "https://commercial.thetok.ch/commercial/demo-live?demo_checkout=success";
+
+    expect(normalizeCheckoutReturnUrl(returnUrl, { env: emptyEnv })).toBeNull();
+    expect(normalizeCheckoutReturnUrl(returnUrl, {
+      env: emptyEnv,
+      additionalAllowedHosts: ["commercial.thetok.ch"],
+    })).toBe(returnUrl);
+    expect(normalizeCheckoutReturnUrl("https://commercial.thetok.ch.evil.example/commercial", {
+      env: emptyEnv,
+      additionalAllowedHosts: ["commercial.thetok.ch"],
+    })).toBeNull();
+  });
+
   it("blocks production order/reservation rows and reads at the database boundary", () => {
     const migration = read("supabase/migrations/20260715023000_commercial_demo_transaction_host_isolation.sql");
+    const restrictionPredicate = migration.slice(
+      migration.indexOf("CREATE OR REPLACE FUNCTION public.commercial_demo_user_is_restricted("),
+      migration.indexOf("REVOKE ALL", migration.indexOf("CREATE OR REPLACE FUNCTION public.commercial_demo_user_is_restricted(")),
+    );
 
     expect(migration).toContain("CREATE OR REPLACE FUNCTION public.commercial_demo_user_is_restricted(");
     expect(migration).toContain("commercial_role.role = 'commercial'::public.app_role");
     expect(migration).toContain("account.is_active");
-    expect(migration).toContain("role_assignment.role = 'admin'::public.app_role");
+    expect(restrictionPredicate).toContain("FROM public.commercial_demo_accounts AS account");
+    expect(restrictionPredicate).toContain("FROM auth.users AS managed_user");
+    expect(restrictionPredicate).toContain("raw_app_meta_data ->> 'account_type'");
+    expect(restrictionPredicate).not.toContain("account.is_active");
+    expect(restrictionPredicate).not.toContain("role_assignment.role = 'admin'::public.app_role");
     expect(migration).toContain("CREATE OR REPLACE FUNCTION public.can_view_commercial_demo_restaurant(");
     expect(migration).toContain("demo_candidate.id = public.commercial_demo_current_restaurant_id()");
     expect(migration).toContain("CREATE OR REPLACE FUNCTION public.can_view_commercial_demo_branch(");
@@ -161,6 +213,10 @@ describe("commercial.thetok.ch production transaction isolation", () => {
     expect(migration).toContain("'reservations'");
     expect(migration).toContain("'payment_intents'");
     expect(migration).toContain("'payment_transactions'");
+    expect(migration).toContain("'financial_ledger'");
+    expect(migration).toContain("'platform_revenue_entries'");
+    expect(migration).toContain("'restaurant_invoices'");
+    expect(migration).toContain("'restaurant_subscriptions'");
     expect(migration).toContain("AS RESTRICTIVE");
     expect(migration).toContain("scope_production_restaurants_for_commercial_demo_accounts");
     expect(migration).toContain("scope_production_menu_items_for_commercial_demo_accounts");
@@ -169,6 +225,10 @@ describe("commercial.thetok.ch production transaction isolation", () => {
     expect(migration).toContain("'search_restaurants_catalog'");
     expect(migration).toContain("'get_match_group_public_feed'");
     expect(migration).toContain("'get_social_feed_premium_banners'");
+    expect(migration).toContain("protect_commercial_demo_account_boundary");
+    expect(migration).toContain("COMMERCIAL_DEMO_ACCOUNT_TOMBSTONE_REQUIRED");
+    expect(migration).toContain("restaurant_stripe_connect_ready(uuid)");
+    expect(migration).toContain("compute_restaurant_reservation_fees(uuid,date,date)");
     expect(migration).toContain("COMMERCIAL_DEMO_PRODUCTION_TRANSACTION_BLOCKED");
     expect(migration).toContain("COMMERCIAL_DEMO_PRODUCTION_RPC_BLOCKED");
   });

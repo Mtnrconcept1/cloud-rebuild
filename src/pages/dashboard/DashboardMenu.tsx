@@ -17,12 +17,17 @@ import { BookOpen, CheckCircle2, Image as ImageIcon, Images, Loader2, Pencil, Pl
 import ImageUpload from "@/components/ImageUpload";
 import { optimizeImageUpload } from "@/lib/optimizedImages";
 import type { TokImageGenerationResult } from "@/lib/ai/tokAiClient";
+import { generateCommercialDemoVisual } from "@/lib/commercialDemoAi";
 import {
   requestAiCreationNotificationPermission,
   setActiveAiCreationContext,
   startTokImageCreationJob,
 } from "@/lib/ai/aiCreationJobs";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
+import {
+  readCommercialDemoToolState,
+  writeCommercialDemoToolState,
+} from "@/lib/commercialDemoRestaurantTools";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
 
 const supabase = getSupabase();
@@ -80,6 +85,7 @@ const emptyItem = {
 } satisfies MenuItemForm;
 
 const CUSTOM_CATEGORY_VALUE = "__custom__";
+const COMMERCIAL_DEMO_MENU_STORAGE_KEY = "menu-items";
 const MENU_PHOTO_STUDIO_PROMPT =
   "Crée une photo culinaire premium pour une fiche menu TOK. Le rendu doit rester appétissant, naturel, sans texte incrusté, sans logo ajouté par le modèle, avec une lumière studio propre et un cadrage centré sur le plat.";
 
@@ -147,6 +153,8 @@ function getPhotoGenerationErrorMessage(error: unknown) {
 export default function DashboardMenu() {
   const { selectedId } = useDashboardRestaurant();
   const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemo = commercialDemoFrame?.surface === "restaurant";
+  const commercialDemoSessionId = isCommercialDemo ? commercialDemoFrame.config.sessionId : null;
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -165,6 +173,44 @@ export default function DashboardMenu() {
   const mountedRef = useRef(true);
 
   const restaurant = selectedId ? { id: selectedId } : null;
+  const menuQueryKey = [
+    "my-menu-items",
+    restaurant?.id,
+    commercialDemoSessionId || "live",
+  ] as const;
+
+  const getCommercialDemoMenuSeed = (): MenuItemRecord[] => {
+    if (!isCommercialDemo || !commercialDemoFrame) return [];
+    return commercialDemoFrame.snapshot.catalog_items.map((item) => ({
+      id: item.id,
+      restaurant_id: commercialDemoFrame.snapshot.demo_restaurant.id,
+      name: item.name,
+      description: item.description || null,
+      price: item.price,
+      category: item.category || null,
+      image_url: item.image_url || null,
+      is_available: item.is_available,
+    }));
+  };
+
+  const readCommercialDemoMenu = () => {
+    if (!commercialDemoSessionId) return [];
+    return readCommercialDemoToolState<MenuItemRecord[]>(
+      commercialDemoSessionId,
+      COMMERCIAL_DEMO_MENU_STORAGE_KEY,
+      getCommercialDemoMenuSeed(),
+    );
+  };
+
+  const persistCommercialDemoMenu = (nextItems: MenuItemRecord[]) => {
+    if (!commercialDemoSessionId) return;
+    writeCommercialDemoToolState(
+      commercialDemoSessionId,
+      COMMERCIAL_DEMO_MENU_STORAGE_KEY,
+      nextItems,
+    );
+    queryClient.setQueryData<MenuItemRecord[]>(menuQueryKey, nextItems);
+  };
 
   useEffect(() => {
     setActiveAiCreationContext("dashboard-menu:photo-studio");
@@ -176,8 +222,11 @@ export default function DashboardMenu() {
   }, []);
 
   const { data: items } = useQuery<MenuItemRecord[]>({
-    queryKey: ["my-menu-items", restaurant?.id],
+    queryKey: menuQueryKey,
     queryFn: async () => {
+      if (isCommercialDemo && commercialDemoFrame) {
+        return readCommercialDemoMenu();
+      }
       const { data, error } = await supabase
         .from("menu_items")
         .select("*")
@@ -192,8 +241,44 @@ export default function DashboardMenu() {
   });
 
   const { data: galleryItems = [], isLoading: galleryLoading } = useQuery<RestaurantMediaRecord[]>({
-    queryKey: ["restaurant-media-picker", restaurant?.id],
+    queryKey: ["restaurant-media-picker", restaurant?.id, commercialDemoSessionId || "live"],
     queryFn: async () => {
+      if (isCommercialDemo && commercialDemoFrame) {
+        const persistedGallery = readCommercialDemoToolState<Array<Record<string, unknown>>>(
+          commercialDemoFrame.config.sessionId,
+          "photos-gallery",
+          [],
+        );
+        const persistedRows: RestaurantMediaRecord[] = persistedGallery.flatMap((entry, index) => {
+          const mediaUrl = typeof entry.media_url === "string"
+            ? entry.media_url
+            : typeof entry.generated_image_url === "string"
+              ? entry.generated_image_url
+              : "";
+          if (!mediaUrl) return [];
+          return [{
+            id: typeof entry.id === "string" ? entry.id : `demo-gallery-${index}`,
+            media_url: mediaUrl,
+            alt_text: typeof entry.alt_text === "string" ? entry.alt_text : "Visuel de démonstration",
+            media_type: "photo_ai_tok",
+            is_cover: false,
+            position: index,
+            created_at: typeof entry.created_at === "string" ? entry.created_at : new Date().toISOString(),
+          }];
+        });
+        const catalogRows: RestaurantMediaRecord[] = commercialDemoFrame.snapshot.catalog_items.flatMap((item, index) => (
+          item.image_url ? [{
+            id: `demo-catalog-${item.id}`,
+            media_url: item.image_url,
+            alt_text: item.name,
+            media_type: "photo",
+            is_cover: false,
+            position: persistedRows.length + index,
+            created_at: commercialDemoFrame.snapshot.session.created_at || new Date().toISOString(),
+          }] : []
+        ));
+        return [...persistedRows, ...catalogRows].slice(0, 24);
+      }
       const { data, error } = await supabase
         .from("restaurant_media")
         .select("id, media_url, alt_text, media_type, is_cover, position, created_at")
@@ -245,11 +330,39 @@ export default function DashboardMenu() {
 
   const refreshMenu = () => {
     if (!restaurant) return;
-    queryClient.invalidateQueries({ queryKey: ["my-menu-items", restaurant.id] });
+    if (isCommercialDemo) {
+      queryClient.setQueryData<MenuItemRecord[]>(menuQueryKey, readCommercialDemoMenu());
+      return;
+    }
+    queryClient.invalidateQueries({ queryKey: ["my-menu-items", restaurant.id, "live"] });
   };
 
   const handleSave = async () => {
     if (!restaurant) return;
+
+    if (isCommercialDemo && commercialDemoFrame) {
+      const current = readCommercialDemoMenu();
+      const normalizedRecord: MenuItemRecord = {
+        id: editingId || globalThis.crypto?.randomUUID?.() || `demo-menu-${Date.now()}`,
+        restaurant_id: commercialDemoFrame.snapshot.demo_restaurant.id,
+        name: form.name.trim() || "Nouveau plat de démonstration",
+        description: form.description.trim() || null,
+        price: Math.max(0, Number(form.price) || 0),
+        category: form.category.trim() || null,
+        image_url: form.image_url || null,
+        is_available: form.is_available,
+      };
+      const next = editingId
+        ? current.map((item) => item.id === editingId ? normalizedRecord : item)
+        : [...current, normalizedRecord];
+      persistCommercialDemoMenu(next);
+      toast({
+        title: editingId ? "Plat de démonstration mis à jour" : "Plat de démonstration ajouté",
+        description: "La modification reste limitée à cette session commerciale.",
+      });
+      setDialogOpen(false);
+      return;
+    }
 
     if (editingId) {
       const { error } = await supabase
@@ -278,6 +391,15 @@ export default function DashboardMenu() {
   const handleDelete = async (id: string) => {
     if (!restaurant) return;
 
+    if (isCommercialDemo) {
+      persistCommercialDemoMenu(readCommercialDemoMenu().filter((item) => item.id !== id));
+      toast({
+        title: "Plat de démonstration supprimé",
+        description: "Aucune donnée du menu réel n'a été modifiée.",
+      });
+      return;
+    }
+
     const { error } = await supabase
       .from("menu_items")
       .delete()
@@ -295,6 +417,17 @@ export default function DashboardMenu() {
 
   const toggleAvailability = async (id: string, current: boolean) => {
     if (!restaurant) return;
+
+    if (isCommercialDemo) {
+      persistCommercialDemoMenu(readCommercialDemoMenu().map((item) => (
+        item.id === id ? { ...item, is_available: !current } : item
+      )));
+      toast({
+        title: "Disponibilité simulée",
+        description: "Le changement reste limité à cette session commerciale.",
+      });
+      return;
+    }
 
     const { error } = await supabase
       .from("menu_items")
@@ -317,13 +450,6 @@ export default function DashboardMenu() {
 
   const generateMenuPhoto = async () => {
     if (!restaurant) return;
-    if (commercialDemoFrame?.surface === "restaurant") {
-      toast({
-        title: "Studio photo en mode démonstration",
-        description: "La génération est simulée ici afin de ne consommer aucun crédit ni API payante.",
-      });
-      return;
-    }
     if (!form.name.trim() && !form.image_url.trim()) {
       toast({
         title: "Nom ou photo requis",
@@ -336,30 +462,44 @@ export default function DashboardMenu() {
     setGeneratingPhoto(true);
     setPhotoStudioResult(null);
     try {
-      void requestAiCreationNotificationPermission();
-      const { promise } = startTokImageCreationJob({
+      const request = {
         restaurantId: restaurant.id,
-        tool: "menu_photo",
-        title: form.name.trim() || "Photo de plat",
-        request: {
+        sourceImageUrl: form.image_url.trim() || null,
+        dishName: form.name.trim() || null,
+        prompt: buildMenuPhotoStudioPrompt(form),
+        assetType: "menu_visual" as const,
+        format: "square" as const,
+        variantCount: 1,
+        generateImage: true,
+        imageOnly: true,
+      };
+      let result: TokImageGenerationResult;
+      if (commercialDemoFrame?.surface === "restaurant") {
+        result = await generateCommercialDemoVisual({
+          sessionId: commercialDemoFrame.config.sessionId,
+          surface: "restaurant",
+        }, request);
+      } else {
+        void requestAiCreationNotificationPermission();
+        const { promise } = startTokImageCreationJob({
           restaurantId: restaurant.id,
-          sourceImageUrl: form.image_url.trim() || null,
-          dishName: form.name.trim() || null,
-          prompt: buildMenuPhotoStudioPrompt(form),
-          assetType: "menu_visual",
-          format: "square",
-          variantCount: 1,
-          generateImage: true,
-          imageOnly: true,
-        },
-      });
-      const result = await promise;
+          tool: "menu_photo",
+          title: form.name.trim() || "Photo de plat",
+          request,
+        });
+        result = await promise;
+      }
       const generatedImageUrl = result.gallery_image_url || result.generated_image_url;
       if (!generatedImageUrl) throw new Error("Aucune image générée par le studio.");
       if (!mountedRef.current) return;
       setPhotoStudioResult(result);
       setForm((previous) => ({ ...previous, image_url: generatedImageUrl }));
-      toast({ title: "Image générée", description: "Le visuel du studio est appliqué au plat." });
+      toast({
+        title: "Image générée",
+        description: commercialDemoFrame?.surface === "restaurant"
+          ? "Le visuel Démo zéro coût est appliqué au plat simulé."
+          : "Le visuel du studio est appliqué au plat.",
+      });
     } catch (error) {
       if (!mountedRef.current) return;
       toast({ title: "Erreur IA", description: getPhotoGenerationErrorMessage(error), variant: "destructive" });
@@ -396,9 +536,26 @@ export default function DashboardMenu() {
   const analyzeMenuPhotos = async () => {
     if (!restaurant || !menuImportFiles.length) return;
     if (commercialDemoFrame?.surface === "restaurant") {
+      const sourceItems = commercialDemoFrame.snapshot.catalog_items.slice(0, 3);
+      const detectedItems = sourceItems.length > 0
+        ? sourceItems
+        : [{
+            name: "Menu découverte TOK",
+            description: "Suggestion extraite localement pour la démonstration.",
+            price: 24.9,
+            category: "Plats",
+          }];
+      setImportedMenuItems(detectedItems.map((item) => ({
+        name: item.name,
+        description: item.description || "Suggestion extraite localement pour la démonstration.",
+        price: Number(item.price) || 0,
+        category: item.category || "Autres",
+        selected: true,
+      })));
+      setMenuImportWarnings(["Résultat simulé localement : aucune photo n'a été envoyée à une API externe."]);
       toast({
-        title: "Analyse de menu en mode démonstration",
-        description: "L’analyse IA est simulée ici afin de ne consommer aucun crédit ni API payante.",
+        title: "Analyse de démonstration terminée",
+        description: "Vérifiez les plats détectés puis ajoutez-les au menu simulé.",
       });
       return;
     }
@@ -454,6 +611,23 @@ export default function DashboardMenu() {
 
     if (!selectedItems.length) {
       toast({ title: "Aucun plat sélectionné", description: "Sélectionnez au moins un élément valide.", variant: "destructive" });
+      return;
+    }
+
+    if (isCommercialDemo && commercialDemoFrame) {
+      setSavingImportedMenu(true);
+      const nextRows: MenuItemRecord[] = selectedItems.map((item, index) => ({
+        ...item,
+        id: globalThis.crypto?.randomUUID?.() || `demo-import-${Date.now()}-${index}`,
+        restaurant_id: commercialDemoFrame.snapshot.demo_restaurant.id,
+      }));
+      persistCommercialDemoMenu([...readCommercialDemoMenu(), ...nextRows]);
+      setSavingImportedMenu(false);
+      setImportDialogOpen(false);
+      toast({
+        title: "Menu de démonstration créé",
+        description: `${nextRows.length} élément${nextRows.length > 1 ? "s" : ""} ajouté${nextRows.length > 1 ? "s" : ""} sans écriture en production.`,
+      });
       return;
     }
 

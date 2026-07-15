@@ -16,6 +16,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import {
   type TokImageFormat,
+  type TokImageGenerationRequest,
   type TokImageGenerationResult,
 } from "@/lib/ai/tokAiClient";
 import {
@@ -31,6 +32,14 @@ import { createTokGenerationSeed, sanitizeTokGenerationSeed } from "@/lib/ai/gen
 import { optimizeImageUpload } from "@/lib/optimizedImages";
 import { formatAiImageGenerationError, isTokCreditError } from "@/lib/publicErrorMessages";
 import { assertSafeFileUpload, getSafeUploadExtension } from "@/lib/uploadSecurity";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
+import {
+  generateCommercialDemoVisual,
+  getCommercialDemoVisualHistory,
+  type CommercialDemoAiRuntime,
+  type CommercialDemoVisualHistoryItem,
+} from "@/lib/commercialDemoAi";
+import type { CommercialDemoSnapshot } from "@/lib/commercialDemoJourney";
 import {
   AlertTriangle,
   ArrowRight,
@@ -945,8 +954,231 @@ async function uploadMarketingResource(input: {
   return rowToMarketingResource(media as Record<string, unknown>);
 }
 
+function escapeDemoSvgText(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
+function demoSvgDataUrl(svg: string) {
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}
+
+function clampColorChannel(value: number) {
+  return Math.max(0, Math.min(255, Math.round(value)));
+}
+
+function rgbToHex(red: number, green: number, blue: number) {
+  return `#${[red, green, blue]
+    .map((channel) => clampColorChannel(channel).toString(16).padStart(2, "0"))
+    .join("")}`;
+}
+
+function mixRgb(
+  color: { red: number; green: number; blue: number },
+  target: { red: number; green: number; blue: number },
+  amount: number,
+) {
+  return {
+    red: color.red + (target.red - color.red) * amount,
+    green: color.green + (target.green - color.green) * amount,
+    blue: color.blue + (target.blue - color.blue) * amount,
+  };
+}
+
+function hashMarketingReferences(resources: MarketingResource[]) {
+  const value = resources
+    .map((resource) => `${resource.kind}:${resource.fileName}:${resource.fileSize}:${resource.mimeType}`)
+    .join("|");
+  let hash = 2166136261;
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(16).padStart(8, "0");
+}
+
+async function sampleMarketingReference(resource: MarketingResource) {
+  if (typeof document === "undefined" || !resource.mediaUrl) return null;
+
+  return new Promise<{ red: number; green: number; blue: number } | null>((resolve) => {
+    const image = new Image();
+    let settled = false;
+    const finish = (value: { red: number; green: number; blue: number } | null) => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timeoutId);
+      resolve(value);
+    };
+    const timeoutId = window.setTimeout(() => finish(null), 3500);
+
+    if (resource.mediaUrl.startsWith("https://")) image.crossOrigin = "anonymous";
+    image.onload = () => {
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = 24;
+        canvas.height = 24;
+        const context = canvas.getContext("2d", { willReadFrequently: true });
+        if (!context) return finish(null);
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+        const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
+        let red = 0;
+        let green = 0;
+        let blue = 0;
+        let weight = 0;
+        for (let index = 0; index < pixels.length; index += 4) {
+          const alpha = pixels[index + 3] / 255;
+          if (alpha < 0.2) continue;
+          const pixelRed = pixels[index];
+          const pixelGreen = pixels[index + 1];
+          const pixelBlue = pixels[index + 2];
+          const contrast = Math.max(pixelRed, pixelGreen, pixelBlue) - Math.min(pixelRed, pixelGreen, pixelBlue);
+          const pixelWeight = alpha * (1 + contrast / 255);
+          red += pixelRed * pixelWeight;
+          green += pixelGreen * pixelWeight;
+          blue += pixelBlue * pixelWeight;
+          weight += pixelWeight;
+        }
+        finish(weight > 0 ? { red: red / weight, green: green / weight, blue: blue / weight } : null);
+      } catch {
+        // Cross-origin references can reject canvas reads. The deterministic fallback below remains isolated.
+        finish(null);
+      }
+    };
+    image.onerror = () => finish(null);
+    image.src = resource.mediaUrl;
+  });
+}
+
+async function buildCommercialDemoReferencePalette(
+  resources: MarketingResource[],
+): Promise<NonNullable<TokImageGenerationRequest["demoReferencePalette"]>> {
+  const selected = resources.slice(0, MARKETING_REFERENCE_LIMIT);
+  const sampled = (await Promise.all(selected.map(sampleMarketingReference))).filter(
+    (color): color is { red: number; green: number; blue: number } => Boolean(color),
+  );
+  const fingerprint = hashMarketingReferences(selected);
+  const fallbackSeed = Number.parseInt(fingerprint.slice(0, 6), 16) || 0xff6b00;
+  const base = sampled.length > 0
+    ? sampled.reduce((total, color) => ({
+        red: total.red + color.red / sampled.length,
+        green: total.green + color.green / sampled.length,
+        blue: total.blue + color.blue / sampled.length,
+      }), { red: 0, green: 0, blue: 0 })
+    : {
+        red: (fallbackSeed >> 16) & 255,
+        green: (fallbackSeed >> 8) & 255,
+        blue: fallbackSeed & 255,
+      };
+  const primary = mixRgb(base, { red: 255, green: 107, blue: 0 }, 0.18);
+  const secondary = mixRgb(base, { red: 255, green: 255, blue: 255 }, 0.58);
+  const background = mixRgb(base, { red: 9, green: 9, blue: 11 }, 0.74);
+
+  return {
+    primaryColor: rgbToHex(primary.red, primary.green, primary.blue),
+    secondaryColor: rgbToHex(secondary.red, secondary.green, secondary.blue),
+    backgroundColor: rgbToHex(background.red, background.green, background.blue),
+    fingerprint,
+    label: selected.map((resource) => resource.fileName).join(", ").slice(0, 90),
+  };
+}
+
+function buildCommercialDemoMarketingResources(snapshot: CommercialDemoSnapshot): MarketingResource[] {
+  const restaurant = snapshot.demo_restaurant;
+  const restaurantName = escapeDemoSvgText(restaurant.name || "Restaurant Démo TOK");
+  const menuLines = snapshot.catalog_items
+    .filter((item) => item.is_available)
+    .slice(0, 4)
+    .map((item, index) => (
+      `<text x="42" y="${96 + index * 36}" fill="#1f2937" font-size="20" font-family="Arial, sans-serif">${escapeDemoSvgText(item.name)}</text>`
+    ))
+    .join("");
+  const logoSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="720" height="720" viewBox="0 0 720 720"><rect width="720" height="720" rx="96" fill="#fff7ed"/><circle cx="360" cy="300" r="170" fill="#ff6b00"/><text x="360" y="328" text-anchor="middle" fill="white" font-size="92" font-weight="800" font-family="Arial, sans-serif">TOK</text><text x="360" y="540" text-anchor="middle" fill="#111827" font-size="38" font-weight="700" font-family="Arial, sans-serif">${restaurantName}</text></svg>`;
+  const menuSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1200" viewBox="0 0 900 1200"><rect width="900" height="1200" fill="#fffaf5"/><rect x="24" y="24" width="852" height="1152" rx="36" fill="none" stroke="#ff6b00" stroke-width="8"/><text x="42" y="62" fill="#ff6b00" font-size="28" font-weight="800" font-family="Arial, sans-serif">CARTE DÉMO · ${restaurantName}</text>${menuLines}<text x="42" y="1128" fill="#6b7280" font-size="18" font-family="Arial, sans-serif">Ressource isolée de la session commerciale</text></svg>`;
+  const resources: MarketingResource[] = [
+    {
+      id: `demo-logo-${restaurant.id}`,
+      kind: "logo",
+      fileName: `Logo Démo ${restaurant.name}`,
+      fileSize: 0,
+      mimeType: "image/svg+xml",
+      mediaUrl: demoSvgDataUrl(logoSvg),
+      storageBucket: null,
+      storagePath: null,
+      persisted: true,
+    },
+    {
+      id: `demo-menu-${restaurant.id}`,
+      kind: "restaurant_menu",
+      fileName: "Carte Démo TOK",
+      fileSize: 0,
+      mimeType: "image/svg+xml",
+      mediaUrl: demoSvgDataUrl(menuSvg),
+      storageBucket: null,
+      storagePath: null,
+      persisted: true,
+    },
+  ];
+
+  if (restaurant.image_url) {
+    resources.push({
+      id: `demo-visual-${restaurant.id}`,
+      kind: "brand_visuals",
+      fileName: `Visuel ${restaurant.name}`,
+      fileSize: 0,
+      mimeType: "image/*",
+      mediaUrl: restaurant.image_url,
+      storageBucket: null,
+      storagePath: null,
+      persisted: true,
+    });
+  }
+
+  return resources;
+}
+
+function buildCommercialDemoBusinessContext(snapshot: CommercialDemoSnapshot): MarketingBusinessContext {
+  const restaurant = snapshot.demo_restaurant;
+  return {
+    restaurant: {
+      name: restaurant.name,
+      description: restaurant.description || null,
+      address: restaurant.address || null,
+      city: restaurant.city || null,
+      phone: restaurant.phone || null,
+      cuisineType: restaurant.cuisine_type || null,
+      email: null,
+      website: null,
+    },
+    menuItems: snapshot.catalog_items.map((item) => ({
+      name: item.name,
+      description: item.description || null,
+      price: item.price,
+      category: item.category || null,
+      isAvailable: item.is_available,
+    })),
+    menuItemsTruncated: false,
+  };
+}
+
 export default function TokAiMarketingStudio({ restaurantId }: Props) {
   const { toast } = useToast();
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const commercialDemoSessionId = commercialDemoFrame?.config.sessionId;
+  const commercialDemoSurface = commercialDemoFrame?.surface;
+  const demoRuntime = useMemo<CommercialDemoAiRuntime | null>(() => {
+    if (!commercialDemoSessionId || !commercialDemoSurface || commercialDemoSurface === "commercial") return null;
+    return {
+      sessionId: commercialDemoSessionId,
+      surface: commercialDemoSurface,
+    };
+  }, [commercialDemoSessionId, commercialDemoSurface]);
+  const isCommercialDemo = Boolean(demoRuntime);
+  const demoStudioEnabled = !commercialDemoFrame
+    || commercialDemoFrame.snapshot.active_features.includes("dashboard-photos");
   const [activeTool, setActiveTool] = useState<MarketingToolId>("flyer");
   const [prompt, setPrompt] = useState("");
   const [format, setFormat] = useState(DEFAULT_MARKETING_FORMAT.label);
@@ -961,6 +1193,8 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
   const [uploadingKind, setUploadingKind] = useState<MarketingAssetKind | null>(null);
   const [deletingResourceId, setDeletingResourceId] = useState<string | null>(null);
   const [marketingImageResult, setMarketingImageResult] = useState<MarketingImageResult | null>(null);
+  const [demoGenerationHistory, setDemoGenerationHistory] = useState<CommercialDemoVisualHistoryItem[]>([]);
+  const [demoHistoryLoading, setDemoHistoryLoading] = useState(false);
   const [activeStep, setActiveStep] = useState<MarketingWorkflowStep>(1);
   const [creditError, setCreditError] = useState<string | null>(null);
   const [visiblePromptIdeaCount, setVisiblePromptIdeaCount] = useState(MARKETING_SUGGESTION_BATCH_SIZE);
@@ -969,6 +1203,8 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
   const mountedRef = useRef(true);
   const renderSettingsRef = useRef<HTMLDivElement | null>(null);
   const renderSettingsScrollFrameRef = useRef<number | null>(null);
+  const demoObjectUrlsRef = useRef(new Set<string>());
+  const initializedDemoResourcesRef = useRef<string | null>(null);
 
   const activeToolConfig = MARKETING_TOOLS.find((tool) => tool.id === activeTool) || MARKETING_TOOLS[0]!;
   const selectedFormat = getFormatByLabel(activeToolConfig.formats, format);
@@ -988,24 +1224,72 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
   const hasBrandResources = persistedResources.length >= 2;
   const marketingImageFormat = getMarketingImageFormat(selectedFormat.label, selectedFormat.orientation);
   const outputPricing = getTokImageOutputPricing(marketingImageFormat, outputResolution);
+  const displayedModelLabel = isCommercialDemo ? "TOK Démo zéro coût" : outputPricing.modelLabel;
+  const displayedPhotoCredits = isCommercialDemo ? 0 : outputPricing.photoCredits;
   const sanitizedGenerationSeed = sanitizeTokGenerationSeed(generationSeed);
   const { data: businessContext, isLoading: businessContextLoading } = useQuery({
-    queryKey: ["marketing-studio-business-context", restaurantId],
+    queryKey: ["marketing-studio-business-context", restaurantId, isCommercialDemo],
     queryFn: () => fetchMarketingBusinessContext(restaurantId!),
-    enabled: !!restaurantId,
+    enabled: !!restaurantId && !isCommercialDemo,
   });
+  const demoBusinessContext = useMemo(() => (
+    commercialDemoFrame ? buildCommercialDemoBusinessContext(commercialDemoFrame.snapshot) : null
+  ), [commercialDemoFrame]);
+  const activeBusinessContext = isCommercialDemo ? demoBusinessContext : businessContext;
+  const activeBusinessContextLoading = isCommercialDemo ? false : businessContextLoading;
+  const demoResourceFingerprint = commercialDemoFrame
+    ? [
+      commercialDemoFrame.config.sessionId,
+      commercialDemoFrame.snapshot.demo_restaurant.image_url || "",
+      ...commercialDemoFrame.snapshot.catalog_items.map((item) => `${item.id}:${item.name}:${item.is_available}`),
+    ].join("|")
+    : "";
 
   useEffect(() => {
+    if (isCommercialDemo) return;
     setActiveAiCreationContext("dashboard-photos:marketing");
     return () => setActiveAiCreationContext(null);
+  }, [isCommercialDemo]);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    const demoObjectUrls = demoObjectUrlsRef.current;
+    return () => {
+      mountedRef.current = false;
+      if (renderSettingsScrollFrameRef.current !== null) {
+        window.cancelAnimationFrame(renderSettingsScrollFrameRef.current);
+      }
+      for (const objectUrl of demoObjectUrls) URL.revokeObjectURL(objectUrl);
+      demoObjectUrls.clear();
+    };
   }, []);
 
-  useEffect(() => () => {
-    mountedRef.current = false;
-    if (renderSettingsScrollFrameRef.current !== null) {
-      window.cancelAnimationFrame(renderSettingsScrollFrameRef.current);
+  useEffect(() => {
+    let cancelled = false;
+    if (!demoRuntime) {
+      setDemoGenerationHistory([]);
+      setDemoHistoryLoading(false);
+      return undefined;
     }
-  }, []);
+
+    setDemoHistoryLoading(true);
+    getCommercialDemoVisualHistory(demoRuntime, "marketing_studio", 20)
+      .then((items) => {
+        if (cancelled) return;
+        setDemoGenerationHistory(items);
+        setMarketingImageResult((current) => current || items[0] || null);
+      })
+      .catch(() => {
+        if (!cancelled) setDemoGenerationHistory([]);
+      })
+      .finally(() => {
+        if (!cancelled) setDemoHistoryLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [demoRuntime]);
 
   const resourcesByKind = useMemo(() => {
     return resources.reduce<Record<MarketingAssetKind, MarketingResource[]>>(
@@ -1116,6 +1400,9 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
 
   useEffect(() => {
     let cancelled = false;
+    if (commercialDemoFrame && initializedDemoResourcesRef.current === demoResourceFingerprint) {
+      return;
+    }
     generationRequestRef.current += 1;
     setLoading(false);
     setMarketingImageResult(null);
@@ -1123,12 +1410,21 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
 
     async function loadMarketingAssets() {
       if (!restaurantId) {
+        initializedDemoResourcesRef.current = null;
         setResources([]);
         setResourcesLoading(false);
         return;
       }
 
+      if (commercialDemoFrame) {
+        initializedDemoResourcesRef.current = demoResourceFingerprint;
+        setResources(buildCommercialDemoMarketingResources(commercialDemoFrame.snapshot));
+        setResourcesLoading(false);
+        return;
+      }
+
       setResourcesLoading(true);
+      initializedDemoResourcesRef.current = null;
       try {
         const latestResources = await fetchMarketingResources(restaurantId);
         if (cancelled) return;
@@ -1148,7 +1444,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
 
     loadMarketingAssets();
     return () => { cancelled = true; };
-  }, [restaurantId, toast]);
+  }, [commercialDemoFrame, demoResourceFingerprint, restaurantId, toast]);
 
   const handleResourceFiles = async (kind: MarketingAssetKind, event: ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
@@ -1177,6 +1473,35 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
 
     if (!restaurantId) {
       toast({ title: "Restaurant requis", description: "Sélectionnez un restaurant avant d'ajouter des visuels.", variant: "destructive" });
+      return;
+    }
+
+    if (isCommercialDemo) {
+      invalidateMarketingGeneration();
+      const localResources = accepted.map((file) => {
+        const id = typeof crypto.randomUUID === "function"
+          ? crypto.randomUUID()
+          : `demo-resource-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        const mediaUrl = URL.createObjectURL(file);
+        demoObjectUrlsRef.current.add(mediaUrl);
+        return {
+          id,
+          mediaId: id,
+          kind,
+          fileName: file.name,
+          fileSize: file.size,
+          mimeType: file.type,
+          mediaUrl,
+          storageBucket: null,
+          storagePath: null,
+          persisted: true,
+        } satisfies MarketingResource;
+      });
+      setResources((current) => [...localResources, ...current]);
+      toast({
+        title: "Références ajoutées à la Démo",
+        description: "Les fichiers restent dans cette fenêtre et ne sont envoyés ni au Storage ni aux tables de production.",
+      });
       return;
     }
 
@@ -1238,6 +1563,19 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
     if (deletingResourceId) return;
 
     invalidateMarketingGeneration();
+
+    if (isCommercialDemo) {
+      setResources((current) => current.filter((item) => item.id !== resource.id));
+      if (resource.mediaUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(resource.mediaUrl);
+        demoObjectUrlsRef.current.delete(resource.mediaUrl);
+      }
+      toast({
+        title: "Référence retirée de la Démo",
+        description: "Aucune donnée ou ressource de production n'a été modifiée.",
+      });
+      return;
+    }
 
     if (!resource.persisted) {
       setResources((current) => current.filter((item) => item.id !== resource.id));
@@ -1341,11 +1679,13 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
     setMarketingImageResult(null);
 
     try {
-      void requestAiCreationNotificationPermission();
-      const [latestResources, latestBusinessContext] = await Promise.all([
-        fetchMarketingResources(restaurantId),
-        fetchMarketingBusinessContext(restaurantId),
-      ]);
+      if (!isCommercialDemo) void requestAiCreationNotificationPermission();
+      const [latestResources, latestBusinessContext] = isCommercialDemo
+        ? [resources, activeBusinessContext || null] as const
+        : await Promise.all([
+          fetchMarketingResources(restaurantId),
+          fetchMarketingBusinessContext(restaurantId),
+        ]);
       if (!mountedRef.current || generationRequestRef.current !== requestId) return;
 
       setResources(latestResources);
@@ -1354,7 +1694,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
       const generationResourceIds = generationResources
         .map((resource) => resource.mediaId)
         .filter((mediaId): mediaId is string => Boolean(mediaId));
-      if (!generationResources.length) {
+      if (!isCommercialDemo && !generationResources.length) {
         toast({
           title: "Reference requise",
           description: "Ajoutez au moins une ressource de marque active avant de generer un visuel marketing.",
@@ -1362,7 +1702,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
         });
         return;
       }
-      if (generationResourceIds.length !== generationResources.length) {
+      if (!isCommercialDemo && generationResourceIds.length !== generationResources.length) {
         toast({
           title: "Reference instable",
           description: "Rechargez les ressources de marque avant de generer. TOK ne lance pas de generation avec des references non identifiees.",
@@ -1370,6 +1710,10 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
         });
         return;
       }
+      const demoReferencePalette = isCommercialDemo
+        ? await buildCommercialDemoReferencePalette(generationResources)
+        : null;
+      if (!mountedRef.current || generationRequestRef.current !== requestId) return;
 
       const imagePrompt = buildMarketingImagePrompt({
         toolTitle: activeToolConfig.title,
@@ -1384,41 +1728,65 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
         businessContext: latestBusinessContext,
       });
 
-      const { promise } = startTokImageCreationJob({
+      const generationRequest = {
         restaurantId,
-        tool: "marketing_studio",
-        title: `${activeToolConfig.title} ${selectedFormat.label}`,
-        request: {
+        prompt: imagePrompt,
+        referenceImageUrls: generationResources.map((resource) => resource.mediaUrl),
+        referenceMediaIds: generationResourceIds,
+        dishName: activeToolConfig.title,
+        assetType: "campaign_visual" as const,
+        format: marketingImageFormat,
+        outputResolution,
+        variantCount: 1,
+        generationSeed: safeGenerationSeed || null,
+        generateImage: true,
+        imageOnly: true,
+        marketingAssetMode: true,
+        styleMode,
+        demoReferencePalette,
+      };
+      const imageResult = demoRuntime
+        ? await generateCommercialDemoVisual(demoRuntime, generationRequest)
+        : await startTokImageCreationJob({
           restaurantId,
-          prompt: imagePrompt,
-          referenceImageUrls: generationResources.map((resource) => resource.mediaUrl),
-          referenceMediaIds: generationResourceIds,
-          dishName: activeToolConfig.title,
-          assetType: "campaign_visual",
-          format: marketingImageFormat,
-          outputResolution,
-          variantCount: 1,
-          generationSeed: safeGenerationSeed || null,
-          generateImage: true,
-          imageOnly: true,
-          marketingAssetMode: true,
-        },
-      });
-      const imageResult = await promise;
+          tool: "marketing_studio",
+          title: `${activeToolConfig.title} ${selectedFormat.label}`,
+          request: generationRequest,
+        }).promise;
 
       if (!mountedRef.current || generationRequestRef.current !== requestId) return;
 
       setGenerationSeed(imageResult.generation_seed || safeGenerationSeed);
       setMarketingImageResult(imageResult);
+      if (isCommercialDemo && imageResult.created_at) {
+        const historyItem: CommercialDemoVisualHistoryItem = {
+          ...imageResult,
+          created_at: imageResult.created_at,
+          prompt: imagePrompt,
+          tool: "marketing_studio",
+          style: styleMode,
+        };
+        setDemoGenerationHistory((current) => [
+          historyItem,
+          ...current.filter((item) => item.assetId !== historyItem.assetId),
+        ].slice(0, 20));
+      }
       setCreditError(null);
       toast({
         title: "Image marketing générée",
-        description: `Le visuel a été produit avec ${imageResult.model || "OpenAI"} pour ${outputPricing.photoCredits} crédit(s) photo IA.`,
+        description: isCommercialDemo
+          ? "Le visuel a été créé dans les tables Démo, sans API payante, sans crédit et sans Storage de production."
+          : `Le visuel a été produit avec ${imageResult.model || "OpenAI"} pour ${outputPricing.photoCredits} crédit(s) photo IA.`,
       });
     } catch (error) {
       if (!mountedRef.current || generationRequestRef.current !== requestId) return;
-      const message = formatMarketingImageGenerationError(error);
-      if (isTokCreditError(error)) setCreditError(message);
+      const rawMessage = error instanceof Error ? error.message : "";
+      const message = isCommercialDemo
+        ? /disabled|désactiv/i.test(rawMessage)
+          ? "Le Studio Marketing est désactivé par le flag administrateur dashboard-photos."
+          : "Le moteur visuel de démonstration est momentanément indisponible. Réessayez dans quelques instants."
+        : formatMarketingImageGenerationError(error);
+      if (!isCommercialDemo && isTokCreditError(error)) setCreditError(message);
       toast({
         title: "Image impossible",
         description: message,
@@ -1431,6 +1799,19 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
 
   const generatedMarketingImageUrl = marketingImageResult?.gallery_image_url || marketingImageResult?.generated_image_url || "";
 
+  if (!demoStudioEnabled) {
+    return (
+      <Card className="border-dashed">
+        <CardHeader>
+          <CardTitle>Studio Marketing désactivé</CardTitle>
+          <CardDescription>
+            Le flag dashboard-photos est désactivé par l'administrateur pour cette démonstration.
+          </CardDescription>
+        </CardHeader>
+      </Card>
+    );
+  }
+
   return (
     <section className="max-w-full overflow-hidden rounded-3xl border border-orange-200 bg-gradient-to-br from-orange-50 via-background to-background shadow-sm dark:border-orange-900/50 dark:from-orange-950/20">
       <div className="grid min-w-0 gap-4 p-3 sm:gap-6 sm:p-5 lg:p-6">
@@ -1438,17 +1819,73 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
           <div className="relative min-w-0 overflow-hidden rounded-3xl border border-orange-200 bg-[radial-gradient(circle_at_top_right,rgba(255,115,0,0.20),transparent_38%),linear-gradient(135deg,#fff7ed,#ffffff_52%,#fff1e6)] p-4 shadow-sm sm:rounded-[2rem] sm:p-6">
             <div className="absolute -right-16 -top-24 h-56 w-56 rounded-full bg-orange-200/50 blur-3xl" aria-hidden="true" />
             <div className="space-y-2">
-              <Badge className="bg-orange-600 text-white hover:bg-orange-600">Marketing automatique</Badge>
+              <div className="flex flex-wrap gap-2">
+                <Badge className="bg-orange-600 text-white hover:bg-orange-600">Marketing automatique</Badge>
+                {isCommercialDemo ? (
+                  <Badge variant="outline" className="border-emerald-300 bg-emerald-50 text-emerald-800">
+                    Démo isolée · 0 crédit · 0 CHF
+                  </Badge>
+                ) : null}
+              </div>
               <div>
                 <h2 className="font-serif text-3xl font-bold tracking-tight text-foreground sm:text-5xl">
                   Studio Photo & Marketing IA
                 </h2>
                 <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
-                  Ajoutez une fois votre logo, vos captures et vos visuels de marque. L'outil les enregistre et génère ensuite une image marketing finale à partir de votre prompt.
+                  {isCommercialDemo
+                    ? "Utilisez les références préchargées du restaurant simulé ou ajoutez temporairement vos fichiers. Le visuel est généré dans les tables Démo, sans API payante ni donnée de production."
+                    : "Ajoutez une fois votre logo, vos captures et vos visuels de marque. L'outil les enregistre et génère ensuite une image marketing finale à partir de votre prompt."}
                 </p>
               </div>
             </div>
           </div>
+
+          {isCommercialDemo && (demoHistoryLoading || demoGenerationHistory.length > 0) ? (
+            <Card className="min-w-0 border-emerald-200 bg-emerald-50/60 shadow-sm dark:border-emerald-900/50 dark:bg-emerald-950/10">
+              <CardHeader className="p-4 sm:p-5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <CardTitle className="text-base">Créations Démo persistées</CardTitle>
+                    <CardDescription>
+                      Retrouvez les visuels de cette session après un rechargement, sans Storage ni crédit de production.
+                    </CardDescription>
+                  </div>
+                  <Badge variant="outline" className="border-emerald-300 bg-white/80 text-emerald-800">
+                    {demoHistoryLoading ? "Chargement…" : `${demoGenerationHistory.length} visuel${demoGenerationHistory.length > 1 ? "s" : ""}`}
+                  </Badge>
+                </div>
+              </CardHeader>
+              {demoGenerationHistory.length > 0 ? (
+                <CardContent className="grid max-h-72 grid-cols-2 gap-3 overflow-y-auto p-4 pt-0 sm:grid-cols-3 lg:grid-cols-4">
+                  {demoGenerationHistory.map((item) => {
+                    const imageUrl = item.gallery_image_url || item.generated_image_url || "";
+                    return (
+                      <button
+                        key={item.assetId}
+                        type="button"
+                        onClick={() => {
+                          setMarketingImageResult(item);
+                          setActiveStep(3);
+                          window.requestAnimationFrame(scrollToMarketingRenderSettings);
+                        }}
+                        className="min-w-0 overflow-hidden rounded-2xl border bg-background text-left shadow-sm transition hover:border-emerald-400 hover:shadow-md"
+                      >
+                        <span className="block aspect-square bg-slate-950/5 p-2">
+                          <img src={imageUrl} alt={item.alt_text} className="h-full w-full rounded-xl object-contain" />
+                        </span>
+                        <span className="block min-w-0 p-2.5">
+                          <span className="block truncate text-xs font-semibold">{item.style || "Style Démo"}</span>
+                          <span className="mt-0.5 block text-[11px] text-muted-foreground">
+                            {new Date(item.created_at).toLocaleString("fr-CH", { dateStyle: "short", timeStyle: "short" })}
+                          </span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </CardContent>
+              ) : null}
+            </Card>
+          ) : null}
 
           <div className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {MARKETING_STUDIO_STEPS.map((step, index) => {
@@ -1704,9 +2141,9 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                 <div className="min-w-0 space-y-2">
                   <Label>Image IA</Label>
                   <div className="rounded-md border bg-background px-3 py-2 text-sm">
-                    <p className="font-medium text-foreground">{outputPricing.modelLabel}</p>
+                    <p className="font-medium text-foreground">{displayedModelLabel}</p>
                     <p className="text-xs leading-5 text-muted-foreground">
-                      {outputPricing.size} - qualité {outputPricing.quality} - {outputPricing.photoCredits} cr.
+                      {outputPricing.size} - qualité {outputPricing.quality} - {displayedPhotoCredits} cr.
                     </p>
                   </div>
                 </div>
@@ -1739,15 +2176,15 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                     <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Pages: {selectedFormat.pageHint}</span>
                   ) : null}
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Style: {styleMode}</span>
-                  <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Modele IA: {outputPricing.modelLabel}</span>
+                  <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Modele IA: {displayedModelLabel}</span>
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Resolution: {outputPricing.size} / {outputPricing.quality}</span>
-                  <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Credits: {outputPricing.photoCredits}</span>
+                  <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Credits: {displayedPhotoCredits}</span>
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Seed: {marketingImageResult?.generation_seed || sanitizedGenerationSeed || "auto"}</span>
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Style réutilisé: {styleReference ? styleReference.fileName : "non"}</span>
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Références marketing: {persistedResources.length}</span>
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Logo: {hasLogo ? "oui" : "non"}</span>
-                  <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Fiche restaurant: {businessContextLoading ? "chargement" : businessContext?.restaurant ? "active" : "vide"}</span>
-                  <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Menu: {businessContextLoading ? "chargement" : `${businessContext?.menuItems.length || 0} plat(s)`}</span>
+                  <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Fiche restaurant: {activeBusinessContextLoading ? "chargement" : activeBusinessContext?.restaurant ? "active" : "vide"}</span>
+                  <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Menu: {activeBusinessContextLoading ? "chargement" : `${activeBusinessContext?.menuItems.length || 0} plat(s)`}</span>
                 </div>
                 <p className="mt-2 line-clamp-2 min-w-0 rounded-2xl bg-white/80 p-3 text-emerald-950/80 [overflow-wrap:anywhere]">{sanitizedPrompt || "Le prompt apparaitra ici apres saisie."}</p>
               </div>
@@ -1757,7 +2194,9 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                   <div className="flex flex-col gap-3 border-b border-emerald-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-between dark:border-emerald-900/50">
                     <div>
                       <p className="font-semibold text-foreground">Image marketing générée</p>
-                      <p className="text-xs text-muted-foreground">Modele: {marketingImageResult?.model || "gpt-image-2"}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Modele: {marketingImageResult?.model || (isCommercialDemo ? "tok-demo-zero-cost-v1" : "gpt-image-2")}
+                      </p>
                       {marketingImageResult?.generation_seed ? (
                         <p className="text-xs text-muted-foreground">Seed: {marketingImageResult.generation_seed}</p>
                       ) : null}
@@ -1778,7 +2217,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                 </div>
               ) : null}
 
-              {activeStep === 3 && creditError ? (
+              {activeStep === 3 && creditError && !isCommercialDemo ? (
                 <div className="min-w-0 rounded-2xl border border-destructive/25 bg-destructive/10 p-3 text-sm text-destructive">
                   <div className="flex gap-2">
                     <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
@@ -1796,10 +2235,16 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
               <div className={`${activeStep === 3 ? "flex" : "hidden"} min-w-0 flex-col gap-3 rounded-2xl border border-orange-200 bg-orange-50/80 p-3 sm:flex-row sm:items-center sm:rounded-3xl`}>
                 <Button type="button" onClick={requestGeneration} disabled={!restaurantId || loading} size="lg" className="h-auto min-h-12 w-full min-w-0 whitespace-normal rounded-2xl bg-orange-600 px-4 text-center text-base font-bold shadow-lg shadow-orange-500/20 hover:bg-orange-700 sm:w-auto sm:px-6">
                   {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                  {loading ? "Génération de l'image..." : `Générer l'image marketing (${outputPricing.photoCredits} cr.)`}
+                  {loading
+                    ? "Génération de l'image..."
+                    : isCommercialDemo
+                      ? "Générer le visuel Démo (0 crédit)"
+                      : `Générer l'image marketing (${outputPricing.photoCredits} cr.)`}
                 </Button>
                 <p className="min-w-0 break-words text-xs leading-5 text-muted-foreground">
-                  Votre visuel est généré à partir du brief, du support choisi et des ressources de marque enregistrées.
+                  {isCommercialDemo
+                    ? "Le résultat et son historique restent dans la session Démo spéciale."
+                    : "Votre visuel est généré à partir du brief, du support choisi et des ressources de marque enregistrées."}
                 </p>
               </div>
             </CardContent>
@@ -1819,13 +2264,19 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
               <CardDescription>Ajoutez ici les visuels de référence utilisés uniquement par le Marketing Studio. Ils ne sont pas ajoutés à la galerie restaurant.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              <AiStyleReferencePicker
-                restaurantId={restaurantId}
-                value={styleReference}
-                onChange={handleStyleReferenceChange}
-                onUploaded={handleStyleReferenceUploaded}
-                galleryMediaTypes={MARKETING_MEDIA_TYPES}
-              />
+              {isCommercialDemo ? (
+                <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
+                  Références Démo préchargées. Les fichiers ajoutés ci-dessous restent uniquement en mémoire dans cette fenêtre et ne sont jamais envoyés au Storage.
+                </div>
+              ) : (
+                <AiStyleReferencePicker
+                  restaurantId={restaurantId}
+                  value={styleReference}
+                  onChange={handleStyleReferenceChange}
+                  onUploaded={handleStyleReferenceUploaded}
+                  galleryMediaTypes={MARKETING_MEDIA_TYPES}
+                />
+              )}
               {resourcesLoading ? (
                 <div className="flex items-center gap-2 rounded-2xl border bg-muted/40 p-3 text-sm text-muted-foreground">
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -1881,7 +2332,9 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                             <div className="min-w-0 px-2 py-2">
                               <p className="truncate text-xs font-medium text-foreground">{resource.fileName}</p>
                               <p className="truncate text-[11px] text-muted-foreground">
-                                {resource.persisted ? "enregistré" : "en cours"}{resource.fileSize ? ` · ${formatBytes(resource.fileSize)}` : ""}
+                                {resource.persisted
+                                  ? isCommercialDemo ? "session Démo" : "enregistré"
+                                  : "en cours"}{resource.fileSize ? ` · ${formatBytes(resource.fileSize)}` : ""}
                               </p>
                             </div>
                           </div>
@@ -1921,8 +2374,10 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
       <AiGenerationProgressDialog
         open={loading}
         title="Generation marketing en cours"
-        description="TOK combine le support choisi, votre brief et vos ressources de marque pour produire un visuel coherent."
-        status="Marketing Studio compose le visuel"
+        description={isCommercialDemo
+          ? "TOK compose un visuel isolé et persistant dans les tables Démo, sans API payante."
+          : "TOK combine le support choisi, votre brief et vos ressources de marque pour produire un visuel coherent."}
+        status={isCommercialDemo ? "Moteur Démo zéro coût" : "Marketing Studio compose le visuel"}
         steps={["Brief", "Références marketing", "Rendu final"]}
       />
     </section>

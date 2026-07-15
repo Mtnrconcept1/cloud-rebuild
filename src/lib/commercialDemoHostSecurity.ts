@@ -43,7 +43,15 @@ const PRODUCTION_TRANSACTION_TABLES = new Set([
 ]);
 
 const PRODUCTION_TRANSACTION_FUNCTION_PATTERN = /(?:^|[-_])(?:billing|boosts?|charges?|checkout|credits?|invoices?|orders?|payments?|refunds?|reservations?|stripe|subscriptions?)(?:$|[-_])/i;
+const PAID_AI_FUNCTION_PATTERN = /(?:^|[-_])(?:ai|assistants?|chats?|generations?|images?|marketing|photos?|studio|visuals?)(?:$|[-_])/i;
 const PRODUCTION_TRANSACTION_RPC_PATTERN = /(?:^|_)(?:billing|boosts?|catalog|charges?|checkout|credits?|invoices?|menus?|orders?|payments?|refunds?|reservations?|restaurants?|subscriptions?)(?:$|_)/i;
+const PAID_AI_API_HOSTS = new Set([
+  "api.openai.com",
+  "api.anthropic.com",
+  "api.replicate.com",
+  "fal.run",
+  "api-inference.huggingface.co",
+]);
 
 function normalizeHostname(value: string) {
   return String(value || "").trim().toLowerCase().replace(/\.$/, "");
@@ -88,10 +96,13 @@ export function shouldBlockCommercialDemoHostRequest(input: {
     return !["GET", "HEAD"].includes(method);
   }
 
+  if (PAID_AI_API_HOSTS.has(normalizeHostname(url.hostname))) return true;
+
   const functionName = getPathResource(url, "/functions/v1/");
   if (functionName) {
     if (functionName === COMMERCIAL_DEMO_CHECKOUT_FUNCTION) return false;
-    return PRODUCTION_TRANSACTION_FUNCTION_PATTERN.test(functionName);
+    return PRODUCTION_TRANSACTION_FUNCTION_PATTERN.test(functionName)
+      || PAID_AI_FUNCTION_PATTERN.test(functionName);
   }
 
   const rpcName = getPathResource(url, "/rest/v1/rpc/");

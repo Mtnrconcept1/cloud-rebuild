@@ -11,6 +11,8 @@ import { getSupabase } from "@/integrations/supabase/client";
 import { askClientSupport, type TokAiMessage } from "@/lib/ai/tokAiClient";
 import { normalizeVisibleAiSupportText } from "@/lib/ai/supportText";
 import { useAuth } from "@/lib/auth-context";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
+import { askCommercialDemoAi, type CommercialDemoAiRuntime } from "@/lib/commercialDemoAi";
 
 type TokAiSupportChatProps = {
   orderId?: string | null;
@@ -46,7 +48,18 @@ export default function TokAiSupportChat({
   compact = false,
 }: TokAiSupportChatProps) {
   const { user, loading } = useAuth();
-  const storageScope = orderId || reservationId || restaurantId || "general";
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const demoRuntime = useMemo<CommercialDemoAiRuntime | null>(() => {
+    if (!commercialDemoFrame || commercialDemoFrame.surface === "commercial") return null;
+    return {
+      sessionId: commercialDemoFrame.config.sessionId,
+      surface: commercialDemoFrame.surface,
+    };
+  }, [commercialDemoFrame]);
+  const isCommercialDemo = Boolean(demoRuntime);
+  const storageScope = demoRuntime
+    ? `${demoRuntime.sessionId}:${demoRuntime.surface}:${orderId || reservationId || restaurantId || "general"}`
+    : orderId || reservationId || restaurantId || "general";
   const [draft, setDraft] = useSessionStorageState<SupportDraft>(
     `tok-ai-support-chat:${storageScope}`,
     { messages: [], input: "", status: "open" },
@@ -67,7 +80,7 @@ export default function TokAiSupportChat({
   );
 
   useEffect(() => {
-    if (!isChatAvailable || !draft.conversationId) return;
+    if (isCommercialDemo || !isChatAvailable || !draft.conversationId) return;
 
     const messageChannel = supabase
       .channel(`embedded-support-chat-messages-${draft.conversationId}`)
@@ -116,7 +129,7 @@ export default function TokAiSupportChat({
       void supabase.removeChannel(typingChannel);
       if (typingChannelRef.current === typingChannel) typingChannelRef.current = null;
     };
-  }, [draft.conversationId, isChatAvailable, setDraft]);
+  }, [draft.conversationId, isChatAvailable, isCommercialDemo, setDraft]);
 
   function broadcastTyping(isTyping: boolean) {
     const channel = typingChannelRef.current;
@@ -140,6 +153,33 @@ export default function TokAiSupportChat({
     setIsSending(true);
 
     try {
+      if (demoRuntime) {
+        const result = await askCommercialDemoAi({
+          runtime: demoRuntime,
+          tool: "support_chat",
+          message: content,
+          conversationId: draft.conversationId || null,
+          context: {
+            order_id: orderId,
+            reservation_id: reservationId,
+            restaurant_id: restaurantId,
+            ...context,
+          },
+        });
+        const normalizedReply = normalizeVisibleAiSupportText(result.reply || "");
+        setDraft((previous) => ({
+          ...previous,
+          status: "open",
+          conversationId: result.conversation_id,
+          supportTicketId: null,
+          humanHandoffActive: false,
+          messages: normalizedReply
+            ? [...nextMessages, { role: "assistant", content: normalizedReply }]
+            : nextMessages,
+        }));
+        return;
+      }
+
       const result = await askClientSupport({
         messages: nextMessages,
         conversationId: draft.conversationId || null,
@@ -184,7 +224,9 @@ export default function TokAiSupportChat({
         </div>
         <div className="flex items-start gap-2 text-xs text-muted-foreground">
           <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
-          <span>Ne jamais promettre remboursement: les cas sensibles passent en escalade humaine.</span>
+          <span>{isCommercialDemo
+            ? "Chat isolé zéro coût : aucun ticket, crédit ou message de production n'est créé."
+            : "Ne jamais promettre remboursement: les cas sensibles passent en escalade humaine."}</span>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">

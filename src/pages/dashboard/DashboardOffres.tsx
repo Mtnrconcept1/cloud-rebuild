@@ -13,7 +13,17 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Leaf, Percent, Plus, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
+import {
+  getCommercialDemoAntiWasteOffers,
+  getCommercialDemoClientMenuItems,
+} from "@/lib/commercialDemoClientCatalog";
+import {
+  readCommercialDemoToolState,
+  writeCommercialDemoToolState,
+} from "@/lib/commercialDemoRestaurantTools";
+import type { CommercialDemoSnapshot } from "@/lib/commercialDemoJourney";
 import {
   isSpecialOfferEffectivelyActive,
   isSpecialOfferSoldOut,
@@ -53,16 +63,56 @@ const OFFER_TYPES = [
   { value: "solidarity", label: "Solidaire" },
 ];
 
+const COMMERCIAL_DEMO_OFFERS_TOOL = "anti-waste-offers";
+
+function buildCommercialDemoOfferSeed(snapshot: CommercialDemoSnapshot): OfferRecord[] {
+  return getCommercialDemoAntiWasteOffers(snapshot).map((offer) => ({
+    id: `commercial-demo-offer-${snapshot.session.id}-${offer.id}`,
+    restaurant_id: snapshot.demo_restaurant.id,
+    title: offer.title,
+    offer_type: offer.offer_type,
+    original_price: offer.original_price,
+    discounted_price: offer.discounted_price,
+    quantity_available: offer.quantity_available,
+    is_active: offer.is_active,
+    available_date: offer.available_date,
+    pickup_start: offer.pickup_start,
+    pickup_end: offer.pickup_end,
+  }));
+}
+
+function commercialDemoRecordId(kind: string, sessionId: string) {
+  const suffix = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  return `commercial-demo-${kind}-${sessionId}-${suffix}`;
+}
+
+type NewOfferRecord = Omit<OfferRecord, "id">;
+
 export default function DashboardOffres() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemo = commercialDemoFrame?.surface === "restaurant";
+  const demoSessionId = isCommercialDemo ? commercialDemoFrame.config.sessionId : null;
   const { selectedId } = useDashboardRestaurant();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
+  const offersQueryKey = ["dashboard-offers", selectedId, demoSessionId] as const;
 
   const { data: offers, isLoading } = useQuery<OfferRecord[]>({
-    queryKey: ["dashboard-offers", selectedId],
+    queryKey: offersQueryKey,
     queryFn: async () => {
       if (!selectedId) return [];
+
+      if (isCommercialDemo && commercialDemoFrame) {
+        if (selectedId !== commercialDemoFrame.snapshot.demo_restaurant.id) return [];
+        return readCommercialDemoToolState(
+          commercialDemoFrame.config.sessionId,
+          COMMERCIAL_DEMO_OFFERS_TOOL,
+          buildCommercialDemoOfferSeed(commercialDemoFrame.snapshot),
+        );
+      }
 
       const { data, error } = await supabase
         .from("anti_waste_offers" as any)
@@ -77,6 +127,21 @@ export default function DashboardOffres() {
     enabled: !!selectedId,
   });
 
+  const updateCommercialDemoOffers = (updater: (current: OfferRecord[]) => OfferRecord[]) => {
+    if (!isCommercialDemo || !commercialDemoFrame || selectedId !== commercialDemoFrame.snapshot.demo_restaurant.id) {
+      return false;
+    }
+
+    const sessionId = commercialDemoFrame.config.sessionId;
+    const fallback = buildCommercialDemoOfferSeed(commercialDemoFrame.snapshot);
+    const current = queryClient.getQueryData<OfferRecord[]>(offersQueryKey)
+      ?? readCommercialDemoToolState(sessionId, COMMERCIAL_DEMO_OFFERS_TOOL, fallback);
+    const next = updater(current);
+    writeCommercialDemoToolState(sessionId, COMMERCIAL_DEMO_OFFERS_TOOL, next);
+    queryClient.setQueryData(offersQueryKey, next);
+    return true;
+  };
+
   const toggleActive = async (id: string, current: boolean, isSoldOut: boolean) => {
     if (!selectedId) return;
     if (isSoldOut) {
@@ -85,6 +150,16 @@ export default function DashboardOffres() {
         description: "Ajoutez à nouveau du stock avant de réactiver cette offre.",
         variant: "destructive",
       });
+      return;
+    }
+
+    if (isCommercialDemo) {
+      const updated = updateCommercialDemoOffers((items) => items.map((offer) => (
+        offer.id === id ? { ...offer, is_active: !current } : offer
+      )));
+      toast(updated
+        ? { title: current ? "Offre désactivée" : "Offre activée" }
+        : { title: "Démo indisponible", description: "Rechargez la session de démonstration.", variant: "destructive" });
       return;
     }
 
@@ -107,6 +182,14 @@ export default function DashboardOffres() {
     if (!selectedId) return;
     const reason = window.prompt("Raison obligatoire pour archiver cette offre anti-gaspi.");
     if (!reason?.trim()) return;
+
+    if (isCommercialDemo) {
+      const updated = updateCommercialDemoOffers((items) => items.filter((offer) => offer.id !== id));
+      toast(updated
+        ? { title: "Offre supprimée" }
+        : { title: "Démo indisponible", description: "Rechargez la session de démonstration.", variant: "destructive" });
+      return;
+    }
 
     const { error } = await (supabase.rpc as any)("restaurant_archive_anti_waste_offer", {
       p_offer_id: id,
@@ -151,9 +234,15 @@ export default function DashboardOffres() {
               </DialogHeader>
               <OfferForm
                 restaurantId={selectedId}
+                onCreateDemo={isCommercialDemo && commercialDemoFrame ? (record) => {
+                  updateCommercialDemoOffers((items) => [{
+                    ...record,
+                    id: commercialDemoRecordId("offer", commercialDemoFrame.config.sessionId),
+                  }, ...items]);
+                } : undefined}
                 onSaved={() => {
                   setOpen(false);
-                  queryClient.invalidateQueries({ queryKey: ["dashboard-offers", selectedId] });
+                  queryClient.invalidateQueries({ queryKey: offersQueryKey });
                   toast({ title: "Offre créée" });
                 }}
               />
@@ -252,7 +341,18 @@ export default function DashboardOffres() {
   );
 }
 
-function OfferForm({ restaurantId, onSaved }: { restaurantId: string | null; onSaved: () => void }) {
+function OfferForm({
+  restaurantId,
+  onSaved,
+  onCreateDemo,
+}: {
+  restaurantId: string | null;
+  onSaved: () => void;
+  onCreateDemo?: (record: NewOfferRecord) => void;
+}) {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemo = commercialDemoFrame?.surface === "restaurant";
+  const demoSessionId = isCommercialDemo ? commercialDemoFrame.config.sessionId : null;
   const [selectedItemId, setSelectedItemId] = useState("");
   const [offerType, setOfferType] = useState("regular");
   const [discountPercent, setDiscountPercent] = useState(40);
@@ -264,9 +364,24 @@ function OfferForm({ restaurantId, onSaved }: { restaurantId: string | null; onS
   const { toast } = useToast();
 
   const { data: menuItems } = useQuery<MenuOption[]>({
-    queryKey: ["menu-items-for-offers", restaurantId],
+    queryKey: ["menu-items-for-offers", restaurantId, demoSessionId],
     queryFn: async () => {
       if (!restaurantId) return [];
+
+      if (isCommercialDemo && commercialDemoFrame) {
+        const fallback = getCommercialDemoClientMenuItems(commercialDemoFrame.snapshot, restaurantId).map((item) => ({
+          id: item.id,
+          restaurant_id: commercialDemoFrame.snapshot.demo_restaurant.id,
+          name: item.name,
+          price: item.price,
+          category: item.category || null,
+        }));
+        return readCommercialDemoToolState<Array<MenuOption & { is_available?: boolean }>>(
+          commercialDemoFrame.config.sessionId,
+          "menu-items",
+          fallback,
+        ).filter((item) => item.restaurant_id === restaurantId && item.is_available !== false);
+      }
 
       const { data, error } = await supabase
         .from("menu_items")
@@ -313,6 +428,33 @@ function OfferForm({ restaurantId, onSaved }: { restaurantId: string | null; onS
     }
 
     setLoading(true);
+
+    if (isCommercialDemo) {
+      if (!onCreateDemo) {
+        setLoading(false);
+        toast({
+          title: "Démo indisponible",
+          description: "La session de démonstration doit être rechargée.",
+          variant: "destructive",
+        });
+        return;
+      }
+      onCreateDemo({
+        restaurant_id: restaurantId,
+        title: selectedItem.name,
+        offer_type: offerType,
+        original_price: originalPrice,
+        discounted_price: discountedPrice,
+        quantity_available: quantity,
+        is_active: true,
+        available_date: availableDate,
+        pickup_start: pickupStart,
+        pickup_end: pickupEnd,
+      });
+      setLoading(false);
+      onSaved();
+      return;
+    }
 
     const { error } = await (supabase.rpc as any)("restaurant_upsert_anti_waste_offer", {
       p_offer_id: null,

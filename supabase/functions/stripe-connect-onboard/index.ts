@@ -1,5 +1,6 @@
 import {
   HttpError,
+  assertProductionFlowAllowed,
   authenticateRequest,
   createAdminClient,
   jsonResponse,
@@ -37,6 +38,7 @@ Deno.serve(async (req) => {
     if (req.method !== "POST") throw new HttpError(405, "Method not allowed");
 
     actor = await authenticateRequest(req, { allowServiceRole: false });
+    await assertProductionFlowAllowed(actor, "activation Stripe Connect réelle");
     const adminClient = actor.adminClient;
     const body = await req.json().catch(() => ({}));
 

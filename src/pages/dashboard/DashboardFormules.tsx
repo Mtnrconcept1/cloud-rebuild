@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 
 import DashboardLayout from "@/components/DashboardLayout";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -50,9 +51,27 @@ import {
 } from "@/lib/progressiveReservationOffers";
 import { cn } from "@/lib/utils";
 import { DEFAULT_SERVICE_SETTINGS, getServicePeriodLabel, type ServicePeriod } from "@/lib/serviceSettings";
+import {
+  readCommercialDemoToolState,
+  writeCommercialDemoToolState,
+} from "@/lib/commercialDemoRestaurantTools";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
 
 const supabase = getSupabase();
+
+const COMMERCIAL_DEMO_FORMULAS_TOOL = "formulas";
+const COMMERCIAL_DEMO_PROGRESSIVE_OFFERS_TOOL = "progressive-offers";
+
+function commercialDemoFormulaId(sessionId: string, formulaKey: string) {
+  return `commercial-demo-formula-${sessionId}-${formulaKey}`;
+}
+
+function commercialDemoProgressiveOfferId(sessionId: string, serviceDate: string, index: number) {
+  const suffix = typeof globalThis.crypto?.randomUUID === "function"
+    ? globalThis.crypto.randomUUID()
+    : `${Date.now()}-${index}-${Math.random().toString(36).slice(2)}`;
+  return `commercial-demo-progressive-${sessionId}-${serviceDate}-${suffix}`;
+}
 
 const DAYS_OF_WEEK = [
   { value: "mon", label: "Lun" },
@@ -447,11 +466,15 @@ function ProgressiveOfferManager({
   restaurantId,
   offers,
   loading,
+  demoSessionId,
+  onDemoOffersChanged,
   onSaved,
 }: {
   restaurantId: string;
   offers: ProgressiveReservationOffer[];
   loading: boolean;
+  demoSessionId?: string | null;
+  onDemoOffersChanged?: (offers: ProgressiveReservationOffer[]) => void;
   onSaved: () => void;
 }) {
   const { toast } = useToast();
@@ -624,6 +647,75 @@ function ProgressiveOfferManager({
         };
       });
 
+      if (demoSessionId) {
+        const current = readCommercialDemoToolState<ProgressiveReservationOffer[]>(
+          demoSessionId,
+          COMMERCIAL_DEMO_PROGRESSIVE_OFFERS_TOOL,
+          offers,
+        );
+
+        if (form.isActive) {
+          const conflict = current.find((offer) => (
+            offer.status === "active"
+            && scheduledDates.includes(offer.service_date)
+            && offer.id !== form.id
+          ));
+          if (conflict) {
+            toast({
+              title: "Une offre existe deja ce jour-la",
+              description: `Une seule offre progressive active est autorisee par jour. Conflit le ${conflict.service_date}.`,
+              variant: "destructive",
+            });
+            return false;
+          }
+        }
+
+        const now = new Date().toISOString();
+        let firstSavedId = form.id || "";
+        let next: ProgressiveReservationOffer[];
+
+        if (form.id) {
+          const exists = current.some((offer) => offer.id === form.id);
+          const updated = {
+            ...(current.find((offer) => offer.id === form.id) || {}),
+            ...payloads[0],
+            id: form.id,
+            created_at: current.find((offer) => offer.id === form.id)?.created_at || now,
+          } as ProgressiveReservationOffer;
+          next = exists
+            ? current.map((offer) => offer.id === form.id ? updated : offer)
+            : [updated, ...current];
+        } else {
+          const created = payloads.map((payload, index) => ({
+            ...payload,
+            id: commercialDemoProgressiveOfferId(
+              demoSessionId,
+              payload.service_date,
+              index,
+            ),
+            current_reservations_count: 0,
+            final_discount_percent: null,
+            created_at: now,
+          })) as ProgressiveReservationOffer[];
+          firstSavedId = created[0]?.id || "";
+          next = [...created, ...current];
+        }
+
+        writeCommercialDemoToolState(
+          demoSessionId,
+          COMMERCIAL_DEMO_PROGRESSIVE_OFFERS_TOOL,
+          next,
+        );
+        onDemoOffersChanged?.(next);
+        if (firstSavedId) setForm((currentForm) => ({ ...currentForm, id: firstSavedId }));
+        onSaved();
+        toast({
+          title: form.isActive ? "Offre progressive activee" : "Offre progressive enregistree",
+          description: scheduledDates.length > 1 ? `${scheduledDates.length} occurrences programmees.` : undefined,
+        });
+        return true;
+      }
+
       if (form.isActive) {
         let conflictQuery = (supabase.from("reservation_progressive_offers" as any) as any)
           .select("id, service_date, title")
@@ -684,6 +776,34 @@ function ProgressiveOfferManager({
   const finalizeOffer = async (offerId: string) => {
     setSaving(true);
     try {
+      if (demoSessionId) {
+        const current = readCommercialDemoToolState<ProgressiveReservationOffer[]>(
+          demoSessionId,
+          COMMERCIAL_DEMO_PROGRESSIVE_OFFERS_TOOL,
+          offers,
+        );
+        const next = current.map((offer) => offer.id === offerId
+          ? {
+            ...offer,
+            status: "finalized",
+            final_discount_percent: getCurrentProgressiveDiscount(offer),
+            updated_at: new Date().toISOString(),
+          } as ProgressiveReservationOffer
+          : offer);
+        writeCommercialDemoToolState(
+          demoSessionId,
+          COMMERCIAL_DEMO_PROGRESSIVE_OFFERS_TOOL,
+          next,
+        );
+        onDemoOffersChanged?.(next);
+        onSaved();
+        toast({
+          title: "Remise finale figee",
+          description: "Les reservations liees affichent maintenant le pourcentage final.",
+        });
+        return;
+      }
+
       const { error } = await (supabase.rpc as any)("finalize_progressive_offer", {
         p_offer_id: offerId,
       });
@@ -708,6 +828,47 @@ function ProgressiveOfferManager({
     if (offer.status === status) return;
     setSaving(true);
     try {
+      if (demoSessionId) {
+        const current = readCommercialDemoToolState<ProgressiveReservationOffer[]>(
+          demoSessionId,
+          COMMERCIAL_DEMO_PROGRESSIVE_OFFERS_TOOL,
+          offers,
+        );
+        if (status === "active") {
+          const conflict = current.find((candidate) => (
+            candidate.status === "active"
+            && candidate.service_date === offer.service_date
+            && candidate.id !== offer.id
+          ));
+          if (conflict) {
+            toast({
+              title: "Une offre existe deja ce jour-la",
+              description: "Désactivez l'autre offre active avant d'activer celle-ci.",
+              variant: "destructive",
+            });
+            return;
+          }
+        }
+
+        const next = current.map((candidate) => candidate.id === offer.id
+          ? { ...candidate, status, updated_at: new Date().toISOString() } as ProgressiveReservationOffer
+          : candidate);
+        writeCommercialDemoToolState(
+          demoSessionId,
+          COMMERCIAL_DEMO_PROGRESSIVE_OFFERS_TOOL,
+          next,
+        );
+        onDemoOffersChanged?.(next);
+        onSaved();
+        toast({
+          title: status === "active" ? "Offre activée" : "Offre désactivée",
+          description: status === "active"
+            ? "Cette offre est maintenant visible pour le jour selectionne."
+            : "Cette offre reste configuree mais n'est plus visible aux clients.",
+        });
+        return;
+      }
+
       if (status === "active") {
         const { data: conflicts, error: conflictError } = await (supabase.from("reservation_progressive_offers" as any) as any)
           .select("id, service_date, title")
@@ -1347,38 +1508,68 @@ function ProgressiveOfferManager({
 }
 
 export default function DashboardFormules() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemo = commercialDemoFrame?.surface === "restaurant";
+  const demoSessionId = isCommercialDemo ? commercialDemoFrame.config.sessionId : null;
   const { selectedId } = useDashboardRestaurant();
   const queryClient = useQueryClient();
+  const effectiveRestaurantId = isCommercialDemo && commercialDemoFrame
+    ? commercialDemoFrame.snapshot.demo_restaurant.id
+    : selectedId;
+  const formulasQueryKey = ["dashboard-formulas", effectiveRestaurantId, demoSessionId] as const;
+  const progressiveOffersQueryKey = [
+    "dashboard-progressive-offers",
+    effectiveRestaurantId,
+    demoSessionId,
+  ] as const;
 
   const { data: formulas, isLoading } = useQuery({
-    queryKey: ["dashboard-formulas", selectedId],
+    queryKey: formulasQueryKey,
     queryFn: async () => {
-      if (!selectedId) return [];
+      if (!effectiveRestaurantId) return [];
+
+      if (demoSessionId) {
+        return readCommercialDemoToolState<any[]>(
+          demoSessionId,
+          COMMERCIAL_DEMO_FORMULAS_TOOL,
+          [],
+        );
+      }
+
       const { data, error } = await supabase
         .from("meal_formulas")
         .select("*, meal_formula_categories(*)")
-        .eq("restaurant_id", selectedId)
+        .eq("restaurant_id", effectiveRestaurantId)
         .order("created_at", { ascending: true });
       if (error) throw error;
       return data || [];
     },
-    enabled: !!selectedId,
+    enabled: !!effectiveRestaurantId,
   });
 
   const { data: progressiveOffers = [], isLoading: isProgressiveOffersLoading } = useQuery({
-    queryKey: ["dashboard-progressive-offers", selectedId],
+    queryKey: progressiveOffersQueryKey,
     queryFn: async () => {
-      if (!selectedId) return [] as ProgressiveReservationOffer[];
+      if (!effectiveRestaurantId) return [] as ProgressiveReservationOffer[];
+
+      if (demoSessionId) {
+        return readCommercialDemoToolState<ProgressiveReservationOffer[]>(
+          demoSessionId,
+          COMMERCIAL_DEMO_PROGRESSIVE_OFFERS_TOOL,
+          [],
+        );
+      }
+
       const { data, error } = await (supabase.from("reservation_progressive_offers" as any) as any)
         .select("*")
-        .eq("restaurant_id", selectedId)
+        .eq("restaurant_id", effectiveRestaurantId)
         .order("service_date", { ascending: false })
         .order("created_at", { ascending: false })
         .limit(PROGRESSIVE_OFFER_LIMIT);
       if (error) throw error;
       return (data || []) as ProgressiveReservationOffer[];
     },
-    enabled: !!selectedId,
+    enabled: !!effectiveRestaurantId,
   });
 
   const formulaMap = useMemo(() => {
@@ -1402,7 +1593,7 @@ export default function DashboardFormules() {
           stats={[
             { label: "Modeles", value: PRESET_FORMULAS.length, icon: UtensilsCrossed },
             { label: "Configurees", value: (formulas?.length || 0) + progressiveOffers.length, icon: Percent },
-            { label: "Restaurant", value: selectedId ? "Selectionne" : "Aucun", icon: Salad },
+            { label: "Restaurant", value: effectiveRestaurantId ? "Selectionne" : "Aucun", icon: Salad },
           ]}
         />
 
@@ -1412,27 +1603,40 @@ export default function DashboardFormules() {
           </div>
         ) : (
           <div className="space-y-4">
-            {selectedId ? (
+            {effectiveRestaurantId ? (
               <ProgressiveOfferManager
-                restaurantId={selectedId}
+                restaurantId={effectiveRestaurantId}
                 offers={progressiveOffers}
                 loading={isProgressiveOffersLoading}
+                demoSessionId={demoSessionId}
+                onDemoOffersChanged={(next) => {
+                  queryClient.setQueryData(progressiveOffersQueryKey, next);
+                }}
                 onSaved={() => {
-                  queryClient.invalidateQueries({ queryKey: ["dashboard-progressive-offers", selectedId] });
+                  if (!demoSessionId) {
+                    queryClient.invalidateQueries({ queryKey: progressiveOffersQueryKey });
+                  }
                 }}
               />
             ) : null}
-            {PRESET_FORMULAS.map((preset) => (
+            {effectiveRestaurantId ? PRESET_FORMULAS.map((preset) => (
               <PresetFormulaCard
                 key={preset.formula_key}
                 preset={preset}
                 existing={formulaMap.get(preset.formula_key) || null}
-                restaurantId={selectedId!}
+                restaurantId={effectiveRestaurantId!}
+                demoSessionId={demoSessionId}
+                demoFormulas={formulas || []}
+                onDemoFormulasChanged={(next) => {
+                  queryClient.setQueryData(formulasQueryKey, next);
+                }}
                 onSaved={() => {
-                  queryClient.invalidateQueries({ queryKey: ["dashboard-formulas", selectedId] });
+                  if (!demoSessionId) {
+                    queryClient.invalidateQueries({ queryKey: formulasQueryKey });
+                  }
                 }}
               />
-            ))}
+            )) : null}
           </div>
         )}
       </div>
@@ -1444,11 +1648,17 @@ function PresetFormulaCard({
   preset,
   existing,
   restaurantId,
+  demoSessionId,
+  demoFormulas,
+  onDemoFormulasChanged,
   onSaved,
 }: {
   preset: PresetFormula;
   existing: any | null;
   restaurantId: string;
+  demoSessionId?: string | null;
+  demoFormulas: any[];
+  onDemoFormulasChanged?: (formulas: any[]) => void;
   onSaved: () => void;
 }) {
   const { toast } = useToast();
@@ -1486,6 +1696,57 @@ function PresetFormulaCard({
         discount_percent: discountPercent,
         availability: serializeAvailability(normalizedAvailability),
       };
+
+      if (demoSessionId) {
+        const current = readCommercialDemoToolState<any[]>(
+          demoSessionId,
+          COMMERCIAL_DEMO_FORMULAS_TOOL,
+          demoFormulas,
+        );
+        const formulaId = existing?.id
+          || commercialDemoFormulaId(demoSessionId, preset.formula_key);
+        const now = new Date().toISOString();
+        const demoFormula = {
+          ...(existing || {}),
+          id: formulaId,
+          restaurant_id: restaurantId,
+          name: preset.name,
+          description: preset.description,
+          formula_key: preset.formula_key,
+          discount_percent: discountPercent,
+          applies_to: "both",
+          is_active: active,
+          is_standard: true,
+          availability: serializeAvailability(normalizedAvailability),
+          created_at: existing?.created_at || now,
+          updated_at: now,
+          meal_formula_categories: preset.categories.map((category, index) => ({
+            id: `commercial-demo-formula-category-${demoSessionId}-${preset.formula_key}-${index}`,
+            formula_id: formulaId,
+            category,
+            course_order: index + 1,
+          })),
+        };
+        const exists = current.some((formula) => (
+          formula.id === formulaId || formula.formula_key === preset.formula_key
+        ));
+        const next = exists
+          ? current.map((formula) => (
+            formula.id === formulaId || formula.formula_key === preset.formula_key
+              ? demoFormula
+              : formula
+          ))
+          : [...current, demoFormula];
+        writeCommercialDemoToolState(
+          demoSessionId,
+          COMMERCIAL_DEMO_FORMULAS_TOOL,
+          next,
+        );
+        onDemoFormulasChanged?.(next);
+        onSaved();
+        toast({ title: active ? "Formule activée" : "Formule désactivée" });
+        return;
+      }
 
       if (existing) {
         const { error } = await supabase.from("meal_formulas").update(payload).eq("id", existing.id);
