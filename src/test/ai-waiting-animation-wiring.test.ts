@@ -21,21 +21,24 @@ describe("AI waiting animations wiring", () => {
     });
   });
 
-  it("keeps the image-generation waiting dialog close to the TOK neon progress concept", () => {
+  it("keeps the image-generation dialog animated, accessible and honest about progress", () => {
     const dialog = readSource("src/components/ui/ai-generation-progress-dialog.tsx");
+    const progressHook = readSource("src/hooks/use-estimated-progress.ts");
 
-    expect(dialog).toContain("tokAiModalStage");
-    expect(dialog).toContain("tokAiModalOrbit");
-    expect(dialog).toContain("visibleStepCount");
-    expect(dialog).toContain("setInterval");
+    expect(dialog).toContain("tokAiOrbit");
+    expect(dialog).toContain("tokAiBreathe");
+    expect(dialog).toContain("tokAiSweep");
+    expect(dialog).toContain("useEstimatedProgress");
+    expect(dialog).toContain("ESTIMATED_DURATION_BY_KIND");
     expect(dialog).toContain('role="progressbar"');
-    expect(dialog).toContain("aria-valuenow={Math.round(progress)}");
+    expect(dialog).toContain("aria-valuenow={progress}");
     expect(dialog).toContain("style={{ width: `${progress}%` }}");
     expect(dialog).toContain('data-testid="ai-generation-progress-fill"');
-    expect(dialog).toContain("normalizedSteps.slice(0, visibleStepCount)");
-    expect(dialog).toContain("shadow-[0_24px_90px_rgba(248,92,13,0.42)]");
-    expect(dialog).toContain("bg-[radial-gradient(ellipse_at_center");
-    expect(dialog).toContain("drop-shadow-[0_0_18px_rgba(251,191,36,0.95)]");
-    expect(dialog).toContain("rounded-[1.35rem]");
+    expect(dialog).toContain("activeStepIndex");
+    expect(dialog).toContain("hideCloseButton={!dismissible}");
+    expect(dialog).toContain("prefers-reduced-motion");
+    expect(progressHook).toContain("if (completed) return 100");
+    expect(progressHook).toContain("safeMaximum");
+    expect(progressHook).toContain("Math.exp");
   });
 });
