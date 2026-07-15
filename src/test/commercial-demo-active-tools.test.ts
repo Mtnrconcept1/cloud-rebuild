@@ -15,6 +15,7 @@ describe("commercial demo active tools and reservations", () => {
   const service = read("src/lib/commercialDemoJourney.ts");
   const reservations = read("src/components/dashboard/CommercialDemoScenario.tsx");
   const cart = read("src/pages/Panier.tsx");
+  const menu = read("src/pages/dashboard/DashboardMenu.tsx");
 
   it("opens the real restaurant dashboard namespace but keeps admin flags authoritative", () => {
     expect(app).toContain('allowedPrefixes: ["/dashboard/"]');
@@ -69,6 +70,28 @@ describe("commercial demo active tools and reservations", () => {
     expect(demoBranch).not.toContain("apply_checkout_benefits");
   });
 
+  it("prices demo orders from the session restaurant's real menu", () => {
+    const orderFunction = migration.slice(
+      migration.indexOf("CREATE OR REPLACE FUNCTION public.commercial_demo_create_order("),
+      migration.indexOf("CREATE OR REPLACE FUNCTION public.commercial_demo_create_reservation("),
+    );
+
+    expect(orderFunction).toContain("v_input_item->>'menu_item_id'");
+    expect(orderFunction).toContain("item.id = v_menu_item_id");
+    expect(orderFunction).toContain("item.restaurant_id = v_session.demo_restaurant_id");
+    expect(orderFunction).toContain("item.is_available IS TRUE");
+    expect(orderFunction).toContain("round(v_menu_item.price * 100)::integer");
+    expect(orderFunction).toContain("public.is_feature_flag_active('commandes')");
+    expect(orderFunction).not.toContain("commercial_demo_catalog_items");
+    expect(orderFunction).not.toContain("v_input_item->>'unit_amount_cents'");
+  });
+
+  it("covers reservation FK lookup and rejects a null party size explicitly", () => {
+    expect(migration).toContain("commercial_demo_reservations_restaurant_idx");
+    expect(migration).toContain("ON public.commercial_demo_reservations (demo_restaurant_id)");
+    expect(migration).toContain("p_party_size IS NULL OR p_party_size NOT BETWEEN 1 AND 20");
+  });
+
   it("replaces external or financial side effects with explicit tool sandboxes", () => {
     for (const tool of [
       "advisor",
@@ -76,6 +99,8 @@ describe("commercial demo active tools and reservations", () => {
       "pack",
       "campaigns",
       "social",
+      "photos",
+      "actualites",
       "support",
       "tok-connect",
       "accounting-inflow",
@@ -88,5 +113,25 @@ describe("commercial demo active tools and reservations", () => {
     expect(safeTools).not.toContain("invokeSupabaseFunction");
     expect(safeTools).not.toContain("supabase.from");
     expect(safeTools).not.toContain("fetch(");
+  });
+
+  it("blocks paid menu AI actions while keeping normal demo menu mutations available", () => {
+    const photoGeneration = menu.slice(
+      menu.indexOf("const generateMenuPhoto = async () =>"),
+      menu.indexOf("const openMenuImport = () =>"),
+    );
+    const photoAnalysis = menu.slice(
+      menu.indexOf("const analyzeMenuPhotos = async () =>"),
+      menu.indexOf("const updateImportedMenuItem ="),
+    );
+
+    expect(photoGeneration).toContain('commercialDemoFrame?.surface === "restaurant"');
+    expect(photoGeneration.indexOf('commercialDemoFrame?.surface === "restaurant"'))
+      .toBeLessThan(photoGeneration.indexOf("startTokImageCreationJob"));
+    expect(photoAnalysis).toContain('commercialDemoFrame?.surface === "restaurant"');
+    expect(photoAnalysis.indexOf('commercialDemoFrame?.surface === "restaurant"'))
+      .toBeLessThan(photoAnalysis.indexOf('supabase.functions.invoke<MenuImportResponse>("menu-image-import"'));
+    expect(menu).toContain('supabase.from("menu_items").insert');
+    expect(menu).toContain(".update(form)");
   });
 });
