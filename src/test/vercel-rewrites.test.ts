@@ -166,6 +166,11 @@ describe("vercel config", () => {
     });
     expect(commercialHeaders).toContainEqual({ key: "Referrer-Policy", value: "no-referrer" });
     expect(commercialHeaders).toContainEqual({ key: "X-Frame-Options", value: "SAMEORIGIN" });
+    const commercialCsp = commercialHeaders.find((header) => header.key === "Content-Security-Policy")?.value || "";
+    expect(commercialCsp).toContain("connect-src 'self'");
+    expect(commercialCsp).toContain("https://*.supabase.co");
+    expect(commercialCsp).toContain("https://api.stripe.com");
+    expect(commercialCsp).not.toContain("https://api.openai.com");
   });
 
   it("keeps delivery map routing compatible with production CSP and Leaflet cleanup", () => {
