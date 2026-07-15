@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { BarChart3, CalendarClock, Coins, ExternalLink, Loader2, ReceiptText, Store, TrendingUp } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { BarChart3, CalendarClock, Coins, ExternalLink, Gift, Loader2, ReceiptText, Store, TrendingUp } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -9,9 +9,12 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { fetchGenevaCommercialProspects } from "@/data/genevaCommercialProspects";
 import { getSupabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth-context";
 import {
   COMMERCIAL_REFUSAL_REASONS,
   getCommercialFollowupStatusLabel,
@@ -31,6 +34,8 @@ type CommercialFollowup = {
   signed_subscription_plan_slug: string | null;
   signed_subscription_plan_name: string | null;
   acquisition_commission_chf: number | string | null;
+  acquisition_commission_status: string | null;
+  earned_at: string | null;
   visited_at: string | null;
   next_follow_up_at: string | null;
   refusal_reason_codes: string[] | null;
@@ -54,7 +59,12 @@ type CommercialCompensationSummary = {
     employment_active?: boolean;
   };
   fixed_salary?: { period_chf?: number; monthly_chf?: number };
-  signatures?: { period_count?: number; commission_chf?: number };
+  signatures?: {
+    period_count?: number;
+    commission_chf?: number;
+    pending_count?: number;
+    pending_commission_chf?: number;
+  };
   reservations?: {
     personal_count?: number;
     team_count?: number;
@@ -93,6 +103,18 @@ type AdminCommercialActivity = {
   followups?: CommercialFollowup[];
 };
 
+const ADJUSTMENT_OPTIONS = [
+  { value: "manual_bonus", label: "Bonus manuel", defaultAmount: 0 },
+  { value: "manual_prime", label: "Prime manuelle", defaultAmount: 0 },
+  { value: "upgrade_starter_business", label: "Upgrade Starter vers Business", defaultAmount: 60 },
+  { value: "upgrade_business_premium", label: "Upgrade Business vers Premium", defaultAmount: 70 },
+  { value: "upgrade_premium_elite", label: "Upgrade Premium vers Elite", defaultAmount: 110 },
+  { value: "campaign_pack_100", label: "Pack Campaigns 100 crédits", defaultAmount: 8 },
+  { value: "campaign_pack_250", label: "Pack Campaigns 250 crédits", defaultAmount: 18 },
+  { value: "ai_growth_pack", label: "Pack AI/Growth", defaultAmount: 5 },
+  { value: "correction", label: "Correction comptable", defaultAmount: 0 },
+] as const;
+
 const STATUS_FILTERS = ["all", "visited", "in_progress", "signed", "not_interested"] as const;
 type StatusFilter = (typeof STATUS_FILTERS)[number];
 
@@ -124,6 +146,130 @@ function statusTone(status: CommercialFollowup["status"]) {
   return "border-sky-200 bg-sky-50 text-sky-800";
 }
 
+function commissionStatusMeta(status: string | null | undefined) {
+  switch (status) {
+    case "payable":
+      return { label: "Acquise · à payer", className: "border-sky-200 bg-sky-100 text-sky-800" };
+    case "paid":
+      return { label: "Payée", className: "border-emerald-200 bg-emerald-100 text-emerald-800" };
+    case "cancelled":
+      return { label: "Annulée", className: "border-slate-200 bg-slate-100 text-slate-700" };
+    case "reversed":
+      return { label: "Reprise comptable", className: "border-rose-200 bg-rose-100 text-rose-800" };
+    case "pending_payment":
+    default:
+      return { label: "En attente du paiement", className: "border-amber-200 bg-amber-100 text-amber-800" };
+  }
+}
+
+function AdminCompensationAdjustmentForm({
+  commercialUserId,
+  commercialName,
+}: {
+  commercialUserId: string;
+  commercialName: string;
+}) {
+  const supabase = getSupabase();
+  const queryClient = useQueryClient();
+  const [kind, setKind] = useState<(typeof ADJUSTMENT_OPTIONS)[number]["value"]>("manual_bonus");
+  const [amount, setAmount] = useState("0");
+  const [label, setLabel] = useState("");
+  const [notes, setNotes] = useState("");
+  const [occurredAt, setOccurredAt] = useState(new Date().toISOString().slice(0, 10));
+  const selectedOption = ADJUSTMENT_OPTIONS.find((option) => option.value === kind) || ADJUSTMENT_OPTIONS[0];
+
+  const mutation = useMutation({
+    mutationFn: async () => {
+      const numericAmount = Number(amount);
+      if (!Number.isFinite(numericAmount) || numericAmount === 0) {
+        throw new Error("Le montant doit être un nombre différent de zéro.");
+      }
+
+      const { error } = await (supabase.rpc as any)("admin_add_commercial_compensation_adjustment", {
+        p_commercial_user_id: commercialUserId,
+        p_kind: kind,
+        p_label: label.trim() || selectedOption.label,
+        p_amount_chf: numericAmount,
+        p_occurred_at: `${occurredAt}T12:00:00.000Z`,
+        p_notes: notes.trim() || null,
+        p_restaurant_id: null,
+        p_source_objectid: null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: async () => {
+      setLabel("");
+      setNotes("");
+      setAmount(String(selectedOption.defaultAmount));
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["commercial-compensation-summary", commercialUserId] }),
+        queryClient.invalidateQueries({ queryKey: ["admin-commercial-commission-summary"] }),
+      ]);
+      toast.success(`Ajustement ajouté à la comptabilité de ${commercialName}.`);
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : "Impossible d’ajouter cet ajustement.");
+    },
+  });
+
+  return (
+    <section className="rounded-2xl border border-orange-200 bg-orange-50/40 p-4 dark:border-orange-400/20 dark:bg-orange-500/5">
+      <div className="flex items-center gap-2">
+        <Gift className="h-5 w-5 text-orange-600" />
+        <div>
+          <p className="font-semibold">Ajouter un bonus, une prime ou un pack</p>
+          <p className="text-xs text-muted-foreground">Action administrative auditée pour {commercialName}.</p>
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <Label>Type</Label>
+          <Select
+            value={kind}
+            onValueChange={(value) => {
+              const nextKind = value as typeof kind;
+              const option = ADJUSTMENT_OPTIONS.find((item) => item.value === nextKind);
+              setKind(nextKind);
+              setAmount(String(option?.defaultAmount ?? 0));
+              setLabel(option?.label || "");
+            }}
+          >
+            <SelectTrigger className="bg-background"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {ADJUSTMENT_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label>Date</Label>
+          <Input type="date" value={occurredAt} onChange={(event) => setOccurredAt(event.target.value)} className="bg-background" />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Montant CHF</Label>
+          <Input type="number" step="0.01" value={amount} onChange={(event) => setAmount(event.target.value)} className="bg-background" />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Libellé</Label>
+          <Input value={label} onChange={(event) => setLabel(event.target.value)} className="bg-background" />
+        </div>
+      </div>
+      <div className="mt-3 space-y-1.5">
+        <Label>Notes internes</Label>
+        <Textarea value={notes} onChange={(event) => setNotes(event.target.value)} className="bg-background" />
+      </div>
+      <div className="mt-3 flex justify-end">
+        <Button type="button" onClick={() => mutation.mutate()} disabled={mutation.isPending || !occurredAt}>
+          {mutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+          Ajouter à la comptabilité
+        </Button>
+      </div>
+    </section>
+  );
+}
+
 export default function AdminCommercialAccountDetail({
   account,
   open,
@@ -133,6 +279,7 @@ export default function AdminCommercialAccountDetail({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const { user } = useAuth();
   const supabase = getSupabase();
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -516,6 +663,10 @@ export default function AdminCommercialAccountDetail({
                     selectedPlanSlug !== (followup.signed_subscription_plan_slug || "")
                     || selectedRestaurantId !== (followup.signed_restaurant_id || "unlinked")
                   );
+                  const commissionMeta = commissionStatusMeta(followup.acquisition_commission_status);
+                  const financialSnapshotLocked = ["payable", "paid", "reversed"].includes(
+                    String(followup.acquisition_commission_status || ""),
+                  );
                   return (
                     <article key={followup.source_objectid} className="min-w-0 rounded-2xl border bg-card p-4 shadow-sm">
                       <div className="flex min-w-0 items-start justify-between gap-3">
@@ -533,7 +684,14 @@ export default function AdminCommercialAccountDetail({
                       <dl className="mt-3 grid gap-2 text-xs sm:grid-cols-2">
                         <div><dt className="text-muted-foreground">Dernière action</dt><dd className="font-medium">{formatDate(followup.updated_at)}</dd></div>
                         {followup.next_follow_up_at ? <div><dt className="text-muted-foreground">Doit repasser</dt><dd className="font-medium">{formatDate(followup.next_follow_up_at)}</dd></div> : null}
-                        {followup.status === "signed" ? <div><dt className="text-muted-foreground">Commission</dt><dd className="font-semibold text-emerald-700">{formatChf(followup.acquisition_commission_chf)}</dd></div> : null}
+                        {followup.status === "signed" ? (
+                          <div>
+                            <dt className="text-muted-foreground">Commission</dt>
+                            <dd className="font-semibold">{formatChf(followup.acquisition_commission_chf)}</dd>
+                            <Badge variant="outline" className={commissionMeta.className}>{commissionMeta.label}</Badge>
+                            {followup.earned_at ? <p className="mt-1 text-[11px] text-muted-foreground">Acquise le {formatDate(followup.earned_at)}</p> : null}
+                          </div>
+                        ) : null}
                         {followup.status === "signed" ? <div><dt className="text-muted-foreground">Offre</dt><dd className="font-medium">{followup.signed_subscription_plan_name || "Non renseignée"}</dd></div> : null}
                       </dl>
 
@@ -556,6 +714,11 @@ export default function AdminCommercialAccountDetail({
                             <p className="text-xs text-muted-foreground">
                               Corrigez l’offre ou associez la signature à un compte restaurant réel. Toute modification exige un motif et reste auditée.
                             </p>
+                            {financialSnapshotLocked ? (
+                              <p className="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-2 text-xs font-medium text-amber-900 dark:border-amber-400/20 dark:bg-amber-500/10 dark:text-amber-100">
+                                Cette commission a déjà produit une écriture financière. Sa signature, son offre et son restaurant sont désormais immuables ; utilisez une correction comptable auditée si nécessaire.
+                              </p>
+                            ) : null}
                           </div>
 
                           <div className="grid min-w-0 gap-3 sm:grid-cols-2">
@@ -564,7 +727,7 @@ export default function AdminCommercialAccountDetail({
                               <Select
                                 value={selectedPlanSlug || undefined}
                                 onValueChange={(value) => updateSignatureDraft(followup, { planSlug: value })}
-                                disabled={plansQuery.isLoading || plansQuery.isError || correctingSignatureId === followup.source_objectid}
+                                disabled={financialSnapshotLocked || plansQuery.isLoading || plansQuery.isError || correctingSignatureId === followup.source_objectid}
                               >
                                 <SelectTrigger className="w-full min-w-0 bg-background">
                                   <SelectValue placeholder="Choisir une offre" />
@@ -589,7 +752,7 @@ export default function AdminCommercialAccountDetail({
                               <Select
                                 value={selectedRestaurantId}
                                 onValueChange={(value) => updateSignatureDraft(followup, { restaurantId: value })}
-                                disabled={restaurantsQuery.isLoading || restaurantsQuery.isError || correctingSignatureId === followup.source_objectid}
+                                disabled={financialSnapshotLocked || restaurantsQuery.isLoading || restaurantsQuery.isError || correctingSignatureId === followup.source_objectid}
                               >
                                 <SelectTrigger className="w-full min-w-0 bg-background">
                                   <SelectValue placeholder="Associer un restaurant" />
@@ -623,6 +786,8 @@ export default function AdminCommercialAccountDetail({
                               size="sm"
                               onClick={() => void correctSignature(followup)}
                               disabled={
+                                financialSnapshotLocked
+                                ||
                                 !signatureHasChanges
                                 || !selectedPlanIsActive
                                 || plansQuery.isLoading
@@ -656,7 +821,7 @@ export default function AdminCommercialAccountDetail({
                                 refusalReasonCodes: [],
                                 refusalOtherText: "",
                               })}
-                              disabled={correctingSignatureId === followup.source_objectid}
+                              disabled={financialSnapshotLocked || correctingSignatureId === followup.source_objectid}
                             >
                               <SelectTrigger className="w-full bg-background">
                                 <SelectValue />
@@ -676,6 +841,7 @@ export default function AdminCommercialAccountDetail({
                                   min={new Date().toISOString().slice(0, 10)}
                                   value={signatureStatusDraft.nextFollowUpAt}
                                   onChange={(event) => updateSignatureStatusDraft(followup, { nextFollowUpAt: event.target.value })}
+                                  disabled={financialSnapshotLocked}
                                 />
                               </div>
                             ) : null}
@@ -690,6 +856,7 @@ export default function AdminCommercialAccountDetail({
                                       <label key={reason.value} className="flex cursor-pointer items-start gap-2 text-xs">
                                         <Checkbox
                                           checked={checked}
+                                          disabled={financialSnapshotLocked}
                                           onCheckedChange={(nextChecked) => updateSignatureStatusDraft(followup, {
                                             refusalReasonCodes: nextChecked === true
                                               ? [...signatureStatusDraft.refusalReasonCodes, reason.value]
@@ -707,6 +874,7 @@ export default function AdminCommercialAccountDetail({
                                     onChange={(event) => updateSignatureStatusDraft(followup, { refusalOtherText: event.target.value })}
                                     placeholder="Précisez le motif"
                                     maxLength={500}
+                                    disabled={financialSnapshotLocked}
                                   />
                                 ) : null}
                               </div>
@@ -720,7 +888,8 @@ export default function AdminCommercialAccountDetail({
                                 className="w-full sm:w-auto"
                                 onClick={() => void correctSignatureStatus(followup)}
                                 disabled={
-                                  correctingSignatureId === followup.source_objectid
+                                  financialSnapshotLocked
+                                  || correctingSignatureId === followup.source_objectid
                                   || (signatureStatusDraft.status === "in_progress" && !signatureStatusDraft.nextFollowUpAt)
                                   || (signatureStatusDraft.status === "not_interested" && signatureStatusDraft.refusalReasonCodes.length === 0)
                                 }
@@ -761,11 +930,12 @@ export default function AdminCommercialAccountDetail({
             ) : summaryQuery.error ? (
               <p className="text-sm text-destructive">La comptabilité de ce commercial est indisponible.</p>
             ) : (
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
                 {[
                   { label: "Total dû", value: summary?.total_chf, icon: Coins },
                   { label: "Fixe", value: summary?.fixed_salary?.period_chf ?? summary?.fixed_salary?.monthly_chf, icon: CalendarClock },
                   { label: `${toNumber(summary?.signatures?.period_count)} signature(s)`, value: summary?.signatures?.commission_chf, icon: ReceiptText },
+                  { label: `${toNumber(summary?.signatures?.pending_count)} en attente`, value: summary?.signatures?.pending_commission_chf, icon: CalendarClock },
                   { label: "Réservations", value: reservationCommission, icon: TrendingUp },
                   { label: "Ajustements", value: summary?.adjustments?.amount_chf, icon: BarChart3 },
                 ].map(({ label, value, icon: Icon }) => (
@@ -778,6 +948,17 @@ export default function AdminCommercialAccountDetail({
               </div>
             )}
           </section>
+
+          {account && user?.id !== account.user_id ? (
+            <AdminCompensationAdjustmentForm
+              commercialUserId={account.user_id}
+              commercialName={account.full_name || "ce commercial"}
+            />
+          ) : account ? (
+            <section className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-400/20 dark:bg-amber-500/10 dark:text-amber-100">
+              L’auto-attribution est interdite : un administrateur possédant aussi un profil commercial ne peut pas créditer sa propre comptabilité.
+            </section>
+          ) : null}
         </div>
       </DialogContent>
     </Dialog>
