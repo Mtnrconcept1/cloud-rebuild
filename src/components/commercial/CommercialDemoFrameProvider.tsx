@@ -143,19 +143,23 @@ export function CommercialDemoFrameAuthBoundary({
 }) {
   const auth = useAuth();
   const forcedRole = getCommercialDemoFrameRole(config.surface);
+  const presentationRoles = useMemo(
+    () => [...auth.roles, forcedRole],
+    [auth.roles, forcedRole],
+  );
   const value = useMemo<AuthContextType>(() => ({
     ...auth,
     role: forcedRole,
     // The presentation role unlocks the matching real dashboard UI. Server
     // authorization still derives the actor and ownership from the JWT.
-    roles: [...auth.roles, forcedRole],
+    roles: presentationRoles,
     canSwitchRole: false,
     switchRole: () => undefined,
     // Signing out one same-origin frame would terminate all three windows and
     // the parent commercial workspace. Frame layouts hide the control; this is
     // a final no-op guard for any overlooked sign-out action.
     signOut: async () => undefined,
-  }), [auth, forcedRole]);
+  }), [auth, forcedRole, presentationRoles]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
