@@ -4,6 +4,7 @@ import {
   buildCommercialDemoFrameUrl,
   getCommercialDemoFrameRole,
   isCommercialDemoFrameEscapeMessage,
+  isCommercialDemoFrameNavigateMessage,
   isCommercialDemoFrameStateMessage,
   parseCommercialDemoFramePath,
 } from "../lib/commercialDemoFrame";
@@ -71,5 +72,17 @@ describe("commercial demo browser frames", () => {
     expect(isCommercialDemoFrameEscapeMessage(message)).toBe(true);
     expect(isCommercialDemoFrameEscapeMessage({ ...message, surface: "admin" })).toBe(false);
     expect(isCommercialDemoFrameEscapeMessage({ ...message, sessionId: "invalid" })).toBe(false);
+  });
+
+  it("accepts only same-session relative frame navigation commands", () => {
+    const message = {
+      type: "commercial-demo:navigate",
+      sessionId,
+      surface: "client",
+      path: "/mon-espace",
+    };
+    expect(isCommercialDemoFrameNavigateMessage(message)).toBe(true);
+    expect(isCommercialDemoFrameNavigateMessage({ ...message, path: "https://evil.test" })).toBe(false);
+    expect(isCommercialDemoFrameNavigateMessage({ ...message, path: "//evil.test" })).toBe(false);
   });
 });
