@@ -23,9 +23,28 @@ describe("post-auth role routing", () => {
     expect(getPostAuthTargetForRole("courier", "/courier/jobs")).toBe("/courier/jobs");
   });
 
+  it("resumes OAuth consent after sign-in for every TOK role", () => {
+    const consentTarget = "/oauth/consent?authorization_id=authorization-123";
+
+    for (const role of ["client", "admin", "restaurateur", "courier", "commercial"] as const) {
+      expect(getPostAuthTargetForRole(role, consentTarget)).toBe(consentTarget);
+    }
+  });
+
+  it("does not treat invalid or cross-origin consent targets as OAuth continuations", () => {
+    expect(getPostAuthTargetForRole("admin", "/oauth/consent")).toBe("/admin");
+    expect(
+      getPostAuthTargetForRole(
+        "restaurateur",
+        "https://attacker.example/oauth/consent?authorization_id=authorization-123",
+      ),
+    ).toBe("/dashboard");
+  });
+
   it("sends privileged users to their role home when the redirect targets a public surface", () => {
     expect(getPostAuthTargetForRole("admin", "/recherche?q=sushi")).toBe("/admin");
     expect(getPostAuthTargetForRole("restaurateur", "/recherche?q=sushi")).toBe("/dashboard");
     expect(getPostAuthTargetForRole("courier", "/recherche?q=sushi")).toBe("/courier");
   });
 });
+
