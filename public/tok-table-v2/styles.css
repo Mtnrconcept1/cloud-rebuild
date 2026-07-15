@@ -25,6 +25,15 @@ body {
   background: var(--canvas);
   font-family: "DM Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
+.awaiting-hydration .workspace-grid,
+.awaiting-hydration .service-picker,
+.awaiting-hydration .mode-switch,
+.awaiting-hydration .variant-controls,
+.awaiting-hydration .change-actions {
+  pointer-events: none;
+  opacity: 0.45;
+  filter: grayscale(0.2);
+}
 button, input, select { font: inherit; }
 button { cursor: pointer; }
 button:disabled { cursor: not-allowed; opacity: 0.45; }
@@ -800,6 +809,23 @@ h1, h2 { font-family: "Manrope", sans-serif; }
 }
 
 .modal-actions { margin-top: 21px; display: flex; justify-content: flex-end; gap: 7px; }
+.modal-error,
+.modal-progress {
+  margin: 14px 0 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 11px;
+  line-height: 1.45;
+}
+.modal-error { color: #9f2432; border: 1px solid #efb7bd; background: #fff0f2; }
+.modal-progress { color: #365f9e; border: 1px solid #c5d5ed; background: #eef4ff; }
+.modal[aria-busy="true"] { cursor: progress; }
+.modal[aria-busy="true"] .modal-actions button,
+.modal[aria-busy="true"] .close-button { opacity: 0.55; }
+.modal :is(input, select, button):focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--orange) 42%, transparent);
+  outline-offset: 2px;
+}
 .split-actions { display: grid; grid-template-columns: auto auto 1fr auto auto; }
 .service-table-modal { width: min(680px, calc(100% - 24px)); }
 .variant-modal { width: min(460px, calc(100% - 24px)); }

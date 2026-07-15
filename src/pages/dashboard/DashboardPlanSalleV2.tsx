@@ -33,6 +33,17 @@ const PROTOTYPE_URL = "/tok-table-v2/index.html?connected=1";
 const RELEASED_STATUSES = new Set(["cancelled", "canceled", "no_show", "completed", "archived"]);
 const EDITABLE_RESERVATION_STATUSES = new Set(["pending", "confirmed", "arrived", "seated", "no_show"]);
 const LIVE_REFRESH_INTERVAL_MS = 15_000;
+const BRIDGE_PROTOCOL_VERSION = 2;
+const PERSISTENCE_TIMEOUT_MS = 50_000;
+const BRIDGE_OPERATION_KINDS = {
+  "tok-table-v2:assign": "assignment",
+  "tok-table-v2:auto-place-request": "assignment",
+  "tok-table-v2:update-reservation-status": "reservation-status",
+  "tok-table-v2:load-variant": "variant-load",
+  "tok-table-v2:save-variant": "variant",
+  "tok-table-v2:save-template": "template",
+  "tok-table-v2:save-service-layout": "service-layout",
+} as const;
 
 type BranchRow = Database["public"]["Tables"]["restaurant_branches"]["Row"];
 type TableRow = Database["public"]["Tables"]["reservation_tables"]["Row"];
@@ -40,6 +51,14 @@ type ReservationRow = Database["public"]["Tables"]["reservations"]["Row"];
 type SlotRow = Database["public"]["Tables"]["reservation_slots"]["Row"];
 type LayoutOverrideRow = Database["public"]["Tables"]["reservation_table_layout_overrides"]["Row"];
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
+type TableRevisionRow = Pick<
+  TableRow,
+  "id" | "table_number" | "capacity" | "is_active" | "sector" | "layout"
+>;
+type LayoutOverrideRevisionRow = Pick<
+  LayoutOverrideRow,
+  "id" | "reservation_table_id" | "service_date" | "layout"
+>;
 type FloorPlanVariantRow = {
   id: string;
   restaurant_id: string;
@@ -63,8 +82,12 @@ type AssignmentRequest = {
 
 type TableSaveRequest = {
   requestId: string;
+  protocolVersion: number;
+  baseRevision: string;
   rawTables: unknown;
   rawObjects?: unknown;
+  baselineTableIds?: unknown;
+  baselineObjectIds?: unknown;
 };
 
 type ReservationStatusRequest = {
@@ -73,18 +96,35 @@ type ReservationStatusRequest = {
   status: string;
 };
 
-type VariantSaveRequest = TableSaveRequest & {
+type VariantSaveRequest = Omit<TableSaveRequest, "baseRevision" | "baselineTableIds" | "baselineObjectIds"> & {
   name: string;
 };
 
 type TemplateSaveResult = {
   idMap: Record<string, string>;
+  serverRevision: string;
+};
+
+type ServiceSaveResult = {
+  serverRevision: string;
 };
 
 function asRecord(value: unknown): Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value)
     ? value as Record<string, unknown>
     : {};
+}
+
+function getNullableBoolean(value: unknown, message: string): boolean | null {
+  if (typeof value === "boolean") return value;
+  if (value === null) return null;
+  throw new Error(message);
+}
+
+function getNullableString(value: unknown, message: string): string | null {
+  if (typeof value === "string") return value;
+  if (value === null) return null;
+  throw new Error(message);
 }
 
 function getReservationPeriod(reservation: ReservationRow): FloorPlanV2Period {
@@ -143,16 +183,136 @@ function getOperationId(value: unknown) {
   return id && id.length <= 100 ? id : `floor-plan-${Date.now()}`;
 }
 
+async function withPersistenceTimeout<T>(operation: (signal: AbortSignal) => PromiseLike<T>) {
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), PERSISTENCE_TIMEOUT_MS);
+  try {
+    const result = await operation(controller.signal);
+    if (controller.signal.aborted) {
+      throw new Error("La sauvegarde a dépassé le délai autorisé. Le brouillon est conservé.");
+    }
+    return result;
+  } catch (error) {
+    if (controller.signal.aborted) {
+      throw new Error("La sauvegarde a dépassé le délai autorisé. Le brouillon est conservé.");
+    }
+    throw error;
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
+}
+
+function getBridgeOperationKind(type: string | undefined) {
+  if (!type) return undefined;
+  return BRIDGE_OPERATION_KINDS[type as keyof typeof BRIDGE_OPERATION_KINDS];
+}
+
 function getErrorMessage(error: Error) {
   const message = error.message || "La sauvegarde n’a pas pu être effectuée.";
+  if (message.includes("FLOOR_PLAN_REVISION_CONFLICT") || message.includes("plan a été modifié")) {
+    return "Ce plan a été modifié sur un autre écran. Annulez le brouillon puis actualisez avant de recommencer.";
+  }
   if (message.includes("Table already occupied")) {
     const time = message.match(/around ([0-9:]+)/)?.[1];
     return `Cette table est déjà occupée${time ? ` autour de ${time}` : " à cette heure"}.`;
   }
   if (message.includes("Table capacity is too low")) return "Cette table n’a pas assez de places.";
   if (message.includes("Table is inactive")) return "Cette table est indisponible.";
+  if (message.includes("A floor plan variant with this name already exists")) {
+    return "Une variante porte déjà ce nom.";
+  }
+  if (message.includes("FLOOR_PLAN_REQUEST_ID_REUSED")) {
+    return "Cette tentative ne correspond plus au brouillon courant. Relancez l’enregistrement.";
+  }
   if (message.includes("Not allowed")) return "Vous n’avez pas l’autorisation de modifier cette salle.";
   return message;
+}
+
+function getStringArray(value: unknown, label: string) {
+  if (!Array.isArray(value) || value.some((item) => typeof item !== "string")) {
+    throw new Error(`${label} est invalide. Actualisez le plan avant de réessayer.`);
+  }
+  return [...new Set(value.map((item) => item.trim()).filter(Boolean))];
+}
+
+function getTableRowsRevision(rows: readonly TableRevisionRow[]) {
+  return JSON.stringify(rows
+    .map((row) => ({
+      id: row.id,
+      table_number: row.table_number,
+      capacity: row.capacity,
+      is_active: row.is_active,
+      sector: row.sector,
+      layout: row.layout,
+    }))
+    .sort((left, right) => (left.id < right.id ? -1 : left.id > right.id ? 1 : 0)));
+}
+
+function getServiceRowsRevision(tableRevision: string, rows: readonly LayoutOverrideRevisionRow[]) {
+  return JSON.stringify({
+    tables: JSON.parse(tableRevision) as unknown,
+    overrides: rows
+      .map((row) => ({
+        id: row.id,
+        reservation_table_id: row.reservation_table_id,
+        service_date: row.service_date,
+        layout: row.layout,
+      }))
+      .sort((left, right) => (left.id < right.id ? -1 : left.id > right.id ? 1 : 0)),
+  });
+}
+
+function getSnapshotTableRevision(value: unknown) {
+  if (!Array.isArray(value)) throw new Error("La réponse de sauvegarde du plan est invalide.");
+  const rows = value.map((candidate): TableRevisionRow => {
+    const row = asRecord(candidate);
+    const invalidSnapshotMessage = "La réponse de sauvegarde du plan est invalide.";
+    if (
+      typeof row.id !== "string"
+      || typeof row.table_number !== "string"
+      || typeof row.capacity !== "number"
+      || !Number.isFinite(row.capacity)
+      || typeof row.layout === "undefined"
+    ) {
+      throw new Error("La réponse de sauvegarde du plan est invalide.");
+    }
+    const isActive = getNullableBoolean(row.is_active, invalidSnapshotMessage);
+    const sector = getNullableString(row.sector, invalidSnapshotMessage);
+    return {
+      id: row.id,
+      table_number: row.table_number,
+      capacity: row.capacity,
+      is_active: isActive,
+      sector,
+      layout: row.layout as Json,
+    };
+  });
+  return getTableRowsRevision(rows);
+}
+
+function getSnapshotServiceRevision(value: unknown) {
+  const snapshot = asRecord(value);
+  if (!Array.isArray(snapshot.overrides)) {
+    throw new Error("La réponse de sauvegarde du service est invalide.");
+  }
+  const overrides = snapshot.overrides.map((candidate): LayoutOverrideRevisionRow => {
+    const row = asRecord(candidate);
+    if (
+      typeof row.id !== "string"
+      || typeof row.reservation_table_id !== "string"
+      || typeof row.service_date !== "string"
+      || typeof row.layout === "undefined"
+    ) {
+      throw new Error("La réponse de sauvegarde du service est invalide.");
+    }
+    return {
+      id: row.id,
+      reservation_table_id: row.reservation_table_id,
+      service_date: row.service_date,
+      layout: row.layout as Json,
+    };
+  });
+  return getServiceRowsRevision(getSnapshotTableRevision(snapshot.tables), overrides);
 }
 
 function getIdMap(value: unknown) {
@@ -186,7 +346,14 @@ function mapFloorPlanV2Variant(
       sector: typeof row.sector === "string" ? row.sector : "Salle principale",
       layout,
     }, index);
-    const existing = existingRows.find((existingRow, existingIndex) => {
+    const persistedId = typeof row.table_id === "string" ? row.table_id : "";
+    const existingById = persistedId
+      ? existingRows.find((existingRow, existingIndex) => (
+        existingRow.id === persistedId
+        && mapFloorPlanV2Table(existingRow, existingIndex).editable === provisional.editable
+      ))
+      : undefined;
+    const existing = existingById || existingRows.find((existingRow, existingIndex) => {
       if (usedExistingIds.has(existingRow.id)) return false;
       if (existingRow.table_number.toLocaleLowerCase("fr") !== name.toLocaleLowerCase("fr")) return false;
       return mapFloorPlanV2Table(existingRow, existingIndex).editable === provisional.editable;
@@ -212,8 +379,14 @@ export default function DashboardPlanSalleV2() {
     new Date().getHours() < 16 ? "midi" : "soir"
   ));
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [editorLocked, setEditorLocked] = useState(false);
 
-  const { data: branches = [], isLoading: branchesLoading, error: branchesError } = useQuery({
+  const {
+    data: branches = [],
+    isLoading: branchesLoading,
+    error: branchesError,
+    isRefetchError: branchesRefetchError,
+  } = useQuery({
     queryKey: ["floor-plan-v2-branches", selectedId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -237,7 +410,18 @@ export default function DashboardPlanSalleV2() {
     }
   }, [branches, selectedBranchId]);
 
-  const { data: floorPlanVariants = [], error: floorPlanVariantsError } = useQuery({
+  useEffect(() => {
+    setIframeReady(false);
+    setEditorLocked(false);
+    setHasUnsavedChanges(false);
+  }, [selectedBranchId, selectedId]);
+
+  const {
+    data: floorPlanVariants = [],
+    isLoading: floorPlanVariantsLoading,
+    error: floorPlanVariantsError,
+    isRefetchError: floorPlanVariantsRefetchError,
+  } = useQuery({
     queryKey: ["floor-plan-v2-variants", selectedBranchId],
     queryFn: async () => {
       const { data, error } = await (supabase.from("floor_plan_variants" as any))
@@ -250,7 +434,12 @@ export default function DashboardPlanSalleV2() {
     enabled: Boolean(selectedBranchId),
   });
 
-  const { data: tableRows = [], isLoading: tablesLoading, error: tablesError } = useQuery({
+  const {
+    data: tableRows = [],
+    isLoading: tablesLoading,
+    error: tablesError,
+    isRefetchError: tablesRefetchError,
+  } = useQuery({
     queryKey: ["floor-plan-v2-tables", selectedBranchId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -266,7 +455,12 @@ export default function DashboardPlanSalleV2() {
     refetchIntervalInBackground: true,
   });
 
-  const { data: layoutOverrides = [], error: layoutOverridesError } = useQuery({
+  const {
+    data: layoutOverrides = [],
+    isLoading: layoutOverridesLoading,
+    error: layoutOverridesError,
+    isRefetchError: layoutOverridesRefetchError,
+  } = useQuery({
     queryKey: ["floor-plan-v2-layout-overrides", selectedBranchId, serviceDate],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -282,7 +476,12 @@ export default function DashboardPlanSalleV2() {
     refetchIntervalInBackground: true,
   });
 
-  const { data: reservationRows = [], isLoading: reservationsLoading, error: reservationsError } = useQuery({
+  const {
+    data: reservationRows = [],
+    isLoading: reservationsLoading,
+    error: reservationsError,
+    isRefetchError: reservationsRefetchError,
+  } = useQuery({
     queryKey: ["floor-plan-v2-reservations", selectedId, serviceDate],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -320,17 +519,40 @@ export default function DashboardPlanSalleV2() {
   const tableIds = useMemo(() => tableRows
     .filter((table, index) => mapFloorPlanV2Table(table, index).editable)
     .map((table) => table.id), [tableRows]);
-  const { data: slotRows = [], error: slotsError } = useQuery({
-    queryKey: ["floor-plan-v2-slots", selectedBranchId, tableIds.join(",")],
+  const reservationIds = useMemo(() => reservationRows
+    .filter((reservation) => !reservation.branch_id || reservation.branch_id === selectedBranchId)
+    .map((reservation) => reservation.id), [reservationRows, selectedBranchId]);
+  const {
+    data: slotRows = [],
+    isLoading: slotsLoading,
+    error: slotsError,
+    isRefetchError: slotsRefetchError,
+  } = useQuery({
+    queryKey: [
+      "floor-plan-v2-slots",
+      selectedBranchId,
+      tableIds.join(","),
+      reservationIds.join(","),
+    ],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("reservation_slots")
-        .select("*")
-        .in("table_id", tableIds);
-      if (error) throw error;
-      return (data || []) as SlotRow[];
+      const chunks = Array.from(
+        { length: Math.ceil(reservationIds.length / 100) },
+        (_, index) => reservationIds.slice(index * 100, (index + 1) * 100),
+      );
+      const responses = await Promise.all(chunks.map((reservationIdChunk) => (
+        supabase
+          .from("reservation_slots")
+          .select("*")
+          .in("reservation_id", reservationIdChunk)
+      )));
+      const failed = responses.find((response) => response.error);
+      if (failed?.error) throw failed.error;
+      const allowedTableIds = new Set(tableIds);
+      return responses
+        .flatMap((response) => (response.data || []) as SlotRow[])
+        .filter((slot) => allowedTableIds.has(slot.table_id));
     },
-    enabled: Boolean(selectedBranchId) && tableIds.length > 0,
+    enabled: Boolean(selectedBranchId) && tableIds.length > 0 && reservationIds.length > 0,
     refetchInterval: LIVE_REFRESH_INTERVAL_MS,
     refetchIntervalInBackground: true,
   });
@@ -385,6 +607,36 @@ export default function DashboardPlanSalleV2() {
       ])
       .filter((entry) => entry[1] !== null),
   ), [allReservations, assignments, serviceTables, visibleReservations]);
+  const templateRevision = useMemo(() => getTableRowsRevision(tableRows), [tableRows]);
+  const serviceRevision = useMemo(
+    () => getServiceRowsRevision(templateRevision, layoutOverrides),
+    [layoutOverrides, templateRevision],
+  );
+  const hasBlockingError = Boolean(
+    (branchesError && !branchesRefetchError)
+    || (floorPlanVariantsError && !floorPlanVariantsRefetchError)
+    || (tablesError && !tablesRefetchError)
+    || (layoutOverridesError && !layoutOverridesRefetchError)
+    || (reservationsError && !reservationsRefetchError)
+    || (slotsError && !slotsRefetchError),
+  );
+  const hasRefetchError = Boolean(
+    branchesRefetchError
+    || floorPlanVariantsRefetchError
+    || tablesRefetchError
+    || layoutOverridesRefetchError
+    || reservationsRefetchError
+    || slotsRefetchError,
+  );
+  const loading = restaurantsLoading
+    || branchesLoading
+    || floorPlanVariantsLoading
+    || tablesLoading
+    || layoutOverridesLoading
+    || reservationsLoading
+    || (tableIds.length > 0 && reservationIds.length > 0 && slotsLoading);
+  const workspaceMounted = Boolean(selectedId && selectedBranchId && !loading && !hasBlockingError);
+  const workspaceReady = workspaceMounted && !hasRefetchError;
 
   const sendToIframe = useCallback((type: string, payload: Record<string, unknown> = {}) => {
     iframeRef.current?.contentWindow?.postMessage(
@@ -394,8 +646,9 @@ export default function DashboardPlanSalleV2() {
   }, []);
 
   const sendHydrate = useCallback(() => {
-    if (!iframeReady || !selectedBranchId) return;
+    if (!selectedBranchId || !workspaceReady) return;
     sendToIframe("tok-table-v2:hydrate", {
+      protocolVersion: BRIDGE_PROTOCOL_VERSION,
       branchId: selectedBranchId,
       selectedDate: serviceDate,
       selectedPeriod: servicePeriod,
@@ -406,9 +659,10 @@ export default function DashboardPlanSalleV2() {
       reservations: visibleReservations,
       recommendations: placementRecommendations,
       variants: floorPlanVariants.map((variant) => ({ id: variant.id, name: variant.name })),
+      templateRevision,
+      serviceRevision,
     });
   }, [
-    iframeReady,
     selectedBranchId,
     sendToIframe,
     serviceDate,
@@ -418,7 +672,10 @@ export default function DashboardPlanSalleV2() {
     furnitureObjects,
     floorPlanVariants,
     placementRecommendations,
+    serviceRevision,
+    templateRevision,
     visibleReservations,
+    workspaceReady,
   ]);
 
   useEffect(() => {
@@ -427,7 +684,9 @@ export default function DashboardPlanSalleV2() {
 
   const assignmentMutation = useMutation({
     mutationFn: async ({ assignments: changes }: AssignmentRequest) => {
-      if (!selectedBranchId) throw new Error("Aucune salle sélectionnée.");
+      if (!selectedBranchId || !workspaceReady) {
+        throw new Error("La synchronisation est temporairement indisponible. Le brouillon est conservé.");
+      }
       const nextAssignments = { ...assignments };
       for (const [reservationId, tableId] of Object.entries(changes)) {
         const validationError = getFloorPlanV2AssignmentError({
@@ -441,11 +700,13 @@ export default function DashboardPlanSalleV2() {
         nextAssignments[reservationId] = tableId;
       }
 
-      const { error } = await supabase.rpc("restaurant_save_floor_plan_assignments", {
-        p_branch_id: selectedBranchId,
-        p_assignments: changes as Json,
-        p_reason: "Placement depuis Plan de salle 2",
-      });
+      const { error } = await withPersistenceTimeout((signal) => (
+        supabase.rpc("restaurant_save_floor_plan_assignments", {
+          p_branch_id: selectedBranchId,
+          p_assignments: changes as Json,
+          p_reason: "Placement depuis Plan de salle 2",
+        }).abortSignal(signal)
+      ));
       if (error) throw error;
     },
     onMutate: (request) => {
@@ -479,6 +740,9 @@ export default function DashboardPlanSalleV2() {
 
   const reservationStatusMutation = useMutation({
     mutationFn: async ({ reservationId, status }: ReservationStatusRequest) => {
+      if (!workspaceReady) {
+        throw new Error("La synchronisation est temporairement indisponible. Le brouillon est conservé.");
+      }
       if (!EDITABLE_RESERVATION_STATUSES.has(status)) {
         throw new Error("Ce statut de réservation n’est pas autorisé.");
       }
@@ -520,10 +784,26 @@ export default function DashboardPlanSalleV2() {
   });
 
   const templateMutation = useMutation({
-    mutationFn: async ({ rawTables, rawObjects }: TableSaveRequest): Promise<TemplateSaveResult> => {
-      if (!selectedBranchId) throw new Error("Aucune salle sélectionnée.");
+    mutationFn: async ({
+      protocolVersion,
+      baseRevision,
+      rawTables,
+      rawObjects,
+      baselineTableIds,
+      baselineObjectIds,
+      requestId,
+    }: TableSaveRequest): Promise<TemplateSaveResult> => {
+      if (!selectedBranchId || !workspaceReady) throw new Error("Le plan n’est pas encore prêt.");
+      if (protocolVersion !== BRIDGE_PROTOCOL_VERSION || !Array.isArray(rawObjects)) {
+        throw new Error("Version du plan incompatible. Actualisez la page avant d’enregistrer.");
+      }
+      if (baseRevision !== templateRevision) {
+        throw new Error("FLOOR_PLAN_REVISION_CONFLICT: le plan a été modifié depuis son chargement.");
+      }
       const drafts = parseFloorPlanV2TableDrafts(rawTables);
-      const objectDrafts = parseFloorPlanV2ObjectDrafts(rawObjects || []);
+      const objectDrafts = parseFloorPlanV2ObjectDrafts(rawObjects);
+      const baselineTables = getStringArray(baselineTableIds, "La liste initiale des tables");
+      const baselineObjects = getStringArray(baselineObjectIds, "La liste initiale du mobilier");
       const existingEditableRows = tableRows.filter((row, index) => mapFloorPlanV2Table(row, index).editable);
       const existingRowsById = new Map(existingEditableRows.map((row) => [row.id, row]));
       const requestedExistingIds = new Set<string>();
@@ -547,9 +827,9 @@ export default function DashboardPlanSalleV2() {
           layout: serializeFloorPlanV2Layout(draft, existing?.layout, fallbackIndex) as Json,
         };
       });
-      const deleteIds = existingEditableRows
-        .map((row) => row.id)
-        .filter((id) => !requestedExistingIds.has(id));
+      const deleteIds = baselineTables.filter((id) => (
+        existingRowsById.has(id) && !requestedExistingIds.has(id)
+      ));
 
       const existingFurnitureRows = tableRows.filter(
         (row, index) => !mapFloorPlanV2Table(row, index).editable,
@@ -572,26 +852,33 @@ export default function DashboardPlanSalleV2() {
           layout: serializeFloorPlanV2Object(object, existing?.layout) as Json,
         };
       });
-      const objectDeleteIds = existingFurnitureRows
-        .map((row) => row.id)
-        .filter((id) => !requestedExistingFurnitureIds.has(id));
+      const objectDeleteIds = baselineObjects.filter((id) => (
+        existingFurnitureRowsById.has(id) && !requestedExistingFurnitureIds.has(id)
+      ));
 
-      const { data, error } = await supabase.rpc("restaurant_save_floor_plan_workspace", {
-        p_branch_id: selectedBranchId,
-        p_table_upserts: upserts as Json,
-        p_table_delete_ids: deleteIds,
-        p_objects: objectUpserts as Json,
-        p_object_delete_ids: objectDeleteIds,
-        p_reason: "Modèle et mobilier enregistrés depuis Plan de salle 2",
-      });
+      const { data, error } = await withPersistenceTimeout((signal) => (
+        supabase.rpc("restaurant_save_floor_plan_workspace_v2", {
+          p_branch_id: selectedBranchId,
+          p_expected_snapshot: JSON.parse(baseRevision) as Json,
+          p_request_id: getOperationId(requestId),
+          p_table_upserts: upserts as Json,
+          p_table_delete_ids: deleteIds,
+          p_objects: objectUpserts as Json,
+          p_object_delete_ids: objectDeleteIds,
+          p_reason: "Modèle et mobilier enregistrés depuis Plan de salle 2",
+        }).abortSignal(signal)
+      ));
       if (error) throw error;
-      return { idMap: getIdMap(asRecord(data).id_map) };
+      const response = asRecord(data);
+      return {
+        idMap: getIdMap(response.id_map),
+        serverRevision: getSnapshotTableRevision(response.snapshot),
+      };
     },
     onMutate: (request) => {
       sendToIframe("tok-table-v2:operation-start", { requestId: request.requestId, kind: "template" });
     },
     onSuccess: async (result, request) => {
-      setHasUnsavedChanges(false);
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["floor-plan-v2-tables", selectedBranchId] }),
         queryClient.invalidateQueries({ queryKey: ["floor-plan-v2-layout-overrides", selectedBranchId] }),
@@ -600,10 +887,25 @@ export default function DashboardPlanSalleV2() {
         queryClient.invalidateQueries({ queryKey: ["floor-plan-layout-overrides", selectedBranchId] }),
       ]);
       await queryClient.refetchQueries({ queryKey: ["floor-plan-v2-tables", selectedBranchId] });
+      const savedRows = queryClient.getQueryData<TableRow[]>(["floor-plan-v2-tables", selectedBranchId]) || [];
+      const currentRevision = getTableRowsRevision(savedRows);
+      if (currentRevision !== result.serverRevision) {
+        const message = "Le plan a changé après cette sauvegarde. Votre brouillon est conservé : actualisez avant de continuer.";
+        setHasUnsavedChanges(true);
+        sendToIframe("tok-table-v2:operation-error", {
+          requestId: request.requestId,
+          kind: "template",
+          message,
+        });
+        toast({ title: "Plan modifié ailleurs", description: message, variant: "destructive" });
+        return;
+      }
+      setHasUnsavedChanges(false);
       sendToIframe("tok-table-v2:operation-success", {
         requestId: request.requestId,
         kind: "template",
         idMap: result.idMap,
+        templateRevision: currentRevision,
         message: "Le modèle de salle est enregistré.",
       });
       toast({ title: "Modèle enregistré", description: "La V1 et la V2 utilisent maintenant cette configuration." });
@@ -620,17 +922,22 @@ export default function DashboardPlanSalleV2() {
   });
 
   const variantMutation = useMutation({
-    mutationFn: async ({ name, rawTables, rawObjects }: VariantSaveRequest) => {
-      if (!selectedId || !selectedBranchId) throw new Error("Aucune salle sélectionnée.");
+    mutationFn: async ({ protocolVersion, name, rawTables, rawObjects, requestId }: VariantSaveRequest) => {
+      if (!selectedId || !selectedBranchId || !workspaceReady) throw new Error("Le plan n’est pas encore prêt.");
+      if (protocolVersion !== BRIDGE_PROTOCOL_VERSION || !Array.isArray(rawObjects)) {
+        throw new Error("Version du plan incompatible. Actualisez la page avant d’enregistrer.");
+      }
       const variantName = name.trim();
       if (!variantName || variantName.length > 80) throw new Error("Donnez un nom valide à cette variante.");
       const drafts = parseFloorPlanV2TableDrafts(rawTables);
-      const objectDrafts = parseFloorPlanV2ObjectDrafts(rawObjects || []);
+      const objectDrafts = parseFloorPlanV2ObjectDrafts(rawObjects);
       const existingRowsById = new Map(tableRows.map((row) => [row.id, row]));
       const snapshotTables = [
         ...drafts.map((draft, index) => {
           const existing = existingRowsById.get(draft.id);
           return {
+            table_id: existing?.id || null,
+            client_id: draft.id,
             table_number: draft.name,
             capacity: draft.capacity,
             is_active: !draft.blocked,
@@ -641,6 +948,8 @@ export default function DashboardPlanSalleV2() {
         ...objectDrafts.map((object) => {
           const existing = existingRowsById.get(object.id);
           return {
+            table_id: existing?.id || null,
+            client_id: object.id,
             table_number: object.name,
             capacity: 0,
             is_active: true,
@@ -649,25 +958,26 @@ export default function DashboardPlanSalleV2() {
           };
         }),
       ];
-      const { data: authData, error: authError } = await supabase.auth.getUser();
-      if (authError || !authData.user) throw new Error("Session invalide.");
-      const { data, error } = await (supabase.from("floor_plan_variants" as any))
-        .insert({
-          restaurant_id: selectedId,
-          branch_id: selectedBranchId,
-          name: variantName,
-          source: "manual",
-          snapshot: {
-            version: 1,
-            canvas: { width: 1040, height: 760 },
-            tables: snapshotTables,
-          },
-          created_by: authData.user.id,
-        })
-        .select("*")
-        .single();
+      const snapshot = {
+        version: 1,
+        canvas: { width: 1040, height: 760 },
+        tables: snapshotTables,
+      };
+      const { data, error } = await withPersistenceTimeout((signal) => (
+        supabase.rpc("restaurant_save_floor_plan_variant_v2", {
+          p_branch_id: selectedBranchId,
+          p_request_id: getOperationId(requestId),
+          p_name: variantName,
+          p_snapshot: snapshot as Json,
+          p_source: "manual",
+        }).abortSignal(signal)
+      ));
       if (error) throw error;
-      return data as unknown as FloorPlanVariantRow;
+      const variant = asRecord(asRecord(data).variant);
+      if (typeof variant.id !== "string" || typeof variant.name !== "string") {
+        throw new Error("La réponse de sauvegarde de la variante est invalide.");
+      }
+      return variant as FloorPlanVariantRow;
     },
     onMutate: (request) => {
       sendToIframe("tok-table-v2:operation-start", { requestId: request.requestId, kind: "variant" });
@@ -695,8 +1005,14 @@ export default function DashboardPlanSalleV2() {
   });
 
   const serviceLayoutMutation = useMutation({
-    mutationFn: async ({ rawTables }: TableSaveRequest) => {
-      if (!selectedBranchId) throw new Error("Aucune salle sélectionnée.");
+    mutationFn: async ({ protocolVersion, baseRevision, rawTables, requestId }: TableSaveRequest) => {
+      if (!selectedBranchId || !workspaceReady) throw new Error("Le plan n’est pas encore prêt.");
+      if (protocolVersion !== BRIDGE_PROTOCOL_VERSION) {
+        throw new Error("Version du plan incompatible. Actualisez la page avant d’enregistrer.");
+      }
+      if (baseRevision !== serviceRevision) {
+        throw new Error("FLOOR_PLAN_REVISION_CONFLICT: le plan a été modifié depuis son chargement.");
+      }
       const drafts = parseFloorPlanV2TableDrafts(rawTables);
       const templateById = new Map(templateTables.filter((table) => table.editable).map((table) => [table.id, table]));
       const serviceById = new Map(serviceTables.filter((table) => table.editable).map((table) => [table.id, table]));
@@ -737,19 +1053,23 @@ export default function DashboardPlanSalleV2() {
         };
       });
 
-      const { error } = await supabase.rpc("restaurant_save_floor_plan_layouts", {
-        p_branch_id: selectedBranchId,
-        p_service_date: serviceDate,
-        p_layouts: layouts as Json,
-        p_reason: "Disposition du service enregistrée depuis Plan de salle 2",
-      });
+      const { data, error } = await withPersistenceTimeout((signal) => (
+        supabase.rpc("restaurant_save_floor_plan_layouts_v2", {
+          p_branch_id: selectedBranchId,
+          p_expected_snapshot: JSON.parse(baseRevision) as Json,
+          p_request_id: getOperationId(requestId),
+          p_service_date: serviceDate,
+          p_layouts: layouts as Json,
+          p_reason: "Disposition du service enregistrée depuis Plan de salle 2",
+        }).abortSignal(signal)
+      ));
       if (error) throw error;
+      return { serverRevision: getSnapshotServiceRevision(asRecord(data).snapshot) } as ServiceSaveResult;
     },
     onMutate: (request) => {
       sendToIframe("tok-table-v2:operation-start", { requestId: request.requestId, kind: "service-layout" });
     },
-    onSuccess: async (_data, request) => {
-      setHasUnsavedChanges(false);
+    onSuccess: async (result, request) => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["floor-plan-v2-layout-overrides", selectedBranchId, serviceDate] }),
         queryClient.invalidateQueries({ queryKey: ["floor-plan-layout-overrides", selectedBranchId, serviceDate] }),
@@ -757,9 +1077,29 @@ export default function DashboardPlanSalleV2() {
       await queryClient.refetchQueries({
         queryKey: ["floor-plan-v2-layout-overrides", selectedBranchId, serviceDate],
       });
+      const savedOverrides = queryClient.getQueryData<LayoutOverrideRow[]>([
+        "floor-plan-v2-layout-overrides",
+        selectedBranchId,
+        serviceDate,
+      ]) || [];
+      const savedRows = queryClient.getQueryData<TableRow[]>(["floor-plan-v2-tables", selectedBranchId]) || tableRows;
+      const currentRevision = getServiceRowsRevision(getTableRowsRevision(savedRows), savedOverrides);
+      if (currentRevision !== result.serverRevision) {
+        const message = "La disposition a changé après cette sauvegarde. Votre brouillon est conservé : actualisez avant de continuer.";
+        setHasUnsavedChanges(true);
+        sendToIframe("tok-table-v2:operation-error", {
+          requestId: request.requestId,
+          kind: "service-layout",
+          message,
+        });
+        toast({ title: "Disposition modifiée ailleurs", description: message, variant: "destructive" });
+        return;
+      }
+      setHasUnsavedChanges(false);
       sendToIframe("tok-table-v2:operation-success", {
         requestId: request.requestId,
         kind: "service-layout",
+        serviceRevision: currentRevision,
         message: "La disposition de ce service est enregistrée.",
       });
       toast({ title: "Disposition enregistrée", description: `Le plan du ${serviceDate} est à jour.` });
@@ -816,6 +1156,11 @@ export default function DashboardPlanSalleV2() {
 
       if (message.type === "tok-table-v2:ready") {
         setIframeReady(true);
+        window.setTimeout(sendHydrate, 0);
+        return;
+      }
+      if (message.type === "tok-table-v2:editor-lock") {
+        setEditorLocked(message.payload?.locked === true);
         return;
       }
       if (message.type === "tok-table-v2:dirty-change") {
@@ -831,11 +1176,22 @@ export default function DashboardPlanSalleV2() {
       }
 
       const requestId = getOperationId(message.payload?.requestId);
+      const operationKind = getBridgeOperationKind(message.type);
       if (operationPending) {
+        if (!operationKind) return;
         sendToIframe("tok-table-v2:operation-error", {
           requestId,
-          kind: "busy",
+          kind: operationKind,
           message: "Une sauvegarde est déjà en cours.",
+        });
+        return;
+      }
+      if (!workspaceReady) {
+        if (!operationKind) return;
+        sendToIframe("tok-table-v2:operation-error", {
+          requestId,
+          kind: operationKind,
+          message: "La synchronisation est temporairement indisponible. Le brouillon est conservé.",
         });
         return;
       }
@@ -887,6 +1243,7 @@ export default function DashboardPlanSalleV2() {
       if (message.type === "tok-table-v2:save-variant") {
         variantMutation.mutate({
           requestId,
+          protocolVersion: Number(message.payload?.protocolVersion),
           name: String(message.payload?.name || ""),
           rawTables: message.payload?.tables,
           rawObjects: message.payload?.objects,
@@ -896,13 +1253,22 @@ export default function DashboardPlanSalleV2() {
       if (message.type === "tok-table-v2:save-template") {
         templateMutation.mutate({
           requestId,
+          protocolVersion: Number(message.payload?.protocolVersion),
+          baseRevision: String(message.payload?.baseRevision || ""),
           rawTables: message.payload?.tables,
           rawObjects: message.payload?.objects,
+          baselineTableIds: message.payload?.baselineTableIds,
+          baselineObjectIds: message.payload?.baselineObjectIds,
         });
         return;
       }
       if (message.type === "tok-table-v2:save-service-layout") {
-        serviceLayoutMutation.mutate({ requestId, rawTables: message.payload?.tables });
+        serviceLayoutMutation.mutate({
+          requestId,
+          protocolVersion: Number(message.payload?.protocolVersion),
+          baseRevision: String(message.payload?.baseRevision || ""),
+          rawTables: message.payload?.tables,
+        });
       }
     };
 
@@ -912,6 +1278,7 @@ export default function DashboardPlanSalleV2() {
     assignmentMutation,
     autoPlace,
     floorPlanVariants,
+    sendHydrate,
     operationPending,
     reservationStatusMutation,
     sendToIframe,
@@ -919,12 +1286,8 @@ export default function DashboardPlanSalleV2() {
     templateMutation,
     tableRows,
     variantMutation,
+    workspaceReady,
   ]);
-
-  const hasError = Boolean(
-    branchesError || floorPlanVariantsError || tablesError || layoutOverridesError || reservationsError || slotsError,
-  );
-  const loading = restaurantsLoading || branchesLoading || tablesLoading || reservationsLoading;
 
   const openFullscreen = async () => {
     try {
@@ -960,7 +1323,7 @@ export default function DashboardPlanSalleV2() {
               <Select
                 value={selectedBranchId || ""}
                 onValueChange={setSelectedBranchId}
-                disabled={hasUnsavedChanges || operationPending}
+                disabled={!workspaceReady || hasUnsavedChanges || editorLocked || operationPending}
               >
                 <SelectTrigger className="h-9 w-[180px] rounded-xl">
                   <SelectValue placeholder="Salle" />
@@ -977,7 +1340,7 @@ export default function DashboardPlanSalleV2() {
               variant="outline"
               size="sm"
               onClick={sendHydrate}
-              disabled={!iframeReady || hasUnsavedChanges || operationPending}
+              disabled={!workspaceReady || !iframeReady || hasUnsavedChanges || editorLocked || operationPending}
             >
               <RefreshCw className="mr-2 h-4 w-4" />
               Actualiser
@@ -989,9 +1352,16 @@ export default function DashboardPlanSalleV2() {
           </div>
         </div>
 
-        {hasError ? (
+        {hasBlockingError ? (
           <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
             Les données réelles n’ont pas pu être chargées. Réessayez dans un instant.
+          </div>
+        ) : null}
+
+        {hasRefetchError ? (
+          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            La dernière version chargée reste affichée. La synchronisation et les enregistrements sont suspendus
+            jusqu’au retour de la connexion ; votre brouillon est conservé.
           </div>
         ) : null}
 
@@ -1012,22 +1382,28 @@ export default function DashboardPlanSalleV2() {
             ref={fullscreenRef}
             className="relative min-h-0 flex-1 overflow-hidden rounded-2xl border bg-white shadow-sm [&:fullscreen>iframe]:h-screen [&:fullscreen>iframe]:min-h-0"
           >
-            {loading ? (
-              <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-center gap-2 bg-background/90 px-3 py-2 text-xs text-muted-foreground backdrop-blur">
+            {!workspaceMounted ? (
+              <div className="flex h-[calc(100vh-11rem)] min-h-[760px] items-center justify-center gap-2 bg-background/95 px-3 py-2 text-sm text-muted-foreground backdrop-blur">
                 <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                Chargement du plan et des clients…
+                {hasBlockingError ? "Le plan est indisponible tant que les données ne sont pas chargées." : "Chargement sécurisé du plan, des clients et des placements…"}
               </div>
             ) : null}
-            <iframe
-              ref={iframeRef}
-              src={PROTOTYPE_URL}
-              title="TOK TABLE 2 connecté"
-              className="h-[calc(100vh-11rem)] min-h-[760px] w-full border-0"
-              sandbox="allow-scripts allow-same-origin"
-              allow="fullscreen"
-              allowFullScreen
-              onLoad={() => setIframeReady(true)}
-            />
+            {workspaceMounted ? (
+              <iframe
+                key={`${selectedId}:${selectedBranchId}`}
+                ref={iframeRef}
+                src={PROTOTYPE_URL}
+                title="TOK TABLE 2 connecté"
+                className="h-[calc(100vh-11rem)] min-h-[760px] w-full border-0"
+                sandbox="allow-scripts allow-same-origin"
+                allow="fullscreen"
+                allowFullScreen
+                onLoad={() => {
+                  setIframeReady(true);
+                  window.setTimeout(sendHydrate, 0);
+                }}
+              />
+            ) : null}
           </div>
         ) : null}
       </section>
