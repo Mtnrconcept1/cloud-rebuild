@@ -51,6 +51,8 @@ const JOURNEY_STEPS = [
   { label: "Livrée", statuses: ["delivered"] },
 ] as const;
 
+const DEMO_SESSION_STORAGE_KEY = "tok:commercial-demo:active-session";
+
 const REALTIME_PRESENTATION = {
   connecting: { label: "Connexion temps réel…", className: "border-sky-300 text-sky-700", icon: Loader2, animate: true },
   connected: { label: "Temps réel connecté", className: "border-emerald-300 text-emerald-700", icon: Wifi, animate: false },
@@ -68,20 +70,33 @@ function getInitialCheckoutParams() {
     return { sessionId: "", stripeSessionId: "", returnedFromCheckout: false, checkoutCancelled: false };
   }
   const params = new URLSearchParams(window.location.search);
+  let storedSessionId = "";
+  try {
+    storedSessionId = window.sessionStorage.getItem(DEMO_SESSION_STORAGE_KEY) || "";
+  } catch {
+    // The demo still works without persistence in restrictive privacy modes.
+  }
   return {
-    sessionId: params.get("demo_session_id") || "",
+    sessionId: params.get("demo_session_id") || storedSessionId,
     stripeSessionId: params.get("stripe_session_id") || "",
     returnedFromCheckout: params.get("demo_checkout") === "success",
     checkoutCancelled: params.get("demo_checkout") === "cancelled",
   };
 }
 
-function updateDemoSessionUrl(sessionId: string) {
+function updateDemoSessionUrl(sessionId: string, clearCheckoutParams = true) {
   if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.setItem(DEMO_SESSION_STORAGE_KEY, sessionId);
+  } catch {
+    // The in-memory query state remains authoritative for this tab.
+  }
   const url = new URL(window.location.href);
-  url.searchParams.set("demo_session_id", sessionId);
-  url.searchParams.delete("stripe_session_id");
-  url.searchParams.delete("demo_checkout");
+  url.searchParams.delete("demo_session_id");
+  if (clearCheckoutParams) {
+    url.searchParams.delete("stripe_session_id");
+    url.searchParams.delete("demo_checkout");
+  }
   window.history.replaceState(window.history.state, "", url);
 }
 
@@ -165,10 +180,10 @@ export default function CommercialMultiSpaceDemo() {
   const effectiveSessionId = sessionId || bootstrapQuery.data?.id || "";
 
   useEffect(() => {
-    if (!effectiveSessionId || sessionId) return;
-    setSessionId(effectiveSessionId);
-    updateDemoSessionUrl(effectiveSessionId);
-  }, [effectiveSessionId, sessionId]);
+    if (!effectiveSessionId) return;
+    if (!sessionId) setSessionId(effectiveSessionId);
+    updateDemoSessionUrl(effectiveSessionId, !initialParams.returnedFromCheckout);
+  }, [effectiveSessionId, initialParams.returnedFromCheckout, sessionId]);
 
   const snapshotQuery = useQuery({
     queryKey: ["commercial-demo-snapshot", effectiveSessionId],
