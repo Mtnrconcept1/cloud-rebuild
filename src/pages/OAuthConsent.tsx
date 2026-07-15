@@ -247,6 +247,15 @@ export default function OAuthConsent() {
                 )}
               </div>
 
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
+                <p className="font-bold">Accès TOK appliqué selon votre rôle</p>
+                <ul className="mt-2 list-disc space-y-1 pl-5 leading-5">
+                  <li>Consulter les restaurants et disponibilités accessibles à votre compte.</li>
+                  <li>Pour un compte restaurateur autorisé, lire les indicateurs et préparer des campagnes ou plans.</li>
+                  <li>Aucune réservation définitive, publication, dépense ou action administrative n’est exécutée sans confirmation humaine.</li>
+                </ul>
+              </div>
+
               {details.redirect_uri ? (
                 <details className="rounded-xl border border-slate-200 px-4 py-3 text-sm">
                   <summary className="cursor-pointer font-semibold text-slate-700">Détails techniques</summary>

@@ -170,9 +170,9 @@ export async function assertTokConnectRestaurantGrant(
     ]);
     if (customerScopes.has(requiredScope)) return { auth_mode: "supabase_oauth", access: "customer" };
 
-    const [{ data: restaurant, error: restaurantError }, { data: staff, error: staffError }, { data: roles, error: roleError }] = await Promise.all([
+    const [{ data: restaurant, error: restaurantError }, { data: staffEntries, error: staffError }, { data: roles, error: roleError }] = await Promise.all([
       context.adminClient.from("restaurants").select("id").eq("id", restaurantId).eq("owner_id", context.userId).maybeSingle(),
-      context.adminClient.from("restaurant_staff").select("id, role").eq("restaurant_id", restaurantId).eq("user_id", context.userId).maybeSingle(),
+      context.adminClient.from("restaurant_staff").select("id, role").eq("restaurant_id", restaurantId).eq("user_id", context.userId),
       context.adminClient.from("user_roles").select("role").eq("user_id", context.userId),
     ]);
 
@@ -180,7 +180,20 @@ export async function assertTokConnectRestaurantGrant(
     if (staffError) throw new HttpError(500, staffError.message);
     if (roleError) throw new HttpError(500, roleError.message);
     const isAdmin = (roles || []).some((entry) => entry.role === "admin");
-    if (!restaurant && !staff && !isAdmin) throw new HttpError(403, "tok_connect_restaurant_access_required");
+    const staffRolesByScope: Record<string, Set<string>> = {
+      "credits:read": new Set(["owner", "manager", "finance"]),
+      "campaigns:preview": new Set(["owner", "manager", "marketing"]),
+      "analytics:read": new Set(["owner", "manager", "finance", "marketing", "analyst"]),
+      "autopilot:plan": new Set(["owner", "manager"]),
+    };
+    const allowedStaffRoles = staffRolesByScope[requiredScope] || new Set(["owner", "manager"]);
+    const staff = (staffEntries || []).find((entry) =>
+      typeof entry.role === "string" && allowedStaffRoles.has(entry.role.toLowerCase())
+    );
+    const hasStaffAccess = Boolean(staff);
+    if (!restaurant && !hasStaffAccess && !isAdmin) {
+      throw new HttpError(403, "tok_connect_restaurant_access_required");
+    }
     return { auth_mode: "supabase_oauth", access: isAdmin ? "admin" : restaurant ? "owner" : staff?.role || "staff" };
   }
 

@@ -100,6 +100,9 @@ describe("TOK Connect MCP HTTP protocol helpers", () => {
     expect(() => assertMcpAcceptHeader(mcpRequest("{}", {
       Accept: "text/html",
     }))).toThrowError(expect.objectContaining({ httpStatus: 406 }));
+    expect(() => assertMcpAcceptHeader(mcpRequest("{}", {
+      Accept: "text/event-stream",
+    }))).toThrowError(expect.objectContaining({ httpStatus: 406 }));
 
     const accepted = mcpAcceptedResponse({ "Access-Control-Allow-Origin": "https://chatgpt.com" });
     expect(accepted.status).toBe(202);

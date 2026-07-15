@@ -52,7 +52,12 @@ export async function parseMcpJsonRpcRequest(req: Request): Promise<McpJsonRpcRe
   }
 
   // JSON-RPC batching was removed from MCP in protocol version 2025-06-18.
-  if (!isRecord(value) || value.jsonrpc !== "2.0" || typeof value.method !== "string") {
+  if (
+    !isRecord(value) ||
+    value.jsonrpc !== "2.0" ||
+    typeof value.method !== "string" ||
+    !value.method.trim()
+  ) {
     throw new McpProtocolError(-32600, "invalid_request");
   }
   if (value.params !== undefined && !isRecord(value.params)) {
@@ -98,7 +103,7 @@ export function assertMcpProtocolVersion(req: Request, method: string) {
 
 export function assertMcpAcceptHeader(req: Request) {
   const accept = (req.headers.get("Accept") || "*/*").toLowerCase();
-  if (accept.includes("*/*") || accept.includes("application/json") || accept.includes("text/event-stream")) {
+  if (accept.includes("*/*") || accept.includes("application/json")) {
     return;
   }
   throw new McpProtocolError(-32600, "mcp_accept_header_invalid", 406);
