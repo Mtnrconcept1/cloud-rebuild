@@ -30,6 +30,8 @@ type CustomerNavItem = {
   shortLabel?: string;
   icon: LucideIcon;
   feature?: string;
+  featuresAny?: string[];
+  demoOnly?: boolean;
   tab?: string;
 };
 
@@ -50,7 +52,14 @@ const NAV_SECTIONS: CustomerNavSection[] = [
   {
     label: "Mon activité",
     items: [
-      { to: "/recherche", label: "Restaurant démo", shortLabel: "Restaurant", icon: Store, feature: "reservation" },
+      {
+        to: "/recherche",
+        label: "Restaurant démo",
+        shortLabel: "Restaurant",
+        icon: Store,
+        featuresAny: ["reservation", "commandes"],
+        demoOnly: true,
+      },
       { to: "/reservations", label: "Mes réservations", shortLabel: "Réservations", icon: CalendarDays, feature: "reservation" },
       { to: "/commandes", label: "Mes commandes", shortLabel: "Commandes", icon: ShoppingCart, feature: "commandes" },
       { to: "/mes-avis", label: "Mes avis", shortLabel: "Avis", icon: Star },
@@ -96,13 +105,15 @@ export default function CustomerDashboardLayout({ children }: { children: React.
     .map((section) => ({
       ...section,
       items: section.items.filter((item) => {
+        const hasActiveFeature = (!item.feature || activeFeatures.has(item.feature))
+          && (!item.featuresAny || item.featuresAny.some((feature) => activeFeatures.has(feature)));
         if (commercialDemoFrame) {
           const target = new URL(item.to, "https://thetok.ch");
           return commercialDemoFrame.surface === "client"
             && COMMERCIAL_DEMO_SAFE_CLIENT_PATHS.has(target.pathname)
-            && (!item.feature || activeFeatures.has(item.feature));
+            && hasActiveFeature;
         }
-        return !item.feature || activeFeatures.has(item.feature);
+        return !item.demoOnly && hasActiveFeature;
       }),
     }))
     .filter((section) => section.items.length > 0);
