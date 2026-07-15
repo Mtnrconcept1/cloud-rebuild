@@ -244,7 +244,7 @@ function LiveClientDashboardHome() {
   const { user } = useAuth();
   const commercialDemoFrame = useCommercialDemoFrame();
   const isCommercialDemoClientFrame = commercialDemoFrame?.surface === "client";
-  const { activeFeatures, loading: featuresLoading } = useFeatureFlagSnapshot();
+  const { activeFeatures, loading: featuresLoading } = useFeatureFlagSnapshot({ enabled: !isCommercialDemoClientFrame });
   const {
     unreadCount,
     isLoading: notificationsLoading,
