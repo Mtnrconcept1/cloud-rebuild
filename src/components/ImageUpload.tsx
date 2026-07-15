@@ -3,7 +3,7 @@ import { getSupabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Upload, X } from "lucide-react";
+import { ImageIcon, Sparkles, Upload, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { normalizePublicImageUrl } from "@/lib/securityUrls";
 import { getOptimizedImageUrl, optimizeImageUpload } from "@/lib/optimizedImages";
@@ -14,6 +14,7 @@ import {
   getSafeUploadExtension,
 } from "@/lib/uploadSecurity";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
+import { useEstimatedProgress } from "@/hooks/use-estimated-progress";
 
 const supabase = getSupabase();
 const UUID_NAMESPACE_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -64,6 +65,12 @@ export default function ImageUpload({
   const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
   const demoObjectUrlRef = useRef<string | null>(null);
+  const { progress: uploadProgress, isOverdue: uploadIsOverdue } = useEstimatedProgress({
+    active: uploading,
+    estimatedDurationMs: 8_000,
+    startPercent: 6,
+    maxPercent: 95,
+  });
 
   useEffect(() => () => {
     if (demoObjectUrlRef.current) URL.revokeObjectURL(demoObjectUrlRef.current);
@@ -165,7 +172,35 @@ export default function ImageUpload({
             <label className="flex flex-col items-center justify-center w-full h-full cursor-pointer">
               <div className="flex flex-col items-center justify-center pt-5 pb-6">
                 {uploading ? (
-                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                  <div className="flex w-full max-w-xs flex-col items-center px-5" role="status" aria-live="polite">
+                    <div
+                      className="relative grid h-16 w-16 place-items-center rounded-full p-[3px] shadow-[0_10px_30px_rgba(249,115,22,0.22)]"
+                      style={{ background: `conic-gradient(rgb(249 115 22) ${uploadProgress}%, rgb(226 232 240) 0)` }}
+                      aria-hidden="true"
+                    >
+                      <div className="grid h-full w-full place-items-center rounded-full bg-background">
+                        <ImageIcon className="h-6 w-6 text-orange-500" />
+                        <Sparkles className="absolute right-0 top-0 h-4 w-4 animate-pulse text-amber-500 motion-reduce:animate-none" />
+                      </div>
+                    </div>
+                    <p className="mt-3 text-sm font-semibold text-foreground">
+                      {uploadIsOverdue ? "Finalisation de l’image…" : "Préparation de l’image…"}
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">{uploadProgress}% · optimisation et envoi sécurisé</p>
+                    <div
+                      className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-muted"
+                      role="progressbar"
+                      aria-label="Import de l’image"
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-valuenow={uploadProgress}
+                    >
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-orange-600 to-amber-300 transition-[width] duration-500"
+                        style={{ width: `${uploadProgress}%` }}
+                      />
+                    </div>
+                  </div>
                 ) : (
                   <>
                     <Upload className="h-8 w-8 text-muted-foreground mb-2" />
