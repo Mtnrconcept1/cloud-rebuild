@@ -54,7 +54,7 @@ Le ledger interne sait calculer les quatre responsabilités, mais le transfert
 automatique de la part restaurateur n’est pas actif tant que Stripe Connect est
 désactivé et que les comptes restaurants ne sont pas onboardés.
 
-## Corrections proposées dans ce lot
+## Corrections implémentées dans cette PR
 
 ### Tentative de paiement durable
 
@@ -150,9 +150,10 @@ l’ordre de livraison :
    test, les secrets, les événements abonnés, le taux d’erreur et l’absence d’un
    ancien endpoint concurrent. Cette configuration n’était pas exposée par le
    connecteur utilisé pour l’audit.
-5. **Preview PostgreSQL** — aucune branche Supabase de preview n’existait. La
-   migration a été parsée statiquement mais doit être exécutée sur une branche
-   éphémère avec tests de concurrence avant toute production.
+5. **Validation transactionnelle complète** — la migration et les machines
+   d’état ont passé la preview PostgreSQL isolée. Il reste à exécuter le parcours
+   navigateur → Edge Function → Stripe test → webhook → base, y compris les
+   remboursements concurrents, avec les secrets de preview.
 6. **Notifications** — les écritures monétaires sont idempotentes ; les emails
    et pushes externes restent au moins une fois et peuvent être dupliqués si le
    fournisseur accepte l’envoi puis coupe la réponse.
@@ -176,3 +177,34 @@ l’ordre de livraison :
 - migration PostgreSQL parsée : 187 instructions ;
 - aucune migration, fonction ou configuration de production modifiée pendant
   l’audit.
+
+## Validation Supabase de preview
+
+L’ouverture de la PR a créé automatiquement la branche éphémère
+`agent/payment-integrity-hardening` (`fjrcjeyqwihnhlhzpbzw`). Sur cette branche :
+
+- la chaîne complète des migrations, dont
+  `20260715060000_payment_integrity_state_machine`, est passée ;
+- les cinq nouvelles tables ont RLS activé ; aucune n’accorde d’accès à `anon`
+  et seule la lecture des relevés commerciaux est volontairement accordée aux
+  utilisateurs authentifiés sous policy propriétaire/admin ;
+- les 23 RPC publiques sensibles ne sont exécutables ni par `anon` ni par
+  `authenticated`, et sont toutes exécutables par `service_role` ;
+- 50 index ciblés sont valides/prêts et les 53 contraintes des nouvelles tables
+  sont validées ;
+- huit acquisitions réellement concurrentes avec la même clé ont produit une
+  seule tentative, une seule génération et un seul bail ;
+- huit claims réellement concurrents du même webhook ont produit une seule
+  ligne, un seul bail actif et un compteur d’essai égal à un ;
+- le smoke test transactionnel a validé la réutilisation, le scellement de la
+  requête, la course retour-arrière/créateur, l’annulation d’une session liée,
+  la finalisation tardive qui prime sur l’annulation et la déduplication après
+  succès du webhook ;
+- les advisors n’attribuent aucun avertissement d’exécution SECURITY DEFINER
+  aux nouveaux RPC. Les informations `rls_enabled_no_policy` des tables internes
+  sont intentionnelles : elles sont service-only. Le seul nouveau FK non indexé
+  signalé (`commercial_statements.created_by`) est corrigé dans la migration de
+  suivi `20260715060500_payment_integrity_advisor_followup`.
+
+Ces tests utilisent une base vide isolée et des identifiants Stripe factices ;
+ils ne remplacent pas le parcours Stripe test réel ni un test de charge prolongé.
