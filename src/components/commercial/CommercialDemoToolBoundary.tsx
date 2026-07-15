@@ -1,11 +1,13 @@
 import { useMemo, useState, type ReactNode } from "react";
 import {
   Bot,
+  Camera,
   CheckCircle2,
   CircleDollarSign,
   CreditCard,
   LifeBuoy,
   Megaphone,
+  Newspaper,
   Package,
   Plug,
   RefreshCw,
@@ -23,10 +25,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export type CommercialDemoSafeTool =
   | "advisor"
+  | "actualites"
   | "billing"
   | "pack"
   | "campaigns"
   | "social"
+  | "photos"
   | "support"
   | "tok-connect"
   | "accounting-inflow"
@@ -42,6 +46,16 @@ const TOOL_CONFIG: Record<CommercialDemoSafeTool, {
   action: string;
   completed: string;
 }> = {
+  actualites: {
+    title: "Actualités du restaurant",
+    description: "Montrez la création, la programmation et la mise en avant d’une actualité sans publier, notifier ni réserver de budget réel.",
+    badge: "Actualités · sandbox",
+    icon: Newspaper,
+    metrics: [{ label: "Brouillons", value: "3" }, { label: "Audience démo", value: "2 400" }, { label: "Budget réel", value: "0 CHF" }],
+    steps: ["Composer l’actualité", "Prévisualiser les formats", "Simuler la publication"],
+    action: "Publier l’actualité simulée",
+    completed: "Actualité publiée dans la sandbox — aucun post, boost ou message réel créé.",
+  },
   advisor: {
     title: "Assistant de pilotage",
     description: "Montrez les recommandations, priorités et plans d’action sans consommer de crédit IA ni appeler un fournisseur externe.",
@@ -71,6 +85,16 @@ const TOOL_CONFIG: Record<CommercialDemoSafeTool, {
     steps: ["Explorer les modules inclus", "Comparer les capacités", "Simuler la sélection du pack"],
     action: "Sélectionner ce pack en démo",
     completed: "Pack sélectionné pour la présentation uniquement.",
+  },
+  photos: {
+    title: "Studio photo et marketing",
+    description: "Présentez l’import, la retouche et la génération de visuels sans appeler de fournisseur IA ni consommer de crédit photo.",
+    badge: "Studio photo · sandbox",
+    icon: Camera,
+    metrics: [{ label: "Créations", value: "4" }, { label: "Qualité", value: "Studio" }, { label: "Crédits consommés", value: "0" }],
+    steps: ["Choisir une photo", "Configurer le rendu", "Prévisualiser la galerie"],
+    action: "Générer le visuel simulé",
+    completed: "Visuel généré dans la sandbox — aucun appel OpenAI ni débit de crédit.",
   },
   campaigns: {
     title: "Campagnes marketing",
