@@ -4,6 +4,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import AppLoadingScreen from "@/components/ui/app-loading-screen";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { AuthProvider } from "@/lib/auth";
@@ -233,9 +234,11 @@ function ClientSurfaceRoute({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-      </div>
+      <AppLoadingScreen
+        fullScreen
+        title="Vérification de votre session"
+        description="TOK sécurise votre accès et prépare l’espace correspondant à votre compte…"
+      />
     );
   }
 
@@ -475,7 +478,14 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
       {!commercialDemoFrame && !oauthConsentFrame ? <AiCreationNotifications /> : null}
       {publicNavbar}
       {!commercialDemoFrame && !oauthConsentFrame ? <FloatingRouteBackButton /> : null}
-      <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}>
+      <Suspense
+        fallback={(
+          <AppLoadingScreen
+            title="Ouverture de la page"
+            description="TOK charge les outils nécessaires et restaure vos dernières données…"
+          />
+        )}
+      >
         <Routes>
           <Route path="/" element={<ClientSurfaceRoute><Index /></ClientSurfaceRoute>} />
           <Route path="/auth" element={<Auth />} />
