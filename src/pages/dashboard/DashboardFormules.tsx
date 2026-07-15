@@ -675,12 +675,14 @@ function ProgressiveOfferManager({
         let next: ProgressiveReservationOffer[];
 
         if (form.id) {
-          const exists = current.some((offer) => offer.id === form.id);
+          const existingOffer = current.find((offer) => offer.id === form.id);
+          const existingCreatedAt = (existingOffer as ProgressiveReservationOffer & { created_at?: string } | undefined)?.created_at;
+          const exists = Boolean(existingOffer);
           const updated = {
-            ...(current.find((offer) => offer.id === form.id) || {}),
+            ...(existingOffer || {}),
             ...payloads[0],
             id: form.id,
-            created_at: current.find((offer) => offer.id === form.id)?.created_at || now,
+            created_at: existingCreatedAt || now,
           } as ProgressiveReservationOffer;
           next = exists
             ? current.map((offer) => offer.id === form.id ? updated : offer)
