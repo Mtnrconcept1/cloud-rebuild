@@ -139,6 +139,7 @@ export default function Panier() {
   const location = useLocation();
   const queryClient = useQueryClient();
   const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
   const globalActiveFeatures = useActiveFeatures({ enabled: !commercialDemoFrame });
   const activeFeatures = useMemo(
     () => commercialDemoFrame
@@ -189,8 +190,12 @@ export default function Panier() {
   const [checkoutStep, setCheckoutStep] = useState<CheckoutStepId>("summary");
   const lastDiscount = useRef({ amount: 0, name: null as string | null });
 
-  const { isMember: isTokOneMember, subscription: tokOneSubscription } = useIsTokOneMember();
-  const { data: tokOneBenefits } = useTokOneBenefits(tokOneSubscription?.plan_id);
+  const { isMember: isTokOneMember, subscription: tokOneSubscription } = useIsTokOneMember({
+    enabled: !isCommercialDemoClient,
+  });
+  const { data: tokOneBenefits } = useTokOneBenefits(tokOneSubscription?.plan_id, {
+    enabled: !isCommercialDemoClient,
+  });
 
   const isChefsTableCheckout = cartMetadata.feature === "chefs_table"
     || (items.length > 0 && items.every((item) => item.metadata?.is_chefs_table));
@@ -215,7 +220,7 @@ export default function Panier() {
 
   const roundMoney = useCallback((value: number) => Math.round((value + Number.EPSILON) * 100) / 100, []);
   const flexFees = { express: 2.50, standard: 1.00, flex: 0 };
-  const quotedDeliveryFee = isChefsTableCheckout
+  const quotedDeliveryFee = isCommercialDemoClient || isChefsTableCheckout
     ? 0
     : orderMode === "takeaway"
       ? 0
@@ -265,7 +270,10 @@ export default function Panier() {
     () => orderMode !== "delivery" || hasPreciseStreetNumber(address, deliverySelection),
     [address, deliverySelection, orderMode],
   );
-  const checkoutSteps = useMemo(() => getCheckoutSteps(orderMode), [orderMode]);
+  const checkoutSteps = useMemo(
+    () => getCheckoutSteps(orderMode).filter((step) => !isCommercialDemoClient || step.id !== "suggestions"),
+    [isCommercialDemoClient, orderMode],
+  );
   const currentCheckoutStepIndex = Math.max(
     0,
     checkoutSteps.findIndex((step) => step.id === checkoutStep),
@@ -288,7 +296,7 @@ export default function Panier() {
       const { data } = await supabase.from("profiles" as any).select("loyalty_points").eq("user_id", user?.id).single();
       return data as any;
     },
-    enabled: !!user,
+    enabled: Boolean(user && !isCommercialDemoClient),
   });
 
   const { data: deliveryRestaurant } = useQuery({
@@ -321,13 +329,14 @@ export default function Panier() {
   const deliveryAvailable = deliveryFeatureEnabled && !!restaurantPaymentConfig?.delivery_available;
   const takeawayAvailable = takeawayFeatureEnabled && !!restaurantPaymentConfig?.supports_pickup;
   const allowedPaymentMethods = useMemo(() => {
+    if (isCommercialDemoClient) return ["card"] as PaymentMethodId[];
     const globalSecureMethods = getGloballyEnabledPaymentMethods(activeFeatures).filter((method) => method !== "cash");
     if (isChefsTableCheckout) {
       return globalSecureMethods;
     }
     const disabled = (restaurantPaymentConfig as Record<string, unknown>)?.disabled_payment_methods as string[] || [];
     return getAllowedPaymentMethods(activeFeatures, disabled);
-  }, [activeFeatures, isChefsTableCheckout, restaurantPaymentConfig]);
+  }, [activeFeatures, isChefsTableCheckout, isCommercialDemoClient, restaurantPaymentConfig]);
 
   useEffect(() => {
     if (isChefsTableCheckout) return;
@@ -711,7 +720,7 @@ export default function Panier() {
   const handleAddressContinue = () => {
     if (!validateJourneyStep()) return;
     if (!validateAddressStep()) return;
-    setCheckoutStep("suggestions");
+    setCheckoutStep(isCommercialDemoClient ? "payment" : "suggestions");
     scrollCheckoutTop();
   };
 
@@ -767,10 +776,11 @@ export default function Panier() {
           customerName: String(user.user_metadata?.full_name || user.email?.split("@")[0] || "Client démo"),
           deliveryAddress: address.trim() || "18 rue de la Démonstration, 1204 Genève",
           items: items.map((item) => ({
+            menu_item_id: item.menuItemId,
             name: item.name,
             quantity: item.quantity,
-            // The RPC ignores this price and resolves the authoritative demo
-            // catalogue amount by item name.
+            // The RPC ignores this client price and resolves the authoritative
+            // amount from this menu item inside the isolated demo restaurant.
             unit_amount_cents: Math.round(Number(item.price || 0) * 100),
           })),
         });
@@ -1681,9 +1691,13 @@ export default function Panier() {
           </div>
         ) : checkoutStep === "summary" ? (
           <>
-            <FormulaDetector items={items} restaurantId={restaurantId} onDiscountCalculated={handleDiscountCalculated} />
-            <PromotionDetector restaurantId={restaurantId} subtotal={total} onDiscountCalculated={handlePromoCalculated} />
-            <PromoCodeInput restaurantId={restaurantId} userId={user?.id} subtotal={total} onApplied={handlePromoCodeApplied} />
+            {!isCommercialDemoClient ? (
+              <>
+                <FormulaDetector items={items} restaurantId={restaurantId} onDiscountCalculated={handleDiscountCalculated} />
+                <PromotionDetector restaurantId={restaurantId} subtotal={total} onDiscountCalculated={handlePromoCalculated} />
+                <PromoCodeInput restaurantId={restaurantId} userId={user?.id} subtotal={total} onApplied={handlePromoCodeApplied} />
+              </>
+            ) : null}
             <Button type="button" className="w-full" size="lg" onClick={handleSummaryContinue}>
               Continuer vers l'adresse
               <ArrowRight className="ml-2 h-4 w-4" />
@@ -1944,7 +1958,7 @@ export default function Panier() {
                 Retour au resume
               </Button>
               <Button type="button" onClick={handleAddressContinue}>
-                Voir les suggestions
+                {isCommercialDemoClient ? "Continuer vers le paiement test" : "Voir les suggestions"}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
@@ -1952,7 +1966,7 @@ export default function Panier() {
         </div>
         ) : null}
 
-        {!isChefsTableCheckout && checkoutStep === "suggestions" ? (
+        {!isCommercialDemoClient && !isChefsTableCheckout && checkoutStep === "suggestions" ? (
           <div className="space-y-4 border-t pt-4">
             <CartSuggestionsStep
               restaurantId={restaurantId}
@@ -1976,7 +1990,7 @@ export default function Panier() {
         {(isChefsTableCheckout || checkoutStep === "payment") ? (
           <>
         <div className="border-t pt-4 space-y-2">
-          {!isChefsTableCheckout ? (
+          {!isCommercialDemoClient && !isChefsTableCheckout ? (
             <LoyaltySection loyaltyPoints={loyaltyPoints} maxPointsDiscount={maxPointsDiscount} useLoyaltyPoints={useLoyaltyPoints} setUseLoyaltyPoints={setUseLoyaltyPoints} pointsToRedeemInput={pointsToRedeemInput} setPointsToRedeemInput={setPointsToRedeemInput} maxPointsRedeemable={maxPointsRedeemable} earnedXp={earnedXp} donateEarnedXp={donateEarnedXp} setDonateEarnedXp={setDonateEarnedXp} />
           ) : null}
 
@@ -2003,7 +2017,7 @@ export default function Panier() {
           {pointsDiscount > 0 && <div className="flex justify-between text-sm font-medium text-pink-500"><span>Réduction Fidélité ({pointsToRedeem} pts)</span><span>-{pointsDiscount.toFixed(2)} CHF</span></div>}
           {flexDiscount > 0 && <div className="flex justify-between text-sm font-medium text-emerald-600"><span>Réduction Offres (10%)</span><span>-{flexDiscount.toFixed(2)} CHF</span></div>}
           <div className="flex justify-between font-bold text-lg border-t pt-2"><span>Total</span><span>{finalTotal.toFixed(2)} CHF</span></div>
-          {earnedXp > 0 && (
+          {!isCommercialDemoClient && earnedXp > 0 && (
             <div className="flex items-center justify-between text-sm pt-1 text-pink-500">
               <span className="flex items-center gap-1.5"><Sparkles className="h-3.5 w-3.5" />{donateEarnedXp ? "Miamz reversés aux démunis" : "Miamz gagnés avec cette commande"}</span>
               <span className="font-semibold">+{earnedXp} Miamz</span>
@@ -2011,7 +2025,7 @@ export default function Panier() {
           )}
         </div>
 
-        {!isChefsTableCheckout && !isTokOneMember && orderMode === "delivery" && quotedDeliveryFee > 0 && (
+        {!isCommercialDemoClient && !isChefsTableCheckout && !isTokOneMember && orderMode === "delivery" && quotedDeliveryFee > 0 && (
           <Link to="/tok-one" className="flex items-center gap-3 p-3 rounded-xl bg-violet-50 border border-violet-200 hover:bg-violet-100 transition-colors">
             <Crown className="h-5 w-5 text-violet-600 shrink-0" />
             <div className="flex-1 min-w-0">
@@ -2022,7 +2036,7 @@ export default function Panier() {
           </Link>
         )}
 
-        {!isChefsTableCheckout && orderMode === "delivery" && <FlexOptions flexOption={flexOption} setFlexOption={setFlexOption} />}
+        {!isCommercialDemoClient && !isChefsTableCheckout && orderMode === "delivery" && <FlexOptions flexOption={flexOption} setFlexOption={setFlexOption} />}
         {!hasJourneyAvailable ? (
           <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
             Livraison et emporter sont actuellement indisponibles pour ce restaurant.
@@ -2040,10 +2054,12 @@ export default function Panier() {
           variant={isChefsTableCheckout ? "chef-table" : "default"}
           secureDescription={isChefsTableCheckout
             ? "Paiement sécurisé requis pour confirmer votre réservation La Table du Chef"
-            : "Paiement sécurisé via Stripe"}
+            : isCommercialDemoClient
+              ? "Démonstration isolée — Stripe Test uniquement"
+              : "Paiement sécurisé via Stripe"}
         />
 
-        {!isChefsTableCheckout ? (
+        {!isCommercialDemoClient && !isChefsTableCheckout ? (
           <Button type="button" variant="outline" className="w-full" onClick={() => setCheckoutStep("suggestions")}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Retour aux suggestions
@@ -2065,7 +2081,9 @@ export default function Panier() {
             </div>
           ) : isChefsTableCheckout
             ? `Payer et confirmer la réservation · ${finalTotal.toFixed(2)} CHF`
-            : `${requiresStripeCheckout ? "Payer" : "Commander"} · ${finalTotal.toFixed(2)} CHF`}
+            : isCommercialDemoClient
+              ? `Payer avec Stripe Test · ${finalTotal.toFixed(2)} CHF`
+              : `${requiresStripeCheckout ? "Payer" : "Commander"} · ${finalTotal.toFixed(2)} CHF`}
         </Button>
           </>
         ) : null}
