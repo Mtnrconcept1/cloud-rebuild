@@ -19,6 +19,7 @@ import { useCart } from "@/lib/cart-context";
 import { trackGoogleBookingEvent } from "@/hooks/useGoogleBusinessBooking";
 import { trackEvent, trackImpression } from "@/lib/analytics";
 import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { buildAuthRedirectTarget } from "@/lib/stripeReturn";
 import { buildCanonicalUrl, useSeoMeta } from "@/hooks/useSeoMeta";
 import {
@@ -291,12 +292,23 @@ type RestaurantDetailProps = {
 
 export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }: RestaurantDetailProps = {}) {
   const { id } = useParams<{ id: string }>();
-  const restaurantId = resolvedRestaurantId || id;
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const requestedRestaurantId = resolvedRestaurantId || id;
+  const restaurantId = commercialDemoFrame?.surface === "client"
+    ? commercialDemoFrame.snapshot.demo_restaurant.id
+    : requestedRestaurantId;
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const { toast } = useToast();
   const { addItem, setOrderMode, orderMode, items: cartItems } = useCart();
-  const { activeFeatures, loading: featureFlagsLoading } = useFeatureFlagSnapshot();
+  const {
+    activeFeatures: globalActiveFeatures,
+    loading: globalFeatureFlagsLoading,
+  } = useFeatureFlagSnapshot({ enabled: !commercialDemoFrame });
+  const activeFeatures = commercialDemoFrame
+    ? new Set(commercialDemoFrame.snapshot.active_features)
+    : globalActiveFeatures;
+  const featureFlagsLoading = commercialDemoFrame ? false : globalFeatureFlagsLoading;
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const location = useLocation();
@@ -359,6 +371,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
         openParam === "reservation"
         && searchParams.get("utm_source") === "google_business"
         && restaurantId
+        && !commercialDemoFrame
         && !googleBookingStartTrackedRef.current
       ) {
         googleBookingStartTrackedRef.current = true;
@@ -368,11 +381,17 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
         });
       }
     }
-  }, [reservationEnabled, restaurantId, searchParams]);
+  }, [commercialDemoFrame, reservationEnabled, restaurantId, searchParams]);
 
   const { data: restaurant, isFetched: isRestaurantFetched } = useQuery({
     queryKey: ["restaurant", restaurantId],
-    queryFn: async () => { const { data } = await supabase.from("restaurants").select("*").eq("id", restaurantId!).single(); return data; },
+    queryFn: async () => {
+      if (commercialDemoFrame?.surface === "client") {
+        return commercialDemoFrame.snapshot.demo_restaurant as any;
+      }
+      const { data } = await supabase.from("restaurants").select("*").eq("id", restaurantId!).single();
+      return data;
+    },
     enabled: !!restaurantId,
     staleTime: RESTAURANT_DETAIL_STALE_MS,
   });
@@ -394,7 +413,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
   });
 
   useEffect(() => {
-    if (restaurantId && restaurant && !impressionTracked.current) {
+    if (!commercialDemoFrame && restaurantId && restaurant && !impressionTracked.current) {
       impressionTracked.current = true;
       trackImpression("restaurant", restaurantId, "restaurant_detail");
       trackEvent({
@@ -403,11 +422,20 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
         restaurantId,
       });
     }
-  }, [restaurantId, restaurant]);
+  }, [commercialDemoFrame, restaurantId, restaurant]);
 
   const { data: menuItems } = useQuery({
     queryKey: ["menu-items", restaurantId],
-    queryFn: async () => { const { data } = await supabase.from("menu_items").select("*").eq("restaurant_id", restaurantId!).eq("is_available", true).order("category").limit(RESTAURANT_MENU_ITEMS_LIMIT); return data || []; },
+    queryFn: async () => {
+      if (commercialDemoFrame?.surface === "client") {
+        return commercialDemoFrame.snapshot.catalog_items.map((item) => ({
+          ...item,
+          restaurant_id: commercialDemoFrame.snapshot.demo_restaurant.id,
+        })) as any[];
+      }
+      const { data } = await supabase.from("menu_items").select("*").eq("restaurant_id", restaurantId!).eq("is_available", true).order("category").limit(RESTAURANT_MENU_ITEMS_LIMIT);
+      return data || [];
+    },
     enabled: !!restaurantId,
     staleTime: RESTAURANT_DETAIL_STALE_MS,
   });
@@ -500,10 +528,13 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
       const { data } = await supabase.from("favorites").select("id").eq("restaurant_id", restaurantId!).eq("user_id", user.id).maybeSingle();
       return !!data;
     },
-    enabled: !!restaurantId,
+    enabled: Boolean(restaurantId && !commercialDemoFrame),
   });
 
   const toggleFavorite = async () => {
+    if (commercialDemoFrame) {
+      return toast({ title: "Favoris non enregistrés en démonstration", description: "Le compte client réel reste inchangé." });
+    }
     if (!user) return toast({ title: "Connectez-vous", variant: "destructive" });
     if (isFavorite) await supabase.from("favorites").delete().eq("restaurant_id", restaurantId!).eq("user_id", user.id);
     else await supabase.from("favorites").insert({ restaurant_id: restaurantId!, user_id: user.id });
@@ -1284,7 +1315,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
                     </div>
                   </div>
                   <div className="md:col-span-2 space-y-6">
-                    {user && <ReviewForm restaurantId={restaurantId!} onSuccess={() => { queryClient.invalidateQueries({ queryKey: ["reviews", restaurantId] }); }} />}
+                    {user && !commercialDemoFrame && <ReviewForm restaurantId={restaurantId!} onSuccess={() => { queryClient.invalidateQueries({ queryKey: ["reviews", restaurantId] }); }} />}
                     <div className="space-y-4">
                       {reviews?.map((review) => {
                         const restaurantReply = getRestaurantStaffReply(review);
