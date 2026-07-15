@@ -1,8 +1,8 @@
 import { useEffect, useRef, type ReactNode } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "react-router-dom";
 
 import { getSupabase } from "@/integrations/supabase/client";
-import { useCommercialDemoAccount } from "@/hooks/useCommercialDemoAccount";
 import { useAuth } from "@/lib/auth-context";
 import {
   buildSanitizedAuthRedirectUrl,
@@ -41,21 +41,23 @@ export default function CommercialHostBoundary({ children }: { children: ReactNo
   const accountType = typeof user?.app_metadata?.account_type === "string"
     ? user.app_metadata.account_type
     : null;
-  const shouldResolveAdminCommercialMapping = Boolean(
-    user
-    && roles.includes("admin")
-    && roles.includes("commercial")
-    && accountType?.trim().toLowerCase() !== "commercial_demo",
-  );
-  const demoAccount = useCommercialDemoAccount({
-    enabled: shouldResolveAdminCommercialMapping,
+  const restrictionQuery = useQuery({
+    queryKey: ["commercial-demo-restriction", user?.id],
+    enabled: Boolean(user?.id),
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const { data, error } = await getSupabase().rpc(
+        "commercial_demo_current_user_is_restricted",
+      );
+      if (error) throw error;
+      return data === true;
+    },
   });
-  // The ambiguous admin+commercial combination stays fail-closed if its
-  // durable mapping cannot be checked. Ordinary admins skip this query.
-  const hasCommercialDemoMapping = Boolean(
-    demoAccount.account
-    || (shouldResolveAdminCommercialMapping && demoAccount.error),
-  );
+  const restrictionLoading = Boolean(user?.id && restrictionQuery.isLoading);
+  // Failure stays fail-closed: a production surface must never guess that an
+  // authenticated identity is outside the commercial-demo boundary.
+  const serverCommercialDemoRestricted = restrictionQuery.data === true
+    || Boolean(user?.id && restrictionQuery.error);
   let redirectTarget: string | null = null;
 
   if (browserLocation) {
@@ -72,12 +74,12 @@ export default function CommercialHostBoundary({ children }: { children: ReactNo
       pathname: safeLocation.pathname,
       search: safeLocation.search,
       hash: safeLocation.hash,
-      authResolved: !loading && !demoAccount.loading,
+      authResolved: !loading && !restrictionLoading,
       isAuthenticated: Boolean(user),
       activeRole: role,
       roles,
       accountType,
-      hasCommercialDemoMapping,
+      serverCommercialDemoRestricted,
     });
   }
 
@@ -99,14 +101,14 @@ export default function CommercialHostBoundary({ children }: { children: ReactNo
     && isManagedCommercialAccount(
       roles,
       accountType,
-      hasCommercialDemoMapping,
+      serverCommercialDemoRestricted,
     ),
   );
   const currentPath = browserLocation?.pathname.toLowerCase() || "";
   const isAuthRoute = currentPath === "/auth" || currentPath === "/auth/callback";
   const shouldWaitForRoleResolution = Boolean(
     browserLocation
-    && (loading || demoAccount.loading)
+    && (loading || restrictionLoading)
     && !isAuthRoute,
   );
 
