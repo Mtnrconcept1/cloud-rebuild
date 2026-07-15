@@ -8,6 +8,7 @@ import {
   LifeBuoy,
   ShoppingCart,
   Star,
+  Store,
   Trophy,
   User,
   type LucideIcon,
