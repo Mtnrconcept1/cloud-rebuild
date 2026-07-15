@@ -82,16 +82,20 @@ describe("commercial real multi-dashboard demonstration", () => {
     expect(stateBridgeSource).not.toContain("setRuntime((current)");
   });
 
-  it("strictly confines every frame to its demo-safe route allowlist", () => {
+  it("confines every frame to its demo-safe routes while exposing active restaurant tools", () => {
     expect(app).toContain("COMMERCIAL_DEMO_FRAME_ROUTE_POLICY");
-    expect(app).toContain('allowedPaths: ["/mon-espace", "/commandes", "/notifications"]');
-    expect(app).toContain('allowedPaths: ["/dashboard", "/dashboard/commandes", "/dashboard/notifications"]');
+    expect(app).toContain('allowedPaths: ["/mon-espace", "/recherche", "/panier", "/commandes", "/reservations", "/notifications"]');
+    expect(app).toContain('allowedPrefixes: ["/restaurant/", "/commande/"]');
+    expect(app).toContain('allowedPaths: ["/dashboard"]');
+    expect(app).toContain('allowedPrefixes: ["/dashboard/"]');
     expect(app).toContain('allowedPaths: ["/courier", "/courier/jobs", "/courier/notifications", "/courier/earnings", "/courier/profile"]');
     expect(app).toContain('allowedPaths: ["/commercial", "/commercial/comptabilite"]');
-    expect(app).toContain("if (!policy.allowedPaths.includes(pathname))");
+    expect(app).toContain("policy.allowedPrefixes?.some((prefix) => pathname.startsWith(prefix))");
+    expect(app).toContain("if (!pathAllowed)");
     expect(app).toContain("<Navigate to={policy.home} replace />");
     expect(app).toContain("<CommercialDemoFrameRouteBoundary config={commercialDemoFrame}>");
     expect(app).toContain("const publicNavbar = !commercialDemoFrame && shouldShowPublicNavbar(pathname)");
+    expect(app).toContain("commercialDemoContext.snapshot.active_features.includes(flagName)");
   });
 
   it("runs the real commercial workspace inside the same validated session boundary", () => {
@@ -225,5 +229,7 @@ describe("commercial real multi-dashboard demonstration", () => {
     expect(experience).toContain("window.sessionStorage.setItem");
     expect(experience).toContain('url.searchParams.delete("demo_session_id")');
     expect(experience).not.toContain('url.searchParams.set("demo_session_id"');
+    expect(experience).toContain("window.sessionStorage.removeItem(DEMO_SESSION_STORAGE_KEY)");
+    expect(experience).toContain("Nouvelle session");
   });
 });
