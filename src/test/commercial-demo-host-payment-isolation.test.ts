@@ -37,14 +37,20 @@ describe("commercial.thetok.ch production transaction isolation", () => {
   });
 
   it("blocks production checkout/order/reservation traffic but allows isolated demo APIs", () => {
-    const supabase = "https://project.supabase.co";
+    const supabase = "https://placeholder.supabase.co";
     expect(shouldBlockCommercialDemoHostRequest(commercialInput(`${supabase}/functions/v1/create-checkout`))).toBe(true);
     expect(shouldBlockCommercialDemoHostRequest(commercialInput(`${supabase}/functions/v1/validate-order`))).toBe(true);
     expect(shouldBlockCommercialDemoHostRequest(commercialInput(`${supabase}/functions/v1/process-refund`))).toBe(true);
     expect(shouldBlockCommercialDemoHostRequest(commercialInput(`${supabase}/functions/v1/manage-tok-one-subscription`))).toBe(true);
     expect(shouldBlockCommercialDemoHostRequest(commercialInput(`${supabase}/functions/v1/create-social-post-boost`))).toBe(true);
     expect(shouldBlockCommercialDemoHostRequest(commercialInput(`${supabase}/functions/v1/generate-marketing-visual`))).toBe(true);
+    expect(shouldBlockCommercialDemoHostRequest(commercialInput(`${supabase}/functions/v1/commercial-demo-ai`))).toBe(false);
+    expect(shouldBlockCommercialDemoHostRequest(commercialInput("https://evil-project.supabase.co/functions/v1/commercial-demo-ai"))).toBe(true);
+    expect(shouldBlockCommercialDemoHostRequest(commercialInput(`${supabase}/functions/v1/commercial-demo-ai`, "GET"))).toBe(true);
+    expect(shouldBlockCommercialDemoHostRequest(commercialInput(`${supabase}/functions/v1/commercial-demo-ai-preview`))).toBe(true);
+    expect(shouldBlockCommercialDemoHostRequest(commercialInput(`${supabase}/functions/v1/ai-image-enhance`))).toBe(true);
     expect(shouldBlockCommercialDemoHostRequest(commercialInput("https://api.openai.com/v1/images/generations"))).toBe(true);
+    expect(shouldBlockCommercialDemoHostRequest(commercialInput("https://api.openai.com/v1/responses"))).toBe(true);
     expect(shouldBlockCommercialDemoHostRequest(commercialInput(`${supabase}/rest/v1/orders?select=*`, "GET"))).toBe(true);
     expect(shouldBlockCommercialDemoHostRequest(commercialInput(`${supabase}/rest/v1/group_members?select=*`, "GET"))).toBe(true);
     expect(shouldBlockCommercialDemoHostRequest(commercialInput(`${supabase}/rest/v1/invoices?select=*`, "GET"))).toBe(true);
@@ -56,15 +62,33 @@ describe("commercial.thetok.ch production transaction isolation", () => {
     expect(shouldBlockCommercialDemoHostRequest(commercialInput(`${supabase}/rest/v1/rpc/search_restaurants_catalog`))).toBe(true);
 
     expect(shouldBlockCommercialDemoHostRequest(commercialInput(`${supabase}/functions/v1/commercial-demo-checkout`))).toBe(false);
+    expect(shouldBlockCommercialDemoHostRequest(commercialInput("https://evil.example/functions/v1/commercial-demo-checkout"))).toBe(true);
     expect(shouldBlockCommercialDemoHostRequest(commercialInput(`${supabase}/rest/v1/rpc/commercial_demo_create_order`))).toBe(false);
     expect(shouldBlockCommercialDemoHostRequest(commercialInput(`${supabase}/rest/v1/rpc/commercial_demo_create_reservation`))).toBe(false);
+    expect(shouldBlockCommercialDemoHostRequest(commercialInput("https://evil-project.supabase.co/rest/v1/rpc/commercial_demo_create_order"))).toBe(true);
     expect(shouldBlockCommercialDemoHostRequest(commercialInput(`${supabase}/rest/v1/commercial_demo_orders`, "GET"))).toBe(false);
+    expect(shouldBlockCommercialDemoHostRequest(commercialInput("https://evil-project.supabase.co/rest/v1/commercial_demo_orders", "GET"))).toBe(true);
     expect(shouldBlockCommercialDemoHostRequest(commercialInput(`${supabase}/rest/v1/commercial_prospects`, "GET"))).toBe(false);
     expect(shouldBlockCommercialDemoHostRequest(commercialInput(`${supabase}/rest/v1/restaurants`, "GET"))).toBe(false);
     expect(shouldBlockCommercialDemoHostRequest({
       ...commercialInput(`${supabase}/functions/v1/create-checkout`),
       currentHostname: "www.thetok.ch",
     })).toBe(false);
+  });
+
+  it("keeps the OpenAI secret and provider traffic outside the browser bundle", () => {
+    const hostGuard = read("src/lib/commercialDemoHostSecurity.ts");
+    const effects = read("src/lib/commercialDemoEffects.ts");
+    const client = read("src/lib/commercialDemoAi.ts");
+    const edge = read("supabase/functions/commercial-demo-ai/index.ts");
+
+    expect(hostGuard).toContain('COMMERCIAL_DEMO_AI_FUNCTION = "commercial-demo-ai"');
+    expect(effects).toContain('"commercial-demo-ai"');
+    expect(client).toContain('"commercial-demo-ai"');
+    expect(client).not.toContain("api.openai.com");
+    expect(client).not.toContain("OPENAI_API_KEY");
+    expect(edge).toContain("api.openai.com");
+    expect(edge).toContain("OPENAI_API_KEY");
   });
 
   it("installs the browser guard before auth and validates the test session across frames", () => {

@@ -20,6 +20,10 @@ function getAiCreationsStorageKey() {
     : AI_CREATIONS_STORAGE_KEY;
 }
 
+function isCommercialDemoStorageKey(storageKey: string) {
+  return storageKey.startsWith(`${AI_CREATIONS_STORAGE_KEY}:commercial-demo:`);
+}
+
 export type AiCreationTool =
   | "marketing_studio"
   | "photopro"
@@ -102,18 +106,41 @@ function sortRecords(records: AiCreationRecord[]) {
   return [...records].sort((left, right) => right.createdAt.localeCompare(left.createdAt));
 }
 
-function readRecords() {
+function readRecords(storageKey = getAiCreationsStorageKey()) {
   if (!hasBrowserStorage()) return [];
-  return sortRecords(parseStoredRecords(window.localStorage.getItem(getAiCreationsStorageKey())));
+  return sortRecords(parseStoredRecords(window.localStorage.getItem(storageKey)));
 }
 
-function writeRecords(records: AiCreationRecord[]) {
+function writeRecords(records: AiCreationRecord[], storageKey = getAiCreationsStorageKey()) {
   if (!hasBrowserStorage()) return;
-  window.localStorage.setItem(getAiCreationsStorageKey(), JSON.stringify(sortRecords(records).slice(0, 120)));
+  const safeRecords = isCommercialDemoStorageKey(storageKey)
+    ? records.map((record) => ({
+      ...record,
+      // Blob URLs and signed Storage URLs are transient bearer-like values.
+      // Durable commercial visual history is restored from the Edge Function.
+      sourceImageUrl: null,
+      referenceImageUrls: [],
+      referenceMediaIds: [],
+      result: record.result
+        ? {
+          ...record.result,
+          generated_image_url: null,
+          gallery_image_url: null,
+        }
+        : record.result,
+    }))
+    : records;
+  window.localStorage.setItem(
+    storageKey,
+    JSON.stringify(sortRecords(safeRecords).slice(0, 120)),
+  );
 }
 
-function emitRecords() {
-  const records = readRecords();
+function emitRecords(storageKey = getAiCreationsStorageKey()) {
+  // Listeners belong to the currently mounted surface. A late completion from
+  // an unmounted commercial frame must update only its captured storage scope.
+  if (storageKey !== getAiCreationsStorageKey()) return;
+  const records = readRecords(storageKey);
   listeners.forEach((listener) => listener(records));
 }
 
@@ -125,20 +152,24 @@ function ensureStorageListener() {
   });
 }
 
-function upsertRecord(nextRecord: AiCreationRecord) {
-  const records = readRecords();
+function upsertRecord(nextRecord: AiCreationRecord, storageKey = getAiCreationsStorageKey()) {
+  const records = readRecords(storageKey);
   const index = records.findIndex((record) => record.id === nextRecord.id);
   if (index >= 0) {
     records[index] = nextRecord;
   } else {
     records.unshift(nextRecord);
   }
-  writeRecords(records);
-  emitRecords();
+  writeRecords(records, storageKey);
+  emitRecords(storageKey);
 }
 
-function patchRecord(id: string, patch: Partial<AiCreationRecord>) {
-  const records = readRecords();
+function patchRecord(
+  id: string,
+  patch: Partial<AiCreationRecord>,
+  storageKey = getAiCreationsStorageKey(),
+) {
+  const records = readRecords(storageKey);
   const index = records.findIndex((record) => record.id === id);
   if (index < 0) return null;
 
@@ -148,8 +179,8 @@ function patchRecord(id: string, patch: Partial<AiCreationRecord>) {
     updatedAt: new Date().toISOString(),
   };
   records[index] = nextRecord;
-  writeRecords(records);
-  emitRecords();
+  writeRecords(records, storageKey);
+  emitRecords(storageKey);
   return nextRecord;
 }
 
@@ -197,6 +228,9 @@ export async function requestAiCreationNotificationPermission() {
 }
 
 export function startTokImageCreationJob(input: StartAiCreationJobInput): AiCreationJob {
+  // Capture the scope before any asynchronous work. The frame dataset may be
+  // removed while OpenAI is still generating.
+  const storageKey = getAiCreationsStorageKey();
   const now = new Date().toISOString();
   const id = createAiCreationId();
   const originPathname = typeof window !== "undefined" ? window.location.pathname : null;
@@ -226,7 +260,7 @@ export function startTokImageCreationJob(input: StartAiCreationJobInput): AiCrea
     galleryAdded: false,
   };
 
-  upsertRecord(record);
+  upsertRecord(record, storageKey);
 
   const promise = generateTokDishImage(input.request)
     .then((result) => {
@@ -236,7 +270,7 @@ export function startTokImageCreationJob(input: StartAiCreationJobInput): AiCrea
         result,
         generationSeed: result.generation_seed ?? record.generationSeed ?? null,
         errorMessage: null,
-      }) || {
+      }, storageKey) || {
         ...record,
         status: "completed" as const,
         completedAt: new Date().toISOString(),
@@ -251,7 +285,7 @@ export function startTokImageCreationJob(input: StartAiCreationJobInput): AiCrea
         status: "failed",
         completedAt: new Date().toISOString(),
         errorMessage: getErrorMessage(error),
-      }) || {
+      }, storageKey) || {
         ...record,
         status: "failed" as const,
         completedAt: new Date().toISOString(),

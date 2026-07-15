@@ -143,24 +143,19 @@ export function CommercialDemoFrameAuthBoundary({
 }) {
   const auth = useAuth();
   const forcedRole = getCommercialDemoFrameRole(config.surface);
-  const presentationRoles = useMemo(
-    () => auth.roles.includes(forcedRole) ? auth.roles : [...auth.roles, forcedRole],
-    [auth.roles, forcedRole],
-  );
   const value = useMemo<AuthContextType>(() => ({
     ...auth,
     role: forcedRole,
-    // The database identity and grants remain authoritative. The extra role is
-    // presentation-only so the courier/client/restaurant route gate can render
-    // its isolated frame without granting that production role to a commercial.
-    roles: presentationRoles,
+    // Keep the authenticated identity and its authoritative roles intact.
+    // Only the active presentation role is virtual inside this frame.
+    roles: auth.roles,
     canSwitchRole: false,
     switchRole: () => undefined,
     // Signing out one same-origin frame would terminate all three windows and
     // the parent commercial workspace. Frame layouts hide the control; this is
     // a final no-op guard for any overlooked sign-out action.
     signOut: async () => undefined,
-  }), [auth, forcedRole, presentationRoles]);
+  }), [auth, forcedRole]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
@@ -194,11 +189,7 @@ export default function CommercialDemoFrameProvider({
 
   useEffect(() => {
     knownEventIdsRef.current = null;
-    setReadNotificationIds(readStoredNotificationIds({
-      basename: config.basename,
-      sessionId: config.sessionId,
-      surface: config.surface,
-    }));
+    setReadNotificationIds(readStoredNotificationIds(config));
   }, [config.basename, config.sessionId, config.surface]);
 
   useEffect(() => {
@@ -229,8 +220,12 @@ export default function CommercialDemoFrameProvider({
     document.documentElement.dataset.commercialDemoFrame = config.surface;
     document.documentElement.dataset.commercialDemoSessionId = config.sessionId;
     return () => {
-      delete document.documentElement.dataset.commercialDemoFrame;
-      delete document.documentElement.dataset.commercialDemoSessionId;
+      if (document.documentElement.dataset.commercialDemoFrame === config.surface) {
+        delete document.documentElement.dataset.commercialDemoFrame;
+      }
+      if (document.documentElement.dataset.commercialDemoSessionId === config.sessionId) {
+        delete document.documentElement.dataset.commercialDemoSessionId;
+      }
     };
   }, [config.sessionId, config.surface]);
 

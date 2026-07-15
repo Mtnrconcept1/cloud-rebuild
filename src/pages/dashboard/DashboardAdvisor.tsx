@@ -169,14 +169,17 @@ const AI_HISTORY_STORAGE_PREFIX = "tok-dashboard-advisor-history";
 const MAX_ADVISOR_HISTORY_ENTRIES = 12;
 const SUPABASE_VISIBLE_URL_PATTERN = /https?:\/\/[^\s)"']*supabase\.co[^\s)"']*/gi;
 const SUPABASE_HOST_PATTERN = /\b[a-z0-9-]+\.supabase\.co\b/gi;
-const DEMO_SVG_DATA_URL_PREFIX = "data:image/svg+xml;charset=utf-8,%3Csvg";
+const COMMERCIAL_DEMO_SIGNED_IMAGE_PATTERN = /!\[[^\]]*\]\(https:\/\/[^\s)"']+\.supabase\.co\/storage\/v1\/object\/sign\/commercial-demo-ai\/[^\s)"']+\)/gi;
+const COMMERCIAL_DEMO_STORED_IMAGE_PLACEHOLDER = "_Visuel disponible dans Photos > Créations IA Démo._";
+const DEMO_IMAGE_DATA_URL_PATTERN = /^data:image\/(?:png|jpeg|webp);base64,[a-z0-9+/=]+$/i;
+const MAX_DEMO_IMAGE_DATA_URL_LENGTH = 16 * 1024 * 1024;
 
 const advisorMarkdownUrlTransform: UrlTransform = (url, key, node) => {
   if (
     key === "src"
     && node.tagName === "img"
-    && url.startsWith(DEMO_SVG_DATA_URL_PREFIX)
-    && url.length <= 400_000
+    && DEMO_IMAGE_DATA_URL_PATTERN.test(url)
+    && url.length <= MAX_DEMO_IMAGE_DATA_URL_LENGTH
   ) {
     return url;
   }
@@ -190,7 +193,17 @@ function sanitizeAdvisorVisibleText(value: string) {
 }
 
 function sanitizeAdvisorVisibleContent(value: string) {
-  return sanitizeAdvisorVisibleText(value);
+  const preservedImages: string[] = [];
+  const withPlaceholders = value.replace(COMMERCIAL_DEMO_SIGNED_IMAGE_PATTERN, (markdown) => {
+    const placeholder = `TOK_DEMO_SIGNED_IMAGE_${preservedImages.length}_TOKEN`;
+    preservedImages.push(markdown);
+    return placeholder;
+  });
+  let sanitized = sanitizeAdvisorVisibleText(withPlaceholders);
+  preservedImages.forEach((markdown, index) => {
+    sanitized = sanitized.replace(`TOK_DEMO_SIGNED_IMAGE_${index}_TOKEN`, markdown);
+  });
+  return sanitized;
 }
 
 function getShortAdvisorReference(id: string) {
@@ -217,7 +230,7 @@ function loadAdvisorHistory(storageScope: string): AdvisorHistoryEntry[] {
   try {
     const parsed = JSON.parse(window.localStorage.getItem(getAdvisorHistoryStorageKey(storageScope)) || "[]");
     if (!Array.isArray(parsed)) return [];
-    return parsed.flatMap((entry): AdvisorHistoryEntry[] => {
+    const entries = parsed.flatMap((entry): AdvisorHistoryEntry[] => {
       if (!entry || typeof entry !== "object") return [];
       const candidate = entry as Partial<AdvisorHistoryEntry>;
       if (
@@ -235,9 +248,22 @@ function loadAdvisorHistory(storageScope: string): AdvisorHistoryEntry[] {
         && (message.role === "user" || message.role === "assistant")
         && typeof message.content === "string"
         && message.content.trim().length > 0
-      ));
+      )).map((message) => storageScope.startsWith("commercial-demo:") ? {
+        ...message,
+        content: message.content.replace(
+          COMMERCIAL_DEMO_SIGNED_IMAGE_PATTERN,
+          COMMERCIAL_DEMO_STORED_IMAGE_PLACEHOLDER,
+        ),
+      } : message);
       return messages.length > 0 ? [{ ...candidate, messages } as AdvisorHistoryEntry] : [];
     });
+    if (storageScope.startsWith("commercial-demo:")) {
+      window.localStorage.setItem(
+        getAdvisorHistoryStorageKey(storageScope),
+        JSON.stringify(entries.slice(0, MAX_ADVISOR_HISTORY_ENTRIES)),
+      );
+    }
+    return entries;
   } catch {
     return [];
   }
@@ -272,7 +298,15 @@ function saveAdvisorHistoryEntry(storageScope: string, restaurantId: string, mes
     restaurantId,
     title: getAdvisorHistoryTitle(messages),
     createdAt: new Date().toISOString(),
-    messages: messages.map((message) => ({ ...message })),
+    messages: messages.map((message) => ({
+      ...message,
+      content: storageScope.startsWith("commercial-demo:")
+        ? message.content.replace(
+            COMMERCIAL_DEMO_SIGNED_IMAGE_PATTERN,
+            COMMERCIAL_DEMO_STORED_IMAGE_PLACEHOLDER,
+          )
+        : message.content,
+    })),
   };
   const nextEntries = [
     entry,
@@ -452,8 +486,11 @@ export default function DashboardAdvisor() {
     return () => setActiveAiCreationContext(null);
   }, [isCommercialDemo]);
 
-  useEffect(() => () => {
-    mountedRef.current = false;
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -710,7 +747,7 @@ export default function DashboardAdvisor() {
           summary: result.reply,
           conversationId: result.conversation_id,
           next_steps: ["Prévisualiser le résultat", "Tester le parcours", "Comparer les performances"],
-          checklist: ["Données démo isolées", "Aucun crédit débité", "Aucun effet de production"],
+          checklist: ["OpenAI réel", "Crédits Démo illimités", "Coût suivi en interne", "Aucun effet de production"],
         };
       } else if (tool.mode === "image") {
         void requestAiCreationNotificationPermission();
@@ -1090,11 +1127,9 @@ export default function DashboardAdvisor() {
                 >
                   {message.role === "assistant" ? (
                     <div className="prose prose-sm max-w-none dark:prose-invert [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
-                      {message.content.includes(DEMO_SVG_DATA_URL_PREFIX) ? (
-                        <ReactMarkdown urlTransform={advisorMarkdownUrlTransform}>{sanitizeAdvisorVisibleContent(message.content)}</ReactMarkdown>
-                      ) : (
-                        <ReactMarkdown>{sanitizeAdvisorVisibleText(message.content)}</ReactMarkdown>
-                      )}
+                      <ReactMarkdown urlTransform={advisorMarkdownUrlTransform}>
+                        {sanitizeAdvisorVisibleContent(message.content)}
+                      </ReactMarkdown>
                     </div>
                   ) : (
                     <p className="whitespace-pre-wrap text-sm">{sanitizeAdvisorVisibleText(message.content)}</p>

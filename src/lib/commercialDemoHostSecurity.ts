@@ -1,6 +1,7 @@
 export const COMMERCIAL_DEMO_HOSTNAME = "commercial.thetok.ch";
 
 const COMMERCIAL_DEMO_CHECKOUT_FUNCTION = "commercial-demo-checkout";
+const COMMERCIAL_DEMO_AI_FUNCTION = "commercial-demo-ai";
 
 const PRODUCTION_TRANSACTION_TABLES = new Set([
   "carts",
@@ -43,7 +44,7 @@ const PRODUCTION_TRANSACTION_TABLES = new Set([
 ]);
 
 const PRODUCTION_TRANSACTION_FUNCTION_PATTERN = /(?:^|[-_])(?:billing|boosts?|charges?|checkout|credits?|invoices?|orders?|payments?|refunds?|reservations?|stripe|subscriptions?)(?:$|[-_])/i;
-const PAID_AI_FUNCTION_PATTERN = /(?:^|[-_])(?:ai|assistants?|chats?|generations?|images?|marketing|photos?|studio|visuals?)(?:$|[-_])/i;
+const PAID_AI_FUNCTION_PATTERN = /(?:^|[-_])(?:ai|advisors?|assistants?|campaigns?|chats?|generat(?:e|ions?)|images?|marketing|openai|photos?|studio|visuals?)(?:$|[-_])/i;
 const PRODUCTION_TRANSACTION_RPC_PATTERN = /(?:^|_)(?:billing|boosts?|catalog|charges?|checkout|credits?|invoices?|menus?|orders?|payments?|refunds?|reservations?|restaurants?|subscriptions?)(?:$|_)/i;
 const PAID_AI_API_HOSTS = new Set([
   "api.openai.com",
@@ -61,6 +62,20 @@ function getPathResource(url: URL, marker: string) {
   const markerIndex = url.pathname.indexOf(marker);
   if (markerIndex < 0) return null;
   return decodeURIComponent(url.pathname.slice(markerIndex + marker.length).split("/")[0] || "") || null;
+}
+
+function isExactFunctionPath(url: URL, functionName: string) {
+  return url.pathname.replace(/\/+$/, "") === `/functions/v1/${functionName}`;
+}
+
+function isTrustedSupabaseOrigin(url: URL, currentOrigin: string) {
+  let configuredOrigin = "";
+  try {
+    configuredOrigin = new URL(String(import.meta.env.VITE_SUPABASE_URL || "")).origin;
+  } catch {
+    configuredOrigin = "";
+  }
+  return url.origin === currentOrigin || (configuredOrigin !== "" && url.origin === configuredOrigin);
 }
 
 export function isCommercialDemoHost(hostname: string) {
@@ -100,19 +115,34 @@ export function shouldBlockCommercialDemoHostRequest(input: {
 
   const functionName = getPathResource(url, "/functions/v1/");
   if (functionName) {
-    if (functionName === COMMERCIAL_DEMO_CHECKOUT_FUNCTION) return false;
+    if (
+      functionName === COMMERCIAL_DEMO_AI_FUNCTION
+      && isExactFunctionPath(url, COMMERCIAL_DEMO_AI_FUNCTION)
+      && isTrustedSupabaseOrigin(url, input.currentOrigin)
+      && method === "POST"
+    ) return false;
+    if (
+      functionName === COMMERCIAL_DEMO_CHECKOUT_FUNCTION
+      && isExactFunctionPath(url, COMMERCIAL_DEMO_CHECKOUT_FUNCTION)
+      && isTrustedSupabaseOrigin(url, input.currentOrigin)
+      && method === "POST"
+    ) return false;
     return PRODUCTION_TRANSACTION_FUNCTION_PATTERN.test(functionName)
       || PAID_AI_FUNCTION_PATTERN.test(functionName);
   }
 
   const rpcName = getPathResource(url, "/rest/v1/rpc/");
   if (rpcName) {
-    if (rpcName.startsWith("commercial_demo_")) return false;
+    if (rpcName.startsWith("commercial_demo_")) {
+      return !isTrustedSupabaseOrigin(url, input.currentOrigin) || method !== "POST";
+    }
     return PRODUCTION_TRANSACTION_RPC_PATTERN.test(rpcName);
   }
 
   const tableName = getPathResource(url, "/rest/v1/");
   if (!tableName || tableName === "rpc") return false;
-  if (tableName.startsWith("commercial_demo_")) return false;
+  if (tableName.startsWith("commercial_demo_")) {
+    return !isTrustedSupabaseOrigin(url, input.currentOrigin);
+  }
   return PRODUCTION_TRANSACTION_TABLES.has(tableName);
 }

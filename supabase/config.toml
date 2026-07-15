@@ -1,208 +1,139 @@
 project_id = "wwcrtyoueexyxkkikaos"
 
-# -----------------------------------------------------------------------------
-# Edge function auth policy.
-#
-# Supabase gateway JWT verification is disabled consistently so handlers can
-# validate current Supabase JWT algorithms themselves. User-authenticated
-# functions must call authenticateRequest/getUser inside the handler. Webhooks,
-# cron jobs, service-to-service dispatchers, and intentionally public collectors
-# must validate their signature, shared secret, captcha, or rate-limit gate
-# before side effects.
-# -----------------------------------------------------------------------------
+# Edge gateway auth is intentionally disabled at the platform layer because
+# handlers validate current Supabase JWT algorithms with authenticateRequest.
+# Public/webhook functions must enforce their own signature or shared secret.
 
 [functions.ai-admin-support]
 verify_jwt = false
-
 [functions.ai-admin-monitor]
 verify_jwt = false
-
 [functions.ai-admin-dashboard-chat]
 verify_jwt = false
-
 [functions.ai-accounting-agent]
 verify_jwt = false
-
 [functions.ai-client-chat]
 verify_jwt = false
-
 [functions.ai-client-support]
 verify_jwt = false
-
 [functions.ai-image-enhance]
 verify_jwt = false
-
 [functions.analyze-restaurant-image]
 verify_jwt = false
-
 [functions.ai-restaurant-agent]
 verify_jwt = false
-
 [functions.ai-social-post-copy]
 verify_jwt = false
-
 [functions.ai-restaurant-tools]
 verify_jwt = false
-
 [functions.authorize-match-group-order]
 verify_jwt = false
-
 [functions.campaign-portal]
 verify_jwt = false
-
 [functions.cancel-pending-order-checkout]
 verify_jwt = false
-
 [functions.capture-due-match-groups]
 verify_jwt = false
-
 [functions.close-due-match-groups]
 verify_jwt = false
-
 [functions.commercial-followup-reminder]
 verify_jwt = false
-
 [functions.commercial-demo-checkout]
 verify_jwt = false
-
+[functions.commercial-demo-ai]
+verify_jwt = false
 [functions.confirm-match-group-authorization]
 verify_jwt = false
-
 [functions.contact-support]
 verify_jwt = false
-
 [functions.complete-order-checkout]
 verify_jwt = false
-
 [functions.complete-restaurant-credit-pack-checkout]
 verify_jwt = false
-
 [functions.courier-portal]
 verify_jwt = false
-
 [functions.create-checkout]
 verify_jwt = false
-
 [functions.create-chefs-table-reservation]
 verify_jwt = false
-
 [functions.create-reservation]
 verify_jwt = false
-
 [functions.create-social-post-boost]
 verify_jwt = false
-
 [functions.create-zero-attente-reservation]
 verify_jwt = false
-
 [functions.delete-account]
 verify_jwt = false
-
 [functions.daily-slot-spin]
 verify_jwt = false
-
 [functions.dispatch-order]
 verify_jwt = false
-
 [functions.stripe-webhook]
 verify_jwt = false
-
 [functions.stripe-worker]
 verify_jwt = false
-
 [functions.dispatch-timeout]
 verify_jwt = false
-
 [functions.enrich-restaurants]
 verify_jwt = false
-
 [functions.floorplan-ai]
 verify_jwt = false
-
 [functions.generate-campaign]
 verify_jwt = false
-
 [functions.google-actions-center]
 verify_jwt = false
-
 [functions.notification-dispatch]
 verify_jwt = false
-
 [functions.process-refund]
 verify_jwt = false
-
 [functions.provision-commercial-accounts]
 verify_jwt = false
-
 [functions.generate-invoices]
 verify_jwt = false
-
 [functions.manage-tok-one-subscription]
 verify_jwt = false
-
 [functions.manage-restaurant-subscription]
 verify_jwt = false
-
 [functions.menu-image-import]
 verify_jwt = false
-
 [functions.reconcile-match-group-authorizations]
 verify_jwt = false
-
 [functions.reconcile-paid-order-checkouts]
 verify_jwt = false
-
 [functions.restaurant-advisor]
 verify_jwt = false
-
 [functions.restaurant-order-status]
 verify_jwt = false
-
 [functions.restaurant-media-governance]
 verify_jwt = false
-
 [functions.scrape-restaurants]
 verify_jwt = false
-
 [functions.send-email]
 verify_jwt = false
-
 [functions.send-push]
 verify_jwt = false
-
 [functions.stripe-connect-onboard]
 verify_jwt = false
-
 [functions.stripe-connect-status]
 verify_jwt = false
-
 [functions.track-analytics]
 verify_jwt = false
-
 [functions.track-sponsored-event]
 verify_jwt = false
-
 [functions.validate-order]
 verify_jwt = false
-
 [functions.submit-signup-application]
 verify_jwt = false
-
 [functions.tok-connect-oauth]
 verify_jwt = false
-
 [functions.tok-connect-api]
 verify_jwt = false
-
 [functions.tok-connect-mcp]
 verify_jwt = false
-
 [functions.tok-connect-full-app-mcp]
 verify_jwt = false
-
 [functions.tok-connect-portal]
 verify_jwt = false
-
 [functions.tok-connect-webhook-dispatch]
 verify_jwt = false
 

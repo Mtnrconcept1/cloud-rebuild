@@ -118,7 +118,7 @@ function getInitialHistory(
     {
       type: "bot",
       text: commercialDemo
-        ? `Bonjour, je suis ${agent.label} dans la session de démonstration de ${surfaceLabel}. Testez librement le parcours : mes réponses restent isolées et n'utilisent aucune API payante.`
+        ? `Bonjour, je suis ${agent.label} dans la session de démonstration de ${surfaceLabel}. Testez librement : mes réponses utilisent réellement OpenAI, restent isolées et ne débitent aucun crédit TOK.`
         : `Bonjour, je suis ${agent.label}, piloté par OpenAI pour ${surfaceLabel}. Décrivez votre question ou le blocage à résoudre.`,
     },
   ];
@@ -696,7 +696,7 @@ export default function SupportChat() {
                         {isChatAvailable
                           ? (humanHandoffActive
                             ? "TOK prend le relais"
-                            : isCommercialDemo ? "Démo zéro coût en ligne" : "OpenAI en ligne")
+                            : isCommercialDemo ? "OpenAI réel · Démo illimitée" : "OpenAI en ligne")
                           : "Connexion requise"}
                       </span>
                     </div>
@@ -864,7 +864,7 @@ export default function SupportChat() {
                       >
                         {humanHandoffActive
                           ? "TOK en direct"
-                          : isCommercialDemo ? "Isolé · 0 crédit · 0 CHF" : activeAgent.badge}
+                          : isCommercialDemo ? "OpenAI réel · crédits Démo illimités · coût suivi en interne" : activeAgent.badge}
                       </Badge>
                       {activeChatReference ? (
                         <p className="mt-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">

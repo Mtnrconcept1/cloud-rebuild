@@ -616,3 +616,4 @@ export async function getAccountingInsightsForRestaurant(restaurantId: string, l
   if (error) throw error;
   return (data || []) as AccountingInsightRow[];
 }
+

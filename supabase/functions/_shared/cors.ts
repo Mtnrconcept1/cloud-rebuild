@@ -162,3 +162,4 @@ export const corsHeadersStatic: Record<string, string> = {
   "Access-Control-Allow-Headers": ALLOWED_HEADERS,
   "Vary": "Origin",
 };
+

@@ -1,4 +1,4 @@
-import { type CSSProperties, FormEvent, useEffect, useState } from "react";
+import { type CSSProperties, FormEvent, useEffect, useRef, useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import AiCreationsGallery from "@/components/dashboard/AiCreationsGallery";
 import TokAiMarketingStudio from "@/components/dashboard/TokAiMarketingStudio";
@@ -82,6 +82,23 @@ const EMPTY_MEDIA_FORM: MediaFormState = {
 const GALLERY_MEDIA_TYPES = ["photo", "photo_ai_tok"];
 const TOK_GALLERY_WATERMARK_SIZE = 180;
 const TOK_GALLERY_WATERMARK_MARGIN = 24;
+const COMMERCIAL_DEMO_SIGNED_IMAGE_PATH = "/storage/v1/object/sign/commercial-demo-ai/";
+
+function getCommercialDemoGenerationId(item: MediaItem) {
+  if (!item.metadata || typeof item.metadata !== "object" || Array.isArray(item.metadata)) return null;
+  const generationId = (item.metadata as Record<string, Json | undefined>).generation_id;
+  return typeof generationId === "string" ? generationId : null;
+}
+
+function sanitizeCommercialDemoGalleryForStorage(items: MediaItem[]) {
+  return items
+    .filter((item) => !item.media_url.startsWith("blob:"))
+    .map((item) => (
+      item.media_url.includes(COMMERCIAL_DEMO_SIGNED_IMAGE_PATH)
+        ? { ...item, media_url: "" }
+        : item
+    ));
+}
 
 type PhotoWorkspaceTool = "marketing" | "photopro" | "add_photo" | "gallery" | "creations";
 
@@ -310,8 +327,10 @@ function CommercialDemoVisualGallery({
 
   useEffect(() => {
     void loadCreations();
+    const refresh = window.setInterval(() => void loadCreations(), 45 * 60 * 1000);
     // The runtime is immutable for the lifetime of an embedded frame.
     // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => window.clearInterval(refresh);
   }, [runtime.sessionId, runtime.surface]);
 
   return (
@@ -319,7 +338,7 @@ function CommercialDemoVisualGallery({
       <CardHeader className="flex-row items-start justify-between gap-4">
         <div>
           <CardTitle>Créations IA Démo</CardTitle>
-          <p className="mt-1 text-sm text-muted-foreground">Historique persistant de cette session, sans crédit ni stockage de production.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Historique OpenAI persistant de cette session · crédits Démo illimités · aucun stockage de production.</p>
         </div>
         <Button type="button" variant="outline" onClick={() => void loadCreations()} disabled={loadingCreations}>Actualiser</Button>
       </CardHeader>
@@ -347,7 +366,7 @@ function CommercialDemoVisualGallery({
                     <p className="line-clamp-2 text-xs text-muted-foreground">{creation.prompt}</p>
                   </div>
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs font-medium text-emerald-700">0 crédit · 0 CHF</span>
+                    <span className="text-xs font-medium text-emerald-700">OpenAI réel · coût suivi en interne</span>
                     <Button type="button" size="sm" variant="outline" onClick={() => onAddToGallery(creation)}>
                       Ajouter à la galerie Démo
                     </Button>
@@ -376,6 +395,7 @@ export default function DashboardPhotos() {
   const [previewItem, setPreviewItem] = useState<MediaItem | null>(null);
   const [form, setForm] = useState<MediaFormState>(EMPTY_MEDIA_FORM);
   const [activeTool, setActiveTool] = useState<PhotoWorkspaceTool | null>(null);
+  const demoGalleryObjectUrlsRef = useRef(new Set<string>());
   const selectedRestaurant = restaurants.find((restaurant) => restaurant.id === selectedId) || null;
   const watermarkSubscription = selectedRestaurant?.restaurant_subscription
     ? {
@@ -390,7 +410,11 @@ export default function DashboardPhotos() {
     setItems((current) => {
       const next = updater(current);
       if (isCommercialDemo && commercialDemoFrame) {
-        writeCommercialDemoToolState(commercialDemoFrame.config.sessionId, "photos-gallery", next);
+        writeCommercialDemoToolState(
+          commercialDemoFrame.config.sessionId,
+          "photos-gallery",
+          sanitizeCommercialDemoGalleryForStorage(next),
+        );
       }
       return next;
     });
@@ -437,7 +461,45 @@ export default function DashboardPhotos() {
           created_at: snapshot.session.created_at || new Date().toISOString(),
         }];
       });
-      setItems(readCommercialDemoToolState(snapshot.session.id, "photos-gallery", seeded));
+      let demoItems = readCommercialDemoToolState<MediaItem[]>(snapshot.session.id, "photos-gallery", seeded)
+        .filter((item) => !item.media_url.startsWith("blob:"));
+      try {
+        const creations = await getCommercialDemoVisualHistory({
+          sessionId: snapshot.session.id,
+          surface: "restaurant",
+        }, undefined, 60);
+        const byId = new Map(creations.map((creation) => [creation.assetId, creation]));
+        const byCreatedAt = new Map(creations.map((creation) => [creation.created_at, creation]));
+        demoItems = demoItems.flatMap((item) => {
+          if (item.media_type !== "photo_ai_tok") return [item];
+          const creation = (getCommercialDemoGenerationId(item) && byId.get(getCommercialDemoGenerationId(item)!))
+            || byCreatedAt.get(item.created_at);
+          if (!creation) {
+            return item.media_url.includes(COMMERCIAL_DEMO_SIGNED_IMAGE_PATH) ? [] : [item];
+          }
+          const mediaUrl = creation.gallery_image_url || creation.generated_image_url;
+          if (!mediaUrl) return [];
+          const metadata = item.metadata && typeof item.metadata === "object" && !Array.isArray(item.metadata)
+            ? item.metadata as Record<string, Json | undefined>
+            : {};
+          return [{
+            ...item,
+            media_url: mediaUrl,
+            metadata: { ...metadata, generation_id: creation.assetId } as Json,
+          }];
+        });
+        writeCommercialDemoToolState(
+          snapshot.session.id,
+          "photos-gallery",
+          sanitizeCommercialDemoGalleryForStorage(demoItems),
+        );
+      } catch {
+        // The dedicated creation history card exposes the retry action. Keep
+        // regular local entries visible, but never render an empty signed-URL
+        // placeholder when signature refresh is offline.
+        demoItems = demoItems.filter((item) => item.media_url.length > 0);
+      }
+      setItems(demoItems);
       setError(null);
       setLoading(false);
       return;
@@ -462,6 +524,11 @@ export default function DashboardPhotos() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadingRestaurant, selectedId]);
+
+  useEffect(() => () => {
+    demoGalleryObjectUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+    demoGalleryObjectUrlsRef.current.clear();
+  }, []);
 
   useEffect(() => {
     const resetScroll = () => {
@@ -540,6 +607,11 @@ export default function DashboardPhotos() {
 
   const remove = async (id: string) => {
     if (isCommercialDemo) {
+      const removedItem = items.find((item) => item.id === id);
+      if (removedItem?.media_url.startsWith("blob:")) {
+        URL.revokeObjectURL(removedItem.media_url);
+        demoGalleryObjectUrlsRef.current.delete(removedItem.media_url);
+      }
       updateCommercialDemoItems((current) => current.filter((item) => item.id !== id));
       if (previewItem?.id === id) setPreviewItem(null);
       toast({ title: "Photo supprimée de la démonstration" });
@@ -601,8 +673,9 @@ export default function DashboardPhotos() {
         storage_path: null,
         metadata: {
           commercial_demo: true,
-          ai_model: creation.model || "tok-demo-zero-cost-v1",
+          ai_model: creation.model || "openai",
           generated_at: creation.created_at,
+          generation_id: creation.assetId,
           tool: creation.tool,
           credit_units: 0,
         },
@@ -721,6 +794,7 @@ export default function DashboardPhotos() {
                         const file = event.target.files?.[0];
                         if (!file) return;
                         const url = URL.createObjectURL(file);
+                        demoGalleryObjectUrlsRef.current.add(url);
                         setForm((current) => ({
                           ...current,
                           media_url: url,

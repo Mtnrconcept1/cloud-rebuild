@@ -532,9 +532,9 @@ export default function DashboardLayout({
                   <ShieldCheck className="h-6 w-6" />
                 </span>
                 <div className="space-y-1">
-                  <p className="font-semibold">Mode démonstration — données simulées</p>
+                  <p className="font-semibold">Mode démonstration — restaurant simulé</p>
                   <p className="text-sm text-sky-800 dark:text-sky-100/80">
-                    Tous les outils du dashboard sont visibles. Les paiements, appels IA payants, publications et envois externes sont bloqués côté serveur.
+                    Les outils IA utilisent réellement OpenAI, sans débit de crédits TOK pour les commerciaux. Les paiements, publications et envois externes restent simulés et bloqués côté serveur.
                   </p>
                   <p className="text-xs text-sky-700 dark:text-sky-100/70">
                     Ce restaurant est isolé du catalogue public et ne contient aucune donnée réelle de restaurateur ou de client.
