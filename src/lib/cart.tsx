@@ -4,6 +4,7 @@ import { useAuth } from "@/lib/auth-context";
 import { canUseClientRole, hasPrivilegedRole } from "@/lib/roleAccess";
 import { CartContext, type CartConflict, type CartInputItem, type CartItem } from "@/lib/cart-context";
 import { clearCartBrowserState } from "@/lib/sessionCleanup";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 
 function isGuaranteedDeliveryItem(item: CartInputItem | CartItem): boolean {
   return item.metadata?.is_guaranteed_delivery_slot === true
@@ -53,9 +54,17 @@ function cartFeatureAllowsCrossRestaurant(metadata: Record<string, any>) {
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const { user, role, roles = [] } = useAuth();
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
+  const storageNamespace = isCommercialDemoClient
+    ? `miamz-demo:${commercialDemoFrame.config.sessionId}:client`
+    : "miamz";
+  const cartStorageKey = `${storageNamespace}-cart`;
+  const cartMetadataStorageKey = `${storageNamespace}-cart-metadata`;
+  const orderModeStorageKey = `${storageNamespace}-order-mode`;
   const [orderMode, setOrderModeState] = useState<"delivery" | "takeaway">(() => {
     try {
-      const stored = localStorage.getItem("miamz-order-mode");
+      const stored = localStorage.getItem(orderModeStorageKey);
       return (stored as any) || "delivery";
     } catch {
       return "delivery";
@@ -66,7 +75,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const [items, setItems] = useState<CartItem[]>(() => {
     try {
-      const stored = localStorage.getItem("miamz-cart");
+      const stored = localStorage.getItem(cartStorageKey);
       return stored ? JSON.parse(stored) : [];
     } catch {
       return [];
@@ -75,7 +84,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const [cartMetadata, setCartMetadata] = useState<Record<string, any>>(() => {
     try {
-      const stored = localStorage.getItem("miamz-cart-metadata");
+      const stored = localStorage.getItem(cartMetadataStorageKey);
       return stored ? JSON.parse(stored) : {};
     } catch {
       return {};
@@ -88,20 +97,26 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setCartMetadata({});
     setConflict(null);
     setOrderModeState("delivery");
-    clearCartBrowserState();
-  }, []);
+    if (isCommercialDemoClient) {
+      localStorage.removeItem(cartStorageKey);
+      localStorage.removeItem(cartMetadataStorageKey);
+      localStorage.removeItem(orderModeStorageKey);
+    } else {
+      clearCartBrowserState();
+    }
+  }, [cartMetadataStorageKey, cartStorageKey, isCommercialDemoClient, orderModeStorageKey]);
 
   useEffect(() => {
-    localStorage.setItem("miamz-cart", JSON.stringify(items));
-  }, [items]);
+    localStorage.setItem(cartStorageKey, JSON.stringify(items));
+  }, [cartStorageKey, items]);
 
   useEffect(() => {
-    localStorage.setItem("miamz-cart-metadata", JSON.stringify(cartMetadata));
-  }, [cartMetadata]);
+    localStorage.setItem(cartMetadataStorageKey, JSON.stringify(cartMetadata));
+  }, [cartMetadata, cartMetadataStorageKey]);
 
   useEffect(() => {
-    localStorage.setItem("miamz-order-mode", orderMode);
-  }, [orderMode]);
+    localStorage.setItem(orderModeStorageKey, orderMode);
+  }, [orderMode, orderModeStorageKey]);
 
   useEffect(() => {
     const nextUserId = user?.id ?? null;
@@ -115,10 +130,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [resetCartState, user?.id]);
 
   useEffect(() => {
-    if (user && hasPrivilegedRole(roles)) {
+    if (!isCommercialDemoClient && user && hasPrivilegedRole(roles)) {
       resetCartState();
     }
-  }, [resetCartState, roles, user]);
+  }, [isCommercialDemoClient, resetCartState, roles, user]);
 
   const setOrderMode = (mode: "delivery" | "takeaway", options?: { force?: boolean }) => {
     if (options?.force) {
@@ -174,7 +189,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       Math.round(Number(item.quantity ?? item.metadata?.party_size ?? 1) || 1),
     );
 
-    trackEvent({
+    if (!isCommercialDemoClient) trackEvent({
       eventType: "add_to_cart",
       eventData: { item_name: item.name, price: item.price },
       restaurantId: item.restaurantId,
@@ -273,7 +288,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         if (requiredMode) {
           setOrderModeState(requiredMode);
         }
-        trackEvent({
+        if (!isCommercialDemoClient) trackEvent({
           eventType: "add_to_cart",
           eventData: { item_name: pendingItem.name, price: pendingItem.price },
           restaurantId: pendingItem.restaurantId,
