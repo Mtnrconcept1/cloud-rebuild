@@ -16,6 +16,7 @@ export type CommercialDemoFrameStateMessage = {
   path: string;
   search: string;
   historyIndex: number;
+  navigationType: "POP" | "PUSH" | "REPLACE";
   unreadCount: number;
   realtimeStatus: "connecting" | "connected" | "reconnecting" | "offline";
 };
@@ -112,6 +113,7 @@ export function isCommercialDemoFrameStateMessage(value: unknown): value is Comm
   const path = record.path;
   const search = record.search;
   const historyIndex = record.historyIndex;
+  const navigationType = record.navigationType;
   const unreadCount = record.unreadCount;
   const realtimeStatus = record.realtimeStatus;
 
@@ -127,6 +129,7 @@ export function isCommercialDemoFrameStateMessage(value: unknown): value is Comm
     && typeof historyIndex === "number"
     && Number.isInteger(historyIndex)
     && historyIndex >= 0
+    && (navigationType === "POP" || navigationType === "PUSH" || navigationType === "REPLACE")
     && typeof unreadCount === "number"
     && Number.isInteger(unreadCount)
     && unreadCount >= 0
