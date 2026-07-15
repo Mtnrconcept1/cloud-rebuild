@@ -81,7 +81,7 @@ const TOOL_CONFIG: Record<CommercialDemoSafeTool, {
     description: "Tous les modules activés par l’administrateur sont présentés dans le pack commercial, sans modifier le contrat réel.",
     badge: "Pack · sandbox",
     icon: Package,
-    metrics: [{ label: "Outils actifs", value: "Tous les flags ON" }, { label: "Utilisateurs", value: "Illimités" }, { label: "Environnement", value: "Démo" }],
+    metrics: [{ label: "Outils actifs", value: "Flags admin actifs" }, { label: "Utilisateurs", value: "Illimités" }, { label: "Environnement", value: "Démo" }],
     steps: ["Explorer les modules inclus", "Comparer les capacités", "Simuler la sélection du pack"],
     action: "Sélectionner ce pack en démo",
     completed: "Pack sélectionné pour la présentation uniquement.",
@@ -184,7 +184,7 @@ function CommercialDemoToolSandbox({ tool }: { tool: CommercialDemoSafeTool }) {
         <div className="flex flex-col gap-3 rounded-2xl border border-violet-200 bg-violet-50/80 p-4 text-violet-950 sm:flex-row sm:items-center dark:border-violet-400/20 dark:bg-violet-400/10 dark:text-violet-100">
           <TestTube2 className="h-5 w-5 shrink-0" />
           <div className="min-w-0 flex-1">
-            <p className="font-semibold">Vrai module · effets externes remplacés par une sandbox</p>
+            <p className="font-semibold">Parcours interactif du module · effets externes remplacés par une sandbox</p>
             <p className="mt-1 text-sm opacity-80">{enabledFeatureCount} outils restaurateur sont actuellement autorisés par les flags admin. Ce scénario ne touche ni Stripe live, ni crédits, ni partenaires, ni comptabilité de production.</p>
           </div>
           <Badge variant="outline" className="w-fit bg-background/60">Temps réel isolé</Badge>
