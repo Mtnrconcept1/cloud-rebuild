@@ -140,9 +140,12 @@ export default function Panier() {
   const queryClient = useQueryClient();
   const commercialDemoFrame = useCommercialDemoFrame();
   const globalActiveFeatures = useActiveFeatures({ enabled: !commercialDemoFrame });
-  const activeFeatures = commercialDemoFrame
-    ? new Set(commercialDemoFrame.snapshot.active_features)
-    : globalActiveFeatures;
+  const activeFeatures = useMemo(
+    () => commercialDemoFrame
+      ? new Set(commercialDemoFrame.snapshot.active_features)
+      : globalActiveFeatures,
+    [commercialDemoFrame, globalActiveFeatures],
+  );
   const guaranteedDeliveryContext = useMemo(
     () => getGuaranteedDeliveryCartContext(cartMetadata, items),
     [cartMetadata, items],
