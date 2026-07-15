@@ -685,8 +685,11 @@ DECLARE
   v_definition text;
   v_guarded_definition text;
   v_marker constant text := 'COMMERCIAL_DEMO_PRODUCTION_RPC_BLOCKED';
-  v_lf_needle constant text := E'\nBEGIN\n';
-  v_crlf_needle constant text := E'\r\nBEGIN\r\n';
+  -- pg_get_functiondef preserves the original body's keyword casing. Search
+  -- against a lower-cased copy so `begin`, `BEGIN`, and mixed-case bodies all
+  -- receive the same guard, while overlaying the untouched definition.
+  v_lf_needle constant text := E'\nbegin\n';
+  v_crlf_needle constant text := E'\r\nbegin\r\n';
   v_lf_replacement constant text :=
     E'\nBEGIN\n  IF public.commercial_demo_current_user_is_restricted() THEN\n'
     || E'    RAISE EXCEPTION ''COMMERCIAL_DEMO_PRODUCTION_RPC_BLOCKED: use commercial_demo_* RPCs''\n'
@@ -742,18 +745,18 @@ BEGIN
       CONTINUE;
     END IF;
 
-    IF position(v_lf_needle IN v_definition) > 0 THEN
+    IF position(v_lf_needle IN lower(v_definition)) > 0 THEN
       v_guarded_definition := overlay(
         v_definition
         PLACING v_lf_replacement
-        FROM position(v_lf_needle IN v_definition)
+        FROM position(v_lf_needle IN lower(v_definition))
         FOR char_length(v_lf_needle)
       );
-    ELSIF position(v_crlf_needle IN v_definition) > 0 THEN
+    ELSIF position(v_crlf_needle IN lower(v_definition)) > 0 THEN
       v_guarded_definition := overlay(
         v_definition
         PLACING v_crlf_replacement
-        FROM position(v_crlf_needle IN v_definition)
+        FROM position(v_crlf_needle IN lower(v_definition))
         FOR char_length(v_crlf_needle)
       );
     ELSE
@@ -866,7 +869,9 @@ BEGIN
   END IF;
 
   IF to_regprocedure('public.compute_restaurant_reservation_fees(uuid,date,date)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.compute_restaurant_reservation_fees(uuid,date,date) FROM PUBLIC, anon, authenticated';
+    EXECUTE 'REVOKE EXECUTE ON FUNCTION public.compute_restaurant_reservation_fees(uuid,date,date) FROM PUBLIC';
+    EXECUTE 'REVOKE EXECUTE ON FUNCTION public.compute_restaurant_reservation_fees(uuid,date,date) FROM anon';
+    EXECUTE 'REVOKE EXECUTE ON FUNCTION public.compute_restaurant_reservation_fees(uuid,date,date) FROM authenticated';
     EXECUTE 'GRANT EXECUTE ON FUNCTION public.compute_restaurant_reservation_fees(uuid,date,date) TO service_role';
   END IF;
 END
