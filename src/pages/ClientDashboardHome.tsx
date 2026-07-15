@@ -103,12 +103,12 @@ function getClientDashboardHomeTarget(target: string, isCommercialDemoClientFram
   if (!isCommercialDemoClientFrame) return target;
 
   const pathname = new URL(target, "https://thetok.ch").pathname;
-  if (pathname === "/notifications") return "/notifications";
-  if (pathname === "/mon-espace") return "/mon-espace";
-  if (pathname === "/profil" || pathname === "/mes-avis" || pathname === "/reservations" || pathname === "/contact") {
-    return "/mon-espace";
+  if (["/notifications", "/mon-espace", "/recherche", "/reservations", "/commandes"].includes(pathname)) {
+    return pathname;
   }
-  return "/commandes";
+  // Client discovery is intentionally reduced to the one restaurant attached
+  // to the commercial demonstration session.
+  return "/recherche";
 }
 
 const QUICK_ACTIONS: QuickAction[] = [
@@ -244,14 +244,21 @@ function LiveClientDashboardHome() {
   const { user } = useAuth();
   const commercialDemoFrame = useCommercialDemoFrame();
   const isCommercialDemoClientFrame = commercialDemoFrame?.surface === "client";
-  const { activeFeatures, loading: featuresLoading } = useFeatureFlagSnapshot({ enabled: !isCommercialDemoClientFrame });
+  const {
+    activeFeatures: globalActiveFeatures,
+    loading: globalFeaturesLoading,
+  } = useFeatureFlagSnapshot({ enabled: !isCommercialDemoClientFrame });
+  const activeFeatures = isCommercialDemoClientFrame && commercialDemoFrame
+    ? new Set(commercialDemoFrame.snapshot.active_features)
+    : globalActiveFeatures;
+  const featuresLoading = isCommercialDemoClientFrame ? false : globalFeaturesLoading;
   const {
     unreadCount,
     isLoading: notificationsLoading,
   } = useNotificationCenter(50, { realtime: true });
 
-  const reservationEnabled = isCommercialDemoClientFrame || activeFeatures.has("reservation");
-  const ordersEnabled = isCommercialDemoClientFrame || activeFeatures.has("commandes");
+  const reservationEnabled = activeFeatures.has("reservation");
+  const ordersEnabled = activeFeatures.has("commandes");
   const today = useMemo(() => getBusinessDateKey(), []);
 
   const overviewQuery = useQuery<ClientDashboardOverviewData>({
@@ -333,7 +340,18 @@ function LiveClientDashboardHome() {
         current_tier: "demo",
         avatar_url: null,
       },
-      reservations: [],
+      reservations: commercialDemoFrame.snapshot.reservations.map((reservation) => ({
+        id: reservation.id,
+        date: reservation.reservation_date,
+        time: reservation.reservation_time,
+        party_size: reservation.party_size,
+        status: reservation.status,
+        feature: "classique",
+        restaurants: {
+          id: commercialDemoFrame.snapshot.demo_restaurant.id,
+          name: commercialDemoFrame.snapshot.demo_restaurant.name,
+        },
+      })),
       orders: demoOrder ? [{
         id: demoOrder.id,
         order_number: demoOrder.order_number,
@@ -345,8 +363,8 @@ function LiveClientDashboardHome() {
         payment_status: demoOrder.payment_status,
         total_amount: demoOrder.total_amount_cents / 100,
         restaurants: {
-          id: commercialDemoFrame.snapshot.session.demo_restaurant_id,
-          name: "Restaurant Démo TOK",
+          id: commercialDemoFrame.snapshot.demo_restaurant.id,
+          name: commercialDemoFrame.snapshot.demo_restaurant.name,
         },
       }] : [],
       favoritesCount: 0,
@@ -376,7 +394,7 @@ function LiveClientDashboardHome() {
   );
 
   const visibleActions = QUICK_ACTIONS.filter(
-    (action) => isCommercialDemoClientFrame || !action.feature || activeFeatures.has(action.feature),
+    (action) => !action.feature || activeFeatures.has(action.feature),
   );
   const profile = overviewData?.profile;
   const firstName = String(profile?.full_name || user?.email?.split("@")[0] || "").trim().split(/\s+/)[0];
