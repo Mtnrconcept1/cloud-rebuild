@@ -188,8 +188,8 @@ describe("commercial.thetok.ch canonical isolation", () => {
 
   it("keeps unmarked administrators operational while durable demo markers stay confined", () => {
     expect(isManagedCommercialAccount(["admin", "commercial"])).toBe(false);
-    expect(isManagedCommercialAccount(["admin", "commercial"], "commercial_demo")).toBe(true);
-    expect(isManagedCommercialAccount(["admin", "commercial"], null, true)).toBe(true);
+    expect(isManagedCommercialAccount(["admin"], "commercial_demo")).toBe(true);
+    expect(isManagedCommercialAccount(["admin"], null, true)).toBe(true);
     expect(canOperateCommercialDemoHost(["admin"])).toBe(true);
 
     expect(getCommercialHostRedirectTarget({
@@ -207,7 +207,7 @@ describe("commercial.thetok.ch canonical isolation", () => {
       authResolved: true,
       isAuthenticated: true,
       activeRole: "admin",
-      roles: ["admin", "commercial"],
+      roles: ["admin"],
       accountType: "commercial_demo",
     })).toBe(`${TOK_COMMERCIAL_APP_ORIGIN}/commercial`);
 
@@ -217,7 +217,7 @@ describe("commercial.thetok.ch canonical isolation", () => {
       authResolved: true,
       isAuthenticated: true,
       activeRole: "admin",
-      roles: ["admin", "commercial"],
+      roles: ["admin"],
       serverCommercialDemoRestricted: true,
     })).toBe(`${TOK_COMMERCIAL_APP_ORIGIN}/commercial`);
 
