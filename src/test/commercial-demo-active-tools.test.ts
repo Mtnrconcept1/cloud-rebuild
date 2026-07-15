@@ -14,6 +14,7 @@ describe("commercial demo active tools and reservations", () => {
   const provider = read("src/components/commercial/CommercialDemoFrameProvider.tsx");
   const safeTools = read("src/components/commercial/CommercialDemoToolBoundary.tsx");
   const service = read("src/lib/commercialDemoJourney.ts");
+  const actorWorkspace = read("src/components/commercial/CommercialDemoActorWorkspace.tsx");
   const reservations = read("src/components/dashboard/CommercialDemoScenario.tsx");
   const cart = read("src/pages/Panier.tsx");
   const cartProvider = read("src/lib/cart.tsx");
@@ -122,6 +123,7 @@ describe("commercial demo active tools and reservations", () => {
     expect(service).toContain("menu_item_id: item.id");
     expect(service).not.toContain("const DEMO_ITEMS");
     expect(cart).toContain("menu_item_id: item.menuItemId");
+    expect(actorWorkspace).toContain("getCommercialDemoPresetItems(frame.snapshot.catalog_items)");
   });
 
   it("covers reservation FK lookup and rejects a null party size explicitly", () => {
