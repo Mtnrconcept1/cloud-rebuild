@@ -32,14 +32,23 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   buildCommercialDemoFrameUrl,
+  isCommercialDemoFrameEscapeMessage,
   isCommercialDemoFrameStateMessage,
   type CommercialDemoFrameStateMessage,
   type CommercialDemoFrameSurface,
 } from "@/lib/commercialDemoFrame";
 import { cn } from "@/lib/utils";
 
-type RemoteBrowserSurface = CommercialDemoFrameSurface | "commercial";
+type RemoteBrowserSurface = CommercialDemoFrameSurface;
 
 type BrowserDefinition = {
   surface: RemoteBrowserSurface;
@@ -51,6 +60,7 @@ type BrowserDefinition = {
 };
 
 type ViewportPreset = "desktop" | "tablet" | "mobile";
+type ViewportMode = "auto" | ViewportPreset;
 type ConsoleLayout = "control" | "mosaic";
 
 type FrameRuntime = {
@@ -97,17 +107,6 @@ const BROWSERS: BrowserDefinition[] = [
   },
 ];
 
-function buildRemoteBrowserUrl(
-  surface: RemoteBrowserSurface,
-  sessionId: string,
-  targetPath: string,
-) {
-  if (surface === "commercial") {
-    return targetPath.startsWith("/commercial") ? targetPath : "/commercial";
-  }
-  return buildCommercialDemoFrameUrl(surface, sessionId, targetPath);
-}
-
 const VIEWPORTS: Record<ViewportPreset, {
   label: string;
   width: number;
@@ -118,6 +117,45 @@ const VIEWPORTS: Record<ViewportPreset, {
   tablet: { label: "Tablette", width: 1024, height: 768, icon: Tablet },
   mobile: { label: "Mobile", width: 390, height: 844, icon: Smartphone },
 };
+
+const VIEWPORT_MODE_ORDER: ViewportMode[] = ["auto", "desktop", "tablet", "mobile"];
+
+function responsiveViewportPreset(): ViewportPreset {
+  if (typeof window === "undefined") return "desktop";
+  if (window.matchMedia("(max-width: 767px)").matches) return "mobile";
+  if (window.matchMedia("(max-width: 1279px)").matches) return "tablet";
+  return "desktop";
+}
+
+function useResponsiveViewportPreset() {
+  const [preset, setPreset] = useState<ViewportPreset>(responsiveViewportPreset);
+
+  useEffect(() => {
+    const updatePreset = () => setPreset((current) => {
+      const next = responsiveViewportPreset();
+      return current === next ? current : next;
+    });
+    const mobileQuery = window.matchMedia("(max-width: 767px)");
+    const tabletQuery = window.matchMedia("(max-width: 1279px)");
+    mobileQuery.addEventListener("change", updatePreset);
+    tabletQuery.addEventListener("change", updatePreset);
+    return () => {
+      mobileQuery.removeEventListener("change", updatePreset);
+      tabletQuery.removeEventListener("change", updatePreset);
+    };
+  }, []);
+
+  return preset;
+}
+
+function sameRuntime(left: FrameRuntime, right: FrameRuntime) {
+  return left.path === right.path
+    && left.search === right.search
+    && left.historyIndex === right.historyIndex
+    && left.maxHistoryIndex === right.maxHistoryIndex
+    && left.unreadCount === right.unreadCount
+    && left.realtimeStatus === right.realtimeStatus;
+}
 
 function initialRuntime(definition: BrowserDefinition): FrameRuntime {
   return {
@@ -144,7 +182,7 @@ function RemoteViewport({
   src: string;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [viewportMetrics, setViewportMetrics] = useState({ scale: 1, width: 0, height: 0 });
+  const [viewportMetrics, setViewportMetrics] = useState({ scale: 0, width: 0, height: 0 });
   const viewport = VIEWPORTS[preset];
 
   useEffect(() => {
@@ -185,7 +223,7 @@ function RemoteViewport({
       data-remote-viewport={preset}
     >
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.12),transparent_58%)]" />
-      <div className="absolute" style={canvasStyle}>
+      <div className={cn("absolute", scale <= 0 && "invisible")} style={canvasStyle}>
         <iframe
           ref={frameRef}
           src={src}
@@ -194,11 +232,11 @@ function RemoteViewport({
           height={viewport.height}
           className="block border-0 bg-background"
           loading="eager"
-          referrerPolicy="same-origin"
+          referrerPolicy="no-referrer"
           data-testid={`commercial-demo-frame-${surface}`}
         />
       </div>
-      {scale < 0.58 ? (
+      {scale > 0 && scale < 0.58 ? (
         <div className="pointer-events-none absolute bottom-2 right-2 rounded-full bg-slate-950/80 px-2 py-1 text-[10px] font-semibold text-white/80 backdrop-blur">
           {Math.round(scale * 100)} %
         </div>
@@ -210,118 +248,79 @@ function RemoteViewport({
 function BrowserWindow({
   definition,
   sessionId,
+  runtime,
+  autoPreset,
   active,
   compact,
   fullscreen,
   onActivate,
   onToggleFullscreen,
+  onEscapeFullscreen,
   onRuntimeChange,
 }: {
   definition: BrowserDefinition;
   sessionId: string;
+  runtime: FrameRuntime;
+  autoPreset: ViewportPreset;
   active: boolean;
   compact: boolean;
   fullscreen: boolean;
   onActivate: () => void;
   onToggleFullscreen: () => void;
+  onEscapeFullscreen: (surface: RemoteBrowserSurface) => void;
   onRuntimeChange: (surface: RemoteBrowserSurface, runtime: FrameRuntime) => void;
 }) {
   const frameRef = useRef<HTMLIFrameElement>(null);
-  const [preset, setPreset] = useState<ViewportPreset>("desktop");
-  const [runtime, setRuntime] = useState<FrameRuntime>(() => initialRuntime(definition));
+  const runtimeRef = useRef(runtime);
+  const [viewportMode, setViewportMode] = useState<ViewportMode>("auto");
+  const preset = viewportMode === "auto" ? autoPreset : viewportMode;
   const initialUrl = useMemo(
-    () => buildRemoteBrowserUrl(definition.surface, sessionId, definition.initialPath),
+    () => buildCommercialDemoFrameUrl(definition.surface, sessionId, definition.initialPath),
     [definition.initialPath, definition.surface, sessionId],
   );
   const Icon = definition.icon;
   const RealtimeIcon = runtime.realtimeStatus === "connected" ? Wifi : WifiOff;
+  const CurrentViewportIcon = VIEWPORTS[preset].icon;
+  const viewportModeLabel = viewportMode === "auto"
+    ? `Auto · ${VIEWPORTS[preset].label}`
+    : VIEWPORTS[preset].label;
 
   useEffect(() => {
-    setRuntime(initialRuntime(definition));
-  }, [definition, sessionId]);
+    runtimeRef.current = runtime;
+  }, [runtime]);
 
   useEffect(() => {
-    if (definition.surface === "commercial") return;
-
     const handleMessage = (event: MessageEvent) => {
       if (event.origin !== window.location.origin || event.source !== frameRef.current?.contentWindow) return;
+
+      if (isCommercialDemoFrameEscapeMessage(event.data)) {
+        if (event.data.sessionId !== sessionId || event.data.surface !== definition.surface) return;
+        onEscapeFullscreen(definition.surface);
+        return;
+      }
+
       if (!isCommercialDemoFrameStateMessage(event.data)) return;
       if (event.data.sessionId !== sessionId || event.data.surface !== definition.surface) return;
 
-      setRuntime((current) => {
-        const maxHistoryIndex = Math.max(current.maxHistoryIndex, event.data.historyIndex);
-        const next = {
-          path: event.data.path,
-          search: event.data.search,
-          historyIndex: event.data.historyIndex,
-          maxHistoryIndex,
-          unreadCount: event.data.unreadCount,
-          realtimeStatus: event.data.realtimeStatus,
-        } satisfies FrameRuntime;
-        onRuntimeChange(definition.surface, next);
-        return next;
-      });
+      const current = runtimeRef.current;
+      const next = {
+        path: event.data.path,
+        search: event.data.search,
+        historyIndex: event.data.historyIndex,
+        maxHistoryIndex: event.data.navigationType === "PUSH"
+          ? event.data.historyIndex
+          : Math.max(current.maxHistoryIndex, event.data.historyIndex),
+        unreadCount: event.data.unreadCount,
+        realtimeStatus: event.data.realtimeStatus,
+      } satisfies FrameRuntime;
+      if (sameRuntime(current, next)) return;
+
+      runtimeRef.current = next;
+      onRuntimeChange(definition.surface, next);
     };
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
-  }, [definition.surface, onRuntimeChange, sessionId]);
-
-  useEffect(() => {
-    if (definition.surface !== "commercial") return;
-
-    const frame = frameRef.current;
-    let stopped = false;
-    const syncCommercialFrame = () => {
-      if (stopped) return;
-      const frameWindow = frame?.contentWindow;
-      if (!frameWindow) return;
-
-      try {
-        const { pathname, search } = frameWindow.location;
-        // Never recursively open this console inside its own commercial
-        // window. Every other commercial route stays fully navigable.
-        if (!pathname.startsWith("/commercial") || pathname.startsWith("/commercial/demo-live")) {
-          frameWindow.location.replace("/commercial");
-          return;
-        }
-
-        const historyIndex = Number(frameWindow.history.state?.idx ?? 0);
-        setRuntime((current) => {
-          const next = {
-            path: pathname || "/commercial",
-            search,
-            historyIndex,
-            maxHistoryIndex: Math.max(current.maxHistoryIndex, historyIndex),
-            unreadCount: 0,
-            realtimeStatus: "connected",
-          } satisfies FrameRuntime;
-          if (
-            current.path === next.path
-            && current.search === next.search
-            && current.historyIndex === next.historyIndex
-            && current.maxHistoryIndex === next.maxHistoryIndex
-            && current.realtimeStatus === next.realtimeStatus
-          ) {
-            return current;
-          }
-          onRuntimeChange(definition.surface, next);
-          return next;
-        });
-      } catch {
-        // A same-origin frame can be unavailable for a few milliseconds while
-        // its document is replaced. The following tick resynchronises it.
-      }
-    };
-
-    frame?.addEventListener("load", syncCommercialFrame);
-    syncCommercialFrame();
-    const timer = window.setInterval(syncCommercialFrame, 500);
-    return () => {
-      stopped = true;
-      frame?.removeEventListener("load", syncCommercialFrame);
-      window.clearInterval(timer);
-    };
-  }, [definition.surface, onRuntimeChange, sessionId]);
+  }, [definition.surface, onEscapeFullscreen, onRuntimeChange, sessionId]);
 
   const withFrameWindow = (action: (frameWindow: Window) => void) => {
     const frameWindow = frameRef.current?.contentWindow;
@@ -335,7 +334,7 @@ function BrowserWindow({
   };
 
   const currentUrl = useMemo(
-    () => buildRemoteBrowserUrl(definition.surface, sessionId, `${runtime.path}${runtime.search}`),
+    () => buildCommercialDemoFrameUrl(definition.surface, sessionId, `${runtime.path}${runtime.search}`),
     [definition.surface, runtime.path, runtime.search, sessionId],
   );
 
@@ -344,8 +343,10 @@ function BrowserWindow({
       className={cn(
         "group relative flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-[1.35rem] border bg-background shadow-[0_22px_65px_rgba(15,23,42,0.16)] transition-[border-color,box-shadow]",
         active ? "border-orange-400/70 ring-2 ring-orange-400/15" : "border-border/70",
-        fullscreen && "fixed inset-2 z-[220] rounded-2xl shadow-[0_40px_120px_rgba(2,6,23,0.55)] sm:inset-4",
+        fullscreen && "fixed inset-2 z-[1600] rounded-2xl shadow-[0_40px_120px_rgba(2,6,23,0.55)] sm:inset-4",
       )}
+      role={fullscreen ? "dialog" : undefined}
+      aria-modal={fullscreen ? true : undefined}
       data-browser-surface={definition.surface}
       data-browser-active={active ? "true" : "false"}
       onPointerDown={onActivate}
@@ -393,7 +394,19 @@ function BrowserWindow({
           <Button type="button" variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => withFrameWindow((frameWindow) => frameWindow.location.reload())} aria-label={`Actualiser ${definition.title}`}>
             <RefreshCw className="h-3.5 w-3.5" />
           </Button>
-          <Button type="button" variant="ghost" size="icon" className="hidden h-8 w-8 shrink-0 sm:inline-flex" onClick={() => withFrameWindow((frameWindow) => frameWindow.location.assign(initialUrl))} aria-label={`Accueil de ${definition.title}`}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="hidden h-8 w-8 shrink-0 sm:inline-flex"
+            onClick={() => withFrameWindow((frameWindow) => frameWindow.postMessage({
+              type: "commercial-demo:navigate",
+              sessionId,
+              surface: definition.surface,
+              path: definition.initialPath,
+            }, window.location.origin))}
+            aria-label={`Accueil de ${definition.title}`}
+          >
             <House className="h-3.5 w-3.5" />
           </Button>
           <button
@@ -405,24 +418,39 @@ function BrowserWindow({
           >
             <span className="text-emerald-600">●</span> thetok.ch{runtime.path}{runtime.search}
           </button>
-          <div className="hidden items-center rounded-lg border bg-background p-0.5 lg:flex" aria-label="Format de l’écran distant">
-            {(Object.entries(VIEWPORTS) as [ViewportPreset, (typeof VIEWPORTS)[ViewportPreset]][]).map(([key, item]) => {
-              const DeviceIcon = item.icon;
-              return (
-                <button
-                  key={key}
-                  type="button"
-                  className={cn("flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground", preset === key && "bg-primary text-primary-foreground")}
-                  onClick={() => setPreset(key)}
-                  title={item.label}
-                  aria-label={`Afficher ${definition.title} au format ${item.label}`}
-                  aria-pressed={preset === key}
-                >
-                  <DeviceIcon className="h-3.5 w-3.5" />
-                </button>
-              );
-            })}
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 shrink-0"
+                title={`Format : ${viewportModeLabel}`}
+                aria-label={`Choisir le format de ${definition.title}. Format actuel : ${viewportModeLabel}`}
+              >
+                <CurrentViewportIcon className="h-3.5 w-3.5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="z-[1700] min-w-48">
+              <DropdownMenuLabel>Format de l’écran distant</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {VIEWPORT_MODE_ORDER.map((mode) => {
+                const modePreset = mode === "auto" ? autoPreset : mode;
+                const DeviceIcon = VIEWPORTS[modePreset].icon;
+                const label = mode === "auto" ? `Automatique (${VIEWPORTS[autoPreset].label})` : VIEWPORTS[mode].label;
+                return (
+                  <DropdownMenuItem
+                    key={mode}
+                    className={cn("gap-2", viewportMode === mode && "bg-primary/10 text-primary")}
+                    onSelect={() => setViewportMode(mode)}
+                  >
+                    <DeviceIcon className="h-4 w-4" />
+                    {label}
+                  </DropdownMenuItem>
+                );
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button type="button" variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={onToggleFullscreen} aria-label={fullscreen ? `Réduire ${definition.title}` : `Prendre le contrôle de ${definition.title}`}>
             {fullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
           </Button>
@@ -447,7 +475,8 @@ function BrowserWindow({
   );
 }
 
-export default function CommercialDemoBrowserGrid({ sessionId }: { sessionId: string }) {
+function CommercialDemoBrowserGridSession({ sessionId }: { sessionId: string }) {
+  const autoPreset = useResponsiveViewportPreset();
   const [activeSurface, setActiveSurface] = useState<RemoteBrowserSurface>("client");
   const [thirdSurface, setThirdSurface] = useState<"commercial" | "courier">("commercial");
   const [layout, setLayout] = useState<ConsoleLayout>("control");
@@ -460,7 +489,11 @@ export default function CommercialDemoBrowserGrid({ sessionId }: { sessionId: st
   }));
 
   const updateRuntime = useCallback((surface: RemoteBrowserSurface, runtime: FrameRuntime) => {
-    setRuntimes((current) => current[surface] === runtime ? current : { ...current, [surface]: runtime });
+    setRuntimes((current) => sameRuntime(current[surface], runtime) ? current : { ...current, [surface]: runtime });
+  }, []);
+
+  const closeFullscreenFromFrame = useCallback((surface: RemoteBrowserSurface) => {
+    setFullscreenSurface((current) => current === surface ? null : current);
   }, []);
 
   useEffect(() => {
@@ -487,11 +520,10 @@ export default function CommercialDemoBrowserGrid({ sessionId }: { sessionId: st
       .filter((browser): browser is BrowserDefinition => Boolean(browser)),
     [visibleSurfaces],
   );
-  const orderedBrowsers = useMemo(() => {
-    const active = visibleBrowsers.find((browser) => browser.surface === activeSurface) || visibleBrowsers[0];
-    const visible = [active, ...visibleBrowsers.filter((browser) => browser.surface !== active.surface)];
-    return [...visible, ...BROWSERS.filter((browser) => !visibleSurfaces.includes(browser.surface))];
-  }, [activeSurface, visibleBrowsers, visibleSurfaces]);
+  const visibleOrder = useMemo(() => {
+    const active = visibleSurfaces.includes(activeSurface) ? activeSurface : visibleSurfaces[0];
+    return [active, ...visibleSurfaces.filter((surface) => surface !== active)];
+  }, [activeSurface, visibleSurfaces]);
 
   const selectThirdSurface = (surface: "commercial" | "courier") => {
     const replacingActiveSurface = activeSurface === thirdSurface;
@@ -535,6 +567,11 @@ export default function CommercialDemoBrowserGrid({ sessionId }: { sessionId: st
             </button>
             <button type="button" className={cn("flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold", thirdSurface === "courier" && "bg-background shadow-sm")} onClick={() => selectThirdSurface("courier")} aria-pressed={thirdSurface === "courier"}>
               <Bike className="h-4 w-4" />Livreur
+              {runtimes.courier.unreadCount > 0 ? (
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] text-white" aria-label={`${runtimes.courier.unreadCount} notification(s) livreur non lue(s)`}>
+                  {runtimes.courier.unreadCount}
+                </span>
+              ) : null}
             </button>
           </div>
           <div className="flex items-center rounded-xl border bg-muted/30 p-1" aria-label="Disposition des écrans">
@@ -550,37 +587,42 @@ export default function CommercialDemoBrowserGrid({ sessionId }: { sessionId: st
 
       <div
         className={cn(
-          "grid h-[calc(100dvh-12rem)] min-h-[40rem] min-w-0 gap-3",
+          "grid h-[clamp(28rem,calc(100svh-18rem),48rem)] min-w-0 gap-3 sm:h-[clamp(30rem,calc(100dvh-16rem),54rem)] lg:h-[clamp(34rem,calc(100dvh-13rem),60rem)]",
           layout === "control"
             ? "lg:grid-cols-[minmax(0,2fr)_minmax(22rem,1fr)] lg:grid-rows-2"
-            : "xl:grid-cols-3",
+            : "md:grid-cols-2 md:grid-rows-2 xl:grid-cols-3 xl:grid-rows-1",
         )}
         data-console-layout={layout}
       >
-        {orderedBrowsers.map((definition, index) => {
+        {BROWSERS.map((definition) => {
           const visible = visibleSurfaces.includes(definition.surface);
           const active = definition.surface === activeSurface;
-          const compact = layout === "control" && index > 0;
+          const visualIndex = visibleOrder.indexOf(definition.surface);
+          const compact = visible && layout === "control" && visualIndex > 0;
           return (
             <div
-              key={definition.surface}
+              key={`${definition.surface}:${sessionId}`}
+              style={{ order: visualIndex >= 0 ? visualIndex : BROWSERS.length }}
               className={cn(
                 "min-h-0 min-w-0",
                 !visible && "hidden",
-                visible && !active && (layout === "control" ? "hidden lg:block" : "hidden xl:block"),
-                layout === "control" && index === 0 && "lg:row-span-2",
-                layout === "control" && index > 0 && "lg:col-start-2",
+                visible && !active && (layout === "control" ? "hidden lg:block" : "hidden md:block"),
+                layout === "control" && visualIndex === 0 && "lg:row-span-2",
+                layout === "control" && visualIndex > 0 && "lg:col-start-2",
                 layout === "mosaic" && "xl:min-h-[42rem]",
               )}
             >
               <BrowserWindow
                 definition={definition}
                 sessionId={sessionId}
+                runtime={runtimes[definition.surface]}
+                autoPreset={autoPreset}
                 active={active}
                 compact={compact}
                 fullscreen={fullscreenSurface === definition.surface}
                 onActivate={() => setActiveSurface(definition.surface)}
                 onToggleFullscreen={() => setFullscreenSurface((current) => current === definition.surface ? null : definition.surface)}
+                onEscapeFullscreen={closeFullscreenFromFrame}
                 onRuntimeChange={updateRuntime}
               />
             </div>
@@ -592,4 +634,8 @@ export default function CommercialDemoBrowserGrid({ sessionId }: { sessionId: st
       </p>
     </section>
   );
+}
+
+export default function CommercialDemoBrowserGrid({ sessionId }: { sessionId: string }) {
+  return <CommercialDemoBrowserGridSession key={sessionId} sessionId={sessionId} />;
 }
