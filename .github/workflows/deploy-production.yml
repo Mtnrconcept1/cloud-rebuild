@@ -326,7 +326,7 @@ jobs:
         if: ${{ needs.validation.outputs.deploy_database == 'true' }}
         run: |
           source ./scripts/supabase-ci-retry.sh
-          supabase_ci_retry db push --linked --yes --password "$SUPABASE_DB_PASSWORD"
+          supabase_ci_retry db push --linked --include-all --yes --password "$SUPABASE_DB_PASSWORD"
 
       - name: Deploy impacted Edge Functions
         if: ${{ needs.validation.outputs.deploy_functions == 'true' }}
