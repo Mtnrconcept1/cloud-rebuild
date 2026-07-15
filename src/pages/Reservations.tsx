@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link, useSearchParams } from "react-router-dom";
 import { CalendarDays, ChevronDown, ChevronRight, Clock, Receipt, RefreshCcw, Users, Utensils } from "lucide-react";
 
@@ -14,6 +14,8 @@ import { getSupabase } from "@/integrations/supabase/client";
 import type { Database, Json } from "@/integrations/supabase/types";
 import { useAuth } from "@/lib/auth-context";
 import { sortByColumn, type SortColumn, type SortDirection } from "@/lib/listSorting";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
+import { transitionCommercialDemoReservation } from "@/lib/commercialDemoJourney";
 
 const supabase = getSupabase();
 
@@ -151,6 +153,7 @@ const RESERVATION_SORT_COLUMNS: SortColumn<ReservationWithRestaurant, Reservatio
 
 export default function Reservations() {
   const { user } = useAuth();
+  const commercialDemoFrame = useCommercialDemoFrame();
   const [searchParams] = useSearchParams();
   const [sortKey, setSortKey] = useState<ReservationSortKey>("reservation_date");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
@@ -169,23 +172,74 @@ export default function Reservations() {
       if (queryError) throw queryError;
       return (data || []) as ReservationWithRestaurant[];
     },
-    enabled: !!user,
+    enabled: Boolean(user && !commercialDemoFrame),
   });
+
+  const demoReservations = useMemo<ReservationWithRestaurant[]>(() => {
+    if (!commercialDemoFrame) return [];
+    return commercialDemoFrame.snapshot.reservations.map((reservation) => ({
+      id: reservation.id,
+      user_id: user?.id || "",
+      restaurant_id: commercialDemoFrame.snapshot.demo_restaurant.id,
+      date: reservation.reservation_date,
+      time: reservation.reservation_time,
+      party_size: reservation.party_size,
+      status: reservation.status,
+      feature: "classique",
+      order_reference: reservation.reference,
+      created_at: reservation.created_at,
+      updated_at: reservation.updated_at,
+      notes: reservation.notes || null,
+      total_amount: 0,
+      metadata: { commercial_demo: true },
+      preorder_items: [],
+      restaurants: { name: commercialDemoFrame.snapshot.demo_restaurant.name },
+      reservation_time: reservation.reservation_time,
+    } as unknown as ReservationWithRestaurant));
+  }, [commercialDemoFrame, user?.id]);
+  const visibleReservations = useMemo(
+    () => commercialDemoFrame ? demoReservations : (reservations || []),
+    [commercialDemoFrame, demoReservations, reservations],
+  );
+
+  const cancelDemoMutation = useMutation({
+    mutationFn: (reservation: ReservationWithRestaurant) => {
+      const source = commercialDemoFrame?.snapshot.reservations.find((item) => item.id === reservation.id);
+      if (!source) throw new Error("Réservation de démonstration introuvable.");
+      return transitionCommercialDemoReservation({
+        reservationId: source.id,
+        action: "client_cancel",
+        expectedVersion: source.version,
+      });
+    },
+    onSuccess: () => void commercialDemoFrame?.refresh(),
+  });
+
+  const openReservation = (reservation: ReservationWithRestaurant) => {
+    if (
+      commercialDemoFrame
+      && ["pending", "confirmed"].includes(String(reservation.status || "").toLowerCase())
+    ) {
+      cancelDemoMutation.mutate(reservation);
+      return;
+    }
+    if (!commercialDemoFrame) setSelectedReservation(reservation);
+  };
 
   useEffect(() => {
     const reservationId = searchParams.get("reservation");
-    if (!reservationId || !reservations?.length) return;
+    if (!reservationId || !visibleReservations.length) return;
 
-    const reservation = reservations.find((item) => item.id === reservationId);
+    const reservation = visibleReservations.find((item) => item.id === reservationId);
     if (reservation) setSelectedReservation(reservation);
-  }, [reservations, searchParams]);
+  }, [searchParams, visibleReservations]);
 
   const sortedReservations = useMemo(() => {
-    return sortByColumn(reservations || [], RESERVATION_SORT_COLUMNS, {
+    return sortByColumn(visibleReservations, RESERVATION_SORT_COLUMNS, {
       key: sortKey,
       direction: sortDirection,
     });
-  }, [reservations, sortDirection, sortKey]);
+  }, [sortDirection, sortKey, visibleReservations]);
 
   const toggleReservation = (reservationId: string) => {
     setExpandedReservations((current) => {
@@ -293,8 +347,8 @@ export default function Reservations() {
                         {preorderItems.slice(0, 3).map((item) => `${item.quantity}x ${item.name}`).join(" · ")}
                       </p>
                     ) : null}
-                    <Button type="button" variant="outline" size="sm" className="mt-3" onClick={() => setSelectedReservation(reservation)}>
-                      Détails et annulation
+                    <Button type="button" variant="outline" size="sm" className="mt-3" onClick={() => openReservation(reservation)} disabled={cancelDemoMutation.isPending}>
+                      {commercialDemoFrame ? "Annuler la réservation" : "Détails et annulation"}
                     </Button>
                   </article>
                 );
@@ -411,8 +465,8 @@ export default function Reservations() {
                           <Receipt className="h-4 w-4" />
                           <span>Reservee le {formatShortDate(reservation.created_at)}</span>
                         </div>
-                        <Button type="button" variant="outline" size="sm" onClick={() => setSelectedReservation(reservation)}>
-                          Details et annulation
+                        <Button type="button" variant="outline" size="sm" onClick={() => openReservation(reservation)} disabled={cancelDemoMutation.isPending}>
+                          {commercialDemoFrame ? "Annuler la réservation" : "Details et annulation"}
                         </Button>
                       </div>
                     </div>
@@ -431,11 +485,13 @@ export default function Reservations() {
         )}
       </div>
 
-      <ReservationDetailModal
-        reservation={modalDetail}
-        open={!!selectedReservation}
-        onOpenChange={(open) => { if (!open) setSelectedReservation(null); }}
-      />
+      {!commercialDemoFrame ? (
+        <ReservationDetailModal
+          reservation={modalDetail}
+          open={!!selectedReservation}
+          onOpenChange={(open) => { if (!open) setSelectedReservation(null); }}
+        />
+      ) : null}
     </CustomerDashboardLayout>
   );
 }
