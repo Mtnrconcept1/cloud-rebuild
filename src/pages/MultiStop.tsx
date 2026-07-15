@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { PUBLIC_MENU_ITEMS_LIMIT } from "@/lib/queryLimits";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
+import { getCommercialDemoClientMenuItems, getCommercialDemoClientRestaurants } from "@/lib/commercialDemoClientCatalog";
 
 const supabase = getSupabase();
 
@@ -27,6 +29,8 @@ interface DeliveryStop {
 type Step = "stops" | "restaurant" | "menu" | "confirm";
 
 export default function MultiStop() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
   const { addItem, clearCart, updateCartMetadata } = useCart();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -37,22 +41,29 @@ export default function MultiStop() {
   const [selectedRestaurant, setSelectedRestaurant] = useState<any>(null);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
 
-  const { data: restaurants } = useQuery({
+  const restaurantsQuery = useQuery({
     queryKey: ["restaurants-multistop"],
     queryFn: async () => {
       const { data } = await supabase.from("restaurants").select("*").eq("is_active", true).eq("delivery_available", true).order("rating", { ascending: false }).limit(9);
       return data || [];
     },
+    enabled: !isCommercialDemoClient,
   });
+  const restaurants = isCommercialDemoClient && commercialDemoFrame
+    ? getCommercialDemoClientRestaurants(commercialDemoFrame.snapshot)
+    : restaurantsQuery.data;
 
-  const { data: menuItems } = useQuery({
+  const menuItemsQuery = useQuery({
     queryKey: ["menu-multistop", selectedRestaurant?.id],
     queryFn: async () => {
       const { data } = await supabase.from("menu_items").select("*").eq("restaurant_id", selectedRestaurant.id).eq("is_available", true).order("category").limit(PUBLIC_MENU_ITEMS_LIMIT);
       return data || [];
     },
-    enabled: !!selectedRestaurant,
+    enabled: Boolean(selectedRestaurant && !isCommercialDemoClient),
   });
+  const menuItems = isCommercialDemoClient && commercialDemoFrame
+    ? getCommercialDemoClientMenuItems(commercialDemoFrame.snapshot, selectedRestaurant?.id)
+    : menuItemsQuery.data;
 
   const addStop = () => {
     if (stops.length >= 4) return;
@@ -134,13 +145,22 @@ export default function MultiStop() {
                   {stops.length > 1 && <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => removeStop(stop.id)}><Trash2 className="h-3.5 w-3.5" /></Button>}
                 </div>
                 <div>
-                  <AddressAutocomplete
-                    value={stop.address}
-                    onValueChange={(value) => updateStop(stop.id, "address", value)}
-                    onAddressSelect={(address) => updateStop(stop.id, "address", address)}
-                    placeholder="Adresse de livraison..."
-                    inputClassName="text-sm"
-                  />
+                  {isCommercialDemoClient ? (
+                    <Input
+                      value={stop.address}
+                      onChange={(event) => updateStop(stop.id, "address", event.target.value)}
+                      placeholder="Adresse de livraison démo..."
+                      className="text-sm"
+                    />
+                  ) : (
+                    <AddressAutocomplete
+                      value={stop.address}
+                      onValueChange={(value) => updateStop(stop.id, "address", value)}
+                      onAddressSelect={(address) => updateStop(stop.id, "address", address)}
+                      placeholder="Adresse de livraison..."
+                      inputClassName="text-sm"
+                    />
+                  )}
                 </div>
                 <Input value={stop.recipient} onChange={(e) => updateStop(stop.id, "recipient", e.target.value)} placeholder="Destinataire..." className="text-sm" />
               </div>

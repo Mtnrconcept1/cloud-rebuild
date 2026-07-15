@@ -9,7 +9,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { CommercialDemoOrders } from "@/components/dashboard/CommercialDemoScenario";
-import CommercialDemoActorWorkspace from "@/components/commercial/CommercialDemoActorWorkspace";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import RestaurantCancellationDialog from "@/components/RestaurantCancellationDialog";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -50,6 +49,11 @@ import {
   getDashboardOrderTypeMeta,
   summarizeDashboardOrdersByType,
 } from "@/lib/dashboardOrderTypes";
+import {
+  transitionCommercialDemoOrder,
+  type CommercialDemoSnapshot,
+  type CommercialDemoTransitionAction,
+} from "@/lib/commercialDemoJourney";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
 
 const supabase = getSupabase();
@@ -141,6 +145,100 @@ const STATUS_LABELS: Record<string, string> = {
   delivered: "Livrée",
   cancelled: "Annulée",
 };
+
+const COMMERCIAL_DEMO_ORDER_STATUS: Record<string, string> = {
+  awaiting_payment: "pending_payment",
+  restaurant_received: "confirmed",
+  restaurant_accepted: "accepted",
+  preparing: "preparing",
+  ready_for_pickup: "ready",
+  picked_up: "delivering",
+  delivering: "delivering",
+  delivered: "delivered",
+};
+
+const COMMERCIAL_DEMO_RESTAURANT_TRANSITIONS: Record<string, {
+  targetStatus: string;
+  action: CommercialDemoTransitionAction;
+}> = {
+  restaurant_received: { targetStatus: "accepted", action: "restaurant_accept" },
+  restaurant_accepted: { targetStatus: "preparing", action: "restaurant_start_preparing" },
+  preparing: { targetStatus: "ready", action: "restaurant_mark_ready" },
+};
+
+function getCommercialDemoStatusOptions(order: DashboardOrder) {
+  const currentStatus = String(normalizeOrderStatus(order.status));
+  const sourceStatus = String(order.metadata?.commercial_demo_status || "");
+  const nextStatus = COMMERCIAL_DEMO_RESTAURANT_TRANSITIONS[sourceStatus]?.targetStatus;
+  return nextStatus && nextStatus !== currentStatus ? [currentStatus, nextStatus] : [currentStatus];
+}
+
+function buildCommercialDemoDashboardOrders(snapshot: CommercialDemoSnapshot): DashboardOrder[] {
+  const order = snapshot.order;
+  if (!order || order.payment_status !== "test_paid") return [];
+
+  const totalAmount = Math.max(0, Number(order.total_amount_cents || 0) / 100);
+  const createdAt = order.created_at || order.updated_at || snapshot.session.created_at || new Date(0).toISOString();
+  const accepted = !["awaiting_payment", "restaurant_received"].includes(order.status);
+
+  return [{
+    id: order.id,
+    user_id: "commercial-demo-client",
+    restaurant_id: snapshot.session.demo_restaurant_id,
+    checkout_id: order.stripe_session_id || null,
+    order_number: order.order_number,
+    created_at: createdAt,
+    status: COMMERCIAL_DEMO_ORDER_STATUS[order.status] || "confirmed",
+    payment_status: "paid",
+    restaurant_viewed_at: order.updated_at || createdAt,
+    restaurant_accepted_at: accepted ? (order.updated_at || createdAt) : null,
+    acceptance_deadline_at: null,
+    restaurant_response_status: accepted ? "accepted" : "pending",
+    cancelled_by: null,
+    cancelled_at: null,
+    refund_status: null,
+    refunded_amount_chf: 0,
+    total_amount: totalAmount,
+    delivery_fee: 0,
+    delivery_address: order.delivery_address,
+    notes: "Commande simulée · paiement Stripe Test",
+    metadata: {
+      commercial_demo: true,
+      commercial_demo_status: order.status,
+      feature: "commercial-demo",
+      payment_method: "stripe_test",
+      type: "delivery",
+    },
+    customer: {
+      full_name: order.customer_name,
+      phone: null,
+    },
+    order_items: order.items.map((item, index) => ({
+      id: item.menu_item_id || `${order.id}-item-${index + 1}`,
+      quantity: item.quantity,
+      unit_price: Number(item.unit_amount_cents || 0) / 100,
+      total_price: (Number(item.unit_amount_cents || 0) * Number(item.quantity || 0)) / 100,
+      name: item.name,
+    })),
+    delivery_tracking: snapshot.mission ? {
+      id: snapshot.mission.id,
+      status: snapshot.mission.status,
+      driver_name: snapshot.mission.courier_name || null,
+      driver_phone: null,
+      current_lat: null,
+      current_lng: null,
+    } : null,
+    dispatch_job: snapshot.mission ? {
+      id: snapshot.mission.id,
+      status: snapshot.mission.status,
+      pickup_lat: null,
+      pickup_lng: null,
+      dropoff_lat: null,
+      dropoff_lng: null,
+      route_geometry: null,
+    } : null,
+  }];
+}
 
 function isDeliveryDashboardOrder(order: DashboardOrder) {
   const metadata = order.metadata || {};
@@ -239,16 +337,17 @@ export default function DashboardCommandes() {
   const commercialDemoFrame = useCommercialDemoFrame();
   const { isDemoMode } = useDashboardRestaurant();
   if (commercialDemoFrame?.surface === "restaurant") {
-    return (
-      <DashboardLayout contentWidth="full">
-        <CommercialDemoActorWorkspace surface="restaurant" />
-      </DashboardLayout>
-    );
+    return <LiveDashboardCommandes />;
   }
   return isDemoMode ? <CommercialDemoOrders /> : <LiveDashboardCommandes />;
 }
 
 function LiveDashboardCommandes() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const commercialDemoSnapshot = commercialDemoFrame?.surface === "restaurant"
+    ? commercialDemoFrame.snapshot
+    : null;
+  const isCommercialDemoRestaurant = Boolean(commercialDemoSnapshot);
   const { selectedId, restaurants, loading: restaurantsLoading, error: restaurantsError } = useDashboardRestaurant();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
@@ -262,6 +361,7 @@ function LiveDashboardCommandes() {
   const [sortKey, setSortKey] = useState<DashboardOrderSortKey>("created_at");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [viewMode, setViewMode] = useState<OperationViewMode>("details");
+  const [demoActionPending, setDemoActionPending] = useState(false);
   const { unreadNotifications } = useNotificationCenter(100, { realtime: true });
 
   useEffect(() => {
@@ -269,13 +369,18 @@ function LiveDashboardCommandes() {
     if (orderTarget) setSearchTerm(orderTarget);
   }, [searchParams]);
 
-  const selectedRestaurant = restaurants.find((restaurant) => restaurant.id === selectedId);
+  const effectiveSelectedId = commercialDemoSnapshot?.session.demo_restaurant_id || selectedId;
+  const selectedRestaurant = commercialDemoSnapshot?.demo_restaurant
+    || restaurants.find((restaurant) => restaurant.id === selectedId);
+  const effectiveRestaurantsLoading = isCommercialDemoRestaurant ? false : restaurantsLoading;
+  const effectiveRestaurantsError = isCommercialDemoRestaurant ? null : restaurantsError;
+  const hasRestaurant = isCommercialDemoRestaurant || restaurants.length > 0;
 
-  const { data: orders, error: ordersError } = useQuery({
-    queryKey: ["dashboard-all-orders", selectedId],
+  const productionOrdersQuery = useQuery({
+    queryKey: ["dashboard-all-orders", effectiveSelectedId],
     queryFn: async () => {
       const { data, error } = await supabase.rpc("get_restaurant_orders_dashboard" as any, {
-        p_restaurant_id: selectedId!,
+        p_restaurant_id: effectiveSelectedId!,
       });
 
       if (error) throw error;
@@ -297,8 +402,14 @@ function LiveDashboardCommandes() {
           : null,
       })) as DashboardOrder[];
     },
-    enabled: !!selectedId,
+    enabled: Boolean(effectiveSelectedId && !isCommercialDemoRestaurant),
   });
+  const commercialDemoOrders = useMemo(
+    () => commercialDemoSnapshot ? buildCommercialDemoDashboardOrders(commercialDemoSnapshot) : [],
+    [commercialDemoSnapshot],
+  );
+  const orders = isCommercialDemoRestaurant ? commercialDemoOrders : productionOrdersQuery.data;
+  const ordersError = isCommercialDemoRestaurant ? null : productionOrdersQuery.error;
 
   const filteredOrders = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
@@ -373,6 +484,9 @@ function LiveDashboardCommandes() {
       refundNow: boolean;
       refundEligible: boolean;
     }) => {
+      if (isCommercialDemoRestaurant) {
+        throw new Error("L'annulation restaurateur est désactivée dans ce parcours de démonstration isolé.");
+      }
       const result = await cancelOrderByRestaurant(id, reasonCode, details);
       if (!result.ok) {
         throw new Error(result.errorMessage || "Annulation impossible.");
@@ -440,6 +554,46 @@ function LiveDashboardCommandes() {
 
   const updateStatus = async (orderId: string, status: string) => {
     const normalizedStatus = normalizeOrderStatus(status);
+
+    if (commercialDemoSnapshot && commercialDemoFrame) {
+      const demoOrder = commercialDemoSnapshot.order;
+      const transition = demoOrder
+        ? COMMERCIAL_DEMO_RESTAURANT_TRANSITIONS[demoOrder.status]
+        : null;
+
+      if (!demoOrder || !transition || transition.targetStatus !== normalizedStatus) {
+        toast({
+          title: "Action indisponible",
+          description: "Suivez l'étape suivante du parcours simulé pour conserver la synchronisation en temps réel.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setDemoActionPending(true);
+      try {
+        await transitionCommercialDemoOrder({
+          orderId: demoOrder.id,
+          action: transition.action,
+          expectedVersion: demoOrder.version,
+        });
+        await commercialDemoFrame.refresh();
+        toast({
+          title: "Statut mis à jour",
+          description: `La commande simulée est maintenant "${STATUS_LABELS[String(normalizedStatus)] || normalizedStatus}".`,
+        });
+      } catch (error) {
+        toast({
+          title: "Mise à jour impossible",
+          description: error instanceof Error ? error.message : "Actualisez la session de démonstration puis réessayez.",
+          variant: "destructive",
+        });
+      } finally {
+        setDemoActionPending(false);
+      }
+      return;
+    }
+
     const { data: rawData, error } = await invokeSupabaseFunction("restaurant-order-status", {
       body: {
         order_id: orderId,
@@ -500,6 +654,8 @@ function LiveDashboardCommandes() {
   };
 
   const markOrderSeen = async (orderId: string) => {
+    if (isCommercialDemoRestaurant) return;
+
     const { error } = await supabase.rpc("mark_order_seen_by_restaurant" as any, {
       p_order_id: orderId,
     });
@@ -515,6 +671,7 @@ function LiveDashboardCommandes() {
   const handleStatusSelection = (order: DashboardOrder, status: string) => {
     const normalizedStatus = normalizeOrderStatus(status);
     if (normalizedStatus === "cancelled") {
+      if (isCommercialDemoRestaurant) return;
       setCancelTarget(order);
       return;
     }
@@ -524,7 +681,10 @@ function LiveDashboardCommandes() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div
+        className="space-y-6"
+        data-commercial-demo-source={isCommercialDemoRestaurant ? "isolated-snapshot" : undefined}
+      >
         <DashboardPageHero
           badge="Operations restaurant"
           title="Commandes"
@@ -539,19 +699,25 @@ function LiveDashboardCommandes() {
           ]}
         />
 
-        {restaurantsLoading ? <p className="text-muted-foreground">Chargement des restaurants...</p> : null}
-        {restaurantsError ? <p className="text-destructive">Erreur lors du chargement des restaurants : {restaurantsError}</p> : null}
-        {!restaurantsLoading && !restaurantsError && restaurants.length === 0 ? (
+        {isCommercialDemoRestaurant ? (
+          <div className="rounded-2xl border border-sky-200 bg-sky-50/80 px-4 py-3 text-sm text-sky-950 dark:border-sky-500/30 dark:bg-sky-500/10 dark:text-sky-50" role="status">
+            <strong>Vrai écran Commandes.</strong> Les données et actions de cette fenêtre restent exclusivement dans la session commerciale simulée.
+          </div>
+        ) : null}
+
+        {effectiveRestaurantsLoading ? <p className="text-muted-foreground">Chargement des restaurants...</p> : null}
+        {effectiveRestaurantsError ? <p className="text-destructive">Erreur lors du chargement des restaurants : {effectiveRestaurantsError}</p> : null}
+        {!effectiveRestaurantsLoading && !effectiveRestaurantsError && !hasRestaurant ? (
           <p className="text-muted-foreground">Aucun restaurant lié à votre compte.</p>
         ) : null}
-        {!restaurantsLoading && !restaurantsError && restaurants.length > 0 && !selectedRestaurant ? (
+        {!effectiveRestaurantsLoading && !effectiveRestaurantsError && hasRestaurant && !selectedRestaurant ? (
           <p className="text-muted-foreground">Sélectionnez un restaurant depuis la barre latérale pour afficher les commandes.</p>
         ) : null}
         {ordersError ? (
           <p className="text-destructive">Erreur lors du chargement des commandes : {(ordersError as Error).message}</p>
         ) : null}
 
-        {!restaurantsLoading && !restaurantsError && selectedRestaurant && !ordersError ? (
+        {!effectiveRestaurantsLoading && !effectiveRestaurantsError && selectedRestaurant && !ordersError ? (
           <div className="space-y-3">
             <div className="grid grid-cols-1 gap-3 rounded-xl border bg-card p-3 shadow-sm md:grid-cols-2 md:p-4 xl:grid-cols-7">
               <div className="space-y-1">
@@ -668,18 +834,18 @@ function LiveDashboardCommandes() {
                         </div>
                         <div className="flex shrink-0 flex-wrap gap-2 sm:justify-end">
                           {!restaurantViewedAt ? (
-                            <Button size="sm" variant="outline" onClick={() => void markOrderSeen(order.id)} disabled={cancelMutation.isPending}>
+                            <Button size="sm" variant="outline" onClick={() => void markOrderSeen(order.id)} disabled={cancelMutation.isPending || demoActionPending}>
                               <Eye className="mr-1 h-4 w-4" />
                               Vue
                             </Button>
                           ) : null}
                           {isAwaitingRestaurantAcceptance ? (
-                            <Button size="sm" onClick={() => handleStatusSelection(order, "accepted")} disabled={isOrderStatusLocked || cancelMutation.isPending}>
+                            <Button size="sm" onClick={() => handleStatusSelection(order, "accepted")} disabled={isOrderStatusLocked || cancelMutation.isPending || demoActionPending}>
                               <CheckCircle className="mr-1 h-4 w-4" />
                               Accepter
                             </Button>
                           ) : null}
-                          <Button size="sm" variant="outline" className="text-destructive" onClick={() => setCancelTarget(order)} disabled={!canCancelOrder(order) || cancelMutation.isPending}>
+                          <Button size="sm" variant="outline" className="text-destructive" onClick={() => setCancelTarget(order)} disabled={isCommercialDemoRestaurant || !canCancelOrder(order) || cancelMutation.isPending || demoActionPending}>
                             <Ban className="mr-1 h-4 w-4" />
                             Annuler
                           </Button>
@@ -763,7 +929,9 @@ function LiveDashboardCommandes() {
                         const isOrderStatusLocked = Boolean(orderStatusLockMessage);
                         const deliveryFlowStatus = String(order.dispatch_job?.status || tracking?.status || "");
                         const scheduledLabel = typeof paymentMeta.scheduled_delivery_label === "string" ? paymentMeta.scheduled_delivery_label : "";
-                        const statusOptions = getStatusOptions(order);
+                        const statusOptions = isCommercialDemoRestaurant
+                          ? getCommercialDemoStatusOptions(order)
+                          : getStatusOptions(order);
                         const deliveryLat = paymentMeta.delivery_lat != null && Number.isFinite(Number(paymentMeta.delivery_lat))
                           ? Number(paymentMeta.delivery_lat)
                           : null;
@@ -859,7 +1027,7 @@ function LiveDashboardCommandes() {
                                     variant="outline"
                                     className="h-10 w-full justify-center lg:w-auto"
                                     onClick={() => void markOrderSeen(order.id)}
-                                    disabled={cancelMutation.isPending}
+                                    disabled={cancelMutation.isPending || demoActionPending}
                                   >
                                     <Eye className="mr-1 h-4 w-4" />
                                     Vue
@@ -870,7 +1038,7 @@ function LiveDashboardCommandes() {
                                     size="sm"
                                     className="h-10 w-full justify-center lg:w-auto"
                                     onClick={() => handleStatusSelection(order, "accepted")}
-                                    disabled={isOrderStatusLocked || cancelMutation.isPending}
+                                    disabled={isOrderStatusLocked || cancelMutation.isPending || demoActionPending}
                                   >
                                     <CheckCircle className="mr-1 h-4 w-4" />
                                     Accepter
@@ -880,7 +1048,7 @@ function LiveDashboardCommandes() {
                                   <Select
                                     value={normalizeOrderStatus(order.status)}
                                     onValueChange={(value) => handleStatusSelection(order, value)}
-                                    disabled={isOrderStatusLocked || cancelMutation.isPending}
+                                    disabled={isOrderStatusLocked || cancelMutation.isPending || demoActionPending}
                                   >
                                     <SelectTrigger className="h-10 w-full min-w-0 shadow-sm lg:w-40">
                                       <SelectValue />
@@ -904,7 +1072,7 @@ function LiveDashboardCommandes() {
                                   variant="outline"
                                   className="h-10 w-full justify-center text-destructive lg:w-auto"
                                   onClick={() => setCancelTarget(order)}
-                                  disabled={!canCancelOrder(order) || cancelMutation.isPending}
+                                  disabled={isCommercialDemoRestaurant || !canCancelOrder(order) || cancelMutation.isPending || demoActionPending}
                                 >
                                   <Ban className="mr-1 h-4 w-4" />
                                   Annuler
@@ -1036,7 +1204,7 @@ function LiveDashboardCommandes() {
         ) : null}
       </div>
       <RestaurantCancellationDialog
-        open={Boolean(cancelTarget)}
+        open={Boolean(cancelTarget) && !isCommercialDemoRestaurant}
         targetLabel={
           cancelTarget
             ? `${cancelTarget.order_number || `#${cancelTarget.id.slice(0, 8)}`} - ${cancelTarget.total_amount} CHF`
@@ -1054,7 +1222,7 @@ function LiveDashboardCommandes() {
           }
         }}
         onConfirm={({ reasonCode, details, refundNow }) => {
-          if (!cancelTarget) return;
+          if (!cancelTarget || isCommercialDemoRestaurant) return;
           const refundSnapshot = getOrderRefundSnapshot(cancelTarget);
           cancelMutation.mutate({
             id: cancelTarget.id,

@@ -22,6 +22,7 @@ import {
   useDashboardPayoutInvoiceDetailLines,
   useDashboardFacturesData,
 } from "./dashboardFacturesShared";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 
 const supabase = getSupabase();
 
@@ -171,6 +172,8 @@ function InvoiceTable({
 }
 
 export default function DashboardFacturesInflow() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemo = commercialDemoFrame?.surface === "restaurant";
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { isSuperAdmin } = useAuth();
@@ -213,6 +216,12 @@ export default function DashboardFacturesInflow() {
     if (!selectedRestaurant) return;
     setGenerating(true);
 
+    if (isCommercialDemo) {
+      toast({ title: "Génération simulée", description: "La prévisualisation est prête sans créer de facture comptable." });
+      setGenerating(false);
+      return;
+    }
+
     const { data, error: invokeError } = await supabase.functions.invoke("generate-invoices", {
       body: { restaurant_id: selectedRestaurant.id },
     });
@@ -231,6 +240,10 @@ export default function DashboardFacturesInflow() {
   };
 
   const handleMarkPaid = async (invoiceId: string) => {
+    if (isCommercialDemo) {
+      toast({ title: "Paiement simulé", description: `La facture ${invoiceId.slice(0, 8)} reste inchangée en production.` });
+      return;
+    }
     const { error: updateError } = await (supabase.rpc as any)("admin_mark_restaurant_invoice_paid", {
       p_invoice_id: invoiceId,
       p_paid_at: new Date().toISOString(),

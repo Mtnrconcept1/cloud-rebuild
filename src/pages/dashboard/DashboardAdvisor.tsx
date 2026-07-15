@@ -50,6 +50,7 @@ import {
   startTokImageCreationJob,
 } from "@/lib/ai/aiCreationJobs";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 
 type Message = { role: "user" | "assistant"; content: string };
 type AdvisorSelectionMode = "gallery_photos" | "menu_dishes";
@@ -329,6 +330,8 @@ function formatToolResponse(toolLabel: string, data: Record<string, unknown>) {
 }
 
 export default function DashboardAdvisor() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemo = commercialDemoFrame?.surface === "restaurant";
   const { selectedId, restaurants } = useDashboardRestaurant();
   const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -358,6 +361,8 @@ export default function DashboardAdvisor() {
     const localEntries = loadAdvisorHistory(targetRestaurantId);
     setHistoryEntries(localEntries);
 
+    if (isCommercialDemo) return;
+
     try {
       const conversations = await getRestaurantAdvisorConversations(targetRestaurantId, MAX_ADVISOR_HISTORY_ENTRIES);
       const remoteEntries = conversations.flatMap((conversation): AdvisorHistoryEntry[] => {
@@ -373,12 +378,13 @@ export default function DashboardAdvisor() {
         setHistoryEntries(localEntries);
       }
     }
-  }, []);
+  }, [isCommercialDemo]);
 
   useEffect(() => {
+    if (isCommercialDemo) return;
     setActiveAiCreationContext("dashboard-advisor:image-tool");
     return () => setActiveAiCreationContext(null);
-  }, []);
+  }, [isCommercialDemo]);
 
   useEffect(() => () => {
     mountedRef.current = false;
@@ -473,6 +479,17 @@ export default function DashboardAdvisor() {
   const streamChat = async (allMessages: Message[]) => {
     if (!restaurant) return "";
 
+    if (isCommercialDemo) {
+      const lastQuestion = allMessages[allMessages.length - 1]?.content || "votre activité";
+      return [
+        `### Recommandation pour ${restaurant.name}`,
+        `J'ai analysé le scénario de démonstration autour de « ${lastQuestion.slice(0, 140)} » sans appeler de service IA payant.`,
+        "- Mettez en avant les plats les plus rentables aux heures de pointe.",
+        "- Relancez les clients après une réservation ou une commande terminée.",
+        "- Comparez chaque semaine le panier moyen, les conversions et les avis.",
+      ].join("\n\n");
+    }
+
     let assistantSoFar = "";
     const upsertAssistant = (nextChunk: string) => {
       assistantSoFar += nextChunk;
@@ -516,7 +533,7 @@ export default function DashboardAdvisor() {
         ];
         setHistoryEntries(saveAdvisorHistoryEntry(restaurant.id, completedMessages));
 
-        try {
+        if (!isCommercialDemo) try {
           if (activeConversationId) {
             await appendRestaurantAdvisorConversationMessages({
               conversationId: activeConversationId,
@@ -569,7 +586,18 @@ export default function DashboardAdvisor() {
     try {
       let data: unknown;
 
-      if (tool.mode === "image") {
+      if (isCommercialDemo) {
+        data = {
+          title: tool.label,
+          summary: "Résultat généré localement à partir du restaurant et des sélections de démonstration.",
+          next_steps: [
+            "Prévisualiser le résultat avec le restaurateur",
+            "Comparer l'impact attendu dans les performances",
+            "Valider le parcours sans consommer de crédit IA",
+          ],
+          checklist: ["Contenu vérifié", "Audience définie", "Aucun effet externe"],
+        };
+      } else if (tool.mode === "image") {
         void requestAiCreationNotificationPermission();
         const { promise } = startTokImageCreationJob({
           restaurantId: restaurant.id,
@@ -618,7 +646,7 @@ export default function DashboardAdvisor() {
       const toolResult = data as Record<string, unknown>;
       const backendConversationId = typeof toolResult.conversationId === "string" ? toolResult.conversationId : null;
 
-      try {
+      if (!isCommercialDemo) try {
         if (backendConversationId) {
           setActiveConversationId(backendConversationId);
         } else if (activeConversationId) {
@@ -770,7 +798,7 @@ export default function DashboardAdvisor() {
 
   const handleDeleteHistory = async (entry: AdvisorHistoryEntry) => {
     if (!restaurant) return;
-    if (entry.backendConversationId) {
+    if (!isCommercialDemo && entry.backendConversationId) {
       try {
         await archiveRestaurantAdvisorConversation(entry.backendConversationId);
       } catch {

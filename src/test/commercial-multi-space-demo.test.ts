@@ -8,6 +8,7 @@ const read = (path: string) => readFileSync(resolve(root, path), "utf8");
 
 describe("commercial real multi-dashboard demonstration", () => {
   const app = read("src/App.tsx");
+  const clientRoutes = read("src/lib/commercialDemoClientRoutes.ts");
   const page = read("src/pages/CommercialDemoLive.tsx");
   const experience = read("src/components/commercial/CommercialMultiSpaceDemo.tsx");
   const browsers = read("src/components/commercial/CommercialDemoBrowserGrid.tsx");
@@ -84,13 +85,14 @@ describe("commercial real multi-dashboard demonstration", () => {
 
   it("confines every frame to its demo-safe routes while exposing active restaurant tools", () => {
     expect(app).toContain("COMMERCIAL_DEMO_FRAME_ROUTE_POLICY");
-    expect(app).toContain('allowedPaths: ["/mon-espace", "/recherche", "/panier", "/commandes", "/reservations", "/notifications"]');
-    expect(app).toContain('allowedPrefixes: ["/restaurant/"]');
-    expect(app).not.toContain('allowedPrefixes: ["/restaurant/", "/commande/"]');
+    expect(app).toContain("isPathAllowed: isCommercialDemoClientPathAllowed");
+    expect(clientRoutes).toContain('"/restaurant/"');
+    expect(clientRoutes).not.toContain('"/commande/",');
     expect(app).toContain('allowedPaths: ["/dashboard"]');
     expect(app).toContain('allowedPrefixes: ["/dashboard/"]');
     expect(app).toContain('allowedPaths: ["/courier", "/courier/jobs", "/courier/notifications", "/courier/earnings", "/courier/profile"]');
     expect(app).toContain('allowedPaths: ["/commercial", "/commercial/comptabilite"]');
+    expect(app).toContain("policy.isPathAllowed?.(pathname)");
     expect(app).toContain("policy.allowedPrefixes?.some((prefix) => pathname.startsWith(prefix))");
     expect(app).toContain("if (!pathAllowed)");
     expect(app).toContain("<Navigate to={policy.home} replace />");
@@ -128,7 +130,9 @@ describe("commercial real multi-dashboard demonstration", () => {
 
   it("uses actual dashboard pages and the isolated demo adapter for operational actions", () => {
     expect(restaurantOrders).toContain("<DashboardLayout");
-    expect(restaurantOrders).toContain('<CommercialDemoActorWorkspace surface="restaurant"');
+    expect(restaurantOrders).toContain("buildCommercialDemoDashboardOrders");
+    expect(restaurantOrders).toContain("transitionCommercialDemoOrder");
+    expect(restaurantOrders).not.toContain("CommercialDemoActorWorkspace");
     for (const action of [
       "restaurant_accept",
       "restaurant_start_preparing",

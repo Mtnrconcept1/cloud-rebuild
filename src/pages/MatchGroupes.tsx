@@ -19,6 +19,7 @@ import {
 import AddressAutocomplete from "@/components/AddressAutocomplete";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -26,6 +27,8 @@ import { buildCheckoutReturnUrl } from "@/lib/checkoutReturnUrl";
 import { PUBLIC_MENU_ITEMS_LIMIT, PUBLIC_RESTAURANTS_LIMIT } from "@/lib/queryLimits";
 import { redirectToTrustedCheckoutUrl } from "@/lib/securityUrls";
 import { invokeSupabaseFunction } from "@/lib/session";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
+import { getCommercialDemoClientMenuItems, getCommercialDemoClientRestaurants } from "@/lib/commercialDemoClientCatalog";
 
 const supabase = getSupabase();
 
@@ -215,6 +218,8 @@ async function fetchGroups(): Promise<MatchGroup[]> {
 }
 
 export default function MatchGroupes() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -234,14 +239,20 @@ export default function MatchGroupes() {
     return () => window.clearInterval(timer);
   }, []);
 
-  const { data: groups = [], isLoading: loadingGroups } = useQuery({
+  const groupsQuery = useQuery({
     queryKey: ["match-group-public-feed"],
     queryFn: fetchGroups,
     refetchInterval: 10_000,
     retry: 1,
+    enabled: !isCommercialDemoClient,
   });
+  const groups = useMemo(
+    () => isCommercialDemoClient ? [] : groupsQuery.data || [],
+    [groupsQuery.data, isCommercialDemoClient],
+  );
+  const loadingGroups = isCommercialDemoClient ? false : groupsQuery.isLoading;
 
-  const { data: restaurants = [] } = useQuery({
+  const restaurantsQuery = useQuery({
     queryKey: ["restaurants-group-all"],
     queryFn: async () => {
       const { data } = await supabase
@@ -253,9 +264,13 @@ export default function MatchGroupes() {
         .limit(PUBLIC_RESTAURANTS_LIMIT);
       return data || [];
     },
+    enabled: !isCommercialDemoClient,
   });
+  const restaurants = isCommercialDemoClient && commercialDemoFrame
+    ? getCommercialDemoClientRestaurants(commercialDemoFrame.snapshot)
+    : restaurantsQuery.data || [];
 
-  const { data: menuItems = [] } = useQuery({
+  const menuItemsQuery = useQuery({
     queryKey: ["menu-group", selectedRestaurant?.id],
     queryFn: async () => {
       const { data } = await supabase
@@ -267,10 +282,16 @@ export default function MatchGroupes() {
         .limit(PUBLIC_MENU_ITEMS_LIMIT);
       return data || [];
     },
-    enabled: !!selectedRestaurant,
+    enabled: Boolean(selectedRestaurant && !isCommercialDemoClient),
   });
+  const menuItems = useMemo(
+    () => isCommercialDemoClient && commercialDemoFrame
+      ? getCommercialDemoClientMenuItems(commercialDemoFrame.snapshot, selectedRestaurant?.id)
+      : menuItemsQuery.data || [],
+    [commercialDemoFrame, isCommercialDemoClient, menuItemsQuery.data, selectedRestaurant?.id],
+  );
 
-  const { data: myOrder } = useQuery({
+  const myOrderQuery = useQuery({
     queryKey: ["match-group-order", activeGroup?.id, user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -282,11 +303,12 @@ export default function MatchGroupes() {
       if (error) throw error;
       return data as unknown as GroupMemberOrder | null;
     },
-    enabled: !!activeGroup?.id && !!user?.id,
+    enabled: Boolean(activeGroup?.id && user?.id && !isCommercialDemoClient),
     refetchInterval: 5_000,
   });
+  const myOrder = isCommercialDemoClient ? null : myOrderQuery.data;
 
-  const { data: savedOrders = [] } = useQuery({
+  const savedOrdersQuery = useQuery({
     queryKey: ["my-match-group-orders", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -299,9 +321,10 @@ export default function MatchGroupes() {
       if (error) throw error;
       return (data || []) as unknown as GroupMemberOrder[];
     },
-    enabled: !!user?.id,
+    enabled: Boolean(user?.id && !isCommercialDemoClient),
     refetchInterval: 5_000,
   });
+  const savedOrders = isCommercialDemoClient ? [] : savedOrdersQuery.data || [];
 
   const displayedGroup = activeGroup ? groups.find((group) => group.id === activeGroup.id) || activeGroup : null;
   const memberCount = displayedGroup?.member_count || (isPrepaid(myOrder) ? 1 : 0);
@@ -359,6 +382,7 @@ export default function MatchGroupes() {
   });
 
   useEffect(() => {
+    if (isCommercialDemoClient) return;
     if (!user?.id) return;
 
     const params = new URLSearchParams(window.location.search);
@@ -379,7 +403,7 @@ export default function MatchGroupes() {
     params.delete("member_order_id");
     window.history.replaceState({}, "", `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ""}`);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]);
+  }, [isCommercialDemoClient, user?.id]);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -394,6 +418,25 @@ export default function MatchGroupes() {
     mutationFn: async (restaurant: any) => {
       if (!user) throw new Error("Connexion requise");
       const localLockAt = new Date(Date.now() + COUNTDOWN_MINUTES * 60 * 1000).toISOString();
+      if (isCommercialDemoClient) {
+        return {
+          restaurant,
+          group: normalizeGroup({
+            id: `demo-group-${commercialDemoFrame?.config.sessionId || "local"}`,
+            restaurant_id: restaurant.id,
+            area: address || "Adresse de démonstration",
+            time_slot: `Fin ${formatTime(localLockAt)}`,
+            max_members: MAX_MEMBERS,
+            discount_percentage: 5,
+            status: "open",
+            is_active: true,
+            expires_at: localLockAt,
+            lock_at: localLockAt,
+            member_count: 1,
+            restaurant,
+          }),
+        };
+      }
       const { data: groupId, error } = await (supabase.rpc as any)("create_match_group", {
         p_restaurant_id: restaurant.id,
         p_area: address || "Ma position",
@@ -442,6 +485,8 @@ export default function MatchGroupes() {
       if (prepaid) throw new Error("Cette commande est déjà prépayée.");
       if (count <= 0 || subtotal <= 0) throw new Error("Ajoutez au moins un article.");
 
+      if (isCommercialDemoClient) return "commercial-demo-prepayment";
+
       const items = Object.entries(quantities)
         .map(([id, quantity]) => {
           const item = menuItems.find((menuItem: any) => menuItem.id === id);
@@ -482,6 +527,20 @@ export default function MatchGroupes() {
       return checkout.url as string;
     },
     onSuccess: (url) => {
+      if (isCommercialDemoClient) {
+        setActiveGroup((current) => current ? {
+          ...current,
+          member_count: Math.max(1, current.member_count),
+          discount_percentage: previewDiscount(Math.max(1, current.member_count)),
+          status: "payment_pending",
+        } : current);
+        setStep("status");
+        toast({
+          title: "Prépaiement Stripe Test simulé",
+          description: "Le groupe reste isolé dans la session commerciale et aucune autorisation live n’a été créée.",
+        });
+        return;
+      }
       redirectToTrustedCheckoutUrl(url);
     },
     onError: (error: any) => {
@@ -567,13 +626,22 @@ export default function MatchGroupes() {
             </div>
 
             <div className="rounded-xl border bg-card p-4">
-              <AddressAutocomplete
-                value={address}
-                onValueChange={setAddress}
-                onAddressSelect={setAddress}
-                placeholder="Votre adresse pour trouver ou créer un groupe proche..."
-                inputClassName="border-0 shadow-none focus-visible:ring-0"
-              />
+              {isCommercialDemoClient ? (
+                <Input
+                  value={address}
+                  onChange={(event) => setAddress(event.target.value)}
+                  placeholder="Adresse de démonstration..."
+                  className="border-0 shadow-none focus-visible:ring-0"
+                />
+              ) : (
+                <AddressAutocomplete
+                  value={address}
+                  onValueChange={setAddress}
+                  onAddressSelect={setAddress}
+                  placeholder="Votre adresse pour trouver ou créer un groupe proche..."
+                  inputClassName="border-0 shadow-none focus-visible:ring-0"
+                />
+              )}
             </div>
 
             {!createMode ? (

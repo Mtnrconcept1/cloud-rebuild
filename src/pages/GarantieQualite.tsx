@@ -13,12 +13,16 @@ import {
 import { useNavigate } from "react-router-dom";
 import { FeatureWizard, WizardBackButton, WizardNextButton, WizardCartSummary } from "@/components/FeatureWizard";
 import { PUBLIC_MENU_ITEMS_LIMIT } from "@/lib/queryLimits";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
+import { getCommercialDemoClientMenuItems, getCommercialDemoClientRestaurants } from "@/lib/commercialDemoClientCatalog";
 
 const supabase = getSupabase();
 
 type Step = "option" | "restaurant" | "menu" | "confirm";
 
 export default function GarantieQualite() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
   const { addItem, clearCart, updateCartMetadata } = useCart();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -29,7 +33,7 @@ export default function GarantieQualite() {
 
   const QUALITY_FEE = 1.50;
 
-  const { data: restaurants } = useQuery({
+  const restaurantsQuery = useQuery({
     queryKey: ["restaurants-quality"],
     queryFn: async () => {
       const { data } = await supabase
@@ -41,9 +45,13 @@ export default function GarantieQualite() {
         .limit(9);
       return data || [];
     },
+    enabled: !isCommercialDemoClient,
   });
+  const restaurants = isCommercialDemoClient && commercialDemoFrame
+    ? getCommercialDemoClientRestaurants(commercialDemoFrame.snapshot)
+    : restaurantsQuery.data;
 
-  const { data: menuItems } = useQuery({
+  const menuItemsQuery = useQuery({
     queryKey: ["menu-quality", selectedRestaurant?.id],
     queryFn: async () => {
       const { data } = await supabase
@@ -55,8 +63,11 @@ export default function GarantieQualite() {
         .limit(PUBLIC_MENU_ITEMS_LIMIT);
       return data || [];
     },
-    enabled: !!selectedRestaurant,
+    enabled: Boolean(selectedRestaurant && !isCommercialDemoClient),
   });
+  const menuItems = isCommercialDemoClient && commercialDemoFrame
+    ? getCommercialDemoClientMenuItems(commercialDemoFrame.snapshot, selectedRestaurant?.id)
+    : menuItemsQuery.data;
 
   const updateQty = (id: string, d: number) => setQuantities((p) => {
     const n = Math.max(0, (p[id] || 0) + d);

@@ -8,6 +8,7 @@ const read = (path: string) => readFileSync(resolve(root, path), "utf8");
 
 describe("commercial demo real client dashboard home", () => {
   const clientHome = read("src/pages/ClientDashboardHome.tsx");
+  const clientRoutes = read("src/lib/commercialDemoClientRoutes.ts");
   const clientLayout = read("src/components/CustomerDashboardLayout.tsx");
   const notifications = read("src/hooks/useNotificationCenter.ts");
 
@@ -32,8 +33,10 @@ describe("commercial demo real client dashboard home", () => {
 
   it("keeps every client-home link inside the isolated frame allowlist", () => {
     expect(clientHome).toContain("function getClientDashboardHomeTarget");
-    expect(clientHome).toContain('if (pathname.startsWith("/commande/")) return "/commandes";');
-    expect(clientHome).toContain('["/notifications", "/mon-espace", "/recherche", "/reservations", "/commandes"]');
+    expect(clientHome).toContain("return getCommercialDemoClientTarget(target)");
+    expect(clientRoutes).toContain('if (url.pathname.startsWith("/commande/")) return "/commandes";');
+    expect(clientRoutes).toContain("isCommercialDemoClientPathAllowed(url.pathname)");
+    expect(clientRoutes).toContain('return "/recherche";');
     expect(clientHome).toContain("to={clientTarget(action.to)}");
     expect(clientHome).toContain('to={clientTarget(`/commande/');
   });

@@ -39,6 +39,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useTokLogoSrc } from "@/hooks/useTokLogo";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 
 const supabase = getSupabase();
 
@@ -279,6 +280,8 @@ function TokGalleryImageFrame({
 }
 
 export default function DashboardPhotos() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemo = commercialDemoFrame?.surface === "restaurant";
   const { user } = useAuth();
   const { toast } = useToast();
   const logoSrc = useTokLogoSrc();
@@ -361,6 +364,23 @@ export default function DashboardPhotos() {
       storage_bucket: form.storage_bucket,
       storage_path: form.storage_path,
     };
+    if (isCommercialDemo) {
+      const now = new Date().toISOString();
+      setItems((current) => editingId
+        ? current.map((item) => (item.id === editingId ? { ...item, ...payload } as MediaItem : item))
+        : [{
+            ...payload,
+            id: globalThis.crypto?.randomUUID?.() || `demo-photo-${Date.now()}`,
+            is_cover: current.length === 0,
+            metadata: null,
+            created_at: now,
+          } as MediaItem, ...current]);
+      toast({ title: editingId ? "Photo mise à jour dans la démonstration" : "Photo ajoutée à la galerie de démonstration" });
+      setEditingId(null);
+      setForm(EMPTY_MEDIA_FORM);
+      setActiveTool("gallery");
+      return;
+    }
     const { error } = editingId
       ? await supabase.from("restaurant_media").update(payload).eq("id", editingId)
       : await supabase.from("restaurant_media").insert(payload);
@@ -373,6 +393,11 @@ export default function DashboardPhotos() {
   };
 
   const setCover = async (id: string) => {
+    if (isCommercialDemo) {
+      setItems((current) => current.map((item) => ({ ...item, is_cover: item.id === id })));
+      toast({ title: "Photo de couverture définie dans la démonstration" });
+      return;
+    }
     try {
       await setRestaurantCoverMedia(id);
       toast({ title: "Photo de couverture définie" });
@@ -384,6 +409,12 @@ export default function DashboardPhotos() {
   };
 
   const remove = async (id: string) => {
+    if (isCommercialDemo) {
+      setItems((current) => current.filter((item) => item.id !== id));
+      if (previewItem?.id === id) setPreviewItem(null);
+      toast({ title: "Photo supprimée de la démonstration" });
+      return;
+    }
     try {
       await deleteRestaurantMedia(id);
       if (previewItem?.id === id) setPreviewItem(null);

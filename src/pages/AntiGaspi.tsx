@@ -7,13 +7,17 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getBusinessDateKey } from "@/lib/businessTime";
 import { isAntiWasteOfferPubliclyVisible } from "@/lib/specialOffers";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
+import { getCommercialDemoAntiWasteOffers } from "@/lib/commercialDemoClientCatalog";
 
 const supabase = getSupabase();
 const PUBLIC_ANTI_WASTE_OFFERS_LIMIT = 48;
 const PUBLIC_SPECIAL_OFFERS_STALE_MS = 60_000;
 
 export default function AntiGaspi() {
-  const { data: rawOffers, isLoading, error, refetch } = useQuery({
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
+  const offersQuery = useQuery({
     queryKey: ["anti-waste-offers"],
     queryFn: async () => {
       const today = getBusinessDateKey();
@@ -29,8 +33,14 @@ export default function AntiGaspi() {
       if (queryError) throw queryError;
       return data || [];
     },
+    enabled: !isCommercialDemoClient,
     staleTime: PUBLIC_SPECIAL_OFFERS_STALE_MS,
   });
+  const rawOffers = isCommercialDemoClient && commercialDemoFrame
+    ? getCommercialDemoAntiWasteOffers(commercialDemoFrame.snapshot)
+    : offersQuery.data;
+  const isLoading = isCommercialDemoClient ? false : offersQuery.isLoading;
+  const error = isCommercialDemoClient ? null : offersQuery.error;
 
   const offers = (rawOffers || []).filter((offer: any) =>
     isAntiWasteOfferPubliclyVisible(offer),
@@ -49,7 +59,7 @@ export default function AntiGaspi() {
   return (
     <main className="min-h-screen bg-background">
       <div className="container px-4 py-8 space-y-8">
-        <CampaignBanner page="anti_waste" maxBanners={1} />
+        {!isCommercialDemoClient ? <CampaignBanner page="anti_waste" maxBanners={1} /> : null}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-green-500/10 flex items-center justify-center shrink-0">
@@ -91,7 +101,7 @@ export default function AntiGaspi() {
             <div role="alert" className="rounded-2xl border border-destructive/30 bg-destructive/5 p-6 text-center">
               <p className="font-semibold text-destructive">Impossible de charger les offres anti-gaspi.</p>
               <p className="mt-1 text-sm text-muted-foreground">Les stocks n’ont pas été modifiés. Réessayez dans un instant.</p>
-              <Button type="button" variant="outline" className="mt-4 gap-2" onClick={() => void refetch()}>
+              <Button type="button" variant="outline" className="mt-4 gap-2" onClick={() => void offersQuery.refetch()}>
                 <RefreshCcw className="h-4 w-4" />Réessayer
               </Button>
             </div>

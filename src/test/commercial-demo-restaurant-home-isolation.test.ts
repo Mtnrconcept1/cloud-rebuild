@@ -21,11 +21,13 @@ describe("commercial demo restaurant home isolation", () => {
 
   it("derives every commercial-frame metric from the validated snapshot and demo restaurant", () => {
     expect(demoAdapter).toContain("const { snapshot, realtimeStatus } = frame");
-    expect(demoAdapter).toContain("snapshot.session.demo_restaurant_id");
-    expect(demoAdapter).toContain("restaurant.is_demo === true");
+    expect(demoAdapter).toContain("snapshot.demo_restaurant.name");
     expect(demoAdapter).toContain("const order = snapshot.order");
+    expect(demoAdapter).toContain("snapshot.reservations");
+    expect(demoAdapter).toContain("getLocalDateKey(new Date())");
     expect(demoAdapter).toContain('order?.payment_status === "test_paid"');
     expect(demoAdapter).toContain("totalUpcomingOrders={upcomingOrders.length}");
+    expect(demoAdapter).toContain("totalUpcomingReservations={upcomingReservations.length}");
     expect(demoAdapter).toContain("todayRevenue={orderAmount}");
     expect(demoAdapter).toContain("marketingEnabled={false}");
     expect(presentation).toContain('data-commercial-demo-source={demoSnapshot ? "isolated-snapshot" : undefined}');
@@ -38,6 +40,7 @@ describe("commercial demo restaurant home isolation", () => {
     expect(demoAdapter).not.toContain("GoogleBusinessBookingCard");
     expect(demoAdapter).not.toContain("SignupApplicationStatusCard");
     expect(demoAdapter).not.toContain("CommercialDemoScenario");
+    expect(demoAdapter).not.toContain("useDashboardRestaurant");
   });
 
   it("keeps all production integrations behind the non-frame LiveDashboard container", () => {

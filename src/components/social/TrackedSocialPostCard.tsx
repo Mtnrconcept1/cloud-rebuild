@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { getSupabase } from "@/integrations/supabase/client";
 import { rememberActualitesPostSignal } from "@/lib/actualitesPersonalizedTrends";
 import type { SocialFeedPost } from "@/lib/socialFeed";
@@ -63,6 +64,8 @@ export default function TrackedSocialPostCard({
   highlighted = false,
   source = "actualites",
 }: TrackedSocialPostCardProps) {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const productionTrackingEnabled = commercialDemoFrame?.surface !== "client";
   const containerRef = useRef<HTMLDivElement | null>(null);
   const impressionRecordedRef = useRef(false);
   const lastClickAtRef = useRef(0);
@@ -79,6 +82,7 @@ export default function TrackedSocialPostCard({
     const recordImpression = () => {
       if (impressionRecordedRef.current) return;
       impressionRecordedRef.current = true;
+      if (!productionTrackingEnabled) return;
       void recordActualitesEvent({
         postId: post.id,
         eventType: "impression",
@@ -127,6 +131,7 @@ export default function TrackedSocialPostCard({
     post.premiumBannerImpressionsPerViewer,
     post.premiumBannerRemainingImpressions,
     post.restaurantId,
+    productionTrackingEnabled,
     source,
   ]);
 
@@ -138,6 +143,7 @@ export default function TrackedSocialPostCard({
     const link = getLinkMetadata(event.target);
     rememberActualitesPostSignal(post);
 
+    if (!productionTrackingEnabled) return;
     void recordActualitesEvent({
       postId: post.id,
       eventType: "click",

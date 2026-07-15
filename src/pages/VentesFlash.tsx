@@ -17,6 +17,8 @@ import { useActiveFeatures } from "@/lib/featureFlags";
 import CountdownTimer from "@/components/CountdownTimer";
 import { getBusinessDateKey, parseBusinessDateTime } from "@/lib/businessTime";
 import { isFlashSalePubliclyVisible } from "@/lib/specialOffers";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
+import { getCommercialDemoFlashSales } from "@/lib/commercialDemoClientCatalog";
 
 const supabase = getSupabase();
 const PUBLIC_FLASH_SALES_LIMIT = 48;
@@ -25,6 +27,8 @@ const PUBLIC_SPECIAL_OFFERS_STALE_MS = 30_000;
 type Step = "browse" | "confirm";
 
 export default function VentesFlash() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
   const { replaceCartItems } = useCart();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -35,11 +39,15 @@ export default function VentesFlash() {
   const [expiredIds, setExpiredIds] = useState<Set<string>>(new Set());
   const [selectedOrderMode, setSelectedOrderMode] = useState<"delivery" | "takeaway" | null>(null);
   const [notificationPending, setNotificationPending] = useState(false);
-  const activeFeatures = useActiveFeatures();
+  const [demoNotificationsEnabled, setDemoNotificationsEnabled] = useState(false);
+  const globalActiveFeatures = useActiveFeatures({ enabled: !isCommercialDemoClient });
+  const activeFeatures = isCommercialDemoClient && commercialDemoFrame
+    ? new Set(commercialDemoFrame.snapshot.active_features)
+    : globalActiveFeatures;
   const deliveryEnabled = activeFeatures.has("livraison");
   const multiRestoEnabled = activeFeatures.has("multi-restaurant");
 
-  const { data: allOffers, isLoading, error, refetch } = useQuery({
+  const offersQuery = useQuery({
     queryKey: ["flash-sales-page"],
     queryFn: async () => {
       const today = getBusinessDateKey();
@@ -54,10 +62,16 @@ export default function VentesFlash() {
       if (queryError) throw queryError;
       return (data || []) as any[];
     },
+    enabled: !isCommercialDemoClient,
     staleTime: PUBLIC_SPECIAL_OFFERS_STALE_MS,
   });
+  const allOffers = isCommercialDemoClient && commercialDemoFrame
+    ? getCommercialDemoFlashSales(commercialDemoFrame.snapshot)
+    : offersQuery.data;
+  const isLoading = isCommercialDemoClient ? false : offersQuery.isLoading;
+  const error = isCommercialDemoClient ? null : offersQuery.error;
 
-  const { data: flashSubscription } = useQuery({
+  const subscriptionQuery = useQuery({
     queryKey: ["flash-subscription", user?.id],
     queryFn: async () => {
       const { data } = await supabase
@@ -68,8 +82,11 @@ export default function VentesFlash() {
         .maybeSingle();
       return data;
     },
-    enabled: !!user,
+    enabled: Boolean(user && !isCommercialDemoClient),
   });
+  const flashSubscription = isCommercialDemoClient
+    ? (demoNotificationsEnabled ? { topic: "flash_sales" } : null)
+    : subscriptionQuery.data;
 
   const notifyEnabled = !!flashSubscription;
 
@@ -208,7 +225,7 @@ export default function VentesFlash() {
       selectedOffers.map((offer: any) => {
         const restaurant = offer.restaurants;
         return {
-          menuItemId: `flash-${offer.id}`,
+          menuItemId: isCommercialDemoClient ? offer.id : `flash-${offer.id}`,
           name: `[Flash] ${offer.title}`,
           price: Number(offer.discounted_price),
           restaurantId: restaurant?.id || offer.restaurant_id,
@@ -254,7 +271,7 @@ export default function VentesFlash() {
   return (
     <main className="min-h-screen bg-background">
       <div className="container py-8 space-y-6">
-        <CampaignBanner page="flash_sales" maxBanners={1} />
+        {!isCommercialDemoClient ? <CampaignBanner page="flash_sales" maxBanners={1} /> : null}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center">
@@ -271,6 +288,14 @@ export default function VentesFlash() {
             onClick={async () => {
               if (!user) {
                 toast({ title: "Connectez-vous", description: "Activez les alertes après connexion.", variant: "destructive" });
+                return;
+              }
+              if (isCommercialDemoClient) {
+                setDemoNotificationsEnabled((enabled) => !enabled);
+                toast({
+                  title: notifyEnabled ? "Alertes démo désactivées" : "Alertes démo activées",
+                  description: "Aucune préférence de production n’a été modifiée.",
+                });
                 return;
               }
               setNotificationPending(true);
@@ -344,7 +369,7 @@ export default function VentesFlash() {
               <div role="alert" className="rounded-2xl border border-destructive/30 bg-destructive/5 p-6 text-center">
                 <p className="font-semibold text-destructive">Impossible de charger les ventes flash.</p>
                 <p className="mt-1 text-sm text-muted-foreground">Aucune urgence artificielle n’est affichée. Réessayez pour obtenir les horaires réels.</p>
-                <Button type="button" variant="outline" className="mt-4" onClick={() => void refetch()}>Réessayer</Button>
+              <Button type="button" variant="outline" className="mt-4" onClick={() => void offersQuery.refetch()}>Réessayer</Button>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

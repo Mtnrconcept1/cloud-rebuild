@@ -65,6 +65,7 @@ import {
 } from "@/lib/tokCredits";
 import { cn } from "@/lib/utils";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 
 const supabase = getSupabase();
 
@@ -642,6 +643,8 @@ function CreditKindBadge({ kind }: { kind: CreditKind }) {
 }
 
 export default function DashboardAccountBilling() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemo = commercialDemoFrame?.surface === "restaurant";
   const { selectedId } = useDashboardRestaurant();
   const [searchParams] = useSearchParams();
   const [checkingOutPlanId, setCheckingOutPlanId] = useState<string | null>(null);
@@ -704,6 +707,7 @@ export default function DashboardAccountBilling() {
   const isUsageUnavailable = usageQuery.isError;
 
   useEffect(() => {
+    if (isCommercialDemo) return;
     if (paymentStatus !== "success" || !checkoutSessionId) return;
     if (returnCheckoutKind && returnCheckoutKind !== "restaurant-credit-pack") return;
     if (completedCreditPackSessionId === checkoutSessionId) return;
@@ -738,9 +742,10 @@ export default function DashboardAccountBilling() {
     return () => {
       cancelled = true;
     };
-  }, [checkoutSessionId, completedCreditPackSessionId, paymentStatus, returnCheckoutKind, usageQuery]);
+  }, [checkoutSessionId, completedCreditPackSessionId, isCommercialDemo, paymentStatus, returnCheckoutKind, usageQuery]);
 
   useEffect(() => {
+    if (isCommercialDemo) return;
     if (!selectedId || checkoutSessionId || reconciledPendingCreditPackRestaurantId === selectedId) return;
 
     let cancelled = false;
@@ -765,7 +770,7 @@ export default function DashboardAccountBilling() {
     return () => {
       cancelled = true;
     };
-  }, [checkoutSessionId, reconciledPendingCreditPackRestaurantId, selectedId, usageQuery]);
+  }, [checkoutSessionId, isCommercialDemo, reconciledPendingCreditPackRestaurantId, selectedId, usageQuery]);
 
   const totalBalanceLabel = useMemo(() => {
     if (!tokCreditSummary) return "0 crédit TOK";
@@ -786,6 +791,12 @@ export default function DashboardAccountBilling() {
   async function handleUpgrade(plan: RestaurantSubscriptionPlan) {
     if (!selectedId) return;
     setCheckingOutPlanId(plan.id);
+
+    if (isCommercialDemo) {
+      toast.success(`Upgrade vers ${plan.name} simulé — aucun abonnement Stripe créé.`);
+      setCheckingOutPlanId(null);
+      return;
+    }
 
     try {
       const { data, error } = await invokeSupabaseFunction<{ url?: string; session_id?: string }>("create-checkout", {
@@ -817,6 +828,18 @@ export default function DashboardAccountBilling() {
     const actionType = action.type;
     setSelfServiceAction(actionType);
     setSelfServicePlanId(action.type === "downgrade" ? action.plan.id : null);
+
+    if (isCommercialDemo) {
+      toast.success(action.type === "downgrade"
+        ? `Baisse vers ${action.plan.name} simulée.`
+        : action.type === "resume"
+          ? "Reprise de l'abonnement simulée."
+          : "Résiliation en fin de période simulée.");
+      setSelfServiceAction(null);
+      setSelfServicePlanId(null);
+      setPendingSubscriptionAction(null);
+      return;
+    }
 
     try {
       const { data, error } = await invokeSupabaseFunction<{ ok?: boolean }>("manage-restaurant-subscription", {
@@ -855,6 +878,12 @@ export default function DashboardAccountBilling() {
   async function handleBuyCreditPack(pack: RestaurantCreditPack) {
     if (!selectedId) return;
     setCheckingOutCreditPackId(pack.id);
+
+    if (isCommercialDemo) {
+      toast.success(`Recharge ${pack.name} simulée — aucun paiement Stripe créé.`);
+      setCheckingOutCreditPackId(null);
+      return;
+    }
 
     try {
       const { data, error } = await invokeSupabaseFunction<{ url?: string; session_id?: string }>("create-checkout", {

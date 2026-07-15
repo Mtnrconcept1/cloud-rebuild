@@ -17,6 +17,7 @@ import {
 
 import SocialComposer from "@/components/social/SocialComposer";
 import TrackedSocialPostCard from "@/components/social/TrackedSocialPostCard";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -241,6 +242,8 @@ function ActualitesBoostBanner({ onSponsorClick }: { onSponsorClick: () => void 
 
 export default function Actualites() {
   const { role, isSuperAdmin, user } = useAuth();
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [scope, setScope] = useState<SocialFeedScope>(() => normalizeSocialFeedScope(searchParams.get("scope")));
@@ -258,7 +261,7 @@ export default function Actualites() {
   const highlightedPostId = searchParams.get("post");
   const feed = useInfiniteSocialFeed(scope, 12);
   const globalSearch = useSearchActualitesPosts(debouncedSearchQuery, 20);
-  const canManage = role === "restaurateur" || isSuperAdmin;
+  const canManage = !isCommercialDemoClient && (role === "restaurateur" || isSuperAdmin);
   const ownerRestaurants = useOwnerRestaurants({ enabled: canManage });
   const rawPosts = useMemo(() => (feed.data?.pages.flatMap((page) => page.posts) || []) as SocialFeedPost[], [feed.data]);
   const posts = useMemo(() => orderActualitesFeedPosts(rawPosts, `${feedOrderSeed}:${scope}`), [feedOrderSeed, rawPosts, scope]);
@@ -358,7 +361,7 @@ export default function Actualites() {
 
   useEffect(() => {
     let active = true;
-    if (!user?.id) {
+    if (isCommercialDemoClient || !user?.id) {
       setUserTrendSignals({ orders: [], reservations: [], clickedPosts: [] });
       return () => {
         active = false;
@@ -377,7 +380,7 @@ export default function Actualites() {
     return () => {
       active = false;
     };
-  }, [user?.id]);
+  }, [isCommercialDemoClient, user?.id]);
 
   useEffect(() => {
     const syncClickSignals = () => setLocalClickSignals(readActualitesPostSignals());

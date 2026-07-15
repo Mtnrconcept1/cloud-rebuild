@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 
 import CustomerDashboardLayout from "@/components/CustomerDashboardLayout";
-import CommercialDemoActorWorkspace from "@/components/commercial/CommercialDemoActorWorkspace";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import OrderPaymentBreakdown from "@/components/orders/OrderPaymentBreakdown";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
@@ -36,6 +35,7 @@ import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { useCart } from "@/lib/cart-context";
 import { buildCustomerOrderGroups, type CustomerOrderGroup } from "@/lib/customerOrders";
+import type { CommercialDemoSnapshot } from "@/lib/commercialDemoJourney";
 import { sortByColumn, type SortColumn, type SortDirection } from "@/lib/listSorting";
 import { cancelOrderByCustomer } from "@/lib/orderMutations";
 import { normalizeOrderStatus } from "@/lib/orderStatus";
@@ -68,8 +68,77 @@ const CUSTOMER_ORDER_SORT_COLUMNS: SortColumn<CustomerOrderGroup, CustomerOrderS
   { key: "status", label: "Statut", type: "text", getValue: (group) => getDisplayStatus(group.mainOrder) },
 ];
 
+const COMMERCIAL_DEMO_CLIENT_ORDER_STATUS: Record<string, string> = {
+  awaiting_payment: "pending_payment",
+  restaurant_received: "confirmed",
+  restaurant_accepted: "accepted",
+  preparing: "preparing",
+  ready_for_pickup: "ready",
+  courier_assigned: "accepted",
+  courier_arrived_pickup: "ready",
+  picked_up: "picked_up",
+  delivering: "delivering",
+  delivered: "delivered",
+};
+
+function buildCommercialDemoClientOrders(snapshot: CommercialDemoSnapshot) {
+  const order = snapshot.order;
+  if (!order) return [];
+
+  const createdAt = order.created_at
+    || order.updated_at
+    || snapshot.session.created_at
+    || new Date(0).toISOString();
+  const status = COMMERCIAL_DEMO_CLIENT_ORDER_STATUS[order.status] || "confirmed";
+
+  return [{
+    id: order.id,
+    user_id: "commercial-demo-client",
+    restaurant_id: snapshot.demo_restaurant.id,
+    checkout_id: order.stripe_session_id || null,
+    order_number: order.order_number,
+    created_at: createdAt,
+    status,
+    payment_status: order.payment_status === "test_paid" ? "paid" : order.payment_status,
+    total_amount: Math.max(0, Number(order.total_amount_cents || 0) / 100),
+    delivery_fee: 0,
+    delivery_address: order.delivery_address,
+    notes: "Commande simulée · paiement Stripe Test",
+    metadata: {
+      commercial_demo: true,
+      commercial_demo_status: order.status,
+      stripe_session_id: order.stripe_session_id || null,
+      payment_method: "stripe_test",
+      type: "delivery",
+    },
+    restaurant: {
+      id: snapshot.demo_restaurant.id,
+      name: snapshot.demo_restaurant.name,
+    },
+    order_items: order.items.map((item, index) => ({
+      id: item.menu_item_id || `${order.id}-item-${index + 1}`,
+      menu_item_id: item.menu_item_id || null,
+      name: item.name,
+      quantity: item.quantity,
+      unit_price: Number(item.unit_amount_cents || 0) / 100,
+      total_price: (Number(item.unit_amount_cents || 0) * Number(item.quantity || 0)) / 100,
+    })),
+    delivery_tracking: snapshot.mission ? {
+      id: snapshot.mission.id,
+      status: snapshot.mission.status,
+      driver_name: snapshot.mission.courier_name || null,
+    } : null,
+    dispatch_job: snapshot.mission ? {
+      id: snapshot.mission.id,
+      status: snapshot.mission.status,
+    } : null,
+  }];
+}
+
 function LiveCommandes() {
   const { user } = useAuth();
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [sortKey, setSortKey] = useState<CustomerOrderSortKey>("created_at");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
@@ -122,6 +191,9 @@ function LiveCommandes() {
 
   const cancelMutation = useMutation({
     mutationFn: async (orderId: string) => {
+      if (isCommercialDemoClient) {
+        throw new Error("L’annulation d’une commande de démonstration est désactivée.");
+      }
       const result = await cancelOrderByCustomer(orderId);
       if (!result.ok) {
         throw new Error(result.errorMessage || "Annulation impossible.");
@@ -136,9 +208,9 @@ function LiveCommandes() {
     },
   });
 
-  const { data: ordersData, isLoading, error, refetch } = useQuery({
+  const ordersQuery = useQuery({
     queryKey: ["my-orders", user?.id],
-    enabled: !!user,
+    enabled: Boolean(user && !isCommercialDemoClient),
     queryFn: async () => {
       const { data, error: rpcError } = await supabase.rpc("get_customer_orders_dashboard" as any);
       if (rpcError) throw rpcError;
@@ -162,6 +234,16 @@ function LiveCommandes() {
     },
   });
 
+  const demoOrders = useMemo(
+    () => isCommercialDemoClient && commercialDemoFrame
+      ? buildCommercialDemoClientOrders(commercialDemoFrame.snapshot)
+      : [],
+    [commercialDemoFrame, isCommercialDemoClient],
+  );
+  const ordersData = isCommercialDemoClient ? demoOrders : ordersQuery.data;
+  const isLoading = isCommercialDemoClient ? false : ordersQuery.isLoading;
+  const error = isCommercialDemoClient ? null : ordersQuery.error;
+
   const orders = useMemo(() => (
     (ordersData || []).filter((order) => (order.metadata as any)?.feature !== "zero-attente")
   ), [ordersData]);
@@ -183,7 +265,9 @@ function LiveCommandes() {
   };
 
   if (stripeReturn.isStripeReturn) {
-    return <Navigate to={`/commande/confirmation${location.search}`} replace />;
+    return isCommercialDemoClient
+      ? <Navigate to="/commandes" replace />
+      : <Navigate to={`/commande/confirmation${location.search}`} replace />;
   }
 
   return (
@@ -229,7 +313,7 @@ function LiveCommandes() {
           <div role="alert" className="rounded-2xl border border-destructive/30 bg-destructive/5 p-6 text-center">
             <p className="font-semibold text-destructive">Impossible de charger vos commandes.</p>
             <p className="mt-1 text-sm text-muted-foreground">Vos commandes restent enregistrées. Réessayez dans un instant.</p>
-            <Button type="button" variant="outline" className="mt-4 gap-2" onClick={() => void refetch()}>
+            <Button type="button" variant="outline" className="mt-4 gap-2" onClick={() => void ordersQuery.refetch()}>
               <RefreshCcw className="h-4 w-4" />Réessayer
             </Button>
           </div>
@@ -398,12 +482,17 @@ function LiveCommandes() {
                             </p>
                           ) : null}
                           <div className="flex flex-wrap gap-2">
-                            {canTrackOrder ? (
+                            {canTrackOrder && !isCommercialDemoClient ? (
                               <Button asChild size="sm" variant="ghost" className="h-8 text-xs">
                                 <Link to={`/commande/${order.id}`}><MapPin className="mr-1 h-3 w-3" />Suivi temps réel</Link>
                               </Button>
                             ) : null}
-                            {displayStatus === "pending_payment" && checkoutSessionId ? (
+                            {canTrackOrder && isCommercialDemoClient ? (
+                              <Button asChild size="sm" variant="ghost" className="h-8 text-xs">
+                                <Link to="/notifications"><MapPin className="mr-1 h-3 w-3" />Voir les mises à jour</Link>
+                              </Button>
+                            ) : null}
+                            {displayStatus === "pending_payment" && checkoutSessionId && !isCommercialDemoClient ? (
                               <Button asChild size="sm" variant="ghost" className="h-8 text-xs">
                                 <Link to={`/commande/confirmation?session_id=${encodeURIComponent(checkoutSessionId)}&status=success`}>
                                   <CreditCard className="mr-1 h-3 w-3" />
@@ -411,7 +500,7 @@ function LiveCommandes() {
                                 </Link>
                               </Button>
                             ) : null}
-                            {displayStatus === "confirmed" ? (
+                            {displayStatus === "confirmed" && !isCommercialDemoClient ? (
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                   <Button size="sm" variant="ghost" className="h-8 text-xs text-destructive hover:text-destructive">
@@ -463,7 +552,7 @@ function LiveCommandes() {
             <Button asChild variant="outline"><Link to="/recherche">Découvrir les restaurants</Link></Button>
           </div>
         )}
-        <TokAiSupportChat context={{ page: "commandes" }} compact />
+        {!isCommercialDemoClient ? <TokAiSupportChat context={{ page: "commandes" }} compact /> : null}
       </div>
     </CustomerDashboardLayout>
   );
@@ -471,13 +560,5 @@ function LiveCommandes() {
 
 
 export default function Commandes() {
-  const commercialDemoFrame = useCommercialDemoFrame();
-  if (commercialDemoFrame?.surface === "client") {
-    return (
-      <CustomerDashboardLayout>
-        <CommercialDemoActorWorkspace surface="client" />
-      </CustomerDashboardLayout>
-    );
-  }
   return <LiveCommandes />;
 }

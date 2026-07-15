@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import {
@@ -38,6 +38,8 @@ import {
   type MealSubscriptionStatus,
 } from "@/lib/mealSubscription";
 import { getMealSubscriptionRestaurantAvailability } from "@/lib/mealSubscriptionAvailability";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
+import { getCommercialDemoClientMenuItems, getCommercialDemoClientRestaurants } from "@/lib/commercialDemoClientCatalog";
 
 const supabase = getSupabase();
 
@@ -61,6 +63,8 @@ function isPersistedSlotId(id: string | undefined) {
 }
 
 export default function Abonnement() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
   const { replaceCartItems } = useCart();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -74,7 +78,7 @@ export default function Abonnement() {
   const [dayTimes, setDayTimes] = useState<Record<string, string>>(() => createDefaultDayTimes());
   const [subscriptionEndDate, setSubscriptionEndDate] = useState(() => getDefaultMealSubscriptionEndDate(0));
 
-  const { data: subs } = useQuery({
+  const subscriptionsQuery = useQuery({
     queryKey: ["user-subscriptions", user?.id],
     queryFn: async () => {
       if (!user) return [];
@@ -85,10 +89,14 @@ export default function Abonnement() {
       if (error) throw error;
       return data || [];
     },
-    enabled: !!user,
+    enabled: Boolean(user && !isCommercialDemoClient),
   });
+  const subs = useMemo(
+    () => isCommercialDemoClient ? [] : subscriptionsQuery.data,
+    [isCommercialDemoClient, subscriptionsQuery.data],
+  );
 
-  const { data: mealSettings = EMPTY_MEAL_SETTINGS } = useQuery({
+  const mealSettingsQuery = useQuery({
     queryKey: ["user-meal-subscription-settings", user?.id],
     queryFn: async (): Promise<MealSubscriptionStatus> => {
       if (!user) return EMPTY_MEAL_SETTINGS;
@@ -105,8 +113,11 @@ export default function Abonnement() {
         resume_at: settings?.resume_at || null,
       };
     },
-    enabled: !!user,
+    enabled: Boolean(user && !isCommercialDemoClient),
   });
+  const mealSettings = isCommercialDemoClient
+    ? EMPTY_MEAL_SETTINGS
+    : mealSettingsQuery.data || EMPTY_MEAL_SETTINGS;
 
   useEffect(() => {
     if (!subs) return;
@@ -142,6 +153,7 @@ export default function Abonnement() {
 
   const updateSubMutation = useMutation({
     mutationFn: async (slot: MealSlot) => {
+      if (isCommercialDemoClient) return;
       if (!user) return;
 
       if (slot.menuItemId) {
@@ -185,6 +197,7 @@ export default function Abonnement() {
 
   const updateMealSettingsMutation = useMutation({
     mutationFn: async (status: MealSubscriptionStatus["status"]) => {
+      if (isCommercialDemoClient) return;
       if (!user) return;
       const { error } = await supabase
         .from("user_meal_subscription_settings" as any)
@@ -209,7 +222,7 @@ export default function Abonnement() {
     },
   });
 
-  const { data: restaurants } = useQuery({
+  const restaurantsQuery = useQuery({
     queryKey: ["abonnement-restaurants"],
     queryFn: async () => {
       const { data } = await supabase
@@ -221,9 +234,13 @@ export default function Abonnement() {
         .limit(12);
       return data || [];
     },
+    enabled: !isCommercialDemoClient,
   });
+  const restaurants = isCommercialDemoClient && commercialDemoFrame
+    ? getCommercialDemoClientRestaurants(commercialDemoFrame.snapshot)
+    : restaurantsQuery.data;
 
-  const { data: menuItems } = useQuery({
+  const menuItemsQuery = useQuery({
     queryKey: ["abonnement-menu", selectedRestaurantId],
     queryFn: async () => {
       const { data } = await supabase
@@ -235,8 +252,11 @@ export default function Abonnement() {
         .limit(12);
       return data || [];
     },
-    enabled: !!selectedRestaurantId,
+    enabled: Boolean(selectedRestaurantId && !isCommercialDemoClient),
   });
+  const menuItems = isCommercialDemoClient && commercialDemoFrame
+    ? getCommercialDemoClientMenuItems(commercialDemoFrame.snapshot, selectedRestaurantId)
+    : menuItemsQuery.data;
 
   const activeMeals = getActiveMealSlots(plan);
   const summary = getMealSubscriptionSummary(plan, mealSettings);

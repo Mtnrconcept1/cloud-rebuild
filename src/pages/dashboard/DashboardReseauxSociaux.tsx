@@ -12,6 +12,7 @@ import { getSupabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 import { normalizeSocialUrl } from "@/lib/securityUrls";
 import { useOwnerRestaurants } from "./useOwnerRestaurants";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 
 const supabase = getSupabase();
 
@@ -44,8 +45,14 @@ const getSocialLinks = (openingHours: Json | null): SocialLinks => {
 };
 
 export default function DashboardReseauxSociaux() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemo = commercialDemoFrame?.surface === "restaurant";
   const { toast } = useToast();
-  const { restaurantIds, loading: loadingRestaurants, error: restaurantError } = useOwnerRestaurants();
+  const ownerRestaurants = useOwnerRestaurants({ enabled: !isCommercialDemo });
+  const frameRestaurant = commercialDemoFrame?.snapshot.demo_restaurant || null;
+  const restaurantIds = isCommercialDemo && frameRestaurant ? [frameRestaurant.id] : ownerRestaurants.restaurantIds;
+  const loadingRestaurants = isCommercialDemo ? false : ownerRestaurants.loading;
+  const restaurantError = isCommercialDemo ? null : ownerRestaurants.error;
   const [items, setItems] = useState<RestaurantSocial[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -54,6 +61,12 @@ export default function DashboardReseauxSociaux() {
   const load = async () => {
     if (!restaurantIds.length) {
       setItems([]);
+      setLoading(false);
+      return;
+    }
+
+    if (isCommercialDemo && frameRestaurant) {
+      setItems([{ id: frameRestaurant.id, name: frameRestaurant.name, opening_hours: null }]);
       setLoading(false);
       return;
     }
@@ -135,6 +148,14 @@ export default function DashboardReseauxSociaux() {
       },
     };
 
+    if (isCommercialDemo) {
+      setItems((current) => current.map((item) => (
+        item.id === form.restaurant_id ? { ...item, opening_hours: payload.opening_hours as Json } : item
+      )));
+      toast({ title: "Réseaux sociaux enregistrés dans la démonstration" });
+      return;
+    }
+
     const { error: saveError } = await supabase.from("restaurants").update(payload).eq("id", form.restaurant_id);
 
     if (saveError) {
@@ -153,6 +174,13 @@ export default function DashboardReseauxSociaux() {
         ? (target.opening_hours as Record<string, Json>)
         : {};
     const payload = { opening_hours: { ...existingOh, [key]: null } };
+    if (isCommercialDemo) {
+      setItems((current) => current.map((item) => (
+        item.id === restaurantId ? { ...item, opening_hours: payload.opening_hours as Json } : item
+      )));
+      toast({ title: "Lien supprimé dans la démonstration" });
+      return;
+    }
     const { error: clearError } = await supabase.from("restaurants").update(payload).eq("id", restaurantId);
 
     if (clearError) {

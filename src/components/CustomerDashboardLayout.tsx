@@ -1,16 +1,28 @@
 import { Link, useLocation } from "react-router-dom";
 import {
+  BadgePercent,
   Bell,
   CalendarDays,
+  ChefHat,
+  Clock3,
   Crown,
+  Gift,
   Heart,
   LayoutDashboard,
   LifeBuoy,
+  MapPinned,
+  Newspaper,
+  PiggyBank,
+  ShieldCheck,
   ShoppingCart,
+  Sparkles,
   Star,
   Store,
   Trophy,
   User,
+  UsersRound,
+  UtensilsCrossed,
+  Zap,
   type LucideIcon,
 } from "lucide-react";
 
@@ -21,6 +33,7 @@ import RoleSpaceMenuSection from "@/components/navigation/RoleSpaceMenuSection";
 import { useNotificationCenter } from "@/hooks/useNotificationCenter";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { useAuth } from "@/lib/auth-context";
+import { isCommercialDemoClientPathAllowed } from "@/lib/commercialDemoClientRoutes";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { cn } from "@/lib/utils";
 
@@ -39,8 +52,6 @@ type CustomerNavSection = {
   label: string;
   items: CustomerNavItem[];
 };
-
-const COMMERCIAL_DEMO_SAFE_CLIENT_PATHS = new Set(["/mon-espace", "/recherche", "/reservations", "/commandes", "/notifications"]);
 
 const NAV_SECTIONS: CustomerNavSection[] = [
   {
@@ -62,7 +73,30 @@ const NAV_SECTIONS: CustomerNavSection[] = [
       },
       { to: "/reservations", label: "Mes réservations", shortLabel: "Réservations", icon: CalendarDays, feature: "reservation" },
       { to: "/commandes", label: "Mes commandes", shortLabel: "Commandes", icon: ShoppingCart, feature: "commandes" },
+      { to: "/panier", label: "Mon panier", shortLabel: "Panier", icon: ShoppingCart, feature: "commandes" },
       { to: "/mes-avis", label: "Mes avis", shortLabel: "Avis", icon: Star },
+    ],
+  },
+  {
+    label: "Découvrir",
+    items: [
+      { to: "/anti-gaspi", label: "Anti-gaspi", shortLabel: "Anti-gaspi", icon: Heart, feature: "anti-gaspi" },
+      { to: "/ventes-flash", label: "Ventes flash", shortLabel: "Flash", icon: Sparkles, feature: "ventes-flash" },
+      { to: "/actualites", label: "Actualités", shortLabel: "Actualités", icon: Newspaper, feature: "actualites-sociales" },
+      { to: "/chefs-table", label: "Table du Chef", shortLabel: "Chef", icon: ChefHat, feature: "chefs-table" },
+    ],
+  },
+  {
+    label: "Services",
+    items: [
+      { to: "/zero-attente", label: "Zéro attente", shortLabel: "Zéro attente", icon: Zap, feature: "zero-attente" },
+      { to: "/creneaux-garantis", label: "Créneaux garantis", shortLabel: "Créneaux", icon: Clock3, feature: "creneaux-garantis" },
+      { to: "/flex-prix-bas", label: "Flex prix bas", shortLabel: "Prix bas", icon: BadgePercent, feature: "flex-prix-bas" },
+      { to: "/match-groupes", label: "Match groupes", shortLabel: "Groupes", icon: UsersRound, feature: "match-groupes" },
+      { to: "/multi-stop", label: "Livraison multi-stop", shortLabel: "Multi-stop", icon: MapPinned, feature: "multi-stop" },
+      { to: "/multi-restaurant", label: "Multi-restaurant", shortLabel: "Multi-resto", icon: UtensilsCrossed, feature: "multi-restaurant" },
+      { to: "/garantie-qualite", label: "Garantie qualité", shortLabel: "Garantie", icon: ShieldCheck, feature: "garantie-qualite" },
+      { to: "/budget-auto", label: "Budget auto", shortLabel: "Budget", icon: PiggyBank, feature: "budget-auto" },
     ],
   },
   {
@@ -71,6 +105,11 @@ const NAV_SECTIONS: CustomerNavSection[] = [
       { to: "/profil?tab=favoris", label: "Mes favoris", shortLabel: "Favoris", icon: Heart, tab: "favoris" },
       { to: "/profil?tab=fidelite", label: "Mes Miamz", shortLabel: "Miamz", icon: Trophy, tab: "fidelite" },
       { to: "/profil?tab=abonnement", label: "Mon abonnement", shortLabel: "Tok One", icon: Crown, tab: "abonnement", feature: "tok-one" },
+      { to: "/tok-one", label: "TOK One", shortLabel: "TOK One", icon: Crown, feature: "tok-one" },
+      { to: "/abonnement", label: "Abonnement repas", shortLabel: "Abonnement", icon: CalendarDays, feature: "abonnement" },
+      { to: "/points-cadeau", label: "Points cadeau", shortLabel: "Cadeaux", icon: Gift, feature: "points-cadeau" },
+      { to: "/tok-pulse", label: "TOK Pulse", shortLabel: "Pulse", icon: Zap, feature: "tok-pulse" },
+      { to: "/miamz-solidaires", label: "Miamz solidaires", shortLabel: "Solidaires", icon: Trophy },
     ],
   },
   {
@@ -110,7 +149,7 @@ export default function CustomerDashboardLayout({ children }: { children: React.
         if (commercialDemoFrame) {
           const target = new URL(item.to, "https://thetok.ch");
           return commercialDemoFrame.surface === "client"
-            && COMMERCIAL_DEMO_SAFE_CLIENT_PATHS.has(target.pathname)
+            && isCommercialDemoClientPathAllowed(target.pathname)
             && hasActiveFeature;
         }
         return !item.demoOnly && hasActiveFeature;

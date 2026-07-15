@@ -28,6 +28,7 @@ import {
   isTokOneSubscriptionActive,
   type TokOneBenefit,
   type TokOnePlan,
+  type TokOneSubscription,
   useTokOneBenefits,
   useTokOnePlans,
   useTokOneSubscription,
@@ -38,10 +39,75 @@ import { useAuth } from "@/lib/auth-context";
 import { buildCheckoutReturnUrl } from "@/lib/checkoutReturnUrl";
 import { redirectToTrustedCheckoutUrl } from "@/lib/securityUrls";
 import { buildTokOneEntitlements } from "@/lib/subscriptionEntitlements";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 
 const supabase = getSupabase();
 
 const HERO_IMAGE = "/images/octopus-fine-dining.jpeg";
+
+const COMMERCIAL_DEMO_TOK_ONE_PLAN: TokOnePlan = {
+  id: "commercial-demo-tok-one",
+  name: "Tok One Premium",
+  description: "La formule premium présentée pendant la démonstration commerciale.",
+  price_monthly: 14.9,
+  price_yearly: 149,
+  currency: "CHF",
+  free_delivery_min_order: 25,
+  status: "active",
+  stripe_product_id: null,
+};
+const COMMERCIAL_DEMO_TOK_ONE_PLANS = [COMMERCIAL_DEMO_TOK_ONE_PLAN];
+const EMPTY_TOK_ONE_PLANS: TokOnePlan[] = [];
+const EMPTY_TOK_ONE_BENEFITS: TokOneBenefit[] = [];
+
+const COMMERCIAL_DEMO_TOK_ONE_BENEFITS: TokOneBenefit[] = [
+  { id: "demo-free-delivery", plan_id: COMMERCIAL_DEMO_TOK_ONE_PLAN.id, benefit_type: "free_delivery", value: { min_order: 25 } },
+  { id: "demo-discount", plan_id: COMMERCIAL_DEMO_TOK_ONE_PLAN.id, benefit_type: "discount_percentage", value: { percentage: 10 } },
+  { id: "demo-priority", plan_id: COMMERCIAL_DEMO_TOK_ONE_PLAN.id, benefit_type: "chef_table_priority", value: {} },
+  { id: "demo-support", plan_id: COMMERCIAL_DEMO_TOK_ONE_PLAN.id, benefit_type: "priority_support", value: {} },
+];
+
+function commercialDemoTokOneStorageKey(sessionId: string) {
+  return `commercial-demo-tok-one:${sessionId}`;
+}
+
+function readCommercialDemoTokOneSubscription(sessionId?: string): TokOneSubscription | null {
+  if (!sessionId || typeof window === "undefined") return null;
+  try {
+    const value = JSON.parse(window.sessionStorage.getItem(commercialDemoTokOneStorageKey(sessionId)) || "null");
+    return value && typeof value === "object" ? value as TokOneSubscription : null;
+  } catch {
+    return null;
+  }
+}
+
+function createCommercialDemoTokOneSubscription(sessionId: string): TokOneSubscription {
+  const currentPeriodStart = new Date();
+  const currentPeriodEnd = new Date(currentPeriodStart);
+  currentPeriodEnd.setDate(currentPeriodEnd.getDate() + 30);
+  return {
+    id: `commercial-demo-tok-one:${sessionId}`,
+    user_id: "commercial-demo-client",
+    plan_id: COMMERCIAL_DEMO_TOK_ONE_PLAN.id,
+    status: "active",
+    current_period_start: currentPeriodStart.toISOString(),
+    current_period_end: currentPeriodEnd.toISOString(),
+    cancel_at_period_end: false,
+    stripe_subscription_id: null,
+    stripe_checkout_session_id: null,
+    stripe_mode: "test",
+    billing_period: "monthly",
+    user_subscription_plans: COMMERCIAL_DEMO_TOK_ONE_PLAN,
+  };
+}
+
+function persistCommercialDemoTokOneSubscription(sessionId: string, subscription: TokOneSubscription) {
+  try {
+    window.sessionStorage.setItem(commercialDemoTokOneStorageKey(sessionId), JSON.stringify(subscription));
+  } catch {
+    // Some embedded/privacy contexts disable sessionStorage. Component state still keeps the demo usable.
+  }
+}
 
 type BenefitCard = {
   id: string;
@@ -474,6 +540,9 @@ function FaqCard({ question, answer }: { question: string; answer: string }) {
 
 export default function TokOne() {
   const { user } = useAuth();
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
+  const commercialDemoSessionId = commercialDemoFrame?.config.sessionId;
   const { toast } = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -481,11 +550,18 @@ export default function TokOne() {
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
   const [expandedBenefit, setExpandedBenefit] = useState<string | null>(null);
+  const [demoSubscription, setDemoSubscription] = useState<TokOneSubscription | null>(() => (
+    readCommercialDemoTokOneSubscription(commercialDemoSessionId)
+  ));
 
-  const { data: plans = [], isLoading: plansLoading } = useTokOnePlans();
-  const { data: subscription, refetch: refetchSubscription } =
-    useTokOneSubscription();
-  const { data: benefits = [] } = useTokOneBenefits(selectedPlanId ?? undefined);
+  const plansQuery = useTokOnePlans({ enabled: !isCommercialDemoClient });
+  const subscriptionQuery = useTokOneSubscription({ enabled: !isCommercialDemoClient });
+  const benefitsQuery = useTokOneBenefits(selectedPlanId ?? undefined, { enabled: !isCommercialDemoClient });
+  const plans = isCommercialDemoClient ? COMMERCIAL_DEMO_TOK_ONE_PLANS : plansQuery.data || EMPTY_TOK_ONE_PLANS;
+  const subscription = isCommercialDemoClient ? demoSubscription : subscriptionQuery.data;
+  const benefits = isCommercialDemoClient ? COMMERCIAL_DEMO_TOK_ONE_BENEFITS : benefitsQuery.data || EMPTY_TOK_ONE_BENEFITS;
+  const plansLoading = !isCommercialDemoClient && plansQuery.isLoading;
+  const refetchSubscription = subscriptionQuery.refetch;
 
   useSeoMeta({
     title: "Tok One | Livraison offerte, avantages VIP et offres restaurant",
@@ -501,6 +577,11 @@ export default function TokOne() {
   }, [plans, selectedPlanId]);
 
   useEffect(() => {
+    if (!isCommercialDemoClient || !commercialDemoSessionId) return;
+    setDemoSubscription(readCommercialDemoTokOneSubscription(commercialDemoSessionId));
+  }, [commercialDemoSessionId, isCommercialDemoClient]);
+
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const status = params.get("status");
     const sessionId = params.get("session_id");
@@ -512,6 +593,18 @@ export default function TokOne() {
     }
 
     if (status !== "success" || !user) return;
+
+    if (isCommercialDemoClient && commercialDemoFrame) {
+      const nextSubscription = createCommercialDemoTokOneSubscription(commercialDemoFrame.config.sessionId);
+      persistCommercialDemoTokOneSubscription(commercialDemoFrame.config.sessionId, nextSubscription);
+      setDemoSubscription(nextSubscription);
+      toast({
+        title: "Bienvenue dans Tok One !",
+        description: "Activation simulée localement pour cette démonstration.",
+      });
+      window.history.replaceState({}, "", window.location.pathname);
+      return;
+    }
 
     let isMounted = true;
 
@@ -558,7 +651,7 @@ export default function TokOne() {
     return () => {
       isMounted = false;
     };
-  }, [queryClient, refetchSubscription, toast, user]);
+  }, [commercialDemoFrame, isCommercialDemoClient, queryClient, refetchSubscription, toast, user]);
 
   const selectedPlan = plans.find((plan) => plan.id === selectedPlanId) || plans[0];
   const activeSubscription = isTokOneSubscriptionActive(subscription);
@@ -614,6 +707,17 @@ export default function TokOne() {
     }
 
     setCheckoutLoading(true);
+    if (isCommercialDemoClient && commercialDemoFrame) {
+      const nextSubscription = createCommercialDemoTokOneSubscription(commercialDemoFrame.config.sessionId);
+      persistCommercialDemoTokOneSubscription(commercialDemoFrame.config.sessionId, nextSubscription);
+      setDemoSubscription(nextSubscription);
+      setCheckoutLoading(false);
+      toast({
+        title: "Tok One activé",
+        description: "L'abonnement test est simulé localement, sans débit ni modification d'un compte réel.",
+      });
+      return;
+    }
     try {
       const { data, error } = await supabase.functions.invoke(
         "create-checkout",
@@ -657,6 +761,17 @@ export default function TokOne() {
     if (!confirmed) return;
 
     setCancelLoading(true);
+    if (isCommercialDemoClient && commercialDemoFrame) {
+      const nextSubscription = { ...subscription, cancel_at_period_end: true } as TokOneSubscription;
+      persistCommercialDemoTokOneSubscription(commercialDemoFrame.config.sessionId, nextSubscription);
+      setDemoSubscription(nextSubscription);
+      setCancelLoading(false);
+      toast({
+        title: "Résiliation simulée",
+        description: "Tok One reste actif jusqu'à la fin de la période de démonstration.",
+      });
+      return;
+    }
     try {
       const { error } = await supabase.functions.invoke(
         "manage-tok-one-subscription",

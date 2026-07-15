@@ -3,6 +3,7 @@ import { ArrowLeft, CalendarDays, MapPin, Newspaper, RefreshCw, Search } from "l
 import { Link, useParams } from "react-router-dom";
 
 import SocialPostCard from "@/components/social/SocialPostCard";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -47,6 +48,8 @@ function formatPublicationDate(value: string) {
 }
 
 export default function ActualitePost() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
   const { postId = "" } = useParams<{ postId: string }>();
   const validPostId = UUID_PATTERN.test(postId) ? postId : null;
   const postQuery = useSocialPostById(validPostId);
@@ -144,7 +147,11 @@ export default function ActualitePost() {
     ogType: post ? "article" : "website",
     articlePublishedTime: publishedAt,
     articleModifiedTime: modifiedAt,
-    robots: post ? "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" : "noindex,follow",
+    robots: isCommercialDemoClient
+      ? "noindex,nofollow"
+      : post
+        ? "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1"
+        : "noindex,follow",
     jsonLd,
   });
 

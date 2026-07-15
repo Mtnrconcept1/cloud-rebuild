@@ -1,12 +1,22 @@
 import { ArrowUpRight, Cake, CheckCircle2, Loader2, LockKeyhole, Star, Trophy } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
+import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
-import { useToast } from "@/hooks/use-toast";
 import {
   getLockedTierBenefits,
   getLoyaltyStatus,
@@ -16,19 +26,33 @@ import {
 
 const supabase = getSupabase();
 
-export default function LoyaltyStatus() {
+export default function LoyaltyStatus({
+  demoPoints,
+  onDemoPointsAwarded,
+}: {
+  demoPoints?: number;
+  onDemoPointsAwarded?: (points: number) => void;
+} = {}) {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { data: profile } = useQuery({
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
+  const [demoBonusPoints, setDemoBonusPoints] = useState(0);
+  const [demoBirthdayClaimed, setDemoBirthdayClaimed] = useState(false);
+  const profileQuery = useQuery({
     queryKey: ["profile-loyalty", user?.id],
     queryFn: async () => {
-      const { data } = await supabase.from("profiles" as any).select("loyalty_points, current_tier").eq("user_id", user?.id).single();
+      const { data } = await supabase
+        .from("profiles" as any)
+        .select("loyalty_points, current_tier")
+        .eq("user_id", user?.id)
+        .single();
       return data as any;
     },
-    enabled: !!user,
+    enabled: Boolean(user && !isCommercialDemoClient),
   });
-  const { data: tiers = [] } = useQuery({
+  const tiersQuery = useQuery({
     queryKey: ["loyalty-tiers"],
     queryFn: async () => {
       const { data } = await supabase
@@ -37,28 +61,43 @@ export default function LoyaltyStatus() {
         .order("min_points", { ascending: true });
       return data || [];
     },
-    enabled: !!user,
+    enabled: Boolean(user && !isCommercialDemoClient),
   });
+  const profile = isCommercialDemoClient
+    ? { loyalty_points: (demoPoints ?? 2_500) + demoBonusPoints, current_tier: "bronze" }
+    : profileQuery.data;
+  const tiers = isCommercialDemoClient ? [] : tiersQuery.data || [];
   const birthdayBonusMutation = useMutation({
     mutationFn: async () => {
+      if (isCommercialDemoClient) {
+        return { already_claimed: demoBirthdayClaimed, points: demoBirthdayClaimed ? 0 : 500 };
+      }
       const { data, error } = await (supabase.rpc as any)("claim_miamz_birthday_bonus");
       if (error) throw error;
       return data as { already_claimed?: boolean; points?: number } | null;
     },
     onSuccess: (result) => {
-      queryClient.invalidateQueries({ queryKey: ["profile-loyalty"] });
-      queryClient.invalidateQueries({ queryKey: ["loyalty-transactions"] });
+      if (isCommercialDemoClient && !result?.already_claimed) {
+        const awardedPoints = Number(result?.points || 0);
+        if (onDemoPointsAwarded) onDemoPointsAwarded(awardedPoints);
+        else setDemoBonusPoints((points) => points + awardedPoints);
+        setDemoBirthdayClaimed(true);
+      }
+      if (!isCommercialDemoClient) {
+        queryClient.invalidateQueries({ queryKey: ["profile-loyalty"] });
+        queryClient.invalidateQueries({ queryKey: ["loyalty-transactions"] });
+      }
       toast({
-        title: result?.already_claimed ? "Bonus deja reclame" : "Bonus anniversaire ajoute",
+        title: result?.already_claimed ? "Bonus déjà réclamé" : "Bonus anniversaire ajouté",
         description: result?.already_claimed
-          ? "Votre bonus anniversaire MIAMZ a deja ete utilise cette annee."
-          : `${Number(result?.points || 0).toLocaleString()} Miamz ajoutes a votre solde.`,
+          ? "Votre bonus anniversaire MIAMZ a déjà été utilisé cette année."
+          : `${Number(result?.points || 0).toLocaleString()} Miamz ajoutés à votre solde${isCommercialDemoClient ? " de démonstration" : ""}.`,
       });
     },
     onError: (error: any) => {
       toast({
         title: "Bonus indisponible",
-        description: error?.message || "Le bonus anniversaire ne peut pas etre reclame maintenant.",
+        description: error?.message || "Le bonus anniversaire ne peut pas être réclamé maintenant.",
         variant: "destructive",
       });
     },
@@ -75,19 +114,19 @@ export default function LoyaltyStatus() {
   const nextTierLabel = loyalty.nextTier ? LOYALTY_TIERS[loyalty.nextTier].label : null;
 
   return (
-    <div className="glass-morphism rounded-2xl p-6 relative overflow-hidden group">
-      <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+    <div className="glass-morphism group relative overflow-hidden rounded-2xl p-6">
+      <div className="absolute right-0 top-0 p-4 opacity-10 transition-opacity group-hover:opacity-20">
         <Trophy className="h-24 w-24 text-pink-500" />
       </div>
       <div className="relative z-10 space-y-4">
         <div className="flex items-center justify-between gap-3">
           <div className="space-y-1">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Programme Fidélité</p>
-            <h3 className="font-display text-2xl font-bold flex items-center gap-2">
-              {points.toLocaleString()} <span className="text-pink-500 text-sm uppercase">Miamz</span>
+            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Programme Fidélité</p>
+            <h3 className="font-display flex items-center gap-2 text-2xl font-bold">
+              {points.toLocaleString()} <span className="text-sm uppercase text-pink-500">Miamz</span>
             </h3>
           </div>
-          <Badge className={`${config.colorClass} text-white px-3 py-1 text-xs font-bold uppercase tracking-tighter`}>
+          <Badge className={`${config.colorClass} px-3 py-1 text-xs font-bold uppercase tracking-tighter text-white`}>
             Tier {config.label}
           </Badge>
         </div>
@@ -155,15 +194,9 @@ export default function LoyaltyStatus() {
                           onClick={() => birthdayBonusMutation.mutate()}
                         >
                           {birthdayBonusMutation.isPending ? (
-                            <>
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                              Traitement...
-                            </>
+                            <><Loader2 className="h-4 w-4 animate-spin" />Traitement...</>
                           ) : (
-                            <>
-                              <Cake className="h-4 w-4" />
-                              Reclamer mon bonus
-                            </>
+                            <><Cake className="h-4 w-4" />Réclamer mon bonus</>
                           )}
                         </Button>
                       ) : null}

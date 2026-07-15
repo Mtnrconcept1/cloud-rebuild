@@ -8,6 +8,7 @@ const read = (path: string) => readFileSync(resolve(root, path), "utf8");
 
 describe("commercial demo visible navigation isolation", () => {
   const app = read("src/App.tsx");
+  const clientRoutes = read("src/lib/commercialDemoClientRoutes.ts");
   const featureFlags = read("src/lib/featureFlags.ts");
   const clientLayout = read("src/components/CustomerDashboardLayout.tsx");
   const restaurantLayout = read("src/components/DashboardLayout.tsx");
@@ -19,11 +20,45 @@ describe("commercial demo visible navigation isolation", () => {
   const notifications = read("src/hooks/useNotificationCenter.ts");
 
   it("keeps every visible client and restaurant tab aligned with the frame route policy", () => {
-    expect(app).toContain('allowedPaths: ["/mon-espace", "/recherche", "/panier", "/commandes", "/reservations", "/notifications"]');
-    expect(app).toContain('allowedPrefixes: ["/restaurant/"]');
-    expect(clientLayout).toContain(
-      'const COMMERCIAL_DEMO_SAFE_CLIENT_PATHS = new Set(["/mon-espace", "/recherche", "/reservations", "/commandes", "/notifications"])',
-    );
+    expect(app).toContain("isPathAllowed: isCommercialDemoClientPathAllowed");
+    expect(clientLayout).toContain("isCommercialDemoClientPathAllowed(target.pathname)");
+
+    for (const path of [
+      "/mon-espace",
+      "/recherche",
+      "/panier",
+      "/commandes",
+      "/reservations",
+      "/mes-avis",
+      "/notifications",
+      "/contact",
+      "/profil",
+      "/tok-one",
+      "/points-cadeau",
+      "/actualites",
+      "/anti-gaspi",
+      "/creneaux-garantis",
+      "/flex-prix-bas",
+      "/match-groupes",
+      "/multi-stop",
+      "/multi-restaurant",
+      "/chefs-table",
+      "/zero-attente",
+      "/garantie-qualite",
+      "/budget-auto",
+      "/abonnement",
+      "/tok-pulse",
+      "/miamz-solidaires",
+      "/ventes-flash",
+    ]) {
+      expect(clientRoutes).toContain(`"${path}"`);
+      expect(app).toContain(`<Route path="${path}"`);
+    }
+
+    expect(clientRoutes).toContain('"/restaurant/"');
+    expect(clientRoutes).toContain('"/actualites/"');
+    expect(app).toContain('<Route path="/actualites/:postId"');
+    expect(clientRoutes).not.toContain('"/commande/",');
 
     expect(app).toContain('allowedPaths: ["/dashboard"]');
     expect(app).toContain('allowedPrefixes: ["/dashboard/"]');
@@ -41,6 +76,29 @@ describe("commercial demo visible navigation isolation", () => {
       "/dashboard/notifications",
     ]) {
       expect(app).toContain(`<Route path="${path}"`);
+    }
+  });
+
+  it("shows every enabled client feature in the real dashboard navigation", () => {
+    for (const feature of [
+      "anti-gaspi",
+      "ventes-flash",
+      "actualites-sociales",
+      "chefs-table",
+      "zero-attente",
+      "creneaux-garantis",
+      "flex-prix-bas",
+      "match-groupes",
+      "multi-stop",
+      "multi-restaurant",
+      "garantie-qualite",
+      "budget-auto",
+      "tok-one",
+      "abonnement",
+      "points-cadeau",
+      "tok-pulse",
+    ]) {
+      expect(clientLayout).toContain(`feature: "${feature}"`);
     }
   });
 
@@ -63,8 +121,7 @@ describe("commercial demo visible navigation isolation", () => {
   });
 
   it("hydrates the restaurant selector only from the validated snapshot in a frame", () => {
-    expect(dashboardContext).toContain("useOwnerRestaurants({ enabled: !commercialDemoFrame })");
-    expect(dashboardContext).toContain("const restaurants = commercialDemoFrame ? frameRestaurants : ownerRestaurants.restaurants");
+    expect(dashboardContext).toContain("useOwnerRestaurants()");
     expect(dashboardContext).toContain(
       "commercialDemoFrame?.snapshot.session.demo_restaurant_id",
     );
@@ -79,22 +136,21 @@ describe("commercial demo visible navigation isolation", () => {
       "const overviewData = isCommercialDemoClientFrame ? demoOverviewData : overviewQuery.data",
     );
     expect(clientOrders).toContain(
-      'if (commercialDemoFrame?.surface === "client")',
+      'const isCommercialDemoClient = commercialDemoFrame?.surface === "client"',
     );
-    expect(clientOrders).toContain(
-      '<CommercialDemoActorWorkspace surface="client" />',
-    );
+    expect(clientOrders).toContain("buildCommercialDemoClientOrders(commercialDemoFrame.snapshot)");
+    expect(clientOrders).toContain("enabled: Boolean(user && !isCommercialDemoClient)");
+    expect(clientOrders).not.toContain("CommercialDemoActorWorkspace");
     expect(clientOrders).toContain("return <LiveCommandes />");
 
     expect(restaurantHome).toContain(
       'if (commercialDemoFrame?.surface === "restaurant")',
     );
     expect(restaurantHome).toContain("return <CommercialDemoRestaurantHome />");
+    expect(restaurantOrders).toContain("buildCommercialDemoDashboardOrders");
+    expect(restaurantOrders).not.toContain("CommercialDemoActorWorkspace");
     expect(restaurantOrders).toContain(
-      '<CommercialDemoActorWorkspace surface="restaurant" />',
-    );
-    expect(restaurantOrders).toContain(
-      "return isDemoMode ? <CommercialDemoOrders /> : <LiveDashboardCommandes />",
+      "return <LiveDashboardCommandes />",
     );
 
     expect(notifications).toContain(

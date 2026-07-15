@@ -6,6 +6,7 @@ import { getSupabase } from "@/integrations/supabase/client";
 import { SUPABASE_URL } from "@/lib/env";
 import { fetchWithFreshAccessToken } from "@/lib/session";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 
 export const DASHBOARD_TOK_CONNECT_GRANTS_LIMIT = 100;
 
@@ -42,6 +43,35 @@ type TokConnectEnvelope<TData> = {
   request_id: string;
 };
 
+function buildDemoGrants(restaurantId: string): GrantRow[] {
+  return [
+    {
+      id: "demo-grant-reservations",
+      partner_id: "demo-partner-reservations",
+      restaurant_id: restaurantId,
+      allowed_scopes: ["reservations:read", "availability:read"],
+      status: "active",
+      allow_mcp: true,
+      max_daily_reservations: 40,
+      max_party_size: 12,
+      expires_at: null,
+      created_at: new Date().toISOString(),
+    },
+    {
+      id: "demo-grant-delivery",
+      partner_id: "demo-partner-delivery",
+      restaurant_id: restaurantId,
+      allowed_scopes: ["orders:read"],
+      status: "pending",
+      allow_mcp: false,
+      max_daily_reservations: 0,
+      max_party_size: 0,
+      expires_at: null,
+      created_at: new Date().toISOString(),
+    },
+  ];
+}
+
 async function fetchRestaurantGrants(restaurantId: string) {
   const supabase = getSupabase() as unknown as TokConnectSupabase;
   // RLS: public.auth_owns_restaurant(restaurant_id)
@@ -74,6 +104,8 @@ async function updateGrantStatus(grantId: string, status: "active" | "revoked") 
 }
 
 export default function DashboardTokConnect() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemo = commercialDemoFrame?.surface === "restaurant";
   const { selectedId, restaurants, loading: restaurantsLoading } = useDashboardRestaurant();
   const selectedRestaurant = restaurants.find((restaurant) => restaurant.id === selectedId) || null;
   const [grants, setGrants] = useState<GrantRow[]>([]);
@@ -86,13 +118,13 @@ export default function DashboardTokConnect() {
     setError(null);
     setLoading(true);
     try {
-      setGrants(await fetchRestaurantGrants(selectedId));
+      setGrants(isCommercialDemo ? buildDemoGrants(selectedId) : await fetchRestaurantGrants(selectedId));
     } catch (nextError) {
       setError(nextError instanceof Error ? nextError.message : "Chargement des consentements impossible.");
     } finally {
       setLoading(false);
     }
-  }, [selectedId]);
+  }, [isCommercialDemo, selectedId]);
 
   useEffect(() => {
     void load();
@@ -107,6 +139,11 @@ export default function DashboardTokConnect() {
   async function changeStatus(grantId: string, status: "active" | "revoked") {
     setBusyId(grantId);
     setError(null);
+    if (isCommercialDemo) {
+      setGrants((current) => current.map((grant) => (grant.id === grantId ? { ...grant, status } : grant)));
+      setBusyId(null);
+      return;
+    }
     try {
       await updateGrantStatus(grantId, status);
       await load();

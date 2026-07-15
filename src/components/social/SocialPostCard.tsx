@@ -90,6 +90,7 @@ import {
   type SocialReactionType,
 } from "@/lib/socialFeed";
 import SocialMediaCarousel from "./SocialMediaCarousel";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 
 function getInitials(name: string) {
   return (
@@ -1024,6 +1025,8 @@ export default function SocialPostCard({
   const [replyTarget, setReplyTarget] = useState<CommentReplyTarget>(null);
   const commentsDrawerViewportStyle = useCommentsDrawerViewport(commentsOpen);
   const { user, isSuperAdmin } = useAuth();
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
   const setPostReaction = useSetSocialPostReaction();
   const toggleSave = useToggleSocialSave();
   const toggleFollow = useToggleRestaurantFollow();
@@ -1033,7 +1036,7 @@ export default function SocialPostCard({
   const feedback = useSocialFeedFeedback();
   const reportItem = useReportSocialItem();
   const deletePost = useDeleteSocialPost();
-  const canDeletePost = post.authorId === user?.id || isSuperAdmin;
+  const canDeletePost = !isCommercialDemoClient && (post.authorId === user?.id || isSuperAdmin);
   const cta = getCta(post);
   const CtaIcon = cta?.icon;
   const hasMedia = post.media.length > 0;

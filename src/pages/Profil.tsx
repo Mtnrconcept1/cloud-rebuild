@@ -31,6 +31,9 @@ import SignupApplicationStatusCard from "@/components/signup/SignupApplicationSt
 import { useSignupApplication } from "@/hooks/useSignupApplication";
 import {
   isTokOneSubscriptionActive,
+  type TokOneBenefit,
+  type TokOnePlan,
+  type TokOneSubscription,
   useTokOneSubscription,
   useTokOnePlans,
   useTokOneBenefits,
@@ -38,9 +41,58 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { buildTokOneEntitlements } from "@/lib/subscriptionEntitlements";
 import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 
 const supabase = getSupabase();
 const PROFILE_TABS = new Set(["infos", "favoris", "abonnement", "notifications", "fidelite", "parametres"]);
+const COMMERCIAL_DEMO_CLIENT_EMAIL = "client.demo@tok.local";
+
+const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
+  channels: { in_app: true, email: true, push: true },
+  categories: { transactional: true, product: true, marketing: false, system: true },
+};
+
+const COMMERCIAL_DEMO_TOK_ONE_PLAN: TokOnePlan = {
+  id: "commercial-demo-tok-one",
+  name: "Tok One Premium",
+  description: "La formule premium présentée pendant la démonstration commerciale.",
+  price_monthly: 14.9,
+  price_yearly: 149,
+  currency: "CHF",
+  free_delivery_min_order: 25,
+  status: "active",
+  stripe_product_id: null,
+};
+const COMMERCIAL_DEMO_TOK_ONE_PLANS = [COMMERCIAL_DEMO_TOK_ONE_PLAN];
+
+const COMMERCIAL_DEMO_TOK_ONE_BENEFITS: TokOneBenefit[] = [
+  { id: "demo-free-delivery", plan_id: COMMERCIAL_DEMO_TOK_ONE_PLAN.id, benefit_type: "free_delivery", value: { min_order: 25 } },
+  { id: "demo-discount", plan_id: COMMERCIAL_DEMO_TOK_ONE_PLAN.id, benefit_type: "discount_percentage", value: { percentage: 10 } },
+  { id: "demo-priority", plan_id: COMMERCIAL_DEMO_TOK_ONE_PLAN.id, benefit_type: "chef_table_priority", value: {} },
+  { id: "demo-support", plan_id: COMMERCIAL_DEMO_TOK_ONE_PLAN.id, benefit_type: "priority_support", value: {} },
+];
+
+function commercialDemoTokOneStorageKey(sessionId: string) {
+  return `commercial-demo-tok-one:${sessionId}`;
+}
+
+function readCommercialDemoTokOneSubscription(sessionId?: string): TokOneSubscription | null {
+  if (!sessionId || typeof window === "undefined") return null;
+  try {
+    const value = JSON.parse(window.sessionStorage.getItem(commercialDemoTokOneStorageKey(sessionId)) || "null");
+    return value && typeof value === "object" ? value as TokOneSubscription : null;
+  } catch {
+    return null;
+  }
+}
+
+function persistCommercialDemoTokOneSubscription(sessionId: string, subscription: TokOneSubscription) {
+  try {
+    window.sessionStorage.setItem(commercialDemoTokOneStorageKey(sessionId), JSON.stringify(subscription));
+  } catch {
+    // Some embedded/privacy contexts disable sessionStorage. Component state still keeps the demo usable.
+  }
+}
 
 function splitFullName(value: string) {
   const parts = value.trim().split(/\s+/).filter(Boolean);
@@ -97,8 +149,27 @@ type LoyaltyTransaction = {
   created_at: string;
 };
 
+function ProductionSignupApplicationStatus() {
+  const { data: rawSignupApplication } = useSignupApplication("client");
+  const signupApplication = Array.isArray(rawSignupApplication)
+    ? rawSignupApplication[0] || null
+    : rawSignupApplication || null;
+
+  return (
+    <SignupApplicationStatusCard
+      application={signupApplication}
+      title="Vérification du compte client"
+      emptyDescription="Aucun dossier documentaire client n'a encore été soumis."
+    />
+  );
+}
+
 export default function Profil() {
   const { user, signOut } = useAuth();
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
+  const commercialDemoSessionId = commercialDemoFrame?.config.sessionId;
+  const commercialDemoRestaurantCity = commercialDemoFrame?.snapshot.demo_restaurant.city || "Genève";
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -114,30 +185,38 @@ export default function Profil() {
   const [city, setCity] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [birthDate, setBirthDate] = useState("");
-  const { data: rawSignupApplication } = useSignupApplication("client");
-  const signupApplication = Array.isArray(rawSignupApplication)
-    ? rawSignupApplication[0] || null
-    : rawSignupApplication || null;
-  const { activeFeatures } = useFeatureFlagSnapshot();
+  const [demoNotificationPrefs, setDemoNotificationPrefs] = useState<NotificationPreferences>(DEFAULT_NOTIFICATION_PREFERENCES);
+  const [demoNotificationSubscriptions, setDemoNotificationSubscriptions] = useState<NotificationSubscription[]>([]);
+  const [demoTokOneSubscription, setDemoTokOneSubscription] = useState<TokOneSubscription | null>(() => (
+    readCommercialDemoTokOneSubscription(commercialDemoSessionId)
+  ));
+  const featureFlagSnapshot = useFeatureFlagSnapshot({ enabled: !isCommercialDemoClient });
+  const activeFeatures = isCommercialDemoClient && commercialDemoFrame
+    ? new Set(commercialDemoFrame.snapshot.active_features)
+    : featureFlagSnapshot.activeFeatures;
   const tokOneFeatureEnabled = activeFeatures.has("tok-one");
   const pointsGiftEnabled = activeFeatures.has("points-cadeau");
-  const { data: tokOneSub } = useTokOneSubscription({ enabled: tokOneFeatureEnabled });
-  const { data: tokOnePlans } = useTokOnePlans({ enabled: tokOneFeatureEnabled });
+  const { data: productionTokOneSub } = useTokOneSubscription({ enabled: tokOneFeatureEnabled && !isCommercialDemoClient });
+  const { data: productionTokOnePlans } = useTokOnePlans({ enabled: tokOneFeatureEnabled && !isCommercialDemoClient });
+  const tokOneSub = isCommercialDemoClient ? demoTokOneSubscription : productionTokOneSub;
+  const tokOnePlans = isCommercialDemoClient ? COMMERCIAL_DEMO_TOK_ONE_PLANS : productionTokOnePlans;
   const tokOneIsActive = tokOneFeatureEnabled && isTokOneSubscriptionActive(tokOneSub);
   const defaultTab = requestedTab === "abonnement" && !tokOneFeatureEnabled ? "infos" : requestedTab;
 
   const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
     queryFn: async () => {
+      if (isCommercialDemoClient) return null;
       const { data } = await supabase.from("profiles").select("*").eq("user_id", user!.id).single();
       return data;
     },
-    enabled: !!user,
+    enabled: Boolean(user && !isCommercialDemoClient),
   });
 
   const { data: accountProfile } = useQuery({
     queryKey: ["user-profile", user?.id],
     queryFn: async () => {
+      if (isCommercialDemoClient) return null;
       const { data, error } = await supabase
         .from("user_profiles")
         .select("date_of_birth")
@@ -146,10 +225,24 @@ export default function Profil() {
       if (error) throw error;
       return data;
     },
-    enabled: !!user,
+    enabled: Boolean(user && !isCommercialDemoClient),
   });
 
   useEffect(() => {
+    if (!isCommercialDemoClient || !commercialDemoSessionId) return;
+    setFullName("Client démonstration");
+    setPhone("");
+    setAddress("");
+    setCity(commercialDemoRestaurantCity);
+    setAvatarUrl("");
+    setBirthDate("");
+    setDemoNotificationPrefs(DEFAULT_NOTIFICATION_PREFERENCES);
+    setDemoNotificationSubscriptions([]);
+    setDemoTokOneSubscription(readCommercialDemoTokOneSubscription(commercialDemoSessionId));
+  }, [commercialDemoRestaurantCity, commercialDemoSessionId, isCommercialDemoClient]);
+
+  useEffect(() => {
+    if (isCommercialDemoClient) return;
     if (profile) {
       setFullName(profile.full_name || "");
       setPhone(profile.phone || "");
@@ -160,7 +253,7 @@ export default function Profil() {
     } else if (accountProfile?.date_of_birth) {
       setBirthDate(accountProfile.date_of_birth);
     }
-  }, [profile, accountProfile?.date_of_birth]);
+  }, [accountProfile?.date_of_birth, isCommercialDemoClient, profile]);
 
   const handleSave = async () => {
     if (!user) return;
@@ -177,6 +270,14 @@ export default function Profil() {
     const { firstName, lastName } = splitFullName(fullName);
 
     setLoading(true);
+    if (isCommercialDemoClient) {
+      setLoading(false);
+      toast({
+        title: "Profil de démonstration mis à jour",
+        description: "Les changements restent uniquement dans cette fenêtre de démonstration.",
+      });
+      return;
+    }
     const { error } = await (supabase.rpc as any)("update_client_profile", {
       p_full_name: fullName,
       p_first_name: firstName,
@@ -197,18 +298,36 @@ export default function Profil() {
     }
   };
 
-  const { data: favorites } = useQuery({
+  const favoritesQuery = useQuery({
     queryKey: ["my-favorites", user?.id],
     queryFn: async () => {
+      if (isCommercialDemoClient) return [] as FavoriteRow[];
       const { data } = await supabase.from("favorites").select("*, restaurants(id, name, city, cuisine_type, rating, image_url)").eq("user_id", user!.id);
       return (data || []) as FavoriteRow[];
     },
-    enabled: !!user,
+    enabled: Boolean(user && !isCommercialDemoClient),
   });
+  const favorites: FavoriteRow[] = isCommercialDemoClient && commercialDemoFrame
+    ? [{
+        id: `commercial-demo-favorite:${commercialDemoFrame.snapshot.demo_restaurant.id}`,
+        restaurants: {
+          id: commercialDemoFrame.snapshot.demo_restaurant.id,
+          name: commercialDemoFrame.snapshot.demo_restaurant.name,
+          city: commercialDemoFrame.snapshot.demo_restaurant.city || null,
+          cuisine_type: commercialDemoFrame.snapshot.demo_restaurant.cuisine_type || null,
+          rating: commercialDemoFrame.snapshot.demo_restaurant.rating === null
+            || commercialDemoFrame.snapshot.demo_restaurant.rating === undefined
+            ? null
+            : Number(commercialDemoFrame.snapshot.demo_restaurant.rating),
+          image_url: commercialDemoFrame.snapshot.demo_restaurant.image_url || null,
+        },
+      }]
+    : favoritesQuery.data || [];
 
   const { data: notificationPrefs } = useQuery({
     queryKey: ["notification-preferences", user?.id],
     queryFn: async () => {
+      if (isCommercialDemoClient) return null;
       const { data } = await supabase
         .from("notification_preferences")
         .select("*")
@@ -216,28 +335,39 @@ export default function Profil() {
         .maybeSingle();
       return (data as unknown as NotificationPreferences | null) || null;
     },
-    enabled: !!user,
+    enabled: Boolean(user && !isCommercialDemoClient),
   });
 
-  const { data: notificationSubscriptions } = useQuery({
+  const { data: productionNotificationSubscriptions } = useQuery({
     queryKey: ["notification-subscriptions", user?.id],
     queryFn: async () => {
+      if (isCommercialDemoClient) return [] as NotificationSubscription[];
       const { data } = await supabase
         .from("notification_subscriptions")
         .select("*")
         .eq("user_id", user!.id);
       return (data || []) as NotificationSubscription[];
     },
-    enabled: !!user,
+    enabled: Boolean(user && !isCommercialDemoClient),
   });
 
-  const prefs: NotificationPreferences = notificationPrefs || {
-    channels: { in_app: true, email: true, push: true },
-    categories: { transactional: true, product: true, marketing: false, system: true },
-  };
+  const prefs: NotificationPreferences = isCommercialDemoClient
+    ? demoNotificationPrefs
+    : notificationPrefs || DEFAULT_NOTIFICATION_PREFERENCES;
+  const notificationSubscriptions = isCommercialDemoClient
+    ? demoNotificationSubscriptions
+    : productionNotificationSubscriptions || [];
 
   const updatePreferences = async (next: Partial<NotificationPreferences>) => {
     if (!user) return;
+    if (isCommercialDemoClient) {
+      setDemoNotificationPrefs((current) => ({
+        channels: next.channels ?? current.channels,
+        categories: next.categories ?? current.categories,
+      }));
+      toast({ title: "Préférences mises à jour", description: "Modification locale à la démonstration." });
+      return;
+    }
     const payload = {
       user_id: user.id,
       channels: next.channels ?? prefs.channels,
@@ -270,6 +400,15 @@ export default function Profil() {
     if (!user) return;
     const subscriptions = notificationSubscriptions || [];
     const isSubscribed = subscriptions.some((subscription) => subscription.topic === topic);
+    if (isCommercialDemoClient) {
+      setDemoNotificationSubscriptions((current) => (
+        isSubscribed
+          ? current.filter((subscription) => subscription.topic !== topic)
+          : [...current, { topic }]
+      ));
+      toast({ title: "Alerte mise à jour", description: "Modification locale à la démonstration." });
+      return;
+    }
     if (isSubscribed) {
       await supabase
         .from("notification_subscriptions")
@@ -343,11 +482,15 @@ export default function Profil() {
           </TabsList>
 
           <TabsContent value="infos" className="space-y-6 pt-4">
-            <SignupApplicationStatusCard
-              application={signupApplication}
-              title="Vérification du compte client"
-              emptyDescription="Aucun dossier documentaire client n'a encore été soumis."
-            />
+            {isCommercialDemoClient ? (
+              <SignupApplicationStatusCard
+                application={null}
+                title="Vérification du compte client"
+                emptyDescription="Compte client local prêt pour la démonstration."
+              />
+            ) : (
+              <ProductionSignupApplicationStatus />
+            )}
 
             <div className="flex flex-col items-center gap-4 mb-6">
               <div className="relative group">
@@ -362,11 +505,33 @@ export default function Profil() {
                 </div>
               </div>
               <div className="w-full max-w-sm">
-                <ImageUpload
-                  label="Photo de profil"
-                  value={avatarUrl}
-                  onChange={setAvatarUrl}
-                />
+                {isCommercialDemoClient ? (
+                  <div className="space-y-2">
+                    <Label htmlFor="commercial-demo-avatar">Photo de profil</Label>
+                    <Input
+                      id="commercial-demo-avatar"
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp,image/gif"
+                      onChange={(event) => {
+                        const file = event.target.files?.[0];
+                        if (!file) return;
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                          setAvatarUrl(typeof reader.result === "string" ? reader.result : "");
+                          toast({ title: "Aperçu local mis à jour", description: "L'image n'est pas envoyée au stockage." });
+                        };
+                        reader.readAsDataURL(file);
+                        event.target.value = "";
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <ImageUpload
+                    label="Photo de profil"
+                    value={avatarUrl}
+                    onChange={setAvatarUrl}
+                  />
+                )}
               </div>
             </div>
 
@@ -377,7 +542,7 @@ export default function Profil() {
               </div>
               <div className="space-y-2">
                 <Label>Email</Label>
-                <Input value={user?.email || ""} disabled />
+                <Input value={isCommercialDemoClient ? COMMERCIAL_DEMO_CLIENT_EMAIL : user?.email || ""} disabled />
               </div>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <div className="space-y-2">
@@ -399,27 +564,44 @@ export default function Profil() {
                 </div>
                 <div className="space-y-2">
                   <Label>Ville</Label>
-                  <CityAutocomplete
-                    value={city}
-                    onValueChange={setCity}
-                    onCitySelect={setCity}
-                    placeholder="Votre ville"
-                  />
+                  {isCommercialDemoClient ? (
+                    <Input
+                      value={city}
+                      onChange={(event) => setCity(event.target.value)}
+                      placeholder="Votre ville"
+                    />
+                  ) : (
+                    <CityAutocomplete
+                      value={city}
+                      onValueChange={setCity}
+                      onCitySelect={setCity}
+                      placeholder="Votre ville"
+                    />
+                  )}
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="address">Adresse</Label>
-                <AddressAutocomplete
-                  id="address"
-                  value={address}
-                  preferredCity={city}
-                  onValueChange={setAddress}
-                  onAddressSelect={(addr, c) => {
-                    setAddress(addr);
-                    if (c) setCity(c);
-                  }}
-                  placeholder="Votre adresse complète"
-                />
+                {isCommercialDemoClient ? (
+                  <Input
+                    id="address"
+                    value={address}
+                    onChange={(event) => setAddress(event.target.value)}
+                    placeholder="Votre adresse complète"
+                  />
+                ) : (
+                  <AddressAutocomplete
+                    id="address"
+                    value={address}
+                    preferredCity={city}
+                    onValueChange={setAddress}
+                    onAddressSelect={(addr, c) => {
+                      setAddress(addr);
+                      if (c) setCity(c);
+                    }}
+                    placeholder="Votre adresse complète"
+                  />
+                )}
               </div>
             </div>
             <Button onClick={handleSave} disabled={loading}>
@@ -451,7 +633,13 @@ export default function Profil() {
 
           {tokOneFeatureEnabled ? (
             <TabsContent value="abonnement" className="space-y-6 pt-4">
-              <TokOneTab userId={user?.id} subscription={tokOneSub} isActive={tokOneIsActive} plans={tokOnePlans} />
+              <TokOneTab
+                userId={user?.id}
+                subscription={tokOneSub}
+                isActive={tokOneIsActive}
+                plans={tokOnePlans}
+                onDemoSubscriptionChange={setDemoTokOneSubscription}
+              />
             </TabsContent>
           ) : null}
 
@@ -508,6 +696,14 @@ export default function Profil() {
                   size="sm"
                   onClick={async () => {
                     if (!user) return;
+                    if (isCommercialDemoClient) {
+                      setDemoNotificationPrefs((current) => ({
+                        ...current,
+                        channels: { ...current.channels, push: true },
+                      }));
+                      toast({ title: "Push activé", description: "Activation locale à la démonstration." });
+                      return;
+                    }
                     const res = await enablePush(user.id);
                     if (!res.ok) {
                       toast({ title: "Push indisponible", description: res.reason, variant: "destructive" });
@@ -523,6 +719,14 @@ export default function Profil() {
                   variant="outline"
                   onClick={async () => {
                     if (!user) return;
+                    if (isCommercialDemoClient) {
+                      setDemoNotificationPrefs((current) => ({
+                        ...current,
+                        channels: { ...current.channels, push: false },
+                      }));
+                      toast({ title: "Push désactivé", description: "Modification locale à la démonstration." });
+                      return;
+                    }
                     const res = await disablePush(user.id);
                     if (!res.ok) {
                       toast({ title: "Erreur", description: res.reason, variant: "destructive" });
@@ -612,7 +816,7 @@ export default function Profil() {
                       <AlertDialogTitle>Supprimer définitivement votre compte ?</AlertDialogTitle>
                       <AlertDialogDescription className="space-y-3">
                         <span className="block">Cette action est irréversible. Toutes vos données seront supprimées.</span>
-                        <span className="block">Pour confirmer, saisissez votre email : <strong>{user?.email}</strong></span>
+                        <span className="block">Pour confirmer, saisissez votre email : <strong>{isCommercialDemoClient ? COMMERCIAL_DEMO_CLIENT_EMAIL : user?.email}</strong></span>
                         <Input
                           value={deleteConfirmEmail}
                           onChange={(e) => setDeleteConfirmEmail(e.target.value)}
@@ -625,10 +829,17 @@ export default function Profil() {
                       <AlertDialogCancel onClick={() => setDeleteConfirmEmail("")}>Annuler</AlertDialogCancel>
                       <AlertDialogAction
                         className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        disabled={deleteConfirmEmail !== user?.email || deleting}
+                        disabled={deleteConfirmEmail !== (isCommercialDemoClient ? COMMERCIAL_DEMO_CLIENT_EMAIL : user?.email) || deleting}
                         onClick={async () => {
                           setDeleting(true);
                           try {
+                            if (isCommercialDemoClient) {
+                              toast({
+                                title: "Suppression simulée",
+                                description: "Le compte commercial et les données réelles n'ont pas été modifiés.",
+                              });
+                              return;
+                            }
                             const { error } = await supabase.functions.invoke("delete-account");
                             if (error) throw error;
                             await signOut();
@@ -658,15 +869,23 @@ export default function Profil() {
 
 type TokOneTabProps = {
   userId?: string;
-  subscription: any;
+  subscription: TokOneSubscription | null | undefined;
   isActive: boolean;
-  plans: any[] | undefined;
+  plans: TokOnePlan[] | undefined;
+  onDemoSubscriptionChange: (subscription: TokOneSubscription | null) => void;
 };
 
-function TokOneTab({ userId, subscription, isActive, plans }: TokOneTabProps) {
+function TokOneTab({ userId, subscription, isActive, plans, onDemoSubscriptionChange }: TokOneTabProps) {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { data: tokOneBenefits } = useTokOneBenefits(subscription?.plan_id);
+  const { data: productionTokOneBenefits } = useTokOneBenefits(subscription?.plan_id, {
+    enabled: !isCommercialDemoClient,
+  });
+  const tokOneBenefits = isCommercialDemoClient
+    ? COMMERCIAL_DEMO_TOK_ONE_BENEFITS
+    : productionTokOneBenefits;
   const tokOneEntitlements = buildTokOneEntitlements({
     plan: subscription?.user_subscription_plans,
     benefits: tokOneBenefits,
@@ -676,9 +895,10 @@ function TokOneTab({ userId, subscription, isActive, plans }: TokOneTabProps) {
     .map((benefit) => benefit.label);
 
   // Fetch orders where tok_one_member was true (usage history)
-  const { data: tokOneOrders, isLoading: ordersLoading } = useQuery({
+  const tokOneOrdersQuery = useQuery({
     queryKey: ["tok-one-orders", userId],
     queryFn: async () => {
+      if (isCommercialDemoClient) return [];
       const { data, error } = await supabase.rpc("get_customer_orders_dashboard" as any);
       if (error) throw error;
 
@@ -701,13 +921,14 @@ function TokOneTab({ userId, subscription, isActive, plans }: TokOneTabProps) {
         .filter((order) => (order.metadata as any)?.tok_one_member === true)
         .slice(0, 50);
     },
-    enabled: !!userId,
+    enabled: Boolean(userId && !isCommercialDemoClient),
   });
 
   // Fetch Tok One payment transactions
-  const { data: payments, isLoading: paymentsLoading } = useQuery({
+  const paymentsQuery = useQuery({
     queryKey: ["tok-one-payments", userId],
     queryFn: async () => {
+      if (isCommercialDemoClient) return [];
       const { data } = await supabase
         .from("payment_transactions")
         .select("id, amount, created_at, metadata, status")
@@ -719,8 +940,23 @@ function TokOneTab({ userId, subscription, isActive, plans }: TokOneTabProps) {
         return (p.metadata as any)?.checkout_kind === "tok-one" && ["paid", "succeeded"].includes(status);
       });
     },
-    enabled: !!userId,
+    enabled: Boolean(userId && !isCommercialDemoClient),
   });
+  const tokOneOrders = isCommercialDemoClient && commercialDemoFrame?.snapshot.order
+    ? [{
+        id: commercialDemoFrame.snapshot.order.id,
+        created_at: commercialDemoFrame.snapshot.order.created_at
+          || commercialDemoFrame.snapshot.order.updated_at
+          || commercialDemoFrame.snapshot.session.created_at
+          || new Date(0).toISOString(),
+        order_reference: commercialDemoFrame.snapshot.order.order_number,
+        total_amount: Number(commercialDemoFrame.snapshot.order.total_amount_cents || 0) / 100,
+        metadata: { tok_one_member: true, tok_one_total_saved: 0 },
+        restaurants: { name: commercialDemoFrame.snapshot.demo_restaurant.name },
+      }]
+    : isCommercialDemoClient ? [] : tokOneOrdersQuery.data;
+  const payments = isCommercialDemoClient ? [] : paymentsQuery.data;
+  const ordersLoading = !isCommercialDemoClient && tokOneOrdersQuery.isLoading;
 
   // Computed stats
   const totalTokOneSaved = (tokOneOrders || []).reduce((sum: number, o: any) => {
@@ -769,6 +1005,16 @@ function TokOneTab({ userId, subscription, isActive, plans }: TokOneTabProps) {
                     <AlertDialogAction
                       className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                       onClick={async () => {
+                        if (isCommercialDemoClient && commercialDemoFrame) {
+                          const nextSubscription = { ...subscription, cancel_at_period_end: true } as TokOneSubscription;
+                          persistCommercialDemoTokOneSubscription(commercialDemoFrame.config.sessionId, nextSubscription);
+                          onDemoSubscriptionChange(nextSubscription);
+                          toast({
+                            title: "Résiliation simulée",
+                            description: "L'abonnement de démonstration reste actif jusqu'à la fin de la période.",
+                          });
+                          return;
+                        }
                         const { error } = await supabase.functions.invoke("manage-tok-one-subscription", {
                           body: { action: "cancel" },
                         });
@@ -951,10 +1197,13 @@ function TokOneTab({ userId, subscription, isActive, plans }: TokOneTabProps) {
 }
 
 function LoyaltyHistory({ userId }: { userId?: string }) {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
   const [limit, setLimit] = useState(20);
-  const { data: transactions, isLoading, error, refetch } = useQuery({
+  const transactionsQuery = useQuery({
     queryKey: ["loyalty-transactions", userId, limit],
     queryFn: async () => {
+      if (isCommercialDemoClient) return [] as LoyaltyTransaction[];
       const { data, error: queryError } = await supabase
         .from("loyalty_transactions")
         .select("*")
@@ -964,14 +1213,17 @@ function LoyaltyHistory({ userId }: { userId?: string }) {
       if (queryError) throw queryError;
       return (data || []) as LoyaltyTransaction[];
     },
-    enabled: !!userId,
+    enabled: Boolean(userId && !isCommercialDemoClient),
   });
+  const transactions = isCommercialDemoClient ? [] : transactionsQuery.data;
+  const isLoading = !isCommercialDemoClient && transactionsQuery.isLoading;
+  const error = !isCommercialDemoClient && transactionsQuery.error;
 
   if (isLoading) return <p className="text-sm text-muted-foreground">Chargement...</p>;
   if (error) return (
     <div role="alert" className="space-y-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm">
       <p className="text-destructive">Impossible de charger l’historique Miamz.</p>
-      <Button type="button" size="sm" variant="outline" onClick={() => void refetch()}>Réessayer</Button>
+      <Button type="button" size="sm" variant="outline" onClick={() => void transactionsQuery.refetch()}>Réessayer</Button>
     </div>
   );
   if (!transactions || transactions.length === 0) {

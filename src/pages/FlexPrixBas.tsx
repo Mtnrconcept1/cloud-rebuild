@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { PUBLIC_MENU_ITEMS_LIMIT } from "@/lib/queryLimits";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
+import { getCommercialDemoClientMenuItems, getCommercialDemoClientRestaurants } from "@/lib/commercialDemoClientCatalog";
 
 const supabase = getSupabase();
 
@@ -52,6 +54,8 @@ const FLASH_DEALS = [
 type Step = "window" | "restaurant" | "menu" | "confirm";
 
 export default function FlexPrixBas() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
   const { addItem, clearCart, updateCartMetadata, setOrderMode } = useCart();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -60,22 +64,29 @@ export default function FlexPrixBas() {
   const [selectedRestaurant, setSelectedRestaurant] = useState<any>(null);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
 
-  const { data: restaurants } = useQuery({
+  const restaurantsQuery = useQuery({
     queryKey: ["restaurants-flex"],
     queryFn: async () => {
       const { data } = await supabase.from("restaurants").select("*").eq("is_active", true).eq("delivery_available", true).order("rating", { ascending: false }).limit(9);
       return data || [];
     },
+    enabled: !isCommercialDemoClient,
   });
+  const restaurants = isCommercialDemoClient && commercialDemoFrame
+    ? getCommercialDemoClientRestaurants(commercialDemoFrame.snapshot)
+    : restaurantsQuery.data;
 
-  const { data: menuItems } = useQuery({
+  const menuItemsQuery = useQuery({
     queryKey: ["menu-flex", selectedRestaurant?.id],
     queryFn: async () => {
       const { data } = await supabase.from("menu_items").select("*").eq("restaurant_id", selectedRestaurant.id).eq("is_available", true).order("category").limit(PUBLIC_MENU_ITEMS_LIMIT);
       return data || [];
     },
-    enabled: !!selectedRestaurant,
+    enabled: Boolean(selectedRestaurant && !isCommercialDemoClient),
   });
+  const menuItems = isCommercialDemoClient && commercialDemoFrame
+    ? getCommercialDemoClientMenuItems(commercialDemoFrame.snapshot, selectedRestaurant?.id)
+    : menuItemsQuery.data;
 
   const updateQty = (id: string, d: number) => setQuantities((p) => { const n = Math.max(0, (p[id] || 0) + d); if (n === 0) { const { [id]: _, ...r } = p; return r; } return { ...p, [id]: n }; });
   const count = Object.values(quantities).reduce((a, b) => a + b, 0);

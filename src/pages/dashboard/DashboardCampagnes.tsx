@@ -93,9 +93,34 @@ import { fetchWithFreshAccessToken } from "@/lib/session";
 import { TOK_CREDITS_PER_CAMPAIGN_CHF } from "@/lib/tokCredits";
 import { cn } from "@/lib/utils";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 
 const supabase = getSupabase();
 const CAMPAIGN_PAYMENT_METHOD = "credits" as const;
+
+function buildCommercialDemoCampaign(restaurantId: string): CampaignRecord {
+  const startsAt = new Date();
+  const endsAt = new Date(startsAt);
+  endsAt.setDate(endsAt.getDate() + 6);
+  return {
+    id: "demo-campaign-week-menu",
+    restaurant_id: restaurantId,
+    title: "Le plat signature de la semaine",
+    body: "Découvrez notre plat signature et réservez votre table en quelques secondes.",
+    type: "boost",
+    status: "active",
+    payment_status: "paid",
+    pricing_strategy: "conversion",
+    starts_at: startsAt.toISOString(),
+    ends_at: endsAt.toISOString(),
+    total_budget: 120,
+    spent: 42,
+    impressions: 2840,
+    clicks: 186,
+    conversions: 24,
+    target_pages: ["home", "search"],
+  };
+}
 
 const CAMPAIGN_TYPES = [
   { value: "boost", label: "Boost (Sponsorisé)" },
@@ -269,6 +294,8 @@ function addDaysToInputDate(value: string, days: number) {
 }
 
 export default function DashboardCampagnes() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemo = commercialDemoFrame?.surface === "restaurant";
   const { selectedId, restaurants } = useDashboardRestaurant();
   const selectedRestaurant = restaurants.find((restaurant) => restaurant.id === selectedId) || null;
   const queryClient = useQueryClient();
@@ -290,6 +317,10 @@ export default function DashboardCampagnes() {
 
   const pollCampaignStatus = useCallback(
     (campaignId: string, attempts = 0) => {
+      if (isCommercialDemo) {
+        setPaidCampaign({ id: campaignId, payment_status: "paid", status: "active" });
+        return;
+      }
       if (!selectedId) {
         setPaidCampaign({ id: campaignId });
         return;
@@ -321,7 +352,7 @@ export default function DashboardCampagnes() {
         }
       }, 2000);
     },
-    [queryClient, selectedId, toast],
+    [isCommercialDemo, queryClient, selectedId, toast],
   );
 
   useEffect(() => {
@@ -363,6 +394,7 @@ export default function DashboardCampagnes() {
     queryKey: ["dashboard-campaigns", selectedId],
     queryFn: async () => {
       if (!selectedId) return [];
+      if (isCommercialDemo) return [buildCommercialDemoCampaign(selectedId)];
       const { data, error } = await listRestaurantCampaigns(selectedId);
       if (error) throw error;
       return data || [];
@@ -435,6 +467,13 @@ export default function DashboardCampagnes() {
 
   const updateStatus = async (id: string, status: string) => {
     if (!selectedId) return;
+    if (isCommercialDemo) {
+      queryClient.setQueryData<CampaignRecord[]>(["dashboard-campaigns", selectedId], (current = []) => (
+        current.map((campaign) => (campaign.id === id ? { ...campaign, status } : campaign))
+      ));
+      toast({ title: `Campagne ${STATUS_MAP[status]?.label || status} dans la démonstration` });
+      return;
+    }
     const { error } = await setRestaurantCampaignStatus(selectedId, id, status);
     if (error) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
@@ -446,6 +485,14 @@ export default function DashboardCampagnes() {
 
   const deleteCampaign = async (id: string) => {
     if (!selectedId) return;
+    if (isCommercialDemo) {
+      queryClient.setQueryData<CampaignRecord[]>(["dashboard-campaigns", selectedId], (current = []) => (
+        current.filter((campaign) => campaign.id !== id)
+      ));
+      setSelectedCampaignId((current) => (current === id ? null : current));
+      toast({ title: "Campagne supprimée de la démonstration" });
+      return;
+    }
     const { error } = await deleteRestaurantCampaign(selectedId, id);
     if (error) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
@@ -1484,6 +1531,8 @@ function CampaignForm({
   initial?: any;
   onSaved: () => void;
 }) {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemo = commercialDemoFrame?.surface === "restaurant";
   const { toast } = useToast();
   const initialPlacementSelection = normalizeCampaignPlacementSelection(initial?.channels, initial?.type);
   const initialBaseBudget = initial?.total_budget
@@ -1524,11 +1573,13 @@ function CampaignForm({
   const creditBalanceQuery = useQuery({
     queryKey: ["restaurant-campaign-credit-balance", restaurantId],
     queryFn: () => fetchCampaignCreditBalance(restaurantId),
-    enabled: Boolean(restaurantId) && !isPaidCampaign,
+    enabled: Boolean(restaurantId) && !isPaidCampaign && !isCommercialDemo,
     staleTime: 30_000,
     refetchInterval: 60_000,
   });
-  const availableCampaignCredits = isPaidCampaign
+  const availableCampaignCredits = isCommercialDemo
+    ? Number.POSITIVE_INFINITY
+    : isPaidCampaign
     ? Math.max(0, Number(initial?.paid_amount || initial?.total_budget || 0))
     : Math.max(0, creditBalanceQuery.data ?? 0);
   const creditShortfall = Math.max(0, totalBudgetValue - availableCampaignCredits);
@@ -1622,6 +1673,17 @@ function CampaignForm({
 
   const handleAiGenerate = async () => {
     setAiLoading(true);
+    if (isCommercialDemo) {
+      setTitle("Le plat signature à découvrir cette semaine".slice(0, copyLimit));
+      setBody("Réservez votre table ou commandez le plat phare du restaurant depuis TOK.".slice(0, copyLimit));
+      setPlacementSelection(normalizeCampaignPlacementSelection({ banner: true, restaurant_cards: true }, type));
+      toast({
+        title: "Campagne générée en démonstration",
+        description: "Tous les champs ont été optimisés localement, sans appel IA ni consommation de crédits.",
+      });
+      setAiLoading(false);
+      return;
+    }
     try {
       const response = await fetchWithFreshAccessToken(`${SUPABASE_URL}/functions/v1/generate-campaign`, {
         method: "POST",
@@ -1734,6 +1796,15 @@ function CampaignForm({
           : "Impossible de vérifier le solde de crédits TOK pour le moment.",
         variant: "destructive",
       });
+      return;
+    }
+
+    if (isCommercialDemo) {
+      toast({
+        title: initial?.id ? "Campagne mise à jour dans la démonstration" : "Campagne créée dans la démonstration",
+        description: "Aucun crédit, paiement ou canal de diffusion réel n'a été utilisé.",
+      });
+      onSaved();
       return;
     }
 

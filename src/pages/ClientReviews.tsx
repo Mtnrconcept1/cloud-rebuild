@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 
 const supabase = getSupabase();
 
@@ -92,6 +93,8 @@ function RatingStars({ value }: { value: number }) {
 }
 
 export default function ClientReviews() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
   const { user } = useAuth();
   const [filter, setFilter] = useState<ReviewFilter>("all");
 
@@ -121,12 +124,16 @@ export default function ClientReviews() {
       if (error) throw error;
       return (data || []) as unknown as ClientReview[];
     },
-    enabled: Boolean(user?.id),
+    enabled: Boolean(user?.id && !isCommercialDemoClient),
   });
+  const reviews = useMemo(
+    () => isCommercialDemoClient ? [] : reviewsQuery.data || [],
+    [isCommercialDemoClient, reviewsQuery.data],
+  );
 
   const filteredReviews = useMemo(
-    () => (reviewsQuery.data || []).filter((review) => matchesFilter(review, filter)),
-    [filter, reviewsQuery.data],
+    () => reviews.filter((review) => matchesFilter(review, filter)),
+    [filter, reviews],
   );
 
   return (
@@ -160,11 +167,11 @@ export default function ClientReviews() {
           ))}
         </div>
 
-        {reviewsQuery.isLoading ? (
+        {!isCommercialDemoClient && reviewsQuery.isLoading ? (
           <div className="space-y-3" aria-label="Chargement des avis">
             {[1, 2, 3].map((item) => <div key={item} className="h-40 animate-pulse rounded-2xl bg-muted" />)}
           </div>
-        ) : reviewsQuery.error ? (
+        ) : !isCommercialDemoClient && reviewsQuery.error ? (
           <div role="alert" className="rounded-2xl border border-destructive/30 bg-destructive/5 p-6 text-center">
             <p className="font-semibold text-destructive">Impossible de charger vos avis.</p>
             <p className="mt-1 text-sm text-muted-foreground">Vos avis restent enregistrés. Réessayez dans un instant.</p>

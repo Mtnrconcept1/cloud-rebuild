@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getSupabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ import {
   assertSafeFileUpload,
   getSafeUploadExtension,
 } from "@/lib/uploadSecurity";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 
 const supabase = getSupabase();
 const UUID_NAMESPACE_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -58,8 +59,15 @@ export default function ImageUpload({
   className = "",
   showUrlInput = false,
 }: ImageUploadProps) {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemo = commercialDemoFrame?.surface === "restaurant";
   const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
+  const demoObjectUrlRef = useRef<string | null>(null);
+
+  useEffect(() => () => {
+    if (demoObjectUrlRef.current) URL.revokeObjectURL(demoObjectUrlRef.current);
+  }, []);
 
   const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
@@ -80,6 +88,14 @@ export default function ImageUpload({
         maxBytes: MAX_IMAGE_UPLOAD_BYTES,
         label: "Image optimisée",
       });
+      if (isCommercialDemo) {
+        if (demoObjectUrlRef.current) URL.revokeObjectURL(demoObjectUrlRef.current);
+        const previewUrl = URL.createObjectURL(file);
+        demoObjectUrlRef.current = previewUrl;
+        onChange(previewUrl);
+        toast({ title: "Aperçu local", description: "L'image reste dans cette démonstration et n'est pas envoyée au stockage." });
+        return;
+      }
       const filePath = createImagePath(pathPrefix || userData.user.id, file);
       const { error: uploadError } = await supabase.storage.from(bucket).upload(filePath, file, {
         contentType: file.type,
