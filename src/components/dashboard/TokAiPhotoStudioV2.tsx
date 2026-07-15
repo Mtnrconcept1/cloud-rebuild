@@ -485,6 +485,8 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
           description="TOK conserve le plat source, nettoie le rendu et prepare la version finale pour votre galerie."
           status="PhotoPro travaille le visuel"
           steps={["Analyse photo", "Retouche fidele", "Export galerie"]}
+          kind="image"
+          estimatedDurationMs={105_000}
         />
 
         {result ? (
