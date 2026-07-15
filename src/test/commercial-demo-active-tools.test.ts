@@ -11,6 +11,7 @@ describe("commercial demo active tools and reservations", () => {
   const app = read("src/App.tsx");
   const layout = read("src/components/DashboardLayout.tsx");
   const provider = read("src/components/commercial/CommercialDemoFrameProvider.tsx");
+  const safeTools = read("src/components/commercial/CommercialDemoToolBoundary.tsx");
   const service = read("src/lib/commercialDemoJourney.ts");
   const reservations = read("src/components/dashboard/CommercialDemoScenario.tsx");
   const cart = read("src/pages/Panier.tsx");
@@ -66,5 +67,26 @@ describe("commercial demo active tools and reservations", () => {
     expect(demoBranch).not.toContain('"create-checkout"');
     expect(demoBranch).not.toContain('"validate-order"');
     expect(demoBranch).not.toContain("apply_checkout_benefits");
+  });
+
+  it("replaces external or financial side effects with explicit tool sandboxes", () => {
+    for (const tool of [
+      "advisor",
+      "billing",
+      "pack",
+      "campaigns",
+      "social",
+      "support",
+      "tok-connect",
+      "accounting-inflow",
+      "accounting-outflow",
+    ]) {
+      expect(app).toContain(`<CommercialDemoToolBoundary tool="${tool}">`);
+    }
+    expect(safeTools).toContain('frame?.surface === "restaurant"');
+    expect(safeTools).toContain("effets externes remplacés par une sandbox");
+    expect(safeTools).not.toContain("invokeSupabaseFunction");
+    expect(safeTools).not.toContain("supabase.from");
+    expect(safeTools).not.toContain("fetch(");
   });
 });
