@@ -230,13 +230,14 @@ export default function CommercialMultiSpaceDemo() {
       updateDemoSessionUrl(effectiveSessionId);
     },
   });
+  const confirmCheckout = confirmMutation.mutate;
 
   useEffect(() => {
     if (!initialParams.returnedFromCheckout || !initialParams.stripeSessionId || !snapshot) return;
     if (automaticConfirmationRef.current === initialParams.stripeSessionId) return;
     automaticConfirmationRef.current = initialParams.stripeSessionId;
-    confirmMutation.mutate();
-  }, [confirmMutation.mutate, initialParams.returnedFromCheckout, initialParams.stripeSessionId, snapshot]);
+    confirmCheckout();
+  }, [confirmCheckout, initialParams.returnedFromCheckout, initialParams.stripeSessionId, snapshot]);
 
   useEffect(() => {
     if (!effectiveSessionId) return;
