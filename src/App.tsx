@@ -42,6 +42,7 @@ import { getCommercialDemoFrameConfig, type CommercialDemoFrameConfig } from "@/
 
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
+const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
 const Recherche = lazy(() => import("./pages/Recherche"));
 const LocalRestaurants = lazy(() => import("./pages/LocalRestaurants"));
 const RestaurantDetail = lazy(() => import("./pages/RestaurantDetail"));
@@ -383,6 +384,7 @@ function CommercialDemoFrameRouteBoundary({
 
 function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: CommercialDemoFrameConfig | null }) {
   const { pathname } = useLocation();
+  const oauthConsentFrame = pathname === "/oauth/consent";
   const commercialDemoContext = useCommercialDemoFrame();
   useTokLogoDocumentIcons();
   const { activeFeatures, loading: featureFlagsLoading } = useFeatureFlagSnapshot({
@@ -456,19 +458,20 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
   const adminTokConnectEnabled = hasFeature("admin-tok-connect");
   const deliveryEnabled = hasFeature("livraison");
   const showPublicFooter = shouldShowPublicFooter(pathname);
-  const publicNavbar = !commercialDemoFrame && shouldShowPublicNavbar(pathname) ? <Navbar /> : null;
+  const publicNavbar = !commercialDemoFrame && !oauthConsentFrame && shouldShowPublicNavbar(pathname) ? <Navbar /> : null;
 
   return (
     <>
-      {!commercialDemoFrame ? <MobileLogoIntro /> : null}
-      {!commercialDemoFrame ? <AiCreationNotifications /> : null}
+      {!commercialDemoFrame && !oauthConsentFrame ? <MobileLogoIntro /> : null}
+      {!commercialDemoFrame && !oauthConsentFrame ? <AiCreationNotifications /> : null}
       {publicNavbar}
-      {!commercialDemoFrame ? <FloatingRouteBackButton /> : null}
+      {!commercialDemoFrame && !oauthConsentFrame ? <FloatingRouteBackButton /> : null}
       <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}>
         <Routes>
           <Route path="/" element={<ClientSurfaceRoute><Index /></ClientSurfaceRoute>} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/auth/callback" element={<Auth />} />
+          <Route path="/oauth/consent" element={<OAuthConsent />} />
           <Route path="/recherche" element={<ClientSurfaceRoute><Recherche /></ClientSurfaceRoute>} />
           <Route path="/restaurants/:city" element={<ClientSurfaceRoute><LocalRestaurants /></ClientSurfaceRoute>} />
           <Route path="/restaurants/:city/:category" element={<ClientSurfaceRoute><LocalRestaurants /></ClientSurfaceRoute>} />
@@ -584,15 +587,15 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
-      {!commercialDemoFrame ? <SupportChat /> : null}
-      {!commercialDemoFrame ? (
+      {!commercialDemoFrame && !oauthConsentFrame ? <SupportChat /> : null}
+      {!commercialDemoFrame && !oauthConsentFrame ? (
         <Suspense fallback={null}>
           <OrderConflictDialog />
         </Suspense>
       ) : null}
       {!commercialDemoFrame && pathname === "/" ? <DailyMiamzSlotMachine /> : null}
-      {!commercialDemoFrame && showPublicFooter ? <FooterSection deliveryEnabled={pathname === "/" && deliveryEnabled === true} /> : null}
-      {!commercialDemoFrame ? <LegalConsentBanner /> : null}
+      {!commercialDemoFrame && !oauthConsentFrame && showPublicFooter ? <FooterSection deliveryEnabled={pathname === "/" && deliveryEnabled === true} /> : null}
+      {!commercialDemoFrame && !oauthConsentFrame ? <LegalConsentBanner /> : null}
     </>
   );
 }

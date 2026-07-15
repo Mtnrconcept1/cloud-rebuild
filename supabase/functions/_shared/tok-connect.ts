@@ -27,6 +27,13 @@ export type TokConnectMcpTool = {
   description: string;
   requiredScopes: TokConnectScope[];
   inputSchema: Record<string, unknown>;
+  outputSchema: Record<string, unknown>;
+  annotations: {
+    readOnlyHint: boolean;
+    destructiveHint: boolean;
+    openWorldHint: boolean;
+    idempotentHint: boolean;
+  };
 };
 
 export type TokConnectIdempotencyRecord<TResponse = Record<string, unknown>> = {
@@ -43,6 +50,7 @@ export type TokConnectIdempotencyDecision<TResponse = Record<string, unknown>> =
 
 export type TokConnectMcpContentResult = {
   content: Array<{ type: "text"; text: string }>;
+  structuredContent: Record<string, unknown>;
 };
 
 export type TokConnectAutopilotActionType =
@@ -91,6 +99,20 @@ export const TOK_CONNECT_WEBHOOK_EVENTS = [
   "campaign.previewed",
 ] as const;
 
+const TOK_CONNECT_READ_ONLY_ANNOTATIONS = {
+  readOnlyHint: true,
+  destructiveHint: false,
+  openWorldHint: false,
+  idempotentHint: true,
+} as const;
+
+const TOK_CONNECT_PREVIEW_WRITE_ANNOTATIONS = {
+  readOnlyHint: false,
+  destructiveHint: false,
+  openWorldHint: false,
+  idempotentHint: true,
+} as const;
+
 export const SAFE_TOK_CONNECT_MCP_TOOLS: TokConnectMcpTool[] = [
   {
     name: "search_restaurants",
@@ -100,12 +122,20 @@ export const SAFE_TOK_CONNECT_MCP_TOOLS: TokConnectMcpTool[] = [
     inputSchema: {
       type: "object",
       properties: {
-        query: { type: "string" },
-        city: { type: "string" },
-        cuisine: { type: "string" },
+        query: { type: "string", maxLength: 120 },
+        city: { type: "string", maxLength: 80 },
+        cuisine: { type: "string", maxLength: 80 },
         limit: { type: "integer", minimum: 1, maximum: 50 },
       },
+      additionalProperties: false,
     },
+    outputSchema: {
+      type: "object",
+      properties: { restaurants: { type: "array", items: { type: "object" } } },
+      required: ["restaurants"],
+      additionalProperties: false,
+    },
+    annotations: TOK_CONNECT_READ_ONLY_ANNOTATIONS,
   },
   {
     name: "get_real_time_availability",
@@ -120,7 +150,19 @@ export const SAFE_TOK_CONNECT_MCP_TOOLS: TokConnectMcpTool[] = [
         date: { type: "string", format: "date" },
         party_size: { type: "integer", minimum: 1, maximum: 20 },
       },
+      additionalProperties: false,
     },
+    outputSchema: {
+      type: "object",
+      properties: {
+        restaurant_id: { type: "string" },
+        date: { type: "string" },
+        slots: { type: "array", items: { type: "object" } },
+      },
+      required: ["restaurant_id", "date", "slots"],
+      additionalProperties: false,
+    },
+    annotations: TOK_CONNECT_READ_ONLY_ANNOTATIONS,
   },
   {
     name: "prepare_reservation",
@@ -133,11 +175,19 @@ export const SAFE_TOK_CONNECT_MCP_TOOLS: TokConnectMcpTool[] = [
       properties: {
         restaurant_id: { type: "string", format: "uuid" },
         date: { type: "string", format: "date" },
-        time: { type: "string" },
+        time: { type: "string", pattern: "^([01]\\d|2[0-3]):[0-5]\\d$" },
         party_size: { type: "integer", minimum: 1, maximum: 20 },
-        customer_note: { type: "string" },
+        customer_note: { type: "string", maxLength: 1000 },
       },
+      additionalProperties: false,
     },
+    outputSchema: {
+      type: "object",
+      properties: { reservation_preview: { type: "object" } },
+      required: ["reservation_preview"],
+      additionalProperties: false,
+    },
+    annotations: TOK_CONNECT_READ_ONLY_ANNOTATIONS,
   },
   {
     name: "get_restaurant_performance",
@@ -151,7 +201,19 @@ export const SAFE_TOK_CONNECT_MCP_TOOLS: TokConnectMcpTool[] = [
         restaurant_id: { type: "string", format: "uuid" },
         period: { type: "string", enum: ["7d", "30d", "90d"] },
       },
+      additionalProperties: false,
     },
+    outputSchema: {
+      type: "object",
+      properties: {
+        restaurant_id: { type: "string" },
+        period: { type: "string" },
+        performance: {},
+      },
+      required: ["performance"],
+      additionalProperties: false,
+    },
+    annotations: TOK_CONNECT_READ_ONLY_ANNOTATIONS,
   },
   {
     name: "estimate_campaign_credit_cost",
@@ -164,9 +226,17 @@ export const SAFE_TOK_CONNECT_MCP_TOOLS: TokConnectMcpTool[] = [
       properties: {
         restaurant_id: { type: "string", format: "uuid" },
         audience_size: { type: "integer", minimum: 1 },
-        channels: { type: "array", items: { type: "string" } },
+        channels: { type: "array", maxItems: 8, items: { type: "string" } },
       },
+      additionalProperties: false,
     },
+    outputSchema: {
+      type: "object",
+      properties: { estimate: { type: "object" } },
+      required: ["estimate"],
+      additionalProperties: false,
+    },
+    annotations: TOK_CONNECT_READ_ONLY_ANNOTATIONS,
   },
   {
     name: "generate_campaign_preview",
@@ -178,10 +248,23 @@ export const SAFE_TOK_CONNECT_MCP_TOOLS: TokConnectMcpTool[] = [
       required: ["restaurant_id", "objective"],
       properties: {
         restaurant_id: { type: "string", format: "uuid" },
-        objective: { type: "string" },
+        objective: { type: "string", minLength: 3, maxLength: 240 },
         budget_chf: { type: "number", minimum: 0 },
+        idempotency_key: { type: "string", minLength: 8, maxLength: 120, pattern: "^[A-Za-z0-9:_-]+$" },
       },
+      additionalProperties: false,
     },
+    outputSchema: {
+      type: "object",
+      properties: {
+        campaign_preview: { type: "object" },
+        run: { type: "object" },
+        replayed: { type: "boolean" },
+      },
+      required: ["campaign_preview"],
+      additionalProperties: false,
+    },
+    annotations: TOK_CONNECT_PREVIEW_WRITE_ANNOTATIONS,
   },
   {
     name: "build_autopilot_plan",
@@ -193,15 +276,29 @@ export const SAFE_TOK_CONNECT_MCP_TOOLS: TokConnectMcpTool[] = [
       required: ["restaurant_id", "objective"],
       properties: {
         restaurant_id: { type: "string", format: "uuid" },
-        objective: { type: "string" },
+        objective: { type: "string", minLength: 3, maxLength: 240 },
         budget_chf: { type: "number", minimum: 0 },
         requested_actions: {
           type: "array",
+          maxItems: 3,
           items: { type: "string", enum: ["campaign_preview", "reservation_recommendation", "availability_alert"] },
         },
         approval_mode: { type: "string", enum: ["human_required", "manual_review"] },
+        idempotency_key: { type: "string", minLength: 8, maxLength: 120, pattern: "^[A-Za-z0-9:_-]+$" },
       },
+      additionalProperties: false,
     },
+    outputSchema: {
+      type: "object",
+      properties: {
+        autopilot_plan: { type: "object" },
+        run: { type: "object" },
+        replayed: { type: "boolean" },
+      },
+      required: ["autopilot_plan"],
+      additionalProperties: false,
+    },
+    annotations: TOK_CONNECT_PREVIEW_WRITE_ANNOTATIONS,
   },
 ];
 
@@ -369,8 +466,11 @@ export function isSafeTokConnectWebhookUrl(
   }
 }
 
-function mcpJsonContent(value: Record<string, unknown>): TokConnectMcpContentResult {
-  return { content: [{ type: "text", text: JSON.stringify(value) }] };
+export function buildTokConnectMcpJsonResult(value: Record<string, unknown>): TokConnectMcpContentResult {
+  return {
+    structuredContent: value,
+    content: [{ type: "text", text: JSON.stringify(value) }],
+  };
 }
 
 const TOK_CONNECT_AUTOPILOT_ACTIONS: Record<TokConnectAutopilotActionType, {
@@ -434,7 +534,7 @@ export function getTokConnectSandboxMcpToolResult(
 
   switch (name) {
     case "search_restaurants":
-      return mcpJsonContent({
+      return buildTokConnectMcpJsonResult({
         restaurants: [
           {
             id: "00000000-0000-4000-8000-000000000101",
@@ -456,7 +556,7 @@ export function getTokConnectSandboxMcpToolResult(
       });
 
     case "get_real_time_availability":
-      return mcpJsonContent({
+      return buildTokConnectMcpJsonResult({
         restaurant_id: restaurantId,
         date: args.date || new Date().toISOString().slice(0, 10),
         slots: [
@@ -466,7 +566,7 @@ export function getTokConnectSandboxMcpToolResult(
       });
 
     case "prepare_reservation":
-      return mcpJsonContent({
+      return buildTokConnectMcpJsonResult({
         reservation_preview: {
           restaurant_id: restaurantId,
           date: args.date,
@@ -478,7 +578,7 @@ export function getTokConnectSandboxMcpToolResult(
       });
 
     case "get_restaurant_performance":
-      return mcpJsonContent({
+      return buildTokConnectMcpJsonResult({
         restaurant_id: restaurantId,
         period: args.period || "30d",
         performance: {
@@ -490,7 +590,7 @@ export function getTokConnectSandboxMcpToolResult(
       });
 
     case "estimate_campaign_credit_cost":
-      return mcpJsonContent({
+      return buildTokConnectMcpJsonResult({
         estimate: {
           restaurant_id: restaurantId,
           credits: Math.max(1, Math.ceil(Number(args.audience_size || 100) / 100)),
@@ -500,7 +600,7 @@ export function getTokConnectSandboxMcpToolResult(
       });
 
     case "generate_campaign_preview":
-      return mcpJsonContent({
+      return buildTokConnectMcpJsonResult({
         campaign_preview: {
           restaurant_id: restaurantId,
           objective: args.objective,
@@ -512,7 +612,7 @@ export function getTokConnectSandboxMcpToolResult(
       });
 
     case "build_autopilot_plan":
-      return mcpJsonContent({
+      return buildTokConnectMcpJsonResult({
         autopilot_plan: buildTokConnectAutopilotPlan({
           restaurant_id: restaurantId,
           objective: String(args.objective || "Remplir les services creux"),
@@ -613,8 +713,8 @@ export function makeTokConnectRequestId() {
 
 export function getTokConnectBearerToken(req: Request) {
   const authorization = req.headers.get("Authorization") || "";
-  if (!authorization.startsWith("Bearer ")) return "";
-  return authorization.slice("Bearer ".length).trim();
+  const match = authorization.match(/^Bearer\s+(.+)$/i);
+  return match?.[1]?.trim() || "";
 }
 
 export function toTokConnectJsonResponse<TData>(

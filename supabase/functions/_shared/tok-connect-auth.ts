@@ -1,6 +1,7 @@
 import { buildRequestMetadata, createAdminClient, type EdgeSupabaseClient, HttpError } from "./auth.ts";
 import {
   assertTokConnectScopes,
+  base64UrlDecodeText,
   buildTokConnectWebhookHeaders,
   getTokConnectBearerToken,
   hashTokConnectSecret,
@@ -15,6 +16,9 @@ export type TokConnectTokenContext = {
   environment: "sandbox" | "production";
   clientQuotaPerMinute: number;
   partnerQuotaPerMinute: number;
+  authMode: "legacy_partner_token" | "supabase_oauth";
+  userId: string | null;
+  oauthClientId: string | null;
 };
 
 type TokenRow = {
@@ -50,6 +54,66 @@ type RestaurantGrantRow = {
   max_daily_reservations: number;
   max_party_size: number;
 };
+
+const ALL_TOK_CONNECT_SCOPES = [
+  "restaurants:read",
+  "availability:read",
+  "reservations:create",
+  "reservations:cancel",
+  "credits:read",
+  "campaigns:preview",
+  "analytics:read",
+  "autopilot:plan",
+];
+
+function readJwtPayload(token: string): Record<string, unknown> {
+  try {
+    const segment = token.split(".")[1];
+    if (!segment) return {};
+    const parsed = JSON.parse(base64UrlDecodeText(segment));
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+      ? parsed as Record<string, unknown>
+      : {};
+  } catch {
+    return {};
+  }
+}
+
+async function authenticateSupabaseOAuthToken(
+  adminClient: EdgeSupabaseClient,
+  rawToken: string,
+  requiredScopes: string[],
+): Promise<TokConnectTokenContext> {
+  const { data, error } = await adminClient.auth.getUser(rawToken);
+  if (error || !data.user) throw new HttpError(401, "tok_connect_token_invalid");
+
+  const claims = readJwtPayload(rawToken);
+  const oauthClientId = typeof claims.client_id === "string" ? claims.client_id : null;
+  if (!oauthClientId) throw new HttpError(401, "tok_connect_oauth_client_id_required");
+
+  // Supabase OAuth currently exposes OIDC scopes. TOK business permissions are
+  // enforced against user ownership/staff roles in assertTokConnectRestaurantGrant.
+  const scopes = [...ALL_TOK_CONNECT_SCOPES];
+  try {
+    assertTokConnectScopes(scopes, requiredScopes);
+  } catch {
+    throw new HttpError(403, `tok_connect_scope_required:${requiredScopes.join(",")}`);
+  }
+
+  return {
+    adminClient,
+    tokenId: data.user.id,
+    partnerId: data.user.id,
+    clientUuid: oauthClientId,
+    scopes,
+    environment: "production",
+    clientQuotaPerMinute: 240,
+    partnerQuotaPerMinute: 600,
+    authMode: "supabase_oauth",
+    userId: data.user.id,
+    oauthClientId,
+  };
+}
 
 function asMetadataRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -94,6 +158,44 @@ export async function assertTokConnectRestaurantGrant(
 ) {
   if (!restaurantId) throw new HttpError(400, "restaurant_id_required");
   if (context.environment === "sandbox") return null;
+
+  if (context.authMode === "supabase_oauth") {
+    if (!context.userId) throw new HttpError(401, "tok_connect_user_required");
+
+    const customerScopes = new Set([
+      "restaurants:read",
+      "availability:read",
+      "reservations:create",
+      "reservations:cancel",
+    ]);
+    if (customerScopes.has(requiredScope)) return { auth_mode: "supabase_oauth", access: "customer" };
+
+    const [{ data: restaurant, error: restaurantError }, { data: staffEntries, error: staffError }, { data: roles, error: roleError }] = await Promise.all([
+      context.adminClient.from("restaurants").select("id").eq("id", restaurantId).eq("owner_id", context.userId).maybeSingle(),
+      context.adminClient.from("restaurant_staff").select("id, role").eq("restaurant_id", restaurantId).eq("user_id", context.userId),
+      context.adminClient.from("user_roles").select("role").eq("user_id", context.userId),
+    ]);
+
+    if (restaurantError) throw new HttpError(500, restaurantError.message);
+    if (staffError) throw new HttpError(500, staffError.message);
+    if (roleError) throw new HttpError(500, roleError.message);
+    const isAdmin = (roles || []).some((entry) => entry.role === "admin");
+    const staffRolesByScope: Record<string, Set<string>> = {
+      "credits:read": new Set(["owner", "manager", "finance"]),
+      "campaigns:preview": new Set(["owner", "manager", "marketing"]),
+      "analytics:read": new Set(["owner", "manager", "finance", "marketing", "analyst"]),
+      "autopilot:plan": new Set(["owner", "manager"]),
+    };
+    const allowedStaffRoles = staffRolesByScope[requiredScope] || new Set(["owner", "manager"]);
+    const staff = (staffEntries || []).find((entry) =>
+      typeof entry.role === "string" && allowedStaffRoles.has(entry.role.toLowerCase())
+    );
+    const hasStaffAccess = Boolean(staff);
+    if (!restaurant && !hasStaffAccess && !isAdmin) {
+      throw new HttpError(403, "tok_connect_restaurant_access_required");
+    }
+    return { auth_mode: "supabase_oauth", access: isAdmin ? "admin" : restaurant ? "owner" : staff?.role || "staff" };
+  }
 
   const { data: grantEnabled, error: grantEnabledError } = await context.adminClient.rpc(
     "tok_connect_restaurant_grant_enabled",
@@ -162,7 +264,13 @@ export async function authenticateTokConnectToken(
     .maybeSingle<TokenRow>();
 
   if (tokenError) throw new HttpError(500, tokenError.message);
-  if (!tokenRow || tokenRow.revoked_at) throw new HttpError(401, "tok_connect_token_invalid");
+  if (!tokenRow) {
+    if (rawToken.split(".").length === 3) {
+      return await authenticateSupabaseOAuthToken(adminClient, rawToken, requiredScopes);
+    }
+    throw new HttpError(401, "tok_connect_token_invalid");
+  }
+  if (tokenRow.revoked_at) throw new HttpError(401, "tok_connect_token_invalid");
   if (new Date(tokenRow.expires_at).getTime() <= Date.now()) {
     throw new HttpError(401, "tok_connect_token_expired");
   }
@@ -198,7 +306,11 @@ export async function authenticateTokConnectToken(
   } catch {
     throw new HttpError(401, "tok_connect_token_scope_revoked");
   }
-  assertTokConnectScopes(scopes, requiredScopes);
+  try {
+    assertTokConnectScopes(scopes, requiredScopes);
+  } catch {
+    throw new HttpError(403, `tok_connect_scope_required:${requiredScopes.join(",")}`);
+  }
 
   await adminClient
     .from("tok_connect_access_tokens")
@@ -222,6 +334,9 @@ export async function authenticateTokConnectToken(
       "tok_connect_partner_quota_per_minute",
       600,
     ),
+    authMode: "legacy_partner_token",
+    userId: null,
+    oauthClientId: null,
   };
 }
 
@@ -241,9 +356,9 @@ export async function recordTokConnectApiRequest(input: {
 
   try {
     await adminClient.from("tok_connect_api_requests").insert({
-      partner_id: input.context?.partnerId || null,
-      client_id: input.context?.clientUuid || null,
-      access_token_id: input.context?.tokenId || null,
+      partner_id: input.context?.authMode === "supabase_oauth" ? null : input.context?.partnerId || null,
+      client_id: input.context?.authMode === "supabase_oauth" ? null : input.context?.clientUuid || null,
+      access_token_id: input.context?.authMode === "supabase_oauth" ? null : input.context?.tokenId || null,
       restaurant_id: input.restaurantId || null,
       request_id: input.requestId,
       method: input.request.method,
@@ -265,6 +380,9 @@ export async function enqueueTokConnectWebhookDeliveries(input: {
   eventType: string;
   payload: Record<string, unknown>;
 }) {
+  if (input.context.authMode === "supabase_oauth") {
+    throw new HttpError(403, "tok_connect_partner_token_required");
+  }
   const { data: endpoints, error } = await input.context.adminClient
     .from("tok_connect_webhook_endpoints")
     .select("id, signing_secret, events")

@@ -93,6 +93,14 @@
   ],
   "rewrites": [
     {
+      "source": "/mcp",
+      "destination": "https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1/tok-connect-mcp"
+    },
+    {
+      "source": "/.well-known/oauth-protected-resource",
+      "destination": "https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1/tok-connect-mcp?tok_connect_route=protected-resource"
+    },
+    {
       "source": "/functions/v1/:path*",
       "destination": "https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1/:path*"
     },
