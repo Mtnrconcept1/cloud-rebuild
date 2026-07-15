@@ -236,7 +236,7 @@ export function derivePaymentAttemptUuid(paymentAttemptId: string, discriminator
 export function buildPaymentAttemptReference(prefix: string, paymentAttemptId: string) {
   const normalized = normalizePaymentAttemptId(paymentAttemptId);
   if (!normalized) throw new Error("Identifiant de tentative de paiement invalide.");
-  return `${prefix}-${normalized.replaceAll("-", "").slice(0, 12).toUpperCase()}`;
+  return `${prefix}-${normalized.replace(/-/g, "").slice(0, 12).toUpperCase()}`;
 }
 
 export function getOrCreatePaymentAttemptId(
