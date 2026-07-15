@@ -79,7 +79,7 @@ describe("Miamz business logic guards", () => {
 
   it("exposes active Miamz actions and operational priority badges in the UI", () => {
     expect(loyaltyStatusSource).toContain("claim_miamz_birthday_bonus");
-    expect(loyaltyStatusSource).toContain("Reclamer mon bonus");
+    expect(loyaltyStatusSource).toContain("Réclamer mon bonus");
     expect(loyaltyStatusSource).toContain("from-pink-500 to-orange-500");
     expect(reservationQueueSource).toContain("getReservationMiamzPriority");
     expect(reservationQueueSource).toContain("Priorite Miamz");
