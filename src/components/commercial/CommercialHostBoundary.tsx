@@ -2,6 +2,7 @@ import { useEffect, useRef, type ReactNode } from "react";
 import { useLocation } from "react-router-dom";
 
 import { getSupabase } from "@/integrations/supabase/client";
+import { useCommercialDemoAccount } from "@/hooks/useCommercialDemoAccount";
 import { useAuth } from "@/lib/auth-context";
 import {
   buildSanitizedAuthRedirectUrl,
@@ -37,6 +38,24 @@ export default function CommercialHostBoundary({ children }: { children: ReactNo
   const { user, loading, role, roles } = useAuth();
   const redirectStartedRef = useRef(false);
   const browserLocation = typeof window !== "undefined" ? window.location : null;
+  const accountType = typeof user?.app_metadata?.account_type === "string"
+    ? user.app_metadata.account_type
+    : null;
+  const shouldResolveAdminCommercialMapping = Boolean(
+    user
+    && roles.includes("admin")
+    && roles.includes("commercial")
+    && accountType?.trim().toLowerCase() !== "commercial_demo",
+  );
+  const demoAccount = useCommercialDemoAccount({
+    enabled: shouldResolveAdminCommercialMapping,
+  });
+  // The ambiguous admin+commercial combination stays fail-closed if its
+  // durable mapping cannot be checked. Ordinary admins skip this query.
+  const hasCommercialDemoMapping = Boolean(
+    demoAccount.account
+    || (shouldResolveAdminCommercialMapping && demoAccount.error),
+  );
   let redirectTarget: string | null = null;
 
   if (browserLocation) {
@@ -53,10 +72,12 @@ export default function CommercialHostBoundary({ children }: { children: ReactNo
       pathname: safeLocation.pathname,
       search: safeLocation.search,
       hash: safeLocation.hash,
-      authResolved: !loading,
+      authResolved: !loading && !demoAccount.loading,
       isAuthenticated: Boolean(user),
       activeRole: role,
       roles,
+      accountType,
+      hasCommercialDemoMapping,
     });
   }
 
@@ -75,11 +96,19 @@ export default function CommercialHostBoundary({ children }: { children: ReactNo
     && browserLocation
     && user
     && redirectIsCrossOrigin
-    && isManagedCommercialAccount(roles),
+    && isManagedCommercialAccount(
+      roles,
+      accountType,
+      hasCommercialDemoMapping,
+    ),
   );
   const currentPath = browserLocation?.pathname.toLowerCase() || "";
   const isAuthRoute = currentPath === "/auth" || currentPath === "/auth/callback";
-  const shouldWaitForRoleResolution = Boolean(browserLocation && loading && !isAuthRoute);
+  const shouldWaitForRoleResolution = Boolean(
+    browserLocation
+    && (loading || demoAccount.loading)
+    && !isAuthRoute,
+  );
 
   useEffect(() => {
     if (!shouldRedirect || !redirectTarget || redirectStartedRef.current) return;
