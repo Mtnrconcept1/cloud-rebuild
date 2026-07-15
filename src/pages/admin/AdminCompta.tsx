@@ -34,11 +34,15 @@ type AdminCommercialCommissionSummary = {
   period?: { start?: string; end?: string };
   total_commission_chf?: number;
   signed_restaurants_count?: number;
+  pending_count?: number;
+  pending_commission_chf?: number;
   commercials?: Array<{
     commercial_user_id?: string;
     commercial_name?: string;
     signatures_count?: number;
     commission_chf?: number;
+    pending_count?: number;
+    pending_commission_chf?: number;
   }>;
 };
 
@@ -169,9 +173,9 @@ export default function AdminCompta() {
       tone: "orange",
     },
     {
-      label: "Commissions de signature générées",
+      label: "Commissions de signature acquises",
       amount: selectedRestaurant === "all" ? toAmount(commercialCommissionsQuery.data?.total_commission_chf) : 0,
-      helper: `${toAmount(commercialCommissionsQuery.data?.signed_restaurants_count)} restaurant(s) signé(s), calcul serveur selon le régime défini par l’admin.`,
+      helper: `${toAmount(commercialCommissionsQuery.data?.signed_restaurants_count)} commission(s) acquise(s) après paiement · ${toAmount(commercialCommissionsQuery.data?.pending_count)} en attente (${formatAmount(toAmount(commercialCommissionsQuery.data?.pending_commission_chf))}).`,
       tone: "amber",
     },
     {
@@ -621,12 +625,12 @@ export default function AdminCompta() {
             <AccountingPanel
               tone="amber"
               icon={HandCoins}
-              title="Commissions commerciales générées"
-              description="Chaque restaurant signé crée immédiatement une commission calculée côté serveur selon le régime choisi par l’admin."
+              title="Commissions commerciales acquises"
+              description="Une signature reste en attente jusqu’au paiement de la facture d’abonnement. Elle rejoint les montants acquis uniquement après confirmation du paiement."
               value={commercialCommissionsQuery.isLoading
                 ? "Calcul…"
                 : formatAmount(toAmount(commercialCommissionsQuery.data?.total_commission_chf))}
-              valueLabel={`${toAmount(commercialCommissionsQuery.data?.signed_restaurants_count)} restaurant(s) signé(s)`}
+              valueLabel={`${toAmount(commercialCommissionsQuery.data?.signed_restaurants_count)} acquise(s) · ${toAmount(commercialCommissionsQuery.data?.pending_count)} en attente`}
             >
               {commercialCommissionsQuery.error ? (
                 <p className="text-sm text-destructive">Impossible de charger les commissions commerciales du mois.</p>
@@ -637,12 +641,12 @@ export default function AdminCompta() {
                     ? (commercialCommissionsQuery.data?.commercials || []).map((commercial) => ({
                       label: commercial.commercial_name || "Commercial TOK",
                       value: formatAmount(toAmount(commercial.commission_chf)),
-                      helper: `${toAmount(commercial.signatures_count)} signature(s) sur la période.`,
+                      helper: `${toAmount(commercial.signatures_count)} commission(s) acquise(s) · ${toAmount(commercial.pending_count)} en attente (${formatAmount(toAmount(commercial.pending_commission_chf))}).`,
                     }))
                     : [{
-                      label: "Signatures du mois",
+                      label: "Commissions du mois",
                       value: formatAmount(0),
-                      helper: "Aucune commission de signature générée sur cette période.",
+                      helper: "Aucune commission de signature acquise ou en attente sur cette période.",
                     }]}
                 />
               )}
