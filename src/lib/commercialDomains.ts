@@ -15,6 +15,8 @@ type CommercialHostRedirectInput = {
   isAuthenticated?: boolean;
   activeRole?: UserRole | null;
   roles?: readonly UserRole[];
+  accountType?: string | null;
+  hasCommercialDemoMapping?: boolean;
 };
 
 const LOCAL_APP_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
@@ -129,10 +131,21 @@ export function isCommercialNamespacePath(pathname: string | null | undefined) {
   return path === "/commercial" || path.startsWith("/commercial/");
 }
 
-export function isManagedCommercialAccount(roles: readonly UserRole[] = []) {
-  // Extra role assignments must never reopen the production application for
-  // a managed commercial identity, including an accidental admin assignment.
-  return roles.includes("commercial");
+export function isManagedCommercialAccount(
+  roles: readonly UserRole[] = [],
+  accountType: string | null | undefined = null,
+  hasCommercialDemoMapping = false,
+) {
+  // Durable server-managed markers always win, including when support grants
+  // an admin role. An unmarked administrator may legitimately carry every
+  // operational role and must retain access to the production back-office.
+  const isMarkedCommercialDemo = String(accountType || "")
+    .trim()
+    .toLowerCase() === "commercial_demo";
+
+  return hasCommercialDemoMapping
+    || isMarkedCommercialDemo
+    || (roles.includes("commercial") && !roles.includes("admin"));
 }
 
 export function canOperateCommercialDemoHost(roles: readonly UserRole[] = []) {
@@ -227,6 +240,8 @@ export function getCommercialHostRedirectTarget({
   isAuthenticated = false,
   activeRole = null,
   roles = [],
+  accountType = null,
+  hasCommercialDemoMapping = false,
 }: CommercialHostRedirectInput) {
   if (isLocalAppHost(hostname)) return null;
 
@@ -234,7 +249,11 @@ export function getCommercialHostRedirectTarget({
   const targetPath = withoutCrossOriginAuthSecrets(path, search, hash);
   const isAllowedCommercialPath = isCommercialHostPathAllowed(path);
   const isCommercialNamespace = isCommercialNamespacePath(path);
-  const isManagedCommercial = isManagedCommercialAccount(roles);
+  const isManagedCommercial = isManagedCommercialAccount(
+    roles,
+    accountType,
+    hasCommercialDemoMapping,
+  );
   const canOperateHost = canOperateCommercialDemoHost(roles);
 
   if (isCommercialAppHost(hostname)) {
