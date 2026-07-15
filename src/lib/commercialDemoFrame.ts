@@ -27,6 +27,13 @@ export type CommercialDemoFrameEscapeMessage = {
   surface: CommercialDemoFrameSurface;
 };
 
+export type CommercialDemoFrameNavigateMessage = {
+  type: "commercial-demo:navigate";
+  sessionId: string;
+  surface: CommercialDemoFrameSurface;
+  path: string;
+};
+
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const FRAME_PATH_PATTERN = /^\/commercial\/demo-live\/frame\/(client|restaurant|courier|commercial)\/([^/]+)(?=\/|$)/i;
 
@@ -153,4 +160,21 @@ export function isCommercialDemoFrameEscapeMessage(value: unknown): value is Com
       || record.surface === "courier"
       || record.surface === "commercial"
     );
+}
+
+export function isCommercialDemoFrameNavigateMessage(value: unknown): value is CommercialDemoFrameNavigateMessage {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const record = value as Record<string, unknown>;
+  return record.type === "commercial-demo:navigate"
+    && typeof record.sessionId === "string"
+    && UUID_PATTERN.test(record.sessionId)
+    && (
+      record.surface === "client"
+      || record.surface === "restaurant"
+      || record.surface === "courier"
+      || record.surface === "commercial"
+    )
+    && typeof record.path === "string"
+    && record.path.startsWith("/")
+    && !record.path.startsWith("//");
 }
