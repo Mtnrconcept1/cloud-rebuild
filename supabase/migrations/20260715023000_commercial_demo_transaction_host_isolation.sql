@@ -792,8 +792,35 @@ BEGIN
       AND p.prosecdef
       AND l.lanname = 'sql'
       AND p.proname = ANY (ARRAY[
+        'apply_checkout_benefits',
+        'apply_reservation_loyalty_points',
+        'cancel_order_by_customer',
+        'cancel_order_by_restaurant',
+        'cancel_reservation_by_customer',
+        'cancel_reservation_by_restaurant',
+        'create_match_group',
+        'create_order_with_items',
+        'get_customer_orders_dashboard',
         'get_match_group_public_feed',
-        'get_social_feed_premium_banners'
+        'get_order_customers',
+        'get_payout_invoice_lines',
+        'get_reservation_customers',
+        'get_reservation_fee_invoice_lines',
+        'get_restaurant_orders_dashboard',
+        'get_restaurant_payment_history',
+        'get_restaurant_performance',
+        'get_restaurant_reservation_slot_availability',
+        'get_restaurant_subscription_self_service_state',
+        'get_social_feed_premium_banners',
+        'mark_order_seen_by_restaurant',
+        'restaurant_actualites_subscription_plan',
+        'search_restaurants_catalog',
+        'signup_restaurateur_onboarding_payment_ready',
+        'track_order_event',
+        'update_restaurant_reservation_status_safe',
+        'upsert_match_group_member_order',
+        'validate_and_create_reservation',
+        'validate_and_create_reservation_safe'
       ]::name[])
   LOOP
     v_definition := pg_catalog.pg_get_functiondef(v_proc.oid);
@@ -844,6 +871,65 @@ BEGIN
   END IF;
 END
 $commercial_demo_sensitive_rpc_revoke$;
+
+-- Do not silently deploy when a protected authenticated SECURITY DEFINER RPC
+-- used an unexpected language/body shape and could not receive the guard.
+DO $commercial_demo_rpc_guard_assertion$
+DECLARE
+  v_proc record;
+  v_definition text;
+BEGIN
+  FOR v_proc IN
+    SELECT p.oid, p.oid::regprocedure AS identity
+    FROM pg_catalog.pg_proc AS p
+    JOIN pg_catalog.pg_namespace AS n
+      ON n.oid = p.pronamespace
+    WHERE n.nspname = 'public'
+      AND p.prosecdef
+      AND has_function_privilege('authenticated', p.oid, 'EXECUTE')
+      AND p.proname = ANY (ARRAY[
+        'apply_checkout_benefits',
+        'apply_reservation_loyalty_points',
+        'cancel_order_by_customer',
+        'cancel_order_by_restaurant',
+        'cancel_reservation_by_customer',
+        'cancel_reservation_by_restaurant',
+        'create_match_group',
+        'create_order_with_items',
+        'get_customer_orders_dashboard',
+        'get_match_group_public_feed',
+        'get_order_customers',
+        'get_payout_invoice_lines',
+        'get_reservation_customers',
+        'get_reservation_fee_invoice_lines',
+        'get_restaurant_orders_dashboard',
+        'get_restaurant_payment_history',
+        'get_restaurant_performance',
+        'get_restaurant_reservation_slot_availability',
+        'get_restaurant_subscription_self_service_state',
+        'get_social_feed_premium_banners',
+        'mark_order_seen_by_restaurant',
+        'restaurant_actualites_subscription_plan',
+        'search_restaurants_catalog',
+        'signup_restaurateur_onboarding_payment_ready',
+        'track_order_event',
+        'update_restaurant_reservation_status_safe',
+        'upsert_match_group_member_order',
+        'validate_and_create_reservation',
+        'validate_and_create_reservation_safe'
+      ]::name[])
+  LOOP
+    v_definition := pg_catalog.pg_get_functiondef(v_proc.oid);
+    IF position('COMMERCIAL_DEMO_PRODUCTION_RPC_BLOCKED' IN v_definition) = 0
+       AND position('assert_commercial_demo_production_rpc_allowed' IN v_definition) = 0 THEN
+      RAISE EXCEPTION
+        'COMMERCIAL_DEMO_RPC_GUARD_MISSING: % remains executable by authenticated',
+        v_proc.identity
+        USING ERRCODE = '42501';
+    END IF;
+  END LOOP;
+END
+$commercial_demo_rpc_guard_assertion$;
 
 COMMENT ON FUNCTION public.commercial_demo_user_is_restricted(uuid) IS
   'Internal fail-closed predicate for any commercial role, durable mapping, or commercial_demo Auth identity.';
