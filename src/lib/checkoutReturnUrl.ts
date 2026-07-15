@@ -1,3 +1,5 @@
+import { appendPaymentAttemptToUrl } from "./paymentAttempt";
+
 const ALLOWED_CHECKOUT_RETURN_HOSTS = new Set([
   "thetok.ch",
   "www.thetok.ch",
@@ -8,6 +10,7 @@ const LOCAL_CHECKOUT_RETURN_HOSTS = new Set(["localhost", "127.0.0.1"]);
 
 type CheckoutReturnUrlOptions = {
   origin?: string;
+  paymentAttemptId?: string | null;
 };
 
 function getCurrentOrigin() {
@@ -41,7 +44,10 @@ export function buildCheckoutReturnUrl(pathOrUrl: string, options: CheckoutRetur
     throw new Error("URL de retour invalide");
   }
 
-  return returnUrl.toString();
+  const trustedReturnUrl = returnUrl.toString();
+  return options.paymentAttemptId
+    ? appendPaymentAttemptToUrl(trustedReturnUrl, options.paymentAttemptId)
+    : trustedReturnUrl;
 }
 
 export function buildCurrentCheckoutReturnUrl(options: CheckoutReturnUrlOptions = {}) {

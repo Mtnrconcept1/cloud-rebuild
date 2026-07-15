@@ -146,6 +146,7 @@ export async function finalizeZeroAttenteCheckout(input: {
   billingPhone?: string | null;
   log?: LoggerLike;
   shouldDispatchNotifications?: boolean;
+  stripeEventId?: string | null;
   fetchLineItems: () => Promise<Stripe.ApiList<Stripe.LineItem>>;
 }): Promise<FinalizedZeroAttenteCheckout> {
   const {
@@ -157,6 +158,7 @@ export async function finalizeZeroAttenteCheckout(input: {
     billingPhone = null,
     log,
     shouldDispatchNotifications = true,
+    stripeEventId = null,
     fetchLineItems,
   } = input;
 
@@ -310,6 +312,9 @@ export async function finalizeZeroAttenteCheckout(input: {
       : session.payment_intent?.id || null,
     amount: total,
     currency: (session.currency || "chf").toLowerCase(),
+    stripeMode: String(session.metadata?.stripe_mode || "").toLowerCase() === "test" ? "test" : "live",
+    paymentAttemptId: String(session.metadata?.payment_attempt_id || "") || null,
+    stripeEventId,
     reservationId,
     metadata: {
       reservation_id: reservationId,

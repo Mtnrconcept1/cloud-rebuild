@@ -14,7 +14,6 @@ import FormulaDetector from "@/components/FormulaDetector";
 import PromotionDetector from "@/components/PromotionDetector";
 import PromoCodeInput from "@/components/PromoCodeInput";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { generateOrderReference } from "@/lib/email-service";
 import AddressAutocomplete, { type AddressSelection } from "@/components/AddressAutocomplete";
 import { trackSponsoredConversion, trackEvent, trackCheckoutEvent } from "@/lib/analytics";
 import {
@@ -39,8 +38,24 @@ import {
   getGloballyEnabledPaymentMethods,
   type PaymentMethodId,
 } from "@/lib/paymentMethods";
-import { writePendingOrderCheckoutSessionId } from "@/lib/orderConfirmation";
+import {
+  ORDER_PAYMENT_ATTEMPT_SCOPE,
+  writePendingOrderCheckoutSessionId,
+} from "@/lib/orderConfirmation";
 import { buildCheckoutReturnUrl } from "@/lib/checkoutReturnUrl";
+import {
+  buildPaymentAttemptReference,
+  clearPaymentAttemptId,
+  createCheckoutWithRecovery,
+  createPaymentAttemptOperationKey,
+  derivePaymentAttemptUuid,
+  getOrCreatePaymentAttemptId,
+  isPaymentAttemptIndeterminateError,
+  isPaymentAttemptRecoverableError,
+  markPaymentAttemptRedirected,
+  type CheckoutSessionResolution,
+} from "@/lib/paymentAttempt";
+import { usePaymentAttemptBackCancellation } from "@/lib/usePaymentAttemptBackCancellation";
 import { redirectToTrustedCheckoutUrl } from "@/lib/securityUrls";
 import {
   TOK_ONE_DEFAULT_DISCOUNT_PERCENT,
@@ -84,7 +99,11 @@ type ValidateOrderFunctionResponse = {
 type CreateCheckoutFunctionResponse = {
   error?: string | null;
   url?: string | null;
+  sessionId?: string | null;
   session_id?: string | null;
+  payment_attempt_id?: string | null;
+  reused?: boolean;
+  state?: string | null;
 };
 
 const CHECKOUT_STEPS: Array<{ id: CheckoutStepId; label: string; description: string }> = [
@@ -190,6 +209,32 @@ export default function Panier() {
   );
   const [checkoutStep, setCheckoutStep] = useState<CheckoutStepId>("summary");
   const lastDiscount = useRef({ amount: 0, name: null as string | null });
+  const checkoutLockRef = useRef(false);
+
+  usePaymentAttemptBackCancellation({
+    scope: ORDER_PAYMENT_ATTEMPT_SCOPE,
+    enabled: !isCommercialDemoClient,
+    onCancelled: () => {
+      setLoading(false);
+      writePendingOrderCheckoutSessionId(null);
+      toast({
+        title: "Paiement interrompu",
+        description: "La session Stripe et le stock réservé ont été libérés après votre retour au panier.",
+      });
+    },
+    onError: () => {
+      setLoading(false);
+      toast({
+        title: "Paiement en cours de vérification",
+        description: "Ne créez pas une nouvelle commande : relancez le paiement pour reprendre la même tentative.",
+        variant: "destructive",
+      });
+    },
+  });
+  usePaymentAttemptBackCancellation({
+    scope: "chefs-table-checkout",
+    enabled: !isCommercialDemoClient,
+  });
 
   const { isMember: isTokOneMember, subscription: tokOneSubscription } = useIsTokOneMember({
     enabled: !isCommercialDemoClient,
@@ -766,7 +811,11 @@ export default function Panier() {
   };
 
   const handleCheckout = () => {
-    void processCheckout();
+    if (checkoutLockRef.current) return;
+    checkoutLockRef.current = true;
+    void processCheckout().finally(() => {
+      checkoutLockRef.current = false;
+    });
   };
 
   const processCheckout = async () => {
@@ -870,42 +919,76 @@ export default function Panier() {
           });
         }
 
-        const { data: checkoutData, error: checkoutError } = await withTimeout(
-          invokeSupabaseFunction<CreateCheckoutFunctionResponse>("create-checkout", {
-            accessToken,
-            body: {
-              checkout_kind: "chefs-table",
-              items: chefsTableItems.map((item) => ({
-                name: item.name,
-                price: item.price,
-                quantity: item.quantity,
-                restaurant_name: item.restaurantName,
-                restaurant_id: item.restaurantId,
-                menu_item_id: item.menuItemId,
-                metadata: item.metadata || {},
-              })),
-              payment_method: paymentMethod,
-              return_url: buildCheckoutReturnUrl("/chefs-table"),
-              order_metadata: {
-                checkout_kind: "chefs-table",
-                restaurant_id: restaurantId,
-                order_reference: `CT-${Date.now()}`,
-                checkout_group_id: crypto.randomUUID(),
-                pre_discount_subtotal: total,
-                authoritative_total: finalTotal,
-                party_size: chefsTablePartySize,
-              },
-            },
-          }),
-          CHECKOUT_TIMEOUT_MS,
-          "La creation de la session de paiement prend trop de temps. Reessayez dans quelques instants.",
+        const paymentAttemptOperationKey = createPaymentAttemptOperationKey({
+          userId: user.id,
+          checkoutKind: "chefs-table",
+          restaurantId,
+          paymentMethod,
+          partySize: chefsTablePartySize,
+          items: chefsTableItems.map((item) => ({
+            id: item.menuItemId,
+            quantity: item.quantity,
+            price: item.price,
+          })),
+          total: finalTotal,
+        });
+        const paymentAttemptId = getOrCreatePaymentAttemptId(
+          "chefs-table-checkout",
+          paymentAttemptOperationKey,
         );
+        const checkoutPayload = {
+          payment_attempt_id: paymentAttemptId,
+          checkout_kind: "chefs-table",
+          items: chefsTableItems.map((item) => ({
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            restaurant_name: item.restaurantName,
+            restaurant_id: item.restaurantId,
+            menu_item_id: item.menuItemId,
+            metadata: item.metadata || {},
+          })),
+          payment_method: paymentMethod,
+          return_url: buildCheckoutReturnUrl("/chefs-table", { paymentAttemptId }),
+          order_metadata: {
+            payment_attempt_id: paymentAttemptId,
+            checkout_kind: "chefs-table",
+            restaurant_id: restaurantId,
+            order_reference: buildPaymentAttemptReference("CT", paymentAttemptId),
+            checkout_group_id: paymentAttemptId,
+            pre_discount_subtotal: total,
+            authoritative_total: finalTotal,
+            party_size: chefsTablePartySize,
+          },
+        };
+        const checkout = await createCheckoutWithRecovery({
+          paymentAttemptId,
+          timeoutMs: CHECKOUT_TIMEOUT_MS,
+          create: async () => {
+            const { data, error } = await invokeSupabaseFunction<CreateCheckoutFunctionResponse>("create-checkout", {
+              accessToken,
+              body: checkoutPayload,
+            });
+            if (error) throw error;
+            if (data?.error) throw new Error(data.error);
+            return data;
+          },
+          getStatus: async () => {
+            const { data, error } = await invokeSupabaseFunction("payment-attempt-status", {
+              accessToken,
+              body: { payment_attempt_id: paymentAttemptId },
+            });
+            if (error) throw error;
+            return data;
+          },
+        });
 
-        if (checkoutError) throw new Error(checkoutError.message);
-        if (checkoutData?.error) throw new Error(checkoutData.error);
-        if (!checkoutData?.url) throw new Error("Impossible de lancer le paiement La Table du Chef.");
+        if (!checkout.url) {
+          throw new Error("Le paiement est enregistré, mais sa page Stripe n'est pas encore disponible. Relancez la vérification.");
+        }
 
-        redirectToTrustedCheckoutUrl(checkoutData.url);
+        markPaymentAttemptRedirected("chefs-table-checkout", paymentAttemptId);
+        redirectToTrustedCheckoutUrl(checkout.url);
         return;
       }
 
@@ -1018,12 +1101,51 @@ export default function Panier() {
         return { groupKey, resId, resItems, realItems, qualityFeeItem, resSubtotal };
       }).filter((group) => group.realItems.length > 0);
       const resCount = orderGroups.length;
-      const checkoutGroupId = crypto.randomUUID();
+      const paymentAttemptOperationKey = createPaymentAttemptOperationKey({
+        userId: user.id,
+        restaurantId,
+        items: items
+          .map((item) => ({
+            id: item.menuItemId,
+            restaurantId: item.restaurantId,
+            quantity: item.quantity,
+            price: item.price,
+            metadata: item.metadata || {},
+          }))
+          .sort((left, right) => `${left.restaurantId}:${left.id}`.localeCompare(`${right.restaurantId}:${right.id}`)),
+        paymentMethod,
+        orderMode,
+        address: checkoutDeliveryAddress.trim(),
+        deliveryCity: checkoutDeliveryCity,
+        deliveryLat: checkoutDeliveryLat,
+        deliveryLng: checkoutDeliveryLng,
+        deliveryScheduleMode,
+        deliveryDate,
+        deliveryTime,
+        pickupDate,
+        pickupTime,
+        notes: notes.trim(),
+        flexOption,
+        promoCodeId,
+        pointsToRedeem,
+        discounts: {
+          formulaDiscount,
+          promotionDiscount: effectivePromoDiscount,
+          tokOneDiscount,
+          pointsDiscount,
+          flexDiscount,
+        },
+      });
+      const paymentAttemptId = getOrCreatePaymentAttemptId(
+        ORDER_PAYMENT_ATTEMPT_SCOPE,
+        paymentAttemptOperationKey,
+      );
+      const checkoutGroupId = paymentAttemptId;
       let firstOrderId: string | null = null;
       let checkoutBenefitsOrderId: string | null = null;
       let checkoutBenefitsPromoCodeId: string | null = null;
       let checkoutBenefitsPromoDiscount = 0;
-      const orderReference = generateOrderReference();
+      const orderReference = buildPaymentAttemptReference("CMD", paymentAttemptId);
       const allocateAcrossGroups = (totalDiscount: number) => {
         const baseTotal = orderGroups.reduce((sum, group) => sum + group.resSubtotal, 0);
         let remaining = Math.round(totalDiscount * 100) / 100;
@@ -1065,6 +1187,7 @@ export default function Panier() {
         tokOneDiscountByRestaurant,
         pointsDiscountByRestaurant,
         flexDiscountByRestaurant,
+        paymentAttemptId,
       ));
       const previewResults = await Promise.all(validationPayloads.map(async ({ resId, body }) => {
         const { data, error } = await withTimeout(
@@ -1101,7 +1224,7 @@ export default function Panier() {
           });
         }
 
-        const pendingOrderResults = await Promise.all(validationPayloads.map(async ({ resId, body }) => {
+        const pendingOrderSettlements = await Promise.allSettled(validationPayloads.map(async ({ resId, body }) => {
           const { data: validateResult, error: validateError } = await withTimeout(
             invokeSupabaseFunction<ValidateOrderFunctionResponse>("validate-order", {
               accessToken,
@@ -1118,102 +1241,160 @@ export default function Panier() {
             "La préparation de votre commande prend trop de temps. Reessayez dans quelques instants.",
           );
 
-          if (validateError) throw new Error(validateError.message);
-          if (validateResult?.error) throw new Error(validateResult.error);
+          if (validateError) throw validateError;
+          if (validateResult?.error) {
+            throw Object.assign(new Error(validateResult.error), { status: 422 });
+          }
           return { resId, orderId: validateResult?.order_id || null };
         }));
 
-        firstOrderId = pendingOrderResults.find((result) => result.orderId)?.orderId || null;
+        const pendingOrderResults = pendingOrderSettlements
+          .filter((result): result is PromiseFulfilledResult<{ resId: string; orderId: string | null }> => result.status === "fulfilled")
+          .map((result) => result.value);
         const pendingOrderIds = pendingOrderResults
           .map((result) => result.orderId)
           .filter((orderId): orderId is string => Boolean(orderId));
-        const compensatePendingCheckout = async (reason: string) => {
-          if (pendingOrderIds.length === 0) return;
+        const cancelDefinitivePreStripeAttempt = async (reason: string) => {
+          try {
+            const { error } = await invokeSupabaseFunction("cancel-payment-attempt", {
+              accessToken,
+              body: { payment_attempt_id: paymentAttemptId, reason },
+            });
+            if (error) throw error;
+          } catch (cancellationError) {
+            console.error("Payment attempt cancellation failed", cancellationError);
+          }
 
           try {
-            await invokeSupabaseFunction("cancel-pending-order-checkout", {
+            const { error } = await invokeSupabaseFunction("cancel-pending-order-checkout", {
               accessToken,
               body: {
                 order_ids: pendingOrderIds,
                 checkout_group_id: checkoutGroupId,
+                payment_attempt_id: paymentAttemptId,
                 reason,
               },
             });
-          } catch (compensationError) {
-            console.error("Pending checkout compensation failed", compensationError);
+            if (error) throw error;
+          } catch (fallbackError) {
+            console.error("Pending order cancellation fallback failed", fallbackError);
           }
         };
-
-        let checkoutData: Record<string, any> | null = null;
-        try {
-          const { data, error: checkoutError } = await withTimeout(
-            invokeSupabaseFunction<CreateCheckoutFunctionResponse>("create-checkout", {
-              accessToken,
-              body: {
-                items: items.map(i => ({
-                  name: i.name,
-                  price: i.price,
-                  quantity: i.quantity,
-                  restaurant_name: i.restaurantName,
-                  restaurant_id: i.restaurantId,
-                  menu_item_id: i.menuItemId,
-                  metadata: i.metadata || {},
-                })),
-                payment_method: paymentMethod,
-                return_url: buildCheckoutReturnUrl("/commande/confirmation"),
-                order_metadata: {
-                  order_reference: orderReference,
-                  restaurant_id: restaurantId,
-                  delivery_fee: quotedDeliveryFee,
-                  checkout_group_id: checkoutGroupId,
-                  primary_order_id: firstOrderId,
-                  checkout_session_state: "pending",
-                  promo_code_id: promoCodeId,
-                  points_to_redeem: pointsToRedeem,
-                  ...guaranteedDeliveryOrderMetadata,
-                  delivery_address: checkoutDeliveryAddress,
-                  delivery_city: checkoutDeliveryCity,
-                  delivery_lat: checkoutDeliveryLat,
-                  delivery_lng: checkoutDeliveryLng,
-                  formula_discount: formulaDiscount,
-                  formula_discount_amount: formulaDiscount,
-                  promotion_discount_amount: effectivePromoDiscount,
-                  promotion_applied: effectivePromoName,
-                  points_discount: pointsDiscount,
-                  points_discount_amount: pointsDiscount,
-                  flex_discount: flexDiscount,
-                  flex_discount_amount: flexDiscount,
-                  tok_one_discount_amount: tokOneDiscount,
-                  tok_one_discount_percent: tokOneDiscountPercent,
-                  tok_one_member: isTokOneMember,
-                  tok_one_delivery_saved: tokOneDeliverySaved,
-                  flex_option: flexOption,
-                },
-              },
-            }),
-            CHECKOUT_TIMEOUT_MS,
-            "La creation de la session Stripe prend trop de temps. Reessayez dans quelques instants.",
-          );
-
-          if (checkoutError) throw new Error(checkoutError.message);
-          if (data?.error) throw new Error(data.error);
-          if (!data?.url || !data?.session_id) {
-            throw new Error("Impossible de lancer le paiement Stripe pour cette commande.");
+        const pendingOrderFailures = pendingOrderSettlements
+          .filter((result): result is PromiseRejectedResult => result.status === "rejected")
+          .map((result) => result.reason);
+        const definitivePendingOrderFailure = pendingOrderFailures.find(
+          (error) => !isPaymentAttemptRecoverableError(error),
+        );
+        if (pendingOrderFailures.length > 0) {
+          if (definitivePendingOrderFailure) {
+            await cancelDefinitivePreStripeAttempt(
+              definitivePendingOrderFailure instanceof Error
+                ? definitivePendingOrderFailure.message
+                : "Préparation de commande refusée avant Stripe",
+            );
           }
-          checkoutData = data;
-        } catch (checkoutFailure: any) {
-          await compensatePendingCheckout(checkoutFailure?.message || "Echec creation session Stripe");
-          throw checkoutFailure;
-        }
-        if (!checkoutData) {
-          throw new Error("Impossible de lancer le paiement Stripe pour cette commande.");
+          throw definitivePendingOrderFailure ?? pendingOrderFailures[0];
         }
 
-        writePendingOrderCheckoutSessionId(checkoutData.session_id);
+        firstOrderId = pendingOrderResults.find((result) => result.orderId)?.orderId || null;
+        const checkoutPayload = {
+          payment_attempt_id: paymentAttemptId,
+          items: items.map(i => ({
+            name: i.name,
+            price: i.price,
+            quantity: i.quantity,
+            restaurant_name: i.restaurantName,
+            restaurant_id: i.restaurantId,
+            menu_item_id: i.menuItemId,
+            metadata: i.metadata || {},
+          })),
+          payment_method: paymentMethod,
+          return_url: buildCheckoutReturnUrl("/commande/confirmation", { paymentAttemptId }),
+          order_metadata: {
+            payment_attempt_id: paymentAttemptId,
+            order_reference: orderReference,
+            restaurant_id: restaurantId,
+            delivery_fee: quotedDeliveryFee,
+            checkout_group_id: checkoutGroupId,
+            primary_order_id: firstOrderId,
+            checkout_session_state: "pending",
+            promo_code_id: promoCodeId,
+            points_to_redeem: pointsToRedeem,
+            ...guaranteedDeliveryOrderMetadata,
+            delivery_address: checkoutDeliveryAddress,
+            delivery_city: checkoutDeliveryCity,
+            delivery_lat: checkoutDeliveryLat,
+            delivery_lng: checkoutDeliveryLng,
+            formula_discount: formulaDiscount,
+            formula_discount_amount: formulaDiscount,
+            promotion_discount_amount: effectivePromoDiscount,
+            promotion_applied: effectivePromoName,
+            points_discount: pointsDiscount,
+            points_discount_amount: pointsDiscount,
+            flex_discount: flexDiscount,
+            flex_discount_amount: flexDiscount,
+            tok_one_discount_amount: tokOneDiscount,
+            tok_one_discount_percent: tokOneDiscountPercent,
+            tok_one_member: isTokOneMember,
+            tok_one_delivery_saved: tokOneDeliverySaved,
+            flex_option: flexOption,
+          },
+        };
+        let checkout: CheckoutSessionResolution;
+        try {
+          checkout = await createCheckoutWithRecovery({
+            paymentAttemptId,
+            timeoutMs: CHECKOUT_TIMEOUT_MS,
+            create: async () => {
+              const { data, error } = await invokeSupabaseFunction<CreateCheckoutFunctionResponse>("create-checkout", {
+                accessToken,
+                body: checkoutPayload,
+              });
+              if (error) throw error;
+              if (data?.error) throw Object.assign(new Error(data.error), { status: 422 });
+              return data;
+            },
+            getStatus: async () => {
+              const { data, error } = await invokeSupabaseFunction("payment-attempt-status", {
+                accessToken,
+                body: { payment_attempt_id: paymentAttemptId },
+              });
+              if (error) throw error;
+              return data;
+            },
+          });
+        } catch (error) {
+          if (!isPaymentAttemptRecoverableError(error)) {
+            await cancelDefinitivePreStripeAttempt(
+              error instanceof Error ? error.message : "Création Stripe refusée",
+            );
+          }
+          throw error;
+        }
+
+        if (!checkout.url || !checkout.sessionId) {
+          const isDefinitiveTerminalFailure = ["failed", "cancelled", "canceled", "expired"]
+            .includes(checkout.state ?? "")
+            || ["failed", "cancelled", "canceled"]
+              .includes(checkout.paymentStatus ?? "");
+          if (isDefinitiveTerminalFailure && !checkout.sessionId) {
+            await cancelDefinitivePreStripeAttempt("Tentative Stripe terminée avant redirection");
+          }
+          throw Object.assign(
+            new Error("Le paiement est enregistré, mais sa page Stripe n'est pas encore disponible. Relancez la vérification."),
+            isDefinitiveTerminalFailure ? { status: 422 } : {},
+          );
+        }
+
+        writePendingOrderCheckoutSessionId(checkout.sessionId);
 
         for (const { resId, orderId } of pendingOrderResults) {
           if (orderId) {
-            void trackCheckoutEvent(orderId, "checkout_online_pending", { stripe_session_id: checkoutData.session_id });
+            void trackCheckoutEvent(orderId, "checkout_online_pending", {
+              payment_attempt_id: paymentAttemptId,
+              stripe_session_id: checkout.sessionId,
+            });
           }
           void trackSponsoredConversion(resId, {
             conversionType: "order",
@@ -1223,7 +1404,8 @@ export default function Panier() {
           });
         }
 
-        redirectToTrustedCheckoutUrl(checkoutData.url);
+        markPaymentAttemptRedirected(ORDER_PAYMENT_ATTEMPT_SCOPE, paymentAttemptId);
+        redirectToTrustedCheckoutUrl(checkout.url);
         return;
       }
 
@@ -1287,6 +1469,7 @@ export default function Panier() {
       }
 
       await new Promise(resolve => setTimeout(resolve, 1500));
+      clearPaymentAttemptId(ORDER_PAYMENT_ATTEMPT_SCOPE, paymentAttemptId);
       clearCart();
       queryClient.invalidateQueries({ queryKey: ["my-orders"] });
       queryClient.invalidateQueries({ queryKey: ["profile-loyalty"] });
@@ -1299,7 +1482,13 @@ export default function Panier() {
       toast({ title: "Commandes confirmées !", description: resCount > 1 ? `Vos ${resCount} commandes ont été synchronisées. Réf: ${orderReference}` : `Votre commande est en cours de préparation. Réf: ${orderReference}` });
       navigate(firstOrderId ? `/commande/${firstOrderId}` : "/commandes");
     } catch (error: any) {
-      toast({ title: "Erreur lors du paiement", description: error.message, variant: "destructive" });
+      toast({
+        title: isPaymentAttemptIndeterminateError(error)
+          ? "Paiement en cours de vérification"
+          : "Erreur lors du paiement",
+        description: error instanceof Error ? error.message : "Impossible de poursuivre le paiement.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -1326,6 +1515,7 @@ export default function Panier() {
       ...cartMetadata,
       ...guaranteedDeliveryOrderMetadata,
       order_reference: orderReference,
+      payment_attempt_id: checkoutGroupId,
       checkout_group_id: checkoutGroupId,
       feature: hasAntiGaspi ? "anti-gaspi" : (isGuaranteedDeliveryCheckout ? "creneaux-garantis" : cartMetadata?.feature),
       has_anti_gaspi: hasAntiGaspi, has_flash_sale: flashItems.length > 0,
@@ -1395,6 +1585,7 @@ export default function Panier() {
     tokOneDiscountByRestaurant: Map<string, number>,
     pointsDiscountByRestaurant: Map<string, number>,
     flexDiscountByRestaurant: Map<string, number>,
+    paymentAttemptId: string,
   ) => {
     const { groupKey, resId, realItems, qualityFeeItem, resSubtotal } = group;
     const resDiscount = restaurantId === resId ? formulaDiscount : 0;
@@ -1405,7 +1596,7 @@ export default function Panier() {
     const resTokOneDeliverySaved = tokOneDeliverySavedByRestaurant.get(groupKey) || 0;
     const resPointsDiscount = pointsDiscountByRestaurant.get(groupKey) || 0;
     const resFlexDiscount = flexDiscountByRestaurant.get(groupKey) || 0;
-    const orderCheckoutId = crypto.randomUUID();
+    const orderCheckoutId = derivePaymentAttemptUuid(paymentAttemptId, `${groupKey}:${index}`);
     const orderRefForRestaurant = resCount > 1 ? `${orderReference}-${index + 1}` : orderReference;
     const clientTotal = resSubtotal
       - resDiscount

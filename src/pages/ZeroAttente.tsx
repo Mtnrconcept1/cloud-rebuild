@@ -34,6 +34,19 @@ import {
 import { readZeroAttenteReservationContext } from "@/lib/zeroAttenteReservationContext";
 import { PUBLIC_MENU_ITEMS_LIMIT } from "@/lib/queryLimits";
 import { invokeSupabaseFunction } from "@/lib/session";
+import {
+  buildPaymentAttemptReference,
+  clearPaymentAttemptId,
+  createCheckoutWithRecovery,
+  createPaymentAttemptOperationKey,
+  getOrCreatePaymentAttemptId,
+  isPaymentAttemptIndeterminateError,
+  markPaymentAttemptRedirected,
+  normalizePaymentAttemptId,
+  readPaymentAttemptId,
+  rememberPaymentAttemptId,
+} from "@/lib/paymentAttempt";
+import { usePaymentAttemptBackCancellation } from "@/lib/usePaymentAttemptBackCancellation";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { getCommercialDemoClientMenuItems, getCommercialDemoClientRestaurants } from "@/lib/commercialDemoClientCatalog";
 import { createCommercialDemoReservation } from "@/lib/commercialDemoJourney";
@@ -61,6 +74,7 @@ type PricingSummary = {
 };
 
 const ZERO_ATTENTE_PENDING_SESSION_KEY = "tok-zero-attente-checkout-session-id";
+const ZERO_ATTENTE_PAYMENT_ATTEMPT_SCOPE = "zero-attente-checkout";
 
 function readPendingZeroAttenteSessionId() {
   if (typeof window === "undefined") return null;
@@ -140,8 +154,13 @@ export default function ZeroAttente() {
   const [confirmedPricing, setConfirmedPricing] = useState<PricingSummary | null>(null);
   const [confirmedReservationDetail, setConfirmedReservationDetail] = useState<ReservationDetail | null>(null);
   const [pendingCheckoutSessionId, setPendingCheckoutSessionId] = useState<string | null>(() => readPendingZeroAttenteSessionId());
+  const [pendingPaymentAttemptId, setPendingPaymentAttemptId] = useState<string | null>(
+    () => readPaymentAttemptId(ZERO_ATTENTE_PAYMENT_ATTEMPT_SCOPE),
+  );
   const attemptedProcessingKeyRef = useRef<string | null>(null);
   const authPromptKeyRef = useRef<string | null>(null);
+  const checkoutLockRef = useRef(false);
+  const cancellingAttemptRef = useRef<string | null>(null);
   const { isMember: isTokOneMember, subscription: tokOneSubscription } = useIsTokOneMember({ enabled: !isCommercialDemoClient });
   const { data: tokOneBenefits } = useTokOneBenefits(tokOneSubscription?.plan_id);
   const { data: profile } = useQuery({
@@ -166,6 +185,28 @@ export default function ZeroAttente() {
       authPromptKeyRef.current = null;
     }
   }, []);
+
+  usePaymentAttemptBackCancellation({
+    scope: ZERO_ATTENTE_PAYMENT_ATTEMPT_SCOPE,
+    enabled: !isCommercialDemoClient,
+    onCancelled: () => {
+      syncPendingCheckoutSessionId(null);
+      setPendingPaymentAttemptId(null);
+      setLoading(false);
+      toast({
+        title: "Paiement interrompu",
+        description: "La session Stripe et la réservation temporaire ont été libérées après votre retour.",
+      });
+    },
+    onError: () => {
+      setLoading(false);
+      toast({
+        title: "Réservation en cours de vérification",
+        description: "Relancez le même paiement afin d'éviter une réservation en double.",
+        variant: "destructive",
+      });
+    },
+  });
 
   const restaurantsQuery = useQuery({
     queryKey: ["restaurants-zero-wait", preSelectedRestaurantId],
@@ -318,7 +359,7 @@ export default function ZeroAttente() {
     [count, subtotal, formulaDiscount, formulaDiscountPercent, formulaName, tokOneDiscount, tokOneDiscountPercent, pointsToRedeem, pointsDiscount, totalAfterDiscount]
   );
 
-  const handlePayAndReserve = async () => {
+  const processPayAndReserve = async () => {
     if (!user) {
       toast({ title: "Connectez-vous", description: "Vous devez être connecté pour réserver.", variant: "destructive" });
       return;
@@ -429,47 +470,89 @@ export default function ZeroAttente() {
         metadata: {},
       }));
 
-      const { data: checkoutData, error: checkoutError } = await invokeSupabaseFunction<{
-        error?: string | null;
-        url?: string | null;
-      }>("create-checkout", {
-        accessToken,
-        body: {
-          checkout_kind: "zero-attente",
-          items: stripeItems,
-          payment_method: paymentMethod,
-          return_url: buildCheckoutReturnUrl("/zero-attente"),
-          order_metadata: {
-            checkout_kind: "zero-attente",
-            restaurant_id: selectedRestaurant.id,
-            order_reference: `ZA-${Date.now()}`,
-            delivery_fee: 0,
-            arrival_date: arrivalDate,
-            arrival_time: arrivalTime,
-            party_size: partySize,
-            formula_applied: pricingForCheckout.formulaName,
-            formula_discount: pricingForCheckout.formulaDiscount,
-            formula_discount_amount: pricingForCheckout.formulaDiscount,
-            formula_discount_percent: pricingForCheckout.formulaDiscountPercent,
-            tok_one_member: isTokOneMember,
-            tok_one_discount_amount: pricingForCheckout.tokOneDiscount,
-            tok_one_discount_percent: pricingForCheckout.tokOneDiscountPercent,
-            points_to_redeem: pricingForCheckout.pointsToRedeem,
-            points_discount: pricingForCheckout.pointsDiscount,
-            points_discount_amount: pricingForCheckout.pointsDiscount,
-            pre_discount_subtotal: pricingForCheckout.subtotal,
-            authoritative_total: pricingForCheckout.total,
-            discount_amount: pricingForCheckout.formulaDiscount + pricingForCheckout.tokOneDiscount + pricingForCheckout.pointsDiscount,
-          },
-        },
+      const paymentAttemptOperationKey = createPaymentAttemptOperationKey({
+        userId: user.id,
+        restaurantId: selectedRestaurant.id,
+        arrivalDate,
+        arrivalTime,
+        partySize,
+        paymentMethod,
+        preorderItems,
+        pricing: pricingForCheckout,
       });
+      const paymentAttemptId = getOrCreatePaymentAttemptId(
+        ZERO_ATTENTE_PAYMENT_ATTEMPT_SCOPE,
+        paymentAttemptOperationKey,
+      );
+      setPendingPaymentAttemptId(paymentAttemptId);
+      const checkoutPayload = {
+        payment_attempt_id: paymentAttemptId,
+        checkout_kind: "zero-attente",
+        items: stripeItems,
+        payment_method: paymentMethod,
+        return_url: buildCheckoutReturnUrl("/zero-attente", { paymentAttemptId }),
+        order_metadata: {
+          payment_attempt_id: paymentAttemptId,
+          checkout_kind: "zero-attente",
+          restaurant_id: selectedRestaurant.id,
+          order_reference: buildPaymentAttemptReference("ZA", paymentAttemptId),
+          delivery_fee: 0,
+          arrival_date: arrivalDate,
+          arrival_time: arrivalTime,
+          party_size: partySize,
+          formula_applied: pricingForCheckout.formulaName,
+          formula_discount: pricingForCheckout.formulaDiscount,
+          formula_discount_amount: pricingForCheckout.formulaDiscount,
+          formula_discount_percent: pricingForCheckout.formulaDiscountPercent,
+          tok_one_member: isTokOneMember,
+          tok_one_discount_amount: pricingForCheckout.tokOneDiscount,
+          tok_one_discount_percent: pricingForCheckout.tokOneDiscountPercent,
+          points_to_redeem: pricingForCheckout.pointsToRedeem,
+          points_discount: pricingForCheckout.pointsDiscount,
+          points_discount_amount: pricingForCheckout.pointsDiscount,
+          pre_discount_subtotal: pricingForCheckout.subtotal,
+          authoritative_total: pricingForCheckout.total,
+          discount_amount: pricingForCheckout.formulaDiscount + pricingForCheckout.tokOneDiscount + pricingForCheckout.pointsDiscount,
+        },
+      };
 
-      if (checkoutError || !checkoutData?.url) {
+      try {
+        const checkout = await createCheckoutWithRecovery({
+          paymentAttemptId,
+          create: async () => {
+            const { data, error } = await invokeSupabaseFunction("create-checkout", {
+              accessToken,
+              body: checkoutPayload,
+            });
+            if (error) throw error;
+            return data;
+          },
+          getStatus: async () => {
+            const { data, error } = await invokeSupabaseFunction("payment-attempt-status", {
+              accessToken,
+              body: { payment_attempt_id: paymentAttemptId },
+            });
+            if (error) throw error;
+            return data;
+          },
+        });
+
+        if (!checkout.url) {
+          throw new Error("Le paiement est enregistré, mais sa page Stripe n'est pas encore disponible. Relancez la vérification.");
+        }
+        markPaymentAttemptRedirected(ZERO_ATTENTE_PAYMENT_ATTEMPT_SCOPE, paymentAttemptId);
+        redirectToTrustedCheckoutUrl(checkout.url);
+      } catch (error) {
         setLoading(false);
-        toast({ title: "Erreur paiement", description: checkoutError?.message || "Impossible de créer la session de paiement.", variant: "destructive" });
+        toast({
+          title: isPaymentAttemptIndeterminateError(error)
+            ? "Paiement en cours de vérification"
+            : "Erreur paiement",
+          description: error instanceof Error ? error.message : "Impossible de créer la session de paiement.",
+          variant: "destructive",
+        });
         return;
       }
-      redirectToTrustedCheckoutUrl(checkoutData.url);
       return;
     }
 
@@ -478,6 +561,14 @@ export default function ZeroAttente() {
       title: "Paiement requis",
       description: "Zéro Attente n'accepté que les paiements sécurisés à l'avance.",
       variant: "destructive",
+    });
+  };
+
+  const handlePayAndReserve = () => {
+    if (checkoutLockRef.current) return;
+    checkoutLockRef.current = true;
+    void processPayAndReserve().finally(() => {
+      checkoutLockRef.current = false;
     });
   };
 
@@ -588,6 +679,12 @@ export default function ZeroAttente() {
       setReservationId(reservationIdValue);
       setStep("confirm");
       syncPendingCheckoutSessionId(null);
+      const completedAttemptId = normalizePaymentAttemptId(metadata.payment_attempt_id)
+        ?? pendingPaymentAttemptId;
+      if (completedAttemptId) {
+        clearPaymentAttemptId(ZERO_ATTENTE_PAYMENT_ATTEMPT_SCOPE, completedAttemptId);
+        setPendingPaymentAttemptId(null);
+      }
 
       if (restaurantIdValue) {
         try {
@@ -612,7 +709,7 @@ export default function ZeroAttente() {
       setLoading(false);
     }
 
-  }, [arrivalDate, arrivalTime, partySize, paymentMethod, selectedRestaurant?.id, syncPendingCheckoutSessionId, toast, user?.id]);
+  }, [arrivalDate, arrivalTime, partySize, paymentMethod, pendingPaymentAttemptId, selectedRestaurant?.id, syncPendingCheckoutSessionId, toast, user?.id]);
 
   // Handle return from Stripe
   useEffect(() => {
@@ -620,14 +717,50 @@ export default function ZeroAttente() {
     const params = new URLSearchParams(window.location.search);
     const status = params.get("status");
     const sessionId = params.get("session_id");
+    const paymentAttemptId = normalizePaymentAttemptId(params.get("payment_attempt_id"));
 
     if (status === "success" && sessionId) {
+      if (paymentAttemptId) {
+        rememberPaymentAttemptId(ZERO_ATTENTE_PAYMENT_ATTEMPT_SCOPE, paymentAttemptId);
+        setPendingPaymentAttemptId(paymentAttemptId);
+      }
       syncPendingCheckoutSessionId(sessionId);
       window.history.replaceState({}, "", window.location.pathname);
     } else if (status === "cancelled") {
-      syncPendingCheckoutSessionId(null);
-      toast({ title: "Paiement annulé", description: "Vous pouvez réessayer.", variant: "destructive" });
       window.history.replaceState({}, "", window.location.pathname);
+      if (!paymentAttemptId) {
+        syncPendingCheckoutSessionId(null);
+        toast({ title: "Paiement annulé", description: "Votre réservation n'a pas été débitée.", variant: "destructive" });
+        return;
+      }
+      if (cancellingAttemptRef.current === paymentAttemptId) return;
+
+      cancellingAttemptRef.current = paymentAttemptId;
+      rememberPaymentAttemptId(ZERO_ATTENTE_PAYMENT_ATTEMPT_SCOPE, paymentAttemptId);
+      setPendingPaymentAttemptId(paymentAttemptId);
+      setLoading(true);
+      void invokeSupabaseFunction("cancel-payment-attempt", {
+        body: { payment_attempt_id: paymentAttemptId },
+      }).then(({ error }) => {
+        if (error) throw error;
+        syncPendingCheckoutSessionId(null);
+        clearPaymentAttemptId(ZERO_ATTENTE_PAYMENT_ATTEMPT_SCOPE, paymentAttemptId);
+        setPendingPaymentAttemptId(null);
+        toast({
+          title: "Paiement annulé",
+          description: "La session Stripe et la réservation temporaire ont été libérées.",
+        });
+      }).catch((error) => {
+        toast({
+          title: "Annulation en cours de vérification",
+          description: error instanceof Error
+            ? error.message
+            : "Ne relancez pas un nouveau paiement avant la fin de la vérification.",
+          variant: "destructive",
+        });
+      }).finally(() => {
+        setLoading(false);
+      });
     }
   }, [isCommercialDemoClient, syncPendingCheckoutSessionId, toast]);
 
@@ -1057,3 +1190,4 @@ export default function ZeroAttente() {
     </>
   );
 }
+

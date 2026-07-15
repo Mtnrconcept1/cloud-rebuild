@@ -21,15 +21,23 @@ import { useAuth } from "@/lib/auth-context";
 import { useCart } from "@/lib/cart-context";
 import {
   buildCheckoutCompletionFromDashboardOrders,
+  ORDER_PAYMENT_ATTEMPT_SCOPE,
   type CheckoutCompletionResult,
   getOrderStripeSessionId,
   isOrderCheckoutFinalized,
   readPendingOrderCheckoutSessionId,
   writePendingOrderCheckoutSessionId,
 } from "@/lib/orderConfirmation";
+import {
+  clearPaymentAttemptId,
+  readPaymentAttemptId,
+  rememberPaymentAttemptId,
+  resolvePaymentAttemptStatus,
+} from "@/lib/paymentAttempt";
 import { normalizeOrderStatus } from "@/lib/orderStatus";
 import { invokeSupabaseFunction } from "@/lib/session";
 import { buildAuthRedirectTarget, parseStripeReturnSearch } from "@/lib/stripeReturn";
+import { redirectToTrustedCheckoutUrl } from "@/lib/securityUrls";
 import { useToast } from "@/hooks/use-toast";
 
 const supabase = getSupabase();
@@ -64,13 +72,19 @@ export default function OrderConfirmation() {
   const stripeReturn = parseStripeReturnSearch(location.search);
   const processedSessionRef = useRef<string | null>(null);
   const reconnectPromptRef = useRef<string | null>(null);
+  const cancellingAttemptRef = useRef<string | null>(null);
+  const resolvingAttemptRef = useRef<string | null>(null);
+  const failedResolutionRef = useRef<string | null>(null);
   const [pendingCheckoutSessionId, setPendingCheckoutSessionId] = useState<string | null>(
-    () => readPendingOrderCheckoutSessionId(),
+    () => stripeReturn.sessionId ?? readPendingOrderCheckoutSessionId(),
   );
-  const [state, setState] = useState<"processing" | "success" | "cancelled" | "error">(
+  const [pendingPaymentAttemptId, setPendingPaymentAttemptId] = useState<string | null>(
+    () => stripeReturn.paymentAttemptId ?? readPaymentAttemptId(ORDER_PAYMENT_ATTEMPT_SCOPE),
+  );
+  const [state, setState] = useState<"processing" | "cancelling" | "success" | "cancelled" | "error">(
     stripeReturn.status === "cancelled"
-      ? "cancelled"
-      : (stripeReturn.status === "success" || pendingCheckoutSessionId)
+      ? (stripeReturn.paymentAttemptId ? "cancelling" : "cancelled")
+      : (stripeReturn.status === "success" || pendingCheckoutSessionId || pendingPaymentAttemptId)
         ? "processing"
         : "error",
   );
@@ -87,10 +101,21 @@ export default function OrderConfirmation() {
     }
   }, []);
 
+  const syncPendingPaymentAttemptId = useCallback((paymentAttemptId: string | null) => {
+    if (paymentAttemptId) {
+      rememberPaymentAttemptId(ORDER_PAYMENT_ATTEMPT_SCOPE, paymentAttemptId);
+    }
+    setPendingPaymentAttemptId(paymentAttemptId);
+  }, []);
+
   const finalizeSuccess = useCallback((result: CheckoutCompletionResult, sessionId: string) => {
     clearCart();
     localStorage.removeItem("stripe_pending_order_id");
     syncPendingCheckoutSessionId(null);
+    if (pendingPaymentAttemptId) {
+      clearPaymentAttemptId(ORDER_PAYMENT_ATTEMPT_SCOPE, pendingPaymentAttemptId);
+      setPendingPaymentAttemptId(null);
+    }
     setCompletion(result);
     setState("success");
     setErrorMessage(null);
@@ -108,7 +133,7 @@ export default function OrderConfirmation() {
         ? "Vos commandes sont confirmées."
         : "Votre commande est confirmée.",
     });
-  }, [clearCart, queryClient, syncPendingCheckoutSessionId, toast]);
+  }, [clearCart, pendingPaymentAttemptId, queryClient, syncPendingCheckoutSessionId, toast]);
 
   const fetchOrdersByCheckoutSessionId = useCallback(async (sessionId: string) => {
     const { data, error } = await supabase.rpc("get_customer_orders_dashboard" as any);
@@ -138,8 +163,13 @@ export default function OrderConfirmation() {
   }, [fetchOrdersByCheckoutSessionId]);
 
   useEffect(() => {
-    if (stripeReturn.status === "success" && stripeReturn.sessionId) {
-      syncPendingCheckoutSessionId(stripeReturn.sessionId);
+    if (stripeReturn.status === "success" && (stripeReturn.sessionId || stripeReturn.paymentAttemptId)) {
+      if (stripeReturn.paymentAttemptId) {
+        syncPendingPaymentAttemptId(stripeReturn.paymentAttemptId);
+      }
+      if (stripeReturn.sessionId) {
+        syncPendingCheckoutSessionId(stripeReturn.sessionId);
+      }
       setState("processing");
       setErrorMessage(null);
 
@@ -151,17 +181,124 @@ export default function OrderConfirmation() {
     }
 
     if (stripeReturn.status === "cancelled") {
-      syncPendingCheckoutSessionId(null);
-      setState("cancelled");
-      setErrorMessage(null);
-
       if (location.search) {
         window.history.replaceState({}, "", location.pathname);
       }
 
+      if (!stripeReturn.paymentAttemptId) {
+        syncPendingCheckoutSessionId(null);
+        setState("cancelled");
+        setErrorMessage(null);
+        return;
+      }
+      if (cancellingAttemptRef.current === stripeReturn.paymentAttemptId) return;
+
+      const paymentAttemptId = stripeReturn.paymentAttemptId;
+      cancellingAttemptRef.current = paymentAttemptId;
+      syncPendingPaymentAttemptId(paymentAttemptId);
+      setState("cancelling");
+      setErrorMessage(null);
+      void invokeSupabaseFunction("cancel-payment-attempt", {
+        body: { payment_attempt_id: paymentAttemptId },
+      }).then(({ error }) => {
+        if (error) throw error;
+        syncPendingCheckoutSessionId(null);
+        clearPaymentAttemptId(ORDER_PAYMENT_ATTEMPT_SCOPE, paymentAttemptId);
+        setPendingPaymentAttemptId(null);
+        setState("cancelled");
+        toast({
+          title: "Paiement annulé",
+          description: "La session Stripe, la commande temporaire et le stock réservé ont été libérés.",
+        });
+      }).catch((error) => {
+        setState("error");
+        setErrorMessage(
+          error instanceof Error
+            ? error.message
+            : "L'annulation doit encore être vérifiée avant de relancer un paiement.",
+        );
+      });
+
       return;
     }
-  }, [location.pathname, location.search, stripeReturn.sessionId, stripeReturn.status, syncPendingCheckoutSessionId]);
+  }, [
+    location.pathname,
+    location.search,
+    stripeReturn.paymentAttemptId,
+    stripeReturn.sessionId,
+    stripeReturn.status,
+    syncPendingCheckoutSessionId,
+    syncPendingPaymentAttemptId,
+    toast,
+  ]);
+
+  useEffect(() => {
+    if (
+      !pendingPaymentAttemptId
+      || pendingCheckoutSessionId
+      || authLoading
+      || state === "cancelling"
+      || state === "cancelled"
+      || state === "success"
+    ) {
+      return;
+    }
+
+    if (!user || !session?.access_token) {
+      setState("error");
+      setErrorMessage("Reconnectez-vous pour retrouver cette tentative de paiement en toute sécurité.");
+      return;
+    }
+    const resolutionKey = `${pendingPaymentAttemptId}:${session.access_token.slice(-12)}`;
+    if (
+      resolvingAttemptRef.current === resolutionKey
+      || failedResolutionRef.current === resolutionKey
+    ) return;
+
+    resolvingAttemptRef.current = resolutionKey;
+    setState("processing");
+    setErrorMessage(null);
+    void resolvePaymentAttemptStatus({
+      paymentAttemptId: pendingPaymentAttemptId,
+      getStatus: async () => {
+        const { data, error } = await invokeSupabaseFunction("payment-attempt-status", {
+          accessToken: session.access_token,
+          body: { payment_attempt_id: pendingPaymentAttemptId },
+        });
+        if (error) throw error;
+        return data;
+      },
+      pollAttempts: CHECKOUT_RECOVERY_ATTEMPTS,
+      pollDelayMs: CHECKOUT_RECOVERY_DELAY_MS,
+    }).then((resolution) => {
+      if (resolution?.sessionId) {
+        failedResolutionRef.current = null;
+        syncPendingCheckoutSessionId(resolution.sessionId);
+        return;
+      }
+      if (resolution?.url) {
+        redirectToTrustedCheckoutUrl(resolution.url);
+        return;
+      }
+      resolvingAttemptRef.current = null;
+      failedResolutionRef.current = resolutionKey;
+      setState("error");
+      setErrorMessage("Le paiement est encore en cours de rapprochement. Rechargez cette page dans quelques secondes.");
+    }).catch((error) => {
+      resolvingAttemptRef.current = null;
+      failedResolutionRef.current = resolutionKey;
+      setState("error");
+      setErrorMessage(error instanceof Error ? error.message : "Impossible de retrouver la tentative de paiement.");
+    });
+  }, [
+    authLoading,
+    pendingCheckoutSessionId,
+    pendingPaymentAttemptId,
+    session?.access_token,
+    state,
+    syncPendingCheckoutSessionId,
+    user,
+  ]);
 
   useEffect(() => {
     if (!pendingCheckoutSessionId || authLoading) {
@@ -268,7 +405,10 @@ export default function OrderConfirmation() {
   const restaurantCount = orders.length;
   const primaryOrderId = completion?.primaryOrderId || (orders[0]?.id ?? null);
   const orderReference = completion?.orderReference || (orders[0]?.order_number ?? null);
-  const hasCheckoutContext = stripeReturn.isStripeReturn || Boolean(pendingCheckoutSessionId) || Boolean(completion);
+  const hasCheckoutContext = stripeReturn.isStripeReturn
+    || Boolean(pendingCheckoutSessionId)
+    || Boolean(pendingPaymentAttemptId)
+    || Boolean(completion);
   const reconnectHref = buildAuthRedirectTarget(location.pathname, location.search);
 
   if (!hasCheckoutContext) {
@@ -278,6 +418,16 @@ export default function OrderConfirmation() {
   return (
     <CustomerDashboardLayout>
       <div className="mx-auto max-w-4xl space-y-6">
+        {state === "cancelling" ? (
+          <div className="rounded-3xl border bg-card p-8 text-center shadow-sm">
+            <Loader2 className="mx-auto h-10 w-10 animate-spin text-amber-600" />
+            <h1 className="mt-4 font-display text-3xl font-bold">Annulation sécurisée</h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Nous fermons la session Stripe et libérons la commande ainsi que le stock réservés. Ne relancez pas encore le paiement.
+            </p>
+          </div>
+        ) : null}
+
         {state === "processing" ? (
           <div className="rounded-3xl border bg-card p-8 text-center shadow-sm">
             <Loader2 className="mx-auto h-10 w-10 animate-spin text-primary" />
@@ -312,7 +462,7 @@ export default function OrderConfirmation() {
           <div className="space-y-4 rounded-3xl border border-destructive/20 bg-destructive/5 p-8 shadow-sm">
             <div className="space-y-2 text-center">
               <CreditCard className="mx-auto h-10 w-10 text-destructive" />
-              <h1 className="font-display text-3xl font-bold">Confirmation en échec</h1>
+              <h1 className="font-display text-3xl font-bold">Vérification nécessaire</h1>
               <p className="text-sm text-destructive">
                 {errorMessage || "Le paiement semble valide, mais la finalisation n'a pas abouti."}
               </p>
@@ -329,6 +479,11 @@ export default function OrderConfirmation() {
               <Button asChild>
                 <Link to="/commandes"><History className="mr-2 h-4 w-4" />Mes commandes</Link>
               </Button>
+              {pendingPaymentAttemptId ? (
+                <Button type="button" variant="outline" onClick={() => window.location.reload()}>
+                  <Loader2 className="mr-2 h-4 w-4" />Relancer la vérification
+                </Button>
+              ) : null}
               <Button asChild variant="outline">
                 <Link to="/panier"><ShoppingCart className="mr-2 h-4 w-4" />Retour au panier</Link>
               </Button>

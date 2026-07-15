@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
@@ -39,11 +39,23 @@ import { useAuth } from "@/lib/auth-context";
 import { buildCheckoutReturnUrl } from "@/lib/checkoutReturnUrl";
 import { redirectToTrustedCheckoutUrl } from "@/lib/securityUrls";
 import { buildTokOneEntitlements } from "@/lib/subscriptionEntitlements";
+import {
+  clearPaymentAttemptId,
+  createCheckoutWithRecovery,
+  createPaymentAttemptOperationKey,
+  getOrCreatePaymentAttemptId,
+  isPaymentAttemptIndeterminateError,
+  markPaymentAttemptRedirected,
+  normalizePaymentAttemptId,
+  rememberPaymentAttemptId,
+} from "@/lib/paymentAttempt";
+import { usePaymentAttemptBackCancellation } from "@/lib/usePaymentAttemptBackCancellation";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 
 const supabase = getSupabase();
 
 const HERO_IMAGE = "/images/octopus-fine-dining.jpeg";
+const TOK_ONE_PAYMENT_ATTEMPT_SCOPE = "tok-one-subscription";
 
 const COMMERCIAL_DEMO_TOK_ONE_PLAN: TokOnePlan = {
   id: "commercial-demo-tok-one",
@@ -550,9 +562,31 @@ export default function TokOne() {
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
   const [expandedBenefit, setExpandedBenefit] = useState<string | null>(null);
+  const checkoutLockRef = useRef(false);
+  const cancellingAttemptRef = useRef<string | null>(null);
   const [demoSubscription, setDemoSubscription] = useState<TokOneSubscription | null>(() => (
     readCommercialDemoTokOneSubscription(commercialDemoSessionId)
   ));
+
+  usePaymentAttemptBackCancellation({
+    scope: TOK_ONE_PAYMENT_ATTEMPT_SCOPE,
+    enabled: !isCommercialDemoClient,
+    onCancelled: () => {
+      setCheckoutLoading(false);
+      toast({
+        title: "Souscription interrompue",
+        description: "La session Stripe a été fermée après votre retour. Aucun nouvel abonnement n'a été créé.",
+      });
+    },
+    onError: () => {
+      setCheckoutLoading(false);
+      toast({
+        title: "Souscription en cours de vérification",
+        description: "Utilisez le même bouton pour reprendre cette tentative sans créer de doublon.",
+        variant: "destructive",
+      });
+    },
+  });
 
   const plansQuery = useTokOnePlans({ enabled: !isCommercialDemoClient });
   const subscriptionQuery = useTokOneSubscription({ enabled: !isCommercialDemoClient });
@@ -585,10 +619,36 @@ export default function TokOne() {
     const params = new URLSearchParams(window.location.search);
     const status = params.get("status");
     const sessionId = params.get("session_id");
+    const paymentAttemptId = normalizePaymentAttemptId(params.get("payment_attempt_id"));
 
     if (status === "cancelled") {
-      toast({ title: "Paiement annulé", variant: "destructive" });
       window.history.replaceState({}, "", window.location.pathname);
+      if (!paymentAttemptId) {
+        toast({ title: "Paiement annulé", variant: "destructive" });
+        return;
+      }
+      if (cancellingAttemptRef.current === paymentAttemptId) return;
+      cancellingAttemptRef.current = paymentAttemptId;
+      rememberPaymentAttemptId(TOK_ONE_PAYMENT_ATTEMPT_SCOPE, paymentAttemptId);
+      setCheckoutLoading(true);
+      void supabase.functions.invoke("cancel-payment-attempt", {
+        body: { payment_attempt_id: paymentAttemptId },
+      }).then(({ error }) => {
+        if (error) throw error;
+        clearPaymentAttemptId(TOK_ONE_PAYMENT_ATTEMPT_SCOPE, paymentAttemptId);
+        toast({
+          title: "Paiement annulé",
+          description: "La session Stripe Tok One a été fermée sans nouvel abonnement.",
+        });
+      }).catch((error) => {
+        toast({
+          title: "Annulation en cours de vérification",
+          description: error instanceof Error ? error.message : "Vérification de la session Stripe nécessaire.",
+          variant: "destructive",
+        });
+      }).finally(() => {
+        setCheckoutLoading(false);
+      });
       return;
     }
 
@@ -626,6 +686,9 @@ export default function TokOne() {
 
         if (!isMounted) return;
 
+        if (paymentAttemptId) {
+          clearPaymentAttemptId(TOK_ONE_PAYMENT_ATTEMPT_SCOPE, paymentAttemptId);
+        }
         toast({
           title: "Bienvenue dans Tok One !",
           description: "Votre abonnement est actif. Vous pouvez tester vos avantages.",
@@ -686,7 +749,7 @@ export default function TokOne() {
       ? `${currency(selectedPrice)} / mois`
       : "Prix indisponible";
 
-  const handleSubscribe = async () => {
+  const processSubscribe = async () => {
     if (!selectedPlan) {
       toast({
         title: "Formule indisponible",
@@ -719,29 +782,55 @@ export default function TokOne() {
       return;
     }
     try {
-      const { data, error } = await supabase.functions.invoke(
-        "create-checkout",
-        {
-          body: {
-            items: [],
-            payment_method: "card",
-            return_url: buildCheckoutReturnUrl("/tok-one"),
-            checkout_kind: "tok-one",
-            order_metadata: {
-              plan_id: selectedPlan.id,
-              billing_period: "monthly",
-            },
-          },
-        },
+      const paymentAttemptId = getOrCreatePaymentAttemptId(
+        TOK_ONE_PAYMENT_ATTEMPT_SCOPE,
+        createPaymentAttemptOperationKey({
+          userId: user.id,
+          checkoutKind: "tok-one",
+          planId: selectedPlan.id,
+          billingPeriod: "monthly",
+        }),
       );
+      const checkoutPayload = {
+        payment_attempt_id: paymentAttemptId,
+        items: [],
+        payment_method: "card",
+        return_url: buildCheckoutReturnUrl("/tok-one", { paymentAttemptId }),
+        checkout_kind: "tok-one",
+        order_metadata: {
+          payment_attempt_id: paymentAttemptId,
+          plan_id: selectedPlan.id,
+          billing_period: "monthly",
+        },
+      };
+      const checkout = await createCheckoutWithRecovery({
+        paymentAttemptId,
+        create: async () => {
+          const { data, error } = await supabase.functions.invoke("create-checkout", {
+            body: checkoutPayload,
+          });
+          if (error) throw error;
+          return data;
+        },
+        getStatus: async () => {
+          const { data, error } = await supabase.functions.invoke("payment-attempt-status", {
+            body: { payment_attempt_id: paymentAttemptId },
+          });
+          if (error) throw error;
+          return data;
+        },
+      });
 
-      if (error) throw error;
-      const checkoutUrl = (data as { url?: string } | null)?.url;
-      if (!checkoutUrl) throw new Error("URL de paiement absente.");
-      redirectToTrustedCheckoutUrl(checkoutUrl);
+      if (!checkout.url) {
+        throw new Error("L'abonnement est en cours de vérification. Relancez avec le même bouton dans quelques secondes.");
+      }
+      markPaymentAttemptRedirected(TOK_ONE_PAYMENT_ATTEMPT_SCOPE, paymentAttemptId);
+      redirectToTrustedCheckoutUrl(checkout.url);
     } catch (error) {
       toast({
-        title: "Paiement impossible",
+        title: isPaymentAttemptIndeterminateError(error)
+          ? "Abonnement en cours de vérification"
+          : "Paiement impossible",
         description:
           error instanceof Error
             ? error.message
@@ -751,6 +840,14 @@ export default function TokOne() {
     } finally {
       setCheckoutLoading(false);
     }
+  };
+
+  const handleSubscribe = () => {
+    if (checkoutLockRef.current) return;
+    checkoutLockRef.current = true;
+    void processSubscribe().finally(() => {
+      checkoutLockRef.current = false;
+    });
   };
 
   const cancelSubscription = async () => {
@@ -1215,3 +1312,4 @@ export default function TokOne() {
     </main>
   );
 }
+

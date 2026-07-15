@@ -41,24 +41,57 @@ Deno.serve(async (req) => {
           .filter((id: string) => UUID_REGEX.test(id)),
       ))
       : [];
+    const checkoutGroupId = typeof body.checkout_group_id === "string"
+      && UUID_REGEX.test(body.checkout_group_id.trim())
+      ? body.checkout_group_id.trim().toLowerCase()
+      : null;
+    const paymentAttemptId = typeof body.payment_attempt_id === "string"
+      && UUID_REGEX.test(body.payment_attempt_id.trim())
+      ? body.payment_attempt_id.trim().toLowerCase()
+      : null;
     const reason = String(body.reason || "checkout_creation_failed").slice(0, 240);
 
     if (!actor.userId) {
       throw new HttpError(401, "Unauthorized");
     }
-    if (orderIds.length === 0 || orderIds.length > 20) {
-      throw new HttpError(400, "Invalid order ids");
+    if ((orderIds.length === 0 && !checkoutGroupId && !paymentAttemptId) || orderIds.length > 20) {
+      throw new HttpError(400, "order_ids, checkout_group_id ou payment_attempt_id requis");
     }
 
-    const { data, error } = await actor.adminClient
-      .from("orders")
-      .select("id, status, payment_status, user_id, restaurant_id, delivery_address, total_amount, order_number, metadata, scheduled_at")
-      .in("id", orderIds);
+    const select = "id, status, payment_status, user_id, restaurant_id, delivery_address, total_amount, order_number, metadata, scheduled_at";
+    const rowsById = new Map<string, OrderLookupRow>();
+    const appendOwnedRows = (rows: OrderLookupRow[] | null | undefined) => {
+      for (const order of rows || []) {
+        if (order.user_id === actor?.userId) rowsById.set(order.id, order);
+      }
+    };
 
-    if (error) throw new HttpError(500, error.message);
+    if (orderIds.length > 0) {
+      const { data, error } = await actor.adminClient
+        .from("orders")
+        .select(select)
+        .in("id", orderIds);
+      if (error) throw new HttpError(500, error.message);
+      appendOwnedRows(data as OrderLookupRow[] | null);
+    }
 
-    const rows = ((data || []) as OrderLookupRow[])
-      .filter((order) => order.user_id === actor?.userId);
+    for (const [metadataKey, metadataValue] of [
+      ["checkout_group_id", checkoutGroupId],
+      ["payment_attempt_id", paymentAttemptId],
+      ["client_payment_attempt_id", paymentAttemptId],
+    ] as const) {
+      if (!metadataValue) continue;
+      const { data, error } = await actor.adminClient
+        .from("orders")
+        .select(select)
+        .eq("user_id", actor.userId)
+        .filter(`metadata->>${metadataKey}`, "eq", metadataValue)
+        .limit(20);
+      if (error) throw new HttpError(500, error.message);
+      appendOwnedRows(data as OrderLookupRow[] | null);
+    }
+
+    const rows = Array.from(rowsById.values());
 
     const compensatedOrderIds: string[] = [];
     const skippedOrderIds: string[] = [];
@@ -116,6 +149,9 @@ Deno.serve(async (req) => {
       targetEntityType: "order",
       metadata: {
         requested_order_count: orderIds.length,
+        matched_order_count: rows.length,
+        checkout_group_id: checkoutGroupId,
+        payment_attempt_id: paymentAttemptId,
         compensated_order_ids: compensatedOrderIds,
         skipped_order_ids: skippedOrderIds,
         reason,
@@ -146,3 +182,4 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: message }, status, corsHeaders);
   }
 });
+

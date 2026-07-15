@@ -19,7 +19,11 @@ import {
   toMoney,
   type RefundTargetType,
 } from "./refund-utils.ts";
-import { getStripeRuntimeForCheckoutKind } from "../_shared/stripe-client.ts";
+import {
+  getStripeRuntimeForCheckoutKind,
+  getStripeRuntimeForCheckoutKindAndMode,
+  type StripeRuntimeMode,
+} from "../_shared/stripe-client.ts";
 
 type RefundableEntity = {
   targetType: RefundTargetType;
@@ -35,6 +39,7 @@ type RefundableEntity = {
   paymentStatus: string | null;
   paymentMethod: string | null;
   paymentIntentId: string | null;
+  stripeMode: StripeRuntimeMode | null;
   reference: string | null;
 };
 
@@ -100,10 +105,11 @@ async function lookupOrder(adminClient: ReturnType<typeof createAdminClient>, or
   );
 
   let resolvedPaymentIntentId = paymentIntentId;
+  let stripeMode: StripeRuntimeMode | null = null;
   if (!resolvedPaymentIntentId) {
     const { data: chargeTx, error: txError } = await adminClient
       .from("payment_transactions")
-      .select("stripe_payment_intent_id")
+      .select("stripe_payment_intent_id, stripe_mode")
       .eq("order_id", orderId)
       .eq("type", "charge")
       .eq("status", "succeeded")
@@ -113,6 +119,35 @@ async function lookupOrder(adminClient: ReturnType<typeof createAdminClient>, or
 
     if (txError) throw new HttpError(500, txError.message);
     resolvedPaymentIntentId = pickFirstNonEmptyString(chargeTx?.stripe_payment_intent_id);
+    stripeMode = chargeTx?.stripe_mode === "test" || chargeTx?.stripe_mode === "live"
+      ? chargeTx.stripe_mode
+      : null;
+  }
+
+  if (resolvedPaymentIntentId && !stripeMode) {
+    const { data: attempt, error: attemptError } = await adminClient
+      .from("payment_attempts")
+      .select("mode")
+      .eq("stripe_payment_intent_id", resolvedPaymentIntentId)
+      .limit(1)
+      .maybeSingle();
+    if (attemptError) throw new HttpError(500, attemptError.message);
+    stripeMode = attempt?.mode === "test" || attempt?.mode === "live" ? attempt.mode : null;
+  }
+  if (resolvedPaymentIntentId && !stripeMode) {
+    const { data: modeTransaction, error: modeError } = await adminClient
+      .from("payment_transactions")
+      .select("stripe_mode")
+      .eq("stripe_payment_intent_id", resolvedPaymentIntentId)
+      .eq("type", "charge")
+      .eq("status", "succeeded")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (modeError) throw new HttpError(500, modeError.message);
+    stripeMode = modeTransaction?.stripe_mode === "test" || modeTransaction?.stripe_mode === "live"
+      ? modeTransaction.stripe_mode
+      : null;
   }
 
   return {
@@ -129,6 +164,7 @@ async function lookupOrder(adminClient: ReturnType<typeof createAdminClient>, or
     paymentStatus: data.payment_status,
     paymentMethod: pickFirstNonEmptyString(metadata.payment_method, metadata.payment_method_label),
     paymentIntentId: resolvedPaymentIntentId,
+    stripeMode,
     reference: data.order_number,
   } satisfies RefundableEntity;
 }
@@ -147,10 +183,11 @@ async function lookupReservation(adminClient: ReturnType<typeof createAdminClien
   const paymentIntentId = pickFirstNonEmptyString(metadata.stripe_payment_intent);
 
   let resolvedPaymentIntentId = paymentIntentId;
+  let stripeMode: StripeRuntimeMode | null = null;
   if (!resolvedPaymentIntentId) {
     const { data: chargeTx, error: txError } = await adminClient
       .from("payment_transactions")
-      .select("stripe_payment_intent_id")
+      .select("stripe_payment_intent_id, stripe_mode")
       .eq("type", "charge")
       .eq("status", "succeeded")
       .filter("metadata->>reservation_id", "eq", reservationId)
@@ -160,6 +197,35 @@ async function lookupReservation(adminClient: ReturnType<typeof createAdminClien
 
     if (txError) throw new HttpError(500, txError.message);
     resolvedPaymentIntentId = pickFirstNonEmptyString(chargeTx?.stripe_payment_intent_id);
+    stripeMode = chargeTx?.stripe_mode === "test" || chargeTx?.stripe_mode === "live"
+      ? chargeTx.stripe_mode
+      : null;
+  }
+
+  if (resolvedPaymentIntentId && !stripeMode) {
+    const { data: attempt, error: attemptError } = await adminClient
+      .from("payment_attempts")
+      .select("mode")
+      .eq("stripe_payment_intent_id", resolvedPaymentIntentId)
+      .limit(1)
+      .maybeSingle();
+    if (attemptError) throw new HttpError(500, attemptError.message);
+    stripeMode = attempt?.mode === "test" || attempt?.mode === "live" ? attempt.mode : null;
+  }
+  if (resolvedPaymentIntentId && !stripeMode) {
+    const { data: modeTransaction, error: modeError } = await adminClient
+      .from("payment_transactions")
+      .select("stripe_mode")
+      .eq("stripe_payment_intent_id", resolvedPaymentIntentId)
+      .eq("type", "charge")
+      .eq("status", "succeeded")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (modeError) throw new HttpError(500, modeError.message);
+    stripeMode = modeTransaction?.stripe_mode === "test" || modeTransaction?.stripe_mode === "live"
+      ? modeTransaction.stripe_mode
+      : null;
   }
 
   return {
@@ -176,28 +242,16 @@ async function lookupReservation(adminClient: ReturnType<typeof createAdminClien
     paymentStatus: toMoney(data.total_amount) > 0 ? "paid" : null,
     paymentMethod: pickFirstNonEmptyString(data.payment_method, metadata.payment_method),
     paymentIntentId: resolvedPaymentIntentId,
+    stripeMode,
     reference: data.order_reference,
   } satisfies RefundableEntity;
 }
 
-async function markRefundFailed(
-  adminClient: ReturnType<typeof createAdminClient>,
-  entity: RefundableEntity,
-  reason: string,
-) {
-  const tableName = entity.targetType === "order" ? "orders" : "reservations";
-  const { error } = await adminClient
-    .from(tableName)
-    .update({
-      refund_status: "failed",
-      refund_reason: reason,
-      updated_at: new Date().toISOString(),
-    } as never)
-    .eq("id", entity.id);
-
-  if (error) {
-    console.error("[process-refund] failed to persist refund failure", error);
-  }
+function normalizeStripeRefundStatus(status: string | null) {
+  if (status === "succeeded") return "succeeded" as const;
+  if (status === "failed") return "failed" as const;
+  if (status === "canceled") return "cancelled" as const;
+  return "pending" as const;
 }
 
 Deno.serve(async (req) => {
@@ -209,7 +263,6 @@ Deno.serve(async (req) => {
   let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
   let auditTargetId: string | null = null;
   let auditTargetType: string | null = null;
-  let persistFailureState = false;
 
   try {
     actor = await authenticateRequest(req, { allowServiceRole: false });
@@ -268,17 +321,39 @@ Deno.serve(async (req) => {
       throw new HttpError(400, "PaymentIntent Stripe introuvable pour ce remboursement.");
     }
 
-    const { stripe } = getStripeRuntimeForCheckoutKind("refund");
+    const stripeRuntime = entity.stripeMode
+      ? getStripeRuntimeForCheckoutKindAndMode("refund", entity.stripeMode)
+      : getStripeRuntimeForCheckoutKind("refund");
+    const { stripe } = stripeRuntime;
 
-    persistFailureState = true;
+    // Failed/cancelled Stripe refunds are terminal objects. Reusing their
+    // idempotency key would replay the same failure forever, while concurrent
+    // clicks must still converge on one key. The count is stable until a
+    // terminal failure is durably recorded, then advances exactly one retry
+    // generation for the next explicit request.
+    const { count: terminalRefundCount, error: terminalRefundCountError } = await actor.adminClient
+      .from("refund_operations")
+      .select("id", { count: "exact", head: true })
+      .eq("mode", stripeRuntime.mode)
+      .eq("target_type", entity.targetType)
+      .eq("target_id", entity.id)
+      .eq("stripe_payment_intent_id", entity.paymentIntentId)
+      .in("status", ["failed", "cancelled"]);
+    if (terminalRefundCountError) throw new HttpError(500, terminalRefundCountError.message);
+    const refundRetryGeneration = Math.max(0, Number(terminalRefundCount || 0));
+
     const refundIdempotencyKey = [
       "tok-refund",
       entity.targetType,
       entity.id,
       Math.round(entity.refundedAmount * 100),
       Math.round(refundAmount * 100),
+      refundRetryGeneration,
     ].join(":");
     const originalPaymentIntent = await stripe.paymentIntents.retrieve(entity.paymentIntentId);
+    if (originalPaymentIntent.livemode !== (stripeRuntime.mode === "live")) {
+      throw new HttpError(409, "Le mode Stripe du paiement ne correspond pas au remboursement demande.");
+    }
     const isDestinationCharge = Boolean(originalPaymentIntent.transfer_data?.destination);
     const refundParams: Stripe.RefundCreateParams = {
       payment_intent: entity.paymentIntentId,
@@ -297,21 +372,34 @@ Deno.serve(async (req) => {
         cancelled_by: entity.cancelledBy || "",
         reference: entity.reference || "",
         idempotency_key: refundIdempotencyKey,
+        retry_generation: String(refundRetryGeneration),
         connect_destination_charge: isDestinationCharge ? "true" : "false",
       },
     };
     const stripeRefund = await stripe.refunds.create(refundParams, {
       idempotencyKey: refundIdempotencyKey,
     });
-    persistFailureState = false;
-
-    const { data: markData, error: markError } = await actor.adminClient.rpc("mark_refund_applied", {
+    const normalizedRefundStatus = normalizeStripeRefundStatus(stripeRefund.status);
+    const { data: markData, error: markError } = await actor.adminClient.rpc("record_refund_status", {
       p_target_type: entity.targetType,
       p_target_id: entity.id,
+      p_livemode: originalPaymentIntent.livemode,
+      p_stripe_refund_id: stripeRefund.id,
+      p_payment_intent_id: entity.paymentIntentId,
+      p_amount_cents: stripeRefund.amount,
+      p_status: normalizedRefundStatus,
       p_actor: actor.isAdmin ? "admin" : "restaurant",
       p_reason: reason || entity.refundReason || null,
-      p_amount_chf: refundAmount,
-      p_stripe_refund_id: stripeRefund.id,
+      p_stripe_event_id: null,
+      p_error: stripeRefund.failure_reason || null,
+      p_metadata: {
+        stripe_status: stripeRefund.status,
+        idempotency_key: refundIdempotencyKey,
+        retry_generation: refundRetryGeneration,
+        connect_destination_charge: isDestinationCharge,
+        reverse_transfer: isDestinationCharge,
+        refund_application_fee: isDestinationCharge,
+      },
     });
 
     if (markError) {
@@ -321,6 +409,15 @@ Deno.serve(async (req) => {
     const markResult = Array.isArray(markData) ? markData[0] : markData;
     if (!markResult?.ok) {
       throw new HttpError(500, markResult?.error_message || "Impossible d'enregistrer le remboursement.");
+    }
+
+    if (normalizedRefundStatus === "failed" || normalizedRefundStatus === "cancelled") {
+      throw new HttpError(
+        409,
+        stripeRefund.failure_reason
+          ? `Remboursement Stripe refuse: ${stripeRefund.failure_reason}`
+          : "Remboursement Stripe annule ou refuse.",
+      );
     }
 
     await writeAuditLog({
@@ -333,39 +430,36 @@ Deno.serve(async (req) => {
       targetEntityType: entity.targetType,
       targetEntityId: entity.id,
       metadata: {
-        refund_amount_chf: refundAmount,
+        refund_amount_chf: stripeRefund.amount / 100,
         stripe_refund_id: stripeRefund.id,
+        stripe_refund_status: stripeRefund.status,
+        stripe_mode: stripeRuntime.mode,
         connect_destination_charge: isDestinationCharge,
         reverse_transfer: isDestinationCharge,
         refund_application_fee: isDestinationCharge,
       },
     });
 
+    const recordedTotalCents = Number(markResult.refunded_amount_cents);
+    const remainingAmountCents = Number.isFinite(recordedTotalCents)
+      ? Math.max(0, Math.round(entity.totalAmount * 100) - recordedTotalCents)
+      : Math.max(0, Math.round((remainingAmount - refundAmount) * 100));
     return jsonResponse({
       ok: true,
       target_type: entity.targetType,
       target_id: entity.id,
-      refund_amount_chf: refundAmount,
-      remaining_amount_chf: Math.max(0, remainingAmount - refundAmount),
+      refund_amount_chf: stripeRefund.amount / 100,
+      remaining_amount_chf: remainingAmountCents / 100,
       stripe_refund_id: stripeRefund.id,
-      refund_status: remainingAmount - refundAmount <= 0 ? "refunded" : "partial",
-    }, 200, corsHeaders);
+      stripe_refund_status: stripeRefund.status,
+      refund_status: normalizedRefundStatus === "pending"
+        ? "pending"
+        : markResult.target_refund_status
+          || (remainingAmountCents <= 0 ? "refunded" : "partial"),
+    }, normalizedRefundStatus === "pending" ? 202 : 200, corsHeaders);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Erreur interne";
     log.error("process-refund error", { message, targetId: auditTargetId, targetType: auditTargetType });
-
-    if (persistFailureState && actor && auditTargetId && auditTargetType && normalizeRefundTargetType(auditTargetType)) {
-      try {
-        const entity = auditTargetType === "order"
-          ? await lookupOrder(actor.adminClient, auditTargetId)
-          : await lookupReservation(actor.adminClient, auditTargetId);
-        await markRefundFailed(actor.adminClient, entity, message);
-      } catch (persistError) {
-        log.error("process-refund persist failure", {
-          message: persistError instanceof Error ? persistError.message : "unknown",
-        });
-      }
-    }
 
     await writeAuditLog({
       adminClient: actor?.adminClient || createAdminClient(),

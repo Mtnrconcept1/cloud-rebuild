@@ -53,6 +53,9 @@ verify_jwt = false
 [functions.cancel-pending-order-checkout]
 verify_jwt = false
 
+[functions.cancel-payment-attempt]
+verify_jwt = false
+
 [functions.capture-due-match-groups]
 verify_jwt = false
 
@@ -126,6 +129,9 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.notification-dispatch]
+verify_jwt = false
+
+[functions.payment-attempt-status]
 verify_jwt = false
 
 [functions.process-refund]
