@@ -143,7 +143,7 @@ function ClientWorkspace({ pending, onCreate, onCheckout, checkoutError }: {
 }) {
   const frame = useCommercialDemoFrame()!;
   const order = frame.snapshot.order;
-  const items = order?.items || getCommercialDemoPresetItems();
+  const items = order?.items || getCommercialDemoPresetItems(frame.snapshot.catalog_items);
   const paid = order?.payment_status === "test_paid";
   const stripeConfigMissing = checkoutError instanceof CommercialDemoApiError
     && ["DEMO_STRIPE_NOT_CONFIGURED", "INVALID_TEST_STRIPE_KEY"].includes(checkoutError.code);

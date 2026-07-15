@@ -15,6 +15,7 @@ import {
 import AddressAutocomplete from "@/components/AddressAutocomplete";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import ImageUpload from "@/components/ImageUpload";
 import RestaurantPartnerContractCard from "@/components/contracts/RestaurantPartnerContractCard";
 import { Badge } from "@/components/ui/badge";
@@ -98,9 +99,16 @@ function formatDashboardPromotionEndDate(endAt: string) {
 export default function DashboardRestaurant() {
   const { user } = useAuth();
   const { selectedId } = useDashboardRestaurant();
+  const commercialDemoFrame = useCommercialDemoFrame();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const activeFeatures = useActiveFeatures();
+  const globalActiveFeatures = useActiveFeatures({ enabled: !commercialDemoFrame });
+  const activeFeatures = useMemo(
+    () => commercialDemoFrame
+      ? new Set(commercialDemoFrame.snapshot.active_features)
+      : globalActiveFeatures,
+    [commercialDemoFrame, globalActiveFeatures],
+  );
   const deliveryEnabled = activeFeatures.has("livraison");
   const takeawayEnabled = activeFeatures.has("emporter");
   const dineInEnabled = activeFeatures.has("sur-place");
@@ -355,6 +363,13 @@ export default function DashboardRestaurant() {
 
   const handleStripeConnect = async () => {
     if (!restaurant) return;
+    if (commercialDemoFrame?.surface === "restaurant") {
+      toast({
+        title: "Stripe Connect en mode démonstration",
+        description: "Le parcours est simulé : aucun compte Stripe réel ni lien d’onboarding n’est créé.",
+      });
+      return;
+    }
     setConnectLoading(true);
     try {
       const response = await fetchWithFreshAccessToken(

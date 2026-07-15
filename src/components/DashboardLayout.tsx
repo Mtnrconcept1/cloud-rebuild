@@ -131,12 +131,6 @@ const NAV_SECTIONS: NavSection[] = [
   },
 ];
 
-const COMMERCIAL_DEMO_SAFE_RESTAURANT_PATHS = new Set([
-  "/dashboard",
-  "/dashboard/commandes",
-  "/dashboard/notifications",
-]);
-
 function isDashboardNavItemActive(pathname: string, itemTo: string) {
   if (itemTo === "/dashboard") return pathname === itemTo;
   return pathname === itemTo || pathname.startsWith(`${itemTo}/`);
@@ -294,9 +288,15 @@ export default function DashboardLayout({
   const { pathname } = useLocation();
   const queryClient = useQueryClient();
   const { selectedId, disabledFeatures, dashboardAccessLocked, dashboardAccessLockReason, isDemoMode } = useDashboardRestaurant();
-  const { role } = useAuth();
   const commercialDemoFrame = useCommercialDemoFrame();
-  const activeFeatures = useActiveFeatures({ enabled: !commercialDemoFrame });
+  const globalActiveFeatures = useActiveFeatures({ enabled: !commercialDemoFrame });
+  const { role } = useAuth();
+  const activeFeatures = useMemo(
+    () => commercialDemoFrame
+      ? new Set(commercialDemoFrame.snapshot.active_features)
+      : globalActiveFeatures,
+    [commercialDemoFrame, globalActiveFeatures],
+  );
   const { unreadNotifications } = useNotificationCenter(50);
 
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -330,14 +330,11 @@ export default function DashboardLayout({
     return NAV_SECTIONS.map((section) => ({
       ...section,
       items: section.items.filter((item) => {
-        if (commercialDemoFrame) {
-          return commercialDemoFrame.surface === "restaurant"
-            && COMMERCIAL_DEMO_SAFE_RESTAURANT_PATHS.has(item.to);
-        }
-        return isDemoMode || !item.feature || activeFeatures.has(item.feature);
+        if (commercialDemoFrame && commercialDemoFrame.surface !== "restaurant") return false;
+        return !item.feature || activeFeatures.has(item.feature);
       }),
     })).filter((section) => section.items.length > 0);
-  }, [activeFeatures, commercialDemoFrame, isDemoMode]);
+  }, [activeFeatures, commercialDemoFrame]);
 
   const activeNavItem = useMemo(
     () =>

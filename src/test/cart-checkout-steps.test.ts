@@ -16,13 +16,19 @@ describe("cart checkout steps", () => {
     expect(cartPageSource).toContain('label: "Adresse"');
     expect(cartPageSource).toContain('label: "Heure de retrait"');
     expect(cartPageSource).toContain('description: "Date et créneau"');
-    expect(cartPageSource).toContain("const checkoutSteps = useMemo(() => getCheckoutSteps(orderMode), [orderMode])");
+    expect(cartPageSource).toContain("getCheckoutSteps(orderMode).filter");
+    expect(cartPageSource).toContain('!isCommercialDemoClient || step.id !== "suggestions"');
+    expect(cartPageSource).toContain("[isCommercialDemoClient, orderMode]");
     expect(cartPageSource).toContain('label: "Suggestions"');
     expect(cartPageSource).toContain('label: "Paiement"');
     expect(cartPageSource).toContain('checkoutStep === "summary"');
     expect(cartPageSource).toContain('checkoutStep === "address"');
     expect(cartPageSource).toContain('checkoutStep === "suggestions"');
     expect(cartPageSource).toContain('checkoutStep === "payment"');
+  });
+
+  it("skips production upsell data only inside the isolated commercial demo", () => {
+    expect(cartPageSource).toContain('setCheckoutStep(isCommercialDemoClient ? "payment" : "suggestions")');
   });
 
   it("keeps delivery/takeaway selection in the summary step", () => {

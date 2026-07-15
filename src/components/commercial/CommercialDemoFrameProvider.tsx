@@ -55,6 +55,11 @@ const EVENT_RECIPIENTS: Record<string, CommercialDemoFrameSurface[]> = {
   order_picked_up: ["client", "restaurant"],
   delivery_started: ["client"],
   order_delivered: ["client", "restaurant", "courier"],
+  reservation_created: ["client", "restaurant"],
+  reservation_confirmed: ["client"],
+  reservation_arrived: ["client", "restaurant"],
+  reservation_no_show: ["client", "restaurant"],
+  reservation_cancelled: ["client", "restaurant"],
   session_reset: ["client", "restaurant", "courier"],
 };
 
@@ -69,6 +74,11 @@ const EVENT_TITLES: Record<string, Partial<Record<CommercialDemoFrameSurface, st
   order_picked_up: { client: "Commande récupérée", restaurant: "Commande remise au livreur" },
   delivery_started: { client: "Livraison en cours" },
   order_delivered: { client: "Commande livrée", restaurant: "Livraison terminée", courier: "Mission terminée" },
+  reservation_created: { client: "Réservation envoyée", restaurant: "Nouvelle réservation" },
+  reservation_confirmed: { client: "Réservation confirmée" },
+  reservation_arrived: { client: "Arrivée enregistrée", restaurant: "Client arrivé" },
+  reservation_no_show: { client: "Réservation marquée absente", restaurant: "Client absent" },
+  reservation_cancelled: { client: "Réservation annulée", restaurant: "Annulation client" },
   session_reset: { client: "Démo réinitialisée", restaurant: "Démo réinitialisée", courier: "Démo réinitialisée" },
 };
 

@@ -36,8 +36,8 @@ import { canShowClientSurface, getRoleHomePath } from "@/lib/roleAccess";
 import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 import { isNative } from "@/lib/platform";
 import { useTokLogoDocumentIcons } from "@/hooks/useTokLogo";
-import { useCommercialDemoAccount } from "@/hooks/useCommercialDemoAccount";
-import CommercialDemoFrameProvider, { CommercialDemoFrameAuthBoundary } from "@/components/commercial/CommercialDemoFrameProvider";
+import CommercialDemoFrameProvider, { CommercialDemoFrameAuthBoundary, useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
+import CommercialDemoToolBoundary from "@/components/commercial/CommercialDemoToolBoundary";
 import { getCommercialDemoFrameConfig, type CommercialDemoFrameConfig } from "@/lib/commercialDemoFrame";
 
 const Index = lazy(() => import("./pages/Index"));
@@ -340,15 +340,17 @@ function AdminProtectedRoute({
 
 const COMMERCIAL_DEMO_FRAME_ROUTE_POLICY: Record<
   CommercialDemoFrameConfig["surface"],
-  { home: string; allowedPaths: readonly string[] }
+  { home: string; allowedPaths: readonly string[]; allowedPrefixes?: readonly string[] }
 > = {
   client: {
     home: "/mon-espace",
-    allowedPaths: ["/mon-espace", "/commandes", "/notifications"],
+    allowedPaths: ["/mon-espace", "/recherche", "/panier", "/commandes", "/reservations", "/notifications"],
+    allowedPrefixes: ["/restaurant/"],
   },
   restaurant: {
     home: "/dashboard",
-    allowedPaths: ["/dashboard", "/dashboard/commandes", "/dashboard/notifications"],
+    allowedPaths: ["/dashboard"],
+    allowedPrefixes: ["/dashboard/"],
   },
   courier: {
     home: "/courier",
@@ -369,8 +371,10 @@ function CommercialDemoFrameRouteBoundary({
 }) {
   const { pathname } = useLocation();
   const policy = COMMERCIAL_DEMO_FRAME_ROUTE_POLICY[config.surface];
+  const pathAllowed = policy.allowedPaths.includes(pathname)
+    || policy.allowedPrefixes?.some((prefix) => pathname.startsWith(prefix));
 
-  if (!policy.allowedPaths.includes(pathname)) {
+  if (!pathAllowed) {
     return <Navigate to={policy.home} replace />;
   }
 
@@ -379,22 +383,18 @@ function CommercialDemoFrameRouteBoundary({
 
 function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: CommercialDemoFrameConfig | null }) {
   const { pathname } = useLocation();
+  const commercialDemoContext = useCommercialDemoFrame();
   useTokLogoDocumentIcons();
-  const { role, roles } = useAuth();
   const { activeFeatures, loading: featureFlagsLoading } = useFeatureFlagSnapshot({
     enabled: !commercialDemoFrame,
   });
-  const commercialRestaurantSurface = role === "restaurateur" && roles.includes("commercial");
-  const commercialSurface = role === "commercial" && roles.includes("commercial");
-  const { isDemoAccount, loading: demoAccountLoading } = useCommercialDemoAccount({
-    enabled: roles.includes("commercial") && !commercialDemoFrame,
-  });
   const hasFeature = (flagName: string) => {
-    if (commercialDemoFrame) return true;
-    const needsDemoResolution = (commercialRestaurantSurface && flagName.startsWith("dashboard-"))
-      || (commercialSurface && flagName === "commercial-prospection");
-    if (featureFlagsLoading || (needsDemoResolution && demoAccountLoading)) return null;
-    if (isDemoAccount && needsDemoResolution) return true;
+    if (commercialDemoFrame) {
+      return commercialDemoContext
+        ? commercialDemoContext.snapshot.active_features.includes(flagName)
+        : null;
+    }
+    if (featureFlagsLoading) return null;
     return activeFeatures.has(flagName);
   };
   const commandesEnabled = hasFeature("commandes");
@@ -510,9 +510,9 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           <Route path="/ventes-flash" element={<ClientSurfaceRoute><FeatureSwitch enabled={flashSalesEnabled}><VentesFlash /></FeatureSwitch></ClientSurfaceRoute>} />
           <Route path="/actualites" element={<FeatureSwitch enabled={actualitesSocialesEnabled} fallback="/"><Actualites /></FeatureSwitch>} />
           <Route path="/actualites/:postId" element={<FeatureSwitch enabled={actualitesSocialesEnabled} fallback="/"><ActualitePost /></FeatureSwitch>} />
-          <Route path="/dashboard" element={<DashboardRoute><FeatureSwitch enabled={dashboardOverviewEnabled} fallback="/"><DashboardHome /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard" element={<DashboardRoute><FeatureSwitch enabled={dashboardOverviewEnabled} fallback="/dashboard/notifications"><DashboardHome /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/restaurant" element={<DashboardRoute><FeatureSwitch enabled={dashboardRestaurantEnabled} fallback="/dashboard"><DashboardRestaurant /></FeatureSwitch></DashboardRoute>} />
-          <Route path="/dashboard/advisor" element={<DashboardRoute><FeatureSwitch enabled={dashboardAdvisorEnabled} fallback="/dashboard"><DashboardAdvisor /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/advisor" element={<DashboardRoute><FeatureSwitch enabled={dashboardAdvisorEnabled} fallback="/dashboard"><CommercialDemoToolBoundary tool="advisor"><DashboardAdvisor /></CommercialDemoToolBoundary></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/menu" element={<DashboardRoute><FeatureSwitch enabled={dashboardMenuEnabled} fallback="/dashboard"><DashboardMenu /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/reservations" element={<DashboardRoute><FeatureSwitch enabled={dashboardReservationsEnabled} fallback="/dashboard"><DashboardReservations /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/commandes" element={<DashboardRoute><FeatureSwitch enabled={dashboardCommandesEnabled} fallback="/dashboard"><DashboardCommandes /></FeatureSwitch></DashboardRoute>} />
@@ -522,27 +522,27 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           <Route path="/dashboard/avis" element={<DashboardRoute><FeatureSwitch enabled={dashboardAvisEnabled} fallback="/dashboard"><DashboardAvis /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/compta" element={dashboardFacturesEnabled === null ? <div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div> : <Navigate to={dashboardFacturesEnabled ? "/dashboard/factures" : "/dashboard"} replace />} />
           <Route path="/dashboard/factures" element={<DashboardRoute><FeatureSwitch enabled={dashboardFacturesEnabled} fallback="/dashboard"><DashboardFactures /></FeatureSwitch></DashboardRoute>} />
-          <Route path="/dashboard/factures/entrees" element={<DashboardRoute><FeatureSwitch enabled={dashboardFacturesEnabled} fallback="/dashboard/factures"><DashboardFacturesInflow /></FeatureSwitch></DashboardRoute>} />
-          <Route path="/dashboard/factures/sorties" element={<DashboardRoute><FeatureSwitch enabled={dashboardFacturesEnabled} fallback="/dashboard/factures"><DashboardFacturesOutflow /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/factures/entrees" element={<DashboardRoute><FeatureSwitch enabled={dashboardFacturesEnabled} fallback="/dashboard/factures"><CommercialDemoToolBoundary tool="accounting-inflow"><DashboardFacturesInflow /></CommercialDemoToolBoundary></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/factures/sorties" element={<DashboardRoute><FeatureSwitch enabled={dashboardFacturesEnabled} fallback="/dashboard/factures"><CommercialDemoToolBoundary tool="accounting-outflow"><DashboardFacturesOutflow /></CommercialDemoToolBoundary></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/factures/parametres" element={<DashboardRoute><FeatureSwitch enabled={dashboardFacturesParametresEnabled} fallback="/dashboard/factures"><DashboardInvoiceSettings /></FeatureSwitch></DashboardRoute>} />
-          <Route path="/dashboard/mon-compte-facturation" element={<DashboardRoute><FeatureSwitch enabled={dashboardBillingEnabled} fallback="/dashboard"><DashboardAccountBilling /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/mon-compte-facturation" element={<DashboardRoute><FeatureSwitch enabled={dashboardBillingEnabled} fallback="/dashboard"><CommercialDemoToolBoundary tool="billing"><DashboardAccountBilling /></CommercialDemoToolBoundary></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/offres" element={<DashboardRoute><FeatureSwitch enabled={dashboardOffresEnabled} fallback="/dashboard"><DashboardOffres /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/ventes-flash" element={<DashboardRoute><FeatureSwitch enabled={dashboardVentesFlashEnabled} fallback="/dashboard"><DashboardVentesFlash /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/formules" element={<DashboardRoute><FeatureSwitch enabled={dashboardFormulesEnabled} fallback="/dashboard"><DashboardFormules /></FeatureSwitch></DashboardRoute>} />
-          <Route path="/dashboard/photos" element={<DashboardRoute><FeatureSwitch enabled={dashboardPhotosEnabled} fallback="/dashboard"><DashboardPhotos /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/photos" element={<DashboardRoute><FeatureSwitch enabled={dashboardPhotosEnabled} fallback="/dashboard"><CommercialDemoToolBoundary tool="photos"><DashboardPhotos /></CommercialDemoToolBoundary></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/promotions" element={<DashboardRoute><FeatureSwitch enabled={dashboardPromotionsEnabled} fallback="/dashboard"><DashboardPromotions /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/campagne-overview" element={<Navigate to="/dashboard/campagnes" replace />} />
-          <Route path="/dashboard/reseaux-sociaux" element={<DashboardRoute><FeatureSwitch enabled={dashboardReseauxSociauxEnabled} fallback="/dashboard"><DashboardReseauxSociaux /></FeatureSwitch></DashboardRoute>} />
-          <Route path="/dashboard/actualites" element={<DashboardRoute><FeatureSwitch enabled={dashboardActualitesEnabled} fallback="/dashboard"><DashboardActualites /></FeatureSwitch></DashboardRoute>} />
-          <Route path="/dashboard/campagnes" element={<DashboardRoute><FeatureSwitch enabled={dashboardCampagnesEnabled} fallback="/dashboard"><DashboardCampagnes /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/reseaux-sociaux" element={<DashboardRoute><FeatureSwitch enabled={dashboardReseauxSociauxEnabled} fallback="/dashboard"><CommercialDemoToolBoundary tool="social"><DashboardReseauxSociaux /></CommercialDemoToolBoundary></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/actualites" element={<DashboardRoute><FeatureSwitch enabled={dashboardActualitesEnabled} fallback="/dashboard"><CommercialDemoToolBoundary tool="actualites"><DashboardActualites /></CommercialDemoToolBoundary></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/campagnes" element={<DashboardRoute><FeatureSwitch enabled={dashboardCampagnesEnabled} fallback="/dashboard"><CommercialDemoToolBoundary tool="campaigns"><DashboardCampagnes /></CommercialDemoToolBoundary></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/crm" element={<DashboardRoute><FeatureSwitch enabled={dashboardCrmEnabled} fallback="/dashboard"><DashboardCrm /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/notifications" element={<DashboardRoute><DashboardNotifications /></DashboardRoute>} />
-          <Route path="/dashboard/support" element={<DashboardRoute><FeatureSwitch enabled={dashboardSupportEnabled} fallback="/dashboard"><DashboardSupport /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/support" element={<DashboardRoute><FeatureSwitch enabled={dashboardSupportEnabled} fallback="/dashboard"><CommercialDemoToolBoundary tool="support"><DashboardSupport /></CommercialDemoToolBoundary></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/service" element={<DashboardRoute><FeatureSwitch enabled={dashboardServiceEnabled} fallback="/dashboard"><DashboardService /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/plan-salle" element={<DashboardRoute><FeatureSwitch enabled={dashboardPlanSalleEnabled} fallback="/dashboard"><DashboardPlanSalle /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/plan-salle-v2" element={<DashboardRoute><FeatureSwitch enabled={dashboardPlanSalleEnabled} fallback="/dashboard"><DashboardPlanSalleV2 /></FeatureSwitch></DashboardRoute>} />
-          <Route path="/dashboard/pack" element={<DashboardRoute><FeatureSwitch enabled={dashboardPackEnabled} fallback="/dashboard"><DashboardPack /></FeatureSwitch></DashboardRoute>} />
-          <Route path="/dashboard/tok-connect" element={<DashboardRoute><FeatureSwitch enabled={dashboardTokConnectEnabled} fallback="/dashboard"><DashboardTokConnect /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/pack" element={<DashboardRoute><FeatureSwitch enabled={dashboardPackEnabled} fallback="/dashboard"><CommercialDemoToolBoundary tool="pack"><DashboardPack /></CommercialDemoToolBoundary></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/tok-connect" element={<DashboardRoute><FeatureSwitch enabled={dashboardTokConnectEnabled} fallback="/dashboard"><CommercialDemoToolBoundary tool="tok-connect"><DashboardTokConnect /></CommercialDemoToolBoundary></FeatureSwitch></DashboardRoute>} />
           <Route path="/courier" element={<ProtectedRoute requiredRole="courier"><FeatureSwitch enabled={courierHomeEnabled}><CourierHome /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/courier/jobs" element={<ProtectedRoute requiredRole="courier"><FeatureSwitch enabled={courierJobsEnabled} fallback="/courier"><CourierJobs /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/courier/notifications" element={<ProtectedRoute requiredRole="courier"><CourierNotifications /></ProtectedRoute>} />

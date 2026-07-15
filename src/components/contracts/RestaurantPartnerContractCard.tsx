@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth-context";
@@ -78,10 +79,13 @@ export default function RestaurantPartnerContractCard({
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemoRestaurant = commercialDemoFrame?.surface === "restaurant";
   const [signerName, setSignerName] = useState("");
   const [acceptedAuthority, setAcceptedAuthority] = useState(false);
   const [acceptedContract, setAcceptedContract] = useState(false);
   const [isSigning, setIsSigning] = useState(false);
+  const [demoContract, setDemoContract] = useState<RestaurantContract | null>(null);
 
   const { data: contracts = [], isLoading } = useQuery({
     queryKey: ["restaurant-contracts", restaurantId],
@@ -102,12 +106,12 @@ export default function RestaurantPartnerContractCard({
 
   const currentContract = useMemo(
     () =>
-      contracts.find(
+      demoContract || contracts.find(
         (contract) =>
           contract.contract_version === RESTAURANT_PARTNER_CONTRACT_VERSION &&
           contract.status === "signed",
       ),
-    [contracts],
+    [contracts, demoContract],
   );
   const hasRequiredRestaurantIdentity = Boolean(
     restaurant?.legal_name?.trim() &&
@@ -210,6 +214,37 @@ export default function RestaurantPartnerContractCard({
       const signedAtClient = new Date().toISOString();
       const acceptanceText =
         "J'ai lu et j'accepte l'intégralité du contrat restaurateur TOK et je déclare être habilité à engager le restaurateur.";
+
+      if (isCommercialDemoRestaurant) {
+        setDemoContract({
+          id: `commercial-demo-contract:${restaurantId}`,
+          restaurant_id: restaurantId,
+          contract_version: RESTAURANT_PARTNER_CONTRACT_VERSION,
+          contract_title: RESTAURANT_PARTNER_CONTRACT_TITLE,
+          signer_name: signerName.trim(),
+          signed_by: null,
+          signed_at: signedAtClient,
+          status: "signed",
+          signature_metadata: {
+            signer_role: "Représentant autorisé",
+            acceptance_text: acceptanceText,
+            signed_email: user.email || null,
+            signed_at_client: signedAtClient,
+            signed_restaurant_id: restaurantId,
+            source: "commercial_demo_restaurant_dashboard",
+          },
+        });
+        toast({
+          title: "Signature simulée",
+          description:
+            "Le contrat est signé dans cette fenêtre de démonstration uniquement. Aucun engagement réel n'a été enregistré.",
+        });
+        setSignerName("");
+        setAcceptedAuthority(false);
+        setAcceptedContract(false);
+        return;
+      }
+
       const contractContentSha256 = await generateRestaurantPartnerContractSha256({
         signerName: signerName.trim(),
         signedAt: signedAtClient,
@@ -376,7 +411,7 @@ export default function RestaurantPartnerContractCard({
             {!hasRequiredRestaurantIdentity ? (
               <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
                 La raison sociale, le nom commercial et le nom du restaurant
-                doivent être renseignés avant signature réelle.
+                doivent être renseignés avant signature {isCommercialDemoRestaurant ? "simulée" : "réelle"}.
               </p>
             ) : null}
             <Button
@@ -389,7 +424,9 @@ export default function RestaurantPartnerContractCard({
               ) : (
                 <ShieldCheck className="h-4 w-4" />
               )}
-              Signer numériquement et enregistrer
+              {isCommercialDemoRestaurant
+                ? "Simuler la signature numérique"
+                : "Signer numériquement et enregistrer"}
             </Button>
           </div>
         ) : null}

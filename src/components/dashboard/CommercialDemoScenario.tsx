@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import {
   Ban,
@@ -28,6 +29,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useDashboardRestaurant } from "@/pages/dashboard/useDashboardRestaurant";
 import { getRelativeLocalDateKey } from "@/lib/commercialDemoDate";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
+import {
+  transitionCommercialDemoReservation,
+  type CommercialDemoReservationTransitionAction,
+} from "@/lib/commercialDemoJourney";
 
 type DemoOrderStatus = "confirmed" | "accepted" | "preparing" | "ready" | "delivering" | "delivered" | "cancelled";
 type DemoReservationStatus = "pending" | "confirmed" | "arrived" | "no_show" | "cancelled";
@@ -229,6 +235,7 @@ function makeDemoReservations(): DemoReservation[] {
 }
 
 function DemoSafetyNotice() {
+  const commercialDemoFrame = useCommercialDemoFrame();
   return (
     <Card className="border-sky-200 bg-sky-50/90 shadow-sm dark:border-sky-400/25 dark:bg-sky-400/10">
       <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -242,7 +249,9 @@ function DemoSafetyNotice() {
               <Badge className="bg-sky-600 text-white hover:bg-sky-600">100 % simulé</Badge>
             </div>
             <p className="mt-1 text-sm text-sky-800 dark:text-sky-100/80">
-              Ces données restent dans votre navigateur. Aucune commande, réservation, notification ou opération financière réelle n'est créée.
+              {commercialDemoFrame
+                ? "Ces données restent dans une session de démonstration isolée et synchronisée. Aucune commande, réservation, notification ou opération financière réelle n'est créée."
+                : "Ces données restent dans votre navigateur. Aucune commande, réservation, notification ou opération financière réelle n'est créée."}
             </p>
           </div>
         </div>
@@ -521,25 +530,73 @@ export function CommercialDemoOrders() {
 }
 
 export function CommercialDemoReservations() {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const queryClient = useQueryClient();
   const { restaurants, selectedId } = useDashboardRestaurant();
   const selectedRestaurant = restaurants.find((restaurant) => restaurant.id === selectedId);
   const [reservations, setReservations] = useState<DemoReservation[]>(makeDemoReservations);
   const [search, setSearch] = useState("");
   const normalizedSearch = search.trim().toLowerCase();
-  const visibleReservations = reservations.filter((reservation) => (
+  const realtimeReservations: DemoReservation[] = (commercialDemoFrame?.snapshot.reservations || []).map((reservation) => ({
+    id: reservation.id,
+    reference: reservation.reference,
+    date: reservation.reservation_date,
+    time: reservation.reservation_time.slice(0, 5),
+    customer: reservation.customer_name,
+    phone: reservation.customer_phone || "—",
+    guests: reservation.party_size,
+    status: reservation.status,
+    service: Number(reservation.reservation_time.slice(0, 2)) < 17 ? "Midi" : "Soir",
+    table: reservation.status === "arrived" ? "Client installé" : "À attribuer",
+    note: reservation.notes || undefined,
+    deposit: 0,
+  }));
+  const sourceReservations = commercialDemoFrame ? realtimeReservations : reservations;
+  const visibleReservations = sourceReservations.filter((reservation) => (
     !normalizedSearch
     || reservation.reference.toLowerCase().includes(normalizedSearch)
     || reservation.customer.toLowerCase().includes(normalizedSearch)
     || reservation.table.toLowerCase().includes(normalizedSearch)
   ));
 
+  const transitionMutation = useMutation({
+    mutationFn: async ({ id, action, expectedVersion }: {
+      id: string;
+      action: CommercialDemoReservationTransitionAction;
+      expectedVersion: number;
+    }) => transitionCommercialDemoReservation({ reservationId: id, action, expectedVersion }),
+    onSuccess: (snapshot) => {
+      if (!commercialDemoFrame) return;
+      queryClient.setQueryData(
+        ["commercial-demo-frame-snapshot", commercialDemoFrame.config.sessionId],
+        snapshot,
+      );
+      void commercialDemoFrame.refresh();
+    },
+  });
+
   const updateReservation = (id: string, status: DemoReservationStatus) => {
+    if (commercialDemoFrame) {
+      const reservation = commercialDemoFrame.snapshot.reservations.find((item) => item.id === id);
+      if (!reservation) return;
+      const action: CommercialDemoReservationTransitionAction | null = status === "confirmed"
+        ? "restaurant_confirm"
+        : status === "arrived"
+          ? "restaurant_mark_arrived"
+          : status === "no_show"
+            ? "restaurant_mark_no_show"
+            : status === "cancelled"
+              ? "client_cancel"
+              : null;
+      if (action) transitionMutation.mutate({ id, action, expectedVersion: reservation.version });
+      return;
+    }
     setReservations((current) => current.map((reservation) => (
       reservation.id === id ? { ...reservation, status } : reservation
     )));
   };
 
-  const activeReservations = reservations.filter((reservation) => !["cancelled", "no_show"].includes(reservation.status));
+  const activeReservations = sourceReservations.filter((reservation) => !["cancelled", "no_show"].includes(reservation.status));
   const guestCount = activeReservations.reduce((sum, reservation) => sum + reservation.guests, 0);
 
   return (
@@ -571,7 +628,7 @@ export function CommercialDemoReservations() {
               className="h-11 pl-10"
             />
           </div>
-          <ScenarioResetButton onReset={() => setReservations(makeDemoReservations())} />
+          {!commercialDemoFrame ? <ScenarioResetButton onReset={() => setReservations(makeDemoReservations())} /> : null}
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
@@ -626,20 +683,20 @@ export function CommercialDemoReservations() {
                         Client arrivé
                       </Button>
                     ) : null}
-                    {!isClosed && reservation.status !== "arrived" ? (
+                    {reservation.status === "confirmed" ? (
                       <Button type="button" variant="outline" className="gap-2" onClick={() => updateReservation(reservation.id, "no_show")}>
                         <Clock3 className="h-4 w-4" />
                         Marquer absent
                       </Button>
                     ) : null}
-                    {!isClosed && reservation.status !== "arrived" ? (
+                    {!commercialDemoFrame && !isClosed && reservation.status !== "arrived" ? (
                       <Button type="button" variant="outline" className="gap-2 text-destructive" onClick={() => updateReservation(reservation.id, "cancelled")}>
                         <Ban className="h-4 w-4" />
                         Annuler (démo)
                       </Button>
                     ) : null}
                   </div>
-                  <p className="text-xs text-muted-foreground">État actuel : {reservationStatusLabels[reservation.status]} · action locale uniquement.</p>
+                  <p className="text-xs text-muted-foreground">État actuel : {reservationStatusLabels[reservation.status]} · {commercialDemoFrame ? "synchronisé en temps réel" : "action locale uniquement"}.</p>
                 </CardContent>
               </Card>
             );
@@ -648,7 +705,7 @@ export function CommercialDemoReservations() {
 
         {visibleReservations.length === 0 ? (
           <Card className="rounded-3xl border-dashed">
-            <CardContent className="py-12 text-center text-muted-foreground">Aucune réservation simulée ne correspond à cette recherche.</CardContent>
+            <CardContent className="py-12 text-center text-muted-foreground">{commercialDemoFrame ? "Créez une réservation dans la fenêtre client : elle apparaîtra ici en temps réel." : "Aucune réservation simulée ne correspond à cette recherche."}</CardContent>
           </Card>
         ) : null}
       </div>

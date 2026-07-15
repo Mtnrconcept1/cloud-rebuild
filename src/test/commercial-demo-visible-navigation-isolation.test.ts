@@ -19,18 +19,21 @@ describe("commercial demo visible navigation isolation", () => {
   const notifications = read("src/hooks/useNotificationCenter.ts");
 
   it("keeps every visible client and restaurant tab aligned with the frame route policy", () => {
-    expect(app).toContain('allowedPaths: ["/mon-espace", "/commandes", "/notifications"]');
+    expect(app).toContain('allowedPaths: ["/mon-espace", "/recherche", "/panier", "/commandes", "/reservations", "/notifications"]');
+    expect(app).toContain('allowedPrefixes: ["/restaurant/"]');
     expect(clientLayout).toContain(
-      'const COMMERCIAL_DEMO_SAFE_CLIENT_PATHS = new Set(["/mon-espace", "/commandes", "/notifications"])',
+      'const COMMERCIAL_DEMO_SAFE_CLIENT_PATHS = new Set(["/mon-espace", "/recherche", "/reservations", "/commandes", "/notifications"])',
     );
 
-    expect(app).toContain(
-      'allowedPaths: ["/dashboard", "/dashboard/commandes", "/dashboard/notifications"]',
-    );
-    expect(restaurantLayout).toContain('"/dashboard",\n  "/dashboard/commandes",\n  "/dashboard/notifications"');
+    expect(app).toContain('allowedPaths: ["/dashboard"]');
+    expect(app).toContain('allowedPrefixes: ["/dashboard/"]');
+    expect(restaurantLayout).not.toContain("COMMERCIAL_DEMO_SAFE_RESTAURANT_PATHS");
 
     for (const path of [
       "/mon-espace",
+      "/recherche",
+      "/panier",
+      "/reservations",
       "/commandes",
       "/notifications",
       "/dashboard",
@@ -41,7 +44,7 @@ describe("commercial demo visible navigation isolation", () => {
     }
   });
 
-  it("disables app and layout feature lookups while an embedded dashboard is mounted", () => {
+  it("uses the validated snapshot flags while an embedded dashboard is mounted", () => {
     expect(featureFlags).toContain(
       "export function useFeatureFlagSnapshot(options: { enabled?: boolean } = {})",
     );
@@ -49,32 +52,25 @@ describe("commercial demo visible navigation isolation", () => {
     expect(featureFlags).toContain("return useFeatureFlagSnapshot(options).activeFeatures");
 
     expect(app).toContain("useFeatureFlagSnapshot({\n    enabled: !commercialDemoFrame,");
-    expect(app).toContain('enabled: roles.includes("commercial") && !commercialDemoFrame');
+    expect(app).toContain("commercialDemoContext.snapshot.active_features.includes(flagName)");
     expect(clientLayout).toContain(
       "useActiveFeatures({ enabled: !commercialDemoFrame })",
     );
+    expect(clientLayout).toContain("new Set(commercialDemoFrame.snapshot.active_features)");
     expect(restaurantLayout).toContain(
-      "useActiveFeatures({ enabled: !commercialDemoFrame })",
+      "new Set(commercialDemoFrame.snapshot.active_features)",
     );
   });
 
   it("hydrates the restaurant selector only from the validated snapshot in a frame", () => {
-    expect(dashboardContext).toContain(
-      "useOwnerRestaurants({ enabled: !commercialDemoFrame })",
-    );
+    expect(dashboardContext).toContain("useOwnerRestaurants({ enabled: !commercialDemoFrame })");
+    expect(dashboardContext).toContain("const restaurants = commercialDemoFrame ? frameRestaurants : ownerRestaurants.restaurants");
     expect(dashboardContext).toContain(
       "commercialDemoFrame?.snapshot.session.demo_restaurant_id",
     );
-    expect(dashboardContext).toContain("id: frameDemoRestaurantId");
-    expect(dashboardContext).toContain('name: "Restaurant Démo TOK"');
-    expect(dashboardContext).toContain("is_demo: true");
-    expect(dashboardContext).toContain(
-      "const restaurants = commercialDemoFrame ? frameRestaurants : ownerRestaurants.restaurants",
-    );
-    expect(dashboardContext).toContain(
-      "const loading = commercialDemoFrame ? false : ownerRestaurants.loading",
-    );
-    expect(dashboardContext).toContain("if (commercialDemoFrame) return null");
+    expect(dashboardContext).toContain("resolveCommercialDemoRestaurantSelection(restaurants, frameDemoRestaurantId)");
+    expect(dashboardContext).toContain("const selectedId = commercialDemoFrame");
+    expect(dashboardContext).toContain("if (commercialDemoFrame) return;");
   });
 
   it("mounts isolated presentation branches for all visible content routes", () => {

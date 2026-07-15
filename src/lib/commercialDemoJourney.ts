@@ -8,15 +8,51 @@ import { invokeSupabaseFunction, invokeSupabaseRpc } from "@/lib/session";
 export type CommercialDemoSurface = "client" | "restaurant" | "courier" | "system";
 
 export type CommercialDemoItem = {
+  menu_item_id?: string;
   name: string;
   quantity: number;
   unit_amount_cents: number;
+};
+
+export type CommercialDemoOrderInputItem = CommercialDemoItem & {
+  menu_item_id: string;
 };
 
 export type CommercialDemoSession = {
   id: string;
   demo_restaurant_id: string;
   created_at?: string | null;
+};
+
+export type CommercialDemoRestaurant = {
+  id: string;
+  name: string;
+  description?: string | null;
+  cuisine_type?: string | null;
+  address?: string | null;
+  city?: string | null;
+  phone?: string | null;
+  image_url?: string | null;
+  rating?: number | string | null;
+  review_count?: number | null;
+  price_range?: number | null;
+  delivery_available?: boolean | null;
+  delivery_fee?: number | string | null;
+  min_order_amount?: number | string | null;
+  supports_pickup?: boolean | null;
+  supports_dinein?: boolean | null;
+  supports_reservation?: boolean | null;
+  is_demo: true;
+};
+
+export type CommercialDemoCatalogItem = {
+  id: string;
+  name: string;
+  description?: string | null;
+  price: number | string;
+  category?: string | null;
+  image_url?: string | null;
+  is_available: boolean;
 };
 
 export type CommercialDemoOrder = {
@@ -41,6 +77,21 @@ export type CommercialDemoMission = {
   updated_at?: string | null;
 };
 
+export type CommercialDemoReservation = {
+  id: string;
+  reference: string;
+  reservation_date: string;
+  reservation_time: string;
+  party_size: number;
+  customer_name: string;
+  customer_phone?: string | null;
+  notes?: string | null;
+  status: "pending" | "confirmed" | "arrived" | "no_show" | "cancelled";
+  version: number;
+  created_at: string;
+  updated_at: string;
+};
+
 export type CommercialDemoEvent = {
   id: string;
   actor_surface: CommercialDemoSurface;
@@ -51,8 +102,12 @@ export type CommercialDemoEvent = {
 
 export type CommercialDemoSnapshot = {
   session: CommercialDemoSession;
+  demo_restaurant: CommercialDemoRestaurant;
+  catalog_items: CommercialDemoCatalogItem[];
   order: CommercialDemoOrder | null;
   mission: CommercialDemoMission | null;
+  reservations: CommercialDemoReservation[];
+  active_features: string[];
   events: CommercialDemoEvent[];
   allowed_actions: string[];
 };
@@ -66,6 +121,12 @@ export type CommercialDemoTransitionAction =
   | "courier_confirm_pickup"
   | "courier_start_delivery"
   | "courier_confirm_delivery";
+
+export type CommercialDemoReservationTransitionAction =
+  | "restaurant_confirm"
+  | "restaurant_mark_arrived"
+  | "restaurant_mark_no_show"
+  | "client_cancel";
 
 export type CommercialDemoCheckoutCreateResult = {
   checkout_url: string;
@@ -94,11 +155,6 @@ export class CommercialDemoApiError extends Error {
     this.code = code;
   }
 }
-
-const DEMO_ITEMS: CommercialDemoItem[] = [
-  { name: "Menu signature", quantity: 2, unit_amount_cents: 2_450 },
-  { name: "Tiramisu maison", quantity: 1, unit_amount_cents: 950 },
-];
 
 function asRecord(value: unknown): Record<string, any> {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -165,13 +221,62 @@ export async function getCommercialDemoSnapshot(sessionId: string) {
   });
 }
 
-export async function createCommercialDemoOrder(sessionId: string) {
+export async function createCommercialDemoOrder(sessionId: string, input: {
+  customerName?: string;
+  deliveryAddress?: string;
+  items?: CommercialDemoOrderInputItem[];
+} = {}) {
+  let items = input.items;
+  if (!items) {
+    const current = await getCommercialDemoSnapshot(sessionId);
+    if (current.order) return current;
+    items = getCommercialDemoPresetItems(current.catalog_items);
+  }
+  if (!items.length) {
+    throw new CommercialDemoApiError(
+      "Ajoutez au moins un plat disponible au menu du restaurant simulé.",
+      "DEMO_MENU_EMPTY",
+    );
+  }
+
   return invokeRpc<CommercialDemoSnapshot>("commercial_demo_create_order", {
     p_session_id: sessionId,
-    p_customer_name: "Sophie Martin",
-    p_delivery_address: "18 rue de la Démonstration, 1204 Genève",
-    p_items: DEMO_ITEMS,
+    p_customer_name: input.customerName || "Sophie Martin",
+    p_delivery_address: input.deliveryAddress || "18 rue de la Démonstration, 1204 Genève",
+    p_items: items,
     p_payment_method: "stripe_test",
+  });
+}
+
+export async function createCommercialDemoReservation(input: {
+  sessionId: string;
+  reservationDate: string;
+  reservationTime: string;
+  partySize: number;
+  customerName: string;
+  customerPhone?: string | null;
+  notes?: string | null;
+}) {
+  return invokeRpc<CommercialDemoSnapshot>("commercial_demo_create_reservation", {
+    p_session_id: input.sessionId,
+    p_reservation_date: input.reservationDate,
+    p_reservation_time: input.reservationTime,
+    p_party_size: input.partySize,
+    p_customer_name: input.customerName,
+    p_customer_phone: input.customerPhone || null,
+    p_notes: input.notes || null,
+  });
+}
+
+export async function transitionCommercialDemoReservation(input: {
+  reservationId: string;
+  action: CommercialDemoReservationTransitionAction;
+  expectedVersion: number;
+}) {
+  return invokeRpc<CommercialDemoSnapshot>("commercial_demo_transition_reservation", {
+    p_reservation_id: input.reservationId,
+    p_action: input.action,
+    p_expected_version: input.expectedVersion,
   });
 }
 
@@ -218,6 +323,28 @@ export async function createCommercialDemoCheckout({
     throw await toFunctionApiError(error, "Le paiement Stripe Test ne peut pas être ouvert.");
   }
   return assertTestMode(data) as CommercialDemoCheckoutCreateResult;
+}
+
+export function buildCommercialDemoCheckoutReturnUrl(sessionId: string) {
+  const url = new URL("/commercial/demo-live", window.location.origin);
+  url.searchParams.set("demo_session_id", sessionId);
+  return url.toString();
+}
+
+export function openCommercialDemoCheckout(sessionId: string, checkoutUrl: string) {
+  const url = new URL(checkoutUrl);
+  if (url.protocol !== "https:" || url.hostname !== "checkout.stripe.com") {
+    throw new CommercialDemoApiError("URL Stripe Test invalide. Ouverture bloquée.", "INVALID_CHECKOUT_URL");
+  }
+  if (window.parent === window) {
+    window.location.assign(url.toString());
+    return;
+  }
+  window.parent.postMessage({
+    type: "commercial-demo:open-checkout",
+    sessionId,
+    checkoutUrl: url.toString(),
+  }, window.location.origin);
 }
 
 export async function confirmCommercialDemoCheckout({
@@ -283,6 +410,11 @@ export function subscribeToCommercialDemoSession(
     )
     .on(
       "postgres_changes",
+      { event: "*", schema: "public", table: "commercial_demo_reservations", filter: `session_id=eq.${sessionId}` },
+      resync,
+    )
+    .on(
+      "postgres_changes",
       { event: "INSERT", schema: "public", table: "commercial_demo_order_events", filter: `session_id=eq.${sessionId}` },
       resync,
     )
@@ -302,6 +434,13 @@ export function subscribeToCommercialDemoSession(
   };
 }
 
-export function getCommercialDemoPresetItems() {
-  return DEMO_ITEMS;
+export function getCommercialDemoPresetItems(
+  catalogItems: CommercialDemoCatalogItem[],
+): CommercialDemoOrderInputItem[] {
+  return catalogItems.slice(0, 2).map((item, index) => ({
+    menu_item_id: item.id,
+    name: item.name,
+    quantity: index === 0 ? 2 : 1,
+    unit_amount_cents: Math.round(Number(item.price) * 100),
+  }));
 }

@@ -43,7 +43,9 @@ describe("restaurant reservation sidebar", () => {
     const restaurantDetail = read("src/pages/RestaurantDetail.tsx");
 
     expect(restaurantDetail).toContain("function ReservationDeeplinkLoading");
-    expect(restaurantDetail).toContain("const { activeFeatures, loading: featureFlagsLoading } = useFeatureFlagSnapshot();");
+    expect(restaurantDetail).toContain("activeFeatures: globalActiveFeatures");
+    expect(restaurantDetail).toContain("useFeatureFlagSnapshot({ enabled: !commercialDemoFrame })");
+    expect(restaurantDetail).toContain("const featureFlagsLoading = commercialDemoFrame ? false : globalFeatureFlagsLoading");
     expect(restaurantDetail).toContain("reservationQueryIntent && reservationOpen && (featureFlagsLoading || !isRestaurantFetched)");
     expect(restaurantDetail).toContain("return <ReservationDeeplinkLoading />;");
   });

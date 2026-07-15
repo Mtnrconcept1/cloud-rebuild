@@ -44,7 +44,7 @@ describe("commercial demo account security", () => {
   });
 
   it("shows every demo tool while centrally blocking paid or external effects", () => {
-    expect(app).toContain('flagName.startsWith("dashboard-")');
+    expect(app).toContain("commercialDemoContext.snapshot.active_features.includes(flagName)");
     expect(sharedAuth).toContain("DEMO_SIDE_EFFECT_BLOCKED");
     expect(sharedAuth).toContain("options.allowDemo !== true");
     expect(layout).toContain("Mode démonstration");

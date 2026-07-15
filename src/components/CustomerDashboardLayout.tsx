@@ -8,6 +8,7 @@ import {
   LifeBuoy,
   ShoppingCart,
   Star,
+  Store,
   Trophy,
   User,
   type LucideIcon,
@@ -29,6 +30,8 @@ type CustomerNavItem = {
   shortLabel?: string;
   icon: LucideIcon;
   feature?: string;
+  featuresAny?: string[];
+  demoOnly?: boolean;
   tab?: string;
 };
 
@@ -37,7 +40,7 @@ type CustomerNavSection = {
   items: CustomerNavItem[];
 };
 
-const COMMERCIAL_DEMO_SAFE_CLIENT_PATHS = new Set(["/mon-espace", "/commandes", "/notifications"]);
+const COMMERCIAL_DEMO_SAFE_CLIENT_PATHS = new Set(["/mon-espace", "/recherche", "/reservations", "/commandes", "/notifications"]);
 
 const NAV_SECTIONS: CustomerNavSection[] = [
   {
@@ -49,6 +52,14 @@ const NAV_SECTIONS: CustomerNavSection[] = [
   {
     label: "Mon activité",
     items: [
+      {
+        to: "/recherche",
+        label: "Restaurant démo",
+        shortLabel: "Restaurant",
+        icon: Store,
+        featuresAny: ["reservation", "commandes"],
+        demoOnly: true,
+      },
       { to: "/reservations", label: "Mes réservations", shortLabel: "Réservations", icon: CalendarDays, feature: "reservation" },
       { to: "/commandes", label: "Mes commandes", shortLabel: "Commandes", icon: ShoppingCart, feature: "commandes" },
       { to: "/mes-avis", label: "Mes avis", shortLabel: "Avis", icon: Star },
@@ -85,17 +96,24 @@ export default function CustomerDashboardLayout({ children }: { children: React.
   const { pathname, search } = useLocation();
   const { role } = useAuth();
   const commercialDemoFrame = useCommercialDemoFrame();
-  const activeFeatures = useActiveFeatures({ enabled: !commercialDemoFrame });
+  const globalActiveFeatures = useActiveFeatures({ enabled: !commercialDemoFrame });
+  const activeFeatures = commercialDemoFrame
+    ? new Set(commercialDemoFrame.snapshot.active_features)
+    : globalActiveFeatures;
   const { unreadNotifications } = useNotificationCenter(50);
   const visibleSections = NAV_SECTIONS
     .map((section) => ({
       ...section,
       items: section.items.filter((item) => {
+        const hasActiveFeature = (!item.feature || activeFeatures.has(item.feature))
+          && (!item.featuresAny || item.featuresAny.some((feature) => activeFeatures.has(feature)));
         if (commercialDemoFrame) {
           const target = new URL(item.to, "https://thetok.ch");
-          return commercialDemoFrame.surface === "client" && COMMERCIAL_DEMO_SAFE_CLIENT_PATHS.has(target.pathname);
+          return commercialDemoFrame.surface === "client"
+            && COMMERCIAL_DEMO_SAFE_CLIENT_PATHS.has(target.pathname)
+            && hasActiveFeature;
         }
-        return !item.feature || activeFeatures.has(item.feature);
+        return !item.demoOnly && hasActiveFeature;
       }),
     }))
     .filter((section) => section.items.length > 0);

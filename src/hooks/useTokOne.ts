@@ -386,8 +386,8 @@ export function useTokOneSubscription(options: QueryOptions = {}) {
 }
 
 /** Quick boolean check: does the user have an active Tok One subscription? */
-export function useIsTokOneMember() {
-  const { data: sub, isLoading } = useTokOneSubscription();
+export function useIsTokOneMember(options: QueryOptions = {}) {
+  const { data: sub, isLoading } = useTokOneSubscription(options);
   const isActive = isTokOneSubscriptionActive(sub);
   return { isMember: isActive, subscription: sub, isLoading };
 }

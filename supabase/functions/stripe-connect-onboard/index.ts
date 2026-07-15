@@ -43,7 +43,13 @@ Deno.serve(async (req) => {
     restaurantId = text(body.restaurant_id);
     if (!restaurantId) throw new HttpError(400, "restaurant_id requis");
 
-    const restaurant = await requireRestaurantAccess(actor, restaurantId);
+    const restaurant = await requireRestaurantAccess(actor, restaurantId, { allowDemo: true });
+    if (restaurant.is_demo) {
+      throw new HttpError(
+        409,
+        "DEMO_SIDE_EFFECT_BLOCKED: Stripe Connect est désactivé pour les restaurants de démonstration.",
+      );
+    }
     const { stripe } = getStripeRuntimeForCheckoutKind("stripe-connect");
 
     accountId = text(restaurant.stripe_account_id);
