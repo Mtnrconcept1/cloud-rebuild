@@ -16,7 +16,7 @@ type CommercialHostRedirectInput = {
   activeRole?: UserRole | null;
   roles?: readonly UserRole[];
   accountType?: string | null;
-  hasCommercialDemoMapping?: boolean;
+  serverCommercialDemoRestricted?: boolean;
 };
 
 const LOCAL_APP_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
@@ -134,7 +134,7 @@ export function isCommercialNamespacePath(pathname: string | null | undefined) {
 export function isManagedCommercialAccount(
   roles: readonly UserRole[] = [],
   accountType: string | null | undefined = null,
-  hasCommercialDemoMapping = false,
+  serverCommercialDemoRestricted = false,
 ) {
   // Durable server-managed markers always win, including when support grants
   // an admin role. An unmarked administrator may legitimately carry every
@@ -143,7 +143,7 @@ export function isManagedCommercialAccount(
     .trim()
     .toLowerCase() === "commercial_demo";
 
-  return hasCommercialDemoMapping
+  return serverCommercialDemoRestricted
     || isMarkedCommercialDemo
     || (roles.includes("commercial") && !roles.includes("admin"));
 }
@@ -241,7 +241,7 @@ export function getCommercialHostRedirectTarget({
   activeRole = null,
   roles = [],
   accountType = null,
-  hasCommercialDemoMapping = false,
+  serverCommercialDemoRestricted = false,
 }: CommercialHostRedirectInput) {
   if (isLocalAppHost(hostname)) return null;
 
@@ -252,7 +252,7 @@ export function getCommercialHostRedirectTarget({
   const isManagedCommercial = isManagedCommercialAccount(
     roles,
     accountType,
-    hasCommercialDemoMapping,
+    serverCommercialDemoRestricted,
   );
   const canOperateHost = canOperateCommercialDemoHost(roles);
 
