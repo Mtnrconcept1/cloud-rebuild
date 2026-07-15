@@ -22,6 +22,7 @@ describe("commercial demo active tools and reservations", () => {
   const menu = read("src/pages/dashboard/DashboardMenu.tsx");
   const crm = read("src/pages/dashboard/DashboardCrm.tsx");
   const restaurantDashboard = read("src/pages/dashboard/DashboardRestaurant.tsx");
+  const partnerContract = read("src/components/contracts/RestaurantPartnerContractCard.tsx");
   const stripeConnectOnboard = read("supabase/functions/stripe-connect-onboard/index.ts");
 
   it("opens the real restaurant dashboard namespace but keeps admin flags authoritative", () => {
@@ -177,6 +178,22 @@ describe("commercial demo active tools and reservations", () => {
     expect(crm).toContain("isDemoMode || isPremiumOrEliteRestaurantSubscription(subscription");
     expect(crm).toContain("hasPremiumCrmAccess={hasPremiumCrmAccess}");
     expect(crm).not.toContain("const hasPremiumCrmAccess = true");
+  });
+
+  it("simulates restaurant contract signing locally before any production insert", () => {
+    const handleSign = partnerContract.slice(
+      partnerContract.indexOf("const handleSign = async () =>"),
+      partnerContract.indexOf("return (", partnerContract.indexOf("const handleSign = async () =>")),
+    );
+
+    expect(partnerContract).toContain('commercialDemoFrame?.surface === "restaurant"');
+    expect(handleSign).toContain("if (isCommercialDemoRestaurant)");
+    expect(handleSign).toContain("setDemoContract({");
+    expect(handleSign).toContain('title: "Signature simulée"');
+    expect(handleSign).toContain("return;");
+    expect(handleSign.indexOf("if (isCommercialDemoRestaurant)"))
+      .toBeLessThan(handleSign.indexOf('.from("restaurant_contracts")'));
+    expect(handleSign).toContain("generateRestaurantPartnerContractSha256");
   });
 
   it("blocks Stripe Connect in both the demo frame and the server before Stripe is initialized", () => {
