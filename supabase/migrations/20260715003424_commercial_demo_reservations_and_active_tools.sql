@@ -45,6 +45,8 @@ CREATE INDEX commercial_demo_reservations_session_date_idx
   ON public.commercial_demo_reservations (session_id, reservation_date, reservation_time);
 CREATE INDEX commercial_demo_reservations_owner_created_idx
   ON public.commercial_demo_reservations (commercial_user_id, created_at DESC);
+CREATE INDEX commercial_demo_reservations_restaurant_idx
+  ON public.commercial_demo_reservations (demo_restaurant_id);
 
 ALTER TABLE public.commercial_demo_order_events
   ADD COLUMN reservation_id uuid;
@@ -252,6 +254,160 @@ BEGIN
 END
 $$;
 
+-- The real client view reads the restaurant's editable menu_items rows. Keep
+-- checkout authoritative against that same restaurant-scoped catalogue so a
+-- menu rename, price change or newly-created dish is reflected immediately in
+-- Stripe Test instead of falling back to the legacy global demo catalogue.
+CREATE OR REPLACE FUNCTION public.commercial_demo_create_order(
+  p_session_id uuid,
+  p_customer_name text,
+  p_delivery_address text,
+  p_items jsonb,
+  p_payment_method text DEFAULT 'stripe_test'
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+DECLARE
+  v_session public.commercial_demo_order_sessions%ROWTYPE;
+  v_order public.commercial_demo_orders%ROWTYPE;
+  v_input_item jsonb;
+  v_menu_item public.menu_items%ROWTYPE;
+  v_items jsonb := '[]'::jsonb;
+  v_menu_item_id uuid;
+  v_quantity integer;
+  v_unit_amount_cents integer;
+  v_subtotal integer := 0;
+BEGIN
+  SELECT * INTO v_session
+  FROM public.commercial_demo_order_sessions session
+  WHERE session.id = p_session_id
+  FOR UPDATE;
+
+  IF v_session.id IS NULL OR v_session.status <> 'active' THEN
+    RAISE EXCEPTION 'Active commercial demo session not found' USING ERRCODE = 'P0002';
+  END IF;
+  IF NOT public.commercial_demo_can_access_user(v_session.commercial_user_id) THEN
+    RAISE EXCEPTION 'Commercial demo access denied' USING ERRCODE = '42501';
+  END IF;
+  IF NOT public.is_feature_flag_active('commandes') THEN
+    RAISE EXCEPTION 'Order feature is not active' USING ERRCODE = '42501';
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1
+    FROM public.commercial_demo_accounts account
+    JOIN public.restaurants restaurant
+      ON restaurant.id = account.demo_restaurant_id
+     AND restaurant.owner_id = account.user_id
+     AND restaurant.is_demo
+    WHERE account.user_id = v_session.commercial_user_id
+      AND account.demo_restaurant_id = v_session.demo_restaurant_id
+      AND account.is_active
+  ) THEN
+    RAISE EXCEPTION 'Active isolated demo restaurant required' USING ERRCODE = '42501';
+  END IF;
+
+  SELECT * INTO v_order
+  FROM public.commercial_demo_orders demo_order
+  WHERE demo_order.session_id = p_session_id;
+
+  IF v_order.id IS NOT NULL THEN
+    RETURN public._commercial_demo_build_snapshot(p_session_id);
+  END IF;
+
+  IF p_payment_method IS DISTINCT FROM 'stripe_test' THEN
+    RAISE EXCEPTION 'Only Stripe Test is allowed in commercial demonstrations'
+      USING ERRCODE = '22023';
+  END IF;
+  IF char_length(btrim(COALESCE(p_customer_name, ''))) NOT BETWEEN 2 AND 80 THEN
+    RAISE EXCEPTION 'Invalid demo customer name' USING ERRCODE = '22023';
+  END IF;
+  IF char_length(btrim(COALESCE(p_delivery_address, ''))) NOT BETWEEN 5 AND 240 THEN
+    RAISE EXCEPTION 'Invalid demo delivery address' USING ERRCODE = '22023';
+  END IF;
+  IF jsonb_typeof(p_items) IS DISTINCT FROM 'array' THEN
+    RAISE EXCEPTION 'Demo order items must be a JSON array'
+      USING ERRCODE = '22023';
+  END IF;
+  IF jsonb_array_length(p_items) NOT BETWEEN 1 AND 20 THEN
+    RAISE EXCEPTION 'Demo order items must be a non-empty array of at most 20 items'
+      USING ERRCODE = '22023';
+  END IF;
+
+  FOR v_input_item IN SELECT value FROM jsonb_array_elements(p_items)
+  LOOP
+    IF jsonb_typeof(v_input_item) IS DISTINCT FROM 'object'
+       OR COALESCE(v_input_item->>'menu_item_id', '')
+          !~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+       OR COALESCE(v_input_item->>'quantity', '') !~ '^[0-9]{1,2}$' THEN
+      RAISE EXCEPTION 'A valid demo menu_item_id and quantity are required'
+        USING ERRCODE = '22023';
+    END IF;
+
+    v_menu_item_id := (v_input_item->>'menu_item_id')::uuid;
+    v_quantity := (v_input_item->>'quantity')::integer;
+    IF v_quantity NOT BETWEEN 1 AND 20 THEN
+      RAISE EXCEPTION 'Demo item quantity must be between 1 and 20' USING ERRCODE = '22023';
+    END IF;
+
+    SELECT * INTO v_menu_item
+    FROM public.menu_items item
+    WHERE item.id = v_menu_item_id
+      AND item.restaurant_id = v_session.demo_restaurant_id
+      AND item.is_available IS TRUE;
+
+    IF NOT FOUND THEN
+      RAISE EXCEPTION 'Unknown or unavailable item for this demo restaurant'
+        USING ERRCODE = '22023';
+    END IF;
+    IF v_menu_item.price IS NULL
+       OR v_menu_item.price <= 0
+       OR v_menu_item.price > 1000 THEN
+      RAISE EXCEPTION 'Invalid authoritative demo menu price' USING ERRCODE = '22023';
+    END IF;
+
+    v_unit_amount_cents := round(v_menu_item.price * 100)::integer;
+    v_subtotal := v_subtotal + (v_unit_amount_cents * v_quantity);
+    IF v_subtotal > 100000 THEN
+      RAISE EXCEPTION 'Commercial demo order amount is too large' USING ERRCODE = '22023';
+    END IF;
+
+    v_items := v_items || jsonb_build_array(jsonb_build_object(
+      'menu_item_id', v_menu_item.id,
+      'name', v_menu_item.name,
+      'quantity', v_quantity,
+      'unit_amount_cents', v_unit_amount_cents
+    ));
+  END LOOP;
+
+  INSERT INTO public.commercial_demo_orders (
+    session_id, commercial_user_id, demo_restaurant_id, order_number,
+    customer_name, delivery_address, items,
+    subtotal_amount_cents, total_amount_cents
+  ) VALUES (
+    p_session_id, v_session.commercial_user_id, v_session.demo_restaurant_id,
+    'DEMO-' || upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 10)),
+    btrim(p_customer_name), btrim(p_delivery_address), v_items,
+    v_subtotal, v_subtotal
+  ) RETURNING * INTO v_order;
+
+  INSERT INTO public.commercial_demo_order_events (
+    session_id, order_id, commercial_user_id, actor_user_id,
+    actor_surface, event_type, label, to_status,
+    metadata
+  ) VALUES (
+    p_session_id, v_order.id, v_session.commercial_user_id, auth.uid(),
+    'client', 'order_created', 'Commande démo créée — paiement Stripe Test requis',
+    'awaiting_payment',
+    jsonb_build_object('total_amount_cents', v_subtotal, 'stripe_mode', 'test')
+  );
+
+  RETURN public._commercial_demo_build_snapshot(p_session_id);
+END
+$$;
+
 CREATE OR REPLACE FUNCTION public.commercial_demo_create_reservation(
   p_session_id uuid,
   p_reservation_date date,
@@ -305,7 +461,7 @@ BEGIN
   IF p_reservation_time IS NULL THEN
     RAISE EXCEPTION 'Invalid commercial demo reservation time' USING ERRCODE = '22023';
   END IF;
-  IF p_party_size NOT BETWEEN 1 AND 20 THEN
+  IF p_party_size IS NULL OR p_party_size NOT BETWEEN 1 AND 20 THEN
     RAISE EXCEPTION 'Invalid commercial demo party size' USING ERRCODE = '22023';
   END IF;
   IF char_length(btrim(COALESCE(p_customer_name, ''))) NOT BETWEEN 2 AND 80 THEN
