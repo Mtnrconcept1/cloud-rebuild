@@ -50,6 +50,7 @@ describe("commercial demo browser frames", () => {
       path: "/commandes",
       search: "?demo=1",
       historyIndex: 2,
+      navigationType: "PUSH",
       unreadCount: 3,
       realtimeStatus: "connected",
     };
@@ -57,6 +58,7 @@ describe("commercial demo browser frames", () => {
     expect(isCommercialDemoFrameStateMessage({ ...message, surface: "admin" })).toBe(false);
     expect(isCommercialDemoFrameStateMessage({ ...message, path: "https://evil.test" })).toBe(false);
     expect(isCommercialDemoFrameStateMessage({ ...message, unreadCount: -1 })).toBe(false);
+    expect(isCommercialDemoFrameStateMessage({ ...message, navigationType: "FORWARD" })).toBe(false);
     expect(isCommercialDemoFrameStateMessage({ ...message, realtimeStatus: "unknown" })).toBe(false);
   });
 
