@@ -90,7 +90,7 @@ describe("dashboard shell navigation", () => {
     expect(app).toContain('pathname.startsWith("/dashboard/")');
     expect(app).toContain('pathname.startsWith("/admin/")');
     expect(app).toContain('pathname.startsWith("/courier/")');
-    expect(app).toContain("const publicNavbar = !commercialDemoFrame && shouldShowPublicNavbar(pathname) ? <Navbar /> : null");
+    expect(app).toContain("const publicNavbar = !commercialDemoFrame && !oauthConsentFrame && shouldShowPublicNavbar(pathname) ? <Navbar /> : null");
     expect(app).not.toContain('pathname === "/actualites" && publicNavbar');
   });
 
@@ -123,3 +123,4 @@ describe("dashboard shell navigation", () => {
     expect(layout).not.toContain("h-[calc(env(safe-area-inset-bottom,0px)+5.5rem)] md:hidden");
   });
 });
+

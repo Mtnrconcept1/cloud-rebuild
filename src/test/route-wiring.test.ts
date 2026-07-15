@@ -27,6 +27,7 @@ const CORE_ROUTES = new Set([
   "/",
   "/auth",
   "/auth/callback",
+  "/oauth/consent",
   "/recherche",
   "/actualites/:postId",
   "/restaurants/:city",
@@ -155,3 +156,4 @@ describe("route wiring", () => {
     expect(brokenTargets).toEqual([]);
   });
 });
+
