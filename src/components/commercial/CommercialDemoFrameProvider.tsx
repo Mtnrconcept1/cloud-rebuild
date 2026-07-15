@@ -146,9 +146,9 @@ export function CommercialDemoFrameAuthBoundary({
   const value = useMemo<AuthContextType>(() => ({
     ...auth,
     role: forcedRole,
-    // Keep the authenticated identity and its authoritative roles intact.
-    // Only the active presentation role is virtual inside this frame.
-    roles: auth.roles,
+    // The presentation role unlocks the matching real dashboard UI. Server
+    // authorization still derives the actor and ownership from the JWT.
+    roles: [...auth.roles, forcedRole],
     canSwitchRole: false,
     switchRole: () => undefined,
     // Signing out one same-origin frame would terminate all three windows and

@@ -38,10 +38,12 @@ describe("TOK photo studio persistence", () => {
     expect(dashboardPhotos).not.toContain('from "@/components/dashboard/TokAiPhotoStudioV2"');
   });
 
-  it("keeps technical source URLs hidden in the simplified studio", () => {
+  it("keeps technical source URLs hidden and persists only the opaque demo generation handle", () => {
     expect(source).toContain("showUrlInput={false}");
     expect(source).not.toContain("reference_folder");
-    expect(source).not.toContain("assetId");
+    expect(source).toContain('media_url: ""');
+    expect(source).toContain("generation_id: result.assetId");
+    expect(source).not.toContain("media_url: result.generated_image_url");
   });
 
   it("lets restaurateurs guide PhotoPro without replacing the protected source product", () => {

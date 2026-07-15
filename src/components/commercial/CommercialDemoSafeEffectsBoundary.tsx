@@ -209,7 +209,7 @@ export default function CommercialDemoSafeEffectsBoundary({
           <span className="truncate">
             {usesRealOpenAi
               ? `${TOOL_LABELS[tool]} · OpenAI réel · crédits Démo illimités · coût suivi en interne`
-              : `${TOOL_LABELS[tool]} · vraie interface · effets externes simulés`}
+              : `${TOOL_LABELS[tool]} · vraies interfaces, effets simulés · sorties externes protégées`}
           </span>
         </div>
       ) : null}
