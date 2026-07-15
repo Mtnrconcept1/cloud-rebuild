@@ -244,7 +244,9 @@ describe("restaurant account and billing dashboard", () => {
   });
 
   it("adds non-destructive subscription self-service schema and RPC guards", () => {
-    const migration = latestMigrationContaining(/get_restaurant_subscription_self_service_state/);
+    const migration = latestMigrationContaining(
+      /CREATE OR REPLACE FUNCTION public\.get_restaurant_subscription_self_service_state/,
+    );
 
     expect(migration).toContain("ADD COLUMN IF NOT EXISTS cancel_at_period_end");
     expect(migration).toContain("ADD COLUMN IF NOT EXISTS scheduled_plan_change");

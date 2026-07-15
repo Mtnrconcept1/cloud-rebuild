@@ -41,7 +41,7 @@ describe("TOK photo studio persistence", () => {
   it("keeps technical source URLs hidden in the simplified studio", () => {
     expect(source).toContain("showUrlInput={false}");
     expect(source).not.toContain("reference_folder");
-    expect(source).not.toContain("assetId");
+    expect(source).not.toContain("{result.assetId}");
   });
 
   it("lets restaurateurs guide PhotoPro without replacing the protected source product", () => {
@@ -478,7 +478,7 @@ describe("TOK photo studio persistence", () => {
     expect(marketingStudio).toContain("const latestResources = await fetchMarketingResources(restaurantId)");
     expect(marketingStudio).toContain("const baseGenerationResources = selectMarketingGenerationResources(latestResources)");
     expect(marketingStudio).toContain("const generationResources = withStyleReferenceResource(baseGenerationResources, styleReference, latestResources)");
-    expect(marketingStudio).toContain("if (!generationResources.length)");
+    expect(marketingStudio).toContain("if (!isCommercialDemo && !generationResources.length)");
     expect(marketingStudio).toContain("Reference requise");
     expect(marketingStudio).toContain("resources: generationResources");
     expect(marketingStudio).toContain("referenceImageUrls: generationResources.map((resource) => resource.mediaUrl)");

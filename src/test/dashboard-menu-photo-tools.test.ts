@@ -18,7 +18,7 @@ describe("dashboard menu photo tools", () => {
   });
 
   it("lets restaurateurs select dish images from the restaurant gallery", () => {
-    expect(dashboardMenu).toContain('queryKey: ["restaurant-media-picker", restaurant?.id]');
+    expect(dashboardMenu).toContain('queryKey: ["restaurant-media-picker", restaurant?.id, commercialDemoSessionId || "live"]');
     expect(dashboardMenu).toContain('from("restaurant_media")');
     expect(dashboardMenu).toContain('.in("media_type", ["photo", "photo_ai_tok"])');
     expect(dashboardMenu).toContain(".limit(24)");

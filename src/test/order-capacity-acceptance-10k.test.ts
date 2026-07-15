@@ -36,7 +36,7 @@ describe("order capacity and restaurant acceptance hardening", () => {
   });
 
   it("tracks restaurant view and acceptance deadlines on orders", () => {
-    const migration = readLatestMigrationContaining("mark_order_seen_by_restaurant");
+    const migration = readLatestMigrationContaining("CREATE OR REPLACE FUNCTION public.mark_order_seen_by_restaurant");
 
     expect(migration).toContain("restaurant_viewed_at");
     expect(migration).toContain("restaurant_accepted_at");

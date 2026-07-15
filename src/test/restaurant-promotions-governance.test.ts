@@ -42,7 +42,7 @@ describe("restaurant promotion governance", () => {
   it("surfaces active dashboard promotions directly on restaurant detail pages", () => {
     const restaurantDetail = read("src/pages/RestaurantDetail.tsx");
 
-    expect(restaurantDetail).toContain('queryKey: ["restaurant-active-promotions", restaurantId]');
+    expect(restaurantDetail).toContain('queryKey: ["restaurant-active-promotions", restaurantId, demoSessionKey]');
     expect(restaurantDetail).toContain('.from("restaurant_promotions")');
     expect(restaurantDetail).toContain('.eq("restaurant_id", restaurantId!)');
     expect(restaurantDetail).toContain('.eq("active", true)');

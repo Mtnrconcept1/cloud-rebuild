@@ -39,7 +39,7 @@ describe("restaurant slug SEO", () => {
     expect(prerender).toContain("buildRestaurantSeoPath");
     expect(prerender).toContain("/restaurants/${citySlug}/${restaurantSlug}");
     expect(app).toContain('/restaurant/:id');
-    expect(localRestaurants).toContain('queryKey: ["restaurant-slug", city, routeSegment]');
+    expect(localRestaurants).toContain('queryKey: ["restaurant-slug", city, routeSegment, demoSessionKey]');
     expect(localRestaurants).toContain("resolvedRestaurantId");
     expect(restaurantDetail).toContain("resolvedRestaurantId");
     expect(restaurantDetail).toContain("canonicalPath");

@@ -161,7 +161,7 @@ describe("progressive reservation offers", () => {
     expect(index).toContain("reservation_progressive_offers");
     expect(index).toContain("isMissingOptionalSupabaseRelation");
     expect(index).toContain("PROGRESSIVE_OFFERS_TABLE");
-    expect(index).toContain('queryKey: ["home-progressive-reservation-offers", todayServiceDate]');
+    expect(index).toContain('queryKey: ["home-progressive-reservation-offers", todayServiceDate, demoSessionKey]');
     expect(index).toContain('.eq("service_date", todayServiceDate)');
     expect(index).toContain("reservationDate: todayServiceDate");
     expect(index).toContain("getProgressiveOfferServiceLabel");

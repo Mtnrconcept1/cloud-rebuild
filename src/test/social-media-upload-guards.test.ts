@@ -7,10 +7,11 @@ function read(path: string) {
   return readFileSync(resolve(process.cwd(), path), "utf8");
 }
 
-function readMigrations() {
+function readMigrationsContaining(marker: string) {
   return readdirSync(resolve(process.cwd(), "supabase/migrations"))
     .filter((file) => file.endsWith(".sql"))
     .map((file) => read(`supabase/migrations/${file}`))
+    .filter((migration) => migration.includes(marker))
     .join("\n");
 }
 
@@ -36,7 +37,7 @@ describe("social media upload guards", () => {
   });
 
   it("keeps the Supabase social media bucket aligned with the frontend media limits", () => {
-    const migrations = readMigrations();
+    const migrations = readMigrationsContaining("social_post_media_bucket_hardening");
 
     expect(migrations).toContain("social_post_media_bucket_hardening");
     expect(migrations).toContain("file_size_limit = 26214400");

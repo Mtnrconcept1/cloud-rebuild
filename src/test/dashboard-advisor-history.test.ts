@@ -37,7 +37,7 @@ describe("dashboard advisor history", () => {
 
     expect(source).toContain("sanitizeAdvisorVisibleText");
     expect(source).toContain("SUPABASE_VISIBLE_URL_PATTERN");
-    expect(source).toContain("<ReactMarkdown>{sanitizeAdvisorVisibleText(message.content)}</ReactMarkdown>");
+    expect(source).toContain("<ReactMarkdown urlTransform={advisorMarkdownUrlTransform}>{sanitizeAdvisorVisibleText(message.content)}</ReactMarkdown>");
     expect(source).toContain("{sanitizeAdvisorVisibleText(message.content)}");
     expect(source).toContain("reference ${getShortAdvisorReference(photo.id)}");
     expect(source).toContain("Image associee: reference ${getShortAdvisorReference(dish.id)}");

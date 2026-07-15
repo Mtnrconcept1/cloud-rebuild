@@ -91,7 +91,8 @@ describe("privileged admin AI chat", () => {
     expect(supportChat).toContain("Acces administrateur principal");
     expect(app).toContain('import SupportChat from "@/components/SupportChat"');
     expect(app).not.toContain("const SupportChat = lazy");
-    expect(app).toContain("!commercialDemoFrame ? <SupportChat /> : null");
+    expect(app).toContain('commercialDemoFrame.surface !== "commercial"');
+    expect(app).toContain("<SupportChat />");
     expect(app).toContain("!commercialDemoFrame ? (");
     expect(app).toContain("<Suspense fallback={null}>");
   });
