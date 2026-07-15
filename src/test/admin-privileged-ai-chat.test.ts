@@ -92,9 +92,9 @@ describe("privileged admin AI chat", () => {
     expect(app).toContain('import SupportChat from "@/components/SupportChat"');
     expect(app).not.toContain("const SupportChat = lazy");
     expect(app).toContain('const oauthConsentFrame = pathname === "/oauth/consent"');
-    expect(app).not.toContain('commercialDemoFrame.surface !== "commercial"');
+    expect(app).toContain('commercialDemoFrame.surface !== "commercial"');
     expect(app).toContain(
-      "aiSupportChatEnabled === true && !commercialDemoFrame && !oauthConsentFrame ? <SupportChat /> : null",
+      'aiSupportChatEnabled === true && (!commercialDemoFrame || commercialDemoFrame.surface !== "commercial") && !oauthConsentFrame ? <SupportChat /> : null',
     );
     expect(app).toContain("!commercialDemoFrame && !oauthConsentFrame ? (");
     expect(app).toContain("<Suspense fallback={null}>");
