@@ -235,6 +235,7 @@ function makeDemoReservations(): DemoReservation[] {
 }
 
 function DemoSafetyNotice() {
+  const commercialDemoFrame = useCommercialDemoFrame();
   return (
     <Card className="border-sky-200 bg-sky-50/90 shadow-sm dark:border-sky-400/25 dark:bg-sky-400/10">
       <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -248,7 +249,9 @@ function DemoSafetyNotice() {
               <Badge className="bg-sky-600 text-white hover:bg-sky-600">100 % simulé</Badge>
             </div>
             <p className="mt-1 text-sm text-sky-800 dark:text-sky-100/80">
-              Ces données restent dans votre navigateur. Aucune commande, réservation, notification ou opération financière réelle n'est créée.
+              {commercialDemoFrame
+                ? "Ces données restent dans une session de démonstration isolée et synchronisée. Aucune commande, réservation, notification ou opération financière réelle n'est créée."
+                : "Ces données restent dans votre navigateur. Aucune commande, réservation, notification ou opération financière réelle n'est créée."}
             </p>
           </div>
         </div>
