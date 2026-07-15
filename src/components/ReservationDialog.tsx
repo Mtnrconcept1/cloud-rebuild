@@ -38,6 +38,8 @@ import {
   type ReservationSlotAvailability,
 } from "@/lib/reservationAvailability";
 import { createReservationWithValidation } from "@/lib/reservationMutations";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
+import { createCommercialDemoReservation } from "@/lib/commercialDemoJourney";
 import { detectServiceFromTime, getConfiguredServiceSettings, isTimeWithinService } from "@/lib/serviceSettings";
 import { buildZeroAttenteReservationUrl } from "@/lib/zeroAttenteReservationContext";
 
@@ -110,10 +112,14 @@ export default function ReservationDialog({
   resetKey,
 }: ReservationDialogProps) {
   const { user } = useAuth();
+  const commercialDemoFrame = useCommercialDemoFrame();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const activeFeatures = useActiveFeatures();
+  const globalActiveFeatures = useActiveFeatures({ enabled: !commercialDemoFrame });
+  const activeFeatures = commercialDemoFrame
+    ? new Set(commercialDemoFrame.snapshot.active_features)
+    : globalActiveFeatures;
   const zeroWaitEnabled = activeFeatures.has("zero-attente");
   const steps: Step[] = zeroWaitEnabled ? ["datetime", "mode", "promo", "confirm"] : ["datetime", "promo", "confirm"];
 
@@ -396,6 +402,50 @@ export default function ReservationDialog({
 
   const handleSubmit = async () => {
     if (!user || !date) return;
+
+    if (commercialDemoFrame?.surface === "client") {
+      if (restaurantId !== commercialDemoFrame.snapshot.demo_restaurant.id) {
+        toast({
+          title: "Restaurant de démonstration requis",
+          description: "Cette session ne peut réserver que dans le restaurant simulé.",
+          variant: "destructive",
+        });
+        return;
+      }
+      setLoading(true);
+      try {
+        const snapshot = await createCommercialDemoReservation({
+          sessionId: commercialDemoFrame.config.sessionId,
+          reservationDate: format(date, "yyyy-MM-dd"),
+          reservationTime: time,
+          partySize,
+          customerName: String(user.user_metadata?.full_name || user.email?.split("@")[0] || "Client démo"),
+          customerPhone: String(user.user_metadata?.phone || "") || null,
+          notes: notes || null,
+        });
+        queryClient.setQueryData(
+          ["commercial-demo-frame-snapshot", commercialDemoFrame.config.sessionId],
+          snapshot,
+        );
+        await commercialDemoFrame.refresh();
+        toast({
+          title: "Réservation démo envoyée",
+          description: "Elle apparaît maintenant en temps réel dans le dashboard restaurateur.",
+        });
+        onOpenChange(false);
+        resetForm();
+        navigate("/reservations");
+      } catch (reservationError) {
+        toast({
+          title: "Création impossible",
+          description: reservationError instanceof Error ? reservationError.message : "Réessayez dans un instant.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
 
     if (!restaurantSettings) {
       toast({
