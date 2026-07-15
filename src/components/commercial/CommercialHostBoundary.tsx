@@ -46,7 +46,7 @@ export default function CommercialHostBoundary({ children }: { children: ReactNo
     enabled: Boolean(user?.id),
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
-      const { data, error } = await getSupabase().rpc(
+      const { data, error } = await (getSupabase().rpc as any)(
         "commercial_demo_current_user_is_restricted",
       );
       if (error) throw error;
