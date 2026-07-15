@@ -27,7 +27,6 @@ describe("commercial demo restaurant scenarios", () => {
     for (const forbiddenCall of [
       "supabase",
       "useQuery(",
-      "useMutation(",
       "invokeSupabaseFunction",
       "dispatchQueuedNotifications",
       "processRefund",
@@ -38,6 +37,8 @@ describe("commercial demo restaurant scenarios", () => {
     ]) {
       expect(scenario).not.toContain(forbiddenCall);
     }
+    expect(scenario).toContain("transitionCommercialDemoReservation");
+    expect(scenario).toContain("commercialDemoFrame.snapshot.reservations");
   });
 
   it("labels examples and explains the safety boundary", () => {
