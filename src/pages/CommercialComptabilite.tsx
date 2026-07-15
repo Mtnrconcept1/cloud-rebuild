@@ -1,6 +1,6 @@
 import { useMemo, useState, type ComponentType } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CalendarClock, Coins, Gift, MapPin, PiggyBank, ReceiptText, Store, TrendingUp, Users } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { CalendarClock, Coins, MapPin, PiggyBank, ReceiptText, Store, TrendingUp, Users } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 
 import CommercialWorkspaceChrome from "@/components/commercial/CommercialWorkspaceChrome";
@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { getSupabase } from "@/integrations/supabase/client";
 import {
   fetchGenevaCommercialProspects,
@@ -17,7 +16,6 @@ import {
 } from "@/data/genevaCommercialProspects";
 import { useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
 
 type CommercialCompensationSummary = {
   commercial_user_id?: string;
@@ -227,117 +225,6 @@ function MetricCard({
   );
 }
 
-function AdminCompensationAdjustmentForm({ commercialUserId }: { commercialUserId: string }) {
-  const { roles } = useAuth();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const isAdmin = roles.includes("admin");
-  const [adjustmentKind, setAdjustmentKind] = useState<(typeof ADJUSTMENT_OPTIONS)[number]["value"]>("manual_bonus");
-  const [adjustmentAmount, setAdjustmentAmount] = useState("0");
-  const [adjustmentLabel, setAdjustmentLabel] = useState("");
-  const [adjustmentNotes, setAdjustmentNotes] = useState("");
-  const [adjustmentDate, setAdjustmentDate] = useState(new Date().toISOString().slice(0, 10));
-  const selectedAdjustmentOption = ADJUSTMENT_OPTIONS.find((option) => option.value === adjustmentKind) || ADJUSTMENT_OPTIONS[0];
-
-  const addAdjustmentMutation = useMutation({
-    mutationFn: async () => {
-      if (!isAdmin) throw new Error("Seul un administrateur peut attribuer une prime ou un bonus.");
-      const amount = toNumber(adjustmentAmount);
-      if (amount === 0) throw new Error("Le montant doit être différent de zéro.");
-
-      const { error } = await (getSupabase().rpc as any)("admin_add_commercial_compensation_adjustment", {
-        p_commercial_user_id: commercialUserId,
-        p_kind: adjustmentKind,
-        p_label: adjustmentLabel.trim() || selectedAdjustmentOption.label,
-        p_amount_chf: amount,
-        p_occurred_at: `${adjustmentDate}T12:00:00.000Z`,
-        p_notes: adjustmentNotes.trim() || null,
-        p_restaurant_id: null,
-        p_source_objectid: null,
-      });
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast({ title: "Ajustement ajouté", description: "La comptabilité commerciale est mise à jour." });
-      setAdjustmentLabel("");
-      setAdjustmentNotes("");
-      setAdjustmentAmount(String(selectedAdjustmentOption.defaultAmount));
-      queryClient.invalidateQueries({ queryKey: ["commercial-compensation-summary"] });
-    },
-    onError: (error) => {
-      toast({
-        title: "Ajustement non ajouté",
-        description: error instanceof Error ? error.message : "La sauvegarde a échoué.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  if (!isAdmin) return null;
-
-  return (
-    <div className="rounded-[1.6rem] border bg-white/90 p-5 shadow-sm dark:border-white/10 dark:bg-slate-950/70">
-      <div className="flex items-center gap-2">
-        <Gift className="h-5 w-5 text-orange-600" />
-        <h2 className="text-xl font-black">Ajouter bonus, prime ou pack</h2>
-      </div>
-      <div className="mt-4 space-y-3">
-        <div className="space-y-2">
-          <Label>Type</Label>
-          <Select
-            value={adjustmentKind}
-            onValueChange={(value) => {
-              const next = value as typeof adjustmentKind;
-              const option = ADJUSTMENT_OPTIONS.find((item) => item.value === next);
-              setAdjustmentKind(next);
-              setAdjustmentAmount(String(option?.defaultAmount ?? 0));
-              setAdjustmentLabel(option?.label || "");
-            }}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {ADJUSTMENT_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="space-y-2">
-            <Label>Montant CHF</Label>
-            <Input value={adjustmentAmount} onChange={(event) => setAdjustmentAmount(event.target.value)} />
-          </div>
-          <div className="space-y-2">
-            <Label>Date</Label>
-            <Input type="date" value={adjustmentDate} onChange={(event) => setAdjustmentDate(event.target.value)} />
-          </div>
-        </div>
-        <div className="space-y-2">
-          <Label>Libellé</Label>
-          <Input value={adjustmentLabel} onChange={(event) => setAdjustmentLabel(event.target.value)} />
-        </div>
-        <div className="space-y-2">
-          <Label>Notes internes</Label>
-          <Textarea value={adjustmentNotes} onChange={(event) => setAdjustmentNotes(event.target.value)} />
-        </div>
-        <Button
-          type="button"
-          className="w-full rounded-2xl bg-orange-500 text-white hover:bg-orange-600"
-          onClick={() => addAdjustmentMutation.mutate()}
-          disabled={addAdjustmentMutation.isPending}
-        >
-          {addAdjustmentMutation.isPending ? "Ajout..." : "Ajouter à la comptabilité"}
-        </Button>
-      </div>
-    </div>
-  );
-}
-
 export default function CommercialComptabilite() {
   const { user, roles } = useAuth();
   const [searchParams] = useSearchParams();
@@ -428,15 +315,13 @@ export default function CommercialComptabilite() {
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div>
                 <Badge className="rounded-full bg-orange-100 px-3 py-1 text-orange-700 hover:bg-orange-100">
-                  {isAdmin ? "Administration des rémunérations" : "Lecture seule"}
+                  Lecture seule
                 </Badge>
                 <h1 className="mt-4 font-serif text-4xl font-black tracking-tight md:text-5xl">
                   Comptabilité commerciale
                 </h1>
                 <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground md:text-base">
-                  {isAdmin
-                    ? "Consultez la rémunération et attribuez les éventuels bonus, primes ou ajustements depuis votre accès administrateur."
-                    : "Consultez vos commissions, votre fixe, vos bonus et vos restaurants signés. Les montants sont calculés côté serveur et ne peuvent pas être modifiés depuis votre compte commercial."}
+                  Consultez les commissions, le fixe, les bonus et les restaurants signés. Cette page est strictement en lecture seule ; les ajustements se gèrent uniquement depuis le profil commercial du Dashboard admin.
                 </p>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
@@ -728,11 +613,7 @@ export default function CommercialComptabilite() {
                 )}
               </section>
 
-              <section className={cn("grid gap-4", isAdmin && "xl:grid-cols-[0.95fr_1.05fr]")}>
-                {isAdmin && commercialUserId ? (
-                  <AdminCompensationAdjustmentForm commercialUserId={commercialUserId} />
-                ) : null}
-
+              <section className="grid gap-4">
                 <div className="rounded-[1.6rem] border bg-white/90 p-5 shadow-sm dark:border-white/10 dark:bg-slate-950/70">
                   <h2 className="text-xl font-black">Bonus, primes et ajustements</h2>
                   <p className="mt-1 text-sm text-muted-foreground">
