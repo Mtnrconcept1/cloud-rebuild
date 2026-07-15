@@ -36,8 +36,7 @@ import { canShowClientSurface, getRoleHomePath } from "@/lib/roleAccess";
 import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 import { isNative } from "@/lib/platform";
 import { useTokLogoDocumentIcons } from "@/hooks/useTokLogo";
-import { useCommercialDemoAccount } from "@/hooks/useCommercialDemoAccount";
-import CommercialDemoFrameProvider, { CommercialDemoFrameAuthBoundary } from "@/components/commercial/CommercialDemoFrameProvider";
+import CommercialDemoFrameProvider, { CommercialDemoFrameAuthBoundary, useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { getCommercialDemoFrameConfig, type CommercialDemoFrameConfig } from "@/lib/commercialDemoFrame";
 
 const Index = lazy(() => import("./pages/Index"));
@@ -340,15 +339,17 @@ function AdminProtectedRoute({
 
 const COMMERCIAL_DEMO_FRAME_ROUTE_POLICY: Record<
   CommercialDemoFrameConfig["surface"],
-  { home: string; allowedPaths: readonly string[] }
+  { home: string; allowedPaths: readonly string[]; allowedPrefixes?: readonly string[] }
 > = {
   client: {
     home: "/mon-espace",
-    allowedPaths: ["/mon-espace", "/commandes", "/notifications"],
+    allowedPaths: ["/mon-espace", "/recherche", "/panier", "/commandes", "/reservations", "/notifications"],
+    allowedPrefixes: ["/restaurant/", "/commande/"],
   },
   restaurant: {
     home: "/dashboard",
-    allowedPaths: ["/dashboard", "/dashboard/commandes", "/dashboard/notifications"],
+    allowedPaths: ["/dashboard"],
+    allowedPrefixes: ["/dashboard/"],
   },
   courier: {
     home: "/courier",
@@ -369,8 +370,10 @@ function CommercialDemoFrameRouteBoundary({
 }) {
   const { pathname } = useLocation();
   const policy = COMMERCIAL_DEMO_FRAME_ROUTE_POLICY[config.surface];
+  const pathAllowed = policy.allowedPaths.includes(pathname)
+    || policy.allowedPrefixes?.some((prefix) => pathname.startsWith(prefix));
 
-  if (!policy.allowedPaths.includes(pathname)) {
+  if (!pathAllowed) {
     return <Navigate to={policy.home} replace />;
   }
 
@@ -379,22 +382,16 @@ function CommercialDemoFrameRouteBoundary({
 
 function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: CommercialDemoFrameConfig | null }) {
   const { pathname } = useLocation();
+  const commercialDemoContext = useCommercialDemoFrame();
   useTokLogoDocumentIcons();
-  const { role, roles } = useAuth();
-  const { activeFeatures, loading: featureFlagsLoading } = useFeatureFlagSnapshot({
-    enabled: !commercialDemoFrame,
-  });
-  const commercialRestaurantSurface = role === "restaurateur" && roles.includes("commercial");
-  const commercialSurface = role === "commercial" && roles.includes("commercial");
-  const { isDemoAccount, loading: demoAccountLoading } = useCommercialDemoAccount({
-    enabled: roles.includes("commercial") && !commercialDemoFrame,
-  });
+  const { activeFeatures, loading: featureFlagsLoading } = useFeatureFlagSnapshot();
   const hasFeature = (flagName: string) => {
-    if (commercialDemoFrame) return true;
-    const needsDemoResolution = (commercialRestaurantSurface && flagName.startsWith("dashboard-"))
-      || (commercialSurface && flagName === "commercial-prospection");
-    if (featureFlagsLoading || (needsDemoResolution && demoAccountLoading)) return null;
-    if (isDemoAccount && needsDemoResolution) return true;
+    if (commercialDemoFrame) {
+      return commercialDemoContext
+        ? commercialDemoContext.snapshot.active_features.includes(flagName)
+        : null;
+    }
+    if (featureFlagsLoading) return null;
     return activeFeatures.has(flagName);
   };
   const commandesEnabled = hasFeature("commandes");
@@ -510,7 +507,7 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           <Route path="/ventes-flash" element={<ClientSurfaceRoute><FeatureSwitch enabled={flashSalesEnabled}><VentesFlash /></FeatureSwitch></ClientSurfaceRoute>} />
           <Route path="/actualites" element={<FeatureSwitch enabled={actualitesSocialesEnabled} fallback="/"><Actualites /></FeatureSwitch>} />
           <Route path="/actualites/:postId" element={<FeatureSwitch enabled={actualitesSocialesEnabled} fallback="/"><ActualitePost /></FeatureSwitch>} />
-          <Route path="/dashboard" element={<DashboardRoute><FeatureSwitch enabled={dashboardOverviewEnabled} fallback="/"><DashboardHome /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard" element={<DashboardRoute><FeatureSwitch enabled={dashboardOverviewEnabled} fallback="/dashboard/notifications"><DashboardHome /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/restaurant" element={<DashboardRoute><FeatureSwitch enabled={dashboardRestaurantEnabled} fallback="/dashboard"><DashboardRestaurant /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/advisor" element={<DashboardRoute><FeatureSwitch enabled={dashboardAdvisorEnabled} fallback="/dashboard"><DashboardAdvisor /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/menu" element={<DashboardRoute><FeatureSwitch enabled={dashboardMenuEnabled} fallback="/dashboard"><DashboardMenu /></FeatureSwitch></DashboardRoute>} />
