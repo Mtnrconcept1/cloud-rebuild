@@ -240,8 +240,12 @@ export default function DashboardMenu() {
     enabled: !!restaurant,
   });
 
+  const restaurantMediaPickerBaseQuery = {
+    queryKey: ["restaurant-media-picker", restaurant?.id],
+  };
+
   const { data: galleryItems = [], isLoading: galleryLoading } = useQuery<RestaurantMediaRecord[]>({
-    queryKey: ["restaurant-media-picker", restaurant?.id, commercialDemoSessionId || "live"],
+    queryKey: [...restaurantMediaPickerBaseQuery.queryKey, commercialDemoSessionId || "live"],
     queryFn: async () => {
       if (isCommercialDemo && commercialDemoFrame) {
         const persistedGallery = readCommercialDemoToolState<Array<Record<string, unknown>>>(

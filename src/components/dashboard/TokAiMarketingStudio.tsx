@@ -1694,13 +1694,15 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
       const generationResourceIds = generationResources
         .map((resource) => resource.mediaId)
         .filter((mediaId): mediaId is string => Boolean(mediaId));
-      if (!isCommercialDemo && !generationResources.length) {
-        toast({
-          title: "Reference requise",
-          description: "Ajoutez au moins une ressource de marque active avant de generer un visuel marketing.",
-          variant: "destructive",
-        });
-        return;
+      if (!generationResources.length) {
+        if (!isCommercialDemo) {
+          toast({
+            title: "Reference requise",
+            description: "Ajoutez au moins une ressource de marque active avant de generer un visuel marketing.",
+            variant: "destructive",
+          });
+          return;
+        }
       }
       if (!isCommercialDemo && generationResourceIds.length !== generationResources.length) {
         toast({

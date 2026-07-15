@@ -247,7 +247,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
     if (isCommercialDemo && commercialDemoFrame) {
       const sessionId = commercialDemoFrame.config.sessionId;
       const current = readCommercialDemoToolState<Array<Record<string, unknown>>>(sessionId, "photos-gallery", []);
-      const id = `demo-generation-${result.assetId || result.generation_seed || Date.now()}`;
+      const id = `demo-generation-${result.created_at || result.generation_seed || Date.now()}`;
       const next = current.some((item) => item.id === id) ? current : [{
         id,
         restaurant_id: restaurantId,

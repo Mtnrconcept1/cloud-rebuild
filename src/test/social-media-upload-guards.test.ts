@@ -7,11 +7,18 @@ function read(path: string) {
   return readFileSync(resolve(process.cwd(), path), "utf8");
 }
 
-function readMigrations() {
-  return readdirSync(resolve(process.cwd(), "supabase/migrations"))
+function readSocialMediaBucketMigrations() {
+  const migrations = readdirSync(resolve(process.cwd(), "supabase/migrations"))
     .filter((file) => file.endsWith(".sql"))
+    .sort()
     .map((file) => read(`supabase/migrations/${file}`))
-    .join("\n");
+    .filter((sql) => (
+      sql.includes("social_post_media_bucket_hardening")
+      || (sql.includes("storage.buckets") && sql.includes("'social-post-media'"))
+    ));
+
+  if (!migrations.length) throw new Error("Social media bucket migration not found");
+  return migrations.join("\n");
 }
 
 describe("social media upload guards", () => {
@@ -36,7 +43,7 @@ describe("social media upload guards", () => {
   });
 
   it("keeps the Supabase social media bucket aligned with the frontend media limits", () => {
-    const migrations = readMigrations();
+    const migrations = readSocialMediaBucketMigrations();
 
     expect(migrations).toContain("social_post_media_bucket_hardening");
     expect(migrations).toContain("file_size_limit = 26214400");

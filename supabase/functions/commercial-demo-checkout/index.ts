@@ -128,7 +128,9 @@ async function sha256Hex(value: string) {
 }
 
 function buildReturnUrl(rawReturnUrl: unknown, state: "success" | "cancelled") {
-  const normalized = normalizeCheckoutReturnUrl(rawReturnUrl);
+  const normalized = normalizeCheckoutReturnUrl(rawReturnUrl, {
+    additionalAllowedHosts: [COMMERCIAL_DEMO_HOSTNAME],
+  });
   if (!normalized) {
     throw new DemoCheckoutError(400, "INVALID_RETURN_URL", "URL de retour invalide");
   }
@@ -515,4 +517,3 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: safeMessage, code }, status, corsHeaders);
   }
 });
-
