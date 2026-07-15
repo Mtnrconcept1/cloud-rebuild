@@ -2382,6 +2382,8 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
           : "TOK combine le support choisi, votre brief et vos ressources de marque pour produire un visuel coherent."}
         status={isCommercialDemo ? "OpenAI réel · crédits Démo illimités" : "Marketing Studio compose le visuel"}
         steps={["Brief", "Références marketing", "Rendu final"]}
+        kind="image"
+        estimatedDurationMs={100_000}
       />
     </section>
   );
