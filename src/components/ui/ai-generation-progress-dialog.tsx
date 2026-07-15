@@ -1,5 +1,4 @@
-import { useMemo } from "react";
-import { Check, Clock3, Image, Loader2, MessageSquareText, ScanSearch, Sparkles, Wand2 } from "lucide-react";
+import { Check, Clock3, Image, Loader2, MessageSquareText, ScanSearch, Sparkles, Wand2, type LucideIcon } from "lucide-react";
 
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { formatWaitingTime, useEstimatedProgress } from "@/hooks/use-estimated-progress";
@@ -35,7 +34,7 @@ const KIND_META = {
   image: { icon: Image, label: "Création visuelle" },
   text: { icon: MessageSquareText, label: "Réponse intelligente" },
   analysis: { icon: ScanSearch, label: "Analyse assistée" },
-} satisfies Record<AiGenerationKind, { icon: typeof Image; label: string }>;
+} satisfies Record<AiGenerationKind, { icon: LucideIcon; label: string }>;
 
 export default function AiGenerationProgressDialog({
   open,
@@ -53,7 +52,7 @@ export default function AiGenerationProgressDialog({
   className,
 }: AiGenerationProgressDialogProps) {
   const logoSrc = useTokLogoSrc();
-  const normalizedSteps = useMemo(() => (steps.length ? steps : DEFAULT_STEPS), [steps]);
+  const normalizedSteps = steps.length ? steps : DEFAULT_STEPS;
   const durationMs = Math.max(1_000, estimatedDurationMs ?? ESTIMATED_DURATION_BY_KIND[kind]);
   const { elapsedMs, remainingMs, progress, isOverdue } = useEstimatedProgress({
     active: open,
