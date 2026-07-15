@@ -1,12 +1,29 @@
-import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
+import { buildCorsHeaders, handleCorsPreflight, isRequestOriginAllowed } from "../_shared/cors.ts";
 import { HttpError, jsonResponse } from "../_shared/auth.ts";
 import { createRateLimiter } from "../_shared/rate-limit.ts";
 import {
+  McpProtocolError,
+  assertMcpAcceptHeader,
+  assertMcpContentType,
+  assertMcpProtocolVersion,
+  buildMcpAuthToolResult,
+  buildMcpBearerChallenge,
+  isMcpNotification,
+  mcpAcceptedResponse,
+  mcpMethodNotAllowedResponse,
+  mcpResponseHeaders,
+  negotiateMcpProtocolVersion,
+  parseMcpJsonRpcRequest,
+  type McpJsonRpcRequest,
+} from "../_shared/mcp-http.ts";
+import {
   SAFE_TOK_CONNECT_MCP_TOOLS,
+  buildTokConnectMcpJsonResult,
   buildTokConnectAutopilotPlan,
   buildTokConnectEnvelope,
   getTokConnectSandboxMcpToolResult,
   makeTokConnectRequestId,
+  sha256Base64Url,
 } from "../_shared/tok-connect.ts";
 import {
   assertTokConnectFeatureEnabled,
@@ -15,13 +32,6 @@ import {
   recordTokConnectApiRequest,
   type TokConnectTokenContext,
 } from "../_shared/tok-connect-auth.ts";
-
-type JsonRpcRequest = {
-  jsonrpc?: string;
-  id?: string | number | null;
-  method?: string;
-  params?: Record<string, unknown>;
-};
 
 type McpHandleResult = {
   payload: Record<string, unknown>;
@@ -42,6 +52,12 @@ type TokConnectMcpTool = {
 };
 
 const ACTION_WINDOW_RESOURCE_URI = "ui://tok-connect/actions-window-v1.html";
+const TOK_CONNECT_PUBLIC_ORIGIN = (Deno.env.get("TOK_CONNECT_PUBLIC_ORIGIN") || "https://www.thetok.ch")
+  .replace(/\/$/, "");
+const TOK_CONNECT_MCP_RESOURCE = `${TOK_CONNECT_PUBLIC_ORIGIN}/mcp`;
+const TOK_CONNECT_RESOURCE_METADATA_URL = `${TOK_CONNECT_PUBLIC_ORIGIN}/.well-known/oauth-protected-resource`;
+const TOK_CONNECT_AUTHORIZATION_SERVER = `https://wwcrtyoueexyxkkikaos.supabase.co/auth/v1`;
+const TOK_CONNECT_OIDC_SCOPES = ["openid", "email", "profile"];
 
 const ACTION_WINDOW_HTML = `<!doctype html>
 <html lang="fr">
@@ -1689,6 +1705,7 @@ const MCP_RESOURCES = [
     mimeType: "text/html;profile=mcp-app",
     _meta: {
       ui: {
+        domain: TOK_CONNECT_PUBLIC_ORIGIN,
         prefersBorder: true,
         csp: {
           connectDomains: [],
@@ -1761,16 +1778,21 @@ const MCP_PROMPTS = [
   },
 ];
 
-function rpcResult(id: JsonRpcRequest["id"], result: Record<string, unknown>) {
+function rpcResult(id: McpJsonRpcRequest["id"], result: Record<string, unknown>) {
   return { jsonrpc: "2.0", id: id ?? null, result };
 }
 
-function rpcError(id: JsonRpcRequest["id"], code: number, message: string) {
-  return { jsonrpc: "2.0", id: id ?? null, error: { code, message } };
+function rpcError(
+  id: McpJsonRpcRequest["id"],
+  code: number,
+  message: string,
+  data?: Record<string, unknown>,
+) {
+  return { jsonrpc: "2.0", id: id ?? null, error: { code, message, ...(data ? { data } : {}) } };
 }
 
 function hasBearerToken(req: Request) {
-  return (req.headers.get("Authorization") || "").startsWith("Bearer ");
+  return /^Bearer\s+\S+/i.test(req.headers.get("Authorization") || "");
 }
 
 async function authorizeMcp(req: Request, requiredScopes: string[] = []) {
@@ -1778,19 +1800,22 @@ async function authorizeMcp(req: Request, requiredScopes: string[] = []) {
   await assertTokConnectFeatureEnabled(context.adminClient, "tok-connect");
   await assertTokConnectFeatureEnabled(context.adminClient, "tok-connect-mcp");
   const limiter = createRateLimiter(context.adminClient, "tok-connect-mcp");
-  await limiter.consume(`partner:${context.partnerId}`, { maxRequests: 300, windowSeconds: 60 });
+  const rateLimitSubject = context.authMode === "supabase_oauth"
+    ? `user:${context.userId}:client:${context.oauthClientId}`
+    : `partner:${context.partnerId}`;
+  await limiter.consume(rateLimitSubject, { maxRequests: 300, windowSeconds: 60 });
   return context;
 }
 
 function toolDefinition(tool: TokConnectMcpTool) {
-  const securitySchemes = [
-    { type: "noauth" },
-    { type: "oauth2", scopes: tool.requiredScopes },
-  ];
+  const securitySchemes = tool.requiredScopes.length > 0
+    ? [{ type: "oauth2", scopes: TOK_CONNECT_OIDC_SCOPES }]
+    : [{ type: "noauth" }];
   const toolMeta = tool._meta || {};
   const toolUiMeta = toolMeta.ui && typeof toolMeta.ui === "object" && !Array.isArray(toolMeta.ui)
     ? toolMeta.ui as Record<string, unknown>
     : {};
+  const resourceUri = typeof toolUiMeta.resourceUri === "string" ? toolUiMeta.resourceUri : null;
 
   return {
     name: tool.name,
@@ -1802,16 +1827,166 @@ function toolDefinition(tool: TokConnectMcpTool) {
     ...(tool.annotations ? { annotations: tool.annotations } : {}),
     _meta: {
       securitySchemes,
-      ui: {
-        resourceUri: ACTION_WINDOW_RESOURCE_URI,
-        visibility: ["model", "app"],
-        ...toolUiMeta,
-      },
-      "openai/outputTemplate": ACTION_WINDOW_RESOURCE_URI,
-      "openai/widgetAccessible": true,
+      ...(resourceUri
+        ? {
+          ui: { visibility: ["model", "app"], ...toolUiMeta },
+          "openai/outputTemplate": resourceUri,
+          "openai/widgetAccessible": true,
+        }
+        : {}),
       ...toolMeta,
     },
   };
+}
+
+function validateToolArguments(tool: TokConnectMcpTool, value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new McpProtocolError(-32602, `invalid_tool_arguments:${tool.name}`, 200);
+  }
+
+  const args = value as Record<string, unknown>;
+  const schema = tool.inputSchema;
+  const properties = schema.properties && typeof schema.properties === "object"
+    ? schema.properties as Record<string, Record<string, unknown>>
+    : {};
+  const required = Array.isArray(schema.required) ? schema.required.map(String) : [];
+
+  for (const key of required) {
+    if (args[key] === undefined || args[key] === null || args[key] === "") {
+      throw new McpProtocolError(-32602, `missing_required_argument:${key}`, 200);
+    }
+  }
+  if (schema.additionalProperties === false) {
+    const unexpected = Object.keys(args).find((key) => !Object.prototype.hasOwnProperty.call(properties, key));
+    if (unexpected) throw new McpProtocolError(-32602, `unexpected_argument:${unexpected}`, 200);
+  }
+
+  for (const [key, input] of Object.entries(args)) {
+    if (input === undefined || input === null) continue;
+    const property = properties[key];
+    if (!property) continue;
+    const type = property.type;
+    const invalidType =
+      (type === "string" && typeof input !== "string") ||
+      (type === "number" && (typeof input !== "number" || !Number.isFinite(input))) ||
+      (type === "integer" && (typeof input !== "number" || !Number.isInteger(input))) ||
+      (type === "boolean" && typeof input !== "boolean") ||
+      (type === "array" && !Array.isArray(input)) ||
+      (type === "object" && (typeof input !== "object" || Array.isArray(input)));
+    if (invalidType) throw new McpProtocolError(-32602, `invalid_argument_type:${key}`, 200);
+    if (Array.isArray(property.enum) && !property.enum.includes(input)) {
+      throw new McpProtocolError(-32602, `invalid_argument_value:${key}`, 200);
+    }
+    if (typeof input === "number") {
+      if (typeof property.minimum === "number" && input < property.minimum) {
+        throw new McpProtocolError(-32602, `argument_below_minimum:${key}`, 200);
+      }
+      if (typeof property.maximum === "number" && input > property.maximum) {
+        throw new McpProtocolError(-32602, `argument_above_maximum:${key}`, 200);
+      }
+    }
+    if (typeof input === "string") {
+      if (typeof property.minLength === "number" && input.length < property.minLength) {
+        throw new McpProtocolError(-32602, `argument_too_short:${key}`, 200);
+      }
+      if (typeof property.maxLength === "number" && input.length > property.maxLength) {
+        throw new McpProtocolError(-32602, `argument_too_long:${key}`, 200);
+      }
+      if (typeof property.pattern === "string" && !(new RegExp(property.pattern)).test(input)) {
+        throw new McpProtocolError(-32602, `invalid_argument_format:${key}`, 200);
+      }
+      if (property.format === "uuid" && !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(input)) {
+        throw new McpProtocolError(-32602, `invalid_uuid:${key}`, 200);
+      }
+      if (property.format === "date" && !/^\d{4}-\d{2}-\d{2}$/.test(input)) {
+        throw new McpProtocolError(-32602, `invalid_date:${key}`, 200);
+      }
+      if (property.format === "date") {
+        const parsedDate = new Date(`${input}T00:00:00.000Z`);
+        if (Number.isNaN(parsedDate.getTime()) || parsedDate.toISOString().slice(0, 10) !== input) {
+          throw new McpProtocolError(-32602, `invalid_date:${key}`, 200);
+        }
+      }
+    }
+    if (Array.isArray(input)) {
+      if (typeof property.minItems === "number" && input.length < property.minItems) {
+        throw new McpProtocolError(-32602, `argument_has_too_few_items:${key}`, 200);
+      }
+      if (typeof property.maxItems === "number" && input.length > property.maxItems) {
+        throw new McpProtocolError(-32602, `argument_has_too_many_items:${key}`, 200);
+      }
+      const itemSchema = property.items && typeof property.items === "object"
+        ? property.items as Record<string, unknown>
+        : null;
+      if (itemSchema) {
+        for (const item of input) {
+          if (itemSchema.type === "string" && typeof item !== "string") {
+            throw new McpProtocolError(-32602, `invalid_array_item_type:${key}`, 200);
+          }
+          if (Array.isArray(itemSchema.enum) && !itemSchema.enum.includes(item)) {
+            throw new McpProtocolError(-32602, `invalid_array_item_value:${key}`, 200);
+          }
+        }
+      }
+    }
+  }
+
+  return args;
+}
+
+function stableJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.entries(value as Record<string, unknown>)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, entry]) => `${JSON.stringify(key)}:${stableJson(entry)}`)
+      .join(",")}}`;
+  }
+  return JSON.stringify(value) ?? "null";
+}
+
+async function getToolIdempotency(toolName: string, args: Record<string, unknown>) {
+  const provided = typeof args.idempotency_key === "string" ? args.idempotency_key.trim() : "";
+  const input = { ...args };
+  delete input.idempotency_key;
+  const requestHash = await sha256Base64Url(stableJson(input));
+  return {
+    idempotencyKey: provided || `mcp_${toolName}_${requestHash}`,
+    requestHash,
+  };
+}
+
+function assertIdempotentAgentRunMatches(run: Record<string, unknown>, requestHash: string) {
+  const runInput = run.input && typeof run.input === "object" && !Array.isArray(run.input)
+    ? run.input as Record<string, unknown>
+    : {};
+  const existingHash = typeof runInput.request_hash === "string" ? runInput.request_hash : null;
+  if (existingHash && existingHash !== requestHash) {
+    throw new HttpError(409, "idempotency_key_reused_with_different_arguments");
+  }
+}
+
+async function findIdempotentAgentRun(input: {
+  context: TokConnectTokenContext;
+  restaurantId: string;
+  toolName: "generate_campaign_preview" | "build_autopilot_plan";
+  idempotencyKey: string;
+  actorId: string;
+}) {
+  const { data, error } = await input.context.adminClient
+    .from("tok_connect_agent_runs")
+    .select("id, status, mode, approval_required, risk_level, expires_at, input, output")
+    .eq("restaurant_id", input.restaurantId)
+    .eq("tool_name", input.toolName)
+    .contains("input", {
+      idempotency_key: input.idempotencyKey,
+      actor_id: input.actorId,
+    })
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw new HttpError(500, error.message);
+  return data;
 }
 
 function normalizeText(value: unknown) {
@@ -2086,12 +2261,6 @@ function buildActionWindowResult(args: Record<string, unknown> = {}) {
   };
 }
 
-function callNoAuthSandboxTool(name: string, args: Record<string, unknown>) {
-  const sandboxResult = getTokConnectSandboxMcpToolResult(name, args);
-  if (sandboxResult) return { ...sandboxResult, isError: false };
-  throw new HttpError(404, "mcp_tool_not_found");
-}
-
 async function callTool(
   context: TokConnectTokenContext,
   name: string,
@@ -2107,27 +2276,35 @@ async function callTool(
     case "search_restaurants": {
       const limit = Math.min(Number(args.limit || 10), 25);
       if (context.environment === "sandbox") {
-        return {
-          content: [{
-            type: "text",
-            text: JSON.stringify({
-              restaurants: [
-                { id: "00000000-0000-4000-8000-000000000101", name: "TOK Sandbox Brasserie", city: args.city || "Genève" },
-              ],
-            }),
-          }],
-        };
+        return buildTokConnectMcpJsonResult({
+          restaurants: [
+            { id: "00000000-0000-4000-8000-000000000101", name: "TOK Sandbox Brasserie", city: args.city || "Genève" },
+          ],
+        });
       }
 
-      const { data, error } = await context.adminClient
+      let query = context.adminClient
         .from("restaurants")
         .select("id, name, cuisine_type, city, rating, supports_reservation")
         .eq("is_active", true)
         .order("rating", { ascending: false })
         .limit(limit);
 
+      if (typeof args.city === "string" && args.city.trim()) {
+        query = query.ilike("city", `%${args.city.trim()}%`);
+      }
+      if (typeof args.cuisine === "string" && args.cuisine.trim()) {
+        query = query.ilike("cuisine_type", `%${args.cuisine.trim()}%`);
+      }
+      if (typeof args.query === "string" && args.query.trim()) {
+        const safeQuery = args.query.trim().replace(/[%_,().]/g, " ").slice(0, 120);
+        query = query.ilike("name", `%${safeQuery}%`);
+      }
+
+      const { data, error } = await query;
+
       if (error) throw new HttpError(500, error.message);
-      return { content: [{ type: "text", text: JSON.stringify({ restaurants: data || [] }) }] };
+      return buildTokConnectMcpJsonResult({ restaurants: data || [] });
     }
 
     case "get_real_time_availability": {
@@ -2140,7 +2317,11 @@ async function callTool(
         p_date: args.date,
       });
       if (error) throw new HttpError(500, error.message);
-      return { content: [{ type: "text", text: JSON.stringify({ slots: data || [] }) }] };
+      return buildTokConnectMcpJsonResult({
+        restaurant_id: restaurantId,
+        date: String(args.date || ""),
+        slots: data || [],
+      });
     }
 
     case "prepare_reservation":
@@ -2148,49 +2329,53 @@ async function callTool(
         requireMcp: true,
         partySize: Number(args.party_size || 0) || null,
       });
-      return {
-        content: [{
-          type: "text",
-          text: JSON.stringify({
-            reservation_preview: {
-              restaurant_id: args.restaurant_id,
-              date: args.date,
-              time: args.time,
-              party_size: args.party_size,
-              requires_confirmation: true,
-            },
-          }),
-        }],
-      };
+      return buildTokConnectMcpJsonResult({
+        reservation_preview: {
+          restaurant_id: args.restaurant_id,
+          date: args.date,
+          time: args.time,
+          party_size: args.party_size,
+          customer_note: args.customer_note || null,
+          requires_confirmation: true,
+          mutation_executed: false,
+        },
+      });
 
     case "get_restaurant_performance": {
       await assertTokConnectRestaurantGrant(context, restaurantId, "analytics:read", {
         requireMcp: true,
       });
+      const period = args.period === "90d" ? "90d" : args.period === "7d" ? "7d" : "30d";
+      const periodDays = period === "90d" ? 90 : period === "7d" ? 7 : 30;
+      const to = new Date();
+      const from = new Date(to);
+      from.setUTCDate(from.getUTCDate() - periodDays + 1);
       const { data, error } = await context.adminClient.rpc("get_restaurant_performance", {
         p_restaurant_id: args.restaurant_id,
-        p_period_days: args.period === "90d" ? 90 : args.period === "7d" ? 7 : 30,
+        p_from: from.toISOString().slice(0, 10),
+        p_to: to.toISOString().slice(0, 10),
       });
       if (error) throw new HttpError(500, error.message);
-      return { content: [{ type: "text", text: JSON.stringify({ performance: data }) }] };
+      return buildTokConnectMcpJsonResult({
+        restaurant_id: restaurantId,
+        period,
+        performance: data,
+      });
     }
 
     case "estimate_campaign_credit_cost":
       await assertTokConnectRestaurantGrant(context, restaurantId, "campaigns:preview", {
         requireMcp: true,
       });
-      return {
-        content: [{
-          type: "text",
-          text: JSON.stringify({
-            estimate: {
-              restaurant_id: args.restaurant_id,
-              credits: Math.max(1, Math.ceil(Number(args.audience_size || 100) / 100)),
-              currency: "TOK_CREDIT",
-            },
-          }),
-        }],
-      };
+      return buildTokConnectMcpJsonResult({
+        estimate: {
+          restaurant_id: args.restaurant_id,
+          audience_size: Number(args.audience_size || 100),
+          channels: Array.isArray(args.channels) ? args.channels : [],
+          credits: Math.max(1, Math.ceil(Number(args.audience_size || 100) / 100)),
+          currency: "TOK_CREDIT",
+        },
+      });
 
     case "generate_campaign_preview": {
       await assertTokConnectRestaurantGrant(context, restaurantId, "campaigns:preview", {
@@ -2203,18 +2388,55 @@ async function callTool(
         requires_human_approval: true,
         status: "preview",
       };
-      await context.adminClient.from("tok_connect_agent_runs").insert({
-        partner_id: context.partnerId,
+      const { idempotencyKey, requestHash } = await getToolIdempotency("generate_campaign_preview", args);
+      const actorId = context.userId || context.partnerId;
+      const existingRun = await findIdempotentAgentRun({
+        context,
+        restaurantId,
+        toolName: "generate_campaign_preview",
+        idempotencyKey,
+        actorId,
+      });
+      if (existingRun) {
+        assertIdempotentAgentRunMatches(existingRun, requestHash);
+        const previousOutput = existingRun.output && typeof existingRun.output === "object"
+          ? existingRun.output as Record<string, unknown>
+          : {};
+        return buildTokConnectMcpJsonResult({
+          campaign_preview: previousOutput.campaign_preview || preview,
+          run: existingRun,
+          replayed: true,
+        });
+      }
+
+      const { data: run, error } = await context.adminClient.from("tok_connect_agent_runs").insert({
+        partner_id: context.authMode === "supabase_oauth" ? null : context.partnerId,
         restaurant_id: args.restaurant_id,
         mode: "preview",
         tool_name: "generate_campaign_preview",
         status: "preview",
         scopes: ["campaigns:preview"],
-        input: args,
+        input: { ...args, idempotency_key: idempotencyKey, actor_id: actorId, request_hash: requestHash },
         output: { campaign_preview: preview },
         approval_required: true,
-      });
-      return { content: [{ type: "text", text: JSON.stringify({ campaign_preview: preview }) }] };
+      }).select("id, status, mode, approval_required, risk_level, expires_at").single();
+      if (error) {
+        if (error.code === "23505") {
+          const replayRun = await findIdempotentAgentRun({
+            context,
+            restaurantId,
+            toolName: "generate_campaign_preview",
+            idempotencyKey,
+            actorId,
+          });
+          if (replayRun) {
+            assertIdempotentAgentRunMatches(replayRun, requestHash);
+            return buildTokConnectMcpJsonResult({ campaign_preview: preview, run: replayRun, replayed: true });
+          }
+        }
+        throw new HttpError(500, error.message);
+      }
+      return buildTokConnectMcpJsonResult({ campaign_preview: preview, run, replayed: false });
     }
 
     case "build_autopilot_plan": {
@@ -2232,14 +2454,35 @@ async function callTool(
         requested_actions: args.requested_actions,
         approval_mode: "human_required",
       });
+      const { idempotencyKey, requestHash } = await getToolIdempotency("build_autopilot_plan", args);
+      const actorId = context.userId || context.partnerId;
+      const existingRun = await findIdempotentAgentRun({
+        context,
+        restaurantId,
+        toolName: "build_autopilot_plan",
+        idempotencyKey,
+        actorId,
+      });
+      if (existingRun) {
+        assertIdempotentAgentRunMatches(existingRun, requestHash);
+        const previousOutput = existingRun.output && typeof existingRun.output === "object"
+          ? existingRun.output as Record<string, unknown>
+          : {};
+        return buildTokConnectMcpJsonResult({
+          autopilot_plan: previousOutput.autopilot_plan || autopilotPlan,
+          run: existingRun,
+          replayed: true,
+        });
+      }
+
       const { data: run, error } = await context.adminClient.from("tok_connect_agent_runs").insert({
-        partner_id: context.partnerId,
+        partner_id: context.authMode === "supabase_oauth" ? null : context.partnerId,
         restaurant_id: restaurantId,
         mode: "autopilot_bounded",
         tool_name: "build_autopilot_plan",
         status: "pending_approval",
         scopes: ["autopilot:plan", "analytics:read", "campaigns:preview"],
-        input: args,
+        input: { ...args, idempotency_key: idempotencyKey, actor_id: actorId, request_hash: requestHash },
         output: { autopilot_plan: autopilotPlan },
         approval_required: true,
         risk_level: autopilotPlan.risk_level,
@@ -2250,8 +2493,23 @@ async function callTool(
         },
         expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       }).select("id, status, mode, approval_required, risk_level, expires_at").single();
-      if (error) throw new HttpError(500, error.message);
-      return { content: [{ type: "text", text: JSON.stringify({ autopilot_plan: autopilotPlan, run }) }] };
+      if (error) {
+        if (error.code === "23505") {
+          const replayRun = await findIdempotentAgentRun({
+            context,
+            restaurantId,
+            toolName: "build_autopilot_plan",
+            idempotencyKey,
+            actorId,
+          });
+          if (replayRun) {
+            assertIdempotentAgentRunMatches(replayRun, requestHash);
+            return buildTokConnectMcpJsonResult({ autopilot_plan: autopilotPlan, run: replayRun, replayed: true });
+          }
+        }
+        throw new HttpError(500, error.message);
+      }
+      return buildTokConnectMcpJsonResult({ autopilot_plan: autopilotPlan, run, replayed: false });
     }
 
     default:
@@ -2259,19 +2517,26 @@ async function callTool(
   }
 }
 
-async function handleMcp(req: Request, rpc: JsonRpcRequest): Promise<McpHandleResult> {
+async function handleMcp(req: Request, rpc: McpJsonRpcRequest): Promise<McpHandleResult> {
   switch (rpc.method) {
     case "initialize": {
       const context = hasBearerToken(req) ? await authorizeMcp(req) : null;
+      const protocolVersion = negotiateMcpProtocolVersion(rpc.params);
       return {
         payload: rpcResult(rpc.id, {
-          protocolVersion: "2025-03-26",
-          serverInfo: { name: "tok-connect-mcp", version: "1.0.0" },
+          protocolVersion,
+          serverInfo: {
+            name: "tok-connect-mcp",
+            title: "TOK Connect",
+            version: "2.0.0",
+            websiteUrl: TOK_CONNECT_PUBLIC_ORIGIN,
+          },
           capabilities: {
             tools: {},
             resources: {},
             prompts: {},
           },
+          instructions: "TOK Connect permet à ChatGPT de découvrir TOK, de consulter les données autorisées et de préparer des actions. Les outils de découverte et de démonstration sont anonymes. Les données de compte exigent OAuth. Toute réservation, publication, dépense, suppression ou opération financière requiert une confirmation humaine explicite dans TOK.",
         }),
         context,
         route: context ? "MCP initialize" : "MCP initialize noauth",
@@ -2293,9 +2558,10 @@ async function handleMcp(req: Request, rpc: JsonRpcRequest): Promise<McpHandleRe
       const toolName = String(rpc.params?.name || "");
       const tool = MCP_TOOLS.find((entry) => entry.name === toolName);
       if (!tool) throw new HttpError(404, "mcp_tool_not_found");
+      const args = validateToolArguments(tool, rpc.params?.arguments || {});
       if (toolName === TOK_CONNECT_ACTION_WINDOW_TOOL.name) {
         return {
-          payload: rpcResult(rpc.id, buildActionWindowResult((rpc.params?.arguments || {}) as Record<string, unknown>)),
+          payload: rpcResult(rpc.id, buildActionWindowResult(args)),
           context: hasBearerToken(req) ? await authorizeMcp(req, tool.requiredScopes) : null,
           route: hasBearerToken(req) ? `MCP tools/call ${toolName}` : `MCP tools/call ${toolName} noauth`,
           scopes: tool.requiredScopes,
@@ -2303,7 +2569,7 @@ async function handleMcp(req: Request, rpc: JsonRpcRequest): Promise<McpHandleRe
       }
       if (toolName === TOK_CONNECT_APP_QUERY_TOOL.name) {
         return {
-          payload: rpcResult(rpc.id, buildApplicationToolQueryResult((rpc.params?.arguments || {}) as Record<string, unknown>)),
+          payload: rpcResult(rpc.id, buildApplicationToolQueryResult(args)),
           context: hasBearerToken(req) ? await authorizeMcp(req, tool.requiredScopes) : null,
           route: hasBearerToken(req) ? `MCP tools/call ${toolName}` : `MCP tools/call ${toolName} noauth`,
           scopes: tool.requiredScopes,
@@ -2311,25 +2577,31 @@ async function handleMcp(req: Request, rpc: JsonRpcRequest): Promise<McpHandleRe
       }
       if (toolName === TOK_CONNECT_APP_SANDBOX_TOOL.name) {
         return {
-          payload: rpcResult(rpc.id, buildApplicationSandboxResult((rpc.params?.arguments || {}) as Record<string, unknown>)),
+          payload: rpcResult(rpc.id, buildApplicationSandboxResult(args)),
           context: hasBearerToken(req) ? await authorizeMcp(req, tool.requiredScopes) : null,
           route: hasBearerToken(req) ? `MCP tools/call ${toolName}` : `MCP tools/call ${toolName} noauth`,
           scopes: tool.requiredScopes,
         };
       }
-      if (!hasBearerToken(req)) {
+      if (tool.requiredScopes.length > 0 && !hasBearerToken(req)) {
+        const challenge = buildMcpBearerChallenge({
+          resourceMetadataUrl: TOK_CONNECT_RESOURCE_METADATA_URL,
+          scopes: TOK_CONNECT_OIDC_SCOPES,
+          error: "invalid_token",
+          errorDescription: "Connectez votre compte TOK pour utiliser cet outil.",
+        });
         return {
           payload: rpcResult(
             rpc.id,
-            callNoAuthSandboxTool(toolName, (rpc.params?.arguments || {}) as Record<string, unknown>),
+            buildMcpAuthToolResult(challenge, "Authentification TOK requise pour accéder aux données réelles."),
           ),
           context: null,
-          route: `MCP tools/call ${toolName} noauth`,
-          scopes: [],
+          route: `MCP tools/call ${toolName} auth-required`,
+          scopes: tool.requiredScopes,
         };
       }
       const context = await authorizeMcp(req, tool.requiredScopes);
-      const result = await callTool(context, toolName, (rpc.params?.arguments || {}) as Record<string, unknown>);
+      const result = await callTool(context, toolName, args);
       return {
         payload: rpcResult(rpc.id, result),
         context,
@@ -2341,9 +2613,30 @@ async function handleMcp(req: Request, rpc: JsonRpcRequest): Promise<McpHandleRe
     case "resources/list": {
       const context = hasBearerToken(req) ? await authorizeMcp(req) : null;
       return {
-        payload: rpcResult(rpc.id, { resources: MCP_RESOURCES }),
+        payload: rpcResult(rpc.id, {
+          resources: MCP_RESOURCES.filter((resource) => !resource.uri.includes("{")),
+        }),
         context,
         route: context ? "MCP resources/list" : "MCP resources/list noauth",
+        scopes: [],
+      };
+    }
+
+    case "resources/templates/list": {
+      const context = hasBearerToken(req) ? await authorizeMcp(req) : null;
+      return {
+        payload: rpcResult(rpc.id, {
+          resourceTemplates: MCP_RESOURCES
+            .filter((resource) => resource.uri.includes("{"))
+            .map((resource) => ({
+              uriTemplate: resource.uri,
+              name: resource.name,
+              description: resource.description,
+              mimeType: resource.mimeType,
+            })),
+        }),
+        context,
+        route: context ? "MCP resources/templates/list" : "MCP resources/templates/list noauth",
         scopes: [],
       };
     }
@@ -2359,6 +2652,7 @@ async function handleMcp(req: Request, rpc: JsonRpcRequest): Promise<McpHandleRe
               text: ACTION_WINDOW_HTML,
               _meta: {
                 ui: {
+                  domain: TOK_CONNECT_PUBLIC_ORIGIN,
                   prefersBorder: true,
                   csp: {
                     connectDomains: [],
@@ -2493,6 +2787,14 @@ async function handleMcp(req: Request, rpc: JsonRpcRequest): Promise<McpHandleRe
       };
     }
 
+    case "ping":
+      return {
+        payload: rpcResult(rpc.id, {}),
+        context: null,
+        route: "MCP ping",
+        scopes: [],
+      };
+
     default:
       throw new HttpError(404, "mcp_method_not_found");
   }
@@ -2500,8 +2802,25 @@ async function handleMcp(req: Request, rpc: JsonRpcRequest): Promise<McpHandleRe
 
 Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req);
+  if (!isRequestOriginAllowed(req)) {
+    return new Response(null, { status: 403, headers: mcpResponseHeaders(corsHeaders) });
+  }
+
   const preflight = handleCorsPreflight(req, corsHeaders);
   if (preflight) return preflight;
+
+  const requestUrl = new URL(req.url);
+  if (req.method === "GET" && requestUrl.searchParams.get("tok_connect_route") === "protected-resource") {
+    return jsonResponse({
+      resource: TOK_CONNECT_MCP_RESOURCE,
+      authorization_servers: [TOK_CONNECT_AUTHORIZATION_SERVER],
+      scopes_supported: TOK_CONNECT_OIDC_SCOPES,
+      bearer_methods_supported: ["header"],
+      resource_documentation: `${TOK_CONNECT_PUBLIC_ORIGIN}/tok-connect/developer`,
+    }, 200, mcpResponseHeaders(corsHeaders));
+  }
+
+  if (req.method !== "POST") return mcpMethodNotAllowedResponse(corsHeaders);
 
   const requestId = makeTokConnectRequestId();
   const startedAt = Date.now();
@@ -2510,23 +2829,60 @@ Deno.serve(async (req) => {
   let errorCode: string | null = null;
   let route = "tok-connect-mcp";
   let scopes: string[] = [];
-  let rpc: JsonRpcRequest = {};
+  let rpc: McpJsonRpcRequest | null = null;
 
   try {
-    if (req.method !== "POST") throw new HttpError(405, "method_not_allowed");
-    rpc = await req.json().catch(() => ({})) as JsonRpcRequest;
+    assertMcpAcceptHeader(req);
+    assertMcpContentType(req);
+    rpc = await parseMcpJsonRpcRequest(req);
+    assertMcpProtocolVersion(req, rpc.method);
+
+    if (isMcpNotification(rpc)) {
+      route = `MCP notification ${rpc.method}`;
+      statusCode = 202;
+      return mcpAcceptedResponse(corsHeaders);
+    }
+
     const result = await handleMcp(req, rpc);
     context = result.context;
     route = result.route;
     scopes = result.scopes;
-    return jsonResponse(result.payload, 200, corsHeaders);
+    const negotiatedVersion = rpc.method === "initialize"
+      ? negotiateMcpProtocolVersion(rpc.params)
+      : req.headers.get("MCP-Protocol-Version") || undefined;
+    return jsonResponse(result.payload, 200, mcpResponseHeaders(corsHeaders, negotiatedVersion));
   } catch (error) {
-    statusCode = error instanceof HttpError ? error.status : 500;
+    statusCode = error instanceof McpProtocolError
+      ? error.httpStatus
+      : error instanceof HttpError
+      ? error.status
+      : 500;
     errorCode = error instanceof Error ? error.message : "tok_connect_mcp_error";
+    const isAuthError = statusCode === 401 || statusCode === 403;
+    const challenge = isAuthError
+      ? buildMcpBearerChallenge({
+        resourceMetadataUrl: TOK_CONNECT_RESOURCE_METADATA_URL,
+        scopes: TOK_CONNECT_OIDC_SCOPES,
+        error: statusCode === 403 ? "insufficient_scope" : "invalid_token",
+        errorDescription: errorCode,
+      })
+      : null;
+    const rpcCode = error instanceof McpProtocolError
+      ? error.code
+      : statusCode === 404
+      ? -32601
+      : statusCode >= 500
+      ? -32603
+      : -32000;
+    const responseStatus = error instanceof McpProtocolError || isAuthError ? statusCode : 200;
+    const headers = mcpResponseHeaders(corsHeaders);
+    if (challenge) headers["WWW-Authenticate"] = challenge;
     return jsonResponse(
-      rpcError(rpc.id ?? null, statusCode === 404 ? -32601 : -32000, errorCode),
-      statusCode,
-      corsHeaders,
+      rpcError(rpc?.id ?? null, rpcCode, errorCode, challenge
+        ? { _meta: { "mcp/www_authenticate": [challenge] } }
+        : undefined),
+      responseStatus,
+      headers,
     );
   } finally {
     await recordTokConnectApiRequest({

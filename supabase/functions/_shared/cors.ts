@@ -31,6 +31,7 @@ const DEFAULT_ALLOWED_ORIGINS = [
   "https://app.thetok.ch",
   "https://admin.thetok.ch",
   "https://commercial.thetok.ch",
+  "https://chatgpt.com",
   "https://cloud-rebuild-recovered.vercel.app",
   "capacitor://localhost",
   "ionic://localhost",
@@ -59,6 +60,9 @@ const ALLOWED_HEADERS = [
   "x-tok-timestamp",
   "x-tok-signature",
   "stripe-signature",
+  "mcp-protocol-version",
+  "mcp-session-id",
+  "last-event-id",
 ].join(", ");
 
 function normalizeOrigin(value: string | null | undefined): string | null {
@@ -98,6 +102,16 @@ function isOriginAllowed(origin: string | null, allowed: string[]): boolean {
   if (LOCALHOST_REGEX.test(origin)) return true;
   if (TOK_VERCEL_PREVIEW_REGEX.test(origin)) return true;
   return false;
+}
+
+/**
+ * Server-to-server requests commonly omit Origin. When an Origin is present,
+ * callers can use this helper to reject browser requests outside the allowlist.
+ */
+export function isRequestOriginAllowed(req: Request): boolean {
+  const origin = req.headers.get("origin");
+  if (!origin) return true;
+  return isOriginAllowed(normalizeOrigin(origin), parseAllowedOrigins());
 }
 
 /**
@@ -148,4 +162,3 @@ export const corsHeadersStatic: Record<string, string> = {
   "Access-Control-Allow-Headers": ALLOWED_HEADERS,
   "Vary": "Origin",
 };
-

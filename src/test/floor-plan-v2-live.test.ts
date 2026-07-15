@@ -336,8 +336,9 @@ describe("floor plan v2 secure bridge and zoom", () => {
     expect(page).toContain('from("reservation_tables")');
     expect(page).toContain('from("reservation_slots")');
     expect(page).toContain('"restaurant_save_floor_plan_assignments"');
-    expect(page).toContain('"restaurant_save_floor_plan_workspace"');
-    expect(page).toContain('"restaurant_save_floor_plan_layouts"');
+    expect(page).toContain('"restaurant_save_floor_plan_workspace_v2"');
+    expect(page).toContain('"restaurant_save_floor_plan_layouts_v2"');
+    expect(page).toContain('"restaurant_save_floor_plan_variant_v2"');
     expect(page).toContain("updateRestaurantReservationStatus");
     expect(page).toContain('"tok-table-v2:update-reservation-status"');
     expect(page).toContain('from("floor_plan_variants" as any)');
@@ -388,7 +389,7 @@ describe("floor plan v2 secure bridge and zoom", () => {
 
     expect(page).toContain('.from("reservation_tables")');
     expect(page).not.toContain('.from("floor_plan_objects")');
-    expect(page).toContain('"restaurant_save_floor_plan_workspace"');
+    expect(page).toContain('"restaurant_save_floor_plan_workspace_v2"');
     expect(page).toContain("parseFloorPlanV2ObjectDrafts");
     expect(page).toContain("serializeFloorPlanV2Object");
     expect(page).toContain("p_objects: objectUpserts");
@@ -423,5 +424,74 @@ describe("floor plan v2 secure bridge and zoom", () => {
     expect(migration).toContain("Table already occupied around");
     expect(migration).toContain("Retirez d''abord les clients");
     expect(migration).toContain("COALESCE(rt.layout->>'kind', 'table') = 'table'");
+  });
+
+  it("rejects stale saves and safely replays duplicate persistence requests", () => {
+    const page = readSource("src/pages/dashboard/DashboardPlanSalleV2.tsx");
+    const iframe = readSource("public/tok-table-v2/app.js");
+    const migration = readSource(
+      "supabase/migrations/20260715031622_floor_plan_v2_reliability.sql",
+    );
+    const types = readSource("src/integrations/supabase/types.ts");
+
+    expect(page).toContain("BRIDGE_PROTOCOL_VERSION = 2");
+    expect(page).toContain("withPersistenceTimeout");
+    expect(page).toContain(".abortSignal(signal)");
+    expect(page).toContain("p_expected_snapshot: JSON.parse(baseRevision)");
+    expect(page).toContain("p_request_id: getOperationId(requestId)");
+    expect(page).toContain("baselineTableIds");
+    expect(page).toContain("baselineObjectIds");
+    expect(page).toContain("!Array.isArray(rawObjects)");
+    expect(page).toContain("workspaceMounted ? (");
+    expect(page).toContain('.in("reservation_id", reservationIdChunk)');
+
+    expect(iframe).toContain("SERVICE_AUTOSAVE_MAX_FAILURES = 3");
+    expect(iframe).toContain("OPERATION_TIMEOUT_MS = 60_000");
+    expect(iframe).toContain("payload.requestId !== pendingOperation.requestId");
+    expect(iframe).toContain("payload.kind !== pendingOperation.kind");
+    expect(iframe).toContain("baselineTableIds");
+    expect(iframe).toContain("baselineObjectIds");
+
+    expect(migration).toContain("private.floor_plan_save_operations");
+    expect(migration).toContain("request_payload jsonb NOT NULL");
+    expect(migration).toContain("v_existing_payload IS DISTINCT FROM v_request_payload");
+    expect(migration).toContain("FLOOR_PLAN_REVISION_CONFLICT");
+    expect(migration).toContain("pg_advisory_xact_lock");
+    expect(migration).toContain("ORDER BY rt.id");
+    expect(migration).toContain("created_at < now() - interval '30 days'");
+    expect(migration).toContain("restaurant_save_floor_plan_variant_v2");
+    expect(migration).toContain("v_operation_kind constant text := 'variant'");
+    expect(migration).toContain("'variant', to_jsonb(v_variant)");
+    expect(migration).toContain("lower(btrim(variant.name)) = lower(v_name)");
+    expect(migration).toContain("SET search_path = ''");
+    expect(migration).toContain("TO authenticated");
+    expect(migration).toContain("FROM PUBLIC, anon");
+    expect(types).toContain("restaurant_save_floor_plan_workspace_v2");
+    expect(types).toContain("restaurant_save_floor_plan_layouts_v2");
+    expect(types).toContain("restaurant_save_floor_plan_variant_v2");
+  });
+
+  it("keeps an already hydrated workspace mounted through transient refetch failures", () => {
+    const page = readSource("src/pages/dashboard/DashboardPlanSalleV2.tsx");
+
+    expect(page).toContain("isRefetchError: tablesRefetchError");
+    expect(page).toContain("const hasBlockingError = Boolean(");
+    expect(page).toContain("const hasRefetchError = Boolean(");
+    expect(page).toContain("const workspaceMounted = Boolean(");
+    expect(page).toContain("const workspaceReady = workspaceMounted && !hasRefetchError");
+    expect(page).toContain("if (!selectedBranchId || !workspaceReady) return;");
+    expect(page).toContain("{workspaceMounted ? (");
+    expect(page).toContain("La dernière version chargée reste affichée.");
+    expect(page).toContain("La synchronisation est temporairement indisponible. Le brouillon est conservé.");
+  });
+
+  it("narrows nullable table snapshot fields before building the typed revision", () => {
+    const page = readSource("src/pages/dashboard/DashboardPlanSalleV2.tsx");
+
+    expect(page).toContain("function getNullableBoolean(value: unknown, message: string): boolean | null");
+    expect(page).toContain("function getNullableString(value: unknown, message: string): string | null");
+    expect(page).toContain("const isActive = getNullableBoolean(row.is_active, invalidSnapshotMessage);");
+    expect(page).toContain("const sector = getNullableString(row.sector, invalidSnapshotMessage);");
+    expect(page).toContain("is_active: isActive,");
   });
 });

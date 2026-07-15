@@ -596,9 +596,7 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
-      {!oauthConsentFrame && aiSupportChatEnabled === true ? (
-        !commercialDemoFrame ? <SupportChat /> : null
-      ) : null}
+      {aiSupportChatEnabled === true && !commercialDemoFrame && !oauthConsentFrame ? <SupportChat /> : null}
       {!commercialDemoFrame && !oauthConsentFrame ? (
         <Suspense fallback={null}>
           <OrderConflictDialog />

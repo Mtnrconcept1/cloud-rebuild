@@ -1,14 +1,14 @@
-# TOK Connect Full App MCP
+# TOK Connect Full App MCP (surface historique interne)
 
-Cette Edge Function expose une surface MCP dédiée pour rendre toute l'application TOK utilisable depuis ChatGPT en mode contrôlé.
+Cette Edge Function conserve une surface de catalogue et de preview interne. Elle ne doit plus etre enregistree comme second connecteur ChatGPT: deux serveurs publics divergents rendent la decouverte, l'authentification et le support ambigus.
 
-Endpoint prévu :
+L'unique endpoint canonique ChatGPT est:
 
 ```txt
-https://wwcrtyoueexyxkkikaos.functions.supabase.co/tok-connect-full-app-mcp
+https://www.thetok.ch/mcp
 ```
 
-Fonction Supabase :
+La fonction historique reste, si necessaire, un detail d'implementation interne:
 
 ```txt
 tok-connect-full-app-mcp
@@ -16,7 +16,7 @@ tok-connect-full-app-mcp
 
 ## Objectif
 
-Le MCP complet permet à ChatGPT de naviguer dans les principaux espaces TOK : client, restaurateur, admin, commercial, livreur et support.
+Le catalogue historique permet de decrire les principaux espaces TOK: client, restaurateur, admin, commercial, livreur et support. Les capacites destinees a ChatGPT doivent etre consolidees dans `tok-connect-mcp`, derriere `/mcp`, avant d'etre considerees comme supportees.
 
 Il ne remplace pas les Edge Functions métier existantes. Il sert de couche d'orchestration sécurisée pour :
 
@@ -63,17 +63,17 @@ La console MCP ne doit jamais exécuter directement :
 
 Ces actions doivent passer par les flux TOK existants, avec authentification, droits restaurant/admin, RLS, idempotence, journalisation et confirmation humaine.
 
-Sans OAuth TOK Connect, les outils retournent uniquement des données sandbox ou des plans de parcours.
+Sans OAuth Supabase natif, les outils retournent uniquement des données sandbox ou des plans de parcours. Le flux custom `client_credentials` est legacy B2B et ne constitue pas l'authentification ChatGPT.
 
-## Déploiement Supabase
+## Déploiement Supabase interne
 
-Ne pas déployer cette fonction sur un autre projet Supabase. Le projet déclaré dans `supabase/config.toml` est :
+Ne pas deployer cette fonction sur un autre projet Supabase. Le projet declare dans `supabase/config.toml` est:
 
 ```txt
 wwcrtyoueexyxkkikaos
 ```
 
-Commande de déploiement :
+Un redeploiement separe ne doit avoir lieu que si la compatibilite interne est encore intentionnellement maintenue. Il ne publie pas un second contrat MCP:
 
 ```bash
 supabase functions deploy tok-connect-full-app-mcp \
@@ -81,24 +81,26 @@ supabase functions deploy tok-connect-full-app-mcp \
   --no-verify-jwt
 ```
 
-`verify_jwt = false` est volontaire : l'authentification est gérée dans le handler MCP, comme les autres fonctions `tok-connect-*`.
+`verify_jwt = false` signifie que toute authentification doit etre geree et testee dans le handler. Ce parametrage ne rend jamais la fonction publique par defaut.
 
 ## Configuration dans ChatGPT
 
-Dans la configuration de l'application ChatGPT / MCP, utiliser :
+Dans la configuration ChatGPT / MCP, utiliser uniquement:
 
 ```txt
-https://wwcrtyoueexyxkkikaos.functions.supabase.co/tok-connect-full-app-mcp
+https://www.thetok.ch/mcp
 ```
 
-Conserver l'OAuth TOK Connect existant pour obtenir les scopes réels. Les outils sans OAuth restent en mode preview/sandbox.
+Activer le serveur OAuth 2.1 natif Supabase, la page `/oauth/consent`, DCR ou le client public pre-enregistre, puis verifier la callback exacte fournie par ChatGPT. Le serveur custom `tok-connect-oauth` en `client_credentials` reste reserve aux backends partenaires B2B.
+
+Le contrat protocolaire courant est MCP `2025-11-25`, avec negociation des versions de compatibilite declarees. L'endpoint public doit aussi exposer `/.well-known/oauth-protected-resource` et pointer vers l'Authorization Server Supabase.
 
 ## Validation
 
-Tests ajoutés :
+Les tests historiques restent disponibles pour verifier le catalogue interne:
 
 ```bash
-npm test -- tok-connect-full-app-mcp
+corepack pnpm test -- tok-connect-full-app-mcp
 ```
 
 Le test vérifie que la fonction est enregistrée, que les surfaces majeures de TOK sont présentes et que les actions à risque restent bloquées derrière un paquet de confirmation humaine.

@@ -221,13 +221,13 @@
     <div class="toast-region" id="toast-region" aria-live="polite"></div>
 
     <dialog class="modal" id="table-modal">
-      <form method="dialog" id="table-form">
+      <form id="table-form">
         <div class="modal-header">
           <div>
             <p class="eyebrow">TABLE</p>
             <h2 id="table-modal-title">Ajouter une table</h2>
           </div>
-          <button class="close-button" value="cancel" aria-label="Fermer" type="submit">×</button>
+          <button class="close-button" data-dialog-close type="button" aria-label="Fermer">×</button>
         </div>
         <input type="hidden" name="id" />
         <div class="form-grid">
@@ -261,25 +261,26 @@
             <span>Table active et réservable</span>
           </label>
         </div>
+        <p class="modal-error hidden" id="table-modal-error" role="alert"></p>
         <div class="modal-actions split-actions">
           <button class="btn btn-danger hidden" id="delete-table-button" type="button">Supprimer</button>
           <button class="btn btn-ghost hidden" id="duplicate-table-button" type="button">Dupliquer</button>
           <span></span>
-          <button class="btn btn-ghost" value="cancel" type="submit">Annuler</button>
-          <button class="btn btn-primary" value="default" type="submit">Appliquer</button>
+          <button class="btn btn-ghost" data-dialog-close type="button">Annuler</button>
+          <button class="btn btn-primary" id="apply-table-button" type="button">Appliquer</button>
         </div>
       </form>
     </dialog>
 
 
     <dialog class="modal furniture-modal" id="furniture-modal">
-      <form method="dialog" id="furniture-form">
+      <form id="furniture-form">
         <div class="modal-header">
           <div>
             <p class="eyebrow">AMÉNAGEMENT</p>
             <h2 id="furniture-modal-title">Modifier l’élément</h2>
           </div>
-          <button class="close-button" value="cancel" aria-label="Fermer" type="submit">×</button>
+          <button class="close-button" data-dialog-close type="button" aria-label="Fermer">×</button>
         </div>
         <input type="hidden" name="id" />
         <div class="form-grid furniture-form-grid">
@@ -330,31 +331,32 @@
             </span>
           </label>
         </div>
+        <p class="modal-error hidden" id="furniture-modal-error" role="alert"></p>
         <div class="modal-actions split-actions">
           <button class="btn btn-danger" id="delete-furniture-button" type="button">Supprimer</button>
           <button class="btn btn-ghost" id="duplicate-furniture-button" type="button">Dupliquer</button>
           <span></span>
-          <button class="btn btn-ghost" value="cancel" type="submit">Annuler</button>
-          <button class="btn btn-primary" value="default" type="submit">Appliquer</button>
+          <button class="btn btn-ghost" data-dialog-close type="button">Annuler</button>
+          <button class="btn btn-primary" id="apply-furniture-button" type="button">Appliquer</button>
         </div>
       </form>
     </dialog>
 
     <dialog class="modal service-table-modal" id="service-table-modal">
-      <form method="dialog">
-        <button class="close-button service-table-close" value="cancel" aria-label="Fermer" type="submit">×</button>
+      <form>
+        <button class="close-button service-table-close" data-dialog-close type="button" aria-label="Fermer">×</button>
         <div id="service-table-content"></div>
       </form>
     </dialog>
 
     <dialog class="modal variant-modal" id="variant-modal">
-      <form method="dialog" id="variant-form">
+      <form id="variant-form">
         <div class="modal-header">
           <div>
             <p class="eyebrow">PLAN SAUVEGARDÉ</p>
             <h2>Sauver une variante</h2>
           </div>
-          <button class="close-button" value="cancel" aria-label="Fermer" type="submit">×</button>
+          <button class="close-button" data-dialog-close type="button" aria-label="Fermer">×</button>
         </div>
         <div class="form-grid">
           <label class="full-field">
@@ -362,26 +364,28 @@
             <input name="name" required maxlength="80" placeholder="Ex. Terrasse d’été" />
           </label>
         </div>
+        <p class="modal-error hidden" id="variant-modal-error" role="alert"></p>
+        <p class="modal-progress hidden" id="variant-modal-progress" role="status">Enregistrement de la variante…</p>
         <div class="modal-actions">
-          <button class="btn btn-ghost" value="cancel" type="submit">Annuler</button>
-          <button class="btn btn-primary" value="default" type="submit">Enregistrer</button>
+          <button class="btn btn-ghost" data-dialog-close type="button">Annuler</button>
+          <button class="btn btn-primary" id="apply-variant-button" type="button">Enregistrer</button>
         </div>
       </form>
     </dialog>
 
     <dialog class="modal confirm-modal" id="confirm-modal">
-      <form method="dialog">
+      <form>
         <div class="modal-header">
           <div>
             <p class="eyebrow">CONFIRMATION</p>
             <h2 id="confirm-title">Supprimer la table ?</h2>
           </div>
-          <button class="close-button" value="cancel" aria-label="Fermer" type="submit">×</button>
+          <button class="close-button" data-dialog-close type="button" aria-label="Fermer">×</button>
         </div>
         <p id="confirm-copy">Cette action sera appliquée lors de la sauvegarde du modèle.</p>
         <div class="modal-actions">
-          <button class="btn btn-ghost" value="cancel" type="submit">Annuler</button>
-          <button class="btn btn-danger" id="confirm-action-button" value="default" type="submit">Supprimer</button>
+          <button class="btn btn-ghost" data-dialog-close type="button">Annuler</button>
+          <button class="btn btn-danger" id="confirm-action-button" type="button">Supprimer</button>
         </div>
       </form>
     </dialog>

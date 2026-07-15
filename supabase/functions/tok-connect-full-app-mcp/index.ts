@@ -1,6 +1,21 @@
-import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
+import { buildCorsHeaders, handleCorsPreflight, isRequestOriginAllowed } from "../_shared/cors.ts";
 import { HttpError, jsonResponse } from "../_shared/auth.ts";
 import { createRateLimiter } from "../_shared/rate-limit.ts";
+import {
+  McpProtocolError,
+  assertMcpAcceptHeader,
+  assertMcpContentType,
+  assertMcpProtocolVersion,
+  buildMcpAuthToolResult,
+  buildMcpBearerChallenge,
+  isMcpNotification,
+  mcpAcceptedResponse,
+  mcpMethodNotAllowedResponse,
+  mcpResponseHeaders,
+  negotiateMcpProtocolVersion,
+  parseMcpJsonRpcRequest,
+  type McpJsonRpcRequest,
+} from "../_shared/mcp-http.ts";
 import { buildTokConnectEnvelope, makeTokConnectRequestId } from "../_shared/tok-connect.ts";
 import {
   assertTokConnectFeatureEnabled,
@@ -9,13 +24,6 @@ import {
   recordTokConnectApiRequest,
   type TokConnectTokenContext,
 } from "../_shared/tok-connect-auth.ts";
-
-type JsonRpcRequest = {
-  jsonrpc?: string;
-  id?: string | number | null;
-  method?: string;
-  params?: Record<string, unknown>;
-};
 
 type McpHandleResult = {
   payload: Record<string, unknown>;
@@ -56,7 +64,12 @@ type TokConnectAppModuleInput = Omit<TokConnectAppModule, "entrypoints" | "keywo
   Partial<Pick<TokConnectAppModule, "entrypoints" | "keywords" | "requiredScopes" | "readModels" | "previewActions" | "blockedActions" | "guardrails">>;
 
 const FULL_APP_WIDGET_URI = "ui://tok-connect/full-app-console-v1.html";
-const TOK_PUBLIC_ORIGIN = "https://www.thetok.ch";
+const TOK_PUBLIC_ORIGIN = (Deno.env.get("TOK_CONNECT_PUBLIC_ORIGIN") || "https://www.thetok.ch")
+  .replace(/\/$/, "");
+const TOK_CONNECT_MCP_RESOURCE = `${TOK_PUBLIC_ORIGIN}/mcp`;
+const TOK_CONNECT_RESOURCE_METADATA_URL = `${TOK_PUBLIC_ORIGIN}/.well-known/oauth-protected-resource`;
+const TOK_CONNECT_AUTHORIZATION_SERVER = "https://wwcrtyoueexyxkkikaos.supabase.co/auth/v1";
+const TOK_CONNECT_OIDC_SCOPES = ["openid", "email", "profile"];
 const TOK_LOGO_SRC = `${TOK_PUBLIC_ORIGIN}/logotok.png`;
 const TOK_CHEF_SRC = `${TOK_PUBLIC_ORIGIN}/chef.png`;
 
@@ -222,8 +235,8 @@ const FULL_APP_MCP_TOOLS: TokConnectMcpTool[] = [
   { name: "preview_tok_client_journey", title: "Prévisualiser parcours client TOK", description: "Prepare a client journey for discovery, reservation, Zero Attente, Table du Chef, order checkout, Miamz or TOK One without executing the final action.", requiredScopes: [], inputSchema: { type: "object", properties: { request: { type: "string" }, restaurant_id: { type: "string" }, date: { type: "string" }, party_size: { type: "integer" } }, additionalProperties: false }, annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false } },
   { name: "preview_tok_restaurant_journey", title: "Prévisualiser parcours restaurateur TOK", description: "Prepare a restaurant dashboard journey for service, menus, orders, reservations, credits, marketing, PhotoPro, campaigns, CRM, analytics or billing.", requiredScopes: [], inputSchema: { type: "object", properties: { request: { type: "string" }, restaurant_id: { type: "string" }, objective: { type: "string" } }, additionalProperties: false }, annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false } },
   { name: "preview_tok_admin_journey", title: "Prévisualiser parcours admin/support TOK", description: "Prepare an admin or support investigation path with audit controls and no mutation.", requiredScopes: [], inputSchema: { type: "object", properties: { request: { type: "string" }, actor: { type: "string", enum: ["admin", "support"], default: "admin" }, target_id: { type: "string" } }, additionalProperties: false }, annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false } },
-  { name: "read_tok_restaurant_snapshot", title: "Lire snapshot restaurant TOK", description: "Read restaurant discovery data for ChatGPT recommendations; sandbox data is returned without OAuth.", requiredScopes: ["restaurants:read"], inputSchema: { type: "object", properties: { restaurant_id: { type: "string", format: "uuid" }, city: { type: "string" }, query: { type: "string" }, limit: { type: "integer", minimum: 1, maximum: 25 } }, additionalProperties: false }, annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false } },
-  { name: "read_tok_availability_snapshot", title: "Lire disponibilités TOK", description: "Read reservation slot availability for a restaurant; sandbox data is returned without OAuth.", requiredScopes: ["availability:read"], inputSchema: { type: "object", required: ["restaurant_id", "date"], properties: { restaurant_id: { type: "string", format: "uuid" }, date: { type: "string", format: "date" }, party_size: { type: "integer", minimum: 1, maximum: 20 } }, additionalProperties: false }, annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false } },
+  { name: "read_tok_restaurant_snapshot", title: "Lire snapshot restaurant TOK", description: "Read authorized restaurant discovery data for ChatGPT recommendations. Requires a connected TOK account through OAuth.", requiredScopes: ["restaurants:read"], inputSchema: { type: "object", properties: { restaurant_id: { type: "string", format: "uuid" }, city: { type: "string" }, query: { type: "string" }, limit: { type: "integer", minimum: 1, maximum: 25 } }, additionalProperties: false }, annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false } },
+  { name: "read_tok_availability_snapshot", title: "Lire disponibilités TOK", description: "Read authorized reservation slot availability for a restaurant. Requires a connected TOK account through OAuth.", requiredScopes: ["availability:read"], inputSchema: { type: "object", required: ["restaurant_id", "date"], properties: { restaurant_id: { type: "string", format: "uuid" }, date: { type: "string", format: "date" }, party_size: { type: "integer", minimum: 1, maximum: 20 } }, additionalProperties: false }, annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false } },
   { name: "prepare_tok_human_confirmation_packet", title: "Préparer paquet de confirmation TOK", description: "Prepare the exact confirmation packet that a user must approve before booking, paying, publishing, debiting credits or changing admin data.", requiredScopes: [], inputSchema: { type: "object", required: ["action_type", "summary"], properties: { action_type: { type: "string", enum: ["reservation", "order", "payment", "campaign", "image_generation", "admin_change", "refund", "support_resolution", "other"] }, summary: { type: "string" }, restaurant_id: { type: "string" }, amount_chf: { type: "number" }, credit_cost: { type: "integer" }, payload: { type: "object" } }, additionalProperties: false }, annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false } },
   { name: "audit_tok_action_risk", title: "Auditer le risque d'une action TOK", description: "Classify a requested TOK action as read, preview, payment, publication, reservation, credit debit or admin mutation and explain the required blockers.", requiredScopes: [], inputSchema: { type: "object", required: ["request"], properties: { request: { type: "string" }, actor: { type: "string" } }, additionalProperties: false }, annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false } },
 ];
@@ -242,22 +255,54 @@ const FULL_APP_PROMPTS = [
   { name: "audit_tok_action", description: "Audit whether a requested TOK action is read-only, preview-only, payment-related or mutation-related.", arguments: [{ name: "request", required: true }] },
 ];
 
-function widgetMeta(description: string) { return { ui: { prefersBorder: true, csp: { connectDomains: [], resourceDomains: [TOK_PUBLIC_ORIGIN, "https://cloud-rebuild-recovered.vercel.app"] } }, "openai/widgetDescription": description, "openai/widgetPrefersBorder": true, "openai/widgetCSP": { connect_domains: [], resource_domains: [TOK_PUBLIC_ORIGIN, "https://cloud-rebuild-recovered.vercel.app"] } }; }
-function rpcResult(id: JsonRpcRequest["id"], result: Record<string, unknown>) { return { jsonrpc: "2.0", id: id ?? null, result }; }
-function rpcError(id: JsonRpcRequest["id"], code: number, message: string) { return { jsonrpc: "2.0", id: id ?? null, error: { code, message } }; }
-function hasBearerToken(req: Request) { return (req.headers.get("Authorization") || "").startsWith("Bearer "); }
+function widgetMeta(description: string) {
+  const resourceDomains = [
+    TOK_PUBLIC_ORIGIN,
+    "https://cloud-rebuild-recovered.vercel.app",
+    "https://fonts.googleapis.com",
+    "https://fonts.gstatic.com",
+  ];
+  return {
+    ui: {
+      prefersBorder: true,
+      domain: TOK_PUBLIC_ORIGIN,
+      csp: { connectDomains: [], resourceDomains },
+    },
+    "openai/widgetDescription": description,
+    "openai/widgetPrefersBorder": true,
+    "openai/widgetDomain": TOK_PUBLIC_ORIGIN,
+    "openai/widgetCSP": { connect_domains: [], resource_domains: resourceDomains },
+  };
+}
+function rpcResult(id: McpJsonRpcRequest["id"], result: Record<string, unknown>) { return { jsonrpc: "2.0", id: id ?? null, result }; }
+function rpcError(id: McpJsonRpcRequest["id"], code: number, message: string, data?: Record<string, unknown>) { return { jsonrpc: "2.0", id: id ?? null, error: { code, message, ...(data ? { data } : {}) } }; }
+function hasBearerToken(req: Request) { return /^Bearer\s+\S+/i.test(req.headers.get("Authorization") || ""); }
 
 async function authorizeFullAppMcp(req: Request, requiredScopes: string[] = []) {
   const context = await authenticateTokConnectToken(req, requiredScopes);
   await assertTokConnectFeatureEnabled(context.adminClient, "tok-connect"); await assertTokConnectFeatureEnabled(context.adminClient, "tok-connect-mcp");
   const limiter = createRateLimiter(context.adminClient, "tok-connect-full-app-mcp");
-  await limiter.consume(`partner:${context.partnerId}`, { maxRequests: Math.min(context.partnerQuotaPerMinute || 300, 600), windowSeconds: 60 });
-  await limiter.consume(`client:${context.clientUuid}`, { maxRequests: Math.min(context.clientQuotaPerMinute || 240, 600), windowSeconds: 60 });
+  const partnerSubject = context.authMode === "supabase_oauth"
+    ? `oauth-user:${context.userId ?? context.tokenId}`
+    : `partner:${context.partnerId ?? context.tokenId}`;
+  const clientSubject = context.authMode === "supabase_oauth"
+    ? `oauth-client:${context.oauthClientId ?? context.clientUuid}`
+    : `client:${context.clientUuid ?? context.tokenId}`;
+  const partnerMaxRequests = Number.isFinite(context.partnerQuotaPerMinute)
+    ? Math.max(1, Math.min(context.partnerQuotaPerMinute, 600))
+    : 300;
+  const clientMaxRequests = Number.isFinite(context.clientQuotaPerMinute)
+    ? Math.max(1, Math.min(context.clientQuotaPerMinute, 600))
+    : 240;
+  await limiter.consume(partnerSubject, { maxRequests: partnerMaxRequests, windowSeconds: 60 });
+  await limiter.consume(clientSubject, { maxRequests: clientMaxRequests, windowSeconds: 60 });
   return context;
 }
 
 function toolDefinition(tool: TokConnectMcpTool) {
-  const securitySchemes = [{ type: "noauth" }, { type: "oauth2", scopes: tool.requiredScopes }];
+  const securitySchemes = tool.requiredScopes.length > 0
+    ? [{ type: "oauth2", scopes: TOK_CONNECT_OIDC_SCOPES }]
+    : [{ type: "noauth" }];
   const toolMeta = tool._meta || {}; const toolUiMeta = toolMeta.ui && typeof toolMeta.ui === "object" && !Array.isArray(toolMeta.ui) ? toolMeta.ui as Record<string, unknown> : {};
   return { name: tool.name, title: tool.title, description: tool.description, inputSchema: tool.inputSchema, ...(tool.outputSchema ? { outputSchema: tool.outputSchema } : {}), securitySchemes, ...(tool.annotations ? { annotations: tool.annotations } : {}), _meta: { securitySchemes, ui: { resourceUri: FULL_APP_WIDGET_URI, visibility: ["model", "app"], ...toolUiMeta }, "openai/outputTemplate": FULL_APP_WIDGET_URI, "openai/widgetAccessible": true, ...toolMeta } };
 }
@@ -301,25 +346,179 @@ function buildRiskAudit(args: Record<string, unknown>) { const request = String(
 async function callFullAppTool(context: TokConnectTokenContext | null, name: string, args: Record<string, unknown>) { switch (name) { case "discover_tok_application": return buildDiscovery(args); case "open_tok_application_console": return buildConsole(args); case "plan_tok_application_route": return buildPlan(args); case "preview_tok_client_journey": return buildJourney(args, "client", "Prévisualiser un parcours client TOK."); case "preview_tok_restaurant_journey": return buildJourney(args, "restaurateur", "Prévisualiser un parcours restaurateur TOK."); case "preview_tok_admin_journey": return buildJourney(args, toActor(args.actor) === "support" ? "support" : "admin", "Prévisualiser un audit admin/support TOK."); case "read_tok_restaurant_snapshot": return await readRestaurantSnapshot(context, args); case "read_tok_availability_snapshot": return await readAvailabilitySnapshot(context, args); case "prepare_tok_human_confirmation_packet": return buildConfirmationPacket(args); case "audit_tok_action_risk": return buildRiskAudit(args); default: throw new HttpError(404, "mcp_tool_not_found"); } }
 function resourceContents(uri: string) { if (uri === FULL_APP_WIDGET_URI) return { uri, mimeType: "text/html;profile=mcp-app", text: FULL_APP_WIDGET_HTML, _meta: widgetMeta("Console interactive de toute l'application TOK dans ChatGPT.") }; if (uri === "tok://full-app/modules") return { uri, mimeType: "application/json", text: JSON.stringify({ modules: TOK_APP_MODULES.map(mapModule), mutation_allowed: false }) }; if (uri === "tok://full-app/routes") return { uri, mimeType: "application/json", text: JSON.stringify({ routes: TOK_APP_MODULES.map((module) => ({ id: module.id, title: module.title, route: module.route, entrypoints: module.entrypoints })) }) }; if (uri === "tok://full-app/guardrails") return { uri, mimeType: "application/json", text: JSON.stringify({ guardrails: collectGuardrails(TOK_APP_MODULES), mutation_allowed: false }) }; return { uri, mimeType: "application/json", text: JSON.stringify({ status: "not_found", mutation_allowed: false }) }; }
 
-async function handleMcp(req: Request, rpc: JsonRpcRequest): Promise<McpHandleResult> {
+async function handleMcp(req: Request, rpc: McpJsonRpcRequest): Promise<McpHandleResult> {
   switch (rpc.method) {
-    case "initialize": { const context = hasBearerToken(req) ? await authorizeFullAppMcp(req) : null; return { payload: rpcResult(rpc.id, { protocolVersion: "2025-03-26", serverInfo: { name: "tok-connect-full-app-mcp", version: "1.1.0" }, capabilities: { tools: {}, resources: {}, prompts: {} } }), context, route: context ? "Full App MCP initialize" : "Full App MCP initialize noauth", scopes: [] }; }
+    case "initialize": {
+      const context = hasBearerToken(req) ? await authorizeFullAppMcp(req) : null;
+      const protocolVersion = negotiateMcpProtocolVersion(rpc.params);
+      return {
+        payload: rpcResult(rpc.id, {
+          protocolVersion,
+          serverInfo: {
+            name: "tok-connect-full-app-mcp",
+            title: "TOK Connect Full App",
+            version: "2.0.0",
+            websiteUrl: TOK_PUBLIC_ORIGIN,
+          },
+          capabilities: { tools: {}, resources: {}, prompts: {} },
+          instructions: "TOK Connect Full App permet à ChatGPT d'explorer les modules TOK et de préparer des parcours sans mutation. Les outils de planification sont anonymes. Les snapshots réels exigent OAuth TOK. Toute réservation, commande, dépense, publication, suppression ou action administrative reste bloquée jusqu'à une confirmation humaine explicite dans TOK.",
+        }),
+        context,
+        route: context ? "Full App MCP initialize" : "Full App MCP initialize noauth",
+        scopes: [],
+      };
+    }
     case "tools/list": { const context = hasBearerToken(req) ? await authorizeFullAppMcp(req) : null; return { payload: rpcResult(rpc.id, { tools: FULL_APP_MCP_TOOLS.map(toolDefinition) }), context, route: context ? "Full App MCP tools/list" : "Full App MCP tools/list noauth", scopes: [] }; }
-    case "tools/call": { const toolName = String(rpc.params?.name || ""); const tool = FULL_APP_MCP_TOOLS.find((entry) => entry.name === toolName); if (!tool) throw new HttpError(404, "mcp_tool_not_found"); const args = (rpc.params?.arguments || {}) as Record<string, unknown>; const context = hasBearerToken(req) ? await authorizeFullAppMcp(req, tool.requiredScopes) : null; const result = await callFullAppTool(context, toolName, args); return { payload: rpcResult(rpc.id, result), context, route: context ? `Full App MCP tools/call ${toolName}` : `Full App MCP tools/call ${toolName} noauth`, scopes: tool.requiredScopes }; }
+    case "tools/call": {
+      const toolName = String(rpc.params?.name || "");
+      const tool = FULL_APP_MCP_TOOLS.find((entry) => entry.name === toolName);
+      if (!tool) throw new HttpError(404, "mcp_tool_not_found");
+      const rawArguments = rpc.params?.arguments ?? {};
+      if (!rawArguments || typeof rawArguments !== "object" || Array.isArray(rawArguments)) {
+        throw new McpProtocolError(-32602, `invalid_tool_arguments:${toolName}`, 200);
+      }
+      const args = rawArguments as Record<string, unknown>;
+      if (tool.requiredScopes.length > 0 && !hasBearerToken(req)) {
+        const challenge = buildMcpBearerChallenge({
+          resourceMetadataUrl: TOK_CONNECT_RESOURCE_METADATA_URL,
+          scopes: TOK_CONNECT_OIDC_SCOPES,
+          error: "invalid_token",
+          errorDescription: "Connectez votre compte TOK pour utiliser cet outil.",
+        });
+        return {
+          payload: rpcResult(
+            rpc.id,
+            buildMcpAuthToolResult(challenge, "Authentification TOK requise pour accéder aux données réelles."),
+          ),
+          context: null,
+          route: `Full App MCP tools/call ${toolName} auth-required`,
+          scopes: tool.requiredScopes,
+        };
+      }
+      const context = hasBearerToken(req)
+        ? await authorizeFullAppMcp(req, tool.requiredScopes)
+        : null;
+      const result = await callFullAppTool(context, toolName, args);
+      return {
+        payload: rpcResult(rpc.id, result),
+        context,
+        route: context
+          ? `Full App MCP tools/call ${toolName}`
+          : `Full App MCP tools/call ${toolName} noauth`,
+        scopes: tool.requiredScopes,
+      };
+    }
     case "resources/list": { const context = hasBearerToken(req) ? await authorizeFullAppMcp(req) : null; return { payload: rpcResult(rpc.id, { resources: FULL_APP_RESOURCES }), context, route: context ? "Full App MCP resources/list" : "Full App MCP resources/list noauth", scopes: [] }; }
     case "resources/read": { const uri = String(rpc.params?.uri || "tok://full-app/modules"); const context = hasBearerToken(req) ? await authorizeFullAppMcp(req) : null; return { payload: rpcResult(rpc.id, { contents: [resourceContents(uri)] }), context, route: context ? "Full App MCP resources/read" : "Full App MCP resources/read noauth", scopes: [] }; }
     case "prompts/list": { const context = hasBearerToken(req) ? await authorizeFullAppMcp(req) : null; return { payload: rpcResult(rpc.id, { prompts: FULL_APP_PROMPTS }), context, route: context ? "Full App MCP prompts/list" : "Full App MCP prompts/list noauth", scopes: [] }; }
     case "prompts/get": { const context = hasBearerToken(req) ? await authorizeFullAppMcp(req) : null; const name = String(rpc.params?.name || ""); const prompt = FULL_APP_PROMPTS.find((entry) => entry.name === name); if (!prompt) throw new HttpError(404, "mcp_prompt_not_found"); return { payload: rpcResult(rpc.id, { description: prompt.description, messages: [{ role: "user", content: { type: "text", text: `${prompt.description} Use TOK Connect Full App MCP with the real TOK visual system. Return a preview and confirmation blockers before any real mutation.` } }] }), context, route: context ? `Full App MCP prompts/get ${name}` : `Full App MCP prompts/get ${name} noauth`, scopes: [] }; }
+    case "ping": return { payload: rpcResult(rpc.id, {}), context: null, route: "Full App MCP ping", scopes: [] };
     default: throw new HttpError(404, "mcp_method_not_found");
   }
 }
 
 Deno.serve(async (req) => {
-  const corsHeaders = buildCorsHeaders(req); const preflight = handleCorsPreflight(req, corsHeaders); if (preflight) return preflight;
-  const requestId = makeTokConnectRequestId(); const startedAt = Date.now(); let context: TokConnectTokenContext | null = null; let statusCode = 200; let errorCode: string | null = null; let route = "tok-connect-full-app-mcp"; let scopes: string[] = []; let rpc: JsonRpcRequest = {};
-  try { if (req.method !== "POST") throw new HttpError(405, "method_not_allowed"); rpc = await req.json().catch(() => ({})) as JsonRpcRequest; const result = await handleMcp(req, rpc); context = result.context; route = result.route; scopes = result.scopes; return jsonResponse(result.payload, 200, corsHeaders); }
-  catch (error) { statusCode = error instanceof HttpError ? error.status : 500; errorCode = error instanceof Error ? error.message : "tok_connect_full_app_mcp_error"; return jsonResponse(rpcError(rpc.id ?? null, statusCode === 404 ? -32601 : -32000, errorCode), statusCode, corsHeaders); }
-  finally { await recordTokConnectApiRequest({ context, request: req, requestId, route, statusCode, startedAt, scopes, errorCode }); }
+  const corsHeaders = buildCorsHeaders(req);
+  if (!isRequestOriginAllowed(req)) {
+    return new Response(null, { status: 403, headers: mcpResponseHeaders(corsHeaders) });
+  }
+  const preflight = handleCorsPreflight(req, corsHeaders);
+  if (preflight) return preflight;
+
+  const requestUrl = new URL(req.url);
+  if (req.method === "GET" && requestUrl.searchParams.get("tok_connect_route") === "protected-resource") {
+    return jsonResponse({
+      resource: TOK_CONNECT_MCP_RESOURCE,
+      authorization_servers: [TOK_CONNECT_AUTHORIZATION_SERVER],
+      scopes_supported: TOK_CONNECT_OIDC_SCOPES,
+      bearer_methods_supported: ["header"],
+      resource_documentation: `${TOK_PUBLIC_ORIGIN}/tok-connect/developer`,
+    }, 200, mcpResponseHeaders(corsHeaders));
+  }
+
+  if (req.method !== "POST") return mcpMethodNotAllowedResponse(corsHeaders);
+
+  const requestId = makeTokConnectRequestId();
+  const startedAt = Date.now();
+  let context: TokConnectTokenContext | null = null;
+  let statusCode = 200;
+  let errorCode: string | null = null;
+  let route = "tok-connect-full-app-mcp";
+  let scopes: string[] = [];
+  let rpc: McpJsonRpcRequest | null = null;
+
+  try {
+    assertMcpAcceptHeader(req);
+    assertMcpContentType(req);
+    rpc = await parseMcpJsonRpcRequest(req);
+    assertMcpProtocolVersion(req, rpc.method);
+
+    if (isMcpNotification(rpc)) {
+      route = `Full App MCP notification ${rpc.method}`;
+      statusCode = 202;
+      return mcpAcceptedResponse(corsHeaders);
+    }
+
+    const result = await handleMcp(req, rpc);
+    context = result.context;
+    route = result.route;
+    scopes = result.scopes;
+    const negotiatedVersion = rpc.method === "initialize"
+      ? negotiateMcpProtocolVersion(rpc.params)
+      : req.headers.get("MCP-Protocol-Version") || undefined;
+    return jsonResponse(
+      result.payload,
+      200,
+      mcpResponseHeaders(corsHeaders, negotiatedVersion),
+    );
+  } catch (error) {
+    statusCode = error instanceof McpProtocolError
+      ? error.httpStatus
+      : error instanceof HttpError
+      ? error.status
+      : 500;
+    errorCode = error instanceof Error ? error.message : "tok_connect_full_app_mcp_error";
+    const isAuthError = statusCode === 401 || statusCode === 403;
+    const challenge = isAuthError
+      ? buildMcpBearerChallenge({
+        resourceMetadataUrl: TOK_CONNECT_RESOURCE_METADATA_URL,
+        scopes: TOK_CONNECT_OIDC_SCOPES,
+        error: statusCode === 403 ? "insufficient_scope" : "invalid_token",
+        errorDescription: errorCode,
+      })
+      : null;
+    const rpcCode = error instanceof McpProtocolError
+      ? error.code
+      : statusCode === 404
+      ? -32601
+      : statusCode >= 500
+      ? -32603
+      : -32000;
+    const responseStatus = error instanceof McpProtocolError || isAuthError ? statusCode : 200;
+    const headers = mcpResponseHeaders(corsHeaders);
+    if (challenge) headers["WWW-Authenticate"] = challenge;
+    return jsonResponse(
+      rpcError(
+        rpc?.id ?? null,
+        rpcCode,
+        errorCode,
+        challenge ? { _meta: { "mcp/www_authenticate": [challenge] } } : undefined,
+      ),
+      responseStatus,
+      headers,
+    );
+  } finally {
+    await recordTokConnectApiRequest({
+      context,
+      request: req,
+      requestId,
+      route,
+      statusCode,
+      startedAt,
+      scopes,
+      errorCode,
+    });
+  }
 });
 
 export const tokConnectFullAppMcpHealthEnvelope = buildTokConnectEnvelope({ requestId: "tok_full_app_mcp_static", data: { server: "tok-connect-full-app-mcp", modules: TOK_APP_MODULES.length, mutation_allowed: false, design_system: "tok-dashboard" } });

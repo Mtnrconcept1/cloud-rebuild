@@ -174,16 +174,24 @@ describe("TOK Connect Edge Functions", () => {
     expect(source).toContain("MCP resources/read action-window");
   });
 
-  it("allows ChatGPT DEV to discover noauth MCP tools before OAuth is configured", () => {
+  it("keeps public discovery available while requiring OAuth for protected MCP tools", () => {
     const source = read("supabase/functions/tok-connect-mcp/index.ts");
+    const transport = read("supabase/functions/_shared/mcp-http.ts");
 
     expect(source).toContain("function hasBearerToken");
     expect(source).toContain('route: context ? "MCP initialize" : "MCP initialize noauth"');
     expect(source).toContain('route: context ? "MCP tools/list" : "MCP tools/list noauth"');
-    expect(source).toContain("callNoAuthSandboxTool");
+    expect(source).toContain("buildMcpAuthToolResult");
+    expect(source).toContain('"mcp/www_authenticate"');
+    expect(source).toContain("TOK_CONNECT_RESOURCE_METADATA_URL");
     expect(source).toContain('{ type: "noauth" }');
-    expect(source).toContain('securitySchemes');
-    expect(source).toContain('protocolVersion: "2025-03-26"');
+    expect(source).toContain('{ type: "oauth2", scopes: TOK_CONNECT_OIDC_SCOPES }');
+    expect(source).toContain("securitySchemes");
+    expect(source).toContain("negotiateMcpProtocolVersion");
+    expect(source).toContain("isMcpNotification");
+    expect(source).toContain("mcpAcceptedResponse");
+    expect(transport).toContain('"2025-11-25"');
+    expect(transport).toContain("assertMcpContentType");
     expect(source).toContain("TOK Connect DEV noauth");
   });
 
