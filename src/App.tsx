@@ -345,7 +345,7 @@ const COMMERCIAL_DEMO_FRAME_ROUTE_POLICY: Record<
   client: {
     home: "/mon-espace",
     allowedPaths: ["/mon-espace", "/recherche", "/panier", "/commandes", "/reservations", "/notifications"],
-    allowedPrefixes: ["/restaurant/", "/commande/"],
+    allowedPrefixes: ["/restaurant/"],
   },
   restaurant: {
     home: "/dashboard",
@@ -385,7 +385,9 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
   const { pathname } = useLocation();
   const commercialDemoContext = useCommercialDemoFrame();
   useTokLogoDocumentIcons();
-  const { activeFeatures, loading: featureFlagsLoading } = useFeatureFlagSnapshot();
+  const { activeFeatures, loading: featureFlagsLoading } = useFeatureFlagSnapshot({
+    enabled: !commercialDemoFrame,
+  });
   const hasFeature = (flagName: string) => {
     if (commercialDemoFrame) {
       return commercialDemoContext
@@ -527,11 +529,11 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           <Route path="/dashboard/offres" element={<DashboardRoute><FeatureSwitch enabled={dashboardOffresEnabled} fallback="/dashboard"><DashboardOffres /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/ventes-flash" element={<DashboardRoute><FeatureSwitch enabled={dashboardVentesFlashEnabled} fallback="/dashboard"><DashboardVentesFlash /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/formules" element={<DashboardRoute><FeatureSwitch enabled={dashboardFormulesEnabled} fallback="/dashboard"><DashboardFormules /></FeatureSwitch></DashboardRoute>} />
-          <Route path="/dashboard/photos" element={<DashboardRoute><FeatureSwitch enabled={dashboardPhotosEnabled} fallback="/dashboard"><DashboardPhotos /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/photos" element={<DashboardRoute><FeatureSwitch enabled={dashboardPhotosEnabled} fallback="/dashboard"><CommercialDemoToolBoundary tool="photos"><DashboardPhotos /></CommercialDemoToolBoundary></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/promotions" element={<DashboardRoute><FeatureSwitch enabled={dashboardPromotionsEnabled} fallback="/dashboard"><DashboardPromotions /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/campagne-overview" element={<Navigate to="/dashboard/campagnes" replace />} />
           <Route path="/dashboard/reseaux-sociaux" element={<DashboardRoute><FeatureSwitch enabled={dashboardReseauxSociauxEnabled} fallback="/dashboard"><CommercialDemoToolBoundary tool="social"><DashboardReseauxSociaux /></CommercialDemoToolBoundary></FeatureSwitch></DashboardRoute>} />
-          <Route path="/dashboard/actualites" element={<DashboardRoute><FeatureSwitch enabled={dashboardActualitesEnabled} fallback="/dashboard"><DashboardActualites /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/actualites" element={<DashboardRoute><FeatureSwitch enabled={dashboardActualitesEnabled} fallback="/dashboard"><CommercialDemoToolBoundary tool="actualites"><DashboardActualites /></CommercialDemoToolBoundary></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/campagnes" element={<DashboardRoute><FeatureSwitch enabled={dashboardCampagnesEnabled} fallback="/dashboard"><CommercialDemoToolBoundary tool="campaigns"><DashboardCampagnes /></CommercialDemoToolBoundary></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/crm" element={<DashboardRoute><FeatureSwitch enabled={dashboardCrmEnabled} fallback="/dashboard"><DashboardCrm /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/notifications" element={<DashboardRoute><DashboardNotifications /></DashboardRoute>} />
