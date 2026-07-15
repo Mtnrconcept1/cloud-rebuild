@@ -103,6 +103,7 @@ function getClientDashboardHomeTarget(target: string, isCommercialDemoClientFram
   if (!isCommercialDemoClientFrame) return target;
 
   const pathname = new URL(target, "https://thetok.ch").pathname;
+  if (pathname.startsWith("/commande/")) return "/commandes";
   if (["/notifications", "/mon-espace", "/recherche", "/reservations", "/commandes"].includes(pathname)) {
     return pathname;
   }
