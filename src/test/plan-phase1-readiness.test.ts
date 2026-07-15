@@ -107,7 +107,7 @@ describe("phase 1 launch audit plan readiness", () => {
       'supabase_ci_retry secrets set --env-file "${RUNNER_TEMP}/supabase.functions.env" --project-ref "$SUPABASE_PROJECT_REF"',
     );
     expect(deployWorkflow).toContain(
-      'supabase_ci_retry db push --linked --yes --password "$SUPABASE_DB_PASSWORD"',
+      'supabase_ci_retry db push --linked --include-all --yes --password "$SUPABASE_DB_PASSWORD"',
     );
     expect(deployWorkflow).toContain(
       'supabase_ci_retry functions deploy --project-ref "$SUPABASE_PROJECT_REF" --use-api',
