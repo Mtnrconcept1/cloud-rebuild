@@ -120,7 +120,7 @@ export default function CourierDashboardLayout({ children }: { children: React.R
   const commercialDemoFrame = useCommercialDemoFrame();
   const isCommercialDemoFrame = Boolean(commercialDemoFrame);
   const { signOut, role } = useAuth();
-  const activeFeatures = useActiveFeatures();
+  const activeFeatures = useActiveFeatures({ enabled: !isCommercialDemoFrame });
   const queryClient = useQueryClient();
   const { unreadNotifications } = useNotificationCenter(50);
   const [missionDialogOpen, setMissionDialogOpen] = useState(false);
