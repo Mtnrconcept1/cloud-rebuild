@@ -21,6 +21,7 @@ describe("commercial demo real client dashboard home", () => {
 
   it("builds the client overview from the validated demo snapshot without running production client queries", () => {
     expect(clientHome).toContain("commercialDemoFrame.snapshot.order");
+    expect(clientHome).toContain("useFeatureFlagSnapshot({ enabled: !isCommercialDemoClientFrame })");
     expect(clientHome).toContain("demoOrder?.customer_name");
     expect(clientHome).toContain("demoOrder.total_amount_cents / 100");
     expect(clientHome).toContain("enabled: Boolean(!isCommercialDemoClientFrame");
