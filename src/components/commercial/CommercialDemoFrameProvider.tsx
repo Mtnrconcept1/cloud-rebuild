@@ -10,7 +10,7 @@ import {
 } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, ShieldAlert } from "lucide-react";
-import { useLocation, useNavigationType } from "react-router-dom";
+import { useLocation, useNavigate, useNavigationType } from "react-router-dom";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,7 @@ import type { CommercialDemoRealtimeStatus } from "@/lib/commercialDemoRealtime"
 import {
   getCommercialDemoFrameRole,
   getCommercialDemoNotificationPath,
+  isCommercialDemoFrameNavigateMessage,
   type CommercialDemoFrameConfig,
   type CommercialDemoFrameStateMessage,
   type CommercialDemoFrameSurface,
@@ -158,6 +159,7 @@ export default function CommercialDemoFrameProvider({
 }) {
   const { user, loading: authLoading } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const navigationType = useNavigationType();
   const queryClient = useQueryClient();
   const [realtimeStatus, setRealtimeStatus] = useState<CommercialDemoRealtimeStatus>(() => (
@@ -224,6 +226,18 @@ export default function CommercialDemoFrameProvider({
     window.addEventListener("keydown", relayEscape);
     return () => window.removeEventListener("keydown", relayEscape);
   }, [config.sessionId, config.surface]);
+
+  useEffect(() => {
+    if (window.parent === window) return;
+    const handleParentNavigation = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin || event.source !== window.parent) return;
+      if (!isCommercialDemoFrameNavigateMessage(event.data)) return;
+      if (event.data.sessionId !== config.sessionId || event.data.surface !== config.surface) return;
+      navigate(event.data.path);
+    };
+    window.addEventListener("message", handleParentNavigation);
+    return () => window.removeEventListener("message", handleParentNavigation);
+  }, [config.sessionId, config.surface, navigate]);
 
   const unreadCount = useMemo(() => (snapshotQuery.data?.events || [])
     .map((event) => commercialDemoEventToNotification(event, config.surface))
