@@ -8,9 +8,14 @@ import { invokeSupabaseFunction, invokeSupabaseRpc } from "@/lib/session";
 export type CommercialDemoSurface = "client" | "restaurant" | "courier" | "system";
 
 export type CommercialDemoItem = {
+  menu_item_id?: string;
   name: string;
   quantity: number;
   unit_amount_cents: number;
+};
+
+export type CommercialDemoOrderInputItem = CommercialDemoItem & {
+  menu_item_id: string;
 };
 
 export type CommercialDemoSession = {
@@ -151,11 +156,6 @@ export class CommercialDemoApiError extends Error {
   }
 }
 
-const DEMO_ITEMS: CommercialDemoItem[] = [
-  { name: "Menu signature", quantity: 2, unit_amount_cents: 2_450 },
-  { name: "Tiramisu maison", quantity: 1, unit_amount_cents: 950 },
-];
-
 function asRecord(value: unknown): Record<string, any> {
   return value && typeof value === "object" && !Array.isArray(value)
     ? value as Record<string, any>
@@ -224,13 +224,26 @@ export async function getCommercialDemoSnapshot(sessionId: string) {
 export async function createCommercialDemoOrder(sessionId: string, input: {
   customerName?: string;
   deliveryAddress?: string;
-  items?: CommercialDemoItem[];
+  items?: CommercialDemoOrderInputItem[];
 } = {}) {
+  let items = input.items;
+  if (!items) {
+    const current = await getCommercialDemoSnapshot(sessionId);
+    if (current.order) return current;
+    items = getCommercialDemoPresetItems(current.catalog_items);
+  }
+  if (!items.length) {
+    throw new CommercialDemoApiError(
+      "Ajoutez au moins un plat disponible au menu du restaurant simulé.",
+      "DEMO_MENU_EMPTY",
+    );
+  }
+
   return invokeRpc<CommercialDemoSnapshot>("commercial_demo_create_order", {
     p_session_id: sessionId,
     p_customer_name: input.customerName || "Sophie Martin",
     p_delivery_address: input.deliveryAddress || "18 rue de la Démonstration, 1204 Genève",
-    p_items: input.items || DEMO_ITEMS,
+    p_items: items,
     p_payment_method: "stripe_test",
   });
 }
@@ -421,6 +434,13 @@ export function subscribeToCommercialDemoSession(
   };
 }
 
-export function getCommercialDemoPresetItems() {
-  return DEMO_ITEMS;
+export function getCommercialDemoPresetItems(
+  catalogItems: CommercialDemoCatalogItem[],
+): CommercialDemoOrderInputItem[] {
+  return catalogItems.slice(0, 2).map((item, index) => ({
+    menu_item_id: item.id,
+    name: item.name,
+    quantity: index === 0 ? 2 : 1,
+    unit_amount_cents: Math.round(Number(item.price) * 100),
+  }));
 }
