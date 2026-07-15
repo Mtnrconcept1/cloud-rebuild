@@ -10,12 +10,19 @@ describe("commercial demo active tools and reservations", () => {
   const migration = read("supabase/migrations/20260715003424_commercial_demo_reservations_and_active_tools.sql");
   const app = read("src/App.tsx");
   const layout = read("src/components/DashboardLayout.tsx");
+  const clientLayout = read("src/components/CustomerDashboardLayout.tsx");
   const provider = read("src/components/commercial/CommercialDemoFrameProvider.tsx");
   const safeTools = read("src/components/commercial/CommercialDemoToolBoundary.tsx");
   const service = read("src/lib/commercialDemoJourney.ts");
   const reservations = read("src/components/dashboard/CommercialDemoScenario.tsx");
   const cart = read("src/pages/Panier.tsx");
+  const cartProvider = read("src/lib/cart.tsx");
+  const clientHome = read("src/pages/ClientDashboardHome.tsx");
+  const tokOne = read("src/hooks/useTokOne.ts");
   const menu = read("src/pages/dashboard/DashboardMenu.tsx");
+  const crm = read("src/pages/dashboard/DashboardCrm.tsx");
+  const restaurantDashboard = read("src/pages/dashboard/DashboardRestaurant.tsx");
+  const stripeConnectOnboard = read("supabase/functions/stripe-connect-onboard/index.ts");
 
   it("opens the real restaurant dashboard namespace but keeps admin flags authoritative", () => {
     expect(app).toContain('allowedPrefixes: ["/dashboard/"]');
@@ -68,6 +75,32 @@ describe("commercial demo active tools and reservations", () => {
     expect(demoBranch).not.toContain('"create-checkout"');
     expect(demoBranch).not.toContain('"validate-order"');
     expect(demoBranch).not.toContain("apply_checkout_benefits");
+    expect(demoBranch).toContain("menu_item_id: item.menuItemId");
+    expect(service).toContain("menu_item_id?: string");
+  });
+
+  it("keeps demo client navigation away from production order details", () => {
+    expect(app).toContain('allowedPrefixes: ["/restaurant/"]');
+    expect(app).not.toContain('allowedPrefixes: ["/restaurant/", "/commande/"]');
+    expect(clientHome).toContain('if (pathname.startsWith("/commande/")) return "/commandes";');
+    expect(clientLayout).toContain('featuresAny: ["reservation", "commandes"]');
+    expect(clientLayout).toContain("demoOnly: true");
+    expect(clientLayout).toContain("return !item.demoOnly && hasActiveFeature");
+  });
+
+  it("does not read or apply real customer benefits during a demo checkout", () => {
+    expect(cart).toContain("useIsTokOneMember({\n    enabled: !isCommercialDemoClient,");
+    expect(cart).toContain("enabled: Boolean(user && !isCommercialDemoClient)");
+    expect(cart).toContain("!isCommercialDemoClient && !isChefsTableCheckout && checkoutStep === \"suggestions\"");
+    expect(cart).toContain("Démonstration isolée — Stripe Test uniquement");
+    expect(tokOne).toContain("export function useIsTokOneMember(options: QueryOptions = {})");
+    expect(tokOne).toContain("useTokOneSubscription(options)");
+  });
+
+  it("namespaces every embedded frame without clearing the browser cart", () => {
+    expect(cartProvider).toContain("`miamz-demo:${commercialDemoFrame.config.sessionId}:${commercialDemoFrame.surface}`");
+    expect(cartProvider).toContain("if (isCommercialDemoFrame)");
+    expect(cartProvider).toContain("if (!isCommercialDemoFrame && user && hasPrivilegedRole(roles))");
   });
 
   it("prices demo orders from the session restaurant's real menu", () => {
@@ -84,6 +117,10 @@ describe("commercial demo active tools and reservations", () => {
     expect(orderFunction).toContain("public.is_feature_flag_active('commandes')");
     expect(orderFunction).not.toContain("commercial_demo_catalog_items");
     expect(orderFunction).not.toContain("v_input_item->>'unit_amount_cents'");
+    expect(service).toContain("getCommercialDemoPresetItems(current.catalog_items)");
+    expect(service).toContain("menu_item_id: item.id");
+    expect(service).not.toContain("const DEMO_ITEMS");
+    expect(cart).toContain("menu_item_id: item.menuItemId");
   });
 
   it("covers reservation FK lookup and rejects a null party size explicitly", () => {
@@ -133,5 +170,34 @@ describe("commercial demo active tools and reservations", () => {
       .toBeLessThan(photoAnalysis.indexOf('supabase.functions.invoke<MenuImportResponse>("menu-image-import"'));
     expect(menu).toContain('supabase.from("menu_items").insert');
     expect(menu).toContain(".update(form)");
+  });
+
+  it("opens premium CRM only for the demo restaurant while preserving real pack gating", () => {
+    expect(crm).toContain("isDemoMode,");
+    expect(crm).toContain("isDemoMode || isPremiumOrEliteRestaurantSubscription(subscription");
+    expect(crm).toContain("hasPremiumCrmAccess={hasPremiumCrmAccess}");
+    expect(crm).not.toContain("const hasPremiumCrmAccess = true");
+  });
+
+  it("blocks Stripe Connect in both the demo frame and the server before Stripe is initialized", () => {
+    const handlerStart = restaurantDashboard.indexOf("const handleStripeConnect = async () =>");
+    const clientHandler = restaurantDashboard.slice(
+      handlerStart,
+      restaurantDashboard.indexOf("return (", handlerStart),
+    );
+    expect(clientHandler).toContain('commercialDemoFrame?.surface === "restaurant"');
+    expect(clientHandler.indexOf('commercialDemoFrame?.surface === "restaurant"'))
+      .toBeLessThan(clientHandler.indexOf("fetchWithFreshAccessToken"));
+    expect(restaurantDashboard).toContain("const handleSave = async () =>");
+
+    const serverGuard = stripeConnectOnboard.slice(
+      stripeConnectOnboard.indexOf("const restaurant = await requireRestaurantAccess"),
+      stripeConnectOnboard.indexOf("accountId = text(restaurant.stripe_account_id)"),
+    );
+    expect(serverGuard).toContain("{ allowDemo: true }");
+    expect(serverGuard).toContain("if (restaurant.is_demo)");
+    expect(serverGuard).toContain("DEMO_SIDE_EFFECT_BLOCKED");
+    expect(serverGuard.indexOf("if (restaurant.is_demo)"))
+      .toBeLessThan(serverGuard.indexOf('getStripeRuntimeForCheckoutKind("stripe-connect")'));
   });
 });
