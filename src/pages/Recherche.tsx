@@ -19,6 +19,7 @@ import {
   restaurantMatchesCategoryFilter,
 } from "@/lib/restaurantCategories";
 import { useActiveFeatures } from "@/lib/featureFlags";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 
 const supabase = getSupabase();
 
@@ -220,7 +221,11 @@ function toCardProps(r: any) {
 }
 
 export default function Recherche() {
-  const activeFeatures = useActiveFeatures();
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const globalActiveFeatures = useActiveFeatures({ enabled: !commercialDemoFrame });
+  const activeFeatures = commercialDemoFrame
+    ? new Set(commercialDemoFrame.snapshot.active_features)
+    : globalActiveFeatures;
   const deliveryEnabled = activeFeatures.has("livraison");
   const campaignsEnabled = activeFeatures.has("campagnes-pub");
   const sponsoredRotationSeed = useMemo(() => Math.floor(Math.random() * 1_000_000), []);
@@ -262,8 +267,25 @@ export default function Recherche() {
       sortBy,
       sortDirection,
       deliveryEnabled,
+      commercialDemoFrame?.snapshot.session.id,
     ],
     queryFn: async () => {
+      if (commercialDemoFrame?.surface === "client") {
+        const restaurant = commercialDemoFrame.snapshot.demo_restaurant;
+        return [{
+          ...restaurant,
+          is_active: false,
+          status: "demo",
+          opening_hours: {},
+          avg_rating: restaurant.rating,
+          rating_count: restaurant.review_count,
+          _categories: restaurant.cuisine_type ? [{
+            id: restaurant.cuisine_type,
+            name: restaurant.cuisine_type,
+            slug: String(restaurant.cuisine_type).toLowerCase(),
+          }] : [],
+        }];
+      }
       const { data, error } = await (supabase.rpc as any)("search_restaurants_catalog", {
         p_query: activeQuery || null,
         p_city: city || null,
@@ -294,6 +316,10 @@ export default function Recherche() {
   const { data: cuisineOptions = [] } = useQuery({
     queryKey: ["search-cuisine-options"],
     queryFn: async () => {
+      if (commercialDemoFrame?.surface === "client") {
+        const cuisineName = commercialDemoFrame.snapshot.demo_restaurant.cuisine_type || "Restaurant";
+        return [{ id: "demo", name: cuisineName, slug: String(cuisineName).toLowerCase(), keywords: [] }];
+      }
       const fallback = PREDEFINED_RESTAURANT_CATEGORIES.map((category) => ({
         id: category.slug,
         name: category.name,
@@ -334,7 +360,7 @@ export default function Recherche() {
   const { data: sponsoredCampaigns } = useQuery({
     queryKey: ["sponsored-search"],
     queryFn: () => getActiveSponsoredRestaurants("search", "restaurant_cards"),
-    enabled: campaignsEnabled,
+    enabled: campaignsEnabled && !commercialDemoFrame,
   });
 
   const handleSearch = (e: React.FormEvent) => {
@@ -395,8 +421,10 @@ export default function Recherche() {
     .filter((r: any) => !!r && matchesSponsoredFilters(r)) as any[];
 
   const mergedCards = useMemo(
-    () => prioritizeSponsoredCards(organicSearchResults as any[], sponsoredCards, { topSlots: 3, rotationSeed: sponsoredRotationSeed }),
-    [organicSearchResults, sponsoredCards, sponsoredRotationSeed],
+    () => commercialDemoFrame
+      ? organicSearchResults
+      : prioritizeSponsoredCards(organicSearchResults as any[], sponsoredCards, { topSlots: 3, rotationSeed: sponsoredRotationSeed }),
+    [commercialDemoFrame, organicSearchResults, sponsoredCards, sponsoredRotationSeed],
   );
 
   const activeFilterLabels = useMemo(() => {
@@ -415,10 +443,10 @@ export default function Recherche() {
   }, [activeQuery, city, cuisine, sortedCuisineOptions, price, minRating10, deliveryEnabled, delivery, promo]);
 
   useEffect(() => {
-    if (mergedCards.length > 0 && (activeQuery || cuisine || city)) {
+    if (!commercialDemoFrame && mergedCards.length > 0 && (activeQuery || cuisine || city)) {
       trackSearch(activeQuery || cuisine || city, mergedCards.length);
     }
-  }, [activeQuery, cuisine, city, mergedCards.length]);
+  }, [activeQuery, city, commercialDemoFrame, cuisine, mergedCards.length]);
 
   return (
     <main className="min-h-screen bg-background dark:bg-[radial-gradient(circle_at_18%_0%,rgba(249,115,22,0.14),transparent_28rem),radial-gradient(circle_at_86%_12%,rgba(34,211,238,0.10),transparent_24rem)]">
@@ -561,7 +589,7 @@ export default function Recherche() {
           </div>
         </div>
 
-        <CampaignBanner page="search" maxBanners={1} />
+        {!commercialDemoFrame ? <CampaignBanner page="search" maxBanners={1} /> : null}
 
         {isLoading ? (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
