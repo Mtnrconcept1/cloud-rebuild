@@ -131,9 +131,10 @@ Deno.serve(async (req) => {
       throw new HttpError(400, "Ce parcours client doit etre regle avec un moyen de paiement Stripe.");
     }
 
+    const isRestaurantOnboardingSetup = effectiveKind === "restaurant-onboarding";
+    const restaurantOnboardingSetupBucket = Math.floor(Date.now() / (5 * 60 * 1000));
     const isSubscriptionCheckout =
       effectiveKind === "tok-one"
-      || effectiveKind === "restaurant-onboarding"
       || effectiveKind === "restaurant-subscription-upgrade";
     const stripeRuntime = getStripeRuntimeForCheckoutKind(effectiveKind);
     const stripe = stripeRuntime.stripe;
@@ -175,6 +176,7 @@ Deno.serve(async (req) => {
     let chefTableHoldCount = 0;
     let creditPackPurchaseId = "";
     let marketplaceRestaurantId = "";
+    let restaurantOnboardingStripeCustomerId = "";
     const chefTableHoldItems: Array<{ drop_id: string; quantity: number }> = [];
     let sessionMetadata: Record<string, string> = {
       user_id: actor.userId || "",
@@ -225,9 +227,11 @@ Deno.serve(async (req) => {
       const billingPeriod = String(order_metadata?.billing_period || "monthly") === "yearly"
         ? "yearly"
         : "monthly";
+      let applicationSubscriptionId = "";
 
       if (!planId) throw new HttpError(400, "plan_id requis");
       if (!restaurantId) throw new HttpError(400, "restaurant_id requis");
+      if (!signupApplicationId) throw new HttpError(400, "signup_application_id requis");
       if (billingPeriod !== "monthly") throw new HttpError(400, "Les abonnements restaurateur sont mensuels");
       if (normalizedPaymentMethod !== "card") {
         throw new HttpError(400, "L'onboarding restaurateur requiert un paiement par carte");
@@ -242,7 +246,7 @@ Deno.serve(async (req) => {
       if (signupApplicationId) {
         const { data: application, error: applicationError } = await actor.adminClient
           .from("signup_applications")
-          .select("id, user_id, requested_role, metadata")
+          .select("id, user_id, requested_role, selected_subscription_plan_id, selected_subscription_billing_period, restaurant_subscription_id, metadata")
           .eq("id", signupApplicationId)
           .maybeSingle();
 
@@ -256,8 +260,17 @@ Deno.serve(async (req) => {
           ? application.metadata as Record<string, unknown>
           : {};
         const applicationRestaurantId = String(applicationMetadata.restaurant_id || "");
-        const selectedPlanId = String(applicationMetadata.selected_subscription_plan_id || "");
-        const selectedBillingPeriod = String(applicationMetadata.selected_subscription_billing_period || "monthly");
+        const selectedPlanId = String(
+          application.selected_subscription_plan_id
+          || applicationMetadata.selected_subscription_plan_id
+          || "",
+        );
+        const selectedBillingPeriod = String(
+          application.selected_subscription_billing_period
+          || applicationMetadata.selected_subscription_billing_period
+          || "monthly",
+        );
+        applicationSubscriptionId = String(application.restaurant_subscription_id || "");
 
         if (applicationRestaurantId && applicationRestaurantId !== restaurantId) {
           throw new HttpError(403, "Restaurant du dossier invalide");
@@ -285,40 +298,89 @@ Deno.serve(async (req) => {
 
       const { data: existingSub, error: existingSubError } = await actor.adminClient
         .from("restaurant_ai_subscriptions")
-        .select("id, status, current_period_end")
+        .select("id, status, current_period_end, signup_application_id, restaurant_subscription_plan_id")
         .eq("restaurant_id", restaurantId)
+        .eq("signup_application_id", signupApplicationId)
+        .eq("restaurant_subscription_plan_id", planId)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
 
       if (existingSubError) throw new HttpError(500, existingSubError.message);
-      const hasActiveSubscription = Boolean(
-        existingSub &&
-        isTokOneEntitledStatus(existingSub.status) &&
-        (!existingSub.current_period_end || new Date(existingSub.current_period_end) > new Date()),
-      );
-      if (hasActiveSubscription) {
-        throw new HttpError(409, "Vous avez deja un abonnement actif");
+      if (!existingSub) {
+        throw new HttpError(409, "Le contrat d'abonnement réservé n'est pas encore prêt");
+      }
+      if (applicationSubscriptionId && existingSub.id !== applicationSubscriptionId) {
+        throw new HttpError(409, "Le contrat d'abonnement ne correspond pas au dossier");
       }
 
-      lineItems = [{
-        price_data: {
-          currency: "chf",
-          product_data: {
-            name: `Abonnement restaurateur TOK - ${plan.name}`,
-            description: String(plan.description || ""),
-            metadata: {
-              restaurant_subscription_plan_id: plan.id,
-              restaurant_subscription_plan_slug: plan.slug,
+      const existingSubscriptionStatus = String(existingSub.status || "").toLowerCase();
+      if (!["awaiting_payment_method", "past_due"].includes(existingSubscriptionStatus)) {
+        if (["awaiting_activation", "activation_pending"].includes(existingSubscriptionStatus)) {
+          throw new HttpError(409, "Votre carte est déjà enregistrée pour cet abonnement");
+        }
+        if (isTokOneEntitledStatus(existingSubscriptionStatus)) {
+          throw new HttpError(409, "Vous avez deja un abonnement actif");
+        }
+        throw new HttpError(409, "Ce parcours d'onboarding n'est plus disponible pour cet abonnement");
+      }
+
+      if (existingSub?.id) {
+        const { data: savedPaymentMethod, error: savedPaymentMethodError } = await actor.adminClient
+          .from("restaurant_subscription_payment_methods")
+          .select("stripe_customer_id")
+          .eq("subscription_id", existingSub.id)
+          .maybeSingle();
+        if (savedPaymentMethodError) {
+          throw new HttpError(500, savedPaymentMethodError.message);
+        }
+        restaurantOnboardingStripeCustomerId = String(savedPaymentMethod?.stripe_customer_id || "");
+      }
+      if (
+        restaurantOnboardingStripeCustomerId
+        && !restaurantOnboardingStripeCustomerId.startsWith("cus_")
+      ) {
+        throw new HttpError(500, "Identifiant client Stripe restaurateur invalide");
+      }
+
+      if (!restaurantOnboardingStripeCustomerId) {
+        const customerSearch = await stripe.customers.search({
+          query: `metadata['signup_application_id']:'${signupApplicationId}'`,
+          limit: 10,
+        });
+        const matchingCustomer = customerSearch.data.find((customer) =>
+          customer.metadata?.restaurant_id === restaurantId
+          && customer.metadata?.user_id === actor.userId
+        );
+
+        if (matchingCustomer) {
+          restaurantOnboardingStripeCustomerId = matchingCustomer.id;
+        } else {
+          const onboardingUser = actor.userClient
+            ? await actor.userClient.auth.getUser()
+            : null;
+          const customer = await stripe.customers.create(
+            {
+              email: onboardingUser?.data.user?.email || undefined,
+              metadata: {
+                checkout_kind: "restaurant-onboarding",
+                signup_application_id: signupApplicationId,
+                restaurant_id: restaurantId,
+                user_id: actor.userId,
+              },
             },
-          },
-          recurring: {
-            interval: "month",
-          },
-          unit_amount: Math.round(subscriptionAmount * 100),
-        },
-        quantity: 1,
-      }];
+            {
+              idempotencyKey: `tok-restaurant-onboarding-customer:${signupApplicationId}`,
+            },
+          );
+          restaurantOnboardingStripeCustomerId = customer.id;
+        }
+      }
+      // Onboarding only saves a reusable card for a future off-session charge.
+      // No subscription, invoice or card authorization is created here: the
+      // durable activation worker starts billing after the first qualifying
+      // reservation/order.
+      lineItems = [];
 
       sessionMetadata = {
         ...sessionMetadata,
@@ -338,6 +400,8 @@ Deno.serve(async (req) => {
         monthly_image_limit: String(plan.monthly_image_limit || 0),
         monthly_premium_image_limit: String(plan.monthly_premium_image_limit || 0),
         monthly_voice_minutes_limit: String(plan.monthly_voice_minutes_limit || 0),
+        onboarding_checkout_bucket: String(restaurantOnboardingSetupBucket),
+        activation_recovery: existingSubscriptionStatus === "past_due" ? "true" : "false",
         authoritative_total: subscriptionAmount.toFixed(2),
       };
     } else if (effectiveKind === "restaurant-subscription-upgrade") {
@@ -1003,14 +1067,23 @@ Deno.serve(async (req) => {
     const userEmail = userLookup?.data.user?.email || undefined;
 
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
-      line_items: lineItems,
-      mode: isSubscriptionCheckout ? "subscription" : "payment",
+      mode: isRestaurantOnboardingSetup
+        ? "setup"
+        : isSubscriptionCheckout
+          ? "subscription"
+          : "payment",
       success_url: `${safeReturnUrl}${urlSeparator}session_id={CHECKOUT_SESSION_ID}&status=success`,
       cancel_url: `${safeReturnUrl}${urlSeparator}status=cancelled`,
-      customer_email: userEmail,
+      customer_email: isRestaurantOnboardingSetup && restaurantOnboardingStripeCustomerId
+        ? undefined
+        : userEmail,
       client_reference_id: actor.userId || undefined,
       metadata: sessionMetadata,
     };
+
+    if (!isRestaurantOnboardingSetup) {
+      sessionParams.line_items = lineItems;
+    }
 
     if (marketplaceRouting.enabled && marketplaceRouting.destinationAccountId) {
       sessionParams.payment_intent_data = {
@@ -1037,6 +1110,20 @@ Deno.serve(async (req) => {
       }
     }
 
+    if (isRestaurantOnboardingSetup) {
+      sessionParams.customer = restaurantOnboardingStripeCustomerId;
+      sessionParams.payment_method_types = ["card"];
+      sessionParams.custom_text = {
+        submit: {
+          message: "Aucun montant n’est débité ni bloqué aujourd’hui. En enregistrant cette carte, vous autorisez TOK à débiter l’abonnement lors de la première réservation ou commande client.",
+        },
+      };
+      sessionParams.setup_intent_data = {
+        description: "Abonnement restaurateur TOK à activer à la première activité client",
+        metadata: sessionMetadata,
+      };
+    }
+
     if (discountCents > 0) {
       const hasTokOneDiscount = toMoney(sessionMetadata.tok_one_discount_amount) > 0
         || toMoney(sessionMetadata.tok_one_delivery_saved) > 0;
@@ -1058,7 +1145,10 @@ Deno.serve(async (req) => {
     }
 
     const idempotencySource = String(
-      sessionMetadata.checkout_id
+      (effectiveKind === "restaurant-onboarding"
+        ? `${sessionMetadata.signup_application_id}:${sessionMetadata.onboarding_checkout_bucket}`
+        : "")
+      || sessionMetadata.checkout_id
       || sessionMetadata.checkout_group_id
       || sessionMetadata.primary_order_id
       || sessionMetadata.order_reference
@@ -1221,4 +1311,3 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: message }, 500, corsHeaders);
   }
 });
-
