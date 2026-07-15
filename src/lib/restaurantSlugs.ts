@@ -5,6 +5,8 @@ type RestaurantPathInput = {
   slug?: string | null;
 };
 
+export const RESTAURANT_DETAIL_PATH_SEGMENT = "r";
+
 export function slugifyRestaurantSegment(value: string | null | undefined) {
   return String(value || "")
     .normalize("NFD")
@@ -19,7 +21,7 @@ export function buildRestaurantSeoPath(restaurant: RestaurantPathInput) {
   const restaurantSlug = slugifyRestaurantSegment(restaurant.slug || "");
 
   if (citySlug && restaurantSlug) {
-    return `/restaurants/${citySlug}/${restaurantSlug}`;
+    return `/restaurants/${citySlug}/${RESTAURANT_DETAIL_PATH_SEGMENT}/${restaurantSlug}`;
   }
 
   return restaurant.id ? `/restaurant/${restaurant.id}` : "/recherche";

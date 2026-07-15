@@ -96,22 +96,65 @@
     width: 100%;
     max-width: 100%;
     overflow-x: clip;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
   body {
     @apply bg-background text-foreground font-sans antialiased;
     width: 100%;
     max-width: 100%;
     min-height: 100vh;
+    min-height: 100dvh;
+    min-width: 0;
     overflow-x: clip;
-    padding-top: env(safe-area-inset-top, 0px);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-    padding-left: env(safe-area-inset-left, 0px);
-    padding-right: env(safe-area-inset-right, 0px);
   }
   #root {
     width: 100%;
     max-width: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
+    min-width: 0;
     overflow-x: clip;
+  }
+  main,
+  section,
+  article,
+  aside,
+  header,
+  footer,
+  nav,
+  form,
+  fieldset,
+  figure {
+    min-width: 0;
+    max-width: 100%;
+  }
+  fieldset {
+    min-inline-size: 0;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    overflow-wrap: break-word;
+    text-wrap: balance;
+  }
+  p,
+  li,
+  dd,
+  dt,
+  figcaption,
+  blockquote,
+  label,
+  td,
+  th {
+    overflow-wrap: anywhere;
+  }
+  p,
+  li {
+    text-wrap: pretty;
   }
   img,
   video,
@@ -120,10 +163,20 @@
   iframe {
     max-width: 100%;
   }
+  img,
+  video {
+    height: auto;
+  }
+  pre {
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+  }
   input,
   textarea,
   select,
   button {
+    min-width: 0;
     max-width: 100%;
   }
   @supports not (overflow: clip) {

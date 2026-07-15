@@ -722,7 +722,7 @@ function CommercialProspectDetailsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100vw-1rem)] max-w-[calc(100vw-1rem)] overflow-hidden p-0 sm:max-w-4xl sm:rounded-[30px]">
+      <DialogContent className="w-[calc(100vw-env(safe-area-inset-left,0px)-env(safe-area-inset-right,0px)-1rem)] max-w-[calc(100vw-env(safe-area-inset-left,0px)-env(safe-area-inset-right,0px)-1rem)] overflow-hidden p-0 sm:max-w-4xl sm:rounded-[30px]">
         <DialogHeader className="relative overflow-hidden border-b bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 px-6 pb-6 pt-7 text-left text-white">
           <div className="absolute -right-16 -top-16 h-44 w-44 rounded-full bg-orange-500/20 blur-3xl" />
           <div className="relative flex flex-wrap items-start justify-between gap-4 pr-8">

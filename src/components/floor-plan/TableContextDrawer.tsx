@@ -189,7 +189,7 @@ export default function TableContextDrawer({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[960px] flex-col gap-0 overflow-hidden rounded-[28px] border border-slate-200 bg-[linear-gradient(180deg,rgba(255,255,255,0.99),rgba(245,247,251,0.98))] p-0 shadow-2xl sm:max-h-[760px] sm:rounded-[28px]">
+      <DialogContent className="flex max-h-[calc(100dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)-1rem)] w-[calc(100vw-env(safe-area-inset-left,0px)-env(safe-area-inset-right,0px)-1rem)] max-w-[960px] flex-col gap-0 overflow-hidden rounded-[28px] border border-slate-200 bg-[linear-gradient(180deg,rgba(255,255,255,0.99),rgba(245,247,251,0.98))] p-0 shadow-2xl sm:max-h-[760px] sm:rounded-[28px]">
         <DialogHeader className="shrink-0 px-5 pb-2 pt-5 pr-12 text-left sm:px-6 sm:pr-12">
           <DialogTitle className="text-xl text-slate-950">{title}</DialogTitle>
           <DialogDescription className="text-slate-500">

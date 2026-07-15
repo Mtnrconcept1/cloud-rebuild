@@ -10,7 +10,8 @@
 
 [data-section-showcase-header] > .relative {
   z-index: 60 !important;
-  max-width: calc(100% - 8.75rem) !important;
+  min-width: 0 !important;
+  max-width: calc(100% - 6.5rem) !important;
   padding-right: 0 !important;
 }
 
@@ -19,15 +20,15 @@
   right: 0.5rem !important;
   bottom: 0 !important;
   z-index: 45 !important;
-  width: 8.75rem !important;
+  width: 6.5rem !important;
   overflow: visible !important;
 }
 
 [data-section-showcase-header] [data-section-illustration] > img {
   right: 0 !important;
   bottom: 0 !important;
-  width: 10.25rem !important;
-  height: 10.25rem !important;
+  width: 7.5rem !important;
+  height: 7.5rem !important;
   max-width: none !important;
   transform: translateX(0) !important;
   object-fit: contain !important;
@@ -36,7 +37,26 @@
 
 [data-section-showcase-header] [data-section-action-row] {
   z-index: 70 !important;
-  max-width: calc(100% - 8.75rem) !important;
+  max-width: calc(100% - 6.5rem) !important;
+}
+
+@media (min-width: 380px) {
+  [data-section-showcase-header] > .relative {
+    max-width: calc(100% - 8.75rem) !important;
+  }
+
+  [data-section-showcase-header] [data-section-illustration] {
+    width: 8.75rem !important;
+  }
+
+  [data-section-showcase-header] [data-section-illustration] > img {
+    width: 10.25rem !important;
+    height: 10.25rem !important;
+  }
+
+  [data-section-showcase-header] [data-section-action-row] {
+    max-width: calc(100% - 8.75rem) !important;
+  }
 }
 
 @media (min-width: 640px) {
@@ -90,18 +110,33 @@
   }
 
   [data-section-showcase-header]:has(a[href="/actualites"]) > .relative {
-    max-width: calc(100% - 9.75rem) !important;
+    max-width: calc(100% - 6.75rem) !important;
   }
 
   [data-section-showcase-header]:has(a[href="/actualites"]) [data-section-illustration] {
     right: 0.25rem !important;
     z-index: 50 !important;
-    width: 9.75rem !important;
+    width: 6.75rem !important;
   }
 
   [data-section-showcase-header]:has(a[href="/actualites"]) [data-section-illustration] > img {
-    width: 11.5rem !important;
-    height: 11.5rem !important;
+    width: 8rem !important;
+    height: 8rem !important;
+  }
+
+  @media (min-width: 380px) {
+    [data-section-showcase-header]:has(a[href="/actualites"]) > .relative {
+      max-width: calc(100% - 9.75rem) !important;
+    }
+
+    [data-section-showcase-header]:has(a[href="/actualites"]) [data-section-illustration] {
+      width: 9.75rem !important;
+    }
+
+    [data-section-showcase-header]:has(a[href="/actualites"]) [data-section-illustration] > img {
+      width: 11.5rem !important;
+      height: 11.5rem !important;
+    }
   }
 
   @media (min-width: 640px) {

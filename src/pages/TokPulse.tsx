@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useSeoMeta } from "@/hooks/useSeoMeta";
 
 const widgetPresets = [
   {
@@ -36,12 +37,19 @@ const quickActions = [
 ];
 
 export default function TokPulse() {
+  useSeoMeta({
+    title: "TOK Pulse - raccourcis et expérience mobile TOK",
+    description:
+      "Découvrez TOK Pulse, les raccourcis mobiles pour réserver, consulter les offres flash et accéder rapidement aux services TOK.",
+    path: "/tok-pulse",
+  });
+
   return (
     <main className="min-h-screen overflow-hidden bg-[#080604] text-white">
       <section className="relative isolate px-4 py-12 sm:px-6 lg:px-8">
         <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,rgba(255,106,0,0.36),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(249,115,22,0.24),transparent_36%)]" />
-        <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
-          <div className="space-y-6">
+        <div className="mx-auto grid min-w-0 max-w-6xl gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
+          <div className="min-w-0 space-y-6">
             <Badge className="border-orange-400/60 bg-orange-500/15 text-orange-100">TOK Pulse · présence iPhone</Badge>
             <div className="space-y-4">
               <h1 className="text-4xl font-black tracking-tight sm:text-6xl">
@@ -62,17 +70,17 @@ export default function TokPulse() {
             </div>
           </div>
 
-          <div className="rounded-[2rem] border border-orange-400/30 bg-black/55 p-4 shadow-[0_0_60px_rgba(255,106,0,0.24)] backdrop-blur">
-            <div className="rounded-[1.5rem] border border-white/10 bg-[#12100e] p-4">
-              <div className="mb-4 flex items-center gap-3">
-                <div className="grid h-14 w-14 place-items-center rounded-2xl bg-orange-500 shadow-[0_0_30px_rgba(255,106,0,0.75)]">
-                  <Utensils className="h-7 w-7" />
+          <div className="min-w-0 rounded-[2rem] border border-orange-400/30 bg-black/55 p-4 shadow-[0_0_60px_rgba(255,106,0,0.24)] backdrop-blur">
+            <div className="min-w-0 rounded-[1.5rem] border border-white/10 bg-[#12100e] p-4">
+              <div className="mb-4 flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
+                <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-orange-500 shadow-[0_0_30px_rgba(255,106,0,0.75)] sm:h-14 sm:w-14">
+                  <Utensils className="h-6 w-6 sm:h-7 sm:w-7" />
                 </div>
-                <div>
-                  <p className="text-sm uppercase tracking-[0.24em] text-orange-200">TOK / TOK</p>
-                  <p className="text-2xl font-black">Ce soir à Genève</p>
+                <div className="min-w-0 flex-1 basis-[10rem]">
+                  <p className="text-xs uppercase tracking-[0.18em] text-orange-200 sm:text-sm sm:tracking-[0.24em]">TOK / TOK</p>
+                  <p className="text-xl font-black leading-tight sm:text-2xl">Ce soir à Genève</p>
                 </div>
-                <Badge className="ml-auto bg-emerald-500 text-white">3 dispos</Badge>
+                <Badge className="max-w-full shrink-0 whitespace-normal bg-emerald-500 text-center text-white sm:ml-auto">3 dispos</Badge>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 {widgetPresets.map((preset) => {

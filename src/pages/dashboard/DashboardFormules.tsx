@@ -1165,7 +1165,7 @@ function ProgressiveOfferManager({
 
         <Dialog open={editorOpen} onOpenChange={setEditorOpen}>
           <DialogContent
-            className="flex max-h-[calc(100dvh-1rem)] max-w-4xl flex-col gap-0 overflow-hidden p-0"
+            className="flex max-h-[calc(100dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)-1rem)] max-w-4xl flex-col gap-0 overflow-hidden p-0"
             data-testid="progressive-offer-editor-modal"
           >
             <DialogHeader className="border-b px-5 pb-4 pt-5 pr-12 text-left sm:px-6">

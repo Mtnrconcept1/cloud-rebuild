@@ -251,6 +251,8 @@ export default function SupportChat() {
   const [remoteTypingRole, setRemoteTypingRole] = useState("admin");
   const [humanHandoffActive, setHumanHandoffActive] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const chatDialogRef = useRef<HTMLDivElement>(null);
+  const previouslyFocusedElementRef = useRef<HTMLElement | null>(null);
   const remoteTypingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const localTypingStopTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const typingChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
@@ -275,6 +277,72 @@ export default function SupportChat() {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [history, isTyping, remoteTyping]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const dialog = chatDialogRef.current;
+    if (!dialog) return;
+
+    previouslyFocusedElementRef.current = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
+    const previousBodyOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const getFocusableElements = () => Array.from(dialog.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    )).filter((element) => !element.hasAttribute("hidden") && element.getAttribute("aria-hidden") !== "true");
+
+    const focusFrame = window.requestAnimationFrame(() => {
+      const messageInput = dialog.querySelector<HTMLInputElement>('input:not([disabled])');
+      const firstFocusableElement = getFocusableElements()[0];
+      (messageInput || firstFocusableElement || dialog).focus();
+    });
+
+    const handleDialogKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setIsOpen(false);
+        return;
+      }
+
+      if (event.key !== "Tab") return;
+
+      const focusableElements = getFocusableElements();
+      if (focusableElements.length === 0) {
+        event.preventDefault();
+        dialog.focus();
+        return;
+      }
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+      const activeElement = document.activeElement;
+
+      if (!dialog.contains(activeElement)) {
+        event.preventDefault();
+        firstElement.focus();
+      } else if (event.shiftKey && (activeElement === firstElement || activeElement === dialog)) {
+        event.preventDefault();
+        lastElement.focus();
+      } else if (!event.shiftKey && activeElement === lastElement) {
+        event.preventDefault();
+        firstElement.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleDialogKeyDown);
+
+    return () => {
+      window.cancelAnimationFrame(focusFrame);
+      document.removeEventListener("keydown", handleDialogKeyDown);
+      document.body.style.overflow = previousBodyOverflow;
+      const previouslyFocusedElement = previouslyFocusedElementRef.current;
+      if (previouslyFocusedElement?.isConnected) previouslyFocusedElement.focus();
+      previouslyFocusedElementRef.current = null;
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     window.openChat = (options?: HelpChatOpenOptions) => {
@@ -671,14 +739,22 @@ export default function SupportChat() {
     <>
       {isOpen ? (
         <div
-          className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm"
+          className="fixed inset-0 z-[1740] bg-black/30 backdrop-blur-sm"
           onClick={() => setIsOpen(false)}
+          aria-hidden="true"
         />
       ) : null}
 
-      <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-4 sm:bottom-6 sm:right-6">
+      <div className="fixed bottom-[calc(env(safe-area-inset-bottom,0px)+1rem)] right-[calc(env(safe-area-inset-right,0px)+1rem)] z-[1750] flex max-w-[calc(100vw-env(safe-area-inset-left,0px)-env(safe-area-inset-right,0px)-2rem)] flex-col items-end gap-4 sm:bottom-[calc(env(safe-area-inset-bottom,0px)+1.5rem)] sm:right-[calc(env(safe-area-inset-right,0px)+1.5rem)]">
         {isOpen ? (
-          <div className="flex h-[min(560px,calc(100vh-6rem))] w-[min(350px,calc(100vw-2rem))] animate-in flex-col overflow-hidden rounded-3xl border bg-card shadow-2xl slide-in-from-bottom-5 md:w-[420px]">
+          <div
+            ref={chatDialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="support-chat-title"
+            tabIndex={-1}
+            className="flex h-[min(560px,calc(100dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)-2rem))] w-[min(350px,calc(100vw-env(safe-area-inset-left,0px)-env(safe-area-inset-right,0px)-2rem))] min-w-0 animate-in flex-col overflow-hidden rounded-3xl border bg-card shadow-2xl outline-none slide-in-from-bottom-5 md:w-[420px]"
+          >
             <div className="bg-primary p-4 text-primary-foreground">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-3">
@@ -687,7 +763,7 @@ export default function SupportChat() {
                   </div>
 
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-bold">
+                    <p id="support-chat-title" className="truncate text-sm font-bold">
                       {isChatAvailable ? (humanHandoffActive ? "Support TOK en direct" : activeAgent.label) : "Chat indisponible"}
                     </p>
                     <div className="flex items-center gap-1.5">
@@ -718,12 +794,12 @@ export default function SupportChat() {
                       className="h-9 gap-1.5 rounded-full px-2 text-xs text-primary-foreground hover:bg-white/10 hover:text-primary-foreground"
                     >
                       <History className="h-4 w-4" />
-                      Historique
+                      <span className="max-[379px]:sr-only">Historique</span>
                     </Button>
                   ) : null}
                   <button
                     onClick={() => setIsOpen(false)}
-                    className="rounded-full p-1.5 transition-colors hover:bg-white/10"
+                    className="flex h-11 w-11 items-center justify-center rounded-full transition-colors hover:bg-white/10"
                     aria-label="Fermer le chat"
                   >
                     <X className="h-5 w-5" />
@@ -826,7 +902,7 @@ export default function SupportChat() {
                       } animate-in fade-in duration-300`}
                     >
                       <div
-                        className={`max-w-[85%] whitespace-pre-line rounded-2xl p-3 text-sm shadow-sm ${
+                        className={`min-w-0 max-w-[85%] whitespace-pre-line rounded-2xl p-3 text-sm shadow-sm [overflow-wrap:anywhere] ${
                           message.type === "user"
                             ? "rounded-br-none bg-primary text-primary-foreground"
                             : "rounded-bl-none border bg-card"
@@ -860,7 +936,7 @@ export default function SupportChat() {
                     <div className="mb-2 text-center">
                       <Badge
                         variant="outline"
-                        className="text-[10px] uppercase tracking-tighter opacity-60"
+                        className="max-w-full whitespace-normal text-center text-[10px] uppercase tracking-tighter opacity-60 [overflow-wrap:anywhere]"
                       >
                         {humanHandoffActive
                           ? "TOK en direct"
@@ -879,6 +955,7 @@ export default function SupportChat() {
                       value={inputValue}
                       onChange={(event) => handleInputChange(event.target.value)}
                       maxLength={4000}
+                      aria-label="Message au support TOK"
                       placeholder={isAdminPrivilegedSurface
                         ? "Question sur les données admin, logs ou opérations..."
                         : isCommercialDemo
@@ -890,6 +967,7 @@ export default function SupportChat() {
                     <Button
                       type="submit"
                       size="icon"
+                      aria-label="Envoyer le message"
                       className="h-10 w-10 shrink-0 rounded-full"
                       disabled={!inputValue.trim() || isTyping}
                     >

@@ -309,7 +309,7 @@ function ReactionSummary({ counts }: { counts: SocialReactionCounts }) {
   if (!summary.length) return null;
 
   return (
-    <span className="flex -space-x-1">
+    <span className="hidden -space-x-1 sm:flex">
       {summary.slice(0, 3).map((item) => (
         <span
           key={item.type}
@@ -362,7 +362,7 @@ function ReactionPicker({
         variant={currentReaction ? "secondary" : "outline"}
         size="sm"
         className={cn(
-          "gap-1.5 rounded-xl border-slate-200 bg-white shadow-sm hover:bg-orange-50 max-sm:h-11 max-sm:w-full max-sm:min-w-0 max-sm:justify-center max-sm:rounded-xl max-sm:px-1.5 max-sm:text-sm",
+          "gap-1.5 rounded-xl border-slate-200 bg-white shadow-sm hover:bg-orange-50 max-sm:h-11 max-sm:w-full max-sm:min-w-0 max-sm:justify-center max-sm:gap-0.5 max-sm:rounded-xl max-sm:px-0.5 max-sm:text-xs",
           currentReaction && "bg-orange-50 text-primary",
           compact &&
             "h-8 px-2 text-xs max-sm:h-8 max-sm:w-auto max-sm:px-2 max-sm:text-xs",
@@ -665,7 +665,7 @@ function LightboxPostActions({
   onReport: () => void;
 }) {
   return (
-    <div className="grid grid-cols-5 gap-2 rounded-2xl bg-white/5 p-2 text-white backdrop-blur">
+    <div className="grid min-w-0 grid-cols-[repeat(5,minmax(0,1fr))] gap-1 rounded-2xl bg-white/5 p-1 text-white backdrop-blur sm:gap-2 sm:p-2">
       <ReactionPicker
         currentReaction={post.myReaction}
         counts={post.reactionCounts}
@@ -677,11 +677,11 @@ function LightboxPostActions({
         type="button"
         variant="ghost"
         size="sm"
-        className="h-11 gap-1.5 rounded-xl text-white hover:bg-white/10 hover:text-white"
+        className="h-11 min-w-0 gap-0.5 rounded-xl px-1 text-xs text-white hover:bg-white/10 hover:text-white sm:gap-1.5 sm:px-3 sm:text-sm"
         onClick={onComments}
         aria-label="Commenter ce post"
       >
-        <MessageCircle className="h-4 w-4" />
+        <MessageCircle className="h-4 w-4 shrink-0" />
         {post.commentsCount}
       </Button>
       <Button
@@ -689,37 +689,37 @@ function LightboxPostActions({
         variant="ghost"
         size="sm"
         className={cn(
-          "h-11 gap-1.5 rounded-xl text-white hover:bg-white/10 hover:text-white",
+          "h-11 min-w-0 gap-0.5 rounded-xl px-1 text-xs text-white hover:bg-white/10 hover:text-white sm:gap-1.5 sm:px-3 sm:text-sm",
           post.repostedByMe && "bg-white/10 text-orange-200",
         )}
         onClick={onRepost}
         disabled={reposting}
         aria-label="Repartager ce post"
       >
-        <Repeat2 className="h-4 w-4" />
+        <Repeat2 className="h-4 w-4 shrink-0" />
         {post.repostsCount}
       </Button>
       <Button
         type="button"
         variant="ghost"
         size="sm"
-        className="h-11 gap-1.5 rounded-xl text-white hover:bg-white/10 hover:text-white"
+        className="h-11 min-w-0 gap-0.5 rounded-xl px-1 text-xs text-white hover:bg-white/10 hover:text-white sm:gap-1.5 sm:px-3 sm:text-sm"
         onClick={onShare}
         disabled={sharing}
         aria-label="Partager ce post"
       >
-        <Share2 className="h-4 w-4" />
+        <Share2 className="h-4 w-4 shrink-0" />
         {post.sharesCount}
       </Button>
       <Button
         type="button"
         variant="ghost"
         size="sm"
-        className="h-11 rounded-xl text-white hover:bg-white/10 hover:text-white"
+        className="h-11 min-w-0 rounded-xl px-1 text-white hover:bg-white/10 hover:text-white sm:px-3"
         onClick={onReport}
         aria-label="Signaler ce post"
       >
-        <TriangleAlert className="h-4 w-4" />
+        <TriangleAlert className="h-4 w-4 shrink-0" />
       </Button>
     </div>
   );
@@ -1047,7 +1047,7 @@ export default function SocialPostCard({
   const collapsedMobileBody = getCollapsedMobileBody(post.body);
   const isPremiumBanner = Boolean(post.premiumBannerId);
   const mobilePrimaryActionClass =
-    "max-sm:h-11 max-sm:w-full max-sm:min-w-0 max-sm:justify-center max-sm:gap-1 max-sm:rounded-xl max-sm:px-1.5 max-sm:text-sm";
+    "max-sm:h-11 max-sm:w-full max-sm:min-w-0 max-sm:justify-center max-sm:gap-0.5 max-sm:rounded-xl max-sm:px-0.5 max-sm:text-xs";
 
   const sharePost = async () => {
     const url = getSocialPostShareUrl(post.id);
@@ -1338,7 +1338,7 @@ export default function SocialPostCard({
             {cta ? (
               <Button
                 asChild
-                className="mt-4 gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 px-5 shadow-lg shadow-orange-500/25 hover:from-orange-600 hover:to-orange-700 max-sm:-mx-6 max-sm:mt-2.5 max-sm:h-10 max-sm:w-screen max-sm:justify-center max-sm:rounded-none max-sm:px-4 max-sm:text-sm max-sm:font-extrabold max-sm:shadow-md max-sm:shadow-orange-500/20"
+                className="mt-4 gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 px-5 shadow-lg shadow-orange-500/25 hover:from-orange-600 hover:to-orange-700 max-sm:relative max-sm:left-1/2 max-sm:mt-2.5 max-sm:h-10 max-sm:w-screen max-sm:-translate-x-1/2 max-sm:justify-center max-sm:rounded-none max-sm:px-4 max-sm:text-sm max-sm:font-extrabold max-sm:shadow-md max-sm:shadow-orange-500/20"
                 onClick={() =>
                   recordEvent.mutate({
                     postId: post.id,
@@ -1400,7 +1400,7 @@ export default function SocialPostCard({
 
         <div
           className={cn(
-            "mt-5 grid grid-cols-[repeat(6,minmax(0,1fr))] gap-1.5 rounded-none border-0 bg-transparent p-0 shadow-none sm:flex sm:flex-wrap sm:items-center sm:rounded-2xl sm:border sm:bg-white/85 sm:p-2 sm:shadow-sm",
+            "mt-5 grid min-w-0 grid-cols-[repeat(6,minmax(0,1fr))] gap-1 rounded-none border-0 bg-transparent p-0 shadow-none sm:flex sm:flex-wrap sm:items-center sm:gap-1.5 sm:rounded-2xl sm:border sm:bg-white/85 sm:p-2 sm:shadow-sm",
             hasMedia && "max-sm:mt-2 max-sm:px-0",
           )}
         >
@@ -1464,6 +1464,11 @@ export default function SocialPostCard({
             )}
             onClick={() => toggleSave.mutate(post)}
             disabled={toggleSave.isPending}
+            aria-label={
+              post.savedByMe
+                ? "Retirer des sauvegardes"
+                : "Sauvegarder ce post"
+            }
           >
             <Bookmark
               className={cn(
@@ -1471,7 +1476,9 @@ export default function SocialPostCard({
                 post.savedByMe && "fill-current",
               )}
             />
-            {post.savedByMe ? "Sauvé" : "Sauver"}
+            <span className="max-sm:sr-only">
+              {post.savedByMe ? "Sauvé" : "Sauver"}
+            </span>
           </Button>
           {!compact ? (
             <>

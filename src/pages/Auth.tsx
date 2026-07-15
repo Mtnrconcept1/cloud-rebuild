@@ -625,10 +625,8 @@ export default function Auth() {
   }, [searchParams]);
 
   const getPostAuthTarget = useCallback((selectedRole: UserRole) => {
-    return getPostAuthTargetForRole(selectedRole, postAuthRedirectTarget, {
-      isCommercialAuthHost,
-    });
-  }, [isCommercialAuthHost, postAuthRedirectTarget]);
+    return getPostAuthTargetForRole(selectedRole, postAuthRedirectTarget);
+  }, [postAuthRedirectTarget]);
 
   const navigateToPostAuthTarget = useCallback((selectedRole: UserRole, replace = false) => {
     const target = getPostAuthTarget(selectedRole);
@@ -1161,10 +1159,10 @@ export default function Auth() {
           ) : null}
           {!isLogin ? (
             <Tabs value={roleMode} onValueChange={(value) => setRoleMode(value as SignupRole)} className="w-full">
-              <TabsList className={`grid w-full ${courierSignupEnabled ? "grid-cols-3" : "grid-cols-2"}`}>
-                <TabsTrigger value="client">Client</TabsTrigger>
-                <TabsTrigger value="restaurateur">Restaurateur</TabsTrigger>
-                {courierSignupEnabled ? <TabsTrigger value="courier">Livreur</TabsTrigger> : null}
+              <TabsList className={`grid h-auto w-full ${courierSignupEnabled ? "grid-cols-1 min-[360px]:grid-cols-3" : "grid-cols-2"}`}>
+                <TabsTrigger value="client" className="w-full min-w-0 whitespace-normal px-1.5 text-xs leading-tight sm:px-3 sm:text-sm">Client</TabsTrigger>
+                <TabsTrigger value="restaurateur" className="w-full min-w-0 whitespace-normal px-1.5 text-xs leading-tight sm:px-3 sm:text-sm">Restaurateur</TabsTrigger>
+                {courierSignupEnabled ? <TabsTrigger value="courier" className="w-full min-w-0 whitespace-normal px-1.5 text-xs leading-tight sm:px-3 sm:text-sm">Livreur</TabsTrigger> : null}
               </TabsList>
             </Tabs>
           ) : null}
@@ -1579,12 +1577,12 @@ export default function Auth() {
 
               {!isLogin && !legalAccepted ? (
                 <div
-                  className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/35 p-4 backdrop-blur-md"
+                  className="fixed inset-0 z-[1900] flex items-start justify-center overflow-y-auto overscroll-contain bg-slate-950/35 px-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] pt-[max(1rem,env(safe-area-inset-top,0px))] backdrop-blur-md sm:items-center"
                   role="dialog"
                   aria-modal="true"
                   aria-labelledby="legal-acceptance-title"
                 >
-                  <div className="w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-6 text-slate-950 shadow-2xl sm:p-7">
+                  <div className="max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto overscroll-contain rounded-3xl border border-slate-200 bg-white p-5 text-slate-950 shadow-2xl sm:p-7">
                     <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
                       <Shield className="h-6 w-6" />
                     </div>
@@ -1752,4 +1750,3 @@ export default function Auth() {
     </div>
   );
 }
-

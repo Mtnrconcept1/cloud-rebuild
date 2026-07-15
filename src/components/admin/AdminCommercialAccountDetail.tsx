@@ -419,7 +419,7 @@ export default function AdminCommercialAccountDetail({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100vw-1rem)] max-w-[calc(100vw-1rem)] overflow-hidden p-0 sm:max-w-6xl sm:rounded-3xl">
+      <DialogContent className="w-[calc(100vw-env(safe-area-inset-left,0px)-env(safe-area-inset-right,0px)-1rem)] max-w-[calc(100vw-env(safe-area-inset-left,0px)-env(safe-area-inset-right,0px)-1rem)] overflow-hidden p-0 sm:max-w-6xl sm:rounded-3xl">
         <DialogHeader className="border-b bg-gradient-to-br from-slate-950 via-slate-900 to-sky-950 px-6 py-6 text-left text-white">
           <DialogTitle className="text-2xl text-white">{account?.full_name || "Profil commercial"}</DialogTitle>
           <DialogDescription className="text-slate-300">

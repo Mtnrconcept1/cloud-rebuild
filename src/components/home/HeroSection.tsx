@@ -83,7 +83,10 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
 
   return (
     <>
-      <section data-testid="mobile-hero-shell" className="relative min-h-[calc(100svh-64px)] overflow-hidden bg-[#edf7ff] md:hidden">
+      <h1 className="sr-only">
+        Réservez, commandez et profitez des meilleures offres food à Genève
+      </h1>
+      <section data-testid="mobile-hero-shell" className="relative min-h-[calc(100svh_-_66px_-_env(safe-area-inset-top,0px))] overflow-hidden bg-[#edf7ff] md:hidden">
         <div className="absolute inset-0 bg-[url('/fondacceuil.png')] bg-[length:100%_auto] bg-[position:50%_0%] bg-no-repeat" aria-hidden="true" />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,250,240,0.68)_0%,rgba(255,250,240,0.12)_34%,rgba(67,32,11,0.06)_62%,rgba(22,10,4,0.54)_100%)]" aria-hidden="true" />
         <motion.div
@@ -91,11 +94,11 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
           initial="hidden"
           animate={contentVisible ? "visible" : "hidden"}
           data-testid="mobile-hero-panel"
-          className="relative z-10 min-h-[calc(100svh-64px)] overflow-hidden"
+          className="relative z-10 min-h-[calc(100svh_-_66px_-_env(safe-area-inset-top,0px))]"
         >
-          <div className="relative z-10 flex min-h-[calc(100svh-64px)] flex-col">
-            <div className="px-5 pb-1 pt-9 text-center min-[390px]:pt-10">
-              <motion.div variants={scaleIn} className="mx-auto flex h-[76px] justify-center min-[390px]:h-[84px]">
+          <div className="relative z-10 flex min-h-[calc(100svh_-_66px_-_env(safe-area-inset-top,0px))] flex-col">
+            <div className="px-4 pb-1 pt-5 text-center min-[360px]:px-5 min-[390px]:pt-8">
+              <motion.div variants={scaleIn} className="mx-auto flex h-16 justify-center min-[360px]:h-[76px] min-[390px]:h-[84px]">
                 <img
                   src={logoSrc}
                   alt="Tok"
@@ -105,11 +108,11 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
 
               <motion.div variants={fadeUp} className="relative isolate mx-auto mt-1 w-full max-w-[390px]">
                 <div className="pointer-events-none absolute -inset-x-6 -inset-y-5 -z-10 rounded-[999px] bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.88)_0%,rgba(255,255,255,0.50)_52%,transparent_78%)] blur-xl" aria-hidden="true" />
-                <h1 className="text-[#2a1407] drop-shadow-[0_2px_1px_rgba(255,255,255,0.78)]">
-                  <span className="block whitespace-nowrap [font-family:'Playball',cursive] text-[2.16rem] font-normal leading-[0.86] tracking-normal min-[390px]:text-[2.34rem]">Réservez et commandez</span>
-                  <span className="block font-display text-[2.12rem] font-black italic leading-[0.88] tracking-normal min-[390px]:text-[2.34rem]">les meilleures</span>
-                  <span className="block font-display text-[2.12rem] font-black italic leading-[0.88] tracking-normal min-[390px]:text-[2.34rem]">offres food</span>
-                </h1>
+                <div aria-hidden="true" className="text-[#2a1407] drop-shadow-[0_2px_1px_rgba(255,255,255,0.78)]">
+                  <span className="block [font-family:'Playball',cursive] text-[clamp(1.78rem,9.4vw,2.34rem)] font-normal leading-[0.92] tracking-normal">Réservez et commandez</span>
+                  <span className="block font-display text-[clamp(1.82rem,9.2vw,2.34rem)] font-black italic leading-[0.92] tracking-normal">les meilleures</span>
+                  <span className="block font-display text-[clamp(1.82rem,9.2vw,2.34rem)] font-black italic leading-[0.92] tracking-normal">offres food</span>
+                </div>
                 <p className="mx-auto mt-3 max-w-[300px] text-[0.98rem] font-extrabold leading-[1.16] text-[#111827] drop-shadow-[0_1px_0_rgba(255,255,255,0.80)] min-[390px]:text-[1.05rem]">
                   <span className="block">À Genève, cumulez des</span>
                   <span className="block">
@@ -119,7 +122,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
               </motion.div>
             </div>
 
-            <motion.div variants={scaleIn} className="absolute inset-x-0 bottom-2 space-y-2 px-7 pb-0 min-[390px]:bottom-3 min-[390px]:px-8">
+            <motion.div variants={scaleIn} className="mt-auto space-y-2 px-4 pb-[calc(env(safe-area-inset-bottom,0px)+0.75rem)] pt-4 min-[360px]:px-6 min-[390px]:px-8">
               <form onSubmit={handleSearch} className="space-y-1.5">
               <div className="flex h-[40px] items-center gap-3 rounded-full bg-white px-5 shadow-[0_12px_22px_rgba(34,16,5,0.22)] min-[390px]:h-[42px]">
                 <MapPin className="h-4 w-4 shrink-0 text-[#ff4017]" />
@@ -205,7 +208,10 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
 
       </section>
 
-      <section ref={heroRef} className="relative hidden min-h-[calc(100dvh-116px)] flex-col overflow-hidden md:flex">
+      <section
+        ref={heroRef}
+        className="relative hidden min-h-[calc(100dvh_-_80px_-_env(safe-area-inset-top,0px))] flex-col overflow-hidden md:flex lg:min-h-[calc(100dvh_-_116px_-_env(safe-area-inset-top,0px))]"
+      >
         <motion.div
           className="absolute inset-0 bg-[url('/chefbg.webp')] bg-cover bg-no-repeat bg-center will-change-transform"
           style={{ transform: "translateY(calc(var(--scroll-y, 0px) * 0.3)) scale(1.05)" }}
@@ -235,10 +241,10 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
 
           <motion.div variants={fadeUp} className="relative isolate max-w-[960px] space-y-3">
             <div className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[132%] w-[114%] -translate-x-1/2 -translate-y-1/2 rounded-[999px] bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,1)_0%,rgba(255,255,255,0.96)_38%,rgba(255,255,255,0.62)_64%,transparent_88%)] opacity-[0.94] blur-3xl" aria-hidden="true" />
-            <h1 className="font-display text-[3.95rem] font-bold leading-[0.96] tracking-normal text-[#21314b] dark:text-white dark:drop-shadow-[0_0_30px_rgba(255,255,255,0.16)] lg:text-[5.15rem]">
+            <div aria-hidden="true" className="font-display text-[clamp(3rem,6.2vw,5.15rem)] font-bold leading-[0.96] tracking-normal text-[#21314b] dark:text-white dark:drop-shadow-[0_0_30px_rgba(255,255,255,0.16)]">
               <span className="block">Réservez, commandez et profitez</span>
               <span className="block italic text-[#ff6b1c]">des meilleures offres food à Genève</span>
-            </h1>
+            </div>
             <p className="mx-auto max-w-[760px] text-[1.35rem] font-medium text-[#33445e] dark:text-slate-100 md:text-[1.55rem]">
               Gagnez du temps, cumulez des <span className="font-semibold text-[#ff6b1c]">Miamz</span> et transformez vos repas en impact solidaire.
             </p>
@@ -269,7 +275,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Cuisine, nom de restaurant..."
-                className="flex-1 bg-transparent text-[1.03rem] font-semibold text-[#2d3950] placeholder:text-[#7d8897] focus:outline-none dark:text-slate-50 dark:placeholder:text-slate-200/90"
+                  className="min-w-0 flex-1 bg-transparent text-[1.03rem] font-semibold text-[#2d3950] placeholder:text-[#7d8897] focus:outline-none dark:text-slate-50 dark:placeholder:text-slate-200/90"
               />
             </div>
 
@@ -354,7 +360,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
       </section>
 
       <Dialog open={showNewsletterConditions} onOpenChange={setShowNewsletterConditions}>
-        <DialogContent className="max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-lg rounded-2xl p-0">
+        <DialogContent className="max-h-[calc(100dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)-1rem)] w-[calc(100vw-env(safe-area-inset-left,0px)-env(safe-area-inset-right,0px)-1rem)] max-w-lg rounded-2xl p-0">
           <DialogHeader className="border-b px-5 pb-4 pt-5 pr-12 text-left sm:px-6">
             <DialogTitle>Conditions du bonus newsletter</DialogTitle>
             <DialogDescription>

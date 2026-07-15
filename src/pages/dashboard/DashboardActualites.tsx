@@ -363,13 +363,13 @@ export default function DashboardActualites() {
                     </Button>
                   </SheetTrigger>
                   <SheetContent side="right" className="flex w-[92vw] max-w-none flex-col overflow-hidden p-0 sm:max-w-xl">
-                    <SheetHeader className="border-b px-5 py-4 text-left">
+                    <SheetHeader className="border-b px-5 pb-4 pt-[calc(env(safe-area-inset-top,0px)+1rem)] text-left">
                       <SheetTitle className="font-display text-2xl">Statistique Actualités</SheetTitle>
                       <SheetDescription>
                         Plan marketing, conversions, engagement et recommandations du restaurant.
                       </SheetDescription>
                     </SheetHeader>
-                    <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-5">
+                    <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pt-4 sm:px-5">
                       <DashboardActualitesStatsPanel
                         topGoal={topGoal}
                         scheduledCount={scheduledCount}
