@@ -1067,11 +1067,7 @@ Deno.serve(async (req) => {
     const userEmail = userLookup?.data.user?.email || undefined;
 
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
-      mode: isRestaurantOnboardingSetup
-        ? "setup"
-        : isSubscriptionCheckout
-          ? "subscription"
-          : "payment",
+      mode: isSubscriptionCheckout ? "subscription" : "payment",
       success_url: `${safeReturnUrl}${urlSeparator}session_id={CHECKOUT_SESSION_ID}&status=success`,
       cancel_url: `${safeReturnUrl}${urlSeparator}status=cancelled`,
       customer_email: isRestaurantOnboardingSetup && restaurantOnboardingStripeCustomerId
@@ -1111,8 +1107,8 @@ Deno.serve(async (req) => {
     }
 
     if (isRestaurantOnboardingSetup) {
+      sessionParams.mode = "setup";
       sessionParams.customer = restaurantOnboardingStripeCustomerId;
-      sessionParams.payment_method_types = ["card"];
       sessionParams.custom_text = {
         submit: {
           message: "Aucun montant n’est débité ni bloqué aujourd’hui. En enregistrant cette carte, vous autorisez TOK à débiter l’abonnement lors de la première réservation ou commande client.",
