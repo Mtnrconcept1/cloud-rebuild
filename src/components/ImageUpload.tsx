@@ -3,7 +3,7 @@ import { getSupabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ImageIcon, Loader2, Sparkles, Upload, X } from "lucide-react";
+import { ImageIcon, Sparkles, Upload, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { normalizePublicImageUrl } from "@/lib/securityUrls";
 import { getOptimizedImageUrl, optimizeImageUpload } from "@/lib/optimizedImages";
