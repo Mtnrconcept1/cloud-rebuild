@@ -127,6 +127,7 @@ describe("commercial.thetok.ch production transaction isolation", () => {
     expect(auth).toContain("if (actor.isServiceRole) return");
     expect(auth).not.toContain("if (actor.isServiceRole || actor.isAdmin) return");
     expect(auth).toContain('normalizeRole(actor.accountType) === "commercial_demo"');
+    expect(auth).toContain("hasCommercialRole && !actor.isAdmin");
     expect(auth).toContain("COMMERCIAL_DEMO_PRODUCTION_FLOW_BLOCKED");
     expect(auth).toContain("COMMERCIAL_DEMO_ACCOUNT_CHECK_UNAVAILABLE");
 
@@ -191,6 +192,7 @@ describe("commercial.thetok.ch production transaction isolation", () => {
 
   it("blocks production order/reservation rows and reads at the database boundary", () => {
     const migration = read("supabase/migrations/20260715023000_commercial_demo_transaction_host_isolation.sql");
+    const adminCompatibilityMigration = read("supabase/migrations/20260715050654_distinguish_admin_from_commercial_demo.sql");
     const restrictionPredicate = migration.slice(
       migration.indexOf("CREATE OR REPLACE FUNCTION public.commercial_demo_user_is_restricted("),
       migration.indexOf("REVOKE ALL", migration.indexOf("CREATE OR REPLACE FUNCTION public.commercial_demo_user_is_restricted(")),
@@ -204,6 +206,10 @@ describe("commercial.thetok.ch production transaction isolation", () => {
     expect(restrictionPredicate).toContain("raw_app_meta_data ->> 'account_type'");
     expect(restrictionPredicate).not.toContain("account.is_active");
     expect(restrictionPredicate).not.toContain("role_assignment.role = 'admin'::public.app_role");
+    expect(adminCompatibilityMigration).toContain("FROM public.commercial_demo_accounts AS account");
+    expect(adminCompatibilityMigration).toContain("raw_app_meta_data ->> 'account_type'");
+    expect(adminCompatibilityMigration).toContain("FROM public.user_roles AS admin_role");
+    expect(adminCompatibilityMigration).toContain("AND NOT EXISTS");
     expect(migration).toContain("CREATE OR REPLACE FUNCTION public.can_view_commercial_demo_restaurant(");
     expect(migration).toContain("demo_candidate.id = public.commercial_demo_current_restaurant_id()");
     expect(migration).toContain("CREATE OR REPLACE FUNCTION public.can_view_commercial_demo_branch(");
