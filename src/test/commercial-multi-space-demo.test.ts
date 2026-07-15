@@ -39,13 +39,47 @@ describe("commercial real multi-dashboard demonstration", () => {
     expect(browsers).toContain("frameWindow.history.back()");
     expect(browsers).toContain("frameWindow.history.forward()");
     expect(browsers).toContain("frameWindow.location.reload()");
+    expect(browsers).toContain('type: "commercial-demo:navigate"');
+    expect(browsers).not.toContain("frameWindow.location.assign(initialUrl)");
     expect(browsers).toContain('layout === "control"');
     expect(browsers).toContain('layout === "mosaic"');
     expect(browsers).toContain('thirdSurface === "commercial"');
     expect(browsers).toContain('selectThirdSurface("courier")');
-    expect(browsers).toContain('pathname.startsWith("/commercial/demo-live")');
+    expect(browsers).toContain("isCommercialDemoFrameEscapeMessage");
     expect(browsers).toContain("event.source !== frameRef.current?.contentWindow");
+    expect(browsers).toContain("buildCommercialDemoFrameUrl(definition.surface");
+    expect(browsers).not.toContain("buildRemoteBrowserUrl");
+    expect(browsers).not.toContain("setInterval(");
     expect(page).toContain("overflow-x-hidden");
+  });
+
+  it("keeps the remote-control console responsive, observable and safe to reset", () => {
+    const stateBridgeSource = browsers.slice(
+      browsers.indexOf("const handleMessage"),
+      browsers.indexOf("const withFrameWindow"),
+    );
+
+    expect(browsers).toContain('type ViewportMode = "auto" | ViewportPreset');
+    expect(browsers).toContain("useResponsiveViewportPreset()");
+    expect(browsers).toContain("VIEWPORT_MODE_ORDER.map");
+    expect(browsers).toContain('referrerPolicy="no-referrer"');
+    expect(browsers).toContain('key={`${definition.surface}:${sessionId}`}');
+    expect(browsers).toContain("<CommercialDemoBrowserGridSession key={sessionId}");
+    expect(browsers).toContain("runtimes.courier.unreadCount");
+    expect(browsers).toContain("const visibleOrder = useMemo");
+    expect(browsers).toContain("{BROWSERS.map((definition) => {");
+    expect(browsers).toContain("style={{ order: visualIndex >= 0 ? visualIndex : BROWSERS.length }}");
+    expect(browsers).not.toContain("orderedBrowsers");
+    expect(browsers).toContain("h-[clamp(28rem,calc(100svh-18rem),48rem)]");
+    expect(browsers).toContain("md:grid-cols-2 md:grid-rows-2 xl:grid-cols-3 xl:grid-rows-1");
+    expect(browsers).toContain('layout === "control" ? "hidden lg:block" : "hidden md:block"');
+    expect(browsers).toContain("z-[1600]");
+    expect(browsers).toContain('event.data.navigationType === "PUSH"');
+    expect(browsers).toContain("sameRuntime(current[surface], runtime)");
+    expect(stateBridgeSource).toContain("sameRuntime(current, next)");
+    expect(stateBridgeSource).toContain("runtimeRef.current = next");
+    expect(stateBridgeSource).toContain("onRuntimeChange(definition.surface, next)");
+    expect(stateBridgeSource).not.toContain("setRuntime((current)");
   });
 
   it("strictly confines every frame to its demo-safe route allowlist", () => {
@@ -120,6 +154,7 @@ describe("commercial real multi-dashboard demonstration", () => {
 
   it("isolates the courier frame from production dispatch and exposes every adapted tab", () => {
     expect(courierLayout).toContain("const isCommercialDemoFrame = Boolean(commercialDemoFrame)");
+    expect(courierLayout).toContain("useActiveFeatures({ enabled: !isCommercialDemoFrame })");
     expect(courierLayout).toContain("(item) => isCommercialDemoFrame || !item.feature");
     expect(courierLayout).toContain("enabled: !isCommercialDemoFrame");
     expect(courierLayout).toContain("if (isCommercialDemoFrame)");
@@ -186,5 +221,9 @@ describe("commercial real multi-dashboard demonstration", () => {
     expect(service).toContain("commercial_demo_order_events");
     expect(experience).not.toContain("setOrder(");
     expect(experience).not.toContain("setMission(");
+    expect(experience).toContain("tok:commercial-demo:active-session");
+    expect(experience).toContain("window.sessionStorage.setItem");
+    expect(experience).toContain('url.searchParams.delete("demo_session_id")');
+    expect(experience).not.toContain('url.searchParams.set("demo_session_id"');
   });
 });
