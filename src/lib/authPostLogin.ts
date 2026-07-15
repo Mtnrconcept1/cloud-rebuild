@@ -52,7 +52,21 @@ function getCanonicalCommercialTarget(target = "/commercial") {
 export function getPostAuthTargetForRole(
   selectedRole: UserRole,
   postAuthRedirectTarget: string | null,
+  context: { isCommercialAuthHost?: boolean } = {},
 ) {
+  if (
+    context.isCommercialAuthHost
+    && (selectedRole === "admin" || selectedRole === "commercial")
+  ) {
+    const pathname = postAuthRedirectTarget
+      ? getPathname(postAuthRedirectTarget)
+      : "/commercial";
+
+    return getPrivilegedRouteOwner(pathname) === "commercial"
+      ? getCanonicalCommercialTarget(postAuthRedirectTarget || "/commercial")
+      : getCanonicalCommercialTarget();
+  }
+
   const defaultTarget = selectedRole === "commercial"
     ? getCanonicalCommercialTarget()
     : getRoleHomePath(selectedRole);

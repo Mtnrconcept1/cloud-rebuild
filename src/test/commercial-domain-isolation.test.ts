@@ -186,16 +186,39 @@ describe("commercial.thetok.ch canonical isolation", () => {
     })).toBe(`${TOK_COMMERCIAL_APP_ORIGIN}/commercial`);
   });
 
-  it("confines dual-role identities while keeping admin-only demo access", () => {
-    expect(isManagedCommercialAccount(["admin", "commercial"])).toBe(true);
+  it("keeps unmarked administrators operational while durable demo markers stay confined", () => {
+    expect(isManagedCommercialAccount(["admin", "commercial"])).toBe(false);
+    expect(isManagedCommercialAccount(["admin"], "commercial_demo")).toBe(true);
+    expect(isManagedCommercialAccount(["admin"], null, true)).toBe(true);
     expect(canOperateCommercialDemoHost(["admin"])).toBe(true);
+
     expect(getCommercialHostRedirectTarget({
       hostname: "admin.thetok.ch",
       pathname: "/admin",
       authResolved: true,
       isAuthenticated: true,
       activeRole: "admin",
-      roles: ["admin", "commercial"],
+      roles: ["admin", "client", "commercial", "courier", "restaurateur"],
+    })).toBeNull();
+
+    expect(getCommercialHostRedirectTarget({
+      hostname: "admin.thetok.ch",
+      pathname: "/admin",
+      authResolved: true,
+      isAuthenticated: true,
+      activeRole: "admin",
+      roles: ["admin"],
+      accountType: "commercial_demo",
+    })).toBe(`${TOK_COMMERCIAL_APP_ORIGIN}/commercial`);
+
+    expect(getCommercialHostRedirectTarget({
+      hostname: "admin.thetok.ch",
+      pathname: "/admin",
+      authResolved: true,
+      isAuthenticated: true,
+      activeRole: "admin",
+      roles: ["admin"],
+      serverCommercialDemoRestricted: true,
     })).toBe(`${TOK_COMMERCIAL_APP_ORIGIN}/commercial`);
 
     expect(getCommercialHostRedirectTarget({
@@ -268,6 +291,12 @@ describe("commercial.thetok.ch canonical isolation", () => {
       .toBe(`${TOK_COMMERCIAL_APP_ORIGIN}/commercial/demo-live?panel=client`);
     expect(getPostAuthTargetForRole("admin", "/commercial/demo-live"))
       .toBe(`${TOK_COMMERCIAL_APP_ORIGIN}/commercial/demo-live`);
+    expect(getPostAuthTargetForRole("admin", null, { isCommercialAuthHost: true }))
+      .toBe(`${TOK_COMMERCIAL_APP_ORIGIN}/commercial`);
+    expect(getPostAuthTargetForRole("admin", "/admin", { isCommercialAuthHost: true }))
+      .toBe(`${TOK_COMMERCIAL_APP_ORIGIN}/commercial`);
+    expect(getPostAuthTargetForRole("admin", "/commercial/demo-live", { isCommercialAuthHost: true }))
+      .toBe(`${TOK_COMMERCIAL_APP_ORIGIN}/commercial/demo-live`);
     expect(getPostAuthTargetForRole("client", "/commercial/demo-live"))
       .toBe("/mon-espace");
   });
@@ -301,6 +330,9 @@ describe("commercial.thetok.ch canonical isolation", () => {
     expect(boundary).toContain('signOut({ scope: "local" })');
     expect(boundary).toContain("getCommercialReauthenticationHref");
     expect(boundary).toContain("redirectIsCrossOrigin");
+    expect(boundary).toContain("accountType");
+    expect(boundary).toContain('"commercial_demo_current_user_is_restricted"');
+    expect(boundary).toContain("serverCommercialDemoRestricted");
     expect(boundary).toContain("shouldWaitForRoleResolution");
     expect(boundary).toContain("if (shouldRedirect || shouldWaitForRoleResolution) return <LoadingCommercialRedirect />");
     expect(frameProvider).toContain("[...auth.roles, forcedRole]");

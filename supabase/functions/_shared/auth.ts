@@ -349,9 +349,10 @@ export function requireUserRole(
  * are checked as additional authoritative signals so a stale/missing role or
  * a disabled account cannot bypass the isolation boundary.
  *
- * Only an explicit service-role actor bypasses this identity check. A user JWT
- * remains blocked when it combines commercial and admin roles. Every other
- * actor fails closed when the mapping cannot be verified.
+ * Only an explicit service-role actor bypasses this identity check. Durable
+ * mapping/Auth markers dominate an admin role; an unmarked administrator may
+ * carry the commercial capability without becoming a simulated identity.
+ * Every actor fails closed when the mapping cannot be verified.
  */
 export async function assertProductionFlowAllowed(
   actor: RequestActor,
@@ -377,7 +378,7 @@ export async function assertProductionFlowAllowed(
     // A known commercial role is blocked even if the mapping lookup fails.
     // Other callers also fail closed: a sensitive production operation must
     // never continue while its isolation status is unknown.
-    if (hasCommercialRole || hasCommercialAccountType) {
+    if (hasCommercialAccountType || (hasCommercialRole && !actor.isAdmin)) {
       throw new HttpError(
         403,
         `COMMERCIAL_DEMO_PRODUCTION_FLOW_BLOCKED: ${operation} indisponible pour un compte commercial.`,
@@ -389,7 +390,11 @@ export async function assertProductionFlowAllowed(
     );
   }
 
-  if (hasCommercialRole || hasCommercialAccountType || demoAccount) {
+  if (
+    demoAccount
+    || hasCommercialAccountType
+    || (hasCommercialRole && !actor.isAdmin)
+  ) {
     throw new HttpError(
       403,
       `COMMERCIAL_DEMO_PRODUCTION_FLOW_BLOCKED: ${operation} indisponible pour un compte commercial.`,
