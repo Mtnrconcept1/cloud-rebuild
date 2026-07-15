@@ -52,7 +52,7 @@ describe("restaurant onboarding subscription payments", () => {
     expect(checkout).not.toContain("restaurant_launch_pack_id");
     expect(checkout).toContain("restaurant_subscription_plans");
     expect(checkout).toContain("restaurant_subscription_plan_slug");
-    expect(checkout).toContain('? "setup"');
+    expect(checkout).toContain('sessionParams.mode = "setup"');
     expect(checkout).toContain("stripe.customers.create");
     expect(checkout).toContain("onboarding_checkout_bucket");
     expect(checkout).not.toContain('customer_creation = "always"');
