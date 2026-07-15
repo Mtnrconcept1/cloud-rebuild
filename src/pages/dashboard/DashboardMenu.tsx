@@ -22,6 +22,7 @@ import {
   setActiveAiCreationContext,
   startTokImageCreationJob,
 } from "@/lib/ai/aiCreationJobs";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
 
 const supabase = getSupabase();
@@ -145,6 +146,7 @@ function getPhotoGenerationErrorMessage(error: unknown) {
 
 export default function DashboardMenu() {
   const { selectedId } = useDashboardRestaurant();
+  const commercialDemoFrame = useCommercialDemoFrame();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -315,6 +317,13 @@ export default function DashboardMenu() {
 
   const generateMenuPhoto = async () => {
     if (!restaurant) return;
+    if (commercialDemoFrame?.surface === "restaurant") {
+      toast({
+        title: "Studio photo en mode démonstration",
+        description: "La génération est simulée ici afin de ne consommer aucun crédit ni API payante.",
+      });
+      return;
+    }
     if (!form.name.trim() && !form.image_url.trim()) {
       toast({
         title: "Nom ou photo requis",
@@ -386,6 +395,13 @@ export default function DashboardMenu() {
 
   const analyzeMenuPhotos = async () => {
     if (!restaurant || !menuImportFiles.length) return;
+    if (commercialDemoFrame?.surface === "restaurant") {
+      toast({
+        title: "Analyse de menu en mode démonstration",
+        description: "L’analyse IA est simulée ici afin de ne consommer aucun crédit ni API payante.",
+      });
+      return;
+    }
     setAnalyzingMenu(true);
     setImportedMenuItems([]);
     setMenuImportWarnings([]);
