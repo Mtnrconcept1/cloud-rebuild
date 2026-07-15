@@ -57,6 +57,13 @@ import {
   buildGuaranteedDeliveryOrderMetadata,
   getGuaranteedDeliveryCartContext,
 } from "@/lib/guaranteedDeliveryCart";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
+import {
+  buildCommercialDemoCheckoutReturnUrl,
+  createCommercialDemoCheckout,
+  createCommercialDemoOrder,
+  openCommercialDemoCheckout,
+} from "@/lib/commercialDemoJourney";
 
 const supabase = getSupabase();
 
@@ -131,7 +138,11 @@ export default function Panier() {
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
-  const activeFeatures = useActiveFeatures();
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const globalActiveFeatures = useActiveFeatures({ enabled: !commercialDemoFrame });
+  const activeFeatures = commercialDemoFrame
+    ? new Set(commercialDemoFrame.snapshot.active_features)
+    : globalActiveFeatures;
   const guaranteedDeliveryContext = useMemo(
     () => getGuaranteedDeliveryCartContext(cartMetadata, items),
     [cartMetadata, items],
@@ -742,6 +753,44 @@ export default function Panier() {
 
     setLoading(true);
     try {
+      if (commercialDemoFrame?.surface === "client") {
+        const demoRestaurantId = commercialDemoFrame.snapshot.demo_restaurant.id;
+        const invalidItem = items.find((item) => item.restaurantId !== demoRestaurantId);
+        if (invalidItem || items.length === 0) {
+          throw new Error("Le panier démo ne peut contenir que les articles du restaurant simulé.");
+        }
+
+        const snapshot = await createCommercialDemoOrder(commercialDemoFrame.config.sessionId, {
+          customerName: String(user.user_metadata?.full_name || user.email?.split("@")[0] || "Client démo"),
+          deliveryAddress: address.trim() || "18 rue de la Démonstration, 1204 Genève",
+          items: items.map((item) => ({
+            name: item.name,
+            quantity: item.quantity,
+            // The RPC ignores this price and resolves the authoritative demo
+            // catalogue amount by item name.
+            unit_amount_cents: Math.round(Number(item.price || 0) * 100),
+          })),
+        });
+        queryClient.setQueryData(
+          ["commercial-demo-frame-snapshot", commercialDemoFrame.config.sessionId],
+          snapshot,
+        );
+        if (snapshot.order?.payment_status === "test_paid") {
+          clearCart();
+          navigate("/commandes");
+          return;
+        }
+
+        const checkout = await createCommercialDemoCheckout({
+          demoRestaurantId,
+          demoSessionId: commercialDemoFrame.config.sessionId,
+          returnUrl: buildCommercialDemoCheckoutReturnUrl(commercialDemoFrame.config.sessionId),
+        });
+        clearCart();
+        openCommercialDemoCheckout(commercialDemoFrame.config.sessionId, checkout.checkout_url);
+        return;
+      }
+
       let accessToken = "";
       try {
         accessToken = await withTimeout(
