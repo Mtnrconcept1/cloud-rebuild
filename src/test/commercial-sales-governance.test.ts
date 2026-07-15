@@ -11,6 +11,7 @@ function read(path: string) {
 
 describe("commercial sales governance", () => {
   const migration = read("supabase/migrations/20260714232000_commercial_sales_governance_followup.sql");
+  const lifecycleMigration = read("supabase/migrations/20260715053108_deferred_subscription_commission_lifecycle.sql");
   const prospecting = read("src/pages/CommercialProspection.tsx");
   const commercialAccounting = read("src/pages/CommercialComptabilite.tsx");
   const accountList = read("src/components/admin/AdminCommercialAccountsPanel.tsx");
@@ -26,10 +27,14 @@ describe("commercial sales governance", () => {
     expect(prospecting).not.toContain("Sprint 60 jours sans fixe");
     expect(prospecting).not.toContain("signed_restaurant_id:");
     expect(prospecting).not.toContain("acquisition_commission_chf:");
-    expect(prospecting).toContain("p_subscription_plan_slug: null");
-    expect(prospecting).toContain("p_subscription_billing_period: null");
-    expect(prospecting).not.toContain("draftSubscriptionPlanSlug");
-    expect(migration).toContain("CREATE OR REPLACE FUNCTION public.record_commercial_prospect_followup");
+    expect(prospecting).toContain("draftSubscriptionPlanSlug");
+    expect(prospecting).toContain("p_subscription_plan_slug: draftStatus === \"signed\"");
+    expect(prospecting).toContain('p_subscription_billing_period: draftStatus === "signed" ? "monthly" : null');
+    expect(prospecting).toContain('"get_commercial_prospect_signup_referral"');
+    expect(prospecting).toContain('url.searchParams.set("commercialReferral"');
+    expect(lifecycleMigration).toContain("CREATE OR REPLACE FUNCTION public.record_commercial_prospect_followup");
+    expect(lifecycleMigration).toContain("get_commercial_prospect_signup_referral");
+    expect(lifecycleMigration).toContain("restaurant_subscription_plans");
     expect(migration).toContain("SECURITY DEFINER");
     expect(migration).toContain("commercial_signature_commission_chf");
     expect(migration).toContain("commercial_compensation_profiles");
@@ -60,16 +65,19 @@ describe("commercial sales governance", () => {
 
   it("keeps commercial accounting read-only and lists the commercial's signed restaurants", () => {
     expect(commercialAccounting).toContain('data-testid="commercial-accounting-readonly"');
-    expect(commercialAccounting).toContain("Votre comptabilité est en lecture seule");
-    expect(commercialAccounting).toContain("AdminCompensationAdjustmentForm");
-    expect(commercialAccounting).toContain("if (!isAdmin) return null");
-    expect(commercialAccounting).toContain('"admin_add_commercial_compensation_adjustment"');
+    expect(commercialAccounting).toContain("Cette comptabilité est en lecture seule");
+    expect(commercialAccounting).not.toContain("AdminCompensationAdjustmentForm");
+    expect(commercialAccounting).not.toContain('"admin_add_commercial_compensation_adjustment"');
     expect(commercialAccounting).not.toContain('.from("commercial_compensation_adjustments"');
     expect(commercialAccounting).toContain('.from("commercial_prospect_followups"');
     expect(commercialAccounting).toContain('.eq("signed_by", commercialUserId)');
     expect(commercialAccounting).toContain("fetchGenevaCommercialProspects");
     expect(commercialAccounting).toContain("Mes restaurants signés");
     expect(commercialAccounting).toContain("Historique complet de toutes les signatures");
+    expect(commercialAccounting).toContain("pending_commission_chf");
+    expect(accountDetail).toContain("AdminCompensationAdjustmentForm");
+    expect(accountDetail).toContain('"admin_add_commercial_compensation_adjustment"');
+    expect(accountDetail).toContain("financialSnapshotLocked");
   });
 
   it("offers distinct field outcomes and requires structured refusal reasons", () => {
@@ -114,12 +122,29 @@ describe("commercial sales governance", () => {
     expect(migration).toContain("NOT isfinite(v_period_start)");
     expect(migration).toContain("v_period_end - v_period_start > 366");
     expect(migration).not.toContain("WITH secured AS (");
+    expect(lifecycleMigration).toContain("commercial_self_adjustment_forbidden");
+    expect(lifecycleMigration).toContain("auth.uid() = p_commercial_user_id");
+    expect(lifecycleMigration).toContain("earned_commercial_signature_status_is_immutable");
+  });
+
+  it("keeps acquisition commissions pending until the subscription invoice is paid", () => {
+    expect(lifecycleMigration).toContain("acquisition_commission_status");
+    expect(lifecycleMigration).toContain("pending_payment");
+    expect(lifecycleMigration).toContain("record_restaurant_subscription_invoice_paid");
+    expect(lifecycleMigration).toContain("restaurant_subscription_activation_jobs");
+    expect(lifecycleMigration).toContain("signup_restaurateur_onboarding_payment_ready");
+    expect(lifecycleMigration).toContain("earned_at");
+    expect(lifecycleMigration).toContain("commercial_signup_referral");
+    expect(lifecycleMigration).toContain("raw_commercial_source_metadata_not_accepted");
+    expect(lifecycleMigration).not.toContain("v_source_objectid := NULLIF(v_source_text");
+    expect(commercialAccounting).toContain("Réservée, hors montants acquis");
   });
 
   it("shows server-generated signature commissions in central admin accounting", () => {
     expect(migration).toContain("get_admin_commercial_commission_summary");
     expect(accounting).toContain('"get_admin_commercial_commission_summary"');
-    expect(accounting).toContain("Commissions commerciales générées");
-    expect(accounting).toContain("Commissions de signature générées");
+    expect(accounting).toContain("Commissions commerciales acquises");
+    expect(accounting).toContain("Commissions de signature acquises");
+    expect(accounting).toContain("pending_commission_chf");
   });
 });
