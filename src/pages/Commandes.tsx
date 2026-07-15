@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 import CustomerDashboardLayout from "@/components/CustomerDashboardLayout";
+import OperationProgressDialog from "@/components/ui/operation-progress-dialog";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import OrderPaymentBreakdown from "@/components/orders/OrderPaymentBreakdown";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
@@ -521,7 +522,7 @@ function LiveCommandes() {
                                       onClick={() => cancelMutation.mutate(order.id)}
                                       disabled={cancelMutation.isPending}
                                     >
-                                      {cancelMutation.isPending ? "Annulation..." : "Oui, annuler"}
+                                      {cancelMutation.isPending ? "Annulation…" : "Oui, annuler"}
                                     </AlertDialogAction>
                                   </AlertDialogFooter>
                                 </AlertDialogContent>
@@ -553,6 +554,14 @@ function LiveCommandes() {
           </div>
         )}
         {!isCommercialDemoClient ? <TokAiSupportChat context={{ page: "commandes" }} compact /> : null}
+        <OperationProgressDialog
+          open={cancelMutation.isPending}
+          title="Annulation de la commande"
+          description="TOK sécurise l’annulation, met à jour le restaurant et prépare le remboursement lorsqu’un paiement a déjà été encaissé."
+          status="Annulation sécurisée"
+          steps={["Vérification", "Annulation", "Mise à jour"]}
+          estimatedDurationMs={12_000}
+        />
       </div>
     </CustomerDashboardLayout>
   );
