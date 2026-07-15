@@ -265,6 +265,14 @@ export default function CommercialMultiSpaceDemo() {
   }, [effectiveSessionId]);
 
   const combinedError = bootstrapQuery.error || snapshotQuery.error || resetMutation.error || confirmMutation.error;
+  const startFreshSession = () => {
+    try {
+      window.sessionStorage.removeItem(DEMO_SESSION_STORAGE_KEY);
+    } catch {
+      // A fresh URL is sufficient when storage is unavailable.
+    }
+    window.location.replace(new URL("/commercial/demo-live", window.location.origin).toString());
+  };
 
   if (bootstrapQuery.isLoading || (effectiveSessionId && snapshotQuery.isLoading)) {
     return (
@@ -281,7 +289,10 @@ export default function CommercialMultiSpaceDemo() {
       <div className="rounded-[2rem] border border-red-200 bg-red-50 p-6 text-red-900 dark:border-red-400/20 dark:bg-red-400/10 dark:text-red-100" role="alert">
         <p className="font-black">Impossible d'ouvrir la démonstration multi-dashboard</p>
         <p className="mt-2 text-sm">{errorMessage(combinedError)}</p>
-        <Button type="button" variant="outline" className="mt-4" onClick={() => void snapshotQuery.refetch()}><RefreshCw className="mr-2 h-4 w-4" />Réessayer</Button>
+        <div className="mt-4 flex flex-wrap justify-center gap-2">
+          <Button type="button" variant="outline" onClick={() => void snapshotQuery.refetch()}><RefreshCw className="mr-2 h-4 w-4" />Réessayer</Button>
+          <Button type="button" onClick={startFreshSession}><Play className="mr-2 h-4 w-4" />Nouvelle session</Button>
+        </div>
       </div>
     );
   }
