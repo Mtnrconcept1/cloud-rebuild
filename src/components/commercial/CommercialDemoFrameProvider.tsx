@@ -10,7 +10,7 @@ import {
 } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, ShieldAlert } from "lucide-react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigationType } from "react-router-dom";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -158,6 +158,7 @@ export default function CommercialDemoFrameProvider({
 }) {
   const { user, loading: authLoading } = useAuth();
   const location = useLocation();
+  const navigationType = useNavigationType();
   const queryClient = useQueryClient();
   const [realtimeStatus, setRealtimeStatus] = useState<CommercialDemoRealtimeStatus>(() => (
     typeof navigator !== "undefined" && navigator.onLine === false ? "offline" : "connecting"
@@ -242,6 +243,7 @@ export default function CommercialDemoFrameProvider({
       path: location.pathname,
       search: location.search,
       historyIndex: Math.max(0, Math.trunc(rawHistoryIndex)),
+      navigationType,
       unreadCount,
       realtimeStatus,
     };
@@ -251,6 +253,7 @@ export default function CommercialDemoFrameProvider({
     config.surface,
     location.pathname,
     location.search,
+    navigationType,
     realtimeStatus,
     snapshotQuery.data,
     unreadCount,
