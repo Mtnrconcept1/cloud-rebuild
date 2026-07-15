@@ -17,9 +17,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNotificationCenter } from "@/hooks/useNotificationCenter";
-import type { CommercialDemoFrameSurface } from "@/lib/commercialDemoFrame";
+import type { CommercialDemoActorSurface } from "@/lib/commercialDemoFrame";
 
-const SURFACE_COPY: Record<CommercialDemoFrameSurface, {
+const SURFACE_COPY: Record<CommercialDemoActorSurface, {
   eyebrow: string;
   title: string;
   description: string;
@@ -76,7 +76,7 @@ function formatEventTime(value: string) {
   }).format(new Date(value));
 }
 
-export default function CommercialDemoActorOverview({ surface }: { surface: CommercialDemoFrameSurface }) {
+export default function CommercialDemoActorOverview({ surface }: { surface: CommercialDemoActorSurface }) {
   const frame = useCommercialDemoFrame();
   const { unreadCount } = useNotificationCenter(50);
   if (!frame || frame.surface !== surface) return null;
