@@ -144,15 +144,14 @@ export function CommercialDemoFrameAuthBoundary({
   const auth = useAuth();
   const forcedRole = getCommercialDemoFrameRole(config.surface);
   const presentationRoles = useMemo(
-    () => auth.roles.includes(forcedRole) ? auth.roles : [...auth.roles, forcedRole],
+    () => [...auth.roles, forcedRole],
     [auth.roles, forcedRole],
   );
   const value = useMemo<AuthContextType>(() => ({
     ...auth,
     role: forcedRole,
-    // The database identity and grants remain authoritative. The extra role is
-    // presentation-only so the courier/client/restaurant route gate can render
-    // its isolated frame without granting that production role to a commercial.
+    // The presentation role unlocks the matching real dashboard UI. Server
+    // authorization still derives the actor and ownership from the JWT.
     roles: presentationRoles,
     canSwitchRole: false,
     switchRole: () => undefined,
@@ -194,11 +193,7 @@ export default function CommercialDemoFrameProvider({
 
   useEffect(() => {
     knownEventIdsRef.current = null;
-    setReadNotificationIds(readStoredNotificationIds({
-      basename: config.basename,
-      sessionId: config.sessionId,
-      surface: config.surface,
-    }));
+    setReadNotificationIds(readStoredNotificationIds(config));
   }, [config.basename, config.sessionId, config.surface]);
 
   useEffect(() => {
@@ -229,8 +224,12 @@ export default function CommercialDemoFrameProvider({
     document.documentElement.dataset.commercialDemoFrame = config.surface;
     document.documentElement.dataset.commercialDemoSessionId = config.sessionId;
     return () => {
-      delete document.documentElement.dataset.commercialDemoFrame;
-      delete document.documentElement.dataset.commercialDemoSessionId;
+      if (document.documentElement.dataset.commercialDemoFrame === config.surface) {
+        delete document.documentElement.dataset.commercialDemoFrame;
+      }
+      if (document.documentElement.dataset.commercialDemoSessionId === config.sessionId) {
+        delete document.documentElement.dataset.commercialDemoSessionId;
+      }
     };
   }, [config.sessionId, config.surface]);
 

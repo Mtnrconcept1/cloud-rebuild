@@ -146,6 +146,7 @@ const MARKETING_IMAGE_MIME_EXTENSIONS: Record<string, string> = {
   "image/webp": "webp",
 };
 const MAX_MARKETING_ASSET_BYTES = 15 * 1024 * 1024;
+const MAX_COMMERCIAL_DEMO_REFERENCE_BYTES = 4 * 1024 * 1024;
 const MARKETING_PROMPT_MAX_LENGTH = 900;
 const MARKETING_MENU_CONTEXT_LIMIT = 120;
 const MARKETING_MENU_PROMPT_ITEM_LIMIT = 80;
@@ -1224,8 +1225,10 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
   const hasBrandResources = persistedResources.length >= 2;
   const marketingImageFormat = getMarketingImageFormat(selectedFormat.label, selectedFormat.orientation);
   const outputPricing = getTokImageOutputPricing(marketingImageFormat, outputResolution);
-  const displayedModelLabel = isCommercialDemo ? "TOK Démo zéro coût" : outputPricing.modelLabel;
-  const displayedPhotoCredits = isCommercialDemo ? 0 : outputPricing.photoCredits;
+  const displayedModelLabel = isCommercialDemo ? "OpenAI réel · Démo isolée" : outputPricing.modelLabel;
+  const displayedPhotoCredits = isCommercialDemo
+    ? "illimités (Démo)"
+    : `${outputPricing.photoCredits} cr.`;
   const sanitizedGenerationSeed = sanitizeTokGenerationSeed(generationSeed);
   const { data: businessContext, isLoading: businessContextLoading } = useQuery({
     queryKey: ["marketing-studio-business-context", restaurantId, isCommercialDemo],
@@ -1455,7 +1458,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
       try {
         assertSafeFileUpload(file, {
           allowedMimeTypes: MARKETING_IMAGE_MIME_EXTENSIONS,
-          maxBytes: MAX_MARKETING_ASSET_BYTES,
+          maxBytes: isCommercialDemo ? MAX_COMMERCIAL_DEMO_REFERENCE_BYTES : MAX_MARKETING_ASSET_BYTES,
           label: "Visuel marketing",
         });
       } catch (error) {
@@ -1500,7 +1503,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
       setResources((current) => [...localResources, ...current]);
       toast({
         title: "Références ajoutées à la Démo",
-        description: "Les fichiers restent dans cette fenêtre et ne sont envoyés ni au Storage ni aux tables de production.",
+        description: "Les fichiers restent hors du Storage et des tables de production. Les deux références utilisées seront transmises temporairement à OpenAI lors de la génération.",
       });
       return;
     }
@@ -1775,7 +1778,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
       toast({
         title: "Image marketing générée",
         description: isCommercialDemo
-          ? "Le visuel a été créé dans les tables Démo, sans API payante, sans crédit et sans Storage de production."
+          ? "Le visuel a réellement été créé avec OpenAI dans l'espace Démo isolé. Les crédits Démo sont illimités et le coût fournisseur est suivi en interne."
           : `Le visuel a été produit avec ${imageResult.model || "OpenAI"} pour ${outputPricing.photoCredits} crédit(s) photo IA.`,
       });
     } catch (error) {
@@ -1823,7 +1826,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                 <Badge className="bg-orange-600 text-white hover:bg-orange-600">Marketing automatique</Badge>
                 {isCommercialDemo ? (
                   <Badge variant="outline" className="border-emerald-300 bg-emerald-50 text-emerald-800">
-                    Démo isolée · 0 crédit · 0 CHF
+                    OpenAI réel · crédits Démo illimités · coût suivi en interne
                   </Badge>
                 ) : null}
               </div>
@@ -1833,7 +1836,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                 </h2>
                 <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
                   {isCommercialDemo
-                    ? "Utilisez les références préchargées du restaurant simulé ou ajoutez temporairement vos fichiers. Le visuel est généré dans les tables Démo, sans API payante ni donnée de production."
+                    ? "Utilisez les références préchargées ou ajoutez temporairement vos fichiers. OpenAI génère réellement le visuel ; la clé reste côté serveur et aucune donnée de production n'est modifiée."
                     : "Ajoutez une fois votre logo, vos captures et vos visuels de marque. L'outil les enregistre et génère ensuite une image marketing finale à partir de votre prompt."}
                 </p>
               </div>
@@ -2143,7 +2146,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                   <div className="rounded-md border bg-background px-3 py-2 text-sm">
                     <p className="font-medium text-foreground">{displayedModelLabel}</p>
                     <p className="text-xs leading-5 text-muted-foreground">
-                      {outputPricing.size} - qualité {outputPricing.quality} - {displayedPhotoCredits} cr.
+                      {outputPricing.size} - qualité {outputPricing.quality} - crédits {displayedPhotoCredits}
                     </p>
                   </div>
                 </div>
@@ -2195,7 +2198,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                     <div>
                       <p className="font-semibold text-foreground">Image marketing générée</p>
                       <p className="text-xs text-muted-foreground">
-                        Modele: {marketingImageResult?.model || (isCommercialDemo ? "tok-demo-zero-cost-v1" : "gpt-image-2")}
+                        Modèle : {marketingImageResult?.model || (isCommercialDemo ? "openai" : "gpt-image-2")}
                       </p>
                       {marketingImageResult?.generation_seed ? (
                         <p className="text-xs text-muted-foreground">Seed: {marketingImageResult.generation_seed}</p>
@@ -2238,7 +2241,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                   {loading
                     ? "Génération de l'image..."
                     : isCommercialDemo
-                      ? "Générer le visuel Démo (0 crédit)"
+                      ? "Générer avec OpenAI · crédits Démo illimités"
                       : `Générer l'image marketing (${outputPricing.photoCredits} cr.)`}
                 </Button>
                 <p className="min-w-0 break-words text-xs leading-5 text-muted-foreground">
@@ -2375,9 +2378,9 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
         open={loading}
         title="Generation marketing en cours"
         description={isCommercialDemo
-          ? "TOK compose un visuel isolé et persistant dans les tables Démo, sans API payante."
+          ? "OpenAI compose réellement un visuel isolé ; le coût fournisseur est suivi en interne."
           : "TOK combine le support choisi, votre brief et vos ressources de marque pour produire un visuel coherent."}
-        status={isCommercialDemo ? "Moteur Démo zéro coût" : "Marketing Studio compose le visuel"}
+        status={isCommercialDemo ? "OpenAI réel · crédits Démo illimités" : "Marketing Studio compose le visuel"}
         steps={["Brief", "Références marketing", "Rendu final"]}
       />
     </section>

@@ -13,6 +13,10 @@ const TOK_AI_MINI_MODEL = Deno.env.get("OPENAI_MODEL_TOK_MINI")?.trim() || "gpt-
 const TOK_AI_STRATEGIC_MODEL = Deno.env.get("OPENAI_MODEL_TOK_STRATEGIC")?.trim() || "gpt-5.5";
 
 const RESPONSES_URL = "https://api.openai.com/v1/responses";
+const DEFAULT_RESPONSE_TIMEOUT_MS = readBoundedTimeout(
+  Deno.env.get("OPENAI_RESPONSE_TIMEOUT_MS"),
+  45_000,
+);
 
 export type OpenAIMessage = {
   role: "system" | "user" | "assistant";
@@ -38,7 +42,14 @@ type OpenAIRequestOptions = {
   maxOutputTokens?: number;
   temperature?: number;
   jsonSchema?: OpenAIJsonSchema;
+  timeoutMs?: number;
 };
+
+function readBoundedTimeout(raw: string | number | undefined, fallback: number) {
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(115_000, Math.max(5_000, Math.trunc(parsed)));
+}
 
 export type TokAiModelTask =
   | "support"
@@ -115,14 +126,30 @@ export async function createOpenAIResponse(options: OpenAIRequestOptions) {
     payload.temperature = options.temperature;
   }
 
-  const response = await fetch(RESPONSES_URL, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${OPENAI_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(
+    () => controller.abort(),
+    readBoundedTimeout(options.timeoutMs, DEFAULT_RESPONSE_TIMEOUT_MS),
+  );
+  let response: Response;
+  try {
+    response = await fetch(RESPONSES_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw new HttpError(503, "ai_timeout");
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
 
   if (!response.ok) {
     if (response.status === 429) {

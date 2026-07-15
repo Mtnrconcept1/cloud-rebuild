@@ -32,6 +32,12 @@ const TOOL_LABELS: Record<CommercialDemoProtectedTool, string> = {
   "accounting-outflow": "Dépenses",
 };
 
+const REAL_OPENAI_DEMO_TOOLS = new Set<CommercialDemoProtectedTool>([
+  "advisor",
+  "photos",
+  "support",
+]);
+
 type FetchGuardState = {
   count: number;
   originalFetch: typeof window.fetch;
@@ -152,6 +158,7 @@ export default function CommercialDemoSafeEffectsBoundary({
 }) {
   const frame = useCommercialDemoFrame();
   const isRestaurantDemo = frame?.surface === "restaurant";
+  const usesRealOpenAi = REAL_OPENAI_DEMO_TOOLS.has(tool);
   const [guardReady, setGuardReady] = useState(!isRestaurantDemo);
   const lastNoticeAtRef = useRef(0);
 
@@ -167,7 +174,9 @@ export default function CommercialDemoSafeEffectsBoundary({
       if (now - lastNoticeAtRef.current < 1200) return;
       lastNoticeAtRef.current = now;
       toast.info("Action simulée en démonstration", {
-        description: `${TOOL_LABELS[tool]} reste interactif, sans écriture ni appel payant.`,
+        description: usesRealOpenAi
+          ? `${TOOL_LABELS[tool]} utilise réellement OpenAI ; seules les écritures de production restent simulées.`
+          : `${TOOL_LABELS[tool]} reste interactif, sans écriture de production ni envoi externe.`,
       });
     };
     window.addEventListener("tok:commercial-demo:effect-simulated", handleSimulatedEffect);
@@ -177,7 +186,7 @@ export default function CommercialDemoSafeEffectsBoundary({
       window.removeEventListener("tok:commercial-demo:effect-simulated", handleSimulatedEffect);
       release();
     };
-  }, [isRestaurantDemo, tool]);
+  }, [isRestaurantDemo, tool, usesRealOpenAi]);
 
   if (isRestaurantDemo && !guardReady) {
     return (
@@ -197,7 +206,11 @@ export default function CommercialDemoSafeEffectsBoundary({
           role="status"
         >
           <ShieldCheck className="h-4 w-4 shrink-0" />
-          <span className="truncate">{TOOL_LABELS[tool]} · vraies interfaces, effets simulés</span>
+          <span className="truncate">
+            {usesRealOpenAi
+              ? `${TOOL_LABELS[tool]} · OpenAI réel · crédits Démo illimités · coût suivi en interne`
+              : `${TOOL_LABELS[tool]} · vraies interfaces, effets simulés · sorties externes protégées`}
+          </span>
         </div>
       ) : null}
     </>

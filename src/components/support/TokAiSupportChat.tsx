@@ -225,7 +225,7 @@ export default function TokAiSupportChat({
         <div className="flex items-start gap-2 text-xs text-muted-foreground">
           <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
           <span>{isCommercialDemo
-            ? "Chat isolé zéro coût : aucun ticket, crédit ou message de production n'est créé."
+            ? "OpenAI réel dans un chat isolé · crédits Démo illimités · coût suivi en interne · aucun ticket de production créé."
             : "Ne jamais promettre remboursement: les cas sensibles passent en escalade humaine."}</span>
         </div>
       </CardHeader>

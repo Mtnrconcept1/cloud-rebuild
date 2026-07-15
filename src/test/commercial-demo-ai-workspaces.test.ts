@@ -1,13 +1,25 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
 const root = process.cwd();
 const read = (path: string) => readFileSync(resolve(root, path), "utf8");
+const readMigrationContaining = (fragment: string) => {
+  const migrationsDir = resolve(root, "supabase/migrations");
+  const file = readdirSync(migrationsDir)
+    .filter((name) => name.endsWith(".sql"))
+    .find((name) => readFileSync(resolve(migrationsDir, name), "utf8").includes(fragment));
+  if (!file) throw new Error(`Migration containing ${fragment} not found`);
+  return readFileSync(resolve(migrationsDir, file), "utf8");
+};
 
 describe("commercial demo AI workspaces", () => {
   const migration = read("supabase/migrations/20260715015956_commercial_demo_ai_workspaces.sql");
+  const runtimeMigration = readMigrationContaining("commercial_demo_ai_requests");
+  const edge = read("supabase/functions/commercial-demo-ai/index.ts");
+  const edgeShared = read("supabase/functions/_shared/commercial-demo-ai.ts");
+  const server = `${edgeShared}\n${edge}`;
   const client = read("src/lib/commercialDemoAi.ts");
   const tokAiClient = read("src/lib/ai/tokAiClient.ts");
   const creationJobs = read("src/lib/ai/aiCreationJobs.ts");
@@ -78,22 +90,30 @@ describe("commercial demo AI workspaces", () => {
     expect(migration).toContain("Commercial demo AI conversation history limit reached");
     expect(migration).toContain("Commercial demo visual history limit reached");
     expect(migration).toContain("LIMIT 100");
+    expect(runtimeMigration).toMatch(/REVOKE\s+EXECUTE\s+ON\s+FUNCTION\s+public\.commercial_demo_ai_respond/i);
+    expect(runtimeMigration).toMatch(/REVOKE\s+EXECUTE\s+ON\s+FUNCTION\s+public\.commercial_demo_ai_generate_visual/i);
   });
 
-  it("persists zero-cost visual output without production storage or credit writes", () => {
-    expect(migration).toContain("model text NOT NULL DEFAULT 'tok-demo-zero-cost-v1'");
-    expect(migration).toContain("credit_units integer NOT NULL DEFAULT 0 CHECK (credit_units = 0)");
-    expect(migration).toContain("estimated_cost_chf numeric(10, 4) NOT NULL DEFAULT 0 CHECK (estimated_cost_chf = 0)");
-    expect(migration).toContain("'production_storage', false");
-    expect(migration).toContain("public._commercial_demo_xml_escape(v_headline)");
-    expect(migration).toContain("public._commercial_demo_xml_escape(substring(v_subheadline FROM 1 FOR 52))");
-    expect(migration).toContain("COALESCE(v_restaurant_image, '') ~ '^https://'");
-    expect(migration).toContain("p_context->>'primary_color'");
-    expect(migration).toContain("p_context->>'reference_fingerprint'");
-    expect(migration).toContain("public._commercial_demo_xml_escape(v_reference_label)");
-    expect(migration).toContain("CREATE OR REPLACE FUNCTION public.commercial_demo_ai_generation_history");
-    expect(migration).toContain("LIMIT v_limit");
-    expect(migration).toContain("commercial_demo_ai_messages_session_created_idx");
+  it("persists real OpenAI output in demo-only tables and private demo storage", () => {
+    expect(runtimeMigration).toContain("commercial_demo_ai_requests");
+    expect(runtimeMigration).toContain("request_id");
+    expect(runtimeMigration).toContain("payload_hash");
+    expect(runtimeMigration).toContain("processing");
+    expect(runtimeMigration).toContain("completed");
+    expect(runtimeMigration).toContain("failed");
+    expect(runtimeMigration).toContain("credit_units");
+    expect(runtimeMigration).toMatch(/CHECK\s*\(\s*credit_units\s*=\s*0\s*\)/i);
+    expect(runtimeMigration).toContain("estimated_cost_chf");
+    expect(runtimeMigration).not.toMatch(/CHECK\s*\(\s*estimated_cost_chf\s*=\s*0\s*\)/i);
+    expect(runtimeMigration).toContain("commercial-demo-ai");
+    expect(runtimeMigration).toContain("SET public = false");
+    expect(edge).toContain('Deno.env.get("OPENAI_API_KEY")');
+    expect(edge).toContain("https://api.openai.com/");
+    expect(server).toContain("estimated_cost_chf");
+    expect(server).toContain("credit_units: 0");
+    expect(server).not.toContain("tok-demo-zero-cost-v1");
+    expect(server).not.toContain("output_svg");
+    expect(server).not.toContain("image/svg+xml");
 
     for (const productionTarget of [
       "ai_conversations",
@@ -106,20 +126,33 @@ describe("commercial demo AI workspaces", () => {
       "financial_ledger",
     ]) {
       const dml = new RegExp(`(?:INSERT\\s+INTO|UPDATE|DELETE\\s+FROM)\\s+(?:public\\.)?${productionTarget}\\b`, "i");
-      expect(migration).not.toMatch(dml);
+      expect(runtimeMigration).not.toMatch(dml);
+      expect(server).not.toMatch(new RegExp(`\\.from\\(["']${productionTarget}["']\\)`, "i"));
     }
   });
 
-  it("routes the real AI clients to demo RPCs before any paid Edge Function", () => {
+  it("routes live demo AI through the single authenticated Edge Function", () => {
     expect(provider).toContain("dataset.commercialDemoSessionId = config.sessionId");
-    expect(client).toContain('"commercial_demo_ai_respond"');
+    expect(client).toContain('"commercial-demo-ai"');
+    expect(client).toContain('action: "chat"');
+    expect(client).toContain('action: "visual_generate"');
+    expect(client).toContain('action: "visual_history"');
+    expect(client).toContain("request_id");
+    expect(client).toContain("const requestId = createRequestId()");
+    expect(client).toContain("generation_seed: request.generationSeed || null");
+    expect(client).not.toMatch(/requestId\s*=\s*[^\n]*generationSeed/);
+    expect(client).toContain("output_url");
+    expect(client).toContain("estimated_cost_chf");
     expect(client).toContain('"commercial_demo_ai_history"');
     expect(client).toContain('"commercial_demo_ai_archive_conversation"');
-    expect(client).toContain('"commercial_demo_ai_generate_visual"');
-    expect(client).toContain('"commercial_demo_ai_generation_history"');
     expect(client).toContain("request.styleMode");
     expect(client).toContain("request.demoReferencePalette?.primaryColor");
-    expect(client).toContain("encodeURIComponent(svg)");
+    expect(client).not.toContain('"commercial_demo_ai_respond"');
+    expect(client).not.toContain('"commercial_demo_ai_generate_visual"');
+    expect(client).not.toContain('"commercial_demo_ai_generation_history"');
+    expect(client).not.toContain("encodeURIComponent(svg)");
+    expect(client).not.toContain("tok-demo-zero-cost-v1");
+    expect(client).toContain('!value.trim().toLowerCase().startsWith("data:image/svg+xml")');
 
     const imageFunction = tokAiClient.slice(
       tokAiClient.indexOf("export function generateTokDishImage"),
@@ -135,7 +168,6 @@ describe("commercial demo AI workspaces", () => {
     expect(advisor).toContain("askCommercialDemoAi");
     expect(advisor).toContain("getCommercialDemoAiHistory");
     expect(advisor).toContain("urlTransform={advisorMarkdownUrlTransform}");
-    expect(advisor).toContain('data:image/svg+xml;charset=utf-8,%3Csvg');
     const demoSelectionBranch = advisor.slice(
       advisor.indexOf("if (isCommercialDemo && commercialDemoFrame) {", advisor.indexOf("setIsSelectionLoading")),
       advisor.indexOf("let cancelled = false", advisor.indexOf("setIsSelectionLoading")),
@@ -146,16 +178,17 @@ describe("commercial demo AI workspaces", () => {
     expect(embeddedChat).toContain("askCommercialDemoAi");
   });
 
-  it("allows only the dedicated demo RPCs through the frame side-effect firewall", () => {
+  it("allows only the dedicated demo Edge slug and read/archive RPCs through the firewall", () => {
     for (const rpc of [
       "commercial_demo_ai_history",
-      "commercial_demo_ai_generation_history",
-      "commercial_demo_ai_respond",
       "commercial_demo_ai_archive_conversation",
-      "commercial_demo_ai_generate_visual",
     ]) {
       expect(effects).toContain(`"${rpc}"`);
     }
+    expect(effects).toContain('"commercial-demo-ai"');
+    expect(effects).not.toContain('"commercial_demo_ai_respond"');
+    expect(effects).not.toContain('"commercial_demo_ai_generate_visual"');
+    expect(effects).not.toContain('"commercial_demo_ai_generation_history"');
     expect(effects).toContain("isTrustedSupabaseOrigin");
   });
 
@@ -172,7 +205,9 @@ describe("commercial demo AI workspaces", () => {
     expect(floatingChat).toContain("conversation.surface === demoRuntime.surface");
     expect(floatingChat).toContain("isCommercialDemo || !isChatAvailable || !activeConversationId");
     expect(floatingChat).toContain("isCommercialDemo || !isChatAvailable || !topic");
-    expect(floatingChat).toContain("Isolé · 0 crédit · 0 CHF");
+    expect(floatingChat).toContain("crédits Démo illimités");
+    expect(floatingChat).toContain("coût suivi en interne");
+    expect(floatingChat).not.toContain("0 CHF");
 
     const demoSend = floatingChat.slice(
       floatingChat.indexOf("if (demoRuntime) {", floatingChat.indexOf("const handleSendMessage")),
@@ -187,10 +222,13 @@ describe("commercial demo AI workspaces", () => {
     expect(marketingStudio).toContain("buildCommercialDemoMarketingResources(commercialDemoFrame.snapshot)");
     expect(marketingStudio).toContain("buildCommercialDemoBusinessContext(commercialDemoFrame.snapshot)");
     expect(marketingStudio).toContain("URL.createObjectURL(file)");
-    expect(marketingStudio).toContain("Les fichiers restent dans cette fenêtre");
+    expect(marketingStudio).toContain("Les fichiers restent hors du Storage");
+    expect(marketingStudio).toContain("transmises temporairement à OpenAI");
     expect(marketingStudio).toContain("generateCommercialDemoVisual(demoRuntime, generationRequest)");
-    expect(marketingStudio).toContain("Démo isolée · 0 crédit · 0 CHF");
-    expect(marketingStudio).toContain("Générer le visuel Démo (0 crédit)");
+    expect(marketingStudio).toContain("crédits Démo illimités");
+    expect(marketingStudio).toContain("coût suivi en interne");
+    expect(marketingStudio).not.toContain("0 CHF");
+    expect(marketingStudio).toContain("Générer avec OpenAI · crédits Démo illimités");
     expect(marketingStudio).toContain("buildCommercialDemoReferencePalette(generationResources)");
     expect(marketingStudio).toContain("styleMode,");
     expect(marketingStudio).toContain("demoReferencePalette,");
@@ -239,7 +277,9 @@ describe("commercial demo AI workspaces", () => {
     expect(loadFunction.indexOf("if (isCommercialDemo && commercialDemoFrame)")).toBeLessThan(loadFunction.indexOf('.from("restaurant_media")'));
     expect(photos).toContain("getCommercialDemoVisualHistory(runtime, undefined, 60)");
     expect(photos).toContain("<CommercialDemoVisualGallery");
-    expect(photos).toContain('writeCommercialDemoToolState(commercialDemoFrame.config.sessionId, "photos-gallery", next)');
+    expect(photos).toContain("writeCommercialDemoToolState(");
+    expect(photos).toContain("sanitizeCommercialDemoGalleryForStorage(next)");
+    expect(photos).toContain('item.media_url.includes(COMMERCIAL_DEMO_SIGNED_IMAGE_PATH)');
     expect(photos).toContain("URL.createObjectURL(file)");
     expect(photos).toContain("n'est jamais envoyé au Storage de production");
     expect(photoStudio).toContain('const isCommercialDemo = commercialDemoFrame?.surface === "restaurant"');
@@ -247,7 +287,7 @@ describe("commercial demo AI workspaces", () => {
     expect(photoStudio).toContain('writeCommercialDemoToolState(sessionId, "photos-gallery", next)');
     expect(photoStudio.indexOf("if (isCommercialDemo && commercialDemoFrame)", photoStudio.indexOf("const addToGallery")))
       .toBeLessThan(photoStudio.indexOf('.from("restaurant_media")', photoStudio.indexOf("const addToGallery")));
-    expect(photoStudio).toContain("Générer la version Démo (0 crédit)");
-    expect(photoStudio).toContain("n'est jamais envoyée au Storage de production");
+    expect(photoStudio).toContain("Générer avec OpenAI · crédits Démo illimités");
+    expect(photoStudio).toContain("transmise temporairement à OpenAI uniquement lors de la retouche");
   });
 });

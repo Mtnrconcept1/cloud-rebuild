@@ -32,12 +32,16 @@ describe("dashboard advisor history", () => {
     expect(aiClient).toContain("ai_messages");
   });
 
-  it("does not render Supabase storage URLs in advisor messages", () => {
+  it("keeps signed demo images transient and storage URLs out of visible text", () => {
     const source = readSource("src/pages/dashboard/DashboardAdvisor.tsx");
 
     expect(source).toContain("sanitizeAdvisorVisibleText");
+    expect(source).toContain("sanitizeAdvisorVisibleContent");
     expect(source).toContain("SUPABASE_VISIBLE_URL_PATTERN");
-    expect(source).toContain("<ReactMarkdown>{sanitizeAdvisorVisibleText(message.content)}</ReactMarkdown>");
+    expect(source).toContain("COMMERCIAL_DEMO_SIGNED_IMAGE_PATTERN");
+    expect(source).toContain("COMMERCIAL_DEMO_STORED_IMAGE_PLACEHOLDER");
+    expect(source).toContain("<ReactMarkdown urlTransform={advisorMarkdownUrlTransform}>");
+    expect(source).toContain("{sanitizeAdvisorVisibleContent(message.content)}");
     expect(source).toContain("{sanitizeAdvisorVisibleText(message.content)}");
     expect(source).toContain("reference ${getShortAdvisorReference(photo.id)}");
     expect(source).toContain("Image associee: reference ${getShortAdvisorReference(dish.id)}");

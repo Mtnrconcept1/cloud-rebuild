@@ -41,6 +41,8 @@ const STUDIO_BRIEF =
   "Génère une image de qualité photographique professionnelle studio, digne des meilleurs food photographe. Au besoin, change l’angle de vue mais préserve les ingrédients du plat tout en améliorant la fraîcheur, l’éclairage, la profondeur de champ. Si le produit est coupé, tronqué, partiellement hors cadre ou sort de l'image, génère la partie manquante en élargissant l'angle ou en modifiant l'angle de vue, sans changer le produit, ses ingrédients, ses logos, ses textes ou son packaging. Le produit doit être parfaitement mis en valeur.";
 const PHOTO_PRO_CREATIVE_DIRECTION =
   "Priorité haute: si le restaurateur demande une modification créative visible, applique-la franchement dans l'image finale au lieu d'une retouche subtile. Les ajouts explicitement demandés comme fromage, cheddar, sauce, ingrédient complémentaire, effet de mouvement, produit séparé, suspendu ou en lévitation sont autorisés s'ils valorisent le produit source sans le remplacer.";
+const MAX_COMMERCIAL_DEMO_REFERENCE_BYTES = 4 * 1024 * 1024;
+const COMMERCIAL_DEMO_REFERENCE_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 function buildPhotoProPrompt(userInstructions: string, hasStyleReference: boolean) {
   const trimmedInstructions = userInstructions.trim();
@@ -149,10 +151,14 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
     ? `tok-ai-photo-studio-v2:commercial-demo:${commercialDemoFrame.config.sessionId}:restaurant`
     : `tok-ai-photo-studio-v2:${restaurantId || "pending"}`;
   const [draft, setDraft, clearDraft] = useSessionStorageState<PhotoStudioDraft>(storageKey, DEFAULT_DRAFT);
+  const [demoSourceImageUrl, setDemoSourceImageUrl] = useState("");
+  const [demoResult, setDemoResult] = useState<TokImageGenerationResult | null>(null);
+  const demoSourceObjectUrlRef = useRef<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [creditError, setCreditError] = useState<string | null>(null);
-  const result = draft.result;
+  const sourceImageUrl = isCommercialDemo ? demoSourceImageUrl : draft.sourceImageUrl;
+  const result = isCommercialDemo ? demoResult : draft.result;
   const generatedImageUrl = result?.gallery_image_url || result?.generated_image_url || "";
   const downloadFileName = buildTokPhotoDownloadFileName(draft.dishName || result?.title || "visuel-tok");
   const selectedOutputResolution: TokImageOutputResolution = "studio";
@@ -165,7 +171,18 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
   };
 
   const generateNewSeed = () => {
+    if (isCommercialDemo) setDemoResult(null);
     updateDraft({ generationSeed: createTokGenerationSeed("photopro"), result: null });
+  };
+
+  const resetStudio = () => {
+    if (demoSourceObjectUrlRef.current) {
+      URL.revokeObjectURL(demoSourceObjectUrlRef.current);
+      demoSourceObjectUrlRef.current = null;
+    }
+    setDemoSourceImageUrl("");
+    setDemoResult(null);
+    clearDraft();
   };
 
   useEffect(() => {
@@ -173,13 +190,19 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
     return () => setActiveAiCreationContext(null);
   }, []);
 
-  useEffect(() => () => {
-    mountedRef.current = false;
+  useEffect(() => {
+    // React StrictMode runs an extra setup/cleanup cycle in development.
+    // Reset the guard on every setup so completed generations are not ignored.
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      if (demoSourceObjectUrlRef.current) URL.revokeObjectURL(demoSourceObjectUrlRef.current);
+    };
   }, []);
 
   const generate = async () => {
     if (!restaurantId) return;
-    if (!draft.sourceImageUrl.trim()) {
+    if (!sourceImageUrl.trim()) {
       toast({ title: "Photo requise", description: "Ajoutez la photo brute du produit ou du plat.", variant: "destructive" });
       return;
     }
@@ -187,6 +210,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
     setLoading(true);
     setPreviewOpen(false);
     setCreditError(null);
+    if (isCommercialDemo) setDemoResult(null);
     updateDraft({ result: null });
     try {
       const generationSeed = sanitizeTokGenerationSeed(draft.generationSeed);
@@ -195,7 +219,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
       void requestAiCreationNotificationPermission();
       const request = {
         restaurantId,
-        sourceImageUrl: draft.sourceImageUrl,
+        sourceImageUrl,
         dishName: draft.dishName || null,
         prompt: buildPhotoProPrompt(draft.userInstructions || "", Boolean(styleReferenceImageUrl)),
         referenceImageUrls: styleReferenceImageUrl ? [styleReferenceImageUrl] : [],
@@ -209,7 +233,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
         imageOnly: true,
         styleMode: isCommercialDemo ? "photo premium" : undefined,
         demoReferencePalette: isCommercialDemo
-          ? buildCommercialDemoPhotoPalette(draft.sourceImageUrl, draft.userInstructions || "")
+          ? buildCommercialDemoPhotoPalette(sourceImageUrl, draft.userInstructions || "")
           : undefined,
       } as const;
       const { promise } = startTokImageCreationJob({
@@ -221,7 +245,12 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
       });
       const data = await promise;
       if (!mountedRef.current) return;
-      updateDraft({ result: data, generationSeed: data.generation_seed || generationSeed });
+      if (isCommercialDemo) {
+        setDemoResult(data);
+        updateDraft({ result: null, generationSeed: data.generation_seed || generationSeed });
+      } else {
+        updateDraft({ result: data, generationSeed: data.generation_seed || generationSeed });
+      }
       setCreditError(null);
       toast({ title: "Visuel TOK prêt", description: "Contrôlez que le produit source est toujours reconnaissable avant publication." });
     } catch (error) {
@@ -251,7 +280,9 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
       const next = current.some((item) => item.id === id) ? current : [{
         id,
         restaurant_id: restaurantId,
-        media_url: result.gallery_image_url,
+        // The gallery reload resolves this generation id to a fresh signed URL;
+        // never persist the short-lived token itself in browser storage.
+        media_url: "",
         alt_text: result.alt_text || result.title || draft.dishName || "Visuel PhotoPro Démo",
         media_type: "photo_ai_tok",
         uploaded_by: null,
@@ -262,7 +293,8 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
         metadata: {
           commercial_demo: true,
           tool: "photopro",
-          ai_model: result.model || "tok-demo-zero-cost-v1",
+          generation_id: result.assetId,
+          ai_model: result.model || "openai",
           credit_units: 0,
         },
         created_at: result.created_at || new Date().toISOString(),
@@ -343,17 +375,31 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
                   accept="image/png,image/jpeg,image/webp"
                   onChange={(event) => {
                     const file = event.target.files?.[0];
+                    event.currentTarget.value = "";
                     if (!file) return;
-                    updateDraft({ sourceImageUrl: URL.createObjectURL(file), result: null, styleReference: null });
+                    if (!COMMERCIAL_DEMO_REFERENCE_MIME_TYPES.has(file.type) || file.size > MAX_COMMERCIAL_DEMO_REFERENCE_BYTES) {
+                      toast({
+                        title: "Photo non prise en charge",
+                        description: "Choisissez une image JPEG, PNG ou WebP de 4 Mo maximum.",
+                        variant: "destructive",
+                      });
+                      return;
+                    }
+                    if (demoSourceObjectUrlRef.current) URL.revokeObjectURL(demoSourceObjectUrlRef.current);
+                    const nextUrl = URL.createObjectURL(file);
+                    demoSourceObjectUrlRef.current = nextUrl;
+                    setDemoSourceImageUrl(nextUrl);
+                    setDemoResult(null);
+                    updateDraft({ sourceImageUrl: "", result: null, styleReference: null });
                   }}
                 />
-                <p className="text-xs text-muted-foreground">La photo reste dans cette fenêtre et n'est jamais envoyée au Storage de production.</p>
+                <p className="text-xs text-muted-foreground">JPEG, PNG ou WebP · 4 Mo maximum. La photo reste hors du Storage de production et est transmise temporairement à OpenAI uniquement lors de la retouche.</p>
               </div>
             ) : (
               <>
                 <ImageUpload
                   label="Photo brute du produit ou plat"
-                  value={draft.sourceImageUrl}
+                  value={sourceImageUrl}
                   onChange={(sourceImageUrl) => updateDraft({ sourceImageUrl, result: null })}
                   showUrlInput={false}
                 />
@@ -425,26 +471,26 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
             <div className="space-y-2">
               <Label>Configuration image</Label>
               <div className="rounded-2xl border border-orange-200 bg-orange-50 p-3 text-sm text-orange-950">
-                <span className="block font-semibold">{isCommercialDemo ? "Moteur PhotoPro Démo zéro coût" : outputPricing.modelLabel}</span>
+                <span className="block font-semibold">{isCommercialDemo ? "PhotoPro Démo · OpenAI réel" : outputPricing.modelLabel}</span>
                 <span className="mt-1 block text-xs leading-5">
-                  {isCommercialDemo ? "SVG isolé persistant — aucune API payante" : `${outputPricing.size} - qualité ${outputPricing.quality} - coût base ${outputPricing.outputCostChf.toFixed(2)} CHF`}
+                  {isCommercialDemo ? "Image OpenAI isolée et persistante · coût fournisseur suivi en interne" : `${outputPricing.size} - qualité ${outputPricing.quality} - coût base ${outputPricing.outputCostChf.toFixed(2)} CHF`}
                 </span>
                 <span className="mt-2 inline-flex rounded-full bg-white px-2 py-1 text-xs font-bold text-orange-700">
-                  {isCommercialDemo ? "0 crédit · 0 CHF" : `${outputPricing.photoCredits} crédit${outputPricing.photoCredits > 1 ? "s" : ""}`}
+                  {isCommercialDemo ? "Crédits Démo illimités" : `${outputPricing.photoCredits} crédit${outputPricing.photoCredits > 1 ? "s" : ""}`}
                 </span>
               </div>
               <p className="text-xs leading-5 text-muted-foreground">
-                {isCommercialDemo ? "Cette session utilise exclusivement les tables et RPC Démo." : "TOK utilise uniquement GPT Image 2 en qualité medium pour les images."}
+                {isCommercialDemo ? "La clé OpenAI reste côté serveur ; les résultats utilisent exclusivement l'espace Démo isolé." : "TOK utilise uniquement GPT Image 2 en qualité medium pour les images."}
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
               <Button type="button" onClick={generate} disabled={!restaurantId || loading} className="gap-2">
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                {isCommercialDemo ? "Générer la version Démo (0 crédit)" : `Générer la version TOK (${outputPricing.photoCredits} cr.)`}
+                {isCommercialDemo ? "Générer avec OpenAI · crédits Démo illimités" : `Générer la version TOK (${outputPricing.photoCredits} cr.)`}
               </Button>
               {result?.gallery_image_url ? <Button type="button" variant="outline" onClick={addToGallery}>Ajouter à la galerie</Button> : null}
-              {draft.sourceImageUrl || draft.styleReference || result ? (
-                <Button type="button" variant="ghost" onClick={clearDraft} className="gap-2">
+              {sourceImageUrl || draft.styleReference || result ? (
+                <Button type="button" variant="ghost" onClick={resetStudio} className="gap-2">
                   <RotateCcw className="h-4 w-4" />
                   Nouveau
                 </Button>
@@ -492,7 +538,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
             <CardHeader><CardTitle>Version TOK prête</CardTitle></CardHeader>
             <CardContent>
               <div className="grid gap-3 md:grid-cols-2">
-                <div><p className="mb-2 text-sm font-semibold">Avant</p><img src={draft.sourceImageUrl} alt="Photo source" className="aspect-video w-full rounded-xl border object-cover" /></div>
+                <div><p className="mb-2 text-sm font-semibold">Avant</p><img src={sourceImageUrl} alt="Photo source" className="aspect-video w-full rounded-xl border object-cover" /></div>
                 {generatedImageUrl ? (
                   <div>
                     <div className="mb-2 flex items-center justify-between gap-2">

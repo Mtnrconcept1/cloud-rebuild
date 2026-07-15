@@ -1,54 +1,112 @@
-# IA dans la démonstration commerciale
+# OpenAI dans la démonstration commerciale
 
-Les trois interfaces embarquées utilisent les vrais composants Studio Marketing,
-Assistant IA et Chat IA. Quand une interface est ouverte depuis
-`/commercial/demo-live`, leurs écritures sont redirigées vers un domaine Supabase
-isolé et gratuit.
+Les interfaces Assistant IA, Chat IA, Studio Marketing et Studio Photo utilisent
+les vrais composants du dashboard. Depuis `/commercial/demo-live`, leurs
+générations passent exclusivement par l'Edge Function Supabase
+`commercial-demo-ai`, puis par OpenAI côté serveur.
 
-## Garanties
+Le commercial ne consomme aucun crédit TOK et n'est soumis à aucun quota métier
+par session, jour ou mois. « Illimité » désigne cette absence de quota
+applicatif : les limites techniques et de sécurité du fournisseur restent
+applicables afin de protéger la plateforme.
 
-- aucune requête vers une Edge Function IA payante ;
-- aucun débit de crédit TOK et aucun événement de facturation ;
-- aucune écriture dans `ai_conversations`, `ai_messages`, `restaurant_media`,
-  `storage.objects` ou les tables comptables de production ;
-- accès limité au commercial propriétaire de la session ou à un administrateur ;
-- disponibilité pilotée par les flags admin `dashboard-advisor`,
-  `dashboard-photos` et `ai_support_chat` ;
-- messages et visuels rattachés à leur session Démo, invisibles dans la nouvelle
-  session après réinitialisation et supprimés en cascade lors de sa purge.
+## Garanties de sécurité et d'isolation
 
-## Tables Démo
+- `OPENAI_API_KEY` reste un secret Supabase et n'est jamais envoyé au navigateur ;
+- le JWT est authentifié par la fonction, puis la session commerciale, le
+  commercial propriétaire, le restaurant Démo et les flags actifs sont dérivés
+  côté serveur ;
+- le client ne choisit jamais un `restaurant_id`, un rôle ou un droit d'accès ;
+- aucun débit de crédit TOK, abonnement ou événement de facturation n'est créé ;
+- aucune écriture n'est faite dans les conversations, médias, crédits ou journaux
+  comptables de production ;
+- les textes sont enregistrés uniquement dans les tables
+  `commercial_demo_ai_*` et les images dans le bucket privé
+  `commercial-demo-ai` ;
+- les anciennes RPC de génération factice ne sont plus exécutables par
+  `authenticated` ; les RPC de lecture et d'archivage restent disponibles sous
+  leurs contrôles RLS ;
+- le navigateur bloque toujours les appels directs à `api.openai.com` et toutes
+  les fonctions IA de production. Seul le slug exact `commercial-demo-ai` est
+  autorisé sur l'origine Supabase de confiance.
 
-- `commercial_demo_ai_conversations`
-- `commercial_demo_ai_messages`
-- `commercial_demo_ai_generations`
+La recommandation officielle OpenAI est de conserver la clé sur un backend et
+dans une variable d'environnement :
+<https://help.openai.com/en/articles/5112595-best-practices-for-api-key-safety>.
 
-Le navigateur dispose uniquement de `SELECT` sous RLS. Les écritures passent par
-les RPC `commercial_demo_ai_respond`, `commercial_demo_ai_generate_visual` et
-`commercial_demo_ai_archive_conversation`, qui revalident la session, le rôle et
-le flag actif.
+## Contrat de la passerelle
 
-## Moteur sans coût
+`POST /functions/v1/commercial-demo-ai` accepte trois actions :
 
-`tok-demo-zero-cost-v1` compose les réponses à partir du restaurant simulé, de la
-commande, des réservations et des flags actifs. Le Studio Marketing produit un
-SVG responsive à partir du brief et de l'identité du restaurant simulé. Le SVG
-est échappé côté PostgreSQL, stocké dans la table Démo puis affiché comme URL
-`data:image/svg+xml` ; aucun fichier n'est envoyé dans le Storage de production.
+- `chat` pour Assistant IA et Chat IA ;
+- `visual_generate` pour Studio Marketing et Studio Photo ;
+- `visual_history` pour restituer les créations de la session avec une URL
+  signée de courte durée.
 
-Ollama peut continuer d'alimenter les traitements locaux de l'application, mais
-la démonstration commerciale ne dépend pas de l'ordinateur du commercial : le
-fallback gratuit reste donc disponible même si Ollama ou le worker local est
-hors ligne.
+Une quatrième action interne, `maintenance_cleanup`, est réservée au scheduler
+authentifié par secret. Elle vide la file de suppression Storage et n'est jamais
+accessible avec le JWT d'un commercial.
 
-## Vérification avant déploiement
+Chaque génération porte un `request_id`. La fonction calcule elle-même
+l'empreinte du payload : une répétition identique rejoue le résultat, une
+réutilisation différente ou une requête encore en cours renvoie un conflit.
+Les échecs restent rejouables sans créer de doublons.
 
-1. Exécuter `src/test/commercial-demo-ai-workspaces.test.ts`.
-2. Vérifier que la migration crée les trois tables avec RLS et les grants
-   minimaux.
-3. Ouvrir le Studio Marketing depuis la fenêtre Restaurateur et générer un
-   visuel ; le résultat doit indiquer `0 crédit`.
-4. Envoyer un message dans l'Assistant puis dans le Chat IA depuis les fenêtres
-   Démo.
-5. Confirmer qu'aucune ligne n'a été ajoutée aux tables IA ou média de
-   production.
+Les réponses exposent `credit_units: 0` et indiquent le modèle réellement
+utilisé. Les tokens et le coût fournisseur estimé sont journalisés dans le
+domaine Démo pour l'observabilité interne ; ils ne deviennent jamais des crédits
+facturés au commercial.
+
+## Garde-fous sans quota commercial
+
+L'absence de quota métier ne supprime pas les protections opérationnelles :
+
+- taille maximale des messages, prompts, contextes et références ;
+- validation des formats et signatures binaires d'image ;
+- au plus deux références JPEG, PNG ou WebP de 4 Mio chacune, transmises
+  temporairement à OpenAI pour l'édition et jamais publiées dans Storage ;
+- délai maximal sur chaque appel OpenAI ;
+- une génération active par clé d'idempotence et conflits explicites ;
+- limites globales du fournisseur et coupe-circuit d'infrastructure ;
+- URLs Storage privées et temporaires.
+
+La rétention ne limite pas les appels : elle conserve au plus 30 jours de
+données Démo, 100 visuels et 50 conversations par compte commercial, puis
+supprime les plus anciennes ressources via une file Storage interne.
+
+OpenAI applique aussi ses propres limites de débit, indépendamment des crédits
+TOK : <https://developers.openai.com/api/docs/guides/rate-limits>.
+
+## Ordre de déploiement
+
+1. Appliquer la migration `20260715044653_commercial_demo_openai_gateway.sql`.
+2. Confirmer que le secret Supabase `OPENAI_API_KEY` est présent sans en afficher
+   la valeur.
+3. Déployer l'Edge Function `commercial-demo-ai` avec `verify_jwt = false` au
+   gateway Supabase : l'authentification JWT applicative reste obligatoire via
+   `authenticateRequest`/`getUser`, comme pour les autres fonctions du projet.
+4. Déployer le frontend seulement après la disponibilité de la fonction.
+5. Vérifier que la migration a créé le job Cron
+   `commercial-demo-ai-storage-cleanup`. Il est planifié toutes les cinq minutes
+   lorsque `internal_cron_secret` existe dans Vault ; sinon ajouter le secret et
+   rejouer la planification. Le drain opportuniste à chaque session reste un
+   filet de sécurité.
+6. Ne pas réactiver les RPC `commercial_demo_ai_respond` ou
+   `commercial_demo_ai_generate_visual` pour le rôle `authenticated`.
+
+## Vérification avant mise en production
+
+1. Exécuter `commercial-demo-ai-policy.test.ts`,
+   `commercial-demo-ai-workspaces.test.ts`, les tests de firewall commercial et
+   les tests des effets sûrs.
+2. Depuis une session commerciale active, envoyer un message dans Assistant IA
+   puis Chat IA et vérifier que le modèle retourné n'est pas le moteur factice.
+3. Générer un visuel Marketing puis Photo, recharger la page et vérifier
+   l'historique ainsi que l'URL signée.
+4. Rejouer le même `request_id`, puis le réutiliser avec un autre payload, pour
+   valider respectivement le replay et le conflit `409`.
+5. Confirmer que `credit_units` reste à zéro, que le coût fournisseur est tracé,
+   et qu'aucune table IA, média, crédit ou comptable de production n'a reçu de
+   ligne.
+6. Confirmer qu'un utilisateur non mappé, une session inactive, un flag désactivé
+   et un autre slug Edge sont refusés.

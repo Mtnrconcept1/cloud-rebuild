@@ -181,6 +181,8 @@ export async function invokeSupabaseFunction<TData = unknown>(
     accessToken?: string;
     body?: unknown;
     headers?: Record<string, string>;
+    signal?: AbortSignal;
+    timeout?: number;
   } = {},
 ) {
   const { accessToken: providedAccessToken, ...invokeOptions } = options;
