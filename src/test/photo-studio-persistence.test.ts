@@ -564,14 +564,17 @@ describe("TOK photo studio persistence", () => {
     const progressDialog = readFileSync(resolve(process.cwd(), "src/components/ui/ai-generation-progress-dialog.tsx"), "utf8");
 
     expect(progressDialog).toContain('data-testid="ai-generation-progress-dialog"');
-    expect(progressDialog).toContain("tokAiModalOrbit");
-    expect(progressDialog).toContain("tokAiModalScan");
-    expect(progressDialog).toContain("tokAiModalProgress");
+    expect(progressDialog).toContain("tokAiOrbit");
+    expect(progressDialog).toContain("tokAiBreathe");
+    expect(progressDialog).toContain("tokAiSweep");
+    expect(progressDialog).toContain("useEstimatedProgress");
     expect(progressDialog).toContain("prefers-reduced-motion");
     expect(source).not.toContain("TokLogoGenerationLoader");
     expect(source).toContain("AiGenerationProgressDialog");
     expect(source).toContain("Retouche PhotoPro en cours");
     expect(source).toContain("open={loading}");
+    expect(source).toContain('kind="image"');
+    expect(source).toContain("estimatedDurationMs={105_000}");
   });
 
   it("requests image-only generation and does not render generated marketing copy", () => {
