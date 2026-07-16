@@ -121,7 +121,9 @@ describe("commercial demo visible navigation isolation", () => {
   });
 
   it("hydrates the restaurant selector only from the validated snapshot in a frame", () => {
-    expect(dashboardContext).toContain(\n      "useOwnerRestaurants({ enabled: !commercialDemoFrame })",\n    );
+    expect(dashboardContext).toContain(
+      "useOwnerRestaurants({ enabled: !commercialDemoFrame })",
+    );
     expect(dashboardContext).toContain(
       "commercialDemoFrame?.snapshot.session.demo_restaurant_id",
     );
