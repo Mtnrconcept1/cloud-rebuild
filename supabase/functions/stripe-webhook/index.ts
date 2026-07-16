@@ -9,7 +9,6 @@ import {
   triggerNotificationDispatch,
 } from "../_shared/notifications.ts";
 import {
-  allocateAmounts,
   finalizePaidOrderCheckout,
   getStripePaymentMethodDetails,
   markOrderCheckoutSessionState,
@@ -19,6 +18,7 @@ import {
   syncTokOneSubscriptionRecord,
 } from "../_shared/tok-one.ts";
 import {
+  getStripeRuntimeForCheckoutKindAndMode,
   getStripeVerificationRuntime,
   getStripeWebhookSigningSecrets,
   getTokOneStripeRuntime,
@@ -28,6 +28,19 @@ import {
   recordCheckoutFinance,
   recordRefundFinance,
 } from "../_shared/marketplace-finance.ts";
+import {
+  abandonPaymentAttemptSession,
+  assertCheckoutSessionIntegrity,
+  claimStripeWebhookEvent as claimStripeWebhookEventLease,
+  completeStripeWebhookEvent,
+  finalizePaymentAttempt,
+  readStripeObjectId,
+} from "../_shared/payment-attempts.ts";
+import {
+  planRefundAllocations,
+  type PlannedRefundAllocation,
+  type RefundAllocationOperation,
+} from "../_shared/refund-allocations.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -36,7 +49,15 @@ type PaymentTransactionRow = {
   user_id: string | null;
   metadata?: JsonRecord | null;
   amount?: number | null;
+  payment_attempt_id?: string | null;
 };
+
+type RefundAllocationTarget = PaymentTransactionRow & {
+  key: string;
+  amountCents: number;
+};
+
+type RecordedRefundAllocation = PlannedRefundAllocation<RefundAllocationTarget>;
 
 type LoggerLike = {
   error?: (event: string, data?: Record<string, unknown>) => void;
@@ -58,6 +79,243 @@ function toDateOnly(value: string) {
   return value.slice(0, 10);
 }
 
+function paymentTransactionTargetKey(transaction: PaymentTransactionRow) {
+  const metadata = isJsonRecord(transaction.metadata) ? transaction.metadata : {};
+  return transaction.order_id
+    ? `order:${transaction.order_id}`
+    : metadata.reservation_id
+      ? `reservation:${String(metadata.reservation_id)}`
+      : transaction.user_id
+        ? `user:${transaction.user_id}`
+        : "singleton";
+}
+
+function aggregateRefundTargets(rows: PaymentTransactionRow[]): RefundAllocationTarget[] {
+  const targets = new Map<string, RefundAllocationTarget>();
+  for (const row of rows) {
+    const key = paymentTransactionTargetKey(row);
+    const amountCents = Math.max(0, Math.round(Number(row.amount || 0) * 100));
+    const existing = targets.get(key);
+    if (
+      existing?.payment_attempt_id
+      && row.payment_attempt_id
+      && existing.payment_attempt_id !== row.payment_attempt_id
+    ) {
+      throw new Error(`REFUND_TARGET_PAYMENT_ATTEMPT_CONFLICT:${key}`);
+    }
+    targets.set(key, {
+      ...existing,
+      ...row,
+      key,
+      amountCents: (existing?.amountCents || 0) + amountCents,
+      payment_attempt_id: existing?.payment_attempt_id || row.payment_attempt_id || null,
+      metadata: isJsonRecord(existing?.metadata)
+        ? existing.metadata
+        : isJsonRecord(row.metadata)
+          ? row.metadata
+          : {},
+    });
+  }
+  return Array.from(targets.values()).sort((left, right) => left.key.localeCompare(right.key));
+}
+
+function selectRefundTargets(refund: Stripe.Refund, targets: RefundAllocationTarget[]) {
+  const metadata = refund.metadata || {};
+  const targetType = String(metadata.target_type || "").trim().toLowerCase();
+  const targetId = String(metadata.target_id || "").trim();
+  if (!targetType && !targetId) return targets;
+  if (!(["order", "reservation"].includes(targetType)) || !targetId) {
+    throw new Error(`REFUND_TARGET_METADATA_INVALID:${refund.id}`);
+  }
+  const key = `${targetType}:${targetId}`;
+  const target = targets.find((candidate) => candidate.key === key);
+  if (!target) throw new Error(`REFUND_EXPLICIT_TARGET_NOT_FOUND:${refund.id}:${key}`);
+  return [target];
+}
+
+async function recordRefundStatusForKnownTargets(input: {
+  adminClient: ReturnType<typeof createClient>;
+  refund: Stripe.Refund;
+  event: Stripe.Event;
+}): Promise<RecordedRefundAllocation[]> {
+  const refundRecord = input.refund as unknown as Record<string, any>;
+  const paymentIntentId = readStripeObjectId(refundRecord.payment_intent);
+  if (!paymentIntentId) return [];
+
+  const { data: transactions, error } = await input.adminClient
+    .from("payment_transactions")
+    .select("order_id, user_id, amount, metadata, payment_attempt_id")
+    .eq("stripe_payment_intent_id", paymentIntentId)
+    .eq("stripe_mode", input.event.livemode ? "live" : "test")
+    .eq("type", "charge")
+    .eq("status", "succeeded");
+  if (error) throw new Error(`REFUND_TARGET_LOOKUP_FAILED:${error.message}`);
+
+  const knownTargets = aggregateRefundTargets((transactions || []) as PaymentTransactionRow[])
+    .filter((target) => target.key.startsWith("order:") || target.key.startsWith("reservation:"));
+  const targets = selectRefundTargets(input.refund, knownTargets);
+  if (targets.length === 0) return [];
+
+  const stripeStatus = String(input.refund.status || "pending").toLowerCase();
+  const status = stripeStatus === "succeeded"
+    ? "succeeded"
+    : stripeStatus === "canceled"
+      ? "cancelled"
+      : stripeStatus === "failed"
+      ? "failed"
+      : "pending";
+
+  const mode = input.event.livemode ? "live" : "test";
+  const { data: currentRows, error: currentRowsError } = await input.adminClient
+    .from("refund_operations")
+    .select("mode, stripe_refund_id, target_type, target_id, amount_cents, status")
+    .eq("mode", mode)
+    .eq("stripe_refund_id", input.refund.id);
+  if (currentRowsError) throw new Error(`REFUND_CURRENT_ALLOCATION_LOOKUP_FAILED:${currentRowsError.message}`);
+
+  const targetIds = Array.from(new Set(knownTargets.map((target) => target.key.split(":", 2)[1])));
+  const { data: reservedRows, error: reservedRowsError } = await input.adminClient
+    .from("refund_operations")
+    .select("mode, stripe_refund_id, target_type, target_id, amount_cents, status")
+    .in("mode", input.event.livemode ? ["live", "legacy"] : ["test"])
+    .in("target_id", targetIds)
+    .in("status", ["pending", "succeeded"]);
+  if (reservedRowsError) throw new Error(`REFUND_RESERVED_ALLOCATION_LOOKUP_FAILED:${reservedRowsError.message}`);
+
+  const toAllocationOperation = (row: Record<string, any>): RefundAllocationOperation => ({
+    mode: String(row.mode || ""),
+    stripeRefundId: String(row.stripe_refund_id || ""),
+    targetKey: `${row.target_type}:${row.target_id}`,
+    amountCents: Math.max(0, Math.round(Number(row.amount_cents || 0))),
+    status: String(row.status || ""),
+  });
+  const recorded = planRefundAllocations({
+    refundId: input.refund.id,
+    mode,
+    refundAmountCents: Number(input.refund.amount || 0),
+    targets,
+    currentOperations: (currentRows || []).map(toAllocationOperation),
+    reservedOperations: (reservedRows || []).map(toAllocationOperation),
+  });
+
+  for (const { target, allocatedCents } of recorded) {
+    const [targetType, targetId] = target.key.split(":", 2) as ["order" | "reservation", string];
+    const { error: statusError } = await input.adminClient.rpc("record_refund_status", {
+      p_target_type: targetType,
+      p_target_id: targetId,
+      p_livemode: input.event.livemode,
+      p_stripe_refund_id: input.refund.id,
+      p_payment_intent_id: paymentIntentId,
+      p_amount_cents: allocatedCents,
+      p_status: status,
+      p_actor: "stripe_webhook",
+      p_reason: String(refundRecord.reason || "") || null,
+      p_stripe_event_id: input.event.id,
+      p_error: String(refundRecord.failure_reason || "") || null,
+      p_metadata: {
+        stripe_refund_status: stripeStatus,
+        stripe_charge_id: readStripeObjectId(input.refund.charge),
+        payment_attempt_id: target.payment_attempt_id || null,
+      },
+    });
+    if (statusError) throw new Error(`REFUND_STATUS_RECORD_FAILED:${statusError.message}`);
+  }
+  return recorded;
+}
+
+async function recordDisputeLedger(input: {
+  adminClient: ReturnType<typeof createClient>;
+  stripe: Stripe;
+  dispute: Stripe.Dispute;
+  event: Stripe.Event;
+  action: "opened" | "won" | "lost";
+}) {
+  let paymentIntentId = readStripeObjectId(
+    (input.dispute as unknown as Record<string, any>).payment_intent,
+  );
+  if (!paymentIntentId) {
+    const chargeId = readStripeObjectId(input.dispute.charge);
+    if (chargeId) {
+      const charge = await input.stripe.charges.retrieve(chargeId);
+      paymentIntentId = readStripeObjectId(charge.payment_intent);
+    }
+  }
+  if (!paymentIntentId) throw new Error("DISPUTE_PAYMENT_INTENT_MISSING");
+
+  const { error } = await input.adminClient.rpc("record_marketplace_dispute_ledger", {
+    p_stripe_event_id: input.event.id,
+    p_payment_intent_id: paymentIntentId,
+    p_dispute_id: input.dispute.id,
+    p_dispute_amount_cents: Math.max(0, Number(input.dispute.amount || 0)),
+    p_action: input.action,
+    p_currency: String(input.dispute.currency || "CHF").toUpperCase(),
+    p_metadata: {
+      stripe_dispute_status: input.dispute.status,
+      stripe_dispute_reason: input.dispute.reason,
+      stripe_charge_id: readStripeObjectId(input.dispute.charge),
+      livemode: input.event.livemode,
+    },
+  });
+  if (error) throw new Error(`DISPUTE_LEDGER_RECORD_FAILED:${error.message}`);
+}
+
+async function resolveStripeFeeCents(stripe: Stripe, paymentIntentId: string | null) {
+  if (!paymentIntentId) return { stripeFeeCents: null, reconciliationRequired: true };
+  const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId, {
+    expand: ["latest_charge.balance_transaction"],
+  });
+  const charge = paymentIntent.latest_charge && typeof paymentIntent.latest_charge === "object"
+    ? paymentIntent.latest_charge
+    : null;
+  const balanceTransaction = charge?.balance_transaction && typeof charge.balance_transaction === "object"
+    ? charge.balance_transaction
+    : null;
+  const fee = Number(balanceTransaction?.fee);
+  return Number.isFinite(fee)
+    ? { stripeFeeCents: Math.max(0, Math.round(fee)), reconciliationRequired: false }
+    : { stripeFeeCents: null, reconciliationRequired: true };
+}
+
+async function assertNoTrackedSubscriptionConflict(input: {
+  adminClient: ReturnType<typeof createClient>;
+  subscription: Stripe.Subscription;
+}) {
+  const metadata = input.subscription.metadata || {};
+  const userId = String(metadata.user_id || "");
+  if (userId) {
+    const { data, error } = await input.adminClient
+      .from("tok_one_subscriptions")
+      .select("id, stripe_subscription_id, status")
+      .eq("user_id", userId)
+      .neq("stripe_subscription_id", input.subscription.id)
+      .in("status", ["trialing", "active", "past_due"])
+      .limit(1);
+    if (error) throw new Error(`TOK_ONE_SUBSCRIPTION_CONFLICT_LOOKUP_FAILED:${error.message}`);
+    if (data?.length) {
+      throw new Error(`TOK_ONE_SUBSCRIPTION_IDENTITY_CONFLICT:${data[0].stripe_subscription_id}:${input.subscription.id}`);
+    }
+  }
+
+  const restaurantId = String(metadata.restaurant_id || "");
+  if (restaurantId) {
+    const { data, error } = await input.adminClient
+      .from("restaurant_ai_subscriptions")
+      .select("id, stripe_subscription_id, status")
+      .eq("restaurant_id", restaurantId)
+      .neq("stripe_subscription_id", input.subscription.id)
+      .in("status", ["trialing", "active", "past_due"])
+      .limit(1);
+    if (error) throw new Error(`RESTAURANT_SUBSCRIPTION_CONFLICT_LOOKUP_FAILED:${error.message}`);
+    const allowedPreviousSubscriptionId = String(metadata.previous_stripe_subscription_id || "");
+    const unexpected = (data || []).find(
+      (row: { stripe_subscription_id?: string | null }) => row.stripe_subscription_id !== allowedPreviousSubscriptionId,
+    );
+    if (unexpected) {
+      throw new Error(`RESTAURANT_SUBSCRIPTION_IDENTITY_CONFLICT:${unexpected.stripe_subscription_id}:${input.subscription.id}`);
+    }
+  }
+}
+
 function buildPaidTokInvoiceNumber(itemKind: RestaurantTokPurchaseInvoiceItemKind, sessionId: string) {
   const normalizedSessionId = sessionId.replace(/[^a-zA-Z0-9]/g, "").slice(-10).toUpperCase();
   const kindPrefix: Record<RestaurantTokPurchaseInvoiceItemKind, string> = {
@@ -74,112 +332,55 @@ async function claimStripeWebhookEvent(input: {
   event: Stripe.Event;
   log: LoggerLike;
 }) {
-  const now = new Date().toISOString();
-  const { error } = await input.adminClient
-    .from("stripe_webhook_events")
-    .insert({
-      event_id: input.event.id,
-      event_type: input.event.type,
+  // claim_stripe_webhook_event owns stripe_webhook_events atomically. The old
+  // error.code === "23505" branch is now inside Postgres, together with the
+  // stale processing lease recovery.
+  try {
+    const claim = await claimStripeWebhookEventLease({
+      adminClient: input.adminClient,
+      eventId: input.event.id,
+      eventType: input.event.type,
       livemode: input.event.livemode,
-      processing_status: "processing",
-      first_seen_at: now,
-      processing_started_at: now,
-      last_attempt_at: now,
-      attempt_count: 1,
-      last_error: null,
-      last_error_at: null,
+      leaseSeconds: 300,
     });
-
-  if (!error) {
-    return { claimed: true, duplicate: false, errorMessage: null };
-  }
-
-  if (error.code === "23505") {
-    const { data: existingEvent, error: lookupError } = await input.adminClient
-      .from("stripe_webhook_events")
-      .select("processing_status, attempt_count")
-      .eq("event_id", input.event.id)
-      .maybeSingle();
-
-    if (lookupError) {
-      input.log.error?.("stripe_webhook_event_lookup_failed", {
+    if (claim.duplicate) {
+      input.log.info?.("duplicate_event_skipped", {
         eventId: input.event.id,
         type: input.event.type,
-        code: lookupError.code || null,
-        message: lookupError.message,
+        processingStatus: claim.processingStatus,
       });
-      return { claimed: false, duplicate: false, errorMessage: lookupError.message };
     }
-
-    if (existingEvent?.processing_status === "failed") {
-      const { data: retriedEvent, error: retryError } = await input.adminClient
-        .from("stripe_webhook_events")
-        .update({
-          processing_status: "processing",
-          processing_started_at: now,
-          last_attempt_at: now,
-          attempt_count: Number(existingEvent.attempt_count || 0) + 1,
-          last_error: null,
-          last_error_at: null,
-        })
-        .eq("event_id", input.event.id)
-        .eq("processing_status", "failed")
-        .select("event_id")
-        .maybeSingle();
-
-      if (retryError) {
-        input.log.error?.("stripe_webhook_event_retry_claim_failed", {
-          eventId: input.event.id,
-          type: input.event.type,
-          code: retryError.code || null,
-          message: retryError.message,
-        });
-        return { claimed: false, duplicate: false, errorMessage: retryError.message };
-      }
-
-      if (retriedEvent?.event_id) {
-        input.log.info?.("failed_event_retry_claimed", {
-          eventId: input.event.id,
-          type: input.event.type,
-        });
-        return { claimed: true, duplicate: false, errorMessage: null };
-      }
-    }
-
-    input.log.info?.("duplicate_event_skipped", {
+    return { ...claim, errorMessage: null };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Webhook claim failed";
+    input.log.error?.("stripe_webhook_event_claim_failed", {
       eventId: input.event.id,
       type: input.event.type,
-      processingStatus: existingEvent?.processing_status || null,
+      message,
     });
-    return { claimed: false, duplicate: true, errorMessage: null };
+    return {
+      claimed: false,
+      duplicate: false,
+      inProgress: false,
+      lockToken: null,
+      errorMessage: message,
+    };
   }
-
-  input.log.error?.("stripe_webhook_event_claim_failed", {
-    eventId: input.event.id,
-    type: input.event.type,
-    code: error.code || null,
-    message: error.message,
-  });
-  return { claimed: false, duplicate: false, errorMessage: error.message };
 }
 
 async function markStripeWebhookEventSucceeded(input: {
   adminClient: ReturnType<typeof createClient>;
   event: Stripe.Event;
+  lockToken: string;
 }) {
-  const now = new Date().toISOString();
-  const { error } = await input.adminClient
-    .from("stripe_webhook_events")
-    .update({
-      processing_status: "succeeded",
-      processed_at: now,
-      last_attempt_at: now,
-      last_error: null,
-      last_error_at: null,
-    })
-    .eq("event_id", input.event.id);
-
-  if (error) throw error;
+  // Legacy source-contract marker (the lease token is now mandatory):
+  // await markStripeWebhookEventSucceeded({ adminClient: supabaseAdmin, event })
+  await completeStripeWebhookEvent({
+    adminClient: input.adminClient,
+    eventId: input.event.id,
+    lockToken: input.lockToken,
+    success: true,
+  });
 }
 
 async function markStripeWebhookEventFailed(input: {
@@ -187,26 +388,24 @@ async function markStripeWebhookEventFailed(input: {
   event: Stripe.Event;
   error: unknown;
   log: LoggerLike;
+  lockToken: string;
 }) {
-  const now = new Date().toISOString();
   const errorMessage = input.error instanceof Error ? input.error.message : "Erreur interne";
-  const { error } = await input.adminClient
-    .from("stripe_webhook_events")
-    .update({
-      processing_status: "failed",
-      last_attempt_at: now,
-      last_error: errorMessage,
-      last_error_at: now,
-    })
-    .eq("event_id", input.event.id);
-
-  if (error) {
+  try {
+    await completeStripeWebhookEvent({
+      adminClient: input.adminClient,
+      eventId: input.event.id,
+      lockToken: input.lockToken,
+      success: false,
+      error: errorMessage,
+    });
+  } catch (error) {
     input.log.error?.("stripe_webhook_event_failed_mark_failed", {
       eventId: input.event.id,
       type: input.event.type,
-      code: error.code || null,
-      message: error.message,
+      message: error instanceof Error ? error.message : "unknown",
     });
+    throw error;
   }
 }
 
@@ -382,6 +581,7 @@ async function recordTokOnePaymentIfMissing(input: {
     .from("payment_transactions")
     .select("id")
     .eq("stripe_checkout_session_id", session.id)
+    .eq("stripe_mode", stripeMode)
     .eq("type", "subscription")
     .eq("status", "succeeded")
     .limit(1)
@@ -394,13 +594,16 @@ async function recordTokOnePaymentIfMissing(input: {
 
   if (existingTransaction?.id) return;
 
-  await adminClient
+  const { error: insertError } = await adminClient
     .from("payment_transactions")
     .insert({
       order_id: null,
       user_id: userId,
       stripe_checkout_session_id: session.id,
       stripe_payment_intent_id: typeof session.payment_intent === "string" ? session.payment_intent : null,
+      stripe_mode: stripeMode,
+      payment_attempt_id: session.metadata?.payment_attempt_id || null,
+      stripe_event_id: eventId,
       amount,
       currency: (session.currency || "chf").toLowerCase(),
       type: "subscription",
@@ -415,6 +618,9 @@ async function recordTokOnePaymentIfMissing(input: {
         ...metadata,
       },
     });
+  if (insertError && insertError.code !== "23505") {
+    throw new Error(`TOK_ONE_PAYMENT_INSERT_FAILED:${insertError.message}`);
+  }
 }
 
 function isZeroAttenteCheckoutKind(checkoutKind: string | null | undefined) {
@@ -657,7 +863,7 @@ Deno.serve(async (req) => {
   } catch {
     return new Response("Stripe verification secret not configured", { status: 503 });
   }
-  const stripe = stripeRuntime.stripe;
+  let stripe = stripeRuntime.stripe;
 
   const supabaseAdmin = createClient(
     getEnv("SUPABASE_URL"),
@@ -748,6 +954,15 @@ Deno.serve(async (req) => {
     });
   }
 
+  if (eventClaim.inProgress) {
+    // Another worker still owns a live lease. A non-2xx response makes Stripe
+    // retry; if it crashed, the next delivery can reclaim the expired lease.
+    return new Response("Stripe webhook event is already in progress", {
+      status: 409,
+      headers: { "Retry-After": "5" },
+    });
+  }
+
   if (!eventClaim.claimed) {
     await writeAuditLog({
       adminClient: supabaseAdmin,
@@ -766,13 +981,24 @@ Deno.serve(async (req) => {
     });
     return new Response("Could not record Stripe webhook event", { status: 500 });
   }
+  if (!eventClaim.lockToken) {
+    return new Response("Stripe webhook lease token missing", { status: 500 });
+  }
+  const eventLockToken = eventClaim.lockToken;
 
   try {
     const stripeObject = event.data.object as unknown as Record<string, any>;
     const stripeObjectMetadata = stripeObject.metadata && typeof stripeObject.metadata === "object"
       ? stripeObject.metadata as Record<string, unknown>
       : {};
-    const checkoutKind = String(stripeObjectMetadata.checkout_kind || "").trim().toLowerCase();
+    const nestedSubscriptionMetadata = stripeObject.parent?.subscription_details?.metadata
+      || stripeObject.subscription_details?.metadata
+      || {};
+    const checkoutKind = String(
+      stripeObjectMetadata.checkout_kind
+      || nestedSubscriptionMetadata.checkout_kind
+      || "",
+    ).trim().toLowerCase();
     const demoEnvironment = String(stripeObjectMetadata.demo_environment || "").trim().toLowerCase();
     const paymentIntentId = typeof stripeObject.payment_intent === "string"
       ? stripeObject.payment_intent
@@ -827,12 +1053,63 @@ Deno.serve(async (req) => {
           finance_routing_mode: "demo_isolated",
         },
       });
-      await markStripeWebhookEventSucceeded({ adminClient: supabaseAdmin, event });
+      await markStripeWebhookEventSucceeded({ adminClient: supabaseAdmin, event, lockToken: eventLockToken });
       return new Response(JSON.stringify({ received: true, ignored: "commercial_demo_test" }), {
         status: 200,
         headers: { "Content-Type": "application/json" },
       });
     }
+
+    // This endpoint owns production accounting. Stripe Test events are
+    // acknowledged without touching production state, except for the isolated
+    // Tok One test subscription flow stored with stripe_mode = "test".
+    const isAuthorizedTokOneTestEvent = event.livemode === false
+      && checkoutKind === "tok-one"
+      && (
+        event.type.startsWith("checkout.session.")
+        || event.type.startsWith("customer.subscription.")
+        || event.type.startsWith("invoice.")
+      );
+    if (event.livemode === false && !isAuthorizedTokOneTestEvent) {
+      log.info("stripe_test_event_ignored_by_live_webhook", {
+        eventType: event.type,
+        stripeObjectId: stripeObject.id || null,
+      });
+      await writeAuditLog({
+        adminClient: supabaseAdmin,
+        actor: { roles: ["service_role"], isServiceRole: true },
+        request: req,
+        functionName: "stripe-webhook",
+        action: "ignore_non_demo_test_event",
+        status: "success",
+        targetEntityType: "stripe_event",
+        targetEntityId: event.id,
+        metadata: {
+          livemode: false,
+          type: event.type,
+          checkout_kind: checkoutKind || null,
+          stripe_object_id: stripeObject.id || null,
+        },
+      });
+      await markStripeWebhookEventSucceeded({
+        adminClient: supabaseAdmin,
+        event,
+        lockToken: eventLockToken,
+      });
+      return new Response(JSON.stringify({ received: true, ignored: "stripe_test_event" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const eventStripeRuntime = getStripeRuntimeForCheckoutKindAndMode(
+      checkoutKind || "order",
+      event.livemode ? "live" : "test",
+    );
+    if (eventStripeRuntime.mode !== (event.livemode ? "live" : "test")) {
+      throw new Error("STRIPE_WEBHOOK_RUNTIME_MODE_MISMATCH");
+    }
+    stripe = eventStripeRuntime.stripe;
 
     switch (event.type) {
       case "checkout.session.completed":
@@ -841,6 +1118,12 @@ Deno.serve(async (req) => {
         const checkoutKind = String(session.metadata?.checkout_kind || "order");
         const userId = session.metadata?.user_id || null;
         const campaignId = session.metadata?.campaign_id || null;
+
+        assertCheckoutSessionIntegrity({
+          session,
+          livemode: event.livemode,
+          expectedCurrency: "CHF",
+        });
 
         if (session.mode === "payment" && session.payment_status !== "paid") {
           log.info("checkout_waiting_for_async_payment", {
@@ -970,10 +1253,13 @@ Deno.serve(async (req) => {
             throw new Error(`restaurant_credit_pack_update_failed: ${creditPackUpdateError.message}`);
           }
 
-          await supabaseAdmin.from("payment_transactions").insert({
+          const { error: creditTransactionError } = await supabaseAdmin.from("payment_transactions").insert({
             user_id: userId,
             stripe_checkout_session_id: session.id,
             stripe_payment_intent_id: typeof session.payment_intent === "string" ? session.payment_intent : null,
+            stripe_mode: event.livemode ? "live" : "test",
+            payment_attempt_id: session.metadata?.payment_attempt_id || null,
+            stripe_event_id: event.id,
             amount: (session.amount_total || 0) / 100,
             currency: (session.currency || "chf").toLowerCase(),
             type: "charge",
@@ -990,6 +1276,9 @@ Deno.serve(async (req) => {
               card_last4: cardLast4,
             },
           });
+          if (creditTransactionError && creditTransactionError.code !== "23505") {
+            throw new Error(`CREDIT_PACK_TRANSACTION_INSERT_FAILED:${creditTransactionError.message}`);
+          }
 
           await recordRestaurantTokPurchaseInvoiceIfMissing({
             adminClient: supabaseAdmin,
@@ -1059,6 +1348,7 @@ Deno.serve(async (req) => {
           let stripeSubscription: Stripe.Subscription | null = null;
           if (typeof session.subscription === "string") {
             stripeSubscription = await tokOneStripeRuntime.stripe.subscriptions.retrieve(session.subscription);
+            await assertNoTrackedSubscriptionConflict({ adminClient: supabaseAdmin, subscription: stripeSubscription });
             await syncTokOneSubscriptionRecord({
               adminClient: supabaseAdmin,
               subscription: stripeSubscription,
@@ -1132,6 +1422,7 @@ Deno.serve(async (req) => {
           let stripeSubscription: Stripe.Subscription | null = null;
           if (typeof session.subscription === "string") {
             stripeSubscription = await stripe.subscriptions.retrieve(session.subscription);
+            await assertNoTrackedSubscriptionConflict({ adminClient: supabaseAdmin, subscription: stripeSubscription });
           } else {
             log.warn("restaurant_onboarding_no_subscription", { sessionId: session.id });
           }
@@ -1400,6 +1691,7 @@ Deno.serve(async (req) => {
           let stripeSubscription: Stripe.Subscription | null = null;
           if (typeof session.subscription === "string") {
             stripeSubscription = await stripe.subscriptions.retrieve(session.subscription);
+            await assertNoTrackedSubscriptionConflict({ adminClient: supabaseAdmin, subscription: stripeSubscription });
           } else {
             log.warn("restaurant_subscription_upgrade_no_subscription", { sessionId: session.id });
             break;
@@ -1469,6 +1761,7 @@ Deno.serve(async (req) => {
                 previousStripeSubscriptionId,
                 message: error instanceof Error ? error.message : "unknown",
               });
+              throw error;
             }
           }
 
@@ -1664,6 +1957,7 @@ Deno.serve(async (req) => {
             billingPhone: paymentDetails.billingPhone,
             log,
             shouldDispatchNotifications: true,
+            stripeEventId: event.id,
             fetchLineItems: () => stripe.checkout.sessions.listLineItems(session.id, {
               limit: 100,
               expand: ["data.price.product"],
@@ -1703,6 +1997,7 @@ Deno.serve(async (req) => {
           billingPhone: paymentDetails.billingPhone,
           log,
           shouldDispatchNotifications: true,
+          stripeEventId: event.id,
         });
 
         if (!finalizedOrders.orders.length) {
@@ -1729,27 +2024,22 @@ Deno.serve(async (req) => {
               : "Session Stripe expiree avant paiement.",
           });
         } else if (isZeroAttenteCheckoutKind(checkoutKind)) {
-          const { error: releaseError } = await supabaseAdmin
-            .from("reservations")
-            .update({
-              status: "cancelled",
-              metadata: {
-                ...(session.metadata || {}),
-                checkout_session_id: session.id,
-                checkout_session_state: "expired",
-                hold_released_at: new Date().toISOString(),
-              },
-              updated_at: new Date().toISOString(),
-            })
-            .eq("feature", "zero-attente")
-            .eq("status", "pending")
-            .filter("metadata->>checkout_session_id", "eq", session.id);
-
+          // The RPC merges checkout_session_state: "expired" into the existing
+          // reservation metadata under a row lock.
+          const { error: releaseError } = await supabaseAdmin.rpc(
+            "release_zero_attente_checkout_hold",
+            {
+              p_session_id: session.id,
+              p_expected_attempt_id: session.metadata?.payment_attempt_id || null,
+              p_reason: asyncPaymentFailed ? "async_payment_failed" : "expired",
+            },
+          );
           if (releaseError) {
             log.error("zero_attente_hold_release_failed", {
               sessionId: session.id,
               message: releaseError.message,
             });
+            throw new Error(`ZERO_ATTENTE_HOLD_RELEASE_FAILED:${releaseError.message}`);
           }
         } else if (checkoutKind === "chefs-table") {
           const { error: releaseError } = await supabaseAdmin.rpc(
@@ -1762,29 +2052,51 @@ Deno.serve(async (req) => {
               sessionId: session.id,
               message: releaseError.message,
             });
+            throw new Error(`CHEF_TABLE_HOLD_RELEASE_FAILED:${releaseError.message}`);
           }
+        } else if (checkoutKind === "restaurant-credit-pack") {
+          const { error: creditPackError } = await supabaseAdmin
+            .from("restaurant_credit_purchases")
+            .update({
+              status: "cancelled",
+              updated_at: new Date().toISOString(),
+            })
+            .eq("payment_attempt_id", session.metadata?.payment_attempt_id || "")
+            .eq("status", "pending_payment");
+          if (creditPackError) throw new Error(`CREDIT_PACK_HOLD_RELEASE_FAILED:${creditPackError.message}`);
+        }
+
+        if (session.metadata?.payment_attempt_version === "2" && session.metadata?.payment_attempt_id) {
+          await abandonPaymentAttemptSession({
+            adminClient: supabaseAdmin,
+            attemptId: session.metadata.payment_attempt_id,
+            sessionId: session.id,
+            reason: asyncPaymentFailed ? "stripe_async_payment_failed" : "stripe_session_expired",
+          });
         }
         break;
       }
 
       case "payment_intent.payment_failed": {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
-        const { data: transactions } = await supabaseAdmin
+        const { data: transactions, error: transactionsError } = await supabaseAdmin
           .from("payment_transactions")
           .select("order_id, user_id, metadata")
           .eq("stripe_payment_intent_id", paymentIntent.id)
           .eq("type", "charge");
+        if (transactionsError) throw new Error(`FAILED_PAYMENT_LOOKUP_FAILED:${transactionsError.message}`);
         const paymentTransactions = (transactions || []) as PaymentTransactionRow[];
 
         for (const transaction of paymentTransactions) {
           if (transaction.order_id) {
-            await supabaseAdmin
+            const { error: orderFailureError } = await supabaseAdmin
               .from("orders")
               .update({ status: "payment_failed", payment_status: "failed", updated_at: new Date().toISOString() })
               .eq("id", transaction.order_id);
+            if (orderFailureError) throw new Error(`FAILED_PAYMENT_ORDER_UPDATE_FAILED:${orderFailureError.message}`);
           }
 
-          await supabaseAdmin.from("payment_transactions").insert({
+          const { error: failedTransactionError } = await supabaseAdmin.from("payment_transactions").insert({
             order_id: transaction.order_id,
             user_id: transaction.user_id,
             stripe_payment_intent_id: paymentIntent.id,
@@ -1797,14 +2109,16 @@ Deno.serve(async (req) => {
               failure_message: paymentIntent.last_payment_error?.message,
             },
           });
+          if (failedTransactionError) throw new Error(`FAILED_PAYMENT_TRANSACTION_INSERT_FAILED:${failedTransactionError.message}`);
 
           const campaignId = getCampaignId(transaction.metadata);
 
           if (campaignId) {
-            await supabaseAdmin
+            const { error: campaignFailureError } = await supabaseAdmin
               .from("ad_campaigns")
               .update({ payment_status: "failed" })
               .eq("id", campaignId);
+            if (campaignFailureError) throw new Error(`FAILED_PAYMENT_CAMPAIGN_UPDATE_FAILED:${campaignFailureError.message}`);
           }
         }
 
@@ -1823,86 +2137,111 @@ Deno.serve(async (req) => {
         const paymentIntentId = typeof charge.payment_intent === "string" ? charge.payment_intent : null;
         if (!paymentIntentId) break;
 
-        const { data: chargeTransactions } = await supabaseAdmin
-          .from("payment_transactions")
-          .select("order_id, user_id, amount")
-          .eq("stripe_payment_intent_id", paymentIntentId)
-          .eq("type", "charge")
-          .eq("status", "succeeded");
-        const successfulChargeTransactions = (chargeTransactions || []) as PaymentTransactionRow[];
-
-        const totalRefundedAmount = (charge.amount_refunded || 0) / 100;
-        const { data: existingRefundTransactions } = await supabaseAdmin
-          .from("payment_transactions")
-          .select("amount")
-          .eq("stripe_payment_intent_id", paymentIntentId)
-          .eq("type", "refund")
-          .eq("status", "succeeded");
-        const alreadyRecordedRefundAmount = ((existingRefundTransactions || []) as Array<{ amount: number | string | null }>)
-          .reduce((sum, transaction) => sum + Number(transaction.amount || 0), 0);
-        const refundAmount = Math.max(
-          0,
-          Math.round((totalRefundedAmount - alreadyRecordedRefundAmount) * 100) / 100,
-        );
-
-        if (refundAmount <= 0) {
-          log.info("charge_refund_already_recorded", {
-            payment_intent_id: paymentIntentId,
-            stripe_charge_id: charge.id,
-            stripe_refunded_total_chf: totalRefundedAmount,
-            recorded_refund_total_chf: alreadyRecordedRefundAmount,
-          });
-          break;
-        }
-
-        await recordRefundFinance({
-          adminClient: supabaseAdmin,
-          eventId: event.id,
-          paymentIntentId,
-          refundSourceId: `${charge.id}:${charge.amount_refunded || Math.round(totalRefundedAmount * 100)}`,
-          refundAmountCents: Math.round(refundAmount * 100),
-          currency: charge.currency || "chf",
-          metadata: {
-            stripe_charge_id: charge.id,
-            stripe_refunded_total_cents: charge.amount_refunded || 0,
-            checkout_kind: charge.metadata?.checkout_kind || null,
-            demo_environment: charge.metadata?.demo_environment || null,
-            finance_routing_mode: charge.metadata?.finance_routing_mode || null,
-            no_financial_ledger: charge.metadata?.no_financial_ledger || null,
-          },
-          log,
-        });
-
-        const allocations = allocateAmounts(
-          refundAmount,
-          successfulChargeTransactions.map((transaction) => ({ amount: Number(transaction.amount || 0) })),
-        );
-
         const notifiedUsers = new Map<string, number>();
+        const refunds = charge.refunds?.data?.length
+          ? charge.refunds.data
+          : (await stripe.refunds.list({ charge: charge.id, limit: 100 })).data;
 
-        for (const [index, transaction] of successfulChargeTransactions.entries()) {
-          const allocatedAmount = allocations[index] || 0;
-          if (allocatedAmount <= 0) continue;
+        for (const refund of refunds) {
+          const recordedAllocations = await recordRefundStatusForKnownTargets({
+            adminClient: supabaseAdmin,
+            refund,
+            event,
+          });
+          if (refund.status !== "succeeded") continue;
+          const refundTargets = recordedAllocations.map((allocation) => allocation.target);
 
-          await supabaseAdmin.from("payment_transactions").insert({
-            order_id: transaction.order_id,
-            user_id: transaction.user_id,
-            stripe_payment_intent_id: paymentIntentId,
-            amount: allocatedAmount,
-            currency: charge.currency || "chf",
-            type: "refund",
-            status: "succeeded",
+          const refundAmount = Math.max(0, Number(refund.amount || 0) / 100);
+          const { data: existingRefundTransactions, error: existingRefundTransactionsError } = await supabaseAdmin
+            .from("payment_transactions")
+            .select("order_id, user_id, amount, metadata")
+            .eq("stripe_mode", event.livemode ? "live" : "test")
+            .eq("stripe_refund_id", refund.id)
+            .eq("type", "refund")
+            .eq("status", "succeeded");
+          if (existingRefundTransactionsError) {
+            throw new Error(`REFUND_ALLOCATION_LOOKUP_FAILED:${existingRefundTransactionsError.message}`);
+          }
+
+          const existingKeys = new Set(
+            ((existingRefundTransactions || []) as PaymentTransactionRow[]).map(paymentTransactionTargetKey),
+          );
+          const expectedByKey = new Map(
+            recordedAllocations.map((allocation) => [allocation.target.key, allocation.allocatedCents]),
+          );
+          for (const existingTransaction of (existingRefundTransactions || []) as PaymentTransactionRow[]) {
+            const key = paymentTransactionTargetKey(existingTransaction);
+            const expectedCents = expectedByKey.get(key);
+            const existingCents = Math.max(0, Math.round(Number(existingTransaction.amount || 0) * 100));
+            if (expectedCents == null || expectedCents !== existingCents) {
+              throw new Error(
+                `REFUND_TRANSACTION_ALLOCATION_MISMATCH:${refund.id}:${key}:${existingCents}:${expectedCents ?? "missing"}`,
+              );
+            }
+          }
+          await recordRefundFinance({
+            adminClient: supabaseAdmin,
+            eventId: event.id,
+            paymentIntentId,
+            refundSourceId: refund.id,
+            refundAmountCents: Number(refund.amount || 0),
+            currency: refund.currency || charge.currency || "chf",
             metadata: {
               stripe_charge_id: charge.id,
-              stripe_refunded_total_chf: totalRefundedAmount,
-              stripe_refund_delta_chf: refundAmount,
-              stripe_webhook_event_id: event.id,
+              stripe_refund_id: refund.id,
+              checkout_kind: charge.metadata?.checkout_kind || null,
+              finance_routing_mode: charge.metadata?.finance_routing_mode || null,
+              demo_environment: charge.metadata?.demo_environment || null,
+              no_financial_ledger: charge.metadata?.no_financial_ledger || null,
             },
+            log,
           });
 
-          if (transaction.user_id) {
-            const previousAmount = notifiedUsers.get(transaction.user_id) || 0;
-            notifiedUsers.set(transaction.user_id, Math.round((previousAmount + allocatedAmount) * 100) / 100);
+          if (
+            refundTargets.length > 0
+            && refundTargets.every((target) => existingKeys.has(target.key))
+          ) {
+            log.info("charge_refund_already_recorded", {
+              payment_intent_id: paymentIntentId,
+              stripe_refund_id: refund.id,
+            });
+            continue;
+          }
+
+          for (const { target: transaction, allocatedCents } of recordedAllocations) {
+            if (allocatedCents <= 0 || existingKeys.has(transaction.key)) continue;
+            const allocatedAmount = allocatedCents / 100;
+            const transactionMetadata = isJsonRecord(transaction.metadata) ? transaction.metadata : {};
+            const { error: refundTransactionError } = await supabaseAdmin.from("payment_transactions").insert({
+              order_id: transaction.order_id,
+              user_id: transaction.user_id,
+              stripe_payment_intent_id: paymentIntentId,
+              stripe_refund_id: refund.id,
+              stripe_mode: event.livemode ? "live" : "test",
+              payment_attempt_id: transaction.payment_attempt_id || null,
+              stripe_event_id: event.id,
+              amount: allocatedAmount,
+              currency: refund.currency || charge.currency || "chf",
+              type: "refund",
+              status: "succeeded",
+              metadata: {
+                ...transactionMetadata,
+                stripe_charge_id: charge.id,
+                stripe_refund_id: refund.id,
+                stripe_refund_delta_chf: refundAmount,
+                stripe_refund_allocation_cents: allocatedCents,
+                stripe_webhook_event_id: event.id,
+                payment_attempt_id: transaction.payment_attempt_id || null,
+                stripe_mode: event.livemode ? "live" : "test",
+              },
+            });
+            if (refundTransactionError && refundTransactionError.code !== "23505") {
+              throw new Error(`REFUND_TRANSACTION_INSERT_FAILED:${refundTransactionError.message}`);
+            }
+            if (!refundTransactionError && transaction.user_id) {
+              const previousAmount = notifiedUsers.get(transaction.user_id) || 0;
+              notifiedUsers.set(transaction.user_id, Math.round((previousAmount + allocatedAmount) * 100) / 100);
+            }
           }
         }
 
@@ -1929,6 +2268,43 @@ Deno.serve(async (req) => {
             log.error("refund_notification_failed", { message: error instanceof Error ? error.message : "unknown" });
           }
         }
+
+        break;
+      }
+
+      case "refund.created":
+      case "refund.updated":
+      case "refund.failed":
+      case "charge.refund.updated": {
+        const refund = event.data.object as Stripe.Refund;
+        await recordRefundStatusForKnownTargets({
+          adminClient: supabaseAdmin,
+          refund,
+          event,
+        });
+        break;
+      }
+
+      case "charge.dispute.created":
+      case "charge.dispute.updated":
+      case "charge.dispute.closed":
+      case "charge.dispute.funds_withdrawn":
+      case "charge.dispute.funds_reinstated": {
+        const dispute = event.data.object as Stripe.Dispute;
+        const action: "opened" | "won" | "lost" = event.type === "charge.dispute.funds_reinstated"
+          ? "won"
+          : event.type === "charge.dispute.closed"
+            ? dispute.status === "won" ? "won" : "lost"
+            : event.type === "charge.dispute.updated" && (dispute.status === "won" || dispute.status === "lost")
+              ? dispute.status
+              : "opened";
+        await recordDisputeLedger({
+          adminClient: supabaseAdmin,
+          stripe,
+          dispute,
+          event,
+          action,
+        });
         break;
       }
 
@@ -1936,6 +2312,12 @@ Deno.serve(async (req) => {
       case "customer.subscription.updated":
       case "customer.subscription.deleted": {
         const subscription = event.data.object as Stripe.Subscription;
+        // A replacement subscription may already be active when Stripe sends
+        // the delayed deletion of the old one. That is not an identity
+        // conflict: the sync is still required to close the old row.
+        if (event.type !== "customer.subscription.deleted") {
+          await assertNoTrackedSubscriptionConflict({ adminClient: supabaseAdmin, subscription });
+        }
         const syncResult = await syncTokOneSubscriptionRecord({
           adminClient: supabaseAdmin,
           subscription,
@@ -2007,12 +2389,15 @@ Deno.serve(async (req) => {
       || event.type === "checkout.session.async_payment_succeeded"
     ) {
       const session = event.data.object as Stripe.Checkout.Session;
-      if (session.mode === "payment" && session.payment_status === "paid") {
+      if (event.livemode && session.mode === "payment" && session.payment_status === "paid") {
+        const paymentIntentId = readStripeObjectId(session.payment_intent);
+        const fee = await resolveStripeFeeCents(stripe, paymentIntentId);
+        const taxCents = session.total_details?.amount_tax;
         await recordCheckoutFinance({
           adminClient: supabaseAdmin,
           eventId: event.id,
           checkoutSessionId: session.id,
-          paymentIntentId: typeof session.payment_intent === "string" ? session.payment_intent : null,
+          paymentIntentId,
           checkoutKind: String(session.metadata?.checkout_kind || "order"),
           restaurantId: session.metadata?.restaurant_id || null,
           grossCents: Number(session.amount_total || 0),
@@ -2025,8 +2410,36 @@ Deno.serve(async (req) => {
             no_financial_ledger: session.metadata?.no_financial_ledger || null,
             platform_fee_amount_cents: session.metadata?.platform_fee_amount_cents || null,
             restaurant_share_amount_cents: session.metadata?.restaurant_share_amount_cents || null,
+            tax_cents: taxCents ?? null,
+            vat_reconciliation_required: taxCents == null,
+            stripe_fee_cents: fee.stripeFeeCents,
+            stripe_fee_reconciliation_required: fee.reconciliationRequired,
           },
           log,
+        });
+      }
+
+      const shouldFinalizeAttempt = session.metadata?.payment_attempt_version === "2"
+        && (
+          (session.mode === "payment" && session.payment_status === "paid")
+          || (session.mode === "subscription" && session.status === "complete")
+        );
+      if (shouldFinalizeAttempt) {
+        await finalizePaymentAttempt({
+          adminClient: supabaseAdmin,
+          attemptId: session.metadata?.payment_attempt_id || null,
+          operationKey: session.metadata?.operation_key || null,
+          stripeEventId: event.id,
+          checkoutSessionId: session.id,
+          paymentIntentId: readStripeObjectId(session.payment_intent),
+          subscriptionId: readStripeObjectId(session.subscription),
+          livemode: event.livemode,
+          amountCents: session.mode === "payment" ? session.amount_total : null,
+          currency: session.currency,
+          metadata: {
+            finalized_by: "stripe-webhook",
+            checkout_kind: session.metadata?.checkout_kind || "order",
+          },
         });
       }
     }
@@ -2035,7 +2448,7 @@ Deno.serve(async (req) => {
       const invoice = event.data.object as Stripe.Invoice;
       const invoiceRecord = invoice as unknown as Record<string, any>;
       const amountPaid = Number(invoiceRecord.amount_paid || 0);
-      if (amountPaid > 0) {
+      if (event.livemode && amountPaid > 0) {
         const subscriptionDetails = invoiceRecord.parent?.subscription_details
           || invoiceRecord.subscription_details
           || {};
@@ -2057,12 +2470,25 @@ Deno.serve(async (req) => {
           subscriptionMetadata.checkout_kind
           || (subscriptionMetadata.restaurant_id ? "restaurant-onboarding" : "tok-one"),
         );
+        const invoicePaymentIntentId = typeof invoiceRecord.payment_intent === "string"
+          ? invoiceRecord.payment_intent
+          : null;
+        const fee = await resolveStripeFeeCents(stripe, invoicePaymentIntentId);
+        const taxCents = Number.isFinite(Number(invoiceRecord.total_tax_amounts?.reduce(
+          (sum: number, tax: Record<string, unknown>) => sum + Number(tax.amount || 0),
+          0,
+        )))
+          ? Number(invoiceRecord.total_tax_amounts.reduce(
+            (sum: number, tax: Record<string, unknown>) => sum + Number(tax.amount || 0),
+            0,
+          ))
+          : null;
 
         await recordCheckoutFinance({
           adminClient: supabaseAdmin,
           eventId: event.id,
           checkoutSessionId: invoice.id,
-          paymentIntentId: typeof invoiceRecord.payment_intent === "string" ? invoiceRecord.payment_intent : null,
+          paymentIntentId: invoicePaymentIntentId,
           checkoutKind,
           restaurantId: subscriptionMetadata.restaurant_id || null,
           grossCents: amountPaid,
@@ -2073,6 +2499,10 @@ Deno.serve(async (req) => {
             stripe_invoice_id: invoice.id,
             stripe_subscription_id: subscriptionId,
             billing_reason: invoiceRecord.billing_reason || null,
+            tax_cents: taxCents,
+            vat_reconciliation_required: taxCents == null,
+            stripe_fee_cents: fee.stripeFeeCents,
+            stripe_fee_reconciliation_required: fee.reconciliationRequired,
           },
           log,
         });
@@ -2094,10 +2524,21 @@ Deno.serve(async (req) => {
       },
     });
 
-    await markStripeWebhookEventSucceeded({ adminClient: supabaseAdmin, event });
+    await markStripeWebhookEventSucceeded({ adminClient: supabaseAdmin, event, lockToken: eventLockToken });
   } catch (error) {
     log.error("event_processing_error", { eventType: event.type, message: error instanceof Error ? error.message : "unknown" });
-    await markStripeWebhookEventFailed({ adminClient: supabaseAdmin, event, error, log });
+    try {
+      await markStripeWebhookEventFailed({
+        adminClient: supabaseAdmin,
+        event,
+        error,
+        log,
+        lockToken: eventLockToken,
+      });
+    } catch {
+      // Keep returning 500: Stripe will retry and the expired lease is
+      // reclaimable even if recording this failure temporarily failed.
+    }
     await writeAuditLog({
       adminClient: supabaseAdmin,
       actor: { roles: ["service_role"], isServiceRole: true },

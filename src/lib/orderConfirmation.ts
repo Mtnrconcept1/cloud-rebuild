@@ -27,6 +27,8 @@ export type DashboardCheckoutOrder = {
 
 const ORDER_CHECKOUT_PENDING_SESSION_KEY = "order-checkout-pending-session-id";
 
+export const ORDER_PAYMENT_ATTEMPT_SCOPE = "order-checkout";
+
 function normalizeText(value: unknown) {
   return typeof value === "string" ? value.trim().toLowerCase() : "";
 }

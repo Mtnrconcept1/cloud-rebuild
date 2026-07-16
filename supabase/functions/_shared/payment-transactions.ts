@@ -18,6 +18,9 @@ export async function recordOrderChargeIfMissing(input: {
   amount: number;
   currency: string;
   metadata: Record<string, unknown>;
+  stripeMode?: "live" | "test" | null;
+  paymentAttemptId?: string | null;
+  stripeEventId?: string | null;
   log?: LoggerLike;
 }) {
   const {
@@ -29,6 +32,9 @@ export async function recordOrderChargeIfMissing(input: {
     amount,
     currency,
     metadata,
+    stripeMode = null,
+    paymentAttemptId = null,
+    stripeEventId = null,
     log,
   } = input;
 
@@ -37,6 +43,7 @@ export async function recordOrderChargeIfMissing(input: {
     .select("id")
     .eq("order_id", orderId)
     .eq("stripe_checkout_session_id", sessionId)
+    .eq("stripe_mode", stripeMode || "unknown")
     .eq("type", "charge")
     .eq("status", "succeeded")
     .limit(1)
@@ -57,6 +64,9 @@ export async function recordOrderChargeIfMissing(input: {
       user_id: userId,
       stripe_checkout_session_id: sessionId,
       stripe_payment_intent_id: paymentIntentId,
+      stripe_mode: stripeMode || "unknown",
+      payment_attempt_id: paymentAttemptId,
+      stripe_event_id: stripeEventId,
       amount,
       currency,
       type: "charge",
@@ -89,6 +99,9 @@ export async function recordReservationChargeIfMissing(input: {
   reservationId: string;
   feature: string;
   metadata: Record<string, unknown>;
+  stripeMode?: "live" | "test" | null;
+  paymentAttemptId?: string | null;
+  stripeEventId?: string | null;
   log?: LoggerLike;
 }) {
   const {
@@ -101,6 +114,9 @@ export async function recordReservationChargeIfMissing(input: {
     reservationId,
     feature,
     metadata,
+    stripeMode = null,
+    paymentAttemptId = null,
+    stripeEventId = null,
     log,
   } = input;
 
@@ -108,6 +124,7 @@ export async function recordReservationChargeIfMissing(input: {
     .from("payment_transactions")
     .select("id")
     .eq("stripe_checkout_session_id", sessionId)
+    .eq("stripe_mode", stripeMode || "unknown")
     .eq("type", "charge")
     .eq("status", "succeeded")
     .filter("metadata->>reservation_id", "eq", reservationId)
@@ -125,6 +142,7 @@ export async function recordReservationChargeIfMissing(input: {
   const { data: existingReservationTransaction, error: existingReservationError } = await adminClient
     .from("payment_transactions")
     .select("id, stripe_checkout_session_id")
+    .eq("stripe_mode", stripeMode || "unknown")
     .eq("type", "charge")
     .eq("status", "succeeded")
     .filter("metadata->>reservation_id", "eq", reservationId)
@@ -151,6 +169,9 @@ export async function recordReservationChargeIfMissing(input: {
       user_id: userId,
       stripe_checkout_session_id: sessionId,
       stripe_payment_intent_id: paymentIntentId,
+      stripe_mode: stripeMode || "unknown",
+      payment_attempt_id: paymentAttemptId,
+      stripe_event_id: stripeEventId,
       amount,
       currency,
       type: "charge",
@@ -187,6 +208,9 @@ export async function recordZeroAttenteChargeIfMissing(input: {
   currency: string;
   reservationId: string;
   metadata: Record<string, unknown>;
+  stripeMode?: "live" | "test" | null;
+  paymentAttemptId?: string | null;
+  stripeEventId?: string | null;
   log?: LoggerLike;
 }) {
   const {
@@ -198,6 +222,9 @@ export async function recordZeroAttenteChargeIfMissing(input: {
     currency,
     reservationId,
     metadata,
+    stripeMode = null,
+    paymentAttemptId = null,
+    stripeEventId = null,
     log,
   } = input;
 
@@ -211,6 +238,9 @@ export async function recordZeroAttenteChargeIfMissing(input: {
     reservationId,
     feature: "zero-attente",
     metadata,
+    stripeMode,
+    paymentAttemptId,
+    stripeEventId,
     log,
   });
 }

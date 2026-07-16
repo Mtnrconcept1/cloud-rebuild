@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,6 +21,17 @@ import {
 import { buildCheckoutReturnUrl } from "@/lib/checkoutReturnUrl";
 import { redirectToTrustedCheckoutUrl } from "@/lib/securityUrls";
 import { invokeSupabaseFunction } from "@/lib/session";
+import {
+  clearPaymentAttemptId,
+  createCheckoutWithRecovery,
+  createPaymentAttemptOperationKey,
+  getOrCreatePaymentAttemptId,
+  isPaymentAttemptIndeterminateError,
+  markPaymentAttemptRedirected,
+  normalizePaymentAttemptId,
+  rememberPaymentAttemptId,
+} from "@/lib/paymentAttempt";
+import { usePaymentAttemptBackCancellation } from "@/lib/usePaymentAttemptBackCancellation";
 import PaymentMethodSelector from "@/components/cart/PaymentMethodSelector";
 import type { PaymentMethodId } from "@/lib/paymentMethods";
 import { toast } from "sonner";
@@ -45,6 +56,8 @@ const ALLOWED_PAYMENT_METHODS: PaymentMethodId[] = [
   "card",
   "twint",
 ];
+
+const launchPackAttemptScope = (restaurantId: string) => `launch-pack:${restaurantId}`;
 
 function FulfillmentCard({ f, service }: { f: ServiceFulfillment; service?: PackService }) {
   const Icon = getServiceIcon(f.service_slug);
@@ -281,10 +294,55 @@ export default function DashboardPack() {
   const [selectedPack, setSelectedPack] = useState<LaunchPack | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [checkingOut, setCheckingOut] = useState(false);
+  const checkoutLockRef = useRef(false);
+  const cancelledAttemptRef = useRef<string | null>(null);
+
+  usePaymentAttemptBackCancellation({
+    scope: selectedId ? launchPackAttemptScope(selectedId) : null,
+    onCancelled: () => {
+      setCheckingOut(false);
+      toast.success("Achat interrompu : la session Stripe et le pack temporaire ont été libérés.");
+    },
+    onError: () => {
+      setCheckingOut(false);
+      toast.error("Achat en cours de vérification : reprenez la même tentative.");
+    },
+  });
 
   const paymentStatus = searchParams.get("status");
+  const returnPaymentAttemptId = normalizePaymentAttemptId(searchParams.get("payment_attempt_id"));
   const fulfillments = restaurantPack?.launch_pack_service_fulfillments ?? [];
   const progress = computePackProgress(fulfillments);
+
+  useEffect(() => {
+    if (!selectedId || !returnPaymentAttemptId) return;
+    const scope = launchPackAttemptScope(selectedId);
+
+    if (paymentStatus === "success") {
+      clearPaymentAttemptId(scope, returnPaymentAttemptId);
+      return;
+    }
+    if (paymentStatus !== "cancelled" || cancelledAttemptRef.current === returnPaymentAttemptId) return;
+
+    cancelledAttemptRef.current = returnPaymentAttemptId;
+    rememberPaymentAttemptId(scope, returnPaymentAttemptId);
+    setCheckingOut(true);
+    void invokeSupabaseFunction("cancel-payment-attempt", {
+      body: { payment_attempt_id: returnPaymentAttemptId },
+    }).then(({ error }) => {
+      if (error) throw error;
+      clearPaymentAttemptId(scope, returnPaymentAttemptId);
+      toast.success("Session Stripe annulée et pack temporaire libéré.");
+    }).catch((error) => {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "L'annulation doit encore être vérifiée avant de relancer le paiement.",
+      );
+    }).finally(() => {
+      setCheckingOut(false);
+    });
+  }, [paymentStatus, returnPaymentAttemptId, selectedId]);
 
   function handleSelectPack(pack: LaunchPack) {
     setSelectedPack(pack);
@@ -293,6 +351,8 @@ export default function DashboardPack() {
 
   async function handleCheckout(paymentMethod: PaymentMethodId) {
     if (!selectedPack || !selectedId) return;
+    if (checkoutLockRef.current) return;
+    checkoutLockRef.current = true;
     setCheckingOut(true);
 
     if (isCommercialDemo) {
@@ -303,42 +363,69 @@ export default function DashboardPack() {
     }
 
     try {
-      const { data: checkoutData, error: checkoutError } = await invokeSupabaseFunction<{
-        url?: string;
-        session_id?: string;
-      }>("create-checkout", {
-        body: {
-          checkout_kind: "launch-pack",
-          items: [
-            {
-              name: `Pack de lancement - ${selectedPack.name}`,
-              price: selectedPack.price_chf,
-              quantity: 1,
-            },
-          ],
-          payment_method: paymentMethod,
-          return_url: buildCheckoutReturnUrl("/dashboard/pack"),
-          order_metadata: {
-            checkout_kind: "launch-pack",
-            pack_id: selectedPack.id,
-            restaurant_id: selectedId,
+      const paymentAttemptId = getOrCreatePaymentAttemptId(
+        launchPackAttemptScope(selectedId),
+        createPaymentAttemptOperationKey({
+          restaurantId: selectedId,
+          checkoutKind: "launch-pack",
+          packId: selectedPack.id,
+          paymentMethod,
+          price: selectedPack.price_chf,
+        }),
+      );
+      const checkoutPayload = {
+        payment_attempt_id: paymentAttemptId,
+        checkout_kind: "launch-pack",
+        items: [
+          {
+            name: `Pack de lancement - ${selectedPack.name}`,
+            price: selectedPack.price_chf,
+            quantity: 1,
           },
+        ],
+        payment_method: paymentMethod,
+        return_url: buildCheckoutReturnUrl("/dashboard/pack", { paymentAttemptId }),
+        order_metadata: {
+          payment_attempt_id: paymentAttemptId,
+          checkout_kind: "launch-pack",
+          pack_id: selectedPack.id,
+          restaurant_id: selectedId,
+        },
+      };
+      const checkout = await createCheckoutWithRecovery({
+        paymentAttemptId,
+        create: async () => {
+          const { data, error } = await invokeSupabaseFunction("create-checkout", {
+            body: checkoutPayload,
+          });
+          if (error) throw error;
+          return data;
+        },
+        getStatus: async () => {
+          const { data, error } = await invokeSupabaseFunction("payment-attempt-status", {
+            body: { payment_attempt_id: paymentAttemptId },
+          });
+          if (error) throw error;
+          return data;
         },
       });
 
-      if (checkoutError || !checkoutData?.url) {
-        throw new Error(
-          (checkoutError as Error | null)?.message || "Impossible de créer la session de paiement."
-        );
+      if (!checkout.url) {
+        throw new Error("Le pack est en cours de vérification. Relancez avec le même bouton dans quelques secondes.");
       }
 
-      redirectToTrustedCheckoutUrl(checkoutData.url);
+      markPaymentAttemptRedirected(launchPackAttemptScope(selectedId), paymentAttemptId);
+      redirectToTrustedCheckoutUrl(checkout.url);
     } catch (error) {
       console.error("Checkout error:", error);
       toast.error(
-        error instanceof Error ? error.message : "Erreur lors de la creation du paiement."
+        isPaymentAttemptIndeterminateError(error)
+          ? error.message
+          : error instanceof Error ? error.message : "Erreur lors de la creation du paiement."
       );
       setCheckingOut(false);
+    } finally {
+      checkoutLockRef.current = false;
     }
   }
 
@@ -491,3 +578,4 @@ export default function DashboardPack() {
     </DashboardLayout>
   );
 }
+

@@ -15,6 +15,12 @@ import {
   getStripePaymentMethodDetails,
 } from "../_shared/order-checkout.ts";
 import { getStripeRuntimeForCheckoutKind } from "../_shared/stripe-client.ts";
+import {
+  assertCheckoutSessionIntegrity,
+  finalizePaymentAttempt,
+  readStripeObjectId,
+} from "../_shared/payment-attempts.ts";
+import { recordReconciledCheckoutFinance } from "../_shared/marketplace-finance.ts";
 
 Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req);
@@ -46,10 +52,11 @@ Deno.serve(async (req) => {
       throw new HttpError(400, "session_id requis");
     }
 
-    const { stripe } = getStripeRuntimeForCheckoutKind("order");
+    const stripeRuntime = getStripeRuntimeForCheckoutKind("order");
+    const { stripe } = stripeRuntime;
 
     const session = await stripe.checkout.sessions.retrieve(sessionId, {
-      expand: ["payment_intent.payment_method"],
+      expand: ["payment_intent.payment_method", "payment_intent.latest_charge.balance_transaction"],
     });
 
     if (!session || session.payment_status !== "paid") {
@@ -65,6 +72,12 @@ Deno.serve(async (req) => {
       throw new HttpError(403, "Forbidden");
     }
 
+    assertCheckoutSessionIntegrity({
+      session,
+      livemode: stripeRuntime.mode === "live",
+      expectedCurrency: "CHF",
+    });
+
     const paymentDetails = await getStripePaymentMethodDetails(stripe, session, log);
     const result = await finalizePaidOrderCheckout({
       adminClient: actor.adminClient,
@@ -75,6 +88,55 @@ Deno.serve(async (req) => {
       log,
       shouldDispatchNotifications: true,
     });
+
+    const expandedPaymentIntent = session.payment_intent && typeof session.payment_intent === "object"
+      ? session.payment_intent
+      : null;
+    const latestCharge = expandedPaymentIntent?.latest_charge && typeof expandedPaymentIntent.latest_charge === "object"
+      ? expandedPaymentIntent.latest_charge
+      : null;
+    const balanceTransaction = latestCharge?.balance_transaction && typeof latestCharge.balance_transaction === "object"
+      ? latestCharge.balance_transaction
+      : null;
+    const stripeFeeCents = Number.isFinite(Number(balanceTransaction?.fee))
+      ? Math.max(0, Math.round(Number(balanceTransaction?.fee)))
+      : null;
+    const taxCents = session.total_details?.amount_tax ?? null;
+
+    await recordReconciledCheckoutFinance({
+      adminClient: actor.adminClient,
+      checkoutSessionId: session.id,
+      paymentIntentId: readStripeObjectId(session.payment_intent),
+      checkoutKind: "order",
+      restaurantId: session.metadata?.restaurant_id || null,
+      grossCents: Number(session.amount_total || 0),
+      currency: session.currency || "chf",
+      livemode: stripeRuntime.mode === "live",
+      metadata: {
+        reconciliation_source: "complete-order-checkout",
+        finance_routing_mode: session.metadata?.finance_routing_mode || "legacy_manual",
+        tax_cents: taxCents,
+        vat_reconciliation_required: taxCents == null,
+        stripe_fee_cents: stripeFeeCents,
+        stripe_fee_reconciliation_required: stripeFeeCents == null,
+      },
+      log,
+    });
+
+    if (session.metadata?.payment_attempt_version === "2") {
+      await finalizePaymentAttempt({
+        adminClient: actor.adminClient,
+        attemptId: session.metadata.payment_attempt_id || null,
+        operationKey: session.metadata.operation_key || null,
+        checkoutSessionId: session.id,
+        paymentIntentId: readStripeObjectId(session.payment_intent),
+        subscriptionId: readStripeObjectId(session.subscription),
+        livemode: stripeRuntime.mode === "live",
+        amountCents: session.amount_total,
+        currency: session.currency,
+        metadata: { finalized_by: "complete-order-checkout" },
+      });
+    }
 
     await writeAuditLog({
       adminClient: actor.adminClient,

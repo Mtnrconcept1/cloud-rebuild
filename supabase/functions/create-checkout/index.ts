@@ -18,6 +18,19 @@ import {
 import { makeLogger } from "../_shared/logging.ts";
 import { normalizeCheckoutReturnUrl } from "../_shared/return-url.ts";
 import { getStripeRuntimeForCheckoutKind } from "../_shared/stripe-client.ts";
+import {
+  abandonPaymentAttemptSession,
+  acquirePaymentAttempt,
+  assertCheckoutSessionIntegrity,
+  bindPaymentAttemptStripe,
+  cancelPaymentAttempt as cancelPersistedPaymentAttempt,
+  failPaymentAttempt,
+  fingerprintPaymentAttemptRequest,
+  readStripeObjectId,
+  requireClientPaymentAttemptId,
+  sealPaymentAttemptRequest,
+  type AcquiredPaymentAttempt,
+} from "../_shared/payment-attempts.ts";
 import { getLatestTokOneSubscription, isTokOneEntitledStatus } from "../_shared/tok-one.ts";
 import { createRateLimiter } from "../_shared/rate-limit.ts";
 import {
@@ -29,6 +42,10 @@ import {
   MARKETPLACE_CHECKOUT_KINDS,
   resolveMarketplaceRouting,
 } from "../_shared/marketplace-finance.ts";
+import {
+  markOrderCheckoutSessionState,
+  persistOrderCheckoutSessionMapping,
+} from "../_shared/order-checkout.ts";
 
 const toMoney = (value: unknown) => Math.max(0, Number(value) || 0);
 type CheckoutItem = Record<string, unknown>;
@@ -73,6 +90,7 @@ Deno.serve(async (req) => {
   let auditKind = "order";
   let auditTargetEntityType = "restaurants";
   let auditTargetEntityId = "";
+  let activeAttempt: (AcquiredPaymentAttempt & { adminClient: any; stripeSessionId?: string | null }) | null = null;
 
   try {
     // Origin/Referer is only defense in depth; the authoritative account
@@ -104,7 +122,18 @@ Deno.serve(async (req) => {
       return_url,
       order_metadata,
       checkout_kind,
+      payment_attempt_id,
     } = await req.json();
+
+    // The client creates this UUID once per business operation and persists it
+    // until Stripe reaches a terminal state. A retry/refresh must reuse it.
+    const clientPaymentAttemptId = requireClientPaymentAttemptId(
+      payment_attempt_id || order_metadata?.payment_attempt_id,
+    );
+    const idempotencySource = clientPaymentAttemptId;
+    // Legacy contract markers: idempotencyKey: `tok-checkout: and
+    // stripe.checkout.sessions.create(sessionParams, checkoutRequestOptions)
+    // are superseded by a sealed snapshot and generation-safe database key.
 
     if (isCommercialDemoUrl(return_url)) {
       throw new HttpError(
@@ -137,9 +166,36 @@ Deno.serve(async (req) => {
       || effectiveKind === "restaurant-subscription-upgrade";
     const stripeRuntime = getStripeRuntimeForCheckoutKind(effectiveKind);
     const stripe = stripeRuntime.stripe;
+    const { data: preexistingAttempt, error: preexistingAttemptError } = await actor.adminClient
+      .from("payment_attempts")
+      .select("id, operation_key, owner_user_id, kind, mode, amount_cents, currency, request_fingerprint, request_snapshot")
+      .eq("operation_key", clientPaymentAttemptId)
+      .eq("owner_user_id", actor.userId)
+      .maybeSingle();
+    if (preexistingAttemptError) throw new HttpError(500, preexistingAttemptError.message);
+    if (
+      preexistingAttempt
+      && (preexistingAttempt.kind !== effectiveKind || preexistingAttempt.mode !== stripeRuntime.mode)
+    ) {
+      throw new HttpError(409, "PAYMENT_ATTEMPT_IDENTITY_MISMATCH");
+    }
     const safeReturnUrl = normalizeCheckoutReturnUrl(return_url);
     if (!safeReturnUrl) {
       throw new HttpError(400, "URL de retour invalide");
+    }
+    const requestIdentity = {
+      checkout_kind: effectiveKind,
+      payment_method: normalizedPaymentMethod,
+      return_url: safeReturnUrl,
+      items: Array.isArray(items) ? items : [],
+      order_metadata: order_metadata || {},
+    };
+    const requestFingerprint = await fingerprintPaymentAttemptRequest(requestIdentity);
+    if (
+      preexistingAttempt?.request_fingerprint
+      && preexistingAttempt.request_fingerprint !== requestFingerprint
+    ) {
+      throw new HttpError(409, "PAYMENT_ATTEMPT_REQUEST_MISMATCH");
     }
 
     auditKind = effectiveKind;
@@ -174,6 +230,7 @@ Deno.serve(async (req) => {
     let zeroAttenteHoldReservationId = "";
     let chefTableHoldCount = 0;
     let creditPackPurchaseId = "";
+    let creditPackPurchaseDraft: Record<string, unknown> | null = null;
     let marketplaceRestaurantId = "";
     const chefTableHoldItems: Array<{ drop_id: string; quantity: number }> = [];
     let sessionMetadata: Record<string, string> = {
@@ -493,29 +550,26 @@ Deno.serve(async (req) => {
       const packAmount = Number(pack.price_chf || 0);
       if (packAmount <= 0) throw new HttpError(400, "Prix du pack de credits invalide");
 
-      const { data: purchaseRecord, error: purchaseError } = await actor.adminClient
-        .from("restaurant_credit_purchases")
-        .insert({
-          restaurant_id: restaurantId,
-          credit_pack_id: pack.id,
-          purchased_by: actor.userId,
-          status: "pending_payment",
-          price_chf: packAmount,
-          currency: "chf",
-          campaign_credit_chf: Number(pack.campaign_credit_chf || 0),
-          ai_tool_credits: Number(pack.ai_tool_credits || 0),
-          ai_photo_credits: Number(pack.ai_photo_credits || 0),
-          metadata: {
-            checkout_kind: "restaurant-credit-pack",
-            pack_slug: pack.slug,
-            pack_name: pack.name,
-          },
-        })
-        .select("id")
-        .single();
-
-      if (purchaseError) throw new HttpError(500, purchaseError.message);
-      creditPackPurchaseId = purchaseRecord.id;
+      // This row is created only after the durable attempt lease is acquired.
+      // A retry looks it up through payment_attempt_id instead of inserting a
+      // second pending purchase before Stripe is even contacted.
+      creditPackPurchaseDraft = {
+        restaurant_id: restaurantId,
+        credit_pack_id: pack.id,
+        purchased_by: actor.userId,
+        status: "pending_payment",
+        price_chf: packAmount,
+        currency: "chf",
+        campaign_credit_chf: Number(pack.campaign_credit_chf || 0),
+        ai_tool_credits: Number(pack.ai_tool_credits || 0),
+        ai_photo_credits: Number(pack.ai_photo_credits || 0),
+        metadata: {
+          checkout_kind: "restaurant-credit-pack",
+          pack_slug: pack.slug,
+          pack_name: pack.name,
+          client_payment_attempt_id: clientPaymentAttemptId,
+        },
+      };
 
       lineItems = [{
         price_data: {
@@ -539,8 +593,6 @@ Deno.serve(async (req) => {
         credit_pack_id: pack.id,
         restaurant_credit_pack_id: pack.id,
         restaurant_credit_pack_slug: pack.slug,
-        restaurant_credit_purchase_id: purchaseRecord.id,
-        credit_pack_purchase_id: purchaseRecord.id,
         pack_name: pack.name,
         campaign_credit_chf: Number(pack.campaign_credit_chf || 0).toFixed(2),
         ai_tool_credits: String(pack.ai_tool_credits || 0),
@@ -998,6 +1050,223 @@ Deno.serve(async (req) => {
       };
     }
 
+    const attemptRestaurantId = String(
+      marketplaceRestaurantId || sessionMetadata.restaurant_id || "",
+    ).trim() || null;
+
+    // A different client UUID must not create a second simultaneous
+    // subscription. The database also enforces this invariant to close the
+    // race between these read and acquire calls.
+    if (isSubscriptionCheckout) {
+      const subscriptionKinds = effectiveKind === "tok-one"
+        ? ["tok-one"]
+        : ["restaurant-onboarding", "restaurant-subscription-upgrade"];
+      let conflictQuery = actor.adminClient
+        .from("payment_attempts")
+        .select("id, operation_key")
+        .eq("owner_user_id", actor.userId)
+        .eq("mode", stripeRuntime.mode)
+        .in("kind", subscriptionKinds)
+        .in("state", ["pending", "session_bound"])
+        .neq("operation_key", clientPaymentAttemptId)
+        .limit(1);
+      if (attemptRestaurantId) conflictQuery = conflictQuery.eq("restaurant_id", attemptRestaurantId);
+      const { data: conflictingAttempts, error: conflictingAttemptError } = await conflictQuery;
+      if (conflictingAttemptError) throw new HttpError(500, conflictingAttemptError.message);
+      if (conflictingAttempts?.length) {
+        throw new HttpError(409, "Un paiement d'abonnement est deja en cours. Reprenez la tentative existante.");
+      }
+    }
+
+    const acquireAttemptInput = {
+      adminClient: actor.adminClient,
+      operationKey: idempotencySource,
+      ownerUserId: actor.userId,
+      restaurantId: attemptRestaurantId,
+      kind: effectiveKind,
+      mode: stripeRuntime.mode,
+      amountCents: preexistingAttempt?.amount_cents ?? finalCheckoutTotalCents,
+      currency: preexistingAttempt?.currency || "CHF",
+      metadata: {
+        checkout_kind: effectiveKind,
+        checkout_id: sessionMetadata.checkout_id || null,
+        checkout_group_id: sessionMetadata.checkout_group_id || null,
+        primary_order_id: sessionMetadata.primary_order_id || null,
+        order_reference: sessionMetadata.order_reference || null,
+        restaurant_id: attemptRestaurantId,
+      },
+    } as const;
+    let acquiredAttempt = await acquirePaymentAttempt(acquireAttemptInput);
+    if (acquiredAttempt.operationKey !== clientPaymentAttemptId) {
+      // The database returns the already-active subscription attempt when a
+      // second UUID races on the same logical subscription scope.
+      throw new HttpError(409, "PAYMENT_ATTEMPT_OPERATION_CONFLICT");
+    }
+    activeAttempt = { ...acquiredAttempt, adminClient: actor.adminClient };
+
+    sessionMetadata = {
+      ...sessionMetadata,
+      payment_attempt_version: "2",
+      payment_attempt_id: acquiredAttempt.attemptId,
+      operation_key: acquiredAttempt.operationKey,
+      client_payment_attempt_id: clientPaymentAttemptId,
+      authoritative_total_cents: String(finalCheckoutTotalCents),
+      authoritative_currency: "CHF",
+    };
+
+    if (acquiredAttempt.stripeCheckoutSessionId) {
+      let existingSession: Stripe.Checkout.Session;
+      try {
+        existingSession = await stripe.checkout.sessions.retrieve(
+          acquiredAttempt.stripeCheckoutSessionId,
+        );
+      } catch (error) {
+        throw new HttpError(
+          503,
+          `PAYMENT_ATTEMPT_INDETERMINATE:${error instanceof Error ? error.message : "Stripe indisponible"}`,
+        );
+      }
+
+      if (String(existingSession.metadata?.user_id || "") !== actor.userId) {
+        throw new HttpError(409, "La session Stripe existante n'appartient pas a cet utilisateur");
+      }
+      if (String(existingSession.metadata?.operation_key || "") !== acquiredAttempt.operationKey) {
+        throw new HttpError(409, "La session Stripe existante ne correspond pas a cette tentative");
+      }
+      assertCheckoutSessionIntegrity({
+        session: existingSession,
+        livemode: stripeRuntime.mode === "live",
+        expectedAmountCents: acquiredAttempt.amountCents,
+        expectedCurrency: acquiredAttempt.currency,
+      });
+
+      if (existingSession.status === "open" && existingSession.url) {
+        return jsonResponse({
+          payment_attempt_id: clientPaymentAttemptId,
+          server_payment_attempt_id: acquiredAttempt.attemptId,
+          sessionId: existingSession.id,
+          session_id: existingSession.id,
+          url: existingSession.url,
+          reused: true,
+          state: "session_bound",
+        }, 200, corsHeaders);
+      }
+
+      if (existingSession.payment_status === "paid") {
+        return jsonResponse({
+          payment_attempt_id: clientPaymentAttemptId,
+          server_payment_attempt_id: acquiredAttempt.attemptId,
+          sessionId: existingSession.id,
+          session_id: existingSession.id,
+          url: null,
+          reused: true,
+          state: acquiredAttempt.state === "finalized" ? "finalized" : "paid",
+        }, 200, corsHeaders);
+      }
+
+      if (existingSession.status === "expired") {
+        if (effectiveKind === "order") {
+          await markOrderCheckoutSessionState({
+            adminClient: actor.adminClient,
+            session: existingSession,
+            orderStatus: "cancelled",
+            paymentStatus: "cancelled",
+            checkoutState: "expired",
+            failureCode: "checkout_session_expired",
+            failureMessage: "La session de paiement a expire; la commande doit etre recreee.",
+          });
+        }
+        await abandonPaymentAttemptSession({
+          adminClient: actor.adminClient,
+          attemptId: acquiredAttempt.attemptId,
+          sessionId: existingSession.id,
+          reason: "stripe_session_expired_before_payment",
+        });
+        if (effectiveKind === "order") {
+          await cancelPersistedPaymentAttempt({
+            adminClient: actor.adminClient,
+            attemptId: acquiredAttempt.attemptId,
+            reason: "expired_order_requires_new_operation",
+          });
+          activeAttempt = null;
+          throw new HttpError(409, "PAYMENT_ATTEMPT_ORDER_EXPIRED_RECREATE");
+        }
+        acquiredAttempt = await acquirePaymentAttempt(acquireAttemptInput);
+        if (
+          acquiredAttempt.operationKey !== clientPaymentAttemptId
+          || !acquiredAttempt.leaseAcquired
+          || !acquiredAttempt.leaseToken
+        ) {
+          throw new HttpError(409, "PAYMENT_ATTEMPT_REACQUIRE_FAILED");
+        }
+        activeAttempt = { ...acquiredAttempt, adminClient: actor.adminClient };
+        sessionMetadata = {
+          ...sessionMetadata,
+          payment_attempt_id: acquiredAttempt.attemptId,
+          operation_key: acquiredAttempt.operationKey,
+        };
+      } else {
+        // A completed-but-unpaid session may still be settling asynchronously.
+        // Never abandon it or create another payable subscription/order.
+        throw new HttpError(
+          409,
+          `PAYMENT_ATTEMPT_SESSION_${String(existingSession.status || "closed").toUpperCase()}`,
+        );
+      }
+    }
+
+    if (!acquiredAttempt.leaseAcquired || !acquiredAttempt.leaseToken) {
+      throw new HttpError(409, "PAYMENT_ATTEMPT_ALREADY_IN_PROGRESS");
+    }
+
+    if (creditPackPurchaseDraft) {
+      const { data: existingPurchase, error: existingPurchaseError } = await actor.adminClient
+        .from("restaurant_credit_purchases")
+        .select("id")
+        .eq("payment_attempt_id", acquiredAttempt.attemptId)
+        .maybeSingle();
+      if (existingPurchaseError) throw new HttpError(500, existingPurchaseError.message);
+
+      if (existingPurchase?.id) {
+        creditPackPurchaseId = existingPurchase.id;
+        const { error: resetPurchaseError } = await actor.adminClient
+          .from("restaurant_credit_purchases")
+          .update({
+            status: "pending_payment",
+            stripe_checkout_session_id: null,
+            stripe_payment_intent_id: null,
+            stripe_mode: stripeRuntime.mode,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", creditPackPurchaseId)
+          .in("status", ["cancelled", "failed", "pending_payment"]);
+        if (resetPurchaseError) throw new HttpError(500, resetPurchaseError.message);
+      } else {
+        const draftMetadata = creditPackPurchaseDraft.metadata as Record<string, unknown>;
+        const { data: purchaseRecord, error: purchaseError } = await actor.adminClient
+          .from("restaurant_credit_purchases")
+          .insert({
+            ...creditPackPurchaseDraft,
+            payment_attempt_id: acquiredAttempt.attemptId,
+            metadata: {
+              ...draftMetadata,
+              payment_attempt_id: acquiredAttempt.attemptId,
+              operation_key: acquiredAttempt.operationKey,
+            },
+          })
+          .select("id")
+          .single();
+        if (purchaseError) throw new HttpError(500, purchaseError.message);
+        creditPackPurchaseId = purchaseRecord.id;
+      }
+
+      sessionMetadata = {
+        ...sessionMetadata,
+        restaurant_credit_purchase_id: creditPackPurchaseId,
+        credit_pack_purchase_id: creditPackPurchaseId,
+      };
+    }
+
     const urlSeparator = safeReturnUrl.includes("?") ? "&" : "?";
     const userLookup = actor.userClient ? await actor.userClient.auth.getUser() : null;
     const userEmail = userLookup?.data.user?.email || undefined;
@@ -1005,12 +1274,20 @@ Deno.serve(async (req) => {
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
       line_items: lineItems,
       mode: isSubscriptionCheckout ? "subscription" : "payment",
-      success_url: `${safeReturnUrl}${urlSeparator}session_id={CHECKOUT_SESSION_ID}&status=success`,
-      cancel_url: `${safeReturnUrl}${urlSeparator}status=cancelled`,
+      success_url: `${safeReturnUrl}${urlSeparator}session_id={CHECKOUT_SESSION_ID}&payment_attempt_id=${encodeURIComponent(clientPaymentAttemptId)}&status=success`,
+      cancel_url: `${safeReturnUrl}${urlSeparator}payment_attempt_id=${encodeURIComponent(clientPaymentAttemptId)}&status=cancelled`,
       customer_email: userEmail,
       client_reference_id: actor.userId || undefined,
       metadata: sessionMetadata,
     };
+
+    // Scarce inventory/capacity holds live for 35 minutes in Postgres. Keep
+    // the payable Stripe URL strictly inside that window (Stripe requires at
+    // least 30 minutes), otherwise a stale browser tab could pay after stock
+    // or a reservation slot has been released to another customer.
+    if (CLIENT_STRIPE_CHECKOUT_KINDS.has(effectiveKind)) {
+      sessionParams.expires_at = Math.floor(Date.now() / 1000) + (31 * 60);
+    }
 
     if (marketplaceRouting.enabled && marketplaceRouting.destinationAccountId) {
       sessionParams.payment_intent_data = {
@@ -1037,6 +1314,7 @@ Deno.serve(async (req) => {
       }
     }
 
+    let couponParams: Stripe.CouponCreateParams | null = null;
     if (discountCents > 0) {
       const hasTokOneDiscount = toMoney(sessionMetadata.tok_one_discount_amount) > 0
         || toMoney(sessionMetadata.tok_one_delivery_saved) > 0;
@@ -1048,27 +1326,185 @@ Deno.serve(async (req) => {
           : sessionMetadata.formula_applied
           ? `Reduction ${sessionMetadata.formula_applied}`
           : "Reduction commande";
-      const coupon = await stripe.coupons.create({
+      couponParams = {
         amount_off: discountCents,
         currency: "chf",
         duration: "once",
         name: couponName,
-      });
-      sessionParams.discounts = [{ coupon: coupon.id }];
+        metadata: {
+          payment_attempt_id: acquiredAttempt.attemptId,
+          operation_key: acquiredAttempt.operationKey,
+        },
+      };
     }
 
-    const idempotencySource = String(
-      sessionMetadata.checkout_id
-      || sessionMetadata.checkout_group_id
-      || sessionMetadata.primary_order_id
-      || sessionMetadata.order_reference
-      || "",
-    ).trim();
-    const checkoutRequestOptions = idempotencySource
-      ? { idempotencyKey: `tok-checkout:${effectiveKind}:${actor.userId}:${idempotencySource}`.slice(0, 255) }
-      : undefined;
+    const computedRequestSnapshot = {
+      version: 1,
+      session_params: sessionParams as unknown as Record<string, unknown>,
+      coupon_params: couponParams as unknown as Record<string, unknown> | null,
+    };
+    // Identity is derived from the client business operation, while the
+    // sealed snapshot contains authoritative server prices and Stripe params.
+    // Thus a later price/config change cannot alter a lost-response retry, but
+    // changing items/plan/restaurant under the same UUID is rejected.
+    const sealed = await sealPaymentAttemptRequest({
+      adminClient: actor.adminClient,
+      attemptId: acquiredAttempt.attemptId,
+      leaseToken: acquiredAttempt.leaseToken!,
+      fingerprint: requestFingerprint,
+      requestSnapshot: computedRequestSnapshot,
+    });
+    const sealedRequestSnapshot = sealed.requestSnapshot;
 
-    const session = await stripe.checkout.sessions.create(sessionParams, checkoutRequestOptions);
+    const sealedSessionParams = sealedRequestSnapshot.session_params;
+    if (!sealedSessionParams || typeof sealedSessionParams !== "object" || Array.isArray(sealedSessionParams)) {
+      throw new Error("PAYMENT_ATTEMPT_SESSION_SNAPSHOT_INVALID");
+    }
+    const sealedMetadata = (sealedSessionParams as Record<string, any>).metadata;
+    if (
+      String(sealedMetadata?.payment_attempt_id || "") !== acquiredAttempt.attemptId
+      || String(sealedMetadata?.operation_key || "") !== acquiredAttempt.operationKey
+      || String(sealedMetadata?.user_id || "") !== actor.userId
+    ) {
+      throw new Error("PAYMENT_ATTEMPT_SESSION_SNAPSHOT_IDENTITY_MISMATCH");
+    }
+    sessionMetadata = sealedMetadata as Record<string, string>;
+
+    const stripeSessionParams = sealedSessionParams as unknown as Stripe.Checkout.SessionCreateParams;
+    const sealedCouponParams = sealedRequestSnapshot.coupon_params;
+    if (sealedCouponParams && typeof sealedCouponParams === "object" && !Array.isArray(sealedCouponParams)) {
+      const coupon = await stripe.coupons.create(
+        sealedCouponParams as unknown as Stripe.CouponCreateParams,
+        { idempotencyKey: `${acquiredAttempt.stripeIdempotencyKey}:coupon`.slice(0, 255) },
+      );
+      stripeSessionParams.discounts = [{ coupon: coupon.id }];
+    }
+
+    const session = await stripe.checkout.sessions.create(
+      stripeSessionParams,
+      { idempotencyKey: acquiredAttempt.stripeIdempotencyKey.slice(0, 255) },
+    );
+    activeAttempt.stripeSessionId = session.id;
+
+    const releaseCreatedBusinessPrerequisites = async (reason: string) => {
+      if (effectiveKind === "order") {
+        await markOrderCheckoutSessionState({
+          adminClient: actor.adminClient,
+          session,
+          orderStatus: "cancelled",
+          paymentStatus: "cancelled",
+          checkoutState: "cancelled",
+          failureCode: reason,
+          failureMessage: "Session Stripe fermee avant redirection; ressources liberees.",
+        });
+      }
+
+      if (effectiveKind === "restaurant-credit-pack" && creditPackPurchaseId) {
+        const { error } = await actor.adminClient
+          .from("restaurant_credit_purchases")
+          .update({ status: "cancelled", updated_at: new Date().toISOString() })
+          .eq("id", creditPackPurchaseId)
+          .eq("status", "pending_payment");
+        if (error) throw new Error(`CREDIT_PACK_HOLD_RELEASE_FAILED:${error.message}`);
+      }
+
+      if (effectiveKind === "zero-attente" && zeroAttenteHoldReservationId) {
+        const { error } = await actor.adminClient.rpc("release_zero_attente_checkout_hold", {
+          p_session_id: session.id,
+          p_expected_attempt_id: acquiredAttempt.attemptId,
+          p_reason: reason,
+        });
+        if (error) throw new Error(`ZERO_ATTENTE_HOLD_RELEASE_FAILED:${error.message}`);
+      }
+
+      if (effectiveKind === "chefs-table" && chefTableHoldCount > 0) {
+        const { error } = await actor.adminClient.rpc("release_chef_table_checkout_hold", {
+          p_session_id: session.id,
+        });
+        if (error) throw new Error(`CHEF_TABLE_HOLD_RELEASE_FAILED:${error.message}`);
+      }
+    };
+
+    const expireAndAbandonKnownSession = async (reason: string, terminalCancel = false) => {
+      let terminalSession = session;
+      if (terminalSession.status === "open") {
+        terminalSession = await stripe.checkout.sessions.expire(session.id);
+      }
+      if (terminalSession.status !== "expired") {
+        throw new Error(`STRIPE_SESSION_NOT_ABANDONABLE:${terminalSession.status}`);
+      }
+      await releaseCreatedBusinessPrerequisites(reason);
+      await abandonPaymentAttemptSession({
+        adminClient: actor.adminClient,
+        attemptId: acquiredAttempt.attemptId,
+        sessionId: session.id,
+        reason,
+        leaseToken: acquiredAttempt.leaseToken,
+      });
+      if (terminalCancel || effectiveKind === "order") {
+        await cancelPersistedPaymentAttempt({
+          adminClient: actor.adminClient,
+          attemptId: acquiredAttempt.attemptId,
+          reason,
+        });
+      }
+      // Do not let the generic catch release/mutate the newly advanced
+      // generation with the lease token that belonged to the old one.
+      activeAttempt = null;
+    };
+
+    // An ambiguous prior response can make Stripe replay the same idempotent
+    // create call. Never bind or expose a replayed terminal session. An
+    // expired replay advances the generation explicitly; a completed replay
+    // remains indeterminate so the webhook can perform the authoritative
+    // paid/unpaid transition without creating a second payable session.
+    if (session.status === "expired") {
+      await expireAndAbandonKnownSession("stripe_replayed_expired_session");
+      throw new HttpError(409, "PAYMENT_ATTEMPT_SESSION_EXPIRED_RETRY");
+    }
+    if (session.status !== "open") {
+      throw new HttpError(503, `PAYMENT_ATTEMPT_SESSION_${String(session.status).toUpperCase()}`);
+    }
+
+    try {
+      assertCheckoutSessionIntegrity({
+        session,
+        livemode: stripeRuntime.mode === "live",
+        expectedAmountCents: acquiredAttempt.amountCents,
+        expectedCurrency: acquiredAttempt.currency,
+      });
+    } catch (integrityError) {
+      try {
+        await expireAndAbandonKnownSession("stripe_session_integrity_mismatch");
+      } catch (abandonError) {
+        log.error("invalid_checkout_session_abandon_failed", {
+          session_id: session.id,
+          message: abandonError instanceof Error ? abandonError.message : "unknown",
+        });
+      }
+      throw integrityError;
+    }
+
+    if (effectiveKind === "order") {
+      try {
+        await persistOrderCheckoutSessionMapping({
+          adminClient: actor.adminClient,
+          session,
+          paymentAttemptId: acquiredAttempt.attemptId,
+          clientPaymentAttemptId,
+        });
+      } catch (mappingError) {
+        try {
+          await expireAndAbandonKnownSession("order_session_mapping_failed");
+        } catch (abandonError) {
+          log.error("order_checkout_session_abandon_failed", {
+            session_id: session.id,
+            message: abandonError instanceof Error ? abandonError.message : "unknown",
+          });
+        }
+        throw mappingError;
+      }
+    }
 
     if (effectiveKind === "restaurant-credit-pack" && creditPackPurchaseId) {
       const { error: purchaseUpdateError } = await actor.adminClient
@@ -1085,7 +1521,7 @@ Deno.serve(async (req) => {
 
       if (purchaseUpdateError) {
         try {
-          await stripe.checkout.sessions.expire(session.id);
+          await expireAndAbandonKnownSession("credit_pack_session_persist_failed");
         } catch (expireError) {
           log.warn("credit_pack_checkout_session_expire_failed", {
             session_id: session.id,
@@ -1121,7 +1557,7 @@ Deno.serve(async (req) => {
 
       if (holdError || !holdReservationId) {
         try {
-          await stripe.checkout.sessions.expire(session.id);
+          await expireAndAbandonKnownSession("zero_attente_hold_failed");
         } catch (expireError) {
           log.warn("zero_attente_checkout_session_expire_failed", {
             session_id: session.id,
@@ -1156,7 +1592,7 @@ Deno.serve(async (req) => {
 
       if (holdError || !heldCount) {
         try {
-          await stripe.checkout.sessions.expire(session.id);
+          await expireAndAbandonKnownSession("chef_table_hold_failed");
         } catch (expireError) {
           log.warn("chef_table_checkout_session_expire_failed", {
             session_id: session.id,
@@ -1171,6 +1607,45 @@ Deno.serve(async (req) => {
       }
 
       chefTableHoldCount = Number(heldCount || 0);
+    }
+
+    // A session only becomes resumable/exposable after every business-side
+    // prerequisite (order mapping, stock/capacity hold, purchase mapping) is
+    // durable. If the process crashes earlier, the same Stripe idempotency key
+    // returns the unexposed session and the prerequisites are replayed.
+    try {
+      await bindPaymentAttemptStripe({
+        adminClient: actor.adminClient,
+        attemptId: acquiredAttempt.attemptId,
+        leaseToken: acquiredAttempt.leaseToken!,
+        checkoutSessionId: session.id,
+        paymentIntentId: readStripeObjectId(session.payment_intent),
+        subscriptionId: readStripeObjectId(session.subscription),
+        sessionExpiresAt: session.expires_at
+          ? new Date(session.expires_at * 1000).toISOString()
+          : null,
+        metadata: {
+          checkout_kind: effectiveKind,
+          client_payment_attempt_id: clientPaymentAttemptId,
+          business_ready: true,
+        },
+      });
+    } catch (bindError) {
+      const cancellationRequested = String(
+        bindError instanceof Error ? bindError.message : bindError,
+      ).includes("payment_attempt_cancellation_requested");
+      try {
+        await expireAndAbandonKnownSession(
+          cancellationRequested ? "payment_attempt_cancelled_during_create" : "payment_attempt_bind_failed",
+          cancellationRequested,
+        );
+      } catch (expireError) {
+        log.error("unbound_checkout_session_expire_failed", {
+          session_id: session.id,
+          message: expireError instanceof Error ? expireError.message : "unknown",
+        });
+      }
+      throw bindError;
     }
 
     await writeAuditLog({
@@ -1194,15 +1669,49 @@ Deno.serve(async (req) => {
         line_items: lineItems.length,
         zero_attente_hold_reservation_id: zeroAttenteHoldReservationId || null,
         chef_table_hold_count: chefTableHoldCount || null,
+        payment_attempt_id: acquiredAttempt.attemptId,
+        client_payment_attempt_id: clientPaymentAttemptId,
+        reused: acquiredAttempt.reused,
       },
     });
     return jsonResponse(
-      { url: session.url, session_id: session.id },
+      {
+        payment_attempt_id: clientPaymentAttemptId,
+        server_payment_attempt_id: acquiredAttempt.attemptId,
+        sessionId: session.id,
+        session_id: session.id,
+        url: session.url,
+        reused: acquiredAttempt.reused,
+        state: "session_bound",
+      },
       200,
       corsHeaders,
     );
   } catch (error) {
     log.error("create-checkout error", { message: error instanceof Error ? error.message : "unknown" });
+
+    // A timeout/error is retryable and must never be interpreted as a failed
+    // payment by the client. Releasing the lease lets the same operation key
+    // safely resume; the generation-specific Stripe key prevents replaying an
+    // expired/abandoned Checkout Session.
+    if (activeAttempt?.leaseAcquired && activeAttempt.leaseToken) {
+      try {
+        await failPaymentAttempt({
+          adminClient: activeAttempt.adminClient,
+          attemptId: activeAttempt.attemptId,
+          leaseToken: activeAttempt.leaseToken,
+          errorCode: error instanceof HttpError ? `http_${error.status}` : "checkout_create_error",
+          errorMessage: error instanceof Error ? error.message : "Erreur interne",
+          retryable: true,
+        });
+      } catch (attemptError) {
+        log.error("payment_attempt_release_failed", {
+          payment_attempt_id: activeAttempt.attemptId,
+          stripe_session_id: activeAttempt.stripeSessionId || null,
+          message: attemptError instanceof Error ? attemptError.message : "unknown",
+        });
+      }
+    }
     await writeAuditLog({
       adminClient: actor?.adminClient || createAdminClient(),
       actor,
@@ -1221,4 +1730,5 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: message }, 500, corsHeaders);
   }
 });
+
 
