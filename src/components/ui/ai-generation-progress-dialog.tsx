@@ -1,9 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
-import { Sparkles, Wand2 } from "lucide-react";
+import { Check, Clock3, Image, Loader2, MessageSquareText, ScanSearch, Sparkles, Wand2, type LucideIcon } from "lucide-react";
 
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { formatWaitingTime, useEstimatedProgress } from "@/hooks/use-estimated-progress";
 import { useTokLogoSrc } from "@/hooks/useTokLogo";
 import { cn } from "@/lib/utils";
+
+type AiGenerationKind = "image" | "text" | "analysis";
 
 type AiGenerationProgressDialogProps = {
   open: boolean;
@@ -12,205 +14,192 @@ type AiGenerationProgressDialogProps = {
   status?: string;
   steps?: string[];
   estimatedDurationMs?: number;
+  kind?: AiGenerationKind;
+  actualProgress?: number;
+  completed?: boolean;
+  dismissible?: boolean;
+  backgroundSafe?: boolean;
+  onOpenChange?: (open: boolean) => void;
   className?: string;
 };
 
-const DEFAULT_STEPS = ["Analyse", "Composition", "Export"];
-const DEFAULT_ESTIMATED_DURATION_MS = 48_000;
-const STEP_REVEAL_INTERVAL_MS = 12_000;
-const PROGRESS_START_PERCENT = 4;
+const DEFAULT_STEPS = ["Analyse", "Composition", "Finalisation"];
+const ESTIMATED_DURATION_BY_KIND: Record<AiGenerationKind, number> = {
+  image: 100_000,
+  text: 18_000,
+  analysis: 35_000,
+};
+
+const KIND_META = {
+  image: { icon: Image, label: "Création visuelle" },
+  text: { icon: MessageSquareText, label: "Réponse intelligente" },
+  analysis: { icon: ScanSearch, label: "Analyse assistée" },
+} satisfies Record<AiGenerationKind, { icon: LucideIcon; label: string }>;
 
 export default function AiGenerationProgressDialog({
   open,
   title,
-  description = "TOK prepare le rendu, verifie les ressources et finalise un visuel pret a publier.",
-  status = "Creation en cours",
+  description = "TOK analyse votre demande, construit le résultat et effectue les dernières vérifications.",
+  status = "Intelligence TOK au travail",
   steps = DEFAULT_STEPS,
-  estimatedDurationMs = DEFAULT_ESTIMATED_DURATION_MS,
+  estimatedDurationMs,
+  kind = "image",
+  actualProgress,
+  completed = false,
+  dismissible = false,
+  backgroundSafe = false,
+  onOpenChange,
   className,
 }: AiGenerationProgressDialogProps) {
   const logoSrc = useTokLogoSrc();
-  const [dismissed, setDismissed] = useState(false);
-  const [elapsedMs, setElapsedMs] = useState(0);
-  const normalizedSteps = useMemo(() => (steps.length ? steps : DEFAULT_STEPS), [steps]);
-  const durationMs = Math.max(DEFAULT_ESTIMATED_DURATION_MS, estimatedDurationMs);
-  const progressRatio = Math.min(elapsedMs / durationMs, 1);
-  const progress = open && !dismissed
-    ? Math.min(
-      100,
-      Math.max(
-        PROGRESS_START_PERCENT,
-        Math.round(PROGRESS_START_PERCENT + progressRatio * (100 - PROGRESS_START_PERCENT)),
-      ),
-    )
-    : PROGRESS_START_PERCENT;
-  const visibleStepCount = Math.min(
-    normalizedSteps.length,
-    Math.max(1, 1 + Math.floor(elapsedMs / STEP_REVEAL_INTERVAL_MS)),
-  );
+  const normalizedSteps = steps.length ? steps : DEFAULT_STEPS;
+  const durationMs = Math.max(1_000, estimatedDurationMs ?? ESTIMATED_DURATION_BY_KIND[kind]);
+  const { elapsedMs, remainingMs, progress, isOverdue } = useEstimatedProgress({
+    active: open,
+    estimatedDurationMs: durationMs,
+    actualProgress,
+    completed,
+    startPercent: 4,
+    maxPercent: 96,
+  });
+  const progressRatio = Math.min(elapsedMs / durationMs, 0.999);
+  const activeStepIndex = completed
+    ? normalizedSteps.length
+    : Math.min(normalizedSteps.length - 1, Math.floor(progressRatio * normalizedSteps.length));
+  const KindIcon = KIND_META[kind].icon;
 
-  useEffect(() => {
-    if (open) {
-      setDismissed(false);
-      setElapsedMs(0);
-      return;
-    }
-
-    setElapsedMs(0);
-  }, [open]);
-
-  useEffect(() => {
-    if (!open || dismissed) return;
-
-    const startedAt = Date.now();
-    const intervalId = window.setInterval(() => {
-      setElapsedMs(Date.now() - startedAt);
-    }, 180);
-
-    return () => window.clearInterval(intervalId);
-  }, [dismissed, open]);
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen && !dismissible && open) return;
+    onOpenChange?.(nextOpen);
+  };
 
   return (
-    <Dialog
-      open={open && !dismissed}
-      onOpenChange={(nextOpen) => {
-        if (!nextOpen) {
-          setDismissed(true);
-        }
-      }}
-    >
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
+        hideCloseButton={!dismissible}
+        onEscapeKeyDown={(event) => {
+          if (!dismissible) event.preventDefault();
+        }}
+        onPointerDownOutside={(event) => {
+          if (!dismissible) event.preventDefault();
+        }}
         className={cn(
-          "w-[calc(100vw-1.5rem)] overflow-hidden rounded-[1.7rem] border-orange-300/70 bg-[#090401] p-0 text-white shadow-[0_24px_90px_rgba(248,92,13,0.42)] sm:max-w-[690px]",
+          "w-[calc(100vw-1.5rem)] overflow-hidden rounded-[1.8rem] border-orange-300/60 bg-[#090401] p-0 text-white shadow-[0_28px_110px_rgba(248,92,13,0.40)] sm:max-w-[680px]",
           className,
         )}
         data-testid="ai-generation-progress-dialog"
       >
         <style>{`
-          @keyframes tokAiModalGlow {
-            0%, 100% { opacity: 0.68; transform: scale(0.98); }
-            50% { opacity: 1; transform: scale(1.04); }
+          @keyframes tokAiOrbit { to { transform: rotate(360deg); } }
+          @keyframes tokAiOrbitReverse { to { transform: rotate(-360deg); } }
+          @keyframes tokAiBreathe {
+            0%, 100% { transform: scale(.96); filter: drop-shadow(0 0 15px rgba(255,125,32,.35)); }
+            50% { transform: scale(1.04); filter: drop-shadow(0 0 30px rgba(255,177,80,.7)); }
           }
-          @keyframes tokAiModalOrbit {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+          @keyframes tokAiFloat {
+            0%, 100% { transform: translate3d(0,0,0) rotate(-5deg); opacity: .62; }
+            50% { transform: translate3d(0,-8px,0) rotate(7deg); opacity: 1; }
           }
-          @keyframes tokAiModalOrbitReverse {
-            from { transform: rotate(360deg); }
-            to { transform: rotate(0deg); }
-          }
-          @keyframes tokAiModalPulse {
-            0%, 100% { transform: scale(0.98); filter: drop-shadow(0 0 18px rgba(255, 111, 24, 0.34)); }
-            50% { transform: scale(1.05); filter: drop-shadow(0 0 34px rgba(255, 170, 64, 0.62)); }
-          }
-          @keyframes tokAiModalStage {
-            0%, 100% { opacity: 0.72; transform: scaleX(0.92); }
-            50% { opacity: 1; transform: scaleX(1.08); }
-          }
-          @keyframes tokAiModalFloat {
-            0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); opacity: 0.72; }
-            50% { transform: translate3d(0, -8px, 0) rotate(8deg); opacity: 1; }
-          }
-          @keyframes tokAiModalScan {
-            0% { transform: translateY(-120%); opacity: 0; }
-            18% { opacity: 0.85; }
-            64% { opacity: 0.42; }
-            100% { transform: translateY(120%); opacity: 0; }
-          }
-          @keyframes tokAiModalProgress {
-            0% { transform: translateX(-42%); opacity: 0; }
-            28% { opacity: 0.86; }
-            100% { transform: translateX(160%); opacity: 0; }
-          }
-          @keyframes tokAiModalStep {
-            from { opacity: 0; transform: translateY(12px) scale(0.96); filter: blur(4px); }
-            to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
-          }
-          @keyframes tokAiModalMarquee {
-            0%, 12% { transform: translateX(0); }
-            88%, 100% { transform: translateX(calc(-100% + min(100%, 18rem))); }
+          @keyframes tokAiSweep {
+            0% { transform: translateX(-130%); opacity: 0; }
+            25% { opacity: .8; }
+            100% { transform: translateX(260%); opacity: 0; }
           }
           @media (prefers-reduced-motion: reduce) {
-            .tok-ai-modal-motion {
-              animation: none !important;
-              transition: none !important;
-            }
+            .tok-ai-motion { animation: none !important; transition: none !important; }
           }
         `}</style>
-        <div className="relative isolate overflow-hidden px-5 pb-5 pt-6 sm:px-8 sm:pb-8">
-          <div className="tok-ai-modal-motion absolute inset-0 -z-20 bg-[radial-gradient(circle_at_50%_22%,rgba(255,177,77,0.36),transparent_28%),radial-gradient(circle_at_17%_18%,rgba(255,137,42,0.42),transparent_30%),radial-gradient(circle_at_86%_35%,rgba(255,214,128,0.22),transparent_28%),linear-gradient(135deg,#160700_0%,#050201_50%,#1f0b01_100%)]" />
-          <div className="absolute inset-x-0 top-0 -z-10 h-44 bg-[linear-gradient(180deg,rgba(255,157,67,0.18),transparent)]" />
-          <div className="tok-ai-modal-motion absolute -left-16 top-12 -z-10 h-52 w-52 rounded-full bg-orange-500/32 blur-3xl [animation:tokAiModalGlow_4.8s_ease-in-out_infinite]" />
-          <div className="tok-ai-modal-motion absolute -right-10 bottom-3 -z-10 h-52 w-52 rounded-full bg-amber-300/22 blur-3xl [animation:tokAiModalGlow_5.4s_ease-in-out_infinite_reverse]" />
-          <div aria-hidden="true" className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent)] opacity-30" />
 
-          <div className="mx-auto flex max-w-[38rem] flex-col items-center text-center">
-            <div className="relative mb-7 flex h-56 w-full items-center justify-center overflow-visible">
-              <div className="absolute bottom-7 h-5 w-60 rounded-[50%] bg-amber-300/80 blur-xl shadow-[0_0_70px_rgba(251,146,60,0.82)]" />
-              <div className="tok-ai-modal-motion absolute bottom-5 h-6 w-52 rounded-[50%] border border-orange-200/50 bg-[radial-gradient(ellipse_at_center,rgba(255,223,159,0.95),rgba(255,117,24,0.34)_48%,transparent_74%)] [animation:tokAiModalStage_2.8s_ease-in-out_infinite]" />
-              <div className="absolute bottom-11 h-28 w-56 bg-[radial-gradient(ellipse_at_bottom,rgba(255,164,72,0.38),transparent_67%)] blur-md" />
-              <div className="tok-ai-modal-motion absolute h-44 w-44 rounded-full border border-orange-300/42 [animation:tokAiModalOrbit_6s_linear_infinite]" />
-              <div className="tok-ai-modal-motion absolute h-36 w-36 rounded-full border border-dashed border-amber-200/50 [animation:tokAiModalOrbitReverse_9s_linear_infinite]" />
-              <div className="tok-ai-modal-motion absolute h-28 w-28 rounded-full bg-orange-500/18 blur-xl [animation:tokAiModalGlow_3.8s_ease-in-out_infinite]" />
-              <div className="relative z-10 flex h-28 w-28 items-center justify-center overflow-hidden rounded-full border border-white/25 bg-white/95 shadow-[0_18px_45px_rgba(0,0,0,0.5),0_0_38px_rgba(255,124,24,0.45)]">
-                <img src={logoSrc} alt="" className="tok-ai-modal-motion h-24 w-24 object-contain [animation:tokAiModalPulse_2.8s_ease-in-out_infinite]" draggable={false} />
-                <span className="tok-ai-modal-motion pointer-events-none absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-white/70 to-transparent [animation:tokAiModalScan_2.9s_ease-in-out_infinite]" />
+        <div className="relative isolate overflow-hidden px-5 pb-6 pt-6 sm:px-8 sm:pb-8">
+          <div aria-hidden="true" className="absolute inset-0 -z-30 bg-[radial-gradient(circle_at_50%_10%,rgba(255,183,86,0.30),transparent_27%),radial-gradient(circle_at_8%_32%,rgba(255,100,20,0.28),transparent_35%),radial-gradient(circle_at_94%_60%,rgba(251,191,36,0.16),transparent_32%),linear-gradient(145deg,#1c0901_0%,#070201_52%,#160701_100%)]" />
+          <div aria-hidden="true" className="absolute inset-0 -z-20 opacity-25 [background-image:linear-gradient(rgba(255,255,255,.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.04)_1px,transparent_1px)] [background-size:26px_26px] [mask-image:linear-gradient(to_bottom,black,transparent_82%)]" />
+          <div aria-hidden="true" className="tok-ai-motion absolute -left-20 top-10 -z-10 h-56 w-56 animate-pulse rounded-full bg-orange-500/20 blur-3xl" />
+          <div aria-hidden="true" className="tok-ai-motion absolute -right-20 bottom-0 -z-10 h-60 w-60 animate-pulse rounded-full bg-amber-300/10 blur-3xl [animation-delay:900ms]" />
+
+          <div className="mx-auto flex max-w-[39rem] flex-col items-center text-center">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-orange-200/25 bg-white/[0.08] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-orange-100 backdrop-blur">
+              <KindIcon className="h-3.5 w-3.5" aria-hidden="true" />
+              {KIND_META[kind].label}
+            </div>
+
+            <div className="relative mb-5 grid h-36 w-36 place-items-center sm:h-40 sm:w-40">
+              <div aria-hidden="true" className="tok-ai-motion absolute inset-0 rounded-full border border-orange-300/35 [animation:tokAiOrbit_7s_linear_infinite] before:absolute before:left-1/2 before:top-[-4px] before:h-2 before:w-2 before:-translate-x-1/2 before:rounded-full before:bg-amber-200 before:shadow-[0_0_16px_rgba(253,230,138,.95)]" />
+              <div aria-hidden="true" className="tok-ai-motion absolute inset-3 rounded-full border border-dashed border-amber-100/35 [animation:tokAiOrbitReverse_10s_linear_infinite]" />
+              <div aria-hidden="true" className="absolute inset-8 rounded-full bg-orange-500/25 blur-xl" />
+              <div className="relative z-10 grid h-24 w-24 place-items-center overflow-hidden rounded-[2rem] border border-white/30 bg-white shadow-[0_16px_45px_rgba(0,0,0,.55),0_0_32px_rgba(255,124,24,.42)]">
+                <img src={logoSrc} alt="" className="tok-ai-motion h-20 w-20 object-contain [animation:tokAiBreathe_3s_ease-in-out_infinite]" draggable={false} />
+                <span aria-hidden="true" className="tok-ai-motion absolute inset-y-0 -left-1/2 w-1/2 skew-x-[-18deg] bg-gradient-to-r from-transparent via-white/70 to-transparent [animation:tokAiSweep_2.8s_ease-in-out_infinite]" />
               </div>
-              <Sparkles className="tok-ai-modal-motion absolute right-20 top-12 h-6 w-6 text-amber-100 drop-shadow-[0_0_18px_rgba(251,191,36,0.95)] [animation:tokAiModalFloat_2.4s_ease-in-out_infinite]" />
-              <Wand2 className="tok-ai-modal-motion absolute bottom-20 left-20 h-6 w-6 text-orange-100 drop-shadow-[0_0_18px_rgba(251,146,60,0.9)] [animation:tokAiModalFloat_2.8s_ease-in-out_infinite_.2s]" />
-              <span className="tok-ai-modal-motion absolute left-8 top-20 h-1.5 w-1.5 rounded-full bg-amber-100 shadow-[0_0_18px_rgba(253,230,138,0.9)] [animation:tokAiModalFloat_3s_ease-in-out_infinite]" />
-              <span className="tok-ai-modal-motion absolute right-8 bottom-24 h-1.5 w-1.5 rounded-full bg-orange-200 shadow-[0_0_18px_rgba(251,146,60,0.9)] [animation:tokAiModalFloat_3.4s_ease-in-out_infinite_.3s]" />
+              <Sparkles aria-hidden="true" className="tok-ai-motion absolute right-0 top-6 h-5 w-5 text-amber-100 [animation:tokAiFloat_2.6s_ease-in-out_infinite]" />
+              <Wand2 aria-hidden="true" className="tok-ai-motion absolute bottom-7 left-0 h-5 w-5 text-orange-100 [animation:tokAiFloat_3s_ease-in-out_.3s_infinite]" />
             </div>
 
-            <div className="mb-3 inline-flex max-w-full items-center gap-2 overflow-hidden rounded-full border border-orange-200/30 bg-white/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.26em] text-orange-100">
-              <span className="h-2 w-2 shrink-0 rounded-full bg-orange-400 shadow-[0_0_16px_rgba(251,146,60,0.9)]" />
-              <span className="tok-ai-modal-motion inline-block min-w-max [animation:tokAiModalMarquee_8s_linear_infinite]">{status}</span>
+            <div className="mb-3 inline-flex max-w-full items-center gap-2 rounded-full border border-orange-200/25 bg-orange-400/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-orange-100">
+              <span className="tok-ai-motion h-2 w-2 shrink-0 animate-pulse rounded-full bg-orange-400 shadow-[0_0_14px_rgba(251,146,60,.9)]" />
+              <span className="truncate">{status}</span>
             </div>
+            <DialogTitle className="font-display text-2xl leading-tight text-white sm:text-3xl">{title}</DialogTitle>
+            <DialogDescription className="mt-3 max-w-lg text-sm leading-6 text-orange-50/75">{description}</DialogDescription>
 
-            <DialogTitle className="font-display text-2xl leading-tight text-white sm:text-3xl">
-              {title}
-            </DialogTitle>
-            <DialogDescription className="mt-3 max-w-sm text-sm leading-6 text-orange-50/78">
-              {description}
-            </DialogDescription>
-
-            <div
-              className="mt-6 w-full overflow-hidden rounded-full border border-white/10 bg-white/10 p-1 shadow-inner shadow-black/60"
-              role="progressbar"
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={Math.round(progress)}
-            >
-              <div className="relative h-2 overflow-hidden rounded-full bg-black/40">
+            <div className="mt-6 w-full rounded-2xl border border-white/10 bg-white/[0.07] p-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.07)] backdrop-blur">
+              <div className="mb-2 flex items-center justify-between gap-4 text-xs">
+                <span className="font-bold text-white">{progress}%</span>
+                <span className="flex items-center gap-1.5 text-right text-orange-50/65">
+                  <Clock3 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  {completed
+                    ? "Résultat prêt"
+                    : isOverdue
+                      ? "Finalisation en cours…"
+                      : `Environ ${formatWaitingTime(remainingMs)} restante${remainingMs >= 2_000 ? "s" : ""}`}
+                </span>
+              </div>
+              <div
+                className="h-2.5 overflow-hidden rounded-full bg-black/45 shadow-inner"
+                role="progressbar"
+                aria-label={title}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={progress}
+              >
                 <div
-                  className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-orange-500 via-amber-200 to-orange-500 shadow-[0_0_24px_rgba(251,146,60,0.95)] transition-[width] duration-500 ease-out"
+                  className="relative h-full rounded-full bg-gradient-to-r from-orange-600 via-amber-300 to-orange-400 shadow-[0_0_22px_rgba(251,146,60,.78)] transition-[width] duration-500 ease-out"
                   data-testid="ai-generation-progress-fill"
                   style={{ width: `${progress}%` }}
-                  aria-hidden="true"
                 >
-                  <span className="tok-ai-modal-motion absolute inset-y-0 left-0 w-1/2 rounded-full bg-gradient-to-r from-transparent via-white/75 to-transparent [animation:tokAiModalProgress_1.8s_ease-in-out_infinite]" />
+                  <span aria-hidden="true" className="tok-ai-motion absolute inset-y-0 left-0 w-1/2 bg-gradient-to-r from-transparent via-white/80 to-transparent [animation:tokAiSweep_1.9s_ease-in-out_infinite]" />
                 </div>
               </div>
+
+              <ol className="mt-4 grid gap-2 sm:grid-cols-3" aria-label="Étapes de génération">
+                {normalizedSteps.map((step, index) => {
+                  const done = completed || index < activeStepIndex;
+                  const active = !completed && index === activeStepIndex;
+                  return (
+                    <li
+                      key={`${index}-${step}`}
+                      className={cn(
+                        "flex min-w-0 items-center gap-2 rounded-xl border px-3 py-2.5 text-[11px] transition-colors",
+                        done && "border-emerald-300/25 bg-emerald-400/10 text-emerald-100",
+                        active && "border-orange-300/40 bg-orange-400/15 font-semibold text-white",
+                        !done && !active && "border-white/[0.08] bg-black/15 text-orange-50/45",
+                      )}
+                    >
+                      <span className={cn("grid h-5 w-5 shrink-0 place-items-center rounded-full", done ? "bg-emerald-500 text-white" : active ? "bg-orange-500 text-white" : "bg-white/10 text-orange-50/45")}>
+                        {done ? <Check className="h-3 w-3" aria-hidden="true" /> : active ? <Loader2 className="tok-ai-motion h-3 w-3 animate-spin" aria-hidden="true" /> : index + 1}
+                      </span>
+                      <span className="truncate">{step}</span>
+                    </li>
+                  );
+                })}
+              </ol>
             </div>
 
-            <div className="mt-5 grid w-full gap-3">
-              {normalizedSteps.slice(0, visibleStepCount).map((step, index) => (
-                <div
-                  key={step}
-                  className="tok-ai-modal-motion rounded-[1.35rem] border border-white/10 bg-white/[0.08] px-4 py-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_18px_42px_rgba(0,0,0,0.22)] [animation:tokAiModalStep_.55s_ease-out_both]"
-                  style={{ animationDelay: `${index * 0.08}s` }}
-                >
-                  <span
-                    className="tok-ai-modal-motion mb-2 block h-2 w-2 rounded-full bg-orange-300 shadow-[0_0_14px_rgba(253,186,116,0.85)]"
-                    style={{ animation: `tokAiModalGlow 1.8s ease-in-out ${index * 0.18}s infinite` }}
-                  />
-                  <p className="text-xs font-semibold leading-4 text-white">{step}</p>
-                </div>
-              ))}
-            </div>
-
-            <p className="mt-5 max-w-sm text-xs leading-5 text-orange-50/62">
-              Vous pouvez fermer cette fenetre: la creation continue en arriere-plan lorsque l'outil conserve la generation cote serveur.
+            <p className="mt-4 max-w-lg text-[11px] leading-5 text-orange-50/55">
+              Temps écoulé : {formatWaitingTime(elapsedMs)}. {isOverdue
+                ? "Le délai estimé est dépassé, mais la génération continue normalement. La complexité du visuel et la file IA peuvent faire varier la durée."
+                : backgroundSafe && dismissible
+                  ? "Vous pouvez fermer cette fenêtre : cette génération est suivie côté serveur."
+                  : "Gardez cette fenêtre ouverte jusqu’à la réception du résultat. La durée affichée reste une estimation."}
             </p>
           </div>
         </div>

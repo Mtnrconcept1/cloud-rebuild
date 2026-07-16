@@ -1328,6 +1328,8 @@ export default function DashboardAdvisor() {
           description="TOK analyse le contexte du restaurant, execute l'outil demande et prepare une reponse exploitable."
           status="Assistant TOK au travail"
           steps={["Contexte", "Generation", "Reponse"]}
+          kind="text"
+          estimatedDurationMs={20_000}
         />
       </div>
     </DashboardLayout>

@@ -6,6 +6,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CalendarIcon, Check, ChevronLeft, ChevronRight, Clock, Heart, Loader2, Tag, Timer, Utensils, Users, Zap } from "lucide-react";
 
 import ReservationDetailModal from "@/components/ReservationDetailModal";
+import OperationProgressDialog from "@/components/ui/operation-progress-dialog";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -963,7 +964,8 @@ export default function ReservationDialog({
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
                   <Button onClick={handleSubmit} disabled={loading} className="flex-1">
-                    {loading ? "Envoi..." : "Confirmer"}
+                    {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                    {loading ? "Confirmation…" : "Confirmer"}
                   </Button>
                 </div>
               </>
@@ -971,6 +973,16 @@ export default function ReservationDialog({
           </div>
         </DialogContent>
       </Dialog>
+
+      <OperationProgressDialog
+        open={loading}
+        variant="reservation"
+        title="Confirmation de votre réservation"
+        description="TOK vérifie une dernière fois le créneau, enregistre la table et synchronise la demande avec le restaurant."
+        status="Réservation sécurisée en cours"
+        steps={["Disponibilité", "Enregistrement", "Confirmation"]}
+        estimatedDurationMs={isCommercialDemoClient ? 6_000 : 8_000}
+      />
 
       <ReservationDetailModal
         reservation={confirmedReservation}

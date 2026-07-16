@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import AiGenerationProgressDialog from "@/components/ui/ai-generation-progress-dialog";
+import OperationProgressDialog from "@/components/ui/operation-progress-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -169,6 +170,7 @@ export default function DashboardMenu() {
   const [menuImportWarnings, setMenuImportWarnings] = useState<string[]>([]);
   const [analyzingMenu, setAnalyzingMenu] = useState(false);
   const [savingImportedMenu, setSavingImportedMenu] = useState(false);
+  const [savingItem, setSavingItem] = useState(false);
   const menuImportInputRef = useRef<HTMLInputElement | null>(null);
   const mountedRef = useRef(true);
 
@@ -342,7 +344,7 @@ export default function DashboardMenu() {
   };
 
   const handleSave = async () => {
-    if (!restaurant) return;
+    if (!restaurant || savingItem) return;
 
     if (isCommercialDemo && commercialDemoFrame) {
       const current = readCommercialDemoMenu();
@@ -368,6 +370,8 @@ export default function DashboardMenu() {
       return;
     }
 
+    setSavingItem(true);
+    try {
     if (editingId) {
       const { error } = await supabase
         .from("menu_items")
@@ -390,6 +394,9 @@ export default function DashboardMenu() {
     toast({ title: editingId ? "Plat mis à jour" : "Plat ajoute" });
     setDialogOpen(false);
     refreshMenu();
+    } finally {
+      setSavingItem(false);
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -946,18 +953,48 @@ export default function DashboardMenu() {
               </div>
             </div>
             <DialogFooter>
-              <Button onClick={handleSave} disabled={!restaurant}>
-                Sauvegarder
+              <Button onClick={handleSave} disabled={!restaurant || savingItem}>
+                {savingItem ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                {savingItem ? "Sauvegarde…" : "Sauvegarder"}
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        <OperationProgressDialog
+          open={analyzingMenu}
+          variant="analysis"
+          title="Lecture intelligente du menu"
+          description="TOK transmet les photos, reconnaît les plats, les prix et les catégories, puis contrôle les données détectées."
+          status="Analyse des photos en cours"
+          steps={["Envoi des photos", "Lecture du contenu", "Vérification des plats"]}
+          estimatedDurationMs={25_000}
+        />
+        <OperationProgressDialog
+          open={savingImportedMenu}
+          variant="save"
+          title="Ajout des plats au menu"
+          description="Les éléments validés sont enregistrés et la carte du restaurant est synchronisée."
+          status="Synchronisation du menu"
+          steps={["Validation", "Enregistrement", "Actualisation"]}
+          estimatedDurationMs={6_000}
+        />
+        <OperationProgressDialog
+          open={savingItem}
+          variant="save"
+          title={editingId ? "Mise à jour du plat" : "Ajout du plat"}
+          description="TOK enregistre les informations, la disponibilité et la photo du plat."
+          status="Sauvegarde sécurisée"
+          steps={["Contrôle", "Enregistrement", "Menu actualisé"]}
+          estimatedDurationMs={5_000}
+        />
         <AiGenerationProgressDialog
           open={generatingPhoto}
           title="Photo du plat en creation"
           description="TOK prepare une photo culinaire exploitable pour votre menu a partir du plat, de la description et de votre image source."
           status="Studio menu en cours"
           steps={["Contexte plat", "Photo culinaire", "Application au menu"]}
+          kind="image"
+          estimatedDurationMs={100_000}
         />
       </div>
     </DashboardLayout>

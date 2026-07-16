@@ -30,6 +30,7 @@ import CartItemList from "@/components/cart/CartItemList";
 import LoyaltySection from "@/components/cart/LoyaltySection";
 import FlexOptions from "@/components/cart/FlexOptions";
 import PaymentMethodSelector from "@/components/cart/PaymentMethodSelector";
+import OperationProgressDialog from "@/components/ui/operation-progress-dialog";
 import CartSuggestionsStep from "@/components/cart/CartSuggestionsStep";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import {
@@ -811,11 +812,8 @@ export default function Panier() {
   };
 
   const handleCheckout = () => {
-    if (checkoutLockRef.current) return;
-    checkoutLockRef.current = true;
-    void processCheckout().finally(() => {
-      checkoutLockRef.current = false;
-    });
+    if (loading) return;
+    void processCheckout();
   };
 
   const processCheckout = async () => {
@@ -2301,6 +2299,19 @@ export default function Panier() {
           </>
         ) : null}
       </div>
+      <OperationProgressDialog
+        open={loading}
+        variant="payment"
+        title={requiresStripeCheckout ? "Préparation du paiement sécurisé" : "Confirmation de votre commande"}
+        description={requiresStripeCheckout
+          ? "TOK vérifie les montants, réserve la commande une seule fois et prépare la session Stripe sécurisée."
+          : "TOK vérifie les prix, enregistre la commande et la transmet au restaurant."}
+        status={requiresStripeCheckout ? "Connexion sécurisée à Stripe" : "Commande en cours de validation"}
+        steps={requiresStripeCheckout
+          ? ["Vérification du panier", "Réservation de la commande", "Ouverture du paiement"]
+          : ["Vérification du panier", "Enregistrement", "Transmission au restaurant"]}
+        estimatedDurationMs={15_000}
+      />
     </main>
   );
 }

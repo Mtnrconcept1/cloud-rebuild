@@ -8,63 +8,60 @@ describe("AiGenerationProgressDialog", () => {
     vi.useRealTimers();
   });
 
-  it("grows the progress bar and reveals all generation steps over time", () => {
+  it("follows the configured estimate without claiming completion before the result", () => {
     vi.useFakeTimers();
 
     render(
       <AiGenerationProgressDialog
         open
+        kind="image"
+        estimatedDurationMs={100_000}
         title="Retouche PhotoPro en cours"
-        description="TOK prepare la version finale."
+        description="TOK prépare la version finale."
         status="PhotoPro travaille le visuel"
-        steps={["Analyse photo", "Retouche fidele", "Export galerie"]}
+        steps={["Analyse photo", "Retouche fidèle", "Export galerie"]}
       />,
     );
 
-    const progressbar = screen.getByRole("progressbar");
+    const progressbar = screen.getByRole("progressbar", { name: "Retouche PhotoPro en cours" });
     const fill = screen.getByTestId("ai-generation-progress-fill");
     const initialProgress = Number(progressbar.getAttribute("aria-valuenow"));
 
     expect(initialProgress).toBeGreaterThan(0);
     expect(fill).toHaveStyle({ width: `${initialProgress}%` });
     expect(screen.getByText("Analyse photo")).toBeInTheDocument();
-    expect(screen.queryByText("Retouche fidele")).not.toBeInTheDocument();
-    expect(screen.queryByText("Export galerie")).not.toBeInTheDocument();
+    expect(screen.getByText(/Environ 1 min 40 s/)).toBeInTheDocument();
 
     act(() => {
-      vi.advanceTimersByTime(11_900);
+      vi.advanceTimersByTime(40_000);
     });
 
-    expect(screen.queryByText("Retouche fidele")).not.toBeInTheDocument();
-    expect(screen.queryByText("Export galerie")).not.toBeInTheDocument();
+    const middleProgress = Number(progressbar.getAttribute("aria-valuenow"));
+    expect(middleProgress).toBeGreaterThan(initialProgress);
+    expect(middleProgress).toBeLessThan(90);
+    expect(fill).toHaveStyle({ width: `${middleProgress}%` });
 
     act(() => {
-      vi.advanceTimersByTime(200);
+      vi.advanceTimersByTime(120_000);
     });
 
-    const secondProgress = Number(progressbar.getAttribute("aria-valuenow"));
-    expect(secondProgress).toBeGreaterThan(initialProgress);
-    expect(secondProgress).toBeLessThan(100);
-    expect(fill).toHaveStyle({ width: `${secondProgress}%` });
-    expect(screen.getByText("Retouche fidele")).toBeInTheDocument();
-    expect(screen.queryByText("Export galerie")).not.toBeInTheDocument();
+    const overtimeProgress = Number(progressbar.getAttribute("aria-valuenow"));
+    expect(overtimeProgress).toBeGreaterThan(middleProgress);
+    expect(overtimeProgress).toBeLessThan(100);
+    expect(screen.getByText("Finalisation en cours…")).toBeInTheDocument();
+  });
 
-    act(() => {
-      vi.advanceTimersByTime(12_300);
-    });
+  it("reports 100 percent only when completion is explicit", () => {
+    render(
+      <AiGenerationProgressDialog
+        open
+        completed
+        title="Visuel prêt"
+        steps={["Analyse", "Composition", "Export"]}
+      />,
+    );
 
-    const thirdProgress = Number(progressbar.getAttribute("aria-valuenow"));
-    expect(thirdProgress).toBeGreaterThan(secondProgress);
-    expect(thirdProgress).toBeLessThan(100);
-    expect(fill).toHaveStyle({ width: `${thirdProgress}%` });
-    expect(screen.getByText("Export galerie")).toBeInTheDocument();
-
-    act(() => {
-      vi.advanceTimersByTime(24_000);
-    });
-
-    const finalProgress = Number(progressbar.getAttribute("aria-valuenow"));
-    expect(finalProgress).toBe(100);
-    expect(fill).toHaveStyle({ width: "100%" });
+    expect(screen.getByRole("progressbar", { name: "Visuel prêt" })).toHaveAttribute("aria-valuenow", "100");
+    expect(screen.getByText("Résultat prêt")).toBeInTheDocument();
   });
 });
