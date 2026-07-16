@@ -48,6 +48,26 @@ const SCHEDULING_TIME_ZONE = "Europe/Zurich";
 
 const pad = (value: number) => String(value).padStart(2, "0");
 
+function canonicalize(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(canonicalize);
+  if (!value || typeof value !== "object") return value;
+  const record = value as Record<string, unknown>;
+  return Object.fromEntries(
+    Object.keys(record)
+      .sort()
+      .filter((key) => record[key] !== undefined)
+      .map((key) => [key, canonicalize(record[key])]),
+  );
+}
+
+async function fingerprintCheckoutRequest(value: Record<string, unknown>) {
+  const encoded = new TextEncoder().encode(JSON.stringify(canonicalize(value)));
+  const digest = await crypto.subtle.digest("SHA-256", encoded);
+  return Array.from(new Uint8Array(digest))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
 function getTimeZoneOffset(date: Date, timeZone = SCHEDULING_TIME_ZONE) {
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone,
@@ -262,6 +282,24 @@ Deno.serve(async (req) => {
     const authoritativeMetadata = isDelivery
       ? enrichDeliveryMetadata(deliveryMetadataBase)
       : baseMetadata;
+    const checkoutRequestFingerprint = await fingerprintCheckoutRequest({
+      version: 1,
+      user_id: actor.userId,
+      restaurant_id,
+      checkout_id: checkout_id || null,
+      delivery_address: delivery_address || "",
+      delivery_fee: pricing.deliveryFee,
+      notes: notes || null,
+      total: pricing.total,
+      items: pricing.validatedItems.map((item) => ({
+        menu_item_id: item.menuItemId,
+        quantity: item.quantity,
+        unit_price: item.unitPrice,
+        source: item.source,
+        metadata: item.metadata || {},
+      })),
+      metadata: authoritativeMetadata,
+    });
     const capacityState = await ensureRestaurantCanAcceptOrder({
       adminClient: actor.adminClient,
       restaurantId: restaurant_id,
@@ -278,6 +316,7 @@ Deno.serve(async (req) => {
         slot_start: getRecordString(capacityState, "slot_start"),
         slot_end: getRecordString(capacityState, "slot_end"),
       },
+      checkout_request_fingerprint: checkoutRequestFingerprint,
     };
 
     if (preview_only) {
@@ -321,7 +360,7 @@ Deno.serve(async (req) => {
     }));
 
     const { data: orderId, error: orderError } = await actor.adminClient.rpc(
-      "create_order_with_items",
+      "create_order_with_items_idempotent",
       {
         restaurant_id_param: restaurant_id,
         delivery_address_param: delivery_address || "",
@@ -563,4 +602,5 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: message }, 500, corsHeaders);
   }
 });
+
 

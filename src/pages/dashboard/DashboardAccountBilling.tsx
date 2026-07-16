@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import {
@@ -55,6 +55,17 @@ import {
 } from "@/lib/restaurantSubscriptionToolAccess";
 import { invokeSupabaseFunction } from "@/lib/session";
 import {
+  clearPaymentAttemptId,
+  createCheckoutWithRecovery,
+  createPaymentAttemptOperationKey,
+  getOrCreatePaymentAttemptId,
+  isPaymentAttemptIndeterminateError,
+  markPaymentAttemptRedirected,
+  normalizePaymentAttemptId,
+  rememberPaymentAttemptId,
+} from "@/lib/paymentAttempt";
+import { usePaymentAttemptBackCancellation } from "@/lib/usePaymentAttemptBackCancellation";
+import {
   formatTokCredits,
   getAiSimpleRequestEquivalent,
   getCampaignEquivalentChf,
@@ -68,6 +79,11 @@ import { useDashboardRestaurant } from "./useDashboardRestaurant";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 
 const supabase = getSupabase();
+
+// One scope per billing page keeps exactly one resumable Stripe operation.
+// Separate subscription/credit scopes could both be marked as redirected and
+// a later browser-back navigation would then cancel two unrelated sessions.
+const billingAttemptScope = (restaurantId: string) => `restaurant-billing:${restaurantId}`;
 
 type CreditKind = "tok_credits" | "campaign" | "ai_tools" | "photo_retouch";
 
@@ -731,10 +747,27 @@ function LiveDashboardAccountBilling() {
   const [pendingSubscriptionAction, setPendingSubscriptionAction] = useState<PendingSubscriptionAction | null>(null);
   const [completedCreditPackSessionId, setCompletedCreditPackSessionId] = useState<string | null>(null);
   const [reconciledPendingCreditPackRestaurantId, setReconciledPendingCreditPackRestaurantId] = useState<string | null>(null);
+  const checkoutLockRef = useRef(false);
+  const cancelledAttemptRef = useRef<string | null>(null);
+
+  usePaymentAttemptBackCancellation({
+    scope: selectedId ? billingAttemptScope(selectedId) : null,
+    onCancelled: () => {
+      setCheckingOutPlanId(null);
+      setCheckingOutCreditPackId(null);
+      toast.success("Paiement interrompu : la session Stripe a été fermée.");
+    },
+    onError: () => {
+      setCheckingOutPlanId(null);
+      setCheckingOutCreditPackId(null);
+      toast.error("Paiement en cours de vérification : reprenez la même tentative.");
+    },
+  });
 
   const paymentStatus = searchParams.get("status");
   const checkoutSessionId = searchParams.get("session_id");
   const returnCheckoutKind = searchParams.get("checkout_kind");
+  const returnPaymentAttemptId = normalizePaymentAttemptId(searchParams.get("payment_attempt_id"));
 
   const usageQuery = useQuery({
     queryKey: ["restaurant-credit-usage", selectedId],
@@ -784,6 +817,35 @@ function LiveDashboardAccountBilling() {
   const isUsageUnavailable = usageQuery.isError;
 
   useEffect(() => {
+    if (paymentStatus !== "cancelled" || !returnPaymentAttemptId || !selectedId) return;
+    if (cancelledAttemptRef.current === returnPaymentAttemptId) return;
+    cancelledAttemptRef.current = returnPaymentAttemptId;
+
+    const scope = billingAttemptScope(selectedId);
+    rememberPaymentAttemptId(scope, returnPaymentAttemptId);
+
+    void invokeSupabaseFunction("cancel-payment-attempt", {
+      body: { payment_attempt_id: returnPaymentAttemptId },
+    }).then(({ error }) => {
+      if (error) throw error;
+      clearPaymentAttemptId(scope, returnPaymentAttemptId);
+      toast.success("Session Stripe annulée et ressources temporaires libérées.");
+    }).catch((error) => {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "L'annulation doit encore être vérifiée avant de relancer un paiement.",
+      );
+    });
+  }, [paymentStatus, returnCheckoutKind, returnPaymentAttemptId, selectedId]);
+
+  useEffect(() => {
+    if (paymentStatus !== "success" || !returnPaymentAttemptId || !selectedId) return;
+    if (returnCheckoutKind === "restaurant-credit-pack") return;
+    clearPaymentAttemptId(billingAttemptScope(selectedId), returnPaymentAttemptId);
+  }, [paymentStatus, returnCheckoutKind, returnPaymentAttemptId, selectedId]);
+
+  useEffect(() => {
     if (isCommercialDemo) return;
     if (paymentStatus !== "success" || !checkoutSessionId) return;
     if (returnCheckoutKind && returnCheckoutKind !== "restaurant-credit-pack") return;
@@ -804,6 +866,9 @@ function LiveDashboardAccountBilling() {
           return;
         }
 
+        if (returnPaymentAttemptId && selectedId) {
+          clearPaymentAttemptId(billingAttemptScope(selectedId), returnPaymentAttemptId);
+        }
         await usageQuery.refetch();
         if (returnCheckoutKind === "restaurant-credit-pack" && !data.already_paid) {
           toast.success("Recharge de crédits TOK activée.");
@@ -819,7 +884,7 @@ function LiveDashboardAccountBilling() {
     return () => {
       cancelled = true;
     };
-  }, [checkoutSessionId, completedCreditPackSessionId, isCommercialDemo, paymentStatus, returnCheckoutKind, usageQuery]);
+  }, [checkoutSessionId, completedCreditPackSessionId, isCommercialDemo, paymentStatus, returnCheckoutKind, returnPaymentAttemptId, selectedId, usageQuery]);
 
   useEffect(() => {
     if (isCommercialDemo) return;
@@ -867,36 +932,71 @@ function LiveDashboardAccountBilling() {
 
   async function handleUpgrade(plan: RestaurantSubscriptionPlan) {
     if (!selectedId) return;
+    if (checkoutLockRef.current) return;
+    checkoutLockRef.current = true;
     setCheckingOutPlanId(plan.id);
 
     if (isCommercialDemo) {
       toast.success(`Upgrade vers ${plan.name} simulé — aucun abonnement Stripe créé.`);
       setCheckingOutPlanId(null);
+      checkoutLockRef.current = false;
       return;
     }
 
     try {
-      const { data, error } = await invokeSupabaseFunction<{ url?: string; session_id?: string }>("create-checkout", {
-        body: {
+      const paymentAttemptId = getOrCreatePaymentAttemptId(
+        billingAttemptScope(selectedId),
+        createPaymentAttemptOperationKey({
+          restaurantId: selectedId,
+          checkoutKind: "restaurant-subscription-upgrade",
+          planId: plan.id,
+        }),
+      );
+      const checkoutPayload = {
+        payment_attempt_id: paymentAttemptId,
+        checkout_kind: "restaurant-subscription-upgrade",
+        payment_method: "card",
+        return_url: buildCheckoutReturnUrl("/dashboard/mon-compte-facturation", { paymentAttemptId }),
+        order_metadata: {
+          payment_attempt_id: paymentAttemptId,
           checkout_kind: "restaurant-subscription-upgrade",
-          payment_method: "card",
-          return_url: buildCheckoutReturnUrl("/dashboard/mon-compte-facturation"),
-          order_metadata: {
-            checkout_kind: "restaurant-subscription-upgrade",
-            restaurant_id: selectedId,
-            plan_id: plan.id,
-          },
+          restaurant_id: selectedId,
+          plan_id: plan.id,
+        },
+      };
+      const checkout = await createCheckoutWithRecovery({
+        paymentAttemptId,
+        create: async () => {
+          const { data, error } = await invokeSupabaseFunction("create-checkout", {
+            body: checkoutPayload,
+          });
+          if (error) throw error;
+          return data;
+        },
+        getStatus: async () => {
+          const { data, error } = await invokeSupabaseFunction("payment-attempt-status", {
+            body: { payment_attempt_id: paymentAttemptId },
+          });
+          if (error) throw error;
+          return data;
         },
       });
 
-      if (error || !data?.url) {
-        throw new Error((error as Error | null)?.message || "Impossible de créer la session d'upgrade.");
+      if (!checkout.url) {
+        throw new Error("L'upgrade est en cours de vérification. Relancez avec le même bouton dans quelques secondes.");
       }
 
-      redirectToTrustedCheckoutUrl(data.url);
+      markPaymentAttemptRedirected(billingAttemptScope(selectedId), paymentAttemptId);
+      redirectToTrustedCheckoutUrl(checkout.url);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Erreur lors de la création de l'upgrade.");
+      toast.error(
+        isPaymentAttemptIndeterminateError(error)
+          ? error.message
+          : error instanceof Error ? error.message : "Erreur lors de la création de l'upgrade.",
+      );
       setCheckingOutPlanId(null);
+    } finally {
+      checkoutLockRef.current = false;
     }
   }
 
@@ -954,36 +1054,74 @@ function LiveDashboardAccountBilling() {
 
   async function handleBuyCreditPack(pack: RestaurantCreditPack) {
     if (!selectedId) return;
+    if (checkoutLockRef.current) return;
+    checkoutLockRef.current = true;
     setCheckingOutCreditPackId(pack.id);
 
     if (isCommercialDemo) {
       toast.success(`Recharge ${pack.name} simulée — aucun paiement Stripe créé.`);
       setCheckingOutCreditPackId(null);
+      checkoutLockRef.current = false;
       return;
     }
 
     try {
-      const { data, error } = await invokeSupabaseFunction<{ url?: string; session_id?: string }>("create-checkout", {
-        body: {
+      const paymentAttemptId = getOrCreatePaymentAttemptId(
+        billingAttemptScope(selectedId),
+        createPaymentAttemptOperationKey({
+          restaurantId: selectedId,
+          checkoutKind: "restaurant-credit-pack",
+          creditPackId: pack.id,
+        }),
+      );
+      const checkoutPayload = {
+        payment_attempt_id: paymentAttemptId,
+        checkout_kind: "restaurant-credit-pack",
+        payment_method: "card",
+        return_url: buildCheckoutReturnUrl(
+          "/dashboard/mon-compte-facturation?checkout_kind=restaurant-credit-pack",
+          { paymentAttemptId },
+        ),
+        order_metadata: {
+          payment_attempt_id: paymentAttemptId,
           checkout_kind: "restaurant-credit-pack",
-          payment_method: "card",
-          return_url: buildCheckoutReturnUrl("/dashboard/mon-compte-facturation?checkout_kind=restaurant-credit-pack"),
-          order_metadata: {
-            checkout_kind: "restaurant-credit-pack",
-            restaurant_id: selectedId,
-            credit_pack_id: pack.id,
-          },
+          restaurant_id: selectedId,
+          credit_pack_id: pack.id,
+        },
+      };
+      const checkout = await createCheckoutWithRecovery({
+        paymentAttemptId,
+        create: async () => {
+          const { data, error } = await invokeSupabaseFunction("create-checkout", {
+            body: checkoutPayload,
+          });
+          if (error) throw error;
+          return data;
+        },
+        getStatus: async () => {
+          const { data, error } = await invokeSupabaseFunction("payment-attempt-status", {
+            body: { payment_attempt_id: paymentAttemptId },
+          });
+          if (error) throw error;
+          return data;
         },
       });
 
-      if (error || !data?.url) {
-        throw new Error((error as Error | null)?.message || "Impossible de creer la session de paiement du pack.");
+      if (!checkout.url) {
+        throw new Error("La recharge est en cours de vérification. Relancez avec le même bouton dans quelques secondes.");
       }
 
-      redirectToTrustedCheckoutUrl(data.url);
+      markPaymentAttemptRedirected(billingAttemptScope(selectedId), paymentAttemptId);
+      redirectToTrustedCheckoutUrl(checkout.url);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Erreur lors de la creation du paiement du pack.");
+      toast.error(
+        isPaymentAttemptIndeterminateError(error)
+          ? error.message
+          : error instanceof Error ? error.message : "Erreur lors de la creation du paiement du pack.",
+      );
       setCheckingOutCreditPackId(null);
+    } finally {
+      checkoutLockRef.current = false;
     }
   }
 
@@ -1355,3 +1493,4 @@ function LiveDashboardAccountBilling() {
     </DashboardLayout>
   );
 }
+

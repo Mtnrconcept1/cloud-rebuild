@@ -119,6 +119,47 @@ export function getStripeRuntimeForCheckoutKind(checkoutKind: unknown) {
 }
 
 /**
+ * Resolve the Stripe account for an already persisted payment attempt.
+ *
+ * Recovery endpoints must never silently fall back from Test to Live (or the
+ * reverse): a Checkout id is only meaningful in the account/mode that created
+ * it. Creation keeps using getStripeRuntimeForCheckoutKind, while recovery
+ * always pins the persisted mode through this helper.
+ */
+export function getStripeRuntimeForCheckoutKindAndMode(
+  checkoutKind: unknown,
+  preferredMode: unknown,
+) {
+  const kind = normalizeCheckoutKind(checkoutKind);
+  const mode = normalizeRuntimeMode(preferredMode);
+  if (!mode) throw new HttpError(400, "Invalid Stripe runtime mode");
+
+  if (kind === "commercial-demo-order" || kind === "commercial_demo_order") {
+    if (mode !== "test") throw new HttpError(400, "Commercial demo requires Stripe Test");
+    return getCommercialDemoStripeRuntime();
+  }
+
+  if (kind === "tok-one") return getTokOneStripeRuntime(mode);
+
+  return selectRuntime({
+    names: mode === "test"
+      ? [
+        "STRIPE_SECRET_KEY_TEST",
+        "STRIPE_TOK_ONE_TEST_SECRET_KEY",
+        "STRIPE_SECRET_KEY",
+      ]
+      : [
+        "STRIPE_PERSONNAL_SECRET_KEY",
+        "STRIPE_PERSONAL_SECRET_KEY",
+        "STRIPE_SECRET_KEY_LIVE",
+        "STRIPE_SECRET_KEY",
+      ],
+    purpose: "Stripe recovery secret",
+    expectedMode: mode,
+  });
+}
+
+/**
  * Stripe runtime reserved for the interactive commercial demonstration.
  *
  * Only values whose actual prefix identifies Stripe Test are accepted. The

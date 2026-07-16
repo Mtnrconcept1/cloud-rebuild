@@ -84,7 +84,7 @@ export async function restoreReservedSpecialOfferStock(input: {
       orderId: input.order.id,
       message: error.message,
     });
-    return input.metadata;
+    throw error;
   }
 
   const antiWasteQuantities = new Map<string, number>();
@@ -140,7 +140,7 @@ export async function restoreReservedSpecialOfferStock(input: {
         quantity: call.quantity,
         message: restoreError.message,
       });
-      return input.metadata;
+      throw restoreError;
     }
   }
 
@@ -174,6 +174,8 @@ async function findOrdersByIdentifiers(
     checkoutId?: string | null;
     checkoutGroupId?: string | null;
     orderReference?: string | null;
+    paymentAttemptId?: string | null;
+    clientPaymentAttemptId?: string | null;
   },
 ): Promise<OrderLookupRow[]> {
   const ordersById = new Map<string, OrderLookupRow>();
@@ -186,34 +188,56 @@ async function findOrdersByIdentifiers(
 
   const baseSelect = "id, status, payment_status, user_id, restaurant_id, delivery_address, total_amount, original_total, discount_amount, delivery_fee, service_fee_amount, order_number, metadata, scheduled_at";
 
-  const { data: sessionOrders } = await adminClient
+  const { data: sessionOrders, error: sessionOrdersError } = await adminClient
     .from("orders")
     .select(baseSelect)
     .filter("metadata->>stripe_session_id", "eq", identifiers.sessionId);
+  if (sessionOrdersError) throw sessionOrdersError;
   appendOrders(sessionOrders as OrderLookupRow[] | null | undefined);
 
   if (identifiers.checkoutGroupId) {
-    const { data: groupOrders } = await adminClient
+    const { data: groupOrders, error: groupOrdersError } = await adminClient
       .from("orders")
       .select(baseSelect)
       .filter("metadata->>checkout_group_id", "eq", identifiers.checkoutGroupId);
+    if (groupOrdersError) throw groupOrdersError;
     appendOrders(groupOrders as OrderLookupRow[] | null | undefined);
   }
 
   if (identifiers.checkoutId) {
-    const { data: checkoutOrders } = await adminClient
+    const { data: checkoutOrders, error: checkoutOrdersError } = await adminClient
       .from("orders")
       .select(baseSelect)
       .eq("checkout_id", identifiers.checkoutId);
+    if (checkoutOrdersError) throw checkoutOrdersError;
     appendOrders(checkoutOrders as OrderLookupRow[] | null | undefined);
   }
 
   if (identifiers.orderReference) {
-    const { data: refOrders } = await adminClient
+    const { data: refOrders, error: refOrdersError } = await adminClient
       .from("orders")
       .select(baseSelect)
       .eq("order_number", identifiers.orderReference);
+    if (refOrdersError) throw refOrdersError;
     appendOrders(refOrders as OrderLookupRow[] | null | undefined);
+  }
+
+  if (identifiers.paymentAttemptId) {
+    const { data: attemptOrders, error: attemptOrdersError } = await adminClient
+      .from("orders")
+      .select(baseSelect)
+      .filter("metadata->>payment_attempt_id", "eq", identifiers.paymentAttemptId);
+    if (attemptOrdersError) throw attemptOrdersError;
+    appendOrders(attemptOrders as OrderLookupRow[] | null | undefined);
+  }
+
+  if (identifiers.clientPaymentAttemptId) {
+    const { data: clientAttemptOrders, error: clientAttemptOrdersError } = await adminClient
+      .from("orders")
+      .select(baseSelect)
+      .filter("metadata->>client_payment_attempt_id", "eq", identifiers.clientPaymentAttemptId);
+    if (clientAttemptOrdersError) throw clientAttemptOrdersError;
+    appendOrders(clientAttemptOrders as OrderLookupRow[] | null | undefined);
   }
 
   return Array.from(ordersById.values()).sort((left, right) => {
@@ -233,7 +257,45 @@ export async function findOrdersForSession(
     checkoutId: session.metadata?.checkout_id || null,
     checkoutGroupId: session.metadata?.checkout_group_id || null,
     orderReference: session.metadata?.order_reference || null,
+    paymentAttemptId: session.metadata?.payment_attempt_id || null,
+    clientPaymentAttemptId: session.metadata?.client_payment_attempt_id || null,
   });
+}
+
+export async function persistOrderCheckoutSessionMapping(input: {
+  adminClient: any;
+  session: Stripe.Checkout.Session;
+  paymentAttemptId: string;
+  clientPaymentAttemptId: string;
+}) {
+  const orders = await findOrdersForSession(input.adminClient, input.session);
+  if (orders.length === 0) {
+    throw new Error("ORDER_CHECKOUT_SESSION_MAPPING_NO_ORDER");
+  }
+
+  for (const order of orders) {
+    const metadata = isJsonRecord(order.metadata) ? order.metadata : {};
+    const { data, error } = await input.adminClient
+      .from("orders")
+      .update({
+        metadata: {
+          ...metadata,
+          stripe_session_id: input.session.id,
+          checkout_session_id: input.session.id,
+          checkout_session_state: "open",
+          payment_attempt_id: input.paymentAttemptId,
+          client_payment_attempt_id: input.clientPaymentAttemptId,
+        },
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", order.id)
+      .select("id")
+      .maybeSingle();
+    if (error) throw error;
+    if (!data?.id) throw new Error(`ORDER_CHECKOUT_SESSION_MAPPING_NOT_UPDATED:${order.id}`);
+  }
+
+  return orders.map((order) => order.id);
 }
 
 export async function getStripePaymentMethodDetails(
@@ -331,7 +393,8 @@ async function fetchOrderEmailItems(adminClient: any, orderId: string): Promise<
 
 async function getAuthUserEmail(adminClient: any, userId: string | null | undefined) {
   if (!userId) return null;
-  const { data } = await adminClient.auth.admin.getUserById(userId);
+  const { data, error } = await adminClient.auth.admin.getUserById(userId);
+  if (error) throw error;
   return data?.user?.email || null;
 }
 
@@ -343,6 +406,7 @@ export async function finalizePaidOrderCheckout(input: {
   billingPhone?: string | null;
   log?: LoggerLike;
   shouldDispatchNotifications?: boolean;
+  stripeEventId?: string | null;
 }) {
   const {
     adminClient,
@@ -352,6 +416,7 @@ export async function finalizePaidOrderCheckout(input: {
     billingPhone,
     log,
     shouldDispatchNotifications = true,
+    stripeEventId = null,
   } = input;
 
   const orders = await findOrdersForSession(adminClient, session);
@@ -363,6 +428,21 @@ export async function finalizePaidOrderCheckout(input: {
       orderReference: session.metadata?.order_reference || null,
       newlyFinalized: false,
     };
+  }
+
+  const expectedCurrency = String(session.metadata?.authoritative_currency || "CHF").toLowerCase();
+  const actualCurrency = String(session.currency || "").toLowerCase();
+  if (actualCurrency !== expectedCurrency) {
+    throw new Error(`ORDER_CHECKOUT_CURRENCY_MISMATCH:${actualCurrency || "null"}:${expectedCurrency}`);
+  }
+
+  const authoritativeOrderCents = orders.reduce(
+    (sum, order) => sum + Math.round(Number(order.total_amount || 0) * 100),
+    0,
+  );
+  const sessionAmountCents = Number(session.amount_total || 0);
+  if (authoritativeOrderCents !== sessionAmountCents) {
+    throw new Error(`ORDER_CHECKOUT_AMOUNT_MISMATCH:${sessionAmountCents}:${authoritativeOrderCents}`);
   }
 
   const allocations = allocateAmounts(
@@ -419,7 +499,7 @@ export async function finalizePaidOrderCheckout(input: {
     const paymentMethod = String(existingMetadata.payment_method || session.metadata?.payment_method_label || "card");
     const wasAlreadyFinalized = order.status === "confirmed" && order.payment_status === "captured";
 
-    await adminClient
+    const { data: updatedOrder, error: orderUpdateError } = await adminClient
       .from("orders")
       .update({
         status: "confirmed",
@@ -438,7 +518,11 @@ export async function finalizePaidOrderCheckout(input: {
         },
         updated_at: new Date().toISOString(),
       })
-      .eq("id", order.id);
+      .eq("id", order.id)
+      .select("id")
+      .maybeSingle();
+    if (orderUpdateError) throw orderUpdateError;
+    if (!updatedOrder?.id) throw new Error(`ORDER_FINALIZE_NOT_UPDATED:${order.id}`);
 
     await recordOrderChargeIfMissing({
       adminClient,
@@ -448,6 +532,9 @@ export async function finalizePaidOrderCheckout(input: {
       paymentIntentId,
       amount: allocations[index] || 0,
       currency: (session.currency || "chf").toLowerCase(),
+      stripeMode: String(session.metadata?.stripe_mode || "").toLowerCase() === "test" ? "test" : "live",
+      paymentAttemptId: parseUuid(session.metadata?.payment_attempt_id),
+      stripeEventId,
       metadata: {
         card_brand: cardBrand,
         card_last4: cardLast4,
@@ -459,11 +546,12 @@ export async function finalizePaidOrderCheckout(input: {
     });
 
     if (isDelivery && scheduledAt) {
-      await adminClient.from("delivery_tracking").upsert({
+      const { error: deliveryTrackingError } = await adminClient.from("delivery_tracking").upsert({
         order_id: order.id,
         status: "scheduled",
         estimated_arrival: estimatedDeliveryAt,
       });
+      if (deliveryTrackingError) throw deliveryTrackingError;
     }
 
     finalizedOrders.push({
@@ -481,18 +569,20 @@ export async function finalizePaidOrderCheckout(input: {
 
     shouldDispatch = true;
 
-    const { data: restaurant } = await adminClient
+    const { data: restaurant, error: restaurantError } = await adminClient
       .from("restaurants")
       .select("id, owner_id, name, address, city, phone")
       .eq("id", order.restaurant_id)
       .maybeSingle();
-    const { data: profile } = order.user_id
+    if (restaurantError) throw restaurantError;
+    const { data: profile, error: profileError } = order.user_id
       ? await adminClient
         .from("profiles")
         .select("full_name")
         .eq("user_id", order.user_id)
         .maybeSingle()
-      : { data: null };
+      : { data: null, error: null };
+    if (profileError) throw profileError;
 
     if (restaurant?.owner_id) {
       const journeyLabel = getOrderJourneyLabel({
@@ -600,7 +690,7 @@ export async function markOrderCheckoutSessionState(input: {
   session: Stripe.Checkout.Session;
   orderStatus: "payment_failed" | "cancelled";
   paymentStatus: string;
-  checkoutState: "expired" | "cancelled" | "failed";
+  checkoutState: "expired" | "cancelled" | "failed" | "payment_failed";
   failureCode?: string | null;
   failureMessage?: string | null;
 }) {
@@ -620,7 +710,7 @@ export async function markOrderCheckoutSessionState(input: {
       })
       : existingMetadata;
 
-    await input.adminClient
+    const { data: updatedOrder, error: updateError } = await input.adminClient
       .from("orders")
       .update({
         status: input.orderStatus,
@@ -633,7 +723,11 @@ export async function markOrderCheckoutSessionState(input: {
         },
         updated_at: new Date().toISOString(),
       })
-      .eq("id", order.id);
+      .eq("id", order.id)
+      .select("id")
+      .maybeSingle();
+    if (updateError) throw updateError;
+    if (!updatedOrder?.id) throw new Error(`ORDER_CHECKOUT_STATE_NOT_UPDATED:${order.id}`);
 
     updatedOrderIds.push(order.id);
   }

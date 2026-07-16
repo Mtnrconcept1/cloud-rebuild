@@ -1,4 +1,8 @@
 import { HttpError } from "./auth.ts";
+import {
+  claimStripeWebhookEvent,
+  completeStripeWebhookEvent,
+} from "./payment-attempts.ts";
 
 export const TOK_PLATFORM_FEE_BPS = 1000;
 export const TOK_DEVELOPER_SHARE_BPS = 1000;
@@ -26,6 +30,12 @@ function normalizeKind(value: unknown) {
 function toInteger(value: unknown) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? Math.round(parsed) : 0;
+}
+
+function toNullableInteger(value: unknown) {
+  if (value === null || value === undefined || value === "") return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? Math.max(0, Math.round(parsed)) : null;
 }
 
 function isFinanceExcludedDemo(input: {
@@ -175,12 +185,71 @@ export async function recordCheckoutFinance(input: {
   });
 
   if (error) throw new Error(error.message);
+
+  const { error: feeError } = await input.adminClient.rpc("record_stripe_tax_fee_ledger", {
+    p_stripe_event_id: input.eventId,
+    p_checkout_session_id: input.checkoutSessionId,
+    p_payment_intent_id: input.paymentIntentId,
+    p_tax_cents: toNullableInteger(input.metadata?.tax_cents),
+    p_stripe_fee_cents: toNullableInteger(input.metadata?.stripe_fee_cents),
+    p_currency: String(input.currency || "CHF").toUpperCase(),
+    p_metadata: input.metadata || {},
+  });
+  if (feeError) throw new Error(feeError.message);
+
   input.log?.info?.("marketplace_checkout_ledger_recorded", {
     event_id: input.eventId,
     checkout_session_id: input.checkoutSessionId,
     checkout_kind: input.checkoutKind,
     gross_cents: input.grossCents,
   });
+}
+
+/**
+ * Record finance from an authenticated recovery path under the same durable
+ * lease contract as a Stripe webhook. The synthetic event id is canonical per
+ * Checkout Session, so browser recovery and scheduled reconciliation cannot
+ * execute the accounting path twice.
+ */
+export async function recordReconciledCheckoutFinance(
+  input: Omit<Parameters<typeof recordCheckoutFinance>[0], "eventId">,
+) {
+  const eventId = `internal:checkout-reconciliation:${input.checkoutSessionId}`;
+  const claim = await claimStripeWebhookEvent({
+    adminClient: input.adminClient,
+    eventId,
+    eventType: "internal.checkout.reconciliation",
+    livemode: input.livemode,
+  });
+
+  if (claim.duplicate) return { recorded: false, duplicate: true };
+  if (claim.inProgress || !claim.claimed || !claim.lockToken) {
+    throw new Error("FINANCE_RECONCILIATION_IN_PROGRESS");
+  }
+
+  try {
+    await recordCheckoutFinance({ ...input, eventId });
+    await completeStripeWebhookEvent({
+      adminClient: input.adminClient,
+      eventId,
+      lockToken: claim.lockToken,
+      success: true,
+    });
+    return { recorded: true, duplicate: false };
+  } catch (error) {
+    try {
+      await completeStripeWebhookEvent({
+        adminClient: input.adminClient,
+        eventId,
+        lockToken: claim.lockToken,
+        success: false,
+        error: error instanceof Error ? error.message : "finance_reconciliation_failed",
+      });
+    } catch {
+      // A lost completion lease remains retryable by the next reconciler.
+    }
+    throw error;
+  }
 }
 
 export async function recordRefundFinance(input: {

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getSupabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/DashboardLayout";
 import CommercialDemoRestaurantHome from "@/components/commercial/CommercialDemoRestaurantHome";
@@ -20,6 +20,17 @@ import { buildCheckoutReturnUrl } from "@/lib/checkoutReturnUrl";
 import { redirectToTrustedCheckoutUrl } from "@/lib/securityUrls";
 import { invokeSupabaseFunction } from "@/lib/session";
 import {
+  clearPaymentAttemptId,
+  createCheckoutWithRecovery,
+  createPaymentAttemptOperationKey,
+  getOrCreatePaymentAttemptId,
+  isPaymentAttemptIndeterminateError,
+  markPaymentAttemptRedirected,
+  normalizePaymentAttemptId,
+  rememberPaymentAttemptId,
+} from "@/lib/paymentAttempt";
+import { usePaymentAttemptBackCancellation } from "@/lib/usePaymentAttemptBackCancellation";
+import {
   getSignupRestaurateurOnboardingSelection,
   uploadVerificationDocument,
   type SignupDocumentType,
@@ -36,6 +47,7 @@ const supabase = getSupabase();
 const INVALID_ORDER_STATUS_FILTER = "(cancelled,refused,payment_failed,pending,pending_payment)";
 const INVALID_RESERVATION_STATUS_FILTER = "(cancelled,no_show,pending_payment)";
 const UPCOMING_ORDER_STATUSES = ["confirmed", "accepted", "preparing", "ready", "delivering"];
+const onboardingAttemptScope = (restaurantId: string) => `restaurant-onboarding:${restaurantId}`;
 
 type UpcomingReservationRow = {
   id: string;
@@ -79,6 +91,63 @@ function LiveDashboard() {
     ? rawSignupApplication[0] || null
     : rawSignupApplication || null;
   const [onboardingCheckoutLoading, setOnboardingCheckoutLoading] = useState(false);
+  const onboardingCheckoutLockRef = useRef(false);
+  const cancellingOnboardingAttemptRef = useRef<string | null>(null);
+  const signupRestaurantId = typeof signupApplication?.metadata?.restaurant_id === "string"
+    ? signupApplication.metadata.restaurant_id
+    : "";
+  const onboardingRestaurantId = selectedId || signupRestaurantId;
+
+  usePaymentAttemptBackCancellation({
+    scope: onboardingRestaurantId ? onboardingAttemptScope(onboardingRestaurantId) : null,
+    onCancelled: () => {
+      setOnboardingCheckoutLoading(false);
+      toast({
+        title: "Paiement interrompu",
+        description: "La session Stripe d'onboarding a été fermée.",
+      });
+    },
+    onError: () => {
+      setOnboardingCheckoutLoading(false);
+      toast({
+        title: "Paiement en cours de vérification",
+        description: "Reprenez la même tentative pour éviter tout doublon.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get("status");
+    const paymentAttemptId = normalizePaymentAttemptId(params.get("payment_attempt_id"));
+    if (!paymentAttemptId || !onboardingRestaurantId) return;
+
+    const scope = onboardingAttemptScope(onboardingRestaurantId);
+    if (status === "success") {
+      clearPaymentAttemptId(scope, paymentAttemptId);
+      return;
+    }
+    if (status !== "cancelled" || cancellingOnboardingAttemptRef.current === paymentAttemptId) return;
+
+    cancellingOnboardingAttemptRef.current = paymentAttemptId;
+    rememberPaymentAttemptId(scope, paymentAttemptId);
+    setOnboardingCheckoutLoading(true);
+    void invokeSupabaseFunction("cancel-payment-attempt", {
+      body: { payment_attempt_id: paymentAttemptId, reason: "stripe_cancel_return" },
+    }).then(({ error }) => {
+      if (error) throw error;
+      clearPaymentAttemptId(scope, paymentAttemptId);
+      toast({ title: "Paiement annulé", description: "Aucun abonnement n'a été créé." });
+    }).catch((error) => {
+      cancellingOnboardingAttemptRef.current = null;
+      toast({
+        title: "Annulation en cours de vérification",
+        description: error instanceof Error ? error.message : "Reprenez cette tentative dans quelques secondes.",
+        variant: "destructive",
+      });
+    }).finally(() => setOnboardingCheckoutLoading(false));
+  }, [onboardingRestaurantId, toast]);
   const today = new Date().toISOString().split("T")[0];
   const todayStartDate = new Date();
   todayStartDate.setHours(0, 0, 0, 0);
@@ -266,10 +335,7 @@ function LiveDashboard() {
 
   const startRestaurantOnboardingPayment = async () => {
     const onboardingSelection = getSignupRestaurateurOnboardingSelection(signupApplication);
-    const signupRestaurantId = typeof signupApplication?.metadata?.restaurant_id === "string"
-      ? signupApplication.metadata.restaurant_id
-      : "";
-    const restaurantId = selectedId || signupRestaurantId;
+    const restaurantId = onboardingRestaurantId;
 
     if (!signupApplication?.id || !restaurantId || !onboardingSelection) {
       toast({
@@ -280,35 +346,65 @@ function LiveDashboard() {
       return;
     }
 
+    if (onboardingCheckoutLockRef.current) return;
+    onboardingCheckoutLockRef.current = true;
     setOnboardingCheckoutLoading(true);
     try {
-      const { data, error } = await invokeSupabaseFunction<{ url?: string; session_id?: string }>("create-checkout", {
-        body: {
+      const paymentAttemptId = getOrCreatePaymentAttemptId(
+        onboardingAttemptScope(restaurantId),
+        createPaymentAttemptOperationKey({
+          checkoutKind: "restaurant-onboarding",
+          signupApplicationId: signupApplication.id,
+          restaurantId,
+          planId: onboardingSelection.subscriptionPlanId,
+          billingPeriod: onboardingSelection.subscriptionBillingPeriod,
+        }),
+      );
+      const checkoutPayload = {
+        payment_attempt_id: paymentAttemptId,
+        checkout_kind: "restaurant-onboarding",
+        items: [],
+        payment_method: "card",
+        return_url: buildCheckoutReturnUrl("/dashboard", { paymentAttemptId }),
+        order_metadata: {
+          payment_attempt_id: paymentAttemptId,
           checkout_kind: "restaurant-onboarding",
-          items: [],
-          payment_method: "card",
-          return_url: buildCheckoutReturnUrl("/dashboard"),
-          order_metadata: {
-            checkout_kind: "restaurant-onboarding",
-            signup_application_id: signupApplication.id,
-            restaurant_id: restaurantId,
-            plan_id: onboardingSelection.subscriptionPlanId,
-            billing_period: onboardingSelection.subscriptionBillingPeriod,
-          },
+          signup_application_id: signupApplication.id,
+          restaurant_id: restaurantId,
+          plan_id: onboardingSelection.subscriptionPlanId,
+          billing_period: onboardingSelection.subscriptionBillingPeriod,
+        },
+      };
+      const checkout = await createCheckoutWithRecovery({
+        paymentAttemptId,
+        create: async () => {
+          const { data, error } = await invokeSupabaseFunction("create-checkout", { body: checkoutPayload });
+          if (error) throw error;
+          return data;
+        },
+        getStatus: async () => {
+          const { data, error } = await invokeSupabaseFunction("payment-attempt-status", {
+            body: { payment_attempt_id: paymentAttemptId },
+          });
+          if (error) throw error;
+          return data;
         },
       });
 
-      if (error || !data?.url) {
-        throw new Error((error as Error | null)?.message || "Impossible de créer la session de paiement.");
+      if (!checkout.url) {
+        throw new Error("Le paiement est en cours de vérification. Reprenez la même tentative dans quelques secondes.");
       }
 
-      redirectToTrustedCheckoutUrl(data.url);
+      markPaymentAttemptRedirected(onboardingAttemptScope(restaurantId), paymentAttemptId);
+      redirectToTrustedCheckoutUrl(checkout.url);
     } catch (error) {
       toast({
-        title: "Paiement impossible",
+        title: isPaymentAttemptIndeterminateError(error) ? "Paiement en cours de vérification" : "Paiement impossible",
         description: error instanceof Error ? error.message : "Veuillez réessayer dans quelques instants.",
         variant: "destructive",
       });
+    } finally {
+      onboardingCheckoutLockRef.current = false;
       setOnboardingCheckoutLoading(false);
     }
   };

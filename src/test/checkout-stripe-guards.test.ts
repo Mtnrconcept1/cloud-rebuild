@@ -136,7 +136,9 @@ describe("checkout and Stripe webhook safety guards", () => {
   it("does not acknowledge claimed Stripe events when processing fails", () => {
     expect(stripeWebhookSource).toContain("markStripeWebhookEventSucceeded");
     expect(stripeWebhookSource).toContain("markStripeWebhookEventFailed");
-    expect(stripeWebhookSource).toContain("processing_status");
+    expect(stripeWebhookSource).toContain("eventLockToken");
+    expect(stripeWebhookSource).toContain("Stripe webhook event is already in progress");
+    expect(stripeWebhookSource).toMatch(/status:\s*409/);
     expect(stripeWebhookSource).toContain('return new Response("Stripe webhook processing failed"');
     expect(stripeWebhookSource).toMatch(/status:\s*500/);
     const failureResponseIndex = stripeWebhookSource.indexOf('return new Response("Stripe webhook processing failed"');
@@ -217,16 +219,18 @@ describe("checkout and Stripe webhook safety guards", () => {
       cartSource.indexOf("if (paymentMethod !== \"cash\" && !authoritativeRequiresStripeCheckout)"),
     );
 
-    expect(onlineCheckoutBlock).toContain("const pendingOrderResults = await Promise.all");
+    expect(onlineCheckoutBlock).toContain("const pendingOrderSettlements = await Promise.allSettled");
+    expect(onlineCheckoutBlock).toContain("const pendingOrderResults = pendingOrderSettlements");
     expect(onlineCheckoutBlock).toContain('checkout_session_state: "pending"');
     const createCheckoutIndex = onlineCheckoutBlock.indexOf('"create-checkout"');
     expect(createCheckoutIndex).toBeGreaterThan(-1);
-    expect(onlineCheckoutBlock.indexOf("const pendingOrderResults = await Promise.all"))
+    expect(onlineCheckoutBlock.indexOf("const pendingOrderSettlements = await Promise.allSettled"))
       .toBeLessThan(createCheckoutIndex);
-    expect(onlineCheckoutBlock).toContain("compensatePendingCheckout");
+    expect(onlineCheckoutBlock).toContain("cancelDefinitivePreStripeAttempt");
+    expect(onlineCheckoutBlock).toContain('invokeSupabaseFunction("cancel-payment-attempt"');
     expect(onlineCheckoutBlock).toContain('invokeSupabaseFunction("cancel-pending-order-checkout"');
-    expect(onlineCheckoutBlock.indexOf("compensatePendingCheckout"))
-      .toBeGreaterThan(onlineCheckoutBlock.indexOf("const pendingOrderResults = await Promise.all"));
+    expect(onlineCheckoutBlock.indexOf("cancelDefinitivePreStripeAttempt"))
+      .toBeGreaterThan(onlineCheckoutBlock.indexOf("const pendingOrderResults = pendingOrderSettlements"));
     expect(onlineCheckoutBlock.indexOf("writePendingOrderCheckoutSessionId"))
       .toBeGreaterThan(createCheckoutIndex);
   });

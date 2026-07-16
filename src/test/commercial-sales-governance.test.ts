@@ -61,9 +61,12 @@ describe("commercial sales governance", () => {
   it("keeps commercial accounting read-only and lists the commercial's signed restaurants", () => {
     expect(commercialAccounting).toContain('data-testid="commercial-accounting-readonly"');
     expect(commercialAccounting).toContain("Votre comptabilité est en lecture seule");
-    expect(commercialAccounting).toContain("AdminCompensationAdjustmentForm");
-    expect(commercialAccounting).toContain("if (!isAdmin) return null");
-    expect(commercialAccounting).toContain('"admin_add_commercial_compensation_adjustment"');
+    expect(commercialAccounting).not.toContain("AdminCompensationAdjustmentForm");
+    expect(commercialAccounting).not.toContain('"admin_add_commercial_compensation_adjustment"');
+    expect(commercialAccounting).not.toContain("Ajouter bonus, prime ou pack");
+    expect(accountDetail).toContain("AdminCompensationAdjustmentForm");
+    expect(accountDetail).toContain('"admin_add_commercial_compensation_adjustment"');
+    expect(accountDetail).toContain("Ajouter un bonus, une prime ou un pack");
     expect(commercialAccounting).not.toContain('.from("commercial_compensation_adjustments"');
     expect(commercialAccounting).toContain('.from("commercial_prospect_followups"');
     expect(commercialAccounting).toContain('.eq("signed_by", commercialUserId)');

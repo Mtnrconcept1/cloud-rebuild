@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { BarChart3, CalendarClock, Coins, ExternalLink, Loader2, ReceiptText, Store, TrendingUp } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { BarChart3, CalendarClock, Coins, ExternalLink, Gift, Loader2, ReceiptText, Store, TrendingUp } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -9,9 +9,12 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { fetchGenevaCommercialProspects } from "@/data/genevaCommercialProspects";
 import { getSupabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth-context";
 import {
   COMMERCIAL_REFUSAL_REASONS,
   getCommercialFollowupStatusLabel,
@@ -93,6 +96,18 @@ type AdminCommercialActivity = {
   followups?: CommercialFollowup[];
 };
 
+const ADJUSTMENT_OPTIONS = [
+  { value: "manual_bonus", label: "Bonus manuel", defaultAmount: 0 },
+  { value: "manual_prime", label: "Prime manuelle", defaultAmount: 0 },
+  { value: "upgrade_starter_business", label: "Upgrade Starter vers Business", defaultAmount: 60 },
+  { value: "upgrade_business_premium", label: "Upgrade Business vers Premium", defaultAmount: 70 },
+  { value: "upgrade_premium_elite", label: "Upgrade Premium vers Elite", defaultAmount: 110 },
+  { value: "campaign_pack_100", label: "Pack Campaigns 100 crédits", defaultAmount: 8 },
+  { value: "campaign_pack_250", label: "Pack Campaigns 250 crédits", defaultAmount: 18 },
+  { value: "ai_growth_pack", label: "Pack AI/Growth", defaultAmount: 5 },
+  { value: "correction", label: "Correction comptable", defaultAmount: 0 },
+] as const;
+
 const STATUS_FILTERS = ["all", "visited", "in_progress", "signed", "not_interested"] as const;
 type StatusFilter = (typeof STATUS_FILTERS)[number];
 
@@ -124,6 +139,114 @@ function statusTone(status: CommercialFollowup["status"]) {
   return "border-sky-200 bg-sky-50 text-sky-800";
 }
 
+function AdminCompensationAdjustmentForm({
+  commercialUserId,
+  commercialName,
+}: {
+  commercialUserId: string;
+  commercialName: string;
+}) {
+  const supabase = getSupabase();
+  const queryClient = useQueryClient();
+  const [kind, setKind] = useState<(typeof ADJUSTMENT_OPTIONS)[number]["value"]>("manual_bonus");
+  const [amount, setAmount] = useState("0");
+  const [label, setLabel] = useState("");
+  const [notes, setNotes] = useState("");
+  const [occurredAt, setOccurredAt] = useState(new Date().toISOString().slice(0, 10));
+  const selectedOption = ADJUSTMENT_OPTIONS.find((option) => option.value === kind) || ADJUSTMENT_OPTIONS[0];
+
+  const mutation = useMutation({
+    mutationFn: async () => {
+      const numericAmount = Number(amount);
+      if (!Number.isFinite(numericAmount) || numericAmount === 0) {
+        throw new Error("Le montant doit être un nombre différent de zéro.");
+      }
+
+      const { error } = await (supabase.rpc as any)("admin_add_commercial_compensation_adjustment", {
+        p_commercial_user_id: commercialUserId,
+        p_kind: kind,
+        p_label: label.trim() || selectedOption.label,
+        p_amount_chf: numericAmount,
+        p_occurred_at: `${occurredAt}T12:00:00.000Z`,
+        p_notes: notes.trim() || null,
+        p_restaurant_id: null,
+        p_source_objectid: null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: async () => {
+      setLabel("");
+      setNotes("");
+      setAmount(String(selectedOption.defaultAmount));
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["commercial-compensation-summary", commercialUserId] }),
+        queryClient.invalidateQueries({ queryKey: ["admin-commercial-commission-summary"] }),
+      ]);
+      toast.success(`Ajustement ajouté à la comptabilité de ${commercialName}.`);
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : "Impossible d’ajouter cet ajustement.");
+    },
+  });
+
+  return (
+    <section className="rounded-2xl border border-orange-200 bg-orange-50/40 p-4 dark:border-orange-400/20 dark:bg-orange-500/5">
+      <div className="flex items-center gap-2">
+        <Gift className="h-5 w-5 text-orange-600" />
+        <div>
+          <p className="font-semibold">Ajouter un bonus, une prime ou un pack</p>
+          <p className="text-xs text-muted-foreground">Action administrative auditée pour {commercialName}.</p>
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <Label>Type</Label>
+          <Select
+            value={kind}
+            onValueChange={(value) => {
+              const nextKind = value as typeof kind;
+              const option = ADJUSTMENT_OPTIONS.find((item) => item.value === nextKind);
+              setKind(nextKind);
+              setAmount(String(option?.defaultAmount ?? 0));
+              setLabel(option?.label || "");
+            }}
+          >
+            <SelectTrigger className="bg-background"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {ADJUSTMENT_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label>Date</Label>
+          <Input type="date" value={occurredAt} onChange={(event) => setOccurredAt(event.target.value)} className="bg-background" />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Montant CHF</Label>
+          <Input type="number" step="0.01" value={amount} onChange={(event) => setAmount(event.target.value)} className="bg-background" />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Libellé</Label>
+          <Input value={label} onChange={(event) => setLabel(event.target.value)} className="bg-background" />
+        </div>
+      </div>
+      <div className="mt-3 space-y-1.5">
+        <Label>Notes internes</Label>
+        <Textarea value={notes} onChange={(event) => setNotes(event.target.value)} className="bg-background" />
+      </div>
+      <div className="mt-3 flex justify-end">
+        <Button type="button" onClick={() => mutation.mutate()} disabled={mutation.isPending || !occurredAt}>
+          {mutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+          Ajouter à la comptabilité
+        </Button>
+      </div>
+    </section>
+  );
+}
+
 export default function AdminCommercialAccountDetail({
   account,
   open,
@@ -133,6 +256,7 @@ export default function AdminCommercialAccountDetail({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const { user } = useAuth();
   const supabase = getSupabase();
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -778,6 +902,17 @@ export default function AdminCommercialAccountDetail({
               </div>
             )}
           </section>
+
+          {account && user?.id !== account.user_id ? (
+            <AdminCompensationAdjustmentForm
+              commercialUserId={account.user_id}
+              commercialName={account.full_name || "ce commercial"}
+            />
+          ) : account ? (
+            <section className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-400/20 dark:bg-amber-500/10 dark:text-amber-100">
+              L’auto-attribution est interdite : un administrateur possédant aussi un profil commercial ne peut pas créditer sa propre comptabilité.
+            </section>
+          ) : null}
         </div>
       </DialogContent>
     </Dialog>
