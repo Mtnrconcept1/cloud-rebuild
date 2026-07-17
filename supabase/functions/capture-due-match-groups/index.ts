@@ -1,7 +1,16 @@
-import { authenticateRequest, jsonResponse, writeAuditLog } from "../_shared/auth.ts";
+import {
+  HttpError,
+  authenticateRequest,
+  jsonResponse,
+  writeAuditLog,
+} from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import { getStripeRuntimeForCheckoutKind } from "../_shared/stripe-client.ts";
+import {
+  calculateOrderPaymentDistribution,
+  recordReconciledCheckoutFinance,
+} from "../_shared/marketplace-finance.ts";
 
 function toCents(value: unknown) {
   const parsed = Number(value);
@@ -27,6 +36,7 @@ Deno.serve(async (req) => {
       allowServiceRole: true,
       allowSchedulerSecret: true,
     });
+    if (!actor.isServiceRole) throw new HttpError(403, "SYSTEM_ACTOR_REQUIRED");
 
     const { stripe } = getStripeRuntimeForCheckoutKind("match-group");
 
@@ -50,35 +60,130 @@ Deno.serve(async (req) => {
       if (!memberOrderId || !paymentIntentId || amountToCapture <= 0) continue;
 
       try {
-        const intent = await stripe.paymentIntents.capture(paymentIntentId, {
-          amount_to_capture: amountToCapture,
+        const authorization = await stripe.paymentIntents.retrieve(paymentIntentId);
+        const identityMatches = Boolean(
+          authorization.livemode
+          && authorization.capture_method === "manual"
+          && authorization.currency === "chf"
+          && authorization.metadata?.checkout_kind === "match-group"
+          && authorization.metadata?.group_member_order_id === memberOrderId
+          && authorization.metadata?.group_id === candidate.group_id
+          && authorization.metadata?.restaurant_id === candidate.restaurant_id
+          && authorization.metadata?.user_id === candidate.user_id
+        );
+        if (!identityMatches) throw new Error("MATCH_GROUP_CAPTURE_IDENTITY_MISMATCH");
+        if (
+          authorization.status !== "requires_capture"
+          && authorization.status !== "succeeded"
+        ) {
+          throw new Error(`MATCH_GROUP_CAPTURE_INVALID_STATE:${authorization.status}`);
+        }
+
+        const distribution = calculateOrderPaymentDistribution(
+          amountToCapture,
+          Number(authorization.metadata?.platform_fee_bps || 1000),
+          Number(authorization.metadata?.developer_share_bps || 1000),
+        );
+        let intent = authorization;
+        if (authorization.status === "requires_capture") {
+          if (authorization.amount_capturable < amountToCapture) {
+            throw new Error("MATCH_GROUP_CAPTURE_AMOUNT_EXCEEDS_AUTHORIZATION");
+          }
+          try {
+            intent = await stripe.paymentIntents.capture(paymentIntentId, {
+              amount_to_capture: amountToCapture,
+              application_fee_amount: distribution.platformFeeCents,
+            }, {
+              idempotencyKey: `match-group:capture:${memberOrderId}:${paymentIntentId}:${amountToCapture}`.slice(0, 255),
+            });
+          } catch (captureError) {
+            const recoveredIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+            if (recoveredIntent.status !== "succeeded") throw captureError;
+            intent = recoveredIntent;
+          }
+        }
+
+        if (intent.status !== "succeeded") {
+          throw new Error(`MATCH_GROUP_CAPTURE_NOT_SUCCEEDED:${intent.status}`);
+        }
+        const capturedAmountCents = Number(intent.amount_received || amountToCapture);
+        const capturedAmount = capturedAmountCents / 100;
+
+        await recordReconciledCheckoutFinance({
+          adminClient: actor.adminClient,
+          checkoutSessionId: candidate.stripe_checkout_session_id,
+          paymentIntentId,
+          checkoutKind: "match-group",
+          restaurantId: candidate.restaurant_id,
+          grossCents: capturedAmountCents,
+          currency: intent.currency,
+          livemode: intent.livemode,
+          metadata: {
+            finance_routing_mode: authorization.metadata?.finance_routing_mode,
+            platform_fee_bps: distribution.platformFeeBps,
+            platform_fee_amount_cents: distribution.platformFeeCents,
+            restaurant_share_amount_cents: distribution.restaurantShareCents,
+            developer_share_bps: distribution.developerShareBps,
+            developer_share_amount_cents: distribution.developerShareCents,
+            stripe_fee_reconciliation_required: true,
+            vat_reconciliation_required: true,
+          },
+          log,
         });
 
-        const capturedAmount = Number(intent.amount_received || amountToCapture) / 100;
-        await actor.adminClient.rpc("mark_match_group_member_captured", {
-          p_member_order_id: memberOrderId,
-          p_payment_intent_id: paymentIntentId,
-          p_captured_amount: capturedAmount,
-          p_metadata: {
-            stripe_payment_intent_status: intent.status,
-            amount_to_capture: amountToCapture / 100,
-            currency: intent.currency,
+        const { data: marked, error: markError } = await actor.adminClient.rpc(
+          "mark_match_group_member_captured",
+          {
+            p_member_order_id: memberOrderId,
+            p_payment_intent_id: paymentIntentId,
+            p_captured_amount: capturedAmount,
+            p_metadata: {
+              stripe_payment_intent_status: intent.status,
+              amount_to_capture: amountToCapture / 100,
+              platform_fee_amount: distribution.platformFeeCents / 100,
+              currency: intent.currency,
+            },
           },
-        });
+        );
+        if (markError || marked !== true) {
+          throw new Error(markError?.message || "MATCH_GROUP_CAPTURE_PERSIST_FAILED");
+        }
 
         captured += 1;
         details.push({ member_order_id: memberOrderId, status: "captured", amount: capturedAmount });
       } catch (captureError) {
         const message = captureError instanceof Error ? captureError.message : "Capture Stripe echouee";
-        const terminal = isTerminalStripeError(captureError) || Number(candidate.capture_attempts || 0) >= 4;
-
-        await actor.adminClient.rpc("mark_match_group_member_capture_failed", {
-          p_member_order_id: memberOrderId,
-          p_error: message,
-          p_terminal: terminal,
-        });
+        let capturedAtStripe = false;
+        try {
+          const recoveredIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+          capturedAtStripe = recoveredIntent.status === "succeeded";
+        } catch {
+          capturedAtStripe = false;
+        }
 
         failed += 1;
+        if (capturedAtStripe) {
+          // Money is already captured: keep the database candidate retryable
+          // until ledger and business settlement both succeed.
+          details.push({
+            member_order_id: memberOrderId,
+            status: "settlement_retry",
+            error: message,
+          });
+          continue;
+        }
+
+        const terminal = isTerminalStripeError(captureError) || Number(candidate.capture_attempts || 0) >= 4;
+        const { error: failureError } = await actor.adminClient.rpc(
+          "mark_match_group_member_capture_failed",
+          {
+            p_member_order_id: memberOrderId,
+            p_error: message,
+            p_terminal: terminal,
+          },
+        );
+        if (failureError) throw failureError;
+
         details.push({ member_order_id: memberOrderId, status: terminal ? "failed" : "retry", error: message });
       }
     }
@@ -96,6 +201,7 @@ Deno.serve(async (req) => {
 
     return jsonResponse({ ok: true, captured, failed, total: (candidates || []).length, details }, 200, corsHeaders);
   } catch (error) {
+    const status = error instanceof HttpError ? error.status : 500;
     const message = error instanceof Error ? error.message : "Erreur capture Match groupe";
     log.error("capture_due_match_groups_failed", { message });
 
@@ -112,6 +218,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    return jsonResponse({ error: message }, 500, corsHeaders);
+    return jsonResponse({ error: message }, status, corsHeaders);
   }
 });

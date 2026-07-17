@@ -77,14 +77,16 @@ async function findExistingTokOneSubscription(input: {
   stripeSubscriptionId?: string | null;
   userId?: string | null;
   planId?: string | null;
+  stripeMode: "live" | "test";
 }) {
-  const { adminClient, stripeSubscriptionId, userId, planId } = input;
+  const { adminClient, stripeSubscriptionId, userId, planId, stripeMode } = input;
 
   if (stripeSubscriptionId) {
     const { data, error } = await adminClient
       .from("tok_one_subscriptions")
       .select("id, user_id, plan_id, status, current_period_end, cancel_at_period_end, stripe_subscription_id, stripe_mode, stripe_checkout_session_id")
       .eq("stripe_subscription_id", stripeSubscriptionId)
+      .eq("stripe_mode", stripeMode)
       .maybeSingle();
 
     if (error) throw error;
@@ -98,6 +100,7 @@ async function findExistingTokOneSubscription(input: {
     .select("id, user_id, plan_id, status, current_period_end, cancel_at_period_end, stripe_subscription_id, stripe_mode, stripe_checkout_session_id")
     .eq("user_id", userId)
     .eq("plan_id", planId)
+    .eq("stripe_mode", stripeMode)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -111,6 +114,7 @@ export async function getLatestTokOneSubscription(adminClient: AdminClient, user
     .from("tok_one_subscriptions")
     .select("id, user_id, plan_id, status, current_period_start, current_period_end, cancel_at_period_end, stripe_subscription_id, stripe_mode, stripe_checkout_session_id")
     .eq("user_id", userId)
+    .eq("stripe_mode", "live")
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -136,12 +140,14 @@ export async function syncTokOneSubscriptionRecord(input: {
     stripeCheckoutSessionId = null,
   } = input;
   const metadata = subscription.metadata || {};
+  const normalizedStripeMode = stripeMode === "test" ? "test" : "live";
 
   const existing = await findExistingTokOneSubscription({
     adminClient,
     stripeSubscriptionId: subscription.id,
     userId: typeof metadata.user_id === "string" ? metadata.user_id : fallbackUserId,
     planId: typeof metadata.plan_id === "string" ? metadata.plan_id : fallbackPlanId,
+    stripeMode: normalizedStripeMode,
   });
 
   const userId = typeof metadata.user_id === "string" && metadata.user_id
@@ -170,7 +176,7 @@ export async function syncTokOneSubscriptionRecord(input: {
     current_period_end: toIsoFromUnix(period.currentPeriodEnd, fallbackDate),
     cancel_at_period_end: Boolean(subscription.cancel_at_period_end),
     stripe_subscription_id: subscription.id,
-    stripe_mode: stripeMode === "test" ? "test" : stripeMode === "live" ? "live" : (existing?.stripe_mode || "live"),
+    stripe_mode: normalizedStripeMode,
     stripe_checkout_session_id: stripeCheckoutSessionId || existing?.stripe_checkout_session_id || null,
   };
 

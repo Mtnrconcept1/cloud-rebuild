@@ -1166,6 +1166,7 @@ Deno.serve(async (req) => {
       checkoutKind: effectiveKind,
       restaurantId: marketplaceRestaurantId || sessionMetadata.restaurant_id,
       grossCents: finalCheckoutTotalCents,
+      stripeMode: stripeRuntime.mode,
     });
 
     if (MARKETPLACE_CHECKOUT_KINDS.has(effectiveKind)) {

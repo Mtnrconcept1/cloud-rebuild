@@ -74,7 +74,8 @@ export function normalizeCheckoutReturnUrl(
     }
 
     if (url.protocol !== "https:") return null;
-    if (hostname.endsWith(".vercel.app")) return url.toString();
+    // Vercel preview URLs are accepted only when their exact hostname is
+    // explicitly configured through the same allowlist as production hosts.
     if (!parseAllowedHosts(env, options.additionalAllowedHosts || []).has(hostname)) return null;
 
     return url.toString();

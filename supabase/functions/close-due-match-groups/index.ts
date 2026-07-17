@@ -1,4 +1,9 @@
-import { authenticateRequest, jsonResponse, writeAuditLog } from "../_shared/auth.ts";
+import {
+  HttpError,
+  authenticateRequest,
+  jsonResponse,
+  writeAuditLog,
+} from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
 
@@ -15,6 +20,7 @@ Deno.serve(async (req) => {
       allowServiceRole: true,
       allowSchedulerSecret: true,
     });
+    if (!actor.isServiceRole) throw new HttpError(403, "SYSTEM_ACTOR_REQUIRED");
 
     const { data, error } = await actor.adminClient.rpc("close_due_match_groups");
     if (error) throw error;
@@ -32,6 +38,7 @@ Deno.serve(async (req) => {
 
     return jsonResponse({ ok: true, closed_count: Number(data || 0) }, 200, corsHeaders);
   } catch (error) {
+    const status = error instanceof HttpError ? error.status : 500;
     const message = error instanceof Error ? error.message : "Erreur fermeture groupes";
     log.error("close_due_groups_failed", { message });
 
@@ -48,6 +55,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    return jsonResponse({ error: message }, 500, corsHeaders);
+    return jsonResponse({ error: message }, status, corsHeaders);
   }
 });

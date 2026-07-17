@@ -20,6 +20,15 @@ describe("checkout return URL validation", () => {
     })).toBeNull();
   });
 
+  it("rejects arbitrary Vercel projects unless the exact host is configured", () => {
+    expect(normalizeCheckoutReturnUrl("https://attacker-preview.vercel.app/checkout", {
+      env: env({ APP_BASE_URL: "https://app.thetok.ch" }),
+    })).toBeNull();
+    expect(normalizeCheckoutReturnUrl("https://cloud-rebuild-preview.vercel.app/checkout", {
+      env: env({ CHECKOUT_RETURN_HOSTS: "cloud-rebuild-preview.vercel.app" }),
+    })).toBe("https://cloud-rebuild-preview.vercel.app/checkout");
+  });
+
   it("allows localhost only when explicitly enabled", () => {
     expect(normalizeCheckoutReturnUrl("http://localhost:8080/commande/confirmation", {
       env: env({ ALLOW_LOCAL_RETURN_URLS: "false" }),
