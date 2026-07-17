@@ -2,7 +2,6 @@ import {
   HttpError,
   authenticateRequest,
   jsonResponse,
-  requireRole,
   writeAuditLog,
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
@@ -33,7 +32,7 @@ Deno.serve(async (req) => {
       allowServiceRole: true,
       allowSchedulerSecret: true,
     });
-    requireRole(actor, ["admin"], "Acces reserve aux administrateurs et au planificateur.");
+    if (!actor.isServiceRole) throw new HttpError(403, "SYSTEM_ACTOR_REQUIRED");
 
     const { stripe } = getStripeRuntimeForCheckoutKind("match-group");
 
