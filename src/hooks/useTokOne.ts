@@ -54,9 +54,12 @@ export function isTokOneEntitledStatus(status: string | null | undefined) {
   return TOK_ONE_ENTITLED_STATUSES.has(String(status || "").toLowerCase());
 }
 
-export function isTokOneSubscriptionActive(subscription: Pick<TokOneSubscription, "status" | "current_period_end"> | null | undefined) {
+export function isTokOneSubscriptionActive(
+  subscription: Pick<TokOneSubscription, "status" | "current_period_end" | "stripe_mode"> | null | undefined,
+) {
   return Boolean(
     subscription &&
+    subscription.stripe_mode === "live" &&
     isTokOneEntitledStatus(subscription.status) &&
     new Date(subscription.current_period_end) > new Date(),
   );
@@ -313,6 +316,7 @@ export function useTokOneSubscription(options: QueryOptions = {}) {
         .from("tok_one_subscriptions")
         .select("*")
         .eq("user_id", user!.id)
+        .eq("stripe_mode", "live")
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -324,8 +328,9 @@ export function useTokOneSubscription(options: QueryOptions = {}) {
 
       const { data: transactions, error: transactionsError } = await (supabase as any)
         .from("payment_transactions")
-        .select("id, stripe_checkout_session_id, created_at, metadata, status")
+        .select("id, stripe_checkout_session_id, created_at, metadata, status, stripe_mode")
         .eq("user_id", user!.id)
+        .eq("stripe_mode", "live")
         .order("created_at", { ascending: false })
         .limit(20);
 
@@ -368,6 +373,7 @@ export function useTokOneSubscription(options: QueryOptions = {}) {
         current_period_end: periodEnd.toISOString(),
         cancel_at_period_end: false,
         stripe_subscription_id: null,
+        stripe_mode: "live" as const,
       };
 
       const recoveryView = {
