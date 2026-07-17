@@ -136,9 +136,9 @@ BEGIN
       NEW.status = 'paid'
       AND NEW.paid_at IS NOT NULL
       AND (
-        to_jsonb(NEW) - 'status' - 'paid_at'
+        to_jsonb(NEW) - 'status' - 'paid_at' - 'revenue_base_cents'
       ) = (
-        to_jsonb(OLD) - 'status' - 'paid_at'
+        to_jsonb(OLD) - 'status' - 'paid_at' - 'revenue_base_cents'
       )
     ) THEN
       RAISE EXCEPTION USING
