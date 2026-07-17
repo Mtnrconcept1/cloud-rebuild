@@ -11,6 +11,7 @@ export const MARKETPLACE_CHECKOUT_KINDS = new Set([
   "order",
   "zero-attente",
   "chefs-table",
+  "match-group",
 ]);
 
 type SupabaseLike = {
@@ -105,8 +106,10 @@ export async function resolveMarketplaceRouting(input: {
   checkoutKind: unknown;
   restaurantId: string;
   grossCents: number;
+  stripeMode?: "live" | "test";
 }) {
   const checkoutKind = normalizeKind(input.checkoutKind);
+  const stripeMode = input.stripeMode || "live";
   if (!MARKETPLACE_CHECKOUT_KINDS.has(checkoutKind)) {
     const tokOwnedSplit = calculateMarketplaceSplit(input.grossCents, 10000);
     return {
@@ -142,6 +145,12 @@ export async function resolveMarketplaceRouting(input: {
   );
 
   if (!financeConfig?.connect_routing_enabled) {
+    if (stripeMode === "live") {
+      throw new HttpError(
+        503,
+        "MARKETPLACE_CONNECT_ROUTING_NOT_READY: le paiement en ligne est suspendu jusqu'a l'activation des virements Stripe Connect.",
+      );
+    }
     return {
       enabled: false,
       mode: "legacy_manual" as const,
