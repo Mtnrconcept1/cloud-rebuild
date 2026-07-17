@@ -22,6 +22,9 @@ import {
   getStripeVerificationRuntime,
   getStripeWebhookSigningSecrets,
   getTokOneStripeRuntime,
+  mergeStripeWebhookSigningSecrets,
+  stripeWebhookEventMatchesExpectedMode,
+  type StripeWebhookSigningSecret,
 } from "../_shared/stripe-client.ts";
 import { computeDisabledDashboardFeatures } from "../_shared/pack-entitlements.ts";
 import {
@@ -1094,7 +1097,12 @@ async function getManagedWebhookSigningSecrets(
 
     return data
       .map((value) => String(value || "").trim())
-      .filter((value) => value.startsWith("whsec_"));
+      .filter((value) => value.startsWith("whsec_"))
+      .map((secret): StripeWebhookSigningSecret => ({
+        secret,
+        expectedMode: "live",
+        source: "managed_live_webhook",
+      }));
   } catch {
     return [];
   }
@@ -1123,10 +1131,27 @@ Deno.serve(async (req) => {
   const body = await req.text();
   const signature = req.headers.get("stripe-signature");
   const managedWebhookSecrets = await getManagedWebhookSigningSecrets(supabaseAdmin);
-  const webhookSecrets = Array.from(new Set([
-    ...getStripeWebhookSigningSecrets(),
-    ...managedWebhookSecrets,
-  ]));
+  let webhookSecrets: StripeWebhookSigningSecret[];
+  try {
+    webhookSecrets = mergeStripeWebhookSigningSecrets([
+      ...getStripeWebhookSigningSecrets(),
+      ...managedWebhookSecrets,
+    ]);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Stripe webhook secret mode conflict";
+    log.error("webhook_secret_configuration_invalid", { message });
+    await writeAuditLog({
+      adminClient: supabaseAdmin,
+      actor: { roles: ["service_role"], isServiceRole: true },
+      request: req,
+      functionName: "stripe-webhook",
+      action: "verify_signature",
+      status: "failure",
+      targetEntityType: "stripe_event",
+      errorMessage: message,
+    });
+    return new Response("Stripe webhook configuration invalid", { status: 503 });
+  }
 
   if (webhookSecrets.length === 0) {
     await writeAuditLog({
@@ -1163,11 +1188,16 @@ Deno.serve(async (req) => {
 
     for (const webhookSecret of webhookSecrets) {
       try {
-        verifiedEvent = await stripe.webhooks.constructEventAsync(
+        const candidateEvent = await stripe.webhooks.constructEventAsync(
           body,
           signature,
-          webhookSecret,
+          webhookSecret.secret,
         );
+        if (!stripeWebhookEventMatchesExpectedMode(candidateEvent.livemode, webhookSecret.expectedMode)) {
+          signatureError = new Error("STRIPE_WEBHOOK_MODE_MISMATCH");
+          continue;
+        }
+        verifiedEvent = candidateEvent;
         break;
       } catch (error) {
         signatureError = error;
