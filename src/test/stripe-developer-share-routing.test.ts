@@ -13,6 +13,12 @@ const transferMigration = read(
 const integrityMigration = read(
   "supabase/migrations/20260715060000_payment_integrity_state_machine.sql",
 );
+const financeRoutingMigration = read(
+  "supabase/migrations/20260712000526_marketplace_finance_routing.sql",
+);
+const allTokRevenueMigration = read(
+  "supabase/migrations/20260717210000_lock_developer_share_all_tok_revenue.sql",
+);
 
 function splitTokOwnedRevenue(tokOwnedCents: number, developerShareBps = 1000) {
   const developerCents = Math.round((tokOwnedCents * developerShareBps) / 10_000);
@@ -51,6 +57,52 @@ describe("Stripe developer revenue-share routing", () => {
       tokCents: 900,
       developerCents: 100,
     });
+  });
+
+  it.each([
+    ["abonnement restaurateur", 6_900, 6_210, 690],
+    ["abonnement TOK One", 12_900, 11_610, 1_290],
+    ["campagne publicitaire", 10_000, 9_000, 1_000],
+    ["pack de credits", 5_000, 4_500, 500],
+    ["autre fonction payante", 1_990, 1_791, 199],
+  ])(
+    "attribue 10%% au developpeur sur %s",
+    (_source, grossCents, expectedTokCents, expectedDeveloperCents) => {
+      expect(splitTokOwnedRevenue(grossCents)).toEqual({
+        tokCents: expectedTokCents,
+        developerCents: expectedDeveloperCents,
+      });
+    },
+  );
+
+  it("verrouille toutes les familles de revenus TOK et les futures fonctions payantes", () => {
+    expect(financeRoutingMigration).toContain(
+      "WHEN v_kind IN ('restaurant-onboarding', 'restaurant-subscription-upgrade') THEN 'tok_subscription_revenue'",
+    );
+    expect(financeRoutingMigration).toContain(
+      "WHEN v_kind = 'tok-one' THEN 'tok_one_revenue'",
+    );
+    expect(financeRoutingMigration).toContain(
+      "WHEN v_kind = 'campaign' THEN 'tok_campaign_revenue'",
+    );
+    expect(financeRoutingMigration).toContain(
+      "WHEN v_kind = 'restaurant-credit-pack' THEN 'tok_credit_pack_revenue'",
+    );
+    expect(financeRoutingMigration).toContain("ELSE 'tok_other_revenue'");
+    expect(financeRoutingMigration).toContain("'developer_payable', 'credit'");
+
+    expect(allTokRevenueMigration).toContain(
+      "CHECK (developer_share_bps = 1000)",
+    );
+    expect(allTokRevenueMigration).toContain(
+      "l.account_code LIKE 'tok\\_%\\_revenue'",
+    );
+    expect(allTokRevenueMigration).toContain(
+      "'developer_share_scope', 'all_tok_owned_revenue'",
+    );
+    expect(allTokRevenueMigration).toContain(
+      "'future_tok_revenue_accounts_included', true",
+    );
   });
 
   it("keeps cent allocations exhaustive after integer rounding", () => {
