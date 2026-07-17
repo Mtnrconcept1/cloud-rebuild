@@ -151,7 +151,7 @@ describe("commercial prospecting surface", () => {
     expect(signatureMigration).toContain("ADD COLUMN IF NOT EXISTS signed_at");
   });
 
-  it("keeps signature terms admin-owned and computes commissions server-side", () => {
+  it("lets the commercial select only the signed plan and computes money server-side", () => {
     const pageSource = readFileSync(resolve(process.cwd(), "src/pages/CommercialProspection.tsx"), "utf8");
     const accountingPageSource = readFileSync(resolve(process.cwd(), "src/pages/CommercialComptabilite.tsx"), "utf8");
     const adminUsersSource = readFileSync(resolve(process.cwd(), "src/pages/admin/AdminUtilisateurs.tsx"), "utf8");
@@ -166,18 +166,21 @@ describe("commercial prospecting surface", () => {
 
     expect(pageSource).toContain("Restaurant signé");
     expect(pageSource).toContain('"record_commercial_prospect_followup"');
-    expect(pageSource).toContain("p_subscription_plan_slug: null");
-    expect(pageSource).toContain("p_subscription_billing_period: null");
-    expect(pageSource).not.toContain("draftSubscriptionPlanSlug");
-    expect(pageSource).not.toContain("Choisissez uniquement l'offre acceptée");
+    expect(pageSource).toContain("draftSubscriptionPlanSlug");
+    expect(pageSource).toContain("restaurant_subscription_plans");
+    expect(pageSource).toContain("p_subscription_plan_slug: draftStatus === \"signed\"");
+    expect(pageSource).toContain('p_subscription_billing_period: draftStatus === "signed" ? "monthly" : null');
+    expect(pageSource).toContain("Indiquez l’abonnement réellement signé");
     expect(accountingPageSource).toContain("get_commercial_compensation_summary");
     expect(accountingPageSource).toContain("period_chf");
     expect(accountingPageSource).toContain("Pack Campaigns 100 crédits");
+    expect(accountingPageSource).not.toContain("AdminCompensationAdjustmentForm");
     expect(accountingPageSource).toContain("0.10 CHF par réservation personnelle honorée");
     expect(adminUsersSource).toContain('"commercial"');
     expect(adminUsersSource).toContain("Paramètres commerciaux");
     expect(adminDetailSource).toContain('"admin_correct_commercial_signature"');
     expect(adminDetailSource).toContain("Correction administrative");
+    expect(adminDetailSource).toContain("AdminCompensationAdjustmentForm");
     expect(secureMigration).toContain("commercial_build_signature_snapshot");
     expect(secureMigration).toContain("'starter'");
     expect(secureMigration).toContain("'monthly'");

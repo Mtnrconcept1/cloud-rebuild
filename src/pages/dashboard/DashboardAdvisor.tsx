@@ -993,15 +993,15 @@ export default function DashboardAdvisor() {
   }
 
   return (
-    <DashboardLayout>
-      <div className="flex h-[calc(100vh-6rem)] max-h-[calc(100vh-6rem)] flex-col">
-        <div className="mb-4 flex shrink-0 items-center justify-between gap-3 border-b pb-4">
+    <DashboardLayout constrainToViewport>
+      <div className="flex min-h-0 flex-1 flex-col">
+        <div className="mb-4 flex shrink-0 flex-col items-stretch justify-between gap-3 border-b pb-4 sm:flex-row sm:items-center">
           <div className="flex min-w-0 items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600">
               <Bot className="h-5 w-5 text-white" />
             </div>
             <div className="min-w-0">
-              <h1 className="flex items-center gap-2 font-display text-xl font-bold">
+              <h1 className="flex flex-wrap items-center gap-2 font-display text-xl font-bold">
                 Assistant IA
                 <Badge variant="outline" className="text-[10px] font-semibold uppercase tracking-wider">
                   Beta
@@ -1010,8 +1010,8 @@ export default function DashboardAdvisor() {
               <p className="truncate text-xs text-muted-foreground">Analyse vos donnees et optimise vos performances</p>
             </div>
           </div>
-          <div className="flex shrink-0 items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => setHistoryOpen((open) => !open)} className="gap-1.5">
+          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:shrink-0">
+            <Button variant="outline" size="sm" onClick={() => setHistoryOpen((open) => !open)} className="min-w-0 flex-[1_1_10rem] gap-1.5 sm:flex-none">
               <History className="h-3.5 w-3.5" />
               Historique
               {historyEntries.length > 0 ? (
@@ -1021,7 +1021,7 @@ export default function DashboardAdvisor() {
               ) : null}
             </Button>
             {messages.length > 0 && (
-              <Button variant="outline" size="sm" onClick={handleReset} className="gap-1.5">
+              <Button variant="outline" size="sm" onClick={handleReset} className="min-w-0 flex-[1_1_10rem] gap-1.5 sm:flex-none">
                 <RotateCcw className="h-3.5 w-3.5" />
                 Nouveau chat
               </Button>
@@ -1030,7 +1030,7 @@ export default function DashboardAdvisor() {
         </div>
 
         {historyOpen ? (
-          <div className="mb-4 shrink-0 rounded-2xl border bg-card p-3 shadow-sm">
+          <div className="mb-4 flex max-h-[40dvh] min-h-0 shrink-0 flex-col overflow-hidden rounded-2xl border bg-card p-3 shadow-sm">
             <div className="mb-3 flex items-center justify-between gap-3">
               <div>
                 <p className="text-sm font-semibold">Historique de l'assistant</p>
@@ -1045,9 +1045,9 @@ export default function DashboardAdvisor() {
                 Aucun echange enregistre pour le moment.
               </div>
             ) : (
-              <div className="grid max-h-64 gap-2 overflow-y-auto pr-1">
+              <div className="grid min-h-0 flex-1 gap-2 overflow-y-auto overscroll-contain pr-1">
                 {historyEntries.map((entry) => (
-                  <div key={entry.id} className="flex items-center justify-between gap-3 rounded-xl border bg-background px-3 py-2">
+                  <div key={entry.id} className="flex min-w-0 flex-col items-stretch justify-between gap-2 rounded-xl border bg-background px-3 py-2 sm:flex-row sm:items-center sm:gap-3">
                     <button type="button" className="min-w-0 flex-1 text-left" onClick={() => handleLoadHistory(entry)}>
                       <p className="truncate text-sm font-semibold">{sanitizeAdvisorVisibleText(entry.title)}</p>
                       <p className="mt-0.5 text-xs text-muted-foreground">
@@ -1056,7 +1056,7 @@ export default function DashboardAdvisor() {
                         {entry.messages.length} messages
                       </p>
                     </button>
-                    <div className="flex shrink-0 items-center gap-1">
+                    <div className="flex shrink-0 items-center justify-end gap-1">
                       <Button type="button" size="sm" variant="outline" className="h-8 rounded-lg px-3" onClick={() => handleLoadHistory(entry)}>
                         Charger
                       </Button>
@@ -1121,18 +1121,18 @@ export default function DashboardAdvisor() {
                   </div>
                 )}
                 <Card
-                  className={`max-w-[85%] p-4 ${
+                  className={`min-w-0 max-w-[85%] p-4 [overflow-wrap:anywhere] ${
                     message.role === "user" ? "border-primary bg-primary text-primary-foreground" : "bg-card"
                   }`}
                 >
                   {message.role === "assistant" ? (
-                    <div className="prose prose-sm max-w-none dark:prose-invert [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+                    <div className="prose prose-sm min-w-0 max-w-none [overflow-wrap:anywhere] dark:prose-invert [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
                       <ReactMarkdown urlTransform={advisorMarkdownUrlTransform}>
                         {sanitizeAdvisorVisibleContent(message.content)}
                       </ReactMarkdown>
                     </div>
                   ) : (
-                    <p className="whitespace-pre-wrap text-sm">{sanitizeAdvisorVisibleText(message.content)}</p>
+                    <p className="min-w-0 whitespace-pre-wrap text-sm [overflow-wrap:anywhere]">{sanitizeAdvisorVisibleText(message.content)}</p>
                   )}
                 </Card>
                 {message.role === "user" && (
@@ -1179,6 +1179,7 @@ export default function DashboardAdvisor() {
               onClick={() => handleSend()}
               disabled={!input.trim() || isLoading || !restaurant}
               size="icon"
+              aria-label="Envoyer le message"
               className="h-12 w-12 shrink-0 bg-gradient-to-br from-violet-500 to-indigo-600 hover:opacity-90"
             >
               <Send className="h-4 w-4" />
@@ -1189,24 +1190,24 @@ export default function DashboardAdvisor() {
           </p>
         </div>
         <Dialog open={Boolean(preparationTool)} onOpenChange={(open) => { if (!open) closeToolPreparation(); }}>
-          <DialogContent className="max-h-[86vh] max-w-3xl overflow-hidden p-0">
-            <DialogHeader className="border-b px-5 py-4">
-              <DialogTitle className="flex items-center gap-2">
+          <DialogContent className="flex max-h-[calc(100dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)-1rem)] min-h-0 max-w-3xl flex-col gap-0 overflow-hidden p-0 sm:max-h-[86dvh]">
+            <DialogHeader className="min-w-0 shrink-0 border-b px-4 py-4 pr-12 sm:px-5 sm:pr-12">
+              <DialogTitle className="flex min-w-0 flex-wrap items-center gap-2 leading-tight">
                 {PreparationIcon ? <PreparationIcon className="h-5 w-5 text-primary" /> : null}
                 {preparationTool?.label || "Préparation IA"}
               </DialogTitle>
               <DialogDescription>{preparationDescription}</DialogDescription>
             </DialogHeader>
 
-            <div className="min-h-0 space-y-4 overflow-y-auto px-5 py-4">
-              <div className="flex items-center justify-between gap-3">
-                <div>
+            <div data-dialog-scroll-area className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 py-4 sm:px-5">
+              <div className="flex flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-center">
+                <div className="min-w-0">
                   <p className="text-sm font-semibold">{preparationTitle}</p>
                   <p className="text-xs text-muted-foreground">
                     {isSelectionLoading ? "Chargement des éléments..." : `${selectedPreparationCount} élément${selectedPreparationCount > 1 ? "s" : ""} sélectionné${selectedPreparationCount > 1 ? "s" : ""}`}
                   </p>
                 </div>
-                <Badge variant="outline" className="rounded-full">
+                <Badge variant="outline" className="max-w-full self-start whitespace-normal rounded-full text-left sm:shrink-0">
                   {isPhotoPreparation ? photoOptions.length : dishOptions.length} disponible{(isPhotoPreparation ? photoOptions.length : dishOptions.length) > 1 ? "s" : ""}
                 </Badge>
               </div>
@@ -1306,15 +1307,15 @@ export default function DashboardAdvisor() {
               </div>
             </div>
 
-            <DialogFooter className="border-t px-5 py-4">
-              <Button type="button" variant="outline" onClick={closeToolPreparation} disabled={isLoading}>
+            <DialogFooter className="shrink-0 gap-2 border-t px-4 py-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] sm:flex-row sm:space-x-0 sm:px-5">
+              <Button type="button" variant="outline" onClick={closeToolPreparation} disabled={isLoading} className="w-full sm:w-auto">
                 Annuler
               </Button>
               <Button
                 type="button"
                 onClick={submitPreparedTool}
                 disabled={isLoading || isSelectionLoading || !hasPreparationSelection}
-                className="gap-2 bg-gradient-to-br from-violet-500 to-indigo-600 hover:opacity-90"
+                className="w-full gap-2 bg-gradient-to-br from-violet-500 to-indigo-600 hover:opacity-90 sm:w-auto"
               >
                 <Sparkles className="h-4 w-4" />
                 Lancer l'assistant
@@ -1335,3 +1336,4 @@ export default function DashboardAdvisor() {
     </DashboardLayout>
   );
 }
+

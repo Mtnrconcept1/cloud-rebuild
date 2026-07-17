@@ -1431,11 +1431,11 @@ function LiveDashboardAccountBilling() {
                           </TableRow>
                         ) : entries.map((entry) => (
                           <TableRow key={`${entry.source_table}-${entry.source_id}`}>
-                            <TableCell className="whitespace-nowrap text-sm">{formatDateTime(entry.occurred_at)}</TableCell>
-                            <TableCell>
+                            <TableCell data-label="Date" className="text-sm md:whitespace-nowrap">{formatDateTime(entry.occurred_at)}</TableCell>
+                            <TableCell data-label="Outil">
                               <CreditKindBadge kind={entry.credit_kind} />
                             </TableCell>
-                            <TableCell>
+                            <TableCell data-label="Détail">
                               <div className="max-w-md">
                                 <p className="font-medium">{entry.label}</p>
                                 {entry.description ? (
@@ -1443,10 +1443,10 @@ function LiveDashboardAccountBilling() {
                                 ) : null}
                               </div>
                             </TableCell>
-                            <TableCell className="whitespace-nowrap text-right font-medium">
+                            <TableCell data-label="Dépense" className="font-medium md:whitespace-nowrap md:text-right">
                               {formatEntryTokCreditAmount(entry)}
                             </TableCell>
-                            <TableCell className="whitespace-nowrap text-right text-muted-foreground">
+                            <TableCell data-label="Coût estimé" className="text-muted-foreground md:whitespace-nowrap md:text-right">
                               {formatChf(entry.estimated_cost_chf)}
                             </TableCell>
                           </TableRow>
@@ -1493,4 +1493,5 @@ function LiveDashboardAccountBilling() {
     </DashboardLayout>
   );
 }
+
 

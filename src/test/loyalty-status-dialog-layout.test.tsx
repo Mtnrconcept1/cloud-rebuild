@@ -59,10 +59,10 @@ describe("LoyaltyStatus dialog layout", () => {
     fireEvent.click(screen.getByRole("button", { name: /d.couvrir les avantages/i }));
 
     const dialog = screen.getByRole("dialog", { name: /avantages gold/i });
-    expect(dialog).toHaveClass("z-[90]");
+    expect(dialog).toHaveClass("z-[1830]");
 
     const overlay = document.querySelector(".fixed.inset-0");
-    expect(overlay).toHaveClass("z-[80]");
+    expect(overlay).toHaveClass("z-[1820]");
 
     const scrollRegion = screen.getByText("Avantages actifs").closest(".overflow-y-auto");
     expect(scrollRegion).toHaveClass("overscroll-contain");

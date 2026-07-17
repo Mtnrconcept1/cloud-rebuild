@@ -3520,8 +3520,8 @@ export default function DashboardPlanSalle() {
             <div className={cn(
               "grid shrink-0 gap-2 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm",
               isTemplateMode
-                ? "grid-cols-2 lg:grid-cols-[minmax(180px,1fr)_minmax(180px,1fr)_minmax(200px,1fr)]"
-                : "grid-cols-2 lg:grid-cols-[minmax(180px,1fr)_minmax(180px,1fr)_170px_150px]",
+                ? "grid-cols-2 xl:grid-cols-[minmax(180px,1fr)_minmax(180px,1fr)_minmax(200px,1fr)]"
+                : "grid-cols-2 xl:grid-cols-[minmax(180px,1fr)_minmax(180px,1fr)_170px_150px]",
             )}>
               <Select value={selectedBranchId || ""} onValueChange={setSelectedBranchId}>
                 <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-white">
@@ -3798,7 +3798,16 @@ export default function DashboardPlanSalle() {
       {pointerDraggedReservation && reservationPointerPosition ? (
         <div
           className="pointer-events-none fixed z-[120] max-w-[220px] -translate-y-1/2 rounded-full border border-orange-200 bg-white px-3 py-2 shadow-xl"
-          style={{ left: reservationPointerPosition.clientX + 16, top: reservationPointerPosition.clientY - 16 }}
+          style={{
+            left: Math.min(
+              Math.max(8, reservationPointerPosition.clientX + 16),
+              Math.max(8, window.innerWidth - 228),
+            ),
+            top: Math.min(
+              Math.max(32, reservationPointerPosition.clientY - 16),
+              Math.max(32, window.innerHeight - 32),
+            ),
+          }}
         >
           <p className="truncate text-sm font-semibold text-slate-950">{getReservationCustomerLabel(pointerDraggedReservation)}</p>
         </div>

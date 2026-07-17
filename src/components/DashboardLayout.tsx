@@ -35,7 +35,7 @@ import {
   Plug,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDashboardRestaurant } from "@/pages/dashboard/useDashboardRestaurant";
 import { useQueryClient } from "@tanstack/react-query";
@@ -278,12 +278,14 @@ type DashboardLayoutProps = {
   children: React.ReactNode;
   contentWidth?: "default" | "full";
   mainClassName?: string;
+  constrainToViewport?: boolean;
 };
 
 export default function DashboardLayout({
   children,
   contentWidth = "default",
   mainClassName,
+  constrainToViewport = false,
 }: DashboardLayoutProps) {
   const { pathname } = useLocation();
   const queryClient = useQueryClient();
@@ -369,12 +371,12 @@ export default function DashboardLayout({
   });
 
   return (
-    <div className="tok-dashboard-shell flex min-h-screen flex-col text-foreground md:flex-row">
+    <div className="tok-dashboard-shell flex min-h-screen min-h-[100dvh] min-w-0 flex-col text-foreground md:flex-row">
       {/* SIDEBAR */}
       <aside
         ref={sidebarRef}
         className={cn(
-          "tok-dashboard-sidebar hidden overflow-y-auto border-r bg-sidebar transition-all md:flex md:flex-col",
+          "tok-dashboard-sidebar hidden overflow-y-auto overscroll-contain border-r bg-sidebar transition-all md:sticky md:top-0 md:flex md:h-[100dvh] md:shrink-0 md:self-start md:flex-col",
           collapsed ? "w-[80px]" : "w-72"
         )}
       >
@@ -432,7 +434,7 @@ export default function DashboardLayout({
       <div className="fixed right-[calc(env(safe-area-inset-right,0px)+0.75rem)] top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-[40] flex items-center gap-2">
         <ThemeToggleButton className="h-11 w-11 rounded-full border border-border/70 bg-background/95 text-foreground shadow-[0_14px_34px_rgba(15,23,42,0.16)] backdrop-blur-md hover:bg-background dark:border-[#5f7aad]/35 dark:bg-[#07142b]/95 dark:text-white dark:shadow-[0_20px_48px_rgba(0,0,0,0.5),0_0_30px_rgba(255,106,26,0.16)]" />
         <NotificationBell />
-        {!commercialDemoFrame ? <SignOutButton iconOnly /> : null}
+        {!commercialDemoFrame ? <SignOutButton iconOnly className="hidden min-[420px]:inline-flex" /> : null}
       </div>
 
       {/* MOBILE */}
@@ -472,11 +474,14 @@ export default function DashboardLayout({
               <span className="sr-only">{activeNavItem?.label ?? "Ouvrir le menu"}</span>
             </Button>
           </SheetTrigger>
-          <SheetContent className="flex h-full flex-col overflow-hidden p-0 dark:border-[#5f7aad]/30 dark:bg-[#010716]">
-            <SheetHeader className="border-b px-6 pb-4 pt-6 pr-14">
+          <SheetContent className="flex h-[100dvh] flex-col overflow-hidden p-0 dark:border-[#5f7aad]/30 dark:bg-[#010716]">
+            <SheetHeader className="border-b px-6 pb-4 pr-14 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)]">
               <SheetTitle>Dashboard</SheetTitle>
+              <SheetDescription className="sr-only">
+                Navigation, restaurant sélectionné et accès aux outils du dashboard.
+              </SheetDescription>
             </SheetHeader>
-            <div data-sheet-scroll-area className="flex-1 overflow-y-auto overscroll-y-contain px-6 pb-6 pt-4">
+            <div data-sheet-scroll-area className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-6 pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)] pt-4">
               <RestaurantSelector />
               {!commercialDemoFrame ? (
                 <>
@@ -512,7 +517,14 @@ export default function DashboardLayout({
       </div>
 
       {/* MAIN */}
-      <main className={cn("relative flex-1 overflow-hidden p-4 pb-[calc(env(safe-area-inset-bottom,0px)+2rem)] pt-20 sm:p-5 sm:pb-[calc(env(safe-area-inset-bottom,0px)+2.5rem)] sm:pt-20 md:p-6", mainClassName)}>
+      <main
+        className={cn(
+          "relative min-w-0 flex-1 overflow-x-clip p-4 pb-[calc(env(safe-area-inset-bottom,0px)+2rem)] sm:p-5 sm:pb-[calc(env(safe-area-inset-bottom,0px)+2.5rem)] md:p-6 md:pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)]",
+          constrainToViewport && "flex h-[100dvh] min-h-0 flex-col overflow-y-hidden",
+          mainClassName,
+          "pt-[calc(env(safe-area-inset-top,0px)+5rem)] sm:pt-[calc(env(safe-area-inset-top,0px)+5rem)] md:pt-[calc(env(safe-area-inset-top,0px)+5rem)]",
+        )}
+      >
         <div className="pointer-events-none absolute inset-0 hidden dark:block">
           <div className="absolute -left-36 top-10 h-96 w-96 rounded-full bg-[#ff6a1a]/12 blur-3xl" />
           <div className="absolute right-0 top-1/4 h-[28rem] w-[28rem] rounded-full bg-[#1e4aa0]/18 blur-3xl" />
@@ -521,10 +533,14 @@ export default function DashboardLayout({
         <div
           className={cn(
             "relative z-10 w-full",
+            constrainToViewport && "flex min-h-0 flex-1 flex-col",
             contentWidth === "full" ? "max-w-none" : "mx-auto max-w-7xl",
           )}
         >
-          <BackNavigationButton fallback={backFallback} className="mb-4" />
+          <BackNavigationButton
+            fallback={backFallback}
+            className={cn("mb-4", constrainToViewport && "shrink-0")}
+          />
           {isDemoMode ? (
             <div className="mb-6 rounded-3xl border border-sky-200 bg-sky-50/95 p-5 text-sky-950 shadow-sm dark:border-sky-400/25 dark:bg-sky-500/10 dark:text-sky-50" role="status" data-testid="commercial-demo-banner">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start">

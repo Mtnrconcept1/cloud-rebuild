@@ -277,22 +277,18 @@ const FAQS = [
 
 const TOK_ONE_JSON_LD = {
   "@context": "https://schema.org",
-  "@type": "Product",
+  "@type": "Service",
   name: "Tok One",
-  brand: {
-    "@type": "Brand",
+  provider: {
+    "@type": "Organization",
     name: "TOK",
+    url: "https://www.thetok.ch",
   },
   description:
     "Abonnement premium TOK pour profiter de livraisons offertes, avantages VIP, réductions partenaires et support prioritaire en Suisse romande.",
-  category: "Restaurant loyalty subscription",
+  serviceType: "Abonnement de fidélité et avantages food",
   url: "https://www.thetok.ch/tok-one",
   areaServed: "Suisse romande",
-  offers: {
-    "@type": "AggregateOffer",
-    priceCurrency: "CHF",
-    availability: "https://schema.org/InStock",
-  },
 };
 
 const formatDate = (value?: string | null) => {
@@ -1314,3 +1310,4 @@ export default function TokOne() {
     </main>
   );
 }
+

@@ -101,10 +101,10 @@ describe("dashboard shell navigation", () => {
 
     expect(layout).toContain("top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-[40] flex items-center gap-2");
     expect(layout).not.toContain("top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-[70] flex items-center gap-2");
-    expect(sheet).toContain("fixed inset-0 z-50");
-    expect(sheet).toContain('"fixed z-50 gap-4');
-    expect(dialog).toContain("fixed inset-0 z-[80]");
-    expect(dialog).toContain("fixed left-[50%] top-[50%] z-[90]");
+    expect(sheet).toContain("fixed inset-0 z-[1800]");
+    expect(sheet).toContain('"fixed z-[1810] min-w-0');
+    expect(dialog).toContain("fixed inset-0 z-[1820]");
+    expect(dialog).toContain("fixed left-[50%] top-[50%] z-[1830]");
   });
 
   it("keeps the mobile dashboard trigger out of bottom content", () => {
@@ -122,5 +122,16 @@ describe("dashboard shell navigation", () => {
     expect(layout).not.toContain("fixed inset-x-0 bottom-0 z-[40]");
     expect(layout).not.toContain("h-[calc(env(safe-area-inset-bottom,0px)+5.5rem)] md:hidden");
   });
-});
 
+  it("allocates the advisor height after dashboard chrome and optional banners", () => {
+    const layout = read("src/components/DashboardLayout.tsx");
+    const advisor = read("src/pages/dashboard/DashboardAdvisor.tsx");
+
+    expect(layout).toContain("constrainToViewport?: boolean");
+    expect(layout).toContain('constrainToViewport && "flex h-[100dvh] min-h-0 flex-col overflow-y-hidden"');
+    expect(layout).toContain('constrainToViewport && "flex min-h-0 flex-1 flex-col"');
+    expect(advisor).toContain("<DashboardLayout constrainToViewport>");
+    expect(advisor).toContain('className="flex min-h-0 flex-1 flex-col"');
+    expect(advisor).not.toContain("h-[calc(100dvh-6rem)]");
+  });
+});

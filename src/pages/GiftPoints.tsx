@@ -334,10 +334,10 @@ export default function GiftPoints() {
         )}
 
         <Tabs defaultValue="send" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="send" className="gap-1.5"><Send className="h-3.5 w-3.5" /> Envoyer</TabsTrigger>
-            <TabsTrigger value="claim" className="gap-1.5"><Download className="h-3.5 w-3.5" /> Réclamer</TabsTrigger>
-            <TabsTrigger value="history" className="gap-1.5"><Clock className="h-3.5 w-3.5" /> Historique</TabsTrigger>
+          <TabsList className="grid h-auto w-full grid-cols-3">
+            <TabsTrigger value="send" className="min-w-0 gap-1 px-1.5 text-xs leading-tight sm:gap-1.5 sm:px-3 sm:text-sm"><Send className="h-3.5 w-3.5 shrink-0" /> Envoyer</TabsTrigger>
+            <TabsTrigger value="claim" className="min-w-0 gap-1 px-1.5 text-xs leading-tight sm:gap-1.5 sm:px-3 sm:text-sm"><Download className="h-3.5 w-3.5 shrink-0" /> Réclamer</TabsTrigger>
+            <TabsTrigger value="history" className="min-w-0 gap-1 px-1.5 text-xs leading-tight sm:gap-1.5 sm:px-3 sm:text-sm"><Clock className="h-3.5 w-3.5 shrink-0" /> Historique</TabsTrigger>
           </TabsList>
 
           {/* =============== SEND TAB =============== */}
@@ -618,22 +618,22 @@ export default function GiftPoints() {
               <TabsContent value="sent" className="space-y-3 pt-4">
                 {sentGifts && sentGifts.length > 0 ? (
                   sentGifts.map((gift: any) => (
-                    <div key={gift.id} className="flex items-center justify-between p-3 border rounded-xl bg-card">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${gift.status === "claimed" ? "bg-emerald-500/10" : gift.status === "expired" ? "bg-red-500/10" : "bg-amber-500/10"
+                    <div key={gift.id} className="flex min-w-0 items-center justify-between gap-3 p-3 border rounded-xl bg-card">
+                      <div className="flex min-w-0 flex-1 items-center gap-3">
+                        <div className={`w-8 h-8 shrink-0 rounded-full flex items-center justify-center ${gift.status === "claimed" ? "bg-emerald-500/10" : gift.status === "expired" ? "bg-red-500/10" : "bg-amber-500/10"
                           }`}>
                           <Send className={`h-4 w-4 ${gift.status === "claimed" ? "text-emerald-500" : gift.status === "expired" ? "text-red-500" : "text-amber-500"
                             }`} />
                         </div>
-                        <div>
-                          <p className="font-semibold text-sm">{gift.recipient_email}</p>
+                        <div className="min-w-0">
+                          <p className="break-all font-semibold text-sm">{gift.recipient_email}</p>
                           <p className="text-xs text-muted-foreground">
                             {new Date(gift.created_at).toLocaleDateString("fr-FR")}
                             {gift.message && ` · "${gift.message.slice(0, 30)}${gift.message.length > 30 ? "..." : ""}"`}
                           </p>
                         </div>
                       </div>
-                      <div className="text-right">
+                      <div className="shrink-0 text-right">
                         <p className="font-bold text-sm text-pink-600 dark:text-pink-400">-{gift.points_amount.toLocaleString()} pts</p>
                         <Badge
                           variant="outline"
@@ -699,8 +699,8 @@ export default function GiftPoints() {
           <p className="text-sm text-muted-foreground">
             Pour chaque 1000 points donnés, un repas est offert à une personne dans le besoin via notre programme solidaire.
           </p>
-          <Button variant="outline" className="w-full border-green-500 text-green-600 dark:text-green-400 hover:bg-green-500/10 gap-2" onClick={() => navigate("/panier")}>
-            <Heart className="h-4 w-4" /> Faire un don lors de ma prochaine commande
+          <Button variant="outline" className="h-auto min-h-10 w-full gap-2 whitespace-normal border-green-500 px-3 py-2 text-center leading-snug text-green-600 hover:bg-green-500/10 dark:text-green-400" onClick={() => navigate("/panier")}>
+            <Heart className="h-4 w-4 shrink-0" /> Faire un don lors de ma prochaine commande
           </Button>
         </div>
       </div>

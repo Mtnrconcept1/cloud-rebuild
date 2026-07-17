@@ -426,7 +426,7 @@ describe("Auth signup form", () => {
           p_metadata: expect.objectContaining({
             selected_subscription_plan_id: "restaurant-plan-id",
             selected_subscription_billing_period: "monthly",
-            onboarding_payment_status: "pending_payment",
+            onboarding_payment_status: "payment_method_required",
             legal_terms_accepted: true,
             privacy_policy_accepted: true,
             contract_version: "TOK-CH-RP-2026-06-v2",

@@ -36,28 +36,6 @@ export default function MiamzSolidaires() {
       "Comprenez comment fonctionnent les Miamz TOK : points de fidélité, réductions, cadeaux et dons solidaires pour transformer chaque repas en impact local.",
     path: "/miamz-solidaires",
     image: "/Miamz2.webp",
-    jsonLd: {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      mainEntity: [
-        {
-          "@type": "Question",
-          name: "Les Miamz sont-ils une monnaie ?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Non. Les Miamz sont des points de fidélité TOK utilisables selon les conditions affichées dans l'application.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "Peut-on donner ses Miamz ?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Oui. Les utilisateurs peuvent reverser des Miamz à une cagnotte solidaire suivie par TOK.",
-          },
-        },
-      ],
-    },
   });
 
   return (

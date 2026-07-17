@@ -34,6 +34,8 @@ type CommercialFollowup = {
   signed_subscription_plan_slug: string | null;
   signed_subscription_plan_name: string | null;
   acquisition_commission_chf: number | string | null;
+  acquisition_commission_status: string | null;
+  earned_at: string | null;
   visited_at: string | null;
   next_follow_up_at: string | null;
   refusal_reason_codes: string[] | null;
@@ -57,7 +59,12 @@ type CommercialCompensationSummary = {
     employment_active?: boolean;
   };
   fixed_salary?: { period_chf?: number; monthly_chf?: number };
-  signatures?: { period_count?: number; commission_chf?: number };
+  signatures?: {
+    period_count?: number;
+    commission_chf?: number;
+    pending_count?: number;
+    pending_commission_chf?: number;
+  };
   reservations?: {
     personal_count?: number;
     team_count?: number;
@@ -137,6 +144,22 @@ function statusTone(status: CommercialFollowup["status"]) {
   if (status === "not_interested") return "border-rose-200 bg-rose-50 text-rose-800";
   if (status === "in_progress") return "border-orange-200 bg-orange-50 text-orange-800";
   return "border-sky-200 bg-sky-50 text-sky-800";
+}
+
+function commissionStatusMeta(status: string | null | undefined) {
+  switch (status) {
+    case "payable":
+      return { label: "Acquise · à payer", className: "border-sky-200 bg-sky-100 text-sky-800" };
+    case "paid":
+      return { label: "Payée", className: "border-emerald-200 bg-emerald-100 text-emerald-800" };
+    case "cancelled":
+      return { label: "Annulée", className: "border-slate-200 bg-slate-100 text-slate-700" };
+    case "reversed":
+      return { label: "Reprise comptable", className: "border-rose-200 bg-rose-100 text-rose-800" };
+    case "pending_payment":
+    default:
+      return { label: "En attente du paiement", className: "border-amber-200 bg-amber-100 text-amber-800" };
+  }
 }
 
 function AdminCompensationAdjustmentForm({
@@ -543,7 +566,7 @@ export default function AdminCommercialAccountDetail({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100vw-1rem)] max-w-[calc(100vw-1rem)] overflow-hidden p-0 sm:max-w-6xl sm:rounded-3xl">
+      <DialogContent className="w-[calc(100vw-env(safe-area-inset-left,0px)-env(safe-area-inset-right,0px)-1rem)] max-w-[calc(100vw-env(safe-area-inset-left,0px)-env(safe-area-inset-right,0px)-1rem)] overflow-hidden p-0 sm:max-w-6xl sm:rounded-3xl">
         <DialogHeader className="border-b bg-gradient-to-br from-slate-950 via-slate-900 to-sky-950 px-6 py-6 text-left text-white">
           <DialogTitle className="text-2xl text-white">{account?.full_name || "Profil commercial"}</DialogTitle>
           <DialogDescription className="text-slate-300">
@@ -640,6 +663,10 @@ export default function AdminCommercialAccountDetail({
                     selectedPlanSlug !== (followup.signed_subscription_plan_slug || "")
                     || selectedRestaurantId !== (followup.signed_restaurant_id || "unlinked")
                   );
+                  const commissionMeta = commissionStatusMeta(followup.acquisition_commission_status);
+                  const financialSnapshotLocked = ["payable", "paid", "reversed"].includes(
+                    String(followup.acquisition_commission_status || ""),
+                  );
                   return (
                     <article key={followup.source_objectid} className="min-w-0 rounded-2xl border bg-card p-4 shadow-sm">
                       <div className="flex min-w-0 items-start justify-between gap-3">
@@ -657,7 +684,14 @@ export default function AdminCommercialAccountDetail({
                       <dl className="mt-3 grid gap-2 text-xs sm:grid-cols-2">
                         <div><dt className="text-muted-foreground">Dernière action</dt><dd className="font-medium">{formatDate(followup.updated_at)}</dd></div>
                         {followup.next_follow_up_at ? <div><dt className="text-muted-foreground">Doit repasser</dt><dd className="font-medium">{formatDate(followup.next_follow_up_at)}</dd></div> : null}
-                        {followup.status === "signed" ? <div><dt className="text-muted-foreground">Commission</dt><dd className="font-semibold text-emerald-700">{formatChf(followup.acquisition_commission_chf)}</dd></div> : null}
+                        {followup.status === "signed" ? (
+                          <div>
+                            <dt className="text-muted-foreground">Commission</dt>
+                            <dd className="font-semibold">{formatChf(followup.acquisition_commission_chf)}</dd>
+                            <Badge variant="outline" className={commissionMeta.className}>{commissionMeta.label}</Badge>
+                            {followup.earned_at ? <p className="mt-1 text-[11px] text-muted-foreground">Acquise le {formatDate(followup.earned_at)}</p> : null}
+                          </div>
+                        ) : null}
                         {followup.status === "signed" ? <div><dt className="text-muted-foreground">Offre</dt><dd className="font-medium">{followup.signed_subscription_plan_name || "Non renseignée"}</dd></div> : null}
                       </dl>
 
@@ -680,6 +714,11 @@ export default function AdminCommercialAccountDetail({
                             <p className="text-xs text-muted-foreground">
                               Corrigez l’offre ou associez la signature à un compte restaurant réel. Toute modification exige un motif et reste auditée.
                             </p>
+                            {financialSnapshotLocked ? (
+                              <p className="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-2 text-xs font-medium text-amber-900 dark:border-amber-400/20 dark:bg-amber-500/10 dark:text-amber-100">
+                                Cette commission a déjà produit une écriture financière. Sa signature, son offre et son restaurant sont désormais immuables ; utilisez une correction comptable auditée si nécessaire.
+                              </p>
+                            ) : null}
                           </div>
 
                           <div className="grid min-w-0 gap-3 sm:grid-cols-2">
@@ -688,7 +727,7 @@ export default function AdminCommercialAccountDetail({
                               <Select
                                 value={selectedPlanSlug || undefined}
                                 onValueChange={(value) => updateSignatureDraft(followup, { planSlug: value })}
-                                disabled={plansQuery.isLoading || plansQuery.isError || correctingSignatureId === followup.source_objectid}
+                                disabled={financialSnapshotLocked || plansQuery.isLoading || plansQuery.isError || correctingSignatureId === followup.source_objectid}
                               >
                                 <SelectTrigger className="w-full min-w-0 bg-background">
                                   <SelectValue placeholder="Choisir une offre" />
@@ -713,7 +752,7 @@ export default function AdminCommercialAccountDetail({
                               <Select
                                 value={selectedRestaurantId}
                                 onValueChange={(value) => updateSignatureDraft(followup, { restaurantId: value })}
-                                disabled={restaurantsQuery.isLoading || restaurantsQuery.isError || correctingSignatureId === followup.source_objectid}
+                                disabled={financialSnapshotLocked || restaurantsQuery.isLoading || restaurantsQuery.isError || correctingSignatureId === followup.source_objectid}
                               >
                                 <SelectTrigger className="w-full min-w-0 bg-background">
                                   <SelectValue placeholder="Associer un restaurant" />
@@ -747,6 +786,8 @@ export default function AdminCommercialAccountDetail({
                               size="sm"
                               onClick={() => void correctSignature(followup)}
                               disabled={
+                                financialSnapshotLocked
+                                ||
                                 !signatureHasChanges
                                 || !selectedPlanIsActive
                                 || plansQuery.isLoading
@@ -780,7 +821,7 @@ export default function AdminCommercialAccountDetail({
                                 refusalReasonCodes: [],
                                 refusalOtherText: "",
                               })}
-                              disabled={correctingSignatureId === followup.source_objectid}
+                              disabled={financialSnapshotLocked || correctingSignatureId === followup.source_objectid}
                             >
                               <SelectTrigger className="w-full bg-background">
                                 <SelectValue />
@@ -800,6 +841,7 @@ export default function AdminCommercialAccountDetail({
                                   min={new Date().toISOString().slice(0, 10)}
                                   value={signatureStatusDraft.nextFollowUpAt}
                                   onChange={(event) => updateSignatureStatusDraft(followup, { nextFollowUpAt: event.target.value })}
+                                  disabled={financialSnapshotLocked}
                                 />
                               </div>
                             ) : null}
@@ -814,6 +856,7 @@ export default function AdminCommercialAccountDetail({
                                       <label key={reason.value} className="flex cursor-pointer items-start gap-2 text-xs">
                                         <Checkbox
                                           checked={checked}
+                                          disabled={financialSnapshotLocked}
                                           onCheckedChange={(nextChecked) => updateSignatureStatusDraft(followup, {
                                             refusalReasonCodes: nextChecked === true
                                               ? [...signatureStatusDraft.refusalReasonCodes, reason.value]
@@ -831,6 +874,7 @@ export default function AdminCommercialAccountDetail({
                                     onChange={(event) => updateSignatureStatusDraft(followup, { refusalOtherText: event.target.value })}
                                     placeholder="Précisez le motif"
                                     maxLength={500}
+                                    disabled={financialSnapshotLocked}
                                   />
                                 ) : null}
                               </div>
@@ -844,7 +888,8 @@ export default function AdminCommercialAccountDetail({
                                 className="w-full sm:w-auto"
                                 onClick={() => void correctSignatureStatus(followup)}
                                 disabled={
-                                  correctingSignatureId === followup.source_objectid
+                                  financialSnapshotLocked
+                                  || correctingSignatureId === followup.source_objectid
                                   || (signatureStatusDraft.status === "in_progress" && !signatureStatusDraft.nextFollowUpAt)
                                   || (signatureStatusDraft.status === "not_interested" && signatureStatusDraft.refusalReasonCodes.length === 0)
                                 }
@@ -885,11 +930,12 @@ export default function AdminCommercialAccountDetail({
             ) : summaryQuery.error ? (
               <p className="text-sm text-destructive">La comptabilité de ce commercial est indisponible.</p>
             ) : (
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
                 {[
                   { label: "Total dû", value: summary?.total_chf, icon: Coins },
                   { label: "Fixe", value: summary?.fixed_salary?.period_chf ?? summary?.fixed_salary?.monthly_chf, icon: CalendarClock },
                   { label: `${toNumber(summary?.signatures?.period_count)} signature(s)`, value: summary?.signatures?.commission_chf, icon: ReceiptText },
+                  { label: `${toNumber(summary?.signatures?.pending_count)} en attente`, value: summary?.signatures?.pending_commission_chf, icon: CalendarClock },
                   { label: "Réservations", value: reservationCommission, icon: TrendingUp },
                   { label: "Ajustements", value: summary?.adjustments?.amount_chf, icon: BarChart3 },
                 ].map(({ label, value, icon: Icon }) => (

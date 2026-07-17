@@ -17,8 +17,8 @@ describe("mobile modal scroll guards", () => {
     const alertDialog = readProjectFile("src/components/ui/alert-dialog.tsx");
 
     for (const source of [dialog, alertDialog]) {
-      expect(source).toContain("max-h-[calc(100dvh-1rem)]");
-      expect(source).toContain("w-[calc(100vw-1rem)]");
+      expect(source).toContain("max-h-[calc(100dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)-1rem)]");
+      expect(source).toContain("w-[calc(100vw-env(safe-area-inset-left,0px)-env(safe-area-inset-right,0px)-1rem)]");
       expect(source).toContain("overflow-y-auto");
       expect(source).toContain("overscroll-contain");
       expect(source).toContain("env(safe-area-inset-bottom");
@@ -31,7 +31,7 @@ describe("mobile modal scroll guards", () => {
     const upsell = readProjectFile("src/components/cart/UpsellModal.tsx");
 
     for (const source of [reservation, chefTable, upsell]) {
-      expect(source).toContain("flex max-h-[calc(100dvh-1rem)] flex-col");
+      expect(source).toContain("flex max-h-[calc(100dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)-1rem)] flex-col");
       expect(source).toContain("overflow-y-auto overscroll-contain");
       expect(source).toContain("env(safe-area-inset-bottom");
     }

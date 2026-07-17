@@ -156,7 +156,7 @@ export default function LoyaltyStatus({
               Découvrir les avantages <ArrowUpRight className="h-3 w-3" />
             </Button>
           </DialogTrigger>
-          <DialogContent className="flex h-[calc(100dvh-0.75rem)] max-h-[calc(100dvh-0.75rem)] w-[calc(100vw-0.75rem)] max-w-2xl flex-col gap-0 overflow-hidden p-0 sm:h-[min(860px,calc(100dvh-2rem))] sm:max-h-[min(860px,calc(100dvh-2rem))]">
+          <DialogContent className="flex h-[calc(100dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)-0.75rem)] max-h-[calc(100dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)-0.75rem)] w-[calc(100vw-env(safe-area-inset-left,0px)-env(safe-area-inset-right,0px)-0.75rem)] max-w-2xl flex-col gap-0 overflow-hidden p-0 sm:h-[min(860px,calc(100dvh-2rem))] sm:max-h-[min(860px,calc(100dvh-2rem))]">
             <DialogHeader className="shrink-0 border-b bg-background/95 px-4 py-4 pr-12 text-left backdrop-blur sm:px-6">
               <DialogTitle>Avantages {config.label}</DialogTitle>
               <DialogDescription>

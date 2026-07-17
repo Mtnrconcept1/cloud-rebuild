@@ -43,11 +43,14 @@ describe("SEO growth readiness", () => {
   it("publishes sitemap and robots entries for public local and B2B pages", () => {
     const robots = read("public/robots.txt");
     const sitemap = read("public/sitemap.xml");
+    const vercel = read("vercel.json");
 
     expect(robots).not.toMatch(/^Disallow: \/$/m);
     expect(robots).toContain("Sitemap: https://www.thetok.ch/sitemap.xml");
-    expect(robots).toContain("Disallow: /admin");
-    expect(robots).toContain("Disallow: /dashboard");
+    expect(robots).not.toMatch(/^Disallow:/m);
+    expect(vercel).toContain('"key": "X-Robots-Tag"');
+    expect(vercel).toContain('"source": "/:surface(admin|dashboard|courier|commercial|profil|notifications|commandes|commande|reservations|mon-espace|compte|espace-client|mes-avis|points-cadeau|panier|auth|oauth)"');
+    expect(vercel).toContain('"source": "/:surface(admin|dashboard|courier|commercial|profil|notifications|commandes|commande|reservations|mon-espace|compte|espace-client|mes-avis|points-cadeau|panier|auth|oauth)/:path*"');
     expect(sitemap).toContain("https://www.thetok.ch/restaurants/geneve");
     expect(sitemap).toContain("https://www.thetok.ch/restaurants/lausanne");
     expect(sitemap).toContain("https://www.thetok.ch/restaurants/geneve/pizza");

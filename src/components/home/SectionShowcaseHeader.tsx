@@ -190,17 +190,17 @@ export default function SectionShowcaseHeader({
 
       <div
         className={cn(
-          "relative z-50 max-w-[calc(100%-10.75rem)] pr-2 sm:max-w-[calc(100%-14.75rem)] sm:pr-4 md:max-w-[calc(100%-19.5rem)] md:pr-6",
+          "relative z-50 min-w-0 max-w-[calc(100%-6.5rem)] pr-1 min-[380px]:max-w-[calc(100%-10.75rem)] min-[380px]:pr-2 sm:max-w-[calc(100%-14.75rem)] sm:pr-4 md:max-w-[calc(100%-19.5rem)] md:pr-6",
           contentClassName,
         )}
       >
-        <div className={cn("mb-5 flex w-fit items-center gap-2 font-bold text-xs uppercase tracking-[0.18em]", iconColor || palette.eyebrow)}>
+        <div className={cn("mb-4 flex min-w-0 max-w-full items-center gap-2 text-[0.68rem] font-bold uppercase tracking-[0.14em] min-[380px]:mb-5 min-[380px]:text-xs min-[380px]:tracking-[0.18em]", iconColor || palette.eyebrow)}>
           <span className={cn("grid h-8 w-8 place-items-center rounded-full", palette.iconBubble)}>
             <Icon className="h-4 w-4 fill-current" />
           </span>
-          <span>{subtitle}</span>
+          <span className="min-w-0 break-words">{subtitle}</span>
         </div>
-        <h2 className={cn("font-display text-4xl font-bold leading-[0.98] tracking-normal text-slate-950 dark:text-white sm:text-5xl md:text-6xl", titleClassName)}>
+        <h2 className={cn("font-display text-3xl font-bold leading-[1.02] tracking-normal text-slate-950 min-[380px]:text-4xl dark:text-white sm:text-5xl md:text-6xl", titleClassName)}>
           {title}
         </h2>
       </div>
@@ -208,7 +208,7 @@ export default function SectionShowcaseHeader({
       {hasFooterActions ? (
         <div
           data-section-action-row
-          className="absolute bottom-5 left-5 z-[60] flex max-w-[calc(100%-10.75rem)] items-center justify-start gap-2 sm:left-7 sm:max-w-[calc(100%-14.75rem)] md:max-w-[calc(100%-19.5rem)]"
+          className="absolute bottom-5 left-5 z-[60] flex min-w-0 max-w-[calc(100%-6.5rem)] items-center justify-start gap-2 min-[380px]:max-w-[calc(100%-10.75rem)] sm:left-7 sm:max-w-[calc(100%-14.75rem)] md:max-w-[calc(100%-19.5rem)]"
         >
           {actions}
           {linkText && linkTo ? (

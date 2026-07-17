@@ -8,7 +8,12 @@ export default {
   theme: {
     container: {
       center: true,
-      padding: "2rem",
+      padding: {
+        DEFAULT: "max(1rem, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px))",
+        sm: "max(1.25rem, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px))",
+        md: "max(1.5rem, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px))",
+        lg: "max(2rem, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px))",
+      },
       screens: {
         "2xl": "1400px",
       },

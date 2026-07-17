@@ -78,24 +78,16 @@ const LOCAL_DISTRICTS = {
 };
 
 const RICH_LOCAL_PAGES = [
-  ...LOCAL_CITIES.map((city) => ({
+  ...LOCAL_CITIES.filter((city) => STATIC_LOCAL_PAGES.some(([slug]) => slug === city.slug)).map((city) => ({
     type: "city",
     slug: city.slug,
     citySlug: city.slug,
     city: city.label,
   })),
   ...LOCAL_CITIES.flatMap((city) =>
-    LOCAL_CUISINES.slice(0, city.slug === "geneve" ? LOCAL_CUISINES.length : 10).map((cuisine) => ({
-      type: "cuisine",
-      slug: `${city.slug}/${cuisine.slug}`,
-      citySlug: city.slug,
-      city: city.label,
-      cuisineSlug: cuisine.slug,
-      cuisine: cuisine.label,
-    })),
-  ),
-  ...LOCAL_CITIES.flatMap((city) =>
-    city.districts.map((districtSlug) => ({
+    city.districts.filter((districtSlug) =>
+      STATIC_LOCAL_PAGES.some(([slug]) => slug === `${city.slug}/${districtSlug}`),
+    ).map((districtSlug) => ({
       type: "district",
       slug: `${city.slug}/${districtSlug}`,
       citySlug: city.slug,
@@ -131,11 +123,16 @@ function buildLocalDescription(page) {
 function buildLocalLinks(page) {
   const citySlug = page.citySlug || page.slug.split("/")[0] || "geneve";
   const city = LOCAL_CITIES.find((item) => item.slug === citySlug) || LOCAL_CITIES[0];
-  const cuisineLinks = LOCAL_CUISINES.slice(0, 8).map((cuisine) => ({
+  const staticLocalSlugs = new Set(STATIC_LOCAL_PAGES.map(([slug]) => slug));
+  const cuisineLinks = LOCAL_CUISINES.filter((cuisine) =>
+    staticLocalSlugs.has(`${citySlug}/${cuisine.slug}`),
+  ).map((cuisine) => ({
     href: `/restaurants/${citySlug}/${cuisine.slug}`,
     label: `${cuisine.label} a ${city.label}`,
   }));
-  const districtLinks = city.districts.slice(0, 6).map((districtSlug) => ({
+  const districtLinks = city.districts.filter((districtSlug) =>
+    staticLocalSlugs.has(`${citySlug}/${districtSlug}`),
+  ).map((districtSlug) => ({
     href: `/restaurants/${citySlug}/${districtSlug}`,
     label: `Restaurants ${LOCAL_DISTRICTS[districtSlug]}`,
   }));
@@ -183,7 +180,6 @@ function buildLocalStaticContent(page) {
 function buildLocalJsonLd(page) {
   const pathName = `/restaurants/${page.slug}`;
   const name = buildLocalHeading(page);
-  const city = page.city || "Geneve";
 
   return [
     {
@@ -199,36 +195,6 @@ function buildLocalJsonLd(page) {
         { "@type": "ListItem", position: 1, name: "Accueil", item: `${CANONICAL_ORIGIN}/` },
         { "@type": "ListItem", position: 2, name: "Restaurants", item: canonicalUrl("/recherche") },
         { "@type": "ListItem", position: 3, name, item: canonicalUrl(pathName) },
-      ],
-    },
-    {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      mainEntity: [
-        {
-          "@type": "Question",
-          name: `Comment trouver un restaurant a ${city} avec TOK ?`,
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Utilisez la recherche TOK pour filtrer par ville, cuisine, quartier, reservation, commande, offres locales et restaurants actifs.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "Puis-je commander ou reserver depuis une page locale TOK ?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Oui. Quand le restaurant active les services correspondants, TOK permet de reserver, commander, choisir le retrait ou consulter les offres disponibles.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "Les pages locales TOK affichent-elles seulement une grille ?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Non. Les pages locales associent restaurants, cuisines, quartiers, liens utiles, donnees structurees et contenu local pour mieux repondre aux recherches.",
-          },
-        },
       ],
     },
   ];
@@ -345,6 +311,14 @@ const PUBLIC_SEO_PAGES = [
       "Découvrez Tok One, l'abonnement TOK pour profiter d'avantages food, d'offres locales et de Miamz solidaires.",
     priority: "0.7",
     changefreq: "weekly",
+  },
+  {
+    path: "/tok-connect",
+    title: "TOK Connect - API et intégrations pour partenaires | TOK",
+    description:
+      "Connectez TOK aux hôtels, conciergeries, CRM, applications locales et assistants IA grâce à TOK Connect.",
+    priority: "0.6",
+    changefreq: "monthly",
   },
   {
     path: "/miamz-solidaires",
@@ -961,6 +935,28 @@ const PUBLIC_SEO_PAGES = [
     changefreq: "monthly",
   },
   {
+    path: "/cookies",
+    title: "Politique relative aux cookies | TOK",
+    description: "Consultez la politique TOK relative aux cookies, au stockage local et à vos choix de confidentialité.",
+    priority: "0.3",
+    changefreq: "monthly",
+  },
+  {
+    path: "/conditions-restaurateurs",
+    title: "Conditions pour les restaurateurs | TOK",
+    description: "Consultez les conditions applicables aux restaurants partenaires et aux services professionnels TOK.",
+    priority: "0.3",
+    changefreq: "monthly",
+  },
+  {
+    path: "/tok-pulse",
+    title: "TOK Pulse - raccourcis et expérience mobile TOK",
+    description:
+      "Découvrez TOK Pulse, les raccourcis mobiles pour réserver, consulter les offres flash et accéder rapidement aux services TOK.",
+    priority: "0.5",
+    changefreq: "monthly",
+  },
+  {
     path: "/politique-confidentialite",
     title: "Politique de confidentialité | TOK",
     description: "Consultez la politique de confidentialité de TOK et les traitements de données associés.",
@@ -973,14 +969,21 @@ const PRIVATE_ROUTE_PREFIXES = [
   "/admin",
   "/dashboard",
   "/courier",
+  "/commercial",
   "/profil",
   "/notifications",
   "/commandes",
-  "/commande/",
+  "/commande",
   "/reservations",
+  "/mon-espace",
+  "/compte",
+  "/espace-client",
+  "/mes-avis",
   "/points-cadeau",
   "/panier",
   "/auth",
+  "/oauth",
+  "/tok-connect/developer",
 ];
 
 function normalizePath(routePath) {
@@ -1014,6 +1017,15 @@ function escapeJsonForHtml(value) {
   return JSON.stringify(value).replace(/</g, "\\u003c");
 }
 
+function sanitizeStructuredData(value) {
+  if (!value) return null;
+  const entries = (Array.isArray(value) ? value : [value]).filter(
+    (entry) => entry && entry["@type"] !== "FAQPage",
+  );
+  if (entries.length === 0) return null;
+  return Array.isArray(value) ? entries : entries[0];
+}
+
 function isIndexablePath(routePath) {
   const normalized = normalizePath(routePath);
   return !PRIVATE_ROUTE_PREFIXES.some((prefix) => normalized === prefix || normalized.startsWith(`${prefix}/`));
@@ -1030,13 +1042,25 @@ function slugify(value) {
 
 function buildRestaurantSeoPath(restaurant) {
   const citySlug = slugify(restaurant.city || "geneve");
-  const restaurantSlug = slugify(restaurant.slug || restaurant.name);
+  const restaurantSlug = slugify(restaurant.slug || "");
 
   if (citySlug && restaurantSlug) {
-    return `/restaurants/${citySlug}/${restaurantSlug}`;
+    return `/restaurants/${citySlug}/r/${restaurantSlug}`;
   }
 
   return `/restaurant/${restaurant.id}`;
+}
+
+function toAbsoluteSeoImage(value) {
+  const candidate = String(value || "").trim();
+  if (!candidate) return undefined;
+
+  try {
+    const url = new URL(candidate, CANONICAL_ORIGIN);
+    return url.protocol === "http:" || url.protocol === "https:" ? url.href : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 function buildPriceRange(value) {
@@ -1046,46 +1070,73 @@ function buildPriceRange(value) {
   return Array.from({ length: level }, () => "CHF").join(" ");
 }
 
-function buildRestaurantOfferCatalog(restaurant, restaurantPath) {
-  const baseUrl = canonicalUrl(restaurantPath);
-  return {
-    "@type": "OfferCatalog",
-    name: `Services TOK - ${restaurant.name}`,
-    itemListElement: [
-      {
-        "@type": "Offer",
-        name: "Commande en ligne",
-        availability: "https://schema.org/InStock",
-        url: baseUrl,
-      },
-      {
-        "@type": "Offer",
-        name: "Reservation de table",
-        availability: "https://schema.org/InStock",
-        url: baseUrl,
-      },
-      {
-        "@type": "Offer",
-        name: "Offres locales et actualites",
-        availability: "https://schema.org/InStock",
-        url: baseUrl,
-      },
-    ],
-  };
+const STRICT_DYNAMIC_SEO = process.env.SEO_STRICT_DYNAMIC === "1"
+  || (process.env.SEO_STRICT_DYNAMIC !== "0" && process.env.VERCEL_ENV === "production");
+
+class DynamicSeoCollectionError extends Error {}
+
+const PUBLIC_FEATURE_BY_PATH = new Map([
+  ["/anti-gaspi", "anti-gaspi"],
+  ["/ventes-flash", "ventes-flash"],
+  ["/actualites", "actualites-sociales"],
+  ["/creneaux-garantis", "creneaux-garantis"],
+  ["/flex-prix-bas", "flex-prix-bas"],
+  ["/match-groupes", "match-groupes"],
+  ["/multi-stop", "multi-stop"],
+  ["/multi-restaurant", "multi-restaurant"],
+  ["/chefs-table", "chefs-table"],
+  ["/zero-attente", "zero-attente"],
+  ["/garantie-qualite", "garantie-qualite"],
+  ["/budget-auto", "budget-auto"],
+  ["/abonnement", "abonnement"],
+  ["/tok-one", "tok-one"],
+  ["/tok-pulse", "tok-pulse"],
+  ["/tok-connect", "tok-connect"],
+]);
+
+const DEFAULT_DISABLED_SEO_FEATURES = new Set(["tok-pulse"]);
+
+function handleDynamicSeoFailure(source, cause) {
+  const detail = cause instanceof Error ? cause.message : String(cause || "réponse invalide");
+  const failure = new DynamicSeoCollectionError(`[seo] Collecte ${source} impossible : ${detail}`);
+  if (STRICT_DYNAMIC_SEO) throw failure;
+  console.warn(failure.message);
+  return [];
 }
 
-function buildRestaurantPotentialActions(restaurantPath) {
-  const target = canonicalUrl(restaurantPath);
-  return [
-    {
-      "@type": "OrderAction",
-      target,
-    },
-    {
-      "@type": "ReserveAction",
-      target,
-    },
-  ];
+async function collectDisabledSeoFeatures() {
+  loadPublicEnvFiles();
+
+  const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+  const supabaseKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
+  if (!supabaseUrl || !supabaseKey) {
+    handleDynamicSeoFailure("feature flags", "variables Supabase absentes");
+    return DEFAULT_DISABLED_SEO_FEATURES;
+  }
+
+  try {
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const { data, error } = await supabase
+      .from("feature_flags")
+      .select("name,is_active");
+
+    if (error || !Array.isArray(data)) {
+      handleDynamicSeoFailure("feature flags", error || "réponse non tabulaire");
+      return DEFAULT_DISABLED_SEO_FEATURES;
+    }
+
+    return new Set(
+      data
+        .filter((flag) => flag?.is_active === false && typeof flag?.name === "string")
+        .map((flag) => flag.name),
+    );
+  } catch (error) {
+    if (error instanceof DynamicSeoCollectionError) throw error;
+    handleDynamicSeoFailure("feature flags", error);
+    return DEFAULT_DISABLED_SEO_FEATURES;
+  }
 }
 
 function dedupePages(pages) {
@@ -1126,7 +1177,7 @@ async function collectDynamicRestaurantPages() {
 
   const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
   const supabaseKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
-  if (!supabaseUrl || !supabaseKey) return [];
+  if (!supabaseUrl || !supabaseKey) return handleDynamicSeoFailure("restaurants", "variables Supabase absentes");
 
   try {
     const supabase = createClient(supabaseUrl, supabaseKey, {
@@ -1139,7 +1190,7 @@ async function collectDynamicRestaurantPages() {
       .order("updated_at", { ascending: false, nullsFirst: false })
       .limit(MAX_DYNAMIC_RESTAURANTS);
 
-    if (error || !Array.isArray(data)) return [];
+    if (error || !Array.isArray(data)) return handleDynamicSeoFailure("restaurants", error || "réponse non tabulaire");
 
     const cityCategoryPages = new Map();
     const restaurantPages = data
@@ -1208,7 +1259,7 @@ async function collectDynamicRestaurantPages() {
             priority: "0.7",
             changefreq: "weekly",
             lastmod: restaurant.updated_at,
-            image: restaurant.image_url || DEFAULT_IMAGE,
+            image: toAbsoluteSeoImage(restaurant.image_url) || DEFAULT_IMAGE,
             jsonLd: {
               "@context": "https://schema.org",
               "@type": "Restaurant",
@@ -1217,7 +1268,7 @@ async function collectDynamicRestaurantPages() {
               description:
                 restaurant.description ||
                 `${restaurant.name} sur TOK : restaurant ${cuisine || "local"} a ${city}, avec reservation, commande et offres locales selon les services disponibles.`,
-              image: restaurant.image_url || undefined,
+              image: toAbsoluteSeoImage(restaurant.image_url),
               servesCuisine: cuisine || undefined,
               telephone: restaurant.phone || undefined,
               priceRange: buildPriceRange(restaurant.price_range),
@@ -1227,16 +1278,13 @@ async function collectDynamicRestaurantPages() {
                 addressLocality: city,
                 addressCountry: "CH",
               },
-              openingHoursSpecification: Array.isArray(restaurant.opening_hours)
-                ? restaurant.opening_hours
-                : undefined,
-              hasOfferCatalog: buildRestaurantOfferCatalog(restaurant, restaurantPath),
-              potentialAction: buildRestaurantPotentialActions(restaurantPath),
-              aggregateRating: restaurant.rating
+              aggregateRating: restaurant.rating && Number(restaurant.review_count) > 0
                 ? {
                   "@type": "AggregateRating",
                   ratingValue: Number(restaurant.rating),
-                  reviewCount: Number(restaurant.review_count || 0),
+                  reviewCount: Number(restaurant.review_count),
+                  bestRating: 10,
+                  worstRating: 1,
                 }
                 : undefined,
               url: canonicalUrl(restaurantPath),
@@ -1246,8 +1294,9 @@ async function collectDynamicRestaurantPages() {
       });
 
     return [...cityCategoryPages.values(), ...restaurantPages];
-  } catch {
-    return [];
+  } catch (error) {
+    if (error instanceof DynamicSeoCollectionError) throw error;
+    return handleDynamicSeoFailure("restaurants", error);
   }
 }
 
@@ -1256,6 +1305,10 @@ function compactActualitesSeoText(value, maxLength) {
   if (!clean) return "";
   if (clean.length <= maxLength) return clean;
   return `${clean.slice(0, Math.max(1, maxLength - 1)).trimEnd()}…`;
+}
+
+function firstNonEmptySeoText(...values) {
+  return values.find((value) => String(value || "").trim().length > 0) || "";
 }
 
 function readActualitesImageAnalysis(metadata) {
@@ -1269,7 +1322,7 @@ async function collectDynamicActualitesPages() {
 
   const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
   const supabaseKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
-  if (!supabaseUrl || !supabaseKey) return [];
+  if (!supabaseUrl || !supabaseKey) return handleDynamicSeoFailure("actualités", "variables Supabase absentes");
 
   try {
     const supabase = createClient(supabaseUrl, supabaseKey, {
@@ -1286,7 +1339,7 @@ async function collectDynamicActualitesPages() {
         .order("published_at", { ascending: false, nullsFirst: false })
         .range(offset, offset + batchSize - 1);
 
-      if (error || !Array.isArray(batch)) return [];
+      if (error || !Array.isArray(batch)) return handleDynamicSeoFailure("actualités", error || "réponse non tabulaire");
       data.push(...batch);
       if (batch.length < batchSize) break;
     }
@@ -1303,14 +1356,14 @@ async function collectDynamicActualitesPages() {
       const city = String(restaurant?.city || "").trim();
       const cuisine = String(restaurant?.cuisine_type || "").trim();
       const fallbackTitle = `${restaurantName} — actualité restaurant`;
-      const title = compactActualitesSeoText(analysis.seo_title || fallbackTitle, 70);
+      const title = compactActualitesSeoText(firstNonEmptySeoText(analysis.seo_title, fallbackTitle), 70);
       const contextualDescription = `Découvrez cette publication de ${restaurantName}${city ? ` à ${city}` : ""} sur TOK.`;
       const description = compactActualitesSeoText(
-        analysis.seo_description || post.body || analysis.short_description || contextualDescription,
+        firstNonEmptySeoText(analysis.seo_description, post.body, analysis.short_description, contextualDescription),
         170,
       );
       const imageAlt = compactActualitesSeoText(
-        primaryImage?.alt_text || analysis.alt_text || `Actualité publiée par ${restaurantName}`,
+        firstNonEmptySeoText(primaryImage?.alt_text, analysis.alt_text, `Actualité publiée par ${restaurantName}`),
         180,
       );
       const postPath = `/actualites/${post.id}`;
@@ -1375,17 +1428,26 @@ async function collectDynamicActualitesPages() {
         },
       }];
     });
-  } catch {
-    return [];
+  } catch (error) {
+    if (error instanceof DynamicSeoCollectionError) throw error;
+    return handleDynamicSeoFailure("actualités", error);
   }
 }
 
 async function collectSeoPages() {
-  const [restaurantPages, actualitesPages] = await Promise.all([
+  const [restaurantPages, actualitesPages, disabledFeatures] = await Promise.all([
     collectDynamicRestaurantPages(),
     collectDynamicActualitesPages(),
+    collectDisabledSeoFeatures(),
   ]);
-  return dedupePages([...PUBLIC_SEO_PAGES, ...restaurantPages, ...actualitesPages]);
+  const publicPages = PUBLIC_SEO_PAGES.filter(
+    (page) => {
+      const featureName = PUBLIC_FEATURE_BY_PATH.get(page.path);
+      return !featureName || !disabledFeatures.has(featureName);
+    },
+  );
+  const enabledActualitesPages = disabledFeatures.has("actualites-sociales") ? [] : actualitesPages;
+  return dedupePages([...publicPages, ...restaurantPages, ...enabledActualitesPages]);
 }
 
 function renderSitemap(pages) {
@@ -1408,30 +1470,8 @@ ${rows.join("\n")}
 }
 
 function renderRobots() {
-  return `User-agent: Googlebot
+  return `User-agent: *
 Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
-
-User-agent: *
-Allow: /
-Disallow: /admin
-Disallow: /dashboard
-Disallow: /courier
-Disallow: /profil
-Disallow: /notifications
-Disallow: /commandes
-Disallow: /commande/
-Disallow: /reservations
-Disallow: /panier
-Disallow: /auth
 
 Sitemap: ${CANONICAL_ORIGIN}/sitemap.xml
 `;
@@ -1487,8 +1527,11 @@ function renderPreRenderedHtml(baseHtml, page) {
   const imageAlt = page.imageAlt || page.title;
   let html = upsertTitle(baseHtml, page.title);
   html = upsertTag(html, /<meta\s+name="description"[^>]*>/i, `<meta name="description" content="${escapeHtml(page.description)}" />`);
+  html = upsertTag(html, /<meta\s+name="robots"[^>]*>/i, '<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />');
   html = upsertTag(html, /<link\s+rel="canonical"[^>]*>/i, `<link rel="canonical" href="${escapeHtml(canonical)}" />`);
   html = upsertTag(html, /<meta\s+property="og:type"[^>]*>/i, `<meta property="og:type" content="${escapeHtml(page.ogType || "website")}" />`);
+  html = upsertTag(html, /<meta\s+property="og:site_name"[^>]*>/i, '<meta property="og:site_name" content="TOK" />');
+  html = upsertTag(html, /<meta\s+property="og:locale"[^>]*>/i, '<meta property="og:locale" content="fr_CH" />');
   html = upsertTag(html, /<meta\s+property="og:title"[^>]*>/i, `<meta property="og:title" content="${escapeHtml(page.title)}" />`);
   html = upsertTag(html, /<meta\s+property="og:description"[^>]*>/i, `<meta property="og:description" content="${escapeHtml(page.description)}" />`);
   html = upsertTag(html, /<meta\s+property="og:url"[^>]*>/i, `<meta property="og:url" content="${escapeHtml(canonical)}" />`);
@@ -1511,10 +1554,11 @@ function renderPreRenderedHtml(baseHtml, page) {
     html = upsertTag(html, /<meta\s+property="article:modified_time"[^>]*>/i, `<meta property="article:modified_time" content="${escapeHtml(page.modifiedAt)}" />`);
   }
   html = html.replace(/\s*<script\s+id="tok-page-json-ld"[\s\S]*?<\/script>/i, "");
-  if (page.jsonLd) {
+  const structuredData = sanitizeStructuredData(page.jsonLd);
+  if (structuredData) {
     html = html.replace(
       /<\/head>/i,
-      `  <script id="tok-page-json-ld" type="application/ld+json">${escapeJsonForHtml(page.jsonLd)}</script>\n</head>`,
+      `  <script id="tok-page-json-ld" type="application/ld+json">${escapeJsonForHtml(structuredData)}</script>\n</head>`,
     );
   }
   html = html.replace(

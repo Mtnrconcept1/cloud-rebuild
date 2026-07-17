@@ -161,7 +161,10 @@ function canApproveSignupApplication(application: SignupApplication) {
 }
 
 function getOnboardingPaymentStatusLabel(application: SignupApplication) {
-  return canApproveSignupApplication(application) ? "Paiement confirmé" : "Paiement requis";
+  const status = String(application.metadata?.onboarding_payment_status || "");
+  if (status === "paid") return "Facture payée";
+  if (canApproveSignupApplication(application)) return "Carte enregistrée";
+  return "Carte requise";
 }
 
 function formatDate(value: unknown) {
@@ -1454,7 +1457,7 @@ export default function AdminUtilisateurs() {
                       <div className="rounded-xl border p-4 text-sm">
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                           <div>
-                            <p className="font-medium">Paiement onboarding</p>
+                            <p className="font-medium">Facture d’abonnement réservée</p>
                             <p className="pt-1 text-muted-foreground">
                               Abonnement {onboardingSelection.subscriptionBillingPeriod === "yearly" ? "annuel" : "mensuel"} sélectionné.
                             </p>
@@ -1465,7 +1468,7 @@ export default function AdminUtilisateurs() {
                         </div>
                         {!onboardingPaymentReady ? (
                           <p className="pt-3 text-xs text-muted-foreground">
-                            L'approbation admin sera refusée par Supabase tant que l'abonnement n'est pas payé.
+                            L’approbation admin sera refusée par Supabase tant que le moyen de paiement n’est pas enregistré.
                           </p>
                         ) : null}
                       </div>
@@ -1555,7 +1558,7 @@ export default function AdminUtilisateurs() {
                         {reviewingApplicationId === application.id
                           ? "Enregistrement..."
                           : !onboardingPaymentReady
-                            ? "Paiement requis"
+                            ? "Carte requise"
                             : "Approuver"}
                       </Button>
                     </div>

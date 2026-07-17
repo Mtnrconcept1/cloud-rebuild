@@ -227,7 +227,7 @@ export default function SocialMediaCarousel({
       containerClassName,
       variant === "side" &&
         mobileBleed === "viewport" &&
-        "max-sm:-mx-6 max-sm:w-screen",
+        "max-sm:relative max-sm:left-1/2 max-sm:w-screen max-sm:-translate-x-1/2",
       variant === "side" &&
         mobileBleed === "container" &&
         "max-sm:-mx-4 max-sm:w-[calc(100%+2rem)]",
@@ -389,7 +389,10 @@ export default function SocialMediaCarousel({
       open={lightboxIndex !== null}
       onOpenChange={(open) => !open && closeLightbox()}
     >
-      <DialogContent className="flex h-[100dvh] w-screen max-w-none translate-y-[-50%] grid-cols-none flex-col gap-0 overflow-hidden rounded-none border-0 bg-black p-0 text-white shadow-none sm:w-screen">
+      <DialogContent
+        hideClose
+        className="flex h-[100dvh] max-h-none w-screen max-w-none translate-y-[-50%] grid-cols-none flex-col gap-0 overflow-hidden rounded-none border-0 bg-black p-0 text-white shadow-none sm:w-screen"
+      >
         <DialogTitle className="sr-only">Média de l’actualité</DialogTitle>
         <DialogDescription className="sr-only">
           Vue agrandie du média avec son ratio d’origine.
@@ -398,11 +401,11 @@ export default function SocialMediaCarousel({
           type="button"
           aria-label="Fermer le média"
           onClick={closeLightbox}
-          className="absolute left-4 top-[calc(env(safe-area-inset-top,0px)+1rem)] z-10 rounded-full p-2 text-white transition hover:bg-white/10"
+          className="absolute left-[calc(env(safe-area-inset-left,0px)+1rem)] top-[calc(env(safe-area-inset-top,0px)+1rem)] z-10 rounded-full p-2 text-white transition hover:bg-white/10"
         >
           <X className="h-7 w-7" />
         </button>
-        <div className="absolute right-5 top-[calc(env(safe-area-inset-top,0px)+1.25rem)] z-10 rounded-full bg-black/45 px-3 py-1 text-sm font-semibold text-white">
+        <div className="absolute right-[calc(env(safe-area-inset-right,0px)+1.25rem)] top-[calc(env(safe-area-inset-top,0px)+1.25rem)] z-10 rounded-full bg-black/45 px-3 py-1 text-sm font-semibold text-white">
           <span aria-live="polite">{lightboxIndex === null ? 0 : lightboxIndex + 1}/{media.length}</span>
         </div>
         {media.length > 1 ? (
@@ -411,7 +414,7 @@ export default function SocialMediaCarousel({
               type="button"
               aria-label="Média précédent"
               onClick={() => setLightboxIndex((current) => current === null ? current : (current - 1 + media.length) % media.length)}
-              className="absolute left-3 top-1/2 z-10 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/55 text-white transition hover:bg-black/75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              className="absolute left-[calc(env(safe-area-inset-left,0px)+0.75rem)] top-1/2 z-10 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/55 text-white transition hover:bg-black/75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
             >
               <ChevronLeft className="h-7 w-7" />
             </button>
@@ -419,16 +422,16 @@ export default function SocialMediaCarousel({
               type="button"
               aria-label="Média suivant"
               onClick={() => setLightboxIndex((current) => current === null ? current : (current + 1) % media.length)}
-              className="absolute right-3 top-1/2 z-10 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/55 text-white transition hover:bg-black/75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              className="absolute right-[calc(env(safe-area-inset-right,0px)+0.75rem)] top-1/2 z-10 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/55 text-white transition hover:bg-black/75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
             >
               <ChevronRight className="h-7 w-7" />
             </button>
           </>
         ) : null}
-        <div className="flex min-h-0 flex-1 items-center justify-center bg-black px-0 pt-[calc(env(safe-area-inset-top,0px)+4.5rem)]">
+        <div className="flex min-h-0 flex-1 items-center justify-center bg-black pb-0 pl-[env(safe-area-inset-left,0px)] pr-[env(safe-area-inset-right,0px)] pt-[calc(env(safe-area-inset-top,0px)+4.5rem)]">
           {lightboxItem ? renderLightboxMedia(lightboxItem) : null}
         </div>
-        <div className="shrink-0 border-t border-white/10 bg-black/95 px-4 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pt-3">
+        <div className="shrink-0 border-t border-white/10 bg-black/95 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pl-[calc(env(safe-area-inset-left,0px)+1rem)] pr-[calc(env(safe-area-inset-right,0px)+1rem)] pt-3">
           {lightboxActionContent ? (
             <div className="mx-auto max-w-xl">{lightboxActionContent}</div>
           ) : (
