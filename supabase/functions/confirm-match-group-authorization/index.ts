@@ -2,7 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import type Stripe from "npm:stripe@18.5.0";
 
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
-import { createStripeClient } from "../_shared/stripe-client.ts";
+import { getStripeRuntimeForCheckoutKindAndMode } from "../_shared/stripe-client.ts";
 
 function json(payload: Record<string, unknown>, status: number, corsHeaders: Record<string, string>) {
   return new Response(JSON.stringify(payload), {
@@ -45,9 +45,7 @@ Deno.serve(async (req) => {
   const supabaseUrl = env("SUPABASE_URL");
   const anonKey = env("SUPABASE_ANON_KEY");
   const serviceKey = env("SUPABASE_SERVICE_ROLE_KEY");
-  const stripeKey = env("STRIPE_SECRET_KEY_LIVE") || env("STRIPE_SECRET_KEY");
-
-  if (!supabaseUrl || !anonKey || !serviceKey || !stripeKey) {
+  if (!supabaseUrl || !anonKey || !serviceKey) {
     return json({ error: "Server not configured" }, 503, corsHeaders);
   }
 
@@ -89,24 +87,59 @@ Deno.serve(async (req) => {
     return json({ error: "Session de pre-paiement introuvable" }, 409, corsHeaders);
   }
 
-  const stripe = createStripeClient(stripeKey);
+  let stripeRuntime: ReturnType<typeof getStripeRuntimeForCheckoutKindAndMode>;
+  try {
+    stripeRuntime = getStripeRuntimeForCheckoutKindAndMode("match-group", "live");
+  } catch {
+    return json({ error: "Stripe live not configured" }, 503, corsHeaders);
+  }
+  const stripe = stripeRuntime.stripe;
   const session = await stripe.checkout.sessions.retrieve(order.stripe_checkout_session_id, {
     expand: ["payment_intent"],
   });
 
   const paymentIntentId = getIntentId(session);
-  if (session.payment_status !== "paid" || !paymentIntentId) {
-    if (session.status === "expired") {
+  const paymentIntent = session.payment_intent && typeof session.payment_intent === "object"
+    ? session.payment_intent
+    : paymentIntentId
+      ? await stripe.paymentIntents.retrieve(paymentIntentId)
+      : null;
+  const expectedAmountCents = Math.round(Number(order.subtotal || 0) * 100);
+  const identityMatches = Boolean(
+    session.livemode
+    && session.mode === "payment"
+    && session.metadata?.checkout_kind === "match-group"
+    && session.metadata?.group_member_order_id === order.id
+    && session.metadata?.group_id === order.group_id
+    && session.metadata?.restaurant_id === order.restaurant_id
+    && session.metadata?.user_id === userId
+  );
+  const authorizationReady = Boolean(
+    identityMatches
+    && session.status === "complete"
+    && paymentIntent
+    && paymentIntent.capture_method === "manual"
+    && paymentIntent.status === "requires_capture"
+    && paymentIntent.currency === "chf"
+    && paymentIntent.amount === expectedAmountCents
+    && paymentIntent.amount_capturable === expectedAmountCents
+  );
+
+  if (!authorizationReady || !paymentIntentId || !paymentIntent) {
+    if (session.status === "expired" || paymentIntent?.status === "canceled") {
       return json({
         error: "Session de pre-paiement expiree",
-        payment_status: session.payment_status || "unknown",
+        payment_status: paymentIntent?.status || session.payment_status || "unknown",
       }, 409, corsHeaders);
+    }
+    if (!identityMatches) {
+      return json({ error: "MATCH_GROUP_CHECKOUT_IDENTITY_MISMATCH" }, 409, corsHeaders);
     }
 
     return json({
       ok: false,
       pending_confirmation: true,
-      payment_status: session.payment_status || "unknown",
+      payment_status: paymentIntent?.status || session.payment_status || "unknown",
       session_status: session.status || "unknown",
       retry_after_seconds: 15,
     }, 202, corsHeaders);
@@ -116,11 +149,13 @@ Deno.serve(async (req) => {
     p_member_order_id: order.id,
     p_checkout_session_id: order.stripe_checkout_session_id,
     p_payment_intent_id: paymentIntentId,
-    p_authorized_amount: Number(session.amount_total || 0) / 100,
+    p_authorized_amount: Number(paymentIntent.amount) / 100,
     p_metadata: {
       stripe_session_status: session.status,
-      stripe_payment_status: session.payment_status,
-      authorized_currency: session.currency,
+      stripe_payment_status: paymentIntent.status,
+      stripe_capture_method: paymentIntent.capture_method,
+      stripe_amount_capturable: paymentIntent.amount_capturable,
+      authorized_currency: paymentIntent.currency,
       order_sent_to_restaurant: true,
     },
   });
