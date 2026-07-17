@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -17,9 +17,16 @@ const tokOneServer = read("supabase/functions/_shared/tok-one.ts");
 const tokOneClient = read("src/hooks/useTokOne.ts");
 const returnUrl = read("supabase/functions/_shared/return-url.ts");
 const workflow = read(".github/workflows/deploy-production.yml");
-const migration = read("supabase/migrations/20260717220000_stripe_security_and_finance_fail_closed.sql");
+const migration = read("supabase/migrations/20260717235004_stripe_security_and_finance_fail_closed.sql");
+const migrationFiles = readdirSync(resolve(process.cwd(), "supabase/migrations"))
+  .filter((file) => /^\d{14}_.+\.sql$/.test(file));
 
 describe("Stripe release-blocker hardening", () => {
+  it("keeps every Supabase migration version unique", () => {
+    const versions = migrationFiles.map((file) => file.slice(0, 14));
+    expect(new Set(versions).size).toBe(versions.length);
+  });
+
   it("binds every webhook signing secret to live or test mode", () => {
     expect(stripeClient).toContain("StripeWebhookSigningSecret");
     expect(stripeClient).toContain("STRIPE_WEBHOOK_SECRET_MODE_CONFLICT");
