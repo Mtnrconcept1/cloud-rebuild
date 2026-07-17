@@ -29,10 +29,7 @@ function isAllowedCheckoutReturnOrigin(url: URL) {
     return url.protocol === "http:" || url.protocol === "https:";
   }
 
-  return (
-    url.protocol === "https:" &&
-    (ALLOWED_CHECKOUT_RETURN_HOSTS.has(host) || host.endsWith(".vercel.app"))
-  );
+  return url.protocol === "https:" && ALLOWED_CHECKOUT_RETURN_HOSTS.has(host);
 }
 
 export function buildCheckoutReturnUrl(pathOrUrl: string, options: CheckoutReturnUrlOptions = {}) {
