@@ -65,6 +65,41 @@ export function calculateMarketplaceSplit(grossCents: number, platformFeeBps = T
   };
 }
 
+export function calculateDeveloperRevenueSplit(
+  tokOwnedRevenueCents: number,
+  developerShareBps = TOK_DEVELOPER_SHARE_BPS,
+) {
+  const safeTokOwnedRevenueCents = Math.max(0, toInteger(tokOwnedRevenueCents));
+  const safeDeveloperShareBps = Math.min(10000, Math.max(0, toInteger(developerShareBps)));
+  const developerShareCents = Math.min(
+    safeTokOwnedRevenueCents,
+    Math.round((safeTokOwnedRevenueCents * safeDeveloperShareBps) / 10000),
+  );
+
+  return {
+    developerShareBps: safeDeveloperShareBps,
+    developerShareCents,
+    tokNetRevenueCents: safeTokOwnedRevenueCents - developerShareCents,
+  };
+}
+
+export function calculateOrderPaymentDistribution(
+  grossCents: number,
+  platformFeeBps = TOK_PLATFORM_FEE_BPS,
+  developerShareBps = TOK_DEVELOPER_SHARE_BPS,
+) {
+  const marketplace = calculateMarketplaceSplit(grossCents, platformFeeBps);
+  const developer = calculateDeveloperRevenueSplit(
+    marketplace.platformFeeCents,
+    developerShareBps,
+  );
+
+  return {
+    ...marketplace,
+    ...developer,
+  };
+}
+
 export async function resolveMarketplaceRouting(input: {
   adminClient: SupabaseLike;
   checkoutKind: unknown;
@@ -73,12 +108,16 @@ export async function resolveMarketplaceRouting(input: {
 }) {
   const checkoutKind = normalizeKind(input.checkoutKind);
   if (!MARKETPLACE_CHECKOUT_KINDS.has(checkoutKind)) {
+    const tokOwnedSplit = calculateMarketplaceSplit(input.grossCents, 10000);
     return {
       enabled: false,
       mode: "tok_owned" as const,
       destinationAccountId: null,
-      developerShareBps: TOK_DEVELOPER_SHARE_BPS,
-      ...calculateMarketplaceSplit(input.grossCents, 10000),
+      ...tokOwnedSplit,
+      ...calculateDeveloperRevenueSplit(
+        tokOwnedSplit.platformFeeCents,
+        TOK_DEVELOPER_SHARE_BPS,
+      ),
     };
   }
 
@@ -96,9 +135,10 @@ export async function resolveMarketplaceRouting(input: {
     throw new HttpError(500, financeConfigError.message);
   }
 
-  const split = calculateMarketplaceSplit(
+  const distribution = calculateOrderPaymentDistribution(
     input.grossCents,
     Number(financeConfig?.platform_fee_bps ?? TOK_PLATFORM_FEE_BPS),
+    Number(financeConfig?.developer_share_bps ?? TOK_DEVELOPER_SHARE_BPS),
   );
 
   if (!financeConfig?.connect_routing_enabled) {
@@ -106,8 +146,7 @@ export async function resolveMarketplaceRouting(input: {
       enabled: false,
       mode: "legacy_manual" as const,
       destinationAccountId: null,
-      developerShareBps: Number(financeConfig?.developer_share_bps ?? TOK_DEVELOPER_SHARE_BPS),
-      ...split,
+      ...distribution,
     };
   }
 
@@ -142,8 +181,7 @@ export async function resolveMarketplaceRouting(input: {
     enabled: true,
     mode: "stripe_connect_destination" as const,
     destinationAccountId: String(restaurant.stripe_account_id),
-    developerShareBps: Number(financeConfig?.developer_share_bps ?? TOK_DEVELOPER_SHARE_BPS),
-    ...split,
+    ...distribution,
   };
 }
 

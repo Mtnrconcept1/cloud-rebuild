@@ -185,6 +185,9 @@ verify_jwt = false
 [functions.stripe-connect-status]
 verify_jwt = false
 
+[functions.settle-developer-statement]
+verify_jwt = false
+
 [functions.track-analytics]
 verify_jwt = false
 
