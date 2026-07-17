@@ -1,4 +1,10 @@
-import { authenticateRequest, jsonResponse, writeAuditLog } from "../_shared/auth.ts";
+import {
+  HttpError,
+  authenticateRequest,
+  jsonResponse,
+  requireRole,
+  writeAuditLog,
+} from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import { getStripeRuntimeForCheckoutKind } from "../_shared/stripe-client.ts";
@@ -27,6 +33,7 @@ Deno.serve(async (req) => {
       allowServiceRole: true,
       allowSchedulerSecret: true,
     });
+    requireRole(actor, ["admin"], "Acces reserve aux administrateurs et au planificateur.");
 
     const { stripe } = getStripeRuntimeForCheckoutKind("match-group");
 
@@ -96,6 +103,7 @@ Deno.serve(async (req) => {
 
     return jsonResponse({ ok: true, captured, failed, total: (candidates || []).length, details }, 200, corsHeaders);
   } catch (error) {
+    const status = error instanceof HttpError ? error.status : 500;
     const message = error instanceof Error ? error.message : "Erreur capture Match groupe";
     log.error("capture_due_match_groups_failed", { message });
 
@@ -112,6 +120,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    return jsonResponse({ error: message }, 500, corsHeaders);
+    return jsonResponse({ error: message }, status, corsHeaders);
   }
 });
