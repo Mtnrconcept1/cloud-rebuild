@@ -1,6 +1,12 @@
 import type Stripe from "npm:stripe@18.5.0";
 
-import { authenticateRequest, jsonResponse, writeAuditLog } from "../_shared/auth.ts";
+import {
+  HttpError,
+  authenticateRequest,
+  jsonResponse,
+  requireRole,
+  writeAuditLog,
+} from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { getStripeRuntimeForCheckoutKind } from "../_shared/stripe-client.ts";
 
@@ -21,6 +27,7 @@ Deno.serve(async (req) => {
       allowServiceRole: true,
       allowSchedulerSecret: true,
     });
+    requireRole(actor, ["admin"], "Acces reserve aux administrateurs et au planificateur.");
 
     const { stripe } = getStripeRuntimeForCheckoutKind("match-group");
     const { data: rows, error } = await actor.adminClient.rpc("get_match_group_pending_authorizations", { p_limit: 100 });
@@ -74,6 +81,7 @@ Deno.serve(async (req) => {
 
     return jsonResponse({ ok: true, authorized, skipped, details }, 200, corsHeaders);
   } catch (error) {
+    const status = error instanceof HttpError ? error.status : 500;
     const message = error instanceof Error ? error.message : "Erreur reconciliation Match groupe";
     if (actor) {
       await writeAuditLog({
@@ -87,6 +95,6 @@ Deno.serve(async (req) => {
         errorMessage: message,
       });
     }
-    return jsonResponse({ error: message }, 500, corsHeaders);
+    return jsonResponse({ error: message }, status, corsHeaders);
   }
 });
