@@ -15,6 +15,12 @@ describe("frontend checkout return URL validation", () => {
     })).toThrow("URL de retour invalide");
   });
 
+  it("rejects arbitrary Vercel origins", () => {
+    expect(() => buildCheckoutReturnUrl("/commande/confirmation", {
+      origin: "https://attacker-preview.vercel.app",
+    })).toThrow("URL de retour invalide");
+  });
+
   it("allows localhost for local preview only as the current origin", () => {
     expect(buildCheckoutReturnUrl("/match-groupes", {
       origin: "http://localhost:8080",
