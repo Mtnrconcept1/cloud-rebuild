@@ -390,7 +390,7 @@ export default function SocialMediaCarousel({
       onOpenChange={(open) => !open && closeLightbox()}
     >
       <DialogContent
-        hideClose
+        hideCloseButton
         className="flex h-[100dvh] max-h-none w-screen max-w-none translate-y-[-50%] grid-cols-none flex-col gap-0 overflow-hidden rounded-none border-0 bg-black p-0 text-white shadow-none sm:w-screen"
       >
         <DialogTitle className="sr-only">Média de l’actualité</DialogTitle>

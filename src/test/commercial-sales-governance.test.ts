@@ -11,7 +11,7 @@ function read(path: string) {
 
 describe("commercial sales governance", () => {
   const migration = read("supabase/migrations/20260714232000_commercial_sales_governance_followup.sql");
-  const lifecycleMigration = read("supabase/migrations/20260715053108_deferred_subscription_commission_lifecycle.sql");
+  const lifecycleMigration = read("supabase/migrations/20260717220000_deferred_subscription_commission_lifecycle.sql");
   const prospecting = read("src/pages/CommercialProspection.tsx");
   const commercialAccounting = read("src/pages/CommercialComptabilite.tsx");
   const accountList = read("src/components/admin/AdminCommercialAccountsPanel.tsx");

@@ -17,8 +17,8 @@ describe("Actualites responsive guards", () => {
 
     expect(app).toContain("{publicNavbar}");
     expect(app).not.toContain('max-sm:hidden">{publicNavbar}</div>');
-    expect(dialog).toContain("hideClose?: boolean;");
-    expect(dialog).toContain("{!hideClose ? (");
+    expect(dialog).toContain("hideCloseButton?: boolean;");
+    expect(dialog).toContain("{!hideCloseButton ? (");
     expect(dialog).toContain(
       "max-h-[calc(100dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)-1rem)]",
     );
@@ -154,7 +154,7 @@ describe("Actualites responsive guards", () => {
     expect(carousel).toContain('"h-auto w-full"');
     expect(carousel).not.toContain('className="h-full w-full object-cover"');
     expect(carousel).toContain('preload="metadata"');
-    expect(carousel).toContain("<DialogContent\n        hideClose");
+    expect(carousel).toContain("<DialogContent\n        hideCloseButton");
     expect(carousel).toContain(
       'className="flex h-[100dvh] max-h-none w-screen max-w-none',
     );

@@ -63,7 +63,7 @@ describe("restaurant onboarding subscription payments", () => {
     expect(checkout).toContain("lineItems = []");
     expect(checkout).toContain("billing_period");
     expect(checkout).toContain('if (!signupApplicationId) throw new HttpError(400, "signup_application_id requis")');
-    expect(checkout).toContain("sessionMetadata.signup_application_id");
+    expect(checkout).toContain("signup_application_id: signupApplicationId");
 
     expect(webhook).toContain('checkoutKind === "restaurant-onboarding"');
     expect(webhook).toContain("setupIntents.retrieve");
