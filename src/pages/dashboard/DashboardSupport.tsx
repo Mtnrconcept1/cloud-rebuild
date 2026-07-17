@@ -222,27 +222,27 @@ export default function DashboardSupport() {
                 <TableBody>
                   {incidents.map((incident) => (
                     <TableRow key={incident.id}>
-                      <TableCell>
+                      <TableCell data-label="Statut">
                         <Badge variant={["resolved", "closed"].includes(incident.status) ? "outline" : "secondary"}>
                           {getStatusLabel(incident.status)}
                         </Badge>
                       </TableCell>
-                      <TableCell>
+                      <TableCell data-label="Priorité">
                         <Badge variant={incident.priority === "urgent" || incident.priority === "high" ? "destructive" : "outline"}>
                           {incident.priority}
                         </Badge>
                       </TableCell>
-                      <TableCell>{getCategoryLabel(incident.category)}</TableCell>
-                      <TableCell className="max-w-[24rem]">
+                      <TableCell data-label="Catégorie">{getCategoryLabel(incident.category)}</TableCell>
+                      <TableCell data-label="Sujet" className="max-w-[24rem]">
                         <div className="font-medium">{incident.subject}</div>
                         {incident.description ? <div className="line-clamp-1 text-xs text-muted-foreground">{incident.description}</div> : null}
                       </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">
+                      <TableCell data-label="Cible" className="text-xs text-muted-foreground">
                         {incident.order_id ? <div>Commande {incident.order_id}</div> : null}
                         {incident.reservation_id ? <div>Réservation {incident.reservation_id}</div> : null}
                         {!incident.order_id && !incident.reservation_id ? <div>Restaurant</div> : null}
                       </TableCell>
-                      <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
+                      <TableCell data-label="Dernière activité" className="text-xs text-muted-foreground md:whitespace-nowrap">
                         {formatDateTime(incident.last_message_at || incident.updated_at || incident.created_at)}
                       </TableCell>
                     </TableRow>

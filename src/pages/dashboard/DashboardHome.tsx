@@ -339,7 +339,7 @@ function LiveDashboard() {
 
     if (!signupApplication?.id || !restaurantId || !onboardingSelection) {
       toast({
-        title: "Paiement indisponible",
+        title: "Enregistrement de la carte indisponible",
         description: "Le dossier restaurateur ne contient pas encore tous les choix requis.",
         variant: "destructive",
       });

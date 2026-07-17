@@ -22,6 +22,7 @@ import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { buildAuthRedirectTarget } from "@/lib/stripeReturn";
 import { buildCanonicalUrl, useSeoMeta } from "@/hooks/useSeoMeta";
+import { buildRestaurantSeoPath } from "@/lib/restaurantSlugs";
 import {
   isAntiWasteOfferPubliclyVisible,
   isFlashSalePubliclyVisible,
@@ -221,7 +222,7 @@ function RestaurantGalleryImageFrame({ photo, alt }: { photo: RestaurantGalleryP
         srcSet={gallerySrcSet}
         sizes={gallerySrcSet ? getOptimizedImageSizes("gallery") : undefined}
         alt={photo.alt_text || alt}
-        className="block max-h-full max-w-full rounded-lg object-contain"
+        className="block h-auto max-h-[calc(100dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)-5rem)] w-auto max-w-[calc(100vw-env(safe-area-inset-left,0px)-env(safe-area-inset-right,0px)-1rem)] rounded-lg object-contain"
         decoding="async"
       />
     </div>
@@ -340,6 +341,8 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
   const googleBookingStartTrackedRef = useRef(false);
   const reservationQueryIntentAppliedRef = useRef<string | null>(reservationQueryIntent ? searchParams.toString() : null);
   const reservationSidebarRef = useRef<HTMLDivElement>(null);
+  const galleryDialogRef = useRef<HTMLDivElement>(null);
+  const galleryPreviouslyFocusedRef = useRef<HTMLElement | null>(null);
   const deliveryEnabled = activeFeatures.has("livraison");
   const takeawayEnabled = activeFeatures.has("emporter");
   const reservationEnabled = activeFeatures.has("reservation");
@@ -568,6 +571,72 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
     enabled: Boolean(restaurantId && !commercialDemoFrame),
   });
 
+  const galleryPhotos = mediaPhotos && mediaPhotos.length > 0 ? mediaPhotos : [];
+
+  useEffect(() => {
+    if (!galleryOpen) return;
+
+    const dialog = galleryDialogRef.current;
+    if (!dialog) return;
+
+    galleryPreviouslyFocusedRef.current = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
+    const previousBodyOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const getFocusableElements = () => Array.from(dialog.querySelectorAll<HTMLElement>(
+      'button:not([disabled]), [href], [tabindex]:not([tabindex="-1"])',
+    )).filter((element) => !element.hasAttribute("hidden") && element.getAttribute("aria-hidden") !== "true");
+
+    const focusFrame = window.requestAnimationFrame(() => {
+      (getFocusableElements()[0] || dialog).focus();
+    });
+
+    const handleDialogKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setGalleryOpen(false);
+        return;
+      }
+
+      if (event.key !== "Tab") return;
+
+      const focusableElements = getFocusableElements();
+      if (focusableElements.length === 0) {
+        event.preventDefault();
+        dialog.focus();
+        return;
+      }
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+      const activeElement = document.activeElement;
+
+      if (!dialog.contains(activeElement)) {
+        event.preventDefault();
+        firstElement.focus();
+      } else if (event.shiftKey && (activeElement === firstElement || activeElement === dialog)) {
+        event.preventDefault();
+        lastElement.focus();
+      } else if (!event.shiftKey && activeElement === lastElement) {
+        event.preventDefault();
+        firstElement.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleDialogKeyDown);
+
+    return () => {
+      window.cancelAnimationFrame(focusFrame);
+      document.removeEventListener("keydown", handleDialogKeyDown);
+      document.body.style.overflow = previousBodyOverflow;
+      const previouslyFocusedElement = galleryPreviouslyFocusedRef.current;
+      if (previouslyFocusedElement?.isConnected) previouslyFocusedElement.focus();
+      galleryPreviouslyFocusedRef.current = null;
+    };
+  }, [galleryOpen]);
+
   const toggleFavorite = async () => {
     if (commercialDemoFrame) {
       return toast({ title: "Favoris non enregistrés en démonstration", description: "Le compte client réel reste inchangé." });
@@ -646,29 +715,39 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
   const optimizedHeroSrcSet = getOptimizedImageSrcSet(heroImage, "hero");
   const avgRating = avgRating10.toFixed(1);
   const reviewCount = restaurant?.review_count || reviews?.length || 0;
+  const restaurantCanonicalPath = canonicalPath
+    || (!isCommercialDemoClient && restaurant
+      ? buildRestaurantSeoPath(restaurant)
+      : `/restaurant/${restaurantId || ""}`);
+  const restaurantNotFound = isRestaurantFetched && !restaurant;
   const seoTitle = restaurant
     ? `${restaurant.name} | Restaurant TOK ${restaurant.city || "Suisse romande"}`
-    : "Restaurant TOK | TheTok";
+    : restaurantNotFound ? "Restaurant introuvable | TOK" : "Restaurant TOK | TheTok";
   const seoDescription = restaurant
     ? `${restaurant.name} sur TOK: ${restaurant.cuisine_type || "restaurant"} a ${restaurant.city || "Geneve"}, commande, reservation et offres locales.`
-    : "Fiche restaurant TOK avec commande, reservation et offres locales.";
+    : restaurantNotFound
+      ? "Ce restaurant n'est pas disponible sur TOK."
+      : "Fiche restaurant TOK avec commande, reservation et offres locales.";
   const restaurantJsonLd = useMemo(
     () => buildRestaurantDetailJsonLd({
       restaurant,
       restaurantId,
-      canonicalPath,
+      canonicalPath: restaurantCanonicalPath,
       heroImage,
       averageRating: avgRating,
       reviewCount,
     }),
-    [avgRating, canonicalPath, heroImage, restaurantId, restaurant, reviewCount],
+    [avgRating, heroImage, restaurantCanonicalPath, restaurantId, restaurant, reviewCount],
   );
 
   useSeoMeta({
     title: seoTitle,
     description: seoDescription,
-    path: canonicalPath || `/restaurant/${restaurantId || ""}`,
+    path: restaurantCanonicalPath,
     image: heroImage,
+    robots: restaurantNotFound
+      ? "noindex,nofollow,noarchive"
+      : "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1",
     jsonLd: restaurantJsonLd,
   });
 
@@ -747,9 +826,24 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
     return <ReservationDeeplinkLoading />;
   }
 
-  if (!restaurant) return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
+  if (!restaurant) {
+    if (!isRestaurantFetched) {
+      return <div className="flex min-h-screen items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary" /></div>;
+    }
 
-  const galleryPhotos = mediaPhotos && mediaPhotos.length > 0 ? mediaPhotos : [];
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-background px-4 py-16 text-center">
+        <div className="max-w-md space-y-4">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">Erreur 404</p>
+          <h1 className="font-display text-3xl font-bold">Restaurant introuvable</h1>
+          <p className="text-muted-foreground">Cette fiche n'existe pas ou n'est plus disponible.</p>
+          <Button type="button" className="rounded-full" onClick={() => navigate("/recherche", { replace: true })}>
+            Rechercher un restaurant
+          </Button>
+        </div>
+      </main>
+    );
+  }
 
   const categories = [...new Set(menuItems?.map((i) => i.category || "Autres"))] as string[];
 
@@ -836,8 +930,8 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
   return (
     <main className="min-h-screen bg-background">
       <div className="relative h-72 md:h-96">
-        <Button variant="ghost" size="icon" className="absolute top-4 left-4 z-20 bg-black/30 hover:bg-black/50 backdrop-blur-md rounded-full text-white border-white/10" onClick={() => navigate('/')}><ArrowLeft className="h-5 w-5" /></Button>
-        <Button variant="ghost" size="icon" className="absolute top-4 right-4 z-20 bg-black/30 hover:bg-black/50 backdrop-blur-md rounded-full text-white border-white/10" onClick={toggleFavorite}><Heart className={isFavorite ? "h-5 w-5 fill-red-500 text-red-500" : "h-5 w-5"} /></Button>
+        <Button variant="ghost" size="icon" aria-label="Retour à l'accueil" className="absolute left-4 top-4 z-20 rounded-full border-white/10 bg-black/30 text-white backdrop-blur-md hover:bg-black/50" onClick={() => navigate('/')}><ArrowLeft className="h-5 w-5" /></Button>
+        <Button variant="ghost" size="icon" aria-label={isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"} className="absolute right-4 top-4 z-20 rounded-full border-white/10 bg-black/30 text-white backdrop-blur-md hover:bg-black/50" onClick={toggleFavorite}><Heart className={isFavorite ? "h-5 w-5 fill-red-500 text-red-500" : "h-5 w-5"} /></Button>
         {galleryPhotos.length > 0 ? (
           <button
             type="button"
@@ -1446,7 +1540,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
         </div>
       </div>
       {cartItemsForCurrentRestaurant.length > 0 ? (
-        <div className="fixed bottom-4 left-4 right-4 z-40 lg:hidden">
+        <div className="fixed bottom-[calc(env(safe-area-inset-bottom,0px)+1rem)] left-[calc(env(safe-area-inset-left,0px)+1rem)] right-[calc(env(safe-area-inset-right,0px)+1rem)] z-40 lg:hidden">
           <Button className="h-14 w-full rounded-full text-base font-bold shadow-2xl" onClick={() => navigate("/panier")}><ShoppingCart className="mr-2 h-5 w-5" /> Voir mon panier ({cartCountForCurrentRestaurant})</Button>
         </div>
       ) : null}
@@ -1467,16 +1561,25 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
 
       {/* Photo gallery lightbox */}
       {galleryOpen && galleryPhotos.length > 0 && (
-        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center" onClick={() => setGalleryOpen(false)}>
-          <Button variant="ghost" size="icon" className="absolute top-4 right-4 text-white hover:bg-white/20 z-50" onClick={() => setGalleryOpen(false)}><X className="h-6 w-6" /></Button>
+        <div
+          ref={galleryDialogRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="restaurant-gallery-title"
+          tabIndex={-1}
+          className="fixed inset-0 z-[1770] flex items-center justify-center bg-black/90 p-[max(0.5rem,env(safe-area-inset-top,0px))] outline-none"
+          onClick={() => setGalleryOpen(false)}
+        >
+          <h2 id="restaurant-gallery-title" className="sr-only">Galerie photos de {restaurant.name}</h2>
+          <Button type="button" variant="ghost" size="icon" aria-label="Fermer la galerie" className="absolute right-[calc(env(safe-area-inset-right,0px)+0.75rem)] top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-[1771] h-11 w-11 text-white hover:bg-white/20" onClick={() => setGalleryOpen(false)}><X className="h-6 w-6" /></Button>
           {galleryPhotos.length > 1 && (
             <>
-              <Button variant="ghost" size="icon" className="absolute left-4 text-white hover:bg-white/20 z-50" onClick={(e) => { e.stopPropagation(); setGalleryIndex((prev) => (prev - 1 + galleryPhotos.length) % galleryPhotos.length); }}><ChevronLeft className="h-8 w-8" /></Button>
-              <Button variant="ghost" size="icon" className="absolute right-4 text-white hover:bg-white/20 z-50" onClick={(e) => { e.stopPropagation(); setGalleryIndex((prev) => (prev + 1) % galleryPhotos.length); }}><ChevronRight className="h-8 w-8" /></Button>
+              <Button type="button" variant="ghost" size="icon" aria-label="Photo précédente" className="absolute left-[calc(env(safe-area-inset-left,0px)+0.5rem)] z-[1771] h-11 w-11 text-white hover:bg-white/20" onClick={(e) => { e.stopPropagation(); setGalleryIndex((prev) => (prev - 1 + galleryPhotos.length) % galleryPhotos.length); }}><ChevronLeft className="h-8 w-8" /></Button>
+              <Button type="button" variant="ghost" size="icon" aria-label="Photo suivante" className="absolute right-[calc(env(safe-area-inset-right,0px)+0.5rem)] z-[1771] h-11 w-11 text-white hover:bg-white/20" onClick={(e) => { e.stopPropagation(); setGalleryIndex((prev) => (prev + 1) % galleryPhotos.length); }}><ChevronRight className="h-8 w-8" /></Button>
             </>
           )}
-          <div className="flex max-h-[80vh] max-w-4xl flex-col items-center px-12" onClick={(e) => e.stopPropagation()}>
-            <div className="flex min-h-0 max-h-[80vh] max-w-full items-center justify-center">
+          <div className="flex max-h-[calc(100dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)-1rem)] min-w-0 max-w-4xl flex-col items-center px-11 sm:px-12" onClick={(e) => e.stopPropagation()}>
+            <div className="flex min-h-0 max-h-[calc(100dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)-4rem)] max-w-full items-center justify-center">
               <RestaurantGalleryImageFrame photo={galleryPhotos[galleryIndex]} alt={restaurant.name} />
             </div>
             <p className="text-center text-white/70 text-sm mt-3">{galleryIndex + 1} / {galleryPhotos.length}{galleryPhotos[galleryIndex].alt_text ? ` — ${galleryPhotos[galleryIndex].alt_text}` : ""}</p>

@@ -186,6 +186,8 @@ function getInitialSignupRole(searchParams: URLSearchParams): SignupRole {
   return "client";
 }
 
+const COMMERCIAL_REFERRAL_SESSION_KEY = "tok:commercial-signup-referral";
+
 function getSignupValidationError(
   role: SignupRole,
   form: SignupFormState,
@@ -463,6 +465,7 @@ function appendPrivilegedSignupDraftFormData(input: {
   captchaToken: string | null;
   legalAcceptance: SignupLegalAcceptance;
   contractSignature?: RestaurateurContractSignature;
+  commercialReferralToken?: string;
 }) {
   input.formData.append("user_id", input.userId);
   input.formData.append("requested_role", input.role);
@@ -496,6 +499,10 @@ function appendPrivilegedSignupDraftFormData(input: {
   input.formData.append("contract_title", input.role === "restaurateur" ? RESTAURANT_PARTNER_CONTRACT_TITLE : "");
   input.formData.append("contract_signer_name", input.role === "restaurateur" ? input.contractSignature?.signerName || "" : "");
   input.formData.append("contract_signature_data_url", input.role === "restaurateur" ? input.contractSignature?.signatureDataUrl || "" : "");
+  input.formData.append(
+    "commercial_referral_token",
+    input.role === "restaurateur" ? input.commercialReferralToken || "" : "",
+  );
   input.formData.append("captcha_token", input.captchaToken || "");
 
   for (const requirement of getRequiredSignupDocuments(input.role, input.form.vehicleType)) {
@@ -540,6 +547,7 @@ async function submitPrivilegedSignupDraft(input: {
   captchaToken: string | null;
   legalAcceptance: SignupLegalAcceptance;
   contractSignature?: RestaurateurContractSignature;
+  commercialReferralToken?: string;
 }) {
   const formData = new FormData();
   appendPrivilegedSignupDraftFormData({ formData, ...input });
@@ -568,6 +576,16 @@ export default function Auth() {
 
   const logoSrc = useTokLogoSrc();
   const [searchParams] = useSearchParams();
+  const [commercialReferralToken, setCommercialReferralToken] = useState(() => {
+    const fromUrl = String(searchParams.get("commercialReferral") || "").trim();
+    if (fromUrl || typeof window === "undefined") return fromUrl;
+    try {
+      return String(window.sessionStorage.getItem(COMMERCIAL_REFERRAL_SESSION_KEY) || "").trim();
+    } catch {
+      return "";
+    }
+  });
+  const requestedSubscriptionPlanSlug = String(searchParams.get("subscriptionPlan") || "").trim().toLowerCase();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, roles, role, switchRole, canSwitchRole } = useAuth();
@@ -624,11 +642,28 @@ export default function Auth() {
     return normalizeInternalNavigationTarget(redirectTarget, "/");
   }, [searchParams]);
 
+  useEffect(() => {
+    if (!commercialReferralToken || typeof window === "undefined") return;
+    try {
+      window.sessionStorage.setItem(COMMERCIAL_REFERRAL_SESSION_KEY, commercialReferralToken);
+    } catch {
+      // Session storage may be unavailable in hardened browsers; in-memory state remains authoritative.
+    }
+
+    const currentUrl = new URL(window.location.href);
+    if (currentUrl.searchParams.has("commercialReferral")) {
+      currentUrl.searchParams.delete("commercialReferral");
+      window.history.replaceState(
+        window.history.state,
+        document.title,
+        `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`,
+      );
+    }
+  }, [commercialReferralToken]);
+
   const getPostAuthTarget = useCallback((selectedRole: UserRole) => {
-    return getPostAuthTargetForRole(selectedRole, postAuthRedirectTarget, {
-      isCommercialAuthHost,
-    });
-  }, [isCommercialAuthHost, postAuthRedirectTarget]);
+    return getPostAuthTargetForRole(selectedRole, postAuthRedirectTarget);
+  }, [postAuthRedirectTarget]);
 
   const navigateToPostAuthTarget = useCallback((selectedRole: UserRole, replace = false) => {
     const target = getPostAuthTarget(selectedRole);
@@ -746,10 +781,20 @@ export default function Auth() {
 
   useEffect(() => {
     if (roleMode !== "restaurateur") return;
+    const referredPlan = commercialReferralToken && requestedSubscriptionPlanSlug
+      ? subscriptionPlans.find((plan) => plan.slug === requestedSubscriptionPlanSlug)
+      : null;
+    if (commercialReferralToken) {
+      const referredPlanId = referredPlan?.id || "";
+      if (selectedSubscriptionPlanId !== referredPlanId) {
+        setSelectedSubscriptionPlanId(referredPlanId);
+      }
+      return;
+    }
     if (!selectedSubscriptionPlanId && subscriptionPlans[0]?.id) {
       setSelectedSubscriptionPlanId(subscriptionPlans[0].id);
     }
-  }, [roleMode, selectedSubscriptionPlanId, subscriptionPlans]);
+  }, [commercialReferralToken, requestedSubscriptionPlanSlug, roleMode, selectedSubscriptionPlanId, subscriptionPlans]);
 
   useEffect(() => {
     if (!user && privilegedSignupSubmitting) {
@@ -930,7 +975,14 @@ export default function Auth() {
             captchaToken,
             legalAcceptance: submittedLegalAcceptance,
             contractSignature: submittedRole === "restaurateur" ? submittedContractSignature : undefined,
+            commercialReferralToken: submittedRole === "restaurateur" ? commercialReferralToken : undefined,
           });
+          try {
+            window.sessionStorage.removeItem(COMMERCIAL_REFERRAL_SESSION_KEY);
+          } catch {
+            // The signup was saved even if browser storage cannot be cleared.
+          }
+          setCommercialReferralToken("");
           toast({
             title: "Inscription enregistrée",
             description: "Votre dossier complet sera transmis à l'admin TOK après confirmation de votre email.",
@@ -1016,7 +1068,8 @@ export default function Auth() {
                 onboarding_source: "auth_signup",
                 selected_subscription_plan_id: submittedOnboardingChoices.subscriptionPlanId,
                 selected_subscription_billing_period: submittedOnboardingChoices.subscriptionBillingPeriod,
-                onboarding_payment_status: "pending_payment",
+                onboarding_payment_status: "payment_method_required",
+                ...(commercialReferralToken ? { commercial_referral_token: commercialReferralToken } : {}),
                 contract_version: RESTAURANT_PARTNER_CONTRACT_VERSION,
                 contract_title: RESTAURANT_PARTNER_CONTRACT_TITLE,
                 contract_signer_name: submittedContractSignature.signerName.trim(),
@@ -1041,6 +1094,13 @@ export default function Auth() {
       if (syncError) {
         throw syncError;
       }
+
+      try {
+        window.sessionStorage.removeItem(COMMERCIAL_REFERRAL_SESSION_KEY);
+      } catch {
+        // The signup was saved even if browser storage cannot be cleared.
+      }
+      setCommercialReferralToken("");
 
       toast({
         title: submittedRole === "client" ? "Compte crée" : "Inscription enregistrée",
@@ -1161,10 +1221,10 @@ export default function Auth() {
           ) : null}
           {!isLogin ? (
             <Tabs value={roleMode} onValueChange={(value) => setRoleMode(value as SignupRole)} className="w-full">
-              <TabsList className={`grid w-full ${courierSignupEnabled ? "grid-cols-3" : "grid-cols-2"}`}>
-                <TabsTrigger value="client">Client</TabsTrigger>
-                <TabsTrigger value="restaurateur">Restaurateur</TabsTrigger>
-                {courierSignupEnabled ? <TabsTrigger value="courier">Livreur</TabsTrigger> : null}
+              <TabsList className={`grid h-auto w-full ${courierSignupEnabled ? "grid-cols-1 min-[360px]:grid-cols-3" : "grid-cols-2"}`}>
+                <TabsTrigger value="client" className="w-full min-w-0 whitespace-normal px-1.5 text-xs leading-tight sm:px-3 sm:text-sm">Client</TabsTrigger>
+                <TabsTrigger value="restaurateur" className="w-full min-w-0 whitespace-normal px-1.5 text-xs leading-tight sm:px-3 sm:text-sm">Restaurateur</TabsTrigger>
+                {courierSignupEnabled ? <TabsTrigger value="courier" className="w-full min-w-0 whitespace-normal px-1.5 text-xs leading-tight sm:px-3 sm:text-sm">Livreur</TabsTrigger> : null}
               </TabsList>
             </Tabs>
           ) : null}
@@ -1402,8 +1462,8 @@ export default function Auth() {
                     <div>
                       <p className="font-medium">Abonnement restaurateur</p>
                       <p className="text-sm text-muted-foreground">
-                        Ce choix est joint au dossier. Le paiement sera demandé depuis le dashboard
-                        avant la validation finale par l'administration.
+                        Ce choix est joint au dossier et une facture d’abonnement est réservée dès
+                        l’inscription. La carte sera enregistrée depuis le dashboard, sans débit immédiat.
                       </p>
                     </div>
                   </div>
@@ -1429,6 +1489,7 @@ export default function Auth() {
                                 selected ? "border-primary bg-primary/10" : "bg-background hover:border-primary/50"
                               }`}
                               onClick={() => setSelectedSubscriptionPlanId(plan.id)}
+                              disabled={Boolean(commercialReferralToken)}
                             >
                               <span className="block text-sm font-semibold">{plan.name}</span>
                               <span className="block pt-1 text-xs text-muted-foreground">
@@ -1453,13 +1514,24 @@ export default function Auth() {
                         Aucun abonnement actif n'est disponible. Contactez TOK avant de poursuivre.
                       </div>
                     )}
+                    {commercialReferralToken ? (
+                      <p className={selectedSubscriptionPlanId
+                        ? "text-xs font-medium text-emerald-700 dark:text-emerald-300"
+                        : "text-xs font-medium text-destructive"}
+                      >
+                        {selectedSubscriptionPlanId
+                          ? "L’abonnement est verrouillé sur l’offre signée avec le commercial."
+                          : "Ce lien commercial est incomplet ou ne correspond plus à une offre active."}
+                      </p>
+                    ) : null}
                   </div>
 
                   {selectedSubscriptionPlan ? (
                     <div className="rounded-xl border bg-background p-3 text-sm">
-                      <p className="font-medium">Abonnement à régler après création du dossier</p>
+                      <p className="font-medium">Montant mensuel réservé au dossier</p>
                       <p className="pt-1 text-muted-foreground">
-                        {formatChf(selectedSubscriptionPrice)} / mois.
+                        {formatChf(selectedSubscriptionPrice)} / mois. L’abonnement et son premier
+                        débit démarreront à la première réservation client ou à la première commande.
                       </p>
                     </div>
                   ) : null}
@@ -1579,12 +1651,12 @@ export default function Auth() {
 
               {!isLogin && !legalAccepted ? (
                 <div
-                  className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/35 p-4 backdrop-blur-md"
+                  className="fixed inset-0 z-[1900] flex items-start justify-center overflow-y-auto overscroll-contain bg-slate-950/35 px-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] pt-[max(1rem,env(safe-area-inset-top,0px))] backdrop-blur-md sm:items-center"
                   role="dialog"
                   aria-modal="true"
                   aria-labelledby="legal-acceptance-title"
                 >
-                  <div className="w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-6 text-slate-950 shadow-2xl sm:p-7">
+                  <div className="max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto overscroll-contain rounded-3xl border border-slate-200 bg-white p-5 text-slate-950 shadow-2xl sm:p-7">
                     <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
                       <Shield className="h-6 w-6" />
                     </div>

@@ -51,7 +51,10 @@ describe("checkout and Stripe webhook safety guards", () => {
   });
 
   it("lets Stripe live configuration control payment methods instead of hardcoded checkout methods", () => {
-    expect(createCheckoutSource).not.toContain("payment_method_types");
+    expect(createCheckoutSource.match(/payment_method_types/g)).toHaveLength(1);
+    expect(createCheckoutSource).toMatch(
+      /if \(isRestaurantOnboardingSetup\) \{[\s\S]{0,220}sessionParams\.payment_method_types = \["card"\]/,
+    );
     expect(authorizeMatchGroupOrderSource).not.toContain("payment_method_types");
   });
 

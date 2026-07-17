@@ -756,12 +756,12 @@ export default function TableConfigDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="h-[min(96vh,980px)] w-[calc(100vw-1rem)] max-w-[1120px] overflow-hidden rounded-[32px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(245,247,251,0.98))] p-0 shadow-[0_40px_120px_-52px_rgba(15,23,42,0.48)]">
-        <div className="grid h-full min-h-0 gap-0 lg:grid-cols-[minmax(272px,312px)_minmax(0,1fr)]">
-          <div className="min-h-0 border-b border-slate-200/80 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.92),rgba(241,245,249,0.98))] lg:border-b-0 lg:border-r">
-            <div className="flex h-full min-h-0 flex-col overflow-y-auto p-4 sm:p-6">
-              <DialogHeader className="space-y-3 text-left">
-                <DialogTitle className="flex items-center gap-2 text-xl text-slate-950">
+      <DialogContent className="h-[min(96dvh,980px)] max-h-[calc(100dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)-1rem)] w-[calc(100vw-env(safe-area-inset-left,0px)-env(safe-area-inset-right,0px)-1rem)] max-w-[1120px] overflow-hidden rounded-[24px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(245,247,251,0.98))] p-0 shadow-[0_40px_120px_-52px_rgba(15,23,42,0.48)] sm:rounded-[32px]">
+        <div className="grid h-full min-h-0 grid-rows-[minmax(0,2fr)_minmax(0,3fr)] gap-0 sm:grid-rows-[minmax(0,5fr)_minmax(0,6fr)] lg:grid-cols-[minmax(272px,312px)_minmax(0,1fr)] lg:grid-rows-1">
+          <div className="min-h-0 overflow-hidden border-b border-slate-200/80 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.92),rgba(241,245,249,0.98))] lg:border-b-0 lg:border-r">
+            <div data-dialog-scroll-area className="flex h-full min-h-0 flex-col overflow-y-auto overscroll-contain p-4 sm:p-6">
+              <DialogHeader className="space-y-3 pr-10 text-left">
+                <DialogTitle className="flex min-w-0 flex-wrap items-center gap-2 text-xl text-slate-950">
                   <Armchair className="h-5 w-5 text-slate-600" />
                   {isEditing ? "Modifier la table" : "Configurer la table"}
                 </DialogTitle>
@@ -771,7 +771,7 @@ export default function TableConfigDialog({
               </DialogHeader>
 
               <div className="mt-5 rounded-[28px] border border-white/80 bg-white/85 p-4 shadow-[0_24px_60px_-42px_rgba(15,23,42,0.4)] sm:p-5">
-                <div className="flex h-44 items-center justify-center rounded-[24px] border border-slate-200 bg-[linear-gradient(180deg,rgba(248,250,252,0.9),rgba(241,245,249,0.92))] sm:h-52">
+                <div className="flex h-40 items-center justify-center rounded-[24px] border border-slate-200 bg-[linear-gradient(180deg,rgba(248,250,252,0.9),rgba(241,245,249,0.92))] sm:h-52">
                   <FloorPlanItemIllustration
                     kind="table"
                     shape={shape}
@@ -782,7 +782,7 @@ export default function TableConfigDialog({
                     cornerBenchConfigs={resolved.cornerBenchConfigs}
                     tableWidth={resolved.tableWidth}
                     tableHeight={resolved.tableHeight}
-                    className="h-44 w-60"
+                    className="h-40 w-full max-w-60 sm:h-44"
                     decorative={false}
                   />
                 </div>
@@ -829,7 +829,7 @@ export default function TableConfigDialog({
           </div>
 
           <div className="flex min-h-0 flex-col overflow-hidden">
-            <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
+            <div data-dialog-scroll-area className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6">
               <div className="space-y-6">
                 <div className="rounded-[26px] border border-slate-200 bg-white/80 p-4 sm:p-5">
                   <div className="mb-4">
@@ -857,9 +857,10 @@ export default function TableConfigDialog({
 
                     <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(180px,1fr))]">
                       <div className="min-w-0 space-y-2">
-                        <Label className="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">Capacité cible</Label>
+                        <Label htmlFor="table-target-capacity" className="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">Capacité cible</Label>
                         <div className="relative">
                           <Input
+                            id="table-target-capacity"
                             type="number"
                             min={1}
                             step={1}
@@ -934,7 +935,7 @@ export default function TableConfigDialog({
                             <p className="text-xs text-slate-500">Activez uniquement les zones utiles pour garder un visuel propre et logique.</p>
                           </div>
                         </div>
-                        <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(248px,1fr))]">
+                        <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(min(248px,100%),1fr))]">
                           {visibleZones.map((zone) => (
                             <ZoneSeatCard
                               key={zone}
@@ -957,7 +958,7 @@ export default function TableConfigDialog({
                               <p className="text-xs text-slate-500">À activer seulement si vous composez une table murale ou un coin salon.</p>
                             </div>
                           </div>
-                          <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(248px,1fr))]">
+                          <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(min(248px,100%),1fr))]">
                             {CORNER_BENCH_CORNERS.map((corner) => (
                               <CornerBenchCard
                                 key={corner}
@@ -983,7 +984,7 @@ export default function TableConfigDialog({
               </div>
             </div>
 
-            <DialogFooter className="shrink-0 flex-col-reverse gap-2 border-t border-slate-200 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+            <DialogFooter className="shrink-0 flex-col-reverse gap-2 border-t border-slate-200 px-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] pt-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
               <div className="text-sm text-slate-500">
                 {layoutPreset === "custom" ? "Mode manuel actif" : `Auto: ${presetCopy.label.toLowerCase()}`}
               </div>

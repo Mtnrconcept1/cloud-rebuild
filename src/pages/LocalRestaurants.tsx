@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { MapPin, Search } from "lucide-react";
 
@@ -11,6 +11,7 @@ import { formatRestaurantCategorySummary } from "@/lib/restaurantCategories";
 import { buildRestaurantSeoPath, slugifyRestaurantSegment } from "@/lib/restaurantSlugs";
 import { buildCanonicalUrl, useSeoMeta } from "@/hooks/useSeoMeta";
 import RestaurantDetail from "./RestaurantDetail";
+import NotFound from "./NotFound";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { getCommercialDemoClientRestaurants } from "@/lib/commercialDemoClientCatalog";
 
@@ -66,12 +67,27 @@ const DISTRICT_LABELS: Record<string, string> = {
   chailly: "Chailly",
 };
 
-const POPULAR_CUISINES = ["pizza", "sushi", "burger", "italien", "libanais", "halal", "brunch", "healthy"];
+const CURATED_CUISINES_BY_CITY: Record<string, string[]> = {
+  geneve: ["pizza", "sushi", "burger", "kebab"],
+  lausanne: ["italien", "asiatique"],
+};
 
 function slugToLabel(slug: string | undefined, labels: Record<string, string>) {
   const normalized = String(slug || "").trim().toLowerCase();
   if (!normalized) return "";
   return labels[normalized] || normalized.replace(/-/g, " ");
+}
+
+function toAbsoluteSeoImage(value: unknown) {
+  const candidate = String(value || "").trim();
+  if (!candidate) return undefined;
+
+  try {
+    const url = new URL(candidate, "https://www.thetok.ch");
+    return url.protocol === "http:" || url.protocol === "https:" ? url.href : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 function toCardProps(restaurant: any) {
@@ -116,18 +132,20 @@ function buildRestaurantJsonLd(restaurants: any[], city: string, category: strin
           "@id": buildCanonicalUrl(restaurantPath),
           name: restaurant.name,
           servesCuisine: restaurant.cuisine_type || category || undefined,
-          image: restaurant.image_url || undefined,
+          image: toAbsoluteSeoImage(restaurant.image_url),
           address: {
             "@type": "PostalAddress",
             streetAddress: restaurant.address || undefined,
             addressLocality: restaurant.city || city,
             addressCountry: "CH",
           },
-          aggregateRating: restaurant.rating
+          aggregateRating: restaurant.rating && Number(restaurant.review_count) > 0
             ? {
               "@type": "AggregateRating",
               ratingValue: Number(restaurant.rating),
               reviewCount: Number(restaurant.review_count || 0),
+              bestRating: 10,
+              worstRating: 1,
             }
             : undefined,
           url: buildCanonicalUrl(restaurantPath),
@@ -147,34 +165,31 @@ function buildRestaurantJsonLd(restaurants: any[], city: string, category: strin
         { "@type": "ListItem", position: 3, name: pageName, item: buildCanonicalUrl(path) },
       ],
     },
-    {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      mainEntity: [
-        {
-          "@type": "Question",
-          name: `Comment choisir un restaurant a ${city} sur TOK ?`,
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Comparez les cuisines, quartiers, notes, modes de service, offres locales et disponibilites avant de commander ou reserver.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "Puis-je reserver et commander depuis la meme page ?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Oui, lorsque le restaurant a active ces services, TOK permet de reserver, commander, choisir le retrait ou consulter les offres disponibles.",
-          },
-        },
-      ],
-    },
   ];
 }
 
-function buildLocalSeoLinks(citySlug: string | undefined, city: string, category: string, district: string) {
+function LocalRestaurantsSeo({
+  title,
+  description,
+  path,
+  jsonLd,
+}: {
+  title: string;
+  description: string;
+  path: string;
+  jsonLd: Record<string, unknown>[];
+}) {
+  useSeoMeta({ title, description, path, jsonLd });
+  return null;
+}
+
+function buildLocalSeoLinks(citySlug: string | undefined, city: string, category: string, district: string, restaurants: any[]) {
   const safeCitySlug = slugifyRestaurantSegment(citySlug || city || "geneve");
-  const cuisineLinks = POPULAR_CUISINES.map((cuisine) => ({
+  const discoveredCuisines = restaurants
+    .map((restaurant) => slugifyRestaurantSegment(restaurant?.cuisine_type))
+    .filter((cuisine, index, cuisines) => cuisine && CATEGORY_LABELS[cuisine] && cuisines.indexOf(cuisine) === index);
+  const supportedCuisines = CURATED_CUISINES_BY_CITY[safeCitySlug] || discoveredCuisines.slice(0, 8);
+  const cuisineLinks = supportedCuisines.map((cuisine) => ({
     href: `/restaurants/${safeCitySlug}/${cuisine}`,
     label: `${slugToLabel(cuisine, CATEGORY_LABELS)} a ${city}`,
   }));
@@ -196,23 +211,42 @@ export default function LocalRestaurants() {
   const commercialDemoFrame = useCommercialDemoFrame();
   const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
   const demoSessionKey = isCommercialDemoClient ? commercialDemoFrame.config.sessionId : "production";
-  const params = useParams();
+  const params = useParams<{ city?: string; category?: string; restaurantSlug?: string }>();
   const city = slugToLabel(params.city, CITY_LABELS);
   const routeSegment = String(params.category || "").trim().toLowerCase();
-  const knownDistrictSegment = Boolean(routeSegment && DISTRICT_LABELS[routeSegment]);
-  const knownCategorySegment = Boolean(routeSegment && CATEGORY_LABELS[routeSegment]);
-  const slugCandidate = Boolean(routeSegment && !knownDistrictSegment && !knownCategorySegment);
+  const explicitRestaurantSlug = slugifyRestaurantSegment(params.restaurantSlug);
+  const isExplicitRestaurantRoute = Boolean(explicitRestaurantSlug);
+  const knownDistrictSegment = Boolean(!isExplicitRestaurantRoute && routeSegment && DISTRICT_LABELS[routeSegment]);
+  const knownCategorySegment = Boolean(!isExplicitRestaurantRoute && routeSegment && CATEGORY_LABELS[routeSegment]);
+  const legacyRestaurantSlug = !isExplicitRestaurantRoute && routeSegment && !knownDistrictSegment && !knownCategorySegment
+    ? slugifyRestaurantSegment(routeSegment)
+    : "";
+  const requestedRestaurantSlug = explicitRestaurantSlug || legacyRestaurantSlug;
+  const slugCandidate = Boolean(requestedRestaurantSlug);
+  const demoRestaurants = useMemo(
+    () => isCommercialDemoClient ? getCommercialDemoClientRestaurants(commercialDemoFrame.snapshot) : [],
+    [commercialDemoFrame, isCommercialDemoClient],
+  );
+  const demoRestaurantBySlug = useMemo(() => {
+    if (!isCommercialDemoClient || !slugCandidate) return null;
+    const citySlug = slugifyRestaurantSegment(params.city);
+
+    return demoRestaurants.find((restaurant) =>
+      slugifyRestaurantSegment(restaurant.slug) === requestedRestaurantSlug
+      && slugifyRestaurantSegment(restaurant.city || "geneve") === citySlug
+    ) || null;
+  }, [demoRestaurants, isCommercialDemoClient, params.city, requestedRestaurantSlug, slugCandidate]);
   const restaurantSlugBaseQuery = {
-    queryKey: ["restaurant-slug", city, routeSegment],
+    queryKey: ["restaurant-slug", city, requestedRestaurantSlug],
   };
-  const { data: restaurantBySlug, isLoading: isSlugLoading } = useQuery({
+  const { data: fetchedRestaurantBySlug, isLoading: isRemoteSlugLoading } = useQuery({
     queryKey: [...restaurantSlugBaseQuery.queryKey, demoSessionKey],
     enabled: Boolean(city && slugCandidate && !isCommercialDemoClient),
     queryFn: async () => {
       const { data, error } = await supabase
         .from("restaurants")
         .select("id, city, slug")
-        .eq("slug", routeSegment)
+        .eq("slug", requestedRestaurantSlug)
         .eq("is_active", true)
         .limit(10);
 
@@ -220,21 +254,23 @@ export default function LocalRestaurants() {
 
       const citySlug = slugifyRestaurantSegment(params.city);
       return (data || []).find((restaurant: any) =>
-        slugifyRestaurantSegment(restaurant.city) === citySlug
-      ) || (data || [])[0] || null;
+        slugifyRestaurantSegment(restaurant.city || "geneve") === citySlug
+      ) || null;
     },
   });
+  const restaurantBySlug = isCommercialDemoClient ? demoRestaurantBySlug : fetchedRestaurantBySlug;
+  const isSlugLoading = !isCommercialDemoClient && isRemoteSlugLoading;
   const resolvedRestaurantId = restaurantBySlug?.id ? String(restaurantBySlug.id) : "";
   const district = knownDistrictSegment ? slugToLabel(params.category, DISTRICT_LABELS) : "";
   const category = district || resolvedRestaurantId ? "" : slugToLabel(params.category, CATEGORY_LABELS);
   const path = params.category ? `/restaurants/${params.city}/${params.category}` : `/restaurants/${params.city}`;
 
-  const { data: restaurants = [], isLoading } = useQuery({
+  const { data: restaurants = [], isLoading, isFetched: areRestaurantsFetched } = useQuery({
     queryKey: ["local-restaurants", city, category, district, demoSessionKey],
-    enabled: Boolean(city) && !resolvedRestaurantId && !(slugCandidate && isSlugLoading),
+    enabled: Boolean(city) && !resolvedRestaurantId && !slugCandidate,
     queryFn: async () => {
       if (isCommercialDemoClient) {
-        return getCommercialDemoClientRestaurants(commercialDemoFrame.snapshot);
+        return demoRestaurants;
       }
       const { data, error } = await (supabase.rpc as any)("search_restaurants_catalog", {
         p_query: district || null,
@@ -266,11 +302,9 @@ export default function LocalRestaurants() {
     [category, city, district, path, restaurants],
   );
   const localSeoLinks = useMemo(
-    () => buildLocalSeoLinks(params.city, city, category, district),
-    [category, city, district, params.city],
+    () => buildLocalSeoLinks(params.city, city, category, district, restaurants),
+    [category, city, district, params.city, restaurants],
   );
-
-  useSeoMeta({ title, description, path, jsonLd });
 
   if (slugCandidate && isSlugLoading) {
     return (
@@ -283,11 +317,27 @@ export default function LocalRestaurants() {
   }
 
   if (resolvedRestaurantId) {
-    return <RestaurantDetail resolvedRestaurantId={resolvedRestaurantId} canonicalPath={path} />;
+    const canonicalRestaurantPath = buildRestaurantSeoPath(restaurantBySlug);
+
+    if (!isExplicitRestaurantRoute) {
+      return <Navigate to={canonicalRestaurantPath} replace />;
+    }
+
+    return (
+      <RestaurantDetail
+        resolvedRestaurantId={resolvedRestaurantId}
+        canonicalPath={canonicalRestaurantPath}
+      />
+    );
+  }
+
+  if ((slugCandidate && !isSlugLoading) || (!slugCandidate && areRestaurantsFetched && restaurants.length === 0)) {
+    return <NotFound />;
   }
 
   return (
     <main className="min-h-screen bg-background">
+      <LocalRestaurantsSeo title={title} description={description} path={path} jsonLd={jsonLd} />
       <div className="container space-y-8 py-8">
         <section className="space-y-4">
           <div className="flex flex-wrap items-center gap-2">

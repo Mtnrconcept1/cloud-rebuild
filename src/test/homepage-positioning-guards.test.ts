@@ -20,13 +20,14 @@ describe("homepage positioning guards", () => {
     expect(hero).toContain("bg-[position:50%_0%]");
     expect(hero).toContain("bg-[length:100%_auto]");
     expect(hero).toContain("bg-no-repeat");
-    expect(hero).toContain("min-h-[calc(100svh-64px)]");
-    expect(hero).toContain("bottom-2 space-y-2");
-    expect(hero).toContain("pt-9 text-center min-[390px]:pt-10");
+    expect(hero).toContain("min-h-[calc(100svh_-_66px_-_env(safe-area-inset-top,0px))]");
+    expect(hero).toContain("mt-auto space-y-2");
+    expect(hero).toContain("pt-5 text-center");
     expect(hero).toContain("translate-x-[12px]");
     expect(hero).toContain("w-full max-w-[390px]");
     expect(hero).toContain("[font-family:'Playball',cursive]");
-    expect(hero).toContain("text-[2.16rem] font-normal");
+    expect(hero).toContain("text-[clamp(1.78rem,9.4vw,2.34rem)]");
+    expect(hero.match(/<h1/g)).toHaveLength(1);
     expect(css).toContain('font-family: "Playball";');
     expect(css).toContain("/playball-font/Playball-q6o1.ttf");
     expect(hero).toContain("font-black italic");
@@ -80,7 +81,7 @@ describe("homepage positioning guards", () => {
     expect(showcaseHeader).toContain("whileInView");
     expect(showcaseHeader).toContain("bottom-0 right-5 -top-1 z-[55] w-[40%] min-w-[8rem] max-w-[14.5rem] overflow-visible");
     expect(showcaseHeader).toContain("data-section-action-row");
-    expect(showcaseHeader).toContain("max-w-[calc(100%-10.75rem)]");
+    expect(showcaseHeader).toContain("max-w-[calc(100%-6.5rem)]");
     expect(showcaseHeader).toContain("z-[60]");
     expect(showcaseHeader).toContain("h-full max-h-none w-full object-contain object-center");
     expect(showcaseHeader).not.toContain("-right-10 -top-6 bottom-0 z-40 w-56 overflow-visible");

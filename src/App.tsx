@@ -37,6 +37,7 @@ import { canShowClientSurface, getRoleHomePath } from "@/lib/roleAccess";
 import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 import { isNative } from "@/lib/platform";
 import { useTokLogoDocumentIcons } from "@/hooks/useTokLogo";
+import { ensureSeoMetadataForRoute } from "@/hooks/useSeoMeta";
 import CommercialDemoFrameProvider, { CommercialDemoFrameAuthBoundary, useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import CommercialDemoHostSecurityBoundary from "@/components/commercial/CommercialDemoHostSecurityBoundary";
 import CommercialDemoSafeEffectsBoundary from "@/components/commercial/CommercialDemoSafeEffectsBoundary";
@@ -195,6 +196,17 @@ function NativeIntegration() {
       for (const cleanup of cleanups.splice(0)) cleanup();
     };
   }, [navigate, user?.id]);
+
+  return null;
+}
+
+function RouteSeoFallback() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => ensureSeoMetadataForRoute(pathname));
+    return () => window.cancelAnimationFrame(frame);
+  }, [pathname]);
 
   return null;
 }
@@ -471,6 +483,7 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
   const deliveryEnabled = hasFeature("livraison");
   const showPublicFooter = shouldShowPublicFooter(pathname);
   const publicNavbar = !commercialDemoFrame && !oauthConsentFrame && shouldShowPublicNavbar(pathname) ? <Navbar /> : null;
+  const supportChatAllowed = !commercialDemoFrame || commercialDemoFrame.surface !== "commercial";
 
   return (
     <>
@@ -493,6 +506,7 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           <Route path="/oauth/consent" element={<OAuthConsent />} />
           <Route path="/recherche" element={<ClientSurfaceRoute><Recherche /></ClientSurfaceRoute>} />
           <Route path="/restaurants/:city" element={<ClientSurfaceRoute><LocalRestaurants /></ClientSurfaceRoute>} />
+          <Route path="/restaurants/:city/r/:restaurantSlug" element={<ClientSurfaceRoute><LocalRestaurants /></ClientSurfaceRoute>} />
           <Route path="/restaurants/:city/:category" element={<ClientSurfaceRoute><LocalRestaurants /></ClientSurfaceRoute>} />
           <Route path="/r/:slug/reserver" element={<ClientSurfaceRoute><RestaurantBookingRedirect /></ClientSurfaceRoute>} />
           <Route path="/r/:slug" element={<ClientSurfaceRoute><RestaurantBookingRedirect /></ClientSurfaceRoute>} />
@@ -606,7 +620,7 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
-      {aiSupportChatEnabled === true && (!commercialDemoFrame || commercialDemoFrame.surface !== "commercial") && !oauthConsentFrame ? <SupportChat /> : null}
+      {aiSupportChatEnabled === true && !oauthConsentFrame && supportChatAllowed ? <SupportChat /> : null}
       {!commercialDemoFrame && !oauthConsentFrame ? (
         <Suspense fallback={null}>
           <OrderConflictDialog />
@@ -638,6 +652,7 @@ const App = () => {
           <Sonner />
           <BrowserRouter basename={commercialDemoFrame?.basename}>
             <ScrollToTop />
+            <RouteSeoFallback />
             <CommercialDemoHostSecurityBoundary>
               <AuthProvider>
                 <CommercialHostBoundary>
@@ -662,3 +677,4 @@ const App = () => {
 };
 
 export default App;
+

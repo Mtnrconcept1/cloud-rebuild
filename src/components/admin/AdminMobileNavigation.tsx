@@ -299,7 +299,7 @@ export default function AdminMobileNavigation() {
   );
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[60] flex justify-end px-4 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] md:hidden">
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[60] flex justify-end pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pl-[calc(env(safe-area-inset-left,0px)+1rem)] pr-[calc(env(safe-area-inset-right,0px)+1rem)] md:hidden">
       <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
         <SheetTrigger asChild>
           <Button
@@ -334,14 +334,14 @@ export default function AdminMobileNavigation() {
             </span>
           </Button>
         </SheetTrigger>
-        <SheetContent className="flex h-full flex-col overflow-hidden p-0 dark:border-[#5f7aad]/30 dark:bg-[#010716]">
-          <SheetHeader className="border-b px-6 pb-4 pr-14 pt-6">
+        <SheetContent className="flex h-[100dvh] flex-col overflow-hidden p-0 dark:border-[#5f7aad]/30 dark:bg-[#010716]">
+          <SheetHeader className="border-b px-6 pb-4 pr-14 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)]">
             <SheetTitle>Administration</SheetTitle>
             <SheetDescription>
               Navigation rapide vers les onglets du back-office TOK.
             </SheetDescription>
           </SheetHeader>
-          <div data-sheet-scroll-area className="flex-1 overflow-y-auto overscroll-y-contain px-6 pb-6 pt-4">
+          <div data-sheet-scroll-area className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-6 pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)] pt-4">
             <div className="mb-4">
               <RoleSpaceMenuSection onNavigate={() => setMobileMenuOpen(false)} />
             </div>

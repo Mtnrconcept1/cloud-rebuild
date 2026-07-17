@@ -343,7 +343,7 @@ function BrowserWindow({
       className={cn(
         "group relative flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-[1.35rem] border bg-background shadow-[0_22px_65px_rgba(15,23,42,0.16)] transition-[border-color,box-shadow]",
         active ? "border-orange-400/70 ring-2 ring-orange-400/15" : "border-border/70",
-        fullscreen && "fixed inset-2 z-[1600] rounded-2xl shadow-[0_40px_120px_rgba(2,6,23,0.55)] sm:inset-4",
+        fullscreen && "fixed bottom-[calc(env(safe-area-inset-bottom,0px)+0.5rem)] left-[calc(env(safe-area-inset-left,0px)+0.5rem)] right-[calc(env(safe-area-inset-right,0px)+0.5rem)] top-[calc(env(safe-area-inset-top,0px)+0.5rem)] z-[1600] rounded-2xl shadow-[0_40px_120px_rgba(2,6,23,0.55)] sm:bottom-[calc(env(safe-area-inset-bottom,0px)+1rem)] sm:left-[calc(env(safe-area-inset-left,0px)+1rem)] sm:right-[calc(env(safe-area-inset-right,0px)+1rem)] sm:top-[calc(env(safe-area-inset-top,0px)+1rem)]",
       )}
       role={fullscreen ? "dialog" : undefined}
       aria-modal={fullscreen ? true : undefined}

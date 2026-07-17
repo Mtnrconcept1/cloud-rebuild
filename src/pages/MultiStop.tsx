@@ -223,8 +223,8 @@ export default function MultiStop() {
         {step === "confirm" && (<div className="space-y-6">
           <div className="rounded-2xl bg-orange-500/5 border border-orange-500/20 p-6 text-center space-y-2"><CheckCircle2 className="h-12 w-12 text-orange-500 mx-auto" /><h2 className="font-display text-xl font-bold">Multi-stop confirmé !</h2></div>
           <div className="rounded-xl bg-secondary/50 p-4 space-y-2 text-sm">
-            <div className="flex justify-between"><span className="text-muted-foreground">Restaurant</span><span className="font-medium">{selectedRestaurant?.name}</span></div>
-            {stops.map((s, i) => <div key={s.id} className="flex justify-between"><span className="text-muted-foreground">Stop {i + 1} – {s.label}</span><span className="font-medium">{s.address}</span></div>)}
+            <div className="flex min-w-0 flex-col gap-0.5 sm:flex-row sm:items-start sm:justify-between sm:gap-3"><span className="min-w-0 break-words text-muted-foreground">Restaurant</span><span className="min-w-0 break-words font-medium sm:text-right">{selectedRestaurant?.name}</span></div>
+            {stops.map((s, i) => <div key={s.id} className="flex min-w-0 flex-col gap-0.5 sm:flex-row sm:items-start sm:justify-between sm:gap-3"><span className="min-w-0 break-words text-muted-foreground">Stop {i + 1} – {s.label}</span><span className="min-w-0 break-words font-medium sm:text-right">{s.address}</span></div>)}
             <div className="flex justify-between"><span className="text-muted-foreground">Livraison</span><span className="font-medium">{totalWithSharing.toFixed(2)} CHF</span></div>
             <div className="flex justify-between border-t pt-2"><span className="font-semibold">Total</span><span className="font-bold">{(subtotal + totalWithSharing).toFixed(2)} CHF</span></div>
           </div>

@@ -245,7 +245,7 @@ export function getSignupRestaurateurOnboardingSelection(
   return {
     subscriptionPlanId,
     subscriptionBillingPeriod,
-    onboardingPaymentStatus: onboardingPaymentStatus || "pending_payment",
+    onboardingPaymentStatus: onboardingPaymentStatus || "payment_method_required",
   };
 }
 
@@ -254,7 +254,9 @@ export function isSignupRestaurateurOnboardingPaymentReady(
 ) {
   const selection = getSignupRestaurateurOnboardingSelection(application);
   if (!selection) return application?.requested_role !== "restaurateur";
-  return ["paid", "active", "trialing"].includes(selection.onboardingPaymentStatus);
+  return ["payment_method_ready", "paid", "active", "trialing"].includes(
+    selection.onboardingPaymentStatus,
+  );
 }
 
 export function getSignupDocumentStatusMeta(status: string | null | undefined) {

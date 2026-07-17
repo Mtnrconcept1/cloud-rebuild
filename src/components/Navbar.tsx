@@ -213,7 +213,7 @@ export default function Navbar() {
       {/* ─── Main header ─── */}
       <header
         ref={headerRef}
-        className={`fixed top-0 z-[70] w-full border-b shadow-sm safe-top transition-[opacity,transform] duration-300 ease-out md:sticky md:z-50 ${isHeaderVisible ? "" : "pointer-events-none"} ${isMobileHomeHeader ? "border-slate-200 bg-white backdrop-blur-none dark:border-slate-200 dark:bg-white" : "border-border/80 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:border-white/20 dark:bg-slate-950/80 dark:shadow-[0_14px_44px_rgba(0,0,0,0.48),0_0_34px_rgba(249,115,22,0.10)]"}`}
+        className={`sticky top-0 z-[70] w-full border-b shadow-sm safe-top transition-[opacity,transform] duration-300 ease-out ${isHeaderVisible ? "" : "pointer-events-none"} ${isMobileHomeHeader ? "border-slate-200 bg-white backdrop-blur-none dark:border-slate-200 dark:bg-white" : "border-border/80 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:border-white/20 dark:bg-slate-950/80 dark:shadow-[0_14px_44px_rgba(0,0,0,0.48),0_0_34px_rgba(249,115,22,0.10)]"}`}
         style={{
           opacity: isHeaderVisible ? 1 : 0,
           transform: isHeaderVisible ? "translateY(0)" : "translateY(-100%)",
@@ -225,7 +225,7 @@ export default function Navbar() {
           </Link>
 
           {showClientSurface ? (
-            <NavigationMenu className="hidden lg:flex">
+            <NavigationMenu className="hidden xl:flex">
               <NavigationMenuList>
                 <NavigationMenuItem>
                   <Link to="/recherche" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
@@ -318,7 +318,7 @@ export default function Navbar() {
             <ThemeToggleButton
               aria-label="Mode sombre"
               onMouseDown={preserveNavbarActionScrollPosition}
-              className={isMobileHomeHeader ? "text-slate-950 hover:bg-transparent hover:text-slate-950 dark:text-slate-950" : undefined}
+              className={`${isMobileHomeHeader ? "text-slate-950 hover:bg-transparent hover:text-slate-950 dark:text-slate-950" : ""} hidden min-[380px]:inline-flex`}
             />
 
             {showCartShortcut ? (
@@ -341,7 +341,7 @@ export default function Navbar() {
               <Link
                 to="/restaurateurs/geneve"
                 onMouseDown={preserveNavbarActionScrollPosition}
-                className="hidden h-11 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground lg:inline-flex"
+                className="hidden h-11 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground xl:inline-flex"
               >
                 <Store className="h-4 w-4" />
                 Restaurateurs
@@ -425,12 +425,12 @@ export default function Navbar() {
             )}
 
             {showClientSurface ? (
-              <ChefHelpButton surface="client" compact className="hidden h-20 w-20 lg:flex" />
+              <ChefHelpButton surface="client" compact className="hidden h-20 w-20 xl:flex" />
             ) : null}
 
             <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className={`${isMobileHomeHeader ? "order-2 text-slate-950 hover:bg-transparent" : ""} lg:hidden`}>
+                <Button variant="ghost" size="icon" className={`${isMobileHomeHeader ? "order-2 text-slate-950 hover:bg-transparent" : ""} xl:hidden`}>
                   <Menu className={`${isMobileHomeHeader ? "h-8 w-8" : "h-5 w-5"}`} />
                   <span className="sr-only">Ouvrir le menu</span>
                 </Button>
@@ -443,7 +443,12 @@ export default function Navbar() {
                   </SheetDescription>
                 </SheetHeader>
 
-                <nav className="mt-6 flex flex-col gap-3">
+                <div className="mt-4 flex min-h-11 items-center justify-between gap-3 rounded-xl border border-border/70 bg-muted/30 px-3 min-[380px]:hidden">
+                  <span className="text-sm font-medium">Thème d’affichage</span>
+                  <ThemeToggleButton aria-label="Changer le thème d’affichage" />
+                </div>
+
+                <nav className="mt-6 flex min-w-0 flex-col gap-1 [&>a]:flex [&>a]:min-h-11 [&>a]:min-w-0 [&>a]:items-center [&>a]:rounded-xl [&>a]:px-3 [&>a]:py-2.5">
                   <Link to={homeTarget} className="text-sm font-medium hover:text-primary" onClick={() => setMenuOpen(false)}>
                     Accueil
                   </Link>
@@ -594,8 +599,6 @@ export default function Navbar() {
           </div>
         </div>
       </header>
-      <div className="h-16 md:hidden" aria-hidden="true" />
     </>
   );
 }
-

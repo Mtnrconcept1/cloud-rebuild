@@ -73,7 +73,8 @@ describe("route back navigation", () => {
     expect(app).toContain("function AdminProtectedRoute");
     expect(app).toContain("<AdminRouteFrame fallback={fallback}>");
     expect(dashboard).toContain('const backFallback = pathname === "/dashboard" ? "/" : "/dashboard";');
-    expect(dashboard).toContain("<BackNavigationButton fallback={backFallback}");
+    expect(dashboard).toContain("<BackNavigationButton");
+    expect(dashboard).toContain("fallback={backFallback}");
     expect(customer).toContain('<BackNavigationButton fallback="/mon-espace"');
     expect(courier).toContain('const backFallback = pathname === "/courier" ? "/" : "/courier";');
     expect(courier).toContain("<BackNavigationButton fallback={backFallback}");

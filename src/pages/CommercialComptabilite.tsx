@@ -5,10 +5,8 @@ import { useSearchParams } from "react-router-dom";
 
 import CommercialWorkspaceChrome from "@/components/commercial/CommercialWorkspaceChrome";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getSupabase } from "@/integrations/supabase/client";
 import {
   fetchGenevaCommercialProspects,
@@ -16,6 +14,8 @@ import {
 } from "@/data/genevaCommercialProspects";
 import { useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
+
+type CommercialCommissionStatus = "pending_payment" | "payable" | "paid" | "cancelled" | "reversed";
 
 type CommercialCompensationSummary = {
   commercial_user_id?: string;
@@ -41,10 +41,12 @@ type CommercialCompensationSummary = {
   };
   signatures?: {
     period_count?: number;
+    pending_count?: number;
     sprint_count?: number;
     target_for_engagement?: number;
     commission_phase?: string;
     commission_chf?: number;
+    pending_commission_chf?: number;
     breakdown?: Array<{
       plan_key?: string;
       plan_name?: string;
@@ -97,6 +99,8 @@ type CommercialSignedFollowup = {
   signed_subscription_monthly_price_chf?: number | null;
   signed_subscription_contract_value_chf?: number | null;
   acquisition_commission_chf?: number | null;
+  acquisition_commission_status?: CommercialCommissionStatus | string | null;
+  earned_at?: string | null;
   commercial_compensation_mode?: string | null;
   updated_at?: string | null;
 };
@@ -105,17 +109,18 @@ type CommercialSignedRestaurant = CommercialSignedFollowup & {
   prospect: GenevaCommercialProspect | null;
 };
 
-const ADJUSTMENT_OPTIONS = [
-  { value: "manual_bonus", label: "Bonus manuel", defaultAmount: 0 },
-  { value: "manual_prime", label: "Prime manuelle", defaultAmount: 0 },
-  { value: "upgrade_starter_business", label: "Upgrade Starter vers Business", defaultAmount: 60 },
-  { value: "upgrade_business_premium", label: "Upgrade Business vers Premium", defaultAmount: 70 },
-  { value: "upgrade_premium_elite", label: "Upgrade Premium vers Elite", defaultAmount: 110 },
-  { value: "campaign_pack_100", label: "Pack Campaigns 100 crédits", defaultAmount: 8 },
-  { value: "campaign_pack_250", label: "Pack Campaigns 250 crédits", defaultAmount: 18 },
-  { value: "ai_growth_pack", label: "Pack AI/Growth", defaultAmount: 5 },
-  { value: "correction", label: "Correction comptable", defaultAmount: 0 },
-] as const;
+const ADJUSTMENT_LABELS: Record<string, string> = {
+  manual_bonus: "Bonus manuel",
+  manual_prime: "Prime manuelle",
+  upgrade_starter_business: "Upgrade Starter vers Business",
+  upgrade_business_premium: "Upgrade Business vers Premium",
+  upgrade_premium_elite: "Upgrade Premium vers Elite",
+  campaign_pack_100: "Pack Campaigns 100 crédits",
+  campaign_pack_250: "Pack Campaigns 250 crédits",
+  ai_growth_pack: "Pack AI/Growth",
+  correction: "Correction comptable",
+  sprint_bonus: "Ancien suivi de paiement du bonus sprint",
+};
 
 function toNumber(value: unknown) {
   const numeric = Number(value);
@@ -166,8 +171,48 @@ function profileStatusLabel(status: string | undefined) {
 }
 
 function adjustmentOptionLabel(kind: string | undefined) {
-  if (kind === "sprint_bonus") return "Ancien suivi de paiement du bonus sprint";
-  return ADJUSTMENT_OPTIONS.find((option) => option.value === kind)?.label || kind || "Ajustement";
+  return (kind && ADJUSTMENT_LABELS[kind]) || kind || "Ajustement";
+}
+
+function commissionStatusMeta(value: string | null | undefined) {
+  switch (value) {
+    case "payable":
+      return {
+        label: "Acquise · à payer",
+        badgeClass: "border-sky-200 bg-sky-100 text-sky-800 dark:border-sky-400/30 dark:bg-sky-500/15 dark:text-sky-200",
+        amountClass: "text-emerald-700 dark:text-emerald-400",
+        acquired: true,
+      };
+    case "paid":
+      return {
+        label: "Payée",
+        badgeClass: "border-emerald-200 bg-emerald-100 text-emerald-800 dark:border-emerald-400/30 dark:bg-emerald-500/15 dark:text-emerald-200",
+        amountClass: "text-emerald-700 dark:text-emerald-400",
+        acquired: true,
+      };
+    case "reversed":
+      return {
+        label: "Reprise comptable",
+        badgeClass: "border-rose-200 bg-rose-100 text-rose-800 dark:border-rose-400/30 dark:bg-rose-500/15 dark:text-rose-200",
+        amountClass: "text-rose-600 line-through dark:text-rose-300",
+        acquired: false,
+      };
+    case "cancelled":
+      return {
+        label: "Annulée",
+        badgeClass: "border-slate-200 bg-slate-100 text-slate-700 dark:border-white/10 dark:bg-white/10 dark:text-slate-200",
+        amountClass: "text-slate-500 line-through dark:text-slate-400",
+        acquired: false,
+      };
+    case "pending_payment":
+    default:
+      return {
+        label: "En attente du paiement",
+        badgeClass: "border-amber-200 bg-amber-100 text-amber-800 dark:border-amber-400/30 dark:bg-amber-500/15 dark:text-amber-200",
+        amountClass: "text-amber-700 dark:text-amber-300",
+        acquired: false,
+      };
+  }
 }
 
 function billingPeriodLabel(value: string | null | undefined) {
@@ -266,7 +311,7 @@ export default function CommercialComptabilite() {
         const { data, error } = await (getSupabase()
           .from("commercial_prospect_followups" as any)
           .select(
-            "source_objectid,status,signed_by,signed_at,signed_restaurant_id,signed_subscription_plan_slug,signed_subscription_plan_name,signed_subscription_billing_period,signed_subscription_monthly_price_chf,signed_subscription_contract_value_chf,acquisition_commission_chf,commercial_compensation_mode,updated_at",
+            "source_objectid,status,signed_by,signed_at,signed_restaurant_id,signed_subscription_plan_slug,signed_subscription_plan_name,signed_subscription_billing_period,signed_subscription_monthly_price_chf,signed_subscription_contract_value_chf,acquisition_commission_chf,acquisition_commission_status,earned_at,commercial_compensation_mode,updated_at",
           )
           .eq("status", "signed")
           .eq("signed_by", commercialUserId) as any);
@@ -305,6 +350,8 @@ export default function CommercialComptabilite() {
   const sprintCount = toNumber(signatures?.sprint_count);
   const sprintTarget = toNumber(signatures?.target_for_engagement) || 50;
   const sprintProgress = Math.min(100, Math.round((sprintCount / sprintTarget) * 100));
+  const pendingCommissionCount = toNumber(signatures?.pending_count);
+  const pendingCommissionChf = toNumber(signatures?.pending_commission_chf);
 
   return (
     <>
@@ -321,7 +368,7 @@ export default function CommercialComptabilite() {
                   Comptabilité commerciale
                 </h1>
                 <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground md:text-base">
-                  Consultez les commissions, le fixe, les bonus et les restaurants signés. Cette page est strictement en lecture seule ; les ajustements se gèrent uniquement depuis le profil commercial du Dashboard admin.
+                  Consultez les commissions, le fixe, les bonus et les restaurants signés. Tous les montants sont calculés côté serveur. Cette page est strictement en lecture seule ; les bonus, primes et ajustements se gèrent uniquement depuis le profil commercial du Dashboard admin.
                 </p>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
@@ -345,24 +392,22 @@ export default function CommercialComptabilite() {
             </div>
           </section>
 
-          {!isAdmin ? (
-            <section
-              data-testid="commercial-accounting-readonly"
-              className="flex items-start gap-3 rounded-2xl border border-sky-200 bg-sky-50/90 p-4 text-sm text-sky-950 dark:border-sky-400/20 dark:bg-sky-950/30 dark:text-sky-100"
-            >
-              <ReceiptText className="mt-0.5 h-5 w-5 shrink-0 text-sky-600" />
-              <div>
-                <p className="font-black">Votre comptabilité est en lecture seule</p>
-                <p className="mt-1 leading-6 text-sky-800 dark:text-sky-200">
-                  Vous ne pouvez pas vous attribuer de prime, bonus ou correction. Seule l’administration peut enregistrer un ajustement, qui restera visible dans votre historique.
-                </p>
-              </div>
-            </section>
-          ) : null}
+          <section
+            data-testid="commercial-accounting-readonly"
+            className="flex items-start gap-3 rounded-2xl border border-sky-200 bg-sky-50/90 p-4 text-sm text-sky-950 dark:border-sky-400/20 dark:bg-sky-950/30 dark:text-sky-100"
+          >
+            <ReceiptText className="mt-0.5 h-5 w-5 shrink-0 text-sky-600" />
+            <div>
+              <p className="font-black">Cette comptabilité est en lecture seule</p>
+              <p className="mt-1 leading-6 text-sky-800 dark:text-sky-200">
+                Les bonus, primes et corrections sont enregistrés uniquement depuis l’administration. Ils restent visibles ci-dessous dans l’historique.
+              </p>
+            </div>
+          </section>
 
           {summaryQuery.isLoading ? (
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              {[1, 2, 3, 4].map((item) => (
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+              {[1, 2, 3, 4, 5].map((item) => (
                 <div key={item} className="h-32 rounded-[1.35rem] bg-white/70 shadow-sm dark:bg-white/5" />
               ))}
             </div>
@@ -372,11 +417,11 @@ export default function CommercialComptabilite() {
             </div>
           ) : (
             <>
-              <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
                 <MetricCard
                   label="Total période"
                   value={formatChf(summary?.total_chf)}
-                  detail={`${formatDate(period.start)} - ${formatDate(period.end)}`}
+                  detail={`${formatDate(period.start)} - ${formatDate(period.end)} · montants acquis`}
                   icon={PiggyBank}
                   tone="orange"
                 />
@@ -388,11 +433,18 @@ export default function CommercialComptabilite() {
                   tone="slate"
                 />
                 <MetricCard
-                  label="Signatures"
+                  label="Commissions acquises"
                   value={formatChf(signatures?.commission_chf)}
-                  detail={`${toNumber(signatures?.period_count)} signature(s) sur la période`}
+                  detail={`${toNumber(signatures?.period_count)} signature(s) acquise(s) sur la période`}
                   icon={ReceiptText}
                   tone="emerald"
+                />
+                <MetricCard
+                  label="En attente de paiement"
+                  value={formatChf(pendingCommissionChf)}
+                  detail={`${pendingCommissionCount} commission(s) réservée(s), hors total`}
+                  icon={CalendarClock}
+                  tone="orange"
                 />
                 <MetricCard
                   label="Réservations"
@@ -470,7 +522,7 @@ export default function CommercialComptabilite() {
                 <div className="rounded-[1.6rem] border bg-white/90 p-5 shadow-sm dark:border-white/10 dark:bg-slate-950/70">
                   <div className="flex items-center gap-2">
                     <TrendingUp className="h-5 w-5 text-orange-600" />
-                    <h2 className="text-xl font-black">Signatures de la période</h2>
+                    <h2 className="text-xl font-black">Commissions acquises de la période</h2>
                   </div>
                   <div className="mt-4 space-y-3">
                     {(signatures?.breakdown || []).length > 0 ? (
@@ -485,9 +537,22 @@ export default function CommercialComptabilite() {
                       ))
                     ) : (
                       <p className="rounded-2xl border border-dashed p-4 text-sm text-muted-foreground dark:border-white/10">
-                        Aucune signature comptabilisée sur cette période.
+                        Aucune commission acquise sur cette période.
                       </p>
                     )}
+                    {pendingCommissionCount > 0 ? (
+                      <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-400/25 dark:bg-amber-500/10 dark:text-amber-100">
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <p className="font-black">En attente du paiement restaurateur</p>
+                            <p className="text-xs text-amber-800 dark:text-amber-200">
+                              {pendingCommissionCount} commission(s) réservée(s), non incluse(s) dans les montants acquis.
+                            </p>
+                          </div>
+                          <p className="shrink-0 font-black">{formatChf(pendingCommissionChf)}</p>
+                        </div>
+                      </div>
+                    ) : null}
                   </div>
                 </div>
 
@@ -547,6 +612,7 @@ export default function CommercialComptabilite() {
                       const address = prospectAddress(signature.prospect);
                       const billingLabel = billingPeriodLabel(signature.signed_subscription_billing_period);
                       const planName = signature.signed_subscription_plan_name || signature.signed_subscription_plan_slug;
+                      const commissionMeta = commissionStatusMeta(signature.acquisition_commission_status);
 
                       return (
                         <article
@@ -577,6 +643,9 @@ export default function CommercialComptabilite() {
                           <div className="mt-3 flex flex-wrap gap-2">
                             {planName ? <Badge variant="secondary">{planName}</Badge> : null}
                             {billingLabel ? <Badge variant="outline">{billingLabel}</Badge> : null}
+                            <Badge variant="outline" className={commissionMeta.badgeClass}>
+                              {commissionMeta.label}
+                            </Badge>
                             <Badge variant="outline">
                               {signature.signed_restaurant_id ? "Compte restaurant associé" : "Association admin en attente"}
                             </Badge>
@@ -597,11 +666,23 @@ export default function CommercialComptabilite() {
                             </div>
                             <div className="min-w-0">
                               <dt className="text-xs text-muted-foreground">Commission</dt>
-                              <dd className="mt-1 break-words font-black text-emerald-700 dark:text-emerald-400">
-                                {formatOptionalChf(signature.acquisition_commission_chf, "En attente")}
+                              <dd className={cn("mt-1 break-words font-black", commissionMeta.amountClass)}>
+                                {["cancelled", "reversed"].includes(String(signature.acquisition_commission_status || ""))
+                                  ? "Annulée"
+                                  : formatOptionalChf(signature.acquisition_commission_chf, commissionMeta.label)}
                               </dd>
+                              {!commissionMeta.acquired && !["cancelled", "reversed"].includes(String(signature.acquisition_commission_status || "")) ? (
+                                <p className="mt-1 text-[11px] leading-4 text-amber-700 dark:text-amber-300">
+                                  Réservée, hors montants acquis
+                                </p>
+                              ) : null}
                             </div>
                           </dl>
+                          {signature.earned_at ? (
+                            <p className="mt-3 text-xs text-muted-foreground">
+                              Commission acquise le {formatDate(signature.earned_at)}.
+                            </p>
+                          ) : null}
                         </article>
                       );
                     })}
@@ -617,7 +698,7 @@ export default function CommercialComptabilite() {
                 <div className="rounded-[1.6rem] border bg-white/90 p-5 shadow-sm dark:border-white/10 dark:bg-slate-950/70">
                   <h2 className="text-xl font-black">Bonus, primes et ajustements</h2>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Total ajustements: {formatChf(summary?.adjustments?.amount_chf)}
+                    Historique en lecture seule · total ajustements: {formatChf(summary?.adjustments?.amount_chf)}
                   </p>
                   <div className="mt-4 space-y-3">
                     {adjustments.length > 0 ? (

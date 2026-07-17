@@ -10,8 +10,10 @@ import {
   CheckCircle2,
   Circle,
   Clock3,
+  Copy,
   ExternalLink,
   Filter,
+  Loader2,
   Mail,
   MapPin,
   Navigation,
@@ -24,6 +26,7 @@ import {
   XCircle,
 } from "lucide-react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -56,6 +59,13 @@ import {
 
 type ProspectStatus = Database["public"]["Enums"]["commercial_visit_status"];
 type EditableProspectStatus = Exclude<ProspectStatus, "not_visited">;
+type CommercialCommissionStatus = "pending_payment" | "payable" | "paid" | "cancelled" | "reversed";
+
+type RestaurantSubscriptionPlan = {
+  slug: string;
+  name: string;
+  price_monthly_chf: number | string;
+};
 
 type CommercialProspectFollowup = {
   source_objectid: number;
@@ -77,6 +87,9 @@ type CommercialProspectFollowup = {
   signed_subscription_billing_period?: string | null;
   signed_subscription_monthly_price_chf?: number | null;
   signed_subscription_contract_value_chf?: number | null;
+  acquisition_commission_chf?: number | null;
+  acquisition_commission_status?: CommercialCommissionStatus | string | null;
+  earned_at?: string | null;
   visited_at?: string | null;
   next_follow_up_at?: string | null;
   updated_at: string | null;
@@ -197,6 +210,13 @@ type CommercialFollowupReminderResult = {
   reminderError?: string | null;
 };
 
+type CommercialSignupReferral = {
+  commercial_referral_token?: string | null;
+  referral_token?: string | null;
+  signup_referral_token?: string | null;
+  plan_slug?: string | null;
+};
+
 const DEFAULT_COMMERCIAL_SEARCH_FILTERS: CommercialSearchFilters = {
   search: "",
   status: ALL_STATUSES,
@@ -279,6 +299,47 @@ function formatChf(value: unknown) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })} CHF`;
+}
+
+function commissionStatusMeta(value: string | null | undefined) {
+  switch (value) {
+    case "payable":
+      return {
+        label: "Acquise · à payer",
+        badgeClass: "border-sky-200 bg-sky-100 text-sky-800 dark:border-sky-400/30 dark:bg-sky-500/15 dark:text-sky-200",
+        amountClass: "text-emerald-700 dark:text-emerald-300",
+        acquired: true,
+      };
+    case "paid":
+      return {
+        label: "Payée",
+        badgeClass: "border-emerald-200 bg-emerald-100 text-emerald-800 dark:border-emerald-400/30 dark:bg-emerald-500/15 dark:text-emerald-200",
+        amountClass: "text-emerald-700 dark:text-emerald-300",
+        acquired: true,
+      };
+    case "reversed":
+      return {
+        label: "Reprise comptable",
+        badgeClass: "border-rose-200 bg-rose-100 text-rose-800 dark:border-rose-400/30 dark:bg-rose-500/15 dark:text-rose-200",
+        amountClass: "text-rose-600 line-through dark:text-rose-300",
+        acquired: false,
+      };
+    case "cancelled":
+      return {
+        label: "Annulée",
+        badgeClass: "border-slate-200 bg-slate-100 text-slate-700 dark:border-white/10 dark:bg-white/10 dark:text-slate-200",
+        amountClass: "text-slate-500 line-through dark:text-slate-400",
+        acquired: false,
+      };
+    case "pending_payment":
+    default:
+      return {
+        label: "En attente du paiement",
+        badgeClass: "border-amber-200 bg-amber-100 text-amber-800 dark:border-amber-400/30 dark:bg-amber-500/15 dark:text-amber-200",
+        amountClass: "text-amber-700 dark:text-amber-300",
+        acquired: false,
+      };
+  }
 }
 
 function getLocalTodayDateInputValue() {
@@ -719,10 +780,11 @@ function CommercialProspectDetailsDialog({
   const signedPlanName = followup?.signed_subscription_plan_name
     || followup?.signed_subscription_plan_slug
     || null;
+  const commissionMeta = commissionStatusMeta(followup?.acquisition_commission_status);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100vw-1rem)] max-w-[calc(100vw-1rem)] overflow-hidden p-0 sm:max-w-4xl sm:rounded-[30px]">
+      <DialogContent className="w-[calc(100vw-env(safe-area-inset-left,0px)-env(safe-area-inset-right,0px)-1rem)] max-w-[calc(100vw-env(safe-area-inset-left,0px)-env(safe-area-inset-right,0px)-1rem)] overflow-hidden p-0 sm:max-w-4xl sm:rounded-[30px]">
         <DialogHeader className="relative overflow-hidden border-b bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 px-6 pb-6 pt-7 text-left text-white">
           <div className="absolute -right-16 -top-16 h-44 w-44 rounded-full bg-orange-500/20 blur-3xl" />
           <div className="relative flex flex-wrap items-start justify-between gap-4 pr-8">
@@ -782,25 +844,58 @@ function CommercialProspectDetailsDialog({
             </div>
           </div>
 
-          {followup?.status === "signed" && followup.can_edit ? (
+          {followup?.status === "signed" && followup.is_own ? (
             <div className="rounded-[24px] border border-emerald-200 bg-emerald-50/80 p-4 text-sm dark:border-emerald-400/20 dark:bg-emerald-500/10">
-              <p className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.18em] text-emerald-700 dark:text-emerald-200">
-                <ReceiptText className="h-4 w-4" />
-                Abonnement signé
-              </p>
-              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.18em] text-emerald-700 dark:text-emerald-200">
+                  <ReceiptText className="h-4 w-4" />
+                  Abonnement signé
+                </p>
+                <Badge variant="outline" className={commissionMeta.badgeClass}>
+                  {commissionMeta.label}
+                </Badge>
+              </div>
+              <div className="mt-3 grid gap-3 sm:grid-cols-3">
                 <div>
                   <p className="text-muted-foreground">Abonnement signé</p>
                   <p className="font-black">{signedPlanName || "Non renseigné"}</p>
                   <p className="text-xs text-muted-foreground">
                     {followup.signed_subscription_billing_period === "yearly" ? "Annuel" : "Mensuel"}
+                    {followup.signed_subscription_monthly_price_chf !== null
+                      && followup.signed_subscription_monthly_price_chf !== undefined
+                      ? ` · ${formatChf(followup.signed_subscription_monthly_price_chf)}/mois`
+                      : ""}
                   </p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Valeur contrat</p>
-                  <p className="font-black">{formatChf(followup.signed_subscription_contract_value_chf || 0)}</p>
+                  <p className="font-black">
+                    {followup.signed_subscription_contract_value_chf !== null
+                      && followup.signed_subscription_contract_value_chf !== undefined
+                      ? formatChf(followup.signed_subscription_contract_value_chf)
+                      : "Non renseignée"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Commission</p>
+                  <p className={cn("font-black", commissionMeta.amountClass)}>
+                    {["cancelled", "reversed"].includes(String(followup.acquisition_commission_status || ""))
+                      ? "Annulée"
+                      : followup.acquisition_commission_chf !== null
+                        && followup.acquisition_commission_chf !== undefined
+                        ? formatChf(followup.acquisition_commission_chf)
+                        : commissionMeta.label}
+                  </p>
+                  {!commissionMeta.acquired && !["cancelled", "reversed"].includes(String(followup.acquisition_commission_status || "")) ? (
+                    <p className="text-xs text-amber-700 dark:text-amber-300">Réservée, pas encore acquise</p>
+                  ) : null}
                 </div>
               </div>
+              {followup.earned_at ? (
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Commission acquise le {formatDateTime(followup.earned_at)}.
+                </p>
+              ) : null}
             </div>
           ) : null}
 
@@ -885,16 +980,35 @@ export default function CommercialProspection() {
   const [selectedObjectId, setSelectedObjectId] = useState<number | null>(null);
   const [prospectDialogOpen, setProspectDialogOpen] = useState(false);
   const [draftStatus, setDraftStatus] = useState<EditableProspectStatus | null>(null);
+  const [draftSubscriptionPlanSlug, setDraftSubscriptionPlanSlug] = useState("");
   const [draftNotes, setDraftNotes] = useState("");
   const [draftFollowUpDate, setDraftFollowUpDate] = useState("");
   const [draftRefusalReasons, setDraftRefusalReasons] = useState<CommercialRefusalReasonCode[]>([]);
   const [draftRefusalOther, setDraftRefusalOther] = useState("");
+  const [signupLink, setSignupLink] = useState("");
+  const [signupLinkLoading, setSignupLinkLoading] = useState(false);
 
   const prospectsQuery = useQuery({
     queryKey: ["commercial-prospects-source"],
     queryFn: fetchGenevaCommercialProspects,
     staleTime: Infinity,
     gcTime: Infinity,
+  });
+
+  const subscriptionPlansQuery = useQuery({
+    queryKey: ["commercial-active-restaurant-subscription-plans"],
+    enabled: prospectDialogOpen,
+    queryFn: async () => {
+      const { data, error } = await (getSupabase().from as any)("restaurant_subscription_plans")
+        .select("slug,name,price_monthly_chf")
+        .eq("is_active", true)
+        .in("slug", ["starter", "pro", "premium", "elite"])
+        .order("price_monthly_chf", { ascending: true });
+
+      if (error) throw error;
+      return (data || []) as RestaurantSubscriptionPlan[];
+    },
+    staleTime: 60_000,
   });
 
   const prospects = useMemo(() => prospectsQuery.data ?? [], [prospectsQuery.data]);
@@ -966,10 +1080,14 @@ export default function CommercialProspection() {
     || (selectedFollowup?.last_contacted_by ? "Commercial TOK" : null);
   const selectedSignedName = selectedFollowup?.signed_by_name || (selectedFollowup?.signed_by ? "Commercial TOK" : null);
   const selectedCanEdit = selectedFollowup?.can_edit !== false;
+  const selectedIsOwnLockedSignature = Boolean(
+    selectedFollowup?.status === "signed" && selectedFollowup.is_own && !selectedCanEdit,
+  );
   useEffect(() => {
     if (!selectedProspect || !prospectDialogOpen) return;
     const followup = followupsByObjectId.get(selectedProspect.sourceObjectId);
     setDraftStatus(followup && followup.status !== "not_visited" ? followup.status : null);
+    setDraftSubscriptionPlanSlug(followup?.signed_subscription_plan_slug || "");
     setDraftNotes(followup?.notes || "");
     setDraftFollowUpDate(followup?.next_follow_up_at || "");
     setDraftRefusalReasons(
@@ -978,6 +1096,7 @@ export default function CommercialProspection() {
       ),
     );
     setDraftRefusalOther(followup?.refusal_other_text || "");
+    setSignupLink("");
   }, [followupsByObjectId, prospectDialogOpen, selectedProspect]);
 
   useEffect(() => {
@@ -1013,10 +1132,21 @@ export default function CommercialProspection() {
     mutationFn: async () => {
       if (!selectedProspect) throw new Error("Aucun restaurant sélectionné.");
       if (!selectedCanEdit) {
-        throw new Error("Ce suivi appartient déjà à un autre commercial et est disponible en lecture seule.");
+        throw new Error(selectedIsOwnLockedSignature
+          ? "Cette signature est verrouillée. Toute correction doit être faite par l’administration."
+          : "Ce suivi appartient déjà à un autre commercial et est disponible en lecture seule.");
       }
       if (!draftStatus) {
         throw new Error("Choisissez le résultat de la visite avant d'enregistrer.");
+      }
+      if (draftStatus === "signed" && !draftSubscriptionPlanSlug) {
+        throw new Error("Choisissez l’abonnement signé par le restaurateur.");
+      }
+      if (
+        draftStatus === "signed"
+        && !subscriptionPlansQuery.data?.some((plan) => plan.slug === draftSubscriptionPlanSlug)
+      ) {
+        throw new Error("Choisissez un abonnement actif avant d’enregistrer la signature.");
       }
       if (draftStatus === "in_progress" && !draftFollowUpDate) {
         throw new Error("Choisissez la date du prochain passage.");
@@ -1049,8 +1179,8 @@ export default function CommercialProspection() {
         p_refusal_other_text: draftStatus === "not_interested" && draftRefusalReasons.includes("other")
           ? draftRefusalOther.trim()
           : null,
-        p_subscription_plan_slug: null,
-        p_subscription_billing_period: null,
+        p_subscription_plan_slug: draftStatus === "signed" ? draftSubscriptionPlanSlug : null,
+        p_subscription_billing_period: draftStatus === "signed" ? "monthly" : null,
         p_expected_updated_at: selectedFollowup?.updated_at || null,
       });
 
@@ -1109,6 +1239,59 @@ export default function CommercialProspection() {
       });
     },
   });
+
+  async function prepareRestaurantSignupLink() {
+    if (!selectedProspect || selectedFollowup?.status !== "signed" || !selectedFollowup.is_own) {
+      toast({
+        title: "Lien indisponible",
+        description: "Seul le commercial qui a enregistré la signature peut générer ce lien.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSignupLinkLoading(true);
+    try {
+      const { data, error } = await (getSupabase().rpc as any)("get_commercial_prospect_signup_referral", {
+        p_source_objectid: selectedProspect.sourceObjectId,
+      });
+      if (error) throw error;
+
+      const row = (Array.isArray(data) ? data[0] : data) as CommercialSignupReferral | string | null;
+      const token = typeof row === "string"
+        ? row
+        : row?.commercial_referral_token || row?.referral_token || row?.signup_referral_token || "";
+      if (!token) throw new Error("Jeton d’inscription introuvable.");
+
+      const url = new URL("/auth", window.location.origin);
+      url.searchParams.set("type", "restaurateur");
+      url.searchParams.set("commercialReferral", token);
+      const planSlug = typeof row === "string"
+        ? selectedFollowup.signed_subscription_plan_slug
+        : row?.plan_slug || selectedFollowup.signed_subscription_plan_slug;
+      if (planSlug) url.searchParams.set("subscriptionPlan", planSlug);
+
+      const nextLink = url.toString();
+      setSignupLink(nextLink);
+      let copied = false;
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(nextLink);
+        copied = true;
+      }
+      toast({
+        title: copied ? "Lien d’inscription copié" : "Lien d’inscription préparé",
+        description: "Transmettez ce lien au restaurateur pour rattacher automatiquement son inscription à cette signature.",
+      });
+    } catch (error) {
+      toast({
+        title: "Lien non généré",
+        description: error instanceof Error ? error.message : "Impossible de préparer le lien d’inscription.",
+        variant: "destructive",
+      });
+    } finally {
+      setSignupLinkLoading(false);
+    }
+  }
 
   const handleSelectProspect = useCallback((prospect: GenevaCommercialProspect) => {
     setSelectedObjectId(prospect.sourceObjectId);
@@ -1180,13 +1363,44 @@ export default function CommercialProspection() {
                       <div className="min-w-0">
                         <p className="text-sm font-black">Restaurant signé</p>
                         <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                          Vous confirmez uniquement la signature. L’offre, le compte restaurateur et la rémunération sont qualifiés par l’administration.
+                          Indiquez l’abonnement réellement signé par le restaurateur avant de confirmer la signature.
                         </p>
                       </div>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      Une commission Starter provisoire est créée côté serveur, puis corrigée par l’admin selon le contrat réellement signé.
-                    </p>
+                    <div className="space-y-2">
+                      <Label htmlFor="commercial-signed-subscription-plan">Abonnement signé *</Label>
+                      <Select
+                        value={draftSubscriptionPlanSlug || undefined}
+                        onValueChange={setDraftSubscriptionPlanSlug}
+                        disabled={subscriptionPlansQuery.isLoading || subscriptionPlansQuery.isError}
+                      >
+                        <SelectTrigger id="commercial-signed-subscription-plan" className="bg-white dark:bg-slate-950">
+                          <SelectValue placeholder={subscriptionPlansQuery.isLoading ? "Chargement des abonnements..." : "Choisir un abonnement"} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {(subscriptionPlansQuery.data || []).map((plan) => (
+                            <SelectItem key={plan.slug} value={plan.slug}>
+                              {plan.name} · {formatChf(plan.price_monthly_chf)}/mois
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {subscriptionPlansQuery.isError ? (
+                        <p className="text-xs font-medium text-red-700 dark:text-red-300">
+                          Impossible de charger les abonnements actifs. Réessayez avant d’enregistrer.
+                        </p>
+                      ) : null}
+                      {!subscriptionPlansQuery.isLoading
+                        && !subscriptionPlansQuery.isError
+                        && (subscriptionPlansQuery.data || []).length === 0 ? (
+                          <p className="text-xs font-medium text-red-700 dark:text-red-300">
+                            Aucun abonnement actif n’est disponible.
+                          </p>
+                        ) : null}
+                    </div>
+                    <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-3 text-xs leading-5 text-amber-950 dark:border-amber-400/20 dark:bg-amber-500/10 dark:text-amber-100">
+                      La facture d’abonnement est générée lors de l’inscription du restaurateur. La commission reste réservée jusqu’à son paiement, et l’abonnement démarre à la première réservation ou à la première commande d’un client.
+                    </div>
                   </div>
                 ) : null}
 
@@ -1274,11 +1488,48 @@ export default function CommercialProspection() {
                 <Button
                   className="h-12 w-full rounded-2xl bg-orange-500 text-base font-black text-white hover:bg-orange-600"
                   onClick={() => saveFollowupMutation.mutate()}
-                  disabled={saveFollowupMutation.isPending}
+                  disabled={saveFollowupMutation.isPending || (
+                    draftStatus === "signed"
+                    && (
+                      subscriptionPlansQuery.isLoading
+                      || subscriptionPlansQuery.isError
+                      || !draftSubscriptionPlanSlug
+                      || (subscriptionPlansQuery.data || []).length === 0
+                    )
+                  )}
                 >
                   {saveFollowupMutation.isPending ? "Enregistrement..." : "Enregistrer le suivi"}
                   <ArrowUpRight className="h-4 w-4" />
                 </Button>
+    </div>
+  ) : selectedIsOwnLockedSignature ? (
+    <div className="space-y-3 rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4 text-sm dark:border-emerald-400/20 dark:bg-emerald-500/10">
+      <p className="flex items-center gap-2 font-black text-emerald-900 dark:text-emerald-100">
+        <ShieldCheck className="h-4 w-4 text-emerald-600" />
+        Votre signature est enregistrée et verrouillée
+      </p>
+      <p className="mt-2 leading-6 text-emerald-800 dark:text-emerald-200">
+        L’abonnement signé et la commission réservée restent visibles dans cette fiche. Pour corriger la signature ou l’abonnement, contactez l’administration.
+      </p>
+      <Button
+        type="button"
+        variant="outline"
+        className="w-full bg-white dark:bg-slate-950"
+        onClick={() => void prepareRestaurantSignupLink()}
+        disabled={signupLinkLoading}
+      >
+        {signupLinkLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Copy className="mr-2 h-4 w-4" />}
+        Copier le lien d’inscription du restaurateur
+      </Button>
+      {signupLink ? (
+        <div className="space-y-1.5">
+          <Label htmlFor="commercial-restaurant-signup-link">Lien sécurisé</Label>
+          <Input id="commercial-restaurant-signup-link" value={signupLink} readOnly className="bg-white dark:bg-slate-950" />
+          <p className="text-xs leading-5 text-emerald-800 dark:text-emerald-200">
+            Ce lien rattache l’inscription, la facture et le paiement à cette fiche signée.
+          </p>
+        </div>
+      ) : null}
     </div>
   ) : (
     <div className="rounded-2xl border border-slate-200 bg-white/80 p-4 text-sm dark:border-white/10 dark:bg-white/5">
@@ -1498,3 +1749,4 @@ export default function CommercialProspection() {
     </>
   );
 }
+

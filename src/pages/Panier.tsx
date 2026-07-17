@@ -2205,45 +2205,45 @@ export default function Panier() {
             <LoyaltySection loyaltyPoints={loyaltyPoints} maxPointsDiscount={maxPointsDiscount} useLoyaltyPoints={useLoyaltyPoints} setUseLoyaltyPoints={setUseLoyaltyPoints} pointsToRedeemInput={pointsToRedeemInput} setPointsToRedeemInput={setPointsToRedeemInput} maxPointsRedeemable={maxPointsRedeemable} earnedXp={earnedXp} donateEarnedXp={donateEarnedXp} setDonateEarnedXp={setDonateEarnedXp} />
           ) : null}
 
-          <div className="flex justify-between text-sm"><span>Sous-total</span><span>{total.toFixed(2)} CHF</span></div>
-          {effectiveFormulaDiscount > 0 && <div className="flex justify-between text-sm text-accent font-medium"><span>Réduction formule ({formulaName})</span><span>-{effectiveFormulaDiscount.toFixed(2)} CHF</span></div>}
-          {effectivePromoDiscount > 0 && <div className="flex justify-between text-sm text-primary font-medium"><span>Promotion ({effectivePromoName})</span><span>-{effectivePromoDiscount.toFixed(2)} CHF</span></div>}
+          <div className="flex min-w-0 justify-between gap-3 text-sm"><span className="min-w-0 break-words">Sous-total</span><span className="shrink-0 text-right">{total.toFixed(2)} CHF</span></div>
+          {effectiveFormulaDiscount > 0 && <div className="flex min-w-0 justify-between gap-3 text-sm font-medium text-accent"><span className="min-w-0 break-words">Réduction formule ({formulaName})</span><span className="shrink-0 text-right">-{effectiveFormulaDiscount.toFixed(2)} CHF</span></div>}
+          {effectivePromoDiscount > 0 && <div className="flex min-w-0 justify-between gap-3 text-sm font-medium text-primary"><span className="min-w-0 break-words">Promotion ({effectivePromoName})</span><span className="shrink-0 text-right">-{effectivePromoDiscount.toFixed(2)} CHF</span></div>}
           {tokOneDiscount > 0 && (
-            <div className="flex justify-between text-sm text-violet-600 font-medium">
-              <span className="flex items-center gap-1.5"><Crown className="h-3.5 w-3.5" />Réduction Tok One ({tokOneDiscountPercent.toFixed(0)}%)</span>
-              <span>-{tokOneDiscount.toFixed(2)} CHF</span>
+            <div className="flex min-w-0 justify-between gap-3 text-sm font-medium text-violet-600">
+              <span className="flex min-w-0 items-start gap-1.5 break-words"><Crown className="mt-0.5 h-3.5 w-3.5 shrink-0" />Réduction Tok One ({tokOneDiscountPercent.toFixed(0)}%)</span>
+              <span className="shrink-0 text-right">-{tokOneDiscount.toFixed(2)} CHF</span>
             </div>
           )}
           {tokOneDeliverySaved > 0 ? (
-            <div className="flex justify-between text-sm text-violet-600 font-medium">
-              <span className="flex items-center gap-1.5"><Crown className="h-3.5 w-3.5" />Livraison offerte (Tok One)</span>
-              <span><span className="mr-2 line-through text-muted-foreground">{quotedDeliveryFee.toFixed(2)} CHF</span>Gratuit</span>
+            <div className="flex min-w-0 justify-between gap-3 text-sm font-medium text-violet-600">
+              <span className="flex min-w-0 items-start gap-1.5 break-words"><Crown className="mt-0.5 h-3.5 w-3.5 shrink-0" />Livraison offerte (Tok One)</span>
+              <span className="shrink-0 text-right"><span className="mr-2 line-through text-muted-foreground">{quotedDeliveryFee.toFixed(2)} CHF</span>Gratuit</span>
             </div>
           ) : (
-            <div className="flex justify-between text-sm"><span>{`Frais de livraison (${orderMode === "takeaway" ? "À l'emporter" : "Livraison"})`}</span><span>{deliveryFee.toFixed(2)} CHF</span></div>
+            <div className="flex min-w-0 justify-between gap-3 text-sm"><span className="min-w-0 break-words">{`Frais de livraison (${orderMode === "takeaway" ? "À l'emporter" : "Livraison"})`}</span><span className="shrink-0 text-right">{deliveryFee.toFixed(2)} CHF</span></div>
           )}
           {orderMode === "delivery" && scheduledDeliveryLabel ? (
-            <div className="flex justify-between text-sm text-muted-foreground"><span>Livraison planifiée</span><span>{scheduledDeliveryLabel}</span></div>
+            <div className="flex min-w-0 justify-between gap-3 text-sm text-muted-foreground max-[380px]:flex-col max-[380px]:gap-1"><span className="shrink-0">Livraison planifiée</span><span className="min-w-0 break-words text-right max-[380px]:text-left">{scheduledDeliveryLabel}</span></div>
           ) : null}
-          {pointsDiscount > 0 && <div className="flex justify-between text-sm font-medium text-pink-500"><span>Réduction Fidélité ({pointsToRedeem} pts)</span><span>-{pointsDiscount.toFixed(2)} CHF</span></div>}
-          {flexDiscount > 0 && <div className="flex justify-between text-sm font-medium text-emerald-600"><span>Réduction Offres (10%)</span><span>-{flexDiscount.toFixed(2)} CHF</span></div>}
-          <div className="flex justify-between font-bold text-lg border-t pt-2"><span>Total</span><span>{finalTotal.toFixed(2)} CHF</span></div>
+          {pointsDiscount > 0 && <div className="flex min-w-0 justify-between gap-3 text-sm font-medium text-pink-500"><span className="min-w-0 break-words">Réduction Fidélité ({pointsToRedeem} pts)</span><span className="shrink-0 text-right">-{pointsDiscount.toFixed(2)} CHF</span></div>}
+          {flexDiscount > 0 && <div className="flex min-w-0 justify-between gap-3 text-sm font-medium text-emerald-600"><span className="min-w-0 break-words">Réduction Offres (10%)</span><span className="shrink-0 text-right">-{flexDiscount.toFixed(2)} CHF</span></div>}
+          <div className="flex min-w-0 justify-between gap-3 border-t pt-2 text-lg font-bold"><span>Total</span><span className="shrink-0 text-right">{finalTotal.toFixed(2)} CHF</span></div>
           {!isCommercialDemoClient && earnedXp > 0 && (
-            <div className="flex items-center justify-between text-sm pt-1 text-pink-500">
-              <span className="flex items-center gap-1.5"><Sparkles className="h-3.5 w-3.5" />{donateEarnedXp ? "Miamz reversés aux démunis" : "Miamz gagnés avec cette commande"}</span>
-              <span className="font-semibold">+{earnedXp} Miamz</span>
+            <div className="flex min-w-0 items-start justify-between gap-3 pt-1 text-sm text-pink-500">
+              <span className="flex min-w-0 items-start gap-1.5 break-words"><Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0" />{donateEarnedXp ? "Miamz reversés aux démunis" : "Miamz gagnés avec cette commande"}</span>
+              <span className="shrink-0 text-right font-semibold">+{earnedXp} Miamz</span>
             </div>
           )}
         </div>
 
         {!isCommercialDemoClient && !isChefsTableCheckout && !isTokOneMember && orderMode === "delivery" && quotedDeliveryFee > 0 && (
-          <Link to="/tok-one" className="flex items-center gap-3 p-3 rounded-xl bg-violet-50 border border-violet-200 hover:bg-violet-100 transition-colors">
+          <Link to="/tok-one" className="flex min-w-0 items-center gap-3 rounded-xl border border-violet-200 bg-violet-50 p-3 transition-colors hover:bg-violet-100 max-[380px]:items-start">
             <Crown className="h-5 w-5 text-violet-600 shrink-0" />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-violet-900">Economisez jusqu’à {(quotedDeliveryFee + roundMoney((discountableSubtotal * TOK_ONE_DEFAULT_DISCOUNT_PERCENT) / 100)).toFixed(2)} CHF avec Tok One</p>
               <p className="text-xs text-violet-600">Livraison offerte et jusqu’à {TOK_ONE_DEFAULT_DISCOUNT_PERCENT}% de remise sur vos plats</p>
             </div>
-            <span className="text-xs font-semibold text-violet-600 shrink-0">Decouvrir →</span>
+            <span className="shrink-0 text-xs font-semibold text-violet-600 max-[380px]:sr-only">Découvrir →</span>
           </Link>
         )}
 

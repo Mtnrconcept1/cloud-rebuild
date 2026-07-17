@@ -1,9 +1,11 @@
 import type { CommercialDemoSnapshot } from "@/lib/commercialDemoJourney";
+import { slugifyRestaurantSegment } from "@/lib/restaurantSlugs";
 
 export function getCommercialDemoClientRestaurants(snapshot: CommercialDemoSnapshot) {
   const restaurant = snapshot.demo_restaurant;
   return [{
     ...restaurant,
+    slug: slugifyRestaurantSegment(restaurant.name),
     is_active: true,
     is_demo: true,
     delivery_available: restaurant.delivery_available ?? true,

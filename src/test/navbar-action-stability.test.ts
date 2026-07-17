@@ -55,7 +55,7 @@ describe("navbar action stability", () => {
   });
 
   it("keeps the desktop actualites tab immediately after explorer", () => {
-    const desktopNavigationStart = source.indexOf('<NavigationMenu className="hidden lg:flex">');
+    const desktopNavigationStart = source.indexOf('<NavigationMenu className="hidden xl:flex">');
     const explorerIndex = source.indexOf('to="/recherche" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"', desktopNavigationStart);
     const actualitesIndex = source.indexOf('to="/actualites" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"', desktopNavigationStart);
     const antiWasteIndex = source.indexOf('to="/anti-gaspi" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-accent transition-colors hover:text-accent/80"', desktopNavigationStart);
@@ -67,15 +67,15 @@ describe("navbar action stability", () => {
   });
 
   it("keeps the compact menu available through tablet widths before desktop navigation", () => {
-    expect(source).toContain('<NavigationMenu className="hidden lg:flex">');
-    expect(source).toContain('className="hidden h-20 w-20 lg:flex"');
-    expect(source).toContain("lg:hidden");
+    expect(source).toContain('<NavigationMenu className="hidden xl:flex">');
+    expect(source).toContain('className="hidden h-20 w-20 xl:flex"');
+    expect(source).toContain("xl:hidden");
     expect(source).not.toContain('<NavigationMenu className="hidden md:flex">');
   });
 
   it("keeps the desktop Help button to the right of the account menu", () => {
     const accountMenuIndex = source.indexOf('<DropdownMenu modal={false} open={accountMenuOpen}');
-    const compactHelpIndex = source.indexOf('<ChefHelpButton surface="client" compact className="hidden h-20 w-20 lg:flex" />');
+    const compactHelpIndex = source.indexOf('<ChefHelpButton surface="client" compact className="hidden h-20 w-20 xl:flex" />');
 
     expect(accountMenuIndex).toBeGreaterThan(-1);
     expect(compactHelpIndex).toBeGreaterThan(accountMenuIndex);
@@ -83,7 +83,7 @@ describe("navbar action stability", () => {
 
   it("keeps the desktop restaurants tab beside the notification actions", () => {
     const notificationIndex = source.indexOf("<NotificationBell");
-    const restaurantsActionIndex = source.indexOf('className="hidden h-11 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground lg:inline-flex"');
+    const restaurantsActionIndex = source.indexOf('className="hidden h-11 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground xl:inline-flex"');
     const accountMenuIndex = source.indexOf('<DropdownMenu modal={false} open={accountMenuOpen}');
 
     expect(notificationIndex).toBeGreaterThan(-1);

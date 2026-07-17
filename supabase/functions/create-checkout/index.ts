@@ -60,6 +60,70 @@ function normalizePaymentMethod(value: unknown) {
   return String(value || "card").trim().toLowerCase();
 }
 
+function assertRestaurantOnboardingSetupSessionIntegrity(input: {
+  session: Stripe.Checkout.Session;
+  livemode: boolean;
+  userId: string;
+  paymentAttemptId: string;
+  operationKey: string;
+  stripeCustomerId: string;
+}) {
+  const { session } = input;
+  const metadata = session.metadata || {};
+  const actualMode = input.livemode ? "live" : "test";
+  const sessionLivemode = (session as Stripe.Checkout.Session & { livemode?: boolean }).livemode;
+
+  if (session.mode !== "setup") {
+    throw new Error(`STRIPE_SETUP_MODE_MISMATCH:${session.mode}`);
+  }
+  if (metadata.checkout_kind !== "restaurant-onboarding") {
+    throw new Error("STRIPE_SETUP_CHECKOUT_KIND_MISMATCH");
+  }
+  if (metadata.stripe_mode && metadata.stripe_mode !== actualMode) {
+    throw new Error(`STRIPE_MODE_MISMATCH:${metadata.stripe_mode}:${actualMode}`);
+  }
+  if (typeof sessionLivemode === "boolean" && sessionLivemode !== input.livemode) {
+    throw new Error("STRIPE_SESSION_EVENT_MODE_MISMATCH");
+  }
+  if (session.payment_status !== "no_payment_required") {
+    throw new Error(`STRIPE_SETUP_PAYMENT_STATUS_MISMATCH:${session.payment_status}`);
+  }
+  if (session.amount_total != null && Number(session.amount_total) !== 0) {
+    throw new Error(`STRIPE_SETUP_AMOUNT_MISMATCH:${session.amount_total}`);
+  }
+  const sessionCurrency = String(session.currency || "").toLowerCase();
+  if (sessionCurrency && sessionCurrency !== "chf") {
+    throw new Error(`STRIPE_SETUP_CURRENCY_MISMATCH:${sessionCurrency}`);
+  }
+  if (readStripeObjectId(session.payment_intent) || readStripeObjectId(session.subscription)) {
+    throw new Error("STRIPE_SETUP_UNEXPECTED_PAYMENT_RESOURCE");
+  }
+  if (readStripeObjectId(session.customer) !== input.stripeCustomerId) {
+    throw new Error("STRIPE_SETUP_CUSTOMER_MISMATCH");
+  }
+  if (
+    metadata.user_id !== input.userId
+    || metadata.payment_attempt_id !== input.paymentAttemptId
+    || metadata.operation_key !== input.operationKey
+  ) {
+    throw new Error("STRIPE_SETUP_ATTEMPT_IDENTITY_MISMATCH");
+  }
+  if (
+    !metadata.signup_application_id
+    || !metadata.restaurant_id
+    || !metadata.plan_id
+    || !metadata.restaurant_subscription_plan_slug
+  ) {
+    throw new Error("STRIPE_SETUP_BUSINESS_IDENTITY_MISSING");
+  }
+  if (Number(metadata.authoritative_total_cents || 0) !== 0) {
+    throw new Error("STRIPE_SETUP_AUTHORITATIVE_TOTAL_MISMATCH");
+  }
+  if (Number(metadata.reserved_subscription_amount_cents || 0) <= 0) {
+    throw new Error("STRIPE_SETUP_RESERVED_SUBSCRIPTION_AMOUNT_MISSING");
+  }
+}
+
 function getCheckoutItemRestaurantId(item: CheckoutItem, fallbackRestaurantId: string) {
   return String(item?.restaurant_id || item?.restaurantId || fallbackRestaurantId);
 }
@@ -160,10 +224,11 @@ Deno.serve(async (req) => {
       throw new HttpError(400, "Ce parcours client doit etre regle avec un moyen de paiement Stripe.");
     }
 
+    const isRestaurantOnboardingSetup = effectiveKind === "restaurant-onboarding";
     const isSubscriptionCheckout =
       effectiveKind === "tok-one"
-      || effectiveKind === "restaurant-onboarding"
       || effectiveKind === "restaurant-subscription-upgrade";
+    const isSubscriptionLifecycleCheckout = isSubscriptionCheckout || isRestaurantOnboardingSetup;
     const stripeRuntime = getStripeRuntimeForCheckoutKind(effectiveKind);
     const stripe = stripeRuntime.stripe;
     const { data: preexistingAttempt, error: preexistingAttemptError } = await actor.adminClient
@@ -232,6 +297,7 @@ Deno.serve(async (req) => {
     let creditPackPurchaseId = "";
     let creditPackPurchaseDraft: Record<string, unknown> | null = null;
     let marketplaceRestaurantId = "";
+    let restaurantOnboardingStripeCustomerId = "";
     const chefTableHoldItems: Array<{ drop_id: string; quantity: number }> = [];
     let sessionMetadata: Record<string, string> = {
       user_id: actor.userId || "",
@@ -282,9 +348,11 @@ Deno.serve(async (req) => {
       const billingPeriod = String(order_metadata?.billing_period || "monthly") === "yearly"
         ? "yearly"
         : "monthly";
+      let applicationSubscriptionId = "";
 
       if (!planId) throw new HttpError(400, "plan_id requis");
       if (!restaurantId) throw new HttpError(400, "restaurant_id requis");
+      if (!signupApplicationId) throw new HttpError(400, "signup_application_id requis");
       if (billingPeriod !== "monthly") throw new HttpError(400, "Les abonnements restaurateur sont mensuels");
       if (normalizedPaymentMethod !== "card") {
         throw new HttpError(400, "L'onboarding restaurateur requiert un paiement par carte");
@@ -299,7 +367,7 @@ Deno.serve(async (req) => {
       if (signupApplicationId) {
         const { data: application, error: applicationError } = await actor.adminClient
           .from("signup_applications")
-          .select("id, user_id, requested_role, metadata")
+          .select("id, user_id, requested_role, selected_subscription_plan_id, selected_subscription_billing_period, restaurant_subscription_id, metadata")
           .eq("id", signupApplicationId)
           .maybeSingle();
 
@@ -313,8 +381,17 @@ Deno.serve(async (req) => {
           ? application.metadata as Record<string, unknown>
           : {};
         const applicationRestaurantId = String(applicationMetadata.restaurant_id || "");
-        const selectedPlanId = String(applicationMetadata.selected_subscription_plan_id || "");
-        const selectedBillingPeriod = String(applicationMetadata.selected_subscription_billing_period || "monthly");
+        const selectedPlanId = String(
+          application.selected_subscription_plan_id
+          || applicationMetadata.selected_subscription_plan_id
+          || "",
+        );
+        const selectedBillingPeriod = String(
+          application.selected_subscription_billing_period
+          || applicationMetadata.selected_subscription_billing_period
+          || "monthly",
+        );
+        applicationSubscriptionId = String(application.restaurant_subscription_id || "");
 
         if (applicationRestaurantId && applicationRestaurantId !== restaurantId) {
           throw new HttpError(403, "Restaurant du dossier invalide");
@@ -342,43 +419,100 @@ Deno.serve(async (req) => {
 
       const { data: existingSub, error: existingSubError } = await actor.adminClient
         .from("restaurant_ai_subscriptions")
-        .select("id, status, current_period_end")
+        .select("id, status, current_period_end, signup_application_id, restaurant_subscription_plan_id")
         .eq("restaurant_id", restaurantId)
+        .eq("signup_application_id", signupApplicationId)
+        .eq("restaurant_subscription_plan_id", planId)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
 
       if (existingSubError) throw new HttpError(500, existingSubError.message);
-      const hasActiveSubscription = Boolean(
-        existingSub &&
-        isTokOneEntitledStatus(existingSub.status) &&
-        (!existingSub.current_period_end || new Date(existingSub.current_period_end) > new Date()),
-      );
-      if (hasActiveSubscription) {
-        throw new HttpError(409, "Vous avez deja un abonnement actif");
+      if (!existingSub) {
+        throw new HttpError(409, "Le contrat d'abonnement réservé n'est pas encore prêt");
+      }
+      if (applicationSubscriptionId && existingSub.id !== applicationSubscriptionId) {
+        throw new HttpError(409, "Le contrat d'abonnement ne correspond pas au dossier");
       }
 
-      lineItems = [{
-        price_data: {
-          currency: "chf",
-          product_data: {
-            name: `Abonnement restaurateur TOK - ${plan.name}`,
-            description: String(plan.description || ""),
-            metadata: {
-              restaurant_subscription_plan_id: plan.id,
-              restaurant_subscription_plan_slug: plan.slug,
-            },
-          },
-          recurring: {
-            interval: "month",
-          },
-          unit_amount: Math.round(subscriptionAmount * 100),
-        },
-        quantity: 1,
-      }];
+      const existingSubscriptionStatus = String(existingSub.status || "").toLowerCase();
+      if (!["awaiting_payment_method", "past_due"].includes(existingSubscriptionStatus)) {
+        if (["awaiting_activation", "activation_pending"].includes(existingSubscriptionStatus)) {
+          throw new HttpError(409, "Votre carte est déjà enregistrée pour cet abonnement");
+        }
+        if (isTokOneEntitledStatus(existingSubscriptionStatus)) {
+          throw new HttpError(409, "Vous avez deja un abonnement actif");
+        }
+        throw new HttpError(409, "Ce parcours d'onboarding n'est plus disponible pour cet abonnement");
+      }
 
+      if (existingSub?.id) {
+        const { data: savedPaymentMethod, error: savedPaymentMethodError } = await actor.adminClient
+          .from("restaurant_subscription_payment_methods")
+          .select("stripe_customer_id")
+          .eq("subscription_id", existingSub.id)
+          .maybeSingle();
+        if (savedPaymentMethodError) {
+          throw new HttpError(500, savedPaymentMethodError.message);
+        }
+        restaurantOnboardingStripeCustomerId = String(savedPaymentMethod?.stripe_customer_id || "");
+      }
+      if (
+        restaurantOnboardingStripeCustomerId
+        && !restaurantOnboardingStripeCustomerId.startsWith("cus_")
+      ) {
+        throw new HttpError(500, "Identifiant client Stripe restaurateur invalide");
+      }
+
+      if (!restaurantOnboardingStripeCustomerId) {
+        const customerSearch = await stripe.customers.search({
+          query: `metadata['signup_application_id']:'${signupApplicationId}'`,
+          limit: 10,
+        });
+        const matchingCustomer = customerSearch.data.find((customer) =>
+          customer.metadata?.restaurant_id === restaurantId
+          && customer.metadata?.user_id === actor.userId
+        );
+
+        if (matchingCustomer) {
+          restaurantOnboardingStripeCustomerId = matchingCustomer.id;
+        } else {
+          const onboardingUser = actor.userClient
+            ? await actor.userClient.auth.getUser()
+            : null;
+          const customer = await stripe.customers.create(
+            {
+              email: onboardingUser?.data.user?.email || undefined,
+              metadata: {
+                checkout_kind: "restaurant-onboarding",
+                signup_application_id: signupApplicationId,
+                restaurant_id: restaurantId,
+                user_id: actor.userId,
+              },
+            },
+            {
+              idempotencyKey: `tok-restaurant-onboarding-customer:${signupApplicationId}`,
+            },
+          );
+          restaurantOnboardingStripeCustomerId = customer.id;
+        }
+      }
+      // Onboarding only saves a reusable card for a future off-session charge.
+      // No subscription, invoice or card authorization is created here: the
+      // durable activation worker starts billing after the first qualifying
+      // reservation/order.
+      lineItems = [];
+
+      // A Stripe object accepts at most 50 metadata pairs. Keep the setup
+      // session deliberately small and authoritative: entitlements are read
+      // from the versioned plan in Postgres when the deferred worker starts
+      // the real subscription.
       sessionMetadata = {
-        ...sessionMetadata,
+        user_id: actor.userId,
+        checkout_kind: effectiveKind,
+        stripe_mode: stripeRuntime.mode,
+        stripe_key_scope: stripeRuntime.isolatedTokOneKey ? "tok_one" : "default",
+        payment_method_label: "card",
         restaurant_id: restaurantId,
         signup_application_id: signupApplicationId,
         plan_id: plan.id,
@@ -387,15 +521,10 @@ Deno.serve(async (req) => {
         plan_name: plan.name,
         billing_period: "monthly",
         subscription_amount: subscriptionAmount.toFixed(2),
-        campaign_credit_chf: Number(plan.campaign_credit_chf || 0).toFixed(2),
-        ai_tool_credits: String(plan.ai_tool_credits || 0),
-        ai_photo_credits: String(plan.ai_photo_credits || 0),
-        monthly_conversation_limit: String(plan.monthly_conversation_limit || 0),
-        monthly_text_tool_limit: String(plan.monthly_text_tool_limit || 0),
-        monthly_image_limit: String(plan.monthly_image_limit || 0),
-        monthly_premium_image_limit: String(plan.monthly_premium_image_limit || 0),
-        monthly_voice_minutes_limit: String(plan.monthly_voice_minutes_limit || 0),
-        authoritative_total: subscriptionAmount.toFixed(2),
+        reserved_subscription_amount_cents: String(Math.round(subscriptionAmount * 100)),
+        billing_start_trigger: "first_real_reservation_or_order",
+        activation_recovery: existingSubscriptionStatus === "past_due" ? "true" : "false",
+        authoritative_total: "0.00",
       };
     } else if (effectiveKind === "restaurant-subscription-upgrade") {
       const planId = String(order_metadata?.plan_id || "");
@@ -1059,7 +1188,7 @@ Deno.serve(async (req) => {
     // A different client UUID must not create a second simultaneous
     // subscription. The database also enforces this invariant to close the
     // race between these read and acquire calls.
-    if (isSubscriptionCheckout) {
+    if (isSubscriptionLifecycleCheckout) {
       const subscriptionKinds = effectiveKind === "tok-one"
         ? ["tok-one"]
         : ["restaurant-onboarding", "restaurant-subscription-upgrade"];
@@ -1135,12 +1264,23 @@ Deno.serve(async (req) => {
       if (String(existingSession.metadata?.operation_key || "") !== acquiredAttempt.operationKey) {
         throw new HttpError(409, "La session Stripe existante ne correspond pas a cette tentative");
       }
-      assertCheckoutSessionIntegrity({
-        session: existingSession,
-        livemode: stripeRuntime.mode === "live",
-        expectedAmountCents: acquiredAttempt.amountCents,
-        expectedCurrency: acquiredAttempt.currency,
-      });
+      if (isRestaurantOnboardingSetup) {
+        assertRestaurantOnboardingSetupSessionIntegrity({
+          session: existingSession,
+          livemode: stripeRuntime.mode === "live",
+          userId: actor.userId,
+          paymentAttemptId: acquiredAttempt.attemptId,
+          operationKey: acquiredAttempt.operationKey,
+          stripeCustomerId: restaurantOnboardingStripeCustomerId,
+        });
+      } else {
+        assertCheckoutSessionIntegrity({
+          session: existingSession,
+          livemode: stripeRuntime.mode === "live",
+          expectedAmountCents: acquiredAttempt.amountCents,
+          expectedCurrency: acquiredAttempt.currency,
+        });
+      }
 
       if (existingSession.status === "open" && existingSession.url) {
         return jsonResponse({
@@ -1151,6 +1291,23 @@ Deno.serve(async (req) => {
           url: existingSession.url,
           reused: true,
           state: "session_bound",
+        }, 200, corsHeaders);
+      }
+
+      if (isRestaurantOnboardingSetup && existingSession.status === "complete") {
+        const setupIntentId = readStripeObjectId(existingSession.setup_intent);
+        if (!setupIntentId) {
+          throw new HttpError(503, "PAYMENT_ATTEMPT_SETUP_INTENT_INDETERMINATE");
+        }
+        return jsonResponse({
+          payment_attempt_id: clientPaymentAttemptId,
+          server_payment_attempt_id: acquiredAttempt.attemptId,
+          sessionId: existingSession.id,
+          session_id: existingSession.id,
+          setup_intent_id: setupIntentId,
+          url: null,
+          reused: true,
+          state: acquiredAttempt.state === "finalized" ? "finalized" : "setup_complete",
         }, 200, corsHeaders);
       }
 
@@ -1274,11 +1431,12 @@ Deno.serve(async (req) => {
     const userEmail = userLookup?.data.user?.email || undefined;
 
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
-      line_items: lineItems,
       mode: isSubscriptionCheckout ? "subscription" : "payment",
       success_url: `${safeReturnUrl}${urlSeparator}session_id={CHECKOUT_SESSION_ID}&payment_attempt_id=${encodeURIComponent(clientPaymentAttemptId)}&status=success`,
       cancel_url: `${safeReturnUrl}${urlSeparator}payment_attempt_id=${encodeURIComponent(clientPaymentAttemptId)}&status=cancelled`,
-      customer_email: userEmail,
+      customer_email: isRestaurantOnboardingSetup && restaurantOnboardingStripeCustomerId
+        ? undefined
+        : userEmail,
       client_reference_id: actor.userId || undefined,
       metadata: sessionMetadata,
     };
@@ -1291,7 +1449,17 @@ Deno.serve(async (req) => {
       sessionParams.expires_at = Math.floor(Date.now() / 1000) + (31 * 60);
     }
 
-    if (marketplaceRouting.enabled && marketplaceRouting.destinationAccountId) {
+    if (!isRestaurantOnboardingSetup) {
+      sessionParams.line_items = lineItems;
+    }
+
+    // A SetupIntent does not move money. Marketplace and developer revenue
+    // allocation is applied only to the future subscription invoice.
+    if (
+      !isRestaurantOnboardingSetup
+      && marketplaceRouting.enabled
+      && marketplaceRouting.destinationAccountId
+    ) {
       sessionParams.payment_intent_data = {
         application_fee_amount: marketplaceRouting.platformFeeCents,
         transfer_data: {
@@ -1314,6 +1482,21 @@ Deno.serve(async (req) => {
           },
         };
       }
+    }
+
+    if (isRestaurantOnboardingSetup) {
+      sessionParams.mode = "setup";
+      sessionParams.customer = restaurantOnboardingStripeCustomerId;
+      sessionParams.payment_method_types = ["card"];
+      sessionParams.custom_text = {
+        submit: {
+          message: "Aucun montant n’est débité ni bloqué aujourd’hui. En enregistrant cette carte, vous autorisez TOK à débiter l’abonnement lors de la première réservation ou commande client.",
+        },
+      };
+      sessionParams.setup_intent_data = {
+        description: "Abonnement restaurateur TOK à activer à la première activité client",
+        metadata: sessionMetadata,
+      };
     }
 
     let couponParams: Stripe.CouponCreateParams | null = null;
@@ -1469,12 +1652,23 @@ Deno.serve(async (req) => {
     }
 
     try {
-      assertCheckoutSessionIntegrity({
-        session,
-        livemode: stripeRuntime.mode === "live",
-        expectedAmountCents: acquiredAttempt.amountCents,
-        expectedCurrency: acquiredAttempt.currency,
-      });
+      if (isRestaurantOnboardingSetup) {
+        assertRestaurantOnboardingSetupSessionIntegrity({
+          session,
+          livemode: stripeRuntime.mode === "live",
+          userId: actor.userId,
+          paymentAttemptId: acquiredAttempt.attemptId,
+          operationKey: acquiredAttempt.operationKey,
+          stripeCustomerId: restaurantOnboardingStripeCustomerId,
+        });
+      } else {
+        assertCheckoutSessionIntegrity({
+          session,
+          livemode: stripeRuntime.mode === "live",
+          expectedAmountCents: acquiredAttempt.amountCents,
+          expectedCurrency: acquiredAttempt.currency,
+        });
+      }
     } catch (integrityError) {
       try {
         await expireAndAbandonKnownSession("stripe_session_integrity_mismatch");
@@ -1734,5 +1928,3 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: message }, 500, corsHeaders);
   }
 });
-
-

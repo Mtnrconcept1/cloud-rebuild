@@ -121,7 +121,9 @@ describe("commercial demo visible navigation isolation", () => {
   });
 
   it("hydrates the restaurant selector only from the validated snapshot in a frame", () => {
-    expect(dashboardContext).toContain("useOwnerRestaurants({ enabled: !commercialDemoFrame })");
+    expect(dashboardContext).toContain(
+      "useOwnerRestaurants({ enabled: !commercialDemoFrame })",
+    );
     expect(dashboardContext).toContain(
       "commercialDemoFrame?.snapshot.session.demo_restaurant_id",
     );
@@ -162,7 +164,7 @@ describe("commercial demo visible navigation isolation", () => {
   it("removes session-ending controls from the embedded restaurant shell", () => {
     expect(restaurantLayout.match(/<SignOutButton/g)).toHaveLength(3);
     expect(restaurantLayout).toContain(
-      "{!commercialDemoFrame ? <SignOutButton iconOnly /> : null}",
+      '{!commercialDemoFrame ? <SignOutButton iconOnly className="hidden min-[420px]:inline-flex" /> : null}',
     );
     expect(restaurantLayout.match(/!commercialDemoFrame \? \(/g).length).toBeGreaterThanOrEqual(4);
   });

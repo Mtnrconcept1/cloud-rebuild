@@ -180,6 +180,7 @@ Deno.serve(async (req) => {
       iban: sanitizeText(form.get("iban"), 80),
       subscription_plan_id: sanitizeText(form.get("subscription_plan_id"), 80),
       subscription_billing_period: sanitizeText(form.get("subscription_billing_period"), 20).toLowerCase(),
+      commercial_referral_token: sanitizeText(form.get("commercial_referral_token"), 80).toLowerCase(),
       terms_accepted: sanitizeText(form.get("terms_accepted"), 20).toLowerCase(),
       privacy_policy_accepted: sanitizeText(form.get("privacy_policy_accepted"), 20).toLowerCase(),
       legal_acceptance_version: sanitizeText(form.get("legal_acceptance_version"), 40),
@@ -193,6 +194,10 @@ Deno.serve(async (req) => {
     requireInput(UUID_PATTERN.test(userId), "invalid_user_id");
     requireInput(actor.userId === userId, "user_id_mismatch");
     if (email) requireInput(EMAIL_PATTERN.test(email), "invalid_email");
+    if (fields.commercial_referral_token) {
+      requireInput(role === "restaurateur", "commercial_referral_restaurateur_only");
+      requireInput(UUID_PATTERN.test(fields.commercial_referral_token), "invalid_commercial_referral_token");
+    }
     const validationError = validateSubmissionFields(role, fields);
     if (validationError) throw new HttpError(400, validationError);
 
@@ -235,7 +240,10 @@ Deno.serve(async (req) => {
         onboarding_source: "auth_signup_edge",
         selected_subscription_plan_id: fields.subscription_plan_id,
         selected_subscription_billing_period: fields.subscription_billing_period,
-        onboarding_payment_status: "pending_payment",
+        ...(fields.commercial_referral_token
+          ? { commercial_referral_token: fields.commercial_referral_token }
+          : {}),
+        onboarding_payment_status: "payment_method_required",
         contract_version: fields.contract_version,
         contract_title: fields.contract_title || "Contrat de partenariat restaurateur TOK",
         contract_signer_name: fields.contract_signer_name,

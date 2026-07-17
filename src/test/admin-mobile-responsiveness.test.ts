@@ -12,7 +12,7 @@ describe("admin mobile responsiveness guards", () => {
   it("renders shared tables as labeled cards below md", () => {
     const table = readProjectFile("src/components/ui/table.tsx");
 
-    expect(table).toContain("overflow-x-hidden md:overflow-auto");
+    expect(table).toContain("min-w-0 max-w-full overflow-x-auto overscroll-x-contain");
     expect(table).toContain("max-md:block");
     expect(table).toContain("max-md:sr-only");
     expect(table).toContain("max-md:before:content-[attr(data-label)]");

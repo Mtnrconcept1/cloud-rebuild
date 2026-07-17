@@ -132,7 +132,7 @@ export default function UpsellModal({
 
   return (
     <Dialog open={open} onOpenChange={(val) => { if (!val) onClose(); }}>
-      <DialogContent className="flex max-h-[calc(100dvh-1rem)] flex-col overflow-hidden bg-background p-0 sm:max-w-md">
+      <DialogContent className="flex max-h-[calc(100dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)-1rem)] flex-col overflow-hidden bg-background p-0 sm:max-w-md">
         <div className="relative flex min-h-0 flex-1 flex-col">
           <Button 
             variant="ghost" 

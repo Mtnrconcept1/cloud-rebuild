@@ -12,10 +12,26 @@ describe("Actualites responsive guards", () => {
     const page = read("src/pages/Actualites.tsx");
     const card = read("src/components/social/SocialPostCard.tsx");
     const app = read("src/App.tsx");
+    const dialog = read("src/components/ui/dialog.tsx");
+    const alertDialog = read("src/components/ui/alert-dialog.tsx");
 
     expect(app).toContain("{publicNavbar}");
     expect(app).not.toContain('max-sm:hidden">{publicNavbar}</div>');
-    expect(page).toContain("overflow-x-hidden");
+    expect(dialog).toContain("hideCloseButton?: boolean;");
+    expect(dialog).toContain("{!hideCloseButton ? (");
+    expect(dialog).toContain(
+      "max-h-[calc(100dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)-1rem)]",
+    );
+    expect(dialog).toContain(
+      "w-[calc(100vw-env(safe-area-inset-left,0px)-env(safe-area-inset-right,0px)-1rem)]",
+    );
+    expect(alertDialog).toContain(
+      "max-h-[calc(100dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)-1rem)]",
+    );
+    expect(alertDialog).toContain(
+      "w-[calc(100vw-env(safe-area-inset-left,0px)-env(safe-area-inset-right,0px)-1rem)]",
+    );
+    expect(page).toContain("overflow-x-clip");
     expect(page).toContain("xl:grid-cols-[minmax(0,1fr)_minmax(18rem,21rem)]");
     expect(page).toContain("container grid min-w-0 gap-5");
     expect(page).toContain("min-w-0 max-w-full space-y-2");
@@ -35,6 +51,7 @@ describe("Actualites responsive guards", () => {
     expect(page).toContain("<BellRing");
     expect(page).toContain("<Rocket");
     expect(page).toContain("max-sm:ml-[12.5rem]");
+    expect(page).toContain("max-[379px]:ml-0");
     expect(page).toContain("onSponsorClick={() => setSponsorDialogRequest");
     expect(page).toContain('id="actualites-composer"');
     expect(page).not.toContain(
@@ -69,6 +86,10 @@ describe("Actualites responsive guards", () => {
     expect(card).toContain("collapsedMobileBody");
     expect(card).toContain("Afficher plus");
     expect(card).toContain("max-sm:h-10 max-sm:w-screen");
+    expect(card).toContain(
+      "max-sm:relative max-sm:left-1/2 max-sm:mt-2.5 max-sm:h-10 max-sm:w-screen max-sm:-translate-x-1/2",
+    );
+    expect(card).not.toContain("max-sm:-mx-6");
     expect(card).toContain("max-sm:rounded-none");
     expect(card).toContain("max-sm:max-h-6");
     expect(card).toContain("max-sm:px-2 max-sm:py-0.5 max-sm:text-[11px]");
@@ -76,7 +97,15 @@ describe("Actualites responsive guards", () => {
       "hidden whitespace-pre-wrap text-sm font-medium leading-5 text-slate-950 max-sm:block",
     );
     expect(card).toContain("Voir le menu");
-    expect(card).toContain("grid-cols-[repeat(6,minmax(0,1fr))]");
+    expect(card).toContain(
+      "grid min-w-0 grid-cols-[repeat(5,minmax(0,1fr))] gap-1",
+    );
+    expect(card).toContain(
+      "grid min-w-0 grid-cols-[repeat(6,minmax(0,1fr))] gap-1",
+    );
+    expect(card).toContain("hidden -space-x-1 sm:flex");
+    expect(card).toContain("max-sm:gap-0.5 max-sm:rounded-xl max-sm:px-0.5 max-sm:text-xs");
+    expect(card).toContain('<span className="max-sm:sr-only">');
     expect(card).toContain("MobileMediaActionRail");
     expect(card).toContain('hasMedia && "max-sm:mt-2 max-sm:px-0"');
     expect(card).not.toContain('hasMedia && "max-sm:hidden"');
@@ -111,7 +140,10 @@ describe("Actualites responsive guards", () => {
     expect(carousel).toContain("flex max-h-[min(62dvh,36rem)] items-center justify-center");
     expect(carousel).toContain("Like/commentaire visibles");
     expect(carousel).toContain("lightboxEngagement");
-    expect(carousel).toContain("max-sm:-mx-6 max-sm:w-screen");
+    expect(carousel).toContain(
+      "max-sm:relative max-sm:left-1/2 max-sm:w-screen max-sm:-translate-x-1/2",
+    );
+    expect(carousel).not.toContain("max-sm:-mx-6");
     expect(carousel).toContain("max-sm:rounded-none");
     expect(carousel).toContain("max-sm:border-0 max-sm:shadow-none");
     expect(carousel).toContain("flex max-h-[min(70dvh,42rem)] items-center justify-center");
@@ -122,6 +154,20 @@ describe("Actualites responsive guards", () => {
     expect(carousel).toContain('"h-auto w-full"');
     expect(carousel).not.toContain('className="h-full w-full object-cover"');
     expect(carousel).toContain('preload="metadata"');
+    expect(carousel).toContain("<DialogContent\n        hideCloseButton");
+    expect(carousel).toContain(
+      'className="flex h-[100dvh] max-h-none w-screen max-w-none',
+    );
+    expect(carousel).toContain(
+      "left-[calc(env(safe-area-inset-left,0px)+1rem)]",
+    );
+    expect(carousel).toContain(
+      "right-[calc(env(safe-area-inset-right,0px)+1.25rem)]",
+    );
+    expect(carousel).toContain(
+      "pb-[calc(env(safe-area-inset-bottom,0px)+1rem)]",
+    );
+    expect(carousel.match(/aria-label="Fermer le média"/g) ?? []).toHaveLength(1);
   });
 
   it("keeps the restaurant dashboard composer controls inside their column", () => {
@@ -179,7 +225,7 @@ describe("Actualites responsive guards", () => {
     expect(dashboard).toContain("grid grid-cols-2 gap-1.5 sm:gap-2");
     expect(dashboard).toContain("grid grid-cols-4 gap-1.5 rounded-2xl");
     expect(dashboard).toContain("w-[92vw] max-w-none flex-col overflow-hidden");
-    expect(dashboard).toContain("overflow-y-auto px-4 py-4 sm:px-5");
+    expect(dashboard).toContain("overflow-y-auto px-4 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pt-4 sm:px-5");
     expect(dashboard).toContain('<span className="sm:hidden">Impr.</span>');
     expect(dashboard).toContain('<span className="sm:hidden">Eng.</span>');
     expect(dashboard).toContain("aria-label={label} title={label}");

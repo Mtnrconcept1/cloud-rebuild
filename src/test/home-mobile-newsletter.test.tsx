@@ -13,19 +13,20 @@ describe("HeroSection mobile newsletter", () => {
     );
 
     const mobileHero = screen.getByTestId("mobile-hero-shell");
-    expect(mobileHero).toHaveClass("min-h-[calc(100svh-64px)]");
-    expect(screen.getByTestId("mobile-hero-panel")).toHaveClass("min-h-[calc(100svh-64px)]");
+    const safeMobileHeight = "min-h-[calc(100svh_-_66px_-_env(safe-area-inset-top,0px))]";
+    expect(mobileHero).toHaveClass(safeMobileHeight);
+    expect(screen.getByTestId("mobile-hero-panel")).toHaveClass(safeMobileHeight);
     expect(mobileHero.innerHTML).toContain("fondacceuil.png");
     expect((mobileHero.innerHTML.match(/fondacceuil\.png/g) ?? [])).toHaveLength(1);
     expect(mobileHero.innerHTML).toContain("bg-[position:50%_0%]");
     expect(mobileHero.innerHTML).toContain("bg-[length:100%_auto]");
     expect(mobileHero.innerHTML).toContain("bg-no-repeat");
-    expect(mobileHero.innerHTML).toContain("bottom-2 space-y-2");
-    expect(mobileHero.innerHTML).toContain("pt-9 text-center min-[390px]:pt-10");
+    expect(mobileHero.innerHTML).toContain("mt-auto space-y-2");
+    expect(mobileHero.innerHTML).toContain("px-4 pb-1 pt-5 text-center min-[360px]:px-5 min-[390px]:pt-8");
     expect(mobileHero.innerHTML).toContain("translate-x-[12px]");
     expect(mobileHero.innerHTML).toContain("w-full max-w-[390px]");
     expect(mobileHero.innerHTML).toContain("[font-family:'Playball',cursive]");
-    expect(mobileHero.innerHTML).toContain("text-[2.16rem] font-normal");
+    expect(mobileHero.innerHTML).toContain("text-[clamp(1.78rem,9.4vw,2.34rem)] font-normal");
     expect(mobileHero.innerHTML).toContain("font-black italic");
     expect(screen.getByText("Réservez et commandez")).toBeInTheDocument();
     expect(screen.getByText("offres food")).toBeInTheDocument();

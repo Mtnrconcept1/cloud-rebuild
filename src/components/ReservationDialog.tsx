@@ -670,7 +670,7 @@ export default function ReservationDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="flex max-h-[calc(100dvh-1rem)] flex-col overflow-hidden p-0 sm:max-w-md">
+        <DialogContent className="flex max-h-[calc(100dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)-1rem)] flex-col overflow-hidden p-0 sm:max-w-md">
           <DialogTitle className="sr-only">Reservation</DialogTitle>
           <DialogDescription className="sr-only">
             Choisissez une date, un créneau disponible et le nombre de convives pour réserver une table.
@@ -921,9 +921,9 @@ export default function ReservationDialog({
             {step === "confirm" && (
               <>
                 <div className="space-y-2 rounded-xl bg-secondary/50 p-4 text-sm">
-                  <div className="flex justify-between"><span className="text-muted-foreground">Restaurant</span><span className="font-medium">{restaurantName}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Date</span><span className="font-medium">{date ? format(date, "EEEE d MMMM yyyy", { locale: fr }) : ""}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Heure</span><span className="font-medium">{time}</span></div>
+                  <div className="flex min-w-0 justify-between gap-3 max-[380px]:flex-col max-[380px]:gap-1"><span className="shrink-0 text-muted-foreground">Restaurant</span><span className="min-w-0 break-words text-right font-medium max-[380px]:text-left">{restaurantName}</span></div>
+                  <div className="flex min-w-0 justify-between gap-3 max-[380px]:flex-col max-[380px]:gap-1"><span className="shrink-0 text-muted-foreground">Date</span><span className="min-w-0 break-words text-right font-medium max-[380px]:text-left">{date ? format(date, "EEEE d MMMM yyyy", { locale: fr }) : ""}</span></div>
+                  <div className="flex min-w-0 justify-between gap-3"><span className="shrink-0 text-muted-foreground">Heure</span><span className="min-w-0 break-words text-right font-medium">{time}</span></div>
                   <div className="flex items-center justify-between gap-3">
                     <Label htmlFor="reservation-confirm-party-size" className="text-muted-foreground">
                       Convives
@@ -939,9 +939,9 @@ export default function ReservationDialog({
                     />
                   </div>
                   {selectedPromo && (
-                    <div className="flex justify-between border-t pt-2">
-                      <span className="text-muted-foreground">{selectedPromo.kind === "progressive" ? "Offre progressive" : "Formule"}</span>
-                      <span className="font-semibold text-miamz-green">{selectedPromo.label} {selectedPromo.discountLabel}</span>
+                    <div className="flex min-w-0 justify-between gap-3 border-t pt-2 max-[380px]:flex-col max-[380px]:gap-1">
+                      <span className="shrink-0 text-muted-foreground">{selectedPromo.kind === "progressive" ? "Offre progressive" : "Formule"}</span>
+                      <span className="min-w-0 break-words text-right font-semibold text-miamz-green max-[380px]:text-left">{selectedPromo.label} {selectedPromo.discountLabel}</span>
                     </div>
                   )}
                 </div>
@@ -994,3 +994,4 @@ export default function ReservationDialog({
     </>
   );
 }
+

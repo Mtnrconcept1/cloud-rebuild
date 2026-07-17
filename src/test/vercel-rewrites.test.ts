@@ -166,11 +166,29 @@ describe("vercel config", () => {
     });
     expect(commercialHeaders).toContainEqual({ key: "Referrer-Policy", value: "no-referrer" });
     expect(commercialHeaders).toContainEqual({ key: "X-Frame-Options", value: "SAMEORIGIN" });
-    const commercialCsp = commercialHeaders.find((header) => header.key === "Content-Security-Policy")?.value || "";
+    const commercialCsp = commercialHeaders.find(
+      (header) => header.key === "Content-Security-Policy",
+    )?.value || "";
     expect(commercialCsp).toContain("connect-src 'self'");
     expect(commercialCsp).toContain("https://*.supabase.co");
     expect(commercialCsp).toContain("https://api.stripe.com");
     expect(commercialCsp).not.toContain("https://api.openai.com");
+  });
+
+  it("serves noindex headers on exact and nested private routes without prefix overmatching", () => {
+    const config = JSON.parse(readFileSync(path.resolve(process.cwd(), "vercel.json"), "utf8")) as {
+      headers?: Array<{ source?: string; headers?: Array<{ key?: string; value?: string }> }>;
+    };
+    const noindexSources = (config.headers || [])
+      .filter((entry) => entry.headers?.some((header) => header.key === "X-Robots-Tag"))
+      .map((entry) => entry.source);
+    const privateSurfacePattern = "/:surface(admin|dashboard|courier|commercial|profil|notifications|commandes|commande|reservations|mon-espace|compte|espace-client|mes-avis|points-cadeau|panier|auth|oauth)";
+
+    expect(noindexSources).toContain(privateSurfacePattern);
+    expect(noindexSources).toContain(`${privateSurfacePattern}/:path*`);
+    expect(noindexSources).toContain("/tok-connect/developer");
+    expect(noindexSources).toContain("/tok-connect/developer/:path*");
+    expect(noindexSources).not.toContain(expect.stringContaining(")(.*)"));
   });
 
   it("keeps delivery map routing compatible with production CSP and Leaflet cleanup", () => {
