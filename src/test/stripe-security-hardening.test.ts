@@ -84,6 +84,9 @@ describe("Stripe release-blocker hardening", () => {
     expect(migration).toContain("validated_ledger_checksum");
     expect(migration).toContain("financial_ledger_reject_commercial_demo");
     expect(migration).toContain("v_kind IN ('order', 'zero-attente', 'chefs-table', 'match-group')");
-    expect(migration).not.toContain("format(\n");
+    expect(
+      migration.match(/CREATE OR REPLACE FUNCTION public\.record_marketplace_checkout_ledger\(/g),
+    ).toHaveLength(1);
+    expect(migration.match(/~ '\^\[0-9\]\{1,5\}\$'/g)).toHaveLength(2);
   });
 });
