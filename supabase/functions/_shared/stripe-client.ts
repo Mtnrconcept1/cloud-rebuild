@@ -13,6 +13,12 @@ export type StripeRuntime = {
   isolatedTokOneKey: boolean;
 };
 
+export type StripeWebhookSigningSecret = {
+  secret: string;
+  expectedMode: StripeRuntimeMode;
+  source: string;
+};
+
 type SecretCandidate = {
   name: string;
   value: string;
@@ -44,7 +50,45 @@ function splitSecrets(value: string | null | undefined) {
   return value
     .split(/[,\n]/)
     .map((secret) => secret.trim())
-    .filter(Boolean);
+    .filter((secret) => secret.startsWith("whsec_"));
+}
+
+function readWebhookSigningSecrets(
+  names: string[],
+  expectedMode: StripeRuntimeMode,
+): StripeWebhookSigningSecret[] {
+  return names.flatMap((name) =>
+    splitSecrets(getEnv(name)).map((secret) => ({
+      secret,
+      expectedMode,
+      source: name,
+    }))
+  );
+}
+
+export function mergeStripeWebhookSigningSecrets(
+  candidates: StripeWebhookSigningSecret[],
+) {
+  const bySecret = new Map<string, StripeWebhookSigningSecret>();
+
+  for (const candidate of candidates) {
+    if (!candidate.secret.startsWith("whsec_")) continue;
+
+    const existing = bySecret.get(candidate.secret);
+    if (existing && existing.expectedMode !== candidate.expectedMode) {
+      throw new HttpError(503, "STRIPE_WEBHOOK_SECRET_MODE_CONFLICT");
+    }
+    if (!existing) bySecret.set(candidate.secret, candidate);
+  }
+
+  return Array.from(bySecret.values());
+}
+
+export function stripeWebhookEventMatchesExpectedMode(
+  livemode: boolean,
+  expectedMode: StripeRuntimeMode,
+) {
+  return livemode === (expectedMode === "live");
 }
 
 function readCandidates(names: string[]) {
@@ -108,6 +152,7 @@ export function getStripeRuntimeForCheckoutKind(checkoutKind: unknown) {
         "STRIPE_SECRET_KEY",
       ],
       purpose: "Tok One Stripe secret",
+      expectedMode: "live",
       isolatedTokOneKey: true,
     });
   }
@@ -115,6 +160,7 @@ export function getStripeRuntimeForCheckoutKind(checkoutKind: unknown) {
   return selectRuntime({
     names: ["STRIPE_PERSONNAL_SECRET_KEY", "STRIPE_PERSONAL_SECRET_KEY", "STRIPE_SECRET_KEY_LIVE", "STRIPE_SECRET_KEY"],
     purpose: "STRIPE_SECRET_KEY",
+    expectedMode: "live",
   });
 }
 
@@ -235,25 +281,27 @@ export function getStripeVerificationRuntime() {
       "STRIPE_PERSONAL_SECRET_KEY",
       "STRIPE_SECRET_KEY_LIVE",
       "STRIPE_SECRET_KEY",
-      "STRIPE_TOK_ONE_TEST_SECRET_KEY",
       "STRIPE_TOK_ONE_SECRET_KEY",
     ],
     purpose: "Stripe verification secret",
+    expectedMode: "live",
   });
 }
 
 export function getStripeWebhookSigningSecrets() {
-  return Array.from(
-    new Set([
-      ...splitSecrets(getEnv("STRIPE_LIVE_WEBHOOK")),
-      ...splitSecrets(getEnv("STRIPE_WEBHOOK_SECRET")),
-      ...splitSecrets(getEnv("STRIPE_WEBHOOK_SECRET_LIVE")),
-      ...splitSecrets(getEnv("STRIPE_WEBHOOK_SIGNING_SECRET")),
-      ...splitSecrets(getEnv("STRIPE_WEBHOOK_SIGNING_SECRET_LIVE")),
-      ...splitSecrets(getEnv("STRIPE_TOK_ONE_TEST_WEBHOOK_SECRET")),
-      ...splitSecrets(getEnv("STRIPE_TOK_ONE_TEST_WEBHOOK_SIGNING_SECRET")),
-      ...splitSecrets(getEnv("STRIPE_TOK_ONE_WEBHOOK_SECRET")),
-      ...splitSecrets(getEnv("STRIPE_TOK_ONE_WEBHOOK_SIGNING_SECRET")),
-    ]),
-  );
+  return mergeStripeWebhookSigningSecrets([
+    ...readWebhookSigningSecrets([
+      "STRIPE_LIVE_WEBHOOK",
+      "STRIPE_WEBHOOK_SECRET",
+      "STRIPE_WEBHOOK_SECRET_LIVE",
+      "STRIPE_WEBHOOK_SIGNING_SECRET",
+      "STRIPE_WEBHOOK_SIGNING_SECRET_LIVE",
+      "STRIPE_TOK_ONE_WEBHOOK_SECRET",
+      "STRIPE_TOK_ONE_WEBHOOK_SIGNING_SECRET",
+    ], "live"),
+    ...readWebhookSigningSecrets([
+      "STRIPE_TOK_ONE_TEST_WEBHOOK_SECRET",
+      "STRIPE_TOK_ONE_TEST_WEBHOOK_SIGNING_SECRET",
+    ], "test"),
+  ]);
 }
