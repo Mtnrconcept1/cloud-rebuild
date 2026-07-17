@@ -1046,7 +1046,9 @@ Deno.serve(async (req) => {
         platform_fee_bps: String(marketplaceRouting.platformFeeBps),
         platform_fee_amount_cents: String(marketplaceRouting.platformFeeCents),
         restaurant_share_amount_cents: String(marketplaceRouting.restaurantShareCents),
-        developer_share_bps: String(marketplaceRouting.developerShareBps || 1000),
+        developer_share_bps: String(marketplaceRouting.developerShareBps),
+        developer_share_amount_cents: String(marketplaceRouting.developerShareCents),
+        tok_net_amount_cents: String(marketplaceRouting.tokNetRevenueCents),
       };
     }
 
@@ -1666,6 +1668,8 @@ Deno.serve(async (req) => {
         finance_routing_mode: marketplaceRouting.mode,
         platform_fee_cents: marketplaceRouting.platformFeeCents,
         restaurant_share_cents: marketplaceRouting.restaurantShareCents,
+        developer_share_cents: marketplaceRouting.developerShareCents,
+        tok_net_revenue_cents: marketplaceRouting.tokNetRevenueCents,
         line_items: lineItems.length,
         zero_attente_hold_reservation_id: zeroAttenteHoldReservationId || null,
         chef_table_hold_count: chefTableHoldCount || null,
