@@ -135,11 +135,20 @@ BEGIN
     IF NOT (
       NEW.status = 'paid'
       AND NEW.paid_at IS NOT NULL
-      AND (
-        to_jsonb(NEW) - 'status' - 'paid_at' - 'revenue_base_cents'
-      ) = (
-        to_jsonb(OLD) - 'status' - 'paid_at' - 'revenue_base_cents'
-      )
+      AND NEW.statement_id IS NOT DISTINCT FROM OLD.statement_id
+      AND NEW.period_start IS NOT DISTINCT FROM OLD.period_start
+      AND NEW.period_end IS NOT DISTINCT FROM OLD.period_end
+      AND NEW.currency IS NOT DISTINCT FROM OLD.currency
+      AND NEW.reservation_revenue_cents IS NOT DISTINCT FROM OLD.reservation_revenue_cents
+      AND NEW.paid_services_revenue_cents IS NOT DISTINCT FROM OLD.paid_services_revenue_cents
+      AND NEW.subscription_revenue_cents IS NOT DISTINCT FROM OLD.subscription_revenue_cents
+      AND NEW.adjustments_cents IS NOT DISTINCT FROM OLD.adjustments_cents
+      AND NEW.developer_share_bps IS NOT DISTINCT FROM OLD.developer_share_bps
+      AND NEW.developer_amount_cents IS NOT DISTINCT FROM OLD.developer_amount_cents
+      AND NEW.validated_at IS NOT DISTINCT FROM OLD.validated_at
+      AND NEW.created_at IS NOT DISTINCT FROM OLD.created_at
+      AND NEW.created_by IS NOT DISTINCT FROM OLD.created_by
+      AND NEW.metadata IS NOT DISTINCT FROM OLD.metadata
     ) THEN
       RAISE EXCEPTION USING
         ERRCODE = '23514',
