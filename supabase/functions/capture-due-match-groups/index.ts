@@ -153,15 +153,37 @@ Deno.serve(async (req) => {
         details.push({ member_order_id: memberOrderId, status: "captured", amount: capturedAmount });
       } catch (captureError) {
         const message = captureError instanceof Error ? captureError.message : "Capture Stripe echouee";
-        const terminal = isTerminalStripeError(captureError) || Number(candidate.capture_attempts || 0) >= 4;
-
-        await actor.adminClient.rpc("mark_match_group_member_capture_failed", {
-          p_member_order_id: memberOrderId,
-          p_error: message,
-          p_terminal: terminal,
-        });
+        let capturedAtStripe = false;
+        try {
+          const recoveredIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+          capturedAtStripe = recoveredIntent.status === "succeeded";
+        } catch {
+          capturedAtStripe = false;
+        }
 
         failed += 1;
+        if (capturedAtStripe) {
+          // Money is already captured: keep the database candidate retryable
+          // until ledger and business settlement both succeed.
+          details.push({
+            member_order_id: memberOrderId,
+            status: "settlement_retry",
+            error: message,
+          });
+          continue;
+        }
+
+        const terminal = isTerminalStripeError(captureError) || Number(candidate.capture_attempts || 0) >= 4;
+        const { error: failureError } = await actor.adminClient.rpc(
+          "mark_match_group_member_capture_failed",
+          {
+            p_member_order_id: memberOrderId,
+            p_error: message,
+            p_terminal: terminal,
+          },
+        );
+        if (failureError) throw failureError;
+
         details.push({ member_order_id: memberOrderId, status: terminal ? "failed" : "retry", error: message });
       }
     }
