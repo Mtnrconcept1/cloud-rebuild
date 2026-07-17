@@ -9,6 +9,7 @@ import {
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { normalizeCheckoutReturnUrl } from "../_shared/return-url.ts";
 import { getStripeRuntimeForCheckoutKind } from "../_shared/stripe-client.ts";
+import { resolveMarketplaceRouting } from "../_shared/marketplace-finance.ts";
 
 const toCents = (value: number) => Math.round(value * 100);
 
@@ -112,7 +113,54 @@ Deno.serve(async (req) => {
       throw new HttpError(400, "Montant Match groupe invalide");
     }
 
-    const { stripe } = getStripeRuntimeForCheckoutKind("match-group");
+    const stripeRuntime = getStripeRuntimeForCheckoutKind("match-group");
+    const { stripe } = stripeRuntime;
+    const grossCents = toCents(canonicalSubtotal);
+    const marketplaceRouting = await resolveMarketplaceRouting({
+      adminClient: actor.adminClient,
+      checkoutKind: "match-group",
+      restaurantId: order.restaurant_id,
+      grossCents,
+      stripeMode: stripeRuntime.mode,
+    });
+    if (!marketplaceRouting.enabled || !marketplaceRouting.destinationAccountId) {
+      throw new HttpError(503, "MATCH_GROUP_CONNECT_ROUTING_NOT_READY");
+    }
+
+    const paymentMetadata = {
+      checkout_kind: "match-group",
+      group_id: String(order.group_id),
+      group_member_order_id: String(order.id),
+      user_id: actor.userId,
+      restaurant_id: String(order.restaurant_id),
+      finance_routing_mode: marketplaceRouting.mode,
+      platform_fee_bps: String(marketplaceRouting.platformFeeBps),
+      platform_fee_amount_cents: String(marketplaceRouting.platformFeeCents),
+      restaurant_share_amount_cents: String(marketplaceRouting.restaurantShareCents),
+      developer_share_bps: String(marketplaceRouting.developerShareBps),
+      developer_share_amount_cents: String(marketplaceRouting.developerShareCents),
+      tok_net_amount_cents: String(marketplaceRouting.tokNetRevenueCents),
+    };
+
+    let idempotencyGeneration = "initial";
+    if (order.stripe_checkout_session_id) {
+      const existingSession = await stripe.checkout.sessions.retrieve(order.stripe_checkout_session_id);
+      if (
+        existingSession.livemode !== (stripeRuntime.mode === "live")
+        || existingSession.metadata?.group_member_order_id !== order.id
+        || existingSession.metadata?.restaurant_id !== order.restaurant_id
+      ) {
+        throw new HttpError(409, "MATCH_GROUP_CHECKOUT_IDENTITY_MISMATCH");
+      }
+      if (existingSession.status === "open" && existingSession.url) {
+        return jsonResponse({ url: existingSession.url, session_id: existingSession.id, reused: true }, 200, corsHeaders);
+      }
+      if (existingSession.status === "complete") {
+        return jsonResponse({ already_authorized: true, session_id: existingSession.id }, 200, corsHeaders);
+      }
+      idempotencyGeneration = existingSession.id;
+    }
+
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       line_items: canonicalItems.map((item) => ({
@@ -128,24 +176,18 @@ Deno.serve(async (req) => {
       client_reference_id: actor.userId,
       payment_intent_data: {
         capture_method: "manual",
-        metadata: {
-          checkout_kind: "match-group",
-          group_id: order.group_id,
-          group_member_order_id: order.id,
-          user_id: actor.userId,
-          restaurant_id: order.restaurant_id,
+        application_fee_amount: marketplaceRouting.platformFeeCents,
+        transfer_data: {
+          destination: marketplaceRouting.destinationAccountId,
         },
+        metadata: paymentMetadata,
       },
-      metadata: {
-        checkout_kind: "match-group",
-        group_id: order.group_id,
-        group_member_order_id: order.id,
-        user_id: actor.userId,
-        restaurant_id: order.restaurant_id,
-      },
+      metadata: paymentMetadata,
+    }, {
+      idempotencyKey: `match-group-authorization:${order.id}:${idempotencyGeneration}:${grossCents}`.slice(0, 255),
     });
 
-    await actor.adminClient
+    const { error: mappingError } = await actor.adminClient
       .from("group_member_orders")
       .update({
         items: canonicalItems,
@@ -155,11 +197,19 @@ Deno.serve(async (req) => {
         payment_status: "pending",
         metadata: {
           ...(order.metadata || {}),
-          checkout_kind: "match-group",
+          ...paymentMetadata,
+          stripe_mode: stripeRuntime.mode,
           canonical_pricing_at: new Date().toISOString(),
         },
       })
       .eq("id", order.id);
+
+    if (mappingError) {
+      if (session.status === "open") {
+        await stripe.checkout.sessions.expire(session.id).catch(() => undefined);
+      }
+      throw new HttpError(500, `MATCH_GROUP_SESSION_MAPPING_FAILED:${mappingError.message}`);
+    }
 
     await writeAuditLog({
       adminClient: actor.adminClient,
