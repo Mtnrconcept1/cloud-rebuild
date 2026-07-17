@@ -277,6 +277,7 @@ DECLARE
   v_statement public.developer_statements%ROWTYPE;
   v_config public.finance_runtime_config%ROWTYPE;
   v_transfer public.developer_stripe_transfers%ROWTYPE;
+  v_transfer_exists boolean := false;
   v_lock_token uuid := gen_random_uuid();
   v_idempotency_key text;
 BEGIN
@@ -301,7 +302,9 @@ BEGIN
     AND stripe_mode = v_mode
   FOR UPDATE;
 
-  IF FOUND AND v_transfer.status = 'succeeded' THEN
+  v_transfer_exists := FOUND;
+
+  IF v_transfer_exists AND v_transfer.status = 'succeeded' THEN
     RETURN jsonb_build_object(
       'claimed', false,
       'duplicate', true,
@@ -344,7 +347,7 @@ BEGIN
 
   v_idempotency_key := 'tok-developer-statement:' || p_statement_id::text || ':' || v_mode;
 
-  IF FOUND THEN
+  IF v_transfer_exists THEN
     IF v_transfer.destination_account_id <> v_config.developer_connect_account_id THEN
       RAISE EXCEPTION USING
         ERRCODE = '23514',
