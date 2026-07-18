@@ -98,6 +98,7 @@ describe("Fair Growth annual restaurant billing", () => {
     expect(webhook).toContain("resolveRestaurantSubscriptionBillingPeriod");
     expect(webhook).toContain("buildRestaurantSubscriptionPricingSnapshot");
     expect(webhook).toContain('pricing_snapshot_transition: "stripe_plan_change"');
+    expect(webhook).toContain("restaurant_subscription_stripe_amount_snapshot_mismatch");
     expect(webhook).toContain('entitlement_reset_period: "monthly"');
     expect(manager).toContain("FAIR_GROWTH_ANNUAL_MONTHS_CHARGED");
     expect(manager).not.toContain('billingPeriod === "yearly" ? 12 : 1');
