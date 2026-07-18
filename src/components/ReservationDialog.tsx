@@ -548,9 +548,10 @@ export default function ReservationDialog({
     const acquisitionSearchParams = typeof window !== "undefined"
       ? new URLSearchParams(window.location.search)
       : null;
-    const acquisitionSource = acquisitionSearchParams?.get("acquisition_source") === "google"
-      ? "google" as const
-      : null;
+    const requestedAcquisitionSource = acquisitionSearchParams?.get("acquisition_source") || "";
+    const acquisitionSource = (
+      ["google", "restaurant_website", "qr_code", "instagram"] as const
+    ).find((source) => source === requestedAcquisitionSource) || null;
     const acquisitionChannelToken = acquisitionSource
       ? acquisitionSearchParams?.get("acquisition_channel_token") || null
       : null;
