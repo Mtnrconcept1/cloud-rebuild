@@ -302,6 +302,18 @@ jobs:
       - name: Assert production Supabase target
         run: test "$SUPABASE_PROJECT_REF" = "wwcrtyoueexyxkkikaos"
 
+      - name: Assert server-only OpenAI secret
+        if: >-
+          ${{ needs.validation.outputs.deploy_functions == 'true' ||
+              needs.validation.outputs.sync_supabase_secrets == 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "$OPENAI_API_KEY" ]]; then
+            echo "::error::OPENAI_API_KEY is missing from the production GitHub Actions secrets."
+            exit 1
+          fi
+
       - name: Prepare Supabase function secrets env
         if: >-
           ${{ needs.validation.outputs.deploy_functions == 'true' ||
