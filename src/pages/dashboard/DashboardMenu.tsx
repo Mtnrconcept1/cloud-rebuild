@@ -691,6 +691,7 @@ export default function DashboardMenu() {
 
         {restaurant && items ? (
           <DailyDishAiPanel
+            key={restaurant.id}
             restaurantId={restaurant.id}
             planSlug={selectedPlanSlug}
             menuItems={items}
