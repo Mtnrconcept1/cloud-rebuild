@@ -78,12 +78,18 @@ describe("phase 1 launch audit plan readiness", () => {
       expect(deployWorkflow).toContain(requiredSecret);
     }
 
-    for (const requiredVariable of [
-      "vars.SUPABASE_LEAKED_PASSWORD_PROTECTION_CONFIRMED",
-      "vars.SUPABASE_LEAKED_PASSWORD_PROTECTION_EVIDENCE",
-    ]) {
-      expect(deployWorkflow).toContain(requiredVariable);
-    }
+    expect(deployWorkflow).toContain("id: supabase_auth_security");
+    expect(deployWorkflow).toContain("node ./scripts/ensure-supabase-auth-security.mjs");
+    expect(deployWorkflow).toContain("steps.supabase_auth_security.outputs.confirmed");
+    expect(deployWorkflow).toContain("steps.supabase_auth_security.outputs.evidence");
+    expect(deployWorkflow).not.toContain("vars.SUPABASE_LEAKED_PASSWORD_PROTECTION_CONFIRMED");
+    expect(deployWorkflow).not.toContain("vars.SUPABASE_LEAKED_PASSWORD_PROTECTION_EVIDENCE");
+
+    const authSecurity = readProjectFile("scripts/ensure-supabase-auth-security.mjs");
+    expect(authSecurity).toContain("/v1/projects/${projectRef}/config/auth");
+    expect(authSecurity).toContain("password_hibp_enabled: true");
+    expect(authSecurity).not.toContain("console.log(config)");
+    expect(authSecurity).not.toContain("console.log(response)");
 
     expect(deployWorkflow).toContain("APP_BASE_URL: ${{ env.APP_BASE_URL }}");
     expect(deployWorkflow).toContain("PUBLIC_APP_URL: ${{ env.PUBLIC_APP_URL }}");
