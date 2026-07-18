@@ -114,10 +114,6 @@ jobs:
       - name: Verify production Supabase target
         run: pnpm run supabase:doctor:prod
 
-      - name: Generate Apple Universal Links association
-        env:
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-        run: node ./scripts/write-apple-app-site-association.mjs
 
       - name: Enforce and verify Supabase leaked-password protection
         id: supabase_auth_security
@@ -129,6 +125,7 @@ jobs:
         run: pnpm run release:readiness
         env:
           RELEASE_READINESS_STRICT: "true"
+          RELEASE_READINESS_TARGET: "web"
           VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_PERSONNAL_SECRET_KEY || secrets.STRIPE_PERSONAL_SECRET_KEY || secrets.STRIPE_SECRET_KEY_LIVE }}
           STRIPE_SECRET_KEY_LIVE: ${{ secrets.STRIPE_PERSONNAL_SECRET_KEY || secrets.STRIPE_PERSONAL_SECRET_KEY || secrets.STRIPE_SECRET_KEY_LIVE }}
@@ -147,8 +144,6 @@ jobs:
           FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
           FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
           FIREBASE_TOKEN_URI: ${{ secrets.FIREBASE_TOKEN_URI }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           SUPABASE_LEAKED_PASSWORD_PROTECTION_CONFIRMED: ${{ steps.supabase_auth_security.outputs.confirmed }}
           SUPABASE_LEAKED_PASSWORD_PROTECTION_EVIDENCE: ${{ steps.supabase_auth_security.outputs.evidence }}
 
@@ -224,30 +219,12 @@ jobs:
           VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
           VITE_FIREBASE_VAPID_KEY: ${{ secrets.VITE_FIREBASE_VAPID_KEY }}
 
-      - name: Generate Apple Universal Links association
-        env:
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-        run: node ./scripts/write-apple-app-site-association.mjs
 
       - name: Pull Vercel production project settings
         run: pnpm dlx "vercel@${VERCEL_CLI_VERSION}" pull --yes --environment=production --token="$VERCEL_TOKEN"
 
       - name: Build Vercel production output
         run: pnpm dlx "vercel@${VERCEL_CLI_VERSION}" build --prod --token="$VERCEL_TOKEN"
-
-      - name: Verify Apple association in prebuilt output
-        shell: bash
-        run: |
-          set -euo pipefail
-          built_aasa=".vercel/output/static/.well-known/apple-app-site-association"
-          test -f "$built_aasa" || {
-            echo "::error::The Vercel artifact is missing apple-app-site-association."
-            exit 1
-          }
-          cmp --silent public/.well-known/apple-app-site-association "$built_aasa" || {
-            echo "::error::The packaged Apple association differs from the verified source."
-            exit 1
-          }
 
       - name: Package prebuilt Vercel output
         run: tar -czf "$RUNNER_TEMP/vercel-output.tgz" .vercel/output .vercel/project.json
@@ -485,47 +462,6 @@ jobs:
           commercial.thetok.ch
           --token="$VERCEL_TOKEN"
 
-      - name: Verify Apple Universal Links endpoint
-        shell: bash
-        env:
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-        run: |
-          set -euo pipefail
-          workdir="$(mktemp -d)"
-          trap 'rm -rf -- "$workdir"' EXIT
-          url="https://www.thetok.ch/.well-known/apple-app-site-association"
-
-          for attempt in 1 2 3 4 5 6; do
-            status="$(curl --silent --show-error \
-              --connect-timeout 10 \
-              --max-time 20 \
-              --dump-header "$workdir/headers" \
-              --output "$workdir/body" \
-              --write-out "%{http_code}" \
-              "$url" || true)"
-
-            content_type="$(awk 'BEGIN { IGNORECASE=1 } /^content-type:/ {
-              gsub("\\r", "")
-              sub(/^[^:]+:[[:space:]]*/, "")
-              print
-              exit
-            }' "$workdir/headers")"
-
-            if [[ "$status" == "200" && "$content_type" == application/json* ]] &&
-               jq -e --arg app_id "${APPLE_TEAM_ID}.com.tok.app" \
-                 '(.applinks.details | length) == 1 and .applinks.details[0].appIDs == [$app_id]' \
-                 "$workdir/body" >/dev/null; then
-              echo "Apple Universal Links endpoint verified."
-              exit 0
-            fi
-
-            if [[ "$attempt" -lt 6 ]]; then
-              sleep 5
-            fi
-          done
-
-          echo "::error::Apple Universal Links endpoint did not expose the verified production association."
-          exit 1
 
   deployment_gate:
     name: deployment-gate
