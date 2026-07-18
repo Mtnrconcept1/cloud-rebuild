@@ -248,6 +248,15 @@ describe("checkout and Stripe webhook safety guards", () => {
       .toBeGreaterThan(createCheckoutIndex);
   });
 
+  it("reprices delivery from the restaurant configuration instead of client metadata", () => {
+    expect(orderPricingSource).toContain("requestedDeliveryFee");
+    expect(orderPricingSource).toContain("restaurantConfig.delivery_fee");
+    expect(orderPricingSource).toContain(
+      "const deliveryFee = isDeliveryJourney ? configuredDeliveryFee : 0",
+    );
+    expect(orderPricingSource).toContain("ORDER_DELIVERY_FEE_REPRICED");
+  });
+
   it("sends loyalty point redemption count to server validation metadata", () => {
     expect(cartSource).toContain("points_to_redeem: pointsDiscountAmount > 0 ? Math.round(pointsDiscountAmount * 100) : 0");
     expect(cartSource).toContain("points_discount_amount: pointsDiscountAmount > 0 ? Number(pointsDiscountAmount.toFixed(2)) : 0");
