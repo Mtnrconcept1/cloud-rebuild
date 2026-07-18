@@ -64,9 +64,7 @@ describe("phase 1 launch audit plan readiness", () => {
       "secrets.STRIPE_PERSONNAL_SECRET_KEY",
       "secrets.STRIPE_SECRET_KEY",
       "secrets.STRIPE_WEBHOOK_SECRET",
-      "secrets.INTERNAL_CRON_SECRET",
       "secrets.RESEND_API_KEY",
-      "secrets.EMAIL_FROM",
       "secrets.ALLOWED_ORIGINS",
       "secrets.FIREBASE_SERVICE_ACCOUNT",
       "secrets.FIREBASE_PROJECT_ID",
@@ -85,6 +83,14 @@ describe("phase 1 launch audit plan readiness", () => {
     expect(deployWorkflow).toContain("node ./scripts/ensure-supabase-auth-security.mjs");
     expect(deployWorkflow).toContain("steps.supabase_auth_security.outputs.confirmed");
     expect(deployWorkflow).toContain("steps.supabase_auth_security.outputs.evidence");
+    expect(deployWorkflow).toContain("id: supabase_runtime_security");
+    expect(deployWorkflow).toContain("node ./scripts/verify-supabase-runtime-security.mjs");
+    expect(deployWorkflow).toContain("steps.supabase_runtime_security.outputs.cron_confirmed");
+    expect(deployWorkflow).toContain("steps.supabase_runtime_security.outputs.resend_confirmed");
+    expect(deployWorkflow).toContain("vars.VITE_STRIPE_PUBLISHABLE_KEY || secrets.VITE_STRIPE_PUBLISHABLE_KEY");
+    expect(deployWorkflow).toContain("vars.EMAIL_FROM || 'Tok <noreply@thetok.ch>'");
+    expect(deployWorkflow).not.toContain("INTERNAL_CRON_SECRET: ${{ secrets.");
+    expect(deployWorkflow).not.toContain("EMAIL_FROM: ${{ secrets.");
     expect(deployWorkflow).not.toContain("vars.SUPABASE_LEAKED_PASSWORD_PROTECTION_CONFIRMED");
     expect(deployWorkflow).not.toContain("vars.SUPABASE_LEAKED_PASSWORD_PROTECTION_EVIDENCE");
 
