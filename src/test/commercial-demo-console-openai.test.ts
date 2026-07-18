@@ -9,6 +9,7 @@ const read = (path: string) => readFileSync(resolve(root, path), "utf8");
 describe("commercial multi-space OpenAI console", () => {
   const consoleAi = read("src/components/commercial/CommercialDemoConsoleAi.tsx");
   const multiSpace = read("src/components/commercial/CommercialMultiSpaceDemo.tsx");
+  const app = read("src/App.tsx");
   const client = read("src/lib/commercialDemoAi.ts");
   const edge = read("supabase/functions/commercial-demo-ai/index.ts");
   const shared = read("supabase/functions/_shared/commercial-demo-ai.ts");
@@ -28,6 +29,8 @@ describe("commercial multi-space OpenAI console", () => {
     expect(consoleAi).toContain("maxLength={4000}");
     expect(consoleAi).not.toContain("restaurant_id");
     expect(consoleAi).not.toContain("restaurantId");
+    expect(app).toContain('pathname === "/commercial/demo-live"');
+    expect(app).toContain("&& !isCommercialDemoHost");
   });
 
   it("uses only the authenticated Supabase Edge gateway from the browser", () => {
