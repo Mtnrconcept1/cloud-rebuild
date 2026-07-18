@@ -39,7 +39,14 @@ export function buildAppleAppSiteAssociation(options = {}) {
 export function writeAppleAppSiteAssociation(options = {}) {
   const root = options.root || process.cwd();
   const relativeOutput = options.output || DEFAULT_OUTPUT;
+  if (path.isAbsolute(relativeOutput)) {
+    throw new Error("The Apple association output must be repository-relative.");
+  }
   const outputPath = path.resolve(root, relativeOutput);
+  const repositoryRelativeOutput = path.relative(path.resolve(root), outputPath);
+  if (repositoryRelativeOutput === ".." || repositoryRelativeOutput.startsWith(`..${path.sep}`)) {
+    throw new Error("The Apple association output must stay inside the repository.");
+  }
   const outputDirectory = path.dirname(outputPath);
   const payload = buildAppleAppSiteAssociation(options);
   const temporaryPath = `${outputPath}.${process.pid}.tmp`;
