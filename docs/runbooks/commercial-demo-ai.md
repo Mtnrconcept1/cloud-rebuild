@@ -35,6 +35,9 @@ applicables afin de protéger la plateforme.
 - le navigateur bloque toujours les appels directs à `api.openai.com` et toutes
   les fonctions IA de production. Seul le slug exact `commercial-demo-ai` est
   autorisé sur l'origine Supabase de confiance.
+- le chat support de production n'est pas monté sur la page parente
+  `/commercial/demo-live` : la console utilise exclusivement la conversation Démo
+  liée à la session.
 
 La recommandation officielle OpenAI est de conserver la clé sur un backend et
 dans une variable d'environnement :
