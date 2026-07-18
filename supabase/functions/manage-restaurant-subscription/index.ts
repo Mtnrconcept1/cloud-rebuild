@@ -520,6 +520,7 @@ Deno.serve(async (req) => {
 
     let stripeScheduleId: string | null = subscription.stripe_subscription_schedule_id || null;
     let targetStripePriceId: string | null = null;
+    let effectiveAt = period.endIso;
 
     if (subscription.stripe_subscription_id) {
       const stripeRuntime = getStripeRuntimeForCheckoutKind("restaurant-subscription-upgrade");
@@ -546,6 +547,7 @@ Deno.serve(async (req) => {
       }
 
       const stripePeriod = resolveStripeSubscriptionPeriod(stripeSubscription, subscription);
+      effectiveAt = stripePeriod.endIso;
       const currentItem = getPrimarySubscriptionItem(stripeSubscription);
       const currentPriceId = typeof currentItem?.price === "string"
         ? currentItem.price
@@ -671,9 +673,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    const effectiveAt = subscription.stripe_subscription_id
-      ? period.endIso
-      : resolveStripeSubscriptionPeriod(null, subscription).endIso;
     const scheduledPlanChange = {
       action: "change_plan",
       target_plan_id: targetPlan.id,
