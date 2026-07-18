@@ -181,6 +181,9 @@ describe("production preflight hardening", () => {
     expect(workflow).not.toContain("vars.SUPABASE_LEAKED_PASSWORD_PROTECTION_CONFIRMED");
     expect(workflow).not.toContain("vars.SUPABASE_LEAKED_PASSWORD_PROTECTION_EVIDENCE");
     expect(workflow).not.toContain("write-apple-app-site-association.mjs");
+    expect(workflow).not.toContain("Generate Apple Universal Links association");
+    expect(workflow).not.toContain("Verify Apple association in prebuilt output");
+    expect(workflow).not.toContain("Verify Apple Universal Links endpoint");
     expect(workflow).not.toContain("APPLE_TEAM_ID");
     expect(workflow).not.toContain("ANDROID_KEYSTORE_BASE64");
     expect(workflow).toContain('RELEASE_READINESS_TARGET: "web"');
