@@ -9,6 +9,13 @@ import {
 } from "../_shared/auth.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import { getStripeRuntimeForCheckoutKind } from "../_shared/stripe-client.ts";
+import { getEffectiveFeatureFlagSet } from "../_shared/feature-flags.ts";
+import {
+  FAIR_GROWTH_ANNUAL_MONTHS_CHARGED,
+  getRestaurantSubscriptionStripeInterval,
+  isFairGrowthAnnualBillingEnabled,
+  parseRestaurantSubscriptionBillingPeriod,
+} from "../_shared/restaurant-subscription-billing.ts";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -24,6 +31,7 @@ type ActivationJob = {
   plan_slug: string;
   plan_name?: string | null;
   amount_chf: number | string;
+  billing_period?: string | null;
   currency?: string | null;
   stripe_customer_id: string;
   stripe_payment_method_id: string;
@@ -164,6 +172,7 @@ async function activateRestaurantSubscription(input: {
 
   const amountCents = Math.round(Number(job.amount_chf) * 100);
   const currency = String(job.currency || "CHF").trim().toLowerCase();
+  const billingPeriod = parseRestaurantSubscriptionBillingPeriod(job.billing_period);
   if (!job.job_id || !job.restaurant_id || !job.plan_id || !job.plan_slug) {
     throw new HttpError(422, "Activation restaurateur incomplète");
   }
@@ -176,6 +185,9 @@ async function activateRestaurantSubscription(input: {
   if (currency !== "chf") {
     throw new HttpError(422, "Devise d'abonnement restaurateur invalide");
   }
+  if (!billingPeriod) {
+    throw new HttpError(422, "Période d'abonnement restaurateur invalide");
+  }
 
   const metadata: Record<string, string> = {
     checkout_kind: "restaurant-onboarding",
@@ -185,7 +197,12 @@ async function activateRestaurantSubscription(input: {
     signup_application_id: String(job.signup_application_id || ""),
     restaurant_subscription_plan_id: job.plan_id,
     restaurant_subscription_plan_slug: job.plan_slug,
-    billing_period: "monthly",
+    billing_period: billingPeriod,
+    annual_months_charged: billingPeriod === "yearly"
+      ? String(FAIR_GROWTH_ANNUAL_MONTHS_CHARGED)
+      : "1",
+    service_months: billingPeriod === "yearly" ? "12" : "1",
+    entitlement_reset_period: "monthly",
     internal_invoice_id: String(job.internal_invoice_id || ""),
   };
   const idempotencySuffix = job.job_id.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 120);
@@ -200,6 +217,12 @@ async function activateRestaurantSubscription(input: {
     job,
   });
   const foundExistingSubscription = Boolean(subscription);
+  if (!subscription && billingPeriod === "yearly") {
+    const activeFlags = await getEffectiveFeatureFlagSet(adminClient);
+    if (!isFairGrowthAnnualBillingEnabled(activeFlags)) {
+      throw new HttpError(503, "La facturation annuelle Fair Growth n'est pas activee");
+    }
+  }
   let stripePriceId = getExpandableStripeId(subscription?.items?.data?.[0]?.price);
 
   if (subscription && ["canceled", "incomplete_expired"].includes(subscription.status)) {
@@ -216,9 +239,13 @@ async function activateRestaurantSubscription(input: {
   }
 
   if (subscription) {
+    const stripeInterval = subscription.items?.data?.[0]?.price?.recurring?.interval;
     if (
       subscription.metadata?.restaurant_id !== job.restaurant_id
       || subscription.metadata?.restaurant_subscription_plan_id !== job.plan_id
+      || (subscription.metadata?.billing_period
+        && subscription.metadata.billing_period !== billingPeriod)
+      || stripeInterval !== getRestaurantSubscriptionStripeInterval(billingPeriod)
     ) {
       throw new HttpError(409, "Subscription Stripe d'activation incohérente");
     }
@@ -273,17 +300,19 @@ async function activateRestaurantSubscription(input: {
       {
         currency,
         unit_amount: amountCents,
-        recurring: { interval: "month" },
+        recurring: { interval: getRestaurantSubscriptionStripeInterval(billingPeriod) },
         product_data: {
           name: `Abonnement restaurateur TOK - ${job.plan_name || job.plan_slug}`,
           metadata: {
             restaurant_subscription_plan_id: job.plan_id,
             restaurant_subscription_plan_slug: job.plan_slug,
+            billing_period: billingPeriod,
           },
         },
         metadata: {
           activation_job_id: job.job_id,
           restaurant_subscription_plan_id: job.plan_id,
+          billing_period: billingPeriod,
         },
       },
       { idempotencyKey: `tok-restaurant-activation-price:${idempotencySuffix}` },
@@ -330,6 +359,8 @@ async function activateRestaurantSubscription(input: {
       p_metadata: {
         stripe_latest_invoice_id: getExpandableStripeId(subscription.latest_invoice),
         activation_job_id: job.job_id,
+        billing_period: billingPeriod,
+        entitlement_reset_period: "monthly",
       },
     },
   );
@@ -342,6 +373,7 @@ async function activateRestaurantSubscription(input: {
     jobId: job.job_id,
     subscriptionId: subscription.id,
     subscriptionStatus: subscription.status,
+    billingPeriod,
   };
 }
 
