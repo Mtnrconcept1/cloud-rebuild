@@ -260,22 +260,15 @@ async function resolveFairGrowthPricingSnapshot(input: {
     }
   }
 
-  const configMetadata = input.financeConfig?.metadata
-    && typeof input.financeConfig.metadata === "object"
-    && !Array.isArray(input.financeConfig.metadata)
-    ? input.financeConfig.metadata as Record<string, unknown>
-    : {};
-
+  // A configured or merely selected plan is not a paid entitlement. If there
+  // is no active/trialing subscription snapshot, always fall back to Starter;
+  // a stale runtime configuration must never preserve a discounted rate.
   return {
-    platformFeeBps: toBasisPoints(
-      input.financeConfig?.platform_fee_bps ?? TOK_PLATFORM_FEE_BPS,
-      "runtime_platform_fee_bps",
-      MAX_FAIR_GROWTH_PLATFORM_FEE_BPS,
-    ),
+    platformFeeBps: TOK_PLATFORM_FEE_BPS,
     pricingPlanId: null,
-    pricingPlanSlug: null,
-    pricingVersion: String(configMetadata.pricing_version || FAIR_GROWTH_PRICING_VERSION),
-    pricingRateSource: "runtime_default",
+    pricingPlanSlug: "starter",
+    pricingVersion: FAIR_GROWTH_PRICING_VERSION,
+    pricingRateSource: "starter_fallback",
   };
 }
 
