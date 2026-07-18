@@ -732,6 +732,10 @@ const FAQS: FaqSection[] = [
         a: "Starter coûte CHF 69/mois, CHF 5 par réservation apportée par TOK et honorée, et 9,9% par commande marketplace. Business coûte CHF 129, CHF 4.50 et 8,9%. Premium coûte CHF 199, CHF 4 et 7,9%. Elite coûte CHF 499, CHF 3 et 6,9%. Elite inclut trois établissements, puis CHF 149/mois par site supplémentaire. Le rattachement des sites et tout supplément sont validés avec TOK avant facturation. L'annuel fournit 12 mois de service au prix de 11.",
       },
       {
+        q: "Comment fonctionne le Plat du jour IA ?",
+        a: "Le Plat du jour IA est inclus dès TOK Premium. Lorsqu'il est activé depuis Menu, il prépare chaque jour trois propositions à partir de la carte, de la saison, des ventes et avis agrégés. Il recherche Aligro en priorité, compare les prix publics accessibles de fournisseurs proches, détaille la recette, le panier, le coût par portion et la marge estimée. Le restaurateur choisit ou ajuste une variante, valide le prix et la description, puis TOK génère un visuel PhotoPro avant publication sur la fiche restaurant et, en option, dans Actualités. Les prix et stocks en ligne restent indicatifs et les allergènes doivent être contrôlés par le restaurant.",
+      },
+      {
         q: "Qu'est-ce qu'une réservation apportée par TOK ?",
         a: "C'est une réservation dont la première source vérifiable est la marketplace TOK. La source est enregistrée côté serveur à la création et ne peut pas être changée depuis le navigateur. Une réservation issue du site du restaurant, d'un QR code TOK attribué au restaurant, d'Instagram, de Google ou du fichier client est un canal propre et reste gratuite.",
       },
@@ -781,7 +785,7 @@ const FAQS: FaqSection[] = [
       },
       {
         q: "Que contient le dashboard restaurateur ?",
-        a: "Le dashboard peut regrouper commandes, réservations, menu, offres, anti-gaspi, ventes flash, Actualités, campagnes, CRM, performances, avis, factures, photos, support, plan de salle et pilotage de service selon les droits et fonctionnalités activées.",
+        a: "Le dashboard peut regrouper commandes, réservations, menu, offres, anti-gaspi, ventes flash, Actualités, campagnes, CRM, performances, avis, factures, photos, support, plan de salle et pilotage de service selon les droits et fonctionnalités activées. Dès Premium, le Menu inclut le Plat du jour IA avec trois propositions quotidiennes, recherche fournisseurs et publication PhotoPro.",
       },
       {
         q: "Comment gérer les commandes entrantes ?",
