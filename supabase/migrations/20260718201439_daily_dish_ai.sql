@@ -253,7 +253,6 @@ DECLARE
   v_name text;
   v_image_url text;
   v_media_path text;
-  v_timezone text;
 BEGIN
   IF auth.role() <> 'service_role' THEN
     RAISE EXCEPTION 'service role required' USING ERRCODE = '42501';
@@ -279,17 +278,11 @@ BEGIN
     RAISE EXCEPTION 'daily dish variant not found' USING ERRCODE = 'P0002';
   END IF;
 
-  SELECT COALESCE(setting.timezone, 'Europe/Zurich') INTO v_timezone
-  FROM public.restaurant_daily_dish_settings setting
-  WHERE setting.restaurant_id = p_restaurant_id;
-  v_timezone := COALESCE(v_timezone, 'Europe/Zurich');
-
   SELECT * INTO v_run
   FROM public.restaurant_daily_dish_runs run
   WHERE run.id = v_variant.run_id
     AND run.restaurant_id = p_restaurant_id
     AND run.status = 'completed'
-    AND run.generation_date = (now() AT TIME ZONE v_timezone)::date
   FOR UPDATE;
   IF v_run.id IS NULL THEN
     RAISE EXCEPTION 'daily dish run is not publishable' USING ERRCODE = '55000';
