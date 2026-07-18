@@ -105,6 +105,34 @@ describe("release readiness inspection", () => {
     expect(result.errors.join("\n")).not.toMatch(/Apple|Android|assetlinks|keystore/i);
   });
 
+  it("accepts live Supabase evidence instead of duplicating provider-owned secrets in GitHub", () => {
+    const root = makeFixture("web-ready-provider-evidence");
+
+    const result = inspectReleaseReadiness({
+      root,
+      target: "web",
+      env: {
+        VITE_STRIPE_PUBLISHABLE_KEY: "pk_live_123",
+        STRIPE_SECRET_KEY_LIVE: "sk_live_123",
+        STRIPE_WEBHOOK_SECRET: "whsec_123",
+        FIREBASE_SERVICE_ACCOUNT: firebaseServiceAccountJson(),
+        APP_BASE_URL: "https://www.thetok.ch",
+        PUBLIC_APP_URL: "https://www.thetok.ch",
+        ALLOWED_ORIGINS: "https://www.thetok.ch",
+        SUPABASE_INTERNAL_CRON_VAULT_CONFIRMED: "true",
+        SUPABASE_INTERNAL_CRON_VAULT_EVIDENCE: "Live read-only Vault verification for production",
+        SUPABASE_RESEND_SECRET_CONFIRMED: "true",
+        SUPABASE_RESEND_SECRET_EVIDENCE: "Live Management API secret-name verification",
+        SUPABASE_LEAKED_PASSWORD_PROTECTION_CONFIRMED: "true",
+        SUPABASE_LEAKED_PASSWORD_PROTECTION_EVIDENCE: "Management API live proof for issue #204",
+      },
+      strict: true,
+    });
+
+    expect(result.ok).toBe(true);
+    expect(result.errors).toEqual([]);
+  });
+
   it("fails closed on an unknown release readiness target", () => {
     const root = makeFixture("unknown-target");
     const result = inspectReleaseReadiness({
