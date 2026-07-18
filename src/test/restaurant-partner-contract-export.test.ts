@@ -10,7 +10,7 @@ import {
 const SIGNATURE_DATA_URL = "data:image/png;base64,aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 
 describe("restaurant partner contract PDF export", () => {
-  it("generates the V2 signed contract HTML with complete proof metadata", async () => {
+  it("generates the Fair Growth V3 contract with a sealed pricing snapshot", async () => {
     const input = {
       signerName: "Marie Dupont, gérante",
       signatureDataUrl: SIGNATURE_DATA_URL,
@@ -29,13 +29,17 @@ describe("restaurant partner contract PDF export", () => {
       restaurantId: "restaurant-456",
       contractHash: "",
       acceptanceText: "J'ai lu et j'accepte l'intégralité du contrat restaurateur TOK.",
+      selectedSubscriptionPlanLabel: "Business",
+      selectedSubscriptionPriceLabel: "CHF 1'419 · annuel, 12 mois au prix de 11 · 8,9% / commande",
     };
     const contractHash = await generateRestaurantPartnerContractSha256(input);
     const html = generateSignedRestaurantPartnerContractHtml({ ...input, contractHash });
 
     expect(html).toContain(RESTAURANT_PARTNER_CONTRACT_TITLE);
     expect(html).toContain(`Version ${RESTAURANT_PARTNER_CONTRACT_VERSION}`);
-    expect(html).toContain("TOK-CH-RP-2026-06-v2");
+    expect(html).toContain("TOK-CH-RP-FAIR-GROWTH-2026-07-v3");
+    expect(html).toContain("Business");
+    expect(html).toContain("CHF 1&#39;419 · annuel, 12 mois au prix de 11 · 8,9% / commande");
     expect(html).toContain("Horodatage d'export");
     expect(html).toContain("marie@example.test — user-123 — restaurant-456");
     expect(contractHash).toMatch(/^[a-f0-9]{64}$/);
