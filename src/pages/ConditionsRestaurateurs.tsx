@@ -2,15 +2,15 @@ import { Link } from "react-router-dom";
 import { SUPPORT_EMAIL } from "@/lib/contact";
 import { useSeoMeta } from "@/hooks/useSeoMeta";
 
-const updatedAt = "26 juin 2026";
+const updatedAt = "18 juillet 2026";
 
 const quickPoints = [
-  "Commission reservation: CHF 5.00 par table honoree via TOK, sauf accord ecrit different.",
-  "Le restaurant reste responsable des prix, menus, allergenes, horaires, disponibilites, contenus et obligations sanitaires.",
-  "Les donnees client issues de TOK ne peuvent etre utilisees que pour une relation commerciale legitime et conforme.",
-  "TOK Connect donne acces a des partenaires uniquement avec autorisation, scopes, quotas et revocation possible par restaurant.",
-  "Les outils IA, CRM, campagnes et exports sont des aides: le restaurateur valide et assume les contenus publies.",
-  "Le contournement de la plateforme, la fraude, les faux avis et les fausses declarations peuvent entrainer suspension, resiliation et facturation retroactive.",
+  "Fair Growth : Starter CHF 69, Business CHF 129, Premium CHF 199 et Elite CHF 499 par mois ; annuel au prix de 11 mois pour 12.",
+  "Seules les reservations acquises par TOK et reellement honorees sont facturees ; les canaux propres, annulations, no-shows, remboursements et demonstrations valent CHF 0.",
+  "Le frais de reservation est plafonne a 7 % du chiffre d'affaires attribue a la table.",
+  "Le restaurant conserve au minimum 90 % de la base commissionnable des commandes et 100 % des pourboires.",
+  "Elite couvre trois etablissements ; chaque site additionnel coute CHF 149 par mois.",
+  "Les tarifs et la source d'acquisition sont enregistres cote serveur au moment de la transaction.",
 ];
 
 const sections = [
@@ -25,10 +25,11 @@ const sections = [
   {
     title: "2. Definitions",
     body: [
-      "TOK designe la plateforme technologique, commerciale et operationnelle permettant notamment la decouverte de restaurants, la reservation, la commande, les offres locales, les actualites, les campagnes, les outils restaurateurs et les programmes de fidelite.",
-      "Restaurateur designe l'etablissement partenaire, son exploitant, son representant legal, ses employes autorises et toute personne utilisant l'espace restaurateur sous son controle.",
-      "Client acquis via TOK designe tout client ayant decouvert, reserve, commande, interagi, suivi, contacte ou beneficie d'une offre du restaurant par l'intermediaire de TOK.",
-      "Services TOK designe les services existants ou futurs, notamment reservation en ligne, Zero Attente, Tables du Chef, ventes flash, offres anti-gaspillage, Miamz, Actualites, CRM, campagnes sponsorisées, statistiques, outils IA, facturation, support et integrations tierces.",
+      "Reservation acquise par TOK designe une reservation dont la premiere source verifiable est la marketplace TOK. La source est attribuee et scellee cote serveur a la creation.",
+      "Canal propre designe le site du restaurant, un QR code attribue, Instagram, Google ou un fichier client legitime du restaurateur. Le traitement technique par TOK ne transforme pas un canal propre en acquisition TOK.",
+      "Reservation honoree designe une table effectivement accueillie, declaree par une personne autorisee du restaurant avec le chiffre d'affaires attribue. Une annulation, un no-show, un remboursement ou une demonstration n'est jamais honoree au sens tarifaire.",
+      "Base commissionnable d'une commande exclut les pourboires, la livraison refacturee et les autres couts explicitement identifies comme debours ou refacturations.",
+      "Revenu TOK reellement encaisse designe les montants definitivement recus par TOK, hors TVA, remboursements, pourboires, livraison et couts refactures.",
     ],
   },
   {
@@ -65,50 +66,48 @@ const sections = [
     ],
   },
   {
-    title: "7. Commissions et tarification",
+    title: "7. Commissions et tarification Fair Growth",
     body: [
-      "Pour chaque reservation honoree via TOK, le restaurateur accepte le paiement d'une commission forfaitaire de cinq francs suisses (CHF 5.00) par table reservee, sauf accord ecrit different ou offre commerciale specifique.",
-      "Cette commission est due independamment du nombre de personnes presentes, du montant de l'addition, des remises accordees, des promotions appliquees, de l'utilisation d'un code promotionnel ou du niveau Miamz du client.",
-      "La commission devient exigible des lors que le client s'est presente conformement a sa reservation ou que la reservation doit etre consideree comme honoree selon les informations disponibles.",
-      "D'autres services peuvent etre factures separement: packs, abonnements, campagnes sponsorisées, credits IA, options CRM, outils marketing, frais de paiement, services de support premium, onboarding ou prestations specifiques.",
-      "Les montants sont exprimes en CHF. La TVA, les taxes applicables, frais de paiement ou retenues eventuelles sont traites selon les indications contractuelles, les factures et le droit fiscal applicable.",
+      "Les abonnements mensuels sont : Starter CHF 69, Business CHF 129, Premium CHF 199 et Elite CHF 499. Une periode annuelle fournit douze mois de service et est facturee onze mensualites, soit respectivement CHF 759, CHF 1'419, CHF 2'189 et CHF 5'489.",
+      "Le prix d'une reservation acquise par TOK et honoree est de CHF 5 en Starter, CHF 4.50 en Business, CHF 4 en Premium et CHF 3 en Elite. Le montant facture est toujours limite au plus petit de ce prix et de 7 % du chiffre d'affaires attribue a la table.",
+      "Les commissions de commande marketplace sont de 9,9 % en Starter, 8,9 % en Business, 7,9 % en Premium et 6,9 % en Elite, sur la base commissionnable. Le restaurant conserve donc respectivement 90,1 %, 91,1 %, 92,1 % ou 93,1 %, avant les elements exclus qui lui reviennent integralement.",
+      "Elite inclut trois etablissements. Chaque etablissement additionnel est facture CHF 149 par mois. Les autres plans couvrent un etablissement sauf accord ecrit.",
+      "Les prix sont enregistres sous une version tarifaire immuable lors de la souscription ou de la transaction. Une evolution future ne modifie pas retroactivement les operations deja acquises.",
     ],
   },
   {
-    title: "8. Facturation, reversements, taxes et impayes",
+    title: "8. Facturation, reversements, taxes et repartition contractuelle",
     body: [
-      "TOK peut emettre des factures, notes, releves de commissions, exports comptables ou justificatifs de transaction via le dashboard ou par email. Le restaurateur doit verifier ses informations de facturation et signaler rapidement toute erreur manifeste.",
-      "Les reversements dus au restaurateur peuvent etre effectues par un prestataire de paiement tiers. Les delais de versement, retenues, controles KYC, remboursements, litiges bancaires, chargebacks et blocages peuvent dependre de ce prestataire.",
-      "TOK peut compenser les sommes dues entre les parties, notamment commissions, remboursements, avoirs, frais, campagnes, penalites contractuelles, factures impayees ou montants contestes.",
-      "Le restaurateur reste responsable de ses obligations fiscales, comptables, TVA, declaratives et sociales. Les informations fournies par TOK sont des aides comptables et ne remplacent pas le conseil d'un fiduciaire ou d'un fiscaliste.",
-      "En cas d'impaye, de moyen de paiement refuse, de facture echue ou de chargeback, TOK peut limiter certains services, suspendre les campagnes, bloquer les reversements non definitifs ou engager des mesures de recouvrement.",
+      "Sur chaque frais de reservation effectivement encaisse, 90 % reviennent a TOK et 10 % au developpeur. Les frais sont annules ou credites lorsqu'une reservation devient non eligible avant cloture.",
+      "Sur une commande, 1 % de la base commissionnable revient au developpeur ; TOK conserve le solde de la commission du plan et le restaurant le solde de la base, avec 100 % des pourboires. La cle 90 % restaurant, 9 % TOK et 1 % developpeur constitue la reference maximale a 10 % ; les taux Fair Growth inferieurs reduisent la part TOK au benefice du restaurant.",
+      "Sur les abonnements, publicites et modules, le developpeur recoit 10 % du revenu TOK reellement encaisse, hors TVA, remboursements, pourboires, livraison et couts refactures.",
+      "Pour les commandes marketplace, TOK absorbe les couts Stripe et Connect sur sa propre part afin que le restaurant recoive la part Fair Growth annoncee. Les frais publics des prestataires peuvent evoluer ; leur snapshot et le moyen reellement utilise sont conserves avec la transaction.",
+      "Le moteur de facturation ventile chaque ligne au taux suisse applicable. Le taux normal est actuellement 8,1 % et le taux reduit 2,6 %. La restauration sur place et l'alcool relevent en principe du taux normal ; le restaurateur demeure responsable de la qualification fiscale de ses produits.",
     ],
   },
   {
-    title: "9. Interdiction de contournement",
+    title: "9. Attribution et absence de contournement",
     body: [
-      "Le restaurateur s'interdit tout contournement de la plateforme, notamment l'incitation a reserver directement hors TOK, la recuperation de clients acquis via TOK afin d'eviter les commissions, la communication de coordonnees dans un but de contournement ou la creation de systemes paralleles destines a eluder la facturation.",
-      "Toute reservation, commande, vente ou relation commerciale effectuee avec un client initialement acquis via TOK durant les vingt-quatre (24) mois suivant son acquisition est presumee provenir de TOK, sauf preuve contraire credible ou accord ecrit different.",
-      "Toute violation peut entrainer suspension immediate, resiliation, facturation retroactive des commissions eludees, perte d'avantages, retrait de campagnes et toute action judiciaire appropriee, sous reserve des dispositions legales imperatives applicables.",
+      "Le restaurant peut librement utiliser ses canaux propres gratuits. Aucune clause de non-contournement ne peut rendre payante une reservation dont l'origine verifiable est un canal propre.",
+      "Il est en revanche interdit de modifier, masquer ou falsifier la source d'une reservation deja initiee et attribuee a TOK, de demander au client de la recreer sur un autre canal, ou de declarer un faux no-show afin d'eviter un frais legitime.",
+      "TOK conserve une piste d'audit de la source, des jetons de canal, du statut, du chiffre d'affaires attribue, du plafond et de la version tarifaire. Toute correction exceptionnelle exige un traitement administratif trace.",
     ],
   },
   {
-    title: "10. Reservations, no-shows et annulations",
+    title: "10. Reservations, no-shows, annulations et plafond",
     body: [
-      "Le restaurateur s'engage a honorer toute reservation confirmee et a maintenir a jour ses capacités, horaires, tables, restrictions, services midi/soir et conditions d'annulation.",
-      "Une reservation confirmee ne peut etre refusee qu'en cas de force majeure, fermeture exceptionnelle, risque de securite, impossibilite objective independante de la volonte du restaurateur ou information manifestement erronee devant etre corrigee rapidement.",
-      "Le restaurateur doit informer TOK dans les meilleurs delais de toute impossibilite d'executer une reservation, proposer une solution raisonnable lorsque possible et documenter les motifs invoques.",
-      "TOK peut enregistrer les absences, annulations tardives et comportements abusifs des clients. Le restaurateur peut signaler un no-show via la plateforme et fournir les elements utiles.",
-      "TOK peut suspendre temporairement un compte client, exiger un depot de garantie, exiger un prepaiement, limiter certaines fonctionnalites ou ajuster les avantages lorsqu'un comportement abusif est constate.",
+      "Aucun frais n'est cree a la simple confirmation. Une personne autorisee doit marquer la reservation honoree et saisir le chiffre d'affaires attribue a la table ; le moteur applique alors le tarif du plan et le plafond de 7 %.",
+      "Les reservations du site du restaurant, QR code, Instagram, Google et fichier client sont gratuites. Les annulations, no-shows, remboursements et environnements de demonstration sont egalement gratuits.",
+      "Une reservation honoree est verrouillee contre une requalification ordinaire en no-show. Les remboursements et contestations sont rapproches de la facturation avant cloture ou traites par avoir audite.",
     ],
   },
   {
-    title: "11. Commandes, Zero Attente, retrait et livraison",
+    title: "11. Commandes, paiements, pourboires et modules",
     body: [
-      "Pour Zero Attente, commande, retrait, livraison ou precommande, le restaurateur s'engage a preparer les produits conformement aux informations validees par le client et aux delais annonces.",
-      "Le restaurateur demeure responsable de la disponibilite des produits, du respect des delais, de la conformite de la commande, de l'emballage, des substitutions autorisees et des informations transmises au client.",
-      "Le client demeure responsable de son arrivee dans les delais prevus et du respect des consignes affichees. Lorsque la livraison ou le dispatch implique un tiers, chaque partie reste responsable de son perimetre operationnel.",
-      "TOK peut retenir, annuler, rembourser, crediter ou examiner une commande en cas de litige, paiement non confirme, indisponibilite, fraude, erreur technique, retard important ou contestation credible.",
+      "La commission marketplace s'applique uniquement a la base commissionnable. Les pourboires sont reverses a 100 % au restaurant et ne servent jamais de base a la commission TOK ou developpeur.",
+      "TWINT est prioritaire sur les parcours Stripe Checkout compatibles en Suisse. Il n'est pas propose lorsqu'une autorisation avec capture manuelle est necessaire, notamment Match Group ; une carte compatible est alors requise.",
+      "Les modules optionnels sont : No-Show Shield CHF 39/mois ; Marketing Autopilot IA CHF 79/mois ; Margin & Waste Pilot CHF 59/mois ; Receptionniste telephonique IA CHF 49/mois plus CHF 1.50 par reservation reussie ; Direct Order Saver CHF 149/mois plus 1,5 % ; Reputation IA CHF 29/mois ; cartes-cadeaux et experiences 3 % plus cout de paiement.",
+      "Garantie de valeur : si, sur une fenetre de 90 jours et selon les donnees attribuables convenues, un module ne produit pas au moins trois fois son cout, TOK recommande sa desactivation ou accorde un credit apres verification. Cette garantie ne constitue pas une promesse de chiffre d'affaires.",
     ],
   },
   {
