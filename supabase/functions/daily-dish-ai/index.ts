@@ -484,7 +484,7 @@ async function gatherLiveContext(actor: Actor, restaurantId: string, restaurant:
       .in("status", ["completed", "delivered", "ready"])
       .limit(1000),
     actor.adminClient.from("reviews")
-      .select("rating, food_rating, comment, created_at")
+      .select("order_id, rating, food_rating, created_at")
       .eq("restaurant_id", restaurantId)
       .or("status.is.null,status.eq.published")
       .gte("created_at", since)
@@ -496,20 +496,31 @@ async function gatherLiveContext(actor: Actor, restaurantId: string, restaurant:
   let orderItems: JsonRecord[] = [];
   if (orderIds.length) {
     const { data, error } = await actor.adminClient.from("order_items")
-      .select("menu_item_id, quantity, total_price")
+      .select("order_id, menu_item_id, quantity, total_price")
       .eq("restaurant_id", restaurantId)
       .in("order_id", orderIds)
       .limit(5000);
     if (error) throw new HttpError(503, "restaurant_context_unavailable");
     orderItems = (data || []) as JsonRecord[];
   }
-  const sales = new Map<string, { quantity: number; revenue: number }>();
+  const reviewRatingByOrder = new Map<string, number>();
+  for (const review of (reviewsResult.data || []) as JsonRecord[]) {
+    const orderId = typeof review.order_id === "string" ? review.order_id : "";
+    const rating = numberInRange(review.food_rating ?? review.rating, 0, 10, 0);
+    if (orderId && rating > 0) reviewRatingByOrder.set(orderId, rating);
+  }
+  const sales = new Map<string, { quantity: number; revenue: number; ratingSum: number; ratingCount: number }>();
   for (const item of orderItems) {
     const id = typeof item.menu_item_id === "string" ? item.menu_item_id : "";
     if (!id) continue;
-    const current = sales.get(id) || { quantity: 0, revenue: 0 };
+    const current = sales.get(id) || { quantity: 0, revenue: 0, ratingSum: 0, ratingCount: 0 };
     current.quantity += numberInRange(item.quantity, 0, 10000, 0);
     current.revenue += numberInRange(item.total_price, 0, 1000000, 0);
+    const rating = reviewRatingByOrder.get(String(item.order_id || ""));
+    if (rating) {
+      current.ratingSum += rating;
+      current.ratingCount += 1;
+    }
     sales.set(id, current);
   }
   const menu = ((menuResult.data || []) as JsonRecord[]).map((item) => ({
@@ -520,11 +531,14 @@ async function gatherLiveContext(actor: Actor, restaurantId: string, restaurant:
     price_chf: numberInRange(item.price, 0, 10000, 0),
     sold_90d: roundMoney(sales.get(String(item.id))?.quantity || 0),
     revenue_90d_chf: roundMoney(sales.get(String(item.id))?.revenue || 0),
+    average_food_rating_90d: sales.get(String(item.id))?.ratingCount
+      ? roundMoney((sales.get(String(item.id))?.ratingSum || 0) / (sales.get(String(item.id))?.ratingCount || 1))
+      : null,
+    rated_orders_90d: sales.get(String(item.id))?.ratingCount || 0,
   })).sort((left, right) => right.sold_90d - left.sold_90d);
-  const reviews = ((reviewsResult.data || []) as JsonRecord[]).map((review) => ({
-    rating: numberInRange(review.food_rating ?? review.rating, 0, 10, 0),
-    comment: sanitizeText(review.comment, 500),
-  }));
+  const ratings = ((reviewsResult.data || []) as JsonRecord[])
+    .map((review) => numberInRange(review.food_rating ?? review.rating, 0, 10, 0))
+    .filter((rating) => rating > 0);
   return {
     restaurant: {
       name: sanitizeText(restaurant.name, 120),
@@ -535,7 +549,13 @@ async function gatherLiveContext(actor: Actor, restaurantId: string, restaurant:
       longitude: numberInRange(restaurant.longitude, -180, 180, 0),
     },
     menu,
-    reviews,
+    reviews: {
+      count_90d: ratings.length,
+      average_food_rating_90d: ratings.length
+        ? roundMoney(ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length)
+        : null,
+      privacy: "Agrégats uniquement; aucun commentaire ni identifiant client transmis.",
+    },
     data_window_days: 90,
   };
 }
