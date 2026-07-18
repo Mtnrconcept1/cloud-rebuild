@@ -193,7 +193,7 @@ describe("production preflight hardening", () => {
       resendConfirmed: "true",
     });
     expect(calls.map((call) => call.init.method)).toEqual(["POST", "GET"]);
-    expect(calls[0].url).toContain("/database/query/read-only");
+    expect(calls[0].url).toContain("/database/query");
     expect(calls[1].url).toContain("/secrets");
     expect(String(calls[0].init.body)).toContain("length(decrypted_secret) >= 16");
     expect(JSON.stringify(result)).not.toContain("provider-digest-only");
