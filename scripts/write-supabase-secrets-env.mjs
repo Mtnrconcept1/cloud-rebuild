@@ -94,12 +94,15 @@ if (liveWebhookSecret) {
 ensureDefault(entries, "ENVIRONMENT", "production");
 ensureDefault(entries, "APP_ENV", "production");
 
-fs.mkdirSync(path.dirname(outFile), { recursive: true });
+fs.mkdirSync(path.dirname(outFile), { recursive: true, mode: 0o700 });
 fs.writeFileSync(
   outFile,
   `${entries.map(([name, value]) => `${name}=${quoteEnvValue(value)}`).join("\n")}\n`,
-  "utf8",
+  { encoding: "utf8", mode: 0o600 },
 );
+// writeFile preserves an existing file mode, so enforce private permissions
+// after every rewrite as well as on first creation.
+fs.chmodSync(outFile, 0o600);
 
 console.log(`Wrote Supabase secrets env file to ${outFile}`);
 console.log(`Secret keys prepared: ${entries.map(([name]) => name).join(", ")}`);
