@@ -127,7 +127,7 @@ describe("Fair Growth annual restaurant billing", () => {
     expect(page).toContain("douze mois de service sont renouvelés et onze mois sont facturés");
     expect(page).toContain("renouvellement annuel");
     expect(page).toContain("sans débit immédiat");
-    expect(page).not.toContain("renouvellement mensuel.\`");
+    expect(manager).not.toContain("l'abonnement repart pour 30 jours");
   });
 
   it("allows only monthly or gated yearly periods at signup validation", () => {
