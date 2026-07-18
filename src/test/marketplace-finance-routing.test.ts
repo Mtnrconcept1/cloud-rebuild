@@ -13,10 +13,12 @@ const migration = read("supabase/migrations/20260712000526_marketplace_finance_r
 const cart = read("src/pages/Panier.tsx");
 
 describe("TOK marketplace finance routing", () => {
-  it("keeps server-authoritative 10/90 and developer 10% rules", () => {
-    expect(finance).toContain("TOK_PLATFORM_FEE_BPS = 1000");
-    expect(finance).toContain("TOK_DEVELOPER_SHARE_BPS = 1000");
-    expect(migration).toContain("platform_fee_bps integer NOT NULL DEFAULT 1000");
+  it("uses the active Fair Growth plan snapshot and an exact 1% order developer share", () => {
+    expect(finance).toContain("TOK_PLATFORM_FEE_BPS = 990");
+    expect(finance).toContain("TOK_ORDER_DEVELOPER_SHARE_BPS = 100");
+    expect(finance).toContain("marketplace_commission_bps_snapshot");
+    expect(finance).toContain('"subscription_snapshot"');
+    expect(finance).toContain("MAX_FAIR_GROWTH_PLATFORM_FEE_BPS = 990");
     expect(migration).toContain("developer_share_bps integer NOT NULL DEFAULT 1000");
     expect(migration).toContain("reservation_fee_cents integer NOT NULL DEFAULT 500");
   });
@@ -26,9 +28,22 @@ describe("TOK marketplace finance routing", () => {
     expect(finance).toContain("stripe_connect_details_submitted");
     expect(finance).toContain("stripe_connect_charges_enabled");
     expect(finance).toContain("stripe_connect_payouts_enabled");
-    expect(checkout).toContain("application_fee_amount: marketplaceRouting.platformFeeCents");
+    expect(checkout).toContain("application_fee_amount: marketplaceRouting.stripeApplicationFeeCents");
     expect(checkout).toContain("destination: marketplaceRouting.destinationAccountId");
     expect(migration).toContain("connect_routing_enabled boolean NOT NULL DEFAULT false");
+  });
+
+  it("keeps tips and delivery outside the plan commission and seals the basis", () => {
+    expect(finance).toContain("commissionableCents");
+    expect(finance).toContain("tipCents");
+    expect(finance).toContain("deliveryPassThroughCents");
+    expect(finance).toContain("stripeApplicationFeeCents = platformFeeCents + deliveryPassThroughCents");
+    expect(checkout).toContain('finance_snapshot_version: "fair_growth_v1"');
+    expect(checkout).toContain("commissionable_cents");
+    expect(checkout).toContain("tip_cents");
+    expect(checkout).toContain("delivery_pass_through_cents");
+    expect(checkout).toContain("pricing_version");
+    expect(checkout).toContain("sealPaymentAttemptRequest");
   });
 
   it("fails closed for multi-restaurant checkout and prevents it in the cart", () => {
