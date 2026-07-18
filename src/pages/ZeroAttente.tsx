@@ -147,7 +147,7 @@ export default function ZeroAttente() {
   const [loading, setLoading] = useState(false);
   const [reservationId, setReservationId] = useState<string | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId>("card");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId>("twint");
   const [useLoyaltyPoints, setUseLoyaltyPoints] = useState(false);
   const [pointsToRedeemInput, setPointsToRedeemInput] = useState(0);
   const [donateEarnedXp, setDonateEarnedXp] = useState(false);
