@@ -28,20 +28,10 @@ function secretEnvironmentNames(source: string) {
 describe("production deployment secret scope", () => {
   const preflight = section(workflow, "  preflight:", "  build_frontend:");
   const buildFrontend = section(workflow, "  build_frontend:", "  deploy_supabase:");
-  const preflightApple = section(
-    preflight,
-    "      - name: Generate Apple Universal Links association",
-    "      - name: Enforce and verify Supabase leaked-password protection",
-  );
   const preflightSupabaseAuth = section(
     preflight,
     "      - name: Enforce and verify Supabase leaked-password protection",
     "      - name: Release readiness",
-  );
-  const buildApple = section(
-    buildFrontend,
-    "      - name: Generate Apple Universal Links association",
-    "      - name: Pull Vercel production project settings",
   );
   const deploySupabase = section(workflow, "  deploy_supabase:", "  deploy_frontend:");
   const jobEnvironment = section(deploySupabase, "    env:", "    steps:");
@@ -162,8 +152,10 @@ describe("production deployment secret scope", () => {
   });
 
   it("scopes live production hardening credentials to their exact steps", () => {
-    expect(secretEnvironmentNames(preflightApple)).toEqual(["APPLE_TEAM_ID"]);
-    expect(secretEnvironmentNames(buildApple)).toEqual(["APPLE_TEAM_ID"]);
+    expect(workflow).not.toContain("APPLE_TEAM_ID");
+    expect(workflow).not.toContain("ANDROID_KEYSTORE_BASE64");
+    expect(workflow).not.toContain("write-apple-app-site-association.mjs");
+    expect(workflow).toContain('RELEASE_READINESS_TARGET: "web"');
     expect(secretEnvironmentNames(preflightSupabaseAuth)).toEqual(["SUPABASE_ACCESS_TOKEN"]);
     expect(preflightSupabaseAuth).not.toContain("SUPABASE_DB_PASSWORD");
     expect(preflightSupabaseAuth).not.toContain("SUPABASE_SERVICE_ROLE_KEY");
