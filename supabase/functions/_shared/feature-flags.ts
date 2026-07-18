@@ -7,8 +7,8 @@ type FeatureDefinition = {
 const FEATURE_DEFINITIONS: Record<string, FeatureDefinition> = {
   "payment-card": { defaultEnabled: true },
   "payment-twint": { defaultEnabled: true },
-  "payment-postfinance-card": { defaultEnabled: true },
-  "payment-postfinance-efinance": { defaultEnabled: true },
+  "payment-postfinance-card": { defaultEnabled: false },
+  "payment-postfinance-efinance": { defaultEnabled: false },
   "payment-cash": { defaultEnabled: true },
   "billing-fair-growth-annual": { defaultEnabled: false },
   "commercial-demo-openai": { defaultEnabled: false },
