@@ -25,7 +25,7 @@ export type CommercialDemoAiContext = {
 const SIGNED_URL_TTL_SECONDS = 60 * 60;
 
 export type CommercialDemoAiClaim = {
-  state: "claimed" | "replay" | "mismatch" | "in_progress" | "failed" | "busy" | "circuit_open" | "budget_exhausted";
+  state: "claimed" | "replay" | "mismatch" | "in_progress" | "failed" | "busy" | "circuit_open" | "budget_exhausted" | "disabled";
   request_id?: string;
   response?: Record<string, unknown>;
   error_code?: string;
