@@ -58,6 +58,10 @@ describe("commercial multi-space OpenAI console", () => {
     expect(shared).toContain('.from("commercial_demo_accounts")');
     expect(shared).toContain('.from("restaurants")');
     expect(shared).toContain('.eq("is_demo", true)');
+    expect(shared).toContain('"commercial-demo-openai"');
+    expect(shared).toContain('.in("name", requiredFeatures)');
+    expect(edge).toContain('claim.state === "budget_exhausted"');
+    expect(edge).toContain("commercial_demo_ai_daily_budget_exhausted");
   });
 
   it("injects the existing GitHub secret into Supabase and fails closed without it", () => {
