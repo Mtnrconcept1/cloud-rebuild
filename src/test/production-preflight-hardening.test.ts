@@ -128,6 +128,31 @@ describe("production preflight hardening", () => {
     expect(message).not.toContain("smtp-secret");
   });
 
+  it("fails closed when Supabase remains disabled after the PATCH", async () => {
+    const fetchImpl = vi.fn(async (_url: string, init: RequestInit) => {
+      if (init.method === "PATCH") return new Response(null, { status: 200 });
+      return jsonResponse({ password_hibp_enabled: false });
+    });
+
+    await expect(ensureSupabaseAuthSecurity({
+      projectRef: PRODUCTION_PROJECT_REF,
+      accessToken: "sbp_test_token_that_is_long_enough",
+      fetchImpl,
+      wait: async () => undefined,
+    })).rejects.toThrow("is not true after enforcement");
+  });
+
+  it("refuses every Supabase project other than the pinned production ref", async () => {
+    const fetchImpl = vi.fn();
+    await expect(ensureSupabaseAuthSecurity({
+      projectRef: "ssllswowblnvisalaaka",
+      accessToken: "sbp_test_token_that_is_long_enough",
+      fetchImpl,
+      wait: async () => undefined,
+    })).rejects.toThrow("unexpected Supabase project");
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
   it("pins the workflow to live Supabase evidence and builds only after preflight", () => {
     const workflow = readFileSync(
       path.join(process.cwd(), ".github", "workflows", "deploy-production.yml"),
