@@ -10,7 +10,7 @@ import {
 const SIGNATURE_DATA_URL = "data:image/png;base64,aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 
 describe("restaurant partner contract PDF export", () => {
-  it("generates the Fair Growth V3 contract with a sealed pricing snapshot", async () => {
+  it("generates the Fair Growth V4 contract with a sealed pricing snapshot", async () => {
     const input = {
       signerName: "Marie Dupont, gérante",
       signatureDataUrl: SIGNATURE_DATA_URL,
@@ -37,7 +37,7 @@ describe("restaurant partner contract PDF export", () => {
 
     expect(html).toContain(RESTAURANT_PARTNER_CONTRACT_TITLE);
     expect(html).toContain(`Version ${RESTAURANT_PARTNER_CONTRACT_VERSION}`);
-    expect(html).toContain("TOK-CH-RP-FAIR-GROWTH-2026-07-v3");
+    expect(html).toContain("TOK-CH-RP-FAIR-GROWTH-2026-07-v4");
     expect(html).toContain("Business");
     expect(html).toContain("CHF 1&#39;419 · annuel, 12 mois au prix de 11 · 8,9% / commande");
     expect(html).toContain("Horodatage d'export");
