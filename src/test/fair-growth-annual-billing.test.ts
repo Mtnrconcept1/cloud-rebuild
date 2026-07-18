@@ -104,6 +104,32 @@ describe("Fair Growth annual restaurant billing", () => {
     expect(manager).not.toContain('billingPeriod === "yearly" ? 12 : 1');
   });
 
+  it("defers every active annual upgrade or downgrade to the paid period end", () => {
+    const checkout = source("supabase/functions/create-checkout/index.ts");
+    const manager = source("supabase/functions/manage-restaurant-subscription/index.ts");
+    const page = source("src/pages/dashboard/DashboardAccountBilling.tsx");
+
+    expect(checkout).toContain("restaurant_subscription_active_change_requires_scheduling");
+    expect(checkout).toContain("Never create a second full-price subscription");
+    expect(manager).toContain("from_subscription: subscription.stripe_subscription_id");
+    expect(manager).toContain("start_date: stripePeriod.startUnix");
+    expect(manager).toContain("end_date: stripePeriod.endUnix");
+    expect(manager).toContain("items: [{ price: currentPriceId");
+    expect(manager).toContain("items: [{ price: targetStripePriceId");
+    expect(manager).toContain('proration_behavior: "none"');
+    expect(manager).toContain("stripeScheduleId = activeScheduleId");
+    expect(manager).toContain("if (!stripeScheduleId)");
+    expect(manager).toContain("releaseStripeScheduleIfActive");
+    expect(manager).toContain("une nouvelle periode annuelle de douze mois");
+
+    expect(page).toContain("scheduleAtPeriodEnd={currentSubscriptionIsActive}");
+    expect(page).toContain("Facturation automatique annuelle");
+    expect(page).toContain("douze mois de service sont renouvelés et onze mois sont facturés");
+    expect(page).toContain("renouvellement annuel");
+    expect(page).toContain("sans débit immédiat");
+    expect(page).not.toContain("renouvellement mensuel.\`");
+  });
+
   it("allows only monthly or gated yearly periods at signup validation", () => {
     const validation = source("supabase/functions/submit-signup-application/validation.ts");
     expect(validation).toContain('["monthly", "yearly"].includes(billingPeriod)');
