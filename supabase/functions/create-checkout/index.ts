@@ -37,6 +37,14 @@ import {
   assertPaymentMethodAllowed,
   getEffectiveFeatureFlagSet,
 } from "../_shared/feature-flags.ts";
+import {
+  FAIR_GROWTH_ANNUAL_MONTHS_CHARGED,
+  getRestaurantSubscriptionAmountCents,
+  getRestaurantSubscriptionStripeInterval,
+  isFairGrowthAnnualBillingEnabled,
+  parseRestaurantSubscriptionBillingPeriod,
+  type RestaurantSubscriptionBillingPeriod,
+} from "../_shared/restaurant-subscription-billing.ts";
 import { buildVerifiedOrderPricing } from "../_shared/order-pricing.ts";
 import {
   MARKETPLACE_CHECKOUT_KINDS,
@@ -70,6 +78,8 @@ function assertRestaurantOnboardingSetupSessionIntegrity(input: {
   paymentAttemptId: string;
   operationKey: string;
   stripeCustomerId: string;
+  billingPeriod: RestaurantSubscriptionBillingPeriod;
+  reservedAmountCents: number;
 }) {
   const { session } = input;
   const metadata = session.metadata || {};
@@ -124,6 +134,12 @@ function assertRestaurantOnboardingSetupSessionIntegrity(input: {
   }
   if (Number(metadata.reserved_subscription_amount_cents || 0) <= 0) {
     throw new Error("STRIPE_SETUP_RESERVED_SUBSCRIPTION_AMOUNT_MISSING");
+  }
+  if (
+    metadata.billing_period !== input.billingPeriod
+    || Number(metadata.reserved_subscription_amount_cents || 0) !== input.reservedAmountCents
+  ) {
+    throw new Error("STRIPE_SETUP_RESERVED_SUBSCRIPTION_SNAPSHOT_MISMATCH");
   }
 }
 
@@ -301,6 +317,8 @@ Deno.serve(async (req) => {
     // Never trust an arbitrary client metadata amount for the restaurant's tip.
     const marketplaceTipCents = 0;
     let restaurantOnboardingStripeCustomerId = "";
+    let restaurantOnboardingBillingPeriod: RestaurantSubscriptionBillingPeriod = "monthly";
+    let restaurantOnboardingReservedAmountCents = 0;
     const chefTableHoldItems: Array<{ drop_id: string; quantity: number }> = [];
     let sessionMetadata: Record<string, string> = {
       user_id: actor.userId || "",
@@ -348,15 +366,18 @@ Deno.serve(async (req) => {
       const planId = String(order_metadata?.plan_id || "");
       const restaurantId = String(order_metadata?.restaurant_id || "");
       const signupApplicationId = String(order_metadata?.signup_application_id || "");
-      const billingPeriod = String(order_metadata?.billing_period || "monthly") === "yearly"
-        ? "yearly"
-        : "monthly";
+      const billingPeriod = parseRestaurantSubscriptionBillingPeriod(
+        order_metadata?.billing_period || "monthly",
+      );
       let applicationSubscriptionId = "";
 
       if (!planId) throw new HttpError(400, "plan_id requis");
       if (!restaurantId) throw new HttpError(400, "restaurant_id requis");
       if (!signupApplicationId) throw new HttpError(400, "signup_application_id requis");
-      if (billingPeriod !== "monthly") throw new HttpError(400, "Les abonnements restaurateur sont mensuels");
+      if (!billingPeriod) throw new HttpError(400, "La periode d'abonnement restaurateur est invalide");
+      if (billingPeriod === "yearly" && !isFairGrowthAnnualBillingEnabled(activeFlags)) {
+        throw new HttpError(503, "La facturation annuelle Fair Growth n'est pas encore activee");
+      }
       if (normalizedPaymentMethod !== "card") {
         throw new HttpError(400, "L'onboarding restaurateur requiert un paiement par carte");
       }
@@ -417,12 +438,9 @@ Deno.serve(async (req) => {
       if (planError) throw new HttpError(500, planError.message);
       if (!plan) throw new HttpError(404, "Plan introuvable ou inactif");
 
-      const subscriptionAmount = Number(plan.price_monthly_chf);
-      if (subscriptionAmount <= 0) throw new HttpError(400, "Prix du plan invalide");
-
       const { data: existingSub, error: existingSubError } = await actor.adminClient
         .from("restaurant_ai_subscriptions")
-        .select("id, status, current_period_end, signup_application_id, restaurant_subscription_plan_id")
+        .select("id, status, current_period_end, signup_application_id, restaurant_subscription_plan_id, billing_period, price_monthly_chf_snapshot, billing_amount_chf_snapshot, annual_months_charged_snapshot, pricing_version_snapshot")
         .eq("restaurant_id", restaurantId)
         .eq("signup_application_id", signupApplicationId)
         .eq("restaurant_subscription_plan_id", planId)
@@ -437,6 +455,27 @@ Deno.serve(async (req) => {
       if (applicationSubscriptionId && existingSub.id !== applicationSubscriptionId) {
         throw new HttpError(409, "Le contrat d'abonnement ne correspond pas au dossier");
       }
+      if (existingSub.billing_period !== billingPeriod) {
+        throw new HttpError(409, "La periode d'abonnement ne correspond pas au contrat reserve");
+      }
+
+      const subscriptionAmountCents = Math.round(Number(existingSub.billing_amount_chf_snapshot) * 100);
+      const expectedSubscriptionAmountCents = getRestaurantSubscriptionAmountCents(
+        existingSub.price_monthly_chf_snapshot,
+        billingPeriod,
+      );
+      if (
+        !Number.isSafeInteger(subscriptionAmountCents)
+        || subscriptionAmountCents <= 0
+        || subscriptionAmountCents !== expectedSubscriptionAmountCents
+        || (billingPeriod === "yearly"
+          && Number(existingSub.annual_months_charged_snapshot) !== FAIR_GROWTH_ANNUAL_MONTHS_CHARGED)
+      ) {
+        throw new HttpError(409, "Le montant reserve de l'abonnement est invalide");
+      }
+      const subscriptionAmount = subscriptionAmountCents / 100;
+      restaurantOnboardingBillingPeriod = billingPeriod;
+      restaurantOnboardingReservedAmountCents = subscriptionAmountCents;
 
       const existingSubscriptionStatus = String(existingSub.status || "").toLowerCase();
       if (!["awaiting_payment_method", "past_due"].includes(existingSubscriptionStatus)) {
@@ -522,9 +561,15 @@ Deno.serve(async (req) => {
         restaurant_subscription_plan_id: plan.id,
         restaurant_subscription_plan_slug: plan.slug,
         plan_name: plan.name,
-        billing_period: "monthly",
+        billing_period: billingPeriod,
         subscription_amount: subscriptionAmount.toFixed(2),
-        reserved_subscription_amount_cents: String(Math.round(subscriptionAmount * 100)),
+        reserved_subscription_amount_cents: String(subscriptionAmountCents),
+        annual_months_charged: billingPeriod === "yearly"
+          ? String(FAIR_GROWTH_ANNUAL_MONTHS_CHARGED)
+          : "1",
+        service_months: billingPeriod === "yearly" ? "12" : "1",
+        entitlement_reset_period: "monthly",
+        pricing_version: String(existingSub.pricing_version_snapshot || ""),
         billing_start_trigger: "first_real_reservation_or_order",
         activation_recovery: existingSubscriptionStatus === "past_due" ? "true" : "false",
         authoritative_total: "0.00",
@@ -556,16 +601,27 @@ Deno.serve(async (req) => {
       if (planError) throw new HttpError(500, planError.message);
       if (!plan) throw new HttpError(404, "Plan introuvable ou inactif");
 
-      const subscriptionAmount = Number(plan.price_monthly_chf);
-      if (subscriptionAmount <= 0) throw new HttpError(400, "Prix du plan invalide");
-
       const { data: existingSub, error: existingSubError } = await actor.adminClient
         .from("restaurant_ai_subscriptions")
-        .select("id, plan, status, current_period_end, restaurant_subscription_plan_id, stripe_subscription_id")
+        .select("id, plan, status, billing_period, current_period_end, restaurant_subscription_plan_id, stripe_subscription_id")
         .eq("restaurant_id", restaurantId)
         .maybeSingle();
 
       if (existingSubError) throw new HttpError(500, existingSubError.message);
+
+      const billingPeriod = parseRestaurantSubscriptionBillingPeriod(
+        order_metadata?.billing_period || existingSub?.billing_period || "monthly",
+      );
+      if (!billingPeriod) throw new HttpError(400, "La periode d'abonnement restaurateur est invalide");
+      if (billingPeriod === "yearly" && !isFairGrowthAnnualBillingEnabled(activeFlags)) {
+        throw new HttpError(503, "La facturation annuelle Fair Growth n'est pas encore activee");
+      }
+      const subscriptionAmountCents = getRestaurantSubscriptionAmountCents(
+        plan.price_monthly_chf,
+        billingPeriod,
+      );
+      if (subscriptionAmountCents <= 0) throw new HttpError(400, "Prix du plan invalide");
+      const subscriptionAmount = subscriptionAmountCents / 100;
 
       const hasActiveSubscription = Boolean(
         existingSub &&
@@ -623,22 +679,31 @@ Deno.serve(async (req) => {
               },
             },
             recurring: {
-              interval: "month",
+              interval: getRestaurantSubscriptionStripeInterval(billingPeriod),
             },
-            unit_amount: Math.round(subscriptionAmount * 100),
+            unit_amount: subscriptionAmountCents,
           },
           quantity: 1,
         },
       ];
 
       sessionMetadata = {
-        ...sessionMetadata,
+        user_id: actor.userId,
+        checkout_kind: effectiveKind,
+        stripe_mode: stripeRuntime.mode,
+        stripe_key_scope: stripeRuntime.isolatedTokOneKey ? "tok_one" : "default",
+        payment_method_label: "card",
         restaurant_id: restaurantId,
         plan_id: plan.id,
         restaurant_subscription_plan_id: plan.id,
         restaurant_subscription_plan_slug: plan.slug,
         plan_name: plan.name,
-        billing_period: "monthly",
+        billing_period: billingPeriod,
+        annual_months_charged: billingPeriod === "yearly"
+          ? String(FAIR_GROWTH_ANNUAL_MONTHS_CHARGED)
+          : "1",
+        service_months: billingPeriod === "yearly" ? "12" : "1",
+        entitlement_reset_period: "monthly",
         previous_restaurant_ai_subscription_id: String(existingSub?.id || ""),
         previous_stripe_subscription_id: String(existingSub?.stripe_subscription_id || ""),
         previous_subscription_plan_slug: String(existingSub?.plan || ""),
@@ -1335,6 +1400,8 @@ Deno.serve(async (req) => {
           paymentAttemptId: acquiredAttempt.attemptId,
           operationKey: acquiredAttempt.operationKey,
           stripeCustomerId: restaurantOnboardingStripeCustomerId,
+          billingPeriod: restaurantOnboardingBillingPeriod,
+          reservedAmountCents: restaurantOnboardingReservedAmountCents,
         });
       } else {
         assertCheckoutSessionIntegrity({
@@ -1735,6 +1802,8 @@ Deno.serve(async (req) => {
           paymentAttemptId: acquiredAttempt.attemptId,
           operationKey: acquiredAttempt.operationKey,
           stripeCustomerId: restaurantOnboardingStripeCustomerId,
+          billingPeriod: restaurantOnboardingBillingPeriod,
+          reservedAmountCents: restaurantOnboardingReservedAmountCents,
         });
       } else {
         assertCheckoutSessionIntegrity({
