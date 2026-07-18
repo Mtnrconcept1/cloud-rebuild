@@ -11,10 +11,12 @@ la passerelle retrouve elle-même le compte commercial propriétaire et le
 restaurant Démo canonique. Aucun `restaurant_id` provenant du navigateur n'est
 accepté pour choisir le tenant.
 
-Le commercial ne consomme aucun crédit TOK et n'est soumis à aucun quota métier
-par session, jour ou mois. « Illimité » désigne cette absence de quota
-applicatif : les limites techniques et de sécurité du fournisseur restent
-applicables afin de protéger la plateforme.
+Le commercial ne consomme aucun crédit TOK et ces appels ne sont jamais
+refacturés au restaurant. Pour protéger la clé et le budget fournisseur, la
+passerelle réserve toutefois un budget de sécurité par tentative : au maximum
+60 appels et CHF 10 par commercial et par jour UTC, ainsi que 600 appels et
+CHF 100 globalement. Ce garde-fou opérationnel n'est ni un crédit TOK ni une
+option payante pour le commercial.
 
 ## Garanties de sécurité et d'isolation
 
@@ -66,9 +68,9 @@ utilisé. Les tokens et le coût fournisseur estimé sont journalisés dans le
 domaine Démo pour l'observabilité interne ; ils ne deviennent jamais des crédits
 facturés au commercial.
 
-## Garde-fous sans quota commercial
+## Garde-fous et budget de sécurité
 
-L'absence de quota métier ne supprime pas les protections opérationnelles :
+L'absence de facturation au commercial ne supprime pas les protections opérationnelles :
 
 - taille maximale des messages, prompts, contextes et références ;
 - validation des formats et signatures binaires d'image ;
@@ -77,18 +79,25 @@ L'absence de quota métier ne supprime pas les protections opérationnelles :
 - délai maximal sur chaque appel OpenAI ;
 - une génération active par clé d'idempotence et conflits explicites ;
 - limites globales du fournisseur et coupe-circuit d'infrastructure ;
+- kill switch serveur dédié `commercial-demo-openai`, vérifié avant tout nouvel appel ;
+- réservation atomique par tentative de CHF 0.10 pour le texte ou CHF 0.50 pour
+  l'image, avec plafonds quotidiens par commercial et globaux ;
+- les replays déjà terminés restent idempotents, mais chaque retry ou verrou
+  expiré consomme une nouvelle tentative et une nouvelle réservation ;
 - URLs Storage privées et temporaires.
 
-La rétention ne limite pas les appels : elle conserve au plus 30 jours de
-données Démo, 100 visuels et 50 conversations par compte commercial, puis
-supprime les plus anciennes ressources via une file Storage interne.
+La rétention est indépendante du budget de sécurité : elle conserve au plus
+30 jours de données Démo, 100 visuels et 50 conversations par compte commercial,
+puis supprime les plus anciennes ressources via une file Storage interne.
 
 OpenAI applique aussi ses propres limites de débit, indépendamment des crédits
 TOK : <https://developers.openai.com/api/docs/guides/rate-limits>.
 
 ## Ordre de déploiement
 
-1. Appliquer la migration `20260715044653_commercial_demo_openai_gateway.sql`.
+1. Appliquer la migration `20260715044653_commercial_demo_openai_gateway.sql`,
+   puis `20260718022910_fair_growth_business_model.sql` qui ajoute le kill switch
+   et les budgets atomiques.
 2. Confirmer que le secret GitHub Actions `OPENAI_API_KEY` est présent sans en
    afficher la valeur. Le workflow le transmet à
    `write-supabase-secrets-env.mjs`, puis à `supabase secrets set`; le job échoue
@@ -121,3 +130,7 @@ TOK : <https://developers.openai.com/api/docs/guides/rate-limits>.
    ligne.
 6. Confirmer qu'un utilisateur non mappé, une session inactive, un flag désactivé
    et un autre slug Edge sont refusés.
+7. Désactiver temporairement `commercial-demo-openai` en environnement de test,
+   puis vérifier le refus fail-closed. Vérifier aussi qu'un replay terminé reste
+   disponible et que les plafonds quotidiens renvoient `budget_exhausted` sans
+   nouvel appel fournisseur.
