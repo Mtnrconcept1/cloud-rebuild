@@ -99,7 +99,7 @@ jobs:
           VITE_SUPABASE_URL: https://wwcrtyoueexyxkkikaos.supabase.co
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-          VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
+          VITE_STRIPE_PUBLISHABLE_KEY: ${{ vars.VITE_STRIPE_PUBLISHABLE_KEY || secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
           VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
           VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
           VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
@@ -121,21 +121,29 @@ jobs:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: node ./scripts/ensure-supabase-auth-security.mjs
 
+      - name: Verify Supabase Vault cron and email provider configuration
+        id: supabase_runtime_security
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: node ./scripts/verify-supabase-runtime-security.mjs
+
       - name: Release readiness
         run: pnpm run release:readiness
         env:
           RELEASE_READINESS_STRICT: "true"
           RELEASE_READINESS_TARGET: "web"
-          VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
+          VITE_STRIPE_PUBLISHABLE_KEY: ${{ vars.VITE_STRIPE_PUBLISHABLE_KEY || secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_PERSONNAL_SECRET_KEY || secrets.STRIPE_PERSONAL_SECRET_KEY || secrets.STRIPE_SECRET_KEY_LIVE }}
           STRIPE_SECRET_KEY_LIVE: ${{ secrets.STRIPE_PERSONNAL_SECRET_KEY || secrets.STRIPE_PERSONAL_SECRET_KEY || secrets.STRIPE_SECRET_KEY_LIVE }}
           STRIPE_PERSONNAL_SECRET_KEY: ${{ secrets.STRIPE_PERSONNAL_SECRET_KEY }}
           STRIPE_PERSONAL_SECRET_KEY: ${{ secrets.STRIPE_PERSONAL_SECRET_KEY }}
           STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET || secrets.STRIPE_LIVE_WEBHOOK }}
           STRIPE_LIVE_WEBHOOK: ${{ secrets.STRIPE_LIVE_WEBHOOK }}
-          INTERNAL_CRON_SECRET: ${{ secrets.INTERNAL_CRON_SECRET }}
-          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          SUPABASE_INTERNAL_CRON_VAULT_CONFIRMED: ${{ steps.supabase_runtime_security.outputs.cron_confirmed }}
+          SUPABASE_INTERNAL_CRON_VAULT_EVIDENCE: ${{ steps.supabase_runtime_security.outputs.cron_evidence }}
+          SUPABASE_RESEND_SECRET_CONFIRMED: ${{ steps.supabase_runtime_security.outputs.resend_confirmed }}
+          SUPABASE_RESEND_SECRET_EVIDENCE: ${{ steps.supabase_runtime_security.outputs.resend_evidence }}
+          EMAIL_FROM: ${{ vars.EMAIL_FROM || 'Tok <noreply@thetok.ch>' }}
           APP_BASE_URL: ${{ env.APP_BASE_URL }}
           PUBLIC_APP_URL: ${{ env.PUBLIC_APP_URL }}
           ALLOWED_ORIGINS: ${{ secrets.ALLOWED_ORIGINS }}
@@ -168,7 +176,7 @@ jobs:
       VITE_SUPABASE_URL: https://wwcrtyoueexyxkkikaos.supabase.co
       VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
       VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-      VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
+      VITE_STRIPE_PUBLISHABLE_KEY: ${{ vars.VITE_STRIPE_PUBLISHABLE_KEY || secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
       VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
       VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
       VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
@@ -210,7 +218,7 @@ jobs:
           VITE_SUPABASE_URL: https://wwcrtyoueexyxkkikaos.supabase.co
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-          VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
+          VITE_STRIPE_PUBLISHABLE_KEY: ${{ vars.VITE_STRIPE_PUBLISHABLE_KEY || secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
           VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
           VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
           VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
@@ -313,9 +321,7 @@ jobs:
           STRIPE_TOK_ONE_WEBHOOK_SIGNING_SECRET: ${{ secrets.STRIPE_TOK_ONE_WEBHOOK_SIGNING_SECRET }}
           STRIPE_TOK_ONE_TEST_WEBHOOK_SECRET: ${{ secrets.STRIPE_TOK_ONE_TEST_WEBHOOK_SECRET }}
           STRIPE_TOK_ONE_TEST_WEBHOOK_SIGNING_SECRET: ${{ secrets.STRIPE_TOK_ONE_TEST_WEBHOOK_SIGNING_SECRET }}
-          INTERNAL_CRON_SECRET: ${{ secrets.INTERNAL_CRON_SECRET }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
           ALLOWED_ORIGINS: ${{ secrets.ALLOWED_ORIGINS }}
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
