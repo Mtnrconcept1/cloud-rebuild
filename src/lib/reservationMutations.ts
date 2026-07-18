@@ -19,6 +19,8 @@ type CreateReservationInput = {
   partySize: number;
   feature: string;
   metadata: Record<string, unknown>;
+  acquisitionSource?: "google" | "restaurant_website" | "qr_code" | "instagram" | null;
+  acquisitionChannelToken?: string | null;
   notes?: string | null;
   progressiveOfferId?: string | null;
 };
@@ -90,6 +92,8 @@ export async function createReservationWithValidation(
       party_size: input.partySize,
       feature: input.feature,
       metadata: input.metadata,
+      acquisition_source: input.acquisitionSource ?? null,
+      acquisition_channel_token: input.acquisitionChannelToken ?? null,
       notes: input.notes ?? null,
       progressive_offer_id: input.progressiveOfferId ?? null,
     },
