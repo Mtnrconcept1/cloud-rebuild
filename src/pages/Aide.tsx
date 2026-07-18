@@ -729,7 +729,7 @@ const FAQS: FaqSection[] = [
     questions: [
       {
         q: "Quels sont les tarifs Fair Growth ?",
-        a: "Starter coûte CHF 69/mois, CHF 5 par réservation apportée par TOK et honorée, et 9,9% par commande marketplace. Business coûte CHF 129, CHF 4.50 et 8,9%. Premium coûte CHF 199, CHF 4 et 7,9%. Elite coûte CHF 499, CHF 3 et 6,9%. Elite inclut trois établissements, puis CHF 149/mois par site supplémentaire. L'annuel fournit 12 mois de service au prix de 11.",
+        a: "Starter coûte CHF 69/mois, CHF 5 par réservation apportée par TOK et honorée, et 9,9% par commande marketplace. Business coûte CHF 129, CHF 4.50 et 8,9%. Premium coûte CHF 199, CHF 4 et 7,9%. Elite coûte CHF 499, CHF 3 et 6,9%. Elite inclut trois établissements, puis CHF 149/mois par site supplémentaire. Le rattachement des sites et tout supplément sont validés avec TOK avant facturation. L'annuel fournit 12 mois de service au prix de 11.",
       },
       {
         q: "Qu'est-ce qu'une réservation apportée par TOK ?",
@@ -752,8 +752,12 @@ const FAQS: FaqSection[] = [
         a: "L'abonnement annuel est payé une fois pour 12 mois de service, au prix de 11 mensualités : CHF 759 Starter, CHF 1'419 Business, CHF 2'189 Premium et CHF 5'489 Elite. Les crédits et quotas inclus restent renouvelés chaque mois.",
       },
       {
-        q: "Quels modules payants puis-je activer ?",
-        a: "No-Show Shield CHF 39/mois ; Marketing Autopilot IA CHF 79/mois ; Margin & Waste Pilot CHF 59/mois ; Réceptionniste téléphonique IA CHF 49/mois plus CHF 1.50 par réservation réussie ; Direct Order Saver CHF 149/mois plus 1,5% ; Réputation IA CHF 29/mois ; cartes-cadeaux et expériences 3% plus coût de paiement.",
+        q: "Quels modules payants sont proposés ?",
+        a: "Sur demande : No-Show Shield CHF 39/mois ; Marketing Autopilot IA CHF 79/mois ; Margin & Waste Pilot CHF 59/mois ; Réputation IA CHF 29/mois. En pilote, après validation technique : Réceptionniste téléphonique IA CHF 49/mois plus CHF 1.50 par réservation réussie ; Direct Order Saver CHF 149/mois plus 1,5% ; cartes-cadeaux et expériences 3% plus coût de paiement. Les fonctions pilote ne sont pas présentées comme activées tant que TOK n'a pas confirmé leur mise en service.",
+      },
+      {
+        q: "Une demande de module déclenche-t-elle un paiement ?",
+        a: "Non. Le dashboard enregistre uniquement une demande. TOK vérifie ensuite le périmètre, les prérequis techniques, le prix et la date de début avec le restaurant. L'activation et la facturation commencent seulement après cette confirmation ; aucune intégration téléphonique, commande directe ou carte-cadeau n'est créée automatiquement.",
       },
       {
         q: "Comment fonctionne la garantie de valeur 3× ?",
