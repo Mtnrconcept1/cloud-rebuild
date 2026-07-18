@@ -12,6 +12,7 @@ describe("Fair Growth paid module activation", () => {
   const dashboard = read("src/pages/dashboard/DashboardPack.tsx");
   const publicPacks = read("src/pages/PacksRestaurateur.tsx");
   const faq = read("src/pages/Aide.tsx");
+  const terms = read("src/pages/ConditionsRestaurateurs.tsx");
 
   it("keeps every module on manual activation and exposes pilots honestly", () => {
     expect(FAIR_GROWTH_MODULES.every((module) => module.activationMode === "manual")).toBe(true);
@@ -50,5 +51,8 @@ describe("Fair Growth paid module activation", () => {
     expect(faq).toContain("En pilote, après validation technique");
     expect(faq).toContain("enregistre uniquement une demande");
     expect(faq).toContain("Le rattachement des sites et tout supplément sont validés avec TOK avant facturation");
+    expect(terms).toContain("offres pilote soumises a validation technique et contractuelle");
+    expect(terms).toContain("n'autorise aucun debit");
+    expect(terms).toContain("apres activation facturee");
   });
 });
