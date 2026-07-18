@@ -76,6 +76,48 @@ describe("release readiness inspection", () => {
     expect(result.errors).toContain("Missing SUPABASE_LEAKED_PASSWORD_PROTECTION_EVIDENCE with Dashboard/API proof for issue #204.");
   });
 
+  it("keeps strict web deployment independent from Apple and Android release material", () => {
+    const root = makeFixture("web-ready-without-mobile");
+
+    const result = inspectReleaseReadiness({
+      root,
+      target: "web",
+      env: {
+        VITE_STRIPE_PUBLISHABLE_KEY: "pk_live_123",
+        STRIPE_SECRET_KEY_LIVE: "sk_live_123",
+        STRIPE_WEBHOOK_SECRET: "whsec_123",
+        FIREBASE_SERVICE_ACCOUNT: firebaseServiceAccountJson(),
+        INTERNAL_CRON_SECRET: "long-random-secret",
+        RESEND_API_KEY: "re_123",
+        EMAIL_FROM: "Tok <noreply@thetok.ch>",
+        APP_BASE_URL: "https://www.thetok.ch",
+        PUBLIC_APP_URL: "https://www.thetok.ch",
+        ALLOWED_ORIGINS: "https://www.thetok.ch",
+        SUPABASE_LEAKED_PASSWORD_PROTECTION_CONFIRMED: "true",
+        SUPABASE_LEAKED_PASSWORD_PROTECTION_EVIDENCE: "Management API live proof for issue #204",
+      },
+      strict: true,
+    });
+
+    expect(result.ok).toBe(true);
+    expect(result.target).toBe("web");
+    expect(result.errors).toEqual([]);
+    expect(result.errors.join("\n")).not.toMatch(/Apple|Android|assetlinks|keystore/i);
+  });
+
+  it("fails closed on an unknown release readiness target", () => {
+    const root = makeFixture("unknown-target");
+    const result = inspectReleaseReadiness({
+      root,
+      target: "web-ish",
+      env: {},
+      strict: true,
+    });
+
+    expect(result.ok).toBe(false);
+    expect(result.errors).toContain("RELEASE_READINESS_TARGET must be either full or web.");
+  });
+
   it("accepts configured app links, mobile signing, and critical production secrets", () => {
     const root = makeFixture("ready");
     writeJson(root, "public/.well-known/apple-app-site-association", {
