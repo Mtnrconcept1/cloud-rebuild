@@ -37,6 +37,14 @@ import {
   assertPaymentMethodAllowed,
   getEffectiveFeatureFlagSet,
 } from "../_shared/feature-flags.ts";
+import {
+  FAIR_GROWTH_ANNUAL_MONTHS_CHARGED,
+  getRestaurantSubscriptionAmountCents,
+  getRestaurantSubscriptionStripeInterval,
+  isFairGrowthAnnualBillingEnabled,
+  parseRestaurantSubscriptionBillingPeriod,
+  type RestaurantSubscriptionBillingPeriod,
+} from "../_shared/restaurant-subscription-billing.ts";
 import { buildVerifiedOrderPricing } from "../_shared/order-pricing.ts";
 import {
   MARKETPLACE_CHECKOUT_KINDS,
@@ -51,6 +59,22 @@ const toMoney = (value: unknown) => Math.max(0, Number(value) || 0);
 type CheckoutItem = Record<string, unknown>;
 const CLIENT_STRIPE_CHECKOUT_KINDS = new Set(["order", "zero-attente", "chefs-table"]);
 const RESTAURANT_CREDIT_ONLY_CHECKOUT_KINDS = new Set(["campaign"]);
+const RECOGNIZED_CHECKOUT_KINDS = new Set([
+  "order",
+  "zero-attente",
+  "chefs-table",
+  "restaurant-onboarding",
+  "restaurant-subscription-upgrade",
+  "restaurant-credit-pack",
+  "tok-one",
+  // Retain legacy kinds only so their explicit, user-facing rejection paths
+  // below remain reachable. They never proceed to Stripe.
+  "launch-pack",
+  "campaign",
+]);
+const STRIPE_CHECKOUT_PAYMENT_METHODS = new Set(["card", "twint"]);
+const TWINT_MAX_CHECKOUT_AMOUNT_CENTS = 500_000;
+const CHECKOUT_CURRENCY = "CHF";
 
 function normalizeCheckoutKind(value: unknown) {
   return String(value || "order").trim().toLowerCase();
@@ -67,6 +91,8 @@ function assertRestaurantOnboardingSetupSessionIntegrity(input: {
   paymentAttemptId: string;
   operationKey: string;
   stripeCustomerId: string;
+  billingPeriod: RestaurantSubscriptionBillingPeriod;
+  reservedAmountCents: number;
 }) {
   const { session } = input;
   const metadata = session.metadata || {};
@@ -121,6 +147,12 @@ function assertRestaurantOnboardingSetupSessionIntegrity(input: {
   }
   if (Number(metadata.reserved_subscription_amount_cents || 0) <= 0) {
     throw new Error("STRIPE_SETUP_RESERVED_SUBSCRIPTION_AMOUNT_MISSING");
+  }
+  if (
+    metadata.billing_period !== input.billingPeriod
+    || Number(metadata.reserved_subscription_amount_cents || 0) !== input.reservedAmountCents
+  ) {
+    throw new Error("STRIPE_SETUP_RESERVED_SUBSCRIPTION_SNAPSHOT_MISMATCH");
   }
 }
 
@@ -213,6 +245,9 @@ Deno.serve(async (req) => {
         "Les commandes de demonstration commerciale utilisent exclusivement le paiement Stripe Test dedie.",
       );
     }
+    if (!RECOGNIZED_CHECKOUT_KINDS.has(effectiveKind)) {
+      throw new HttpError(400, "Type de checkout non pris en charge.");
+    }
     const normalizedPaymentMethod = normalizePaymentMethod(payment_method);
     if (RESTAURANT_CREDIT_ONLY_CHECKOUT_KINDS.has(effectiveKind)) {
       throw new HttpError(
@@ -275,18 +310,14 @@ Deno.serve(async (req) => {
       throw new HttpError(400, error instanceof Error ? error.message : "Moyen de paiement indisponible.");
     }
 
-    switch (normalizedPaymentMethod) {
-      case "twint":
-        break;
-      case "postfinance_card":
-      case "postfinance_efinance":
-        throw new HttpError(
-          400,
-          "Les paiements PostFinance sont temporairement indisponibles. Utilisez la carte bancaire ou TWINT.",
-        );
-      case "card":
-      default:
-        break;
+    if (["postfinance_card", "postfinance_efinance"].includes(normalizedPaymentMethod)) {
+      throw new HttpError(
+        400,
+        "Les paiements PostFinance sont temporairement indisponibles. Utilisez la carte bancaire ou TWINT.",
+      );
+    }
+    if (!STRIPE_CHECKOUT_PAYMENT_METHODS.has(normalizedPaymentMethod)) {
+      throw new HttpError(400, "Moyen de paiement Stripe non pris en charge.");
     }
 
 
@@ -297,7 +328,13 @@ Deno.serve(async (req) => {
     let creditPackPurchaseId = "";
     let creditPackPurchaseDraft: Record<string, unknown> | null = null;
     let marketplaceRestaurantId = "";
+    let marketplaceDeliveryPassThroughCents = 0;
+    // Tips remain zero until a dedicated server-priced Stripe line item exists.
+    // Never trust an arbitrary client metadata amount for the restaurant's tip.
+    const marketplaceTipCents = 0;
     let restaurantOnboardingStripeCustomerId = "";
+    let restaurantOnboardingBillingPeriod: RestaurantSubscriptionBillingPeriod = "monthly";
+    let restaurantOnboardingReservedAmountCents = 0;
     const chefTableHoldItems: Array<{ drop_id: string; quantity: number }> = [];
     let sessionMetadata: Record<string, string> = {
       user_id: actor.userId || "",
@@ -345,15 +382,18 @@ Deno.serve(async (req) => {
       const planId = String(order_metadata?.plan_id || "");
       const restaurantId = String(order_metadata?.restaurant_id || "");
       const signupApplicationId = String(order_metadata?.signup_application_id || "");
-      const billingPeriod = String(order_metadata?.billing_period || "monthly") === "yearly"
-        ? "yearly"
-        : "monthly";
+      const billingPeriod = parseRestaurantSubscriptionBillingPeriod(
+        order_metadata?.billing_period || "monthly",
+      );
       let applicationSubscriptionId = "";
 
       if (!planId) throw new HttpError(400, "plan_id requis");
       if (!restaurantId) throw new HttpError(400, "restaurant_id requis");
       if (!signupApplicationId) throw new HttpError(400, "signup_application_id requis");
-      if (billingPeriod !== "monthly") throw new HttpError(400, "Les abonnements restaurateur sont mensuels");
+      if (!billingPeriod) throw new HttpError(400, "La periode d'abonnement restaurateur est invalide");
+      if (billingPeriod === "yearly" && !isFairGrowthAnnualBillingEnabled(activeFlags)) {
+        throw new HttpError(503, "La facturation annuelle Fair Growth n'est pas encore activee");
+      }
       if (normalizedPaymentMethod !== "card") {
         throw new HttpError(400, "L'onboarding restaurateur requiert un paiement par carte");
       }
@@ -414,12 +454,9 @@ Deno.serve(async (req) => {
       if (planError) throw new HttpError(500, planError.message);
       if (!plan) throw new HttpError(404, "Plan introuvable ou inactif");
 
-      const subscriptionAmount = Number(plan.price_monthly_chf);
-      if (subscriptionAmount <= 0) throw new HttpError(400, "Prix du plan invalide");
-
       const { data: existingSub, error: existingSubError } = await actor.adminClient
         .from("restaurant_ai_subscriptions")
-        .select("id, status, current_period_end, signup_application_id, restaurant_subscription_plan_id")
+        .select("id, status, current_period_end, signup_application_id, restaurant_subscription_plan_id, billing_period, price_monthly_chf_snapshot, billing_amount_chf_snapshot, annual_months_charged_snapshot, pricing_version_snapshot")
         .eq("restaurant_id", restaurantId)
         .eq("signup_application_id", signupApplicationId)
         .eq("restaurant_subscription_plan_id", planId)
@@ -434,6 +471,27 @@ Deno.serve(async (req) => {
       if (applicationSubscriptionId && existingSub.id !== applicationSubscriptionId) {
         throw new HttpError(409, "Le contrat d'abonnement ne correspond pas au dossier");
       }
+      if (existingSub.billing_period !== billingPeriod) {
+        throw new HttpError(409, "La periode d'abonnement ne correspond pas au contrat reserve");
+      }
+
+      const subscriptionAmountCents = Math.round(Number(existingSub.billing_amount_chf_snapshot) * 100);
+      const expectedSubscriptionAmountCents = getRestaurantSubscriptionAmountCents(
+        existingSub.price_monthly_chf_snapshot,
+        billingPeriod,
+      );
+      if (
+        !Number.isSafeInteger(subscriptionAmountCents)
+        || subscriptionAmountCents <= 0
+        || subscriptionAmountCents !== expectedSubscriptionAmountCents
+        || (billingPeriod === "yearly"
+          && Number(existingSub.annual_months_charged_snapshot) !== FAIR_GROWTH_ANNUAL_MONTHS_CHARGED)
+      ) {
+        throw new HttpError(409, "Le montant reserve de l'abonnement est invalide");
+      }
+      const subscriptionAmount = subscriptionAmountCents / 100;
+      restaurantOnboardingBillingPeriod = billingPeriod;
+      restaurantOnboardingReservedAmountCents = subscriptionAmountCents;
 
       const existingSubscriptionStatus = String(existingSub.status || "").toLowerCase();
       if (!["awaiting_payment_method", "past_due"].includes(existingSubscriptionStatus)) {
@@ -519,9 +577,15 @@ Deno.serve(async (req) => {
         restaurant_subscription_plan_id: plan.id,
         restaurant_subscription_plan_slug: plan.slug,
         plan_name: plan.name,
-        billing_period: "monthly",
+        billing_period: billingPeriod,
         subscription_amount: subscriptionAmount.toFixed(2),
-        reserved_subscription_amount_cents: String(Math.round(subscriptionAmount * 100)),
+        reserved_subscription_amount_cents: String(subscriptionAmountCents),
+        annual_months_charged: billingPeriod === "yearly"
+          ? String(FAIR_GROWTH_ANNUAL_MONTHS_CHARGED)
+          : "1",
+        service_months: billingPeriod === "yearly" ? "12" : "1",
+        entitlement_reset_period: "monthly",
+        pricing_version: String(existingSub.pricing_version_snapshot || ""),
         billing_start_trigger: "first_real_reservation_or_order",
         activation_recovery: existingSubscriptionStatus === "past_due" ? "true" : "false",
         authoritative_total: "0.00",
@@ -529,7 +593,7 @@ Deno.serve(async (req) => {
     } else if (effectiveKind === "restaurant-subscription-upgrade") {
       const planId = String(order_metadata?.plan_id || "");
       const restaurantId = String(order_metadata?.restaurant_id || "");
-      const restaurantSubscriptionUpgradeSamePlanCode = "restaurant_subscription_upgrade_same_plan";
+      const activeChangeRequiresSchedulingCode = "restaurant_subscription_active_change_requires_scheduling";
 
       if (!planId) throw new HttpError(400, "plan_id requis");
       if (!restaurantId) throw new HttpError(400, "restaurant_id requis");
@@ -553,16 +617,27 @@ Deno.serve(async (req) => {
       if (planError) throw new HttpError(500, planError.message);
       if (!plan) throw new HttpError(404, "Plan introuvable ou inactif");
 
-      const subscriptionAmount = Number(plan.price_monthly_chf);
-      if (subscriptionAmount <= 0) throw new HttpError(400, "Prix du plan invalide");
-
       const { data: existingSub, error: existingSubError } = await actor.adminClient
         .from("restaurant_ai_subscriptions")
-        .select("id, plan, status, current_period_end, restaurant_subscription_plan_id, stripe_subscription_id")
+        .select("id, plan, status, billing_period, current_period_end, restaurant_subscription_plan_id, stripe_subscription_id")
         .eq("restaurant_id", restaurantId)
         .maybeSingle();
 
       if (existingSubError) throw new HttpError(500, existingSubError.message);
+
+      const billingPeriod = parseRestaurantSubscriptionBillingPeriod(
+        order_metadata?.billing_period || existingSub?.billing_period || "monthly",
+      );
+      if (!billingPeriod) throw new HttpError(400, "La periode d'abonnement restaurateur est invalide");
+      if (billingPeriod === "yearly" && !isFairGrowthAnnualBillingEnabled(activeFlags)) {
+        throw new HttpError(503, "La facturation annuelle Fair Growth n'est pas encore activee");
+      }
+      const subscriptionAmountCents = getRestaurantSubscriptionAmountCents(
+        plan.price_monthly_chf,
+        billingPeriod,
+      );
+      if (subscriptionAmountCents <= 0) throw new HttpError(400, "Prix du plan invalide");
+      const subscriptionAmount = subscriptionAmountCents / 100;
 
       const hasActiveSubscription = Boolean(
         existingSub &&
@@ -570,41 +645,20 @@ Deno.serve(async (req) => {
         (!existingSub.current_period_end || new Date(existingSub.current_period_end) > new Date()),
       );
 
-      let currentPlanPosition = 0;
-      if (existingSub?.restaurant_subscription_plan_id) {
-        const { data: currentPlan, error: currentPlanError } = await actor.adminClient
-          .from("restaurant_subscription_plans")
-          .select("id, slug, position, price_monthly_chf")
-          .eq("id", existingSub.restaurant_subscription_plan_id)
-          .maybeSingle();
-
-        if (currentPlanError) throw new HttpError(500, currentPlanError.message);
-        currentPlanPosition = Number(currentPlan?.position || 0);
-      } else if (existingSub?.plan) {
-        const { data: currentPlan, error: currentPlanError } = await actor.adminClient
-          .from("restaurant_subscription_plans")
-          .select("id, slug, position, price_monthly_chf")
-          .eq("slug", existingSub.plan)
-          .maybeSingle();
-
-        if (currentPlanError) throw new HttpError(500, currentPlanError.message);
-        currentPlanPosition = Number(currentPlan?.position || 0);
-      }
-
-      if (
-        hasActiveSubscription &&
-        (
-          existingSub?.restaurant_subscription_plan_id === plan.id
-          || existingSub?.plan === plan.slug
-          || Number(plan.position || 0) <= currentPlanPosition
-        )
-      ) {
-        log.warn(restaurantSubscriptionUpgradeSamePlanCode, {
+      // Never create a second full-price subscription over an already-paid
+      // monthly or annual period. Every active plan change is scheduled on the
+      // existing Stripe subscription by manage-restaurant-subscription.
+      if (hasActiveSubscription) {
+        log.warn(activeChangeRequiresSchedulingCode, {
           restaurantId,
           currentPlan: existingSub?.plan || null,
           requestedPlan: plan.slug,
+          billingPeriod: existingSub?.billing_period || null,
         });
-        throw new HttpError(409, "Vous etes deja sur ce plan ou un plan superieur");
+        throw new HttpError(
+          409,
+          "Un abonnement actif doit etre modifie depuis le changement programme en fin de periode payee.",
+        );
       }
 
       lineItems = [
@@ -620,22 +674,31 @@ Deno.serve(async (req) => {
               },
             },
             recurring: {
-              interval: "month",
+              interval: getRestaurantSubscriptionStripeInterval(billingPeriod),
             },
-            unit_amount: Math.round(subscriptionAmount * 100),
+            unit_amount: subscriptionAmountCents,
           },
           quantity: 1,
         },
       ];
 
       sessionMetadata = {
-        ...sessionMetadata,
+        user_id: actor.userId,
+        checkout_kind: effectiveKind,
+        stripe_mode: stripeRuntime.mode,
+        stripe_key_scope: stripeRuntime.isolatedTokOneKey ? "tok_one" : "default",
+        payment_method_label: "card",
         restaurant_id: restaurantId,
         plan_id: plan.id,
         restaurant_subscription_plan_id: plan.id,
         restaurant_subscription_plan_slug: plan.slug,
         plan_name: plan.name,
-        billing_period: "monthly",
+        billing_period: billingPeriod,
+        annual_months_charged: billingPeriod === "yearly"
+          ? String(FAIR_GROWTH_ANNUAL_MONTHS_CHARGED)
+          : "1",
+        service_months: billingPeriod === "yearly" ? "12" : "1",
+        entitlement_reset_period: "monthly",
         previous_restaurant_ai_subscription_id: String(existingSub?.id || ""),
         previous_stripe_subscription_id: String(existingSub?.stripe_subscription_id || ""),
         previous_subscription_plan_slug: String(existingSub?.plan || ""),
@@ -974,7 +1037,9 @@ Deno.serve(async (req) => {
         );
       }
       marketplaceRestaurantId = primaryRestaurantId;
-      const totalDeliveryFee = toMoney(order_metadata?.delivery_fee);
+      const totalDeliveryFee = effectiveKind === "zero-attente"
+        ? 0
+        : toMoney(order_metadata?.delivery_fee);
       const requestedPointsToRedeem = Math.max(0, Math.floor(Number(order_metadata?.points_to_redeem || 0)));
       const requestedPointsDiscount = toMoney(order_metadata?.points_discount_amount || order_metadata?.points_discount);
       const totalPointsDiscount = Math.min(requestedPointsDiscount, requestedPointsToRedeem / 100);
@@ -1007,6 +1072,7 @@ Deno.serve(async (req) => {
       allocateDiscount(totalFlexDiscount, flexByPaymentGroup);
 
       let authoritativeTotal = 0;
+      let verifiedDeliveryPassThroughTotal = 0;
       let formulaDiscountTotal = 0;
       let promoDiscountTotal = 0;
       let promoCodeDiscountTotal = 0;
@@ -1093,6 +1159,12 @@ Deno.serve(async (req) => {
         }
 
         authoritativeTotal += pricing.total;
+        verifiedDeliveryPassThroughTotal += Math.max(
+          0,
+          pricing.deliveryFee
+            - pricing.tokOneDeliveryDiscount
+            - pricing.miamzDeliveryDiscount,
+        );
         formulaDiscountTotal += pricing.formulaDiscount;
         promoDiscountTotal += pricing.promoDiscount;
         promoCodeDiscountTotal += pricing.promoCodeDiscount;
@@ -1130,6 +1202,10 @@ Deno.serve(async (req) => {
         + pointsDiscountTotal
         + flexDiscountTotal
       ) * 100);
+      marketplaceDeliveryPassThroughCents = Math.max(
+        0,
+        Math.round(verifiedDeliveryPassThroughTotal * 100),
+      );
       sessionMetadata = {
         ...sessionMetadata,
         restaurant_id: primaryRestaurantId,
@@ -1161,24 +1237,62 @@ Deno.serve(async (req) => {
     discountCents = Math.min(discountCents, totalBeforeDiscountCents);
     const finalCheckoutTotalCents = Math.max(0, totalBeforeDiscountCents - discountCents);
 
+    if (normalizedPaymentMethod === "twint") {
+      if (isSubscriptionLifecycleCheckout) {
+        throw new HttpError(400, "TWINT ne peut pas etre utilise avec ce parcours d'abonnement.");
+      }
+      if (CHECKOUT_CURRENCY !== "CHF") {
+        throw new HttpError(400, "TWINT requiert un paiement en francs suisses.");
+      }
+      if (finalCheckoutTotalCents > TWINT_MAX_CHECKOUT_AMOUNT_CENTS) {
+        throw new HttpError(400, "TWINT est limite a CHF 5'000 par paiement.");
+      }
+    }
+
+    marketplaceDeliveryPassThroughCents = Math.min(
+      marketplaceDeliveryPassThroughCents,
+      finalCheckoutTotalCents,
+    );
+    const marketplaceCommissionableCents = Math.max(
+      0,
+      finalCheckoutTotalCents
+        - marketplaceTipCents
+        - marketplaceDeliveryPassThroughCents,
+    );
+
     const marketplaceRouting = await resolveMarketplaceRouting({
       adminClient: actor.adminClient,
       checkoutKind: effectiveKind,
       restaurantId: marketplaceRestaurantId || sessionMetadata.restaurant_id,
       grossCents: finalCheckoutTotalCents,
+      commissionableCents: marketplaceCommissionableCents,
+      tipCents: marketplaceTipCents,
+      deliveryPassThroughCents: marketplaceDeliveryPassThroughCents,
       stripeMode: stripeRuntime.mode,
     });
 
     if (MARKETPLACE_CHECKOUT_KINDS.has(effectiveKind)) {
       sessionMetadata = {
         ...sessionMetadata,
+        finance_snapshot_version: "fair_growth_v1",
         finance_routing_mode: marketplaceRouting.mode,
+        gross_amount_cents: String(marketplaceRouting.grossCents),
+        commissionable_cents: String(marketplaceRouting.commissionableCents),
+        tip_cents: String(marketplaceRouting.tipCents),
+        delivery_pass_through_cents: String(marketplaceRouting.deliveryPassThroughCents),
         platform_fee_bps: String(marketplaceRouting.platformFeeBps),
         platform_fee_amount_cents: String(marketplaceRouting.platformFeeCents),
+        stripe_application_fee_amount_cents: String(marketplaceRouting.stripeApplicationFeeCents),
         restaurant_share_amount_cents: String(marketplaceRouting.restaurantShareCents),
-        developer_share_bps: String(marketplaceRouting.developerShareBps),
+        restaurant_transfer_amount_cents: String(marketplaceRouting.restaurantTransferCents),
+        developer_order_bps: String(marketplaceRouting.developerOrderBps),
+        developer_share_bps: String(marketplaceRouting.developerOrderBps),
         developer_share_amount_cents: String(marketplaceRouting.developerShareCents),
         tok_net_amount_cents: String(marketplaceRouting.tokNetRevenueCents),
+        pricing_plan_id: String(marketplaceRouting.pricingPlanId || ""),
+        pricing_plan_slug: String(marketplaceRouting.pricingPlanSlug || ""),
+        pricing_version: marketplaceRouting.pricingVersion,
+        pricing_rate_source: marketplaceRouting.pricingRateSource,
       };
     }
 
@@ -1226,6 +1340,14 @@ Deno.serve(async (req) => {
         primary_order_id: sessionMetadata.primary_order_id || null,
         order_reference: sessionMetadata.order_reference || null,
         restaurant_id: attemptRestaurantId,
+        finance_snapshot_version: sessionMetadata.finance_snapshot_version || null,
+        pricing_version: sessionMetadata.pricing_version || null,
+        platform_fee_bps: sessionMetadata.platform_fee_bps || null,
+        commissionable_cents: sessionMetadata.commissionable_cents || null,
+        tip_cents: sessionMetadata.tip_cents || null,
+        delivery_pass_through_cents: sessionMetadata.delivery_pass_through_cents || null,
+        stripe_application_fee_amount_cents:
+          sessionMetadata.stripe_application_fee_amount_cents || null,
       },
     } as const;
     let acquiredAttempt = await acquirePaymentAttempt(acquireAttemptInput);
@@ -1273,6 +1395,8 @@ Deno.serve(async (req) => {
           paymentAttemptId: acquiredAttempt.attemptId,
           operationKey: acquiredAttempt.operationKey,
           stripeCustomerId: restaurantOnboardingStripeCustomerId,
+          billingPeriod: restaurantOnboardingBillingPeriod,
+          reservedAmountCents: restaurantOnboardingReservedAmountCents,
         });
       } else {
         assertCheckoutSessionIntegrity({
@@ -1439,6 +1563,7 @@ Deno.serve(async (req) => {
         ? undefined
         : userEmail,
       client_reference_id: actor.userId || undefined,
+      payment_method_types: [normalizedPaymentMethod === "twint" ? "twint" : "card"],
       metadata: sessionMetadata,
     };
 
@@ -1454,6 +1579,15 @@ Deno.serve(async (req) => {
       sessionParams.line_items = lineItems;
     }
 
+    // Checkout payments capture immediately. Match Group is the only manual
+    // capture flow and is handled by authorize-match-group-order.
+    if (!isRestaurantOnboardingSetup && !isSubscriptionCheckout) {
+      sessionParams.payment_intent_data = {
+        capture_method: "automatic",
+        metadata: sessionMetadata,
+      };
+    }
+
     // A SetupIntent does not move money. Marketplace and developer revenue
     // allocation is applied only to the future subscription invoice.
     if (
@@ -1462,7 +1596,9 @@ Deno.serve(async (req) => {
       && marketplaceRouting.destinationAccountId
     ) {
       sessionParams.payment_intent_data = {
-        application_fee_amount: marketplaceRouting.platformFeeCents,
+        ...sessionParams.payment_intent_data,
+        capture_method: "automatic",
+        application_fee_amount: marketplaceRouting.stripeApplicationFeeCents,
         transfer_data: {
           destination: marketplaceRouting.destinationAccountId,
         },
@@ -1661,6 +1797,8 @@ Deno.serve(async (req) => {
           paymentAttemptId: acquiredAttempt.attemptId,
           operationKey: acquiredAttempt.operationKey,
           stripeCustomerId: restaurantOnboardingStripeCustomerId,
+          billingPeriod: restaurantOnboardingBillingPeriod,
+          reservedAmountCents: restaurantOnboardingReservedAmountCents,
         });
       } else {
         assertCheckoutSessionIntegrity({

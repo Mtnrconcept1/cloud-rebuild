@@ -105,7 +105,7 @@ describe("payment helpers", () => {
       "payment-cash",
     ]);
 
-    expect(getGloballyEnabledPaymentMethods(activeFeatures)).toEqual(["card", "twint", "postfinance_card", "cash"]);
+    expect(getGloballyEnabledPaymentMethods(activeFeatures)).toEqual(["twint", "card", "postfinance_card", "cash"]);
     expect(getAllowedPaymentMethods(activeFeatures, ["twint"])).toEqual(["card", "cash"]);
   });
 

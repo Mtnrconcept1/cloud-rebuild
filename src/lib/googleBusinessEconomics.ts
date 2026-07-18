@@ -29,7 +29,7 @@ export function calculateGoogleBusinessSavings(input: GoogleBusinessSavingsInput
   const monthlyTables = positiveNumber(input.monthlyTables);
   const coversPerTable = positiveNumber(input.coversPerTable);
   const commissionPerCoverChf = positiveNumber(input.commissionPerCoverChf);
-  const tokFeePerTableChf = positiveNumber(input.tokFeePerTableChf ?? 5, 5);
+  const tokFeePerTableChf = positiveNumber(input.tokFeePerTableChf ?? 0);
   const monthlyPackFeeChf = positiveNumber(input.monthlyPackFeeChf ?? 0);
 
   const monthlyCovers = roundCurrency(monthlyTables * coversPerTable);

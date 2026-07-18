@@ -19,6 +19,8 @@ type CreateReservationInput = {
   partySize: number;
   feature: string;
   metadata: Record<string, unknown>;
+  acquisitionSource?: "google" | "restaurant_website" | "qr_code" | "instagram" | null;
+  acquisitionChannelToken?: string | null;
   notes?: string | null;
   progressiveOfferId?: string | null;
 };
@@ -90,6 +92,8 @@ export async function createReservationWithValidation(
       party_size: input.partySize,
       feature: input.feature,
       metadata: input.metadata,
+      acquisition_source: input.acquisitionSource ?? null,
+      acquisition_channel_token: input.acquisitionChannelToken ?? null,
       notes: input.notes ?? null,
       progressive_offer_id: input.progressiveOfferId ?? null,
     },
@@ -130,6 +134,36 @@ export async function createReservationWithValidation(
     ok: true,
     reservationId,
   };
+}
+
+export async function markReservationHonored(
+  reservationId: string,
+  attributedTableRevenueChf: number,
+): Promise<ReservationMutationResult & { feeChf?: number }> {
+  const { data, error } = await (getSupabase().rpc as any)("mark_reservation_honored", {
+    p_reservation_id: reservationId,
+    p_attributed_table_revenue_chf: attributedTableRevenueChf,
+  });
+
+  if (error) throw error;
+
+  const result = getFirstRow<{
+    updated: boolean | null;
+    error_code: string | null;
+    error_message: string | null;
+    fee_chf: number | null;
+  }>(data);
+  if (!result) throw new Error("Réponse serveur invalide.");
+
+  if (!result.updated) {
+    return {
+      ok: false,
+      errorCode: result.error_code || "validation_error",
+      errorMessage: result.error_message || "Confirmation impossible.",
+    };
+  }
+
+  return { ok: true, feeChf: Number(result.fee_chf || 0) };
 }
 
 export async function updateRestaurantReservationStatus(

@@ -6,9 +6,11 @@ import type { Database, Json } from "@/integrations/supabase/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import DirectReservationChannelsCard from "@/components/dashboard/DirectReservationChannelsCard";
 import { CommercialDemoReservations } from "@/components/dashboard/CommercialDemoScenario";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import RestaurantCancellationDialog from "@/components/RestaurantCancellationDialog";
+import MarkReservationHonoredDialog from "@/components/MarkReservationHonoredDialog";
 import SortControls from "@/components/list/SortControls";
 import OperationViewToggle, { type OperationViewMode } from "@/components/operations/OperationViewToggle";
 import DayNotificationBadge from "@/components/notifications/DayNotificationBadge";
@@ -24,6 +26,7 @@ import { useNotificationCenter } from "@/hooks/useNotificationCenter";
 import { dispatchQueuedNotifications } from "@/lib/notificationDispatch";
 import {
   cancelReservationByRestaurant,
+  markReservationHonored,
   type CancellationReasonCode,
   updateRestaurantReservationStatus,
 } from "@/lib/reservationMutations";
@@ -56,6 +59,8 @@ const DASHBOARD_RESERVATIONS_FETCH_LIMIT = 300;
 type ReservationRow = Database["public"]["Tables"]["reservations"]["Row"];
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 type ReservationOperationalFields = {
+  honored_at?: string | null;
+  attributed_table_revenue_chf?: number | null;
   deposit_amount_chf?: number | null;
   deposit_status?: string | null;
   no_show_review_at?: string | null;
@@ -257,6 +262,7 @@ function LiveDashboardReservations() {
   const [isCompactMode, setIsCompactMode] = useState(false);
   const [openDayKey, setOpenDayKey] = useState<string | null>(null);
   const [cancelTarget, setCancelTarget] = useState<ReservationWithProfile | null>(null);
+  const [honorTarget, setHonorTarget] = useState<ReservationWithProfile | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<OperationViewMode>("details");
   const { unreadNotifications } = useNotificationCenter(100, { realtime: true });
@@ -377,6 +383,38 @@ function LiveDashboardReservations() {
     },
     onSettled: (_data, _error, _variables, context) => {
       if (context?.queryKey) queryClient.invalidateQueries({ queryKey: context.queryKey });
+    },
+  });
+
+  const markHonoredMutation = useMutation({
+    mutationFn: async ({
+      id,
+      attributedTableRevenueChf,
+    }: {
+      id: string;
+      attributedTableRevenueChf: number;
+    }) => {
+      const result = await markReservationHonored(id, attributedTableRevenueChf);
+      if (!result.ok) throw new Error(result.errorMessage);
+      try {
+        await dispatchQueuedNotifications("dashboard-reservation-honored");
+      } catch (dispatchError) {
+        console.error("Reservation honored notification dispatch failed:", dispatchError);
+      }
+      return result;
+    },
+    onSuccess: (result) => {
+      toast({
+        title: "Table honorée",
+        description: result.feeChf && result.feeChf > 0
+          ? `Frais Fair Growth calculés côté serveur : ${result.feeChf.toLocaleString("fr-CH", { style: "currency", currency: "CHF" })}.`
+          : "Aucun frais de réservation pour cette attribution.",
+      });
+      setHonorTarget(null);
+      queryClient.invalidateQueries({ queryKey: ["dashboard-all-reservations", selectedId] });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Confirmation impossible", description: error.message, variant: "destructive" });
     },
   });
 
@@ -587,6 +625,10 @@ function LiveDashboardReservations() {
           )}
         />
 
+        {!isCommercialDemoRestaurant && effectiveSelectedId ? (
+          <DirectReservationChannelsCard restaurantId={effectiveSelectedId} />
+        ) : null}
+
         {isCommercialDemoRestaurant ? (
           <div className="rounded-2xl border border-sky-200 bg-sky-50/80 px-4 py-3 text-sm text-sky-950 dark:border-sky-500/30 dark:bg-sky-500/10 dark:text-sky-50" role="status">
             <strong>Vrai écran Réservations.</strong> Les réservations et changements de statut restent exclusivement dans la session commerciale simulée.
@@ -772,6 +814,8 @@ function LiveDashboardReservations() {
                   const statusLockMessage = getReservationStatusLockMessage(reservation);
                   const opsSnapshot = getReservationOpsSnapshot(reservation);
                   const isArrived = reservation.status === "arrived";
+                  const canCloseTable = ["arrived", "seated", "completed"].includes(String(reservation.status));
+                  const isHonored = Boolean(reservation.honored_at);
                   const isCardLocked = Boolean(statusLockMessage) || isArrived;
                   const isConfirmedAck = reservation.status === "confirmed";
 
@@ -805,7 +849,7 @@ function LiveDashboardReservations() {
                             </p>
                           ) : null}
                         </div>
-                        <div className="grid grid-cols-1 gap-2 border-t pt-3 sm:grid-cols-3">
+                        <div className="grid grid-cols-1 gap-2 border-t pt-3 sm:grid-cols-2 lg:grid-cols-4">
                           <Button
                             size="sm"
                             variant="outline"
@@ -816,6 +860,17 @@ function LiveDashboardReservations() {
                             <UserCheck className="mr-1 h-4 w-4" />
                             Arrivée
                           </Button>
+                          {!isCommercialDemoRestaurant && canCloseTable ? (
+                            <Button
+                              size="sm"
+                              onClick={() => setHonorTarget(reservation)}
+                              disabled={isHonored || markHonoredMutation.isPending}
+                              variant={isHonored ? "outline" : "default"}
+                            >
+                              <Check className="mr-1 h-4 w-4" />
+                              {isHonored ? "Table clôturée" : "Clôturer la table"}
+                            </Button>
+                          ) : null}
                           <Button
                             size="sm"
                             onClick={() => updateStatusMutation.mutate({ id: reservation.id, status: "confirmed" })}
@@ -922,6 +977,8 @@ function LiveDashboardReservations() {
                                 const refundSnapshot = getReservationRefundSnapshot(reservation);
                                 const opsSnapshot = getReservationOpsSnapshot(reservation);
                                 const isArrived = reservation.status === "arrived";
+                                const canCloseTable = ["arrived", "seated", "completed"].includes(String(reservation.status));
+                                const isHonored = Boolean(reservation.honored_at);
                                 const isReservationLocked = Boolean(statusLockMessage);
                                 const isCardLocked = isReservationLocked || isArrived;
                                 const isConfirmedAck = reservation.status === "confirmed";
@@ -1082,6 +1139,17 @@ function LiveDashboardReservations() {
                                           <UserCheck className="mr-1 h-4 w-4" />
                                           Arrivee
                                         </Button>
+                                        {!isCommercialDemoRestaurant && canCloseTable ? (
+                                          <Button
+                                            size="sm"
+                                            onClick={() => setHonorTarget(reservation)}
+                                            disabled={isHonored || markHonoredMutation.isPending}
+                                            variant={isHonored ? "outline" : "default"}
+                                          >
+                                            <Check className="mr-1 h-4 w-4" />
+                                            {isHonored ? "Table clôturée" : "Clôturer la table"}
+                                          </Button>
+                                        ) : null}
                                         <Button
                                           size="sm"
                                           variant="outline"
@@ -1151,6 +1219,20 @@ function LiveDashboardReservations() {
           </>
         ) : null}
       </div>
+      <MarkReservationHonoredDialog
+        open={Boolean(honorTarget) && !isCommercialDemoRestaurant}
+        targetLabel={honorTarget
+          ? `${honorTarget.customer?.full_name ?? "Client"} - ${honorTarget.date} ${getSafeTime(honorTarget.time)}`
+          : undefined}
+        submitting={markHonoredMutation.isPending}
+        onOpenChange={(open) => {
+          if (!open) setHonorTarget(null);
+        }}
+        onConfirm={(attributedTableRevenueChf) => {
+          if (!honorTarget || isCommercialDemoRestaurant) return;
+          markHonoredMutation.mutate({ id: honorTarget.id, attributedTableRevenueChf });
+        }}
+      />
       <RestaurantCancellationDialog
         open={Boolean(cancelTarget) && !isCommercialDemoRestaurant}
         targetLabel={

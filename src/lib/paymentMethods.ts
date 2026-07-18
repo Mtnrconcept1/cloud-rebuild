@@ -9,8 +9,8 @@ export type PaymentMethodId =
 type FeatureFlagPaymentMethodId = Exclude<PaymentMethodId, "credits">;
 
 export const ALL_PAYMENT_METHODS: FeatureFlagPaymentMethodId[] = [
-  "card",
   "twint",
+  "card",
   "postfinance_card",
   "postfinance_efinance",
   "cash",

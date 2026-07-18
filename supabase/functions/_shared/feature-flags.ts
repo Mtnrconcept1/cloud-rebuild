@@ -7,9 +7,15 @@ type FeatureDefinition = {
 const FEATURE_DEFINITIONS: Record<string, FeatureDefinition> = {
   "payment-card": { defaultEnabled: true },
   "payment-twint": { defaultEnabled: true },
-  "payment-postfinance-card": { defaultEnabled: true },
-  "payment-postfinance-efinance": { defaultEnabled: true },
+  "payment-postfinance-card": { defaultEnabled: false },
+  "payment-postfinance-efinance": { defaultEnabled: false },
   "payment-cash": { defaultEnabled: true },
+  "billing-fair-growth-annual": { defaultEnabled: false },
+  "commercial-demo-openai": { defaultEnabled: false },
+  "daily-dish-ai": {
+    defaultEnabled: true,
+    dependsOn: ["dashboard-restaurateur", "dashboard-menu", "ai_menu_optimizer", "ai_photo_enhancer", "ai_sales_insights"],
+  },
   livraison: { defaultEnabled: true },
   emporter: { defaultEnabled: true },
   "sur-place": { defaultEnabled: true },

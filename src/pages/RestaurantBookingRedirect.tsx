@@ -27,7 +27,7 @@ function firstRow<T>(data: T[] | T | null | undefined): T | null {
 }
 
 function buildRedirectPath(restaurant: ResolvedGoogleBookingRestaurant) {
-  return `/restaurant/${restaurant.restaurant_id}?open=reservation&utm_source=google_business&utm_medium=booking_button`;
+  return `/restaurant/${restaurant.restaurant_id}?open=reservation&utm_source=google_business&utm_medium=booking_button&acquisition_source=google&acquisition_channel_token=${encodeURIComponent(restaurant.booking_slug)}`;
 }
 
 export default function RestaurantBookingRedirect() {

@@ -44,6 +44,12 @@ import {
   type PlannedRefundAllocation,
   type RefundAllocationOperation,
 } from "../_shared/refund-allocations.ts";
+import {
+  FAIR_GROWTH_ANNUAL_MONTHS_CHARGED,
+  buildRestaurantSubscriptionPricingSnapshot,
+  parseRestaurantSubscriptionBillingPeriod,
+  type RestaurantSubscriptionBillingPeriod,
+} from "../_shared/restaurant-subscription-billing.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -673,11 +679,39 @@ function resolveRestaurantSubscriptionPeriod(subscription: Stripe.Subscription |
   }
 
   const fallbackEnd = new Date(fallbackDate);
-  fallbackEnd.setMonth(fallbackEnd.getMonth() + 1);
+  const interval = subscription.items?.data?.[0]?.price?.recurring?.interval;
+  if (interval === "year") fallbackEnd.setFullYear(fallbackEnd.getFullYear() + 1);
+  else fallbackEnd.setMonth(fallbackEnd.getMonth() + 1);
   return {
     currentPeriodStart: toIsoFromUnix(currentPeriodStart, fallbackDate),
     currentPeriodEnd: fallbackEnd.toISOString(),
   };
+}
+
+function resolveRestaurantSubscriptionBillingPeriod(input: {
+  subscription: Stripe.Subscription;
+  existingBillingPeriod?: unknown;
+}): RestaurantSubscriptionBillingPeriod {
+  const stripeInterval = input.subscription.items?.data?.[0]?.price?.recurring?.interval;
+  if (stripeInterval !== "month" && stripeInterval !== "year") {
+    throw new Error(`restaurant_subscription_invalid_stripe_interval:${stripeInterval || "missing"}`);
+  }
+  const stripeBillingPeriod: RestaurantSubscriptionBillingPeriod =
+    stripeInterval === "year" ? "yearly" : "monthly";
+  const metadataBillingPeriod = parseRestaurantSubscriptionBillingPeriod(
+    input.subscription.metadata?.billing_period,
+  );
+  const existingBillingPeriod = parseRestaurantSubscriptionBillingPeriod(
+    input.existingBillingPeriod,
+  );
+
+  if (metadataBillingPeriod && metadataBillingPeriod !== stripeBillingPeriod) {
+    throw new Error("restaurant_subscription_billing_period_metadata_mismatch");
+  }
+  if (existingBillingPeriod && existingBillingPeriod !== stripeBillingPeriod) {
+    throw new Error("restaurant_subscription_billing_period_contract_mismatch");
+  }
+  return stripeBillingPeriod;
 }
 
 function normalizeRestaurantSubscriptionStatus(status: string | null | undefined) {
@@ -878,9 +912,12 @@ function buildRestaurantScheduledPlanChange(
     };
   }
 
-  if (pendingChange === "downgrade_at_period_end") {
+  if (
+    pendingChange === "plan_change_at_period_end"
+    || pendingChange === "downgrade_at_period_end"
+  ) {
     return {
-      action: "downgrade",
+      action: "change_plan",
       target_plan_id: String(metadata.pending_restaurant_subscription_plan_id || ""),
       target_plan_slug: String(metadata.pending_restaurant_subscription_plan_slug || ""),
       target_plan_name: String(metadata.pending_restaurant_subscription_plan_name || ""),
@@ -920,7 +957,7 @@ async function syncRestaurantSubscriptionRecord(input: {
 
   const { data: exactExisting, error: existingError } = await adminClient
     .from("restaurant_ai_subscriptions")
-    .select("id, restaurant_id, restaurant_subscription_plan_id, signup_application_id, plan, status, stripe_subscription_id, metadata")
+    .select("id, restaurant_id, restaurant_subscription_plan_id, signup_application_id, plan, status, billing_period, stripe_subscription_id, metadata, price_monthly_chf_snapshot, billing_amount_chf_snapshot, price_monthly_cents_snapshot, billing_amount_cents_snapshot, billing_net_cents_snapshot, billing_vat_cents_snapshot, vat_rate_bps_snapshot, annual_months_charged_snapshot, acquired_reservation_fee_cents_snapshot, marketplace_commission_bps_snapshot, included_establishments_snapshot, additional_establishment_price_cents_snapshot, reservation_revenue_cap_bps_snapshot, developer_order_bps_snapshot, developer_tok_revenue_bps_snapshot, pricing_version_snapshot")
     .eq("stripe_subscription_id", subscription.id)
     .maybeSingle();
 
@@ -933,7 +970,7 @@ async function syncRestaurantSubscriptionRecord(input: {
   if (!existing && localSubscriptionId) {
     const { data: localExisting, error: localExistingError } = await adminClient
       .from("restaurant_ai_subscriptions")
-      .select("id, restaurant_id, restaurant_subscription_plan_id, signup_application_id, plan, status, stripe_subscription_id, metadata")
+      .select("id, restaurant_id, restaurant_subscription_plan_id, signup_application_id, plan, status, billing_period, stripe_subscription_id, metadata, price_monthly_chf_snapshot, billing_amount_chf_snapshot, price_monthly_cents_snapshot, billing_amount_cents_snapshot, billing_net_cents_snapshot, billing_vat_cents_snapshot, vat_rate_bps_snapshot, annual_months_charged_snapshot, acquired_reservation_fee_cents_snapshot, marketplace_commission_bps_snapshot, included_establishments_snapshot, additional_establishment_price_cents_snapshot, reservation_revenue_cap_bps_snapshot, developer_order_bps_snapshot, developer_tok_revenue_bps_snapshot, pricing_version_snapshot")
       .eq("id", localSubscriptionId)
       .maybeSingle();
     if (localExistingError) {
@@ -948,7 +985,7 @@ async function syncRestaurantSubscriptionRecord(input: {
   if (!existing && restaurantId) {
     const { data: restaurantExisting, error: restaurantExistingError } = await adminClient
       .from("restaurant_ai_subscriptions")
-      .select("id, restaurant_id, restaurant_subscription_plan_id, signup_application_id, plan, status, stripe_subscription_id, metadata")
+      .select("id, restaurant_id, restaurant_subscription_plan_id, signup_application_id, plan, status, billing_period, stripe_subscription_id, metadata, price_monthly_chf_snapshot, billing_amount_chf_snapshot, price_monthly_cents_snapshot, billing_amount_cents_snapshot, billing_net_cents_snapshot, billing_vat_cents_snapshot, vat_rate_bps_snapshot, annual_months_charged_snapshot, acquired_reservation_fee_cents_snapshot, marketplace_commission_bps_snapshot, included_establishments_snapshot, additional_establishment_price_cents_snapshot, reservation_revenue_cap_bps_snapshot, developer_order_bps_snapshot, developer_tok_revenue_bps_snapshot, pricing_version_snapshot")
       .eq("restaurant_id", restaurantId)
       .maybeSingle();
     if (restaurantExistingError) {
@@ -1002,7 +1039,7 @@ async function syncRestaurantSubscriptionRecord(input: {
 
   const planQuery = adminClient
     .from("restaurant_subscription_plans")
-    .select("id, slug, name, price_monthly_chf, campaign_credit_chf, ai_tool_credits, ai_photo_credits, monthly_conversation_limit, monthly_text_tool_limit, monthly_image_limit, monthly_premium_image_limit, monthly_voice_minutes_limit")
+    .select("id, slug, name, price_monthly_chf, campaign_credit_chf, ai_tool_credits, ai_photo_credits, monthly_conversation_limit, monthly_text_tool_limit, monthly_image_limit, monthly_premium_image_limit, monthly_voice_minutes_limit, annual_months_charged, acquired_reservation_fee_cents, marketplace_commission_bps, included_establishments, additional_establishment_price_cents, reservation_revenue_cap_bps, developer_order_bps, developer_tok_revenue_bps, pricing_version")
     .limit(1);
   const { data: plans, error: planError } = planId
     ? await planQuery.eq("id", planId)
@@ -1019,6 +1056,68 @@ async function syncRestaurantSubscriptionRecord(input: {
   }
 
   const period = resolveRestaurantSubscriptionPeriod(subscription);
+  const billingPeriod = resolveRestaurantSubscriptionBillingPeriod({
+    subscription,
+    existingBillingPeriod: replacingExpectedUpgrade ? undefined : existing?.billing_period,
+  });
+  const pricingSnapshotTransitionRequired = Boolean(
+    existing
+    && (
+      String(existing.restaurant_subscription_plan_id || "") !== String(plan.id)
+      || String(existing.plan || "") !== String(plan.slug)
+      || String(existing.billing_period || "") !== billingPeriod
+    ),
+  );
+  let pricingSnapshot: Record<string, unknown>;
+  try {
+    pricingSnapshot = !existing || pricingSnapshotTransitionRequired
+      ? buildRestaurantSubscriptionPricingSnapshot(plan, billingPeriod)
+      : {
+        price_monthly_chf_snapshot: existing.price_monthly_chf_snapshot,
+        billing_amount_chf_snapshot: existing.billing_amount_chf_snapshot,
+        price_monthly_cents_snapshot: existing.price_monthly_cents_snapshot,
+        billing_amount_cents_snapshot: existing.billing_amount_cents_snapshot,
+        billing_net_cents_snapshot: existing.billing_net_cents_snapshot,
+        billing_vat_cents_snapshot: existing.billing_vat_cents_snapshot,
+        vat_rate_bps_snapshot: existing.vat_rate_bps_snapshot,
+        annual_months_charged_snapshot: existing.annual_months_charged_snapshot,
+        acquired_reservation_fee_cents_snapshot: existing.acquired_reservation_fee_cents_snapshot,
+        marketplace_commission_bps_snapshot: existing.marketplace_commission_bps_snapshot,
+        included_establishments_snapshot: existing.included_establishments_snapshot,
+        additional_establishment_price_cents_snapshot: existing.additional_establishment_price_cents_snapshot,
+        reservation_revenue_cap_bps_snapshot: existing.reservation_revenue_cap_bps_snapshot,
+        developer_order_bps_snapshot: existing.developer_order_bps_snapshot,
+        developer_tok_revenue_bps_snapshot: existing.developer_tok_revenue_bps_snapshot,
+        pricing_version_snapshot: existing.pricing_version_snapshot,
+      };
+  } catch (error) {
+    log?.error?.("restaurant_subscription_pricing_snapshot_invalid", {
+      restaurantId,
+      planId: plan.id,
+      billingPeriod,
+      message: error instanceof Error ? error.message : String(error),
+    });
+    return { updated: false, row: null };
+  }
+
+  const stripeSubscriptionAmountCents = Number(
+    subscription.items?.data?.[0]?.price?.unit_amount,
+  );
+  if (
+    !Number.isSafeInteger(stripeSubscriptionAmountCents)
+    || stripeSubscriptionAmountCents <= 0
+    || stripeSubscriptionAmountCents !== Number(pricingSnapshot.billing_amount_cents_snapshot)
+  ) {
+    log?.error?.("restaurant_subscription_stripe_amount_snapshot_mismatch", {
+      restaurantId,
+      planId: plan.id,
+      billingPeriod,
+      stripeSubscriptionAmountCents,
+      snapshotAmountCents: pricingSnapshot.billing_amount_cents_snapshot,
+    });
+    return { updated: false, row: null };
+  }
+
   const stripeSubscriptionScheduleId = getStripeSubscriptionScheduleId(subscription.schedule);
   const normalizedStatus = normalizeRestaurantSubscriptionStatus(subscription.status);
   const isDeferredOnboardingSubscription = checkoutKind === "restaurant-onboarding"
@@ -1033,6 +1132,7 @@ async function syncRestaurantSubscriptionRecord(input: {
     : normalizedStatus;
   const payload = {
     restaurant_id: restaurantId,
+    ...pricingSnapshot,
     restaurant_subscription_plan_id: plan.id,
     plan: plan.slug,
     status: persistedStatus,
@@ -1047,7 +1147,7 @@ async function syncRestaurantSubscriptionRecord(input: {
     current_period_start: period.currentPeriodStart,
     current_period_end: period.currentPeriodEnd,
     started_at: period.currentPeriodStart,
-    billing_period: "monthly",
+    billing_period: billingPeriod,
     stripe_subscription_id: subscription.id,
     stripe_checkout_session_id: stripeCheckoutSessionId || String(metadata.stripe_checkout_session_id || ""),
     stripe_mode: stripeMode,
@@ -1065,6 +1165,21 @@ async function syncRestaurantSubscriptionRecord(input: {
       stripe_subscription_status: subscription.status,
       stripe_subscription_cancel_at_period_end: Boolean(subscription.cancel_at_period_end),
       stripe_subscription_schedule_id: stripeSubscriptionScheduleId || "",
+      billing_period: billingPeriod,
+      annual_months_charged: billingPeriod === "yearly"
+        ? String(FAIR_GROWTH_ANNUAL_MONTHS_CHARGED)
+        : "1",
+      service_months: billingPeriod === "yearly" ? "12" : "1",
+      // Billing can be annual; product allowances remain monthly and must
+      // never be multiplied by eleven or twelve in the webhook.
+      entitlement_reset_period: "monthly",
+      ...(pricingSnapshotTransitionRequired
+        ? {
+          pricing_snapshot_transition: "stripe_plan_change",
+          pricing_snapshot_previous_plan_id: String(existing?.restaurant_subscription_plan_id || ""),
+          pricing_snapshot_changed_at: new Date().toISOString(),
+        }
+        : {}),
     },
   };
 
@@ -1699,6 +1814,9 @@ Deno.serve(async (req) => {
           const planSlug = session.metadata?.restaurant_subscription_plan_slug || null;
           const restaurantId = session.metadata?.restaurant_id || null;
           const signupApplicationId = session.metadata?.signup_application_id || null;
+          const billingPeriod = parseRestaurantSubscriptionBillingPeriod(
+            session.metadata?.billing_period,
+          );
 
           if (
             session.mode !== "setup"
@@ -1707,6 +1825,7 @@ Deno.serve(async (req) => {
             || !planId
             || !planSlug
             || !restaurantId
+            || !billingPeriod
           ) {
             throw new Error(`restaurant_onboarding_setup_invalid_metadata:${session.id}`);
           }
@@ -1749,6 +1868,7 @@ Deno.serve(async (req) => {
             || setupIntentMetadata.operation_key !== session.metadata?.operation_key
             || setupIntentMetadata.restaurant_id !== restaurantId
             || setupIntentMetadata.signup_application_id !== signupApplicationId
+            || setupIntentMetadata.billing_period !== billingPeriod
           ) {
             throw new Error(`restaurant_onboarding_setup_identity_mismatch:${session.id}`);
           }
@@ -1769,7 +1889,12 @@ Deno.serve(async (req) => {
                 checkout_kind: "restaurant-onboarding",
                 user_id: userId,
                 restaurant_subscription_plan_slug: planSlug,
-                billing_period: "monthly",
+                billing_period: billingPeriod,
+                annual_months_charged: billingPeriod === "yearly"
+                  ? String(FAIR_GROWTH_ANNUAL_MONTHS_CHARGED)
+                  : "1",
+                service_months: billingPeriod === "yearly" ? "12" : "1",
+                entitlement_reset_period: "monthly",
                 activation_recovery: session.metadata?.activation_recovery || "false",
                 setup_intent_status: setupIntent.status,
               },
@@ -1842,8 +1967,11 @@ Deno.serve(async (req) => {
           const restaurantId = session.metadata?.restaurant_id || null;
           const previousStripeSubscriptionId = session.metadata?.previous_stripe_subscription_id || null;
           const subscriptionAmount = Number(session.metadata?.subscription_amount || 0);
+          const billingPeriod = parseRestaurantSubscriptionBillingPeriod(
+            session.metadata?.billing_period,
+          );
 
-          if (!userId || !planId || !planSlug || !restaurantId) {
+          if (!userId || !planId || !planSlug || !restaurantId || !billingPeriod) {
             log.warn("restaurant_subscription_upgrade_missing_metadata", { sessionId: session.id });
             break;
           }
@@ -1876,7 +2004,7 @@ Deno.serve(async (req) => {
             session,
             userId,
             planId,
-            billingPeriod: "monthly",
+            billingPeriod,
             stripeSubscriptionId: stripeSubscription.id,
             stripeMode: event.livemode ? "live" : "test",
             eventId: event.id,
@@ -1888,6 +2016,8 @@ Deno.serve(async (req) => {
               restaurant_subscription_plan_id: planId,
               restaurant_subscription_plan_slug: planSlug,
               previous_stripe_subscription_id: previousStripeSubscriptionId,
+              billing_period: billingPeriod,
+              entitlement_reset_period: "monthly",
             },
             log,
           });
@@ -1907,6 +2037,8 @@ Deno.serve(async (req) => {
               restaurant_subscription_plan_slug: planSlug,
               previous_stripe_subscription_id: previousStripeSubscriptionId,
               stripe_subscription_id: stripeSubscription.id,
+              billing_period: billingPeriod,
+              entitlement_reset_period: "monthly",
             },
             log,
           });
@@ -2576,6 +2708,7 @@ Deno.serve(async (req) => {
           currency: session.currency || "chf",
           livemode: event.livemode,
           metadata: {
+            ...session.metadata,
             payment_status: session.payment_status,
             finance_routing_mode: session.metadata?.finance_routing_mode || "legacy_manual",
             demo_environment: session.metadata?.demo_environment || null,
@@ -2654,6 +2787,9 @@ Deno.serve(async (req) => {
               internal_invoice_id: context.subscriptionMetadata.internal_invoice_id || null,
               restaurant_subscription_plan_id:
                 context.subscriptionMetadata.restaurant_subscription_plan_id || null,
+              billing_period: context.subscriptionMetadata.billing_period || null,
+              entitlement_reset_period:
+                context.subscriptionMetadata.entitlement_reset_period || "monthly",
             },
           },
         );
@@ -2702,6 +2838,9 @@ Deno.serve(async (req) => {
             stripe_fee_reconciliation_required: fee.reconciliationRequired,
             activation_job_id: context.subscriptionMetadata.activation_job_id || null,
             internal_invoice_id: context.subscriptionMetadata.internal_invoice_id || null,
+            billing_period: context.subscriptionMetadata.billing_period || null,
+            entitlement_reset_period:
+              context.subscriptionMetadata.entitlement_reset_period || "monthly",
           },
           log,
         });

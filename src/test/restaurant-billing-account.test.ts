@@ -116,7 +116,7 @@ describe("restaurant account and billing dashboard", () => {
     expect(publicPacks).not.toContain("Équivalence");
   });
 
-  it("uses server-side Stripe Checkout and webhook reconciliation for upgrades and credit packs", () => {
+  it("uses Stripe Checkout only for initial subscriptions and reconciles credit packs server-side", () => {
     const checkout = read("supabase/functions/create-checkout/index.ts");
     const webhook = read("supabase/functions/stripe-webhook/index.ts");
     const creditPackCompletion = read("supabase/functions/complete-restaurant-credit-pack-checkout/index.ts");
@@ -129,7 +129,8 @@ describe("restaurant account and billing dashboard", () => {
     expect(checkout).toContain("restaurant_credit_packs");
     expect(checkout).toContain("restaurant_credit_purchases");
     expect(checkout).toContain("previous_stripe_subscription_id");
-    expect(checkout).toContain("restaurant_subscription_upgrade_same_plan");
+    expect(checkout).toContain("restaurant_subscription_active_change_requires_scheduling");
+    expect(checkout).toContain("Never create a second full-price subscription");
     expect(checkout).toContain("isSubscriptionCheckout");
     expect(checkout).toContain("subscription_data");
 
@@ -158,32 +159,53 @@ describe("restaurant account and billing dashboard", () => {
     expect(config).toContain("[functions.complete-restaurant-credit-pack-checkout]");
   });
 
-  it("lets restaurateurs cancel at period end or schedule a downgrade without changing current entitlements immediately", () => {
+  it("schedules both active upgrades and downgrades without changing current entitlements immediately", () => {
     const page = read("src/pages/dashboard/DashboardAccountBilling.tsx");
+    const checkout = read("supabase/functions/create-checkout/index.ts");
     const manage = read("supabase/functions/manage-restaurant-subscription/index.ts");
     const webhook = read("supabase/functions/stripe-webhook/index.ts");
 
     expect(page).toContain("Annuler le changement programmé");
-    expect(page).toContain("Votre abonnement actuel reste actif avec ses avantages jusqu'à la fin de la période payée");
-    expect(page).toContain("Facturation automatique chaque mois tant que l'abonnement n'est pas résilié");
+    expect(page).toContain("sans débit immédiat, jusqu'à la fin de la période payée");
+    expect(page).toContain("Facturation automatique mensuelle");
+    expect(page).toContain("Facturation automatique annuelle");
     expect(page).toContain("au plus tard 3 jours avant la fin de la période payée");
-    expect(page).toContain('type: "downgrade"');
+    expect(page).toContain('type: "change_plan"');
     expect(page).toContain('type: "cancel"');
+    expect(page).toContain("scheduleAtPeriodEnd={currentSubscriptionIsActive}");
+
+    // A higher active plan and a lower active plan both enter the same
+    // period-end confirmation flow. Checkout remains initial-subscription only.
+    expect(page).toContain("if (isUpgrade)");
+    expect(page).toContain("onUpgrade={(plan) => {");
+    expect(page).toContain("if (currentSubscriptionIsActive)");
+    expect(page).toContain('setPendingSubscriptionAction({ type: "change_plan", plan })');
+    expect(page).toContain('onDowngrade={(plan) => setPendingSubscriptionAction({ type: "change_plan", plan })');
+    expect(checkout).toContain("restaurant_subscription_active_change_requires_scheduling");
 
     expect(manage).toContain("requireRestaurantAccess(actor, restaurantId)");
     expect(manage).toContain("SUBSCRIPTION_CANCELLATION_NOTICE_DAYS = 3");
-    expect(manage).toContain('assertCancellationNoticeWindow(period.endIso, "cancel")');
-    expect(manage).toContain('assertCancellationNoticeWindow(period.endIso, "downgrade")');
-    expect(manage).toContain("l'abonnement repart pour 30 jours");
+    expect(manage).toContain('assertCancellationNoticeWindow(period.endIso, "cancel", subscription.billing_period)');
+    expect(manage).toContain('assertCancellationNoticeWindow(period.endIso, "change_plan", subscription.billing_period)');
+    expect(manage).toContain("une nouvelle periode annuelle de douze mois");
     expect(manage).toContain("cancel_at_period_end: true");
     expect(manage).toContain('pending_restaurant_subscription_change: "cancel_at_period_end"');
-    expect(manage).toContain('pending_restaurant_subscription_change: "downgrade_at_period_end"');
+    expect(manage).toContain('pending_restaurant_subscription_change: "plan_change_at_period_end"');
     expect(manage).toContain("subscriptionSchedules.create");
+    expect(manage).toContain("from_subscription: subscription.stripe_subscription_id");
     expect(manage).toContain("subscriptionSchedules.update");
+    expect(manage).toContain("start_date: stripePeriod.startUnix");
+    expect(manage).toContain("end_date: stripePeriod.endUnix");
+    expect(manage).toContain("items: [{ price: currentPriceId");
+    expect(manage).toContain("items: [{ price: targetStripePriceId");
     expect(manage).toContain('proration_behavior: "none"');
+    expect(manage).toContain("stripeScheduleId = activeScheduleId");
+    expect(manage).toContain("releaseStripeScheduleIfActive");
     expect(manage).toContain("scheduled_plan_change");
+    expect(manage).not.toContain("l'abonnement repart pour 30 jours");
 
     expect(webhook).toContain("buildRestaurantScheduledPlanChange");
+    expect(webhook).toContain('pendingChange === "plan_change_at_period_end"');
     expect(webhook).toContain("cancel_at_period_end: Boolean(subscription.cancel_at_period_end)");
     expect(webhook).toContain("stripe_subscription_schedule_id");
     expect(webhook).toContain("scheduled_plan_change");

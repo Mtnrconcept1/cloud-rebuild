@@ -59,6 +59,19 @@ type RestaurateurProfileDetails = {
   phone_number?: string | null;
 };
 
+type FairGrowthContractSnapshot = {
+  plan: string;
+  billing_period: string;
+  price_monthly_chf_snapshot: number | null;
+  billing_amount_chf_snapshot: number | null;
+  acquired_reservation_fee_cents_snapshot: number | null;
+  marketplace_commission_bps_snapshot: number | null;
+  included_establishments_snapshot: number | null;
+  additional_establishment_price_cents_snapshot: number | null;
+  reservation_revenue_cap_bps_snapshot: number | null;
+  pricing_version_snapshot: string | null;
+};
+
 function formatDateTime(value?: string | null) {
   if (!value) return "Non signé";
   return new Intl.DateTimeFormat("fr-CH", {
@@ -103,6 +116,44 @@ export default function RestaurantPartnerContractCard({
       return (data || []) as RestaurantContract[];
     },
   });
+
+  const { data: fairGrowthSnapshot } = useQuery({
+    queryKey: ["restaurant-fair-growth-contract-snapshot", restaurantId],
+    enabled: Boolean(restaurantId) && !isCommercialDemoRestaurant,
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("restaurant_ai_subscriptions")
+        .select("plan, billing_period, price_monthly_chf_snapshot, billing_amount_chf_snapshot, acquired_reservation_fee_cents_snapshot, marketplace_commission_bps_snapshot, included_establishments_snapshot, additional_establishment_price_cents_snapshot, reservation_revenue_cap_bps_snapshot, pricing_version_snapshot")
+        .eq("restaurant_id", restaurantId)
+        .maybeSingle();
+      if (error) throw error;
+      return data as FairGrowthContractSnapshot | null;
+    },
+  });
+
+  const planSnapshotLabel = fairGrowthSnapshot
+    ? fairGrowthSnapshot.plan === "pro"
+      ? "Business"
+      : fairGrowthSnapshot.plan.charAt(0).toUpperCase() + fairGrowthSnapshot.plan.slice(1)
+    : null;
+  const pricingSnapshotLabel = fairGrowthSnapshot
+    ? [
+        fairGrowthSnapshot.billing_period === "yearly" ? "annuel, 12 mois au prix de 11" : "mensuel",
+        fairGrowthSnapshot.billing_amount_chf_snapshot != null
+          ? fairGrowthSnapshot.billing_amount_chf_snapshot.toLocaleString("fr-CH", { style: "currency", currency: "CHF" })
+          : null,
+        fairGrowthSnapshot.acquired_reservation_fee_cents_snapshot != null
+          ? (fairGrowthSnapshot.acquired_reservation_fee_cents_snapshot / 100).toLocaleString("fr-CH", { style: "currency", currency: "CHF" }) + " / réservation TOK honorée"
+          : null,
+        fairGrowthSnapshot.marketplace_commission_bps_snapshot != null
+          ? (fairGrowthSnapshot.marketplace_commission_bps_snapshot / 100).toLocaleString("fr-CH") + "% / commande"
+          : null,
+        fairGrowthSnapshot.included_establishments_snapshot != null
+          ? fairGrowthSnapshot.included_establishments_snapshot + " établissement(s) inclus"
+          : null,
+        fairGrowthSnapshot.pricing_version_snapshot,
+      ].filter(Boolean).join(" · ")
+    : null;
 
   const currentContract = useMemo(
     () =>
@@ -191,6 +242,14 @@ export default function RestaurantPartnerContractCard({
           : undefined,
       city: restaurant.city,
       place: restaurant.city,
+      selectedSubscriptionPlanLabel:
+        typeof metadata.fair_growth_plan_label === "string"
+          ? metadata.fair_growth_plan_label
+          : undefined,
+      selectedSubscriptionPriceLabel:
+        typeof metadata.fair_growth_pricing_label === "string"
+          ? metadata.fair_growth_pricing_label
+          : undefined,
     });
     const exported = openSafeHtmlPrintDocument({
       title: `${RESTAURANT_PARTNER_CONTRACT_TITLE} - ${contract.signer_name}`,
@@ -256,6 +315,8 @@ export default function RestaurantPartnerContractCard({
         userId: user.id,
         restaurantId,
         acceptanceText,
+        selectedSubscriptionPlanLabel: planSnapshotLabel,
+        selectedSubscriptionPriceLabel: pricingSnapshotLabel,
       });
       const { error } = await (supabase as any)
         .from("restaurant_contracts")
@@ -279,6 +340,9 @@ export default function RestaurantPartnerContractCard({
             legal_name: restaurant?.legal_name || null,
             business_name: restaurant?.business_name || restaurant?.name || null,
             restaurant_name: restaurant?.name || null,
+            fair_growth_plan_label: planSnapshotLabel,
+            fair_growth_pricing_label: pricingSnapshotLabel,
+            fair_growth_snapshot: fairGrowthSnapshot,
             user_agent:
               typeof navigator !== "undefined" ? navigator.userAgent : null,
             source:

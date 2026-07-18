@@ -121,6 +121,9 @@ Deno.serve(async (req) => {
       checkoutKind: "match-group",
       restaurantId: order.restaurant_id,
       grossCents,
+      commissionableCents: grossCents,
+      tipCents: 0,
+      deliveryPassThroughCents: 0,
       stripeMode: stripeRuntime.mode,
     });
     if (!marketplaceRouting.enabled || !marketplaceRouting.destinationAccountId) {
@@ -133,13 +136,26 @@ Deno.serve(async (req) => {
       group_member_order_id: String(order.id),
       user_id: actor.userId,
       restaurant_id: String(order.restaurant_id),
+      payment_method_label: "card",
+      finance_snapshot_version: "fair_growth_v1",
       finance_routing_mode: marketplaceRouting.mode,
+      gross_amount_cents: String(marketplaceRouting.grossCents),
+      commissionable_cents: String(marketplaceRouting.commissionableCents),
+      tip_cents: String(marketplaceRouting.tipCents),
+      delivery_pass_through_cents: String(marketplaceRouting.deliveryPassThroughCents),
       platform_fee_bps: String(marketplaceRouting.platformFeeBps),
       platform_fee_amount_cents: String(marketplaceRouting.platformFeeCents),
+      stripe_application_fee_amount_cents: String(marketplaceRouting.stripeApplicationFeeCents),
       restaurant_share_amount_cents: String(marketplaceRouting.restaurantShareCents),
-      developer_share_bps: String(marketplaceRouting.developerShareBps),
+      restaurant_transfer_amount_cents: String(marketplaceRouting.restaurantTransferCents),
+      developer_order_bps: String(marketplaceRouting.developerOrderBps),
+      developer_share_bps: String(marketplaceRouting.developerOrderBps),
       developer_share_amount_cents: String(marketplaceRouting.developerShareCents),
       tok_net_amount_cents: String(marketplaceRouting.tokNetRevenueCents),
+      pricing_plan_id: String(marketplaceRouting.pricingPlanId || ""),
+      pricing_plan_slug: String(marketplaceRouting.pricingPlanSlug || ""),
+      pricing_version: marketplaceRouting.pricingVersion,
+      pricing_rate_source: marketplaceRouting.pricingRateSource,
     };
 
     let idempotencyGeneration = "initial";
@@ -163,6 +179,7 @@ Deno.serve(async (req) => {
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
+      payment_method_types: ["card"],
       line_items: canonicalItems.map((item) => ({
         price_data: {
           currency: "chf",
@@ -176,7 +193,7 @@ Deno.serve(async (req) => {
       client_reference_id: actor.userId,
       payment_intent_data: {
         capture_method: "manual",
-        application_fee_amount: marketplaceRouting.platformFeeCents,
+        application_fee_amount: marketplaceRouting.stripeApplicationFeeCents,
         transfer_data: {
           destination: marketplaceRouting.destinationAccountId,
         },

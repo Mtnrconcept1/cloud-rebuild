@@ -537,10 +537,6 @@ export default function ReservationDialog({
       confirmation_deadline_minutes: serviceSettings.confirmation_deadline_minutes,
       deposit_amount_chf: serviceSettings.deposit_amount_chf,
       donate_earned_xp: donatePoints,
-      acquisition_source:
-        typeof window !== "undefined" && new URLSearchParams(window.location.search).get("utm_source") === "google_business"
-          ? "google_business"
-          : null,
     };
 
     const offerPrefix = selectedPromo
@@ -548,6 +544,17 @@ export default function ReservationDialog({
         ? `[OFFRE PROGRESSIVE: ${selectedPromo.label} ${selectedPromo.discountLabel}] `
         : `[FORMULE: ${selectedPromo.label} ${selectedPromo.discountLabel}] `
       : "[A la carte] ";
+
+    const acquisitionSearchParams = typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search)
+      : null;
+    const requestedAcquisitionSource = acquisitionSearchParams?.get("acquisition_source") || "";
+    const acquisitionSource = (
+      ["google", "restaurant_website", "qr_code", "instagram"] as const
+    ).find((source) => source === requestedAcquisitionSource) || null;
+    const acquisitionChannelToken = acquisitionSource
+      ? acquisitionSearchParams?.get("acquisition_channel_token") || null
+      : null;
 
     let reservationResult: Awaited<ReturnType<typeof createReservationWithValidation>>;
     try {
@@ -558,6 +565,8 @@ export default function ReservationDialog({
         partySize,
         feature: reservationFeature,
         metadata: reservationMetadata,
+        acquisitionSource,
+        acquisitionChannelToken,
         notes: offerPrefix + (notes || ""),
         progressiveOfferId: hasProgressiveOffer ? selectedPromo?.progressiveOfferId ?? null : null,
       });

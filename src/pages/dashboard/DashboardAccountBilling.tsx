@@ -53,6 +53,10 @@ import {
   normalizeRestaurantSubscriptionPlanSlug,
   RESTAURANT_SUBSCRIPTION_TOOL_ACCESS_ROWS,
 } from "@/lib/restaurantSubscriptionToolAccess";
+import {
+  FAIR_GROWTH_ANNUAL_MONTHS_CHARGED,
+  getFairGrowthPlan,
+} from "@/lib/fairGrowth";
 import { invokeSupabaseFunction } from "@/lib/session";
 import {
   clearPaymentAttemptId,
@@ -178,7 +182,7 @@ type BillingCreditUsage = {
 };
 
 type ScheduledSubscriptionChange = {
-  action?: "cancel" | "downgrade" | string;
+  action?: "cancel" | "change_plan" | "downgrade" | string;
   effective_at?: string | null;
   requested_at?: string | null;
   target_plan_id?: string | null;
@@ -201,7 +205,7 @@ type RestaurantSubscriptionSelfServiceState = {
 type PendingSubscriptionAction =
   | { type: "cancel" }
   | { type: "resume" }
-  | { type: "downgrade"; plan: RestaurantSubscriptionPlan };
+  | { type: "change_plan"; plan: RestaurantSubscriptionPlan };
 
 type SubscriptionActionState = PendingSubscriptionAction["type"];
 
@@ -236,7 +240,7 @@ const EMPTY_CREDITS: BillingCreditSummary[] = [];
 const EMPTY_ENTRIES: BillingCreditEntry[] = [];
 const COMMERCIAL_DEMO_BILLING_TOOLS = [
   { title: "Studio marketing", description: "Visuels Démo sans consommation de crédit payant.", icon: Camera, feature: "dashboard-photos" },
-  { title: "Assistant IA", description: "Conversations isolées, moteur Démo à coût nul.", icon: Sparkles, feature: "dashboard-advisor" },
+  { title: "Assistant IA", description: "Conversations isolées, aucun débit de crédits au restaurant Démo ; coût fournisseur suivi en interne.", icon: Sparkles, feature: "dashboard-advisor" },
   { title: "Chat IA", description: "Assistance temps réel conservée dans les tables Démo.", icon: Sparkles, feature: "ai_support_chat" },
   { title: "Campagnes", description: "Prévisualisation complète sans débit publicitaire réel.", icon: Megaphone, feature: "dashboard-campagnes" },
 ] as const;
@@ -268,6 +272,20 @@ function formatBillingPeriod(value: string | null | undefined) {
   return value === "yearly" ? "Annuelle" : "Mensuelle";
 }
 
+function getBillingCycleCopy(value: string | null | undefined) {
+  if (value === "yearly") {
+    return {
+      billingSentence: "Facturation automatique annuelle : douze mois de service sont renouvelés et onze mois sont facturés.",
+      renewalLabel: "renouvellement annuel",
+    };
+  }
+
+  return {
+    billingSentence: "Facturation automatique mensuelle tant que l'abonnement n'est pas résilié.",
+    renewalLabel: "renouvellement mensuel",
+  };
+}
+
 function isScheduledSubscriptionChange(value: unknown): value is ScheduledSubscriptionChange {
   return Boolean(value)
     && typeof value === "object"
@@ -280,10 +298,10 @@ function getScheduledChangeSummary(change: ScheduledSubscriptionChange | null | 
   if (!isScheduledSubscriptionChange(change)) return null;
   const effectiveAt = formatDateTime(change.effective_at);
 
-  if (change.action === "downgrade") {
+  if (change.action === "change_plan" || change.action === "downgrade") {
     return {
-      title: "Plan inférieur programmé",
-      description: `Le passage vers ${change.target_plan_name || "le plan inférieur"} prendra effet le ${effectiveAt}. Votre abonnement actuel reste actif avec tous ses avantages jusque-là.`,
+      title: "Changement de formule programmé",
+      description: `Le passage vers ${change.target_plan_name || "la formule choisie"} prendra effet le ${effectiveAt}. Votre abonnement actuel reste actif avec tous ses avantages jusque-là.`,
     };
   }
 
@@ -486,6 +504,7 @@ function PlanCard({
   checkingOutPlanId,
   selfServicePlanId,
   hasScheduledChange,
+  scheduleAtPeriodEnd,
   onUpgrade,
   onDowngrade,
 }: {
@@ -495,6 +514,7 @@ function PlanCard({
   checkingOutPlanId: string | null;
   selfServicePlanId: string | null;
   hasScheduledChange: boolean;
+  scheduleAtPeriodEnd: boolean;
   onUpgrade: (plan: RestaurantSubscriptionPlan) => void;
   onDowngrade: (plan: RestaurantSubscriptionPlan) => void;
 }) {
@@ -506,6 +526,8 @@ function PlanCard({
   const tokCredits = getTokCreditAmount(plan);
   const usage = getPlanIncludedUsage(plan);
   const planSlug = normalizeRestaurantSubscriptionPlanSlug(plan.slug);
+  const fairGrowthPlan = getFairGrowthPlan(plan.slug);
+  const annualPriceChf = fairGrowthPlan.monthlyPriceChf * FAIR_GROWTH_ANNUAL_MONTHS_CHARGED;
 
   return (
     <Card className={cn("flex h-full flex-col", isCurrent && "border-primary/60 bg-primary/5")}>
@@ -514,15 +536,34 @@ function PlanCard({
           <div>
             <CardTitle className="text-lg">{plan.name}</CardTitle>
           </div>
-          {isCurrent ? <Badge>Actuel</Badge> : isUpgrade ? <Badge variant="outline">Upgrade</Badge> : isDowngrade ? <Badge variant="secondary">Fin de période</Badge> : null}
+          {isCurrent ? (
+            <Badge>Actuel</Badge>
+          ) : scheduleAtPeriodEnd && (isUpgrade || isDowngrade) ? (
+            <Badge variant="secondary">Fin de période</Badge>
+          ) : isUpgrade ? (
+            <Badge variant="outline">Souscription</Badge>
+          ) : null}
         </div>
         <p className="text-3xl font-bold">
-          {formatChf(plan.price_monthly_chf)}
+          {formatChf(fairGrowthPlan.monthlyPriceChf)}
           <span className="text-sm font-medium text-muted-foreground"> / mois</span>
+        </p>
+        <p className="text-xs text-muted-foreground">
+          Annuel {formatChf(annualPriceChf)} — 12 mois, payez-en 11
         </p>
         <p className="text-sm font-medium text-primary">{formatTokCredits(tokCredits)} inclus pour les outils IA</p>
       </CardHeader>
       <CardContent className="flex flex-1 flex-col gap-4">
+        <div className="grid gap-1.5 rounded-xl border border-primary/20 bg-primary/5 p-3 text-sm">
+          <span><strong>{formatChf(fairGrowthPlan.acquiredReservationFeeChf)}</strong> / réservation TOK honorée</span>
+          <span><strong>{(fairGrowthPlan.marketplaceCommissionBps / 100).toLocaleString("fr-CH")}%</strong> / commande marketplace</span>
+          <span>Canaux propres, annulation, no-show et remboursement : <strong>CHF 0</strong></span>
+          <span>Plafond réservation : <strong>7% du CA table</strong></span>
+          <span>Restaurant : <strong>au moins 90%</strong> + 100% des pourboires</span>
+          {fairGrowthPlan.slug === "elite" ? (
+            <span><strong>3 établissements inclus</strong> · CHF 149/site supplémentaire</span>
+          ) : null}
+        </div>
         <div className="grid gap-2 rounded-xl border bg-muted/35 p-3 text-sm">
           <div className="flex items-center justify-between gap-3">
             <span>Générations marketing</span>
@@ -576,7 +617,7 @@ function PlanCard({
         </div>
         <Button
           className="mt-auto w-full"
-          variant={isUpgrade ? "default" : "outline"}
+          variant={isUpgrade && !scheduleAtPeriodEnd ? "default" : "outline"}
           disabled={isCurrent || hasScheduledChange || (!isUpgrade && !isDowngrade) || isBusy}
           onClick={() => {
             if (isUpgrade) {
@@ -591,9 +632,11 @@ function PlanCard({
             ? "Abonnement actuel"
             : hasScheduledChange
               ? "Changement programmé"
-              : isUpgrade
-                ? "Upgrader"
-                : "Programmer ce plan"}
+              : scheduleAtPeriodEnd
+                ? "Programmer ce plan"
+                : isUpgrade
+                  ? "Souscrire"
+                  : "Choisir ce plan"}
         </Button>
       </CardContent>
     </Card>
@@ -799,6 +842,13 @@ function LiveDashboardAccountBilling() {
   const tokCreditSummary = useMemo(() => buildUnifiedTokCreditSummary(credits), [credits]);
   const currentPlan = usage?.subscription?.plan_record ?? null;
   const currentPosition = toNumber(currentPlan?.position);
+  const subscriptionStatus = String(usage?.subscription?.status || "").toLowerCase();
+  const currentPeriodEndTimestamp = Date.parse(usage?.subscription?.current_period_end || "");
+  const currentSubscriptionIsActive = ["active", "trialing"].includes(subscriptionStatus)
+    && (!Number.isFinite(currentPeriodEndTimestamp) || currentPeriodEndTimestamp > Date.now());
+  const selectableCurrentPosition = currentSubscriptionIsActive ? currentPosition : 0;
+  const selectableCurrentPlanId = currentSubscriptionIsActive ? currentPlan?.id ?? null : null;
+  const billingCycleCopy = getBillingCycleCopy(usage?.subscription?.billing_period);
   const selfServiceState = selfServiceQuery.data ?? null;
   const scheduledChange = isScheduledSubscriptionChange(selfServiceState?.scheduled_plan_change)
     ? selfServiceState?.scheduled_plan_change ?? null
@@ -919,25 +969,25 @@ function LiveDashboardAccountBilling() {
     return formatTokCredits(tokCreditSummary.balance);
   }, [tokCreditSummary]);
   const isDemoUnlimitedBalance = isDemoUnlimitedTokCreditBalance(tokCreditSummary?.balance);
-  const pendingActionTitle = pendingSubscriptionAction?.type === "downgrade"
+  const pendingActionTitle = pendingSubscriptionAction?.type === "change_plan"
     ? `Programmer ${pendingSubscriptionAction.plan.name}`
     : pendingSubscriptionAction?.type === "resume"
       ? "Annuler le changement programmé"
       : "Résilier l'abonnement";
-  const pendingActionDescription = pendingSubscriptionAction?.type === "downgrade"
-    ? `Votre abonnement actuel reste actif avec ses avantages jusqu'à la fin de la période payée. Le plan ${pendingSubscriptionAction.plan.name} prendra le relais ensuite si la demande est faite au plus tard 3 jours avant le renouvellement.`
+  const pendingActionDescription = pendingSubscriptionAction?.type === "change_plan"
+    ? `Votre abonnement actuel reste actif, sans débit immédiat, jusqu'à la fin de la période payée. La formule ${pendingSubscriptionAction.plan.name} prendra le relais ensuite si la demande est faite au plus tard 3 jours avant le ${billingCycleCopy.renewalLabel}.`
     : pendingSubscriptionAction?.type === "resume"
-      ? "La résiliation ou la baisse de plan programmée sera annulée. L'abonnement continuera normalement au prochain renouvellement."
-      : `Votre abonnement restera actif jusqu'au ${formatDateTime(usage?.subscription?.current_period_end)}. Les avantages déjà payés restent disponibles jusqu'à cette date. La résiliation doit être demandée au plus tard 3 jours avant le renouvellement mensuel.`;
+      ? "La résiliation ou le changement de formule programmé sera annulé. L'abonnement continuera normalement au prochain renouvellement."
+      : `Votre abonnement restera actif jusqu'au ${formatDateTime(usage?.subscription?.current_period_end)}. Les avantages déjà payés restent disponibles jusqu'à cette date. La résiliation doit être demandée au plus tard 3 jours avant le ${billingCycleCopy.renewalLabel}.`;
 
-  async function handleUpgrade(plan: RestaurantSubscriptionPlan) {
+  async function handleInitialSubscriptionCheckout(plan: RestaurantSubscriptionPlan) {
     if (!selectedId) return;
     if (checkoutLockRef.current) return;
     checkoutLockRef.current = true;
     setCheckingOutPlanId(plan.id);
 
     if (isCommercialDemo) {
-      toast.success(`Upgrade vers ${plan.name} simulé — aucun abonnement Stripe créé.`);
+      toast.success(`Souscription à ${plan.name} simulée — aucun abonnement Stripe créé.`);
       setCheckingOutPlanId(null);
       checkoutLockRef.current = false;
       return;
@@ -983,7 +1033,7 @@ function LiveDashboardAccountBilling() {
       });
 
       if (!checkout.url) {
-        throw new Error("L'upgrade est en cours de vérification. Relancez avec le même bouton dans quelques secondes.");
+        throw new Error("La souscription est en cours de vérification. Relancez avec le même bouton dans quelques secondes.");
       }
 
       markPaymentAttemptRedirected(billingAttemptScope(selectedId), paymentAttemptId);
@@ -992,7 +1042,7 @@ function LiveDashboardAccountBilling() {
       toast.error(
         isPaymentAttemptIndeterminateError(error)
           ? error.message
-          : error instanceof Error ? error.message : "Erreur lors de la création de l'upgrade.",
+          : error instanceof Error ? error.message : "Erreur lors de la création de la souscription.",
       );
       setCheckingOutPlanId(null);
     } finally {
@@ -1004,11 +1054,11 @@ function LiveDashboardAccountBilling() {
     if (!selectedId) return;
     const actionType = action.type;
     setSelfServiceAction(actionType);
-    setSelfServicePlanId(action.type === "downgrade" ? action.plan.id : null);
+    setSelfServicePlanId(action.type === "change_plan" ? action.plan.id : null);
 
     if (isCommercialDemo) {
-      toast.success(action.type === "downgrade"
-        ? `Baisse vers ${action.plan.name} simulée.`
+      toast.success(action.type === "change_plan"
+        ? `Changement vers ${action.plan.name} simulé en fin de période.`
         : action.type === "resume"
           ? "Reprise de l'abonnement simulée."
           : "Résiliation en fin de période simulée.");
@@ -1023,7 +1073,7 @@ function LiveDashboardAccountBilling() {
         body: {
           restaurant_id: selectedId,
           action: actionType,
-          ...(action.type === "downgrade" ? { target_plan_id: action.plan.id } : {}),
+          ...(action.type === "change_plan" ? { target_plan_id: action.plan.id } : {}),
         },
       });
 
@@ -1041,7 +1091,7 @@ function LiveDashboardAccountBilling() {
       } else if (action.type === "resume") {
         toast.success("Changement programmé annulé. L'abonnement continue normalement.");
       } else {
-        toast.success(`Baisse vers ${action.plan.name} programmée en fin de période payée.`);
+        toast.success(`Changement vers ${action.plan.name} programmé en fin de période payée, sans débit immédiat.`);
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Erreur lors de la modification de l'abonnement.");
@@ -1131,7 +1181,7 @@ function LiveDashboardAccountBilling() {
         <DashboardPageHero
           badge="Compte restaurateur"
           title="Mon compte/Facturation"
-          description="Pilotez votre abonnement TOK, upgradez votre pack mensuel et suivez votre solde unique de crédits TOK avec le détail complet des dépenses."
+          description="Pilotez votre abonnement TOK, changez de formule en fin de période payée et suivez votre solde unique de crédits TOK avec le détail complet des dépenses."
           icon={CreditCard}
           tone="sky"
           visualLabel="Facturation"
@@ -1147,14 +1197,14 @@ function LiveDashboardAccountBilling() {
             <CheckCircle2 className="h-4 w-4" />
             <AlertTitle>Paiement en cours d'activation</AlertTitle>
             <AlertDescription>
-              Le paiement a été confirmé. Le nouvel abonnement sera visible dès la synchronisation Stripe.
+              Le paiement a été confirmé. L'abonnement ou la recharge sera visible dès la synchronisation Stripe.
             </AlertDescription>
           </Alert>
         ) : null}
         {paymentStatus === "cancelled" ? (
           <Alert className="border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-400/25 dark:bg-amber-500/10 dark:text-amber-50">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Upgrade annulé</AlertTitle>
+            <AlertTitle>Paiement annulé</AlertTitle>
             <AlertDescription>Votre abonnement actuel reste inchangé.</AlertDescription>
           </Alert>
         ) : null}
@@ -1164,7 +1214,7 @@ function LiveDashboardAccountBilling() {
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Usage des crédits indisponible</AlertTitle>
             <AlertDescription>
-              Impossible de charger le détail des crédits pour ce restaurant. L'upgrade d'abonnement reste disponible.
+              Impossible de charger le détail des crédits pour ce restaurant. La gestion de l'abonnement reste protégée côté serveur.
             </AlertDescription>
           </Alert>
         ) : null}
@@ -1190,8 +1240,7 @@ function LiveDashboardAccountBilling() {
                           : "Période non synchronisée"}
                       </p>
                       <p className="mt-2 text-sm text-muted-foreground">
-                        Facturation automatique chaque mois tant que l'abonnement n'est pas résilié.
-                        La résiliation ou la baisse de plan doit être demandée au plus tard 3 jours avant la fin de la période payée.
+                        {billingCycleCopy.billingSentence} La résiliation ou le changement de formule doit être demandé au plus tard 3 jours avant la fin de la période payée.
                       </p>
                     </div>
                     <Badge variant="outline">{getSubscriptionStatusLabel(usage?.subscription?.status)}</Badge>
@@ -1238,7 +1287,7 @@ function LiveDashboardAccountBilling() {
                       <AlertDescription>{scheduledChangeSummary.description}</AlertDescription>
                     </Alert>
                   ) : null}
-                  {currentPlan ? (
+                  {currentSubscriptionIsActive && currentPlan ? (
                     <div className="flex flex-col gap-2 border-t pt-4 sm:flex-row sm:items-center sm:justify-end">
                       {hasScheduledChange ? (
                         <Button
@@ -1364,7 +1413,7 @@ function LiveDashboardAccountBilling() {
               <div>
                 <h2 className="text-xl font-bold">Changer d'abonnement</h2>
                 <p className="text-sm text-muted-foreground">
-                  Les upgrades passent par Stripe Checkout. Les plans inférieurs sont programmés à la fin de la période payée pour conserver les avantages déjà réglés, avec un préavis minimum de 3 jours avant le renouvellement.
+                  Sans abonnement actif, la souscription initiale passe par Stripe Checkout. Avec un abonnement actif, toute montée ou baisse de formule est programmée à la fin de la période payée, sans débit immédiat, avec un préavis minimum de 3 jours avant le renouvellement.
                 </p>
               </div>
               {plansQuery.isLoading ? (
@@ -1377,13 +1426,20 @@ function LiveDashboardAccountBilling() {
                     <PlanCard
                       key={plan.id}
                       plan={plan}
-                      currentPosition={currentPosition}
-                      currentPlanId={currentPlan?.id ?? null}
+                      currentPosition={selectableCurrentPosition}
+                      currentPlanId={selectableCurrentPlanId}
                       checkingOutPlanId={checkingOutPlanId}
                       selfServicePlanId={selfServicePlanId}
-                      hasScheduledChange={hasScheduledChange}
-                      onUpgrade={handleUpgrade}
-                      onDowngrade={(plan) => setPendingSubscriptionAction({ type: "downgrade", plan })}
+                      hasScheduledChange={currentSubscriptionIsActive && hasScheduledChange}
+                      scheduleAtPeriodEnd={currentSubscriptionIsActive}
+                      onUpgrade={(plan) => {
+                        if (currentSubscriptionIsActive) {
+                          setPendingSubscriptionAction({ type: "change_plan", plan });
+                        } else {
+                          void handleInitialSubscriptionCheckout(plan);
+                        }
+                      }}
+                      onDowngrade={(plan) => setPendingSubscriptionAction({ type: "change_plan", plan })}
                     />
                   ))}
                 </div>

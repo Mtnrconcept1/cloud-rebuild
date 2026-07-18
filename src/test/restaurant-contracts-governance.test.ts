@@ -39,7 +39,7 @@ describe("restaurant partner contracts governance", () => {
   it("keeps a complete signed contract version in the frontend copy", () => {
     expect(contractCopy).toContain("RESTAURANT_PARTNER_CONTRACT_VERSION");
     expect(contractCopy).toContain(
-      "Annexe tarifaire, commissions, frais et facturation",
+      "Annexe tarifaire Fair Growth, commissions et facturation",
     );
     expect(contractCopy).toContain(
       "Paiements, annulations, no-show, remboursements et litiges clients",
@@ -56,7 +56,7 @@ describe("restaurant partner contracts governance", () => {
     expect(contractCopy).toContain("Date de signature");
     expect(contractCopy).toContain("Lieu");
     expect(contractCopy).toContain("IDE/UID suisse");
-    expect(contractCopy).toContain("commission par réservation");
+    expect(contractCopy).toContain("Sur les frais de réservation");
     expect(contractCopy).toContain("chargeback");
     expect(contractCopy).toContain("sous-traitants ultérieurs");
     expect(contractCopy).toContain("allergènes");

@@ -58,13 +58,17 @@ describe("Tok One Stripe test mode", () => {
   });
 
   it("locks Tok One billing to monthly recurring Stripe subscriptions with a three-day cancellation notice", () => {
-    expect(createCheckoutSource).toContain('"Les abonnements Tok One sont mensuels et renouveles automatiquement."');
-    expect(createCheckoutSource).toContain('name: `Tok One - ${plan.name} (Mensuel)`');
-    expect(createCheckoutSource).toContain('interval: "month"');
-    expect(createCheckoutSource).toContain('billing_renewal: "auto_monthly"');
-    expect(createCheckoutSource).toContain('cancellation_notice_days: "3"');
-    expect(createCheckoutSource).not.toContain('price_yearly, stripe_product_id');
-    expect(createCheckoutSource).not.toContain('billingPeriod === "yearly"');
+    const tokOneCheckoutBlock = createCheckoutSource.slice(
+      createCheckoutSource.indexOf('} else if (effectiveKind === "tok-one")'),
+      createCheckoutSource.indexOf('} else if (effectiveKind === "campaign")'),
+    );
+    expect(tokOneCheckoutBlock).toContain('"Les abonnements Tok One sont mensuels et renouveles automatiquement."');
+    expect(tokOneCheckoutBlock).toContain('name: `Tok One - ${plan.name} (Mensuel)`');
+    expect(tokOneCheckoutBlock).toContain('interval: "month"');
+    expect(tokOneCheckoutBlock).toContain('billing_renewal: "auto_monthly"');
+    expect(tokOneCheckoutBlock).toContain('cancellation_notice_days: "3"');
+    expect(tokOneCheckoutBlock).not.toContain('price_yearly, stripe_product_id');
+    expect(tokOneCheckoutBlock).not.toContain('billingPeriod === "yearly"');
 
     expect(manageTokOneSource).toContain("SUBSCRIPTION_CANCELLATION_NOTICE_DAYS = 3");
     expect(manageTokOneSource).toContain("assertCancellationNoticeWindow(subscription.current_period_end)");

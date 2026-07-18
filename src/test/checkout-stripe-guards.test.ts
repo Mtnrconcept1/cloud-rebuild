@@ -50,12 +50,43 @@ describe("checkout and Stripe webhook safety guards", () => {
     expect(createCheckoutSource).toContain("payment_method_label");
   });
 
-  it("lets Stripe live configuration control payment methods instead of hardcoded checkout methods", () => {
-    expect(createCheckoutSource.match(/payment_method_types/g)).toHaveLength(1);
-    expect(createCheckoutSource).toMatch(
-      /if \(isRestaurantOnboardingSetup\) \{[\s\S]{0,220}sessionParams\.payment_method_types = \["card"\]/,
+  it("rejects unknown checkout kinds before any Stripe runtime or pricing lookup", () => {
+    const recognizedKinds = createCheckoutSource.slice(
+      createCheckoutSource.indexOf("const RECOGNIZED_CHECKOUT_KINDS"),
+      createCheckoutSource.indexOf("const STRIPE_CHECKOUT_PAYMENT_METHODS"),
     );
-    expect(authorizeMatchGroupOrderSource).not.toContain("payment_method_types");
+    const guardIndex = createCheckoutSource.indexOf(
+      "if (!RECOGNIZED_CHECKOUT_KINDS.has(effectiveKind))",
+    );
+    const stripeRuntimeIndex = createCheckoutSource.indexOf(
+      "getStripeRuntimeForCheckoutKind(effectiveKind)",
+    );
+
+    expect(recognizedKinds).toContain('"order"');
+    expect(recognizedKinds).toContain('"restaurant-subscription-upgrade"');
+    expect(recognizedKinds).toContain('"restaurant-credit-pack"');
+    expect(recognizedKinds).not.toContain('"direct-order"');
+    expect(createCheckoutSource).toContain("Type de checkout non pris en charge.");
+    expect(guardIndex).toBeGreaterThan(-1);
+    expect(stripeRuntimeIndex).toBeGreaterThan(guardIndex);
+  });
+
+  it("allowlists Stripe methods and keeps TWINT immediate while Match Group stays card/manual", () => {
+    expect(createCheckoutSource).toContain(
+      'const STRIPE_CHECKOUT_PAYMENT_METHODS = new Set(["card", "twint"])',
+    );
+    expect(createCheckoutSource).toContain(
+      "if (!STRIPE_CHECKOUT_PAYMENT_METHODS.has(normalizedPaymentMethod))",
+    );
+    expect(createCheckoutSource).toContain(
+      'payment_method_types: [normalizedPaymentMethod === "twint" ? "twint" : "card"]',
+    );
+    expect(createCheckoutSource).toContain("TWINT_MAX_CHECKOUT_AMOUNT_CENTS = 500_000");
+    expect(createCheckoutSource).toContain('CHECKOUT_CURRENCY = "CHF"');
+    expect(createCheckoutSource).toContain('capture_method: "automatic"');
+    expect(authorizeMatchGroupOrderSource).toContain('payment_method_types: ["card"]');
+    expect(authorizeMatchGroupOrderSource).toContain('capture_method: "manual"');
+    expect(authorizeMatchGroupOrderSource).not.toContain('payment_method_types: ["twint"]');
   });
 
   it("verifies Stripe webhook signatures and records event ids for idempotency before processing", () => {
@@ -236,6 +267,15 @@ describe("checkout and Stripe webhook safety guards", () => {
       .toBeGreaterThan(onlineCheckoutBlock.indexOf("const pendingOrderResults = pendingOrderSettlements"));
     expect(onlineCheckoutBlock.indexOf("writePendingOrderCheckoutSessionId"))
       .toBeGreaterThan(createCheckoutIndex);
+  });
+
+  it("reprices delivery from the restaurant configuration instead of client metadata", () => {
+    expect(orderPricingSource).toContain("requestedDeliveryFee");
+    expect(orderPricingSource).toContain("restaurantConfig.delivery_fee");
+    expect(orderPricingSource).toContain(
+      "const deliveryFee = isDeliveryJourney ? configuredDeliveryFee : 0",
+    );
+    expect(orderPricingSource).toContain("ORDER_DELIVERY_FEE_REPRICED");
   });
 
   it("sends loyalty point redemption count to server validation metadata", () => {

@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import CommercialDemoBrowserGrid from "@/components/commercial/CommercialDemoBrowserGrid";
+import CommercialDemoConsoleAi from "@/components/commercial/CommercialDemoConsoleAi";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -328,6 +329,11 @@ export default function CommercialMultiSpaceDemo() {
       {combinedError ? <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-400/20 dark:bg-red-400/10 dark:text-red-100" role="alert"><strong>Action non exécutée.</strong> {errorMessage(combinedError)}</div> : null}
 
       <CommercialDemoBrowserGrid sessionId={snapshot.session.id} />
+
+      <CommercialDemoConsoleAi
+        sessionId={snapshot.session.id}
+        restaurantName={snapshot.demo_restaurant.name}
+      />
 
       <details className="group rounded-2xl border border-border/70 bg-background/80 p-3 shadow-sm">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-xl px-2 py-1 font-semibold marker:hidden">

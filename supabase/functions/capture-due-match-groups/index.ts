@@ -79,10 +79,25 @@ Deno.serve(async (req) => {
           throw new Error(`MATCH_GROUP_CAPTURE_INVALID_STATE:${authorization.status}`);
         }
 
+        const platformFeeBps = Number(authorization.metadata?.platform_fee_bps);
+        const developerOrderBps = Number(authorization.metadata?.developer_order_bps);
+        if (
+          authorization.metadata?.finance_snapshot_version !== "fair_growth_v1"
+          || !Number.isInteger(platformFeeBps)
+          || platformFeeBps < 0
+          || platformFeeBps > 990
+          || developerOrderBps !== 100
+        ) {
+          throw new Error("MATCH_GROUP_FINANCE_SNAPSHOT_INVALID");
+        }
         const distribution = calculateOrderPaymentDistribution(
           amountToCapture,
-          Number(authorization.metadata?.platform_fee_bps || 1000),
-          Number(authorization.metadata?.developer_share_bps || 1000),
+          platformFeeBps,
+          {
+            commissionableCents: amountToCapture,
+            tipCents: 0,
+            deliveryPassThroughCents: 0,
+          },
         );
         let intent = authorization;
         if (authorization.status === "requires_capture") {
@@ -92,7 +107,7 @@ Deno.serve(async (req) => {
           try {
             intent = await stripe.paymentIntents.capture(paymentIntentId, {
               amount_to_capture: amountToCapture,
-              application_fee_amount: distribution.platformFeeCents,
+              application_fee_amount: distribution.stripeApplicationFeeCents,
             }, {
               idempotencyKey: `match-group:capture:${memberOrderId}:${paymentIntentId}:${amountToCapture}`.slice(0, 255),
             });
@@ -119,12 +134,21 @@ Deno.serve(async (req) => {
           currency: intent.currency,
           livemode: intent.livemode,
           metadata: {
-            finance_routing_mode: authorization.metadata?.finance_routing_mode,
-            platform_fee_bps: distribution.platformFeeBps,
-            platform_fee_amount_cents: distribution.platformFeeCents,
-            restaurant_share_amount_cents: distribution.restaurantShareCents,
-            developer_share_bps: distribution.developerShareBps,
-            developer_share_amount_cents: distribution.developerShareCents,
+            ...authorization.metadata,
+            gross_amount_cents: String(distribution.grossCents),
+            commissionable_cents: String(distribution.commissionableCents),
+            tip_cents: String(distribution.tipCents),
+            delivery_pass_through_cents: String(distribution.deliveryPassThroughCents),
+            platform_fee_bps: String(distribution.platformFeeBps),
+            platform_fee_amount_cents: String(distribution.platformFeeCents),
+            stripe_application_fee_amount_cents:
+              String(distribution.stripeApplicationFeeCents),
+            restaurant_share_amount_cents: String(distribution.restaurantShareCents),
+            restaurant_transfer_amount_cents: String(distribution.restaurantTransferCents),
+            developer_order_bps: String(distribution.developerOrderBps),
+            developer_share_bps: String(distribution.developerOrderBps),
+            developer_share_amount_cents: String(distribution.developerShareCents),
+            tok_net_amount_cents: String(distribution.tokNetRevenueCents),
             stripe_fee_reconciliation_required: true,
             vat_reconciliation_required: true,
           },

@@ -91,15 +91,15 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
   {
     name: "payment-postfinance-card",
     label: "Paiement PostFinance Card",
-    description: "Active PostFinance Card dans les parcours checkout et campagnes.",
-    defaultEnabled: true,
+    description: "Réservé : reste coupé tant que le parcours Stripe et les remboursements ne sont pas validés.",
+    defaultEnabled: false,
     group: "payments",
   },
   {
     name: "payment-postfinance-efinance",
     label: "Paiement PostFinance E-Finance",
-    description: "Active PostFinance E-Finance dans les parcours checkout et campagnes.",
-    defaultEnabled: true,
+    description: "Réservé : reste coupé tant que le parcours Stripe et les remboursements ne sont pas validés.",
+    defaultEnabled: false,
     group: "payments",
   },
   {
@@ -108,6 +108,22 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     description: "Autorise le règlement manuel ou sur place quand le parcours le permet.",
     defaultEnabled: true,
     group: "payments",
+  },
+  {
+    name: "billing-fair-growth-annual",
+    label: "Facturation annuelle Fair Growth",
+    description: "Autorise les engagements restaurateur de 12 mois factures au prix de 11 mois. Les quotas restent mensuels.",
+    defaultEnabled: false,
+    group: "payments",
+    critical: true,
+  },
+  {
+    name: "commercial-demo-openai",
+    label: "OpenAI — démonstration commerciale",
+    description: "Coupe immédiatement les appels OpenAI de la vue multi-espace et du restaurant Démo.",
+    defaultEnabled: false,
+    group: "admin_tools",
+    critical: true,
   },
   {
     name: "livraison",
@@ -463,6 +479,15 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     defaultEnabled: true,
     group: "restaurant_dashboard",
     dependsOn: ["dashboard-restaurateur"],
+    routeTargets: ["/dashboard/menu"],
+  },
+  {
+    name: "daily-dish-ai",
+    label: "IA Plat du jour",
+    description: "Trois propositions quotidiennes avec recherche fournisseurs, coûts, recette et publication PhotoPro.",
+    defaultEnabled: true,
+    group: "restaurant_dashboard",
+    dependsOn: ["dashboard-restaurateur", "dashboard-menu", "ai_menu_optimizer", "ai_photo_enhancer", "ai_sales_insights"],
     routeTargets: ["/dashboard/menu"],
   },
   {

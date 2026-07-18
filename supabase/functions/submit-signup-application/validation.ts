@@ -1,6 +1,7 @@
 export type ProRole = "restaurateur" | "courier";
 
-export const RESTAURANT_PARTNER_CONTRACT_VERSION = "TOK-CH-RP-2026-06-v2";
+export const RESTAURANT_PARTNER_CONTRACT_VERSION = "TOK-CH-RP-FAIR-GROWTH-2026-07-v4";
+export const LEGAL_ACCEPTANCE_VERSION = "2026-07-18-fair-growth-v3";
 
 export const ACCEPTED_MIME_TYPES = [
   "application/pdf",
@@ -47,6 +48,9 @@ export function validateSubmissionFields(
   }
 
   if (role === "restaurateur") {
+    if (String(fields.legal_acceptance_version || "").trim() !== LEGAL_ACCEPTANCE_VERSION) {
+      return "La version des conditions acceptees est invalide.";
+    }
     if (!String(fields.business_name || "").trim()) return "Le nom commercial est requis.";
     if (!String(fields.legal_name || "").trim()) return "La raison sociale est requise.";
     if (!String(fields.business_registration_number || "").trim()) return "Le numero d'immatriculation est requis.";
@@ -61,7 +65,7 @@ export function validateSubmissionFields(
       return "La version du contrat restaurateur est invalide.";
     }
     const billingPeriod = String(fields.subscription_billing_period || "").trim().toLowerCase();
-    if (billingPeriod !== "monthly") {
+    if (!["monthly", "yearly"].includes(billingPeriod)) {
       return "La periode d'abonnement est invalide.";
     }
   }

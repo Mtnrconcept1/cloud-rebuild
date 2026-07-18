@@ -1,581 +1,234 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Check, Loader2, Package, ShieldCheck, Sparkles } from "lucide-react";
+import { toast } from "sonner";
+
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Link, useSearchParams } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getSupabase } from "@/integrations/supabase/client";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
-import { useLaunchPacks, useRestaurantLaunchPack } from "@/hooks/useLaunchPack";
-import {
-  getServiceIcon,
-  getStatusColor,
-  getStatusLabel,
-  getPurchaseStatusLabel,
-  computePackProgress,
-  formatServiceDetail,
-  formatLaunchPackAiQuota,
-  type ServiceFulfillment,
-  type LaunchPack,
-  type PackService,
-} from "@/lib/launchPacks";
-import { buildCheckoutReturnUrl } from "@/lib/checkoutReturnUrl";
-import { redirectToTrustedCheckoutUrl } from "@/lib/securityUrls";
-import { invokeSupabaseFunction } from "@/lib/session";
-import {
-  clearPaymentAttemptId,
-  createCheckoutWithRecovery,
-  createPaymentAttemptOperationKey,
-  getOrCreatePaymentAttemptId,
-  isPaymentAttemptIndeterminateError,
-  markPaymentAttemptRedirected,
-  normalizePaymentAttemptId,
-  rememberPaymentAttemptId,
-} from "@/lib/paymentAttempt";
-import { usePaymentAttemptBackCancellation } from "@/lib/usePaymentAttemptBackCancellation";
-import PaymentMethodSelector from "@/components/cart/PaymentMethodSelector";
-import type { PaymentMethodId } from "@/lib/paymentMethods";
-import { toast } from "sonner";
-import {
-  Package,
-  Rocket,
-  Check,
-  Loader2,
-  CheckCircle2,
-  AlertCircle,
-} from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 
-const ALLOWED_PAYMENT_METHODS: PaymentMethodId[] = [
-  "card",
-  "twint",
-];
+const supabase = getSupabase();
 
-const launchPackAttemptScope = (restaurantId: string) => `launch-pack:${restaurantId}`;
+type FairGrowthModuleRow = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+  monthly_base_cents: number | null;
+  variable_fee_bps: number | null;
+  successful_reservation_fee_cents: number | null;
+  payment_cost_passthrough: boolean;
+  value_guarantee_days: number;
+  value_guarantee_multiplier: number;
+  availability_status: "available" | "pilot" | "coming_soon";
+};
 
-function FulfillmentCard({ f, service }: { f: ServiceFulfillment; service?: PackService }) {
-  const Icon = getServiceIcon(f.service_slug);
-  const detail = service ? formatServiceDetail(service) : null;
-  return (
-    <div className="flex items-start gap-4 p-4 rounded-xl border bg-card">
-      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-        <Icon className="h-5 w-5 text-primary" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between gap-2">
-          <h4 className="font-medium text-sm">{f.service_label}</h4>
-          <span
-            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
-              f.status
-            )}`}
-          >
-            {getStatusLabel(f.status)}
-          </span>
-        </div>
-        {detail && (
-          <p className="text-xs text-muted-foreground mt-1">{detail}</p>
-        )}
-        {f.scheduled_at && (
-          <p className="text-xs text-muted-foreground mt-1">
-            Planifie le{" "}
-            {new Date(f.scheduled_at).toLocaleDateString("fr-CH", {
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-            })}
-          </p>
-        )}
-        {f.notes && (
-          <p className="text-xs text-muted-foreground mt-1">{f.notes}</p>
-        )}
-      </div>
-    </div>
-  );
+type PaidModuleRow = {
+  module_id: string;
+  status: "requested" | "trialing" | "active" | "paused" | "cancelled" | "credit_due";
+  measured_value_cents: number;
+  credit_amount_cents: number;
+  evaluation_ends_at: string | null;
+};
+
+function formatChfFromCents(cents: number) {
+  return (cents / 100).toLocaleString("fr-CH", { style: "currency", currency: "CHF" });
 }
 
-function PackSelectionCard({
-  pack,
-  onSelect,
-  featured,
-}: {
-  pack: LaunchPack;
-  onSelect: (pack: LaunchPack) => void;
-  featured: boolean;
-}) {
-  const aiQuota = formatLaunchPackAiQuota(pack);
-
-  return (
-    <div
-      className={`relative flex flex-col rounded-2xl border p-5 ${
-        featured
-          ? "border-primary ring-2 ring-primary/20"
-          : "border-border"
-      } bg-card hover:shadow-md transition-all`}
-    >
-      {pack.badge_label && (
-        <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold">
-          {pack.badge_label}
-        </div>
-      )}
-      <h3 className="font-bold">{pack.name}</h3>
-      <p className="text-2xl font-bold mt-2">
-        {pack.price_chf.toLocaleString("fr-CH")} <span className="text-sm text-muted-foreground font-normal">CHF</span>
-      </p>
-      {aiQuota ? (
-        <p className="mt-2 rounded-lg bg-primary/5 px-3 py-2 text-xs font-medium text-primary">
-          Credits IA inclus: {aiQuota}
-        </p>
-      ) : null}
-      <ul className="space-y-1.5 mt-3 flex-1">
-        {(pack.services as PackService[]).map((svc) => {
-          const detail = formatServiceDetail(svc);
-          return (
-            <li key={svc.service} className="flex items-start gap-2 text-sm">
-              <Check className="h-3.5 w-3.5 text-green-500 flex-shrink-0 mt-0.5" />
-              <span>
-                {svc.label}
-                {detail ? <span className="block text-xs text-muted-foreground">{detail}</span> : null}
-              </span>
-            </li>
-          );
-        })}
-      </ul>
-      <Button
-        className="w-full mt-4"
-        variant={featured ? "default" : "outline"}
-        onClick={() => onSelect(pack)}
-      >
-        Choisir
-      </Button>
-    </div>
-  );
+function modulePrice(module: FairGrowthModuleRow) {
+  const parts: string[] = [];
+  if (module.monthly_base_cents != null) {
+    parts.push(formatChfFromCents(module.monthly_base_cents) + " / mois");
+  }
+  if (module.variable_fee_bps != null) {
+    parts.push((module.variable_fee_bps / 100).toLocaleString("fr-CH") + "%");
+  }
+  if (module.successful_reservation_fee_cents != null) {
+    parts.push(formatChfFromCents(module.successful_reservation_fee_cents) + " / réservation réussie");
+  }
+  if (module.payment_cost_passthrough) parts.push("coût de paiement");
+  return parts.join(" + ");
 }
 
-function CheckoutDialog({
-  open,
-  onOpenChange,
-  selectedPack,
-  onCheckout,
-  checkingOut,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  selectedPack: LaunchPack | null;
-  onCheckout: (paymentMethod: PaymentMethodId) => void;
-  checkingOut: boolean;
-}) {
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId>("card");
-
-  if (!selectedPack) return null;
-  const aiQuota = formatLaunchPackAiQuota(selectedPack);
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{selectedPack.name}</DialogTitle>
-          <DialogDescription>
-            {selectedPack.price_chf.toLocaleString("fr-CH")} CHF — Paiement unique
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-6 pt-2">
-          {/* Services recap */}
-          <div className="space-y-2">
-            <p className="text-sm font-medium">Services inclus</p>
-            <ul className="space-y-1.5">
-              {(selectedPack.services as PackService[]).map((svc) => (
-                <li key={svc.service} className="flex items-center gap-2 text-sm">
-                  <Check className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />
-                  <span>{svc.label}</span>
-                  {formatServiceDetail(svc) && (
-                    <span className="text-muted-foreground">({formatServiceDetail(svc)})</span>
-                  )}
-                </li>
-              ))}
-            </ul>
-            {aiQuota ? (
-              <p className="rounded-lg bg-primary/5 px-3 py-2 text-xs font-medium text-primary">
-                Credits IA inclus: {aiQuota}
-              </p>
-            ) : null}
-          </div>
-
-          {/* Payment method */}
-          <PaymentMethodSelector
-            paymentMethod={paymentMethod}
-            setPaymentMethod={setPaymentMethod}
-            allowedMethods={ALLOWED_PAYMENT_METHODS}
-          />
-
-          {/* Total + CTA */}
-          <div className="flex items-center justify-between pt-2 border-t">
-            <div>
-              <p className="text-sm text-muted-foreground">Total</p>
-              <p className="text-2xl font-bold">{selectedPack.price_chf.toLocaleString("fr-CH")} CHF</p>
-            </div>
-            <Button
-              size="lg"
-              onClick={() => onCheckout(paymentMethod)}
-              disabled={checkingOut}
-            >
-              {checkingOut ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : null}
-              Payer maintenant
-            </Button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function EmptyState({
-  onSelectPack,
-}: {
-  onSelectPack: (pack: LaunchPack) => void;
-}) {
-  const { data: packs, isLoading } = useLaunchPacks();
-
-  return (
-    <div className="space-y-8">
-      {/* Promo card */}
-      <Card>
-        <CardContent className="flex flex-col items-center justify-center py-10 space-y-4">
-          <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
-            <Rocket className="h-7 w-7 text-primary" />
-          </div>
-          <div className="text-center space-y-2 max-w-md">
-            <h3 className="text-xl font-bold">Lancez-vous avec un pack</h3>
-            <p className="text-muted-foreground text-sm">
-              Mise en place, photos professionnelles, campagnes publicitaires —
-              choisissez le pack qui correspond à vos besoins.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Pack selection */}
-      {isLoading ? (
-        <div className="flex items-center justify-center py-10">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-        </div>
-      ) : packs && packs.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {packs.map((pack) => (
-            <PackSelectionCard
-              key={pack.id}
-              pack={pack}
-              onSelect={onSelectPack}
-              featured={pack.slug === "pro"}
-            />
-          ))}
-        </div>
-      ) : null}
-    </div>
-  );
+function statusLabel(status: PaidModuleRow["status"] | undefined) {
+  if (!status) return "Sur demande";
+  return {
+    requested: "Activation demandée",
+    trialing: "En évaluation",
+    active: "Actif",
+    paused: "En pause",
+    cancelled: "Désactivé",
+    credit_due: "Crédit à traiter",
+  }[status];
 }
 
 export default function DashboardPack() {
-  const commercialDemoFrame = useCommercialDemoFrame();
-  const isCommercialDemo = commercialDemoFrame?.surface === "restaurant";
-  const { selectedId } = useDashboardRestaurant();
-  const { data: restaurantPack, isLoading } = useRestaurantLaunchPack(selectedId);
-  const { data: packs = [] } = useLaunchPacks();
-  const [searchParams] = useSearchParams();
+  const { selectedId, isDemoMode } = useDashboardRestaurant();
+  const queryClient = useQueryClient();
+  const [requestingSlug, setRequestingSlug] = useState<string | null>(null);
 
-  const [selectedPack, setSelectedPack] = useState<LaunchPack | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [checkingOut, setCheckingOut] = useState(false);
-  const checkoutLockRef = useRef(false);
-  const cancelledAttemptRef = useRef<string | null>(null);
-
-  usePaymentAttemptBackCancellation({
-    scope: selectedId ? launchPackAttemptScope(selectedId) : null,
-    onCancelled: () => {
-      setCheckingOut(false);
-      toast.success("Achat interrompu : la session Stripe et le pack temporaire ont été libérés.");
-    },
-    onError: () => {
-      setCheckingOut(false);
-      toast.error("Achat en cours de vérification : reprenez la même tentative.");
+  const modulesQuery = useQuery({
+    queryKey: ["fair-growth-modules"],
+    queryFn: async () => {
+      const { data, error } = await (supabase.from as any)("fair_growth_modules")
+        .select("id, slug, name, description, monthly_base_cents, variable_fee_bps, successful_reservation_fee_cents, payment_cost_passthrough, value_guarantee_days, value_guarantee_multiplier, availability_status")
+        .eq("is_active", true)
+        .order("position", { ascending: true });
+      if (error) throw error;
+      return (data || []) as FairGrowthModuleRow[];
     },
   });
 
-  const paymentStatus = searchParams.get("status");
-  const returnPaymentAttemptId = normalizePaymentAttemptId(searchParams.get("payment_attempt_id"));
-  const fulfillments = restaurantPack?.launch_pack_service_fulfillments ?? [];
-  const progress = computePackProgress(fulfillments);
-
-  useEffect(() => {
-    if (!selectedId || !returnPaymentAttemptId) return;
-    const scope = launchPackAttemptScope(selectedId);
-
-    if (paymentStatus === "success") {
-      clearPaymentAttemptId(scope, returnPaymentAttemptId);
-      return;
-    }
-    if (paymentStatus !== "cancelled" || cancelledAttemptRef.current === returnPaymentAttemptId) return;
-
-    cancelledAttemptRef.current = returnPaymentAttemptId;
-    rememberPaymentAttemptId(scope, returnPaymentAttemptId);
-    setCheckingOut(true);
-    void invokeSupabaseFunction("cancel-payment-attempt", {
-      body: { payment_attempt_id: returnPaymentAttemptId },
-    }).then(({ error }) => {
+  const subscriptionsQuery = useQuery({
+    queryKey: ["restaurant-paid-modules", selectedId],
+    enabled: Boolean(selectedId),
+    queryFn: async () => {
+      const { data, error } = await (supabase.from as any)("restaurant_paid_modules")
+        .select("module_id, status, measured_value_cents, credit_amount_cents, evaluation_ends_at")
+        .eq("restaurant_id", selectedId);
       if (error) throw error;
-      clearPaymentAttemptId(scope, returnPaymentAttemptId);
-      toast.success("Session Stripe annulée et pack temporaire libéré.");
-    }).catch((error) => {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "L'annulation doit encore être vérifiée avant de relancer le paiement.",
-      );
-    }).finally(() => {
-      setCheckingOut(false);
-    });
-  }, [paymentStatus, returnPaymentAttemptId, selectedId]);
+      return (data || []) as PaidModuleRow[];
+    },
+  });
 
-  function handleSelectPack(pack: LaunchPack) {
-    setSelectedPack(pack);
-    setDialogOpen(true);
-  }
+  const subscriptionsByModule = new Map(
+    (subscriptionsQuery.data || []).map((subscription) => [subscription.module_id, subscription]),
+  );
 
-  async function handleCheckout(paymentMethod: PaymentMethodId) {
-    if (!selectedPack || !selectedId) return;
-    if (checkoutLockRef.current) return;
-    checkoutLockRef.current = true;
-    setCheckingOut(true);
-
-    if (isCommercialDemo) {
-      toast.success(`Parcours ${selectedPack.name} simulé avec ${paymentMethod === "card" ? "la carte test" : "TWINT test"}.`);
-      setDialogOpen(false);
-      setCheckingOut(false);
-      return;
-    }
-
+  const requestModule = async (module: FairGrowthModuleRow) => {
+    if (!selectedId || requestingSlug || isDemoMode) return;
+    setRequestingSlug(module.slug);
     try {
-      const paymentAttemptId = getOrCreatePaymentAttemptId(
-        launchPackAttemptScope(selectedId),
-        createPaymentAttemptOperationKey({
-          restaurantId: selectedId,
-          checkoutKind: "launch-pack",
-          packId: selectedPack.id,
-          paymentMethod,
-          price: selectedPack.price_chf,
-        }),
-      );
-      const checkoutPayload = {
-        payment_attempt_id: paymentAttemptId,
-        checkout_kind: "launch-pack",
-        items: [
-          {
-            name: `Pack de lancement - ${selectedPack.name}`,
-            price: selectedPack.price_chf,
-            quantity: 1,
-          },
-        ],
-        payment_method: paymentMethod,
-        return_url: buildCheckoutReturnUrl("/dashboard/pack", { paymentAttemptId }),
-        order_metadata: {
-          payment_attempt_id: paymentAttemptId,
-          checkout_kind: "launch-pack",
-          pack_id: selectedPack.id,
-          restaurant_id: selectedId,
-        },
-      };
-      const checkout = await createCheckoutWithRecovery({
-        paymentAttemptId,
-        create: async () => {
-          const { data, error } = await invokeSupabaseFunction("create-checkout", {
-            body: checkoutPayload,
-          });
-          if (error) throw error;
-          return data;
-        },
-        getStatus: async () => {
-          const { data, error } = await invokeSupabaseFunction("payment-attempt-status", {
-            body: { payment_attempt_id: paymentAttemptId },
-          });
-          if (error) throw error;
-          return data;
-        },
+      const { error } = await (supabase.rpc as any)("request_fair_growth_module", {
+        p_restaurant_id: selectedId,
+        p_module_slug: module.slug,
       });
-
-      if (!checkout.url) {
-        throw new Error("Le pack est en cours de vérification. Relancez avec le même bouton dans quelques secondes.");
-      }
-
-      markPaymentAttemptRedirected(launchPackAttemptScope(selectedId), paymentAttemptId);
-      redirectToTrustedCheckoutUrl(checkout.url);
+      if (error) throw error;
+      await queryClient.invalidateQueries({ queryKey: ["restaurant-paid-modules", selectedId] });
+      toast.success("Demande enregistrée", {
+        description: "TOK vérifiera le moyen de paiement et la date d'activation avant toute facturation.",
+      });
     } catch (error) {
-      console.error("Checkout error:", error);
-      toast.error(
-        isPaymentAttemptIndeterminateError(error)
-          ? error.message
-          : error instanceof Error ? error.message : "Erreur lors de la creation du paiement."
-      );
-      setCheckingOut(false);
+      toast.error("Activation impossible", {
+        description: error instanceof Error ? error.message : "Réessayez dans un instant.",
+      });
     } finally {
-      checkoutLockRef.current = false;
+      setRequestingSlug(null);
     }
-  }
+  };
+
+  const isLoading = modulesQuery.isLoading || subscriptionsQuery.isLoading;
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
         <DashboardPageHero
-          badge="Accompagnement"
-          title="Pack de lancement"
-          description="Suivez l'achat, l'activation et les services inclus dans votre pack de lancement restaurant."
+          badge="Fair Growth"
+          title="Modules de croissance"
+          description="Activez uniquement les outils qui créent une valeur mesurable pour votre établissement."
           icon={Package}
           tone="violet"
-          visualLabel="Pack"
+          visualLabel="Modules"
           stats={[
-            { label: "Packs disponibles", value: packs?.length || 0, icon: Package },
-            { label: "Statut", value: restaurantPack ? getPurchaseStatusLabel(restaurantPack.status) : "Aucun", icon: CheckCircle2 },
-            { label: "Services", value: fulfillments.length, icon: Rocket },
+            { label: "Garantie", value: "3× en 90 jours", icon: ShieldCheck },
+            { label: "Activation", value: isDemoMode ? "Bloquée en démo" : "Sans débit immédiat", icon: Check },
+            { label: "Pilotage", value: "À la carte", icon: Sparkles },
           ]}
         />
 
-        {/* Payment status banners */}
-        {paymentStatus === "success" && (
-          <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-start gap-3">
-            <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="font-semibold text-green-800 text-sm">Paiement confirmé !</p>
-              <p className="text-xs text-green-700 mt-0.5">
-                Votre pack a été activé. Notre équipe vous contactera sous 48h.
-              </p>
-            </div>
-          </div>
-        )}
-        {paymentStatus === "cancelled" && (
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="font-semibold text-amber-800 text-sm">Paiement annulé</p>
-              <p className="text-xs text-amber-700 mt-0.5">
-                Vous pouvez re-essayer en selectionnant un pack ci-dessous.
-              </p>
-            </div>
-          </div>
-        )}
+        {isDemoMode ? (
+          <Card className="border-amber-500/30 bg-amber-500/5">
+            <CardContent className="p-5 text-sm">
+              Le catalogue reste consultable dans le restaurant Démo, mais aucune demande
+              d’activation ni facturation ne peut être créée depuis cet espace.
+            </CardContent>
+          </Card>
+        ) : null}
+
+        <Card className="border-emerald-500/30 bg-emerald-500/5">
+          <CardContent className="flex gap-3 p-5">
+            <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+            <p className="text-sm">
+              <strong>Garantie de valeur.</strong> Après activation facturée, si un module ne produit pas
+              au moins trois fois son coût pendant sa fenêtre d'évaluation de 90 jours, TOK recommande
+              sa désactivation ou accorde un crédit après validation des données. La demande n'active pas
+              le module et n'autorise aucun débit : TOK confirme d'abord le périmètre, le prix et la date de début.
+            </p>
+          </CardContent>
+        </Card>
 
         {isLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+          <div className="flex items-center justify-center py-16 text-muted-foreground">
+            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+            Chargement des modules…
           </div>
-        ) : !restaurantPack ? (
-          <EmptyState onSelectPack={handleSelectPack} />
+        ) : modulesQuery.isError ? (
+          <Card><CardContent className="p-6 text-sm text-muted-foreground">Le catalogue est temporairement indisponible.</CardContent></Card>
         ) : (
-          <div className="space-y-6">
-            {/* Pack overview */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">
-                    {restaurantPack.launch_packs.name}
-                  </CardTitle>
-                  <span
-                    className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                      restaurantPack.status === "completed"
-                        ? "bg-green-100 text-green-700"
-                        : restaurantPack.status === "in_progress"
-                        ? "bg-amber-100 text-amber-700"
-                        : restaurantPack.status === "paid"
-                        ? "bg-blue-100 text-blue-700"
-                        : "bg-gray-100 text-gray-700"
-                    }`}
-                  >
-                    {getPurchaseStatusLabel(restaurantPack.status)}
-                  </span>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {restaurantPack.launch_packs.description && (
-                  <p className="text-sm text-muted-foreground">
-                    {restaurantPack.launch_packs.description}
-                  </p>
-                )}
-                {formatLaunchPackAiQuota(restaurantPack.launch_packs) ? (
-                  <p className="rounded-lg bg-primary/5 px-3 py-2 text-xs font-medium text-primary">
-                    Credits IA inclus: {formatLaunchPackAiQuota(restaurantPack.launch_packs)}
-                  </p>
-                ) : null}
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {(modulesQuery.data || []).map((module) => {
+              const subscription = subscriptionsByModule.get(module.id);
+              const pending = requestingSlug === module.slug;
+              const canRequest = !isDemoMode && (!subscription || subscription.status === "cancelled");
 
-                {/* Progress bar */}
-                {fulfillments.length > 0 && (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Progression</span>
-                      <span className="font-medium">{progress}%</span>
+              return (
+                <Card key={module.id} className="flex h-full flex-col">
+                  <CardHeader>
+                    <div className="flex items-start justify-between gap-3">
+                      <CardTitle className="text-lg">{module.name}</CardTitle>
+                      <span className="rounded-full bg-muted px-2 py-1 text-[11px] font-medium">
+                        {subscription
+                          ? statusLabel(subscription.status)
+                          : module.availability_status === "pilot"
+                            ? "Pilote · sur demande"
+                            : statusLabel(undefined)}
+                      </span>
                     </div>
-                    <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-primary rounded-full transition-all duration-500"
-                        style={{ width: `${progress}%` }}
-                      />
-                    </div>
+                    <p className="text-sm text-muted-foreground">{module.description}</p>
+                  </CardHeader>
+                  <CardContent className="flex flex-1 flex-col gap-4">
+                    <p className="text-xl font-bold">{modulePrice(module)}</p>
                     <p className="text-xs text-muted-foreground">
-                      {fulfillments.filter((f) => f.status === "completed").length} /{" "}
-                      {fulfillments.length} services terminés
+                      {module.availability_status === "pilot"
+                        ? "Fonction pilote soumise à validation technique et contractuelle ; aucune activation automatique."
+                        : "Activation manuelle après validation par TOK ; aucun débit lors de la demande."}
                     </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Service fulfillments */}
-            {fulfillments.length > 0 && (
-              <div className="space-y-3">
-                <h2 className="text-lg font-semibold">Services inclus</h2>
-                <div className="grid gap-3">
-                  {fulfillments.map((f) => (
-                    <FulfillmentCard
-                      key={f.id}
-                      f={f}
-                      service={(restaurantPack.launch_packs.services as PackService[]).find(
-                        (service) => service.service === f.service_slug,
-                      )}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Support link */}
-            <Card>
-              <CardContent className="flex items-center justify-between py-4">
-                <p className="text-sm text-muted-foreground">
-                  Une question sur votre pack ?
-                </p>
-                <Button asChild variant="outline" size="sm">
-                  <Link to="/dashboard/support">Contacter le support</Link>
-                </Button>
-              </CardContent>
-            </Card>
+                    {subscription ? (
+                      <div className="rounded-xl bg-muted/60 p-3 text-xs">
+                        <p><strong>Statut :</strong> {statusLabel(subscription.status)}</p>
+                        {subscription.evaluation_ends_at ? (
+                          <p>Évaluation jusqu'au {new Date(subscription.evaluation_ends_at).toLocaleDateString("fr-CH")}.</p>
+                        ) : null}
+                        {subscription.measured_value_cents > 0 ? (
+                          <p>Valeur mesurée : {formatChfFromCents(subscription.measured_value_cents)}.</p>
+                        ) : null}
+                      </div>
+                    ) : null}
+                    <Button
+                      className="mt-auto w-full"
+                      variant={canRequest ? "default" : "outline"}
+                      disabled={!canRequest || pending}
+                      onClick={() => requestModule(module)}
+                    >
+                      {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                      {isDemoMode
+                        ? "Indisponible en démonstration"
+                        : canRequest
+                          ? module.availability_status === "pilot"
+                            ? "Demander l'accès pilote"
+                            : "Demander l'activation"
+                          : statusLabel(subscription?.status)}
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
-
-        {/* Checkout dialog */}
-        <CheckoutDialog
-          open={dialogOpen}
-          onOpenChange={setDialogOpen}
-          selectedPack={selectedPack}
-          onCheckout={handleCheckout}
-          checkingOut={checkingOut}
-        />
       </div>
     </DashboardLayout>
   );
 }
-

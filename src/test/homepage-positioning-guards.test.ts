@@ -49,7 +49,7 @@ describe("homepage positioning guards", () => {
   it("keeps restaurateur packs as a softer B2B tunnel before direct checkout", () => {
     const packs = read("src/pages/PacksRestaurateur.tsx");
 
-    expect(packs).toContain("Abonnements restaurateur");
+    expect(packs).toContain("Abonnements Fair Growth");
     expect(packs).toContain("Recharges de crédits TOK");
     expect(packs).toContain("restaurant_subscription_plans");
     expect(packs).toContain("restaurant_credit_packs");

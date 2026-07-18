@@ -25,7 +25,7 @@ export type CommercialDemoAiContext = {
 const SIGNED_URL_TTL_SECONDS = 60 * 60;
 
 export type CommercialDemoAiClaim = {
-  state: "claimed" | "replay" | "mismatch" | "in_progress" | "failed" | "busy" | "circuit_open";
+  state: "claimed" | "replay" | "mismatch" | "in_progress" | "failed" | "busy" | "circuit_open" | "budget_exhausted" | "disabled";
   request_id?: string;
   response?: Record<string, unknown>;
   error_code?: string;
@@ -171,14 +171,21 @@ export async function requireCommercialDemoAiFeature(
   tool: CommercialDemoAiTool | null,
 ) {
   const feature = requiredFeature(action, tool);
+  const requiredFeatures = ["commercial-demo-openai", feature];
   const { data, error } = await context.actor.adminClient
     .from("feature_flags")
     .select("name, is_active")
-    .eq("name", feature)
-    .maybeSingle();
+    .in("name", requiredFeatures);
 
   if (error) throw new HttpError(503, "feature_flag_check_unavailable");
-  if (!data?.is_active) throw new HttpError(403, "commercial_demo_ai_feature_disabled");
+  const enabledFeatures = new Set(
+    (data || [])
+      .filter((row: { is_active?: boolean }) => row.is_active === true)
+      .map((row: { name?: string }) => row.name),
+  );
+  if (requiredFeatures.some((name) => !enabledFeatures.has(name))) {
+    throw new HttpError(403, "commercial_demo_ai_feature_disabled");
+  }
   return feature;
 }
 

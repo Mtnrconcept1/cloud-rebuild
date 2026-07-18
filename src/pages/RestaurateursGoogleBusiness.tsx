@@ -108,7 +108,7 @@ export default function RestaurateursGoogleBusiness() {
         monthlyTables,
         coversPerTable,
         commissionPerCoverChf: commissionPerCover,
-        tokFeePerTableChf: 5,
+        tokFeePerTableChf: 0,
         monthlyPackFeeChf: packFee,
       }),
     [commissionPerCover, coversPerTable, monthlyTables, packFee],

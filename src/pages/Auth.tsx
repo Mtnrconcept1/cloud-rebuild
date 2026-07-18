@@ -5,6 +5,10 @@ import { Bike, BriefcaseBusiness, ChefHat, CreditCard, Eye, EyeOff, FileText, Lo
 import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth, type UserRole } from "@/lib/auth-context";
 import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
+import {
+  FAIR_GROWTH_ANNUAL_MONTHS_CHARGED,
+  getFairGrowthPlan,
+} from "@/lib/fairGrowth";
 import { normalizeInternalNavigationTarget } from "@/lib/navigation";
 import { openSafeHtmlPrintDocument } from "@/lib/safePrintWindow";
 import { getDefaultActiveRole, getFeatureVisibleRoles } from "@/lib/roleAccess";
@@ -56,7 +60,7 @@ import { getPostAuthTargetForRole } from "@/lib/authPostLogin";
 import { isCommercialAppHost } from "@/lib/commercialDomains";
 
 const supabase = getSupabase();
-const LEGAL_ACCEPTANCE_VERSION = "2026-06-15";
+const LEGAL_ACCEPTANCE_VERSION = "2026-07-18-fair-growth-v3";
 
 type SignupFormState = {
   fullName: string;
@@ -210,7 +214,7 @@ function getSignupValidationError(
     if (!form.restaurantName.trim()) return "Le nom du restaurant est requis.";
     if (!form.iban.trim()) return "L'IBAN de versement est requis.";
     if (!onboardingChoices?.subscriptionPlanId) return "Choisissez un abonnement TOK.";
-    if (onboardingChoices.subscriptionBillingPeriod !== "monthly") {
+    if (!["monthly", "yearly"].includes(onboardingChoices.subscriptionBillingPeriod)) {
       return "Choisissez une période d'abonnement valide.";
     }
     if (!contractSignature?.signerName.trim()) return "Le nom du signataire du contrat est requis.";
@@ -266,6 +270,8 @@ function exportSignedRestaurantContractPdf(input: {
   signerRole?: string | null;
   contractHash?: string | null;
   acceptanceText?: string | null;
+  selectedSubscriptionPlanLabel?: string | null;
+  selectedSubscriptionPriceLabel?: string | null;
 }) {
   const html = generateSignedRestaurantPartnerContractHtml(input);
 
@@ -281,12 +287,16 @@ function RestaurantContractSignaturePad({
   signatureDataUrl,
   onSignatureChange,
   signupForm,
+  selectedSubscriptionPlanLabel,
+  selectedSubscriptionPriceLabel,
 }: {
   signerName: string;
   onSignerNameChange: (value: string) => void;
   signatureDataUrl: string;
   onSignatureChange: (value: string) => void;
   signupForm: SignupFormState;
+  selectedSubscriptionPlanLabel?: string | null;
+  selectedSubscriptionPriceLabel?: string | null;
 }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const drawingRef = useRef(false);
@@ -363,6 +373,8 @@ function RestaurantContractSignaturePad({
       city: signupForm.city,
       signerRole: "Représentant autorisé",
       acceptanceText,
+      selectedSubscriptionPlanLabel,
+      selectedSubscriptionPriceLabel,
     });
     const exported = exportSignedRestaurantContractPdf({
       signerName,
@@ -379,6 +391,8 @@ function RestaurantContractSignaturePad({
       signerRole: "Représentant autorisé",
       contractHash,
       acceptanceText,
+      selectedSubscriptionPlanLabel,
+      selectedSubscriptionPriceLabel,
     });
     if (!exported) {
       alert("Autorisez l'ouverture de la fenêtre d'impression pour exporter le contrat en PDF.");
@@ -603,7 +617,7 @@ export default function Auth() {
   const [resendLoading, setResendLoading] = useState(false);
   const [privilegedSignupSubmitting, setPrivilegedSignupSubmitting] = useState(false);
   const [selectedSubscriptionPlanId, setSelectedSubscriptionPlanId] = useState("");
-  const [selectedSubscriptionBillingPeriod] = useState<SignupSubscriptionBillingPeriod>("monthly");
+  const [selectedSubscriptionBillingPeriod, setSelectedSubscriptionBillingPeriod] = useState<SignupSubscriptionBillingPeriod>("monthly");
   const [legalAccepted, setLegalAccepted] = useState(false);
   const [contractSignerName, setContractSignerName] = useState("");
   const [contractSignatureDataUrl, setContractSignatureDataUrl] = useState("");
@@ -612,6 +626,7 @@ export default function Auth() {
   const authRedirectHandledRef = useRef(false);
   const { activeFeatures, loading: featureFlagsLoading } = useFeatureFlagSnapshot();
   const courierSignupEnabled = activeFeatures.has("espace-livreur");
+  const annualBillingEnabled = activeFeatures.has("billing-fair-growth-annual");
 
   const requiredDocuments = useMemo(
     () => getRequiredSignupDocuments(roleMode, signupForm.vehicleType),
@@ -627,6 +642,7 @@ export default function Auth() {
   );
   const selectedSubscriptionPrice = selectedSubscriptionPlan
     ? selectedSubscriptionPlan.price_monthly_chf
+      * (selectedSubscriptionBillingPeriod === "yearly" ? FAIR_GROWTH_ANNUAL_MONTHS_CHARGED : 1)
     : null;
   const isClientSignup = !isLogin && roleMode === "client";
   const showExtendedIdentityFields = !isLogin && (roleMode === "restaurateur" || roleMode === "courier");
@@ -1022,6 +1038,14 @@ export default function Auth() {
           signerEmail: signupForm.email,
           userId: activeUser.id,
           acceptanceText: contractAcceptanceText,
+          selectedSubscriptionPlanLabel: selectedSubscriptionPlan?.name || null,
+          selectedSubscriptionPriceLabel: selectedSubscriptionPrice == null
+            ? null
+            : formatChf(selectedSubscriptionPrice) + (
+                submittedOnboardingChoices.subscriptionBillingPeriod === "yearly"
+                  ? " · annuel, 12 mois au prix de 11"
+                  : " · mensuel"
+              ),
         })
         : null;
 
@@ -1469,7 +1493,31 @@ export default function Auth() {
                   </div>
 
                   <div className="space-y-3">
-                    <Label>Abonnement restaurateur mensuel</Label>
+                    <Label>Période de facturation</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        type="button"
+                        variant={selectedSubscriptionBillingPeriod === "monthly" ? "default" : "outline"}
+                        onClick={() => setSelectedSubscriptionBillingPeriod("monthly")}
+                        disabled={Boolean(commercialReferralToken)}
+                      >
+                        Mensuel
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={selectedSubscriptionBillingPeriod === "yearly" ? "default" : "outline"}
+                        onClick={() => setSelectedSubscriptionBillingPeriod("yearly")}
+                        disabled={!annualBillingEnabled || Boolean(commercialReferralToken)}
+                        title={annualBillingEnabled ? "12 mois de service au prix de 11" : "Activation après validation Stripe"}
+                      >
+                        Annuel · 11 pour 12
+                      </Button>
+                    </div>
+                    {!annualBillingEnabled ? (
+                      <p className="text-xs text-muted-foreground">
+                        L'annuel sera activé après validation du parcours Stripe complet. Les montants sont déjà affichés à titre contractuel.
+                      </p>
+                    ) : null}
 
                     {subscriptionPlansLoading ? (
                       <div className="rounded-xl border p-4 text-sm text-muted-foreground">
@@ -1479,7 +1527,9 @@ export default function Auth() {
                       <div className="grid gap-3 md:grid-cols-2">
                         {subscriptionPlans.map((plan) => {
                           const selected = selectedSubscriptionPlanId === plan.id;
-                          const amount = plan.price_monthly_chf;
+                          const fairGrowthPlan = getFairGrowthPlan(plan.slug);
+                          const amount = fairGrowthPlan.monthlyPriceChf
+                            * (selectedSubscriptionBillingPeriod === "yearly" ? FAIR_GROWTH_ANNUAL_MONTHS_CHARGED : 1);
                           const tokCredits = getTokCreditAmount(plan);
                           return (
                             <button
@@ -1496,7 +1546,20 @@ export default function Auth() {
                                 {plan.description || "Abonnement TOK pour activer le partenariat."}
                               </span>
                               <span className="block pt-3 text-sm font-bold">
-                                {formatChf(amount)} / mois
+                                {formatChf(amount)} {selectedSubscriptionBillingPeriod === "yearly" ? "/ an" : "/ mois"}
+                              </span>
+                              <span className="mt-2 grid gap-1 rounded-lg bg-primary/5 p-2 text-xs text-muted-foreground">
+                                <span><strong>{formatChf(fairGrowthPlan.acquiredReservationFeeChf)}</strong> / réservation TOK honorée</span>
+                                <span><strong>{(fairGrowthPlan.marketplaceCommissionBps / 100).toLocaleString("fr-CH")}%</strong> / commande marketplace</span>
+                                <span>Canaux propres, annulation, no-show et remboursement : <strong>CHF 0</strong></span>
+                                <span>Plafond réservation : <strong>7% du CA table</strong></span>
+                                <span>Au minimum 90% au restaurant + 100% des pourboires</span>
+                                {fairGrowthPlan.slug === "elite" ? (
+                                  <>
+                                    <span>3 établissements inclus · CHF 149/site supplémentaire</span>
+                                    <span>Sites rattachés après validation TOK ; aucun supplément sans confirmation.</span>
+                                  </>
+                                ) : null}
                               </span>
                               <span className="mt-3 grid gap-1 text-xs text-muted-foreground">
                                 <span className="font-semibold text-foreground">{formatTokCredits(tokCredits)} / mois</span>
@@ -1528,10 +1591,10 @@ export default function Auth() {
 
                   {selectedSubscriptionPlan ? (
                     <div className="rounded-xl border bg-background p-3 text-sm">
-                      <p className="font-medium">Montant mensuel réservé au dossier</p>
+                      <p className="font-medium">Snapshot Fair Growth réservé au dossier</p>
                       <p className="pt-1 text-muted-foreground">
-                        {formatChf(selectedSubscriptionPrice)} / mois. L’abonnement et son premier
-                        débit démarreront à la première réservation client ou à la première commande.
+                        {formatChf(selectedSubscriptionPrice)} {selectedSubscriptionBillingPeriod === "yearly" ? "pour 12 mois de service (11 mois facturés)" : "/ mois"}.
+                        Le plan, la période, les taux et la version tarifaire seront scellés côté serveur.
                       </p>
                     </div>
                   ) : null}
@@ -1586,6 +1649,14 @@ export default function Auth() {
                   signatureDataUrl={contractSignatureDataUrl}
                   onSignatureChange={setContractSignatureDataUrl}
                   signupForm={signupForm}
+                  selectedSubscriptionPlanLabel={selectedSubscriptionPlan?.name || null}
+                  selectedSubscriptionPriceLabel={selectedSubscriptionPrice == null
+                    ? null
+                    : formatChf(selectedSubscriptionPrice) + (
+                        selectedSubscriptionBillingPeriod === "yearly"
+                          ? " · annuel, 12 mois au prix de 11"
+                          : " · mensuel"
+                      )}
                 />
               ) : null}
 

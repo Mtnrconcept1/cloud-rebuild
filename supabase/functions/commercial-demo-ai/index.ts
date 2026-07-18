@@ -189,6 +189,12 @@ function claimReplayOrThrow(claim: CommercialDemoAiClaim) {
   if (claim.state === "failed") throw new HttpError(409, claim.error_code || "request_previously_failed");
   if (claim.state === "busy") throw new HttpError(503, "commercial_demo_ai_busy");
   if (claim.state === "circuit_open") throw new HttpError(503, "commercial_demo_ai_circuit_open");
+  if (claim.state === "budget_exhausted") {
+    throw new HttpError(429, "commercial_demo_ai_daily_budget_exhausted");
+  }
+  if (claim.state === "disabled") {
+    throw new HttpError(403, "commercial_demo_ai_feature_disabled");
+  }
   throw new HttpError(503, "commercial_demo_ai_claim_unavailable");
 }
 

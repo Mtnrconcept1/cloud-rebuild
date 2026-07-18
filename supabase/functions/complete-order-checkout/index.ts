@@ -113,6 +113,7 @@ Deno.serve(async (req) => {
       currency: session.currency || "chf",
       livemode: stripeRuntime.mode === "live",
       metadata: {
+        ...session.metadata,
         reconciliation_source: "complete-order-checkout",
         finance_routing_mode: session.metadata?.finance_routing_mode || "legacy_manual",
         tax_cents: taxCents,

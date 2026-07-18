@@ -238,7 +238,7 @@ const FAQS: FaqSection[] = [
       },
       {
         q: "Quand ma commande est-elle vraiment confirmée ?",
-        a: "Pour les paiements carte, TWINT ou PostFinance, la commande ne doit être confirmée qu'après confirmation du paiement. Avant cela, elle peut être en attente, en création ou en échec. Si vous recevez une notification de confirmation mais que le paiement échoue, contactez le support : c'est un cas à vérifier immédiatement.",
+        a: "Pour les paiements par carte ou par TWINT lorsqu’il est proposé, la commande ne doit être confirmée qu’après confirmation du paiement. Avant cela, elle peut être en attente, en création ou en échec. Si vous recevez une notification de confirmation mais que le paiement échoue, contactez le support : c'est un cas à vérifier immédiatement.",
       },
       {
         q: "Où suivre ma commande ?",
@@ -311,7 +311,7 @@ const FAQS: FaqSection[] = [
       },
       {
         q: "Quels moyens de paiement sont acceptés ?",
-        a: "TOK peut accepter carte bancaire, TWINT, PostFinance, Apple Pay, Google Pay ou d'autres moyens selon la configuration active. Les moyens visibles dans le panier sont ceux réellement disponibles pour votre commande, votre zone et le restaurant choisi.",
+        a: "TOK accepte les cartes bancaires et propose TWINT sur les paiements ponctuels CHF compatibles. Les abonnements et les paiements avec autorisation puis capture différée, comme Match Group, nécessitent une carte. Apple Pay, Google Pay ou un autre moyen ne sont disponibles que s’ils apparaissent effectivement dans le parcours Stripe. Les moyens visibles dans le panier sont ceux réellement disponibles pour votre commande, votre zone et le restaurant choisi.",
       },
       {
         q: "Pourquoi un moyen de paiement n'apparaît pas ?",
@@ -728,12 +728,64 @@ const FAQS: FaqSection[] = [
     category: "restaurants",
     questions: [
       {
+        q: "Quels sont les tarifs Fair Growth ?",
+        a: "Starter coûte CHF 69/mois, CHF 5 par réservation apportée par TOK et honorée, et 9,9% par commande marketplace. Business coûte CHF 129, CHF 4.50 et 8,9%. Premium coûte CHF 199, CHF 4 et 7,9%. Elite coûte CHF 499, CHF 3 et 6,9%. Elite inclut trois établissements, puis CHF 149/mois par site supplémentaire. Le rattachement des sites et tout supplément sont validés avec TOK avant facturation. L'annuel fournit 12 mois de service au prix de 11.",
+      },
+      {
+        q: "Comment fonctionne le Plat du jour IA ?",
+        a: "Le Plat du jour IA est inclus dès TOK Premium. Lorsqu'il est activé depuis Menu, il prépare chaque jour trois propositions à partir de la carte, de la saison, des ventes et avis agrégés. Il recherche Aligro en priorité, compare les prix publics accessibles de fournisseurs proches, détaille la recette, le panier, le coût par portion et la marge estimée. Le restaurateur choisit ou ajuste une variante, valide le prix et la description, puis TOK génère un visuel PhotoPro avant publication sur la fiche restaurant et, en option, dans Actualités. Les prix et stocks en ligne restent indicatifs et les allergènes doivent être contrôlés par le restaurant.",
+      },
+      {
+        q: "Qu'est-ce qu'une réservation apportée par TOK ?",
+        a: "C'est une réservation dont la première source vérifiable est la marketplace TOK. La source est enregistrée côté serveur à la création et ne peut pas être changée depuis le navigateur. Une réservation issue du site du restaurant, d'un QR code TOK attribué au restaurant, d'Instagram, de Google ou du fichier client est un canal propre et reste gratuite.",
+      },
+      {
+        q: "Une annulation ou un no-show est-il facturé ?",
+        a: "Non. Les frais de réservation ne sont créés qu'après confirmation par le restaurant que la table a été réellement honorée et après saisie du chiffre d'affaires attribué. Annulations, no-shows, remboursements et démonstrations valent CHF 0.",
+      },
+      {
+        q: "Comment fonctionne le plafond de 7% ?",
+        a: "Le frais applicable est le plus petit montant entre le tarif du plan et 7% du chiffre d'affaires réellement attribué à la table. Exemple : avec un tarif de CHF 5 et une table à CHF 50, le maximum facturé est CHF 3.50.",
+      },
+      {
+        q: "Quelle part d'une commande revient au restaurant ?",
+        a: "Le restaurant conserve au minimum 90% du montant éligible de la commande et 100% des pourboires. Les taux Fair Growth de 9,9%, 8,9%, 7,9% et 6,9% laissent respectivement 90,1%, 91,1%, 92,1% et 93,1% au restaurant sur la base commissionnable. Les frais Stripe et Connect de la marketplace sont absorbés par la part TOK.",
+      },
+      {
+        q: "Comment fonctionne l'abonnement annuel ?",
+        a: "L'abonnement annuel est payé une fois pour 12 mois de service, au prix de 11 mensualités : CHF 759 Starter, CHF 1'419 Business, CHF 2'189 Premium et CHF 5'489 Elite. Les crédits et quotas inclus restent renouvelés chaque mois.",
+      },
+      {
+        q: "Quels modules payants sont proposés ?",
+        a: "Sur demande : No-Show Shield CHF 39/mois ; Marketing Autopilot IA CHF 79/mois ; Margin & Waste Pilot CHF 59/mois ; Réputation IA CHF 29/mois. En pilote, après validation technique : Réceptionniste téléphonique IA CHF 49/mois plus CHF 1.50 par réservation réussie ; Direct Order Saver CHF 149/mois plus 1,5% ; cartes-cadeaux et expériences 3% plus coût de paiement. Les fonctions pilote ne sont pas présentées comme activées tant que TOK n'a pas confirmé leur mise en service.",
+      },
+      {
+        q: "Une demande de module déclenche-t-elle un paiement ?",
+        a: "Non. Le dashboard enregistre uniquement une demande. TOK vérifie ensuite le périmètre, les prérequis techniques, le prix et la date de début avec le restaurant. L'activation et la facturation commencent seulement après cette confirmation ; aucune intégration téléphonique, commande directe ou carte-cadeau n'est créée automatiquement.",
+      },
+      {
+        q: "Comment fonctionne la garantie de valeur 3× ?",
+        a: "TOK mesure la valeur attribuable du module pendant une fenêtre de 90 jours. Si elle n'atteint pas trois fois son coût, TOK recommande sa désactivation ou accorde un crédit après validation des données et selon les conditions du module.",
+      },
+      {
+        q: "Quand Direct Order Saver devient-il rentable ?",
+        a: "Face au taux Starter, le point d'équilibre mathématique est d'environ CHF 1'774 de commandes directes par mois, hors paiement. En incluant un panier moyen proche de CHF 40 et les coûts d'une carte suisse supportés par le flux direct, l'estimation prudente est d'environ CHF 3'100 à CHF 3'200. Le simulateur doit toujours afficher ses hypothèses.",
+      },
+      {
+        q: "Pourquoi TWINT n'est-il pas proposé pour Match Group ?",
+        a: "TWINT est proposé en priorité sur les parcours Stripe Checkout compatibles. Match Group exige une autorisation avec capture manuelle, que TWINT ne prend pas en charge ; une carte compatible est donc requise.",
+      },
+      {
+        q: "Quels taux de TVA apparaissent sur les factures ?",
+        a: "Le moteur distingue le taux normal suisse de 8,1% et le taux réduit de 2,6% par ligne. La restauration sur place et l'alcool relèvent généralement du taux normal ; les denrées éligibles hors prestation de restauration peuvent relever du taux réduit. La qualification fiscale finale reste celle du restaurant.",
+      },
+      {
         q: "Comment inscrire mon restaurant sur TOK ?",
         a: `Utilisez l'espace Restaurateurs ou contactez ${SUPPORT_EMAIL}. L'équipe vérifie vos informations, votre identité commerciale, vos horaires, modes de service, menu, photos, moyens de paiement et conditions opérationnelles avant mise en ligne.`,
       },
       {
         q: "Que contient le dashboard restaurateur ?",
-        a: "Le dashboard peut regrouper commandes, réservations, menu, offres, anti-gaspi, ventes flash, Actualités, campagnes, CRM, performances, avis, factures, photos, support, plan de salle et pilotage de service selon les droits et fonctionnalités activées.",
+        a: "Le dashboard peut regrouper commandes, réservations, menu, offres, anti-gaspi, ventes flash, Actualités, campagnes, CRM, performances, avis, factures, photos, support, plan de salle et pilotage de service selon les droits et fonctionnalités activées. Dès Premium, le Menu inclut le Plat du jour IA avec trois propositions quotidiennes, recherche fournisseurs et publication PhotoPro.",
       },
       {
         q: "Comment gérer les commandes entrantes ?",

@@ -3,6 +3,7 @@ import { getSupabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import DailyDishAiPanel from "@/components/dashboard/DailyDishAiPanel";
 import AiGenerationProgressDialog from "@/components/ui/ai-generation-progress-dialog";
 import OperationProgressDialog from "@/components/ui/operation-progress-dialog";
 import { Button } from "@/components/ui/button";
@@ -152,7 +153,7 @@ function getPhotoGenerationErrorMessage(error: unknown) {
 }
 
 export default function DashboardMenu() {
-  const { selectedId } = useDashboardRestaurant();
+  const { selectedId, restaurants } = useDashboardRestaurant();
   const commercialDemoFrame = useCommercialDemoFrame();
   const isCommercialDemo = commercialDemoFrame?.surface === "restaurant";
   const commercialDemoSessionId = isCommercialDemo ? commercialDemoFrame.config.sessionId : null;
@@ -175,6 +176,10 @@ export default function DashboardMenu() {
   const mountedRef = useRef(true);
 
   const restaurant = selectedId ? { id: selectedId } : null;
+  const selectedRestaurant = restaurants.find((candidate) => candidate.id === selectedId) || null;
+  const selectedPlanSlug = selectedRestaurant?.restaurant_subscription?.plan_record?.slug
+    || selectedRestaurant?.restaurant_subscription?.plan
+    || null;
   const menuQueryKey = [
     "my-menu-items",
     restaurant?.id,
@@ -683,6 +688,15 @@ export default function DashboardMenu() {
             </div>
           )}
         />
+
+        {restaurant && items ? (
+          <DailyDishAiPanel
+            key={restaurant.id}
+            restaurantId={restaurant.id}
+            planSlug={selectedPlanSlug}
+            menuItems={items}
+          />
+        ) : null}
 
         {!restaurant ? (
           <p className="py-8 text-center text-muted-foreground">Sélectionnez un restaurant pour gérer ses produits.</p>

@@ -14,8 +14,8 @@ interface PaymentMethodSelectorProps {
 }
 
 const METHODS: { id: PaymentMethodId; label: string; icon: any; description: string }[] = [
-  { id: "card", label: "Carte bancaire", icon: CreditCard, description: "Visa, Mastercard, AMEX" },
   { id: "twint", label: "TWINT", icon: Smartphone, description: "Paiement mobile suisse" },
+  { id: "card", label: "Carte bancaire", icon: CreditCard, description: "Visa, Mastercard, AMEX" },
   { id: "postfinance_card", label: "PostFinance Card", icon: Wallet, description: "Carte PostFinance" },
   { id: "postfinance_efinance", label: "PostFinance E-Finance", icon: Wallet, description: "E-banking PostFinance" },
   { id: "cash", label: "Espèces", icon: Banknote, description: "Paiement sur place ou règlement manuel" },

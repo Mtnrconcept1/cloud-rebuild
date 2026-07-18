@@ -1,0 +1,60 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
+import { describe, expect, it } from "vitest";
+
+import { FAIR_GROWTH_MODULES } from "@/lib/fairGrowth";
+
+const root = process.cwd();
+const read = (path: string) => readFileSync(resolve(root, path), "utf8");
+
+describe("Fair Growth paid module activation", () => {
+  const dashboard = read("src/pages/dashboard/DashboardPack.tsx");
+  const publicPacks = read("src/pages/PacksRestaurateur.tsx");
+  const faq = read("src/pages/Aide.tsx");
+  const terms = read("src/pages/ConditionsRestaurateurs.tsx");
+  const signup = read("src/pages/Auth.tsx");
+
+  it("keeps every module on manual activation and exposes pilots honestly", () => {
+    expect(FAIR_GROWTH_MODULES.every((module) => module.activationMode === "manual")).toBe(true);
+    expect(
+      FAIR_GROWTH_MODULES
+        .filter((module) => module.availabilityStatus === "pilot")
+        .map((module) => module.slug),
+    ).toEqual([
+      "ai-phone-receptionist",
+      "direct-order-saver",
+      "gift-cards-experiences",
+    ]);
+  });
+
+  it("records a dashboard request without activating or billing it", () => {
+    expect(dashboard).toContain("request_fair_growth_module");
+    expect(dashboard).toContain("La demande n'active pas");
+    expect(dashboard).toContain("n'autorise aucun débit");
+    expect(dashboard).toContain("Demander l'accès pilote");
+    expect(dashboard).toContain("aucune activation automatique");
+  });
+
+  it("blocks requests from the demo restaurant in the UI", () => {
+    expect(dashboard).toContain("if (!selectedId || requestingSlug || isDemoMode) return");
+    expect(dashboard).toContain("const canRequest = !isDemoMode");
+    expect(dashboard).toContain("disabled={!canRequest || pending}");
+    expect(dashboard).toContain("aucune demande");
+    expect(dashboard).toContain("ni facturation ne peut être créée depuis cet espace");
+  });
+
+  it("states pilot and Elite multi-site limitations on public surfaces", () => {
+    expect(publicPacks).toContain('"Pilote" : "Sur demande"');
+    expect(publicPacks).toContain("Une demande ne déclenche aucun débit");
+    expect(publicPacks).toContain("Rattachement multi-site");
+    expect(publicPacks).toContain("avant toute facturation additionnelle");
+    expect(signup).toContain("Sites rattachés après validation TOK ; aucun supplément sans confirmation");
+    expect(faq).toContain("En pilote, après validation technique");
+    expect(faq).toContain("enregistre uniquement une demande");
+    expect(faq).toContain("Le rattachement des sites et tout supplément sont validés avec TOK avant facturation");
+    expect(terms).toContain("offres pilote soumises a validation technique et contractuelle");
+    expect(terms).toContain("n'autorise aucun debit");
+    expect(terms).toContain("apres activation facturee");
+  });
+});

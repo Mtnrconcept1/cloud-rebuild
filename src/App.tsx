@@ -483,7 +483,9 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
   const deliveryEnabled = hasFeature("livraison");
   const showPublicFooter = shouldShowPublicFooter(pathname);
   const publicNavbar = !commercialDemoFrame && !oauthConsentFrame && shouldShowPublicNavbar(pathname) ? <Navbar /> : null;
-  const supportChatAllowed = !commercialDemoFrame || commercialDemoFrame.surface !== "commercial";
+  const isCommercialDemoHost = !commercialDemoFrame && pathname === "/commercial/demo-live";
+  const supportChatAllowed = (!commercialDemoFrame || commercialDemoFrame.surface !== "commercial")
+    && !isCommercialDemoHost;
 
   return (
     <>
