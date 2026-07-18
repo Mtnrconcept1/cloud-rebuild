@@ -114,6 +114,11 @@ toujours afficher ses hypothèses.
 - Les modules dépendant de téléphonie, cartes-cadeaux ou routage direct restent
   en pilote tant que le fournisseur, les webhooks, la réconciliation et les
   parcours de remboursement ne sont pas validés.
+- Le RPC `record_stripe_connect_fee_ledger` fournit une ingestion idempotente
+  prête pour les transactions de solde Connect. Aucun événement Stripe
+  `payout.*` ou `balance.*` n'est encore traité par le webhook applicatif : ces
+  frais ne sont donc pas observés automatiquement tant que ce branchement et sa
+  réconciliation ne sont pas déployés.
 - Le rattachement opérationnel des établissements Elite et la facturation
   automatique des sites supplémentaires nécessitent un registre de groupe
   vérifié; le tarif est contractuel et snapshoté, mais ne doit pas être débité
