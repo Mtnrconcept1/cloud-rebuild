@@ -15,6 +15,7 @@ describe("commercial multi-space OpenAI console", () => {
   const shared = read("supabase/functions/_shared/commercial-demo-ai.ts");
   const workflow = read(".github/workflows/deploy-production.yml");
   const secretWriter = read("scripts/write-supabase-secrets-env.mjs");
+  const fairGrowthMigration = read("supabase/migrations/20260718022910_fair_growth_business_model.sql");
 
   it("mounts a session-bound assistant directly in the commercial multi-space view", () => {
     expect(multiSpace).toContain('import CommercialDemoConsoleAi from "@/components/commercial/CommercialDemoConsoleAi"');
@@ -62,6 +63,18 @@ describe("commercial multi-space OpenAI console", () => {
     expect(shared).toContain('.in("name", requiredFeatures)');
     expect(edge).toContain('claim.state === "budget_exhausted"');
     expect(edge).toContain("commercial_demo_ai_daily_budget_exhausted");
+  });
+
+  it("enforces an atomic provider-attempt budget and a server kill switch", () => {
+    expect(fairGrowthMigration).toContain("commercial-demo-openai");
+    expect(fairGrowthMigration).toContain("provider_attempt_count");
+    expect(fairGrowthMigration).toContain("sum(request.provider_attempt_count)");
+    expect(fairGrowthMigration).toContain("v_commercial_calls + 1 > 60");
+    expect(fairGrowthMigration).toContain("v_global_calls + 1 > 600");
+    expect(fairGrowthMigration).toContain("v_commercial_budget_chf + v_attempt_reservation_chf > 10.00");
+    expect(fairGrowthMigration).toContain("v_global_budget_chf + v_attempt_reservation_chf > 100.00");
+    expect(fairGrowthMigration).toContain("'state', 'budget_exhausted'");
+    expect(edge).toContain('claim.state === "disabled"');
   });
 
   it("injects the existing GitHub secret into Supabase and fails closed without it", () => {
