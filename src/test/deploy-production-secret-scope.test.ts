@@ -160,7 +160,10 @@ describe("production deployment secret scope", () => {
     expect(workflow).not.toContain("write-apple-app-site-association.mjs");
     expect(workflow).toContain('RELEASE_READINESS_TARGET: "web"');
     expect(secretEnvironmentNames(preflightSupabaseAuth)).toEqual(["SUPABASE_ACCESS_TOKEN"]);
-    expect(secretEnvironmentNames(preflightRuntimeSecurity)).toEqual(["SUPABASE_ACCESS_TOKEN"]);
+    expect(secretEnvironmentNames(preflightRuntimeSecurity)).toEqual([
+      "RESEND_API_KEY",
+      "SUPABASE_ACCESS_TOKEN",
+    ]);
     expect(preflightSupabaseAuth).not.toContain("SUPABASE_DB_PASSWORD");
     expect(preflightRuntimeSecurity).not.toContain("SUPABASE_DB_PASSWORD");
     expect(preflightSupabaseAuth).not.toContain("SUPABASE_SERVICE_ROLE_KEY");
