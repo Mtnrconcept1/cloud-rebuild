@@ -28,16 +28,22 @@ function splitTokOwnedRevenue(tokOwnedCents: number, developerShareBps = 1000) {
   };
 }
 
-function splitOrder(grossCents: number, platformFeeBps = 1000, developerShareBps = 1000) {
-  const platformFeeCents = Math.round((grossCents * platformFeeBps) / 10_000);
-  const restaurantCents = grossCents - platformFeeCents;
-  const { tokCents, developerCents } = splitTokOwnedRevenue(
-    platformFeeCents,
-    developerShareBps,
-  );
+function splitOrder(
+  grossCents: number,
+  platformFeeBps = 990,
+  developerOrderBps = 100,
+  tipCents = 0,
+  deliveryCents = 0,
+) {
+  const commissionableCents = grossCents - tipCents - deliveryCents;
+  const platformFeeCents = Math.round((commissionableCents * platformFeeBps) / 10_000);
+  const developerCents = Math.round((commissionableCents * developerOrderBps) / 10_000);
+  const restaurantCents = commissionableCents - platformFeeCents + tipCents;
+  const tokCents = platformFeeCents - developerCents;
 
   return {
     restaurantCents,
+    deliveryCents,
     tokCents,
     developerCents,
   };
@@ -51,10 +57,20 @@ describe("Stripe developer revenue-share routing", () => {
     });
   });
 
-  it("splits an order into 90% restaurant, 9% TOK and 1% developer", () => {
+  it("splits a Starter order into 90.1% restaurant, 8.9% TOK and 1% developer", () => {
     expect(splitOrder(10_000)).toEqual({
-      restaurantCents: 9_000,
-      tokCents: 900,
+      restaurantCents: 9_010,
+      deliveryCents: 0,
+      tokCents: 890,
+      developerCents: 100,
+    });
+  });
+
+  it("keeps the full tip and delivery outside commission", () => {
+    expect(splitOrder(12_000, 990, 100, 1_000, 1_000)).toEqual({
+      restaurantCents: 10_010,
+      deliveryCents: 1_000,
+      tokCents: 890,
       developerCents: 100,
     });
   });
@@ -108,22 +124,27 @@ describe("Stripe developer revenue-share routing", () => {
   it("keeps cent allocations exhaustive after integer rounding", () => {
     for (const grossCents of [1, 2, 9, 10, 99, 101, 999, 10_001, 123_456]) {
       const split = splitOrder(grossCents);
-      expect(split.restaurantCents + split.tokCents + split.developerCents).toBe(
-        grossCents,
-      );
+      expect(
+        split.restaurantCents
+          + split.deliveryCents
+          + split.tokCents
+          + split.developerCents,
+      ).toBe(grossCents);
     }
   });
 
   it("uses server-authoritative basis-point helpers and exposes all exact amounts", () => {
-    expect(finance).toContain("TOK_PLATFORM_FEE_BPS = 1000");
+    expect(finance).toContain("TOK_PLATFORM_FEE_BPS = 990");
     expect(finance).toContain("TOK_DEVELOPER_SHARE_BPS = 1000");
+    expect(finance).toContain("TOK_ORDER_DEVELOPER_SHARE_BPS = 100");
     expect(finance).toContain("calculateDeveloperRevenueSplit");
     expect(finance).toContain("calculateOrderPaymentDistribution");
     expect(finance).toContain("developerShareCents");
     expect(finance).toContain("tokNetRevenueCents");
 
-    expect(checkout).toContain("application_fee_amount: marketplaceRouting.platformFeeCents");
+    expect(checkout).toContain("application_fee_amount: marketplaceRouting.stripeApplicationFeeCents");
     expect(checkout).toContain("destination: marketplaceRouting.destinationAccountId");
+    expect(checkout).toContain("developer_order_bps");
     expect(checkout).toContain("developer_share_amount_cents");
     expect(checkout).toContain("tok_net_amount_cents");
   });
