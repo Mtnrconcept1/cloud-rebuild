@@ -15,7 +15,7 @@ import { getStripeRuntimeForCheckoutKind } from "../_shared/stripe-client.ts";
 import { FAIR_GROWTH_ANNUAL_MONTHS_CHARGED } from "../_shared/restaurant-subscription-billing.ts";
 
 type JsonRecord = Record<string, unknown>;
-type SubscriptionAction = "cancel" | "resume" | "downgrade";
+type SubscriptionAction = "cancel" | "resume" | "change_plan";
 
 const SUBSCRIPTION_CANCELLATION_NOTICE_DAYS = 3;
 const SUBSCRIPTION_CANCELLATION_NOTICE_MS = SUBSCRIPTION_CANCELLATION_NOTICE_DAYS * 24 * 60 * 60 * 1000;
@@ -49,9 +49,10 @@ type RestaurantSubscriptionPlanRow = {
 };
 
 function normalizeAction(value: unknown): SubscriptionAction {
-  if (value === "resume") return "resume";
-  if (value === "downgrade") return "downgrade";
-  return "cancel";
+  if (value === "cancel" || value === "resume") return value;
+  // Keep the old client value as a safe compatibility alias during rollout.
+  if (value === "change_plan" || value === "downgrade") return "change_plan";
+  throw new HttpError(400, "Action d'abonnement invalide");
 }
 
 function isJsonRecord(value: unknown): value is JsonRecord {
@@ -154,11 +155,15 @@ function getCurrentPlanLookup(subscription: RestaurantSubscriptionRow) {
 
 function getAuditAction(action: SubscriptionAction) {
   if (action === "resume") return "resume_restaurant_subscription";
-  if (action === "downgrade") return "schedule_restaurant_subscription_downgrade";
+  if (action === "change_plan") return "schedule_restaurant_subscription_plan_change";
   return "cancel_restaurant_subscription_at_period_end";
 }
 
-function assertCancellationNoticeWindow(periodEndIso: string, action: "cancel" | "downgrade") {
+function assertCancellationNoticeWindow(
+  periodEndIso: string,
+  action: "cancel" | "change_plan",
+  billingPeriod: string | null | undefined,
+) {
   const periodEnd = Date.parse(periodEndIso);
   if (!Number.isFinite(periodEnd)) {
     throw new HttpError(409, "Periode d'abonnement invalide");
@@ -166,10 +171,13 @@ function assertCancellationNoticeWindow(periodEndIso: string, action: "cancel" |
 
   const latestChangeAt = periodEnd - SUBSCRIPTION_CANCELLATION_NOTICE_MS;
   if (Date.now() > latestChangeAt) {
-    const actionLabel = action === "downgrade" ? "changer de plan" : "resilier";
+    const actionLabel = action === "change_plan" ? "changer de plan" : "resilier";
+    const renewalLabel = billingPeriod === "yearly"
+      ? "une nouvelle periode annuelle de douze mois"
+      : "une nouvelle periode mensuelle";
     throw new HttpError(
       409,
-      `Il faut ${actionLabel} au plus tard ${SUBSCRIPTION_CANCELLATION_NOTICE_DAYS} jours avant la fin de la periode payee. Passe ce delai, l'abonnement repart pour 30 jours.`,
+      `Il faut ${actionLabel} au plus tard ${SUBSCRIPTION_CANCELLATION_NOTICE_DAYS} jours avant la fin de la periode payee. Passe ce delai, l'abonnement sera renouvele pour ${renewalLabel}.`,
     );
   }
 }
@@ -307,7 +315,7 @@ Deno.serve(async (req) => {
     const currentMetadata = isJsonRecord(subscription.metadata) ? subscription.metadata : {};
 
     if (action === "cancel") {
-      assertCancellationNoticeWindow(period.endIso, "cancel");
+      assertCancellationNoticeWindow(period.endIso, "cancel", subscription.billing_period);
 
       const scheduledPlanChange = {
         action: "cancel",
@@ -434,7 +442,7 @@ Deno.serve(async (req) => {
       throw new HttpError(400, "target_plan_id requis");
     }
 
-    assertCancellationNoticeWindow(period.endIso, "downgrade");
+    assertCancellationNoticeWindow(period.endIso, "change_plan", subscription.billing_period);
 
     const [currentPlan, targetPlan] = await Promise.all([
       getCurrentPlan(actor.adminClient, subscription),
@@ -444,8 +452,8 @@ Deno.serve(async (req) => {
     if (!targetPlan) throw new HttpError(404, "Plan inférieur introuvable ou inactif");
     if (!currentPlan) throw new HttpError(409, "Plan actuel introuvable");
 
-    if (String(currentPlan.id) === String(targetPlan.id) || Number(targetPlan.position || 0) >= Number(currentPlan.position || 0)) {
-      throw new HttpError(409, "Seul un plan inférieur peut être programmé depuis cette action");
+    if (String(currentPlan.id) === String(targetPlan.id)) {
+      throw new HttpError(409, "Le plan cible est deja le plan actif");
     }
 
     const interval = getBillingInterval(subscription.billing_period);
@@ -477,7 +485,7 @@ Deno.serve(async (req) => {
       }
 
       const pendingMetadata = {
-        pending_restaurant_subscription_change: "downgrade_at_period_end",
+        pending_restaurant_subscription_change: "plan_change_at_period_end",
         pending_restaurant_subscription_effective_at: stripePeriod.endIso,
         pending_restaurant_subscription_requested_at: requestedAt,
         pending_restaurant_subscription_requested_by: actor.userId,
@@ -499,7 +507,7 @@ Deno.serve(async (req) => {
           },
         },
         metadata: {
-          checkout_kind: "restaurant-subscription-downgrade",
+          checkout_kind: "restaurant-subscription-plan-change",
           restaurant_id: restaurantId,
           restaurant_subscription_plan_id: targetPlan.id,
           restaurant_subscription_plan_slug: targetPlan.slug,
@@ -524,7 +532,7 @@ Deno.serve(async (req) => {
           end_behavior: "release",
           metadata: {
             restaurant_id: restaurantId,
-            pending_restaurant_subscription_change: "downgrade_at_period_end",
+            pending_restaurant_subscription_change: "plan_change_at_period_end",
             pending_restaurant_subscription_effective_at: stripePeriod.endIso,
             pending_restaurant_subscription_plan_id: targetPlan.id,
             pending_restaurant_subscription_plan_slug: targetPlan.slug,
@@ -585,7 +593,7 @@ Deno.serve(async (req) => {
       ? period.endIso
       : resolveStripeSubscriptionPeriod(null, subscription).endIso;
     const scheduledPlanChange = {
-      action: "downgrade",
+      action: "change_plan",
       target_plan_id: targetPlan.id,
       target_plan_slug: targetPlan.slug,
       target_plan_name: targetPlan.name,
@@ -607,7 +615,7 @@ Deno.serve(async (req) => {
       stripeSubscriptionScheduleId: stripeScheduleId,
       metadata: {
         ...currentMetadata,
-        pending_restaurant_subscription_change: "downgrade_at_period_end",
+        pending_restaurant_subscription_change: "plan_change_at_period_end",
         pending_restaurant_subscription_effective_at: effectiveAt,
         pending_restaurant_subscription_requested_at: requestedAt,
         pending_restaurant_subscription_requested_by: actor.userId,
