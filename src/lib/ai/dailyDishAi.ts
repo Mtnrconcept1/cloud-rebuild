@@ -138,6 +138,7 @@ export function refineDailyDishProposal(input: BaseRequest & {
 }) {
   return invokeDailyDish<{ variant: DailyDishVariant; demo: boolean }>({
     action: "refine",
+    request_id: createRequestId(),
     ...input,
   });
 }
@@ -175,6 +176,7 @@ export function formatDailyDishError(error: unknown) {
   if (message.includes("supplier_prices_unavailable")) return "Aucun prix fournisseur suffisamment vérifiable n’a été trouvé. Réessayez plus tard.";
   if (message.includes("daily_dish_revision_limit")) return "La limite de cinq demandes de modification est atteinte pour cette proposition.";
   if (message.includes("ai_rate_limited") || message.includes("rate_limited")) return "Trop de recherches ont été lancées. Patientez quelques minutes.";
+  if (message.includes("commercial_demo_ai_budget_exhausted")) return "Le budget OpenAI quotidien de la démonstration est atteint. Réessayez demain.";
   if (message.includes("ai_timeout") || message.toLowerCase().includes("timeout")) return "La comparaison des fournisseurs a pris trop de temps. Réessayez.";
   return message || "Le service Plat du jour IA est momentanément indisponible.";
 }
