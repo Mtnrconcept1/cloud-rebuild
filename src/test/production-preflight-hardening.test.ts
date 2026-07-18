@@ -7,6 +7,7 @@ import {
   writeAppleAppSiteAssociation,
 } from "../../scripts/write-apple-app-site-association.mjs";
 import { ensureSupabaseAuthSecurity } from "../../scripts/ensure-supabase-auth-security.mjs";
+import { verifySupabaseRuntimeSecurity } from "../../scripts/verify-supabase-runtime-security.mjs";
 
 const PRODUCTION_PROJECT_REF = "wwcrtyoueexyxkkikaos";
 const fixtures: string[] = [];
@@ -168,6 +169,51 @@ describe("production preflight hardening", () => {
     expect(fetchImpl).not.toHaveBeenCalled();
   });
 
+  it("verifies Vault cron security and Resend presence without reading secret values", async () => {
+    const calls: Array<{ url: string; init: RequestInit }> = [];
+    const responses = [
+      jsonResponse([{ internal_cron_secret_ready: true, verifier_ready: true }], 201),
+      jsonResponse([{ name: "RESEND_API_KEY", value: "provider-digest-only" }]),
+    ];
+    const fetchImpl = vi.fn(async (url: string, init: RequestInit) => {
+      calls.push({ url, init });
+      return responses.shift() as Response;
+    });
+
+    const result = await verifySupabaseRuntimeSecurity({
+      projectRef: PRODUCTION_PROJECT_REF,
+      accessToken: "sbp_test_token_that_is_long_enough",
+      fetchImpl,
+      wait: async () => undefined,
+      now: () => new Date("2026-07-19T00:00:00.000Z"),
+    });
+
+    expect(result).toMatchObject({
+      cronConfirmed: "true",
+      resendConfirmed: "true",
+    });
+    expect(calls.map((call) => call.init.method)).toEqual(["POST", "GET"]);
+    expect(calls[0].url).toContain("/database/query/read-only");
+    expect(calls[1].url).toContain("/secrets");
+    expect(String(calls[0].init.body)).toContain("length(decrypted_secret) >= 16");
+    expect(JSON.stringify(result)).not.toContain("provider-digest-only");
+  });
+
+  it("fails closed when the production Resend Edge secret is absent", async () => {
+    const responses = [
+      jsonResponse([{ internal_cron_secret_ready: true, verifier_ready: true }], 201),
+      jsonResponse([{ name: "OPENAI_API_KEY" }]),
+    ];
+    const fetchImpl = vi.fn(async () => responses.shift() as Response);
+
+    await expect(verifySupabaseRuntimeSecurity({
+      projectRef: PRODUCTION_PROJECT_REF,
+      accessToken: "sbp_test_token_that_is_long_enough",
+      fetchImpl,
+      wait: async () => undefined,
+    })).rejects.toThrow("do not include RESEND_API_KEY");
+  });
+
   it("pins the workflow to live Supabase evidence and builds only after preflight", () => {
     const workflow = readFileSync(
       path.join(process.cwd(), ".github", "workflows", "deploy-production.yml"),
@@ -178,6 +224,12 @@ describe("production preflight hardening", () => {
     expect(workflow).toContain("node ./scripts/ensure-supabase-auth-security.mjs");
     expect(workflow).toContain("steps.supabase_auth_security.outputs.confirmed");
     expect(workflow).toContain("steps.supabase_auth_security.outputs.evidence");
+    expect(workflow).toContain("id: supabase_runtime_security");
+    expect(workflow).toContain("node ./scripts/verify-supabase-runtime-security.mjs");
+    expect(workflow).toContain("steps.supabase_runtime_security.outputs.cron_confirmed");
+    expect(workflow).toContain("steps.supabase_runtime_security.outputs.resend_confirmed");
+    expect(workflow).toContain("vars.VITE_STRIPE_PUBLISHABLE_KEY || secrets.VITE_STRIPE_PUBLISHABLE_KEY");
+    expect(workflow).toContain("Tok <noreply@thetok.ch>");
     expect(workflow).not.toContain("vars.SUPABASE_LEAKED_PASSWORD_PROTECTION_CONFIRMED");
     expect(workflow).not.toContain("vars.SUPABASE_LEAKED_PASSWORD_PROTECTION_EVIDENCE");
     expect(workflow).not.toContain("write-apple-app-site-association.mjs");
