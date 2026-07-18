@@ -629,27 +629,6 @@ Deno.serve(async (req) => {
         (!existingSub.current_period_end || new Date(existingSub.current_period_end) > new Date()),
       );
 
-      let currentPlanPosition = 0;
-      if (existingSub?.restaurant_subscription_plan_id) {
-        const { data: currentPlan, error: currentPlanError } = await actor.adminClient
-          .from("restaurant_subscription_plans")
-          .select("id, slug, position, price_monthly_chf")
-          .eq("id", existingSub.restaurant_subscription_plan_id)
-          .maybeSingle();
-
-        if (currentPlanError) throw new HttpError(500, currentPlanError.message);
-        currentPlanPosition = Number(currentPlan?.position || 0);
-      } else if (existingSub?.plan) {
-        const { data: currentPlan, error: currentPlanError } = await actor.adminClient
-          .from("restaurant_subscription_plans")
-          .select("id, slug, position, price_monthly_chf")
-          .eq("slug", existingSub.plan)
-          .maybeSingle();
-
-        if (currentPlanError) throw new HttpError(500, currentPlanError.message);
-        currentPlanPosition = Number(currentPlan?.position || 0);
-      }
-
       // Never create a second full-price subscription over an already-paid
       // monthly or annual period. Every active plan change is scheduled on the
       // existing Stripe subscription by manage-restaurant-subscription.
