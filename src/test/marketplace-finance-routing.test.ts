@@ -22,6 +22,9 @@ describe("TOK marketplace finance routing", () => {
     expect(finance).toContain('ENTITLED_SUBSCRIPTION_STATUSES = new Set([\n  "active",\n  "trialing"');
     expect(finance).not.toContain('"past_due",\n  "trialing"');
     expect(finance).not.toContain('"paused",');
+    expect(finance).toContain('pricingRateSource: "starter_fallback"');
+    expect(finance).toContain("platformFeeBps: TOK_PLATFORM_FEE_BPS");
+    expect(finance).not.toContain("input.financeConfig?.platform_fee_bps ?? TOK_PLATFORM_FEE_BPS");
     expect(migration).toContain("developer_share_bps integer NOT NULL DEFAULT 1000");
     expect(migration).toContain("reservation_fee_cents integer NOT NULL DEFAULT 500");
   });
