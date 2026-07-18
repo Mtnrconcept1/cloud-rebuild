@@ -16,9 +16,6 @@ const REQUIRED_EDGE_SECRETS = [
     /^whsec_/,
     "Missing STRIPE_WEBHOOK_SECRET or STRIPE_LIVE_WEBHOOK for production payment capture.",
   ],
-  ["INTERNAL_CRON_SECRET", /^.{16,}$/, "Missing INTERNAL_CRON_SECRET with at least 16 characters."],
-  ["RESEND_API_KEY", /^re_/, "Missing RESEND_API_KEY for production email delivery."],
-  ["EMAIL_FROM", /@/, "Missing EMAIL_FROM for production transactional email."],
   ["APP_BASE_URL", /^https:\/\//, "Missing APP_BASE_URL production HTTPS URL."],
   ["PUBLIC_APP_URL", /^https:\/\//, "Missing PUBLIC_APP_URL production HTTPS URL."],
   ["ALLOWED_ORIGINS", /^https:\/\//, "Missing ALLOWED_ORIGINS production HTTPS allowlist."],
@@ -49,6 +46,7 @@ export function inspectReleaseReadiness(options = {}) {
     inspectAndroidSigning(root, env, report);
   }
   inspectEdgeSecrets(env, report);
+  inspectSupabaseRuntimeSecurity(env, report);
   inspectFirebaseServiceAccount(env, report);
   inspectSupabaseAuthSecurity(env, report);
 
@@ -186,6 +184,39 @@ function inspectEdgeSecrets(env, report) {
       report.required(message);
     }
   }
+}
+
+function inspectSupabaseRuntimeSecurity(env, report) {
+  const cronSecret = clean(env.INTERNAL_CRON_SECRET || env.CRON_SECRET);
+  const cronConfirmed = hasConfirmedEvidence(
+    env.SUPABASE_INTERNAL_CRON_VAULT_CONFIRMED,
+    env.SUPABASE_INTERNAL_CRON_VAULT_EVIDENCE,
+  );
+  if (!(/^.{16,}$/.test(cronSecret) && !isPlaceholder(cronSecret)) && !cronConfirmed) {
+    report.required("Missing live proof of the Supabase Vault internal cron secret and verifier.");
+  }
+
+  const resendApiKey = clean(env.RESEND_API_KEY);
+  const resendConfirmed = hasConfirmedEvidence(
+    env.SUPABASE_RESEND_SECRET_CONFIRMED,
+    env.SUPABASE_RESEND_SECRET_EVIDENCE,
+  );
+  if (!(/^re_/.test(resendApiKey) && !isPlaceholder(resendApiKey)) && !resendConfirmed) {
+    report.required("Missing live proof that RESEND_API_KEY is installed in Supabase production Edge secrets.");
+  }
+
+  const emailFrom = clean(env.EMAIL_FROM) || "Tok <noreply@thetok.ch>";
+  if (!/@/.test(emailFrom) || isPlaceholder(emailFrom)) {
+    report.required("EMAIL_FROM must be a valid production transactional sender.");
+  }
+}
+
+function hasConfirmedEvidence(confirmedValue, evidenceValue) {
+  const confirmed = clean(confirmedValue).toLowerCase();
+  const evidence = clean(evidenceValue);
+  return ["1", "true", "yes", "active", "confirmed"].includes(confirmed)
+    && !isPlaceholder(evidence)
+    && evidence.length >= 20;
 }
 
 function inspectFirebaseServiceAccount(env, report) {
