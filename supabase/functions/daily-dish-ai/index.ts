@@ -373,7 +373,7 @@ async function requireLiveAccess(actor: Actor, restaurantId: string, throwWhenLo
       .maybeSingle(),
     actor.adminClient
       .from("restaurant_ai_subscriptions")
-      .select("plan, status, current_period_end")
+      .select("plan, status, current_period_end, restaurant_subscription_plan_id")
       .eq("restaurant_id", restaurantId)
       .in("status", ["trialing", "active"])
       .order("current_period_end", { ascending: false, nullsFirst: false })
@@ -384,7 +384,17 @@ async function requireLiveAccess(actor: Actor, restaurantId: string, throwWhenLo
   if (!restaurant) throw new HttpError(404, "restaurant_not_found");
   await requireGlobalFlags(actor, [FEATURE_NAME]);
 
-  const plan = String(subscription?.plan || "").toLowerCase();
+  let plan = String(subscription?.plan || "").toLowerCase();
+  if (subscription?.restaurant_subscription_plan_id) {
+    const { data: planRecord, error: planError } = await actor.adminClient
+      .from("restaurant_subscription_plans")
+      .select("slug")
+      .eq("id", subscription.restaurant_subscription_plan_id)
+      .eq("is_active", true)
+      .maybeSingle();
+    if (planError) throw new HttpError(503, "subscription_check_unavailable");
+    plan = String(planRecord?.slug || plan).toLowerCase();
+  }
   const periodEnd = subscription?.current_period_end ? Date.parse(subscription.current_period_end) : Number.POSITIVE_INFINITY;
   const active = Boolean(subscription && PREMIUM_PLANS.has(plan) && periodEnd > Date.now());
   const locallyDisabled = Array.isArray(restaurant.disabled_dashboard_features)
