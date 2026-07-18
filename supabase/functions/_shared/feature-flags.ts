@@ -10,6 +10,7 @@ const FEATURE_DEFINITIONS: Record<string, FeatureDefinition> = {
   "payment-postfinance-card": { defaultEnabled: true },
   "payment-postfinance-efinance": { defaultEnabled: true },
   "payment-cash": { defaultEnabled: true },
+  "billing-fair-growth-annual": { defaultEnabled: false },
   livraison: { defaultEnabled: true },
   emporter: { defaultEnabled: true },
   "sur-place": { defaultEnabled: true },
