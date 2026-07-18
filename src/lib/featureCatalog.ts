@@ -110,6 +110,14 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     group: "payments",
   },
   {
+    name: "billing-fair-growth-annual",
+    label: "Facturation annuelle Fair Growth",
+    description: "Autorise les engagements restaurateur de 12 mois factures au prix de 11 mois. Les quotas restent mensuels.",
+    defaultEnabled: false,
+    group: "payments",
+    critical: true,
+  },
+  {
     name: "livraison",
     label: "Livraison",
     description: "Expose les parcours de livraison côté client, restaurateur et livreur.",
