@@ -59,6 +59,8 @@ const DASHBOARD_RESERVATIONS_FETCH_LIMIT = 300;
 type ReservationRow = Database["public"]["Tables"]["reservations"]["Row"];
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 type ReservationOperationalFields = {
+  honored_at?: string | null;
+  attributed_table_revenue_chf?: number | null;
   deposit_amount_chf?: number | null;
   deposit_status?: string | null;
   no_show_review_at?: string | null;
@@ -812,6 +814,8 @@ function LiveDashboardReservations() {
                   const statusLockMessage = getReservationStatusLockMessage(reservation);
                   const opsSnapshot = getReservationOpsSnapshot(reservation);
                   const isArrived = reservation.status === "arrived";
+                  const canCloseTable = ["arrived", "seated", "completed"].includes(String(reservation.status));
+                  const isHonored = Boolean(reservation.honored_at);
                   const isCardLocked = Boolean(statusLockMessage) || isArrived;
                   const isConfirmedAck = reservation.status === "confirmed";
 
@@ -845,23 +849,28 @@ function LiveDashboardReservations() {
                             </p>
                           ) : null}
                         </div>
-                        <div className="grid grid-cols-1 gap-2 border-t pt-3 sm:grid-cols-3">
+                        <div className="grid grid-cols-1 gap-2 border-t pt-3 sm:grid-cols-2 lg:grid-cols-4">
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => {
-                              if (isCommercialDemoRestaurant) {
-                                updateStatusMutation.mutate({ id: reservation.id, status: "arrived" });
-                              } else {
-                                setHonorTarget(reservation);
-                              }
-                            }}
+                            onClick={() => updateStatusMutation.mutate({ id: reservation.id, status: "arrived" })}
                             disabled={updateStatusMutation.isPending || isCardLocked || !canUpdateReservationTo(reservation, "arrived")}
                             className={isArrived ? "border-emerald-200 bg-emerald-600 text-white hover:bg-emerald-600 disabled:opacity-100" : undefined}
                           >
                             <UserCheck className="mr-1 h-4 w-4" />
                             Arrivée
                           </Button>
+                          {!isCommercialDemoRestaurant && canCloseTable ? (
+                            <Button
+                              size="sm"
+                              onClick={() => setHonorTarget(reservation)}
+                              disabled={isHonored || markHonoredMutation.isPending}
+                              variant={isHonored ? "outline" : "default"}
+                            >
+                              <Check className="mr-1 h-4 w-4" />
+                              {isHonored ? "Table clôturée" : "Clôturer la table"}
+                            </Button>
+                          ) : null}
                           <Button
                             size="sm"
                             onClick={() => updateStatusMutation.mutate({ id: reservation.id, status: "confirmed" })}
@@ -968,6 +977,8 @@ function LiveDashboardReservations() {
                                 const refundSnapshot = getReservationRefundSnapshot(reservation);
                                 const opsSnapshot = getReservationOpsSnapshot(reservation);
                                 const isArrived = reservation.status === "arrived";
+                  const canCloseTable = ["arrived", "seated", "completed"].includes(String(reservation.status));
+                  const isHonored = Boolean(reservation.honored_at);
                                 const isReservationLocked = Boolean(statusLockMessage);
                                 const isCardLocked = isReservationLocked || isArrived;
                                 const isConfirmedAck = reservation.status === "confirmed";
@@ -1121,19 +1132,24 @@ function LiveDashboardReservations() {
                                         <Button
                                           size="sm"
                                           variant="outline"
-                                          onClick={() => {
-                              if (isCommercialDemoRestaurant) {
-                                updateStatusMutation.mutate({ id: reservation.id, status: "arrived" });
-                              } else {
-                                setHonorTarget(reservation);
-                              }
-                            }}
+                                          onClick={() => updateStatusMutation.mutate({ id: reservation.id, status: "arrived" })}
                                           disabled={updateStatusMutation.isPending || isCardLocked || !canUpdateReservationTo(reservation, "arrived")}
                                           className={isArrived ? "border-emerald-200 bg-emerald-600 text-white hover:bg-emerald-600 disabled:opacity-100" : undefined}
                                         >
                                           <UserCheck className="mr-1 h-4 w-4" />
                                           Arrivee
                                         </Button>
+                                        {!isCommercialDemoRestaurant && canCloseTable ? (
+                                          <Button
+                                            size="sm"
+                                            onClick={() => setHonorTarget(reservation)}
+                                            disabled={isHonored || markHonoredMutation.isPending}
+                                            variant={isHonored ? "outline" : "default"}
+                                          >
+                                            <Check className="mr-1 h-4 w-4" />
+                                            {isHonored ? "Table clôturée" : "Clôturer la table"}
+                                          </Button>
+                                        ) : null}
                                         <Button
                                           size="sm"
                                           variant="outline"
