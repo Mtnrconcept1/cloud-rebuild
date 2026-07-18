@@ -14,6 +14,11 @@ import {
   normalizeRestaurantSubscriptionPlanSlug,
   RESTAURANT_SUBSCRIPTION_TOOL_ACCESS_ROWS,
 } from "@/lib/restaurantSubscriptionToolAccess";
+import {
+  FAIR_GROWTH_ANNUAL_MONTHS_CHARGED,
+  FAIR_GROWTH_MODULES,
+  getFairGrowthPlan,
+} from "@/lib/fairGrowth";
 import { cn } from "@/lib/utils";
 
 const supabase = getSupabase();
@@ -46,7 +51,7 @@ type RestaurantCreditPack = {
 };
 
 function formatChf(value: number) {
-  return `${Number(value || 0).toLocaleString("fr-CH", { maximumFractionDigits: 0 })} CHF`;
+  return `${Number(value || 0).toLocaleString("fr-CH", { maximumFractionDigits: 2 })} CHF`;
 }
 
 function normalizeFeatures(value: string[] | null) {
@@ -96,6 +101,8 @@ function PlanCard({ plan }: { plan: RestaurantSubscriptionPlan }) {
   const tokCredits = getTokCreditAmount(plan);
   const usage = getPlanIncludedUsage(plan);
   const planSlug = normalizeRestaurantSubscriptionPlanSlug(plan.slug);
+  const fairGrowthPlan = getFairGrowthPlan(plan.slug);
+  const annualPriceChf = fairGrowthPlan.monthlyPriceChf * FAIR_GROWTH_ANNUAL_MONTHS_CHARGED;
 
   return (
     <Card className="flex h-full flex-col">
@@ -105,8 +112,22 @@ function PlanCard({ plan }: { plan: RestaurantSubscriptionPlan }) {
       </CardHeader>
       <CardContent className="flex flex-1 flex-col gap-5">
         <div>
-          <span className="text-4xl font-bold">{formatChf(plan.price_monthly_chf)}</span>
+          <span className="text-4xl font-bold">{formatChf(fairGrowthPlan.monthlyPriceChf)}</span>
           <span className="ml-1 text-muted-foreground">/ mois</span>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Annuel {formatChf(annualPriceChf)} — 12 mois, payez-en 11
+          </p>
+        </div>
+        <div className="grid gap-2 rounded-xl border border-primary/15 bg-primary/5 p-3 text-sm">
+          <span><strong>{formatChf(fairGrowthPlan.acquiredReservationFeeChf)}</strong> par réservation apportée par TOK et honorée</span>
+          <span><strong>{(fairGrowthPlan.marketplaceCommissionBps / 100).toLocaleString("fr-CH")}%</strong> sur les commandes marketplace</span>
+          <span>Site, QR code, Instagram, Google et fichier client : <strong>CHF 0</strong></span>
+          <span>Annulation, no-show, remboursement et démonstration : <strong>CHF 0</strong></span>
+          <span>Frais de réservation plafonnés à <strong>7% du CA de la table</strong></span>
+          <span>Restaurant : <strong>au minimum 90%</strong> de la commande et 100% des pourboires</span>
+          {fairGrowthPlan.slug === "elite" ? (
+            <span><strong>3 établissements inclus</strong> · CHF 149/mois par site supplémentaire</span>
+          ) : null}
         </div>
         <div className="grid gap-2 rounded-xl bg-primary/5 p-3 text-sm text-primary">
           <span className="font-semibold">{formatTokCredits(tokCredits)} inclus pour les outils IA</span>
@@ -209,7 +230,7 @@ export default function PacksRestaurateur() {
         </div>
         <h1 className="font-display text-4xl font-bold md:text-5xl">Choisissez votre abonnement TOK</h1>
         <p className="text-lg leading-relaxed text-muted-foreground">
-          Les packs de lancement ne sont plus commercialisés. TOK propose désormais des abonnements restaurateur et des recharges de crédits TOK pour piloter campagnes, assistant IA, photos et visuels.
+          Fair Growth facture uniquement la valeur réellement créée : vos canaux propres restent gratuits, les réservations TOK ne sont facturées que lorsqu'elles sont honorées et le restaurant conserve au minimum 90% de chaque commande.
         </p>
         <div className="flex flex-col justify-center gap-3 sm:flex-row">
           <Button asChild size="lg">
@@ -231,8 +252,8 @@ export default function PacksRestaurateur() {
         <div className="flex items-center gap-3">
           <CreditCard className="h-6 w-6 text-primary" />
           <div>
-            <h2 className="text-3xl font-bold">Abonnements restaurateur</h2>
-            <p className="text-muted-foreground">Facturation mensuelle Stripe, crédits recalculés côté serveur.</p>
+            <h2 className="text-3xl font-bold">Abonnements Fair Growth</h2>
+            <p className="text-muted-foreground">Mensuel ou annuel facturé 11 mois pour 12, avec tarifs enregistrés à la souscription.</p>
           </div>
         </div>
         {plansQuery.isError ? (
@@ -242,6 +263,45 @@ export default function PacksRestaurateur() {
             {(plansQuery.data || []).map((plan) => <PlanCard key={plan.id} plan={plan} />)}
           </div>
         )}
+      </section>
+
+      <section id="modules-fair-growth" className="scroll-mt-28 space-y-6">
+        <div className="flex items-center gap-3">
+          <Sparkles className="h-6 w-6 text-primary" />
+          <div>
+            <h2 className="text-3xl font-bold">Modules payants à la carte</h2>
+            <p className="text-muted-foreground">
+              Garantie de valeur : après 90 jours, si un module ne produit pas au moins 3× son coût,
+              TOK recommande sa désactivation ou accorde un crédit après validation des données.
+            </p>
+          </div>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {FAIR_GROWTH_MODULES.map((module) => (
+            <Card key={module.slug} className="h-full">
+              <CardHeader>
+                <CardTitle className="text-lg">{module.name}</CardTitle>
+                <p className="text-sm text-muted-foreground">{module.description}</p>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <p className="text-2xl font-bold">
+                  {module.monthlyPriceChf == null ? "" : formatChf(module.monthlyPriceChf) + " / mois"}
+                  {module.variableFeeBps ? (module.monthlyPriceChf == null ? "" : " + ") + module.variableFeeBps / 100 + "%" : ""}
+                  {module.successfulReservationFeeChf ? " + " + formatChf(module.successfulReservationFeeChf) + " / réservation réussie" : ""}
+                </p>
+                {module.paymentCostPassthrough ? (
+                  <p className="text-xs text-muted-foreground">Coût de paiement refacturé en plus.</p>
+                ) : null}
+                {module.slug === "direct-order-saver" ? (
+                  <p className="text-xs text-muted-foreground">
+                    Seuil mathématique face à Starter : env. CHF 1'774/mois hors paiement.
+                    Seuil prudent estimé : CHF 3'100–3'200 avec panier CHF 40 et cartes suisses.
+                  </p>
+                ) : null}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </section>
 
       <section id="credits-tok" className="scroll-mt-28 space-y-6">
