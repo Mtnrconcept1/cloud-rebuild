@@ -6,6 +6,7 @@ import type { Database, Json } from "@/integrations/supabase/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import DirectReservationChannelsCard from "@/components/dashboard/DirectReservationChannelsCard";
 import { CommercialDemoReservations } from "@/components/dashboard/CommercialDemoScenario";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import RestaurantCancellationDialog from "@/components/RestaurantCancellationDialog";
@@ -621,6 +622,10 @@ function LiveDashboardReservations() {
           </Button>
           )}
         />
+
+        {!isCommercialDemoRestaurant && effectiveSelectedId ? (
+          <DirectReservationChannelsCard restaurantId={effectiveSelectedId} />
+        ) : null}
 
         {isCommercialDemoRestaurant ? (
           <div className="rounded-2xl border border-sky-200 bg-sky-50/80 px-4 py-3 text-sm text-sky-950 dark:border-sky-500/30 dark:bg-sky-500/10 dark:text-sky-50" role="status">
