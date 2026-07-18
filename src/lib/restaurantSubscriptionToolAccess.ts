@@ -24,7 +24,7 @@ export const RESTAURANT_SUBSCRIPTION_TOOL_ACCESS_ROWS: RestaurantSubscriptionToo
     label: "Actualités",
     isEnabled: (planSlug) => NEWS_ENABLED_PLANS.has(planSlug),
     note: (planSlug) => {
-      if (!NEWS_ENABLED_PLANS.has(planSlug)) return "Dès Pro";
+      if (!NEWS_ENABLED_PLANS.has(planSlug)) return "Dès Business";
       if (NEWS_UNLIMITED_PLANS.has(planSlug)) return "Illimité";
       return "1 post/semaine";
     },
