@@ -66,6 +66,8 @@ describe("commercial multi-space OpenAI console", () => {
     expect(workflow).toContain('if [[ -z "$OPENAI_API_KEY" ]]');
     expect(workflow).toContain("supabase_ci_retry secrets set --env-file");
     expect(secretWriter).toContain('"OPENAI_API_KEY"');
+    expect(secretWriter).toContain("mode: 0o600");
+    expect(secretWriter).toContain("fs.chmodSync(outFile, 0o600)");
     expect(workflow).not.toContain("VITE_OPENAI_API_KEY");
   });
 });
