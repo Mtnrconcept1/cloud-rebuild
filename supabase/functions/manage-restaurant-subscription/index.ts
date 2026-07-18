@@ -132,6 +132,51 @@ function getStripeScheduleId(value: unknown) {
   return null;
 }
 
+function getStripeScheduleMetadata(value: unknown) {
+  if (!isJsonRecord(value) || !isJsonRecord(value.metadata)) return {};
+  return value.metadata;
+}
+
+function getLastSchedulePriceId(value: unknown) {
+  if (!isJsonRecord(value) || !Array.isArray(value.phases)) return null;
+
+  for (const phase of [...value.phases].reverse()) {
+    if (!isJsonRecord(phase) || !Array.isArray(phase.items)) continue;
+    const item = phase.items.find(isJsonRecord);
+    if (!item) continue;
+    if (typeof item.price === "string") return item.price;
+    if (isJsonRecord(item.price) && typeof item.price.id === "string") return item.price.id;
+  }
+
+  return null;
+}
+
+function isStripeMissingResource(error: unknown) {
+  if (!isJsonRecord(error)) return false;
+  if (error.code === "resource_missing") return true;
+  return isJsonRecord(error.raw) && error.raw.code === "resource_missing";
+}
+
+async function releaseStripeScheduleIfActive(stripe: Stripe, scheduleId: string) {
+  let schedule: Stripe.SubscriptionSchedule;
+
+  try {
+    schedule = await stripe.subscriptionSchedules.retrieve(scheduleId);
+  } catch (error) {
+    if (isStripeMissingResource(error)) return;
+    throw error;
+  }
+
+  if (schedule.status === "active") {
+    await stripe.subscriptionSchedules.release(scheduleId);
+  } else if (schedule.status === "not_started") {
+    await stripe.subscriptionSchedules.cancel(scheduleId, {
+      invoice_now: false,
+      prorate: false,
+    });
+  }
+}
+
 function getPrimarySubscriptionItem(subscription: Stripe.Subscription) {
   return subscription.items?.data?.[0] || null;
 }
@@ -335,11 +380,24 @@ Deno.serve(async (req) => {
 
       if (subscription.stripe_subscription_id) {
         const stripeRuntime = getStripeRuntimeForCheckoutKind("restaurant-subscription-upgrade");
+        const currentStripeSubscription = await stripeRuntime.stripe.subscriptions.retrieve(
+          subscription.stripe_subscription_id,
+          { expand: ["schedule"] },
+        );
+        const scheduleToReplace = getStripeScheduleId(currentStripeSubscription.schedule)
+          || subscription.stripe_subscription_schedule_id
+          || null;
+
+        if (scheduleToReplace) {
+          await releaseStripeScheduleIfActive(stripeRuntime.stripe, scheduleToReplace);
+        }
+
         stripeSubscription = await stripeRuntime.stripe.subscriptions.update(
           subscription.stripe_subscription_id,
           {
             cancel_at_period_end: true,
             metadata: {
+              ...stripeMetadataDeletes(),
               pending_restaurant_subscription_change: "cancel_at_period_end",
               pending_restaurant_subscription_effective_at: period.endIso,
               pending_restaurant_subscription_requested_at: requestedAt,
@@ -347,7 +405,7 @@ Deno.serve(async (req) => {
             },
           },
         );
-        stripeScheduleId = getStripeScheduleId(stripeSubscription.schedule);
+        stripeScheduleId = null;
       }
 
       const updatedSubscription = await updateLocalSubscriptionState({
@@ -395,7 +453,7 @@ Deno.serve(async (req) => {
         stripeScheduleId = getStripeScheduleId(stripeSubscription.schedule) || subscription.stripe_subscription_schedule_id || null;
 
         if (stripeScheduleId) {
-          await stripeRuntime.stripe.subscriptionSchedules.release(stripeScheduleId);
+          await releaseStripeScheduleIfActive(stripeRuntime.stripe, stripeScheduleId);
         }
 
         await stripeRuntime.stripe.subscriptions.update(
@@ -449,7 +507,7 @@ Deno.serve(async (req) => {
       getPlanById(actor.adminClient, targetPlanId),
     ]);
 
-    if (!targetPlan) throw new HttpError(404, "Plan inférieur introuvable ou inactif");
+    if (!targetPlan) throw new HttpError(404, "Plan cible introuvable ou inactif");
     if (!currentPlan) throw new HttpError(409, "Plan actuel introuvable");
 
     if (String(currentPlan.id) === String(targetPlan.id)) {
@@ -458,7 +516,7 @@ Deno.serve(async (req) => {
 
     const interval = getBillingInterval(subscription.billing_period);
     const targetAmountCents = getRecurringAmountCents(targetPlan, subscription.billing_period);
-    if (targetAmountCents <= 0) throw new HttpError(400, "Prix du plan inférieur invalide");
+    if (targetAmountCents <= 0) throw new HttpError(400, "Prix du plan cible invalide");
 
     let stripeScheduleId: string | null = subscription.stripe_subscription_schedule_id || null;
     let targetStripePriceId: string | null = null;
@@ -469,9 +527,23 @@ Deno.serve(async (req) => {
         subscription.stripe_subscription_id,
         { expand: ["items.data.price", "schedule"] },
       );
-      const activeScheduleId = getStripeScheduleId(stripeSubscription.schedule) || subscription.stripe_subscription_schedule_id || null;
-      if (activeScheduleId) {
-        throw new HttpError(409, "Un changement d'abonnement est déjà programmé");
+      const expandedSchedule = isJsonRecord(stripeSubscription.schedule)
+        ? stripeSubscription.schedule
+        : null;
+      const activeScheduleId = getStripeScheduleId(expandedSchedule)
+        || subscription.stripe_subscription_schedule_id
+        || null;
+      const activeScheduleMetadata = getStripeScheduleMetadata(expandedSchedule);
+      const localScheduledChange = isJsonRecord(subscription.scheduled_plan_change)
+        ? subscription.scheduled_plan_change
+        : {};
+      const scheduledTargetPlanId = String(
+        activeScheduleMetadata.pending_restaurant_subscription_plan_id
+          || localScheduledChange.target_plan_id
+          || "",
+      );
+      if (activeScheduleId && scheduledTargetPlanId === targetPlan.id) {
+        targetStripePriceId = getLastSchedulePriceId(expandedSchedule);
       }
 
       const stripePeriod = resolveStripeSubscriptionPeriod(stripeSubscription, subscription);
@@ -494,40 +566,51 @@ Deno.serve(async (req) => {
         pending_restaurant_subscription_plan_name: targetPlan.name,
       };
 
-      const targetPrice = await stripeRuntime.stripe.prices.create({
-        currency: "chf",
-        recurring: { interval },
-        unit_amount: targetAmountCents,
-        product_data: {
-          name: `Abonnement restaurateur TOK - ${targetPlan.name}`,
-          description: String(targetPlan.description || ""),
+      if (!targetStripePriceId) {
+        const targetPrice = await stripeRuntime.stripe.prices.create({
+          currency: "chf",
+          recurring: { interval },
+          unit_amount: targetAmountCents,
+          product_data: {
+            name: `Abonnement restaurateur TOK - ${targetPlan.name}`,
+            description: String(targetPlan.description || ""),
+            metadata: {
+              restaurant_subscription_plan_id: targetPlan.id,
+              restaurant_subscription_plan_slug: targetPlan.slug,
+            },
+          },
           metadata: {
+            checkout_kind: "restaurant-subscription-plan-change",
+            restaurant_id: restaurantId,
             restaurant_subscription_plan_id: targetPlan.id,
             restaurant_subscription_plan_slug: targetPlan.slug,
+            billing_period: subscription.billing_period === "yearly" ? "yearly" : "monthly",
+            annual_months_charged: subscription.billing_period === "yearly"
+              ? String(FAIR_GROWTH_ANNUAL_MONTHS_CHARGED)
+              : "1",
+            service_months: subscription.billing_period === "yearly" ? "12" : "1",
+            entitlement_reset_period: "monthly",
           },
-        },
-        metadata: {
-          checkout_kind: "restaurant-subscription-plan-change",
-          restaurant_id: restaurantId,
-          restaurant_subscription_plan_id: targetPlan.id,
-          restaurant_subscription_plan_slug: targetPlan.slug,
-          billing_period: subscription.billing_period === "yearly" ? "yearly" : "monthly",
-          annual_months_charged: subscription.billing_period === "yearly"
-            ? String(FAIR_GROWTH_ANNUAL_MONTHS_CHARGED)
-            : "1",
-          service_months: subscription.billing_period === "yearly" ? "12" : "1",
-          entitlement_reset_period: "monthly",
-        },
-      });
-      targetStripePriceId = targetPrice.id;
+        });
+        targetStripePriceId = targetPrice.id;
+      }
 
-      const schedule = await stripeRuntime.stripe.subscriptionSchedules.create({
-        from_subscription: subscription.stripe_subscription_id,
-      });
-      stripeScheduleId = schedule.id;
+      if (!stripeScheduleId) {
+        const schedule = await stripeRuntime.stripe.subscriptionSchedules.create({
+          from_subscription: subscription.stripe_subscription_id,
+          metadata: {
+            restaurant_id: restaurantId,
+            pending_restaurant_subscription_change: "plan_change_at_period_end",
+            pending_restaurant_subscription_effective_at: stripePeriod.endIso,
+            pending_restaurant_subscription_plan_id: targetPlan.id,
+            pending_restaurant_subscription_plan_slug: targetPlan.slug,
+          },
+        });
+        stripeScheduleId = schedule.id;
+      }
 
       await stripeRuntime.stripe.subscriptionSchedules.update(
-        schedule.id,
+        stripeScheduleId,
         {
           end_behavior: "release",
           metadata: {
@@ -549,13 +632,13 @@ Deno.serve(async (req) => {
                 restaurant_id: restaurantId,
                 restaurant_subscription_plan_id: currentPlan.id,
                 restaurant_subscription_plan_slug: currentPlan.slug,
-                pending_restaurant_subscription_schedule_id: schedule.id,
+                pending_restaurant_subscription_schedule_id: stripeScheduleId,
               },
               proration_behavior: "none",
             },
             {
               start_date: stripePeriod.endUnix,
-              items: [{ price: targetPrice.id, quantity: 1 }],
+              items: [{ price: targetStripePriceId, quantity: 1 }],
               metadata: {
                 ...(clearPendingMetadata(stripeSubscription.metadata || {}) as Record<string, string>),
                 checkout_kind: "restaurant-subscription-upgrade",
@@ -583,7 +666,7 @@ Deno.serve(async (req) => {
           cancel_at_period_end: false,
           metadata: {
             ...pendingMetadata,
-            pending_restaurant_subscription_schedule_id: schedule.id,
+            pending_restaurant_subscription_schedule_id: stripeScheduleId,
           },
         },
       );
