@@ -23,7 +23,7 @@ describe("operation detail card design guards", () => {
     expect(source).toContain("rounded-2xl border border-l-4 bg-card shadow-sm");
     expect(source).toContain("rounded-2xl border bg-card/70 p-3 shadow-sm sm:p-4");
     expect(source).toContain("grid grid-cols-1 gap-3 lg:grid-cols-2 2xl:grid-cols-3");
-    expect(source).toContain("grid grid-cols-1 gap-2 border-t pt-3 sm:grid-cols-3");
+    expect(source).toContain("grid grid-cols-1 gap-2 border-t pt-3 sm:grid-cols-2 lg:grid-cols-4");
     expect(source).toContain("Service</p>");
     expect(source).toContain("Montant</p>");
     expect(source).not.toContain("Total : {Number(reservation.total_amount).toFixed(2)} CHF");
