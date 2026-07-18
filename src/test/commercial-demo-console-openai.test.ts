@@ -89,5 +89,34 @@ describe("commercial multi-space OpenAI console", () => {
     expect(secretWriter).toContain("mode: 0o600");
     expect(secretWriter).toContain("fs.chmodSync(outFile, 0o600)");
     expect(workflow).not.toContain("VITE_OPENAI_API_KEY");
+
+    const deploySupabaseJob = workflow.slice(
+      workflow.indexOf("  deploy_supabase:"),
+      workflow.indexOf("  deploy_frontend:"),
+    );
+    const deploySupabaseJobEnv = deploySupabaseJob.slice(
+      deploySupabaseJob.indexOf("    env:"),
+      deploySupabaseJob.indexOf("    steps:"),
+    );
+    const assertSecretStep = deploySupabaseJob.slice(
+      deploySupabaseJob.indexOf("- name: Assert server-only OpenAI secret"),
+      deploySupabaseJob.indexOf("- name: Prepare Supabase function secrets env"),
+    );
+    const prepareSecretsStep = deploySupabaseJob.slice(
+      deploySupabaseJob.indexOf("- name: Prepare Supabase function secrets env"),
+      deploySupabaseJob.indexOf("- name: Link Supabase production project"),
+    );
+    const cleanupSecretsStep = deploySupabaseJob.slice(
+      deploySupabaseJob.indexOf("- name: Remove Supabase function secrets env"),
+      deploySupabaseJob.indexOf("- name: Push database migrations"),
+    );
+
+    expect(deploySupabaseJobEnv).not.toContain("OPENAI_API_KEY");
+    expect(deploySupabaseJobEnv).not.toContain("OPENAI_MODEL");
+    expect(assertSecretStep).toContain("OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}");
+    expect(prepareSecretsStep).toContain("OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}");
+    expect(prepareSecretsStep).toContain("OPENAI_MODEL: ${{ secrets.OPENAI_MODEL }}");
+    expect(cleanupSecretsStep).toContain("always()");
+    expect(cleanupSecretsStep).toContain('rm -f -- "${RUNNER_TEMP}/supabase.functions.env"');
   });
 });
