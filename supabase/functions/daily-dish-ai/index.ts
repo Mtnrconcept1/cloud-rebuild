@@ -17,6 +17,8 @@ import {
   parseStructuredOutput,
 } from "../_shared/openai.ts";
 import {
+  claimCommercialDemoAiRequest,
+  failCommercialDemoAiRequest,
   resolveCommercialDemoAiContext,
   sanitizeObject,
   sanitizeText,
@@ -351,6 +353,64 @@ async function sha256(value: unknown) {
   const bytes = new TextEncoder().encode(JSON.stringify(value));
   const digest = await crypto.subtle.digest("SHA-256", bytes);
   return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+async function claimDemoDailyDishRequest(
+  demo: DemoContext,
+  requestId: string,
+  payload: JsonRecord,
+) {
+  const lockToken = crypto.randomUUID();
+  const claim = await claimCommercialDemoAiRequest({
+    context: demo,
+    requestId,
+    action: "chat",
+    tool: "assistant",
+    payloadHash: await sha256({ purpose: "daily_dish", ...payload }),
+    lockToken,
+  });
+  if (claim.state === "claimed") return { lockToken };
+  if (claim.state === "in_progress") throw new HttpError(409, "daily_dish_generation_in_progress");
+  if (claim.state === "busy" || claim.state === "circuit_open") throw new HttpError(429, "ai_rate_limited");
+  if (claim.state === "budget_exhausted") throw new HttpError(429, "commercial_demo_ai_budget_exhausted");
+  if (claim.state === "disabled") throw new HttpError(403, "feature_disabled");
+  if (claim.state === "replay") throw new HttpError(409, "daily_dish_demo_request_already_completed");
+  throw new HttpError(409, "daily_dish_demo_request_mismatch");
+}
+
+function combinedUsage(responses: unknown[]) {
+  return responses.reduce((total, response) => {
+    const usage = extractUsage(response);
+    total.input += usage.input_tokens || 0;
+    total.output += usage.output_tokens || 0;
+    return total;
+  }, { input: 0, output: 0 });
+}
+
+async function completeDemoDailyDishRequest(input: {
+  demo: DemoContext;
+  requestId: string;
+  lockToken: string;
+  variants: DailyDishVariantPayload[];
+  responses: unknown[];
+}) {
+  const usage = combinedUsage(input.responses);
+  const estimatedCostChf = estimateOpenAITextCostChf(DAILY_MODEL, usage.input, usage.output);
+  const { error } = await input.demo.actor.adminClient.rpc(
+    "commercial_demo_ai_complete_daily_dish_request",
+    {
+      p_request_id: input.requestId,
+      p_lock_token: input.lockToken,
+      p_model: DAILY_MODEL,
+      p_result_hash: await sha256(input.variants),
+      p_variant_count: input.variants.length,
+      p_input_tokens: usage.input,
+      p_output_tokens: usage.output,
+      p_total_tokens: usage.input + usage.output,
+      p_estimated_cost_chf: estimatedCostChf,
+    },
+  );
+  if (error) throw new HttpError(503, "commercial_demo_ai_completion_unavailable");
 }
 
 async function requireGlobalFlags(actor: Actor, names: string[]) {
@@ -745,16 +805,39 @@ async function handleGenerate(actor: Actor, body: JsonRecord) {
       restaurant: scope.restaurant,
       ...sanitizeDemoContext(body.demo_context),
     };
-    const generated = await generateVariants({ context, settings });
-    await recordUsage(actor, { action: "generate", restaurantId: scope.restaurantId, responses: generated.responses, demo: true });
-    return {
-      run: { id: requestId, restaurant_id: scope.restaurantId, generation_date: localDate(), status: "completed", model: DAILY_MODEL, sources: generated.sources },
-      variants: generated.variants.map((payload, index) => ({
-        id: crypto.randomUUID(), run_id: requestId, restaurant_id: scope.restaurantId,
-        variant_number: index + 1, revision: 1, parent_variant_id: null, status: "proposed", payload,
-      })),
-      demo: true,
-    };
+    const claim = await claimDemoDailyDishRequest(scope.demo, requestId, {
+      action: "generate",
+      context,
+      generation_date: localDate(),
+    });
+    try {
+      const generated = await generateVariants({ context, settings });
+      await completeDemoDailyDishRequest({
+        demo: scope.demo,
+        requestId,
+        lockToken: claim.lockToken,
+        variants: generated.variants,
+        responses: generated.responses,
+      });
+      await recordUsage(actor, { action: "generate", restaurantId: scope.restaurantId, responses: generated.responses, demo: true }).catch(() => {});
+      return {
+        run: { id: requestId, restaurant_id: scope.restaurantId, generation_date: localDate(), status: "completed", model: DAILY_MODEL, sources: generated.sources },
+        variants: generated.variants.map((payload, index) => ({
+          id: crypto.randomUUID(), run_id: requestId, restaurant_id: scope.restaurantId,
+          variant_number: index + 1, revision: 1, parent_variant_id: null, status: "proposed", payload,
+        })),
+        demo: true,
+      };
+    } catch (error) {
+      await failCommercialDemoAiRequest({
+        context: scope.demo,
+        requestId,
+        lockToken: claim.lockToken,
+        errorCode: `provider_${error instanceof HttpError ? error.message : "daily_dish_error"}`.slice(0, 160),
+        model: DAILY_MODEL,
+      });
+      throw error;
+    }
   }
 
   const settings = await getSettings(actor, scope.restaurantId);
@@ -819,6 +902,7 @@ async function handleRefine(actor: Actor, body: JsonRecord) {
   await limiter.consume("global", { maxRequests: 40, windowSeconds: 60 });
 
   if (scope.demo) {
+    const requestId = requireUuid(body.request_id, "request_id_invalid");
     const currentVariant = sanitizeVariant(body.variant, new Map(
       (isRecord(body.variant) && Array.isArray(body.variant.sources) ? body.variant.sources : [])
         .flatMap((source) => {
@@ -827,9 +911,32 @@ async function handleRefine(actor: Actor, body: JsonRecord) {
           return url ? [[url, { url, title: sanitizeText(source.title, 200), retailer: sanitizeText(source.retailer, 100), checked_at: sanitizeText(source.checked_at, 40) } as SupplierSource] as const] : [];
         }),
     ));
-    const generated = await generateVariants({ context: { restaurant: scope.restaurant }, settings: { timezone: "Europe/Zurich", target_food_cost_bps: 3000 }, modification: instruction, currentVariant });
-    await recordUsage(actor, { action: "refine", restaurantId: scope.restaurantId, responses: generated.responses, demo: true });
-    return { variant: { id: crypto.randomUUID(), revision: numberInRange(body.revision, 1, 5, 1) + 1, status: "refined", payload: generated.variants[0] }, demo: true };
+    const claim = await claimDemoDailyDishRequest(scope.demo, requestId, {
+      action: "refine",
+      instruction,
+      current_variant_hash: await sha256(currentVariant),
+    });
+    try {
+      const generated = await generateVariants({ context: { restaurant: scope.restaurant }, settings: { timezone: "Europe/Zurich", target_food_cost_bps: 3000 }, modification: instruction, currentVariant });
+      await completeDemoDailyDishRequest({
+        demo: scope.demo,
+        requestId,
+        lockToken: claim.lockToken,
+        variants: generated.variants,
+        responses: generated.responses,
+      });
+      await recordUsage(actor, { action: "refine", restaurantId: scope.restaurantId, responses: generated.responses, demo: true }).catch(() => {});
+      return { variant: { id: crypto.randomUUID(), revision: numberInRange(body.revision, 1, 5, 1) + 1, status: "refined", payload: generated.variants[0] }, demo: true };
+    } catch (error) {
+      await failCommercialDemoAiRequest({
+        context: scope.demo,
+        requestId,
+        lockToken: claim.lockToken,
+        errorCode: `provider_${error instanceof HttpError ? error.message : "daily_dish_error"}`.slice(0, 160),
+        model: DAILY_MODEL,
+      });
+      throw error;
+    }
   }
 
   const variantId = requireUuid(body.variant_id, "variant_id_invalid");
