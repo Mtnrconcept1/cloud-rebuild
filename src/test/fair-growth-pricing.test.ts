@@ -57,6 +57,30 @@ describe("Fair Growth pricing", () => {
     ).toEqual([9010, 9110, 9210, 9310]);
   });
 
+  it("compares 50 restaurants against the current ten-percent marketplace baseline", () => {
+    const restaurants = 50;
+    const reservationsPerRestaurant = 200;
+    const ordersPerRestaurant = 200;
+    const averageOrderChf = 40;
+    const currentMarketplaceCommissionBps = 1000;
+
+    const currentMonthly = FAIR_GROWTH_PLANS.map((plan) => restaurants * (
+      plan.monthlyPriceChf
+      + reservationsPerRestaurant * 5
+      + ordersPerRestaurant * averageOrderChf * currentMarketplaceCommissionBps / 10_000
+    ));
+    const fairGrowthMonthly = FAIR_GROWTH_PLANS.map((plan) => restaurants * (
+      plan.monthlyPriceChf
+      + reservationsPerRestaurant * plan.acquiredReservationFeeChf
+      + ordersPerRestaurant * averageOrderChf * plan.marketplaceCommissionBps / 10_000
+    ));
+
+    expect(currentMonthly).toEqual([93_450, 96_450, 99_950, 114_950]);
+    expect(fairGrowthMonthly).toEqual([93_050, 87_050, 81_550, 82_550]);
+    expect(currentMonthly.map((amount, index) => amount - fairGrowthMonthly[index]))
+      .toEqual([400, 9_400, 18_400, 32_400]);
+  });
+
   it("states the mathematical Direct Order Saver threshold separately from the prudent threshold", () => {
     expect(calculateDirectOrderSaverBreakEvenChf()).toBeCloseTo(1773.8095, 3);
   });
