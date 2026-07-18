@@ -104,6 +104,9 @@ verify_jwt = false
 [functions.delete-account]
 verify_jwt = false
 
+[functions.daily-dish-ai]
+verify_jwt = false
+
 [functions.daily-slot-spin]
 verify_jwt = false
 
