@@ -118,6 +118,14 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     critical: true,
   },
   {
+    name: "commercial-demo-openai",
+    label: "OpenAI — démonstration commerciale",
+    description: "Coupe immédiatement les appels OpenAI de la vue multi-espace et du restaurant Démo.",
+    defaultEnabled: false,
+    group: "admin_tools",
+    critical: true,
+  },
+  {
     name: "livraison",
     label: "Livraison",
     description: "Expose les parcours de livraison côté client, restaurateur et livreur.",
