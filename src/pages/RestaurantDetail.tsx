@@ -20,6 +20,7 @@ import { trackGoogleBookingEvent } from "@/hooks/useGoogleBusinessBooking";
 import { trackEvent, trackImpression } from "@/lib/analytics";
 import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
+import RestaurantDailyDishCard from "@/components/restaurant/RestaurantDailyDishCard";
 import { buildAuthRedirectTarget } from "@/lib/stripeReturn";
 import { buildCanonicalUrl, useSeoMeta } from "@/hooks/useSeoMeta";
 import { buildRestaurantSeoPath } from "@/lib/restaurantSlugs";
@@ -1230,6 +1231,10 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
                 )}
               </TabsContent>
               <TabsContent value="menu" className="space-y-6 mt-0">
+                <RestaurantDailyDishCard
+                  restaurantId={restaurantId!}
+                  fallbackImageUrl={mediaPhotos?.[0]?.media_url || restaurant?.image_url || null}
+                />
                 {visibleProgressiveOffers.length > 0 && (
                   <div className="space-y-4">
                     <div className="flex items-center gap-2">
