@@ -4,14 +4,27 @@ import {
   completeStripeWebhookEvent,
 } from "./payment-attempts.ts";
 
-export const TOK_PLATFORM_FEE_BPS = 1000;
+export const TOK_PLATFORM_FEE_BPS = 990;
 export const TOK_DEVELOPER_SHARE_BPS = 1000;
+export const TOK_ORDER_DEVELOPER_SHARE_BPS = 100;
+export const FAIR_GROWTH_PRICING_VERSION = "fair_growth_2026_07";
+export const MAX_FAIR_GROWTH_PLATFORM_FEE_BPS = 990;
 
 export const MARKETPLACE_CHECKOUT_KINDS = new Set([
   "order",
   "zero-attente",
   "chefs-table",
   "match-group",
+]);
+
+const CONTRACTED_SUBSCRIPTION_STATUSES = new Set([
+  "awaiting_payment_method",
+  "awaiting_activation",
+  "activation_pending",
+  "active",
+  "past_due",
+  "trialing",
+  "paused",
 ]);
 
 type SupabaseLike = {
@@ -22,6 +35,20 @@ type SupabaseLike = {
 type LoggerLike = {
   info?: (event: string, data?: Record<string, unknown>) => void;
   warn?: (event: string, data?: Record<string, unknown>) => void;
+};
+
+type MarketplaceMoneyBasis = {
+  commissionableCents?: number;
+  tipCents?: number;
+  deliveryPassThroughCents?: number;
+};
+
+type FairGrowthPricingSnapshot = {
+  platformFeeBps: number;
+  pricingPlanId: string | null;
+  pricingPlanSlug: string | null;
+  pricingVersion: string;
+  pricingRateSource: "subscription_snapshot" | "subscription_plan" | "runtime_default";
 };
 
 function normalizeKind(value: unknown) {
@@ -39,6 +66,27 @@ function toNullableInteger(value: unknown) {
   return Number.isFinite(parsed) ? Math.max(0, Math.round(parsed)) : null;
 }
 
+function toBasisPoints(
+  value: unknown,
+  label: string,
+  maximum = 10000,
+) {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < 0 || parsed > maximum) {
+    throw new HttpError(503, `FAIR_GROWTH_INVALID_${label.toUpperCase()}`);
+  }
+  return parsed;
+}
+
+function toOptionalBasisPoints(
+  value: unknown,
+  label: string,
+  maximum = 10000,
+) {
+  if (value === null || value === undefined || value === "") return null;
+  return toBasisPoints(value, label, maximum);
+}
+
 function isFinanceExcludedDemo(input: {
   checkoutKind: unknown;
   metadata?: Record<string, unknown>;
@@ -50,19 +98,48 @@ function isFinanceExcludedDemo(input: {
     || String(metadata.no_financial_ledger || "").trim().toLowerCase() === "true";
 }
 
-export function calculateMarketplaceSplit(grossCents: number, platformFeeBps = TOK_PLATFORM_FEE_BPS) {
+export function calculateMarketplaceSplit(
+  grossCents: number,
+  platformFeeBps = TOK_PLATFORM_FEE_BPS,
+  basis: MarketplaceMoneyBasis = {},
+) {
   const safeGrossCents = Math.max(0, toInteger(grossCents));
   const safePlatformFeeBps = Math.min(10000, Math.max(0, toInteger(platformFeeBps)));
+  const tipCents = Math.max(0, toInteger(basis.tipCents));
+  const deliveryPassThroughCents = Math.max(0, toInteger(basis.deliveryPassThroughCents));
+  const commissionableCents = basis.commissionableCents === undefined
+    ? safeGrossCents - tipCents - deliveryPassThroughCents
+    : Math.max(0, toInteger(basis.commissionableCents));
+
+  if (commissionableCents + tipCents + deliveryPassThroughCents > safeGrossCents) {
+    throw new Error("INVALID_MARKETPLACE_MONEY_BASIS");
+  }
+
+  const otherNonCommissionableCents = safeGrossCents
+    - commissionableCents
+    - tipCents
+    - deliveryPassThroughCents;
   const platformFeeCents = Math.min(
-    safeGrossCents,
-    Math.round((safeGrossCents * safePlatformFeeBps) / 10000),
+    commissionableCents,
+    Math.round((commissionableCents * safePlatformFeeBps) / 10000),
   );
+  const restaurantShareCents = commissionableCents
+    - platformFeeCents
+    + tipCents
+    + otherNonCommissionableCents;
+  const stripeApplicationFeeCents = platformFeeCents + deliveryPassThroughCents;
 
   return {
     grossCents: safeGrossCents,
+    commissionableCents,
+    tipCents,
+    deliveryPassThroughCents,
+    otherNonCommissionableCents,
     platformFeeBps: safePlatformFeeBps,
     platformFeeCents,
-    restaurantShareCents: safeGrossCents - platformFeeCents,
+    restaurantShareCents,
+    restaurantTransferCents: safeGrossCents - stripeApplicationFeeCents,
+    stripeApplicationFeeCents,
   };
 }
 
@@ -87,17 +164,120 @@ export function calculateDeveloperRevenueSplit(
 export function calculateOrderPaymentDistribution(
   grossCents: number,
   platformFeeBps = TOK_PLATFORM_FEE_BPS,
-  developerShareBps = TOK_DEVELOPER_SHARE_BPS,
+  basis: MarketplaceMoneyBasis = {},
 ) {
-  const marketplace = calculateMarketplaceSplit(grossCents, platformFeeBps);
-  const developer = calculateDeveloperRevenueSplit(
+  const marketplace = calculateMarketplaceSplit(grossCents, platformFeeBps, basis);
+  const developerShareCents = Math.min(
     marketplace.platformFeeCents,
-    developerShareBps,
+    Math.round(
+      (marketplace.commissionableCents * TOK_ORDER_DEVELOPER_SHARE_BPS) / 10000,
+    ),
   );
 
   return {
     ...marketplace,
-    ...developer,
+    developerOrderBps: TOK_ORDER_DEVELOPER_SHARE_BPS,
+    developerShareBps: TOK_ORDER_DEVELOPER_SHARE_BPS,
+    developerShareCents,
+    tokNetRevenueCents: marketplace.platformFeeCents - developerShareCents,
+  };
+}
+
+async function resolveFairGrowthPricingSnapshot(input: {
+  adminClient: SupabaseLike;
+  restaurantId: string;
+  financeConfig: Record<string, unknown> | null;
+}): Promise<FairGrowthPricingSnapshot> {
+  const { data: subscription, error: subscriptionError } = await input.adminClient
+    .from("restaurant_ai_subscriptions")
+    .select(
+      "restaurant_subscription_plan_id, plan, status, marketplace_commission_bps_snapshot, developer_order_bps_snapshot, pricing_version_snapshot",
+    )
+    .eq("restaurant_id", input.restaurantId)
+    .maybeSingle();
+
+  if (subscriptionError) {
+    throw new HttpError(500, subscriptionError.message);
+  }
+
+  if (subscription && CONTRACTED_SUBSCRIPTION_STATUSES.has(String(subscription.status || ""))) {
+    const snapshotRate = toOptionalBasisPoints(
+      subscription.marketplace_commission_bps_snapshot,
+      "subscription_marketplace_commission_bps_snapshot",
+      MAX_FAIR_GROWTH_PLATFORM_FEE_BPS,
+    );
+    const snapshotDeveloperRate = toOptionalBasisPoints(
+      subscription.developer_order_bps_snapshot,
+      "subscription_developer_order_bps_snapshot",
+      TOK_ORDER_DEVELOPER_SHARE_BPS,
+    );
+    if (
+      snapshotDeveloperRate !== null
+      && snapshotDeveloperRate !== TOK_ORDER_DEVELOPER_SHARE_BPS
+    ) {
+      throw new HttpError(503, "FAIR_GROWTH_DEVELOPER_ORDER_RATE_MISMATCH");
+    }
+    if (snapshotRate !== null) {
+      return {
+        platformFeeBps: snapshotRate,
+        pricingPlanId: String(subscription.restaurant_subscription_plan_id || "") || null,
+        pricingPlanSlug: String(subscription.plan || "") || null,
+        pricingVersion: String(
+          subscription.pricing_version_snapshot || FAIR_GROWTH_PRICING_VERSION,
+        ),
+        pricingRateSource: "subscription_snapshot",
+      };
+    }
+
+    const planId = String(subscription.restaurant_subscription_plan_id || "");
+    const planSlug = String(subscription.plan || "");
+    if (planId || planSlug) {
+      let planQuery = input.adminClient
+        .from("restaurant_subscription_plans")
+        .select("id, slug, marketplace_commission_bps, developer_order_bps, pricing_version");
+      planQuery = planId ? planQuery.eq("id", planId) : planQuery.eq("slug", planSlug);
+      const { data: plan, error: planError } = await planQuery.maybeSingle();
+      if (planError) throw new HttpError(500, planError.message);
+      if (plan) {
+        const planDeveloperRate = toBasisPoints(
+          plan.developer_order_bps,
+          "plan_developer_order_bps",
+          TOK_ORDER_DEVELOPER_SHARE_BPS,
+        );
+        if (planDeveloperRate !== TOK_ORDER_DEVELOPER_SHARE_BPS) {
+          throw new HttpError(503, "FAIR_GROWTH_DEVELOPER_ORDER_RATE_MISMATCH");
+        }
+        return {
+          platformFeeBps: toBasisPoints(
+            plan.marketplace_commission_bps,
+            "plan_marketplace_commission_bps",
+            MAX_FAIR_GROWTH_PLATFORM_FEE_BPS,
+          ),
+          pricingPlanId: String(plan.id || "") || null,
+          pricingPlanSlug: String(plan.slug || "") || null,
+          pricingVersion: String(plan.pricing_version || FAIR_GROWTH_PRICING_VERSION),
+          pricingRateSource: "subscription_plan",
+        };
+      }
+    }
+  }
+
+  const configMetadata = input.financeConfig?.metadata
+    && typeof input.financeConfig.metadata === "object"
+    && !Array.isArray(input.financeConfig.metadata)
+    ? input.financeConfig.metadata as Record<string, unknown>
+    : {};
+
+  return {
+    platformFeeBps: toBasisPoints(
+      input.financeConfig?.platform_fee_bps ?? TOK_PLATFORM_FEE_BPS,
+      "runtime_platform_fee_bps",
+      MAX_FAIR_GROWTH_PLATFORM_FEE_BPS,
+    ),
+    pricingPlanId: null,
+    pricingPlanSlug: null,
+    pricingVersion: String(configMetadata.pricing_version || FAIR_GROWTH_PRICING_VERSION),
+    pricingRateSource: "runtime_default",
   };
 }
 
@@ -106,6 +286,9 @@ export async function resolveMarketplaceRouting(input: {
   checkoutKind: unknown;
   restaurantId: string;
   grossCents: number;
+  commissionableCents?: number;
+  tipCents?: number;
+  deliveryPassThroughCents?: number;
   stripeMode?: "live" | "test";
 }) {
   const checkoutKind = normalizeKind(input.checkoutKind);
@@ -116,6 +299,11 @@ export async function resolveMarketplaceRouting(input: {
       enabled: false,
       mode: "tok_owned" as const,
       destinationAccountId: null,
+      pricingPlanId: null,
+      pricingPlanSlug: null,
+      pricingVersion: FAIR_GROWTH_PRICING_VERSION,
+      pricingRateSource: "runtime_default" as const,
+      developerOrderBps: null,
       ...tokOwnedSplit,
       ...calculateDeveloperRevenueSplit(
         tokOwnedSplit.platformFeeCents,
@@ -130,7 +318,7 @@ export async function resolveMarketplaceRouting(input: {
 
   const { data: financeConfig, error: financeConfigError } = await input.adminClient
     .from("finance_runtime_config")
-    .select("connect_routing_enabled, platform_fee_bps, developer_share_bps, reservation_fee_cents")
+    .select("connect_routing_enabled, platform_fee_bps, developer_share_bps, reservation_fee_cents, metadata")
     .eq("config_key", "default")
     .maybeSingle();
 
@@ -138,10 +326,19 @@ export async function resolveMarketplaceRouting(input: {
     throw new HttpError(500, financeConfigError.message);
   }
 
+  const pricingSnapshot = await resolveFairGrowthPricingSnapshot({
+    adminClient: input.adminClient,
+    restaurantId: input.restaurantId,
+    financeConfig: financeConfig as Record<string, unknown> | null,
+  });
   const distribution = calculateOrderPaymentDistribution(
     input.grossCents,
-    Number(financeConfig?.platform_fee_bps ?? TOK_PLATFORM_FEE_BPS),
-    Number(financeConfig?.developer_share_bps ?? TOK_DEVELOPER_SHARE_BPS),
+    pricingSnapshot.platformFeeBps,
+    {
+      commissionableCents: input.commissionableCents,
+      tipCents: input.tipCents,
+      deliveryPassThroughCents: input.deliveryPassThroughCents,
+    },
   );
 
   if (!financeConfig?.connect_routing_enabled) {
@@ -155,6 +352,7 @@ export async function resolveMarketplaceRouting(input: {
       enabled: false,
       mode: "legacy_manual" as const,
       destinationAccountId: null,
+      ...pricingSnapshot,
       ...distribution,
     };
   }
@@ -190,6 +388,7 @@ export async function resolveMarketplaceRouting(input: {
     enabled: true,
     mode: "stripe_connect_destination" as const,
     destinationAccountId: String(restaurant.stripe_account_id),
+    ...pricingSnapshot,
     ...distribution,
   };
 }
