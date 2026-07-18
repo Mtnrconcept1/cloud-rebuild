@@ -174,28 +174,21 @@ describe("production preflight hardening", () => {
       "utf8",
     );
     const vercel = JSON.parse(readFileSync(path.join(process.cwd(), "vercel.json"), "utf8"));
-    const entitlements = readFileSync(
-      path.join(process.cwd(), "ios", "App", "App", "App.entitlements"),
-      "utf8",
-    );
-
     expect(workflow).toContain("id: supabase_auth_security");
     expect(workflow).toContain("node ./scripts/ensure-supabase-auth-security.mjs");
     expect(workflow).toContain("steps.supabase_auth_security.outputs.confirmed");
     expect(workflow).toContain("steps.supabase_auth_security.outputs.evidence");
     expect(workflow).not.toContain("vars.SUPABASE_LEAKED_PASSWORD_PROTECTION_CONFIRMED");
     expect(workflow).not.toContain("vars.SUPABASE_LEAKED_PASSWORD_PROTECTION_EVIDENCE");
-    expect(workflow.match(/node \.\/scripts\/write-apple-app-site-association\.mjs/g)).toHaveLength(2);
+    expect(workflow).not.toContain("write-apple-app-site-association.mjs");
+    expect(workflow).not.toContain("APPLE_TEAM_ID");
+    expect(workflow).not.toContain("ANDROID_KEYSTORE_BASE64");
+    expect(workflow).toContain('RELEASE_READINESS_TARGET: "web"');
     expect(workflow).toMatch(/build_frontend:\n\s+needs:\n\s+- validation\n\s+- preflight/);
 
     const aasaHeaders = vercel.headers.find(
       (entry: { source?: string }) => entry.source === "/.well-known/apple-app-site-association",
     );
-    expect(aasaHeaders?.headers).toContainEqual({
-      key: "Content-Type",
-      value: "application/json; charset=utf-8",
-    });
-
-    expect(entitlements.match(/applinks:[^<]+/g)).toEqual(["applinks:www.thetok.ch"]);
+    expect(aasaHeaders).toBeUndefined();
   });
 });
