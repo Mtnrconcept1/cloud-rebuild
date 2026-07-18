@@ -166,9 +166,12 @@ export function calculateCappedReservationFeeChf(
   acquiredReservationFeeChf: number,
   attributedTableRevenueChf: number,
 ) {
-  const fee = Math.max(0, acquiredReservationFeeChf);
-  const revenue = Math.max(0, attributedTableRevenueChf);
-  return Math.min(fee, revenue * (FAIR_GROWTH_RESERVATION_REVENUE_CAP_BPS / 10_000));
+  const feeCents = Math.max(0, Math.round(acquiredReservationFeeChf * 100));
+  const revenueCents = Math.max(0, Math.round(attributedTableRevenueChf * 100));
+  const cappedFeeCents = Math.round(
+    revenueCents * FAIR_GROWTH_RESERVATION_REVENUE_CAP_BPS / 10_000,
+  );
+  return Math.min(feeCents, cappedFeeCents) / 100;
 }
 
 export function calculateFairGrowthOrderDistribution(input: {
