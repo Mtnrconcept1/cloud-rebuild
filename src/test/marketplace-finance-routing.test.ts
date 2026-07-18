@@ -44,6 +44,10 @@ describe("TOK marketplace finance routing", () => {
     expect(checkout).toContain("delivery_pass_through_cents");
     expect(checkout).toContain("pricing_version");
     expect(checkout).toContain("sealPaymentAttemptRequest");
+    expect(finance).toContain("assertSealedMarketplaceFinanceSnapshot");
+    expect(finance).toContain('from("payment_attempts")');
+    expect(finance).toContain("assertSameSnapshotFields");
+    expect(webhook).toContain("...session.metadata");
   });
 
   it("fails closed for multi-restaurant checkout and prevents it in the cart", () => {
