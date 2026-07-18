@@ -1,4 +1,4 @@
-export const RESTAURANT_PARTNER_CONTRACT_VERSION = "TOK-CH-RP-FAIR-GROWTH-2026-07-v3";
+export const RESTAURANT_PARTNER_CONTRACT_VERSION = "TOK-CH-RP-FAIR-GROWTH-2026-07-v4";
 
 export const RESTAURANT_PARTNER_CONTRACT_TITLE =
   "Contrat de partenariat restaurateur TOK";
@@ -89,7 +89,7 @@ export const RESTAURANT_PARTNER_CONTRACT_SECTIONS = [
       "Le restaurateur assume la responsabilité des denrées, boissons, allergènes, intoxications alimentaires, informations de provenance, conformité sanitaire, erreurs de prix ou menu, commandes mal préparées, réservations non honorées, clients refusés sans motif légitime et manquements de son personnel.",
       "TOK assume la responsabilité des fautes prouvées directement imputables à sa plateforme, à ses instructions écrites ou à ses actions administrateur, sous réserve des exclusions liées aux prestataires tiers, informations fournies par le restaurateur, force majeure et usages frauduleux non signalés.",
       "Aucune partie n'est responsable des dommages indirects tels que perte de chance, perte de marge, atteinte à l'image non démontrée, perte de données non imputable ou interruption causée par un tiers, sauf faute intentionnelle, négligence grave ou responsabilité impérative prévue par la loi.",
-      "Lorsque la loi le permet, la responsabilité contractuelle totale de TOK pour un restaurant est plafonnée aux commissions nettes effectivement perçues par TOK auprès de ce restaurant pendant les trois mois précédant l'incident, sans limiter les obligations impératives, la fraude ou la faute grave.",
+      "Lorsque la loi le permet, la responsabilité contractuelle totale de TOK pour un restaurant est plafonnée aux commissions nettes effectivement perçues par TOK auprès de ce restaurant pendant les six mois précédant l'incident, sans limiter les obligations impératives, la fraude ou la faute grave.",
       "Le restaurateur indemnise TOK contre les réclamations de clients, autorités, salariés, prestataires ou tiers résultant de ses produits, contenus, informations alimentaires, violations de droits, erreurs opérationnelles, non-conformités ou usage non autorisé du compte.",
     ],
   },
