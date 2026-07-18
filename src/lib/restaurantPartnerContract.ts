@@ -1,4 +1,4 @@
-export const RESTAURANT_PARTNER_CONTRACT_VERSION = "TOK-CH-RP-2026-06-v2";
+export const RESTAURANT_PARTNER_CONTRACT_VERSION = "TOK-CH-RP-FAIR-GROWTH-2026-07-v3";
 
 export const RESTAURANT_PARTNER_CONTRACT_TITLE =
   "Contrat de partenariat restaurateur TOK";
@@ -33,13 +33,14 @@ export const RESTAURANT_PARTNER_CONTRACT_SECTIONS = [
     ],
   },
   {
-    title: "4. Annexe tarifaire, commissions, frais et facturation",
+    title: "4. Annexe tarifaire Fair Growth, commissions et facturation",
     paragraphs: [
-      "Chaque restaurant doit disposer d'une annexe tarifaire claire indiquant la commission par réservation, la commission par commande, les frais fixes, frais variables, frais de livraison, abonnements, packs de lancement, crédits IA/campagnes, frais Stripe ou prestataire, TVA applicable et éventuels minimums de facturation.",
-      "L'annexe précise qui supporte les remboursements, avoirs, bons d'achat, rétrofacturations, frais de chargeback, erreurs de prix, gestes commerciaux, frais de livraison annulée et corrections comptables selon l'origine de l'incident: client, restaurateur, TOK, livreur ou prestataire de paiement.",
-      "Les délais de versement au restaurateur, retenues de sécurité, réserves, conditions Stripe Connect, exigences KYC, soldes négatifs, rapprochements, exports et factures sont détaillés dans le dashboard ou dans l'annexe tarifaire acceptée.",
-      "Les packs promotionnels ou de lancement indiquent leur durée, leur prix de renouvellement, les fonctionnalités incluses, les limites de crédits IA/marketing, les conditions de résiliation et la date à partir de laquelle le tarif standard peut s'appliquer.",
-      "TOK peut modifier les prix avec un préavis raisonnable communiqué sur support durable ou dans le dashboard. Une modification substantielle ne s'applique pas rétroactivement aux commandes, réservations ou campagnes déjà acceptées, sauf obligation légale ou correction d'erreur manifeste.",
+      "Starter: CHF 69/mois, CHF 5 par réservation acquise par TOK et honorée, 9,9% par commande marketplace. Business: CHF 129, CHF 4.50 et 8,9%. Premium: CHF 199, CHF 4 et 7,9%. Elite: CHF 499, CHF 3 et 6,9%. L'annuel fournit douze mois de service au prix de onze mensualités.",
+      "Elite inclut trois établissements puis CHF 149/mois par site supplémentaire. Les autres plans incluent un établissement. Le plan, la période, les sites couverts, les taux et la version tarifaire sont enregistrés dans le snapshot signé.",
+      "Les réservations provenant du site du restaurant, d'un QR code attribué, d'Instagram, de Google ou du fichier client sont gratuites. Annulations, no-shows, remboursements et démonstrations sont gratuits. Une réservation TOK n'est facturée que si elle est réellement honorée et son frais est plafonné à 7% du chiffre d'affaires attribué à la table.",
+      "Le restaurant conserve au minimum 90% de la base commissionnable d'une commande et 100% des pourboires. Le développeur reçoit 1% de cette base; TOK reçoit le solde de la commission du plan et absorbe Stripe/Connect sur sa part marketplace.",
+      "Sur les frais de réservation, TOK reçoit 90% et le développeur 10%. Sur abonnements, publicité et modules, le développeur reçoit 10% du revenu TOK effectivement encaissé hors TVA, remboursements, pourboires, livraison et coûts refacturés.",
+      "Les factures ventilent le taux suisse normal de 8,1% et le taux réduit de 2,6% par ligne selon la nature de la prestation. La restauration sur place relève généralement du taux normal.",
     ],
   },
   {
@@ -244,6 +245,8 @@ export function buildRestaurantPartnerContractHashPayload(input: RestaurantPartn
     userId: displayValue(input.userId),
     restaurantId: displayValue(input.restaurantId),
     acceptanceText: displayValue(input.acceptanceText),
+    selectedSubscriptionPlanLabel: displayValue(input.selectedSubscriptionPlanLabel),
+    selectedSubscriptionPriceLabel: displayValue(input.selectedSubscriptionPriceLabel),
   });
 }
 
@@ -286,7 +289,7 @@ export function generateSignedRestaurantPartnerContractHtml(
     { label: "Numéro d'immatriculation / IDE", value: input.businessRegistrationNumber, optional: true },
     { label: "Numéro TVA", value: input.taxId, optional: true },
     { label: "Pack / abonnement accepté", value: input.selectedSubscriptionPlanLabel, optional: true },
-    { label: "Prix du pack", value: input.selectedSubscriptionPriceLabel, optional: true },
+    { label: "Tarification et période acceptées", value: input.selectedSubscriptionPriceLabel, optional: true },
     { label: "Lieu", value: input.place || input.city, optional: true },
   ]);
 
@@ -331,7 +334,7 @@ export function generateSignedRestaurantPartnerContractHtml(
   <h1>${escapeHtml(RESTAURANT_PARTNER_CONTRACT_TITLE)}</h1>
   <p class="version">Version ${escapeHtml(RESTAURANT_PARTNER_CONTRACT_VERSION)}</p>
   <div class="notice">
-    Ce document constitue la version contractuelle acceptée numériquement par le restaurateur. Les paramètres tarifaires, packs, feature flags et annexes opérationnelles acceptés dans le dashboard complètent le présent contrat.
+    Ce document constitue la version contractuelle acceptée numériquement par le restaurateur. Le snapshot Fair Growth (plan, période, prix, taux, établissements et version tarifaire) ainsi que les annexes opérationnelles acceptées complètent le présent contrat.
   </div>
   <div class="meta">
     <h2>Informations complètes du restaurateur et du signataire</h2>
