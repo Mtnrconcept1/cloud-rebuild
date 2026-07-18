@@ -51,6 +51,9 @@ const toMoney = (value: unknown) => Math.max(0, Number(value) || 0);
 type CheckoutItem = Record<string, unknown>;
 const CLIENT_STRIPE_CHECKOUT_KINDS = new Set(["order", "zero-attente", "chefs-table"]);
 const RESTAURANT_CREDIT_ONLY_CHECKOUT_KINDS = new Set(["campaign"]);
+const STRIPE_CHECKOUT_PAYMENT_METHODS = new Set(["card", "twint"]);
+const TWINT_MAX_CHECKOUT_AMOUNT_CENTS = 500_000;
+const CHECKOUT_CURRENCY = "CHF";
 
 function normalizeCheckoutKind(value: unknown) {
   return String(value || "order").trim().toLowerCase();
@@ -275,18 +278,14 @@ Deno.serve(async (req) => {
       throw new HttpError(400, error instanceof Error ? error.message : "Moyen de paiement indisponible.");
     }
 
-    switch (normalizedPaymentMethod) {
-      case "twint":
-        break;
-      case "postfinance_card":
-      case "postfinance_efinance":
-        throw new HttpError(
-          400,
-          "Les paiements PostFinance sont temporairement indisponibles. Utilisez la carte bancaire ou TWINT.",
-        );
-      case "card":
-      default:
-        break;
+    if (["postfinance_card", "postfinance_efinance"].includes(normalizedPaymentMethod)) {
+      throw new HttpError(
+        400,
+        "Les paiements PostFinance sont temporairement indisponibles. Utilisez la carte bancaire ou TWINT.",
+      );
+    }
+    if (!STRIPE_CHECKOUT_PAYMENT_METHODS.has(normalizedPaymentMethod)) {
+      throw new HttpError(400, "Moyen de paiement Stripe non pris en charge.");
     }
 
 
@@ -297,6 +296,10 @@ Deno.serve(async (req) => {
     let creditPackPurchaseId = "";
     let creditPackPurchaseDraft: Record<string, unknown> | null = null;
     let marketplaceRestaurantId = "";
+    let marketplaceDeliveryPassThroughCents = 0;
+    // Tips remain zero until a dedicated server-priced Stripe line item exists.
+    // Never trust an arbitrary client metadata amount for the restaurant's tip.
+    const marketplaceTipCents = 0;
     let restaurantOnboardingStripeCustomerId = "";
     const chefTableHoldItems: Array<{ drop_id: string; quantity: number }> = [];
     let sessionMetadata: Record<string, string> = {
@@ -974,7 +977,9 @@ Deno.serve(async (req) => {
         );
       }
       marketplaceRestaurantId = primaryRestaurantId;
-      const totalDeliveryFee = toMoney(order_metadata?.delivery_fee);
+      const totalDeliveryFee = effectiveKind === "zero-attente"
+        ? 0
+        : toMoney(order_metadata?.delivery_fee);
       const requestedPointsToRedeem = Math.max(0, Math.floor(Number(order_metadata?.points_to_redeem || 0)));
       const requestedPointsDiscount = toMoney(order_metadata?.points_discount_amount || order_metadata?.points_discount);
       const totalPointsDiscount = Math.min(requestedPointsDiscount, requestedPointsToRedeem / 100);
@@ -1007,6 +1012,7 @@ Deno.serve(async (req) => {
       allocateDiscount(totalFlexDiscount, flexByPaymentGroup);
 
       let authoritativeTotal = 0;
+      let verifiedDeliveryPassThroughTotal = 0;
       let formulaDiscountTotal = 0;
       let promoDiscountTotal = 0;
       let promoCodeDiscountTotal = 0;
@@ -1093,6 +1099,12 @@ Deno.serve(async (req) => {
         }
 
         authoritativeTotal += pricing.total;
+        verifiedDeliveryPassThroughTotal += Math.max(
+          0,
+          pricing.deliveryFee
+            - pricing.tokOneDeliveryDiscount
+            - pricing.miamzDeliveryDiscount,
+        );
         formulaDiscountTotal += pricing.formulaDiscount;
         promoDiscountTotal += pricing.promoDiscount;
         promoCodeDiscountTotal += pricing.promoCodeDiscount;
@@ -1130,6 +1142,10 @@ Deno.serve(async (req) => {
         + pointsDiscountTotal
         + flexDiscountTotal
       ) * 100);
+      marketplaceDeliveryPassThroughCents = Math.max(
+        0,
+        Math.round(verifiedDeliveryPassThroughTotal * 100),
+      );
       sessionMetadata = {
         ...sessionMetadata,
         restaurant_id: primaryRestaurantId,
@@ -1161,24 +1177,62 @@ Deno.serve(async (req) => {
     discountCents = Math.min(discountCents, totalBeforeDiscountCents);
     const finalCheckoutTotalCents = Math.max(0, totalBeforeDiscountCents - discountCents);
 
+    if (normalizedPaymentMethod === "twint") {
+      if (isSubscriptionLifecycleCheckout) {
+        throw new HttpError(400, "TWINT ne peut pas etre utilise avec ce parcours d'abonnement.");
+      }
+      if (CHECKOUT_CURRENCY !== "CHF") {
+        throw new HttpError(400, "TWINT requiert un paiement en francs suisses.");
+      }
+      if (finalCheckoutTotalCents > TWINT_MAX_CHECKOUT_AMOUNT_CENTS) {
+        throw new HttpError(400, "TWINT est limite a CHF 5'000 par paiement.");
+      }
+    }
+
+    marketplaceDeliveryPassThroughCents = Math.min(
+      marketplaceDeliveryPassThroughCents,
+      finalCheckoutTotalCents,
+    );
+    const marketplaceCommissionableCents = Math.max(
+      0,
+      finalCheckoutTotalCents
+        - marketplaceTipCents
+        - marketplaceDeliveryPassThroughCents,
+    );
+
     const marketplaceRouting = await resolveMarketplaceRouting({
       adminClient: actor.adminClient,
       checkoutKind: effectiveKind,
       restaurantId: marketplaceRestaurantId || sessionMetadata.restaurant_id,
       grossCents: finalCheckoutTotalCents,
+      commissionableCents: marketplaceCommissionableCents,
+      tipCents: marketplaceTipCents,
+      deliveryPassThroughCents: marketplaceDeliveryPassThroughCents,
       stripeMode: stripeRuntime.mode,
     });
 
     if (MARKETPLACE_CHECKOUT_KINDS.has(effectiveKind)) {
       sessionMetadata = {
         ...sessionMetadata,
+        finance_snapshot_version: "fair_growth_v1",
         finance_routing_mode: marketplaceRouting.mode,
+        gross_amount_cents: String(marketplaceRouting.grossCents),
+        commissionable_cents: String(marketplaceRouting.commissionableCents),
+        tip_cents: String(marketplaceRouting.tipCents),
+        delivery_pass_through_cents: String(marketplaceRouting.deliveryPassThroughCents),
         platform_fee_bps: String(marketplaceRouting.platformFeeBps),
         platform_fee_amount_cents: String(marketplaceRouting.platformFeeCents),
+        stripe_application_fee_amount_cents: String(marketplaceRouting.stripeApplicationFeeCents),
         restaurant_share_amount_cents: String(marketplaceRouting.restaurantShareCents),
-        developer_share_bps: String(marketplaceRouting.developerShareBps),
+        restaurant_transfer_amount_cents: String(marketplaceRouting.restaurantTransferCents),
+        developer_order_bps: String(marketplaceRouting.developerOrderBps),
+        developer_share_bps: String(marketplaceRouting.developerOrderBps),
         developer_share_amount_cents: String(marketplaceRouting.developerShareCents),
         tok_net_amount_cents: String(marketplaceRouting.tokNetRevenueCents),
+        pricing_plan_id: String(marketplaceRouting.pricingPlanId || ""),
+        pricing_plan_slug: String(marketplaceRouting.pricingPlanSlug || ""),
+        pricing_version: marketplaceRouting.pricingVersion,
+        pricing_rate_source: marketplaceRouting.pricingRateSource,
       };
     }
 
@@ -1226,6 +1280,14 @@ Deno.serve(async (req) => {
         primary_order_id: sessionMetadata.primary_order_id || null,
         order_reference: sessionMetadata.order_reference || null,
         restaurant_id: attemptRestaurantId,
+        finance_snapshot_version: sessionMetadata.finance_snapshot_version || null,
+        pricing_version: sessionMetadata.pricing_version || null,
+        platform_fee_bps: sessionMetadata.platform_fee_bps || null,
+        commissionable_cents: sessionMetadata.commissionable_cents || null,
+        tip_cents: sessionMetadata.tip_cents || null,
+        delivery_pass_through_cents: sessionMetadata.delivery_pass_through_cents || null,
+        stripe_application_fee_amount_cents:
+          sessionMetadata.stripe_application_fee_amount_cents || null,
       },
     } as const;
     let acquiredAttempt = await acquirePaymentAttempt(acquireAttemptInput);
@@ -1439,6 +1501,7 @@ Deno.serve(async (req) => {
         ? undefined
         : userEmail,
       client_reference_id: actor.userId || undefined,
+      payment_method_types: [normalizedPaymentMethod === "twint" ? "twint" : "card"],
       metadata: sessionMetadata,
     };
 
@@ -1454,6 +1517,15 @@ Deno.serve(async (req) => {
       sessionParams.line_items = lineItems;
     }
 
+    // Checkout payments capture immediately. Match Group is the only manual
+    // capture flow and is handled by authorize-match-group-order.
+    if (!isRestaurantOnboardingSetup && !isSubscriptionCheckout) {
+      sessionParams.payment_intent_data = {
+        capture_method: "automatic",
+        metadata: sessionMetadata,
+      };
+    }
+
     // A SetupIntent does not move money. Marketplace and developer revenue
     // allocation is applied only to the future subscription invoice.
     if (
@@ -1462,7 +1534,9 @@ Deno.serve(async (req) => {
       && marketplaceRouting.destinationAccountId
     ) {
       sessionParams.payment_intent_data = {
-        application_fee_amount: marketplaceRouting.platformFeeCents,
+        ...sessionParams.payment_intent_data,
+        capture_method: "automatic",
+        application_fee_amount: marketplaceRouting.stripeApplicationFeeCents,
         transfer_data: {
           destination: marketplaceRouting.destinationAccountId,
         },
