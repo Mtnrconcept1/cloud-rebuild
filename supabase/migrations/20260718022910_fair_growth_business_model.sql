@@ -3688,7 +3688,7 @@ BEGIN
 
     v_sealed_metadata := v_attempt.request_snapshot #> '{session_params,metadata}';
     IF jsonb_typeof(v_sealed_metadata) IS DISTINCT FROM 'object'
-      OR v_attempt.mode <> CASE WHEN v_event_livemode THEN 'live' ELSE 'test' END
+      OR v_attempt.mode <> (CASE WHEN v_event_livemode THEN 'live' ELSE 'test' END)
       OR lower(trim(v_attempt.kind)) <> v_kind
       OR v_attempt.restaurant_id IS DISTINCT FROM p_restaurant_id
       OR v_attempt.amount_cents IS DISTINCT FROM p_gross_cents
@@ -3794,7 +3794,7 @@ BEGIN
           OR NULLIF(trim(COALESCE(v_sealed_metadata ->> 'pricing_module_id', '')), '') IS NOT NULL
           OR NULLIF(trim(COALESCE(v_sealed_metadata ->> 'pricing_module_slug', '')), '') IS NOT NULL
           OR v_developer_order_bps <> 100
-          OR v_platform_fee_bps <> CASE COALESCE(v_sealed_metadata ->> 'pricing_plan_slug', '')
+          OR v_platform_fee_bps <> (CASE COALESCE(v_sealed_metadata ->> 'pricing_plan_slug', '')
             WHEN 'starter' THEN 990
             WHEN 'business' THEN 890
             WHEN 'pro' THEN 890
@@ -3802,7 +3802,7 @@ BEGIN
             WHEN 'elite' THEN 690
             WHEN '' THEN 990
             ELSE -1
-          END
+          END)
           OR (
             COALESCE(v_sealed_metadata ->> 'pricing_rate_source', '') = 'starter_fallback'
             AND (
