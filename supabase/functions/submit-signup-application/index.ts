@@ -2,8 +2,11 @@ import { HttpError, authenticateRequest, createAdminClient, jsonResponse, writeA
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import { createRateLimiter } from "../_shared/rate-limit.ts";
+import { getEffectiveFeatureFlagSet } from "../_shared/feature-flags.ts";
+import { isFairGrowthAnnualBillingEnabled } from "../_shared/restaurant-subscription-billing.ts";
 import {
   ACCEPTED_MIME_TYPES,
+  LEGAL_ACCEPTANCE_VERSION,
   MAX_DOCUMENT_BYTES,
   getRequiredDocumentTypes,
   validateSubmissionFields,
@@ -200,6 +203,12 @@ Deno.serve(async (req) => {
     }
     const validationError = validateSubmissionFields(role, fields);
     if (validationError) throw new HttpError(400, validationError);
+    if (role === "restaurateur" && fields.subscription_billing_period === "yearly") {
+      const activeFlags = await getEffectiveFeatureFlagSet(adminClient);
+      if (!isFairGrowthAnnualBillingEnabled(activeFlags)) {
+        throw new HttpError(503, "La facturation annuelle Fair Growth n'est pas encore activee.");
+      }
+    }
 
     const captcha = await verifyTurnstileIfConfigured(sanitizeText(form.get("captcha_token"), 1200), req);
     const limiter = createRateLimiter(adminClient, FUNCTION_NAME);
@@ -225,7 +234,7 @@ Deno.serve(async (req) => {
       privacy_policy_accepted: true,
       legal_terms_accepted_at: legalAcceptedAt,
       privacy_policy_accepted_at: legalAcceptedAt,
-      legal_acceptance_version: fields.legal_acceptance_version || "2026-06-15",
+      legal_acceptance_version: fields.legal_acceptance_version || LEGAL_ACCEPTANCE_VERSION,
       legal_acceptance_source: "auth_signup_edge",
     };
 
