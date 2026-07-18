@@ -429,7 +429,7 @@ describe("Auth signup form", () => {
             onboarding_payment_status: "payment_method_required",
             legal_terms_accepted: true,
             privacy_policy_accepted: true,
-            contract_version: "TOK-CH-RP-FAIR-GROWTH-2026-07-v3",
+            contract_version: "TOK-CH-RP-FAIR-GROWTH-2026-07-v4",
             contract_signer_name: "Marie Dupont, gérante",
             contract_signature_data_url: expect.stringContaining("data:image/png;base64,"),
             contract_content_sha256: expect.stringMatching(/^[a-f0-9]{64}$/),
@@ -540,7 +540,7 @@ describe("Auth signup form", () => {
     expect(body.get("subscription_billing_period")).toBe("monthly");
     expect(body.get("terms_accepted")).toBe("true");
     expect(body.get("privacy_policy_accepted")).toBe("true");
-    expect(body.get("contract_version")).toBe("TOK-CH-RP-FAIR-GROWTH-2026-07-v3");
+    expect(body.get("contract_version")).toBe("TOK-CH-RP-FAIR-GROWTH-2026-07-v4");
     expect(body.get("contract_signer_name")).toBe("Marie Dupont, gérante");
     expect(String(body.get("contract_signature_data_url"))).toContain("data:image/png;base64,");
     expect(body.get("document_identity_document")).toBeInstanceOf(File);
