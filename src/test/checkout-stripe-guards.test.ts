@@ -50,6 +50,27 @@ describe("checkout and Stripe webhook safety guards", () => {
     expect(createCheckoutSource).toContain("payment_method_label");
   });
 
+  it("rejects unknown checkout kinds before any Stripe runtime or pricing lookup", () => {
+    const recognizedKinds = createCheckoutSource.slice(
+      createCheckoutSource.indexOf("const RECOGNIZED_CHECKOUT_KINDS"),
+      createCheckoutSource.indexOf("const STRIPE_CHECKOUT_PAYMENT_METHODS"),
+    );
+    const guardIndex = createCheckoutSource.indexOf(
+      "if (!RECOGNIZED_CHECKOUT_KINDS.has(effectiveKind))",
+    );
+    const stripeRuntimeIndex = createCheckoutSource.indexOf(
+      "getStripeRuntimeForCheckoutKind(effectiveKind)",
+    );
+
+    expect(recognizedKinds).toContain('"order"');
+    expect(recognizedKinds).toContain('"restaurant-subscription-upgrade"');
+    expect(recognizedKinds).toContain('"restaurant-credit-pack"');
+    expect(recognizedKinds).not.toContain('"direct-order"');
+    expect(createCheckoutSource).toContain("Type de checkout non pris en charge.");
+    expect(guardIndex).toBeGreaterThan(-1);
+    expect(stripeRuntimeIndex).toBeGreaterThan(guardIndex);
+  });
+
   it("allowlists Stripe methods and keeps TWINT immediate while Match Group stays card/manual", () => {
     expect(createCheckoutSource).toContain(
       'const STRIPE_CHECKOUT_PAYMENT_METHODS = new Set(["card", "twint"])',
