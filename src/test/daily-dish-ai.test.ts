@@ -6,6 +6,7 @@ const read = (path: string) => readFileSync(new URL(`../../${path}`, import.meta
 describe("Premium daily dish AI", () => {
   const migration = read("supabase/migrations/20260718201439_daily_dish_ai.sql");
   const publicPrivacy = read("supabase/migrations/20260718203641_daily_dish_public_column_privacy.sql");
+  const demoBudget = read("supabase/migrations/20260718203923_daily_dish_demo_ai_budget_completion.sql");
   const edge = read("supabase/functions/daily-dish-ai/index.ts");
   const panel = read("src/components/dashboard/DailyDishAiPanel.tsx");
   const publicCard = read("src/components/restaurant/RestaurantDailyDishCard.tsx");
@@ -43,6 +44,9 @@ describe("Premium daily dish AI", () => {
     expect(edge).toContain('new Set(["premium", "elite", "custom"])');
     expect(edge).toContain("requireRestaurantAccess(actor, restaurantId)");
     expect(edge).toContain("resolveCommercialDemoAiContext(actor, sessionId)");
+    expect(edge).toContain("claimCommercialDemoAiRequest");
+    expect(edge).toContain("commercial_demo_ai_complete_daily_dish_request");
+    expect(demoBudget).toContain("commercial_demo_ai_requests");
     expect(edge).toContain('["commercial-demo-openai", FEATURE_NAME]');
     expect(edge).toContain("createRateLimiter");
     expect(access).toContain('label: "Plat du jour IA"');
