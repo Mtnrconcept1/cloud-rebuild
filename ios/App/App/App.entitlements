@@ -4,9 +4,6 @@
 <dict>
 	<key>com.apple.developer.associated-domains</key>
 	<array>
-		<string>applinks:tok.ch</string>
-		<string>applinks:www.tok.ch</string>
-		<string>applinks:app.tok.ch</string>
 		<string>applinks:thetok.ch</string>
 		<string>applinks:www.thetok.ch</string>
 		<string>applinks:admin.thetok.ch</string>
