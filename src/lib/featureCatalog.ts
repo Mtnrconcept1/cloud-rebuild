@@ -482,6 +482,15 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     routeTargets: ["/dashboard/menu"],
   },
   {
+    name: "daily-dish-ai",
+    label: "IA Plat du jour",
+    description: "Trois propositions quotidiennes avec recherche fournisseurs, coûts, recette et publication PhotoPro.",
+    defaultEnabled: true,
+    group: "restaurant_dashboard",
+    dependsOn: ["dashboard-restaurateur", "dashboard-menu", "ai_menu_optimizer", "ai_photo_enhancer", "ai_sales_insights"],
+    routeTargets: ["/dashboard/menu"],
+  },
+  {
     name: "dashboard-photos",
     label: "Dashboard: Photos",
     description: "Expose la gestion des photos du restaurant.",
