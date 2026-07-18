@@ -303,7 +303,7 @@ CREATE OR REPLACE FUNCTION public.resolve_swiss_vat_rate_bps(
 RETURNS integer
 LANGUAGE plpgsql
 STABLE
-SECURITY DEFINER
+SECURITY INVOKER
 SET search_path = ''
 AS $$
 DECLARE
@@ -380,6 +380,19 @@ GRANT EXECUTE ON FUNCTION public.resolve_swiss_vat_rate_bps(text, text, date)
   TO anon, authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.swiss_vat_from_tax_inclusive_cents(integer, integer)
   TO anon, authenticated, service_role;
+
+DO $fair_growth_vat_security_assertions$
+BEGIN
+  IF (
+    SELECT proc.prosecdef
+    FROM pg_catalog.pg_proc proc
+    WHERE proc.oid =
+      'public.resolve_swiss_vat_rate_bps(text,text,date)'::regprocedure
+  ) THEN
+    RAISE EXCEPTION 'Swiss VAT resolver must remain SECURITY INVOKER';
+  END IF;
+END;
+$fair_growth_vat_security_assertions$;
 
 ALTER TABLE public.menu_items
   ADD COLUMN IF NOT EXISTS tax_category text NOT NULL DEFAULT 'food';
@@ -495,6 +508,11 @@ CREATE TABLE IF NOT EXISTS public.restaurant_paid_modules (
   updated_at timestamptz NOT NULL DEFAULT now(),
   UNIQUE (restaurant_id, module_id)
 );
+
+CREATE INDEX IF NOT EXISTS restaurant_paid_modules_module_idx
+  ON public.restaurant_paid_modules (module_id);
+CREATE INDEX IF NOT EXISTS restaurant_paid_modules_requested_by_idx
+  ON public.restaurant_paid_modules (requested_by);
 
 ALTER TABLE public.fair_growth_modules ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.restaurant_paid_modules ENABLE ROW LEVEL SECURITY;
@@ -775,6 +793,9 @@ ALTER TABLE public.reservations
   ADD COLUMN IF NOT EXISTS reservation_pricing_version text,
   ADD COLUMN IF NOT EXISTS reservation_fee_waiver_reason text;
 
+CREATE INDEX IF NOT EXISTS reservations_acquisition_channel_idx
+  ON public.reservations (acquisition_channel_id);
+
 ALTER TABLE public.reservations
   DROP CONSTRAINT IF EXISTS reservations_fair_growth_source_check;
 ALTER TABLE public.reservations
@@ -851,6 +872,15 @@ ALTER TABLE public.reservation_fee_charges
   FOREIGN KEY (reservation_id, restaurant_id)
   REFERENCES public.reservations(id, restaurant_id)
   ON DELETE RESTRICT;
+
+CREATE INDEX IF NOT EXISTS reservation_fee_charges_reservation_restaurant_idx
+  ON public.reservation_fee_charges (reservation_id, restaurant_id);
+CREATE INDEX IF NOT EXISTS reservation_fee_charges_restaurant_idx
+  ON public.reservation_fee_charges (restaurant_id);
+CREATE INDEX IF NOT EXISTS reservation_fee_charges_invoice_idx
+  ON public.reservation_fee_charges (invoice_id);
+CREATE INDEX IF NOT EXISTS reservation_fee_charges_zero_revenue_reviewer_idx
+  ON public.reservation_fee_charges (zero_revenue_reviewed_by);
 
 CREATE UNIQUE INDEX IF NOT EXISTS reservation_fee_charges_id_restaurant_uidx
   ON public.reservation_fee_charges (id, restaurant_id);
@@ -933,6 +963,13 @@ ALTER TABLE public.reservation_fee_adjustments
   FOREIGN KEY (reservation_fee_charge_id, restaurant_id)
   REFERENCES public.reservation_fee_charges(id, restaurant_id)
   ON DELETE RESTRICT;
+
+CREATE INDEX IF NOT EXISTS reservation_fee_adjustments_charge_restaurant_idx
+  ON public.reservation_fee_adjustments (reservation_fee_charge_id, restaurant_id);
+CREATE INDEX IF NOT EXISTS reservation_fee_adjustments_restaurant_idx
+  ON public.reservation_fee_adjustments (restaurant_id);
+CREATE INDEX IF NOT EXISTS reservation_fee_adjustments_created_by_idx
+  ON public.reservation_fee_adjustments (created_by);
 
 ALTER TABLE public.reservation_fee_adjustments ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS reservation_fee_adjustments_owner_read ON public.reservation_fee_adjustments;
@@ -5286,7 +5323,8 @@ $fair_growth_connect_fee_assertions$;
 
 -- Finance reporting uses net recognized revenue from the double-entry ledger.
 -- Refund/dispute debits therefore reduce revenue in the same month they occur.
-CREATE OR REPLACE VIEW public.admin_platform_finance_monthly_snapshot AS
+CREATE OR REPLACE VIEW public.admin_platform_finance_monthly_snapshot
+WITH (security_invoker = true) AS
 WITH revenue AS (
   SELECT
     date_trunc('month', ledger.effective_at)::date AS period_month,
@@ -5365,15 +5403,23 @@ FULL JOIN public.marketing_budget_periods budget
 DO $fair_growth_finance_reporting_assertions$
 DECLARE
   v_definition text;
+  v_security_invoker boolean := false;
 BEGIN
   SELECT pg_get_viewdef(
     'public.admin_platform_finance_monthly_snapshot'::regclass, true
   ) INTO v_definition;
+  SELECT COALESCE(
+    relation.reloptions @> ARRAY['security_invoker=true']::text[], false
+  ) INTO v_security_invoker
+  FROM pg_catalog.pg_class relation
+  WHERE relation.oid =
+    'public.admin_platform_finance_monthly_snapshot'::regclass;
   IF position('financial_ledger' IN v_definition) = 0
     OR position('direction' IN v_definition) = 0
     OR position('platform_revenue_entries' IN v_definition) > 0
+    OR NOT v_security_invoker
   THEN
-    RAISE EXCEPTION 'Finance monthly reporting is not ledger-net';
+    RAISE EXCEPTION 'Finance monthly reporting is not ledger-net and SECURITY INVOKER';
   END IF;
 END;
 $fair_growth_finance_reporting_assertions$;
