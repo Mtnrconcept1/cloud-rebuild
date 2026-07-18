@@ -66,7 +66,7 @@ function statusLabel(status: PaidModuleRow["status"] | undefined) {
 }
 
 export default function DashboardPack() {
-  const { selectedId } = useDashboardRestaurant();
+  const { selectedId, isDemoMode } = useDashboardRestaurant();
   const queryClient = useQueryClient();
   const [requestingSlug, setRequestingSlug] = useState<string | null>(null);
 
@@ -99,7 +99,7 @@ export default function DashboardPack() {
   );
 
   const requestModule = async (module: FairGrowthModuleRow) => {
-    if (!selectedId || requestingSlug) return;
+    if (!selectedId || requestingSlug || isDemoMode) return;
     setRequestingSlug(module.slug);
     try {
       const { error } = await (supabase.rpc as any)("request_fair_growth_module", {
@@ -134,10 +134,19 @@ export default function DashboardPack() {
           visualLabel="Modules"
           stats={[
             { label: "Garantie", value: "3× en 90 jours", icon: ShieldCheck },
-            { label: "Activation", value: "Sans débit immédiat", icon: Check },
+            { label: "Activation", value: isDemoMode ? "Bloquée en démo" : "Sans débit immédiat", icon: Check },
             { label: "Pilotage", value: "À la carte", icon: Sparkles },
           ]}
         />
+
+        {isDemoMode ? (
+          <Card className="border-amber-500/30 bg-amber-500/5">
+            <CardContent className="p-5 text-sm">
+              Le catalogue reste consultable dans le restaurant Démo, mais aucune demande
+              d’activation ni facturation ne peut être créée depuis cet espace.
+            </CardContent>
+          </Card>
+        ) : null}
 
         <Card className="border-emerald-500/30 bg-emerald-500/5">
           <CardContent className="flex gap-3 p-5">
@@ -162,7 +171,7 @@ export default function DashboardPack() {
             {(modulesQuery.data || []).map((module) => {
               const subscription = subscriptionsByModule.get(module.id);
               const pending = requestingSlug === module.slug;
-              const canRequest = !subscription || subscription.status === "cancelled";
+              const canRequest = !isDemoMode && (!subscription || subscription.status === "cancelled");
 
               return (
                 <Card key={module.id} className="flex h-full flex-col">
@@ -195,7 +204,11 @@ export default function DashboardPack() {
                       onClick={() => requestModule(module)}
                     >
                       {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                      {canRequest ? "Demander l'activation" : statusLabel(subscription?.status)}
+                      {isDemoMode
+                        ? "Indisponible en démonstration"
+                        : canRequest
+                          ? "Demander l'activation"
+                          : statusLabel(subscription?.status)}
                     </Button>
                   </CardContent>
                 </Card>
