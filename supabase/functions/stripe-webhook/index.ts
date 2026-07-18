@@ -1097,6 +1097,24 @@ async function syncRestaurantSubscriptionRecord(input: {
     return { updated: false, row: null };
   }
 
+  const stripeSubscriptionAmountCents = Number(
+    subscription.items?.data?.[0]?.price?.unit_amount,
+  );
+  if (
+    !Number.isSafeInteger(stripeSubscriptionAmountCents)
+    || stripeSubscriptionAmountCents <= 0
+    || stripeSubscriptionAmountCents !== Number(pricingSnapshot.billing_amount_cents_snapshot)
+  ) {
+    log?.error?.("restaurant_subscription_stripe_amount_snapshot_mismatch", {
+      restaurantId,
+      planId: plan.id,
+      billingPeriod,
+      stripeSubscriptionAmountCents,
+      snapshotAmountCents: pricingSnapshot.billing_amount_cents_snapshot,
+    });
+    return { updated: false, row: null };
+  }
+
   const stripeSubscriptionScheduleId = getStripeSubscriptionScheduleId(subscription.schedule);
   const normalizedStatus = normalizeRestaurantSubscriptionStatus(subscription.status);
   const isDeferredOnboardingSubscription = checkoutKind === "restaurant-onboarding"
