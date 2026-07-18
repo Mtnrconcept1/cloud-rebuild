@@ -71,8 +71,8 @@ describe("commercial multi-space OpenAI console", () => {
     expect(fairGrowthMigration).toContain("sum(request.provider_attempt_count)");
     expect(fairGrowthMigration).toContain("v_commercial_calls + 1 > 60");
     expect(fairGrowthMigration).toContain("v_global_calls + 1 > 600");
-    expect(fairGrowthMigration).toContain("v_commercial_budget_chf + v_attempt_reservation_chf > 10.00");
-    expect(fairGrowthMigration).toContain("v_global_budget_chf + v_attempt_reservation_chf > 100.00");
+    expect(fairGrowthMigration).toContain("v_commercial_budget_chf + v_minimum_reservation_chf > 10.00");
+    expect(fairGrowthMigration).toContain("v_global_budget_chf + v_minimum_reservation_chf > 100.00");
     expect(fairGrowthMigration).toContain("'state', 'budget_exhausted'");
     expect(edge).toContain('claim.state === "disabled"');
   });
