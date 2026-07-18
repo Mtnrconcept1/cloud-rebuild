@@ -33,14 +33,21 @@ export function inspectReleaseReadiness(options = {}) {
   const strict = typeof options.strict === "boolean"
     ? options.strict
     : isTruthy(env.RELEASE_READINESS_STRICT);
+  const target = clean(options.target || env.RELEASE_READINESS_TARGET).toLowerCase() || "full";
 
   const errors = [];
   const warnings = [];
   const report = createReporter({ errors, warnings, strict });
 
+  if (!["full", "web"].includes(target)) {
+    report.required("RELEASE_READINESS_TARGET must be either full or web.");
+  }
+
   inspectStripe(env, report);
-  inspectMobileAssociations(root, env, report);
-  inspectAndroidSigning(root, env, report);
+  if (target === "full") {
+    inspectMobileAssociations(root, env, report);
+    inspectAndroidSigning(root, env, report);
+  }
   inspectEdgeSecrets(env, report);
   inspectFirebaseServiceAccount(env, report);
   inspectSupabaseAuthSecurity(env, report);
@@ -48,6 +55,7 @@ export function inspectReleaseReadiness(options = {}) {
   return {
     ok: errors.length === 0,
     strict,
+    target,
     errors,
     warnings,
   };
@@ -268,6 +276,7 @@ function printResult(result) {
   console.log("Release readiness");
   console.log("=================");
   console.log(`Mode: ${result.strict ? "strict" : "advisory"}`);
+  console.log(`Target: ${result.target}`);
   console.log(`Result: ${result.ok ? "OK" : "FAIL"}`);
 
   for (const error of result.errors) {
@@ -284,7 +293,9 @@ const isMain = process.argv[1] && fileURLToPath(import.meta.url) === path.resolv
 if (isMain) {
   const args = process.argv.slice(2);
   const strict = args.includes("--strict") ? true : undefined;
-  const result = inspectReleaseReadiness({ strict });
+  const targetArgument = args.find((argument) => argument.startsWith("--target="));
+  const target = targetArgument ? targetArgument.slice("--target=".length) : undefined;
+  const result = inspectReleaseReadiness({ strict, target });
   printResult(result);
   process.exit(result.ok ? 0 : 1);
 }
