@@ -912,9 +912,12 @@ function buildRestaurantScheduledPlanChange(
     };
   }
 
-  if (pendingChange === "downgrade_at_period_end") {
+  if (
+    pendingChange === "plan_change_at_period_end"
+    || pendingChange === "downgrade_at_period_end"
+  ) {
     return {
-      action: "downgrade",
+      action: "change_plan",
       target_plan_id: String(metadata.pending_restaurant_subscription_plan_id || ""),
       target_plan_slug: String(metadata.pending_restaurant_subscription_plan_slug || ""),
       target_plan_name: String(metadata.pending_restaurant_subscription_plan_name || ""),
