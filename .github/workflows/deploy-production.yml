@@ -269,14 +269,6 @@ jobs:
       RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
       EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
       ALLOWED_ORIGINS: ${{ secrets.ALLOWED_ORIGINS }}
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      OPENAI_MODEL: ${{ secrets.OPENAI_MODEL }}
-      OPENAI_IMAGE_TIMEOUT_MS: ${{ secrets.OPENAI_IMAGE_TIMEOUT_MS }}
-      TOK_IMAGE_FAST_INTERACTIVE: ${{ secrets.TOK_IMAGE_FAST_INTERACTIVE }}
-      TOK_INTERACTIVE_IMAGE_TIMEOUT_MS: ${{ secrets.TOK_INTERACTIVE_IMAGE_TIMEOUT_MS }}
-      TOK_AI_IMAGE_BUCKET: ${{ secrets.TOK_AI_IMAGE_BUCKET }}
-      TOK_GALLERY_IMAGE_BUCKET: ${{ secrets.TOK_GALLERY_IMAGE_BUCKET }}
-      TOK_SOURCE_IMAGE_TIMEOUT_MS: ${{ secrets.TOK_SOURCE_IMAGE_TIMEOUT_MS }}
       FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
       FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
       FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
@@ -307,6 +299,8 @@ jobs:
           ${{ needs.validation.outputs.deploy_functions == 'true' ||
               needs.validation.outputs.sync_supabase_secrets == 'true' }}
         shell: bash
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           set -euo pipefail
           if [[ -z "$OPENAI_API_KEY" ]]; then
@@ -318,6 +312,15 @@ jobs:
         if: >-
           ${{ needs.validation.outputs.deploy_functions == 'true' ||
               needs.validation.outputs.sync_supabase_secrets == 'true' }}
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ secrets.OPENAI_MODEL }}
+          OPENAI_IMAGE_TIMEOUT_MS: ${{ secrets.OPENAI_IMAGE_TIMEOUT_MS }}
+          TOK_IMAGE_FAST_INTERACTIVE: ${{ secrets.TOK_IMAGE_FAST_INTERACTIVE }}
+          TOK_INTERACTIVE_IMAGE_TIMEOUT_MS: ${{ secrets.TOK_INTERACTIVE_IMAGE_TIMEOUT_MS }}
+          TOK_AI_IMAGE_BUCKET: ${{ secrets.TOK_AI_IMAGE_BUCKET }}
+          TOK_GALLERY_IMAGE_BUCKET: ${{ secrets.TOK_GALLERY_IMAGE_BUCKET }}
+          TOK_SOURCE_IMAGE_TIMEOUT_MS: ${{ secrets.TOK_SOURCE_IMAGE_TIMEOUT_MS }}
         run: node ./scripts/write-supabase-secrets-env.mjs --out=${RUNNER_TEMP}/supabase.functions.env
 
       - name: Link Supabase production project
@@ -333,6 +336,14 @@ jobs:
         run: |
           source ./scripts/supabase-ci-retry.sh
           supabase_ci_retry secrets set --env-file "${RUNNER_TEMP}/supabase.functions.env" --project-ref "$SUPABASE_PROJECT_REF"
+
+      - name: Remove Supabase function secrets env
+        if: >-
+          ${{ always() &&
+              (needs.validation.outputs.deploy_functions == 'true' ||
+               needs.validation.outputs.sync_supabase_secrets == 'true') }}
+        shell: bash
+        run: rm -f -- "${RUNNER_TEMP}/supabase.functions.env"
 
       - name: Push database migrations
         if: ${{ needs.validation.outputs.deploy_database == 'true' }}
