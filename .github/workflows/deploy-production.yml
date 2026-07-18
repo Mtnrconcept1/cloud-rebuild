@@ -485,6 +485,48 @@ jobs:
           commercial.thetok.ch
           --token="$VERCEL_TOKEN"
 
+      - name: Verify Apple Universal Links endpoint
+        shell: bash
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          set -euo pipefail
+          workdir="$(mktemp -d)"
+          trap 'rm -rf -- "$workdir"' EXIT
+          url="https://www.thetok.ch/.well-known/apple-app-site-association"
+
+          for attempt in 1 2 3 4 5 6; do
+            status="$(curl --silent --show-error \
+              --connect-timeout 10 \
+              --max-time 20 \
+              --dump-header "$workdir/headers" \
+              --output "$workdir/body" \
+              --write-out "%{http_code}" \
+              "$url" || true)"
+
+            content_type="$(awk 'BEGIN { IGNORECASE=1 } /^content-type:/ {
+              gsub("\\r", "")
+              sub(/^[^:]+:[[:space:]]*/, "")
+              print
+              exit
+            }' "$workdir/headers")"
+
+            if [[ "$status" == "200" && "$content_type" == application/json* ]] &&
+               jq -e --arg app_id "${APPLE_TEAM_ID}.com.tok.app" \
+                 '(.applinks.details | length) == 1 and .applinks.details[0].appIDs == [$app_id]' \
+                 "$workdir/body" >/dev/null; then
+              echo "Apple Universal Links endpoint verified."
+              exit 0
+            fi
+
+            if [[ "$attempt" -lt 6 ]]; then
+              sleep 5
+            fi
+          done
+
+          echo "::error::Apple Universal Links endpoint did not expose the verified production association."
+          exit 1
+
   deployment_gate:
     name: deployment-gate
     if: ${{ always() }}
