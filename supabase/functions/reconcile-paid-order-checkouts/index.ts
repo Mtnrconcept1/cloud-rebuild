@@ -211,7 +211,10 @@ Deno.serve(async (req) => {
             grossCents: Number(session.amount_total || 0),
             currency: session.currency || "chf",
             livemode: (session as Stripe.Checkout.Session & { livemode?: boolean }).livemode !== false,
-            metadata: { reconciliation_source: "reconcile-paid-order-checkouts" },
+            metadata: {
+              ...session.metadata,
+              reconciliation_source: "reconcile-paid-order-checkouts",
+            },
             log,
           });
           const attempt = attemptBySessionId.get(session.id);
