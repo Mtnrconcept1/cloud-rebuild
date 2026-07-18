@@ -42,6 +42,9 @@ type OpenAIRequestOptions = {
   maxOutputTokens?: number;
   temperature?: number;
   jsonSchema?: OpenAIJsonSchema;
+  tools?: Array<Record<string, unknown>>;
+  include?: string[];
+  reasoning?: Record<string, unknown>;
   timeoutMs?: number;
 };
 
@@ -124,6 +127,18 @@ export async function createOpenAIResponse(options: OpenAIRequestOptions) {
 
   if (typeof options.temperature === "number") {
     payload.temperature = options.temperature;
+  }
+
+  if (options.tools?.length) {
+    payload.tools = options.tools;
+  }
+
+  if (options.include?.length) {
+    payload.include = options.include;
+  }
+
+  if (options.reasoning && Object.keys(options.reasoning).length > 0) {
+    payload.reasoning = options.reasoning;
   }
 
   const controller = new AbortController();
