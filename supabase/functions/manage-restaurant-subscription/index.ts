@@ -12,6 +12,7 @@ import {
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import { getStripeRuntimeForCheckoutKind } from "../_shared/stripe-client.ts";
+import { FAIR_GROWTH_ANNUAL_MONTHS_CHARGED } from "../_shared/restaurant-subscription-billing.ts";
 
 type JsonRecord = Record<string, unknown>;
 type SubscriptionAction = "cancel" | "resume" | "downgrade";
@@ -140,7 +141,7 @@ function getBillingInterval(billingPeriod: string | null | undefined): "month" |
 
 function getRecurringAmountCents(plan: RestaurantSubscriptionPlanRow, billingPeriod: string | null | undefined) {
   const monthlyAmount = toPositiveNumber(plan.price_monthly_chf);
-  const multiplier = billingPeriod === "yearly" ? 12 : 1;
+  const multiplier = billingPeriod === "yearly" ? FAIR_GROWTH_ANNUAL_MONTHS_CHARGED : 1;
   return Math.round(monthlyAmount * multiplier * 100);
 }
 
@@ -503,6 +504,11 @@ Deno.serve(async (req) => {
           restaurant_subscription_plan_id: targetPlan.id,
           restaurant_subscription_plan_slug: targetPlan.slug,
           billing_period: subscription.billing_period === "yearly" ? "yearly" : "monthly",
+          annual_months_charged: subscription.billing_period === "yearly"
+            ? String(FAIR_GROWTH_ANNUAL_MONTHS_CHARGED)
+            : "1",
+          service_months: subscription.billing_period === "yearly" ? "12" : "1",
+          entitlement_reset_period: "monthly",
         },
       });
       targetStripePriceId = targetPrice.id;
@@ -551,6 +557,11 @@ Deno.serve(async (req) => {
                 plan_id: targetPlan.id,
                 plan_slug: targetPlan.slug,
                 billing_period: subscription.billing_period === "yearly" ? "yearly" : "monthly",
+                annual_months_charged: subscription.billing_period === "yearly"
+                  ? String(FAIR_GROWTH_ANNUAL_MONTHS_CHARGED)
+                  : "1",
+                service_months: subscription.billing_period === "yearly" ? "12" : "1",
+                entitlement_reset_period: "monthly",
               },
               proration_behavior: "none",
             },
