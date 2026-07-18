@@ -105,6 +105,19 @@ describe("release readiness inspection", () => {
     expect(result.errors.join("\n")).not.toMatch(/Apple|Android|assetlinks|keystore/i);
   });
 
+  it("fails closed on an unknown release readiness target", () => {
+    const root = makeFixture("unknown-target");
+    const result = inspectReleaseReadiness({
+      root,
+      target: "web-ish",
+      env: {},
+      strict: true,
+    });
+
+    expect(result.ok).toBe(false);
+    expect(result.errors).toContain("RELEASE_READINESS_TARGET must be either full or web.");
+  });
+
   it("accepts configured app links, mobile signing, and critical production secrets", () => {
     const root = makeFixture("ready");
     writeJson(root, "public/.well-known/apple-app-site-association", {
