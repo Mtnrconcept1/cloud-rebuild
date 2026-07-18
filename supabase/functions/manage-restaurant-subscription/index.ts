@@ -530,9 +530,8 @@ Deno.serve(async (req) => {
       const expandedSchedule = isJsonRecord(stripeSubscription.schedule)
         ? stripeSubscription.schedule
         : null;
-      const activeScheduleId = getStripeScheduleId(expandedSchedule)
-        || subscription.stripe_subscription_schedule_id
-        || null;
+      const activeScheduleId = getStripeScheduleId(expandedSchedule);
+      stripeScheduleId = activeScheduleId;
       const activeScheduleMetadata = getStripeScheduleMetadata(expandedSchedule);
       const localScheduledChange = isJsonRecord(subscription.scheduled_plan_change)
         ? subscription.scheduled_plan_change
