@@ -977,8 +977,8 @@ function LiveDashboardReservations() {
                                 const refundSnapshot = getReservationRefundSnapshot(reservation);
                                 const opsSnapshot = getReservationOpsSnapshot(reservation);
                                 const isArrived = reservation.status === "arrived";
-                  const canCloseTable = ["arrived", "seated", "completed"].includes(String(reservation.status));
-                  const isHonored = Boolean(reservation.honored_at);
+                                const canCloseTable = ["arrived", "seated", "completed"].includes(String(reservation.status));
+                                const isHonored = Boolean(reservation.honored_at);
                                 const isReservationLocked = Boolean(statusLockMessage);
                                 const isCardLocked = isReservationLocked || isArrived;
                                 const isConfirmedAck = reservation.status === "confirmed";
