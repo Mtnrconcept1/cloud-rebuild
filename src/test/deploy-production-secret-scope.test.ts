@@ -31,6 +31,11 @@ describe("production deployment secret scope", () => {
   const preflightSupabaseAuth = section(
     preflight,
     "      - name: Enforce and verify Supabase leaked-password protection",
+    "      - name: Verify Supabase Vault cron and email provider configuration",
+  );
+  const preflightRuntimeSecurity = section(
+    preflight,
+    "      - name: Verify Supabase Vault cron and email provider configuration",
     "      - name: Release readiness",
   );
   const deploySupabase = section(workflow, "  deploy_supabase:", "  deploy_frontend:");
@@ -84,14 +89,12 @@ describe("production deployment secret scope", () => {
   it("exposes function-provider secrets only while writing the private env file", () => {
     const expectedFunctionSecrets = [
       "ALLOWED_ORIGINS",
-      "EMAIL_FROM",
       "FIREBASE_CLIENT_EMAIL",
       "FIREBASE_PRIVATE_KEY",
       "FIREBASE_PROJECT_ID",
       "FIREBASE_SERVICE_ACCOUNT",
       "FIREBASE_TOKEN_URI",
       "FIRECRAWL_API_KEY",
-      "INTERNAL_CRON_SECRET",
       "OPENAI_API_KEY",
       "OPENAI_IMAGE_TIMEOUT_MS",
       "OPENAI_MODEL",
@@ -157,10 +160,17 @@ describe("production deployment secret scope", () => {
     expect(workflow).not.toContain("write-apple-app-site-association.mjs");
     expect(workflow).toContain('RELEASE_READINESS_TARGET: "web"');
     expect(secretEnvironmentNames(preflightSupabaseAuth)).toEqual(["SUPABASE_ACCESS_TOKEN"]);
+    expect(secretEnvironmentNames(preflightRuntimeSecurity)).toEqual(["SUPABASE_ACCESS_TOKEN"]);
     expect(preflightSupabaseAuth).not.toContain("SUPABASE_DB_PASSWORD");
+    expect(preflightRuntimeSecurity).not.toContain("SUPABASE_DB_PASSWORD");
     expect(preflightSupabaseAuth).not.toContain("SUPABASE_SERVICE_ROLE_KEY");
+    expect(preflightRuntimeSecurity).not.toContain("SUPABASE_SERVICE_ROLE_KEY");
     expect(preflightSupabaseAuth).toContain("id: supabase_auth_security");
     expect(preflightSupabaseAuth).toContain("ensure-supabase-auth-security.mjs");
+    expect(preflightRuntimeSecurity).toContain("id: supabase_runtime_security");
+    expect(preflightRuntimeSecurity).toContain("verify-supabase-runtime-security.mjs");
+    expect(workflow).not.toContain("INTERNAL_CRON_SECRET: ${{ secrets.");
+    expect(workflow).not.toContain("EMAIL_FROM: ${{ secrets.");
     expect(buildFrontend).toMatch(/needs:\n\s+- validation\n\s+- preflight/);
   });
 
