@@ -58,6 +58,21 @@ describe("production preflight hardening", () => {
     })).toThrow("unexpected bundle ID");
   });
 
+  it("keeps the Apple association output inside the repository", () => {
+    const root = fixture("aasa-output-boundary");
+
+    expect(() => writeAppleAppSiteAssociation({
+      root,
+      teamId: "TEAM123456",
+      output: "../outside/apple-app-site-association",
+    })).toThrow("inside the repository");
+    expect(() => writeAppleAppSiteAssociation({
+      root,
+      teamId: "TEAM123456",
+      output: path.resolve(root, "absolute/apple-app-site-association"),
+    })).toThrow("repository-relative");
+  });
+
   it("does not mutate Supabase when leaked-password protection is already active", async () => {
     const calls: Array<{ url: string; init: RequestInit }> = [];
     const fetchImpl = vi.fn(async (url: string, init: RequestInit) => {
@@ -181,10 +196,6 @@ describe("production preflight hardening", () => {
       value: "application/json; charset=utf-8",
     });
 
-    expect(entitlements).not.toContain("applinks:tok.ch");
-    expect(entitlements).not.toContain("applinks:www.tok.ch");
-    expect(entitlements).not.toContain("applinks:app.tok.ch");
-    expect(entitlements).toContain("applinks:thetok.ch");
-    expect(entitlements).toContain("applinks:www.thetok.ch");
+    expect(entitlements.match(/applinks:[^<]+/g)).toEqual(["applinks:www.thetok.ch"]);
   });
 });
