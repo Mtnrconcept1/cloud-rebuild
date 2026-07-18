@@ -876,7 +876,7 @@ export async function buildVerifiedOrderPricing(input: {
   reservationDate?: string;
   reservationTime?: string;
 }) : Promise<VerifiedOrderPricing> {
-  const deliveryFee = roundCurrency(Math.max(0, toNumber(input.deliveryFee)));
+  const requestedDeliveryFee = roundCurrency(Math.max(0, toNumber(input.deliveryFee)));
   const metadata = (input.metadata && typeof input.metadata === "object" && !Array.isArray(input.metadata))
     ? input.metadata
     : {};
@@ -916,7 +916,7 @@ export async function buildVerifiedOrderPricing(input: {
   const [restaurantRes, activeFlags, menuItemsRes, antiWasteRes, flashSalesRes, formulasRes, promotionsRes, profileRes] = await Promise.all([
     input.adminClient
       .from("restaurants")
-      .select("id, delivery_available, supports_pickup, supports_reservation, supports_dinein, disabled_payment_methods")
+      .select("id, delivery_available, delivery_fee, supports_pickup, supports_reservation, supports_dinein, disabled_payment_methods")
       .eq("id", input.restaurantId)
       .maybeSingle(),
     getEffectiveFeatureFlagSet(input.adminClient),
@@ -968,6 +968,21 @@ export async function buildVerifiedOrderPricing(input: {
 
   const restaurantConfig = restaurantRes.data;
   if (!restaurantConfig) throw new Error("Restaurant introuvable.");
+
+  const configuredDeliveryFee = roundCurrency(
+    Math.max(0, toNumber(restaurantConfig.delivery_fee)),
+  );
+  const deliveryFee = isDeliveryJourney ? configuredDeliveryFee : 0;
+  if (
+    isDeliveryJourney
+    && Math.abs(requestedDeliveryFee - configuredDeliveryFee) > 0.009
+  ) {
+    console.warn("ORDER_DELIVERY_FEE_REPRICED", {
+      restaurant_id: input.restaurantId,
+      requested_delivery_fee: requestedDeliveryFee,
+      configured_delivery_fee: configuredDeliveryFee,
+    });
+  }
 
   assertPaymentMethodAllowed({
     activeFlags,
