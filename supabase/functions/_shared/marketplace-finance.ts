@@ -189,7 +189,7 @@ async function resolveFairGrowthPricingSnapshot(input: {
   const { data: subscription, error: subscriptionError } = await input.adminClient
     .from("restaurant_ai_subscriptions")
     .select(
-      "restaurant_subscription_plan_id, plan, status, marketplace_commission_bps_snapshot, developer_order_bps_snapshot, pricing_version_snapshot",
+      "restaurant_subscription_plan_id, plan, status, current_period_end, marketplace_commission_bps_snapshot, developer_order_bps_snapshot, pricing_version_snapshot",
     )
     .eq("restaurant_id", input.restaurantId)
     .maybeSingle();
@@ -198,7 +198,15 @@ async function resolveFairGrowthPricingSnapshot(input: {
     throw new HttpError(500, subscriptionError.message);
   }
 
-  if (subscription && ENTITLED_SUBSCRIPTION_STATUSES.has(String(subscription.status || ""))) {
+  const currentPeriodEndMs = Date.parse(String(subscription?.current_period_end || ""));
+  const hasCurrentPaidEntitlement = Boolean(
+    subscription
+    && ENTITLED_SUBSCRIPTION_STATUSES.has(String(subscription.status || ""))
+    && Number.isFinite(currentPeriodEndMs)
+    && currentPeriodEndMs > Date.now(),
+  );
+
+  if (subscription && hasCurrentPaidEntitlement) {
     const snapshotRate = toOptionalBasisPoints(
       subscription.marketplace_commission_bps_snapshot,
       "subscription_marketplace_commission_bps_snapshot",
