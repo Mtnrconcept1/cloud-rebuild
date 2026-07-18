@@ -2576,6 +2576,7 @@ Deno.serve(async (req) => {
           currency: session.currency || "chf",
           livemode: event.livemode,
           metadata: {
+            ...session.metadata,
             payment_status: session.payment_status,
             finance_routing_mode: session.metadata?.finance_routing_mode || "legacy_manual",
             demo_environment: session.metadata?.demo_environment || null,
