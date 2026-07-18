@@ -17,6 +17,10 @@ describe("Premium daily dish AI", () => {
   const openai = read("supabase/functions/_shared/openai.ts");
 
   it("keeps planning and supplier costs server-private while exposing only the selected dish", () => {
+    const publicDishTable = migration.match(
+      /CREATE TABLE public\.restaurant_daily_dishes \(([\s\S]*?)\n\);/,
+    )?.[1] ?? "";
+
     expect(migration).toContain("CREATE TABLE public.restaurant_daily_dish_settings");
     expect(migration).toContain("CREATE TABLE public.restaurant_daily_dish_runs");
     expect(migration).toContain("CREATE TABLE public.restaurant_daily_dish_variants");
@@ -27,7 +31,8 @@ describe("Premium daily dish AI", () => {
     expect(publicPrivacy).toContain("GRANT SELECT (");
     expect(publicPrivacy).not.toContain("published_by,");
     expect(publicPrivacy).not.toContain("variant_id,");
-    expect(migration).not.toMatch(/restaurant_daily_dishes[\s\S]{0,700}(recipe|basket|estimated_total_cost)/i);
+    expect(publicDishTable).not.toBe("");
+    expect(publicDishTable).not.toMatch(/recipe|basket|estimated_total_cost/i);
   });
 
   it("makes generation and publication idempotent and server-authoritative", () => {
