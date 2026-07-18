@@ -91,15 +91,15 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
   {
     name: "payment-postfinance-card",
     label: "Paiement PostFinance Card",
-    description: "Active PostFinance Card dans les parcours checkout et campagnes.",
-    defaultEnabled: true,
+    description: "Réservé : reste coupé tant que le parcours Stripe et les remboursements ne sont pas validés.",
+    defaultEnabled: false,
     group: "payments",
   },
   {
     name: "payment-postfinance-efinance",
     label: "Paiement PostFinance E-Finance",
-    description: "Active PostFinance E-Finance dans les parcours checkout et campagnes.",
-    defaultEnabled: true,
+    description: "Réservé : reste coupé tant que le parcours Stripe et les remboursements ne sont pas validés.",
+    defaultEnabled: false,
     group: "payments",
   },
   {
