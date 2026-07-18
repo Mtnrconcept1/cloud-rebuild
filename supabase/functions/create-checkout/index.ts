@@ -59,6 +59,19 @@ const toMoney = (value: unknown) => Math.max(0, Number(value) || 0);
 type CheckoutItem = Record<string, unknown>;
 const CLIENT_STRIPE_CHECKOUT_KINDS = new Set(["order", "zero-attente", "chefs-table"]);
 const RESTAURANT_CREDIT_ONLY_CHECKOUT_KINDS = new Set(["campaign"]);
+const RECOGNIZED_CHECKOUT_KINDS = new Set([
+  "order",
+  "zero-attente",
+  "chefs-table",
+  "restaurant-onboarding",
+  "restaurant-subscription-upgrade",
+  "restaurant-credit-pack",
+  "tok-one",
+  // Retain legacy kinds only so their explicit, user-facing rejection paths
+  // below remain reachable. They never proceed to Stripe.
+  "launch-pack",
+  "campaign",
+]);
 const STRIPE_CHECKOUT_PAYMENT_METHODS = new Set(["card", "twint"]);
 const TWINT_MAX_CHECKOUT_AMOUNT_CENTS = 500_000;
 const CHECKOUT_CURRENCY = "CHF";
@@ -231,6 +244,9 @@ Deno.serve(async (req) => {
         400,
         "Les commandes de demonstration commerciale utilisent exclusivement le paiement Stripe Test dedie.",
       );
+    }
+    if (!RECOGNIZED_CHECKOUT_KINDS.has(effectiveKind)) {
+      throw new HttpError(400, "Type de checkout non pris en charge.");
     }
     const normalizedPaymentMethod = normalizePaymentMethod(payment_method);
     if (RESTAURANT_CREDIT_ONLY_CHECKOUT_KINDS.has(effectiveKind)) {
