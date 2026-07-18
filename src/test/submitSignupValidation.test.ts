@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   ACCEPTED_MIME_TYPES,
   MAX_DOCUMENT_BYTES,
+  LEGAL_ACCEPTANCE_VERSION,
   RESTAURANT_PARTNER_CONTRACT_VERSION,
   getRequiredDocumentTypes,
   validateSubmissionFields,
@@ -35,7 +36,7 @@ describe("submit-signup-application validation", () => {
       full_name: "A", iban: "CH..", business_registration_number: "CHE..", business_name: "x",
       legal_name: "y", restaurant_name: "z", phone: "1", city: "c", address: "a",
       subscription_plan_id: "plan-1", subscription_billing_period: "monthly",
-      terms_accepted: "true", privacy_policy_accepted: "true",
+      terms_accepted: "true", privacy_policy_accepted: "true", legal_acceptance_version: LEGAL_ACCEPTANCE_VERSION,
       contract_signer_name: "Marie Dupont", contract_signature_data_url: VALID_SIGNATURE_DATA_URL, contract_version: RESTAURANT_PARTNER_CONTRACT_VERSION,
     })).toBeNull();
   });
@@ -53,6 +54,7 @@ describe("submit-signup-application validation", () => {
       iban: "CH9300762011623852957",
       terms_accepted: "true",
       privacy_policy_accepted: "true",
+      legal_acceptance_version: LEGAL_ACCEPTANCE_VERSION,
       contract_signer_name: "Marie Dupont",
       contract_signature_data_url: VALID_SIGNATURE_DATA_URL,
       contract_version: RESTAURANT_PARTNER_CONTRACT_VERSION,
@@ -95,6 +97,7 @@ describe("submit-signup-application validation", () => {
       iban: "CH9300762011623852957",
       terms_accepted: "true",
       privacy_policy_accepted: "true",
+      legal_acceptance_version: LEGAL_ACCEPTANCE_VERSION,
       subscription_plan_id: "plan-1",
       subscription_billing_period: "monthly",
       contract_signer_name: "Marie Dupont",
