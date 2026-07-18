@@ -20,6 +20,8 @@ type CreateReservationPayload = {
   party_size?: number;
   feature?: string;
   metadata?: Record<string, unknown>;
+  acquisition_source?: string | null;
+  acquisition_channel_token?: string | null;
   notes?: string | null;
   progressive_offer_id?: string | null;
 };
@@ -30,6 +32,22 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function isUuid(value: unknown) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(value || ""));
+}
+
+const ATTRIBUTION_METADATA_KEYS = new Set([
+  "acquisition_source",
+  "acquisition_channel_id",
+  "acquisition_channel_token",
+  "reservation_fee_chf",
+  "billing_fee_chf",
+  "honored_at",
+  "attributed_table_revenue_chf",
+]);
+
+function sanitizeReservationMetadata(value: Record<string, unknown>) {
+  return Object.fromEntries(
+    Object.entries(value).filter(([key]) => !ATTRIBUTION_METADATA_KEYS.has(key)),
+  );
 }
 
 function getFirstRow<T>(data: T[] | T | null | undefined): T | null {
@@ -89,7 +107,11 @@ Deno.serve(async (req) => {
     const time = String(body.time || "").trim().slice(0, 5);
     const partySize = Math.max(1, Math.floor(Number(body.party_size || 0)));
     const feature = String(body.feature || "classique").trim() || "classique";
-    const metadata = isRecord(body.metadata) ? body.metadata : {};
+    const metadata = sanitizeReservationMetadata(isRecord(body.metadata) ? body.metadata : {});
+    const requestedAcquisitionSource = String(body.acquisition_source || "").trim().toLowerCase();
+    const acquisitionChannelToken = String(body.acquisition_channel_token || "").trim();
+    let acquisitionSource = "tok_marketplace";
+    let acquisitionChannelId: string | null = null;
     const notes = typeof body.notes === "string" ? body.notes : null;
     const progressiveOfferId = body.progressive_offer_id && isUuid(body.progressive_offer_id)
       ? body.progressive_offer_id
@@ -104,6 +126,71 @@ Deno.serve(async (req) => {
       throw new HttpError(400, "party_size invalide");
     }
 
+    if (requestedAcquisitionSource) {
+      if (requestedAcquisitionSource === "google") {
+        if (!acquisitionChannelToken || acquisitionChannelToken.length > 160) {
+          throw new HttpError(400, "Jeton de canal Google invalide.");
+        }
+
+        const { data: resolvedData, error: resolvedError } = await actor.adminClient.rpc(
+          "resolve_google_booking_slug",
+          { p_booking_slug: acquisitionChannelToken },
+        );
+        const resolved = getFirstRow<{
+          restaurant_id: string;
+          booking_slug: string;
+          is_active: boolean | null;
+          status: string | null;
+          supports_reservation: boolean | null;
+        }>(resolvedData);
+
+        if (
+          resolvedError
+          || !resolved
+          || resolved.restaurant_id !== restaurantId
+          || resolved.booking_slug !== acquisitionChannelToken
+          || !resolved.is_active
+          || !resolved.supports_reservation
+          || ["archived", "suspended", "paused"].includes(String(resolved.status || "").toLowerCase())
+        ) {
+          throw new HttpError(400, "Canal Google non vérifié pour ce restaurant.");
+        }
+        acquisitionSource = "google";
+      } else if (["restaurant_website", "qr_code", "instagram"].includes(requestedAcquisitionSource)) {
+        if (!isUuid(acquisitionChannelToken)) {
+          throw new HttpError(400, "Jeton de canal direct invalide.");
+        }
+
+        const { data: channel, error: channelError } = await actor.adminClient
+          .from("restaurant_booking_channels")
+          .select("id, restaurant_id, source, is_active")
+          .eq("public_token", acquisitionChannelToken)
+          .eq("restaurant_id", restaurantId)
+          .eq("source", requestedAcquisitionSource)
+          .eq("is_active", true)
+          .maybeSingle();
+
+        if (channelError || !channel) {
+          throw new HttpError(400, "Canal direct non vérifié pour ce restaurant.");
+        }
+        acquisitionSource = requestedAcquisitionSource;
+        acquisitionChannelId = channel.id;
+      } else if (requestedAcquisitionSource === "customer_file") {
+        const { data: ownedRestaurant } = await actor.adminClient
+          .from("restaurants")
+          .select("id")
+          .eq("id", restaurantId)
+          .eq("owner_id", actor.userId)
+          .maybeSingle();
+        if (!ownedRestaurant) {
+          throw new HttpError(403, "Le fichier client est réservé au propriétaire du restaurant.");
+        }
+        acquisitionSource = "customer_file";
+      } else {
+        throw new HttpError(400, "Source d'acquisition invalide.");
+      }
+    }
+
     const { data, error } = await actor.adminClient.rpc("validate_and_create_reservation_safe", {
       p_restaurant_id: restaurantId,
       p_date: date,
@@ -112,6 +199,8 @@ Deno.serve(async (req) => {
       p_feature: feature,
       p_metadata: {
         ...metadata,
+        acquisition_source: acquisitionSource,
+        ...(acquisitionChannelId ? { acquisition_channel_id: acquisitionChannelId } : {}),
         _internal_user_id: actor.userId,
       },
       p_notes: notes,
@@ -221,6 +310,8 @@ Deno.serve(async (req) => {
       metadata: {
         restaurant_id: restaurantId,
         feature,
+        acquisition_source: acquisitionSource,
+        acquisition_channel_id: acquisitionChannelId,
         progressive_offer_id: progressiveOfferId,
       },
     });
