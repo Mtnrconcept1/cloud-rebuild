@@ -176,20 +176,50 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Audit production dependencies
+        id: dependency_audit
         if: ${{ needs.plan.outputs.dependency_audit == 'true' }}
         run: pnpm audit --prod --audit-level high
 
       - name: Lint all sources
+        id: lint
         if: ${{ needs.plan.outputs.run_lint == 'true' }}
         run: pnpm run lint
 
       - name: Typecheck application
+        id: typecheck
         if: ${{ needs.plan.outputs.run_typecheck == 'true' }}
         run: pnpm run typecheck
 
       - name: Build production application
+        id: build
         if: ${{ needs.plan.outputs.run_build == 'true' && !inputs.skip_build }}
         run: pnpm run build:prod
+
+      - name: Summarize quality outcomes
+        if: ${{ always() }}
+        shell: bash
+        env:
+          AUDIT_OUTCOME: ${{ steps.dependency_audit.outcome }}
+          LINT_OUTCOME: ${{ steps.lint.outcome }}
+          TYPECHECK_OUTCOME: ${{ steps.typecheck.outcome }}
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
+        run: |
+          set -euo pipefail
+
+          report_outcome() {
+            local label="$1"
+            local outcome="$2"
+
+            echo "${label}: ${outcome}"
+            if [[ "$outcome" == "failure" ]]; then
+              echo "::error title=Quality check failed::${label} failed. Open this step's log for the first actionable error."
+            fi
+          }
+
+          report_outcome "Production dependency audit" "$AUDIT_OUTCOME"
+          report_outcome "ESLint" "$LINT_OUTCOME"
+          report_outcome "TypeScript typecheck" "$TYPECHECK_OUTCOME"
+          report_outcome "Production build" "$BUILD_OUTCOME"
 
   related_tests:
     needs: plan
