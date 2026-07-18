@@ -240,7 +240,7 @@ const EMPTY_CREDITS: BillingCreditSummary[] = [];
 const EMPTY_ENTRIES: BillingCreditEntry[] = [];
 const COMMERCIAL_DEMO_BILLING_TOOLS = [
   { title: "Studio marketing", description: "Visuels Démo sans consommation de crédit payant.", icon: Camera, feature: "dashboard-photos" },
-  { title: "Assistant IA", description: "Conversations isolées, moteur Démo à coût nul.", icon: Sparkles, feature: "dashboard-advisor" },
+  { title: "Assistant IA", description: "Conversations isolées, aucun débit de crédits au restaurant Démo ; coût fournisseur suivi en interne.", icon: Sparkles, feature: "dashboard-advisor" },
   { title: "Chat IA", description: "Assistance temps réel conservée dans les tables Démo.", icon: Sparkles, feature: "ai_support_chat" },
   { title: "Campagnes", description: "Prévisualisation complète sans débit publicitaire réel.", icon: Megaphone, feature: "dashboard-campagnes" },
 ] as const;
