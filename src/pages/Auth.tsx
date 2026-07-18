@@ -270,6 +270,8 @@ function exportSignedRestaurantContractPdf(input: {
   signerRole?: string | null;
   contractHash?: string | null;
   acceptanceText?: string | null;
+  selectedSubscriptionPlanLabel?: string | null;
+  selectedSubscriptionPriceLabel?: string | null;
 }) {
   const html = generateSignedRestaurantPartnerContractHtml(input);
 
@@ -285,12 +287,16 @@ function RestaurantContractSignaturePad({
   signatureDataUrl,
   onSignatureChange,
   signupForm,
+  selectedSubscriptionPlanLabel,
+  selectedSubscriptionPriceLabel,
 }: {
   signerName: string;
   onSignerNameChange: (value: string) => void;
   signatureDataUrl: string;
   onSignatureChange: (value: string) => void;
   signupForm: SignupFormState;
+  selectedSubscriptionPlanLabel?: string | null;
+  selectedSubscriptionPriceLabel?: string | null;
 }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const drawingRef = useRef(false);
@@ -367,6 +373,8 @@ function RestaurantContractSignaturePad({
       city: signupForm.city,
       signerRole: "Représentant autorisé",
       acceptanceText,
+      selectedSubscriptionPlanLabel,
+      selectedSubscriptionPriceLabel,
     });
     const exported = exportSignedRestaurantContractPdf({
       signerName,
@@ -383,6 +391,8 @@ function RestaurantContractSignaturePad({
       signerRole: "Représentant autorisé",
       contractHash,
       acceptanceText,
+      selectedSubscriptionPlanLabel,
+      selectedSubscriptionPriceLabel,
     });
     if (!exported) {
       alert("Autorisez l'ouverture de la fenêtre d'impression pour exporter le contrat en PDF.");
@@ -1028,6 +1038,14 @@ export default function Auth() {
           signerEmail: signupForm.email,
           userId: activeUser.id,
           acceptanceText: contractAcceptanceText,
+          selectedSubscriptionPlanLabel: selectedSubscriptionPlan?.name || null,
+          selectedSubscriptionPriceLabel: selectedSubscriptionPrice == null
+            ? null
+            : formatChf(selectedSubscriptionPrice) + (
+                submittedOnboardingChoices.subscriptionBillingPeriod === "yearly"
+                  ? " · annuel, 12 mois au prix de 11"
+                  : " · mensuel"
+              ),
         })
         : null;
 
@@ -1626,6 +1644,14 @@ export default function Auth() {
                   signatureDataUrl={contractSignatureDataUrl}
                   onSignatureChange={setContractSignatureDataUrl}
                   signupForm={signupForm}
+                  selectedSubscriptionPlanLabel={selectedSubscriptionPlan?.name || null}
+                  selectedSubscriptionPriceLabel={selectedSubscriptionPrice == null
+                    ? null
+                    : formatChf(selectedSubscriptionPrice) + (
+                        selectedSubscriptionBillingPeriod === "yearly"
+                          ? " · annuel, 12 mois au prix de 11"
+                          : " · mensuel"
+                      )}
                 />
               ) : null}
 
