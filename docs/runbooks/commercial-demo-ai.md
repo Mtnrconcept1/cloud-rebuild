@@ -131,6 +131,6 @@ TOK : <https://developers.openai.com/api/docs/guides/rate-limits>.
 6. Confirmer qu'un utilisateur non mappé, une session inactive, un flag désactivé
    et un autre slug Edge sont refusés.
 7. Désactiver temporairement `commercial-demo-openai` en environnement de test,
-   puis vérifier le refus fail-closed. Vérifier aussi qu'un replay terminé reste
-   disponible et que les plafonds quotidiens renvoient `budget_exhausted` sans
-   nouvel appel fournisseur.
+   puis vérifier que tous les accès échouent fermé. Réactiver le flag, vérifier
+   qu'un replay terminé ne consomme pas de nouvelle tentative, puis que les
+   plafonds quotidiens renvoient `budget_exhausted` sans nouvel appel fournisseur.
