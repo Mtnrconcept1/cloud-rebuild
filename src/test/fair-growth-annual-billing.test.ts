@@ -6,6 +6,8 @@ import {
   FAIR_GROWTH_ANNUAL_FEATURE_FLAG,
   FAIR_GROWTH_ANNUAL_MONTHS_CHARGED,
   FAIR_GROWTH_ANNUAL_SERVICE_MONTHS,
+  FAIR_GROWTH_STANDARD_VAT_BPS,
+  buildRestaurantSubscriptionPricingSnapshot,
   getRestaurantSubscriptionAmountCents,
   getRestaurantSubscriptionStripeInterval,
   parseRestaurantSubscriptionBillingPeriod,
@@ -21,6 +23,38 @@ describe("Fair Growth annual restaurant billing", () => {
     expect([69, 129, 199, 499].map((price) =>
       getRestaurantSubscriptionAmountCents(price, "yearly")
     )).toEqual([75_900, 141_900, 218_900, 548_900]);
+  });
+
+  it("builds one complete tax-inclusive pricing snapshot for an annual plan transition", () => {
+    const snapshot = buildRestaurantSubscriptionPricingSnapshot({
+      price_monthly_chf: 69,
+      annual_months_charged: 11,
+      acquired_reservation_fee_cents: 500,
+      marketplace_commission_bps: 990,
+      included_establishments: 1,
+      additional_establishment_price_cents: null,
+      reservation_revenue_cap_bps: 700,
+      developer_order_bps: 100,
+      developer_tok_revenue_bps: 1000,
+      pricing_version: "fair_growth_2026_07",
+    }, "yearly");
+
+    expect(snapshot).toMatchObject({
+      price_monthly_cents_snapshot: 6_900,
+      billing_amount_cents_snapshot: 75_900,
+      billing_net_cents_snapshot: 70_213,
+      billing_vat_cents_snapshot: 5_687,
+      vat_rate_bps_snapshot: FAIR_GROWTH_STANDARD_VAT_BPS,
+      annual_months_charged_snapshot: 11,
+      acquired_reservation_fee_cents_snapshot: 500,
+      marketplace_commission_bps_snapshot: 990,
+      developer_order_bps_snapshot: 100,
+      developer_tok_revenue_bps_snapshot: 1000,
+      pricing_version_snapshot: "fair_growth_2026_07",
+    });
+    expect(
+      snapshot.billing_net_cents_snapshot + snapshot.billing_vat_cents_snapshot,
+    ).toBe(snapshot.billing_amount_cents_snapshot);
   });
 
   it("uses a strict period parser and the matching Stripe recurring interval", () => {
@@ -62,6 +96,8 @@ describe("Fair Growth annual restaurant billing", () => {
     expect(worker).toContain("getRestaurantSubscriptionStripeInterval(billingPeriod)");
     expect(worker).toContain('entitlement_reset_period: "monthly"');
     expect(webhook).toContain("resolveRestaurantSubscriptionBillingPeriod");
+    expect(webhook).toContain("buildRestaurantSubscriptionPricingSnapshot");
+    expect(webhook).toContain('pricing_snapshot_transition: "stripe_plan_change"');
     expect(webhook).toContain('entitlement_reset_period: "monthly"');
     expect(manager).toContain("FAIR_GROWTH_ANNUAL_MONTHS_CHARGED");
     expect(manager).not.toContain('billingPeriod === "yearly" ? 12 : 1');
