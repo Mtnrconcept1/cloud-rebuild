@@ -5,6 +5,12 @@ les vrais composants du dashboard. Depuis `/commercial/demo-live`, leurs
 générations passent exclusivement par l'Edge Function Supabase
 `commercial-demo-ai`, puis par OpenAI côté serveur.
 
+La page parente `/commercial/demo-live` expose aussi un Assistant OpenAI lié à
+la même session. Elle envoie uniquement l'identifiant de session et le texte :
+la passerelle retrouve elle-même le compte commercial propriétaire et le
+restaurant Démo canonique. Aucun `restaurant_id` provenant du navigateur n'est
+accepté pour choisir le tenant.
+
 Le commercial ne consomme aucun crédit TOK et n'est soumis à aucun quota métier
 par session, jour ou mois. « Illimité » désigne cette absence de quota
 applicatif : les limites techniques et de sécurité du fournisseur restent
@@ -80,8 +86,10 @@ TOK : <https://developers.openai.com/api/docs/guides/rate-limits>.
 ## Ordre de déploiement
 
 1. Appliquer la migration `20260715044653_commercial_demo_openai_gateway.sql`.
-2. Confirmer que le secret Supabase `OPENAI_API_KEY` est présent sans en afficher
-   la valeur.
+2. Confirmer que le secret GitHub Actions `OPENAI_API_KEY` est présent sans en
+   afficher la valeur. Le workflow le transmet à
+   `write-supabase-secrets-env.mjs`, puis à `supabase secrets set`; le job échoue
+   explicitement si le secret backend est absent.
 3. Déployer l'Edge Function `commercial-demo-ai` avec `verify_jwt = false` au
    gateway Supabase : l'authentification JWT applicative reste obligatoire via
    `authenticateRequest`/`getUser`, comme pour les autres fonctions du projet.
