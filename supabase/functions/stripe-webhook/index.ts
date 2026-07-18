@@ -46,6 +46,7 @@ import {
 } from "../_shared/refund-allocations.ts";
 import {
   FAIR_GROWTH_ANNUAL_MONTHS_CHARGED,
+  buildRestaurantSubscriptionPricingSnapshot,
   parseRestaurantSubscriptionBillingPeriod,
   type RestaurantSubscriptionBillingPeriod,
 } from "../_shared/restaurant-subscription-billing.ts";
@@ -953,7 +954,7 @@ async function syncRestaurantSubscriptionRecord(input: {
 
   const { data: exactExisting, error: existingError } = await adminClient
     .from("restaurant_ai_subscriptions")
-    .select("id, restaurant_id, restaurant_subscription_plan_id, signup_application_id, plan, status, billing_period, stripe_subscription_id, metadata")
+    .select("id, restaurant_id, restaurant_subscription_plan_id, signup_application_id, plan, status, billing_period, stripe_subscription_id, metadata, price_monthly_chf_snapshot, billing_amount_chf_snapshot, price_monthly_cents_snapshot, billing_amount_cents_snapshot, billing_net_cents_snapshot, billing_vat_cents_snapshot, vat_rate_bps_snapshot, annual_months_charged_snapshot, acquired_reservation_fee_cents_snapshot, marketplace_commission_bps_snapshot, included_establishments_snapshot, additional_establishment_price_cents_snapshot, reservation_revenue_cap_bps_snapshot, developer_order_bps_snapshot, developer_tok_revenue_bps_snapshot, pricing_version_snapshot")
     .eq("stripe_subscription_id", subscription.id)
     .maybeSingle();
 
@@ -966,7 +967,7 @@ async function syncRestaurantSubscriptionRecord(input: {
   if (!existing && localSubscriptionId) {
     const { data: localExisting, error: localExistingError } = await adminClient
       .from("restaurant_ai_subscriptions")
-      .select("id, restaurant_id, restaurant_subscription_plan_id, signup_application_id, plan, status, billing_period, stripe_subscription_id, metadata")
+      .select("id, restaurant_id, restaurant_subscription_plan_id, signup_application_id, plan, status, billing_period, stripe_subscription_id, metadata, price_monthly_chf_snapshot, billing_amount_chf_snapshot, price_monthly_cents_snapshot, billing_amount_cents_snapshot, billing_net_cents_snapshot, billing_vat_cents_snapshot, vat_rate_bps_snapshot, annual_months_charged_snapshot, acquired_reservation_fee_cents_snapshot, marketplace_commission_bps_snapshot, included_establishments_snapshot, additional_establishment_price_cents_snapshot, reservation_revenue_cap_bps_snapshot, developer_order_bps_snapshot, developer_tok_revenue_bps_snapshot, pricing_version_snapshot")
       .eq("id", localSubscriptionId)
       .maybeSingle();
     if (localExistingError) {
@@ -981,7 +982,7 @@ async function syncRestaurantSubscriptionRecord(input: {
   if (!existing && restaurantId) {
     const { data: restaurantExisting, error: restaurantExistingError } = await adminClient
       .from("restaurant_ai_subscriptions")
-      .select("id, restaurant_id, restaurant_subscription_plan_id, signup_application_id, plan, status, billing_period, stripe_subscription_id, metadata")
+      .select("id, restaurant_id, restaurant_subscription_plan_id, signup_application_id, plan, status, billing_period, stripe_subscription_id, metadata, price_monthly_chf_snapshot, billing_amount_chf_snapshot, price_monthly_cents_snapshot, billing_amount_cents_snapshot, billing_net_cents_snapshot, billing_vat_cents_snapshot, vat_rate_bps_snapshot, annual_months_charged_snapshot, acquired_reservation_fee_cents_snapshot, marketplace_commission_bps_snapshot, included_establishments_snapshot, additional_establishment_price_cents_snapshot, reservation_revenue_cap_bps_snapshot, developer_order_bps_snapshot, developer_tok_revenue_bps_snapshot, pricing_version_snapshot")
       .eq("restaurant_id", restaurantId)
       .maybeSingle();
     if (restaurantExistingError) {
@@ -1035,7 +1036,7 @@ async function syncRestaurantSubscriptionRecord(input: {
 
   const planQuery = adminClient
     .from("restaurant_subscription_plans")
-    .select("id, slug, name, price_monthly_chf, campaign_credit_chf, ai_tool_credits, ai_photo_credits, monthly_conversation_limit, monthly_text_tool_limit, monthly_image_limit, monthly_premium_image_limit, monthly_voice_minutes_limit")
+    .select("id, slug, name, price_monthly_chf, campaign_credit_chf, ai_tool_credits, ai_photo_credits, monthly_conversation_limit, monthly_text_tool_limit, monthly_image_limit, monthly_premium_image_limit, monthly_voice_minutes_limit, annual_months_charged, acquired_reservation_fee_cents, marketplace_commission_bps, included_establishments, additional_establishment_price_cents, reservation_revenue_cap_bps, developer_order_bps, developer_tok_revenue_bps, pricing_version")
     .limit(1);
   const { data: plans, error: planError } = planId
     ? await planQuery.eq("id", planId)
@@ -1056,6 +1057,46 @@ async function syncRestaurantSubscriptionRecord(input: {
     subscription,
     existingBillingPeriod: replacingExpectedUpgrade ? undefined : existing?.billing_period,
   });
+  const pricingSnapshotTransitionRequired = Boolean(
+    existing
+    && (
+      String(existing.restaurant_subscription_plan_id || "") !== String(plan.id)
+      || String(existing.plan || "") !== String(plan.slug)
+      || String(existing.billing_period || "") !== billingPeriod
+    ),
+  );
+  let pricingSnapshot: Record<string, unknown>;
+  try {
+    pricingSnapshot = !existing || pricingSnapshotTransitionRequired
+      ? buildRestaurantSubscriptionPricingSnapshot(plan, billingPeriod)
+      : {
+        price_monthly_chf_snapshot: existing.price_monthly_chf_snapshot,
+        billing_amount_chf_snapshot: existing.billing_amount_chf_snapshot,
+        price_monthly_cents_snapshot: existing.price_monthly_cents_snapshot,
+        billing_amount_cents_snapshot: existing.billing_amount_cents_snapshot,
+        billing_net_cents_snapshot: existing.billing_net_cents_snapshot,
+        billing_vat_cents_snapshot: existing.billing_vat_cents_snapshot,
+        vat_rate_bps_snapshot: existing.vat_rate_bps_snapshot,
+        annual_months_charged_snapshot: existing.annual_months_charged_snapshot,
+        acquired_reservation_fee_cents_snapshot: existing.acquired_reservation_fee_cents_snapshot,
+        marketplace_commission_bps_snapshot: existing.marketplace_commission_bps_snapshot,
+        included_establishments_snapshot: existing.included_establishments_snapshot,
+        additional_establishment_price_cents_snapshot: existing.additional_establishment_price_cents_snapshot,
+        reservation_revenue_cap_bps_snapshot: existing.reservation_revenue_cap_bps_snapshot,
+        developer_order_bps_snapshot: existing.developer_order_bps_snapshot,
+        developer_tok_revenue_bps_snapshot: existing.developer_tok_revenue_bps_snapshot,
+        pricing_version_snapshot: existing.pricing_version_snapshot,
+      };
+  } catch (error) {
+    log?.error?.("restaurant_subscription_pricing_snapshot_invalid", {
+      restaurantId,
+      planId: plan.id,
+      billingPeriod,
+      message: error instanceof Error ? error.message : String(error),
+    });
+    return { updated: false, row: null };
+  }
+
   const stripeSubscriptionScheduleId = getStripeSubscriptionScheduleId(subscription.schedule);
   const normalizedStatus = normalizeRestaurantSubscriptionStatus(subscription.status);
   const isDeferredOnboardingSubscription = checkoutKind === "restaurant-onboarding"
@@ -1070,6 +1111,7 @@ async function syncRestaurantSubscriptionRecord(input: {
     : normalizedStatus;
   const payload = {
     restaurant_id: restaurantId,
+    ...pricingSnapshot,
     restaurant_subscription_plan_id: plan.id,
     plan: plan.slug,
     status: persistedStatus,
@@ -1110,6 +1152,13 @@ async function syncRestaurantSubscriptionRecord(input: {
       // Billing can be annual; product allowances remain monthly and must
       // never be multiplied by eleven or twelve in the webhook.
       entitlement_reset_period: "monthly",
+      ...(pricingSnapshotTransitionRequired
+        ? {
+          pricing_snapshot_transition: "stripe_plan_change",
+          pricing_snapshot_previous_plan_id: String(existing?.restaurant_subscription_plan_id || ""),
+          pricing_snapshot_changed_at: new Date().toISOString(),
+        }
+        : {}),
     },
   };
 
