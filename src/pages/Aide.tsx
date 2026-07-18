@@ -238,7 +238,7 @@ const FAQS: FaqSection[] = [
       },
       {
         q: "Quand ma commande est-elle vraiment confirmée ?",
-        a: "Pour les paiements carte, TWINT ou PostFinance, la commande ne doit être confirmée qu'après confirmation du paiement. Avant cela, elle peut être en attente, en création ou en échec. Si vous recevez une notification de confirmation mais que le paiement échoue, contactez le support : c'est un cas à vérifier immédiatement.",
+        a: "Pour les paiements par carte ou par TWINT lorsqu’il est proposé, la commande ne doit être confirmée qu’après confirmation du paiement. Avant cela, elle peut être en attente, en création ou en échec. Si vous recevez une notification de confirmation mais que le paiement échoue, contactez le support : c'est un cas à vérifier immédiatement.",
       },
       {
         q: "Où suivre ma commande ?",
@@ -311,7 +311,7 @@ const FAQS: FaqSection[] = [
       },
       {
         q: "Quels moyens de paiement sont acceptés ?",
-        a: "TOK peut accepter carte bancaire, TWINT, PostFinance, Apple Pay, Google Pay ou d'autres moyens selon la configuration active. Les moyens visibles dans le panier sont ceux réellement disponibles pour votre commande, votre zone et le restaurant choisi.",
+        a: "TOK accepte les cartes bancaires et propose TWINT sur les paiements ponctuels CHF compatibles. Les abonnements et les paiements avec autorisation puis capture différée, comme Match Group, nécessitent une carte. Apple Pay, Google Pay ou un autre moyen ne sont disponibles que s’ils apparaissent effectivement dans le parcours Stripe. Les moyens visibles dans le panier sont ceux réellement disponibles pour votre commande, votre zone et le restaurant choisi.",
       },
       {
         q: "Pourquoi un moyen de paiement n'apparaît pas ?",
