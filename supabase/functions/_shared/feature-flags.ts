@@ -11,6 +11,7 @@ const FEATURE_DEFINITIONS: Record<string, FeatureDefinition> = {
   "payment-postfinance-efinance": { defaultEnabled: true },
   "payment-cash": { defaultEnabled: true },
   "billing-fair-growth-annual": { defaultEnabled: false },
+  "commercial-demo-openai": { defaultEnabled: false },
   livraison: { defaultEnabled: true },
   emporter: { defaultEnabled: true },
   "sur-place": { defaultEnabled: true },
