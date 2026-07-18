@@ -25,6 +25,8 @@ export type FairGrowthModule = {
   variableFeeBps?: number;
   successfulReservationFeeChf?: number;
   paymentCostPassthrough?: boolean;
+  availabilityStatus: "on_request" | "pilot";
+  activationMode: "manual";
   description: string;
 };
 
@@ -79,49 +81,63 @@ export const FAIR_GROWTH_PLANS: readonly FairGrowthPlan[] = [
 export const FAIR_GROWTH_MODULES: readonly FairGrowthModule[] = [
   {
     slug: "no-show-shield",
+    availabilityStatus: "on_request",
+    activationMode: "manual",
     name: "No-Show Shield",
     monthlyPriceChf: 39,
     description: "Empreinte, rappels et scoring du risque de no-show.",
   },
   {
     slug: "marketing-autopilot",
+    availabilityStatus: "on_request",
+    activationMode: "manual",
     name: "Marketing Autopilot IA",
     monthlyPriceChf: 79,
     description: "Campagnes et relances IA pilotées par les résultats.",
   },
   {
     slug: "margin-waste-pilot",
+    availabilityStatus: "on_request",
+    activationMode: "manual",
     name: "Margin & Waste Pilot",
     monthlyPriceChf: 59,
     description: "Recommandations de marge, stock et réduction du gaspillage.",
   },
   {
     slug: "ai-phone-receptionist",
+    availabilityStatus: "pilot",
+    activationMode: "manual",
     name: "Réceptionniste téléphonique IA",
     monthlyPriceChf: 49,
     successfulReservationFeeChf: 1.5,
-    description: "Accueil téléphonique et prise de réservation assistée.",
+    description: "Projet pilote d’accueil téléphonique et de prise de réservation assistée, après validation technique.",
   },
   {
     slug: "direct-order-saver",
+    availabilityStatus: "pilot",
+    activationMode: "manual",
     name: "Direct Order Saver",
     monthlyPriceChf: 149,
     variableFeeBps: 150,
-    description: "Canal de commande directe avec commission réduite.",
+    description: "Projet pilote de commande directe à commission réduite, après validation technique.",
   },
   {
     slug: "ai-reputation",
+    availabilityStatus: "on_request",
+    activationMode: "manual",
     name: "Réputation IA",
     monthlyPriceChf: 29,
     description: "Suivi des avis, brouillons de réponse et alertes.",
   },
   {
     slug: "gift-cards-experiences",
+    availabilityStatus: "pilot",
+    activationMode: "manual",
     name: "Cartes-cadeaux et expériences",
     monthlyPriceChf: null,
     variableFeeBps: 300,
     paymentCostPassthrough: true,
-    description: "Vente de cartes-cadeaux et expériences avec paiement sécurisé.",
+    description: "Projet pilote de cartes-cadeaux et d’expériences, après validation du parcours de paiement.",
   },
 ] as const;
 
