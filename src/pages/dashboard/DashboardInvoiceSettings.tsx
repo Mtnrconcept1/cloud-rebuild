@@ -502,15 +502,19 @@ export default function DashboardInvoiceSettings() {
                         <td className="py-2 text-right font-bold">1'250.00 CHF</td>
                       </tr>
                       <tr>
-                        <td className="py-2">TVA 7.7%</td>
-                        <td className="py-2 text-right">96.25 CHF</td>
+                        <td className="py-2">TVA normale 8.1%</td>
+                        <td className="py-2 text-right">101.25 CHF</td>
                       </tr>
                       <tr className="border-t">
                         <td className="py-2 text-lg font-bold">Total TTC</td>
-                        <td className="py-2 text-right text-lg font-bold">1'346.25 CHF</td>
+                        <td className="py-2 text-right text-lg font-bold">1'351.25 CHF</td>
                       </tr>
                     </tbody>
                   </table>
+                  <p className="text-xs text-muted-foreground">
+                    Les factures réelles ventilent chaque ligne au taux suisse normal de 8,1% ou au taux réduit
+                    de 2,6%. La restauration sur place relève généralement du taux normal.
+                  </p>
 
                   {settings.iban ? (
                     <div className="rounded bg-gray-50 p-3 text-xs">
