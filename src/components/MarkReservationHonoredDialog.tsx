@@ -41,11 +41,11 @@ export default function MarkReservationHonoredDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ReceiptText className="h-5 w-5 text-primary" />
-            Confirmer la table honorée
+            Clôturer la table honorée
           </DialogTitle>
           <DialogDescription>
             {targetLabel ? targetLabel + " · " : ""}
-            saisissez le chiffre d'affaires réellement attribué à cette table.
+            le client est arrivé et le service est terminé. Saisissez le chiffre d'affaires réellement encaissé pour cette table.
           </DialogDescription>
         </DialogHeader>
 
@@ -74,7 +74,7 @@ export default function MarkReservationHonoredDialog({
           </Button>
           <Button type="button" disabled={!valid || submitting} onClick={() => onConfirm(parsedRevenue)}>
             {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            Confirmer l'arrivée
+            Clôturer et calculer
           </Button>
         </DialogFooter>
       </DialogContent>
