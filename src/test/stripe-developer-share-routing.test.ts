@@ -19,12 +19,30 @@ const financeRoutingMigration = read(
 const allTokRevenueMigration = read(
   "supabase/migrations/20260717210000_lock_developer_share_all_tok_revenue.sql",
 );
+const fairGrowthMigration = read(
+  "supabase/migrations/20260718022910_fair_growth_business_model.sql",
+);
 
 function splitTokOwnedRevenue(tokOwnedCents: number, developerShareBps = 1000) {
   const developerCents = Math.round((tokOwnedCents * developerShareBps) / 10_000);
   return {
     tokCents: tokOwnedCents - developerCents,
     developerCents,
+  };
+}
+
+function splitTaxInclusiveTokRevenue(
+  grossCents: number,
+  developerShareBps = 1000,
+  vatBps = 810,
+) {
+  const vatCents = Math.round((grossCents * vatBps) / (10_000 + vatBps));
+  const tokRevenueCents = grossCents - vatCents;
+  const developerCents = Math.round((tokRevenueCents * developerShareBps) / 10_000);
+  return {
+    tokCents: tokRevenueCents - developerCents,
+    developerCents,
+    vatCents,
   };
 }
 
@@ -76,17 +94,18 @@ describe("Stripe developer revenue-share routing", () => {
   });
 
   it.each([
-    ["abonnement restaurateur", 6_900, 6_210, 690],
-    ["abonnement TOK One", 12_900, 11_610, 1_290],
-    ["campagne publicitaire", 10_000, 9_000, 1_000],
-    ["pack de credits", 5_000, 4_500, 500],
-    ["autre fonction payante", 1_990, 1_791, 199],
+    ["abonnement restaurateur", 6_900, 5_745, 638, 517],
+    ["abonnement TOK One", 12_900, 10_740, 1_193, 967],
+    ["campagne publicitaire", 10_000, 8_326, 925, 749],
+    ["pack de credits", 5_000, 4_162, 463, 375],
+    ["autre fonction payante", 1_990, 1_657, 184, 149],
   ])(
-    "attribue 10%% au developpeur sur %s",
-    (_source, grossCents, expectedTokCents, expectedDeveloperCents) => {
-      expect(splitTokOwnedRevenue(grossCents)).toEqual({
+    "attribue 10%% au developpeur sur le revenu net hors TVA de %s",
+    (_source, grossCents, expectedTokCents, expectedDeveloperCents, expectedVatCents) => {
+      expect(splitTaxInclusiveTokRevenue(grossCents)).toEqual({
         tokCents: expectedTokCents,
         developerCents: expectedDeveloperCents,
+        vatCents: expectedVatCents,
       });
     },
   );
@@ -119,6 +138,10 @@ describe("Stripe developer revenue-share routing", () => {
     expect(allTokRevenueMigration).toContain(
       "'future_tok_revenue_accounts_included', true",
     );
+
+    expect(fairGrowthMigration).toContain("swiss_vat_from_tax_inclusive_cents");
+    expect(fairGrowthMigration).toContain("'platform_vat_cents'");
+    expect(fairGrowthMigration).toContain("'recognized_excluding_vat', true");
   });
 
   it("keeps cent allocations exhaustive after integer rounding", () => {
