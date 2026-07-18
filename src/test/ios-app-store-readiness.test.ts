@@ -22,8 +22,7 @@ describe("iOS App Store readiness", () => {
     expect(infoPlist).toContain("<string>tok</string>");
 
     expect(entitlements).toContain("<string>$(APS_ENVIRONMENT)</string>");
-    expect(entitlements).toContain("applinks:www.thetok.ch");
-    expect(entitlements).toContain("applinks:admin.thetok.ch");
+    expect(entitlements.match(/applinks:[^<]+/g)).toEqual(["applinks:www.thetok.ch"]);
 
     expect(privacyManifest).toContain("<key>NSPrivacyTracking</key>");
     expect(privacyManifest).toContain("NSPrivacyAccessedAPICategoryUserDefaults");

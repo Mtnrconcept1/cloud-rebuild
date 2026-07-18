@@ -125,12 +125,13 @@ function inspectMobileAssociations(root, env, report) {
       report.required("apple-app-site-association must include a real Apple Team ID appID for com.tok.app.");
     }
 
-    if (appleTeamId && !appIds.some((appId) => appId.startsWith(`${appleTeamId}.`))) {
-      report.required("apple-app-site-association appIDs do not match APPLE_TEAM_ID.");
-    }
-
-    if (!appleTeamId) {
-      report.warning("APPLE_TEAM_ID is not set; verify the AASA appID manually before App Store release.");
+    if (!/^[A-Z0-9]{10}$/.test(appleTeamId)) {
+      report.required("Missing or invalid APPLE_TEAM_ID; expected exactly 10 uppercase letters or digits.");
+    } else {
+      const expectedAppId = `${appleTeamId}.com.tok.app`;
+      if (appIds.length !== 1 || appIds[0] !== expectedAppId) {
+        report.required("apple-app-site-association must contain exactly APPLE_TEAM_ID.com.tok.app.");
+      }
     }
   }
 

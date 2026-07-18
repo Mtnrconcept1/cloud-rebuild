@@ -209,6 +209,27 @@ describe("release readiness inspection", () => {
     expect(result.errors).toEqual([]);
   });
 
+  it("rejects an Apple association that targets a different bundle", () => {
+    const root = makeFixture("wrong-apple-bundle");
+    writeJson(root, "public/.well-known/apple-app-site-association", {
+      applinks: {
+        apps: [],
+        details: [{ appIDs: ["TEAM123456.com.example.app"], components: [{ "/": "/*" }] }],
+      },
+    });
+
+    const result = inspectReleaseReadiness({
+      root,
+      env: { APPLE_TEAM_ID: "TEAM123456" },
+      strict: true,
+    });
+
+    expect(result.ok).toBe(false);
+    expect(result.errors).toContain(
+      "apple-app-site-association must contain exactly APPLE_TEAM_ID.com.tok.app.",
+    );
+  });
+
   it("rejects incomplete Firebase service account JSON before deployment", () => {
     const root = makeFixture("bad-firebase");
     writeJson(root, "public/.well-known/apple-app-site-association", {

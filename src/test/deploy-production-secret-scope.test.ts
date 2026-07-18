@@ -26,6 +26,23 @@ function secretEnvironmentNames(source: string) {
 }
 
 describe("production deployment secret scope", () => {
+  const preflight = section(workflow, "  preflight:", "  build_frontend:");
+  const buildFrontend = section(workflow, "  build_frontend:", "  deploy_supabase:");
+  const preflightApple = section(
+    preflight,
+    "      - name: Generate Apple Universal Links association",
+    "      - name: Enforce and verify Supabase leaked-password protection",
+  );
+  const preflightSupabaseAuth = section(
+    preflight,
+    "      - name: Enforce and verify Supabase leaked-password protection",
+    "      - name: Release readiness",
+  );
+  const buildApple = section(
+    buildFrontend,
+    "      - name: Generate Apple Universal Links association",
+    "      - name: Pull Vercel production project settings",
+  );
   const deploySupabase = section(workflow, "  deploy_supabase:", "  deploy_frontend:");
   const jobEnvironment = section(deploySupabase, "    env:", "    steps:");
   const beforeSecretSteps = section(
@@ -142,6 +159,17 @@ describe("production deployment secret scope", () => {
     expect(deployFunctions).not.toContain("SUPABASE_DB_PASSWORD");
     expect(linkProject).not.toContain("SUPABASE_SERVICE_ROLE_KEY");
     expect(pushDatabase).not.toContain("SUPABASE_SERVICE_ROLE_KEY");
+  });
+
+  it("scopes live production hardening credentials to their exact steps", () => {
+    expect(secretEnvironmentNames(preflightApple)).toEqual(["APPLE_TEAM_ID"]);
+    expect(secretEnvironmentNames(buildApple)).toEqual(["APPLE_TEAM_ID"]);
+    expect(secretEnvironmentNames(preflightSupabaseAuth)).toEqual(["SUPABASE_ACCESS_TOKEN"]);
+    expect(preflightSupabaseAuth).not.toContain("SUPABASE_DB_PASSWORD");
+    expect(preflightSupabaseAuth).not.toContain("SUPABASE_SERVICE_ROLE_KEY");
+    expect(preflightSupabaseAuth).toContain("id: supabase_auth_security");
+    expect(preflightSupabaseAuth).toContain("ensure-supabase-auth-security.mjs");
+    expect(buildFrontend).toMatch(/needs:\n\s+- validation\n\s+- preflight/);
   });
 
   it("always removes the explicit temporary secrets file without printing it", () => {
