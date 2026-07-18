@@ -244,37 +244,7 @@ jobs:
     environment: production
 
     env:
-      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
       SUPABASE_URL: https://wwcrtyoueexyxkkikaos.supabase.co
-      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_PERSONNAL_SECRET_KEY || secrets.STRIPE_PERSONAL_SECRET_KEY || secrets.STRIPE_SECRET_KEY_LIVE }}
-      STRIPE_SECRET_KEY_LIVE: ${{ secrets.STRIPE_PERSONNAL_SECRET_KEY || secrets.STRIPE_PERSONAL_SECRET_KEY || secrets.STRIPE_SECRET_KEY_LIVE }}
-      STRIPE_SECRET_KEY_TEST: ${{ secrets.STRIPE_SECRET_KEY_TEST }}
-      STRIPE_PERSONNAL_SECRET_KEY: ${{ secrets.STRIPE_PERSONNAL_SECRET_KEY }}
-      STRIPE_PERSONAL_SECRET_KEY: ${{ secrets.STRIPE_PERSONAL_SECRET_KEY }}
-      STRIPE_LIVE_WEBHOOK: ${{ secrets.STRIPE_LIVE_WEBHOOK }}
-      STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET || secrets.STRIPE_LIVE_WEBHOOK }}
-      STRIPE_WEBHOOK_SECRET_LIVE: ${{ secrets.STRIPE_LIVE_WEBHOOK || secrets.STRIPE_WEBHOOK_SECRET }}
-      STRIPE_WEBHOOK_SIGNING_SECRET: ${{ secrets.STRIPE_WEBHOOK_SIGNING_SECRET || secrets.STRIPE_LIVE_WEBHOOK }}
-      STRIPE_WEBHOOK_SIGNING_SECRET_LIVE: ${{ secrets.STRIPE_LIVE_WEBHOOK || secrets.STRIPE_WEBHOOK_SIGNING_SECRET }}
-      STRIPE_TOK_ONE_SECRET_KEY: ${{ secrets.STRIPE_TOK_ONE_SECRET_KEY }}
-      STRIPE_TOK_ONE_TEST_SECRET_KEY: ${{ secrets.STRIPE_TOK_ONE_TEST_SECRET_KEY }}
-      STRIPE_TOK_ONE_WEBHOOK_SECRET: ${{ secrets.STRIPE_TOK_ONE_WEBHOOK_SECRET }}
-      STRIPE_TOK_ONE_WEBHOOK_SIGNING_SECRET: ${{ secrets.STRIPE_TOK_ONE_WEBHOOK_SIGNING_SECRET }}
-      STRIPE_TOK_ONE_TEST_WEBHOOK_SECRET: ${{ secrets.STRIPE_TOK_ONE_TEST_WEBHOOK_SECRET }}
-      STRIPE_TOK_ONE_TEST_WEBHOOK_SIGNING_SECRET: ${{ secrets.STRIPE_TOK_ONE_TEST_WEBHOOK_SIGNING_SECRET }}
-      INTERNAL_CRON_SECRET: ${{ secrets.INTERNAL_CRON_SECRET }}
-      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-      EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
-      ALLOWED_ORIGINS: ${{ secrets.ALLOWED_ORIGINS }}
-      FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-      FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
-      FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
-      FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
-      FIREBASE_TOKEN_URI: ${{ secrets.FIREBASE_TOKEN_URI }}
-      FIRECRAWL_API_KEY: ${{ secrets.FIRECRAWL_API_KEY }}
 
     steps:
       - name: Checkout
@@ -313,6 +283,34 @@ jobs:
           ${{ needs.validation.outputs.deploy_functions == 'true' ||
               needs.validation.outputs.sync_supabase_secrets == 'true' }}
         env:
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_PERSONNAL_SECRET_KEY || secrets.STRIPE_PERSONAL_SECRET_KEY || secrets.STRIPE_SECRET_KEY_LIVE }}
+          STRIPE_SECRET_KEY_LIVE: ${{ secrets.STRIPE_PERSONNAL_SECRET_KEY || secrets.STRIPE_PERSONAL_SECRET_KEY || secrets.STRIPE_SECRET_KEY_LIVE }}
+          STRIPE_SECRET_KEY_TEST: ${{ secrets.STRIPE_SECRET_KEY_TEST }}
+          STRIPE_PERSONNAL_SECRET_KEY: ${{ secrets.STRIPE_PERSONNAL_SECRET_KEY }}
+          STRIPE_PERSONAL_SECRET_KEY: ${{ secrets.STRIPE_PERSONAL_SECRET_KEY }}
+          STRIPE_LIVE_WEBHOOK: ${{ secrets.STRIPE_LIVE_WEBHOOK }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET || secrets.STRIPE_LIVE_WEBHOOK }}
+          STRIPE_WEBHOOK_SECRET_LIVE: ${{ secrets.STRIPE_LIVE_WEBHOOK || secrets.STRIPE_WEBHOOK_SECRET }}
+          STRIPE_WEBHOOK_SIGNING_SECRET: ${{ secrets.STRIPE_WEBHOOK_SIGNING_SECRET || secrets.STRIPE_LIVE_WEBHOOK }}
+          STRIPE_WEBHOOK_SIGNING_SECRET_LIVE: ${{ secrets.STRIPE_LIVE_WEBHOOK || secrets.STRIPE_WEBHOOK_SIGNING_SECRET }}
+          STRIPE_TOK_ONE_SECRET_KEY: ${{ secrets.STRIPE_TOK_ONE_SECRET_KEY }}
+          STRIPE_TOK_ONE_TEST_SECRET_KEY: ${{ secrets.STRIPE_TOK_ONE_TEST_SECRET_KEY }}
+          STRIPE_TOK_ONE_WEBHOOK_SECRET: ${{ secrets.STRIPE_TOK_ONE_WEBHOOK_SECRET }}
+          STRIPE_TOK_ONE_WEBHOOK_SIGNING_SECRET: ${{ secrets.STRIPE_TOK_ONE_WEBHOOK_SIGNING_SECRET }}
+          STRIPE_TOK_ONE_TEST_WEBHOOK_SECRET: ${{ secrets.STRIPE_TOK_ONE_TEST_WEBHOOK_SECRET }}
+          STRIPE_TOK_ONE_TEST_WEBHOOK_SIGNING_SECRET: ${{ secrets.STRIPE_TOK_ONE_TEST_WEBHOOK_SIGNING_SECRET }}
+          INTERNAL_CRON_SECRET: ${{ secrets.INTERNAL_CRON_SECRET }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          ALLOWED_ORIGINS: ${{ secrets.ALLOWED_ORIGINS }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
+          FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
+          FIREBASE_TOKEN_URI: ${{ secrets.FIREBASE_TOKEN_URI }}
+          FIRECRAWL_API_KEY: ${{ secrets.FIRECRAWL_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_MODEL: ${{ secrets.OPENAI_MODEL }}
           OPENAI_IMAGE_TIMEOUT_MS: ${{ secrets.OPENAI_IMAGE_TIMEOUT_MS }}
@@ -325,6 +323,9 @@ jobs:
 
       - name: Link Supabase production project
         if: ${{ needs.validation.outputs.deploy_database == 'true' }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
         run: |
           source ./scripts/supabase-ci-retry.sh
           supabase_ci_retry link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
@@ -333,6 +334,8 @@ jobs:
         if: >-
           ${{ needs.validation.outputs.deploy_functions == 'true' ||
               needs.validation.outputs.sync_supabase_secrets == 'true' }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
           source ./scripts/supabase-ci-retry.sh
           supabase_ci_retry secrets set --env-file "${RUNNER_TEMP}/supabase.functions.env" --project-ref "$SUPABASE_PROJECT_REF"
@@ -347,6 +350,9 @@ jobs:
 
       - name: Push database migrations
         if: ${{ needs.validation.outputs.deploy_database == 'true' }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
         run: |
           source ./scripts/supabase-ci-retry.sh
           supabase_ci_retry db push --linked --include-all --yes --password "$SUPABASE_DB_PASSWORD"
@@ -355,6 +361,7 @@ jobs:
         if: ${{ needs.validation.outputs.deploy_functions == 'true' }}
         shell: bash
         env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           DEPLOY_ALL_FUNCTIONS: ${{ needs.validation.outputs.deploy_all_functions }}
           FUNCTION_NAMES: ${{ needs.validation.outputs.function_names }}
         run: |
