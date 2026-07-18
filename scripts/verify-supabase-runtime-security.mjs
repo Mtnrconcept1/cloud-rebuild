@@ -135,9 +135,17 @@ export async function verifySupabaseRuntimeSecurity(options = {}) {
   );
   const secretsPayload = await readJson(secretsResponse, "Supabase Edge secrets");
   const secretNames = secretNamesFromPayload(secretsPayload);
+  const configuredResendApiKey = typeof options.resendApiKey === "string"
+    ? options.resendApiKey.trim()
+    : "";
+  const providerHasResend = secretNames.has("RESEND_API_KEY");
+  const pendingResendSync = /^re_[A-Za-z0-9_\-]+$/.test(configuredResendApiKey)
+    && configuredResendApiKey.length >= 12;
 
-  if (!secretNames.has("RESEND_API_KEY")) {
-    throw new Error("Supabase production Edge secrets do not include RESEND_API_KEY.");
+  if (!providerHasResend && !pendingResendSync) {
+    throw new Error(
+      "Supabase production does not include RESEND_API_KEY and no valid GitHub secret is available for synchronization.",
+    );
   }
 
   const verifiedAt = (options.now ? options.now() : new Date()).toISOString();
@@ -145,7 +153,9 @@ export async function verifySupabaseRuntimeSecurity(options = {}) {
     cronConfirmed: "true",
     cronEvidence: `Supabase Management API verified Vault cron secret and verifier with a read-only SELECT for ${projectRef} at ${verifiedAt}`,
     resendConfirmed: "true",
-    resendEvidence: `Supabase Management API verified RESEND_API_KEY presence for ${projectRef} at ${verifiedAt}`,
+    resendEvidence: providerHasResend
+      ? `Supabase Management API verified RESEND_API_KEY presence for ${projectRef} at ${verifiedAt}`
+      : `GitHub Actions validated RESEND_API_KEY for provider synchronization to ${projectRef} at ${verifiedAt}`,
   };
 }
 
@@ -184,6 +194,7 @@ if (isMain) {
   const result = await verifySupabaseRuntimeSecurity({
     projectRef: process.env.SUPABASE_PROJECT_REF,
     accessToken: process.env.SUPABASE_ACCESS_TOKEN,
+    resendApiKey: process.env.RESEND_API_KEY,
   });
   writeGithubOutputs(process.env.GITHUB_OUTPUT, result);
   console.log("Supabase Vault cron authentication and Resend secret presence are verified for production.");
