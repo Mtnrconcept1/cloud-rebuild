@@ -54,7 +54,7 @@ function modulePrice(module: FairGrowthModuleRow) {
 }
 
 function statusLabel(status: PaidModuleRow["status"] | undefined) {
-  if (!status) return "Disponible";
+  if (!status) return "Sur demande";
   return {
     requested: "Activation demandée",
     trialing: "En évaluation",
@@ -152,9 +152,10 @@ export default function DashboardPack() {
           <CardContent className="flex gap-3 p-5">
             <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
             <p className="text-sm">
-              <strong>Garantie de valeur.</strong> Si un module ne produit pas au moins trois fois son coût
-              pendant sa fenêtre d'évaluation de 90 jours, TOK recommande sa désactivation ou accorde
-              un crédit après validation des données. La demande d'activation ne déclenche aucun débit immédiat.
+              <strong>Garantie de valeur.</strong> Après activation facturée, si un module ne produit pas
+              au moins trois fois son coût pendant sa fenêtre d'évaluation de 90 jours, TOK recommande
+              sa désactivation ou accorde un crédit après validation des données. La demande n'active pas
+              le module et n'autorise aucun débit : TOK confirme d'abord le périmètre, le prix et la date de début.
             </p>
           </CardContent>
         </Card>
@@ -179,13 +180,22 @@ export default function DashboardPack() {
                     <div className="flex items-start justify-between gap-3">
                       <CardTitle className="text-lg">{module.name}</CardTitle>
                       <span className="rounded-full bg-muted px-2 py-1 text-[11px] font-medium">
-                        {module.availability_status === "pilot" ? "Pilote" : statusLabel(subscription?.status)}
+                        {subscription
+                          ? statusLabel(subscription.status)
+                          : module.availability_status === "pilot"
+                            ? "Pilote · sur demande"
+                            : statusLabel(undefined)}
                       </span>
                     </div>
                     <p className="text-sm text-muted-foreground">{module.description}</p>
                   </CardHeader>
                   <CardContent className="flex flex-1 flex-col gap-4">
                     <p className="text-xl font-bold">{modulePrice(module)}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {module.availability_status === "pilot"
+                        ? "Fonction pilote soumise à validation technique et contractuelle ; aucune activation automatique."
+                        : "Activation manuelle après validation par TOK ; aucun débit lors de la demande."}
+                    </p>
                     {subscription ? (
                       <div className="rounded-xl bg-muted/60 p-3 text-xs">
                         <p><strong>Statut :</strong> {statusLabel(subscription.status)}</p>
@@ -207,7 +217,9 @@ export default function DashboardPack() {
                       {isDemoMode
                         ? "Indisponible en démonstration"
                         : canRequest
-                          ? "Demander l'activation"
+                          ? module.availability_status === "pilot"
+                            ? "Demander l'accès pilote"
+                            : "Demander l'activation"
                           : statusLabel(subscription?.status)}
                     </Button>
                   </CardContent>
