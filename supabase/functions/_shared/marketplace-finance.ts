@@ -17,14 +17,12 @@ export const MARKETPLACE_CHECKOUT_KINDS = new Set([
   "match-group",
 ]);
 
-const CONTRACTED_SUBSCRIPTION_STATUSES = new Set([
-  "awaiting_payment_method",
-  "awaiting_activation",
-  "activation_pending",
+// Reduced marketplace rates are an entitlement, not merely a selected plan.
+// Fail closed to Starter pricing whenever payment/activation is incomplete,
+// delinquent or paused.
+const ENTITLED_SUBSCRIPTION_STATUSES = new Set([
   "active",
-  "past_due",
   "trialing",
-  "paused",
 ]);
 
 type SupabaseLike = {
@@ -200,7 +198,7 @@ async function resolveFairGrowthPricingSnapshot(input: {
     throw new HttpError(500, subscriptionError.message);
   }
 
-  if (subscription && CONTRACTED_SUBSCRIPTION_STATUSES.has(String(subscription.status || ""))) {
+  if (subscription && ENTITLED_SUBSCRIPTION_STATUSES.has(String(subscription.status || ""))) {
     const snapshotRate = toOptionalBasisPoints(
       subscription.marketplace_commission_bps_snapshot,
       "subscription_marketplace_commission_bps_snapshot",
