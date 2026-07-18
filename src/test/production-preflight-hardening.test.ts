@@ -199,6 +199,28 @@ describe("production preflight hardening", () => {
     expect(JSON.stringify(result)).not.toContain("provider-digest-only");
   });
 
+  it("allows a valid GitHub Resend secret to bootstrap provider synchronization", async () => {
+    const responses = [
+      jsonResponse([{ internal_cron_secret_ready: true, verifier_ready: true }], 201),
+      jsonResponse([{ name: "OPENAI_API_KEY" }]),
+    ];
+    const fetchImpl = vi.fn(async () => responses.shift() as Response);
+    const resendApiKey = "re_live_bootstrap_secret";
+
+    const result = await verifySupabaseRuntimeSecurity({
+      projectRef: PRODUCTION_PROJECT_REF,
+      accessToken: "sbp_test_token_that_is_long_enough",
+      resendApiKey,
+      fetchImpl,
+      wait: async () => undefined,
+      now: () => new Date("2026-07-19T00:00:00.000Z"),
+    });
+
+    expect(result.resendConfirmed).toBe("true");
+    expect(result.resendEvidence).toContain("provider synchronization");
+    expect(JSON.stringify(result)).not.toContain(resendApiKey);
+  });
+
   it("fails closed when the production Resend Edge secret is absent", async () => {
     const responses = [
       jsonResponse([{ internal_cron_secret_ready: true, verifier_ready: true }], 201),
@@ -211,7 +233,7 @@ describe("production preflight hardening", () => {
       accessToken: "sbp_test_token_that_is_long_enough",
       fetchImpl,
       wait: async () => undefined,
-    })).rejects.toThrow("do not include RESEND_API_KEY");
+    })).rejects.toThrow("no valid GitHub secret");
   });
 
   it("pins the workflow to live Supabase evidence and builds only after preflight", () => {
