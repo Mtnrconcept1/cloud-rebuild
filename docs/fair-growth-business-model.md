@@ -47,16 +47,18 @@ Hypothèses mensuelles explicites :
 - aucun module optionnel, pourboire, livraison, TVA ou frais Stripe ajouté à la
   facture restaurant.
 
-Le modèle technique antérieur utilisait CHF 5 par réservation et 9,9 % par
-commande sans différenciation de plan. Les abonnements mensuels étaient déjà
-CHF 69 / 129 / 199 / 499.
+Le modèle technique antérieur utilise CHF 5 par réservation et 10,0 % par
+commande sans différenciation de commission selon le plan. Les abonnements
+mensuels sont Starter CHF 69, Pro CHF 129, Premium CHF 199 et Elite CHF 499.
+Fair Growth renomme publiquement Pro en Business. Même Starter économise 0,1
+point de commission marketplace, soit CHF 8 par restaurant dans cette hypothèse.
 
-| Scénario : les 50 restaurants sur… | Modèle antérieur / mois | Fair Growth / mois | Économie restaurants / mois | Économie / an |
-|---|---:|---:|---:|---:|
-| Starter | CHF 93’050 | CHF 93’050 | CHF 0 | CHF 0 |
-| Business | CHF 96’050 | CHF 87’050 | CHF 9’000 | CHF 108’000 |
-| Premium | CHF 99’550 | CHF 81’550 | CHF 18’000 | CHF 216’000 |
-| Elite | CHF 114’550 | CHF 82’550 | CHF 32’000 | CHF 384’000 |
+| Formule comparable | Actuel par restaurant / mois | Fair Growth par restaurant / mois | Actuel pour 50 / mois | Fair Growth pour 50 / mois | Économie pour 50 / mois | Économie pour 50 / an |
+|---|---:|---:|---:|---:|---:|---:|
+| Starter | CHF 1’869 | CHF 1’861 | CHF 93’450 | CHF 93’050 | CHF 400 | CHF 4’800 |
+| Business (Pro actuel) | CHF 1’929 | CHF 1’741 | CHF 96’450 | CHF 87’050 | CHF 9’400 | CHF 112’800 |
+| Premium | CHF 1’999 | CHF 1’631 | CHF 99’950 | CHF 81’550 | CHF 18’400 | CHF 220’800 |
+| Elite | CHF 2’299 | CHF 1’651 | CHF 114’950 | CHF 82’550 | CHF 32’400 | CHF 388’800 |
 
 Dès qu’une partie des 10’000 réservations mensuelles provient d’un canal direct
 gratuit, Fair Growth coûte encore moins aux restaurants. À titre d’exemple, 50 %
