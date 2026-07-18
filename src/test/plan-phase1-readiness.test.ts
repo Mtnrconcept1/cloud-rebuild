@@ -72,11 +72,14 @@ describe("phase 1 launch audit plan readiness", () => {
       "secrets.FIREBASE_PROJECT_ID",
       "secrets.FIREBASE_CLIENT_EMAIL",
       "secrets.FIREBASE_PRIVATE_KEY",
-      "secrets.APPLE_TEAM_ID",
-      "secrets.ANDROID_KEYSTORE_BASE64",
     ]) {
       expect(deployWorkflow).toContain(requiredSecret);
     }
+
+    expect(deployWorkflow).toContain('RELEASE_READINESS_TARGET: "web"');
+    expect(deployWorkflow).not.toContain("secrets.APPLE_TEAM_ID");
+    expect(deployWorkflow).not.toContain("secrets.ANDROID_KEYSTORE_BASE64");
+    expect(deployWorkflow).not.toContain("write-apple-app-site-association.mjs");
 
     expect(deployWorkflow).toContain("id: supabase_auth_security");
     expect(deployWorkflow).toContain("node ./scripts/ensure-supabase-auth-security.mjs");
