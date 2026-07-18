@@ -201,6 +201,7 @@ Deno.serve(async (req) => {
         ...metadata,
         acquisition_source: acquisitionSource,
         ...(acquisitionChannelId ? { acquisition_channel_id: acquisitionChannelId } : {}),
+        ...(acquisitionSource === "google" ? { acquisition_channel_token: acquisitionChannelToken } : {}),
         _internal_user_id: actor.userId,
       },
       p_notes: notes,
