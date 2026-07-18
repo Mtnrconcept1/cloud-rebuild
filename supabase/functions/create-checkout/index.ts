@@ -577,7 +577,7 @@ Deno.serve(async (req) => {
     } else if (effectiveKind === "restaurant-subscription-upgrade") {
       const planId = String(order_metadata?.plan_id || "");
       const restaurantId = String(order_metadata?.restaurant_id || "");
-      const restaurantSubscriptionUpgradeSamePlanCode = "restaurant_subscription_upgrade_same_plan";
+      const activeChangeRequiresSchedulingCode = "restaurant_subscription_active_change_requires_scheduling";
 
       if (!planId) throw new HttpError(400, "plan_id requis");
       if (!restaurantId) throw new HttpError(400, "restaurant_id requis");
@@ -650,20 +650,20 @@ Deno.serve(async (req) => {
         currentPlanPosition = Number(currentPlan?.position || 0);
       }
 
-      if (
-        hasActiveSubscription &&
-        (
-          existingSub?.restaurant_subscription_plan_id === plan.id
-          || existingSub?.plan === plan.slug
-          || Number(plan.position || 0) <= currentPlanPosition
-        )
-      ) {
-        log.warn(restaurantSubscriptionUpgradeSamePlanCode, {
+      // Never create a second full-price subscription over an already-paid
+      // monthly or annual period. Every active plan change is scheduled on the
+      // existing Stripe subscription by manage-restaurant-subscription.
+      if (hasActiveSubscription) {
+        log.warn(activeChangeRequiresSchedulingCode, {
           restaurantId,
           currentPlan: existingSub?.plan || null,
           requestedPlan: plan.slug,
+          billingPeriod: existingSub?.billing_period || null,
         });
-        throw new HttpError(409, "Vous etes deja sur ce plan ou un plan superieur");
+        throw new HttpError(
+          409,
+          "Un abonnement actif doit etre modifie depuis le changement programme en fin de periode payee.",
+        );
       }
 
       lineItems = [
