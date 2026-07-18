@@ -1554,7 +1554,12 @@ export default function Auth() {
                                 <span>Canaux propres, annulation, no-show et remboursement : <strong>CHF 0</strong></span>
                                 <span>Plafond réservation : <strong>7% du CA table</strong></span>
                                 <span>Au minimum 90% au restaurant + 100% des pourboires</span>
-                                {fairGrowthPlan.slug === "elite" ? <span>3 établissements inclus · CHF 149/site supplémentaire</span> : null}
+                                {fairGrowthPlan.slug === "elite" ? (
+                                  <>
+                                    <span>3 établissements inclus · CHF 149/site supplémentaire</span>
+                                    <span>Sites rattachés après validation TOK ; aucun supplément sans confirmation.</span>
+                                  </>
+                                ) : null}
                               </span>
                               <span className="mt-3 grid gap-1 text-xs text-muted-foreground">
                                 <span className="font-semibold text-foreground">{formatTokCredits(tokCredits)} / mois</span>
