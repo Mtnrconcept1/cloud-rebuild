@@ -3,6 +3,19 @@ import { describe, expect, it } from "vitest";
 import { calculateGoogleBusinessSavings } from "@/lib/googleBusinessEconomics";
 
 describe("Google Business restaurant economics", () => {
+  it("treats verified Google reservations as a free restaurant-owned channel", () => {
+    const result = calculateGoogleBusinessSavings({
+      monthlyTables: 120,
+      coversPerTable: 3,
+      commissionPerCoverChf: 6.2,
+      monthlyPackFeeChf: 69,
+    });
+
+    expect(result.tokModelCostChf).toBe(69);
+    expect(result.monthlySavingsChf).toBe(2163);
+    expect(result.tokEffectiveCostPerCoverChf).toBe(0.19);
+  });
+
   it("compares a per-cover model with TOK's fixed 5 CHF per table model", () => {
     const result = calculateGoogleBusinessSavings({
       monthlyTables: 120,
