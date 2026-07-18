@@ -5,6 +5,7 @@ const read = (path: string) => readFileSync(new URL(`../../${path}`, import.meta
 
 describe("Premium daily dish AI", () => {
   const migration = read("supabase/migrations/20260718201439_daily_dish_ai.sql");
+  const publicPrivacy = read("supabase/migrations/20260718203641_daily_dish_public_column_privacy.sql");
   const edge = read("supabase/functions/daily-dish-ai/index.ts");
   const panel = read("src/components/dashboard/DailyDishAiPanel.tsx");
   const publicCard = read("src/components/restaurant/RestaurantDailyDishCard.tsx");
@@ -20,7 +21,10 @@ describe("Premium daily dish AI", () => {
     expect(migration).toContain("CREATE TABLE public.restaurant_daily_dishes");
     expect(migration).toContain("FORCE ROW LEVEL SECURITY");
     expect(migration).toContain("REVOKE ALL ON public.restaurant_daily_dish_variants FROM PUBLIC, anon, authenticated");
-    expect(migration).toContain("GRANT SELECT ON public.restaurant_daily_dishes TO anon, authenticated");
+    expect(publicPrivacy).toContain("REVOKE SELECT ON public.restaurant_daily_dishes FROM anon, authenticated");
+    expect(publicPrivacy).toContain("GRANT SELECT (");
+    expect(publicPrivacy).not.toContain("published_by,");
+    expect(publicPrivacy).not.toContain("variant_id,");
     expect(migration).not.toMatch(/restaurant_daily_dishes[\s\S]{0,700}(recipe|basket|estimated_total_cost)/i);
   });
 
