@@ -728,6 +728,50 @@ const FAQS: FaqSection[] = [
     category: "restaurants",
     questions: [
       {
+        q: "Quels sont les tarifs Fair Growth ?",
+        a: "Starter coûte CHF 69/mois, CHF 5 par réservation apportée par TOK et honorée, et 9,9% par commande marketplace. Business coûte CHF 129, CHF 4.50 et 8,9%. Premium coûte CHF 199, CHF 4 et 7,9%. Elite coûte CHF 499, CHF 3 et 6,9%. Elite inclut trois établissements, puis CHF 149/mois par site supplémentaire. L'annuel fournit 12 mois de service au prix de 11.",
+      },
+      {
+        q: "Qu'est-ce qu'une réservation apportée par TOK ?",
+        a: "C'est une réservation dont la première source vérifiable est la marketplace TOK. La source est enregistrée côté serveur à la création et ne peut pas être changée depuis le navigateur. Une réservation issue du site du restaurant, d'un QR code TOK attribué au restaurant, d'Instagram, de Google ou du fichier client est un canal propre et reste gratuite.",
+      },
+      {
+        q: "Une annulation ou un no-show est-il facturé ?",
+        a: "Non. Les frais de réservation ne sont créés qu'après confirmation par le restaurant que la table a été réellement honorée et après saisie du chiffre d'affaires attribué. Annulations, no-shows, remboursements et démonstrations valent CHF 0.",
+      },
+      {
+        q: "Comment fonctionne le plafond de 7% ?",
+        a: "Le frais applicable est le plus petit montant entre le tarif du plan et 7% du chiffre d'affaires réellement attribué à la table. Exemple : avec un tarif de CHF 5 et une table à CHF 50, le maximum facturé est CHF 3.50.",
+      },
+      {
+        q: "Quelle part d'une commande revient au restaurant ?",
+        a: "Le restaurant conserve au minimum 90% du montant éligible de la commande et 100% des pourboires. Les taux Fair Growth de 9,9%, 8,9%, 7,9% et 6,9% laissent respectivement 90,1%, 91,1%, 92,1% et 93,1% au restaurant sur la base commissionnable. Les frais Stripe et Connect de la marketplace sont absorbés par la part TOK.",
+      },
+      {
+        q: "Comment fonctionne l'abonnement annuel ?",
+        a: "L'abonnement annuel est payé une fois pour 12 mois de service, au prix de 11 mensualités : CHF 759 Starter, CHF 1'419 Business, CHF 2'189 Premium et CHF 5'489 Elite. Les crédits et quotas inclus restent renouvelés chaque mois.",
+      },
+      {
+        q: "Quels modules payants puis-je activer ?",
+        a: "No-Show Shield CHF 39/mois ; Marketing Autopilot IA CHF 79/mois ; Margin & Waste Pilot CHF 59/mois ; Réceptionniste téléphonique IA CHF 49/mois plus CHF 1.50 par réservation réussie ; Direct Order Saver CHF 149/mois plus 1,5% ; Réputation IA CHF 29/mois ; cartes-cadeaux et expériences 3% plus coût de paiement.",
+      },
+      {
+        q: "Comment fonctionne la garantie de valeur 3× ?",
+        a: "TOK mesure la valeur attribuable du module pendant une fenêtre de 90 jours. Si elle n'atteint pas trois fois son coût, TOK recommande sa désactivation ou accorde un crédit après validation des données et selon les conditions du module.",
+      },
+      {
+        q: "Quand Direct Order Saver devient-il rentable ?",
+        a: "Face au taux Starter, le point d'équilibre mathématique est d'environ CHF 1'774 de commandes directes par mois, hors paiement. En incluant un panier moyen proche de CHF 40 et les coûts d'une carte suisse supportés par le flux direct, l'estimation prudente est d'environ CHF 3'100 à CHF 3'200. Le simulateur doit toujours afficher ses hypothèses.",
+      },
+      {
+        q: "Pourquoi TWINT n'est-il pas proposé pour Match Group ?",
+        a: "TWINT est proposé en priorité sur les parcours Stripe Checkout compatibles. Match Group exige une autorisation avec capture manuelle, que TWINT ne prend pas en charge ; une carte compatible est donc requise.",
+      },
+      {
+        q: "Quels taux de TVA apparaissent sur les factures ?",
+        a: "Le moteur distingue le taux normal suisse de 8,1% et le taux réduit de 2,6% par ligne. La restauration sur place et l'alcool relèvent généralement du taux normal ; les denrées éligibles hors prestation de restauration peuvent relever du taux réduit. La qualification fiscale finale reste celle du restaurant.",
+      },
+      {
         q: "Comment inscrire mon restaurant sur TOK ?",
         a: `Utilisez l'espace Restaurateurs ou contactez ${SUPPORT_EMAIL}. L'équipe vérifie vos informations, votre identité commerciale, vos horaires, modes de service, menu, photos, moyens de paiement et conditions opérationnelles avant mise en ligne.`,
       },
