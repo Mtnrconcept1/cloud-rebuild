@@ -111,7 +111,7 @@ export async function verifySupabaseRuntimeSecurity(options = {}) {
     Accept: "application/json",
     Authorization: `Bearer ${accessToken}`,
   };
-  const queryUrl = `${MANAGEMENT_API_ORIGIN}/v1/projects/${projectRef}/database/query/read-only`;
+  const queryUrl = `${MANAGEMENT_API_ORIGIN}/v1/projects/${projectRef}/database/query`;
   const queryResponse = await requestWithRetry(queryUrl, {
     method: "POST",
     headers: {
@@ -120,7 +120,7 @@ export async function verifySupabaseRuntimeSecurity(options = {}) {
     },
     body: JSON.stringify({ query: CRON_CONFIGURATION_QUERY }),
   }, dependencies);
-  const queryPayload = await readJson(queryResponse, "Supabase read-only database query");
+  const queryPayload = await readJson(queryResponse, "Supabase database query");
   const [runtimeRow] = rowsFromPayload(queryPayload);
 
   if (runtimeRow?.internal_cron_secret_ready !== true || runtimeRow?.verifier_ready !== true) {
@@ -143,7 +143,7 @@ export async function verifySupabaseRuntimeSecurity(options = {}) {
   const verifiedAt = (options.now ? options.now() : new Date()).toISOString();
   return {
     cronConfirmed: "true",
-    cronEvidence: `Supabase read-only API verified Vault cron secret and verifier for ${projectRef} at ${verifiedAt}`,
+    cronEvidence: `Supabase Management API verified Vault cron secret and verifier with a read-only SELECT for ${projectRef} at ${verifiedAt}`,
     resendConfirmed: "true",
     resendEvidence: `Supabase Management API verified RESEND_API_KEY presence for ${projectRef} at ${verifiedAt}`,
   };
