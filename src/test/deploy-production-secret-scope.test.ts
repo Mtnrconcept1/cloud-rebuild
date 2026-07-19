@@ -149,17 +149,12 @@ describe("production deployment secret scope", () => {
     expect(secretWriter).toContain("fs.chmodSync(outFile, 0o600)");
   });
 
-  it("scopes the dedicated demo to server AI and Stripe Test only", () => {
+  it("scopes the dedicated demo to server AI and no payment-provider secret", () => {
     expect(secretEnvironmentNames(prepareDemoSecrets)).toEqual([
       "FIRECRAWL_API_KEY",
       "OPENAI_API_KEY",
       "OPENAI_IMAGE_TIMEOUT_MS",
       "OPENAI_MODEL",
-      "STRIPE_SECRET_KEY_TEST",
-      "STRIPE_TEST_WEBHOOK_SECRET",
-      "STRIPE_TOK_ONE_TEST_SECRET_KEY",
-      "STRIPE_TOK_ONE_TEST_WEBHOOK_SECRET",
-      "STRIPE_TOK_ONE_TEST_WEBHOOK_SIGNING_SECRET",
       "SUPABASE_ACCESS_TOKEN",
       "TOK_AI_IMAGE_BUCKET",
       "TOK_GALLERY_IMAGE_BUCKET",
@@ -168,10 +163,9 @@ describe("production deployment secret scope", () => {
       "TOK_SOURCE_IMAGE_TIMEOUT_MS",
     ].sort());
     expect(secretEnvironmentNames(configureDemoAuth)).toEqual(["SUPABASE_ACCESS_TOKEN"]);
-    expect(demoSecretWriter).toContain('["STRIPE_SECRET_KEY", stripeTest]');
-    expect(demoSecretWriter).toContain('stripeTest.startsWith("sk_test_")');
-    expect(demoSecretWriter).not.toContain("STRIPE_SECRET_KEY_LIVE");
-    expect(demoSecretWriter).not.toContain("STRIPE_PERSONNAL_SECRET_KEY");
+    expect(demoSecretWriter).toContain('["DEMO_PAYMENT_MODE", "simulated"]');
+    expect(demoSecretWriter).not.toMatch(/STRIPE_/);
+    expect(prepareDemoSecrets).not.toContain("STRIPE_");
   });
 
   it("gives Supabase CLI steps only the credentials they require", () => {

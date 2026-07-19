@@ -68,14 +68,15 @@ describe("commercial demo active tools and reservations", () => {
     expect(provider).toContain("reservation_confirmed");
   });
 
-  it("routes the real cart only to the demo order RPC and Stripe Test endpoint", () => {
+  it("routes the real cart only to the isolated demo order and payment simulator", () => {
     const demoBranch = cart.slice(
       cart.indexOf('commercialDemoFrame?.surface === "client"'),
       cart.indexOf('let accessToken = ""'),
     );
     expect(demoBranch).toContain("createCommercialDemoOrder");
-    expect(demoBranch).toContain("createCommercialDemoCheckout");
-    expect(demoBranch).toContain("openCommercialDemoCheckout");
+    expect(demoBranch).toContain("simulateCommercialDemoPayment");
+    expect(demoBranch).toContain("payment.snapshot");
+    expect(demoBranch).not.toContain("openCommercialDemoCheckout");
     expect(demoBranch).not.toContain('"create-checkout"');
     expect(demoBranch).not.toContain('"validate-order"');
     expect(demoBranch).not.toContain("apply_checkout_benefits");
@@ -98,7 +99,7 @@ describe("commercial demo active tools and reservations", () => {
     expect(cart).toContain("useIsTokOneMember({\n    enabled: !isCommercialDemoClient,");
     expect(cart).toContain("enabled: Boolean(user && !isCommercialDemoClient)");
     expect(cart).toContain("!isCommercialDemoClient && !isChefsTableCheckout && checkoutStep === \"suggestions\"");
-    expect(cart).toContain("Démonstration isolée — Stripe Test uniquement");
+    expect(cart).toContain("Démonstration isolée — paiement accepté simulé, aucun débit");
     expect(tokOne).toContain("export function useIsTokOneMember(options: QueryOptions = {})");
     expect(tokOne).toContain("useTokOneSubscription(options)");
   });

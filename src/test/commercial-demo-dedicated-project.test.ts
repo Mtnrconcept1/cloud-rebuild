@@ -22,6 +22,9 @@ describe("dedicated commercial demo project", () => {
   const fullToolsMigration = read(
     "supabase/demo-migrations/20260719143000_enable_full_commercial_demo_tools.sql",
   );
+  const paymentSimulationMigration = read(
+    "supabase/demo-migrations/20260719150000_simulated_commercial_demo_payments.sql",
+  );
 
   it("routes only demo frames to the isolated Supabase project", () => {
     expect(client).toContain('COMMERCIAL_DEMO_SUPABASE_PROJECT_REF = "hzldfhjfgjcadmpghhhf"');
@@ -57,13 +60,15 @@ describe("dedicated commercial demo project", () => {
     );
   });
 
-  it("syncs AI keys but maps Stripe exclusively to test keys", () => {
-    expect(secretsWriter).toContain('["STRIPE_SECRET_KEY", stripeTest]');
-    expect(secretsWriter).toContain('["STRIPE_SECRET_KEY_TEST", stripeTest]');
-    expect(secretsWriter).toContain('stripeTest.startsWith("sk_test_")');
+  it("syncs real AI keys without injecting any payment-provider credential", () => {
     expect(secretsWriter).toContain('["OPENAI_API_KEY", requireSecret("OPENAI_API_KEY")]');
-    expect(secretsWriter).not.toContain("STRIPE_SECRET_KEY_LIVE");
-    expect(secretsWriter).not.toContain("STRIPE_PERSONNAL_SECRET_KEY");
+    expect(secretsWriter).toContain('["DEMO_PAYMENT_MODE", "simulated"]');
+    expect(secretsWriter).not.toMatch(/STRIPE_/);
+    const demoSecretStep = workflow.slice(
+      workflow.indexOf("Prepare dedicated commercial demo secrets without payment-provider credentials"),
+      workflow.indexOf("Configure dedicated demo Auth redirects"),
+    );
+    expect(demoSecretStep).not.toContain("STRIPE_");
     expect(workflow).toContain(
       'secrets set --env-file "${RUNNER_TEMP}/commercial-demo.providers.env" --project-ref "$COMMERCIAL_DEMO_PROJECT_REF"',
     );
@@ -83,5 +88,9 @@ describe("dedicated commercial demo project", () => {
     expect(fullToolsMigration).toContain("is_dedicated_commercial_demo_actor");
     expect(fullToolsMigration).toContain("dedicated_commercial_demo_full_access");
     expect(fullToolsMigration).toContain("ON storage.objects");
+    expect(paymentSimulationMigration).toContain(
+      "commercial_demo_confirm_simulated_payment",
+    );
+    expect(paymentSimulationMigration).toContain("TO service_role");
   });
 });
