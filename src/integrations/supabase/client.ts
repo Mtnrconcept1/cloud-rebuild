@@ -4,14 +4,18 @@ import type { Database } from './types';
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from '@/lib/env';
 import { readSupabasePublicEnv } from '@/lib/publicEnv';
 import { authStorage } from './authStorage';
+import {
+  getCommercialDemoSupabase,
+  isCommercialDemoFramePath,
+} from './demoClient';
 
 // Import the supabase client like this:
 // import { getSupabase } from "@/integrations/supabase/client";
 
-let supabase: SupabaseClient<Database> | null = null;
+let productionSupabase: SupabaseClient<Database> | null = null;
 
-export function getSupabase(): SupabaseClient<Database> {
-  if (supabase) return supabase;
+export function getProductionSupabase(): SupabaseClient<Database> {
+  if (productionSupabase) return productionSupabase;
 
   const { url, publishableKey } = readSupabasePublicEnv(
     {
@@ -21,7 +25,7 @@ export function getSupabase(): SupabaseClient<Database> {
     "runtime",
   );
 
-  supabase = createClient<Database>(url, publishableKey, {
+  productionSupabase = createClient<Database>(url, publishableKey, {
     auth: {
       storage: authStorage,
       persistSession: true,
@@ -31,5 +35,15 @@ export function getSupabase(): SupabaseClient<Database> {
     },
   });
 
-  return supabase;
+  return productionSupabase;
+}
+
+export function getSupabase(): SupabaseClient<Database> {
+  if (
+    typeof window !== "undefined"
+    && isCommercialDemoFramePath(window.location.pathname)
+  ) {
+    return getCommercialDemoSupabase();
+  }
+  return getProductionSupabase();
 }
