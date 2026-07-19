@@ -422,8 +422,8 @@ jobs:
                needs.validation.outputs.sync_supabase_secrets == 'true') }}
         shell: bash
         run: |
+          rm -f -- "${RUNNER_TEMP}/supabase.functions.env"
           rm -f -- \
-            "${RUNNER_TEMP}/supabase.functions.env" \
             "${RUNNER_TEMP}/commercial-demo-api-keys.json" \
             "${RUNNER_TEMP}/commercial-demo.production.env" \
             "${RUNNER_TEMP}/commercial-demo.providers.env"
