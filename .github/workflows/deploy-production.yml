@@ -274,6 +274,9 @@ jobs:
           set -euo pipefail
 
           domains=(
+            auth.thetok.ch
+            admin.thetok.ch
+            commercial.thetok.ch
             demo-client.thetok.ch
             demo-restaurateur.thetok.ch
             demo-livreur.thetok.ch
