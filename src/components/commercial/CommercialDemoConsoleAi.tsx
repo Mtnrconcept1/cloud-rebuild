@@ -126,7 +126,7 @@ export default function CommercialDemoConsoleAi({
         conversationId,
         context: {
           entrypoint: "commercial_multi_space_console",
-          visible_spaces: ["client", "restaurant", "commercial"],
+          visible_spaces: ["client", "restaurant", "courier"],
         },
       });
       if (activeRequestRef.current !== requestMarker) return;
