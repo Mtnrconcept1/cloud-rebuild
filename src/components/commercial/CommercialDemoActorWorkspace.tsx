@@ -26,18 +26,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import {
   CommercialDemoApiError,
-  createCommercialDemoCheckout,
+  simulateCommercialDemoPayment,
   createCommercialDemoOrder,
   getCommercialDemoPresetItems,
   transitionCommercialDemoOrder,
   type CommercialDemoTransitionAction,
 } from "@/lib/commercialDemoJourney";
 import { getCommercialDemoNotificationPath, type CommercialDemoActorSurface } from "@/lib/commercialDemoFrame";
-import { isStripeTestCheckoutSessionId } from "@/lib/commercialDemoHostSecurity";
 import { cn } from "@/lib/utils";
 
 const ORDER_STATUS_LABELS: Record<string, string> = {
-  awaiting_payment: "Paiement Stripe Test attendu",
+  awaiting_payment: "Paiement simulé attendu",
   restaurant_received: "Reçue par le restaurant",
   restaurant_accepted: "Acceptée par le restaurant",
   preparing: "En préparation",
@@ -83,32 +82,6 @@ function formatChf(cents: number) {
   return new Intl.NumberFormat("fr-CH", { style: "currency", currency: "CHF" }).format((Number(cents) || 0) / 100);
 }
 
-function checkoutReturnUrl(sessionId: string) {
-  const url = new URL("/commercial/demo-live", window.location.origin);
-  url.searchParams.set("demo_session_id", sessionId);
-  return url.toString();
-}
-
-function sendCheckoutToParent(sessionId: string, checkoutUrl: string, stripeSessionId: string) {
-  if (!isStripeTestCheckoutSessionId(stripeSessionId)) {
-    throw new CommercialDemoApiError("Session Stripe Test invalide. Ouverture bloquée.", "INVALID_TEST_STRIPE_SESSION");
-  }
-  const url = new URL(checkoutUrl);
-  if (url.protocol !== "https:" || url.hostname !== "checkout.stripe.com") {
-    throw new CommercialDemoApiError("URL Stripe Test invalide. Ouverture bloquée.", "INVALID_CHECKOUT_URL");
-  }
-  if (window.parent === window) {
-    window.location.assign(url.toString());
-    return;
-  }
-  window.parent.postMessage({
-    type: "commercial-demo:open-checkout",
-    sessionId,
-    stripeSessionId,
-    checkoutUrl: url.toString(),
-  }, window.location.origin);
-}
-
 function RealtimeBadge({ status }: { status: string }) {
   const connected = status === "connected";
   const offline = status === "offline";
@@ -150,9 +123,6 @@ function ClientWorkspace({ pending, onCreate, onCheckout, checkoutError }: {
   const order = frame.snapshot.order;
   const items = order?.items || getCommercialDemoPresetItems(frame.snapshot.catalog_items);
   const paid = order?.payment_status === "test_paid";
-  const stripeConfigMissing = checkoutError instanceof CommercialDemoApiError
-    && ["DEMO_STRIPE_NOT_CONFIGURED", "INVALID_TEST_STRIPE_KEY"].includes(checkoutError.code);
-
   return (
     <div className="grid gap-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(18rem,0.75fr)]">
       <Card>
@@ -181,23 +151,23 @@ function ClientWorkspace({ pending, onCreate, onCheckout, checkoutError }: {
           ) : !paid ? (
             <div className="space-y-3">
               <div className="rounded-xl border border-violet-200 bg-violet-50 p-3 text-sm dark:border-violet-400/20 dark:bg-violet-400/10">
-                <p className="font-semibold">Carte Stripe Test</p>
-                <p className="mt-1"><code className="font-mono font-bold">4242 4242 4242 4242</code> · date future · CVC libre</p>
+                <p className="font-semibold">Paiement de démonstration</p>
+                <p className="mt-1">Le clic simule une acceptation immédiate, sans carte, sans appel Stripe et sans débit réel.</p>
               </div>
-              <Button type="button" className="min-h-11 w-full bg-[#635bff] text-white hover:bg-[#5148e5]" onClick={onCheckout} disabled={pending}>
+              <Button type="button" className="min-h-11 w-full bg-violet-600 text-white hover:bg-violet-700" onClick={onCheckout} disabled={pending}>
                 {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CreditCard className="mr-2 h-4 w-4" />}
-                Payer avec Stripe Test
+                Simuler le paiement accepté
               </Button>
             </div>
           ) : (
             <div className="flex gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-950 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-100">
               <CheckCircle2 className="h-5 w-5 shrink-0" />
-              <div><p className="font-semibold">Paiement test confirmé</p><p className="mt-1 text-xs">Aucun débit réel. La commande est visible chez le restaurateur.</p></div>
+              <div><p className="font-semibold">Paiement simulé confirmé</p><p className="mt-1 text-xs">Aucun fournisseur n’est appelé. La commande est immédiatement visible chez le restaurateur.</p></div>
             </div>
           )}
           {checkoutError ? (
             <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-sm" role="alert">
-              <p className="font-semibold">{stripeConfigMissing ? "Stripe Test doit être configuré" : "Paiement test indisponible"}</p>
+              <p className="font-semibold">Paiement simulé indisponible</p>
               <p className="mt-1 text-muted-foreground">{checkoutError instanceof Error ? checkoutError.message : "Réessayez dans un instant."}</p>
             </div>
           ) : null}
@@ -307,14 +277,12 @@ export default function CommercialDemoActorWorkspace({ surface }: { surface: Com
   const checkoutMutation = useMutation({
     mutationFn: async () => {
       if (!frame) throw new Error("Session de démonstration indisponible.");
-      const result = await createCommercialDemoCheckout({
+      return simulateCommercialDemoPayment({
         demoRestaurantId: frame.snapshot.session.demo_restaurant_id,
         demoSessionId: frame.config.sessionId,
-        returnUrl: checkoutReturnUrl(frame.config.sessionId),
       });
-      sendCheckoutToParent(frame.config.sessionId, result.checkout_url, result.stripe_session_id);
-      return result;
     },
+    onSuccess: (result) => void syncSnapshot(result.snapshot),
   });
 
   if (!frame || frame.surface !== surface) return null;
