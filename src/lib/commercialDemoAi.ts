@@ -3,10 +3,10 @@ import type {
   TokImageGenerationResult,
   TokAiMessage,
 } from "@/lib/ai/tokAiClient";
-import { invokeSupabaseFunction } from "@/lib/session";
-import { getSupabase } from "@/integrations/supabase/client";
-
-const supabase = getSupabase();
+import {
+  invokeCommercialDemoFunction,
+  invokeCommercialDemoRpc,
+} from "@/lib/commercialDemoProject";
 const COMMERCIAL_DEMO_AI_FUNCTION = "commercial-demo-ai";
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const MAX_REFERENCE_IMAGES = 3;
@@ -153,13 +153,17 @@ async function invokeCommercialDemoAi<T>(body: Record<string, unknown>, label: s
   let lastError: unknown;
 
   for (let attempt = 0; attempt < 2; attempt += 1) {
-    const { data, error } = await invokeSupabaseFunction<T>(COMMERCIAL_DEMO_AI_FUNCTION, {
-      body,
-      timeout: EDGE_REQUEST_TIMEOUT_MS,
-    });
-    if (!error) return assertResponseData<T>(data, label);
-    lastError = error;
-    if (attempt > 0 || !shouldRetry(error)) break;
+    try {
+      const data = await invokeCommercialDemoFunction<T>(
+        COMMERCIAL_DEMO_AI_FUNCTION,
+        body,
+        { timeout: EDGE_REQUEST_TIMEOUT_MS },
+      );
+      return assertResponseData<T>(data, label);
+    } catch (error) {
+      lastError = error;
+      if (attempt > 0 || !shouldRetry(error)) break;
+    }
     await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
   }
 
@@ -389,12 +393,14 @@ export async function getCommercialDemoAiHistory(
   runtime: CommercialDemoAiRuntime,
   tool?: CommercialDemoAiConversation["tool"],
 ) {
-  const { data, error } = await (supabase.rpc as any)("commercial_demo_ai_history", {
-    p_session_id: runtime.sessionId,
-    p_tool: tool || null,
-  });
-  if (error) throw error;
-  return Array.isArray(data) ? data as CommercialDemoAiConversation[] : [];
+  const data = await invokeCommercialDemoRpc<CommercialDemoAiConversation[]>(
+    "commercial_demo_ai_history",
+    {
+      p_session_id: runtime.sessionId,
+      p_tool: tool || null,
+    },
+  );
+  return Array.isArray(data) ? data : [];
 }
 
 export async function archiveCommercialDemoAiConversation(
@@ -402,11 +408,13 @@ export async function archiveCommercialDemoAiConversation(
   conversationId: string,
 ) {
   if (!UUID_PATTERN.test(conversationId)) return false;
-  const { data, error } = await (supabase.rpc as any)("commercial_demo_ai_archive_conversation", {
-    p_session_id: runtime.sessionId,
-    p_conversation_id: conversationId,
-  });
-  if (error) throw error;
+  const data = await invokeCommercialDemoRpc<boolean>(
+    "commercial_demo_ai_archive_conversation",
+    {
+      p_session_id: runtime.sessionId,
+      p_conversation_id: conversationId,
+    },
+  );
   return data === true;
 }
 
