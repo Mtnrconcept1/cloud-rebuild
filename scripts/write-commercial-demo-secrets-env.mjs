@@ -35,15 +35,6 @@ writePrivateEnv(productionOut, [
   ["DEMO_SUPABASE_SECRET_KEY", demoSecret],
 ]);
 
-const stripeTest = requireSecret("STRIPE_SECRET_KEY_TEST");
-if (!stripeTest.startsWith("sk_test_")) {
-  throw new Error("STRIPE_SECRET_KEY_TEST must be a Stripe test secret key");
-}
-const tokOneTest = clean(process.env.STRIPE_TOK_ONE_TEST_SECRET_KEY);
-if (tokOneTest && !tokOneTest.startsWith("sk_test_")) {
-  throw new Error("STRIPE_TOK_ONE_TEST_SECRET_KEY must be a Stripe test secret key");
-}
-
 const demoEntries = [
   ["OPENAI_API_KEY", requireSecret("OPENAI_API_KEY")],
   ["OPENAI_MODEL", clean(process.env.OPENAI_MODEL)],
@@ -54,24 +45,17 @@ const demoEntries = [
   ["TOK_GALLERY_IMAGE_BUCKET", clean(process.env.TOK_GALLERY_IMAGE_BUCKET)],
   ["TOK_SOURCE_IMAGE_TIMEOUT_MS", clean(process.env.TOK_SOURCE_IMAGE_TIMEOUT_MS)],
   ["FIRECRAWL_API_KEY", clean(process.env.FIRECRAWL_API_KEY)],
-  ["STRIPE_SECRET_KEY", stripeTest],
-  ["STRIPE_SECRET_KEY_TEST", stripeTest],
-  ["STRIPE_TOK_ONE_SECRET_KEY", tokOneTest],
-  ["STRIPE_TOK_ONE_TEST_SECRET_KEY", tokOneTest],
-  ["STRIPE_WEBHOOK_SECRET", clean(process.env.STRIPE_TEST_WEBHOOK_SECRET)],
-  ["STRIPE_WEBHOOK_SIGNING_SECRET", clean(process.env.STRIPE_TEST_WEBHOOK_SECRET)],
-  ["STRIPE_TOK_ONE_WEBHOOK_SECRET", clean(process.env.STRIPE_TOK_ONE_TEST_WEBHOOK_SECRET)],
-  ["STRIPE_TOK_ONE_WEBHOOK_SIGNING_SECRET", clean(process.env.STRIPE_TOK_ONE_TEST_WEBHOOK_SIGNING_SECRET)],
   ["ALLOWED_ORIGINS", "https://commercial.thetok.ch"],
   ["APP_BASE_URL", "https://commercial.thetok.ch"],
   ["PUBLIC_APP_URL", "https://commercial.thetok.ch"],
   ["SITE_URL", "https://commercial.thetok.ch"],
   ["ENVIRONMENT", "commercial_demo"],
   ["APP_ENV", "commercial_demo"],
+  ["DEMO_PAYMENT_MODE", "simulated"],
 ].filter(([, value]) => value);
 
 writePrivateEnv(demoOut, demoEntries);
-console.log("Prepared dedicated commercial demo secret files (values hidden).");
+console.log("Prepared dedicated commercial demo secret files without payment-provider credentials (values hidden).");
 
 function requireAbsolute(value, name) {
   if (!value || !path.isAbsolute(value)) {
