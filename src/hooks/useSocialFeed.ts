@@ -42,6 +42,10 @@ import {
 import { optimizeSocialMediaUpload } from "@/lib/media/socialMediaCompression";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import type { CommercialDemoSnapshot } from "@/lib/commercialDemoJourney";
+import {
+  readCommercialDemoToolState,
+  writeCommercialDemoToolState,
+} from "@/lib/commercialDemoRestaurantTools";
 
 const supabase = getSupabase();
 const SOCIAL_FEED_BUCKET = "social-post-media";
@@ -1290,13 +1294,26 @@ export function useSocialPostById(postId?: string | null) {
 }
 
 export function useRestaurantSocialPosts(restaurantId?: string | null) {
-  useSocialRealtime(!!restaurantId);
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemo = commercialDemoFrame?.surface === "restaurant";
+  const queryClient = useQueryClient();
+  useSocialRealtime(Boolean(restaurantId) && !isCommercialDemo);
   const { user } = useAuth();
   const viewerId = user?.id || null;
+  const demoSessionId = isCommercialDemo ? commercialDemoFrame.config.sessionId : null;
 
   return useQuery({
-    queryKey: ["restaurant-social-posts", restaurantId, viewerId],
+    queryKey: ["restaurant-social-posts", restaurantId, viewerId, demoSessionId || "live"],
     queryFn: async () => {
+      if (isCommercialDemo) {
+        const fallback = getCommercialDemoCachedPosts(queryClient, commercialDemoFrame.snapshot);
+        return readCommercialDemoToolState<SocialFeedPost[]>(
+          commercialDemoFrame.config.sessionId,
+          "actualites-posts",
+          fallback,
+        );
+      }
+
       const { data, error } = await (supabase.from("social_posts" as any) as any)
         .select("*, restaurants(id,name,image_url,city,cuisine_type), social_post_media(*)")
         .eq("restaurant_id", restaurantId)
@@ -1328,6 +1345,8 @@ export function useRestaurantSocialPosts(restaurantId?: string | null) {
       });
     },
     enabled: !!restaurantId,
+    staleTime: isCommercialDemo ? Infinity : undefined,
+    refetchOnWindowFocus: !isCommercialDemo,
   });
 }
 
@@ -1357,9 +1376,23 @@ export function useRestaurantActualitesPremiumBannerAudience(restaurantId?: stri
 }
 
 export function useRestaurantActualitesAccess(restaurantId?: string | null) {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemo = commercialDemoFrame?.surface === "restaurant";
   return useQuery({
-    queryKey: ["restaurant-actualites-access", restaurantId],
+    queryKey: ["restaurant-actualites-access", restaurantId, isCommercialDemo ? commercialDemoFrame.config.sessionId : "live"],
     queryFn: async () => {
+      if (isCommercialDemo) {
+        return {
+          hasAccess: true,
+          planSlug: "elite",
+          weeklyPostLimit: null,
+          weeklyPostsUsed: 0,
+          remainingWeeklyPosts: null,
+          unlimitedPosts: true,
+          weekStartedAt: null,
+          weekEndsAt: null,
+        } satisfies RestaurantActualitesAccess;
+      }
       const { data, error } = await (supabase.rpc as any)("get_restaurant_actualites_access", {
         p_restaurant_id: restaurantId,
       });
@@ -1408,11 +1441,49 @@ export function useCreatePremiumActualitesBanner() {
 }
 
 export function useSocialInsights(restaurantId?: string | null) {
-  useSocialRealtime(!!restaurantId);
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemo = commercialDemoFrame?.surface === "restaurant";
+  const queryClient = useQueryClient();
+  useSocialRealtime(Boolean(restaurantId) && !isCommercialDemo);
 
   return useQuery({
-    queryKey: ["social-insights", restaurantId],
+    queryKey: ["social-insights", restaurantId, isCommercialDemo ? commercialDemoFrame.config.sessionId : "live"],
     queryFn: async () => {
+      if (isCommercialDemo) {
+        const fallback = getCommercialDemoCachedPosts(queryClient, commercialDemoFrame.snapshot);
+        const posts = readCommercialDemoToolState<SocialFeedPost[]>(
+          commercialDemoFrame.config.sessionId,
+          "actualites-posts",
+          fallback,
+        );
+        const publishedCount = posts.filter((post) => post.status === "published").length;
+        const scheduledCount = posts.filter((post) => post.status === "scheduled").length;
+        const interactions = posts.reduce(
+          (total, post) => total + post.likesCount + post.commentsCount + post.repostsCount + post.sharesCount,
+          0,
+        );
+        const impressions = Math.max(2840, posts.length * 1100);
+        return {
+          postsCount: posts.length,
+          publishedCount,
+          hiddenCount: 0,
+          impressions,
+          clicks: Math.max(186, posts.length * 54),
+          ctaClicks: Math.max(82, posts.length * 24),
+          saves: Math.max(18, posts.length * 6),
+          interactions: Math.max(164, interactions),
+          engagementRate: Math.round((Math.max(164, interactions) / impressions) * 1000) / 10,
+          conversionFocus: 68,
+          scheduledCount,
+          campaignGoals: { awareness: 1, orders: 1, bookings: 1 },
+          recommendations: [
+            "Publier le plat du jour avant le service de midi.",
+            "Associer un appel à la réservation aux publications les plus vues.",
+            "Réutiliser le meilleur visuel OpenAI dans une campagne locale.",
+          ],
+          campaigns: { orders: 14, reservations: 9, zero_wait: 3 },
+        };
+      }
       const insightsRpc = await (supabase.rpc as any)("get_restaurant_actualites_insights", {
         p_restaurant_id: restaurantId,
         p_days: 30,
@@ -1568,8 +1639,43 @@ export function useCreateSocialPost() {
         scheduledAt,
       });
       if (errors.length > 0) throw new Error(errors[0]);
-      if (isCommercialDemo) {
-        return globalThis.crypto?.randomUUID?.() || `demo-social-post-${Date.now()}`;
+      if (isCommercialDemo && commercialDemoFrame) {
+        const id = globalThis.crypto?.randomUUID?.() || `demo-social-post-${Date.now()}`;
+        const fallback = getCommercialDemoCachedPosts(queryClient, commercialDemoFrame.snapshot);
+        const current = readCommercialDemoToolState<SocialFeedPost[]>(
+          commercialDemoFrame.config.sessionId,
+          "actualites-posts",
+          fallback,
+        );
+        const template = fallback[0];
+        if (!template) throw new Error("Modèle Actualités Démo indisponible.");
+        const createdAt = new Date().toISOString();
+        const scheduledIso = scheduledAt ? new Date(scheduledAt).toISOString() : null;
+        const post: SocialFeedPost = {
+          ...template,
+          id,
+          activityId: `commercial-demo-activity-${id}`,
+          body: cleanBody,
+          status: scheduledIso ? "scheduled" : "published",
+          createdAt,
+          updatedAt: createdAt,
+          publishedAt: scheduledIso || createdAt,
+          postType,
+          ctaType,
+          ctaTargetId,
+          visibility,
+          campaignGoal,
+          campaignName: campaignName?.trim() || "Démonstration commerciale",
+          audienceSegment,
+          media: [],
+          recommendationReasons: ["Publication créée dans le restaurant Démo actif"],
+        };
+        writeCommercialDemoToolState(
+          commercialDemoFrame.config.sessionId,
+          "actualites-posts",
+          [post, ...current.filter((item) => item.id !== id)].slice(0, RESTAURANT_SOCIAL_POSTS_LIMIT),
+        );
+        return id;
       }
 
       const accessResult = await (supabase.rpc as any)("get_restaurant_actualites_access", {
