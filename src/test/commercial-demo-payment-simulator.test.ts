@@ -73,8 +73,8 @@ describe("dedicated commercial demo payment simulator", () => {
 
   it("updates the real demo dashboards immediately without a redirect round-trip", () => {
     expect(journey).toContain("simulateCommercialDemoPayment");
-    expect(journey).toContain('"mode: "simulated"');
-    expect(journey).toContain('"payment_provider: "none"');
+    expect(journey).toContain('mode: "simulated"');
+    expect(journey).toContain('payment_provider: "none"');
     expect(journey).not.toContain("checkout.stripe.com");
     expect(journey).not.toContain("confirmCommercialDemoCheckout");
     expect(workspace).toContain("simulateCommercialDemoPayment");
@@ -105,6 +105,6 @@ describe("dedicated commercial demo payment simulator", () => {
     expect(liveCheckout).toContain("if (isCommercialDemoHostRequest(req))");
     expect(stripeWebhook).toContain("commercial_demo_event_ignored_by_live_webhook");
     expect(stripeWebhook).toContain('checkoutKind === "commercial-demo-order"');
-    expect(stripeWebhook).toContain("commercial_demo_finance_write_blocked");
+    expect(stripeWebhook).toContain("ignore_commercial_demo_test_event");
   });
 });
