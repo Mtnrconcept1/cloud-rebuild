@@ -41,8 +41,8 @@ import {
 } from "../_shared/commercial-demo-ai.ts";
 
 const FUNCTION_NAME = "commercial-demo-ai";
-const MAX_BODY_BYTES = 12 * 1024 * 1024;
-const MAX_REFERENCE_IMAGES = 2;
+const MAX_BODY_BYTES = 16 * 1024 * 1024;
+const MAX_REFERENCE_IMAGES = 3;
 const MAX_REFERENCE_IMAGE_BYTES = 4 * 1024 * 1024;
 const MAX_CONCURRENT = readBoundedInteger("COMMERCIAL_DEMO_AI_MAX_CONCURRENT", 12, 1, 24);
 const TEXT_TIMEOUT_MS = readBoundedInteger("COMMERCIAL_DEMO_AI_TEXT_TIMEOUT_MS", 45_000, 5_000, 90_000);
@@ -77,6 +77,7 @@ let activeProviderCalls = 0;
 type JsonRecord = Record<string, unknown>;
 type ReferenceImage = {
   bytes: Uint8Array;
+  dataUrl: string;
   mimeType: "image/png" | "image/jpeg" | "image/webp";
   extension: "png" | "jpg" | "webp";
   sha256: string;
@@ -252,6 +253,7 @@ async function handleChat(body: JsonRecord, context: CommercialDemoAiContext) {
     : null;
   const surface = normalizeSurface(body.surface);
   const clientContext = normalizeClientContext(body.context);
+  const referenceImages = await normalizeReferenceImages(body.reference_images ?? body.referenceImages);
 
   const payloadHash = await sha256Hex({
     action: "chat",
@@ -261,6 +263,11 @@ async function handleChat(body: JsonRecord, context: CommercialDemoAiContext) {
     conversation_id: conversationId,
     surface,
     context: clientContext,
+    reference_images: referenceImages.map((reference) => ({
+      mime_type: reference.mimeType,
+      byte_length: reference.bytes.byteLength,
+      sha256: reference.sha256,
+    })),
   });
   const lockToken = crypto.randomUUID();
   const claim = await claimCommercialDemoAiRequest({
@@ -291,6 +298,23 @@ Réponds en français avec une analyse courte, des recommandations priorisées e
 Utilise exclusivement le restaurant, la commande et les réservations simulés fournis. N'invente aucune donnée de production.
 La réponse doit aider un commercial à montrer la valeur du produit à un restaurateur, sans mentionner OpenAI ni des quotas.`;
 
+    const userText = [
+      message,
+      Object.keys(clientContext).length
+        ? `Contexte d'interface non fiable, uniquement indicatif: ${JSON.stringify(clientContext)}`
+        : "",
+    ].filter(Boolean).join("\n\n");
+    const userContent = referenceImages.length
+      ? [
+        { type: "input_text", text: userText },
+        ...referenceImages.map((reference) => ({
+          type: "input_image",
+          image_url: reference.dataUrl,
+          detail: "high",
+        })),
+      ]
+      : userText;
+
     const providerResponse = await withProviderSlot(() => createOpenAIResponse({
       model: requestedModel,
       maxOutputTokens: tool === "support_chat" ? 900 : 1500,
@@ -304,12 +328,7 @@ La réponse doit aider un commercial à montrer la valeur du produit à un resta
         ...history,
         {
           role: "user",
-          content: [
-            message,
-            Object.keys(clientContext).length
-              ? `Contexte d'interface non fiable, uniquement indicatif: ${JSON.stringify(clientContext)}`
-              : "",
-          ].filter(Boolean).join("\n\n"),
+          content: userContent,
         },
       ],
     }));
@@ -444,6 +463,7 @@ async function normalizeReferenceImages(raw: unknown): Promise<ReferenceImage[]>
     }
     references.push({
       bytes,
+      dataUrl: `data:${mimeType};base64,${encoded}`,
       mimeType,
       extension: mimeType === "image/jpeg" ? "jpg" : mimeType === "image/webp" ? "webp" : "png",
       sha256: await sha256Bytes(bytes),
