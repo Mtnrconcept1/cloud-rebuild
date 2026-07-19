@@ -1,4 +1,4 @@
-import { Radio, ShoppingCart } from "lucide-react";
+import { Radio, ShieldCheck, ShoppingCart } from "lucide-react";
 
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import RestaurantDashboardHomeView, {
