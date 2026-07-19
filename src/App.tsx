@@ -504,6 +504,7 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
         <Routes>
           <Route path="/" element={<ClientSurfaceRoute><Index /></ClientSurfaceRoute>} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/auth/demo" element={<Auth demoMode />} />
           <Route path="/auth/callback" element={<Auth />} />
           <Route path="/oauth/consent" element={<OAuthConsent />} />
           <Route path="/recherche" element={<ClientSurfaceRoute><Recherche /></ClientSurfaceRoute>} />
