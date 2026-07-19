@@ -57,6 +57,12 @@ import {
   getSupabaseAuthRedirectState,
 } from "@/lib/authRedirect";
 import { getPostAuthTargetForRole } from "@/lib/authPostLogin";
+import {
+  getCanonicalAuthCallbackHref,
+  getCanonicalAuthHref,
+  isCanonicalAuthHost,
+  TOK_WORKSPACE_CHOOSER_PATH,
+} from "@/lib/authDomains";
 import { isCommercialAppHost } from "@/lib/commercialDomains";
 
 const supabase = getSupabase();
@@ -580,15 +586,32 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
     && isCommercialAppHost(window.location.hostname);
   const isDemoAuthMode = demoMode;
 
+  useEffect(() => {
+    if (
+      isDemoAuthMode
+      || typeof window === "undefined"
+      || isCanonicalAuthHost(window.location.hostname)
+    ) return;
+
+    const isOAuthCallback = window.location.pathname === "/auth/callback";
+    const canonicalAuthHref = isOAuthCallback
+      ? getCanonicalAuthCallbackHref()
+      : getCanonicalAuthHref();
+    if (/^https:\/\//.test(canonicalAuthHref)) {
+      const target = new URL(canonicalAuthHref);
+      target.search = window.location.search;
+      target.hash = window.location.hash;
+      window.location.replace(target.href);
+    }
+  }, [isDemoAuthMode]);
+
   useSeoMeta({
     title: isDemoAuthMode
       ? "Connexion restaurateur démo | TOK"
-      : isCommercialAuthHost ? "Connexion commerciale | TOK" : "Connexion et inscription | TOK",
+      : "Connexion et inscription | TOK",
     description: isDemoAuthMode
       ? "Connexion à l'environnement restaurateur TOK Démo, entièrement séparé de la production."
-      : isCommercialAuthHost
-        ? "Connectez-vous directement à l'environnement commercial de démonstration TOK."
-        : "Connectez-vous à votre compte TOK ou créez votre espace sécurisé.",
+      : "Connectez-vous à votre compte TOK ou créez votre espace sécurisé.",
     path: isDemoAuthMode ? "/auth/demo" : "/auth",
     robots: "noindex,nofollow",
   });
@@ -684,8 +707,10 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
   }, [commercialReferralToken]);
 
   const getPostAuthTarget = useCallback((selectedRole: UserRole) => {
-    return getPostAuthTargetForRole(selectedRole, postAuthRedirectTarget);
-  }, [postAuthRedirectTarget]);
+    return getPostAuthTargetForRole(selectedRole, postAuthRedirectTarget, {
+      isDemoAuthMode,
+    });
+  }, [isDemoAuthMode, postAuthRedirectTarget]);
 
   const navigateToPostAuthTarget = useCallback((selectedRole: UserRole, replace = false) => {
     const target = getPostAuthTarget(selectedRole);
@@ -757,6 +782,15 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
   useEffect(() => {
     if (!user || roles.length === 0 || privilegedSignupSubmitting || featureFlagsLoading) return;
 
+    if (!isDemoAuthMode) {
+      const targetRole = role && switchableRoles.includes(role)
+        ? role
+        : switchableRoles[0] || getDefaultActiveRole(roles);
+      if (targetRole !== role) switchRole(targetRole);
+      navigateToPostAuthTarget(targetRole, true);
+      return;
+    }
+
     if (canSwitchRole && switchableRoles.length > 1) {
       if (!showRolePicker) setShowRolePicker(true);
       return;
@@ -767,7 +801,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
       : switchableRoles[0] || getDefaultActiveRole(roles);
     if (targetRole !== role) switchRole(targetRole);
     navigateToPostAuthTarget(targetRole, true);
-  }, [canSwitchRole, featureFlagsLoading, navigateToPostAuthTarget, privilegedSignupSubmitting, role, roles, showRolePicker, switchRole, switchableRoles, user]);
+  }, [canSwitchRole, featureFlagsLoading, isDemoAuthMode, navigateToPostAuthTarget, privilegedSignupSubmitting, role, roles, showRolePicker, switchRole, switchableRoles, user]);
 
   useEffect(() => {
     if (!featureFlagsLoading && !courierSignupEnabled && roleMode === "courier") {
@@ -841,7 +875,9 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
 
     setLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(signupForm.email, {
-      redirectTo: `${window.location.origin}${isDemoAuthMode ? "/auth/demo" : "/auth"}`,
+      redirectTo: isDemoAuthMode
+        ? `${window.location.origin}/auth/demo`
+        : getCanonicalAuthHref(),
       captchaToken: captchaToken || undefined,
     });
 
@@ -869,7 +905,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
       type: "signup",
       email,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth?confirmed=1`,
+        emailRedirectTo: `${getCanonicalAuthHref()}?confirmed=1`,
       },
     });
 
@@ -962,7 +998,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
             signup_intent: submittedRole,
             ...toLegalAcceptanceMetadata(submittedLegalAcceptance),
           },
-          emailRedirectTo: `${window.location.origin}/auth?confirmed=1`,
+          emailRedirectTo: `${getCanonicalAuthHref()}?confirmed=1`,
           captchaToken: captchaToken || undefined,
         },
       });
@@ -1141,7 +1177,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
       });
 
       if (submittedRole === "client") {
-        navigate(postAuthRedirectTarget || "/");
+        navigate(TOK_WORKSPACE_CHOOSER_PATH);
         return;
       }
 
@@ -1219,7 +1255,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
             {isDemoAuthMode
               ? "Connexion restaurateur démo"
               : isCommercialAuthHost
-                ? "Connexion commerciale sécurisée"
+                ? "Connexion TOK centralisée"
                 : isLogin
                   ? "Bon retour"
                   : isClientSignup
@@ -1230,7 +1266,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
             {isDemoAuthMode
               ? "Utilisez les identifiants créés par l’administrateur. Cette session utilise uniquement le projet TOK Démo."
               : isCommercialAuthHost
-                ? "Connectez-vous ici avec votre compte commercial. Cette session reste séparée des espaces clients et restaurants réels."
+                ? "La connexion se termine sur www.thetok.ch avant le choix de votre espace."
                 : isLogin
                   ? postAuthRedirectTarget
                     ? "Connectez-vous pour reprendre votre commande, réservation ou parcours en cours."
@@ -1244,11 +1280,11 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
           {isLogin && (postAuthRedirectTarget || searchParams.get("domain") === "required") ? (
             <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-sm">
               <p className="font-medium">
-                {isCommercialAuthHost ? "Reconnexion requise sur le domaine commercial" : "Connexion requise pour continuer"}
+                {isCommercialAuthHost ? "Connexion TOK centralisée" : "Connexion requise pour continuer"}
               </p>
               <p className="pt-1 text-muted-foreground">
                 {isCommercialAuthHost
-                  ? "Aucun jeton de session n’est transféré depuis un autre domaine."
+                  ? "Une seule session sécurisée dessert les sous-domaines TOK officiels."
                   : "Une fois connecté, vous reviendrez automatiquement à votre parcours en cours."}
               </p>
             </div>
@@ -1849,7 +1885,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
                       try {
                         const { error } = await supabase.auth.signInWithOAuth({
                           provider: "google",
-                          options: { redirectTo: `${window.location.origin}/auth/callback` },
+                          options: { redirectTo: getCanonicalAuthCallbackHref() },
                         });
                         if (error) throw error;
                       } catch {
@@ -1869,7 +1905,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
                       try {
                         const { error } = await supabase.auth.signInWithOAuth({
                           provider: "apple",
-                          options: { redirectTo: `${window.location.origin}/auth/callback` },
+                          options: { redirectTo: getCanonicalAuthCallbackHref() },
                         });
                         if (error) throw error;
                       } catch {
@@ -1914,7 +1950,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
           {isDemoAuthMode ? (
             <div className="text-center">
               <a
-                href="/auth"
+                href={getCanonicalAuthHref()}
                 className="text-sm text-muted-foreground transition-colors hover:text-primary"
               >
                 Quitter la démo et revenir à la connexion réelle

@@ -1,6 +1,7 @@
 import { LogOut } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { getCanonicalAuthHref } from "@/lib/authDomains";
 import { useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
 import { isCommercialDemoFrameWindow } from "@/lib/commercialDemoFrame";
@@ -22,6 +23,7 @@ export default function SignOutButton({
   const handleSignOut = async () => {
     await signOut();
     onSignedOut?.();
+    window.location.replace(getCanonicalAuthHref());
   };
 
   return (

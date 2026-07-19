@@ -1,3 +1,5 @@
+import { TOK_WORKSPACE_CHOOSER_PATH } from "@/lib/authDomains";
+
 export const TOK_PUBLIC_APP_HOST = "www.thetok.ch";
 export const TOK_PUBLIC_APP_ORIGIN = `https://${TOK_PUBLIC_APP_HOST}`;
 export const TOK_ADMIN_APP_HOST = "admin.thetok.ch";
@@ -59,7 +61,10 @@ export function getAdminHostRedirectTarget({
 
   if (isAdminAppHost(hostname)) {
     if (path === "/") return `${TOK_ADMIN_APP_ORIGIN}/admin${search || ""}${hash || ""}`;
-    if (isAdminPath(path) || path === "/auth") return null;
+    if (path === "/auth" || path === "/auth/callback" || path === TOK_WORKSPACE_CHOOSER_PATH) {
+      return `${TOK_PUBLIC_APP_ORIGIN}${targetPath}`;
+    }
+    if (isAdminPath(path)) return null;
     return `${TOK_PUBLIC_APP_ORIGIN}${targetPath}`;
   }
 

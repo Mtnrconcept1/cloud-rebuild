@@ -28,6 +28,7 @@ const CORE_ROUTES = new Set([
   "/auth",
   "/auth/demo",
   "/auth/callback",
+  "/espaces",
   "/oauth/consent",
   "/recherche",
   "/actualites/:postId",
@@ -158,4 +159,3 @@ describe("route wiring", () => {
     expect(brokenTargets).toEqual([]);
   });
 });
-

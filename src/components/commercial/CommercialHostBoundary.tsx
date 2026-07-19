@@ -10,8 +10,6 @@ import {
 } from "@/lib/authRedirect";
 import {
   getCommercialHostRedirectTarget,
-  getCommercialReauthenticationHref,
-  isManagedCommercialAccount,
 } from "@/lib/commercialDomains";
 
 function LoadingCommercialRedirect() {
@@ -88,22 +86,6 @@ export default function CommercialHostBoundary({ children }: { children: ReactNo
     && redirectTarget
     && redirectTarget !== browserLocation.href,
   );
-  const redirectIsCrossOrigin = Boolean(
-    browserLocation
-    && redirectTarget
-    && new URL(redirectTarget, browserLocation.origin).origin !== browserLocation.origin,
-  );
-  const shouldRequireCommercialReauthentication = Boolean(
-    shouldRedirect
-    && browserLocation
-    && user
-    && redirectIsCrossOrigin
-    && isManagedCommercialAccount(
-      roles,
-      accountType,
-      serverCommercialDemoRestricted,
-    ),
-  );
   const currentPath = browserLocation?.pathname.toLowerCase() || "";
   const isAuthRoute = currentPath === "/auth" || currentPath === "/auth/callback";
   const shouldWaitForRoleResolution = Boolean(
@@ -115,28 +97,8 @@ export default function CommercialHostBoundary({ children }: { children: ReactNo
   useEffect(() => {
     if (!shouldRedirect || !redirectTarget || redirectStartedRef.current) return;
     redirectStartedRef.current = true;
-
-    if (!shouldRequireCommercialReauthentication) {
-      window.location.replace(redirectTarget);
-      return;
-    }
-
-    const authenticationTarget = getCommercialReauthenticationHref(redirectTarget);
-    let redirected = false;
-    const redirectToCommercialLogin = () => {
-      if (redirected) return;
-      redirected = true;
-      window.location.replace(authenticationTarget);
-    };
-    const fallbackRedirect = window.setTimeout(redirectToCommercialLogin, 1_500);
-
-    void getSupabase().auth.signOut({ scope: "local" })
-      .catch(() => undefined)
-      .finally(() => {
-        window.clearTimeout(fallbackRedirect);
-        redirectToCommercialLogin();
-      });
-  }, [redirectTarget, shouldRedirect, shouldRequireCommercialReauthentication]);
+    window.location.replace(redirectTarget);
+  }, [redirectTarget, shouldRedirect]);
 
   if (shouldRedirect || shouldWaitForRoleResolution) return <LoadingCommercialRedirect />;
   return <>{children}</>;

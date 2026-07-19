@@ -1,23 +1,8 @@
 import type { UserRole } from "@/lib/auth-context";
-import { TOK_COMMERCIAL_APP_ORIGIN } from "@/lib/commercialDomains";
+import { TOK_WORKSPACE_CHOOSER_PATH } from "@/lib/authDomains";
 import { getRoleHomePath } from "@/lib/roleAccess";
 
 const INTERNAL_NAVIGATION_ORIGIN = "https://www.thetok.ch";
-
-const PRIVILEGED_ROUTE_ROOTS: Record<Exclude<UserRole, "client">, string> = {
-  admin: "/admin",
-  restaurateur: "/dashboard",
-  courier: "/courier",
-  commercial: "/commercial",
-};
-
-function getPathname(target: string) {
-  try {
-    return new URL(target, INTERNAL_NAVIGATION_ORIGIN).pathname;
-  } catch {
-    return "/";
-  }
-}
 
 function isOAuthConsentTarget(target: string) {
   try {
@@ -30,69 +15,24 @@ function isOAuthConsentTarget(target: string) {
   }
 }
 
-function isUnderRouteRoot(pathname: string, routeRoot: string) {
-  return pathname === routeRoot || pathname.startsWith(`${routeRoot}/`);
-}
-
-function getPrivilegedRouteOwner(pathname: string) {
-  for (const [role, routeRoot] of Object.entries(PRIVILEGED_ROUTE_ROOTS)) {
-    if (isUnderRouteRoot(pathname, routeRoot)) {
-      return role as Exclude<UserRole, "client">;
-    }
-  }
-
-  return null;
-}
-
-function getCanonicalCommercialTarget(target = "/commercial") {
-  const url = new URL(target, TOK_COMMERCIAL_APP_ORIGIN);
-  return `${TOK_COMMERCIAL_APP_ORIGIN}${url.pathname}${url.search}${url.hash}`;
-}
-
+/**
+ * Every production login finishes on the canonical workspace chooser. The
+ * selected dashboard may then move to its dedicated subdomain while reusing
+ * the shared TOK session. OAuth consent is the only continuation that must
+ * resume immediately. The internal demo login keeps its isolated role home.
+ */
 export function getPostAuthTargetForRole(
   selectedRole: UserRole,
   postAuthRedirectTarget: string | null,
-  context: { isCommercialAuthHost?: boolean } = {},
+  context: { isDemoAuthMode?: boolean } = {},
 ) {
-  if (
-    context.isCommercialAuthHost
-    && (selectedRole === "admin" || selectedRole === "commercial")
-  ) {
-    const pathname = postAuthRedirectTarget
-      ? getPathname(postAuthRedirectTarget)
-      : "/commercial";
-
-    return getPrivilegedRouteOwner(pathname) === "commercial"
-      ? getCanonicalCommercialTarget(postAuthRedirectTarget || "/commercial")
-      : getCanonicalCommercialTarget();
+  if (context.isDemoAuthMode) {
+    return getRoleHomePath(selectedRole);
   }
 
-  const defaultTarget = selectedRole === "commercial"
-    ? getCanonicalCommercialTarget()
-    : getRoleHomePath(selectedRole);
-
-  if (!postAuthRedirectTarget) {
-    return defaultTarget;
-  }
-
-  // The OAuth consent continuation belongs to the production application.
-  // A commercial identity remains confined to the dedicated demo origin.
-  if (selectedRole !== "commercial" && isOAuthConsentTarget(postAuthRedirectTarget)) {
+  if (postAuthRedirectTarget && isOAuthConsentTarget(postAuthRedirectTarget)) {
     return postAuthRedirectTarget;
   }
 
-  const pathname = getPathname(postAuthRedirectTarget);
-  const privilegedRouteOwner = getPrivilegedRouteOwner(pathname);
-
-  if (privilegedRouteOwner === "commercial" && ["admin", "commercial"].includes(selectedRole)) {
-    return getCanonicalCommercialTarget(postAuthRedirectTarget);
-  }
-
-  if (!privilegedRouteOwner) {
-    return selectedRole === "client" ? postAuthRedirectTarget : defaultTarget;
-  }
-
-  return privilegedRouteOwner === selectedRole
-    ? postAuthRedirectTarget
-    : defaultTarget;
+  return TOK_WORKSPACE_CHOOSER_PATH;
 }

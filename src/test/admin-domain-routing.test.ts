@@ -37,7 +37,12 @@ describe("admin domain routing", () => {
       hostname: "admin.thetok.ch",
       pathname: "/auth",
       search: "?redirect=%2Fadmin",
-    })).toBeNull();
+    })).toBe("https://www.thetok.ch/auth?redirect=%2Fadmin");
+
+    expect(getAdminHostRedirectTarget({
+      hostname: "admin.thetok.ch",
+      pathname: "/espaces",
+    })).toBe("https://www.thetok.ch/espaces");
 
     expect(getAdminHostRedirectTarget({
       hostname: "admin.thetok.ch",

@@ -63,7 +63,9 @@ describe("commercial real multi-dashboard demonstration", () => {
     expect(browsers).toContain("VIEWPORT_MODE_ORDER.map");
     expect(browsers).toContain('referrerPolicy="no-referrer"');
     expect(browsers).toContain('key={`${definition.surface}:${sessionId}`}');
-    expect(browsers).toContain("<CommercialDemoBrowserGridSession key={sessionId}");
+    expect(browsers).toContain("<CommercialDemoBrowserGridSession");
+    expect(browsers).toContain("key={sessionId}");
+    expect(browsers).toContain("initialSurface={initialSurface}");
     expect(browsers).toContain("runtimes[browser.surface].unreadCount");
     expect(browsers).toContain("const visibleOrder = useMemo");
     expect(browsers).toContain("{BROWSERS.map((definition) => {");

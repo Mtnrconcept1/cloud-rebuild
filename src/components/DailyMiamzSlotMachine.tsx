@@ -379,7 +379,10 @@ export default function DailyMiamzSlotMachine() {
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
-        className="fixed inset-0 left-0 top-0 z-[1400] h-[100dvh] max-h-[100dvh] w-screen max-w-none translate-x-0 translate-y-0 gap-0 overflow-hidden rounded-none border-0 bg-[#090503] p-0 text-white shadow-none [&>button:last-child]:hidden"
+        hideCloseButton
+        className="fixed inset-0 left-0 top-0 z-[1830] h-[100dvh] max-h-[100dvh] w-screen max-w-none translate-x-0 translate-y-0 gap-0 overflow-hidden rounded-none border-0 bg-[#090503] p-0 text-white shadow-none"
+        onPointerDownOutside={(event) => event.preventDefault()}
+        onInteractOutside={(event) => event.preventDefault()}
         onEscapeKeyDown={(event) => {
           if (spinningRef.current) event.preventDefault();
         }}
@@ -432,4 +435,3 @@ export default function DailyMiamzSlotMachine() {
     </Dialog>
   );
 }
-

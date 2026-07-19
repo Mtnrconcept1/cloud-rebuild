@@ -467,9 +467,17 @@ function BrowserWindow({
   );
 }
 
-function CommercialDemoBrowserGridSession({ sessionId }: { sessionId: string }) {
+function CommercialDemoBrowserGridSession({
+  sessionId,
+  initialSurface,
+}: {
+  sessionId: string;
+  initialSurface?: RemoteBrowserSurface;
+}) {
   const autoPreset = useResponsiveViewportPreset();
-  const [activeSurface, setActiveSurface] = useState<RemoteBrowserSurface>("client");
+  const [activeSurface, setActiveSurface] = useState<RemoteBrowserSurface>(
+    initialSurface || "client",
+  );
   const [layout, setLayout] = useState<ConsoleLayout>("control");
   const [fullscreenSurface, setFullscreenSurface] = useState<RemoteBrowserSurface | null>(null);
   const [runtimes, setRuntimes] = useState<Record<RemoteBrowserSurface, FrameRuntime>>(() => ({
@@ -485,6 +493,10 @@ function CommercialDemoBrowserGridSession({ sessionId }: { sessionId: string }) 
   const closeFullscreenFromFrame = useCallback((surface: RemoteBrowserSurface) => {
     setFullscreenSurface((current) => current === surface ? null : current);
   }, []);
+
+  useEffect(() => {
+    if (initialSurface) setActiveSurface(initialSurface);
+  }, [initialSurface]);
 
   useEffect(() => {
     if (!fullscreenSurface) return;
@@ -605,6 +617,18 @@ function CommercialDemoBrowserGridSession({ sessionId }: { sessionId: string }) 
   );
 }
 
-export default function CommercialDemoBrowserGrid({ sessionId }: { sessionId: string }) {
-  return <CommercialDemoBrowserGridSession key={sessionId} sessionId={sessionId} />;
+export default function CommercialDemoBrowserGrid({
+  sessionId,
+  initialSurface,
+}: {
+  sessionId: string;
+  initialSurface?: RemoteBrowserSurface;
+}) {
+  return (
+    <CommercialDemoBrowserGridSession
+      key={sessionId}
+      sessionId={sessionId}
+      initialSurface={initialSurface}
+    />
+  );
 }

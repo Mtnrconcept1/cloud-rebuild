@@ -47,6 +47,7 @@ import { getCommercialDemoFrameConfig, type CommercialDemoFrameConfig } from "@/
 
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
+const WorkspaceChooser = lazy(() => import("./pages/WorkspaceChooser"));
 const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
 const Recherche = lazy(() => import("./pages/Recherche"));
 const LocalRestaurants = lazy(() => import("./pages/LocalRestaurants"));
@@ -270,6 +271,7 @@ function FeatureSwitch({ enabled, fallback = "/", children }: { enabled: boolean
 
 function shouldShowPublicNavbar(pathname: string) {
   return !(
+    pathname === "/espaces" ||
     pathname === "/dashboard" ||
     pathname.startsWith("/dashboard/") ||
     pathname === "/admin" ||
@@ -506,6 +508,7 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           <Route path="/auth" element={<Auth />} />
           <Route path="/auth/demo" element={<Auth demoMode />} />
           <Route path="/auth/callback" element={<Auth />} />
+          <Route path="/espaces" element={<ProtectedRoute><WorkspaceChooser /></ProtectedRoute>} />
           <Route path="/oauth/consent" element={<OAuthConsent />} />
           <Route path="/recherche" element={<ClientSurfaceRoute><Recherche /></ClientSurfaceRoute>} />
           <Route path="/restaurants/:city" element={<ClientSurfaceRoute><LocalRestaurants /></ClientSurfaceRoute>} />
@@ -680,4 +683,3 @@ const App = () => {
 };
 
 export default App;
-
