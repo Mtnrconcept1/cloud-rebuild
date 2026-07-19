@@ -30,11 +30,9 @@ describe("commercial real multi-dashboard demonstration", () => {
     expect(browsers).toContain("<iframe");
     expect(browsers).toContain('surface: "client"');
     expect(browsers).toContain('surface: "restaurant"');
-    expect(browsers).toContain('surface: "commercial"');
     expect(browsers).toContain('surface: "courier"');
     expect(browsers).toContain('initialPath: "/mon-espace"');
     expect(browsers).toContain('initialPath: "/dashboard"');
-    expect(browsers).toContain('initialPath: "/commercial"');
     expect(browsers).toContain('initialPath: "/courier"');
     expect(browsers).toContain("ResizeObserver");
     expect(browsers).toContain("frameWindow.history.back()");
@@ -44,8 +42,8 @@ describe("commercial real multi-dashboard demonstration", () => {
     expect(browsers).not.toContain("frameWindow.location.assign(initialUrl)");
     expect(browsers).toContain('layout === "control"');
     expect(browsers).toContain('layout === "mosaic"');
-    expect(browsers).toContain('thirdSurface === "commercial"');
-    expect(browsers).toContain('selectThirdSurface("courier")');
+    expect(browsers).toContain('() => ["client", "restaurant", "courier"]');
+    expect(browsers).toContain("visibleBrowsers.map");
     expect(browsers).toContain("isCommercialDemoFrameEscapeMessage");
     expect(browsers).toContain("event.source !== frameRef.current?.contentWindow");
     expect(browsers).toContain("buildCommercialDemoFrameUrl(definition.surface");
@@ -66,7 +64,7 @@ describe("commercial real multi-dashboard demonstration", () => {
     expect(browsers).toContain('referrerPolicy="no-referrer"');
     expect(browsers).toContain('key={`${definition.surface}:${sessionId}`}');
     expect(browsers).toContain("<CommercialDemoBrowserGridSession key={sessionId}");
-    expect(browsers).toContain("runtimes.courier.unreadCount");
+    expect(browsers).toContain("runtimes[browser.surface].unreadCount");
     expect(browsers).toContain("const visibleOrder = useMemo");
     expect(browsers).toContain("{BROWSERS.map((definition) => {");
     expect(browsers).toContain("style={{ order: visualIndex >= 0 ? visualIndex : BROWSERS.length }}");

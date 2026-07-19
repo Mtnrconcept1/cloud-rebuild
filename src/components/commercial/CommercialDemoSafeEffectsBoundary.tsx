@@ -34,6 +34,9 @@ const TOOL_LABELS: Record<CommercialDemoProtectedTool, string> = {
 
 const REAL_OPENAI_DEMO_TOOLS = new Set<CommercialDemoProtectedTool>([
   "advisor",
+  "actualites",
+  "campaigns",
+  "social",
   "photos",
   "support",
 ]);
@@ -173,10 +176,10 @@ export default function CommercialDemoSafeEffectsBoundary({
       const now = Date.now();
       if (now - lastNoticeAtRef.current < 1200) return;
       lastNoticeAtRef.current = now;
-      toast.info("Action simulée en démonstration", {
+      toast.info("Action enregistrée dans l’espace Démo", {
         description: usesRealOpenAi
-          ? `${TOOL_LABELS[tool]} utilise réellement OpenAI ; seules les écritures de production restent simulées.`
-          : `${TOOL_LABELS[tool]} reste interactif, sans écriture de production ni envoi externe.`,
+          ? `${TOOL_LABELS[tool]} utilise OpenAI côté serveur ; les données restent rattachées au restaurant Démo.`
+          : `${TOOL_LABELS[tool]} est opérationnel dans l’espace Démo, sans toucher aux établissements réels.`,
       });
     };
     window.addEventListener("tok:commercial-demo:effect-simulated", handleSimulatedEffect);
@@ -208,8 +211,8 @@ export default function CommercialDemoSafeEffectsBoundary({
           <ShieldCheck className="h-4 w-4 shrink-0" />
           <span className="truncate">
             {usesRealOpenAi
-              ? `${TOOL_LABELS[tool]} · OpenAI réel · crédits Démo illimités · coût suivi en interne`
-              : `${TOOL_LABELS[tool]} · vraies interfaces, effets simulés · sorties externes protégées`}
+              ? `${TOOL_LABELS[tool]} · OpenAI serveur · restaurant Démo actif · coût suivi en interne`
+              : `${TOOL_LABELS[tool]} · outil opérationnel · données Démo isolées`}
           </span>
         </div>
       ) : null}

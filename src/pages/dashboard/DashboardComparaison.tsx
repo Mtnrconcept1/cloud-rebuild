@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { ArrowDown, ArrowUp, Euro, Minus, Scale, ShoppingCart, Star } from "lucide-react";
 
 import DashboardLayout from "@/components/DashboardLayout";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -76,6 +77,8 @@ function MetricCard({
 
 export default function DashboardComparaison() {
   const { restaurants, selectedId, setSelectedId, loading: loadingRestaurants, error: restaurantError } = useDashboardRestaurant();
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemo = commercialDemoFrame?.surface === "restaurant";
   const [period, setPeriod] = useState("30d");
   const [comparison, setComparison] = useState<ComparisonData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -89,6 +92,24 @@ export default function DashboardComparaison() {
       return;
     }
     setLoading(true);
+    if (isCommercialDemo && commercialDemoFrame) {
+      const periodMultiplier = period === "7d" ? 0.25 : period === "90d" ? 3 : 1;
+      const paidOrderRevenue = commercialDemoFrame.snapshot.order?.payment_status === "test_paid"
+        ? Number(commercialDemoFrame.snapshot.order.total_amount_cents || 0) / 100
+        : 0;
+      const reservationDemand = commercialDemoFrame.snapshot.reservations.length;
+      setComparison({
+        my_revenue: Math.round((8250 + paidOrderRevenue * 8) * periodMultiplier),
+        my_orders: Math.max(1, Math.round((186 + (paidOrderRevenue > 0 ? 1 : 0)) * periodMultiplier)),
+        my_avg_rating: Math.max(0, Math.min(5, Number(commercialDemoFrame.snapshot.demo_restaurant.rating || 4.7))),
+        avg_revenue: Math.round(7100 * periodMultiplier),
+        avg_orders: Math.max(1, Math.round((162 + reservationDemand) * periodMultiplier)),
+        avg_rating: 4.3,
+      });
+      setError(null);
+      setLoading(false);
+      return;
+    }
     const { data, error: comparisonError } = await supabase.rpc("get_restaurant_comparison", {
       p_restaurant_id: selectedId,
       p_period: period,
@@ -101,7 +122,7 @@ export default function DashboardComparaison() {
   useEffect(() => {
     if (selectedId) load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedId, period]);
+  }, [commercialDemoFrame, isCommercialDemo, selectedId, period]);
 
   return (
     <DashboardLayout>

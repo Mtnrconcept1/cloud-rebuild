@@ -94,6 +94,7 @@ import { TOK_CREDITS_PER_CAMPAIGN_CHF } from "@/lib/tokCredits";
 import { cn } from "@/lib/utils";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
+import { askCommercialDemoAi, parseCommercialDemoAiJson } from "@/lib/commercialDemoAi";
 
 const supabase = getSupabase();
 const CAMPAIGN_PAYMENT_METHOD = "credits" as const;
@@ -1673,54 +1674,66 @@ function CampaignForm({
 
   const handleAiGenerate = async () => {
     setAiLoading(true);
-    if (isCommercialDemo) {
-      setTitle("Le plat signature à découvrir cette semaine".slice(0, copyLimit));
-      setBody("Réservez votre table ou commandez le plat phare du restaurant depuis TOK.".slice(0, copyLimit));
-      setPlacementSelection(normalizeCampaignPlacementSelection({ banner: true, restaurant_cards: true }, type));
-      toast({
-        title: "Campagne générée en démonstration",
-        description: "Tous les champs ont été optimisés localement, sans appel IA ni consommation de crédits.",
-      });
-      setAiLoading(false);
-      return;
-    }
     try {
-      const response = await fetchWithFreshAccessToken(`${SUPABASE_URL}/functions/v1/generate-campaign`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const currentSettings = {
+        title,
+        body,
+        type,
+        image_url: imageUrl || null,
+        target_pages: targetPages,
+        target_criteria: normalizeAudienceCriteria(targetCriteria),
+        base_budget: baseBudgetValue,
+        total_budget: totalBudgetValue,
+        budget_daily: dailyBudgetValue,
+        duration_days: durationDays,
+        starts_at: startsAt ? new Date(startsAt).toISOString() : null,
+        ends_at: endsAt ? new Date(endsAt).toISOString() : null,
+        pricing_strategy: strategy,
+        channels: {
+          ...placementSelection,
+          creative: campaignCreative,
         },
-        body: JSON.stringify({
-          restaurantId,
-          currentSettings: {
-            title,
-            body,
-            type,
-            image_url: imageUrl || null,
-            target_pages: targetPages,
-            target_criteria: normalizeAudienceCriteria(targetCriteria),
-            base_budget: baseBudgetValue,
-            total_budget: totalBudgetValue,
-            budget_daily: dailyBudgetValue,
-            duration_days: durationDays,
-            starts_at: startsAt ? new Date(startsAt).toISOString() : null,
-            ends_at: endsAt ? new Date(endsAt).toISOString() : null,
-            pricing_strategy: strategy,
-            channels: {
-              ...placementSelection,
-              creative: campaignCreative,
-            },
-            creative: campaignCreative,
+        creative: campaignCreative,
+      };
+
+      let result: Record<string, any>;
+      if (isCommercialDemo && commercialDemoFrame) {
+        const generated = await askCommercialDemoAi({
+          runtime: {
+            sessionId: commercialDemoFrame.config.sessionId,
+            surface: "restaurant",
           },
-        }),
-      });
+          tool: "assistant",
+          message: [
+            "Optimise cette campagne de restaurant comme l’outil TOK de production.",
+            "Retourne exclusivement un objet JSON avec title, body, type, target_pages, target_criteria,",
+            "base_budget, total_budget, duration_days, pricing_strategy, channels et optimization_notes.",
+            "Le titre et le texte réunis ne doivent pas dépasser 250 caractères.",
+          ].join(" "),
+          context: {
+            entrypoint: "restaurant_campaign_optimizer",
+            current_settings: currentSettings,
+          },
+        });
+        result = parseCommercialDemoAiJson<Record<string, any>>(generated.reply);
+      } else {
+        const response = await fetchWithFreshAccessToken(`${SUPABASE_URL}/functions/v1/generate-campaign`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            restaurantId,
+            currentSettings,
+          }),
+        });
 
-      if (!response.ok) {
-        const errorPayload = await response.json().catch(() => ({}));
-        throw new Error(errorPayload.error || "Erreur IA");
+        if (!response.ok) {
+          const errorPayload = await response.json().catch(() => ({}));
+          throw new Error(errorPayload.error || "Erreur IA");
+        }
+        result = await response.json();
       }
-
-      const result = await response.json();
       if (result.title) {
         const generatedTitle = String(result.title).slice(0, copyLimit);
         setTitle(generatedTitle);

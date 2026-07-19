@@ -55,12 +55,13 @@ describe("commercial demo menu mutations", () => {
       .toBeLessThan(importMenu.indexOf('supabase.from("menu_items").insert'));
   });
 
-  it("simulates photo menu analysis without invoking the paid function", () => {
+  it("analyzes menu photos through the authenticated commercial demo OpenAI gateway", () => {
     const analyze = functionSlice("const analyzeMenuPhotos", "const updateImportedMenuItem");
 
-    expect(analyze).toContain("setImportedMenuItems");
-    expect(analyze).toContain("aucune photo n'a été envoyée à une API externe");
-    expect(analyze.indexOf("setImportedMenuItems"))
+    expect(analyze).toContain("askCommercialDemoAi");
+    expect(analyze).toContain("referenceImages: images");
+    expect(analyze).toContain("parseCommercialDemoAiJson");
+    expect(analyze.indexOf("askCommercialDemoAi"))
       .toBeLessThan(analyze.indexOf('supabase.functions.invoke<MenuImportResponse>("menu-image-import"'));
   });
 

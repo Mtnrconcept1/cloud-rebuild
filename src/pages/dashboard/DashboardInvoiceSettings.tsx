@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 import AddressAutocomplete from "@/components/AddressAutocomplete";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import CityAutocomplete from "@/components/CityAutocomplete";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
@@ -29,6 +30,10 @@ import {
 } from "@/lib/uploadSecurity";
 
 import { useOwnerRestaurants } from "./useOwnerRestaurants";
+import {
+  readCommercialDemoToolState,
+  writeCommercialDemoToolState,
+} from "@/lib/commercialDemoRestaurantTools";
 
 const supabase = getSupabase();
 
@@ -76,7 +81,16 @@ const COUNTRY_OPTIONS = ["Suisse", "France", "Belgique", "Allemagne", "Italie"] 
 
 export default function DashboardInvoiceSettings() {
   const { toast } = useToast();
-  const { restaurants, restaurantIds, loading: lr } = useOwnerRestaurants();
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemo = commercialDemoFrame?.surface === "restaurant";
+  const ownerRestaurants = useOwnerRestaurants({ enabled: !isCommercialDemo });
+  const restaurants = isCommercialDemo
+    ? [commercialDemoFrame.snapshot.demo_restaurant]
+    : ownerRestaurants.restaurants;
+  const restaurantIds = isCommercialDemo
+    ? [commercialDemoFrame.snapshot.demo_restaurant.id]
+    : ownerRestaurants.restaurantIds;
+  const lr = isCommercialDemo ? false : ownerRestaurants.loading;
   const [selectedRestaurant, setSelectedRestaurant] = useState("");
   const [settings, setSettings] = useState<InvoiceSettings | null>(null);
   const [loading, setLoading] = useState(false);
@@ -94,6 +108,22 @@ export default function DashboardInvoiceSettings() {
     if (!selectedRestaurant) return;
 
     setLoading(true);
+    if (isCommercialDemo && commercialDemoFrame) {
+      setSettings(readCommercialDemoToolState(
+        commercialDemoFrame.config.sessionId,
+        "invoice-settings",
+        {
+          ...EMPTY,
+          restaurant_id: selectedRestaurant,
+          company_name: commercialDemoFrame.snapshot.demo_restaurant.name,
+          company_address: commercialDemoFrame.snapshot.demo_restaurant.address || "",
+          company_city: commercialDemoFrame.snapshot.demo_restaurant.city || "",
+          phone: commercialDemoFrame.snapshot.demo_restaurant.phone || "",
+        },
+      ));
+      setLoading(false);
+      return;
+    }
     supabase
       .from("restaurant_invoice_settings")
       .select("*")
@@ -103,7 +133,7 @@ export default function DashboardInvoiceSettings() {
         setSettings(data ? (data as InvoiceSettings) : { ...EMPTY, restaurant_id: selectedRestaurant });
         setLoading(false);
       });
-  }, [selectedRestaurant]);
+  }, [commercialDemoFrame, isCommercialDemo, selectedRestaurant]);
 
   const update = (field: keyof InvoiceSettings, value: string) => {
     setSettings((current) => (current ? { ...current, [field]: value } : current));
@@ -124,6 +154,20 @@ export default function DashboardInvoiceSettings() {
       toast({ title: "Upload refuse", description: error instanceof Error ? error.message : "Fichier non autorise.", variant: "destructive" });
       setUploading(false);
       event.target.value = "";
+      return;
+    }
+
+    if (isCommercialDemo) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === "string") update("logo_url", reader.result);
+        setUploading(false);
+      };
+      reader.onerror = () => {
+        toast({ title: "Erreur", description: "Lecture du logo impossible.", variant: "destructive" });
+        setUploading(false);
+      };
+      reader.readAsDataURL(file);
       return;
     }
 
@@ -148,6 +192,19 @@ export default function DashboardInvoiceSettings() {
     setSaving(true);
     const payload = { ...settings };
     delete (payload as Partial<InvoiceSettings>).id;
+
+    if (isCommercialDemo && commercialDemoFrame) {
+      const saved = { ...payload, id: settings.id || `demo-invoice-settings-${selectedRestaurant}` };
+      writeCommercialDemoToolState(
+        commercialDemoFrame.config.sessionId,
+        "invoice-settings",
+        saved,
+      );
+      setSettings(saved);
+      setSaving(false);
+      toast({ title: "Paramètres sauvegardés", description: "Configuration appliquée au restaurant Démo actif." });
+      return;
+    }
 
     const { error } = settings.id
       ? await supabase.from("restaurant_invoice_settings").update(payload).eq("id", settings.id)

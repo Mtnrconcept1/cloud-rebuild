@@ -19,7 +19,11 @@ import { BookOpen, CheckCircle2, Image as ImageIcon, Images, Loader2, Pencil, Pl
 import ImageUpload from "@/components/ImageUpload";
 import { optimizeImageUpload } from "@/lib/optimizedImages";
 import type { TokImageGenerationResult } from "@/lib/ai/tokAiClient";
-import { generateCommercialDemoVisual } from "@/lib/commercialDemoAi";
+import {
+  askCommercialDemoAi,
+  generateCommercialDemoVisual,
+  parseCommercialDemoAiJson,
+} from "@/lib/commercialDemoAi";
 import {
   requestAiCreationNotificationPermission,
   setActiveAiCreationContext,
@@ -439,7 +443,7 @@ export default function DashboardMenu() {
         item.id === id ? { ...item, is_available: !current } : item
       )));
       toast({
-        title: "Disponibilité simulée",
+        title: "Disponibilité mise à jour",
         description: "Le changement reste limité à cette session commerciale.",
       });
       return;
@@ -513,7 +517,7 @@ export default function DashboardMenu() {
       toast({
         title: "Image générée",
         description: commercialDemoFrame?.surface === "restaurant"
-          ? "Le visuel Démo zéro coût est appliqué au plat simulé."
+          ? "Le visuel OpenAI est appliqué au plat du restaurant Démo."
           : "Le visuel du studio est appliqué au plat.",
       });
     } catch (error) {
@@ -551,30 +555,7 @@ export default function DashboardMenu() {
 
   const analyzeMenuPhotos = async () => {
     if (!restaurant || !menuImportFiles.length) return;
-    if (commercialDemoFrame?.surface === "restaurant") {
-      const sourceItems = commercialDemoFrame.snapshot.catalog_items.slice(0, 3);
-      const detectedItems = sourceItems.length > 0
-        ? sourceItems
-        : [{
-            name: "Menu découverte TOK",
-            description: "Suggestion extraite localement pour la démonstration.",
-            price: 24.9,
-            category: "Plats",
-          }];
-      setImportedMenuItems(detectedItems.map((item) => ({
-        name: item.name,
-        description: item.description || "Suggestion extraite localement pour la démonstration.",
-        price: Number(item.price) || 0,
-        category: item.category || "Autres",
-        selected: true,
-      })));
-      setMenuImportWarnings(["Résultat simulé localement : aucune photo n'a été envoyée à une API externe."]);
-      toast({
-        title: "Analyse de démonstration terminée",
-        description: "Vérifiez les plats détectés puis ajoutez-les au menu simulé.",
-      });
-      return;
-    }
+
     setAnalyzingMenu(true);
     setImportedMenuItems([]);
     setMenuImportWarnings([]);
@@ -584,21 +565,72 @@ export default function DashboardMenu() {
         const optimized = await optimizeImageUpload(file);
         return fileToDataUrl(optimized);
       }));
-      const { data, error } = await supabase.functions.invoke<MenuImportResponse>("menu-image-import", {
-        body: { restaurantId: restaurant.id, images },
-      });
-      if (error) throw error;
-      if (!data?.items?.length) throw new Error("Aucun plat détecté sur les photos.");
 
-      setImportedMenuItems(data.items.map((item) => ({
+      let response: MenuImportResponse;
+      if (commercialDemoFrame?.surface === "restaurant") {
+        const result = await askCommercialDemoAi({
+          runtime: {
+            sessionId: commercialDemoFrame.config.sessionId,
+            surface: "restaurant",
+          },
+          tool: "assistant",
+          message: [
+            "Analyse les photos de cette carte de restaurant et extrais tous les plats lisibles.",
+            "Retourne exclusivement un objet JSON avec { items, warnings }.",
+            "Chaque item doit contenir name, description, price en CHF et category.",
+            "N'invente pas un prix illisible : utilise 0 et ajoute un avertissement.",
+          ].join(" "),
+          context: {
+            entrypoint: "restaurant_menu_image_import",
+            output_schema: {
+              items: [{ name: "string", description: "string", price: "number", category: "string" }],
+              warnings: ["string"],
+            },
+          },
+          referenceImages: images,
+        });
+        const parsed = parseCommercialDemoAiJson<{ items?: unknown; warnings?: unknown }>(result.reply);
+        const parsedItems = Array.isArray(parsed.items) ? parsed.items : [];
+        response = {
+          items: parsedItems.flatMap((candidate) => {
+            if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) return [];
+            const item = candidate as Record<string, unknown>;
+            const name = String(item.name || "").trim().slice(0, 140);
+            if (!name) return [];
+            const price = Number(item.price || 0);
+            return [{
+              name,
+              description: String(item.description || "").trim().slice(0, 600),
+              price: Number.isFinite(price) && price >= 0 ? price : 0,
+              category: String(item.category || "Autres").trim().slice(0, 100) || "Autres",
+            }];
+          }),
+          warnings: Array.isArray(parsed.warnings)
+            ? parsed.warnings.map((warning) => String(warning).trim()).filter(Boolean).slice(0, 10)
+            : [],
+        };
+      } else {
+        const { data, error } = await supabase.functions.invoke<MenuImportResponse>("menu-image-import", {
+          body: { restaurantId: restaurant.id, images },
+        });
+        if (error) throw error;
+        response = data || { items: [], warnings: [] };
+      }
+
+      if (!response.items.length) throw new Error("Aucun plat détecté sur les photos.");
+
+      setImportedMenuItems(response.items.map((item) => ({
         name: item.name,
         description: item.description || "",
         price: Number(item.price) || 0,
         category: item.category || "Autres",
         selected: true,
       })));
-      setMenuImportWarnings(data.warnings || []);
-      toast({ title: "Menu analysé", description: `${data.items.length} élément(s) détecté(s). Vérifiez-les avant l'import.` });
+      setMenuImportWarnings(response.warnings || []);
+      toast({
+        title: "Menu analysé par l’IA",
+        description: `${response.items.length} élément(s) détecté(s). Vérifiez-les avant l'import.`,
+      });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Analyse impossible";
       toast({ title: "Analyse impossible", description: message, variant: "destructive" });

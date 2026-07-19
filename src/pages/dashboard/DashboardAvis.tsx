@@ -10,8 +10,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
 import { runRestaurantAgent } from "@/lib/ai/tokAiClient";
+import { askCommercialDemoAi } from "@/lib/commercialDemoAi";
 import {
-  buildCommercialDemoReviewReply,
   buildCommercialDemoReviewSeeds,
   readCommercialDemoToolState,
   writeCommercialDemoToolState,
@@ -385,15 +385,36 @@ export default function DashboardAvis() {
     setGeneratingReviewId(review.id);
     try {
       if (isCommercialDemo && commercialDemoFrame) {
-        const draft = buildCommercialDemoReviewReply({
-          rating: review.rating,
-          comment: review.comment,
-          brandTone: aiProfile.brand_tone,
+        const result = await askCommercialDemoAi({
+          runtime: {
+            sessionId: commercialDemoFrame.config.sessionId,
+            surface: "restaurant",
+          },
+          tool: "assistant",
+          message:
+            "Rédige uniquement la réponse publique à cet avis client : courte, sincère, professionnelle et dans la langue de l’avis. Ne prétends jamais avoir corrigé un problème sans preuve.",
+          context: {
+            entrypoint: "restaurant_review_reply",
+            review: {
+              rating: review.rating,
+              comment: review.comment,
+              created_at: review.created_at,
+            },
+            restaurant_style: {
+              brand_tone: aiProfile.brand_tone,
+              visual_style: aiProfile.visual_style,
+              default_language: aiProfile.default_language,
+              specialties: parseSpecialties(aiProfile.specialties),
+              review_reply_policy: aiProfile.review_reply_policy,
+            },
+          },
         });
+        const draft = result.reply.trim();
+        if (!draft) throw new Error("L'assistant OpenAI n'a pas retourné de brouillon exploitable.");
         setReplyDrafts((current) => ({ ...current, [review.id]: draft }));
         toast({
-          title: "Réponse IA Démo générée",
-          description: "Moteur local zéro coût : aucun appel payant, crédit ou message de production.",
+          title: "Réponse générée par OpenAI",
+          description: "Relisez puis publiez la réponse dans le restaurant Démo.",
         });
         return;
       }
@@ -532,7 +553,7 @@ export default function DashboardAvis() {
           badge="Relation client"
           title="Avis clients"
           description={isCommercialDemo
-            ? "Avis, réponses et signalements entièrement simulés dans cette session Démo isolée."
+            ? "Avis, réponses OpenAI et signalements opérationnels dans cette session Démo isolée."
             : "Suivez les retours, traitez les avis non lus, préparez les réponses et signalez les contenus à vérifier."}
           icon={MessageSquareText}
           tone="sky"
