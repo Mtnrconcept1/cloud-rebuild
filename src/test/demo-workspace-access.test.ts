@@ -22,6 +22,14 @@ const demoClient = readFileSync("src/integrations/supabase/demoClient.ts", "utf8
 const authStorage = readFileSync("src/integrations/supabase/authStorage.ts", "utf8");
 const signOutButton = readFileSync("src/components/auth/SignOutButton.tsx", "utf8");
 const workspaceChooser = readFileSync("src/pages/WorkspaceChooser.tsx", "utf8");
+const demoSessionProvisioner = readFileSync(
+  "supabase/functions/provision-commercial-demo-project-session/index.ts",
+  "utf8",
+);
+const demoRoleCleanupMigration = readFileSync(
+  "supabase/demo-migrations/20260719183000_enforce_provisioned_demo_commercial_role.sql",
+  "utf8",
+);
 const productionMigration = readFileSync(
   "supabase/migrations/20260719165000_enforce_commercial_only_roles.sql",
   "utf8",
@@ -94,6 +102,14 @@ describe("real and demo workspace access", () => {
       expect(migration).toContain("administrator.role = 'admin'");
       expect(migration).toContain("assigned.role <> 'commercial'");
     }
+
+    expect(demoSessionProvisioner).toContain('.neq("role", "commercial")');
+    expect(demoSessionProvisioner).toContain('{ user_id: userId, role: "commercial" }');
+    expect(demoSessionProvisioner).not.toContain(
+      '["client", "restaurateur", "courier", "commercial"]',
+    );
+    expect(demoRoleCleanupMigration).toContain("JOIN auth.users");
+    expect(demoRoleCleanupMigration).toContain("assigned.role <> 'commercial'");
   });
 
   it("redirects each demo subdomain to its focused commercial demo surface", () => {
