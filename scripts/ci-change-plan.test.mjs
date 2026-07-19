@@ -78,6 +78,17 @@ test("force la suite complète et le push DB pour une migration", () => {
   assert.equal(plan.deployFunctions, false);
 });
 
+test("force la suite complète et le déploiement DB pour une migration du projet démo", () => {
+  const plan = buildChangePlan([
+    "supabase/demo-migrations/20260719170000_demo_isolation.sql",
+  ]);
+
+  assert.equal(plan.fullSuite, true);
+  assert.equal(plan.deployDatabase, true);
+  assert.equal(plan.supabaseCritical, true);
+  assert.equal(plan.hasDeployableChanges, true);
+});
+
 test("sépare les garde-fous comptables des paiements", () => {
   const plan = buildChangePlan(["src/lib/invoicePresentation.ts"]);
 
