@@ -117,6 +117,25 @@ Deno.serve(async (req) => {
       throw new HttpError(503, "Shared demo restaurant is unavailable");
     }
 
+    // The role-assignment guard requires the administrator-managed demo
+    // account to exist before the singular commercial role is inserted.
+    const { error: accountError } = await demo
+      .from("commercial_demo_accounts")
+      .upsert(
+        {
+          user_id: userId,
+          demo_restaurant_id: restaurant.id,
+          is_active: true,
+          template_version: 1,
+          created_by: userId,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id" },
+      );
+    if (accountError) {
+      throw new HttpError(502, "Unable to affiliate commercial account to demo restaurant");
+    }
+
     const { error: roleCleanupError } = await demo
       .from("user_roles")
       .delete()
@@ -135,20 +154,9 @@ Deno.serve(async (req) => {
         { user_id: userId, role: "commercial" },
         { onConflict: "user_id,role" },
       ),
-      demo.from("commercial_demo_accounts").upsert(
-        {
-          user_id: userId,
-          demo_restaurant_id: restaurant.id,
-          is_active: true,
-          template_version: 1,
-          created_by: userId,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: "user_id" },
-      ),
     ]);
     if (results.some((result) => result.error)) {
-      throw new HttpError(502, "Unable to affiliate commercial account to demo restaurant");
+      throw new HttpError(502, "Unable to finish demo identity provisioning");
     }
 
     const { data: link, error: linkError } = await demo.auth.admin.generateLink({
