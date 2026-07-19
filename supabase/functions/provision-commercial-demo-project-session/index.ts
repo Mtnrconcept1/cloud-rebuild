@@ -117,16 +117,22 @@ Deno.serve(async (req) => {
       throw new HttpError(503, "Shared demo restaurant is unavailable");
     }
 
+    const { error: roleCleanupError } = await demo
+      .from("user_roles")
+      .delete()
+      .eq("user_id", userId)
+      .neq("role", "commercial");
+    if (roleCleanupError) {
+      throw new HttpError(502, "Unable to normalize demo identity roles");
+    }
+
     const results = await Promise.all([
       demo.from("profiles").upsert(
         { user_id: userId, full_name: "Commercial Démo TOK" },
         { onConflict: "user_id" },
       ),
       demo.from("user_roles").upsert(
-        ["client", "restaurateur", "courier", "commercial"].map((role) => ({
-          user_id: userId,
-          role,
-        })),
+        { user_id: userId, role: "commercial" },
         { onConflict: "user_id,role" },
       ),
       demo.from("commercial_demo_accounts").upsert(
