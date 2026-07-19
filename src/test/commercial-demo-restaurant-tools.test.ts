@@ -152,7 +152,8 @@ describe("commercial demo restaurant tool adapters", () => {
     expect(reviews).toContain("buildCommercialDemoReviewSeeds(commercialDemoFrame.snapshot)");
     expect(floorPlan).toContain("commercialDemoFrame.snapshot.reservations.map");
     expect(floorPlan).toContain("writeCommercialDemoToolState(commercialDemoFrame.config.sessionId, \"floor-plan-tables\"");
-    expect(floorPlan).toContain("buildCommercialDemoFloorPlanAiResult");
+    expect(floorPlan).toContain("askCommercialDemoAi");
+    expect(floorPlan).toContain("parseCommercialDemoAiJson");
     expect(floorPlan).toContain("selectedId={isCommercialDemo ? null : selectedId}");
     expect(floorPlan).toContain("`floor-plan-overrides:${referenceDate}`");
     expect(floorPlan).toContain('"floor-plan-reservation-statuses"');
