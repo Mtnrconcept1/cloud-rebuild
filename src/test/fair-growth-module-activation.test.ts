@@ -36,12 +36,16 @@ describe("Fair Growth paid module activation", () => {
     expect(dashboard).toContain("aucune activation automatique");
   });
 
-  it("blocks requests from the demo restaurant in the UI", () => {
+  it("marks every admin-enabled module active in demo without creating live billing", () => {
+    expect(dashboard).toContain("enabled: Boolean(selectedId) && !isDemoMode");
+    expect(dashboard).toContain("const demoSubscriptions = isDemoMode");
+    expect(dashboard).toContain('status: "active" as const');
     expect(dashboard).toContain("if (!selectedId || requestingSlug || isDemoMode) return");
     expect(dashboard).toContain("const canRequest = !isDemoMode");
     expect(dashboard).toContain("disabled={!canRequest || pending}");
-    expect(dashboard).toContain("aucune demande");
-    expect(dashboard).toContain("ni facturation ne peut être créée depuis cet espace");
+    expect(dashboard).toContain("Tous les modules activés par l’administrateur sont opérationnels");
+    expect(dashboard).toContain("Actif dans le restaurant Démo");
+    expect(dashboard).toContain("Stripe Test");
   });
 
   it("states pilot and Elite multi-site limitations on public surfaces", () => {
