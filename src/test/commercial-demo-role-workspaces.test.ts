@@ -18,6 +18,7 @@ describe("commercial demo role workspaces", () => {
   const floorPlan = read("src/pages/dashboard/DashboardPlanSalle.tsx");
   const pack = read("src/pages/dashboard/DashboardPack.tsx");
   const social = read("src/hooks/useSocialFeed.ts");
+  const activationPreparation = read("supabase/migrations/20260719110000_prepare_commercial_demo_activation.sql");
   const migration = read("supabase/migrations/20260719113000_activate_commercial_demo_restaurant.sql");
   const activeInvariantMigration = read("supabase/migrations/20260719124500_keep_commercial_demo_restaurants_active.sql");
   const checkout = read("supabase/functions/commercial-demo-checkout/index.ts");
@@ -53,6 +54,11 @@ describe("commercial demo role workspaces", () => {
   });
 
   it("activates the isolated restaurant and mirrors Admin-enabled tools", () => {
+    expect(activationPreparation).toContain("DISABLE TRIGGER protect_demo_restaurant_identity");
+    expect(activationPreparation).toContain("SET is_active = true");
+    expect(activationPreparation).toContain("ENABLE TRIGGER protect_demo_restaurant_identity");
+    expect(activationPreparation.indexOf("DISABLE TRIGGER")).toBeLessThan(activationPreparation.indexOf("UPDATE public.restaurants"));
+    expect(activationPreparation.indexOf("UPDATE public.restaurants")).toBeLessThan(activationPreparation.indexOf("ENABLE TRIGGER"));
     expect(migration).toContain("WHERE is_demo IS TRUE");
     expect(migration).toContain("SET is_active = true");
     expect(migration).toContain("stripe_account_id IS NULL");
