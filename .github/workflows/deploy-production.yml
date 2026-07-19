@@ -377,6 +377,23 @@ jobs:
             --production-out="${RUNNER_TEMP}/commercial-demo.production.env" \
             --demo-out="${RUNNER_TEMP}/commercial-demo.providers.env"
 
+      - name: Configure dedicated demo Auth redirects
+        if: >-
+          ${{ needs.validation.outputs.deploy_functions == 'true' ||
+              needs.validation.outputs.sync_supabase_secrets == 'true' }}
+        shell: bash
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error \
+            --request PATCH \
+            --header "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+            --header "Content-Type: application/json" \
+            --data '{"site_url":"https://commercial.thetok.ch","uri_allow_list":"https://commercial.thetok.ch/**"}' \
+            "https://api.supabase.com/v1/projects/${COMMERCIAL_DEMO_PROJECT_REF}/config/auth" \
+            --output /dev/null
+
       - name: Link Supabase production project
         if: ${{ needs.validation.outputs.deploy_database == 'true' }}
         env:
