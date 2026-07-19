@@ -123,7 +123,10 @@ Deno.serve(async (req) => {
         { onConflict: "user_id" },
       ),
       demo.from("user_roles").upsert(
-        { user_id: userId, role: "commercial" },
+        ["client", "restaurateur", "courier", "commercial", "admin"].map((role) => ({
+          user_id: userId,
+          role,
+        })),
         { onConflict: "user_id,role" },
       ),
       demo.from("commercial_demo_accounts").upsert(
