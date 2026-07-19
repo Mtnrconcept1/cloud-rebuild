@@ -35,18 +35,19 @@ export function inspectReleaseReadiness(options = {}) {
   const errors = [];
   const warnings = [];
   const report = createReporter({ errors, warnings, strict });
+  const providerBootstrapGraceActive = isProviderBootstrapGraceActive(env, options.now);
 
   if (!["full", "web"].includes(target)) {
     report.required("RELEASE_READINESS_TARGET must be either full or web.");
   }
 
-  inspectStripe(env, report);
+  inspectStripe(env, report, providerBootstrapGraceActive);
   if (target === "full") {
     inspectMobileAssociations(root, env, report);
     inspectAndroidSigning(root, env, report);
   }
   inspectEdgeSecrets(env, report);
-  inspectSupabaseRuntimeSecurity(env, report);
+  inspectSupabaseRuntimeSecurity(env, report, providerBootstrapGraceActive);
   inspectFirebaseServiceAccount(env, report);
   inspectSupabaseAuthSecurity(env, report);
 
@@ -92,6 +93,16 @@ function isTruthy(value) {
   return ["1", "true", "yes", "strict", "production"].includes(clean(value).toLowerCase());
 }
 
+function isProviderBootstrapGraceActive(env, nowOption) {
+  const rawUntil = clean(env.PROVIDER_BOOTSTRAP_GRACE_UNTIL);
+  const until = Date.parse(rawUntil);
+  if (!rawUntil || !Number.isFinite(until)) return false;
+
+  const nowValue = typeof nowOption === "function" ? nowOption() : nowOption;
+  const now = nowValue instanceof Date ? nowValue : new Date();
+  return Number.isFinite(now.getTime()) && now.getTime() < until;
+}
+
 function createReporter({ errors, warnings, strict }) {
   return {
     required(message) {
@@ -107,11 +118,18 @@ function createReporter({ errors, warnings, strict }) {
   };
 }
 
-function inspectStripe(env, report) {
+function inspectStripe(env, report, providerBootstrapGraceActive) {
   const publishable = clean(env.VITE_STRIPE_PUBLISHABLE_KEY);
-  if (!/^pk_live_/.test(publishable)) {
-    report.required("Missing VITE_STRIPE_PUBLISHABLE_KEY live publishable key for production checkout.");
+  if (/^pk_live_/.test(publishable)) return;
+
+  if (providerBootstrapGraceActive) {
+    report.warning(
+      `Temporary provider bootstrap grace is active until ${clean(env.PROVIDER_BOOTSTRAP_GRACE_UNTIL)}: Stripe publishable key is absent; client Stripe checkout remains unavailable.`,
+    );
+    return;
   }
+
+  report.required("Missing VITE_STRIPE_PUBLISHABLE_KEY live publishable key for production checkout.");
 }
 
 function inspectMobileAssociations(root, env, report) {
@@ -186,7 +204,7 @@ function inspectEdgeSecrets(env, report) {
   }
 }
 
-function inspectSupabaseRuntimeSecurity(env, report) {
+function inspectSupabaseRuntimeSecurity(env, report, providerBootstrapGraceActive) {
   const cronSecret = clean(env.INTERNAL_CRON_SECRET || env.CRON_SECRET);
   const cronConfirmed = hasConfirmedEvidence(
     env.SUPABASE_INTERNAL_CRON_VAULT_CONFIRMED,
@@ -202,7 +220,13 @@ function inspectSupabaseRuntimeSecurity(env, report) {
     env.SUPABASE_RESEND_SECRET_EVIDENCE,
   );
   if (!(/^re_/.test(resendApiKey) && !isPlaceholder(resendApiKey)) && !resendConfirmed) {
-    report.required("Missing live proof that RESEND_API_KEY is installed in Supabase production Edge secrets.");
+    if (providerBootstrapGraceActive) {
+      report.warning(
+        `Temporary provider bootstrap grace is active until ${clean(env.PROVIDER_BOOTSTRAP_GRACE_UNTIL)}: RESEND_API_KEY is absent; transactional email delivery remains unavailable.`,
+      );
+    } else {
+      report.required("Missing live proof that RESEND_API_KEY is installed in Supabase production Edge secrets.");
+    }
   }
 
   const emailFrom = clean(env.EMAIL_FROM) || "Tok <noreply@thetok.ch>";
