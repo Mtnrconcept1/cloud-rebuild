@@ -13,6 +13,138 @@
       "has": [
         {
           "type": "host",
+          "value": "auth.thetok.ch"
+        }
+      ],
+      "destination": "https://www.thetok.ch/auth",
+      "permanent": false
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "auth.thetok.ch"
+        }
+      ],
+      "destination": "https://www.thetok.ch/:path*",
+      "permanent": false
+    },
+    {
+      "source": "/auth",
+      "has": [
+        {
+          "type": "host",
+          "value": "commercial.thetok.ch"
+        }
+      ],
+      "destination": "https://www.thetok.ch/auth",
+      "permanent": false
+    },
+    {
+      "source": "/auth/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "commercial.thetok.ch"
+        }
+      ],
+      "destination": "https://www.thetok.ch/auth/:path*",
+      "permanent": false
+    },
+    {
+      "source": "/auth",
+      "has": [
+        {
+          "type": "host",
+          "value": "admin.thetok.ch"
+        }
+      ],
+      "destination": "https://www.thetok.ch/auth",
+      "permanent": false
+    },
+    {
+      "source": "/auth/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "admin.thetok.ch"
+        }
+      ],
+      "destination": "https://www.thetok.ch/auth/:path*",
+      "permanent": false
+    },
+    {
+      "source": "/auth",
+      "has": [
+        {
+          "type": "host",
+          "value": "thetok.ch"
+        }
+      ],
+      "destination": "https://www.thetok.ch/auth",
+      "permanent": false
+    },
+    {
+      "source": "/espaces",
+      "has": [
+        {
+          "type": "host",
+          "value": "commercial.thetok.ch"
+        }
+      ],
+      "destination": "https://www.thetok.ch/espaces",
+      "permanent": false
+    },
+    {
+      "source": "/espaces",
+      "has": [
+        {
+          "type": "host",
+          "value": "admin.thetok.ch"
+        }
+      ],
+      "destination": "https://www.thetok.ch/espaces",
+      "permanent": false
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "demo-client.thetok.ch"
+        }
+      ],
+      "destination": "/commercial/demo-live?surface=client",
+      "permanent": false
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "demo-restaurateur.thetok.ch"
+        }
+      ],
+      "destination": "/commercial/demo-live?surface=restaurant",
+      "permanent": false
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "demo-livreur.thetok.ch"
+        }
+      ],
+      "destination": "/commercial/demo-live?surface=courier",
+      "permanent": false
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
           "value": "commercial.thetok.ch"
         }
       ],
@@ -98,6 +230,51 @@
         {
           "key": "X-Frame-Options",
           "value": "SAMEORIGIN"
+        }
+      ]
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "demo-client.thetok.ch"
+        }
+      ],
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        }
+      ]
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "demo-restaurateur.thetok.ch"
+        }
+      ],
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        }
+      ]
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "demo-livreur.thetok.ch"
+        }
+      ],
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
         }
       ]
     },
