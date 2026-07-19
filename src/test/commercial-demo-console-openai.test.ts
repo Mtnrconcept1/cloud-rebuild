@@ -40,7 +40,7 @@ describe("commercial multi-space OpenAI console", () => {
   it("uses only the authenticated Supabase Edge gateway from the browser", () => {
     expect(consoleAi).toContain("askCommercialDemoAi");
     expect(client).toContain('const COMMERCIAL_DEMO_AI_FUNCTION = "commercial-demo-ai"');
-    expect(client).toContain("invokeSupabaseFunction");
+    expect(client).toContain("invokeCommercialDemoFunction");
     expect(consoleAi).not.toContain("api.openai.com");
     expect(consoleAi).not.toContain("OPENAI_API_KEY");
     expect(client).not.toContain("api.openai.com");
@@ -104,7 +104,7 @@ describe("commercial multi-space OpenAI console", () => {
     );
     const prepareSecretsStep = deploySupabaseJob.slice(
       deploySupabaseJob.indexOf("- name: Prepare Supabase function secrets env"),
-      deploySupabaseJob.indexOf("- name: Link Supabase production project"),
+      deploySupabaseJob.indexOf("- name: Prepare dedicated commercial demo secrets"),
     );
     const cleanupSecretsStep = deploySupabaseJob.slice(
       deploySupabaseJob.indexOf("- name: Remove Supabase function secrets env"),
