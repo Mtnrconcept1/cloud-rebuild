@@ -159,11 +159,11 @@ describe("commercial demo active tools and reservations", () => {
     expect(safeEffects).toContain("SAFE_SCOPED_READ_RPCS");
     expect(safeTools).toContain("buildProtectedResponse");
     expect(safeTools).toContain("{children}");
-    expect(safeTools).toContain("vraies interfaces, effets simulés");
+    expect(safeTools).toContain("outil opérationnel · données Démo isolées");
     expect(safeTools).not.toContain("CommercialDemoToolSandbox");
   });
 
-  it("blocks paid menu AI actions while keeping normal demo menu mutations available", () => {
+  it("routes paid menu AI actions through the isolated demo gateway while keeping normal mutations available", () => {
     const photoGeneration = menu.slice(
       menu.indexOf("const generateMenuPhoto = async () =>"),
       menu.indexOf("const openMenuImport = () =>"),
@@ -177,6 +177,8 @@ describe("commercial demo active tools and reservations", () => {
     expect(photoGeneration.indexOf('commercialDemoFrame?.surface === "restaurant"'))
       .toBeLessThan(photoGeneration.indexOf("startTokImageCreationJob"));
     expect(photoAnalysis).toContain('commercialDemoFrame?.surface === "restaurant"');
+    expect(photoAnalysis).toContain("askCommercialDemoAi");
+    expect(photoAnalysis).toContain("referenceImages: images");
     expect(photoAnalysis.indexOf('commercialDemoFrame?.surface === "restaurant"'))
       .toBeLessThan(photoAnalysis.indexOf('supabase.functions.invoke<MenuImportResponse>("menu-image-import"'));
     expect(menu).toContain('supabase.from("menu_items").insert');
