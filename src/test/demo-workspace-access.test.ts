@@ -4,6 +4,8 @@ import { describe, expect, it } from "vitest";
 
 import {
   DEMO_WORKSPACES,
+  getDemoMultiWorkspaceHref,
+  getDemoMultiWorkspacePath,
   getDemoWorkspaceHref,
   getDemoWorkspacePath,
   isDemoWorkspaceSurface,
@@ -13,6 +15,8 @@ const roleMenu = readFileSync("src/components/navigation/RoleSpaceMenuSection.ts
 const roleSwitcher = readFileSync("src/components/navigation/RoleSpaceSwitcher.tsx", "utf8");
 const browserGrid = readFileSync("src/components/commercial/CommercialDemoBrowserGrid.tsx", "utf8");
 const demoExperience = readFileSync("src/components/commercial/CommercialMultiSpaceDemo.tsx", "utf8");
+const singleDemo = readFileSync("src/components/commercial/CommercialSingleSpaceDemo.tsx", "utf8");
+const demoPage = readFileSync("src/pages/CommercialDemoLive.tsx", "utf8");
 const auth = readFileSync("src/lib/auth.tsx", "utf8");
 const demoClient = readFileSync("src/integrations/supabase/demoClient.ts", "utf8");
 const authStorage = readFileSync("src/integrations/supabase/authStorage.ts", "utf8");
@@ -48,6 +52,9 @@ describe("real and demo workspace access", () => {
       .toBe("/commercial/demo-live?surface=courier");
     expect(getDemoWorkspacePath("restaurant"))
       .toBe("/commercial/demo-live?surface=restaurant");
+    expect(getDemoMultiWorkspaceHref("admin.thetok.ch"))
+      .toBe("https://commercial.thetok.ch/commercial/demo-live");
+    expect(getDemoMultiWorkspacePath()).toBe("/commercial/demo-live");
     expect(isDemoWorkspaceSurface("courier")).toBe(true);
     expect(isDemoWorkspaceSurface("admin")).toBe(false);
   });
@@ -64,12 +71,16 @@ describe("real and demo workspace access", () => {
     expect(roleMenu).not.toContain('roles.includes("client") || roles.includes("commercial")');
   });
 
-  it("focuses the requested dashboard while retaining the synchronized three-space console", () => {
-    expect(demoExperience).toContain("getRequestedDemoSurface");
-    expect(demoExperience).toContain("initialSurface={requestedSurface}");
-    expect(browserGrid).toContain('initialSurface || "client"');
-    expect(browserGrid).toContain("if (initialSurface) setActiveSurface(initialSurface)");
+  it("opens requested demo dashboards in a unique view and keeps multi-dashboard explicit", () => {
+    expect(demoPage).toContain("isDemoWorkspaceSurface(requestedSurface)");
+    expect(demoPage).toContain("<CommercialSingleSpaceDemo surface={requestedSurface} />");
+    expect(demoPage).toContain("<CommercialMultiSpaceDemo />");
+    expect(singleDemo).toContain("buildCommercialDemoFrameUrl");
+    expect(singleDemo).toContain("SURFACE_HOME");
+    expect(singleDemo).toContain("Vue multi-dashboard");
+    expect(singleDemo).toContain("commercial-demo-single-frame");
     expect(browserGrid).toContain('() => ["client", "restaurant", "courier"]');
+    expect(demoExperience).toContain("<CommercialDemoBrowserGrid");
   });
 
   it("keeps persisted commercial roles singular while preserving the legacy client fallback", () => {

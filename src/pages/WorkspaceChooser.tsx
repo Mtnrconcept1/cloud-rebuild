@@ -3,6 +3,7 @@ import {
   Bike,
   BriefcaseBusiness,
   ChevronRight,
+  LayoutDashboard,
   Shield,
   Sparkles,
   Store,
@@ -18,6 +19,7 @@ import { useAuth, type UserRole } from "@/lib/auth-context";
 import { getCommercialNavigationHref } from "@/lib/commercialDomains";
 import {
   DEMO_WORKSPACES,
+  getDemoMultiWorkspaceHref,
   getDemoWorkspaceHref,
   type DemoWorkspaceSurface,
 } from "@/lib/demoWorkspaces";
@@ -124,18 +126,29 @@ export default function WorkspaceChooser() {
     });
 
   const demoCards: WorkspaceCard[] = canAccessDemo
-    ? DEMO_WORKSPACES.map((workspace) => {
-      const target = getDemoWorkspaceHref(workspace.surface);
-      return {
-        key: `demo:${workspace.surface}`,
-        label: workspace.label,
-        description: workspace.description,
+    ? [
+      ...DEMO_WORKSPACES.map((workspace) => {
+        const target = getDemoWorkspaceHref(workspace.surface);
+        return {
+          key: `demo:${workspace.surface}`,
+          label: workspace.label,
+          description: workspace.description,
+          kind: "demo" as const,
+          icon: DEMO_ICONS[workspace.surface],
+          hostname: workspace.hostname,
+          onSelect: () => openTarget(target),
+        };
+      }),
+      {
+        key: "demo:multi-dashboard",
+        label: "Démo multi-dashboard",
+        description: "Client, restaurateur et livreur simultanément",
         kind: "demo" as const,
-        icon: DEMO_ICONS[workspace.surface],
-        hostname: workspace.hostname,
-        onSelect: () => openTarget(target),
-      };
-    })
+        icon: LayoutDashboard,
+        hostname: getTargetHostname(getDemoMultiWorkspaceHref()),
+        onSelect: () => openTarget(getDemoMultiWorkspaceHref()),
+      },
+    ]
     : [];
 
   const renderCard = (card: WorkspaceCard) => {
@@ -161,9 +174,11 @@ export default function WorkspaceChooser() {
         <span className="min-w-0 flex-1">
           <span className="flex flex-wrap items-center gap-2">
             <span className="text-lg font-black">{card.label}</span>
-            <Badge variant="outline" className="rounded-full text-[10px] uppercase tracking-wider">
-              {card.kind === "demo" ? "Démo isolée" : "Données réelles"}
-            </Badge>
+            {canAccessDemo ? (
+              <Badge variant="outline" className="rounded-full text-[10px] uppercase tracking-wider">
+                {card.kind === "demo" ? "Démo isolée" : "Données réelles"}
+              </Badge>
+            ) : null}
           </span>
           <span className="mt-1 block text-sm text-muted-foreground">{card.description}</span>
           <span className="mt-2 block truncate text-xs font-semibold text-muted-foreground/80">{card.hostname}</span>
@@ -183,14 +198,18 @@ export default function WorkspaceChooser() {
             </Badge>
             <h1 className="font-serif text-3xl font-black tracking-tight sm:text-4xl">Choisissez votre espace</h1>
             <p className="mt-2 max-w-2xl text-sm text-muted-foreground sm:text-base">
-              Connecté en tant que {user?.email || "utilisateur TOK"}. Les espaces réels et les démonstrations restent clairement séparés.
+              {canAccessDemo
+                ? `Connecté en tant que ${user?.email || "utilisateur TOK"}. Les environnements de travail et de présentation restent clairement séparés.`
+                : `Connecté en tant que ${user?.email || "utilisateur TOK"}. Sélectionnez l’espace que vous souhaitez ouvrir.`}
             </p>
           </div>
           <SignOutButton iconOnly />
         </header>
 
         <section aria-labelledby="real-workspaces-title">
-          <h2 id="real-workspaces-title" className="mb-3 text-xs font-black uppercase tracking-[0.2em] text-primary">Accès réel</h2>
+          <h2 id="real-workspaces-title" className="mb-3 text-xs font-black uppercase tracking-[0.2em] text-primary">
+            {canAccessDemo ? "Accès réel" : "Vos espaces"}
+          </h2>
           <div className="grid gap-3 md:grid-cols-2">{realCards.map(renderCard)}</div>
         </section>
 

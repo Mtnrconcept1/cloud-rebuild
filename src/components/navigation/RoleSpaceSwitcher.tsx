@@ -4,6 +4,7 @@ import {
   BriefcaseBusiness,
   Check,
   ChevronsUpDown,
+  LayoutDashboard,
   Shield,
   Store,
   User,
@@ -24,6 +25,7 @@ import { useAuth, type UserRole } from "@/lib/auth-context";
 import { getCommercialNavigationHref } from "@/lib/commercialDomains";
 import {
   DEMO_WORKSPACES,
+  getDemoMultiWorkspaceHref,
   getDemoWorkspaceHref,
   type DemoWorkspaceSurface,
 } from "@/lib/demoWorkspaces";
@@ -111,6 +113,16 @@ export default function RoleSpaceSwitcher({
   const handleDemoSelect = (surface: DemoWorkspaceSurface) => {
     onNavigate?.();
     const target = getDemoWorkspaceHref(surface);
+    if (/^https?:\/\//.test(target)) {
+      window.location.assign(target);
+      return;
+    }
+    navigate(target);
+  };
+
+  const handleMultiDemoSelect = () => {
+    onNavigate?.();
+    const target = getDemoMultiWorkspaceHref();
     if (/^https?:\/\//.test(target)) {
       window.location.assign(target);
       return;
@@ -207,6 +219,19 @@ export default function RoleSpaceSwitcher({
                 </DropdownMenuItem>
               );
             })}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onSelect={handleMultiDemoSelect}
+              className="gap-3 rounded-md py-2"
+            >
+              <LayoutDashboard className="h-4 w-4 text-violet-600" />
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-medium">Démo multi-dashboard</span>
+                <span className="block truncate text-xs text-muted-foreground">
+                  Client, restaurateur et livreur simultanément
+                </span>
+              </span>
+            </DropdownMenuItem>
           </>
         )}
       </DropdownMenuContent>

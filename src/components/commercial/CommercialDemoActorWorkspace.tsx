@@ -1,8 +1,6 @@
 import { useMemo } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
 import {
-  Bell,
   Bike,
   CheckCircle2,
   ChevronRight,
@@ -14,7 +12,6 @@ import {
   RefreshCw,
   ShoppingBag,
   Store,
-  TestTube2,
   UserRound,
   Wifi,
   WifiOff,
@@ -31,7 +28,7 @@ import {
   transitionCommercialDemoOrder,
   type CommercialDemoTransitionAction,
 } from "@/lib/commercialDemoJourney";
-import { getCommercialDemoNotificationPath, type CommercialDemoActorSurface } from "@/lib/commercialDemoFrame";
+import type { CommercialDemoActorSurface } from "@/lib/commercialDemoFrame";
 import { cn } from "@/lib/utils";
 
 const ORDER_STATUS_LABELS: Record<string, string> = {
@@ -94,21 +91,6 @@ function RealtimeBadge({ status }: { status: string }) {
       <Icon className={cn("mr-1.5 h-3.5 w-3.5", !connected && !offline && "animate-spin")} />
       {offline ? "Hors ligne" : connected ? "Temps réel" : "Connexion…"}
     </Badge>
-  );
-}
-
-function DemoBanner({ surface }: { surface: CommercialDemoActorSurface }) {
-  return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-violet-200 bg-violet-50/80 p-4 text-violet-950 sm:flex-row sm:items-center dark:border-violet-400/20 dark:bg-violet-400/10 dark:text-violet-100" role="status">
-      <TestTube2 className="h-5 w-5 shrink-0" />
-      <div className="min-w-0 flex-1">
-        <p className="font-semibold">Vrai dashboard · données de démonstration isolées</p>
-        <p className="mt-1 text-xs leading-5 opacity-80">Vous pouvez utiliser les onglets de cet espace. Les commandes, notifications et actions visibles ici ne touchent jamais la production.</p>
-      </div>
-      <Button asChild variant="outline" size="sm" className="shrink-0 bg-background/70">
-        <Link to={getCommercialDemoNotificationPath(surface)}><Bell className="mr-2 h-4 w-4" />Notifications</Link>
-      </Button>
-    </div>
   );
 }
 
@@ -289,7 +271,6 @@ export default function CommercialDemoActorWorkspace({ surface }: { surface: Com
 
   return (
     <div className="space-y-6" data-testid={`commercial-demo-real-dashboard-${surface}`}>
-      <DemoBanner surface={surface} />
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className={cn("flex items-center gap-2 text-sm font-semibold", meta.tone)}><Icon className="h-4 w-4" />{meta.eyebrow}</p>

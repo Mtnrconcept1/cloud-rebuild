@@ -87,6 +87,11 @@ describe("production deployment secret scope", () => {
   const pushDatabase = section(
     deploySupabase,
     "      - name: Push database migrations",
+    "      - name: Push dedicated commercial demo migrations",
+  );
+  const pushDemoDatabase = section(
+    deploySupabase,
+    "      - name: Push dedicated commercial demo migrations",
     "      - name: Deploy impacted Edge Functions",
   );
   const deployFunctions = deploySupabase.slice(
@@ -179,9 +184,14 @@ describe("production deployment secret scope", () => {
       "SUPABASE_ACCESS_TOKEN",
       "SUPABASE_DB_PASSWORD",
     ]);
+    expect(secretEnvironmentNames(pushDemoDatabase)).toEqual([
+      "SUPABASE_ACCESS_TOKEN",
+    ]);
     expect(secretEnvironmentNames(deployFunctions)).toEqual(["SUPABASE_ACCESS_TOKEN"]);
 
     expect(syncSecrets).not.toContain("SUPABASE_DB_PASSWORD");
+    expect(pushDemoDatabase).not.toContain("SUPABASE_DB_PASSWORD");
+    expect(pushDemoDatabase).not.toContain("SUPABASE_SERVICE_ROLE_KEY");
     expect(deployFunctions).not.toContain("SUPABASE_DB_PASSWORD");
     expect(linkProject).not.toContain("SUPABASE_SERVICE_ROLE_KEY");
     expect(pushDatabase).not.toContain("SUPABASE_SERVICE_ROLE_KEY");

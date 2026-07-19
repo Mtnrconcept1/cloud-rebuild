@@ -1,7 +1,18 @@
+import { useLocation } from "react-router-dom";
+
 import CommercialMultiSpaceDemo from "@/components/commercial/CommercialMultiSpaceDemo";
+import CommercialSingleSpaceDemo from "@/components/commercial/CommercialSingleSpaceDemo";
 import CommercialWorkspaceChrome from "@/components/commercial/CommercialWorkspaceChrome";
+import { isDemoWorkspaceSurface } from "@/lib/demoWorkspaces";
 
 export default function CommercialDemoLive() {
+  const location = useLocation();
+  const requestedSurface = new URLSearchParams(location.search).get("surface");
+
+  if (isDemoWorkspaceSurface(requestedSurface)) {
+    return <CommercialSingleSpaceDemo surface={requestedSurface} />;
+  }
+
   return (
     <>
       <CommercialWorkspaceChrome activeLabel="Démo multi-espace" />

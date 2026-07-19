@@ -2,11 +2,52 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  parseAddedDemoMigrations,
+  parseMigrationPath,
+} from "./apply-commercial-demo-migrations.mjs";
+
+import {
   buildChangePlan,
   isDocumentationFile,
   normalizeFile,
   selectDirectContractTests,
 } from "./ci-change-plan.mjs";
+
+test("sélectionne uniquement les migrations démo ajoutées et les trie", () => {
+  assert.deepEqual(
+    parseAddedDemoMigrations(
+      [
+        "A\tsupabase/demo-migrations/20260719180000_second.sql",
+        "A\tsupabase/demo-migrations/20260719170000_first.sql",
+      ].join("\n"),
+    ),
+    [
+      {
+        path: "supabase/demo-migrations/20260719170000_first.sql",
+        version: "20260719170000",
+        name: "first",
+      },
+      {
+        path: "supabase/demo-migrations/20260719180000_second.sql",
+        version: "20260719180000",
+        name: "second",
+      },
+    ],
+  );
+  assert.equal(
+    parseMigrationPath("supabase/migrations/20260719170000_production.sql"),
+    null,
+  );
+});
+
+test("refuse la modification d'une migration démo déjà versionnée", () => {
+  assert.throws(
+    () => parseAddedDemoMigrations(
+      "M\tsupabase/demo-migrations/20260719170000_existing.sql",
+    ),
+    /append-only/,
+  );
+});
 
 test("normalise les chemins Windows et relatifs", () => {
   assert.equal(normalizeFile(".\\src\\pages\\Home.tsx"), "src/pages/Home.tsx");
@@ -76,6 +117,17 @@ test("force la suite complète et le push DB pour une migration", () => {
   assert.equal(plan.paymentCritical, false);
   assert.equal(plan.accountingCritical, true);
   assert.equal(plan.deployFunctions, false);
+});
+
+test("force la suite complète et le déploiement DB pour une migration du projet démo", () => {
+  const plan = buildChangePlan([
+    "supabase/demo-migrations/20260719170000_demo_isolation.sql",
+  ]);
+
+  assert.equal(plan.fullSuite, true);
+  assert.equal(plan.deployDatabase, true);
+  assert.equal(plan.supabaseCritical, true);
+  assert.equal(plan.hasDeployableChanges, true);
 });
 
 test("sépare les garde-fous comptables des paiements", () => {

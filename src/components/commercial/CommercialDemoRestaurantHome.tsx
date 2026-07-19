@@ -90,11 +90,11 @@ export default function CommercialDemoRestaurantHome() {
               </span>
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
-                  <p className="font-bold text-sky-950 dark:text-sky-50">Vrai dashboard · données de démonstration isolées</p>
-                  <Badge className="bg-sky-600 text-white hover:bg-sky-600">SIMULÉ</Badge>
+                  <p className="font-bold text-sky-950 dark:text-sky-50">Activité du restaurant</p>
+                  <Badge className="bg-sky-600 text-white hover:bg-sky-600">EN DIRECT</Badge>
                 </div>
                 <p className="mt-1 text-sm text-sky-800 dark:text-sky-100/80">
-                  Cette fenêtre utilise la présentation restaurateur de production, alimentée uniquement par la session commerciale en temps réel.
+                  Les commandes, réservations et notifications sont synchronisées automatiquement.
                 </p>
                 {order ? (
                   <p className="mt-2 flex min-w-0 items-center gap-2 text-sm font-semibold text-sky-950 dark:text-sky-50">

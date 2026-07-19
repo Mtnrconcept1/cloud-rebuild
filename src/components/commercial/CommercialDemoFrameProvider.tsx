@@ -318,8 +318,8 @@ export default function CommercialDemoFrameProvider({
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background p-8 text-center" role="status" aria-live="polite">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="mt-4 font-semibold">Ouverture du vrai dashboard {config.surface}…</p>
-        <p className="mt-2 text-sm text-muted-foreground">Validation de la session de démonstration isolée.</p>
+        <p className="mt-4 font-semibold">Ouverture de votre espace…</p>
+        <p className="mt-2 text-sm text-muted-foreground">Préparation de votre session sécurisée.</p>
       </div>
     );
   }
@@ -329,8 +329,8 @@ export default function CommercialDemoFrameProvider({
       <div className="flex min-h-screen items-center justify-center bg-background p-6">
         <div className="max-w-md rounded-3xl border border-destructive/30 bg-destructive/5 p-6 text-center" role="alert">
           <ShieldAlert className="mx-auto h-9 w-9 text-destructive" />
-          <h1 className="mt-4 text-xl font-bold">Fenêtre de démonstration refusée</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Cette session n'appartient pas au compte commercial connecté ou n'est plus active.</p>
+          <h1 className="mt-4 text-xl font-bold">Accès refusé</h1>
+          <p className="mt-2 text-sm text-muted-foreground">Votre session n’est plus active ou ne correspond pas au compte connecté.</p>
           <Button type="button" variant="outline" className="mt-4" onClick={() => void snapshotQuery.refetch()}>Réessayer</Button>
         </div>
       </div>

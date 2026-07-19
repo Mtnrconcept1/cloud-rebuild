@@ -43,6 +43,22 @@ export function getDemoWorkspacePath(surface: DemoWorkspaceSurface) {
   return `/commercial/demo-live?surface=${surface}`;
 }
 
+export function getDemoMultiWorkspacePath() {
+  return "/commercial/demo-live";
+}
+
+export function getDemoMultiWorkspaceHref(
+  hostname = typeof window !== "undefined" ? window.location.hostname : "",
+) {
+  const normalizedHostname = hostname.toLowerCase().replace(/\.$/, "");
+
+  if (LOCAL_HOSTS.has(normalizedHostname) || TOK_PREVIEW_HOST.test(normalizedHostname)) {
+    return getDemoMultiWorkspacePath();
+  }
+
+  return "https://commercial.thetok.ch/commercial/demo-live";
+}
+
 export function getDemoWorkspaceHref(
   surface: DemoWorkspaceSurface,
   hostname = typeof window !== "undefined" ? window.location.hostname : "",

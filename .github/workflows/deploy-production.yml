@@ -293,6 +293,7 @@ jobs:
 
   deploy_supabase:
     needs:
+      - baseline
       - validation
       - preflight
       - build_frontend
@@ -473,6 +474,14 @@ jobs:
         run: |
           source ./scripts/supabase-ci-retry.sh
           supabase_ci_retry db push --linked --include-all --yes --password "$SUPABASE_DB_PASSWORD"
+
+      - name: Push dedicated commercial demo migrations
+        if: ${{ needs.validation.outputs.deploy_database == 'true' }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          DEMO_MIGRATION_BASE_SHA: ${{ needs.baseline.outputs.base_sha }}
+          DEMO_MIGRATION_HEAD_SHA: ${{ github.sha }}
+        run: node ./scripts/apply-commercial-demo-migrations.mjs
 
       - name: Deploy impacted Edge Functions
         if: ${{ needs.validation.outputs.deploy_functions == 'true' }}
