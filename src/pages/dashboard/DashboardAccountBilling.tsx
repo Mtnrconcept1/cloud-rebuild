@@ -719,14 +719,14 @@ function CommercialDemoAccountBilling() {
         <DashboardPageHero
           badge="Abonnement · Démonstration"
           title="Outils et crédits Démo"
-          description="Tous les outils activés par l'admin sont disponibles dans ce restaurant simulé. Aucun achat, crédit payant ou abonnement réel ne peut être modifié ici."
+          description="Tous les outils activés par l’Admin sont opérationnels dans ce restaurant Démo actif. Les paiements de démonstration passent exclusivement par Stripe Test."
           icon={WalletCards}
           tone="violet"
           visualLabel="Illimité"
           stats={[
             { label: "Fonctionnalités actives", value: activeFeatures.length, icon: CheckCircle2 },
             { label: "Crédits Démo", value: "Illimités", icon: Sparkles },
-            { label: "Coût réel", value: "0 CHF", icon: CreditCard },
+            { label: "Paiement", value: "Stripe Test", icon: CreditCard },
           ]}
         />
 
@@ -734,7 +734,7 @@ function CommercialDemoAccountBilling() {
           <CheckCircle2 className="h-4 w-4" />
           <AlertTitle>Environnement commercial isolé</AlertTitle>
           <AlertDescription>
-            Les générations et parcours présentés utilisent les espaces Démo dédiés. Les boutons d'achat et de changement de formule sont volontairement désactivés.
+            Les générations OpenAI utilisent la clé serveur habituelle. Les commandes sont payées avec Stripe Test et aucun moyen de paiement Live ni compte Stripe Connect ne peut être utilisé.
           </AlertDescription>
         </Alert>
 
