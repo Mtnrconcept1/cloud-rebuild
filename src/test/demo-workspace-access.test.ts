@@ -105,6 +105,8 @@ describe("real and demo workspace access", () => {
 
     expect(demoSessionProvisioner).toContain('.neq("role", "commercial")');
     expect(demoSessionProvisioner).toContain('{ user_id: userId, role: "commercial" }');
+    expect(demoSessionProvisioner.indexOf('.from("commercial_demo_accounts")'))
+      .toBeLessThan(demoSessionProvisioner.indexOf('.from("user_roles")'));
     expect(demoSessionProvisioner).not.toContain(
       '["client", "restaurateur", "courier", "commercial"]',
     );
