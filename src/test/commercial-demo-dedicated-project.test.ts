@@ -46,7 +46,9 @@ describe("dedicated commercial demo project", () => {
     expect(provision).toContain('actor.roles.includes("commercial")');
     expect(provision).toContain("id: userId");
     expect(provision).toContain("commercial_demo_accounts");
-    expect(provision).toContain('["client", "restaurateur", "courier", "commercial"]');
+    expect(provision).toContain('.neq("role", "commercial")');
+    expect(provision).toContain('{ user_id: userId, role: "commercial" }');
+    expect(provision).not.toContain('["client", "restaurateur", "courier", "commercial"]');
     expect(provision).toContain("generateLink");
     expect(provision).not.toContain("action_link:");
     expect(provision).not.toContain("DEMO_SUPABASE_SECRET_KEY,");

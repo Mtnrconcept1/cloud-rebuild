@@ -117,19 +117,11 @@ Deno.serve(async (req) => {
       throw new HttpError(503, "Shared demo restaurant is unavailable");
     }
 
-    const results = await Promise.all([
-      demo.from("profiles").upsert(
-        { user_id: userId, full_name: "Commercial Démo TOK" },
-        { onConflict: "user_id" },
-      ),
-      demo.from("user_roles").upsert(
-        ["client", "restaurateur", "courier", "commercial"].map((role) => ({
-          user_id: userId,
-          role,
-        })),
-        { onConflict: "user_id,role" },
-      ),
-      demo.from("commercial_demo_accounts").upsert(
+    // The role-assignment guard requires the administrator-managed demo
+    // account to exist before the singular commercial role is inserted.
+    const { error: accountError } = await demo
+      .from("commercial_demo_accounts")
+      .upsert(
         {
           user_id: userId,
           demo_restaurant_id: restaurant.id,
@@ -139,10 +131,32 @@ Deno.serve(async (req) => {
           updated_at: new Date().toISOString(),
         },
         { onConflict: "user_id" },
+      );
+    if (accountError) {
+      throw new HttpError(502, "Unable to affiliate commercial account to demo restaurant");
+    }
+
+    const { error: roleCleanupError } = await demo
+      .from("user_roles")
+      .delete()
+      .eq("user_id", userId)
+      .neq("role", "commercial");
+    if (roleCleanupError) {
+      throw new HttpError(502, "Unable to normalize demo identity roles");
+    }
+
+    const results = await Promise.all([
+      demo.from("profiles").upsert(
+        { user_id: userId, full_name: "Commercial Démo TOK" },
+        { onConflict: "user_id" },
+      ),
+      demo.from("user_roles").upsert(
+        { user_id: userId, role: "commercial" },
+        { onConflict: "user_id,role" },
       ),
     ]);
     if (results.some((result) => result.error)) {
-      throw new HttpError(502, "Unable to affiliate commercial account to demo restaurant");
+      throw new HttpError(502, "Unable to finish demo identity provisioning");
     }
 
     const { data: link, error: linkError } = await demo.auth.admin.generateLink({
