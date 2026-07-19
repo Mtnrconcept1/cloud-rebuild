@@ -114,6 +114,7 @@ function isFullSuiteFile(file) {
     file.startsWith("ios/") ||
     /^capacitor\.config\./.test(file) ||
     file.startsWith("supabase/migrations/") ||
+    file.startsWith("supabase/demo-migrations/") ||
     file.startsWith("supabase/tests/") ||
     file.startsWith("supabase/functions/_shared/") ||
     file === "supabase/config.toml"
@@ -216,7 +217,10 @@ export function buildChangePlan(rawFiles, options = {}) {
     /(^|\/)(package\.json|pnpm-lock\.yaml|package-lock\.json)$/.test(file),
   );
   const deployFrontend = forceDeploy || unknownFiles.length > 0 || files.some(isFrontendFile);
-  const deployDatabase = forceDeploy || files.some((file) => file.startsWith("supabase/migrations/"));
+  const deployDatabase = forceDeploy || files.some((file) => (
+    file.startsWith("supabase/migrations/")
+    || file.startsWith("supabase/demo-migrations/")
+  ));
   const functionImpact = getFunctionImpact(files, forceDeploy);
   const paymentCritical = files.some((file) => PAYMENT_PATTERN.test(file));
   const accountingCritical = files.some((file) => ACCOUNTING_PATTERN.test(file));
