@@ -133,6 +133,67 @@ describe("release readiness inspection", () => {
     expect(result.errors).toEqual([]);
   });
 
+  it("temporarily permits only absent Stripe public and Resend credentials during the active grace window", () => {
+    const root = makeFixture("web-provider-grace-active");
+
+    const result = inspectReleaseReadiness({
+      root,
+      target: "web",
+      now: () => new Date("2026-07-19T12:00:00.000Z"),
+      env: {
+        PROVIDER_BOOTSTRAP_GRACE_UNTIL: "2026-07-26T00:00:00Z",
+        STRIPE_SECRET_KEY_LIVE: "sk_live_123",
+        STRIPE_WEBHOOK_SECRET: "whsec_123",
+        FIREBASE_SERVICE_ACCOUNT: firebaseServiceAccountJson(),
+        APP_BASE_URL: "https://www.thetok.ch",
+        PUBLIC_APP_URL: "https://www.thetok.ch",
+        ALLOWED_ORIGINS: "https://www.thetok.ch",
+        SUPABASE_INTERNAL_CRON_VAULT_CONFIRMED: "true",
+        SUPABASE_INTERNAL_CRON_VAULT_EVIDENCE: "Live read-only Vault verification for production",
+        SUPABASE_LEAKED_PASSWORD_PROTECTION_CONFIRMED: "true",
+        SUPABASE_LEAKED_PASSWORD_PROTECTION_EVIDENCE: "Management API live proof for issue #204",
+      },
+      strict: true,
+    });
+
+    expect(result.ok).toBe(true);
+    expect(result.errors).toEqual([]);
+    expect(result.warnings).toEqual(expect.arrayContaining([
+      expect.stringContaining("Stripe publishable key is absent"),
+      expect.stringContaining("RESEND_API_KEY is absent"),
+    ]));
+  });
+
+  it("automatically restores strict provider checks after the grace window expires", () => {
+    const root = makeFixture("web-provider-grace-expired");
+
+    const result = inspectReleaseReadiness({
+      root,
+      target: "web",
+      now: () => new Date("2026-07-26T00:00:00.000Z"),
+      env: {
+        PROVIDER_BOOTSTRAP_GRACE_UNTIL: "2026-07-26T00:00:00Z",
+        STRIPE_SECRET_KEY_LIVE: "sk_live_123",
+        STRIPE_WEBHOOK_SECRET: "whsec_123",
+        FIREBASE_SERVICE_ACCOUNT: firebaseServiceAccountJson(),
+        APP_BASE_URL: "https://www.thetok.ch",
+        PUBLIC_APP_URL: "https://www.thetok.ch",
+        ALLOWED_ORIGINS: "https://www.thetok.ch",
+        SUPABASE_INTERNAL_CRON_VAULT_CONFIRMED: "true",
+        SUPABASE_INTERNAL_CRON_VAULT_EVIDENCE: "Live read-only Vault verification for production",
+        SUPABASE_LEAKED_PASSWORD_PROTECTION_CONFIRMED: "true",
+        SUPABASE_LEAKED_PASSWORD_PROTECTION_EVIDENCE: "Management API live proof for issue #204",
+      },
+      strict: true,
+    });
+
+    expect(result.ok).toBe(false);
+    expect(result.errors).toEqual(expect.arrayContaining([
+      "Missing VITE_STRIPE_PUBLISHABLE_KEY live publishable key for production checkout.",
+      "Missing live proof that RESEND_API_KEY is installed in Supabase production Edge secrets.",
+    ]));
+  });
+
   it("fails closed on an unknown release readiness target", () => {
     const root = makeFixture("unknown-target");
     const result = inspectReleaseReadiness({

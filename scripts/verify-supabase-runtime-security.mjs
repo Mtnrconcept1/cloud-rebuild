@@ -82,6 +82,16 @@ function rowsFromPayload(payload) {
   return [];
 }
 
+function isProviderBootstrapGraceActive(graceUntil, now) {
+  const rawUntil = typeof graceUntil === "string" ? graceUntil.trim() : "";
+  const until = Date.parse(rawUntil);
+  return rawUntil.length > 0
+    && Number.isFinite(until)
+    && now instanceof Date
+    && Number.isFinite(now.getTime())
+    && now.getTime() < until;
+}
+
 function secretNamesFromPayload(payload) {
   const entries = Array.isArray(payload)
     ? payload
@@ -142,20 +152,28 @@ export async function verifySupabaseRuntimeSecurity(options = {}) {
   const pendingResendSync = /^re_[A-Za-z0-9_\-]+$/.test(configuredResendApiKey)
     && configuredResendApiKey.length >= 12;
 
-  if (!providerHasResend && !pendingResendSync) {
+  const now = options.now ? options.now() : new Date();
+  const graceActive = isProviderBootstrapGraceActive(
+    options.providerBootstrapGraceUntil,
+    now,
+  );
+
+  if (!providerHasResend && !pendingResendSync && !graceActive) {
     throw new Error(
       "Supabase production does not include RESEND_API_KEY and no valid GitHub secret is available for synchronization.",
     );
   }
 
-  const verifiedAt = (options.now ? options.now() : new Date()).toISOString();
+  const verifiedAt = now.toISOString();
   return {
     cronConfirmed: "true",
     cronEvidence: `Supabase Management API verified Vault cron secret and verifier with a read-only SELECT for ${projectRef} at ${verifiedAt}`,
-    resendConfirmed: "true",
+    resendConfirmed: providerHasResend || pendingResendSync ? "true" : "grace",
     resendEvidence: providerHasResend
       ? `Supabase Management API verified RESEND_API_KEY presence for ${projectRef} at ${verifiedAt}`
-      : `GitHub Actions validated RESEND_API_KEY for provider synchronization to ${projectRef} at ${verifiedAt}`,
+      : pendingResendSync
+        ? `GitHub Actions validated RESEND_API_KEY for provider synchronization to ${projectRef} at ${verifiedAt}`
+        : `Temporary provider bootstrap grace permits absent RESEND_API_KEY until ${String(options.providerBootstrapGraceUntil).trim()}; email remains unavailable at ${verifiedAt}`,
   };
 }
 
@@ -168,7 +186,7 @@ export function writeGithubOutputs(outputPath, result) {
   const resendEvidence = String(result.resendEvidence || "").replace(/[\r\n]/g, " ").trim();
   if (
     result.cronConfirmed !== "true"
-    || result.resendConfirmed !== "true"
+    || !["true", "grace"].includes(result.resendConfirmed)
     || cronEvidence.length < 20
     || resendEvidence.length < 20
   ) {
@@ -180,7 +198,7 @@ export function writeGithubOutputs(outputPath, result) {
     [
       "cron_confirmed=true",
       `cron_evidence=${cronEvidence}`,
-      "resend_confirmed=true",
+      `resend_confirmed=${result.resendConfirmed}`,
       `resend_evidence=${resendEvidence}`,
       "",
     ].join("\n"),
@@ -195,7 +213,8 @@ if (isMain) {
     projectRef: process.env.SUPABASE_PROJECT_REF,
     accessToken: process.env.SUPABASE_ACCESS_TOKEN,
     resendApiKey: process.env.RESEND_API_KEY,
+    providerBootstrapGraceUntil: process.env.PROVIDER_BOOTSTRAP_GRACE_UNTIL,
   });
   writeGithubOutputs(process.env.GITHUB_OUTPUT, result);
-  console.log("Supabase Vault cron authentication and Resend secret presence are verified for production.");
+  console.log("Supabase Vault cron authentication is verified and the Resend deployment policy is satisfied.");
 }

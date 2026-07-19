@@ -75,6 +75,8 @@ describe("phase 1 launch audit plan readiness", () => {
     }
 
     expect(deployWorkflow).toContain('RELEASE_READINESS_TARGET: "web"');
+    expect(deployWorkflow).toContain('PROVIDER_BOOTSTRAP_GRACE_UNTIL: "2026-07-26T00:00:00Z"');
+    expect(deployWorkflow).not.toContain('RELEASE_READINESS_STRICT: "false"');
     expect(deployWorkflow).not.toContain("secrets.APPLE_TEAM_ID");
     expect(deployWorkflow).not.toContain("secrets.ANDROID_KEYSTORE_BASE64");
     expect(deployWorkflow).not.toContain("write-apple-app-site-association.mjs");
