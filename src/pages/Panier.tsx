@@ -866,6 +866,10 @@ export default function Panier() {
           payment.snapshot,
         );
         clearCart();
+        toast({
+          title: "Paiement simulé accepté",
+          description: "La commande a été transmise au restaurant démo et ses notifications ont été déclenchées.",
+        });
         navigate("/commandes");
         return;
       }
@@ -2166,7 +2170,7 @@ export default function Panier() {
                 Retour au resume
               </Button>
               <Button type="button" onClick={handleAddressContinue}>
-                {isCommercialDemoClient ? "Continuer vers le paiement test" : "Voir les suggestions"}
+                {isCommercialDemoClient ? "Continuer vers le paiement simulé" : "Voir les suggestions"}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
@@ -2285,7 +2289,11 @@ export default function Panier() {
           {loading ? (
             <div className="flex items-center gap-2">
               <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              {requiresStripeCheckout ? "Traitement sécurisé..." : "Confirmation de la commande..."}
+              {isCommercialDemoClient
+                ? "Simulation du paiement..."
+                : requiresStripeCheckout
+                  ? "Traitement sécurisé..."
+                  : "Confirmation de la commande..."}
             </div>
           ) : isChefsTableCheckout
             ? `Payer et confirmer la réservation · ${finalTotal.toFixed(2)} CHF`
@@ -2299,14 +2307,26 @@ export default function Panier() {
       <OperationProgressDialog
         open={loading}
         variant="payment"
-        title={requiresStripeCheckout ? "Préparation du paiement sécurisé" : "Confirmation de votre commande"}
-        description={requiresStripeCheckout
-          ? "TOK vérifie les montants, réserve la commande une seule fois et prépare la session Stripe sécurisée."
-          : "TOK vérifie les prix, enregistre la commande et la transmet au restaurant."}
-        status={requiresStripeCheckout ? "Connexion sécurisée à Stripe" : "Commande en cours de validation"}
-        steps={requiresStripeCheckout
-          ? ["Vérification du panier", "Réservation de la commande", "Ouverture du paiement"]
-          : ["Vérification du panier", "Enregistrement", "Transmission au restaurant"]}
+        title={isCommercialDemoClient
+          ? "Simulation du paiement accepté"
+          : requiresStripeCheckout
+            ? "Préparation du paiement sécurisé"
+            : "Confirmation de votre commande"}
+        description={isCommercialDemoClient
+          ? "TOK enregistre la commande démo, simule un paiement accepté et déclenche le parcours opérationnel sans contacter Stripe."
+          : requiresStripeCheckout
+            ? "TOK vérifie les montants, réserve la commande une seule fois et prépare la session Stripe sécurisée."
+            : "TOK vérifie les prix, enregistre la commande et la transmet au restaurant."}
+        status={isCommercialDemoClient
+          ? "Validation simulée du paiement"
+          : requiresStripeCheckout
+            ? "Connexion sécurisée à Stripe"
+            : "Commande en cours de validation"}
+        steps={isCommercialDemoClient
+          ? ["Vérification du panier démo", "Paiement accepté simulé", "Transmission au restaurant"]
+          : requiresStripeCheckout
+            ? ["Vérification du panier", "Réservation de la commande", "Ouverture du paiement"]
+            : ["Vérification du panier", "Enregistrement", "Transmission au restaurant"]}
         estimatedDurationMs={15_000}
       />
     </main>
