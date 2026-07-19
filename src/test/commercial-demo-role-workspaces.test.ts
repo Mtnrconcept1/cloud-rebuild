@@ -35,7 +35,7 @@ describe("commercial demo role workspaces", () => {
     expect(checkout).toContain('stripeRuntime.mode !== "test"');
     expect(checkout).toContain('"STRIPE_SECRET_KEY_TEST"');
     expect(checkout).toContain('stripeSession.livemode !== false');
-    expect(checkout).toContain('"no_financial_ledger": "true"');
+    expect(checkout).toContain('no_financial_ledger: "true"');
   });
 
   it("uses the server OpenAI gateway for every remaining demo AI workflow", () => {
