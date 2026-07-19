@@ -30,6 +30,7 @@ import {
 
 import DashboardLayout from "@/components/DashboardLayout";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
+import { askCommercialDemoAi, parseCommercialDemoAiJson } from "@/lib/commercialDemoAi";
 import type { AIFloorPlanResult } from "@/components/floor-plan/FloorPlanAIPanel";
 import SimpleReservationQueue from "@/components/floor-plan/SimpleReservationQueue";
 import ServiceBoard from "@/components/floor-plan/ServiceBoard";
@@ -283,94 +284,31 @@ function buildCommercialDemoTables(branchId: string): TableRow[] {
 
 type CommercialDemoFloorPlanAiAction = "generate" | "optimize" | "suggest-furniture" | "custom";
 
-function buildCommercialDemoFloorPlanAiResult(input: {
-  action: CommercialDemoFloorPlanAiAction;
-  currentTables: DraftTable[];
-  canvasWidth: number;
-  canvasHeight: number;
-  prompt?: string;
-}): AIFloorPlanResult {
-  const prompt = String(input.prompt || "").trim();
-  const inferredAction: CommercialDemoFloorPlanAiAction = input.action === "custom"
-    ? /mobilier|plante|bar|séparateur|separateur/i.test(prompt)
-      ? "suggest-furniture"
-      : input.currentTables.length > 0
-        ? "optimize"
-        : "generate"
-    : input.action;
-  const shouldGenerate = inferredAction === "generate" || input.currentTables.length === 0;
-  const sourceTables = shouldGenerate
-    ? Array.from({ length: 6 }, (_, index) => ({
-      table_number: `Table ${index + 1}`,
-      capacity: index < 2 ? 2 : index < 5 ? 4 : 6,
-      kind: "table",
-      shape: index % 3 === 0 ? "round" as const : "rect" as const,
-      seatType: "chair",
-      seatPlacements: undefined,
-      seatLabels: Array.from({ length: index < 2 ? 2 : index < 5 ? 4 : 6 }, (_value, seatIndex) => seatIndex + 1),
-    }))
-    : input.currentTables.map((table) => ({
-      table_number: table.table_number,
-      capacity: table.capacity,
-      kind: table.layout.kind,
-      shape: table.layout.shape,
-      seatType: table.layout.seatType,
-      seatPlacements: table.layout.seatPlacements,
-      seatLabels: table.layout.seatLabels || [],
-    }));
-  const columns = Math.max(1, Math.min(3, Math.ceil(Math.sqrt(sourceTables.length))));
-  const horizontalGap = Math.max(150, Math.floor((input.canvasWidth - 120) / columns));
-  const verticalGap = Math.max(130, Math.floor((input.canvasHeight - 120) / Math.max(1, Math.ceil(sourceTables.length / columns))));
-  const tables: AIFloorPlanResult["tables"] = sourceTables.map((table, index) => ({
-    ...table,
-    x: 50 + (index % columns) * horizontalGap,
-    y: 50 + Math.floor(index / columns) * verticalGap,
-    w: table.shape === "round" ? 112 : Math.max(130, table.capacity * 28),
-    h: table.shape === "round" ? 112 : 96,
-    rotation: 0,
-  }));
-
-  if (inferredAction === "suggest-furniture") {
-    tables.push(
-      {
-        table_number: "Bar Démo",
-        capacity: 0,
-        kind: "bar",
-        shape: "rect",
-        seatType: undefined,
-        seatPlacements: undefined,
-        seatLabels: [],
-        x: Math.max(40, input.canvasWidth - 300),
-        y: 40,
-        w: 230,
-        h: 72,
-        rotation: 0,
-      },
-      {
-        table_number: "Plante Démo",
-        capacity: 0,
-        kind: "plant",
-        shape: "round",
-        seatType: undefined,
-        seatPlacements: undefined,
-        seatLabels: [],
-        x: Math.max(40, input.canvasWidth - 130),
-        y: Math.max(40, input.canvasHeight - 130),
-        w: 72,
-        h: 72,
-        rotation: 0,
-      },
-    );
+function parseCommercialDemoFloorPlanAiResult(
+  reply: string,
+  action: CommercialDemoFloorPlanAiAction,
+): AIFloorPlanResult {
+  const parsed = parseCommercialDemoAiJson<{
+    tables?: unknown;
+    explanation?: unknown;
+    variantName?: unknown;
+    analysis?: unknown;
+  }>(reply);
+  if (!Array.isArray(parsed.tables) || parsed.tables.length === 0) {
+    throw new Error("OpenAI n’a retourné aucun élément de plan exploitable.");
   }
-
   return {
-    tables,
-    explanation: prompt
-      ? `Disposition Démo créée localement selon la demande « ${prompt.slice(0, 140)} ».`
-      : "Disposition Démo calculée localement pour équilibrer capacités, circulation et zones de service.",
-    source: input.action,
-    variantName: `Plan Démo zéro coût - ${new Date().toLocaleTimeString("fr-CH", { hour: "2-digit", minute: "2-digit" })}`,
-    analysis: { engine: "tok-demo-floor-plan-local-v1", zero_cost: true, production_data: false },
+    tables: parsed.tables as AIFloorPlanResult["tables"],
+    explanation: String(parsed.explanation || "Disposition optimisée par OpenAI pour le restaurant Démo.").slice(0, 800),
+    source: action,
+    variantName: String(parsed.variantName || `Plan OpenAI - ${new Date().toLocaleTimeString("fr-CH", { hour: "2-digit", minute: "2-digit" })}`).slice(0, 120),
+    analysis: {
+      engine: "openai-commercial-demo",
+      production_data: false,
+      ...(parsed.analysis && typeof parsed.analysis === "object" && !Array.isArray(parsed.analysis)
+        ? parsed.analysis as Record<string, unknown>
+        : {}),
+    },
   };
 }
 
@@ -1083,6 +1021,7 @@ export default function DashboardPlanSalle() {
   const [pendingPresetId, setPendingPresetId] = useState<string | null>(null);
   const [editingSeatingTableId, setEditingSeatingTableId] = useState<string | null>(null);
   const [demoAiPrompt, setDemoAiPrompt] = useState("");
+  const [demoAiLoading, setDemoAiLoading] = useState(false);
   const [demoReservationStatusOverrides, setDemoReservationStatusOverrides] = useState<Record<string, string>>({});
 
   const selectedRestaurant = restaurants.find((restaurant) => restaurant.id === selectedId) || null;
@@ -2901,17 +2840,61 @@ export default function DashboardPlanSalle() {
     });
   };
 
-  const runCommercialDemoFloorPlanAi = (action: CommercialDemoFloorPlanAiAction) => {
-    if (!isCommercialDemo) return;
-    const result = buildCommercialDemoFloorPlanAiResult({
-      action,
-      currentTables: draftTables,
-      canvasWidth,
-      canvasHeight,
-      prompt: demoAiPrompt,
-    });
-    applyAILayout(result);
-    if (action === "custom") setDemoAiPrompt("");
+  const runCommercialDemoFloorPlanAi = async (action: CommercialDemoFloorPlanAiAction) => {
+    if (!isCommercialDemo || !commercialDemoFrame || demoAiLoading) return;
+    setDemoAiLoading(true);
+    try {
+      const currentTables = draftTables.slice(0, 40).map((table) => ({
+        table_number: table.table_number,
+        capacity: table.capacity,
+        sector: table.sector,
+        x: table.layout.x,
+        y: table.layout.y,
+        w: table.layout.w,
+        h: table.layout.h,
+        rotation: table.layout.rotation,
+        shape: table.layout.shape,
+        kind: table.layout.kind,
+        seatType: table.layout.seatType,
+      }));
+      const generated = await askCommercialDemoAi({
+        runtime: {
+          sessionId: commercialDemoFrame.config.sessionId,
+          surface: "restaurant",
+        },
+        tool: "assistant",
+        message: [
+          `Conçois un plan de salle pour l’action « ${action} ».`,
+          demoAiPrompt.trim() ? `Demande du restaurateur : ${demoAiPrompt.trim().slice(0, 500)}.` : "",
+          `Le canevas mesure ${Math.round(canvasWidth)} × ${Math.round(canvasHeight)}.`,
+          "Retourne exclusivement un objet JSON avec tables, explanation, variantName et analysis.",
+          "Chaque table doit contenir table_number, capacity, kind, shape, x, y, w, h, rotation, seatType et seatLabels.",
+          "Préserve des circulations réalistes, évite les chevauchements et reste dans le canevas.",
+        ].filter(Boolean).join(" "),
+        context: {
+          entrypoint: "restaurant_floor_plan",
+          action,
+          current_tables: currentTables,
+          canvas: { width: canvasWidth, height: canvasHeight },
+          sector: selectedSector,
+        },
+      });
+      const result = parseCommercialDemoFloorPlanAiResult(generated.reply, action);
+      applyAILayout(result);
+      if (action === "custom") setDemoAiPrompt("");
+      toast({
+        title: "Plan généré par OpenAI",
+        description: result.explanation,
+      });
+    } catch (error) {
+      toast({
+        title: "Génération du plan impossible",
+        description: error instanceof Error ? error.message : "Réessayez dans un instant.",
+        variant: "destructive",
+      });
+    } finally {
+      setDemoAiLoading(false);
+    }
   };
 
   const startDraggingTable = (event: React.PointerEvent<HTMLElement>, tableId: string) => {
@@ -3622,22 +3605,22 @@ export default function DashboardPlanSalle() {
                     <TabsContent value="library" className="mt-3 min-h-0 flex-1 data-[state=inactive]:hidden">
                       {isCommercialDemo ? (
                         <div className="mb-3 space-y-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3">
-                          <p className="text-xs font-semibold text-emerald-900">Assistant plan Démo · zéro coût</p>
+                          <p className="text-xs font-semibold text-emerald-900">Assistant plan OpenAI · espace Démo</p>
                           <div className="grid grid-cols-3 gap-2">
-                            <Button type="button" size="sm" variant="outline" onClick={() => runCommercialDemoFloorPlanAi("generate")}>Générer</Button>
-                            <Button type="button" size="sm" variant="outline" onClick={() => runCommercialDemoFloorPlanAi("optimize")}>Optimiser</Button>
-                            <Button type="button" size="sm" variant="outline" onClick={() => runCommercialDemoFloorPlanAi("suggest-furniture")}>Mobilier</Button>
+                            <Button type="button" size="sm" variant="outline" disabled={demoAiLoading} onClick={() => void runCommercialDemoFloorPlanAi("generate")}>Générer</Button>
+                            <Button type="button" size="sm" variant="outline" disabled={demoAiLoading} onClick={() => void runCommercialDemoFloorPlanAi("optimize")}>Optimiser</Button>
+                            <Button type="button" size="sm" variant="outline" disabled={demoAiLoading} onClick={() => void runCommercialDemoFloorPlanAi("suggest-furniture")}>Mobilier</Button>
                           </div>
                           <div className="flex gap-2">
                             <Input
                               value={demoAiPrompt}
                               onChange={(event) => setDemoAiPrompt(event.target.value)}
                               onKeyDown={(event) => {
-                                if (event.key === "Enter" && demoAiPrompt.trim()) runCommercialDemoFloorPlanAi("custom");
+                                if (event.key === "Enter" && demoAiPrompt.trim()) void runCommercialDemoFloorPlanAi("custom");
                               }}
                               placeholder="Décris la disposition souhaitée"
                             />
-                            <Button type="button" size="sm" disabled={!demoAiPrompt.trim()} onClick={() => runCommercialDemoFloorPlanAi("custom")}>Créer</Button>
+                            <Button type="button" size="sm" disabled={!demoAiPrompt.trim() || demoAiLoading} onClick={() => void runCommercialDemoFloorPlanAi("custom")}>{demoAiLoading ? "Analyse…" : "Créer"}</Button>
                           </div>
                         </div>
                       ) : null}
