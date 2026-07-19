@@ -10,7 +10,7 @@ export const COMMERCIAL_DEMO_SUPABASE_PUBLISHABLE_KEY =
 const COMMERCIAL_DEMO_AUTH_STORAGE_KEY = "tok-commercial-demo-auth";
 const COMMERCIAL_DEMO_WORKSPACE_STORAGE_KEY = "tok-active-demo-workspace";
 const DEMO_FRAME_PATH =
-  /^\/commercial\/demo-live\/frame\/(?:client|restaurant|courier)\/[0-9a-f-]{36}\/?$/i;
+  /^\/commercial\/demo-live\/frame\/(?:client|restaurant|courier)\/[0-9a-f-]{36}(?:\/|$)/i;
 const DEMO_AUTH_PATH = /^\/auth\/demo\/?$/i;
 const PRODUCTION_AUTH_PATH = /^\/auth(?:\/callback)?\/?$/i;
 
