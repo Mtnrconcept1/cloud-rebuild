@@ -75,10 +75,8 @@ import {
 } from "@/lib/guaranteedDeliveryCart";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import {
-  buildCommercialDemoCheckoutReturnUrl,
-  createCommercialDemoCheckout,
   createCommercialDemoOrder,
-  openCommercialDemoCheckout,
+  simulateCommercialDemoPayment,
 } from "@/lib/commercialDemoJourney";
 
 const supabase = getSupabase();
@@ -859,17 +857,16 @@ export default function Panier() {
           return;
         }
 
-        const checkout = await createCommercialDemoCheckout({
+        const payment = await simulateCommercialDemoPayment({
           demoRestaurantId,
           demoSessionId: commercialDemoFrame.config.sessionId,
-          returnUrl: buildCommercialDemoCheckoutReturnUrl(commercialDemoFrame.config.sessionId),
         });
-        clearCart();
-        openCommercialDemoCheckout(
-          commercialDemoFrame.config.sessionId,
-          checkout.checkout_url,
-          checkout.stripe_session_id,
+        queryClient.setQueryData(
+          ["commercial-demo-frame-snapshot", commercialDemoFrame.config.sessionId],
+          payment.snapshot,
         );
+        clearCart();
+        navigate("/commandes");
         return;
       }
 
@@ -2266,7 +2263,7 @@ export default function Panier() {
           secureDescription={isChefsTableCheckout
             ? "Paiement sécurisé requis pour confirmer votre réservation La Table du Chef"
             : isCommercialDemoClient
-              ? "Démonstration isolée — Stripe Test uniquement"
+              ? "Démonstration isolée — paiement accepté simulé, aucun débit"
               : "Paiement sécurisé via Stripe"}
         />
 
@@ -2293,7 +2290,7 @@ export default function Panier() {
           ) : isChefsTableCheckout
             ? `Payer et confirmer la réservation · ${finalTotal.toFixed(2)} CHF`
             : isCommercialDemoClient
-              ? `Payer avec Stripe Test · ${finalTotal.toFixed(2)} CHF`
+              ? `Simuler le paiement accepté · ${finalTotal.toFixed(2)} CHF`
               : `${requiresStripeCheckout ? "Payer" : "Commander"} · ${finalTotal.toFixed(2)} CHF`}
         </Button>
           </>
