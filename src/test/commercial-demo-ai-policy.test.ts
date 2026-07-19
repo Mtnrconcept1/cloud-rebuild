@@ -201,7 +201,7 @@ describe("commercial demo OpenAI policy", () => {
   });
 
   it("validates and hashes bounded reference images before using the OpenAI edit endpoint", () => {
-    expect(edge).toContain("MAX_REFERENCE_IMAGES = 2");
+    expect(edge).toContain("MAX_REFERENCE_IMAGES = 3");
     expect(edge).toContain("MAX_REFERENCE_IMAGE_BYTES = 4 * 1024 * 1024");
     expect(edge).toContain("reference_images");
     expect(edge).toContain("IMAGE_EDITS_URL");
