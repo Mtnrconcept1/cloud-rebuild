@@ -249,6 +249,45 @@ jobs:
           retention-days: 2
           compression-level: 0
 
+  configure_project_domains:
+    needs: validation
+    if: ${{ vars.PRODUCTION_DEPLOY_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    environment: production
+
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+    steps:
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
+
+      - name: Register dedicated demo domains on the production project
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          domains=(
+            demo-client.thetok.ch
+            demo-restaurateur.thetok.ch
+            demo-livreur.thetok.ch
+          )
+
+          for domain in "${domains[@]}"; do
+            pnpm dlx "vercel@${VERCEL_CLI_VERSION}" domains add \
+              "$domain" \
+              "$VERCEL_PROJECT_ID" \
+              --force \
+              --token="$VERCEL_TOKEN"
+          done
+
+
   deploy_supabase:
     needs:
       - validation
@@ -474,6 +513,7 @@ jobs:
       - validation
       - preflight
       - build_frontend
+      - configure_project_domains
       - deploy_supabase
     if: >-
       ${{ always() &&
@@ -482,6 +522,7 @@ jobs:
           needs.validation.outputs.deploy_frontend == 'true' &&
           needs.preflight.result == 'success' &&
           needs.build_frontend.result == 'success' &&
+          needs.configure_project_domains.result == 'success' &&
           (needs.deploy_supabase.result == 'success' || needs.deploy_supabase.result == 'skipped') }}
     runs-on: ubuntu-latest
     environment: production
@@ -552,6 +593,7 @@ jobs:
       - validation
       - preflight
       - build_frontend
+      - configure_project_domains
       - deploy_supabase
       - deploy_frontend
     runs-on: ubuntu-latest
@@ -565,6 +607,7 @@ jobs:
           VALIDATION_RESULT: ${{ needs.validation.result }}
           PREFLIGHT_RESULT: ${{ needs.preflight.result }}
           BUILD_RESULT: ${{ needs.build_frontend.result }}
+          DOMAIN_RESULT: ${{ needs.configure_project_domains.result }}
           SUPABASE_RESULT: ${{ needs.deploy_supabase.result }}
           FRONTEND_RESULT: ${{ needs.deploy_frontend.result }}
           HAS_DEPLOYABLE_CHANGES: ${{ needs.validation.outputs.has_deployable_changes }}
@@ -589,6 +632,8 @@ jobs:
             echo "Production deployment is disabled; validation completed without advancing the deployment baseline."
             exit 0
           fi
+
+          require_success "configure_project_domains" "$DOMAIN_RESULT"
 
           if [[ "$HAS_DEPLOYABLE_CHANGES" == "true" ]]; then
             require_success "preflight" "$PREFLIGHT_RESULT"
