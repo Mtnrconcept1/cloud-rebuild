@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSupabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/DashboardLayout";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +14,10 @@ import { useToast } from "@/hooks/use-toast";
 import { Clock, MoonStar, Plus, Settings, Store, SunMedium, Trash2 } from "lucide-react";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
+import {
+  readCommercialDemoToolState,
+  writeCommercialDemoToolState,
+} from "@/lib/commercialDemoRestaurantTools";
 import {
   DEFAULT_SERVICE_SETTINGS,
   getServicePeriodLabel,
@@ -46,6 +51,8 @@ const SERVICE_PERIODS: Array<{
 
 export default function DashboardService() {
   const { selectedId } = useDashboardRestaurant();
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemo = commercialDemoFrame?.surface === "restaurant";
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const activeFeatures = useActiveFeatures();
@@ -53,8 +60,20 @@ export default function DashboardService() {
   const reservationEnabled = activeFeatures.has("reservation");
 
   const { data: restaurant } = useQuery({
-    queryKey: ["my-restaurant-service", selectedId],
+    queryKey: ["my-restaurant-service", selectedId, isCommercialDemo ? commercialDemoFrame.config.sessionId : "live"],
     queryFn: async () => {
+      if (isCommercialDemo) {
+        const snapshotRestaurant = commercialDemoFrame.snapshot.demo_restaurant;
+        return readCommercialDemoToolState(
+          commercialDemoFrame.config.sessionId,
+          "service-settings",
+          {
+            ...snapshotRestaurant,
+            opening_hours: null,
+            is_active: true,
+          },
+        );
+      }
       const { data, error } = await supabase.from("restaurants").select("*").eq("id", selectedId!).single();
       if (error) throw error;
       return data;
@@ -162,6 +181,31 @@ export default function DashboardService() {
 
     setLoading(true);
     const openingHours = mergeOpeningHoursWithServiceSettings(restaurant.opening_hours, serviceSettings);
+    if (isCommercialDemo && commercialDemoFrame) {
+      const nextRestaurant = {
+        ...restaurant,
+        opening_hours: openingHours,
+        delivery_available: deliveryAvailable,
+        delivery_fee: Number(deliveryFee),
+        min_order_amount: Number(minOrder),
+        is_active: true,
+      };
+      writeCommercialDemoToolState(
+        commercialDemoFrame.config.sessionId,
+        "service-settings",
+        nextRestaurant,
+      );
+      queryClient.setQueryData(
+        ["my-restaurant-service", selectedId, commercialDemoFrame.config.sessionId],
+        nextRestaurant,
+      );
+      setLoading(false);
+      toast({
+        title: "Services enregistrés",
+        description: "Les réglages sont appliqués au restaurant Démo actif.",
+      });
+      return;
+    }
     const { error } = await supabase
       .from("restaurants")
       .update({
