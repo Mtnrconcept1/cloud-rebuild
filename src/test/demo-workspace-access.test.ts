@@ -60,7 +60,7 @@ describe("real and demo workspace access", () => {
     }
     expect(roleMenu).toContain("const commercialOnly = isCommercial && !isAdmin");
     expect(roleMenu).toContain('commercialOnly ? renderRealRole("commercial") : null');
-    expect(roleMenu).toContain('label: "Dashboard commercial"');
+    expect(roleMenu).toContain('label: "Espace commercial"');
     expect(roleMenu).not.toContain('roles.includes("client") || roles.includes("commercial")');
   });
 
