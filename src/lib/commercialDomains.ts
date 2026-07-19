@@ -1,5 +1,10 @@
 import type { UserRole } from "@/lib/auth-context";
 import { COMMERCIAL_DEMO_HOSTNAME } from "@/lib/commercialDemoHostSecurity";
+import {
+  TOK_CANONICAL_AUTH_ORIGIN,
+  TOK_WORKSPACE_CHOOSER_PATH,
+} from "@/lib/authDomains";
+import { DEMO_WORKSPACES, getDemoWorkspacePath } from "@/lib/demoWorkspaces";
 
 export const TOK_COMMERCIAL_APP_HOST = COMMERCIAL_DEMO_HOSTNAME;
 export const TOK_COMMERCIAL_APP_ORIGIN = `https://${TOK_COMMERCIAL_APP_HOST}`;
@@ -111,6 +116,15 @@ export function isCommercialAppHost(hostname: string | null | undefined) {
   return normalizeHostname(hostname) === TOK_COMMERCIAL_APP_HOST;
 }
 
+export function getDemoWorkspaceSurfaceForHost(hostname: string | null | undefined) {
+  const normalizedHostname = normalizeHostname(hostname);
+  return DEMO_WORKSPACES.find((workspace) => workspace.hostname === normalizedHostname)?.surface || null;
+}
+
+export function isDemoWorkspaceHost(hostname: string | null | undefined) {
+  return getDemoWorkspaceSurfaceForHost(hostname) !== null;
+}
+
 export function isCommercialDemoFrameHostPath(pathname: string | null | undefined) {
   return COMMERCIAL_DEMO_FRAME_PATH.test(normalizePath(pathname));
 }
@@ -171,60 +185,11 @@ export function getCommercialNavigationHref(
   return `${TOK_COMMERCIAL_APP_ORIGIN}${targetPath}`;
 }
 
-/**
- * Builds the only cross-origin authentication hand-off we permit. The target
- * contains an internal path, never a Supabase code or session token. The user
- * authenticates again on commercial.thetok.ch because browser storage is
- * intentionally not shared with the public or admin origins.
- */
+/** All authentication starts on the canonical public origin. */
 export function getCommercialReauthenticationHref(
-  target: string | null | undefined = "/commercial",
+  _target: string | null | undefined = "/commercial",
 ) {
-  let safeTarget = "/commercial";
-
-  try {
-    const url = new URL(target || "/commercial", TOK_COMMERCIAL_APP_ORIGIN);
-    if (
-      url.origin === TOK_COMMERCIAL_APP_ORIGIN
-      && isCommercialHostPathAllowed(url.pathname)
-      && url.pathname !== "/auth"
-      && url.pathname !== "/auth/callback"
-    ) {
-      safeTarget = withoutCrossOriginAuthSecrets(url.pathname, url.search, url.hash);
-    }
-  } catch {
-    // Keep the canonical commercial home for malformed or external targets.
-  }
-
-  const params = new URLSearchParams({
-    redirect: safeTarget,
-    domain: "required",
-  });
-  return `${TOK_COMMERCIAL_APP_ORIGIN}/auth?${params.toString()}`;
-}
-
-function getCommercialAuthIntent(search: string) {
-  const params = new URLSearchParams(String(search || "").replace(/^\?/, ""));
-
-  // A callback must be exchanged on the origin that created its PKCE verifier.
-  if (AUTH_CALLBACK_QUERY_KEYS.some((key) => params.has(key))) return null;
-
-  const rawRedirect = params.get("redirect");
-  const explicitlyRequired = params.get("domain") === "required";
-  if (!rawRedirect) return explicitlyRequired ? "/commercial" : null;
-
-  try {
-    if (!rawRedirect.startsWith("/") || rawRedirect.startsWith("//")) {
-      return explicitlyRequired ? "/commercial" : null;
-    }
-    const target = new URL(rawRedirect, TOK_PUBLIC_APP_ORIGIN);
-    if (target.origin !== TOK_PUBLIC_APP_ORIGIN || !isCommercialNamespacePath(target.pathname)) {
-      return explicitlyRequired ? "/commercial" : null;
-    }
-    return `${target.pathname}${target.search}${target.hash}`;
-  } catch {
-    return explicitlyRequired ? "/commercial" : null;
-  }
+  return `${TOK_CANONICAL_AUTH_ORIGIN}/auth`;
 }
 
 /**
@@ -255,8 +220,32 @@ export function getCommercialHostRedirectTarget({
     serverCommercialDemoRestricted,
   );
   const canOperateHost = canOperateCommercialDemoHost(roles);
+  const demoWorkspaceSurface = getDemoWorkspaceSurfaceForHost(hostname);
+
+  if (demoWorkspaceSurface) {
+    const demoOrigin = `https://${normalizeHostname(hostname)}`;
+    if (path === "/auth" || path === "/auth/callback") {
+      return `${TOK_CANONICAL_AUTH_ORIGIN}${path}`;
+    }
+    if (path === TOK_WORKSPACE_CHOOSER_PATH) {
+      return `${TOK_PUBLIC_APP_ORIGIN}${TOK_WORKSPACE_CHOOSER_PATH}`;
+    }
+    if (path === "/") {
+      return `${demoOrigin}${getDemoWorkspacePath(demoWorkspaceSurface)}`;
+    }
+
+    const isAllowedDemoWorkspacePath = path === "/commercial/demo-live"
+      || isCommercialDemoFrameHostPath(path);
+    if (!isAllowedDemoWorkspacePath) return `${TOK_COMMERCIAL_APP_ORIGIN}/commercial`;
+    if (!authResolved || !isAuthenticated || canOperateHost) return null;
+    return getNonCommercialRoleTarget(activeRole);
+  }
 
   if (isCommercialAppHost(hostname)) {
+    if (path === "/auth" || path === "/auth/callback") {
+      return `${TOK_CANONICAL_AUTH_ORIGIN}${path}`;
+    }
+
     if (!isAllowedCommercialPath) {
       if (authResolved && isAuthenticated && !isManagedCommercial) {
         return getNonCommercialRoleTarget(activeRole);
@@ -277,9 +266,8 @@ export function getCommercialHostRedirectTarget({
     return null;
   }
 
-  const authIntent = path === "/auth" ? getCommercialAuthIntent(search) : null;
-  if (authIntent && isTokProductionHost(hostname)) {
-    return getCommercialReauthenticationHref(authIntent);
+  if (isTokProductionHost(hostname) && (path === "/auth" || path === "/auth/callback")) {
+    return null;
   }
 
   // Commercial workspaces and copied frame URLs must never execute on the
@@ -292,6 +280,7 @@ export function getCommercialHostRedirectTarget({
   }
 
   if (!authResolved || !isAuthenticated || !isManagedCommercial) return null;
+  if (isTokProductionHost(hostname) && path === TOK_WORKSPACE_CHOOSER_PATH) return null;
 
   // Commercial accounts may preserve only their own workspace/demo URLs. A
   // public restaurant/search URL is deliberately collapsed to the safe home.
