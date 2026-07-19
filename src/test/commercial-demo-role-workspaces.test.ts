@@ -35,12 +35,14 @@ describe("commercial demo role workspaces", () => {
     expect(consoleAi).toContain('visible_spaces: ["client", "restaurant", "courier"]');
   });
 
-  it("keeps Stripe strictly in test mode for commercial demonstrations", () => {
-    expect(multiSpace).toContain("Stripe Test uniquement");
-    expect(checkout).toContain('stripeRuntime.mode !== "test"');
-    expect(checkout).toContain('"STRIPE_SECRET_KEY_TEST"');
-    expect(checkout).toContain('stripeSession.livemode !== false');
-    expect(checkout).toContain('no_financial_ledger: "true"');
+  it("simulates accepted payments without contacting Stripe", () => {
+    expect(multiSpace).toContain("Paiement simulé · aucun débit");
+    expect(checkout).toContain("requireDedicatedDemoRuntime()");
+    expect(checkout).toContain('payment_provider: "none"');
+    expect(checkout).toContain("payment_provider_called: false");
+    expect(checkout).toContain("no_financial_ledger: true");
+    expect(checkout).not.toContain("STRIPE_SECRET_KEY");
+    expect(checkout).not.toContain("stripe.checkout");
   });
 
   it("uses the server OpenAI gateway for every remaining demo AI workflow", () => {
