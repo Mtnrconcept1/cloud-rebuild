@@ -2,11 +2,52 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  parseAddedDemoMigrations,
+  parseMigrationPath,
+} from "./apply-commercial-demo-migrations.mjs";
+
+import {
   buildChangePlan,
   isDocumentationFile,
   normalizeFile,
   selectDirectContractTests,
 } from "./ci-change-plan.mjs";
+
+test("sélectionne uniquement les migrations démo ajoutées et les trie", () => {
+  assert.deepEqual(
+    parseAddedDemoMigrations(
+      [
+        "A\tsupabase/demo-migrations/20260719180000_second.sql",
+        "A\tsupabase/demo-migrations/20260719170000_first.sql",
+      ].join("\n"),
+    ),
+    [
+      {
+        path: "supabase/demo-migrations/20260719170000_first.sql",
+        version: "20260719170000",
+        name: "first",
+      },
+      {
+        path: "supabase/demo-migrations/20260719180000_second.sql",
+        version: "20260719180000",
+        name: "second",
+      },
+    ],
+  );
+  assert.equal(
+    parseMigrationPath("supabase/migrations/20260719170000_production.sql"),
+    null,
+  );
+});
+
+test("refuse la modification d'une migration démo déjà versionnée", () => {
+  assert.throws(
+    () => parseAddedDemoMigrations(
+      "M\tsupabase/demo-migrations/20260719170000_existing.sql",
+    ),
+    /append-only/,
+  );
+});
 
 test("normalise les chemins Windows et relatifs", () => {
   assert.equal(normalizeFile(".\\src\\pages\\Home.tsx"), "src/pages/Home.tsx");
