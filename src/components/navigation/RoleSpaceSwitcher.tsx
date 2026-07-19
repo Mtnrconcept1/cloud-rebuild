@@ -84,9 +84,10 @@ export default function RoleSpaceSwitcher({
 }: RoleSpaceSwitcherProps) {
   const navigate = useNavigate();
   const { role, roles, canSwitchRole, switchRole } = useAuth();
+  const resolvedRoles = roles ?? [];
   const activeFeatures = useActiveFeatures();
-  const switchableRoles = getFeatureVisibleRoles(roles, activeFeatures);
-  const isAdmin = roles.includes("admin");
+  const switchableRoles = getFeatureVisibleRoles(resolvedRoles, activeFeatures);
+  const isAdmin = resolvedRoles.includes("admin");
   const [accessMode, setAccessMode] = useState<AccessMode>("real");
 
   if ((!canSwitchRole || switchableRoles.length < 2) && !isAdmin) return null;
