@@ -18,7 +18,10 @@ describe("commercial demo role workspaces", () => {
   const floorPlan = read("src/pages/dashboard/DashboardPlanSalle.tsx");
   const pack = read("src/pages/dashboard/DashboardPack.tsx");
   const social = read("src/hooks/useSocialFeed.ts");
-  const activationPreparation = read("supabase/migrations/20260719110000_prepare_commercial_demo_activation.sql");
+  const isolationPreparationPath = "supabase/migrations/20260719015244_prepare_demo_isolation_for_activation.sql";
+  const activationPreparationPath = "supabase/migrations/20260719110000_prepare_commercial_demo_activation.sql";
+  const isolationPreparation = read(isolationPreparationPath);
+  const activationPreparation = read(activationPreparationPath);
   const migration = read("supabase/migrations/20260719113000_activate_commercial_demo_restaurant.sql");
   const activeInvariantMigration = read("supabase/migrations/20260719124500_keep_commercial_demo_restaurants_active.sql");
   const checkout = read("supabase/functions/commercial-demo-checkout/index.ts");
@@ -54,6 +57,13 @@ describe("commercial demo role workspaces", () => {
   });
 
   it("activates the isolated restaurant and mirrors Admin-enabled tools", () => {
+    expect(isolationPreparationPath < activationPreparationPath).toBe(true);
+    expect(isolationPreparation).toContain("DROP CONSTRAINT IF EXISTS restaurants_demo_isolation_check");
+    expect(isolationPreparation).not.toContain("COALESCE(is_active, false) IS FALSE");
+    expect(isolationPreparation).toContain("stripe_account_id IS NULL");
+    expect(isolationPreparation).toContain("stripe_connect_details_submitted IS FALSE");
+    expect(isolationPreparation).toContain("stripe_connect_charges_enabled IS FALSE");
+    expect(isolationPreparation).toContain("stripe_connect_payouts_enabled IS FALSE");
     expect(activationPreparation).toContain("DISABLE TRIGGER protect_demo_restaurant_identity");
     expect(activationPreparation).toContain("SET is_active = true");
     expect(activationPreparation).toContain("ENABLE TRIGGER protect_demo_restaurant_identity");
