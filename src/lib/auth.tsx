@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const resolveRolesWithFallback = useCallback(async (userId: string) => {
     const supabase = getSupabase();
-    const resolvedRoles = new Set<UserRole>(["client"]);
+    const resolvedRoles = new Set<UserRole>();
 
     const { data, error } = await supabase
       .from("user_roles")
@@ -55,7 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       }
 
-      if (resolvedRoles.size > 1) {
+      if (resolvedRoles.size > 0) {
         return Array.from(resolvedRoles);
       }
     } else {
@@ -84,6 +84,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (role) {
         resolvedRoles.add(role);
       }
+    }
+
+    // Legacy customer accounts may have no explicit user_roles row. Keep the
+    // client fallback only for that case; never inject it into a commercial,
+    // courier, restaurant or admin account that already has an assigned role.
+    if (resolvedRoles.size === 0) {
+      resolvedRoles.add("client");
     }
 
     return Array.from(resolvedRoles);
