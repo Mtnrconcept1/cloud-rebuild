@@ -9,7 +9,7 @@ import { getSupabase } from "@/integrations/supabase/client";
 const supabase = getSupabase();
 const COMMERCIAL_DEMO_AI_FUNCTION = "commercial-demo-ai";
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const MAX_REFERENCE_IMAGES = 2;
+const MAX_REFERENCE_IMAGES = 3;
 const MAX_REFERENCE_IMAGE_BYTES = 4 * 1024 * 1024;
 const MAX_REFERENCE_DATA_URL_LENGTH = Math.ceil(MAX_REFERENCE_IMAGE_BYTES * 4 / 3) + 256;
 const MAX_OUTPUT_IMAGE_BYTES = 12 * 1024 * 1024;
@@ -327,15 +327,34 @@ export function getCommercialDemoAiRuntime(): CommercialDemoAiRuntime | null {
   return { sessionId, surface };
 }
 
+export function parseCommercialDemoAiJson<T>(reply: string): T {
+  const normalized = String(reply || "").trim();
+  const fenced = normalized.match(/```(?:json)?\s*([\s\S]*?)\s*```/i)?.[1]?.trim() || normalized;
+  const firstObject = fenced.indexOf("{");
+  const firstArray = fenced.indexOf("[");
+  const start = firstObject < 0 ? firstArray : firstArray < 0 ? firstObject : Math.min(firstObject, firstArray);
+  const endObject = fenced.lastIndexOf("}");
+  const endArray = fenced.lastIndexOf("]");
+  const end = Math.max(endObject, endArray);
+  if (start < 0 || end < start) throw new Error("La réponse IA ne contient pas de JSON exploitable.");
+  return JSON.parse(fenced.slice(start, end + 1)) as T;
+}
+
 export async function askCommercialDemoAi(input: {
   runtime: CommercialDemoAiRuntime;
   tool: CommercialDemoAiTool;
   message: string;
   conversationId?: string | null;
   context?: Record<string, unknown>;
+  referenceImages?: string[];
   requestId?: string;
 }) {
   const requestId = input.requestId && UUID_PATTERN.test(input.requestId) ? input.requestId : createRequestId();
+  const rawReferenceImages = input.referenceImages || [];
+  if (rawReferenceImages.length > MAX_REFERENCE_IMAGES) {
+    throw new Error(`Maximum ${MAX_REFERENCE_IMAGES} images par analyse IA.`);
+  }
+  const referenceImages = rawReferenceImages.map((value) => normalizeImageDataUrl(value));
   const inFlightKey = [
     "chat",
     input.runtime.sessionId,
@@ -344,6 +363,7 @@ export async function askCommercialDemoAi(input: {
     input.conversationId || "new",
     fingerprint(input.message),
     fingerprint(JSON.stringify(input.context || {})),
+    referenceImages.map(fingerprint).join("."),
   ].join(":");
 
   return runSingleInFlight(inFlightKey, async () => {
@@ -356,6 +376,7 @@ export async function askCommercialDemoAi(input: {
       message: input.message,
       conversation_id: input.conversationId || null,
       context: input.context || {},
+      reference_images: referenceImages,
     }, "L'assistant OpenAI de démonstration");
     if (!UUID_PATTERN.test(String(result.conversation_id || "")) || typeof result.reply !== "string") {
       throw new Error("Réponse invalide de l'assistant OpenAI de démonstration.");
