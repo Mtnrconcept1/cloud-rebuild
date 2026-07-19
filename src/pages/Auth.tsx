@@ -593,9 +593,15 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
       || isCanonicalAuthHost(window.location.hostname)
     ) return;
 
-    const canonicalAuthHref = getCanonicalAuthHref();
+    const isOAuthCallback = window.location.pathname === "/auth/callback";
+    const canonicalAuthHref = isOAuthCallback
+      ? getCanonicalAuthCallbackHref()
+      : getCanonicalAuthHref();
     if (/^https:\/\//.test(canonicalAuthHref)) {
-      window.location.replace(canonicalAuthHref);
+      const target = new URL(canonicalAuthHref);
+      target.search = window.location.search;
+      target.hash = window.location.hash;
+      window.location.replace(target.href);
     }
   }, [isDemoAuthMode]);
 
