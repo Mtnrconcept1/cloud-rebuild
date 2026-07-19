@@ -19,6 +19,9 @@ describe("dedicated commercial demo project", () => {
   const demoMigrationPath =
     "supabase/demo-migrations/20260719140000_dedicated_commercial_demo_project.sql";
   const demoMigration = read(demoMigrationPath);
+  const fullToolsMigration = read(
+    "supabase/demo-migrations/20260719143000_enable_full_commercial_demo_tools.sql",
+  );
 
   it("routes only demo frames to the isolated Supabase project", () => {
     expect(client).toContain('COMMERCIAL_DEMO_SUPABASE_PROJECT_REF = "hzldfhjfgjcadmpghhhf"');
@@ -37,6 +40,7 @@ describe("dedicated commercial demo project", () => {
     expect(provision).toContain('actor.roles.includes("commercial")');
     expect(provision).toContain("id: userId");
     expect(provision).toContain("commercial_demo_accounts");
+    expect(provision).toContain('["client", "restaurateur", "courier", "commercial", "admin"]');
     expect(provision).toContain("generateLink");
     expect(provision).not.toContain("action_link:");
     expect(provision).not.toContain("DEMO_SUPABASE_SECRET_KEY,");
@@ -76,5 +80,8 @@ describe("dedicated commercial demo project", () => {
     expect(demoMigration).toContain("Commercial demo affiliations are server-managed");
     expect(demoMigration).toContain("p_payment_method IS DISTINCT FROM 'stripe_test'");
     expect(demoMigration).toContain("account.user_id = v_actor_id");
+    expect(fullToolsMigration).toContain("is_dedicated_commercial_demo_actor");
+    expect(fullToolsMigration).toContain("dedicated_commercial_demo_full_access");
+    expect(fullToolsMigration).toContain("ON storage.objects");
   });
 });
