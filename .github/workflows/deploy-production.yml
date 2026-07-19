@@ -390,7 +390,7 @@ jobs:
             --request PATCH \
             --header "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
             --header "Content-Type: application/json" \
-            --data '{"site_url":"https://commercial.thetok.ch","uri_allow_list":"https://commercial.thetok.ch/**"}' \
+            --data '{"site_url":"https://commercial.thetok.ch","uri_allow_list":"https://commercial.thetok.ch/**","disable_signup":true}' \
             "https://api.supabase.com/v1/projects/${COMMERCIAL_DEMO_PROJECT_REF}/config/auth" \
             --output /dev/null
 
