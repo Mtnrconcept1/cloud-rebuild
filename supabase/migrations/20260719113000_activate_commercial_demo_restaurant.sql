@@ -20,10 +20,16 @@ ALTER TABLE public.restaurants
     )
   );
 
+ALTER TABLE public.restaurants
+  DISABLE TRIGGER protect_demo_restaurant_identity;
+
 UPDATE public.restaurants
 SET is_active = true,
     updated_at = now()
 WHERE is_demo IS TRUE
   AND COALESCE(is_active, false) IS FALSE;
+
+ALTER TABLE public.restaurants
+  ENABLE TRIGGER protect_demo_restaurant_identity;
 
 COMMIT;

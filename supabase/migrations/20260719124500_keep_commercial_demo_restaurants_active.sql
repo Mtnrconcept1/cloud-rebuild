@@ -30,11 +30,17 @@ FOR EACH ROW
 WHEN (NEW.is_demo IS TRUE)
 EXECUTE FUNCTION public.enforce_commercial_demo_restaurant_active();
 
+ALTER TABLE public.restaurants
+  DISABLE TRIGGER protect_demo_restaurant_identity;
+
 UPDATE public.restaurants
 SET is_active = true,
     updated_at = now()
 WHERE is_demo IS TRUE
   AND COALESCE(is_active, false) IS FALSE;
+
+ALTER TABLE public.restaurants
+  ENABLE TRIGGER protect_demo_restaurant_identity;
 
 COMMENT ON FUNCTION public.enforce_commercial_demo_restaurant_active() IS
   'Keeps isolated commercial demo restaurants active; Stripe Live and Connect remain forbidden by restaurants_demo_isolation_check.';

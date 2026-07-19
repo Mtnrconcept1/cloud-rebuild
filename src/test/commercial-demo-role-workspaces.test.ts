@@ -55,11 +55,15 @@ describe("commercial demo role workspaces", () => {
   it("activates the isolated restaurant and mirrors Admin-enabled tools", () => {
     expect(migration).toContain("WHERE is_demo IS TRUE");
     expect(migration).toContain("SET is_active = true");
+    expect(migration).toContain("DISABLE TRIGGER protect_demo_restaurant_identity");
+    expect(migration).toContain("ENABLE TRIGGER protect_demo_restaurant_identity");
     expect(migration).toContain("stripe_account_id IS NULL");
     expect(migration).toContain("stripe_connect_charges_enabled IS FALSE");
     expect(activeInvariantMigration).toContain("CREATE TRIGGER enforce_commercial_demo_restaurant_active");
     expect(activeInvariantMigration).toContain("NEW.is_active := true");
     expect(activeInvariantMigration).toContain("WHEN (NEW.is_demo IS TRUE)");
+    expect(activeInvariantMigration).toContain("DISABLE TRIGGER protect_demo_restaurant_identity");
+    expect(activeInvariantMigration).toContain("ENABLE TRIGGER protect_demo_restaurant_identity");
     expect(pack).toContain("Tous les modules actifs");
     expect(social).toContain('"actualites-posts"');
     expect(social).toContain("unlimitedPosts: true");
