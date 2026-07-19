@@ -110,6 +110,11 @@ describe("daily Miamz slot machine", () => {
     expect(component).toContain("TOK_SLOT_ANIMATION_COMPLETE");
     expect(component).toContain("TOK_SLOT_FRAME_READY");
     expect(component).toContain("if (!nextOpen && spinningRef.current) return");
+    expect(component).toContain('className="fixed inset-0 left-0 top-0 z-[1830]');
+    expect(component).toContain("hideCloseButton");
+    expect(component).toContain("onPointerDownOutside={(event) => event.preventDefault()}");
+    expect(component).toContain("onInteractOutside={(event) => event.preventDefault()}");
+    expect(component).not.toContain("z-[1400]");
     expect(component).toContain("AbortController");
     expect(component).toContain('fetchWithFreshAccessToken(SLOT_ENDPOINT, {');
     expect(component).toContain('method: "GET"');
