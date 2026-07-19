@@ -34,6 +34,9 @@ const TOOL_LABELS: Record<CommercialDemoProtectedTool, string> = {
 
 const REAL_OPENAI_DEMO_TOOLS = new Set<CommercialDemoProtectedTool>([
   "advisor",
+  "actualites",
+  "campaigns",
+  "social",
   "photos",
   "support",
 ]);
