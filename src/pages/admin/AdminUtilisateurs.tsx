@@ -33,6 +33,8 @@ import { COURIER_APPROVAL_STATUS_META, COURIER_VEHICLE_OPTIONS } from "@/lib/cou
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import AdminCommercialAccountsPanel from "@/components/admin/AdminCommercialAccountsPanel";
+import AdminDemoEntitiesDialog from "@/components/admin/AdminDemoEntitiesDialog";
+import AdminRealRestaurantAssignment from "@/components/admin/AdminRealRestaurantAssignment";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import {
   Dialog,
@@ -352,6 +354,8 @@ function UserDetailPanel({ userId, embedded = false }: { userId: string | null; 
           <p className="mt-2 text-xs text-muted-foreground">Aucun restaurant lié.</p>
         )}
       </div>
+
+      <AdminRealRestaurantAssignment targetUserId={userId} />
 
       <div className="rounded-lg border p-3 text-sm">
         <p className="font-medium">Dossiers</p>
@@ -962,6 +966,19 @@ export default function AdminUtilisateurs() {
         </TabsList>
 
         <TabsContent value="users" className="space-y-6">
+          <div className="flex flex-col gap-3 rounded-xl border border-violet-200 bg-violet-50/60 p-4 sm:flex-row sm:items-center sm:justify-between dark:border-violet-900/60 dark:bg-violet-950/20">
+            <div>
+              <p className="flex items-center gap-2 text-sm font-semibold">
+                <ShieldCheck className="h-4 w-4 text-violet-700 dark:text-violet-300" />
+                Comptes de démonstration séparés
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Créez des restaurateurs uniquement dans le projet TOK Démo, puis liez-les à un restaurant démo.
+              </p>
+            </div>
+            <AdminDemoEntitiesDialog mode="users" />
+          </div>
+
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <div className="rounded-xl border bg-card p-4 text-center">
               <p className="text-2xl font-bold">{roleCounts.client}</p>

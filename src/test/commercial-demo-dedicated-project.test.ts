@@ -26,10 +26,13 @@ describe("dedicated commercial demo project", () => {
     "supabase/demo-migrations/20260719150000_simulated_commercial_demo_payments.sql",
   );
 
-  it("routes only demo frames to the isolated Supabase project", () => {
+  it("routes demo frames and the explicit demo workspace to the isolated Supabase project", () => {
     expect(client).toContain('COMMERCIAL_DEMO_SUPABASE_PROJECT_REF = "hzldfhjfgjcadmpghhhf"');
     expect(client).toContain('"tok-commercial-demo-auth"');
-    expect(mainClient).toContain("isCommercialDemoFramePath(window.location.pathname)");
+    expect(client).toContain('"tok-active-demo-workspace"');
+    expect(client).toContain("isCommercialDemoAuthPath");
+    expect(client).toContain("window.sessionStorage");
+    expect(mainClient).toContain("shouldUseCommercialDemoSupabase(window.location.pathname)");
     expect(mainClient).toContain("return getCommercialDemoSupabase()");
     expect(mainClient).toContain("export function getProductionSupabase");
     expect(journey).toContain("getCommercialDemoSupabase");

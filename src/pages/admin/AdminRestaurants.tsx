@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import AdminDemoEntitiesDialog from "@/components/admin/AdminDemoEntitiesDialog";
+import AdminRealRestaurantAssignment from "@/components/admin/AdminRealRestaurantAssignment";
 import RestaurantPartnerContractCard from "@/components/contracts/RestaurantPartnerContractCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -484,6 +486,12 @@ function RestaurantDetailPanel({
             mode="admin"
           />
         </section>
+
+        <AdminRealRestaurantAssignment
+          targetRestaurantId={detail.restaurant.id}
+          currentOwnerId={detail.restaurant.owner_id || null}
+          onLinked={onRefresh}
+        />
 
         <div className="grid gap-4 xl:grid-cols-[1fr_1fr]">
           <section className="space-y-3">
@@ -1002,7 +1010,8 @@ export default function AdminRestaurants() {
         ]}
       />
 
-      <div className="flex justify-end">
+      <div className="flex flex-wrap justify-end gap-2">
+        <AdminDemoEntitiesDialog mode="restaurants" />
         <Button asChild variant="outline" className="gap-2">
           <Link to="/admin/restaurants/google-business">
             <ClipboardCheck className="h-4 w-4" />

@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useRef, ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { getSupabase } from "@/integrations/supabase/client";
+import { isCommercialDemoWorkspaceActive } from "@/integrations/supabase/demoClient";
 import type { Session, User } from "@supabase/supabase-js";
 import { setMonitoringUser } from "@/lib/monitoring";
 import {
@@ -15,6 +16,11 @@ import {
 import { AuthContext, type UserRole } from "@/lib/auth-context";
 
 const ACTIVE_ROLE_KEY = "miamz-active-role";
+const DEMO_ACTIVE_ROLE_KEY = "miamz-demo-active-role";
+
+function getActiveRoleStorageKey() {
+  return isCommercialDemoWorkspaceActive() ? DEMO_ACTIVE_ROLE_KEY : ACTIVE_ROLE_KEY;
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
@@ -91,7 +97,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const effectiveRoles = getEffectiveRoles(fetchedRoles);
     setRoles(effectiveRoles);
 
-    const saved = localStorage.getItem(ACTIVE_ROLE_KEY) as UserRole | null;
+    const storageKey = getActiveRoleStorageKey();
+    const saved = localStorage.getItem(storageKey) as UserRole | null;
     if (canSwitchRoles(effectiveRoles) && saved && effectiveRoles.includes(saved)) {
       setActiveRole(saved);
       return;
@@ -99,14 +106,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const best = getDefaultActiveRole(effectiveRoles);
     setActiveRole(best);
-    localStorage.setItem(ACTIVE_ROLE_KEY, best);
+    localStorage.setItem(storageKey, best);
   }, []);
 
   const switchRole = useCallback((role: UserRole) => {
     if (!user || !canSwitchRoles(roles) || !roles.includes(role)) return;
 
     setActiveRole(role);
-    localStorage.setItem(ACTIVE_ROLE_KEY, role);
+    localStorage.setItem(getActiveRoleStorageKey(), role);
   }, [roles, user]);
 
   useEffect(() => {
@@ -233,7 +240,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setRoles([]);
     setActiveRole(null);
     lastSessionUserIdRef.current = null;
-    localStorage.removeItem(ACTIVE_ROLE_KEY);
+    localStorage.removeItem(getActiveRoleStorageKey());
   };
 
   const isSuperAdmin = roles.includes("admin");

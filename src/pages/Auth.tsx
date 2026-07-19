@@ -575,16 +575,21 @@ async function submitPrivilegedSignupDraft(input: {
   }
 }
 
-export default function Auth() {
+export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
   const isCommercialAuthHost = typeof window !== "undefined"
     && isCommercialAppHost(window.location.hostname);
+  const isDemoAuthMode = demoMode;
 
   useSeoMeta({
-    title: isCommercialAuthHost ? "Connexion commerciale | TOK" : "Connexion et inscription | TOK",
-    description: isCommercialAuthHost
-      ? "Connectez-vous directement à l'environnement commercial de démonstration TOK."
-      : "Connectez-vous à votre compte TOK ou créez votre espace sécurisé.",
-    path: "/auth",
+    title: isDemoAuthMode
+      ? "Connexion restaurateur démo | TOK"
+      : isCommercialAuthHost ? "Connexion commerciale | TOK" : "Connexion et inscription | TOK",
+    description: isDemoAuthMode
+      ? "Connexion à l'environnement restaurateur TOK Démo, entièrement séparé de la production."
+      : isCommercialAuthHost
+        ? "Connectez-vous directement à l'environnement commercial de démonstration TOK."
+        : "Connectez-vous à votre compte TOK ou créez votre espace sécurisé.",
+    path: isDemoAuthMode ? "/auth/demo" : "/auth",
     robots: "noindex,nofollow",
   });
 
@@ -605,7 +610,7 @@ export default function Auth() {
   const { user, roles, role, switchRole, canSwitchRole } = useAuth();
 
   const initialRole = getInitialSignupRole(searchParams);
-  const [isLogin, setIsLogin] = useState(isCommercialAuthHost || initialRole === "client");
+  const [isLogin, setIsLogin] = useState(isDemoAuthMode || isCommercialAuthHost || initialRole === "client");
   const [roleMode, setRoleMode] = useState<SignupRole>(initialRole);
   const [signupForm, setSignupForm] = useState<SignupFormState>(EMPTY_SIGNUP_FORM);
   const [loading, setLoading] = useState(false);
@@ -649,9 +654,10 @@ export default function Auth() {
   const showDocumentSection = !isLogin && requiredDocuments.length > 0;
   const switchableRoles = useMemo(() => {
     const visibleRoles = getFeatureVisibleRoles(roles, activeFeatures);
+    if (isDemoAuthMode) return visibleRoles.filter((candidateRole) => candidateRole === "restaurateur");
     if (!isCommercialAuthHost) return visibleRoles;
     return visibleRoles.filter((candidateRole) => candidateRole === "commercial" || candidateRole === "admin");
-  }, [activeFeatures, isCommercialAuthHost, roles]);
+  }, [activeFeatures, isCommercialAuthHost, isDemoAuthMode, roles]);
   const postAuthRedirectTarget = useMemo(() => {
     const redirectTarget = searchParams.get("redirect");
     if (!redirectTarget) return null;
@@ -835,7 +841,7 @@ export default function Auth() {
 
     setLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(signupForm.email, {
-      redirectTo: `${window.location.origin}/auth`,
+      redirectTo: `${window.location.origin}${isDemoAuthMode ? "/auth/demo" : "/auth"}`,
       captchaToken: captchaToken || undefined,
     });
 
@@ -1210,24 +1216,28 @@ export default function Auth() {
         <CardHeader className="text-center space-y-3">
           <img src={logoSrc} alt="Tok" className="mx-auto h-20 w-auto object-contain" />
           <CardTitle className="font-display text-2xl">
-            {isCommercialAuthHost
-              ? "Connexion commerciale sécurisée"
-              : isLogin
-                ? "Bon retour"
-                : isClientSignup
-                  ? "Créer votre compte"
-                  : "Créer un compte vérifié"}
+            {isDemoAuthMode
+              ? "Connexion restaurateur démo"
+              : isCommercialAuthHost
+                ? "Connexion commerciale sécurisée"
+                : isLogin
+                  ? "Bon retour"
+                  : isClientSignup
+                    ? "Créer votre compte"
+                    : "Créer un compte vérifié"}
           </CardTitle>
           <CardDescription>
-            {isCommercialAuthHost
-              ? "Connectez-vous ici avec votre compte commercial. Cette session reste séparée des espaces clients et restaurants réels."
-              : isLogin
-              ? postAuthRedirectTarget
-                ? "Connectez-vous pour reprendre votre commande, réservation ou parcours en cours."
-                : "Connectez-vous pour acceder à vos espaces client, restaurateur, livreur ou admin."
-              : isClientSignup
-                ? "Inscription en moins d'une minute. Adresse et paiement seront demandes uniquement au bon moment."
-                : "Choisissez un profil, renseignez vos informations et ajoutez les justificatifs requis."}
+            {isDemoAuthMode
+              ? "Utilisez les identifiants créés par l’administrateur. Cette session utilise uniquement le projet TOK Démo."
+              : isCommercialAuthHost
+                ? "Connectez-vous ici avec votre compte commercial. Cette session reste séparée des espaces clients et restaurants réels."
+                : isLogin
+                  ? postAuthRedirectTarget
+                    ? "Connectez-vous pour reprendre votre commande, réservation ou parcours en cours."
+                    : "Connectez-vous pour acceder à vos espaces client, restaurateur, livreur ou admin."
+                  : isClientSignup
+                    ? "Inscription en moins d'une minute. Adresse et paiement seront demandes uniquement au bon moment."
+                    : "Choisissez un profil, renseignez vos informations et ajoutez les justificatifs requis."}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -1241,6 +1251,17 @@ export default function Auth() {
                   ? "Aucun jeton de session n’est transféré depuis un autre domaine."
                   : "Une fois connecté, vous reviendrez automatiquement à votre parcours en cours."}
               </p>
+            </div>
+          ) : null}
+          {isDemoAuthMode ? (
+            <div className="flex items-start gap-3 rounded-xl border border-violet-200 bg-violet-50 p-4 text-sm text-violet-950 dark:border-violet-900/60 dark:bg-violet-950/30 dark:text-violet-100">
+              <Shield className="mt-0.5 h-5 w-5 shrink-0" />
+              <div>
+                <p className="font-semibold">Environnement isolé</p>
+                <p className="mt-1 text-xs opacity-80">
+                  Aucune commande, réservation, facture ou donnée de ce compte ne peut atteindre la production.
+                </p>
+              </div>
             </div>
           ) : null}
           {!isLogin ? (
@@ -1792,7 +1813,7 @@ export default function Auth() {
                 )}
               </Button>
 
-              {isLogin && !forgotPassword ? (
+              {isLogin && !forgotPassword && !isDemoAuthMode ? (
                 <>
                   <Button
                     type="button"
@@ -1876,7 +1897,7 @@ export default function Auth() {
             </div>
           ) : null}
 
-          {!isCommercialAuthHost ? (
+          {!isCommercialAuthHost && !isDemoAuthMode ? (
             <div className="text-center">
               <button
                 type="button"
@@ -1890,9 +1911,18 @@ export default function Auth() {
               </button>
             </div>
           ) : null}
+          {isDemoAuthMode ? (
+            <div className="text-center">
+              <a
+                href="/auth"
+                className="text-sm text-muted-foreground transition-colors hover:text-primary"
+              >
+                Quitter la démo et revenir à la connexion réelle
+              </a>
+            </div>
+          ) : null}
         </CardContent>
       </Card>
     </div>
   );
 }
-

@@ -23,8 +23,12 @@ export function parseStripeReturnSearch(search: string) {
   };
 }
 
-export function buildAuthRedirectTarget(pathname: string, search: string) {
+export function buildAuthRedirectTarget(
+  pathname: string,
+  search: string,
+  authPath: "/auth" | "/auth/demo" = "/auth",
+) {
   const normalizedPath = pathname || "/";
   const normalizedSearch = search || "";
-  return `/auth?redirect=${encodeURIComponent(`${normalizedPath}${normalizedSearch}`)}`;
+  return `${authPath}?redirect=${encodeURIComponent(`${normalizedPath}${normalizedSearch}`)}`;
 }

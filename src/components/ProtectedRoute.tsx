@@ -3,6 +3,7 @@ import type { UserRole } from "@/lib/auth-context";
 import { canAccessAnyRole, getRoleHomePath } from "@/lib/roleAccess";
 import { buildAuthRedirectTarget } from "@/lib/stripeReturn";
 import { Navigate, useLocation } from "react-router-dom";
+import { isCommercialDemoWorkspaceActive } from "@/integrations/supabase/demoClient";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -23,9 +24,10 @@ export default function ProtectedRoute({ children, requiredRole, requiredRoles }
   }
 
   if (!user) {
+    const authPath = isCommercialDemoWorkspaceActive() ? "/auth/demo" : "/auth";
     return (
       <Navigate
-        to={buildAuthRedirectTarget(location.pathname, location.search)}
+        to={buildAuthRedirectTarget(location.pathname, location.search, authPath)}
         replace
       />
     );

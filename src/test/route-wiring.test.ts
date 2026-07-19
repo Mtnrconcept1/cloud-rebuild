@@ -26,6 +26,7 @@ const featureRouteTargetSet = new Set(featureRouteTargets.map(({ routeTarget }) 
 const CORE_ROUTES = new Set([
   "/",
   "/auth",
+  "/auth/demo",
   "/auth/callback",
   "/oauth/consent",
   "/recherche",
