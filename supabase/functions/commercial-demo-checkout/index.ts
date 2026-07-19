@@ -310,10 +310,6 @@ Deno.serve(async (req) => {
       ? error.code
       : httpError?.status === 401
       ? "AUTH_REQUIRED"
-      : httpError?.message === "DEMO_STRIPE_NOT_CONFIGURED"
-      ? "DEMO_STRIPE_NOT_CONFIGURED"
-      : httpError?.message === "INVALID_TEST_STRIPE_KEY"
-      ? "INVALID_TEST_STRIPE_KEY"
       : httpError?.status === 429
       ? "RATE_LIMITED"
       : "DEMO_CHECKOUT_FAILED";
@@ -322,15 +318,11 @@ Deno.serve(async (req) => {
       ? error.message
       : code === "AUTH_REQUIRED"
       ? "Authentification requise"
-      : code === "DEMO_STRIPE_NOT_CONFIGURED"
-      ? "Le paiement Stripe test n'est pas configuré"
-      : code === "INVALID_TEST_STRIPE_KEY"
-      ? "La clé Stripe de démonstration doit être une clé test"
       : code === "RATE_LIMITED"
       ? "Trop de tentatives de paiement démo"
-      : "Le paiement de démonstration a échoué";
+      : "La simulation du paiement de démonstration a échoué";
 
-    log.error("commercial_demo_checkout_failed", {
+    log.error("commercial_demo_payment_simulation_failed", {
       action,
       code,
       status,
