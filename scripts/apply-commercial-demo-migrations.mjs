@@ -3,6 +3,7 @@ import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import { pathToFileURL } from "node:url";
 
 const ROOT = process.cwd();
 const MIGRATION_DIRECTORY = "supabase/demo-migrations";
@@ -248,7 +249,11 @@ export async function main() {
   );
 }
 
-if (import.meta.url === new URL(`file://${process.argv[1]}`).href) {
+const entryPoint = process.argv[1]
+  ? pathToFileURL(path.resolve(process.argv[1])).href
+  : "";
+
+if (import.meta.url === entryPoint) {
   main().catch((error) => {
     console.error(error instanceof Error ? error.message : String(error));
     process.exit(1);
