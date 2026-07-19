@@ -18,6 +18,7 @@ vi.mock("@/lib/roleAccess", () => ({
 import {
   TOK_COMMERCIAL_APP_ORIGIN,
   canOperateCommercialDemoHost,
+  getDemoWorkspaceSurfaceForHost,
   getCommercialHostRedirectTarget,
   getCommercialNavigationHref,
   getCommercialReauthenticationHref,
@@ -25,6 +26,7 @@ import {
   isCommercialDemoFrameHostPath,
   isCommercialHostPathAllowed,
   isCommercialNamespacePath,
+  isDemoWorkspaceHost,
   isManagedCommercialAccount,
   isOwnedTokPreviewHost,
 } from "@/lib/commercialDomains";
@@ -39,6 +41,28 @@ describe("commercial.thetok.ch canonical isolation", () => {
     expect(isCommercialAppHost("COMMERCIAL.THETOK.CH.")).toBe(true);
     expect(isCommercialAppHost("commercial.thetok.ch.evil.example")).toBe(false);
     expect(isCommercialAppHost("notcommercial.thetok.ch")).toBe(false);
+  });
+
+  it("keeps each dedicated demo hostname on its focused isolated console", () => {
+    expect(isDemoWorkspaceHost("demo-client.thetok.ch")).toBe(true);
+    expect(getDemoWorkspaceSurfaceForHost("demo-restaurateur.thetok.ch")).toBe("restaurant");
+    expect(getDemoWorkspaceSurfaceForHost("demo-livreur.thetok.ch")).toBe("courier");
+
+    expect(getCommercialHostRedirectTarget({
+      hostname: "demo-client.thetok.ch",
+      pathname: "/",
+    })).toBe("https://demo-client.thetok.ch/commercial/demo-live?surface=client");
+    expect(getCommercialHostRedirectTarget({
+      hostname: "demo-restaurateur.thetok.ch",
+      pathname: "/commercial/demo-live",
+      authResolved: true,
+      isAuthenticated: true,
+      roles: ["commercial"],
+    })).toBeNull();
+    expect(getCommercialHostRedirectTarget({
+      hostname: "demo-livreur.thetok.ch",
+      pathname: "/auth",
+    })).toBe("https://www.thetok.ch/auth");
   });
 
   it("allows only login, commercial workspaces and strictly shaped demo frames", () => {
@@ -135,24 +159,21 @@ describe("commercial.thetok.ch canonical isolation", () => {
     })).toBe(`${TOK_COMMERCIAL_APP_ORIGIN}/commercial`);
   });
 
-  it("moves commercial login intent before credentials but keeps PKCE callbacks on-origin", () => {
+  it("keeps the only production login and PKCE callback on www.thetok.ch", () => {
     expect(getCommercialHostRedirectTarget({
       hostname: "www.thetok.ch",
       pathname: "/auth",
       search: "?redirect=%2Fcommercial%2Fdemo-live",
-    })).toBe(
-      `${TOK_COMMERCIAL_APP_ORIGIN}/auth?redirect=%2Fcommercial%2Fdemo-live&domain=required`,
-    );
-    expect(getCommercialHostRedirectTarget({
-      hostname: "www.thetok.ch",
-      pathname: "/auth",
-      search: "?domain=required&redirect=https%3A%2F%2Fevil.example%2Fcommercial",
-    })).toBe(`${TOK_COMMERCIAL_APP_ORIGIN}/auth?redirect=%2Fcommercial&domain=required`);
-    expect(getCommercialHostRedirectTarget({
-      hostname: "www.thetok.ch",
-      pathname: "/auth",
-      search: "?code=pkce-code&redirect=%2Fcommercial",
     })).toBeNull();
+    expect(getCommercialHostRedirectTarget({
+      hostname: "commercial.thetok.ch",
+      pathname: "/auth",
+    })).toBe("https://www.thetok.ch/auth");
+    expect(getCommercialHostRedirectTarget({
+      hostname: "commercial.thetok.ch",
+      pathname: "/auth/callback",
+      search: "?code=pkce-code",
+    })).toBe("https://www.thetok.ch/auth/callback");
   });
 
   it("never forwards Supabase callback credentials across origins", () => {
@@ -166,9 +187,7 @@ describe("commercial.thetok.ch canonical isolation", () => {
     const reauthenticationHref = getCommercialReauthenticationHref(
       `${TOK_COMMERCIAL_APP_ORIGIN}/commercial?code=pkce-secret&tab=terrain#access_token=jwt-secret`,
     );
-    expect(reauthenticationHref).toBe(
-      `${TOK_COMMERCIAL_APP_ORIGIN}/auth?redirect=%2Fcommercial%3Ftab%3Dterrain&domain=required`,
-    );
+    expect(reauthenticationHref).toBe("https://www.thetok.ch/auth");
     expect(reauthenticationHref).not.toContain("pkce-secret");
     expect(reauthenticationHref).not.toContain("jwt-secret");
   });
@@ -267,12 +286,12 @@ describe("commercial.thetok.ch canonical isolation", () => {
     })).toBe("https://www.thetok.ch/dashboard");
   });
 
-  it("preserves auth callbacks on the commercial host and local development", () => {
+  it("canonicalizes auth callbacks while preserving local development", () => {
     expect(getCommercialHostRedirectTarget({
       hostname: "commercial.thetok.ch",
       pathname: "/auth/callback",
       search: "?code=pkce-code",
-    })).toBeNull();
+    })).toBe("https://www.thetok.ch/auth/callback");
     expect(getCommercialHostRedirectTarget({
       hostname: "localhost",
       pathname: "/restaurants/geneve",
@@ -284,21 +303,15 @@ describe("commercial.thetok.ch canonical isolation", () => {
       .toBe("/commercial/demo-live");
   });
 
-  it("uses canonical commercial URLs after login and keeps admin demo access", () => {
+  it("sends every production role to the workspace chooser after login", () => {
     expect(getPostAuthTargetForRole("commercial", null))
-      .toBe(`${TOK_COMMERCIAL_APP_ORIGIN}/commercial`);
+      .toBe("/espaces");
     expect(getPostAuthTargetForRole("commercial", "/commercial/demo-live?panel=client"))
-      .toBe(`${TOK_COMMERCIAL_APP_ORIGIN}/commercial/demo-live?panel=client`);
+      .toBe("/espaces");
     expect(getPostAuthTargetForRole("admin", "/commercial/demo-live"))
-      .toBe(`${TOK_COMMERCIAL_APP_ORIGIN}/commercial/demo-live`);
-    expect(getPostAuthTargetForRole("admin", null, { isCommercialAuthHost: true }))
-      .toBe(`${TOK_COMMERCIAL_APP_ORIGIN}/commercial`);
-    expect(getPostAuthTargetForRole("admin", "/admin", { isCommercialAuthHost: true }))
-      .toBe(`${TOK_COMMERCIAL_APP_ORIGIN}/commercial`);
-    expect(getPostAuthTargetForRole("admin", "/commercial/demo-live", { isCommercialAuthHost: true }))
-      .toBe(`${TOK_COMMERCIAL_APP_ORIGIN}/commercial/demo-live`);
+      .toBe("/espaces");
     expect(getPostAuthTargetForRole("client", "/commercial/demo-live"))
-      .toBe("/mon-espace");
+      .toBe("/espaces");
   });
 
   it("mounts the role-aware redirect boundary above every application route", () => {
@@ -327,9 +340,9 @@ describe("commercial.thetok.ch canonical isolation", () => {
     expect(app.indexOf("<CommercialHostBoundary>"))
       .toBeLessThan(app.indexOf("{commercialDemoFrame ? ("));
     expect(boundary).toContain("buildSanitizedAuthRedirectUrl");
-    expect(boundary).toContain('signOut({ scope: "local" })');
-    expect(boundary).toContain("getCommercialReauthenticationHref");
-    expect(boundary).toContain("redirectIsCrossOrigin");
+    expect(boundary).toContain("window.location.replace(redirectTarget)");
+    expect(boundary).not.toContain('signOut({ scope: "local" })');
+    expect(boundary).not.toContain("redirectIsCrossOrigin");
     expect(boundary).toContain("accountType");
     expect(boundary).toContain('"commercial_demo_current_user_is_restricted"');
     expect(boundary).toContain("serverCommercialDemoRestricted");
@@ -339,8 +352,8 @@ describe("commercial.thetok.ch canonical isolation", () => {
     expect(frameProvider).toContain("roles: presentationRoles");
     expect(roleSwitcher).toContain('getCommercialNavigationHref("/commercial")');
     expect(roleMenu).toContain('getCommercialNavigationHref("/commercial")');
-    expect(auth).toContain("Connexion commerciale sécurisée");
-    expect(auth).toContain("Aucun jeton de session n’est transféré");
+    expect(auth).toContain("Connexion TOK centralisée");
+    expect(auth).toContain("Une seule session sécurisée dessert les sous-domaines TOK officiels");
     expect(mobileDomains).toContain("TOK_COMMERCIAL_APP_HOST");
   });
 });
