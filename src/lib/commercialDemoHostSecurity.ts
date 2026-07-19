@@ -1,4 +1,6 @@
 export const COMMERCIAL_DEMO_HOSTNAME = "commercial.thetok.ch";
+export const COMMERCIAL_DEMO_SUPABASE_ORIGIN =
+  "https://hzldfhjfgjcadmpghhhf.supabase.co";
 
 const COMMERCIAL_DEMO_CHECKOUT_FUNCTION = "commercial-demo-checkout";
 const COMMERCIAL_DEMO_AI_FUNCTION = "commercial-demo-ai";
@@ -68,7 +70,13 @@ function isExactFunctionPath(url: URL, functionName: string) {
   return url.pathname.replace(/\/+$/, "") === `/functions/v1/${functionName}`;
 }
 
+function isDedicatedDemoSupabaseOrigin(url: URL) {
+  return url.origin === COMMERCIAL_DEMO_SUPABASE_ORIGIN;
+}
+
 function isTrustedSupabaseOrigin(url: URL, currentOrigin: string) {
+  if (isDedicatedDemoSupabaseOrigin(url)) return true;
+
   let configuredOrigin = "";
   try {
     configuredOrigin = new URL(String(import.meta.env.VITE_SUPABASE_URL || "")).origin;
@@ -112,6 +120,11 @@ export function shouldBlockCommercialDemoHostRequest(input: {
   }
 
   if (PAID_AI_API_HOSTS.has(normalizeHostname(url.hostname))) return true;
+
+  // The dedicated project is an isolated copy of the application. RLS and the
+  // demo Auth session enforce access there, so every normal app capability may
+  // run without weakening the production-origin guard below.
+  if (isDedicatedDemoSupabaseOrigin(url)) return false;
 
   const functionName = getPathResource(url, "/functions/v1/");
   if (functionName) {

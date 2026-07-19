@@ -1,10 +1,13 @@
-import { getSupabase } from "@/integrations/supabase/client";
+import { getCommercialDemoSupabase } from "@/integrations/supabase/demoClient";
 import {
   getCommercialDemoRealtimeUpdate,
   type CommercialDemoRealtimeStatus,
 } from "@/lib/commercialDemoRealtime";
 import { isStripeTestCheckoutSessionId } from "@/lib/commercialDemoHostSecurity";
-import { invokeSupabaseFunction, invokeSupabaseRpc } from "@/lib/session";
+import {
+  invokeCommercialDemoFunction,
+  invokeCommercialDemoRpc,
+} from "@/lib/commercialDemoProject";
 
 export type CommercialDemoSurface = "client" | "restaurant" | "courier" | "system";
 
@@ -208,7 +211,7 @@ function assertTestMode(value: unknown) {
 }
 
 async function invokeRpc<T>(name: string, args: Record<string, unknown>) {
-  const data = await invokeSupabaseRpc<T | T[]>(name, { body: args });
+  const data = await invokeCommercialDemoRpc<T | T[]>(name, args);
   return unwrapRpcResult(data) as T;
 }
 
@@ -312,18 +315,20 @@ export async function createCommercialDemoCheckout({
   demoSessionId: string;
   returnUrl: string;
 }) {
-  const { data, error } = await invokeSupabaseFunction<CommercialDemoCheckoutCreateResult>("commercial-demo-checkout", {
-    body: {
-      action: "create",
-      demo_restaurant_id: demoRestaurantId,
-      demo_session_id: demoSessionId,
-      return_url: returnUrl,
-    },
-  });
-  if (error) {
+  try {
+    const data = await invokeCommercialDemoFunction<CommercialDemoCheckoutCreateResult>(
+      "commercial-demo-checkout",
+      {
+        action: "create",
+        demo_restaurant_id: demoRestaurantId,
+        demo_session_id: demoSessionId,
+        return_url: returnUrl,
+      },
+    );
+    return assertTestMode(data) as CommercialDemoCheckoutCreateResult;
+  } catch (error) {
     throw await toFunctionApiError(error, "Le paiement Stripe Test ne peut pas être ouvert.");
   }
-  return assertTestMode(data) as CommercialDemoCheckoutCreateResult;
 }
 
 export function buildCommercialDemoCheckoutReturnUrl(sessionId: string) {
@@ -361,18 +366,20 @@ export async function confirmCommercialDemoCheckout({
   demoSessionId: string;
   stripeSessionId: string;
 }) {
-  const { data, error } = await invokeSupabaseFunction<CommercialDemoCheckoutConfirmResult>("commercial-demo-checkout", {
-    body: {
-      action: "confirm",
-      demo_restaurant_id: demoRestaurantId,
-      demo_session_id: demoSessionId,
-      stripe_session_id: stripeSessionId,
-    },
-  });
-  if (error) {
+  try {
+    const data = await invokeCommercialDemoFunction<CommercialDemoCheckoutConfirmResult>(
+      "commercial-demo-checkout",
+      {
+        action: "confirm",
+        demo_restaurant_id: demoRestaurantId,
+        demo_session_id: demoSessionId,
+        stripe_session_id: stripeSessionId,
+      },
+    );
+    return assertTestMode(data) as CommercialDemoCheckoutConfirmResult;
+  } catch (error) {
     throw await toFunctionApiError(error, "Le paiement Stripe Test n'a pas pu être vérifié.");
   }
-  return assertTestMode(data) as CommercialDemoCheckoutConfirmResult;
 }
 
 export function subscribeToCommercialDemoSession(
@@ -380,7 +387,7 @@ export function subscribeToCommercialDemoSession(
   onChange: () => void,
   onStatus: (status: CommercialDemoRealtimeStatus) => void = () => undefined,
 ) {
-  const supabase = getSupabase();
+  const supabase = getCommercialDemoSupabase();
   let disposed = false;
   const isOnline = () => typeof navigator === "undefined" || navigator.onLine !== false;
   const emitStatus = (status: CommercialDemoRealtimeStatus) => {

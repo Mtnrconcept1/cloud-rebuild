@@ -46,7 +46,7 @@ export function inspectReleaseReadiness(options = {}) {
     inspectMobileAssociations(root, env, report);
     inspectAndroidSigning(root, env, report);
   }
-  inspectEdgeSecrets(env, report);
+  inspectEdgeSecrets(env, report, providerBootstrapGraceActive);
   inspectSupabaseRuntimeSecurity(env, report, providerBootstrapGraceActive);
   inspectFirebaseServiceAccount(env, report);
   inspectSupabaseAuthSecurity(env, report);
@@ -194,12 +194,21 @@ function inspectAndroidSigning(root, env, report) {
   }
 }
 
-function inspectEdgeSecrets(env, report) {
+function inspectEdgeSecrets(env, report, providerBootstrapGraceActive) {
   for (const [names, pattern, message] of REQUIRED_EDGE_SECRETS) {
     const candidates = Array.isArray(names) ? names : [names];
     const value = candidates.map((name) => clean(env[name])).find((candidate) => candidate);
     if (!pattern.test(value) || isPlaceholder(value)) {
-      report.required(message);
+      const isTemporarilyUnavailableProvider = candidates.some((name) =>
+        name.startsWith("STRIPE_")
+      );
+      if (providerBootstrapGraceActive && isTemporarilyUnavailableProvider) {
+        report.warning(
+          `Temporary provider bootstrap grace is active until ${clean(env.PROVIDER_BOOTSTRAP_GRACE_UNTIL)}: ${message}`,
+        );
+      } else {
+        report.required(message);
+      }
     }
   }
 }
@@ -211,7 +220,13 @@ function inspectSupabaseRuntimeSecurity(env, report, providerBootstrapGraceActiv
     env.SUPABASE_INTERNAL_CRON_VAULT_EVIDENCE,
   );
   if (!(/^.{16,}$/.test(cronSecret) && !isPlaceholder(cronSecret)) && !cronConfirmed) {
-    report.required("Missing live proof of the Supabase Vault internal cron secret and verifier.");
+    if (providerBootstrapGraceActive) {
+      report.warning(
+        `Temporary provider bootstrap grace is active until ${clean(env.PROVIDER_BOOTSTRAP_GRACE_UNTIL)}: internal cron jobs remain unavailable.`,
+      );
+    } else {
+      report.required("Missing live proof of the Supabase Vault internal cron secret and verifier.");
+    }
   }
 
   const resendApiKey = clean(env.RESEND_API_KEY);

@@ -1,5 +1,7 @@
-import { getSupabase } from "@/integrations/supabase/client";
-import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "@/lib/env";
+import {
+  getActiveSupabasePublicConfig,
+  getSupabase,
+} from "@/integrations/supabase/client";
 
 const ACCESS_TOKEN_REFRESH_THRESHOLD_MS = 60_000;
 const SESSION_EXPIRED_MESSAGE = "Session expirée. Reconnectez-vous.";
@@ -62,7 +64,7 @@ function mergeFunctionHeaders(headers: Record<string, string> | undefined, acces
   return {
     ...(headers || {}),
     Authorization: `Bearer ${accessToken}`,
-    apikey: SUPABASE_PUBLISHABLE_KEY,
+    apikey: getActiveSupabasePublicConfig().publishableKey,
   };
 }
 
@@ -74,7 +76,7 @@ function mergeRpcHeaders(
   return {
     ...(headers || {}),
     Authorization: `Bearer ${accessToken}`,
-    apikey: SUPABASE_PUBLISHABLE_KEY,
+    apikey: getActiveSupabasePublicConfig().publishableKey,
     "Content-Type": "application/json",
     "Content-Profile": schema,
   };
@@ -83,7 +85,7 @@ function mergeRpcHeaders(
 function mergeRequestHeaders(headers: HeadersInit | undefined, accessToken: string) {
   const nextHeaders = new Headers(headers);
   nextHeaders.set("Authorization", `Bearer ${accessToken}`);
-  nextHeaders.set("apikey", SUPABASE_PUBLISHABLE_KEY);
+  nextHeaders.set("apikey", getActiveSupabasePublicConfig().publishableKey);
   return nextHeaders;
 }
 
@@ -236,7 +238,7 @@ export async function invokeSupabaseRpc<TData = unknown>(
     schema = "public",
   } = options;
 
-  const endpoint = `${SUPABASE_URL}/rest/v1/rpc/${rpcName}`;
+  const endpoint = `${getActiveSupabasePublicConfig().url}/rest/v1/rpc/${rpcName}`;
 
   const invoke = async (accessToken: string) => {
     const response = await fetch(endpoint, {

@@ -2,12 +2,12 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const invokeSupabaseFunction = vi.hoisted(() => vi.fn());
-const rpc = vi.hoisted(() => vi.fn());
+const invokeCommercialDemoFunction = vi.hoisted(() => vi.fn());
+const invokeCommercialDemoRpc = vi.hoisted(() => vi.fn());
 
-vi.mock("@/lib/session", () => ({ invokeSupabaseFunction }));
-vi.mock("@/integrations/supabase/client", () => ({
-  getSupabase: () => ({ rpc }),
+vi.mock("@/lib/commercialDemoProject", () => ({
+  invokeCommercialDemoFunction,
+  invokeCommercialDemoRpc,
 }));
 
 import {
@@ -33,8 +33,8 @@ const chatResponse = {
 
 describe("commercial demo AI browser runtime", () => {
   beforeEach(() => {
-    invokeSupabaseFunction.mockReset();
-    rpc.mockReset();
+    invokeCommercialDemoFunction.mockReset();
+    invokeCommercialDemoRpc.mockReset();
   });
 
   afterEach(() => {
@@ -42,8 +42,8 @@ describe("commercial demo AI browser runtime", () => {
   });
 
   it("deduplicates a double click and sends one authenticated Edge request", async () => {
-    let complete!: (value: { data: typeof chatResponse; error: null }) => void;
-    invokeSupabaseFunction.mockReturnValueOnce(new Promise((resolve) => {
+    let complete!: (value: typeof chatResponse) => void;
+    invokeCommercialDemoFunction.mockReturnValueOnce(new Promise((resolve) => {
       complete = resolve;
     }));
 
@@ -56,21 +56,22 @@ describe("commercial demo AI browser runtime", () => {
     const first = askCommercialDemoAi(input);
     const second = askCommercialDemoAi(input);
 
-    expect(invokeSupabaseFunction).toHaveBeenCalledTimes(1);
-    expect(invokeSupabaseFunction).toHaveBeenCalledWith("commercial-demo-ai", expect.objectContaining({
-      body: expect.objectContaining({
+    expect(invokeCommercialDemoFunction).toHaveBeenCalledTimes(1);
+    expect(invokeCommercialDemoFunction).toHaveBeenCalledWith(
+      "commercial-demo-ai",
+      expect.objectContaining({
         action: "chat",
         request_id: input.requestId,
         session_id: runtime.sessionId,
         surface: runtime.surface,
       }),
-      timeout: 120_000,
-    }));
-    expect(invokeSupabaseFunction.mock.calls[0][1].body).not.toHaveProperty("payload_hash");
-    expect(invokeSupabaseFunction.mock.calls[0][1].body).not.toHaveProperty("commercial_user_id");
-    expect(invokeSupabaseFunction.mock.calls[0][1].body).not.toHaveProperty("demo_restaurant_id");
+      { timeout: 120_000 },
+    );
+    expect(invokeCommercialDemoFunction.mock.calls[0][1]).not.toHaveProperty("payload_hash");
+    expect(invokeCommercialDemoFunction.mock.calls[0][1]).not.toHaveProperty("commercial_user_id");
+    expect(invokeCommercialDemoFunction.mock.calls[0][1]).not.toHaveProperty("demo_restaurant_id");
 
-    complete({ data: chatResponse, error: null });
+    complete(chatResponse);
     const [firstResult, secondResult] = await Promise.all([first, second]);
     expect(firstResult).toEqual(chatResponse);
     expect(secondResult).toEqual(chatResponse);
@@ -78,9 +79,9 @@ describe("commercial demo AI browser runtime", () => {
 
   it("retries transient in-flight conflicts with the identical request id", async () => {
     vi.useFakeTimers();
-    invokeSupabaseFunction
-      .mockResolvedValueOnce({ data: null, error: { status: 409, message: "request_in_progress" } })
-      .mockResolvedValueOnce({ data: { ...chatResponse, replayed: true }, error: null });
+    invokeCommercialDemoFunction
+      .mockRejectedValueOnce({ status: 409, message: "request_in_progress" })
+      .mockResolvedValueOnce({ ...chatResponse, replayed: true });
 
     const pending = askCommercialDemoAi({
       runtime,
@@ -92,8 +93,8 @@ describe("commercial demo AI browser runtime", () => {
     const result = await pending;
 
     expect(result.replayed).toBe(true);
-    expect(invokeSupabaseFunction).toHaveBeenCalledTimes(2);
-    const requestIds = invokeSupabaseFunction.mock.calls.map((call) => call[1].body.request_id);
+    expect(invokeCommercialDemoFunction).toHaveBeenCalledTimes(2);
+    const requestIds = invokeCommercialDemoFunction.mock.calls.map((call) => call[1].request_id);
     expect(requestIds).toEqual([
       "a77a35ac-ae33-4ddb-86aa-a92387b2a98d",
       "a77a35ac-ae33-4ddb-86aa-a92387b2a98d",
@@ -101,8 +102,7 @@ describe("commercial demo AI browser runtime", () => {
   });
 
   it("maps a real URL image and preserves measured cost with zero TOK credits", async () => {
-    invokeSupabaseFunction.mockResolvedValueOnce({
-      data: {
+    invokeCommercialDemoFunction.mockResolvedValueOnce({
         generation_id: "f330c691-864e-4942-90d5-3932c7f828d2",
         tool: "marketing_studio",
         prompt: "Un plat signature dans une lumière éditoriale",
@@ -118,8 +118,6 @@ describe("commercial demo AI browser runtime", () => {
         style: "premium",
         created_at: "2026-07-15T06:00:00.000Z",
         replayed: false,
-      },
-      error: null,
     });
 
     const result = await generateCommercialDemoVisual(runtime, {
@@ -137,11 +135,12 @@ describe("commercial demo AI browser runtime", () => {
     expect(result.credit_units).toBe(0);
     expect(result.estimated_cost_chf).toBe(0.0512);
     expect(result.generation_seed).toBe("f330c691-864e-4942-90d5-3932c7f828d2");
-    expect(invokeSupabaseFunction).toHaveBeenCalledWith("commercial-demo-ai", expect.objectContaining({
-      body: expect.objectContaining({ action: "visual_generate" }),
-      timeout: 120_000,
-    }));
-    const requestBody = invokeSupabaseFunction.mock.calls[0][1].body;
+    expect(invokeCommercialDemoFunction).toHaveBeenCalledWith(
+      "commercial-demo-ai",
+      expect.objectContaining({ action: "visual_generate" }),
+      { timeout: 120_000 },
+    );
+    const requestBody = invokeCommercialDemoFunction.mock.calls[0][1];
     expect(requestBody.request_id).toMatch(
       /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
     );
