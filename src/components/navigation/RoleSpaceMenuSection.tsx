@@ -3,6 +3,7 @@ import {
   Bike,
   BriefcaseBusiness,
   Check,
+  LayoutDashboard,
   Shield,
   Store,
   User,
@@ -15,6 +16,7 @@ import { useAuth, type UserRole } from "@/lib/auth-context";
 import { getCommercialNavigationHref } from "@/lib/commercialDomains";
 import {
   DEMO_WORKSPACES,
+  getDemoMultiWorkspaceHref,
   getDemoWorkspaceHref,
   isDemoWorkspaceSurface,
   type DemoWorkspaceSurface,
@@ -124,6 +126,16 @@ export default function RoleSpaceMenuSection({
     navigate(target);
   };
 
+  const handleMultiDemoSelect = () => {
+    onNavigate?.();
+    const target = getDemoMultiWorkspaceHref();
+    if (/^https?:\/\//.test(target)) {
+      window.location.assign(target);
+      return;
+    }
+    navigate(target);
+  };
+
   const renderRealRole = (candidateRole: UserRole) => {
     const item = ROLE_MENU_ITEMS[candidateRole];
     const Icon = item.icon;
@@ -206,6 +218,41 @@ export default function RoleSpaceMenuSection({
     );
   };
 
+  const renderMultiDemoWorkspace = () => {
+    const selected = location.pathname.startsWith("/commercial/demo-live")
+      && !isDemoWorkspaceSurface(requestedSurface);
+
+    return (
+      <button
+        key="multi-dashboard"
+        type="button"
+        onClick={handleMultiDemoSelect}
+        aria-current={selected ? "page" : undefined}
+        className={cn(
+          "group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
+          selected
+            ? "bg-violet-600 text-white shadow-sm"
+            : "text-foreground hover:bg-violet-50 hover:text-violet-700 dark:hover:bg-violet-400/10 dark:hover:text-violet-100",
+          itemClassName,
+        )}
+      >
+        <span className={cn(
+          "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl shadow-sm",
+          selected ? "bg-white/18 text-white" : "bg-background text-violet-600",
+        )}>
+          <LayoutDashboard className="h-4 w-4" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-extrabold leading-5">Démo multi-dashboard</span>
+          <span className={cn("block truncate text-xs leading-snug", selected ? "text-white/80" : "text-muted-foreground")}>
+            Client, restaurateur et livreur simultanément
+          </span>
+        </span>
+        {selected ? <Check className="h-4 w-4 shrink-0" /> : null}
+      </button>
+    );
+  };
+
   const commercialOnly = isCommercial && !isAdmin;
 
   return (
@@ -244,7 +291,12 @@ export default function RoleSpaceMenuSection({
       <div className="space-y-1.5">
         {commercialOnly ? renderRealRole("commercial") : null}
         {isAdmin && accessMode === "real" ? switchableRoles.map(renderRealRole) : null}
-        {(!isAdmin || accessMode === "demo") ? DEMO_WORKSPACES.map(renderDemoWorkspace) : null}
+        {(!isAdmin || accessMode === "demo") ? (
+          <>
+            {DEMO_WORKSPACES.map(renderDemoWorkspace)}
+            {renderMultiDemoWorkspace()}
+          </>
+        ) : null}
       </div>
     </section>
   );
