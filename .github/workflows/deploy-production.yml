@@ -564,28 +564,6 @@ jobs:
           echo "Vercel deployment: $deployment_url"
           echo "deployment_url=$deployment_url" >> "$GITHUB_OUTPUT"
 
-      - name: Assign production dashboard domains
-        shell: bash
-        env:
-          DEPLOYMENT_URL: ${{ steps.vercel_deploy.outputs.deployment_url }}
-        run: |
-          set -euo pipefail
-
-          domains=(
-            auth.thetok.ch
-            admin.thetok.ch
-            commercial.thetok.ch
-            demo-client.thetok.ch
-            demo-restaurateur.thetok.ch
-            demo-livreur.thetok.ch
-          )
-
-          for domain in "${domains[@]}"; do
-            pnpm dlx "vercel@${VERCEL_CLI_VERSION}" alias set \
-              "$DEPLOYMENT_URL" \
-              "$domain" \
-              --token="$VERCEL_TOKEN"
-          done
 
 
   deployment_gate:
