@@ -5,6 +5,8 @@ import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from '@/lib/env';
 import { readSupabasePublicEnv } from '@/lib/publicEnv';
 import { authStorage } from './authStorage';
 import {
+  COMMERCIAL_DEMO_SUPABASE_PUBLISHABLE_KEY,
+  COMMERCIAL_DEMO_SUPABASE_URL,
   getCommercialDemoSupabase,
   isCommercialDemoFramePath,
 } from './demoClient';
@@ -36,6 +38,26 @@ export function getProductionSupabase(): SupabaseClient<Database> {
   });
 
   return productionSupabase;
+}
+
+export function getActiveSupabasePublicConfig() {
+  if (
+    typeof window !== "undefined"
+    && isCommercialDemoFramePath(window.location.pathname)
+  ) {
+    return {
+      url: COMMERCIAL_DEMO_SUPABASE_URL,
+      publishableKey: COMMERCIAL_DEMO_SUPABASE_PUBLISHABLE_KEY,
+    };
+  }
+
+  return readSupabasePublicEnv(
+    {
+      VITE_SUPABASE_URL: SUPABASE_URL,
+      VITE_SUPABASE_PUBLISHABLE_KEY: SUPABASE_PUBLISHABLE_KEY,
+    },
+    "runtime",
+  );
 }
 
 export function getSupabase(): SupabaseClient<Database> {
