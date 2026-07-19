@@ -10,6 +10,10 @@ const secretWriter = readFileSync(
   resolve(process.cwd(), "scripts/write-supabase-secrets-env.mjs"),
   "utf8",
 );
+const demoSecretWriter = readFileSync(
+  resolve(process.cwd(), "scripts/write-commercial-demo-secrets-env.mjs"),
+  "utf8",
+);
 
 function section(source: string, start: string, end: string) {
   const startIndex = source.indexOf(start);
@@ -53,6 +57,16 @@ describe("production deployment secret scope", () => {
   const prepareSecrets = section(
     deploySupabase,
     "      - name: Prepare Supabase function secrets env",
+    "      - name: Prepare dedicated commercial demo secrets",
+  );
+  const prepareDemoSecrets = section(
+    deploySupabase,
+    "      - name: Prepare dedicated commercial demo secrets",
+    "      - name: Configure dedicated demo Auth redirects",
+  );
+  const configureDemoAuth = section(
+    deploySupabase,
+    "      - name: Configure dedicated demo Auth redirects",
     "      - name: Link Supabase production project",
   );
   const linkProject = section(
@@ -133,6 +147,31 @@ describe("production deployment secret scope", () => {
     }
     expect(secretWriter).toContain("mode: 0o600");
     expect(secretWriter).toContain("fs.chmodSync(outFile, 0o600)");
+  });
+
+  it("scopes the dedicated demo to server AI and Stripe Test only", () => {
+    expect(secretEnvironmentNames(prepareDemoSecrets)).toEqual([
+      "FIRECRAWL_API_KEY",
+      "OPENAI_API_KEY",
+      "OPENAI_IMAGE_TIMEOUT_MS",
+      "OPENAI_MODEL",
+      "STRIPE_SECRET_KEY_TEST",
+      "STRIPE_TEST_WEBHOOK_SECRET",
+      "STRIPE_TOK_ONE_TEST_SECRET_KEY",
+      "STRIPE_TOK_ONE_TEST_WEBHOOK_SECRET",
+      "STRIPE_TOK_ONE_TEST_WEBHOOK_SIGNING_SECRET",
+      "SUPABASE_ACCESS_TOKEN",
+      "TOK_AI_IMAGE_BUCKET",
+      "TOK_GALLERY_IMAGE_BUCKET",
+      "TOK_IMAGE_FAST_INTERACTIVE",
+      "TOK_INTERACTIVE_IMAGE_TIMEOUT_MS",
+      "TOK_SOURCE_IMAGE_TIMEOUT_MS",
+    ].sort());
+    expect(secretEnvironmentNames(configureDemoAuth)).toEqual(["SUPABASE_ACCESS_TOKEN"]);
+    expect(demoSecretWriter).toContain('["STRIPE_SECRET_KEY", stripeTest]');
+    expect(demoSecretWriter).toContain('stripeTest.startsWith("sk_test_")');
+    expect(demoSecretWriter).not.toContain("STRIPE_SECRET_KEY_LIVE");
+    expect(demoSecretWriter).not.toContain("STRIPE_PERSONNAL_SECRET_KEY");
   });
 
   it("gives Supabase CLI steps only the credentials they require", () => {
