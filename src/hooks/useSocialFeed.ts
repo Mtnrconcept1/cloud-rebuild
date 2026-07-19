@@ -1351,9 +1351,20 @@ export function useRestaurantSocialPosts(restaurantId?: string | null) {
 }
 
 export function useRestaurantActualitesPremiumBannerAudience(restaurantId?: string | null) {
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemo = commercialDemoFrame?.surface === "restaurant";
   return useQuery({
-    queryKey: ["restaurant-actualites-premium-banner-audience", restaurantId],
+    queryKey: ["restaurant-actualites-premium-banner-audience", restaurantId, isCommercialDemo ? commercialDemoFrame.config.sessionId : "live"],
     queryFn: async () => {
+      if (isCommercialDemo) {
+        return {
+          hasAccess: true,
+          planSlug: "elite",
+          audienceCount: 1860,
+          impressionsPerViewer: 5,
+          activeBannerCount: 1,
+        } satisfies RestaurantActualitesPremiumBannerAudience;
+      }
       const { data, error } = await (supabase.rpc as any)("get_restaurant_actualites_premium_banner_audience", {
         p_restaurant_id: restaurantId,
       });
