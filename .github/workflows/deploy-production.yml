@@ -26,6 +26,8 @@ env:
   PUBLIC_APP_URL: https://www.thetok.ch
   SITE_URL: https://www.thetok.ch
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  # Temporary, automatically expiring exception for unavailable client Stripe and Resend credentials.
+  PROVIDER_BOOTSTRAP_GRACE_UNTIL: "2026-07-26T00:00:00Z"
 
 jobs:
   baseline:
