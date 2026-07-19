@@ -215,7 +215,7 @@ describe("commercial real multi-dashboard demonstration", () => {
     expect(experience).not.toContain("confirmCommercialDemoCheckout");
     expect(service).toContain('"commercial-demo-checkout"');
     expect(service).toContain('action: "simulate"');
-    expect(service).toContain('"payment_provider: "none"');
+    expect(service).toContain('payment_provider: "none"');
   });
 
   it("keeps the demo source of truth outside production orders, dispatch and accounting", () => {
