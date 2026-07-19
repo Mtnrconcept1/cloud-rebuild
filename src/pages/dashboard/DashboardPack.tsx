@@ -84,7 +84,7 @@ export default function DashboardPack() {
 
   const subscriptionsQuery = useQuery({
     queryKey: ["restaurant-paid-modules", selectedId],
-    enabled: Boolean(selectedId),
+    enabled: Boolean(selectedId) && !isDemoMode,
     queryFn: async () => {
       const { data, error } = await (supabase.from as any)("restaurant_paid_modules")
         .select("module_id, status, measured_value_cents, credit_amount_cents, evaluation_ends_at")
@@ -94,8 +94,18 @@ export default function DashboardPack() {
     },
   });
 
+  const demoSubscriptions = isDemoMode
+    ? (modulesQuery.data || []).map((module) => ({
+      module_id: module.id,
+      status: "active" as const,
+      measured_value_cents: Math.max(0, Number(module.monthly_base_cents || 0) * 4),
+      credit_amount_cents: 0,
+      evaluation_ends_at: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+    }))
+    : [];
   const subscriptionsByModule = new Map(
-    (subscriptionsQuery.data || []).map((subscription) => [subscription.module_id, subscription]),
+    (isDemoMode ? demoSubscriptions : subscriptionsQuery.data || [])
+      .map((subscription) => [subscription.module_id, subscription]),
   );
 
   const requestModule = async (module: FairGrowthModuleRow) => {
@@ -134,7 +144,7 @@ export default function DashboardPack() {
           visualLabel="Modules"
           stats={[
             { label: "Garantie", value: "3× en 90 jours", icon: ShieldCheck },
-            { label: "Activation", value: isDemoMode ? "Bloquée en démo" : "Sans débit immédiat", icon: Check },
+            { label: "Activation", value: isDemoMode ? "Tous les modules actifs" : "Sans débit immédiat", icon: Check },
             { label: "Pilotage", value: "À la carte", icon: Sparkles },
           ]}
         />
@@ -142,8 +152,8 @@ export default function DashboardPack() {
         {isDemoMode ? (
           <Card className="border-amber-500/30 bg-amber-500/5">
             <CardContent className="p-5 text-sm">
-              Le catalogue reste consultable dans le restaurant Démo, mais aucune demande
-              d’activation ni facturation ne peut être créée depuis cet espace.
+              Tous les modules activés par l’administrateur sont opérationnels pour le restaurant Démo.
+              Les parcours financiers utilisent uniquement l’environnement Stripe Test et ne peuvent produire aucun débit réel. 
             </CardContent>
           </Card>
         ) : null}
@@ -215,7 +225,7 @@ export default function DashboardPack() {
                     >
                       {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                       {isDemoMode
-                        ? "Indisponible en démonstration"
+                        ? "Actif dans le restaurant Démo"
                         : canRequest
                           ? module.availability_status === "pilot"
                             ? "Demander l'accès pilote"
