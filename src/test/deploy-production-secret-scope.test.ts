@@ -159,6 +159,8 @@ describe("production deployment secret scope", () => {
     expect(workflow).not.toContain("ANDROID_KEYSTORE_BASE64");
     expect(workflow).not.toContain("write-apple-app-site-association.mjs");
     expect(workflow).toContain('RELEASE_READINESS_TARGET: "web"');
+    expect(workflow).toContain('PROVIDER_BOOTSTRAP_GRACE_UNTIL: "2026-07-26T00:00:00Z"');
+    expect(workflow).not.toContain('RELEASE_READINESS_STRICT: "false"');
     expect(secretEnvironmentNames(preflightSupabaseAuth)).toEqual(["SUPABASE_ACCESS_TOKEN"]);
     expect(secretEnvironmentNames(preflightRuntimeSecurity)).toEqual([
       "RESEND_API_KEY",
