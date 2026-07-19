@@ -89,7 +89,7 @@ function DemoCourierPushStatusCard() {
           Alertes livreur
         </CardTitle>
         <CardDescription>
-          Les alertes de cette fenêtre proviennent uniquement des événements de la session commerciale.
+          Recevez immédiatement les nouvelles missions et les mises à jour importantes.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -99,7 +99,7 @@ function DemoCourierPushStatusCard() {
               <Smartphone className="h-4 w-4 text-primary" />
             </div>
             <div className="space-y-1">
-              <p className="text-sm font-medium">Fenêtre de démonstration</p>
+              <p className="text-sm font-medium">Notifications de livraison</p>
               <p className="text-xs text-muted-foreground">Synchronisation temps réel active</p>
             </div>
           </div>
