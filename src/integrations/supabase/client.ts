@@ -8,7 +8,7 @@ import {
   COMMERCIAL_DEMO_SUPABASE_PUBLISHABLE_KEY,
   COMMERCIAL_DEMO_SUPABASE_URL,
   getCommercialDemoSupabase,
-  isCommercialDemoFramePath,
+  shouldUseCommercialDemoSupabase,
 } from './demoClient';
 
 // Import the supabase client like this:
@@ -43,7 +43,7 @@ export function getProductionSupabase(): SupabaseClient<Database> {
 export function getActiveSupabasePublicConfig() {
   if (
     typeof window !== "undefined"
-    && isCommercialDemoFramePath(window.location.pathname)
+    && shouldUseCommercialDemoSupabase(window.location.pathname)
   ) {
     return {
       url: COMMERCIAL_DEMO_SUPABASE_URL,
@@ -63,7 +63,7 @@ export function getActiveSupabasePublicConfig() {
 export function getSupabase(): SupabaseClient<Database> {
   if (
     typeof window !== "undefined"
-    && isCommercialDemoFramePath(window.location.pathname)
+    && shouldUseCommercialDemoSupabase(window.location.pathname)
   ) {
     return getCommercialDemoSupabase();
   }
