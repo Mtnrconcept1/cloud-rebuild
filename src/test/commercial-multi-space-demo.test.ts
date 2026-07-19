@@ -205,15 +205,17 @@ describe("commercial real multi-dashboard demonstration", () => {
     expect(courierLayout).not.toContain("isCommercialDemoFrameWindow()");
   });
 
-  it("opens Stripe Test in the parent only after strict origin and hostname validation", () => {
-    expect(workspace).toContain('type: "commercial-demo:open-checkout"');
-    expect(workspace).toContain('url.hostname !== "checkout.stripe.com"');
-    expect(experience).toContain("event.origin !== window.location.origin");
-    expect(experience).toContain('checkoutUrl.hostname !== "checkout.stripe.com"');
-    expect(experience).toContain("confirmCommercialDemoCheckout");
-    expect(workspace).toContain("4242 4242 4242 4242");
-    expect(experience).toContain("Stripe Test uniquement");
+  it("simulates accepted payment server-side and refreshes every real dashboard", () => {
+    expect(workspace).toContain("simulateCommercialDemoPayment");
+    expect(workspace).toContain("onSuccess: (result) => void syncSnapshot(result.snapshot)");
+    expect(workspace).toContain("Simuler le paiement accepté");
+    expect(workspace).not.toContain("commercial-demo:open-checkout");
+    expect(workspace).not.toContain("checkout.stripe.com");
+    expect(experience).toContain("Paiement simulé · aucun débit");
+    expect(experience).not.toContain("confirmCommercialDemoCheckout");
     expect(service).toContain('"commercial-demo-checkout"');
+    expect(service).toContain('action: "simulate"');
+    expect(service).toContain('"payment_provider: "none"');
   });
 
   it("keeps the demo source of truth outside production orders, dispatch and accounting", () => {
