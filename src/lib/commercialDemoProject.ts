@@ -88,9 +88,17 @@ export async function invokeCommercialDemoRpc<T>(
 export async function invokeCommercialDemoFunction<T>(
   name: string,
   body: Record<string, unknown>,
+  options: {
+    headers?: Record<string, string>;
+    signal?: AbortSignal;
+    timeout?: number;
+  } = {},
 ): Promise<T> {
   const demo = await ensureCommercialDemoProjectSession();
-  const { data, error } = await demo.functions.invoke(name, { body });
+  const { data, error } = await demo.functions.invoke<T>(name, {
+    body,
+    ...options,
+  });
   if (error) throw error;
   return data as T;
 }
