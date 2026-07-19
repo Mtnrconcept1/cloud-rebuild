@@ -192,7 +192,12 @@ export function useOwnerRestaurants(options?: { enabled?: boolean }) {
           .eq("id", effectiveDemoRestaurantId)
           .eq("is_demo", true);
       } else {
-        restaurantQuery = restaurantQuery.eq("owner_id", user!.id);
+        // Production dashboards are fail-closed. Demo restaurants live in the
+        // dedicated demo project and must never be hydrated into a real owner
+        // selector, even for an administrator or a legacy owner mapping.
+        restaurantQuery = restaurantQuery
+          .eq("owner_id", user!.id)
+          .eq("is_demo", false);
       }
 
       if (!isCommercialDemoFrame && effectiveDemoRestaurantId) {
