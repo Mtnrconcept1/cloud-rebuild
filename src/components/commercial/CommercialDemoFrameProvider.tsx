@@ -318,8 +318,8 @@ export default function CommercialDemoFrameProvider({
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background p-8 text-center" role="status" aria-live="polite">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="mt-4 font-semibold">Ouverture du vrai dashboard {config.surface}…</p>
-        <p className="mt-2 text-sm text-muted-foreground">Validation de la session de démonstration isolée.</p>
+        <p className="mt-4 font-semibold">Ouverture de votre espace…</p>
+        <p className="mt-2 text-sm text-muted-foreground">Préparation de votre session sécurisée.</p>
       </div>
     );
   }
