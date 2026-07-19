@@ -33,7 +33,7 @@ describe("dedicated commercial demo migration workflow", () => {
     expect(runner).toContain(
       '/v1/projects/${encodeURIComponent(projectRef)}/database/query',
     );
-    expect(runner).toContain('Authorization: \`Bearer ${token}\`');
+    expect(runner).toContain("Authorization: `Bearer ${token}`");
     expect(runner).not.toContain("COMMERCIAL_DEMO_DB_PASSWORD");
     expect(runner).not.toContain("SUPABASE_DB_PASSWORD");
   });
