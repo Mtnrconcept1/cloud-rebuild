@@ -19,6 +19,7 @@ describe("commercial demo role workspaces", () => {
   const pack = read("src/pages/dashboard/DashboardPack.tsx");
   const social = read("src/hooks/useSocialFeed.ts");
   const migration = read("supabase/migrations/20260719113000_activate_commercial_demo_restaurant.sql");
+  const activeInvariantMigration = read("supabase/migrations/20260719124500_keep_commercial_demo_restaurants_active.sql");
   const checkout = read("supabase/functions/commercial-demo-checkout/index.ts");
 
   it("always exposes the client restaurant and courier dashboards", () => {
@@ -56,6 +57,9 @@ describe("commercial demo role workspaces", () => {
     expect(migration).toContain("SET is_active = true");
     expect(migration).toContain("stripe_account_id IS NULL");
     expect(migration).toContain("stripe_connect_charges_enabled IS FALSE");
+    expect(activeInvariantMigration).toContain("CREATE TRIGGER enforce_commercial_demo_restaurant_active");
+    expect(activeInvariantMigration).toContain("NEW.is_active := true");
+    expect(activeInvariantMigration).toContain("WHEN (NEW.is_demo IS TRUE)");
     expect(pack).toContain("Tous les modules actifs");
     expect(social).toContain('"actualites-posts"');
     expect(social).toContain("unlimitedPosts: true");
