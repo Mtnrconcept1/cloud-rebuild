@@ -48,7 +48,7 @@ import {
 } from "@/lib/commercialDemoFrame";
 import { cn } from "@/lib/utils";
 
-type RemoteBrowserSurface = CommercialDemoFrameSurface;
+type RemoteBrowserSurface = Exclude<CommercialDemoFrameSurface, "commercial">;
 
 type BrowserDefinition = {
   surface: RemoteBrowserSurface;
@@ -88,14 +88,6 @@ const BROWSERS: BrowserDefinition[] = [
     initialPath: "/dashboard",
     icon: Store,
     badgeClassName: "border-orange-300 bg-orange-50 text-orange-700 dark:bg-orange-400/10 dark:text-orange-100",
-  },
-  {
-    surface: "commercial",
-    title: "Compte commercial",
-    accountLabel: "Votre espace commercial",
-    initialPath: "/commercial",
-    icon: PanelsTopLeft,
-    badgeClassName: "border-violet-300 bg-violet-50 text-violet-700 dark:bg-violet-400/10 dark:text-violet-100",
   },
   {
     surface: "courier",
@@ -478,14 +470,12 @@ function BrowserWindow({
 function CommercialDemoBrowserGridSession({ sessionId }: { sessionId: string }) {
   const autoPreset = useResponsiveViewportPreset();
   const [activeSurface, setActiveSurface] = useState<RemoteBrowserSurface>("client");
-  const [thirdSurface, setThirdSurface] = useState<"commercial" | "courier">("commercial");
   const [layout, setLayout] = useState<ConsoleLayout>("control");
   const [fullscreenSurface, setFullscreenSurface] = useState<RemoteBrowserSurface | null>(null);
   const [runtimes, setRuntimes] = useState<Record<RemoteBrowserSurface, FrameRuntime>>(() => ({
     client: initialRuntime(BROWSERS[0]),
     restaurant: initialRuntime(BROWSERS[1]),
-    commercial: initialRuntime(BROWSERS[2]),
-    courier: initialRuntime(BROWSERS[3]),
+    courier: initialRuntime(BROWSERS[2]),
   }));
 
   const updateRuntime = useCallback((surface: RemoteBrowserSurface, runtime: FrameRuntime) => {
@@ -511,8 +501,8 @@ function CommercialDemoBrowserGridSession({ sessionId }: { sessionId: string }) 
   }, [fullscreenSurface]);
 
   const visibleSurfaces = useMemo<RemoteBrowserSurface[]>(
-    () => ["client", "restaurant", thirdSurface],
-    [thirdSurface],
+    () => ["client", "restaurant", "courier"],
+    [],
   );
   const visibleBrowsers = useMemo(
     () => visibleSurfaces
@@ -524,14 +514,6 @@ function CommercialDemoBrowserGridSession({ sessionId }: { sessionId: string }) 
     const active = visibleSurfaces.includes(activeSurface) ? activeSurface : visibleSurfaces[0];
     return [active, ...visibleSurfaces.filter((surface) => surface !== active)];
   }, [activeSurface, visibleSurfaces]);
-
-  const selectThirdSurface = (surface: "commercial" | "courier") => {
-    const replacingActiveSurface = activeSurface === thirdSurface;
-    const replacingFullscreenSurface = fullscreenSurface === thirdSurface;
-    setThirdSurface(surface);
-    if (replacingActiveSurface) setActiveSurface(surface);
-    if (replacingFullscreenSurface) setFullscreenSurface(null);
-  };
 
   return (
     <section className="min-w-0" aria-label="Console commerciale de contrôle à distance">
@@ -561,19 +543,6 @@ function CommercialDemoBrowserGridSession({ sessionId }: { sessionId: string }) 
           })}
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-1">
-          <div className="flex items-center rounded-xl border bg-muted/30 p-1" aria-label="Troisième session affichée">
-            <button type="button" className={cn("flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold", thirdSurface === "commercial" && "bg-background shadow-sm")} onClick={() => selectThirdSurface("commercial")} aria-pressed={thirdSurface === "commercial"}>
-              <PanelsTopLeft className="h-4 w-4" />Commercial
-            </button>
-            <button type="button" className={cn("flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold", thirdSurface === "courier" && "bg-background shadow-sm")} onClick={() => selectThirdSurface("courier")} aria-pressed={thirdSurface === "courier"}>
-              <Bike className="h-4 w-4" />Livreur
-              {runtimes.courier.unreadCount > 0 ? (
-                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] text-white" aria-label={`${runtimes.courier.unreadCount} notification(s) livreur non lue(s)`}>
-                  {runtimes.courier.unreadCount}
-                </span>
-              ) : null}
-            </button>
-          </div>
           <div className="flex items-center rounded-xl border bg-muted/30 p-1" aria-label="Disposition des écrans">
             <button type="button" className={cn("flex h-9 items-center gap-2 rounded-lg px-3 text-xs font-semibold", layout === "control" && "bg-background shadow-sm")} onClick={() => setLayout("control")} aria-pressed={layout === "control"}>
               <PanelsTopLeft className="h-4 w-4" />Contrôle
