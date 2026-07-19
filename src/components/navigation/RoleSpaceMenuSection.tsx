@@ -60,7 +60,7 @@ const ROLE_MENU_ITEMS: Record<UserRole, RoleMenuItem> = {
     icon: Bike,
   },
   commercial: {
-    label: "Dashboard commercial",
+    label: "Espace commercial",
     description: "Prospection, signatures et revenus",
     icon: BriefcaseBusiness,
   },
@@ -87,10 +87,11 @@ export default function RoleSpaceMenuSection({
   const navigate = useNavigate();
   const location = useLocation();
   const { role, roles, canSwitchRole, switchRole } = useAuth();
+  const resolvedRoles = roles ?? [];
   const activeFeatures = useActiveFeatures();
   const switchableRoles = getFeatureVisibleRoles(roles, activeFeatures);
-  const isAdmin = roles.includes("admin");
-  const isCommercial = roles.includes("commercial");
+  const isAdmin = resolvedRoles.includes("admin");
+  const isCommercial = resolvedRoles.includes("commercial");
   const hasDemoAccess = isAdmin || isCommercial;
   const hasMultipleRealSpaces = canSwitchRole && switchableRoles.length >= 2;
   const [accessMode, setAccessMode] = useState<AccessMode>("real");
