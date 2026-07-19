@@ -221,6 +221,44 @@ describe("production preflight hardening", () => {
     expect(JSON.stringify(result)).not.toContain(resendApiKey);
   });
 
+  it("returns non-secret grace evidence while the temporary Resend exception is active", async () => {
+    const responses = [
+      jsonResponse([{ internal_cron_secret_ready: true, verifier_ready: true }], 201),
+      jsonResponse([{ name: "OPENAI_API_KEY" }]),
+    ];
+    const fetchImpl = vi.fn(async () => responses.shift() as Response);
+
+    const result = await verifySupabaseRuntimeSecurity({
+      projectRef: PRODUCTION_PROJECT_REF,
+      accessToken: "sbp_test_token_that_is_long_enough",
+      providerBootstrapGraceUntil: "2026-07-26T00:00:00Z",
+      fetchImpl,
+      wait: async () => undefined,
+      now: () => new Date("2026-07-19T12:00:00.000Z"),
+    });
+
+    expect(result.resendConfirmed).toBe("grace");
+    expect(result.resendEvidence).toContain("email remains unavailable");
+    expect(JSON.stringify(result)).not.toContain("RESEND_API_KEY=");
+  });
+
+  it("fails closed when the temporary Resend exception has expired", async () => {
+    const responses = [
+      jsonResponse([{ internal_cron_secret_ready: true, verifier_ready: true }], 201),
+      jsonResponse([{ name: "OPENAI_API_KEY" }]),
+    ];
+    const fetchImpl = vi.fn(async () => responses.shift() as Response);
+
+    await expect(verifySupabaseRuntimeSecurity({
+      projectRef: PRODUCTION_PROJECT_REF,
+      accessToken: "sbp_test_token_that_is_long_enough",
+      providerBootstrapGraceUntil: "2026-07-26T00:00:00Z",
+      fetchImpl,
+      wait: async () => undefined,
+      now: () => new Date("2026-07-26T00:00:00.000Z"),
+    })).rejects.toThrow("no valid GitHub secret");
+  });
+
   it("fails closed when the production Resend Edge secret is absent", async () => {
     const responses = [
       jsonResponse([{ internal_cron_secret_ready: true, verifier_ready: true }], 201),
@@ -261,6 +299,8 @@ describe("production preflight hardening", () => {
     expect(workflow).not.toContain("APPLE_TEAM_ID");
     expect(workflow).not.toContain("ANDROID_KEYSTORE_BASE64");
     expect(workflow).toContain('RELEASE_READINESS_TARGET: "web"');
+    expect(workflow).toContain('PROVIDER_BOOTSTRAP_GRACE_UNTIL: "2026-07-26T00:00:00Z"');
+    expect(workflow).not.toContain('RELEASE_READINESS_STRICT: "false"');
     expect(workflow).toMatch(/build_frontend:\n\s+needs:\n\s+- validation\n\s+- preflight/);
 
     const aasaHeaders = vercel.headers.find(
