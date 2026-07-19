@@ -17,11 +17,7 @@ const values = {
   VITE_SUPABASE_PUBLISHABLE_KEY: resolveRequired("VITE_SUPABASE_PUBLISHABLE_KEY", {
     fallback: process.env.VITE_SUPABASE_ANON_KEY ?? baseEnv.VITE_SUPABASE_ANON_KEY ?? baseEnv.VITE_SUPABASE_PUBLISHABLE_KEY,
   }),
-  VITE_STRIPE_PUBLISHABLE_KEY: resolveRequired("VITE_STRIPE_PUBLISHABLE_KEY", {
-    fallback: process.env.VITE_STRIPE_PUBLISHABLE_KEY_FALLBACK ?? baseEnv.VITE_STRIPE_PUBLISHABLE_KEY,
-    validate: (value) => value.startsWith("pk_live_") || value.startsWith("pk_test_"),
-    validationMessage: "must be a Stripe publishable key (pk_live_... or pk_test_...).",
-  }),
+  VITE_STRIPE_PUBLISHABLE_KEY: resolveStripePublishableKey(),
   VITE_FIREBASE_API_KEY: resolveRequired("VITE_FIREBASE_API_KEY"),
   VITE_FIREBASE_AUTH_DOMAIN: resolveRequired("VITE_FIREBASE_AUTH_DOMAIN", {
     fallback: baseEnv.VITE_FIREBASE_AUTH_DOMAIN,
@@ -65,6 +61,43 @@ function readDotenvFile(filePath) {
   }
 
   return parseDotenv(fs.readFileSync(filePath));
+}
+
+function resolveStripePublishableKey() {
+  const value = resolveOptional("VITE_STRIPE_PUBLISHABLE_KEY", {
+    fallback: process.env.VITE_STRIPE_PUBLISHABLE_KEY_FALLBACK ?? baseEnv.VITE_STRIPE_PUBLISHABLE_KEY,
+  });
+
+  if (value?.startsWith("pk_live_")) {
+    return value;
+  }
+
+  if (isProviderBootstrapGraceActive()) {
+    console.warn(
+      "Temporary provider bootstrap grace is active: omitting Stripe from the production frontend bundle.",
+    );
+    return null;
+  }
+
+  if (value === null) {
+    throw new Error("Missing required production build variable VITE_STRIPE_PUBLISHABLE_KEY.");
+  }
+
+  if (!value.startsWith("pk_test_")) {
+    throw new Error(
+      "Invalid value for VITE_STRIPE_PUBLISHABLE_KEY: must be a Stripe publishable key (pk_live_... or pk_test_...).",
+    );
+  }
+
+  return value;
+}
+
+function isProviderBootstrapGraceActive() {
+  const rawUntil = cleanValue(process.env.PROVIDER_BOOTSTRAP_GRACE_UNTIL);
+  if (!rawUntil) return false;
+
+  const until = Date.parse(rawUntil);
+  return Number.isFinite(until) && Date.now() < until;
 }
 
 function resolveRequired(name, options = {}) {
