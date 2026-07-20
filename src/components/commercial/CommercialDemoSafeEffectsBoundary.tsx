@@ -36,9 +36,7 @@ const REAL_OPENAI_DEMO_TOOLS = new Set<CommercialDemoProtectedTool>([
   "advisor",
   "actualites",
   "campaigns",
-  "social",
   "photos",
-  "support",
 ]);
 
 type FetchGuardState = {
@@ -162,6 +160,7 @@ export default function CommercialDemoSafeEffectsBoundary({
   const frame = useCommercialDemoFrame();
   const isRestaurantDemo = frame?.surface === "restaurant";
   const usesRealOpenAi = REAL_OPENAI_DEMO_TOOLS.has(tool);
+  const showStatusBadge = tool !== "social" && tool !== "support";
   const [guardReady, setGuardReady] = useState(!isRestaurantDemo);
   const lastNoticeAtRef = useRef(0);
 
@@ -202,7 +201,7 @@ export default function CommercialDemoSafeEffectsBoundary({
   return (
     <>
       {children}
-      {isRestaurantDemo ? (
+      {isRestaurantDemo && showStatusBadge ? (
         <div
           className="pointer-events-none fixed bottom-3 right-3 z-[1450] flex max-w-[min(22rem,calc(100vw-1.5rem))] items-center gap-2 rounded-full border border-emerald-300/70 bg-background/95 px-3 py-2 text-xs font-semibold text-emerald-800 shadow-lg backdrop-blur dark:border-emerald-400/30 dark:text-emerald-200"
           data-testid={`commercial-demo-real-tool-${tool}`}

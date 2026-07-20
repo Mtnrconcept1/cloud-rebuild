@@ -587,7 +587,7 @@ export default function SocialComposer({
     setSponsorAiPreset(preset);
 
     toast({
-      title: "Plan IA appliqué",
+      title: "Recommandation appliquée",
       description: preset.summary,
     });
   };
@@ -1102,9 +1102,9 @@ export default function SocialComposer({
             <div className="rounded-2xl border border-orange-200 bg-orange-50/80 p-3">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <p className="text-sm font-semibold text-orange-950">TOK IA choisit les meilleurs paramètres</p>
+                  <p className="text-sm font-semibold text-orange-950">TOK recommande les meilleurs paramètres</p>
                   <p className="mt-1 text-xs leading-5 text-orange-800">
-                    Analyse le texte, le format, le CTA, l'objectif et les signaux du restaurant pour remplir la campagne.
+                    Calcule localement une recommandation à partir du texte, du format, du CTA, de l'objectif et des signaux du restaurant.
                   </p>
                 </div>
                 <Button
@@ -1114,12 +1114,12 @@ export default function SocialComposer({
                   onClick={applySponsorAiPreset}
                 >
                   <Sparkles className="h-4 w-4" />
-                  IA optimise ma publicité
+                  Recommander mes paramètres
                 </Button>
               </div>
               {sponsorAiPreset ? (
                 <div className="mt-3 rounded-xl border border-orange-100 bg-white/80 p-3">
-                  <p className="text-sm font-semibold text-orange-950">Plan IA appliqué</p>
+                  <p className="text-sm font-semibold text-orange-950">Recommandation appliquée</p>
                   <ul className="mt-2 space-y-1 text-xs leading-5 text-orange-800">
                     {sponsorAiPreset.reasons.map((reason) => (
                       <li key={reason}>{reason}</li>
@@ -1478,7 +1478,7 @@ export default function SocialComposer({
               Améliorer mon texte avec l'IA
             </DialogTitle>
             <DialogDescription>
-              Répondez aux questions clés. TOK génère ensuite 3 variantes prêtes à publier.
+              Répondez aux questions clés. OpenAI génère ensuite 3 variantes prêtes à publier.
             </DialogDescription>
           </DialogHeader>
 

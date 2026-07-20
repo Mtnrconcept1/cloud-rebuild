@@ -173,6 +173,32 @@ describe("commercial demo real-page side-effect guard", () => {
     expect(infoToast).toHaveBeenCalledTimes(1);
   });
 
+  it.each([
+    ["social", "Réseaux sociaux"],
+    ["support", "Support"],
+  ] as const)(
+    "keeps the %s page protected without advertising an embedded OpenAI tool",
+    async (tool, label) => {
+      render(
+        <CommercialDemoSafeEffectsBoundary tool={tool}>
+          <RealToolPage />
+        </CommercialDemoSafeEffectsBoundary>,
+      );
+
+      const pageButton = await screen.findByRole("button", { name: "Vraie page · idle" });
+      expect(screen.queryByTestId(`commercial-demo-real-tool-${tool}`)).toBeNull();
+      fireEvent.click(pageButton);
+
+      await waitFor(() => expect(screen.getByRole("button", { name: "Vraie page · simulated" })).toBeTruthy());
+      expect(infoToast).toHaveBeenCalledWith(
+        "Action enregistrée dans l’espace Démo",
+        {
+          description: `${label} est opérationnel dans l’espace Démo, sans toucher aux établissements réels.`,
+        },
+      );
+    },
+  );
+
   it("preserves PostgREST select().single() semantics for simulated inserts", async () => {
     const externalFetch = window.fetch as ReturnType<typeof vi.fn>;
     render(
