@@ -17,7 +17,10 @@
  * and localhost dev keep working:
  *   - https://thetok.ch, https://www.thetok.ch, https://app.thetok.ch
  *   - https://admin.thetok.ch                         (dedicated admin UI)
- *   - https://commercial.thetok.ch                    (isolated commercial demo)
+ *   - https://commercial.thetok.ch                    (commercial workspace)
+ *   - https://demo-client.thetok.ch                    (focused client demo)
+ *   - https://demo-restaurateur.thetok.ch              (focused restaurant demo)
+ *   - https://demo-livreur.thetok.ch                   (focused courier demo)
  *   - capacitor://localhost, ionic://localhost         (iOS WKWebView)
  *   - http://localhost, https://localhost              (Android WebView + web dev)
  *   - http://localhost:<port>                          (Vite dev server)
@@ -31,6 +34,9 @@ const DEFAULT_ALLOWED_ORIGINS = [
   "https://app.thetok.ch",
   "https://admin.thetok.ch",
   "https://commercial.thetok.ch",
+  "https://demo-client.thetok.ch",
+  "https://demo-restaurateur.thetok.ch",
+  "https://demo-livreur.thetok.ch",
   "https://chatgpt.com",
   "https://cloud-rebuild-recovered.vercel.app",
   "capacitor://localhost",
