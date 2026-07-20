@@ -1,48 +1,139 @@
 -- Dedicated demo project only.
--- Production transaction RPC guards are valid in the real project, but the
--- same guards must allow a verified actor whose account is mapped inside this
--- isolated project. RLS predicates remain unchanged and continue to scope the
--- actor to the shared demo restaurant.
+-- The browser uses the real client, restaurant and courier dashboards against
+-- this isolated Supabase project. Every exception to the production guards is
+-- tied to the restaurant assigned by the server-side demo account mapping.
 
-DO $dedicated_demo_rpc_guards$
+CREATE OR REPLACE FUNCTION public.dedicated_demo_can_access_restaurant(
+  p_restaurant_id uuid
+)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $function$
+  SELECT COALESCE(
+    public.is_dedicated_commercial_demo_actor()
+    AND p_restaurant_id IS NOT NULL
+    AND p_restaurant_id = public.commercial_demo_current_restaurant_id()
+    AND public.can_view_commercial_demo_restaurant(p_restaurant_id),
+    false
+  );
+$function$;
+
+REVOKE ALL ON FUNCTION public.dedicated_demo_can_access_restaurant(uuid)
+  FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.dedicated_demo_can_access_restaurant(uuid)
+  TO authenticated;
+
+COMMENT ON FUNCTION public.dedicated_demo_can_access_restaurant(uuid) IS
+  'Dedicated demo only. Authorizes exactly the active demo restaurant mapped to the current synthetic actor.';
+
+-- Reuse the normal ownership checks throughout the real dashboard, but extend
+-- them only for the single mapped demo restaurant. This does not make the
+-- synthetic actor the owner of any unrelated restaurant.
+CREATE OR REPLACE FUNCTION public.auth_owns_restaurant(p_restaurant_id uuid)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $function$
+  SELECT COALESCE(
+    EXISTS (
+      SELECT 1
+      FROM public.restaurants AS restaurant
+      WHERE restaurant.id = p_restaurant_id
+        AND restaurant.owner_id = auth.uid()
+    )
+    OR public.dedicated_demo_can_access_restaurant(p_restaurant_id),
+    false
+  );
+$function$;
+
+COMMENT ON FUNCTION public.auth_owns_restaurant(uuid) IS
+  'Dedicated demo override. Preserves real ownership and recognizes only the current actor mapped to the requested demo restaurant.';
+
+-- The protected-tool boundary deliberately lets these read-only RPCs reach the
+-- dedicated project. Adapt only the two inherited production guards it uses;
+-- all other generic transaction RPCs remain blocked.
+DO $dedicated_demo_safe_read_rpcs$
 DECLARE
-  target record;
+  target_oid oid;
   original_definition text;
-  patched_definition text;
-  patched_count integer := 0; BEGIN
-  FOR target IN
-    SELECT procedure.oid
-    FROM pg_proc AS procedure
-    JOIN pg_namespace AS namespace ON namespace.oid = procedure.pronamespace
-    WHERE namespace.nspname = 'public'
-      AND pg_get_functiondef(procedure.oid)
-        LIKE '%COMMERCIAL_DEMO_PRODUCTION_RPC_BLOCKED%'
-  LOOP
-    original_definition := pg_get_functiondef(target.oid);
-    patched_definition := replace(
-      original_definition,
-      'IF public.commercial_demo_current_user_is_restricted() THEN',
-      'IF public.commercial_demo_current_user_is_restricted()
-         AND NOT public.is_dedicated_commercial_demo_actor() THEN'
-    );
-
-    IF patched_definition = original_definition THEN
-      RAISE EXCEPTION
-        'A guarded RPC could not be adapted for the dedicated demo project: %',
-        target.oid::regprocedure;
-    END IF;
-
-    EXECUTE patched_definition;
-    patched_count := patched_count + 1;
-  END LOOP;
-
-  IF patched_count < 20 THEN
+  patched_definition text; BEGIN
+  target_oid := to_regprocedure(
+    'public.get_restaurant_subscription_self_service_state(uuid)'
+  );
+  IF target_oid IS NULL THEN
     RAISE EXCEPTION
-      'Expected at least 20 protected production RPCs, adapted only %',
-      patched_count;
+      'Missing read RPC get_restaurant_subscription_self_service_state(uuid)';
   END IF;
+
+  original_definition := pg_get_functiondef(target_oid);
+  patched_definition := replace(
+    original_definition,
+    'IF public.commercial_demo_current_user_is_restricted() THEN',
+    'IF public.commercial_demo_current_user_is_restricted()
+       AND NOT public.dedicated_demo_can_access_restaurant(p_restaurant_id) THEN'
+  );
+  IF patched_definition = original_definition THEN
+    RAISE EXCEPTION
+      'Could not scope get_restaurant_subscription_self_service_state to the mapped demo restaurant';
+  END IF;
+  EXECUTE patched_definition;
+
+  target_oid := to_regprocedure(
+    'public.get_reservation_fee_invoice_lines(uuid)'
+  );
+  IF target_oid IS NULL THEN
+    RAISE EXCEPTION
+      'Missing read RPC get_reservation_fee_invoice_lines(uuid)';
+  END IF;
+
+  original_definition := pg_get_functiondef(target_oid);
+  patched_definition := replace(
+    original_definition,
+    'IF public.commercial_demo_current_user_is_restricted() THEN',
+    'IF public.commercial_demo_current_user_is_restricted()
+       AND NOT public.is_dedicated_commercial_demo_actor() THEN'
+  );
+  IF patched_definition = original_definition THEN
+    RAISE EXCEPTION
+      'Could not adapt get_reservation_fee_invoice_lines for the dedicated demo project';
+  END IF;
+  EXECUTE patched_definition;
 END
-$dedicated_demo_rpc_guards$;
+$dedicated_demo_safe_read_rpcs$;
+
+-- Credit usage is a SECURITY DEFINER read RPC without an ownership assertion.
+-- Add a dedicated-actor resource check while leaving every non-demo caller's
+-- existing production behavior unchanged.
+DO $dedicated_demo_credit_usage_scope$
+DECLARE
+  target_oid oid;
+  original_definition text;
+  patched_definition text; BEGIN
+  target_oid := to_regprocedure(
+    'public.get_restaurant_credit_usage(uuid,timestamp with time zone,timestamp with time zone)'
+  );
+  IF target_oid IS NULL THEN
+    RAISE EXCEPTION 'Missing read RPC get_restaurant_credit_usage';
+  END IF;
+
+  original_definition := pg_get_functiondef(target_oid);
+  patched_definition := replace(
+    original_definition,
+    E'BEGIN\n  IF p_restaurant_id IS NULL THEN',
+    E'BEGIN\n  IF public.is_dedicated_commercial_demo_actor()\n     AND NOT public.dedicated_demo_can_access_restaurant(p_restaurant_id) THEN\n    RAISE EXCEPTION ''DEMO_RESTAURANT_SCOPE_VIOLATION'' USING ERRCODE = ''42501'';\n  END IF;\n\n  IF p_restaurant_id IS NULL THEN'
+  );
+  IF patched_definition = original_definition THEN
+    RAISE EXCEPTION
+      'Could not scope get_restaurant_credit_usage to the mapped demo restaurant';
+  END IF;
+  EXECUTE patched_definition;
+END
+$dedicated_demo_credit_usage_scope$;
 
 -- The client demo catalog exposes only the restaurant assigned to the current
 -- server-provisioned commercial account, even if unrelated demo rows exist.
@@ -390,14 +481,18 @@ COMMENT ON FUNCTION public.search_restaurants_catalog(
 ) IS
   'Dedicated demo catalog. Returns only the active shared restaurant mapped to the current actor.';
 
--- Presentation actors may view/update only their server-assigned shared
--- restaurant. No INSERT or DELETE policy is granted, so they cannot create
--- extra demo rows or remove the shared fixture.
+-- Remove the previous actor-wide access only on mutable restaurant identity and
+-- menu tables. The replacement policies bind every row to the server mapping.
 DROP POLICY IF EXISTS dedicated_commercial_demo_full_access
   ON public.restaurants;
+DROP POLICY IF EXISTS dedicated_commercial_demo_full_access
+  ON public.menu_items;
+
 DROP POLICY IF EXISTS dedicated_commercial_demo_shared_restaurant_select
   ON public.restaurants;
 DROP POLICY IF EXISTS dedicated_commercial_demo_shared_restaurant_update
+  ON public.restaurants;
+DROP POLICY IF EXISTS block_commercial_demo_restaurant_update
   ON public.restaurants;
 
 CREATE POLICY dedicated_commercial_demo_shared_restaurant_select
@@ -405,9 +500,7 @@ ON public.restaurants
 FOR SELECT
 TO authenticated
 USING (
-  public.is_dedicated_commercial_demo_actor()
-  AND id = public.commercial_demo_current_restaurant_id()
-  AND is_demo IS TRUE
+  public.dedicated_demo_can_access_restaurant(id)
 );
 
 CREATE POLICY dedicated_commercial_demo_shared_restaurant_update
@@ -415,12 +508,156 @@ ON public.restaurants
 FOR UPDATE
 TO authenticated
 USING (
-  public.is_dedicated_commercial_demo_actor()
-  AND id = public.commercial_demo_current_restaurant_id()
-  AND is_demo IS TRUE
+  public.dedicated_demo_can_access_restaurant(id)
 )
 WITH CHECK (
-  public.is_dedicated_commercial_demo_actor()
-  AND id = public.commercial_demo_current_restaurant_id()
-  AND is_demo IS TRUE
+  public.dedicated_demo_can_access_restaurant(id)
 );
+
+CREATE POLICY block_commercial_demo_restaurant_update
+ON public.restaurants
+AS RESTRICTIVE
+FOR UPDATE
+TO authenticated
+USING (
+  NOT public.commercial_demo_current_user_is_restricted()
+  OR public.dedicated_demo_can_access_restaurant(id)
+)
+WITH CHECK (
+  NOT public.commercial_demo_current_user_is_restricted()
+  OR public.dedicated_demo_can_access_restaurant(id)
+);
+
+-- Restaurant creation/deletion stays blocked by the inherited restrictive
+-- production policies. Menu CRUD is useful in the demo editor and is allowed
+-- only when both the previous and next row belong to the mapped restaurant.
+DROP POLICY IF EXISTS dedicated_commercial_demo_mapped_menu_select
+  ON public.menu_items;
+DROP POLICY IF EXISTS dedicated_commercial_demo_mapped_menu_insert
+  ON public.menu_items;
+DROP POLICY IF EXISTS dedicated_commercial_demo_mapped_menu_update
+  ON public.menu_items;
+DROP POLICY IF EXISTS dedicated_commercial_demo_mapped_menu_delete
+  ON public.menu_items;
+DROP POLICY IF EXISTS block_commercial_demo_menu_item_insert
+  ON public.menu_items;
+DROP POLICY IF EXISTS block_commercial_demo_menu_item_update
+  ON public.menu_items;
+DROP POLICY IF EXISTS block_commercial_demo_menu_item_delete
+  ON public.menu_items;
+
+CREATE POLICY dedicated_commercial_demo_mapped_menu_select
+ON public.menu_items
+FOR SELECT
+TO authenticated
+USING (
+  public.dedicated_demo_can_access_restaurant(restaurant_id)
+);
+
+CREATE POLICY dedicated_commercial_demo_mapped_menu_insert
+ON public.menu_items
+FOR INSERT
+TO authenticated
+WITH CHECK (
+  public.dedicated_demo_can_access_restaurant(restaurant_id)
+);
+
+CREATE POLICY dedicated_commercial_demo_mapped_menu_update
+ON public.menu_items
+FOR UPDATE
+TO authenticated
+USING (
+  public.dedicated_demo_can_access_restaurant(restaurant_id)
+)
+WITH CHECK (
+  public.dedicated_demo_can_access_restaurant(restaurant_id)
+);
+
+CREATE POLICY dedicated_commercial_demo_mapped_menu_delete
+ON public.menu_items
+FOR DELETE
+TO authenticated
+USING (
+  public.dedicated_demo_can_access_restaurant(restaurant_id)
+);
+
+CREATE POLICY block_commercial_demo_menu_item_insert
+ON public.menu_items
+AS RESTRICTIVE
+FOR INSERT
+TO authenticated
+WITH CHECK (
+  NOT public.commercial_demo_current_user_is_restricted()
+  OR public.dedicated_demo_can_access_restaurant(restaurant_id)
+);
+
+CREATE POLICY block_commercial_demo_menu_item_update
+ON public.menu_items
+AS RESTRICTIVE
+FOR UPDATE
+TO authenticated
+USING (
+  NOT public.commercial_demo_current_user_is_restricted()
+  OR public.dedicated_demo_can_access_restaurant(restaurant_id)
+)
+WITH CHECK (
+  NOT public.commercial_demo_current_user_is_restricted()
+  OR public.dedicated_demo_can_access_restaurant(restaurant_id)
+);
+
+CREATE POLICY block_commercial_demo_menu_item_delete
+ON public.menu_items
+AS RESTRICTIVE
+FOR DELETE
+TO authenticated
+USING (
+  NOT public.commercial_demo_current_user_is_restricted()
+  OR public.dedicated_demo_can_access_restaurant(restaurant_id)
+);
+
+DO $dedicated_demo_runtime_assertions$
+DECLARE
+  broad_policy_count integer;
+  scoped_policy_count integer; BEGIN
+  SELECT count(*)::integer
+  INTO broad_policy_count
+  FROM pg_policies
+  WHERE schemaname = 'public'
+    AND tablename IN ('restaurants', 'menu_items')
+    AND policyname = 'dedicated_commercial_demo_full_access';
+
+  IF broad_policy_count <> 0 THEN
+    RAISE EXCEPTION
+      'Actor-wide restaurant/menu policies remain after dedicated demo scoping';
+  END IF;
+
+  SELECT count(*)::integer
+  INTO scoped_policy_count
+  FROM pg_policies
+  WHERE schemaname = 'public'
+    AND (
+      (
+        tablename = 'restaurants'
+        AND policyname IN (
+          'dedicated_commercial_demo_shared_restaurant_select',
+          'dedicated_commercial_demo_shared_restaurant_update'
+        )
+      )
+      OR (
+        tablename = 'menu_items'
+        AND policyname IN (
+          'dedicated_commercial_demo_mapped_menu_select',
+          'dedicated_commercial_demo_mapped_menu_insert',
+          'dedicated_commercial_demo_mapped_menu_update',
+          'dedicated_commercial_demo_mapped_menu_delete'
+        )
+      )
+    );
+
+  IF scoped_policy_count <> 6 THEN
+    RAISE EXCEPTION
+      'Expected 6 scoped restaurant/menu policies, found %',
+      scoped_policy_count;
+  END IF;
+END
+$dedicated_demo_runtime_assertions$;
