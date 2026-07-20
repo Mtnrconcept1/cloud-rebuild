@@ -85,6 +85,12 @@ describe("demo runtime access and real catalog isolation", () => {
     expect(demoMigration).toContain(
       "dedicated_commercial_demo_shared_restaurant_update",
     );
+    expect(demoMigration).toMatch(
+      /CREATE POLICY dedicated_commercial_demo_shared_restaurant_update[\s\S]*?WITH CHECK \(\s*public\.dedicated_demo_can_access_restaurant\(id\)\s*AND is_demo IS TRUE\s*AND is_active IS TRUE\s*\);/,
+    );
+    expect(demoMigration).toMatch(
+      /CREATE POLICY block_commercial_demo_restaurant_update[\s\S]*?WITH CHECK \(\s*NOT public\.commercial_demo_current_user_is_restricted\(\)\s*OR \(\s*public\.dedicated_demo_can_access_restaurant\(id\)\s*AND is_demo IS TRUE\s*AND is_active IS TRUE\s*\)\s*\);/,
+    );
     expect(demoMigration).toContain(
       "dedicated_commercial_demo_mapped_menu_insert",
     );

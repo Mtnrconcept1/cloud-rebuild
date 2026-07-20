@@ -512,6 +512,8 @@ USING (
 )
 WITH CHECK (
   public.dedicated_demo_can_access_restaurant(id)
+  AND is_demo IS TRUE
+  AND is_active IS TRUE
 );
 
 CREATE POLICY block_commercial_demo_restaurant_update
@@ -525,7 +527,11 @@ USING (
 )
 WITH CHECK (
   NOT public.commercial_demo_current_user_is_restricted()
-  OR public.dedicated_demo_can_access_restaurant(id)
+  OR (
+    public.dedicated_demo_can_access_restaurant(id)
+    AND is_demo IS TRUE
+    AND is_active IS TRUE
+  )
 );
 
 -- Restaurant creation/deletion stays blocked by the inherited restrictive
