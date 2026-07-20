@@ -3,6 +3,7 @@ import type {
   TokImageGenerationResult,
   TokAiMessage,
 } from "@/lib/ai/tokAiClient";
+import { COMMERCIAL_DEMO_SUPABASE_URL } from "@/integrations/supabase/demoClient";
 import {
   invokeCommercialDemoFunction,
   invokeCommercialDemoRpc,
@@ -230,8 +231,13 @@ async function referenceUrlToDataUrl(value: string) {
     configuredSupabaseOrigin = "";
   }
   const currentOrigin = typeof window === "undefined" ? "" : window.location.origin;
+  const dedicatedDemoOrigin = new URL(COMMERCIAL_DEMO_SUPABASE_URL).origin;
   const isTrustedRemote = parsed.protocol === "https:"
-    && (parsed.origin === currentOrigin || (configuredSupabaseOrigin !== "" && parsed.origin === configuredSupabaseOrigin));
+    && (
+      parsed.origin === currentOrigin
+      || parsed.origin === dedicatedDemoOrigin
+      || (configuredSupabaseOrigin !== "" && parsed.origin === configuredSupabaseOrigin)
+    );
   if (parsed.protocol !== "blob:" && !isTrustedRemote) {
     throw new Error("Une image de référence utilise un protocole non autorisé.");
   }
