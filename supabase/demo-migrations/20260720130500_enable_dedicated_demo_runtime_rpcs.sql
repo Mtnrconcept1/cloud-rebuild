@@ -390,21 +390,9 @@ COMMENT ON FUNCTION public.search_restaurants_catalog(
 ) IS
   'Dedicated demo catalog. Returns only the active shared restaurant mapped to the current actor.';
 
--- Quarantine any unassigned demo restaurant and prevent presentation actors
--- from creating or deleting restaurants. They may view/update only their
--- server-assigned shared restaurant.
-UPDATE public.restaurants AS restaurant
-SET is_active = false,
-    updated_at = now()
-WHERE restaurant.is_demo IS TRUE
-  AND restaurant.is_active IS TRUE
-  AND NOT EXISTS (
-    SELECT 1
-    FROM public.commercial_demo_accounts AS account
-    WHERE account.demo_restaurant_id = restaurant.id
-      AND account.is_active
-  );
-
+-- Presentation actors may view/update only their server-assigned shared
+-- restaurant. No INSERT or DELETE policy is granted, so they cannot create
+-- extra demo rows or remove the shared fixture.
 DROP POLICY IF EXISTS dedicated_commercial_demo_full_access
   ON public.restaurants;
 DROP POLICY IF EXISTS dedicated_commercial_demo_shared_restaurant_select
