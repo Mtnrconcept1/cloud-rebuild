@@ -203,6 +203,7 @@ BEGIN
     LEFT JOIN menu_matches mm ON mm.restaurant_id = r.id
     WHERE r.is_active = true
       AND COALESCE(r.is_demo, false) IS FALSE
+      AND lower(COALESCE(r.status, '')) <> 'demo'
       AND (v_city = '' OR public.normalize_search_text(r.city) LIKE '%' || v_city || '%')
       AND (COALESCE(p_price_range, 0) <= 0 OR r.price_range = p_price_range)
       AND (COALESCE(p_delivery_only, false) = false OR COALESCE(r.delivery_available, false) = true)
