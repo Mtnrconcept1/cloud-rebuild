@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 const cors = readFileSync("supabase/functions/_shared/cors.ts", "utf8");
 const productionMigration = readFileSync(
-  "supabase/migrations/20260720130000_hide_demo_restaurants_from_real_catalog.sql",
+  "supabase/migrations/20260720131000_hide_demo_restaurants_from_real_catalog.sql",
   "utf8",
 );
 const demoMigration = readFileSync(
