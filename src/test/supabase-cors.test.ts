@@ -104,6 +104,30 @@ describe("supabase edge function cors", () => {
     expect(preflight?.headers.get("Access-Control-Allow-Origin")).toBe("https://commercial.thetok.ch");
   });
 
+  it.each([
+    "https://demo-client.thetok.ch",
+    "https://demo-restaurateur.thetok.ch",
+    "https://demo-livreur.thetok.ch",
+  ])("allows focused demo origin %s and preserves the preflight contract", async (origin) => {
+    const { buildCorsHeaders, handleCorsPreflight, isRequestOriginAllowed } =
+      await loadCorsModule({});
+
+    const req = new Request("https://example.supabase.co/functions/v1/test", {
+      method: "OPTIONS",
+      headers: { origin },
+    });
+
+    const corsHeaders = buildCorsHeaders(req);
+    const preflight = handleCorsPreflight(req, corsHeaders);
+
+    expect(isRequestOriginAllowed(req)).toBe(true);
+    expect(corsHeaders["Access-Control-Allow-Origin"]).toBe(origin);
+    expect(corsHeaders.Vary).toBe("Origin");
+    expect(preflight?.status).toBe(204);
+    expect(preflight?.headers.get("Access-Control-Allow-Origin")).toBe(origin);
+    expect(preflight?.headers.get("Vary")).toBe("Origin");
+  });
+
   it("allows owned Vercel preview deployments for the current project", async () => {
     const { buildCorsHeaders, handleCorsPreflight } = await loadCorsModule({});
 

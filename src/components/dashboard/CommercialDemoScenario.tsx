@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import {
   Ban,
+  Bot,
   CalendarDays,
   CheckCircle2,
   ChevronRight,
@@ -10,6 +11,7 @@ import {
   ClipboardList,
   Clock3,
   Eye,
+  Loader2,
   PackageCheck,
   RotateCcw,
   Search,
@@ -30,6 +32,7 @@ import { Input } from "@/components/ui/input";
 import { useDashboardRestaurant } from "@/pages/dashboard/useDashboardRestaurant";
 import { getRelativeLocalDateKey } from "@/lib/commercialDemoDate";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
+import { askCommercialDemoAi } from "@/lib/commercialDemoAi";
 import {
   transitionCommercialDemoReservation,
   type CommercialDemoReservationTransitionAction,
@@ -729,6 +732,52 @@ export function CommercialDemoAccounting() {
   const subscription = commercialDemoFrame ? 0 : 149;
   const refunds = commercialDemoFrame ? 0 : 83.5;
   const openNet = restaurantShare - advertising - subscription - refunds;
+  const accountingAiEnabled = commercialDemoFrame?.snapshot.active_features.includes(
+    "ai_accounting_insights",
+  ) === true;
+  const [accountingAiReply, setAccountingAiReply] = useState("");
+  const accountingAiMutation = useMutation({
+    mutationFn: async () => {
+      if (
+        !commercialDemoFrame
+        || commercialDemoFrame.surface !== "restaurant"
+        || !accountingAiEnabled
+      ) {
+        throw new Error("La comptabilité IA de démonstration n'est pas disponible.");
+      }
+
+      return askCommercialDemoAi({
+        runtime: {
+          sessionId: commercialDemoFrame.config.sessionId,
+          surface: "restaurant",
+        },
+        tool: "assistant",
+        message: [
+          "Prépare une synthèse comptable pédagogique en français pour ce scénario de démonstration.",
+          "Utilise exclusivement les données simulées de la session et ne prétends jamais consulter une comptabilité réelle.",
+          "Présente une lecture courte des chiffres, trois points de vigilance, une projection illustrative et trois actions prioritaires.",
+          "Rappelle en conclusion que cette synthèse de démonstration ne constitue pas un conseil fiscal ou comptable.",
+        ].join(" "),
+        context: {
+          workspace: "accounting",
+          data_scope: "commercial_demo_snapshot_only",
+          currency: "CHF",
+          gross_sales: grossSales,
+          restaurant_share: restaurantShare,
+          tok_commission: tokCommission,
+          advertising_costs: advertising,
+          subscription_costs: subscription,
+          simulated_refunds: refunds,
+          estimated_open_net: openNet,
+          paid_order_count: paidOrder ? 1 : 0,
+          order_status: paidOrder?.status || null,
+          payment_status: paidOrder?.payment_status || null,
+          reservation_count: commercialDemoFrame.snapshot.reservations.length,
+        },
+      });
+    },
+    onSuccess: (result) => setAccountingAiReply(result.reply),
+  });
   const shareOfGross = (value: number) => grossSales > 0 ? `${Math.round((value / grossSales) * 100)} %` : "0 %";
   const revenueRows = [
     { label: "Commande Stripe Test", value: grossSales, share: shareOfGross(grossSales) },
@@ -762,6 +811,57 @@ export function CommercialDemoAccounting() {
         />
 
         <DemoSafetyNotice />
+
+        {commercialDemoFrame ? (
+          <Card className="rounded-3xl border-sky-200 bg-sky-50/70 dark:border-sky-400/25 dark:bg-sky-500/10" data-testid="commercial-demo-accounting-ai">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <Bot className="h-5 w-5 text-sky-700 dark:text-sky-300" />
+                Comptabilité IA
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                OpenAI analyse uniquement les chiffres simulés de cette session Démo. Aucune table financière réelle n'est lue ou modifiée.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {accountingAiEnabled ? (
+                <Button
+                  type="button"
+                  className="gap-2"
+                  onClick={() => accountingAiMutation.mutate()}
+                  disabled={accountingAiMutation.isPending}
+                >
+                  {accountingAiMutation.isPending
+                    ? <Loader2 className="h-4 w-4 animate-spin" />
+                    : <Bot className="h-4 w-4" />}
+                  {accountingAiMutation.isPending ? "Analyse en cours…" : "Générer la synthèse IA"}
+                </Button>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  La fonctionnalité Comptabilité IA est désactivée par l'administrateur.
+                </p>
+              )}
+
+              {accountingAiMutation.error ? (
+                <p className="text-sm text-destructive">
+                  {accountingAiMutation.error instanceof Error
+                    ? accountingAiMutation.error.message
+                    : "La synthèse IA n'a pas pu être générée."}
+                </p>
+              ) : null}
+
+              {accountingAiReply ? (
+                <div className="rounded-2xl border border-sky-200 bg-background/90 p-4 dark:border-sky-400/20">
+                  <div className="mb-2 flex flex-wrap items-center gap-2">
+                    <Badge variant="secondary">OpenAI serveur</Badge>
+                    <Badge variant="outline">Données Démo uniquement</Badge>
+                  </div>
+                  <p className="whitespace-pre-wrap text-sm leading-6">{accountingAiReply}</p>
+                </div>
+              ) : null}
+            </CardContent>
+          </Card>
+        ) : null}
 
         {commercialDemoFrame && !paidOrder ? (
           <Card className="rounded-3xl border-dashed">

@@ -1,3 +1,5 @@
+import { COMMERCIAL_DEMO_SUPABASE_URL } from "@/integrations/supabase/demoClient";
+
 const SAFE_SCOPED_READ_RPCS = new Set([
   "commercial_demo_ai_history",
   "get_reservation_fee_invoice_lines",
@@ -33,13 +35,17 @@ function isExactFunctionPath(url: URL, functionName: string) {
 }
 
 function isTrustedSupabaseOrigin(url: URL, currentOrigin: string) {
-  let configuredOrigin = "";
+  const trustedOrigins = new Set<string>([
+    currentOrigin,
+    new URL(COMMERCIAL_DEMO_SUPABASE_URL).origin,
+  ]);
   try {
-    configuredOrigin = new URL(String(import.meta.env.VITE_SUPABASE_URL || "")).origin;
+    const configuredOrigin = new URL(String(import.meta.env.VITE_SUPABASE_URL || "")).origin;
+    trustedOrigins.add(configuredOrigin);
   } catch {
-    configuredOrigin = "";
+    // An absent production URL must not remove the dedicated demo origin.
   }
-  return url.origin === currentOrigin || (configuredOrigin !== "" && url.origin === configuredOrigin);
+  return trustedOrigins.has(url.origin);
 }
 
 export function shouldProtectCommercialDemoRequest(rawUrl: string, method: string, currentOrigin: string) {

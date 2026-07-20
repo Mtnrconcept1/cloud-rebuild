@@ -24,6 +24,7 @@ vi.mock("sonner", () => ({
 }));
 
 import CommercialDemoSafeEffectsBoundary from "@/components/commercial/CommercialDemoSafeEffectsBoundary";
+import { COMMERCIAL_DEMO_SUPABASE_URL } from "@/integrations/supabase/demoClient";
 import { shouldProtectCommercialDemoRequest } from "@/lib/commercialDemoEffects";
 
 function RealToolPage() {
@@ -73,7 +74,7 @@ function RealCommercialAiPage() {
     <button
       type="button"
       onClick={async () => {
-        const response = await fetch("https://placeholder.supabase.co/functions/v1/commercial-demo-ai", {
+        const response = await fetch(`${COMMERCIAL_DEMO_SUPABASE_URL}/functions/v1/commercial-demo-ai`, {
           method: "POST",
           headers: {
             Authorization: "Bearer signed-user-jwt",
@@ -112,11 +113,15 @@ describe("commercial demo real-page side-effect guard", () => {
     window.fetch = originalFetch;
   });
 
-  it("protects writes and paid functions while allowing only the commercial AI Edge slug", () => {
+  it("protects writes and paid functions while trusting only configured Supabase projects", () => {
     const origin = "https://app.tok.test";
+    const demoFunction = `${COMMERCIAL_DEMO_SUPABASE_URL}/functions/v1/commercial-demo-ai`;
+    const demoRpc = `${COMMERCIAL_DEMO_SUPABASE_URL}/rest/v1/rpc`;
     expect(shouldProtectCommercialDemoRequest("https://placeholder.supabase.co/functions/v1/generate-campaign", "POST", origin)).toBe(true);
-    expect(shouldProtectCommercialDemoRequest("https://placeholder.supabase.co/functions/v1/commercial-demo-ai", "POST", origin)).toBe(false);
-    expect(shouldProtectCommercialDemoRequest("https://placeholder.supabase.co/functions/v1/commercial-demo-ai", "GET", origin)).toBe(true);
+    expect(shouldProtectCommercialDemoRequest(demoFunction, "POST", origin)).toBe(false);
+    expect(shouldProtectCommercialDemoRequest(demoFunction, "GET", origin)).toBe(true);
+    expect(shouldProtectCommercialDemoRequest(`${demoRpc}/commercial_demo_ai_history`, "POST", origin)).toBe(false);
+    expect(shouldProtectCommercialDemoRequest(`${demoRpc}/commercial_demo_ai_archive_conversation`, "POST", origin)).toBe(false);
     expect(shouldProtectCommercialDemoRequest("https://evil-project.supabase.co/functions/v1/commercial-demo-ai", "POST", origin)).toBe(true);
     expect(shouldProtectCommercialDemoRequest("https://placeholder.supabase.co/functions/v1/commercial-demo-ai-preview", "POST", origin)).toBe(true);
     expect(shouldProtectCommercialDemoRequest("https://placeholder.supabase.co/functions/v1/ai-image-enhance", "POST", origin)).toBe(true);
@@ -125,7 +130,9 @@ describe("commercial demo real-page side-effect guard", () => {
     expect(shouldProtectCommercialDemoRequest("https://placeholder.supabase.co/rest/v1/restaurants?id=eq.demo", "PATCH", origin)).toBe(true);
     expect(shouldProtectCommercialDemoRequest("https://placeholder.supabase.co/storage/v1/object/images/demo", "POST", origin)).toBe(true);
     expect(shouldProtectCommercialDemoRequest("https://placeholder.supabase.co/rest/v1/rpc/get_restaurant_credit_usage", "POST", origin)).toBe(false);
+    expect(shouldProtectCommercialDemoRequest(`${COMMERCIAL_DEMO_SUPABASE_URL}/rest/v1/rpc/get_restaurant_credit_usage`, "POST", origin)).toBe(false);
     expect(shouldProtectCommercialDemoRequest("https://paid.example/rest/v1/rpc/get_restaurant_credit_usage", "POST", origin)).toBe(true);
+    expect(shouldProtectCommercialDemoRequest("https://evil-project.supabase.co/rest/v1/rpc/commercial_demo_ai_history", "POST", origin)).toBe(true);
     expect(shouldProtectCommercialDemoRequest("https://placeholder.supabase.co/rest/v1/restaurant_media?restaurant_id=eq.demo", "GET", origin)).toBe(false);
     expect(shouldProtectCommercialDemoRequest("https://placeholder.supabase.co/auth/v1/token", "POST", origin)).toBe(false);
     expect(shouldProtectCommercialDemoRequest("https://evil.example/auth/v1/token", "POST", origin)).toBe(true);
@@ -143,7 +150,7 @@ describe("commercial demo real-page side-effect guard", () => {
     await waitFor(() => expect(screen.getByRole("button", { name: "IA commerciale · edge" })).toBeTruthy());
     expect(externalFetch).toHaveBeenCalledTimes(1);
     expect(externalFetch).toHaveBeenCalledWith(
-      "https://placeholder.supabase.co/functions/v1/commercial-demo-ai",
+      `${COMMERCIAL_DEMO_SUPABASE_URL}/functions/v1/commercial-demo-ai`,
       expect.objectContaining({ method: "POST" }),
     );
     expect(infoToast).not.toHaveBeenCalled();
@@ -165,6 +172,32 @@ describe("commercial demo real-page side-effect guard", () => {
     expect(externalFetch).not.toHaveBeenCalled();
     expect(infoToast).toHaveBeenCalledTimes(1);
   });
+
+  it.each([
+    ["social", "Réseaux sociaux"],
+    ["support", "Support"],
+  ] as const)(
+    "keeps the %s page protected without advertising an embedded OpenAI tool",
+    async (tool, label) => {
+      render(
+        <CommercialDemoSafeEffectsBoundary tool={tool}>
+          <RealToolPage />
+        </CommercialDemoSafeEffectsBoundary>,
+      );
+
+      const pageButton = await screen.findByRole("button", { name: "Vraie page · idle" });
+      expect(screen.queryByTestId(`commercial-demo-real-tool-${tool}`)).toBeNull();
+      fireEvent.click(pageButton);
+
+      await waitFor(() => expect(screen.getByRole("button", { name: "Vraie page · simulated" })).toBeTruthy());
+      expect(infoToast).toHaveBeenCalledWith(
+        "Action enregistrée dans l’espace Démo",
+        {
+          description: `${label} est opérationnel dans l’espace Démo, sans toucher aux établissements réels.`,
+        },
+      );
+    },
+  );
 
   it("preserves PostgREST select().single() semantics for simulated inserts", async () => {
     const externalFetch = window.fetch as ReturnType<typeof vi.fn>;

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ComponentType } from "react";
 import { CalendarClock, Crown, Facebook, ImagePlus, Instagram, Loader2, Megaphone, Music2, Plus, Send, Share2, Sparkles, Video, X } from "lucide-react";
 
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -41,6 +42,10 @@ import {
   getCampaignPricing,
   type CampaignPricingStrategy,
 } from "@/lib/campaignPricing";
+import {
+  askCommercialDemoAi,
+  parseCommercialDemoAiJson,
+} from "@/lib/commercialDemoAi";
 import { invokeSupabaseFunction } from "@/lib/session";
 import {
   getSocialPostShareUrl,
@@ -127,6 +132,44 @@ type AiCopyVariant = {
   campaignGoal: SocialMarketingGoal;
   campaignName: string;
 };
+
+const AI_COPY_POST_TYPES = new Set<SocialPostType>(["plat", "promo", "evenement", "coulisses", "annonce"]);
+const AI_COPY_CTA_TYPES = new Set<SocialPostCtaType>(["none", "reserve", "order", "menu", "offer"]);
+const AI_COPY_CAMPAIGN_GOALS = new Set<SocialMarketingGoal>(["awareness", "orders", "bookings", "loyalty", "offer"]);
+
+function normalizeCommercialDemoAiCopyVariants(payload: unknown): AiCopyVariant[] {
+  const candidates = payload && typeof payload === "object" && !Array.isArray(payload)
+    ? (payload as { variants?: unknown }).variants
+    : null;
+  if (!Array.isArray(candidates)) return [];
+
+  return candidates.flatMap((candidate) => {
+    if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) return [];
+    const row = candidate as Record<string, unknown>;
+    const title = String(row.title || "").trim();
+    const body = String(row.body || "").trim();
+    const postType = String(row.postType || "") as SocialPostType;
+    const ctaType = String(row.ctaType || "") as SocialPostCtaType;
+    const campaignGoal = String(row.campaignGoal || "") as SocialMarketingGoal;
+
+    if (
+      !title
+      || !body
+      || !AI_COPY_POST_TYPES.has(postType)
+      || !AI_COPY_CTA_TYPES.has(ctaType)
+      || !AI_COPY_CAMPAIGN_GOALS.has(campaignGoal)
+    ) return [];
+
+    return [{
+      title: title.slice(0, 120),
+      body: body.slice(0, 1_500),
+      postType,
+      ctaType,
+      campaignGoal,
+      campaignName: String(row.campaignName || title).trim().slice(0, 120),
+    }];
+  }).slice(0, 3);
+}
 
 const AI_COPY_INITIAL_ANSWERS: AiCopyAnswers = {
   objective: "",
@@ -281,6 +324,7 @@ export default function SocialComposer({
   const [sponsorAiPreset, setSponsorAiPreset] = useState<SponsoredCampaignAiPreset | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const commercialDemoFrame = useCommercialDemoFrame();
   const createPost = useCreateSocialPost();
   const createPremiumBanner = useCreatePremiumActualitesBanner();
   const premiumBannerAudience = useRestaurantActualitesPremiumBannerAudience(restaurantId);
@@ -543,7 +587,7 @@ export default function SocialComposer({
     setSponsorAiPreset(preset);
 
     toast({
-      title: "Plan IA appliqué",
+      title: "Recommandation appliquée",
       description: preset.summary,
     });
   };
@@ -554,16 +598,56 @@ export default function SocialComposer({
     setAiCopyError(null);
 
     try {
-      const { data, error } = await getSupabase().functions.invoke<{ variants: AiCopyVariant[] }>("ai-social-post-copy", {
-        body: {
-          restaurantId,
-          currentText: body,
-          answers: aiCopyAnswers,
-        },
-      });
+      let variants: AiCopyVariant[];
 
-      if (error) throw error;
-      const variants = Array.isArray(data?.variants) ? data.variants.slice(0, 3) : [];
+      if (commercialDemoFrame?.surface === "restaurant") {
+        const generated = await askCommercialDemoAi({
+          runtime: {
+            sessionId: commercialDemoFrame.config.sessionId,
+            surface: "restaurant",
+          },
+          tool: "assistant",
+          message: [
+            "Crée exactement 3 variantes distinctes d’une actualité prête à publier pour ce restaurant.",
+            "Retourne exclusivement un objet JSON avec une propriété variants.",
+            "Chaque variante contient title, body, postType, ctaType, campaignGoal et campaignName.",
+            "postType vaut plat, promo, evenement, coulisses ou annonce.",
+            "ctaType vaut none, reserve, order, menu ou offer.",
+            "campaignGoal vaut awareness, orders, bookings, loyalty ou offer.",
+          ].join(" "),
+          context: {
+            entrypoint: "restaurant_actualites_ai_copy",
+            restaurant: { id: restaurantId, name: restaurantName || null },
+            current_text: body,
+            answers: aiCopyAnswers,
+            output_schema: {
+              variants: [{
+                title: "string",
+                body: "string",
+                postType: "plat|promo|evenement|coulisses|annonce",
+                ctaType: "none|reserve|order|menu|offer",
+                campaignGoal: "awareness|orders|bookings|loyalty|offer",
+                campaignName: "string",
+              }],
+            },
+          },
+        });
+        variants = normalizeCommercialDemoAiCopyVariants(
+          parseCommercialDemoAiJson<{ variants?: unknown }>(generated.reply),
+        );
+      } else {
+        const { data, error } = await getSupabase().functions.invoke<{ variants: AiCopyVariant[] }>("ai-social-post-copy", {
+          body: {
+            restaurantId,
+            currentText: body,
+            answers: aiCopyAnswers,
+          },
+        });
+
+        if (error) throw error;
+        variants = Array.isArray(data?.variants) ? data.variants.slice(0, 3) : [];
+      }
+
       if (variants.length !== 3) throw new Error("Réponse IA incomplète.");
       setAiCopyVariants(variants);
     } catch (error) {
@@ -1018,9 +1102,9 @@ export default function SocialComposer({
             <div className="rounded-2xl border border-orange-200 bg-orange-50/80 p-3">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <p className="text-sm font-semibold text-orange-950">TOK IA choisit les meilleurs paramètres</p>
+                  <p className="text-sm font-semibold text-orange-950">TOK recommande les meilleurs paramètres</p>
                   <p className="mt-1 text-xs leading-5 text-orange-800">
-                    Analyse le texte, le format, le CTA, l'objectif et les signaux du restaurant pour remplir la campagne.
+                    Calcule localement une recommandation à partir du texte, du format, du CTA, de l'objectif et des signaux du restaurant.
                   </p>
                 </div>
                 <Button
@@ -1030,12 +1114,12 @@ export default function SocialComposer({
                   onClick={applySponsorAiPreset}
                 >
                   <Sparkles className="h-4 w-4" />
-                  IA optimise ma publicité
+                  Recommander mes paramètres
                 </Button>
               </div>
               {sponsorAiPreset ? (
                 <div className="mt-3 rounded-xl border border-orange-100 bg-white/80 p-3">
-                  <p className="text-sm font-semibold text-orange-950">Plan IA appliqué</p>
+                  <p className="text-sm font-semibold text-orange-950">Recommandation appliquée</p>
                   <ul className="mt-2 space-y-1 text-xs leading-5 text-orange-800">
                     {sponsorAiPreset.reasons.map((reason) => (
                       <li key={reason}>{reason}</li>
@@ -1394,7 +1478,7 @@ export default function SocialComposer({
               Améliorer mon texte avec l'IA
             </DialogTitle>
             <DialogDescription>
-              Répondez aux questions clés. TOK génère ensuite 3 variantes prêtes à publier.
+              Répondez aux questions clés. OpenAI génère ensuite 3 variantes prêtes à publier.
             </DialogDescription>
           </DialogHeader>
 
