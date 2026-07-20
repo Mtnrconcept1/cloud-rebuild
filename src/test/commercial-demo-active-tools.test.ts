@@ -186,6 +186,25 @@ describe("commercial demo active tools and reservations", () => {
     expect(menu).toContain(".update(form)");
   });
 
+  it("runs real accounting AI from the isolated demo snapshot without financial-table access", () => {
+    const accounting = reservations.slice(
+      reservations.indexOf("export function CommercialDemoAccounting()"),
+    );
+
+    expect(accounting).toContain('"ai_accounting_insights"');
+    expect(accounting).toContain("askCommercialDemoAi");
+    expect(accounting).toContain("commercialDemoFrame.config.sessionId");
+    expect(accounting).toContain('tool: "assistant"');
+    expect(accounting).toContain('workspace: "accounting"');
+    expect(accounting).toContain('data_scope: "commercial_demo_snapshot_only"');
+    expect(accounting).toContain("commercialDemoFrame.snapshot.reservations.length");
+    expect(accounting).not.toContain("runAccountingAgent");
+    expect(accounting).not.toContain('"ai-accounting-agent"');
+    expect(accounting).not.toContain('.from("financial_ledger")');
+    expect(accounting).not.toContain('.from("restaurant_invoices")');
+    expect(accounting).not.toContain('.from("ai_accounting_insights")');
+  });
+
   it("opens premium CRM only for the demo restaurant while preserving real pack gating", () => {
     expect(crm).toContain("isDemoMode,");
     expect(crm).toContain("isDemoMode || isPremiumOrEliteRestaurantSubscription(subscription");
