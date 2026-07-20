@@ -16,6 +16,20 @@ const socialHooks = vi.hoisted(() => ({
   from: vi.fn(),
 }));
 
+const commercialDemoAi = vi.hoisted(() => ({
+  frame: null as Record<string, unknown> | null,
+  ask: vi.fn(),
+}));
+
+vi.mock("@/components/commercial/CommercialDemoFrameProvider", () => ({
+  useCommercialDemoFrame: () => commercialDemoAi.frame,
+}));
+
+vi.mock("@/lib/commercialDemoAi", () => ({
+  askCommercialDemoAi: commercialDemoAi.ask,
+  parseCommercialDemoAiJson: (reply: string) => JSON.parse(reply) as unknown,
+}));
+
 vi.mock("@/hooks/useSocialFeed", () => ({
   useCreatePremiumActualitesBanner: () => ({ mutateAsync: socialHooks.createPremiumBanner, isPending: false }),
   useCreateSocialPost: () => ({ mutateAsync: socialHooks.createPost, isPending: false }),
@@ -53,6 +67,8 @@ describe("SocialComposer external social publishing", () => {
     socialHooks.invoke.mockReset();
     socialHooks.invokeSupabaseFunction.mockReset();
     socialHooks.from.mockReset();
+    commercialDemoAi.frame = null;
+    commercialDemoAi.ask.mockReset();
     socialHooks.from.mockImplementation((table: string) => {
       if (table === "restaurants") {
         const chain = {
@@ -178,6 +194,75 @@ describe("SocialComposer external social publishing", () => {
 
     expect((screen.getByPlaceholderText(/Quoi de neuf/i) as HTMLTextAreaElement).value).toContain(
       "notre plat du jour maison est prêt",
+    );
+  });
+
+  it("renders three variants from the dedicated commercial demo AI", async () => {
+    const sessionId = "efc018a2-0c34-430c-9714-6edc91781af8";
+    commercialDemoAi.frame = {
+      surface: "restaurant",
+      config: { sessionId },
+    };
+    commercialDemoAi.ask.mockResolvedValue({
+      reply: JSON.stringify({
+        variants: [
+          {
+            title: "Midi Démo",
+            body: "Le plat du jour maison vous attend ce midi. Commandez sur TOK.",
+            postType: "plat",
+            ctaType: "order",
+            campaignGoal: "orders",
+            campaignName: "Midi Démo IA",
+          },
+          {
+            title: "Table Démo",
+            body: "Quelques tables restent disponibles pour le service du soir.",
+            postType: "annonce",
+            ctaType: "reserve",
+            campaignGoal: "bookings",
+            campaignName: "Réservation Démo IA",
+          },
+          {
+            title: "Coulisses Démo",
+            body: "Découvrez notre équipe en cuisine et nos produits frais.",
+            postType: "coulisses",
+            ctaType: "menu",
+            campaignGoal: "awareness",
+            campaignName: "Coulisses Démo IA",
+          },
+        ],
+      }),
+    });
+
+    render(<SocialComposer restaurantId="restaurant-demo-1" restaurantName="Restaurant Démo TOK" />);
+
+    fireEvent.click(screen.getByRole("button", { name: /Améliorer mon texte avec l'IA/i }));
+    fireEvent.click(screen.getByRole("radio", { name: /Recevoir plus de commandes/i }));
+    fireEvent.click(screen.getByRole("radio", { name: /Service de midi/i }));
+    fireEvent.click(screen.getByRole("radio", { name: /Premium et direct/i }));
+    fireEvent.click(screen.getByRole("radio", { name: /Clients proches/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Générer 3 variantes/i }));
+
+    await waitFor(() => {
+      expect(commercialDemoAi.ask).toHaveBeenCalledWith(expect.objectContaining({
+        runtime: { sessionId, surface: "restaurant" },
+        tool: "assistant",
+        context: expect.objectContaining({
+          entrypoint: "restaurant_actualites_ai_copy",
+          restaurant: { id: "restaurant-demo-1", name: "Restaurant Démo TOK" },
+        }),
+      }));
+    });
+
+    expect(await screen.findByText("Midi Démo")).toBeInTheDocument();
+    expect(screen.getByText("Table Démo")).toBeInTheDocument();
+    expect(screen.getByText("Coulisses Démo")).toBeInTheDocument();
+    expect(screen.getAllByText(/^Variante [1-3]$/)).toHaveLength(3);
+    expect(socialHooks.invoke).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByText("Coulisses Démo"));
+    expect((screen.getByPlaceholderText(/Quoi de neuf/i) as HTMLTextAreaElement).value).toContain(
+      "notre équipe en cuisine",
     );
   });
 
