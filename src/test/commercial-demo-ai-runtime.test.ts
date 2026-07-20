@@ -10,6 +10,7 @@ vi.mock("@/lib/commercialDemoProject", () => ({
   invokeCommercialDemoRpc,
 }));
 
+import { COMMERCIAL_DEMO_SUPABASE_URL } from "@/integrations/supabase/demoClient";
 import {
   askCommercialDemoAi,
   generateCommercialDemoVisual,
@@ -39,6 +40,7 @@ describe("commercial demo AI browser runtime", () => {
 
   afterEach(() => {
     vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
   it("deduplicates a double click and sends one authenticated Edge request", async () => {
@@ -146,5 +148,59 @@ describe("commercial demo AI browser runtime", () => {
     );
     expect(requestBody.request_id).not.toBe("f330c691-864e-4942-90d5-3932c7f828d2");
     expect(requestBody.context.generation_seed).toBe("f330c691-864e-4942-90d5-3932c7f828d2");
+  });
+
+  it("loads a signed reference from the dedicated demo project for a real image edit", async () => {
+    const referenceUrl = `${COMMERCIAL_DEMO_SUPABASE_URL}/storage/v1/object/sign/commercial-demo-ai/demo/reference.png?token=signed`;
+    const referenceBlob = new Blob([new Uint8Array([137, 80, 78, 71])], {
+      type: "image/png",
+    });
+    const fetchReference = vi.spyOn(globalThis, "fetch").mockResolvedValue({
+      ok: true,
+      headers: new Headers({
+        "content-type": "image/png",
+        "content-length": String(referenceBlob.size),
+      }),
+      blob: async () => referenceBlob,
+    } as Response);
+
+    invokeCommercialDemoFunction.mockResolvedValueOnce({
+      generation_id: "2e1af266-83d9-41ab-9192-c5f0cfb5b399",
+      tool: "photo_studio",
+      prompt: "Retouche éditoriale du plat",
+      output_url: `${COMMERCIAL_DEMO_SUPABASE_URL}/storage/v1/object/sign/commercial-demo-ai/demo/output.webp?token=signed`,
+      output_mime_type: "image/webp",
+      model: "gpt-image-2",
+      format: "square",
+      width: 1024,
+      height: 1024,
+      credit_units: 0,
+      estimated_cost_chf: 0.061,
+      alt_text: "Plat TOK retouché",
+      style: "premium",
+      created_at: "2026-07-20T11:00:00.000Z",
+      replayed: false,
+    });
+
+    await generateCommercialDemoVisual(runtime, {
+      restaurantId: "09f8c3c6-bc46-4a81-ab82-378aca46d5dc",
+      prompt: "Améliore la lumière sans changer le dressage",
+      dishName: "Plat signature",
+      format: "square",
+      sourceImageUrl: referenceUrl,
+    });
+
+    expect(fetchReference).toHaveBeenCalledWith(
+      referenceUrl,
+      expect.objectContaining({
+        method: "GET",
+        credentials: "omit",
+        referrerPolicy: "no-referrer",
+      }),
+    );
+    const requestBody = invokeCommercialDemoFunction.mock.calls[0][1];
+    expect(requestBody.reference_images).toHaveLength(1);
+    expect(requestBody.reference_images[0]).toMatch(/^data:image\/png;base64,/);
+    expect(requestBody.context.reference_count).toBe(1);
   });
 });
