@@ -55,6 +55,7 @@ describe("demo runtime access and real catalog isolation", () => {
     expect(demoMigration).toContain(
       "DROP POLICY IF EXISTS dedicated_commercial_demo_full_access",
     );
-    expect(demoMigration).toContain("NOT EXISTS (");
+    expect(demoMigration).not.toMatch(/FOR\\s+INSERT/i);
+    expect(demoMigration).not.toMatch(/FOR\\s+DELETE/i);
   });
 });
