@@ -37,8 +37,11 @@ CREATE POLICY "Admins can manage invoice settings"
 -- Add invoice_number to restaurant_invoices
 ALTER TABLE public.restaurant_invoices ADD COLUMN IF NOT EXISTS invoice_number text;
 
--- Storage bucket for invoice logos
-INSERT INTO storage.buckets (id, name, public) VALUES ('invoice-logos', 'invoice-logos', true);
+-- Storage bucket for invoice logos. Supabase preview branches may provision it
+-- before replaying migrations, so preserve the existing hardened definition.
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('invoice-logos', 'invoice-logos', true)
+ON CONFLICT (id) DO NOTHING;
 
 CREATE POLICY "Restaurant owners can upload invoice logos"
   ON storage.objects FOR INSERT

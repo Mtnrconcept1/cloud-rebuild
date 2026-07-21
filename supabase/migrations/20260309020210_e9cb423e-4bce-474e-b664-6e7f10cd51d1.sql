@@ -53,8 +53,11 @@ END; $$;
 CREATE TRIGGER after_order_status_update AFTER UPDATE ON public.orders
 FOR EACH ROW EXECUTE FUNCTION public.trigger_order_status_notification();
 
--- 5. Create images storage bucket
-INSERT INTO storage.buckets (id, name, public) VALUES ('images', 'images', true);
+-- 5. Create images storage bucket. Preview branches may provision it before
+-- migration replay, so do not overwrite an existing hardened definition.
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('images', 'images', true)
+ON CONFLICT (id) DO NOTHING;
 
 -- 6. RLS policies for images bucket
 CREATE POLICY "Anyone can view images" ON storage.objects FOR SELECT USING (bucket_id = 'images');
