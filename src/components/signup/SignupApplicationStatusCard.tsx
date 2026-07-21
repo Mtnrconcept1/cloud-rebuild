@@ -239,7 +239,7 @@ export default function SignupApplicationStatusCard({
             ) : null}
             {onboardingPaymentReady && !onboardingInvoicePaid && !onboardingSubscriptionActive ? (
               <p className="mt-3 text-xs font-medium text-emerald-700 dark:text-emerald-300">
-                Le montant reste réservé dans TOK. L’abonnement démarrera automatiquement à la première activité client.
+                La carte est enregistrée et la formule choisie est scellée dans votre dossier. Aucun montant n’est bloqué ; l’abonnement démarrera automatiquement à la première activité client.
               </p>
             ) : null}
           </div>

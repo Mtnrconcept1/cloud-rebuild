@@ -16,7 +16,12 @@ function DashboardAccessGate({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (dashboardAccessLocked && location.pathname !== "/dashboard") {
+  const pendingRestaurantProfile = location.pathname === "/dashboard/restaurant";
+
+  if (
+    dashboardAccessLocked && location.pathname !== "/dashboard"
+    && !pendingRestaurantProfile
+  ) {
     return <Navigate to="/dashboard" replace />;
   }
 

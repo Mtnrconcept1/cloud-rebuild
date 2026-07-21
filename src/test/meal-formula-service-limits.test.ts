@@ -24,7 +24,7 @@ function latestMigrationContaining(needle: string) {
 
 describe("meal formula service table limits", () => {
   it("enforces formula table limits per service in Supabase", () => {
-    const migration = latestMigrationContaining("get_meal_formula_service_availability");
+    const migration = latestMigrationContaining("maxTablesPerService");
 
     expect(migration).toContain("CREATE OR REPLACE FUNCTION public.get_meal_formula_service_availability");
     expect(migration).toContain("maxTablesPerService");

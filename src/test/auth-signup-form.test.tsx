@@ -22,9 +22,20 @@ const supabaseMocks = vi.hoisted(() => ({
   signInWithPassword: vi.fn(),
   signOut: vi.fn(),
   signUp: vi.fn(),
+  remove: vi.fn(),
   upload: vi.fn(),
   invoke: vi.fn(),
   from: vi.fn(),
+}));
+
+const authContextMocks = vi.hoisted(() => ({
+  user: null as null | { id: string; email?: string; user_metadata?: Record<string, unknown> },
+  session: null as null | { access_token: string },
+  roles: [] as string[],
+  role: null as null | string,
+  canSwitchRole: false,
+  switchRole: vi.fn(),
+  refreshRoles: vi.fn(),
 }));
 
 vi.mock("@/integrations/supabase/client", () => ({
@@ -45,6 +56,7 @@ vi.mock("@/integrations/supabase/client", () => ({
     },
     storage: {
       from: () => ({
+        remove: supabaseMocks.remove,
         upload: supabaseMocks.upload,
       }),
     },
@@ -52,11 +64,7 @@ vi.mock("@/integrations/supabase/client", () => ({
 }));
 
 vi.mock("@/lib/auth-context", () => ({
-  useAuth: () => ({
-    roles: [],
-    switchRole: vi.fn(),
-    user: null,
-  }),
+  useAuth: () => authContextMocks,
 }));
 
 const toastMock = vi.hoisted(() => vi.fn());
@@ -142,7 +150,9 @@ function mockSupabaseTable(table: string) {
   const builder = {
     select: vi.fn(() => builder),
     eq: vi.fn(() => builder),
+    in: vi.fn(() => Promise.resolve({ data: rows, error: null })),
     order: vi.fn(() => Promise.resolve({ data: rows, error: null })),
+    maybeSingle: vi.fn(() => Promise.resolve({ data: null, error: null })),
   };
   return builder;
 }
@@ -183,11 +193,18 @@ function acceptLegalTerms() {
 describe("Auth signup form", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    authContextMocks.user = null;
+    authContextMocks.session = null;
+    authContextMocks.roles = [];
+    authContextMocks.role = null;
+    authContextMocks.canSwitchRole = false;
+    authContextMocks.refreshRoles.mockResolvedValue([]);
     supabaseMocks.resend.mockResolvedValue({ error: null });
     supabaseMocks.exchangeCodeForSession.mockResolvedValue({ data: { session: null }, error: null });
     supabaseMocks.from.mockImplementation(mockSupabaseTable);
     supabaseMocks.rpc.mockResolvedValue({ data: null, error: null });
     supabaseMocks.signOut.mockResolvedValue({ error: null });
+    supabaseMocks.remove.mockResolvedValue({ data: null, error: null });
     supabaseMocks.upload.mockResolvedValue({
       data: { path: "doc.pdf" },
       error: null,
@@ -316,7 +333,7 @@ describe("Auth signup form", () => {
     expect(supabaseMocks.signInWithPassword).not.toHaveBeenCalled();
     expect(toastMock).toHaveBeenCalledWith({
       title: "Compte créé",
-      description: "Compte créé. Vérifiez votre email pour confirmer votre compte.",
+      description: "Vérifiez votre email pour confirmer votre compte.",
     });
   });
 
@@ -344,7 +361,7 @@ describe("Auth signup form", () => {
     expect(supabaseMocks.signUp).not.toHaveBeenCalled();
   });
 
-  it("logs out a restaurateur signup session after submitting the verification dossier", async () => {
+  it("keeps the pending restaurateur signed in after submitting the verification dossier", async () => {
     HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
       beginPath: vi.fn(),
       clearRect: vi.fn(),
@@ -445,17 +462,18 @@ describe("Auth signup form", () => {
       );
     });
 
-    expect(supabaseMocks.signOut).toHaveBeenCalledTimes(1);
+    expect(supabaseMocks.signOut).not.toHaveBeenCalled();
+    expect(authContextMocks.refreshRoles).toHaveBeenCalledTimes(1);
     expect(toastMock).toHaveBeenCalledWith(
       expect.objectContaining({
         title: "Inscription enregistrée",
-        description: expect.stringContaining("après validation"),
+        description: expect.stringContaining("fiche reste privée"),
       }),
     );
   });
 
 
-  it("submits the complete restaurateur dossier through the Edge Function when email confirmation prevents a session", async () => {
+  it("keeps the dossier in memory, blocks duplicate submission, and resumes when this tab receives the confirmed session", async () => {
     HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
       beginPath: vi.fn(),
       clearRect: vi.fn(),
@@ -473,7 +491,8 @@ describe("Auth signup form", () => {
       error: null,
     });
 
-    const { container } = await renderAuth("/auth?type=restaurateur");
+    const view = await renderAuth("/auth?type=restaurateur");
+    const { container } = view;
     await screen.findByText("TOK Starter");
     await screen.findByText("TOK Starter");
 
@@ -522,37 +541,98 @@ describe("Auth signup form", () => {
       fireEvent.change(input, { target: { files: [documentFile] } });
     }
 
-    fireEvent.click(screen.getByRole("button", { name: "Envoyer mon inscription vérifiée" }));
+    const initialSubmitButton = screen.getByRole("button", { name: "Envoyer mon inscription vérifiée" });
+    fireEvent.click(initialSubmitButton);
+    fireEvent.submit(initialSubmitButton.closest("form")!);
+
+    const waitingButton = await screen.findByRole("button", { name: "Email de confirmation envoyé" });
+    expect(waitingButton).toBeDisabled();
+    expect(screen.getByRole("status")).toHaveTextContent("Gardez cet onglet ouvert");
+    expect(supabaseMocks.invoke).not.toHaveBeenCalled();
+    expect(supabaseMocks.rpc).not.toHaveBeenCalledWith("sync_signup_application", expect.anything());
+    expect(supabaseMocks.upload).not.toHaveBeenCalled();
+    fireEvent.submit(waitingButton.closest("form")!);
+    expect(supabaseMocks.signUp).toHaveBeenCalledTimes(1);
+    expect(toastMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: "Compte créé",
+        description: expect.stringContaining("cet onglet reste ouvert"),
+      }),
+    );
+
+    authContextMocks.user = {
+      id: "restaurant-user-id",
+      email: "restaurant@example.com",
+      user_metadata: { signup_intent: "restaurateur" },
+    };
+    authContextMocks.session = { access_token: "confirmed-session" };
+    let syncSignupAttempt = 0;
+    supabaseMocks.rpc.mockImplementation(async (functionName: string) => {
+      if (functionName === "sync_signup_application") {
+        syncSignupAttempt += 1;
+        if (syncSignupAttempt === 1) {
+          return { data: null, error: new Error("temporary signup failure") };
+        }
+      }
+      return { data: null, error: null };
+    });
+    view.rerender(
+      <MemoryRouter initialEntries={["/auth?type=restaurateur"]}>
+        <Routes>
+          <Route path="/auth" element={<Auth />} />
+        </Routes>
+      </MemoryRouter>,
+    );
 
     await waitFor(() => {
-      expect(supabaseMocks.invoke).toHaveBeenCalledWith(
-        "submit-signup-application",
-        expect.objectContaining({ body: expect.any(FormData) }),
+      expect(supabaseMocks.rpc).toHaveBeenCalledWith(
+        "sync_signup_application",
+        expect.objectContaining({
+          p_requested_role: "restaurateur",
+          p_iban: "CH9300762011623852957",
+        }),
+      );
+    });
+    expect(supabaseMocks.upload).toHaveBeenCalledTimes(3);
+    await waitFor(() => {
+      expect(toastMock).toHaveBeenCalledWith(
+        expect.objectContaining({ title: "Inscription à reprendre" }),
       );
     });
 
-    const body = supabaseMocks.invoke.mock.calls[0][1].body as FormData;
-    expect(body.get("user_id")).toBe("restaurant-user-id");
-    expect(body.get("requested_role")).toBe("restaurateur");
-    expect(body.get("restaurant_name")).toBe("La Table Tok");
-    expect(body.get("launch_pack_id")).toBeNull();
-    expect(body.get("subscription_plan_id")).toBe("restaurant-plan-id");
-    expect(body.get("subscription_billing_period")).toBe("monthly");
-    expect(body.get("terms_accepted")).toBe("true");
-    expect(body.get("privacy_policy_accepted")).toBe("true");
-    expect(body.get("contract_version")).toBe("TOK-CH-RP-FAIR-GROWTH-2026-07-v4");
-    expect(body.get("contract_signer_name")).toBe("Marie Dupont, gérante");
-    expect(String(body.get("contract_signature_data_url"))).toContain("data:image/png;base64,");
-    expect(body.get("document_identity_document")).toBeInstanceOf(File);
-    expect(body.get("document_business_registration")).toBeInstanceOf(File);
-    expect(body.get("document_iban_proof")).toBeInstanceOf(File);
-    expect(supabaseMocks.rpc).not.toHaveBeenCalledWith("sync_signup_application", expect.anything());
-    expect(toastMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: "Inscription enregistrée",
-        description: expect.stringContaining("après confirmation"),
-      }),
-    );
+    const firstUploadPaths = supabaseMocks.upload.mock.calls.map(([path]) => path);
+    expect(supabaseMocks.remove).toHaveBeenCalledWith(firstUploadPaths);
+    fireEvent.click(await screen.findByRole("button", { name: "Finaliser mon dossier" }));
+
+    await waitFor(() => {
+      expect(
+        supabaseMocks.rpc.mock.calls.filter(([functionName]) =>
+          functionName === "sync_signup_application"
+        ),
+      ).toHaveLength(2);
+    });
+    expect(supabaseMocks.upload).toHaveBeenCalledTimes(6);
+    expect(supabaseMocks.upload.mock.calls.slice(3).map(([path]) => path)).toEqual(firstUploadPaths);
+    expect(authContextMocks.refreshRoles).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows the authenticated recovery form when confirmation happens without an in-memory dossier", async () => {
+    authContextMocks.user = {
+      id: "restaurant-user-id",
+      email: "restaurant@example.com",
+      user_metadata: {
+        full_name: "Restaurateur Test",
+        signup_intent: "restaurateur",
+      },
+    };
+    authContextMocks.session = { access_token: "confirmed-session" };
+
+    await renderAuth("/auth?confirmed=1");
+
+    expect(await screen.findByRole("heading", { name: "Finaliser votre dossier" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Email")).toHaveValue("restaurant@example.com");
+    expect(screen.queryByLabelText("Mot de passe")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Finaliser mon dossier" })).toBeEnabled();
   });
 
   it("lets users resend the signup confirmation email", async () => {

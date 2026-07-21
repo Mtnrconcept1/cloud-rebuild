@@ -24,7 +24,7 @@ function latestMigrationContaining(pattern: RegExp) {
 function extractFunction(sql: string, functionName: string) {
   const escapedFunctionName = functionName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const match = sql.match(
-    new RegExp(`CREATE\\s+OR\\s+REPLACE\\s+FUNCTION\\s+public\\.${escapedFunctionName}[\\s\\S]*?\\n\\$\\$;`, "i"),
+    new RegExp(`CREATE\\s+OR\\s+REPLACE\\s+FUNCTION\\s+public\\.${escapedFunctionName}\\s*\\([\\s\\S]*?\\n\\$\\$;`, "i"),
   );
 
   expect(match).toBeTruthy();
@@ -90,7 +90,9 @@ describe("signup and admin moderation SQL", () => {
     const reviewSignupApplication = extractFunction(sql, "admin_review_signup_application");
 
     expect(reviewSignupApplication).toMatch(/INSERT\s+INTO\s+public\.user_roles[\s\S]*VALUES\s*\(\s*v_application\.user_id\s*,\s*v_application\.requested_role\s*\)/i);
-    expect(reviewSignupApplication).toContain("ELSIF v_application.requested_role = 'courier' THEN");
+    expect(reviewSignupApplication).toMatch(
+      /ELSIF v_application\.requested_role = 'courier'(?:::public\.app_role)? THEN/,
+    );
     expect(reviewSignupApplication).toMatch(/DELETE\s+FROM\s+public\.user_roles[\s\S]*role = v_application\.requested_role/i);
     expect(reviewSignupApplication).toContain("v_next_status = 'approved'");
   });
@@ -148,7 +150,7 @@ describe("signup and admin moderation SQL", () => {
     expect(config).toMatch(/\[functions\.submit-signup-application\]\s*\nverify_jwt\s*=\s*false/i);
   });
 
-  it("binds privileged signup submissions to the authenticated JWT user", () => {
+  it("retires the historical multipart signup endpoint without processing documents", () => {
     const config = readFileSync(resolve(process.cwd(), "supabase/config.toml"), "utf8");
     const submitFunction = readFileSync(
       resolve(process.cwd(), "supabase/functions/submit-signup-application/index.ts"),
@@ -156,10 +158,12 @@ describe("signup and admin moderation SQL", () => {
     );
 
     expect(config).toMatch(/\[functions\.submit-signup-application\]\s*\nverify_jwt\s*=\s*false/i);
-    expect(submitFunction).toContain("authenticateRequest(req, { allowServiceRole: false })");
-    expect(submitFunction).toContain('requireInput(actor.userId === userId, "user_id_mismatch")');
-    expect(submitFunction).toContain("captcha_not_configured");
-    expect(submitFunction).toContain("isProductionRuntime");
+    expect(submitFunction).toContain("signup_submission_endpoint_retired");
+    expect(submitFunction).toContain("status: 410");
+    expect(submitFunction).toContain("handleCorsPreflight");
+    expect(submitFunction).not.toContain("req.formData()");
+    expect(submitFunction).not.toContain("admin_submit_signup_application");
+    expect(submitFunction).not.toContain('from("verification-documents")');
   });
 
   it("keeps restaurateur dossiers visible with admin badges and image previews", () => {
@@ -173,12 +177,11 @@ describe("signup and admin moderation SQL", () => {
     expect(adminUsers).toContain("getVerificationDocumentUrl(document.file_path)");
     expect(mobileNav).toContain("pendingSignupBadge: true");
     expect(mobileNav).toContain("pendingSignupApplicationsCount");
-    expect(submitFunction).toContain("admin_submit_signup_application");
-    expect(submitFunction).toContain("verification-documents");
-    expect(submitFunction).toContain("missing_document");
+    expect(submitFunction).toContain("signup_submission_endpoint_retired");
+    expect(submitFunction).toContain("status: 410");
   });
 
-  it("accepts common mobile document uploads and surfaces Edge Function errors", () => {
+  it("accepts common mobile document uploads through the authenticated direct flow", () => {
     const submitFunction = readFileSync(
       resolve(process.cwd(), "supabase/functions/submit-signup-application/index.ts"),
       "utf8",
@@ -193,14 +196,129 @@ describe("signup and admin moderation SQL", () => {
 
     expect(validation).toContain('"image/heic"');
     expect(validation).toContain('"image/heif"');
-    expect(submitFunction).toContain("mimeTypeForDocument");
-    expect(submitFunction).toContain("inferredMimeTypes");
-    expect(submitFunction).toContain("contentType: mimeType");
+    expect(submitFunction).toContain("signup_submission_endpoint_retired");
     expect(uploadSecurity).toContain('"image/heic": "heic"');
     expect(uploadSecurity).toContain('"image/heif": "heif"');
     expect(signupLib).toContain(".heic,.heif");
-    expect(authPage).toContain("getSignupEdgeErrorMessage");
-    expect(authPage).toContain('"error" in payload');
+    expect(signupLib).toContain("uploadVerificationDocumentsWithRollback");
+    expect(signupLib).toContain("removeVerificationDocumentsBestEffort");
+    expect(authPage).toContain("pendingPrivilegedSignupRef");
+    expect(authPage).toContain("uploadVerificationDocumentsWithRollback");
+    expect(authPage).not.toMatch(/indexedDB|localStorage/i);
+    expect(authPage).not.toContain('functions.invoke("submit-signup-application"');
   });
 });
 
+describe("pending restaurateur workspace and human-only publication", () => {
+  const sql = latestMigrationContaining(/Human-only signup review/i);
+
+  it("forces every new restaurant to remain private until an approved application exists", () => {
+    const guard = extractFunction(sql, "protect_restaurant_moderation_state");
+
+    expect(sql).toMatch(/ALTER COLUMN status SET DEFAULT 'pending'/i);
+    expect(sql).toMatch(/ALTER COLUMN is_active SET DEFAULT false/i);
+    expect(guard).toContain("NEW.status := 'pending'");
+    expect(guard).toContain("NEW.is_active := false");
+    expect(guard).toContain("restaurant_is_approved_for_publication(NEW.id, NEW.owner_id)");
+    expect(guard).toContain("v_is_owner_correction_reset");
+    expect(guard).toContain("application.status = 'pending_review'");
+    expect(sql).toMatch(/restaurants_public_select[\s\S]*is_active IS TRUE[\s\S]*status[\s\S]*'active'/i);
+  });
+
+  it("allows the owner to edit only the private restaurant profile while moderation remains locked", () => {
+    const context = readFileSync(resolve(process.cwd(), "src/pages/dashboard/DashboardContext.tsx"), "utf8");
+    const route = readFileSync(resolve(process.cwd(), "src/components/DashboardRoute.tsx"), "utf8");
+    const restaurant = readFileSync(resolve(process.cwd(), "src/pages/dashboard/DashboardRestaurant.tsx"), "utf8");
+
+    expect(context).not.toMatch(/dashboardAccessLocked[\s\S]*lockedFeatures\.add\("dashboard-restaurant"\)/);
+    expect(route).toContain('location.pathname === "/dashboard/restaurant"');
+    expect(restaurant).toContain('status: "pending"');
+    expect(restaurant).toContain("is_active: false");
+    expect(restaurant).toContain("Fiche privée — validation en attente");
+    expect(restaurant).toContain("createdRestaurantIdRef.current = data.id");
+    expect(restaurant).toContain("setSelectedId(data.id)");
+  });
+
+  it("requires an authenticated human admin and a ready payment before approval", () => {
+    const review = extractFunction(sql, "admin_review_signup_application");
+    const humanGuard = extractFunction(sql, "guard_human_signup_review");
+
+    expect(review).toContain("v_actor_id IS NULL");
+    expect(review).toContain("signup_restaurateur_onboarding_payment_ready");
+    expect(review).toContain("count(DISTINCT document.document_type)");
+    expect(review).toContain("business_registration");
+    expect(review).toContain("reviewed_by = v_actor_id");
+    expect(review).toContain("v_application.status = v_next_status");
+    expect(review).toContain("v_application.review_note IS NOT DISTINCT FROM v_review_note");
+    expect(review.indexOf("v_application.status = v_next_status"))
+      .toBeLessThan(review.indexOf("UPDATE public.signup_applications"));
+    expect(review).not.toContain("v_is_service_role");
+    expect(humanGuard).toContain("validation humaine administrateur");
+    expect(sql).toMatch(/REVOKE ALL ON FUNCTION public\.admin_review_signup_application[\s\S]*service_role/i);
+    expect(sql).toMatch(/GRANT EXECUTE ON FUNCTION public\.admin_review_signup_application[\s\S]*TO authenticated/i);
+    expect(sql).toMatch(/CREATE TRIGGER enforce_restaurateur_signup_role[\s\S]*AFTER INSERT OR UPDATE\s+ON public\.signup_applications/i);
+  });
+
+  it("keeps documents private and validates only storage metadata, never their identity content", () => {
+    const authPage = readFileSync(resolve(process.cwd(), "src/pages/Auth.tsx"), "utf8");
+    const signupLib = readFileSync(resolve(process.cwd(), "src/lib/signup.ts"), "utf8");
+    const submissionFunction = readFileSync(
+      resolve(process.cwd(), "supabase/functions/submit-signup-application/index.ts"),
+      "utf8",
+    );
+    const documentFlow = `${authPage}\n${signupLib}\n${submissionFunction}`;
+
+    expect(sql).toContain("file_size_limit = 15728640");
+    expect(sql).toContain("public = false");
+    expect(sql).toContain("validate_signup_document_manifest");
+    expect(documentFlow).not.toMatch(/\b(openai|tesseract|textract|documentai)\b/i);
+    expect(documentFlow).not.toContain("analyze-restaurant-image");
+  });
+
+  it("keeps privileged dossiers in memory until email confirmation and never persists sensitive fields", () => {
+    const authPage = readFileSync(resolve(process.cwd(), "src/pages/Auth.tsx"), "utf8");
+
+    expect(authPage).toContain("pendingPrivilegedSignupRef");
+    expect(authPage).toContain("privilegedSignupMutexRef.current = true");
+    expect(authPage).toContain("privilegedSignupOperationRef.current");
+    expect(authPage).toContain('payload.role !== "client" || options.skipIfExisting');
+    expect(authPage).toContain("skipIfExisting: true");
+    expect(authPage).not.toContain('functions.invoke("submit-signup-application"');
+    expect(authPage).not.toMatch(/indexedDB|localStorage/i);
+    expect(authPage).not.toContain("pendingPrivilegedSignupDraft");
+    expect(authPage).toContain("const { password, ...applicationForm } = form");
+  });
+
+  it("guards public restaurant actions and authorizes GDPR deletion only for trusted callers", () => {
+    for (const functionName of [
+      "validate_and_create_reservation",
+      "create_match_group",
+      "upsert_match_group_member_order",
+      "get_meal_formula_service_availability",
+      "assert_meal_formula_service_capacity",
+    ]) {
+      const wrapper = extractFunction(sql, functionName);
+      expect(wrapper).toContain("restaurant_is_publicly_visible");
+      expect(sql).toContain(`${functionName}_unguarded`);
+    }
+
+    const gdprDelete = extractFunction(sql, "delete_user_gdpr_cascade");
+    expect(gdprDelete).toContain("v_actor_id IS DISTINCT FROM p_user_id");
+    expect(gdprDelete).toContain("public.has_role(v_actor_id, 'admin'::public.app_role)");
+    expect(gdprDelete).toContain("auth.role() IS DISTINCT FROM 'service_role'");
+    expect(sql).toMatch(/signup_application_review_events[\s\S]*ON DELETE CASCADE/i);
+    expect(sql).toContain("constraint_row.confdeltype <> 'c'");
+    expect(sql).toContain("ALTER TABLE public.signup_application_review_events DROP CONSTRAINT %I");
+    expect(sql).toContain("ADD CONSTRAINT signup_application_review_events_application_id_fkey");
+    expect(sql).toMatch(/CREATE TRIGGER reject_signup_review_event_mutation\s+BEFORE UPDATE\s+ON public\.signup_application_review_events/i);
+  });
+
+  it("never sends fallback cuisine slugs to the uuid cuisine RPC", () => {
+    const restaurant = readFileSync(resolve(process.cwd(), "src/pages/dashboard/DashboardRestaurant.tsx"), "utf8");
+
+    expect(restaurant).toContain("UUID_PATTERN");
+    expect(restaurant).toContain("hasPersistableCuisineReference");
+    expect(restaurant).toContain("if (!hasPersistableCuisineReference) return");
+    expect(restaurant).toContain("p_cuisine_ids: selectedCuisineIds");
+  });
+});

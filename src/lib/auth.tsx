@@ -123,6 +123,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(getActiveRoleStorageKey(), role);
   }, [roles, user]);
 
+  const refreshRoles = useCallback(async () => {
+    if (!userId) return [];
+    const fetchedRoles = await fetchRoles(userId);
+    applyRoles(fetchedRoles);
+    return getEffectiveRoles(fetchedRoles);
+  }, [applyRoles, fetchRoles, userId]);
+
   useEffect(() => {
     let cancelled = false;
     const supabase = getSupabase();
@@ -254,7 +261,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const canSwitchRole = canSwitchRoles(roles);
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, role: activeRole, roles, isSuperAdmin, canSwitchRole, switchRole, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, role: activeRole, roles, isSuperAdmin, canSwitchRole, switchRole, refreshRoles, signOut }}>
       {children}
     </AuthContext.Provider>
   );

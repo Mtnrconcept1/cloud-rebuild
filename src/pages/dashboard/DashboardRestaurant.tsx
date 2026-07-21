@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Banknote,
@@ -49,6 +49,7 @@ import { useDashboardRestaurant } from "./useDashboardRestaurant";
 
 const supabase = getSupabase();
 const DASHBOARD_RESTAURANT_PROMOTIONS_LIMIT = 4;
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 const DASHBOARD_PROMOTION_TARGET_LABELS: Record<string, string> = {
   all: "Tous les clients",
@@ -98,7 +99,7 @@ function formatDashboardPromotionEndDate(endAt: string) {
 
 export default function DashboardRestaurant() {
   const { user } = useAuth();
-  const { selectedId } = useDashboardRestaurant();
+  const { selectedId, setSelectedId, dashboardAccessLocked, dashboardAccessLockReason } = useDashboardRestaurant();
   const commercialDemoFrame = useCommercialDemoFrame();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -119,6 +120,8 @@ export default function DashboardRestaurant() {
   );
 
   const [loading, setLoading] = useState(false);
+  const saveInFlightRef = useRef(false);
+  const createdRestaurantIdRef = useRef<string | null>(null);
   const [connectLoading, setConnectLoading] = useState(false);
   const [selectedCuisineIds, setSelectedCuisineIds] = useState<string[]>([]);
   const [disabledPaymentMethods, setDisabledPaymentMethods] = useState<
@@ -302,6 +305,13 @@ export default function DashboardRestaurant() {
   };
 
   const syncRestaurantCuisines = async (restaurantId: string) => {
+    // The predefined fallback keeps the form usable when the cuisine
+    // reference table is temporarily unavailable, but its slugs must never be
+    // sent to the uuid[] RPC or used to erase existing structured links.
+    const hasPersistableCuisineReference = cuisineOptions.length > 0
+      && cuisineOptions.every((option) => UUID_PATTERN.test(option.id));
+    if (!hasPersistableCuisineReference) return;
+
     const { error } = await (supabase as any).rpc("restaurant_set_cuisines", {
       p_restaurant_id: restaurantId,
       p_cuisine_ids: selectedCuisineIds,
@@ -310,8 +320,12 @@ export default function DashboardRestaurant() {
   };
 
   const handleSave = async () => {
-    if (!user) return;
+    if (!user || saveInFlightRef.current) return;
+    saveInFlightRef.current = true;
     setLoading(true);
+
+    let savedRestaurantId: string | null = null;
+    let createdRestaurant = false;
 
     try {
       const payload = {
@@ -321,35 +335,46 @@ export default function DashboardRestaurant() {
         disabled_payment_methods: disabledPaymentMethods,
       };
 
-      let restaurantId = restaurant?.id || null;
+      let restaurantId = restaurant?.id || createdRestaurantIdRef.current;
 
-      if (restaurant) {
+      if (restaurantId) {
         const { error } = await supabase
           .from("restaurants")
           .update(payload)
-          .eq("id", restaurant.id);
+          .eq("id", restaurantId);
         if (error) throw error;
-        restaurantId = restaurant.id;
       } else {
         const { data, error } = await supabase
           .from("restaurants")
-          .insert({ ...payload, owner_id: user.id })
+          .insert({
+            ...payload,
+            owner_id: user.id,
+            status: "pending",
+            is_active: false,
+          })
           .select("id")
           .single();
         if (error) throw error;
         restaurantId = data.id;
+        createdRestaurant = true;
+        createdRestaurantIdRef.current = data.id;
+        setSelectedId(data.id);
       }
+
+      savedRestaurantId = restaurantId;
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["my-restaurant"] }),
+        queryClient.invalidateQueries({ queryKey: ["owner-restaurants"] }),
+      ]);
 
       if (restaurantId) {
         await syncRestaurantCuisines(restaurantId);
       }
 
       toast({
-        title: restaurant ? "Restaurant mis à jour !" : "Restaurant crée !",
+        title: createdRestaurant ? "Restaurant créé !" : "Restaurant mis à jour !",
       });
-      queryClient.invalidateQueries({ queryKey: ["my-restaurant"] });
-      queryClient.invalidateQueries({ queryKey: ["owner-restaurants"] });
-      queryClient.invalidateQueries({ queryKey: ["restaurant-cuisine-links"] });
+      await queryClient.invalidateQueries({ queryKey: ["restaurant-cuisine-links"] });
     } catch (error: any) {
       toast({
         title: "Erreur",
@@ -357,6 +382,12 @@ export default function DashboardRestaurant() {
         variant: "destructive",
       });
     } finally {
+      if (savedRestaurantId) {
+        void queryClient.invalidateQueries({ queryKey: ["my-restaurant"] });
+        void queryClient.invalidateQueries({ queryKey: ["owner-restaurants"] });
+        void queryClient.invalidateQueries({ queryKey: ["restaurant-cuisine-links"] });
+      }
+      saveInFlightRef.current = false;
       setLoading(false);
     }
   };
@@ -401,6 +432,14 @@ export default function DashboardRestaurant() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
+        {dashboardAccessLocked ? (
+          <div className="max-w-3xl rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
+            <p className="font-semibold">Fiche privée — validation en attente</p>
+            <p className="mt-1">
+              {dashboardAccessLockReason || "Cette fiche n'est pas encore publiée dans les recherches clients."}
+            </p>
+          </div>
+        ) : null}
         <DashboardPageHero
           badge="Identite restaurant"
           title={restaurant ? "Mon restaurant" : "Créer mon restaurant"}

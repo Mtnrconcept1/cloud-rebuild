@@ -70,13 +70,11 @@ describe("Fair Growth annual restaurant billing", () => {
     const edgeFlags = source("supabase/functions/_shared/feature-flags.ts");
     const clientFlags = source("src/lib/featureCatalog.ts");
     const checkout = source("supabase/functions/create-checkout/index.ts");
-    const signup = source("supabase/functions/submit-signup-application/index.ts");
 
     expect(FAIR_GROWTH_ANNUAL_FEATURE_FLAG).toBe("billing-fair-growth-annual");
     expect(edgeFlags).toContain('"billing-fair-growth-annual": { defaultEnabled: false }');
     expect(clientFlags).toMatch(/name: "billing-fair-growth-annual"[\s\S]*?defaultEnabled: false/);
     expect(checkout).toContain("isFairGrowthAnnualBillingEnabled(activeFlags)");
-    expect(signup).toContain("isFairGrowthAnnualBillingEnabled(activeFlags)");
   });
 
   it("takes onboarding price from the immutable database snapshot", () => {

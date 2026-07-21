@@ -20,10 +20,12 @@ import {
   getTokCreditAmount,
 } from "@/lib/tokCredits";
 import {
+  findUncommittedVerificationDocumentPaths,
   getMissingSignupDocuments,
   getRequiredSignupDocuments,
+  removeVerificationDocumentsBestEffort,
   SIGNUP_ROLE_META,
-  uploadVerificationDocument,
+  uploadVerificationDocumentsWithRollback,
   type SignupDocumentType,
   type SignupSubscriptionBillingPeriod,
   type SignupRole,
@@ -101,6 +103,29 @@ type SignupLegalAcceptance = {
   privacyPolicyAccepted: boolean;
   acceptedAt: string;
   version: string;
+};
+
+type SignupApplicationFormState = Omit<SignupFormState, "password">;
+
+type PrivilegedSignupPayload = {
+  role: Exclude<SignupRole, "client">;
+  form: SignupApplicationFormState;
+  onboardingChoices?: RestaurateurOnboardingChoices;
+  documents: Partial<Record<SignupDocumentType, File | null>>;
+  legalAcceptance: SignupLegalAcceptance;
+  contractSignature?: RestaurateurContractSignature;
+  contractContentSha256?: string | null;
+  commercialReferralToken?: string;
+};
+
+type SignupApplicationSubmission = {
+  operationId: string;
+  userId: string;
+  payload: Omit<PrivilegedSignupPayload, "role"> & { role: SignupRole };
+};
+
+type InMemoryPrivilegedSignupDraft = SignupApplicationSubmission & {
+  email: string;
 };
 
 type RestaurantSubscriptionPlanOption = {
@@ -197,6 +222,8 @@ function getInitialSignupRole(searchParams: URLSearchParams): SignupRole {
 }
 
 const COMMERCIAL_REFERRAL_SESSION_KEY = "tok:commercial-signup-referral";
+const RESTAURANT_CONTRACT_ACCEPTANCE_TEXT =
+  "J'ai lu et j'accepte l'intégralité du contrat restaurateur TOK et je déclare être habilité à engager le restaurateur.";
 
 function getSignupValidationError(
   role: SignupRole,
@@ -204,10 +231,13 @@ function getSignupValidationError(
   onboardingChoices?: RestaurateurOnboardingChoices,
   legalAccepted = false,
   contractSignature?: RestaurateurContractSignature,
+  requirePassword = true,
 ) {
   if (!form.fullName.trim()) return "Le nom complet est requis.";
   if (!form.email.trim()) return "L'email est requis.";
-  if (!form.password.trim() || form.password.length < 6) return "Le mot de passe doit contenir au moins 6 caracteres.";
+  if (requirePassword && (!form.password.trim() || form.password.length < 6)) {
+    return "Le mot de passe doit contenir au moins 6 caracteres.";
+  }
   if (!legalAccepted) return "Vous devez accepter les CGU et la politique de confidentialité.";
 
   if (role === "restaurateur") {
@@ -475,109 +505,129 @@ function splitCourierName(fullName: string) {
   };
 }
 
-function appendPrivilegedSignupDraftFormData(input: {
-  formData: FormData;
-  userId: string;
-  role: SignupRole;
-  form: SignupFormState;
-  onboardingChoices?: RestaurateurOnboardingChoices;
-  documents: Partial<Record<SignupDocumentType, File | null>>;
-  captchaToken: string | null;
-  legalAcceptance: SignupLegalAcceptance;
-  contractSignature?: RestaurateurContractSignature;
-  commercialReferralToken?: string;
-}) {
-  input.formData.append("user_id", input.userId);
-  input.formData.append("requested_role", input.role);
-  input.formData.append("full_name", input.form.fullName);
-  input.formData.append("email", input.form.email);
-  input.formData.append("phone", input.form.phone);
-  input.formData.append("city", input.form.city);
-  input.formData.append("address", input.form.address);
-  input.formData.append("legal_name", input.role === "restaurateur" ? input.form.legalName : "");
-  input.formData.append("business_name", input.role === "restaurateur" ? input.form.businessName : "");
-  input.formData.append(
-    "business_registration_number",
-    input.role === "restaurateur" ? input.form.businessRegistrationNumber : "",
-  );
-  input.formData.append("tax_id", input.role === "restaurateur" ? input.form.taxId : "");
-  input.formData.append("restaurant_name", input.role === "restaurateur" ? input.form.restaurantName : "");
-  input.formData.append(
-    "restaurant_description",
-    input.role === "restaurateur" ? input.form.restaurantDescription : "",
-  );
-  input.formData.append("vehicle_type", input.role === "courier" ? input.form.vehicleType : "");
-  input.formData.append("license_plate", input.role === "courier" ? input.form.licensePlate : "");
-  input.formData.append("iban", input.form.iban);
-  input.formData.append("subscription_plan_id", input.role === "restaurateur" ? input.onboardingChoices?.subscriptionPlanId || "" : "");
-  input.formData.append("subscription_billing_period", input.role === "restaurateur" ? input.onboardingChoices?.subscriptionBillingPeriod || "" : "");
-  input.formData.append("terms_accepted", input.legalAcceptance.termsAccepted ? "true" : "false");
-  input.formData.append("privacy_policy_accepted", input.legalAcceptance.privacyPolicyAccepted ? "true" : "false");
-  input.formData.append("legal_acceptance_version", input.legalAcceptance.version);
-  input.formData.append("legal_acceptance_at", input.legalAcceptance.acceptedAt);
-  input.formData.append("contract_version", input.role === "restaurateur" ? RESTAURANT_PARTNER_CONTRACT_VERSION : "");
-  input.formData.append("contract_title", input.role === "restaurateur" ? RESTAURANT_PARTNER_CONTRACT_TITLE : "");
-  input.formData.append("contract_signer_name", input.role === "restaurateur" ? input.contractSignature?.signerName || "" : "");
-  input.formData.append("contract_signature_data_url", input.role === "restaurateur" ? input.contractSignature?.signatureDataUrl || "" : "");
-  input.formData.append(
-    "commercial_referral_token",
-    input.role === "restaurateur" ? input.commercialReferralToken || "" : "",
-  );
-  input.formData.append("captcha_token", input.captchaToken || "");
-
-  for (const requirement of getRequiredSignupDocuments(input.role, input.form.vehicleType)) {
-    const file = input.documents[requirement.type];
-    if (file) {
-      input.formData.append(`document_${requirement.type}`, file, file.name);
-    }
-  }
+function getSignupApplicationForm(form: SignupFormState): SignupApplicationFormState {
+  const { password, ...applicationForm } = form;
+  void password;
+  return applicationForm;
 }
 
-async function getSignupEdgeErrorMessage(error: Error) {
-  const context = (error as Error & { context?: { json?: () => Promise<unknown>; text?: () => Promise<string> } }).context;
+async function finalizeSignupApplication(
+  submission: SignupApplicationSubmission,
+  options: { skipIfExisting?: boolean } = {},
+) {
+  const { payload, userId, operationId } = submission;
 
-  if (!context) return error.message;
+  // Privileged applications are reconciled before every upload, including the
+  // very first authenticated submission. This makes a retry safe even if the
+  // previous RPC committed but its response never reached the browser.
+  if (payload.role !== "client" || options.skipIfExisting) {
+    const { data: existingApplication, error: existingApplicationError } = await supabase
+      .from("signup_applications")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("requested_role", payload.role)
+      .maybeSingle();
 
-  try {
-    const payload = await context.json?.();
-    if (payload && typeof payload === "object" && "error" in payload) {
-      const message = String((payload as { error?: unknown }).error || "").trim();
-      if (message) return message;
-    }
-  } catch {
-    // The edge gateway may return a non-JSON body for deployment errors.
+    if (existingApplicationError) throw existingApplicationError;
+    if (existingApplication) return;
   }
 
-  try {
-    const text = (await context.text?.())?.trim();
-    if (text) return text.slice(0, 240);
-  } catch {
-    // Keep the original Supabase error if the response body was already consumed.
-  }
+  const uploadedDocuments: UploadedSignupDocument[] = await uploadVerificationDocumentsWithRollback(
+    getRequiredSignupDocuments(payload.role, payload.form.vehicleType).map((requirement) => {
+      const file = payload.documents[requirement.type];
+      if (!file) {
+        throw new Error(`Document manquant: ${requirement.label}.`);
+      }
 
-  return error.message;
-}
+      return {
+        userId,
+        role: payload.role,
+        documentType: requirement.type,
+        file,
+        uploadId: operationId,
+      };
+    }),
+  );
 
-async function submitPrivilegedSignupDraft(input: {
-  userId: string;
-  role: SignupRole;
-  form: SignupFormState;
-  onboardingChoices?: RestaurateurOnboardingChoices;
-  documents: Partial<Record<SignupDocumentType, File | null>>;
-  captchaToken: string | null;
-  legalAcceptance: SignupLegalAcceptance;
-  contractSignature?: RestaurateurContractSignature;
-  commercialReferralToken?: string;
-}) {
-  const formData = new FormData();
-  appendPrivilegedSignupDraftFormData({ formData, ...input });
-
-  const { error } = await supabase.functions.invoke("submit-signup-application", {
-    body: formData,
+  const { error: syncError } = await supabase.rpc("sync_signup_application", {
+    p_requested_role: payload.role,
+    p_full_name: payload.form.fullName,
+    p_phone: payload.form.phone,
+    p_city: payload.form.city,
+    p_address: payload.form.address,
+    p_legal_name: payload.role === "restaurateur" ? payload.form.legalName : null,
+    p_business_name: payload.role === "restaurateur" ? payload.form.businessName : null,
+    p_business_registration_number:
+      payload.role === "restaurateur" ? payload.form.businessRegistrationNumber : null,
+    p_tax_id: payload.role === "restaurateur" ? payload.form.taxId : null,
+    p_restaurant_name: payload.role === "restaurateur" ? payload.form.restaurantName : null,
+    p_restaurant_description:
+      payload.role === "restaurateur" ? payload.form.restaurantDescription : null,
+    p_vehicle_type: payload.role === "courier" ? payload.form.vehicleType : null,
+    p_license_plate: payload.role === "courier" ? payload.form.licensePlate : null,
+    p_iban:
+      payload.role === "courier" || payload.role === "restaurateur" ? payload.form.iban : null,
+    p_metadata:
+      payload.role === "courier"
+        ? {
+          ...splitCourierName(payload.form.fullName),
+          ...toLegalAcceptanceMetadata(payload.legalAcceptance),
+        }
+        : payload.role === "restaurateur"
+          ? {
+            onboarding_source: "auth_signup_confirmed",
+            signup_operation_id: operationId,
+            selected_subscription_plan_id: payload.onboardingChoices?.subscriptionPlanId || null,
+            selected_subscription_billing_period:
+              payload.onboardingChoices?.subscriptionBillingPeriod || null,
+            onboarding_payment_status: "payment_method_required",
+            ...(payload.commercialReferralToken
+              ? { commercial_referral_token: payload.commercialReferralToken }
+              : {}),
+            contract_version: RESTAURANT_PARTNER_CONTRACT_VERSION,
+            contract_title: RESTAURANT_PARTNER_CONTRACT_TITLE,
+            contract_signer_name: payload.contractSignature?.signerName.trim() || null,
+            contract_signature_data_url: payload.contractSignature?.signatureDataUrl || null,
+            contract_signed_at: payload.legalAcceptance.acceptedAt,
+            contract_signature_source: "auth_signup_confirmed",
+            contract_signer_role: "Représentant autorisé",
+            contract_content_sha256: payload.contractContentSha256 || null,
+            contract_content_hash: payload.contractContentSha256 || null,
+            contract_acceptance_text: RESTAURANT_CONTRACT_ACCEPTANCE_TEXT,
+            contract_signed_email: payload.form.email,
+            contract_signed_user_id: userId,
+            contract_legal_name: payload.form.legalName,
+            contract_business_name: payload.form.businessName,
+            contract_restaurant_name: payload.form.restaurantName,
+            ...toLegalAcceptanceMetadata(payload.legalAcceptance),
+          }
+          : {
+            verification_source: "auth_signup_confirmed",
+            ...toLegalAcceptanceMetadata(payload.legalAcceptance),
+          },
+    p_documents: uploadedDocuments,
   });
 
-  if (error) {
-    throw new Error(await getSignupEdgeErrorMessage(error));
+  if (syncError) {
+    const uploadedPaths = uploadedDocuments.map((document) => document.file_path);
+    if (uploadedPaths.length === 0) throw syncError;
+    const uncommittedPaths = await findUncommittedVerificationDocumentPaths(
+      userId,
+      uploadedPaths,
+    );
+
+    // A timeout can hide a successful commit. Never delete a file that the
+    // database already references; if every path is committed, the operation
+    // succeeded and the lost response is treated as such. If reconciliation
+    // itself is unavailable, retaining a private orphan is safer than breaking
+    // a valid dossier by deleting its evidence.
+    if (uncommittedPaths?.length === 0) {
+      return;
+    }
+    if (uncommittedPaths) {
+      await removeVerificationDocumentsBestEffort(uncommittedPaths);
+    }
+    throw syncError;
   }
 }
 
@@ -630,7 +680,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
   const requestedSubscriptionPlanSlug = String(searchParams.get("subscriptionPlan") || "").trim().toLowerCase();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, roles, role, switchRole, canSwitchRole } = useAuth();
+  const { user, session, roles, role, switchRole, canSwitchRole, refreshRoles } = useAuth();
 
   const initialRole = getInitialSignupRole(searchParams);
   const [isLogin, setIsLogin] = useState(isDemoAuthMode || isCommercialAuthHost || initialRole === "client");
@@ -644,6 +694,8 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
   const [showPassword, setShowPassword] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
   const [privilegedSignupSubmitting, setPrivilegedSignupSubmitting] = useState(false);
+  const [privilegedSignupResumeChecking, setPrivilegedSignupResumeChecking] = useState(false);
+  const [privilegedSignupAwaitingEmail, setPrivilegedSignupAwaitingEmail] = useState(false);
   const [selectedSubscriptionPlanId, setSelectedSubscriptionPlanId] = useState("");
   const [selectedSubscriptionBillingPeriod, setSelectedSubscriptionBillingPeriod] = useState<SignupSubscriptionBillingPeriod>("monthly");
   const [legalAccepted, setLegalAccepted] = useState(false);
@@ -651,10 +703,23 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
   const [contractSignatureDataUrl, setContractSignatureDataUrl] = useState("");
   const [subscriptionPlans, setSubscriptionPlans] = useState<RestaurantSubscriptionPlanOption[]>([]);
   const [subscriptionPlansLoading, setSubscriptionPlansLoading] = useState(false);
+  const authMountedRef = useRef(true);
   const authRedirectHandledRef = useRef(false);
+  const pendingPrivilegedSignupRef = useRef<InMemoryPrivilegedSignupDraft | null>(null);
+  const privilegedSignupMutexRef = useRef(false);
+  const privilegedSignupOperationRef = useRef<{ key: string; id: string } | null>(null);
+  const privilegedSignupResumeRef = useRef<string | null>(null);
+  const incompleteSignupNoticeRef = useRef(false);
   const { activeFeatures, loading: featureFlagsLoading } = useFeatureFlagSnapshot();
   const courierSignupEnabled = activeFeatures.has("espace-livreur");
   const annualBillingEnabled = activeFeatures.has("billing-fair-growth-annual");
+
+  useEffect(() => {
+    authMountedRef.current = true;
+    return () => {
+      authMountedRef.current = false;
+    };
+  }, []);
 
   const requiredDocuments = useMemo(
     () => getRequiredSignupDocuments(roleMode, signupForm.vehicleType),
@@ -681,6 +746,12 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
     if (!isCommercialAuthHost) return visibleRoles;
     return visibleRoles.filter((candidateRole) => candidateRole === "commercial" || candidateRole === "admin");
   }, [activeFeatures, isCommercialAuthHost, isDemoAuthMode, roles]);
+  const incompletePrivilegedSignupRole = useMemo(() => {
+    const intent = String(user?.user_metadata?.signup_intent || "").toLowerCase();
+    if (intent !== "restaurateur" && intent !== "courier") return null;
+    return roles.includes(intent) ? null : intent;
+  }, [roles, user?.user_metadata?.signup_intent]);
+  const isRecoveringPrivilegedSignup = Boolean(user && session && incompletePrivilegedSignupRole);
   const postAuthRedirectTarget = useMemo(() => {
     const redirectTarget = searchParams.get("redirect");
     if (!redirectTarget) return null;
@@ -780,7 +851,96 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
   }, [toast]);
 
   useEffect(() => {
-    if (!user || roles.length === 0 || privilegedSignupSubmitting || featureFlagsLoading) return;
+    if (!user?.id || !session || privilegedSignupResumeRef.current === user.id) return;
+    const draft = pendingPrivilegedSignupRef.current;
+    if (!draft) {
+      setPrivilegedSignupResumeChecking(false);
+      return;
+    }
+    if (privilegedSignupMutexRef.current) return;
+
+    privilegedSignupResumeRef.current = user.id;
+    privilegedSignupMutexRef.current = true;
+    setPrivilegedSignupAwaitingEmail(false);
+    let cancelled = false;
+
+    const resumePrivilegedSignup = async () => {
+      setPrivilegedSignupSubmitting(true);
+      try {
+        const sessionEmail = String(user.email || "").trim().toLowerCase();
+        if (draft.userId !== user.id || draft.email !== sessionEmail) {
+          throw new Error("Reconnectez-vous avec le compte utilisé pour cette inscription restaurateur.");
+        }
+
+        await finalizeSignupApplication({
+          operationId: draft.operationId,
+          userId: draft.userId,
+          payload: draft.payload,
+        }, { skipIfExisting: true });
+        pendingPrivilegedSignupRef.current = null;
+        privilegedSignupOperationRef.current = null;
+        try {
+          await refreshRoles();
+        } catch {
+          // The authenticated RPC is authoritative; role state will refresh on the next page load.
+        }
+
+        if (cancelled) return;
+        toast({
+          title: "Inscription enregistrée",
+          description: "Votre compte est en attente. Vous pouvez compléter votre fiche privée pendant la validation humaine.",
+        });
+        navigateToPostAuthTarget(draft.payload.role, true);
+      } catch (error) {
+        privilegedSignupResumeRef.current = null;
+        if (cancelled) return;
+        const message = error instanceof Error ? error.message : "Impossible de reprendre l'inscription.";
+        toast({ title: "Inscription à reprendre", description: message, variant: "destructive" });
+      } finally {
+        privilegedSignupMutexRef.current = false;
+        if (authMountedRef.current) {
+          setPrivilegedSignupSubmitting(false);
+          setPrivilegedSignupResumeChecking(false);
+        }
+      }
+    };
+
+    void resumePrivilegedSignup();
+    return () => {
+      cancelled = true;
+    };
+  }, [incompletePrivilegedSignupRole, navigateToPostAuthTarget, refreshRoles, session, toast, user?.email, user?.id]);
+
+  useEffect(() => {
+    if (!user || !incompletePrivilegedSignupRole || privilegedSignupResumeChecking) return;
+
+    setIsLogin(false);
+    setRoleMode(incompletePrivilegedSignupRole);
+    setSignupForm((current) => ({
+      ...current,
+      fullName: current.fullName || String(user.user_metadata?.full_name || ""),
+      email: current.email || String(user.email || ""),
+      password: "",
+    }));
+
+    if (!incompleteSignupNoticeRef.current) {
+      incompleteSignupNoticeRef.current = true;
+      toast({
+        title: "Finalisez votre dossier",
+        description: "Votre compte est confirmé. Ajoutez les informations et documents manquants pour créer votre espace en attente.",
+      });
+    }
+  }, [incompletePrivilegedSignupRole, privilegedSignupResumeChecking, toast, user]);
+
+  useEffect(() => {
+    if (
+      !user
+      || roles.length === 0
+      || privilegedSignupSubmitting
+      || privilegedSignupResumeChecking
+      || incompletePrivilegedSignupRole
+      || featureFlagsLoading
+    ) return;
 
     if (!isDemoAuthMode) {
       const targetRole = role && switchableRoles.includes(role)
@@ -801,7 +961,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
       : switchableRoles[0] || getDefaultActiveRole(roles);
     if (targetRole !== role) switchRole(targetRole);
     navigateToPostAuthTarget(targetRole, true);
-  }, [canSwitchRole, featureFlagsLoading, isDemoAuthMode, navigateToPostAuthTarget, privilegedSignupSubmitting, role, roles, showRolePicker, switchRole, switchableRoles, user]);
+  }, [canSwitchRole, featureFlagsLoading, incompletePrivilegedSignupRole, isDemoAuthMode, navigateToPostAuthTarget, privilegedSignupResumeChecking, privilegedSignupSubmitting, role, roles, showRolePicker, switchRole, switchableRoles, user]);
 
   useEffect(() => {
     if (!featureFlagsLoading && !courierSignupEnabled && roleMode === "courier") {
@@ -933,8 +1093,11 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (privilegedSignupAwaitingEmail && !session) return;
+    const locksPrivilegedSignup = !isLogin && roleMode !== "client";
+    if (locksPrivilegedSignup && privilegedSignupMutexRef.current) return;
+    if (locksPrivilegedSignup) privilegedSignupMutexRef.current = true;
     setLoading(true);
-    let shouldSignOutPrivilegedSignupSession = false;
 
     try {
       if (isLogin) {
@@ -950,16 +1113,18 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
           },
         });
 
-        if (error) {
-          throw error;
-        }
-
+        if (error) throw error;
         return;
       }
 
       const submittedRole = roleMode;
-      const submittedRequiredDocuments = getRequiredSignupDocuments(submittedRole, signupForm.vehicleType);
       const isPrivilegedSignup = submittedRole !== "client";
+      const isContinuingConfirmedSignup = Boolean(
+        user?.id
+        && session
+        && incompletePrivilegedSignupRole === submittedRole,
+      );
+      const submittedRequiredDocuments = getRequiredSignupDocuments(submittedRole, signupForm.vehicleType);
       const submittedOnboardingChoices = restaurateurOnboardingChoices;
       const submittedLegalAcceptance = createLegalAcceptancePayload();
       const submittedContractSignature: RestaurateurContractSignature = {
@@ -972,11 +1137,10 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
         submittedRole === "restaurateur" ? submittedOnboardingChoices : undefined,
         legalAccepted,
         submittedRole === "restaurateur" ? submittedContractSignature : undefined,
+        !isContinuingConfirmedSignup,
       );
-      if (validationError) {
-        throw new Error(validationError);
-      }
-      if (isCaptchaEnabled() && !captchaToken) {
+      if (validationError) throw new Error(validationError);
+      if (!isContinuingConfirmedSignup && isCaptchaEnabled() && !captchaToken) {
         throw new Error("Validation anti-abus requise.");
       }
 
@@ -985,84 +1149,41 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
         throw new Error(`Documents manquants: ${missingDocuments.map((item) => item.label).join(", ")}.`);
       }
 
-      if (isPrivilegedSignup) {
-        setPrivilegedSignupSubmitting(true);
-      }
+      if (isPrivilegedSignup) setPrivilegedSignupSubmitting(true);
 
-      const signUpResponse = await supabase.auth.signUp({
-        email: signupForm.email,
-        password: signupForm.password,
-        options: {
-          data: {
-            full_name: signupForm.fullName,
-            signup_intent: submittedRole,
-            ...toLegalAcceptanceMetadata(submittedLegalAcceptance),
+      let activeUser = isContinuingConfirmedSignup ? user : null;
+      let activeSession = isContinuingConfirmedSignup ? session : null;
+
+      if (!isContinuingConfirmedSignup) {
+        const signUpResponse = await supabase.auth.signUp({
+          email: signupForm.email,
+          password: signupForm.password,
+          options: {
+            data: {
+              full_name: signupForm.fullName,
+              signup_intent: submittedRole,
+              ...toLegalAcceptanceMetadata(submittedLegalAcceptance),
+            },
+            emailRedirectTo: `${getCanonicalAuthHref()}?confirmed=1`,
+            captchaToken: captchaToken || undefined,
           },
-          emailRedirectTo: `${getCanonicalAuthHref()}?confirmed=1`,
-          captchaToken: captchaToken || undefined,
-        },
-      });
+        });
 
-      if (signUpResponse.error) {
-        throw signUpResponse.error;
+        if (signUpResponse.error) throw signUpResponse.error;
+        activeUser = signUpResponse.data.user;
+        activeSession = signUpResponse.data.session;
+        setSignupForm((current) => ({ ...current, password: "" }));
       }
-
-      const activeUser = signUpResponse.data.user;
-      const activeSession = signUpResponse.data.session;
-      shouldSignOutPrivilegedSignupSession = isPrivilegedSignup && Boolean(activeSession);
 
       if (!activeUser?.id) {
         toast({
           title: "Compte créé",
           description: "Compte créé. Vérifiez votre email pour confirmer votre compte.",
         });
-        if (isPrivilegedSignup) {
-          setPrivilegedSignupSubmitting(false);
-        }
+        setPrivilegedSignupSubmitting(false);
         return;
       }
 
-      if (!activeSession) {
-        if (isPrivilegedSignup) {
-          await submitPrivilegedSignupDraft({
-            userId: activeUser.id,
-            role: submittedRole,
-            form: signupForm,
-            onboardingChoices: submittedRole === "restaurateur" ? submittedOnboardingChoices : undefined,
-            documents,
-            captchaToken,
-            legalAcceptance: submittedLegalAcceptance,
-            contractSignature: submittedRole === "restaurateur" ? submittedContractSignature : undefined,
-            commercialReferralToken: submittedRole === "restaurateur" ? commercialReferralToken : undefined,
-          });
-          try {
-            window.sessionStorage.removeItem(COMMERCIAL_REFERRAL_SESSION_KEY);
-          } catch {
-            // The signup was saved even if browser storage cannot be cleared.
-          }
-          setCommercialReferralToken("");
-          toast({
-            title: "Inscription enregistrée",
-            description: "Votre dossier complet sera transmis à l'admin TOK après confirmation de votre email.",
-          });
-          setDocuments({});
-          setSignupForm(EMPTY_SIGNUP_FORM);
-          setLegalAccepted(false);
-          setContractSignerName("");
-          setContractSignatureDataUrl("");
-          setCaptchaToken(null);
-          setPrivilegedSignupSubmitting(false);
-        } else {
-          toast({
-            title: "Compte créé",
-            description: "Compte créé. Vérifiez votre email pour confirmer votre compte.",
-          });
-        }
-        return;
-      }
-
-      const contractAcceptanceText =
-        "J'ai lu et j'accepte l'intégralité du contrat restaurateur TOK et je déclare être habilité à engager le restaurateur.";
       const contractContentSha256 = submittedRole === "restaurateur"
         ? await generateRestaurantPartnerContractSha256({
           signerName: submittedContractSignature.signerName.trim(),
@@ -1079,7 +1200,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
           signerRole: "Représentant autorisé",
           signerEmail: signupForm.email,
           userId: activeUser.id,
-          acceptanceText: contractAcceptanceText,
+          acceptanceText: RESTAURANT_CONTRACT_ACCEPTANCE_TEXT,
           selectedSubscriptionPlanLabel: selectedSubscriptionPlan?.name || null,
           selectedSubscriptionPriceLabel: selectedSubscriptionPrice == null
             ? null
@@ -1091,89 +1212,86 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
         })
         : null;
 
-      const uploadedDocuments: UploadedSignupDocument[] = [];
-      for (const requirement of submittedRequiredDocuments) {
-        const file = documents[requirement.type];
-        if (!file) continue;
+      const operationKey = `${activeUser.id}:${submittedRole}`;
+      let operationId: string;
+      if (isPrivilegedSignup) {
+        const currentOperation = privilegedSignupOperationRef.current;
+        operationId = currentOperation?.key === operationKey
+          ? currentOperation.id
+          : crypto.randomUUID();
+        privilegedSignupOperationRef.current = { key: operationKey, id: operationId };
+      } else {
+        operationId = crypto.randomUUID();
+      }
+      const submissionPayload: SignupApplicationSubmission["payload"] = {
+        role: submittedRole,
+        form: getSignupApplicationForm(signupForm),
+        onboardingChoices: submittedRole === "restaurateur" ? submittedOnboardingChoices : undefined,
+        documents,
+        legalAcceptance: submittedLegalAcceptance,
+        contractSignature: submittedRole === "restaurateur" ? submittedContractSignature : undefined,
+        contractContentSha256,
+        commercialReferralToken:
+          submittedRole === "restaurateur" ? commercialReferralToken || undefined : undefined,
+      };
 
-        const uploadedDocument = await uploadVerificationDocument({
+      if (isPrivilegedSignup) {
+        pendingPrivilegedSignupRef.current = {
+          operationId,
           userId: activeUser.id,
-          role: submittedRole,
-          documentType: requirement.type,
-          file,
-        });
-        uploadedDocuments.push(uploadedDocument);
+          email: signupForm.email.trim().toLowerCase(),
+          payload: {
+            ...submissionPayload,
+            role: submittedRole as Exclude<SignupRole, "client">,
+          },
+        };
       }
 
-      const { error: syncError } = await supabase.rpc("sync_signup_application", {
-        p_requested_role: submittedRole,
-        p_full_name: signupForm.fullName,
-        p_phone: signupForm.phone,
-        p_city: signupForm.city,
-        p_address: signupForm.address,
-        p_legal_name: submittedRole === "restaurateur" ? signupForm.legalName : null,
-        p_business_name: submittedRole === "restaurateur" ? signupForm.businessName : null,
-        p_business_registration_number:
-          submittedRole === "restaurateur" ? signupForm.businessRegistrationNumber : null,
-        p_tax_id: submittedRole === "restaurateur" ? signupForm.taxId : null,
-        p_restaurant_name: submittedRole === "restaurateur" ? signupForm.restaurantName : null,
-        p_restaurant_description:
-          submittedRole === "restaurateur" ? signupForm.restaurantDescription : null,
-        p_vehicle_type: submittedRole === "courier" ? signupForm.vehicleType : null,
-        p_license_plate: submittedRole === "courier" ? signupForm.licensePlate : null,
-        p_iban:
-          submittedRole === "courier" || submittedRole === "restaurateur" ? signupForm.iban : null,
-        p_metadata:
-          submittedRole === "courier"
-            ? {
-              ...splitCourierName(signupForm.fullName),
-              ...toLegalAcceptanceMetadata(submittedLegalAcceptance),
-            }
-            : submittedRole === "restaurateur"
-              ? {
-                onboarding_source: "auth_signup",
-                selected_subscription_plan_id: submittedOnboardingChoices.subscriptionPlanId,
-                selected_subscription_billing_period: submittedOnboardingChoices.subscriptionBillingPeriod,
-                onboarding_payment_status: "payment_method_required",
-                ...(commercialReferralToken ? { commercial_referral_token: commercialReferralToken } : {}),
-                contract_version: RESTAURANT_PARTNER_CONTRACT_VERSION,
-                contract_title: RESTAURANT_PARTNER_CONTRACT_TITLE,
-                contract_signer_name: submittedContractSignature.signerName.trim(),
-                contract_signature_data_url: submittedContractSignature.signatureDataUrl,
-                contract_signed_at: submittedLegalAcceptance.acceptedAt,
-                contract_signature_source: "auth_signup",
-                contract_signer_role: "Représentant autorisé",
-                contract_content_sha256: contractContentSha256,
-                contract_content_hash: contractContentSha256,
-                contract_acceptance_text: contractAcceptanceText,
-                contract_signed_email: signupForm.email,
-                contract_signed_user_id: activeUser.id,
-                contract_legal_name: signupForm.legalName,
-                contract_business_name: signupForm.businessName,
-                contract_restaurant_name: signupForm.restaurantName,
-                ...toLegalAcceptanceMetadata(submittedLegalAcceptance),
-              }
-              : { verification_source: "auth_signup", ...toLegalAcceptanceMetadata(submittedLegalAcceptance) },
-        p_documents: uploadedDocuments,
-      });
+      if (!activeSession) {
+        setPrivilegedSignupSubmitting(false);
+        setPrivilegedSignupResumeChecking(isPrivilegedSignup);
+        setPrivilegedSignupAwaitingEmail(isPrivilegedSignup);
+        toast({
+          title: "Compte créé",
+          description: isPrivilegedSignup
+            ? "Confirmez votre email. Le dossier reprendra automatiquement si cet onglet reste ouvert ; sinon, reconnectez-vous pour le finaliser."
+            : "Vérifiez votre email pour confirmer votre compte.",
+        });
+        return;
+      }
 
-      if (syncError) {
-        throw syncError;
+      await finalizeSignupApplication({
+        operationId,
+        userId: activeUser.id,
+        payload: submissionPayload,
+      }, { skipIfExisting: isContinuingConfirmedSignup });
+
+      if (isPrivilegedSignup) {
+        pendingPrivilegedSignupRef.current = null;
+        privilegedSignupOperationRef.current = null;
       }
 
       try {
         window.sessionStorage.removeItem(COMMERCIAL_REFERRAL_SESSION_KEY);
       } catch {
-        // The signup was saved even if browser storage cannot be cleared.
+        // The server-side dossier is authoritative even if browser storage cannot be cleared.
       }
       setCommercialReferralToken("");
+      try {
+        await refreshRoles();
+      } catch {
+        // The server-side dossier is committed even if refreshing local role state fails.
+      }
+      setPrivilegedSignupSubmitting(false);
+      setPrivilegedSignupResumeChecking(false);
 
       toast({
-        title: submittedRole === "client" ? "Compte crée" : "Inscription enregistrée",
-        description:
-          submittedRole === "client"
-            ? "Votre compte est actif. Vous pouvez continuer votre parcours."
-            : "Votre compte et votre dossier documentaire ont été transmis pour vérification. Vous pourrez vous connecter à l’espace restaurateur après validation.",
+        title: submittedRole === "client" ? "Compte créé" : "Inscription enregistrée",
+        description: submittedRole === "client"
+          ? "Votre compte est actif. Vous pouvez continuer votre parcours."
+          : submittedRole === "restaurateur"
+            ? "Votre compte est en attente. Votre fiche reste privée jusqu'à la validation humaine de l'admin ; vous pouvez la compléter et enregistrer votre carte depuis le dashboard."
+            : "Votre compte est en attente de validation humaine.",
       });
 
       if (submittedRole === "client") {
@@ -1181,35 +1299,17 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
         return;
       }
 
-      const { error: signOutError } = await supabase.auth.signOut();
-      if (signOutError) {
-        throw signOutError;
-      }
-      setIsLogin(true);
-      setDocuments({});
-      setLegalAccepted(false);
-      setContractSignerName("");
-      setContractSignatureDataUrl("");
-      setSignupForm((current) => ({
-        ...EMPTY_SIGNUP_FORM,
-        email: current.email,
-      }));
+      navigateToPostAuthTarget(submittedRole, true);
     } catch (error) {
-      if (shouldSignOutPrivilegedSignupSession) {
-        const { error: signOutError } = await supabase.auth.signOut();
-        if (signOutError) {
-          console.error("[auth] failed to close privileged signup session", signOutError.message);
-        }
-      } else {
-        setPrivilegedSignupSubmitting(false);
-      }
+      setPrivilegedSignupSubmitting(false);
+      setPrivilegedSignupResumeChecking(false);
       const message = error instanceof Error ? error.message : "Une erreur est survenue.";
       toast({ title: "Erreur", description: message, variant: "destructive" });
     } finally {
+      if (locksPrivilegedSignup) privilegedSignupMutexRef.current = false;
       setLoading(false);
     }
   };
-
   if (showRolePicker && user && canSwitchRole && switchableRoles.length > 1) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-secondary/10 px-4">
@@ -1244,7 +1344,13 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
     );
   }
 
-  if (user && roles.length > 0 && !privilegedSignupSubmitting) return null;
+  if (
+    user
+    && roles.length > 0
+    && !privilegedSignupSubmitting
+    && !privilegedSignupResumeChecking
+    && !incompletePrivilegedSignupRole
+  ) return null;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-secondary/10 px-4 py-10">
@@ -1256,7 +1362,9 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
               ? "Connexion restaurateur démo"
               : isCommercialAuthHost
                 ? "Connexion TOK centralisée"
-                : isLogin
+                  : isRecoveringPrivilegedSignup
+                    ? "Finaliser votre dossier"
+                    : isLogin
                   ? "Bon retour"
                   : isClientSignup
                     ? "Créer votre compte"
@@ -1267,7 +1375,9 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
               ? "Utilisez les identifiants créés par l’administrateur. Cette session utilise uniquement le projet TOK Démo."
               : isCommercialAuthHost
                 ? "La connexion se termine sur www.thetok.ch avant le choix de votre espace."
-                : isLogin
+                : isRecoveringPrivilegedSignup
+                  ? "Votre compte est confirmé. Complétez le dossier pour créer votre restaurant privé en attente de validation humaine."
+                  : isLogin
                   ? postAuthRedirectTarget
                     ? "Connectez-vous pour reprendre votre commande, réservation ou parcours en cours."
                     : "Connectez-vous pour acceder à vos espaces client, restaurateur, livreur ou admin."
@@ -1373,6 +1483,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
                   )}
                 </div>
 
+                {!isRecoveringPrivilegedSignup ? (
                 <div className="space-y-2">
                   <Label htmlFor="password">Mot de passe</Label>
                   <div className="relative">
@@ -1398,6 +1509,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
                     </button>
                   </div>
                 </div>
+                ) : null}
 
                 {!isLogin ? (
                   <div className="space-y-2">
@@ -1408,6 +1520,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
                       value={signupForm.email}
                       onChange={(event) => updateSignupField("email", event.target.value)}
                       placeholder="vous@exemple.com"
+                      readOnly={isRecoveringPrivilegedSignup}
                       required
                     />
                   </div>
@@ -1830,15 +1943,25 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
                 </div>
               ) : null}
 
-              <TurnstileCaptcha action={isLogin ? "auth_login" : `auth_signup_${roleMode}`} onTokenChange={setCaptchaToken} />
-              <Button type="submit" className="w-full" disabled={loading}>
+              {!isRecoveringPrivilegedSignup ? (
+                <TurnstileCaptcha action={isLogin ? "auth_login" : `auth_signup_${roleMode}`} onTokenChange={setCaptchaToken} />
+              ) : null}
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={loading || privilegedSignupSubmitting || (privilegedSignupAwaitingEmail && !session)}
+              >
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Traitement...
                   </>
+                ) : privilegedSignupAwaitingEmail && !session ? (
+                  "Email de confirmation envoyé"
                 ) : isLogin ? (
                   "Se connecter"
+                ) : isRecoveringPrivilegedSignup ? (
+                  "Finaliser mon dossier"
                 ) : isClientSignup ? (
                   "Créer mon compte"
                 ) : (
@@ -1848,6 +1971,13 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
                   </>
                 )}
               </Button>
+
+              {privilegedSignupAwaitingEmail && !session ? (
+                <p className="text-center text-sm text-muted-foreground" role="status">
+                  Confirmez votre email. Gardez cet onglet ouvert pour reprendre automatiquement le dossier,
+                  ou reconnectez-vous ensuite pour le finaliser.
+                </p>
+              ) : null}
 
               {isLogin && !forgotPassword && !isDemoAuthMode ? (
                 <>

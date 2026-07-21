@@ -31,10 +31,11 @@ import {
 } from "@/lib/paymentAttempt";
 import { usePaymentAttemptBackCancellation } from "@/lib/usePaymentAttemptBackCancellation";
 import {
+  findUncommittedVerificationDocumentPaths,
   getSignupRestaurateurOnboardingSelection,
-  uploadVerificationDocument,
+  removeVerificationDocumentsBestEffort,
+  uploadVerificationDocumentsWithRollback,
   type SignupDocumentType,
-  type UploadedSignupDocument,
 } from "@/lib/signup";
 
 const supabase = getSupabase();
@@ -415,21 +416,26 @@ function LiveDashboard() {
         throw new Error("Aucun dossier restaurateur à corriger.");
       }
 
-      const uploadedDocuments: UploadedSignupDocument[] = [];
       const documentEntries = Object.entries(payload.documentInputs) as Array<[SignupDocumentType, File | null | undefined]>;
-      for (const [documentType, file] of documentEntries) {
-        if (!file) continue;
-        uploadedDocuments.push(await uploadVerificationDocument({
+      const uploadedDocuments = await uploadVerificationDocumentsWithRollback(
+        documentEntries.flatMap(([documentType, file]) => file ? [{
           userId: signupApplication.user_id,
-          role: "restaurateur",
+          role: "restaurateur" as const,
           documentType,
           file,
-        }));
-      }
+        }] : []),
+      );
+      const previousPathByDocumentType = new Map(
+        (signupApplication.signup_application_documents || []).map((document) => [
+          document.document_type,
+          document.file_path,
+        ]),
+      );
 
       const existingMetadata = signupApplication.metadata && typeof signupApplication.metadata === "object"
         ? signupApplication.metadata
         : {};
+      const correctionResubmittedAt = new Date().toISOString();
 
       const { error } = await (supabase.rpc as any)("sync_signup_application", {
         p_requested_role: "restaurateur",
@@ -449,12 +455,42 @@ function LiveDashboard() {
         p_metadata: {
           ...existingMetadata,
           correction_source: "dashboard",
-          correction_resubmitted_at: new Date().toISOString(),
+          correction_resubmitted_at: correctionResubmittedAt,
         },
         p_documents: uploadedDocuments,
       });
 
-      if (error) throw error;
+      if (error) {
+        const { data: reconciledApplication, error: reconciliationError } = await supabase
+          .from("signup_applications")
+          .select("metadata")
+          .eq("id", signupApplication.id)
+          .maybeSingle();
+        const reconciledMetadata = reconciledApplication?.metadata
+          && typeof reconciledApplication.metadata === "object"
+          ? reconciledApplication.metadata as Record<string, unknown>
+          : null;
+        const correctionWasCommitted = !reconciliationError
+          && reconciledMetadata?.correction_resubmitted_at === correctionResubmittedAt;
+
+        if (!correctionWasCommitted) {
+          if (uploadedDocuments.length === 0) throw error;
+          const uncommittedPaths = await findUncommittedVerificationDocumentPaths(
+            signupApplication.user_id,
+            uploadedDocuments.map((document) => document.file_path),
+          );
+          if (uncommittedPaths?.length) {
+            await removeVerificationDocumentsBestEffort(uncommittedPaths);
+          }
+          if (uncommittedPaths === null || uncommittedPaths.length > 0) throw error;
+        }
+      }
+
+      const replacedPaths = uploadedDocuments.flatMap((document) => {
+        const previousPath = previousPathByDocumentType.get(document.document_type);
+        return previousPath && previousPath !== document.file_path ? [previousPath] : [];
+      });
+      await removeVerificationDocumentsBestEffort(replacedPaths);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["signup-application"] });
@@ -587,4 +623,3 @@ function LiveDashboard() {
     />
   );
 }
-

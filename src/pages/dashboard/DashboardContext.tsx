@@ -87,7 +87,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   }, [isDemoMode, loading, selectedRestaurant]);
 
   const dashboardAccessLockReason = dashboardAccessLocked
-    ? "Votre dossier restaurateur doit être validé par l'admin TOK avant d'activer les onglets et fonctionnalités."
+    ? "Votre fiche reste privée pendant la validation humaine. Vous pouvez la compléter et enregistrer votre carte, mais elle n'est pas visible par les clients."
     : null;
 
   const disabledFeatures = useMemo(() => {
@@ -124,7 +124,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         "dashboard-actualites",
         "dashboard-factures",
         "dashboard-pack",
-        "dashboard-restaurant",
         "dashboard-menu",
         "dashboard-photos",
         "dashboard-offres",
