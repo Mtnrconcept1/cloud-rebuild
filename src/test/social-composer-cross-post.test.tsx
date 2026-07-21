@@ -449,9 +449,9 @@ describe("SocialComposer external social publishing", () => {
       target: { value: "Service de midi lance avec un plat du jour maison." },
     });
     fireEvent.click(screen.getByRole("checkbox", { name: /Sponsoriser ce post/i }));
-    fireEvent.click(screen.getByRole("button", { name: /IA optimise ma publicit/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Recommander mes paramètres/i }));
 
-    expect(screen.getByText(/Plan IA appliqu/i)).toBeInTheDocument();
+    expect(screen.getByText(/Recommandation appliqu/i)).toBeInTheDocument();
     expect(screen.getByRole("radio", { name: /Conversion/i })).toBeChecked();
     expect((screen.getByLabelText(/Budget total/i) as HTMLInputElement).value).toBe("45");
     expect((screen.getByLabelText(/Dur/i) as HTMLInputElement).value).toBe("5");

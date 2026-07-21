@@ -220,6 +220,8 @@ describe("pending restaurateur workspace and human-only publication", () => {
     expect(guard).toContain("NEW.status := 'pending'");
     expect(guard).toContain("NEW.is_active := false");
     expect(guard).toContain("restaurant_is_approved_for_publication(NEW.id, NEW.owner_id)");
+    expect(guard).toContain("v_is_owner_correction_reset");
+    expect(guard).toContain("application.status = 'pending_review'");
     expect(sql).toMatch(/restaurants_public_select[\s\S]*is_active IS TRUE[\s\S]*status[\s\S]*'active'/i);
   });
 
@@ -243,11 +245,18 @@ describe("pending restaurateur workspace and human-only publication", () => {
 
     expect(review).toContain("v_actor_id IS NULL");
     expect(review).toContain("signup_restaurateur_onboarding_payment_ready");
+    expect(review).toContain("count(DISTINCT document.document_type)");
+    expect(review).toContain("business_registration");
     expect(review).toContain("reviewed_by = v_actor_id");
+    expect(review).toContain("v_application.status = v_next_status");
+    expect(review).toContain("v_application.review_note IS NOT DISTINCT FROM v_review_note");
+    expect(review.indexOf("v_application.status = v_next_status"))
+      .toBeLessThan(review.indexOf("UPDATE public.signup_applications"));
     expect(review).not.toContain("v_is_service_role");
     expect(humanGuard).toContain("validation humaine administrateur");
     expect(sql).toMatch(/REVOKE ALL ON FUNCTION public\.admin_review_signup_application[\s\S]*service_role/i);
     expect(sql).toMatch(/GRANT EXECUTE ON FUNCTION public\.admin_review_signup_application[\s\S]*TO authenticated/i);
+    expect(sql).toMatch(/CREATE TRIGGER enforce_restaurateur_signup_role[\s\S]*AFTER INSERT OR UPDATE\s+ON public\.signup_applications/i);
   });
 
   it("keeps documents private and validates only storage metadata, never their identity content", () => {
@@ -272,10 +281,44 @@ describe("pending restaurateur workspace and human-only publication", () => {
     expect(authPage).toContain("pendingPrivilegedSignupRef");
     expect(authPage).toContain("privilegedSignupMutexRef.current = true");
     expect(authPage).toContain("privilegedSignupOperationRef.current");
+    expect(authPage).toContain('payload.role !== "client" || options.skipIfExisting');
     expect(authPage).toContain("skipIfExisting: true");
     expect(authPage).not.toContain('functions.invoke("submit-signup-application"');
     expect(authPage).not.toMatch(/indexedDB|localStorage/i);
     expect(authPage).not.toContain("pendingPrivilegedSignupDraft");
     expect(authPage).toContain("const { password, ...applicationForm } = form");
+  });
+
+  it("guards public restaurant actions and authorizes GDPR deletion only for trusted callers", () => {
+    for (const functionName of [
+      "validate_and_create_reservation",
+      "create_match_group",
+      "upsert_match_group_member_order",
+      "get_meal_formula_service_availability",
+      "assert_meal_formula_service_capacity",
+    ]) {
+      const wrapper = extractFunction(sql, functionName);
+      expect(wrapper).toContain("restaurant_is_publicly_visible");
+      expect(sql).toContain(`${functionName}_unguarded`);
+    }
+
+    const gdprDelete = extractFunction(sql, "delete_user_gdpr_cascade");
+    expect(gdprDelete).toContain("v_actor_id IS DISTINCT FROM p_user_id");
+    expect(gdprDelete).toContain("public.has_role(v_actor_id, 'admin'::public.app_role)");
+    expect(gdprDelete).toContain("auth.role() IS DISTINCT FROM 'service_role'");
+    expect(sql).toMatch(/signup_application_review_events[\s\S]*ON DELETE CASCADE/i);
+    expect(sql).toContain("constraint_row.confdeltype <> 'c'");
+    expect(sql).toContain("ALTER TABLE public.signup_application_review_events DROP CONSTRAINT %I");
+    expect(sql).toContain("ADD CONSTRAINT signup_application_review_events_application_id_fkey");
+    expect(sql).toMatch(/CREATE TRIGGER reject_signup_review_event_mutation\s+BEFORE UPDATE\s+ON public\.signup_application_review_events/i);
+  });
+
+  it("never sends fallback cuisine slugs to the uuid cuisine RPC", () => {
+    const restaurant = readFileSync(resolve(process.cwd(), "src/pages/dashboard/DashboardRestaurant.tsx"), "utf8");
+
+    expect(restaurant).toContain("UUID_PATTERN");
+    expect(restaurant).toContain("hasPersistableCuisineReference");
+    expect(restaurant).toContain("if (!hasPersistableCuisineReference) return");
+    expect(restaurant).toContain("p_cuisine_ids: selectedCuisineIds");
   });
 });

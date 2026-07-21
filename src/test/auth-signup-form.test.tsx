@@ -150,6 +150,7 @@ function mockSupabaseTable(table: string) {
   const builder = {
     select: vi.fn(() => builder),
     eq: vi.fn(() => builder),
+    in: vi.fn(() => Promise.resolve({ data: rows, error: null })),
     order: vi.fn(() => Promise.resolve({ data: rows, error: null })),
     maybeSingle: vi.fn(() => Promise.resolve({ data: null, error: null })),
   };

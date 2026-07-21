@@ -517,7 +517,10 @@ async function finalizeSignupApplication(
 ) {
   const { payload, userId, operationId } = submission;
 
-  if (options.skipIfExisting) {
+  // Privileged applications are reconciled before every upload, including the
+  // very first authenticated submission. This makes a retry safe even if the
+  // previous RPC committed but its response never reached the browser.
+  if (payload.role !== "client" || options.skipIfExisting) {
     const { data: existingApplication, error: existingApplicationError } = await supabase
       .from("signup_applications")
       .select("id")

@@ -49,6 +49,7 @@ import { useDashboardRestaurant } from "./useDashboardRestaurant";
 
 const supabase = getSupabase();
 const DASHBOARD_RESTAURANT_PROMOTIONS_LIMIT = 4;
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 const DASHBOARD_PROMOTION_TARGET_LABELS: Record<string, string> = {
   all: "Tous les clients",
@@ -304,6 +305,13 @@ export default function DashboardRestaurant() {
   };
 
   const syncRestaurantCuisines = async (restaurantId: string) => {
+    // The predefined fallback keeps the form usable when the cuisine
+    // reference table is temporarily unavailable, but its slugs must never be
+    // sent to the uuid[] RPC or used to erase existing structured links.
+    const hasPersistableCuisineReference = cuisineOptions.length > 0
+      && cuisineOptions.every((option) => UUID_PATTERN.test(option.id));
+    if (!hasPersistableCuisineReference) return;
+
     const { error } = await (supabase as any).rpc("restaurant_set_cuisines", {
       p_restaurant_id: restaurantId,
       p_cuisine_ids: selectedCuisineIds,

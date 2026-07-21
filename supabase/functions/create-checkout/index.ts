@@ -45,7 +45,10 @@ import {
   parseRestaurantSubscriptionBillingPeriod,
   type RestaurantSubscriptionBillingPeriod,
 } from "../_shared/restaurant-subscription-billing.ts";
-import { buildVerifiedOrderPricing } from "../_shared/order-pricing.ts";
+import {
+  buildVerifiedOrderPricing,
+  isClientCheckoutRestaurantEligible,
+} from "../_shared/order-pricing.ts";
 import {
   MARKETPLACE_CHECKOUT_KINDS,
   resolveMarketplaceRouting,
@@ -1228,6 +1231,37 @@ Deno.serve(async (req) => {
         flex_discount_amount: flexDiscountTotal.toFixed(2),
         authoritative_total: authoritativeTotal.toFixed(2),
       };
+    }
+
+    const clientCheckoutRestaurantId = String(
+      marketplaceRestaurantId || sessionMetadata.restaurant_id || "",
+    ).trim();
+
+    if (CLIENT_STRIPE_CHECKOUT_KINDS.has(effectiveKind)) {
+      if (!clientCheckoutRestaurantId) {
+        throw new HttpError(
+          409,
+          "Ce restaurant n’est pas disponible pour un paiement client.",
+        );
+      }
+
+      const { data: checkoutRestaurant, error: checkoutRestaurantError } =
+        await actor.adminClient
+          .from("restaurants")
+          .select("id, is_active, status, is_demo")
+          .eq("id", clientCheckoutRestaurantId)
+          .maybeSingle();
+
+      if (checkoutRestaurantError) {
+        throw new HttpError(500, checkoutRestaurantError.message);
+      }
+
+      if (!isClientCheckoutRestaurantEligible(checkoutRestaurant)) {
+        throw new HttpError(
+          409,
+          "Ce restaurant n’est pas disponible pour un paiement client.",
+        );
+      }
     }
 
     const totalBeforeDiscountCents = lineItems.reduce(

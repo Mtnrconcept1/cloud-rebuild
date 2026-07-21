@@ -90,34 +90,40 @@ describe("restaurant onboarding subscription payments", () => {
   });
 
   it("blocks admin approval until the reusable payment method is ready", () => {
-    const migration = latestMigrationContaining(
+    const approvalMigration = latestMigrationContaining(
       /CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.signup_restaurateur_onboarding_payment_ready/i,
+    );
+    const paymentArchitectureMigration = latestMigrationContaining(
+      /get_commercial_prospect_signup_referral/i,
     );
     const admin = read("src/pages/admin/AdminUtilisateurs.tsx");
     const statusCard = read("src/components/signup/SignupApplicationStatusCard.tsx");
 
-    expect(migration).toContain("CREATE OR REPLACE FUNCTION public.signup_restaurateur_onboarding_payment_ready");
-    expect(migration).toContain("restaurant_ai_subscriptions");
-    expect(migration).toContain("payment_method_ready_at");
-    expect(migration).toContain("payment_method_ready");
-    expect(migration).toContain("restaurant_subscription_payment_methods");
-    expect(migration).toContain("get_commercial_prospect_signup_referral");
-    expect(migration).toContain("commercial_signup_referral");
-    expect(migration).toContain("deferred_subscription_contract_snapshot_is_immutable");
-    expect(migration).toContain("stale_failure_ignored");
-    expect(migration).toContain("subscription.stripe_subscription_id IS NULL");
-    expect(migration).toContain("queue_subscription_activation_on_reservation");
-    expect(migration).toContain("queue_subscription_activation_on_order");
-    expect(migration).toContain("record_restaurant_subscription_invoice_paid");
-    expect(migration).not.toContain("v_launch_pack_id");
-    expect(migration).not.toContain("restaurant_launch_packs rlp");
-    expect(migration).toContain("GRANT EXECUTE ON FUNCTION public.signup_restaurateur_onboarding_payment_ready");
-    expect(migration).toContain("public.has_role(v_actor_id, 'admin'::public.app_role)");
+    expect(approvalMigration).toContain("CREATE OR REPLACE FUNCTION public.signup_restaurateur_onboarding_payment_ready");
+    expect(approvalMigration).toContain("restaurant_ai_subscriptions");
+    expect(approvalMigration).toContain("payment_method_ready_at");
+    expect(approvalMigration).toContain("payment_method_ready");
+    expect(approvalMigration).toContain("restaurant_subscription_payment_methods");
+    expect(approvalMigration).toContain("GRANT EXECUTE ON FUNCTION public.signup_restaurateur_onboarding_payment_ready");
+    expect(approvalMigration).toContain("public.has_role(v_actor_id, 'admin'::public.app_role)");
+
+    expect(paymentArchitectureMigration).toContain("get_commercial_prospect_signup_referral");
+    expect(paymentArchitectureMigration).toContain("commercial_signup_referral");
+    expect(paymentArchitectureMigration).toContain("deferred_subscription_contract_snapshot_is_immutable");
+    expect(paymentArchitectureMigration).toContain("stale_failure_ignored");
+    expect(paymentArchitectureMigration).toContain("subscription.stripe_subscription_id IS NULL");
+    expect(paymentArchitectureMigration).toContain("queue_subscription_activation_on_reservation");
+    expect(paymentArchitectureMigration).toContain("queue_subscription_activation_on_order");
+    expect(paymentArchitectureMigration).toContain("record_restaurant_subscription_invoice_paid");
+    expect(paymentArchitectureMigration).not.toContain("v_launch_pack_id");
+    expect(paymentArchitectureMigration).not.toContain("restaurant_launch_packs rlp");
 
     expect(admin).toContain("canApproveSignupApplication");
     expect(admin).toContain("Carte enregistrée");
     expect(statusCard).toContain("Enregistrer la carte sans débit");
     expect(statusCard).toContain("Aucun débit n’est effectué");
+    expect(statusCard).toContain("Aucun montant n’est bloqué");
+    expect(statusCard).not.toContain("Le montant reste réservé dans TOK");
     expect(statusCard).toContain("Abonnement déjà démarré");
     expect(statusCard).toContain("Mettre à jour la carte et relancer le paiement");
     expect(statusCard).toContain("onboardingPaymentRecoveryRequired");

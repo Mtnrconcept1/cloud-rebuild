@@ -65,6 +65,7 @@ DECLARE
   v_actor_id uuid := auth.uid();
   v_actor_is_service boolean := COALESCE(auth.role() = 'service_role', false);
   v_actor_is_admin boolean := COALESCE(public.has_role(v_actor_id, 'admin'::public.app_role), false);
+  v_is_owner_correction_reset boolean := false;
 BEGIN
   IF TG_OP = 'INSERT' THEN
     IF v_actor_id IS NOT NULL AND NOT v_actor_is_admin AND NOT v_actor_is_service THEN
@@ -99,6 +100,50 @@ BEGIN
     END IF;
   ELSE
     IF v_actor_id IS NOT NULL AND NOT v_actor_is_admin AND NOT v_actor_is_service THEN
+      -- sync_signup_application resets the private restaurant workspace only
+      -- after the corrected dossier itself has returned to pending_review.
+      -- No publication, ownership, demo, financial or ranking field may ride
+      -- along with this narrowly-scoped status reset.
+      v_is_owner_correction_reset := (
+        v_actor_id = OLD.owner_id
+        AND NEW.id IS NOT DISTINCT FROM OLD.id
+        AND NEW.owner_id IS NOT DISTINCT FROM OLD.owner_id
+        AND OLD.status = 'needs_changes'
+        AND NEW.status = 'pending'
+        AND OLD.is_active IS FALSE
+        AND NEW.is_active IS FALSE
+        AND OLD.is_demo IS FALSE
+        AND NEW.is_demo IS NOT DISTINCT FROM OLD.is_demo
+        AND NEW.rating IS NOT DISTINCT FROM OLD.rating
+        AND NEW.review_count IS NOT DISTINCT FROM OLD.review_count
+        AND NEW.avg_rating IS NOT DISTINCT FROM OLD.avg_rating
+        AND NEW.rating_count IS NOT DISTINCT FROM OLD.rating_count
+        AND NEW.points_multiplier IS NOT DISTINCT FROM OLD.points_multiplier
+        AND NEW.commission_rate IS NOT DISTINCT FROM OLD.commission_rate
+        AND NEW.search_vector IS NOT DISTINCT FROM OLD.search_vector
+        AND NEW.avg_delivery_time_min IS NOT DISTINCT FROM OLD.avg_delivery_time_min
+        AND NEW.dynamic_prep_time_minutes IS NOT DISTINCT FROM OLD.dynamic_prep_time_minutes
+        AND NEW.is_featured IS NOT DISTINCT FROM OLD.is_featured
+        AND NEW.disabled_dashboard_features IS NOT DISTINCT FROM OLD.disabled_dashboard_features
+        AND NEW.stripe_account_id IS NOT DISTINCT FROM OLD.stripe_account_id
+        AND NEW.stripe_connect_details_submitted IS NOT DISTINCT FROM OLD.stripe_connect_details_submitted
+        AND NEW.stripe_connect_charges_enabled IS NOT DISTINCT FROM OLD.stripe_connect_charges_enabled
+        AND NEW.stripe_connect_payouts_enabled IS NOT DISTINCT FROM OLD.stripe_connect_payouts_enabled
+        AND NEW.stripe_connect_requirements_due IS NOT DISTINCT FROM OLD.stripe_connect_requirements_due
+        AND NEW.stripe_connect_disabled_reason IS NOT DISTINCT FROM OLD.stripe_connect_disabled_reason
+        AND NEW.stripe_connect_onboarding_completed_at IS NOT DISTINCT FROM OLD.stripe_connect_onboarding_completed_at
+        AND NEW.stripe_connect_last_synced_at IS NOT DISTINCT FROM OLD.stripe_connect_last_synced_at
+        AND NEW.created_at IS NOT DISTINCT FROM OLD.created_at
+        AND EXISTS (
+          SELECT 1
+          FROM public.signup_applications AS application
+          WHERE application.user_id = NEW.owner_id
+            AND application.requested_role = 'restaurateur'::public.app_role
+            AND application.status = 'pending_review'
+            AND application.metadata->>'restaurant_id' = NEW.id::text
+        )
+      );
+
       IF NEW.id IS DISTINCT FROM OLD.id
         OR NEW.owner_id IS DISTINCT FROM OLD.owner_id
         OR NEW.status IS DISTINCT FROM OLD.status
@@ -125,8 +170,10 @@ BEGIN
         OR NEW.stripe_connect_last_synced_at IS DISTINCT FROM OLD.stripe_connect_last_synced_at
         OR NEW.created_at IS DISTINCT FROM OLD.created_at
       THEN
-        RAISE EXCEPTION 'Les champs de publication, de classement, d''abonnement et de paiement sont gérés par le serveur.'
-          USING ERRCODE = '42501';
+        IF NOT v_is_owner_correction_reset THEN
+          RAISE EXCEPTION 'Les champs de publication, de classement, d''abonnement et de paiement sont gérés par le serveur.'
+            USING ERRCODE = '42501';
+        END IF;
       END IF;
     END IF;
   END IF;
@@ -271,6 +318,394 @@ FOR SELECT
 TO anon, authenticated
 USING (public.can_view_commercial_demo_restaurant(restaurant_id));
 
+-- Keep the authenticated signup flow idempotent while qualifying every column
+-- that can collide with the TABLE return variables. The previous unqualified
+-- `application_id` failed at runtime before a corrected dossier could reset its
+-- private restaurant workspace.
+CREATE OR REPLACE FUNCTION public.sync_signup_application(
+  p_requested_role public.app_role,
+  p_full_name text,
+  p_phone text DEFAULT NULL,
+  p_city text DEFAULT NULL,
+  p_address text DEFAULT NULL,
+  p_legal_name text DEFAULT NULL,
+  p_business_name text DEFAULT NULL,
+  p_business_registration_number text DEFAULT NULL,
+  p_tax_id text DEFAULT NULL,
+  p_restaurant_name text DEFAULT NULL,
+  p_restaurant_description text DEFAULT NULL,
+  p_vehicle_type text DEFAULT NULL,
+  p_license_plate text DEFAULT NULL,
+  p_iban text DEFAULT NULL,
+  p_metadata jsonb DEFAULT '{}'::jsonb,
+  p_documents jsonb DEFAULT '[]'::jsonb
+)
+RETURNS TABLE(
+  application_id uuid,
+  application_status text,
+  restaurant_id uuid,
+  courier_id uuid
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_actor_id uuid := auth.uid();
+  v_application_id uuid;
+  v_application_status text;
+  v_required_docs text[] := ARRAY[]::text[];
+  v_uploaded_docs text[] := ARRAY[]::text[];
+  v_doc jsonb;
+  v_doc_type text;
+  v_now timestamptz := now();
+  v_restaurant_id uuid;
+  v_courier_id uuid;
+  v_vehicle_type text := lower(COALESCE(NULLIF(trim(p_vehicle_type), ''), 'bicycle'));
+  v_role_text text := lower(p_requested_role::text);
+BEGIN
+  IF auth.role() <> 'service_role' AND v_actor_id IS NULL THEN
+    RAISE EXCEPTION 'Unauthorized';
+  END IF;
+
+  -- Commercial is an internal employee role provisioned through the
+  -- service-only admin workflow. A public self-signup RPC must never be able
+  -- to grant it to the caller.
+  IF v_role_text = 'commercial' THEN
+    RAISE EXCEPTION 'Commercial signup requires the internal provisioning workflow'
+      USING ERRCODE = '42501';
+  END IF;
+
+  IF v_role_text NOT IN ('client', 'restaurateur', 'courier') THEN
+    RAISE EXCEPTION 'Unsupported signup role: %', p_requested_role;
+  END IF;
+
+  IF NULLIF(trim(COALESCE(p_full_name, '')), '') IS NULL THEN
+    RAISE EXCEPTION 'Full name is required';
+  END IF;
+
+  IF jsonb_typeof(COALESCE(p_documents, '[]'::jsonb)) <> 'array' THEN
+    RAISE EXCEPTION 'Documents payload must be an array';
+  END IF;
+
+  IF v_role_text = 'courier' THEN
+    v_required_docs := ARRAY['identity_document', 'work_permit', 'iban_proof'];
+    IF v_vehicle_type IN ('scooter', 'car') THEN
+      v_required_docs := v_required_docs || ARRAY['vehicle_registration'];
+    END IF;
+  ELSIF v_role_text = 'restaurateur' THEN
+    v_required_docs := ARRAY['identity_document', 'business_registration', 'iban_proof'];
+  END IF;
+
+  INSERT INTO public.profiles (user_id, full_name, phone, city, address)
+  VALUES (
+    v_actor_id,
+    trim(p_full_name),
+    NULLIF(trim(COALESCE(p_phone, '')), ''),
+    NULLIF(trim(COALESCE(p_city, '')), ''),
+    NULLIF(trim(COALESCE(p_address, '')), '')
+  )
+  ON CONFLICT (user_id) DO UPDATE
+    SET full_name = EXCLUDED.full_name,
+        phone = COALESCE(EXCLUDED.phone, public.profiles.phone),
+        city = COALESCE(EXCLUDED.city, public.profiles.city),
+        address = COALESCE(EXCLUDED.address, public.profiles.address),
+        updated_at = v_now;
+
+  INSERT INTO public.user_roles (user_id, role)
+  VALUES (v_actor_id, 'client'::public.app_role)
+  ON CONFLICT (user_id, role) DO NOTHING;
+
+  IF v_role_text = 'restaurateur' THEN
+    INSERT INTO public.user_roles (user_id, role)
+    VALUES (v_actor_id, 'restaurateur'::public.app_role)
+    ON CONFLICT (user_id, role) DO NOTHING;
+  END IF;
+
+  INSERT INTO public.signup_applications (
+    user_id,
+    requested_role,
+    status,
+    full_name,
+    phone,
+    city,
+    address,
+    legal_name,
+    business_name,
+    business_registration_number,
+    tax_id,
+    restaurant_name,
+    restaurant_description,
+    vehicle_type,
+    license_plate,
+    iban,
+    metadata,
+    submitted_at,
+    reviewed_at,
+    reviewed_by,
+    review_note
+  )
+  VALUES (
+    v_actor_id,
+    p_requested_role,
+    CASE WHEN v_role_text = 'client' THEN 'approved' ELSE 'pending_review' END,
+    trim(p_full_name),
+    NULLIF(trim(COALESCE(p_phone, '')), ''),
+    NULLIF(trim(COALESCE(p_city, '')), ''),
+    NULLIF(trim(COALESCE(p_address, '')), ''),
+    NULLIF(trim(COALESCE(p_legal_name, '')), ''),
+    NULLIF(trim(COALESCE(p_business_name, '')), ''),
+    NULLIF(trim(COALESCE(p_business_registration_number, '')), ''),
+    NULLIF(trim(COALESCE(p_tax_id, '')), ''),
+    NULLIF(trim(COALESCE(p_restaurant_name, '')), ''),
+    NULLIF(trim(COALESCE(p_restaurant_description, '')), ''),
+    CASE WHEN v_role_text = 'courier' THEN v_vehicle_type ELSE NULL END,
+    NULLIF(trim(COALESCE(p_license_plate, '')), ''),
+    NULLIF(trim(COALESCE(p_iban, '')), ''),
+    COALESCE(p_metadata, '{}'::jsonb),
+    v_now,
+    CASE WHEN v_role_text = 'client' THEN v_now ELSE NULL END,
+    NULL,
+    NULL
+  )
+  ON CONFLICT ON CONSTRAINT signup_applications_user_id_requested_role_key DO UPDATE
+    SET status = CASE WHEN v_role_text = 'client' THEN 'approved' ELSE 'pending_review' END,
+        full_name = EXCLUDED.full_name,
+        phone = EXCLUDED.phone,
+        city = EXCLUDED.city,
+        address = EXCLUDED.address,
+        legal_name = EXCLUDED.legal_name,
+        business_name = EXCLUDED.business_name,
+        business_registration_number = EXCLUDED.business_registration_number,
+        tax_id = EXCLUDED.tax_id,
+        restaurant_name = EXCLUDED.restaurant_name,
+        restaurant_description = EXCLUDED.restaurant_description,
+        vehicle_type = EXCLUDED.vehicle_type,
+        license_plate = EXCLUDED.license_plate,
+        iban = EXCLUDED.iban,
+        metadata = EXCLUDED.metadata,
+        submitted_at = v_now,
+        reviewed_at = CASE WHEN v_role_text = 'client' THEN v_now ELSE NULL END,
+        reviewed_by = NULL,
+        review_note = NULL,
+        updated_at = v_now
+  RETURNING signup_applications.id, signup_applications.status
+  INTO v_application_id, v_application_status;
+
+  FOR v_doc IN
+    SELECT document_payload.value
+    FROM jsonb_array_elements(COALESCE(p_documents, '[]'::jsonb)) AS document_payload(value)
+  LOOP
+    v_doc_type := lower(COALESCE(v_doc->>'document_type', ''));
+
+    IF v_doc_type = '' THEN
+      RAISE EXCEPTION 'document_type is required for every uploaded document';
+    END IF;
+
+    IF COALESCE(v_doc->>'file_path', '') = '' THEN
+      RAISE EXCEPTION 'file_path is required for document %', v_doc_type;
+    END IF;
+
+    INSERT INTO public.signup_application_documents AS signup_document (
+      application_id,
+      user_id,
+      document_type,
+      file_path,
+      file_name,
+      mime_type,
+      file_size_bytes,
+      status,
+      reviewed_at,
+      reviewed_by,
+      rejection_reason
+    )
+    VALUES (
+      v_application_id,
+      v_actor_id,
+      v_doc_type,
+      v_doc->>'file_path',
+      NULLIF(v_doc->>'file_name', ''),
+      NULLIF(v_doc->>'mime_type', ''),
+      CASE
+        WHEN NULLIF(v_doc->>'file_size_bytes', '') IS NULL THEN NULL
+        ELSE GREATEST((v_doc->>'file_size_bytes')::integer, 0)
+      END,
+      'pending',
+      NULL,
+      NULL,
+      NULL
+    )
+    ON CONFLICT ON CONSTRAINT signup_application_documents_application_id_document_type_key DO UPDATE
+      SET file_path = EXCLUDED.file_path,
+          file_name = EXCLUDED.file_name,
+          mime_type = EXCLUDED.mime_type,
+          file_size_bytes = EXCLUDED.file_size_bytes,
+          status = 'pending',
+          reviewed_at = NULL,
+          reviewed_by = NULL,
+          rejection_reason = NULL,
+          updated_at = v_now;
+  END LOOP;
+
+  IF array_length(v_required_docs, 1) IS NOT NULL THEN
+    SELECT array_agg(signup_document.document_type ORDER BY signup_document.document_type)
+    INTO v_uploaded_docs
+    FROM public.signup_application_documents AS signup_document
+    WHERE signup_document.application_id = v_application_id;
+
+    IF COALESCE(v_uploaded_docs, ARRAY[]::text[]) @> v_required_docs IS NOT TRUE THEN
+      RAISE EXCEPTION 'Missing required verification documents for role %', p_requested_role;
+    END IF;
+  END IF;
+
+  IF v_role_text = 'courier' THEN
+    INSERT INTO public.couriers (
+      user_id,
+      first_name,
+      last_name,
+      phone,
+      status,
+      vehicle_type,
+      license_plate,
+      iban,
+      is_online,
+      updated_at
+    )
+    VALUES (
+      v_actor_id,
+      split_part(trim(p_full_name), ' ', 1),
+      NULLIF(trim(substr(trim(p_full_name), length(split_part(trim(p_full_name), ' ', 1)) + 1)), ''),
+      NULLIF(trim(COALESCE(p_phone, '')), ''),
+      'pending_approval',
+      v_vehicle_type,
+      NULLIF(trim(COALESCE(p_license_plate, '')), ''),
+      NULLIF(trim(COALESCE(p_iban, '')), ''),
+      false,
+      v_now
+    )
+    ON CONFLICT (user_id) DO UPDATE
+      SET first_name = EXCLUDED.first_name,
+          last_name = EXCLUDED.last_name,
+          phone = EXCLUDED.phone,
+          vehicle_type = EXCLUDED.vehicle_type,
+          license_plate = EXCLUDED.license_plate,
+          iban = EXCLUDED.iban,
+          status = CASE
+            WHEN public.couriers.status = 'approved' THEN public.couriers.status
+            ELSE 'pending_approval'
+          END,
+          is_online = CASE
+            WHEN public.couriers.status = 'approved' THEN public.couriers.is_online
+            ELSE false
+          END,
+          updated_at = v_now
+    RETURNING couriers.id INTO v_courier_id;
+  ELSIF v_role_text = 'restaurateur' THEN
+    SELECT restaurant.id
+    INTO v_restaurant_id
+    FROM public.restaurants AS restaurant
+    WHERE restaurant.owner_id = v_actor_id
+    ORDER BY restaurant.created_at ASC
+    LIMIT 1;
+
+    IF v_restaurant_id IS NULL THEN
+      INSERT INTO public.restaurants (
+        owner_id,
+        name,
+        description,
+        legal_name,
+        address,
+        city,
+        phone,
+        is_active,
+        status
+      )
+      VALUES (
+        v_actor_id,
+        COALESCE(
+          NULLIF(trim(COALESCE(p_restaurant_name, '')), ''),
+          NULLIF(trim(COALESCE(p_business_name, '')), ''),
+          'Restaurant a valider'
+        ),
+        NULLIF(trim(COALESCE(p_restaurant_description, '')), ''),
+        NULLIF(trim(COALESCE(p_legal_name, '')), ''),
+        COALESCE(NULLIF(trim(COALESCE(p_address, '')), ''), 'Adresse a confirmer'),
+        COALESCE(NULLIF(trim(COALESCE(p_city, '')), ''), 'Ville a confirmer'),
+        NULLIF(trim(COALESCE(p_phone, '')), ''),
+        false,
+        'pending'
+      )
+      RETURNING restaurants.id INTO v_restaurant_id;
+    ELSE
+      UPDATE public.restaurants AS restaurant
+      SET legal_name = COALESCE(
+            NULLIF(trim(COALESCE(p_legal_name, '')), ''),
+            restaurant.legal_name
+          ),
+          phone = COALESCE(
+            NULLIF(trim(COALESCE(p_phone, '')), ''),
+            restaurant.phone
+          ),
+          description = COALESCE(
+            NULLIF(trim(COALESCE(p_restaurant_description, '')), ''),
+            restaurant.description
+          ),
+          status = CASE WHEN restaurant.is_active THEN restaurant.status ELSE 'pending' END,
+          is_active = CASE WHEN restaurant.is_active THEN restaurant.is_active ELSE false END,
+          updated_at = v_now
+      WHERE restaurant.id = v_restaurant_id;
+    END IF;
+
+    UPDATE public.signup_applications AS signup_application
+    SET metadata = COALESCE(signup_application.metadata, '{}'::jsonb)
+      || jsonb_build_object('restaurant_id', v_restaurant_id)
+    WHERE signup_application.id = v_application_id;
+  END IF;
+
+  RETURN QUERY
+  SELECT v_application_id, v_application_status, v_restaurant_id, v_courier_id;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.sync_signup_application(
+  public.app_role,
+  text,
+  text,
+  text,
+  text,
+  text,
+  text,
+  text,
+  text,
+  text,
+  text,
+  text,
+  text,
+  text,
+  jsonb,
+  jsonb
+)
+FROM PUBLIC, anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.sync_signup_application(
+  public.app_role,
+  text,
+  text,
+  text,
+  text,
+  text,
+  text,
+  text,
+  text,
+  text,
+  text,
+  text,
+  text,
+  text,
+  jsonb,
+  jsonb
+)
+TO authenticated, service_role;
+
 -- Owners keep their pending workspace, but a restaurant role is exclusive at
 -- onboarding time so a half-created account does not remain in the client space.
 CREATE OR REPLACE FUNCTION public.enforce_restaurateur_signup_role()
@@ -298,7 +733,7 @@ REVOKE ALL ON FUNCTION public.enforce_restaurateur_signup_role()
 
 DROP TRIGGER IF EXISTS enforce_restaurateur_signup_role ON public.signup_applications;
 CREATE TRIGGER enforce_restaurateur_signup_role
-AFTER INSERT OR UPDATE OF requested_role
+AFTER INSERT OR UPDATE
 ON public.signup_applications
 FOR EACH ROW
 EXECUTE FUNCTION public.enforce_restaurateur_signup_role();
@@ -428,7 +863,7 @@ EXECUTE FUNCTION public.guard_human_signup_review();
 CREATE TABLE IF NOT EXISTS public.signup_application_review_events (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   application_id uuid NOT NULL
-    REFERENCES public.signup_applications(id) ON DELETE RESTRICT,
+    REFERENCES public.signup_applications(id) ON DELETE CASCADE,
   applicant_user_id uuid NOT NULL,
   requested_role public.app_role NOT NULL,
   previous_status text NOT NULL,
@@ -441,6 +876,56 @@ CREATE TABLE IF NOT EXISTS public.signup_application_review_events (
     CHECK (jsonb_typeof(document_decisions) = 'array'),
   decided_at timestamptz NOT NULL DEFAULT now()
 );
+
+-- Older environments already have this journal with an ON DELETE RESTRICT
+-- foreign key. CREATE TABLE IF NOT EXISTS does not reconcile that constraint,
+-- so replace any non-cascading application_id FK before the GDPR wrapper can
+-- safely delete the parent application. Keep an existing cascading FK,
+-- regardless of its generated name, to make reruns idempotent.
+DO $$
+DECLARE
+  v_constraint record;
+BEGIN
+  FOR v_constraint IN
+    SELECT constraint_row.conname
+    FROM pg_constraint AS constraint_row
+    JOIN pg_attribute AS column_row
+      ON column_row.attrelid = constraint_row.conrelid
+     AND column_row.attnum = ANY (constraint_row.conkey)
+    WHERE constraint_row.conrelid =
+          'public.signup_application_review_events'::regclass
+      AND constraint_row.confrelid = 'public.signup_applications'::regclass
+      AND constraint_row.contype = 'f'
+      AND constraint_row.confdeltype <> 'c'
+      AND column_row.attname = 'application_id'
+  LOOP
+    EXECUTE format(
+      'ALTER TABLE public.signup_application_review_events DROP CONSTRAINT %I',
+      v_constraint.conname
+    );
+  END LOOP;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint AS constraint_row
+    JOIN pg_attribute AS column_row
+      ON column_row.attrelid = constraint_row.conrelid
+     AND column_row.attnum = ANY (constraint_row.conkey)
+    WHERE constraint_row.conrelid =
+          'public.signup_application_review_events'::regclass
+      AND constraint_row.confrelid = 'public.signup_applications'::regclass
+      AND constraint_row.contype = 'f'
+      AND constraint_row.confdeltype = 'c'
+      AND column_row.attname = 'application_id'
+  ) THEN
+    ALTER TABLE public.signup_application_review_events
+      ADD CONSTRAINT signup_application_review_events_application_id_fkey
+      FOREIGN KEY (application_id)
+      REFERENCES public.signup_applications(id)
+      ON DELETE CASCADE;
+  END IF;
+END;
+$$;
 
 CREATE INDEX IF NOT EXISTS idx_signup_application_review_events_application
 ON public.signup_application_review_events (application_id, decided_at DESC);
@@ -473,7 +958,7 @@ REVOKE ALL ON FUNCTION public.reject_signup_review_event_mutation()
 DROP TRIGGER IF EXISTS reject_signup_review_event_mutation
 ON public.signup_application_review_events;
 CREATE TRIGGER reject_signup_review_event_mutation
-BEFORE UPDATE OR DELETE
+BEFORE UPDATE
 ON public.signup_application_review_events
 FOR EACH ROW
 EXECUTE FUNCTION public.reject_signup_review_event_mutation();
@@ -557,6 +1042,7 @@ DECLARE
   v_restaurant_id uuid;
   v_applicant_email text;
   v_role_label text;
+  v_review_note text := NULLIF(trim(COALESCE(p_review_note, '')), '');
 BEGIN
   IF v_actor_id IS NULL OR NOT public.has_role(v_actor_id, 'admin'::public.app_role) THEN
     RAISE EXCEPTION 'Forbidden' USING ERRCODE = '42501';
@@ -574,6 +1060,35 @@ BEGIN
 
   IF NOT FOUND THEN
     RAISE EXCEPTION 'Signup application not found';
+  END IF;
+
+  -- The row lock serializes concurrent admin clicks. If the requested
+  -- decision and note are already recorded by a human reviewer, return the
+  -- authoritative result without duplicating the audit event or email.
+  IF v_application.status = v_next_status
+    AND v_application.review_note IS NOT DISTINCT FROM v_review_note
+    AND v_application.reviewed_by IS NOT NULL
+  THEN
+    RETURN QUERY SELECT p_application_id, v_next_status;
+    RETURN;
+  END IF;
+
+  IF v_next_status = 'approved'
+    AND v_application.requested_role = 'restaurateur'::public.app_role
+    AND (
+      SELECT count(DISTINCT document.document_type)
+      FROM public.signup_application_documents AS document
+      WHERE document.application_id = p_application_id
+        AND document.user_id = v_application.user_id
+        AND document.document_type IN (
+          'identity_document',
+          'business_registration',
+          'iban_proof'
+        )
+    ) <> 3
+  THEN
+    RAISE EXCEPTION 'Les trois justificatifs restaurateur requis doivent être présents avant validation.'
+      USING ERRCODE = '23514';
   END IF;
 
   IF v_next_status = 'approved'
@@ -623,7 +1138,7 @@ BEGIN
 
   UPDATE public.signup_applications AS application
   SET status = v_next_status,
-      review_note = NULLIF(trim(COALESCE(p_review_note, '')), ''),
+      review_note = v_review_note,
       reviewed_at = now(),
       reviewed_by = v_actor_id,
       metadata = CASE
@@ -644,7 +1159,7 @@ BEGIN
   SET status = CASE WHEN v_next_status = 'approved' THEN 'approved' ELSE 'rejected' END,
       rejection_reason = CASE
         WHEN v_next_status = 'approved' THEN NULL
-        ELSE NULLIF(trim(COALESCE(p_review_note, '')), '')
+        ELSE v_review_note
       END,
       reviewed_at = now(),
       reviewed_by = v_actor_id,
@@ -705,7 +1220,7 @@ BEGIN
     v_application.status,
     v_next_status,
     v_actor_id,
-    NULLIF(trim(COALESCE(p_review_note, '')), ''),
+    v_review_note,
     v_restaurant_id,
     COALESCE((
       SELECT jsonb_agg(
@@ -744,9 +1259,9 @@ BEGIN
       CASE v_next_status
         WHEN 'approved' THEN 'Votre dossier a été validé. Votre espace et votre fiche peuvent maintenant être publiés.'
         WHEN 'needs_changes' THEN 'Votre dossier nécessite des corrections : ' ||
-          COALESCE(NULLIF(trim(p_review_note), ''), 'consultez le détail dans votre dashboard') || '.'
+          COALESCE(v_review_note, 'consultez le détail dans votre dashboard') || '.'
         ELSE 'Votre demande a été refusée.' ||
-          CASE WHEN NULLIF(trim(p_review_note), '') IS NULL THEN '' ELSE ' ' || trim(p_review_note) END
+          CASE WHEN v_review_note IS NULL THEN '' ELSE ' ' || v_review_note END
       END,
       jsonb_build_object(
         'application_id', p_application_id,
@@ -1025,17 +1540,24 @@ $$;
 REVOKE ALL ON FUNCTION public.restaurant_is_publicly_visible(uuid)
   FROM PUBLIC, anon, authenticated, service_role;
 
-ALTER FUNCTION public.search_restaurants_catalog(
-  text, text, text, integer, boolean, numeric, text, text, integer, integer
-)
-RENAME TO search_restaurants_catalog_unguarded;
+DO $$
+BEGIN
+  IF to_regprocedure(
+    'public.search_restaurants_catalog_unguarded(text,text,text,integer,boolean,numeric,text,text,integer,integer)'
+  ) IS NULL THEN
+    ALTER FUNCTION public.search_restaurants_catalog(
+      text, text, text, integer, boolean, numeric, text, text, integer, integer
+    ) RENAME TO search_restaurants_catalog_unguarded;
+  END IF;
+END;
+$$;
 
 REVOKE ALL ON FUNCTION public.search_restaurants_catalog_unguarded(
   text, text, text, integer, boolean, numeric, text, text, integer, integer
 )
 FROM PUBLIC, anon, authenticated, service_role;
 
-CREATE FUNCTION public.search_restaurants_catalog(
+CREATE OR REPLACE FUNCTION public.search_restaurants_catalog(
   p_query text DEFAULT NULL,
   p_city text DEFAULT NULL,
   p_cuisine text DEFAULT NULL,
@@ -1099,13 +1621,19 @@ GRANT EXECUTE ON FUNCTION public.search_restaurants_catalog(
 )
 TO anon, authenticated, service_role;
 
-ALTER FUNCTION public.get_match_group_public_feed()
-RENAME TO get_match_group_public_feed_unguarded;
+DO $$
+BEGIN
+  IF to_regprocedure('public.get_match_group_public_feed_unguarded()') IS NULL THEN
+    ALTER FUNCTION public.get_match_group_public_feed()
+      RENAME TO get_match_group_public_feed_unguarded;
+  END IF;
+END;
+$$;
 
 REVOKE ALL ON FUNCTION public.get_match_group_public_feed_unguarded()
   FROM PUBLIC, anon, authenticated, service_role;
 
-CREATE FUNCTION public.get_match_group_public_feed()
+CREATE OR REPLACE FUNCTION public.get_match_group_public_feed()
 RETURNS TABLE(
   id uuid,
   restaurant_id uuid,
@@ -1138,13 +1666,19 @@ REVOKE ALL ON FUNCTION public.get_match_group_public_feed()
 GRANT EXECUTE ON FUNCTION public.get_match_group_public_feed()
   TO anon, authenticated, service_role;
 
-ALTER FUNCTION public.get_restaurant_reservation_slot_availability(uuid, date)
-RENAME TO get_restaurant_slot_availability_unguarded;
+DO $$
+BEGIN
+  IF to_regprocedure('public.get_restaurant_slot_availability_unguarded(uuid,date)') IS NULL THEN
+    ALTER FUNCTION public.get_restaurant_reservation_slot_availability(uuid, date)
+      RENAME TO get_restaurant_slot_availability_unguarded;
+  END IF;
+END;
+$$;
 
 REVOKE ALL ON FUNCTION public.get_restaurant_slot_availability_unguarded(uuid, date)
   FROM PUBLIC, anon, authenticated, service_role;
 
-CREATE FUNCTION public.get_restaurant_reservation_slot_availability(
+CREATE OR REPLACE FUNCTION public.get_restaurant_reservation_slot_availability(
   p_restaurant_id uuid,
   p_date date
 )
@@ -1179,13 +1713,19 @@ REVOKE ALL ON FUNCTION public.get_restaurant_reservation_slot_availability(uuid,
 GRANT EXECUTE ON FUNCTION public.get_restaurant_reservation_slot_availability(uuid, date)
   TO anon, authenticated, service_role;
 
-ALTER FUNCTION public.get_social_feed_premium_banners(integer, text)
-RENAME TO get_social_feed_premium_banners_unguarded;
+DO $$
+BEGIN
+  IF to_regprocedure('public.get_social_feed_premium_banners_unguarded(integer,text)') IS NULL THEN
+    ALTER FUNCTION public.get_social_feed_premium_banners(integer, text)
+      RENAME TO get_social_feed_premium_banners_unguarded;
+  END IF;
+END;
+$$;
 
 REVOKE ALL ON FUNCTION public.get_social_feed_premium_banners_unguarded(integer, text)
   FROM PUBLIC, anon, authenticated, service_role;
 
-CREATE FUNCTION public.get_social_feed_premium_banners(
+CREATE OR REPLACE FUNCTION public.get_social_feed_premium_banners(
   p_limit integer DEFAULT 1,
   p_scope text DEFAULT 'for_you'
 )
@@ -1243,13 +1783,19 @@ REVOKE ALL ON FUNCTION public.get_social_feed_premium_banners(integer, text)
 GRANT EXECUTE ON FUNCTION public.get_social_feed_premium_banners(integer, text)
   TO anon, authenticated, service_role;
 
-ALTER FUNCTION public.resolve_google_booking_slug(text)
-RENAME TO resolve_google_booking_slug_unguarded;
+DO $$
+BEGIN
+  IF to_regprocedure('public.resolve_google_booking_slug_unguarded(text)') IS NULL THEN
+    ALTER FUNCTION public.resolve_google_booking_slug(text)
+      RENAME TO resolve_google_booking_slug_unguarded;
+  END IF;
+END;
+$$;
 
 REVOKE ALL ON FUNCTION public.resolve_google_booking_slug_unguarded(text)
   FROM PUBLIC, anon, authenticated, service_role;
 
-CREATE FUNCTION public.resolve_google_booking_slug(p_booking_slug text)
+CREATE OR REPLACE FUNCTION public.resolve_google_booking_slug(p_booking_slug text)
 RETURNS TABLE(
   restaurant_id uuid,
   restaurant_name text,
@@ -1275,13 +1821,19 @@ REVOKE ALL ON FUNCTION public.resolve_google_booking_slug(text)
 GRANT EXECUTE ON FUNCTION public.resolve_google_booking_slug(text)
   TO anon, authenticated, service_role;
 
-ALTER FUNCTION public.track_google_booking_event(uuid, text, jsonb)
-RENAME TO track_google_booking_event_unguarded;
+DO $$
+BEGIN
+  IF to_regprocedure('public.track_google_booking_event_unguarded(uuid,text,jsonb)') IS NULL THEN
+    ALTER FUNCTION public.track_google_booking_event(uuid, text, jsonb)
+      RENAME TO track_google_booking_event_unguarded;
+  END IF;
+END;
+$$;
 
 REVOKE ALL ON FUNCTION public.track_google_booking_event_unguarded(uuid, text, jsonb)
   FROM PUBLIC, anon, authenticated, service_role;
 
-CREATE FUNCTION public.track_google_booking_event(
+CREATE OR REPLACE FUNCTION public.track_google_booking_event(
   p_restaurant_id uuid,
   p_event_type text,
   p_metadata jsonb DEFAULT '{}'::jsonb
@@ -1308,6 +1860,463 @@ REVOKE ALL ON FUNCTION public.track_google_booking_event(uuid, text, jsonb)
   FROM PUBLIC, anon, authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.track_google_booking_event(uuid, text, jsonb)
   TO anon, authenticated, service_role;
+
+DO $$
+BEGIN
+  IF to_regprocedure(
+    'public.validate_and_create_reservation_unguarded(uuid,date,time without time zone,integer,text,jsonb,text)'
+  ) IS NULL THEN
+    ALTER FUNCTION public.validate_and_create_reservation(
+      uuid, date, time without time zone, integer, text, jsonb, text
+    ) RENAME TO validate_and_create_reservation_unguarded;
+  END IF;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.validate_and_create_reservation_unguarded(
+  uuid, date, time without time zone, integer, text, jsonb, text
+)
+FROM PUBLIC, anon, authenticated, service_role;
+
+CREATE OR REPLACE FUNCTION public.validate_and_create_reservation(
+  p_restaurant_id uuid,
+  p_date date,
+  p_time time without time zone,
+  p_party_size integer,
+  p_feature text DEFAULT 'classique',
+  p_metadata jsonb DEFAULT '{}'::jsonb,
+  p_notes text DEFAULT NULL
+)
+RETURNS uuid
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF NOT public.restaurant_is_publicly_visible(p_restaurant_id) THEN
+    RAISE EXCEPTION 'Restaurant introuvable.' USING ERRCODE = '22023';
+  END IF;
+
+  RETURN public.validate_and_create_reservation_unguarded(
+    p_restaurant_id,
+    p_date,
+    p_time,
+    p_party_size,
+    p_feature,
+    COALESCE(p_metadata, '{}'::jsonb),
+    p_notes
+  );
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.validate_and_create_reservation(
+  uuid, date, time without time zone, integer, text, jsonb, text
+)
+FROM PUBLIC, anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.validate_and_create_reservation(
+  uuid, date, time without time zone, integer, text, jsonb, text
+)
+TO authenticated, service_role;
+
+DO $$
+BEGIN
+  IF to_regprocedure('public.create_match_group_unguarded(uuid,text,timestamp with time zone,integer)') IS NULL THEN
+    ALTER FUNCTION public.create_match_group(uuid, text, timestamptz, integer)
+      RENAME TO create_match_group_unguarded;
+  END IF;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.create_match_group_unguarded(
+  uuid, text, timestamptz, integer
+)
+FROM PUBLIC, anon, authenticated, service_role;
+
+CREATE OR REPLACE FUNCTION public.create_match_group(
+  p_restaurant_id uuid,
+  p_area text,
+  p_scheduled_at timestamptz DEFAULT NULL,
+  p_max_members integer DEFAULT 10
+)
+RETURNS uuid
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF NOT public.restaurant_is_publicly_visible(p_restaurant_id) THEN
+    RAISE EXCEPTION 'Restaurant indisponible' USING ERRCODE = '22023';
+  END IF;
+
+  RETURN public.create_match_group_unguarded(
+    p_restaurant_id,
+    p_area,
+    p_scheduled_at,
+    p_max_members
+  );
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.create_match_group(uuid, text, timestamptz, integer)
+  FROM PUBLIC, anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.create_match_group(uuid, text, timestamptz, integer)
+  TO authenticated, service_role;
+
+DO $$
+BEGIN
+  IF to_regprocedure('public.upsert_match_group_member_order_unguarded(uuid,jsonb,numeric,jsonb)') IS NULL THEN
+    ALTER FUNCTION public.upsert_match_group_member_order(uuid, jsonb, numeric, jsonb)
+      RENAME TO upsert_match_group_member_order_unguarded;
+  END IF;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.upsert_match_group_member_order_unguarded(
+  uuid, jsonb, numeric, jsonb
+)
+FROM PUBLIC, anon, authenticated, service_role;
+
+CREATE OR REPLACE FUNCTION public.upsert_match_group_member_order(
+  p_group_id uuid,
+  p_items jsonb,
+  p_subtotal numeric,
+  p_metadata jsonb DEFAULT '{}'::jsonb
+)
+RETURNS uuid
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_restaurant_id uuid;
+BEGIN
+  SELECT order_group.restaurant_id
+  INTO v_restaurant_id
+  FROM public.order_groups AS order_group
+  WHERE order_group.id = p_group_id
+  FOR UPDATE;
+
+  IF v_restaurant_id IS NULL THEN
+    RAISE EXCEPTION 'Groupe introuvable' USING ERRCODE = '22023';
+  END IF;
+
+  IF NOT public.restaurant_is_publicly_visible(v_restaurant_id) THEN
+    RAISE EXCEPTION 'Restaurant indisponible' USING ERRCODE = '22023';
+  END IF;
+
+  RETURN public.upsert_match_group_member_order_unguarded(
+    p_group_id,
+    COALESCE(p_items, '[]'::jsonb),
+    p_subtotal,
+    COALESCE(p_metadata, '{}'::jsonb)
+  );
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.upsert_match_group_member_order(uuid, jsonb, numeric, jsonb)
+  FROM PUBLIC, anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.upsert_match_group_member_order(uuid, jsonb, numeric, jsonb)
+  TO authenticated, service_role;
+
+DO $$
+BEGIN
+  IF to_regprocedure(
+    'public.get_meal_formula_service_availability_unguarded(uuid,date,time without time zone)'
+  ) IS NULL THEN
+    ALTER FUNCTION public.get_meal_formula_service_availability(uuid, date, time without time zone)
+      RENAME TO get_meal_formula_service_availability_unguarded;
+  END IF;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.get_meal_formula_service_availability_unguarded(
+  uuid, date, time without time zone
+)
+FROM PUBLIC, anon, authenticated, service_role;
+
+CREATE OR REPLACE FUNCTION public.get_meal_formula_service_availability(
+  p_restaurant_id uuid,
+  p_date date,
+  p_time time without time zone
+)
+RETURNS TABLE(
+  formula_id uuid,
+  formula_name text,
+  max_tables integer,
+  reserved_tables integer,
+  remaining_tables integer,
+  available boolean
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF NOT public.restaurant_is_publicly_visible(p_restaurant_id) THEN
+    RETURN;
+  END IF;
+
+  RETURN QUERY
+  SELECT result.*
+  FROM public.get_meal_formula_service_availability_unguarded(
+    p_restaurant_id,
+    p_date,
+    p_time
+  ) AS result;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.get_meal_formula_service_availability(
+  uuid, date, time without time zone
+)
+FROM PUBLIC, anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.get_meal_formula_service_availability(
+  uuid, date, time without time zone
+)
+TO anon, authenticated, service_role;
+
+DO $$
+BEGIN
+  IF to_regprocedure(
+    'public.assert_meal_formula_service_capacity_unguarded(uuid,date,time without time zone,jsonb)'
+  ) IS NULL THEN
+    ALTER FUNCTION public.assert_meal_formula_service_capacity(
+      uuid, date, time without time zone, jsonb
+    ) RENAME TO assert_meal_formula_service_capacity_unguarded;
+  END IF;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.assert_meal_formula_service_capacity_unguarded(
+  uuid, date, time without time zone, jsonb
+)
+FROM PUBLIC, anon, authenticated, service_role;
+
+CREATE OR REPLACE FUNCTION public.assert_meal_formula_service_capacity(
+  p_restaurant_id uuid,
+  p_date date,
+  p_time time without time zone,
+  p_metadata jsonb
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF NOT public.restaurant_is_publicly_visible(p_restaurant_id) THEN
+    RAISE EXCEPTION 'Restaurant indisponible' USING ERRCODE = '22023';
+  END IF;
+
+  RETURN public.assert_meal_formula_service_capacity_unguarded(
+    p_restaurant_id,
+    p_date,
+    p_time,
+    COALESCE(p_metadata, '{}'::jsonb)
+  );
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.assert_meal_formula_service_capacity(
+  uuid, date, time without time zone, jsonb
+)
+FROM PUBLIC, anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.assert_meal_formula_service_capacity(
+  uuid, date, time without time zone, jsonb
+)
+TO authenticated, service_role;
+
+DO $$
+BEGIN
+  IF to_regprocedure('public.delete_user_gdpr_cascade_unguarded(uuid)') IS NULL THEN
+    ALTER FUNCTION public.delete_user_gdpr_cascade(uuid)
+      RENAME TO delete_user_gdpr_cascade_unguarded;
+  END IF;
+END;
+$$;
+
+-- Reconcile the historical GDPR implementation with the current event_store
+-- schema. event_store no longer has a user_id column: user-related events are
+-- keyed by entity_id/entity_type or carry the actor in JSON payload. Optional
+-- analytics tables remain best-effort so schema drift cannot prevent the
+-- authoritative auth.users deletion and its FK cascades.
+CREATE OR REPLACE FUNCTION public.delete_user_gdpr_cascade_unguarded(
+  p_user_id uuid
+)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, auth, storage
+AS $$
+DECLARE
+  v_exists boolean;
+BEGIN
+  IF p_user_id IS NULL THEN
+    RAISE EXCEPTION 'delete_user_gdpr_cascade: user_id is required'
+      USING ERRCODE = '22023';
+  END IF;
+
+  SELECT EXISTS (
+    SELECT 1 FROM auth.users AS account WHERE account.id = p_user_id
+  ) INTO v_exists;
+  IF NOT v_exists THEN
+    RAISE EXCEPTION 'delete_user_gdpr_cascade: user % does not exist', p_user_id
+      USING ERRCODE = '22023';
+  END IF;
+
+  -- Retain accounting records while removing user-entered PII.
+  BEGIN
+    UPDATE public.orders
+    SET metadata = COALESCE(metadata, '{}'::jsonb)
+          - 'customer_email'
+          - 'customer_phone'
+          - 'customer_name'
+          - 'delivery_contact'
+          - 'delivery_phone'
+          - 'billing_email'
+          - 'billing_phone',
+        delivery_address = NULL,
+        notes = NULL
+    WHERE user_id = p_user_id;
+  EXCEPTION WHEN undefined_table OR undefined_column THEN
+    NULL;
+  END;
+
+  BEGIN
+    UPDATE public.reservations
+    SET metadata = COALESCE(metadata, '{}'::jsonb)
+          - 'guest_email'
+          - 'guest_phone'
+          - 'guest_name'
+          - 'contact',
+        special_requests = NULL
+    WHERE user_id = p_user_id;
+  EXCEPTION WHEN undefined_table OR undefined_column THEN
+    NULL;
+  END;
+
+  BEGIN
+    UPDATE public.payment_transactions
+    SET metadata = jsonb_build_object(
+          'gdpr_anonymized_at', now(),
+          'stripe_id', metadata->>'stripe_id',
+          'checkout_session_id', metadata->>'checkout_session_id'
+        )
+    WHERE user_id = p_user_id;
+  EXCEPTION WHEN undefined_table OR undefined_column THEN
+    NULL;
+  END;
+
+  BEGIN
+    DELETE FROM public.search_logs WHERE user_id = p_user_id;
+  EXCEPTION WHEN undefined_table OR undefined_column THEN
+    NULL;
+  END;
+
+  BEGIN
+    DELETE FROM public.impressions WHERE user_id = p_user_id;
+  EXCEPTION WHEN undefined_table OR undefined_column THEN
+    NULL;
+  END;
+
+  BEGIN
+    DELETE FROM public.clicks WHERE user_id = p_user_id;
+  EXCEPTION WHEN undefined_table OR undefined_column THEN
+    NULL;
+  END;
+
+  BEGIN
+    DELETE FROM public.event_store AS stored_event
+    WHERE (
+        lower(COALESCE(stored_event.entity_type, '')) IN (
+          'user', 'auth_user', 'profile', 'applicant'
+        )
+        AND stored_event.entity_id = p_user_id
+      )
+      OR stored_event.payload->>'user_id' = p_user_id::text
+      OR stored_event.payload->>'actor_id' = p_user_id::text
+      OR stored_event.payload->>'applicant_user_id' = p_user_id::text
+      OR stored_event.payload->>'reviewer_id' = p_user_id::text;
+  EXCEPTION WHEN undefined_table OR undefined_column THEN
+    NULL;
+  END;
+
+  BEGIN
+    DELETE FROM public.device_tokens WHERE user_id = p_user_id;
+  EXCEPTION WHEN undefined_table OR undefined_column THEN
+    NULL;
+  END;
+
+  BEGIN
+    DELETE FROM storage.objects
+    WHERE (storage.foldername(name))[1] = p_user_id::text
+       OR owner = p_user_id;
+  EXCEPTION
+    WHEN insufficient_privilege THEN
+      -- Current Supabase Storage deliberately rejects direct SQL deletion so
+      -- that the backing object cannot be orphaned. Quarantine the private
+      -- object and flag it for the Storage API cleanup path without retaining
+      -- an ownership link to the deleted account.
+      BEGIN
+        UPDATE storage.objects
+        SET owner = NULL,
+            owner_id = NULL,
+            user_metadata = COALESCE(user_metadata, '{}'::jsonb)
+              || jsonb_build_object(
+                'gdpr_storage_api_cleanup_required', true,
+                'gdpr_quarantined_at', now()
+              )
+        WHERE (storage.foldername(name))[1] = p_user_id::text
+           OR owner = p_user_id
+           OR owner_id = p_user_id::text;
+      EXCEPTION WHEN undefined_table OR undefined_column OR insufficient_privilege THEN
+        NULL;
+      END;
+    WHEN undefined_table OR undefined_column THEN
+      NULL;
+  END;
+
+  DELETE FROM auth.users AS account WHERE account.id = p_user_id;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.delete_user_gdpr_cascade_unguarded(uuid)
+  FROM PUBLIC, anon, authenticated, service_role;
+
+CREATE OR REPLACE FUNCTION public.delete_user_gdpr_cascade(p_user_id uuid)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, auth, storage
+AS $$
+DECLARE
+  v_actor_id uuid := auth.uid();
+BEGIN
+  IF p_user_id IS NULL THEN
+    RAISE EXCEPTION 'delete_user_gdpr_cascade: user_id is required'
+      USING ERRCODE = '22023';
+  END IF;
+
+  IF auth.role() IS DISTINCT FROM 'service_role'
+    AND (
+      v_actor_id IS NULL
+      OR (
+        v_actor_id IS DISTINCT FROM p_user_id
+        AND NOT public.has_role(v_actor_id, 'admin'::public.app_role)
+      )
+    )
+  THEN
+    RAISE EXCEPTION 'Forbidden' USING ERRCODE = '42501';
+  END IF;
+
+  PERFORM public.delete_user_gdpr_cascade_unguarded(p_user_id);
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.delete_user_gdpr_cascade(uuid)
+  FROM PUBLIC, anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.delete_user_gdpr_cascade(uuid)
+  TO authenticated, service_role;
 
 COMMENT ON FUNCTION public.admin_review_signup_application(uuid, text, text) IS
   'Human-only signup review. Requires an authenticated admin and records reviewed_by.';

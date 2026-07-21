@@ -101,6 +101,18 @@ type TokOneBenefitRow = {
 
 type TokOneJourney = "delivery" | "takeaway" | "reservation" | "zero-attente";
 
+export function isClientCheckoutRestaurantEligible(
+  restaurant: {
+    is_active?: boolean | null;
+    status?: string | null;
+    is_demo?: boolean | null;
+  } | null | undefined,
+) {
+  return restaurant?.is_active === true
+    && restaurant.status === "active"
+    && restaurant.is_demo === false;
+}
+
 export type VerifiedOrderPricing = {
   validatedItems: ValidatedOrderItem[];
   subtotal: number;
