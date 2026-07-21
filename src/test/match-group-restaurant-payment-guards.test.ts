@@ -17,6 +17,9 @@ describe("match group restaurant payment eligibility", () => {
   it("never creates or reuses a Checkout Session for an unavailable restaurant", () => {
     const firstGuard = authorizeSource.indexOf("isClientCheckoutRestaurantEligible(checkoutRestaurant)");
     const reuse = authorizeSource.indexOf("stripe.checkout.sessions.retrieve(order.stripe_checkout_session_id)");
+    const reuseGuard = authorizeSource.indexOf(
+      "isClientCheckoutRestaurantEligible(restaurantBeforeReuse)",
+    );
     const finalGuard = authorizeSource.indexOf(
       "isClientCheckoutRestaurantEligible(restaurantBeforeStripeWrite)",
     );
@@ -28,7 +31,8 @@ describe("match group restaurant payment eligibility", () => {
 
     expect(firstGuard).toBeGreaterThan(-1);
     expect(reuse).toBeGreaterThan(firstGuard);
-    expect(finalGuard).toBeGreaterThan(reuse);
+    expect(reuseGuard).toBeGreaterThan(reuse);
+    expect(finalGuard).toBeGreaterThan(reuseGuard);
     expect(create).toBeGreaterThan(finalGuard);
     expect(postCreateGuard).toBeGreaterThan(create);
     expect(exposeUrl).toBeGreaterThan(postCreateGuard);

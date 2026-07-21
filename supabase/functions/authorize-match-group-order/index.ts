@@ -241,6 +241,11 @@ Deno.serve(async (req) => {
       ) {
         throw new HttpError(409, "MATCH_GROUP_CHECKOUT_IDENTITY_MISMATCH");
       }
+      const restaurantBeforeReuse = await loadCheckoutRestaurant();
+      if (!isClientCheckoutRestaurantEligible(restaurantBeforeReuse)) {
+        await terminateUnavailableAuthorization(existingSession.id);
+        throw new HttpError(409, "MATCH_GROUP_RESTAURANT_UNAVAILABLE");
+      }
       if (existingSession.status === "open" && existingSession.url) {
         return jsonResponse({ url: existingSession.url, session_id: existingSession.id, reused: true }, 200, corsHeaders);
       }
