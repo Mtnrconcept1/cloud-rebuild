@@ -48,13 +48,15 @@ describe("match group restaurant payment eligibility", () => {
       expect(source).toContain("stripe.paymentIntents.cancel");
       expect(source).toContain("MATCH_GROUP_AUTHORIZATION_REJECTED");
       expect(source).toContain("marked !== true");
-      const identityGuard = Math.max(
-        source.indexOf("if (!identityMatches)"),
-        source.indexOf("if (identityMatches)"),
-      );
-      expect(identityGuard).toBeGreaterThan(-1);
-      expect(identityGuard).toBeLessThan(source.indexOf("stripe.paymentIntents.cancel"));
     }
+    expect(confirmSource.indexOf("if (!identityMatches)")).toBeLessThan(
+      confirmSource.indexOf("stripe.paymentIntents.cancel"),
+    );
+    expect(reconcileSource.indexOf("if (identityMatches)")).toBeLessThan(
+      reconcileSource.indexOf(
+        'terminateRejectedAuthorization("MATCH_GROUP_RESTAURANT_UNAVAILABLE")',
+      ),
+    );
   });
 
   it("checks the restaurant immediately before capture while preserving Stripe truth", () => {
