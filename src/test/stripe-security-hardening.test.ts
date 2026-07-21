@@ -74,7 +74,10 @@ describe("Stripe release-blocker hardening", () => {
     expect(captureMatchGroup).toContain("application_fee_amount");
     expect(captureMatchGroup).toContain("recordReconciledCheckoutFinance");
     expect(captureMatchGroup).toContain('recoveredIntent.status !== "succeeded"');
-    expect(captureMatchGroup).toContain('status: "settlement_retry"');
+    expect(captureMatchGroup).toContain('"renew_match_group_capture_claim"');
+    expect(captureMatchGroup).toContain('"release_match_group_capture_claim"');
+    expect(captureMatchGroup).toContain('"settlement_retry_lease_timeout"');
+    expect(captureMatchGroup).toContain('"stripe_state_retry"');
   });
 
   it("allows only scheduler or service identities to run global Match Group workers", () => {

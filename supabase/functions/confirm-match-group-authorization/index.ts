@@ -3,6 +3,7 @@ import type Stripe from "npm:stripe@18.5.0";
 
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { getStripeRuntimeForCheckoutKindAndMode } from "../_shared/stripe-client.ts";
+import { isClientCheckoutRestaurantEligible } from "../_shared/order-pricing.ts";
 
 function json(payload: Record<string, unknown>, status: number, corsHeaders: Record<string, string>) {
   return new Response(JSON.stringify(payload), {
@@ -80,9 +81,6 @@ Deno.serve(async (req) => {
   if (orderError) return json({ error: orderError.message }, 500, corsHeaders);
   if (!order) return json({ error: "Commande introuvable" }, 404, corsHeaders);
   if (order.user_id !== userId) return json({ error: "Forbidden" }, 403, corsHeaders);
-  if (order.payment_status === "authorized" || order.payment_status === "captured") {
-    return json({ ok: true, already_confirmed: true }, 200, corsHeaders);
-  }
   if (!order.stripe_checkout_session_id) {
     return json({ error: "Session de pre-paiement introuvable" }, 409, corsHeaders);
   }
@@ -114,6 +112,80 @@ Deno.serve(async (req) => {
     && session.metadata?.restaurant_id === order.restaurant_id
     && session.metadata?.user_id === userId
   );
+
+  if (!identityMatches) {
+    return json({ error: "MATCH_GROUP_CHECKOUT_IDENTITY_MISMATCH" }, 409, corsHeaders);
+  }
+
+  if (order.payment_status === "captured") {
+    if (paymentIntent?.status !== "succeeded") {
+      return json({ error: "MATCH_GROUP_CAPTURE_STATE_MISMATCH" }, 409, corsHeaders);
+    }
+    return json({ ok: true, already_confirmed: true }, 200, corsHeaders);
+  }
+
+  const terminateRejectedAuthorization = async (reason: string) => {
+    if (session.status === "open") {
+      try {
+        await stripe.checkout.sessions.expire(session.id, {}, {
+          idempotencyKey: `match-group:expire-rejected:${order.id}:${session.id}`.slice(0, 255),
+        });
+      } catch (expireError) {
+        const recoveredSession = await stripe.checkout.sessions.retrieve(session.id);
+        if (recoveredSession.status === "open") throw expireError;
+      }
+    }
+
+    if (paymentIntent?.status === "requires_capture" && paymentIntentId) {
+      try {
+        await stripe.paymentIntents.cancel(paymentIntentId, {
+          cancellation_reason: "abandoned",
+        }, {
+          idempotencyKey: `match-group:cancel-rejected:${order.id}:${paymentIntentId}`.slice(0, 255),
+        });
+      } catch (cancelError) {
+        const recoveredIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+        if (recoveredIntent.status !== "canceled") throw cancelError;
+      }
+    } else if (paymentIntent?.status === "succeeded") {
+      return false;
+    }
+
+    const { error: terminalError } = await admin.rpc(
+      "mark_match_group_member_capture_failed",
+      {
+        p_member_order_id: order.id,
+        p_error: reason,
+        p_terminal: true,
+      },
+    );
+    if (terminalError) throw terminalError;
+    return true;
+  };
+
+  const { data: checkoutRestaurant, error: restaurantError } = await admin
+    .from("restaurants")
+    .select("id,is_active,status,is_demo")
+    .eq("id", order.restaurant_id)
+    .maybeSingle();
+  if (restaurantError) return json({ error: restaurantError.message }, 500, corsHeaders);
+
+  if (!isClientCheckoutRestaurantEligible(checkoutRestaurant)) {
+    const terminated = await terminateRejectedAuthorization("MATCH_GROUP_RESTAURANT_UNAVAILABLE");
+    return json({
+      error: terminated
+        ? "MATCH_GROUP_RESTAURANT_UNAVAILABLE"
+        : "MATCH_GROUP_PAYMENT_ALREADY_CAPTURED",
+    }, 409, corsHeaders);
+  }
+
+  if (order.payment_status === "authorized") {
+    if (paymentIntent?.status !== "requires_capture") {
+      return json({ error: `MATCH_GROUP_AUTHORIZATION_STATE_MISMATCH:${paymentIntent?.status || "missing"}` }, 409, corsHeaders);
+    }
+    return json({ ok: true, already_confirmed: true }, 200, corsHeaders);
+  }
+
   const authorizationReady = Boolean(
     identityMatches
     && session.status === "complete"
@@ -132,10 +204,6 @@ Deno.serve(async (req) => {
         payment_status: paymentIntent?.status || session.payment_status || "unknown",
       }, 409, corsHeaders);
     }
-    if (!identityMatches) {
-      return json({ error: "MATCH_GROUP_CHECKOUT_IDENTITY_MISMATCH" }, 409, corsHeaders);
-    }
-
     return json({
       ok: false,
       pending_confirmation: true,
@@ -161,6 +229,14 @@ Deno.serve(async (req) => {
   });
 
   if (markError) return json({ error: markError.message }, 500, corsHeaders);
+  if (marked !== true) {
+    const terminated = await terminateRejectedAuthorization("MATCH_GROUP_AUTHORIZATION_REJECTED");
+    return json({
+      error: terminated
+        ? "MATCH_GROUP_AUTHORIZATION_REJECTED"
+        : "MATCH_GROUP_PAYMENT_ALREADY_CAPTURED",
+    }, 409, corsHeaders);
+  }
 
   await admin.rpc("refresh_match_group_discount", { p_group_id: order.group_id });
 

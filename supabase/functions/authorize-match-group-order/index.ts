@@ -10,6 +10,7 @@ import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { normalizeCheckoutReturnUrl } from "../_shared/return-url.ts";
 import { getStripeRuntimeForCheckoutKind } from "../_shared/stripe-client.ts";
 import { resolveMarketplaceRouting } from "../_shared/marketplace-finance.ts";
+import { isClientCheckoutRestaurantEligible } from "../_shared/order-pricing.ts";
 
 const toCents = (value: number) => Math.round(value * 100);
 
@@ -50,8 +51,91 @@ Deno.serve(async (req) => {
 
     targetId = order.id;
     if (order.user_id !== actor.userId) throw new HttpError(403, "Acces interdit");
+    if (order.payment_status === "captured") {
+      return jsonResponse({ already_authorized: true, already_captured: true }, 200, corsHeaders);
+    }
+    if (order.payment_status === "authorized") {
+      if (!order.stripe_checkout_session_id) {
+        throw new HttpError(409, "MATCH_GROUP_AUTHORIZATION_SESSION_MISSING");
+      }
+
+      const recordedRuntime = getStripeRuntimeForCheckoutKind("match-group");
+      const recordedSession = await recordedRuntime.stripe.checkout.sessions.retrieve(
+        order.stripe_checkout_session_id,
+        { expand: ["payment_intent"] },
+      );
+      const identityMatches = recordedSession.livemode === (recordedRuntime.mode === "live")
+        && recordedSession.metadata?.checkout_kind === "match-group"
+        && recordedSession.metadata?.group_member_order_id === order.id
+        && recordedSession.metadata?.group_id === order.group_id
+        && recordedSession.metadata?.restaurant_id === order.restaurant_id
+        && recordedSession.metadata?.user_id === actor.userId;
+      if (!identityMatches) {
+        throw new HttpError(409, "MATCH_GROUP_CHECKOUT_IDENTITY_MISMATCH");
+      }
+
+      const paymentIntentId = typeof recordedSession.payment_intent === "string"
+        ? recordedSession.payment_intent
+        : recordedSession.payment_intent?.id || null;
+      const paymentIntent = recordedSession.payment_intent && typeof recordedSession.payment_intent === "object"
+        ? recordedSession.payment_intent
+        : paymentIntentId
+          ? await recordedRuntime.stripe.paymentIntents.retrieve(paymentIntentId)
+          : null;
+      const { data: recordedRestaurant, error: recordedRestaurantError } = await actor.adminClient
+        .from("restaurants")
+        .select("id,is_active,status,is_demo")
+        .eq("id", order.restaurant_id)
+        .maybeSingle();
+      if (recordedRestaurantError) throw new HttpError(500, recordedRestaurantError.message);
+      if (isClientCheckoutRestaurantEligible(recordedRestaurant)) {
+        if (paymentIntent?.status === "requires_capture" || paymentIntent?.status === "succeeded") {
+          return jsonResponse({
+            already_authorized: true,
+            already_captured: paymentIntent.status === "succeeded",
+          }, 200, corsHeaders);
+        }
+        throw new HttpError(409, `MATCH_GROUP_AUTHORIZATION_STATE_MISMATCH:${paymentIntent?.status || "missing"}`);
+      }
+
+      if (paymentIntent?.status === "requires_capture" && paymentIntentId) {
+        try {
+          await recordedRuntime.stripe.paymentIntents.cancel(paymentIntentId, {
+            cancellation_reason: "abandoned",
+          }, {
+            idempotencyKey: `match-group:cancel-unavailable:${order.id}:${paymentIntentId}`.slice(0, 255),
+          });
+        } catch (cancelError) {
+          const recoveredIntent = await recordedRuntime.stripe.paymentIntents.retrieve(paymentIntentId);
+          if (recoveredIntent.status === "succeeded") {
+            return jsonResponse({ already_authorized: true, already_captured: true }, 200, corsHeaders);
+          }
+          if (recoveredIntent.status !== "canceled") throw cancelError;
+        }
+      } else if (paymentIntent?.status === "succeeded") {
+        return jsonResponse({ already_authorized: true, already_captured: true }, 200, corsHeaders);
+      } else if (paymentIntent && paymentIntent.status !== "canceled") {
+        throw new HttpError(409, `MATCH_GROUP_AUTHORIZATION_STATE_MISMATCH:${paymentIntent.status}`);
+      }
+
+      if (recordedSession.status === "open") {
+        await recordedRuntime.stripe.checkout.sessions.expire(recordedSession.id, {}, {
+          idempotencyKey: `match-group:expire-unavailable:${order.id}:${recordedSession.id}`.slice(0, 255),
+        });
+      }
+
+      const { error: terminalError } = await actor.adminClient.rpc(
+        "mark_match_group_member_capture_failed",
+        {
+          p_member_order_id: order.id,
+          p_error: "MATCH_GROUP_RESTAURANT_UNAVAILABLE",
+          p_terminal: true,
+        },
+      );
+      if (terminalError) throw new HttpError(500, terminalError.message);
+      throw new HttpError(409, "MATCH_GROUP_RESTAURANT_UNAVAILABLE");
+    }
     if (order.status !== "joined") throw new HttpError(409, "Commande de groupe non autorisable");
-    if (order.payment_status === "authorized") return jsonResponse({ already_authorized: true }, 200, corsHeaders);
 
     const group = order.order_groups;
     const lockAt = group?.lock_at || group?.expires_at;
@@ -93,29 +177,32 @@ Deno.serve(async (req) => {
     const canonicalItems = normalizedItems.map(({ menuItemId, quantity }) => {
       const menuItem = menuById.get(menuItemId);
       const price = Number(menuItem?.price);
+      const priceCents = toCents(price);
       if (!menuItem || menuItem.is_available !== true || menuItem.restaurant_id !== order.restaurant_id
-        || !Number.isFinite(price) || price <= 0) {
+        || !Number.isFinite(price) || !Number.isSafeInteger(priceCents)
+        || priceCents <= 0 || priceCents > 500000) {
         throw new HttpError(409, "Un article n’est plus disponible dans ce restaurant");
       }
       return {
         menu_item_id: menuItem.id,
         name: String(menuItem.name || "Article Match groupe"),
         quantity,
-        original_price: price,
+        original_price: priceCents / 100,
         restaurant_id: menuItem.restaurant_id,
       };
     });
-    const canonicalSubtotal = canonicalItems.reduce(
-      (total, item) => total + item.original_price * item.quantity,
+    const canonicalSubtotalCents = canonicalItems.reduce(
+      (total, item) => total + toCents(item.original_price) * item.quantity,
       0,
     );
-    if (!Number.isFinite(canonicalSubtotal) || canonicalSubtotal <= 0 || canonicalSubtotal > 5000) {
+    const canonicalSubtotal = canonicalSubtotalCents / 100;
+    if (!Number.isSafeInteger(canonicalSubtotalCents) || canonicalSubtotalCents <= 0 || canonicalSubtotalCents > 500000) {
       throw new HttpError(400, "Montant Match groupe invalide");
     }
 
     const stripeRuntime = getStripeRuntimeForCheckoutKind("match-group");
     const { stripe } = stripeRuntime;
-    const grossCents = toCents(canonicalSubtotal);
+    const grossCents = canonicalSubtotalCents;
     const marketplaceRouting = await resolveMarketplaceRouting({
       adminClient: actor.adminClient,
       checkoutKind: "match-group",
@@ -128,6 +215,78 @@ Deno.serve(async (req) => {
     });
     if (!marketplaceRouting.enabled || !marketplaceRouting.destinationAccountId) {
       throw new HttpError(503, "MATCH_GROUP_CONNECT_ROUTING_NOT_READY");
+    }
+
+    const loadCheckoutRestaurant = async () => {
+      const { data: restaurant, error: restaurantError } = await actor.adminClient
+        .from("restaurants")
+        .select("id,is_active,status,is_demo")
+        .eq("id", order.restaurant_id)
+        .maybeSingle();
+      if (restaurantError) throw new HttpError(500, restaurantError.message);
+      return restaurant;
+    };
+
+    const terminateUnavailableAuthorization = async (sessionId: string) => {
+      const existingSession = await stripe.checkout.sessions.retrieve(sessionId, {
+        expand: ["payment_intent"],
+      });
+      const identityMatches = existingSession.livemode === (stripeRuntime.mode === "live")
+        && existingSession.metadata?.checkout_kind === "match-group"
+        && existingSession.metadata?.group_member_order_id === order.id
+        && existingSession.metadata?.group_id === order.group_id
+        && existingSession.metadata?.restaurant_id === order.restaurant_id
+        && existingSession.metadata?.user_id === actor.userId;
+      if (!identityMatches) {
+        throw new HttpError(409, "MATCH_GROUP_CHECKOUT_IDENTITY_MISMATCH");
+      }
+
+      if (existingSession.status === "open") {
+        await stripe.checkout.sessions.expire(existingSession.id, {}, {
+          idempotencyKey: `match-group:expire-unavailable:${order.id}:${existingSession.id}`.slice(0, 255),
+        });
+      }
+
+      const paymentIntentId = typeof existingSession.payment_intent === "string"
+        ? existingSession.payment_intent
+        : existingSession.payment_intent?.id || null;
+      const paymentIntent = existingSession.payment_intent && typeof existingSession.payment_intent === "object"
+        ? existingSession.payment_intent
+        : paymentIntentId
+          ? await stripe.paymentIntents.retrieve(paymentIntentId)
+          : null;
+      if (paymentIntent?.status === "requires_capture" && paymentIntentId) {
+        try {
+          await stripe.paymentIntents.cancel(paymentIntentId, {
+            cancellation_reason: "abandoned",
+          }, {
+            idempotencyKey: `match-group:cancel-unavailable:${order.id}:${paymentIntentId}`.slice(0, 255),
+          });
+        } catch (cancelError) {
+          const recoveredIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+          if (recoveredIntent.status !== "canceled") throw cancelError;
+        }
+      } else if (paymentIntent?.status === "succeeded") {
+        throw new HttpError(409, "MATCH_GROUP_PAYMENT_ALREADY_CAPTURED");
+      }
+
+      const { error: terminalError } = await actor.adminClient.rpc(
+        "mark_match_group_member_capture_failed",
+        {
+          p_member_order_id: order.id,
+          p_error: "MATCH_GROUP_RESTAURANT_UNAVAILABLE",
+          p_terminal: true,
+        },
+      );
+      if (terminalError) throw new HttpError(500, terminalError.message);
+    };
+
+    const checkoutRestaurant = await loadCheckoutRestaurant();
+    if (!isClientCheckoutRestaurantEligible(checkoutRestaurant)) {
+      if (order.stripe_checkout_session_id) {
+        await terminateUnavailableAuthorization(order.stripe_checkout_session_id);
+      }
+      throw new HttpError(409, "MATCH_GROUP_RESTAURANT_UNAVAILABLE");
     }
 
     const paymentMetadata = {
@@ -168,6 +327,11 @@ Deno.serve(async (req) => {
       ) {
         throw new HttpError(409, "MATCH_GROUP_CHECKOUT_IDENTITY_MISMATCH");
       }
+      const restaurantBeforeReuse = await loadCheckoutRestaurant();
+      if (!isClientCheckoutRestaurantEligible(restaurantBeforeReuse)) {
+        await terminateUnavailableAuthorization(existingSession.id);
+        throw new HttpError(409, "MATCH_GROUP_RESTAURANT_UNAVAILABLE");
+      }
       if (existingSession.status === "open" && existingSession.url) {
         return jsonResponse({ url: existingSession.url, session_id: existingSession.id, reused: true }, 200, corsHeaders);
       }
@@ -175,6 +339,14 @@ Deno.serve(async (req) => {
         return jsonResponse({ already_authorized: true, session_id: existingSession.id }, 200, corsHeaders);
       }
       idempotencyGeneration = existingSession.id;
+    }
+
+    const restaurantBeforeStripeWrite = await loadCheckoutRestaurant();
+    if (!isClientCheckoutRestaurantEligible(restaurantBeforeStripeWrite)) {
+      if (order.stripe_checkout_session_id) {
+        await terminateUnavailableAuthorization(order.stripe_checkout_session_id);
+      }
+      throw new HttpError(409, "MATCH_GROUP_RESTAURANT_UNAVAILABLE");
     }
 
     const session = await stripe.checkout.sessions.create({
@@ -203,6 +375,25 @@ Deno.serve(async (req) => {
     }, {
       idempotencyKey: `match-group-authorization:${order.id}:${idempotencyGeneration}:${grossCents}`.slice(0, 255),
     });
+
+    const restaurantAfterStripeWrite = await loadCheckoutRestaurant();
+    if (!isClientCheckoutRestaurantEligible(restaurantAfterStripeWrite)) {
+      if (session.status === "open") {
+        await stripe.checkout.sessions.expire(session.id, {}, {
+          idempotencyKey: `match-group:expire-unavailable:${order.id}:${session.id}`.slice(0, 255),
+        });
+      }
+      const { error: terminalError } = await actor.adminClient.rpc(
+        "mark_match_group_member_capture_failed",
+        {
+          p_member_order_id: order.id,
+          p_error: "MATCH_GROUP_RESTAURANT_UNAVAILABLE",
+          p_terminal: true,
+        },
+      );
+      if (terminalError) throw new HttpError(500, terminalError.message);
+      throw new HttpError(409, "MATCH_GROUP_RESTAURANT_UNAVAILABLE");
+    }
 
     const { error: mappingError } = await actor.adminClient
       .from("group_member_orders")
@@ -260,4 +451,3 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: message }, status, corsHeaders);
   }
 });
-

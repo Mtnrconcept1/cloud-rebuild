@@ -239,7 +239,7 @@ export default function SignupApplicationStatusCard({
             ) : null}
             {onboardingPaymentReady && !onboardingInvoicePaid && !onboardingSubscriptionActive ? (
               <p className="mt-3 text-xs font-medium text-emerald-700 dark:text-emerald-300">
-                La carte est enregistrée et la formule choisie est scellée dans votre dossier. Aucun montant n’est bloqué ; l’abonnement démarrera automatiquement à la première activité client.
+                TOK ne débite aucun abonnement à l’inscription. Votre banque peut éventuellement afficher une vérification temporaire de la carte. La formule choisie reste scellée dans votre dossier et l’abonnement démarrera automatiquement à la première activité client.
               </p>
             ) : null}
           </div>

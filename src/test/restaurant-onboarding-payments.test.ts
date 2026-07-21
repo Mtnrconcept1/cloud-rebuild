@@ -122,7 +122,8 @@ describe("restaurant onboarding subscription payments", () => {
     expect(admin).toContain("Carte enregistrée");
     expect(statusCard).toContain("Enregistrer la carte sans débit");
     expect(statusCard).toContain("Aucun débit n’est effectué");
-    expect(statusCard).toContain("Aucun montant n’est bloqué");
+    expect(statusCard).toContain("TOK ne débite aucun abonnement à l’inscription");
+    expect(statusCard).toContain("Votre banque peut éventuellement afficher une vérification temporaire de la carte");
     expect(statusCard).not.toContain("Le montant reste réservé dans TOK");
     expect(statusCard).toContain("Abonnement déjà démarré");
     expect(statusCard).toContain("Mettre à jour la carte et relancer le paiement");
