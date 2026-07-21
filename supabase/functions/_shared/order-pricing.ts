@@ -107,7 +107,7 @@ export function isClientCheckoutRestaurantEligible(
     status?: string | null;
     is_demo?: boolean | null;
   } | null | undefined,
-) {
+): boolean {
   return restaurant?.is_active === true
     && restaurant.status === "active"
     && restaurant.is_demo === false;

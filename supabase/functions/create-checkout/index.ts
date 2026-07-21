@@ -1233,16 +1233,10 @@ Deno.serve(async (req) => {
       };
     }
 
-    const clientCheckoutRestaurantId = String(
-      marketplaceRestaurantId || sessionMetadata.restaurant_id || "",
-    ).trim();
-
     if (CLIENT_STRIPE_CHECKOUT_KINDS.has(effectiveKind)) {
+      const clientCheckoutRestaurantId = String(marketplaceRestaurantId || "").trim();
       if (!clientCheckoutRestaurantId) {
-        throw new HttpError(
-          409,
-          "Ce restaurant n’est pas disponible pour un paiement client.",
-        );
+        throw new HttpError(400, "Restaurant requis pour ce paiement.");
       }
 
       const { data: checkoutRestaurant, error: checkoutRestaurantError } =

@@ -566,9 +566,16 @@ describe("Auth signup form", () => {
       user_metadata: { signup_intent: "restaurateur" },
     };
     authContextMocks.session = { access_token: "confirmed-session" };
-    supabaseMocks.rpc
-      .mockResolvedValueOnce({ data: null, error: new Error("temporary signup failure") })
-      .mockResolvedValue({ data: null, error: null });
+    let syncSignupAttempt = 0;
+    supabaseMocks.rpc.mockImplementation(async (functionName: string) => {
+      if (functionName === "sync_signup_application") {
+        syncSignupAttempt += 1;
+        if (syncSignupAttempt === 1) {
+          return { data: null, error: new Error("temporary signup failure") };
+        }
+      }
+      return { data: null, error: null };
+    });
     view.rerender(
       <MemoryRouter initialEntries={["/auth?type=restaurateur"]}>
         <Routes>
@@ -597,7 +604,13 @@ describe("Auth signup form", () => {
     expect(supabaseMocks.remove).toHaveBeenCalledWith(firstUploadPaths);
     fireEvent.click(await screen.findByRole("button", { name: "Finaliser mon dossier" }));
 
-    await waitFor(() => expect(supabaseMocks.rpc).toHaveBeenCalledTimes(2));
+    await waitFor(() => {
+      expect(
+        supabaseMocks.rpc.mock.calls.filter(([functionName]) =>
+          functionName === "sync_signup_application"
+        ),
+      ).toHaveLength(2);
+    });
     expect(supabaseMocks.upload).toHaveBeenCalledTimes(6);
     expect(supabaseMocks.upload.mock.calls.slice(3).map(([path]) => path)).toEqual(firstUploadPaths);
     expect(authContextMocks.refreshRoles).toHaveBeenCalledTimes(1);
