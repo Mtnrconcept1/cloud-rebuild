@@ -61,7 +61,6 @@ describe("authenticated security audit hardening", () => {
       "restaurant-media-governance",
       "stripe-connect-onboard",
       "stripe-connect-status",
-      "submit-signup-application",
       "validate-order",
     ]) {
       const source = read(`supabase/functions/${functionName}/index.ts`);
@@ -77,6 +76,12 @@ describe("authenticated security audit hardening", () => {
     const retiredProvisioner = read("supabase/functions/provision-commercial-demo-logins/index.ts");
     expect(retiredProvisioner).toContain("LEGACY_DEMO_PROVISIONING_DISABLED");
     expect(retiredProvisioner).toContain("status: 410");
+
+    expect(getVerifyJwt(config, "submit-signup-application")).toBe("false");
+    const retiredSignupSubmitter = read("supabase/functions/submit-signup-application/index.ts");
+    expect(retiredSignupSubmitter).toContain("signup_submission_endpoint_retired");
+    expect(retiredSignupSubmitter).toContain("status: 410");
+    expect(retiredSignupSubmitter).not.toContain("authenticateRequest(");
   });
 
   it("keeps webhook, scheduler, internal secret and public collector endpoints without gateway JWT verification", () => {
@@ -141,4 +146,3 @@ describe("authenticated security audit hardening", () => {
     expect(sql).toContain("NOTIFY pgrst, 'reload schema';");
   });
 });
-

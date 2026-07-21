@@ -20,22 +20,17 @@ import {
   getTokCreditAmount,
 } from "@/lib/tokCredits";
 import {
+  findUncommittedVerificationDocumentPaths,
   getMissingSignupDocuments,
   getRequiredSignupDocuments,
+  removeVerificationDocumentsBestEffort,
   SIGNUP_ROLE_META,
-  uploadVerificationDocument,
+  uploadVerificationDocumentsWithRollback,
   type SignupDocumentType,
   type SignupSubscriptionBillingPeriod,
   type SignupRole,
   type UploadedSignupDocument,
 } from "@/lib/signup";
-import {
-  clearPendingPrivilegedSignupDraft,
-  createPendingPrivilegedSignupDraft,
-  hasPendingPrivilegedSignupMarker,
-  loadPendingPrivilegedSignupDraft,
-  savePendingPrivilegedSignupDraft,
-} from "@/lib/pendingPrivilegedSignup";
 import {
   RESTAURANT_PARTNER_CONTRACT_SECTIONS,
   RESTAURANT_PARTNER_CONTRACT_TITLE,
@@ -127,6 +122,10 @@ type SignupApplicationSubmission = {
   operationId: string;
   userId: string;
   payload: Omit<PrivilegedSignupPayload, "role"> & { role: SignupRole };
+};
+
+type InMemoryPrivilegedSignupDraft = SignupApplicationSubmission & {
+  email: string;
 };
 
 type RestaurantSubscriptionPlanOption = {
@@ -530,20 +529,20 @@ async function finalizeSignupApplication(
     if (existingApplication) return;
   }
 
-  const uploadedDocuments: UploadedSignupDocument[] = await Promise.all(
-    getRequiredSignupDocuments(payload.role, payload.form.vehicleType).map(async (requirement) => {
+  const uploadedDocuments: UploadedSignupDocument[] = await uploadVerificationDocumentsWithRollback(
+    getRequiredSignupDocuments(payload.role, payload.form.vehicleType).map((requirement) => {
       const file = payload.documents[requirement.type];
       if (!file) {
         throw new Error(`Document manquant: ${requirement.label}.`);
       }
 
-      return uploadVerificationDocument({
+      return {
         userId,
         role: payload.role,
         documentType: requirement.type,
         file,
         uploadId: operationId,
-      });
+      };
     }),
   );
 
@@ -606,7 +605,27 @@ async function finalizeSignupApplication(
     p_documents: uploadedDocuments,
   });
 
-  if (syncError) throw syncError;
+  if (syncError) {
+    const uploadedPaths = uploadedDocuments.map((document) => document.file_path);
+    if (uploadedPaths.length === 0) throw syncError;
+    const uncommittedPaths = await findUncommittedVerificationDocumentPaths(
+      userId,
+      uploadedPaths,
+    );
+
+    // A timeout can hide a successful commit. Never delete a file that the
+    // database already references; if every path is committed, the operation
+    // succeeded and the lost response is treated as such. If reconciliation
+    // itself is unavailable, retaining a private orphan is safer than breaking
+    // a valid dossier by deleting its evidence.
+    if (uncommittedPaths?.length === 0) {
+      return;
+    }
+    if (uncommittedPaths) {
+      await removeVerificationDocumentsBestEffort(uncommittedPaths);
+    }
+    throw syncError;
+  }
 }
 
 export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
@@ -672,9 +691,8 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
   const [showPassword, setShowPassword] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
   const [privilegedSignupSubmitting, setPrivilegedSignupSubmitting] = useState(false);
-  const [privilegedSignupResumeChecking, setPrivilegedSignupResumeChecking] = useState(
-    () => hasPendingPrivilegedSignupMarker(),
-  );
+  const [privilegedSignupResumeChecking, setPrivilegedSignupResumeChecking] = useState(false);
+  const [privilegedSignupAwaitingEmail, setPrivilegedSignupAwaitingEmail] = useState(false);
   const [selectedSubscriptionPlanId, setSelectedSubscriptionPlanId] = useState("");
   const [selectedSubscriptionBillingPeriod, setSelectedSubscriptionBillingPeriod] = useState<SignupSubscriptionBillingPeriod>("monthly");
   const [legalAccepted, setLegalAccepted] = useState(false);
@@ -682,12 +700,23 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
   const [contractSignatureDataUrl, setContractSignatureDataUrl] = useState("");
   const [subscriptionPlans, setSubscriptionPlans] = useState<RestaurantSubscriptionPlanOption[]>([]);
   const [subscriptionPlansLoading, setSubscriptionPlansLoading] = useState(false);
+  const authMountedRef = useRef(true);
   const authRedirectHandledRef = useRef(false);
+  const pendingPrivilegedSignupRef = useRef<InMemoryPrivilegedSignupDraft | null>(null);
+  const privilegedSignupMutexRef = useRef(false);
+  const privilegedSignupOperationRef = useRef<{ key: string; id: string } | null>(null);
   const privilegedSignupResumeRef = useRef<string | null>(null);
   const incompleteSignupNoticeRef = useRef(false);
   const { activeFeatures, loading: featureFlagsLoading } = useFeatureFlagSnapshot();
   const courierSignupEnabled = activeFeatures.has("espace-livreur");
   const annualBillingEnabled = activeFeatures.has("billing-fair-growth-annual");
+
+  useEffect(() => {
+    authMountedRef.current = true;
+    return () => {
+      authMountedRef.current = false;
+    };
+  }, []);
 
   const requiredDocuments = useMemo(
     () => getRequiredSignupDocuments(roleMode, signupForm.vehicleType),
@@ -820,32 +849,38 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
 
   useEffect(() => {
     if (!user?.id || !session || privilegedSignupResumeRef.current === user.id) return;
-    if (!hasPendingPrivilegedSignupMarker() && !incompletePrivilegedSignupRole) {
+    const draft = pendingPrivilegedSignupRef.current;
+    if (!draft) {
       setPrivilegedSignupResumeChecking(false);
       return;
     }
+    if (privilegedSignupMutexRef.current) return;
 
     privilegedSignupResumeRef.current = user.id;
+    privilegedSignupMutexRef.current = true;
+    setPrivilegedSignupAwaitingEmail(false);
     let cancelled = false;
 
     const resumePrivilegedSignup = async () => {
       setPrivilegedSignupSubmitting(true);
       try {
-        const draft = await loadPendingPrivilegedSignupDraft<PrivilegedSignupPayload>();
-        if (!draft) return;
-
         const sessionEmail = String(user.email || "").trim().toLowerCase();
         if (draft.userId !== user.id || draft.email !== sessionEmail) {
           throw new Error("Reconnectez-vous avec le compte utilisé pour cette inscription restaurateur.");
         }
 
         await finalizeSignupApplication({
-          operationId: draft.id,
+          operationId: draft.operationId,
           userId: draft.userId,
           payload: draft.payload,
         }, { skipIfExisting: true });
-        await clearPendingPrivilegedSignupDraft();
-        await refreshRoles();
+        pendingPrivilegedSignupRef.current = null;
+        privilegedSignupOperationRef.current = null;
+        try {
+          await refreshRoles();
+        } catch {
+          // The authenticated RPC is authoritative; role state will refresh on the next page load.
+        }
 
         if (cancelled) return;
         toast({
@@ -854,11 +889,13 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
         });
         navigateToPostAuthTarget(draft.payload.role, true);
       } catch (error) {
+        privilegedSignupResumeRef.current = null;
         if (cancelled) return;
         const message = error instanceof Error ? error.message : "Impossible de reprendre l'inscription.";
         toast({ title: "Inscription à reprendre", description: message, variant: "destructive" });
       } finally {
-        if (!cancelled) {
+        privilegedSignupMutexRef.current = false;
+        if (authMountedRef.current) {
           setPrivilegedSignupSubmitting(false);
           setPrivilegedSignupResumeChecking(false);
         }
@@ -1053,6 +1090,10 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (privilegedSignupAwaitingEmail && !session) return;
+    const locksPrivilegedSignup = !isLogin && roleMode !== "client";
+    if (locksPrivilegedSignup && privilegedSignupMutexRef.current) return;
+    if (locksPrivilegedSignup) privilegedSignupMutexRef.current = true;
     setLoading(true);
 
     try {
@@ -1128,12 +1169,13 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
         if (signUpResponse.error) throw signUpResponse.error;
         activeUser = signUpResponse.data.user;
         activeSession = signUpResponse.data.session;
+        setSignupForm((current) => ({ ...current, password: "" }));
       }
 
       if (!activeUser?.id) {
         toast({
           title: "Compte créé",
-          description: "Vérifiez votre email pour confirmer votre compte.",
+          description: "Compte créé. Vérifiez votre email pour confirmer votre compte.",
         });
         setPrivilegedSignupSubmitting(false);
         return;
@@ -1167,7 +1209,17 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
         })
         : null;
 
-      const operationId = crypto.randomUUID();
+      const operationKey = `${activeUser.id}:${submittedRole}`;
+      let operationId: string;
+      if (isPrivilegedSignup) {
+        const currentOperation = privilegedSignupOperationRef.current;
+        operationId = currentOperation?.key === operationKey
+          ? currentOperation.id
+          : crypto.randomUUID();
+        privilegedSignupOperationRef.current = { key: operationKey, id: operationId };
+      } else {
+        operationId = crypto.randomUUID();
+      }
       const submissionPayload: SignupApplicationSubmission["payload"] = {
         role: submittedRole,
         form: getSignupApplicationForm(signupForm),
@@ -1181,40 +1233,25 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
       };
 
       if (isPrivilegedSignup) {
-        const draft = createPendingPrivilegedSignupDraft<PrivilegedSignupPayload>({
-          id: operationId,
+        pendingPrivilegedSignupRef.current = {
+          operationId,
           userId: activeUser.id,
-          email: signupForm.email,
+          email: signupForm.email.trim().toLowerCase(),
           payload: {
             ...submissionPayload,
             role: submittedRole as Exclude<SignupRole, "client">,
           },
-        });
-
-        try {
-          await savePendingPrivilegedSignupDraft(draft);
-        } catch (draftError) {
-          if (!activeSession) {
-            const message = draftError instanceof Error ? draftError.message : "Stockage temporaire indisponible.";
-            toast({
-              title: "Compte créé — dossier à reprendre",
-              description: `${message} Confirmez votre email puis reconnectez-vous pour finaliser le dossier.`,
-              variant: "destructive",
-            });
-            setPrivilegedSignupSubmitting(false);
-            setPrivilegedSignupResumeChecking(false);
-            return;
-          }
-        }
+        };
       }
 
       if (!activeSession) {
         setPrivilegedSignupSubmitting(false);
         setPrivilegedSignupResumeChecking(isPrivilegedSignup);
+        setPrivilegedSignupAwaitingEmail(isPrivilegedSignup);
         toast({
           title: "Compte créé",
           description: isPrivilegedSignup
-            ? "Confirmez votre email : votre dossier reprendra automatiquement dans une session sécurisée."
+            ? "Confirmez votre email. Le dossier reprendra automatiquement si cet onglet reste ouvert ; sinon, reconnectez-vous pour le finaliser."
             : "Vérifiez votre email pour confirmer votre compte.",
         });
         return;
@@ -1227,7 +1264,8 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
       }, { skipIfExisting: isContinuingConfirmedSignup });
 
       if (isPrivilegedSignup) {
-        await clearPendingPrivilegedSignupDraft();
+        pendingPrivilegedSignupRef.current = null;
+        privilegedSignupOperationRef.current = null;
       }
 
       try {
@@ -1236,7 +1274,11 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
         // The server-side dossier is authoritative even if browser storage cannot be cleared.
       }
       setCommercialReferralToken("");
-      await refreshRoles();
+      try {
+        await refreshRoles();
+      } catch {
+        // The server-side dossier is committed even if refreshing local role state fails.
+      }
       setPrivilegedSignupSubmitting(false);
       setPrivilegedSignupResumeChecking(false);
 
@@ -1261,6 +1303,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
       const message = error instanceof Error ? error.message : "Une erreur est survenue.";
       toast({ title: "Erreur", description: message, variant: "destructive" });
     } finally {
+      if (locksPrivilegedSignup) privilegedSignupMutexRef.current = false;
       setLoading(false);
     }
   };
@@ -1900,12 +1943,18 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
               {!isRecoveringPrivilegedSignup ? (
                 <TurnstileCaptcha action={isLogin ? "auth_login" : `auth_signup_${roleMode}`} onTokenChange={setCaptchaToken} />
               ) : null}
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={loading || privilegedSignupSubmitting || (privilegedSignupAwaitingEmail && !session)}
+              >
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Traitement...
                   </>
+                ) : privilegedSignupAwaitingEmail && !session ? (
+                  "Email de confirmation envoyé"
                 ) : isLogin ? (
                   "Se connecter"
                 ) : isRecoveringPrivilegedSignup ? (
@@ -1919,6 +1968,13 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
                   </>
                 )}
               </Button>
+
+              {privilegedSignupAwaitingEmail && !session ? (
+                <p className="text-center text-sm text-muted-foreground" role="status">
+                  Confirmez votre email. Gardez cet onglet ouvert pour reprendre automatiquement le dossier,
+                  ou reconnectez-vous ensuite pour le finaliser.
+                </p>
+              ) : null}
 
               {isLogin && !forgotPassword && !isDemoAuthMode ? (
                 <>

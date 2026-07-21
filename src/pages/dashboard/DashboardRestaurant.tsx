@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Banknote,
@@ -98,7 +98,7 @@ function formatDashboardPromotionEndDate(endAt: string) {
 
 export default function DashboardRestaurant() {
   const { user } = useAuth();
-  const { selectedId, dashboardAccessLocked, dashboardAccessLockReason } = useDashboardRestaurant();
+  const { selectedId, setSelectedId, dashboardAccessLocked, dashboardAccessLockReason } = useDashboardRestaurant();
   const commercialDemoFrame = useCommercialDemoFrame();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -119,6 +119,8 @@ export default function DashboardRestaurant() {
   );
 
   const [loading, setLoading] = useState(false);
+  const saveInFlightRef = useRef(false);
+  const createdRestaurantIdRef = useRef<string | null>(null);
   const [connectLoading, setConnectLoading] = useState(false);
   const [selectedCuisineIds, setSelectedCuisineIds] = useState<string[]>([]);
   const [disabledPaymentMethods, setDisabledPaymentMethods] = useState<
@@ -310,8 +312,12 @@ export default function DashboardRestaurant() {
   };
 
   const handleSave = async () => {
-    if (!user) return;
+    if (!user || saveInFlightRef.current) return;
+    saveInFlightRef.current = true;
     setLoading(true);
+
+    let savedRestaurantId: string | null = null;
+    let createdRestaurant = false;
 
     try {
       const payload = {
@@ -321,15 +327,14 @@ export default function DashboardRestaurant() {
         disabled_payment_methods: disabledPaymentMethods,
       };
 
-      let restaurantId = restaurant?.id || null;
+      let restaurantId = restaurant?.id || createdRestaurantIdRef.current;
 
-      if (restaurant) {
+      if (restaurantId) {
         const { error } = await supabase
           .from("restaurants")
           .update(payload)
-          .eq("id", restaurant.id);
+          .eq("id", restaurantId);
         if (error) throw error;
-        restaurantId = restaurant.id;
       } else {
         const { data, error } = await supabase
           .from("restaurants")
@@ -343,18 +348,25 @@ export default function DashboardRestaurant() {
           .single();
         if (error) throw error;
         restaurantId = data.id;
+        createdRestaurant = true;
+        createdRestaurantIdRef.current = data.id;
+        setSelectedId(data.id);
       }
+
+      savedRestaurantId = restaurantId;
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["my-restaurant"] }),
+        queryClient.invalidateQueries({ queryKey: ["owner-restaurants"] }),
+      ]);
 
       if (restaurantId) {
         await syncRestaurantCuisines(restaurantId);
       }
 
       toast({
-        title: restaurant ? "Restaurant mis à jour !" : "Restaurant crée !",
+        title: createdRestaurant ? "Restaurant créé !" : "Restaurant mis à jour !",
       });
-      queryClient.invalidateQueries({ queryKey: ["my-restaurant"] });
-      queryClient.invalidateQueries({ queryKey: ["owner-restaurants"] });
-      queryClient.invalidateQueries({ queryKey: ["restaurant-cuisine-links"] });
+      await queryClient.invalidateQueries({ queryKey: ["restaurant-cuisine-links"] });
     } catch (error: any) {
       toast({
         title: "Erreur",
@@ -362,6 +374,12 @@ export default function DashboardRestaurant() {
         variant: "destructive",
       });
     } finally {
+      if (savedRestaurantId) {
+        void queryClient.invalidateQueries({ queryKey: ["my-restaurant"] });
+        void queryClient.invalidateQueries({ queryKey: ["owner-restaurants"] });
+        void queryClient.invalidateQueries({ queryKey: ["restaurant-cuisine-links"] });
+      }
+      saveInFlightRef.current = false;
       setLoading(false);
     }
   };

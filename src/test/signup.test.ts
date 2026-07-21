@@ -90,7 +90,9 @@ describe("signup and admin moderation SQL", () => {
     const reviewSignupApplication = extractFunction(sql, "admin_review_signup_application");
 
     expect(reviewSignupApplication).toMatch(/INSERT\s+INTO\s+public\.user_roles[\s\S]*VALUES\s*\(\s*v_application\.user_id\s*,\s*v_application\.requested_role\s*\)/i);
-    expect(reviewSignupApplication).toContain("ELSIF v_application.requested_role = 'courier' THEN");
+    expect(reviewSignupApplication).toMatch(
+      /ELSIF v_application\.requested_role = 'courier'(?:::public\.app_role)? THEN/,
+    );
     expect(reviewSignupApplication).toMatch(/DELETE\s+FROM\s+public\.user_roles[\s\S]*role = v_application\.requested_role/i);
     expect(reviewSignupApplication).toContain("v_next_status = 'approved'");
   });
@@ -148,7 +150,7 @@ describe("signup and admin moderation SQL", () => {
     expect(config).toMatch(/\[functions\.submit-signup-application\]\s*\nverify_jwt\s*=\s*false/i);
   });
 
-  it("binds privileged signup submissions to the authenticated JWT user", () => {
+  it("retires the historical multipart signup endpoint without processing documents", () => {
     const config = readFileSync(resolve(process.cwd(), "supabase/config.toml"), "utf8");
     const submitFunction = readFileSync(
       resolve(process.cwd(), "supabase/functions/submit-signup-application/index.ts"),
@@ -156,10 +158,12 @@ describe("signup and admin moderation SQL", () => {
     );
 
     expect(config).toMatch(/\[functions\.submit-signup-application\]\s*\nverify_jwt\s*=\s*false/i);
-    expect(submitFunction).toContain("authenticateRequest(req, { allowServiceRole: false })");
-    expect(submitFunction).toContain('requireInput(actor.userId === userId, "user_id_mismatch")');
-    expect(submitFunction).toContain("captcha_not_configured");
-    expect(submitFunction).toContain("isProductionRuntime");
+    expect(submitFunction).toContain("signup_submission_endpoint_retired");
+    expect(submitFunction).toContain("status: 410");
+    expect(submitFunction).toContain("handleCorsPreflight");
+    expect(submitFunction).not.toContain("req.formData()");
+    expect(submitFunction).not.toContain("admin_submit_signup_application");
+    expect(submitFunction).not.toContain('from("verification-documents")');
   });
 
   it("keeps restaurateur dossiers visible with admin badges and image previews", () => {
@@ -173,12 +177,11 @@ describe("signup and admin moderation SQL", () => {
     expect(adminUsers).toContain("getVerificationDocumentUrl(document.file_path)");
     expect(mobileNav).toContain("pendingSignupBadge: true");
     expect(mobileNav).toContain("pendingSignupApplicationsCount");
-    expect(submitFunction).toContain("admin_submit_signup_application");
-    expect(submitFunction).toContain("verification-documents");
-    expect(submitFunction).toContain("missing_document");
+    expect(submitFunction).toContain("signup_submission_endpoint_retired");
+    expect(submitFunction).toContain("status: 410");
   });
 
-  it("accepts common mobile document uploads and surfaces Edge Function errors", () => {
+  it("accepts common mobile document uploads through the authenticated direct flow", () => {
     const submitFunction = readFileSync(
       resolve(process.cwd(), "supabase/functions/submit-signup-application/index.ts"),
       "utf8",
@@ -193,14 +196,15 @@ describe("signup and admin moderation SQL", () => {
 
     expect(validation).toContain('"image/heic"');
     expect(validation).toContain('"image/heif"');
-    expect(submitFunction).toContain("mimeTypeForDocument");
-    expect(submitFunction).toContain("inferredMimeTypes");
-    expect(submitFunction).toContain("contentType: mimeType");
+    expect(submitFunction).toContain("signup_submission_endpoint_retired");
     expect(uploadSecurity).toContain('"image/heic": "heic"');
     expect(uploadSecurity).toContain('"image/heif": "heif"');
     expect(signupLib).toContain(".heic,.heif");
-    expect(authPage).toContain("savePendingPrivilegedSignupDraft");
-    expect(authPage).toContain("loadPendingPrivilegedSignupDraft");
+    expect(signupLib).toContain("uploadVerificationDocumentsWithRollback");
+    expect(signupLib).toContain("removeVerificationDocumentsBestEffort");
+    expect(authPage).toContain("pendingPrivilegedSignupRef");
+    expect(authPage).toContain("uploadVerificationDocumentsWithRollback");
+    expect(authPage).not.toMatch(/indexedDB|localStorage/i);
     expect(authPage).not.toContain('functions.invoke("submit-signup-application"');
   });
 });
@@ -215,7 +219,7 @@ describe("pending restaurateur workspace and human-only publication", () => {
     expect(sql).toMatch(/ALTER COLUMN is_active SET DEFAULT false/i);
     expect(guard).toContain("NEW.status := 'pending'");
     expect(guard).toContain("NEW.is_active := false");
-    expect(guard).toContain("restaurant_is_approved_for_publication(NEW.id)");
+    expect(guard).toContain("restaurant_is_approved_for_publication(NEW.id, NEW.owner_id)");
     expect(sql).toMatch(/restaurants_public_select[\s\S]*is_active IS TRUE[\s\S]*status[\s\S]*'active'/i);
   });
 
@@ -229,6 +233,8 @@ describe("pending restaurateur workspace and human-only publication", () => {
     expect(restaurant).toContain('status: "pending"');
     expect(restaurant).toContain("is_active: false");
     expect(restaurant).toContain("Fiche privée — validation en attente");
+    expect(restaurant).toContain("createdRestaurantIdRef.current = data.id");
+    expect(restaurant).toContain("setSelectedId(data.id)");
   });
 
   it("requires an authenticated human admin and a ready payment before approval", () => {
@@ -260,19 +266,16 @@ describe("pending restaurateur workspace and human-only publication", () => {
     expect(documentFlow).not.toContain("analyze-restaurant-image");
   });
 
-  it("resumes only after email confirmation and never reuses the signup captcha", () => {
+  it("keeps privileged dossiers in memory until email confirmation and never persists sensitive fields", () => {
     const authPage = readFileSync(resolve(process.cwd(), "src/pages/Auth.tsx"), "utf8");
-    const pendingDraft = readFileSync(
-      resolve(process.cwd(), "src/lib/pendingPrivilegedSignup.ts"),
-      "utf8",
-    );
 
-    expect(authPage).toContain("loadPendingPrivilegedSignupDraft");
+    expect(authPage).toContain("pendingPrivilegedSignupRef");
+    expect(authPage).toContain("privilegedSignupMutexRef.current = true");
+    expect(authPage).toContain("privilegedSignupOperationRef.current");
     expect(authPage).toContain("skipIfExisting: true");
     expect(authPage).not.toContain('functions.invoke("submit-signup-application"');
-    expect(pendingDraft).toContain("window.indexedDB");
-    expect(pendingDraft).toContain("DEFAULT_TTL_MS");
+    expect(authPage).not.toMatch(/indexedDB|localStorage/i);
+    expect(authPage).not.toContain("pendingPrivilegedSignupDraft");
     expect(authPage).toContain("const { password, ...applicationForm } = form");
   });
 });
-

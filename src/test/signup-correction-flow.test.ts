@@ -10,16 +10,15 @@ function read(path: string) {
 }
 
 describe("signup legal acceptance and correction flow", () => {
-  it("requires and forwards CGU/privacy acceptance through the public Edge Function", () => {
-    const validation = read("supabase/functions/submit-signup-application/validation.ts");
-    const submitFunction = read("supabase/functions/submit-signup-application/index.ts");
+  it("forwards CGU/privacy acceptance through the authenticated direct signup flow", () => {
+    const auth = read("src/pages/Auth.tsx");
+    const retiredSubmitFunction = read("supabase/functions/submit-signup-application/index.ts");
 
-    expect(validation).toContain("terms_accepted");
-    expect(validation).toContain("privacy_policy_accepted");
-    expect(submitFunction).toContain("legal_terms_accepted_at");
-    expect(submitFunction).toContain("privacy_policy_accepted_at");
-    expect(submitFunction).toContain('sanitizeText(form.get("terms_accepted")');
-    expect(submitFunction).toContain('sanitizeText(form.get("privacy_policy_accepted")');
+    expect(auth).toContain("toLegalAcceptanceMetadata");
+    expect(auth).toContain("legal_terms_accepted_at: legalAcceptance.acceptedAt");
+    expect(auth).toContain("privacy_policy_accepted_at: legalAcceptance.acceptedAt");
+    expect(retiredSubmitFunction).toContain("signup_submission_endpoint_retired");
+    expect(retiredSubmitFunction).toContain("status: 410");
   });
 
   it("lets a restaurateur resubmit an admin correction with edited fields and replacement documents", () => {
@@ -33,7 +32,12 @@ describe("signup legal acceptance and correction flow", () => {
     expect(statusCard).toContain("restaurantName");
     expect(statusCard).toContain("documentInputs");
 
-    expect(dashboardHome).toContain("uploadVerificationDocument");
+    expect(dashboardHome).toContain("uploadVerificationDocumentsWithRollback");
+    expect(dashboardHome).toContain("findUncommittedVerificationDocumentPaths");
+    expect(dashboardHome).toContain("correctionWasCommitted");
+    expect(dashboardHome).toContain("uploadedDocuments.length === 0");
+    expect(dashboardHome).toContain("previousPathByDocumentType");
+    expect(dashboardHome).toContain("removeVerificationDocumentsBestEffort(replacedPaths)");
     expect(dashboardHome).toContain("sync_signup_application");
     expect(dashboardHome).toContain("correction_resubmitted_at");
     expect(dashboardHome).toContain('p_requested_role: "restaurateur"');

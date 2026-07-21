@@ -34,6 +34,18 @@ export type UploadedSignupDocument = {
   file_size_bytes: number | null;
 };
 
+export type UploadVerificationDocumentInput = {
+  userId: string;
+  role: SignupRole;
+  documentType: SignupDocumentType;
+  file: File;
+  uploadId?: string;
+};
+
+export type VerificationDocumentCleanupOptions = {
+  onError?: (error: unknown) => void;
+};
+
 export type SignupSubscriptionBillingPeriod = "monthly" | "yearly";
 
 export type SignupRestaurateurOnboardingSelection = {
@@ -198,7 +210,7 @@ export function getSignupStatusMeta(status: string | null | undefined) {
       return {
         label: "Approuvé",
         tone: "bg-emerald-100 text-emerald-700",
-        description: "Votre dossier est valide. Les contrôles documentaires sont terminés.",
+        description: "Votre dossier a été validé par un administrateur après revue humaine des pièces.",
       };
     case "needs_changes":
       return {
@@ -290,13 +302,7 @@ function sanitizeFileSegment(value: string) {
   return value.replace(/[^a-z0-9_-]/gi, "-").replace(/-+/g, "-").replace(/^-|-$/g, "").toLowerCase();
 }
 
-export async function uploadVerificationDocument(input: {
-  userId: string;
-  role: SignupRole;
-  documentType: SignupDocumentType;
-  file: File;
-  uploadId?: string;
-}) {
+export async function uploadVerificationDocument(input: UploadVerificationDocumentInput) {
   assertSafeFileUpload(input.file, {
     allowedMimeTypes: DOCUMENT_MIME_EXTENSIONS,
     maxBytes: MAX_DOCUMENT_UPLOAD_BYTES,
@@ -328,6 +334,87 @@ export async function uploadVerificationDocument(input: {
     mime_type: input.file.type || null,
     file_size_bytes: Number.isFinite(input.file.size) ? input.file.size : null,
   } satisfies UploadedSignupDocument;
+}
+
+function uniqueVerificationDocumentPaths(filePaths: ReadonlyArray<string | null | undefined>) {
+  const normalizedPaths = filePaths
+    .map((filePath) => filePath?.trim())
+    .filter((filePath): filePath is string => Boolean(filePath));
+  return [...new Set(normalizedPaths)];
+}
+
+export async function removeVerificationDocuments(
+  filePaths: ReadonlyArray<string | null | undefined>,
+) {
+  const uniqueFilePaths = uniqueVerificationDocumentPaths(filePaths);
+  if (uniqueFilePaths.length === 0) return;
+
+  const { error } = await getSupabase().storage
+    .from("verification-documents")
+    .remove(uniqueFilePaths);
+
+  if (error) throw error;
+}
+
+export async function removeVerificationDocumentsBestEffort(
+  filePaths: ReadonlyArray<string | null | undefined>,
+  options: VerificationDocumentCleanupOptions = {},
+) {
+  try {
+    await removeVerificationDocuments(filePaths);
+    return true;
+  } catch (error) {
+    try {
+      options.onError?.(error);
+    } catch {
+      // Cleanup diagnostics must never replace the original upload/RPC error.
+    }
+    return false;
+  }
+}
+
+export async function findUncommittedVerificationDocumentPaths(
+  userId: string,
+  filePaths: ReadonlyArray<string | null | undefined>,
+) {
+  const uniqueFilePaths = uniqueVerificationDocumentPaths(filePaths);
+  if (uniqueFilePaths.length === 0) return [];
+
+  const { data, error } = await getSupabase()
+    .from("signup_application_documents")
+    .select("file_path")
+    .eq("user_id", userId)
+    .in("file_path", uniqueFilePaths);
+
+  if (error) return null;
+
+  const committedPaths = new Set(
+    (data || []).map((document) => document.file_path),
+  );
+  return uniqueFilePaths.filter((filePath) => !committedPaths.has(filePath));
+}
+
+export async function uploadVerificationDocumentsWithRollback(
+  inputs: readonly UploadVerificationDocumentInput[],
+  options: VerificationDocumentCleanupOptions = {},
+) {
+  const results = await Promise.allSettled(inputs.map((input) => uploadVerificationDocument(input)));
+  const uploadedDocuments = results.flatMap((result) =>
+    result.status === "fulfilled" ? [result.value] : []
+  );
+  const failedUpload = results.find((result) => result.status === "rejected");
+
+  if (!failedUpload || failedUpload.status !== "rejected") {
+    return uploadedDocuments;
+  }
+
+  await removeVerificationDocumentsBestEffort(
+    uploadedDocuments.map((document) => document.file_path),
+    options,
+  );
+
+  if (failedUpload.reason instanceof Error) throw failedUpload.reason;
+  throw new Error("Impossible d'envoyer les documents de vérification.");
 }
 
 export async function getVerificationDocumentUrl(filePath: string, expiresInSeconds = 3600) {

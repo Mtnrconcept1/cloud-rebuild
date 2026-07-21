@@ -33,15 +33,18 @@ describe("restaurant onboarding subscription payments", () => {
     expect(auth).not.toContain("new FormData()");
     expect(auth).toContain("selected_subscription_plan_id");
     expect(auth).toContain("selected_subscription_billing_period");
-    expect(auth).toContain("savePendingPrivilegedSignupDraft");
+    expect(auth).toContain("pendingPrivilegedSignupRef");
+    expect(auth).toContain("uploadVerificationDocumentsWithRollback");
+    expect(auth).not.toMatch(/indexedDB|localStorage/i);
     expect(validation).not.toContain("launch_pack_id");
     expect(validation).toContain("subscription_plan_id");
     expect(validation).toContain("subscription_billing_period");
     expect(auth).toContain("commercialReferralToken");
     expect(auth).toContain("commercial_referral_token: payload.commercialReferralToken");
     expect(auth).toContain("COMMERCIAL_REFERRAL_SESSION_KEY");
-    expect(submitSignup).toContain("invalid_commercial_referral_token");
-    expect(submitSignup).toContain("commercial_referral_token");
+    expect(submitSignup).toContain("signup_submission_endpoint_retired");
+    expect(submitSignup).toContain("status: 410");
+    expect(submitSignup).not.toContain("commercial_referral_token");
   });
 
   it("saves a card during onboarding and defers the Stripe subscription", () => {
@@ -109,6 +112,7 @@ describe("restaurant onboarding subscription payments", () => {
     expect(migration).not.toContain("v_launch_pack_id");
     expect(migration).not.toContain("restaurant_launch_packs rlp");
     expect(migration).toContain("GRANT EXECUTE ON FUNCTION public.signup_restaurateur_onboarding_payment_ready");
+    expect(migration).toContain("public.has_role(v_actor_id, 'admin'::public.app_role)");
 
     expect(admin).toContain("canApproveSignupApplication");
     expect(admin).toContain("Carte enregistrée");
