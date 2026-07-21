@@ -92,8 +92,9 @@ export async function savePendingPrivilegedSignupDraft<TPayload>(
   const database = await openDatabase();
   try {
     const transaction = database.transaction(STORE_NAME, "readwrite");
+    const completed = transactionDone(transaction);
     transaction.objectStore(STORE_NAME).put(draft, ACTIVE_DRAFT_KEY);
-    await transactionDone(transaction);
+    await completed;
     setMarker(true);
   } finally {
     database.close();
@@ -102,12 +103,14 @@ export async function savePendingPrivilegedSignupDraft<TPayload>(
 
 export async function loadPendingPrivilegedSignupDraft<TPayload>() {
   const database = await openDatabase();
+  let databaseClosed = false;
   try {
     const transaction = database.transaction(STORE_NAME, "readonly");
+    const completed = transactionDone(transaction);
     const draft = await requestResult(
       transaction.objectStore(STORE_NAME).get(ACTIVE_DRAFT_KEY),
     ) as PendingPrivilegedSignupDraft<TPayload> | undefined;
-    await transactionDone(transaction);
+    await completed;
 
     if (!draft) {
       setMarker(false);
@@ -115,13 +118,15 @@ export async function loadPendingPrivilegedSignupDraft<TPayload>() {
     }
 
     if (!Number.isFinite(Date.parse(draft.expiresAt)) || Date.parse(draft.expiresAt) <= Date.now()) {
+      database.close();
+      databaseClosed = true;
       await clearPendingPrivilegedSignupDraft();
       return null;
     }
 
     return draft;
   } finally {
-    database.close();
+    if (!databaseClosed) database.close();
   }
 }
 
@@ -134,8 +139,9 @@ export async function clearPendingPrivilegedSignupDraft() {
   const database = await openDatabase();
   try {
     const transaction = database.transaction(STORE_NAME, "readwrite");
+    const completed = transactionDone(transaction);
     transaction.objectStore(STORE_NAME).delete(ACTIVE_DRAFT_KEY);
-    await transactionDone(transaction);
+    await completed;
     setMarker(false);
   } finally {
     database.close();
