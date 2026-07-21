@@ -18,12 +18,6 @@ function toCents(value: unknown) {
   return Math.max(0, Math.round((Number.isFinite(parsed) ? parsed : 0) * 100));
 }
 
-function isTerminalStripeError(error: unknown) {
-  const code = String((error as { code?: unknown } | null)?.code || "");
-  const type = String((error as { type?: unknown } | null)?.type || "");
-  return type === "StripeCardError" || ["payment_intent_unexpected_state", "charge_already_captured"].includes(code);
-}
-
 Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req);
   const preflight = handleCorsPreflight(req, corsHeaders);
@@ -43,41 +37,232 @@ Deno.serve(async (req) => {
 
     await actor.adminClient.rpc("close_due_match_groups");
 
-    const { data: candidates, error } = await actor.adminClient.rpc("get_match_group_capture_candidates", {
-      p_limit: 100,
-    });
-
-    if (error) throw error;
-
     let captured = 0;
     let failed = 0;
+    let total = 0;
     const details: Array<Record<string, unknown>> = [];
 
-    for (const candidate of candidates || []) {
-      const memberOrderId = candidate.member_order_id;
-      const paymentIntentId = candidate.stripe_payment_intent_id;
-      const amountToCapture = toCents(candidate.final_total);
+    const releaseClaim = async (
+      memberOrderId: string,
+      claimToken: string,
+      message: string,
+    ) => {
+      const { data, error } = await actor!.adminClient.rpc(
+        "release_match_group_capture_claim",
+        {
+          p_member_order_id: memberOrderId,
+          p_claim_token: claimToken,
+          p_error: message,
+        },
+      );
+      return { released: data === true, error };
+    };
 
-      if (!memberOrderId || !paymentIntentId || amountToCapture <= 0) continue;
+    const markClaimFailed = async (
+      memberOrderId: string,
+      claimToken: string,
+      message: string,
+      terminal: boolean,
+    ) => {
+      const { data, error } = await actor!.adminClient.rpc(
+        "mark_match_group_member_capture_failed_claimed",
+        {
+          p_member_order_id: memberOrderId,
+          p_claim_token: claimToken,
+          p_error: message,
+          p_terminal: terminal,
+        },
+      );
+      return { marked: data === true, error };
+    };
+
+    const renewCancellationClaim = async (
+      memberOrderId: string,
+      claimToken: string,
+      requireRestaurantIneligible: boolean,
+    ) => {
+      const { data, error } = await actor!.adminClient.rpc(
+        "renew_match_group_capture_cancellation_claim",
+        {
+          p_member_order_id: memberOrderId,
+          p_claim_token: claimToken,
+          p_require_restaurant_ineligible: requireRestaurantIneligible,
+        },
+      );
+      return { renewed: data === true, error };
+    };
+
+    const cancelAuthorizedIntent = async (input: {
+      memberOrderId: string;
+      paymentIntentId: string;
+      claimToken: string;
+      requireRestaurantIneligible: boolean;
+      reason: string;
+    }) => {
+      const claim = await renewCancellationClaim(
+        input.memberOrderId,
+        input.claimToken,
+        input.requireRestaurantIneligible,
+      );
+      if (claim.error) {
+        return { status: "claim_error" as const, error: claim.error };
+      }
+      if (!claim.renewed) {
+        return { status: "claim_lost" as const };
+      }
 
       try {
-        const authorization = await stripe.paymentIntents.retrieve(paymentIntentId);
-        const identityMatches = Boolean(
-          authorization.livemode
-          && authorization.capture_method === "manual"
-          && authorization.currency === "chf"
-          && authorization.metadata?.checkout_kind === "match-group"
-          && authorization.metadata?.group_member_order_id === memberOrderId
-          && authorization.metadata?.group_id === candidate.group_id
-          && authorization.metadata?.restaurant_id === candidate.restaurant_id
-          && authorization.metadata?.user_id === candidate.user_id
+        const canceledIntent = await stripe.paymentIntents.cancel(
+          input.paymentIntentId,
+          { cancellation_reason: "abandoned" },
+          {
+            // A new token is a new, fenced cancellation attempt. If a prior
+            // response was lost, the next invocation first observes Stripe's
+            // authoritative state before issuing another mutation.
+            idempotencyKey: `match-group:cancel:${input.reason}:${input.memberOrderId}:${input.paymentIntentId}:${input.claimToken}`.slice(0, 255),
+          },
         );
+        if (canceledIntent.status === "canceled") {
+          return { status: "canceled" as const, intent: canceledIntent };
+        }
+        if (canceledIntent.status === "succeeded") {
+          return { status: "succeeded" as const, intent: canceledIntent };
+        }
+        return { status: "not_canceled" as const, intent: canceledIntent };
+      } catch (cancelError) {
+        try {
+          const recoveredIntent = await stripe.paymentIntents.retrieve(input.paymentIntentId);
+          if (recoveredIntent.status === "canceled") {
+            return { status: "canceled" as const, intent: recoveredIntent };
+          }
+          if (recoveredIntent.status === "succeeded") {
+            return { status: "succeeded" as const, intent: recoveredIntent };
+          }
+          return {
+            status: "not_canceled" as const,
+            intent: recoveredIntent,
+            error: cancelError,
+          };
+        } catch (recoveryError) {
+          return {
+            status: "unknown" as const,
+            error: recoveryError,
+          };
+        }
+      }
+    };
+
+    // One candidate is claimed immediately before processing. Twenty serial
+    // candidates keeps the invocation bounded well below the fifteen-minute
+    // database lease even on the hosted 400-second Edge runtime.
+    for (let claimIndex = 0; claimIndex < 20; claimIndex += 1) {
+      const { data: claimedRows, error: claimError } = await actor.adminClient.rpc(
+        "claim_next_match_group_capture_candidate",
+      );
+      if (claimError) throw claimError;
+
+      const candidate = Array.isArray(claimedRows) ? claimedRows[0] : claimedRows;
+      if (!candidate) break;
+      total += 1;
+
+      const memberOrderId = String(candidate.member_order_id || "");
+      const paymentIntentId = String(candidate.stripe_payment_intent_id || "");
+      const claimToken = String(candidate.capture_claim_token || "");
+      const amountToCapture = toCents(candidate.final_total);
+      const paymentIntentIdentityMatches = (intent: {
+        livemode?: boolean;
+        capture_method?: string;
+        currency?: string;
+        metadata?: Record<string, string> | null;
+      }) => Boolean(
+        intent.livemode
+        && intent.capture_method === "manual"
+        && intent.currency === "chf"
+        && intent.metadata?.checkout_kind === "match-group"
+        && intent.metadata?.group_member_order_id === memberOrderId
+        && intent.metadata?.group_id === candidate.group_id
+        && intent.metadata?.restaurant_id === candidate.restaurant_id
+        && intent.metadata?.user_id === candidate.user_id
+      );
+
+      try {
+        if (!memberOrderId || !paymentIntentId || !claimToken || amountToCapture <= 0) {
+          throw new Error("MATCH_GROUP_CAPTURE_CANDIDATE_INVALID");
+        }
+
+        const authorization = await stripe.paymentIntents.retrieve(paymentIntentId);
+        const identityMatches = paymentIntentIdentityMatches(authorization);
         if (!identityMatches) throw new Error("MATCH_GROUP_CAPTURE_IDENTITY_MISMATCH");
+
+        if (authorization.status === "canceled") {
+          const canceledResult = await markClaimFailed(
+            memberOrderId,
+            claimToken,
+            "MATCH_GROUP_PAYMENT_INTENT_CANCELED",
+            true,
+          );
+          if (canceledResult.error) throw canceledResult.error;
+
+          failed += 1;
+          details.push({
+            member_order_id: memberOrderId,
+            status: canceledResult.marked ? "canceled" : "claim_lost_after_cancellation",
+          });
+          continue;
+        }
+
         if (
           authorization.status !== "requires_capture"
           && authorization.status !== "succeeded"
         ) {
           throw new Error(`MATCH_GROUP_CAPTURE_INVALID_STATE:${authorization.status}`);
+        }
+
+        const captureAttempts = Number(candidate.capture_attempts || 0);
+        if (authorization.status === "requires_capture" && captureAttempts >= 5) {
+          const exhaustedCancellation = await cancelAuthorizedIntent({
+            memberOrderId,
+            paymentIntentId,
+            claimToken,
+            requireRestaurantIneligible: false,
+            reason: "capture-attempts-exhausted",
+          });
+          if (exhaustedCancellation.status === "claim_error") {
+            throw new Error(
+              `MATCH_GROUP_CAPTURE_CLAIM_RENEW_FAILED:${exhaustedCancellation.error.message}`,
+            );
+          }
+          if (exhaustedCancellation.status === "claim_lost") {
+            throw new Error("MATCH_GROUP_CAPTURE_CLAIM_LOST_BEFORE_CANCEL");
+          }
+          if (exhaustedCancellation.status === "unknown") {
+            const recoveryMessage = exhaustedCancellation.error instanceof Error
+              ? exhaustedCancellation.error.message
+              : "unknown";
+            throw new Error(`MATCH_GROUP_STRIPE_STATE_UNKNOWN_AFTER_CANCEL:${recoveryMessage}`);
+          }
+          if (exhaustedCancellation.status === "not_canceled") {
+            throw new Error(
+              `MATCH_GROUP_CANCEL_NOT_CONFIRMED:${exhaustedCancellation.intent.status}`,
+            );
+          }
+          if (exhaustedCancellation.status === "succeeded") {
+            throw new Error("MATCH_GROUP_CAPTURE_SUCCEEDED_DURING_TERMINAL_CANCELLATION");
+          }
+
+          const terminalResult = await markClaimFailed(
+            memberOrderId,
+            claimToken,
+            "MATCH_GROUP_CAPTURE_ATTEMPTS_EXHAUSTED",
+            true,
+          );
+          if (terminalResult.error) throw terminalResult.error;
+          failed += 1;
+          details.push({
+            member_order_id: memberOrderId,
+            status: terminalResult.marked ? "capture_canceled" : "claim_lost_after_cancellation",
+          });
+          continue;
         }
 
         const platformFeeBps = Number(authorization.metadata?.platform_fee_bps);
@@ -111,66 +296,115 @@ Deno.serve(async (req) => {
             throw new Error(`MATCH_GROUP_RESTAURANT_ELIGIBILITY_READ_FAILED:${restaurantError.message}`);
           }
 
-          if (!isClientCheckoutRestaurantEligible(checkoutRestaurant)) {
-            let canceledIntent = authorization;
-            try {
-              canceledIntent = await stripe.paymentIntents.cancel(paymentIntentId, {
-                cancellation_reason: "abandoned",
-              }, {
-                idempotencyKey: `match-group:cancel-unavailable:${memberOrderId}:${paymentIntentId}`.slice(0, 255),
+          const restaurantUnavailable = candidate.restaurant_eligible !== true
+            || !isClientCheckoutRestaurantEligible(checkoutRestaurant);
+
+          if (restaurantUnavailable) {
+            const cancellation = await cancelAuthorizedIntent({
+              memberOrderId,
+              paymentIntentId,
+              claimToken,
+              requireRestaurantIneligible: true,
+              reason: "restaurant-unavailable",
+            });
+
+            if (cancellation.status === "claim_error") {
+              throw new Error(
+                `MATCH_GROUP_CAPTURE_CLAIM_RENEW_FAILED:${cancellation.error.message}`,
+              );
+            }
+            if (cancellation.status === "claim_lost") {
+              throw new Error("MATCH_GROUP_CAPTURE_CLAIM_LOST_BEFORE_CANCEL");
+            }
+            if (cancellation.status === "unknown") {
+              const recoveryMessage = cancellation.error instanceof Error
+                ? cancellation.error.message
+                : "unknown";
+              throw new Error(`MATCH_GROUP_STRIPE_STATE_UNKNOWN_AFTER_CANCEL:${recoveryMessage}`);
+            }
+            if (cancellation.status === "not_canceled") {
+              throw new Error(
+                `MATCH_GROUP_CANCEL_NOT_CONFIRMED:${cancellation.intent.status}`,
+              );
+            }
+            if (cancellation.status === "canceled") {
+              const terminalResult = await markClaimFailed(
+                memberOrderId,
+                claimToken,
+                "MATCH_GROUP_RESTAURANT_UNAVAILABLE",
+                true,
+              );
+              if (terminalResult.error) throw terminalResult.error;
+
+              failed += 1;
+              details.push({
+                member_order_id: memberOrderId,
+                status: terminalResult.marked
+                  ? "restaurant_unavailable"
+                  : "claim_lost_after_cancellation",
               });
-            } catch (cancelError) {
-              const recoveredIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
-              if (recoveredIntent.status !== "canceled") throw cancelError;
-              canceledIntent = recoveredIntent;
+              continue;
             }
 
-            if (canceledIntent.status !== "canceled") {
-              throw new Error(`MATCH_GROUP_UNAVAILABLE_CANCEL_FAILED:${canceledIntent.status}`);
+            // A cancellation race may reveal that Stripe already captured the
+            // payment. Reconcile that immutable truth below.
+            intent = cancellation.intent;
+          } else {
+            if (authorization.amount_capturable < amountToCapture) {
+              throw new Error("MATCH_GROUP_CAPTURE_AMOUNT_EXCEEDS_AUTHORIZATION");
             }
 
-            const { data: markedUnavailable, error: unavailableError } = await actor.adminClient.rpc(
-              "mark_match_group_member_capture_failed",
+            const { data: renewed, error: renewError } = await actor.adminClient.rpc(
+              "renew_match_group_capture_claim",
               {
                 p_member_order_id: memberOrderId,
-                p_error: "MATCH_GROUP_RESTAURANT_UNAVAILABLE",
-                p_terminal: true,
+                p_claim_token: claimToken,
               },
             );
-            if (unavailableError || markedUnavailable !== true) {
-              throw new Error(unavailableError?.message || "MATCH_GROUP_UNAVAILABLE_PERSIST_FAILED");
+            if (renewError) {
+              throw new Error(`MATCH_GROUP_CAPTURE_CLAIM_RENEW_FAILED:${renewError.message}`);
+            }
+            if (renewed !== true) {
+              throw new Error("MATCH_GROUP_CAPTURE_CLAIM_LOST");
             }
 
-            failed += 1;
-            details.push({
-              member_order_id: memberOrderId,
-              status: "restaurant_unavailable",
-            });
-            continue;
-          }
-
-          if (authorization.amount_capturable < amountToCapture) {
-            throw new Error("MATCH_GROUP_CAPTURE_AMOUNT_EXCEEDS_AUTHORIZATION");
-          }
-          try {
-            intent = await stripe.paymentIntents.capture(paymentIntentId, {
-              amount_to_capture: amountToCapture,
-              application_fee_amount: distribution.stripeApplicationFeeCents,
-            }, {
-              idempotencyKey: `match-group:capture:${memberOrderId}:${paymentIntentId}:${amountToCapture}`.slice(0, 255),
-            });
-          } catch (captureError) {
-            const recoveredIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
-            if (recoveredIntent.status !== "succeeded") throw captureError;
-            intent = recoveredIntent;
+            try {
+              intent = await stripe.paymentIntents.capture(paymentIntentId, {
+                amount_to_capture: amountToCapture,
+                application_fee_amount: distribution.stripeApplicationFeeCents,
+              }, {
+                // Keep the same key while Stripe's result is unknown. A
+                // confirmed requires_capture result increments capture_attempts,
+                // giving the next safe retry a fresh generation.
+                idempotencyKey: `match-group:capture:${memberOrderId}:${paymentIntentId}:${amountToCapture}:${captureAttempts}`.slice(0, 255),
+              });
+            } catch (captureError) {
+              const recoveredIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+              if (recoveredIntent.status !== "succeeded") throw captureError;
+              intent = recoveredIntent;
+            }
           }
         }
 
         if (intent.status !== "succeeded") {
           throw new Error(`MATCH_GROUP_CAPTURE_NOT_SUCCEEDED:${intent.status}`);
         }
-        const capturedAmountCents = Number(intent.amount_received || amountToCapture);
+        const capturedAmountCents = Number(intent.amount_received || 0);
+        if (!Number.isSafeInteger(capturedAmountCents) || capturedAmountCents <= 0) {
+          throw new Error("MATCH_GROUP_CAPTURED_AMOUNT_INVALID");
+        }
         const capturedAmount = capturedAmountCents / 100;
+        const settledDistribution = capturedAmountCents === amountToCapture
+          ? distribution
+          : calculateOrderPaymentDistribution(
+            capturedAmountCents,
+            platformFeeBps,
+            {
+              commissionableCents: capturedAmountCents,
+              tipCents: 0,
+              deliveryPassThroughCents: 0,
+            },
+          );
 
         await recordReconciledCheckoutFinance({
           adminClient: actor.adminClient,
@@ -183,20 +417,20 @@ Deno.serve(async (req) => {
           livemode: intent.livemode,
           metadata: {
             ...authorization.metadata,
-            gross_amount_cents: String(distribution.grossCents),
-            commissionable_cents: String(distribution.commissionableCents),
-            tip_cents: String(distribution.tipCents),
-            delivery_pass_through_cents: String(distribution.deliveryPassThroughCents),
-            platform_fee_bps: String(distribution.platformFeeBps),
-            platform_fee_amount_cents: String(distribution.platformFeeCents),
+            gross_amount_cents: String(settledDistribution.grossCents),
+            commissionable_cents: String(settledDistribution.commissionableCents),
+            tip_cents: String(settledDistribution.tipCents),
+            delivery_pass_through_cents: String(settledDistribution.deliveryPassThroughCents),
+            platform_fee_bps: String(settledDistribution.platformFeeBps),
+            platform_fee_amount_cents: String(settledDistribution.platformFeeCents),
             stripe_application_fee_amount_cents:
-              String(distribution.stripeApplicationFeeCents),
-            restaurant_share_amount_cents: String(distribution.restaurantShareCents),
-            restaurant_transfer_amount_cents: String(distribution.restaurantTransferCents),
-            developer_order_bps: String(distribution.developerOrderBps),
-            developer_share_bps: String(distribution.developerOrderBps),
-            developer_share_amount_cents: String(distribution.developerShareCents),
-            tok_net_amount_cents: String(distribution.tokNetRevenueCents),
+              String(settledDistribution.stripeApplicationFeeCents),
+            restaurant_share_amount_cents: String(settledDistribution.restaurantShareCents),
+            restaurant_transfer_amount_cents: String(settledDistribution.restaurantTransferCents),
+            developer_order_bps: String(settledDistribution.developerOrderBps),
+            developer_share_bps: String(settledDistribution.developerOrderBps),
+            developer_share_amount_cents: String(settledDistribution.developerShareCents),
+            tok_net_amount_cents: String(settledDistribution.tokNetRevenueCents),
             stripe_fee_reconciliation_required: true,
             vat_reconciliation_required: true,
           },
@@ -204,15 +438,16 @@ Deno.serve(async (req) => {
         });
 
         const { data: marked, error: markError } = await actor.adminClient.rpc(
-          "mark_match_group_member_captured",
+          "mark_match_group_member_captured_claimed",
           {
             p_member_order_id: memberOrderId,
+            p_claim_token: claimToken,
             p_payment_intent_id: paymentIntentId,
             p_captured_amount: capturedAmount,
             p_metadata: {
               stripe_payment_intent_status: intent.status,
-              amount_to_capture: amountToCapture / 100,
-              platform_fee_amount: distribution.platformFeeCents / 100,
+              amount_to_capture: capturedAmount,
+              platform_fee_amount: settledDistribution.platformFeeCents / 100,
               currency: intent.currency,
             },
           },
@@ -225,40 +460,143 @@ Deno.serve(async (req) => {
         details.push({ member_order_id: memberOrderId, status: "captured", amount: capturedAmount });
       } catch (captureError) {
         const message = captureError instanceof Error ? captureError.message : "Capture Stripe echouee";
-        let capturedAtStripe = false;
-        try {
-          const recoveredIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
-          capturedAtStripe = recoveredIntent.status === "succeeded";
-        } catch {
-          capturedAtStripe = false;
-        }
-
         failed += 1;
-        if (capturedAtStripe) {
-          // Money is already captured: keep the database candidate retryable
-          // until ledger and business settlement both succeed.
+
+        const claimUnavailable = message.includes("MATCH_GROUP_CAPTURE_CLAIM_LOST")
+          || message.startsWith("MATCH_GROUP_CAPTURE_CLAIM_RENEW_FAILED:");
+        if (claimUnavailable) {
+          // No Stripe mutation followed a failed renewal. Do not call Stripe
+          // again after the worker has explicitly lost its fencing token.
+          const released = await releaseClaim(memberOrderId, claimToken, message);
           details.push({
             member_order_id: memberOrderId,
-            status: "settlement_retry",
-            error: message,
+            status: released.released ? "claim_released" : "claim_lost",
+            error: released.error?.message || message,
           });
           continue;
         }
 
         const eligibilityReadFailed = message.startsWith("MATCH_GROUP_RESTAURANT_ELIGIBILITY_READ_FAILED:");
-        const terminal = isTerminalStripeError(captureError)
-          || (!eligibilityReadFailed && Number(candidate.capture_attempts || 0) >= 4);
-        const { error: failureError } = await actor.adminClient.rpc(
-          "mark_match_group_member_capture_failed",
-          {
-            p_member_order_id: memberOrderId,
-            p_error: message,
-            p_terminal: terminal,
-          },
-        );
-        if (failureError) throw failureError;
+        if (eligibilityReadFailed) {
+          const released = await releaseClaim(memberOrderId, claimToken, message);
+          details.push({
+            member_order_id: memberOrderId,
+            status: released.error
+              ? "eligibility_retry_lease_timeout"
+              : released.released
+                ? "eligibility_retry"
+                : "eligibility_retry_claim_lost",
+            error: released.error?.message || message,
+          });
+          continue;
+        }
 
-        details.push({ member_order_id: memberOrderId, status: terminal ? "failed" : "retry", error: message });
+        let recoveredIntent: Awaited<ReturnType<typeof stripe.paymentIntents.retrieve>> | null = null;
+        let recoveryErrorMessage = "STRIPE_STATE_UNKNOWN";
+        try {
+          recoveredIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+        } catch (recoveryError) {
+          recoveryErrorMessage = recoveryError instanceof Error
+            ? recoveryError.message
+            : recoveryErrorMessage;
+        }
+
+        if (!recoveredIntent) {
+          // Unknown is a first-class state: the capture or cancellation may
+          // have succeeded even though both responses were lost. Never spend a
+          // financial attempt or make the row terminal until Stripe is known.
+          const released = await releaseClaim(
+            memberOrderId,
+            claimToken,
+            `${message}; recovery=${recoveryErrorMessage}`,
+          );
+          details.push({
+            member_order_id: memberOrderId,
+            status: released.error
+              ? "stripe_state_unknown_lease_timeout"
+              : released.released
+                ? "stripe_state_unknown"
+                : "stripe_state_unknown_claim_lost",
+            error: released.error?.message || recoveryErrorMessage,
+          });
+          continue;
+        }
+
+        if (!paymentIntentIdentityMatches(recoveredIntent)) {
+          const identityResult = await markClaimFailed(
+            memberOrderId,
+            claimToken,
+            "MATCH_GROUP_CAPTURE_IDENTITY_MISMATCH",
+            true,
+          );
+          if (identityResult.error) throw identityResult.error;
+          details.push({
+            member_order_id: memberOrderId,
+            status: identityResult.marked ? "identity_rejected" : "claim_lost",
+            error: message,
+          });
+          continue;
+        }
+
+        if (recoveredIntent.status === "succeeded") {
+          // Stripe truth wins. Release only this worker's token so another
+          // invocation can reconcile ledger and business state idempotently.
+          const released = await releaseClaim(memberOrderId, claimToken, message);
+          details.push({
+            member_order_id: memberOrderId,
+            status: released.error
+              ? "settlement_retry_lease_timeout"
+              : released.released
+                ? "settlement_retry"
+                : "settlement_retry_claim_lost",
+            error: released.error?.message || message,
+          });
+          continue;
+        }
+
+        if (recoveredIntent.status === "canceled") {
+          const canceledResult = await markClaimFailed(
+            memberOrderId,
+            claimToken,
+            "MATCH_GROUP_PAYMENT_INTENT_CANCELED",
+            true,
+          );
+          if (canceledResult.error) throw canceledResult.error;
+          details.push({
+            member_order_id: memberOrderId,
+            status: canceledResult.marked ? "canceled" : "claim_lost_after_cancellation",
+            error: message,
+          });
+          continue;
+        }
+
+        if (recoveredIntent.status !== "requires_capture") {
+          const released = await releaseClaim(memberOrderId, claimToken, message);
+          details.push({
+            member_order_id: memberOrderId,
+            status: released.released ? "stripe_state_retry" : "stripe_state_retry_claim_lost",
+            error: released.error?.message || message,
+          });
+          continue;
+        }
+
+        // Stripe has definitively confirmed that the capture did not happen.
+        // Advancing this counter produces a fresh capture idempotency
+        // generation; after five confirmed failures the next claim cancels the
+        // remaining bank authorization before marking the row terminal.
+        const failureResult = await markClaimFailed(
+          memberOrderId,
+          claimToken,
+          message,
+          false,
+        );
+        if (failureResult.error) throw failureResult.error;
+
+        details.push({
+          member_order_id: memberOrderId,
+          status: failureResult.marked ? "retry" : "claim_lost",
+          error: message,
+        });
       }
     }
 
@@ -270,10 +608,10 @@ Deno.serve(async (req) => {
       action: "capture_authorized_payments",
       status: "success",
       targetEntityType: "group_member_orders",
-      metadata: { captured, failed, total: (candidates || []).length, details },
+      metadata: { captured, failed, total, details },
     });
 
-    return jsonResponse({ ok: true, captured, failed, total: (candidates || []).length, details }, 200, corsHeaders);
+    return jsonResponse({ ok: true, captured, failed, total, details }, 200, corsHeaders);
   } catch (error) {
     const status = error instanceof HttpError ? error.status : 500;
     const message = error instanceof Error ? error.message : "Erreur capture Match groupe";
