@@ -16,10 +16,10 @@ function DashboardAccessGate({ children }: { children: React.ReactNode }) {
     );
   }
 
-  const pendingWorkspaceRouteAllowed = location.pathname === "/dashboard"
-    || location.pathname === "/dashboard/restaurant";
-
-  if (dashboardAccessLocked && !pendingWorkspaceRouteAllowed) {
+  if (
+    dashboardAccessLocked && location.pathname !== "/dashboard"
+    && location.pathname !== "/dashboard/restaurant"
+  ) {
     return <Navigate to="/dashboard" replace />;
   }
 

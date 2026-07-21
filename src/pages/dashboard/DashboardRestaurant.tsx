@@ -338,7 +338,6 @@ export default function DashboardRestaurant() {
             owner_id: user.id,
             status: "pending",
             is_active: false,
-            is_demo: false,
           })
           .select("id")
           .single();
