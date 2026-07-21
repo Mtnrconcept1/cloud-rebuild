@@ -17,6 +17,8 @@ export interface AuthContextType {
   canSwitchRole: boolean;
   /** Switch the active role */
   switchRole: (role: UserRole) => void;
+  /** Reload roles after an authenticated onboarding or admin operation. */
+  refreshRoles: () => Promise<UserRole[]>;
   signOut: () => Promise<void>;
 }
 
@@ -29,6 +31,7 @@ export const AuthContext = createContext<AuthContextType>({
   isSuperAdmin: false,
   canSwitchRole: false,
   switchRole: () => { },
+  refreshRoles: async () => [],
   signOut: async () => { },
 });
 

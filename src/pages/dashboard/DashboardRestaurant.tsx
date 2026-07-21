@@ -98,7 +98,7 @@ function formatDashboardPromotionEndDate(endAt: string) {
 
 export default function DashboardRestaurant() {
   const { user } = useAuth();
-  const { selectedId } = useDashboardRestaurant();
+  const { selectedId, dashboardAccessLocked, dashboardAccessLockReason } = useDashboardRestaurant();
   const commercialDemoFrame = useCommercialDemoFrame();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -333,7 +333,13 @@ export default function DashboardRestaurant() {
       } else {
         const { data, error } = await supabase
           .from("restaurants")
-          .insert({ ...payload, owner_id: user.id })
+          .insert({
+            ...payload,
+            owner_id: user.id,
+            status: "pending",
+            is_active: false,
+            is_demo: false,
+          })
           .select("id")
           .single();
         if (error) throw error;
@@ -401,6 +407,14 @@ export default function DashboardRestaurant() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
+        {dashboardAccessLocked ? (
+          <div className="max-w-3xl rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
+            <p className="font-semibold">Fiche privée — validation en attente</p>
+            <p className="mt-1">
+              {dashboardAccessLockReason || "Cette fiche n'est pas encore publiée dans les recherches clients."}
+            </p>
+          </div>
+        ) : null}
         <DashboardPageHero
           badge="Identite restaurant"
           title={restaurant ? "Mon restaurant" : "Créer mon restaurant"}

@@ -30,13 +30,15 @@ describe("restaurant onboarding subscription payments", () => {
     expect(auth).toContain("selectedSubscriptionPlanId");
     expect(auth).toContain("selectedSubscriptionBillingPeriod");
     expect(auth).not.toContain('formData.append("launch_pack_id"');
-    expect(auth).toMatch(/formData\.append\(\s*"subscription_plan_id"/);
-    expect(auth).toMatch(/formData\.append\(\s*"subscription_billing_period"/);
+    expect(auth).not.toContain("new FormData()");
+    expect(auth).toContain("selected_subscription_plan_id");
+    expect(auth).toContain("selected_subscription_billing_period");
+    expect(auth).toContain("savePendingPrivilegedSignupDraft");
     expect(validation).not.toContain("launch_pack_id");
     expect(validation).toContain("subscription_plan_id");
     expect(validation).toContain("subscription_billing_period");
     expect(auth).toContain("commercialReferralToken");
-    expect(auth).toContain('formData.append(\n    "commercial_referral_token"');
+    expect(auth).toContain("commercial_referral_token: payload.commercialReferralToken");
     expect(auth).toContain("COMMERCIAL_REFERRAL_SESSION_KEY");
     expect(submitSignup).toContain("invalid_commercial_referral_token");
     expect(submitSignup).toContain("commercial_referral_token");

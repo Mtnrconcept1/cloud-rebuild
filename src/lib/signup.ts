@@ -295,6 +295,7 @@ export async function uploadVerificationDocument(input: {
   role: SignupRole;
   documentType: SignupDocumentType;
   file: File;
+  uploadId?: string;
 }) {
   assertSafeFileUpload(input.file, {
     allowedMimeTypes: DOCUMENT_MIME_EXTENSIONS,
@@ -305,7 +306,8 @@ export async function uploadVerificationDocument(input: {
   const safeExtension = sanitizeFileSegment(extension) || "bin";
   const safeDocumentType = sanitizeFileSegment(input.documentType) || "document";
   const safeRole = sanitizeFileSegment(input.role) || "signup";
-  const filePath = `${input.userId}/${safeRole}/${safeDocumentType}-${crypto.randomUUID()}.${safeExtension}`;
+  const safeUploadId = sanitizeFileSegment(input.uploadId || crypto.randomUUID()) || crypto.randomUUID();
+  const filePath = `${input.userId}/${safeRole}/${safeDocumentType}-${safeUploadId}.${safeExtension}`;
 
   const { error } = await getSupabase().storage
     .from("verification-documents")

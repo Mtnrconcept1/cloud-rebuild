@@ -15,10 +15,7 @@ export interface DashboardContextValue {
 
 export function isRestaurantDashboardAccessApproved(restaurant: OwnedRestaurant | null | undefined) {
   const status = String(restaurant?.status || "").toLowerCase();
-  return Boolean(
-    restaurant?.is_active
-    && !["pending", "pending_review", "needs_changes", "rejected"].includes(status),
-  );
+  return Boolean(restaurant?.is_active && status === "active");
 }
 
 export const DashboardContext = createContext<DashboardContextValue | null>(null);

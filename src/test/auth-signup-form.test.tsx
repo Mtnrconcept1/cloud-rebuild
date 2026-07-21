@@ -27,6 +27,29 @@ const supabaseMocks = vi.hoisted(() => ({
   from: vi.fn(),
 }));
 
+const authContextMocks = vi.hoisted(() => ({
+  user: null as null | { id: string; email?: string; user_metadata?: Record<string, unknown> },
+  session: null as null | { access_token: string },
+  roles: [] as string[],
+  role: null as null | string,
+  canSwitchRole: false,
+  switchRole: vi.fn(),
+  refreshRoles: vi.fn(),
+}));
+
+const pendingSignupMocks = vi.hoisted(() => ({
+  clear: vi.fn(),
+  create: vi.fn((input: Record<string, unknown>) => ({
+    ...input,
+    id: input.id || "signup-operation-id",
+    createdAt: "2026-07-21T12:00:00.000Z",
+    expiresAt: "2026-07-22T12:00:00.000Z",
+  })),
+  hasMarker: vi.fn(() => false),
+  load: vi.fn(),
+  save: vi.fn(),
+}));
+
 vi.mock("@/integrations/supabase/client", () => ({
   getSupabase: () => ({
     auth: {
@@ -52,11 +75,15 @@ vi.mock("@/integrations/supabase/client", () => ({
 }));
 
 vi.mock("@/lib/auth-context", () => ({
-  useAuth: () => ({
-    roles: [],
-    switchRole: vi.fn(),
-    user: null,
-  }),
+  useAuth: () => authContextMocks,
+}));
+
+vi.mock("@/lib/pendingPrivilegedSignup", () => ({
+  clearPendingPrivilegedSignupDraft: pendingSignupMocks.clear,
+  createPendingPrivilegedSignupDraft: pendingSignupMocks.create,
+  hasPendingPrivilegedSignupMarker: pendingSignupMocks.hasMarker,
+  loadPendingPrivilegedSignupDraft: pendingSignupMocks.load,
+  savePendingPrivilegedSignupDraft: pendingSignupMocks.save,
 }));
 
 const toastMock = vi.hoisted(() => vi.fn());
@@ -183,6 +210,16 @@ function acceptLegalTerms() {
 describe("Auth signup form", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    authContextMocks.user = null;
+    authContextMocks.session = null;
+    authContextMocks.roles = [];
+    authContextMocks.role = null;
+    authContextMocks.canSwitchRole = false;
+    authContextMocks.refreshRoles.mockResolvedValue([]);
+    pendingSignupMocks.hasMarker.mockReturnValue(false);
+    pendingSignupMocks.load.mockResolvedValue(null);
+    pendingSignupMocks.save.mockResolvedValue(undefined);
+    pendingSignupMocks.clear.mockResolvedValue(undefined);
     supabaseMocks.resend.mockResolvedValue({ error: null });
     supabaseMocks.exchangeCodeForSession.mockResolvedValue({ data: { session: null }, error: null });
     supabaseMocks.from.mockImplementation(mockSupabaseTable);
@@ -344,7 +381,7 @@ describe("Auth signup form", () => {
     expect(supabaseMocks.signUp).not.toHaveBeenCalled();
   });
 
-  it("logs out a restaurateur signup session after submitting the verification dossier", async () => {
+  it("keeps the pending restaurateur signed in after submitting the verification dossier", async () => {
     HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
       beginPath: vi.fn(),
       clearRect: vi.fn(),
@@ -445,17 +482,19 @@ describe("Auth signup form", () => {
       );
     });
 
-    expect(supabaseMocks.signOut).toHaveBeenCalledTimes(1);
+    expect(supabaseMocks.signOut).not.toHaveBeenCalled();
+    expect(authContextMocks.refreshRoles).toHaveBeenCalledTimes(1);
+    expect(pendingSignupMocks.clear).toHaveBeenCalledTimes(1);
     expect(toastMock).toHaveBeenCalledWith(
       expect.objectContaining({
         title: "Inscription enregistrée",
-        description: expect.stringContaining("après validation"),
+        description: expect.stringContaining("fiche reste privée"),
       }),
     );
   });
 
 
-  it("submits the complete restaurateur dossier through the Edge Function when email confirmation prevents a session", async () => {
+  it("stores the dossier locally and waits for an authenticated session after email confirmation", async () => {
     HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
       beginPath: vi.fn(),
       clearRect: vi.fn(),
@@ -524,33 +563,28 @@ describe("Auth signup form", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Envoyer mon inscription vérifiée" }));
 
-    await waitFor(() => {
-      expect(supabaseMocks.invoke).toHaveBeenCalledWith(
-        "submit-signup-application",
-        expect.objectContaining({ body: expect.any(FormData) }),
-      );
-    });
+    await waitFor(() => expect(pendingSignupMocks.save).toHaveBeenCalledTimes(1));
 
-    const body = supabaseMocks.invoke.mock.calls[0][1].body as FormData;
-    expect(body.get("user_id")).toBe("restaurant-user-id");
-    expect(body.get("requested_role")).toBe("restaurateur");
-    expect(body.get("restaurant_name")).toBe("La Table Tok");
-    expect(body.get("launch_pack_id")).toBeNull();
-    expect(body.get("subscription_plan_id")).toBe("restaurant-plan-id");
-    expect(body.get("subscription_billing_period")).toBe("monthly");
-    expect(body.get("terms_accepted")).toBe("true");
-    expect(body.get("privacy_policy_accepted")).toBe("true");
-    expect(body.get("contract_version")).toBe("TOK-CH-RP-FAIR-GROWTH-2026-07-v4");
-    expect(body.get("contract_signer_name")).toBe("Marie Dupont, gérante");
-    expect(String(body.get("contract_signature_data_url"))).toContain("data:image/png;base64,");
-    expect(body.get("document_identity_document")).toBeInstanceOf(File);
-    expect(body.get("document_business_registration")).toBeInstanceOf(File);
-    expect(body.get("document_iban_proof")).toBeInstanceOf(File);
+    expect(pendingSignupMocks.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: "restaurant-user-id",
+        email: "restaurant@example.com",
+        payload: expect.objectContaining({
+          role: "restaurateur",
+          documents: expect.objectContaining({
+            identity_document: documentFile,
+            business_registration: documentFile,
+            iban_proof: documentFile,
+          }),
+        }),
+      }),
+    );
+    expect(supabaseMocks.invoke).not.toHaveBeenCalled();
     expect(supabaseMocks.rpc).not.toHaveBeenCalledWith("sync_signup_application", expect.anything());
     expect(toastMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: "Inscription enregistrée",
-        description: expect.stringContaining("après confirmation"),
+        title: "Compte créé",
+        description: expect.stringContaining("session sécurisée"),
       }),
     );
   });

@@ -199,8 +199,80 @@ describe("signup and admin moderation SQL", () => {
     expect(uploadSecurity).toContain('"image/heic": "heic"');
     expect(uploadSecurity).toContain('"image/heif": "heif"');
     expect(signupLib).toContain(".heic,.heif");
-    expect(authPage).toContain("getSignupEdgeErrorMessage");
-    expect(authPage).toContain('"error" in payload');
+    expect(authPage).toContain("savePendingPrivilegedSignupDraft");
+    expect(authPage).toContain("loadPendingPrivilegedSignupDraft");
+    expect(authPage).not.toContain('functions.invoke("submit-signup-application"');
+  });
+});
+
+describe("pending restaurateur workspace and human-only publication", () => {
+  const sql = latestMigrationContaining(/Human-only signup review/i);
+
+  it("forces every new restaurant to remain private until an approved application exists", () => {
+    const guard = extractFunction(sql, "protect_restaurant_moderation_state");
+
+    expect(sql).toMatch(/ALTER COLUMN status SET DEFAULT 'pending'/i);
+    expect(sql).toMatch(/ALTER COLUMN is_active SET DEFAULT false/i);
+    expect(guard).toContain("NEW.status := 'pending'");
+    expect(guard).toContain("NEW.is_active := false");
+    expect(guard).toContain("restaurant_is_approved_for_publication(NEW.id)");
+    expect(sql).toMatch(/restaurants_public_select[\s\S]*is_active IS TRUE[\s\S]*status[\s\S]*'active'/i);
+  });
+
+  it("allows the owner to edit only the private restaurant profile while moderation remains locked", () => {
+    const context = readFileSync(resolve(process.cwd(), "src/pages/dashboard/DashboardContext.tsx"), "utf8");
+    const route = readFileSync(resolve(process.cwd(), "src/components/DashboardRoute.tsx"), "utf8");
+    const restaurant = readFileSync(resolve(process.cwd(), "src/pages/dashboard/DashboardRestaurant.tsx"), "utf8");
+
+    expect(context).not.toMatch(/dashboardAccessLocked[\s\S]*lockedFeatures\.add\("dashboard-restaurant"\)/);
+    expect(route).toContain('location.pathname === "/dashboard/restaurant"');
+    expect(restaurant).toContain('status: "pending"');
+    expect(restaurant).toContain("is_active: false");
+    expect(restaurant).toContain("Fiche privée — validation en attente");
+  });
+
+  it("requires an authenticated human admin and a ready payment before approval", () => {
+    const review = extractFunction(sql, "admin_review_signup_application");
+    const humanGuard = extractFunction(sql, "guard_human_signup_review");
+
+    expect(review).toContain("v_actor_id IS NULL");
+    expect(review).toContain("signup_restaurateur_onboarding_payment_ready");
+    expect(review).toContain("reviewed_by = v_actor_id");
+    expect(review).not.toContain("v_is_service_role");
+    expect(humanGuard).toContain("validation humaine administrateur");
+    expect(sql).toMatch(/REVOKE ALL ON FUNCTION public\.admin_review_signup_application[\s\S]*service_role/i);
+    expect(sql).toMatch(/GRANT EXECUTE ON FUNCTION public\.admin_review_signup_application[\s\S]*TO authenticated/i);
+  });
+
+  it("keeps documents private and validates only storage metadata, never their identity content", () => {
+    const authPage = readFileSync(resolve(process.cwd(), "src/pages/Auth.tsx"), "utf8");
+    const signupLib = readFileSync(resolve(process.cwd(), "src/lib/signup.ts"), "utf8");
+    const submissionFunction = readFileSync(
+      resolve(process.cwd(), "supabase/functions/submit-signup-application/index.ts"),
+      "utf8",
+    );
+    const documentFlow = `${authPage}\n${signupLib}\n${submissionFunction}`;
+
+    expect(sql).toContain("file_size_limit = 15728640");
+    expect(sql).toContain("public = false");
+    expect(sql).toContain("validate_signup_document_manifest");
+    expect(documentFlow).not.toMatch(/\b(openai|tesseract|textract|documentai)\b/i);
+    expect(documentFlow).not.toContain("analyze-restaurant-image");
+  });
+
+  it("resumes only after email confirmation and never reuses the signup captcha", () => {
+    const authPage = readFileSync(resolve(process.cwd(), "src/pages/Auth.tsx"), "utf8");
+    const pendingDraft = readFileSync(
+      resolve(process.cwd(), "src/lib/pendingPrivilegedSignup.ts"),
+      "utf8",
+    );
+
+    expect(authPage).toContain("loadPendingPrivilegedSignupDraft");
+    expect(authPage).toContain("skipIfExisting: true");
+    expect(authPage).not.toContain('functions.invoke("submit-signup-application"');
+    expect(pendingDraft).toContain("window.indexedDB");
+    expect(pendingDraft).toContain("DEFAULT_TTL_MS");
+    expect(authPage).toContain("const { password, ...applicationForm } = form");
   });
 });
 
