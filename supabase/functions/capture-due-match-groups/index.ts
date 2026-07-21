@@ -7,6 +7,7 @@ import {
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import { getStripeRuntimeForCheckoutKind } from "../_shared/stripe-client.ts";
+import { isClientCheckoutRestaurantEligible } from "../_shared/order-pricing.ts";
 import {
   calculateOrderPaymentDistribution,
   recordReconciledCheckoutFinance,
@@ -101,6 +102,53 @@ Deno.serve(async (req) => {
         );
         let intent = authorization;
         if (authorization.status === "requires_capture") {
+          const { data: checkoutRestaurant, error: restaurantError } = await actor.adminClient
+            .from("restaurants")
+            .select("id,is_active,status,is_demo")
+            .eq("id", candidate.restaurant_id)
+            .maybeSingle();
+          if (restaurantError) {
+            throw new Error(`MATCH_GROUP_RESTAURANT_ELIGIBILITY_READ_FAILED:${restaurantError.message}`);
+          }
+
+          if (!isClientCheckoutRestaurantEligible(checkoutRestaurant)) {
+            let canceledIntent = authorization;
+            try {
+              canceledIntent = await stripe.paymentIntents.cancel(paymentIntentId, {
+                cancellation_reason: "abandoned",
+              }, {
+                idempotencyKey: `match-group:cancel-unavailable:${memberOrderId}:${paymentIntentId}`.slice(0, 255),
+              });
+            } catch (cancelError) {
+              const recoveredIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+              if (recoveredIntent.status !== "canceled") throw cancelError;
+              canceledIntent = recoveredIntent;
+            }
+
+            if (canceledIntent.status !== "canceled") {
+              throw new Error(`MATCH_GROUP_UNAVAILABLE_CANCEL_FAILED:${canceledIntent.status}`);
+            }
+
+            const { data: markedUnavailable, error: unavailableError } = await actor.adminClient.rpc(
+              "mark_match_group_member_capture_failed",
+              {
+                p_member_order_id: memberOrderId,
+                p_error: "MATCH_GROUP_RESTAURANT_UNAVAILABLE",
+                p_terminal: true,
+              },
+            );
+            if (unavailableError || markedUnavailable !== true) {
+              throw new Error(unavailableError?.message || "MATCH_GROUP_UNAVAILABLE_PERSIST_FAILED");
+            }
+
+            failed += 1;
+            details.push({
+              member_order_id: memberOrderId,
+              status: "restaurant_unavailable",
+            });
+            continue;
+          }
+
           if (authorization.amount_capturable < amountToCapture) {
             throw new Error("MATCH_GROUP_CAPTURE_AMOUNT_EXCEEDS_AUTHORIZATION");
           }
@@ -197,7 +245,9 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        const terminal = isTerminalStripeError(captureError) || Number(candidate.capture_attempts || 0) >= 4;
+        const eligibilityReadFailed = message.startsWith("MATCH_GROUP_RESTAURANT_ELIGIBILITY_READ_FAILED:");
+        const terminal = isTerminalStripeError(captureError)
+          || (!eligibilityReadFailed && Number(candidate.capture_attempts || 0) >= 4);
         const { error: failureError } = await actor.adminClient.rpc(
           "mark_match_group_member_capture_failed",
           {
