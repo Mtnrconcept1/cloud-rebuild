@@ -303,6 +303,7 @@ describe("pending restaurateur workspace and human-only publication", () => {
     }
 
     const gdprDelete = extractFunction(sql, "delete_user_gdpr_cascade");
+    const storageQuarantine = latestMigrationContaining(/gdpr_storage_api_cleanup_required/i);
     expect(gdprDelete).toContain("v_actor_id IS DISTINCT FROM p_user_id");
     expect(gdprDelete).toContain("public.has_role(v_actor_id, 'admin'::public.app_role)");
     expect(gdprDelete).toContain("auth.role() IS DISTINCT FROM 'service_role'");
@@ -311,6 +312,8 @@ describe("pending restaurateur workspace and human-only publication", () => {
     expect(sql).toContain("ALTER TABLE public.signup_application_review_events DROP CONSTRAINT %I");
     expect(sql).toContain("ADD CONSTRAINT signup_application_review_events_application_id_fkey");
     expect(sql).toMatch(/CREATE TRIGGER reject_signup_review_event_mutation\s+BEFORE UPDATE\s+ON public\.signup_application_review_events/i);
+    expect(storageQuarantine).toContain("WHEN insufficient_privilege THEN");
+    expect(storageQuarantine).toContain("gdpr_storage_api_cleanup_required");
   });
 
   it("never sends fallback cuisine slugs to the uuid cuisine RPC", () => {
