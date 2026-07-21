@@ -24,7 +24,7 @@ function latestMigrationContaining(pattern: RegExp) {
 function extractFunction(sql: string, functionName: string) {
   const escapedFunctionName = functionName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const match = sql.match(
-    new RegExp(`CREATE\\s+OR\\s+REPLACE\\s+FUNCTION\\s+public\\.${escapedFunctionName}[\\s\\S]*?\\n\\$\\$;`, "i"),
+    new RegExp(`CREATE\\s+OR\\s+REPLACE\\s+FUNCTION\\s+public\\.${escapedFunctionName}\\s*\\([\\s\\S]*?\\n\\$\\$;`, "i"),
   );
 
   expect(match).toBeTruthy();
