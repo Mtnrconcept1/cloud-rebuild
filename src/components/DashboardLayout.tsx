@@ -37,7 +37,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useDashboardRestaurant } from "@/pages/dashboard/useDashboardRestaurant";
+import {
+  isRestaurantOnboardingConfigurationRoute,
+  useDashboardRestaurant,
+} from "@/pages/dashboard/useDashboardRestaurant";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -200,6 +203,7 @@ function NavItems({
   unreadNotifications,
   role,
   dashboardAccessLocked = false,
+  onboardingConfigurationUnlocked = false,
 }: {
   pathname: string;
   sections: NavSection[];
@@ -208,6 +212,7 @@ function NavItems({
   unreadNotifications: ReturnType<typeof useNotificationCenter>["unreadNotifications"];
   role: ReturnType<typeof useAuth>["role"];
   dashboardAccessLocked?: boolean;
+  onboardingConfigurationUnlocked?: boolean;
 }) {
   return (
     <>
@@ -217,11 +222,15 @@ function NavItems({
           {section.items.map((item) => {
             const isMarketingStudio = item.emphasis === "marketing-studio";
             const isActive = isDashboardNavItemActive(pathname, item.to);
-            const isLocked = dashboardAccessLocked && item.to !== "/dashboard"
+            const availableDuringOnboarding = onboardingConfigurationUnlocked
+              && isRestaurantOnboardingConfigurationRoute(item.to);
+            const isLocked = dashboardAccessLocked && item.to !== "/dashboard" && !availableDuringOnboarding
               ? true
-              : !!(item.feature && disabledFeatures?.has(item.feature));
+              : !availableDuringOnboarding && !!(item.feature && disabledFeatures?.has(item.feature));
             const lockTitle = dashboardAccessLocked
-              ? "Dossier restaurateur en attente de validation admin"
+              ? onboardingConfigurationUnlocked
+                ? "Disponible après la validation du dossier par l'admin TOK"
+                : "Enregistrez d'abord votre carte bancaire"
               : "Non inclus dans votre pack ou abonnement";
 
             if (isLocked) {
@@ -289,7 +298,7 @@ export default function DashboardLayout({
 }: DashboardLayoutProps) {
   const { pathname } = useLocation();
   const queryClient = useQueryClient();
-  const { selectedId, disabledFeatures, dashboardAccessLocked, dashboardAccessLockReason, isDemoMode } = useDashboardRestaurant();
+  const { selectedId, disabledFeatures, dashboardAccessLocked, dashboardAccessLockReason, onboardingConfigurationUnlocked, isDemoMode } = useDashboardRestaurant();
   const commercialDemoFrame = useCommercialDemoFrame();
   const globalActiveFeatures = useActiveFeatures({ enabled: !commercialDemoFrame });
   const { role } = useAuth();
@@ -414,6 +423,7 @@ export default function DashboardLayout({
             unreadNotifications={unreadNotifications}
             role={role}
             dashboardAccessLocked={dashboardAccessLocked}
+            onboardingConfigurationUnlocked={onboardingConfigurationUnlocked}
           />
         </nav>
 
@@ -501,6 +511,7 @@ export default function DashboardLayout({
                   unreadNotifications={unreadNotifications}
                   role={role}
                   dashboardAccessLocked={dashboardAccessLocked}
+                  onboardingConfigurationUnlocked={onboardingConfigurationUnlocked}
                 />
                 {!commercialDemoFrame ? (
                   <div className="mt-3 border-t pt-3">
@@ -571,13 +582,26 @@ export default function DashboardLayout({
                     {dashboardAccessLockReason}
                   </p>
                   <p className="text-xs text-amber-700 dark:text-amber-100/70">
-                    Les onglets du dashboard restent volontairement grisés jusqu'à l'approbation du dossier par l'admin TOK.
+                    {onboardingConfigurationUnlocked
+                      ? "Les onglets de configuration du restaurant sont ouverts. Les outils liés à l'abonnement seront disponibles après l'approbation de l'admin TOK."
+                      : "Enregistrez d'abord votre carte bancaire depuis la vue d'ensemble pour débloquer Menu, Mon restaurant et les autres onglets de configuration."}
                   </p>
                 </div>
               </div>
             </div>
           ) : null}
-          {children}
+          {dashboardAccessLocked
+            && pathname !== "/dashboard"
+            && !(onboardingConfigurationUnlocked && isRestaurantOnboardingConfigurationRoute(pathname)) ? (
+              <div className="rounded-3xl border border-amber-200 bg-amber-50/90 p-8 text-center text-amber-950 dark:border-amber-400/25 dark:bg-amber-500/10 dark:text-amber-50">
+                <Lock className="mx-auto mb-3 h-8 w-8" />
+                <p className="font-semibold">
+                  {onboardingConfigurationUnlocked
+                    ? "Cet outil sera disponible après la validation de votre restaurant."
+                    : "Enregistrez votre carte bancaire pour commencer la configuration de votre restaurant."}
+                </p>
+              </div>
+            ) : children}
         </div>
       </main>
     </div>

@@ -9,8 +9,26 @@ export interface DashboardContextValue {
   error: string | null;
   disabledFeatures: Set<string>;
   dashboardAccessLocked: boolean;
+  onboardingConfigurationUnlocked: boolean;
   dashboardAccessLockReason: string | null;
   isDemoMode: boolean;
+}
+
+export const RESTAURANT_ONBOARDING_CONFIGURATION_ROUTES = [
+  "/dashboard/restaurant",
+  "/dashboard/menu",
+  "/dashboard/photos",
+  "/dashboard/offres",
+  "/dashboard/ventes-flash",
+  "/dashboard/formules",
+  "/dashboard/service",
+  "/dashboard/plan-salle",
+] as const;
+
+export function isRestaurantOnboardingConfigurationRoute(pathname: string) {
+  return RESTAURANT_ONBOARDING_CONFIGURATION_ROUTES.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`),
+  );
 }
 
 export function isRestaurantDashboardAccessApproved(restaurant: OwnedRestaurant | null | undefined) {
@@ -25,4 +43,3 @@ export function useDashboardRestaurant() {
   if (!ctx) throw new Error("useDashboardRestaurant must be inside DashboardProvider");
   return ctx;
 }
-
