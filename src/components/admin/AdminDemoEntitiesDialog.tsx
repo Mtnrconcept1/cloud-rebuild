@@ -146,8 +146,11 @@ export default function AdminDemoEntitiesDialog({ mode }: AdminDemoEntitiesDialo
     staleTime: 10_000,
   });
 
-  const users = environmentQuery.data?.users || [];
-  const restaurants = environmentQuery.data?.restaurants || [];
+  const users = useMemo(() => environmentQuery.data?.users || [], [environmentQuery.data?.users]);
+  const restaurants = useMemo(
+    () => environmentQuery.data?.restaurants || [],
+    [environmentQuery.data?.restaurants],
+  );
   const selectedLinkRestaurant = useMemo(
     () => restaurants.find((restaurant) => restaurant.id === linkRestaurantId) || null,
     [linkRestaurantId, restaurants],

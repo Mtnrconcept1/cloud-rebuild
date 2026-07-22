@@ -82,24 +82,28 @@ const EVENT_TITLES: Record<string, Partial<Record<CommercialDemoFrameSurface, st
   session_reset: { client: "Démo réinitialisée", restaurant: "Démo réinitialisée", courier: "Démo réinitialisée" },
 };
 
-function notificationStorageKey(config: CommercialDemoFrameConfig) {
-  return `commercial-demo-read:${config.sessionId}:${config.surface}`;
+function notificationStorageKey(sessionId: string, surface: CommercialDemoFrameSurface) {
+  return `commercial-demo-read:${sessionId}:${surface}`;
 }
 
-function readStoredNotificationIds(config: CommercialDemoFrameConfig) {
+function readStoredNotificationIds(sessionId: string, surface: CommercialDemoFrameSurface) {
   if (typeof window === "undefined") return new Set<string>();
   try {
-    const value = JSON.parse(window.sessionStorage.getItem(notificationStorageKey(config)) || "[]");
+    const value = JSON.parse(window.sessionStorage.getItem(notificationStorageKey(sessionId, surface)) || "[]");
     return new Set(Array.isArray(value) ? value.filter((entry) => typeof entry === "string") : []);
   } catch {
     return new Set<string>();
   }
 }
 
-function persistNotificationIds(config: CommercialDemoFrameConfig, ids: ReadonlySet<string>) {
+function persistNotificationIds(
+  sessionId: string,
+  surface: CommercialDemoFrameSurface,
+  ids: ReadonlySet<string>,
+) {
   if (typeof window === "undefined") return;
   try {
-    window.sessionStorage.setItem(notificationStorageKey(config), JSON.stringify(Array.from(ids)));
+    window.sessionStorage.setItem(notificationStorageKey(sessionId, surface), JSON.stringify(Array.from(ids)));
   } catch {
     // Embedded privacy modes can disable sessionStorage. Read state remains in memory.
   }
@@ -179,7 +183,9 @@ export default function CommercialDemoFrameProvider({
   const [realtimeStatus, setRealtimeStatus] = useState<CommercialDemoRealtimeStatus>(() => (
     typeof navigator !== "undefined" && navigator.onLine === false ? "offline" : "connecting"
   ));
-  const [readNotificationIds, setReadNotificationIds] = useState<Set<string>>(() => readStoredNotificationIds(config));
+  const [readNotificationIds, setReadNotificationIds] = useState<Set<string>>(
+    () => readStoredNotificationIds(config.sessionId, config.surface),
+  );
   const knownEventIdsRef = useRef<Set<string> | null>(null);
 
   const queryKey = useMemo(() => ["commercial-demo-frame-snapshot", config.sessionId] as const, [config.sessionId]);
@@ -193,7 +199,7 @@ export default function CommercialDemoFrameProvider({
 
   useEffect(() => {
     knownEventIdsRef.current = null;
-    setReadNotificationIds(readStoredNotificationIds(config));
+    setReadNotificationIds(readStoredNotificationIds(config.sessionId, config.surface));
   }, [config.basename, config.sessionId, config.surface]);
 
   useEffect(() => {
@@ -297,10 +303,10 @@ export default function CommercialDemoFrameProvider({
     setReadNotificationIds((current) => {
       const next = new Set(current);
       next.add(notificationId);
-      persistNotificationIds(config, next);
+      persistNotificationIds(config.sessionId, config.surface, next);
       return next;
     });
-  }, [config]);
+  }, [config.sessionId, config.surface]);
 
   const markAllNotificationsRead = useCallback(() => {
     const notifications = (snapshotQuery.data?.events || [])
@@ -309,10 +315,10 @@ export default function CommercialDemoFrameProvider({
     setReadNotificationIds((current) => {
       const next = new Set(current);
       for (const notification of notifications) next.add(notification.id);
-      persistNotificationIds(config, next);
+      persistNotificationIds(config.sessionId, config.surface, next);
       return next;
     });
-  }, [config, snapshotQuery.data?.events]);
+  }, [config.sessionId, config.surface, snapshotQuery.data?.events]);
 
   if (authLoading || snapshotQuery.isLoading) {
     return (
