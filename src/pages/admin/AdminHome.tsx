@@ -24,6 +24,9 @@ import {
   UtensilsCrossed,
   Calculator,
   CalendarDays,
+  CheckCircle2,
+  CircleAlert,
+  Info,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -33,11 +36,16 @@ import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import AdminLogResetButton from "@/components/admin/AdminLogResetButton";
 import NotificationMenuBadge from "@/components/notifications/NotificationMenuBadge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Progress } from "@/components/ui/progress";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useNotificationCenter } from "@/hooks/useNotificationCenter";
 import { useAuth } from "@/lib/auth-context";
 import { useActiveFeatures } from "@/lib/featureFlags";
-import { scoreMarketplaceLiquidity } from "@/lib/marketplaceLiquidity";
+import {
+  MARKETPLACE_LIQUIDITY_BLOCKERS,
+  MarketplaceLiquidityBlocker,
+  scoreMarketplaceLiquidity,
+} from "@/lib/marketplaceLiquidity";
 
 const supabase = getSupabase();
 const ADMIN_HOME_AGGREGATE_LIMIT = 250;
@@ -232,6 +240,17 @@ function liquidityStatusClass(status: string) {
       return "bg-amber-100 text-amber-800";
     default:
       return "bg-red-100 text-red-800";
+  }
+}
+
+function liquidityStatusLabel(status: string) {
+  switch (status) {
+    case "green":
+      return "Capacité solide";
+    case "yellow":
+      return "À renforcer";
+    default:
+      return "Action requise";
   }
 }
 
@@ -573,30 +592,75 @@ export default function AdminHome() {
       </Card>
 
       <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <MapPin className="h-5 w-5 text-primary" />
-            <CardTitle>Liquidite par ville</CardTitle>
+        <CardHeader className="space-y-4">
+          <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <MapPin className="h-5 w-5 text-primary" />
+                <CardTitle>Capacité opérationnelle par ville</CardTitle>
+              </div>
+              <p className="max-w-3xl text-sm text-muted-foreground">
+                Cet indicateur estime si l'offre de restaurants et de coursiers peut absorber les commandes.
+                Il combine les données en direct avec l'activité des 30 derniers jours ; ce n'est pas un chiffre financier.
+              </p>
+            </div>
+            <Badge variant="outline" className="w-fit gap-1.5 font-normal">
+              <Info className="h-3.5 w-3.5" />
+              5 villes les plus fragiles
+            </Badge>
+          </div>
+          <div className="grid gap-2 text-xs sm:grid-cols-3">
+            <div className="rounded-lg bg-emerald-50 px-3 py-2 text-emerald-800"><strong>80–100</strong> · capacité solide</div>
+            <div className="rounded-lg bg-amber-50 px-3 py-2 text-amber-800"><strong>50–79</strong> · à renforcer</div>
+            <div className="rounded-lg bg-red-50 px-3 py-2 text-red-800"><strong>0–49</strong> · action requise</div>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {cityLiquidity.map((city) => (
-              <div key={city.city} className="flex flex-col gap-3 rounded-lg border p-3 text-sm md:flex-row md:items-center md:justify-between">
-                <div className="min-w-0">
-                  <p className="font-semibold">{city.city}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {city.activeRestaurants} restaurants actifs, {city.activeCouriers} coursiers en ligne, {city.openOrders} commande(s) ouverte(s)
+              <div key={city.city} className="space-y-4 rounded-xl border p-4 text-sm">
+                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                  <div className="min-w-0 space-y-1">
+                    <p className="text-base font-semibold">{city.city}</p>
+                    <p className="text-xs text-muted-foreground">Activité observée sur les 30 derniers jours</p>
+                  </div>
+                  <div className="flex shrink-0 flex-wrap items-center gap-2">
+                    <Badge variant="secondary" className={liquidityStatusClass(city.status)}>
+                      {liquidityStatusLabel(city.status)}
+                    </Badge>
+                    <span className="font-semibold tabular-nums">{city.score}/100</span>
+                  </div>
+                </div>
+                <Progress value={city.score} aria-label={`Score de capacité de ${city.city} : ${city.score} sur 100`} className="h-2" />
+                <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+                  <div className="rounded-lg bg-muted/50 p-3"><strong className="block text-lg">{city.activeRestaurants}</strong><span className="text-xs text-muted-foreground">restaurants actifs</span></div>
+                  <div className="rounded-lg bg-muted/50 p-3"><strong className="block text-lg">{city.activeCouriers}</strong><span className="text-xs text-muted-foreground">coursiers en ligne*</span></div>
+                  <div className="rounded-lg bg-muted/50 p-3"><strong className="block text-lg">{city.openOrders}</strong><span className="text-xs text-muted-foreground">commandes ouvertes</span></div>
+                  <div className="rounded-lg bg-muted/50 p-3"><strong className="block text-lg">{city.successfulDeliveries}</strong><span className="text-xs text-muted-foreground">livraisons réussies</span></div>
+                </div>
+                {city.blockers.length > 0 ? (
+                  <div className="space-y-2 border-t pt-3">
+                    <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      <CircleAlert className="h-4 w-4 text-amber-600" /> Pourquoi le score baisse
+                    </p>
+                    <div className="grid gap-2 md:grid-cols-2">
+                      {city.blockers.map((blocker) => {
+                        const explanation = MARKETPLACE_LIQUIDITY_BLOCKERS[blocker as MarketplaceLiquidityBlocker];
+                        return (
+                          <div key={blocker} className="rounded-lg border border-amber-200 bg-amber-50/60 px-3 py-2">
+                            <p className="font-medium text-amber-950">{explanation.label}</p>
+                            <p className="text-xs text-amber-900/80">{explanation.detail}</p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="flex items-center gap-2 border-t pt-3 text-sm text-emerald-700">
+                    <CheckCircle2 className="h-4 w-4" /> Aucun point de vigilance détecté.
                   </p>
-                </div>
-                <div className="flex shrink-0 flex-wrap items-center gap-2">
-                  <Badge variant="secondary" className={liquidityStatusClass(city.status)}>
-                    {city.score}/100
-                  </Badge>
-                  {city.blockers.length > 0 ? (
-                    <Badge variant="outline">{city.blockers.length} blocage(s)</Badge>
-                  ) : null}
-                </div>
+                )}
+                <p className="text-[11px] text-muted-foreground">* Le nombre de coursiers est actuellement mesuré à l'échelle du réseau TOK.</p>
               </div>
             ))}
             {cityLiquidity.length === 0 ? (
