@@ -2294,7 +2294,12 @@ Deno.serve(async (req) => {
         });
 
         if (!finalizedOrders.orders.length) {
-          log.warn("no_order_for_checkout_session", { sessionId: session.id });
+          log.error("paid_checkout_without_order", {
+            sessionId: session.id,
+            paymentIntentId: readStripeObjectId(session.payment_intent),
+            paymentAttemptId: session.metadata?.payment_attempt_id || null,
+          });
+          throw new Error(`PAID_CHECKOUT_WITHOUT_ORDER:${session.id}`);
         }
         break;
       }

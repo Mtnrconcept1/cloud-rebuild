@@ -62,6 +62,10 @@ describe("admin mobile responsiveness guards", () => {
     expect(auditLogs).toContain('data-label="Résumé"');
     expect(auditLogs).toContain("md:min-w-52");
     expect(auditLogs).not.toContain('className="min-w-52 font-medium"');
+    expect(auditLogs).toContain("Ce que ce signal signifie");
+    expect(auditLogs).toContain("Changements ou vérifications à effectuer");
+    expect(auditLogs).toContain("getAuditDestination");
+    expect(auditLogs).toContain("humanizeTechnicalLabel");
 
     expect(reviews).toContain("w-full min-w-0 flex-col gap-2 md:w-auto md:min-w-[260px]");
     expect(launchPacks).toContain("Abonnements restaurateur");

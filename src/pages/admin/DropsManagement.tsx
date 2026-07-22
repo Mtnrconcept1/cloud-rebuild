@@ -12,6 +12,7 @@ import { MIAMZ_VIP_TABLE_DEFAULT_THRESHOLD } from "@/lib/loyaltyBenefits";
 import { Crown, Plus, Trash2, UtensilsCrossed, Pencil } from "lucide-react";
 
 const supabase = getSupabase();
+const DROPS_PAGE_SIZE = 50;
 
 const EMPTY_DROP = {
   restaurant_id: "",
@@ -33,24 +34,28 @@ export default function DropsManagement() {
   const queryClient = useQueryClient();
   const [form, setForm] = useState(EMPTY_DROP);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
 
-  const { data: drops = [] } = useQuery({
-    queryKey: ["admin-drops"],
+  const { data: dropsPage } = useQuery({
+    queryKey: ["admin-drops", page],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error, count } = await supabase
         .from("chef_table_drops" as any)
-        .select("*, restaurants(name)")
+        .select("id, restaurant_id, chef_name, dish_name, description, image_url, price, original_price, total_portions, remaining_portions, drop_time, is_active, is_vip, required_miamz_points, created_at, archived_at, restaurants(name)", { count: "exact" })
         .is("archived_at", null)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .range(page * DROPS_PAGE_SIZE, ((page + 1) * DROPS_PAGE_SIZE) - 1);
       if (error) throw error;
-      return data || [];
+      return { rows: data || [], count: count || 0 };
     },
   });
+  const drops = dropsPage?.rows || [];
+  const dropsCount = dropsPage?.count || 0;
 
   const { data: restaurants = [] } = useQuery({
     queryKey: ["admin-restaurants-list"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("restaurants").select("id, name").eq("is_active", true).order("name");
+      const { data, error } = await supabase.from("restaurants").select("id, name").eq("is_active", true).order("name").limit(200);
       if (error) throw error;
       return data || [];
     },
@@ -318,6 +323,18 @@ export default function DropsManagement() {
           </form>
         </CardContent>
       </Card>
+
+      {dropsCount > DROPS_PAGE_SIZE ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card p-3">
+          <p className="text-sm text-muted-foreground">
+            Expériences {page * DROPS_PAGE_SIZE + 1}–{Math.min((page + 1) * DROPS_PAGE_SIZE, dropsCount)} sur {dropsCount}
+          </p>
+          <div className="flex gap-2">
+            <Button type="button" variant="outline" disabled={page === 0} onClick={() => setPage((current) => Math.max(0, current - 1))}>Précédent</Button>
+            <Button type="button" variant="outline" disabled={(page + 1) * DROPS_PAGE_SIZE >= dropsCount} onClick={() => setPage((current) => current + 1)}>Suivant</Button>
+          </div>
+        </div>
+      ) : null}
 
       <div className="grid grid-cols-1 gap-4">
         {drops.map((drop: any) => (

@@ -29,6 +29,8 @@ describe("admin operations center", () => {
     expect(page).toContain("paiements");
     expect(page).toContain("dispatch");
     expect(page).toContain("réservations");
+    expect(page).toContain('searchParams.get("view")');
+    expect(page).toContain("setActiveView(requestedView as OperationCenterTab)");
   });
 
   it("requires a searchable, filtered and confirmed admin alert workflow", () => {

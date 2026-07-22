@@ -60,10 +60,13 @@ export default function AdminOperationsCenter() {
 
   useEffect(() => {
     const tab = searchParams.get("tab");
+    const requestedView = searchParams.get("view");
     const operationId = searchParams.get("operation");
 
     if (operationId || tab === "orders" || tab === "reservations" || tab === "refunds") {
       setActiveView("history");
+    } else if (requestedView && OPERATION_VIEWS.some((view) => view.value === requestedView)) {
+      setActiveView(requestedView as OperationCenterTab);
     }
   }, [searchParams]);
 
