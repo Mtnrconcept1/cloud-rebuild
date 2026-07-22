@@ -16,6 +16,27 @@ export type MarketplaceLiquidityScore = {
   blockers: string[];
 };
 
+export const MARKETPLACE_LIQUIDITY_BLOCKERS = {
+  restaurant_supply: {
+    label: "Offre restaurants limitée",
+    detail: "Moins de 3 restaurants actifs dans cette ville.",
+  },
+  courier_supply: {
+    label: "Couverture coursiers faible",
+    detail: "Moins de 2 coursiers sont actuellement en ligne sur le réseau.",
+  },
+  dispatch_failures: {
+    label: "Courses sans coursier",
+    detail: "Au moins une course ouverte attend encore une attribution.",
+  },
+  delivery_history: {
+    label: "Historique insuffisant",
+    detail: "Moins de 5 livraisons réussies ont été enregistrées sur les 30 derniers jours.",
+  },
+} as const;
+
+export type MarketplaceLiquidityBlocker = keyof typeof MARKETPLACE_LIQUIDITY_BLOCKERS;
+
 export function scoreMarketplaceLiquidity(input: MarketplaceLiquidityInput): MarketplaceLiquidityScore {
   const blockers: string[] = [];
   let score = 100;

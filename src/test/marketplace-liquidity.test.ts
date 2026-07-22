@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { scoreMarketplaceLiquidity } from "@/lib/marketplaceLiquidity";
+import { MARKETPLACE_LIQUIDITY_BLOCKERS, scoreMarketplaceLiquidity } from "@/lib/marketplaceLiquidity";
 
 describe("marketplace liquidity", () => {
   it("marks a city green when supply, couriers and delivery success are sufficient", () => {
@@ -33,5 +33,19 @@ describe("marketplace liquidity", () => {
       score: 20,
       blockers: ["restaurant_supply", "courier_supply", "dispatch_failures", "delivery_history"],
     });
+  });
+
+  it("provides an actionable French explanation for every scoring blocker", () => {
+    expect(Object.keys(MARKETPLACE_LIQUIDITY_BLOCKERS)).toEqual([
+      "restaurant_supply",
+      "courier_supply",
+      "dispatch_failures",
+      "delivery_history",
+    ]);
+
+    for (const explanation of Object.values(MARKETPLACE_LIQUIDITY_BLOCKERS)) {
+      expect(explanation.label.length).toBeGreaterThan(5);
+      expect(explanation.detail).toMatch(/\.$/);
+    }
   });
 });
