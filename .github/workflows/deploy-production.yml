@@ -257,6 +257,7 @@ jobs:
 
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
     steps:
@@ -268,10 +269,14 @@ jobs:
       - name: Enable pnpm
         run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
 
-      - name: Register dedicated demo domains on the production project
+      - name: Reconcile dedicated demo domains on the production project
         shell: bash
         run: |
           set -euo pipefail
+
+          test -n "$VERCEL_TOKEN" || (echo "::error::Missing VERCEL_TOKEN" && exit 1)
+          test -n "$VERCEL_ORG_ID" || (echo "::error::Missing VERCEL_ORG_ID" && exit 1)
+          test -n "$VERCEL_PROJECT_ID" || (echo "::error::Missing VERCEL_PROJECT_ID" && exit 1)
 
           domains=(
             auth.thetok.ch
@@ -283,6 +288,36 @@ jobs:
           )
 
           for domain in "${domains[@]}"; do
+            response_file="$(mktemp)"
+            status_code="$(
+              curl --silent --show-error \
+                --output "$response_file" \
+                --write-out '%{http_code}' \
+                --header "Authorization: Bearer ${VERCEL_TOKEN}" \
+                "https://api.vercel.com/v9/projects/${VERCEL_PROJECT_ID}/domains/${domain}?teamId=${VERCEL_ORG_ID}"
+            )"
+
+            if [[ "$status_code" == "200" ]]; then
+              node -e '
+                const fs = require("node:fs");
+                const payload = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+                if (payload.projectId !== process.env.VERCEL_PROJECT_ID) {
+                  console.error("::error::Domain is attached to an unexpected Vercel project.");
+                  process.exit(1);
+                }
+              ' "$response_file"
+              rm -f -- "$response_file"
+              echo "Domain already attached to the production project: $domain"
+              continue
+            fi
+
+            rm -f -- "$response_file"
+
+            if [[ "$status_code" != "404" ]]; then
+              echo "::error::Unable to verify Vercel domain $domain (HTTP $status_code)."
+              exit 1
+            fi
+
             pnpm dlx "vercel@${VERCEL_CLI_VERSION}" domains add \
               "$domain" \
               "$VERCEL_PROJECT_ID" \
