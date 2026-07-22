@@ -37,6 +37,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { scoreRestaurantCatalogQuality } from "@/lib/catalogQuality";
+import {
+  createRestaurantStripeAdjustment,
+  RESTAURANT_ADJUSTMENT_REASONS,
+  type RestaurantAdjustmentReason,
+} from "@/lib/restaurantAdjustments";
 
 const supabase = getSupabase();
 
@@ -367,6 +372,11 @@ function RestaurantDetailPanel({
   onReindexCatalog,
   onSendNotification,
 }: RestaurantDetailPanelProps) {
+  const { toast } = useToast();
+  const [adjustmentAmount, setAdjustmentAmount] = useState("");
+  const [adjustmentReason, setAdjustmentReason] = useState<RestaurantAdjustmentReason>("subscription_issue");
+  const [adjustmentDetails, setAdjustmentDetails] = useState("");
+  const [adjustmentPending, setAdjustmentPending] = useState(false);
   const fallbackDetail = fallbackRestaurant
     ? buildFallbackRestaurantAdminDetail(fallbackRestaurant)
     : null;
@@ -418,6 +428,47 @@ function RestaurantDetailPanel({
   const missingFields = detail.quality?.missing_fields || [];
   const checks = detail.quality?.checks || {};
   const paymentHealth = detail.payment_health || {};
+  const stripePayoutReady = Boolean(
+    paymentHealth.stripe_connect_configured && paymentHealth.stripe_account_id,
+  );
+
+  const handleAdjustment = async () => {
+    const amount = Number(adjustmentAmount.replace(",", "."));
+    if (!Number.isFinite(amount) || amount <= 0) {
+      toast({ title: "Montant invalide", description: "Saisissez un montant CHF supérieur à zéro.", variant: "destructive" });
+      return;
+    }
+    if (adjustmentDetails.trim().length < 12) {
+      toast({ title: "Justification requise", description: "Décrivez la correction en au moins 12 caractères.", variant: "destructive" });
+      return;
+    }
+
+    setAdjustmentPending(true);
+    try {
+      const result = await createRestaurantStripeAdjustment({
+        restaurantId: detail.restaurant.id,
+        amountChf: amount,
+        reasonCode: adjustmentReason,
+        reasonDetails: adjustmentDetails.trim(),
+        idempotencyKey: crypto.randomUUID(),
+      });
+      toast({
+        title: "Versement Stripe envoyé",
+        description: `${formatMoney(amount)} transférés. Référence ${result.stripe_transfer_id || result.adjustment_id}.`,
+      });
+      setAdjustmentAmount("");
+      setAdjustmentDetails("");
+      onRefresh();
+    } catch (error) {
+      toast({
+        title: "Versement impossible",
+        description: error instanceof Error ? error.message : "Une erreur est survenue.",
+        variant: "destructive",
+      });
+    } finally {
+      setAdjustmentPending(false);
+    }
+  };
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -589,6 +640,67 @@ function RestaurantDetailPanel({
                   )}
                 </span>
               </div>
+            </div>
+            <div className="space-y-3 rounded-lg border p-3">
+              <div>
+                <p className="text-sm font-semibold">Rembourser / créditer le restaurateur</p>
+                <p className="text-xs text-muted-foreground">
+                  Versement correctif directement sur son solde Stripe Connect. Chaque opération est idempotente et auditée.
+                </p>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-1">
+                  <label htmlFor={`adjustment-amount-${detail.restaurant.id}`} className="text-xs font-medium">Montant CHF</label>
+                  <Input
+                    id={`adjustment-amount-${detail.restaurant.id}`}
+                    type="number"
+                    min="0.01"
+                    max="100000"
+                    step="0.01"
+                    value={adjustmentAmount}
+                    onChange={(event) => setAdjustmentAmount(event.target.value)}
+                    placeholder="49.90"
+                    disabled={adjustmentPending || !stripePayoutReady}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label htmlFor={`adjustment-reason-${detail.restaurant.id}`} className="text-xs font-medium">Motif</label>
+                  <select
+                    id={`adjustment-reason-${detail.restaurant.id}`}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    value={adjustmentReason}
+                    onChange={(event) => setAdjustmentReason(event.target.value as RestaurantAdjustmentReason)}
+                    disabled={adjustmentPending || !stripePayoutReady}
+                  >
+                    {RESTAURANT_ADJUSTMENT_REASONS.map((reason) => (
+                      <option key={reason.value} value={reason.value}>{reason.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <label htmlFor={`adjustment-details-${detail.restaurant.id}`} className="text-xs font-medium">Justification interne</label>
+                <Textarea
+                  id={`adjustment-details-${detail.restaurant.id}`}
+                  value={adjustmentDetails}
+                  onChange={(event) => setAdjustmentDetails(event.target.value)}
+                  placeholder="Ex. Recharge du 21 juillet facturée deux fois, vérifiée dans Stripe."
+                  maxLength={1000}
+                  disabled={adjustmentPending || !stripePayoutReady}
+                />
+              </div>
+              {!stripePayoutReady ? (
+                <p className="text-xs text-amber-700">Le restaurateur doit terminer Stripe Connect et activer les versements avant toute correction.</p>
+              ) : null}
+              <Button
+                type="button"
+                className="w-full"
+                disabled={adjustmentPending || !stripePayoutReady || !adjustmentAmount || adjustmentDetails.trim().length < 12}
+                onClick={handleAdjustment}
+              >
+                <Send className="mr-2 h-4 w-4" />
+                {adjustmentPending ? "Versement en cours..." : "Verser via Stripe"}
+              </Button>
             </div>
           </section>
         </div>
