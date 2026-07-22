@@ -655,6 +655,7 @@ async function startRestaurantCardRegistrationAfterSignup(
 
   const restaurantId = application?.metadata
     && typeof application.metadata === "object"
+    && !Array.isArray(application.metadata)
     && typeof application.metadata.restaurant_id === "string"
       ? application.metadata.restaurant_id
       : "";
