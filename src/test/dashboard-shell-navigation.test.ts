@@ -76,7 +76,7 @@ describe("dashboard shell navigation", () => {
     expect(route).toContain('dashboardAccessLocked && location.pathname !== "/dashboard"');
     expect(route).toContain('to="/dashboard"');
     expect(layout).toContain('dashboardAccessLocked && item.to !== "/dashboard"');
-    expect(layout).toContain("Dossier restaurateur en attente de validation admin");
+    expect(layout).toContain("Dossier restaurateur en cours de validation");
     expect(context).toContain("isRestaurantDashboardAccessApproved");
     expect(context).toContain("dashboardAccessLocked");
     expect(home).toContain("operationalQueriesEnabled");
