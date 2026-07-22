@@ -173,7 +173,9 @@ function checkIosAppStoreReadiness() {
   assertIncludes(infoPlist, "<key>NSPhotoLibraryUsageDescription</key>", "photo library permission copy is declared");
 
   assertIncludes(entitlements, "<string>$(APS_ENVIRONMENT)</string>", "APNs environment uses per-configuration build setting");
+  assertIncludes(entitlements, "applinks:thetok.ch", "root Universal Link domain is declared");
   assertIncludes(entitlements, "applinks:www.thetok.ch", "public Universal Link domain is declared");
+  assertIncludes(entitlements, "applinks:app.thetok.ch", "app Universal Link domain is declared");
   assertIncludes(entitlements, "applinks:admin.thetok.ch", "admin Universal Link domain is declared");
 
   assertIncludes(privacyManifest, "<key>NSPrivacyTracking</key>", "privacy tracking declaration exists");

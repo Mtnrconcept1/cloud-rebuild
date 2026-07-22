@@ -4,7 +4,10 @@
 <dict>
 	<key>com.apple.developer.associated-domains</key>
 	<array>
+		<string>applinks:thetok.ch</string>
 		<string>applinks:www.thetok.ch</string>
+		<string>applinks:app.thetok.ch</string>
+		<string>applinks:admin.thetok.ch</string>
 	</array>
 	<key>aps-environment</key>
 	<string>$(APS_ENVIRONMENT)</string>
