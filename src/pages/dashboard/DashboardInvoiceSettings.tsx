@@ -1,4 +1,4 @@
-import { useEffect, useState, type ChangeEvent } from "react";
+import { useEffect, useMemo, useState, type ChangeEvent } from "react";
 
 import {
   Building2,
@@ -84,12 +84,18 @@ export default function DashboardInvoiceSettings() {
   const commercialDemoFrame = useCommercialDemoFrame();
   const isCommercialDemo = commercialDemoFrame?.surface === "restaurant";
   const ownerRestaurants = useOwnerRestaurants({ enabled: !isCommercialDemo });
-  const restaurants = isCommercialDemo
-    ? [commercialDemoFrame.snapshot.demo_restaurant]
-    : ownerRestaurants.restaurants;
-  const restaurantIds = isCommercialDemo
-    ? [commercialDemoFrame.snapshot.demo_restaurant.id]
-    : ownerRestaurants.restaurantIds;
+  const restaurants = useMemo(
+    () => isCommercialDemo
+      ? [commercialDemoFrame.snapshot.demo_restaurant]
+      : ownerRestaurants.restaurants,
+    [commercialDemoFrame, isCommercialDemo, ownerRestaurants.restaurants],
+  );
+  const restaurantIds = useMemo(
+    () => isCommercialDemo
+      ? [commercialDemoFrame.snapshot.demo_restaurant.id]
+      : ownerRestaurants.restaurantIds,
+    [commercialDemoFrame, isCommercialDemo, ownerRestaurants.restaurantIds],
+  );
   const lr = isCommercialDemo ? false : ownerRestaurants.loading;
   const [selectedRestaurant, setSelectedRestaurant] = useState("");
   const [settings, setSettings] = useState<InvoiceSettings | null>(null);

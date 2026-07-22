@@ -75,8 +75,8 @@ export default function AdminRealRestaurantAssignment({
     staleTime: 20_000,
   });
 
-  const owners = ownersQuery.data || [];
-  const restaurants = restaurantsQuery.data || [];
+  const owners = useMemo(() => ownersQuery.data || [], [ownersQuery.data]);
+  const restaurants = useMemo(() => restaurantsQuery.data || [], [restaurantsQuery.data]);
   const selectedRestaurant = useMemo(
     () => restaurants.find((restaurant) => restaurant.restaurant_id === selectedRestaurantId) || null,
     [restaurants, selectedRestaurantId],

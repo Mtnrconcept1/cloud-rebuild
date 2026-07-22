@@ -1,4 +1,4 @@
-import { type CSSProperties, FormEvent, useEffect, useRef, useState } from "react";
+import { type CSSProperties, FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import AiCreationsGallery from "@/components/dashboard/AiCreationsGallery";
 import TokAiMarketingStudio from "@/components/dashboard/TokAiMarketingStudio";
@@ -313,7 +313,7 @@ function CommercialDemoVisualGallery({
   const [loadingCreations, setLoadingCreations] = useState(true);
   const [creationError, setCreationError] = useState<string | null>(null);
 
-  const loadCreations = async () => {
+  const loadCreations = useCallback(async () => {
     setLoadingCreations(true);
     setCreationError(null);
     try {
@@ -323,15 +323,13 @@ function CommercialDemoVisualGallery({
     } finally {
       setLoadingCreations(false);
     }
-  };
+  }, [runtime]);
 
   useEffect(() => {
     void loadCreations();
     const refresh = window.setInterval(() => void loadCreations(), 45 * 60 * 1000);
-    // The runtime is immutable for the lifetime of an embedded frame.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     return () => window.clearInterval(refresh);
-  }, [runtime.sessionId, runtime.surface]);
+  }, [loadCreations]);
 
   return (
     <Card className="rounded-3xl">
