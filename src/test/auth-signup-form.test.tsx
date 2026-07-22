@@ -68,6 +68,17 @@ vi.mock("@/lib/auth-context", () => ({
 }));
 
 const toastMock = vi.hoisted(() => vi.fn());
+const checkoutRedirectMock = vi.hoisted(() => vi.fn());
+
+vi.mock("@/lib/securityUrls", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/securityUrls")>();
+  return { ...actual, redirectToTrustedCheckoutUrl: checkoutRedirectMock };
+});
+
+vi.mock("@/lib/session", () => ({
+  invokeSupabaseFunction: (functionName: string, options: unknown) =>
+    supabaseMocks.invoke(functionName, options),
+}));
 
 vi.mock("@/hooks/use-toast", () => ({
   useToast: () => ({
@@ -378,6 +389,30 @@ describe("Auth signup form", () => {
       },
       error: null,
     });
+    supabaseMocks.from.mockImplementation((table: string) => {
+      const builder = mockSupabaseTable(table);
+      if (table === "signup_applications") {
+        let selectedColumns = "";
+        builder.select.mockImplementation((columns: string) => {
+          selectedColumns = columns;
+          return builder;
+        });
+        builder.maybeSingle.mockImplementation(() => Promise.resolve({
+          data: selectedColumns.includes("metadata")
+            ? {
+              id: "signup-application-id",
+              metadata: { restaurant_id: "restaurant-id" },
+            }
+            : null,
+          error: null,
+        }));
+      }
+      return builder;
+    });
+    supabaseMocks.invoke.mockResolvedValue({
+      data: { url: "https://checkout.stripe.com/c/pay/test" },
+      error: null,
+    });
 
     const { container } = await renderAuth("/auth?type=restaurateur");
     await screen.findByText("TOK Starter");
@@ -467,9 +502,18 @@ describe("Auth signup form", () => {
     expect(toastMock).toHaveBeenCalledWith(
       expect.objectContaining({
         title: "Inscription enregistrée",
-        description: expect.stringContaining("fiche reste privée"),
+        description: expect.stringContaining("Enregistrez maintenant votre carte"),
       }),
     );
+    await waitFor(() => {
+      expect(supabaseMocks.invoke).toHaveBeenCalledWith(
+        "create-checkout",
+        expect.objectContaining({
+          body: expect.objectContaining({ checkout_kind: "restaurant-onboarding" }),
+        }),
+      );
+      expect(checkoutRedirectMock).toHaveBeenCalledWith("https://checkout.stripe.com/c/pay/test");
+    });
   });
 
 

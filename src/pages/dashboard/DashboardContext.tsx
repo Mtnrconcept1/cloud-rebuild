@@ -4,12 +4,18 @@ import { DashboardContext, isRestaurantDashboardAccessApproved } from "./useDash
 import { ALL_GATABLE_FEATURES } from "@/lib/packFeatureGating";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { resolveCommercialDemoRestaurantSelection } from "@/lib/commercialDemoRestaurantScope";
+import { useSignupApplication } from "@/hooks/useSignupApplication";
+import { isSignupRestaurateurOnboardingPaymentReady } from "@/lib/signup";
 
 const STORAGE_KEY = "miamz-dashboard-restaurant";
 
 export function DashboardProvider({ children }: { children: ReactNode }) {
   const commercialDemoFrame = useCommercialDemoFrame();
   const ownerRestaurants = useOwnerRestaurants({ enabled: !commercialDemoFrame });
+  const { data: rawSignupApplication } = useSignupApplication("restaurateur");
+  const signupApplication = Array.isArray(rawSignupApplication)
+    ? rawSignupApplication[0] || null
+    : rawSignupApplication || null;
   const frameDemoRestaurantId = commercialDemoFrame?.snapshot.session.demo_restaurant_id || null;
   const frameRestaurants = useMemo<OwnedRestaurant[]>(() => {
     if (!commercialDemoFrame || !frameDemoRestaurantId) return [];
@@ -87,8 +93,11 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   }, [isDemoMode, loading, selectedRestaurant]);
 
   const dashboardAccessLockReason = dashboardAccessLocked
-    ? "Votre fiche reste privée pendant la validation humaine. Vous pouvez la compléter et enregistrer votre carte, mais elle n'est pas visible par les clients."
+    ? "Votre fiche reste privée pendant la validation humaine. Après l'enregistrement de votre carte, vous pouvez compléter les informations nécessaires à sa validation."
     : null;
+
+  const onboardingConfigurationUnlocked = isDemoMode
+    || isSignupRestaurateurOnboardingPaymentReady(signupApplication);
 
   const disabledFeatures = useMemo(() => {
     if (isDemoMode) return new Set<string>();
@@ -150,6 +159,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       error,
       disabledFeatures,
       dashboardAccessLocked,
+      onboardingConfigurationUnlocked,
       dashboardAccessLockReason,
       isDemoMode,
     }}>
@@ -157,4 +167,3 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     </DashboardContext.Provider>
   );
 }
-

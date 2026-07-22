@@ -42,9 +42,27 @@ describe("restaurant onboarding subscription payments", () => {
     expect(auth).toContain("commercialReferralToken");
     expect(auth).toContain("commercial_referral_token: payload.commercialReferralToken");
     expect(auth).toContain("COMMERCIAL_REFERRAL_SESSION_KEY");
+    expect(auth).toContain("startRestaurantCardRegistrationAfterSignup");
+    expect(auth).toContain('checkout_kind: "restaurant-onboarding"');
+    expect(auth).toContain('buildCheckoutReturnUrl("/dashboard", { paymentAttemptId })');
     expect(submitSignup).toContain("signup_submission_endpoint_retired");
     expect(submitSignup).toContain("status: 410");
     expect(submitSignup).not.toContain("commercial_referral_token");
+  });
+
+  it("unlocks only restaurant configuration after the card is ready and before admin approval", () => {
+    const context = read("src/pages/dashboard/DashboardContext.tsx");
+    const dashboardAccess = read("src/pages/dashboard/useDashboardRestaurant.ts");
+    const layout = read("src/components/DashboardLayout.tsx");
+
+    expect(context).toContain("isSignupRestaurateurOnboardingPaymentReady");
+    expect(context).toContain("onboardingConfigurationUnlocked");
+    expect(dashboardAccess).toContain('"/dashboard/restaurant"');
+    expect(dashboardAccess).toContain('"/dashboard/menu"');
+    expect(dashboardAccess).not.toContain('"/dashboard/commandes"');
+    expect(layout).toContain("isRestaurantOnboardingConfigurationRoute(pathname)");
+    expect(layout).toContain("Les outils liés à l'abonnement seront disponibles après l'approbation de l'admin TOK.");
+    expect(layout).toContain("Enregistrez d'abord votre carte bancaire");
   });
 
   it("saves a card during onboarding and defers the Stripe subscription", () => {

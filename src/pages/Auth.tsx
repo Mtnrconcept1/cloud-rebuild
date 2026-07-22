@@ -66,9 +66,19 @@ import {
   TOK_WORKSPACE_CHOOSER_PATH,
 } from "@/lib/authDomains";
 import { isCommercialAppHost } from "@/lib/commercialDomains";
+import { buildCheckoutReturnUrl } from "@/lib/checkoutReturnUrl";
+import { redirectToTrustedCheckoutUrl } from "@/lib/securityUrls";
+import { invokeSupabaseFunction } from "@/lib/session";
+import {
+  createCheckoutWithRecovery,
+  createPaymentAttemptOperationKey,
+  getOrCreatePaymentAttemptId,
+  markPaymentAttemptRedirected,
+} from "@/lib/paymentAttempt";
 
 const supabase = getSupabase();
 const LEGAL_ACCEPTANCE_VERSION = "2026-07-18-fair-growth-v3";
+const onboardingAttemptScope = (restaurantId: string) => `restaurant-onboarding:${restaurantId}`;
 
 type SignupFormState = {
   fullName: string;
@@ -631,6 +641,74 @@ async function finalizeSignupApplication(
   }
 }
 
+async function startRestaurantCardRegistrationAfterSignup(
+  userId: string,
+  onboardingChoices: RestaurateurOnboardingChoices,
+) {
+  const { data: application, error: applicationError } = await supabase
+    .from("signup_applications")
+    .select("id, metadata")
+    .eq("user_id", userId)
+    .eq("requested_role", "restaurateur")
+    .maybeSingle();
+  if (applicationError) throw applicationError;
+
+  const restaurantId = application?.metadata
+    && typeof application.metadata === "object"
+    && typeof application.metadata.restaurant_id === "string"
+      ? application.metadata.restaurant_id
+      : "";
+  if (!application?.id || !restaurantId) {
+    throw new Error("Le dossier restaurateur est enregistré, mais l'enregistrement de la carte doit être repris depuis le dashboard.");
+  }
+
+  const scope = onboardingAttemptScope(restaurantId);
+  const paymentAttemptId = getOrCreatePaymentAttemptId(
+    scope,
+    createPaymentAttemptOperationKey({
+      checkoutKind: "restaurant-onboarding",
+      signupApplicationId: application.id,
+      restaurantId,
+      planId: onboardingChoices.subscriptionPlanId,
+      billingPeriod: onboardingChoices.subscriptionBillingPeriod,
+    }),
+  );
+  const checkoutPayload = {
+    payment_attempt_id: paymentAttemptId,
+    checkout_kind: "restaurant-onboarding",
+    items: [],
+    payment_method: "card",
+    return_url: buildCheckoutReturnUrl("/dashboard", { paymentAttemptId }),
+    order_metadata: {
+      payment_attempt_id: paymentAttemptId,
+      checkout_kind: "restaurant-onboarding",
+      signup_application_id: application.id,
+      restaurant_id: restaurantId,
+      plan_id: onboardingChoices.subscriptionPlanId,
+      billing_period: onboardingChoices.subscriptionBillingPeriod,
+    },
+  };
+  const checkout = await createCheckoutWithRecovery({
+    paymentAttemptId,
+    create: async () => {
+      const { data, error } = await invokeSupabaseFunction("create-checkout", { body: checkoutPayload });
+      if (error) throw error;
+      return data;
+    },
+    getStatus: async () => {
+      const { data, error } = await invokeSupabaseFunction("payment-attempt-status", {
+        body: { payment_attempt_id: paymentAttemptId },
+      });
+      if (error) throw error;
+      return data;
+    },
+  });
+  if (!checkout.url) throw new Error("La session d'enregistrement de la carte est en cours de vérification.");
+
+  markPaymentAttemptRedirected(scope, paymentAttemptId);
+  redirectToTrustedCheckoutUrl(checkout.url);
+}
+
 export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
   const isCommercialAuthHost = typeof window !== "undefined"
     && isCommercialAppHost(window.location.hostname);
@@ -888,8 +966,14 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
         if (cancelled) return;
         toast({
           title: "Inscription enregistrée",
-          description: "Votre compte est en attente. Vous pouvez compléter votre fiche privée pendant la validation humaine.",
+          description: draft.payload.role === "restaurateur"
+            ? "Votre dossier est enregistré. Enregistrez maintenant votre carte pour débloquer la configuration du restaurant."
+            : "Votre compte est en attente de validation humaine.",
         });
+        if (draft.payload.role === "restaurateur" && draft.payload.onboardingChoices) {
+          await startRestaurantCardRegistrationAfterSignup(user.id, draft.payload.onboardingChoices);
+          return;
+        }
         navigateToPostAuthTarget(draft.payload.role, true);
       } catch (error) {
         privilegedSignupResumeRef.current = null;
@@ -1290,12 +1374,17 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
         description: submittedRole === "client"
           ? "Votre compte est actif. Vous pouvez continuer votre parcours."
           : submittedRole === "restaurateur"
-            ? "Votre compte est en attente. Votre fiche reste privée jusqu'à la validation humaine de l'admin ; vous pouvez la compléter et enregistrer votre carte depuis le dashboard."
+            ? "Votre dossier est enregistré. Enregistrez maintenant votre carte pour débloquer Menu, Mon restaurant et les autres informations à compléter."
             : "Votre compte est en attente de validation humaine.",
       });
 
       if (submittedRole === "client") {
         navigate(TOK_WORKSPACE_CHOOSER_PATH);
+        return;
+      }
+
+      if (submittedRole === "restaurateur") {
+        await startRestaurantCardRegistrationAfterSignup(activeUser.id, submittedOnboardingChoices);
         return;
       }
 
