@@ -22,6 +22,14 @@ function readMigrationContaining(slug: string) {
 }
 
 describe("TOK AI tools foundation", () => {
+  it("fails closed when the restaurant AI quota RPC is unavailable", () => {
+    const source = readProjectFile("supabase/functions/ai-restaurant-agent/index.ts");
+
+    expect(source).toContain("ai_quota_unavailable");
+    expect(source).not.toContain('reason: "quota_rpc_unavailable"');
+    expect(source).not.toMatch(/quota_rpc_unavailable[\s\S]{0,120}allowed:\s*true/);
+  });
+
   it("adds governed AI persistence tables with RLS, grants and storage", () => {
     const sql = readMigrationContaining("tok_ai_tools");
 

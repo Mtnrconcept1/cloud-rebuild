@@ -17,6 +17,16 @@ function readSource(relativePath: string) {
 }
 
 describe("RLS policy hardening", () => {
+  it("routes public analytics through the validated Edge Function", () => {
+    const sql = readSource("supabase/migrations/20260722123000_secure_public_analytics_ingestion.sql");
+
+    for (const table of ["search_logs", "impressions", "clicks", "event_store"]) {
+      expect(sql).toContain(`REVOKE INSERT ON public.${table} FROM anon, authenticated;`);
+      expect(sql).toContain(`DROP POLICY IF EXISTS "Allow anyone to insert ${table}" ON public.${table};`);
+    }
+    expect(sql).not.toContain("WITH CHECK (true)");
+  });
+
   it("removes generic authenticated policies from targeted operational tables", () => {
     const sql = readMigration();
     const protectedTables = [

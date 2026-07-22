@@ -105,6 +105,12 @@ describe("checkout and Stripe webhook safety guards", () => {
     );
   });
 
+  it("retries a paid checkout instead of acknowledging it without an order", () => {
+    expect(stripeWebhookSource).toContain("paid_checkout_without_order");
+    expect(stripeWebhookSource).toContain("PAID_CHECKOUT_WITHOUT_ORDER");
+    expect(stripeWebhookSource).toMatch(/if \(!finalizedOrders\.orders\.length\)[\s\S]{0,400}throw new Error/);
+  });
+
   it("accepts the Supabase live Stripe secret alias used in production Edge Functions", () => {
     const authSource = readFileSync(resolve(process.cwd(), "supabase/functions/_shared/auth.ts"), "utf8");
     const confirmMatchGroupSource = readFileSync(

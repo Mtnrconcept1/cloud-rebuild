@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
   Activity,
@@ -145,6 +146,10 @@ type AdminDetail = {
   fields: AdminDetailField[];
   raw?: unknown;
   rawTitle?: string;
+  explanation?: string;
+  recommendation?: string;
+  destination?: string | null;
+  destinationLabel?: string;
 };
 
 type SecurityAbuseReport = {
@@ -405,9 +410,38 @@ function getLogReservationReference(log: AuditEntry) {
   return /reservation|booking/i.test(`${log.targetType} ${log.action}`) ? log.targetId : null;
 }
 
+function humanizeTechnicalLabel(value: string) {
+  const normalized = String(value || "").replace(/[_-]+/g, " ").trim();
+  if (!normalized) return "Événement sans libellé";
+  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+}
+
+function getAuditRecommendation(log: AuditEntry) {
+  if (log.status !== "failure") {
+    return "Vérifier que l’action correspond au comportement attendu. Aucune correction n’est requise si la cible et l’acteur sont légitimes.";
+  }
+  if (log.category === "payment") return "Contrôler la session Stripe, le PaymentIntent et la commande liée. Relancer la réconciliation avant tout remboursement manuel.";
+  if (log.category === "security") return "Contrôler l’identité, l’adresse IP, les rôles et la fréquence des tentatives. Révoquer la session ou bloquer le flux si l’action n’est pas légitime.";
+  if (log.category === "ai") return "Contrôler le quota, les crédits, le fournisseur IA et le journal d’usage. Ne relancer la génération qu’après avoir identifié la cause.";
+  if (log.category === "order") return "Ouvrir l’opération concernée, comparer les statuts commande, paiement, restaurant et dispatch, puis appliquer uniquement la transition autorisée.";
+  return "Consulter les métadonnées, reproduire l’échec dans un environnement sûr et corriger la cause avant de relancer l’action.";
+}
+
+function getAuditDestination(log: AuditEntry) {
+  const order = getLogOrderReference(log);
+  if (order) return `/admin/commandes-reservations?tab=orders&operation=${encodeURIComponent(String(order))}`;
+  const reservation = getLogReservationReference(log);
+  if (reservation) return `/admin/commandes-reservations?tab=reservations&operation=${encodeURIComponent(String(reservation))}`;
+  if (log.category === "payment") return "/admin/commandes-reservations?view=payments";
+  if (log.category === "ai") return "/admin/ai-operations";
+  if (log.category === "restaurant") return "/admin/restaurants";
+  return null;
+}
+
 function buildPaymentDetail(item: NonNullable<PaymentIntegrityReport["items"]>[number], index: number): AdminDetail {
+  const operationId = item.order_id || item.order_number || item.reservation_id;
   return {
-    title: item.title || item.kind || `Anomalie paiement ${index + 1}`,
+    title: item.title || humanizeTechnicalLabel(item.kind || `Anomalie paiement ${index + 1}`),
     subtitle: "Intégrité paiements",
     status: item.severity || "medium",
     fields: [
@@ -423,6 +457,12 @@ function buildPaymentDetail(item: NonNullable<PaymentIntegrityReport["items"]>[n
     ],
     raw: item,
     rawTitle: "Payload anomalie",
+    explanation: `Le contrôle a détecté une incohérence entre le paiement et ${item.order_id || item.order_number ? "la commande" : item.reservation_id ? "la réservation" : "l’opération métier associée"}. Cette anomalie peut empêcher le support de confirmer, livrer ou rembourser correctement l’opération.`,
+    recommendation: "Comparer le statut Stripe au statut TOK, retrouver la transaction autoritaire, puis réconcilier l’opération. Ne créez pas manuellement une seconde commande et ne remboursez pas avant d’avoir exclu un traitement webhook encore en cours.",
+    destination: operationId
+      ? `/admin/commandes-reservations?tab=${item.reservation_id ? "reservations" : "orders"}&operation=${encodeURIComponent(String(operationId))}`
+      : "/admin/commandes-reservations?view=payments",
+    destinationLabel: "Ouvrir l’opération concernée",
   };
 }
 
@@ -450,7 +490,7 @@ function buildAuditDetail(log: AuditEntry): AdminDetail {
   ]);
 
   return {
-    title: log.action,
+    title: humanizeTechnicalLabel(log.action),
     subtitle: `${log.source === "edge" ? "Execution Edge" : "Historique data"} · ${CATEGORY_LABELS[log.category]}`,
     status: log.status,
     fields: [
@@ -479,6 +519,12 @@ function buildAuditDetail(log: AuditEntry): AdminDetail {
       raw: log.raw,
     },
     rawTitle: "Métadonnées complètes",
+    explanation: log.status === "failure"
+      ? `L’action « ${humanizeTechnicalLabel(log.action)} » a échoué dans ${log.functionName}. Le résumé enregistré est : ${log.summary || "aucun détail fonctionnel fourni"}.`
+      : `L’action « ${humanizeTechnicalLabel(log.action)} » a été enregistrée avec le statut ${log.status === "success" ? "réussi" : "informatif"}.`,
+    recommendation: getAuditRecommendation(log),
+    destination: getAuditDestination(log),
+    destinationLabel: "Voir la zone concernée",
   };
 }
 
@@ -495,6 +541,12 @@ function buildHealthDetail(
     fields,
     raw,
     rawTitle: "Données de contrôle",
+    explanation: normalizeHealthStatus(status) === "ok"
+      ? "Ce contrôle confirme que la zone surveillée fonctionne dans les seuils attendus."
+      : `Ce contrôle signale un point ${normalizeHealthStatus(status) === "critical" ? "critique" : "à surveiller"} dans la santé de production. Les champs ci-dessous permettent d’identifier le composant concerné.`,
+    recommendation: normalizeHealthStatus(status) === "ok"
+      ? "Aucun changement immédiat n’est requis. Conserver la surveillance et vérifier toute évolution du statut."
+      : "Ouvrir les données de contrôle, identifier le composant en échec, vérifier sa configuration et ses derniers logs, puis relancer le contrôle après correction.",
   };
 }
 
@@ -511,9 +563,11 @@ function DetailStatusBadge({ status }: { status?: string | null }) {
 function AdminDetailDialog({
   detail,
   onClose,
+  onNavigate,
 }: {
   detail: AdminDetail | null;
   onClose: () => void;
+  onNavigate: (destination: string) => void;
 }) {
   return (
     <Dialog open={!!detail} onOpenChange={(nextOpen) => { if (!nextOpen) onClose(); }}>
@@ -529,6 +583,18 @@ function AdminDetailDialog({
         </DialogHeader>
 
         <div className="min-h-0 space-y-4 overflow-y-auto pr-1">
+          {detail?.explanation ? (
+            <div className="rounded-lg border border-blue-500/25 bg-blue-500/5 p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-700 dark:text-blue-300">Ce que ce signal signifie</p>
+              <p className="mt-2 text-sm leading-relaxed">{detail.explanation}</p>
+            </div>
+          ) : null}
+          {detail?.recommendation ? (
+            <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-amber-700 dark:text-amber-300">Changements ou vérifications à effectuer</p>
+              <p className="mt-2 text-sm leading-relaxed">{detail.recommendation}</p>
+            </div>
+          ) : null}
           <div className="grid gap-2 sm:grid-cols-2">
             {(detail?.fields || []).map((field) => (
               <div key={field.label} className="rounded-lg border bg-muted/20 p-3">
@@ -552,6 +618,11 @@ function AdminDetailDialog({
               </pre>
             </div>
           ) : null}
+          {detail?.destination ? (
+            <Button type="button" className="w-full" onClick={() => onNavigate(detail.destination!)}>
+              {detail.destinationLabel || "Ouvrir la zone concernée"}
+            </Button>
+          ) : null}
         </div>
       </DialogContent>
     </Dialog>
@@ -559,6 +630,7 @@ function AdminDetailDialog({
 }
 
 export default function AdminAuditLogs() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [sourceFilter, setSourceFilter] = useState<AuditSource>("all");
   const [statusFilter, setStatusFilter] = useState<AuditStatus>("all");
@@ -1028,6 +1100,10 @@ export default function AdminAuditLogs() {
                     ],
                     raw: section.raw,
                     rawTitle: "Signal sécurité",
+                    explanation: section.message || `Le contrôle « ${section.title} » mesure les comportements inhabituels observés pendant la fenêtre sélectionnée.`,
+                    recommendation: normalizeHealthStatus(section.status) === "ok"
+                      ? "Aucune action immédiate. Continuer la surveillance et conserver les seuils actuels."
+                      : "Vérifier les comptes, IP, acteurs et cibles concernés dans les logs filtrés. Révoquer les sessions ou limiter le flux uniquement après confirmation du comportement abusif.",
                   })}
                 >
                   <div className="flex items-center justify-between gap-2">
@@ -1176,11 +1252,11 @@ export default function AdminAuditLogs() {
                       <TableCell data-label="Quand" className="text-xs text-muted-foreground md:whitespace-nowrap">{formatDateTime(log.createdAt)}</TableCell>
                       <TableCell data-label="Source"><Badge variant={log.source === "edge" ? "default" : "outline"}>{log.source === "edge" ? "Edge" : "Data"}</Badge></TableCell>
                       <TableCell data-label="Type"><Badge variant="outline">{CATEGORY_LABELS[log.category]}</Badge></TableCell>
-                      <TableCell data-label="Action" className="font-medium md:min-w-52"><div>{log.action}</div><div className="text-xs text-muted-foreground">{log.functionName}</div></TableCell>
+                      <TableCell data-label="Action" className="font-medium md:min-w-52"><div>{humanizeTechnicalLabel(log.action)}</div><div className="text-xs text-muted-foreground">{log.functionName}</div></TableCell>
                       <TableCell data-label="Acteur" className="text-xs text-muted-foreground"><div>{log.actorLabel}</div><div>{log.actorType}</div></TableCell>
                       <TableCell data-label="Statut"><Badge variant={log.status === "failure" ? "destructive" : log.status === "success" ? "secondary" : "outline"}>{log.status}</Badge></TableCell>
                       <TableCell data-label="Cible" className="text-xs"><div>{log.targetType}</div>{log.targetId ? <div className="break-all text-muted-foreground md:max-w-[14rem] md:truncate md:break-normal">{log.targetId}</div> : null}</TableCell>
-                      <TableCell data-label="Résumé" className="text-xs text-muted-foreground md:max-w-[32rem]">{log.summary}</TableCell>
+                      <TableCell data-label="Résumé" className="text-xs text-muted-foreground md:max-w-[32rem]">{log.summary || (log.status === "failure" ? "Cette opération a échoué et nécessite une vérification." : "Cette opération a été enregistrée sans anomalie détaillée.")}</TableCell>
                     </TableRow>
                   ))}
                   {filteredLogs.length === 0 ? (
@@ -1193,7 +1269,14 @@ export default function AdminAuditLogs() {
           </CardContent>
         </Card>
       )}
-      <AdminDetailDialog detail={selectedDetail} onClose={() => setSelectedDetail(null)} />
+      <AdminDetailDialog
+        detail={selectedDetail}
+        onClose={() => setSelectedDetail(null)}
+        onNavigate={(destination) => {
+          setSelectedDetail(null);
+          navigate(destination);
+        }}
+      />
     </div>
   );
 }

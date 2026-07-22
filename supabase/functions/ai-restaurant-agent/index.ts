@@ -124,12 +124,7 @@ async function checkRestaurantQuota(
   if (!error) return data;
   if (!isMissingQuotaRpc(error)) throw new HttpError(503, error.message);
 
-  return {
-    allowed: true,
-    feature: featureName,
-    degraded: true,
-    reason: "quota_rpc_unavailable",
-  };
+  throw new HttpError(503, `ai_quota_unavailable:${featureName}`);
 }
 
 function estimateCostChf(model: string, inputTokens = 0, outputTokens = 0) {
