@@ -9,6 +9,14 @@ on:
       - scripts/data/thefork_email_enrich_shard.py
       - scripts/data/thefork_email_aggregate.py
       - .github/workflows/thefork-geneva-email-enrichment.yml
+  pull_request:
+    branches:
+      - main
+    paths:
+      - scripts/data/thefork_email_matrix_plan.py
+      - scripts/data/thefork_email_enrich_shard.py
+      - scripts/data/thefork_email_aggregate.py
+      - .github/workflows/thefork-geneva-email-enrichment.yml
   workflow_dispatch:
 
 permissions:
