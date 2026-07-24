@@ -4,19 +4,30 @@ import hashlib
 import json
 import sys
 from pathlib import Path
-from urllib.parse import quote_plus
+from urllib.parse import quote, quote_plus
 
 import requests
 
 THEFORK_PATH = "/restaurants/geneve-c186655?p=1"
+TARGET = f"https://www.thefork.ch{THEFORK_PATH}"
 URLS = [
-    f"https://www.thefork.ch{THEFORK_PATH}",
+    TARGET,
+    "https://www.thefork.ch/robots.txt",
+    "https://www.thefork.ch/sitemap.xml",
+    "https://www.thefork.ch/sitemap_index.xml",
+    "https://www.thefork.ch/sitemap-index.xml",
+    "https://www.thefork.ch/sitemaps.xml",
     f"https://www.thefork.be{THEFORK_PATH}",
     f"https://www.thefork.fr{THEFORK_PATH}",
     f"https://www.thefork.de{THEFORK_PATH}",
     f"https://www.thefork.es{THEFORK_PATH}",
     f"https://www.thefork.it{THEFORK_PATH}",
     f"https://www.thefork.com{THEFORK_PATH}",
+    "https://www-thefork-ch.translate.goog/restaurants/geneve-c186655?p=1&_x_tr_sl=fr&_x_tr_tl=en&_x_tr_hl=en",
+    "https://translate.google.com/translate?sl=fr&tl=en&u=" + quote(TARGET, safe=""),
+    TARGET + "&_escaped_fragment_=",
+    TARGET + "&output=1",
+    TARGET + "&seo=1",
     f"https://r.jina.ai/http://www.thefork.ch{THEFORK_PATH}",
     f"https://r.jina.ai/https://www.thefork.ch{THEFORK_PATH}",
     "https://www.google.com/search?num=100&q=" + quote_plus('site:thefork.ch/restaurant/ Genève TheFork'),
@@ -44,7 +55,7 @@ def main() -> int:
                     url,
                     headers={
                         "User-Agent": ua,
-                        "Accept": "text/html,application/xhtml+xml,application/json;q=0.9,*/*;q=0.8",
+                        "Accept": "text/html,application/xhtml+xml,application/xml,application/json;q=0.9,*/*;q=0.8",
                         "Accept-Language": "fr-CH,fr;q=0.9,en;q=0.7",
                     },
                     timeout=45,
@@ -52,7 +63,7 @@ def main() -> int:
                 )
                 content = response.content
                 key = hashlib.sha256(f"{url}|{ua_name}".encode()).hexdigest()[:12]
-                suffix = ".md" if "r.jina.ai" in url else ".html"
+                suffix = ".md" if "r.jina.ai" in url else ".txt" if any(token in url for token in ("robots.txt", "sitemap")) else ".html"
                 (out / f"{key}-{ua_name}{suffix}").write_bytes(content)
                 entry = {
                     "url": url,
@@ -63,8 +74,9 @@ def main() -> int:
                     "length": len(content),
                     "contains_restaurant": b"/restaurant/" in content,
                     "restaurant_link_count": content.count(b"/restaurant/"),
+                    "contains_sitemap": b"<urlset" in content or b"<sitemapindex" in content,
                     "contains_datadome": b"captcha-delivery.com" in content or b"var dd=" in content,
-                    "preview": content[:1000].decode("utf-8", errors="replace"),
+                    "preview": content[:1500].decode("utf-8", errors="replace"),
                 }
             except Exception as exc:  # noqa: BLE001
                 entry = {"url": url, "ua": ua_name, "error": repr(exc)}
