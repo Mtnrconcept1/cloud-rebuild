@@ -1,10 +1,14 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import type { AudienceSnapshot } from "@/lib/campaignTargeting";
 import { isCampaignVisibleForViewer } from "@/lib/campaignVisibility";
+import {
+  createPrivacyConsentRecord,
+  writePrivacyConsent,
+} from "@/lib/privacyConsentState";
 
 const baseSnapshot: AudienceSnapshot = {
   city: "Puplinge",
@@ -30,7 +34,31 @@ const emptyClientSnapshot: AudienceSnapshot = {
   serviceMoments: [],
 };
 
+function enablePersonalizationConsent() {
+  writePrivacyConsent(
+    createPrivacyConsentRecord({
+      categories: {
+        necessary: true,
+        analytics: false,
+        marketing: false,
+        personalization: true,
+        geolocation: false,
+      },
+      action: "save_preferences",
+      source: "settings",
+      storage: window.localStorage,
+      now: new Date("2026-07-24T05:00:00.000Z"),
+    }),
+    window.localStorage,
+  );
+}
+
 describe("campaignVisibility", () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+    enablePersonalizationConsent();
+  });
+
   it("lets restaurant owners preview their own active targeted campaigns", () => {
     const visible = isCampaignVisibleForViewer(
       {
@@ -52,7 +80,7 @@ describe("campaignVisibility", () => {
     expect(visible).toBe(true);
   });
 
-  it("keeps targeting filters for non-owners", () => {
+  it("keeps targeting filters for consenting non-owners", () => {
     const visible = isCampaignVisibleForViewer(
       {
         restaurant_id: "restaurant-1",
@@ -94,7 +122,7 @@ describe("campaignVisibility", () => {
     expect(visible).toBe(true);
   });
 
-  it("hides targeted sponsored placements for connected clients without matching signals", () => {
+  it("hides targeted sponsored placements for consenting connected clients without matching signals", () => {
     const visible = isCampaignVisibleForViewer(
       {
         restaurant_id: "restaurant-1",
@@ -113,6 +141,29 @@ describe("campaignVisibility", () => {
     );
 
     expect(visible).toBe(false);
+  });
+
+  it("does not apply individual targeting before personalization consent", () => {
+    window.localStorage.clear();
+
+    const visible = isCampaignVisibleForViewer(
+      {
+        restaurant_id: "restaurant-1",
+        restaurants: { id: "restaurant-1", owner_id: "owner-1" },
+        target_pages: ["home"],
+        target_criteria: {
+          cities: ["geneve"],
+          serviceMoments: ["lunch"],
+        },
+      },
+      {
+        page: "home",
+        audienceSnapshot: baseSnapshot,
+        viewerUserId: "viewer-2",
+      },
+    );
+
+    expect(visible).toBe(true);
   });
 
   it("includes in-app paid campaigns in public sponsored placements", () => {
