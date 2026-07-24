@@ -166,7 +166,7 @@ export default function LegalConsentBanner() {
                       checked={checked}
                       disabled={necessary || saving}
                       onCheckedChange={(value) => {
-                        if (!necessary) updateCategory(category.key, value);
+                        if (category.key !== "necessary") updateCategory(category.key, value);
                       }}
                       aria-label={`${category.title} ${checked ? "activé" : "désactivé"}`}
                     />
