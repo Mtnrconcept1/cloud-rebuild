@@ -74,6 +74,20 @@ function parseClientDate(value: unknown) {
   return new Date(timestamp).toISOString();
 }
 
+function privacyAuditRequestMetadata(req: Request) {
+  let path = "";
+  try {
+    path = new URL(req.url).pathname.slice(0, 300);
+  } catch {
+    path = "";
+  }
+  return {
+    request_method: req.method,
+    request_path: path || null,
+    user_agent: normalizeText(req.headers.get("user-agent"), 512) || null,
+  };
+}
+
 Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req);
   const preflight = handleCorsPreflight(req, corsHeaders);
@@ -121,8 +135,7 @@ Deno.serve(async (req) => {
     userId = await maybeResolveUserId(req);
     const ip = getClientIp(req);
     const limiter = createRateLimiter(adminClient, "record-privacy-consent");
-    const ipSubject = `ip:${ip || "unknown"}`;
-    await limiter.consume(ipSubject, { maxRequests: 60, windowSeconds: 3_600 });
+    await limiter.consume(`ip:${ip || "unknown"}`, { maxRequests: 60, windowSeconds: 3_600 });
     await limiter.consume(`anonymous:${anonymousId}`, { maxRequests: 30, windowSeconds: 3_600 });
     if (userId) await limiter.consume(`user:${userId}`, { maxRequests: 100, windowSeconds: 86_400 });
 
@@ -176,13 +189,14 @@ Deno.serve(async (req) => {
     await writeAuditLog({
       adminClient,
       actor: userId ? { userId, roles: [], isServiceRole: false, authMode: "user_jwt" } : null,
-      request: req,
+      request: null,
       functionName: "record-privacy-consent",
       action,
       status: "success",
       targetEntityType: "privacy_consent_event",
       targetEntityId: recordId,
       metadata: {
+        ...privacyAuditRequestMetadata(req),
         consent_version: consentVersion,
         source,
         analytics: categories.analytics,
@@ -206,13 +220,14 @@ Deno.serve(async (req) => {
     await writeAuditLog({
       adminClient,
       actor: userId ? { userId, roles: [], isServiceRole: false, authMode: "user_jwt" } : null,
-      request: req,
+      request: null,
       functionName: "record-privacy-consent",
       action: "record_consent_failure",
       status: "failure",
       targetEntityType: "privacy_consent_event",
       targetEntityId: recordId,
       errorMessage: message,
+      metadata: privacyAuditRequestMetadata(req),
     });
 
     return jsonResponse({ error: message }, status, corsHeaders);
