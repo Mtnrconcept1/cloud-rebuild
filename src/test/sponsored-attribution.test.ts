@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
 import {
+  createPrivacyConsentRecord,
+  writePrivacyConsent,
+} from "@/lib/privacyConsentState";
+import {
   SPONSORED_ATTRIBUTION_KEY,
   SPONSORED_ATTRIBUTION_MAX_AGE_MS,
   clearSponsoredAttributions,
@@ -13,6 +17,22 @@ describe("sponsored attribution storage", () => {
 
   beforeEach(() => {
     window.localStorage.clear();
+    writePrivacyConsent(
+      createPrivacyConsentRecord({
+        categories: {
+          necessary: true,
+          analytics: false,
+          marketing: true,
+          personalization: false,
+          geolocation: false,
+        },
+        action: "save_preferences",
+        source: "settings",
+        storage: window.localStorage,
+        now: new Date(now),
+      }),
+      window.localStorage,
+    );
   });
 
   it("keeps several recent campaigns for the same restaurant", () => {
