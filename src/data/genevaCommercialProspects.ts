@@ -1,3 +1,5 @@
+import { fetchTheForkCommercialProspects } from "@/data/theForkCommercialProspects";
+
 export type GenevaCommercialProspect = {
   sourceObjectId: number;
   name: string;
@@ -35,15 +37,24 @@ export type GenevaCommercialProspect = {
 };
 
 const COMMERCIAL_PROSPECTS_URL = "/data/geneva-commercial-prospects.json";
-const THEFORK_COMMERCIAL_PROSPECTS_URL = "/data/geneva-thefork-commercial-prospects.json";
+
+type UniquePositionMap = Map<string, number | null>;
+
+type ProspectIndexes = {
+  bySourceObjectId: Map<number, number>;
+  byVenue: UniquePositionMap;
+  byNamePostcode: UniquePositionMap;
+  byNamedContact: UniquePositionMap;
+  byTheForkUrl: UniquePositionMap;
+};
 
 function isValidProspect(value: GenevaCommercialProspect) {
   return (
-    Number.isFinite(value.sourceObjectId) &&
-    typeof value.name === "string" &&
-    value.name.trim().length > 0 &&
-    Number.isFinite(value.latitude) &&
-    Number.isFinite(value.longitude)
+    Number.isFinite(value.sourceObjectId)
+    && typeof value.name === "string"
+    && value.name.trim().length > 0
+    && Number.isFinite(value.latitude)
+    && Number.isFinite(value.longitude)
   );
 }
 
@@ -52,6 +63,7 @@ function normalizeComparableValue(value: string | number | null | undefined) {
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
+    .replace(/\b(?:sa|sarl|snc|sagl|ltd|ag|gmbh|restaurant|cafe|bar|hotel|bistrot|brasserie)\b/g, " ")
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
 }
@@ -81,6 +93,13 @@ function prospectVenueKey(prospect: GenevaCommercialProspect) {
   ].join("|");
 }
 
+function prospectNamePostcodeKey(prospect: GenevaCommercialProspect) {
+  return [
+    normalizeComparableValue(prospect.name),
+    normalizeComparableValue(prospect.postalCode),
+  ].join("|");
+}
+
 function prospectNamedContactKeys(prospect: GenevaCommercialProspect) {
   const name = normalizeComparableValue(prospect.name);
   if (!name) return [];
@@ -89,31 +108,116 @@ function prospectNamedContactKeys(prospect: GenevaCommercialProspect) {
     prospect.email ? `email:${name}|${prospect.email.trim().toLowerCase()}` : "",
     prospect.phone ? `phone:${name}|${normalizePhone(prospect.phone)}` : "",
     prospect.website ? `website:${name}|${normalizeWebsiteHost(prospect.website)}` : "",
-  ].filter((value) => !value.endsWith("|"));
+  ].filter((value) => value && !value.endsWith("|"));
+}
+
+function setUniquePosition(index: UniquePositionMap, key: string, position: number) {
+  if (!key || key.endsWith("|")) return;
+  if (!index.has(key)) {
+    index.set(key, position);
+    return;
+  }
+  if (index.get(key) !== position) index.set(key, null);
 }
 
 function indexProspect(
   prospect: GenevaCommercialProspect,
   position: number,
-  indexes: {
-    bySourceObjectId: Map<number, number>;
-    byVenue: Map<string, number>;
-    byNamedContact: Map<string, number>;
-    byTheForkUrl: Map<string, number>;
-  },
+  indexes: ProspectIndexes,
 ) {
   indexes.bySourceObjectId.set(prospect.sourceObjectId, position);
-
-  const venueKey = prospectVenueKey(prospect);
-  if (!venueKey.endsWith("||")) indexes.byVenue.set(venueKey, position);
+  setUniquePosition(indexes.byVenue, prospectVenueKey(prospect), position);
+  setUniquePosition(indexes.byNamePostcode, prospectNamePostcodeKey(prospect), position);
 
   for (const key of prospectNamedContactKeys(prospect)) {
-    indexes.byNamedContact.set(key, position);
+    setUniquePosition(indexes.byNamedContact, key, position);
   }
 
   if (prospect.theForkDirectUrl) {
-    indexes.byTheForkUrl.set(prospect.theForkDirectUrl.trim().toLowerCase(), position);
+    setUniquePosition(
+      indexes.byTheForkUrl,
+      prospect.theForkDirectUrl.trim().toLowerCase(),
+      position,
+    );
   }
+}
+
+function readUniquePosition(index: UniquePositionMap, key: string) {
+  const position = index.get(key);
+  return typeof position === "number" ? position : undefined;
+}
+
+function findExistingProspectPosition(
+  incoming: GenevaCommercialProspect,
+  indexes: ProspectIndexes,
+) {
+  const bySourceObjectId = indexes.bySourceObjectId.get(incoming.sourceObjectId);
+  if (bySourceObjectId !== undefined) return { position: bySourceObjectId, reason: "source_object_id" };
+
+  const directUrl = incoming.theForkDirectUrl?.trim().toLowerCase() || "";
+  const byTheForkUrl = directUrl
+    ? readUniquePosition(indexes.byTheForkUrl, directUrl)
+    : undefined;
+  if (byTheForkUrl !== undefined) return { position: byTheForkUrl, reason: "thefork_url" };
+
+  const byVenue = readUniquePosition(indexes.byVenue, prospectVenueKey(incoming));
+  if (byVenue !== undefined) return { position: byVenue, reason: "name_address_postcode" };
+
+  const byNamePostcode = readUniquePosition(
+    indexes.byNamePostcode,
+    prospectNamePostcodeKey(incoming),
+  );
+  if (byNamePostcode !== undefined) return { position: byNamePostcode, reason: "name_postcode" };
+
+  for (const key of prospectNamedContactKeys(incoming)) {
+    const byContact = readUniquePosition(indexes.byNamedContact, key);
+    if (byContact !== undefined) return { position: byContact, reason: "named_contact" };
+  }
+
+  return null;
+}
+
+function mergeMatchedProspect(
+  previous: GenevaCommercialProspect,
+  incoming: GenevaCommercialProspect,
+  reason: string,
+) {
+  return {
+    ...previous,
+    ...incoming,
+    sourceObjectId: previous.sourceObjectId,
+    legalName: previous.legalName || incoming.legalName,
+    registryType: previous.registryType || incoming.registryType,
+    category: incoming.category || previous.category,
+    branch: incoming.branch || previous.branch,
+    activityDetail: incoming.activityDetail || previous.activityDetail,
+    address: incoming.address || previous.address,
+    postalCode: incoming.postalCode || previous.postalCode,
+    locality: incoming.locality || previous.locality,
+    commune: incoming.commune || previous.commune,
+    phone: incoming.phone || previous.phone,
+    email: incoming.email || previous.email,
+    website: incoming.website || previous.website,
+    companySize: previous.companySize || incoming.companySize,
+    localType: previous.localType || incoming.localType,
+    establishmentId: previous.establishmentId || incoming.establishmentId,
+    companyId: previous.companyId || incoming.companyId,
+    ideNumber: previous.ideNumber || incoming.ideNumber,
+    latitude: previous.latitude,
+    longitude: previous.longitude,
+    source: [previous.source, incoming.source].filter(Boolean).join(" + ") || null,
+    isTheFork: true,
+    coordinateSource: "existing_commercial_map",
+    coordinatePrecision: "matched_existing_prospect",
+    coordinateLabel: previous.coordinateLabel || incoming.coordinateLabel,
+    sourceContact: incoming.sourceContact || previous.sourceContact,
+    contactConfidence: Math.max(
+      Number(previous.contactConfidence || 0),
+      Number(incoming.contactConfidence || 0),
+    ),
+    baseMatchReason: reason,
+    baseMatchScore: incoming.baseMatchScore,
+  } satisfies GenevaCommercialProspect;
 }
 
 export function mergeGenevaCommercialProspects(
@@ -121,43 +225,26 @@ export function mergeGenevaCommercialProspects(
   theForkProspects: GenevaCommercialProspect[],
 ) {
   const merged = registryProspects.filter(isValidProspect).map((prospect) => ({ ...prospect }));
-  const indexes = {
+  const indexes: ProspectIndexes = {
     bySourceObjectId: new Map<number, number>(),
-    byVenue: new Map<string, number>(),
-    byNamedContact: new Map<string, number>(),
-    byTheForkUrl: new Map<string, number>(),
+    byVenue: new Map<string, number | null>(),
+    byNamePostcode: new Map<string, number | null>(),
+    byNamedContact: new Map<string, number | null>(),
+    byTheForkUrl: new Map<string, number | null>(),
   };
 
   merged.forEach((prospect, position) => indexProspect(prospect, position, indexes));
 
   for (const incoming of theForkProspects.filter(isValidProspect)) {
-    const directTheForkUrl = incoming.theForkDirectUrl?.trim().toLowerCase() || "";
-    const venueKey = prospectVenueKey(incoming);
-    const contactPositions = prospectNamedContactKeys(incoming)
-      .map((key) => indexes.byNamedContact.get(key))
-      .filter((position): position is number => position !== undefined);
+    const existing = findExistingProspectPosition(incoming, indexes);
 
-    const position = indexes.bySourceObjectId.get(incoming.sourceObjectId)
-      ?? (directTheForkUrl ? indexes.byTheForkUrl.get(directTheForkUrl) : undefined)
-      ?? indexes.byVenue.get(venueKey)
-      ?? contactPositions[0];
-
-    if (position !== undefined) {
-      const previous = merged[position];
-      merged[position] = {
-        ...previous,
-        ...incoming,
-        sourceObjectId: previous.sourceObjectId,
-        legalName: incoming.legalName || previous.legalName,
-        registryType: incoming.registryType || previous.registryType,
-        companySize: incoming.companySize || previous.companySize,
-        localType: incoming.localType || previous.localType,
-        establishmentId: incoming.establishmentId || previous.establishmentId,
-        companyId: incoming.companyId || previous.companyId,
-        ideNumber: incoming.ideNumber || previous.ideNumber,
-        isTheFork: true,
-      };
-      indexProspect(merged[position], position, indexes);
+    if (existing) {
+      merged[existing.position] = mergeMatchedProspect(
+        merged[existing.position],
+        incoming,
+        existing.reason,
+      );
+      indexProspect(merged[existing.position], existing.position, indexes);
       continue;
     }
 
@@ -189,7 +276,7 @@ async function fetchCommercialProspectSource(url: string) {
 export async function fetchGenevaCommercialProspects(): Promise<GenevaCommercialProspect[]> {
   const [registryProspects, theForkProspects] = await Promise.all([
     fetchCommercialProspectSource(COMMERCIAL_PROSPECTS_URL),
-    fetchCommercialProspectSource(THEFORK_COMMERCIAL_PROSPECTS_URL),
+    fetchTheForkCommercialProspects(),
   ]);
 
   return mergeGenevaCommercialProspects(registryProspects, theForkProspects);
