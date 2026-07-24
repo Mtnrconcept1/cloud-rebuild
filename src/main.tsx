@@ -2,7 +2,9 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 import "./home-section-headers.css";
+import "./styles/commercial-prospection-markers.css";
 import { initCapacitorPlugins } from "@/lib/capacitor-init";
+import { installCommercialProspectionMarkerTheme } from "@/lib/commercialProspectionMarkerTheme";
 import { initMonitoring } from "@/lib/monitoring";
 import { isNative } from "@/lib/platform";
 
@@ -12,6 +14,7 @@ if (storedTheme === "dark" || (!storedTheme && window.matchMedia("(prefers-color
   document.documentElement.classList.add("dark");
 }
 
+installCommercialProspectionMarkerTheme();
 initMonitoring();
 
 createRoot(document.getElementById("root")!).render(<App />);
