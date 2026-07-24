@@ -1,7 +1,10 @@
 import type { GenevaCommercialProspect } from "@/data/genevaCommercialProspects";
 import { decompressBzip2 } from "@/lib/bzip2Decompress";
+import payloadPart00 from "../../scripts/.tmp/thefork-geneva-520.part-00?raw";
+import payloadPart01 from "../../scripts/.tmp/thefork-geneva-520.part-01?raw";
+import payloadPart02 from "../../scripts/.tmp/thefork-geneva-520.part-02?raw";
 
-const THEFORK_PAYLOAD_URL = "/data/thefork-geneva-520.bz2.b64";
+const THEFORK_PAYLOAD_BASE64 = [payloadPart00, payloadPart01, payloadPart02].join("");
 const EXPECTED_RESTAURANT_COUNT = 520;
 const THEFORK_SOURCE_OBJECT_ID_BASE = 2_600_000_000;
 const GOLDEN_ANGLE = 2.399963229728653;
@@ -265,15 +268,8 @@ let theForkProspectsPromise: Promise<GenevaCommercialProspect[]> | null = null;
 export function fetchTheForkCommercialProspects() {
   if (theForkProspectsPromise) return theForkProspectsPromise;
 
-  theForkProspectsPromise = fetch(THEFORK_PAYLOAD_URL, {
-    headers: { Accept: "text/plain" },
-  }).then(async (response) => {
-    if (!response.ok) {
-      throw new Error(`Corpus TheFork indisponible (${response.status}).`);
-    }
-    return response.text();
-  }).then((payloadText) => {
-    const compressed = decodeBase64(payloadText);
+  theForkProspectsPromise = Promise.resolve().then(() => {
+    const compressed = decodeBase64(THEFORK_PAYLOAD_BASE64);
     const decoded = new TextDecoder().decode(decompressBzip2(compressed));
     const payload = JSON.parse(decoded) as unknown;
     if (!Array.isArray(payload)) throw new Error("Le corpus TheFork est invalide.");
