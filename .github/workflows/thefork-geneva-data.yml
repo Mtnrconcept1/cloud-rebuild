@@ -9,6 +9,14 @@ on:
       - scripts/data/thefork_geneva_extract.py
       - data/thefork/**
       - .github/workflows/thefork-geneva-data.yml
+  pull_request:
+    branches:
+      - main
+    paths:
+      - scripts/data/thefork_probe.py
+      - scripts/data/thefork_geneva_extract.py
+      - data/thefork/**
+      - .github/workflows/thefork-geneva-data.yml
   workflow_dispatch:
 
 permissions:
