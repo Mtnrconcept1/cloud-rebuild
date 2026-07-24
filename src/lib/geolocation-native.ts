@@ -1,8 +1,20 @@
 import { Geolocation } from "@capacitor/geolocation";
 import type { CallbackID } from "@capacitor/geolocation";
 import { isNative } from "@/lib/platform";
+import { isPrivacyCategoryAllowed } from "@/lib/privacyConsentState";
+
+function assertGeolocationConsent() {
+  if (!isPrivacyCategoryAllowed("geolocation")) {
+    throw new DOMException(
+      "La localisation est désactivée dans vos préférences de confidentialité TOK.",
+      "NotAllowedError",
+    );
+  }
+}
 
 export async function getCurrentPosition(): Promise<GeolocationPosition> {
+  assertGeolocationConsent();
+
   if (isNative()) {
     const pos = await Geolocation.getCurrentPosition({
       enableHighAccuracy: true,
@@ -25,6 +37,13 @@ export function watchPosition(
   onError: (err: any) => void,
   options?: PositionOptions
 ): { clear: () => void } {
+  try {
+    assertGeolocationConsent();
+  } catch (error) {
+    queueMicrotask(() => onError(error));
+    return { clear: () => undefined };
+  }
+
   if (isNative()) {
     let callbackId: CallbackID | null = null;
 
