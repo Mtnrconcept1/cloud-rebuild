@@ -1,9 +1,9 @@
 name: PR 419 diagnostics
 
 on:
-  push:
+  pull_request:
     branches:
-      - feat/legal-contracts-consent-2026-07
+      - main
   workflow_dispatch:
 
 permissions:
