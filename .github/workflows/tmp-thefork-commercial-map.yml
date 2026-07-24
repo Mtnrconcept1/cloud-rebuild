@@ -28,7 +28,7 @@ env:
 
 jobs:
   build-and-validate:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@v6
@@ -36,15 +36,14 @@ jobs:
           ref: feat/commercial-map-thefork-520-20260724
           fetch-depth: 0
 
-      - uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
+      - name: Confirm Python runtime
+        run: python3 --version
 
       - name: Reassemble TheFork source payload
         run: cat scripts/.tmp/thefork-geneva-520.part-* > scripts/.tmp/thefork-geneva-520.bz2.b64
 
       - name: Build deduplicated TheFork map source
-        run: python scripts/tmp_build_thefork_commercial_map.py
+        run: python3 scripts/tmp_build_thefork_commercial_map.py
 
       - name: Enable pnpm
         run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
