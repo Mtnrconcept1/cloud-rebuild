@@ -4,13 +4,25 @@ import hashlib
 import json
 import sys
 from pathlib import Path
+from urllib.parse import quote_plus
 
 import requests
 
+THEFORK_PATH = "/restaurants/geneve-c186655?p=1"
 URLS = [
-    "https://www.thefork.ch/restaurants/geneve-c186655?p=1",
-    "https://r.jina.ai/http://www.thefork.ch/restaurants/geneve-c186655?p=1",
-    "https://r.jina.ai/https://www.thefork.ch/restaurants/geneve-c186655?p=1",
+    f"https://www.thefork.ch{THEFORK_PATH}",
+    f"https://www.thefork.be{THEFORK_PATH}",
+    f"https://www.thefork.fr{THEFORK_PATH}",
+    f"https://www.thefork.de{THEFORK_PATH}",
+    f"https://www.thefork.es{THEFORK_PATH}",
+    f"https://www.thefork.it{THEFORK_PATH}",
+    f"https://www.thefork.com{THEFORK_PATH}",
+    f"https://r.jina.ai/http://www.thefork.ch{THEFORK_PATH}",
+    f"https://r.jina.ai/https://www.thefork.ch{THEFORK_PATH}",
+    "https://www.google.com/search?num=100&q=" + quote_plus('site:thefork.ch/restaurant/ Genève TheFork'),
+    "https://www.bing.com/search?count=50&q=" + quote_plus('site:thefork.ch/restaurant/ Genève TheFork'),
+    "https://html.duckduckgo.com/html/?q=" + quote_plus('site:thefork.ch/restaurant/ Genève TheFork'),
+    "https://search.brave.com/search?q=" + quote_plus('site:thefork.ch/restaurant/ Genève TheFork'),
 ]
 
 USER_AGENTS = {
@@ -50,6 +62,7 @@ def main() -> int:
                     "content_type": response.headers.get("content-type"),
                     "length": len(content),
                     "contains_restaurant": b"/restaurant/" in content,
+                    "restaurant_link_count": content.count(b"/restaurant/"),
                     "contains_datadome": b"captcha-delivery.com" in content or b"var dd=" in content,
                     "preview": content[:1000].decode("utf-8", errors="replace"),
                 }
