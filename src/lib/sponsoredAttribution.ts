@@ -52,15 +52,20 @@ export function normalizeSponsoredAttributionStore(value: unknown): SponsoredAtt
   }, {});
 }
 
-export function readSponsoredAttributions(storage = getBrowserStorage()): SponsoredAttributionStore {
-  if (!storage || !isPrivacyCategoryAllowed("marketing")) return {};
+function readRawSponsoredAttributions(storage: Storage): SponsoredAttributionStore {
   try {
     const raw = storage.getItem(SPONSORED_ATTRIBUTION_KEY);
     if (!raw) return {};
     return normalizeSponsoredAttributionStore(JSON.parse(raw));
   } catch {
+    storage.removeItem(SPONSORED_ATTRIBUTION_KEY);
     return {};
   }
+}
+
+export function readSponsoredAttributions(storage = getBrowserStorage()): SponsoredAttributionStore {
+  if (!storage || !isPrivacyCategoryAllowed("marketing")) return {};
+  return readRawSponsoredAttributions(storage);
 }
 
 export function writeSponsoredAttributions(
@@ -137,8 +142,8 @@ export function clearSponsoredAttributions(
   if (!storage) return;
   const normalizedRestaurantId = restaurantId.trim();
   if (!normalizedRestaurantId) return;
-  const raw = storage.getItem(SPONSORED_ATTRIBUTION_KEY);
-  const attributions = raw ? normalizeSponsoredAttributionStore(JSON.parse(raw)) : {};
+
+  const attributions = readRawSponsoredAttributions(storage);
   const existingEntries = attributions[normalizedRestaurantId] || [];
   const campaignIdSet = new Set((campaignIds || []).map((campaignId) => campaignId.trim()).filter(Boolean));
   if (campaignIdSet.size === 0) {
