@@ -1,6 +1,12 @@
 name: Apply TOK 50k Foundation
 
 on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - scripts/50k-foundation.bundle.part*
+      - .github/workflows/apply-50k-foundation.yml
   push:
     branches:
       - infra/50k-readiness-foundation-20260724
