@@ -3,6 +3,7 @@ import {
   scoreAudienceCriteria,
   type AudienceSnapshot,
 } from "@/lib/campaignTargeting";
+import { isPrivacyCategoryAllowed } from "@/lib/privacyConsentState";
 
 type CampaignRestaurantRelation = {
   id?: string | null;
@@ -99,14 +100,18 @@ export function isCampaignVisibleForViewer(
     return true;
   }
 
-  if (!audienceSnapshot) {
+  const effectiveAudienceSnapshot = isPrivacyCategoryAllowed("personalization")
+    ? audienceSnapshot
+    : null;
+
+  if (!effectiveAudienceSnapshot) {
     return true;
   }
 
   const restaurantId = campaign?.restaurant_id || campaign?.restaurants?.id || null;
   return scoreAudienceCriteria(
     campaign?.target_criteria || DEFAULT_AUDIENCE_CRITERIA,
-    audienceSnapshot,
+    effectiveAudienceSnapshot,
     restaurantId,
   ).score > 0;
 }
