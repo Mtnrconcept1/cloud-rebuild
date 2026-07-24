@@ -4,6 +4,7 @@ import type { Database } from './types';
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from '@/lib/env';
 import { readSupabasePublicEnv } from '@/lib/publicEnv';
 import { authStorage } from './authStorage';
+import { privacyAwareFetch } from '@/lib/privacyConsentState';
 import {
   COMMERCIAL_DEMO_SUPABASE_PUBLISHABLE_KEY,
   COMMERCIAL_DEMO_SUPABASE_URL,
@@ -34,6 +35,9 @@ export function getProductionSupabase(): SupabaseClient<Database> {
       autoRefreshToken: true,
       flowType: "pkce",
       detectSessionInUrl: false,
+    },
+    global: {
+      fetch: privacyAwareFetch,
     },
   });
 
