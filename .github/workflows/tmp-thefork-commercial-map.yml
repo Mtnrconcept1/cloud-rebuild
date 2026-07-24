@@ -1,0 +1,78 @@
+name: Temporary TheFork commercial map import
+
+on:
+  push:
+    branches:
+      - feat/commercial-map-thefork-520-20260724
+    paths:
+      - .github/workflows/tmp-thefork-commercial-map.yml
+      - scripts/tmp_build_thefork_commercial_map.py
+      - scripts/.tmp/thefork-geneva-520.part-*
+
+permissions:
+  contents: write
+
+env:
+  NODE_VERSION: 22
+  PNPM_VERSION: 10.28.1
+  VITE_SUPABASE_URL: https://example.supabase.co
+  VITE_SUPABASE_PUBLISHABLE_KEY: ci-public-placeholder
+  VITE_SUPABASE_ANON_KEY: ci-public-placeholder
+
+jobs:
+  build-and-validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: feat/commercial-map-thefork-520-20260724
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Reassemble TheFork source payload
+        run: cat scripts/.tmp/thefork-geneva-520.part-* > scripts/.tmp/thefork-geneva-520.bz2.b64
+
+      - name: Build deduplicated TheFork map source
+        run: python scripts/tmp_build_thefork_commercial_map.py
+
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run focused commercial-map tests
+        run: pnpm exec vitest run --mode production src/test/commercial-prospection.test.ts
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Production build
+        run: pnpm build
+
+      - name: Remove temporary import machinery
+        run: rm -f scripts/tmp_build_thefork_commercial_map.py .github/workflows/tmp-thefork-commercial-map.yml scripts/.tmp/thefork-geneva-520.part-* scripts/.tmp/thefork-geneva-520.bz2.b64
+
+      - name: Commit generated product changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No generated changes to commit."
+            exit 1
+          fi
+          git commit -m "feat(commercial): import 520 TheFork restaurants on map"
+          git push origin HEAD:feat/commercial-map-thefork-520-20260724
