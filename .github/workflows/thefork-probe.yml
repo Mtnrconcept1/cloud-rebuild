@@ -1,0 +1,30 @@
+name: TheFork Geneva extraction probe
+
+on:
+  push:
+    branches:
+      - ops/thefork-geneva-extraction-2026-07-24
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Probe TheFork and public reader/search routes
+        run: python scripts/thefork_probe.py
+      - name: Upload probe output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: thefork-probe
+          path: thefork-probe.json
+          if-no-files-found: error
+          retention-days: 1
