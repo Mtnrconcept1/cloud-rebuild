@@ -25,14 +25,18 @@ describe("TOK Connect legal and help content", () => {
     expect(aide).toContain("/tok-connect/developer");
   });
 
-  it("documents TOK Connect usage rules in the CGU", () => {
+  it("documents TOK Connect usage rules in the CGU and distinct partner contract", () => {
     const cgu = read("src/pages/CGU.tsx");
+    const partnerContract = read("public/legal/tok-connect-api.html");
 
-    expect(cgu).toContain("Dernière mise à jour : 26 juin 2026");
+    expect(cgu).toContain("Dernière mise à jour : 24 juillet 2026");
     expect(cgu).toContain("15. TOK Connect, API partenaires, MCP et webhooks");
     expect(cgu).toContain("OAuth client-credentials");
     expect(cgu).toContain("Idempotency-Key");
     expect(cgu).toContain("Le mode sandbox utilise des données de test");
+    expect(cgu).toContain("/legal/tok-connect-api.html");
+    expect(partnerContract).toContain("TOK-CONNECT-2026-07-v1");
+    expect(partnerContract).toContain("Scopes et autorisations");
   });
 
   it("documents TOK Connect privacy processing", () => {
