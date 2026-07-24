@@ -13,6 +13,8 @@ TARGET = f"https://www.thefork.ch{THEFORK_PATH}"
 URLS = [
     TARGET,
     "https://www.thefork.ch/robots.txt",
+    "https://www.thefork.ch/brand-3-index.xml",
+    "https://www.thefork.ch/blog/sitemap.xml",
     "https://www.thefork.ch/sitemap.xml",
     "https://www.thefork.ch/sitemap_index.xml",
     "https://www.thefork.ch/sitemap-index.xml",
@@ -63,7 +65,7 @@ def main() -> int:
                 )
                 content = response.content
                 key = hashlib.sha256(f"{url}|{ua_name}".encode()).hexdigest()[:12]
-                suffix = ".md" if "r.jina.ai" in url else ".txt" if any(token in url for token in ("robots.txt", "sitemap")) else ".html"
+                suffix = ".md" if "r.jina.ai" in url else ".txt" if any(token in url for token in ("robots.txt", "sitemap", "index.xml")) else ".html"
                 (out / f"{key}-{ua_name}{suffix}").write_bytes(content)
                 entry = {
                     "url": url,
@@ -75,6 +77,7 @@ def main() -> int:
                     "contains_restaurant": b"/restaurant/" in content,
                     "restaurant_link_count": content.count(b"/restaurant/"),
                     "contains_sitemap": b"<urlset" in content or b"<sitemapindex" in content,
+                    "xml_loc_count": content.count(b"<loc>"),
                     "contains_datadome": b"captcha-delivery.com" in content or b"var dd=" in content,
                     "preview": content[:1500].decode("utf-8", errors="replace"),
                 }
