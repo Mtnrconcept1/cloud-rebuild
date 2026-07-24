@@ -1,0 +1,40 @@
+/* Commercial prospect map: restaurant pins use the requested fork silhouette. */
+body[data-commercial-prospection-map] .leaflet-marker-icon > div > span {
+  display: block !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 2v7a4 4 0 0 0 3 3.87V22h2v-9.13A4 4 0 0 0 15 9V2h-2v5h-1V2h-2v5H9V2H7Z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 2v7a4 4 0 0 0 3 3.87V22h2v-9.13A4 4 0 0 0 15 9V2h-2v5h-1V2h-2v5H9V2H7Z'/%3E%3C/svg%3E");
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  filter: drop-shadow(0 1px 1px rgb(15 23 42 / 0.35));
+}
+
+/* “Visité” and “En cours” intentionally share the requested orange state. */
+body[data-commercial-prospection-map] .leaflet-marker-icon > div > span[style*="#2563eb"],
+body[data-commercial-prospection-map] .leaflet-marker-icon > div > span[style*="rgb(37, 99, 235)"] {
+  background: #f97316 !important;
+}
+
+body[data-commercial-prospection-map] .bg-blue-100 {
+  background-color: rgb(255 237 213) !important;
+}
+
+body[data-commercial-prospection-map] .text-blue-700,
+body[data-commercial-prospection-map] .text-blue-800 {
+  color: rgb(194 65 12) !important;
+}
+
+body[data-commercial-prospection-map] .border-blue-200 {
+  border-color: rgb(254 215 170) !important;
+}
+
+body[data-commercial-prospection-map] [style*="background-color: rgb(37, 99, 235)"],
+body[data-commercial-prospection-map] [style*="background:#2563eb"],
+body[data-commercial-prospection-map] [style*="background: #2563eb"] {
+  background-color: #f97316 !important;
+}
