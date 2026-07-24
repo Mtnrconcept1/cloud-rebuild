@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - ops/thefork-geneva-extraction-2026-07-24
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
