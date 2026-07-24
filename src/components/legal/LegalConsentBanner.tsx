@@ -1,131 +1,124 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { CheckCircle2, ShieldCheck, XCircle } from "lucide-react";
+import { CheckCircle2, Settings2, ShieldCheck, XCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import {
+  CONSENT_EVENT,
+  DEFAULT_CONSENT,
+  type ConsentPreferences,
+  readConsent,
+  saveConsent,
+} from "@/lib/consent";
 import { cn } from "@/lib/utils";
 
-const LEGAL_CONSENT_VERSION = "2026-06-17";
-const LEGAL_CONSENT_STORAGE_KEY = `tok_legal_consent_${LEGAL_CONSENT_VERSION}`;
-
-type LegalConsentStatus = "pending" | "accepted" | "refused";
-
-type StoredLegalConsent = {
-  status: Exclude<LegalConsentStatus, "pending">;
-  version: string;
-  recordedAt: string;
-};
-
-function readStoredConsent(): LegalConsentStatus {
-  if (typeof window === "undefined") return "accepted";
-
-  try {
-    const raw = window.localStorage.getItem(LEGAL_CONSENT_STORAGE_KEY);
-    if (!raw) return "pending";
-    const parsed = JSON.parse(raw) as Partial<StoredLegalConsent>;
-    if (parsed.version !== LEGAL_CONSENT_VERSION) return "pending";
-    return parsed.status === "accepted" || parsed.status === "refused" ? parsed.status : "pending";
-  } catch {
-    return "pending";
-  }
-}
-
-function storeConsent(status: Exclude<LegalConsentStatus, "pending">) {
-  if (typeof window === "undefined") return;
-
-  const payload: StoredLegalConsent = {
-    status,
-    version: LEGAL_CONSENT_VERSION,
-    recordedAt: new Date().toISOString(),
-  };
-
-  window.localStorage.setItem(LEGAL_CONSENT_STORAGE_KEY, JSON.stringify(payload));
-  window.dispatchEvent(new CustomEvent("tok:legal-consent-change", { detail: payload }));
-}
+const categories: Array<{
+  key: Exclude<keyof ConsentPreferences, "necessary">;
+  title: string;
+  description: string;
+}> = [
+  { key: "analytics", title: "Mesure d’audience", description: "Mesurer les performances, erreurs et parcours sous forme agrégée." },
+  { key: "marketing", title: "Marketing", description: "Mesurer et attribuer les campagnes sponsorisées et communications commerciales." },
+  { key: "personalization", title: "Personnalisation", description: "Adapter les contenus, recommandations et préférences à votre usage." },
+  { key: "geolocation", title: "Géolocalisation", description: "Utiliser votre position avec votre autorisation pour les résultats et services locaux." },
+];
 
 export default function LegalConsentBanner() {
-  const [status, setStatus] = useState<LegalConsentStatus>("accepted");
+  const [open, setOpen] = useState(false);
+  const [details, setDetails] = useState(false);
+  const [preferences, setPreferences] = useState<ConsentPreferences>(DEFAULT_CONSENT);
 
   useEffect(() => {
-    setStatus(readStoredConsent());
+    const stored = readConsent();
+    setPreferences(stored?.preferences ?? DEFAULT_CONSENT);
+    setOpen(!stored);
+
+    const openSettings = () => {
+      setPreferences(readConsent()?.preferences ?? DEFAULT_CONSENT);
+      setDetails(true);
+      setOpen(true);
+    };
+    const sync = () => setPreferences(readConsent()?.preferences ?? DEFAULT_CONSENT);
+    window.addEventListener("tok:open-consent-settings", openSettings);
+    window.addEventListener(CONSENT_EVENT, sync);
+    return () => {
+      window.removeEventListener("tok:open-consent-settings", openSettings);
+      window.removeEventListener(CONSENT_EVENT, sync);
+    };
   }, []);
 
-  const handleChoice = (nextStatus: Exclude<LegalConsentStatus, "pending">) => {
-    storeConsent(nextStatus);
-    setStatus(nextStatus);
+  const commit = async (next: ConsentPreferences) => {
+    setPreferences(next);
+    await saveConsent(next, details ? "settings" : "banner");
+    setOpen(false);
   };
 
-  if (status === "accepted") return null;
-
-  if (status === "refused") {
+  if (!open) {
     return (
-      <div className="fixed bottom-4 left-4 z-[1300] max-w-[calc(100vw-2rem)]">
-        <button
-          type="button"
-          onClick={() => setStatus("pending")}
-          className="inline-flex items-center gap-2 rounded-full border border-border/80 bg-background/95 px-4 py-2 text-xs font-semibold text-foreground shadow-[0_16px_36px_rgba(15,23,42,0.16)] backdrop-blur-xl transition hover:border-primary/60 hover:text-primary"
-        >
-          <XCircle className="h-4 w-4 text-destructive" />
-          Conditions refusées
-          <span className="text-muted-foreground">Modifier</span>
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={() => { setDetails(true); setOpen(true); }}
+        className="fixed bottom-4 left-4 z-[1300] inline-flex items-center gap-2 rounded-full border border-border/80 bg-background/95 px-4 py-2 text-xs font-semibold shadow-lg backdrop-blur-xl hover:border-primary/60 hover:text-primary"
+      >
+        <Settings2 className="h-4 w-4" />
+        Gérer mes cookies
+      </button>
     );
   }
 
   return (
-    <div className="fixed inset-0 z-[1300] flex items-center justify-center bg-slate-950/45 px-4 py-[calc(env(safe-area-inset-top,0px)+1rem)] backdrop-blur-sm sm:px-6">
+    <div className="fixed inset-0 z-[1300] flex items-center justify-center bg-slate-950/45 px-4 py-6 backdrop-blur-sm">
       <section
         role="dialog"
         aria-modal="true"
-        aria-labelledby="legal-consent-title"
-        className={cn(
-          "mx-auto w-full max-w-3xl overflow-hidden rounded-3xl border border-orange-200 bg-white shadow-[0_30px_90px_rgba(15,23,42,0.28)]",
-          "dark:border-orange-300/25 dark:bg-slate-950 dark:shadow-[0_24px_80px_rgba(0,0,0,0.55)]",
-        )}
+        aria-labelledby="consent-title"
+        className={cn("mx-auto w-full max-w-3xl overflow-hidden rounded-3xl border border-orange-200 bg-white shadow-2xl", "dark:border-orange-300/25 dark:bg-slate-950")}
       >
-        <div className="grid gap-5 p-5 sm:grid-cols-[auto_1fr] sm:p-6">
-          <div className="hidden h-12 w-12 place-items-center rounded-2xl bg-primary/10 text-primary sm:grid">
-            <ShieldCheck className="h-6 w-6" />
-          </div>
-
-          <div className="min-w-0 space-y-2">
-            <p id="legal-consent-title" className="text-base font-bold text-foreground">
-              Conditions TOK
-            </p>
-            <p className="text-sm leading-6 text-muted-foreground">
-              En acceptant, vous confirmez avoir lu les conditions générales, la politique de confidentialité et les règles cookies. Si vous refusez, vous pouvez consulter le site, mais les services nécessitant un compte, une commande, une réservation ou une campagne restent soumis aux conditions TOK.
-            </p>
-            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs font-semibold text-muted-foreground">
-              <Link to="/cgu" className="hover:text-primary hover:underline">
-                CGU
-              </Link>
-              <Link to="/politique-confidentialite" className="hover:text-primary hover:underline">
-                Confidentialité
-              </Link>
-              <Link to="/cookies" className="hover:text-primary hover:underline">
-                Cookies
-              </Link>
+        <div className="space-y-5 p-5 sm:p-6">
+          <div className="flex gap-4">
+            <div className="hidden h-12 w-12 shrink-0 place-items-center rounded-2xl bg-primary/10 text-primary sm:grid"><ShieldCheck className="h-6 w-6" /></div>
+            <div className="space-y-2">
+              <h2 id="consent-title" className="text-lg font-bold">Vos choix de confidentialité</h2>
+              <p className="text-sm leading-6 text-muted-foreground">
+                Les technologies nécessaires restent actives pour la sécurité, la connexion, le panier et les paiements. Les autres catégories sont facultatives et peuvent être refusées sans empêcher la consultation du site.
+              </p>
+              <div className="flex flex-wrap gap-3 text-xs font-semibold text-muted-foreground">
+                <Link to="/cgu" className="hover:text-primary hover:underline">Conditions clients</Link>
+                <Link to="/politique-confidentialite" className="hover:text-primary hover:underline">Confidentialité</Link>
+                <Link to="/cookies" className="hover:text-primary hover:underline">Inventaire des traceurs</Link>
+              </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 sm:col-span-2 sm:ml-16">
-            <Button
-              type="button"
-              variant="outline"
-              className="h-11 gap-2 rounded-2xl"
-              onClick={() => handleChoice("refused")}
-            >
-              <XCircle className="h-4 w-4" />
-              Refuser
+          {details ? (
+            <div className="space-y-3 rounded-2xl border bg-muted/20 p-4">
+              <div className="flex items-center justify-between gap-4">
+                <div><p className="font-semibold">Nécessaires</p><p className="text-xs text-muted-foreground">Sécurité, authentification, panier, paiement et préférences essentielles.</p></div>
+                <Switch checked disabled aria-label="Cookies nécessaires toujours actifs" />
+              </div>
+              {categories.map((category) => (
+                <div key={category.key} className="flex items-center justify-between gap-4 border-t pt-3">
+                  <div><p className="font-semibold">{category.title}</p><p className="text-xs text-muted-foreground">{category.description}</p></div>
+                  <Switch
+                    checked={preferences[category.key]}
+                    onCheckedChange={(checked) => setPreferences((current) => ({ ...current, [category.key]: checked, necessary: true }))}
+                    aria-label={category.title}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : null}
+
+          <div className="grid gap-2 sm:grid-cols-3">
+            <Button variant="outline" className="h-11 gap-2" onClick={() => void commit(DEFAULT_CONSENT)}>
+              <XCircle className="h-4 w-4" /> Tout refuser
             </Button>
-            <Button
-              type="button"
-              className="h-11 gap-2 rounded-2xl bg-primary text-primary-foreground shadow-[0_14px_30px_rgba(249,115,22,0.24)] hover:bg-primary/90"
-              onClick={() => handleChoice("accepted")}
-            >
-              <CheckCircle2 className="h-4 w-4" />
-              Accepter
+            <Button variant="outline" className="h-11 gap-2" onClick={() => setDetails(true)}>
+              <Settings2 className="h-4 w-4" /> Personnaliser
+            </Button>
+            <Button className="h-11 gap-2" onClick={() => void commit(details ? preferences : { necessary: true, analytics: true, marketing: true, personalization: true, geolocation: true })}>
+              <CheckCircle2 className="h-4 w-4" /> {details ? "Enregistrer" : "Tout accepter"}
             </Button>
           </div>
         </div>
