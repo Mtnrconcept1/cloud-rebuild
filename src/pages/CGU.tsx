@@ -6,7 +6,7 @@ export default function CGU() {
     <div className="container py-12 md:py-20 max-w-4xl space-y-12">
       <div className="space-y-4">
         <h1 className="font-display text-4xl font-bold">Conditions Générales d'Utilisation</h1>
-        <p className="text-muted-foreground">Dernière mise à jour : 26 juin 2026</p>
+        <p className="text-muted-foreground">Dernière mise à jour : 24 juillet 2026</p>
       </div>
 
       <div className="prose prose-foodhub max-w-none space-y-8">
@@ -23,13 +23,13 @@ export default function CGU() {
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">2. Acceptation des CGU</h2>
           <p className="text-foreground/80 leading-relaxed">
-            L'utilisation de TOK implique l'acceptation pleine et entière des présentes CGU. Si vous n'acceptez pas ces conditions, vous devez cesser d'utiliser la plateforme.
+            L'acceptation contractuelle est demandée au moment pertinent, notamment lors de la création d'un compte, d'une commande, d'une réservation, d'une souscription ou de l'activation d'un service professionnel. La version applicable et la date d'acceptation peuvent être conservées comme preuve.
           </p>
           <p className="text-foreground/80 leading-relaxed">
-            Des conditions complémentaires peuvent s'appliquer à certains services, notamment Tok One, les packs restaurateurs, les campagnes sponsorisées, les réservations Zéro Attente, La Table du Chef, les dons solidaires et les services de paiement.
+            Des conditions complémentaires peuvent s'appliquer à certains services, notamment Tok One, les packs restaurateurs, les campagnes sponsorisées, les réservations Zéro Attente, La Table du Chef, les dons solidaires et les services de paiement. Les documents distincts sont accessibles dans le <a href="/legal/index.html" className="text-primary hover:underline font-medium">centre des documents contractuels</a>.
           </p>
           <p className="text-foreground/80 leading-relaxed">
-            Une fenêtre de consentement peut être affichée à l'arrivée sur le site afin de rappeler les CGU, la politique de confidentialité et les règles cookies. Le refus n'autorise pas l'utilisation des services contractuels de TOK, notamment la création de compte, la commande, la réservation, les campagnes sponsorisées, les exports CRM et les fonctionnalités restaurateur qui supposent l'acceptation des présentes conditions.
+            Le choix relatif aux cookies et traitements facultatifs est indépendant de l'acceptation des présentes CGU. Le refus de la mesure d'audience, du marketing, de la personnalisation ou de la géolocalisation ne bloque pas les fonctions strictement nécessaires à l'exécution d'un contrat. Vous pouvez modifier ou retirer ces choix à tout moment depuis la page Cookies.
           </p>
         </section>
 
@@ -111,10 +111,10 @@ export default function CGU() {
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">7. Actualités, recommandations et contenus utilisateurs</h2>
           <p className="text-foreground/80 leading-relaxed">
-            Les utilisateurs peuvent interagir avec le fil Actualités par des vues, clics, likes, commentaires, partages, sauvegardes, reposts, signalements et préférences de type « Plus comme ça » ou « Moins comme ça ». Ces signaux peuvent améliorer ou réduire la visibilité de contenus similaires dans l'expérience utilisateur.
+            Les utilisateurs peuvent interagir avec le fil Actualités par des vues, clics, likes, commentaires, partages, sauvegardes, reposts, signalements et préférences de type « Plus comme ça » ou « Moins comme ça ». Ces signaux peuvent améliorer ou réduire la visibilité de contenus similaires dans l'expérience utilisateur lorsque la personnalisation est autorisée ou nécessaire à une action explicitement demandée.
           </p>
           <p className="text-foreground/80 leading-relaxed">
-            TOK peut classer les contenus selon des critères comme vos interactions, les tags du post, la proximité géographique, la popularité, l'engagement global, le statut sponsorisé et les réglages de modération. Ces recommandations visent à personnaliser le fil, sans garantir qu'un contenu soit exhaustif, neutre ou affiché dans un ordre chronologique strict.
+            TOK peut classer les contenus selon des critères comme vos interactions, les tags du post, la proximité géographique, la popularité, l'engagement global, le statut sponsorisé et les réglages de modération. Sans consentement à la personnalisation, les critères individuels facultatifs ne sont pas utilisés pour cibler l'affichage.
           </p>
           <p className="text-foreground/80 leading-relaxed">
             Les avis, commentaires, publications, photos, vidéos et signalements doivent être authentiques, respectueux, licites et ne pas porter atteinte aux droits de tiers. TOK peut masquer, déclasser, modérer, supprimer ou restaurer un contenu lorsque cela est nécessaire pour protéger la plateforme, les utilisateurs ou les restaurants.
@@ -175,13 +175,13 @@ export default function CGU() {
             TOK traite les données personnelles conformément à la Loi fédérale suisse sur la protection des données (LPD) et, lorsque applicable, au RGPD. Les données nécessaires aux commandes, réservations, paiements, notifications, campagnes, recommandations et services de support sont décrites dans notre Politique de confidentialité.
           </p>
           <p className="text-foreground/80 leading-relaxed">
-            Les cookies et technologies similaires peuvent être utilisés pour l'authentification, le panier, les préférences, la sécurité, la mesure d'audience et, avec consentement lorsque requis, la personnalisation ou le marketing.
+            Les technologies nécessaires sont toujours actives. La mesure d'audience, le marketing, la personnalisation et la géolocalisation sont désactivés par défaut, activables séparément et révocables à tout moment. Chaque décision est versionnée, datée localement et peut être enregistrée dans un journal serveur append-only sans conservation de l'adresse IP brute.
           </p>
           <p className="text-foreground/80 leading-relaxed">
             Les outils Actualités, CRM, campagnes sponsorisées, vidéo, IA, notifications, exports et réseaux sociaux peuvent impliquer des traitements supplémentaires décrits dans la politique de confidentialité et la politique cookies.
           </p>
           <p className="text-foreground/80 leading-relaxed">
-            Pour plus d'informations, consultez notre <Link to="/politique-confidentialite" className="text-primary hover:underline font-medium">Politique de confidentialité</Link> et notre <Link to="/cookies" className="text-primary hover:underline font-medium">Politique cookies</Link>.
+            Pour plus d'informations, consultez notre <Link to="/politique-confidentialite" className="text-primary hover:underline font-medium">Politique de confidentialité</Link> et notre <Link to="/cookies" className="text-primary hover:underline font-medium">inventaire Cookies et préférences</Link>.
           </p>
         </section>
 
@@ -207,7 +207,7 @@ export default function CGU() {
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">13. Modification des CGU</h2>
           <p className="text-foreground/80 leading-relaxed">
-            TOK peut modifier les présentes CGU pour tenir compte de l'évolution du service, de la réglementation, de la sécurité ou de nouvelles fonctionnalités. En cas de modification substantielle, les utilisateurs peuvent être informés par email, notification ou affichage dans l'application.
+            TOK peut modifier les présentes CGU pour tenir compte de l'évolution du service, de la réglementation, de la sécurité ou de nouvelles fonctionnalités. En cas de modification substantielle, les utilisateurs peuvent être informés par email, notification ou affichage dans l'application. Les opérations définitivement conclues restent rattachées à la version conservée avec leur preuve.
           </p>
         </section>
 
@@ -221,7 +221,7 @@ export default function CGU() {
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">15. TOK Connect, API partenaires, MCP et webhooks</h2>
           <p className="text-foreground/80 leading-relaxed">
-            TOK Connect désigne les interfaces techniques permettant à des partenaires approuvés d'interagir avec certains services TOK, notamment via API REST, OAuth client-credentials, webhooks signés, portail développeur, documentation OpenAPI et serveur MCP.
+            TOK Connect désigne les interfaces techniques permettant à des partenaires approuvés d'interagir avec certains services TOK, notamment via API REST, OAuth client-credentials, webhooks signés, portail développeur, documentation OpenAPI et serveur MCP. Les partenaires sont également soumis au <a href="/legal/tok-connect-api.html" className="text-primary hover:underline font-medium">contrat TOK Connect distinct</a>.
           </p>
           <ul className="list-disc pl-6 space-y-2 text-foreground/80">
             <li>L'accès production à TOK Connect est réservé aux partenaires validés par TOK, aux restaurants ayant accordé les autorisations nécessaires et aux clients OAuth disposant de scopes, quotas et limites définis.</li>
@@ -239,13 +239,12 @@ export default function CGU() {
 
         <section className="space-y-4 border-t pt-8 mt-8">
           <h2 className="text-2xl font-semibold">16. Contact</h2>
-          <p className="text-foreground/80 leading-relaxed">
-            Pour toute question relative aux présentes CGU :
-          </p>
+          <p className="text-foreground/80 leading-relaxed">Pour toute question relative aux présentes CGU :</p>
           <ul className="list-none space-y-2 text-foreground/80">
             <li><span className="font-medium text-foreground">Email :</span> {SUPPORT_EMAIL}</li>
             <li><span className="font-medium text-foreground">Formulaire :</span> via notre <Link to="/contact" className="text-primary hover:underline font-medium">page de contact</Link></li>
             <li><span className="font-medium text-foreground">Centre d'aide :</span> <Link to="/aide" className="text-primary hover:underline font-medium">Centre d'aide TOK</Link></li>
+            <li><span className="font-medium text-foreground">Documents :</span> <a href="/legal/index.html" className="text-primary hover:underline font-medium">centre contractuel TOK</a></li>
           </ul>
         </section>
       </div>
