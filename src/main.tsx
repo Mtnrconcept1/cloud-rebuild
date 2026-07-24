@@ -5,6 +5,9 @@ import "./home-section-headers.css";
 import { initCapacitorPlugins } from "@/lib/capacitor-init";
 import { initMonitoring } from "@/lib/monitoring";
 import { isNative } from "@/lib/platform";
+import { installPrivacyStorageGuard } from "@/lib/privacyConsentState";
+
+installPrivacyStorageGuard();
 
 // Restore dark mode preference
 const storedTheme = localStorage.getItem("theme");
