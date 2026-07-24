@@ -1,3 +1,5 @@
+import { isPrivacyCategoryAllowed } from "@/lib/privacyConsentState";
+
 export const SPONSORED_ATTRIBUTION_KEY = "miamz-sponsored-attribution-v1";
 export const SPONSORED_ATTRIBUTION_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
@@ -11,7 +13,7 @@ export interface SponsoredAttribution {
 export type SponsoredAttributionStore = Record<string, SponsoredAttribution[]>;
 
 function getBrowserStorage(): Storage | null {
-  if (typeof window === "undefined") return null;
+  if (typeof window === "undefined" || !isPrivacyCategoryAllowed("marketing")) return null;
   return window.localStorage;
 }
 
@@ -21,27 +23,21 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function normalizeEntry(value: unknown): SponsoredAttribution | null {
   if (!isRecord(value)) return null;
-
   const campaignId = typeof value.campaignId === "string" ? value.campaignId.trim() : "";
   const clickedAt = typeof value.clickedAt === "string" ? value.clickedAt.trim() : "";
   if (!campaignId || !clickedAt) return null;
-
   return { campaignId, clickedAt };
 }
 
 export function normalizeSponsoredAttributionStore(value: unknown): SponsoredAttributionStore {
   if (!isRecord(value)) return {};
-
   return Object.entries(value).reduce<SponsoredAttributionStore>((store, [restaurantId, rawValue]) => {
     const normalizedRestaurantId = restaurantId.trim();
     if (!normalizedRestaurantId) return store;
-
     const entries = Array.isArray(rawValue)
       ? rawValue.map(normalizeEntry).filter((entry): entry is SponsoredAttribution => Boolean(entry))
       : [normalizeEntry(rawValue)].filter((entry): entry is SponsoredAttribution => Boolean(entry));
-
     if (entries.length === 0) return store;
-
     const deduped = new Map<string, SponsoredAttribution>();
     entries.forEach((entry) => {
       const existing = deduped.get(entry.campaignId);
@@ -49,7 +45,6 @@ export function normalizeSponsoredAttributionStore(value: unknown): SponsoredAtt
         deduped.set(entry.campaignId, entry);
       }
     });
-
     store[normalizedRestaurantId] = [...deduped.values()]
       .sort((a, b) => Date.parse(b.clickedAt) - Date.parse(a.clickedAt))
       .slice(0, MAX_ATTRIBUTIONS_PER_RESTAURANT);
@@ -58,8 +53,7 @@ export function normalizeSponsoredAttributionStore(value: unknown): SponsoredAtt
 }
 
 export function readSponsoredAttributions(storage = getBrowserStorage()): SponsoredAttributionStore {
-  if (!storage) return {};
-
+  if (!storage || !isPrivacyCategoryAllowed("marketing")) return {};
   try {
     const raw = storage.getItem(SPONSORED_ATTRIBUTION_KEY);
     if (!raw) return {};
@@ -73,8 +67,10 @@ export function writeSponsoredAttributions(
   attributions: SponsoredAttributionStore,
   storage = getBrowserStorage(),
 ) {
-  if (!storage) return;
-
+  if (!storage || !isPrivacyCategoryAllowed("marketing")) {
+    storage?.removeItem(SPONSORED_ATTRIBUTION_KEY);
+    return;
+  }
   try {
     storage.setItem(SPONSORED_ATTRIBUTION_KEY, JSON.stringify(attributions));
   } catch {
@@ -91,14 +87,9 @@ function pruneExpiredAttributions(
       const clickedAtMs = Date.parse(entry.clickedAt);
       return Number.isFinite(clickedAtMs) && (nowMs - clickedAtMs) <= SPONSORED_ATTRIBUTION_MAX_AGE_MS;
     });
-
-    if (validEntries.length > 0) {
-      store[restaurantId] = validEntries;
-    }
-
+    if (validEntries.length > 0) store[restaurantId] = validEntries;
     return store;
   }, {});
-
   return pruned;
 }
 
@@ -108,10 +99,10 @@ export function rememberSponsoredAttribution(
   nowMs = Date.now(),
   storage = getBrowserStorage(),
 ) {
+  if (!isPrivacyCategoryAllowed("marketing") || !storage) return;
   const normalizedCampaignId = campaignId.trim();
   const normalizedRestaurantId = restaurantId.trim();
   if (!normalizedCampaignId || !normalizedRestaurantId) return;
-
   const attributions = pruneExpiredAttributions(readSponsoredAttributions(storage), nowMs);
   const existingEntries = attributions[normalizedRestaurantId] || [];
   const clickedAt = new Date(nowMs).toISOString();
@@ -119,14 +110,7 @@ export function rememberSponsoredAttribution(
     { campaignId: normalizedCampaignId, clickedAt },
     ...existingEntries.filter((entry) => entry.campaignId !== normalizedCampaignId),
   ].slice(0, MAX_ATTRIBUTIONS_PER_RESTAURANT);
-
-  writeSponsoredAttributions(
-    {
-      ...attributions,
-      [normalizedRestaurantId]: nextEntries,
-    },
-    storage,
-  );
+  writeSponsoredAttributions({ ...attributions, [normalizedRestaurantId]: nextEntries }, storage);
 }
 
 export function getValidSponsoredAttributions(
@@ -134,40 +118,36 @@ export function getValidSponsoredAttributions(
   nowMs = Date.now(),
   storage = getBrowserStorage(),
 ) {
+  if (!isPrivacyCategoryAllowed("marketing") || !storage) return [];
   const normalizedRestaurantId = restaurantId.trim();
   if (!normalizedRestaurantId) return [];
-
   const attributions = readSponsoredAttributions(storage);
   const pruned = pruneExpiredAttributions(attributions, nowMs);
   if (JSON.stringify(pruned) !== JSON.stringify(attributions)) {
     writeSponsoredAttributions(pruned, storage);
   }
-
   return pruned[normalizedRestaurantId] || [];
 }
 
 export function clearSponsoredAttributions(
   restaurantId: string,
   campaignIds?: string[],
-  storage = getBrowserStorage(),
+  storage = typeof window === "undefined" ? null : window.localStorage,
 ) {
+  if (!storage) return;
   const normalizedRestaurantId = restaurantId.trim();
   if (!normalizedRestaurantId) return;
-
-  const attributions = readSponsoredAttributions(storage);
+  const raw = storage.getItem(SPONSORED_ATTRIBUTION_KEY);
+  const attributions = raw ? normalizeSponsoredAttributionStore(JSON.parse(raw)) : {};
   const existingEntries = attributions[normalizedRestaurantId] || [];
   const campaignIdSet = new Set((campaignIds || []).map((campaignId) => campaignId.trim()).filter(Boolean));
-
   if (campaignIdSet.size === 0) {
     delete attributions[normalizedRestaurantId];
   } else {
     const nextEntries = existingEntries.filter((entry) => !campaignIdSet.has(entry.campaignId));
-    if (nextEntries.length > 0) {
-      attributions[normalizedRestaurantId] = nextEntries;
-    } else {
-      delete attributions[normalizedRestaurantId];
-    }
+    if (nextEntries.length > 0) attributions[normalizedRestaurantId] = nextEntries;
+    else delete attributions[normalizedRestaurantId];
   }
-
-  writeSponsoredAttributions(attributions, storage);
+  if (Object.keys(attributions).length === 0) storage.removeItem(SPONSORED_ATTRIBUTION_KEY);
+  else storage.setItem(SPONSORED_ATTRIBUTION_KEY, JSON.stringify(attributions));
 }
