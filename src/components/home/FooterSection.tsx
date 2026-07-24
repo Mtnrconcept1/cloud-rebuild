@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
-import { Bike } from "lucide-react";
+import { Bike, Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTokLogoSrc } from "@/hooks/useTokLogo";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { getVisiblePublicDiscoverLinks } from "@/lib/featureVisibility";
+import { openPrivacyConsentSettings } from "@/lib/privacyConsentState";
 
 interface FooterSectionProps {
   deliveryEnabled?: boolean;
@@ -17,7 +18,6 @@ export default function FooterSection({ deliveryEnabled = true }: FooterSectionP
 
   return (
     <>
-      {/* Livraison CTA */}
       {deliveryEnabled && (
         <section className="py-10 md:py-14">
           <div className="container">
@@ -35,7 +35,6 @@ export default function FooterSection({ deliveryEnabled = true }: FooterSectionP
         </section>
       )}
 
-      {/* Footer */}
       <footer className="border-t bg-card">
         <div className="container py-12 md:py-16">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
@@ -60,9 +59,10 @@ export default function FooterSection({ deliveryEnabled = true }: FooterSectionP
                 <Link to="/a-propos" className="hover:text-foreground transition-colors">À propos</Link>
                 <Link to="/contact" className="hover:text-foreground transition-colors">Contact</Link>
                 <Link to="/aide" className="hover:text-foreground transition-colors">Centre d'aide</Link>
-                <Link to="/cgu" className="hover:text-foreground transition-colors">CGU</Link>
+                <Link to="/cgu" className="hover:text-foreground transition-colors">Conditions clients</Link>
                 <Link to="/politique-confidentialite" className="hover:text-foreground transition-colors">Confidentialité</Link>
-                <Link to="/cookies" className="hover:text-foreground transition-colors">Cookies</Link>
+                <Link to="/cookies" className="hover:text-foreground transition-colors">Cookies et préférences</Link>
+                <a href="/legal/index.html" className="hover:text-foreground transition-colors">Documents contractuels</a>
               </nav>
             </div>
             <div className="space-y-3">
@@ -70,7 +70,7 @@ export default function FooterSection({ deliveryEnabled = true }: FooterSectionP
               <nav className="flex flex-col gap-2 text-sm text-muted-foreground">
                 <Link to="/restaurateurs/geneve" className="hover:text-foreground transition-colors">Devenir partenaire</Link>
                 <Link to="/packs-restaurateur" className="hover:text-foreground transition-colors">Voir les packs</Link>
-                <Link to="/conditions-restaurateurs" className="hover:text-foreground transition-colors">Conditions restaurateurs</Link>
+                <Link to="/conditions-restaurateurs" className="hover:text-foreground transition-colors">Contrat restaurateur</Link>
                 <Link to="/restaurateurs/google-business" className="hover:text-foreground transition-colors">Audit Google Business</Link>
                 <Link to="/restaurateurs/alternative-commission-couvert" className="hover:text-foreground transition-colors">Comparer les commissions</Link>
                 {dashboardEnabled ? (
@@ -94,10 +94,17 @@ export default function FooterSection({ deliveryEnabled = true }: FooterSectionP
           </div>
           <div className="border-t pt-6 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
             <p>&copy; 2026 Tok. Tous droits réservés.</p>
-            <div className="flex gap-4">
+            <div className="flex flex-wrap items-center justify-center gap-4">
               <Link to="/cgu" className="hover:text-foreground transition-colors">Conditions</Link>
               <Link to="/politique-confidentialite" className="hover:text-foreground transition-colors">Confidentialité</Link>
               <Link to="/cookies" className="hover:text-foreground transition-colors">Cookies</Link>
+              <button
+                type="button"
+                onClick={openPrivacyConsentSettings}
+                className="inline-flex items-center gap-1.5 hover:text-foreground transition-colors"
+              >
+                <Settings2 className="h-3.5 w-3.5" /> Gérer mes préférences
+              </button>
             </div>
           </div>
         </div>
