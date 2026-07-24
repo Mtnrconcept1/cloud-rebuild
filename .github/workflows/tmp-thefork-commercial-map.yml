@@ -8,6 +8,13 @@ on:
       - .github/workflows/tmp-thefork-commercial-map.yml
       - scripts/tmp_build_thefork_commercial_map.py
       - scripts/.tmp/thefork-geneva-520.part-*
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/tmp-thefork-commercial-map.yml
+      - scripts/tmp_build_thefork_commercial_map.py
+      - scripts/.tmp/thefork-geneva-520.part-*
 
 permissions:
   contents: write
