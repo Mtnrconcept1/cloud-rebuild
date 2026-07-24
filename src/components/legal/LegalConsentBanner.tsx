@@ -108,7 +108,7 @@ export default function LegalConsentBanner() {
     || categories.geolocation;
 
   return (
-    <div className="fixed inset-0 z-[1300] flex items-end justify-center bg-slate-950/45 px-3 py-3 backdrop-blur-sm sm:items-center sm:px-6">
+    <div className="fixed inset-0 z-[1300] flex items-center justify-center bg-slate-950/45 px-3 py-3 backdrop-blur-sm sm:px-6">
       <section
         role="dialog"
         aria-modal="true"
