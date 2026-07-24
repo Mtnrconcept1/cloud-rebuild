@@ -1,11 +1,10 @@
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 
 export const CONSENT_VERSION = "2026-07-24-v2";
 export const CONSENT_STORAGE_KEY = `tok_consent_${CONSENT_VERSION}`;
 export const CONSENT_EVENT = "tok:consent-change";
 
 export type ConsentCategory = "necessary" | "analytics" | "marketing" | "personalization" | "geolocation";
-
 export type ConsentPreferences = Record<ConsentCategory, boolean>;
 
 export type ConsentReceipt = {
@@ -48,8 +47,11 @@ export function readConsent(): ConsentReceipt | null {
 
 async function persistReceipt(receipt: ConsentReceipt) {
   try {
+    const supabase = getSupabase();
     const { data } = await supabase.auth.getUser();
-    await supabase.from("consent_receipts").insert({
+    await (supabase as unknown as {
+      from: (table: string) => { insert: (payload: Record<string, unknown>) => Promise<unknown> };
+    }).from("consent_receipts").insert({
       user_id: data.user?.id ?? null,
       consent_version: receipt.version,
       necessary: true,
@@ -62,7 +64,7 @@ async function persistReceipt(receipt: ConsentReceipt) {
       recorded_at: receipt.recordedAt,
     });
   } catch {
-    // Local storage remains the source used by the browser when the audit endpoint is temporarily unavailable.
+    // Browser state remains effective if the audit endpoint is temporarily unavailable.
   }
 }
 
