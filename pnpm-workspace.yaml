@@ -15,6 +15,7 @@ ignoredBuiltDependencies:
 overrides:
   protobufjs: 7.6.4
   ws: 8.21.0
+  brace-expansion: ">=1.1.16"
 
 allowBuilds:
   "@firebase/util": false

@@ -164,7 +164,8 @@
   },
   "pnpm": {
     "overrides": {
-      "protobufjs": "7.6.5"
+      "protobufjs": "7.6.5",
+      "brace-expansion": ">=1.1.16"
     }
   },
   "packageManager": "pnpm@10.28.1"
