@@ -117,7 +117,7 @@ function decompressBlock(
   const originalPointer = bits(24);
   if (originalPointer > bufferSize) fail("original pointer exceeds block size");
 
-  let bitmap = bits(16);
+  const bitmap = bits(16);
   let symbolTotal = 0;
   for (let group = 0; group < 16; group += 1) {
     if ((bitmap & (1 << (15 - group))) === 0) continue;
