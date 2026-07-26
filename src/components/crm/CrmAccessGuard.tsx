@@ -20,6 +20,7 @@ import {
 const supabase = getSupabase();
 
 type MfaState = "checking" | "verified" | "challenge" | "setup" | "error";
+type RecoveryState = "idle" | "requesting" | "code" | "confirming";
 
 type CrmAccessGuardProps = {
   children: ReactNode;
@@ -86,6 +87,10 @@ export default function CrmAccessGuard({
   const [factorToReplaceId, setFactorToReplaceId] = useState<string | null>(null);
   const [rotationConfirmationVisible, setRotationConfirmationVisible] = useState(false);
   const [rotationRequested, setRotationRequested] = useState(false);
+  const [recoveryState, setRecoveryState] = useState<RecoveryState>("idle");
+  const [recoveryChallengeId, setRecoveryChallengeId] = useState<string | null>(null);
+  const [recoveryDestination, setRecoveryDestination] = useState<string | null>(null);
+  const [recoveryCode, setRecoveryCode] = useState("");
 
   const accessRequired = requiresPremiumCrm ?? requiresElite;
   const accessGranted = hasPremiumCrmAccess ?? hasEliteAccess;
@@ -270,6 +275,85 @@ export default function CrmAccessGuard({
       setRotationConfirmationVisible(false);
       setRotationRequested(false);
       setState("verified");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const requestMfaRecovery = async () => {
+    setBusy(true);
+    setRecoveryState("requesting");
+    setMessage(null);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("crm-mfa-recovery", {
+        body: { action: "request" },
+      });
+      if (error) throw error;
+
+      const nextChallengeId = typeof data?.challengeId === "string" ? data.challengeId : null;
+      if (!nextChallengeId) {
+        throw new Error("Le code de récupération n'a pas pu être préparé.");
+      }
+
+      setRecoveryChallengeId(nextChallengeId);
+      setRecoveryDestination(typeof data?.destination === "string" ? data.destination : null);
+      setRecoveryCode("");
+      setRecoveryState("code");
+      toast({
+        title: "Code de récupération envoyé",
+        description: "Consultez l'adresse e-mail vérifiée du compte. Le code expire dans 10 minutes.",
+      });
+    } catch (error) {
+      setRecoveryState("idle");
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "Impossible d'envoyer le code de récupération.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const confirmMfaRecovery = async () => {
+    const code = recoveryCode.replace(/\s+/g, "");
+    if (!recoveryChallengeId || code.length !== 8) return;
+
+    setBusy(true);
+    setRecoveryState("confirming");
+    setMessage(null);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("crm-mfa-recovery", {
+        body: {
+          action: "confirm",
+          challengeId: recoveryChallengeId,
+          code,
+        },
+      });
+      if (error) throw error;
+      if (data?.reset !== true) {
+        throw new Error("La réinitialisation n'a pas pu être confirmée.");
+      }
+
+      toast({
+        title: "Ancienne application déconnectée",
+        description: "Reconnectez-vous puis scannez le nouveau QR code CRM.",
+      });
+
+      await supabase.auth.signOut({ scope: "local" });
+      const redirect = encodeURIComponent(
+        `${window.location.pathname}${window.location.search}`,
+      );
+      window.location.assign(`/auth?redirect=${redirect}`);
+    } catch (error) {
+      setRecoveryState("code");
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "Code de récupération invalide ou expiré.",
+      );
     } finally {
       setBusy(false);
     }
@@ -539,9 +623,79 @@ export default function CrmAccessGuard({
                   Changer d'application / Réinitialiser le code
                 </Button>
               )}
-              <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                Vous n'avez plus accès au code actuel ? Le support TOK doit d'abord vérifier votre identité avant toute réinitialisation.
-              </p>
+              <div className="mt-3 space-y-3 rounded-xl border border-sky-200 bg-sky-50/70 p-3">
+                <p className="text-xs leading-5 text-sky-950">
+                  Vous avez supprimé ou perdu l'ancienne application ? Confirmez votre identité avec un code envoyé à l'adresse e-mail vérifiée du compte.
+                </p>
+                {recoveryState === "idle" ? (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => {
+                      setRotationRequested(false);
+                      void requestMfaRecovery();
+                    }}
+                    disabled={busy}
+                    className="h-auto min-h-10 w-full gap-2 whitespace-normal py-2.5"
+                  >
+                    <KeyRound className="h-4 w-4 shrink-0" />
+                    Je n'ai plus accès à mon application d'authentification
+                  </Button>
+                ) : null}
+                {recoveryState === "requesting" ? (
+                  <div className="flex items-center gap-2 text-xs text-sky-900">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Envoi du code de récupération...
+                  </div>
+                ) : null}
+                {recoveryChallengeId && (recoveryState === "code" || recoveryState === "confirming") ? (
+                  <div className="space-y-2">
+                    <p className="text-xs leading-5 text-sky-950">
+                      Code envoyé à {recoveryDestination || "l'adresse vérifiée"}. Il expire dans 10 minutes.
+                    </p>
+                    <Input
+                      value={recoveryCode}
+                      onChange={(event) => setRecoveryCode(event.target.value)}
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      placeholder="12345678"
+                      aria-label="Code de récupération CRM"
+                    />
+                    <div className="flex flex-col gap-2 sm:flex-row">
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={confirmMfaRecovery}
+                        disabled={busy || recoveryCode.replace(/\s+/g, "").length !== 8}
+                        className="gap-2 sm:flex-1"
+                      >
+                        {recoveryState === "confirming" ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <ShieldCheck className="h-4 w-4" />
+                        )}
+                        Réinitialiser et me reconnecter
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setRecoveryState("idle");
+                          setRecoveryChallengeId(null);
+                          setRecoveryDestination(null);
+                          setRecoveryCode("");
+                          setMessage(null);
+                        }}
+                        disabled={busy}
+                      >
+                        Annuler
+                      </Button>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
             </div>
           ) : null}
 
