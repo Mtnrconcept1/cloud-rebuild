@@ -1,20 +1,96 @@
--- Keep the standalone TOK demo aligned with production security boundaries.
--- This migration is intentionally idempotent because production already has the
--- guarded wrapper while older demo projects may still expose the implementation.
+-- Align standalone TOK environments with production security boundaries.
+-- Production already has the guarded wrapper; older demo projects may still
+-- expose the destructive implementation directly. The migration is idempotent.
 
-DO $migration$
+BEGIN;
+
+SELECT pg_advisory_xact_lock(
+  hashtext('tok-demo:delete-user-hardening-and-social-promotion-cron:v1')
+);
+
+DO $preflight$
+DECLARE
+  v_delete regprocedure := to_regprocedure(
+    'public.delete_user_gdpr_cascade(uuid)'
+  );
+  v_delete_unguarded regprocedure := to_regprocedure(
+    'public.delete_user_gdpr_cascade_unguarded(uuid)'
+  );
+  v_has_role regprocedure := to_regprocedure(
+    'public.has_role(uuid,public.app_role)'
+  );
+  v_sync_runner regprocedure := to_regprocedure(
+    'public.run_social_post_promotion_status_sync()'
+  );
+  v_bad_trigger regprocedure := to_regprocedure(
+    'public.sync_social_post_promotion_status()'
+  );
+  v_cron_schedule regprocedure := to_regprocedure(
+    'cron.schedule(text,text,text)'
+  );
 BEGIN
-  IF to_regprocedure('public.delete_user_gdpr_cascade_unguarded(uuid)') IS NULL THEN
-    IF to_regprocedure('public.delete_user_gdpr_cascade(uuid)') IS NULL THEN
-      RAISE EXCEPTION 'delete_user_gdpr_cascade(uuid) is missing';
-    END IF;
+  IF v_delete IS NULL AND v_delete_unguarded IS NULL THEN
+    RAISE EXCEPTION
+      'Preflight failed: GDPR deletion function is absent';
+  END IF;
 
-    ALTER FUNCTION public.delete_user_gdpr_cascade(uuid)
-      RENAME TO delete_user_gdpr_cascade_unguarded;
+  IF v_has_role IS NULL THEN
+    RAISE EXCEPTION
+      'Preflight failed: public.has_role(uuid, public.app_role) is absent';
+  END IF;
+
+  IF v_sync_runner IS NULL THEN
+    RAISE EXCEPTION
+      'Preflight failed: safe social-promotion sync runner is absent';
+  END IF;
+
+  IF pg_get_function_result(v_sync_runner::oid) <> 'integer' THEN
+    RAISE EXCEPTION
+      'Preflight failed: safe social-promotion runner has unexpected return type';
+  END IF;
+
+  IF v_bad_trigger IS NULL
+     OR pg_get_function_result(v_bad_trigger::oid) <> 'trigger' THEN
+    RAISE EXCEPTION
+      'Preflight failed: expected trigger function is absent or changed';
+  END IF;
+
+  IF v_cron_schedule IS NULL THEN
+    RAISE EXCEPTION
+      'Preflight failed: cron.schedule(text,text,text) is absent';
+  END IF;
+
+  IF (
+    SELECT count(*)
+    FROM cron.job
+    WHERE jobname = 'tok-sync-social-post-promotions'
+  ) <> 1 THEN
+    RAISE EXCEPTION
+      'Preflight failed: expected exactly one social-promotion cron job';
   END IF;
 END;
-$migration$;
+$preflight$;
 
+DO $rename$
+BEGIN
+  IF to_regprocedure(
+       'public.delete_user_gdpr_cascade_unguarded(uuid)'
+     ) IS NULL THEN
+    IF to_regprocedure(
+         'public.delete_user_gdpr_cascade(uuid)'
+       ) IS NULL THEN
+      RAISE EXCEPTION
+        'Cannot rename missing public.delete_user_gdpr_cascade(uuid)';
+    END IF;
+
+    EXECUTE
+      'ALTER FUNCTION public.delete_user_gdpr_cascade(uuid) '
+      'RENAME TO delete_user_gdpr_cascade_unguarded';
+  END IF;
+END;
+$rename$;
+
+-- Reconcile the old implementation with the current event_store schema.
 CREATE OR REPLACE FUNCTION public.delete_user_gdpr_cascade_unguarded(
   p_user_id uuid
 )
@@ -32,14 +108,17 @@ BEGIN
   END IF;
 
   SELECT EXISTS (
-    SELECT 1 FROM auth.users AS account WHERE account.id = p_user_id
-  ) INTO v_exists;
+    SELECT 1
+    FROM auth.users AS account
+    WHERE account.id = p_user_id
+  )
+  INTO v_exists;
+
   IF NOT v_exists THEN
     RAISE EXCEPTION 'delete_user_gdpr_cascade: user % does not exist', p_user_id
       USING ERRCODE = '22023';
   END IF;
 
-  -- Retain accounting records while removing user-entered PII.
   BEGIN
     UPDATE public.orders
     SET metadata = COALESCE(metadata, '{}'::jsonb)
@@ -104,7 +183,10 @@ BEGIN
     DELETE FROM public.event_store AS stored_event
     WHERE (
         lower(COALESCE(stored_event.entity_type, '')) IN (
-          'user', 'auth_user', 'profile', 'applicant'
+          'user',
+          'auth_user',
+          'profile',
+          'applicant'
         )
         AND stored_event.entity_id = p_user_id
       )
@@ -130,17 +212,21 @@ BEGIN
     NULL;
   END;
 
-  DELETE FROM auth.users AS account WHERE account.id = p_user_id;
+  DELETE FROM auth.users AS account
+  WHERE account.id = p_user_id;
 END;
 $function$;
 
+REVOKE ALL
+ON FUNCTION public.delete_user_gdpr_cascade_unguarded(uuid)
+FROM PUBLIC, anon, authenticated, service_role;
+
 COMMENT ON FUNCTION public.delete_user_gdpr_cascade_unguarded(uuid)
-IS 'Internal GDPR deletion implementation. Callable only through guarded SECURITY DEFINER wrappers.';
+IS 'Internal GDPR deletion implementation. Not executable through the Data API.';
 
-REVOKE ALL ON FUNCTION public.delete_user_gdpr_cascade_unguarded(uuid)
-  FROM PUBLIC, anon, authenticated, service_role;
-
-CREATE OR REPLACE FUNCTION public.delete_user_gdpr_cascade(p_user_id uuid)
+CREATE OR REPLACE FUNCTION public.delete_user_gdpr_cascade(
+  p_user_id uuid
+)
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -159,7 +245,10 @@ BEGIN
       v_actor_id IS NULL
       OR (
         v_actor_id IS DISTINCT FROM p_user_id
-        AND NOT public.has_role(v_actor_id, 'admin'::public.app_role)
+        AND NOT public.has_role(
+          v_actor_id,
+          'admin'::public.app_role
+        )
       )
     )
   THEN
@@ -170,92 +259,138 @@ BEGIN
 END;
 $function$;
 
+REVOKE ALL
+ON FUNCTION public.delete_user_gdpr_cascade(uuid)
+FROM PUBLIC, anon, authenticated, service_role;
+
+GRANT EXECUTE
+ON FUNCTION public.delete_user_gdpr_cascade(uuid)
+TO authenticated, service_role;
+
 COMMENT ON FUNCTION public.delete_user_gdpr_cascade(uuid)
-IS 'Deletes the current user, or an admin-selected user, through the internal GDPR cascade.';
+IS 'GDPR deletion wrapper: caller may delete self; admin/service_role may delete another user.';
 
-REVOKE ALL ON FUNCTION public.delete_user_gdpr_cascade(uuid)
-  FROM PUBLIC, anon, authenticated, service_role;
-GRANT EXECUTE ON FUNCTION public.delete_user_gdpr_cascade(uuid)
-  TO authenticated, service_role;
+-- pg_cron updates the existing named job instead of creating a duplicate.
+SELECT cron.schedule(
+  'tok-sync-social-post-promotions',
+  '*/5 * * * *',
+  'SELECT public.run_social_post_promotion_status_sync();'
+);
 
--- Older demo environments scheduled the trigger function directly. Repoint the
--- existing job to the callable runner already used by production.
-DO $migration$
+DO $postflight$
 DECLARE
-  v_job_id bigint;
+  v_wrapper regprocedure := to_regprocedure(
+    'public.delete_user_gdpr_cascade(uuid)'
+  );
+  v_unguarded regprocedure := to_regprocedure(
+    'public.delete_user_gdpr_cascade_unguarded(uuid)'
+  );
+  v_job_count integer;
+  v_bad_job_count integer;
 BEGIN
-  IF to_regclass('cron.job') IS NULL THEN
-    RETURN;
+  IF v_wrapper IS NULL OR v_unguarded IS NULL THEN
+    RAISE EXCEPTION
+      'Postflight failed: wrapper or internal GDPR function is absent';
   END IF;
 
-  IF to_regprocedure('public.run_social_post_promotion_status_sync()') IS NULL THEN
-    RAISE EXCEPTION 'run_social_post_promotion_status_sync() is missing';
+  IF NOT (
+    SELECT p.prosecdef
+      AND p.proconfig @> ARRAY['search_path=public, auth, storage']::text[]
+    FROM pg_proc AS p
+    WHERE p.oid = v_wrapper::oid
+  ) THEN
+    RAISE EXCEPTION
+      'Postflight failed: wrapper SECURITY DEFINER/search_path mismatch';
   END IF;
 
-  SELECT jobid
-  INTO v_job_id
+  IF NOT (
+    SELECT p.prosecdef
+      AND p.proconfig @> ARRAY['search_path=public, auth, storage']::text[]
+    FROM pg_proc AS p
+    WHERE p.oid = v_unguarded::oid
+  ) THEN
+    RAISE EXCEPTION
+      'Postflight failed: internal SECURITY DEFINER/search_path mismatch';
+  END IF;
+
+  IF has_function_privilege('anon', v_wrapper, 'EXECUTE') THEN
+    RAISE EXCEPTION
+      'Postflight failed: anon can execute guarded GDPR wrapper';
+  END IF;
+
+  IF NOT has_function_privilege(
+    'authenticated',
+    v_wrapper,
+    'EXECUTE'
+  ) THEN
+    RAISE EXCEPTION
+      'Postflight failed: authenticated cannot execute guarded wrapper';
+  END IF;
+
+  IF NOT has_function_privilege(
+    'service_role',
+    v_wrapper,
+    'EXECUTE'
+  ) THEN
+    RAISE EXCEPTION
+      'Postflight failed: service_role cannot execute guarded wrapper';
+  END IF;
+
+  IF has_function_privilege('anon', v_unguarded, 'EXECUTE')
+     OR has_function_privilege(
+          'authenticated',
+          v_unguarded,
+          'EXECUTE'
+        )
+     OR has_function_privilege(
+          'service_role',
+          v_unguarded,
+          'EXECUTE'
+        ) THEN
+    RAISE EXCEPTION
+      'Postflight failed: internal GDPR function remains API-executable';
+  END IF;
+
+  IF pg_get_functiondef(v_wrapper::oid)
+       NOT ILIKE '%v_actor_id uuid := auth.uid()%' THEN
+    RAISE EXCEPTION
+      'Postflight failed: wrapper actor guard is absent';
+  END IF;
+
+  IF pg_get_functiondef(v_wrapper::oid)
+       NOT ILIKE '%public.has_role%' THEN
+    RAISE EXCEPTION
+      'Postflight failed: wrapper admin guard is absent';
+  END IF;
+
+  SELECT count(*)
+  INTO v_job_count
   FROM cron.job
-  WHERE jobname = 'tok-sync-social-post-promotions';
+  WHERE jobname = 'tok-sync-social-post-promotions'
+    AND active
+    AND schedule = '*/5 * * * *'
+    AND lower(
+      regexp_replace(command, '[[:space:]]', '', 'g')
+    ) = 'selectpublic.run_social_post_promotion_status_sync();';
 
-  IF v_job_id IS NOT NULL THEN
-    PERFORM cron.alter_job(
-      job_id := v_job_id,
-      command := 'SELECT public.run_social_post_promotion_status_sync();'
-    );
+  IF v_job_count <> 1 THEN
+    RAISE EXCEPTION
+      'Postflight failed: safe social-promotion cron is not uniquely configured';
+  END IF;
+
+  SELECT count(*)
+  INTO v_bad_job_count
+  FROM cron.job
+  WHERE active
+    AND command ~* '(^|[^A-Za-z0-9_])(?:public[.])?sync_social_post_promotion_status[[:space:]]*[(]';
+
+  IF v_bad_job_count <> 0 THEN
+    RAISE EXCEPTION
+      'Postflight failed: a cron still invokes the trigger function directly';
   END IF;
 END;
-$migration$;
+$postflight$;
 
-DO $assertions$
-BEGIN
-  IF has_function_privilege(
-      'anon',
-      'public.delete_user_gdpr_cascade_unguarded(uuid)',
-      'EXECUTE'
-    )
-    OR has_function_privilege(
-      'authenticated',
-      'public.delete_user_gdpr_cascade_unguarded(uuid)',
-      'EXECUTE'
-    )
-    OR has_function_privilege(
-      'service_role',
-      'public.delete_user_gdpr_cascade_unguarded(uuid)',
-      'EXECUTE'
-    )
-  THEN
-    RAISE EXCEPTION 'The unguarded GDPR function remains executable by an API role';
-  END IF;
+NOTIFY pgrst, 'reload schema';
 
-  IF has_function_privilege(
-      'anon',
-      'public.delete_user_gdpr_cascade(uuid)',
-      'EXECUTE'
-    )
-    OR NOT has_function_privilege(
-      'authenticated',
-      'public.delete_user_gdpr_cascade(uuid)',
-      'EXECUTE'
-    )
-    OR NOT has_function_privilege(
-      'service_role',
-      'public.delete_user_gdpr_cascade(uuid)',
-      'EXECUTE'
-    )
-  THEN
-    RAISE EXCEPTION 'The guarded GDPR function grants are invalid';
-  END IF;
-
-  IF to_regclass('cron.job') IS NOT NULL
-    AND EXISTS (
-      SELECT 1
-      FROM cron.job
-      WHERE jobname = 'tok-sync-social-post-promotions'
-        AND command IS DISTINCT FROM
-          'SELECT public.run_social_post_promotion_status_sync();'
-    )
-  THEN
-    RAISE EXCEPTION 'The social promotion cron still targets the trigger function';
-  END IF;
-END;
-$assertions$;
+COMMIT;
