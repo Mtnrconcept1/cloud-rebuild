@@ -62,6 +62,7 @@ describe("CRM MFA recovery", () => {
     expect(guard).toContain('"crm-mfa-recovery"');
     expect(guard).toContain("recoveryChallengeId");
     expect(guard).toContain("supabase.auth.signOut");
+    expect(edgeFunction).toContain("signOutRequired: true");
     expect(config).toContain("[functions.crm-mfa-recovery]");
     expect(config).toContain("verify_jwt = false");
   });
