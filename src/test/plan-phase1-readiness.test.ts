@@ -42,6 +42,8 @@ describe("phase 1 launch audit plan readiness", () => {
     expect(ciWorkflow).toContain("uses: ./.github/workflows/_validation.yml");
     expect(validationWorkflow).toMatch(/NODE_VERSION:\s*22/);
     expect(validationWorkflow).not.toMatch(/NODE_VERSION:\s*24/);
+    expect(validationWorkflow).toContain("max_attempts=3");
+    expect(validationWorkflow).toContain("pnpm audit returned malformed registry JSON");
     expect(deployWorkflow).toMatch(/NODE_VERSION:\s*22/);
     expect(deployWorkflow).toMatch(/SUPABASE_CLI_VERSION:\s*2\.102\.0/);
     expect(pkg.engines.node).toBe(">=22.0.0");

@@ -187,7 +187,46 @@ jobs:
           npm_config_fetch_retry_maxtimeout: 120000
         run: |
           set -euo pipefail
-          pnpm audit --prod --audit-level high
+
+          is_transient_audit_parse_error() {
+            local output="$1"
+            [[ "$output" == *"pnpm: Unexpected token"* && "$output" == *"is not valid JSON"* ]] || \
+            [[ "$output" == *"Unexpected token ''"* && "$output" == *"is not valid JSON"* ]]
+          }
+
+          retry_base_delay_seconds=5
+          max_delay_seconds=60
+          max_attempts=3
+          attempt=1
+          while (( attempt <= max_attempts )); do
+            set +e
+            audit_output="$(pnpm audit --prod --audit-level high 2>&1)"
+            audit_status=$?
+            set -e
+
+            printf '%s\n' "$audit_output"
+
+            if [[ $audit_status -eq 0 ]]; then
+              exit 0
+            fi
+
+            if is_transient_audit_parse_error "$audit_output" && [[ $attempt -lt $max_attempts ]]; then
+              echo "::warning::pnpm audit returned malformed registry JSON (attempt ${attempt}/${max_attempts}); retrying."
+              delay_seconds=$(( retry_base_delay_seconds * (2 ** (attempt - 1)) ))
+              if (( delay_seconds > max_delay_seconds )); then
+                delay_seconds=$max_delay_seconds
+              fi
+              sleep "$delay_seconds"
+              attempt=$(( attempt + 1 ))
+              continue
+            fi
+
+            exit "$audit_status"
+          done
+
+          # Defensive guard: the loop above should always exit via success or failure.
+          echo "::error::pnpm audit retry loop finished unexpectedly."
+          exit 1
 
       - name: Lint all sources
         id: lint
