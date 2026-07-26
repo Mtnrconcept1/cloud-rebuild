@@ -602,7 +602,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          deployment_output="$(pnpm dlx "vercel@${VERCEL_CLI_VERSION}" deploy --prebuilt --prod --token="$VERCEL_TOKEN")"
+          deployment_output="$(pnpm dlx "vercel@${VERCEL_CLI_VERSION}" deploy --prebuilt --prod --token="$VERCEL_TOKEN" --meta githubCommitSha="$GITHUB_SHA")"
           deployment_url="$(printf '%s\n' "$deployment_output" | tail -n 1 | tr -d '\r')"
           test -n "$deployment_url" || (echo "::error::Vercel did not return a deployment URL." && exit 1)
           echo "Vercel deployment: $deployment_url"
