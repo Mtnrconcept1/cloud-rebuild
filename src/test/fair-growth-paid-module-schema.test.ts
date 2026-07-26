@@ -31,7 +31,25 @@ describe("Fair Growth paid module cancellation schema", () => {
       "timestamp with time zone",
     );
     expect(migration).toContain(
-      "RAISE EXCEPTION 'A cancelled paid module is missing cancelled_at'",
+      "Postflight failed: a cancelled module has no cancelled_at timestamp",
+    );
+  });
+
+  it("preserves ACL, RLS, policies, constraints and indexes", () => {
+    expect(migration).toContain(
+      "CREATE TEMP TABLE tok_paid_modules_prechange",
+    );
+    expect(migration).toContain(
+      "policy_fingerprint",
+    );
+    expect(migration).toContain(
+      "constraint_fingerprint",
+    );
+    expect(migration).toContain(
+      "index_fingerprint",
+    );
+    expect(migration).toContain(
+      "grants, RLS, policies, constraints or indexes changed unexpectedly",
     );
   });
 });
