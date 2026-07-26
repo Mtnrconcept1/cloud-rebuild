@@ -165,6 +165,11 @@ DO $$
 DECLARE
   v_base text := 'https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1';
 BEGIN
+  IF private.tok_is_production_cluster() IS NOT TRUE THEN
+    RAISE NOTICE
+      'Production-targeting cron schedule skipped outside the Production cluster';
+    RETURN;
+  END IF;
   IF to_regclass('cron.job') IS NULL OR to_regclass('vault.decrypted_secrets') IS NULL THEN
     RAISE EXCEPTION 'pg_cron or Vault is unavailable';
   END IF;
