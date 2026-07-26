@@ -185,9 +185,7 @@ jobs:
           npm_config_fetch_retries: 5
           npm_config_fetch_retry_mintimeout: 20000
           npm_config_fetch_retry_maxtimeout: 120000
-        run: |
-          set -euo pipefail
-          pnpm audit --prod --audit-level high
+        run: bash scripts/ci-pnpm-audit.sh
 
       - name: Lint all sources
         id: lint
