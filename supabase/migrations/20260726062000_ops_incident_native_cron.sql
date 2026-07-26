@@ -1,7 +1,7 @@
 -- Make Edge Function incident detection independent from GitHub Actions schedules.
 -- The cron request is authenticated with the existing Vault-backed internal
--- scheduler secret. The wrapper then calls ops-incident-control with the
--- dedicated OPS_CONTROL_SECRET kept exclusively in the Edge runtime.
+-- scheduler secret. The wrapper then calls ops-incident-control with its
+-- dedicated Edge-runtime control credential, which never enters Postgres.
 
 CREATE EXTENSION IF NOT EXISTS pg_cron;
 CREATE EXTENSION IF NOT EXISTS pg_net;
@@ -56,6 +56,3 @@ BEGIN
   );
 END;
 $$;
-
-COMMENT ON EXTENSION pg_cron IS
-  'Schedules internal TOK workers, including the five-minute native incident scan.';
