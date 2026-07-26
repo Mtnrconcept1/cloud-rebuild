@@ -174,6 +174,35 @@ describe("TOK Connect Edge Functions", () => {
     expect(source).toContain("MCP resources/read action-window");
   });
 
+  it("renders the ChatGPT widget with the application's own design tokens", () => {
+    const source = read("supabase/functions/tok-connect-mcp/index.ts");
+    const appCss = read("src/index.css");
+
+    // The widget must not drift from the product: these are the exact tokens
+    // declared in src/index.css, not hand-picked approximations.
+    for (const token of ["24 95% 53%", "152 55% 45%", "222 30% 5%", "222 28% 11%", "156 58% 47%"]) {
+      expect(appCss).toContain(token);
+      expect(source).toContain(token);
+    }
+
+    expect(source).toContain('"DM Sans"');
+    expect(source).toContain('"Playfair Display"');
+    expect(source).toContain("--tok-font-display");
+    expect(source).toContain("color-scheme: light dark");
+    expect(source).toContain("@media (prefers-color-scheme: dark)");
+
+    // Legacy hardcoded palette and generic font stack are gone.
+    expect(source).not.toContain("--tok-orange");
+    expect(source).not.toContain("#ff6b14");
+    expect(source).not.toContain("font-family: Inter,");
+    expect(source).not.toContain("color: #111827;");
+
+    // Fonts only render when their origins are declared to the widget CSP.
+    expect(source).toContain("WIDGET_RESOURCE_DOMAINS");
+    expect(source).toContain("https://fonts.googleapis.com");
+    expect(source).toContain("https://fonts.gstatic.com");
+  });
+
   it("keeps public discovery available while requiring OAuth for protected MCP tools", () => {
     const source = read("supabase/functions/tok-connect-mcp/index.ts");
     const transport = read("supabase/functions/_shared/mcp-http.ts");

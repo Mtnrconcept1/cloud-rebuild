@@ -74,9 +74,10 @@ describe("Premium daily dish AI", () => {
     const client = read("src/lib/ai/dailyDishAi.ts");
     const lockWindow = read("supabase/migrations/20260726070000_daily_dish_claim_lock_window.sql");
 
-    // The default model must exist in the shared pricing table; gpt-5.6-sol
-    // was a phantom model that made every production generation fail.
-    expect(edge).toContain('Deno.env.get("OPENAI_MODEL_DAILY_DISH")?.trim() || "gpt-5.5"');
+    // The default model must exist in the shared pricing table (gpt-5.6-sol
+    // was a phantom model that made every production generation fail) and
+    // stay on the economy text tier for this daily, per-restaurant workload.
+    expect(edge).toContain('Deno.env.get("OPENAI_MODEL_DAILY_DISH")?.trim() || "gpt-5.4-mini"');
     expect(edge).not.toContain("gpt-5.6-sol");
 
     // Web-search research and structured proposals each get 100 s, the client

@@ -1,5 +1,6 @@
 import {
   HttpError,
+  authenticateRequest,
   createAdminClient,
   jsonResponse,
   writeAuditLog,
@@ -870,6 +871,25 @@ function assertSharedSecret(req: Request, headerName: string, envName: string) {
   if (!configured || !safeEqual(provided, configured)) throw new HttpError(401, "unauthorized");
 }
 
+// The read-only status route and the scan action are also reachable from the
+// project-internal native scanner, which authenticates with the service-role
+// key when no dedicated control secret has been provisioned yet. External
+// callers keep using x-ops-control-secret.
+async function assertScanAuthorized(req: Request) {
+  const provided = req.headers.get("x-ops-control-secret")?.trim() || "";
+  const configured = getEnv("OPS_CONTROL_SECRET");
+  if (configured && safeEqual(provided, configured)) return;
+
+  try {
+    const actor = await authenticateRequest(req, { allowServiceRole: true });
+    if (actor.isServiceRole) return;
+  } catch {
+    // The unified 401 below keeps external probing responses uniform.
+  }
+
+  throw new HttpError(401, "unauthorized");
+}
+
 function assertIngestSecret(req: Request) {
   const ingestProvided = req.headers.get("x-ops-ingest-secret")?.trim() || "";
   const controlProvided = req.headers.get("x-ops-control-secret")?.trim() || "";
@@ -1248,7 +1268,7 @@ Deno.serve(async (req) => {
 
   try {
     if (req.method === "GET") {
-      assertSharedSecret(req, "x-ops-control-secret", "OPS_CONTROL_SECRET");
+      await assertScanAuthorized(req);
       return jsonResponse({
         ok: true,
         service: FUNCTION_NAME,
@@ -1279,7 +1299,7 @@ Deno.serve(async (req) => {
     let result: Record<string, unknown>;
 
     if (action === "scan") {
-      assertSharedSecret(req, "x-ops-control-secret", "OPS_CONTROL_SECRET");
+      await assertScanAuthorized(req);
       result = await scanAuditFailures();
     } else if (action === "ingest") {
       assertIngestSecret(req);

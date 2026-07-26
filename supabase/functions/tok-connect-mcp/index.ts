@@ -52,6 +52,16 @@ type TokConnectMcpTool = {
 };
 
 const ACTION_WINDOW_RESOURCE_URI = "ui://tok-connect/actions-window-v1.html";
+
+// The widget renders with the application's own typography, so the Google
+// Fonts origins serving DM Sans and Playfair Display must be declared to the
+// ChatGPT widget CSP alongside the TOK image origins.
+const WIDGET_RESOURCE_DOMAINS = [
+  "https://www.thetok.ch",
+  "https://cloud-rebuild-recovered.vercel.app",
+  "https://fonts.googleapis.com",
+  "https://fonts.gstatic.com",
+];
 const TOK_CONNECT_PUBLIC_ORIGIN = (Deno.env.get("TOK_CONNECT_PUBLIC_ORIGIN") || "https://www.thetok.ch")
   .replace(/\/$/, "");
 const TOK_CONNECT_MCP_RESOURCE = `${TOK_CONNECT_PUBLIC_ORIGIN}/mcp`;
@@ -65,26 +75,51 @@ const ACTION_WINDOW_HTML = `<!doctype html>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style>
+      /* Design tokens copied verbatim from the TOK application (src/index.css)
+         so the ChatGPT widget renders with the product's real identity rather
+         than an approximation. Light and dark follow the reader's theme. */
+      @import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Playfair+Display:wght@400;500;600;700&display=swap");
       :root {
-        color-scheme: dark;
-        --tok-orange: #ff6b14;
-        --tok-gold: #ffb347;
-        --tok-ink: #070914;
-        --tok-card: rgba(255, 255, 255, 0.08);
-        --tok-line: rgba(255, 255, 255, 0.14);
-        --tok-text: #fff7ed;
-        --tok-muted: #d8c7b8;
+        color-scheme: light dark;
+        --tok-primary: hsl(24 95% 53%);
+        --tok-primary-soft: hsl(24 95% 53% / 0.14);
+        --tok-primary-foreground: hsl(0 0% 100%);
+        --tok-accent: hsl(152 55% 45%);
+        --tok-gold: hsl(35 100% 62%);
+        --tok-background: hsl(0 0% 99%);
+        --tok-surface: hsl(0 0% 100%);
+        --tok-text: hsl(220 20% 10%);
+        --tok-muted: hsl(220 10% 46%);
+        --tok-line: hsl(220 13% 91%);
+        --tok-shadow: 0 20px 60px hsl(220 20% 10% / 0.1);
+        --tok-radius: 0.75rem;
+        --tok-font-sans: "DM Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --tok-font-display: "Playfair Display", Georgia, "Times New Roman", serif;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --tok-accent: hsl(156 58% 47%);
+          --tok-background: hsl(222 30% 5%);
+          --tok-surface: hsl(222 28% 11%);
+          --tok-text: hsl(210 30% 98%);
+          --tok-muted: hsl(214 20% 80%);
+          --tok-line: hsl(218 18% 29%);
+          --tok-shadow: 0 20px 60px hsl(222 30% 2% / 0.55);
+        }
       }
       * { box-sizing: border-box; }
       body {
         margin: 0;
         min-height: 100vh;
-        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-family: var(--tok-font-sans);
         color: var(--tok-text);
         background:
-          radial-gradient(circle at 18% 12%, rgba(255, 107, 20, 0.42), transparent 34%),
-          radial-gradient(circle at 92% 0%, rgba(255, 179, 71, 0.22), transparent 28%),
-          linear-gradient(145deg, #080913, #120b08 55%, #080913);
+          radial-gradient(circle at 18% 12%, hsl(24 95% 53% / 0.16), transparent 34%),
+          radial-gradient(circle at 92% 0%, hsl(152 55% 45% / 0.12), transparent 28%),
+          var(--tok-background);
+      }
+      h1, h2, h3, .tok-display {
+        font-family: var(--tok-font-display);
       }
       .shell {
         position: relative;
@@ -161,8 +196,8 @@ const ACTION_WINDOW_HTML = `<!doctype html>
         width: 9px;
         height: 9px;
         border-radius: 999px;
-        background: var(--tok-orange);
-        box-shadow: 0 0 18px var(--tok-orange);
+        background: var(--tok-primary);
+        box-shadow: 0 0 18px var(--tok-primary);
       }
       .grid {
         position: relative;
@@ -206,7 +241,7 @@ const ACTION_WINDOW_HTML = `<!doctype html>
         height: 38px;
         border-radius: 13px;
         color: #2b1200;
-        background: linear-gradient(135deg, var(--tok-gold), var(--tok-orange));
+        background: linear-gradient(135deg, var(--tok-gold), var(--tok-primary));
         font-weight: 900;
         box-shadow: 0 0 24px rgba(255, 107, 20, 0.36);
       }
@@ -290,7 +325,7 @@ const ACTION_WINDOW_HTML = `<!doctype html>
         height: 34px;
         border-radius: 12px;
         color: #2b1200;
-        background: linear-gradient(135deg, var(--tok-gold), var(--tok-orange));
+        background: linear-gradient(135deg, var(--tok-gold), var(--tok-primary));
         font-weight: 900;
       }
       .step strong {
@@ -354,7 +389,7 @@ const ACTION_WINDOW_HTML = `<!doctype html>
         font-size: 12px;
       }
       body {
-        color: #111827;
+        color: var(--tok-text);
         background:
           radial-gradient(circle at 8% 0%, rgba(255, 106, 26, 0.13), transparent 22rem),
           radial-gradient(circle at 94% 6%, rgba(255, 176, 0, 0.12), transparent 24rem),
@@ -374,7 +409,7 @@ const ACTION_WINDOW_HTML = `<!doctype html>
         gap: 16px;
         min-height: 76px;
         padding: 10px 24px;
-        border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+        border-bottom: 1px solid var(--tok-line);
         background: rgba(255, 255, 255, 0.94);
         box-shadow: 0 16px 42px rgba(15, 23, 42, 0.08);
         backdrop-filter: blur(18px);
@@ -405,7 +440,7 @@ const ACTION_WINDOW_HTML = `<!doctype html>
         display: flex;
         align-items: center;
         gap: 18px;
-        color: #64748b;
+        color: var(--tok-muted);
         font-size: 14px;
         font-weight: 750;
       }
@@ -426,7 +461,7 @@ const ACTION_WINDOW_HTML = `<!doctype html>
         width: 42px;
         height: 42px;
         border-radius: 999px;
-        border: 1px solid rgba(226, 232, 240, 0.9);
+        border: 1px solid var(--tok-line);
         color: #0f172a;
         background: rgba(255, 255, 255, 0.95);
         box-shadow: 0 14px 34px rgba(15, 23, 42, 0.12);
@@ -521,13 +556,13 @@ const ACTION_WINDOW_HTML = `<!doctype html>
         background: #fff7ed;
       }
       h1 {
-        color: #111827;
-        font-family: Georgia, "Times New Roman", serif;
+        color: var(--tok-text);
+        font-family: var(--tok-font-display);
         font-size: clamp(34px, 5vw, 58px);
         letter-spacing: 0;
       }
       p {
-        color: #64748b;
+        color: var(--tok-muted);
       }
       .hero-copy {
         display: grid;
@@ -544,7 +579,7 @@ const ACTION_WINDOW_HTML = `<!doctype html>
         display: grid;
         gap: 12px;
         border-radius: 26px;
-        border: 1px solid rgba(226, 232, 240, 0.92);
+        border: 1px solid var(--tok-line);
         padding: 16px;
         background: rgba(255, 255, 255, 0.82);
       }
@@ -590,26 +625,26 @@ const ACTION_WINDOW_HTML = `<!doctype html>
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
       .metric {
-        border-color: rgba(226, 232, 240, 0.92);
-        color: #111827;
-        background: #fff;
+        border-color: var(--tok-line);
+        color: var(--tok-text);
+        background: var(--tok-surface);
         box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
       }
       .metric span {
-        color: #64748b;
+        color: var(--tok-muted);
       }
       .grid {
         grid-template-columns: minmax(0, 1fr) minmax(320px, 0.52fr);
       }
       .card {
-        border: 1px solid rgba(226, 232, 240, 0.92);
+        border: 1px solid var(--tok-line);
         border-radius: 28px;
-        color: #111827;
-        background: rgba(255, 255, 255, 0.96);
+        color: var(--tok-text);
+        background: var(--tok-surface);
         box-shadow: 0 20px 60px rgba(15, 23, 42, 0.08);
       }
       .card h2 {
-        color: #111827;
+        color: var(--tok-text);
         letter-spacing: 0;
         text-transform: none;
         font-size: 22px;
@@ -617,14 +652,14 @@ const ACTION_WINDOW_HTML = `<!doctype html>
       }
       .action,
       .step {
-        border-color: rgba(226, 232, 240, 0.95);
-        color: #111827;
-        background: #fff;
+        border-color: var(--tok-line);
+        color: var(--tok-text);
+        background: var(--tok-surface);
         box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
       }
       .action span,
       .step small {
-        color: #64748b;
+        color: var(--tok-muted);
       }
       .badge,
       .step-index {
@@ -658,7 +693,7 @@ const ACTION_WINDOW_HTML = `<!doctype html>
         overflow: hidden;
         border: 1px solid rgba(255, 106, 26, 0.14);
         border-radius: 24px;
-        background: #fff;
+        background: var(--tok-surface);
         box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
       }
       .tok-restaurant-media {
@@ -718,13 +753,13 @@ const ACTION_WINDOW_HTML = `<!doctype html>
       }
       .tok-card-title {
         margin: 0;
-        color: #111827;
-        font-family: Georgia, "Times New Roman", serif;
+        color: var(--tok-text);
+        font-family: var(--tok-font-display);
         font-size: 24px;
         line-height: 1.02;
       }
       .tok-card-meta {
-        color: #64748b;
+        color: var(--tok-muted);
         font-size: 12px;
         font-weight: 850;
         letter-spacing: 0.16em;
@@ -760,7 +795,7 @@ const ACTION_WINDOW_HTML = `<!doctype html>
         min-height: 32px;
         border-radius: 999px;
         padding: 7px 11px;
-        border: 1px solid rgba(226, 232, 240, 0.95);
+        border: 1px solid var(--tok-line);
         background: #f8fafc;
         color: #334155;
         font-size: 12px;
@@ -793,12 +828,12 @@ const ACTION_WINDOW_HTML = `<!doctype html>
         font-weight: 950;
       }
       .tok-tool-card strong {
-        color: #111827;
+        color: var(--tok-text);
         font-size: 17px;
       }
       .tok-tool-card p,
       .tok-summary-card p {
-        color: #64748b;
+        color: var(--tok-muted);
         font-size: 13px;
       }
       .tok-summary-card {
@@ -838,16 +873,16 @@ const ACTION_WINDOW_HTML = `<!doctype html>
         background: linear-gradient(135deg, #ff5a14, #ff8f00);
       }
       button.secondary {
-        color: #111827;
-        border: 1px solid rgba(226, 232, 240, 0.95);
-        background: #fff;
+        color: var(--tok-text);
+        border: 1px solid var(--tok-line);
+        background: var(--tok-surface);
       }
       details {
         margin-top: 12px;
       }
       summary {
         cursor: pointer;
-        color: #64748b;
+        color: var(--tok-muted);
         font-size: 13px;
         font-weight: 800;
       }
@@ -856,7 +891,7 @@ const ACTION_WINDOW_HTML = `<!doctype html>
         margin-top: 8px;
         color: #334155;
         background: #f8fafc;
-        border-color: rgba(226, 232, 240, 0.95);
+        border-color: var(--tok-line);
       }
       @media (max-width: 720px) {
         .tok-topbar { min-height: 68px; padding: 8px 14px; }
@@ -1709,14 +1744,14 @@ const MCP_RESOURCES = [
         prefersBorder: true,
         csp: {
           connectDomains: [],
-          resourceDomains: ["https://www.thetok.ch", "https://cloud-rebuild-recovered.vercel.app"],
+          resourceDomains: WIDGET_RESOURCE_DOMAINS,
         },
       },
       "openai/widgetDescription": "Console visuelle des actions TOK Connect appelees depuis ChatGPT.",
       "openai/widgetPrefersBorder": true,
       "openai/widgetCSP": {
         connect_domains: [],
-        resource_domains: ["https://www.thetok.ch", "https://cloud-rebuild-recovered.vercel.app"],
+        resource_domains: WIDGET_RESOURCE_DOMAINS,
       },
     },
   },
