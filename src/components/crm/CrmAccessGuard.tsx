@@ -488,7 +488,7 @@ export default function CrmAccessGuard({
               <label className="text-sm font-medium" htmlFor="crm-mfa-code">
                 Code de vérification
               </label>
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row">
                 <Input
                   id="crm-mfa-code"
                   value={verificationCode}
@@ -497,7 +497,7 @@ export default function CrmAccessGuard({
                   autoComplete="one-time-code"
                   placeholder="123456"
                 />
-                <Button type="button" onClick={verifyCode} disabled={!canSubmitCode}>
+                <Button type="button" onClick={verifyCode} disabled={!canSubmitCode} className="sm:shrink-0">
                   {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : rotationRequested ? "Continuer" : "Valider"}
                 </Button>
               </div>
@@ -533,7 +533,7 @@ export default function CrmAccessGuard({
                     setMessage(null);
                   }}
                   disabled={busy}
-                  className="w-full gap-2 whitespace-normal"
+                  className="h-auto min-h-10 w-full gap-2 whitespace-normal py-2.5"
                 >
                   <RefreshCw className="h-4 w-4 shrink-0" />
                   Changer d'application / Réinitialiser le code
