@@ -20,6 +20,7 @@ Le canal initial est Telegram. La file d'incidents, les décisions et le workflo
 - `public.ops_incident_events` : journal append-only des détections, décisions et exécutions.
 - `ops-incident-control` : Edge Function signée pour le scan, l'ingestion, Telegram et les callbacks GitHub.
 - `TOK Incident Monitor` : scan périodique des échecs Edge et ingestion des échecs CI/déploiement.
+  Les échecs `CI` ne sont remontés que pour `main`; les échecs `Deploy Production` sont toujours remontés.
 - `TOK Codex Incident Repair` : exécution Codex après approbation et ouverture d'une PR testée.
 
 ## Garde-fous
