@@ -85,6 +85,7 @@ export default function CrmAccessGuard({
   const [busy, setBusy] = useState(false);
   const [factorToReplaceId, setFactorToReplaceId] = useState<string | null>(null);
   const [rotationConfirmationVisible, setRotationConfirmationVisible] = useState(false);
+  const [rotationRequested, setRotationRequested] = useState(false);
 
   const accessRequired = requiresPremiumCrm ?? requiresElite;
   const accessGranted = hasPremiumCrmAccess ?? hasEliteAccess;
@@ -262,10 +263,13 @@ export default function CrmAccessGuard({
       setChallengeId(challenge.data?.id || null);
       setVerificationCode("");
       setRotationConfirmationVisible(false);
+      setRotationRequested(false);
       setState("setup");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Impossible de renouveler la vérification 2FA.");
       setRotationConfirmationVisible(false);
+      setRotationRequested(false);
+      setState("verified");
     } finally {
       setBusy(false);
     }
@@ -286,6 +290,12 @@ export default function CrmAccessGuard({
       if (assuranceError) throw assuranceError;
       if (assurance?.currentLevel !== "aal2") {
         throw new Error("La session 2FA n'a pas pu être confirmée. Reconnectez-vous puis réessayez.");
+      }
+
+      if (rotationRequested && !factorToReplaceId && !qrCode) {
+        setVerificationCode("");
+        await beginTotpRotation();
+        return;
       }
 
       const isRotation = Boolean(factorToReplaceId || qrCode);
@@ -310,6 +320,7 @@ export default function CrmAccessGuard({
       setQrCode(null);
       setSecret(null);
       setFactor(null);
+      setRotationRequested(false);
       toast({
         title: isRotation ? "Code CRM renouvelé" : "Accès CRM vérifié",
         description: refreshError
@@ -367,13 +378,12 @@ export default function CrmAccessGuard({
   if (state === "verified") {
     return (
       <div className="space-y-4">
-        {children}
         <Card className="border-sky-200 bg-sky-50/60">
           <CardContent className="flex flex-col gap-4 p-4 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-sm font-semibold text-sky-950">Application d'authentification CRM</p>
               <p className="mt-1 text-sm text-sky-900/75">
-                Vous pouvez reconnecter Google Authenticator, Microsoft Authenticator ou une autre application TOTP.
+                Changez d'application ou réinitialisez le code ici. L'ancien accès reste actif jusqu'à la validation du nouveau.
               </p>
             </div>
             {rotationConfirmationVisible ? (
@@ -405,11 +415,12 @@ export default function CrmAccessGuard({
                 className="gap-2"
               >
                 <RefreshCw className="h-4 w-4" />
-                Renouveler le code CRM
+                Changer d'application
               </Button>
             )}
           </CardContent>
         </Card>
+        {children}
       </div>
     );
   }
@@ -487,9 +498,50 @@ export default function CrmAccessGuard({
                   placeholder="123456"
                 />
                 <Button type="button" onClick={verifyCode} disabled={!canSubmitCode}>
-                  {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Valider"}
+                  {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : rotationRequested ? "Continuer" : "Valider"}
                 </Button>
               </div>
+            </div>
+          ) : null}
+
+          {state === "challenge" ? (
+            <div className="mt-4 border-t pt-4">
+              {rotationRequested ? (
+                <div className="space-y-3 rounded-xl border border-amber-200 bg-amber-50 p-3">
+                  <p className="text-xs leading-5 text-amber-950">
+                    Saisissez d'abord le code de votre application actuelle. Après validation, un nouveau QR code sera généré ici et l'ancien code restera actif jusqu'à la confirmation du nouveau.
+                  </p>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setRotationRequested(false);
+                      setMessage(null);
+                    }}
+                    disabled={busy}
+                  >
+                    Annuler la réinitialisation
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setRotationRequested(true);
+                    setMessage(null);
+                  }}
+                  disabled={busy}
+                  className="w-full gap-2 whitespace-normal"
+                >
+                  <RefreshCw className="h-4 w-4 shrink-0" />
+                  Changer d'application / Réinitialiser le code
+                </Button>
+              )}
+              <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                Vous n'avez plus accès au code actuel ? Le support TOK doit d'abord vérifier votre identité avant toute réinitialisation.
+              </p>
             </div>
           ) : null}
 
