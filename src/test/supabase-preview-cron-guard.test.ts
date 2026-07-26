@@ -2,59 +2,106 @@ import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 
-describe("Supabase preview cron isolation", () => {
-  const productionHost = "wwcrtyoueexyxkkikaos.supabase.co";
+describe("Supabase Production cron isolation", () => {
+  const migrationDirectory = path.join(
+    process.cwd(),
+    "supabase",
+    "migrations",
+  );
+  const guardMigration =
+    "20260530120500_install_nonproduction_http_cron_guard.sql";
+  const productionProjectRef = "wwcrtyoueexyxkkikaos";
+  const productionSystemIdentifier = "7623125441096521075";
+  const expectedProductionCronSchedules = new Map([
+    ["20260530121000_schedule_email_worker.sql", 1],
+    [
+      "20260602095159_reconcile_paid_order_checkouts_10k_hardening.sql",
+      1,
+    ],
+    ["20260626143100_tok_connect_webhook_scheduler.sql", 1],
+    ["20260712060000_fix_production_security_alerts.sql", 5],
+    ["20260715044653_commercial_demo_openai_gateway.sql", 1],
+    ["20260717220000_deferred_subscription_commission_lifecycle.sql", 1],
+    [
+      "20260717235004_stripe_security_and_finance_fail_closed.sql",
+      1,
+    ],
+  ]);
 
-  it("disables every Production target during preview seeding", () => {
-    const seed = readFileSync(
-      path.join(process.cwd(), "supabase", "seed.sql"),
-      "utf8",
+  const migrationFiles = readdirSync(migrationDirectory)
+    .filter((file) => file.endsWith(".sql"))
+    .sort();
+
+  const readMigration = (file: string) =>
+    readFileSync(path.join(migrationDirectory, file), "utf8");
+
+  it("installs the fail-closed classifier before the first cron schedule", () => {
+    const firstCronMigration = migrationFiles.find((file) =>
+      /cron[.]schedule\s*[(]/i.test(readMigration(file)),
     );
 
-    expect(seed).toContain(productionHost);
-    expect(seed).toContain(
-      "cron.alter_job(\n      job_id := v_job.jobid,\n      active := false",
+    expect(firstCronMigration).toBeDefined();
+    expect(guardMigration.localeCompare(firstCronMigration!)).toBeLessThan(0);
+
+    const guardSql = readMigration(guardMigration);
+
+    expect(guardSql).toContain("CREATE EXTENSION IF NOT EXISTS pg_cron");
+    expect(guardSql).toContain(
+      "CREATE OR REPLACE FUNCTION private.tok_is_production_cluster()",
     );
-    expect(seed).toContain(
-      "Preview cron guard failed: an active job still targets Production",
+    expect(guardSql).toContain("FROM pg_control_system() AS control");
+    expect(guardSql).toContain(productionSystemIdentifier);
+    expect(guardSql).toContain(productionProjectRef);
+    expect(guardSql).toContain("RETURN false;");
+    expect(guardSql).toContain("cron.alter_job(");
+    expect(guardSql).toContain("active := false");
+    expect(guardSql).toContain(
+      "REVOKE EXECUTE ON FUNCTION private.tok_is_production_cluster()",
     );
-    expect(seed).toContain("v_detected_count");
-    expect(seed).toContain("v_disabled_count");
-    expect(seed).not.toContain("cron.unschedule");
-    expect(seed).not.toContain("cron.schedule");
-    expect(seed).not.toContain("INTERNAL_CRON_SECRET");
+    expect(guardSql).toContain(
+      "Non-Production cron guard failed: an active job still targets Production",
+    );
+    expect(guardSql).not.toMatch(
+      /\bCREATE\s+(?:OR\s+REPLACE\s+)?TRIGGER\b/i,
+    );
   });
 
-  it("requires review when a migration adds a Production-targeting cron", () => {
-    const migrationDirectory = path.join(
-      process.cwd(),
-      "supabase",
-      "migrations",
-    );
+  it("gates every literal Production-targeting cron before schedule or cleanup", () => {
+    const productionCronMigrations = migrationFiles.filter((file) => {
+      const sql = readMigration(file);
 
-    const productionCronMigrations = readdirSync(migrationDirectory)
-      .filter((file) => file.endsWith(".sql"))
-      .filter((file) => {
-        const sql = readFileSync(
-          path.join(migrationDirectory, file),
-          "utf8",
-        );
-
-        return (
-          sql.includes(productionHost) &&
-          /cron[.]schedule\s*[(]/i.test(sql)
-        );
-      })
-      .sort();
+      return (
+        sql.includes(productionProjectRef) &&
+        /cron[.]schedule\s*[(]/i.test(sql)
+      );
+    });
 
     expect(productionCronMigrations).toEqual([
-      "20260530121000_schedule_email_worker.sql",
-      "20260602095159_reconcile_paid_order_checkouts_10k_hardening.sql",
-      "20260626143100_tok_connect_webhook_scheduler.sql",
-      "20260712060000_fix_production_security_alerts.sql",
-      "20260715044653_commercial_demo_openai_gateway.sql",
-      "20260717220000_deferred_subscription_commission_lifecycle.sql",
-      "20260717235004_stripe_security_and_finance_fail_closed.sql",
+      ...expectedProductionCronSchedules.keys(),
     ]);
+
+    for (const file of productionCronMigrations) {
+      const sql = readMigration(file);
+      const guardCallIndex = sql.indexOf(
+        "private.tok_is_production_cluster() IS NOT TRUE",
+      );
+      const firstReturnAfterGuard = sql.indexOf("RETURN;", guardCallIndex);
+      const firstScheduleIndex = sql.search(/cron[.]schedule\s*[(]/i);
+      const firstUnscheduleIndex = sql.search(/cron[.]unschedule\s*[(]/i);
+      const scheduleCount = sql.match(/cron[.]schedule\s*[(]/gi)?.length ?? 0;
+
+      expect(guardCallIndex, file).toBeGreaterThanOrEqual(0);
+      expect(firstReturnAfterGuard, file).toBeGreaterThan(guardCallIndex);
+      expect(firstReturnAfterGuard, file).toBeLessThan(firstScheduleIndex);
+      expect(guardCallIndex, file).toBeLessThan(firstScheduleIndex);
+
+      if (firstUnscheduleIndex >= 0) {
+        expect(guardCallIndex, file).toBeLessThan(firstUnscheduleIndex);
+      }
+
+      expect(scheduleCount, file).toBe(
+        expectedProductionCronSchedules.get(file),
+      );
+    }
   });
 });
