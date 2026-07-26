@@ -26,7 +26,7 @@ import {
 
 const FUNCTION_NAME = "daily-dish-ai";
 const FEATURE_NAME = "daily-dish-ai";
-const DAILY_MODEL = Deno.env.get("OPENAI_MODEL_DAILY_DISH")?.trim() || "gpt-5.6-sol";
+const DAILY_MODEL = Deno.env.get("OPENAI_MODEL_DAILY_DISH")?.trim() || "gpt-5.5";
 const PREMIUM_PLANS = new Set(["premium", "elite", "custom"]);
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const MAX_RESEARCH_CHARS = 30_000;
@@ -680,7 +680,7 @@ async function generateVariants(input: {
       include: ["web_search_call.action.sources"],
       reasoning: { effort: "low" },
       maxOutputTokens: 3500,
-      timeoutMs: 55_000,
+      timeoutMs: 100_000,
     });
     researchText = extractOutputText(researchResponse).slice(0, MAX_RESEARCH_CHARS);
     sources = collectProviderSources(researchResponse);
@@ -713,7 +713,7 @@ async function generateVariants(input: {
     jsonSchema: isRefinement ? REFINED_SCHEMA : PROPOSALS_SCHEMA,
     reasoning: { effort: "medium" },
     maxOutputTokens: isRefinement ? 5000 : 12_000,
-    timeoutMs: 65_000,
+    timeoutMs: 100_000,
   });
 
   const parsed = parseStructuredOutput<JsonRecord>(structuredResponse);

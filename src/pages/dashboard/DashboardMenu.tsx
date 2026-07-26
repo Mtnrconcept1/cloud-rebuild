@@ -34,6 +34,7 @@ import {
   readCommercialDemoToolState,
   writeCommercialDemoToolState,
 } from "@/lib/commercialDemoRestaurantTools";
+import { invokeSupabaseFunction } from "@/lib/session";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
 
 const supabase = getSupabase();
@@ -154,6 +155,27 @@ function getPhotoGenerationErrorMessage(error: unknown) {
   if (message.includes("source_image_too_large")) return "Photo trop lourde pour la retouche IA. Utilisez une image plus légère.";
   if (message.includes("ai_credits_exhausted")) return "Solde de crédits TOK insuffisant. Rechargez vos crédits ou attendez le prochain renouvellement de votre abonnement.";
   return message || "Génération impossible";
+}
+
+function getMenuImportErrorMessage(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error || "");
+  if (message.includes("ai_credits_exhausted")) return "Solde de crédits TOK insuffisant pour analyser le menu. Rechargez vos crédits ou attendez le prochain renouvellement.";
+  if (message.includes("rate_limited") || message.includes("Too many requests")) return "Trop d'analyses lancées. Patientez quelques minutes avant de réessayer.";
+  if (message.includes("menu_images_required")) return "Ajoutez au moins une photo JPG, PNG ou WebP du menu.";
+  if (message.includes("menu_items_not_detected")) return "Aucun plat n'a été détecté sur ces photos. Reprenez-les bien à plat, nettes et sans reflet.";
+  if (message.includes("ai_timeout")) return "La lecture du menu a pris trop de temps. Réessayez avec des photos plus nettes ou moins nombreuses.";
+  if (message.includes("ai_service_unavailable") || message.includes("ai_service_error") || message.includes("ai_provider_billing_unavailable")) {
+    return "Le service d'analyse est momentanément indisponible. Réessayez dans quelques minutes.";
+  }
+  if (message.includes("Session expir") || message.includes("Unauthorized")) return "Session expirée. Reconnectez-vous puis relancez l'analyse.";
+  return message || "Analyse impossible";
+}
+
+function getMenuItemSaveErrorMessage(error: { message?: string | null } | null | undefined) {
+  const message = String(error?.message || "");
+  if (message.includes("menu_items_price_positive_check")) return "Le prix doit être supérieur à 0 CHF.";
+  if (message.includes("row-level security")) return "Vous n'avez pas les droits pour modifier le menu de ce restaurant.";
+  return message || "Enregistrement impossible.";
 }
 
 export default function DashboardMenu() {
@@ -327,7 +349,7 @@ export default function DashboardMenu() {
       price: Number(item.price),
       category,
       image_url: item.image_url || "",
-      is_available: item.is_available,
+      is_available: item.is_available ?? true,
     });
     setCategoryMode(category && !isPresetCategory(category) ? "custom" : "preset");
     setPhotoStudioResult(null);
@@ -355,14 +377,25 @@ export default function DashboardMenu() {
   const handleSave = async () => {
     if (!restaurant || savingItem) return;
 
+    const trimmedName = form.name.trim();
+    const normalizedPrice = Math.round((Number(form.price) || 0) * 100) / 100;
+    if (!trimmedName) {
+      toast({ title: "Nom requis", description: "Indiquez le nom du plat avant de sauvegarder.", variant: "destructive" });
+      return;
+    }
+    if (!(normalizedPrice > 0)) {
+      toast({ title: "Prix invalide", description: "Indiquez un prix supérieur à 0 CHF.", variant: "destructive" });
+      return;
+    }
+
     if (isCommercialDemo && commercialDemoFrame) {
       const current = readCommercialDemoMenu();
       const normalizedRecord: MenuItemRecord = {
         id: editingId || globalThis.crypto?.randomUUID?.() || `demo-menu-${Date.now()}`,
         restaurant_id: commercialDemoFrame.snapshot.demo_restaurant.id,
-        name: form.name.trim() || "Nouveau plat de démonstration",
+        name: trimmedName,
         description: form.description.trim() || null,
-        price: Math.max(0, Number(form.price) || 0),
+        price: normalizedPrice,
         category: form.category.trim() || null,
         image_url: form.image_url || null,
         is_available: form.is_available,
@@ -379,28 +412,37 @@ export default function DashboardMenu() {
       return;
     }
 
+    const payload = {
+      name: trimmedName,
+      description: form.description.trim(),
+      price: normalizedPrice,
+      category: form.category.trim() || null,
+      image_url: form.image_url.trim(),
+      is_available: form.is_available,
+    };
+
     setSavingItem(true);
     try {
     if (editingId) {
       const { error } = await supabase
         .from("menu_items")
-        .update(form)
+        .update(payload)
         .eq("id", editingId)
         .eq("restaurant_id", restaurant.id);
 
       if (error) {
-        toast({ title: "Erreur", description: error.message, variant: "destructive" });
+        toast({ title: "Erreur", description: getMenuItemSaveErrorMessage(error), variant: "destructive" });
         return;
       }
     } else {
-      const { error } = await supabase.from("menu_items").insert({ ...form, restaurant_id: restaurant.id });
+      const { error } = await supabase.from("menu_items").insert({ ...payload, restaurant_id: restaurant.id });
       if (error) {
-        toast({ title: "Erreur", description: error.message, variant: "destructive" });
+        toast({ title: "Erreur", description: getMenuItemSaveErrorMessage(error), variant: "destructive" });
         return;
       }
     }
 
-    toast({ title: editingId ? "Plat mis à jour" : "Plat ajoute" });
+    toast({ title: editingId ? "Plat mis à jour" : "Plat ajouté" });
     setDialogOpen(false);
     refreshMenu();
     } finally {
@@ -610,30 +652,42 @@ export default function DashboardMenu() {
             : [],
         };
       } else {
-        const { data, error } = await supabase.functions.invoke<MenuImportResponse>("menu-image-import", {
+        const { data, error } = await invokeSupabaseFunction<MenuImportResponse>("menu-image-import", {
           body: { restaurantId: restaurant.id, images },
+          timeout: 120_000,
         });
         if (error) throw error;
         response = data || { items: [], warnings: [] };
       }
 
-      if (!response.items.length) throw new Error("Aucun plat détecté sur les photos.");
+      if (!response.items.length) throw new Error("menu_items_not_detected");
 
-      setImportedMenuItems(response.items.map((item) => ({
-        name: item.name,
-        description: item.description || "",
-        price: Number(item.price) || 0,
-        category: item.category || "Autres",
-        selected: true,
-      })));
-      setMenuImportWarnings(response.warnings || []);
+      // Unreadable prices arrive as 0 by design: keep them visible but
+      // deselected so a batch insert never hits the price > 0 DB constraint.
+      const importableItems = response.items.map((item) => {
+        const price = Number(item.price) || 0;
+        return {
+          name: item.name,
+          description: item.description || "",
+          price,
+          category: item.category || "Autres",
+          selected: price > 0,
+        };
+      });
+      const unreadablePriceCount = importableItems.filter((item) => !item.selected).length;
+      setImportedMenuItems(importableItems);
+      setMenuImportWarnings([
+        ...(response.warnings || []),
+        ...(unreadablePriceCount > 0
+          ? [`${unreadablePriceCount} élément(s) sans prix lisible ont été désélectionnés : saisissez leur prix puis cochez-les pour les importer.`]
+          : []),
+      ]);
       toast({
         title: "Menu analysé par l’IA",
         description: `${response.items.length} élément(s) détecté(s). Vérifiez-les avant l'import.`,
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Analyse impossible";
-      toast({ title: "Analyse impossible", description: message, variant: "destructive" });
+      toast({ title: "Analyse impossible", description: getMenuImportErrorMessage(error), variant: "destructive" });
     } finally {
       setAnalyzingMenu(false);
     }
@@ -645,8 +699,18 @@ export default function DashboardMenu() {
 
   const saveImportedMenu = async () => {
     if (!restaurant) return;
-    const selectedItems = importedMenuItems
-      .filter((item) => item.selected && item.name.trim() && Number.isFinite(item.price) && item.price >= 0)
+    const selectedRows = importedMenuItems.filter((item) => item.selected);
+    const invalidRows = selectedRows.filter((item) =>
+      !item.name.trim() || !Number.isFinite(item.price) || Math.round(item.price * 100) < 1);
+    if (invalidRows.length > 0) {
+      toast({
+        title: "Prix à compléter",
+        description: `${invalidRows.length} plat(s) sélectionné(s) ont un nom manquant ou un prix nul. Corrigez-les ou désélectionnez-les avant l'import.`,
+        variant: "destructive",
+      });
+      return;
+    }
+    const selectedItems = selectedRows
       .map((item) => ({
         restaurant_id: restaurant.id,
         name: item.name.trim(),
@@ -683,7 +747,7 @@ export default function DashboardMenu() {
     const { error } = await supabase.from("menu_items").insert(selectedItems);
     setSavingImportedMenu(false);
     if (error) {
-      toast({ title: "Import impossible", description: error.message, variant: "destructive" });
+      toast({ title: "Import impossible", description: getMenuItemSaveErrorMessage(error), variant: "destructive" });
       return;
     }
 

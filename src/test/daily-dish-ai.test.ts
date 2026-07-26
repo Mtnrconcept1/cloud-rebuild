@@ -70,6 +70,24 @@ describe("Premium daily dish AI", () => {
     expect(openai).toContain("payload.tools = options.tools");
   });
 
+  it("keeps the generation budget consistent from model to lock window", () => {
+    const client = read("src/lib/ai/dailyDishAi.ts");
+    const lockWindow = read("supabase/migrations/20260726070000_daily_dish_claim_lock_window.sql");
+
+    // The default model must exist in the shared pricing table; gpt-5.6-sol
+    // was a phantom model that made every production generation fail.
+    expect(edge).toContain('Deno.env.get("OPENAI_MODEL_DAILY_DISH")?.trim() || "gpt-5.5"');
+    expect(edge).not.toContain("gpt-5.6-sol");
+
+    // Web-search research and structured proposals each get 100 s, the client
+    // waits longer than both calls combined, and the stale-lock recovery
+    // window stays above the worst-case AI budget.
+    expect(edge.match(/timeoutMs: 100_000/g)).toHaveLength(2);
+    expect(client).toContain("REQUEST_TIMEOUT_MS = 215_000");
+    expect(lockWindow).toContain("interval '5 minutes'");
+    expect(lockWindow).toContain("auth.role() <> 'service_role'");
+  });
+
   it("supports activation, three variants, refinement, PhotoPro and Actualités publication", () => {
     expect(panel).toContain("Génération quotidienne");
     expect(panel).toContain("variants.map");
