@@ -1,0 +1,112 @@
+name: TOK Incident Monitor
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+  workflow_run:
+    workflows:
+      - CI
+      - Deploy Production
+    types:
+      - completed
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tok-incident-monitor-${{ github.event_name }}-${{ github.event.workflow_run.id || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  scan-runtime:
+    name: Scan runtime failures
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      INCIDENT_CONTROL_URL: ${{ vars.TOK_INCIDENT_CONTROL_URL || secrets.TOK_INCIDENT_CONTROL_URL }}
+      INCIDENT_CONTROL_SECRET: ${{ secrets.TOK_INCIDENT_CONTROL_SECRET }}
+
+    steps:
+      - name: Configuration notice
+        if: ${{ env.INCIDENT_CONTROL_URL == '' || env.INCIDENT_CONTROL_SECRET == '' }}
+        run: echo "::notice::TOK incident monitoring is installed but not activated. Configure TOK_INCIDENT_CONTROL_URL and TOK_INCIDENT_CONTROL_SECRET."
+
+      - name: Scan verified Edge Function failures
+        if: ${{ env.INCIDENT_CONTROL_URL != '' && env.INCIDENT_CONTROL_SECRET != '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail-with-body --silent --show-error \
+            --retry 2 --retry-all-errors --max-time 120 \
+            -X POST "$INCIDENT_CONTROL_URL" \
+            -H "Content-Type: application/json" \
+            -H "x-ops-control-secret: $INCIDENT_CONTROL_SECRET" \
+            --data '{"action":"scan"}' \
+            > "${RUNNER_TEMP}/tok-incident-scan.json"
+
+          jq -e '.ok == true' "${RUNNER_TEMP}/tok-incident-scan.json" >/dev/null
+          jq '{activeFailures, incidents: (.incidents | length)}' "${RUNNER_TEMP}/tok-incident-scan.json"
+
+  report-workflow-failure:
+    name: Report failed GitHub workflow
+    if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'failure' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      INCIDENT_CONTROL_URL: ${{ vars.TOK_INCIDENT_CONTROL_URL || secrets.TOK_INCIDENT_CONTROL_URL }}
+      INCIDENT_CONTROL_SECRET: ${{ secrets.TOK_INCIDENT_CONTROL_SECRET }}
+      FAILED_WORKFLOW_NAME: ${{ github.event.workflow_run.name }}
+      FAILED_WORKFLOW_ID: ${{ github.event.workflow_run.id }}
+      FAILED_WORKFLOW_URL: ${{ github.event.workflow_run.html_url }}
+      FAILED_WORKFLOW_BRANCH: ${{ github.event.workflow_run.head_branch }}
+      FAILED_WORKFLOW_SHA: ${{ github.event.workflow_run.head_sha }}
+      FAILED_WORKFLOW_EVENT: ${{ github.event.workflow_run.event }}
+
+    steps:
+      - name: Configuration notice
+        if: ${{ env.INCIDENT_CONTROL_URL == '' || env.INCIDENT_CONTROL_SECRET == '' }}
+        run: echo "::notice::GitHub workflow incident reporting is not activated yet."
+
+      - name: Send sanitized workflow incident
+        if: ${{ env.INCIDENT_CONTROL_URL != '' && env.INCIDENT_CONTROL_SECRET != '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          jq -n \
+            --arg workflow "$FAILED_WORKFLOW_NAME" \
+            --arg run_id "$FAILED_WORKFLOW_ID" \
+            --arg run_url "$FAILED_WORKFLOW_URL" \
+            --arg branch "$FAILED_WORKFLOW_BRANCH" \
+            --arg sha "$FAILED_WORKFLOW_SHA" \
+            --arg event "$FAILED_WORKFLOW_EVENT" \
+            '{
+              action: "ingest",
+              source: "github_actions",
+              eventId: $run_id,
+              severity: (if $workflow == "Deploy Production" then "high" else "medium" end),
+              title: ("GitHub Actions — " + $workflow + " en échec"),
+              summary: ("Le workflow " + $workflow + " a échoué sur la branche " + ($branch // "inconnue") + "."),
+              errorType: "workflow_failure",
+              context: {
+                workflow: $workflow,
+                run_id: $run_id,
+                run_url: $run_url,
+                branch: $branch,
+                head_sha: $sha,
+                trigger_event: $event,
+                conclusion: "failure"
+              }
+            }' > "${RUNNER_TEMP}/tok-workflow-incident.json"
+
+          curl --fail-with-body --silent --show-error \
+            --retry 2 --retry-all-errors --max-time 45 \
+            -X POST "$INCIDENT_CONTROL_URL" \
+            -H "Content-Type: application/json" \
+            -H "x-ops-control-secret: $INCIDENT_CONTROL_SECRET" \
+            --data-binary "@${RUNNER_TEMP}/tok-workflow-incident.json" \
+            > "${RUNNER_TEMP}/tok-workflow-incident-response.json"
+
+          jq -e '.ok == true' "${RUNNER_TEMP}/tok-workflow-incident-response.json" >/dev/null
