@@ -23,6 +23,9 @@ describe("security hardening in edge functions", () => {
     expect(source).toContain("ALLOWED_EVENT_PAYLOAD_KEYS");
     expect(source).toContain("sanitizeEventPayload");
     expect(source).toContain("reject_public_analytics_event");
+    expect(source).toContain("\"checkout_initiated\"");
+    expect(source).toContain("\"order_completed\"");
+    expect(source).toContain("\"total\"");
     expect(source).toContain("track-analytics rejected");
     expect(source).toContain("log.warn");
     expect(source).toContain("writeAuditLog");
