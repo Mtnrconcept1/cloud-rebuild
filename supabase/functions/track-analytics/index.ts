@@ -14,7 +14,7 @@ const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const TRACKABLE_ENTITY_TYPES = new Set(["restaurant", "dish", "collection", "ad"]);
 const TRACKABLE_EVENT_NAMES_BY_ENTITY = new Map<string, Set<string>>([
-  ["restaurant", new Set(["view", "favorite", "unfavorite", "share", "call", "directions", "menu_open", "gallery_open", "order_start", "reservation_start"])],
+  ["restaurant", new Set(["view", "favorite", "unfavorite", "share", "call", "directions", "menu_open", "gallery_open", "order_start", "checkout_initiated", "order_completed", "reservation_start"])],
   ["dish", new Set(["view", "add_to_cart", "remove_from_cart", "customize", "share"])],
   ["collection", new Set(["view", "click", "filter", "sort"])],
   ["ad", new Set(["impression", "click", "cta_click", "dismiss"])],
@@ -35,6 +35,9 @@ const ALLOWED_EVENT_PAYLOAD_KEYS = new Set([
   "device",
   "locale",
   "variant",
+  "total",
+  "payment_method",
+  "journey_type",
 ]);
 const MAX_EVENT_PAYLOAD_KEYS = 12;
 const MAX_EVENT_PAYLOAD_BYTES = 2_048;
