@@ -1,0 +1,47 @@
+name: Extract source slices
+
+on:
+  push:
+    branches:
+      - probe-schema
+
+permissions:
+  contents: write
+
+jobs:
+  extract:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Extract targeted source slices
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .tmp-source
+          mkdir -p .tmp-source
+          sed -n '200,399p' src/pages/dashboard/DashboardMenu.tsx > .tmp-source/DashboardMenu-0200-0399.txt
+          sed -n '400,599p' src/pages/dashboard/DashboardMenu.tsx > .tmp-source/DashboardMenu-0400-0599.txt
+          sed -n '600,799p' src/pages/dashboard/DashboardMenu.tsx > .tmp-source/DashboardMenu-0600-0799.txt
+          sed -n '800,999p' src/pages/dashboard/DashboardMenu.tsx > .tmp-source/DashboardMenu-0800-0999.txt
+          sed -n '1000,1199p' src/pages/dashboard/DashboardMenu.tsx > .tmp-source/DashboardMenu-1000-1199.txt
+          sed -n '1,199p' supabase/functions/daily-dish-ai/index.ts > .tmp-source/daily-dish-ai-0001-0199.txt
+          sed -n '200,399p' supabase/functions/daily-dish-ai/index.ts > .tmp-source/daily-dish-ai-0200-0399.txt
+          sed -n '400,599p' supabase/functions/daily-dish-ai/index.ts > .tmp-source/daily-dish-ai-0400-0599.txt
+          sed -n '600,799p' supabase/functions/daily-dish-ai/index.ts > .tmp-source/daily-dish-ai-0600-0799.txt
+          sed -n '800,999p' supabase/functions/daily-dish-ai/index.ts > .tmp-source/daily-dish-ai-0800-0999.txt
+          sed -n '1000,1199p' supabase/functions/daily-dish-ai/index.ts > .tmp-source/daily-dish-ai-1000-1199.txt
+          sed -n '1,199p' src/components/dashboard/DailyDishAiPanel.tsx > .tmp-source/DailyDishAiPanel-0001-0199.txt
+          sed -n '200,399p' src/components/dashboard/DailyDishAiPanel.tsx > .tmp-source/DailyDishAiPanel-0200-0399.txt
+          sed -n '400,699p' src/components/dashboard/DailyDishAiPanel.tsx > .tmp-source/DailyDishAiPanel-0400-0699.txt
+      - name: Commit source slices
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add .tmp-source
+          git commit -m 'chore: extract source slices for audit' || exit 0
+          git push
