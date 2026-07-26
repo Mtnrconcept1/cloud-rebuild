@@ -123,11 +123,21 @@ describe("customer CRM", () => {
     expect(guard).toContain("unenroll");
     expect(guard).toContain("verify");
     expect(guard).toContain("refreshSession");
-    expect(guard).toContain("Renouveler le code CRM");
+    expect(guard).toContain("Changer d'application / Réinitialiser le code");
+    expect(guard).toContain("Le support TOK doit d'abord vérifier votre identité");
+    expect(guard).toContain("rotationRequested");
     expect(guard).toContain("factorToReplaceId");
     expect(guard).toContain("isCrmMfaFactor(currentFactor)");
     const verificationFlow = guard.slice(guard.indexOf("const verifyCode"));
+    expect(verificationFlow.indexOf("mfa.verify")).toBeLessThan(verificationFlow.indexOf("beginTotpRotation"));
     expect(verificationFlow.indexOf("mfa.verify")).toBeLessThan(verificationFlow.indexOf("mfa.unenroll"));
+    const verifiedView = guard.slice(
+      guard.indexOf('if (state === "verified")'),
+      guard.indexOf('return (\n    <Card className="overflow-hidden', guard.indexOf('if (state === "verified")')),
+    );
+    expect(verifiedView.indexOf("Application d'authentification CRM")).toBeLessThan(
+      verifiedView.indexOf("{children}"),
+    );
     expect(guard).toContain("currentLevel !== \"aal2\"");
   });
 
