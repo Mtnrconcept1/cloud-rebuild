@@ -178,7 +178,9 @@ jobs:
       - name: Audit production dependencies
         id: dependency_audit
         if: ${{ needs.plan.outputs.dependency_audit == 'true' }}
-        run: pnpm audit --prod --audit-level high
+        # Keep reported high/critical vulnerabilities blocking while treating a
+        # malformed or unavailable registry response as an external CI outage.
+        run: pnpm audit --prod --audit-level high --ignore-registry-errors
 
       - name: Lint all sources
         id: lint
