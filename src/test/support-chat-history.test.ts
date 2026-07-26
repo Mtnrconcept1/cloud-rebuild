@@ -39,6 +39,9 @@ describe("support chat backend history", () => {
     expect(edgeFunction).toContain("conversationId = requestedConversationId");
     expect(edgeFunction).toContain("const { error: userMessagesError } = await actor.adminClient");
     expect(edgeFunction).toContain(".insert(messagesToPersist.map((message) => ({");
+    expect(edgeFunction).toContain("metadata: {");
+    expect(edgeFunction).toContain('delivery: handoffToAdmin ? "admin_thread" : "ai_processing"');
+    expect(edgeFunction).not.toContain(": undefined,");
     expect(edgeFunction).toContain("support_ticket_id");
   });
 });
