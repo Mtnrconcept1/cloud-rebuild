@@ -23,6 +23,7 @@ const FULL_SUITE_FILES = new Set([
   "src/main.tsx",
   "src/integrations/supabase/client.ts",
   "src/integrations/supabase/types.ts",
+  "supabase/seed.sql",
   "src/lib/auth.tsx",
   "src/lib/auth-context.ts",
   "src/lib/featureFlags.ts",
@@ -229,7 +230,7 @@ export function buildChangePlan(rawFiles, options = {}) {
   const syncSupabaseSecrets =
     forceDeploy || files.includes("scripts/write-supabase-secrets-env.mjs");
   const unsupportedSupabasePaths = files.filter(
-    (file) => file === "supabase/roles.sql" || file === "supabase/seed.sql",
+    (file) => file === "supabase/roles.sql",
   );
   const runWorkerTests = files.some((file) => file.startsWith("workers/image-ai-worker/"));
   const runTests = fullSuite || files.some(isRootTestRelevant);
