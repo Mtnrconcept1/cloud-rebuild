@@ -111,8 +111,8 @@ describe("restaurant onboarding subscription payments", () => {
     const approvalMigration = latestMigrationContaining(
       /CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.signup_restaurateur_onboarding_payment_ready/i,
     );
-    const paymentArchitectureMigration = latestMigrationContaining(
-      /deferred_subscription_contract_snapshot_is_immutable/i,
+    const paymentArchitectureMigration = read(
+      "supabase/migrations/20260717220000_deferred_subscription_commission_lifecycle.sql",
     );
     const admin = read("src/pages/admin/AdminUtilisateurs.tsx");
     const statusCard = read("src/components/signup/SignupApplicationStatusCard.tsx");
