@@ -147,6 +147,8 @@ describe("human-approved Telegram and Codex incident automation", () => {
     expect(workflow).toContain("- CI");
     expect(workflow).toContain("- Deploy Production");
     expect(workflow).toContain("github.event.workflow_run.conclusion == 'failure'");
+    expect(workflow).toContain("github.event.workflow_run.head_branch == 'main'");
+    expect(workflow).toContain("github.event.workflow_run.name == 'Deploy Production'");
     expect(workflow).toContain('action: "ingest"');
     expect(workflow).toContain('source: "github_actions"');
     expect(workflow).toContain('--data \'{"action":"scan"}\'');
