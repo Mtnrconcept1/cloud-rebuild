@@ -13,6 +13,7 @@ import {
   findPendingCrmMfaFactor,
   findVerifiedCrmMfaFactor,
   getCrmMfaFactorId,
+  isCrmMfaFactor,
   type CrmMfaFactor,
 } from "@/lib/crmMfa";
 
@@ -82,6 +83,8 @@ export default function CrmAccessGuard({
   const [secret, setSecret] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [factorToReplaceId, setFactorToReplaceId] = useState<string | null>(null);
+  const [rotationConfirmationVisible, setRotationConfirmationVisible] = useState(false);
 
   const accessRequired = requiresPremiumCrm ?? requiresElite;
   const accessGranted = hasPremiumCrmAccess ?? hasEliteAccess;
@@ -179,6 +182,7 @@ export default function CrmAccessGuard({
         if (unenrollError) throw unenrollError;
       }
 
+      setFactorToReplaceId(null);
       const { data, error } = await mfa.enroll({
         factorType: "totp",
         friendlyName: CRM_MFA_FRIENDLY_NAME,
@@ -203,6 +207,70 @@ export default function CrmAccessGuard({
     }
   };
 
+  const beginTotpRotation = async () => {
+    const mfa = getMfaApi();
+    if (!mfa) return;
+
+    setBusy(true);
+    setMessage(null);
+
+    try {
+      const { data: assurance, error: assuranceError } = await mfa.getAuthenticatorAssuranceLevel();
+      if (assuranceError) throw assuranceError;
+      if (assurance?.currentLevel !== "aal2") {
+        throw new Error("Validez d'abord le code actuel de votre application d'authentification.");
+      }
+
+      const { data: factors, error: factorsError } = await mfa.listFactors();
+      if (factorsError) throw factorsError;
+
+      const currentFactor = findVerifiedCrmMfaFactor(factors);
+      const currentFactorId = getFactorId(currentFactor);
+      if (!currentFactorId) {
+        throw new Error("Aucun facteur vérifié ne permet de sécuriser le renouvellement.");
+      }
+
+      const pendingFactor = findPendingCrmMfaFactor(factors);
+      const pendingFactorId = getFactorId(pendingFactor);
+      if (pendingFactorId && pendingFactorId !== currentFactorId) {
+        const { error: pendingUnenrollError } = await mfa.unenroll({ factorId: pendingFactorId });
+        if (pendingUnenrollError) throw pendingUnenrollError;
+      }
+
+      const { data, error } = await mfa.enroll({
+        factorType: "totp",
+        friendlyName: CRM_MFA_FRIENDLY_NAME,
+      });
+      if (error) throw error;
+
+      const nextFactor = {
+        id: data?.id || data?.factor_id,
+        factor_type: "totp",
+        friendly_name: CRM_MFA_FRIENDLY_NAME,
+        status: "unverified",
+      };
+      const nextFactorId = getFactorId(nextFactor);
+      if (!nextFactorId) throw new Error("Le nouveau facteur 2FA n'a pas pu être créé.");
+
+      const challenge = await mfa.challenge({ factorId: nextFactorId });
+      if (challenge.error) throw challenge.error;
+
+      setFactor(nextFactor);
+      setFactorToReplaceId(isCrmMfaFactor(currentFactor) ? currentFactorId : null);
+      setQrCode(data?.totp?.qr_code || null);
+      setSecret(data?.totp?.secret || null);
+      setChallengeId(challenge.data?.id || null);
+      setVerificationCode("");
+      setRotationConfirmationVisible(false);
+      setState("setup");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Impossible de renouveler la vérification 2FA.");
+      setRotationConfirmationVisible(false);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const verifyCode = async () => {
     const mfa = getMfaApi();
     const factorId = getFactorId(factor);
@@ -219,9 +287,35 @@ export default function CrmAccessGuard({
       if (assurance?.currentLevel !== "aal2") {
         throw new Error("La session 2FA n'a pas pu être confirmée. Reconnectez-vous puis réessayez.");
       }
+
+      const isRotation = Boolean(factorToReplaceId || qrCode);
+      if (factorToReplaceId && factorToReplaceId !== factorId) {
+        const { error: unenrollError } = await mfa.unenroll({ factorId: factorToReplaceId });
+        if (unenrollError) {
+          const retryChallenge = await mfa.challenge({ factorId });
+          if (!retryChallenge.error) {
+            setChallengeId(retryChallenge.data?.id || null);
+            setState("challenge");
+          }
+          throw new Error(
+            "Le nouveau code est actif, mais l'ancien n'a pas encore été révoqué. Entrez un nouveau code pour réessayer.",
+          );
+        }
+        setFactorToReplaceId(null);
+      }
+
+      const { error: refreshError } = await supabase.auth.refreshSession();
       setState("verified");
       setVerificationCode("");
-      toast({ title: "Accès CRM vérifié", description: "Votre session sécurisée est active." });
+      setQrCode(null);
+      setSecret(null);
+      setFactor(null);
+      toast({
+        title: isRotation ? "Code CRM renouvelé" : "Accès CRM vérifié",
+        description: refreshError
+          ? "Le code est actif. Reconnectez-vous si la session ne se met pas à jour immédiatement."
+          : "Votre session sécurisée est active.",
+      });
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Code invalide ou expiré.");
     } finally {
@@ -270,7 +364,55 @@ export default function CrmAccessGuard({
     );
   }
 
-  if (state === "verified") return <>{children}</>;
+  if (state === "verified") {
+    return (
+      <div className="space-y-4">
+        {children}
+        <Card className="border-sky-200 bg-sky-50/60">
+          <CardContent className="flex flex-col gap-4 p-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-sky-950">Application d'authentification CRM</p>
+              <p className="mt-1 text-sm text-sky-900/75">
+                Vous pouvez reconnecter Google Authenticator, Microsoft Authenticator ou une autre application TOTP.
+              </p>
+            </div>
+            {rotationConfirmationVisible ? (
+              <div className="flex flex-col gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 sm:flex-row sm:items-center">
+                <p className="max-w-md text-xs leading-5 text-amber-950">
+                  Le nouveau QR code devra être vérifié avant que l'ancien code soit révoqué.
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setRotationConfirmationVisible(false)}
+                    disabled={busy}
+                  >
+                    Annuler
+                  </Button>
+                  <Button type="button" size="sm" onClick={beginTotpRotation} disabled={busy} className="gap-2">
+                    {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                    Créer le QR code
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setRotationConfirmationVisible(true)}
+                className="gap-2"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Renouveler le code CRM
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <Card className="overflow-hidden border-sky-200 bg-gradient-to-br from-sky-50 via-background to-background">
@@ -301,8 +443,15 @@ export default function CrmAccessGuard({
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <QrCode className="h-5 w-5 text-primary" />
-                <h3 className="font-semibold">Activer la vérification 2FA</h3>
+                <h3 className="font-semibold">
+                  {factorToReplaceId ? "Reconnecter l'application d'authentification" : "Activer la vérification 2FA"}
+                </h3>
               </div>
+              {qrCode ? (
+                <p className="text-xs leading-5 text-muted-foreground">
+                  Scannez ce nouveau QR code, puis saisissez le code à 6 chiffres. L'ancien code restera valide jusqu'à cette vérification.
+                </p>
+              ) : null}
               {qrCode ? (
                 <img
                   src={toQrCodeSource(qrCode)}
