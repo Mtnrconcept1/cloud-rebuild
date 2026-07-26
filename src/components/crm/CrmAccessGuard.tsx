@@ -625,7 +625,7 @@ export default function CrmAccessGuard({
               )}
               <div className="mt-3 space-y-3 rounded-xl border border-sky-200 bg-sky-50/70 p-3">
                 <p className="text-xs leading-5 text-sky-950">
-                  Vous avez supprimé ou perdu l'ancienne application ? Confirmez votre identité avec un code envoyé à l'adresse e-mail vérifiée du compte.
+                  Vous avez supprimé ou perdu l'ancienne application ? Confirmez votre identité avec un code envoyé à l'adresse e-mail vérifiée du compte. Si cette adresse n'est plus accessible, le support TOK doit d'abord vérifier votre identité.
                 </p>
                 {recoveryState === "idle" ? (
                   <Button
