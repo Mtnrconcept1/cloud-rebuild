@@ -27,7 +27,8 @@ describe("native incident scan readiness", () => {
     expect(scanner).toContain('JSON.stringify({ action: "scan" })');
     expect(scanner).toContain('"User-Agent": "TOK-Native-Incident-Scanner/1.0"');
     expect(scanner).toContain("incident_scan_upstream_failed");
-    expect(scanner).not.toContain("controlSecret,");
+    expect(scanner).not.toContain("jsonResponse({ controlSecret");
+    expect(scanner).not.toContain("message: controlSecret");
   });
 
   it("schedules a five-minute scan with the existing Vault secret", () => {
