@@ -245,7 +245,7 @@ async function buildFingerprint(input: IncidentInput) {
 
 const SENSITIVE_KEY = /(authorization|cookie|token|secret|password|passwd|api[_-]?key|signature|session|jwt|private[_-]?key|card|payment[_-]?method|client[_-]?secret)/i;
 const EMAIL = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi;
-const BEARER = /Bearer\s+[A-Za-z0-9._~+\/-]+=*/gi;
+const BEARER = /Bearer\s+[A-Za-z0-9._~+/-]+=*/gi;
 const JWT = /\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/g;
 const COMMON_SECRET = /\b(?:sk|rk|pk|whsec|sb_secret|xox[baprs])[_-](?:live[_-]|test[_-])?[A-Za-z0-9_-]{12,}\b/gi;
 
