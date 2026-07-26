@@ -11,6 +11,7 @@ describe("commercial prospect map pins", () => {
   const markerTheme = read("src/lib/commercialProspectionMarkerTheme.ts");
   const markerCss = read("src/styles/commercial-prospection-markers.css");
   const prospectSource = read("src/data/genevaCommercialProspects.ts");
+  const theForkSource = read("src/data/theForkCommercialProspects.ts");
   const migration = read(
     "supabase/migrations/20260726061344_seed_thefork_commercial_prospect_catalog.sql",
   );
@@ -39,6 +40,38 @@ describe("commercial prospect map pins", () => {
     expect(prospectSource).toContain('registryResult.status === "fulfilled"');
     expect(prospectSource).toContain('theForkResult.status === "fulfilled"');
     expect(prospectSource).not.toContain("await Promise.all([");
+  });
+
+  it("loads TheFork pins from a committed static dataset with authorized identifiers", () => {
+    // The previous embedded bzip2 payload was truncated at its source (the
+    // fourth base64 chunk was never committed because scripts/.tmp/ is
+    // gitignored), so the TheFork source failed on every load and the fork
+    // pins silently disappeared from the commercial map.
+    expect(theForkSource).toContain('"/data/thefork-geneva-commercial-prospects.json"');
+    expect(theForkSource).toContain("isAuthorizedTheForkProspect");
+    expect(theForkSource).not.toContain("bzip2");
+    expect(theForkSource).not.toContain("scripts/.tmp");
+
+    const dataset = JSON.parse(
+      read("public/data/thefork-geneva-commercial-prospects.json"),
+    ) as Array<Record<string, unknown>>;
+
+    expect(Array.isArray(dataset)).toBe(true);
+    expect(dataset.length).toBeGreaterThanOrEqual(400);
+    expect(dataset.length).toBeLessThanOrEqual(520);
+
+    const sourceObjectIds = new Set(dataset.map((row) => Number(row.sourceObjectId)));
+    expect(sourceObjectIds.size).toBe(dataset.length);
+    for (const row of dataset) {
+      const index = Number(row.sourceObjectId) - 2_600_000_000;
+      expect(Number.isInteger(index) && index >= 1 && index <= 520).toBe(true);
+      expect(row.isTheFork).toBe(true);
+      expect(String(row.theForkUrl)).toMatch(/^https:\/\/www\.thefork\.(?:ch|com)\//);
+      expect(Number(row.latitude)).toBeGreaterThanOrEqual(45);
+      expect(Number(row.latitude)).toBeLessThanOrEqual(48.2);
+      expect(Number(row.longitude)).toBeGreaterThanOrEqual(5);
+      expect(Number(row.longitude)).toBeLessThanOrEqual(11);
+    }
   });
 
   it("authorizes exactly the 520 stable fork identifiers without exposing the catalog", () => {
