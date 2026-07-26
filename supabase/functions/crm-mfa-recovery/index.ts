@@ -15,8 +15,31 @@ const FUNCTION_NAME = "crm-mfa-recovery";
 const CRM_MFA_FRIENDLY_NAME = "TOK CRM";
 const CODE_LENGTH = 8;
 const CODE_TTL_MINUTES = 10;
+const RESEND_API_URL = "https://api.resend.com/emails";
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const PROVIDER_CODE_PATTERN = /^[a-z0-9_-]{1,64}$/i;
+
+type RecoveryEmailProviderMetadata = {
+  provider: "resend";
+  provider_status: number;
+  provider_error_code: string | null;
+  sender_domain_unverified: boolean;
+};
+
+class RecoveryEmailProviderError extends HttpError {
+  readonly providerMetadata: RecoveryEmailProviderMetadata;
+
+  constructor(
+    status: number,
+    message: string,
+    providerMetadata: RecoveryEmailProviderMetadata,
+  ) {
+    super(status, message);
+    this.name = "RecoveryEmailProviderError";
+    this.providerMetadata = providerMetadata;
+  }
+}
 
 function normalizeCode(value: unknown) {
   return typeof value === "string" ? value.replace(/\s+/g, "") : "";
@@ -50,15 +73,71 @@ function maskEmail(email: string) {
   return `${visible}${"*".repeat(Math.max(3, localPart.length - visible.length))}@${domain}`;
 }
 
-async function sendRecoveryEmail(email: string, code: string) {
+function normalizeProviderCode(value: unknown) {
+  return typeof value === "string" && PROVIDER_CODE_PATTERN.test(value)
+    ? value
+    : null;
+}
+
+async function buildRecoveryEmailProviderError(response: Response) {
+  let providerErrorCode: string | null = null;
+  let providerMessage = "";
+
+  try {
+    const payload = await response.json();
+    providerErrorCode = normalizeProviderCode(payload?.name);
+    providerMessage = typeof payload?.message === "string"
+      ? payload.message.slice(0, 500)
+      : "";
+  } catch {
+    providerErrorCode = null;
+    providerMessage = "";
+  }
+
+  const senderDomainUnverified = response.status === 403 &&
+    providerErrorCode === "validation_error" &&
+    /domain\b.*\bnot verified|verify (?:your|a) domain/i.test(providerMessage);
+
+  let status = 502;
+  let message = "recovery_email_delivery_failed";
+
+  if (senderDomainUnverified) {
+    status = 503;
+    message = "recovery_email_sender_domain_unverified";
+  } else if (response.status === 401 || response.status === 403) {
+    status = 503;
+    message = "recovery_email_provider_misconfigured";
+  } else if (response.status === 429) {
+    status = 503;
+    message = "recovery_email_provider_rate_limited";
+  } else if (response.status >= 500) {
+    status = 502;
+    message = "recovery_email_provider_unavailable";
+  }
+
+  return new RecoveryEmailProviderError(status, message, {
+    provider: "resend",
+    provider_status: response.status,
+    provider_error_code: providerErrorCode,
+    sender_domain_unverified: senderDomainUnverified,
+  });
+}
+
+async function sendRecoveryEmail(
+  email: string,
+  code: string,
+  challengeId: string,
+) {
   const resendApiKey = getEnv("RESEND_API_KEY");
   if (!resendApiKey) throw new HttpError(503, "recovery_email_unavailable");
 
-  const response = await fetch("https://api.resend.com/emails", {
+  const response = await fetch(RESEND_API_URL, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${resendApiKey}`,
       "Content-Type": "application/json",
+      "Idempotency-Key": `crm-mfa-recovery-${challengeId}`,
+      "User-Agent": "TOK-CRM-MFA-Recovery/1.0",
     },
     body: JSON.stringify({
       from: Deno.env.get("EMAIL_FROM") || "TOK <noreply@thetok.ch>",
@@ -80,7 +159,7 @@ async function sendRecoveryEmail(email: string, code: string) {
   });
 
   if (!response.ok) {
-    throw new HttpError(502, "recovery_email_delivery_failed");
+    throw await buildRecoveryEmailProviderError(response);
   }
 }
 
@@ -158,7 +237,7 @@ Deno.serve(async (req) => {
       }
 
       try {
-        await sendRecoveryEmail(email, code);
+        await sendRecoveryEmail(email, code, challengeId);
       } catch (emailError) {
         await adminClient
           .from("crm_mfa_recovery_challenges")
@@ -304,7 +383,16 @@ Deno.serve(async (req) => {
   } catch (error) {
     const status = error instanceof HttpError ? error.status : 500;
     const message = error instanceof Error ? error.message : "internal_error";
-    log.error("request_failed", { action, status, message });
+    const providerMetadata = error instanceof RecoveryEmailProviderError
+      ? error.providerMetadata
+      : {};
+
+    log.error("request_failed", {
+      action,
+      status,
+      message,
+      ...providerMetadata,
+    });
 
     await writeAuditLog({
       adminClient,
@@ -319,7 +407,10 @@ Deno.serve(async (req) => {
       targetEntityType: "crm_mfa_recovery_challenge",
       targetEntityId: challengeId,
       errorMessage: message,
-      metadata: { rid: log.rid },
+      metadata: {
+        rid: log.rid,
+        ...providerMetadata,
+      },
     });
 
     return jsonResponse({ error: message, rid: log.rid }, status, corsHeaders);
