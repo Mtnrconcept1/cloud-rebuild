@@ -3,6 +3,8 @@ import path from "node:path";
 import process from "node:process";
 import { parse as parseDotenv } from "dotenv";
 
+import { resolveLiveStripePublishableKey } from "./resolve-live-stripe-publishable-key.mjs";
+
 const ROOT = process.cwd();
 const outFile = readOutFile(process.argv.slice(2));
 const baseEnv = readDotenvFile(path.join(ROOT, ".env.production"));
@@ -17,7 +19,7 @@ const values = {
   VITE_SUPABASE_PUBLISHABLE_KEY: resolveRequired("VITE_SUPABASE_PUBLISHABLE_KEY", {
     fallback: process.env.VITE_SUPABASE_ANON_KEY ?? baseEnv.VITE_SUPABASE_ANON_KEY ?? baseEnv.VITE_SUPABASE_PUBLISHABLE_KEY,
   }),
-  VITE_STRIPE_PUBLISHABLE_KEY: resolveStripePublishableKey(),
+  VITE_STRIPE_PUBLISHABLE_KEY: await resolveStripePublishableKey(),
   VITE_FIREBASE_API_KEY: resolveRequired("VITE_FIREBASE_API_KEY"),
   VITE_FIREBASE_AUTH_DOMAIN: resolveRequired("VITE_FIREBASE_AUTH_DOMAIN", {
     fallback: baseEnv.VITE_FIREBASE_AUTH_DOMAIN,
@@ -63,33 +65,36 @@ function readDotenvFile(filePath) {
   return parseDotenv(fs.readFileSync(filePath));
 }
 
-function resolveStripePublishableKey() {
-  const value = resolveOptional("VITE_STRIPE_PUBLISHABLE_KEY", {
+async function resolveStripePublishableKey() {
+  const configured = resolveOptional("VITE_STRIPE_PUBLISHABLE_KEY", {
     fallback: process.env.VITE_STRIPE_PUBLISHABLE_KEY_FALLBACK ?? baseEnv.VITE_STRIPE_PUBLISHABLE_KEY,
   });
 
-  if (value?.startsWith("pk_live_")) {
-    return value;
-  }
+  try {
+    const resolved = await resolveLiveStripePublishableKey({
+      root: ROOT,
+      explicitCandidates: [
+        configured,
+        process.env.VITE_STRIPE_PUBLISHABLE_KEY_FALLBACK,
+        baseEnv.VITE_STRIPE_PUBLISHABLE_KEY,
+      ],
+    });
 
-  if (isProviderBootstrapGraceActive()) {
-    console.warn(
-      "Temporary provider bootstrap grace is active: omitting Stripe from the production frontend bundle.",
-    );
-    return null;
-  }
+    if (resolved.source !== "environment") {
+      console.log(`Resolved live Stripe publishable key from ${resolved.source}; value remains masked.`);
+    }
 
-  if (value === null) {
-    throw new Error("Missing required production build variable VITE_STRIPE_PUBLISHABLE_KEY.");
-  }
+    return resolved.value;
+  } catch (error) {
+    if (isProviderBootstrapGraceActive()) {
+      console.warn(
+        "Temporary provider bootstrap grace is active: omitting Stripe from the production frontend bundle.",
+      );
+      return null;
+    }
 
-  if (!value.startsWith("pk_test_")) {
-    throw new Error(
-      "Invalid value for VITE_STRIPE_PUBLISHABLE_KEY: must be a Stripe publishable key (pk_live_... or pk_test_...).",
-    );
+    throw error;
   }
-
-  return value;
 }
 
 function isProviderBootstrapGraceActive() {
