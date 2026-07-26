@@ -46,6 +46,7 @@ import {
 } from "@/components/ui/table";
 import AdminLogResetButton from "@/components/admin/AdminLogResetButton";
 import { getSupabase } from "@/integrations/supabase/client";
+import { describeAuditLog, type AuditNarrative } from "@/lib/admin/auditLogNarrative";
 
 const supabase = getSupabase();
 
@@ -78,6 +79,10 @@ type AuditEntry = {
   newData?: unknown;
   ipAddress?: string | null;
   raw?: unknown;
+  /** Raw technical error, kept verbatim for the detail panel. */
+  errorMessage?: string | null;
+  /** Plain-French reading of the row, computed once at load time. */
+  narrative: AuditNarrative;
 };
 
 type ProductionHealthReport = {
@@ -416,15 +421,20 @@ function humanizeTechnicalLabel(value: string) {
   return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 }
 
-function getAuditRecommendation(log: AuditEntry) {
-  if (log.status !== "failure") {
-    return "Vérifier que l’action correspond au comportement attendu. Aucune correction n’est requise si la cible et l’acteur sont légitimes.";
-  }
+function getAuditNarrative(log: AuditEntry): AuditNarrative {
+  return log.narrative;
+}
+
+/**
+ * Category-level fallback used only when the narrative engine could not name a
+ * precise cause, so the operator still gets a domain-aware next step.
+ */
+function getCategoryFallbackRecommendation(log: AuditEntry) {
   if (log.category === "payment") return "Contrôler la session Stripe, le PaymentIntent et la commande liée. Relancer la réconciliation avant tout remboursement manuel.";
   if (log.category === "security") return "Contrôler l’identité, l’adresse IP, les rôles et la fréquence des tentatives. Révoquer la session ou bloquer le flux si l’action n’est pas légitime.";
   if (log.category === "ai") return "Contrôler le quota, les crédits, le fournisseur IA et le journal d’usage. Ne relancer la génération qu’après avoir identifié la cause.";
   if (log.category === "order") return "Ouvrir l’opération concernée, comparer les statuts commande, paiement, restaurant et dispatch, puis appliquer uniquement la transition autorisée.";
-  return "Consulter les métadonnées, reproduire l’échec dans un environnement sûr et corriger la cause avant de relancer l’action.";
+  return null;
 }
 
 function getAuditDestination(log: AuditEntry) {
@@ -489,11 +499,17 @@ function buildAuditDetail(log: AuditEntry): AdminDetail {
     "livreur_id",
   ]);
 
+  const narrative = getAuditNarrative(log);
+
   return {
-    title: humanizeTechnicalLabel(log.action),
+    title: narrative.headline,
     subtitle: `${log.source === "edge" ? "Execution Edge" : "Historique data"} · ${CATEGORY_LABELS[log.category]}`,
     status: log.status,
     fields: [
+      { label: "Ce que fait cette opération", value: narrative.what },
+      { label: "Résultat", value: narrative.outcome },
+      ...(narrative.cause ? [{ label: "Pourquoi cela s’est produit", value: narrative.cause }] : []),
+      { label: "Conséquence", value: narrative.impact },
       { label: "Moment précis", value: formatExactDateTime(log.createdAt) },
       { label: "Source technique", value: log.source === "edge" ? "Edge Function" : "Audit data" },
       { label: "Fonction / table", value: log.functionName },
@@ -510,7 +526,7 @@ function buildAuditDetail(log: AuditEntry): AdminDetail {
       { label: "Cible technique", value: log.targetType },
       { label: "ID cible", value: log.targetId },
       { label: "IP", value: log.ipAddress || pickMetadataValue(log.requestMetadata, ["ip", "ip_address"]) },
-      { label: "Résumé", value: log.summary },
+      { label: "Message technique brut", value: log.errorMessage || log.summary },
     ],
     raw: {
       request_metadata: log.requestMetadata,
@@ -519,10 +535,10 @@ function buildAuditDetail(log: AuditEntry): AdminDetail {
       raw: log.raw,
     },
     rawTitle: "Métadonnées complètes",
-    explanation: log.status === "failure"
-      ? `L’action « ${humanizeTechnicalLabel(log.action)} » a échoué dans ${log.functionName}. Le résumé enregistré est : ${log.summary || "aucun détail fonctionnel fourni"}.`
-      : `L’action « ${humanizeTechnicalLabel(log.action)} » a été enregistrée avec le statut ${log.status === "success" ? "réussi" : "informatif"}.`,
-    recommendation: getAuditRecommendation(log),
+    explanation: [narrative.what, narrative.cause, narrative.impact].filter(Boolean).join(" "),
+    recommendation: narrative.causeIdentified
+      ? narrative.recommendation
+      : getCategoryFallbackRecommendation(log) || narrative.recommendation,
     destination: getAuditDestination(log),
     destinationLabel: "Voir la zone concernée",
   };
@@ -718,6 +734,8 @@ export default function AdminAuditLogs() {
           ? String(row.error_message)
           : String((row.request_metadata as Record<string, unknown> | null)?.path || functionName || "Exécution Edge");
         const category = inferLogCategory([action, targetType, targetId, summary].join(" "));
+        const status = normalizeAuditStatus(row.status);
+        const actorType = inferActorType(actorLabel);
 
         return {
           id: String(row.id),
@@ -726,16 +744,29 @@ export default function AdminAuditLogs() {
           action,
           functionName,
           category,
-          status: normalizeAuditStatus(row.status),
+          status,
           actorLabel,
-          actorType: inferActorType(actorLabel),
+          actorType,
           targetType,
           targetId,
           summary,
+          narrative: describeAuditLog({
+            source: "edge",
+            action,
+            functionName,
+            status,
+            actorLabel,
+            actorType,
+            targetType,
+            targetId,
+            errorMessage: row.error_message ?? null,
+            metadata: asRecord(row.request_metadata),
+          }),
           actorUserId: row.actor_user_id ?? null,
           actorRoles: Array.isArray(row.actor_roles) ? row.actor_roles : [],
           isServiceRole: Boolean(row.is_service_role),
           requestMetadata: row.request_metadata,
+          errorMessage: row.error_message ?? null,
           raw: row,
         };
       });
@@ -744,7 +775,18 @@ export default function AdminAuditLogs() {
         const action = String(row.action || "mutation");
         const targetType = String(row.entity_type || "entity");
         const targetId = String(row.entity_id || "");
-        const summary = `${targetType} ${targetId}`.trim();
+        const actorLabel = String(row.user_id || "utilisateur");
+        const narrative = describeAuditLog({
+          source: "data",
+          action,
+          functionName: targetType,
+          status: "info",
+          actorLabel,
+          actorType: "user",
+          targetType,
+          targetId,
+          metadata: { ...asRecord(row.old_data), ...asRecord(row.new_data) },
+        });
         return {
           id: String(row.id),
           source: "data",
@@ -753,11 +795,12 @@ export default function AdminAuditLogs() {
           functionName: targetType,
           category: inferLogCategory([action, targetType, targetId].join(" ")),
           status: "info",
-          actorLabel: String(row.user_id || "utilisateur"),
+          actorLabel,
           actorType: "user",
           targetType,
           targetId,
-          summary,
+          summary: narrative.headline,
+          narrative,
           actorUserId: row.user_id ?? null,
           ipAddress: row.ip_address ?? null,
           oldData: row.old_data,
@@ -788,7 +831,20 @@ export default function AdminAuditLogs() {
         const matchesActor = actorFilter === "all" || log.actorType === actorFilter;
         const matchesFunction = functionFilter === "all" || log.functionName === functionFilter;
         const matchesTargetType = targetTypeFilter === "all" || log.targetType === targetTypeFilter;
-        const haystack = [log.action, log.functionName, log.actorLabel, log.targetType, log.targetId, log.summary, log.category]
+        // The narrative is searchable too, so an operator can type "supprimé"
+        // or "secret" instead of guessing the technical identifier.
+        const haystack = [
+          log.action,
+          log.functionName,
+          log.actorLabel,
+          log.targetType,
+          log.targetId,
+          log.summary,
+          log.category,
+          log.narrative.headline,
+          log.narrative.cause,
+        ]
+          .filter(Boolean)
           .join(" ")
           .toLowerCase();
 
@@ -1231,7 +1287,7 @@ export default function AdminAuditLogs() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Quand</TableHead><TableHead>Source</TableHead><TableHead>Type</TableHead><TableHead>Action</TableHead><TableHead>Acteur</TableHead><TableHead>Statut</TableHead><TableHead>Cible</TableHead><TableHead>Résumé</TableHead>
+                    <TableHead>Quand</TableHead><TableHead>Source</TableHead><TableHead>Type</TableHead><TableHead>Action</TableHead><TableHead>Acteur</TableHead><TableHead>Statut</TableHead><TableHead>Cible</TableHead><TableHead>Ce qui s’est passé</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1256,7 +1312,19 @@ export default function AdminAuditLogs() {
                       <TableCell data-label="Acteur" className="text-xs text-muted-foreground"><div>{log.actorLabel}</div><div>{log.actorType}</div></TableCell>
                       <TableCell data-label="Statut"><Badge variant={log.status === "failure" ? "destructive" : log.status === "success" ? "secondary" : "outline"}>{log.status}</Badge></TableCell>
                       <TableCell data-label="Cible" className="text-xs"><div>{log.targetType}</div>{log.targetId ? <div className="break-all text-muted-foreground md:max-w-[14rem] md:truncate md:break-normal">{log.targetId}</div> : null}</TableCell>
-                      <TableCell data-label="Résumé" className="text-xs text-muted-foreground md:max-w-[32rem]">{log.summary || (log.status === "failure" ? "Cette opération a échoué et nécessite une vérification." : "Cette opération a été enregistrée sans anomalie détaillée.")}</TableCell>
+                      <TableCell data-label="Ce qui s’est passé" className="text-xs md:max-w-[32rem]">
+                        {(() => {
+                          const narrative = getAuditNarrative(log);
+                          return (
+                            <>
+                              <div className="text-foreground">{narrative.headline}</div>
+                              {narrative.cause ? (
+                                <div className="mt-1 text-muted-foreground">{narrative.cause}</div>
+                              ) : null}
+                            </>
+                          );
+                        })()}
+                      </TableCell>
                     </TableRow>
                   ))}
                   {filteredLogs.length === 0 ? (
