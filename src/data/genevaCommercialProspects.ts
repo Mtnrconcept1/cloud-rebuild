@@ -274,10 +274,21 @@ async function fetchCommercialProspectSource(url: string) {
 }
 
 export async function fetchGenevaCommercialProspects(): Promise<GenevaCommercialProspect[]> {
-  const [registryProspects, theForkProspects] = await Promise.all([
+  const [registryResult, theForkResult] = await Promise.allSettled([
     fetchCommercialProspectSource(COMMERCIAL_PROSPECTS_URL),
     fetchTheForkCommercialProspects(),
   ]);
+
+  if (registryResult.status === "rejected" && theForkResult.status === "rejected") {
+    throw new Error("Les sources de prospects commerciaux sont temporairement indisponibles.");
+  }
+
+  const registryProspects = registryResult.status === "fulfilled"
+    ? registryResult.value
+    : [];
+  const theForkProspects = theForkResult.status === "fulfilled"
+    ? theForkResult.value
+    : [];
 
   return mergeGenevaCommercialProspects(registryProspects, theForkProspects);
 }

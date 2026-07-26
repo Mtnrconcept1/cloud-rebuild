@@ -8,7 +8,8 @@ declare global {
 }
 
 function isCommercialProspectionRoute() {
-  return window.location.pathname.startsWith("/commercial/prospection");
+  const pathname = window.location.pathname.replace(/\/+$/, "") || "/";
+  return pathname === "/commercial" || pathname === "/commercial/prospection";
 }
 
 function synchronizeCommercialMapTheme() {

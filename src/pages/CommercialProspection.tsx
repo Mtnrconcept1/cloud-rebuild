@@ -379,35 +379,22 @@ function escapeMapHtml(value: string | number | null | undefined) {
   });
 }
 
-function commercialProspectMarkerIcon(meta: StatusMeta, selected: boolean) {
+function commercialProspectMarkerIcon(
+  meta: StatusMeta,
+  selected: boolean,
+  isTheFork: boolean,
+) {
   const size = selected ? 40 : 34;
-  const innerSize = selected ? 22 : 18;
-  const ringColor = selected ? "#020617" : "#ffffff";
+  const selectedClass = selected ? " is-selected" : "";
+  const glyphClass = isTheFork ? "is-thefork" : "is-standard";
 
   return L.divIcon({
     html: `
-      <div style="
-        width:${size}px;
-        height:${size}px;
-        border-radius:9999px;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        background:rgba(255,255,255,0.95);
-        border:2px solid ${ringColor};
-        box-shadow:0 14px 30px rgba(15,23,42,0.24),0 0 0 ${selected ? "5px" : "3px"} rgba(255,255,255,0.72);
-      ">
-        <span style="
-          width:${innerSize}px;
-          height:${innerSize}px;
-          border-radius:9999px;
-          display:block;
-          background:${meta.marker};
-          box-shadow:0 0 0 2px rgba(255,255,255,0.94),0 0 22px ${meta.marker};
-        "></span>
+      <div class="commercial-prospect-marker-shell${selectedClass}">
+        <span class="commercial-prospect-marker-glyph ${glyphClass} commercial-prospect-marker-status-${meta.value}"></span>
       </div>
     `,
-    className: "",
+    className: "commercial-prospect-marker-icon",
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
   });
@@ -701,7 +688,11 @@ function CommercialProspectionMap({
 
           const point = cluster.points[0];
           const marker = L.marker(point.latLng, {
-            icon: commercialProspectMarkerIcon(point.meta, point.selected),
+            icon: commercialProspectMarkerIcon(
+              point.meta,
+              point.selected,
+              point.prospect.isTheFork === true,
+            ),
             keyboard: true,
             riseOnHover: true,
             title: point.prospect.name,

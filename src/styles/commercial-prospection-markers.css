@@ -1,24 +1,68 @@
 /*
  * Commercial prospect map markers.
  *
- * The fork is drawn with plain CSS so it remains visible under the production
- * Content Security Policy. Do not use data: URLs or external masks here: when
- * a mask resource is blocked, browsers make the entire marker transparent.
+ * Marker shells and glyphs use CSS classes so the real /commercial route keeps
+ * visible pins under the production Content Security Policy. The fork glyph is
+ * reserved for prospects originating from TheFork.
  */
-body[data-commercial-prospection-map] .leaflet-marker-icon > div > span {
-  position: relative !important;
-  display: block !important;
-  width: 14px !important;
-  height: 20px !important;
+.commercial-prospect-marker-icon {
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.commercial-prospect-marker-shell {
+  display: flex;
+  width: 34px;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #ffffff;
+  border-radius: 9999px;
+  background: rgb(255 255 255 / 0.96);
+  box-shadow:
+    0 14px 30px rgb(15 23 42 / 0.24),
+    0 0 0 3px rgb(255 255 255 / 0.72);
+}
+
+.commercial-prospect-marker-shell.is-selected {
+  width: 40px;
+  height: 40px;
+  border-color: #020617;
+  box-shadow:
+    0 14px 30px rgb(15 23 42 / 0.28),
+    0 0 0 5px rgb(255 255 255 / 0.72);
+}
+
+.commercial-prospect-marker-glyph {
+  display: block;
   color: #facc15;
-  border-radius: 0 !important;
-  background:
-    linear-gradient(currentColor 0 0) center bottom / 4px 14px no-repeat !important;
-  box-shadow: none !important;
   filter: drop-shadow(0 1px 1px rgb(15 23 42 / 0.35));
 }
 
-body[data-commercial-prospection-map] .leaflet-marker-icon > div > span::before {
+.commercial-prospect-marker-glyph.is-standard {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #ffffff;
+  border-radius: 9999px;
+  background: currentColor;
+  box-shadow: 0 0 18px currentColor;
+}
+
+.commercial-prospect-marker-shell.is-selected
+  .commercial-prospect-marker-glyph.is-standard {
+  width: 22px;
+  height: 22px;
+}
+
+.commercial-prospect-marker-glyph.is-thefork {
+  position: relative;
+  width: 14px;
+  height: 20px;
+  background:
+    linear-gradient(currentColor 0 0) center bottom / 4px 14px no-repeat;
+}
+
+.commercial-prospect-marker-glyph.is-thefork::before {
   position: absolute;
   top: 0;
   left: 50%;
@@ -34,26 +78,21 @@ body[data-commercial-prospection-map] .leaflet-marker-icon > div > span::before 
     linear-gradient(currentColor 0 0) center bottom / 14px 3px no-repeat;
 }
 
-body[data-commercial-prospection-map] .leaflet-marker-icon > div > span[style*="#facc15"],
-body[data-commercial-prospection-map] .leaflet-marker-icon > div > span[style*="rgb(250, 204, 21)"] {
+.commercial-prospect-marker-status-not_visited {
   color: #facc15;
 }
 
 /* “Visité” and “En cours” intentionally share the requested orange state. */
-body[data-commercial-prospection-map] .leaflet-marker-icon > div > span[style*="#2563eb"],
-body[data-commercial-prospection-map] .leaflet-marker-icon > div > span[style*="rgb(37, 99, 235)"],
-body[data-commercial-prospection-map] .leaflet-marker-icon > div > span[style*="#f97316"],
-body[data-commercial-prospection-map] .leaflet-marker-icon > div > span[style*="rgb(249, 115, 22)"] {
+.commercial-prospect-marker-status-visited,
+.commercial-prospect-marker-status-in_progress {
   color: #f97316;
 }
 
-body[data-commercial-prospection-map] .leaflet-marker-icon > div > span[style*="#16a34a"],
-body[data-commercial-prospection-map] .leaflet-marker-icon > div > span[style*="rgb(22, 163, 74)"] {
+.commercial-prospect-marker-status-signed {
   color: #16a34a;
 }
 
-body[data-commercial-prospection-map] .leaflet-marker-icon > div > span[style*="#ef4444"],
-body[data-commercial-prospection-map] .leaflet-marker-icon > div > span[style*="rgb(239, 68, 68)"] {
+.commercial-prospect-marker-status-not_interested {
   color: #ef4444;
 }
 

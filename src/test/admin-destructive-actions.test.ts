@@ -17,7 +17,12 @@ describe("commercial pins and admin destructive actions", () => {
   it("keeps commercial map pins visible under the production CSP", () => {
     expect(markerCss).not.toContain("data:image/svg+xml");
     expect(markerCss).not.toContain("mask-image");
-    expect(markerCss).toContain("span::before");
+    expect(markerCss).toContain(
+      ".commercial-prospect-marker-glyph.is-thefork::before",
+    );
+    expect(markerCss).toContain(
+      ".commercial-prospect-marker-glyph.is-standard",
+    );
     expect(markerCss).toContain("currentColor");
     expect(markerCss).toContain("#facc15");
     expect(markerCss).toContain("#f97316");
