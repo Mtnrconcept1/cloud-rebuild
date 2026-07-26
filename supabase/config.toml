@@ -140,6 +140,9 @@ verify_jwt = false
 [functions.notification-dispatch]
 verify_jwt = false
 
+[functions.ops-incident-control]
+verify_jwt = false
+
 [functions.payment-attempt-status]
 verify_jwt = false
 
@@ -233,4 +236,3 @@ verify_jwt = false
 # Legacy public demo credentials endpoint: permanent authenticated tombstone.
 [functions.provision-commercial-demo-logins]
 verify_jwt = true
-

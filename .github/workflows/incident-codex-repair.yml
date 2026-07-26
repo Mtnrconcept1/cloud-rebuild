@@ -1,0 +1,618 @@
+name: TOK Codex Incident Repair
+
+on:
+  repository_dispatch:
+    types:
+      - tok_incident_approved
+  workflow_dispatch:
+    inputs:
+      incident_id:
+        description: Approved incident UUID
+        required: true
+        type: string
+      context_token:
+        description: Short-lived incident context token
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tok-codex-incident-${{ github.event.client_payload.incident_id || inputs.incident_id }}
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    name: Generate isolated repair patch
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    outputs:
+      incident_id: ${{ steps.request.outputs.incident_id }}
+      base_sha: ${{ steps.request.outputs.base_sha }}
+      repair_branch: ${{ steps.branch.outputs.repair_branch }}
+      artifact_name: ${{ steps.branch.outputs.artifact_name }}
+      changed: ${{ steps.changes.outputs.changed }}
+      patch_sha256: ${{ steps.patch.outputs.patch_sha256 }}
+    env:
+      NODE_VERSION: 22
+      PNPM_VERSION: 10.28.1
+      INCIDENT_CONTROL_URL: ${{ vars.TOK_INCIDENT_CONTROL_URL || secrets.TOK_INCIDENT_CONTROL_URL }}
+      CODEX_API_KEY_PRESENT: ${{ secrets.OPENAI_API_KEY != '' }}
+      INCIDENT_GITHUB_SECRET_PRESENT: ${{ secrets.TOK_INCIDENT_GITHUB_SECRET != '' }}
+
+    steps:
+      - name: Validate approved incident request
+        id: request
+        env:
+          DISPATCH_INCIDENT_ID: ${{ github.event.client_payload.incident_id }}
+          DISPATCH_CONTEXT_TOKEN: ${{ github.event.client_payload.context_token }}
+          MANUAL_INCIDENT_ID: ${{ inputs.incident_id }}
+          MANUAL_CONTEXT_TOKEN: ${{ inputs.context_token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          INCIDENT_ID="${DISPATCH_INCIDENT_ID:-${MANUAL_INCIDENT_ID:-}}"
+          CONTEXT_TOKEN="${DISPATCH_CONTEXT_TOKEN:-${MANUAL_CONTEXT_TOKEN:-}}"
+
+          if [[ ! "$INCIDENT_ID" =~ ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$ ]]; then
+            echo "::error::Invalid incident UUID."
+            exit 1
+          fi
+
+          echo "incident_id=$INCIDENT_ID" >> "$GITHUB_OUTPUT"
+          echo "base_sha=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+
+          if [[ ! "$CONTEXT_TOKEN" =~ ^[A-Za-z0-9_-]{24,64}$ ]]; then
+            echo "::error::Invalid incident context token."
+            exit 1
+          fi
+          if [[ -z "$INCIDENT_CONTROL_URL" || "$INCIDENT_GITHUB_SECRET_PRESENT" != "true" ]]; then
+            echo "::error::TOK incident callback configuration is incomplete."
+            exit 1
+          fi
+          if [[ "$CODEX_API_KEY_PRESENT" != "true" ]]; then
+            echo "::error::OPENAI_API_KEY is not configured for Codex."
+            exit 1
+          fi
+
+          echo "::add-mask::$CONTEXT_TOKEN"
+          printf '%s' "$CONTEXT_TOKEN" > "${RUNNER_TEMP}/tok-incident-context-token"
+          chmod 600 "${RUNNER_TEMP}/tok-incident-context-token"
+
+      - name: Checkout immutable base revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.request.outputs.base_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install trusted base dependencies before Codex
+        run: pnpm install --frozen-lockfile
+
+      - name: Retrieve approved sanitized repair context
+        env:
+          INCIDENT_ID: ${{ steps.request.outputs.incident_id }}
+          INCIDENT_GITHUB_SECRET: ${{ secrets.TOK_INCIDENT_GITHUB_SECRET }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .codex-runtime
+          CONTEXT_TOKEN="$(cat "${RUNNER_TEMP}/tok-incident-context-token")"
+
+          jq -n \
+            --arg incident_id "$INCIDENT_ID" \
+            --arg token "$CONTEXT_TOKEN" \
+            --arg run_id "$GITHUB_RUN_ID" \
+            '{
+              action: "repair-context",
+              incidentId: $incident_id,
+              token: $token,
+              githubRunId: $run_id
+            }' > "${RUNNER_TEMP}/tok-repair-context-request.json"
+
+          curl --fail-with-body --silent --show-error \
+            --retry 2 --retry-all-errors --max-time 45 \
+            -X POST "$INCIDENT_CONTROL_URL" \
+            -H "Content-Type: application/json" \
+            -H "x-ops-github-secret: $INCIDENT_GITHUB_SECRET" \
+            --data-binary "@${RUNNER_TEMP}/tok-repair-context-request.json" \
+            > .codex-runtime/incident-context.json
+
+          jq -e --arg id "$INCIDENT_ID" '.ok == true and .incident.id == $id' \
+            .codex-runtime/incident-context.json >/dev/null
+          jq -r '.incident.title' .codex-runtime/incident-context.json \
+            | tr '\n\r' '  ' \
+            | cut -c1-120 \
+            > "${RUNNER_TEMP}/tok-incident-title.txt"
+          printf '.codex-runtime/\n' >> .git/info/exclude
+          rm -f "${RUNNER_TEMP}/tok-incident-context-token"
+          unset CONTEXT_TOKEN
+
+      - name: Notify repair start
+        continue-on-error: true
+        env:
+          INCIDENT_ID: ${{ steps.request.outputs.incident_id }}
+          INCIDENT_GITHUB_SECRET: ${{ secrets.TOK_INCIDENT_GITHUB_SECRET }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          jq -n \
+            --arg incident_id "$INCIDENT_ID" \
+            --arg run_id "$GITHUB_RUN_ID" \
+            '{action:"workflow-update", incidentId:$incident_id, status:"started", githubRunId:$run_id}' \
+            > "${RUNNER_TEMP}/tok-repair-start.json"
+          curl --fail --silent --show-error --max-time 30 \
+            -X POST "$INCIDENT_CONTROL_URL" \
+            -H "Content-Type: application/json" \
+            -H "x-ops-github-secret: $INCIDENT_GITHUB_SECRET" \
+            --data-binary "@${RUNNER_TEMP}/tok-repair-start.json" >/dev/null
+
+      - name: Create isolated local repair branch
+        id: branch
+        env:
+          INCIDENT_ID: ${{ steps.request.outputs.incident_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          BRANCH="codex/incident-${INCIDENT_ID:0:8}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          ARTIFACT_NAME="tok-incident-${INCIDENT_ID}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          git switch -c "$BRANCH"
+          echo "repair_branch=$BRANCH" >> "$GITHUB_OUTPUT"
+          echo "artifact_name=$ARTIFACT_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Run Codex on the approved plan
+        id: codex
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          permission-profile: ":workspace"
+          safety-strategy: drop-sudo
+          prompt: |
+            Read AGENTS.md first, then read every relevant file under docs/skills/ before modifying code.
+            Read the approved, sanitized incident context from .codex-runtime/incident-context.json.
+
+            Implement only the repair needed for that incident, using the repository's real architecture and conventions.
+            Never invent files, tables, migrations, branches, APIs, logs, or facts. Inspect the repository before every change.
+            Do not expose or rotate secrets. Do not access production data. Do not push, open a PR, merge, or deploy.
+            Do not modify .github/**, AGENTS.md, docs/skills/**, supabase/config.toml, or the incident-automation control plane.
+            Never edit an existing Supabase migration. A new non-destructive migration is allowed only when strictly necessary.
+            Avoid broad refactors. Keep the patch minimal, backwards-compatible, secure, and reversible.
+            Add or update regression tests for the concrete failure.
+            Run the most relevant tests while working. Separate secret-free runners will apply the patch and execute lint, typecheck, all tests, and build.
+            If the evidence is insufficient for a safe code change, make no code change and explain exactly what evidence is missing in the final message.
+
+      - name: Remove ephemeral incident context
+        if: ${{ always() }}
+        run: rm -rf .codex-runtime
+
+      - name: Detect Codex changes against immutable base
+        id: changes
+        env:
+          BASE_SHA: ${{ steps.request.outputs.base_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! git diff --quiet "$BASE_SHA" -- || [[ -n "$(git ls-files --others --exclude-standard)" ]]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Enforce repair scope before artifact creation
+        if: ${{ steps.changes.outputs.changed == 'true' }}
+        env:
+          BASE_SHA: ${{ steps.request.outputs.base_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          FILE_COUNT=0
+
+          while IFS= read -r -d '' FILE; do
+            [[ -n "$FILE" ]] || continue
+            FILE_COUNT=$((FILE_COUNT + 1))
+            if (( FILE_COUNT > 80 )); then
+              echo "::error::Repair exceeds the 80-file safety limit."
+              exit 1
+            fi
+
+            case "$FILE" in
+              .github/*|AGENTS.md|docs/skills/*|supabase/config.toml|supabase/functions/ops-incident-control/*|supabase/migrations/20260726053000_ops_incident_automation.sql|.gitattributes|.gitmodules|.env|.env.*|*/.env|*/.env.*|*.pem|*.key)
+                echo "::error file=$FILE::Codex attempted to modify a protected control-plane or secret path."
+                exit 1
+                ;;
+            esac
+
+            if [[ -L "$FILE" ]]; then
+              echo "::error file=$FILE::Symlink changes are not allowed in an automatic repair."
+              exit 1
+            fi
+
+            if [[ "$FILE" == supabase/migrations/*.sql ]]; then
+              if git cat-file -e "${BASE_SHA}:${FILE}" 2>/dev/null; then
+                echo "::error file=$FILE::Existing migrations are immutable."
+                exit 1
+              fi
+              if [[ ! "$FILE" =~ ^supabase/migrations/[0-9]{14}_[a-z0-9_]+\.sql$ ]]; then
+                echo "::error file=$FILE::New migration name does not follow the repository convention."
+                exit 1
+              fi
+              if grep -Eiq '\b(drop[[:space:]]+(table|schema)|truncate([[:space:]]+table)?|delete[[:space:]]+from|alter[[:space:]]+table[^;]*drop[[:space:]]+column)\b' "$FILE"; then
+                echo "::error file=$FILE::Destructive SQL is not allowed in an automatic repair."
+                exit 1
+              fi
+            fi
+          done < <(
+            {
+              git diff --name-only -z "$BASE_SHA" --
+              git ls-files --others --exclude-standard -z
+            } | sort -zu
+          )
+
+          git diff --check "$BASE_SHA" --
+
+      - name: Build immutable repair artifact
+        if: ${{ steps.changes.outputs.changed == 'true' }}
+        id: patch
+        env:
+          BASE_SHA: ${{ steps.request.outputs.base_sha }}
+          INCIDENT_ID: ${{ steps.request.outputs.incident_id }}
+          REPAIR_BRANCH: ${{ steps.branch.outputs.repair_branch }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ARTIFACT_DIR="${RUNNER_TEMP}/tok-repair-artifact"
+          mkdir -p "$ARTIFACT_DIR"
+
+          git add -N -- .
+          git diff --binary --full-index --no-ext-diff "$BASE_SHA" -- > "$ARTIFACT_DIR/repair.patch"
+          test -s "$ARTIFACT_DIR/repair.patch"
+
+          PATCH_SIZE="$(stat -c '%s' "$ARTIFACT_DIR/repair.patch")"
+          if (( PATCH_SIZE > 10485760 )); then
+            echo "::error::Repair patch exceeds 10 MiB."
+            exit 1
+          fi
+
+          cp "${RUNNER_TEMP}/tok-incident-title.txt" "$ARTIFACT_DIR/incident-title.txt"
+          jq -n \
+            --arg incident_id "$INCIDENT_ID" \
+            --arg base_sha "$BASE_SHA" \
+            --arg branch "$REPAIR_BRANCH" \
+            --arg run_id "$GITHUB_RUN_ID" \
+            --arg run_attempt "$GITHUB_RUN_ATTEMPT" \
+            '{incident_id:$incident_id, base_sha:$base_sha, branch:$branch, run_id:$run_id, run_attempt:$run_attempt}' \
+            > "$ARTIFACT_DIR/metadata.json"
+
+          PATCH_SHA256="$(sha256sum "$ARTIFACT_DIR/repair.patch" | awk '{print $1}')"
+          printf '%s  repair.patch\n' "$PATCH_SHA256" > "$ARTIFACT_DIR/repair.patch.sha256"
+          echo "patch_sha256=$PATCH_SHA256" >> "$GITHUB_OUTPUT"
+
+      - name: Upload isolated repair artifact
+        if: ${{ steps.changes.outputs.changed == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.branch.outputs.artifact_name }}
+          path: ${{ runner.temp }}/tok-repair-artifact
+          if-no-files-found: error
+          retention-days: 1
+
+  validate:
+    name: Validate generated repair without secrets
+    needs: prepare
+    if: ${{ needs.prepare.result == 'success' && needs.prepare.outputs.changed == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      NODE_VERSION: 22
+      PNPM_VERSION: 10.28.1
+
+    steps:
+      - name: Checkout immutable base revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.base_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Download repair artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.prepare.outputs.artifact_name }}
+          path: .incident-artifact
+
+      - name: Verify and apply repair patch
+        env:
+          EXPECTED_PATCH_SHA256: ${{ needs.prepare.outputs.patch_sha256 }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(stat -c '%s' .incident-artifact/repair.patch)" -le 10485760
+          ACTUAL_PATCH_SHA256="$(sha256sum .incident-artifact/repair.patch | awk '{print $1}')"
+          test "$ACTUAL_PATCH_SHA256" = "$EXPECTED_PATCH_SHA256"
+          git apply --check --whitespace=error-all .incident-artifact/repair.patch
+          git apply --index --whitespace=error-all .incident-artifact/repair.patch
+          git diff --cached --check
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Typecheck
+        run: pnpm run typecheck
+
+      - name: Test
+        run: pnpm run test
+
+      - name: Build
+        run: pnpm run build
+
+  publish:
+    name: Publish tested repair branch and PR
+    needs:
+      - prepare
+      - validate
+    if: ${{ needs.prepare.result == 'success' && needs.validate.result == 'success' && needs.prepare.outputs.changed == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      pr_url: ${{ steps.pull_request.outputs.pr_url }}
+      pr_number: ${{ steps.pull_request.outputs.pr_number }}
+    env:
+      CODEX_GITHUB_TOKEN_PRESENT: ${{ secrets.TOK_CODEX_GITHUB_TOKEN != '' }}
+
+    steps:
+      - name: Require dedicated publishing credential
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$CODEX_GITHUB_TOKEN_PRESENT" != "true" ]]; then
+            echo "::error::TOK_CODEX_GITHUB_TOKEN is required to push the tested branch and open the PR."
+            exit 1
+          fi
+
+      - name: Checkout immutable base revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.base_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Download tested repair artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.prepare.outputs.artifact_name }}
+          path: .incident-artifact
+
+      - name: Reconstruct tested branch on a fresh runner
+        env:
+          EXPECTED_PATCH_SHA256: ${{ needs.prepare.outputs.patch_sha256 }}
+          REPAIR_BRANCH: ${{ needs.prepare.outputs.repair_branch }}
+          BASE_SHA: ${{ needs.prepare.outputs.base_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! "$REPAIR_BRANCH" =~ ^codex/incident-[0-9a-fA-F]{8}-[0-9]+-[0-9]+$ ]]; then
+            echo "::error::Invalid repair branch name."
+            exit 1
+          fi
+
+          test "$(stat -c '%s' .incident-artifact/repair.patch)" -le 10485760
+          ACTUAL_PATCH_SHA256="$(sha256sum .incident-artifact/repair.patch | awk '{print $1}')"
+          test "$ACTUAL_PATCH_SHA256" = "$EXPECTED_PATCH_SHA256"
+
+          git switch -c "$REPAIR_BRANCH"
+          git apply --check --whitespace=error-all .incident-artifact/repair.patch
+          git apply --index --whitespace=error-all .incident-artifact/repair.patch
+          git diff --cached --check
+
+          while IFS= read -r -d '' FILE; do
+            case "$FILE" in
+              .github/*|AGENTS.md|docs/skills/*|supabase/config.toml|supabase/functions/ops-incident-control/*|supabase/migrations/20260726053000_ops_incident_automation.sql|.gitattributes|.gitmodules|.env|.env.*|*/.env|*/.env.*|*.pem|*.key)
+                echo "::error file=$FILE::Protected path present in the publishing artifact."
+                exit 1
+                ;;
+            esac
+            if [[ -L "$FILE" ]]; then
+              echo "::error file=$FILE::Symlink changes are not publishable."
+              exit 1
+            fi
+            if [[ "$FILE" == supabase/migrations/*.sql ]] && git cat-file -e "${BASE_SHA}:${FILE}" 2>/dev/null; then
+              echo "::error file=$FILE::Existing migrations are immutable."
+              exit 1
+            fi
+          done < <(git diff --cached --name-only -z "$BASE_SHA" -- | sort -zu)
+
+      - name: Commit reconstructed repair with hooks disabled
+        env:
+          INCIDENT_ID: ${{ needs.prepare.outputs.incident_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          SAFE_HOME="${RUNNER_TEMP}/tok-safe-home"
+          mkdir -p "$SAFE_HOME"
+          chmod 700 "$SAFE_HOME"
+          find .git/hooks -mindepth 1 -maxdepth 1 -type f -delete
+
+          HOME="$SAFE_HOME" git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          HOME="$SAFE_HOME" git config user.name "tok-codex-incident-bot"
+          HOME="$SAFE_HOME" git config user.email "tok-codex-incident-bot@users.noreply.github.com"
+          HOME="$SAFE_HOME" git remote set-url origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          HOME="$SAFE_HOME" git -c core.hooksPath=/dev/null -c commit.gpgsign=false \
+            commit -m "fix(incident): repair ${INCIDENT_ID:0:8}"
+          echo "SAFE_GIT_HOME=$SAFE_HOME" >> "$GITHUB_ENV"
+
+      - name: Push tested branch with dedicated token
+        env:
+          TOK_CODEX_GITHUB_TOKEN: ${{ secrets.TOK_CODEX_GITHUB_TOKEN }}
+          REPAIR_BRANCH: ${{ needs.prepare.outputs.repair_branch }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "::add-mask::$TOK_CODEX_GITHUB_TOKEN"
+          AUTH_HEADER="$(printf 'x-access-token:%s' "$TOK_CODEX_GITHUB_TOKEN" | base64 -w 0)"
+          HOME="$SAFE_GIT_HOME" git \
+            -c core.hooksPath=/dev/null \
+            -c credential.helper= \
+            -c http.extraheader="AUTHORIZATION: basic $AUTH_HEADER" \
+            push --set-upstream origin "$REPAIR_BRANCH"
+
+      - name: Open repair pull request
+        id: pull_request
+        env:
+          GH_TOKEN: ${{ secrets.TOK_CODEX_GITHUB_TOKEN }}
+          INCIDENT_ID: ${{ needs.prepare.outputs.incident_id }}
+          REPAIR_BRANCH: ${{ needs.prepare.outputs.repair_branch }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "::add-mask::$GH_TOKEN"
+          INCIDENT_TITLE="$(tr '\n\r' '  ' < .incident-artifact/incident-title.txt | cut -c1-120)"
+          if [[ -z "$INCIDENT_TITLE" ]]; then
+            INCIDENT_TITLE="TOK incident ${INCIDENT_ID:0:8}"
+          fi
+
+          cat > "${RUNNER_TEMP}/tok-repair-pr.md" <<EOF
+          ## Incident TOK
+
+          - Incident : \`${INCIDENT_ID}\`
+          - Branche Codex : \`${REPAIR_BRANCH}\`
+          - Workflow : ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
+
+          ## Garde-fous appliqués
+
+          - Approbation humaine Telegram requise avant exécution
+          - Contexte nettoyé des secrets et données personnelles
+          - Codex exécuté avec le profil \`:workspace\` et sans sudo
+          - Patch transféré vers des runners neufs avant validation et publication
+          - Aucun secret de publication disponible pendant Codex ou les tests
+          - Aucun push direct sur \`main\`
+          - Lint, typecheck, tests et build réussis avant cette PR
+          - Fusion et déploiement laissés aux protections GitHub existantes
+
+          ## Validation
+
+          Cette PR doit encore passer la CI habituelle et être relue avant fusion.
+          EOF
+
+          PR_URL="$(HOME="$SAFE_GIT_HOME" gh pr create \
+            --repo "$GITHUB_REPOSITORY" \
+            --base main \
+            --head "$REPAIR_BRANCH" \
+            --title "fix(incident): ${INCIDENT_TITLE}" \
+            --body-file "${RUNNER_TEMP}/tok-repair-pr.md")"
+          PR_NUMBER="$(HOME="$SAFE_GIT_HOME" gh pr view "$PR_URL" --repo "$GITHUB_REPOSITORY" --json number --jq '.number')"
+
+          echo "pr_url=$PR_URL" >> "$GITHUB_OUTPUT"
+          echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+
+  report:
+    name: Report repair result to Telegram
+    needs:
+      - prepare
+      - validate
+      - publish
+    if: ${{ always() && needs.prepare.outputs.incident_id != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    continue-on-error: true
+    env:
+      INCIDENT_CONTROL_URL: ${{ vars.TOK_INCIDENT_CONTROL_URL || secrets.TOK_INCIDENT_CONTROL_URL }}
+      INCIDENT_GITHUB_SECRET_PRESENT: ${{ secrets.TOK_INCIDENT_GITHUB_SECRET != '' }}
+
+    steps:
+      - name: Build final incident status
+        id: status
+        env:
+          PREPARE_RESULT: ${{ needs.prepare.result }}
+          VALIDATE_RESULT: ${{ needs.validate.result }}
+          PUBLISH_RESULT: ${{ needs.publish.result }}
+          CHANGED: ${{ needs.prepare.outputs.changed }}
+          PR_URL: ${{ needs.publish.outputs.pr_url }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          STATUS="failed"
+          MESSAGE="La génération du correctif a échoué avant publication."
+
+          if [[ "$PREPARE_RESULT" != "success" ]]; then
+            MESSAGE="La préparation Codex ou le contrôle du périmètre a échoué."
+          elif [[ "$CHANGED" != "true" ]]; then
+            STATUS="no_changes"
+            MESSAGE="Codex n'a produit aucun changement suffisamment sûr à publier. Consultez le journal du workflow pour les preuves manquantes."
+          elif [[ "$VALIDATE_RESULT" != "success" ]]; then
+            MESSAGE="Le patch généré n'a pas passé lint, typecheck, tests ou build."
+          elif [[ "$PUBLISH_RESULT" != "success" || -z "$PR_URL" ]]; then
+            MESSAGE="Le patch était valide, mais la branche ou la pull request n'a pas pu être publiée."
+          else
+            STATUS="pr_open"
+            MESSAGE="Le correctif testé est disponible dans une pull request."
+          fi
+
+          echo "status=$STATUS" >> "$GITHUB_OUTPUT"
+          echo "message=$MESSAGE" >> "$GITHUB_OUTPUT"
+
+      - name: Send final status
+        if: ${{ env.INCIDENT_CONTROL_URL != '' && env.INCIDENT_GITHUB_SECRET_PRESENT == 'true' }}
+        env:
+          INCIDENT_GITHUB_SECRET: ${{ secrets.TOK_INCIDENT_GITHUB_SECRET }}
+          INCIDENT_ID: ${{ needs.prepare.outputs.incident_id }}
+          REPAIR_BRANCH: ${{ needs.prepare.outputs.repair_branch }}
+          PR_URL: ${{ needs.publish.outputs.pr_url }}
+          PR_NUMBER: ${{ needs.publish.outputs.pr_number }}
+          STATUS: ${{ steps.status.outputs.status }}
+          MESSAGE: ${{ steps.status.outputs.message }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          jq -n \
+            --arg incident_id "$INCIDENT_ID" \
+            --arg run_id "$GITHUB_RUN_ID" \
+            --arg branch "$REPAIR_BRANCH" \
+            --arg status "$STATUS" \
+            --arg message "$MESSAGE" \
+            --arg pr_url "$PR_URL" \
+            --arg pr_number "$PR_NUMBER" \
+            '{
+              action: "workflow-update",
+              incidentId: $incident_id,
+              status: $status,
+              githubRunId: $run_id,
+              branch: (if $branch == "" then null else $branch end),
+              prUrl: (if $pr_url == "" then null else $pr_url end),
+              prNumber: (if $pr_number == "" then null else ($pr_number | tonumber) end),
+              message: $message
+            }' > "${RUNNER_TEMP}/tok-repair-result.json"
+
+          curl --fail-with-body --silent --show-error --max-time 30 \
+            -X POST "$INCIDENT_CONTROL_URL" \
+            -H "Content-Type: application/json" \
+            -H "x-ops-github-secret: $INCIDENT_GITHUB_SECRET" \
+            --data-binary "@${RUNNER_TEMP}/tok-repair-result.json" >/dev/null
