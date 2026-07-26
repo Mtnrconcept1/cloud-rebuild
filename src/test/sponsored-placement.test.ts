@@ -328,6 +328,25 @@ describe("prioritizeSponsoredCards", () => {
     expect(templateCard).toContain('compactBanner ? "object-contain" : "object-cover"');
   });
 
+  it("gives tablets the two-column banner layout instead of the tall mobile stack", () => {
+    const templateCard = readSource("src/components/campaigns/SponsoredRestaurantTemplateCard.tsx");
+
+    // The designed layout and its decorations used to start only at lg, so
+    // every tablet fell back to the stacked mobile block with oversized type.
+    expect(templateCard).toContain("md:grid-cols-[minmax(0,0.45fr)_minmax(0,0.55fr)] md:grid-rows-1");
+    expect(templateCard).toContain("md:block");
+    expect(templateCard).toContain("md:hidden");
+    expect(templateCard).not.toContain("lg:grid-cols-[minmax(0,0.45fr)_minmax(0,0.55fr)]");
+
+    // The non-compact banner no longer eats a whole mobile viewport.
+    expect(templateCard).toContain("min-h-[400px] sm:min-h-[440px] md:min-h-[300px]");
+    expect(templateCard).not.toContain("min-h-[520px]");
+
+    // Banner surfaces follow the dark theme instead of staying white.
+    expect(templateCard).toContain("dark:bg-slate-900");
+    expect(templateCard).toContain("dark:border-slate-900");
+  });
+
   it("keeps the sponsored restaurant badge readable over restaurant photos", () => {
     const visual = readSource("src/components/campaigns/SponsoredVisual.tsx");
     const theme = readSource("src/components/campaigns/sponsoredVisualTheme.ts");

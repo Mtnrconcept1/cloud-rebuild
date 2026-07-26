@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   Bot,
+  Camera,
   ImageUp,
   LayoutGrid,
   Lightbulb,
   Sofa,
+  Trash2,
   Wand2,
   Send,
   AlertTriangle,
@@ -15,6 +17,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { getSupabase } from "@/integrations/supabase/client";
+import { optimizeImageUpload } from "@/lib/optimizedImages";
+import { cn } from "@/lib/utils";
 
 const supabase = getSupabase();
 const MAX_IMPORT_IMAGE_BYTES = 6 * 1024 * 1024;
@@ -124,6 +128,10 @@ export default function FloorPlanAIPanel({
   const [result, setResult] = useState<AIFloorPlanResult | null>(null);
   const [customPrompt, setCustomPrompt] = useState("");
   const [importImage, setImportImage] = useState<ImportImagePayload | null>(null);
+  const [preparingImage, setPreparingImage] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const cameraInputRef = useRef<HTMLInputElement | null>(null);
 
   const callAI = async (action: AIFloorPlanResult["source"], prompt?: string, image?: ImportImagePayload | null) => {
   setLoading(true);
@@ -186,31 +194,53 @@ export default function FloorPlanAIPanel({
     setImportImage(null);
     if (!file) return;
 
-    if (!IMPORT_IMAGE_MIME_TYPES.has(file.type)) {
-      setError("Format image non supporté. Utilisez PNG, JPG ou WebP.");
-      return;
+    setPreparingImage(true);
+    try {
+      // A photo taken with a phone is routinely 3 to 8 MB, which used to be
+      // rejected outright. Compressing first keeps the camera path usable and
+      // shrinks what we upload to the vision model.
+      let prepared = file;
+      if (IMPORT_IMAGE_MIME_TYPES.has(file.type)) {
+        prepared = await optimizeImageUpload(file).catch(() => file);
+      }
+
+      if (!IMPORT_IMAGE_MIME_TYPES.has(prepared.type)) {
+        setError("Format non pris en charge. Utilisez une photo JPG, PNG ou WebP.");
+        return;
+      }
+
+      if (prepared.size > MAX_IMPORT_IMAGE_BYTES) {
+        setError("Image encore trop lourde après compression. Reprenez la photo à une résolution plus basse.");
+        return;
+      }
+
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ""));
+        reader.onerror = () => reject(new Error("Lecture de l'image impossible"));
+        reader.readAsDataURL(prepared);
+      });
+      const dimensions = await readImageDimensions(dataUrl);
+
+      setImportImage({
+        dataUrl,
+        mimeType: prepared.type,
+        name: prepared.name,
+        width: dimensions.width,
+        height: dimensions.height,
+      });
+    } catch {
+      setError("Impossible de préparer cette image. Réessayez avec une autre photo.");
+    } finally {
+      setPreparingImage(false);
     }
+  };
 
-    if (file.size > MAX_IMPORT_IMAGE_BYTES) {
-      setError("Image trop lourde. Limite: 6 Mo.");
-      return;
-    }
-
-    const dataUrl = await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result || ""));
-      reader.onerror = () => reject(new Error("Lecture de l'image impossible"));
-      reader.readAsDataURL(file);
-    });
-    const dimensions = await readImageDimensions(dataUrl);
-
-    setImportImage({
-      dataUrl,
-      mimeType: file.type,
-      name: file.name,
-      width: dimensions.width,
-      height: dimensions.height,
-    });
+  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setDragActive(false);
+    if (loading || disabled || preparingImage) return;
+    void handleImportImageChange(event.dataTransfer.files?.[0] || null);
   };
 
   return (
@@ -225,39 +255,115 @@ export default function FloorPlanAIPanel({
         </div>
       </div>
 
-      <div className="space-y-2 rounded-xl border border-orange-200 bg-orange-50/70 p-3">
+      <div
+        className={cn(
+          "space-y-2 rounded-xl border p-3 transition-colors",
+          dragActive
+            ? "border-primary bg-primary/10"
+            : "border-orange-200 bg-orange-50/70 dark:border-orange-900/40 dark:bg-orange-950/20",
+        )}
+        onDragOver={(event) => {
+          event.preventDefault();
+          if (!loading && !disabled && !preparingImage) setDragActive(true);
+        }}
+        onDragLeave={() => setDragActive(false)}
+        onDrop={handleDrop}
+      >
         <div className="flex items-start gap-2">
-          <ImageUp className="mt-0.5 h-4 w-4 shrink-0 text-orange-700" />
+          <ImageUp className="mt-0.5 h-4 w-4 shrink-0 text-orange-700 dark:text-orange-300" />
           <div>
-            <p className="text-xs font-bold text-orange-950">Plan de salle automatique</p>
-            <p className="text-[10px] leading-tight text-orange-800/80">
-              Importez une image: l'IA détecte tables, numéros, assises et mobilier.
+            <p className="text-xs font-bold text-orange-950 dark:text-orange-100">Plan de salle automatique</p>
+            <p className="text-[10px] leading-tight text-orange-800/80 dark:text-orange-200/80">
+              Photographiez ou importez un plan existant : l'IA détecte les tables, les numéros, les assises et le
+              mobilier, puis les place sur le canevas.
             </p>
           </div>
         </div>
-        <Input
+
+        <input
+          ref={fileInputRef}
           type="file"
           accept="image/png,image/jpeg,image/webp"
-          className="h-9 cursor-pointer bg-white text-xs"
-          disabled={loading || disabled}
+          className="hidden"
           onChange={(event) => {
             void handleImportImageChange(event.target.files?.[0] || null);
+            event.target.value = "";
           }}
         />
+        <input
+          ref={cameraInputRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          className="hidden"
+          onChange={(event) => {
+            void handleImportImageChange(event.target.files?.[0] || null);
+            event.target.value = "";
+          }}
+        />
+
+        <div className="grid grid-cols-2 gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="gap-1.5 bg-background text-xs"
+            disabled={loading || disabled || preparingImage}
+            onClick={() => cameraInputRef.current?.click()}
+          >
+            <Camera className="h-3.5 w-3.5" />
+            Prendre en photo
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="gap-1.5 bg-background text-xs"
+            disabled={loading || disabled || preparingImage}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <ImageUp className="h-3.5 w-3.5" />
+            Importer
+          </Button>
+        </div>
+        <p className="text-center text-[10px] text-muted-foreground">
+          ou glissez une image ici · JPG, PNG ou WebP
+        </p>
+
+        {preparingImage ? (
+          <p className="text-center text-[10px] font-medium text-muted-foreground">Préparation de l'image…</p>
+        ) : null}
+
         {importImage ? (
-          <div className="overflow-hidden rounded-lg border bg-white">
-            <img src={importImage.dataUrl} alt="Aperçu du plan importé" className="h-24 w-full object-contain" />
+          <div className="space-y-1.5">
+            <div className="overflow-hidden rounded-lg border bg-white dark:bg-slate-900">
+              <img src={importImage.dataUrl} alt="Aperçu du plan importé" className="h-24 w-full object-contain" />
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              <p className="min-w-0 flex-1 truncate text-[10px] text-muted-foreground">
+                {importImage.name} · {importImage.width}×{importImage.height}
+              </p>
+              <button
+                type="button"
+                className="inline-flex items-center gap-1 text-[10px] font-semibold text-destructive hover:underline"
+                onClick={() => setImportImage(null)}
+              >
+                <Trash2 className="h-3 w-3" />
+                Retirer
+              </button>
+            </div>
           </div>
         ) : null}
+
         <Button
           type="button"
           size="sm"
           className="w-full gap-2 text-xs font-bold"
-          disabled={loading || disabled || !importImage}
+          disabled={loading || disabled || preparingImage || !importImage}
           onClick={() => callAI("image-import", undefined, importImage)}
         >
           <Wand2 className="h-3.5 w-3.5" />
-          Créer un nouveau plan
+          Placer automatiquement le mobilier
         </Button>
       </div>
 

@@ -95,6 +95,24 @@ describe("automatic floor-plan image import", () => {
     expect(panel).toContain("height: dimensions.height");
   });
 
+  it("lets a restaurateur photograph a plan and compresses it before the size check", () => {
+    const panel = read("src/components/floor-plan/FloorPlanAIPanel.tsx");
+
+    // A phone photo is routinely 3-8 MB: rejecting it outright made the
+    // camera path unusable, so compression now runs before the limit check.
+    expect(panel).toContain("optimizeImageUpload");
+    const compressionIndex = panel.indexOf("optimizeImageUpload(file)");
+    const limitIndex = panel.indexOf("prepared.size > MAX_IMPORT_IMAGE_BYTES");
+    expect(compressionIndex).toBeGreaterThan(-1);
+    expect(limitIndex).toBeGreaterThan(compressionIndex);
+
+    expect(panel).toContain('capture="environment"');
+    expect(panel).toContain("Prendre en photo");
+    expect(panel).toContain("cameraInputRef");
+    expect(panel).toContain("onDrop={handleDrop}");
+    expect(panel).toContain("Placer automatiquement le mobilier");
+  });
+
   it("creates switchable variants instead of overwriting the active template immediately", () => {
     const page = read("src/pages/dashboard/DashboardPlanSalle.tsx");
 
