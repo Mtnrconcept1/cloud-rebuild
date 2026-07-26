@@ -63,7 +63,7 @@ export default function StudioInspector({
     : null;
 
   const resizeBehavior = selectedTable
-    ? getFloorPlanItemResizeBehavior(selectedTable.layout.kind)
+    ? getFloorPlanItemResizeBehavior(selectedTable.layout.kind, selectedTable.layout.shape)
     : null;
 
   return (

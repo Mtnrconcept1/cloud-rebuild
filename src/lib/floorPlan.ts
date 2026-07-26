@@ -76,16 +76,29 @@ export type FloorPlanResizeBehavior = {
   handles: FloorPlanResizeHandle[];
 };
 
-export function getFloorPlanItemResizeBehavior(kind: FloorPlanItemKind): FloorPlanResizeBehavior {
+/** Corner handles scale both axes together; edge handles stretch one axis. */
+const UNIFORM_RESIZE_HANDLES: FloorPlanResizeHandle[] = ["nw", "ne", "se", "sw"];
+const FREE_RESIZE_HANDLES: FloorPlanResizeHandle[] = ["nw", "n", "ne", "e", "se", "s", "sw", "w"];
+
+export function getFloorPlanItemResizeBehavior(
+  kind: FloorPlanItemKind,
+  shape?: FloorPlanTableShape,
+): FloorPlanResizeBehavior {
+  // A round top stretched on a single axis becomes an ellipse, which no longer
+  // matches any real table: rounds are always resized uniformly.
+  if (shape === "round") {
+    return { ratioLocked: true, handles: UNIFORM_RESIZE_HANDLES };
+  }
+
   if (kind === "table") {
-    return { ratioLocked: false, handles: ["nw", "n", "ne", "e", "se", "s", "sw", "w"] };
+    return { ratioLocked: false, handles: FREE_RESIZE_HANDLES };
   }
 
   switch (kind) {
     case "chair":
     case "stool":
     case "plant":
-      return { ratioLocked: true, handles: ["nw", "ne", "se", "sw"] };
+      return { ratioLocked: true, handles: UNIFORM_RESIZE_HANDLES };
     case "bar":
       return { ratioLocked: false, handles: ["nw", "n", "ne", "e", "se", "s", "sw", "w"] };
     case "banquette":
