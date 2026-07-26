@@ -1591,7 +1591,6 @@ Deno.serve(async (req) => {
         ? undefined
         : userEmail,
       client_reference_id: actor.userId || undefined,
-      payment_method_types: [normalizedPaymentMethod === "twint" ? "twint" : "card"],
       metadata: sessionMetadata,
     };
 
@@ -1652,7 +1651,6 @@ Deno.serve(async (req) => {
     if (isRestaurantOnboardingSetup) {
       sessionParams.mode = "setup";
       sessionParams.customer = restaurantOnboardingStripeCustomerId;
-      sessionParams.payment_method_types = ["card"];
       sessionParams.custom_text = {
         submit: {
           message: "Aucun montant n’est débité ni bloqué aujourd’hui. En enregistrant cette carte, vous autorisez TOK à débiter l’abonnement lors de la première réservation ou commande client.",

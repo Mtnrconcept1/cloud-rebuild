@@ -1,8 +1,8 @@
-import Stripe from "npm:stripe@18.5.0";
+import Stripe from "npm:stripe@22.3.2";
 
 import { getEnv, HttpError } from "./auth.ts";
 
-export const STRIPE_API_VERSION = "2025-08-27.basil";
+export const STRIPE_API_VERSION = "2026-06-24.dahlia";
 
 export type StripeRuntimeMode = "live" | "test";
 

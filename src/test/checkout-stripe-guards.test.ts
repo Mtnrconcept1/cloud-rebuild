@@ -38,6 +38,11 @@ function readMigrationContaining(pattern: RegExp) {
 }
 
 describe("checkout and Stripe webhook safety guards", () => {
+  it("pins the supported Stripe SDK and API contract", () => {
+    expect(stripeClientSource).toContain('npm:stripe@22.3.2');
+    expect(stripeClientSource).toContain('STRIPE_API_VERSION = "2026-06-24.dahlia"');
+  });
+
   it("creates Stripe sessions with required metadata for reconciliation", () => {
     expect(createCheckoutSource).toContain("metadata: sessionMetadata");
     expect(createCheckoutSource).toContain("client_reference_id: actor.userId || undefined");
@@ -71,22 +76,19 @@ describe("checkout and Stripe webhook safety guards", () => {
     expect(stripeRuntimeIndex).toBeGreaterThan(guardIndex);
   });
 
-  it("allowlists Stripe methods and keeps TWINT immediate while Match Group stays card/manual", () => {
+  it("validates the requested journey while Stripe selects eligible payment methods dynamically", () => {
     expect(createCheckoutSource).toContain(
       'const STRIPE_CHECKOUT_PAYMENT_METHODS = new Set(["card", "twint"])',
     );
     expect(createCheckoutSource).toContain(
       "if (!STRIPE_CHECKOUT_PAYMENT_METHODS.has(normalizedPaymentMethod))",
     );
-    expect(createCheckoutSource).toContain(
-      'payment_method_types: [normalizedPaymentMethod === "twint" ? "twint" : "card"]',
-    );
+    expect(createCheckoutSource).not.toContain("payment_method_types");
     expect(createCheckoutSource).toContain("TWINT_MAX_CHECKOUT_AMOUNT_CENTS = 500_000");
     expect(createCheckoutSource).toContain('CHECKOUT_CURRENCY = "CHF"');
     expect(createCheckoutSource).toContain('capture_method: "automatic"');
-    expect(authorizeMatchGroupOrderSource).toContain('payment_method_types: ["card"]');
+    expect(authorizeMatchGroupOrderSource).not.toContain("payment_method_types");
     expect(authorizeMatchGroupOrderSource).toContain('capture_method: "manual"');
-    expect(authorizeMatchGroupOrderSource).not.toContain('payment_method_types: ["twint"]');
   });
 
   it("verifies Stripe webhook signatures and records event ids for idempotency before processing", () => {
