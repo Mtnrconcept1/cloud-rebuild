@@ -194,6 +194,18 @@ describe("notifications and chat sinistres governance", () => {
     expect(supportChat).toContain("handoffToAdmin");
     expect(supportChat).toContain("aiDisabled");
     expect(supportChat).toContain("getTypingRoleForSurface");
+    expect(supportChat).toContain("hasAutoRestoredConversationRef");
+    expect(supportChat).toContain("getClientSupportConversations()");
+    expect(supportChat).toContain("getClientSupportConversationMessages(latestConversation.id)");
+  });
+
+  it("fails closed when support transcript persistence fails", () => {
+    const edgeFunction = readProjectFile("supabase/functions/ai-client-support/index.ts");
+
+    expect(edgeFunction).toContain("userMessagesError");
+    expect(edgeFunction).toContain("assistantMessageError");
+    expect(edgeFunction).toContain("throw new HttpError(500, userMessagesError.message)");
+    expect(edgeFunction).toContain("throw new HttpError(500, assistantMessageError.message)");
   });
 
   it("turns off client support AI only for conversations taken over by TOK", () => {
