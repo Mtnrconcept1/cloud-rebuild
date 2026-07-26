@@ -283,6 +283,11 @@ ALTER TABLE public.platform_revenue_entries
 -- Never persist the cron shared secret as plaintext inside cron.job.command.
 DO $scheduler$
 BEGIN
+  IF private.tok_is_production_cluster() IS NOT TRUE THEN
+    RAISE NOTICE
+      'Production-targeting cron schedule skipped outside the Production cluster';
+    RETURN;
+  END IF;
   IF NOT EXISTS (
     SELECT 1
     FROM vault.decrypted_secrets
