@@ -450,12 +450,19 @@ Deno.serve(async (req) => {
         role: message.role,
         content: message.content,
         model,
-        metadata: {
-          source: FUNCTION_NAME,
-          handoff_to_admin: handoffToAdmin,
-          ai_disabled: handoffToAdmin,
-          delivery: handoffToAdmin ? "admin_thread" : "ai_processing",
-        },
+        metadata: handoffToAdmin
+          ? {
+            source: FUNCTION_NAME,
+            handoff_to_admin: true,
+            ai_disabled: true,
+            delivery: "admin_thread",
+          }
+          : {
+            source: FUNCTION_NAME,
+            handoff_to_admin: false,
+            ai_disabled: false,
+            delivery: "ai_processing",
+          },
       })));
 
     if (userMessagesError) throw new HttpError(500, userMessagesError.message);
