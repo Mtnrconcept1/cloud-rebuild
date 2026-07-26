@@ -1,0 +1,251 @@
+name: Temporary incident hardening patch
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: >-
+      ${{ github.event.pull_request.head.repo.full_name == github.repository &&
+          github.head_ref == 'fix/incident-automation-hardening-20260726' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout hardening branch
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Apply deterministic hardening edits
+        shell: bash
+        run: |
+          set -euo pipefail
+          python <<'PY'
+          from pathlib import Path
+
+          def replace_exact(text: str, old: str, new: str, expected: int = 1) -> str:
+              actual = text.count(old)
+              if actual != expected:
+                  raise SystemExit(f"Expected {expected} occurrence(s), found {actual}: {old[:120]!r}")
+              return text.replace(old, new)
+
+          codex_path = Path('.github/workflows/incident-codex-repair.yml')
+          codex = codex_path.read_text(encoding='utf-8')
+          codex = replace_exact(codex, 'uses: actions/checkout@v4', 'uses: actions/checkout@v6', 3)
+          codex = replace_exact(codex, 'uses: actions/setup-node@v4', 'uses: actions/setup-node@v6', 2)
+          codex = replace_exact(codex, 'uses: actions/download-artifact@v4', 'uses: actions/download-artifact@v5', 2)
+          codex = replace_exact(
+              codex,
+              'uses: openai/codex-action@v1',
+              'uses: openai/codex-action@52fe01ec70a42f454c9d2ebd47598f9fd6893d56 # v1',
+          )
+          codex_path.write_text(codex, encoding='utf-8')
+
+          edge_path = Path('supabase/functions/ops-incident-control/index.ts')
+          edge = edge_path.read_text(encoding='utf-8')
+          edge = replace_exact(
+              edge,
+              '''  const approvalTokenHash = await sha256Hex(approvalToken);
+          const client = createAdminClient();
+          const { data, error } = await client.rpc("ops_decide_incident", {
+            p_incident_id: incidentId,
+            p_token_hash: approvalTokenHash,
+            p_decision: decision,
+            p_actor: admin.actor,
+          });''',
+              '''  const contextToken = decision === "approve" ? randomToken(24) : "";
+          const contextTokenHash = contextToken ? await sha256Hex(contextToken) : null;
+          const contextExpiresAt = contextToken
+            ? new Date(Date.now() + REPAIR_CONTEXT_TTL_HOURS * 60 * 60 * 1000).toISOString()
+            : null;
+          const approvalTokenHash = await sha256Hex(approvalToken);
+          const client = createAdminClient();
+          const { data, error } = await client.rpc("ops_decide_incident", {
+            p_incident_id: incidentId,
+            p_token_hash: approvalTokenHash,
+            p_decision: decision,
+            p_actor: admin.actor,
+            p_repair_context_token_hash: contextTokenHash,
+            p_repair_context_expires_at: contextExpiresAt,
+          });''',
+          )
+          edge = replace_exact(
+              edge,
+              '''  const contextToken = randomToken(24);
+          const contextTokenHash = await sha256Hex(contextToken);
+          const contextExpiresAt = new Date(Date.now() + REPAIR_CONTEXT_TTL_HOURS * 60 * 60 * 1000).toISOString();
+          const { error: contextError } = await client.from("ops_incidents").update({
+            repair_context_token_hash: contextTokenHash,
+            repair_context_expires_at: contextExpiresAt,
+            failure_reason: null,
+          }).eq("id", incidentId).eq("status", "approved");
+          if (contextError) throw new HttpError(500, contextError.message);''',
+              '''  if (!contextToken || !contextExpiresAt) {
+            throw new HttpError(500, "repair_context_generation_failed");
+          }''',
+          )
+          edge = replace_exact(
+              edge,
+              '''    await client.from("ops_incidents").update({
+                status: "failed",
+                failure_reason: message,
+              }).eq("id", incidentId);''',
+              '''    await client.from("ops_incidents").update({
+                status: "failed",
+                failure_reason: message,
+                repair_context_token_hash: null,
+                repair_context_expires_at: null,
+              }).eq("id", incidentId);''',
+          )
+          edge = replace_exact(
+              edge,
+              '''  const message = asText(body.message, 1600) || null;
+          const client = createAdminClient();
+          const { data: updated, error } = await client.from("ops_incidents").update({''',
+              '''  const message = asText(body.message, 1600) || null;
+          const clearsRepairContext = ["pr_open", "failed", "resolved"].includes(nextStatus);
+          const client = createAdminClient();
+          const { data: updated, error } = await client.from("ops_incidents").update({''',
+          )
+          edge = replace_exact(
+              edge,
+              '''    failure_reason: nextStatus === "failed" ? message || eventStatus : null,
+              resolution_summary: nextStatus === "resolved" ? message : incident.resolution_summary,
+            }).eq("id", incidentId)''',
+              '''    failure_reason: nextStatus === "failed" ? message || eventStatus : null,
+              resolution_summary: nextStatus === "resolved" ? message : incident.resolution_summary,
+              repair_context_token_hash: clearsRepairContext ? null : incident.repair_context_token_hash,
+              repair_context_expires_at: clearsRepairContext ? null : incident.repair_context_expires_at,
+            }).eq("id", incidentId)''',
+          )
+          edge_path.write_text(edge, encoding='utf-8')
+
+          test_path = Path('src/test/incident-automation-readiness.test.ts')
+          test = test_path.read_text(encoding='utf-8')
+          test = replace_exact(
+              test,
+              '''    expect(migration).not.toMatch(/TO authenticated\\s+WITH CHECK\\s*\\(true\\)/i);
+            });''',
+              '''    expect(migration).not.toMatch(/TO authenticated\\s+WITH CHECK\\s*\\(true\\)/i);
+            });
+
+            it("records approval and Codex context in one database transition", () => {
+              const migration = readProjectFile(
+                "supabase/migrations/20260726064500_ops_incident_decision_atomicity.sql",
+              );
+              const edgeFunction = readProjectFile(
+                "supabase/functions/ops-incident-control/index.ts",
+              );
+
+              expect(migration).toContain("DROP FUNCTION IF EXISTS public.ops_decide_incident(uuid, text, text, text)");
+              expect(migration).toContain("p_repair_context_token_hash text DEFAULT NULL");
+              expect(migration).toContain("p_repair_context_expires_at timestamptz DEFAULT NULL");
+              expect(migration).toContain("Valid repair context token hash required.");
+              expect(migration).toContain("Valid repair context expiry required.");
+              expect(migration).toContain("repair_context_token_hash = CASE");
+              expect(edgeFunction).toContain("p_repair_context_token_hash: contextTokenHash");
+              expect(edgeFunction).toContain("p_repair_context_expires_at: contextExpiresAt");
+              expect(edgeFunction).not.toContain('const { error: contextError } = await client.from("ops_incidents").update');
+            });''',
+          )
+          test = replace_exact(
+              test,
+              'expect(workflow).toContain("uses: openai/codex-action@v1");',
+              'expect(workflow).toContain("uses: openai/codex-action@52fe01ec70a42f454c9d2ebd47598f9fd6893d56 # v1");\n    expect(workflow).not.toContain("uses: openai/codex-action@v1");',
+          )
+          test = replace_exact(
+              test,
+              'expect(workflow).toContain("uses: actions/download-artifact@v4");',
+              'expect(workflow).toContain("uses: actions/download-artifact@v5");\n    expect(workflow).toContain("uses: actions/checkout@v6");\n    expect(workflow).toContain("uses: actions/setup-node@v6");',
+          )
+          test = replace_exact(
+              test,
+              '''    expect(workflow).toContain("github.event.workflow_run.conclusion == 'failure'");
+              expect(workflow).toContain('action: "ingest"');''',
+              '''    expect(workflow).toContain("github.event.workflow_run.conclusion == 'failure'");
+              expect(workflow).toContain("TOK_INCIDENT_AUTOMATION_ENABLED");
+              expect(workflow).toContain("github.event.workflow_run.event != 'pull_request'");
+              expect(workflow).toContain("startsWith(github.event.workflow_run.head_branch, 'release/')");
+              expect(workflow).toContain("groupingKey:");
+              expect(workflow).toContain('action: "ingest"');''',
+          )
+          test = replace_exact(
+              test,
+              '''      "TOK_INCIDENT_CONTROL_URL",
+                    "Test d'incident manuel non destructif",''',
+              '''      "TOK_INCIDENT_CONTROL_URL",
+                    "TOK_INCIDENT_AUTOMATION_ENABLED",
+                    "Test d'incident manuel non destructif",''',
+          )
+          test_path.write_text(test, encoding='utf-8')
+
+          docs_path = Path('docs/operations/telegram-codex-incidents.md')
+          docs = docs_path.read_text(encoding='utf-8')
+          docs = replace_exact(
+              docs,
+              '''| `TOK_INCIDENT_CONTROL_URL` | Variable Actions recommandée | URL publique de `ops-incident-control`. |
+
+          `TOK_CODEX_GITHUB_TOKEN`''',
+              '''| `TOK_INCIDENT_CONTROL_URL` | Variable Actions recommandée | URL publique de `ops-incident-control`. |
+          | `TOK_INCIDENT_AUTOMATION_ENABLED` | Variable Actions | Laisser à `false` pendant l'installation, puis passer à `true` seulement après les tests signés et le test Telegram de refus. |
+
+          `TOK_CODEX_GITHUB_TOKEN`''',
+          )
+          docs = replace_exact(
+              docs,
+              '''1. fusionner la PR uniquement après CI verte ;
+          2. laisser `Deploy Production` appliquer la migration ;
+          3. laisser le même workflow déployer `ops-incident-control` ;
+          4. configurer les secrets Supabase et GitHub ;
+          5. enregistrer le webhook Telegram ;
+          6. déclencher manuellement `TOK Incident Monitor` pour le premier contrôle.''',
+              '''1. fusionner la PR uniquement après CI verte ;
+          2. laisser `Deploy Production` appliquer la migration ;
+          3. laisser le même workflow déployer `ops-incident-control` ;
+          4. configurer les secrets Supabase et GitHub ;
+          5. créer `TOK_INCIDENT_AUTOMATION_ENABLED=false` pour garder le cron et les alertes de workflow désactivés ;
+          6. enregistrer le webhook Telegram ;
+          7. déclencher manuellement `TOK Incident Monitor` pour le premier contrôle ;
+          8. exécuter le test d'incident et sélectionner d'abord **Refuser** ;
+          9. passer `TOK_INCIDENT_AUTOMATION_ENABLED=true` uniquement lorsque tous les contrôles précédents sont réussis.''',
+          )
+          docs = replace_exact(
+              docs,
+              '''Après fusion mais avant activation : désactiver les deux workflows et ne pas configurer les secrets ; aucune collecte n'a lieu.''',
+              '''Après fusion mais avant activation : conserver `TOK_INCIDENT_AUTOMATION_ENABLED=false` et ne pas enregistrer le webhook ; aucun scan planifié ni signal de workflow n'est traité.''',
+          )
+          docs = replace_exact(
+              docs,
+              '''1. supprimer le webhook Telegram avec `deleteWebhook` ;
+          2. désactiver `TOK Incident Monitor` ;
+          3. révoquer `GITHUB_INCIDENT_TOKEN` et `TOK_CODEX_GITHUB_TOKEN` ;
+          4. supprimer ou faire expirer les secrets `OPS_*` ;
+          5. conserver les tables en lecture seule pour l'audit, ou les supprimer dans une migration dédiée après export.''',
+              '''1. passer immédiatement `TOK_INCIDENT_AUTOMATION_ENABLED=false` ;
+          2. supprimer le webhook Telegram avec `deleteWebhook` ;
+          3. révoquer `GITHUB_INCIDENT_TOKEN` et `TOK_CODEX_GITHUB_TOKEN` ;
+          4. supprimer ou faire expirer les secrets `OPS_*` ;
+          5. conserver les tables en lecture seule pour l'audit, ou les supprimer dans une migration dédiée après export.''',
+          )
+          docs_path.write_text(docs, encoding='utf-8')
+
+          Path('.github/workflows/_temporary-incident-hardening-patch.yml').unlink()
+          PY
+
+      - name: Commit hardening patch and remove this temporary workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "tok-incident-hardening-bot"
+          git config user.email "tok-incident-hardening-bot@users.noreply.github.com"
+          git add --all
+          git diff --cached --check
+          git commit -m "fix(ops): harden activation and approval flow"
+          git push origin "HEAD:${GITHUB_HEAD_REF}"
