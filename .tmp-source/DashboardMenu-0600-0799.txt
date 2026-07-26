@@ -1,0 +1,200 @@
+            const price = Number(item.price || 0);
+            return [{
+              name,
+              description: String(item.description || "").trim().slice(0, 600),
+              price: Number.isFinite(price) && price >= 0 ? price : 0,
+              category: String(item.category || "Autres").trim().slice(0, 100) || "Autres",
+            }];
+          }),
+          warnings: Array.isArray(parsed.warnings)
+            ? parsed.warnings.map((warning) => String(warning).trim()).filter(Boolean).slice(0, 10)
+            : [],
+        };
+      } else {
+        const { data, error } = await supabase.functions.invoke<MenuImportResponse>("menu-image-import", {
+          body: { restaurantId: restaurant.id, images },
+        });
+        if (error) throw error;
+        response = data || { items: [], warnings: [] };
+      }
+
+      if (!response.items.length) throw new Error("Aucun plat détecté sur les photos.");
+
+      setImportedMenuItems(response.items.map((item) => ({
+        name: item.name,
+        description: item.description || "",
+        price: Number(item.price) || 0,
+        category: item.category || "Autres",
+        selected: true,
+      })));
+      setMenuImportWarnings(response.warnings || []);
+      toast({
+        title: "Menu analysé par l’IA",
+        description: `${response.items.length} élément(s) détecté(s). Vérifiez-les avant l'import.`,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Analyse impossible";
+      toast({ title: "Analyse impossible", description: message, variant: "destructive" });
+    } finally {
+      setAnalyzingMenu(false);
+    }
+  };
+
+  const updateImportedMenuItem = (index: number, patch: Partial<ImportedMenuItem>) => {
+    setImportedMenuItems((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, ...patch } : item));
+  };
+
+  const saveImportedMenu = async () => {
+    if (!restaurant) return;
+    const selectedItems = importedMenuItems
+      .filter((item) => item.selected && item.name.trim() && Number.isFinite(item.price) && item.price >= 0)
+      .map((item) => ({
+        restaurant_id: restaurant.id,
+        name: item.name.trim(),
+        description: item.description.trim(),
+        price: Math.round(item.price * 100) / 100,
+        category: item.category.trim() || "Autres",
+        image_url: "",
+        is_available: true,
+      }));
+
+    if (!selectedItems.length) {
+      toast({ title: "Aucun plat sélectionné", description: "Sélectionnez au moins un élément valide.", variant: "destructive" });
+      return;
+    }
+
+    if (isCommercialDemo && commercialDemoFrame) {
+      setSavingImportedMenu(true);
+      const nextRows: MenuItemRecord[] = selectedItems.map((item, index) => ({
+        ...item,
+        id: globalThis.crypto?.randomUUID?.() || `demo-import-${Date.now()}-${index}`,
+        restaurant_id: commercialDemoFrame.snapshot.demo_restaurant.id,
+      }));
+      persistCommercialDemoMenu([...readCommercialDemoMenu(), ...nextRows]);
+      setSavingImportedMenu(false);
+      setImportDialogOpen(false);
+      toast({
+        title: "Menu de démonstration créé",
+        description: `${nextRows.length} élément${nextRows.length > 1 ? "s" : ""} ajouté${nextRows.length > 1 ? "s" : ""} sans écriture en production.`,
+      });
+      return;
+    }
+
+    setSavingImportedMenu(true);
+    const { error } = await supabase.from("menu_items").insert(selectedItems);
+    setSavingImportedMenu(false);
+    if (error) {
+      toast({ title: "Import impossible", description: error.message, variant: "destructive" });
+      return;
+    }
+
+    refreshMenu();
+    setImportDialogOpen(false);
+    toast({ title: "Menu créé", description: `${selectedItems.length} élément(s) ajouté(s) au menu.` });
+  };
+
+  return (
+    <DashboardLayout>
+      <div className="space-y-6">
+        <DashboardPageHero
+          badge="Carte restaurant"
+          title="Menu"
+          description="Organisez les plats, les prix, les photos et la disponibilité avant qu'ils apparaissent dans les parcours client."
+          icon={BookOpen}
+          tone="emerald"
+          visualLabel="Catalogue"
+          stats={[
+            { label: "Plats", value: items?.length || 0, icon: BookOpen },
+            { label: "Disponibles", value: items?.filter((item) => item.is_available).length || 0, icon: Plus },
+            { label: "Restaurant", value: restaurant ? "Selectionne" : "Aucun", icon: BookOpen },
+          ]}
+          actions={(
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Button variant="outline" onClick={openMenuImport} disabled={!restaurant}>
+                <ScanLine className="mr-2 h-4 w-4" />
+                Importer une photo du menu
+              </Button>
+              <Button onClick={openNew} disabled={!restaurant}>
+                <Plus className="mr-2 h-4 w-4" />
+                Ajouter un plat
+              </Button>
+            </div>
+          )}
+        />
+
+        {restaurant && items ? (
+          <DailyDishAiPanel
+            key={restaurant.id}
+            restaurantId={restaurant.id}
+            planSlug={selectedPlanSlug}
+            menuItems={items}
+          />
+        ) : null}
+
+        {!restaurant ? (
+          <p className="py-8 text-center text-muted-foreground">Sélectionnez un restaurant pour gérer ses produits.</p>
+        ) : (
+          <div className="space-y-3">
+            {items?.map((item) => (
+              <div key={item.id} className="flex items-center gap-4 rounded-xl border bg-card p-4">
+                {item.image_url && (
+                  <img src={item.image_url} alt={item.name} className="h-16 w-16 rounded-lg object-cover" />
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <h4 className="text-sm font-semibold">{item.name}</h4>
+                    {item.category && (
+                      <span className="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                        {item.category}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm font-bold text-primary">{Number(item.price).toFixed(2)} CHF</p>
+                </div>
+                <Switch
+                  checked={item.is_available ?? true}
+                  onCheckedChange={() => toggleAvailability(item.id, item.is_available ?? true)}
+                />
+                <Button size="icon" variant="ghost" onClick={() => openEdit(item)}>
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="text-destructive"
+                  onClick={() => handleDelete(item.id)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+            {(!items || items.length === 0) && (
+              <p className="py-8 text-center text-muted-foreground">Aucun plat dans le menu</p>
+            )}
+          </div>
+        )}
+
+        <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
+          <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-5xl">
+            <DialogHeader>
+              <DialogTitle>Créer le menu depuis des photos</DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-5">
+              <div className="rounded-2xl border border-dashed bg-muted/30 p-5 text-center">
+                <input
+                  ref={menuImportInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  multiple
+                  className="hidden"
+                  onChange={(event) => handleMenuImportFiles(event.target.files)}
+                />
+                <Upload className="mx-auto mb-3 h-9 w-9 text-primary" />
+                <p className="font-semibold">Photographiez chaque page bien à plat et sans reflet</p>
+                <p className="mt-1 text-sm text-muted-foreground">Jusqu'à 3 photos JPG, PNG ou WebP. Les plats ne sont créés qu'après votre validation.</p>
+                <Button className="mt-4" variant="outline" onClick={() => menuImportInputRef.current?.click()}>
+                  Choisir les photos
+                </Button>
+                {menuImportFiles.length > 0 && (
+                  <div className="mt-4 flex flex-wrap justify-center gap-2">

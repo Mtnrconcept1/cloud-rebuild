@@ -1,0 +1,199 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Bot,
+  Check,
+  ChefHat,
+  ExternalLink,
+  Image as ImageIcon,
+  Loader2,
+  LockKeyhole,
+  PackageSearch,
+  RefreshCw,
+  Send,
+  ShoppingBasket,
+  Sparkles,
+  Store,
+  WandSparkles,
+} from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/lib/auth-context";
+import {
+  formatDailyDishError,
+  generateDailyDishProposals,
+  getDailyDishStatus,
+  publishDailyDishProposal,
+  refineDailyDishProposal,
+  selectDailyDishProposal,
+  setDailyDishEnabled,
+  type DailyDishRun,
+  type DailyDishSettings,
+  type DailyDishVariant,
+} from "@/lib/ai/dailyDishAi";
+import {
+  requestAiCreationNotificationPermission,
+  startTokImageCreationJob,
+} from "@/lib/ai/aiCreationJobs";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
+import {
+  readCommercialDemoToolState,
+  writeCommercialDemoToolState,
+} from "@/lib/commercialDemoRestaurantTools";
+
+const DEMO_STORAGE_KEY = "daily-dish-ai";
+const ENABLED_PLANS = new Set(["premium", "elite", "custom"]);
+const PHOTOPRO_DAILY_DISH_PROMPT = `Crée une photographie culinaire premium dans l'esthétique PhotoPro TOK : lumière naturelle de studio, textures réalistes, dressage élégant mais crédible, couleurs fidèles, profondeur de champ douce et cadrage éditorial centré sur le plat. Aucun texte, aucun logo, aucune personne, aucune vaisselle incohérente et aucun ingrédient absent de la recette.`;
+
+type MenuContextItem = {
+  name: string;
+  description?: string | null;
+  category?: string | null;
+  price: number | string;
+};
+
+type DemoPublishedDish = {
+  name: string;
+  description: string;
+  price_cents: number;
+  image_url: string | null;
+  service_date: string;
+  actualite_body: string | null;
+  published_at: string;
+};
+
+type DemoDailyDishState = {
+  settings: DailyDishSettings;
+  run: DailyDishRun | null;
+  variants: DailyDishVariant[];
+  published_dish?: DemoPublishedDish | null;
+};
+
+type Props = {
+  restaurantId: string;
+  planSlug?: string | null;
+  menuItems: MenuContextItem[];
+};
+
+function todayInZurich() {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Zurich",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+  const read = (type: string) => parts.find((part) => part.type === type)?.value || "";
+  return `${read("year")}-${read("month")}-${read("day")}`;
+}
+
+function money(value: number) {
+  return new Intl.NumberFormat("fr-CH", {
+    style: "currency",
+    currency: "CHF",
+    minimumFractionDigits: 2,
+  }).format(Number(value || 0));
+}
+
+function createDefaultSettings(): DailyDishSettings {
+  return {
+    is_enabled: false,
+    timezone: "Europe/Zurich",
+    target_food_cost_bps: 3000,
+    preferred_supplier_domains: ["aligro.ch"],
+    dietary_notes: "",
+  };
+}
+
+function buildDemoSeed(): DemoDailyDishState {
+  return { settings: createDefaultSettings(), run: null, variants: [], published_dish: null };
+}
+
+function latestDemoState(state: DemoDailyDishState) {
+  if (!state.run || state.run.generation_date === todayInZurich()) return state;
+  return { ...state, run: null, variants: [] };
+}
+
+function VariantDetails({ variant }: { variant: DailyDishVariant }) {
+  const dish = variant.payload;
+  return (
+    <div className="space-y-3 text-sm">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <div className="rounded-lg bg-muted/50 p-2">
+          <p className="text-xs text-muted-foreground">Coût total</p>
+          <p className="font-semibold">{money(dish.estimated_total_cost_chf)}</p>
+        </div>
+        <div className="rounded-lg bg-muted/50 p-2">
+          <p className="text-xs text-muted-foreground">Coût/portion</p>
+          <p className="font-semibold">{money(dish.cost_per_portion_chf)}</p>
+        </div>
+        <div className="rounded-lg bg-muted/50 p-2">
+          <p className="text-xs text-muted-foreground">Food cost</p>
+          <p className="font-semibold">{dish.food_cost_percent.toFixed(1)} %</p>
+        </div>
+        <div className="rounded-lg bg-muted/50 p-2">
+          <p className="text-xs text-muted-foreground">Marge estimée</p>
+          <p className="font-semibold text-emerald-700">{money(dish.estimated_margin_chf)}</p>
+        </div>
+      </div>
+
+      <details className="rounded-xl border bg-background p-3">
+        <summary className="flex cursor-pointer list-none items-center gap-2 font-semibold">
+          <ShoppingBasket className="h-4 w-4 text-primary" /> Panier comparé ({dish.basket.length})
+        </summary>
+        <div className="mt-3 space-y-2">
+          {dish.basket.map((item, index) => (
+            <div key={`${item.url}-${index}`} className="grid gap-1 rounded-lg bg-muted/40 p-2 sm:grid-cols-[1fr_auto]">
+              <div className="min-w-0">
+                <p className="font-medium">{item.ingredient} · {item.product}</p>
+                <p className="text-xs text-muted-foreground">
+                  {item.retailer} · {item.package_size} · {money(item.package_price_chf)} · coût recette {money(item.allocated_cost_chf)}
+                </p>
+                {(item.availability_note || item.distance_note) && (
+                  <p className="mt-1 text-xs text-muted-foreground">{[item.availability_note, item.distance_note].filter(Boolean).join(" · ")}</p>
+                )}
+              </div>
+              <a href={item.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline">
+                Source <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+          ))}
+        </div>
+      </details>
+
+      <details className="rounded-xl border bg-background p-3">
+        <summary className="flex cursor-pointer list-none items-center gap-2 font-semibold">
+          <ChefHat className="h-4 w-4 text-primary" /> Recette complète · {dish.servings} portions
+        </summary>
+        <div className="mt-3 grid gap-4 lg:grid-cols-2">
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Ingrédients</p>
+            <ul className="space-y-1">
+              {dish.ingredients.map((item, index) => (
+                <li key={`${item.name}-${index}`}>• {item.quantity} {item.unit} {item.name}</li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Préparation</p>
+            <ol className="space-y-2">
+              {dish.recipe.map((step) => (
+                <li key={step.step}><span className="font-semibold">{step.step}.</span> {step.instruction} {step.minutes > 0 ? `(${step.minutes} min)` : ""}</li>
+              ))}
+            </ol>
+          </div>
+        </div>
+        {dish.allergens.length > 0 && <p className="mt-3 text-xs text-muted-foreground">Allergènes à contrôler : {dish.allergens.join(", ")}</p>}
+      </details>
+
+      <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+        {dish.price_caveat}
+      </div>
+    </div>
+  );
+}
+

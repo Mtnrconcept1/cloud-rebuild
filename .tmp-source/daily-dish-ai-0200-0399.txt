@@ -1,0 +1,200 @@
+}
+
+function numberInRange(value: unknown, min: number, max: number, fallback = min) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(max, Math.max(min, parsed));
+}
+
+function roundMoney(value: number) {
+  return Number(value.toFixed(2));
+}
+
+function localDate(timeZone = "Europe/Zurich") {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+  const read = (type: string) => parts.find((part) => part.type === type)?.value || "";
+  return `${read("year")}-${read("month")}-${read("day")}`;
+}
+
+function normalizePublicUrl(value: unknown) {
+  if (typeof value !== "string" || value.length > 2048) return "";
+  try {
+    const url = new URL(value);
+    if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) return "";
+    const host = url.hostname.toLowerCase();
+    if (
+      host === "localhost" || host.endsWith(".local") || host === "0.0.0.0" ||
+      /^127\./.test(host) || /^10\./.test(host) || /^192\.168\./.test(host) ||
+      /^169\.254\./.test(host) || /^172\.(1[6-9]|2\d|3[01])\./.test(host) ||
+      host === "::1"
+    ) return "";
+    url.hash = "";
+    return url.toString();
+  } catch {
+    return "";
+  }
+}
+
+function collectProviderSources(response: unknown) {
+  const sources = new Map<string, SupplierSource>();
+  const checkedAt = new Date().toISOString();
+  const visit = (value: unknown, depth = 0) => {
+    if (depth > 12 || sources.size >= 40) return;
+    if (Array.isArray(value)) {
+      value.slice(0, 200).forEach((entry) => visit(entry, depth + 1));
+      return;
+    }
+    if (!isRecord(value)) return;
+    const url = normalizePublicUrl(value.url);
+    if (url) {
+      const hostname = new URL(url).hostname.replace(/^www\./, "");
+      sources.set(url, {
+        url,
+        title: sanitizeText(value.title, 200) || hostname,
+        retailer: sanitizeText(value.retailer, 100) || hostname,
+        checked_at: checkedAt,
+      });
+    }
+    Object.values(value).slice(0, 200).forEach((entry) => visit(entry, depth + 1));
+  };
+  visit(response);
+
+  if (sources.size === 0) {
+    const text = extractOutputText(response);
+    for (const match of text.matchAll(/https?:\/\/[^\s)\]}>"']+/g)) {
+      const url = normalizePublicUrl(match[0]);
+      if (!url) continue;
+      const hostname = new URL(url).hostname.replace(/^www\./, "");
+      sources.set(url, { url, title: hostname, retailer: hostname, checked_at: checkedAt });
+      if (sources.size >= 40) break;
+    }
+  }
+  return [...sources.values()];
+}
+
+function sanitizeVariant(raw: unknown, allowedSources: Map<string, SupplierSource>): DailyDishVariantPayload {
+  if (!isRecord(raw)) throw new HttpError(502, "ai_invalid_response");
+  const servings = Math.round(numberInRange(raw.servings, 1, 200, 10));
+  const basket = (Array.isArray(raw.basket) ? raw.basket : []).flatMap((entry) => {
+    if (!isRecord(entry)) return [];
+    const normalizedUrl = normalizePublicUrl(entry.url);
+    const matchedSource = allowedSources.get(normalizedUrl);
+    if (!matchedSource) return [];
+    return [{
+      ingredient: sanitizeText(entry.ingredient, 120),
+      quantity: numberInRange(entry.quantity, 0.001, 100000, 1),
+      unit: sanitizeText(entry.unit, 30),
+      retailer: sanitizeText(entry.retailer, 100) || matchedSource.retailer,
+      product: sanitizeText(entry.product, 200),
+      package_size: sanitizeText(entry.package_size, 100),
+      package_price_chf: roundMoney(numberInRange(entry.package_price_chf, 0, 100000)),
+      allocated_cost_chf: roundMoney(numberInRange(entry.allocated_cost_chf, 0, 100000)),
+      url: matchedSource.url,
+      availability_note: sanitizeText(entry.availability_note, 300),
+      distance_note: sanitizeText(entry.distance_note, 300),
+    }];
+  }).slice(0, 40);
+  if (basket.length === 0) throw new HttpError(502, "supplier_prices_unavailable");
+
+  const ingredients = (Array.isArray(raw.ingredients) ? raw.ingredients : []).flatMap((entry) => (
+    isRecord(entry) && sanitizeText(entry.name, 120)
+      ? [{
+        name: sanitizeText(entry.name, 120),
+        quantity: numberInRange(entry.quantity, 0.001, 100000, 1),
+        unit: sanitizeText(entry.unit, 30),
+      }]
+      : []
+  )).slice(0, 40);
+  const recipe = (Array.isArray(raw.recipe) ? raw.recipe : []).flatMap((entry, index) => (
+    isRecord(entry) && sanitizeText(entry.instruction, 1000)
+      ? [{
+        step: index + 1,
+        instruction: sanitizeText(entry.instruction, 1000),
+        minutes: Math.round(numberInRange(entry.minutes, 0, 600, 0)),
+      }]
+      : []
+  )).slice(0, 30);
+  if (ingredients.length === 0 || recipe.length === 0) throw new HttpError(502, "ai_invalid_response");
+
+  const sourceUrls = new Set(basket.map((item) => item.url));
+  const sources = [...sourceUrls].map((url) => allowedSources.get(url)!).filter(Boolean);
+  const totalCost = roundMoney(basket.reduce((sum, item) => sum + item.allocated_cost_chf, 0));
+  const costPerPortion = roundMoney(totalCost / servings);
+  const suggestedPrice = roundMoney(numberInRange(raw.suggested_price_chf, 1, 10000, Math.max(1, costPerPortion * 3)));
+
+  return {
+    name: sanitizeText(raw.name, 120),
+    description: sanitizeText(raw.description, 1200),
+    why_it_fits: sanitizeText(raw.why_it_fits, 900),
+    servings,
+    prep_minutes: Math.round(numberInRange(raw.prep_minutes, 0, 600, 0)),
+    cook_minutes: Math.round(numberInRange(raw.cook_minutes, 0, 600, 0)),
+    allergens: (Array.isArray(raw.allergens) ? raw.allergens : []).map((item) => sanitizeText(item, 80)).filter(Boolean).slice(0, 20),
+    ingredients,
+    basket,
+    recipe,
+    estimated_total_cost_chf: totalCost,
+    cost_per_portion_chf: costPerPortion,
+    suggested_price_chf: suggestedPrice,
+    food_cost_percent: roundMoney(suggestedPrice > 0 ? costPerPortion / suggestedPrice * 100 : 0),
+    estimated_margin_chf: roundMoney(suggestedPrice - costPerPortion),
+    image_prompt: sanitizeText(raw.image_prompt, 2000),
+    actualite_copy: sanitizeText(raw.actualite_copy, 2000),
+    sources,
+    price_caveat: sanitizeText(raw.price_caveat, 600) || "Prix indicatifs relevés en ligne : disponibilité et prix à confirmer avant achat.",
+  };
+}
+
+async function sha256(value: unknown) {
+  const bytes = new TextEncoder().encode(JSON.stringify(value));
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+async function claimDemoDailyDishRequest(
+  demo: DemoContext,
+  requestId: string,
+  payload: JsonRecord,
+) {
+  const lockToken = crypto.randomUUID();
+  const claim = await claimCommercialDemoAiRequest({
+    context: demo,
+    requestId,
+    action: "chat",
+    tool: "assistant",
+    payloadHash: await sha256({ purpose: "daily_dish", ...payload }),
+    lockToken,
+  });
+  if (claim.state === "claimed") return { lockToken };
+  if (claim.state === "in_progress") throw new HttpError(409, "daily_dish_generation_in_progress");
+  if (claim.state === "busy" || claim.state === "circuit_open") throw new HttpError(429, "ai_rate_limited");
+  if (claim.state === "budget_exhausted") throw new HttpError(429, "commercial_demo_ai_budget_exhausted");
+  if (claim.state === "disabled") throw new HttpError(403, "feature_disabled");
+  if (claim.state === "replay") throw new HttpError(409, "daily_dish_demo_request_already_completed");
+  throw new HttpError(409, "daily_dish_demo_request_mismatch");
+}
+
+function combinedUsage(responses: unknown[]) {
+  return responses.reduce((total, response) => {
+    const usage = extractUsage(response);
+    total.input += usage.input_tokens || 0;
+    total.output += usage.output_tokens || 0;
+    return total;
+  }, { input: 0, output: 0 });
+}
+
+async function completeDemoDailyDishRequest(input: {
+  demo: DemoContext;
+  requestId: string;
+  lockToken: string;
+  variants: DailyDishVariantPayload[];
+  responses: unknown[];
+}) {
+  const usage = combinedUsage(input.responses);
+  const estimatedCostChf = estimateOpenAITextCostChf(DAILY_MODEL, usage.input, usage.output);
+  const { error } = await input.demo.actor.adminClient.rpc(

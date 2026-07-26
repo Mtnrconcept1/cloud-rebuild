@@ -1,0 +1,200 @@
+      }
+    }
+
+    toast({ title: editingId ? "Plat mis à jour" : "Plat ajoute" });
+    setDialogOpen(false);
+    refreshMenu();
+    } finally {
+      setSavingItem(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!restaurant) return;
+
+    if (isCommercialDemo) {
+      persistCommercialDemoMenu(readCommercialDemoMenu().filter((item) => item.id !== id));
+      toast({
+        title: "Plat de démonstration supprimé",
+        description: "Aucune donnée du menu réel n'a été modifiée.",
+      });
+      return;
+    }
+
+    const { error } = await supabase
+      .from("menu_items")
+      .delete()
+      .eq("id", id)
+      .eq("restaurant_id", restaurant.id);
+
+    if (error) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      return;
+    }
+
+    refreshMenu();
+    toast({ title: "Plat supprime" });
+  };
+
+  const toggleAvailability = async (id: string, current: boolean) => {
+    if (!restaurant) return;
+
+    if (isCommercialDemo) {
+      persistCommercialDemoMenu(readCommercialDemoMenu().map((item) => (
+        item.id === id ? { ...item, is_available: !current } : item
+      )));
+      toast({
+        title: "Disponibilité mise à jour",
+        description: "Le changement reste limité à cette session commerciale.",
+      });
+      return;
+    }
+
+    const { error } = await supabase
+      .from("menu_items")
+      .update({ is_available: !current })
+      .eq("id", id)
+      .eq("restaurant_id", restaurant.id);
+
+    if (error) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      return;
+    }
+
+    refreshMenu();
+  };
+
+  const selectDishImage = (imageUrl: string) => {
+    setForm((previous) => ({ ...previous, image_url: imageUrl }));
+    setPhotoStudioResult(null);
+  };
+
+  const generateMenuPhoto = async () => {
+    if (!restaurant) return;
+    if (!form.name.trim() && !form.image_url.trim()) {
+      toast({
+        title: "Nom ou photo requis",
+        description: "Ajoutez un nom de plat ou une photo source avant de lancer le studio.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setGeneratingPhoto(true);
+    setPhotoStudioResult(null);
+    try {
+      const request = {
+        restaurantId: restaurant.id,
+        sourceImageUrl: form.image_url.trim() || null,
+        dishName: form.name.trim() || null,
+        prompt: buildMenuPhotoStudioPrompt(form),
+        assetType: "menu_visual" as const,
+        format: "square" as const,
+        variantCount: 1,
+        generateImage: true,
+        imageOnly: true,
+      };
+      let result: TokImageGenerationResult;
+      if (commercialDemoFrame?.surface === "restaurant") {
+        result = await generateCommercialDemoVisual({
+          sessionId: commercialDemoFrame.config.sessionId,
+          surface: "restaurant",
+        }, request);
+      } else {
+        void requestAiCreationNotificationPermission();
+        const { promise } = startTokImageCreationJob({
+          restaurantId: restaurant.id,
+          tool: "menu_photo",
+          title: form.name.trim() || "Photo de plat",
+          request,
+        });
+        result = await promise;
+      }
+      const generatedImageUrl = result.gallery_image_url || result.generated_image_url;
+      if (!generatedImageUrl) throw new Error("Aucune image générée par le studio.");
+      if (!mountedRef.current) return;
+      setPhotoStudioResult(result);
+      setForm((previous) => ({ ...previous, image_url: generatedImageUrl }));
+      toast({
+        title: "Image générée",
+        description: commercialDemoFrame?.surface === "restaurant"
+          ? "Le visuel OpenAI est appliqué au plat du restaurant Démo."
+          : "Le visuel du studio est appliqué au plat.",
+      });
+    } catch (error) {
+      if (!mountedRef.current) return;
+      toast({ title: "Erreur IA", description: getPhotoGenerationErrorMessage(error), variant: "destructive" });
+    } finally {
+      if (mountedRef.current) setGeneratingPhoto(false);
+    }
+  };
+
+  const openMenuImport = () => {
+    setMenuImportFiles([]);
+    setImportedMenuItems([]);
+    setMenuImportWarnings([]);
+    setImportDialogOpen(true);
+  };
+
+  const fileToDataUrl = (file: File) => new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => typeof reader.result === "string" ? resolve(reader.result) : reject(new Error("image_read_failed"));
+    reader.onerror = () => reject(new Error("image_read_failed"));
+    reader.readAsDataURL(file);
+  });
+
+  const handleMenuImportFiles = (files: FileList | null) => {
+    const selected = Array.from(files || []).filter((file) => /^image\/(jpeg|png|webp)$/i.test(file.type)).slice(0, 3);
+    if (!selected.length) {
+      toast({ title: "Photos requises", description: "Utilisez jusqu'à 3 images JPG, PNG ou WebP.", variant: "destructive" });
+      return;
+    }
+    setMenuImportFiles(selected);
+    setImportedMenuItems([]);
+    setMenuImportWarnings([]);
+  };
+
+  const analyzeMenuPhotos = async () => {
+    if (!restaurant || !menuImportFiles.length) return;
+
+    setAnalyzingMenu(true);
+    setImportedMenuItems([]);
+    setMenuImportWarnings([]);
+
+    try {
+      const images = await Promise.all(menuImportFiles.map(async (file) => {
+        const optimized = await optimizeImageUpload(file);
+        return fileToDataUrl(optimized);
+      }));
+
+      let response: MenuImportResponse;
+      if (commercialDemoFrame?.surface === "restaurant") {
+        const result = await askCommercialDemoAi({
+          runtime: {
+            sessionId: commercialDemoFrame.config.sessionId,
+            surface: "restaurant",
+          },
+          tool: "assistant",
+          message: [
+            "Analyse les photos de cette carte de restaurant et extrais tous les plats lisibles.",
+            "Retourne exclusivement un objet JSON avec { items, warnings }.",
+            "Chaque item doit contenir name, description, price en CHF et category.",
+            "N'invente pas un prix illisible : utilise 0 et ajoute un avertissement.",
+          ].join(" "),
+          context: {
+            entrypoint: "restaurant_menu_image_import",
+            output_schema: {
+              items: [{ name: "string", description: "string", price: "number", category: "string" }],
+              warnings: ["string"],
+            },
+          },
+          referenceImages: images,
+        });
+        const parsed = parseCommercialDemoAiJson<{ items?: unknown; warnings?: unknown }>(result.reply);
+        const parsedItems = Array.isArray(parsed.items) ? parsed.items : [];
+        response = {
+          items: parsedItems.flatMap((candidate) => {
+            if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) return [];
+            const item = candidate as Record<string, unknown>;
+            const name = String(item.name || "").trim().slice(0, 140);
+            if (!name) return [];
