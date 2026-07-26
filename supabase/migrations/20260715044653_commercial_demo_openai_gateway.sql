@@ -1221,6 +1221,11 @@ DO $scheduler$
 DECLARE
   v_cron_secret text;
 BEGIN
+  IF private.tok_is_production_cluster() IS NOT TRUE THEN
+    RAISE NOTICE
+      'Production-targeting cron schedule skipped outside the Production cluster';
+    RETURN;
+  END IF;
   SELECT secret.decrypted_secret
   INTO v_cron_secret
   FROM vault.decrypted_secrets secret
