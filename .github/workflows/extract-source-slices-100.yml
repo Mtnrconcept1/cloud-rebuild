@@ -1,0 +1,58 @@
+name: Extract source slices 100
+
+on:
+  push:
+    branches:
+      - probe-source-100
+
+permissions:
+  contents: write
+
+jobs:
+  extract:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Extract targeted source slices
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .tmp-source100
+          mkdir -p .tmp-source100
+          slice_file() {
+            local src="$1"
+            local prefix="$2"
+            local total="$3"
+            local start end label
+            start=1
+            while [ "$start" -le "$total" ]; do
+              end=$((start + 99))
+              label=$(printf '%04d-%04d' "$start" "$end")
+              sed -n "${start},${end}p" "$src" > ".tmp-source100/${prefix}-${label}.txt"
+              start=$((end + 1))
+            done
+          }
+          slice_file src/pages/dashboard/DashboardMenu.tsx DashboardMenu 1100
+          slice_file src/components/dashboard/DailyDishAiPanel.tsx DailyDishAiPanel 700
+          slice_file src/lib/ai/dailyDishAi.ts dailyDishAi-client 300
+          slice_file supabase/functions/daily-dish-ai/index.ts daily-dish-ai-edge 1200
+          slice_file supabase/functions/menu-image-import/index.ts menu-image-import 400
+          slice_file supabase/functions/_shared/restaurant-credits.ts restaurant-credits 500
+          slice_file supabase/functions/_shared/openai.ts shared-openai 900
+          slice_file supabase/migrations/20260718201439_daily_dish_ai.sql daily-dish-migration 500
+          slice_file src/test/dashboard-menu-photo-tools.test.ts dashboard-menu-photo-tools-test 200
+          slice_file src/test/daily-dish-ai.test.ts daily-dish-ai-test 400
+          slice_file src/test/commercial-demo-menu-mutations-isolation.test.ts demo-menu-isolation-test 300
+          slice_file supabase/config.toml supabase-config 1000
+      - name: Commit source slices
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add .tmp-source100
+          git commit -m 'chore: extract 100-line source slices for audit' || exit 0
+          git push
