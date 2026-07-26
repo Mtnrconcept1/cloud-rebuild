@@ -21,7 +21,9 @@ concurrency:
 jobs:
   scan-runtime:
     name: Scan runtime failures
-    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+    if: >-
+      ${{ github.event_name == 'workflow_dispatch' ||
+          (github.event_name == 'schedule' && vars.TOK_INCIDENT_AUTOMATION_ENABLED == 'true') }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
@@ -50,8 +52,26 @@ jobs:
           jq '{activeFailures, incidents: (.incidents | length)}' "${RUNNER_TEMP}/tok-incident-scan.json"
 
   report-workflow-failure:
-    name: Report failed GitHub workflow
-    if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'failure' }}
+    name: Report failed protected workflow
+    if: >-
+      ${{ vars.TOK_INCIDENT_AUTOMATION_ENABLED == 'true' &&
+          github.event_name == 'workflow_run' &&
+          github.event.workflow_run.conclusion == 'failure' &&
+          (
+            github.event.workflow_run.name == 'Deploy Production' ||
+            (
+              github.event.workflow_run.name == 'CI' &&
+              github.event.workflow_run.event != 'pull_request' &&
+              (
+                github.event.workflow_run.event == 'merge_group' ||
+                github.event.workflow_run.head_branch == 'main' ||
+                github.event.workflow_run.head_branch == 'master' ||
+                github.event.workflow_run.head_branch == 'develop' ||
+                startsWith(github.event.workflow_run.head_branch, 'release/') ||
+                startsWith(github.event.workflow_run.head_branch, 'hotfix/')
+              )
+            )
+          ) }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
@@ -86,9 +106,10 @@ jobs:
               action: "ingest",
               source: "github_actions",
               eventId: $run_id,
+              groupingKey: ($workflow + ":" + (if $branch == "" then "unknown" else $branch end) + ":" + $event),
               severity: (if $workflow == "Deploy Production" then "high" else "medium" end),
               title: ("GitHub Actions — " + $workflow + " en échec"),
-              summary: ("Le workflow " + $workflow + " a échoué sur la branche " + ($branch // "inconnue") + "."),
+              summary: ("Le workflow " + $workflow + " a échoué sur la branche " + (if $branch == "" then "inconnue" else $branch end) + "."),
               errorType: "workflow_failure",
               context: {
                 workflow: $workflow,
