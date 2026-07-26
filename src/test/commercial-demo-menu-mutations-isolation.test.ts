@@ -62,7 +62,7 @@ describe("commercial demo menu mutations", () => {
     expect(analyze).toContain("referenceImages: images");
     expect(analyze).toContain("parseCommercialDemoAiJson");
     expect(analyze.indexOf("askCommercialDemoAi"))
-      .toBeLessThan(analyze.indexOf('supabase.functions.invoke<MenuImportResponse>("menu-image-import"'));
+      .toBeLessThan(analyze.indexOf('invokeSupabaseFunction<MenuImportResponse>("menu-image-import"'));
   });
 
   it("generates menu visuals through the dedicated zero-cost demo RPC client", () => {

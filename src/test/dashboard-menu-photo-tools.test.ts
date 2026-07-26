@@ -28,11 +28,18 @@ describe("dashboard menu photo tools", () => {
   it("extracts a photographed menu into an editable preview before batch creation", () => {
     expect(dashboardMenu).toContain("Importer une photo du menu");
     expect(dashboardMenu).toContain('accept="image/jpeg,image/png,image/webp"');
-    expect(dashboardMenu).toContain('supabase.functions.invoke<MenuImportResponse>("menu-image-import"');
+    expect(dashboardMenu).toContain('invokeSupabaseFunction<MenuImportResponse>("menu-image-import"');
     expect(dashboardMenu).toContain("optimizeImageUpload(file)");
     expect(dashboardMenu).toContain("updateImportedMenuItem");
     expect(dashboardMenu).toContain('from("menu_items").insert(selectedItems)');
     expect(dashboardMenu).toContain("Les plats ne sont créés qu'après votre validation.");
+
+    // Unreadable prices (0) must never reach the menu_items price > 0 check:
+    // they stay visible but deselected until the restaurateur fixes them.
+    expect(dashboardMenu).toContain("selected: price > 0");
+    expect(dashboardMenu).toContain("Math.round(item.price * 100) < 1");
+    expect(dashboardMenu).toContain("getMenuImportErrorMessage");
+    expect(dashboardMenu).toContain("getMenuItemSaveErrorMessage");
 
     expect(menuImageImport).toContain('const FUNCTION_NAME = "menu-image-import"');
     expect(menuImageImport).toContain("requireRestaurantAccess(actor, restaurantId)");

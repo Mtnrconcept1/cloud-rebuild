@@ -1,7 +1,10 @@
 import { invokeSupabaseFunction } from "@/lib/session";
 
 const FUNCTION_NAME = "daily-dish-ai";
-const REQUEST_TIMEOUT_MS = 135_000;
+// The edge function may chain two AI calls of up to 100 s each (supplier
+// research with web search, then the structured proposals), so the client
+// budget must stay above that worst case.
+const REQUEST_TIMEOUT_MS = 215_000;
 
 export type DailyDishSupplierSource = {
   url: string;
@@ -177,6 +180,11 @@ export function formatDailyDishError(error: unknown) {
   if (message.includes("daily_dish_revision_limit")) return "La limite de cinq demandes de modification est atteinte pour cette proposition.";
   if (message.includes("ai_rate_limited") || message.includes("rate_limited")) return "Trop de recherches ont été lancées. Patientez quelques minutes.";
   if (message.includes("commercial_demo_ai_budget_exhausted")) return "Le budget OpenAI quotidien de la démonstration est atteint. Réessayez demain.";
+  if (message.includes("ai_credits_exhausted")) return "Solde de crédits TOK insuffisant pour générer le visuel PhotoPro. Rechargez vos crédits ou attendez le prochain renouvellement.";
   if (message.includes("ai_timeout") || message.toLowerCase().includes("timeout")) return "La comparaison des fournisseurs a pris trop de temps. Réessayez.";
+  if (message.includes("ai_provider_billing_unavailable") || message.includes("ai_service_error") || message.includes("ai_service_unavailable")) {
+    return "Le service IA est momentanément indisponible. Réessayez dans quelques minutes.";
+  }
+  if (message.includes("feature_disabled")) return "Cette fonctionnalité est temporairement désactivée par l'équipe TOK.";
   return message || "Le service Plat du jour IA est momentanément indisponible.";
 }

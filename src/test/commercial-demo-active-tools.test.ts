@@ -181,9 +181,9 @@ describe("commercial demo active tools and reservations", () => {
     expect(photoAnalysis).toContain("askCommercialDemoAi");
     expect(photoAnalysis).toContain("referenceImages: images");
     expect(photoAnalysis.indexOf('commercialDemoFrame?.surface === "restaurant"'))
-      .toBeLessThan(photoAnalysis.indexOf('supabase.functions.invoke<MenuImportResponse>("menu-image-import"'));
+      .toBeLessThan(photoAnalysis.indexOf('invokeSupabaseFunction<MenuImportResponse>("menu-image-import"'));
     expect(menu).toContain('supabase.from("menu_items").insert');
-    expect(menu).toContain(".update(form)");
+    expect(menu).toContain(".update(payload)");
   });
 
   it("runs real accounting AI from the isolated demo snapshot without financial-table access", () => {
