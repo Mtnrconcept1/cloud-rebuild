@@ -72,6 +72,31 @@ openssl rand -hex 32
 
 Ne jamais réutiliser la même valeur pour les trois secrets `OPS_*`.
 
+### Détection sans secret provisionné
+
+Tant que `OPS_CONTROL_SECRET` n'a pas été synchronisé vers l'environnement des
+fonctions Edge, le scan interne (`ops-incident-native-scan`, déclenché par le
+cron pg_cron toutes les 5 minutes) authentifie son appel vers
+`ops-incident-control` avec la clé service-role auto-provisionnée du projet.
+La détection et l'enregistrement des incidents restent donc opérationnels sans
+aucune configuration ; seule la notification Telegram et le lancement Codex
+attendent leurs secrets. Ce repli concerne uniquement le saut interne
+projet-à-projet : les appels externes (workflows GitHub, collecteurs) exigent
+toujours les secrets partagés dédiés.
+
+### État de provisionnement à compléter
+
+Le workflow `TOK Incident Secret Sync` (`sync-incident-secrets.yml`) échoue
+tant que l'environnement GitHub `production` ne contient pas les secrets
+suivants (constat du run n°1) : `OPS_CONTROL_SECRET`, `OPS_INGEST_SECRET`,
+`OPS_GITHUB_CALLBACK_SECRET`, `GITHUB_INCIDENT_TOKEN`, `TELEGRAM_BOT_TOKEN`,
+`TELEGRAM_ADMIN_CHAT_ID`, `TELEGRAM_ADMIN_USER_ID`, `TELEGRAM_WEBHOOK_SECRET`.
+Après les avoir créés (valeurs aléatoires `openssl rand -hex 32` pour les
+secrets `OPS_*` et `TELEGRAM_WEBHOOK_SECRET`, valeurs BotFather/Telegram/PAT
+pour les autres), relancer manuellement ce workflow : il synchronise les
+secrets vers Supabase, enregistre le webhook Telegram signé et exécute un scan
+initial de vérification.
+
 Exemple de configuration Supabase CLI, à lancer localement sans commiter les valeurs :
 
 ```bash

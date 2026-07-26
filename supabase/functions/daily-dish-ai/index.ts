@@ -26,7 +26,10 @@ import {
 
 const FUNCTION_NAME = "daily-dish-ai";
 const FEATURE_NAME = "daily-dish-ai";
-const DAILY_MODEL = Deno.env.get("OPENAI_MODEL_DAILY_DISH")?.trim() || "gpt-5.5";
+// The daily-dish generation runs every day for every Premium restaurant, so
+// it defaults to the economy text tier; OPENAI_MODEL_DAILY_DISH still
+// overrides it when a stronger model is needed.
+const DAILY_MODEL = Deno.env.get("OPENAI_MODEL_DAILY_DISH")?.trim() || "gpt-5.4-mini";
 const PREMIUM_PLANS = new Set(["premium", "elite", "custom"]);
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const MAX_RESEARCH_CHARS = 30_000;

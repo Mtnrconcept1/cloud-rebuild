@@ -23,9 +23,19 @@ type IncidentScanResult = {
 async function callIncidentControl() {
   const projectUrl = getEnv("SUPABASE_URL");
   const controlSecret = getEnv("OPS_CONTROL_SECRET");
+  const serviceRoleKey = getEnv("SUPABASE_SERVICE_ROLE_KEY");
 
   if (!projectUrl) throw new HttpError(503, "supabase_url_not_configured");
-  if (!controlSecret) throw new HttpError(503, "ops_control_secret_not_configured");
+  if (!controlSecret && !serviceRoleKey) {
+    throw new HttpError(503, "ops_control_credentials_not_configured");
+  }
+
+  // This hop stays inside the Supabase project: when the dedicated control
+  // secret has not been provisioned, the auto-provisioned service-role key
+  // authenticates the scan so incident detection never silently stops.
+  const authHeaders: Record<string, string> = controlSecret
+    ? { "x-ops-control-secret": controlSecret }
+    : { Authorization: `Bearer ${serviceRoleKey}`, apikey: serviceRoleKey };
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), OUTBOUND_TIMEOUT_MS);
@@ -38,7 +48,7 @@ async function callIncidentControl() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-ops-control-secret": controlSecret,
+          ...authHeaders,
           "User-Agent": "TOK-Native-Incident-Scanner/1.0",
         },
         body: JSON.stringify({ action: "scan" }),

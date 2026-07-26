@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { KeyRound, RefreshCw, ShieldCheck, ShieldX, type LucideIcon } from "lucide-react";
+import { Check, Copy, KeyRound, Plug, RefreshCw, ShieldCheck, ShieldX, Sparkles } from "lucide-react";
 
+import DashboardLayout from "@/components/DashboardLayout";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Button } from "@/components/ui/button";
 import { getSupabase } from "@/integrations/supabase/client";
 import { SUPABASE_URL } from "@/lib/env";
@@ -9,6 +11,11 @@ import { useDashboardRestaurant } from "./useDashboardRestaurant";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 
 export const DASHBOARD_TOK_CONNECT_GRANTS_LIMIT = 100;
+
+// Canonical ChatGPT endpoint. The public origin proxies /mcp to the
+// tok-connect-mcp Edge Function, so restaurateurs always copy the stable
+// product URL rather than the Supabase function URL.
+export const TOK_CONNECT_MCP_ENDPOINT = "https://www.thetok.ch/mcp";
 
 type GrantRow = {
   id: string;
@@ -112,6 +119,7 @@ export default function DashboardTokConnect() {
   const [loading, setLoading] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const load = useCallback(async () => {
     if (!selectedId) return;
@@ -133,7 +141,7 @@ export default function DashboardTokConnect() {
   const metrics = useMemo(() => ({
     active: grants.filter((grant) => grant.status === "active").length,
     pending: grants.filter((grant) => grant.status === "pending").length,
-    mcp: grants.filter((grant) => grant.allow_mcp).length,
+    mcp: grants.filter((grant) => grant.allow_mcp && grant.status === "active").length,
   }), [grants]);
 
   async function changeStatus(grantId: string, status: "active" | "revoked") {
@@ -154,62 +162,124 @@ export default function DashboardTokConnect() {
     }
   }
 
+  async function copyEndpoint() {
+    try {
+      await navigator.clipboard.writeText(TOK_CONNECT_MCP_ENDPOINT);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setError("Copie impossible. Sélectionnez l'adresse manuellement.");
+    }
+  }
+
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-8 text-slate-950 md:px-8">
-      <div className="mx-auto flex max-w-7xl flex-col gap-6">
-        <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <p className="text-sm font-black uppercase tracking-[0.18em] text-orange-600">Partenaires</p>
-            <h1 className="mt-2 text-4xl font-black tracking-normal">Consentements TOK Connect</h1>
-            <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
-              Autorisez ou révoquez les partenaires approuvés pour ce restaurant, avec scopes et limites de réservation.
-            </p>
-          </div>
-          <Button variant="outline" onClick={load} disabled={loading || restaurantsLoading || !selectedId}>
-            <RefreshCw className="mr-2 h-4 w-4" />
-            Actualiser
-          </Button>
-        </header>
+    <DashboardLayout>
+      <div className="space-y-6">
+        <DashboardPageHero
+          badge="Partenaires & IA"
+          title="TOK Connect"
+          description="Connectez ChatGPT et vos partenaires approuvés à ce restaurant : point d'accès MCP, scopes autorisés et limites de réservation restent sous votre contrôle."
+          icon={Plug}
+          tone="violet"
+          visualLabel="Connecteurs"
+          stats={[
+            { label: "Grants actifs", value: metrics.active, icon: ShieldCheck },
+            { label: "En attente", value: metrics.pending, icon: KeyRound },
+            { label: "MCP autorisé", value: metrics.mcp, icon: Sparkles },
+          ]}
+          actions={(
+            <Button variant="outline" onClick={load} disabled={loading || restaurantsLoading || !selectedId}>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Actualiser
+            </Button>
+          )}
+        />
 
         {!selectedRestaurant ? (
-          <div className="rounded-lg border bg-white p-5 text-sm text-slate-600">Sélectionnez un restaurant pour gérer ses grants.</div>
+          <p className="rounded-xl border bg-card p-5 text-sm text-muted-foreground">
+            Sélectionnez un restaurant pour gérer ses connecteurs.
+          </p>
         ) : null}
 
-        {error ? <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">{error}</div> : null}
+        {error ? (
+          <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm font-semibold text-destructive">
+            {error}
+          </div>
+        ) : null}
 
-        <section className="grid gap-4 md:grid-cols-3">
-          <Metric label="Grants actifs" value={metrics.active} icon={ShieldCheck} />
-          <Metric label="En attente" value={metrics.pending} icon={KeyRound} />
-          <Metric label="MCP autorisé" value={metrics.mcp} icon={ShieldCheck} />
+        <section className="rounded-2xl border bg-card p-5 shadow-sm">
+          <div className="flex flex-col gap-1">
+            <h2 className="font-display text-xl font-bold">Connecter ChatGPT</h2>
+            <p className="text-sm text-muted-foreground">
+              TOK expose un serveur MCP officiel. Ajoutez-le comme connecteur dans ChatGPT pour consulter vos
+              disponibilités et préparer des parcours : aucune réservation, aucun paiement et aucune génération IA
+              payante ne peut être déclenché sans validation humaine dans TOK.
+            </p>
+          </div>
+
+          <div className="mt-4 flex flex-col gap-2 rounded-xl border bg-muted/40 p-3 sm:flex-row sm:items-center sm:justify-between">
+            <code className="min-w-0 break-all font-mono text-sm font-semibold">{TOK_CONNECT_MCP_ENDPOINT}</code>
+            <Button variant="outline" size="sm" className="shrink-0 gap-2" onClick={copyEndpoint}>
+              {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
+              {copied ? "Copié" : "Copier l'adresse"}
+            </Button>
+          </div>
+
+          <ol className="mt-4 grid gap-3 sm:grid-cols-3">
+            {[
+              { step: 1, title: "Ouvrir les connecteurs", detail: "Dans ChatGPT, Paramètres puis Connecteurs, choisissez « Ajouter un connecteur »." },
+              { step: 2, title: "Coller l'adresse TOK", detail: "Utilisez l'adresse ci-dessus. L'authentification TOK Connect s'ouvre automatiquement." },
+              { step: 3, title: "Autoriser le partenaire", detail: "Le consentement apparaît ci-dessous : activez-le pour ouvrir l'accès MCP à ce restaurant." },
+            ].map((item) => (
+              <li key={item.step} className="rounded-xl border bg-background p-3">
+                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-black text-primary-foreground">
+                  {item.step}
+                </span>
+                <p className="mt-2 text-sm font-bold">{item.title}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{item.detail}</p>
+              </li>
+            ))}
+          </ol>
+
+          <p className="mt-4 rounded-lg border border-amber-300/60 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-200">
+            Tant qu'aucun consentement n'est actif avec l'option MCP, ChatGPT ne reçoit que des données de
+            démonstration : votre carte, vos réservations et vos statistiques restent privées.
+          </p>
         </section>
 
-        <section className="rounded-lg border bg-white shadow-sm">
+        <section className="overflow-hidden rounded-2xl border bg-card shadow-sm">
           <div className="border-b p-5">
-            <h2 className="text-xl font-black">tok_connect_restaurant_grants</h2>
-            <p className="mt-2 text-sm text-slate-600">
+            <h2 className="font-display text-xl font-bold">Consentements partenaires</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
               Les mutations restent protégées par RLS et limitées au restaurant sélectionné.
             </p>
           </div>
 
-          {loading ? <p className="p-5 text-sm text-slate-500">Chargement...</p> : null}
-          {!loading && grants.length === 0 ? <p className="p-5 text-sm text-slate-500">Aucun partenaire autorisé pour ce restaurant.</p> : null}
+          {loading ? <p className="p-5 text-sm text-muted-foreground">Chargement…</p> : null}
+          {!loading && grants.length === 0 ? (
+            <p className="p-5 text-sm text-muted-foreground">Aucun partenaire autorisé pour ce restaurant.</p>
+          ) : null}
 
           <div className="divide-y">
             {grants.map((grant) => (
               <article key={grant.id} className="grid gap-4 p-5 lg:grid-cols-[minmax(0,1fr)_260px] lg:items-center">
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <p className="font-black">Partenaire {String(grant.partner_id).slice(0, 8)}</p>
-                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">{grant.status}</span>
-                    {grant.allow_mcp ? <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-bold text-orange-800">MCP</span> : null}
+                    <p className="font-bold">Partenaire {String(grant.partner_id).slice(0, 8)}</p>
+                    <span className="rounded-full bg-muted px-3 py-1 text-xs font-bold text-muted-foreground">{grant.status}</span>
+                    {grant.allow_mcp ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">
+                        <Sparkles className="h-3 w-3" /> MCP ChatGPT
+                      </span>
+                    ) : null}
                   </div>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {(grant.allowed_scopes || []).map((scope) => (
-                      <span key={scope} className="rounded-full border px-3 py-1 text-xs font-semibold text-slate-600">{scope}</span>
+                      <span key={scope} className="rounded-full border px-3 py-1 text-xs font-semibold text-muted-foreground">{scope}</span>
                     ))}
                   </div>
-                  <p className="mt-3 text-sm text-slate-600">
-                    Limites: {grant.max_daily_reservations || 0} réservations/jour, {grant.max_party_size || 0} couverts max.
+                  <p className="mt-3 text-sm text-muted-foreground">
+                    Limites : {grant.max_daily_reservations || 0} réservations/jour, {grant.max_party_size || 0} couverts max.
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2 lg:justify-end">
@@ -235,16 +305,7 @@ export default function DashboardTokConnect() {
           </div>
         </section>
       </div>
-    </main>
+    </DashboardLayout>
   );
 }
 
-function Metric({ label, value, icon: Icon }: { label: string; value: number; icon: LucideIcon }) {
-  return (
-    <article className="rounded-lg border bg-white p-5 shadow-sm">
-      <Icon className="h-6 w-6 text-orange-600" />
-      <p className="mt-4 text-3xl font-black">{value}</p>
-      <p className="mt-1 text-sm font-semibold text-slate-600">{label}</p>
-    </article>
-  );
-}

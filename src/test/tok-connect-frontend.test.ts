@@ -120,13 +120,30 @@ describe("TOK Connect frontend integration", () => {
     expect(admin).toContain("tok_connect_agent_runs");
     expect(admin).toContain("ADMIN_TOK_CONNECT_LOG_LIMIT");
 
-    expect(dashboard).toContain("Consentements TOK Connect");
+    expect(dashboard).toContain("Consentements partenaires");
     expect(dashboard).toContain("tok_connect_restaurant_grants");
     expect(dashboard).toContain("tok-connect-portal");
     expect(dashboard).toContain("update-grant-status");
     expect(dashboard).toContain("fetchWithFreshAccessToken");
     expect(dashboard).toContain("public.auth_owns_restaurant");
     expect(dashboard).toContain("DASHBOARD_TOK_CONNECT_GRANTS_LIMIT");
+  });
+
+  it("gives restaurateurs a self-service ChatGPT connection panel inside the standard dashboard shell", () => {
+    const dashboard = read("src/pages/dashboard/DashboardTokConnect.tsx");
+
+    // This page used to render a bare <main> with hardcoded slate colours: it
+    // was the only dashboard route without the shared shell, so it had no
+    // sidebar, no dark mode and no way to discover the MCP endpoint.
+    expect(dashboard).toContain("DashboardLayout");
+    expect(dashboard).toContain("DashboardPageHero");
+    expect(dashboard).not.toContain("bg-slate-50");
+    expect(dashboard).not.toContain("text-slate-950");
+
+    expect(dashboard).toContain("TOK_CONNECT_MCP_ENDPOINT");
+    expect(dashboard).toContain("https://www.thetok.ch/mcp");
+    expect(dashboard).toContain("Connecter ChatGPT");
+    expect(dashboard).toContain("navigator.clipboard.writeText");
   });
 
   it("keeps the OAuth Edge Function compatible with ChatGPT manual OAuth", () => {

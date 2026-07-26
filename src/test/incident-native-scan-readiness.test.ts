@@ -18,7 +18,6 @@ describe("native incident scan readiness", () => {
     expect(scanner).toContain('actor.authMode !== "scheduler_secret"');
     expect(scanner).toContain("scheduler_identity_required");
     expect(scanner).not.toContain("allowServiceRole: true");
-    expect(scanner).not.toContain("Authorization: `Bearer");
   });
 
   it("calls the existing control plane without exposing its secret", () => {
@@ -29,6 +28,24 @@ describe("native incident scan readiness", () => {
     expect(scanner).toContain("incident_scan_upstream_failed");
     expect(scanner).not.toContain("jsonResponse({ controlSecret");
     expect(scanner).not.toContain("message: controlSecret");
+  });
+
+  it("keeps the internal scan alive with the service-role fallback when no secret is provisioned", () => {
+    // The dedicated OPS_CONTROL_SECRET only exists after the secret-sync
+    // workflow runs; until then the scan authenticates the project-internal
+    // hop with the auto-provisioned service-role key instead of failing 503
+    // every five minutes.
+    expect(scanner).toContain('getEnv("SUPABASE_SERVICE_ROLE_KEY")');
+    expect(scanner).toContain("ops_control_credentials_not_configured");
+    expect(scanner).toContain("Authorization: `Bearer ${serviceRoleKey}`");
+
+    const control = readFileSync(
+      "supabase/functions/ops-incident-control/index.ts",
+      "utf8",
+    );
+    expect(control).toContain("assertScanAuthorized");
+    expect(control).toContain("authenticateRequest(req, { allowServiceRole: true })");
+    expect(control).toContain("actor.isServiceRole");
   });
 
   it("schedules a five-minute scan with the existing Vault secret", () => {
