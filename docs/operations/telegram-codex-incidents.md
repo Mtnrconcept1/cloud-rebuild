@@ -10,7 +10,7 @@ Cette automatisation transforme les erreurs techniques confirmées en incidents 
 4. l'administrateur reçoit le plan dans Telegram ;
 5. seul le bouton **Lancer Codex** autorise la création d'une branche de réparation ;
 6. Codex travaille dans le dépôt réel, exécute les contrôles et ouvre une pull request ;
-7. aucune fusion, migration ou mise en production n'est automatique.
+7. Aucune fusion, migration ou mise en production n'est automatique.
 
 Le canal initial est Telegram. La file d'incidents, les décisions et le workflow GitHub sont indépendants du canal ; un adaptateur WhatsApp Business pourra donc être ajouté sans modifier le modèle de sécurité ni la chaîne Codex.
 
