@@ -443,7 +443,9 @@ Deno.serve(async (req) => {
 
     if (!conversationId) throw new HttpError(500, "conversation_not_created");
 
-    await actor.adminClient.from("ai_messages").insert(messagesToPersist.map((message) => ({
+    const { error: userMessagesError } = await actor.adminClient
+      .from("ai_messages")
+      .insert(messagesToPersist.map((message) => ({
         conversation_id: conversationId,
         role: message.role,
         content: message.content,
@@ -457,6 +459,8 @@ Deno.serve(async (req) => {
           }
           : undefined,
       })));
+
+    if (userMessagesError) throw new HttpError(500, userMessagesError.message);
 
     if (handoffToAdmin) {
       const { data: existingSupportTicket, error: existingSupportTicketError } = await actor.adminClient
@@ -672,20 +676,24 @@ N'utilise aucun mot, alphabet ou caractere dans une autre ecriture que le franca
       });
     }
 
-    await actor.adminClient.from("ai_messages").insert({
-      conversation_id: conversationId,
-      role: "assistant",
-      content: result.reply,
-      model,
-      usage,
-      metadata: {
-        category: result.category,
-        priority: result.priority,
-        status: finalStatus,
-        support_ticket_id: supportTicketId,
-        support_incident_id: supportIncidentId,
-      },
-    });
+    const { error: assistantMessageError } = await actor.adminClient
+      .from("ai_messages")
+      .insert({
+        conversation_id: conversationId,
+        role: "assistant",
+        content: result.reply,
+        model,
+        usage,
+        metadata: {
+          category: result.category,
+          priority: result.priority,
+          status: finalStatus,
+          support_ticket_id: supportTicketId,
+          support_incident_id: supportIncidentId,
+        },
+      });
+
+    if (assistantMessageError) throw new HttpError(500, assistantMessageError.message);
 
     await insertUsage(actor, {
       status: "success",
