@@ -21,6 +21,14 @@ function isTotpFactor(factor: CrmMfaFactor) {
   return factor.factor_type === "totp" || !factor.factor_type;
 }
 
+export function isCrmMfaFactor(factor: CrmMfaFactor | null) {
+  return Boolean(
+    factor
+      && isTotpFactor(factor)
+      && factor.friendly_name === CRM_MFA_FRIENDLY_NAME,
+  );
+}
+
 function getUniqueFactors(factors?: CrmMfaFactorList | null) {
   const uniqueFactors = new Map<string, CrmMfaFactor>();
   for (const factor of [...(factors?.totp || []), ...(factors?.all || [])]) {
@@ -32,8 +40,11 @@ function getUniqueFactors(factors?: CrmMfaFactorList | null) {
 }
 
 export function findVerifiedCrmMfaFactor(factors?: CrmMfaFactorList | null) {
-  const availableFactors = getUniqueFactors(factors).filter(isTotpFactor);
-  return availableFactors.find((candidate) => candidate.status === "verified") || null;
+  const verifiedFactors = getUniqueFactors(factors)
+    .filter(isTotpFactor)
+    .filter((candidate) => candidate.status === "verified");
+
+  return verifiedFactors.find(isCrmMfaFactor) || verifiedFactors[0] || null;
 }
 
 export function findPendingCrmMfaFactor(factors?: CrmMfaFactorList | null) {

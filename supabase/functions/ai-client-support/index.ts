@@ -457,7 +457,12 @@ Deno.serve(async (req) => {
             ai_disabled: true,
             delivery: "admin_thread",
           }
-          : undefined,
+          : {
+            source: FUNCTION_NAME,
+            handoff_to_admin: false,
+            ai_disabled: false,
+            delivery: "ai_processing",
+          },
       })));
 
     if (userMessagesError) throw new HttpError(500, userMessagesError.message);

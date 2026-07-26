@@ -7,7 +7,11 @@ import {
   getPreferredHourLabel,
   normalizeCustomerCrmProfile,
 } from "@/lib/customerCrm";
-import { findPendingCrmMfaFactor, findVerifiedCrmMfaFactor } from "@/lib/crmMfa";
+import {
+  findPendingCrmMfaFactor,
+  findVerifiedCrmMfaFactor,
+  isCrmMfaFactor,
+} from "@/lib/crmMfa";
 
 function readSource(path: string) {
   return readFileSync(resolve(process.cwd(), path), "utf8");
@@ -118,7 +122,12 @@ describe("customer CRM", () => {
     expect(guard).toContain("challenge");
     expect(guard).toContain("unenroll");
     expect(guard).toContain("verify");
-    expect(guard).not.toContain("refreshSession");
+    expect(guard).toContain("refreshSession");
+    expect(guard).toContain("Renouveler le code CRM");
+    expect(guard).toContain("factorToReplaceId");
+    expect(guard).toContain("isCrmMfaFactor(currentFactor)");
+    const verificationFlow = guard.slice(guard.indexOf("const verifyCode"));
+    expect(verificationFlow.indexOf("mfa.verify")).toBeLessThan(verificationFlow.indexOf("mfa.unenroll"));
     expect(guard).toContain("currentLevel !== \"aal2\"");
   });
 
@@ -136,7 +145,19 @@ describe("customer CRM", () => {
       status: "unverified",
     };
 
-    expect(findVerifiedCrmMfaFactor({ all: [pendingFactor, verifiedFactor], totp: [] })).toEqual(verifiedFactor);
+    const otherVerifiedFactor = {
+      id: "factor-other",
+      factor_type: "totp",
+      friendly_name: "Compte principal",
+      status: "verified",
+    };
+
+    expect(findVerifiedCrmMfaFactor({
+      all: [pendingFactor, otherVerifiedFactor, verifiedFactor],
+      totp: [],
+    })).toEqual(verifiedFactor);
+    expect(isCrmMfaFactor(verifiedFactor)).toBe(true);
+    expect(isCrmMfaFactor(otherVerifiedFactor)).toBe(false);
     expect(findPendingCrmMfaFactor({ all: [pendingFactor], totp: [] })).toEqual(pendingFactor);
   });
 });
