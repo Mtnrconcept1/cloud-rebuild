@@ -146,6 +146,9 @@ verify_jwt = false
 [functions.ops-incident-control]
 verify_jwt = false
 
+[functions.ops-incident-native-scan]
+verify_jwt = false
+
 [functions.payment-attempt-status]
 verify_jwt = false
 
