@@ -1,0 +1,48 @@
+            <DialogFooter>
+              <Button onClick={handleSave} disabled={!restaurant || savingItem}>
+                {savingItem ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                {savingItem ? "Sauvegarde…" : "Sauvegarder"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+        <OperationProgressDialog
+          open={analyzingMenu}
+          variant="analysis"
+          title="Lecture intelligente du menu"
+          description="TOK transmet les photos, reconnaît les plats, les prix et les catégories, puis contrôle les données détectées."
+          status="Analyse des photos en cours"
+          steps={["Envoi des photos", "Lecture du contenu", "Vérification des plats"]}
+          estimatedDurationMs={25_000}
+        />
+        <OperationProgressDialog
+          open={savingImportedMenu}
+          variant="save"
+          title="Ajout des plats au menu"
+          description="Les éléments validés sont enregistrés et la carte du restaurant est synchronisée."
+          status="Synchronisation du menu"
+          steps={["Validation", "Enregistrement", "Actualisation"]}
+          estimatedDurationMs={6_000}
+        />
+        <OperationProgressDialog
+          open={savingItem}
+          variant="save"
+          title={editingId ? "Mise à jour du plat" : "Ajout du plat"}
+          description="TOK enregistre les informations, la disponibilité et la photo du plat."
+          status="Sauvegarde sécurisée"
+          steps={["Contrôle", "Enregistrement", "Menu actualisé"]}
+          estimatedDurationMs={5_000}
+        />
+        <AiGenerationProgressDialog
+          open={generatingPhoto}
+          title="Photo du plat en creation"
+          description="TOK prepare une photo culinaire exploitable pour votre menu a partir du plat, de la description et de votre image source."
+          status="Studio menu en cours"
+          steps={["Contexte plat", "Photo culinaire", "Application au menu"]}
+          kind="image"
+          estimatedDurationMs={100_000}
+        />
+      </div>
+    </DashboardLayout>
+  );
+}

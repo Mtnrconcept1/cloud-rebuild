@@ -1,0 +1,100 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Bot,
+  Check,
+  ChefHat,
+  ExternalLink,
+  Image as ImageIcon,
+  Loader2,
+  LockKeyhole,
+  PackageSearch,
+  RefreshCw,
+  Send,
+  ShoppingBasket,
+  Sparkles,
+  Store,
+  WandSparkles,
+} from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/lib/auth-context";
+import {
+  formatDailyDishError,
+  generateDailyDishProposals,
+  getDailyDishStatus,
+  publishDailyDishProposal,
+  refineDailyDishProposal,
+  selectDailyDishProposal,
+  setDailyDishEnabled,
+  type DailyDishRun,
+  type DailyDishSettings,
+  type DailyDishVariant,
+} from "@/lib/ai/dailyDishAi";
+import {
+  requestAiCreationNotificationPermission,
+  startTokImageCreationJob,
+} from "@/lib/ai/aiCreationJobs";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
+import {
+  readCommercialDemoToolState,
+  writeCommercialDemoToolState,
+} from "@/lib/commercialDemoRestaurantTools";
+
+const DEMO_STORAGE_KEY = "daily-dish-ai";
+const ENABLED_PLANS = new Set(["premium", "elite", "custom"]);
+const PHOTOPRO_DAILY_DISH_PROMPT = `Crée une photographie culinaire premium dans l'esthétique PhotoPro TOK : lumière naturelle de studio, textures réalistes, dressage élégant mais crédible, couleurs fidèles, profondeur de champ douce et cadrage éditorial centré sur le plat. Aucun texte, aucun logo, aucune personne, aucune vaisselle incohérente et aucun ingrédient absent de la recette.`;
+
+type MenuContextItem = {
+  name: string;
+  description?: string | null;
+  category?: string | null;
+  price: number | string;
+};
+
+type DemoPublishedDish = {
+  name: string;
+  description: string;
+  price_cents: number;
+  image_url: string | null;
+  service_date: string;
+  actualite_body: string | null;
+  published_at: string;
+};
+
+type DemoDailyDishState = {
+  settings: DailyDishSettings;
+  run: DailyDishRun | null;
+  variants: DailyDishVariant[];
+  published_dish?: DemoPublishedDish | null;
+};
+
+type Props = {
+  restaurantId: string;
+  planSlug?: string | null;
+  menuItems: MenuContextItem[];
+};
+
+function todayInZurich() {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Zurich",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+  const read = (type: string) => parts.find((part) => part.type === type)?.value || "";
+  return `${read("year")}-${read("month")}-${read("day")}`;
+}
+
+function money(value: number) {
+  return new Intl.NumberFormat("fr-CH", {
+    style: "currency",
+    currency: "CHF",
+    minimumFractionDigits: 2,
+  }).format(Number(value || 0));
+}

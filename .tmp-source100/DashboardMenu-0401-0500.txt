@@ -1,0 +1,100 @@
+    }
+
+    toast({ title: editingId ? "Plat mis à jour" : "Plat ajoute" });
+    setDialogOpen(false);
+    refreshMenu();
+    } finally {
+      setSavingItem(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!restaurant) return;
+
+    if (isCommercialDemo) {
+      persistCommercialDemoMenu(readCommercialDemoMenu().filter((item) => item.id !== id));
+      toast({
+        title: "Plat de démonstration supprimé",
+        description: "Aucune donnée du menu réel n'a été modifiée.",
+      });
+      return;
+    }
+
+    const { error } = await supabase
+      .from("menu_items")
+      .delete()
+      .eq("id", id)
+      .eq("restaurant_id", restaurant.id);
+
+    if (error) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      return;
+    }
+
+    refreshMenu();
+    toast({ title: "Plat supprime" });
+  };
+
+  const toggleAvailability = async (id: string, current: boolean) => {
+    if (!restaurant) return;
+
+    if (isCommercialDemo) {
+      persistCommercialDemoMenu(readCommercialDemoMenu().map((item) => (
+        item.id === id ? { ...item, is_available: !current } : item
+      )));
+      toast({
+        title: "Disponibilité mise à jour",
+        description: "Le changement reste limité à cette session commerciale.",
+      });
+      return;
+    }
+
+    const { error } = await supabase
+      .from("menu_items")
+      .update({ is_available: !current })
+      .eq("id", id)
+      .eq("restaurant_id", restaurant.id);
+
+    if (error) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      return;
+    }
+
+    refreshMenu();
+  };
+
+  const selectDishImage = (imageUrl: string) => {
+    setForm((previous) => ({ ...previous, image_url: imageUrl }));
+    setPhotoStudioResult(null);
+  };
+
+  const generateMenuPhoto = async () => {
+    if (!restaurant) return;
+    if (!form.name.trim() && !form.image_url.trim()) {
+      toast({
+        title: "Nom ou photo requis",
+        description: "Ajoutez un nom de plat ou une photo source avant de lancer le studio.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setGeneratingPhoto(true);
+    setPhotoStudioResult(null);
+    try {
+      const request = {
+        restaurantId: restaurant.id,
+        sourceImageUrl: form.image_url.trim() || null,
+        dishName: form.name.trim() || null,
+        prompt: buildMenuPhotoStudioPrompt(form),
+        assetType: "menu_visual" as const,
+        format: "square" as const,
+        variantCount: 1,
+        generateImage: true,
+        imageOnly: true,
+      };
+      let result: TokImageGenerationResult;
+      if (commercialDemoFrame?.surface === "restaurant") {
+        result = await generateCommercialDemoVisual({
+          sessionId: commercialDemoFrame.config.sessionId,
+          surface: "restaurant",

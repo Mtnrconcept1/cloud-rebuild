@@ -1,0 +1,79 @@
+  const actualiteBody = sanitizeText(body.actualite_body, 4000);
+  if (description.length < 2 || (publishActualite && actualiteBody.length < 2)) throw new HttpError(400, "publication_copy_invalid");
+  const { data, error } = await actor.adminClient.rpc("publish_restaurant_daily_dish", {
+    p_restaurant_id: scope.restaurantId,
+    p_actor_user_id: actor.userId,
+    p_variant_id: variantId,
+    p_asset_id: assetId,
+    p_price_cents: priceCents,
+    p_description: description,
+    p_publish_actualite: publishActualite,
+    p_actualite_body: actualiteBody,
+  });
+  if (error) throw new HttpError(503, "daily_dish_publication_failed");
+  return { published: true, publication: data, demo: false };
+}
+
+Deno.serve(async (req) => {
+  const cors = buildCorsHeaders(req);
+  const preflight = handleCorsPreflight(req, cors);
+  if (preflight) return preflight;
+  const log = makeLogger(FUNCTION_NAME);
+  let actor: Actor | null = null;
+  let restaurantId: string | null = null;
+
+  try {
+    const contentLength = Number(req.headers.get("content-length") || 0);
+    if (contentLength > 128 * 1024) throw new HttpError(413, "request_too_large");
+    actor = await authenticateRequest(req, { allowServiceRole: false });
+    if (!actor.userId) throw new HttpError(401, "Unauthorized");
+    const body = await req.json().catch(() => ({}));
+    if (!isRecord(body)) throw new HttpError(400, "invalid_request");
+    if (new TextEncoder().encode(JSON.stringify(body)).byteLength > 128 * 1024) {
+      throw new HttpError(413, "request_too_large");
+    }
+    restaurantId = typeof body.restaurant_id === "string" ? body.restaurant_id : null;
+    const action = sanitizeText(body.action, 40);
+    if ((action === "generate" || action === "refine") && !OPENAI_API_KEY) {
+      throw new HttpError(503, "ai_service_unavailable");
+    }
+    let result: unknown;
+    if (action === "status") result = await handleStatus(actor, body);
+    else if (action === "set_enabled") result = await handleToggle(actor, body);
+    else if (action === "generate") result = await handleGenerate(actor, body);
+    else if (action === "refine") result = await handleRefine(actor, body);
+    else if (action === "select") result = await handleSelect(actor, body);
+    else if (action === "publish") result = await handlePublish(actor, body);
+    else throw new HttpError(400, "action_invalid");
+
+    writeAuditLog({
+      adminClient: actor.adminClient,
+      functionName: FUNCTION_NAME,
+      status: "success",
+      actor,
+      request: req,
+      targetEntityType: "restaurants",
+      targetEntityId: restaurantId,
+      metadata: { rid: log.rid, action },
+    }).catch(() => {});
+    return jsonResponse(result, 200, cors);
+  } catch (error) {
+    const status = error instanceof HttpError ? error.status : 500;
+    const message = error instanceof HttpError ? error.message : "internal_error";
+    log.error("request_failed", { status, message, restaurant_id: restaurantId });
+    if (actor) {
+      writeAuditLog({
+        adminClient: actor.adminClient,
+        functionName: FUNCTION_NAME,
+        status: "failure",
+        actor,
+        request: req,
+        targetEntityType: "restaurants",
+        targetEntityId: restaurantId,
+        errorMessage: message,
+        metadata: { rid: log.rid },
+      }).catch(() => {});
+    }
+    return jsonResponse({ error: message, rid: log.rid }, status, cors);
+  }
+});

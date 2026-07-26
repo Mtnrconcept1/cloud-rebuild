@@ -1,0 +1,100 @@
+  return {
+    format: {
+      type: "json_schema",
+      name: schema.name,
+      description: schema.description,
+      strict: schema.strict ?? true,
+      schema: schema.schema,
+    },
+  };
+}
+
+export async function createOpenAIResponse(options: OpenAIRequestOptions) {
+  if (!OPENAI_API_KEY) {
+    throw new HttpError(503, "ai_service_unavailable");
+  }
+
+  const payload: Record<string, unknown> = {
+    model: options.model || OPENAI_MODEL,
+    input: options.input,
+    store: false,
+    text: buildTextFormat(options.jsonSchema),
+  };
+
+  if (options.maxOutputTokens) {
+    payload.max_output_tokens = options.maxOutputTokens;
+  }
+
+  if (typeof options.temperature === "number") {
+    payload.temperature = options.temperature;
+  }
+
+  if (options.tools?.length) {
+    payload.tools = options.tools;
+  }
+
+  if (options.include?.length) {
+    payload.include = options.include;
+  }
+
+  if (options.reasoning && Object.keys(options.reasoning).length > 0) {
+    payload.reasoning = options.reasoning;
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(
+    () => controller.abort(),
+    readBoundedTimeout(options.timeoutMs, DEFAULT_RESPONSE_TIMEOUT_MS),
+  );
+  let response: Response;
+  try {
+    response = await fetch(RESPONSES_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw new HttpError(503, "ai_timeout");
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
+
+  if (!response.ok) {
+    if (response.status === 429) {
+      throw new HttpError(429, "ai_rate_limited");
+    }
+
+    if (response.status === 402) {
+      throw new HttpError(503, "ai_provider_billing_unavailable");
+    }
+
+    throw new HttpError(502, "ai_service_error");
+  }
+
+  return await response.json();
+}
+
+export function extractOutputText(data: unknown): string {
+  const response = data as Record<string, unknown>;
+  if (typeof response.output_text === "string") {
+    return response.output_text.trim();
+  }
+
+  const output = Array.isArray(response.output) ? response.output : [];
+  const parts: string[] = [];
+
+  for (const item of output) {
+    if (!item || typeof item !== "object") continue;
+    const content = (item as Record<string, unknown>).content;
+
+    if (typeof content === "string") {
+      parts.push(content);
+      continue;
+    }

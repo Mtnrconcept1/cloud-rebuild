@@ -1,0 +1,100 @@
+import { useEffect, useRef, useState } from "react";
+import { getSupabase } from "@/integrations/supabase/client";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import DashboardLayout from "@/components/DashboardLayout";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import DailyDishAiPanel from "@/components/dashboard/DailyDishAiPanel";
+import AiGenerationProgressDialog from "@/components/ui/ai-generation-progress-dialog";
+import OperationProgressDialog from "@/components/ui/operation-progress-dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
+import { BookOpen, CheckCircle2, Image as ImageIcon, Images, Loader2, Pencil, Plus, ScanLine, Sparkles, Trash2, Upload } from "lucide-react";
+import ImageUpload from "@/components/ImageUpload";
+import { optimizeImageUpload } from "@/lib/optimizedImages";
+import type { TokImageGenerationResult } from "@/lib/ai/tokAiClient";
+import {
+  askCommercialDemoAi,
+  generateCommercialDemoVisual,
+  parseCommercialDemoAiJson,
+} from "@/lib/commercialDemoAi";
+import {
+  requestAiCreationNotificationPermission,
+  setActiveAiCreationContext,
+  startTokImageCreationJob,
+} from "@/lib/ai/aiCreationJobs";
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
+import {
+  readCommercialDemoToolState,
+  writeCommercialDemoToolState,
+} from "@/lib/commercialDemoRestaurantTools";
+import { useDashboardRestaurant } from "./useDashboardRestaurant";
+
+const supabase = getSupabase();
+
+type MenuItemForm = {
+  name: string;
+  description: string;
+  price: number;
+  category: string;
+  image_url: string;
+  is_available: boolean;
+};
+
+type MenuItemRecord = {
+  id: string;
+  restaurant_id: string;
+  name: string;
+  description: string | null;
+  price: number | string;
+  category: string | null;
+  image_url: string | null;
+  is_available: boolean | null;
+};
+
+type ImportedMenuItem = {
+  name: string;
+  description: string;
+  price: number;
+  category: string;
+  selected: boolean;
+};
+
+type MenuImportResponse = {
+  items: Array<Omit<ImportedMenuItem, "selected">>;
+  warnings: string[];
+};
+
+type RestaurantMediaRecord = {
+  id: string;
+  media_url: string;
+  alt_text: string | null;
+  media_type: string;
+  is_cover: boolean | null;
+  position: number | null;
+  created_at: string;
+};
+
+const emptyItem = {
+  name: "",
+  description: "",
+  price: 0,
+  category: "",
+  image_url: "",
+  is_available: true,
+} satisfies MenuItemForm;
+
+const CUSTOM_CATEGORY_VALUE = "__custom__";
+const COMMERCIAL_DEMO_MENU_STORAGE_KEY = "menu-items";
+const MENU_PHOTO_STUDIO_PROMPT =
+  "Crée une photo culinaire premium pour une fiche menu TOK. Le rendu doit rester appétissant, naturel, sans texte incrusté, sans logo ajouté par le modèle, avec une lumière studio propre et un cadrage centré sur le plat.";
+
+const MENU_CATEGORY_PRESETS = [
+  "Entrées",
+  "Plats",

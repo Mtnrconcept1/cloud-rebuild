@@ -1,0 +1,100 @@
+        content: JSON.stringify({
+          date: localDate(String(input.settings.timezone || "Europe/Zurich")),
+          target_food_cost_percent: numberInRange(input.settings.target_food_cost_bps, 1000, 6000, 3000) / 100,
+          dietary_notes: sanitizeText(input.settings.dietary_notes, 2000),
+          restaurant_context: input.context,
+          retailer_research: researchText,
+          allowed_source_urls: sources.map((source) => source.url),
+          current_variant: input.currentVariant || null,
+          requested_modification: sanitizeText(input.modification, 1000),
+        }).slice(0, 62_000),
+      },
+    ],
+    jsonSchema: isRefinement ? REFINED_SCHEMA : PROPOSALS_SCHEMA,
+    reasoning: { effort: "medium" },
+    maxOutputTokens: isRefinement ? 5000 : 12_000,
+    timeoutMs: 65_000,
+  });
+
+  const parsed = parseStructuredOutput<JsonRecord>(structuredResponse);
+  const rawVariants = isRefinement ? [parsed.variant] : parsed.variants;
+  if (!Array.isArray(rawVariants) || rawVariants.length !== (isRefinement ? 1 : 3)) {
+    throw new HttpError(502, "ai_invalid_response");
+  }
+  const variants = rawVariants.map((variant) => sanitizeVariant(variant, allowedSources));
+  return { variants, sources, researchText, responses: [researchResponse, structuredResponse].filter(Boolean) };
+}
+
+async function recordUsage(actor: Actor, input: {
+  action: string;
+  restaurantId: string;
+  responses: unknown[];
+  status?: "success" | "failure";
+  demo: boolean;
+  metadata?: JsonRecord;
+}) {
+  const usage = input.responses.reduce((total, response) => {
+    const next = extractUsage(response);
+    total.input += next.input_tokens || 0;
+    total.output += next.output_tokens || 0;
+    return total;
+  }, { input: 0, output: 0 });
+  const { error } = await actor.adminClient.from("ai_usage_logs").insert({
+    function_name: FUNCTION_NAME,
+    action: input.action,
+    feature_name: FEATURE_NAME,
+    source: FUNCTION_NAME,
+    model: DAILY_MODEL,
+    user_id: actor.userId,
+    restaurant_id: input.demo ? null : input.restaurantId,
+    status: input.status || "success",
+    input_tokens: usage.input,
+    output_tokens: usage.output,
+    total_tokens: usage.input + usage.output,
+    estimated_cost_chf: estimateOpenAITextCostChf(DAILY_MODEL, usage.input, usage.output),
+    metadata: { commercial_demo: input.demo, ...(input.metadata || {}) },
+  });
+  if (error) throw new HttpError(503, "ai_usage_recording_failed");
+}
+
+async function handleStatus(actor: Actor, body: JsonRecord) {
+  const scope = await resolveRequestScope(actor, body, false);
+  if (scope.demo) {
+    return {
+      access: { enabled: true, plan: "elite", reason: null },
+      settings: { is_enabled: false, timezone: "Europe/Zurich", target_food_cost_bps: 3000 },
+      run: null,
+      variants: [],
+      demo: true,
+    };
+  }
+  const settings = await getSettings(actor, scope.restaurantId);
+  const snapshot = await readRun(actor, scope.restaurantId, localDate(String(settings.timezone)));
+  return {
+    access: { enabled: scope.active, plan: scope.plan, reason: scope.active ? null : "premium_required" },
+    settings,
+    ...snapshot,
+    demo: false,
+  };
+}
+
+async function handleToggle(actor: Actor, body: JsonRecord) {
+  const scope = await resolveRequestScope(actor, body);
+  if (typeof body.is_enabled !== "boolean") throw new HttpError(400, "is_enabled_invalid");
+  if (scope.demo) return { is_enabled: body.is_enabled, demo: true };
+  const { data, error } = await actor.adminClient.from("restaurant_daily_dish_settings").upsert({
+    restaurant_id: scope.restaurantId,
+    is_enabled: body.is_enabled,
+    activated_by: actor.userId,
+  }, { onConflict: "restaurant_id" }).select("restaurant_id, is_enabled, timezone, target_food_cost_bps, preferred_supplier_domains, dietary_notes, updated_at").single();
+  if (error) throw new HttpError(503, "daily_dish_settings_unavailable");
+  return { settings: data, demo: false };
+}
+
+async function handleGenerate(actor: Actor, body: JsonRecord) {
+  const scope = await resolveRequestScope(actor, body);
+  const requestId = requireUuid(body.request_id, "request_id_invalid");
+  const limiter = createRateLimiter(actor.adminClient, FUNCTION_NAME);
+  await limiter.consume(`user:${actor.userId}`, { maxRequests: 12, windowSeconds: 3600 });
+  await limiter.consume(scope.demo ? `demo:${scope.demo.sessionId}` : `restaurant:${scope.restaurantId}`, { maxRequests: scope.demo ? 10 : 6, windowSeconds: 3600 });
+  await limiter.consume("global", { maxRequests: 40, windowSeconds: 60 });

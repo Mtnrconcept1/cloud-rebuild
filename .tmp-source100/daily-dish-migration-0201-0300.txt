@@ -1,0 +1,100 @@
+      p_restaurant_id, p_generation_date, p_requested_by, p_request_id, p_lock_token
+    ) RETURNING * INTO v_run;
+    RETURN jsonb_build_object('state', 'claimed', 'run_id', v_run.id);
+  END IF;
+
+  IF v_run.status = 'completed' THEN
+    RETURN jsonb_build_object('state', 'replay', 'run_id', v_run.id);
+  END IF;
+  IF v_run.status = 'generating' AND v_run.locked_at > now() - interval '3 minutes' THEN
+    RETURN jsonb_build_object('state', 'in_progress', 'run_id', v_run.id);
+  END IF;
+
+  UPDATE public.restaurant_daily_dish_runs
+  SET status = 'generating', requested_by = p_requested_by, request_id = p_request_id,
+      lock_token = p_lock_token, locked_at = now(), error_code = NULL,
+      completed_at = NULL, research_snapshot = '{}'::jsonb, sources = '[]'::jsonb
+  WHERE id = v_run.id
+  RETURNING * INTO v_run;
+
+  RETURN jsonb_build_object('state', 'claimed', 'run_id', v_run.id, 'recovered', true);
+END
+$$;
+
+REVOKE ALL ON FUNCTION public.claim_restaurant_daily_dish_run(uuid, date, uuid, uuid, uuid)
+  FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.claim_restaurant_daily_dish_run(uuid, date, uuid, uuid, uuid)
+  TO service_role;
+
+-- Atomically publishes the selected private proposal to the public restaurant
+-- page and, optionally, to Actualités. Browser-provided URLs are never used:
+-- the stable gallery URL and path come from a server-validated PhotoPro asset.
+CREATE OR REPLACE FUNCTION public.publish_restaurant_daily_dish(
+  p_restaurant_id uuid,
+  p_actor_user_id uuid,
+  p_variant_id uuid,
+  p_asset_id uuid,
+  p_price_cents integer,
+  p_description text,
+  p_publish_actualite boolean,
+  p_actualite_body text
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_variant public.restaurant_daily_dish_variants%ROWTYPE;
+  v_run public.restaurant_daily_dish_runs%ROWTYPE;
+  v_asset public.ai_generated_assets%ROWTYPE;
+  v_dish public.restaurant_daily_dishes%ROWTYPE;
+  v_post_id uuid;
+  v_name text;
+  v_image_url text;
+  v_media_path text;
+BEGIN
+  IF auth.role() <> 'service_role' THEN
+    RAISE EXCEPTION 'service role required' USING ERRCODE = '42501';
+  END IF;
+  IF p_restaurant_id IS NULL OR p_actor_user_id IS NULL OR p_variant_id IS NULL
+     OR p_asset_id IS NULL OR p_price_cents NOT BETWEEN 100 AND 1000000
+     OR char_length(btrim(COALESCE(p_description, ''))) NOT BETWEEN 2 AND 1200
+     OR (COALESCE(p_publish_actualite, false)
+       AND char_length(btrim(COALESCE(p_actualite_body, ''))) NOT BETWEEN 2 AND 4000) THEN
+    RAISE EXCEPTION 'invalid daily dish publication' USING ERRCODE = '22023';
+  END IF;
+
+  PERFORM pg_catalog.pg_advisory_xact_lock(
+    pg_catalog.hashtextextended('daily-dish-publish:' || p_restaurant_id::text, 0)
+  );
+
+  SELECT * INTO v_variant
+  FROM public.restaurant_daily_dish_variants variant
+  WHERE variant.id = p_variant_id
+    AND variant.restaurant_id = p_restaurant_id
+  FOR UPDATE;
+  IF v_variant.id IS NULL THEN
+    RAISE EXCEPTION 'daily dish variant not found' USING ERRCODE = 'P0002';
+  END IF;
+
+  SELECT * INTO v_run
+  FROM public.restaurant_daily_dish_runs run
+  WHERE run.id = v_variant.run_id
+    AND run.restaurant_id = p_restaurant_id
+    AND run.status = 'completed'
+  FOR UPDATE;
+  IF v_run.id IS NULL THEN
+    RAISE EXCEPTION 'daily dish run is not publishable' USING ERRCODE = '55000';
+  END IF;
+
+  SELECT * INTO v_asset
+  FROM public.ai_generated_assets asset
+  WHERE asset.id = p_asset_id
+    AND asset.restaurant_id = p_restaurant_id
+    AND asset.user_id = p_actor_user_id
+    AND asset.status IN ('generated', 'stored')
+  FOR SHARE;
+  IF v_asset.id IS NULL THEN
+    RAISE EXCEPTION 'PhotoPro asset not found' USING ERRCODE = '42501';
+  END IF;

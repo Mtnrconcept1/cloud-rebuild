@@ -1,0 +1,100 @@
+    } finally {
+      setGenerating(false);
+    }
+  }, [generating, isDemo, menuItems, persistDemo, restaurantId, sessionId, settings.is_enabled, toast]);
+
+  useEffect(() => {
+    if (loading || !accessEnabled || !settings.is_enabled || run || generating) return;
+    const key = `${restaurantId}:${todayInZurich()}`;
+    if (autoAttemptRef.current === key) return;
+    autoAttemptRef.current = key;
+    void generate(true);
+  }, [accessEnabled, generate, generating, loading, restaurantId, run, settings.is_enabled]);
+
+  const toggleEnabled = async (enabled: boolean) => {
+    setToggling(true);
+    try {
+      await setDailyDishEnabled({ restaurant_id: restaurantId, session_id: sessionId, is_enabled: enabled });
+      const nextSettings = { ...settings, is_enabled: enabled };
+      setSettings(nextSettings);
+      if (isDemo) persistDemo({ settings: nextSettings });
+      toast({
+        title: enabled ? "Plat du jour IA activé" : "Plat du jour IA désactivé",
+        description: enabled ? "Les trois propositions seront préparées à la première ouverture du Menu chaque jour." : "Aucune nouvelle recherche quotidienne ne sera lancée.",
+      });
+    } catch (error) {
+      toast({ title: "Activation impossible", description: formatDailyDishError(error), variant: "destructive" });
+    } finally {
+      setToggling(false);
+    }
+  };
+
+  const selectVariant = async (variant: DailyDishVariant) => {
+    try {
+      await selectDailyDishProposal({ restaurant_id: restaurantId, session_id: sessionId, variant_id: variant.id });
+      const next = variants.map((item) => ({
+        ...item,
+        status: item.id === variant.id ? "selected" as const : item.status === "selected" ? "proposed" as const : item.status,
+      }));
+      setVariants(next);
+      setSelectedId(variant.id);
+      if (isDemo) persistDemo({ variants: next });
+    } catch (error) {
+      toast({ title: "Sélection impossible", description: formatDailyDishError(error), variant: "destructive" });
+    }
+  };
+
+  const refineVariant = async (variant: DailyDishVariant) => {
+    const instruction = (instructions[variant.id] || "").trim();
+    if (instruction.length < 2) return;
+    setRefiningId(variant.id);
+    try {
+      const result = await refineDailyDishProposal({
+        restaurant_id: restaurantId,
+        session_id: sessionId,
+        variant_id: isDemo ? undefined : variant.id,
+        variant: isDemo ? variant.payload : undefined,
+        revision: variant.revision,
+        instruction,
+      });
+      const refined: DailyDishVariant = {
+        ...result.variant,
+        run_id: result.variant.run_id || variant.run_id,
+        restaurant_id: result.variant.restaurant_id || variant.restaurant_id,
+        variant_number: result.variant.variant_number || variant.variant_number,
+        status: "selected",
+      };
+      await selectDailyDishProposal({ restaurant_id: restaurantId, session_id: sessionId, variant_id: refined.id });
+      const next = variants.map((item) => item.id === variant.id ? refined : item);
+      setVariants(next);
+      setSelectedId(refined.id);
+      setInstructions((current) => ({ ...current, [variant.id]: "" }));
+      if (isDemo) persistDemo({ variants: next });
+      toast({ title: "Proposition ajustée", description: "Les coûts et quantités ont été recalculés avec les sources vérifiées." });
+    } catch (error) {
+      toast({ title: "Modification impossible", description: formatDailyDishError(error), variant: "destructive" });
+    } finally {
+      setRefiningId(null);
+    }
+  };
+
+  const publish = async () => {
+    if (!selectedVariant || !user?.id) return;
+    const numericPrice = Number(price);
+    if (!Number.isFinite(numericPrice) || numericPrice < 1 || description.trim().length < 2) {
+      toast({ title: "Publication incomplète", description: "Vérifiez le prix et la description.", variant: "destructive" });
+      return;
+    }
+    setPublishing(true);
+    setPublishedImageUrl(null);
+    try {
+      void requestAiCreationNotificationPermission();
+      const imageJob = startTokImageCreationJob({
+        restaurantId,
+        userId: user.id,
+        tool: "menu_photo",
+        title: `PhotoPro · ${selectedVariant.payload.name}`,
+        request: {
+          restaurantId,
+          dishName: selectedVariant.payload.name,
+          prompt: [PHOTOPRO_DAILY_DISH_PROMPT, selectedVariant.payload.image_prompt, `Plat : ${selectedVariant.payload.name}`, `Description : ${description.trim()}`].join("\n"),

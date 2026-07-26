@@ -1,0 +1,100 @@
+      category: item.category || null,
+      image_url: item.image_url || null,
+      is_available: item.is_available,
+    }));
+  };
+
+  const readCommercialDemoMenu = () => {
+    if (!commercialDemoSessionId) return [];
+    return readCommercialDemoToolState<MenuItemRecord[]>(
+      commercialDemoSessionId,
+      COMMERCIAL_DEMO_MENU_STORAGE_KEY,
+      getCommercialDemoMenuSeed(),
+    );
+  };
+
+  const persistCommercialDemoMenu = (nextItems: MenuItemRecord[]) => {
+    if (!commercialDemoSessionId) return;
+    writeCommercialDemoToolState(
+      commercialDemoSessionId,
+      COMMERCIAL_DEMO_MENU_STORAGE_KEY,
+      nextItems,
+    );
+    queryClient.setQueryData<MenuItemRecord[]>(menuQueryKey, nextItems);
+  };
+
+  useEffect(() => {
+    setActiveAiCreationContext("dashboard-menu:photo-studio");
+    return () => setActiveAiCreationContext(null);
+  }, []);
+
+  useEffect(() => () => {
+    mountedRef.current = false;
+  }, []);
+
+  const { data: items } = useQuery<MenuItemRecord[]>({
+    queryKey: menuQueryKey,
+    queryFn: async () => {
+      if (isCommercialDemo && commercialDemoFrame) {
+        return readCommercialDemoMenu();
+      }
+      const { data, error } = await supabase
+        .from("menu_items")
+        .select("*")
+        .eq("restaurant_id", restaurant!.id)
+        .order("category")
+        .order("name");
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!restaurant,
+  });
+
+  const restaurantMediaPickerBaseQuery = {
+    queryKey: ["restaurant-media-picker", restaurant?.id],
+  };
+
+  const { data: galleryItems = [], isLoading: galleryLoading } = useQuery<RestaurantMediaRecord[]>({
+    queryKey: [...restaurantMediaPickerBaseQuery.queryKey, commercialDemoSessionId || "live"],
+    queryFn: async () => {
+      if (isCommercialDemo && commercialDemoFrame) {
+        const persistedGallery = readCommercialDemoToolState<Array<Record<string, unknown>>>(
+          commercialDemoFrame.config.sessionId,
+          "photos-gallery",
+          [],
+        );
+        const persistedRows: RestaurantMediaRecord[] = persistedGallery.flatMap((entry, index) => {
+          const mediaUrl = typeof entry.media_url === "string"
+            ? entry.media_url
+            : typeof entry.generated_image_url === "string"
+              ? entry.generated_image_url
+              : "";
+          if (!mediaUrl) return [];
+          return [{
+            id: typeof entry.id === "string" ? entry.id : `demo-gallery-${index}`,
+            media_url: mediaUrl,
+            alt_text: typeof entry.alt_text === "string" ? entry.alt_text : "Visuel de démonstration",
+            media_type: "photo_ai_tok",
+            is_cover: false,
+            position: index,
+            created_at: typeof entry.created_at === "string" ? entry.created_at : new Date().toISOString(),
+          }];
+        });
+        const catalogRows: RestaurantMediaRecord[] = commercialDemoFrame.snapshot.catalog_items.flatMap((item, index) => (
+          item.image_url ? [{
+            id: `demo-catalog-${item.id}`,
+            media_url: item.image_url,
+            alt_text: item.name,
+            media_type: "photo",
+            is_cover: false,
+            position: persistedRows.length + index,
+            created_at: commercialDemoFrame.snapshot.session.created_at || new Date().toISOString(),
+          }] : []
+        ));
+        return [...persistedRows, ...catalogRows].slice(0, 24);
+      }
+      const { data, error } = await supabase
+        .from("restaurant_media")
+        .select("id, media_url, alt_text, media_type, is_cover, position, created_at")
+        .eq("restaurant_id", restaurant!.id)

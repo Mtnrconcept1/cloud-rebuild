@@ -1,0 +1,100 @@
+  if (basket.length === 0) throw new HttpError(502, "supplier_prices_unavailable");
+
+  const ingredients = (Array.isArray(raw.ingredients) ? raw.ingredients : []).flatMap((entry) => (
+    isRecord(entry) && sanitizeText(entry.name, 120)
+      ? [{
+        name: sanitizeText(entry.name, 120),
+        quantity: numberInRange(entry.quantity, 0.001, 100000, 1),
+        unit: sanitizeText(entry.unit, 30),
+      }]
+      : []
+  )).slice(0, 40);
+  const recipe = (Array.isArray(raw.recipe) ? raw.recipe : []).flatMap((entry, index) => (
+    isRecord(entry) && sanitizeText(entry.instruction, 1000)
+      ? [{
+        step: index + 1,
+        instruction: sanitizeText(entry.instruction, 1000),
+        minutes: Math.round(numberInRange(entry.minutes, 0, 600, 0)),
+      }]
+      : []
+  )).slice(0, 30);
+  if (ingredients.length === 0 || recipe.length === 0) throw new HttpError(502, "ai_invalid_response");
+
+  const sourceUrls = new Set(basket.map((item) => item.url));
+  const sources = [...sourceUrls].map((url) => allowedSources.get(url)!).filter(Boolean);
+  const totalCost = roundMoney(basket.reduce((sum, item) => sum + item.allocated_cost_chf, 0));
+  const costPerPortion = roundMoney(totalCost / servings);
+  const suggestedPrice = roundMoney(numberInRange(raw.suggested_price_chf, 1, 10000, Math.max(1, costPerPortion * 3)));
+
+  return {
+    name: sanitizeText(raw.name, 120),
+    description: sanitizeText(raw.description, 1200),
+    why_it_fits: sanitizeText(raw.why_it_fits, 900),
+    servings,
+    prep_minutes: Math.round(numberInRange(raw.prep_minutes, 0, 600, 0)),
+    cook_minutes: Math.round(numberInRange(raw.cook_minutes, 0, 600, 0)),
+    allergens: (Array.isArray(raw.allergens) ? raw.allergens : []).map((item) => sanitizeText(item, 80)).filter(Boolean).slice(0, 20),
+    ingredients,
+    basket,
+    recipe,
+    estimated_total_cost_chf: totalCost,
+    cost_per_portion_chf: costPerPortion,
+    suggested_price_chf: suggestedPrice,
+    food_cost_percent: roundMoney(suggestedPrice > 0 ? costPerPortion / suggestedPrice * 100 : 0),
+    estimated_margin_chf: roundMoney(suggestedPrice - costPerPortion),
+    image_prompt: sanitizeText(raw.image_prompt, 2000),
+    actualite_copy: sanitizeText(raw.actualite_copy, 2000),
+    sources,
+    price_caveat: sanitizeText(raw.price_caveat, 600) || "Prix indicatifs relevés en ligne : disponibilité et prix à confirmer avant achat.",
+  };
+}
+
+async function sha256(value: unknown) {
+  const bytes = new TextEncoder().encode(JSON.stringify(value));
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+async function claimDemoDailyDishRequest(
+  demo: DemoContext,
+  requestId: string,
+  payload: JsonRecord,
+) {
+  const lockToken = crypto.randomUUID();
+  const claim = await claimCommercialDemoAiRequest({
+    context: demo,
+    requestId,
+    action: "chat",
+    tool: "assistant",
+    payloadHash: await sha256({ purpose: "daily_dish", ...payload }),
+    lockToken,
+  });
+  if (claim.state === "claimed") return { lockToken };
+  if (claim.state === "in_progress") throw new HttpError(409, "daily_dish_generation_in_progress");
+  if (claim.state === "busy" || claim.state === "circuit_open") throw new HttpError(429, "ai_rate_limited");
+  if (claim.state === "budget_exhausted") throw new HttpError(429, "commercial_demo_ai_budget_exhausted");
+  if (claim.state === "disabled") throw new HttpError(403, "feature_disabled");
+  if (claim.state === "replay") throw new HttpError(409, "daily_dish_demo_request_already_completed");
+  throw new HttpError(409, "daily_dish_demo_request_mismatch");
+}
+
+function combinedUsage(responses: unknown[]) {
+  return responses.reduce((total, response) => {
+    const usage = extractUsage(response);
+    total.input += usage.input_tokens || 0;
+    total.output += usage.output_tokens || 0;
+    return total;
+  }, { input: 0, output: 0 });
+}
+
+async function completeDemoDailyDishRequest(input: {
+  demo: DemoContext;
+  requestId: string;
+  lockToken: string;
+  variants: DailyDishVariantPayload[];
+  responses: unknown[];
+}) {
+  const usage = combinedUsage(input.responses);
+  const estimatedCostChf = estimateOpenAITextCostChf(DAILY_MODEL, usage.input, usage.output);
+  const { error } = await input.demo.actor.adminClient.rpc(
+    "commercial_demo_ai_complete_daily_dish_request",

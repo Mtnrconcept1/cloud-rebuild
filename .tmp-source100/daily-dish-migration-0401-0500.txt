@@ -1,0 +1,27 @@
+)
+ON CONFLICT (name) DO UPDATE
+SET label = EXCLUDED.label,
+    description = EXCLUDED.description,
+    is_active = EXCLUDED.is_active;
+
+UPDATE public.restaurant_subscription_plans
+SET features = CASE
+  WHEN jsonb_typeof(features) = 'array' THEN
+    features || jsonb_build_array('Plat du jour IA : 3 propositions quotidiennes, fournisseurs et visuel PhotoPro')
+  ELSE jsonb_build_array('Plat du jour IA : 3 propositions quotidiennes, fournisseurs et visuel PhotoPro')
+END,
+updated_at = now()
+WHERE slug IN ('premium', 'elite')
+  AND NOT COALESCE(features, '[]'::jsonb) @>
+    jsonb_build_array('Plat du jour IA : 3 propositions quotidiennes, fournisseurs et visuel PhotoPro');
+
+COMMENT ON TABLE public.restaurant_daily_dish_settings IS
+  'Server-private Premium/Elite daily-dish configuration.';
+COMMENT ON TABLE public.restaurant_daily_dish_runs IS
+  'Server-private, one idempotent AI supplier-research run per restaurant and local day.';
+COMMENT ON TABLE public.restaurant_daily_dish_variants IS
+  'Server-private recipes, baskets, supplier prices and revisions.';
+COMMENT ON TABLE public.restaurant_daily_dishes IS
+  'Public-safe selected daily dish; never exposes recipe costs or supplier research.';
+
+COMMIT;

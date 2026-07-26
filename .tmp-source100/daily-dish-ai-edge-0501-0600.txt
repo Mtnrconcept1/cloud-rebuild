@@ -1,0 +1,100 @@
+    if (!byNumber.has(key) || Number(row.revision) > Number(byNumber.get(key)?.revision || 0)) byNumber.set(key, row);
+  }
+  return [...byNumber.values()].sort((left, right) => Number(left.variant_number) - Number(right.variant_number));
+}
+
+async function readRun(actor: Actor, restaurantId: string, generationDate: string) {
+  const { data: run, error } = await actor.adminClient
+    .from("restaurant_daily_dish_runs")
+    .select("id, restaurant_id, generation_date, status, model, sources, error_code, created_at, completed_at")
+    .eq("restaurant_id", restaurantId)
+    .eq("generation_date", generationDate)
+    .maybeSingle();
+  if (error) throw new HttpError(503, "daily_dish_run_unavailable");
+  if (!run) return { run: null, variants: [] as JsonRecord[] };
+  const { data: variants, error: variantError } = await actor.adminClient
+    .from("restaurant_daily_dish_variants")
+    .select("id, run_id, restaurant_id, variant_number, revision, parent_variant_id, status, payload, created_at")
+    .eq("run_id", run.id)
+    .order("variant_number")
+    .order("revision", { ascending: false });
+  if (variantError) throw new HttpError(503, "daily_dish_variants_unavailable");
+  return { run, variants: latestVariants((variants || []) as JsonRecord[]) };
+}
+
+function sanitizeDemoContext(value: unknown) {
+  const context = sanitizeObject(value, 24_000);
+  const menu = (Array.isArray(context.menu) ? context.menu : []).flatMap((item) => {
+    if (!isRecord(item)) return [];
+    const name = sanitizeText(item.name, 120);
+    if (!name) return [];
+    return [{
+      name,
+      description: sanitizeText(item.description, 300),
+      category: sanitizeText(item.category, 80),
+      price_chf: numberInRange(item.price_chf ?? item.price, 0, 10_000, 0),
+      sold_90d: Math.round(numberInRange(item.sold_90d, 0, 100000, 0)),
+    }];
+  }).slice(0, 80);
+  return { menu, note: "Données isolées de démonstration, sans données de production." };
+}
+
+async function gatherLiveContext(actor: Actor, restaurantId: string, restaurant: JsonRecord) {
+  const since = new Date(Date.now() - 90 * 86400000).toISOString();
+  const [menuResult, ordersResult, reviewsResult] = await Promise.all([
+    actor.adminClient.from("menu_items")
+      .select("id, name, description, price, category, is_available")
+      .eq("restaurant_id", restaurantId)
+      .eq("is_available", true)
+      .limit(100),
+    actor.adminClient.from("orders")
+      .select("id")
+      .eq("restaurant_id", restaurantId)
+      .gte("created_at", since)
+      .in("status", ["completed", "delivered", "ready"])
+      .limit(1000),
+    actor.adminClient.from("reviews")
+      .select("order_id, rating, food_rating, created_at")
+      .eq("restaurant_id", restaurantId)
+      .or("status.is.null,status.eq.published")
+      .gte("created_at", since)
+      .order("created_at", { ascending: false })
+      .limit(40),
+  ]);
+  if (menuResult.error || ordersResult.error || reviewsResult.error) throw new HttpError(503, "restaurant_context_unavailable");
+  const orderIds = (ordersResult.data || []).map((order: JsonRecord) => String(order.id));
+  let orderItems: JsonRecord[] = [];
+  if (orderIds.length) {
+    const { data, error } = await actor.adminClient.from("order_items")
+      .select("order_id, menu_item_id, quantity, total_price")
+      .eq("restaurant_id", restaurantId)
+      .in("order_id", orderIds)
+      .limit(5000);
+    if (error) throw new HttpError(503, "restaurant_context_unavailable");
+    orderItems = (data || []) as JsonRecord[];
+  }
+  const reviewRatingByOrder = new Map<string, number>();
+  for (const review of (reviewsResult.data || []) as JsonRecord[]) {
+    const orderId = typeof review.order_id === "string" ? review.order_id : "";
+    const rating = numberInRange(review.food_rating ?? review.rating, 0, 10, 0);
+    if (orderId && rating > 0) reviewRatingByOrder.set(orderId, rating);
+  }
+  const sales = new Map<string, { quantity: number; revenue: number; ratingSum: number; ratingCount: number }>();
+  for (const item of orderItems) {
+    const id = typeof item.menu_item_id === "string" ? item.menu_item_id : "";
+    if (!id) continue;
+    const current = sales.get(id) || { quantity: 0, revenue: 0, ratingSum: 0, ratingCount: 0 };
+    current.quantity += numberInRange(item.quantity, 0, 10000, 0);
+    current.revenue += numberInRange(item.total_price, 0, 1000000, 0);
+    const rating = reviewRatingByOrder.get(String(item.order_id || ""));
+    if (rating) {
+      current.ratingSum += rating;
+      current.ratingCount += 1;
+    }
+    sales.set(id, current);
+  }
+  const menu = ((menuResult.data || []) as JsonRecord[]).map((item) => ({
+    id: item.id,
+    name: sanitizeText(item.name, 120),
+    description: sanitizeText(item.description, 300),
+    category: sanitizeText(item.category, 80),

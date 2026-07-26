@@ -1,0 +1,100 @@
+import {
+  HttpError,
+  authenticateRequest,
+  jsonResponse,
+  requireRestaurantAccess,
+  writeAuditLog,
+} from "../_shared/auth.ts";
+import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
+import { makeLogger } from "../_shared/logging.ts";
+import { createRateLimiter } from "../_shared/rate-limit.ts";
+import {
+  OPENAI_API_KEY,
+  createOpenAIResponse,
+  estimateOpenAITextCostChf,
+  extractUsage,
+  getOpenAITextCreditUnits,
+  parseStructuredOutput,
+  selectTokAiModel,
+} from "../_shared/openai.ts";
+import {
+  assertTokCreditSpendRecorded,
+  requireRestaurantTokCreditBalance,
+} from "../_shared/restaurant-credits.ts";
+
+const FUNCTION_NAME = "menu-image-import";
+const MAX_IMAGES = 3;
+const MAX_IMAGE_DATA_URL_LENGTH = 8_500_000;
+
+type ExtractedMenuItem = {
+  name: string;
+  description: string;
+  price: number;
+  category: string;
+};
+
+type MenuExtractionResult = {
+  items: ExtractedMenuItem[];
+  warnings: string[];
+};
+
+const OUTPUT_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["items", "warnings"],
+  properties: {
+    items: {
+      type: "array",
+      minItems: 1,
+      maxItems: 100,
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["name", "description", "price", "category"],
+        properties: {
+          name: { type: "string", minLength: 1, maxLength: 160 },
+          description: { type: "string", maxLength: 700 },
+          price: { type: "number", minimum: 0, maximum: 100000 },
+          category: { type: "string", minLength: 1, maxLength: 100 },
+        },
+      },
+    },
+    warnings: {
+      type: "array",
+      maxItems: 20,
+      items: { type: "string", maxLength: 240 },
+    },
+  },
+};
+
+function maybeUuid(raw: unknown) {
+  return typeof raw === "string" && /^[0-9a-f-]{36}$/i.test(raw) ? raw : null;
+}
+
+function sanitizeText(raw: unknown, max: number) {
+  return typeof raw === "string" ? raw.trim().replace(/\s+/g, " ").slice(0, max) : "";
+}
+
+function normalizeImages(raw: unknown) {
+  if (!Array.isArray(raw)) return [];
+  return Array.from(new Set(raw))
+    .filter((value): value is string =>
+      typeof value === "string" &&
+      /^data:image\/(jpeg|png|webp);base64,/i.test(value) &&
+      value.length <= MAX_IMAGE_DATA_URL_LENGTH
+    )
+    .slice(0, MAX_IMAGES);
+}
+
+function normalizeResult(raw: MenuExtractionResult): MenuExtractionResult {
+  const seen = new Set<string>();
+  const items = (Array.isArray(raw.items) ? raw.items : [])
+    .map((item) => ({
+      name: sanitizeText(item?.name, 160),
+      description: sanitizeText(item?.description, 700),
+      price: Math.round(Number(item?.price) * 100) / 100,
+      category: sanitizeText(item?.category, 100) || "Autres",
+    }))
+    .filter((item) => item.name && Number.isFinite(item.price) && item.price >= 0)
+    .filter((item) => {
+      const key = `${item.category.toLowerCase()}|${item.name.toLowerCase()}|${item.price}`;

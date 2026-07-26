@@ -1,0 +1,49 @@
+    });
+    assertTokCreditSpendRecorded(usageError);
+
+    await writeAuditLog({
+      adminClient: actor.adminClient,
+      functionName: FUNCTION_NAME,
+      action: "extract_menu_from_images",
+      status: "success",
+      actor,
+      request: req,
+      targetEntityType: "restaurant",
+      targetEntityId: restaurantId,
+      metadata: { model, imageCount: images.length, itemCount: result.items.length },
+    });
+
+    return jsonResponse(result, 200, cors);
+  } catch (error) {
+    const status = error instanceof HttpError ? error.status : 500;
+    const message = error instanceof Error ? error.message : "Unexpected error";
+    log.error("request failed", { status, message });
+
+    if (actor) {
+      await actor.adminClient.from("ai_usage_logs").insert({
+        function_name: FUNCTION_NAME,
+        action: "extract_menu_from_images",
+        feature_name: "menu_image_import",
+        source: FUNCTION_NAME,
+        model,
+        user_id: actor.userId,
+        restaurant_id: restaurantId,
+        status: "failure",
+        metadata: { error: message },
+      });
+      await writeAuditLog({
+        adminClient: actor.adminClient,
+        functionName: FUNCTION_NAME,
+        action: "extract_menu_from_images",
+        status: "failure",
+        actor,
+        request: req,
+        targetEntityType: "restaurant",
+        targetEntityId: restaurantId,
+        errorMessage: message,
+      });
+    }
+
+    return jsonResponse({ error: message }, status, cors);
+  }
+});

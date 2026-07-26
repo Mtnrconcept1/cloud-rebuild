@@ -1,0 +1,100 @@
+  "Plats végétariens",
+  "Plats vegan",
+  "Pâtes",
+  "Pizzas",
+  "Burgers",
+  "Sandwichs",
+  "Salades",
+  "Soupes",
+  "Accompagnements",
+  "Menus enfants",
+  "Formules midi",
+  "Menus dégustation",
+  "Desserts",
+  "Glaces et sorbets",
+  "Pâtisseries",
+  "Boissons soft",
+  "Eaux",
+  "Jus et smoothies",
+  "Cafés et thés",
+  "Apéritifs",
+  "Cocktails",
+  "Mocktails",
+  "Bières",
+  "Vins rouges",
+  "Vins blancs",
+  "Vins rosés",
+  "Champagnes et mousseux",
+  "Spiritueux",
+  "Digestifs",
+  "Anti-gaspi",
+  "Ventes flash",
+  "Table du chef",
+  "Autres",
+];
+
+function isPresetCategory(category: string) {
+  return MENU_CATEGORY_PRESETS.includes(category);
+}
+
+function buildMenuPhotoStudioPrompt(form: MenuItemForm) {
+  return [
+    MENU_PHOTO_STUDIO_PROMPT,
+    form.name.trim() ? `Plat: ${form.name.trim()}` : "",
+    form.category.trim() ? `Catégorie: ${form.category.trim()}` : "",
+    form.description.trim() ? `Description: ${form.description.trim()}` : "",
+  ].filter(Boolean).join("\n");
+}
+
+function getPhotoGenerationErrorMessage(error: unknown) {
+  const message = error instanceof Error ? error.message : "";
+  if (message.includes("rate_limited")) return "Trop de générations lancées. Patientez quelques minutes avant de relancer.";
+  if (message.includes("Unauthorized") || message.includes("Session expir")) return "Session expirée. Reconnectez-vous puis relancez la génération.";
+  if (message.includes("source_image_unsupported_type")) return "Format non pris en charge. Utilisez une photo JPG, PNG ou WebP.";
+  if (message.includes("source_image_too_large")) return "Photo trop lourde pour la retouche IA. Utilisez une image plus légère.";
+  if (message.includes("ai_credits_exhausted")) return "Solde de crédits TOK insuffisant. Rechargez vos crédits ou attendez le prochain renouvellement de votre abonnement.";
+  return message || "Génération impossible";
+}
+
+export default function DashboardMenu() {
+  const { selectedId, restaurants } = useDashboardRestaurant();
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isCommercialDemo = commercialDemoFrame?.surface === "restaurant";
+  const commercialDemoSessionId = isCommercialDemo ? commercialDemoFrame.config.sessionId : null;
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState<MenuItemForm>(emptyItem);
+  const [categoryMode, setCategoryMode] = useState<"preset" | "custom">("preset");
+  const [generatingPhoto, setGeneratingPhoto] = useState(false);
+  const [photoStudioResult, setPhotoStudioResult] = useState<TokImageGenerationResult | null>(null);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [menuImportFiles, setMenuImportFiles] = useState<File[]>([]);
+  const [importedMenuItems, setImportedMenuItems] = useState<ImportedMenuItem[]>([]);
+  const [menuImportWarnings, setMenuImportWarnings] = useState<string[]>([]);
+  const [analyzingMenu, setAnalyzingMenu] = useState(false);
+  const [savingImportedMenu, setSavingImportedMenu] = useState(false);
+  const [savingItem, setSavingItem] = useState(false);
+  const menuImportInputRef = useRef<HTMLInputElement | null>(null);
+  const mountedRef = useRef(true);
+
+  const restaurant = selectedId ? { id: selectedId } : null;
+  const selectedRestaurant = restaurants.find((candidate) => candidate.id === selectedId) || null;
+  const selectedPlanSlug = selectedRestaurant?.restaurant_subscription?.plan_record?.slug
+    || selectedRestaurant?.restaurant_subscription?.plan
+    || null;
+  const menuQueryKey = [
+    "my-menu-items",
+    restaurant?.id,
+    commercialDemoSessionId || "live",
+  ] as const;
+
+  const getCommercialDemoMenuSeed = (): MenuItemRecord[] => {
+    if (!isCommercialDemo || !commercialDemoFrame) return [];
+    return commercialDemoFrame.snapshot.catalog_items.map((item) => ({
+      id: item.id,
+      restaurant_id: commercialDemoFrame.snapshot.demo_restaurant.id,
+      name: item.name,
+      description: item.description || null,
+      price: item.price,

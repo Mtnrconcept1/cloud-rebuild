@@ -1,0 +1,100 @@
+        }, request);
+      } else {
+        void requestAiCreationNotificationPermission();
+        const { promise } = startTokImageCreationJob({
+          restaurantId: restaurant.id,
+          tool: "menu_photo",
+          title: form.name.trim() || "Photo de plat",
+          request,
+        });
+        result = await promise;
+      }
+      const generatedImageUrl = result.gallery_image_url || result.generated_image_url;
+      if (!generatedImageUrl) throw new Error("Aucune image générée par le studio.");
+      if (!mountedRef.current) return;
+      setPhotoStudioResult(result);
+      setForm((previous) => ({ ...previous, image_url: generatedImageUrl }));
+      toast({
+        title: "Image générée",
+        description: commercialDemoFrame?.surface === "restaurant"
+          ? "Le visuel OpenAI est appliqué au plat du restaurant Démo."
+          : "Le visuel du studio est appliqué au plat.",
+      });
+    } catch (error) {
+      if (!mountedRef.current) return;
+      toast({ title: "Erreur IA", description: getPhotoGenerationErrorMessage(error), variant: "destructive" });
+    } finally {
+      if (mountedRef.current) setGeneratingPhoto(false);
+    }
+  };
+
+  const openMenuImport = () => {
+    setMenuImportFiles([]);
+    setImportedMenuItems([]);
+    setMenuImportWarnings([]);
+    setImportDialogOpen(true);
+  };
+
+  const fileToDataUrl = (file: File) => new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => typeof reader.result === "string" ? resolve(reader.result) : reject(new Error("image_read_failed"));
+    reader.onerror = () => reject(new Error("image_read_failed"));
+    reader.readAsDataURL(file);
+  });
+
+  const handleMenuImportFiles = (files: FileList | null) => {
+    const selected = Array.from(files || []).filter((file) => /^image\/(jpeg|png|webp)$/i.test(file.type)).slice(0, 3);
+    if (!selected.length) {
+      toast({ title: "Photos requises", description: "Utilisez jusqu'à 3 images JPG, PNG ou WebP.", variant: "destructive" });
+      return;
+    }
+    setMenuImportFiles(selected);
+    setImportedMenuItems([]);
+    setMenuImportWarnings([]);
+  };
+
+  const analyzeMenuPhotos = async () => {
+    if (!restaurant || !menuImportFiles.length) return;
+
+    setAnalyzingMenu(true);
+    setImportedMenuItems([]);
+    setMenuImportWarnings([]);
+
+    try {
+      const images = await Promise.all(menuImportFiles.map(async (file) => {
+        const optimized = await optimizeImageUpload(file);
+        return fileToDataUrl(optimized);
+      }));
+
+      let response: MenuImportResponse;
+      if (commercialDemoFrame?.surface === "restaurant") {
+        const result = await askCommercialDemoAi({
+          runtime: {
+            sessionId: commercialDemoFrame.config.sessionId,
+            surface: "restaurant",
+          },
+          tool: "assistant",
+          message: [
+            "Analyse les photos de cette carte de restaurant et extrais tous les plats lisibles.",
+            "Retourne exclusivement un objet JSON avec { items, warnings }.",
+            "Chaque item doit contenir name, description, price en CHF et category.",
+            "N'invente pas un prix illisible : utilise 0 et ajoute un avertissement.",
+          ].join(" "),
+          context: {
+            entrypoint: "restaurant_menu_image_import",
+            output_schema: {
+              items: [{ name: "string", description: "string", price: "number", category: "string" }],
+              warnings: ["string"],
+            },
+          },
+          referenceImages: images,
+        });
+        const parsed = parseCommercialDemoAiJson<{ items?: unknown; warnings?: unknown }>(result.reply);
+        const parsedItems = Array.isArray(parsed.items) ? parsed.items : [];
+        response = {
+          items: parsedItems.flatMap((candidate) => {
+            if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) return [];
+            const item = candidate as Record<string, unknown>;
+            const name = String(item.name || "").trim().slice(0, 140);
+            if (!name) return [];
+            const price = Number(item.price || 0);

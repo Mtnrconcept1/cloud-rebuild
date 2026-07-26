@@ -1,0 +1,100 @@
+  await limiter.consume(`refine:user:${actor.userId}`, { maxRequests: 10, windowSeconds: 3600 });
+  await limiter.consume("global", { maxRequests: 40, windowSeconds: 60 });
+
+  if (scope.demo) {
+    const requestId = requireUuid(body.request_id, "request_id_invalid");
+    const currentVariant = sanitizeVariant(body.variant, new Map(
+      (isRecord(body.variant) && Array.isArray(body.variant.sources) ? body.variant.sources : [])
+        .flatMap((source) => {
+          if (!isRecord(source)) return [];
+          const url = normalizePublicUrl(source.url);
+          return url ? [[url, { url, title: sanitizeText(source.title, 200), retailer: sanitizeText(source.retailer, 100), checked_at: sanitizeText(source.checked_at, 40) } as SupplierSource] as const] : [];
+        }),
+    ));
+    const claim = await claimDemoDailyDishRequest(scope.demo, requestId, {
+      action: "refine",
+      instruction,
+      current_variant_hash: await sha256(currentVariant),
+    });
+    try {
+      const generated = await generateVariants({ context: { restaurant: scope.restaurant }, settings: { timezone: "Europe/Zurich", target_food_cost_bps: 3000 }, modification: instruction, currentVariant });
+      await completeDemoDailyDishRequest({
+        demo: scope.demo,
+        requestId,
+        lockToken: claim.lockToken,
+        variants: generated.variants,
+        responses: generated.responses,
+      });
+      await recordUsage(actor, { action: "refine", restaurantId: scope.restaurantId, responses: generated.responses, demo: true }).catch(() => {});
+      return { variant: { id: crypto.randomUUID(), revision: numberInRange(body.revision, 1, 5, 1) + 1, status: "refined", payload: generated.variants[0] }, demo: true };
+    } catch (error) {
+      await failCommercialDemoAiRequest({
+        context: scope.demo,
+        requestId,
+        lockToken: claim.lockToken,
+        errorCode: `provider_${error instanceof HttpError ? error.message : "daily_dish_error"}`.slice(0, 160),
+        model: DAILY_MODEL,
+      });
+      throw error;
+    }
+  }
+
+  const variantId = requireUuid(body.variant_id, "variant_id_invalid");
+  const { data: variant, error } = await actor.adminClient.from("restaurant_daily_dish_variants")
+    .select("id, run_id, restaurant_id, variant_number, revision, payload")
+    .eq("id", variantId).eq("restaurant_id", scope.restaurantId).maybeSingle();
+  if (error || !variant) throw new HttpError(404, "daily_dish_variant_not_found");
+  if (Number(variant.revision) >= 6) throw new HttpError(409, "daily_dish_revision_limit");
+  const { data: run, error: runError } = await actor.adminClient.from("restaurant_daily_dish_runs")
+    .select("id, generation_date, sources")
+    .eq("id", variant.run_id).eq("restaurant_id", scope.restaurantId).eq("status", "completed").maybeSingle();
+  if (runError || !run) throw new HttpError(409, "daily_dish_run_not_publishable");
+  const sourceMap = new Map((Array.isArray(run.sources) ? run.sources : []).flatMap((source: unknown) => {
+    if (!isRecord(source)) return [];
+    const url = normalizePublicUrl(source.url);
+    return url ? [[url, { url, title: sanitizeText(source.title, 200), retailer: sanitizeText(source.retailer, 100), checked_at: sanitizeText(source.checked_at, 40) } as SupplierSource] as const] : [];
+  }));
+  const currentVariant = sanitizeVariant(variant.payload, sourceMap);
+  const settings = await getSettings(actor, scope.restaurantId);
+  const context = await gatherLiveContext(actor, scope.restaurantId, scope.restaurant as JsonRecord);
+  const generated = await generateVariants({ context, settings, modification: instruction, currentVariant });
+  const revision = Number(variant.revision) + 1;
+  const { data: inserted, error: insertError } = await actor.adminClient.from("restaurant_daily_dish_variants").insert({
+    run_id: variant.run_id,
+    restaurant_id: scope.restaurantId,
+    variant_number: variant.variant_number,
+    revision,
+    parent_variant_id: variant.id,
+    status: "refined",
+    payload: generated.variants[0],
+    created_by: actor.userId,
+  }).select("id, run_id, restaurant_id, variant_number, revision, parent_variant_id, status, payload, created_at").single();
+  if (insertError) throw new HttpError(503, "daily_dish_persistence_failed");
+  await actor.adminClient.from("restaurant_daily_dish_variants").update({ status: "archived" }).eq("id", variant.id);
+  await recordUsage(actor, { action: "refine", restaurantId: scope.restaurantId, responses: generated.responses, demo: false, metadata: { run_id: run.id } });
+  return { variant: inserted, demo: false };
+}
+
+async function handleSelect(actor: Actor, body: JsonRecord) {
+  const scope = await resolveRequestScope(actor, body);
+  if (scope.demo) return { selected: true, demo: true };
+  const variantId = requireUuid(body.variant_id, "variant_id_invalid");
+  const { data: variant, error } = await actor.adminClient.from("restaurant_daily_dish_variants")
+    .select("id, run_id").eq("id", variantId).eq("restaurant_id", scope.restaurantId).maybeSingle();
+  if (error || !variant) throw new HttpError(404, "daily_dish_variant_not_found");
+  await actor.adminClient.from("restaurant_daily_dish_variants")
+    .update({ status: "proposed" }).eq("run_id", variant.run_id).in("status", ["proposed", "refined", "selected"]);
+  const { error: selectError } = await actor.adminClient.from("restaurant_daily_dish_variants")
+    .update({ status: "selected" }).eq("id", variantId);
+  if (selectError) throw new HttpError(503, "daily_dish_persistence_failed");
+  return { selected: true, variant_id: variantId, demo: false };
+}
+
+async function handlePublish(actor: Actor, body: JsonRecord) {
+  const scope = await resolveRequestScope(actor, body);
+  if (scope.demo) return { published: true, demo: true };
+  const variantId = requireUuid(body.variant_id, "variant_id_invalid");
+  const assetId = requireUuid(body.asset_id, "asset_id_invalid");
+  const priceCents = Math.round(numberInRange(body.price_cents, 100, 1000000, 0));
+  const description = sanitizeText(body.description, 1200);
+  const publishActualite = body.publish_actualite === true;

@@ -1,0 +1,100 @@
+import {
+  HttpError,
+  authenticateRequest,
+  jsonResponse,
+  requireRestaurantAccess,
+  writeAuditLog,
+} from "../_shared/auth.ts";
+import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
+import { makeLogger } from "../_shared/logging.ts";
+import { createRateLimiter } from "../_shared/rate-limit.ts";
+import {
+  OPENAI_API_KEY,
+  createOpenAIResponse,
+  estimateOpenAITextCostChf,
+  extractOutputText,
+  extractUsage,
+  parseStructuredOutput,
+} from "../_shared/openai.ts";
+import {
+  claimCommercialDemoAiRequest,
+  failCommercialDemoAiRequest,
+  resolveCommercialDemoAiContext,
+  sanitizeObject,
+  sanitizeText,
+} from "../_shared/commercial-demo-ai.ts";
+
+const FUNCTION_NAME = "daily-dish-ai";
+const FEATURE_NAME = "daily-dish-ai";
+const DAILY_MODEL = Deno.env.get("OPENAI_MODEL_DAILY_DISH")?.trim() || "gpt-5.6-sol";
+const PREMIUM_PLANS = new Set(["premium", "elite", "custom"]);
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const MAX_RESEARCH_CHARS = 30_000;
+
+type JsonRecord = Record<string, unknown>;
+type Actor = Awaited<ReturnType<typeof authenticateRequest>>;
+type DemoContext = Awaited<ReturnType<typeof resolveCommercialDemoAiContext>>;
+
+type SupplierSource = {
+  url: string;
+  title: string;
+  retailer: string;
+  checked_at: string;
+};
+
+type DailyDishVariantPayload = {
+  name: string;
+  description: string;
+  why_it_fits: string;
+  servings: number;
+  prep_minutes: number;
+  cook_minutes: number;
+  allergens: string[];
+  ingredients: Array<{ name: string; quantity: number; unit: string }>;
+  basket: Array<{
+    ingredient: string;
+    quantity: number;
+    unit: string;
+    retailer: string;
+    product: string;
+    package_size: string;
+    package_price_chf: number;
+    allocated_cost_chf: number;
+    url: string;
+    availability_note: string;
+    distance_note: string;
+  }>;
+  recipe: Array<{ step: number; instruction: string; minutes: number }>;
+  estimated_total_cost_chf: number;
+  cost_per_portion_chf: number;
+  suggested_price_chf: number;
+  food_cost_percent: number;
+  estimated_margin_chf: number;
+  image_prompt: string;
+  actualite_copy: string;
+  sources: SupplierSource[];
+  price_caveat: string;
+};
+
+const SOURCE_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["url", "title", "retailer", "checked_at"],
+  properties: {
+    url: { type: "string", minLength: 10, maxLength: 2048 },
+    title: { type: "string", minLength: 1, maxLength: 200 },
+    retailer: { type: "string", minLength: 1, maxLength: 100 },
+    checked_at: { type: "string", minLength: 8, maxLength: 40 },
+  },
+};
+
+const VARIANT_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "name", "description", "why_it_fits", "servings", "prep_minutes", "cook_minutes",
+    "allergens", "ingredients", "basket", "recipe", "estimated_total_cost_chf",
+    "cost_per_portion_chf", "suggested_price_chf", "food_cost_percent",
+    "estimated_margin_chf", "image_prompt", "actualite_copy", "sources", "price_caveat",
+  ],
+  properties: {

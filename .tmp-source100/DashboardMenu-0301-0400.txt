@@ -1,0 +1,100 @@
+        .in("media_type", ["photo", "photo_ai_tok"])
+        .order("position", { ascending: true })
+        .order("created_at", { ascending: false })
+        .limit(24);
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!restaurant && dialogOpen,
+  });
+
+  const openNew = () => {
+    setEditingId(null);
+    setForm(emptyItem);
+    setCategoryMode("preset");
+    setPhotoStudioResult(null);
+    setGeneratingPhoto(false);
+    setDialogOpen(true);
+  };
+
+  const openEdit = (item: MenuItemRecord) => {
+    setEditingId(item.id);
+    const category = item.category || "";
+    setForm({
+      name: item.name,
+      description: item.description || "",
+      price: Number(item.price),
+      category,
+      image_url: item.image_url || "",
+      is_available: item.is_available,
+    });
+    setCategoryMode(category && !isPresetCategory(category) ? "custom" : "preset");
+    setPhotoStudioResult(null);
+    setGeneratingPhoto(false);
+    setDialogOpen(true);
+  };
+
+  const handleDialogOpenChange = (open: boolean) => {
+    setDialogOpen(open);
+    if (!open) {
+      setPhotoStudioResult(null);
+      setGeneratingPhoto(false);
+    }
+  };
+
+  const refreshMenu = () => {
+    if (!restaurant) return;
+    if (isCommercialDemo) {
+      queryClient.setQueryData<MenuItemRecord[]>(menuQueryKey, readCommercialDemoMenu());
+      return;
+    }
+    queryClient.invalidateQueries({ queryKey: ["my-menu-items", restaurant.id, "live"] });
+  };
+
+  const handleSave = async () => {
+    if (!restaurant || savingItem) return;
+
+    if (isCommercialDemo && commercialDemoFrame) {
+      const current = readCommercialDemoMenu();
+      const normalizedRecord: MenuItemRecord = {
+        id: editingId || globalThis.crypto?.randomUUID?.() || `demo-menu-${Date.now()}`,
+        restaurant_id: commercialDemoFrame.snapshot.demo_restaurant.id,
+        name: form.name.trim() || "Nouveau plat de démonstration",
+        description: form.description.trim() || null,
+        price: Math.max(0, Number(form.price) || 0),
+        category: form.category.trim() || null,
+        image_url: form.image_url || null,
+        is_available: form.is_available,
+      };
+      const next = editingId
+        ? current.map((item) => item.id === editingId ? normalizedRecord : item)
+        : [...current, normalizedRecord];
+      persistCommercialDemoMenu(next);
+      toast({
+        title: editingId ? "Plat de démonstration mis à jour" : "Plat de démonstration ajouté",
+        description: "La modification reste limitée à cette session commerciale.",
+      });
+      setDialogOpen(false);
+      return;
+    }
+
+    setSavingItem(true);
+    try {
+    if (editingId) {
+      const { error } = await supabase
+        .from("menu_items")
+        .update(form)
+        .eq("id", editingId)
+        .eq("restaurant_id", restaurant.id);
+
+      if (error) {
+        toast({ title: "Erreur", description: error.message, variant: "destructive" });
+        return;
+      }
+    } else {
+      const { error } = await supabase.from("menu_items").insert({ ...form, restaurant_id: restaurant.id });
+      if (error) {
+        toast({ title: "Erreur", description: error.message, variant: "destructive" });
+        return;
+      }

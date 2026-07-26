@@ -1,0 +1,100 @@
+                      <span key={file.name} className="max-w-full truncate rounded-full bg-background px-3 py-1 text-xs">
+                        {file.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <Button className="w-full" onClick={analyzeMenuPhotos} disabled={!menuImportFiles.length || analyzingMenu}>
+                {analyzingMenu ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ScanLine className="mr-2 h-4 w-4" />}
+                {analyzingMenu ? "Lecture du menu en cours…" : "Analyser les photos"}
+              </Button>
+
+              {menuImportWarnings.length > 0 && (
+                <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
+                  <p className="font-semibold">Points à vérifier</p>
+                  <ul className="mt-2 list-disc space-y-1 pl-5">
+                    {menuImportWarnings.map((warning) => <li key={warning}>{warning}</li>)}
+                  </ul>
+                </div>
+              )}
+
+              {importedMenuItems.length > 0 && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                    <p className="font-semibold">{importedMenuItems.length} élément(s) détecté(s) — corrigez avant d'enregistrer</p>
+                  </div>
+                  {importedMenuItems.map((item, index) => (
+                    <div key={`${index}-${item.name}`} className={`grid gap-3 rounded-xl border p-3 sm:grid-cols-[auto_1.4fr_0.8fr_0.55fr] ${item.selected ? "bg-card" : "opacity-55"}`}>
+                      <input
+                        type="checkbox"
+                        aria-label={`Importer ${item.name}`}
+                        checked={item.selected}
+                        onChange={(event) => updateImportedMenuItem(index, { selected: event.target.checked })}
+                        className="mt-3 h-4 w-4"
+                      />
+                      <div className="space-y-2">
+                        <Input value={item.name} onChange={(event) => updateImportedMenuItem(index, { name: event.target.value })} placeholder="Nom du plat" />
+                        <Textarea value={item.description} onChange={(event) => updateImportedMenuItem(index, { description: event.target.value })} placeholder="Description (facultative)" rows={2} />
+                      </div>
+                      <Input value={item.category} onChange={(event) => updateImportedMenuItem(index, { category: event.target.value })} placeholder="Catégorie" />
+                      <Input type="number" min="0" step="0.01" value={item.price} onChange={(event) => updateImportedMenuItem(index, { price: Number(event.target.value) })} aria-label={`Prix de ${item.name}`} />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setImportDialogOpen(false)}>Annuler</Button>
+              <Button onClick={saveImportedMenu} disabled={!importedMenuItems.some((item) => item.selected) || savingImportedMenu}>
+                {savingImportedMenu && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Ajouter les plats sélectionnés
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
+          <DialogContent className="max-h-[min(92vh,900px)] overflow-y-auto sm:max-w-3xl">
+            <DialogHeader>
+              <DialogTitle>{editingId ? "Modifier le plat" : "Nouveau plat"}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Nom</Label>
+                  <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+                </div>
+                <div className="space-y-2">
+                  <Label>Prix (CHF)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={form.price}
+                    onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Catégorie</Label>
+                <Select
+                  value={categoryMode === "custom" ? CUSTOM_CATEGORY_VALUE : form.category}
+                  onValueChange={(value) => {
+                    if (value === CUSTOM_CATEGORY_VALUE) {
+                      setCategoryMode("custom");
+                      if (isPresetCategory(form.category)) setForm({ ...form, category: "" });
+                      return;
+                    }
+                    setCategoryMode("preset");
+                    setForm({ ...form, category: value });
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choisir une catégorie" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {MENU_CATEGORY_PRESETS.map((category) => (

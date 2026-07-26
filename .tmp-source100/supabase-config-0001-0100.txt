@@ -1,0 +1,100 @@
+project_id = "wwcrtyoueexyxkkikaos"
+
+# -----------------------------------------------------------------------------
+# Edge function auth policy.
+#
+# Supabase gateway JWT verification is disabled consistently so handlers can
+# validate current Supabase JWT algorithms themselves. User-authenticated
+# functions must call authenticateRequest/getUser inside the handler. Webhooks,
+# cron jobs, service-to-service dispatchers, and intentionally public collectors
+# must validate their signature, shared secret, captcha, or rate-limit gate
+# before side effects.
+# -----------------------------------------------------------------------------
+
+[functions.ai-admin-support]
+verify_jwt = false
+
+[functions.ai-admin-monitor]
+verify_jwt = false
+
+[functions.ai-admin-dashboard-chat]
+verify_jwt = false
+
+[functions.admin-demo-entities]
+verify_jwt = false
+
+[functions.ai-accounting-agent]
+verify_jwt = false
+
+[functions.ai-client-chat]
+verify_jwt = false
+
+[functions.ai-client-support]
+verify_jwt = false
+
+[functions.ai-image-enhance]
+verify_jwt = false
+
+[functions.analyze-restaurant-image]
+verify_jwt = false
+
+[functions.ai-restaurant-agent]
+verify_jwt = false
+
+[functions.ai-social-post-copy]
+verify_jwt = false
+
+[functions.ai-restaurant-tools]
+verify_jwt = false
+
+[functions.authorize-match-group-order]
+verify_jwt = false
+
+[functions.campaign-portal]
+verify_jwt = false
+
+[functions.cancel-pending-order-checkout]
+verify_jwt = false
+
+[functions.cancel-payment-attempt]
+verify_jwt = false
+
+[functions.capture-due-match-groups]
+verify_jwt = false
+
+[functions.close-due-match-groups]
+verify_jwt = false
+
+[functions.commercial-followup-reminder]
+verify_jwt = false
+
+[functions.commercial-demo-checkout]
+verify_jwt = false
+
+[functions.commercial-demo-ai]
+verify_jwt = false
+
+[functions.confirm-match-group-authorization]
+verify_jwt = false
+
+[functions.contact-support]
+verify_jwt = false
+
+[functions.crm-mfa-recovery]
+verify_jwt = false
+
+[functions.complete-order-checkout]
+verify_jwt = false
+
+[functions.complete-restaurant-credit-pack-checkout]
+verify_jwt = false
+
+[functions.courier-portal]
+verify_jwt = false
+
+[functions.create-checkout]
+verify_jwt = false
+
+[functions.create-chefs-table-reservation]
+verify_jwt = false
+

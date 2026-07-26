@@ -1,0 +1,44 @@
+verify_jwt = false
+
+[functions.stripe-connect-onboard]
+verify_jwt = false
+
+[functions.stripe-connect-status]
+verify_jwt = false
+
+[functions.settle-developer-statement]
+verify_jwt = false
+
+[functions.track-analytics]
+verify_jwt = false
+
+[functions.track-sponsored-event]
+verify_jwt = false
+
+[functions.validate-order]
+verify_jwt = false
+
+[functions.submit-signup-application]
+verify_jwt = false
+
+[functions.tok-connect-oauth]
+verify_jwt = false
+
+[functions.tok-connect-api]
+verify_jwt = false
+
+[functions.tok-connect-mcp]
+verify_jwt = false
+
+[functions.tok-connect-full-app-mcp]
+verify_jwt = false
+
+[functions.tok-connect-portal]
+verify_jwt = false
+
+[functions.tok-connect-webhook-dispatch]
+verify_jwt = false
+
+# Legacy public demo credentials endpoint: permanent authenticated tombstone.
+[functions.provision-commercial-demo-logins]
+verify_jwt = true

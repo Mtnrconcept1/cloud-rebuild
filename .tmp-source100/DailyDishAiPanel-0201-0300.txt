@@ -1,0 +1,100 @@
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const commercialDemoFrame = useCommercialDemoFrame();
+  const isDemo = commercialDemoFrame?.surface === "restaurant";
+  const sessionId = isDemo ? commercialDemoFrame.config.sessionId : null;
+  const [loading, setLoading] = useState(true);
+  const [accessEnabled, setAccessEnabled] = useState(isDemo || ENABLED_PLANS.has(String(planSlug || "").toLowerCase()));
+  const [settings, setSettings] = useState<DailyDishSettings>(createDefaultSettings);
+  const [run, setRun] = useState<DailyDishRun | null>(null);
+  const [variants, setVariants] = useState<DailyDishVariant[]>([]);
+  const [generating, setGenerating] = useState(false);
+  const [toggling, setToggling] = useState(false);
+  const [refiningId, setRefiningId] = useState<string | null>(null);
+  const [publishing, setPublishing] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [instructions, setInstructions] = useState<Record<string, string>>({});
+  const [price, setPrice] = useState("");
+  const [description, setDescription] = useState("");
+  const [actualiteBody, setActualiteBody] = useState("");
+  const [publishActualite, setPublishActualite] = useState(true);
+  const [publishedImageUrl, setPublishedImageUrl] = useState<string | null>(null);
+  const autoAttemptRef = useRef<string | null>(null);
+
+  const selectedVariant = useMemo(
+    () => variants.find((variant) => variant.id === selectedId) || null,
+    [selectedId, variants],
+  );
+
+  const persistDemo = useCallback((next: Partial<DemoDailyDishState>) => {
+    if (!sessionId) return;
+    const current = latestDemoState(readCommercialDemoToolState<DemoDailyDishState>(sessionId, DEMO_STORAGE_KEY, buildDemoSeed()));
+    writeCommercialDemoToolState(sessionId, DEMO_STORAGE_KEY, { ...current, ...next });
+  }, [sessionId]);
+
+  const loadState = useCallback(async () => {
+    setLoading(true);
+    try {
+      if (isDemo && sessionId) {
+        const demoState = latestDemoState(readCommercialDemoToolState<DemoDailyDishState>(sessionId, DEMO_STORAGE_KEY, buildDemoSeed()));
+        setAccessEnabled(true);
+        setSettings(demoState.settings);
+        setRun(demoState.run);
+        setVariants(demoState.variants);
+        const selected = demoState.variants.find((variant) => variant.status === "selected" || variant.status === "published");
+        setSelectedId(selected?.id || null);
+        return;
+      }
+      const status = await getDailyDishStatus({ restaurant_id: restaurantId });
+      setAccessEnabled(status.access.enabled);
+      setSettings(status.settings);
+      setRun(status.run);
+      setVariants(status.variants);
+      const selected = status.variants.find((variant) => variant.status === "selected" || variant.status === "published");
+      setSelectedId(selected?.id || null);
+    } catch (error) {
+      toast({ title: "Plat du jour IA indisponible", description: formatDailyDishError(error), variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  }, [isDemo, restaurantId, sessionId, toast]);
+
+  useEffect(() => {
+    void loadState();
+  }, [loadState]);
+
+  useEffect(() => {
+    if (!selectedVariant) return;
+    setPrice(selectedVariant.payload.suggested_price_chf.toFixed(2));
+    setDescription(selectedVariant.payload.description);
+    setActualiteBody(selectedVariant.payload.actualite_copy);
+  }, [selectedVariant]);
+
+  const generate = useCallback(async (automatic = false) => {
+    if (!settings.is_enabled || generating) return;
+    setGenerating(true);
+    try {
+      const result = await generateDailyDishProposals({
+        restaurant_id: restaurantId,
+        session_id: sessionId,
+        demo_context: isDemo ? {
+          menu: menuItems.map((item) => ({
+            name: item.name,
+            description: item.description || "",
+            category: item.category || "",
+            price_chf: Number(item.price || 0),
+          })),
+        } : undefined,
+      });
+      setRun(result.run);
+      setVariants(result.variants);
+      setSelectedId(null);
+      if (isDemo) persistDemo({ run: result.run, variants: result.variants });
+      toast({
+        title: "Trois plats du jour sont prêts",
+        description: "Les prix fournisseurs, le panier et les recettes ont été comparés.",
+      });
+    } catch (error) {
+      if (!automatic || !String(error).includes("generation_in_progress")) {
+        toast({ title: "Recherche impossible", description: formatDailyDishError(error), variant: "destructive" });
+      }

@@ -1,0 +1,100 @@
+
+    if (!Array.isArray(content)) continue;
+    for (const entry of content) {
+      if (!entry || typeof entry !== "object") continue;
+      const record = entry as Record<string, unknown>;
+      if (typeof record.text === "string") {
+        parts.push(record.text);
+      }
+      if (typeof record.output_text === "string") {
+        parts.push(record.output_text);
+      }
+    }
+  }
+
+  return parts.join("").trim();
+}
+
+export function extractUsage(data: unknown): OpenAIResponseUsage {
+  const usage = (data as Record<string, unknown>)?.usage;
+  if (!usage || typeof usage !== "object") return {};
+
+  const record = usage as Record<string, unknown>;
+  const inputTokens = Number(record.input_tokens ?? 0);
+  const outputTokens = Number(record.output_tokens ?? 0);
+  const totalTokens = Number(record.total_tokens ?? inputTokens + outputTokens);
+
+  return {
+    input_tokens: Number.isFinite(inputTokens) ? inputTokens : 0,
+    output_tokens: Number.isFinite(outputTokens) ? outputTokens : 0,
+    total_tokens: Number.isFinite(totalTokens) ? totalTokens : 0,
+  };
+}
+
+export function parseStructuredOutput<T>(data: unknown): T {
+  const parsedOutput = findParsedStructuredOutput(data);
+  if (parsedOutput !== null) {
+    return parsedOutput as T;
+  }
+
+  const text = extractOutputText(data);
+  if (!text) {
+    throw new HttpError(502, "ai_empty_response");
+  }
+
+  const candidate = extractJsonCandidate(text);
+  try {
+    return JSON.parse(candidate) as T;
+  } catch {
+    throw new HttpError(502, "ai_invalid_response");
+  }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function findParsedStructuredOutput(data: unknown): unknown | null {
+  if (!isRecord(data)) return null;
+
+  const output = Array.isArray(data.output) ? data.output : [];
+  for (const item of output) {
+    if (!isRecord(item)) continue;
+    const content = item.content;
+    if (!Array.isArray(content)) continue;
+
+    for (const entry of content) {
+      if (!isRecord(entry)) continue;
+      for (const key of ["parsed", "json", "value"]) {
+        const value = entry[key];
+        if (isRecord(value) || Array.isArray(value)) return value;
+      }
+    }
+  }
+
+  return null;
+}
+
+function extractJsonCandidate(text: string) {
+  const normalized = stripMarkdownCodeFence(text.trim());
+
+  try {
+    JSON.parse(normalized);
+    return normalized;
+  } catch {
+    const embeddedJson = findBalancedJson(normalized);
+    return embeddedJson || normalized;
+  }
+}
+
+function stripMarkdownCodeFence(text: string) {
+  const match = text.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+  return match ? match[1].trim() : text;
+}
+
+function findBalancedJson(text: string) {
+  const objectStart = text.indexOf("{");
+  const arrayStart = text.indexOf("[");
+  const start = objectStart < 0 ? arrayStart : arrayStart < 0 ? objectStart : Math.min(objectStart, arrayStart);
+  if (start < 0) return "";
+

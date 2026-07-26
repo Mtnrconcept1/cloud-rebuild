@@ -1,0 +1,100 @@
+
+  v_name := left(btrim(COALESCE(v_variant.payload->>'name', '')), 120);
+  v_image_url := COALESCE(
+    NULLIF(v_asset.metadata->>'gallery_image_url', ''),
+    NULLIF(v_asset.asset_url, '')
+  );
+  v_media_path := COALESCE(
+    NULLIF(v_asset.metadata->>'gallery_storage_path', ''),
+    NULLIF(v_asset.storage_path, '')
+  );
+  IF char_length(v_name) < 2 OR char_length(COALESCE(v_image_url, '')) NOT BETWEEN 10 AND 2048 THEN
+    RAISE EXCEPTION 'daily dish publication asset invalid' USING ERRCODE = '22023';
+  END IF;
+
+  UPDATE public.restaurant_daily_dishes
+  SET status = 'archived'
+  WHERE restaurant_id = p_restaurant_id
+    AND status = 'active'
+    AND service_date <> v_run.generation_date;
+
+  INSERT INTO public.restaurant_daily_dishes (
+    restaurant_id, service_date, variant_id, name, description, price_cents,
+    image_url, ai_generated_asset_id, status, published_by, published_at
+  ) VALUES (
+    p_restaurant_id, v_run.generation_date, v_variant.id, v_name,
+    btrim(p_description), p_price_cents, v_image_url, v_asset.id, 'active',
+    p_actor_user_id, now()
+  )
+  ON CONFLICT (restaurant_id, service_date) DO UPDATE
+  SET variant_id = EXCLUDED.variant_id,
+      name = EXCLUDED.name,
+      description = EXCLUDED.description,
+      price_cents = EXCLUDED.price_cents,
+      image_url = EXCLUDED.image_url,
+      ai_generated_asset_id = EXCLUDED.ai_generated_asset_id,
+      status = 'active',
+      published_by = EXCLUDED.published_by,
+      published_at = now()
+  RETURNING * INTO v_dish;
+
+  UPDATE public.restaurant_daily_dish_variants
+  SET status = CASE WHEN id = v_variant.id THEN 'published' ELSE 'archived' END
+  WHERE run_id = v_variant.run_id;
+
+  IF COALESCE(p_publish_actualite, false) THEN
+    v_post_id := v_dish.actualites_post_id;
+    IF v_post_id IS NULL THEN
+      INSERT INTO public.social_posts (
+        restaurant_id, author_id, body, status, post_type, cta_type,
+        visibility, campaign_goal, campaign_name, audience_segment, published_at
+      ) VALUES (
+        p_restaurant_id, p_actor_user_id, btrim(p_actualite_body), 'published',
+        'annonce', 'none', 'public', 'awareness', 'Plat du jour IA', 'local', now()
+      ) RETURNING id INTO v_post_id;
+
+      INSERT INTO public.social_post_media (
+        post_id, media_url, media_path, media_type, sort_order, alt_text, metadata
+      ) VALUES (
+        v_post_id, v_image_url, v_media_path, 'image', 0,
+        'Plat du jour : ' || v_name,
+        jsonb_build_object('source', 'daily_dish_ai', 'asset_id', v_asset.id)
+      );
+    ELSE
+      UPDATE public.social_posts
+      SET body = btrim(p_actualite_body), status = 'published', published_at = now(), updated_at = now()
+      WHERE id = v_post_id AND restaurant_id = p_restaurant_id;
+      DELETE FROM public.social_post_media WHERE post_id = v_post_id;
+      INSERT INTO public.social_post_media (
+        post_id, media_url, media_path, media_type, sort_order, alt_text, metadata
+      ) VALUES (
+        v_post_id, v_image_url, v_media_path, 'image', 0,
+        'Plat du jour : ' || v_name,
+        jsonb_build_object('source', 'daily_dish_ai', 'asset_id', v_asset.id)
+      );
+    END IF;
+    UPDATE public.restaurant_daily_dishes SET actualites_post_id = v_post_id WHERE id = v_dish.id;
+  END IF;
+
+  RETURN jsonb_build_object(
+    'dish_id', v_dish.id,
+    'post_id', v_post_id,
+    'service_date', v_run.generation_date,
+    'image_url', v_image_url
+  );
+END
+$$;
+
+REVOKE ALL ON FUNCTION public.publish_restaurant_daily_dish(
+  uuid, uuid, uuid, uuid, integer, text, boolean, text
+) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.publish_restaurant_daily_dish(
+  uuid, uuid, uuid, uuid, integer, text, boolean, text
+) TO service_role;
+
+INSERT INTO public.feature_flags (name, label, description, is_active)
+VALUES (
+  'daily-dish-ai',
+  'IA Plat du jour',
+  'Trois propositions quotidiennes avec recherche fournisseurs, coûts, recette et publication PhotoPro.',
+  true

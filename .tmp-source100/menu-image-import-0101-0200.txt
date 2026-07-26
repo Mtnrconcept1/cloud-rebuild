@@ -1,0 +1,100 @@
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, 100);
+
+  return {
+    items,
+    warnings: (Array.isArray(raw.warnings) ? raw.warnings : [])
+      .map((warning) => sanitizeText(warning, 240))
+      .filter(Boolean)
+      .slice(0, 20),
+  };
+}
+
+Deno.serve(async (req) => {
+  const cors = buildCorsHeaders(req);
+  const preflight = handleCorsPreflight(req, cors);
+  if (preflight) return preflight;
+
+  const log = makeLogger(FUNCTION_NAME);
+  let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
+  let restaurantId: string | null = null;
+  const model = selectTokAiModel("image_premium");
+
+  try {
+    if (req.method !== "POST") throw new HttpError(405, "Method not allowed");
+    actor = await authenticateRequest(req, { allowServiceRole: false });
+    if (!actor.userId) throw new HttpError(401, "Unauthorized");
+    if (!OPENAI_API_KEY) throw new HttpError(503, "ai_service_unavailable");
+
+    const body = await req.json().catch(() => ({}));
+    restaurantId = maybeUuid(body.restaurantId);
+    if (!restaurantId) throw new HttpError(400, "restaurant_required");
+    const images = normalizeImages(body.images);
+    if (!images.length) throw new HttpError(400, "menu_images_required");
+
+    const restaurant = await requireRestaurantAccess(actor, restaurantId);
+    const rateLimiter = createRateLimiter(actor.adminClient, FUNCTION_NAME);
+    await rateLimiter.consume(`user:${actor.userId}`, { maxRequests: 10, windowSeconds: 3600 });
+    await rateLimiter.consume(`restaurant:${restaurantId}`, { maxRequests: 20, windowSeconds: 3600 });
+    await requireRestaurantTokCreditBalance({
+      adminClient: actor.adminClient,
+      restaurantId,
+      requiredCredits: 1,
+    });
+
+    const response = await createOpenAIResponse({
+      model,
+      maxOutputTokens: 6000,
+      input: [
+        {
+          role: "system",
+          content: `Tu extrais fidèlement des cartes de restaurant à partir de photos.
+Lis toutes les pages dans leur ordre. Reconstitue catégories, noms, descriptions et prix.
+Les prix doivent être des nombres décimaux sans symbole monétaire. N'invente jamais un plat, un prix ou une description.
+Conserve la langue et l'orthographe visibles, en corrigeant seulement les espaces OCR évidents.
+Si un prix est illisible ou absent, mets 0 et ajoute un avertissement précis.
+Fusionne les doublons causés par le chevauchement de photos. Ne traite pas les horaires, adresses ou mentions légales comme des plats.`,
+        },
+        {
+          role: "user",
+          content: [
+            { type: "input_text", text: `Restaurant: ${restaurant.name || "non renseigné"}. Extrais le menu de ces ${images.length} photo(s).` },
+            ...images.map((imageUrl) => ({ type: "input_image", image_url: imageUrl, detail: "high" })),
+          ],
+        },
+      ],
+      jsonSchema: {
+        name: "restaurant_menu_extraction",
+        schema: OUTPUT_SCHEMA,
+        strict: true,
+      },
+    });
+
+    const result = normalizeResult(parseStructuredOutput<MenuExtractionResult>(response));
+    if (!result.items.length) throw new HttpError(422, "menu_items_not_detected");
+
+    const usage = extractUsage(response);
+    const inputTokens = usage.input_tokens ?? 0;
+    const outputTokens = usage.output_tokens ?? 0;
+    const { error: usageError } = await actor.adminClient.from("ai_usage_logs").insert({
+      function_name: FUNCTION_NAME,
+      action: "extract_menu_from_images",
+      feature_name: "menu_image_import",
+      source: FUNCTION_NAME,
+      model,
+      user_id: actor.userId,
+      restaurant_id: restaurantId,
+      status: "success",
+      input_tokens: inputTokens,
+      output_tokens: outputTokens,
+      total_tokens: usage.total_tokens ?? inputTokens + outputTokens,
+      estimated_cost_chf: estimateOpenAITextCostChf(model, inputTokens, outputTokens),
+      metadata: {
+        credit_kind: "ai_tools",
+        credit_units: Math.max(1, getOpenAITextCreditUnits(model, inputTokens, outputTokens)),
+        image_count: images.length,
+        item_count: result.items.length,
+      },

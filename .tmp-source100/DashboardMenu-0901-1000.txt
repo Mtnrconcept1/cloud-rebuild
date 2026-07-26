@@ -1,0 +1,100 @@
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
+                    ))}
+                    <SelectItem value={CUSTOM_CATEGORY_VALUE}>Catégorie personnalisée</SelectItem>
+                  </SelectContent>
+                </Select>
+                {categoryMode === "custom" ? (
+                  <Input
+                    value={form.category}
+                    onChange={(e) => setForm({ ...form, category: e.target.value })}
+                    placeholder="Ex: brunch, tapas, spécialités maison..."
+                  />
+                ) : null}
+              </div>
+              <div className="space-y-2">
+                <Label>Description</Label>
+                <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+              </div>
+              <div className="space-y-3">
+                <ImageUpload
+                  label="Photo du plat"
+                  value={form.image_url}
+                  onChange={(url) => {
+                    setForm((previous) => ({ ...previous, image_url: url }));
+                    setPhotoStudioResult(null);
+                  }}
+                  showUrlInput={false}
+                />
+                <Tabs defaultValue="studio" className="rounded-lg border bg-muted/30 p-3">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="studio" className="gap-2">
+                      <Sparkles className="h-4 w-4" />
+                      Studio photo
+                    </TabsTrigger>
+                    <TabsTrigger value="gallery" className="gap-2">
+                      <Images className="h-4 w-4" />
+                      Galerie
+                    </TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="studio" className="mt-3 space-y-3">
+                    <div className="flex flex-col gap-3 rounded-md border bg-background p-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold">Studio photo TOK</p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {form.image_url ? "La photo actuelle sert de source." : "Le nom et la description guident la génération."}
+                        </p>
+                      </div>
+                      <Button type="button" onClick={generateMenuPhoto} disabled={!restaurant || generatingPhoto} className="shrink-0 gap-2">
+                        {generatingPhoto ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                        Générer
+                      </Button>
+                    </div>
+                    {photoStudioResult ? (
+                      <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-800">
+                        Image du studio appliquée au plat. Sauvegardez le produit pour la publier dans le menu.
+                      </p>
+                    ) : null}
+                  </TabsContent>
+                  <TabsContent value="gallery" className="mt-3">
+                    {galleryLoading ? (
+                      <div className="flex items-center gap-2 rounded-md border bg-background px-3 py-4 text-sm text-muted-foreground">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Chargement de la galerie...
+                      </div>
+                    ) : galleryItems.length ? (
+                      <div className="grid max-h-72 gap-3 overflow-y-auto pr-1 sm:grid-cols-3">
+                        {galleryItems.map((item) => {
+                          const selected = item.media_url === form.image_url;
+                          return (
+                            <button
+                              key={item.id}
+                              type="button"
+                              onClick={() => selectDishImage(item.media_url)}
+                              className={`group relative overflow-hidden rounded-lg border bg-background text-left transition ${selected ? "border-primary ring-2 ring-primary/30" : "hover:border-primary/60"}`}
+                              aria-pressed={selected}
+                            >
+                              <img src={item.media_url} alt={item.alt_text || "Photo de galerie"} className="aspect-square w-full object-cover transition group-hover:scale-[1.02]" />
+                              <div className="absolute inset-x-0 bottom-0 bg-black/60 px-2 py-1 text-[11px] font-medium text-white">
+                                <span className="line-clamp-1">{item.alt_text || (item.is_cover ? "Couverture" : "Photo galerie")}</span>
+                              </div>
+                              {selected ? (
+                                <span className="absolute right-2 top-2 rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground">
+                                  Choisie
+                                </span>
+                              ) : null}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 rounded-md border bg-background px-3 py-4 text-sm text-muted-foreground">
+                        <ImageIcon className="h-4 w-4" />
+                        Aucune image dans la galerie du restaurant.
+                      </div>
+                    )}
+                  </TabsContent>
+                </Tabs>
+              </div>
+            </div>

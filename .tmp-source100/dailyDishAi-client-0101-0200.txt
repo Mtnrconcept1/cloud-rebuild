@@ -1,0 +1,82 @@
+    body,
+    timeout: REQUEST_TIMEOUT_MS,
+  });
+  if (error) throw error;
+  if (!data || typeof data !== "object") throw new Error("Réponse invalide du service Plat du jour IA.");
+  return data;
+}
+
+export function getDailyDishStatus(input: BaseRequest) {
+  return invokeDailyDish<DailyDishStatus>({ action: "status", ...input });
+}
+
+export function setDailyDishEnabled(input: BaseRequest & { is_enabled: boolean }) {
+  return invokeDailyDish<{ settings?: DailyDishSettings; is_enabled?: boolean; demo: boolean }>({
+    action: "set_enabled",
+    ...input,
+  });
+}
+
+export function generateDailyDishProposals(input: BaseRequest & { demo_context?: Record<string, unknown> }) {
+  return invokeDailyDish<{
+    run: DailyDishRun;
+    variants: DailyDishVariant[];
+    replayed?: boolean;
+    demo: boolean;
+  }>({
+    action: "generate",
+    request_id: createRequestId(),
+    ...input,
+  });
+}
+
+export function refineDailyDishProposal(input: BaseRequest & {
+  variant_id?: string;
+  variant?: DailyDishVariantPayload;
+  revision?: number;
+  instruction: string;
+}) {
+  return invokeDailyDish<{ variant: DailyDishVariant; demo: boolean }>({
+    action: "refine",
+    request_id: createRequestId(),
+    ...input,
+  });
+}
+
+export function selectDailyDishProposal(input: BaseRequest & { variant_id: string }) {
+  return invokeDailyDish<{ selected: boolean; variant_id?: string; demo: boolean }>({
+    action: "select",
+    ...input,
+  });
+}
+
+export function publishDailyDishProposal(input: BaseRequest & {
+  variant_id: string;
+  asset_id: string;
+  price_cents: number;
+  description: string;
+  publish_actualite: boolean;
+  actualite_body: string;
+}) {
+  return invokeDailyDish<{
+    published: boolean;
+    publication?: { dish_id: string; post_id?: string | null; service_date: string; image_url: string };
+    demo: boolean;
+  }>({
+    action: "publish",
+    ...input,
+  });
+}
+
+export function formatDailyDishError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error || "");
+  if (message.includes("premium_required")) return "Cette fonctionnalité est incluse dès l’abonnement TOK Premium.";
+  if (message.includes("daily_dish_disabled")) return "Activez d’abord le Plat du jour IA.";
+  if (message.includes("daily_dish_generation_in_progress")) return "La recherche du jour est déjà en cours.";
+  if (message.includes("supplier_prices_unavailable")) return "Aucun prix fournisseur suffisamment vérifiable n’a été trouvé. Réessayez plus tard.";
+  if (message.includes("daily_dish_revision_limit")) return "La limite de cinq demandes de modification est atteinte pour cette proposition.";
+  if (message.includes("ai_rate_limited") || message.includes("rate_limited")) return "Trop de recherches ont été lancées. Patientez quelques minutes.";
+  if (message.includes("commercial_demo_ai_budget_exhausted")) return "Le budget OpenAI quotidien de la démonstration est atteint. Réessayez demain.";
+  if (message.includes("ai_timeout") || message.toLowerCase().includes("timeout")) return "La comparaison des fournisseurs a pris trop de temps. Réessayez.";
+  return message || "Le service Plat du jour IA est momentanément indisponible.";
+}
