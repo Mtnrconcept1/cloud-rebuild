@@ -51,7 +51,8 @@ describe("CRM MFA recovery", () => {
       "factor.friendly_name === CRM_MFA_FRIENDLY_NAME",
     );
     expect(edgeFunction).toContain('CRM_MFA_FRIENDLY_NAME = "TOK CRM"');
-    expect(edgeFunction).not.toContain("code_hash: code");
+    expect(edgeFunction).toContain("code_hash: codeHash");
+    expect(edgeFunction).not.toMatch(/code_hash:\\s*code(?:[,}])/);
   });
 
   it("exposes recovery on the blocked CRM screen and deploys the function", () => {
