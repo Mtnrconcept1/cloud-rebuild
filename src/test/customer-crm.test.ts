@@ -124,7 +124,11 @@ describe("customer CRM", () => {
     expect(guard).toContain("verify");
     expect(guard).toContain("refreshSession");
     expect(guard).toContain("Changer d'application / Réinitialiser le code");
-    expect(guard).toContain("Le support TOK doit d'abord vérifier votre identité");
+    expect(guard).toContain(
+      "Je n'ai plus accès à mon application d'authentification",
+    );
+    expect(guard).toContain('"crm-mfa-recovery"');
+    expect(guard).toContain("recoveryChallengeId");
     expect(guard).toContain("rotationRequested");
     expect(guard).toContain("factorToReplaceId");
     expect(guard).toContain("isCrmMfaFactor(currentFactor)");

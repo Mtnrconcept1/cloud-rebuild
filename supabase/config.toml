@@ -80,6 +80,9 @@ verify_jwt = false
 [functions.contact-support]
 verify_jwt = false
 
+[functions.crm-mfa-recovery]
+verify_jwt = false
+
 [functions.complete-order-checkout]
 verify_jwt = false
 
