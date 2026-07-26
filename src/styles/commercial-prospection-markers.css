@@ -1,23 +1,60 @@
-/* Commercial prospect map: restaurant pins use the requested fork silhouette. */
+/*
+ * Commercial prospect map markers.
+ *
+ * The fork is drawn with plain CSS so it remains visible under the production
+ * Content Security Policy. Do not use data: URLs or external masks here: when
+ * a mask resource is blocked, browsers make the entire marker transparent.
+ */
 body[data-commercial-prospection-map] .leaflet-marker-icon > div > span {
+  position: relative !important;
   display: block !important;
+  width: 14px !important;
+  height: 20px !important;
+  color: #facc15;
   border-radius: 0 !important;
+  background:
+    linear-gradient(currentColor 0 0) center bottom / 4px 14px no-repeat !important;
   box-shadow: none !important;
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 2v7a4 4 0 0 0 3 3.87V22h2v-9.13A4 4 0 0 0 15 9V2h-2v5h-1V2h-2v5H9V2H7Z'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 2v7a4 4 0 0 0 3 3.87V22h2v-9.13A4 4 0 0 0 15 9V2h-2v5h-1V2h-2v5H9V2H7Z'/%3E%3C/svg%3E");
-  -webkit-mask-position: center;
-  mask-position: center;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-size: contain;
-  mask-size: contain;
   filter: drop-shadow(0 1px 1px rgb(15 23 42 / 0.35));
+}
+
+body[data-commercial-prospection-map] .leaflet-marker-icon > div > span::before {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 14px;
+  height: 10px;
+  content: "";
+  transform: translateX(-50%);
+  background:
+    linear-gradient(currentColor 0 0) 0 0 / 2px 9px no-repeat,
+    linear-gradient(currentColor 0 0) 4px 0 / 2px 9px no-repeat,
+    linear-gradient(currentColor 0 0) 8px 0 / 2px 9px no-repeat,
+    linear-gradient(currentColor 0 0) 12px 0 / 2px 9px no-repeat,
+    linear-gradient(currentColor 0 0) center bottom / 14px 3px no-repeat;
+}
+
+body[data-commercial-prospection-map] .leaflet-marker-icon > div > span[style*="#facc15"],
+body[data-commercial-prospection-map] .leaflet-marker-icon > div > span[style*="rgb(250, 204, 21)"] {
+  color: #facc15;
 }
 
 /* “Visité” and “En cours” intentionally share the requested orange state. */
 body[data-commercial-prospection-map] .leaflet-marker-icon > div > span[style*="#2563eb"],
-body[data-commercial-prospection-map] .leaflet-marker-icon > div > span[style*="rgb(37, 99, 235)"] {
-  background: #f97316 !important;
+body[data-commercial-prospection-map] .leaflet-marker-icon > div > span[style*="rgb(37, 99, 235)"],
+body[data-commercial-prospection-map] .leaflet-marker-icon > div > span[style*="#f97316"],
+body[data-commercial-prospection-map] .leaflet-marker-icon > div > span[style*="rgb(249, 115, 22)"] {
+  color: #f97316;
+}
+
+body[data-commercial-prospection-map] .leaflet-marker-icon > div > span[style*="#16a34a"],
+body[data-commercial-prospection-map] .leaflet-marker-icon > div > span[style*="rgb(22, 163, 74)"] {
+  color: #16a34a;
+}
+
+body[data-commercial-prospection-map] .leaflet-marker-icon > div > span[style*="#ef4444"],
+body[data-commercial-prospection-map] .leaflet-marker-icon > div > span[style*="rgb(239, 68, 68)"] {
+  color: #ef4444;
 }
 
 body[data-commercial-prospection-map] .bg-blue-100 {
