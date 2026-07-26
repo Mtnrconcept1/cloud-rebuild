@@ -37,7 +37,8 @@ describe("support chat backend history", () => {
     expect(edgeFunction).toContain("existingConversation");
     expect(edgeFunction).toContain("messagesToPersist");
     expect(edgeFunction).toContain("conversationId = requestedConversationId");
-    expect(edgeFunction).toContain("await actor.adminClient.from(\"ai_messages\").insert(messagesToPersist");
+    expect(edgeFunction).toContain("const { error: userMessagesError } = await actor.adminClient");
+    expect(edgeFunction).toContain(".insert(messagesToPersist.map((message) => ({");
     expect(edgeFunction).toContain("support_ticket_id");
   });
 });

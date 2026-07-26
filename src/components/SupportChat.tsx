@@ -254,6 +254,7 @@ export default function SupportChat() {
   const chatDialogRef = useRef<HTMLDivElement>(null);
   const previouslyFocusedElementRef = useRef<HTMLElement | null>(null);
   const remoteTypingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasAutoRestoredConversationRef = useRef(false);
   const localTypingStopTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const typingChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
@@ -609,6 +610,60 @@ export default function SupportChat() {
       setLoadingConversationId(null);
     }
   };
+
+  useEffect(() => {
+    if (
+      hasAutoRestoredConversationRef.current
+      || !isOpen
+      || !isChatAvailable
+      || isCommercialDemo
+      || isAdminPrivilegedSurface
+      || activeConversationId
+    ) {
+      return;
+    }
+
+    hasAutoRestoredConversationRef.current = true;
+
+    void (async () => {
+      try {
+        const conversations = await getClientSupportConversations();
+        const latestConversation = conversations[0];
+        if (!latestConversation) return;
+
+        const { surface, agentId } = getConversationContext(latestConversation);
+        const nextSurface = surface || chatSurface;
+        const nextAgentId = agentId || selectedAgent;
+        const messages = await getClientSupportConversationMessages(latestConversation.id);
+        const nextHistory = messages
+          .filter((message) => message.role === "user" || message.role === "assistant")
+          .map((message) => ({
+            id: message.id,
+            type: message.role === "user" ? "user" as const : "bot" as const,
+            text: normalizeVisibleAiSupportText(message.content),
+          }));
+
+        setChatSurface(nextSurface);
+        setSelectedAgent(nextAgentId);
+        setActiveConversationId(latestConversation.id);
+        setSupportTicketId(null);
+        setHumanHandoffActive(isConversationHandedOff(latestConversation));
+        setHistory(nextHistory.length > 0
+          ? nextHistory
+          : getInitialHistory(nextAgentId, nextSurface, false));
+      } catch (restoreError) {
+        console.error("Support chat restore failed:", restoreError);
+      }
+    })();
+  }, [
+    activeConversationId,
+    chatSurface,
+    isAdminPrivilegedSurface,
+    isChatAvailable,
+    isCommercialDemo,
+    isOpen,
+    selectedAgent,
+  ]);
 
   const handleSendMessage = async (event: FormEvent) => {
     event.preventDefault();
