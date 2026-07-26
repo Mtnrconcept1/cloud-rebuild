@@ -12,6 +12,12 @@ ignoredBuiltDependencies:
   - protobufjs
   - puppeteer
 
+auditConfig:
+  ignoreGhsas:
+    # TOK is a Vite declarative SPA with no React Router RSC APIs. Remove this
+    # exception before enabling RSC or migrating to React Router v8.
+    - GHSA-qwww-vcr4-c8h2
+
 overrides:
   protobufjs: 7.6.5
   ws: 8.21.0
