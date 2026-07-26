@@ -10,6 +10,11 @@ DECLARE
   v_secret text;
   v_base text := 'https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1';
 BEGIN
+  IF private.tok_is_production_cluster() IS NOT TRUE THEN
+    RAISE NOTICE
+      'Production-targeting cron schedule skipped outside the Production cluster';
+    RETURN;
+  END IF;
   SELECT decrypted_secret INTO v_secret
   FROM vault.decrypted_secrets WHERE name = 'internal_cron_secret' LIMIT 1;
 
