@@ -112,7 +112,7 @@ describe("restaurant onboarding subscription payments", () => {
       /CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.signup_restaurateur_onboarding_payment_ready/i,
     );
     const paymentArchitectureMigration = latestMigrationContaining(
-      /get_commercial_prospect_signup_referral/i,
+      /deferred_subscription_contract_snapshot_is_immutable/i,
     );
     const admin = read("src/pages/admin/AdminUtilisateurs.tsx");
     const statusCard = read("src/components/signup/SignupApplicationStatusCard.tsx");
