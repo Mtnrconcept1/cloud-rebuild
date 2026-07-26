@@ -157,7 +157,9 @@ describe("campaign creative studio", () => {
     const templateCard = readSource("src/components/campaigns/SponsoredRestaurantTemplateCard.tsx");
 
     expect(templateCard).toContain("break-words pb-3 leading-[1.14]");
-    expect(templateCard).toContain("text-4xl sm:text-5xl lg:text-[3rem] xl:text-[3.8rem] 2xl:text-[4.8rem]");
+    // Desktop sizes stay untouched; the md step only stops the 3rem title from
+    // overflowing the narrow half-column introduced on tablets.
+    expect(templateCard).toContain("text-4xl sm:text-5xl md:text-[2rem] lg:text-[3rem] xl:text-[3.8rem] 2xl:text-[4.8rem]");
     expect(templateCard).not.toContain("mt-1 line-clamp-2 overflow-visible pb-2 leading-[1.04]");
   });
 

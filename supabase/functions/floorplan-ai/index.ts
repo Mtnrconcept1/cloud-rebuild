@@ -42,9 +42,7 @@ const FLOOR_PLAN_IMAGE_IMPORT_SCHEMA = `JSON image-import obligatoire:
         "w_ratio": 0.10,
         "h_ratio": 0.12,
         "seat_count": 4,
-        "seats": [{"zone": "top"}, {"zone": "top"}, {"zone": "bottom"}, {"zone": "bottom"}],
         "seatPlacements": [{"zone": "top", "type": "chair", "count": 2}, {"zone": "bottom", "type": "chair", "count": 2}],
-        "image_bbox": {"x": 0, "y": 0, "w": 0, "h": 0},
         "confidence": 0.95
       }
     ],
@@ -55,24 +53,19 @@ const FLOOR_PLAN_IMAGE_IMPORT_SCHEMA = `JSON image-import obligatoire:
     "circulation": {"description": "..."},
     "resume_occupation": {"tables_totales": 0, "places_totales": 0}
   },
-  "salle": {
-    "nom": "1er Etage",
-    "forme": "rectangulaire",
-    "tables": [
-      {"numero": 20, "forme": "rectangulaire", "position": "haut_gauche", "places": 4, "etat": "occupee_ou_reservee", "couleur": "vert"},
-      {"numero": 23, "forme": "carree", "position": "haut_centre", "places": 2, "etat": "libre", "couleur": "beige"},
-      {"numero": 31, "forme": "carree", "position": "bas_centre_droit", "places": 2, "etat": "libre", "couleur": "beige"}
-    ],
-    "decoration": [{"type": "plante", "position": "haut_droit"}]
-  },
-  "tables": [],
   "explanation": "..."
 }
 Coordonnees: x_ratio/y_ratio/w_ratio/h_ratio sont des ratios 0-1 dans room_bounds, pas dans toute l'image.
-Si "analysis.tables" contient des ratios precis, ils sont prioritaires. Si l'IA renvoie seulement "salle.tables" avec des positions comme haut_centre_droit ou bas_gauche, Tok les convertit en placement stable.
-Inclue toutes les tables visibles quelle que soit leur couleur ou leur statut: les tables beige/libres comptent autant que les tables vertes/occupees.
-Avant de repondre, verifie que le nombre de tables listees correspond au nombre de numeros de table visibles. Une sortie partielle a 5 ou 7 tables est invalide si l'image montre 14 numeros.
-Ne renvoie jamais les chaises attachees aux tables comme meubles separes.`;
+N'emets PAS de bloc "salle" ni de tableau "tables" a la racine pour un import image: seul "analysis" est lu. Toute duplication gaspille le budget de reponse.
+N'emets PAS de tableau "seats" detaille: "seatPlacements" agrege suffit et Tok en deduit les assises.
+
+EXHAUSTIVITE (regle la plus importante):
+1. Compte d'abord tous les elements visibles: tables rondes, tables rectangulaires longues, estrades, comptoirs, buffets, mange-debout, canapes.
+2. Renseigne analysis.resume_occupation.tables_totales avec ce comptage AVANT de rediger la liste.
+3. La liste analysis.tables + analysis.furniture doit contenir exactement ce nombre d'elements.
+Une sortie partielle est invalide: si le plan montre 10 rondes, 8 tables longues, une piste de danse, un DJ, 2 bars et un buffet, il faut 23 entrees, pas 3.
+Inclue toutes les tables quelle que soit leur couleur ou leur statut: les tables beige/libres comptent autant que les vertes/occupees.
+Ne renvoie jamais les chaises attachees aux tables comme meubles separes: elles sont deja decrites par seatPlacements.`;
 
 type FloorplanAction = "generate" | "optimize" | "suggest-furniture" | "custom" | "image-import";
 
@@ -114,8 +107,15 @@ type SemanticFrameHint = {
   h_ratio: number;
 };
 
-const RESERVABLE_TABLE_KINDS = new Set(["table-round-2", "table-round-4", "table-rect-2", "table-rect-4", "table-rect-6", "table"]);
-const FURNITURE_KINDS = new Set(["chair", "stool", "bar", "corner-bench", "banquette", "booth", "host-stand", "divider", "plant", "service-station"]);
+const RESERVABLE_TABLE_KINDS = new Set([
+  "table-round-2", "table-round-4", "table-round-6", "table-round-8", "table-round-10",
+  "table-rect-2", "table-rect-4", "table-rect-6", "table-banquet", "cocktail-table", "table",
+]);
+const FURNITURE_KINDS = new Set([
+  "chair", "stool", "bar", "corner-bench", "banquette", "booth", "sofa",
+  "host-stand", "divider", "plant", "service-station",
+  "dancefloor", "dj-booth", "stage", "buffet", "cake-table",
+]);
 const RECT_SEAT_ZONES = new Set(["top", "right", "bottom", "left"]);
 const ROUND_SEAT_ZONES = new Set(["north", "north-east", "east", "south-east", "south", "south-west", "west", "north-west"]);
 
@@ -126,9 +126,18 @@ function clampNumber(value: unknown, fallback: number, min: number, max: number)
 }
 
 function getTableKind(shape: "round" | "rect", capacity: number) {
-  if (shape === "round") return capacity <= 2 ? "table-round-2" : "table-round-4";
+  // Banquet plans routinely use 8 to 12 seat rounds and long shared tables:
+  // collapsing them to a 4-seat kind lost both the capacity and the visual.
+  if (shape === "round") {
+    if (capacity <= 2) return "table-round-2";
+    if (capacity <= 4) return "table-round-4";
+    if (capacity <= 6) return "table-round-6";
+    if (capacity <= 8) return "table-round-8";
+    return "table-round-10";
+  }
   if (capacity <= 2) return "table-rect-2";
-  return capacity <= 4 ? "table-rect-4" : "table-rect-6";
+  if (capacity <= 4) return "table-rect-4";
+  return capacity <= 6 ? "table-rect-6" : "table-banquet";
 }
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -209,6 +218,12 @@ function normalizeFurnitureKind(value: unknown) {
   if (["bar", "comptoir"].includes(token)) return "bar";
   if (["chair", "chaise"].includes(token)) return "chair";
   if (["stool", "tabouret"].includes(token)) return "stool";
+  if (["sofa", "canape", "couch", "lounge"].includes(token)) return "sofa";
+  if (["dancefloor", "dance_floor", "piste", "piste_de_danse"].includes(token)) return "dancefloor";
+  if (["dj", "dj_booth", "regie", "regie_dj", "booth_dj"].includes(token)) return "dj-booth";
+  if (["stage", "scene", "estrade", "podium"].includes(token)) return "stage";
+  if (["buffet", "buffet_line", "ligne_buffet", "food_station"].includes(token)) return "buffet";
+  if (["cake_table", "cake", "gateau", "table_gateau", "piece_montee"].includes(token)) return "cake-table";
   return FURNITURE_KINDS.has(token) ? token : null;
 }
 
@@ -805,9 +820,17 @@ Disposition actuelle:
 ${currentLayoutSummary}
 
 TYPES DISPONIBLES (kind):
-- "table-round-2", "table-round-4", "table-rect-2", "table-rect-4", "table-rect-6"
-- "chair", "stool", "bar", "corner-bench", "banquette", "booth"
-- "host-stand", "divider", "plant", "service-station"
+- Tables restaurant: "table-round-2", "table-round-4", "table-rect-2", "table-rect-4", "table-rect-6"
+- Tables reception/banquet: "table-round-6", "table-round-8", "table-round-10", "table-banquet" (table longue de 8 a 16 couverts), "cocktail-table" (mange-debout)
+- Mobilier: "chair", "stool", "bar", "corner-bench", "banquette", "booth", "sofa"
+- Evenementiel: "dancefloor" (piste de danse), "dj-booth" (regie DJ), "stage" (scene/estrade), "buffet" (ligne de buffet), "cake-table" (table de gateau)
+- Decor et service: "host-stand", "divider", "plant", "service-station"
+
+Choix du kind sur un import image:
+- Une ronde entouree de 6 a 12 chaises est "table-round-6/8/10" selon le comptage, jamais "table-round-4".
+- Une table longue bordee de chaises des deux cotes est "table-banquet", capacity = nombre de chaises comptees.
+- Un grand rectangle vide au centre de la salle est "dancefloor", pas une table.
+- Les libelles ecrits sur le plan (bar, buffet, dj, dancefloor, cake, cocktail) priment toujours sur la forme.
 
 SHAPES: "round" ou "rect"
 SEAT TYPES: "chair", "stool", "bench", "corner-bench"
@@ -852,9 +875,17 @@ Disposition actuelle:
 ${currentLayoutSummary}
 
 TYPES DISPONIBLES (kind):
-- "table-round-2", "table-round-4", "table-rect-2", "table-rect-4", "table-rect-6"
-- "chair", "stool", "bar", "corner-bench", "banquette", "booth"
-- "host-stand", "divider", "plant", "service-station"
+- Tables restaurant: "table-round-2", "table-round-4", "table-rect-2", "table-rect-4", "table-rect-6"
+- Tables reception/banquet: "table-round-6", "table-round-8", "table-round-10", "table-banquet" (table longue de 8 a 16 couverts), "cocktail-table" (mange-debout)
+- Mobilier: "chair", "stool", "bar", "corner-bench", "banquette", "booth", "sofa"
+- Evenementiel: "dancefloor" (piste de danse), "dj-booth" (regie DJ), "stage" (scene/estrade), "buffet" (ligne de buffet), "cake-table" (table de gateau)
+- Decor et service: "host-stand", "divider", "plant", "service-station"
+
+Choix du kind sur un import image:
+- Une ronde entouree de 6 a 12 chaises est "table-round-6/8/10" selon le comptage, jamais "table-round-4".
+- Une table longue bordee de chaises des deux cotes est "table-banquet", capacity = nombre de chaises comptees.
+- Un grand rectangle vide au centre de la salle est "dancefloor", pas une table.
+- Les libelles ecrits sur le plan (bar, buffet, dj, dancefloor, cake, cocktail) priment toujours sur la forme.
 
 SHAPES: "round" ou "rect"
 SEAT TYPES: "chair", "stool", "bench", "corner-bench"
@@ -1064,7 +1095,10 @@ Deno.serve(async (req) => {
         { type: "image_url", image_url: { url: image.dataUrl, detail: "high" } },
       ]
       : userPrompt;
-    const maxTokens = action === "image-import" ? 4000 : 1800;
+    // A banquet plan carries 25 to 40 elements. The former 4000-token ceiling
+    // truncated the answer, so the model silently returned a handful of
+    // elements instead of the full room.
+    const maxTokens = action === "image-import" ? 16000 : 1800;
     const preflightCredits = estimateTextAiPreflightCredits({
       model: selectedModel,
       input: {

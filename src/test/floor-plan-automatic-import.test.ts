@@ -95,6 +95,71 @@ describe("automatic floor-plan image import", () => {
     expect(panel).toContain("height: dimensions.height");
   });
 
+  it("lets a restaurateur photograph a plan and compresses it before the size check", () => {
+    const panel = read("src/components/floor-plan/FloorPlanAIPanel.tsx");
+
+    // A phone photo is routinely 3-8 MB: rejecting it outright made the
+    // camera path unusable, so compression now runs before the limit check.
+    expect(panel).toContain("optimizeImageUpload");
+    const compressionIndex = panel.indexOf("optimizeImageUpload(file)");
+    const limitIndex = panel.indexOf("prepared.size > MAX_IMPORT_IMAGE_BYTES");
+    expect(compressionIndex).toBeGreaterThan(-1);
+    expect(limitIndex).toBeGreaterThan(compressionIndex);
+
+    expect(panel).toContain('capture="environment"');
+    expect(panel).toContain("Prendre en photo");
+    expect(panel).toContain("cameraInputRef");
+    expect(panel).toContain("onDrop={handleDrop}");
+    expect(panel).toContain("Placer automatiquement le mobilier");
+  });
+
+  it("gives the vision model room and vocabulary for a full banquet plan", () => {
+    const edgeFunction = read("supabase/functions/floorplan-ai/index.ts");
+
+    // A 4000-token ceiling truncated the answer on a 25-element room, so the
+    // import silently returned a handful of tables.
+    expect(edgeFunction).toContain('action === "image-import" ? 16000 : 1800');
+    expect(edgeFunction).not.toContain('action === "image-import" ? 4000');
+
+    // The redundant blocks that burned the budget are gone.
+    expect(edgeFunction).not.toContain('"seats": [{"zone": "top"}');
+    expect(edgeFunction).toContain('N\'emets PAS de bloc "salle"');
+    expect(edgeFunction).toContain("EXHAUSTIVITE");
+
+    // Event furniture the previous vocabulary could not express.
+    for (const kind of [
+      "table-round-10",
+      "table-banquet",
+      "cocktail-table",
+      "dancefloor",
+      "dj-booth",
+      "buffet",
+      "stage",
+      "cake-table",
+      "sofa",
+    ]) {
+      expect(edgeFunction, `kind manquant : ${kind}`).toContain(kind);
+    }
+
+    // A 10-seat round must no longer collapse into a 4-seat kind.
+    expect(edgeFunction).toContain('if (capacity <= 6) return "table-round-6"');
+    expect(edgeFunction).toContain('return "table-round-10"');
+  });
+
+  it("resizes round tops uniformly so they cannot become ellipses", () => {
+    const floorPlan = read("src/lib/floorPlan.ts");
+    const canvas = read("src/components/floor-plan/StudioCanvas.tsx");
+    const inspector = read("src/components/floor-plan/StudioInspector.tsx");
+
+    expect(floorPlan).toContain("UNIFORM_RESIZE_HANDLES");
+    expect(floorPlan).toContain('shape === "round"');
+    expect(floorPlan).toContain("ratioLocked: true, handles: UNIFORM_RESIZE_HANDLES");
+
+    // Both call sites must pass the shape, otherwise the lock never triggers.
+    expect(canvas).toContain("getFloorPlanItemResizeBehavior(table.layout.kind, table.layout.shape)");
+    expect(inspector).toContain("getFloorPlanItemResizeBehavior(selectedTable.layout.kind, selectedTable.layout.shape)");
+  });
+
   it("creates switchable variants instead of overwriting the active template immediately", () => {
     const page = read("src/pages/dashboard/DashboardPlanSalle.tsx");
 

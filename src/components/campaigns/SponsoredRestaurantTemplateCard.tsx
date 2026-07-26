@@ -169,20 +169,20 @@ export function SponsoredRestaurantTemplateCard({
         className={cn(
           "ad-banner-spotlight group relative isolate w-full overflow-hidden rounded-[30px] border border-orange-100 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.12)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_32px_82px_rgba(249,115,22,0.18)] dark:border-slate-800 dark:bg-slate-950",
           compactBanner
-            ? "min-h-[268px] grid-rows-[auto_minmax(116px,1fr)] sm:min-h-[286px] lg:h-[268px] lg:aspect-[16/5] lg:min-h-0"
-            : "min-h-[520px] sm:min-h-[500px] lg:aspect-[16/5] lg:min-h-0",
+            ? "min-h-[268px] grid-rows-[auto_minmax(116px,1fr)] sm:min-h-[286px] md:min-h-[248px] lg:h-[268px] lg:aspect-[16/5] lg:min-h-0"
+            : "min-h-[400px] sm:min-h-[440px] md:min-h-[300px] lg:aspect-[16/5] lg:min-h-0",
           className,
         )}
       >
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_48%,rgba(255,122,24,0.16),transparent_35%),linear-gradient(90deg,#ffffff_0%,#fffaf3_48%,#ff7a18_100%)] dark:bg-[linear-gradient(90deg,#020617_0%,#111827_48%,#ff6b00_100%)]" />
-        <div className="absolute right-0 top-0 hidden h-full w-[58%] rounded-l-[150px] bg-gradient-to-br from-orange-200/80 via-orange-400/90 to-[#ff5a00] lg:block" />
-        <div className="absolute right-[21%] top-1/2 hidden aspect-square h-[138%] -translate-y-1/2 rounded-full border-[20px] border-orange-500/90 bg-transparent lg:block" />
-        <div className="absolute right-8 top-7 hidden h-[calc(100%-3.5rem)] w-[48%] rounded-[42px] border-[6px] border-white/95 bg-white/75 shadow-[0_24px_60px_rgba(15,23,42,0.22)] lg:block" />
-        <div className="absolute bottom-0 right-0 h-1/2 w-full bg-gradient-to-t from-orange-500/18 to-transparent lg:hidden" />
+        <div className="absolute right-0 top-0 hidden h-full w-[58%] rounded-l-[150px] bg-gradient-to-br from-orange-200/80 via-orange-400/90 to-[#ff5a00] md:block" />
+        <div className="absolute right-[21%] top-1/2 hidden aspect-square h-[138%] -translate-y-1/2 rounded-full border-[20px] border-orange-500/90 bg-transparent md:block" />
+        <div className="absolute right-8 top-7 hidden h-[calc(100%-3.5rem)] w-[48%] rounded-[42px] border-[6px] border-white/95 bg-white/75 shadow-[0_24px_60px_rgba(15,23,42,0.22)] md:block dark:border-slate-900/95 dark:bg-slate-900/70" />
+        <div className="absolute bottom-0 right-0 h-1/2 w-full bg-gradient-to-t from-orange-500/18 to-transparent md:hidden" />
 
         <div
           className={cn(
-            "relative z-10 grid h-full lg:grid-cols-[minmax(0,0.45fr)_minmax(0,0.55fr)] lg:grid-rows-1",
+            "relative z-10 grid h-full md:grid-cols-[minmax(0,0.45fr)_minmax(0,0.55fr)] md:grid-rows-1",
             compactBanner ? "grid-rows-[auto_minmax(116px,1fr)]" : "grid-rows-[auto_minmax(220px,1fr)]",
           )}
         >
@@ -190,8 +190,8 @@ export function SponsoredRestaurantTemplateCard({
             className={cn(
               "flex min-w-0 flex-col justify-center",
               compactBanner
-                ? "p-4 pb-2 sm:p-5 sm:pb-3 lg:p-5 lg:pr-10 xl:p-6 xl:pr-14"
-                : "p-6 pb-4 sm:p-8 sm:pb-5 lg:p-8 lg:pr-14 xl:p-10 xl:pr-20 2xl:p-12 2xl:pr-24",
+                ? "p-4 pb-2 sm:p-5 sm:pb-3 md:p-4 md:pr-7 lg:p-5 lg:pr-10 xl:p-6 xl:pr-14"
+                : "p-6 pb-4 sm:p-8 sm:pb-5 md:p-5 md:pb-5 md:pr-8 lg:p-8 lg:pr-14 xl:p-10 xl:pr-20 2xl:p-12 2xl:pr-24",
             )}
           >
             <div className="flex flex-wrap items-center gap-2.5">
@@ -223,8 +223,8 @@ export function SponsoredRestaurantTemplateCard({
                 className={cn(
                   "mt-2 max-w-full break-words pb-3 leading-[1.14] text-slate-950 dark:text-white",
                   compactBanner
-                    ? "text-2xl sm:text-3xl lg:text-[2.35rem] xl:text-[2.7rem]"
-                    : "text-4xl sm:text-5xl lg:text-[3rem] xl:text-[3.8rem] 2xl:text-[4.8rem]",
+                    ? "text-2xl sm:text-3xl md:text-2xl lg:text-[2.35rem] xl:text-[2.7rem]"
+                    : "text-4xl sm:text-5xl md:text-[2rem] lg:text-[3rem] xl:text-[3.8rem] 2xl:text-[4.8rem]",
                   getTypographyClass(normalized.text.restaurant),
                 )}
                 style={getTextInlineStyle(normalized.text.restaurant)}
@@ -304,14 +304,16 @@ export function SponsoredRestaurantTemplateCard({
 
           <div
             className={cn(
-              "relative z-20 flex min-w-0 items-end pt-0 lg:items-center",
-              compactBanner ? "p-4 pt-0 sm:p-5 sm:pt-0 lg:h-full lg:p-5 lg:pl-9 xl:p-6 xl:pl-12" : "p-6 pt-0 sm:p-8 sm:pt-0 lg:h-full lg:p-7 lg:pl-12 xl:p-8 xl:pl-16",
+              "relative z-20 flex min-w-0 items-end pt-0 md:items-center",
+              compactBanner
+                ? "p-4 pt-0 sm:p-5 sm:pt-0 md:h-full md:p-4 md:pl-7 lg:h-full lg:p-5 lg:pl-9 xl:p-6 xl:pl-12"
+                : "p-6 pt-0 sm:p-8 sm:pt-0 md:h-full md:p-5 md:pl-8 lg:h-full lg:p-7 lg:pl-12 xl:p-8 xl:pl-16",
             )}
           >
             <div
               className={cn(
-                "relative w-full overflow-hidden rounded-[30px] border-[5px] border-white shadow-[0_24px_56px_rgba(15,23,42,0.24)] ring-1 ring-white/35 lg:h-full lg:rounded-[42px]",
-                compactBanner ? "min-h-[116px] bg-white sm:min-h-[136px] lg:min-h-0" : "min-h-[240px] bg-white sm:min-h-[260px] lg:min-h-0",
+                "relative w-full overflow-hidden rounded-[30px] border-[5px] border-white shadow-[0_24px_56px_rgba(15,23,42,0.24)] ring-1 ring-white/35 md:h-full md:rounded-[36px] lg:h-full lg:rounded-[42px] dark:border-slate-900",
+                compactBanner ? "min-h-[116px] bg-white sm:min-h-[136px] md:min-h-0 lg:min-h-0 dark:bg-slate-900" : "min-h-[240px] bg-white sm:min-h-[260px] md:min-h-0 lg:min-h-0 dark:bg-slate-900",
               )}
             >
               <img

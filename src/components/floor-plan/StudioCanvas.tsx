@@ -368,7 +368,7 @@ export default function StudioCanvas({
 
                         {isSelected
                           ? (() => {
-                            const resizeBehavior = getFloorPlanItemResizeBehavior(table.layout.kind);
+                            const resizeBehavior = getFloorPlanItemResizeBehavior(table.layout.kind, table.layout.shape);
                             return STUDIO_RESIZE_HANDLES
                               .filter((handle) => resizeBehavior.handles.includes(handle.key))
                               .map((handle) => (
