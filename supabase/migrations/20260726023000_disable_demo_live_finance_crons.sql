@@ -130,7 +130,16 @@ BEGIN
   IF EXISTS (
     SELECT 1
     FROM tok_demo_finance_crons_prechange AS before
-    FULL JOIN cron.job AS after
+    FULL JOIN (
+      SELECT j.*
+      FROM cron.job AS j
+      WHERE j.jobname = ANY (ARRAY[
+        'tok-reconcile-paid-order-checkouts',
+        'tok-reconcile-match-group-authorizations',
+        'tok-capture-due-match-groups',
+        'restaurant-subscription-activation-worker'
+      ]::text[])
+    ) AS after
       ON after.jobid = before.jobid
     WHERE before.jobid IS NULL
        OR after.jobid IS NULL
