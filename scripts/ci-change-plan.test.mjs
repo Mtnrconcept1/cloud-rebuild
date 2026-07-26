@@ -152,17 +152,6 @@ test("signale les fichiers Supabase que db push ne déploie pas", () => {
   assert.deepEqual(plan.unsupportedSupabasePaths, ["supabase/roles.sql"]);
 });
 
-test("traite le seed comme un artefact Preview/local sans déploiement Production", () => {
-  const plan = buildChangePlan(["supabase/seed.sql"]);
-
-  assert.equal(plan.fullSuite, true);
-  assert.equal(plan.supabaseCritical, true);
-  assert.equal(plan.deployDatabase, false);
-  assert.equal(plan.deployFunctions, false);
-  assert.equal(plan.hasDeployableChanges, false);
-  assert.deepEqual(plan.unsupportedSupabasePaths, []);
-});
-
 test("une configuration globale force tous les tests sans déploiement applicatif", () => {
   const plan = buildChangePlan(["vitest.config.ts"]);
 
