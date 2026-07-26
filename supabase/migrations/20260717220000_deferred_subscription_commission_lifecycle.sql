@@ -4314,6 +4314,11 @@ DO $$
 DECLARE
   v_base text := 'https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1';
 BEGIN
+  IF private.tok_is_production_cluster() IS NOT TRUE THEN
+    RAISE NOTICE
+      'Production-targeting cron schedule skipped outside the Production cluster';
+    RETURN;
+  END IF;
   IF NOT EXISTS (
     SELECT 1
     FROM vault.decrypted_secrets
