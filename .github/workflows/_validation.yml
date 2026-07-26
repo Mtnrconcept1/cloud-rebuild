@@ -178,7 +178,16 @@ jobs:
       - name: Audit production dependencies
         id: dependency_audit
         if: ${{ needs.plan.outputs.dependency_audit == 'true' }}
-        run: pnpm audit --prod --audit-level high
+        shell: bash
+        env:
+          npm_config_registry: https://registry.npmjs.org/
+          npm_config_audit_level: high
+          npm_config_fetch_retries: 5
+          npm_config_fetch_retry_mintimeout: 20000
+          npm_config_fetch_retry_maxtimeout: 120000
+        run: |
+          set -euo pipefail
+          pnpm audit --prod --audit-level high
 
       - name: Lint all sources
         id: lint
@@ -455,4 +464,3 @@ jobs:
           require_success "critical_tests" "$CRITICAL_RESULT" "$CRITICAL_REQUIRED"
           require_success "worker_tests" "$WORKER_RESULT" "$WORKER_REQUIRED"
           require_success "windows_worker_tests" "$WINDOWS_WORKER_RESULT" "$WORKER_REQUIRED"
-
