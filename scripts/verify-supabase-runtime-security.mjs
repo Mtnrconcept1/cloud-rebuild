@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -5,8 +6,12 @@ import { fileURLToPath } from "node:url";
 
 const PRODUCTION_PROJECT_REF = "wwcrtyoueexyxkkikaos";
 const MANAGEMENT_API_ORIGIN = "https://api.supabase.com";
+const RESEND_API_ORIGIN = "https://api.resend.com";
+const DEFAULT_EMAIL_FROM = "Tok <noreply@thetok.ch>";
+const RESEND_TEST_RECIPIENT = "delivered+tok-production-preflight@resend.dev";
 const MAX_ATTEMPTS = 3;
 const REQUEST_TIMEOUT_MS = 30_000;
+const PROVIDER_ERROR_CODE_PATTERN = /^[a-z0-9_-]{1,64}$/i;
 
 const CRON_CONFIGURATION_QUERY = `
 select
@@ -108,6 +113,121 @@ function secretNamesFromPayload(payload) {
   );
 }
 
+function normalizeEmailFrom(rawValue) {
+  const value = typeof rawValue === "string" && rawValue.trim()
+    ? rawValue.trim()
+    : DEFAULT_EMAIL_FROM;
+  const bracketMatch = value.match(/<([^<>]+)>/);
+  const address = (bracketMatch?.[1] || value).trim().toLowerCase();
+  const atIndex = address.lastIndexOf("@");
+  const domain = atIndex > 0 ? address.slice(atIndex + 1) : "";
+
+  if (
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)
+    || !/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(domain)
+  ) {
+    throw new Error("EMAIL_FROM must contain a valid production sender address.");
+  }
+
+  return { value, address, domain };
+}
+
+function normalizeProviderErrorCode(value) {
+  return typeof value === "string" && PROVIDER_ERROR_CODE_PATTERN.test(value)
+    ? value
+    : null;
+}
+
+async function readProviderErrorCode(response) {
+  try {
+    const payload = await response.json();
+    return normalizeProviderErrorCode(payload?.name);
+  } catch {
+    return null;
+  }
+}
+
+function buildResendIdempotencyKey(projectRef, emailFrom, now) {
+  const date = now.toISOString().slice(0, 10).replaceAll("-", "");
+  const senderDigest = createHash("sha256")
+    .update(emailFrom)
+    .digest("hex")
+    .slice(0, 12);
+  return `tok-production-preflight-${projectRef}-${date}-${senderDigest}`;
+}
+
+async function verifyResendSender(options, dependencies) {
+  const fetchImpl = dependencies.fetchImpl || globalThis.fetch;
+  const wait = dependencies.wait || delay;
+  const sender = normalizeEmailFrom(options.emailFrom);
+  const idempotencyKey = buildResendIdempotencyKey(
+    options.projectRef,
+    sender.value,
+    options.now,
+  );
+
+  const request = {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      Authorization: `Bearer ${options.resendApiKey}`,
+      "Content-Type": "application/json",
+      "Idempotency-Key": idempotencyKey,
+      "User-Agent": "TOK-Production-Preflight/1.0",
+    },
+    body: JSON.stringify({
+      from: sender.value,
+      to: [RESEND_TEST_RECIPIENT],
+      subject: "TOK production email provider preflight",
+      text: "Automated sender-domain readiness check. No user action is required.",
+    }),
+  };
+
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
+    let response;
+    try {
+      response = await fetchImpl(`${RESEND_API_ORIGIN}/emails`, {
+        ...request,
+        redirect: "error",
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      });
+    } catch (error) {
+      if (attempt === MAX_ATTEMPTS) {
+        throw new Error("Resend sender verification failed after bounded retries.", { cause: error });
+      }
+      await wait(attempt * 1_000);
+      continue;
+    }
+
+    if (response.ok) {
+      return {
+        senderDomain: sender.domain,
+        providerStatus: response.status,
+      };
+    }
+
+    if (isRetryableStatus(response.status) && attempt < MAX_ATTEMPTS) {
+      await wait(attempt * 1_000);
+      continue;
+    }
+
+    const providerErrorCode = await readProviderErrorCode(response);
+    const codeSuffix = providerErrorCode ? ` (${providerErrorCode})` : "";
+
+    if (response.status === 403 && providerErrorCode === "validation_error") {
+      throw new Error(
+        `Resend rejected EMAIL_FROM for ${sender.domain} with HTTP 403${codeSuffix}. Verify the sender domain DNS before deployment.`,
+      );
+    }
+
+    throw new Error(
+      `Resend production sender verification failed with HTTP ${response.status}${codeSuffix}.`,
+    );
+  }
+
+  throw new Error("Resend production sender verification failed.");
+}
+
 export async function verifySupabaseRuntimeSecurity(options = {}) {
   const projectRef = String(options.projectRef || "").trim();
   const accessToken = typeof options.accessToken === "string" ? options.accessToken.trim() : "";
@@ -158,13 +278,50 @@ export async function verifySupabaseRuntimeSecurity(options = {}) {
     now,
   );
 
-  if (!providerHasResend && !pendingResendSync && !graceActive) {
+  const requestedEmailFrom = typeof options.emailFrom === "string"
+    ? options.emailFrom.trim()
+    : "";
+  const verifiedAt = now.toISOString();
+
+  if (!providerHasResend && !pendingResendSync) {
+    if (graceActive) {
+      return {
+        cronConfirmed: "true",
+        cronEvidence: `Supabase Management API verified Vault cron secret and verifier with a read-only SELECT for ${projectRef} at ${verifiedAt}`,
+        resendConfirmed: "grace",
+        resendEvidence: `Temporary provider bootstrap grace permits absent RESEND_API_KEY until ${String(options.providerBootstrapGraceUntil).trim()}; email remains unavailable at ${verifiedAt}`,
+      };
+    }
+
     throw new Error(
       "Supabase production does not include RESEND_API_KEY and no valid GitHub secret is available for synchronization.",
     );
   }
 
-  const verifiedAt = now.toISOString();
+  if (requestedEmailFrom) {
+    if (!pendingResendSync) {
+      throw new Error(
+        "Supabase contains RESEND_API_KEY, but GitHub RESEND_API_KEY is unavailable for a live sender-domain test. Production deployment is blocked.",
+      );
+    }
+
+    const resendVerification = await verifyResendSender({
+      projectRef,
+      resendApiKey: configuredResendApiKey,
+      emailFrom: requestedEmailFrom,
+      now,
+    }, dependencies);
+
+    return {
+      cronConfirmed: "true",
+      cronEvidence: `Supabase Management API verified Vault cron secret and verifier with a read-only SELECT for ${projectRef} at ${verifiedAt}`,
+      resendConfirmed: "true",
+      resendEvidence: providerHasResend
+        ? `Supabase contains RESEND_API_KEY and Resend accepted a controlled delivery test from ${resendVerification.senderDomain} at ${verifiedAt}`
+        : `GitHub Actions validated RESEND_API_KEY with a controlled delivery test from ${resendVerification.senderDomain} before synchronization to ${projectRef} at ${verifiedAt}`,
+    };
+  }
+
   return {
     cronConfirmed: "true",
     cronEvidence: `Supabase Management API verified Vault cron secret and verifier with a read-only SELECT for ${projectRef} at ${verifiedAt}`,
@@ -213,8 +370,9 @@ if (isMain) {
     projectRef: process.env.SUPABASE_PROJECT_REF,
     accessToken: process.env.SUPABASE_ACCESS_TOKEN,
     resendApiKey: process.env.RESEND_API_KEY,
+    emailFrom: process.env.EMAIL_FROM || DEFAULT_EMAIL_FROM,
     providerBootstrapGraceUntil: process.env.PROVIDER_BOOTSTRAP_GRACE_UNTIL,
   });
   writeGithubOutputs(process.env.GITHUB_OUTPUT, result);
-  console.log("Supabase Vault cron authentication is verified and the Resend deployment policy is satisfied.");
+  console.log("Supabase Vault cron authentication and live Resend sender readiness are verified.");
 }
