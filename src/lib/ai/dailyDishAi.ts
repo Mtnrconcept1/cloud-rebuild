@@ -178,6 +178,14 @@ export function formatDailyDishError(error: unknown) {
   if (message.includes("daily_dish_generation_in_progress")) return "La recherche du jour est déjà en cours.";
   if (message.includes("supplier_prices_unavailable")) return "Aucun prix fournisseur suffisamment vérifiable n’a été trouvé. Réessayez plus tard.";
   if (message.includes("daily_dish_revision_limit")) return "La limite de cinq demandes de modification est atteinte pour cette proposition.";
+  if (
+    message.includes("daily_dish_publication_failed")
+    || message.includes("daily_dish_media_")
+    || message.includes("social_media_storage_")
+    || message.includes("actualites_image_")
+  ) {
+    return "La photo a bien été générée, mais la publication n’a pas pu être finalisée. Réessayez : la reprise est sécurisée et ne créera pas de doublon.";
+  }
   if (message.includes("ai_rate_limited") || message.includes("rate_limited")) return "Trop de recherches ont été lancées. Patientez quelques minutes.";
   if (message.includes("commercial_demo_ai_budget_exhausted")) return "Le budget OpenAI quotidien de la démonstration est atteint. Réessayez demain.";
   if (message.includes("ai_credits_exhausted")) return "Solde de crédits TOK insuffisant pour générer le visuel PhotoPro. Rechargez vos crédits ou attendez le prochain renouvellement.";

@@ -14,4 +14,11 @@ describe("legal consent banner layout", () => {
     expect(source).toContain("bg-white");
     expect(source).not.toContain("fixed inset-x-0 bottom-0");
   });
+
+  it("keeps the cookie settings control above the restaurateur mobile navigation", () => {
+    expect(source).toContain('pathname === "/dashboard"');
+    expect(source).toContain("bottom-[calc(env(safe-area-inset-bottom,0px)+5.25rem)]");
+    expect(source).toContain("left-[calc(env(safe-area-inset-left,0px)+0.75rem)]");
+    expect(source).toContain("md:bottom-4");
+  });
 });
