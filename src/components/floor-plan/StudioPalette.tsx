@@ -143,6 +143,7 @@ export default function StudioPalette({
             <TabsTrigger value="seating" className="rounded-lg px-2 py-2 text-xs font-semibold">Assises</TabsTrigger>
             <TabsTrigger value="structure" className="rounded-lg px-2 py-2 text-xs font-semibold">Structure</TabsTrigger>
             <TabsTrigger value="decor" className="rounded-lg px-2 py-2 text-xs font-semibold">Décor</TabsTrigger>
+            <TabsTrigger value="event" className="col-span-2 rounded-lg px-2 py-2 text-xs font-semibold">Événementiel</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>

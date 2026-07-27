@@ -40,7 +40,13 @@ export type FloorPlanItemKind =
   | "host-stand"
   | "divider"
   | "plant"
-  | "service-station";
+  | "service-station"
+  | "sofa"
+  | "dancefloor"
+  | "dj-booth"
+  | "stage"
+  | "buffet"
+  | "cake-table";
 type FloorPlanFurnitureKind = Exclude<FloorPlanItemKind, "table">;
 
 export type FloorPlanTableLayout = {
@@ -98,20 +104,11 @@ export function getFloorPlanItemResizeBehavior(
     case "chair":
     case "stool":
     case "plant":
+    case "dj-booth":
+    case "cake-table":
       return { ratioLocked: true, handles: UNIFORM_RESIZE_HANDLES };
-    case "bar":
-      return { ratioLocked: false, handles: ["nw", "n", "ne", "e", "se", "s", "sw", "w"] };
-    case "banquette":
-      return { ratioLocked: false, handles: ["nw", "n", "ne", "e", "se", "s", "sw", "w"] };
-    case "divider":
-      return { ratioLocked: false, handles: ["e", "w", "n", "s", "nw", "ne", "se", "sw"] };
-    case "booth":
-    case "host-stand":
-    case "service-station":
-    case "corner-bench":
-      return { ratioLocked: false, handles: ["nw", "n", "ne", "e", "se", "s", "sw", "w"] };
     default:
-      return { ratioLocked: false, handles: ["nw", "n", "ne", "e", "se", "s", "sw", "w"] };
+      return { ratioLocked: false, handles: FREE_RESIZE_HANDLES };
   }
 }
 
@@ -238,6 +235,12 @@ const ITEM_BASE_NAMES: Record<FloorPlanItemKind, string> = {
   divider: "Separateur",
   plant: "Plante",
   "service-station": "Desserte",
+  sofa: "Canape",
+  dancefloor: "Piste de danse",
+  "dj-booth": "DJ Booth",
+  stage: "Scene",
+  buffet: "Buffet",
+  "cake-table": "Table gateau",
 };
 
 const ITEM_TYPE_LABELS: Record<FloorPlanItemKind, string> = {
@@ -252,6 +255,12 @@ const ITEM_TYPE_LABELS: Record<FloorPlanItemKind, string> = {
   divider: "Separateur",
   plant: "Plante",
   "service-station": "Desserte de service",
+  sofa: "Canape lounge",
+  dancefloor: "Piste de danse",
+  "dj-booth": "Cabine DJ",
+  stage: "Scene / estrade",
+  buffet: "Buffet libre-service",
+  "cake-table": "Table a gateau",
 };
 
 const MIN_FURNITURE_SIZE: Record<Exclude<FloorPlanItemKind, "table">, { w: number; h: number; shape: FloorPlanTableShape }> = {
@@ -265,6 +274,12 @@ const MIN_FURNITURE_SIZE: Record<Exclude<FloorPlanItemKind, "table">, { w: numbe
   divider: { w: 188, h: 46, shape: "rect" },
   plant: { w: 84, h: 84, shape: "round" },
   "service-station": { w: 140, h: 92, shape: "rect" },
+  sofa: { w: 200, h: 96, shape: "rect" },
+  dancefloor: { w: 260, h: 260, shape: "rect" },
+  "dj-booth": { w: 120, h: 120, shape: "round" },
+  stage: { w: 300, h: 160, shape: "rect" },
+  buffet: { w: 240, h: 100, shape: "rect" },
+  "cake-table": { w: 100, h: 100, shape: "round" },
 };
 const MIN_FURNITURE_RESIZE_SIZE: Record<Exclude<FloorPlanItemKind, "table">, { w: number; h: number }> = {
   chair: { w: 1, h: 1 },
@@ -277,6 +292,12 @@ const MIN_FURNITURE_RESIZE_SIZE: Record<Exclude<FloorPlanItemKind, "table">, { w
   divider: { w: 1, h: 1 },
   plant: { w: 1, h: 1 },
   "service-station": { w: 1, h: 1 },
+  sofa: { w: 1, h: 1 },
+  dancefloor: { w: 1, h: 1 },
+  "dj-booth": { w: 1, h: 1 },
+  stage: { w: 1, h: 1 },
+  buffet: { w: 1, h: 1 },
+  "cake-table": { w: 1, h: 1 },
 };
 const MIN_RESIZE_SIZE = { w: 1, h: 1 };
 
@@ -2028,5 +2049,71 @@ export const FLOOR_PLAN_PRESETS: FloorPlanTablePreset[] = [
     shape: "rect",
     w: 140,
     h: 92,
+  },
+  {
+    id: "sofa",
+    label: "Canape",
+    description: "Assise lounge pour espace detente.",
+    category: "furniture",
+    kind: "sofa",
+    capacity: 0,
+    shape: "rect",
+    w: 200,
+    h: 96,
+  },
+  {
+    id: "dancefloor",
+    label: "Piste de danse",
+    description: "Zone de danse libre, sans mobilier.",
+    category: "furniture",
+    kind: "dancefloor",
+    capacity: 0,
+    shape: "rect",
+    w: 260,
+    h: 260,
+  },
+  {
+    id: "dj-booth",
+    label: "DJ Booth",
+    description: "Cabine DJ compacte.",
+    category: "furniture",
+    kind: "dj-booth",
+    capacity: 0,
+    shape: "round",
+    w: 120,
+    h: 120,
+  },
+  {
+    id: "stage",
+    label: "Scene",
+    description: "Estrade ou scene pour discours et musique.",
+    category: "furniture",
+    kind: "stage",
+    capacity: 0,
+    shape: "rect",
+    w: 300,
+    h: 160,
+  },
+  {
+    id: "buffet",
+    label: "Buffet",
+    description: "Comptoir de service buffet ou cocktail.",
+    category: "furniture",
+    kind: "buffet",
+    capacity: 0,
+    shape: "rect",
+    w: 240,
+    h: 100,
+  },
+  {
+    id: "cake-table",
+    label: "Table gateau",
+    description: "Presentoir a gateau ou desserts.",
+    category: "furniture",
+    kind: "cake-table",
+    capacity: 0,
+    shape: "round",
+    w: 100,
+    h: 100,
   },
 ];

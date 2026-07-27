@@ -30,7 +30,6 @@ function renderServiceBoard(overrides: Partial<Parameters<typeof ServiceBoard>[0
       unassignedReservationsCount={0}
       onTablePress={vi.fn()}
       onPrimaryReservationPress={vi.fn()}
-      onCanvasWheel={vi.fn()}
       onCanvasDragOver={vi.fn()}
       onCanvasDrop={vi.fn()}
       onCanvasDragLeave={vi.fn()}
@@ -75,7 +74,7 @@ describe("ServiceBoard", () => {
     expect(zoomOutButton).not.toBeNull();
 
     fireEvent.click(zoomOutButton as Element);
-    expect(onUpdateCanvasZoom).toHaveBeenCalledWith(0.63);
+    expect(onUpdateCanvasZoom).toHaveBeenCalledWith(0.58);
   });
 
   it("starts dragging furniture from the whole object surface", () => {

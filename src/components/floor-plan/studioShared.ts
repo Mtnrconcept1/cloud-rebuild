@@ -1,6 +1,6 @@
 import type { FloorPlanTableLayout } from "@/lib/floorPlan";
 
-export type StudioLibraryTab = "tables" | "seating" | "structure" | "decor";
+export type StudioLibraryTab = "tables" | "seating" | "structure" | "decor" | "event";
 
 export type StudioDraftTable = {
   id: string;

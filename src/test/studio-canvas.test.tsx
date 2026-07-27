@@ -21,7 +21,6 @@ describe("StudioCanvas", () => {
         selectedTableId={null}
         draggingTableId={null}
         onTablePress={vi.fn()}
-        onCanvasWheel={vi.fn()}
         onCanvasBackgroundPress={vi.fn()}
         onStartDraggingTable={vi.fn()}
         onStartResizingTable={vi.fn()}
@@ -58,7 +57,6 @@ describe("StudioCanvas", () => {
         selectedTableId={null}
         draggingTableId={null}
         onTablePress={vi.fn()}
-        onCanvasWheel={vi.fn()}
         onCanvasBackgroundPress={vi.fn()}
         onStartDraggingTable={vi.fn()}
         onStartResizingTable={vi.fn()}
@@ -72,7 +70,7 @@ describe("StudioCanvas", () => {
     expect(zoomOutButton).not.toBeNull();
 
     fireEvent.click(zoomOutButton as Element);
-    expect(onUpdateCanvasZoom).toHaveBeenCalledWith(0.63);
+    expect(onUpdateCanvasZoom).toHaveBeenCalledWith(0.58);
 
     onUpdateCanvasZoom.mockClear();
     fireEvent.click(getByText("Recentrer"));
@@ -114,7 +112,6 @@ describe("StudioCanvas", () => {
         selectedTableId={null}
         draggingTableId={null}
         onTablePress={vi.fn()}
-        onCanvasWheel={vi.fn()}
         onCanvasBackgroundPress={vi.fn()}
         onStartDraggingTable={onStartDraggingTable}
         onStartResizingTable={vi.fn()}
@@ -166,7 +163,6 @@ describe("StudioCanvas", () => {
         selectedTableId={null}
         draggingTableId={null}
         onTablePress={vi.fn()}
-        onCanvasWheel={vi.fn()}
         onCanvasBackgroundPress={vi.fn()}
         onStartDraggingTable={onStartDraggingTable}
         onStartResizingTable={vi.fn()}
@@ -217,7 +213,6 @@ describe("StudioCanvas", () => {
         selectedTableId="plant"
         draggingTableId={null}
         onTablePress={vi.fn()}
-        onCanvasWheel={vi.fn()}
         onCanvasBackgroundPress={vi.fn()}
         onStartDraggingTable={vi.fn()}
         onStartResizingTable={vi.fn()}
@@ -267,7 +262,6 @@ describe("StudioCanvas", () => {
         selectedTableId="plant"
         draggingTableId={null}
         onTablePress={vi.fn()}
-        onCanvasWheel={vi.fn()}
         onCanvasBackgroundPress={vi.fn()}
         onStartDraggingTable={vi.fn()}
         onStartResizingTable={vi.fn()}
