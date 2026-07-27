@@ -804,6 +804,7 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
           </div>
         )}
 
+
         <div className="flex items-start gap-2 text-xs text-muted-foreground"><Store className="mt-0.5 h-3.5 w-3.5 shrink-0" /><p>Les prix et stocks en ligne restent indicatifs et doivent être confirmés auprès du magasin. Les URL de sources sont conservées dans l’analyse privée, jamais exposées sur la fiche publique.</p></div>
       </section>
       {manualDailyDishDialog}

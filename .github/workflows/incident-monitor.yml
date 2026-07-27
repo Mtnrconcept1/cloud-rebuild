@@ -26,12 +26,12 @@ jobs:
     timeout-minutes: 5
     env:
       INCIDENT_CONTROL_URL: ${{ vars.TOK_INCIDENT_CONTROL_URL || secrets.TOK_INCIDENT_CONTROL_URL }}
-      INCIDENT_CONTROL_SECRET: ${{ secrets.TOK_INCIDENT_CONTROL_SECRET }}
+      INCIDENT_CONTROL_SECRET: ${{ secrets.TOK_INCIDENT_CONTROL_SECRET || secrets.OPS_CONTROL_SECRET }}
 
     steps:
       - name: Configuration notice
         if: ${{ env.INCIDENT_CONTROL_URL == '' || env.INCIDENT_CONTROL_SECRET == '' }}
-        run: echo "::notice::TOK incident monitoring is installed but not activated. Configure TOK_INCIDENT_CONTROL_URL and TOK_INCIDENT_CONTROL_SECRET."
+        run: echo "::notice::TOK incident monitoring is installed but not activated. Configure TOK_INCIDENT_CONTROL_URL/TOK_INCIDENT_CONTROL_SECRET (or OPS_CONTROL_SECRET)."
 
       - name: Scan verified Edge Function failures
         if: ${{ env.INCIDENT_CONTROL_URL != '' && env.INCIDENT_CONTROL_SECRET != '' }}
@@ -56,7 +56,7 @@ jobs:
     timeout-minutes: 5
     env:
       INCIDENT_CONTROL_URL: ${{ vars.TOK_INCIDENT_CONTROL_URL || secrets.TOK_INCIDENT_CONTROL_URL }}
-      INCIDENT_CONTROL_SECRET: ${{ secrets.TOK_INCIDENT_CONTROL_SECRET }}
+      INCIDENT_CONTROL_SECRET: ${{ secrets.TOK_INCIDENT_CONTROL_SECRET || secrets.OPS_CONTROL_SECRET }}
       FAILED_WORKFLOW_NAME: ${{ github.event.workflow_run.name }}
       FAILED_WORKFLOW_ID: ${{ github.event.workflow_run.id }}
       FAILED_WORKFLOW_URL: ${{ github.event.workflow_run.html_url }}
