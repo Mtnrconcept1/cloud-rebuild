@@ -39,7 +39,7 @@ jobs:
       PNPM_VERSION: 10.28.1
       INCIDENT_CONTROL_URL: ${{ vars.TOK_INCIDENT_CONTROL_URL || secrets.TOK_INCIDENT_CONTROL_URL }}
       CODEX_API_KEY_PRESENT: ${{ secrets.OPENAI_API_KEY != '' }}
-      INCIDENT_GITHUB_SECRET_PRESENT: ${{ secrets.TOK_INCIDENT_GITHUB_SECRET != '' }}
+      INCIDENT_GITHUB_SECRET_PRESENT: ${{ secrets.TOK_INCIDENT_GITHUB_SECRET != '' || secrets.OPS_GITHUB_CALLBACK_SECRET != '' }}
 
     steps:
       - name: Validate approved incident request
@@ -106,7 +106,7 @@ jobs:
       - name: Retrieve approved sanitized repair context
         env:
           INCIDENT_ID: ${{ steps.request.outputs.incident_id }}
-          INCIDENT_GITHUB_SECRET: ${{ secrets.TOK_INCIDENT_GITHUB_SECRET }}
+          INCIDENT_GITHUB_SECRET: ${{ secrets.TOK_INCIDENT_GITHUB_SECRET || secrets.OPS_GITHUB_CALLBACK_SECRET }}
         shell: bash
         run: |
           set -euo pipefail
@@ -146,7 +146,7 @@ jobs:
         continue-on-error: true
         env:
           INCIDENT_ID: ${{ steps.request.outputs.incident_id }}
-          INCIDENT_GITHUB_SECRET: ${{ secrets.TOK_INCIDENT_GITHUB_SECRET }}
+          INCIDENT_GITHUB_SECRET: ${{ secrets.TOK_INCIDENT_GITHUB_SECRET || secrets.OPS_GITHUB_CALLBACK_SECRET }}
         shell: bash
         run: |
           set -euo pipefail
@@ -545,7 +545,7 @@ jobs:
     continue-on-error: true
     env:
       INCIDENT_CONTROL_URL: ${{ vars.TOK_INCIDENT_CONTROL_URL || secrets.TOK_INCIDENT_CONTROL_URL }}
-      INCIDENT_GITHUB_SECRET_PRESENT: ${{ secrets.TOK_INCIDENT_GITHUB_SECRET != '' }}
+      INCIDENT_GITHUB_SECRET_PRESENT: ${{ secrets.TOK_INCIDENT_GITHUB_SECRET != '' || secrets.OPS_GITHUB_CALLBACK_SECRET != '' }}
 
     steps:
       - name: Build final incident status
@@ -582,7 +582,7 @@ jobs:
       - name: Send final status
         if: ${{ env.INCIDENT_CONTROL_URL != '' && env.INCIDENT_GITHUB_SECRET_PRESENT == 'true' }}
         env:
-          INCIDENT_GITHUB_SECRET: ${{ secrets.TOK_INCIDENT_GITHUB_SECRET }}
+          INCIDENT_GITHUB_SECRET: ${{ secrets.TOK_INCIDENT_GITHUB_SECRET || secrets.OPS_GITHUB_CALLBACK_SECRET }}
           INCIDENT_ID: ${{ needs.prepare.outputs.incident_id }}
           REPAIR_BRANCH: ${{ needs.prepare.outputs.repair_branch }}
           PR_URL: ${{ needs.publish.outputs.pr_url }}
