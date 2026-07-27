@@ -13,43 +13,14 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  apply_targeted_auth_hotfix:
-    name: apply targeted auth hotfix
-    if: ${{ github.event_name == 'pull_request' && github.head_ref == 'fix/daily-dish-publication-mobile-legal' }}
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout hotfix branch
-        uses: actions/checkout@v6
-        with:
-          ref: ${{ github.head_ref }}
-          fetch-depth: 0
-
-      - name: Apply legal acceptance patch
-        run: python scripts/apply-auth-legal-hotfix.py
-
-      - name: Commit the targeted source files
-        env:
-          HEAD_BRANCH: ${{ github.head_ref }}
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/pages/Auth.tsx src/test/auth-signup-form.test.tsx
-          git diff --cached --check
-          git commit -m "fix(auth): stabiliser l'acceptation des conditions"
-          git push origin "HEAD:${HEAD_BRANCH}"
-
   validation:
-    needs: apply_targeted_auth_hotfix
-    if: ${{ always() && (needs.apply_targeted_auth_hotfix.result == 'success' || needs.apply_targeted_auth_hotfix.result == 'skipped') }}
     uses: ./.github/workflows/_validation.yml
     with:
       base_sha: ${{ github.event.pull_request.base.sha || github.event.before || '' }}
