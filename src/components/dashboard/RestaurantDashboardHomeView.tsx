@@ -1,6 +1,5 @@
 import type { ComponentType, ReactNode } from "react";
 import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation } from "react-router-dom";
 import {
   ArrowRight,
@@ -30,9 +29,7 @@ import OrderStatusBadge from "@/components/OrderStatusBadge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
-import { getLocalDateKey } from "@/lib/commercialDemoDate";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { cn } from "@/lib/utils";
 import {
@@ -42,9 +39,8 @@ import {
 
 import "./RestaurantDashboardHomeView.css";
 
-const supabase = getSupabase();
-const EMPTY_MENU_ITEMS: MobileMenuItemRow[] = [];
-const EMPTY_TODAY_RESERVATIONS: MobileReservationRow[] = [];
+const EMPTY_MENU_ITEMS: RestaurantDashboardMobileMenuItem[] = [];
+const EMPTY_TODAY_RESERVATIONS: RestaurantDashboardMobileReservation[] = [];
 
 export type RestaurantDashboardHomeOrder = {
   id: string;
@@ -62,7 +58,7 @@ export type RestaurantDashboardHomeReservation = {
   servicePeriodLabel: string;
 };
 
-type MobileMenuItemRow = {
+export type RestaurantDashboardMobileMenuItem = {
   id: string;
   name: string;
   description: string | null;
@@ -71,7 +67,7 @@ type MobileMenuItemRow = {
   category: string | null;
 };
 
-type MobileReservationRow = {
+export type RestaurantDashboardMobileReservation = {
   id: string;
   date: string;
   time: string;
@@ -149,7 +145,7 @@ function normalizeSearchText(value: string | null | undefined) {
     .toLowerCase();
 }
 
-function isDailyMenuItem(item: MobileMenuItemRow) {
+function isDailyMenuItem(item: RestaurantDashboardMobileMenuItem) {
   const category = normalizeSearchText(item.category);
   return category.includes("jour")
     || category.includes("midi")
@@ -164,7 +160,7 @@ function formatTime(value: string | null | undefined) {
   return `${match[1].padStart(2, "0")}h${match[2]}`;
 }
 
-function getNextReservationTime(rows: readonly MobileReservationRow[]) {
+function getNextReservationTime(rows: readonly RestaurantDashboardMobileReservation[]) {
   const now = new Date();
   const nowMinutes = (now.getHours() * 60) + now.getMinutes();
   const parsed = rows
@@ -560,7 +556,7 @@ function MobileDailyMenu({
   items,
   fallbackImageUrl,
 }: {
-  items: readonly MobileMenuItemRow[];
+  items: readonly RestaurantDashboardMobileMenuItem[];
   fallbackImageUrl: string | null;
 }) {
   return (
@@ -747,6 +743,10 @@ export default function RestaurantDashboardHomeView({
   todayServiceCounts,
   upcomingOrders,
   upcomingReservations,
+  restaurantImageUrl = null,
+  mobileMenuItems = EMPTY_MENU_ITEMS,
+  mobileTodayReservations = EMPTY_TODAY_RESERVATIONS,
+  mobileReadyOrdersCount,
   leadingContent,
   marketingEnabled = true,
   demoSnapshot = false,
@@ -760,6 +760,10 @@ export default function RestaurantDashboardHomeView({
   todayServiceCounts: { lunch: number; dinner: number };
   upcomingOrders: readonly RestaurantDashboardHomeOrder[];
   upcomingReservations: readonly RestaurantDashboardHomeReservation[];
+  restaurantImageUrl?: string | null;
+  mobileMenuItems?: readonly RestaurantDashboardMobileMenuItem[];
+  mobileTodayReservations?: readonly RestaurantDashboardMobileReservation[];
+  mobileReadyOrdersCount?: number;
   leadingContent?: ReactNode;
   marketingEnabled?: boolean;
   demoSnapshot?: boolean;
@@ -767,7 +771,6 @@ export default function RestaurantDashboardHomeView({
   const { pathname } = useLocation();
   const { user } = useAuth();
   const {
-    selectedId,
     disabledFeatures,
     dashboardAccessLocked,
     onboardingConfigurationUnlocked,
@@ -780,128 +783,29 @@ export default function RestaurantDashboardHomeView({
       : globalActiveFeatures,
     [commercialDemoFrame, globalActiveFeatures],
   );
-  const isDemoDashboard = demoSnapshot || commercialDemoFrame?.surface === "restaurant";
-  const liveRestaurantId = !isDemoDashboard ? selectedId : null;
-  const today = getLocalDateKey(new Date());
 
-  const restaurantVisualQuery = useQuery({
-    queryKey: ["dashboard-mobile-restaurant-visual", liveRestaurantId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("restaurants")
-        .select("image_url")
-        .eq("id", liveRestaurantId!)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-    enabled: Boolean(liveRestaurantId),
-  });
-
-  const menuItemsQuery = useQuery<MobileMenuItemRow[]>({
-    queryKey: ["dashboard-mobile-menu-items", liveRestaurantId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("menu_items")
-        .select("id, name, description, price, image_url, category")
-        .eq("restaurant_id", liveRestaurantId!)
-        .eq("is_available", true)
-        .order("name", { ascending: true })
-        .limit(100);
-      if (error) throw error;
-      return (data || []) as MobileMenuItemRow[];
-    },
-    enabled: Boolean(liveRestaurantId),
-  });
-
-  const todayReservationsQuery = useQuery<MobileReservationRow[]>({
-    queryKey: ["dashboard-mobile-today-reservations", liveRestaurantId, today],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("reservations")
-        .select("id, date, time, party_size, status")
-        .eq("restaurant_id", liveRestaurantId!)
-        .eq("date", today)
-        .not("status", "in", "(cancelled,no_show,pending_payment)")
-        .order("time", { ascending: true })
-        .limit(250);
-      if (error) throw error;
-      return (data || []) as MobileReservationRow[];
-    },
-    enabled: Boolean(liveRestaurantId),
-  });
-
-  const readyOrdersQuery = useQuery<number>({
-    queryKey: ["dashboard-mobile-ready-orders", liveRestaurantId],
-    queryFn: async () => {
-      const { count, error } = await supabase
-        .from("orders")
-        .select("*", { count: "exact", head: true })
-        .eq("restaurant_id", liveRestaurantId!)
-        .eq("status", "ready");
-      if (error) throw error;
-      return count || 0;
-    },
-    enabled: Boolean(liveRestaurantId),
-  });
-
-  const demoMenuItems = useMemo<MobileMenuItemRow[]>(() => {
-    if (!commercialDemoFrame || commercialDemoFrame.surface !== "restaurant") return [];
-    return commercialDemoFrame.snapshot.catalog_items.map((item) => ({
-      id: item.id,
-      name: item.name,
-      description: item.description || null,
-      price: item.price,
-      image_url: item.image_url || null,
-      category: item.category || null,
-    }));
-  }, [commercialDemoFrame]);
-
-  const sourceMenuItems = isDemoDashboard
-    ? demoMenuItems
-    : menuItemsQuery.data || EMPTY_MENU_ITEMS;
   const dailyMenuItems = useMemo(
-    () => [...sourceMenuItems]
+    () => [...mobileMenuItems]
       .sort((left, right) => Number(isDailyMenuItem(right)) - Number(isDailyMenuItem(left)))
       .slice(0, 2),
-    [sourceMenuItems],
+    [mobileMenuItems],
   );
-
-  const demoTodayReservations = useMemo<MobileReservationRow[]>(
-    () => upcomingReservations
-      .filter((reservation) => reservation.date === today)
-      .map((reservation) => ({
-        id: reservation.id,
-        date: reservation.date,
-        time: reservation.time,
-        party_size: reservation.partySize,
-        status: reservation.status,
-      })),
-    [today, upcomingReservations],
-  );
-  const todayReservations = isDemoDashboard
-    ? demoTodayReservations
-    : todayReservationsQuery.data || EMPTY_TODAY_RESERVATIONS;
-  const todayReservationsCount = todayReservations.length;
-  const nextReservationTime = getNextReservationTime(todayReservations);
-  const readyOrdersCount = isDemoDashboard
-    ? upcomingOrders.filter((order) => order.status === "ready").length
-    : readyOrdersQuery.data || 0;
+  const todayReservationsCount = mobileTodayReservations.length;
+  const nextReservationTime = getNextReservationTime(mobileTodayReservations);
+  const readyOrdersCount = mobileReadyOrdersCount ?? upcomingOrders.filter((order) => order.status === "ready").length;
   const daysElapsedThisMonth = Math.max(1, new Date().getDate());
   const averageDailyRevenue = monthlyRevenue / daysElapsedThisMonth;
   const performanceDeltaPercent = averageDailyRevenue > 0
     ? ((todayRevenue - averageDailyRevenue) / averageDailyRevenue) * 100
     : todayRevenue > 0 ? 100 : 0;
   const userPresentation = getUserPresentation(user, restaurantName);
-  const restaurantImageUrl = isDemoDashboard
-    ? dailyMenuItems.find((item) => item.image_url)?.image_url || null
-    : restaurantVisualQuery.data?.image_url || dailyMenuItems.find((item) => item.image_url)?.image_url || null;
+  const resolvedRestaurantImageUrl = restaurantImageUrl || dailyMenuItems.find((item) => item.image_url)?.image_url || null;
 
   return (
     <DashboardLayout>
       <MobileRestaurantHeader
         restaurantName={restaurantName}
-        restaurantImageUrl={restaurantImageUrl}
+        restaurantImageUrl={resolvedRestaurantImageUrl}
       />
       <MobileBottomNavigation
         pathname={pathname}
@@ -953,7 +857,7 @@ export default function RestaurantDashboardHomeView({
         <div className="order-3 md:hidden">
           <MobileDailyMenu
             items={dailyMenuItems}
-            fallbackImageUrl={restaurantImageUrl}
+            fallbackImageUrl={resolvedRestaurantImageUrl}
           />
         </div>
 
