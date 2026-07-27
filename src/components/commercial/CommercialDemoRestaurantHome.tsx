@@ -3,6 +3,8 @@ import { Radio, ShieldCheck, ShoppingCart } from "lucide-react";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import RestaurantDashboardHomeView, {
   type RestaurantDashboardHomeOrder,
+  type RestaurantDashboardMobileMenuItem,
+  type RestaurantDashboardMobileReservation,
 } from "@/components/dashboard/RestaurantDashboardHomeView";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -67,6 +69,24 @@ export default function CommercialDemoRestaurantHome() {
     else counts.dinner += 1;
     return counts;
   }, { lunch: 0, dinner: 0 });
+  const mobileMenuItems: RestaurantDashboardMobileMenuItem[] = snapshot.catalog_items.map((item) => ({
+    id: item.id,
+    name: item.name,
+    description: item.description || null,
+    price: item.price,
+    image_url: item.image_url || null,
+    category: item.category || null,
+  }));
+  const mobileTodayReservations: RestaurantDashboardMobileReservation[] = upcomingReservations
+    .filter((reservation) => reservation.date === today)
+    .map((reservation) => ({
+      id: reservation.id,
+      date: reservation.date,
+      time: reservation.time,
+      party_size: reservation.partySize,
+      status: reservation.status,
+    }));
+  const mobileReadyOrdersCount = upcomingOrders.filter((candidate) => candidate.status === "ready").length;
 
   return (
     <RestaurantDashboardHomeView
@@ -79,6 +99,10 @@ export default function CommercialDemoRestaurantHome() {
       todayServiceCounts={todayServiceCounts}
       upcomingOrders={upcomingOrders}
       upcomingReservations={upcomingReservations}
+      restaurantImageUrl={mobileMenuItems.find((item) => item.image_url)?.image_url || null}
+      mobileMenuItems={mobileMenuItems}
+      mobileTodayReservations={mobileTodayReservations}
+      mobileReadyOrdersCount={mobileReadyOrdersCount}
       marketingEnabled={false}
       demoSnapshot
       leadingContent={(
