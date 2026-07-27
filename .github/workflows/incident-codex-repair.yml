@@ -68,8 +68,12 @@ jobs:
             echo "::error::Invalid incident context token."
             exit 1
           fi
-          if [[ -z "$INCIDENT_CONTROL_URL" || "$INCIDENT_GITHUB_SECRET_PRESENT" != "true" ]]; then
-            echo "::error::TOK incident callback configuration is incomplete."
+          if [[ -z "$INCIDENT_CONTROL_URL" ]]; then
+            echo "::error::TOK_INCIDENT_CONTROL_URL is not configured. Set it as a repository variable (vars.TOK_INCIDENT_CONTROL_URL) or secret (secrets.TOK_INCIDENT_CONTROL_URL)."
+            exit 1
+          fi
+          if [[ "$INCIDENT_GITHUB_SECRET_PRESENT" != "true" ]]; then
+            echo "::error::OPS_GITHUB_CALLBACK_SECRET is not configured as a repository secret. Add this shared secret to the repository, then run the 'TOK Incident Secret Sync' workflow to sync it to the Supabase Edge Function."
             exit 1
           fi
           if [[ "$CODEX_API_KEY_PRESENT" != "true" ]]; then
