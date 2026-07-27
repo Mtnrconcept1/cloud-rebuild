@@ -8,7 +8,9 @@ describe("Premium daily dish AI", () => {
   const migration = read("supabase/migrations/20260718201439_daily_dish_ai.sql");
   const publicPrivacy = read("supabase/migrations/20260718203641_daily_dish_public_column_privacy.sql");
   const demoBudget = read("supabase/migrations/20260718203923_daily_dish_demo_ai_budget_completion.sql");
+  const trustedActualitesMedia = read("supabase/migrations/20260727190000_daily_dish_actualites_trusted_asset.sql");
   const edge = read("supabase/functions/daily-dish-ai/index.ts");
+  const client = read("src/lib/ai/dailyDishAi.ts");
   const panel = read("src/components/dashboard/DailyDishAiPanel.tsx");
   const publicCard = read("src/components/restaurant/RestaurantDailyDishCard.tsx");
   const menu = read("src/pages/dashboard/DashboardMenu.tsx");
@@ -46,6 +48,27 @@ describe("Premium daily dish AI", () => {
     expect(migration).toContain("ON CONFLICT (restaurant_id, service_date) DO UPDATE");
   });
 
+  it("publishes only the exact stable PhotoPro gallery object into Actualités", () => {
+    expect(trustedActualitesMedia).toContain("asset.restaurant_id = v_post.restaurant_id");
+    expect(trustedActualitesMedia).toContain("asset.user_id = v_post.author_id");
+    expect(trustedActualitesMedia).toContain("gallery_storage_bucket");
+    expect(trustedActualitesMedia).toContain("v_storage_bucket IS DISTINCT FROM 'images'");
+    expect(trustedActualitesMedia).toContain("NEW.media_path IS DISTINCT FROM v_asset_path");
+    expect(trustedActualitesMedia).toContain("NEW.media_url IS DISTINCT FROM v_asset_url");
+    expect(trustedActualitesMedia).toContain("FROM storage.objects object");
+    expect(trustedActualitesMedia).toContain("'trusted_asset', true");
+    expect(trustedActualitesMedia).toContain("v_storage_bucket");
+    expect(trustedActualitesMedia).toContain("bucket = ANY (ARRAY['social-post-media'::text, 'images'::text])");
+    expect(trustedActualitesMedia).not.toContain("'ai-generated-assets'::text");
+  });
+
+  it("keeps ordinary social uploads confined to their post namespace", () => {
+    expect(trustedActualitesMedia).toContain("NEW.media_path NOT LIKE v_post.restaurant_id::text || '/' || NEW.post_id::text || '/%'");
+    expect(trustedActualitesMedia).toContain("object.bucket_id = 'social-post-media'");
+    expect(trustedActualitesMedia).toContain("'storage_bucket', 'social-post-media'");
+    expect(trustedActualitesMedia).toContain("'trusted_asset', false");
+  });
+
   it("gates the feature at Premium and validates the commercial demo session", () => {
     expect(edge).toContain('new Set(["premium", "elite", "custom"])');
     expect(edge).toContain("requireRestaurantAccess(actor, restaurantId)");
@@ -71,7 +94,6 @@ describe("Premium daily dish AI", () => {
   });
 
   it("keeps the generation budget consistent from model to lock window", () => {
-    const client = read("src/lib/ai/dailyDishAi.ts");
     const lockWindow = read("supabase/migrations/20260726070000_daily_dish_claim_lock_window.sql");
 
     // The default model must exist in the shared pricing table (gpt-5.6-sol
@@ -98,6 +120,8 @@ describe("Premium daily dish AI", () => {
     expect(panel).toContain("PHOTOPRO_DAILY_DISH_PROMPT");
     expect(panel).toContain("publish_actualite: publishActualite");
     expect(menu).toContain("<DailyDishAiPanel");
+    expect(client).toContain("daily_dish_publication_failed");
+    expect(client).toContain("la publication n’a pas pu être finalisée");
   });
 
   it("allows a restaurateur to add a manual daily dish without AI credits", () => {
