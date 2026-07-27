@@ -778,6 +778,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
   const [selectedSubscriptionPlanId, setSelectedSubscriptionPlanId] = useState("");
   const [selectedSubscriptionBillingPeriod, setSelectedSubscriptionBillingPeriod] = useState<SignupSubscriptionBillingPeriod>("monthly");
   const [legalAccepted, setLegalAccepted] = useState(false);
+  const [legalAcceptanceDraft, setLegalAcceptanceDraft] = useState(false);
   const [contractSignerName, setContractSignerName] = useState("");
   const [contractSignatureDataUrl, setContractSignatureDataUrl] = useState("");
   const [subscriptionPlans, setSubscriptionPlans] = useState<RestaurantSubscriptionPlanOption[]>([]);
@@ -1982,12 +1983,12 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
 
               {!isLogin && !legalAccepted ? (
                 <div
-                  className="fixed inset-0 z-[1900] flex items-start justify-center overflow-y-auto overscroll-contain bg-slate-950/35 px-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] pt-[max(1rem,env(safe-area-inset-top,0px))] backdrop-blur-md sm:items-center"
+                  className="fixed inset-0 z-[1900] isolate flex items-start justify-center overflow-y-auto overscroll-contain bg-slate-950/45 px-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] pt-[max(1rem,env(safe-area-inset-top,0px))] backdrop-blur-md sm:items-center"
                   role="dialog"
                   aria-modal="true"
                   aria-labelledby="legal-acceptance-title"
                 >
-                  <div className="max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto overscroll-contain rounded-3xl border border-slate-200 bg-white p-5 text-slate-950 shadow-2xl sm:p-7">
+                  <div className="pointer-events-auto max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto overscroll-contain rounded-3xl border border-slate-200 bg-white p-5 text-slate-950 shadow-2xl sm:p-7">
                     <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
                       <Shield className="h-6 w-6" />
                     </div>
@@ -1999,19 +2000,18 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
                         Avant de créer votre compte TOK, confirmez que vous avez lu et accepté les conditions applicables et la politique de confidentialité.
                       </p>
                     </div>
-                    <label
-                      htmlFor="legal-acceptance"
-                      className="mt-6 flex cursor-pointer items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-left text-sm transition hover:border-primary/40 hover:bg-primary/5"
-                    >
+                    <div className="mt-6 flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-left text-sm">
                       <Checkbox
                         id="legal-acceptance"
-                        checked={legalAccepted}
-                        onCheckedChange={(checked) => setLegalAccepted(checked === true)}
+                        checked={legalAcceptanceDraft}
+                        onCheckedChange={(checked) => setLegalAcceptanceDraft(checked === true)}
                         aria-label="J'accepte les CGU et la politique de confidentialité"
                         className="mt-0.5"
                       />
-                      <span className="leading-6 text-slate-700">
-                        J'accepte les{" "}
+                      <div className="leading-6 text-slate-700">
+                        <label htmlFor="legal-acceptance" className="cursor-pointer">
+                          J'accepte les
+                        </label>{" "}
                         <Link to="/cgu" target="_blank" className="font-semibold text-primary hover:underline">
                           CGU
                         </Link>{" "}
@@ -2024,11 +2024,32 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
                           politique de confidentialité
                         </Link>{" "}
                         de TOK.
-                      </span>
-                    </label>
+                      </div>
+                    </div>
                     <p className="mt-4 text-center text-xs leading-5 text-slate-500">
-                      Le formulaire reste affiché derrière cette fenêtre, mais il sera accessible après acceptation.
+                      Cochez la case, puis confirmez votre choix. La fenêtre reste ouverte tant que vous n'avez pas accepté ou refusé.
                     </p>
+                    <div className="mt-5 grid gap-2 sm:grid-cols-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setLegalAcceptanceDraft(false);
+                          setLegalAccepted(false);
+                          setIsLogin(true);
+                          setForgotPassword(false);
+                        }}
+                      >
+                        Refuser
+                      </Button>
+                      <Button
+                        type="button"
+                        disabled={!legalAcceptanceDraft}
+                        onClick={() => setLegalAccepted(true)}
+                      >
+                        Accepter et continuer
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ) : null}
@@ -2160,6 +2181,8 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
                 onClick={() => {
                   setIsLogin((current) => !current);
                   setForgotPassword(false);
+                  setLegalAccepted(false);
+                  setLegalAcceptanceDraft(false);
                 }}
                 className="text-sm text-muted-foreground transition-colors hover:text-primary"
               >

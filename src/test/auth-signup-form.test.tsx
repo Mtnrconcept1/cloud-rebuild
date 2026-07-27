@@ -199,6 +199,7 @@ function signRestaurantContract() {
 
 function acceptLegalTerms() {
   fireEvent.click(screen.getByLabelText(/J'accepte les CGU/i));
+  fireEvent.click(screen.getByRole("button", { name: "Accepter et continuer" }));
 }
 
 describe("Auth signup form", () => {
@@ -311,6 +312,33 @@ describe("Auth signup form", () => {
     fireEvent.click(screen.getByRole("button", { name: "Masquer le mot de passe" }));
     expect(passwordInput).toHaveAttribute("type", "password");
     expect(supabaseMocks.signUp).not.toHaveBeenCalled();
+  });
+
+  it("keeps the legal dialog open until the user explicitly confirms", async () => {
+    await renderAuth("/auth?type=client");
+
+    fireEvent.click(screen.getByRole("button", { name: "Pas encore de compte ? S'inscrire" }));
+    const dialog = screen.getByRole("dialog", { name: "Accepter les conditions générales" });
+    const acceptButton = screen.getByRole("button", { name: "Accepter et continuer" });
+
+    expect(acceptButton).toBeDisabled();
+    fireEvent.click(screen.getByLabelText(/J'accepte les CGU/i));
+    expect(dialog).toBeInTheDocument();
+    expect(acceptButton).toBeEnabled();
+
+    fireEvent.click(acceptButton);
+    expect(screen.queryByRole("dialog", { name: "Accepter les conditions générales" })).not.toBeInTheDocument();
+    expect(screen.getByText("Conditions acceptées")).toBeInTheDocument();
+  });
+
+  it("lets the user refuse the legal terms and return to login", async () => {
+    await renderAuth("/auth?type=client");
+
+    fireEvent.click(screen.getByRole("button", { name: "Pas encore de compte ? S'inscrire" }));
+    fireEvent.click(screen.getByRole("button", { name: "Refuser" }));
+
+    expect(screen.queryByRole("dialog", { name: "Accepter les conditions générales" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Se connecter" })).toBeInTheDocument();
   });
 
   it("submits client signup with the confirmation redirect and does not auto-login without a session", async () => {

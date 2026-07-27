@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { CheckCircle2, Settings2, ShieldCheck, XCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -25,9 +25,11 @@ const categories: Array<{
 ];
 
 export default function LegalConsentBanner() {
+  const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
   const [details, setDetails] = useState(false);
   const [preferences, setPreferences] = useState<ConsentPreferences>(DEFAULT_CONSENT);
+  const isRestaurantMobileOverview = pathname === "/dashboard";
 
   useEffect(() => {
     const stored = readConsent();
@@ -59,10 +61,16 @@ export default function LegalConsentBanner() {
       <button
         type="button"
         onClick={() => { setDetails(true); setOpen(true); }}
-        className="fixed bottom-4 left-4 z-[1300] inline-flex items-center gap-2 rounded-full border border-border/80 bg-background/95 px-4 py-2 text-xs font-semibold shadow-lg backdrop-blur-xl hover:border-primary/60 hover:text-primary"
+        className={cn(
+          "fixed z-[1300] inline-flex max-w-[calc(100vw-1.5rem)] items-center gap-2 rounded-full border border-border/80 bg-background/95 px-4 py-2 text-xs font-semibold shadow-lg backdrop-blur-xl hover:border-primary/60 hover:text-primary",
+          "left-[calc(env(safe-area-inset-left,0px)+0.75rem)] md:bottom-4 md:left-4",
+          isRestaurantMobileOverview
+            ? "bottom-[calc(env(safe-area-inset-bottom,0px)+5.25rem)]"
+            : "bottom-[calc(env(safe-area-inset-bottom,0px)+1rem)]",
+        )}
       >
-        <Settings2 className="h-4 w-4" />
-        Gérer mes cookies
+        <Settings2 className="h-4 w-4 shrink-0" />
+        <span className="truncate">Gérer mes cookies</span>
       </button>
     );
   }
