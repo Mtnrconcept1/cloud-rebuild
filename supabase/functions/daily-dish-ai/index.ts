@@ -997,7 +997,9 @@ async function handlePublish(actor: Actor, body: JsonRecord) {
   const scope = await resolveRequestScope(actor, body);
   if (scope.demo) return { published: true, demo: true };
   const variantId = requireUuid(body.variant_id, "variant_id_invalid");
-  const assetId = requireUuid(body.asset_id, "asset_id_invalid");
+  const assetId = typeof body.asset_id === "string" && UUID_PATTERN.test(body.asset_id)
+    ? body.asset_id
+    : null;
   const priceCents = Math.round(numberInRange(body.price_cents, 100, 1000000, 0));
   const description = sanitizeText(body.description, 1200);
   const publishActualite = body.publish_actualite === true;

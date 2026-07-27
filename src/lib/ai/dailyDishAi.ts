@@ -155,7 +155,7 @@ export function selectDailyDishProposal(input: BaseRequest & { variant_id: strin
 
 export function publishDailyDishProposal(input: BaseRequest & {
   variant_id: string;
-  asset_id: string;
+  asset_id?: string | null;
   price_cents: number;
   description: string;
   publish_actualite: boolean;

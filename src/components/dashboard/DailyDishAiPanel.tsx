@@ -378,7 +378,7 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
     }
   };
 
-  const publish = async () => {
+  const publish = async (withImage: boolean) => {
     if (!selectedVariant || !user?.id) return;
     const numericPrice = Number(price);
     if (!Number.isFinite(numericPrice) || numericPrice < 1 || description.trim().length < 2) {
@@ -388,34 +388,41 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
     setPublishing(true);
     setPublishedImageUrl(null);
     try {
-      void requestAiCreationNotificationPermission();
-      const imageJob = startTokImageCreationJob({
-        restaurantId,
-        userId: user.id,
-        tool: "menu_photo",
-        title: `PhotoPro · ${selectedVariant.payload.name}`,
-        request: {
+      let assetId: string | null = null;
+      let imageUrl: string | null = null;
+
+      if (withImage) {
+        void requestAiCreationNotificationPermission();
+        const imageJob = startTokImageCreationJob({
           restaurantId,
-          dishName: selectedVariant.payload.name,
-          prompt: [PHOTOPRO_DAILY_DISH_PROMPT, selectedVariant.payload.image_prompt, `Plat : ${selectedVariant.payload.name}`, `Description : ${description.trim()}`].join("\n"),
-          assetType: "menu_visual",
-          format: "landscape",
-          outputResolution: "studio",
-          imageModel: "gpt-image-2",
-          variantCount: 1,
-          generateImage: true,
-          imageOnly: false,
-          styleMode: "photopro-daily-dish",
-        },
-      });
-      const image = await imageJob.promise;
-      const imageUrl = image.gallery_image_url || image.generated_image_url;
-      setPublishedImageUrl(imageUrl || null);
+          userId: user.id,
+          tool: "menu_photo",
+          title: `PhotoPro · ${selectedVariant.payload.name}`,
+          request: {
+            restaurantId,
+            dishName: selectedVariant.payload.name,
+            prompt: [PHOTOPRO_DAILY_DISH_PROMPT, selectedVariant.payload.image_prompt, `Plat : ${selectedVariant.payload.name}`, `Description : ${description.trim()}`].join("\n"),
+            assetType: "menu_visual",
+            format: "landscape",
+            outputResolution: "studio",
+            imageModel: "gpt-image-2",
+            variantCount: 1,
+            generateImage: true,
+            imageOnly: false,
+            styleMode: "photopro-daily-dish",
+          },
+        });
+        const image = await imageJob.promise;
+        assetId = image.assetId;
+        imageUrl = image.gallery_image_url || image.generated_image_url || null;
+        setPublishedImageUrl(imageUrl);
+      }
+
       const result = await publishDailyDishProposal({
         restaurant_id: restaurantId,
         session_id: sessionId,
         variant_id: selectedVariant.id,
-        asset_id: image.assetId,
+        asset_id: assetId,
         price_cents: Math.round(numericPrice * 100),
         description: description.trim(),
         publish_actualite: publishActualite,
@@ -433,7 +440,6 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
             name: selectedVariant.payload.name,
             description: description.trim(),
             price_cents: Math.round(numericPrice * 100),
-            // Demo images are private signed URLs; do not persist bearer-like URLs.
             image_url: null,
             service_date: todayInZurich(),
             actualite_body: publishActualite ? actualiteBody.trim() : null,
@@ -443,7 +449,9 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
       }
       toast({
         title: "Plat du jour publié",
-        description: publishActualite ? "La fiche restaurant et Actualités ont été mises à jour avec le visuel PhotoPro." : "La fiche restaurant a été mise à jour avec le visuel PhotoPro.",
+        description: withImage
+          ? (publishActualite ? "La fiche restaurant et Actualités ont été mises à jour avec le visuel PhotoPro." : "La fiche restaurant a été mise à jour avec le visuel PhotoPro.")
+          : (publishActualite ? "La fiche restaurant et Actualités ont été mises à jour." : "La fiche restaurant a été mise à jour."),
       });
       if (!isDemo && result.publication) await loadState();
     } catch (error) {
@@ -565,7 +573,10 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
           <div className="mt-4 flex items-center justify-between gap-4 rounded-xl border p-3"><div><p className="font-semibold">Publier aussi dans Actualités</p><p className="text-xs text-muted-foreground">Une version éditoriale avec la même image sera créée.</p></div><Switch checked={publishActualite} onCheckedChange={setPublishActualite} aria-label="Publier également le plat du jour dans Actualités" /></div>
           {publishActualite && <div className="mt-3 space-y-2"><Label htmlFor="daily-dish-actualite">Texte Actualités</Label><Textarea id="daily-dish-actualite" value={actualiteBody} onChange={(event) => setActualiteBody(event.target.value)} rows={4} maxLength={4000} /></div>}
           {publishedImageUrl && <div className="mt-4 flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900"><img src={publishedImageUrl} alt={selectedVariant.payload.name} className="h-16 w-20 rounded-lg object-cover" /><div><p className="font-semibold">Visuel PhotoPro généré</p><p>Il accompagne la fiche et le post Actualités.</p></div></div>}
-          <div className="mt-4 flex justify-end"><Button className="gap-2" disabled={publishing} onClick={() => void publish()}>{publishing ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />} {publishing ? "PhotoPro et publication en cours…" : "Générer l’image et publier"}</Button></div>
+          <div className="mt-4 flex flex-col justify-end gap-2 sm:flex-row">
+            <Button variant="outline" className="gap-2" disabled={publishing} onClick={() => void publish(false)}>{publishing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} Publier sans image</Button>
+            <Button className="gap-2" disabled={publishing} onClick={() => void publish(true)}>{publishing ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />} {publishing ? "Publication en cours…" : "Générer l’image et publier"}</Button>
+          </div>
         </div>
       )}
 
