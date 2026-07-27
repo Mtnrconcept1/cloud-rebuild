@@ -23,6 +23,18 @@ const requiredIncidentSecrets = [
   "TELEGRAM_WEBHOOK_SECRET",
 ];
 
+const requiredWorkflowSecretBindings = [
+  ["SUPABASE_ACCESS_TOKEN", "SUPABASE_ACCESS_TOKEN"],
+  ["TOK_INCIDENT_GITHUB_CONTROL", "TOK_INCIDENT_GITHUB_CONTROL"],
+  ["OPS_INGEST_SECRET", "OPS_INGEST_SECRET"],
+  ["TOK_INCIDENT_GITHUB_SECRET", "TOK_INCIDENT_GITHUB_SECRET"],
+  ["GITHUB_INCIDENT_TOKEN", "TOK_GITHUB_INCIDENT_TOKEN"],
+  ["TELEGRAM_BOT_TOKEN", "TELEGRAM_BOT_TOKEN"],
+  ["TELEGRAM_ADMIN_CHAT_ID", "TELEGRAM_ADMIN_CHAT_ID"],
+  ["TELEGRAM_ADMIN_USER_ID", "TELEGRAM_ADMIN_USER_ID"],
+  ["TELEGRAM_WEBHOOK_SECRET", "TELEGRAM_WEBHOOK_SECRET"],
+] as const;
+
 describe("TOK incident secret synchronization", () => {
   it("allows every runtime-only incident secret in the protected env writer", () => {
     for (const name of requiredIncidentSecrets) {
@@ -43,8 +55,8 @@ describe("TOK incident secret synchronization", () => {
   });
 
   it("fails closed when a Telegram or Codex credential is absent", () => {
-    for (const name of requiredIncidentSecrets.filter((name) => name !== "GITHUB_INCIDENT_REPOSITORY")) {
-      expect(workflow).toContain(`${name}: \${{ secrets.${name} }}`);
+    for (const [envName, secretName] of requiredWorkflowSecretBindings) {
+      expect(workflow).toContain(`${envName}: \${{ secrets.${secretName} }}`);
     }
     expect(workflow).toContain("Missing required production secret");
     expect(workflow).toContain("exit 1");
