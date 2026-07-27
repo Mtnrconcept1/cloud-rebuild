@@ -35,6 +35,7 @@ import type { AIFloorPlanResult } from "@/components/floor-plan/FloorPlanAIPanel
 import SimpleReservationQueue from "@/components/floor-plan/SimpleReservationQueue";
 import ServiceBoard from "@/components/floor-plan/ServiceBoard";
 import StudioCanvas from "@/components/floor-plan/StudioCanvas";
+import { clampFloorPlanZoom } from "@/components/floor-plan/useFloorPlanZoomViewport";
 import StudioInspector from "@/components/floor-plan/StudioInspector";
 import StudioPalette from "@/components/floor-plan/StudioPalette";
 import TableConfigDialog from "@/components/floor-plan/TableConfigDialog";
@@ -66,7 +67,6 @@ import {
   isReservableFloorPlanItem,
   normalizeFloorPlanLayout,
   reservationsOverlap,
-  resolveFloorPlanViewportZoom,
   resizeFloorPlanLayoutToFootprint,
   resizeRenderedFloorPlanFrame,
   updateFloorPlanItemLayoutById,
@@ -244,9 +244,6 @@ const DEFAULT_SECTOR = "Salle principale";
 const DEFAULT_COUNTRY = "Suisse";
 const CANVAS_WIDTH = 1040;
 const CANVAS_HEIGHT = 760;
-const MIN_CANVAS_ZOOM = 0.1;
-const MAX_CANVAS_ZOOM = 1.8;
-const CANVAS_ZOOM_STEP = 0.1;
 const PANEL_SNAP_DISTANCE = 24;
 const RELEASED_STATUSES = new Set(["cancelled", "canceled", "no_show", "completed", "archived"]);
 const FLOOR_PLAN_RESERVATIONS_LIMIT = 500;
@@ -871,10 +868,6 @@ function getNextPresetLabel(tables: DraftTable[], preset: FloorPlanTablePreset) 
   return `${baseLabel} ${candidate}`;
 }
 
-function clampCanvasZoom(value: number) {
-  return Math.min(MAX_CANVAS_ZOOM, Math.max(MIN_CANVAS_ZOOM, Number(value.toFixed(2))));
-}
-
 function getTableContentPadding(
   layout: FloorPlanTableLayout,
   capacity: number,
@@ -1465,10 +1458,7 @@ export default function DashboardPlanSalle() {
       .sort((left, right) => sortReservations(left, right, sortBy))
   ), [branchScopedReservations, normalizedReservationQuery, referenceDate, serviceFilter, sortBy, statusFilter, timeRange]);
 
-  const effectiveCanvasZoom = useMemo(
-    () => resolveFloorPlanViewportZoom(canvasZoom, canvasWidth, canvasHeight),
-    [canvasHeight, canvasWidth, canvasZoom],
-  );
+  const effectiveCanvasZoom = clampFloorPlanZoom(canvasZoom);
 
   const floorPlanViewport = useMemo(
     () => buildFloorPlanViewportModel(draftTables, {
@@ -1567,28 +1557,24 @@ export default function DashboardPlanSalle() {
   );
   const libraryPresets = useMemo(() => ({
     tables: FLOOR_PLAN_PRESETS.filter((preset) => preset.category === "table"),
-    seating: FLOOR_PLAN_PRESETS.filter((preset) => ["chair", "stool", "corner-bench", "banquette", "booth"].includes(preset.kind)),
+    seating: FLOOR_PLAN_PRESETS.filter((preset) => ["chair", "stool", "sofa", "corner-bench", "banquette", "booth"].includes(preset.kind)),
     structure: FLOOR_PLAN_PRESETS.filter((preset) => ["bar", "host-stand", "divider", "service-station"].includes(preset.kind)),
     decor: FLOOR_PLAN_PRESETS.filter((preset) => ["plant"].includes(preset.kind)),
+    event: FLOOR_PLAN_PRESETS.filter((preset) => ["dancefloor", "dj-booth", "stage", "buffet", "cake-table"].includes(preset.kind)),
   }), []);
-  const filteredLibraryPresets = useMemo(() => ({
-    tables: libraryPresets.tables.filter((preset) => {
+  const filteredLibraryPresets = useMemo(() => {
+    const matchesQuery = (preset: (typeof FLOOR_PLAN_PRESETS)[number]) => {
       if (!normalizedLibraryQuery) return true;
       return normalizeSearchText([preset.label, preset.description, preset.kind].join(" ")).includes(normalizedLibraryQuery);
-    }),
-    seating: libraryPresets.seating.filter((preset) => {
-      if (!normalizedLibraryQuery) return true;
-      return normalizeSearchText([preset.label, preset.description, preset.kind].join(" ")).includes(normalizedLibraryQuery);
-    }),
-    structure: libraryPresets.structure.filter((preset) => {
-      if (!normalizedLibraryQuery) return true;
-      return normalizeSearchText([preset.label, preset.description, preset.kind].join(" ")).includes(normalizedLibraryQuery);
-    }),
-    decor: libraryPresets.decor.filter((preset) => {
-      if (!normalizedLibraryQuery) return true;
-      return normalizeSearchText([preset.label, preset.description, preset.kind].join(" ")).includes(normalizedLibraryQuery);
-    }),
-  }), [libraryPresets.decor, libraryPresets.seating, libraryPresets.structure, libraryPresets.tables, normalizedLibraryQuery]);
+    };
+    return {
+      tables: libraryPresets.tables.filter(matchesQuery),
+      seating: libraryPresets.seating.filter(matchesQuery),
+      structure: libraryPresets.structure.filter(matchesQuery),
+      decor: libraryPresets.decor.filter(matchesQuery),
+      event: libraryPresets.event.filter(matchesQuery),
+    };
+  }, [libraryPresets.decor, libraryPresets.event, libraryPresets.seating, libraryPresets.structure, libraryPresets.tables, normalizedLibraryQuery]);
 
   const isTemplateMode = editMode === "template";
 
@@ -2767,6 +2753,12 @@ export default function DashboardPlanSalle() {
       divider: { kind: "divider", category: "furniture" },
       plant: { kind: "plant", category: "furniture" },
       "service-station": { kind: "service-station", category: "furniture" },
+      sofa: { kind: "sofa", category: "furniture" },
+      dancefloor: { kind: "dancefloor", category: "furniture" },
+      "dj-booth": { kind: "dj-booth", category: "furniture" },
+      stage: { kind: "stage", category: "furniture" },
+      buffet: { kind: "buffet", category: "furniture" },
+      "cake-table": { kind: "cake-table", category: "furniture" },
     };
 
     const newTables: DraftTable[] = result.tables.map((aiTable) => {
@@ -3211,19 +3203,13 @@ export default function DashboardPlanSalle() {
   };
 
   const updateCanvasZoom = (nextZoom: number) => {
-    setCanvasZoom(clampCanvasZoom(nextZoom));
+    setCanvasZoom(clampFloorPlanZoom(nextZoom));
   };
 
   const revealResponsivePanel = (panelId: string) => {
     window.requestAnimationFrame(() => {
       document.getElementById(panelId)?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
-  };
-
-  const handleCanvasWheel = (event: React.WheelEvent<HTMLDivElement>) => {
-    if (!event.ctrlKey && !event.metaKey) return;
-    event.preventDefault();
-    updateCanvasZoom(effectiveCanvasZoom + (event.deltaY < 0 ? CANVAS_ZOOM_STEP : -CANVAS_ZOOM_STEP));
   };
 
   const handleCanvasDragOver = (event: React.DragEvent<HTMLDivElement>) => {
@@ -3580,7 +3566,6 @@ export default function DashboardPlanSalle() {
                     setSelectedTableId(tableId);
                     setToolPanelTab("inspector");
                   }}
-                  onCanvasWheel={handleCanvasWheel}
                   onCanvasBackgroundPress={() => setSelectedTableId(null)}
                   onStartDraggingTable={startDraggingTable}
                   onStartResizingTable={(event, tableId, handle) => startResizingTable(event, tableId, handle)}
@@ -3723,7 +3708,6 @@ export default function DashboardPlanSalle() {
                   }}
                   onReservationStatusChange={(reservationId, status) => updateReservationStatusMutation.mutate({ id: reservationId, status })}
                   onReleaseReservation={clearReservationAssignment}
-                  onCanvasWheel={handleCanvasWheel}
                   onCanvasDragOver={handleCanvasDragOver}
                   onCanvasDrop={handleCanvasDrop}
                   onCanvasDragLeave={handleCanvasDragLeave}

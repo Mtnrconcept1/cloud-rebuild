@@ -1,4 +1,4 @@
-import { useEffect, type DragEvent, type KeyboardEvent, type PointerEvent, type RefObject, type WheelEvent } from "react";
+import { useEffect, type DragEvent, type KeyboardEvent, type PointerEvent, type RefObject } from "react";
 import { Grip, LayoutPanelTop, RotateCw, ZoomIn, ZoomOut } from "lucide-react";
 
 import { FloorPlanItemIllustration } from "@/components/floor-plan/FloorPlanItemIllustration";
@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { getFloorPlanInteractiveFrame, isReservableFloorPlanItem, type FloorPlanResizeHandle } from "@/lib/floorPlan";
 import { cn } from "@/lib/utils";
 
+import { useFloorPlanZoomViewport, FLOOR_PLAN_MIN_ZOOM, FLOOR_PLAN_MAX_ZOOM } from "./useFloorPlanZoomViewport";
 import {
   type RenderedTableFrame,
   type ReservationDropState,
@@ -44,7 +45,6 @@ type ServiceBoardProps = {
   onPrimaryReservationPress: (reservationId: string, tableId: string) => void;
   onReservationStatusChange: (reservationId: string, status: string) => void;
   onReleaseReservation: (reservationId: string) => void;
-  onCanvasWheel: (event: WheelEvent<HTMLDivElement>) => void;
   onCanvasDragOver: (event: DragEvent<HTMLDivElement>) => void;
   onCanvasDrop: (event: DragEvent<HTMLDivElement>) => void;
   onCanvasDragLeave: (event: DragEvent<HTMLDivElement>) => void;
@@ -63,9 +63,6 @@ type ServiceBoardProps = {
   ) => { top: number; right: number; bottom: number; left: number };
 };
 
-const MIN_CANVAS_ZOOM = 0.1;
-const MAX_CANVAS_ZOOM = 1.8;
-const CANVAS_ZOOM_STEP = 0.1;
 const BASE_CANVAS_WIDTH = 1040;
 const BASE_CANVAS_HEIGHT = 760;
 const SERVICE_RESIZE_HANDLES: Array<{ key: FloorPlanResizeHandle; className: string; cursor: string }> = [
@@ -182,7 +179,6 @@ export default function ServiceBoard({
   onPrimaryReservationPress,
   onReservationStatusChange,
   onReleaseReservation,
-  onCanvasWheel,
   onCanvasDragOver,
   onCanvasDrop,
   onCanvasDragLeave,
@@ -232,6 +228,12 @@ export default function ServiceBoard({
     };
   }, [canvasViewportRef, onCanvasViewportResize]);
 
+  const { zoomIn, zoomOut, resetZoom } = useFloorPlanZoomViewport({
+    viewportRef: canvasViewportRef,
+    zoom: canvasZoom,
+    onZoomChange: onUpdateCanvasZoom,
+  });
+
   const startFurnitureSurfaceDrag = (
     event: PointerEvent<HTMLDivElement>,
     table: ServiceDraftTable,
@@ -277,8 +279,8 @@ export default function ServiceBoard({
                 variant="ghost"
                 size="icon"
                 className="h-11 w-11 rounded-xl sm:h-9 sm:w-9"
-                onClick={() => onUpdateCanvasZoom(canvasZoom - CANVAS_ZOOM_STEP)}
-                disabled={canvasZoom <= MIN_CANVAS_ZOOM}
+                onClick={zoomOut}
+                disabled={canvasZoom <= FLOOR_PLAN_MIN_ZOOM}
                 aria-label="Réduire le zoom"
               >
                 <ZoomOut className="h-4 w-4" />
@@ -288,8 +290,8 @@ export default function ServiceBoard({
                 variant="ghost"
                 size="icon"
                 className="h-11 w-11 rounded-xl sm:h-9 sm:w-9"
-                onClick={() => onUpdateCanvasZoom(canvasZoom + CANVAS_ZOOM_STEP)}
-                disabled={canvasZoom >= MAX_CANVAS_ZOOM}
+                onClick={zoomIn}
+                disabled={canvasZoom >= FLOOR_PLAN_MAX_ZOOM}
                 aria-label="Augmenter le zoom"
               >
                 <ZoomIn className="h-4 w-4" />
@@ -315,13 +317,12 @@ export default function ServiceBoard({
       <CardContent className="flex min-h-0 flex-1 flex-col p-2">
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 p-2">
           <div className="flex min-h-0 flex-1 flex-col rounded-xl border border-slate-200/80 bg-white/80 p-2 shadow-inner">
-            <div ref={canvasViewportRef} className="min-h-0 min-w-0 flex-1 overflow-hidden" role="region" aria-label={`Plan de service du secteur ${selectedSector}`}>
-              <div className="flex h-full w-full items-start justify-start overflow-hidden">
+            <div ref={canvasViewportRef} className="min-h-0 min-w-0 flex-1 overflow-auto overscroll-contain" role="region" aria-label={`Plan de service du secteur ${selectedSector}`}>
+              <div style={{ width: canvasWidth * canvasZoom, height: canvasHeight * canvasZoom }}>
                 <div
                   ref={canvasRef}
                   data-floor-plan-canvas="stage"
-                  className="relative shrink-0 overflow-hidden border border-slate-300/70 shadow-inner"
-                  onWheelCapture={onCanvasWheel}
+                  className="relative shrink-0 origin-top-left overflow-hidden border border-slate-300/70 shadow-inner"
                   onDragOver={onCanvasDragOver}
                   onDrop={onCanvasDrop}
                   onDragLeave={onCanvasDragLeave}
@@ -334,6 +335,7 @@ export default function ServiceBoard({
                     width: `${canvasWidth}px`,
                     height: `${canvasHeight}px`,
                     aspectRatio: canvasRatio,
+                    transform: `scale(${canvasZoom})`,
                     borderRadius: getScaledCanvasToken(28, 8),
                     backgroundImage: "linear-gradient(rgba(148,163,184,0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.12) 1px, transparent 1px)",
                     backgroundSize: `${getScaledCanvasToken(36, 8)} ${getScaledCanvasToken(36, 8)}, ${getScaledCanvasToken(36, 8)} ${getScaledCanvasToken(36, 8)}`,

@@ -8,6 +8,7 @@ import type {
 } from "@/lib/floorPlan";
 import { cn } from "@/lib/utils";
 import DynamicTableSvg from "./DynamicTableSvg";
+import { BuffetSvg as EventBuffetSvg, CakeTableSvg, DancefloorSvg, DjBoothSvg, SofaSvg, StageSvg } from "./EventFurnitureSvg";
 import { FLOOR_PLAN_ASSETS } from "./floorPlanAssets";
 
 type FloorPlanItemIllustrationProps = {
@@ -186,6 +187,18 @@ function ItemSvg({
       return <PlantSvg />;
     case "service-station":
       return <ServiceStationSvg />;
+    case "sofa":
+      return <SofaSvg />;
+    case "dancefloor":
+      return <DancefloorSvg />;
+    case "dj-booth":
+      return <DjBoothSvg />;
+    case "stage":
+      return <StageSvg />;
+    case "buffet":
+      return <EventBuffetSvg />;
+    case "cake-table":
+      return <CakeTableSvg />;
     default:
       return <RectTableSvg />;
   }

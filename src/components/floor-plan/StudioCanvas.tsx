@@ -1,4 +1,4 @@
-import { useEffect, type KeyboardEvent, type PointerEvent, type RefObject, type WheelEvent } from "react";
+import { useEffect, type KeyboardEvent, type PointerEvent, type RefObject } from "react";
 import { Grip, LayoutPanelTop, Move, RotateCw, ZoomIn, ZoomOut } from "lucide-react";
 
 import { FloorPlanItemIllustration } from "@/components/floor-plan/FloorPlanItemIllustration";
@@ -9,10 +9,8 @@ import { getFloorPlanInteractiveFrame, getFloorPlanItemResizeBehavior, isReserva
 import { cn } from "@/lib/utils";
 
 import type { StudioDraftTable, StudioRenderedTableFrame } from "./studioShared";
+import { useFloorPlanZoomViewport, FLOOR_PLAN_MIN_ZOOM, FLOOR_PLAN_MAX_ZOOM } from "./useFloorPlanZoomViewport";
 
-const MIN_CANVAS_ZOOM = 0.1;
-const MAX_CANVAS_ZOOM = 1.8;
-const CANVAS_ZOOM_STEP = 0.1;
 const BASE_CANVAS_WIDTH = 1040;
 const BASE_CANVAS_HEIGHT = 760;
 const STUDIO_RESIZE_HANDLES = [
@@ -38,7 +36,6 @@ type StudioCanvasProps = {
   selectedTableId: string | null;
   draggingTableId: string | null;
   onTablePress: (tableId: string) => void;
-  onCanvasWheel: (event: WheelEvent<HTMLDivElement>) => void;
   onCanvasBackgroundPress: () => void;
   onStartDraggingTable: (event: PointerEvent<HTMLElement>, tableId: string) => void;
   onStartResizingTable: (
@@ -66,7 +63,6 @@ export default function StudioCanvas({
   selectedTableId,
   draggingTableId,
   onTablePress,
-  onCanvasWheel,
   onCanvasBackgroundPress,
   onStartDraggingTable,
   onStartResizingTable,
@@ -113,24 +109,11 @@ export default function StudioCanvas({
     };
   }, [canvasViewportRef, onCanvasViewportResize]);
 
-  const recenterCanvas = () => {
-    const viewport = canvasViewportRef.current;
-    if (!viewport) return;
-
-    const nextLeft = Math.max(0, (canvasWidth - viewport.clientWidth) / 2);
-    const nextTop = Math.max(0, (canvasHeight - viewport.clientHeight) / 2);
-    if (typeof viewport.scrollTo === "function") {
-      viewport.scrollTo({
-        left: nextLeft,
-        top: nextTop,
-        behavior: "smooth",
-      });
-      return;
-    }
-
-    viewport.scrollLeft = nextLeft;
-    viewport.scrollTop = nextTop;
-  };
+  const { zoomIn, zoomOut, resetZoom, recenter } = useFloorPlanZoomViewport({
+    viewportRef: canvasViewportRef,
+    zoom: canvasZoom,
+    onZoomChange: onUpdateCanvasZoom,
+  });
 
   const startObjectSurfaceDrag = (
     event: PointerEvent<HTMLDivElement>,
@@ -195,8 +178,8 @@ export default function StudioCanvas({
                 variant="ghost"
                 size="icon"
                 className="h-11 w-11 rounded-xl sm:h-9 sm:w-9"
-                onClick={() => onUpdateCanvasZoom(canvasZoom - CANVAS_ZOOM_STEP)}
-                disabled={canvasZoom <= MIN_CANVAS_ZOOM}
+                onClick={zoomOut}
+                disabled={canvasZoom <= FLOOR_PLAN_MIN_ZOOM}
                 aria-label="Réduire le zoom"
               >
                 <ZoomOut className="h-4 w-4" />
@@ -206,14 +189,14 @@ export default function StudioCanvas({
                 variant="ghost"
                 size="icon"
                 className="h-11 w-11 rounded-xl sm:h-9 sm:w-9"
-                onClick={() => onUpdateCanvasZoom(canvasZoom + CANVAS_ZOOM_STEP)}
-                disabled={canvasZoom >= MAX_CANVAS_ZOOM}
+                onClick={zoomIn}
+                disabled={canvasZoom >= FLOOR_PLAN_MAX_ZOOM}
                 aria-label="Augmenter le zoom"
               >
                 <ZoomIn className="h-4 w-4" />
               </Button>
             </div>
-            <Button type="button" variant="outline" className="h-11 rounded-2xl border-slate-200 bg-white" onClick={recenterCanvas}>
+            <Button type="button" variant="outline" className="h-11 rounded-2xl border-slate-200 bg-white" onClick={recenter}>
               <Move className="mr-2 h-4 w-4" />
               Recentrer
             </Button>
@@ -223,26 +206,26 @@ export default function StudioCanvas({
 
       <CardContent className="flex min-h-0 flex-1 flex-col p-2">
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 p-2">
-          <div ref={canvasViewportRef} className="min-h-0 min-w-0 flex-1 overflow-hidden rounded-xl border border-slate-200/80 bg-white/80 shadow-inner" role="region" aria-label={`Plan du secteur ${selectedSector}`}>
-            <div className="flex h-full w-full items-start justify-start overflow-hidden">
+          <div ref={canvasViewportRef} className="min-h-0 min-w-0 flex-1 overflow-auto overscroll-contain rounded-xl border border-slate-200/80 bg-white/80 shadow-inner" role="region" aria-label={`Plan du secteur ${selectedSector}`}>
+            <div style={{ width: canvasWidth * canvasZoom, height: canvasHeight * canvasZoom }}>
               <div
                 ref={canvasRef}
                 data-floor-plan-canvas="stage"
-                className="relative shrink-0 overflow-hidden border border-slate-300/70 shadow-inner"
-                onWheelCapture={onCanvasWheel}
-                onClick={(event) => {
-                  if (event.target === event.currentTarget) {
-                    onCanvasBackgroundPress();
-                  }
-                }}
+                className="relative shrink-0 origin-top-left overflow-hidden border border-slate-300/70 shadow-inner"
                 style={{
                   width: `${canvasWidth}px`,
                   height: `${canvasHeight}px`,
                   aspectRatio: canvasRatio,
+                  transform: `scale(${canvasZoom})`,
                   borderRadius: getScaledCanvasToken(28, 8),
                   backgroundImage: "linear-gradient(rgba(148,163,184,0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.12) 1px, transparent 1px)",
                   backgroundSize: `${getScaledCanvasToken(36, 8)} ${getScaledCanvasToken(36, 8)}, ${getScaledCanvasToken(36, 8)} ${getScaledCanvasToken(36, 8)}`,
                   backgroundColor: "#f6f7fb",
+                }}
+                onClick={(event) => {
+                  if (event.target === event.currentTarget) {
+                    onCanvasBackgroundPress();
+                  }
                 }}
               >
                 <div
