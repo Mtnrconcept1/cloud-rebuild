@@ -43,8 +43,12 @@ describe("TOK incident secret synchronization", () => {
   });
 
   it("fails closed when a Telegram or Codex credential is absent", () => {
+    const renamedSecrets: Record<string, string> = {
+      GITHUB_INCIDENT_TOKEN: "TOK_GITHUB_INCIDENT_TOKEN",
+    };
     for (const name of requiredIncidentSecrets.filter((name) => name !== "GITHUB_INCIDENT_REPOSITORY")) {
-      expect(workflow).toContain(`${name}: \${{ secrets.${name} }}`);
+      const secretName = renamedSecrets[name] || name;
+      expect(workflow).toContain(`${name}: \${{ secrets.${secretName} }}`);
     }
     expect(workflow).toContain("Missing required production secret");
     expect(workflow).toContain("exit 1");
