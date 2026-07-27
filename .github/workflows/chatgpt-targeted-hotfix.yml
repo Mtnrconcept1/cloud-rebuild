@@ -1,3 +1,4 @@
+# Triggered after the workflow exists in the branch history.
 name: Apply targeted legal consent hotfix
 
 on:
