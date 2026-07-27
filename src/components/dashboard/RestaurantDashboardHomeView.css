@@ -1,0 +1,40 @@
+@media (max-width: 767px) {
+  .tok-dashboard-shell:has([data-mobile-restaurant-overview]) {
+    background: #faf8f5;
+  }
+
+  .dark .tok-dashboard-shell:has([data-mobile-restaurant-overview]) {
+    background: #050b16;
+  }
+
+  .tok-dashboard-shell:has([data-mobile-restaurant-overview]) > div.fixed {
+    display: none !important;
+  }
+
+  .tok-dashboard-shell:has([data-mobile-restaurant-overview]) main {
+    padding-top: calc(env(safe-area-inset-top, 0px) + 4.75rem) !important;
+    padding-right: 0.75rem !important;
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 5.35rem) !important;
+    padding-left: 0.75rem !important;
+  }
+
+  .tok-dashboard-shell:has([data-mobile-restaurant-overview])
+    main
+    > div
+    > button[aria-label="Retour à l'écran précédent"] {
+    display: none !important;
+  }
+
+  .tok-dashboard-shell:has([data-mobile-restaurant-overview])
+    [data-testid="restaurant-mobile-menu-trigger"] {
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
+  .tok-dashboard-shell:has([data-mobile-restaurant-overview])
+    [data-mobile-restaurant-overview] {
+    margin-inline: auto;
+    width: 100%;
+    max-width: 36rem;
+  }
+}

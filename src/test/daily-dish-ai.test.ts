@@ -100,6 +100,16 @@ describe("Premium daily dish AI", () => {
     expect(menu).toContain("<DailyDishAiPanel");
   });
 
+  it("allows a restaurateur to add a manual daily dish without AI credits", () => {
+    expect(panel).toContain("Ajouter un plat du jour manuellement");
+    expect(panel).toContain("MANUAL_DAILY_DISH_CATEGORY");
+    expect(panel).toContain("category: MANUAL_DAILY_DISH_CATEGORY");
+    expect(panel).toContain('from("menu_items").insert(payload)');
+    expect(panel).toContain('DEMO_MENU_STORAGE_KEY = "menu-items"');
+    expect(panel).toContain('["my-menu-items", restaurantId, "live"]');
+    expect(panel).toContain("sans IA ni consommation de crédits");
+  });
+
   it("renders the selected dish on the public restaurant menu without private cost data", () => {
     expect(publicCard).toContain('from("restaurant_daily_dishes" as any)');
     expect(publicCard).toContain("Plat du jour");

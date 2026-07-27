@@ -6,7 +6,10 @@ import CommercialDemoRestaurantHome from "@/components/commercial/CommercialDemo
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { CommercialDemoHome } from "@/components/dashboard/CommercialDemoScenario";
 import GoogleBusinessBookingCard from "@/components/dashboard/GoogleBusinessBookingCard";
-import RestaurantDashboardHomeView from "@/components/dashboard/RestaurantDashboardHomeView";
+import RestaurantDashboardHomeView, {
+  type RestaurantDashboardMobileMenuItem,
+  type RestaurantDashboardMobileReservation,
+} from "@/components/dashboard/RestaurantDashboardHomeView";
 import SignupApplicationStatusCard, { type SignupApplicationCorrectionPayload } from "@/components/signup/SignupApplicationStatusCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -221,6 +224,53 @@ function LiveDashboard() {
         .select("*", { count: "exact", head: true })
         .eq("restaurant_id", restaurant!.id)
         .in("status", UPCOMING_ORDER_STATUSES);
+      return count || 0;
+    },
+    enabled: operationalQueriesEnabled,
+  });
+
+  const { data: mobileMenuItems = [] } = useQuery<RestaurantDashboardMobileMenuItem[]>({
+    queryKey: ["dashboard-mobile-menu-items", restaurant?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("menu_items")
+        .select("id, name, description, price, image_url, category")
+        .eq("restaurant_id", restaurant!.id)
+        .eq("is_available", true)
+        .order("name", { ascending: true })
+        .limit(100);
+      if (error) throw error;
+      return (data || []) as RestaurantDashboardMobileMenuItem[];
+    },
+    enabled: operationalQueriesEnabled,
+  });
+
+  const { data: mobileTodayReservations = [] } = useQuery<RestaurantDashboardMobileReservation[]>({
+    queryKey: ["dashboard-mobile-today-reservations", restaurant?.id, today],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("reservations")
+        .select("id, date, time, party_size, status")
+        .eq("restaurant_id", restaurant!.id)
+        .eq("date", today)
+        .not("status", "in", INVALID_RESERVATION_STATUS_FILTER)
+        .order("time", { ascending: true })
+        .limit(250);
+      if (error) throw error;
+      return (data || []) as RestaurantDashboardMobileReservation[];
+    },
+    enabled: operationalQueriesEnabled,
+  });
+
+  const { data: mobileReadyOrdersCount = 0 } = useQuery({
+    queryKey: ["dashboard-mobile-ready-orders", restaurant?.id],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("orders")
+        .select("*", { count: "exact", head: true })
+        .eq("restaurant_id", restaurant!.id)
+        .eq("status", "ready");
+      if (error) throw error;
       return count || 0;
     },
     enabled: operationalQueriesEnabled,
@@ -569,6 +619,10 @@ function LiveDashboard() {
           servicePeriodLabel: getServicePeriodLabel(period),
         };
       })}
+      restaurantImageUrl={typeof restaurant.image_url === "string" ? restaurant.image_url : null}
+      mobileMenuItems={mobileMenuItems}
+      mobileTodayReservations={mobileTodayReservations}
+      mobileReadyOrdersCount={mobileReadyOrdersCount}
       leadingContent={(
         <>
         <SignupApplicationStatusCard
