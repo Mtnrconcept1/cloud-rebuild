@@ -26,6 +26,7 @@ jobs:
   prepare:
     name: Generate isolated repair patch
     runs-on: ubuntu-latest
+    environment: production
     timeout-minutes: 45
     outputs:
       incident_id: ${{ steps.request.outputs.incident_id }}
@@ -381,6 +382,7 @@ jobs:
       - validate
     if: ${{ needs.prepare.result == 'success' && needs.validate.result == 'success' && needs.prepare.outputs.changed == 'true' }}
     runs-on: ubuntu-latest
+    environment: production
     timeout-minutes: 10
     outputs:
       pr_url: ${{ steps.pull_request.outputs.pr_url }}
@@ -541,6 +543,7 @@ jobs:
       - publish
     if: ${{ always() && needs.prepare.outputs.incident_id != '' }}
     runs-on: ubuntu-latest
+    environment: production
     timeout-minutes: 5
     continue-on-error: true
     env:
