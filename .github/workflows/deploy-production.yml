@@ -419,6 +419,15 @@ jobs:
           TOK_AI_IMAGE_BUCKET: ${{ secrets.TOK_AI_IMAGE_BUCKET }}
           TOK_GALLERY_IMAGE_BUCKET: ${{ secrets.TOK_GALLERY_IMAGE_BUCKET }}
           TOK_SOURCE_IMAGE_TIMEOUT_MS: ${{ secrets.TOK_SOURCE_IMAGE_TIMEOUT_MS }}
+          OPS_CONTROL_SECRET: ${{ secrets.OPS_CONTROL_SECRET }}
+          OPS_INGEST_SECRET: ${{ secrets.OPS_INGEST_SECRET }}
+          OPS_GITHUB_CALLBACK_SECRET: ${{ secrets.OPS_GITHUB_CALLBACK_SECRET }}
+          GITHUB_INCIDENT_TOKEN: ${{ secrets.TOK_GITHUB_INCIDENT_TOKEN }}
+          GITHUB_INCIDENT_REPOSITORY: Mtnrconcept1/cloud-rebuild
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_ADMIN_CHAT_ID: ${{ secrets.TELEGRAM_ADMIN_CHAT_ID }}
+          TELEGRAM_ADMIN_USER_ID: ${{ secrets.TELEGRAM_ADMIN_USER_ID }}
+          TELEGRAM_WEBHOOK_SECRET: ${{ secrets.TELEGRAM_WEBHOOK_SECRET }}
         run: node ./scripts/write-supabase-secrets-env.mjs --out=${RUNNER_TEMP}/supabase.functions.env
 
       - name: Prepare dedicated commercial demo secrets without payment-provider credentials
