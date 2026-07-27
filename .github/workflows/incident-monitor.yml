@@ -23,6 +23,7 @@ jobs:
     name: Scan runtime failures
     if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
+    environment: production
     timeout-minutes: 5
     env:
       INCIDENT_CONTROL_URL: ${{ vars.TOK_INCIDENT_CONTROL_URL || secrets.TOK_INCIDENT_CONTROL_URL }}
@@ -53,6 +54,7 @@ jobs:
     name: Report failed GitHub workflow
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'failure' && (github.event.workflow_run.head_branch == 'main' || github.event.workflow_run.name == 'Deploy Production') }}
     runs-on: ubuntu-latest
+    environment: production
     timeout-minutes: 5
     env:
       INCIDENT_CONTROL_URL: ${{ vars.TOK_INCIDENT_CONTROL_URL || secrets.TOK_INCIDENT_CONTROL_URL }}
