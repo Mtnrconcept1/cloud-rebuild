@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { calculateGoogleBusinessSavings } from "@/lib/googleBusinessEconomics";
 import { useSeoMeta } from "@/hooks/useSeoMeta";
+import { GOOGLE_BUSINESS_SERVICE_SCOPE } from "@/lib/googleBusinessServiceScope";
 
 const PAGE_PATH = "/restaurateurs/google-business";
 const CANONICAL_ORIGIN = "https://www.thetok.ch";
@@ -78,7 +79,7 @@ const faqItems = [
   {
     question: "TOK peut-il remplacer le bouton de réservation Google Business ?",
     answer:
-      "Le restaurateur reste responsable des liens disponibles dans Google Business Profile. TOK fournit un lien direct, traçable et cohérent avec les services ouverts.",
+      "TOK fournit un lien direct et traçable vers les services réellement activés. Le restaurateur l'ajoute lui-même, ou mandate TOK par écrit avec un accès gestionnaire ; aucune modification automatique de la fiche n'est annoncée.",
   },
   {
     question: "Comment mesurer les clics Google avec TOK ?",
@@ -89,6 +90,11 @@ const faqItems = [
     question: "Faut-il abandonner les autres plateformes immédiatement ?",
     answer:
       "Non. La page Google Business sert d'abord à tester un canal direct, mesurer la conversion et réduire progressivement la dépendance si les chiffres le justifient.",
+  },
+  {
+    question: "TOK garantit-il un meilleur classement Google ?",
+    answer:
+      "Non. Google contrôle le classement, l'affichage, les fonctionnalités et les suspensions. TOK optimise le périmètre convenu et mesure les conversions disponibles, sans garantir de rang ni de volume.",
   },
 ];
 
@@ -124,7 +130,13 @@ export default function RestaurateursGoogleBusiness() {
           provider: { "@type": "Organization", name: "TOK", url: CANONICAL_ORIGIN },
           areaServed: { "@type": "City", name: "Genève", addressCountry: "CH" },
           serviceType:
-            "Audit du bouton Google Business, tracking des clics Google Maps et conversion en réservations directes",
+            "Audit et accompagnement Google Business Profile, lien TOK traçable et suivi des conversions mesurables",
+          termsOfService: `${CANONICAL_ORIGIN}/conditions-restaurateurs`,
+          offers: {
+            "@type": "Offer",
+            description: "Service inclus ou optionnel selon l'abonnement ; intervention dans Google soumise à mandat et accès gestionnaire.",
+            availability: "https://schema.org/LimitedAvailability",
+          },
           url: `${CANONICAL_ORIGIN}${PAGE_PATH}`,
         },
         {
@@ -156,7 +168,7 @@ export default function RestaurateursGoogleBusiness() {
   useSeoMeta({
     title: "Google Business restaurant : convertir clics Google en réservations | TOK",
     description:
-      "Optimisez votre fiche Google Business restaurant avec TOK : bouton de réservation direct, tracking des clics Google Maps, conversions et checklist de bascule.",
+      "Audit Google Business pour restaurant : périmètre, mandat, horaires, catégories, photos, avis, lien TOK traçable et suivi sans garantie de classement.",
     path: PAGE_PATH,
     image: "/fond3.png",
     jsonLd,
@@ -206,8 +218,8 @@ export default function RestaurateursGoogleBusiness() {
                 Transformez votre fiche Google Business en canal direct.
               </h1>
               <p className="max-w-2xl text-base leading-7 text-white/80 md:text-lg">
-                Les clients vous trouvent déjà sur Google. TOK vous aide à brancher un bouton de réservation traçable,
-                suivre les clics Google Maps et convertir cette intention en tables, commandes et relation client.
+                Audit, recommandations, suivi des clics Google Maps et bouton de réservation traçable vers les services réellement ouverts. Toute intervention
+                dans Google est soumise à mandat ; aucune publication automatique ni garantie de classement.
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
@@ -240,6 +252,34 @@ export default function RestaurateursGoogleBusiness() {
               value={formatChf(Math.abs(simulation.monthlySavingsChf))}
               accent={simulation.isTokCheaper}
             />
+          </div>
+        </div>
+      </section>
+
+      <section className="border-b bg-slate-50 px-4 py-16 md:px-8 lg:px-12">
+        <div className="mx-auto max-w-7xl space-y-8">
+          <div className="max-w-3xl space-y-3">
+            <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-600">Périmètre commercial</p>
+            <h2 className="text-3xl font-black md:text-4xl">Ce que TOK fait, ce qui reste à valider.</h2>
+            <p className="text-slate-600">Le niveau de service dépend du pack. Une intervention dans Google commence uniquement après validation du périmètre, des accès et du mandat.</p>
+          </div>
+          <div className="grid gap-5 md:grid-cols-2">
+            {[
+              ["Inclus selon le pack", GOOGLE_BUSINESS_SERVICE_SCOPE.included],
+              ["Prestations optionnelles", GOOGLE_BUSINESS_SERVICE_SCOPE.optional],
+              ["Mandat et accès requis", GOOGLE_BUSINESS_SERVICE_SCOPE.mandateRequired],
+              ["Google et limites de résultat", GOOGLE_BUSINESS_SERVICE_SCOPE.dependencies],
+            ].map(([title, items]) => (
+              <article key={title as string} className="rounded-xl border bg-white p-6 shadow-sm">
+                <h3 className="text-lg font-black">{title as string}</h3>
+                <ul className="mt-4 space-y-3 text-sm leading-6 text-slate-600">
+                  {(items as readonly string[]).map((item) => <li key={item} className="flex gap-2"><CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-orange-600" />{item}</li>)}
+                </ul>
+              </article>
+            ))}
+          </div>
+          <div className="rounded-xl border border-orange-200 bg-orange-50 p-5 text-sm leading-6 text-orange-950">
+            <strong>Délais :</strong> l'audit et le calendrier d'intervention sont confirmés après réception d'un dossier complet. Toute attente d'accès, de validation restaurant ou de contrôle Google suspend le délai. Consultez les <Link className="underline" to="/conditions-restaurateurs">conditions restaurateurs</Link>.
           </div>
         </div>
       </section>
@@ -322,6 +362,8 @@ export default function RestaurateursGoogleBusiness() {
             <h2 className="text-3xl font-black">Changer le bouton Google sans perdre la mesure.</h2>
             <p className="text-slate-600">
               Chaque étape doit laisser une trace : lien avant/après, source, date, service ouvert et conversion finale.
+              Le dashboard permet aujourd'hui de générer/copier le lien, déclarer la fiche, confirmer la configuration,
+              demander de l'aide et lire les conversions disponibles ; il ne modifie pas automatiquement Google.
             </p>
           </div>
           <ol className="grid gap-3">
