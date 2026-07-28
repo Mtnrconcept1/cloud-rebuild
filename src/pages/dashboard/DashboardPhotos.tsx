@@ -701,7 +701,7 @@ export default function DashboardPhotos() {
             <h1 className="sr-only">Photos et créations</h1>
             <section className="flex min-h-[calc(100dvh-9rem)] items-center justify-center py-8 sm:py-10">
             <div
-              className="grid w-full max-w-6xl gap-4 sm:grid-cols-2 xl:grid-cols-3"
+              className="grid w-full max-w-6xl gap-4 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3"
               aria-label="Outils photos du dashboard restaurateur"
             >
               {PHOTO_WORKSPACE_TOOLS.map((tool) => (
