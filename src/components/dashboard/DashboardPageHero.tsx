@@ -114,6 +114,7 @@ export default function DashboardPageHero({
             {actions ? <div className="tok-action-row flex flex-wrap gap-3">{actions}</div> : null}
             {illustration ? (
               <DashboardIllustrationMedia
+                eager
                 illustration={illustration}
                 className={cn("mx-auto h-24 w-24 lg:hidden", compact && "h-20 w-20")}
               />
@@ -162,6 +163,7 @@ export default function DashboardPageHero({
 
                 {illustration ? (
                   <DashboardIllustrationMedia
+                    eager
                     illustration={illustration}
                     className={cn("h-28 w-28", compact && "h-24 w-24")}
                   />

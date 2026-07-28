@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ImageIcon } from "lucide-react";
 
 import type { DashboardIllustration } from "@/lib/dashboardIllustrations";
@@ -21,10 +21,6 @@ export default function DashboardIllustrationMedia({
 }: DashboardIllustrationMediaProps) {
   const [failedSource, setFailedSource] = useState<string | null>(null);
   const imageFailed = failedSource === illustration.src;
-
-  useEffect(() => {
-    setFailedSource(null);
-  }, [illustration.src]);
 
   return (
     <div

@@ -8,6 +8,7 @@ describe("restaurant service dashboard layout", () => {
   it("uses content-width grids instead of viewport-only columns", () => {
     expect(service).toContain("[grid-template-columns:repeat(auto-fit,minmax(min(26rem,100%),1fr))]");
     expect(service).toContain("[grid-template-columns:repeat(auto-fit,minmax(min(20rem,100%),1fr))]");
+    expect(service).toContain("grid items-start gap-4");
     expect(service).toContain("min-[420px]:grid-cols-2");
     expect(service).not.toContain('className="grid gap-4 lg:grid-cols-2"');
   });
@@ -51,5 +52,20 @@ describe("restaurant service dashboard layout", () => {
     expect(service).toContain("DASHBOARD_ILLUSTRATIONS.restaurantService");
     expect(service).toContain('className="flex justify-end"');
     expect(service).not.toContain("sticky");
+  });
+
+  it("associates compact form labels with deterministic input ids", () => {
+    expect(service).toContain('const fieldId = (field: string) => "service-" + period.key + "-" + field');
+    expect(service).toContain('htmlFor={fieldId("start-time")}');
+    expect(service).toContain('id={fieldId("start-time")}');
+    expect(service).toContain('htmlFor="service-delivery-fee"');
+    expect(service).toContain('id="service-minimum-order"');
+  });
+
+  it("keeps error, loading and globally-disabled delivery states honest", () => {
+    expect(service).toContain('role="alert"');
+    expect(service).toContain('role="status"');
+    expect(service).toContain("deliveryEnabled && deliveryAvailable");
+    expect(service).toContain("refetchRestaurant");
   });
 });

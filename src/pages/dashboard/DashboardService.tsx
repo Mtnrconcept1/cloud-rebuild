@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useToast } from "@/hooks/use-toast";
@@ -61,7 +61,12 @@ export default function DashboardService() {
   const deliveryEnabled = activeFeatures.has("livraison");
   const reservationEnabled = activeFeatures.has("reservation");
 
-  const { data: restaurant } = useQuery({
+  const {
+    data: restaurant,
+    isPending: restaurantPending,
+    isError: restaurantFailed,
+    refetch: refetchRestaurant,
+  } = useQuery({
     queryKey: ["my-restaurant-service", selectedId, isCommercialDemo ? commercialDemoFrame.config.sessionId : "live"],
     queryFn: async () => {
       if (isCommercialDemo) {
@@ -229,11 +234,26 @@ export default function DashboardService() {
     queryClient.invalidateQueries({ queryKey: ["restaurant-service-settings", restaurant.id] });
   };
 
-  if (!restaurant) {
+  if (restaurantFailed) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center py-20">
+        <div role="alert" className="mx-auto max-w-lg rounded-2xl border border-destructive/30 bg-destructive/5 p-6 text-center">
+          <p className="font-semibold text-destructive">Impossible de charger les réglages de service.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Vos paramètres existants restent inchangés. Réessayez dans un instant.</p>
+          <Button type="button" variant="outline" className="mt-4" onClick={() => void refetchRestaurant()}>
+            Réessayer
+          </Button>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (restaurantPending || !restaurant) {
+    return (
+      <DashboardLayout>
+        <div role="status" className="flex items-center justify-center py-20">
           <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary" />
+          <span className="sr-only">Chargement des réglages de service</span>
         </div>
       </DashboardLayout>
     );
@@ -254,7 +274,7 @@ export default function DashboardService() {
           stats={[
             { label: "Midi", value: serviceSettings.lunch.service_closed ? "Fermé" : "Actif", icon: SunMedium },
             { label: "Soir", value: serviceSettings.dinner.service_closed ? "Fermé" : "Actif", icon: MoonStar },
-            { label: "Livraison", value: deliveryAvailable ? "Activée" : "Coupée", icon: Store },
+            { label: "Livraison", value: deliveryEnabled && deliveryAvailable ? "Activée" : "Coupée", icon: Store },
           ]}
         />
 
@@ -265,19 +285,20 @@ export default function DashboardService() {
           </p>
         ) : null}
 
-        <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(26rem,100%),1fr))]">
+        <div className="grid items-start gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(26rem,100%),1fr))]">
           {SERVICE_PERIODS.map((period) => {
             const settings = serviceSettings[period.key];
             const Icon = period.icon;
+            const fieldId = (field: string) => "service-" + period.key + "-" + field;
 
             return (
               <Card key={period.key} className="min-w-0">
                 <CardHeader className="space-y-2 pb-3">
                   <div className="flex flex-wrap items-center justify-between gap-3">
-                    <CardTitle className="flex items-center gap-2">
+                    <h2 className="flex items-center gap-2 text-lg font-semibold leading-none tracking-tight">
                       <Icon className="h-5 w-5" />
                       Service {getServicePeriodLabel(period.key).toLowerCase()}
-                    </CardTitle>
+                    </h2>
                     <Badge variant={settings.service_closed ? "secondary" : "default"}>
                       {settings.service_closed ? "Fermé" : "Actif"}
                     </Badge>
@@ -306,37 +327,41 @@ export default function DashboardService() {
 
                   <section className="space-y-3 rounded-2xl border bg-muted/15 p-3">
                     <div>
-                      <p className="text-sm font-semibold">Horaires et capacité</p>
+                      <h3 className="text-sm font-semibold">Horaires et capacité</h3>
                       <p className="text-xs text-muted-foreground">Les informations indispensables restent toujours visibles.</p>
                     </div>
                     <div className="grid gap-3 min-[420px]:grid-cols-2">
                       <div className="space-y-2">
-                        <Label>Début</Label>
+                        <Label htmlFor={fieldId("start-time")}>Début</Label>
                         <Input
+                          id={fieldId("start-time")}
                           type="time"
                           value={settings.start_time}
                           onChange={(event) => updateServiceField(period.key, "start_time", event.target.value)}
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Fin</Label>
+                        <Label htmlFor={fieldId("end-time")}>Fin</Label>
                         <Input
+                          id={fieldId("end-time")}
                           type="time"
                           value={settings.end_time}
                           onChange={(event) => updateServiceField(period.key, "end_time", event.target.value)}
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Dernière réservation</Label>
+                        <Label htmlFor={fieldId("last-reservation-time")}>Dernière réservation</Label>
                         <Input
+                          id={fieldId("last-reservation-time")}
                           type="time"
                           value={settings.last_reservation_time}
                           onChange={(event) => updateServiceField(period.key, "last_reservation_time", event.target.value)}
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Capacité max</Label>
+                        <Label htmlFor={fieldId("max-covers")}>Capacité max</Label>
                         <Input
+                          id={fieldId("max-covers")}
                           type="number"
                           min={1}
                           value={settings.max_covers}
@@ -348,21 +373,23 @@ export default function DashboardService() {
 
                   <section className="space-y-3 rounded-2xl border bg-muted/15 p-3">
                     <div>
-                      <p className="text-sm font-semibold">Commandes, retrait et livraison</p>
+                      <h3 className="text-sm font-semibold">Commandes, retrait et livraison</h3>
                       <p className="text-xs text-muted-foreground">Créneaux proposés au panier pour ce service.</p>
                     </div>
                     <div className="grid gap-3 min-[420px]:grid-cols-2">
                       <div className="space-y-2">
-                        <Label>Début commandes</Label>
+                        <Label htmlFor={fieldId("order-start-time")}>Début commandes</Label>
                         <Input
+                          id={fieldId("order-start-time")}
                           type="time"
                           value={settings.order_start_time}
                           onChange={(event) => updateServiceField(period.key, "order_start_time", event.target.value)}
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Fin commandes</Label>
+                        <Label htmlFor={fieldId("order-end-time")}>Fin commandes</Label>
                         <Input
+                          id={fieldId("order-end-time")}
                           type="time"
                           value={settings.order_end_time}
                           onChange={(event) => updateServiceField(period.key, "order_end_time", event.target.value)}
@@ -401,18 +428,19 @@ export default function DashboardService() {
                         <span className="min-w-0">
                           <span className="block text-sm font-semibold">Réglages avancés</span>
                           <span className="block truncate text-xs font-normal text-muted-foreground">
-                            Groupes {settings.min_party_size}–{settings.max_party_size} · {settings.slot_interval_minutes} min · {settings.slot_capacity_windows.length} plage(s)
+                            Groupes {settings.min_party_size}–{settings.max_party_size} · {settings.slot_interval_minutes} min · {settings.slot_capacity_windows.length} {settings.slot_capacity_windows.length === 1 ? "plage" : "plages"}
                           </span>
                         </span>
                         <ChevronDown className="h-4 w-4 shrink-0 transition-transform" />
                       </Button>
                     </CollapsibleTrigger>
 
-                    <CollapsibleContent className="space-y-4 px-3 pb-3">
+                    <CollapsibleContent className="space-y-4 border-t px-3 pb-3 pt-3">
                       <div className="grid gap-3 min-[420px]:grid-cols-2">
                         <div className="space-y-2">
-                          <Label>Groupe minimum</Label>
+                          <Label htmlFor={fieldId("min-party-size")}>Groupe minimum</Label>
                           <Input
+                            id={fieldId("min-party-size")}
                             type="number"
                             min={1}
                             value={settings.min_party_size}
@@ -420,8 +448,9 @@ export default function DashboardService() {
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label>Groupe maximum</Label>
+                          <Label htmlFor={fieldId("max-party-size")}>Groupe maximum</Label>
                           <Input
+                            id={fieldId("max-party-size")}
                             type="number"
                             min={1}
                             value={settings.max_party_size}
@@ -429,8 +458,9 @@ export default function DashboardService() {
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label>Intervalle des créneaux (minutes)</Label>
+                          <Label htmlFor={fieldId("slot-interval-minutes")}>Intervalle des créneaux (minutes)</Label>
                           <Input
+                            id={fieldId("slot-interval-minutes")}
                             type="number"
                             min={5}
                             step={5}
@@ -439,8 +469,9 @@ export default function DashboardService() {
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label>Tables par défaut</Label>
+                          <Label htmlFor={fieldId("max-tables-per-slot")}>Tables par défaut</Label>
                           <Input
+                            id={fieldId("max-tables-per-slot")}
                             type="number"
                             min={1}
                             value={settings.max_tables_per_slot}
@@ -452,7 +483,7 @@ export default function DashboardService() {
                       <div className="space-y-3 rounded-xl border bg-muted/15 p-3">
                         <div className="flex flex-col gap-2 min-[420px]:flex-row min-[420px]:items-start min-[420px]:justify-between">
                           <div>
-                            <p className="text-sm font-semibold">Tables disponibles par créneau</p>
+                            <h3 className="text-sm font-semibold">Tables disponibles par créneau</h3>
                             <p className="text-xs text-muted-foreground">Ajoutez seulement les plages qui dérogent à la valeur par défaut.</p>
                           </div>
                           <Button type="button" variant="outline" size="sm" onClick={() => addCapacityWindow(period.key)}>
@@ -466,24 +497,27 @@ export default function DashboardService() {
                             <div key={period.key + "-" + index} className="space-y-2 rounded-xl border bg-background p-3">
                               <div className="grid gap-2 [grid-template-columns:repeat(auto-fit,minmax(min(8rem,100%),1fr))]">
                                 <div className="space-y-2">
-                                  <Label>De</Label>
+                                  <Label htmlFor={fieldId("capacity-" + index + "-start")}>De</Label>
                                   <Input
+                                    id={fieldId("capacity-" + index + "-start")}
                                     type="time"
                                     value={window.start_time}
                                     onChange={(event) => updateCapacityWindow(period.key, index, "start_time", event.target.value)}
                                   />
                                 </div>
                                 <div className="space-y-2">
-                                  <Label>À</Label>
+                                  <Label htmlFor={fieldId("capacity-" + index + "-end")}>À</Label>
                                   <Input
+                                    id={fieldId("capacity-" + index + "-end")}
                                     type="time"
                                     value={window.end_time}
                                     onChange={(event) => updateCapacityWindow(period.key, index, "end_time", event.target.value)}
                                   />
                                 </div>
                                 <div className="space-y-2">
-                                  <Label>Tables</Label>
+                                  <Label htmlFor={fieldId("capacity-" + index + "-tables")}>Tables</Label>
                                   <Input
+                                    id={fieldId("capacity-" + index + "-tables")}
                                     type="number"
                                     min={1}
                                     value={window.max_tables}
@@ -510,7 +544,7 @@ export default function DashboardService() {
 
                       <div className="space-y-3 rounded-xl border bg-muted/15 p-3">
                         <div>
-                          <p className="text-sm font-semibold">Confirmation et acompte</p>
+                          <h3 className="text-sm font-semibold">Confirmation et acompte</h3>
                           <p className="text-xs text-muted-foreground">Options de validation de la réservation client.</p>
                         </div>
                         <label className="flex min-h-11 items-center justify-between gap-3 rounded-xl border bg-background px-3 py-2 text-sm">
@@ -522,8 +556,9 @@ export default function DashboardService() {
                         </label>
                         <div className="grid gap-3 min-[420px]:grid-cols-2">
                           <div className="space-y-2">
-                            <Label>Délai de confirmation (minutes)</Label>
+                            <Label htmlFor={fieldId("confirmation-deadline")}>Délai de confirmation (minutes)</Label>
                             <Input
+                              id={fieldId("confirmation-deadline")}
                               type="number"
                               min={1}
                               max={240}
@@ -532,8 +567,9 @@ export default function DashboardService() {
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label>Acompte optionnel (CHF)</Label>
+                            <Label htmlFor={fieldId("deposit-amount")}>Acompte optionnel (CHF)</Label>
                             <Input
+                              id={fieldId("deposit-amount")}
                               type="number"
                               min={0}
                               step="0.50"
@@ -545,8 +581,9 @@ export default function DashboardService() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label>Note de service</Label>
+                        <Label htmlFor={fieldId("service-note")}>Note de service</Label>
                         <Input
+                          id={fieldId("service-note")}
                           value={settings.service_note}
                           onChange={(event) => updateServiceField(period.key, "service_note", event.target.value)}
                           placeholder={period.key === "lunch" ? "Ex : Dernier service à 14 h 30" : "Ex : Service complet les samedis"}
@@ -563,10 +600,10 @@ export default function DashboardService() {
         <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(20rem,100%),1fr))]">
           <Card className="min-w-0">
             <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2">
+              <h2 className="flex items-center gap-2 text-lg font-semibold leading-none tracking-tight">
                 <Clock className="h-5 w-5" />
                 Livraison
-              </CardTitle>
+              </h2>
             </CardHeader>
             <CardContent className="space-y-4">
               {deliveryEnabled ? (
@@ -578,12 +615,24 @@ export default function DashboardService() {
                   {deliveryAvailable ? (
                     <div className="grid gap-3 min-[420px]:grid-cols-2">
                       <div className="space-y-2">
-                        <Label>Frais de livraison (CHF)</Label>
-                        <Input type="number" step="0.01" value={deliveryFee} onChange={(event) => setDeliveryFee(event.target.value)} />
+                        <Label htmlFor="service-delivery-fee">Frais de livraison (CHF)</Label>
+                        <Input
+                          id="service-delivery-fee"
+                          type="number"
+                          step="0.01"
+                          value={deliveryFee}
+                          onChange={(event) => setDeliveryFee(event.target.value)}
+                        />
                       </div>
                       <div className="space-y-2">
-                        <Label>Commande minimum (CHF)</Label>
-                        <Input type="number" step="0.01" value={minOrder} onChange={(event) => setMinOrder(event.target.value)} />
+                        <Label htmlFor="service-minimum-order">Commande minimum (CHF)</Label>
+                        <Input
+                          id="service-minimum-order"
+                          type="number"
+                          step="0.01"
+                          value={minOrder}
+                          onChange={(event) => setMinOrder(event.target.value)}
+                        />
                       </div>
                     </div>
                   ) : null}
@@ -598,10 +647,10 @@ export default function DashboardService() {
 
           <Card className="min-w-0">
             <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2">
+              <h2 className="flex items-center gap-2 text-lg font-semibold leading-none tracking-tight">
                 <Store className="h-5 w-5" />
                 Lecture du dashboard
-              </CardTitle>
+              </h2>
             </CardHeader>
             <CardContent className="space-y-1 text-sm text-muted-foreground">
               <p>Le midi et le soir alimentent séparément le module de réservation client.</p>
