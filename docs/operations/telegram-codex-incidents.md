@@ -234,18 +234,21 @@ detected
        -> approved
             -> repairing
                  -> pr_open
+                 -> no_changes
                  -> failed
                  -> resolved
 ```
 
 `resolved` doit être envoyé par un contrôle post-déploiement ou une décision admin après validation réelle. L'ouverture d'une PR ne marque jamais l'incident comme résolu.
 
+`no_changes` signale une analyse aboutie sans correctif sûr à proposer : ce n'est pas un échec et le run GitHub reste vert. Cet état reste dans le périmètre de déduplication, donc les occurrences suivantes du même `fingerprint` incrémentent `occurrence_count` au lieu d'ouvrir un nouvel incident et de relancer Codex toutes les cinq minutes.
+
 ## Comportement en cas d'échec
 
 - Telegram indisponible : l'incident retourne à `detected`, conserve son plan et sera retenté lors d'une occurrence suivante.
 - OpenAI indisponible côté Supabase : un plan conservateur de secours est envoyé.
 - GitHub dispatch indisponible : l'incident passe à `failed` et aucune branche n'est créée.
-- Codex sans changement sûr : l’incident passe à `failed` avec le motif `no_changes` ; aucune PR n’est ouverte.
+- Codex sans changement sûr : l’incident passe à `no_changes` ; aucune PR n’est ouverte, aucun échec n’est signalé et les occurrences suivantes sont regroupées sur cet incident.
 - Modification d’un chemin protégé, d’une migration existante, d’un lien symbolique ou ajout de SQL destructif : le patch est rejeté avant validation.
 - Lint, typecheck, tests ou build en échec : aucun commit ni push n’est effectué.
 - Création de PR en échec : la branche peut exister, mais `main` et la production restent inchangés ; Telegram reçoit le lien du workflow en échec.

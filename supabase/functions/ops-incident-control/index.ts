@@ -1156,7 +1156,10 @@ async function updateIncidentFromWorkflow(body: Record<string, unknown>) {
     repairing: "repairing",
     pr_open: "pr_open",
     failed: "failed",
-    no_changes: "failed",
+    // Codex reviewing the incident and finding no safe change is a completed
+    // analysis, not a repair failure. Keeping it distinct stops the workflow
+    // from reporting an error while its GitHub run is green.
+    no_changes: "no_changes",
     resolved: "resolved",
   };
   const allowedFrom: Record<string, string[]> = {
@@ -1164,8 +1167,8 @@ async function updateIncidentFromWorkflow(body: Record<string, unknown>) {
     repairing: ["approved", "repairing"],
     pr_open: ["repairing", "pr_open"],
     failed: ["approved", "repairing", "pr_open", "failed"],
-    no_changes: ["approved", "repairing", "failed"],
-    resolved: ["pr_open", "resolved"],
+    no_changes: ["approved", "repairing", "failed", "no_changes"],
+    resolved: ["pr_open", "resolved", "no_changes"],
   };
   const nextStatus = statusMap[eventStatus];
   if (!nextStatus) throw new HttpError(400, "unsupported_workflow_status");
@@ -1209,7 +1212,9 @@ async function updateIncidentFromWorkflow(body: Record<string, unknown>) {
     github_pr_number: prNumber || incident.github_pr_number,
     github_pr_url: prUrl || incident.github_pr_url,
     failure_reason: nextStatus === "failed" ? message || eventStatus : null,
-    resolution_summary: nextStatus === "resolved" ? message : incident.resolution_summary,
+    resolution_summary: nextStatus === "resolved" || nextStatus === "no_changes"
+      ? message
+      : incident.resolution_summary,
   }).eq("id", incidentId)
     .in("status", allowedFrom[eventStatus])
     .select("id")
@@ -1238,6 +1243,13 @@ Branche isolée en préparation pour <code>${escapeHtml(incidentId)}</code>.`,
 <a href="${escapeHtml(prUrl)}">Ouvrir la pull request #${escapeHtml(prNumber || "")}</a>
 Branche : <code>${escapeHtml(branch || "")}</code>
 La fusion reste manuelle et protégée par la CI.`,
+    );
+  } else if (nextStatus === "no_changes") {
+    await sendTelegramStatus(
+      incident,
+      `ℹ️ <b>Analyse terminée sans correctif</b>
+${escapeHtml(message || "Codex n'a identifié aucun changement suffisamment sûr à proposer.")}
+Aucune anomalie du workflow : les prochaines occurrences seront regroupées sur cet incident.`,
     );
   } else if (nextStatus === "failed") {
     await sendTelegramStatus(
