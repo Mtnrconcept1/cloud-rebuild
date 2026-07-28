@@ -245,3 +245,6 @@ verify_jwt = true
 
 [functions.aligro-catalog-sync]
 verify_jwt = false
+
+[functions.google-actions-center-sync]
+verify_jwt = false

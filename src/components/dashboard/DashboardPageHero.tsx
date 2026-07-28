@@ -116,7 +116,7 @@ export default function DashboardPageHero({
               <DashboardIllustrationMedia
                 eager
                 illustration={illustration}
-                className={cn("mx-auto h-24 w-24 lg:hidden", compact && "h-20 w-20")}
+                className={cn("mx-auto h-32 w-32 lg:hidden", compact && "h-28 w-28")}
               />
             ) : null}
           </div>
@@ -139,7 +139,17 @@ export default function DashboardPageHero({
                 </div>
               </div>
 
-              <div className={cn("mt-5", compact && "mt-3", illustration && "grid grid-cols-[minmax(0,1fr)_7.5rem] items-center gap-3")}>
+              <div className={cn(
+                "mt-5",
+                compact && "mt-3",
+                // La colonne de droite est dimensionnée sur l'illustration : elle
+                // doit la contenir sans rogner les chiffres, qui gardent la
+                // priorité dans une carte de 19 à 24 rem.
+                illustration && "grid items-center gap-3",
+                illustration && (compact
+                  ? "grid-cols-[minmax(0,1fr)_7.5rem]"
+                  : "grid-cols-[minmax(0,1fr)_9.5rem]"),
+              )}>
                 <div className={cn("space-y-3", compact && "space-y-2")}>
                 {displayStats.length > 0 ? displayStats.map((stat) => {
                   const StatIcon = stat.icon ?? ArrowRight;
@@ -165,7 +175,7 @@ export default function DashboardPageHero({
                   <DashboardIllustrationMedia
                     eager
                     illustration={illustration}
-                    className={cn("h-28 w-28", compact && "h-24 w-24")}
+                    className={cn("h-36 w-36", compact && "h-28 w-28")}
                   />
                 ) : (
                 <div className="mt-5 grid grid-cols-5 items-end gap-2">

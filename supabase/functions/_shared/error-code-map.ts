@@ -1,6 +1,6 @@
 // GENERATED FILE — do not edit by hand.
 // Run `pnpm run generate:error-code-map` after adding or moving an HttpError.
-// 258 error codes mapped from supabase/functions/**.
+// 267 error codes mapped from supabase/functions/**.
 
 export type ErrorCodeSite = { file: string; line: number };
 
@@ -265,6 +265,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/tok-connect-api/index.ts",
       "line": 961
+    }
+  ],
+  "availability_lookup_failed": [
+    {
+      "file": "supabase/functions/google-actions-center-sync/index.ts",
+      "line": 152
     }
   ],
   "campaign_preview_fields_required": [
@@ -739,6 +745,10 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/aligro-catalog-sync/index.ts",
       "line": 397
+    },
+    {
+      "file": "supabase/functions/google-actions-center-sync/index.ts",
+      "line": 236
     }
   ],
   "forbidden_conversation": [
@@ -777,6 +787,42 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/google-actions-center/index.ts",
       "line": 1016
+    }
+  ],
+  "google_booking_mapping_missing": [
+    {
+      "file": "supabase/functions/google-actions-center-sync/index.ts",
+      "line": 181
+    }
+  ],
+  "google_service_account_invalid_format": [
+    {
+      "file": "supabase/functions/google-actions-center-sync/index.ts",
+      "line": 80
+    }
+  ],
+  "google_service_account_invalid_json": [
+    {
+      "file": "supabase/functions/google-actions-center-sync/index.ts",
+      "line": 73
+    }
+  ],
+  "google_service_account_missing": [
+    {
+      "file": "supabase/functions/google-actions-center-sync/index.ts",
+      "line": 65
+    }
+  ],
+  "google_token_missing": [
+    {
+      "file": "supabase/functions/google-actions-center-sync/index.ts",
+      "line": 136
+    }
+  ],
+  "google_token_request_failed": [
+    {
+      "file": "supabase/functions/google-actions-center-sync/index.ts",
+      "line": 133
     }
   ],
   "grant_id_required": [
@@ -1259,6 +1305,10 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 99
     },
     {
+      "file": "supabase/functions/google-actions-center-sync/index.ts",
+      "line": 234
+    },
+    {
       "file": "supabase/functions/ops-incident-control/index.ts",
       "line": 1358
     },
@@ -1339,6 +1389,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
       "line": 346
+    }
+  ],
+  "outbox_claim_failed": [
+    {
+      "file": "supabase/functions/google-actions-center-sync/index.ts",
+      "line": 243
     }
   ],
   "partner_id_required": [
@@ -1605,6 +1661,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
       "line": 595
+    }
+  ],
+  "restaurant_id_missing": [
+    {
+      "file": "supabase/functions/google-actions-center-sync/index.ts",
+      "line": 198
     }
   ],
   "restaurant_id_required": [
