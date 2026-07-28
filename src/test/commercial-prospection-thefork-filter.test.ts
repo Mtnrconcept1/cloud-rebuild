@@ -15,6 +15,8 @@ describe("commercial TheFork-only filter", () => {
     expect(source).toContain("theForkOnly,");
     expect(source).toContain("setTheForkOnly(false)");
     expect(source).toContain("checked === true");
+    expect(source).toContain("handleTheForkOnlyChange");
+    expect(source).toContain("setAppliedFilters((current) => ({ ...current, theForkOnly: nextTheForkOnly }))");
     expect(source).toContain("Affiliés TheFork uniquement");
     expect(source).toContain("Source TheFork indisponible");
   });
