@@ -104,10 +104,32 @@ function uniqueNormalized(values: unknown[]) {
   return Array.from(new Set((values || []).map(normalizeAudienceToken).filter(Boolean)));
 }
 
+function normalizeFiniteSelection<T extends string>(
+  values: unknown[],
+  allowedValues: readonly T[],
+): T[] {
+  const selected = uniqueNormalized(values)
+    .filter((value): value is T => allowedValues.includes(value as T));
+
+  if (allowedValues.length > 0 && allowedValues.every((value) => selected.includes(value))) {
+    return [];
+  }
+
+  return selected;
+}
+
 export function normalizeAudienceCriteria(raw: Partial<AudienceCriteria> | null | undefined): AudienceCriteria {
   const normalizedGenders = uniqueNormalized(
     Array.isArray(raw?.genders) ? raw.genders : DEFAULT_AUDIENCE_CRITERIA.genders,
   ).filter((value): value is CampaignGenderTarget => GENDER_TARGET_OPTIONS.some((option) => option.value === value));
+  const normalizedJourneyTypes = normalizeFiniteSelection(
+    Array.isArray(raw?.journeyTypes) ? raw.journeyTypes : [],
+    JOURNEY_TYPE_OPTIONS.map((option) => option.value),
+  );
+  const normalizedServiceMoments = normalizeFiniteSelection(
+    Array.isArray(raw?.serviceMoments) ? raw.serviceMoments : [],
+    SERVICE_MOMENT_OPTIONS.map((option) => option.value),
+  );
 
   return {
     cuisines: uniqueNormalized(Array.isArray(raw?.cuisines) ? raw.cuisines : []),
@@ -116,14 +138,14 @@ export function normalizeAudienceCriteria(raw: Partial<AudienceCriteria> | null 
     maxDaysSinceOrder: Math.max(1, Number(raw?.maxDaysSinceOrder) || DEFAULT_AUDIENCE_CRITERIA.maxDaysSinceOrder),
     minAvgBasket: Math.max(0, Number(raw?.minAvgBasket) || 0),
     favoritesOnly: Boolean(raw?.favoritesOnly),
-    genders: normalizedGenders.length > 0 ? normalizedGenders : DEFAULT_AUDIENCE_CRITERIA.genders,
+    genders: normalizedGenders.includes("all")
+      ? ["all"]
+      : (normalizedGenders.length > 0 ? normalizedGenders : DEFAULT_AUDIENCE_CRITERIA.genders),
     customerSegment: CUSTOMER_SEGMENT_OPTIONS.some((option) => option.value === raw?.customerSegment)
       ? (raw!.customerSegment as CampaignCustomerSegment)
       : DEFAULT_AUDIENCE_CRITERIA.customerSegment,
-    journeyTypes: uniqueNormalized(Array.isArray(raw?.journeyTypes) ? raw.journeyTypes : [])
-      .filter((value): value is CampaignJourneyType => JOURNEY_TYPE_OPTIONS.some((option) => option.value === value)),
-    serviceMoments: uniqueNormalized(Array.isArray(raw?.serviceMoments) ? raw.serviceMoments : [])
-      .filter((value): value is CampaignServiceMoment => SERVICE_MOMENT_OPTIONS.some((option) => option.value === value)),
+    journeyTypes: normalizedJourneyTypes,
+    serviceMoments: normalizedServiceMoments,
     restaurantId: raw?.restaurantId,
   };
 }
