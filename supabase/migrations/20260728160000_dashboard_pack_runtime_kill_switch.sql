@@ -11,7 +11,7 @@ WHERE name = 'dashboard-pack';
 
 -- Keep already-open clients in sync with the global switch. RLS still
 -- governs delivery and feature_flags is already publicly readable.
-DO $
+DO $$
 BEGIN
   IF EXISTS (
     SELECT 1 FROM pg_catalog.pg_publication WHERE pubname = 'supabase_realtime'
@@ -25,7 +25,7 @@ BEGIN
     EXECUTE 'ALTER PUBLICATION supabase_realtime ADD TABLE public.feature_flags';
   END IF;
 END;
-$;
+$$;
 
 CREATE OR REPLACE FUNCTION private_finance.assert_dashboard_pack_runtime_enabled(
   p_action text
