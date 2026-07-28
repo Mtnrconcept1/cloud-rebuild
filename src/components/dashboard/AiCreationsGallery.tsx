@@ -13,7 +13,7 @@ import {
   subscribeAiCreationRecords,
   useAiCreationRecovery,
   type AiCreationRecord,
-} from "@/lib/ai/aiCreationJobs";
+} from "@/lib/ai/aiCréationJobs";
 import {
   buildRestaurantMediaAiMetadata,
   shouldApplyTokWatermarkToRestaurantMedia,
@@ -65,7 +65,7 @@ function getStatusBadge(record: AiCreationRecord) {
 
 export default function AiCreationsGallery({ restaurantId, userId, currentPhotoCount, watermarkSubscription, onGalleryUpdated }: Props) {
   const { toast } = useToast();
-  const [records, setRecords] = useState<AiCreationRecord[]>(() => getAiCreationRecords());
+  const [records, setRecords] = useState<AiCreationRecord[]>(() => getAiCréationRecords());
   const [addingId, setAddingId] = useState<string | null>(null);
   const [previewRecord, setPreviewRecord] = useState<AiCreationRecord | null>(null);
 
@@ -133,7 +133,7 @@ export default function AiCreationsGallery({ restaurantId, userId, currentPhotoC
     if (!deleted) return;
 
     toast({
-      title: "Creation supprimee",
+      title: "Création supprimee",
       description: record.galleryAdded
         ? "La creation est retiree de Mes creations. La photo deja ajoutee reste dans la galerie."
         : "La creation est retiree de Mes creations.",

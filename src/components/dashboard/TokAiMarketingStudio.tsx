@@ -24,7 +24,7 @@ import {
   setActiveAiCreationContext,
   startTokImageCreationJob,
   useAiCreationRecovery,
-} from "@/lib/ai/aiCreationJobs";
+} from "@/lib/ai/aiCréationJobs";
 import {
   getTokImageOutputPricing,
   type TokImageOutputResolution,
@@ -1169,7 +1169,7 @@ function buildCommercialDemoBusinessContext(snapshot: CommercialDemoSnapshot): M
 export default function TokAiMarketingStudio({ restaurantId }: Props) {
   const { toast } = useToast();
   // A visual stored while the tab was away is re-attached instead of being lost.
-  useAiCreationRecovery(restaurantId);
+  useAiCréationRecovery(restaurantId);
   const commercialDemoFrame = useCommercialDemoFrame();
   const commercialDemoSessionId = commercialDemoFrame?.config.sessionId;
   const commercialDemoSurface = commercialDemoFrame?.surface;
@@ -1253,8 +1253,8 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
 
   useEffect(() => {
     if (isCommercialDemo) return;
-    setActiveAiCreationContext("dashboard-photos:marketing");
-    return () => setActiveAiCreationContext(null);
+    setActiveAiCréationContext("dashboard-photos:marketing");
+    return () => setActiveAiCréationContext(null);
   }, [isCommercialDemo]);
 
   useEffect(() => {
@@ -1685,7 +1685,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
     setMarketingImageResult(null);
 
     try {
-      if (!isCommercialDemo) void requestAiCreationNotificationPermission();
+      if (!isCommercialDemo) void requestAiCréationNotificationPermission();
       const [latestResources, latestBusinessContext] = isCommercialDemo
         ? [resources, activeBusinessContext || null] as const
         : await Promise.all([
@@ -1753,7 +1753,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
       };
       const imageResult = demoRuntime
         ? await generateCommercialDemoVisual(demoRuntime, generationRequest)
-        : await startTokImageCreationJob({
+        : await startTokImageCréationJob({
           restaurantId,
           tool: "marketing_studio",
           title: `${activeToolConfig.title} ${selectedFormat.label}`,

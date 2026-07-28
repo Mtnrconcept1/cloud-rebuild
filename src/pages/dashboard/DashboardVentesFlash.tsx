@@ -466,7 +466,7 @@ function FlashForm({
         delivery_available: true,
         takeaway_available: true,
       },
-      p_reason: "Creation vente flash restaurateur",
+      p_reason: "Création vente flash restaurateur",
     });
 
     setLoading(false);

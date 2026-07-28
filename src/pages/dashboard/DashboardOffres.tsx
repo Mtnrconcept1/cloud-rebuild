@@ -473,7 +473,7 @@ function OfferForm({
         pickup_end: pickupEnd,
         is_active: true,
       },
-      p_reason: "Creation offre anti-gaspi restaurateur",
+      p_reason: "Création offre anti-gaspi restaurateur",
     });
 
     setLoading(false);

@@ -138,7 +138,7 @@ export default function AdminCatalog() {
     const { error } = await (supabase.rpc as any)("admin_upsert_cuisine", {
       p_cuisine_id: null,
       p_name: newCuisine.trim(),
-      p_reason: "Creation cuisine catalogue",
+      p_reason: "Création cuisine catalogue",
     });
     if (error) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });

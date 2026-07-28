@@ -2,7 +2,7 @@ import { type CSSProperties, FormEvent, useCallback, useEffect, useRef, useState
 import DashboardLayout from "@/components/DashboardLayout";
 import IllustratedActionCard from "@/components/dashboard/IllustratedActionCard";
 import { DASHBOARD_ILLUSTRATIONS, type DashboardIllustration } from "@/lib/dashboardIllustrations";
-import AiCreationsGallery from "@/components/dashboard/AiCreationsGallery";
+import AiCreationsGallery from "@/components/dashboard/AiCréationsGallery";
 import TokAiMarketingStudio from "@/components/dashboard/TokAiMarketingStudio";
 import TokAiPhotoStudio from "@/components/dashboard/TokAiPhotoStudio";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -318,8 +318,8 @@ function CommercialDemoVisualGallery({
   onAddToGallery: (creation: CommercialDemoVisualHistoryItem) => void;
 }) {
   const [creations, setCreations] = useState<CommercialDemoVisualHistoryItem[]>([]);
-  const [loadingCreations, setLoadingCreations] = useState(true);
-  const [creationError, setCreationError] = useState<string | null>(null);
+  const [loadingCréations, setLoadingCréations] = useState(true);
+  const [creationError, setCréationError] = useState<string | null>(null);
 
   const loadCreations = useCallback(async () => {
     setLoadingCreations(true);

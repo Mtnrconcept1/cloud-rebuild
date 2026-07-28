@@ -18,7 +18,7 @@ import {
   setActiveAiCreationContext,
   startTokImageCreationJob,
   useAiCreationRecovery,
-} from "@/lib/ai/aiCreationJobs";
+} from "@/lib/ai/aiCréationJobs";
 import {
   getTokImageOutputPricing,
   type TokImageOutputResolution,

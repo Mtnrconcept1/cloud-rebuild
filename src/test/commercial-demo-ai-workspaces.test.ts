@@ -22,7 +22,7 @@ describe("commercial demo AI workspaces", () => {
   const server = `${edgeShared}\n${edge}`;
   const client = read("src/lib/commercialDemoAi.ts");
   const tokAiClient = read("src/lib/ai/tokAiClient.ts");
-  const creationJobs = read("src/lib/ai/aiCreationJobs.ts");
+  const creationJobs = read("src/lib/ai/aiCréationJobs.ts");
   const effects = read("src/lib/commercialDemoEffects.ts");
   const provider = read("src/components/commercial/CommercialDemoFrameProvider.tsx");
   const advisor = read("src/pages/dashboard/DashboardAdvisor.tsx");
@@ -257,7 +257,7 @@ describe("commercial demo AI workspaces", () => {
       marketingStudio.indexOf("const generatedMarketingImageUrl"),
     );
     expect(generation).toContain("demoRuntime\n        ? await generateCommercialDemoVisual");
-    expect(generation).toContain(": await startTokImageCreationJob");
+    expect(generation).toContain(": await startTokImageCréationJob");
     expect(generation).toContain("if (!isCommercialDemo && !generationResources.length)");
   });
 

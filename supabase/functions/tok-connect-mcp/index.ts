@@ -1175,7 +1175,7 @@ const ACTION_WINDOW_HTML = `<!doctype html>
         if (payload.estimate) {
           return (
             '<div class="tok-summary-card">' +
-            '<div class="tok-card-row"><strong>Cout estime</strong><span class="tok-rating-pill">' + escapeHtml(payload.estimate.credits || 0) + ' cr.</span></div>' +
+            '<div class="tok-card-row"><strong>Coût estime</strong><span class="tok-rating-pill">' + escapeHtml(payload.estimate.credits || 0) + ' cr.</span></div>' +
             '<p>Le solde restaurateur doit couvrir cette action avant toute execution reelle.</p>' +
             '</div>'
           );

@@ -36,7 +36,7 @@ describe("commercial demo OpenAI policy", () => {
   const client = read("src/lib/commercialDemoAi.ts");
   const effects = read("src/lib/commercialDemoEffects.ts");
   const hostSecurity = read("src/lib/commercialDemoHostSecurity.ts");
-  const creationJobs = read("src/lib/ai/aiCreationJobs.ts");
+  const creationJobs = read("src/lib/ai/aiCréationJobs.ts");
   const config = read("supabase/config.toml");
 
   it("exposes one exact Supabase Edge slug and never puts OpenAI credentials or calls in the browser", () => {
@@ -220,7 +220,7 @@ describe("commercial demo OpenAI policy", () => {
 
   it("does not persist transient source or signed output URLs in the commercial job ledger", () => {
     expect(creationJobs).toContain("getCommercialDemoAiRuntime()");
-    expect(creationJobs).toContain("const storageKey = getAiCreationsStorageKey()");
+    expect(creationJobs).toContain("const storageKey = getAiCréationsStorageKey()");
     expect(creationJobs).toContain("upsertRecord(record, storageKey)");
     expect(creationJobs).toContain("}, storageKey) ||");
     expect(creationJobs).toContain("sourceImageUrl: null");
