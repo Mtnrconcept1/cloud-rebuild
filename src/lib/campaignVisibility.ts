@@ -61,6 +61,30 @@ function normalizeTargetPages(value: unknown): string[] {
   return trimmed.split(",").map((page) => page.trim()).filter(Boolean);
 }
 
+function normalizeTargetCriteria(value: unknown): Partial<AudienceCriteria> {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    return value as Partial<AudienceCriteria>;
+  }
+
+  if (typeof value !== "string") {
+    return DEFAULT_AUDIENCE_CRITERIA;
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed) return DEFAULT_AUDIENCE_CRITERIA;
+
+  try {
+    const parsed = JSON.parse(trimmed);
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      return parsed as Partial<AudienceCriteria>;
+    }
+  } catch {
+    // Legacy malformed payloads are treated as broad instead of crashing delivery.
+  }
+
+  return DEFAULT_AUDIENCE_CRITERIA;
+}
+
 export function isCampaignVisibleForViewer(
   campaign: CampaignVisibilityCandidate,
   {
@@ -101,7 +125,7 @@ export function isCampaignVisibleForViewer(
     return true;
   }
 
-  const criteria = (campaign?.target_criteria || DEFAULT_AUDIENCE_CRITERIA) as Partial<AudienceCriteria>;
+  const criteria = normalizeTargetCriteria(campaign?.target_criteria);
   if (!audienceSnapshot) {
     return !hasAudienceTargeting(criteria);
   }
