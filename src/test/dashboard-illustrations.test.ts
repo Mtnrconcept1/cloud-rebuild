@@ -32,6 +32,7 @@ describe("dashboard 3D illustrations", () => {
     expect(hero).toContain('loading="lazy"');
     expect(hero).toContain('decoding="async"');
     expect(hero).toContain('"relative mt-6 w-full rounded-3xl');
+    expect(hero).toContain('grid-cols-[minmax(0,1fr)_7.5rem]');
     expect(client).toContain("clientReservation");
     expect(client).toContain('className="hidden h-36 w-44');
     expect(courier).toContain("courierEmpty");
