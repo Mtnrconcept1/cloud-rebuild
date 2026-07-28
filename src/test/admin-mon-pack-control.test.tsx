@@ -117,6 +117,33 @@ describe("AdminMonPackControl", () => {
     expect(screen.getByLabelText(/motif du changement/i)).toHaveValue("Test erreur");
   });
 
+  it("recovers the confirmation controls when the request rejects", async () => {
+    setFlagStateMock.mockRejectedValueOnce(new Error("Réseau indisponible"));
+    render(<AdminMonPackControl />);
+
+    fireEvent.click(screen.getByRole("switch"));
+    const dialog = await screen.findByRole("alertdialog");
+    const reason = within(dialog).getByLabelText(/motif du changement/i);
+    const confirm = within(dialog).getByRole("button", {
+      name: "Confirmer la coupure",
+    });
+    fireEvent.change(reason, { target: { value: "Test rejet" } });
+    fireEvent.click(confirm);
+
+    await waitFor(() => {
+      expect(toastMock).toHaveBeenCalledWith(expect.objectContaining({
+        title: "Modification impossible",
+        description: "Réseau indisponible",
+        variant: "destructive",
+      }));
+    });
+    await waitFor(() => {
+      expect(confirm).toBeEnabled();
+    });
+    expect(screen.getByRole("alertdialog")).toBeInTheDocument();
+    expect(reason).toHaveValue("Test rejet");
+  });
+
   it("writes the explicit enabled state without claiming dependencies are active", async () => {
     featureState.flags = [{
       ...enabledFlag,
