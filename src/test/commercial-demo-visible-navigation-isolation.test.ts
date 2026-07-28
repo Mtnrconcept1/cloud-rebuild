@@ -104,7 +104,7 @@ describe("commercial demo visible navigation isolation", () => {
 
   it("uses the validated snapshot flags while an embedded dashboard is mounted", () => {
     expect(featureFlags).toContain(
-      "export function useFeatureFlagSnapshot(options: { enabled?: boolean } = {})",
+      "export function useFeatureFlagSnapshot(options: { enabled?: boolean; live?: boolean } = {})",
     );
     expect(featureFlags).toContain("if (!enabled) {");
     expect(featureFlags).toContain("return useFeatureFlagSnapshot(options).activeFeatures");
