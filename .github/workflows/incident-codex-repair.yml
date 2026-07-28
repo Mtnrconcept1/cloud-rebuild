@@ -107,7 +107,7 @@ jobs:
       - name: Retrieve approved sanitized repair context
         env:
           INCIDENT_ID: ${{ steps.request.outputs.incident_id }}
-          INCIDENT_GITHUB_SECRET: ${{ secrets.TOK_INCIDENT_GITHUB_SECRET || secrets.OPS_GITHUB_CALLBACK_SECRET }}
+          INCIDENT_GITHUB_SECRET: ${{ secrets.OPS_GITHUB_CALLBACK_SECRET || secrets.TOK_INCIDENT_GITHUB_SECRET }}
         shell: bash
         run: |
           set -euo pipefail
@@ -147,7 +147,7 @@ jobs:
         continue-on-error: true
         env:
           INCIDENT_ID: ${{ steps.request.outputs.incident_id }}
-          INCIDENT_GITHUB_SECRET: ${{ secrets.TOK_INCIDENT_GITHUB_SECRET || secrets.OPS_GITHUB_CALLBACK_SECRET }}
+          INCIDENT_GITHUB_SECRET: ${{ secrets.OPS_GITHUB_CALLBACK_SECRET || secrets.TOK_INCIDENT_GITHUB_SECRET }}
         shell: bash
         run: |
           set -euo pipefail
@@ -585,7 +585,7 @@ jobs:
       - name: Send final status
         if: ${{ env.INCIDENT_CONTROL_URL != '' && env.INCIDENT_GITHUB_SECRET_PRESENT == 'true' }}
         env:
-          INCIDENT_GITHUB_SECRET: ${{ secrets.TOK_INCIDENT_GITHUB_SECRET || secrets.OPS_GITHUB_CALLBACK_SECRET }}
+          INCIDENT_GITHUB_SECRET: ${{ secrets.OPS_GITHUB_CALLBACK_SECRET || secrets.TOK_INCIDENT_GITHUB_SECRET }}
           INCIDENT_ID: ${{ needs.prepare.outputs.incident_id }}
           REPAIR_BRANCH: ${{ needs.prepare.outputs.repair_branch }}
           PR_URL: ${{ needs.publish.outputs.pr_url }}
