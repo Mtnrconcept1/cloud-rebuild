@@ -298,7 +298,7 @@ export async function finalizeZeroAttenteCheckout(input: {
     );
 
     if (reservationError || !createdReservationId) {
-      throw new Error(reservationError?.message || "Creation de reservation Zero Attente impossible.");
+      throw new Error(reservationError?.message || "Création de reservation Zero Attente impossible.");
     }
     reservationId = createdReservationId;
   }

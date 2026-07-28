@@ -343,7 +343,7 @@ function CommercialDemoVisualGallery({
     <Card className="rounded-3xl">
       <CardHeader className="flex-row items-start justify-between gap-4">
         <div>
-          <CardTitle>Créations IA Démo</CardTitle>
+          <CardTitle>Creations IA Démo</CardTitle>
           <p className="mt-1 text-sm text-muted-foreground">Historique OpenAI persistant de cette session · crédits Démo illimités · aucun stockage de production.</p>
         </div>
         <Button type="button" variant="outline" onClick={() => void loadCreations()} disabled={loadingCreations}>Actualiser</Button>

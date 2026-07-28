@@ -165,7 +165,7 @@ export function useUpdateFulfillment() {
       const { error } = await (supabase.rpc as any)("admin_update_launch_pack_fulfillment", {
         p_fulfillment_id: id,
         p_patch: patch,
-        p_reason: "Mise a jour fulfillment Launch Pack",
+        p_reason: "Mise à jour fulfillment Launch Pack",
       });
 
       if (error) throw error;
@@ -188,7 +188,7 @@ export function useUpdateRestaurantFeatures() {
       const { error } = await (supabase.rpc as any)("admin_update_restaurant_disabled_features", {
         p_restaurant_id: params.restaurantId,
         p_features: params.disabledFeatures,
-        p_reason: "Mise a jour features dashboard Launch Pack",
+        p_reason: "Mise à jour features dashboard Launch Pack",
       });
 
       if (error) throw error;
@@ -211,7 +211,7 @@ export function useUpdatePackStatus() {
       const { error } = await (supabase.rpc as any)("admin_update_launch_pack_status", {
         p_pack_id: params.id,
         p_status: params.status,
-        p_reason: "Mise a jour statut Launch Pack",
+        p_reason: "Mise à jour statut Launch Pack",
       });
 
       if (error) throw error;

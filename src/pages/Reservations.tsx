@@ -147,7 +147,7 @@ const RESERVATION_SORT_COLUMNS: SortColumn<ReservationWithRestaurant, Reservatio
   { key: "reservation_date", label: "Date de table", type: "date", getValue: getReservedDateTimeMs },
   { key: "created_at", label: "Date de creation", type: "date", getValue: (reservation) => reservation.created_at },
   { key: "restaurant", label: "Nom du restaurant", type: "text", getValue: (reservation) => getRestaurantName(reservation.restaurants) },
-  { key: "number", label: "Numero", type: "text", getValue: (reservation) => reservation.order_reference || reservation.id },
+  { key: "number", label: "Numéro", type: "text", getValue: (reservation) => reservation.order_reference || reservation.id },
   { key: "status", label: "Statut", type: "text", getValue: (reservation) => reservation.status },
 ];
 

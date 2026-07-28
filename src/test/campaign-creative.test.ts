@@ -162,25 +162,20 @@ describe("campaign creative studio", () => {
     expect(templateCard).not.toContain("mt-1 line-clamp-2 overflow-visible pb-2 leading-[1.04]");
   });
 
-  it("lets every sponsored placement grow with long customized copy", () => {
-    const longRestaurantName = "Le Grand Restaurant Gastronomique des Terrasses de Genève";
-    const longAddress = "123, promenade des Restaurateurs et Artisans du Canton de Genève";
-    const longHeadline = "Paniers surprises préparés chaque soir avec les invendus encore délicieux";
-    const longBody = "Sélection anti-gaspi généreuse, locale et variée chaque jour, sans perdre une information.";
-    const creative = {
-      copy: {
-        badge: "Sponsorisé par un partenaire local",
-        discount: "Promotion exceptionnelle jusqu'à moins trente pour cent",
-        eyebrow: "Brunch, café, desserts, spécialités françaises et cuisine locale",
-        restaurant: longRestaurantName,
-        tagline: "Savourez pleinement chaque instant autour de la table",
-        address: longAddress,
-        headline: longHeadline,
-        body: longBody,
-        sealTop: "Offres exceptionnelles",
-        sealMain: "PROMOTIONLONGUE",
-        sealBottom: "Quantités réellement limitées ce soir",
-      },
+  it("lets every sponsored placement grow with max-length customized copy", () => {
+    const maxCopy = {
+      badge: "B".repeat(90),
+      discount: "D".repeat(90),
+      eyebrow: "E".repeat(90),
+      restaurant: "R".repeat(90),
+      tagline: "T".repeat(90),
+      address: "A".repeat(90),
+      headline: "H".repeat(90),
+      body: "O".repeat(90),
+      sealTop: "S".repeat(90),
+      sealMain: "M".repeat(90),
+      sealBottom: "L".repeat(90),
+      cta: "C".repeat(90),
     };
     const variants = [
       { variant: "banner" as const, compactBanner: false },
@@ -191,22 +186,50 @@ describe("campaign creative studio", () => {
     for (const variant of variants) {
       const markup = renderToStaticMarkup(createElement(SponsoredRestaurantTemplateCard, {
         ...variant,
-        creative,
-        restaurantName: longRestaurantName,
-        address: longAddress,
-        headline: longHeadline,
-        body: longBody,
-        ctaLabel: "Découvrir toutes les informations de cette offre",
+        creative: { copy: maxCopy },
+        restaurantName: "Fallback restaurant",
+        address: "Fallback address",
+        headline: "Fallback headline",
+        body: "Fallback body",
+        ctaLabel: "Fallback CTA",
         discountLabel: "-30%",
       }));
+      const visibleFields = variant.variant === "banner"
+        ? [
+            maxCopy.badge,
+            maxCopy.discount,
+            maxCopy.eyebrow,
+            maxCopy.restaurant,
+            maxCopy.tagline,
+            maxCopy.address,
+            maxCopy.headline,
+            maxCopy.body,
+            maxCopy.sealTop,
+            maxCopy.sealMain,
+            maxCopy.sealBottom,
+          ]
+        : [
+            maxCopy.badge,
+            maxCopy.discount,
+            maxCopy.restaurant,
+            maxCopy.address,
+            maxCopy.headline,
+            maxCopy.body,
+            maxCopy.cta,
+          ];
 
-      expect(markup).toContain(longRestaurantName);
-      expect(markup).toContain(longAddress);
-      expect(markup).toContain(longHeadline);
-      expect(markup).toContain(longBody);
+      for (const visibleField of visibleFields) {
+        expect(visibleField).toHaveLength(90);
+        expect(markup).toContain(visibleField);
+      }
       expect(markup).not.toContain("line-clamp-2");
       expect(markup).not.toContain("truncate");
-      expect(markup).not.toContain("aspect-[16/5]");
+      if (variant.variant === "banner") {
+        expect(markup).not.toContain("aspect-[16/5]");
+        expect(markup).toContain("data-sponsored-banner-seal");
+      } else {
+        expect(markup).toContain("data-sponsored-card-badges");
+      }
     }
 
     const templateCard = readSource("src/components/campaigns/SponsoredRestaurantTemplateCard.tsx");
@@ -218,10 +241,19 @@ describe("campaign creative studio", () => {
     expect(bannerBranch).not.toContain("max-h-");
     expect(bannerBranch).not.toContain("truncate");
     expect(bannerBranch).not.toContain("line-clamp");
-    expect(bannerBranch).not.toContain('h-[268px]');
+    expect(bannerBranch).not.toMatch(/(?:^|[\s"'`])(?:[a-z]+:)*h-\[\d+px\](?=$|[\s"'`])/);
     expect(bannerBranch).not.toContain("aspect-[16/5]");
     expect(bannerBranch).toContain("data-sponsored-banner-seal");
-    expect(bannerBranch).not.toContain("absolute left-[45%]");
+    const sealMarkerIndex = bannerBranch.indexOf("data-sponsored-banner-seal");
+    const sealOpeningTag = bannerBranch.slice(bannerBranch.lastIndexOf("<div", sealMarkerIndex), sealMarkerIndex);
+    expect(sealOpeningTag).not.toMatch(/\b(?:absolute|fixed|sticky)\b/);
+
+    const cardBadgeMarkerIndex = templateCard.indexOf("data-sponsored-card-badges");
+    const cardBadgeOpeningTag = templateCard.slice(templateCard.lastIndexOf("<div", cardBadgeMarkerIndex), cardBadgeMarkerIndex);
+    expect(cardBadgeMarkerIndex).toBeGreaterThan(-1);
+    expect(cardBadgeOpeningTag).not.toMatch(/\b(?:absolute|fixed|sticky)\b/);
+    expect(templateCard).not.toContain("absolute left-3 right-14 top-3");
+    expect(templateCard).not.toContain("absolute bottom-3 left-3 right-3");
   });
 
   it("persists creative choices in channels and normalizes them server-side", () => {

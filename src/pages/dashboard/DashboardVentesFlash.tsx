@@ -466,7 +466,7 @@ function FlashForm({
         delivery_available: true,
         takeaway_available: true,
       },
-      p_reason: "Creation vente flash restaurateur",
+      p_reason: "Création vente flash restaurateur",
     });
 
     setLoading(false);
@@ -486,7 +486,7 @@ function FlashForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <div className="space-y-2">
-        <Label>Selectionner un produit</Label>
+        <Label>Sélectionner un produit</Label>
         <Select value={selectedItemId} onValueChange={setSelectedItemId}>
           <SelectTrigger>
             <SelectValue placeholder="Choisir un plat..." />
@@ -538,7 +538,7 @@ function FlashForm({
 
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-2">
-              <Label>Debut</Label>
+              <Label>Début</Label>
               <Input type="time" value={saleStart} onChange={(e) => setSaleStart(e.target.value)} />
             </div>
             <div className="space-y-2">

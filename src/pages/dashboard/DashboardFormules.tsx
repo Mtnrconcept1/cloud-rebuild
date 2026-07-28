@@ -1124,7 +1124,7 @@ function ProgressiveOfferManager({
                 disabled={saving}
               >
                 <CalendarCheck className="mr-2 h-4 w-4" />
-                {currentOffer ? "Modifier" : "Creer"}
+                {currentOffer ? "Modifier" : "Créer"}
               </Button>
               <Button type="button" onClick={() => currentOffer && updateOfferStatus(currentOffer, "active")} disabled={saving || !currentOffer || currentOffer.status === "active" || currentOffer.status === "finalized"}>
                 Activer
@@ -1160,7 +1160,7 @@ function ProgressiveOfferManager({
             disabled={saving}
           >
             <CalendarCheck className="h-4 w-4" />
-            {currentOffer ? "Modifier en 3 etapes" : "Creer en 3 etapes"}
+            {currentOffer ? "Modifier en 3 etapes" : "Créer en 3 etapes"}
           </Button>
         </div>
 
@@ -1417,7 +1417,7 @@ function ProgressiveOfferManager({
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label>Debut du compte a rebours</Label>
+                    <Label>Début du compte a rebours</Label>
                     <Input
                       type="time"
                       value={form.countdownStartTime}
@@ -1998,7 +1998,7 @@ function PresetFormulaCard({
                       </div>
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1">
-                          <Label className="text-xs font-medium">Debut</Label>
+                          <Label className="text-xs font-medium">Début</Label>
                           <Input
                             type="time"
                             value={settings.startTime}

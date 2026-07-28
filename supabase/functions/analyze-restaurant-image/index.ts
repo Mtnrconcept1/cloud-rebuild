@@ -426,7 +426,7 @@ Ne fabrique pas de marque, de certification, de prix ou d'offre si ce n'est pas 
           {
             type: "input_text",
             text: JSON.stringify({
-              objectif: "Creer des metadonnees recherche pour une image restaurant.",
+              objectif: "Créer des metadonnees recherche pour une image restaurant.",
               source_type: image.source_type,
               contexte_verifie: {
                 restaurant: context.restaurantName,

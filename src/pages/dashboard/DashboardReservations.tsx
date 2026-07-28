@@ -193,7 +193,7 @@ const extractMetadata = (reservation: ReservationRow): ReservationMetadata => {
 const DASHBOARD_RESERVATION_SORT_COLUMNS: SortColumn<ReservationWithProfile, ReservationSortKey>[] = [
   { key: "date", label: "Date", type: "date", getValue: (reservation) => `${reservation.date}T${getSafeTime(reservation.time)}` },
   { key: "time", label: "Heure", type: "number", getValue: (reservation) => Number(getSafeTime(reservation.time).replace(":", "")) },
-  { key: "order_reference", label: "Numero", type: "text", getValue: (reservation) => reservation.order_reference || reservation.id },
+  { key: "order_reference", label: "Numéro", type: "text", getValue: (reservation) => reservation.order_reference || reservation.id },
   { key: "customer", label: "Nom client", type: "text", getValue: (reservation) => reservation.customer?.full_name || reservation.customer?.phone || "" },
   { key: "party_size", label: "Couverts", type: "number", getValue: (reservation) => reservation.party_size },
   { key: "status", label: "Statut", type: "text", getValue: (reservation) => reservation.status },

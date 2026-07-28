@@ -720,7 +720,7 @@ export default function Panier() {
 
       if (!deliveryAddressHasPreciseNumber) {
         toast({
-          title: "Numero de rue requis",
+          title: "Numéro de rue requis",
           description: "Ajoutez le numero exact de la rue avant de continuer.",
           variant: "destructive",
         });

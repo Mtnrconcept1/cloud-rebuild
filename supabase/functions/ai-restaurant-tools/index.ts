@@ -44,7 +44,7 @@ const FUNCTION_NAME = "ai-restaurant-tools";
 
 const ACTION_LABELS: Record<RestaurantToolAction, string> = {
   dish_optimization: "Optimisation de plat",
-  campaign: "Creation de campagne",
+  campaign: "Création de campagne",
   review_reply: "Reponse a un avis",
   translation: "Traduction de contenu",
   sales_analysis: "Analyse des ventes",

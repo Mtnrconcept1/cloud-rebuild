@@ -29,6 +29,13 @@ export interface AudienceSnapshot {
   serviceMoments: CampaignServiceMoment[];
 }
 
+export interface AudienceTargetingEvaluation {
+  eligible: boolean;
+  score: number;
+  matchedCriteria: string[];
+  failedCriteria: string[];
+}
+
 export const CUSTOMER_SEGMENT_OPTIONS: { value: CampaignCustomerSegment; label: string }[] = [
   { value: "all", label: "Tous les clients" },
   { value: "new", label: "Nouveaux clients" },
@@ -97,7 +104,33 @@ function uniqueNormalized(values: unknown[]) {
   return Array.from(new Set((values || []).map(normalizeAudienceToken).filter(Boolean)));
 }
 
+function normalizeFiniteSelection<T extends string>(
+  values: unknown[],
+  allowedValues: readonly T[],
+): T[] {
+  const selected = uniqueNormalized(values)
+    .filter((value): value is T => allowedValues.includes(value as T));
+
+  if (allowedValues.length > 0 && allowedValues.every((value) => selected.includes(value))) {
+    return [];
+  }
+
+  return selected;
+}
+
 export function normalizeAudienceCriteria(raw: Partial<AudienceCriteria> | null | undefined): AudienceCriteria {
+  const normalizedGenders = uniqueNormalized(
+    Array.isArray(raw?.genders) ? raw.genders : DEFAULT_AUDIENCE_CRITERIA.genders,
+  ).filter((value): value is CampaignGenderTarget => GENDER_TARGET_OPTIONS.some((option) => option.value === value));
+  const normalizedJourneyTypes = normalizeFiniteSelection(
+    Array.isArray(raw?.journeyTypes) ? raw.journeyTypes : [],
+    JOURNEY_TYPE_OPTIONS.map((option) => option.value),
+  );
+  const normalizedServiceMoments = normalizeFiniteSelection(
+    Array.isArray(raw?.serviceMoments) ? raw.serviceMoments : [],
+    SERVICE_MOMENT_OPTIONS.map((option) => option.value),
+  );
+
   return {
     cuisines: uniqueNormalized(Array.isArray(raw?.cuisines) ? raw.cuisines : []),
     cities: uniqueNormalized(Array.isArray(raw?.cities) ? raw.cities : []),
@@ -105,15 +138,14 @@ export function normalizeAudienceCriteria(raw: Partial<AudienceCriteria> | null 
     maxDaysSinceOrder: Math.max(1, Number(raw?.maxDaysSinceOrder) || DEFAULT_AUDIENCE_CRITERIA.maxDaysSinceOrder),
     minAvgBasket: Math.max(0, Number(raw?.minAvgBasket) || 0),
     favoritesOnly: Boolean(raw?.favoritesOnly),
-    genders: uniqueNormalized(Array.isArray(raw?.genders) ? raw.genders : DEFAULT_AUDIENCE_CRITERIA.genders)
-      .filter((value): value is CampaignGenderTarget => GENDER_TARGET_OPTIONS.some((option) => option.value === value)),
+    genders: normalizedGenders.includes("all")
+      ? ["all"]
+      : (normalizedGenders.length > 0 ? normalizedGenders : DEFAULT_AUDIENCE_CRITERIA.genders),
     customerSegment: CUSTOMER_SEGMENT_OPTIONS.some((option) => option.value === raw?.customerSegment)
       ? (raw!.customerSegment as CampaignCustomerSegment)
       : DEFAULT_AUDIENCE_CRITERIA.customerSegment,
-    journeyTypes: uniqueNormalized(Array.isArray(raw?.journeyTypes) ? raw.journeyTypes : [])
-      .filter((value): value is CampaignJourneyType => JOURNEY_TYPE_OPTIONS.some((option) => option.value === value)),
-    serviceMoments: uniqueNormalized(Array.isArray(raw?.serviceMoments) ? raw.serviceMoments : [])
-      .filter((value): value is CampaignServiceMoment => SERVICE_MOMENT_OPTIONS.some((option) => option.value === value)),
+    journeyTypes: normalizedJourneyTypes,
+    serviceMoments: normalizedServiceMoments,
     restaurantId: raw?.restaurantId,
   };
 }
@@ -132,6 +164,10 @@ export function isDefaultAudienceCriteria(criteria: Partial<AudienceCriteria> | 
     normalized.journeyTypes.length === 0 &&
     normalized.serviceMoments.length === 0
   );
+}
+
+export function hasAudienceTargeting(criteria: Partial<AudienceCriteria> | null | undefined) {
+  return !isDefaultAudienceCriteria(criteria);
 }
 
 export function summarizeAudienceCriteria(criteria: Partial<AudienceCriteria> | null | undefined) {
@@ -168,17 +204,21 @@ export function matchesAudienceCriteria(
   snapshot: AudienceSnapshot | null,
   restaurantId?: string | null,
 ) {
-  return scoreAudienceCriteria(criteria, snapshot, restaurantId).score > 0;
+  return scoreAudienceCriteria(criteria, snapshot, restaurantId).eligible;
 }
 
 export function scoreAudienceCriteria(
   criteria: Partial<AudienceCriteria> | null | undefined,
   snapshot: AudienceSnapshot | null,
   restaurantId?: string | null,
-) {
+): AudienceTargetingEvaluation {
   const normalized = normalizeAudienceCriteria(criteria);
-  if (isDefaultAudienceCriteria(normalized)) return { score: 1, matchedCriteria: ["broad"] };
-  if (!snapshot) return { score: 0, matchedCriteria: [] };
+  if (isDefaultAudienceCriteria(normalized)) {
+    return { eligible: true, score: 1, matchedCriteria: ["broad"], failedCriteria: [] };
+  }
+  if (!snapshot) {
+    return { eligible: false, score: 0, matchedCriteria: [], failedCriteria: ["audienceSnapshot"] };
+  }
 
   const favoriteRestaurantIds = new Set(snapshot.favoriteRestaurantIds.map(normalizeAudienceToken));
   const cuisineSignals = new Set(snapshot.cuisineSignals.map(normalizeAudienceToken));
@@ -189,51 +229,78 @@ export function scoreAudienceCriteria(
   const interactionCount = Math.max(0, Number(snapshot.interactionCount) || 0);
   const avgBasket = Math.max(0, Number(snapshot.avgBasket) || 0);
   const daysSinceLastActivity = snapshot.daysSinceLastActivity;
-  const normalizedRestaurantId = normalizeAudienceToken(restaurantId);
+  const normalizedRestaurantId = normalizeAudienceToken(restaurantId || normalized.restaurantId);
   const matchedCriteria: string[] = [];
+  const failedCriteria: string[] = [];
   let score = 0;
 
-  if (normalized.genders.length > 0 && !normalized.genders.includes("all") && gender && normalized.genders.includes(gender as CampaignGenderTarget)) {
-    score += AUDIENCE_TARGETING_WEIGHTS.gender;
-    matchedCriteria.push("gender");
-  }
-  if (normalized.cities.length > 0 && city && normalized.cities.includes(city)) {
-    score += AUDIENCE_TARGETING_WEIGHTS.city;
-    matchedCriteria.push("city");
-  }
-  if (normalized.cuisines.length > 0 && normalized.cuisines.some((cuisine) => cuisineSignals.has(cuisine))) {
-    score += AUDIENCE_TARGETING_WEIGHTS.cuisine;
-    matchedCriteria.push("cuisine");
-  }
-  if (normalized.favoritesOnly && normalizedRestaurantId && favoriteRestaurantIds.has(normalizedRestaurantId)) {
-    score += AUDIENCE_TARGETING_WEIGHTS.favoriteRestaurant;
-    matchedCriteria.push("favoriteRestaurant");
-  }
-  if (normalized.minOrders > 0 && interactionCount >= normalized.minOrders) {
-    score += AUDIENCE_TARGETING_WEIGHTS.minOrders;
-    matchedCriteria.push("minOrders");
-  }
-  if (normalized.minAvgBasket > 0 && avgBasket >= normalized.minAvgBasket) {
-    score += AUDIENCE_TARGETING_WEIGHTS.minAvgBasket;
-    matchedCriteria.push("minAvgBasket");
-  }
-  if (normalized.journeyTypes.length > 0 && normalized.journeyTypes.some((journeyType) => journeyTypes.has(journeyType))) {
-    score += AUDIENCE_TARGETING_WEIGHTS.journeyType;
-    matchedCriteria.push("journeyType");
-  }
-  if (normalized.serviceMoments.length > 0 && normalized.serviceMoments.some((serviceMoment) => serviceMoments.has(serviceMoment))) {
-    score += AUDIENCE_TARGETING_WEIGHTS.serviceMoment;
-    matchedCriteria.push("serviceMoment");
-  }
-  if (
-    normalized.maxDaysSinceOrder < DEFAULT_AUDIENCE_CRITERIA.maxDaysSinceOrder &&
-    daysSinceLastActivity != null &&
-    daysSinceLastActivity <= normalized.maxDaysSinceOrder
-  ) {
-    score += AUDIENCE_TARGETING_WEIGHTS.recentActivity;
-    matchedCriteria.push("recentActivity");
-  }
+  const evaluate = (active: boolean, matched: boolean, key: string, weight: number) => {
+    if (!active) return;
+    if (matched) {
+      score += weight;
+      matchedCriteria.push(key);
+    } else {
+      failedCriteria.push(key);
+    }
+  };
 
+  const genderTargetingActive = normalized.genders.length > 0 && !normalized.genders.includes("all");
+  evaluate(
+    genderTargetingActive,
+    Boolean(gender) && normalized.genders.includes(gender as CampaignGenderTarget),
+    "gender",
+    AUDIENCE_TARGETING_WEIGHTS.gender,
+  );
+  evaluate(
+    normalized.cities.length > 0,
+    Boolean(city) && normalized.cities.includes(city),
+    "city",
+    AUDIENCE_TARGETING_WEIGHTS.city,
+  );
+  evaluate(
+    normalized.cuisines.length > 0,
+    normalized.cuisines.some((cuisine) => cuisineSignals.has(cuisine)),
+    "cuisine",
+    AUDIENCE_TARGETING_WEIGHTS.cuisine,
+  );
+  evaluate(
+    normalized.favoritesOnly,
+    Boolean(normalizedRestaurantId) && favoriteRestaurantIds.has(normalizedRestaurantId),
+    "favoriteRestaurant",
+    AUDIENCE_TARGETING_WEIGHTS.favoriteRestaurant,
+  );
+  evaluate(
+    normalized.minOrders > 0,
+    interactionCount >= normalized.minOrders,
+    "minOrders",
+    AUDIENCE_TARGETING_WEIGHTS.minOrders,
+  );
+  evaluate(
+    normalized.minAvgBasket > 0,
+    avgBasket >= normalized.minAvgBasket,
+    "minAvgBasket",
+    AUDIENCE_TARGETING_WEIGHTS.minAvgBasket,
+  );
+  evaluate(
+    normalized.journeyTypes.length > 0,
+    normalized.journeyTypes.some((journeyType) => journeyTypes.has(journeyType)),
+    "journeyType",
+    AUDIENCE_TARGETING_WEIGHTS.journeyType,
+  );
+  evaluate(
+    normalized.serviceMoments.length > 0,
+    normalized.serviceMoments.some((serviceMoment) => serviceMoments.has(serviceMoment)),
+    "serviceMoment",
+    AUDIENCE_TARGETING_WEIGHTS.serviceMoment,
+  );
+  evaluate(
+    normalized.maxDaysSinceOrder < DEFAULT_AUDIENCE_CRITERIA.maxDaysSinceOrder,
+    daysSinceLastActivity != null && daysSinceLastActivity <= normalized.maxDaysSinceOrder,
+    "recentActivity",
+    AUDIENCE_TARGETING_WEIGHTS.recentActivity,
+  );
+
+  const customerSegmentTargetingActive = normalized.customerSegment !== "all";
   const matchesSegment =
     normalized.customerSegment === "new"
       ? interactionCount === 0
@@ -243,12 +310,19 @@ export function scoreAudienceCriteria(
           ? interactionCount >= 5 || Boolean(normalizedRestaurantId && favoriteRestaurantIds.has(normalizedRestaurantId))
           : normalized.customerSegment === "inactive"
             ? interactionCount > 0 && daysSinceLastActivity != null && daysSinceLastActivity >= 45
-            : false;
+            : true;
 
-  if (matchesSegment) {
-    score += AUDIENCE_TARGETING_WEIGHTS.customerSegment;
-    matchedCriteria.push("customerSegment");
-  }
+  evaluate(
+    customerSegmentTargetingActive,
+    matchesSegment,
+    "customerSegment",
+    AUDIENCE_TARGETING_WEIGHTS.customerSegment,
+  );
 
-  return { score, matchedCriteria };
+  return {
+    eligible: failedCriteria.length === 0,
+    score: failedCriteria.length === 0 ? score : 0,
+    matchedCriteria,
+    failedCriteria,
+  };
 }

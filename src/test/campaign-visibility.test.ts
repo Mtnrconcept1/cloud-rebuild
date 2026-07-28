@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import type { AudienceSnapshot } from "@/lib/campaignTargeting";
+import { scoreAudienceCriteria, type AudienceSnapshot } from "@/lib/campaignTargeting";
 import { isCampaignVisibleForViewer } from "@/lib/campaignVisibility";
 
 const baseSnapshot: AudienceSnapshot = {
@@ -52,14 +52,14 @@ describe("campaignVisibility", () => {
     expect(visible).toBe(true);
   });
 
-  it("keeps targeting filters for non-owners", () => {
+  it("requires every active targeting family to match for non-owners", () => {
     const visible = isCampaignVisibleForViewer(
       {
         restaurant_id: "restaurant-1",
         restaurants: { id: "restaurant-1", owner_id: "owner-1" },
         target_pages: ["home", "search"],
         target_criteria: {
-          cities: ["geneve"],
+          cities: ["puplinge"],
           serviceMoments: ["lunch"],
         },
       },
@@ -73,7 +73,43 @@ describe("campaignVisibility", () => {
     expect(visible).toBe(false);
   });
 
-  it("keeps active sponsored placements visible for anonymous visitors", () => {
+  it("keeps OR semantics inside one targeting family", () => {
+    const evaluation = scoreAudienceCriteria(
+      {
+        cities: ["geneve", "puplinge"],
+        journeyTypes: ["takeaway", "delivery"],
+        serviceMoments: ["lunch", "dinner"],
+      },
+      baseSnapshot,
+      "restaurant-1",
+    );
+
+    expect(evaluation.eligible).toBe(true);
+    expect(evaluation.score).toBeGreaterThan(0);
+    expect(evaluation.failedCriteria).toEqual([]);
+  });
+
+  it("treats every journey and every service moment as broad selections", () => {
+    const evaluation = scoreAudienceCriteria(
+      {
+        cities: ["puplinge"],
+        journeyTypes: ["delivery", "takeaway", "reservation", "zero_attente"],
+        serviceMoments: ["lunch", "dinner", "weekend"],
+      },
+      {
+        ...baseSnapshot,
+        journeyTypes: [],
+        serviceMoments: [],
+      },
+      "restaurant-1",
+    );
+
+    expect(evaluation.eligible).toBe(true);
+    expect(evaluation.matchedCriteria).toEqual(["city"]);
+    expect(evaluation.failedCriteria).toEqual([]);
+  });
+
+  it("hides targeted sponsored placements for anonymous visitors", () => {
     const visible = isCampaignVisibleForViewer(
       {
         restaurant_id: "restaurant-1",
@@ -91,7 +127,64 @@ describe("campaignVisibility", () => {
       },
     );
 
+    expect(visible).toBe(false);
+  });
+
+  it("keeps broad sponsored placements visible for anonymous visitors", () => {
+    const visible = isCampaignVisibleForViewer(
+      {
+        restaurant_id: "restaurant-1",
+        restaurants: { id: "restaurant-1", owner_id: "owner-1" },
+        target_pages: ["home", "search"],
+        target_criteria: {},
+      },
+      {
+        page: "home",
+        audienceSnapshot: null,
+        viewerUserId: null,
+      },
+    );
+
     expect(visible).toBe(true);
+  });
+
+  it("keeps complete journey and moment selections broad for anonymous visitors", () => {
+    const visible = isCampaignVisibleForViewer(
+      {
+        restaurant_id: "restaurant-1",
+        restaurants: { id: "restaurant-1", owner_id: "owner-1" },
+        target_pages: ["home", "search"],
+        target_criteria: {
+          journeyTypes: ["delivery", "takeaway", "reservation", "zero_attente"],
+          serviceMoments: ["lunch", "dinner", "weekend"],
+        },
+      },
+      {
+        page: "home",
+        audienceSnapshot: null,
+        viewerUserId: null,
+      },
+    );
+
+    expect(visible).toBe(true);
+  });
+
+  it("parses legacy JSON campaign targeting before applying eligibility", () => {
+    const visible = isCampaignVisibleForViewer(
+      {
+        restaurant_id: "restaurant-1",
+        restaurants: { id: "restaurant-1", owner_id: "owner-1" },
+        target_pages: JSON.stringify(["home", "search"]),
+        target_criteria: JSON.stringify({ cities: ["geneve"] }),
+      },
+      {
+        page: "home",
+        audienceSnapshot: baseSnapshot,
+        viewerUserId: "viewer-2",
+      },
+    );
+
+    expect(visible).toBe(false);
   });
 
   it("hides targeted sponsored placements for connected clients without matching signals", () => {

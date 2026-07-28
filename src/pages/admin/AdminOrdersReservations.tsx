@@ -257,7 +257,7 @@ function getRefundReference(refund: RefundQueueItem) {
 
 const ADMIN_ORDER_SORT_COLUMNS: SortColumn<AdminOrderHistoryItem, AdminHistorySortKey>[] = [
   { key: "date", label: "Date", type: "date", getValue: (order) => order.createdAt },
-  { key: "reference", label: "Numero", type: "text", getValue: getOrderReference },
+  { key: "reference", label: "Numéro", type: "text", getValue: getOrderReference },
   { key: "customer", label: "Nom client", type: "text", getValue: (order) => order.customer.displayName },
   { key: "restaurant", label: "Restaurant", type: "text", getValue: (order) => order.restaurant.name },
   { key: "amount", label: "Montant", type: "number", getValue: (order) => order.totalAmount },
@@ -266,7 +266,7 @@ const ADMIN_ORDER_SORT_COLUMNS: SortColumn<AdminOrderHistoryItem, AdminHistorySo
 
 const ADMIN_RESERVATION_SORT_COLUMNS: SortColumn<AdminReservationHistoryItem, AdminHistorySortKey>[] = [
   { key: "date", label: "Date", type: "date", getValue: (reservation) => `${reservation.reservationDate}T${reservation.displayTime || "00:00"}` },
-  { key: "reference", label: "Numero", type: "text", getValue: (reservation) => reservation.reference || reservation.id },
+  { key: "reference", label: "Numéro", type: "text", getValue: (reservation) => reservation.reference || reservation.id },
   { key: "customer", label: "Nom client", type: "text", getValue: (reservation) => reservation.customer.displayName },
   { key: "restaurant", label: "Restaurant", type: "text", getValue: (reservation) => reservation.restaurant.name },
   { key: "amount", label: "Montant", type: "number", getValue: (reservation) => reservation.totalAmount },
@@ -275,7 +275,7 @@ const ADMIN_RESERVATION_SORT_COLUMNS: SortColumn<AdminReservationHistoryItem, Ad
 
 const ADMIN_REFUND_SORT_COLUMNS: SortColumn<RefundQueueItem, AdminHistorySortKey>[] = [
   { key: "date", label: "Date", type: "date", getValue: (refund) => String(refund.cancelled_at || refund.created_at || "") },
-  { key: "reference", label: "Numero", type: "text", getValue: getRefundReference },
+  { key: "reference", label: "Numéro", type: "text", getValue: getRefundReference },
   { key: "customer", label: "Nom client", type: "text", getValue: (refund) => refund.customer_name || refund.customer_phone || "" },
   { key: "restaurant", label: "Restaurant", type: "text", getValue: (refund) => refund.restaurant_name || "" },
   { key: "amount", label: "Montant", type: "number", getValue: (refund) => toAmount(refund.remaining_amount_chf) },

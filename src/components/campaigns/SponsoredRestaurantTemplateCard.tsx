@@ -140,7 +140,7 @@ export function SponsoredRestaurantTemplateCard({
   headline,
   body,
   ctaLabel = "Découvrir l'offre",
-  discountLabel = "Jusqu'à -18%",
+  discountLabel = "Jusqu’à -18%",
   slots = [],
   className,
   variant = "card",
@@ -267,7 +267,7 @@ export function SponsoredRestaurantTemplateCard({
 
             <div
               className={cn(
-                "flex max-w-full flex-wrap items-center gap-x-3 gap-y-1 self-start rounded-full border-[6px] border-white bg-white/92 text-primary shadow-[0_16px_36px_rgba(15,23,42,0.12)] ring-1 ring-orange-100 dark:border-slate-900 dark:bg-slate-900/92 dark:ring-orange-300/20",
+                "flex max-w-full flex-wrap items-center gap-x-3 gap-y-1 self-start rounded-full border-[6px] border-white bg-white/[.92] text-primary shadow-[0_16px_36px_rgba(15,23,42,0.12)] ring-1 ring-orange-100 dark:border-slate-900 dark:bg-slate-900/[.92] dark:ring-orange-300/20",
                 compactBanner ? "mt-2 px-3 py-2" : "mt-3 px-4 py-2.5",
               )}
               data-sponsored-banner-seal
@@ -380,18 +380,12 @@ export function SponsoredRestaurantTemplateCard({
         <img
           src={imageUrl || DEFAULT_IMAGE}
           alt=""
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          className="h-full w-full bg-white object-contain p-2 transition-transform duration-500 group-hover:scale-[1.025] sm:p-3"
           onError={handleImageError}
           loading="lazy"
           decoding="async"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/62 via-slate-950/10 to-transparent" />
-        <div className="absolute left-3 right-14 top-3 flex flex-wrap items-start gap-1.5">
-          <span className="inline-flex max-w-full flex-wrap items-center gap-1 rounded-full border border-white/35 bg-primary/95 px-3 py-1.5 text-center text-[9px] font-black uppercase leading-4 tracking-[0.12em] text-white shadow-sm [overflow-wrap:anywhere] backdrop-blur-md">
-            <Megaphone className="h-3 w-3" />
-            {displayBadge}
-          </span>
-        </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/[.38] via-slate-950/5 to-transparent" />
         <button
           type="button"
           aria-label={isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
@@ -400,17 +394,21 @@ export function SponsoredRestaurantTemplateCard({
         >
           <Heart className={cn("h-4 w-4 text-red-500", isFavorite && "fill-current")} />
         </button>
-        <div className="absolute bottom-3 left-3 right-3 flex items-end">
-          <span className="inline-flex max-w-full flex-wrap items-center gap-1.5 rounded-2xl border border-white/30 bg-gradient-to-r from-primary via-orange-500 to-emerald-600 px-3.5 py-2 text-center text-[11px] font-black uppercase leading-4 tracking-[0.08em] text-white shadow-[0_14px_30px_rgba(15,23,42,0.28)] ring-1 ring-black/5 [overflow-wrap:anywhere] backdrop-blur-md">
-            <span className="grid h-5 w-5 place-items-center rounded-full bg-white/20">
-              <Percent className="h-3.5 w-3.5" />
-            </span>
-            Promo {displayDiscount || discountLabel}
-          </span>
-        </div>
       </div>
 
       <div className="flex flex-1 flex-col p-4 sm:p-5">
+        <div className="mb-3 flex min-w-0 flex-wrap items-start gap-2" data-sponsored-card-badges>
+          <span className="inline-flex max-w-full min-w-0 flex-wrap items-center gap-1.5 rounded-full border border-orange-200 bg-primary px-3 py-1.5 text-center text-[9px] font-black uppercase leading-4 tracking-[0.12em] text-white shadow-sm [overflow-wrap:anywhere]">
+            <Megaphone className="h-3 w-3 shrink-0" />
+            <span className="min-w-0 break-words [overflow-wrap:anywhere]">{displayBadge}</span>
+          </span>
+          <span className="inline-flex max-w-full min-w-0 flex-wrap items-center gap-1.5 rounded-2xl border border-emerald-500/30 bg-gradient-to-r from-primary via-orange-500 to-emerald-600 px-3 py-1.5 text-center text-[10px] font-black uppercase leading-4 tracking-[0.06em] text-white shadow-[0_10px_24px_rgba(15,23,42,0.16)] [overflow-wrap:anywhere]">
+            <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-white/20">
+              <Percent className="h-3.5 w-3.5" />
+            </span>
+            <span className="min-w-0 break-words [overflow-wrap:anywhere]">Promo {displayDiscount || discountLabel}</span>
+          </span>
+        </div>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1 space-y-1">
             <h3 className={cn("break-words text-base leading-tight text-foreground transition-colors [overflow-wrap:anywhere] [text-wrap:balance] group-hover:text-primary", getTypographyClass(normalized.text.restaurant))} style={getTextInlineStyle(normalized.text.restaurant)}>
