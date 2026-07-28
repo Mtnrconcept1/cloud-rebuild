@@ -36,7 +36,6 @@ import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 import { isHelpCategoryVisible, isHelpQuestionVisible } from "@/lib/featureVisibility";
 import type { HelpChatOpenOptions } from "@/lib/helpChat";
 import { useSeoMeta } from "@/hooks/useSeoMeta";
-import { PUBLIC_FEATURE_MATRIX } from "@/lib/publicFeatureMatrix";
 
 declare global {
   interface Window {
@@ -1037,17 +1036,7 @@ export default function Aide() {
       </div>
 
       <main className="container -mt-7 max-w-6xl space-y-10 px-4 md:px-6">
-        <section className="rounded-2xl border bg-card p-5 shadow-sm" aria-labelledby="feature-matrix-title">
-          <h2 id="feature-matrix-title" className="text-xl font-bold">Matrice des fonctionnalités proposées</h2>
-          <p className="mt-2 text-sm text-muted-foreground">Cette vue relie les routes publiques, les fonctionnalités activables, les packs et les modules Fair Growth à leur aide et à leurs conditions applicables.</p>
-          <div className="mt-4 max-h-96 overflow-auto rounded-xl border">
-            <table className="w-full min-w-[820px] text-left text-sm">
-              <thead className="sticky top-0 bg-muted"><tr><th className="p-3">Public</th><th className="p-3">Fonctionnalité</th><th className="p-3">Disponibilité</th><th className="p-3">Routes</th><th className="p-3">Cadre</th></tr></thead>
-              <tbody>{PUBLIC_FEATURE_MATRIX.map((row) => <tr key={`${row.audience}-${row.feature}`} className="border-t align-top"><td className="p-3">{row.audience}</td><td className="p-3 font-medium">{row.feature}</td><td className="p-3">{row.availability}</td><td className="p-3 font-mono text-xs">{row.routes.join(", ")}</td><td className="p-3"><Link className="text-primary hover:underline" to={row.legalDocument}>{row.legalDocument === "/cgu" ? "CGU" : "Conditions restaurateurs"}</Link></td></tr>)}</tbody>
-            </table>
-          </div>
-        </section>
-        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <section className="rounded-2xl border bg-card p-5 shadow-s        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {visibleCategories.map((category) => (
             <button
               key={category.id}
