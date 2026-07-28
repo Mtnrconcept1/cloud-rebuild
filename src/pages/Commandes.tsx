@@ -63,7 +63,7 @@ type CustomerOrderSortKey = "created_at" | "order_number" | "restaurant" | "amou
 
 const CUSTOMER_ORDER_SORT_COLUMNS: SortColumn<CustomerOrderGroup, CustomerOrderSortKey>[] = [
   { key: "created_at", label: "Date", type: "date", getValue: (group) => group.mainOrder?.created_at },
-  { key: "order_number", label: "Numero", type: "text", getValue: (group) => group.mainOrder?.order_number || group.title || group.groupKey },
+  { key: "order_number", label: "Numéro", type: "text", getValue: (group) => group.mainOrder?.order_number || group.title || group.groupKey },
   { key: "restaurant", label: "Nom du restaurant", type: "text", getValue: (group) => group.restaurantsLabel },
   { key: "amount", label: "Montant", type: "number", getValue: (group) => group.totalAmount },
   { key: "status", label: "Statut", type: "text", getValue: (group) => getDisplayStatus(group.mainOrder) },

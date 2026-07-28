@@ -173,7 +173,7 @@ export default function DropsManagement() {
                 value={form.restaurant_id}
                 onChange={(event) => setForm({ ...form, restaurant_id: event.target.value })}
               >
-                <option value="">Selectionner...</option>
+                <option value="">Sélectionner...</option>
                 {restaurants.map((restaurant: any) => (
                   <option key={restaurant.id} value={restaurant.id}>
                     {restaurant.name}

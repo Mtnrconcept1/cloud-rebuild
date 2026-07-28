@@ -1230,7 +1230,7 @@ export default function AdminUtilisateurs() {
                               </select>
                             </label>
                             <label className="space-y-1">
-                              <span className="text-xs font-medium uppercase tracking-[0.12em] text-orange-900/70">Debut sprint</span>
+                              <span className="text-xs font-medium uppercase tracking-[0.12em] text-orange-900/70">Début sprint</span>
                               <Input
                                 type="date"
                                 value={commercialProfile?.sprint_started_at || new Date().toISOString().slice(0, 10)}

@@ -493,7 +493,7 @@ function OfferForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <div className="space-y-2">
-        <Label>Selectionner un produit</Label>
+        <Label>Sélectionner un produit</Label>
         <Select value={selectedItemId} onValueChange={setSelectedItemId}>
           <SelectTrigger>
             <SelectValue placeholder="Choisir un plat..." />

@@ -283,7 +283,7 @@ export default function DashboardService() {
                 <CardContent className="space-y-4">
                   <div className="grid gap-4 sm:grid-cols-3">
                     <div className="space-y-2">
-                      <Label>Debut</Label>
+                      <Label>Début</Label>
                       <Input
                         type="time"
                         value={settings.start_time}

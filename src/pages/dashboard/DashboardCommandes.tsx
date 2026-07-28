@@ -124,7 +124,7 @@ type RestaurantOrderStatusResponse = {
 
 const DASHBOARD_ORDER_SORT_COLUMNS: SortColumn<DashboardOrder, DashboardOrderSortKey>[] = [
   { key: "created_at", label: "Date", type: "date", getValue: (order) => order.created_at },
-  { key: "order_number", label: "Numero", type: "text", getValue: (order) => order.order_number || order.id },
+  { key: "order_number", label: "Numéro", type: "text", getValue: (order) => order.order_number || order.id },
   { key: "customer", label: "Nom client", type: "text", getValue: (order) => order.customer?.full_name || order.customer?.phone || "" },
   { key: "amount", label: "Montant", type: "number", getValue: (order) => order.total_amount },
   { key: "status", label: "Statut", type: "text", getValue: (order) => order.status },

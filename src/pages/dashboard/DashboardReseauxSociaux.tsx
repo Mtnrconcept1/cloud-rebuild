@@ -224,7 +224,7 @@ export default function DashboardReseauxSociaux() {
                   value={form.restaurant_id}
                   onChange={(event) => selectRestaurant(event.target.value)}
                 >
-                  <option value="">Selectionner</option>
+                  <option value="">Sélectionner</option>
                   {items.map((item) => (
                     <option key={item.id} value={item.id}>
                       {item.name}

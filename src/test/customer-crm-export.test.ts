@@ -46,7 +46,7 @@ describe("buildCustomerCrmCsv", () => {
       profile({ userId: "user-2", phone: "+41 79 000 00 00" }),
     ]);
 
-    expect(csv).toContain('"Nom complet";"Prenom";"Nom";"Email"');
+    expect(csv).toContain('"Nom complet";"Prénom";"Nom";"Email"');
     expect(csv).toContain('"Raph Test";"Raph";"Test";"raph@example.com"');
     expect(csv).toContain('"=""022 123 45 67"""');
     expect(csv).toContain('"=""+41 79 000 00 00"""');

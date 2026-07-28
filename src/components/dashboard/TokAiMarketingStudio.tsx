@@ -614,7 +614,7 @@ function buildMarketingRestaurantContext(context?: MarketingBusinessContext | nu
     sanitizeMarketingContextValue(restaurant.cuisineType) ? `Types de cuisine: ${sanitizeMarketingContextValue(restaurant.cuisineType, 180)}` : "",
     sanitizeMarketingContextValue(restaurant.description) ? `Description: ${sanitizeMarketingContextValue(restaurant.description, 300)}` : "",
     [sanitizeMarketingContextValue(restaurant.address, 180), sanitizeMarketingContextValue(restaurant.city, 80)].filter(Boolean).join(", "),
-    sanitizeMarketingContextValue(restaurant.phone) ? `Telephone: ${sanitizeMarketingContextValue(restaurant.phone, 80)}` : "",
+    sanitizeMarketingContextValue(restaurant.phone) ? `Téléphone: ${sanitizeMarketingContextValue(restaurant.phone, 80)}` : "",
     sanitizeMarketingContextValue(restaurant.email) ? `Email: ${sanitizeMarketingContextValue(restaurant.email, 120)}` : "",
     sanitizeMarketingContextValue(restaurant.website) ? `Site: ${sanitizeMarketingContextValue(restaurant.website, 160)}` : "",
   ].filter(Boolean);

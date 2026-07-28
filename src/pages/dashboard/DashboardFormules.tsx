@@ -1416,7 +1416,7 @@ function ProgressiveOfferManager({
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label>Debut du compte a rebours</Label>
+                    <Label>Début du compte a rebours</Label>
                     <Input
                       type="time"
                       value={form.countdownStartTime}
@@ -1996,7 +1996,7 @@ function PresetFormulaCard({
                       </div>
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1">
-                          <Label className="text-xs font-medium">Debut</Label>
+                          <Label className="text-xs font-medium">Début</Label>
                           <Input
                             type="time"
                             value={settings.startTime}

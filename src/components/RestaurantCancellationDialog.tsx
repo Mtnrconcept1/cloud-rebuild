@@ -131,7 +131,7 @@ export default function RestaurantCancellationDialog({
               onValueChange={(value) => setReasonCode(value as CancellationReasonCode)}
             >
               <SelectTrigger id="cancel-reason">
-                <SelectValue placeholder="Selectionner une raison" />
+                <SelectValue placeholder="Sélectionner une raison" />
               </SelectTrigger>
               <SelectContent>
                 {CANCELLATION_REASONS.map((reason) => (
