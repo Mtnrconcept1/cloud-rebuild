@@ -2,6 +2,7 @@ import {
   DEFAULT_AUDIENCE_CRITERIA,
   hasAudienceTargeting,
   scoreAudienceCriteria,
+  type AudienceCriteria,
   type AudienceSnapshot,
 } from "@/lib/campaignTargeting";
 
@@ -100,14 +101,14 @@ export function isCampaignVisibleForViewer(
     return true;
   }
 
-  const criteria = campaign?.target_criteria || DEFAULT_AUDIENCE_CRITERIA;
+  const criteria = (campaign?.target_criteria || DEFAULT_AUDIENCE_CRITERIA) as Partial<AudienceCriteria>;
   if (!audienceSnapshot) {
-    return !hasAudienceTargeting(criteria as any);
+    return !hasAudienceTargeting(criteria);
   }
 
   const restaurantId = campaign?.restaurant_id || campaign?.restaurants?.id || null;
   return scoreAudienceCriteria(
-    criteria as any,
+    criteria,
     audienceSnapshot,
     restaurantId,
   ).eligible;
