@@ -79,11 +79,13 @@ function OfferText({
   headline,
   body,
   compact = false,
+  fullyVisible = false,
 }: {
   creative: CampaignCreativeConfig;
   headline: string;
   body: string;
   compact?: boolean;
+  fullyVisible?: boolean;
 }) {
   const headlineStyle = creative.text.headline;
   const bodyStyle = creative.text.body;
@@ -92,7 +94,8 @@ function OfferText({
     <div className="min-w-0">
       <p
         className={cn(
-          "line-clamp-2 leading-tight",
+          "leading-tight [overflow-wrap:anywhere]",
+          fullyVisible ? "whitespace-normal" : "line-clamp-2",
           compact ? "text-sm" : "text-base",
           getTypographyClass(headlineStyle),
         )}
@@ -103,7 +106,8 @@ function OfferText({
       {body ? (
         <p
           className={cn(
-            "mt-1 line-clamp-2 leading-5",
+            "mt-1 leading-5 [overflow-wrap:anywhere]",
+            fullyVisible ? "whitespace-normal" : "line-clamp-2",
             compact ? "text-xs" : "text-sm",
             getTypographyClass(bodyStyle),
           )}
@@ -159,6 +163,15 @@ export function SponsoredRestaurantTemplateCard({
   const displaySealMain = getCreativeCopy(normalized, "sealMain", "Flash");
   const displaySealBottom = getCreativeCopy(normalized, "sealBottom", "Quantités limitées");
   const slotDiscountLabel = getSlotDiscountLabel(discountLabel);
+  const sealMainLength = Array.from(displaySealMain.trim()).length;
+  const sealMainSizeClass = sealMainLength <= 5
+    ? "text-4xl xl:text-[2.75rem] 2xl:text-5xl"
+    : sealMainLength <= 9
+      ? "text-3xl xl:text-4xl 2xl:text-[2.75rem]"
+      : "text-xl xl:text-2xl 2xl:text-3xl";
+  const sealMainWrapClass = sealMainLength <= 9
+    ? "whitespace-nowrap"
+    : "break-words [overflow-wrap:anywhere] [text-wrap:balance]";
 
   if (variant === "banner") {
     const secondaryBadge = displayDiscount.trim();
@@ -169,8 +182,8 @@ export function SponsoredRestaurantTemplateCard({
         className={cn(
           "ad-banner-spotlight group relative isolate w-full overflow-hidden rounded-[30px] border border-orange-100 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.12)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_32px_82px_rgba(249,115,22,0.18)] dark:border-slate-800 dark:bg-slate-950",
           compactBanner
-            ? "min-h-[268px] grid-rows-[auto_minmax(116px,1fr)] sm:min-h-[286px] md:min-h-[248px] lg:h-[268px] lg:aspect-[16/5] lg:min-h-0"
-            : "min-h-[400px] sm:min-h-[440px] md:min-h-[300px] lg:aspect-[16/5] lg:min-h-0",
+            ? "min-h-[268px] sm:min-h-[286px] md:min-h-[300px]"
+            : "min-h-[400px] sm:min-h-[440px] md:min-h-[360px] lg:min-h-[420px]",
           className,
         )}
       >
@@ -182,13 +195,13 @@ export function SponsoredRestaurantTemplateCard({
 
         <div
           className={cn(
-            "relative z-10 grid h-full md:grid-cols-[minmax(0,0.45fr)_minmax(0,0.55fr)] md:grid-rows-1",
+            "relative z-10 grid items-stretch md:grid-cols-[minmax(0,0.45fr)_minmax(0,0.55fr)] md:grid-rows-1",
             compactBanner ? "grid-rows-[auto_minmax(116px,1fr)]" : "grid-rows-[auto_minmax(220px,1fr)]",
           )}
         >
           <div
             className={cn(
-              "flex min-w-0 flex-col justify-center",
+              "relative z-20 flex min-w-0 flex-col justify-center",
               compactBanner
                 ? "p-4 pb-2 sm:p-5 sm:pb-3 md:p-4 md:pr-7 lg:p-5 lg:pr-10 xl:p-6 xl:pr-14"
                 : "p-6 pb-4 sm:p-8 sm:pb-5 md:p-5 md:pb-5 md:pr-8 lg:p-8 lg:pr-14 xl:p-10 xl:pr-20 2xl:p-12 2xl:pr-24",
@@ -196,7 +209,7 @@ export function SponsoredRestaurantTemplateCard({
           >
             <div className="flex flex-wrap items-center gap-2.5">
               <span
-                className={cn("inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-[10px] uppercase tracking-[0.2em] text-white shadow-[0_14px_28px_rgba(249,115,22,0.28)]", getTypographyClass(normalized.text.badge))}
+                className={cn("inline-flex max-w-full flex-wrap items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-center text-[10px] uppercase leading-4 tracking-[0.2em] text-white shadow-[0_14px_28px_rgba(249,115,22,0.28)] [overflow-wrap:anywhere]", getTypographyClass(normalized.text.badge))}
                 style={getTextInlineStyle(normalized.text.badge)}
               >
                 <Zap className="h-3.5 w-3.5 fill-current" />
@@ -204,7 +217,7 @@ export function SponsoredRestaurantTemplateCard({
               </span>
               {showSecondaryBadge ? (
                 <span
-                  className={cn("inline-flex rounded-full bg-orange-50 px-4 py-2 text-[10px] uppercase tracking-[0.08em] text-primary ring-1 ring-orange-100 dark:bg-orange-400/10 dark:text-orange-100 dark:ring-orange-300/20", getTypographyClass(normalized.text.discount))}
+                  className={cn("inline-flex max-w-full flex-wrap justify-center rounded-full bg-orange-50 px-4 py-2 text-center text-[10px] uppercase leading-4 tracking-[0.08em] text-primary ring-1 ring-orange-100 [overflow-wrap:anywhere] dark:bg-orange-400/10 dark:text-orange-100 dark:ring-orange-300/20", getTypographyClass(normalized.text.discount))}
                   style={getTextInlineStyle(normalized.text.discount)}
                 >
                   {secondaryBadge}
@@ -214,17 +227,17 @@ export function SponsoredRestaurantTemplateCard({
 
             <div className={cn("min-w-0 overflow-visible pb-3", compactBanner ? "mt-3 lg:mt-4" : "mt-6 lg:mt-6 xl:mt-8")}>
               <p
-                className={cn("text-[11px] uppercase tracking-[0.32em] text-slate-500 dark:text-slate-300", getTypographyClass(normalized.text.eyebrow))}
+                className={cn("break-words text-[11px] uppercase leading-relaxed tracking-[0.32em] text-slate-500 [overflow-wrap:anywhere] dark:text-slate-300", getTypographyClass(normalized.text.eyebrow))}
                 style={getTextInlineStyle(normalized.text.eyebrow)}
               >
                 {displayEyebrow}
               </p>
               <h3
                 className={cn(
-                  "mt-2 max-w-full break-words pb-3 leading-[1.14] text-slate-950 dark:text-white",
+                  "mt-2 max-w-full break-words pb-3 leading-[1.14] text-slate-950 [overflow-wrap:anywhere] [text-wrap:balance] dark:text-white",
                   compactBanner
-                    ? "text-2xl sm:text-3xl md:text-2xl lg:text-[2.35rem] xl:text-[2.7rem]"
-                    : "text-4xl sm:text-5xl md:text-[2rem] lg:text-[3rem] xl:text-[3.8rem] 2xl:text-[4.8rem]",
+                    ? "text-2xl sm:text-3xl md:text-2xl lg:text-[2.15rem] xl:text-[2.4rem]"
+                    : "text-3xl sm:text-4xl md:text-[2rem] lg:text-[2.75rem] xl:text-[3.25rem] 2xl:text-[3.75rem]",
                   getTypographyClass(normalized.text.restaurant),
                 )}
                 style={getTextInlineStyle(normalized.text.restaurant)}
@@ -233,7 +246,7 @@ export function SponsoredRestaurantTemplateCard({
               </h3>
               <p
                 className={cn(
-                  "mt-1 leading-none text-primary",
+                  "mt-1 break-words leading-tight text-primary [overflow-wrap:anywhere]",
                   compactBanner ? "text-xl sm:text-2xl lg:text-xl xl:text-2xl" : "text-2xl sm:text-3xl lg:text-2xl xl:text-3xl 2xl:text-4xl",
                   getTypographyClass(normalized.text.tagline),
                 )}
@@ -243,14 +256,14 @@ export function SponsoredRestaurantTemplateCard({
               </p>
               <p
                 className={cn(
-                  "flex min-w-0 items-center gap-2 font-medium text-slate-500 dark:text-slate-300",
+                  "flex min-w-0 items-start gap-2 font-medium leading-5 text-slate-500 dark:text-slate-300",
                   "mt-3 text-sm xl:text-base",
                   getTypographyClass(normalized.text.address),
                 )}
                 style={getTextInlineStyle(normalized.text.address)}
               >
                 <MapPin className="h-4 w-4 shrink-0 text-primary xl:h-5 xl:w-5" />
-                <span className="truncate">{displayAddressCopy}</span>
+                <span className="min-w-0 break-words [overflow-wrap:anywhere]">{displayAddressCopy}</span>
               </p>
             </div>
 
@@ -269,17 +282,17 @@ export function SponsoredRestaurantTemplateCard({
                 >
                   <Sparkles className={compactBanner ? "h-4 w-4" : "h-5 w-5 xl:h-6 xl:w-6"} />
                 </div>
-                <OfferText creative={normalized} headline={displayOfferHeadline} body={displayOfferBody} compact />
+                <OfferText creative={normalized} headline={displayOfferHeadline} body={displayOfferBody} compact fullyVisible />
               </div>
             </div>
 
           </div>
 
           <div className={cn(
-            "absolute left-1/2 top-[51%] z-30 h-36 w-36 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-[10px] border-white bg-white/95 text-center shadow-[0_24px_56px_rgba(15,23,42,0.16)] ring-1 ring-orange-100 xl:h-44 xl:w-44 2xl:h-52 2xl:w-52",
-            compactBanner ? "hidden" : "hidden lg:grid",
+            "absolute left-[45%] top-1/2 z-30 h-44 w-44 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-[10px] border-white bg-white/95 p-4 text-center shadow-[0_24px_56px_rgba(15,23,42,0.16)] ring-1 ring-orange-100 xl:h-48 xl:w-48 2xl:h-52 2xl:w-52",
+            compactBanner ? "hidden" : "hidden xl:grid",
           )}>
-            <div className="space-y-0.5">
+            <div className="min-w-0 max-w-full space-y-1">
               <p
                 className={cn("text-[12px] uppercase tracking-[0.16em] text-primary xl:text-sm", getTypographyClass(normalized.text.sealTop))}
                 style={getTextInlineStyle(normalized.text.sealTop)}
@@ -287,14 +300,14 @@ export function SponsoredRestaurantTemplateCard({
                 {displaySealTop}
               </p>
               <p
-                className={cn("text-4xl uppercase leading-none text-primary xl:text-5xl 2xl:text-6xl", getTypographyClass(normalized.text.sealMain))}
+                className={cn("max-w-full uppercase leading-none text-primary", sealMainSizeClass, sealMainWrapClass, getTypographyClass(normalized.text.sealMain))}
                 style={getTextInlineStyle(normalized.text.sealMain)}
               >
                 {displaySealMain}
               </p>
               <Zap className="mx-auto h-6 w-6 fill-primary text-primary xl:h-8 xl:w-8" />
               <p
-                className={cn("text-[9px] uppercase tracking-[0.2em] text-primary xl:text-[10px]", getTypographyClass(normalized.text.sealBottom))}
+                className={cn("max-w-full break-words text-[9px] uppercase leading-tight tracking-[0.12em] text-primary [overflow-wrap:anywhere] xl:text-[10px]", getTypographyClass(normalized.text.sealBottom))}
                 style={getTextInlineStyle(normalized.text.sealBottom)}
               >
                 {displaySealBottom}
@@ -313,16 +326,13 @@ export function SponsoredRestaurantTemplateCard({
             <div
               className={cn(
                 "relative w-full overflow-hidden rounded-[30px] border-[5px] border-white shadow-[0_24px_56px_rgba(15,23,42,0.24)] ring-1 ring-white/35 md:h-full md:rounded-[36px] lg:h-full lg:rounded-[42px] dark:border-slate-900",
-                compactBanner ? "min-h-[116px] bg-white sm:min-h-[136px] md:min-h-0 lg:min-h-0 dark:bg-slate-900" : "min-h-[240px] bg-white sm:min-h-[260px] md:min-h-0 lg:min-h-0 dark:bg-slate-900",
+                compactBanner ? "min-h-[160px] bg-white sm:min-h-[190px] md:min-h-[260px] dark:bg-slate-900" : "min-h-[260px] bg-white sm:min-h-[300px] md:min-h-[360px] dark:bg-slate-900",
               )}
             >
               <img
                 src={imageUrl || DEFAULT_IMAGE}
                 alt=""
-                className={cn(
-                  "h-full w-full transition-transform duration-700 group-hover:scale-[1.035]",
-                  compactBanner ? "object-contain" : "object-cover",
-                )}
+                className="h-full w-full object-contain p-2 transition-transform duration-700 group-hover:scale-[1.025] sm:p-3"
                 loading="lazy"
                 decoding="async"
               />
@@ -402,7 +412,7 @@ export function SponsoredRestaurantTemplateCard({
               {displayRestaurantName}
             </h3>
             <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/90">
-              <span className="max-w-full truncate">{displayCuisine}</span>
+              <span className="min-w-0 max-w-full break-words [overflow-wrap:anywhere]">{displayCuisine}</span>
               <span className="text-border">/</span>
               <PriceRangeIcons range={priceRange} />
               <span>Premium</span>
@@ -422,7 +432,7 @@ export function SponsoredRestaurantTemplateCard({
             <span className="font-medium text-foreground/90">{displayCity}</span>
           </span>
         </div>
-        <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted-foreground">
+        <p className="mt-2 break-words text-sm leading-6 text-muted-foreground [overflow-wrap:anywhere]">
           {displayAddressCopy}
         </p>
 
@@ -431,7 +441,7 @@ export function SponsoredRestaurantTemplateCard({
             <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#ffedd5] via-[#fff7ed] to-[#fef3c7] text-amber-600 shadow-[0_10px_22px_rgba(249,115,22,0.14)]">
               <Sparkles className="h-4 w-4" />
             </div>
-            <OfferText creative={normalized} headline={displayOfferHeadline} body={displayOfferBody} />
+            <OfferText creative={normalized} headline={displayOfferHeadline} body={displayOfferBody} fullyVisible />
           </div>
         </div>
 

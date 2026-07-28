@@ -153,14 +153,37 @@ describe("campaign creative studio", () => {
     expect(discountMarkup).toContain("-30%");
   });
 
-  it("keeps the sponsored restaurant hero title prominent on desktop", () => {
+  it("keeps the sponsored restaurant hero title prominent without oversized overflow", () => {
     const templateCard = readSource("src/components/campaigns/SponsoredRestaurantTemplateCard.tsx");
 
-    expect(templateCard).toContain("break-words pb-3 leading-[1.14]");
-    // Desktop sizes stay untouched; the md step only stops the 3rem title from
-    // overflowing the narrow half-column introduced on tablets.
-    expect(templateCard).toContain("text-4xl sm:text-5xl md:text-[2rem] lg:text-[3rem] xl:text-[3.8rem] 2xl:text-[4.8rem]");
+    expect(templateCard).toContain("[overflow-wrap:anywhere] [text-wrap:balance]");
+    expect(templateCard).toContain("text-3xl sm:text-4xl md:text-[2rem] lg:text-[2.75rem] xl:text-[3.25rem] 2xl:text-[3.75rem]");
+    expect(templateCard).not.toContain("2xl:text-[4.8rem]");
     expect(templateCard).not.toContain("mt-1 line-clamp-2 overflow-visible pb-2 leading-[1.04]");
+  });
+
+  it("lets long sponsored banner copy define the component height", () => {
+    const longRestaurantName = "Le Grand Restaurant Gastronomique des Terrasses de Genève";
+    const longAddress = "123, promenade des Restaurateurs et Artisans du Canton de Genève";
+    const longHeadline = "Paniers surprises préparés chaque soir avec les invendus encore délicieux";
+    const longBody = "Découvrez une sélection anti-gaspi généreuse, locale et différente chaque jour, sans perdre la moindre information importante.";
+
+    const markup = renderToStaticMarkup(createElement(SponsoredRestaurantTemplateCard, {
+      variant: "banner",
+      restaurantName: longRestaurantName,
+      address: longAddress,
+      headline: longHeadline,
+      body: longBody,
+      discountLabel: "-30%",
+    }));
+
+    expect(markup).toContain(longRestaurantName);
+    expect(markup).toContain(longAddress);
+    expect(markup).toContain(longHeadline);
+    expect(markup).toContain(longBody);
+    expect(markup).not.toContain("line-clamp-2");
+    expect(markup).not.toContain("truncate");
+    expect(markup).not.toContain("aspect-[16/5]");
   });
 
   it("persists creative choices in channels and normalizes them server-side", () => {
