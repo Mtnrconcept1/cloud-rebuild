@@ -271,21 +271,32 @@ export function useFeatureFlags(isAdmin = false) {
   useEffect(() => {
     let cancelled = false;
 
-    fetchFlags(isAdmin).then((loadedFlags) => {
-      if (cancelled) return;
-      setFlags(loadedFlags);
-      setLoading(false);
-    });
-
-    if (isAdmin) {
+    const loadFlags = () => {
+      fetchFlags(isAdmin).then((loadedFlags) => {
+        if (cancelled) return;
+        setFlags(loadedFlags);
+        setLoading(false);
+      });
+    };
+    const loadAuditLogs = () => {
+      if (!isAdmin) return;
       fetchFeatureFlagAuditLogs().then((logs) => {
         if (cancelled) return;
         setFlagAuditLogs(logs);
       });
-    }
+    };
+    const handleFlagChange = () => {
+      loadFlags();
+      loadAuditLogs();
+    };
+
+    loadFlags();
+    loadAuditLogs();
+    window.addEventListener("feature-flags-changed", handleFlagChange);
 
     return () => {
       cancelled = true;
+      window.removeEventListener("feature-flags-changed", handleFlagChange);
     };
   }, [isAdmin]);
 
@@ -294,14 +305,14 @@ export function useFeatureFlags(isAdmin = false) {
     setFlagAuditLogs(await fetchFeatureFlagAuditLogs());
   }, [isAdmin]);
 
-  const toggleFlag = useCallback(async (
+  const setFlagState = useCallback(async (
     id: string,
+    nextExplicitState: boolean,
     reason?: string | null,
   ): Promise<{ success: boolean; error?: string }> => {
     const flag = flags.find((entry) => entry.id === id);
     if (!flag) return { success: false, error: "Flag introuvable" };
 
-    const nextExplicitState = !flag.explicitEnabled;
     const result = await toggleFlagViaRpc(flag.name, nextExplicitState, reason);
     if (!result.success) return result;
 
@@ -313,6 +324,15 @@ export function useFeatureFlags(isAdmin = false) {
     notifyFlagChange();
     return { success: true };
   }, [flags, refreshAuditLogs]);
+
+  const toggleFlag = useCallback(async (
+    id: string,
+    reason?: string | null,
+  ): Promise<{ success: boolean; error?: string }> => {
+    const flag = flags.find((entry) => entry.id === id);
+    if (!flag) return { success: false, error: "Flag introuvable" };
+    return setFlagState(id, !flag.explicitEnabled, reason);
+  }, [flags, setFlagState]);
 
   const activateAllFlags = useCallback(async (): Promise<{ success: boolean; error?: string }> => {
     const result = await activateAllViaRpc();
@@ -350,6 +370,7 @@ export function useFeatureFlags(isAdmin = false) {
     featureMap,
     loading,
     toggleFlag,
+    setFlagState,
     activateAllFlags,
     applyFeatureFlagPreset,
     isEnabled: (featureName: string) => isFeatureEnabled(featureMap, featureName),
@@ -357,7 +378,7 @@ export function useFeatureFlags(isAdmin = false) {
   };
 }
 
-export function useFeatureFlagSnapshot(options: { enabled?: boolean } = {}): {
+export function useFeatureFlagSnapshot(options: { enabled?: boolean; live?: boolean } = {}): {
   activeFeatures: Set<string>;
   flags: FeatureFlag[];
   featureMap: Map<string, FeatureFlag>;
@@ -366,6 +387,7 @@ export function useFeatureFlagSnapshot(options: { enabled?: boolean } = {}): {
   isExplicitlyEnabled: (featureName: string) => boolean;
 } {
   const enabled = options.enabled ?? true;
+  const live = options.live ?? false;
   const [flags, setFlags] = useState<FeatureFlag[]>(buildSafeFallbackFlags());
   const [loading, setLoading] = useState(enabled);
 
@@ -385,15 +407,25 @@ export function useFeatureFlagSnapshot(options: { enabled?: boolean } = {}): {
         setLoading(false);
       });
     };
+    const loadRemoteFlags = () => {
+      notifyFlagChange();
+    };
 
     loadFlags();
     window.addEventListener("feature-flags-changed", loadFlags);
+    const channel = live
+      ? getSupabase()
+          .channel("feature-flags-runtime")
+          .on("postgres_changes", { event: "*", schema: "public", table: "feature_flags" }, loadRemoteFlags)
+          .subscribe()
+      : null;
 
     return () => {
       cancelled = true;
       window.removeEventListener("feature-flags-changed", loadFlags);
+      if (channel) void getSupabase().removeChannel(channel);
     };
-  }, [enabled]);
+  }, [enabled, live]);
 
   const featureMap = useMemo(() => buildFeatureMap(flags), [flags]);
   const activeFeatures = useMemo(

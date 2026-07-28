@@ -28,7 +28,11 @@ describe("TOK Connect legal and help content", () => {
   it("documents TOK Connect usage rules in the CGU", () => {
     const cgu = read("src/pages/CGU.tsx");
 
-    expect(cgu).toContain("Dernière mise à jour : 26 juin 2026");
+    const legalDocuments = read("src/lib/legalDocuments.ts");
+
+    expect(cgu).toContain("LEGAL_DOCUMENTS, LEGAL_EFFECTIVE_DATE_FR");
+    expect(cgu).toContain("Version {LEGAL_DOCUMENTS.cgu.version} — applicable dès le {LEGAL_EFFECTIVE_DATE_FR}");
+    expect(legalDocuments).toContain('LEGAL_EFFECTIVE_DATE_FR = "28 juillet 2026"');
     expect(cgu).toContain("15. TOK Connect, API partenaires, MCP et webhooks");
     expect(cgu).toContain("OAuth client-credentials");
     expect(cgu).toContain("Idempotency-Key");
@@ -48,7 +52,7 @@ describe("TOK Connect legal and help content", () => {
   it("documents restaurant consent and responsibilities for TOK Connect", () => {
     const restaurantTerms = read("src/pages/ConditionsRestaurateurs.tsx");
 
-    expect(restaurantTerms).toContain('const updatedAt = "28 juillet 2026"');
+    expect(restaurantTerms).toContain("const updatedAt = LEGAL_EFFECTIVE_DATE_FR;");
     expect(restaurantTerms).toContain("26. TOK Connect, partenaires API et MCP");
     expect(restaurantTerms).toContain("autoriser ou refuser un partenaire par restaurant");
     expect(restaurantTerms).toContain("Les reservations creees par TOK Connect engagent le restaurant");

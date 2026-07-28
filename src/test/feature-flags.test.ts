@@ -79,6 +79,22 @@ describe("feature flag catalog", () => {
     expect(fallbackFlags.filter((flag) => flag.critical).every((flag) => !flag.effectiveEnabled)).toBe(true);
   });
 
+  it("maps and resolves the Mon pack global dependency", () => {
+    expect(getExactFeatureForRoute("/dashboard/pack")).toBe("dashboard-pack");
+
+    const enabledFlags = resolveFlags(buildRows({
+      "dashboard-restaurateur": true,
+      "dashboard-pack": true,
+    }));
+    const disabledFlags = resolveFlags(buildRows({
+      "dashboard-restaurateur": true,
+      "dashboard-pack": false,
+    }));
+
+    expect(enabledFlags.find((flag) => flag.name === "dashboard-pack")?.effectiveEnabled).toBe(true);
+    expect(disabledFlags.find((flag) => flag.name === "dashboard-pack")?.effectiveEnabled).toBe(false);
+  });
+
   it("keeps the admin operations center enabled by default but controllable", () => {
     const enabledFlags = resolveFlags(buildRows({ "admin-operations-center": true }));
     const disabledFlags = resolveFlags(buildRows({ "admin-operations-center": false }));

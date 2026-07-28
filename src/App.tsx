@@ -414,6 +414,7 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
   useTokLogoDocumentIcons();
   const { activeFeatures, loading: featureFlagsLoading } = useFeatureFlagSnapshot({
     enabled: !commercialDemoFrame,
+    live: true,
   });
   const hasFeature = (flagName: string) => {
     if (commercialDemoFrame) {
