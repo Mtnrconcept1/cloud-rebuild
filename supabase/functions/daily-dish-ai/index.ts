@@ -1,6 +1,7 @@
 import {
   HttpError,
   authenticateRequest,
+  errorDiagnostics,
   jsonResponse,
   requireRestaurantAccess,
   writeAuditLog,
@@ -824,7 +825,12 @@ ${isRefinement ? "Révise le plat en respectant la demande, sans ajouter une sou
     ],
     jsonSchema: isRefinement ? REFINED_SCHEMA : PROPOSALS_SCHEMA,
     reasoning: { effort: "medium" },
-    maxOutputTokens: isRefinement ? 5000 : 12_000,
+    // Reasoning tokens are billed against this budget, so a long reasoning pass
+    // can consume it entirely and return no output text — which surfaces as
+    // ai_empty_response. Such a call has already spent its tokens for nothing, so
+    // raising the ceiling does not create the cost, it stops wasting it. Three
+    // fully costed dishes with up to 40 basket lines each need the headroom.
+    maxOutputTokens: isRefinement ? 8000 : 20_000,
     timeoutMs: 100_000,
   });
 
@@ -1321,7 +1327,9 @@ Deno.serve(async (req) => {
         targetEntityType: "restaurants",
         targetEntityId: restaurantId,
         errorMessage: message,
-        metadata: { rid: log.rid },
+        // Carries why the error fired, so the incident analyser reads a fact
+        // instead of guessing between provider, budget and parsing.
+        metadata: { rid: log.rid, ...errorDiagnostics(error) },
       }).catch(() => {});
     }
     return jsonResponse({ error: message, rid: log.rid }, status, cors);

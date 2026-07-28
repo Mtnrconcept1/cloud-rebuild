@@ -74,19 +74,19 @@ export default function NotificationHistoryList({
 
   return (
     <section className={cn("space-y-5", className)}>
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex min-w-0 items-start gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-            <Bell className="h-5 w-5 text-primary" />
+      <div className="flex flex-col gap-4 rounded-3xl border bg-card p-5 shadow-sm sm:flex-row sm:items-start sm:justify-between sm:p-6">
+        <div className="flex min-w-0 items-start gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary/10">
+            <Bell className="h-6 w-6 text-primary" />
           </div>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="font-display text-2xl font-bold leading-tight">{title}</h1>
+              <h1 className="font-display text-2xl font-bold leading-tight tracking-tight sm:text-3xl">{title}</h1>
               {unreadCount > 0 ? (
                 <Badge className="bg-red-600 text-white hover:bg-red-600">{unreadCount} non lue{unreadCount > 1 ? "s" : ""}</Badge>
               ) : null}
             </div>
-            <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{description}</p>
             {!inAppEnabled ? (
               <p className="mt-2 text-xs text-muted-foreground">
                 Le canal in-app est désactivé dans vos préférences, mais l'historique reste consultable.
@@ -98,7 +98,7 @@ export default function NotificationHistoryList({
           type="button"
           variant="outline"
           size="sm"
-          className="w-full gap-2 sm:w-auto"
+          className="w-full shrink-0 gap-2 rounded-2xl sm:w-auto"
           onClick={() => void markAllRead()}
           disabled={unreadCount === 0}
         >
@@ -110,15 +110,15 @@ export default function NotificationHistoryList({
       {isLoading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((index) => (
-            <div key={index} className="h-24 rounded-2xl border bg-muted/50 animate-pulse" />
+            <div key={index} className="h-24 rounded-3xl border bg-muted/50 animate-pulse" />
           ))}
         </div>
       ) : error ? (
-        <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-8 text-center text-sm text-destructive">
+        <div className="rounded-3xl border border-destructive/30 bg-destructive/5 p-8 text-center text-sm text-destructive">
           Impossible de charger l'historique des notifications.
         </div>
       ) : notifications.length === 0 ? (
-        <div className="rounded-2xl border border-dashed p-8 text-center text-muted-foreground">
+        <div className="rounded-3xl border border-dashed p-10 text-center text-muted-foreground">
           <Inbox className="mx-auto mb-3 h-8 w-8 opacity-60" />
           {emptyLabel}
         </div>
@@ -128,8 +128,8 @@ export default function NotificationHistoryList({
             <article
               key={notification.id}
               className={cn(
-                "flex w-full items-start justify-between gap-2 rounded-2xl border p-2 transition-colors hover:border-primary/35 hover:bg-primary/5 sm:gap-4 sm:p-3",
-                notification.read_at ? "bg-card" : "border-primary/25 bg-primary/5",
+                "flex w-full items-start justify-between gap-2 rounded-3xl border p-3 shadow-sm transition-colors hover:border-primary/35 hover:bg-primary/5 sm:gap-4 sm:p-4",
+                notification.read_at ? "bg-card" : "border-primary/30 bg-primary/[0.06]",
               )}
             >
               <button
@@ -163,7 +163,7 @@ export default function NotificationHistoryList({
             <Button
               type="button"
               variant="outline"
-              className="w-full"
+              className="w-full rounded-2xl"
               onClick={() => setVisibleLimit((current) => Math.min(current + 20, notifications.length))}
             >
               Charger plus de notifications

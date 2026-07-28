@@ -6,6 +6,7 @@ import {
   writeAuditLog,
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
+import { lookupErrorCodeSites } from "../_shared/error-code-map.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import {
   OPENAI_API_KEY,
@@ -449,6 +450,14 @@ Quand les preuves sont insuffisantes, indique clairement ce qui doit être véri
 Propose un correctif minimal, testable et réversible. Toute modification de code doit passer par une branche et une pull request GitHub.
 Aucune fusion, migration destructive, écriture en production ou désactivation de sécurité ne peut être proposée automatiquement.
 La liste files_to_inspect doit contenir uniquement des chemins littéralement présents dans les preuves fournies ; sinon elle doit rester vide.
+
+Preuves disponibles et usage attendu :
+• sanitized_context.source_files : chemins réels du dépôt. Reprends-les dans files_to_inspect ; ne laisse cette liste vide que s'ils sont absents.
+• sanitized_context.error_code_sites : lignes exactes qui lèvent ce code d'erreur. Nomme le fichier et la ligne dans probable_cause au lieu de décrire le symptôme.
+• sanitized_context.runtime_diagnostics : état réel de la réponse au moment de l'échec. response_status "incomplete" avec incomplete_reason "max_output_tokens", ou reasoning_tokens proche de max_output_tokens, désigne un budget de tokens épuisé — pas une panne du fournisseur. refusal true désigne un refus du modèle. Quand ces champs tranchent, énonce la cause au lieu d'énumérer des hypothèses, et relève la confiance en conséquence.
+• sanitized_context.impact_scope : distinct_clients à 1 indique une requête reproductible propre à un utilisateur ; un nombre élevé indique une panne générale.
+
+Ne réduis la confiance que pour ce qui reste réellement indéterminé après lecture de ces blocs. À l'inverse, ne l'augmente jamais au-delà de ce que les preuves établissent.
 Réponds en français opérationnel dans le schéma JSON demandé.`,
         },
         {
@@ -782,6 +791,68 @@ function verifyCurrentAuditFailures(rows: AuditLogRow[]) {
   return active;
 }
 
+/**
+ * Assembles everything the analyser needs to name a fix rather than list guesses.
+ *
+ * The plan prompt may only cite paths that literally appear in the evidence, so
+ * an incident with no source locations can only ever produce an empty
+ * files_to_inspect. Resolving them here — from the function's own entrypoint and
+ * from the generated error-code map — is what lets that guardrail hold while the
+ * plan still points at real code.
+ */
+function buildFailureEvidence(
+  failure: { functionName: string; action: string; failures: AuditLogRow[] },
+  errorMessage: string,
+) {
+  const recent = failure.failures.slice(0, 5);
+  const codeSites = lookupErrorCodeSites(errorMessage);
+
+  const sourceFiles = [
+    `supabase/functions/${failure.functionName}/index.ts`,
+    ...codeSites.map((site) => site.file),
+  ].filter((file, index, all) => all.indexOf(file) === index);
+
+  // Runtime facts attached at throw time (response envelope, token split…).
+  const runtimeDiagnostics = recent
+    .map((row) => (row.request_metadata as Record<string, unknown> | null)?.diagnostics)
+    .filter((entry) => entry && typeof entry === "object")
+    .slice(0, 3);
+
+  const actors = new Set<string>();
+  const userAgents = new Set<string>();
+  for (const row of failure.failures) {
+    const metadata = (row.request_metadata || {}) as Record<string, unknown>;
+    if (typeof metadata.ip === "string") actors.add(metadata.ip);
+    if (typeof metadata.user_agent === "string") userAgents.add(metadata.user_agent);
+  }
+
+  const timestamps = failure.failures
+    .map((row) => row.created_at)
+    .filter((value): value is string => typeof value === "string")
+    .sort();
+
+  return {
+    recent_failures: recent.map((row) => ({
+      created_at: row.created_at,
+      error_message: row.error_message,
+      request_metadata: row.request_metadata,
+    })),
+    // Literal repository paths, so files_to_inspect can be populated.
+    source_files: sourceFiles,
+    error_code_sites: codeSites,
+    runtime_diagnostics: runtimeDiagnostics,
+    // Whether one client is affected or the whole traffic changes the diagnosis
+    // far more than the raw failure count does.
+    impact_scope: {
+      failure_count: failure.failures.length,
+      distinct_clients: actors.size,
+      distinct_user_agents: userAgents.size,
+      first_failure_at: timestamps[0] ?? null,
+      last_failure_at: timestamps[timestamps.length - 1] ?? null,
+    },
+  };
+}
+
 async function scanAuditFailures() {
   const client = createAdminClient();
   const since = new Date(Date.now() - SCAN_LOOKBACK_MINUTES * 60 * 1000).toISOString();
@@ -813,13 +884,7 @@ async function scanAuditFailures() {
         last_failure_at: latest.created_at,
         verification: "no_success_after_last_failure",
       },
-      context: {
-        recent_failures: failure.failures.slice(0, 5).map((row) => ({
-          created_at: row.created_at,
-          error_message: row.error_message,
-          request_metadata: row.request_metadata,
-        })),
-      },
+      context: buildFailureEvidence(failure, errorMessage),
       fingerprintHint: `${failure.functionName}::${failure.action}::${errorMessage}`,
     };
     incidents.push(await createIncident(input));
