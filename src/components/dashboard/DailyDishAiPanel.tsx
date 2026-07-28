@@ -44,7 +44,7 @@ import {
 import {
   requestAiCreationNotificationPermission,
   startTokImageCreationJob,
-} from "@/lib/ai/aiCreationJobs";
+} from "@/lib/ai/aiCréationJobs";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import {
   readCommercialDemoToolState,

@@ -227,7 +227,7 @@ function LiveCourierProfile() {
             </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="first_name">Prenom</Label>
+                <Label htmlFor="first_name">Prénom</Label>
                 <Input
                   id="first_name"
                   value={form.first_name}
@@ -317,7 +317,7 @@ function LiveCourierProfile() {
                   <span className="font-semibold">{stats.rating}/5</span>
                 </div>
                 <div className="flex items-center justify-between rounded-xl border p-3">
-                  <span className="text-sm">Livraisons realisees</span>
+                  <span className="text-sm">Livraisons réalisées</span>
                   <span className="font-semibold">{stats.totalDeliveries}</span>
                 </div>
                 <div className="flex items-center justify-between rounded-xl border p-3">
@@ -329,7 +329,7 @@ function LiveCourierProfile() {
                   <span className="font-semibold">{Number(profile?.acceptance_rate || 0).toFixed(0)}%</span>
                 </div>
                 <div className="flex items-center justify-between rounded-xl border p-3">
-                  <span className="text-sm">Compte approuve</span>
+                  <span className="text-sm">Compte approuvé</span>
                   <span className="flex items-center gap-2 font-semibold">
                     <ShieldCheck className="h-4 w-4 text-primary" />
                     {approvalMeta?.label}
@@ -342,7 +342,7 @@ function LiveCourierProfile() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Disponibilites hebdomadaires</CardTitle>
+            <CardTitle>Disponibilités hebdomadaires</CardTitle>
             <CardDescription>
               Ajoutez plusieurs plages horaires par jour. Ces créneaux servent à votre planning et à la diffusion des missions.
             </CardDescription>
@@ -370,7 +370,7 @@ function LiveCourierProfile() {
                       {slots.map((slot, index) => (
                         <div key={slot.id} className="grid gap-3 rounded-2xl border bg-muted/20 p-4 md:grid-cols-[1fr_1fr_auto] md:items-end">
                           <div className="space-y-2">
-                            <Label>Debut</Label>
+                            <Label>Début</Label>
                             <Input
                               type="time"
                               value={slot.start_time}
@@ -412,7 +412,7 @@ function LiveCourierProfile() {
 
         <Button variant="destructive" className="w-full md:w-auto" onClick={signOut}>
           <LogOut className="mr-2 h-4 w-4" />
-          Deconnexion
+          Déconnexion
         </Button>
       </div>
     </CourierDashboardLayout>

@@ -26,7 +26,7 @@ import ThemeToggleButton from "@/components/theme/ThemeToggleButton";
 import SignOutButton from "@/components/auth/SignOutButton";
 import LegalConsentBanner from "@/components/legal/LegalConsentBanner";
 import DailyMiamzSlotMachine from "@/components/DailyMiamzSlotMachine";
-import AiCreationNotifications from "@/components/AiCreationNotifications";
+import AiCreationNotifications from "@/components/AiCréationNotifications";
 import { setupDeepLinks } from "@/lib/deep-links";
 import { getAdminHostRedirectTarget } from "@/lib/adminDomains";
 import {

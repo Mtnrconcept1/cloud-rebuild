@@ -51,7 +51,7 @@ import {
   setActiveAiCreationContext,
   startTokImageCreationJob,
   useAiCreationRecovery,
-} from "@/lib/ai/aiCreationJobs";
+} from "@/lib/ai/aiCréationJobs";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import {
@@ -153,7 +153,7 @@ const QUICK_TOOLS: QuickTool[] = [
   },
   {
     icon: Megaphone,
-    label: "Creer une campagne",
+    label: "Créer une campagne",
     mode: "agent",
     action: "marketing_campaign",
     prompt: "Cree un brouillon de campagne marketing pour augmenter les commandes cette semaine sans publier automatiquement.",
@@ -439,7 +439,7 @@ export default function DashboardAdvisor() {
     : null;
   const restaurantId = restaurant?.id;
   // A visual stored while the tab was away is re-attached instead of being lost.
-  useAiCreationRecovery(restaurantId);
+  useAiCréationRecovery(restaurantId);
   const advisorHistoryStorageScope = demoAiRuntime
     ? `commercial-demo:${demoAiRuntime.sessionId}:${demoAiRuntime.surface}:${restaurantId || "none"}`
     : `restaurant:${restaurantId || "none"}`;
@@ -487,8 +487,8 @@ export default function DashboardAdvisor() {
 
   useEffect(() => {
     if (isCommercialDemo) return;
-    setActiveAiCreationContext("dashboard-advisor:image-tool");
-    return () => setActiveAiCreationContext(null);
+    setActiveAiCréationContext("dashboard-advisor:image-tool");
+    return () => setActiveAiCréationContext(null);
   }, [isCommercialDemo]);
 
   useEffect(() => {
@@ -755,8 +755,8 @@ export default function DashboardAdvisor() {
           checklist: ["OpenAI réel", "Crédits Démo illimités", "Coût suivi en interne", "Aucun effet de production"],
         };
       } else if (tool.mode === "image") {
-        void requestAiCreationNotificationPermission();
-        const { promise } = startTokImageCreationJob({
+        void requestAiCréationNotificationPermission();
+        const { promise } = startTokImageCréationJob({
           restaurantId: restaurant.id,
           tool: "advisor_photo",
           title: tool.label,

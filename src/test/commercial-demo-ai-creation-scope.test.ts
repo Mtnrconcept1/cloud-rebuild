@@ -11,7 +11,7 @@ vi.mock("@/lib/publicErrorMessages", () => ({
   formatAiImageGenerationError: (error: unknown) => String(error),
 }));
 
-import { startTokImageCreationJob } from "@/lib/ai/aiCreationJobs";
+import { startTokImageCreationJob } from "@/lib/ai/aiCréationJobs";
 import type { TokImageGenerationResult } from "@/lib/ai/tokAiClient";
 
 const sessionId = "efc018a2-0c34-430c-9714-6edc91781af8";

@@ -25,7 +25,7 @@ export const TOK_ONE_DEFAULT_BENEFITS = [
   {
     id: "discount_percentage",
     label: "Réductions exclusives",
-    description: "Jusqu'à 20% sur les plats éligibles.",
+    description: "Jusqu’à 20% sur les plats éligibles.",
   },
   {
     id: "chef_table_priority",

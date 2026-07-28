@@ -355,7 +355,7 @@ export default function RestaurantCard({
   const visibleSlots = timeSlots.slice(0, 2);
   const discountPercentLabel = formatDiscountPercent(bestDiscount);
   const hasDiscount = discountPercentLabel.length > 0;
-  const discountBadgeLabel = hasDiscount ? `Jusqu'à -${discountPercentLabel}%` : null;
+  const discountBadgeLabel = hasDiscount ? `Jusqu’à -${discountPercentLabel}%` : null;
   const discountShortLabel = hasDiscount ? `-${discountPercentLabel}%` : null;
   const estimatedMinutes = useMemo(() => {
     const base = 25 + Math.floor(Math.random() * 15);

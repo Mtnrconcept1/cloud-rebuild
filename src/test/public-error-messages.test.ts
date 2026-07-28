@@ -37,8 +37,8 @@ describe("public error messages", () => {
 
   it("keeps AI creation surfaces wired to public image error copy", () => {
     const sources = [
-      "src/lib/ai/aiCreationJobs.ts",
-      "src/components/dashboard/AiCreationsGallery.tsx",
+      "src/lib/ai/aiCréationJobs.ts",
+      "src/components/dashboard/AiCréationsGallery.tsx",
       "src/components/dashboard/TokAiPhotoStudioV2.tsx",
       "src/components/dashboard/TokAiMarketingStudio.tsx",
     ].map((path) => readFileSync(path, "utf8")).join("\n");

@@ -41,7 +41,7 @@ describe("cart checkout steps", () => {
   it("requires a selected delivery address with a street number before checkout", () => {
     expect(cartPageSource).toContain("hasPreciseStreetNumber");
     expect(cartPageSource).toContain("deliveryAddressHasPreciseNumber");
-    expect(cartPageSource).toContain("Numero de rue requis");
+    expect(cartPageSource).toContain("Numéro de rue requis");
     expect(cartPageSource).toContain("deliverySelection?.latitude == null");
     expect(cartPageSource).toContain("validateAddressStep");
     expect(cartPageSource).toContain("!validateJourneyStep() || !validateAddressStep()");

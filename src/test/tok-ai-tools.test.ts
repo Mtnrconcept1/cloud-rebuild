@@ -528,10 +528,10 @@ describe("TOK AI tools foundation", () => {
 
     expect(advisor).toContain("streamRestaurantAdvisor");
     expect(advisor).toContain("runRestaurantAgent");
-    expect(advisor).toContain("startTokImageCreationJob");
+    expect(advisor).toContain("startTokImageCréationJob");
     expect(advisor).toContain('tool: "advisor_photo"');
     expect(advisor).toContain("Optimiser un plat");
-    expect(advisor).toContain("Creer une campagne");
+    expect(advisor).toContain("Créer une campagne");
     expect(advisor).toContain("Ameliorer une photo");
     expect(advisor).toContain('selectionMode: "menu_dishes"');
     expect(advisor).toContain('selectionMode: "gallery_photos"');
