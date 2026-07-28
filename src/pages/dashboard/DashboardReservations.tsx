@@ -6,6 +6,7 @@ import type { Database, Json } from "@/integrations/supabase/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import DirectReservationChannelsCard from "@/components/dashboard/DirectReservationChannelsCard";
 import { CommercialDemoReservations } from "@/components/dashboard/CommercialDemoScenario";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
@@ -613,6 +614,7 @@ function LiveDashboardReservations() {
           icon={CalendarDays}
           tone="amber"
           visualLabel="Planning"
+          illustration={DASHBOARD_ILLUSTRATIONS.reservations}
           stats={[
             { label: "Restaurant", value: selectedRestaurant?.name || "Aucun", icon: CalendarDays },
             { label: "Reservations visibles", value: filteredReservations.length, icon: UserCheck },
