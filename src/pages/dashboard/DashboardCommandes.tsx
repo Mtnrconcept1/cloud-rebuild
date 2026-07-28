@@ -364,11 +364,21 @@ function LiveDashboardCommandes() {
   const [viewMode, setViewMode] = useState<OperationViewMode>("details");
   const [demoActionPending, setDemoActionPending] = useState(false);
   const deepLinkFocusedRef = useRef<string | null>(null);
+  const previousOrderTargetRef = useRef<string | null>(null);
   const { unreadNotifications } = useNotificationCenter(100, { realtime: true });
 
   useEffect(() => {
+    const previousTarget = previousOrderTargetRef.current;
+    previousOrderTargetRef.current = orderTarget;
     deepLinkFocusedRef.current = null;
-    if (!orderTarget) return;
+
+    if (!orderTarget) {
+      if (previousTarget) {
+        setSearchTerm((current) => current === previousTarget ? "" : current);
+      }
+      return;
+    }
+
     setSearchTerm(orderTarget);
     setTimeRange("all");
     setViewMode("details");
@@ -420,6 +430,7 @@ function LiveDashboardCommandes() {
     if (!orderTarget) return;
     const target = (orders || []).find((order) => order.id === orderTarget);
     if (!target) return;
+    if (deepLinkFocusedRef.current === target.id) return;
     const targetDate = target.created_at.slice(0, 10);
     if (viewMode !== "details") {
       setViewMode("details");
@@ -429,8 +440,6 @@ function LiveDashboardCommandes() {
       setOpenDayKey(targetDate);
       return;
     }
-    if (deepLinkFocusedRef.current === target.id) return;
-
     const frame = window.requestAnimationFrame(() => {
       const element = document.getElementById(`order-${target.id}`);
       if (!element) return;
