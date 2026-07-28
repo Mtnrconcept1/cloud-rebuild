@@ -77,8 +77,8 @@ describe("Mon pack admin kill switch", () => {
     expect(sql).toContain("MESSAGE = 'dashboard_pack_disabled'");
     expect(sql).toMatch(/p_action NOT IN \('request', 'confirm_activation', 'resume'\)/);
     expect(sql).not.toContain("RENAME TO request_fair_growth_module_unchecked");
-    expect(sql).toContain(
-      "GRANT EXECUTE ON FUNCTION public.request_fair_growth_module(uuid, text) TO authenticated, service_role",
+    expect(sql).toMatch(
+      /GRANT EXECUTE ON FUNCTION public\.request_fair_growth_module\(uuid, text\)\s+TO authenticated, service_role;/,
     );
   });
 
