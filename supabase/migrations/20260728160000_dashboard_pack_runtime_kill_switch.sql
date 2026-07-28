@@ -44,7 +44,7 @@ CREATE OR REPLACE FUNCTION public.admin_toggle_feature_flag(
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = ''
 AS $$
 DECLARE
   v_previous boolean;
