@@ -31,6 +31,7 @@ import { getBusinessDateKey, parseBusinessDateTime } from "@/lib/businessTime";
 import { getCommercialDemoClientTarget } from "@/lib/commercialDemoClientRoutes";
 import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 import { cn } from "@/lib/utils";
+import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 
 const supabase = getSupabase();
 
@@ -395,6 +396,11 @@ function LiveClientDashboardHome() {
   const points = Number(profile?.loyalty_points || 0);
   const priorityOrder = activeOrders.find((order) => ["preparing", "ready", "assigned", "picked_up", "out_for_delivery"].includes(String(order.status || "").toLowerCase())) || activeOrders[0];
   const nextReservation = upcomingReservations[0];
+  const heroIllustration = priorityOrder
+    ? DASHBOARD_ILLUSTRATIONS.clientOrder
+    : nextReservation
+      ? DASHBOARD_ILLUSTRATIONS.clientReservation
+      : DASHBOARD_ILLUSTRATIONS.clientDiscovery;
   const isLoading = isCommercialDemoClientFrame
     ? false
     : featuresLoading || overviewQuery.isLoading || notificationsLoading;
@@ -492,8 +498,16 @@ function LiveClientDashboardHome() {
                     </>
                   )}
                 </div>
-                <div className="hidden h-24 w-24 items-center justify-center rounded-3xl bg-primary text-primary-foreground shadow-xl shadow-primary/20 lg:flex">
-                  <UtensilsCrossed className="h-11 w-11" aria-hidden="true" />
+                <div className="hidden h-36 w-44 items-center justify-center overflow-hidden rounded-[2rem] bg-[radial-gradient(circle_at_center,rgba(255,106,26,0.16),transparent_68%)] lg:flex" aria-hidden="true">
+                  <img
+                    src={heroIllustration.src}
+                    alt={heroIllustration.alt}
+                    width={heroIllustration.width}
+                    height={heroIllustration.height}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-32 w-40 object-contain drop-shadow-[0_20px_26px_rgba(194,78,24,0.20)]"
+                  />
                 </div>
               </div>
             </section>
