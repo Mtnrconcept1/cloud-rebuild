@@ -343,7 +343,7 @@
       ]
     },
     {
-      "source": "/:surface(admin|dashboard|courier|commercial|profil|notifications|commandes|commande|reservations|mon-espace|compte|espace-client|mes-avis|points-cadeau|panier|auth|oauth)",
+      "source": "/:surface(admin|dashboard|courier|commercial|profil|notifications|commandes|commande|reservations|mon-espace|compte|espace-client|mes-avis|points-cadeau|panier|auth|oauth|espaces|r)",
       "headers": [
         {
           "key": "X-Robots-Tag",
@@ -352,7 +352,7 @@
       ]
     },
     {
-      "source": "/:surface(admin|dashboard|courier|commercial|profil|notifications|commandes|commande|reservations|mon-espace|compte|espace-client|mes-avis|points-cadeau|panier|auth|oauth)/:path*",
+      "source": "/:surface(admin|dashboard|courier|commercial|profil|notifications|commandes|commande|reservations|mon-espace|compte|espace-client|mes-avis|points-cadeau|panier|auth|oauth|espaces|r)/:path*",
       "headers": [
         {
           "key": "X-Robots-Tag",

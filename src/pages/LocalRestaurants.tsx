@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { lazy, Suspense, useMemo } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { MapPin, Search } from "lucide-react";
@@ -10,19 +10,19 @@ import { getSupabase } from "@/integrations/supabase/client";
 import { formatRestaurantCategorySummary } from "@/lib/restaurantCategories";
 import { buildRestaurantSeoPath, slugifyRestaurantSegment } from "@/lib/restaurantSlugs";
 import { buildCanonicalUrl, useSeoMeta } from "@/hooks/useSeoMeta";
-import RestaurantDetail from "./RestaurantDetail";
 import NotFound from "./NotFound";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { getCommercialDemoClientRestaurants } from "@/lib/commercialDemoClientCatalog";
 
 const supabase = getSupabase();
+const RestaurantDetail = lazy(() => import("./RestaurantDetail"));
 
 const CITY_LABELS: Record<string, string> = {
   geneve: "Genève",
   genève: "Genève",
   lausanne: "Lausanne",
   fribourg: "Fribourg",
-  neuchatel: "Neuchatel",
+  neuchatel: "Neuchâtel",
   nyon: "Nyon",
   vevey: "Vevey",
   montreux: "Montreux",
@@ -46,7 +46,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   brunch: "brunch",
   dessert: "dessert",
   desserts: "desserts",
-  coreen: "coreenne",
+  coreen: "coréenne",
   grec: "grecque",
   bistro: "bistro",
   "street-food": "street food",
@@ -191,11 +191,11 @@ function buildLocalSeoLinks(citySlug: string | undefined, city: string, category
   const supportedCuisines = CURATED_CUISINES_BY_CITY[safeCitySlug] || discoveredCuisines.slice(0, 8);
   const cuisineLinks = supportedCuisines.map((cuisine) => ({
     href: `/restaurants/${safeCitySlug}/${cuisine}`,
-    label: `${slugToLabel(cuisine, CATEGORY_LABELS)} a ${city}`,
+    label: `${slugToLabel(cuisine, CATEGORY_LABELS)} à ${city}`,
   }));
 
   return [
-    { href: `/restaurants/${safeCitySlug}`, label: `Tous les restaurants a ${city}` },
+    { href: `/restaurants/${safeCitySlug}`, label: `Tous les restaurants à ${city}` },
     ...cuisineLinks,
     { href: "/anti-gaspi", label: "Offres anti-gaspi" },
     { href: "/ventes-flash", label: "Ventes flash" },
@@ -265,7 +265,7 @@ export default function LocalRestaurants() {
   const category = district || resolvedRestaurantId ? "" : slugToLabel(params.category, CATEGORY_LABELS);
   const path = params.category ? `/restaurants/${params.city}/${params.category}` : `/restaurants/${params.city}`;
 
-  const { data: restaurants = [], isLoading, isFetched: areRestaurantsFetched } = useQuery({
+  const { data: restaurants = [], isLoading } = useQuery({
     queryKey: ["local-restaurants", city, category, district, demoSessionKey],
     enabled: Boolean(city) && !resolvedRestaurantId && !slugCandidate,
     queryFn: async () => {
@@ -291,7 +291,7 @@ export default function LocalRestaurants() {
   });
 
   const pageName = getPageName(city, category, district);
-  const title = `${pageName} | Tok`;
+  const title = `${pageName} | TOK`;
   const description = district
     ? `Découvrez les restaurants proches de ${district} à ${city} sur Tok : réservation, commande, offres locales, Miamz et bonnes adresses de quartier.`
     : category
@@ -324,14 +324,24 @@ export default function LocalRestaurants() {
     }
 
     return (
-      <RestaurantDetail
-        resolvedRestaurantId={resolvedRestaurantId}
-        canonicalPath={canonicalRestaurantPath}
-      />
+      <Suspense
+        fallback={
+          <main className="min-h-screen bg-background">
+            <div className="container py-8">
+              <div className="h-[360px] animate-pulse rounded-2xl bg-muted" />
+            </div>
+          </main>
+        }
+      >
+        <RestaurantDetail
+          resolvedRestaurantId={resolvedRestaurantId}
+          canonicalPath={canonicalRestaurantPath}
+        />
+      </Suspense>
     );
   }
 
-  if ((slugCandidate && !isSlugLoading) || (!slugCandidate && areRestaurantsFetched && restaurants.length === 0)) {
+  if (slugCandidate && !isSlugLoading) {
     return <NotFound />;
   }
 
@@ -367,8 +377,8 @@ export default function LocalRestaurants() {
             <div className="space-y-2">
               <h2 className="text-lg font-semibold">Guide local TOK pour {pageName.toLowerCase()}</h2>
               <p className="text-sm leading-6 text-muted-foreground">
-                Utilisez cette page pour comparer les restaurants actifs, reperer les cuisines proches,
-                verifier les services de commande ou de reservation, puis acceder aux offres courtes,
+                Utilisez cette page pour comparer les restaurants actifs, repérer les cuisines proches,
+                vérifier les services de commande ou de réservation, puis accéder aux offres courtes,
                 ventes flash et avantages Miamz quand ils sont disponibles.
               </p>
             </div>

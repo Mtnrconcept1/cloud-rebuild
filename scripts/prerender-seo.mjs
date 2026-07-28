@@ -31,10 +31,10 @@ const STATIC_LOCAL_PAGES = [
 ];
 
 const LOCAL_CITIES = [
-  { slug: "geneve", label: "Geneve", districts: ["eaux-vives", "plainpalais", "paquis", "carouge", "champel", "jonction", "servette", "rive"] },
+  { slug: "geneve", label: "Genève", districts: ["eaux-vives", "plainpalais", "paquis", "carouge", "champel", "jonction", "servette", "rive"] },
   { slug: "lausanne", label: "Lausanne", districts: ["flon", "ouchy", "sous-gare", "chailly"] },
   { slug: "fribourg", label: "Fribourg", districts: [] },
-  { slug: "neuchatel", label: "Neuchatel", districts: [] },
+  { slug: "neuchatel", label: "Neuchâtel", districts: [] },
   { slug: "nyon", label: "Nyon", districts: [] },
   { slug: "vevey", label: "Vevey", districts: [] },
   { slug: "montreux", label: "Montreux", districts: [] },
@@ -58,14 +58,14 @@ const LOCAL_CUISINES = [
   { slug: "africain", label: "Africain" },
   { slug: "bistro", label: "Bistro" },
   { slug: "street-food", label: "Street food" },
-  { slug: "coreen", label: "Coreen" },
+  { slug: "coreen", label: "Coréen" },
   { slug: "grec", label: "Grec" },
 ];
 
 const LOCAL_DISTRICTS = {
   "eaux-vives": "Eaux-Vives",
   plainpalais: "Plainpalais",
-  paquis: "Paquis",
+  paquis: "Pâquis",
   carouge: "Carouge",
   champel: "Champel",
   jonction: "Jonction",
@@ -99,28 +99,28 @@ const RICH_LOCAL_PAGES = [
 ];
 
 function buildLocalHeading(page) {
-  if (page.type === "cuisine") return `${page.cuisine} a ${page.city} : commander, reserver et comparer`;
-  if (page.type === "district") return `Restaurants a ${page.district}, ${page.city}`;
-  return `Restaurants a ${page.city} : reservation, commande et offres locales`;
+  if (page.type === "cuisine") return `${page.cuisine} à ${page.city} : commander, réserver et comparer`;
+  if (page.type === "district") return `Restaurants à ${page.district}, ${page.city}`;
+  return `Restaurants à ${page.city} : réservation, commande et offres locales`;
 }
 
 function buildLocalTitle(page) {
-  if (page.type === "cuisine") return `${page.cuisine} a ${page.city} : restaurants, commande et reservation | TOK`;
-  if (page.type === "district") return `Restaurants a ${page.district}, ${page.city} | TOK`;
-  return `Restaurants a ${page.city} : reserver, commander et profiter des offres | TOK`;
+  if (page.type === "cuisine") return `${page.cuisine} à ${page.city} : commande et réservation | TOK`;
+  if (page.type === "district") return `Restaurants à ${page.district}, ${page.city} | TOK`;
+  return `Restaurants à ${page.city} : réserver et commander | TOK`;
 }
 
 function buildLocalDescription(page) {
   if (page.type === "cuisine") {
-    return `Trouvez les restaurants ${page.cuisine} a ${page.city} sur TOK : reservation, commande, retrait, livraison, offres locales, ventes flash et Miamz.`;
+    return `Trouvez les restaurants ${page.cuisine} à ${page.city} sur TOK : réservation, commande, retrait, livraison et offres locales.`;
   }
   if (page.type === "district") {
-    return `Decouvrez les restaurants proches de ${page.district} a ${page.city} avec TOK : bonnes adresses, reservation, commande, offres locales et avis clients.`;
+    return `Découvrez les restaurants proches de ${page.district} à ${page.city} : bonnes adresses, réservation, commande et offres locales sur TOK.`;
   }
-  return `Comparez les restaurants a ${page.city} avec TOK : cuisines populaires, quartiers, reservation, commande, anti-gaspi, ventes flash et avantages Miamz.`;
+  return `Comparez les restaurants à ${page.city} avec TOK : cuisines, quartiers, réservation, commande, anti-gaspi et offres locales.`;
 }
 
-function buildLocalLinks(page) {
+function buildLocalLinks(page, restaurants = []) {
   const citySlug = page.citySlug || page.slug.split("/")[0] || "geneve";
   const city = LOCAL_CITIES.find((item) => item.slug === citySlug) || LOCAL_CITIES[0];
   const staticLocalSlugs = new Set(STATIC_LOCAL_PAGES.map(([slug]) => slug));
@@ -128,7 +128,7 @@ function buildLocalLinks(page) {
     staticLocalSlugs.has(`${citySlug}/${cuisine.slug}`),
   ).map((cuisine) => ({
     href: `/restaurants/${citySlug}/${cuisine.slug}`,
-    label: `${cuisine.label} a ${city.label}`,
+    label: `${cuisine.label} à ${city.label}`,
   }));
   const districtLinks = city.districts.filter((districtSlug) =>
     staticLocalSlugs.has(`${citySlug}/${districtSlug}`),
@@ -136,8 +136,13 @@ function buildLocalLinks(page) {
     href: `/restaurants/${citySlug}/${districtSlug}`,
     label: `Restaurants ${LOCAL_DISTRICTS[districtSlug]}`,
   }));
+  const restaurantLinks = restaurants.slice(0, 24).map((restaurant) => ({
+    href: buildRestaurantSeoPath(restaurant),
+    label: String(restaurant.name || "Voir le restaurant"),
+  }));
 
   return [
+    ...restaurantLinks,
     { href: "/recherche", label: "Recherche restaurants" },
     { href: "/anti-gaspi", label: "Offres anti-gaspi" },
     { href: "/ventes-flash", label: "Ventes flash food" },
@@ -146,38 +151,44 @@ function buildLocalLinks(page) {
   ].filter((link, index, links) => links.findIndex((candidate) => candidate.href === link.href) === index);
 }
 
-function buildLocalStaticContent(page) {
+function buildLocalStaticContent(page, restaurants = []) {
   const serviceLine = page.type === "cuisine"
-    ? `Cette page aide a trouver une adresse ${page.cuisine} a ${page.city}, puis a choisir selon le service disponible : reservation, commande, retrait, livraison, offres courtes ou actualites du restaurant.`
+    ? `Cette page aide à trouver une adresse ${page.cuisine} à ${page.city}, puis à choisir selon les services disponibles : réservation, commande, retrait, livraison ou offres courtes.`
     : page.type === "district"
-      ? `Cette page concentre les restaurants du quartier ${page.district} a ${page.city}, avec des criteres utiles pour reserver vite, commander au bon moment et reperer les offres locales.`
-      : `Cette page rassemble les restaurants de ${page.city}, les cuisines recherchees, les quartiers utiles, les offres anti-gaspi, les ventes flash et les avantages Miamz.`;
+      ? `Cette page rassemble les restaurants du quartier ${page.district} à ${page.city}, avec des critères utiles pour réserver, commander et repérer les offres locales.`
+      : `Cette page rassemble les restaurants de ${page.city}, les cuisines recherchées, les quartiers utiles, les offres anti-gaspi et les ventes flash.`;
+  const restaurantItems = restaurants.slice(0, 24).map((restaurant) => {
+    const cuisine = String(restaurant.cuisine_type || "").trim();
+    return cuisine ? `${restaurant.name} — ${cuisine}` : String(restaurant.name);
+  });
 
   return {
     heading: buildLocalHeading(page),
     paragraphs: [
       serviceLine,
-      "TOK privilegie des pages locales utiles : contexte de recherche, liens internes, services disponibles, informations restaurant et donnees structurees lisibles par les moteurs.",
+      restaurants.length > 0
+        ? `${restaurants.length} adresse${restaurants.length > 1 ? "s" : ""} active${restaurants.length > 1 ? "s" : ""} est répertoriée${restaurants.length > 1 ? "s" : ""} sur cette page.`
+        : "TOK enrichit cette sélection au fil de la vérification des restaurants et de leurs services disponibles.",
     ],
     sections: [
+      ...(restaurantItems.length > 0 ? [{
+        heading: "Restaurants disponibles",
+        items: restaurantItems,
+      }] : []),
       {
         heading: "Ce que vous pouvez filtrer",
-        items: ["Cuisine", "Ville ou quartier", "Commande", "Reservation", "Retrait", "Offres locales", "Ventes flash"],
+        items: ["Cuisine", "Ville ou quartier", "Commande", "Réservation", "Retrait", "Offres locales", "Ventes flash"],
       },
       {
-        heading: "Pourquoi cette page est utile",
-        items: ["Adresses locales", "Restaurants actifs", "Liens vers cuisines proches", "Maillage par quartiers", "Parcours mobile rapide"],
-      },
-      {
-        heading: "Services TOK associes",
-        items: ["Reservation", "Commande", "Anti-gaspi", "Actualites restaurants", "Miamz", "Tok One"],
+        heading: "Services TOK associés",
+        items: ["Réservation", "Commande", "Anti-gaspi", "Actualités restaurants", "Miamz", "TOK One"],
       },
     ],
-    links: buildLocalLinks(page),
+    links: buildLocalLinks(page, restaurants),
   };
 }
 
-function buildLocalJsonLd(page) {
+function buildLocalJsonLd(page, restaurants = []) {
   const pathName = `/restaurants/${page.slug}`;
   const name = buildLocalHeading(page);
 
@@ -187,6 +198,29 @@ function buildLocalJsonLd(page) {
       "@type": "ItemList",
       name,
       url: canonicalUrl(pathName),
+      numberOfItems: restaurants.length,
+      itemListElement: restaurants.slice(0, 100).map((restaurant, index) => {
+        const restaurantPath = buildRestaurantSeoPath(restaurant);
+        return {
+          "@type": "ListItem",
+          position: index + 1,
+          name: restaurant.name,
+          url: canonicalUrl(restaurantPath),
+          item: {
+            "@type": "Restaurant",
+            "@id": canonicalUrl(restaurantPath),
+            name: restaurant.name,
+            image: toAbsoluteSeoImage(restaurant.image_url),
+            servesCuisine: restaurant.cuisine_type || undefined,
+            address: {
+              "@type": "PostalAddress",
+              streetAddress: restaurant.address || undefined,
+              addressLocality: restaurant.city || page.city,
+              addressCountry: "CH",
+            },
+          },
+        };
+      }),
     },
     {
       "@context": "https://schema.org",
@@ -201,15 +235,16 @@ function buildLocalJsonLd(page) {
 }
 
 function buildLocalSeoPage(page, overrides = {}) {
+  const { restaurants = [], ...pageOverrides } = overrides;
   return {
     path: `/restaurants/${page.slug}`,
     title: buildLocalTitle(page),
     description: buildLocalDescription(page),
     priority: page.type === "city" ? "0.9" : "0.8",
     changefreq: page.type === "city" ? "daily" : "weekly",
-    staticContent: buildLocalStaticContent(page),
-    jsonLd: buildLocalJsonLd(page),
-    ...overrides,
+    staticContent: buildLocalStaticContent(page, restaurants),
+    jsonLd: buildLocalJsonLd(page, restaurants),
+    ...pageOverrides,
   };
 }
 
@@ -1144,9 +1179,7 @@ function dedupePages(pages) {
   for (const page of pages) {
     const normalized = normalizePath(page.path);
     if (!isIndexablePath(normalized)) continue;
-    if (!byPath.has(normalized)) {
-      byPath.set(normalized, { ...page, path: normalized });
-    }
+    byPath.set(normalized, { ...page, path: normalized });
   }
   return [...byPath.values()].sort((a, b) => {
     if (a.path === "/") return -1;
@@ -1192,108 +1225,120 @@ async function collectDynamicRestaurantPages() {
 
     if (error || !Array.isArray(data)) return handleDynamicSeoFailure("restaurants", error || "réponse non tabulaire");
 
-    const cityCategoryPages = new Map();
-    const restaurantPages = data
-      .filter((restaurant) => restaurant?.id && restaurant?.name)
-      .flatMap((restaurant) => {
-        const city = String(restaurant.city || "Genève").trim() || "Genève";
-        const citySlug = slugify(city);
-        const cuisine = String(restaurant.cuisine_type || "").trim();
-        const cuisineSlug = slugify(cuisine);
-        const restaurantPath = buildRestaurantSeoPath(restaurant);
-        if (citySlug) {
-          cityCategoryPages.set(`/restaurants/${citySlug}`, {
-            path: `/restaurants/${citySlug}`,
-            title: `Restaurants à ${city} | TOK`,
-            description: `Découvrez les restaurants disponibles à ${city} avec réservation, commande, offres locales et Miamz solidaires sur TOK.`,
-            priority: "0.8",
-            changefreq: "daily",
-            lastmod: restaurant.updated_at,
-          });
-        }
-        if (citySlug && cuisineSlug) {
-          cityCategoryPages.set(`/restaurants/${citySlug}/${cuisineSlug}`, {
-            path: `/restaurants/${citySlug}/${cuisineSlug}`,
-            title: `${cuisine} à ${city} | TOK`,
-            description: `Découvrez les restaurants ${cuisine} à ${city} avec réservation, commande et offres locales sur TOK.`,
-            priority: "0.7",
-            changefreq: "weekly",
-            lastmod: restaurant.updated_at,
-          });
-        }
-        if (citySlug) {
-          cityCategoryPages.set(
-            `/restaurants/${citySlug}`,
-            buildLocalSeoPage(
-              {
-                type: "city",
-                slug: citySlug,
-                citySlug,
-                city,
-              },
-              { priority: "0.8", lastmod: restaurant.updated_at },
-            ),
-          );
-        }
-        if (citySlug && cuisineSlug) {
-          cityCategoryPages.set(
-            `/restaurants/${citySlug}/${cuisineSlug}`,
-            buildLocalSeoPage(
-              {
-                type: "cuisine",
-                slug: `${citySlug}/${cuisineSlug}`,
-                citySlug,
-                city,
-                cuisineSlug,
-                cuisine,
-              },
-              { priority: "0.7", lastmod: restaurant.updated_at },
-            ),
-          );
-        }
-        return [
-          {
-            path: restaurantPath,
-            title: `${restaurant.name} | Restaurant sur TOK`,
-            description: `${restaurant.name} sur TOK : ${cuisine || "restaurant"} à ${city}, réservation, commande et offres locales.`,
-            priority: "0.7",
-            changefreq: "weekly",
-            lastmod: restaurant.updated_at,
-            image: toAbsoluteSeoImage(restaurant.image_url) || DEFAULT_IMAGE,
-            jsonLd: {
-              "@context": "https://schema.org",
-              "@type": "Restaurant",
-              "@id": canonicalUrl(restaurantPath),
-              name: restaurant.name,
-              description:
-                restaurant.description ||
-                `${restaurant.name} sur TOK : restaurant ${cuisine || "local"} a ${city}, avec reservation, commande et offres locales selon les services disponibles.`,
-              image: toAbsoluteSeoImage(restaurant.image_url),
-              servesCuisine: cuisine || undefined,
-              telephone: restaurant.phone || undefined,
-              priceRange: buildPriceRange(restaurant.price_range),
-              address: {
-                "@type": "PostalAddress",
-                streetAddress: restaurant.address || undefined,
-                addressLocality: city,
-                addressCountry: "CH",
-              },
-              aggregateRating: restaurant.rating && Number(restaurant.review_count) > 0
-                ? {
-                  "@type": "AggregateRating",
-                  ratingValue: Number(restaurant.rating),
-                  reviewCount: Number(restaurant.review_count),
-                  bestRating: 10,
-                  worstRating: 1,
-                }
-                : undefined,
-              url: canonicalUrl(restaurantPath),
-            },
-          },
-        ];
-      });
+    const restaurants = data.filter((restaurant) => restaurant?.id && restaurant?.name);
+    const localGroups = new Map();
 
-    return [...cityCategoryPages.values(), ...restaurantPages];
+    const registerLocalPage = (page, restaurant) => {
+      const pathName = `/restaurants/${page.slug}`;
+      const existing = localGroups.get(pathName) || { page, restaurants: [], lastmod: null };
+      existing.restaurants.push(restaurant);
+      if (!existing.lastmod || String(restaurant.updated_at || "") > String(existing.lastmod || "")) {
+        existing.lastmod = restaurant.updated_at;
+      }
+      localGroups.set(pathName, existing);
+    };
+
+    const restaurantPages = restaurants.map((restaurant) => {
+      const city = String(restaurant.city || "Genève").trim() || "Genève";
+      const citySlug = slugify(city);
+      const cuisine = String(restaurant.cuisine_type || "").trim();
+      const cuisineSlug = slugify(cuisine);
+      const restaurantPath = buildRestaurantSeoPath(restaurant);
+
+      if (citySlug) {
+        registerLocalPage({
+          type: "city",
+          slug: citySlug,
+          citySlug,
+          city,
+        }, restaurant);
+      }
+      if (citySlug && cuisineSlug) {
+        registerLocalPage({
+          type: "cuisine",
+          slug: `${citySlug}/${cuisineSlug}`,
+          citySlug,
+          city,
+          cuisineSlug,
+          cuisine,
+        }, restaurant);
+      }
+
+      const restaurantDescription = restaurant.description ||
+        `${restaurant.name}, restaurant ${cuisine || "local"} à ${city}. Consultez les services disponibles pour réserver ou commander sur TOK.`;
+
+      return {
+        path: restaurantPath,
+        title: `${restaurant.name} à ${city} : menu et réservation | TOK`,
+        description: restaurantDescription,
+        priority: "0.7",
+        changefreq: "weekly",
+        lastmod: restaurant.updated_at,
+        image: toAbsoluteSeoImage(restaurant.image_url) || DEFAULT_IMAGE,
+        staticContent: {
+          heading: `${restaurant.name}, restaurant à ${city}`,
+          paragraphs: [restaurantDescription],
+          sections: [
+            {
+              heading: "Informations pratiques",
+              items: [cuisine, restaurant.address, restaurant.phone].filter(Boolean),
+            },
+          ],
+          links: [
+            { href: `/restaurants/${citySlug}`, label: `Restaurants à ${city}` },
+            { href: "/recherche", label: "Rechercher un restaurant" },
+          ],
+        },
+        jsonLd: [
+          {
+            "@context": "https://schema.org",
+            "@type": "Restaurant",
+            "@id": canonicalUrl(restaurantPath),
+            name: restaurant.name,
+            description: restaurantDescription,
+            image: toAbsoluteSeoImage(restaurant.image_url),
+            servesCuisine: cuisine || undefined,
+            telephone: restaurant.phone || undefined,
+            priceRange: buildPriceRange(restaurant.price_range),
+            address: {
+              "@type": "PostalAddress",
+              streetAddress: restaurant.address || undefined,
+              addressLocality: city,
+              addressCountry: "CH",
+            },
+            aggregateRating: restaurant.rating && Number(restaurant.review_count) > 0
+              ? {
+                "@type": "AggregateRating",
+                ratingValue: Number(restaurant.rating),
+                reviewCount: Number(restaurant.review_count),
+                bestRating: 10,
+                worstRating: 1,
+              }
+              : undefined,
+            url: canonicalUrl(restaurantPath),
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "Accueil", item: `${CANONICAL_ORIGIN}/` },
+              { "@type": "ListItem", position: 2, name: `Restaurants à ${city}`, item: canonicalUrl(`/restaurants/${citySlug}`) },
+              { "@type": "ListItem", position: 3, name: restaurant.name, item: canonicalUrl(restaurantPath) },
+            ],
+          },
+        ],
+      };
+    });
+
+    const cityCategoryPages = [...localGroups.values()].map(({ page, restaurants: localRestaurants, lastmod }) =>
+      buildLocalSeoPage(page, {
+        priority: page.type === "city" ? "0.8" : "0.7",
+        lastmod,
+        restaurants: localRestaurants,
+      }),
+    );
+
+    return [...cityCategoryPages, ...restaurantPages];
   } catch (error) {
     if (error instanceof DynamicSeoCollectionError) throw error;
     return handleDynamicSeoFailure("restaurants", error);
@@ -1355,8 +1400,11 @@ async function collectDynamicActualitesPages() {
       const analysis = readActualitesImageAnalysis(primaryImage?.metadata);
       const city = String(restaurant?.city || "").trim();
       const cuisine = String(restaurant?.cuisine_type || "").trim();
-      const fallbackTitle = `${restaurantName} — actualité restaurant`;
-      const title = compactActualitesSeoText(firstNonEmptySeoText(analysis.seo_title, fallbackTitle), 70);
+      const fallbackSubject = compactActualitesSeoText(firstNonEmptySeoText(post.body, analysis.short_description, post.post_type), 42);
+      const fallbackTitle = fallbackSubject
+        ? `${fallbackSubject} — ${restaurantName}`
+        : `Actualité de ${restaurantName}`;
+      const title = compactActualitesSeoText(firstNonEmptySeoText(analysis.seo_title, fallbackTitle), 62);
       const contextualDescription = `Découvrez cette publication de ${restaurantName}${city ? ` à ${city}` : ""} sur TOK.`;
       const description = compactActualitesSeoText(
         firstNonEmptySeoText(analysis.seo_description, post.body, analysis.short_description, contextualDescription),
@@ -1451,12 +1499,11 @@ async function collectSeoPages() {
 }
 
 function renderSitemap(pages) {
-  const today = new Date().toISOString().slice(0, 10);
   const rows = pages.map((page) => {
-    const lastmod = String(page.lastmod || today).slice(0, 10);
+    const lastmod = page.lastmod ? String(page.lastmod).slice(0, 10) : "";
+    const lastmodTag = lastmod ? `\n    <lastmod>${escapeXml(lastmod)}</lastmod>` : "";
     return `  <url>
-    <loc>${escapeXml(canonicalUrl(page.path))}</loc>
-    <lastmod>${escapeXml(lastmod)}</lastmod>
+    <loc>${escapeXml(canonicalUrl(page.path))}</loc>${lastmodTag}
     <changefreq>${escapeXml(page.changefreq || "weekly")}</changefreq>
     <priority>${escapeXml(page.priority || "0.5")}</priority>
   </url>`;
@@ -1513,12 +1560,12 @@ function renderStaticContent(page) {
     .map((section) => `<section><h2>${escapeHtml(section.heading)}</h2>${renderStaticList(section.items || [])}</section>`)
     .join("");
 
-  return `<noscript><section id="tok-prerendered-content" aria-label="Contenu public TOK" style="font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;padding:40px 24px;max-width:1080px;margin:0 auto;color:#111827;background:#ffffff">
+  return `<section id="tok-prerendered-content" data-prerendered="true" aria-label="Contenu public TOK" style="font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;padding:40px 24px;max-width:1080px;margin:0 auto;color:#111827;background:#ffffff">
   <h1 style="font-size:clamp(2rem,5vw,4rem);line-height:1.02;margin:0 0 20px;font-weight:900">${escapeHtml(staticContent.heading)}</h1>
   <div style="font-size:1rem;line-height:1.7;color:#4b5563;max-width:760px">${paragraphs}</div>
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;margin-top:32px">${sections}</div>
   ${renderStaticLinks(staticContent.links || [])}
-</section></noscript>`;
+</section>`;
 }
 
 function renderPreRenderedHtml(baseHtml, page) {
@@ -1563,7 +1610,7 @@ function renderPreRenderedHtml(baseHtml, page) {
   }
   html = html.replace(
     /<div id="root"><\/div>/i,
-    `<div id="root"></div>${renderStaticContent(page)}`,
+    `<div id="root">${renderStaticContent(page)}</div>`,
   );
   return html;
 }
