@@ -1,13 +1,19 @@
 -- Global Mon pack kill switch.
--- The UI flag and the server lifecycle share the same locked source of truth:
+-- The UI flag and the server lifecycle share the same source of truth:
 -- request/confirmation/resume fail closed, while pause/cancel/credit remain available.
 BEGIN;
 
-UPDATE public.feature_flags
-SET label = 'Mon pack — coupure globale',
-    description = 'Masque Mon pack et bloque les nouvelles activations ou reprises de modules Fair Growth.',
-    updated_at = now()
-WHERE name = 'dashboard-pack';
+INSERT INTO public.feature_flags (name, label, description, is_active)
+VALUES (
+  'dashboard-pack',
+  'Mon pack — coupure globale',
+  'Masque Mon pack et bloque les nouvelles activations ou reprises de modules Fair Growth.',
+  true
+)
+ON CONFLICT (name) DO UPDATE
+SET label = EXCLUDED.label,
+    description = EXCLUDED.description,
+    updated_at = now();
 
 -- Keep already-open clients in sync with the global switch. RLS still
 -- governs delivery and feature_flags is already publicly readable.
@@ -27,6 +33,89 @@ BEGIN
 END;
 $$;
 
+-- Enforce the critical reason on the server as well as in both admin UIs.
+-- This keeps direct RPC calls inside the same audited contract.
+CREATE OR REPLACE FUNCTION public.admin_toggle_feature_flag(
+  p_flag_name text,
+  p_is_active boolean,
+  p_reason text DEFAULT NULL,
+  p_preset_name text DEFAULT NULL
+)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_previous boolean;
+  v_reason text := NULLIF(trim(COALESCE(p_reason, '')), '');
+BEGIN
+  IF NOT public.has_role(auth.uid(), 'admin') THEN
+    RAISE EXCEPTION 'Only admins can manage feature flags';
+  END IF;
+
+  SELECT is_active INTO v_previous
+  FROM public.feature_flags
+  WHERE name = p_flag_name;
+
+  IF p_is_active IS FALSE
+    AND p_flag_name IN (
+      'livraison',
+      'emporter',
+      'reservation',
+      'payment-card',
+      'dashboard-restaurateur',
+      'dashboard-pack',
+      'espace-livreur'
+    )
+    AND v_reason IS NULL
+  THEN
+    RAISE EXCEPTION 'reason is required for critical feature flag disable';
+  END IF;
+
+  IF p_flag_name = 'commandes' AND p_is_active IS FALSE AND EXISTS (
+    SELECT 1 FROM public.feature_flags WHERE name = 'payment-card' AND is_active = true
+  ) THEN
+    RAISE EXCEPTION 'payment-card requires commandes checkout to stay enabled';
+  END IF;
+
+  IF p_flag_name = 'actualites-sociales' AND p_is_active IS TRUE AND EXISTS (
+    SELECT 1 FROM public.feature_flags WHERE name = 'tracking' AND is_active = false
+  ) THEN
+    RAISE EXCEPTION 'actualites-sociales requires tracking';
+  END IF;
+
+  UPDATE public.feature_flags
+  SET is_active = p_is_active,
+      updated_at = now()
+  WHERE name = p_flag_name;
+
+  IF NOT FOUND THEN
+    INSERT INTO public.feature_flags (name, label, description, is_active)
+    VALUES (p_flag_name, p_flag_name, 'Flag cree depuis la gouvernance admin.', p_is_active);
+  END IF;
+
+  INSERT INTO public.feature_flag_audit_logs (
+    flag_name,
+    previous_state,
+    new_state,
+    reason,
+    preset_name,
+    admin_user_id,
+    metadata
+  )
+  VALUES (
+    p_flag_name,
+    v_previous,
+    p_is_active,
+    v_reason,
+    NULLIF(trim(COALESCE(p_preset_name, '')), ''),
+    auth.uid(),
+    jsonb_build_object('source', 'admin_platform_config')
+  );
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION private_finance.assert_dashboard_pack_runtime_enabled(
   p_action text
 )
@@ -36,30 +125,25 @@ SECURITY DEFINER
 SET search_path = ''
 AS $$
 DECLARE
-  v_runtime_enabled boolean := false;
+  v_runtime_enabled boolean;
 BEGIN
   IF p_action NOT IN ('request', 'confirm_activation', 'resume') THEN
     RETURN;
   END IF;
 
-  -- Lock both dependency rows in a stable order. A concurrent admin toggle
-  -- therefore completes either before or after the guarded lifecycle action.
-  WITH locked_flags AS MATERIALIZED (
-    SELECT flag.name, flag.is_active
-    FROM public.feature_flags flag
-    WHERE flag.name IN ('dashboard-pack', 'dashboard-restaurateur')
-    ORDER BY flag.name
-    FOR SHARE
-  )
-  SELECT COALESCE(count(*) = 2 AND bool_and(is_active), false)
+  -- Lock only the master row. This serializes the kill switch with lifecycle
+  -- writes without taking the inverse multi-row lock order of bulk activation.
+  SELECT flag.is_active
   INTO v_runtime_enabled
-  FROM locked_flags;
+  FROM public.feature_flags flag
+  WHERE flag.name = 'dashboard-pack'
+  FOR SHARE;
 
-  IF NOT v_runtime_enabled THEN
+  IF NOT COALESCE(v_runtime_enabled, false) THEN
     RAISE EXCEPTION USING
-      ERRCODE = '55000',
+      ERRCODE = 'PT423',
       MESSAGE = 'dashboard_pack_disabled',
-      DETAIL = 'Mon pack is disabled globally or its dashboard dependency is unavailable.';
+      DETAIL = 'Mon pack is disabled globally.';
   END IF;
 END;
 $$;
@@ -99,48 +183,9 @@ REVOKE ALL ON FUNCTION public.request_fair_growth_module(uuid, text)
 GRANT EXECUTE ON FUNCTION public.request_fair_growth_module(uuid, text)
   TO authenticated;
 
--- Wrap the audited lifecycle without duplicating its authorization,
--- idempotency, Stripe authority or event-writing logic.
-ALTER FUNCTION private_finance.transition_fair_growth_module(
-  uuid, text, text, text, text, integer
-)
-  RENAME TO transition_fair_growth_module_unchecked;
-REVOKE ALL ON FUNCTION private_finance.transition_fair_growth_module_unchecked(
-  uuid, text, text, text, text, integer
-) FROM PUBLIC, anon, authenticated, service_role;
-
-CREATE OR REPLACE FUNCTION private_finance.transition_fair_growth_module(
-  p_paid_module_id uuid,
-  p_action text,
-  p_idempotency_key text,
-  p_stripe_event_id text DEFAULT NULL,
-  p_stripe_object_id text DEFAULT NULL,
-  p_credit_amount_cents integer DEFAULT NULL
-)
-RETURNS public.restaurant_paid_modules
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = ''
-AS $$
-BEGIN
-  PERFORM private_finance.assert_dashboard_pack_runtime_enabled(p_action);
-  RETURN private_finance.transition_fair_growth_module_unchecked(
-    p_paid_module_id,
-    p_action,
-    p_idempotency_key,
-    p_stripe_event_id,
-    p_stripe_object_id,
-    p_credit_amount_cents
-  );
-END;
-$$;
-
-REVOKE ALL ON FUNCTION private_finance.transition_fair_growth_module(
-  uuid, text, text, text, text, integer
-) FROM PUBLIC, anon, authenticated, service_role;
-
--- Enforce the same invariant on trusted direct writes and verify that a
--- paused module cannot be resumed after its catalogue entry is disabled.
+-- Enforce the same invariant on trusted direct writes. The audited lifecycle
+-- keeps its original lookup order, so a replayed idempotency key returns before
+-- this trigger and remains valid even after a later kill-switch activation.
 CREATE OR REPLACE FUNCTION private_finance.enforce_dashboard_pack_paid_module_write()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -154,8 +199,10 @@ BEGIN
     IF NEW.status NOT IN ('requested', 'trialing', 'active') THEN
       RETURN NEW;
     END IF;
+  ELSIF NEW.status NOT IN ('requested', 'trialing', 'active') THEN
+    RETURN NEW;
   ELSIF NEW.status IS NOT DISTINCT FROM OLD.status
-    OR NEW.status NOT IN ('requested', 'trialing', 'active')
+    AND NEW.module_id IS NOT DISTINCT FROM OLD.module_id
   THEN
     RETURN NEW;
   END IF;
@@ -176,7 +223,7 @@ BEGIN
       AND module.availability_status IN ('available', 'pilot')
   ) THEN
     RAISE EXCEPTION USING
-      ERRCODE = '55000',
+      ERRCODE = '22023',
       MESSAGE = 'module_not_operational';
   END IF;
 
@@ -190,123 +237,65 @@ REVOKE ALL ON FUNCTION private_finance.enforce_dashboard_pack_paid_module_write(
 DROP TRIGGER IF EXISTS enforce_dashboard_pack_paid_module_write
   ON public.restaurant_paid_modules;
 CREATE TRIGGER enforce_dashboard_pack_paid_module_write
-  BEFORE INSERT OR UPDATE OF status ON public.restaurant_paid_modules
+  BEFORE INSERT OR UPDATE OF status, module_id ON public.restaurant_paid_modules
   FOR EACH ROW
   EXECUTE FUNCTION private_finance.enforce_dashboard_pack_paid_module_write();
 
--- Rebind every public lifecycle RPC to the guarded private wrapper. The
--- helper deliberately returns early for pause, cancel and process_credit.
-CREATE OR REPLACE FUNCTION public.confirm_fair_growth_module_activation(
-  p_paid_module_id uuid,
-  p_idempotency_key text,
-  p_stripe_event_id text,
-  p_stripe_object_id text
-)
-RETURNS public.restaurant_paid_modules
-LANGUAGE sql
-SECURITY DEFINER
-SET search_path = ''
-AS $$
-  SELECT private_finance.transition_fair_growth_module(
-    p_paid_module_id,
-    'confirm_activation',
-    p_idempotency_key,
-    p_stripe_event_id,
-    p_stripe_object_id,
-    NULL
-  )
-$$;
+-- Deployment postflight: object presence, private ACL and Realtime publication.
+DO $postflight$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM public.feature_flags WHERE name = 'dashboard-pack'
+  ) THEN
+    RAISE EXCEPTION 'Postflight failed: dashboard-pack feature flag is missing';
+  END IF;
 
-CREATE OR REPLACE FUNCTION public.pause_fair_growth_module(
-  p_paid_module_id uuid,
-  p_idempotency_key text
-)
-RETURNS public.restaurant_paid_modules
-LANGUAGE sql
-SECURITY DEFINER
-SET search_path = ''
-AS $$
-  SELECT private_finance.transition_fair_growth_module(
-    p_paid_module_id,
-    'pause',
-    p_idempotency_key
-  )
-$$;
+  IF to_regprocedure('public.request_fair_growth_module(uuid,text)') IS NULL
+    OR to_regprocedure('private_finance.request_fair_growth_module_unchecked(uuid,text)') IS NULL
+    OR to_regprocedure('private_finance.assert_dashboard_pack_runtime_enabled(text)') IS NULL
+    OR to_regprocedure('private_finance.transition_fair_growth_module(uuid,text,text,text,text,integer)') IS NULL
+  THEN
+    RAISE EXCEPTION 'Postflight failed: a Mon pack lifecycle function is missing';
+  END IF;
 
-CREATE OR REPLACE FUNCTION public.resume_fair_growth_module(
-  p_paid_module_id uuid,
-  p_idempotency_key text
-)
-RETURNS public.restaurant_paid_modules
-LANGUAGE sql
-SECURITY DEFINER
-SET search_path = ''
-AS $$
-  SELECT private_finance.transition_fair_growth_module(
-    p_paid_module_id,
-    'resume',
-    p_idempotency_key
-  )
-$$;
+  IF has_function_privilege(
+    'anon',
+    'private_finance.assert_dashboard_pack_runtime_enabled(text)',
+    'EXECUTE'
+  ) THEN
+    RAISE EXCEPTION 'Postflight failed: the private Mon pack guard is executable by anon';
+  END IF;
 
-CREATE OR REPLACE FUNCTION public.cancel_fair_growth_module(
-  p_paid_module_id uuid,
-  p_idempotency_key text
-)
-RETURNS public.restaurant_paid_modules
-LANGUAGE sql
-SECURITY DEFINER
-SET search_path = ''
-AS $$
-  SELECT private_finance.transition_fair_growth_module(
-    p_paid_module_id,
-    'cancel',
-    p_idempotency_key
-  )
-$$;
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_catalog.pg_trigger
+    WHERE tgname = 'enforce_dashboard_pack_paid_module_write'
+      AND tgrelid = 'public.restaurant_paid_modules'::regclass
+      AND NOT tgisinternal
+  ) THEN
+    RAISE EXCEPTION 'Postflight failed: the Mon pack lifecycle trigger is missing';
+  END IF;
 
-CREATE OR REPLACE FUNCTION public.process_fair_growth_module_credit(
-  p_paid_module_id uuid,
-  p_idempotency_key text,
-  p_credit_amount_cents integer,
-  p_stripe_event_id text,
-  p_stripe_object_id text
-)
-RETURNS public.restaurant_paid_modules
-LANGUAGE sql
-SECURITY DEFINER
-SET search_path = ''
-AS $$
-  SELECT private_finance.transition_fair_growth_module(
-    p_paid_module_id,
-    'process_credit',
-    p_idempotency_key,
-    p_stripe_event_id,
-    p_stripe_object_id,
-    p_credit_amount_cents
-  )
-$$;
+  IF position(
+    'dashboard-pack' IN pg_get_functiondef(
+      'public.admin_toggle_feature_flag(text,boolean,text,text)'::regprocedure
+    )
+  ) = 0 THEN
+    RAISE EXCEPTION 'Postflight failed: dashboard-pack is not a critical audited flag';
+  END IF;
 
-REVOKE ALL ON FUNCTION public.confirm_fair_growth_module_activation(uuid, text, text, text)
-  FROM PUBLIC, anon, authenticated, service_role;
-REVOKE ALL ON FUNCTION public.pause_fair_growth_module(uuid, text)
-  FROM PUBLIC, anon, authenticated, service_role;
-REVOKE ALL ON FUNCTION public.resume_fair_growth_module(uuid, text)
-  FROM PUBLIC, anon, authenticated, service_role;
-REVOKE ALL ON FUNCTION public.cancel_fair_growth_module(uuid, text)
-  FROM PUBLIC, anon, authenticated, service_role;
-REVOKE ALL ON FUNCTION public.process_fair_growth_module_credit(uuid, text, integer, text, text)
-  FROM PUBLIC, anon, authenticated, service_role;
-
-GRANT EXECUTE ON FUNCTION public.confirm_fair_growth_module_activation(uuid, text, text, text)
-  TO authenticated, service_role;
-GRANT EXECUTE ON FUNCTION public.pause_fair_growth_module(uuid, text)
-  TO authenticated;
-GRANT EXECUTE ON FUNCTION public.resume_fair_growth_module(uuid, text)
-  TO authenticated;
-GRANT EXECUTE ON FUNCTION public.cancel_fair_growth_module(uuid, text)
-  TO authenticated;
-GRANT EXECUTE ON FUNCTION public.process_fair_growth_module_credit(uuid, text, integer, text, text)
-  TO authenticated, service_role;
+  IF EXISTS (
+    SELECT 1 FROM pg_catalog.pg_publication WHERE pubname = 'supabase_realtime'
+  ) AND NOT EXISTS (
+    SELECT 1
+    FROM pg_catalog.pg_publication_tables
+    WHERE pubname = 'supabase_realtime'
+      AND schemaname = 'public'
+      AND tablename = 'feature_flags'
+  ) THEN
+    RAISE EXCEPTION 'Postflight failed: feature_flags is missing from Supabase Realtime';
+  END IF;
+END;
+$postflight$;
 
 COMMIT;
