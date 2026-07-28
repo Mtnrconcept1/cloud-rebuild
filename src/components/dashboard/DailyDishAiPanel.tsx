@@ -34,6 +34,7 @@ import {
   getDailyDishStatus,
   publishDailyDishProposal,
   refineDailyDishProposal,
+  regenerateDailyDishProposals,
   selectDailyDishProposal,
   setDailyDishEnabled,
   type DailyDishRun,
@@ -339,6 +340,37 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
       if (!automatic || !String(error).includes("generation_in_progress")) {
         toast({ title: "Recherche impossible", description: formatDailyDishError(error), variant: "destructive" });
       }
+    } finally {
+      setGenerating(false);
+    }
+  }, [generating, isDemo, menuItems, persistDemo, restaurantId, sessionId, settings.is_enabled, toast]);
+
+  const regenerate = useCallback(async () => {
+    if (!settings.is_enabled || generating) return;
+    setGenerating(true);
+    try {
+      const result = await regenerateDailyDishProposals({
+        restaurant_id: restaurantId,
+        session_id: sessionId,
+        demo_context: isDemo ? {
+          menu: menuItems.map((item) => ({
+            name: item.name,
+            description: item.description || "",
+            category: item.category || "",
+            price_chf: Number(item.price || 0),
+          })),
+        } : undefined,
+      });
+      setRun(result.run);
+      setVariants(result.variants);
+      setSelectedId(null);
+      if (isDemo) persistDemo({ run: result.run, variants: result.variants });
+      toast({
+        title: "Trois nouvelles variantes générées",
+        description: "Les prix fournisseurs ont été comparés à nouveau avec de nouvelles propositions.",
+      });
+    } catch (error) {
+      toast({ title: "Génération impossible", description: formatDailyDishError(error), variant: "destructive" });
     } finally {
       setGenerating(false);
     }
@@ -753,7 +785,7 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
           <>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-2 text-sm"><Check className="h-4 w-4 text-emerald-600" /><span>Propositions du {run?.generation_date ? new Date(`${run.generation_date}T12:00:00`).toLocaleDateString("fr-CH", { day: "numeric", month: "long" }) : "jour"}</span></div>
-              <Button variant="outline" size="sm" className="gap-2" onClick={() => void generate(false)}><RefreshCw className="h-4 w-4" /> Actualiser</Button>
+              <Button variant="outline" size="sm" className="gap-2" onClick={() => void regenerate()} disabled={generating}>{generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />} 3 nouvelles variantes</Button>
             </div>
             <div className="grid gap-4 xl:grid-cols-3">
               {variants.map((variant, index) => {

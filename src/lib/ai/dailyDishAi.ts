@@ -133,6 +133,19 @@ export function generateDailyDishProposals(input: BaseRequest & { demo_context?:
   });
 }
 
+export function regenerateDailyDishProposals(input: BaseRequest & { demo_context?: Record<string, unknown> }) {
+  return invokeDailyDish<{
+    run: DailyDishRun;
+    variants: DailyDishVariant[];
+    replayed?: boolean;
+    demo: boolean;
+  }>({
+    action: "regenerate",
+    request_id: createRequestId(),
+    ...input,
+  });
+}
+
 export function refineDailyDishProposal(input: BaseRequest & {
   variant_id?: string;
   variant?: DailyDishVariantPayload;

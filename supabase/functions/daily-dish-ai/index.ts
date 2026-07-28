@@ -906,6 +906,141 @@ async function handleGenerate(actor: Actor, body: JsonRecord) {
   }
 }
 
+async function handleRegenerate(actor: Actor, body: JsonRecord) {
+  const scope = await resolveRequestScope(actor, body);
+  const requestId = requireUuid(body.request_id, "request_id_invalid");
+  const limiter = createRateLimiter(actor.adminClient, FUNCTION_NAME);
+  await limiter.consume(`user:${actor.userId}`, { maxRequests: 12, windowSeconds: 3600 });
+  await limiter.consume(scope.demo ? `demo:${scope.demo.sessionId}` : `restaurant:${scope.restaurantId}`, { maxRequests: scope.demo ? 10 : 6, windowSeconds: 3600 });
+  await limiter.consume("global", { maxRequests: 40, windowSeconds: 60 });
+
+  if (scope.demo) {
+    const settings = { timezone: "Europe/Zurich", target_food_cost_bps: 3000, dietary_notes: "" };
+    const context = {
+      restaurant: scope.restaurant,
+      ...sanitizeDemoContext(body.demo_context),
+    };
+    const claim = await claimDemoDailyDishRequest(scope.demo, requestId, {
+      action: "regenerate",
+      context,
+      generation_date: localDate(),
+    });
+    try {
+      const generated = await generateVariants({ context, settings });
+      await completeDemoDailyDishRequest({
+        demo: scope.demo,
+        requestId,
+        lockToken: claim.lockToken,
+        variants: generated.variants,
+        responses: generated.responses,
+      });
+      await recordUsage(actor, { action: "regenerate", restaurantId: scope.restaurantId, responses: generated.responses, demo: true }).catch(() => {});
+      return {
+        run: { id: requestId, restaurant_id: scope.restaurantId, generation_date: localDate(), status: "completed", model: DAILY_MODEL, sources: generated.sources },
+        variants: generated.variants.map((payload, index) => ({
+          id: crypto.randomUUID(), run_id: requestId, restaurant_id: scope.restaurantId,
+          variant_number: index + 1, revision: 1, parent_variant_id: null, status: "proposed", payload,
+        })),
+        demo: true,
+      };
+    } catch (error) {
+      await failCommercialDemoAiRequest({
+        context: scope.demo,
+        requestId,
+        lockToken: claim.lockToken,
+        errorCode: `provider_${error instanceof HttpError ? error.message : "daily_dish_error"}`.slice(0, 160),
+        model: DAILY_MODEL,
+      });
+      throw error;
+    }
+  }
+
+  const settings = await getSettings(actor, scope.restaurantId);
+  if (settings.is_enabled !== true) throw new HttpError(409, "daily_dish_disabled");
+  const generationDate = localDate(String(settings.timezone));
+  const lockToken = crypto.randomUUID();
+
+  const { data: existingRun } = await actor.adminClient
+    .from("restaurant_daily_dish_runs")
+    .select("id, status, locked_at")
+    .eq("restaurant_id", scope.restaurantId)
+    .eq("generation_date", generationDate)
+    .maybeSingle();
+
+  if (existingRun && existingRun.status === "generating") {
+    const lockedAt = existingRun.locked_at ? new Date(existingRun.locked_at).getTime() : 0;
+    if (Date.now() - lockedAt < 5 * 60_000) {
+      throw new HttpError(409, "daily_dish_generation_in_progress");
+    }
+  }
+
+  let runId: string;
+  if (existingRun) {
+    const { error: resetError } = await actor.adminClient
+      .from("restaurant_daily_dish_runs")
+      .update({
+        status: "generating",
+        requested_by: actor.userId,
+        request_id: requestId,
+        lock_token: lockToken,
+        locked_at: new Date().toISOString(),
+        error_code: null,
+        completed_at: null,
+        research_snapshot: {},
+        sources: [],
+      })
+      .eq("id", existingRun.id);
+    if (resetError) throw new HttpError(503, "daily_dish_claim_unavailable");
+    runId = existingRun.id;
+  } else {
+    const { data: claim, error: claimError } = await actor.adminClient.rpc("claim_restaurant_daily_dish_run", {
+      p_restaurant_id: scope.restaurantId,
+      p_generation_date: generationDate,
+      p_requested_by: actor.userId,
+      p_request_id: requestId,
+      p_lock_token: lockToken,
+    });
+    if (claimError || !isRecord(claim)) throw new HttpError(503, "daily_dish_claim_unavailable");
+    runId = requireUuid(claim.run_id, "daily_dish_claim_invalid");
+  }
+
+  try {
+    const context = await gatherLiveContext(actor, scope.restaurantId, scope.restaurant as JsonRecord);
+    const contextHash = await sha256(context);
+    const generated = await generateVariants({ context, settings });
+    const rows = generated.variants.map((payload, index) => ({
+      run_id: runId,
+      restaurant_id: scope.restaurantId,
+      variant_number: index + 1,
+      revision: 1,
+      status: "proposed",
+      payload,
+      created_by: actor.userId,
+    }));
+    await actor.adminClient.from("restaurant_daily_dish_variants").delete().eq("run_id", runId);
+    const { error: insertError } = await actor.adminClient.from("restaurant_daily_dish_variants").insert(rows);
+    if (insertError) throw new HttpError(503, "daily_dish_persistence_failed");
+    const { error: updateError } = await actor.adminClient.from("restaurant_daily_dish_runs").update({
+      status: "completed",
+      model: DAILY_MODEL,
+      source_context_hash: contextHash,
+      research_snapshot: { checked_at: new Date().toISOString(), text: generated.researchText },
+      sources: generated.sources,
+      completed_at: new Date().toISOString(),
+    }).eq("id", runId).eq("lock_token", lockToken);
+    if (updateError) throw new HttpError(503, "daily_dish_persistence_failed");
+    await recordUsage(actor, { action: "regenerate", restaurantId: scope.restaurantId, responses: generated.responses, demo: false, metadata: { run_id: runId } });
+    return { ...(await readRun(actor, scope.restaurantId, generationDate)), replayed: false, demo: false };
+  } catch (error) {
+    await actor.adminClient.from("restaurant_daily_dish_runs").update({
+      status: "failed",
+      error_code: error instanceof HttpError ? error.message : "internal_error",
+      completed_at: new Date().toISOString(),
+    }).eq("id", runId).eq("lock_token", lockToken);
+    throw error;
+  }
+}
+
 async function handleRefine(actor: Actor, body: JsonRecord) {
   const scope = await resolveRequestScope(actor, body);
   const instruction = sanitizeText(body.instruction, 1000);
@@ -1049,13 +1184,14 @@ Deno.serve(async (req) => {
     }
     restaurantId = typeof body.restaurant_id === "string" ? body.restaurant_id : null;
     const action = sanitizeText(body.action, 40);
-    if ((action === "generate" || action === "refine") && !OPENAI_API_KEY) {
+    if ((action === "generate" || action === "regenerate" || action === "refine") && !OPENAI_API_KEY) {
       throw new HttpError(503, "ai_service_unavailable");
     }
     let result: unknown;
     if (action === "status") result = await handleStatus(actor, body);
     else if (action === "set_enabled") result = await handleToggle(actor, body);
     else if (action === "generate") result = await handleGenerate(actor, body);
+    else if (action === "regenerate") result = await handleRegenerate(actor, body);
     else if (action === "refine") result = await handleRefine(actor, body);
     else if (action === "select") result = await handleSelect(actor, body);
     else if (action === "publish") result = await handlePublish(actor, body);
