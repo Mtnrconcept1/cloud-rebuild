@@ -11,6 +11,7 @@ describe("restaurant overview navigation", () => {
     expect(overview).toContain("dashboardAccessLocked");
     expect(overview).toContain("disabledFeatures.has(feature)");
     expect(overview).toContain('grid-cols-1 gap-3 min-[360px]:grid-cols-2');
+    expect(overview).toContain('"block w-full tok-dashboard-kpi');
   });
 
   it("uses established precise query parameters", () => {
@@ -32,5 +33,8 @@ describe("restaurant overview navigation", () => {
     expect(reservations).toContain("reservation-${target.id}");
     expect(reservations).toContain("scrollIntoView");
     expect(reservations).toContain("prefers-reduced-motion");
+    expect(reservations).toContain("previousReservationTargetRef");
+    expect(reservations).toContain('value={openDayKey ?? ""}');
+    expect(orders).toContain("previousOrderTargetRef");
   });
 });
