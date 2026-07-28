@@ -66,14 +66,14 @@ describe("dashboard shell navigation", () => {
     expect(edgePackEntitlements).not.toContain("dashboard-recommandations");
   });
 
-  it("locks pending restaurateur dashboards outside the status overview", () => {
+  it("locks transactional pending routes while delegating preparation access to the catalog", () => {
     const route = read("src/components/DashboardRoute.tsx");
     const layout = read("src/components/DashboardLayout.tsx");
     const context = read("src/pages/dashboard/DashboardContext.tsx");
     const home = read("src/pages/dashboard/DashboardHome.tsx");
 
     expect(route).toContain("DashboardAccessGate");
-    expect(route).toContain('dashboardAccessLocked && location.pathname !== "/dashboard"');
+    expect(route).toContain("canAccessRestaurantDashboardRoute");
     expect(route).toContain('to="/dashboard"');
     expect(layout).toContain('dashboardAccessLocked && item.to !== "/dashboard"');
     expect(layout).toContain("Dossier restaurateur en cours de validation");
