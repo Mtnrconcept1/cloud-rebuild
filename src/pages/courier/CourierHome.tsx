@@ -259,7 +259,7 @@ function CourierHomePresentation({
                   </Button>
                 </div>
               ) : (
-                <div className="grid min-h-44 grid-cols-[minmax(0,1fr)_7.5rem] items-center gap-3 overflow-hidden rounded-2xl border border-dashed border-orange-200 bg-orange-50/40 p-5 text-sm text-muted-foreground dark:border-orange-400/20 dark:bg-orange-500/5 sm:grid-cols-[minmax(0,1fr)_10rem]">
+                <div className="grid min-h-44 grid-cols-1 items-center gap-3 overflow-hidden rounded-2xl border border-dashed border-orange-200 bg-orange-50/40 p-5 text-sm text-muted-foreground dark:border-orange-400/20 dark:bg-orange-500/5 sm:grid-cols-[minmax(0,1fr)_10rem]">
                   <div>
                     <p className="font-semibold text-foreground">Prêt pour la prochaine mission</p>
                     <p className="mt-2 leading-6">Passez en ligne pour recevoir des propositions de livraison autour de votre position.</p>
@@ -271,7 +271,7 @@ function CourierHomePresentation({
                     height={DASHBOARD_ILLUSTRATIONS.courierEmpty.height}
                     loading="lazy"
                     decoding="async"
-                    className="h-auto max-h-36 w-full object-contain drop-shadow-[0_18px_22px_rgba(194,78,24,0.18)]"
+                    className="mx-auto h-auto max-h-32 w-full max-w-40 object-contain drop-shadow-[0_18px_22px_rgba(194,78,24,0.18)] sm:max-h-36 sm:max-w-none"
                   />
                 </div>
               )}
