@@ -30,9 +30,11 @@ describe("dashboard 3D illustrations", () => {
     expect(hero).toContain("illustration?: DashboardIllustration");
     expect(hero).toContain('loading="lazy"');
     expect(hero).toContain('decoding="async"');
+    expect(hero).toContain('"relative mt-6 w-full rounded-3xl');
     expect(client).toContain("clientReservation");
     expect(client).toContain('className="hidden h-36 w-44');
     expect(courier).toContain("courierEmpty");
-    expect(courier).toContain("grid-cols-[minmax(0,1fr)_7.5rem]");
+    expect(courier).toContain("grid-cols-1 items-center");
+    expect(courier).toContain("sm:grid-cols-[minmax(0,1fr)_10rem]");
   });
 });
