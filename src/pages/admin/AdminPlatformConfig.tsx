@@ -50,6 +50,7 @@ const CRITICAL_FLAGS = new Set([
 ]);
 
 const GLOBAL_OVERRIDE_FLAGS = new Set([
+  "dashboard-pack",
   "payment-card",
   "payment-twint",
   "payment-postfinance-card",
