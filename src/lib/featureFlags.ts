@@ -271,21 +271,32 @@ export function useFeatureFlags(isAdmin = false) {
   useEffect(() => {
     let cancelled = false;
 
-    fetchFlags(isAdmin).then((loadedFlags) => {
-      if (cancelled) return;
-      setFlags(loadedFlags);
-      setLoading(false);
-    });
-
-    if (isAdmin) {
+    const loadFlags = () => {
+      fetchFlags(isAdmin).then((loadedFlags) => {
+        if (cancelled) return;
+        setFlags(loadedFlags);
+        setLoading(false);
+      });
+    };
+    const loadAuditLogs = () => {
+      if (!isAdmin) return;
       fetchFeatureFlagAuditLogs().then((logs) => {
         if (cancelled) return;
         setFlagAuditLogs(logs);
       });
-    }
+    };
+    const handleFlagChange = () => {
+      loadFlags();
+      loadAuditLogs();
+    };
+
+    loadFlags();
+    loadAuditLogs();
+    window.addEventListener("feature-flags-changed", handleFlagChange);
 
     return () => {
       cancelled = true;
+      window.removeEventListener("feature-flags-changed", handleFlagChange);
     };
   }, [isAdmin]);
 
@@ -397,8 +408,7 @@ export function useFeatureFlagSnapshot(options: { enabled?: boolean; live?: bool
       });
     };
     const loadRemoteFlags = () => {
-      invalidateFeatureFlagsCache();
-      loadFlags();
+      notifyFlagChange();
     };
 
     loadFlags();
