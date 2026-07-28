@@ -78,6 +78,8 @@ const listeners = new Set<AiCreationListener>();
 const activeJobs = new Map<string, Promise<TokImageGenerationResult>>();
 let storageListenerReady = false;
 let activeAiCreationContext: string | null = null;
+let beforeUnloadListenerActive = false;
+const STALE_RUNNING_THRESHOLD_MS = 10 * 60 * 1000;
 
 function hasBrowserStorage() {
   return typeof window !== "undefined" && typeof window.localStorage !== "undefined";
@@ -152,6 +154,42 @@ function ensureStorageListener() {
   });
 }
 
+function handleBeforeUnload(e: BeforeUnloadEvent) { e.preventDefault(); }
+
+function syncBeforeUnloadListener() {
+  if (typeof window === "undefined") return;
+  const shouldBeActive = activeJobs.size > 0;
+  if (shouldBeActive && !beforeUnloadListenerActive) {
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    beforeUnloadListenerActive = true;
+  } else if (!shouldBeActive && beforeUnloadListenerActive) {
+    window.removeEventListener("beforeunload", handleBeforeUnload);
+    beforeUnloadListenerActive = false;
+  }
+}
+
+function reclaimStaleRunningRecords(storageKey = getAiCreationsStorageKey()) {
+  const records = parseStoredRecords(
+    hasBrowserStorage() ? window.localStorage.getItem(storageKey) : null,
+  );
+  const now = Date.now();
+  let changed = false;
+  const cleaned = records.map((record) => {
+    if (record.status !== "running") return record;
+    if (activeJobs.has(record.id)) return record;
+    if (now - new Date(record.createdAt).getTime() < STALE_RUNNING_THRESHOLD_MS) return record;
+    changed = true;
+    return {
+      ...record,
+      status: "failed" as const,
+      updatedAt: new Date().toISOString(),
+      completedAt: new Date().toISOString(),
+      errorMessage: "La génération a été interrompue par un changement de page.",
+    };
+  });
+  if (changed) writeRecords(cleaned, storageKey);
+}
+
 function upsertRecord(nextRecord: AiCreationRecord, storageKey = getAiCreationsStorageKey()) {
   const records = readRecords(storageKey);
   const index = records.findIndex((record) => record.id === nextRecord.id);
@@ -195,11 +233,13 @@ function dispatchAiCreationEvent(eventName: string, record: AiCreationRecord) {
 
 export function getAiCreationRecords() {
   ensureStorageListener();
+  reclaimStaleRunningRecords();
   return readRecords();
 }
 
 export function subscribeAiCreationRecords(listener: AiCreationListener) {
   ensureStorageListener();
+  reclaimStaleRunningRecords();
   listeners.add(listener);
   listener(readRecords());
 
@@ -296,9 +336,11 @@ export function startTokImageCreationJob(input: StartAiCreationJobInput): AiCrea
     })
     .finally(() => {
       activeJobs.delete(id);
+      syncBeforeUnloadListener();
     });
 
   activeJobs.set(id, promise);
+  syncBeforeUnloadListener();
 
   return { record, promise };
 }

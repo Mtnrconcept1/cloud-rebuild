@@ -262,6 +262,20 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
   const [manualDishForm, setManualDishForm] = useState<ManualDailyDishForm>(createEmptyManualDailyDishForm);
   const [savingManualDish, setSavingManualDish] = useState(false);
   const autoAttemptRef = useRef<string | null>(null);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
+
+  useEffect(() => {
+    const busy = generating || publishing || !!refiningId;
+    if (!busy) return;
+    const handler = (e: BeforeUnloadEvent) => { e.preventDefault(); };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [generating, publishing, refiningId]);
 
   const selectedVariant = useMemo(
     () => variants.find((variant) => variant.id === selectedId) || null,
@@ -288,6 +302,7 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
         return;
       }
       const status = await getDailyDishStatus({ restaurant_id: restaurantId });
+      if (!mountedRef.current) return;
       setAccessEnabled(status.access.enabled);
       setSettings(status.settings);
       setRun(status.run);
@@ -295,9 +310,10 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
       const selected = status.variants.find((variant) => variant.status === "selected" || variant.status === "published");
       setSelectedId(selected?.id || null);
     } catch (error) {
+      if (!mountedRef.current) return;
       toast({ title: "Plat du jour IA indisponible", description: formatDailyDishError(error), variant: "destructive" });
     } finally {
-      setLoading(false);
+      if (mountedRef.current) setLoading(false);
     }
   }, [isDemo, restaurantId, sessionId, toast]);
 
@@ -328,6 +344,7 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
           })),
         } : undefined,
       });
+      if (!mountedRef.current) return;
       setRun(result.run);
       setVariants(result.variants);
       setSelectedId(null);
@@ -337,11 +354,12 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
         description: "Les prix fournisseurs, le panier et les recettes ont été comparés.",
       });
     } catch (error) {
+      if (!mountedRef.current) return;
       if (!automatic || !String(error).includes("generation_in_progress")) {
         toast({ title: "Recherche impossible", description: formatDailyDishError(error), variant: "destructive" });
       }
     } finally {
-      setGenerating(false);
+      if (mountedRef.current) setGenerating(false);
     }
   }, [generating, isDemo, menuItems, persistDemo, restaurantId, sessionId, settings.is_enabled, toast]);
 
@@ -361,6 +379,7 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
           })),
         } : undefined,
       });
+      if (!mountedRef.current) return;
       setRun(result.run);
       setVariants(result.variants);
       setSelectedId(null);
@@ -370,9 +389,10 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
         description: "Les prix fournisseurs ont été comparés à nouveau avec de nouvelles propositions.",
       });
     } catch (error) {
+      if (!mountedRef.current) return;
       toast({ title: "Génération impossible", description: formatDailyDishError(error), variant: "destructive" });
     } finally {
-      setGenerating(false);
+      if (mountedRef.current) setGenerating(false);
     }
   }, [generating, isDemo, menuItems, persistDemo, restaurantId, sessionId, settings.is_enabled, toast]);
 
@@ -388,6 +408,7 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
     setToggling(true);
     try {
       await setDailyDishEnabled({ restaurant_id: restaurantId, session_id: sessionId, is_enabled: enabled });
+      if (!mountedRef.current) return;
       const nextSettings = { ...settings, is_enabled: enabled };
       setSettings(nextSettings);
       if (isDemo) persistDemo({ settings: nextSettings });
@@ -396,15 +417,17 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
         description: enabled ? "Les trois propositions seront préparées à la première ouverture du Menu chaque jour." : "Aucune nouvelle recherche quotidienne ne sera lancée.",
       });
     } catch (error) {
+      if (!mountedRef.current) return;
       toast({ title: "Activation impossible", description: formatDailyDishError(error), variant: "destructive" });
     } finally {
-      setToggling(false);
+      if (mountedRef.current) setToggling(false);
     }
   };
 
   const selectVariant = async (variant: DailyDishVariant) => {
     try {
       await selectDailyDishProposal({ restaurant_id: restaurantId, session_id: sessionId, variant_id: variant.id });
+      if (!mountedRef.current) return;
       const next = variants.map((item) => ({
         ...item,
         status: item.id === variant.id ? "selected" as const : item.status === "selected" ? "proposed" as const : item.status,
@@ -413,6 +436,7 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
       setSelectedId(variant.id);
       if (isDemo) persistDemo({ variants: next });
     } catch (error) {
+      if (!mountedRef.current) return;
       toast({ title: "Sélection impossible", description: formatDailyDishError(error), variant: "destructive" });
     }
   };
@@ -430,6 +454,7 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
         revision: variant.revision,
         instruction,
       });
+      if (!mountedRef.current) return;
       const refined: DailyDishVariant = {
         ...result.variant,
         run_id: result.variant.run_id || variant.run_id,
@@ -438,6 +463,7 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
         status: "selected",
       };
       await selectDailyDishProposal({ restaurant_id: restaurantId, session_id: sessionId, variant_id: refined.id });
+      if (!mountedRef.current) return;
       const next = variants.map((item) => item.id === variant.id ? refined : item);
       setVariants(next);
       setSelectedId(refined.id);
@@ -445,9 +471,10 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
       if (isDemo) persistDemo({ variants: next });
       toast({ title: "Proposition ajustée", description: "Les coûts et quantités ont été recalculés avec les sources vérifiées." });
     } catch (error) {
+      if (!mountedRef.current) return;
       toast({ title: "Modification impossible", description: formatDailyDishError(error), variant: "destructive" });
     } finally {
-      setRefiningId(null);
+      if (mountedRef.current) setRefiningId(null);
     }
   };
 
@@ -486,6 +513,7 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
           },
         });
         const image = await imageJob.promise;
+        if (!mountedRef.current) return;
         assetId = image.assetId;
         imageUrl = image.gallery_image_url || image.generated_image_url || null;
         setPublishedImageUrl(imageUrl);
@@ -501,6 +529,7 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
         publish_actualite: publishActualite,
         actualite_body: actualiteBody.trim(),
       });
+      if (!mountedRef.current) return;
       const next = variants.map((variant) => ({
         ...variant,
         status: variant.id === selectedVariant.id ? "published" as const : "archived" as const,
@@ -526,11 +555,12 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
           ? (publishActualite ? "La fiche restaurant et Actualités ont été mises à jour avec le visuel PhotoPro." : "La fiche restaurant a été mise à jour avec le visuel PhotoPro.")
           : (publishActualite ? "La fiche restaurant et Actualités ont été mises à jour." : "La fiche restaurant a été mise à jour."),
       });
-      if (!isDemo && result.publication) await loadState();
+      if (!isDemo && result.publication && mountedRef.current) await loadState();
     } catch (error) {
+      if (!mountedRef.current) return;
       toast({ title: "Publication impossible", description: formatDailyDishError(error), variant: "destructive" });
     } finally {
-      setPublishing(false);
+      if (mountedRef.current) setPublishing(false);
     }
   };
 
