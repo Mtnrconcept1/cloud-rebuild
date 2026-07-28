@@ -23,6 +23,7 @@ import {
   requestAiCreationNotificationPermission,
   setActiveAiCreationContext,
   startTokImageCreationJob,
+  useAiCreationRecovery,
 } from "@/lib/ai/aiCreationJobs";
 import {
   getTokImageOutputPricing,
@@ -1167,6 +1168,8 @@ function buildCommercialDemoBusinessContext(snapshot: CommercialDemoSnapshot): M
 
 export default function TokAiMarketingStudio({ restaurantId }: Props) {
   const { toast } = useToast();
+  // A visual stored while the tab was away is re-attached instead of being lost.
+  useAiCreationRecovery(restaurantId);
   const commercialDemoFrame = useCommercialDemoFrame();
   const commercialDemoSessionId = commercialDemoFrame?.config.sessionId;
   const commercialDemoSurface = commercialDemoFrame?.surface;

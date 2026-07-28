@@ -320,6 +320,12 @@ jobs:
     env:
       NODE_VERSION: 22
       PNPM_VERSION: 10.28.1
+      # The production build refuses to start without the public Supabase pair.
+      # These are the same non-functional placeholders _validation.yml uses: this
+      # job runs Codex-generated code, so it must never receive real credentials.
+      VITE_SUPABASE_URL: https://example.supabase.co
+      VITE_SUPABASE_PUBLISHABLE_KEY: ci-public-placeholder
+      VITE_SUPABASE_ANON_KEY: ci-public-placeholder
 
     steps:
       - name: Checkout immutable base revision

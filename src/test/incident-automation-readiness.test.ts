@@ -41,6 +41,42 @@ describe("human-approved Telegram and Codex incident automation", () => {
     expect(migration).not.toMatch(/TO authenticated\s+WITH CHECK\s*\(true\)/i);
   });
 
+  it("reports a Codex run that found no safe change as an outcome, not a failure", () => {
+    const migration = readProjectFile(
+      "supabase/migrations/20260728010000_ops_incident_no_changes_status.sql",
+    );
+    const edgeFunction = readProjectFile(
+      "supabase/functions/ops-incident-control/index.ts",
+    );
+
+    // The status is allowed by the widened CHECK, and no previously valid value is dropped.
+    expect(migration).toContain("'no_changes'");
+    for (const status of [
+      "'detected'",
+      "'analyzing'",
+      "'awaiting_approval'",
+      "'approved'",
+      "'repairing'",
+      "'pr_open'",
+      "'resolved'",
+      "'rejected'",
+      "'failed'",
+      "'ignored'",
+    ]) {
+      expect(migration).toContain(status);
+    }
+    expect(migration).not.toMatch(/DROP\s+(TABLE|COLUMN)/i);
+
+    // A recurrence must merge onto the reviewed incident instead of re-dispatching Codex.
+    expect(migration).toContain("CREATE OR REPLACE FUNCTION public.ops_register_incident");
+    expect(migration).toContain("occurrence_count = occurrence_count + 1");
+
+    // The workflow outcome no longer collapses into "failed".
+    expect(edgeFunction).toContain('no_changes: "no_changes"');
+    expect(edgeFunction).not.toContain('no_changes: "failed"');
+    expect(edgeFunction).toContain("Analyse terminée sans correctif");
+  });
+
   it("requires signed collectors, Telegram identity, bounded payloads, and sanitized context", () => {
     const edgeFunction = readProjectFile(
       "supabase/functions/ops-incident-control/index.ts",

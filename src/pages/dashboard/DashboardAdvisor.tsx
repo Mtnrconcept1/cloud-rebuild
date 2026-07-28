@@ -48,6 +48,7 @@ import {
   requestAiCreationNotificationPermission,
   setActiveAiCreationContext,
   startTokImageCreationJob,
+  useAiCreationRecovery,
 } from "@/lib/ai/aiCreationJobs";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
@@ -435,6 +436,8 @@ export default function DashboardAdvisor() {
     ? { id: selectedId, name: restaurants.find((item) => item.id === selectedId)?.name || "Mon restaurant" }
     : null;
   const restaurantId = restaurant?.id;
+  // A visual stored while the tab was away is re-attached instead of being lost.
+  useAiCreationRecovery(restaurantId);
   const advisorHistoryStorageScope = demoAiRuntime
     ? `commercial-demo:${demoAiRuntime.sessionId}:${demoAiRuntime.surface}:${restaurantId || "none"}`
     : `restaurant:${restaurantId || "none"}`;

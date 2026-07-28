@@ -34,6 +34,7 @@ import {
   getDailyDishStatus,
   publishDailyDishProposal,
   refineDailyDishProposal,
+  regenerateDailyDishProposals,
   selectDailyDishProposal,
   setDailyDishEnabled,
   type DailyDishRun,
@@ -155,8 +156,17 @@ function latestDemoState(state: DemoDailyDishState) {
   return { ...state, run: null, variants: [] };
 }
 
+// Ingredient names are echoed from the basket lines, so a tolerant key still
+// matches when the model varies casing, accents or spacing between the two lists.
+function ingredientKey(value: string) {
+  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
+}
+
 function VariantDetails({ variant }: { variant: DailyDishVariant }) {
   const dish = variant.payload;
+  const costByIngredient = new Map(
+    dish.basket.map((item) => [ingredientKey(item.ingredient), item]),
+  );
   return (
     <div className="space-y-3 text-sm">
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -180,7 +190,7 @@ function VariantDetails({ variant }: { variant: DailyDishVariant }) {
 
       <details className="rounded-xl border bg-background p-3">
         <summary className="flex cursor-pointer list-none items-center gap-2 font-semibold">
-          <ShoppingBasket className="h-4 w-4 text-primary" /> Panier comparé ({dish.basket.length})
+          <ShoppingBasket className="h-4 w-4 text-primary" /> Panier Aligro ({dish.basket.length})
         </summary>
         <div className="mt-3 space-y-2">
           {dish.basket.map((item, index) => (
@@ -208,12 +218,31 @@ function VariantDetails({ variant }: { variant: DailyDishVariant }) {
         </summary>
         <div className="mt-3 grid gap-4 lg:grid-cols-2">
           <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Ingrédients</p>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Ingrédients · prix Aligro</p>
             <ul className="space-y-1">
-              {dish.ingredients.map((item, index) => (
-                <li key={`${item.name}-${index}`}>• {item.quantity} {item.unit} {item.name}</li>
-              ))}
+              {dish.ingredients.map((item, index) => {
+                const costed = costByIngredient.get(ingredientKey(item.name));
+                return (
+                  <li key={`${item.name}-${index}`} className="flex flex-wrap items-baseline justify-between gap-x-2">
+                    <span>• {item.quantity} {item.unit} {item.name}</span>
+                    {costed ? (
+                      <span className="tabular-nums font-medium">
+                        {money(costed.allocated_cost_chf)}
+                        <span className="ml-1 text-xs font-normal text-muted-foreground">
+                          ({costed.package_size} à {money(costed.package_price_chf)})
+                        </span>
+                      </span>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">prix non vérifié</span>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
+            <p className="mt-2 flex justify-between border-t pt-2 font-semibold">
+              <span>Total ingrédients</span>
+              <span className="tabular-nums">{money(dish.estimated_total_cost_chf)}</span>
+            </p>
           </div>
           <div>
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Préparation</p>
@@ -261,6 +290,20 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
   const [manualDishForm, setManualDishForm] = useState<ManualDailyDishForm>(createEmptyManualDailyDishForm);
   const [savingManualDish, setSavingManualDish] = useState(false);
   const autoAttemptRef = useRef<string | null>(null);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
+
+  useEffect(() => {
+    const busy = generating || publishing || !!refiningId;
+    if (!busy) return;
+    const handler = (e: BeforeUnloadEvent) => { e.preventDefault(); };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [generating, publishing, refiningId]);
 
   const selectedVariant = useMemo(
     () => variants.find((variant) => variant.id === selectedId) || null,
@@ -273,8 +316,10 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
     writeCommercialDemoToolState(sessionId, DEMO_STORAGE_KEY, { ...current, ...next });
   }, [sessionId]);
 
-  const loadState = useCallback(async () => {
-    setLoading(true);
+  // `silent` re-reads the server state without flashing the skeleton or raising a
+  // toast, for background re-syncs the user did not trigger.
+  const loadState = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       if (isDemo && sessionId) {
         const demoState = latestDemoState(readCommercialDemoToolState<DemoDailyDishState>(sessionId, DEMO_STORAGE_KEY, buildDemoSeed()));
@@ -287,6 +332,7 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
         return;
       }
       const status = await getDailyDishStatus({ restaurant_id: restaurantId });
+      if (!mountedRef.current) return;
       setAccessEnabled(status.access.enabled);
       setSettings(status.settings);
       setRun(status.run);
@@ -294,9 +340,10 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
       const selected = status.variants.find((variant) => variant.status === "selected" || variant.status === "published");
       setSelectedId(selected?.id || null);
     } catch (error) {
+      if (!mountedRef.current || silent) return;
       toast({ title: "Plat du jour IA indisponible", description: formatDailyDishError(error), variant: "destructive" });
     } finally {
-      setLoading(false);
+      if (mountedRef.current && !silent) setLoading(false);
     }
   }, [isDemo, restaurantId, sessionId, toast]);
 
@@ -327,6 +374,7 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
           })),
         } : undefined,
       });
+      if (!mountedRef.current) return;
       setRun(result.run);
       setVariants(result.variants);
       setSelectedId(null);
@@ -336,11 +384,50 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
         description: "Les prix fournisseurs, le panier et les recettes ont été comparés.",
       });
     } catch (error) {
-      if (!automatic || !String(error).includes("generation_in_progress")) {
+      if (!mountedRef.current) return;
+      // The automatic attempt is a background convenience the user never asked
+      // for, and leaving the tab or locking the phone aborts its request while
+      // the Edge Function keeps running server-side. Alerting there would blame
+      // the user for a run that usually completed. The visibility listener picks
+      // the finished run back up, and the manual buttons still report errors.
+      if (!automatic) {
         toast({ title: "Recherche impossible", description: formatDailyDishError(error), variant: "destructive" });
       }
     } finally {
-      setGenerating(false);
+      if (mountedRef.current) setGenerating(false);
+    }
+  }, [generating, isDemo, menuItems, persistDemo, restaurantId, sessionId, settings.is_enabled, toast]);
+
+  const regenerate = useCallback(async () => {
+    if (!settings.is_enabled || generating) return;
+    setGenerating(true);
+    try {
+      const result = await regenerateDailyDishProposals({
+        restaurant_id: restaurantId,
+        session_id: sessionId,
+        demo_context: isDemo ? {
+          menu: menuItems.map((item) => ({
+            name: item.name,
+            description: item.description || "",
+            category: item.category || "",
+            price_chf: Number(item.price || 0),
+          })),
+        } : undefined,
+      });
+      if (!mountedRef.current) return;
+      setRun(result.run);
+      setVariants(result.variants);
+      setSelectedId(null);
+      if (isDemo) persistDemo({ run: result.run, variants: result.variants });
+      toast({
+        title: "Trois nouvelles variantes générées",
+        description: "Les prix fournisseurs ont été comparés à nouveau avec de nouvelles propositions.",
+      });
+    } catch (error) {
+      if (!mountedRef.current) return;
+      toast({ title: "Génération impossible", description: formatDailyDishError(error), variant: "destructive" });
+    } finally {
+      if (mountedRef.current) setGenerating(false);
     }
   }, [generating, isDemo, menuItems, persistDemo, restaurantId, sessionId, settings.is_enabled, toast]);
 
@@ -352,10 +439,26 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
     void generate(true);
   }, [accessEnabled, generate, generating, loading, restaurantId, run, settings.is_enabled]);
 
+  // Backgrounding the tab or locking the phone aborts the in-flight request, but
+  // the Edge Function still writes its run and variants. Re-reading the server
+  // state on return surfaces that finished work instead of leaving the panel
+  // empty and re-triggering a generation the user already paid for.
+  useEffect(() => {
+    if (!accessEnabled || isDemo) return;
+    const handleVisibility = () => {
+      if (document.visibilityState !== "visible") return;
+      if (generating || publishing || refiningId) return;
+      void loadState(true);
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, [accessEnabled, generating, isDemo, loadState, publishing, refiningId]);
+
   const toggleEnabled = async (enabled: boolean) => {
     setToggling(true);
     try {
       await setDailyDishEnabled({ restaurant_id: restaurantId, session_id: sessionId, is_enabled: enabled });
+      if (!mountedRef.current) return;
       const nextSettings = { ...settings, is_enabled: enabled };
       setSettings(nextSettings);
       if (isDemo) persistDemo({ settings: nextSettings });
@@ -364,15 +467,17 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
         description: enabled ? "Les trois propositions seront préparées à la première ouverture du Menu chaque jour." : "Aucune nouvelle recherche quotidienne ne sera lancée.",
       });
     } catch (error) {
+      if (!mountedRef.current) return;
       toast({ title: "Activation impossible", description: formatDailyDishError(error), variant: "destructive" });
     } finally {
-      setToggling(false);
+      if (mountedRef.current) setToggling(false);
     }
   };
 
   const selectVariant = async (variant: DailyDishVariant) => {
     try {
       await selectDailyDishProposal({ restaurant_id: restaurantId, session_id: sessionId, variant_id: variant.id });
+      if (!mountedRef.current) return;
       const next = variants.map((item) => ({
         ...item,
         status: item.id === variant.id ? "selected" as const : item.status === "selected" ? "proposed" as const : item.status,
@@ -381,6 +486,7 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
       setSelectedId(variant.id);
       if (isDemo) persistDemo({ variants: next });
     } catch (error) {
+      if (!mountedRef.current) return;
       toast({ title: "Sélection impossible", description: formatDailyDishError(error), variant: "destructive" });
     }
   };
@@ -398,6 +504,7 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
         revision: variant.revision,
         instruction,
       });
+      if (!mountedRef.current) return;
       const refined: DailyDishVariant = {
         ...result.variant,
         run_id: result.variant.run_id || variant.run_id,
@@ -406,6 +513,7 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
         status: "selected",
       };
       await selectDailyDishProposal({ restaurant_id: restaurantId, session_id: sessionId, variant_id: refined.id });
+      if (!mountedRef.current) return;
       const next = variants.map((item) => item.id === variant.id ? refined : item);
       setVariants(next);
       setSelectedId(refined.id);
@@ -413,9 +521,10 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
       if (isDemo) persistDemo({ variants: next });
       toast({ title: "Proposition ajustée", description: "Les coûts et quantités ont été recalculés avec les sources vérifiées." });
     } catch (error) {
+      if (!mountedRef.current) return;
       toast({ title: "Modification impossible", description: formatDailyDishError(error), variant: "destructive" });
     } finally {
-      setRefiningId(null);
+      if (mountedRef.current) setRefiningId(null);
     }
   };
 
@@ -454,6 +563,7 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
           },
         });
         const image = await imageJob.promise;
+        if (!mountedRef.current) return;
         assetId = image.assetId;
         imageUrl = image.gallery_image_url || image.generated_image_url || null;
         setPublishedImageUrl(imageUrl);
@@ -469,6 +579,7 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
         publish_actualite: publishActualite,
         actualite_body: actualiteBody.trim(),
       });
+      if (!mountedRef.current) return;
       const next = variants.map((variant) => ({
         ...variant,
         status: variant.id === selectedVariant.id ? "published" as const : "archived" as const,
@@ -494,11 +605,12 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
           ? (publishActualite ? "La fiche restaurant et Actualités ont été mises à jour avec le visuel PhotoPro." : "La fiche restaurant a été mise à jour avec le visuel PhotoPro.")
           : (publishActualite ? "La fiche restaurant et Actualités ont été mises à jour." : "La fiche restaurant a été mise à jour."),
       });
-      if (!isDemo && result.publication) await loadState();
+      if (!isDemo && result.publication && mountedRef.current) await loadState();
     } catch (error) {
+      if (!mountedRef.current) return;
       toast({ title: "Publication impossible", description: formatDailyDishError(error), variant: "destructive" });
     } finally {
-      setPublishing(false);
+      if (mountedRef.current) setPublishing(false);
     }
   };
 
@@ -753,7 +865,7 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
           <>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-2 text-sm"><Check className="h-4 w-4 text-emerald-600" /><span>Propositions du {run?.generation_date ? new Date(`${run.generation_date}T12:00:00`).toLocaleDateString("fr-CH", { day: "numeric", month: "long" }) : "jour"}</span></div>
-              <Button variant="outline" size="sm" className="gap-2" onClick={() => void generate(false)}><RefreshCw className="h-4 w-4" /> Actualiser</Button>
+              <Button variant="outline" size="sm" className="gap-2" onClick={() => void regenerate()} disabled={generating}>{generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />} Générer 3 nouveaux plats du jour</Button>
             </div>
             <div className="grid gap-4 xl:grid-cols-3">
               {variants.map((variant, index) => {

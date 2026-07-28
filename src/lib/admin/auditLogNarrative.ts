@@ -58,6 +58,7 @@ const FUNCTION_PURPOSE: Record<string, string> = {
   "ops-incident-native-scan": "la détection automatique des incidents techniques",
   "ops-incident-control": "le pilotage des incidents et des réparations assistées",
   "daily-dish-ai": "la génération des plats du jour par IA",
+  "aligro-catalog-sync": "la mise à jour hebdomadaire du catalogue de prix Aligro",
   "menu-image-import": "l’extraction d’une carte de restaurant depuis des photos",
   "ai-image-enhance": "la génération ou la retouche d’images par IA",
   "ai-client-support": "l’assistance IA côté client",
