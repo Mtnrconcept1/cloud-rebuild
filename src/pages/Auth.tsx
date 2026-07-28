@@ -32,12 +32,14 @@ import {
   type UploadedSignupDocument,
 } from "@/lib/signup";
 import {
-  RESTAURANT_PARTNER_CONTRACT_SECTIONS,
   RESTAURANT_PARTNER_CONTRACT_TITLE,
   RESTAURANT_PARTNER_CONTRACT_VERSION,
   generateRestaurantPartnerContractSha256,
   generateSignedRestaurantPartnerContractHtml,
 } from "@/lib/restaurantPartnerContract";
+import RestaurantPartnerContractPreview, {
+  RESTAURANT_PARTNER_CONTRACT_EXPORT_ACTION_LABEL,
+} from "@/components/contracts/RestaurantPartnerContractPreview";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -441,7 +443,7 @@ function RestaurantContractSignaturePad({
       selectedSubscriptionPriceLabel,
     });
     if (!exported) {
-      alert("Autorisez l'ouverture de la fenêtre d'impression pour exporter le contrat en PDF.");
+      alert("La fenêtre d'impression n'a pas pu être ouverte. Autorisez les pop-ups, puis réessayez.");
     }
   };
 
@@ -453,18 +455,10 @@ function RestaurantContractSignaturePad({
           La signature manuscrite est obligatoire dans la procédure d'inscription. Elle sera visible dans l'export PDF du contrat.
         </p>
       </div>
-      <div className="max-h-72 space-y-4 overflow-auto rounded-xl border bg-background p-4 text-sm">
-        <p className="font-semibold">{RESTAURANT_PARTNER_CONTRACT_TITLE}</p>
-        <p className="text-xs text-muted-foreground">Version {RESTAURANT_PARTNER_CONTRACT_VERSION}</p>
-        {RESTAURANT_PARTNER_CONTRACT_SECTIONS.map((section) => (
-          <section key={section.title} className="space-y-2">
-            <h3 className="font-semibold">{section.title}</h3>
-            {section.paragraphs.map((paragraph) => (
-              <p key={paragraph} className="text-muted-foreground">{paragraph}</p>
-            ))}
-          </section>
-        ))}
-      </div>
+      <RestaurantPartnerContractPreview
+        onExport={handleExport}
+        exportDisabled={!signerName.trim() || !signatureDataUrl}
+      />
       <div className="space-y-2">
         <Label htmlFor="restaurant-contract-signer">Nom et fonction du signataire habilité</Label>
         <Input
@@ -500,7 +494,7 @@ function RestaurantContractSignaturePad({
           disabled={!signerName.trim() || !signatureDataUrl}
           className="sm:w-auto"
         >
-          Exporter le contrat signé en PDF
+          {RESTAURANT_PARTNER_CONTRACT_EXPORT_ACTION_LABEL}
         </Button>
       </div>
     </div>
