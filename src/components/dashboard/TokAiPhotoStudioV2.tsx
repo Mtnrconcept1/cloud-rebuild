@@ -17,6 +17,7 @@ import {
   requestAiCreationNotificationPermission,
   setActiveAiCreationContext,
   startTokImageCreationJob,
+  useAiCreationRecovery,
 } from "@/lib/ai/aiCreationJobs";
 import {
   getTokImageOutputPricing,
@@ -147,6 +148,8 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
   const isCommercialDemo = commercialDemoFrame?.surface === "restaurant";
   const logoSrc = useTokLogoSrc();
   const mountedRef = useRef(true);
+  // A visual stored while the tab was away is re-attached instead of being lost.
+  useAiCreationRecovery(restaurantId, userId);
   const storageKey = isCommercialDemo && commercialDemoFrame
     ? `tok-ai-photo-studio-v2:commercial-demo:${commercialDemoFrame.config.sessionId}:restaurant`
     : `tok-ai-photo-studio-v2:${restaurantId || "pending"}`;

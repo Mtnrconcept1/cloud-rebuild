@@ -11,6 +11,7 @@ import {
   getAiCreationRecords,
   markAiCreationAddedToGallery,
   subscribeAiCreationRecords,
+  useAiCreationRecovery,
   type AiCreationRecord,
 } from "@/lib/ai/aiCreationJobs";
 import {
@@ -69,6 +70,11 @@ export default function AiCreationsGallery({ restaurantId, userId, currentPhotoC
   const [previewRecord, setPreviewRecord] = useState<AiCreationRecord | null>(null);
 
   useEffect(() => subscribeAiCreationRecords(setRecords), []);
+
+  // Leaving the app aborts an in-flight generation, but the Edge Function still
+  // stores the visual and charges the credits. Re-attach those so a paid image is
+  // never silently lost.
+  useAiCreationRecovery(restaurantId, userId);
 
   const restaurantRecords = useMemo(() => {
     if (!restaurantId) return [];

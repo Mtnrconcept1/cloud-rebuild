@@ -28,6 +28,7 @@ import {
   requestAiCreationNotificationPermission,
   setActiveAiCreationContext,
   startTokImageCreationJob,
+  useAiCreationRecovery,
 } from "@/lib/ai/aiCreationJobs";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import {
@@ -202,6 +203,8 @@ export default function DashboardMenu() {
   const mountedRef = useRef(true);
 
   const restaurant = selectedId ? { id: selectedId } : null;
+  // A visual stored while the tab was away is re-attached instead of being lost.
+  useAiCreationRecovery(selectedId);
   const selectedRestaurant = restaurants.find((candidate) => candidate.id === selectedId) || null;
   const selectedPlanSlug = selectedRestaurant?.restaurant_subscription?.plan_record?.slug
     || selectedRestaurant?.restaurant_subscription?.plan

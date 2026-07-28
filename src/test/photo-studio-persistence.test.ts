@@ -600,6 +600,40 @@ describe("TOK photo studio persistence", () => {
     expect(source).not.toContain("Texte propos");
   });
 
+  it("recovers a paid visual stored while the user had left the app", () => {
+    const dashboardMenu = readFileSync(resolve(process.cwd(), "src/pages/dashboard/DashboardMenu.tsx"), "utf8");
+    const dashboardAdvisor = readFileSync(resolve(process.cwd(), "src/pages/dashboard/DashboardAdvisor.tsx"), "utf8");
+
+    // A dropped connection is not a generation failure: the Edge Function kept
+    // running, stored the asset and charged the credits.
+    expect(aiCreationJobs).toContain("function isInterruptedError");
+    expect(aiCreationJobs).toContain("interrupted");
+    expect(aiCreationJobs).toContain("recoverInterruptedAiCreations");
+
+    // Recovery reads the stored asset back and never claims one twice.
+    expect(aiCreationJobs).toContain('.from("ai_generated_assets" as never)');
+    expect(aiCreationJobs).toContain('.eq("status", "stored")');
+    expect(aiCreationJobs).toContain("claimed.has(asset.id)");
+    expect(aiCreationJobs).toContain("claimed.add(match.id)");
+    expect(aiCreationJobs).toContain("AI_CREATION_COMPLETED_EVENT");
+
+    // Commercial demo visuals are restored from the Edge Function, not this table.
+    expect(aiCreationJobs).toContain("if (isCommercialDemoStorageKey(storageKey)) return 0;");
+
+    // Every surface that can start a generation arms recovery.
+    for (const surface of [
+      aiCreationsGallery,
+      source,
+      marketingStudio,
+      dashboardMenu,
+      dashboardAdvisor,
+    ]) {
+      expect(surface).toContain("useAiCreationRecovery");
+    }
+    expect(aiCreationJobs).toContain('document.addEventListener("visibilitychange"');
+    expect(aiCreationJobs).toContain('document.removeEventListener("visibilitychange"');
+  });
+
   it("maps backend image generation failures to restaurateur-facing messages", () => {
     expect(source).toContain("formatPhotoGenerationError(error)");
     expect(source).toContain("formatAiImageGenerationError(error)");
