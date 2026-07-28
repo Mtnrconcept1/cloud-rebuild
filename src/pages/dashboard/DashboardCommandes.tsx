@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { getSupabase } from "@/integrations/supabase/client";
 import DeliveryMap from "@/components/DeliveryMap";
@@ -350,6 +350,7 @@ function LiveDashboardCommandes() {
   const isCommercialDemoRestaurant = Boolean(commercialDemoSnapshot);
   const { selectedId, restaurants, loading: restaurantsLoading, error: restaurantsError } = useDashboardRestaurant();
   const [searchParams] = useSearchParams();
+  const orderTarget = searchParams.get("order");
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [expandedRouteOrderId, setExpandedRouteOrderId] = useState<string | null>(null);
@@ -362,12 +363,16 @@ function LiveDashboardCommandes() {
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [viewMode, setViewMode] = useState<OperationViewMode>("details");
   const [demoActionPending, setDemoActionPending] = useState(false);
+  const deepLinkFocusedRef = useRef<string | null>(null);
   const { unreadNotifications } = useNotificationCenter(100, { realtime: true });
 
   useEffect(() => {
-    const orderTarget = searchParams.get("order");
-    if (orderTarget) setSearchTerm(orderTarget);
-  }, [searchParams]);
+    deepLinkFocusedRef.current = null;
+    if (!orderTarget) return;
+    setSearchTerm(orderTarget);
+    setTimeRange("all");
+    setViewMode("details");
+  }, [orderTarget]);
 
   const effectiveSelectedId = commercialDemoSnapshot?.session.demo_restaurant_id || selectedId;
   const selectedRestaurant = commercialDemoSnapshot?.demo_restaurant
@@ -410,6 +415,33 @@ function LiveDashboardCommandes() {
   );
   const orders = isCommercialDemoRestaurant ? commercialDemoOrders : productionOrdersQuery.data;
   const ordersError = isCommercialDemoRestaurant ? null : productionOrdersQuery.error;
+
+  useEffect(() => {
+    if (!orderTarget) return;
+    const target = (orders || []).find((order) => order.id === orderTarget);
+    if (!target) return;
+    const targetDate = target.created_at.slice(0, 10);
+    if (viewMode !== "details") {
+      setViewMode("details");
+      return;
+    }
+    if (openDayKey !== targetDate) {
+      setOpenDayKey(targetDate);
+      return;
+    }
+    if (deepLinkFocusedRef.current === target.id) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      const element = document.getElementById(`order-${target.id}`);
+      if (!element) return;
+      const reduceMotion = typeof window.matchMedia === "function"
+        && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      element.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" });
+      element.focus({ preventScroll: true });
+      deepLinkFocusedRef.current = target.id;
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [openDayKey, orderTarget, orders, viewMode]);
 
   const filteredOrders = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
@@ -793,8 +825,10 @@ function LiveDashboardCommandes() {
 
                   return (
                     <article
+                      id={`order-${order.id}`}
                       key={order.id}
-                      className={`min-w-0 rounded-2xl border bg-card p-4 shadow-sm ring-1 ring-transparent transition hover:border-primary/30 ${orderTypeMeta.cardClassName}`}
+                      tabIndex={-1}
+                      className={`min-w-0 rounded-2xl border bg-card p-4 shadow-sm ring-1 transition hover:border-primary/30 ${orderTypeMeta.cardClassName}${order.id === orderTarget ? " ring-2 ring-primary ring-offset-2" : " ring-transparent"}`}
                     >
                       <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                         <div className="min-w-0 space-y-2">
@@ -966,8 +1000,10 @@ function LiveDashboardCommandes() {
 
                         return (
                           <div
+                            id={`order-${order.id}`}
                             key={order.id}
-                            className={`min-w-0 space-y-4 overflow-hidden rounded-2xl border border-l-4 bg-card p-4 shadow-sm sm:p-5 ${orderTypeMeta.cardClassName}`}
+                            tabIndex={-1}
+                            className={`min-w-0 space-y-4 overflow-hidden rounded-2xl border border-l-4 bg-card p-4 shadow-sm sm:p-5 ${orderTypeMeta.cardClassName}${order.id === orderTarget ? " ring-2 ring-primary ring-offset-2" : ""}`}
                           >
                             <div className="flex min-w-0 flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                               <div className="min-w-0 space-y-1">
