@@ -346,7 +346,8 @@ describe("prioritizeSponsoredCards", () => {
     expect(templateCard).not.toContain("min-h-[520px]");
     expect(templateCard).not.toContain("grid h-full");
     expect(templateCard).toContain("min-w-0 break-words [overflow-wrap:anywhere]");
-    expect(templateCard).toContain("whitespace-nowrap");
+    expect(templateCard).toContain("data-sponsored-banner-seal");
+    expect(templateCard).not.toContain("absolute left-[45%]");
 
     // Banner surfaces follow the dark theme instead of staying white.
     expect(templateCard).toContain("dark:bg-slate-900");

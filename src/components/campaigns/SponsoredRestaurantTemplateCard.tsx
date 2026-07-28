@@ -49,6 +49,13 @@ function stopNestedCardAction(event: SyntheticEvent) {
   event.stopPropagation();
 }
 
+function handleImageError(event: SyntheticEvent<HTMLImageElement>) {
+  const image = event.currentTarget;
+  if (image.getAttribute("src") !== DEFAULT_IMAGE) {
+    image.src = DEFAULT_IMAGE;
+  }
+}
+
 function getTypographyClass(style: CampaignCreativeTextStyle) {
   return cn(
     style.font === "display" && "font-display",
@@ -163,15 +170,6 @@ export function SponsoredRestaurantTemplateCard({
   const displaySealMain = getCreativeCopy(normalized, "sealMain", "Flash");
   const displaySealBottom = getCreativeCopy(normalized, "sealBottom", "Quantités limitées");
   const slotDiscountLabel = getSlotDiscountLabel(discountLabel);
-  const sealMainLength = Array.from(displaySealMain.trim()).length;
-  const sealMainSizeClass = sealMainLength <= 5
-    ? "text-4xl xl:text-[2.75rem] 2xl:text-5xl"
-    : sealMainLength <= 9
-      ? "text-3xl xl:text-4xl 2xl:text-[2.75rem]"
-      : "text-xl xl:text-2xl 2xl:text-3xl";
-  const sealMainWrapClass = sealMainLength <= 9
-    ? "whitespace-nowrap"
-    : "break-words [overflow-wrap:anywhere] [text-wrap:balance]";
 
   if (variant === "banner") {
     const secondaryBadge = displayDiscount.trim();
@@ -269,6 +267,38 @@ export function SponsoredRestaurantTemplateCard({
 
             <div
               className={cn(
+                "flex max-w-full flex-wrap items-center gap-x-3 gap-y-1 self-start rounded-full border-[6px] border-white bg-white/92 text-primary shadow-[0_16px_36px_rgba(15,23,42,0.12)] ring-1 ring-orange-100 dark:border-slate-900 dark:bg-slate-900/92 dark:ring-orange-300/20",
+                compactBanner ? "mt-2 px-3 py-2" : "mt-3 px-4 py-2.5",
+              )}
+              data-sponsored-banner-seal
+            >
+              <span
+                className={cn("max-w-full break-words text-[10px] uppercase leading-tight tracking-[0.14em] [overflow-wrap:anywhere]", getTypographyClass(normalized.text.sealTop))}
+                style={getTextInlineStyle(normalized.text.sealTop)}
+              >
+                {displaySealTop}
+              </span>
+              <span
+                className={cn(
+                  "max-w-full break-words uppercase leading-none [overflow-wrap:anywhere] [text-wrap:balance]",
+                  compactBanner ? "text-base sm:text-lg" : "text-lg sm:text-xl xl:text-2xl",
+                  getTypographyClass(normalized.text.sealMain),
+                )}
+                style={getTextInlineStyle(normalized.text.sealMain)}
+              >
+                {displaySealMain}
+              </span>
+              <Zap className={cn("shrink-0 fill-primary text-primary", compactBanner ? "h-4 w-4" : "h-5 w-5")} />
+              <span
+                className={cn("max-w-full break-words text-[9px] uppercase leading-tight tracking-[0.1em] [overflow-wrap:anywhere]", getTypographyClass(normalized.text.sealBottom))}
+                style={getTextInlineStyle(normalized.text.sealBottom)}
+              >
+                {displaySealBottom}
+              </span>
+            </div>
+
+            <div
+              className={cn(
                 "rounded-[26px] border border-orange-100 bg-white/86 shadow-[0_16px_42px_rgba(15,23,42,0.08)] backdrop-blur dark:border-white/10 dark:bg-white/8",
                 compactBanner ? "mt-3 p-3 sm:p-3.5 lg:mt-3 lg:p-3.5" : "mt-5 p-4 sm:p-5 lg:mt-4 lg:p-4 xl:mt-6 xl:p-5",
               )}
@@ -286,33 +316,6 @@ export function SponsoredRestaurantTemplateCard({
               </div>
             </div>
 
-          </div>
-
-          <div className={cn(
-            "absolute left-[45%] top-1/2 z-30 h-44 w-44 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-[10px] border-white bg-white/95 p-4 text-center shadow-[0_24px_56px_rgba(15,23,42,0.16)] ring-1 ring-orange-100 xl:h-48 xl:w-48 2xl:h-52 2xl:w-52",
-            compactBanner ? "hidden" : "hidden xl:grid",
-          )}>
-            <div className="min-w-0 max-w-full space-y-1">
-              <p
-                className={cn("text-[12px] uppercase tracking-[0.16em] text-primary xl:text-sm", getTypographyClass(normalized.text.sealTop))}
-                style={getTextInlineStyle(normalized.text.sealTop)}
-              >
-                {displaySealTop}
-              </p>
-              <p
-                className={cn("max-w-full uppercase leading-none text-primary", sealMainSizeClass, sealMainWrapClass, getTypographyClass(normalized.text.sealMain))}
-                style={getTextInlineStyle(normalized.text.sealMain)}
-              >
-                {displaySealMain}
-              </p>
-              <Zap className="mx-auto h-6 w-6 fill-primary text-primary xl:h-8 xl:w-8" />
-              <p
-                className={cn("max-w-full break-words text-[9px] uppercase leading-tight tracking-[0.12em] text-primary [overflow-wrap:anywhere] xl:text-[10px]", getTypographyClass(normalized.text.sealBottom))}
-                style={getTextInlineStyle(normalized.text.sealBottom)}
-              >
-                {displaySealBottom}
-              </p>
-            </div>
           </div>
 
           <div
@@ -333,6 +336,7 @@ export function SponsoredRestaurantTemplateCard({
                 src={imageUrl || DEFAULT_IMAGE}
                 alt=""
                 className="h-full w-full object-contain p-2 transition-transform duration-700 group-hover:scale-[1.025] sm:p-3"
+                onError={handleImageError}
                 loading="lazy"
                 decoding="async"
               />
@@ -353,7 +357,7 @@ export function SponsoredRestaurantTemplateCard({
         )}
       >
         <div className="absolute left-4 top-4 z-30 grid h-11 w-11 place-items-center overflow-hidden rounded-2xl bg-orange-50">
-          <img src={imageUrl || DEFAULT_IMAGE} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+          <img src={imageUrl || DEFAULT_IMAGE} alt="" className="h-full w-full object-cover" onError={handleImageError} loading="lazy" decoding="async" />
         </div>
         <BellRing className="absolute right-5 top-5 h-5 w-5 text-primary" />
         <div className="ml-[72px] mr-12 mt-4">
@@ -377,12 +381,13 @@ export function SponsoredRestaurantTemplateCard({
           src={imageUrl || DEFAULT_IMAGE}
           alt=""
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          onError={handleImageError}
           loading="lazy"
           decoding="async"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/62 via-slate-950/10 to-transparent" />
         <div className="absolute left-3 right-14 top-3 flex flex-wrap items-start gap-1.5">
-          <span className="inline-flex items-center gap-1 rounded-full border border-white/35 bg-primary/95 px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.12em] text-white shadow-sm backdrop-blur-md">
+          <span className="inline-flex max-w-full flex-wrap items-center gap-1 rounded-full border border-white/35 bg-primary/95 px-3 py-1.5 text-center text-[9px] font-black uppercase leading-4 tracking-[0.12em] text-white shadow-sm [overflow-wrap:anywhere] backdrop-blur-md">
             <Megaphone className="h-3 w-3" />
             {displayBadge}
           </span>
@@ -396,7 +401,7 @@ export function SponsoredRestaurantTemplateCard({
           <Heart className={cn("h-4 w-4 text-red-500", isFavorite && "fill-current")} />
         </button>
         <div className="absolute bottom-3 left-3 right-3 flex items-end">
-          <span className="inline-flex items-center gap-1.5 rounded-2xl border border-white/30 bg-gradient-to-r from-primary via-orange-500 to-emerald-600 px-3.5 py-2 text-[11px] font-black uppercase tracking-[0.08em] text-white shadow-[0_14px_30px_rgba(15,23,42,0.28)] ring-1 ring-black/5 backdrop-blur-md">
+          <span className="inline-flex max-w-full flex-wrap items-center gap-1.5 rounded-2xl border border-white/30 bg-gradient-to-r from-primary via-orange-500 to-emerald-600 px-3.5 py-2 text-center text-[11px] font-black uppercase leading-4 tracking-[0.08em] text-white shadow-[0_14px_30px_rgba(15,23,42,0.28)] ring-1 ring-black/5 [overflow-wrap:anywhere] backdrop-blur-md">
             <span className="grid h-5 w-5 place-items-center rounded-full bg-white/20">
               <Percent className="h-3.5 w-3.5" />
             </span>
@@ -408,7 +413,7 @@ export function SponsoredRestaurantTemplateCard({
       <div className="flex flex-1 flex-col p-4 sm:p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1 space-y-1">
-            <h3 className={cn("text-base leading-tight text-foreground transition-colors group-hover:text-primary", getTypographyClass(normalized.text.restaurant))} style={getTextInlineStyle(normalized.text.restaurant)}>
+            <h3 className={cn("break-words text-base leading-tight text-foreground transition-colors [overflow-wrap:anywhere] [text-wrap:balance] group-hover:text-primary", getTypographyClass(normalized.text.restaurant))} style={getTextInlineStyle(normalized.text.restaurant)}>
               {displayRestaurantName}
             </h3>
             <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/90">
@@ -427,9 +432,9 @@ export function SponsoredRestaurantTemplateCard({
         </div>
 
         <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-          <span className="inline-flex items-center gap-1.5">
-            <MapPin className="h-3.5 w-3.5 text-primary/75" />
-            <span className="font-medium text-foreground/90">{displayCity}</span>
+          <span className="inline-flex min-w-0 items-start gap-1.5">
+            <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary/75" />
+            <span className="min-w-0 break-words font-medium text-foreground/90 [overflow-wrap:anywhere]">{displayCity}</span>
           </span>
         </div>
         <p className="mt-2 break-words text-sm leading-6 text-muted-foreground [overflow-wrap:anywhere]">
@@ -447,7 +452,7 @@ export function SponsoredRestaurantTemplateCard({
 
         <div className="mt-auto pt-4">
           <div className="flex flex-wrap items-center gap-2">
-            <div className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary via-orange-500 to-orange-600 px-4 text-sm font-bold text-white shadow-[0_14px_30px_rgba(249,115,22,0.26)]">
+            <div className="inline-flex min-h-11 min-w-0 flex-1 flex-wrap items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary via-orange-500 to-orange-600 px-4 py-2.5 text-center text-sm font-bold leading-5 text-white shadow-[0_14px_30px_rgba(249,115,22,0.26)] [overflow-wrap:anywhere]">
               {displayCta}
               <ArrowRight className="h-4 w-4" />
             </div>

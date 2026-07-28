@@ -162,28 +162,66 @@ describe("campaign creative studio", () => {
     expect(templateCard).not.toContain("mt-1 line-clamp-2 overflow-visible pb-2 leading-[1.04]");
   });
 
-  it("lets long sponsored banner copy define the component height", () => {
+  it("lets every sponsored placement grow with long customized copy", () => {
     const longRestaurantName = "Le Grand Restaurant Gastronomique des Terrasses de Genève";
     const longAddress = "123, promenade des Restaurateurs et Artisans du Canton de Genève";
     const longHeadline = "Paniers surprises préparés chaque soir avec les invendus encore délicieux";
-    const longBody = "Découvrez une sélection anti-gaspi généreuse, locale et différente chaque jour, sans perdre la moindre information importante.";
+    const longBody = "Sélection anti-gaspi généreuse, locale et variée chaque jour, sans perdre une information.";
+    const creative = {
+      copy: {
+        badge: "Sponsorisé par un partenaire local",
+        discount: "Promotion exceptionnelle jusqu'à moins trente pour cent",
+        eyebrow: "Brunch, café, desserts, spécialités françaises et cuisine locale",
+        restaurant: longRestaurantName,
+        tagline: "Savourez pleinement chaque instant autour de la table",
+        address: longAddress,
+        headline: longHeadline,
+        body: longBody,
+        sealTop: "Offres exceptionnelles",
+        sealMain: "PROMOTIONLONGUE",
+        sealBottom: "Quantités réellement limitées ce soir",
+      },
+    };
+    const variants = [
+      { variant: "banner" as const, compactBanner: false },
+      { variant: "banner" as const, compactBanner: true },
+      { variant: "card" as const, compactBanner: false },
+    ];
 
-    const markup = renderToStaticMarkup(createElement(SponsoredRestaurantTemplateCard, {
-      variant: "banner",
-      restaurantName: longRestaurantName,
-      address: longAddress,
-      headline: longHeadline,
-      body: longBody,
-      discountLabel: "-30%",
-    }));
+    for (const variant of variants) {
+      const markup = renderToStaticMarkup(createElement(SponsoredRestaurantTemplateCard, {
+        ...variant,
+        creative,
+        restaurantName: longRestaurantName,
+        address: longAddress,
+        headline: longHeadline,
+        body: longBody,
+        ctaLabel: "Découvrir toutes les informations de cette offre",
+        discountLabel: "-30%",
+      }));
 
-    expect(markup).toContain(longRestaurantName);
-    expect(markup).toContain(longAddress);
-    expect(markup).toContain(longHeadline);
-    expect(markup).toContain(longBody);
-    expect(markup).not.toContain("line-clamp-2");
-    expect(markup).not.toContain("truncate");
-    expect(markup).not.toContain("aspect-[16/5]");
+      expect(markup).toContain(longRestaurantName);
+      expect(markup).toContain(longAddress);
+      expect(markup).toContain(longHeadline);
+      expect(markup).toContain(longBody);
+      expect(markup).not.toContain("line-clamp-2");
+      expect(markup).not.toContain("truncate");
+      expect(markup).not.toContain("aspect-[16/5]");
+    }
+
+    const templateCard = readSource("src/components/campaigns/SponsoredRestaurantTemplateCard.tsx");
+    const bannerBranch = templateCard
+      .split('if (variant === "banner")')[1]
+      .split('if (variant === "push")')[0];
+
+    expect(bannerBranch).toBeTruthy();
+    expect(bannerBranch).not.toContain("max-h-");
+    expect(bannerBranch).not.toContain("truncate");
+    expect(bannerBranch).not.toContain("line-clamp");
+    expect(bannerBranch).not.toContain('h-[268px]');
+    expect(bannerBranch).not.toContain("aspect-[16/5]");
+    expect(bannerBranch).toContain("data-sponsored-banner-seal");
+    expect(bannerBranch).not.toContain("absolute left-[45%]");
   });
 
   it("persists creative choices in channels and normalizes them server-side", () => {
