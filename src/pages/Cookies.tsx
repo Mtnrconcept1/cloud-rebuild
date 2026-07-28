@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useSeoMeta } from "@/hooks/useSeoMeta";
 import { TRACKER_INVENTORY } from "@/lib/cookieInventory";
 import { openConsentSettings } from "@/lib/consent";
+import { LEGAL_DOCUMENTS, LEGAL_EFFECTIVE_DATE_FR } from "@/lib/legalDocuments";
 
 const categoryLabels = {
   necessary: "Nécessaire",
@@ -25,7 +26,7 @@ export default function Cookies() {
     <div className="container max-w-6xl space-y-10 py-12 md:py-20">
       <header className="space-y-4">
         <h1 className="font-display text-4xl font-bold">Politique cookies et traceurs</h1>
-        <p className="text-muted-foreground">Version de consentement : 24 juillet 2026 — v2</p>
+        <p className="text-muted-foreground">Version {LEGAL_DOCUMENTS.cookies.version} — applicable dès le {LEGAL_EFFECTIVE_DATE_FR}</p>
         <p className="max-w-4xl text-foreground/80 leading-relaxed">
           TOK sépare désormais l’acceptation contractuelle des choix relatifs aux traceurs. Les technologies nécessaires restent actives pour la sécurité, la connexion, le panier, le paiement et les fonctions explicitement demandées. Analytics, marketing, personnalisation et géolocalisation sont désactivés par défaut jusqu’à votre choix.
         </p>

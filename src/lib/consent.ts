@@ -1,6 +1,6 @@
 import { getSupabase } from "@/integrations/supabase/client";
 
-export const CONSENT_VERSION = "2026-07-24-v2";
+export const CONSENT_VERSION = "cookies-2026-07-v3";
 export const CONSENT_STORAGE_KEY = `tok_consent_${CONSENT_VERSION}`;
 export const CONSENT_EVENT = "tok:consent-change";
 

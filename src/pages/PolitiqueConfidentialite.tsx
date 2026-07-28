@@ -1,11 +1,14 @@
 import { Link } from "react-router-dom";
+import { useSeoMeta } from "@/hooks/useSeoMeta";
+import { LEGAL_DOCUMENTS, LEGAL_EFFECTIVE_DATE_FR } from "@/lib/legalDocuments";
 
 export default function PolitiqueConfidentialite() {
+  useSeoMeta({ title: "Politique de confidentialité | TOK", description: "Données traitées par TOK, finalités, bases légales, sous-traitants, durées et droits des personnes.", path: "/politique-confidentialite" });
   return (
     <div className="container py-12 md:py-20 max-w-4xl space-y-12">
       <div className="space-y-4">
         <h1 className="font-display text-4xl font-bold">Politique de confidentialité</h1>
-        <p className="text-muted-foreground">Dernière mise à jour : 26 juin 2026</p>
+        <p className="text-muted-foreground">Version {LEGAL_DOCUMENTS.privacy.version} — applicable dès le {LEGAL_EFFECTIVE_DATE_FR}</p>
       </div>
 
       <div className="prose prose-foodhub max-w-none space-y-8">
@@ -27,6 +30,7 @@ export default function PolitiqueConfidentialite() {
             <li><span className="font-medium text-foreground">Compte et identité :</span> nom, prénom, email, téléphone, photo, préférences, rôles et informations de connexion.</li>
             <li><span className="font-medium text-foreground">Commandes et réservations :</span> paniers, articles, restaurants, horaires, adresses, instructions, statuts, remboursements, sinistres et historique.</li>
             <li><span className="font-medium text-foreground">Paiement :</span> montants, devise, statut, identifiants de transaction et informations nécessaires au traitement par Stripe. Les données bancaires complètes ne sont pas stockées par TOK.</li>
+            <li><span className="font-medium text-foreground">Onboarding restaurateur :</span> dossier commercial, confirmation email, justificatifs, statut d'approbation, progression des onglets et référence du moyen de paiement enregistré sans conservation du numéro complet.</li>
             <li><span className="font-medium text-foreground">Localisation :</span> adresse, zone de livraison, distance, coordonnées approximatives ou GPS lorsque vous l'autorisez.</li>
             <li><span className="font-medium text-foreground">Actualités et interactions :</span> vues, clics, likes, commentaires, reposts, partages, sauvegardes, signalements, posts masqués, « Plus comme ça », « Moins comme ça » et préférences déduites.</li>
             <li><span className="font-medium text-foreground">Recommandations :</span> scores d'intérêt, tags de cuisine, restaurants favoris, types de contenus, zones fréquentes, engagement historique et signaux utilisés pour ordonner le fil.</li>
@@ -70,6 +74,7 @@ export default function PolitiqueConfidentialite() {
           <p className="text-foreground/80 leading-relaxed">Nous partageons des données uniquement lorsque cela est nécessaire au service :</p>
           <ul className="list-disc pl-6 space-y-2 text-foreground/80">
             <li><span className="font-medium text-foreground">Restaurants partenaires :</span> informations nécessaires à la préparation, réservation, service, facturation et support.</li>
+            <li><span className="font-medium text-foreground">Sous-traitants techniques :</span> Supabase pour la base de données, l'authentification, le stockage et les fonctions serveur ; Stripe pour les moyens de paiement, abonnements et reversements ; Vercel pour l'hébergement web ; fournisseurs d'email et de notifications pour les messages demandés ; OpenAI uniquement pour les fonctions IA effectivement activées.</li>
             <li><span className="font-medium text-foreground">Partenaires TOK Connect approuvés :</span> données strictement couvertes par leurs scopes, les autorisations restaurant, les quotas et les finalités validées.</li>
             <li><span className="font-medium text-foreground">Coursiers :</span> informations nécessaires à la livraison et au suivi de mission.</li>
             <li><span className="font-medium text-foreground">Stripe :</span> traitement des paiements, abonnements, remboursements, Connect et facturation.</li>
