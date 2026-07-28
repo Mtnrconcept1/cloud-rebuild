@@ -43,6 +43,21 @@ describe("Mon pack admin kill switch", () => {
     expect(layout).toContain('{ to: "/dashboard/pack", label: "Mon pack", icon: Package, feature: "dashboard-pack" }');
   });
 
+  it("propagates the switch to already-open sessions through one app-level channel", () => {
+    const app = read("src/App.tsx");
+    const flags = read("src/lib/featureFlags.ts");
+    const sql = read(migrationPath);
+
+    expect(app).toContain("live: true");
+    expect(flags).toContain("live?: boolean");
+    expect(flags).toContain('.channel("feature-flags-runtime")');
+    expect(flags).toContain('{ event: "*", schema: "public", table: "feature_flags" }');
+    expect(flags).toContain("invalidateFeatureFlagsCache()");
+    expect(flags).toContain("removeChannel(channel)");
+    expect(sql).toContain("ALTER PUBLICATION supabase_realtime ADD TABLE public.feature_flags");
+    expect(sql).toContain("pg_catalog.pg_publication_tables");
+  });
+
   it("locks the shared flags and blocks request, confirmation and resume fail-closed", () => {
     const sql = read(migrationPath);
 
