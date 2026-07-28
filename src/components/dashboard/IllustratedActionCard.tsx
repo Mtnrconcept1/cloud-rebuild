@@ -25,7 +25,7 @@ function IllustratedActionCardContent({ title, description, icon: Icon, illustra
         <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-50 text-orange-600 ring-1 ring-orange-100 transition group-hover:bg-orange-600 group-hover:text-white group-hover:ring-orange-600 dark:bg-orange-500/10 dark:ring-orange-400/20">
           <Icon className="h-6 w-6" aria-hidden="true" />
         </span>
-        <span className="mt-4 block text-lg font-bold leading-tight text-foreground">{title}</span>
+        <span role="heading" aria-level={2} className="mt-4 block text-lg font-bold leading-tight text-foreground">{title}</span>
         <span className="mt-2 block text-sm leading-6 text-muted-foreground">{description}</span>
         {meta ? <span className="mt-auto pt-4">{meta}</span> : null}
       </span>
