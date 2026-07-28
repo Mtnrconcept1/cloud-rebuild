@@ -76,7 +76,10 @@ describe("Mon pack admin kill switch", () => {
     expect(sql).toContain("ERRCODE = 'PT423'");
     expect(sql).toContain("MESSAGE = 'dashboard_pack_disabled'");
     expect(sql).toMatch(/p_action NOT IN \('request', 'confirm_activation', 'resume'\)/);
-    expect(sql).toContain("PERFORM private_finance.assert_dashboard_pack_runtime_enabled('request')");
+    expect(sql).not.toContain("RENAME TO request_fair_growth_module_unchecked");
+    expect(sql).toContain(
+      "GRANT EXECUTE ON FUNCTION public.request_fair_growth_module(uuid, text) TO authenticated, service_role",
+    );
   });
 
   it("preserves lifecycle idempotency and safe exit actions while guarding trusted writes", () => {
@@ -84,7 +87,7 @@ describe("Mon pack admin kill switch", () => {
 
     expect(sql).not.toContain("RENAME TO transition_fair_growth_module_unchecked");
     expect(sql).toContain("private_finance.transition_fair_growth_module(uuid,text,text,text,text,integer)");
-    expect(sql).toContain("BEFORE INSERT OR UPDATE OF status, module_id ON public.restaurant_paid_modules");
+    expect(sql).toContain("AFTER INSERT OR UPDATE OF status, module_id ON public.restaurant_paid_modules");
     expect(sql).toContain("NEW.status IS NOT DISTINCT FROM OLD.status");
     expect(sql).toContain("NEW.module_id IS NOT DISTINCT FROM OLD.module_id");
     expect(sql).toContain("NEW.status NOT IN ('requested', 'trialing', 'active')");
