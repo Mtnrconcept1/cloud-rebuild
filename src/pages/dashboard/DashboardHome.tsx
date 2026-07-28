@@ -31,7 +31,9 @@ import {
   markPaymentAttemptRedirected,
   normalizePaymentAttemptId,
   rememberPaymentAttemptId,
+  resolvePaymentAttemptStatus,
 } from "@/lib/paymentAttempt";
+import { resolveRestaurantOnboardingAttemptView, type RestaurantOnboardingAttemptView } from "@/lib/restaurantOnboardingLifecycle";
 import { usePaymentAttemptBackCancellation } from "@/lib/usePaymentAttemptBackCancellation";
 import {
   findUncommittedVerificationDocumentPaths,
@@ -95,6 +97,7 @@ function LiveDashboard() {
     ? rawSignupApplication[0] || null
     : rawSignupApplication || null;
   const [onboardingCheckoutLoading, setOnboardingCheckoutLoading] = useState(false);
+  const [onboardingAttempt, setOnboardingAttempt] = useState<RestaurantOnboardingAttemptView | null>(null);
   const onboardingCheckoutLockRef = useRef(false);
   const cancellingOnboardingAttemptRef = useRef<string | null>(null);
   const signupRestaurantId = typeof signupApplication?.metadata?.restaurant_id === "string"
@@ -129,7 +132,35 @@ function LiveDashboard() {
 
     const scope = onboardingAttemptScope(onboardingRestaurantId);
     if (status === "success") {
-      clearPaymentAttemptId(scope, paymentAttemptId);
+      rememberPaymentAttemptId(scope, paymentAttemptId);
+      setOnboardingCheckoutLoading(true);
+      setOnboardingAttempt(resolveRestaurantOnboardingAttemptView({ paymentAttemptState: "session_bound", browserReturnReceived: true }));
+      void resolvePaymentAttemptStatus({
+        paymentAttemptId,
+        pollAttempts: 6,
+        pollDelayMs: 1_000,
+        getStatus: async () => {
+          const { data, error } = await invokeSupabaseFunction("payment-attempt-status", {
+            body: { payment_attempt_id: paymentAttemptId, browser_return_received: true },
+          });
+          if (error) throw error;
+          const record = data && typeof data === "object" ? data as Record<string, unknown> : {};
+          setOnboardingAttempt(resolveRestaurantOnboardingAttemptView({
+            paymentAttemptState: typeof record.state === "string" ? record.state : null,
+            stripeStatus: typeof record.stripe_status === "string" ? record.stripe_status : null,
+            setupIntentStatus: typeof record.setup_intent_status === "string" ? record.setup_intent_status : null,
+            webhookReceived: record.webhook_received === true,
+            browserReturnReceived: true,
+          }));
+          return data;
+        },
+      }).then((resolution) => {
+        if (resolution?.state === "finalized") {
+          clearPaymentAttemptId(scope, paymentAttemptId);
+          void queryClient.invalidateQueries({ queryKey: ["signup-application"] });
+          toast({ title: "Carte confirmée", description: "Le webhook Stripe a confirmé l’enregistrement de la carte." });
+        }
+      }).finally(() => setOnboardingCheckoutLoading(false));
       return;
     }
     if (status !== "cancelled" || cancellingOnboardingAttemptRef.current === paymentAttemptId) return;
@@ -151,7 +182,7 @@ function LiveDashboard() {
         variant: "destructive",
       });
     }).finally(() => setOnboardingCheckoutLoading(false));
-  }, [onboardingRestaurantId, toast]);
+  }, [onboardingRestaurantId, queryClient, toast]);
   const today = new Date().toISOString().split("T")[0];
   const todayStartDate = new Date();
   todayStartDate.setHours(0, 0, 0, 0);
@@ -579,6 +610,7 @@ function LiveDashboard() {
             application={signupApplication}
             onStartRestaurantOnboardingPayment={startRestaurantOnboardingPayment}
             onboardingPaymentLoading={onboardingCheckoutLoading}
+            onboardingAttempt={onboardingAttempt}
             onResubmitApplication={resubmitSignupApplication.mutateAsync}
             resubmittingApplication={resubmitSignupApplication.isPending}
             title="Dossier de vérification restaurateur"
@@ -629,6 +661,7 @@ function LiveDashboard() {
           application={signupApplication}
           onStartRestaurantOnboardingPayment={startRestaurantOnboardingPayment}
           onboardingPaymentLoading={onboardingCheckoutLoading}
+          onboardingAttempt={onboardingAttempt}
           onResubmitApplication={resubmitSignupApplication.mutateAsync}
           resubmittingApplication={resubmitSignupApplication.isPending}
           title="Dossier de vérification restaurateur"

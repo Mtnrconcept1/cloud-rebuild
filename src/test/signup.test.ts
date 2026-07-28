@@ -225,13 +225,14 @@ describe("pending restaurateur workspace and human-only publication", () => {
     expect(sql).toMatch(/restaurants_public_select[\s\S]*is_active IS TRUE[\s\S]*status[\s\S]*'active'/i);
   });
 
-  it("allows the owner to edit only the private restaurant profile while moderation remains locked", () => {
+  it("delegates pending workspace access to the authoritative onboarding route catalog", () => {
     const context = readFileSync(resolve(process.cwd(), "src/pages/dashboard/DashboardContext.tsx"), "utf8");
     const route = readFileSync(resolve(process.cwd(), "src/components/DashboardRoute.tsx"), "utf8");
     const restaurant = readFileSync(resolve(process.cwd(), "src/pages/dashboard/DashboardRestaurant.tsx"), "utf8");
 
     expect(context).not.toMatch(/dashboardAccessLocked[\s\S]*lockedFeatures\.add\("dashboard-restaurant"\)/);
-    expect(route).toContain('location.pathname === "/dashboard/restaurant"');
+    expect(route).toContain("canAccessRestaurantDashboardRoute");
+    expect(route).not.toContain('location.pathname === "/dashboard/restaurant"');
     expect(restaurant).toContain('status: "pending"');
     expect(restaurant).toContain("is_active: false");
     expect(restaurant).toContain("Fiche privée — validation en attente");
