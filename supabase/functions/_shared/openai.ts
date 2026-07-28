@@ -231,6 +231,49 @@ export function extractUsage(data: unknown): OpenAIResponseUsage {
   };
 }
 
+/**
+ * The envelope fields that explain an unusable response.
+ *
+ * A reasoning model bills its reasoning against max_output_tokens, so a long
+ * reasoning pass can exhaust the budget and return zero output text. That is
+ * indistinguishable from a provider outage unless status, incomplete_details and
+ * the token split are recorded — which is exactly what the incident analyser
+ * needs to name the fix instead of listing hypotheses. No prompt or completion
+ * content is included.
+ */
+export function describeResponseEnvelope(data: unknown): Record<string, unknown> {
+  const record = (data && typeof data === "object" ? data : {}) as Record<string, unknown>;
+  const usage = (record.usage && typeof record.usage === "object"
+    ? record.usage
+    : {}) as Record<string, unknown>;
+  const outputDetails = (usage.output_tokens_details && typeof usage.output_tokens_details === "object"
+    ? usage.output_tokens_details
+    : {}) as Record<string, unknown>;
+  const incomplete = (record.incomplete_details && typeof record.incomplete_details === "object"
+    ? record.incomplete_details
+    : {}) as Record<string, unknown>;
+  const outputItems = Array.isArray(record.output) ? record.output : [];
+
+  return {
+    response_status: typeof record.status === "string" ? record.status : null,
+    incomplete_reason: typeof incomplete.reason === "string" ? incomplete.reason : null,
+    model: typeof record.model === "string" ? record.model : null,
+    max_output_tokens: Number(record.max_output_tokens) || null,
+    input_tokens: Number(usage.input_tokens) || 0,
+    output_tokens: Number(usage.output_tokens) || 0,
+    reasoning_tokens: Number(outputDetails.reasoning_tokens) || 0,
+    output_item_types: outputItems
+      .slice(0, 10)
+      .map((item) => (item && typeof item === "object" ? String((item as Record<string, unknown>).type ?? "") : ""))
+      .filter(Boolean),
+    refusal: outputItems.some((item) => {
+      const content = (item as Record<string, unknown>)?.content;
+      return Array.isArray(content)
+        && content.some((entry) => (entry as Record<string, unknown>)?.type === "refusal");
+    }),
+  };
+}
+
 export function parseStructuredOutput<T>(data: unknown): T {
   const parsedOutput = findParsedStructuredOutput(data);
   if (parsedOutput !== null) {
@@ -239,14 +282,22 @@ export function parseStructuredOutput<T>(data: unknown): T {
 
   const text = extractOutputText(data);
   if (!text) {
-    throw new HttpError(502, "ai_empty_response");
+    throw new HttpError(502, "ai_empty_response", describeResponseEnvelope(data));
   }
 
   const candidate = extractJsonCandidate(text);
   try {
     return JSON.parse(candidate) as T;
   } catch {
-    throw new HttpError(502, "ai_invalid_response");
+    // The model answered but the text is not the requested JSON. Recording the
+    // shape — never the content — separates a truncated answer from a malformed
+    // one without leaking the completion.
+    throw new HttpError(502, "ai_invalid_response", {
+      ...describeResponseEnvelope(data),
+      text_length: text.length,
+      candidate_length: candidate.length,
+      candidate_starts_with: candidate.slice(0, 1),
+    });
   }
 }
 

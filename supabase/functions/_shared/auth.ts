@@ -4,12 +4,27 @@ export type EdgeSupabaseClient = ReturnType<typeof createClient<any>>;
 
 export class HttpError extends Error {
   status: number;
+  /**
+   * Structured, non-sensitive facts about why this error was raised.
+   *
+   * The incident analyser only ever sees what reaches the audit log, so an error
+   * that knows why it fired must carry that reason with it. Callers forward this
+   * into writeAuditLog metadata; never put credentials or user content here.
+   */
+  details?: Record<string, unknown>;
 
-  constructor(status: number, message: string) {
+  constructor(status: number, message: string, details?: Record<string, unknown>) {
     super(message);
     this.name = "HttpError";
     this.status = status;
+    if (details) this.details = details;
   }
+}
+
+/** Diagnostics carried by an HttpError, safe to merge into an audit log entry. */
+export function errorDiagnostics(error: unknown): Record<string, unknown> {
+  if (error instanceof HttpError && error.details) return { diagnostics: error.details };
+  return {};
 }
 
 export type RequestActor = {

@@ -1,6 +1,7 @@
 import {
   HttpError,
   authenticateRequest,
+  errorDiagnostics,
   jsonResponse,
   requireRestaurantAccess,
   writeAuditLog,
@@ -1321,7 +1322,9 @@ Deno.serve(async (req) => {
         targetEntityType: "restaurants",
         targetEntityId: restaurantId,
         errorMessage: message,
-        metadata: { rid: log.rid },
+        // Carries why the error fired, so the incident analyser reads a fact
+        // instead of guessing between provider, budget and parsing.
+        metadata: { rid: log.rid, ...errorDiagnostics(error) },
       }).catch(() => {});
     }
     return jsonResponse({ error: message, rid: log.rid }, status, cors);

@@ -61,7 +61,8 @@
     "mobile:ios:readiness": "node ./scripts/mobile-verify.mjs ios-readiness",
     "mobile:playstore:check": "pnpm run mobile:android:readiness && pnpm run build",
     "mobile:appstore:check": "pnpm run mobile:ios:readiness && pnpm run build",
-    "mobile:verify": "node ./scripts/mobile-verify.mjs verify"
+    "mobile:verify": "node ./scripts/mobile-verify.mjs verify",
+    "generate:error-code-map": "node ./scripts/generate-error-code-map.mjs"
   },
   "dependencies": {
     "@aparajita/capacitor-secure-storage": "^8.0.0",
