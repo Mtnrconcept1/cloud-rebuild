@@ -3,6 +3,7 @@ import { getSupabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import DailyDishAiPanel from "@/components/dashboard/DailyDishAiPanel";
 import AiGenerationProgressDialog from "@/components/ui/ai-generation-progress-dialog";
 import OperationProgressDialog from "@/components/ui/operation-progress-dialog";
@@ -769,6 +770,7 @@ export default function DashboardMenu() {
           icon={BookOpen}
           tone="emerald"
           visualLabel="Catalogue"
+          illustration={DASHBOARD_ILLUSTRATIONS.menu}
           stats={[
             { label: "Plats", value: items?.length || 0, icon: BookOpen },
             { label: "Disponibles", value: items?.filter((item) => item.is_available).length || 0, icon: Plus },
