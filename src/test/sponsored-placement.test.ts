@@ -313,7 +313,7 @@ describe("prioritizeSponsoredCards", () => {
     expect(analytics).toContain("campaignSupportsPlacement(campaign, placement)");
   });
 
-  it("keeps home and flash sales campaign banners vertically compact", () => {
+  it("keeps home and flash sales campaign banners compact without clipping their copy", () => {
     const banner = readSource("src/components/CampaignBanner.tsx");
     const templateCard = readSource("src/components/campaigns/SponsoredRestaurantTemplateCard.tsx");
     const flashSalesPage = readSource("src/pages/VentesFlash.tsx");
@@ -321,11 +321,13 @@ describe("prioritizeSponsoredCards", () => {
     expect(flashSalesPage).toContain('<CampaignBanner page="flash_sales" maxBanners={1} />');
     expect(banner).toContain('compactBanner={page === "home" || page === "flash_sales"}');
     expect(templateCard).toContain("compactBanner");
-    expect(templateCard).toContain("min-h-[268px] grid-rows-[auto_minmax(116px,1fr)]");
-    expect(templateCard).toContain("lg:h-[268px]");
-    expect(templateCard).toContain("min-h-[116px] bg-white sm:min-h-[136px]");
-    expect(templateCard).toContain("lg:min-h-0");
-    expect(templateCard).toContain('compactBanner ? "object-contain" : "object-cover"');
+    expect(templateCard).toContain("min-h-[268px] sm:min-h-[286px] md:min-h-[300px]");
+    expect(templateCard).toContain("min-h-[160px] bg-white sm:min-h-[190px] md:min-h-[260px]");
+    expect(templateCard).toContain("fullyVisible");
+    expect(templateCard).toContain("object-contain");
+    expect(templateCard).not.toContain("lg:h-[268px]");
+    expect(templateCard).not.toContain("aspect-[16/5]");
+    expect(templateCard).not.toContain("lg:min-h-0");
   });
 
   it("gives tablets the two-column banner layout instead of the tall mobile stack", () => {
@@ -338,9 +340,14 @@ describe("prioritizeSponsoredCards", () => {
     expect(templateCard).toContain("md:hidden");
     expect(templateCard).not.toContain("lg:grid-cols-[minmax(0,0.45fr)_minmax(0,0.55fr)]");
 
-    // The non-compact banner no longer eats a whole mobile viewport.
-    expect(templateCard).toContain("min-h-[400px] sm:min-h-[440px] md:min-h-[300px]");
+    // The non-compact banner keeps a useful visual floor while its content
+    // remains free to grow beyond it.
+    expect(templateCard).toContain("min-h-[400px] sm:min-h-[440px] md:min-h-[360px] lg:min-h-[420px]");
     expect(templateCard).not.toContain("min-h-[520px]");
+    expect(templateCard).not.toContain("grid h-full");
+    expect(templateCard).toContain("min-w-0 break-words [overflow-wrap:anywhere]");
+    expect(templateCard).toContain("data-sponsored-banner-seal");
+    expect(templateCard).not.toContain("absolute left-[45%]");
 
     // Banner surfaces follow the dark theme instead of staying white.
     expect(templateCard).toContain("dark:bg-slate-900");

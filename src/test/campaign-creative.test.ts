@@ -153,14 +153,107 @@ describe("campaign creative studio", () => {
     expect(discountMarkup).toContain("-30%");
   });
 
-  it("keeps the sponsored restaurant hero title prominent on desktop", () => {
+  it("keeps the sponsored restaurant hero title prominent without oversized overflow", () => {
     const templateCard = readSource("src/components/campaigns/SponsoredRestaurantTemplateCard.tsx");
 
-    expect(templateCard).toContain("break-words pb-3 leading-[1.14]");
-    // Desktop sizes stay untouched; the md step only stops the 3rem title from
-    // overflowing the narrow half-column introduced on tablets.
-    expect(templateCard).toContain("text-4xl sm:text-5xl md:text-[2rem] lg:text-[3rem] xl:text-[3.8rem] 2xl:text-[4.8rem]");
+    expect(templateCard).toContain("[overflow-wrap:anywhere] [text-wrap:balance]");
+    expect(templateCard).toContain("text-3xl sm:text-4xl md:text-[2rem] lg:text-[2.75rem] xl:text-[3.25rem] 2xl:text-[3.75rem]");
+    expect(templateCard).not.toContain("2xl:text-[4.8rem]");
     expect(templateCard).not.toContain("mt-1 line-clamp-2 overflow-visible pb-2 leading-[1.04]");
+  });
+
+  it("lets every sponsored placement grow with max-length customized copy", () => {
+    const maxCopy = {
+      badge: "B".repeat(90),
+      discount: "D".repeat(90),
+      eyebrow: "E".repeat(90),
+      restaurant: "R".repeat(90),
+      tagline: "T".repeat(90),
+      address: "A".repeat(90),
+      headline: "H".repeat(90),
+      body: "O".repeat(90),
+      sealTop: "S".repeat(90),
+      sealMain: "M".repeat(90),
+      sealBottom: "L".repeat(90),
+      cta: "C".repeat(90),
+    };
+    const variants = [
+      { variant: "banner" as const, compactBanner: false },
+      { variant: "banner" as const, compactBanner: true },
+      { variant: "card" as const, compactBanner: false },
+    ];
+
+    for (const variant of variants) {
+      const markup = renderToStaticMarkup(createElement(SponsoredRestaurantTemplateCard, {
+        ...variant,
+        creative: { copy: maxCopy },
+        restaurantName: "Fallback restaurant",
+        address: "Fallback address",
+        headline: "Fallback headline",
+        body: "Fallback body",
+        ctaLabel: "Fallback CTA",
+        discountLabel: "-30%",
+      }));
+      const visibleFields = variant.variant === "banner"
+        ? [
+            maxCopy.badge,
+            maxCopy.discount,
+            maxCopy.eyebrow,
+            maxCopy.restaurant,
+            maxCopy.tagline,
+            maxCopy.address,
+            maxCopy.headline,
+            maxCopy.body,
+            maxCopy.sealTop,
+            maxCopy.sealMain,
+            maxCopy.sealBottom,
+          ]
+        : [
+            maxCopy.badge,
+            maxCopy.discount,
+            maxCopy.restaurant,
+            maxCopy.address,
+            maxCopy.headline,
+            maxCopy.body,
+            maxCopy.cta,
+          ];
+
+      for (const visibleField of visibleFields) {
+        expect(visibleField).toHaveLength(90);
+        expect(markup).toContain(visibleField);
+      }
+      expect(markup).not.toContain("line-clamp-2");
+      expect(markup).not.toContain("truncate");
+      if (variant.variant === "banner") {
+        expect(markup).not.toContain("aspect-[16/5]");
+        expect(markup).toContain("data-sponsored-banner-seal");
+      } else {
+        expect(markup).toContain("data-sponsored-card-badges");
+      }
+    }
+
+    const templateCard = readSource("src/components/campaigns/SponsoredRestaurantTemplateCard.tsx");
+    const bannerBranch = templateCard
+      .split('if (variant === "banner")')[1]
+      .split('if (variant === "push")')[0];
+
+    expect(bannerBranch).toBeTruthy();
+    expect(bannerBranch).not.toContain("max-h-");
+    expect(bannerBranch).not.toContain("truncate");
+    expect(bannerBranch).not.toContain("line-clamp");
+    expect(bannerBranch).not.toMatch(/(?:^|[\s"'`])(?:[a-z0-9_-]+:)*h-\[\d+px\](?=$|[\s"'`])/);
+    expect(bannerBranch).not.toContain("aspect-[16/5]");
+    expect(bannerBranch).toContain("data-sponsored-banner-seal");
+    const sealMarkerIndex = bannerBranch.indexOf("data-sponsored-banner-seal");
+    const sealOpeningTag = bannerBranch.slice(bannerBranch.lastIndexOf("<div", sealMarkerIndex), sealMarkerIndex);
+    expect(sealOpeningTag).not.toMatch(/\b(?:absolute|fixed|sticky)\b/);
+
+    const cardBadgeMarkerIndex = templateCard.indexOf("data-sponsored-card-badges");
+    const cardBadgeOpeningTag = templateCard.slice(templateCard.lastIndexOf("<div", cardBadgeMarkerIndex), cardBadgeMarkerIndex);
+    expect(cardBadgeMarkerIndex).toBeGreaterThan(-1);
+    expect(cardBadgeOpeningTag).not.toMatch(/\b(?:absolute|fixed|sticky)\b/);
+    expect(templateCard).not.toContain("absolute left-3 right-14 top-3");
+    expect(templateCard).not.toContain("absolute bottom-3 left-3 right-3");
   });
 
   it("persists creative choices in channels and normalizes them server-side", () => {
