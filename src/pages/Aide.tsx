@@ -1036,7 +1036,7 @@ export default function Aide() {
       </div>
 
       <main className="container -mt-7 max-w-6xl space-y-10 px-4 md:px-6">
-        <section className="rounded-2xl border bg-card p-5 shadow-s        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {visibleCategories.map((category) => (
             <button
               key={category.id}
