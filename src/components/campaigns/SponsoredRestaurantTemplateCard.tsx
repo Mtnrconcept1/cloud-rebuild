@@ -189,7 +189,7 @@ export function SponsoredRestaurantTemplateCard({
         <div className="absolute right-0 top-0 hidden h-full w-[58%] rounded-l-[150px] bg-gradient-to-br from-orange-200/80 via-orange-400/90 to-[#ff5a00] md:block" />
         <div className="absolute right-[21%] top-1/2 hidden aspect-square h-[138%] -translate-y-1/2 rounded-full border-[20px] border-orange-500/90 bg-transparent md:block" />
         <div className="absolute right-8 top-7 hidden h-[calc(100%-3.5rem)] w-[48%] rounded-[42px] border-[6px] border-white/95 bg-white/75 shadow-[0_24px_60px_rgba(15,23,42,0.22)] md:block dark:border-slate-900/95 dark:bg-slate-900/70" />
-        <div className="absolute bottom-0 right-0 h-1/2 w-full bg-gradient-to-t from-orange-500/18 to-transparent md:hidden" />
+        <div className="absolute bottom-0 right-0 h-1/2 w-full bg-gradient-to-t from-orange-500/[.18] to-transparent md:hidden" />
 
         <div
           className={cn(
@@ -299,7 +299,7 @@ export function SponsoredRestaurantTemplateCard({
 
             <div
               className={cn(
-                "rounded-[26px] border border-orange-100 bg-white/86 shadow-[0_16px_42px_rgba(15,23,42,0.08)] backdrop-blur dark:border-white/10 dark:bg-white/8",
+                "rounded-[26px] border border-orange-100 bg-white/[.86] shadow-[0_16px_42px_rgba(15,23,42,0.08)] backdrop-blur dark:border-white/10 dark:bg-white/[.08]",
                 compactBanner ? "mt-3 p-3 sm:p-3.5 lg:mt-3 lg:p-3.5" : "mt-5 p-4 sm:p-5 lg:mt-4 lg:p-4 xl:mt-6 xl:p-5",
               )}
             >
@@ -328,7 +328,7 @@ export function SponsoredRestaurantTemplateCard({
           >
             <div
               className={cn(
-                "relative w-full overflow-hidden rounded-[30px] border-[5px] border-white shadow-[0_24px_56px_rgba(15,23,42,0.24)] ring-1 ring-white/35 md:h-full md:rounded-[36px] lg:h-full lg:rounded-[42px] dark:border-slate-900",
+                "relative w-full overflow-hidden rounded-[30px] border-[5px] border-white shadow-[0_24px_56px_rgba(15,23,42,0.24)] ring-1 ring-white/[.35] md:h-full md:rounded-[36px] lg:h-full lg:rounded-[42px] dark:border-slate-900",
                 compactBanner ? "min-h-[160px] bg-white sm:min-h-[190px] md:min-h-[260px] dark:bg-slate-900" : "min-h-[260px] bg-white sm:min-h-[300px] md:min-h-[360px] dark:bg-slate-900",
               )}
             >
@@ -340,7 +340,7 @@ export function SponsoredRestaurantTemplateCard({
                 loading="lazy"
                 decoding="async"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/18 via-transparent to-slate-950/10" />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/[.18] via-transparent to-slate-950/10" />
             </div>
           </div>
         </div>

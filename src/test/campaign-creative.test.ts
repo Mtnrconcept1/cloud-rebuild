@@ -241,7 +241,7 @@ describe("campaign creative studio", () => {
     expect(bannerBranch).not.toContain("max-h-");
     expect(bannerBranch).not.toContain("truncate");
     expect(bannerBranch).not.toContain("line-clamp");
-    expect(bannerBranch).not.toMatch(/(?:^|[\s"'`])(?:[a-z]+:)*h-\[\d+px\](?=$|[\s"'`])/);
+    expect(bannerBranch).not.toMatch(/(?:^|[\s"'`])(?:[a-z0-9_-]+:)*h-\[\d+px\](?=$|[\s"'`])/);
     expect(bannerBranch).not.toContain("aspect-[16/5]");
     expect(bannerBranch).toContain("data-sponsored-banner-seal");
     const sealMarkerIndex = bannerBranch.indexOf("data-sponsored-banner-seal");
