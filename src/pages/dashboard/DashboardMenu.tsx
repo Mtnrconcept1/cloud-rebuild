@@ -30,7 +30,7 @@ import {
   setActiveAiCreationContext,
   startTokImageCreationJob,
   useAiCreationRecovery,
-} from "@/lib/ai/aiCréationJobs";
+} from "@/lib/ai/aiCreationJobs";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import {
   readCommercialDemoToolState,

@@ -51,7 +51,7 @@ import {
   setActiveAiCreationContext,
   startTokImageCreationJob,
   useAiCreationRecovery,
-} from "@/lib/ai/aiCréationJobs";
+} from "@/lib/ai/aiCreationJobs";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import {
@@ -173,7 +173,7 @@ const MAX_ADVISOR_HISTORY_ENTRIES = 12;
 const SUPABASE_VISIBLE_URL_PATTERN = /https?:\/\/[^\s)"']*supabase\.co[^\s)"']*/gi;
 const SUPABASE_HOST_PATTERN = /\b[a-z0-9-]+\.supabase\.co\b/gi;
 const COMMERCIAL_DEMO_SIGNED_IMAGE_PATTERN = /!\[[^\]]*\]\(https:\/\/[^\s)"']+\.supabase\.co\/storage\/v1\/object\/sign\/commercial-demo-ai\/[^\s)"']+\)/gi;
-const COMMERCIAL_DEMO_STORED_IMAGE_PLACEHOLDER = "_Visuel disponible dans Photos > Créations IA Démo._";
+const COMMERCIAL_DEMO_STORED_IMAGE_PLACEHOLDER = "_Visuel disponible dans Photos > Creations IA Démo._";
 const DEMO_IMAGE_DATA_URL_PATTERN = /^data:image\/(?:png|jpeg|webp);base64,[a-z0-9+/=]+$/i;
 const MAX_DEMO_IMAGE_DATA_URL_LENGTH = 16 * 1024 * 1024;
 
@@ -439,7 +439,7 @@ export default function DashboardAdvisor() {
     : null;
   const restaurantId = restaurant?.id;
   // A visual stored while the tab was away is re-attached instead of being lost.
-  useAiCréationRecovery(restaurantId);
+  useAiCreationRecovery(restaurantId);
   const advisorHistoryStorageScope = demoAiRuntime
     ? `commercial-demo:${demoAiRuntime.sessionId}:${demoAiRuntime.surface}:${restaurantId || "none"}`
     : `restaurant:${restaurantId || "none"}`;
@@ -487,8 +487,8 @@ export default function DashboardAdvisor() {
 
   useEffect(() => {
     if (isCommercialDemo) return;
-    setActiveAiCréationContext("dashboard-advisor:image-tool");
-    return () => setActiveAiCréationContext(null);
+    setActiveAiCreationContext("dashboard-advisor:image-tool");
+    return () => setActiveAiCreationContext(null);
   }, [isCommercialDemo]);
 
   useEffect(() => {
@@ -755,8 +755,8 @@ export default function DashboardAdvisor() {
           checklist: ["OpenAI réel", "Crédits Démo illimités", "Coût suivi en interne", "Aucun effet de production"],
         };
       } else if (tool.mode === "image") {
-        void requestAiCréationNotificationPermission();
-        const { promise } = startTokImageCréationJob({
+        void requestAiCreationNotificationPermission();
+        const { promise } = startTokImageCreationJob({
           restaurantId: restaurant.id,
           tool: "advisor_photo",
           title: tool.label,

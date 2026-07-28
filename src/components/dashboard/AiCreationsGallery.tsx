@@ -13,7 +13,7 @@ import {
   subscribeAiCreationRecords,
   useAiCreationRecovery,
   type AiCreationRecord,
-} from "@/lib/ai/aiCréationJobs";
+} from "@/lib/ai/aiCreationJobs";
 import {
   buildRestaurantMediaAiMetadata,
   shouldApplyTokWatermarkToRestaurantMedia,
@@ -65,7 +65,7 @@ function getStatusBadge(record: AiCreationRecord) {
 
 export default function AiCreationsGallery({ restaurantId, userId, currentPhotoCount, watermarkSubscription, onGalleryUpdated }: Props) {
   const { toast } = useToast();
-  const [records, setRecords] = useState<AiCreationRecord[]>(() => getAiCréationRecords());
+  const [records, setRecords] = useState<AiCreationRecord[]>(() => getAiCreationRecords());
   const [addingId, setAddingId] = useState<string | null>(null);
   const [previewRecord, setPreviewRecord] = useState<AiCreationRecord | null>(null);
 

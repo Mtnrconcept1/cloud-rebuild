@@ -19,7 +19,7 @@ describe("security abuse monitoring 10k", () => {
 
   it("monitors mass account creation, sensitive failures, card testing and uploads", () => {
     for (const expected of [
-      "massAccountCréation",
+      "massAccountCreation",
       "sensitiveEndpointFailures",
       "cardTesting",
       "massUploads",

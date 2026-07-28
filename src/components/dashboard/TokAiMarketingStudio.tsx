@@ -24,7 +24,7 @@ import {
   setActiveAiCreationContext,
   startTokImageCreationJob,
   useAiCreationRecovery,
-} from "@/lib/ai/aiCréationJobs";
+} from "@/lib/ai/aiCreationJobs";
 import {
   getTokImageOutputPricing,
   type TokImageOutputResolution,
@@ -1169,7 +1169,7 @@ function buildCommercialDemoBusinessContext(snapshot: CommercialDemoSnapshot): M
 export default function TokAiMarketingStudio({ restaurantId }: Props) {
   const { toast } = useToast();
   // A visual stored while the tab was away is re-attached instead of being lost.
-  useAiCréationRecovery(restaurantId);
+  useAiCreationRecovery(restaurantId);
   const commercialDemoFrame = useCommercialDemoFrame();
   const commercialDemoSessionId = commercialDemoFrame?.config.sessionId;
   const commercialDemoSurface = commercialDemoFrame?.surface;
@@ -1253,8 +1253,8 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
 
   useEffect(() => {
     if (isCommercialDemo) return;
-    setActiveAiCréationContext("dashboard-photos:marketing");
-    return () => setActiveAiCréationContext(null);
+    setActiveAiCreationContext("dashboard-photos:marketing");
+    return () => setActiveAiCreationContext(null);
   }, [isCommercialDemo]);
 
   useEffect(() => {
@@ -1685,7 +1685,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
     setMarketingImageResult(null);
 
     try {
-      if (!isCommercialDemo) void requestAiCréationNotificationPermission();
+      if (!isCommercialDemo) void requestAiCreationNotificationPermission();
       const [latestResources, latestBusinessContext] = isCommercialDemo
         ? [resources, activeBusinessContext || null] as const
         : await Promise.all([
@@ -1753,7 +1753,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
       };
       const imageResult = demoRuntime
         ? await generateCommercialDemoVisual(demoRuntime, generationRequest)
-        : await startTokImageCréationJob({
+        : await startTokImageCreationJob({
           restaurantId,
           tool: "marketing_studio",
           title: `${activeToolConfig.title} ${selectedFormat.label}`,
@@ -1851,7 +1851,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
               <CardHeader className="p-4 sm:p-5">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
-                    <CardTitle className="text-base">Créations Démo persistées</CardTitle>
+                    <CardTitle className="text-base">Creations Démo persistées</CardTitle>
                     <CardDescription>
                       Retrouvez les visuels de cette session après un rechargement, sans Storage ni crédit de production.
                     </CardDescription>

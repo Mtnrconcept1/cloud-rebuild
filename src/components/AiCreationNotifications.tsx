@@ -5,7 +5,7 @@ import {
   AI_CREATION_FAILED_EVENT,
   getActiveAiCreationContext,
   type AiCreationRecord,
-} from "@/lib/ai/aiCréationJobs";
+} from "@/lib/ai/aiCreationJobs";
 
 function shouldNotifyOutOfContext(record: AiCreationRecord) {
   if (typeof window === "undefined" || typeof document === "undefined") return false;

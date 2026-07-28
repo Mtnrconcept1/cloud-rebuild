@@ -71,6 +71,6 @@ describe("commercial demo menu mutations", () => {
     expect(generate).toContain("generateCommercialDemoVisual");
     expect(generate).toContain('surface: "restaurant"');
     expect(generate.indexOf("generateCommercialDemoVisual"))
-      .toBeLessThan(generate.indexOf("startTokImageCréationJob"));
+      .toBeLessThan(generate.indexOf("startTokImageCreationJob"));
   });
 });

@@ -55,7 +55,7 @@ describe("TOK Connect legal and help content", () => {
     expect(restaurantTerms).toContain("const updatedAt = LEGAL_EFFECTIVE_DATE_FR;");
     expect(restaurantTerms).toContain("26. TOK Connect, partenaires API et MCP");
     expect(restaurantTerms).toContain("autoriser ou refuser un partenaire par restaurant");
-    expect(restaurantTerms).toContain("Les reservations creees par TOK Connect engagent le restaurant");
+    expect(restaurantTerms).toContain("Les réservations créées par TOK Connect engagent le restaurant");
     expect(restaurantTerms).toContain("27. Contact");
   });
 

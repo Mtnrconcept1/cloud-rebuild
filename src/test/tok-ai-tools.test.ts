@@ -528,7 +528,7 @@ describe("TOK AI tools foundation", () => {
 
     expect(advisor).toContain("streamRestaurantAdvisor");
     expect(advisor).toContain("runRestaurantAgent");
-    expect(advisor).toContain("startTokImageCréationJob");
+    expect(advisor).toContain("startTokImageCreationJob");
     expect(advisor).toContain('tool: "advisor_photo"');
     expect(advisor).toContain("Optimiser un plat");
     expect(advisor).toContain("Créer une campagne");

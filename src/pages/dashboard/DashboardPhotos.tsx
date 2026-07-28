@@ -2,7 +2,7 @@ import { type CSSProperties, FormEvent, useCallback, useEffect, useRef, useState
 import DashboardLayout from "@/components/DashboardLayout";
 import IllustratedActionCard from "@/components/dashboard/IllustratedActionCard";
 import { DASHBOARD_ILLUSTRATIONS, type DashboardIllustration } from "@/lib/dashboardIllustrations";
-import AiCreationsGallery from "@/components/dashboard/AiCréationsGallery";
+import AiCreationsGallery from "@/components/dashboard/AiCreationsGallery";
 import TokAiMarketingStudio from "@/components/dashboard/TokAiMarketingStudio";
 import TokAiPhotoStudio from "@/components/dashboard/TokAiPhotoStudio";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -318,8 +318,8 @@ function CommercialDemoVisualGallery({
   onAddToGallery: (creation: CommercialDemoVisualHistoryItem) => void;
 }) {
   const [creations, setCreations] = useState<CommercialDemoVisualHistoryItem[]>([]);
-  const [loadingCréations, setLoadingCréations] = useState(true);
-  const [creationError, setCréationError] = useState<string | null>(null);
+  const [loadingCreations, setLoadingCreations] = useState(true);
+  const [creationError, setCreationError] = useState<string | null>(null);
 
   const loadCreations = useCallback(async () => {
     setLoadingCreations(true);
@@ -343,7 +343,7 @@ function CommercialDemoVisualGallery({
     <Card className="rounded-3xl">
       <CardHeader className="flex-row items-start justify-between gap-4">
         <div>
-          <CardTitle>Créations IA Démo</CardTitle>
+          <CardTitle>Creations IA Démo</CardTitle>
           <p className="mt-1 text-sm text-muted-foreground">Historique OpenAI persistant de cette session · crédits Démo illimités · aucun stockage de production.</p>
         </div>
         <Button type="button" variant="outline" onClick={() => void loadCreations()} disabled={loadingCreations}>Actualiser</Button>

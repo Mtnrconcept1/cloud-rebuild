@@ -176,7 +176,7 @@ describe("commercial demo active tools and reservations", () => {
 
     expect(photoGeneration).toContain('commercialDemoFrame?.surface === "restaurant"');
     expect(photoGeneration.indexOf('commercialDemoFrame?.surface === "restaurant"'))
-      .toBeLessThan(photoGeneration.indexOf("startTokImageCréationJob"));
+      .toBeLessThan(photoGeneration.indexOf("startTokImageCreationJob"));
     expect(photoAnalysis).toContain('commercialDemoFrame?.surface === "restaurant"');
     expect(photoAnalysis).toContain("askCommercialDemoAi");
     expect(photoAnalysis).toContain("referenceImages: images");

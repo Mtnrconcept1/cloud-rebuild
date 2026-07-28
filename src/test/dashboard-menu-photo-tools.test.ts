@@ -49,9 +49,9 @@ describe("dashboard menu photo tools", () => {
   });
 
   it("generates a menu visual from the modal photo studio and applies it to the dish form", () => {
-    expect(dashboardMenu).toContain("startTokImageCréationJob");
+    expect(dashboardMenu).toContain("startTokImageCreationJob");
     expect(dashboardMenu).toContain('tool: "menu_photo"');
-    expect(dashboardMenu).toContain("requestAiCréationNotificationPermission");
+    expect(dashboardMenu).toContain("requestAiCreationNotificationPermission");
     expect(dashboardMenu).toContain('assetType: "menu_visual"');
     expect(dashboardMenu).toContain('format: "square"');
     expect(dashboardMenu).toContain("sourceImageUrl: form.image_url.trim() || null");

@@ -66,7 +66,7 @@ describe("Fair Growth paid module activation", () => {
     expect(faq).toContain("En pilote, après validation technique");
     expect(faq).toContain("enregistre uniquement une demande");
     expect(faq).toContain("Le rattachement des sites et tout supplément sont validés avec TOK avant facturation");
-    expect(terms).toContain("offres pilote soumises a validation technique et contractuelle");
+    expect(terms).toContain("offres pilote soumises à validation technique et contractuelle");
     expect(terms).toContain("n'autorise aucun debit");
     expect(terms).toContain("apres activation facturee");
   });
