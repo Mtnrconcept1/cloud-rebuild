@@ -68,7 +68,8 @@ describe("AdminMonPackControl", () => {
     const reason = within(dialog).getByLabelText(/motif du changement/i);
 
     expect(confirm).toBeDisabled();
-    expect(reason).toBeRequired();
+    expect(reason).toHaveAttribute("required");
+    expect(reason).toHaveAttribute("aria-required", "true");
 
     fireEvent.change(reason, {
       target: { value: "Maintenance Fair Growth planifiée" },
@@ -141,10 +142,12 @@ describe("AdminMonPackControl", () => {
         "Fin de maintenance",
       );
     });
-    expect(toastMock).toHaveBeenCalledWith(expect.objectContaining({
-      title: "Mon pack réactivé",
-      description: expect.stringContaining("Les dépendances globales du dashboard restent appliquées"),
-    }));
+    await waitFor(() => {
+      expect(toastMock).toHaveBeenCalledWith(expect.objectContaining({
+        title: "Mon pack réactivé",
+        description: expect.stringContaining("Les dépendances globales du dashboard restent appliquées"),
+      }));
+    });
   });
 
   it("fails closed while the authoritative server state is loading or unavailable", () => {
