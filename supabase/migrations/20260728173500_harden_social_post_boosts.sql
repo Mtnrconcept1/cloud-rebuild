@@ -1,6 +1,5 @@
--- Guarantee that every paid Actualites boost is renderable, actionable and has
--- a non-empty audience. This database-level guard covers all current and future
--- callers, including Edge Functions, dashboards and administrative tools.
+-- Guarantee that every paid Actualites boost is actionable and has a non-empty
+-- audience. This database-level guard covers every current and future caller.
 
 CREATE OR REPLACE FUNCTION public.ensure_social_post_boost_integrity()
 RETURNS trigger
@@ -11,13 +10,11 @@ AS $function$
 DECLARE
   v_campaign public.ad_campaigns%ROWTYPE;
   v_post public.social_posts%ROWTYPE;
-  v_restaurant public.restaurants%ROWTYPE;
   v_original_targeting jsonb;
   v_effective_targeting jsonb;
   v_fallback_targeting jsonb;
   v_estimated_audience integer := 0;
   v_fallback_audience integer := 0;
-  v_image_url text;
   v_cta_type text;
   v_journey_types jsonb := '[]'::jsonb;
 BEGIN
@@ -31,10 +28,6 @@ BEGIN
   WHERE id = NEW.post_id
   FOR UPDATE;
 
-  SELECT * INTO v_restaurant
-  FROM public.restaurants
-  WHERE id = NEW.restaurant_id;
-
   IF v_campaign.id IS NULL OR v_post.id IS NULL THEN
     RAISE EXCEPTION USING ERRCODE = '23503', MESSAGE = 'social_post_boost_invalid_reference';
   END IF;
@@ -44,7 +37,6 @@ BEGIN
     RAISE EXCEPTION USING ERRCODE = '23514', MESSAGE = 'social_post_boost_restaurant_mismatch';
   END IF;
 
-  -- Keep one canonical, normalized targeting payload on both records.
   v_original_targeting := public.normalize_campaign_target_criteria(
     COALESCE(NEW.targeting, v_campaign.target_criteria, '{}'::jsonb)
   );
@@ -56,14 +48,12 @@ BEGIN
       v_effective_targeting
     );
   EXCEPTION WHEN OTHERS THEN
-    -- Campaign creation must not fail solely because estimation data is
-    -- temporarily unavailable. The broad fallback below remains deterministic.
     v_estimated_audience := 0;
   END;
 
   IF COALESCE(v_estimated_audience, 0) <= 0 THEN
-    -- First fallback: preserve geographic intent while removing behavioural
-    -- intersections that commonly make a small local audience impossible.
+    -- Preserve geography first, but remove behavioural intersections that can
+    -- make a small local audience impossible.
     v_fallback_targeting := v_effective_targeting
       - 'cuisines'
       - 'journeyTypes'
@@ -92,8 +82,7 @@ BEGIN
     END;
 
     IF COALESCE(v_fallback_audience, 0) <= 0 THEN
-      -- Final fallback: broad Actualites delivery. Paid content must never burn
-      -- its entire schedule with zero eligible viewers.
+      -- A paid boost must not spend its whole schedule with zero eligible users.
       v_fallback_targeting := jsonb_set(v_fallback_targeting, '{cities}', '[]'::jsonb, true);
     END IF;
 
@@ -114,42 +103,8 @@ BEGIN
 
   NEW.targeting := v_effective_targeting;
 
-  -- A campaign image must also exist in the social media relation consumed by
-  -- the Actualites UI. Prefer the campaign creative, then the restaurant image.
-  v_image_url := NULLIF(trim(COALESCE(v_campaign.image_url, v_restaurant.image_url, '')), '');
-  IF v_image_url IS NOT NULL
-    AND NOT EXISTS (
-      SELECT 1
-      FROM public.social_post_media media
-      WHERE media.post_id = NEW.post_id
-        AND media.media_type = 'image'
-    ) THEN
-    INSERT INTO public.social_post_media (
-      post_id,
-      media_url,
-      media_path,
-      media_type,
-      sort_order,
-      alt_text,
-      metadata
-    ) VALUES (
-      NEW.post_id,
-      v_image_url,
-      NULL,
-      'image',
-      0,
-      COALESCE(NULLIF(trim(v_campaign.title), ''), 'Publication sponsorisee')
-        || ' - ' || COALESCE(NULLIF(trim(v_restaurant.name), ''), 'Restaurant'),
-      jsonb_build_object(
-        'source', 'social_post_boost_integrity',
-        'campaign_id', NEW.campaign_id,
-        'auto_attached', true
-      )
-    );
-  END IF;
-
-  -- A sponsored post must expose a measurable action. Preserve an existing CTA;
-  -- otherwise prefer reservation when requested, then fall back to the menu.
+  -- Every paid post exposes a measurable action. Existing choices are kept;
+  -- missing actions are inferred from the original campaign intent.
   IF COALESCE(NULLIF(trim(v_post.cta_type), ''), 'none') = 'none' THEN
     v_journey_types := CASE
       WHEN jsonb_typeof(v_original_targeting->'journeyTypes') = 'array'
@@ -191,7 +146,7 @@ ON public.social_post_promotions
 FOR EACH ROW
 EXECUTE FUNCTION public.ensure_social_post_boost_integrity();
 
--- Repair already-active boosts using the same invariant without charging again.
+-- Repair already-active boosts without charging them again.
 UPDATE public.social_post_promotions
 SET targeting = targeting
 WHERE status = 'active'
