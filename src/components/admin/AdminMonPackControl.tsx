@@ -3,7 +3,6 @@ import { Package, ShieldAlert } from "lucide-react";
 
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -12,8 +11,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useFeatureFlags } from "@/lib/featureFlags";
@@ -21,7 +22,7 @@ import { useFeatureFlags } from "@/lib/featureFlags";
 const MON_PACK_FLAG_NAME = "dashboard-pack";
 
 export default function AdminMonPackControl() {
-  const { flags, loading, toggleFlag } = useFeatureFlags(true);
+  const { flags, loading, setFlagState } = useFeatureFlags(true);
   const { toast } = useToast();
   const [pendingState, setPendingState] = useState<boolean | null>(null);
   const [reason, setReason] = useState("");
@@ -30,6 +31,7 @@ export default function AdminMonPackControl() {
   const packFlag = flags.find((flag) => flag.name === MON_PACK_FLAG_NAME);
   const explicitEnabled = packFlag?.explicitEnabled ?? false;
   const effectiveEnabled = packFlag?.effectiveEnabled ?? false;
+  const serverStateAvailable = Boolean(packFlag && packFlag.id !== MON_PACK_FLAG_NAME);
 
   const closeConfirmation = () => {
     if (submitting) return;
@@ -38,16 +40,16 @@ export default function AdminMonPackControl() {
   };
 
   const requestToggle = (nextEnabled: boolean) => {
-    if (!packFlag || nextEnabled === explicitEnabled) return;
+    if (!packFlag || !serverStateAvailable || nextEnabled === explicitEnabled) return;
     setPendingState(nextEnabled);
     setReason("");
   };
 
   const confirmToggle = async () => {
-    if (!packFlag || pendingState === null || !reason.trim()) return;
+    if (!packFlag || !serverStateAvailable || pendingState === null || !reason.trim()) return;
 
     setSubmitting(true);
-    const result = await toggleFlag(packFlag.id, reason.trim());
+    const result = await setFlagState(packFlag.id, pendingState, reason.trim());
     setSubmitting(false);
 
     if (!result.success) {
@@ -62,7 +64,7 @@ export default function AdminMonPackControl() {
     toast({
       title: pendingState ? "Mon pack réactivé" : "Mon pack désactivé",
       description: pendingState
-        ? "L'onglet et les nouvelles activations sont de nouveau disponibles."
+        ? "La coupure explicite est levée. Les dépendances globales du dashboard restent appliquées."
         : "L'onglet, les nouvelles demandes, confirmations et reprises sont maintenant bloqués.",
     });
     setPendingState(null);
@@ -71,15 +73,15 @@ export default function AdminMonPackControl() {
 
   return (
     <>
-      <Card className={effectiveEnabled ? "border-emerald-200 bg-emerald-50/70" : "border-destructive/30 bg-destructive/5"}>
+      <Card className={loading || !serverStateAvailable ? "border-muted bg-muted/20" : effectiveEnabled ? "border-emerald-200 bg-emerald-50/70" : "border-destructive/30 bg-destructive/5"}>
         <CardHeader className="space-y-3">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="space-y-2">
               <div className="flex flex-wrap items-center gap-2">
                 <Package className="h-5 w-5 text-primary" />
                 <CardTitle>Mon pack — coupure globale</CardTitle>
-                <Badge variant={effectiveEnabled ? "secondary" : "destructive"}>
-                  {effectiveEnabled ? "Disponible" : "Coupé"}
+                <Badge variant={loading || !serverStateAvailable ? "outline" : effectiveEnabled ? "secondary" : "destructive"}>
+                  {loading ? "Chargement" : !serverStateAvailable ? "Indisponible" : effectiveEnabled ? "Disponible" : "Coupé"}
                 </Badge>
               </div>
               <p className="max-w-3xl text-sm text-muted-foreground">
@@ -90,7 +92,7 @@ export default function AdminMonPackControl() {
             <Switch
               checked={explicitEnabled}
               onCheckedChange={requestToggle}
-              disabled={loading || submitting || !packFlag}
+              disabled={loading || submitting || !serverStateAvailable}
               aria-label="Activer ou désactiver Mon pack globalement"
             />
           </div>
@@ -100,10 +102,14 @@ export default function AdminMonPackControl() {
             <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
             <p>
               Les modules déjà actifs ne sont ni suspendus ni annulés et aucun paiement Stripe n'est modifié.
-              Les actions de pause, d'annulation et de crédit restent disponibles.
+              Leur pause, annulation ou crédit doit faire l'objet d'une opération séparée.
             </p>
           </div>
-          {explicitEnabled && !effectiveEnabled ? (
+          {!loading && !serverStateAvailable ? (
+            <p className="mt-3 text-xs text-destructive">
+              L'état serveur de Mon pack est indisponible. Le contrôle reste verrouillé pour éviter une mutation à l'aveugle.
+            </p>
+          ) : explicitEnabled && !effectiveEnabled ? (
             <p className="mt-3 text-xs text-muted-foreground">
               Mon pack est explicitement activé, mais une dépendance globale du dashboard restaurateur est coupée.
             </p>
@@ -123,21 +129,29 @@ export default function AdminMonPackControl() {
                 : "Cette coupure est immédiate pour les nouvelles actions. Elle ne suspend pas les modules déjà actifs et ne modifie pas Stripe."}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <Input
-            value={reason}
-            onChange={(event) => setReason(event.target.value)}
-            placeholder="Raison obligatoire pour l'historique"
-            aria-label="Raison du changement de statut de Mon pack"
-          />
+          <div className="space-y-2">
+            <Label htmlFor="admin-mon-pack-reason">
+              Motif du changement <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="admin-mon-pack-reason"
+              value={reason}
+              onChange={(event) => setReason(event.target.value)}
+              placeholder="Raison obligatoire pour l'historique"
+              required
+              aria-required="true"
+            />
+          </div>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={submitting}>Annuler</AlertDialogCancel>
-            <AlertDialogAction
+            <Button
+              type="button"
+              variant={pendingState ? "default" : "destructive"}
               disabled={submitting || !reason.trim()}
-              className={pendingState ? undefined : "bg-destructive text-destructive-foreground hover:bg-destructive/90"}
               onClick={() => void confirmToggle()}
             >
               {pendingState ? "Réactiver" : "Confirmer la coupure"}
-            </AlertDialogAction>
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
