@@ -12,7 +12,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
-      "line": 1298
+      "line": 1303
     }
   ],
   "admin_ai_owner_not_configured": [
@@ -100,7 +100,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
-      "line": 835
+      "line": 840
     },
     {
       "file": "supabase/functions/floorplan-ai/index.ts",
@@ -234,7 +234,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "ai_usage_recording_failed": [
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
-      "line": 870
+      "line": 875
     }
   ],
   "aligro_prices_unavailable": [
@@ -534,15 +534,15 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "daily_dish_claim_unavailable": [
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
-      "line": 967
+      "line": 972
     },
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
-      "line": 1093
+      "line": 1098
     },
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
-      "line": 1103
+      "line": 1108
     }
   ],
   "daily_dish_demo_request_already_completed": [
@@ -560,11 +560,11 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "daily_dish_disabled": [
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
-      "line": 957
+      "line": 962
     },
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
-      "line": 1059
+      "line": 1064
     }
   ],
   "daily_dish_generation_in_progress": [
@@ -574,55 +574,55 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
-      "line": 969
+      "line": 974
     },
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
-      "line": 1073
+      "line": 1078
     }
   ],
   "daily_dish_persistence_failed": [
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
-      "line": 987
+      "line": 992
     },
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
-      "line": 996
+      "line": 1001
     },
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
-      "line": 1122
+      "line": 1127
     },
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
-      "line": 1131
+      "line": 1136
     },
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
-      "line": 1220
+      "line": 1225
     },
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
-      "line": 1237
+      "line": 1242
     }
   ],
   "daily_dish_publication_failed": [
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
-      "line": 1263
+      "line": 1268
     }
   ],
   "daily_dish_revision_limit": [
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
-      "line": 1195
+      "line": 1200
     }
   ],
   "daily_dish_run_not_publishable": [
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
-      "line": 1199
+      "line": 1204
     }
   ],
   "daily_dish_run_unavailable": [
@@ -638,17 +638,17 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
-      "line": 903
+      "line": 908
     }
   ],
   "daily_dish_variant_not_found": [
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
-      "line": 1194
+      "line": 1199
     },
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
-      "line": 1232
+      "line": 1237
     }
   ],
   "daily_dish_variants_unavailable": [
@@ -1026,7 +1026,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "instruction_invalid": [
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
-      "line": 1147
+      "line": 1152
     }
   ],
   "invalid_action": [
@@ -1120,7 +1120,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
-      "line": 1281
+      "line": 1286
     },
     {
       "file": "supabase/functions/floorplan-ai/index.ts",
@@ -1140,7 +1140,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "is_enabled_invalid": [
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
-      "line": 896
+      "line": 901
     }
   ],
   "json_object_required": [
@@ -1408,7 +1408,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "publication_copy_invalid": [
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
-      "line": 1252
+      "line": 1257
     }
   ],
   "pull_request_metadata_missing": [
@@ -1544,11 +1544,11 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
-      "line": 1277
+      "line": 1282
     },
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
-      "line": 1283
+      "line": 1288
     }
   ],
   "reservation_fields_required": [

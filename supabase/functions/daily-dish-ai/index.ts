@@ -825,7 +825,12 @@ ${isRefinement ? "Révise le plat en respectant la demande, sans ajouter une sou
     ],
     jsonSchema: isRefinement ? REFINED_SCHEMA : PROPOSALS_SCHEMA,
     reasoning: { effort: "medium" },
-    maxOutputTokens: isRefinement ? 5000 : 12_000,
+    // Reasoning tokens are billed against this budget, so a long reasoning pass
+    // can consume it entirely and return no output text — which surfaces as
+    // ai_empty_response. Such a call has already spent its tokens for nothing, so
+    // raising the ceiling does not create the cost, it stops wasting it. Three
+    // fully costed dishes with up to 40 basket lines each need the headroom.
+    maxOutputTokens: isRefinement ? 8000 : 20_000,
     timeoutMs: 100_000,
   });
 

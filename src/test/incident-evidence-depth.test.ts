@@ -64,6 +64,14 @@ describe("incident evidence depth", () => {
     expect(openai).not.toContain("prompt: input");
   });
 
+  it("leaves the proposals call enough budget to emit an answer after reasoning", () => {
+    // The observed ai_empty_response incidents are consistent with reasoning
+    // consuming the whole budget: the call is billed and returns nothing. The
+    // ceiling has to sit above reasoning plus three fully costed dishes.
+    expect(dailyDish).toContain("maxOutputTokens: isRefinement ? 8000 : 20_000");
+    expect(dailyDish).not.toContain("maxOutputTokens: isRefinement ? 5000 : 12_000");
+  });
+
   it("carries error diagnostics from the throw site into the audit log", () => {
     expect(auth).toContain("details?: Record<string, unknown>");
     expect(auth).toContain("export function errorDiagnostics");
