@@ -1,6 +1,6 @@
 export type ProRole = "restaurateur" | "courier";
 
-export const RESTAURANT_PARTNER_CONTRACT_VERSION = "TOK-CH-RP-FAIR-GROWTH-2026-07-v4";
+export const RESTAURANT_PARTNER_CONTRACT_VERSION = "TOK-CH-RP-FAIR-GROWTH-2026-07-v5";
 export const LEGAL_ACCEPTANCE_VERSION = "2026-07-18-fair-growth-v3";
 
 export const ACCEPTED_MIME_TYPES = [

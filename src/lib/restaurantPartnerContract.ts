@@ -1,4 +1,4 @@
-export const RESTAURANT_PARTNER_CONTRACT_VERSION = "TOK-CH-RP-FAIR-GROWTH-2026-07-v4";
+export const RESTAURANT_PARTNER_CONTRACT_VERSION = "TOK-CH-RP-FAIR-GROWTH-2026-07-v5";
 
 export const RESTAURANT_PARTNER_CONTRACT_TITLE =
   "Contrat de partenariat restaurateur TOK";
@@ -30,6 +30,9 @@ export const RESTAURANT_PARTNER_CONTRACT_SECTIONS = [
       "TOK assure une exploitation raisonnable de la plateforme, la sécurisation des accès, la journalisation des actions sensibles, la séparation des rôles, l'application des politiques RLS et les intégrations de paiement dans la limite des prestataires tiers.",
       "TOK peut modérer, suspendre, masquer ou corriger une fiche, offre, avis, campagne ou contenu lorsqu'une information est manifestement trompeuse, incomplète, risquée pour les clients, contraire aux règles de la plateforme ou susceptible d'engager la sécurité alimentaire.",
       "TOK ne garantit pas l'absence totale d'interruption, de bug, de retard de prestataire, d'indisponibilité réseau ou de blocage par Stripe, Supabase, un service d'emailing, un fournisseur IA, un transporteur ou une autorité compétente.",
+      "Le service Google Business couvre uniquement, selon le pack accepté, l'audit et les recommandations de fiche (informations, horaires, catégories, photos et liens), la préparation facultative de publications ou réponses aux avis, la création d'un lien TOK traçable et le suivi des conversions effectivement mesurables. Les modules reliés sont exclusivement ceux activés dans le dashboard ; aucune publication ou synchronisation automatique avec Google n'est promise.",
+      "Toute action de TOK dans Google Business Profile requiert un mandat écrit, un accès propriétaire ou gestionnaire accordé par le restaurateur et les droits sur les contenus. Le restaurateur fournit des informations exactes et valide les modifications, publications et réponses ; TOK exécute le périmètre convenu dans un délai indicatif confirmé après réception d'un dossier complet.",
+      "Google demeure seul décisionnaire de l'éligibilité, de la validation, de l'affichage, du classement et de la suspension d'une fiche. TOK ne garantit aucun rang ni volume de visibilité ou de conversion. Un refus, contrôle ou blocage Google suspend les délais de TOK ; TOK peut assister le recours mais ne garantit ni son issue ni son délai.",
     ],
   },
   {

@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { SUPPORT_EMAIL } from "@/lib/contact";
 import { useSeoMeta } from "@/hooks/useSeoMeta";
 
-const updatedAt = "18 juillet 2026";
+const updatedAt = "28 juillet 2026";
 
 const quickPoints = [
   "Fair Growth : Starter CHF 69, Business CHF 129, Premium CHF 199 et Elite CHF 499 par mois ; annuel au prix de 11 mois pour 12.",
@@ -47,6 +47,16 @@ const sections = [
       "TOK peut verifier l'identite commerciale, la coherence des informations, l'autorisation d'exploiter, les droits sur la marque, les documents transmis et la conformite minimale du dossier avant activation complete du compte ou d'un service.",
       "TOK peut refuser, suspendre ou limiter un onboarding lorsque le dossier est incomplet, incoherent, frauduleux, non conforme, juridiquement risque ou incompatible avec la qualite attendue sur la plateforme.",
       "Le restaurateur est responsable de tous les actes effectues depuis son compte, y compris par ses employes, prestataires ou personnes auxquelles il a donne acces.",
+    ],
+  },
+  {
+    title: "4 bis. Service Google Business Profile",
+    body: [
+      "Selon l'abonnement souscrit, TOK peut fournir un audit de fiche, des recommandations sur les informations, horaires, categories, photos et liens, préparer des projets de publications ou de réponses aux avis, créer un lien TOK traçable et suivre les clics ou conversions effectivement mesurables. Le statut inclus ou optionnel est affiché dans l'offre ; une prestation hors abonnement fait l'objet d'un accord ou devis distinct.",
+      "TOK ne relie que les modules réellement activés dans le dashboard, tels que la fiche restaurant, la reservation ou la commande. TOK n'annonce aucune synchronisation, publication ou réponse automatique dans Google tant qu'une telle intégration n'est pas effectivement disponible et activée.",
+      "Toute intervention de TOK dans Google exige un mandat écrit, un accès propriétaire ou gestionnaire accordé par le restaurateur et les droits nécessaires sur les contenus. Le restaurateur reste responsable de l'exactitude des informations et valide les modifications, publications et réponses aux avis. TOK ne demande pas le mot de passe personnel Google.",
+      "Le délai d'audit ou d'intervention est confirmé après réception d'un dossier complet et des accès requis. Les délais sont suspendus pendant toute vérification, refus, restriction ou demande de justificatif de Google, ou tant qu'une validation du restaurateur manque.",
+      "Google contrôle seul l'éligibilité, la validation, l'affichage, les fonctionnalités, le classement et la suspension de la fiche. TOK ne garantit aucun rang, volume de vues, clics, appels, réservations ou commandes. En cas de suspension, TOK peut aider au diagnostic et au recours, sans garantir le rétablissement ni son délai.",
     ],
   },
   {
