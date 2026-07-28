@@ -73,6 +73,7 @@ describe("responsive and SEO regression guards", () => {
   it("keeps restaurant-list and restaurant-detail metadata ownership separate", () => {
     const app = read("src/App.tsx");
     const localRestaurants = read("src/pages/LocalRestaurants.tsx");
+    const restaurantCard = read("src/components/RestaurantCard.tsx");
     const demoCatalog = read("src/lib/commercialDemoClientCatalog.ts");
     const restaurantDetail = read("src/pages/RestaurantDetail.tsx");
     const restaurantSlugs = read("src/lib/restaurantSlugs.ts");
@@ -88,6 +89,12 @@ describe("responsive and SEO regression guards", () => {
     expect(localRestaurants).toContain("demoRestaurantBySlug");
     expect(demoCatalog).toContain("slug: slugifyRestaurantSegment(restaurant.name)");
     expect(localRestaurants).toContain("toAbsoluteSeoImage(restaurant.image_url)");
+    expect(localRestaurants).toContain('lazy(() => import("./RestaurantDetail"))');
+    expect(localRestaurants).not.toContain('import RestaurantDetail from "./RestaurantDetail"');
+    expect(localRestaurants).not.toContain("restaurants.length === 0))");
+    expect(restaurantCard).toContain("to={restaurantPath}");
+    expect(restaurantCard).toContain("width={640}");
+    expect(restaurantCard).toContain("height={400}");
     expect(restaurantDetail).toContain("buildRestaurantSeoPath(restaurant)");
     expect(restaurantDetail).toContain("path: restaurantCanonicalPath");
   });
