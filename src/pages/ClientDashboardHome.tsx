@@ -500,8 +500,9 @@ function LiveClientDashboardHome() {
                   )}
                 </div>
                 <DashboardIllustrationMedia
+                  eager
                   illustration={heroIllustration}
-                  className="hidden h-36 w-36 rounded-[2rem] lg:block"
+                  className="mx-auto h-28 w-28 rounded-[2rem] sm:h-32 sm:w-32 lg:mx-0 lg:h-36 lg:w-36"
                   imageClassName="p-3 drop-shadow-[0_20px_26px_rgba(194,78,24,0.20)]"
                 />
               </div>

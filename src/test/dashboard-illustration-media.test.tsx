@@ -14,8 +14,13 @@ const illustration: DashboardIllustration = {
 describe("DashboardIllustrationMedia", () => {
   it("renders a bounded decorative image with stable dimensions", () => {
     const { container } = render(<DashboardIllustrationMedia illustration={illustration} />);
+    const root = container.firstElementChild;
     const image = container.querySelector("img");
 
+    expect(root?.tagName).toBe("SPAN");
+    expect(root?.getAttribute("aria-hidden")).toBe("true");
+    expect(root?.classList.contains("aspect-square")).toBe(true);
+    expect(root?.classList.contains("items-center")).toBe(true);
     expect(image?.getAttribute("src")).toBe(illustration.src);
     expect(image?.getAttribute("alt")).toBe("");
     expect(image?.getAttribute("width")).toBe("512");
@@ -40,6 +45,10 @@ describe("DashboardIllustrationMedia", () => {
     );
 
     expect(container.querySelector("img")?.getAttribute("src")).toBe("/images/dashboard-3d/restaurant-orders.webp");
+    expect(container.querySelector("[data-dashboard-illustration-fallback]")).toBeNull();
+
+    rerender(<DashboardIllustrationMedia illustration={illustration} />);
+    expect(container.querySelector("img")?.getAttribute("src")).toBe(illustration.src);
     expect(container.querySelector("[data-dashboard-illustration-fallback]")).toBeNull();
   });
 

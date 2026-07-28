@@ -60,5 +60,4 @@ export const DASHBOARD_ILLUSTRATIONS = {
   clientOrder: { src: "/images/section-headers/shopping-bags-3d.png", width: 320, height: 320, alt: "" },
   clientReservation: { src: "/images/section-headers/calendar-3d.png", width: 320, height: 320, alt: "" },
   clientDiscovery: { src: "/images/section-headers/plate-3d.png", width: 320, height: 320, alt: "" },
-  courierEmpty: squareIllustration("/images/dashboard-3d/courier-jobs-empty.webp"),
 } as const satisfies Record<string, DashboardIllustration>;

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ImageIcon } from "lucide-react";
 
 import type { DashboardIllustration } from "@/lib/dashboardIllustrations";
@@ -22,10 +22,14 @@ export default function DashboardIllustrationMedia({
   const [failedSource, setFailedSource] = useState<string | null>(null);
   const imageFailed = failedSource === illustration.src;
 
+  useEffect(() => {
+    setFailedSource(null);
+  }, [illustration.src]);
+
   return (
-    <div
+    <span
       className={cn(
-        "relative aspect-square shrink-0 overflow-hidden rounded-2xl bg-[radial-gradient(circle_at_center,rgba(255,159,28,0.15),transparent_68%)]",
+        "relative flex aspect-square shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-[radial-gradient(circle_at_center,rgba(255,159,28,0.15),transparent_68%)]",
         className,
       )}
       aria-hidden="true"
@@ -46,7 +50,7 @@ export default function DashboardIllustrationMedia({
           )}
         />
       ) : (
-        <div
+        <span
           className={cn(
             "flex h-full w-full items-center justify-center rounded-2xl border border-orange-200/70 bg-orange-50/70 text-orange-500 dark:border-orange-400/20 dark:bg-orange-500/10",
             fallbackClassName,
@@ -54,8 +58,8 @@ export default function DashboardIllustrationMedia({
           data-dashboard-illustration-fallback
         >
           <ImageIcon className="h-8 w-8" aria-hidden="true" />
-        </div>
+        </span>
       )}
-    </div>
+    </span>
   );
 }

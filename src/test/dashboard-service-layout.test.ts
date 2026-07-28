@@ -3,6 +3,16 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const service = readFileSync(resolve(process.cwd(), "src/pages/dashboard/DashboardService.tsx"), "utf8");
+const heroStart = service.indexOf("<DashboardPageHero");
+const heroEnd = service.indexOf("/>", heroStart);
+const hero = service.slice(heroStart, heroEnd);
+const serviceCardStart = service.indexOf('<CardContent className="space-y-4">');
+const advancedStart = service.indexOf("<Collapsible", serviceCardStart);
+const advancedEnd = service.indexOf("</Collapsible>", advancedStart);
+const dailyControls = service.slice(serviceCardStart, advancedStart);
+const advancedControls = service.slice(advancedStart, advancedEnd);
+const saveActionStart = service.indexOf('<div className="flex justify-end">', advancedEnd);
+const saveAction = service.slice(saveActionStart, service.indexOf("</div>", saveActionStart) + 6);
 
 describe("restaurant service dashboard layout", () => {
   it("uses content-width grids instead of viewport-only columns", () => {
@@ -29,7 +39,7 @@ describe("restaurant service dashboard layout", () => {
       "orders_closed",
       "service_closed",
     ]) {
-      expect(service, field + " should remain in the condensed form").toContain('"' + field + '"');
+      expect(dailyControls, field + " should remain visible before advanced settings").toContain('"' + field + '"');
     }
 
     for (const advancedField of [
@@ -43,15 +53,15 @@ describe("restaurant service dashboard layout", () => {
       "deposit_amount_chf",
       "service_note",
     ]) {
-      expect(service, advancedField + " should remain editable").toContain(advancedField);
+      expect(advancedControls, advancedField + " should remain inside advanced settings").toContain(advancedField);
     }
   });
 
   it("uses the compact illustrated hero and a non-sticky save action", () => {
-    expect(service).toContain("compact");
-    expect(service).toContain("DASHBOARD_ILLUSTRATIONS.restaurantService");
-    expect(service).toContain('className="flex justify-end"');
-    expect(service).not.toContain("sticky");
+    expect(hero).toContain("compact");
+    expect(hero).toContain("illustration={DASHBOARD_ILLUSTRATIONS.restaurantService}");
+    expect(saveAction).toContain("<Button onClick={handleSave}");
+    expect(saveAction).not.toContain("sticky");
   });
 
   it("associates compact form labels with deterministic input ids", () => {
