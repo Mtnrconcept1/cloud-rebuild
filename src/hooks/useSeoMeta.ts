@@ -23,6 +23,8 @@ const PRIVATE_ROUTE_PREFIXES = [
   "/panier",
   "/auth",
   "/oauth",
+  "/espaces",
+  "/r",
   "/tok-connect/developer",
 ] as const;
 
