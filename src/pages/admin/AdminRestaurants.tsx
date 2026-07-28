@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import AdminDemoEntitiesDialog from "@/components/admin/AdminDemoEntitiesDialog";
 import AdminRealRestaurantAssignment from "@/components/admin/AdminRealRestaurantAssignment";
 import RestaurantPartnerContractCard from "@/components/contracts/RestaurantPartnerContractCard";
@@ -1115,6 +1116,7 @@ export default function AdminRestaurants() {
         icon={Store}
         tone="emerald"
         visualLabel="Restaurants"
+          illustration={DASHBOARD_ILLUSTRATIONS.adminRestaurants}
         stats={[
           { label: "Restaurants", value: stats.total, icon: Store },
           { label: "Actifs", value: stats.active, icon: Sparkles },

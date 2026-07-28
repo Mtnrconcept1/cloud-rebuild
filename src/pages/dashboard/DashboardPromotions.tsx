@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSupabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import { useOwnerRestaurants } from "./useOwnerRestaurants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -171,6 +172,7 @@ export default function DashboardPromotions() {
           icon={BadgePercent}
           tone="orange"
           visualLabel="Promos"
+          illustration={DASHBOARD_ILLUSTRATIONS.restaurantPromotions}
           stats={[
             { label: "Promotions", value: promotions?.length || 0, icon: BadgePercent },
             { label: "Actives", value: promotions?.filter((promo) => promo.active).length || 0, icon: Plus },

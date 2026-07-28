@@ -15,6 +15,7 @@ import {
 import AddressAutocomplete from "@/components/AddressAutocomplete";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import ImageUpload from "@/components/ImageUpload";
 import RestaurantPartnerContractCard from "@/components/contracts/RestaurantPartnerContractCard";
@@ -447,6 +448,7 @@ export default function DashboardRestaurant() {
           icon={Store}
           tone="orange"
           visualLabel="Profil"
+          illustration={DASHBOARD_ILLUSTRATIONS.restaurantProfile}
           stats={[
             {
               label: "Categories",

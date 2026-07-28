@@ -4,6 +4,7 @@ import { CalendarClock, Coins, MapPin, PiggyBank, ReceiptText, Store, TrendingUp
 import { useSearchParams } from "react-router-dom";
 
 import CommercialWorkspaceChrome from "@/components/commercial/CommercialWorkspaceChrome";
+import DashboardIllustrationMedia from "@/components/dashboard/DashboardIllustrationMedia";
 import CommercialContractPanel from "@/components/commercial/CommercialContractPanel";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -14,6 +15,7 @@ import {
   type GenevaCommercialProspect,
 } from "@/data/genevaCommercialProspects";
 import { useAuth } from "@/lib/auth-context";
+import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import { cn } from "@/lib/utils";
 
 type CommercialCommissionStatus = "pending_payment" | "payable" | "paid" | "cancelled" | "reversed";
@@ -697,9 +699,13 @@ export default function CommercialComptabilite() {
                     })}
                   </div>
                 ) : (
-                  <p className="mt-5 rounded-2xl border border-dashed p-5 text-sm text-muted-foreground dark:border-white/10">
-                    Aucun restaurant signé pour le moment. Les futures signatures apparaîtront automatiquement ici.
-                  </p>
+                  <div className="mt-5 grid items-center gap-3 rounded-2xl border border-dashed p-4 text-sm text-muted-foreground dark:border-white/10 min-[420px]:grid-cols-[7rem_minmax(0,1fr)]">
+                    <DashboardIllustrationMedia
+                      illustration={DASHBOARD_ILLUSTRATIONS.commercialAccountingEmpty}
+                      className="mx-auto h-28 w-28 bg-transparent"
+                    />
+                    <p>Aucun restaurant signé pour le moment. Les futures signatures apparaîtront automatiquement ici.</p>
+                  </div>
                 )}
               </section>
 

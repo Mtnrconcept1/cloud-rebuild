@@ -36,6 +36,7 @@ import AdminCommercialAccountsPanel from "@/components/admin/AdminCommercialAcco
 import AdminDemoEntitiesDialog from "@/components/admin/AdminDemoEntitiesDialog";
 import AdminRealRestaurantAssignment from "@/components/admin/AdminRealRestaurantAssignment";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import {
   Dialog,
   DialogContent,
@@ -939,6 +940,7 @@ export default function AdminUtilisateurs() {
         icon={Users}
         tone="sky"
         visualLabel="Utilisateurs"
+          illustration={DASHBOARD_ILLUSTRATIONS.adminUsers}
         stats={[
           { label: "Utilisateurs", value: users.length, icon: Users },
           { label: "Restaurateurs", value: roleCounts.restaurateur, icon: FileText },

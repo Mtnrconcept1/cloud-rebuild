@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 
 import CustomerDashboardLayout from "@/components/CustomerDashboardLayout";
+import DashboardIllustrationMedia from "@/components/dashboard/DashboardIllustrationMedia";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -498,17 +499,12 @@ function LiveClientDashboardHome() {
                     </>
                   )}
                 </div>
-                <div className="hidden h-36 w-44 items-center justify-center overflow-hidden rounded-[2rem] bg-[radial-gradient(circle_at_center,rgba(255,106,26,0.16),transparent_68%)] lg:flex" aria-hidden="true">
-                  <img
-                    src={heroIllustration.src}
-                    alt={heroIllustration.alt}
-                    width={heroIllustration.width}
-                    height={heroIllustration.height}
-                    loading="lazy"
-                    decoding="async"
-                    className="h-32 w-40 object-contain drop-shadow-[0_20px_26px_rgba(194,78,24,0.20)]"
-                  />
-                </div>
+                <DashboardIllustrationMedia
+                  eager
+                  illustration={heroIllustration}
+                  className="mx-auto h-28 w-28 rounded-[2rem] sm:h-32 sm:w-32 lg:mx-0 lg:h-36 lg:w-36"
+                  imageClassName="p-3 drop-shadow-[0_20px_26px_rgba(194,78,24,0.20)]"
+                />
               </div>
             </section>
 

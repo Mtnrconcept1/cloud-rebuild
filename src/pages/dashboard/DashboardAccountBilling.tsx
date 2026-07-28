@@ -22,6 +22,7 @@ import { toast } from "sonner";
 
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   AlertDialog,
@@ -723,6 +724,7 @@ function CommercialDemoAccountBilling() {
           icon={WalletCards}
           tone="violet"
           visualLabel="Illimité"
+          illustration={DASHBOARD_ILLUSTRATIONS.restaurantBilling}
           stats={[
             { label: "Fonctionnalités actives", value: activeFeatures.length, icon: CheckCircle2 },
             { label: "Crédits Démo", value: "Illimités", icon: Sparkles },
@@ -1185,6 +1187,7 @@ function LiveDashboardAccountBilling() {
           icon={CreditCard}
           tone="sky"
           visualLabel="Facturation"
+          illustration={DASHBOARD_ILLUSTRATIONS.restaurantBilling}
           stats={[
             { label: "Abonnement", value: currentPlan?.name ?? "Non configuré", icon: WalletCards },
             { label: "Solde", value: totalBalanceLabel, icon: Sparkles },

@@ -15,6 +15,7 @@ import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFr
 import CityAutocomplete from "@/components/CityAutocomplete";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -249,6 +250,7 @@ export default function DashboardInvoiceSettings() {
           icon={FileText}
           tone="sky"
           visualLabel="Factures"
+          illustration={DASHBOARD_ILLUSTRATIONS.restaurantInvoiceSettings}
           stats={[
             { label: "Restaurant", value: selectedRestaurantRecord?.name || "Aucun", icon: Building2 },
             { label: "Logo", value: settings?.logo_url ? "Charge" : "Absent", icon: Upload },

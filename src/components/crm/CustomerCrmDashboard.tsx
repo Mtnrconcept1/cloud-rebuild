@@ -24,6 +24,7 @@ import {
 import { toast } from "sonner";
 
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -597,6 +598,7 @@ export default function CustomerCrmDashboard({
         icon={Users}
         tone="emerald"
         visualLabel="CRM"
+        illustration={surface === "restaurant" ? DASHBOARD_ILLUSTRATIONS.restaurantCrm : undefined}
         stats={[
           { label: "Clients", value: stats.totalMatching, icon: Users },
           { label: "Prioritaires", value: stats.priority, icon: Sparkles },

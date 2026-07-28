@@ -5,6 +5,7 @@ import { AlertTriangle, BarChart3, TrendingUp } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import PerformanceBusinessTab from "@/components/dashboard/performance/PerformanceBusinessTab";
 import PerformanceTodayTab from "@/components/dashboard/performance/PerformanceTodayTab";
 import { Card, CardContent } from "@/components/ui/card";
@@ -224,6 +225,7 @@ export default function DashboardPerformances() {
           icon={BarChart3}
           tone="sky"
           visualLabel="Performance"
+          illustration={DASHBOARD_ILLUSTRATIONS.restaurantPerformance}
           stats={[
             { label: "Restaurant", value: selectedRestaurant?.name || "Aucun", icon: BarChart3 },
             { label: "Commandes", value: summary.validOrdersCount, icon: TrendingUp },

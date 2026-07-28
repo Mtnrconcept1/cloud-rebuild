@@ -3,6 +3,7 @@ import { Check, Copy, KeyRound, Plug, RefreshCw, ShieldCheck, ShieldX, Sparkles 
 
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import { Button } from "@/components/ui/button";
 import { getSupabase } from "@/integrations/supabase/client";
 import { SUPABASE_URL } from "@/lib/env";
@@ -182,6 +183,7 @@ export default function DashboardTokConnect() {
           icon={Plug}
           tone="violet"
           visualLabel="Connecteurs"
+          illustration={DASHBOARD_ILLUSTRATIONS.restaurantTokConnect}
           stats={[
             { label: "Grants actifs", value: metrics.active, icon: ShieldCheck },
             { label: "En attente", value: metrics.pending, icon: KeyRound },

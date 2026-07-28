@@ -17,6 +17,7 @@ import {
 import ReactMarkdown, { defaultUrlTransform, type UrlTransform } from "react-markdown";
 
 import DashboardLayout from "@/components/DashboardLayout";
+import DashboardIllustrationMedia from "@/components/dashboard/DashboardIllustrationMedia";
 import { Badge } from "@/components/ui/badge";
 import { AiLoadingState } from "@/components/ui/ai-loading-state";
 import AiGenerationProgressDialog from "@/components/ui/ai-generation-progress-dialog";
@@ -33,6 +34,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import { getSupabase } from "@/integrations/supabase/client";
 import {
   appendRestaurantAdvisorConversationMessages,
@@ -1078,9 +1080,10 @@ export default function DashboardAdvisor() {
           {messages.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center space-y-8 px-4">
               <div className="space-y-2 text-center">
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-600">
-                  <Sparkles className="h-8 w-8 text-white" />
-                </div>
+                <DashboardIllustrationMedia
+                  illustration={DASHBOARD_ILLUSTRATIONS.restaurantAdvisor}
+                  className="mx-auto mb-4 h-32 w-32 bg-transparent sm:h-36 sm:w-36"
+                />
                 <h2 className="font-display text-2xl font-bold">Bonjour, {restaurant.name}</h2>
                 <p className="mx-auto max-w-md text-muted-foreground">
                   Je suis votre assistant IA. J'analyse vos ventes, reservations, avis, campagnes et menu pour vous donner des conseils personnalises.

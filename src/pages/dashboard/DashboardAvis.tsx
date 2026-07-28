@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -558,6 +559,7 @@ export default function DashboardAvis() {
           icon={MessageSquareText}
           tone="sky"
           visualLabel="Réputation"
+          illustration={DASHBOARD_ILLUSTRATIONS.restaurantReviews}
           stats={[
             { label: "Avis chargés", value: stats.total, icon: Star },
             { label: "Non lus", value: stats.unread, icon: EyeOff },

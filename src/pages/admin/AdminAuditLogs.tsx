@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import {
   Dialog,
   DialogContent,
@@ -944,6 +945,7 @@ export default function AdminAuditLogs() {
         icon={Shield}
         tone="rose"
         visualLabel="Audit"
+          illustration={DASHBOARD_ILLUSTRATIONS.adminAudit}
         stats={[
           { label: "Santé", value: HEALTH_LABELS[healthStatus], icon: Activity },
           { label: "Logs filtrés", value: stats.filtered, icon: Search },

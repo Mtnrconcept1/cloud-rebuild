@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 
 import DashboardLayout from "@/components/DashboardLayout";
+import DashboardIllustrationMedia from "@/components/dashboard/DashboardIllustrationMedia";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { askCommercialDemoAi, parseCommercialDemoAiJson } from "@/lib/commercialDemoAi";
 import type { AIFloorPlanResult } from "@/components/floor-plan/FloorPlanAIPanel";
@@ -51,6 +52,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import { getSupabase } from "@/integrations/supabase/client";
 import type { Database, Json } from "@/integrations/supabase/types";
 import {
@@ -3471,7 +3473,11 @@ export default function DashboardPlanSalle() {
 
         {selectedId && !branchesLoading && branches.length === 0 ? (
           <Card className="border-dashed">
-            <CardContent className="flex flex-col items-center gap-4 py-12 text-center">
+            <CardContent className="flex flex-col items-center gap-4 py-10 text-center">
+              <DashboardIllustrationMedia
+                illustration={DASHBOARD_ILLUSTRATIONS.restaurantFloorPlan}
+                className="h-36 w-36 bg-transparent sm:h-44 sm:w-44"
+              />
               <div>
                 <h2 className="text-lg font-bold text-slate-950">Créez votre salle principale</h2>
                 <p className="mt-1 text-sm text-slate-500">Vous pourrez ensuite ajouter et déplacer vos tables.</p>

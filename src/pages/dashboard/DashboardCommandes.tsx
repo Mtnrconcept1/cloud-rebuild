@@ -8,6 +8,7 @@ import DayNotificationBadge from "@/components/notifications/DayNotificationBadg
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import { CommercialDemoOrders } from "@/components/dashboard/CommercialDemoScenario";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import RestaurantCancellationDialog from "@/components/RestaurantCancellationDialog";
@@ -733,6 +734,7 @@ function LiveDashboardCommandes() {
           icon={ClipboardList}
           tone="violet"
           visualLabel="Flux commandes"
+          illustration={DASHBOARD_ILLUSTRATIONS.restaurantOrders}
           stats={[
             { label: "Restaurant", value: selectedRestaurant?.name || "Aucun", icon: ClipboardList },
             { label: "Commandes visibles", value: filteredOrders.length, icon: Package2 },

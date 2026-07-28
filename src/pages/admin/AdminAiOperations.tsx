@@ -4,6 +4,7 @@ import { Activity, AlertTriangle, Brain, CheckCircle2, Clock, FileDown, ShieldAl
 
 import AdminLogResetButton from "@/components/admin/AdminLogResetButton";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -101,6 +102,7 @@ export default function AdminAiOperations() {
         icon={Brain}
         tone="violet"
         visualLabel="AI Ops"
+          illustration={DASHBOARD_ILLUSTRATIONS.adminAiOperations}
         stats={[
           { label: "Coût OpenAI estimé", value: result?.metrics?.estimated_ai_cost_chf ? `${result.metrics.estimated_ai_cost_chf} CHF` : "0 CHF", icon: Zap },
           { label: "Temps de réponse moyen", value: result?.average_response_time || "-", icon: Clock },
