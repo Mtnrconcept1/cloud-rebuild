@@ -5575,6 +5575,45 @@ export type Database = {
         }
         Relationships: []
       }
+      signup_application_drafts: {
+        Row: {
+          created_at: string
+          expires_at: string
+          finalized_at: string | null
+          id: string
+          operation_id: string
+          requested_role: Database["public"]["Enums"]["app_role"]
+          safe_payload: Json
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          finalized_at?: string | null
+          id?: string
+          operation_id: string
+          requested_role: Database["public"]["Enums"]["app_role"]
+          safe_payload?: Json
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          finalized_at?: string | null
+          id?: string
+          operation_id?: string
+          requested_role?: Database["public"]["Enums"]["app_role"]
+          safe_payload?: Json
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       solidarity_donations: {
         Row: {
           created_at: string

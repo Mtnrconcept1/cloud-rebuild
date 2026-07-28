@@ -134,8 +134,11 @@ type SignupApplicationSubmission = {
   payload: Omit<PrivilegedSignupPayload, "role"> & { role: SignupRole };
 };
 
-type InMemoryPrivilegedSignupDraft = SignupApplicationSubmission & {
-  email: string;
+type ServerSignupDraft = {
+  operation_id: string;
+  requested_role: Exclude<SignupRole, "client">;
+  safe_payload: Record<string, unknown>;
+  status: string;
 };
 
 type RestaurantSubscriptionPlanOption = {
@@ -539,7 +542,15 @@ async function finalizeSignupApplication(
       .maybeSingle();
 
     if (existingApplicationError) throw existingApplicationError;
-    if (existingApplication) return;
+    if (existingApplication) {
+      if (payload.role !== "client") {
+        const { error } = await supabase.rpc("mark_signup_application_draft_finalized", {
+          p_operation_id: operationId,
+        });
+        if (error && !String(error.message).includes("signup_draft_not_found")) throw error;
+      }
+      return;
+    }
   }
 
   const uploadedDocuments: UploadedSignupDocument[] = await uploadVerificationDocumentsWithRollback(
@@ -638,6 +649,13 @@ async function finalizeSignupApplication(
       await removeVerificationDocumentsBestEffort(uncommittedPaths);
     }
     throw syncError;
+  }
+
+  if (payload.role !== "client") {
+    const { error } = await supabase.rpc("mark_signup_application_draft_finalized", {
+      p_operation_id: operationId,
+    });
+    if (error) throw error;
   }
 }
 
@@ -785,7 +803,6 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
   const [subscriptionPlansLoading, setSubscriptionPlansLoading] = useState(false);
   const authMountedRef = useRef(true);
   const authRedirectHandledRef = useRef(false);
-  const pendingPrivilegedSignupRef = useRef<InMemoryPrivilegedSignupDraft | null>(null);
   const privilegedSignupMutexRef = useRef(false);
   const privilegedSignupOperationRef = useRef<{ key: string; id: string } | null>(null);
   const privilegedSignupResumeRef = useRef<string | null>(null);
@@ -932,11 +949,6 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
 
   useEffect(() => {
     if (!user?.id || !session || privilegedSignupResumeRef.current === user.id) return;
-    const draft = pendingPrivilegedSignupRef.current;
-    if (!draft) {
-      setPrivilegedSignupResumeChecking(false);
-      return;
-    }
     if (privilegedSignupMutexRef.current) return;
 
     privilegedSignupResumeRef.current = user.id;
@@ -947,17 +959,93 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
     const resumePrivilegedSignup = async () => {
       setPrivilegedSignupSubmitting(true);
       try {
-        const sessionEmail = String(user.email || "").trim().toLowerCase();
-        if (draft.userId !== user.id || draft.email !== sessionEmail) {
-          throw new Error("Reconnectez-vous avec le compte utilisé pour cette inscription restaurateur.");
+        const { data, error } = await supabase
+          .from("signup_application_drafts")
+          .select("operation_id, requested_role, safe_payload, status")
+          .eq("user_id", user.id)
+          .gt("expires_at", new Date().toISOString())
+          .maybeSingle();
+        if (error) throw error;
+        if (!data) {
+          setPrivilegedSignupResumeChecking(false);
+          return;
+        }
+        const draft = data as ServerSignupDraft;
+        if (draft.status === "finalized") {
+          await refreshRoles();
+          navigateToPostAuthTarget(draft.requested_role, true);
+          return;
+        }
+
+        const safe = draft.safe_payload || {};
+        setRoleMode(draft.requested_role);
+        setSignupForm((current) => {
+          const recovered = {
+            ...current,
+            fullName: current.fullName || String(safe.full_name || ""),
+            email: current.email || String(user.email || ""),
+            city: current.city || String(safe.city || ""),
+            businessName: current.businessName || String(safe.business_name || ""),
+            restaurantName: current.restaurantName || String(safe.restaurant_name || ""),
+            restaurantDescription: current.restaurantDescription || String(safe.restaurant_description || ""),
+            vehicleType: String(safe.vehicle_type || current.vehicleType),
+          };
+          return Object.keys(recovered).every((key) =>
+            recovered[key as keyof SignupFormState] === current[key as keyof SignupFormState]
+          ) ? current : recovered;
+        });
+        if (typeof safe.selected_subscription_plan_id === "string") {
+          setSelectedSubscriptionPlanId(safe.selected_subscription_plan_id);
+        }
+        if (safe.selected_subscription_billing_period === "monthly" || safe.selected_subscription_billing_period === "yearly") {
+          setSelectedSubscriptionBillingPeriod(safe.selected_subscription_billing_period);
+        }
+        const recoveredLegalAccepted = Boolean(
+          safe.legal_terms_accepted_at && safe.privacy_policy_accepted_at,
+        );
+        if (recoveredLegalAccepted) {
+          setLegalAccepted(true);
+          setLegalAcceptanceDraft(true);
+        }
+        privilegedSignupOperationRef.current = { key: `${user.id}:${draft.requested_role}`, id: draft.operation_id };
+
+        const resumePayload: SignupApplicationSubmission["payload"] = {
+          role: draft.requested_role,
+          form: getSignupApplicationForm(signupForm),
+          onboardingChoices: draft.requested_role === "restaurateur" ? restaurateurOnboardingChoices : undefined,
+          documents,
+          legalAcceptance: createLegalAcceptancePayload(
+            typeof safe.legal_terms_accepted_at === "string"
+              ? safe.legal_terms_accepted_at
+              : undefined,
+          ),
+          contractSignature: draft.requested_role === "restaurateur" ? {
+            signerName: contractSignerName,
+            signatureDataUrl: contractSignatureDataUrl,
+          } : undefined,
+          commercialReferralToken: draft.requested_role === "restaurateur" ? commercialReferralToken || undefined : undefined,
+        };
+        const missingDocuments = getMissingSignupDocuments(
+          getRequiredSignupDocuments(draft.requested_role, signupForm.vehicleType),
+          documents,
+        );
+        const missingForm = getSignupValidationError(
+          draft.requested_role,
+          signupForm,
+          draft.requested_role === "restaurateur" ? restaurateurOnboardingChoices : undefined,
+          legalAccepted,
+          resumePayload.contractSignature,
+          false,
+        );
+        if (missingForm || missingDocuments.length > 0) {
+          throw new Error(missingForm || `Documents manquants: ${missingDocuments.map((item) => item.label).join(", ")}.`);
         }
 
         await finalizeSignupApplication({
-          operationId: draft.operationId,
-          userId: draft.userId,
-          payload: draft.payload,
+          operationId: draft.operation_id,
+          userId: user.id,
+          payload: resumePayload,
         }, { skipIfExisting: true });
-        pendingPrivilegedSignupRef.current = null;
         privilegedSignupOperationRef.current = null;
         try {
           await refreshRoles();
@@ -968,15 +1056,15 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
         if (cancelled) return;
         toast({
           title: "Inscription enregistrée",
-          description: draft.payload.role === "restaurateur"
+          description: draft.requested_role === "restaurateur"
             ? "Votre dossier est enregistré. Enregistrez maintenant votre carte pour débloquer la configuration du restaurant."
             : "Votre compte est en attente de validation humaine.",
         });
-        if (draft.payload.role === "restaurateur" && draft.payload.onboardingChoices) {
-          await startRestaurantCardRegistrationAfterSignup(user.id, draft.payload.onboardingChoices);
+        if (draft.requested_role === "restaurateur" && resumePayload.onboardingChoices) {
+          await startRestaurantCardRegistrationAfterSignup(user.id, resumePayload.onboardingChoices);
           return;
         }
-        navigateToPostAuthTarget(draft.payload.role, true);
+        navigateToPostAuthTarget(draft.requested_role, true);
       } catch (error) {
         privilegedSignupResumeRef.current = null;
         if (cancelled) return;
@@ -995,7 +1083,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
     return () => {
       cancelled = true;
     };
-  }, [incompletePrivilegedSignupRole, navigateToPostAuthTarget, refreshRoles, session, toast, user?.email, user?.id]);
+  }, [commercialReferralToken, contractSignatureDataUrl, contractSignerName, documents, incompletePrivilegedSignupRole, legalAccepted, navigateToPostAuthTarget, refreshRoles, restaurateurOnboardingChoices, session, signupForm, toast, user?.email, user?.id]);
 
   useEffect(() => {
     if (!user || !incompletePrivilegedSignupRole || privilegedSignupResumeChecking) return;
@@ -1239,6 +1327,18 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
 
       let activeUser = isContinuingConfirmedSignup ? user : null;
       let activeSession = isContinuingConfirmedSignup ? session : null;
+      const operationKey = isContinuingConfirmedSignup && user?.id
+        ? `${user.id}:${submittedRole}`
+        : `${signupForm.email.trim().toLowerCase()}:${submittedRole}`;
+      const currentOperation = privilegedSignupOperationRef.current;
+      const operationId = isPrivilegedSignup
+        ? currentOperation?.key === operationKey
+          ? currentOperation.id
+          : crypto.randomUUID()
+        : crypto.randomUUID();
+      if (isPrivilegedSignup) {
+        privilegedSignupOperationRef.current = { key: operationKey, id: operationId };
+      }
 
       if (!isContinuingConfirmedSignup) {
         const signUpResponse = await supabase.auth.signUp({
@@ -1248,6 +1348,18 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
             data: {
               full_name: signupForm.fullName,
               signup_intent: submittedRole,
+              ...(isPrivilegedSignup ? {
+                signup_operation_id: operationId,
+                signup_city: signupForm.city || null,
+                signup_business_name: submittedRole === "restaurateur" ? signupForm.businessName : null,
+                signup_restaurant_name: submittedRole === "restaurateur" ? signupForm.restaurantName : null,
+                signup_restaurant_description: submittedRole === "restaurateur" ? signupForm.restaurantDescription : null,
+                signup_vehicle_type: submittedRole === "courier" ? signupForm.vehicleType : null,
+                signup_subscription_plan_id: submittedRole === "restaurateur" ? submittedOnboardingChoices.subscriptionPlanId : null,
+                signup_subscription_billing_period: submittedRole === "restaurateur"
+                  ? submittedOnboardingChoices.subscriptionBillingPeriod
+                  : null,
+              } : {}),
               ...toLegalAcceptanceMetadata(submittedLegalAcceptance),
             },
             emailRedirectTo: `${getCanonicalAuthHref()}?confirmed=1`,
@@ -1298,16 +1410,8 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
         })
         : null;
 
-      const operationKey = `${activeUser.id}:${submittedRole}`;
-      let operationId: string;
       if (isPrivilegedSignup) {
-        const currentOperation = privilegedSignupOperationRef.current;
-        operationId = currentOperation?.key === operationKey
-          ? currentOperation.id
-          : crypto.randomUUID();
-        privilegedSignupOperationRef.current = { key: operationKey, id: operationId };
-      } else {
-        operationId = crypto.randomUUID();
+        privilegedSignupOperationRef.current = { key: `${activeUser.id}:${submittedRole}`, id: operationId };
       }
       const submissionPayload: SignupApplicationSubmission["payload"] = {
         role: submittedRole,
@@ -1321,19 +1425,10 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
           submittedRole === "restaurateur" ? commercialReferralToken || undefined : undefined,
       };
 
-      if (isPrivilegedSignup) {
-        pendingPrivilegedSignupRef.current = {
-          operationId,
-          userId: activeUser.id,
-          email: signupForm.email.trim().toLowerCase(),
-          payload: {
-            ...submissionPayload,
-            role: submittedRole as Exclude<SignupRole, "client">,
-          },
-        };
-      }
-
       if (!activeSession) {
+        // The submit lock only protects account/draft creation. Release it
+        // before auth state changes so the confirmation effect can resume.
+        privilegedSignupMutexRef.current = false;
         setPrivilegedSignupSubmitting(false);
         setPrivilegedSignupResumeChecking(isPrivilegedSignup);
         setPrivilegedSignupAwaitingEmail(isPrivilegedSignup);
@@ -1353,7 +1448,6 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
       }, { skipIfExisting: isContinuingConfirmedSignup });
 
       if (isPrivilegedSignup) {
-        pendingPrivilegedSignupRef.current = null;
         privilegedSignupOperationRef.current = null;
       }
 
