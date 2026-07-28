@@ -268,11 +268,21 @@ function LiveDashboardReservations() {
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<OperationViewMode>("details");
   const deepLinkFocusedRef = useRef<string | null>(null);
+  const previousReservationTargetRef = useRef<string | null>(null);
   const { unreadNotifications } = useNotificationCenter(100, { realtime: true });
 
   useEffect(() => {
+    const previousTarget = previousReservationTargetRef.current;
+    previousReservationTargetRef.current = reservationTarget;
     deepLinkFocusedRef.current = null;
-    if (!reservationTarget) return;
+
+    if (!reservationTarget) {
+      if (previousTarget) {
+        setSearchTerm((current) => current === previousTarget ? "" : current);
+      }
+      return;
+    }
+
     setSearchTerm(reservationTarget);
     setTimeRange("all");
     setServiceFilter("all");
@@ -340,6 +350,7 @@ function LiveDashboardReservations() {
     if (!reservationTarget) return;
     const target = reservations.find((reservation) => reservation.id === reservationTarget);
     if (!target) return;
+    if (deepLinkFocusedRef.current === target.id) return;
     if (viewMode !== "details") {
       setViewMode("details");
       return;
@@ -348,8 +359,6 @@ function LiveDashboardReservations() {
       setOpenDayKey(target.date);
       return;
     }
-    if (deepLinkFocusedRef.current === target.id) return;
-
     const frame = window.requestAnimationFrame(() => {
       const element = document.getElementById(`reservation-${target.id}`);
       if (!element) return;
@@ -946,7 +955,7 @@ function LiveDashboardReservations() {
                 type="single"
                 collapsible
                 className="space-y-4"
-                value={openDayKey ?? undefined}
+                value={openDayKey ?? ""}
                 onValueChange={(value) => setOpenDayKey(value || null)}
               >
                 {groupedReservations.map((dateGroup) => (
