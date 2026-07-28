@@ -1,4 +1,5 @@
 import type { ComponentType, ReactNode } from "react";
+import type { DashboardIllustration } from "@/lib/dashboardIllustrations";
 import { ArrowRight, BarChart3 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -64,6 +65,7 @@ type DashboardPageHeroProps = {
   actions?: ReactNode;
   stats?: DashboardHeroStat[];
   visualLabel?: string;
+  illustration?: DashboardIllustration;
   className?: string;
 };
 
@@ -76,6 +78,7 @@ export default function DashboardPageHero({
   actions,
   stats = [],
   visualLabel = "Pilotage",
+  illustration,
   className,
 }: DashboardPageHeroProps) {
   const toneClasses = HERO_TONES[tone];
@@ -146,15 +149,29 @@ export default function DashboardPageHero({
                 )}
               </div>
 
-              <div className="mt-5 grid grid-cols-5 items-end gap-2">
-                {[42, 64, 52, 76, 58].map((height, index) => (
-                  <span
-                    key={`${height}-${index}`}
-                    className={cn("rounded-t bg-gradient-to-t shadow-[0_0_18px_rgba(255,106,26,0.28)]", toneClasses.line)}
-                    style={{ height: `${height}px`, opacity: 0.56 + index * 0.08 }}
+              {illustration ? (
+                <div className="mt-4 flex h-[92px] items-center justify-center overflow-hidden rounded-2xl bg-[radial-gradient(circle_at_center,rgba(255,159,28,0.15),transparent_68%)]" aria-hidden="true">
+                  <img
+                    src={illustration.src}
+                    alt={illustration.alt}
+                    width={illustration.width}
+                    height={illustration.height}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-full w-auto max-w-[78%] object-contain drop-shadow-[0_18px_22px_rgba(255,106,26,0.22)]"
                   />
-                ))}
-              </div>
+                </div>
+              ) : (
+                <div className="mt-5 grid grid-cols-5 items-end gap-2">
+                  {[42, 64, 52, 76, 58].map((height, index) => (
+                    <span
+                      key={`${height}-${index}`}
+                      className={cn("rounded-t bg-gradient-to-t shadow-[0_0_18px_rgba(255,106,26,0.28)]", toneClasses.line)}
+                      style={{ height: `${height}px`, opacity: 0.56 + index * 0.08 }}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
