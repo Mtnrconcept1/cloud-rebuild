@@ -66,7 +66,7 @@ export default function DropsManagement() {
       const { error } = await (supabase.rpc as any)("admin_save_chef_table_drop", {
         p_drop_id: editingId,
         p_payload: payload,
-        p_reason: editingId ? "Mise a jour drop La Table du Chef" : "Creation drop La Table du Chef",
+        p_reason: editingId ? "Mise à jour drop La Table du Chef" : "Creation drop La Table du Chef",
       });
       if (error) throw error;
     },

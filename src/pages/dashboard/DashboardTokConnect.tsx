@@ -106,7 +106,7 @@ async function updateGrantStatus(grantId: string, status: "active" | "revoked") 
   const payload = await response.json() as TokConnectEnvelope<Record<string, unknown>>;
 
   if (!response.ok || !payload.ok) {
-    throw new Error(payload.error?.message || "Mise a jour du consentement impossible.");
+    throw new Error(payload.error?.message || "Mise à jour du consentement impossible.");
   }
 }
 

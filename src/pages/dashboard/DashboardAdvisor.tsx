@@ -151,7 +151,7 @@ const QUICK_TOOLS: QuickTool[] = [
   },
   {
     icon: Megaphone,
-    label: "Creer une campagne",
+    label: "Créer une campagne",
     mode: "agent",
     action: "marketing_campaign",
     prompt: "Cree un brouillon de campagne marketing pour augmenter les commandes cette semaine sans publier automatiquement.",

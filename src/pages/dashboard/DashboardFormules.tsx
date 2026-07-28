@@ -1123,7 +1123,7 @@ function ProgressiveOfferManager({
                 disabled={saving}
               >
                 <CalendarCheck className="mr-2 h-4 w-4" />
-                {currentOffer ? "Modifier" : "Creer"}
+                {currentOffer ? "Modifier" : "Créer"}
               </Button>
               <Button type="button" onClick={() => currentOffer && updateOfferStatus(currentOffer, "active")} disabled={saving || !currentOffer || currentOffer.status === "active" || currentOffer.status === "finalized"}>
                 Activer
@@ -1159,7 +1159,7 @@ function ProgressiveOfferManager({
             disabled={saving}
           >
             <CalendarCheck className="h-4 w-4" />
-            {currentOffer ? "Modifier en 3 etapes" : "Creer en 3 etapes"}
+            {currentOffer ? "Modifier en 3 etapes" : "Créer en 3 etapes"}
           </Button>
         </div>
 

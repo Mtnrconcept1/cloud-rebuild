@@ -307,7 +307,7 @@ export default function AdminLoyalty() {
         p_plan_id: editingPlan?.id || null,
         p_payload: payload,
         p_benefits: benefitRows,
-        p_reason: editingPlan ? "Mise a jour admin Tok One" : "Creation admin Tok One",
+        p_reason: editingPlan ? "Mise à jour admin Tok One" : "Creation admin Tok One",
       });
       if (error) throw error;
     } catch (error) {
@@ -394,7 +394,7 @@ export default function AdminLoyalty() {
     const { error } = await (supabase.rpc as any)("admin_save_loyalty_tier", {
       p_tier_id: editingTier?.id || null,
       p_payload: payload,
-      p_reason: editingTier ? "Mise a jour palier fidelite" : "Creation palier fidelite",
+      p_reason: editingTier ? "Mise à jour palier fidelite" : "Creation palier fidelite",
     });
 
     setSavingTier(false);
@@ -537,7 +537,7 @@ export default function AdminLoyalty() {
               </div>
               <Dialog open={planOpen} onOpenChange={setPlanOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" onClick={openNewPlan}>Creer forfait</Button>
+                  <Button variant="outline" size="sm" onClick={openNewPlan}>Créer forfait</Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-lg">
                   <DialogHeader><DialogTitle>{editingPlan ? "Modifier le forfait" : "Nouveau forfait"}</DialogTitle></DialogHeader>
@@ -576,7 +576,7 @@ export default function AdminLoyalty() {
                       <option value="active">active</option>
                       <option value="archived">archived</option>
                     </select>
-                    <Button type="submit" className="w-full" disabled={savingPlan}>{savingPlan ? "Enregistrement..." : editingPlan ? "Mettre a jour" : "Creer"}</Button>
+                    <Button type="submit" className="w-full" disabled={savingPlan}>{savingPlan ? "Enregistrement..." : editingPlan ? "Mettre à jour" : "Créer"}</Button>
                   </form>
                 </DialogContent>
               </Dialog>
@@ -686,7 +686,7 @@ export default function AdminLoyalty() {
                       <option value="active">active</option>
                       <option value="archived">archived</option>
                     </select>
-                    <Button type="submit" className="w-full" disabled={savingTier}>{savingTier ? "Enregistrement..." : editingTier ? "Mettre a jour" : "Creer"}</Button>
+                    <Button type="submit" className="w-full" disabled={savingTier}>{savingTier ? "Enregistrement..." : editingTier ? "Mettre à jour" : "Créer"}</Button>
                   </form>
                 </DialogContent>
               </Dialog>

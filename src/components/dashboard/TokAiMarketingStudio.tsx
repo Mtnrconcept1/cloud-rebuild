@@ -1988,7 +1988,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                   value={prompt}
                   onChange={(event) => updatePrompt(event.target.value)}
                   maxLength={MARKETING_PROMPT_MAX_LENGTH + 120}
-                  placeholder="Ex: Creer un flyer pour la soiree mexicaine de vendredi, avec tacos, ambiance festive, couleurs chaudes, style moderne et gourmand..."
+                  placeholder="Ex: Créer un flyer pour la soiree mexicaine de vendredi, avec tacos, ambiance festive, couleurs chaudes, style moderne et gourmand..."
                   className="min-h-[132px] resize-y rounded-2xl border-orange-200 bg-orange-50/30 text-base shadow-inner focus-visible:ring-orange-400"
                 />
                 <div className="flex min-w-0 flex-col gap-2 break-words text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">

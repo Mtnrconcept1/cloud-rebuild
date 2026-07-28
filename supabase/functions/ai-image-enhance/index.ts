@@ -702,7 +702,7 @@ function buildImageOnlyResult(input: {
   const enhancedPrompt = input.sourceImagePresent
     ? input.sourceEditPrompt || SOURCE_IMAGE_EDIT_PROMPT
     : [
-      `Creer une photographie culinaire de studio professionnelle et appetissante pour ${dishLabel}.`,
+      `Créer une photographie culinaire de studio professionnelle et appetissante pour ${dishLabel}.`,
       input.userPrompt,
       `Restaurant: ${input.restaurantName}. Format demande: ${input.format}.`,
       "Rendu studio attendu: fond propre, eclairage softbox premium, sujet net, textures appetissantes, formes valorisees, profondeur de champ douce et joli flou d'arriere-plan. Image finale non brandee: sans logo, sans texte de marque, sans marque de plateforme, sans bulle, sans mascotte, sans macaron, sans texte incruste et sans watermark. Les elements de marque sont ajoutes apres generation par l'interface, comme calque transparent separe.",
@@ -975,7 +975,7 @@ function buildMarketingReferenceFallbackPrompt(input: {
   const textBrief = stripMarketingReferenceOnlyInstructions(input.prompt);
 
   return [
-    "Creer un visuel marketing final pour le restaurateur a partir du brief courant.",
+    "Créer un visuel marketing final pour le restaurateur a partir du brief courant.",
     "Les visuels de reference n'ont pas pu etre utilises par le modele image apres les tentatives d'edition: continuer sans bloquer la generation.",
     "Regle de securite identite: ne pas inventer de logo, marque, personnage, mascotte, typographie proprietaire ou palette proprietaire si ces elements ne sont pas explicitement decrits dans le brief texte.",
     "Produire une composition premium neutre si l'identite visuelle n'est pas exploitable. Ne jamais reutiliser une identite, un asset ou une preference d'une ancienne generation.",
