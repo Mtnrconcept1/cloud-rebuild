@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
@@ -252,6 +252,7 @@ function LiveDashboardReservations() {
   const isCommercialDemoRestaurant = Boolean(commercialDemoSnapshot);
   const { selectedId, restaurants, loading: restaurantsLoading, error: restaurantsError } = useDashboardRestaurant();
   const [searchParams] = useSearchParams();
+  const reservationTarget = searchParams.get("reservation");
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [referenceDate, setReferenceDate] = useState(getTodayReferenceDate());
@@ -266,12 +267,18 @@ function LiveDashboardReservations() {
   const [honorTarget, setHonorTarget] = useState<ReservationWithProfile | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<OperationViewMode>("details");
+  const deepLinkFocusedRef = useRef<string | null>(null);
   const { unreadNotifications } = useNotificationCenter(100, { realtime: true });
 
   useEffect(() => {
-    const reservationTarget = searchParams.get("reservation");
-    if (reservationTarget) setSearchTerm(reservationTarget);
-  }, [searchParams]);
+    deepLinkFocusedRef.current = null;
+    if (!reservationTarget) return;
+    setSearchTerm(reservationTarget);
+    setTimeRange("all");
+    setServiceFilter("all");
+    setStatusFilter("all");
+    setViewMode("details");
+  }, [reservationTarget]);
 
   const effectiveSelectedId = commercialDemoSnapshot?.session.demo_restaurant_id || selectedId;
   const selectedRestaurant = commercialDemoSnapshot?.demo_restaurant
@@ -328,6 +335,32 @@ function LiveDashboardReservations() {
     [commercialDemoReservations, isCommercialDemoRestaurant, productionReservationsQuery.data],
   );
   const reservationsError = isCommercialDemoRestaurant ? null : productionReservationsQuery.error;
+
+  useEffect(() => {
+    if (!reservationTarget) return;
+    const target = reservations.find((reservation) => reservation.id === reservationTarget);
+    if (!target) return;
+    if (viewMode !== "details") {
+      setViewMode("details");
+      return;
+    }
+    if (openDayKey !== target.date) {
+      setOpenDayKey(target.date);
+      return;
+    }
+    if (deepLinkFocusedRef.current === target.id) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      const element = document.getElementById(`reservation-${target.id}`);
+      if (!element) return;
+      const reduceMotion = typeof window.matchMedia === "function"
+        && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      element.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" });
+      element.focus({ preventScroll: true });
+      deepLinkFocusedRef.current = target.id;
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [openDayKey, reservationTarget, reservations, viewMode]);
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
@@ -997,7 +1030,12 @@ function LiveDashboardReservations() {
                                     : `rounded-2xl border border-l-4 bg-card shadow-sm ${compactBase}`;
 
                                 return (
-                                  <article key={reservation.id} className={articleClass}>
+                                  <article
+                                  id={`reservation-${reservation.id}`}
+                                  key={reservation.id}
+                                  tabIndex={-1}
+                                  className={`${articleClass}${reservation.id === reservationTarget ? " ring-2 ring-primary ring-offset-2" : ""}`}
+                                >
                                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                                       <div className="space-y-2">
                                         <div className="flex flex-wrap items-center gap-2">
