@@ -27,6 +27,7 @@ describe("public feature, help and legal coverage", () => {
 
     expect(help).not.toContain("Matrice des fonctionnalités proposées");
     expect(help).not.toContain("PUBLIC_FEATURE_MATRIX");
+    expect(help).not.toContain("feature-matrix-title");
   });
 
   it("documents the complete restaurant onboarding and Fair Growth lifecycle", () => {
