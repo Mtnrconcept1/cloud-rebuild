@@ -33,7 +33,9 @@ describe("restaurant onboarding subscription payments", () => {
     expect(auth).not.toContain("new FormData()");
     expect(auth).toContain("selected_subscription_plan_id");
     expect(auth).toContain("selected_subscription_billing_period");
-    expect(auth).toContain("pendingPrivilegedSignupRef");
+    expect(auth).not.toContain("pendingPrivilegedSignupRef");
+    expect(auth).toContain('.from("signup_application_drafts")');
+    expect(auth).toContain("signup_operation_id: operationId");
     expect(auth).toContain("uploadVerificationDocumentsWithRollback");
     expect(auth).not.toMatch(/indexedDB|localStorage/i);
     expect(validation).not.toContain("launch_pack_id");

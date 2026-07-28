@@ -545,7 +545,7 @@ describe("Auth signup form", () => {
   });
 
 
-  it("keeps the dossier in memory, blocks duplicate submission, and resumes when this tab receives the confirmed session", async () => {
+  it("creates one server draft, blocks duplicate submission, and resumes in the confirmed tab", async () => {
     HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
       beginPath: vi.fn(),
       clearRect: vi.fn(),
@@ -631,6 +631,26 @@ describe("Auth signup form", () => {
         description: expect.stringContaining("cet onglet reste ouvert"),
       }),
     );
+    const signupMetadata = supabaseMocks.signUp.mock.calls[0][0].options.data;
+    expect(signupMetadata.signup_operation_id).toEqual(expect.any(String));
+    supabaseMocks.from.mockImplementation((table: string) => {
+      if (table !== "signup_application_drafts") return mockSupabaseTable(table);
+      const builder = {
+        select: vi.fn(() => builder),
+        eq: vi.fn(() => builder),
+        gt: vi.fn(() => builder),
+        maybeSingle: vi.fn(() => Promise.resolve({
+          data: {
+            operation_id: signupMetadata.signup_operation_id,
+            requested_role: "restaurateur",
+            safe_payload: {},
+            status: "ready",
+          },
+          error: null,
+        })),
+      };
+      return builder;
+    });
 
     authContextMocks.user = {
       id: "restaurant-user-id",
@@ -672,9 +692,8 @@ describe("Auth signup form", () => {
       );
     });
 
-    const firstUploadPaths = supabaseMocks.upload.mock.calls.map(([path]) => path);
+    const firstUploadPaths = supabaseMocks.upload.mock.calls.slice(0, 3).map(([path]) => path);
     expect(supabaseMocks.remove).toHaveBeenCalledWith(firstUploadPaths);
-    fireEvent.click(await screen.findByRole("button", { name: "Finaliser mon dossier" }));
 
     await waitFor(() => {
       expect(

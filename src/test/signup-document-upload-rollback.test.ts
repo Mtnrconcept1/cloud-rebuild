@@ -113,4 +113,22 @@ describe("verification document upload rollback", () => {
       "user/restaurateur/identity-operation.pdf",
     ])).resolves.toBeNull();
   });
+
+  it("uses the same operation path on a replayed upload", async () => {
+    const input = {
+      userId: "user-123",
+      role: "restaurateur" as const,
+      documentType: "identity_document" as const,
+      file: documentFile("identity.pdf"),
+      uploadId: "stable-operation-id",
+    };
+
+    await uploadVerificationDocumentsWithRollback([input]);
+    await uploadVerificationDocumentsWithRollback([input]);
+
+    expect(storageMocks.upload.mock.calls.map(([path]) => path)).toEqual([
+      "user-123/restaurateur/identity_document-stable-operation-id.pdf",
+      "user-123/restaurateur/identity_document-stable-operation-id.pdf",
+    ]);
+  });
 });

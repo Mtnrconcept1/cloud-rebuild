@@ -10,6 +10,19 @@ function read(path: string) {
 }
 
 describe("signup legal acceptance and correction flow", () => {
+  it("reuses the server operation for confirmation, reload, replay, and an already finalized dossier", () => {
+    const auth = read("src/pages/Auth.tsx");
+    const migration = read("supabase/migrations/20260728075715_server_signup_drafts.sql");
+
+    expect(auth).toContain('status === "finalized"');
+    expect(auth).toContain("privilegedSignupOperationRef.current");
+    expect(auth).toContain("skipIfExisting: true");
+    expect(auth).toContain("mark_signup_application_draft_finalized");
+    expect(migration).toContain("ON CONFLICT (user_id, requested_role) DO UPDATE");
+    expect(migration).toContain("operation_id = EXCLUDED.operation_id");
+    expect(migration).toContain("status <> 'finalized'");
+  });
+
   it("forwards CGU/privacy acceptance through the authenticated direct signup flow", () => {
     const auth = read("src/pages/Auth.tsx");
     const retiredSubmitFunction = read("supabase/functions/submit-signup-application/index.ts");
