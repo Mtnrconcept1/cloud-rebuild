@@ -203,6 +203,7 @@ type CommercialSearchFilters = {
   status: ProspectStatus | typeof ALL_STATUSES;
   commune: string;
   category: string;
+  theForkOnly: boolean;
 };
 
 type CommercialFollowupReminderResult = {
@@ -222,6 +223,7 @@ const DEFAULT_COMMERCIAL_SEARCH_FILTERS: CommercialSearchFilters = {
   status: ALL_STATUSES,
   commune: ALL_COMMUNES,
   category: ALL_CATEGORIES,
+  theForkOnly: false,
 };
 
 function normalizeSearchValue(value: string | number | null | undefined) {
@@ -966,6 +968,7 @@ export default function CommercialProspection() {
   const [statusFilter, setStatusFilter] = useState<ProspectStatus | typeof ALL_STATUSES>(ALL_STATUSES);
   const [communeFilter, setCommuneFilter] = useState(ALL_COMMUNES);
   const [categoryFilter, setCategoryFilter] = useState(ALL_CATEGORIES);
+  const [theForkOnly, setTheForkOnly] = useState(false);
   const [hasLaunchedSearch, setHasLaunchedSearch] = useState(false);
   const [appliedFilters, setAppliedFilters] = useState<CommercialSearchFilters>(DEFAULT_COMMERCIAL_SEARCH_FILTERS);
   const [selectedObjectId, setSelectedObjectId] = useState<number | null>(null);
@@ -1003,6 +1006,7 @@ export default function CommercialProspection() {
   });
 
   const prospects = useMemo(() => prospectsQuery.data ?? [], [prospectsQuery.data]);
+  const theForkAvailable = useMemo(() => prospects.some((prospect) => prospect.isTheFork === true), [prospects]);
 
   const prospectsWithSearch = useMemo(
     () => prospects.map((prospect) => ({
@@ -1046,6 +1050,7 @@ export default function CommercialProspection() {
         if (normalizedSearch && !haystack.includes(normalizedSearch)) return false;
         if (appliedFilters.commune !== ALL_COMMUNES && prospect.commune !== appliedFilters.commune) return false;
         if (appliedFilters.category !== ALL_CATEGORIES && prospect.category !== appliedFilters.category) return false;
+        if (appliedFilters.theForkOnly && prospect.isTheFork !== true) return false;
         if (
           appliedFilters.status !== ALL_STATUSES
           && getProspectStatus(prospect, followupsByObjectId) !== appliedFilters.status
@@ -1299,16 +1304,18 @@ export default function CommercialProspection() {
       status: statusFilter,
       commune: communeFilter,
       category: categoryFilter,
+      theForkOnly,
     });
     setHasLaunchedSearch(true);
     setSelectedObjectId(null);
-  }, [categoryFilter, communeFilter, search, statusFilter]);
+  }, [categoryFilter, communeFilter, search, statusFilter, theForkOnly]);
 
   const handleResetSearch = useCallback(() => {
     setSearch("");
     setStatusFilter(ALL_STATUSES);
     setCommuneFilter(ALL_COMMUNES);
     setCategoryFilter(ALL_CATEGORIES);
+    setTheForkOnly(false);
     setAppliedFilters(DEFAULT_COMMERCIAL_SEARCH_FILTERS);
     setHasLaunchedSearch(false);
     setSelectedObjectId(null);
@@ -1641,6 +1648,25 @@ export default function CommercialProspection() {
               </Select>
             </div>
 
+            <div className="rounded-2xl border border-orange-100 bg-orange-50/55 p-3 dark:border-orange-400/20 dark:bg-orange-500/5">
+              <div className="flex min-h-11 items-start gap-3">
+                <Checkbox
+                  id="commercial-thefork-only"
+                  checked={theForkOnly}
+                  onCheckedChange={(checked) => setTheForkOnly(checked === true)}
+                  disabled={!theForkAvailable}
+                  className="mt-0.5"
+                />
+                <Label htmlFor="commercial-thefork-only" className="cursor-pointer text-sm leading-5">
+                  <span className="block font-bold">Affiliés TheFork uniquement</span>
+                  <span className="mt-0.5 block text-xs font-normal text-muted-foreground">
+                    {theForkAvailable
+                      ? "Affiche uniquement les restaurants présents dans le catalogue TheFork importé."
+                      : "Source TheFork indisponible pour ce chargement."}
+                  </span>
+                </Label>
+              </div>
+            </div>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-1">
               <Button type="button" className="h-11 rounded-2xl" onClick={handleRunSearch}>
                 <Search className="mr-2 h-4 w-4" />
