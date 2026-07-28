@@ -45,6 +45,7 @@ const CRITICAL_FLAGS = new Set([
   "reservation",
   "payment-card",
   "dashboard-restaurateur",
+  "dashboard-pack",
   "espace-livreur",
 ]);
 
