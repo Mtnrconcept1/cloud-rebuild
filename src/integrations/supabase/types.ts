@@ -7007,6 +7007,10 @@ export type Database = {
         }
         Returns: string
       }
+      mark_signup_application_draft_finalized: {
+        Args: { p_operation_id: string }
+        Returns: Database["public"]["Tables"]["signup_application_drafts"]["Row"]
+      }
       sync_signup_application: {
         Args: {
           p_address?: string

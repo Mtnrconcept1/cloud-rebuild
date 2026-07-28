@@ -659,14 +659,18 @@ describe("Auth signup form", () => {
     };
     authContextMocks.session = { access_token: "confirmed-session" };
     let syncSignupAttempt = 0;
-    supabaseMocks.rpc.mockImplementation(async (functionName: string) => {
+    let resolveFirstSync!: (result: { data: null; error: Error | null }) => void;
+    const firstSyncResult = new Promise<{ data: null; error: Error | null }>((resolve) => {
+      resolveFirstSync = resolve;
+    });
+    supabaseMocks.rpc.mockImplementation((functionName: string) => {
       if (functionName === "sync_signup_application") {
         syncSignupAttempt += 1;
         if (syncSignupAttempt === 1) {
-          return { data: null, error: new Error("temporary signup failure") };
+          return firstSyncResult;
         }
       }
-      return { data: null, error: null };
+      return Promise.resolve({ data: null, error: null });
     });
     view.rerender(
       <MemoryRouter initialEntries={["/auth?type=restaurateur"]}>
@@ -686,6 +690,10 @@ describe("Auth signup form", () => {
       );
     });
     expect(supabaseMocks.upload).toHaveBeenCalledTimes(3);
+    await act(async () => {
+      resolveFirstSync({ data: null, error: new Error("temporary signup failure") });
+      await firstSyncResult;
+    });
     await waitFor(() => {
       expect(toastMock).toHaveBeenCalledWith(
         expect.objectContaining({ title: "Inscription à reprendre" }),

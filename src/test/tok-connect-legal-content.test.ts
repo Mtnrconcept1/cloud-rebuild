@@ -48,7 +48,7 @@ describe("TOK Connect legal and help content", () => {
   it("documents restaurant consent and responsibilities for TOK Connect", () => {
     const restaurantTerms = read("src/pages/ConditionsRestaurateurs.tsx");
 
-    expect(restaurantTerms).toContain('const updatedAt = "18 juillet 2026"');
+    expect(restaurantTerms).toContain('const updatedAt = "28 juillet 2026"');
     expect(restaurantTerms).toContain("26. TOK Connect, partenaires API et MCP");
     expect(restaurantTerms).toContain("autoriser ou refuser un partenaire par restaurant");
     expect(restaurantTerms).toContain("Les reservations creees par TOK Connect engagent le restaurant");
