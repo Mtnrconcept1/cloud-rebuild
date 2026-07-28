@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, Bike, Clock3, Heart, MapPin, Percent, Sparkles } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -372,24 +372,26 @@ export default function RestaurantCard({
     }
   }, [id, isCommercialDemoClient, isSponsored, sponsoredCampaignId]);
 
-  const handleCardClick = (event?: React.MouseEvent) => {
-    if (event && isNestedCardActionTarget(event.target)) return;
+  const restaurantPath = buildRestaurantSeoPath({ id, name, city, slug });
 
-    if (isCommercialDemoClient) {
-      navigate(buildRestaurantSeoPath({ id, name, city, slug }));
-      return;
-    }
+  const trackRestaurantNavigation = () => {
+    if (isCommercialDemoClient) return;
     if (isSponsored && sponsoredCampaignId) {
       trackSponsoredClick(sponsoredCampaignId, id, "restaurant_card");
     } else {
       trackClick("restaurant", id);
     }
-    navigate(buildRestaurantSeoPath({ id, name, city, slug }));
   };
 
-  const handleViewClick = (e: React.MouseEvent) => {
-    stopNestedCardAction(e);
-    handleCardClick();
+  const handleCardClick = (event?: React.MouseEvent) => {
+    if (event && isNestedCardActionTarget(event.target)) return;
+    trackRestaurantNavigation();
+    navigate(restaurantPath);
+  };
+
+  const handleRestaurantLinkClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    stopNestedCardAction(event);
+    trackRestaurantNavigation();
   };
 
   const handleSlotClick = (e: React.MouseEvent, slot: string) => {
@@ -398,7 +400,7 @@ export default function RestaurantCard({
       trackSponsoredClick(sponsoredCampaignId, id, "restaurant_card_slot");
     }
     navigate(
-      `/restaurant/${id}?reserve=true&date=${reservationCardDate}&time=${encodeURIComponent(slot)}&party_size=2&reservationStep=datetime&reservationSource=card_slot`,
+      `${restaurantPath}?reserve=true&date=${reservationCardDate}&time=${encodeURIComponent(slot)}&party_size=2&reservationStep=datetime&reservationSource=card_slot`,
     );
   };
 
@@ -463,6 +465,8 @@ export default function RestaurantCard({
         <div className="relative aspect-[16/10] overflow-hidden">
           <img
             src={optimizedImage}
+            width={640}
+            height={400}
             srcSet={optimizedSrcSet}
             sizes={optimizedSrcSet ? getOptimizedImageSizes("card") : undefined}
             alt={name}
@@ -509,7 +513,14 @@ export default function RestaurantCard({
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1 space-y-1">
               <h3 className="font-display text-base font-bold leading-tight text-foreground transition-colors group-hover:text-primary dark:text-white dark:drop-shadow-[0_0_18px_rgba(255,255,255,0.12)]">
-                {name}
+                <Link
+                  to={restaurantPath}
+                  data-card-action="restaurant-link"
+                  onClick={handleRestaurantLinkClick}
+                  className="rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                >
+                  {name}
+                </Link>
               </h3>
               <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/90 dark:text-slate-200/90">
                 {cuisine ? <span className="max-w-full truncate">{cuisine}</span> : null}
@@ -574,10 +585,10 @@ export default function RestaurantCard({
 
           <div className="mt-auto pt-4">
             <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
+              <Link
+                to={restaurantPath}
                 data-card-action="restaurant-view"
-                onClick={handleViewClick}
+                onClick={handleRestaurantLinkClick}
                 className={cn(
                   "inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl px-4 text-sm font-bold text-white transition-all",
                   isSponsored
@@ -587,7 +598,7 @@ export default function RestaurantCard({
               >
                 {isSponsored ? "Découvrir l'offre" : "Voir le restaurant"}
                 <ArrowRight className="h-4 w-4" />
-              </button>
+              </Link>
               {visibleSlots.map((slot) => (
                 <button
                   key={slot.time}
