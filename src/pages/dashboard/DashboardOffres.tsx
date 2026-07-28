@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSupabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -215,6 +216,7 @@ export default function DashboardOffres() {
           icon={Leaf}
           tone="emerald"
           visualLabel="Anti-gaspi"
+          illustration={DASHBOARD_ILLUSTRATIONS.offers}
           stats={[
             { label: "Offres", value: offers?.length || 0, icon: Leaf },
             { label: "Actives", value: offers?.filter((offer) => isSpecialOfferEffectivelyActive(offer)).length || 0, icon: Percent },

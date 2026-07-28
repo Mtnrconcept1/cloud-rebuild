@@ -1,4 +1,5 @@
 import type { ComponentType, ReactNode } from "react";
+import type { DashboardIllustration } from "@/lib/dashboardIllustrations";
 import { ArrowRight, BarChart3 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -64,6 +65,7 @@ type DashboardPageHeroProps = {
   actions?: ReactNode;
   stats?: DashboardHeroStat[];
   visualLabel?: string;
+  illustration?: DashboardIllustration;
   className?: string;
 };
 
@@ -76,6 +78,7 @@ export default function DashboardPageHero({
   actions,
   stats = [],
   visualLabel = "Pilotage",
+  illustration,
   className,
 }: DashboardPageHeroProps) {
   const toneClasses = HERO_TONES[tone];
@@ -108,10 +111,10 @@ export default function DashboardPageHero({
             {actions ? <div className="tok-action-row flex flex-wrap gap-3">{actions}</div> : null}
           </div>
 
-          <div className="pointer-events-none relative z-10 hidden min-h-64 lg:block">
+          <div className="pointer-events-none relative z-10 hidden lg:block">
             <div className={cn("absolute inset-x-2 top-0 h-1 rounded-full bg-gradient-to-r", toneClasses.line)} />
             <div className={cn(
-              "absolute right-0 top-6 w-full rounded-3xl border border-[#6b7da7]/35 bg-white/80 p-5 backdrop-blur dark:bg-[#07142b]/74",
+              "relative mt-6 w-full rounded-3xl border border-[#6b7da7]/35 bg-white/80 p-5 backdrop-blur dark:bg-[#07142b]/74",
               "dark:shadow-[0_26px_74px_rgba(0,0,0,0.44),inset_0_1px_0_rgba(255,255,255,0.08)]",
               toneClasses.glow,
             )}>
@@ -125,7 +128,8 @@ export default function DashboardPageHero({
                 </div>
               </div>
 
-              <div className="mt-5 space-y-3">
+              <div className={cn("mt-5", illustration && "grid grid-cols-[minmax(0,1fr)_7.5rem] items-center gap-3")}>
+                <div className="space-y-3">
                 {displayStats.length > 0 ? displayStats.map((stat) => {
                   const StatIcon = stat.icon ?? ArrowRight;
 
@@ -144,16 +148,31 @@ export default function DashboardPageHero({
                     <p className="text-xs text-muted-foreground dark:text-slate-100/64">Les données utiles restent au premier plan.</p>
                   </div>
                 )}
-              </div>
+                </div>
 
-              <div className="mt-5 grid grid-cols-5 items-end gap-2">
-                {[42, 64, 52, 76, 58].map((height, index) => (
-                  <span
-                    key={`${height}-${index}`}
-                    className={cn("rounded-t bg-gradient-to-t shadow-[0_0_18px_rgba(255,106,26,0.28)]", toneClasses.line)}
-                    style={{ height: `${height}px`, opacity: 0.56 + index * 0.08 }}
+                {illustration ? (
+                <div className="flex min-h-32 items-center justify-center overflow-hidden rounded-2xl bg-[radial-gradient(circle_at_center,rgba(255,159,28,0.15),transparent_68%)]" aria-hidden="true">
+                  <img
+                    src={illustration.src}
+                    alt={illustration.alt}
+                    width={illustration.width}
+                    height={illustration.height}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-auto max-h-32 w-full object-contain drop-shadow-[0_18px_22px_rgba(255,106,26,0.22)]"
                   />
-                ))}
+                </div>
+              ) : (
+                <div className="mt-5 grid grid-cols-5 items-end gap-2">
+                  {[42, 64, 52, 76, 58].map((height, index) => (
+                    <span
+                      key={`${height}-${index}`}
+                      className={cn("rounded-t bg-gradient-to-t shadow-[0_0_18px_rgba(255,106,26,0.28)]", toneClasses.line)}
+                      style={{ height: `${height}px`, opacity: 0.56 + index * 0.08 }}
+                    />
+                  ))}
+                </div>
+                )}
               </div>
             </div>
           </div>

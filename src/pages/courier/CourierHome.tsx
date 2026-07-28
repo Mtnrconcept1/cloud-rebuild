@@ -1,4 +1,5 @@
 import { useMemo, useState, type ReactNode } from "react";
+import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, BellRing, Bike, Coins, Clock3, MapPin, Navigation, ShieldCheck, Smartphone } from "lucide-react";
 import { getCurrentPosition } from "@/lib/geolocation-native";
@@ -258,8 +259,20 @@ function CourierHomePresentation({
                   </Button>
                 </div>
               ) : (
-                <div className="rounded-xl border border-dashed p-6 text-sm text-muted-foreground">
-                  Passez en ligne pour recevoir des propositions de livraison autour de votre position.
+                <div className="grid min-h-44 grid-cols-1 items-center gap-3 overflow-hidden rounded-2xl border border-dashed border-orange-200 bg-orange-50/40 p-5 text-sm text-muted-foreground dark:border-orange-400/20 dark:bg-orange-500/5 sm:grid-cols-[minmax(0,1fr)_10rem]">
+                  <div>
+                    <p className="font-semibold text-foreground">Prêt pour la prochaine mission</p>
+                    <p className="mt-2 leading-6">Passez en ligne pour recevoir des propositions de livraison autour de votre position.</p>
+                  </div>
+                  <img
+                    src={DASHBOARD_ILLUSTRATIONS.courierEmpty.src}
+                    alt={DASHBOARD_ILLUSTRATIONS.courierEmpty.alt}
+                    width={DASHBOARD_ILLUSTRATIONS.courierEmpty.width}
+                    height={DASHBOARD_ILLUSTRATIONS.courierEmpty.height}
+                    loading="lazy"
+                    decoding="async"
+                    className="mx-auto h-auto max-h-32 w-full max-w-40 object-contain drop-shadow-[0_18px_22px_rgba(194,78,24,0.18)] sm:max-h-36 sm:max-w-none"
+                  />
                 </div>
               )}
             </CardContent>

@@ -1,5 +1,7 @@
 import { type CSSProperties, FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
+import IllustratedActionCard from "@/components/dashboard/IllustratedActionCard";
+import { DASHBOARD_ILLUSTRATIONS, type DashboardIllustration } from "@/lib/dashboardIllustrations";
 import AiCreationsGallery from "@/components/dashboard/AiCreationsGallery";
 import TokAiMarketingStudio from "@/components/dashboard/TokAiMarketingStudio";
 import TokAiPhotoStudio from "@/components/dashboard/TokAiPhotoStudio";
@@ -107,36 +109,42 @@ const PHOTO_WORKSPACE_TOOLS: Array<{
   title: string;
   description: string;
   icon: LucideIcon;
+  illustration: DashboardIllustration;
 }> = [
   {
     id: "marketing",
     title: "Marketing Studio",
     description: "Créer des visuels marketing cohérents avec vos ressources de marque.",
     icon: Sparkles,
+    illustration: DASHBOARD_ILLUSTRATIONS.photoMarketing,
   },
   {
     id: "photopro",
     title: "Photopro",
     description: "Retoucher une photo culinaire et l'ajouter à la galerie.",
     icon: Camera,
+    illustration: DASHBOARD_ILLUSTRATIONS.photoPro,
   },
   {
     id: "add_photo",
     title: "Ajouter une photo à la galerie",
     description: "Importer directement une image depuis votre appareil.",
     icon: ImagePlus,
+    illustration: DASHBOARD_ILLUSTRATIONS.photoAdd,
   },
   {
     id: "gallery",
     title: "Galerie",
     description: "Gérer les photos visibles sur la fiche restaurant.",
     icon: Images,
+    illustration: DASHBOARD_ILLUSTRATIONS.photoGallery,
   },
   {
     id: "creations",
     title: "Mes créations",
     description: "Retrouver les générations IA et les ajouter à la galerie.",
     icon: History,
+    illustration: DASHBOARD_ILLUSTRATIONS.photoCreations,
   },
 ];
 
@@ -689,35 +697,31 @@ export default function DashboardPhotos() {
     <DashboardLayout>
       <div className="space-y-6">
         {!activeTool ? (
-          <section className="flex min-h-[calc(100dvh-9rem)] items-center justify-center py-8 sm:py-10">
+          <>
+            <h1 className="sr-only">Photos et créations</h1>
+            <section className="flex min-h-[calc(100dvh-9rem)] items-center justify-center py-8 sm:py-10">
             <div
-              className="grid w-full max-w-6xl auto-rows-fr gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"
+              className="grid w-full max-w-6xl gap-4 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3"
               aria-label="Outils photos du dashboard restaurateur"
             >
-              {PHOTO_WORKSPACE_TOOLS.map((tool) => {
-                const Icon = tool.icon;
-                return (
-                  <button
-                    key={tool.id}
-                    type="button"
-                    onClick={() => selectWorkspaceTool(tool.id)}
-                    className="group flex min-h-[218px] flex-col rounded-[28px] border border-orange-100 bg-[linear-gradient(145deg,rgba(255,255,255,0.98),rgba(255,247,237,0.82))] p-5 text-left shadow-[0_18px_46px_rgba(15,23,42,0.08)] transition duration-200 hover:-translate-y-1 hover:border-orange-300 hover:shadow-[0_24px_58px_rgba(249,115,22,0.16)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 dark:border-orange-400/20 dark:bg-background"
-                  >
-                    <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-50 text-orange-600 ring-1 ring-orange-100 transition group-hover:bg-orange-600 group-hover:text-white group-hover:ring-orange-600">
-                      <Icon className="h-6 w-6" />
+              {PHOTO_WORKSPACE_TOOLS.map((tool) => (
+                <IllustratedActionCard
+                  key={tool.id}
+                  title={tool.title}
+                  description={tool.description}
+                  icon={tool.icon}
+                  illustration={tool.illustration}
+                  onClick={() => selectWorkspaceTool(tool.id)}
+                  meta={tool.id === "gallery" ? (
+                    <span className="inline-flex w-fit rounded-full bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-700 dark:bg-orange-500/10 dark:text-orange-200">
+                      {items.length} photo{items.length > 1 ? "s" : ""}
                     </span>
-                    <span className="mt-5 block text-lg font-bold leading-tight text-foreground">{tool.title}</span>
-                    <span className="mt-3 block text-sm leading-6 text-muted-foreground">{tool.description}</span>
-                    {tool.id === "gallery" ? (
-                      <span className="mt-auto inline-flex w-fit rounded-full bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-700">
-                        {items.length} photo{items.length > 1 ? "s" : ""}
-                      </span>
-                    ) : null}
-                  </button>
-                );
-              })}
+                  ) : null}
+                />
+              ))}
             </div>
-          </section>
+            </section>
+          </>
         ) : (
           <div className="flex flex-col gap-3 rounded-3xl border border-orange-100 bg-white p-4 shadow-sm dark:bg-background sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
