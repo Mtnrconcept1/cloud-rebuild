@@ -6,6 +6,7 @@ import {
   generateRestaurantPartnerContractSha256,
   generateSignedRestaurantPartnerContractHtml,
 } from "@/lib/restaurantPartnerContract";
+import { RESTAURANT_PARTNER_CONTRACT_EXPORT_ACTION_LABEL } from "@/components/contracts/RestaurantPartnerContractPreview";
 
 const SIGNATURE_DATA_URL = "data:image/png;base64,aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 
@@ -37,7 +38,7 @@ describe("restaurant partner contract PDF export", () => {
 
     expect(html).toContain(RESTAURANT_PARTNER_CONTRACT_TITLE);
     expect(html).toContain(`Version ${RESTAURANT_PARTNER_CONTRACT_VERSION}`);
-    expect(html).toContain("TOK-CH-RP-FAIR-GROWTH-2026-07-v4");
+    expect(html).toContain("TOK-CH-RP-FAIR-GROWTH-2026-07-v5");
     expect(html).toContain("Business");
     expect(html).toContain("CHF 1&#39;419 · annuel, 12 mois au prix de 11 · 8,9% / commande");
     expect(html).toContain("Horodatage d'export");
@@ -45,6 +46,15 @@ describe("restaurant partner contract PDF export", () => {
     expect(contractHash).toMatch(/^[a-f0-9]{64}$/);
     expect(html).toContain(contractHash);
     expect(html).toContain(SIGNATURE_DATA_URL);
+    expect(html).toContain("Table Tok Sàrl");
+    expect(html).toContain("Marie Dupont, gérante");
+    expect(html).toContain("@page { size: A4; margin: 18mm 16mm 20mm; }");
+    expect(html).toContain("break-inside: avoid-page");
+    expect(html).toContain("page-break-inside: avoid");
+    expect(html).toContain("break-after: avoid-page");
+    expect(RESTAURANT_PARTNER_CONTRACT_EXPORT_ACTION_LABEL).toBe(
+      "Imprimer ou enregistrer en PDF",
+    );
     expect(html).not.toContain("Cette clause doit être validée par un juriste suisse");
     expect(html).not.toContain("8. Offres, ventes flash, anti-gaspi, fidélité et avantages");
     expect(html).toContain("8. Avis, support, incidents et qualité de service");

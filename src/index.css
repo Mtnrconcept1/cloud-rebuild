@@ -6,6 +6,44 @@
   font-display: swap;
 }
 
+.commercial-contract-print-page {
+  width: 210mm;
+  height: 297mm;
+  overflow: hidden;
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .commercial-contract-print-root,
+  .commercial-contract-print-root * {
+    visibility: visible;
+  }
+
+  .commercial-contract-print-root {
+    position: absolute;
+    inset: 0;
+    width: 210mm;
+  }
+
+  .commercial-contract-print-page {
+    break-after: page;
+    page-break-after: always;
+  }
+
+  .commercial-contract-print-page:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

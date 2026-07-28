@@ -32,6 +32,7 @@ Deno.serve(async (req) => {
     await rateLimiter.consume(`user:${actor.userId}`, { maxRequests: 120, windowSeconds: 300 });
 
     const body = await req.json().catch(() => ({}));
+    const browserReturnReceived = body?.browser_return_received === true;
     clientPaymentAttemptId = requireClientPaymentAttemptId(body?.payment_attempt_id);
     const attempt = await findOwnedPaymentAttempt({
       adminClient: actor.adminClient,
@@ -44,6 +45,7 @@ Deno.serve(async (req) => {
     let stripeStatus: string | null = null;
     let url: string | null = null;
     let indeterminate = false;
+    let setupIntentStatus: string | null = null;
 
     if (attempt.stripe_checkout_session_id) {
       const runtime = getStripeRuntimeForCheckoutKindAndMode(attempt.kind, attempt.mode);
@@ -64,6 +66,15 @@ Deno.serve(async (req) => {
 
         paymentStatus = session.payment_status;
         stripeStatus = session.status;
+        if (attempt.kind === "restaurant-onboarding" && session.setup_intent) {
+          const setupIntentId = typeof session.setup_intent === "string"
+            ? session.setup_intent
+            : session.setup_intent.id;
+          if (setupIntentId) {
+            const setupIntent = await runtime.stripe.setupIntents.retrieve(setupIntentId);
+            setupIntentStatus = setupIntent.status;
+          }
+        }
         if (session.status === "open" && session.url) {
           state = "session_bound";
           url = session.url;
@@ -96,6 +107,9 @@ Deno.serve(async (req) => {
       indeterminate,
       error_code: indeterminate ? "PAYMENT_ATTEMPT_INDETERMINATE" : null,
       retryable: !terminal,
+      setup_intent_status: setupIntentStatus,
+      webhook_received: attempt.state === "finalized",
+      browser_return_received: browserReturnReceived,
       last_error_code: attempt.last_error_code || null,
       last_error_message: attempt.last_error_message || null,
     };
@@ -105,11 +119,17 @@ Deno.serve(async (req) => {
       actor,
       request: req,
       functionName: "payment-attempt-status",
-      action: "resolve_payment_attempt",
+      action: browserReturnReceived ? "reconcile_browser_return" : "resolve_payment_attempt",
       status: "success",
       targetEntityType: "payment_attempt",
       targetEntityId: attempt.id,
-      metadata: { state: payload.state, indeterminate },
+      metadata: {
+        state: payload.state,
+        indeterminate,
+        browser_return_received: browserReturnReceived,
+        webhook_received: payload.webhook_received,
+        setup_intent_status: setupIntentStatus,
+      },
     });
 
     return jsonResponse(payload, 200, corsHeaders);

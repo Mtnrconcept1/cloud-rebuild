@@ -4,6 +4,7 @@ import { CalendarClock, Coins, MapPin, PiggyBank, ReceiptText, Store, TrendingUp
 import { useSearchParams } from "react-router-dom";
 
 import CommercialWorkspaceChrome from "@/components/commercial/CommercialWorkspaceChrome";
+import CommercialContractPanel from "@/components/commercial/CommercialContractPanel";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -404,6 +405,14 @@ export default function CommercialComptabilite() {
               </p>
             </div>
           </section>
+
+          {commercialUserId ? (
+            <CommercialContractPanel
+              commercialUserId={commercialUserId}
+              commercialName={isAdmin ? "Commercial sélectionné" : String(user?.user_metadata?.full_name || user?.email || "")}
+              isAdmin={isAdmin}
+            />
+          ) : null}
 
           {summaryQuery.isLoading ? (
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">

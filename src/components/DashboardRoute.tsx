@@ -1,12 +1,20 @@
 import { Navigate, useLocation } from "react-router-dom";
 
 import { DashboardProvider } from "@/pages/dashboard/DashboardContext";
-import { useDashboardRestaurant } from "@/pages/dashboard/useDashboardRestaurant";
+import {
+  canAccessRestaurantDashboardRoute,
+  useDashboardRestaurant,
+} from "@/pages/dashboard/useDashboardRestaurant";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 function DashboardAccessGate({ children }: { children: React.ReactNode }) {
   const location = useLocation();
-  const { loading, dashboardAccessLocked } = useDashboardRestaurant();
+  const {
+    loading,
+    dashboardAccessLocked,
+    onboardingConfigurationUnlocked,
+    disabledFeatures,
+  } = useDashboardRestaurant();
 
   if (loading) {
     return (
@@ -16,11 +24,13 @@ function DashboardAccessGate({ children }: { children: React.ReactNode }) {
     );
   }
 
-  const pendingRestaurantProfile = location.pathname === "/dashboard/restaurant";
-
   if (
-    dashboardAccessLocked && location.pathname !== "/dashboard"
-    && !pendingRestaurantProfile
+    !canAccessRestaurantDashboardRoute({
+      pathname: location.pathname,
+      dashboardAccessLocked,
+      onboardingConfigurationUnlocked,
+      disabledFeatures,
+    })
   ) {
     return <Navigate to="/dashboard" replace />;
   }
@@ -28,7 +38,11 @@ function DashboardAccessGate({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-export default function DashboardRoute({ children }: { children: React.ReactNode }) {
+export default function DashboardRoute({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <ProtectedRoute requiredRole="restaurateur">
       <DashboardProvider>

@@ -20,6 +20,7 @@ import {
   getFairGrowthPlan,
 } from "@/lib/fairGrowth";
 import { cn } from "@/lib/utils";
+import { getGoogleBusinessPlanPresentation } from "@/lib/googleBusinessServiceScope";
 
 const supabase = getSupabase();
 
@@ -103,6 +104,7 @@ function PlanCard({ plan }: { plan: RestaurantSubscriptionPlan }) {
   const planSlug = normalizeRestaurantSubscriptionPlanSlug(plan.slug);
   const fairGrowthPlan = getFairGrowthPlan(plan.slug);
   const annualPriceChf = fairGrowthPlan.monthlyPriceChf * FAIR_GROWTH_ANNUAL_MONTHS_CHARGED;
+  const googleBusiness = getGoogleBusinessPlanPresentation(planSlug);
 
   return (
     <Card className="flex h-full flex-col">
@@ -176,6 +178,16 @@ function PlanCard({ plan }: { plan: RestaurantSubscriptionPlan }) {
               );
             })}
           </div>
+        </div>
+        <div className="space-y-2 rounded-xl border border-blue-200 bg-blue-50/70 p-3 text-sm text-blue-950">
+          <div className="flex items-center justify-between gap-3">
+            <p className="font-semibold">Google Business Profile</p>
+            <span className="rounded-full bg-white px-2 py-1 text-xs font-bold">{googleBusiness.status}</span>
+          </div>
+          <p className="text-xs leading-5">{googleBusiness.detail}</p>
+          <Link className="inline-flex text-xs font-semibold underline" to="/restaurateurs/google-business">
+            Voir le périmètre, les prérequis et les limites
+          </Link>
         </div>
         <Button asChild className="mt-auto w-full">
           <Link to="/auth?role=restaurateur">Choisir cet abonnement</Link>

@@ -191,6 +191,7 @@ async function activateRestaurantSubscription(input: {
 
   const metadata: Record<string, string> = {
     checkout_kind: "restaurant-onboarding",
+    onboarding_server_state: "configuration_allowed",
     activation_job_id: job.job_id,
     local_subscription_id: String(job.subscription_id || ""),
     restaurant_id: job.restaurant_id,

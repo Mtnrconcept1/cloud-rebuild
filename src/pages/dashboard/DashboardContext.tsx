@@ -133,13 +133,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         "dashboard-actualites",
         "dashboard-factures",
         "dashboard-pack",
-        "dashboard-menu",
-        "dashboard-photos",
-        "dashboard-offres",
-        "dashboard-ventes-flash",
-        "dashboard-formules",
-        "dashboard-service",
-        "dashboard-plan-salle",
         "dashboard-support",
         "dashboard-notifications",
       ]) {

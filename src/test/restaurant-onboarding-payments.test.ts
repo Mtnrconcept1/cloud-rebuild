@@ -1,6 +1,9 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { canAccessRestaurantDashboardRoute, RESTAURANT_ONBOARDING_ROUTE_CATALOG } from "@/pages/dashboard/useDashboardRestaurant";
+import { resolveRestaurantOnboardingAttemptView } from "@/lib/restaurantOnboardingLifecycle";
+import { createCheckoutWithRecovery } from "@/lib/paymentAttempt";
 
 const root = process.cwd();
 
@@ -21,6 +24,51 @@ function latestMigrationContaining(pattern: RegExp) {
 }
 
 describe("restaurant onboarding subscription payments", () => {
+  it.each([
+    ["accepted card", { paymentAttemptState: "finalized", setupIntentStatus: "succeeded" }, "webhook_received"],
+    ["3-D Secure", { paymentAttemptState: "session_bound", setupIntentStatus: "requires_action" }, "recovery_required"],
+    ["declined card", { paymentAttemptState: "failed", setupIntentStatus: "requires_payment_method" }, "recovery_required"],
+    ["return before webhook", { paymentAttemptState: "session_bound", setupIntentStatus: "succeeded", browserReturnReceived: true }, "browser_return_received"],
+    ["webhook before return", { paymentAttemptState: "finalized", webhookReceived: true }, "webhook_received"],
+  ] as const)("resolves the server state for %s", (_name, input, expected) => {
+    expect(resolveRestaurantOnboardingAttemptView(input)).toMatchObject({ state: expected });
+  });
+
+  it("reuses the same attempt while recovering an uncertain checkout", async () => {
+    const paymentAttemptId = "11111111-1111-4111-8111-111111111111";
+    let statusCalls = 0;
+    const resolution = await createCheckoutWithRecovery({
+      paymentAttemptId,
+      create: async () => { throw new TypeError("network response lost"); },
+      getStatus: async () => {
+        statusCalls += 1;
+        return { payment_attempt_id: paymentAttemptId, state: "session_bound", session_id: "cs_test_same" };
+      },
+      sleep: async () => undefined,
+    });
+    expect(resolution).toMatchObject({ paymentAttemptId, sessionId: "cs_test_same" });
+    expect(statusCalls).toBe(1);
+  });
+
+  it("keeps replayed webhooks and browser retries terminal and idempotent", () => {
+    const first = resolveRestaurantOnboardingAttemptView({ paymentAttemptState: "finalized", webhookReceived: true });
+    const replay = resolveRestaurantOnboardingAttemptView({ paymentAttemptState: "finalized", webhookReceived: true, browserReturnReceived: true });
+    expect(replay).toEqual(first);
+  });
+
+  it("allows every catalogued preparation tab and rejects transaction routes", () => {
+    for (const { path } of RESTAURANT_ONBOARDING_ROUTE_CATALOG) {
+      expect(canAccessRestaurantDashboardRoute({ pathname: path, dashboardAccessLocked: true, onboardingConfigurationUnlocked: true, disabledFeatures: new Set() })).toBe(true);
+    }
+    for (const pathname of ["/dashboard/commandes", "/dashboard/factures", "/dashboard/crm"]) {
+      expect(canAccessRestaurantDashboardRoute({ pathname, dashboardAccessLocked: true, onboardingConfigurationUnlocked: true })).toBe(false);
+    }
+  });
+
+  it("enforces the feature flag for a catalogued onboarding route", () => {
+    expect(canAccessRestaurantDashboardRoute({ pathname: "/dashboard/menu", dashboardAccessLocked: true, onboardingConfigurationUnlocked: true, disabledFeatures: new Set(["dashboard-menu"]) })).toBe(false);
+  });
+
   it("collects subscription choices during restaurateur signup", () => {
     const auth = read("src/pages/Auth.tsx");
     const submitSignup = read("supabase/functions/submit-signup-application/index.ts");
@@ -33,7 +81,9 @@ describe("restaurant onboarding subscription payments", () => {
     expect(auth).not.toContain("new FormData()");
     expect(auth).toContain("selected_subscription_plan_id");
     expect(auth).toContain("selected_subscription_billing_period");
-    expect(auth).toContain("pendingPrivilegedSignupRef");
+    expect(auth).not.toContain("pendingPrivilegedSignupRef");
+    expect(auth).toContain('.from("signup_application_drafts")');
+    expect(auth).toContain("signup_operation_id: operationId");
     expect(auth).toContain("uploadVerificationDocumentsWithRollback");
     expect(auth).not.toMatch(/indexedDB|localStorage/i);
     expect(validation).not.toContain("launch_pack_id");

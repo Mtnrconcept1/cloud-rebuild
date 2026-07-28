@@ -38,6 +38,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  canAccessRestaurantDashboardRoute,
   isRestaurantOnboardingConfigurationRoute,
   useDashboardRestaurant,
 } from "@/pages/dashboard/useDashboardRestaurant";
@@ -222,8 +223,12 @@ function NavItems({
           {section.items.map((item) => {
             const isMarketingStudio = item.emphasis === "marketing-studio";
             const isActive = isDashboardNavItemActive(pathname, item.to);
-            const availableDuringOnboarding = onboardingConfigurationUnlocked
-              && isRestaurantOnboardingConfigurationRoute(item.to);
+            const availableDuringOnboarding = canAccessRestaurantDashboardRoute({
+              pathname: item.to,
+              dashboardAccessLocked,
+              onboardingConfigurationUnlocked,
+              disabledFeatures,
+            });
             const isLocked = dashboardAccessLocked && item.to !== "/dashboard" && !availableDuringOnboarding
               ? true
               : !availableDuringOnboarding && !!(item.feature && disabledFeatures?.has(item.feature));

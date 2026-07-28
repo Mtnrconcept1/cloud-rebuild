@@ -25,6 +25,10 @@ const restoreStockMigration = readFileSync(
   resolve(process.cwd(), "supabase/migrations/20260603114000_restore_special_offer_stock.sql"),
   "utf8",
 );
+const fairGrowthLifecycleMigration = readFileSync(
+  resolve(process.cwd(), "supabase/migrations/20260728090000_fair_growth_module_lifecycle.sql"),
+  "utf8",
+);
 
 function readMigrationContaining(pattern: RegExp) {
   const migrationsDir = resolve(process.cwd(), "supabase/migrations");
@@ -38,6 +42,12 @@ function readMigrationContaining(pattern: RegExp) {
 }
 
 describe("checkout and Stripe webhook safety guards", () => {
+  it("lets only processed authoritative Stripe events confirm or credit paid modules", () => {
+    expect(fairGrowthLifecycleMigration).toContain("authoritative_stripe_payment_required");
+    expect(fairGrowthLifecycleMigration).toContain("authoritative_stripe_credit_required");
+    expect(fairGrowthLifecycleMigration).toContain("e.processed_at IS NOT NULL");
+    expect(fairGrowthLifecycleMigration).toContain("stripe_payment_without_local_state");
+  });
   it("pins the supported Stripe SDK and API contract", () => {
     expect(stripeClientSource).toContain('npm:stripe@22.3.2');
     expect(stripeClientSource).toContain('STRIPE_API_VERSION = "2026-06-24.dahlia"');

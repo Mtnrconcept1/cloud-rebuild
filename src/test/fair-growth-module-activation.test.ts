@@ -39,13 +39,22 @@ describe("Fair Growth paid module activation", () => {
   it("marks every admin-enabled module active in demo without creating live billing", () => {
     expect(dashboard).toContain("enabled: Boolean(selectedId) && !isDemoMode");
     expect(dashboard).toContain("const demoSubscriptions = isDemoMode");
-    expect(dashboard).toContain('status: "active" as const');
+    expect(dashboard).toContain('module.availability_status === "available" ? "active" : "requested"');
     expect(dashboard).toContain("if (!selectedId || requestingSlug || isDemoMode) return");
     expect(dashboard).toContain("const canRequest = !isDemoMode");
-    expect(dashboard).toContain("disabled={!canRequest || pending}");
-    expect(dashboard).toContain("Tous les modules activés par l’administrateur sont opérationnels");
+    expect(dashboard).toContain("disabled={pending || (!canRequest && !action)");
+    expect(dashboard).toContain("Non opérationnel");
     expect(dashboard).toContain("Actif dans le restaurant Démo");
     expect(dashboard).toContain("Stripe Test");
+  });
+
+  it("offers only valid lifecycle actions and links operational modules to their tool", () => {
+    expect(dashboard).toContain("`${action}_fair_growth_module`");
+    expect(dashboard).toContain("Mettre en pause");
+    expect(dashboard).toContain("Reprendre");
+    expect(dashboard).toContain("Tarif accepté");
+    expect(dashboard).toContain("Ouvrir l’outil");
+    expect(dashboard).toContain('module.availability_status === "available"');
   });
 
   it("states pilot and Elite multi-site limitations on public surfaces", () => {

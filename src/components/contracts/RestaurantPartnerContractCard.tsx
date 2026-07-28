@@ -19,13 +19,15 @@ import { getSupabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth-context";
 import {
-  RESTAURANT_PARTNER_CONTRACT_SECTIONS,
   RESTAURANT_PARTNER_CONTRACT_TITLE,
   RESTAURANT_PARTNER_CONTRACT_VERSION,
   generateRestaurantPartnerContractSha256,
   generateSignedRestaurantPartnerContractHtml,
 } from "@/lib/restaurantPartnerContract";
 import { openSafeHtmlPrintDocument } from "@/lib/safePrintWindow";
+import RestaurantPartnerContractPreview, {
+  RESTAURANT_PARTNER_CONTRACT_EXPORT_ACTION_LABEL,
+} from "@/components/contracts/RestaurantPartnerContractPreview";
 
 const supabase = getSupabase();
 
@@ -258,9 +260,9 @@ export default function RestaurantPartnerContractCard({
 
     if (!exported) {
       toast({
-        title: "Export PDF impossible",
+        title: "Impression impossible",
         description:
-          "Le navigateur n'a pas pu ouvrir la fenêtre d'impression du contrat.",
+          "La fenêtre d'impression n'a pas pu être ouverte. Autorisez les pop-ups, puis réessayez.",
         variant: "destructive",
       });
     }
@@ -421,23 +423,15 @@ export default function RestaurantPartnerContractCard({
               disabled={!restaurant}
             >
               <Download className="h-4 w-4" />
-              Exporter le contrat en PDF
+              {RESTAURANT_PARTNER_CONTRACT_EXPORT_ACTION_LABEL}
             </Button>
           </div>
         ) : null}
 
-        <div className="max-h-96 space-y-4 overflow-auto rounded-xl border bg-background p-4 text-sm">
-          {RESTAURANT_PARTNER_CONTRACT_SECTIONS.map((section) => (
-            <section key={section.title} className="space-y-2">
-              <h3 className="font-semibold">{section.title}</h3>
-              {section.paragraphs.map((paragraph) => (
-                <p key={paragraph} className="text-muted-foreground">
-                  {paragraph}
-                </p>
-              ))}
-            </section>
-          ))}
-        </div>
+        <RestaurantPartnerContractPreview
+          onExport={currentContract ? handleExportPdf : undefined}
+          exportDisabled={!restaurant}
+        />
 
         {!currentContract && mode === "restaurateur" ? (
           <div className="space-y-3 rounded-xl border bg-background p-4">

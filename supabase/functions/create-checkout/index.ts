@@ -1991,6 +1991,24 @@ Deno.serve(async (req) => {
           business_ready: true,
         },
       });
+      if (isRestaurantOnboardingSetup) {
+        const { error: lifecycleError } = await actor.adminClient.rpc(
+          "record_restaurant_onboarding_state",
+          {
+            p_signup_application_id: signupApplicationId,
+            p_restaurant_id: restaurantId,
+            p_payment_attempt_id: acquiredAttempt.attemptId,
+            p_state: "stripe_session_created",
+            p_idempotency_key: session.id,
+            p_source: "create-checkout",
+            p_actor_user_id: actor.userId,
+            p_metadata: { stripe_checkout_session_id: session.id },
+          },
+        );
+        if (lifecycleError) {
+          throw new Error(`ONBOARDING_LIFECYCLE_AUDIT_FAILED:${lifecycleError.message}`);
+        }
+      }
     } catch (bindError) {
       const cancellationRequested = String(
         bindError instanceof Error ? bindError.message : bindError,

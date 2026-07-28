@@ -1926,6 +1926,31 @@ Deno.serve(async (req) => {
             },
           });
 
+          for (const state of ["payment_method_saved", "webhook_received"] as const) {
+            const { error: lifecycleError } = await supabaseAdmin.rpc(
+              "record_restaurant_onboarding_state",
+              {
+                p_signup_application_id: signupApplicationId,
+                p_restaurant_id: restaurantId,
+                // payment_attempt_id in Stripe metadata is the opaque client
+                // correlation UUID, not necessarily the persisted row UUID.
+                p_payment_attempt_id: null,
+                p_state: state,
+                p_idempotency_key: event.id,
+                p_source: "stripe-webhook",
+                p_stripe_event_id: event.id,
+                p_actor_user_id: userId,
+                p_metadata: {
+                  stripe_checkout_session_id: session.id,
+                  stripe_setup_intent_id: setupIntent.id,
+                },
+              },
+            );
+            if (lifecycleError) {
+              throw new Error(`restaurant_onboarding_lifecycle_audit_failed:${lifecycleError.message}`);
+            }
+          }
+
           try {
             await enqueueNotification({
               adminClient: supabaseAdmin,

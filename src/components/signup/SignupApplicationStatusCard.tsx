@@ -18,6 +18,7 @@ import {
   type SignupApplication,
   type SignupDocumentType,
 } from "@/lib/signup";
+import { RESTAURANT_ONBOARDING_STATE_LABELS, type RestaurantOnboardingAttemptView } from "@/lib/restaurantOnboardingLifecycle";
 
 export type SignupApplicationCorrectionPayload = {
   fullName: string;
@@ -42,6 +43,7 @@ type SignupApplicationStatusCardProps = {
   onboardingPaymentLoading?: boolean;
   onResubmitApplication?: (payload: SignupApplicationCorrectionPayload) => Promise<void> | void;
   resubmittingApplication?: boolean;
+  onboardingAttempt?: RestaurantOnboardingAttemptView | null;
 };
 
 function getInitialCorrectionPayload(application: SignupApplication): SignupApplicationCorrectionPayload {
@@ -86,6 +88,7 @@ export default function SignupApplicationStatusCard({
   onboardingPaymentLoading = false,
   onResubmitApplication,
   resubmittingApplication = false,
+  onboardingAttempt = null,
 }: SignupApplicationStatusCardProps) {
   const [correctionOpen, setCorrectionOpen] = useState(false);
   const [correctionForm, setCorrectionForm] = useState<SignupApplicationCorrectionPayload>(getEmptyCorrectionPayload);
@@ -222,6 +225,12 @@ export default function SignupApplicationStatusCard({
                     : "Carte à enregistrer"}
               </Badge>
             </div>
+            {onboardingAttempt ? (
+              <div className="mt-3 rounded-lg border bg-muted/40 px-3 py-2 text-sm" role="status" data-testid="onboarding-attempt-status">
+                <span className="font-medium">État réel de la tentative : </span>
+                {RESTAURANT_ONBOARDING_STATE_LABELS[onboardingAttempt.state]}
+              </div>
+            ) : null}
             {!onboardingPaymentReady
               && (application.status !== "approved" || onboardingPaymentRecoveryRequired)
               && onStartRestaurantOnboardingPayment ? (

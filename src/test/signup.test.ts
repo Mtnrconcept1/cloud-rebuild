@@ -202,7 +202,7 @@ describe("signup and admin moderation SQL", () => {
     expect(signupLib).toContain(".heic,.heif");
     expect(signupLib).toContain("uploadVerificationDocumentsWithRollback");
     expect(signupLib).toContain("removeVerificationDocumentsBestEffort");
-    expect(authPage).toContain("pendingPrivilegedSignupRef");
+    expect(authPage).toContain('.from("signup_application_drafts")');
     expect(authPage).toContain("uploadVerificationDocumentsWithRollback");
     expect(authPage).not.toMatch(/indexedDB|localStorage/i);
     expect(authPage).not.toContain('functions.invoke("submit-signup-application"');
@@ -225,13 +225,14 @@ describe("pending restaurateur workspace and human-only publication", () => {
     expect(sql).toMatch(/restaurants_public_select[\s\S]*is_active IS TRUE[\s\S]*status[\s\S]*'active'/i);
   });
 
-  it("allows the owner to edit only the private restaurant profile while moderation remains locked", () => {
+  it("delegates pending workspace access to the authoritative onboarding route catalog", () => {
     const context = readFileSync(resolve(process.cwd(), "src/pages/dashboard/DashboardContext.tsx"), "utf8");
     const route = readFileSync(resolve(process.cwd(), "src/components/DashboardRoute.tsx"), "utf8");
     const restaurant = readFileSync(resolve(process.cwd(), "src/pages/dashboard/DashboardRestaurant.tsx"), "utf8");
 
     expect(context).not.toMatch(/dashboardAccessLocked[\s\S]*lockedFeatures\.add\("dashboard-restaurant"\)/);
-    expect(route).toContain('location.pathname === "/dashboard/restaurant"');
+    expect(route).toContain("canAccessRestaurantDashboardRoute");
+    expect(route).not.toContain('location.pathname === "/dashboard/restaurant"');
     expect(restaurant).toContain('status: "pending"');
     expect(restaurant).toContain("is_active: false");
     expect(restaurant).toContain("Fiche privée — validation en attente");
@@ -275,10 +276,13 @@ describe("pending restaurateur workspace and human-only publication", () => {
     expect(documentFlow).not.toContain("analyze-restaurant-image");
   });
 
-  it("keeps privileged dossiers in memory until email confirmation and never persists sensitive fields", () => {
+  it("recovers privileged dossiers from a server draft and never persists sensitive fields locally", () => {
     const authPage = readFileSync(resolve(process.cwd(), "src/pages/Auth.tsx"), "utf8");
+    const draftMigration = latestMigrationContaining(/CREATE TABLE IF NOT EXISTS public\.signup_application_drafts/i);
 
-    expect(authPage).toContain("pendingPrivilegedSignupRef");
+    expect(authPage).not.toContain("pendingPrivilegedSignupRef");
+    expect(authPage).toContain('.from("signup_application_drafts")');
+    expect(authPage).toContain("signup_operation_id: operationId");
     expect(authPage).toContain("privilegedSignupMutexRef.current = true");
     expect(authPage).toContain("privilegedSignupOperationRef.current");
     expect(authPage).toContain('payload.role !== "client" || options.skipIfExisting');
@@ -287,6 +291,14 @@ describe("pending restaurateur workspace and human-only publication", () => {
     expect(authPage).not.toMatch(/indexedDB|localStorage/i);
     expect(authPage).not.toContain("pendingPrivilegedSignupDraft");
     expect(authPage).toContain("const { password, ...applicationForm } = form");
+    expect(draftMigration).toContain("ENABLE ROW LEVEL SECURITY");
+    expect(draftMigration).toContain("FORCE ROW LEVEL SECURITY");
+    expect(draftMigration).toContain("UNIQUE (operation_id)");
+    expect(draftMigration).toContain("UNIQUE (user_id, requested_role)");
+    expect(draftMigration).toContain("expires_at");
+    expect(draftMigration).toContain("no IBAN, tax identifier");
+    expect(draftMigration).toMatch(/REVOKE ALL ON TABLE public\.signup_application_drafts FROM PUBLIC, anon, authenticated/i);
+    expect(draftMigration).toMatch(/GRANT SELECT ON TABLE public\.signup_application_drafts TO authenticated/i);
   });
 
   it("guards public restaurant actions and authorizes GDPR deletion only for trusted callers", () => {

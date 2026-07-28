@@ -762,6 +762,14 @@ const FAQS: FaqSection[] = [
         a: "Sur demande : No-Show Shield CHF 39/mois ; Marketing Autopilot IA CHF 79/mois ; Margin & Waste Pilot CHF 59/mois ; Réputation IA CHF 29/mois. En pilote, après validation technique : Réceptionniste téléphonique IA CHF 49/mois plus CHF 1.50 par réservation réussie ; Direct Order Saver CHF 149/mois plus 1,5% ; cartes-cadeaux et expériences 3% plus coût de paiement. Les fonctions pilote ne sont pas présentées comme activées tant que TOK n'a pas confirmé leur mise en service.",
       },
       {
+        q: "Que comprend l'accompagnement Google Business ?",
+        a: "Selon le pack, il est optionnel ou inclut un audit initial, des recommandations sur la fiche, les horaires, catégories, photos et liens, ainsi qu'un lien TOK traçable vers les modules réellement activés. Les photos, publications et projets de réponses aux avis sont des prestations facultatives à valider. Toute intervention dans Google exige un mandat écrit et un accès propriétaire ou gestionnaire ; TOK ne demande pas votre mot de passe et ne publie pas automatiquement.",
+      },
+      {
+        q: "TOK garantit-il mon classement ou la réactivation de ma fiche Google ?",
+        a: "Non. Google décide de l'éligibilité, de l'affichage, du classement, des contrôles et des suspensions. TOK peut suivre les clics et conversions mesurables via un lien TOK, accompagner un diagnostic ou un recours, mais ne garantit ni visibilité, ni résultat commercial, ni délai de validation ou de rétablissement. Les délais TOK sont suspendus si Google bloque la fiche ou si les accès et validations du restaurant manquent.",
+      },
+      {
         q: "Une demande de module déclenche-t-elle un paiement ?",
         a: "Non. Le dashboard enregistre uniquement une demande. TOK vérifie ensuite le périmètre, les prérequis techniques, le prix et la date de début avec le restaurant. L'activation et la facturation commencent seulement après cette confirmation ; aucune intégration téléphonique, commande directe ou carte-cadeau n'est créée automatiquement.",
       },
