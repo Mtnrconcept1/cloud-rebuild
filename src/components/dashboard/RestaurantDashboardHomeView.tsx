@@ -236,19 +236,21 @@ function DashboardStatCard({
   value,
   icon: Icon,
   tone,
+  to,
 }: {
   label: string;
   value: string;
   icon: ComponentType<{ className?: string }>;
   tone: DashboardTone;
+  to: string | null;
 }) {
   const toneClasses = DASHBOARD_TONES[tone];
-
-  return (
-    <div className={cn(
-      "tok-dashboard-kpi relative overflow-hidden rounded-3xl p-5 transition-transform hover:-translate-y-0.5",
-      toneClasses.card,
-    )}>
+  const className = cn(
+    "tok-dashboard-kpi relative overflow-hidden rounded-3xl p-5 transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+    toneClasses.card,
+  );
+  const content = (
+    <>
       <div className={cn("pointer-events-none absolute inset-0 bg-gradient-to-br opacity-0 dark:opacity-100", toneClasses.glow)} />
       <div className="relative z-10 flex items-center justify-between gap-5">
         <div className="flex min-w-0 items-center gap-5">
@@ -264,10 +266,23 @@ function DashboardStatCard({
           <ArrowRight className="h-6 w-6" />
         </div>
       </div>
-    </div>
+    </>
   );
+
+  if (!to) return <div aria-disabled="true" className={cn(className, "cursor-not-allowed opacity-65")}>{content}</div>;
+
+  return <Link to={to} className={className} aria-label={`Ouvrir ${label}`}>{content}</Link>;
 }
 
+function MobileOverviewCard({ to, children }: { to: string | null; children: ReactNode }) {
+  const className = "min-h-[8.15rem] rounded-[1.05rem] border border-[#e8ddce] bg-white p-3 shadow-[0_5px_15px_rgba(54,40,23,0.05)] transition hover:border-orange-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 dark:border-white/10 dark:bg-[#0b1729]";
+  return to ? <Link to={to} className={className}>{children}</Link> : <article aria-disabled="true" className={cn(className, "opacity-65")}>{children}</article>;
+}
+
+function OverviewListRow({ to, children }: { to: string | null; children: ReactNode }) {
+  const className = "grid min-w-0 grid-cols-1 gap-2 rounded-2xl border border-border/70 bg-background/70 px-4 py-3 text-sm transition hover:border-primary/40 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:border-[#5f7aad]/22 dark:bg-[#07142b]/72 dark:text-slate-100 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center";
+  return to ? <Link to={to} className={className}>{children}</Link> : <div aria-disabled="true" className={cn(className, "opacity-65")}>{children}</div>;
+}
 function MobileRestaurantHeader({
   restaurantName,
   restaurantImageUrl,
@@ -444,12 +459,18 @@ function MobileOverviewCards({
   totalUpcomingOrders,
   readyOrdersCount,
   performanceDeltaPercent,
+  reservationTarget,
+  ordersTarget,
+  performanceTarget,
 }: {
   todayReservationsCount: number;
   nextReservationTime: string | null;
   totalUpcomingOrders: number;
   readyOrdersCount: number;
   performanceDeltaPercent: number;
+  reservationTarget: string | null;
+  ordersTarget: string | null;
+  performanceTarget: string | null;
 }) {
   const performanceBars = buildPerformanceBars(performanceDeltaPercent);
   const readinessPercent = totalUpcomingOrders > 0
@@ -458,8 +479,8 @@ function MobileOverviewCards({
   const readinessBars = [42, 58, 46, 70, 60, 82, 72, 94];
 
   return (
-    <section className="grid grid-cols-2 gap-3 md:hidden" aria-label="Résumé de l'activité du restaurant">
-      <article className="min-h-[8.15rem] rounded-[1.05rem] border border-[#e8ddce] bg-white p-3 shadow-[0_5px_15px_rgba(54,40,23,0.05)] dark:border-white/10 dark:bg-[#0b1729]">
+    <section className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 md:hidden" aria-label="Résumé de l'activité du restaurant">
+      <MobileOverviewCard to={reservationTarget}>
         <div className="flex items-start justify-between gap-2">
           <h3 className="text-[0.98rem] font-black leading-[1.08] text-stone-950 dark:text-white">
             Réservations<br />aujourd&apos;hui
@@ -474,9 +495,9 @@ function MobileOverviewCards({
         <p className="mt-0.5 text-xs leading-snug text-stone-700 dark:text-slate-400">
           {nextReservationTime ? `Prochain client à ${nextReservationTime}` : "Aucune arrivée à venir"}
         </p>
-      </article>
+      </MobileOverviewCard>
 
-      <article className="min-h-[8.15rem] rounded-[1.05rem] border border-[#e8ddce] bg-white p-3 shadow-[0_5px_15px_rgba(54,40,23,0.05)] dark:border-white/10 dark:bg-[#0b1729]">
+      <MobileOverviewCard to={ordersTarget}>
         <div className="flex items-start justify-between gap-2">
           <h3 className="text-[0.98rem] font-black leading-[1.08] text-stone-950 dark:text-white">
             Commandes<br />en cours
@@ -493,9 +514,9 @@ function MobileOverviewCards({
             ? `${readyOrdersCount} prête${readyOrdersCount > 1 ? "s" : ""} à être remise${readyOrdersCount > 1 ? "s" : ""}`
             : "Aucune commande prête"}
         </p>
-      </article>
+      </MobileOverviewCard>
 
-      <article className="min-h-[8.15rem] rounded-[1.05rem] border border-[#e8ddce] bg-white p-3 shadow-[0_5px_15px_rgba(54,40,23,0.05)] dark:border-white/10 dark:bg-[#0b1729]">
+      <MobileOverviewCard to={performanceTarget}>
         <h3 className="text-[0.98rem] font-black text-stone-950 dark:text-white">Performances</h3>
         <p className={cn(
           "mt-1 text-sm font-semibold",
@@ -518,9 +539,9 @@ function MobileOverviewCards({
             />
           ))}
         </div>
-      </article>
+      </MobileOverviewCard>
 
-      <article className="min-h-[8.15rem] rounded-[1.05rem] border border-[#e8ddce] bg-white p-3 shadow-[0_5px_15px_rgba(54,40,23,0.05)] dark:border-white/10 dark:bg-[#0b1729]">
+      <MobileOverviewCard to={ordersTarget}>
         <h3 className="text-[0.98rem] font-black text-stone-950 dark:text-white">Service</h3>
         <div className="mt-2 flex h-10 items-end gap-1" aria-hidden="true">
           {readinessBars.map((height, index) => (
@@ -547,7 +568,7 @@ function MobileOverviewCards({
             ? `${readinessPercent}% des commandes prêtes`
             : "Aucune commande en attente"}
         </p>
-      </article>
+      </MobileOverviewCard>
     </section>
   );
 }
@@ -784,6 +805,17 @@ export default function RestaurantDashboardHomeView({
     [commercialDemoFrame, globalActiveFeatures],
   );
 
+  const resolveDashboardTarget = (feature: string, to: string) => {
+    const availableDuringOnboarding = onboardingConfigurationUnlocked
+      && isRestaurantOnboardingConfigurationRoute(to);
+    const isLocked = (dashboardAccessLocked && !availableDuringOnboarding)
+      || (!availableDuringOnboarding && (!activeFeatures.has(feature) || disabledFeatures.has(feature)));
+    return isLocked ? null : to;
+  };
+  const ordersTarget = resolveDashboardTarget("dashboard-commandes", "/dashboard/commandes");
+  const reservationsTarget = resolveDashboardTarget("dashboard-reservations", "/dashboard/reservations");
+  const performancesTarget = resolveDashboardTarget("dashboard-performances", "/dashboard/performances");
+  const campaignsTarget = resolveDashboardTarget("dashboard-campagnes", "/dashboard/campagnes");
   const dailyMenuItems = useMemo(
     () => [...mobileMenuItems]
       .sort((left, right) => Number(isDailyMenuItem(right)) - Number(isDailyMenuItem(left)))
@@ -851,6 +883,9 @@ export default function RestaurantDashboardHomeView({
             totalUpcomingOrders={totalUpcomingOrders}
             readyOrdersCount={readyOrdersCount}
             performanceDeltaPercent={performanceDeltaPercent}
+            reservationTarget={reservationsTarget}
+            ordersTarget={ordersTarget}
+            performanceTarget={performancesTarget}
           />
         </div>
 
@@ -872,13 +907,13 @@ export default function RestaurantDashboardHomeView({
         ) : null}
 
         <div className="order-6 hidden space-y-4 md:order-4 md:block">
-          <DashboardStatCard label="Commandes à venir" value={String(totalUpcomingOrders)} icon={ShoppingCart} tone="violet" />
-          <DashboardStatCard label="Réservations à venir" value={String(totalUpcomingReservations)} icon={CalendarDays} tone="orange" />
-          <DashboardStatCard label="Chiffre d'affaires du jour" value={formatRestaurantDashboardChf(todayRevenue)} icon={TrendingUp} tone="emerald" />
-          <DashboardStatCard label="Campagnes pub actives" value={String(activeCampaignsCount)} icon={Megaphone} tone="amber" />
-          <DashboardStatCard label="Midi aujourd'hui" value={String(todayServiceCounts.lunch)} icon={SunMedium} tone="sky" />
-          <DashboardStatCard label="Soir aujourd'hui" value={String(todayServiceCounts.dinner)} icon={MoonStar} tone="violet" />
-          <DashboardStatCard label="Revenus du mois" value={formatRestaurantDashboardChf(monthlyRevenue)} icon={TrendingUp} tone="emerald" />
+          <DashboardStatCard label="Commandes à venir" value={String(totalUpcomingOrders)} icon={ShoppingCart} tone="violet" to={ordersTarget} />
+          <DashboardStatCard label="Réservations à venir" value={String(totalUpcomingReservations)} icon={CalendarDays} tone="orange" to={reservationsTarget} />
+          <DashboardStatCard label="Chiffre d'affaires du jour" value={formatRestaurantDashboardChf(todayRevenue)} icon={TrendingUp} tone="emerald" to={performancesTarget} />
+          <DashboardStatCard label="Campagnes pub actives" value={String(activeCampaignsCount)} icon={Megaphone} tone="amber" to={campaignsTarget} />
+          <DashboardStatCard label="Midi aujourd'hui" value={String(todayServiceCounts.lunch)} icon={SunMedium} tone="sky" to={reservationsTarget} />
+          <DashboardStatCard label="Soir aujourd'hui" value={String(todayServiceCounts.dinner)} icon={MoonStar} tone="violet" to={reservationsTarget} />
+          <DashboardStatCard label="Revenus du mois" value={formatRestaurantDashboardChf(monthlyRevenue)} icon={TrendingUp} tone="emerald" to={performancesTarget} />
         </div>
 
         <div className="order-7 hidden grid-cols-1 gap-6 md:order-5 md:grid md:grid-cols-2">
@@ -893,11 +928,14 @@ export default function RestaurantDashboardHomeView({
             </CardHeader>
             <CardContent className="space-y-3">
               {upcomingOrders.map((order) => (
-                <div key={order.id} className="grid min-w-0 grid-cols-1 gap-2 rounded-2xl border border-border/70 bg-background/70 px-4 py-3 text-sm dark:border-[#5f7aad]/22 dark:bg-[#07142b]/72 dark:text-slate-100 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center">
+                <OverviewListRow
+                  key={order.id}
+                  to={ordersTarget ? `${ordersTarget}?order=${encodeURIComponent(order.id)}` : null}
+                >
                   <span className="min-w-0 break-words">{formatOrderDate(order.createdAt)}</span>
                   <span className="font-bold">{order.totalAmount.toFixed(2)} CHF</span>
                   <OrderStatusBadge status={order.status} />
-                </div>
+                </OverviewListRow>
               ))}
               {upcomingOrders.length === 0 ? <p className="text-sm text-muted-foreground">Aucune commande à venir</p> : null}
             </CardContent>
@@ -914,14 +952,17 @@ export default function RestaurantDashboardHomeView({
             </CardHeader>
             <CardContent className="space-y-3">
               {upcomingReservations.map((reservation) => (
-                <div key={reservation.id} className="grid min-w-0 grid-cols-1 gap-2 rounded-2xl border border-border/70 bg-background/70 px-4 py-3 text-sm dark:border-[#5f7aad]/22 dark:bg-[#07142b]/72 dark:text-slate-100 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center">
+                <OverviewListRow
+                  key={reservation.id}
+                  to={reservationsTarget ? `${reservationsTarget}?reservation=${encodeURIComponent(reservation.id)}` : null}
+                >
                   <div className="flex min-w-0 flex-wrap items-center gap-2">
                     <span className="break-words">{new Date(reservation.date).toLocaleDateString("fr-FR")} à {reservation.time}</span>
                     <Badge variant="outline" className="text-[10px]">{reservation.servicePeriodLabel}</Badge>
                   </div>
                   <span>{reservation.partySize} pers.</span>
                   <OrderStatusBadge status={reservation.status} />
-                </div>
+                </OverviewListRow>
               ))}
               {upcomingReservations.length === 0 ? <p className="text-sm text-muted-foreground">Aucune réservation</p> : null}
             </CardContent>
