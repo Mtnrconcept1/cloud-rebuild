@@ -20,16 +20,22 @@ describe("Mon pack admin kill switch", () => {
     expect(home).toContain("<AdminMonPackControl />");
     expect(control).toContain('MON_PACK_FLAG_NAME = "dashboard-pack"');
     expect(control).toContain("useFeatureFlags(true)");
-    expect(control).toContain("toggleFlag(packFlag.id, reason.trim())");
+    expect(control).toContain("setFlagState(packFlag.id, pendingState, reason.trim())");
     expect(control).toContain("Raison obligatoire pour l'historique");
+    expect(control).toContain("required");
+    expect(control).toContain('aria-required="true"');
     expect(control).toContain("Les modules déjà actifs ne sont ni suspendus ni annulés");
-    expect(control).toContain("Les actions de pause, d'annulation et de crédit restent disponibles");
 
     const criticalFlags = platform.slice(
       platform.indexOf("const CRITICAL_FLAGS"),
       platform.indexOf("const GLOBAL_OVERRIDE_FLAGS"),
     );
+    const globalOverrides = platform.slice(
+      platform.indexOf("const GLOBAL_OVERRIDE_FLAGS"),
+      platform.indexOf("const REQUIRED_PRESET_NAMES"),
+    );
     expect(criticalFlags).toContain('"dashboard-pack"');
+    expect(globalOverrides).toContain('"dashboard-pack"');
     expect(catalog).toContain('label: "Mon pack — coupure globale"');
   });
 
@@ -58,43 +64,54 @@ describe("Mon pack admin kill switch", () => {
     expect(sql).toContain("pg_catalog.pg_publication_tables");
   });
 
-  it("locks the shared flags and blocks request, confirmation and resume fail-closed", () => {
+  it("requires an audited reason and blocks new request, confirmation and resume transitions", () => {
     const sql = read(migrationPath);
 
+    expect(sql).toContain("CREATE OR REPLACE FUNCTION public.admin_toggle_feature_flag");
+    expect(sql).toMatch(/'dashboard-restaurateur',\s*'dashboard-pack',\s*'espace-livreur'/);
+    expect(sql).toContain("reason is required for critical feature flag disable");
     expect(sql).toContain("private_finance.assert_dashboard_pack_runtime_enabled");
+    expect(sql).toContain("WHERE flag.name = 'dashboard-pack'");
     expect(sql).toContain("FOR SHARE");
-    expect(sql).toContain("count(*) = 2 AND bool_and(is_active)");
+    expect(sql).toContain("ERRCODE = 'PT423'");
     expect(sql).toContain("MESSAGE = 'dashboard_pack_disabled'");
     expect(sql).toMatch(/p_action NOT IN \('request', 'confirm_activation', 'resume'\)/);
-    expect(sql).toContain("ALTER FUNCTION public.request_fair_growth_module(uuid, text)");
-    expect(sql).toContain("RENAME TO request_fair_growth_module_unchecked");
     expect(sql).toContain("PERFORM private_finance.assert_dashboard_pack_runtime_enabled('request')");
-    expect(sql).toContain("PERFORM private_finance.assert_dashboard_pack_runtime_enabled(p_action)");
   });
 
-  it("enforces trusted writes while preserving safe exit and credit actions", () => {
+  it("preserves lifecycle idempotency and safe exit actions while guarding trusted writes", () => {
     const sql = read(migrationPath);
 
-    expect(sql).toContain("BEFORE INSERT OR UPDATE OF status ON public.restaurant_paid_modules");
+    expect(sql).not.toContain("RENAME TO transition_fair_growth_module_unchecked");
+    expect(sql).toContain("private_finance.transition_fair_growth_module(uuid,text,text,text,text,integer)");
+    expect(sql).toContain("BEFORE INSERT OR UPDATE OF status, module_id ON public.restaurant_paid_modules");
+    expect(sql).toContain("NEW.status IS NOT DISTINCT FROM OLD.status");
+    expect(sql).toContain("NEW.module_id IS NOT DISTINCT FROM OLD.module_id");
     expect(sql).toContain("NEW.status NOT IN ('requested', 'trialing', 'active')");
     expect(sql).toContain("module.availability_status IN ('available', 'pilot')");
-    expect(sql).toContain("'pause'");
-    expect(sql).toContain("'cancel'");
-    expect(sql).toContain("'process_credit'");
-    expect(sql).toContain("GRANT EXECUTE ON FUNCTION public.pause_fair_growth_module(uuid, text)");
-    expect(sql).toContain("GRANT EXECUTE ON FUNCTION public.cancel_fair_growth_module(uuid, text)");
-    expect(sql).toContain("GRANT EXECUTE ON FUNCTION public.process_fair_growth_module_credit(uuid, text, integer, text, text)");
+
+    const guardBody = sql.slice(
+      sql.indexOf("CREATE OR REPLACE FUNCTION private_finance.assert_dashboard_pack_runtime_enabled"),
+      sql.indexOf("REVOKE ALL ON FUNCTION private_finance.assert_dashboard_pack_runtime_enabled"),
+    );
+    expect(guardBody).toContain("'request', 'confirm_activation', 'resume'");
+    expect(guardBody).not.toContain("'pause'");
+    expect(guardBody).not.toContain("'cancel'");
+    expect(guardBody).not.toContain("'process_credit'");
   });
 
-  it("updates the stored admin label without changing the current flag state", () => {
+  it("upserts the stored label without overwriting an existing flag state", () => {
     const sql = read(migrationPath);
-    const labelUpdate = sql.slice(
-      sql.indexOf("UPDATE public.feature_flags"),
-      sql.indexOf("CREATE OR REPLACE FUNCTION"),
+    const flagSeed = sql.slice(
+      sql.indexOf("INSERT INTO public.feature_flags"),
+      sql.indexOf("-- Keep already-open clients"),
     );
+    const conflictUpdate = flagSeed.slice(flagSeed.indexOf("ON CONFLICT"));
 
-    expect(labelUpdate).toContain("Mon pack — coupure globale");
-    expect(labelUpdate).toContain("WHERE name = 'dashboard-pack'");
-    expect(labelUpdate).not.toContain("is_active =");
+    expect(flagSeed).toContain("Mon pack — coupure globale");
+    expect(flagSeed).toContain("'dashboard-pack'");
+    expect(flagSeed).toContain("ON CONFLICT (name) DO UPDATE");
+    expect(conflictUpdate).toContain("label = EXCLUDED.label");
+    expect(conflictUpdate).not.toContain("is_active =");
   });
 });
