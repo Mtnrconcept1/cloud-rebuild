@@ -29,6 +29,55 @@ export const ALL_GATABLE_FEATURES = [
 
 export type GatableFeatureKey = typeof ALL_GATABLE_FEATURES[number]["key"];
 
+export const FAIR_GROWTH_MODULE_SLUGS = [
+  "no-show-shield",
+  "marketing-autopilot",
+  "margin-waste-pilot",
+  "ai-phone-receptionist",
+  "direct-order-saver",
+  "ai-reputation",
+  "gift-cards-experiences",
+] as const;
+
+export type FairGrowthModuleSlug = typeof FAIR_GROWTH_MODULE_SLUGS[number];
+export type FairGrowthAvailability = "available" | "pilot" | "coming_soon";
+export type FairGrowthMetric =
+  | "protected_reservation_revenue_cents"
+  | "campaign_attributed_revenue_cents"
+  | "waste_and_margin_savings_cents"
+  | "phone_reservation_revenue_cents"
+  | "direct_order_commission_savings_cents"
+  | "reputation_attributed_revenue_cents"
+  | "gift_card_revenue_cents";
+
+export type FairGrowthModuleIntegration = {
+  feature: string;
+  featureFlag: string;
+  route: `/dashboard/${string}`;
+  dependencies: readonly string[];
+  metric: FairGrowthMetric;
+  availability: FairGrowthAvailability;
+};
+
+/**
+ * Compile-time exhaustive inventory of every active row seeded by the Fair
+ * Growth migration. Adding a database slug without completing this record is
+ * intentionally a TypeScript error and is also protected by a guard test.
+ */
+export const FAIR_GROWTH_MODULE_CATALOG = {
+  "no-show-shield": { feature: "Protection contre les no-shows", featureFlag: "dashboard-reservations", route: "/dashboard/reservations", dependencies: ["reservations", "reservation_payment_holds"], metric: "protected_reservation_revenue_cents", availability: "available" },
+  "marketing-autopilot": { feature: "Campagnes marketing IA", featureFlag: "ai_marketing_campaigns", route: "/dashboard/campagnes", dependencies: ["marketing_campaigns", "campaign_conversions"], metric: "campaign_attributed_revenue_cents", availability: "available" },
+  "margin-waste-pilot": { feature: "Optimisation marge et anti-gaspillage", featureFlag: "ai_sales_insights", route: "/dashboard/offres", dependencies: ["orders", "anti_waste_offers"], metric: "waste_and_margin_savings_cents", availability: "available" },
+  "ai-phone-receptionist": { feature: "Réception téléphonique IA", featureFlag: "ai_phone_receptionist", route: "/dashboard/reservations", dependencies: ["restaurant_booking_channels", "reservations"], metric: "phone_reservation_revenue_cents", availability: "pilot" },
+  "direct-order-saver": { feature: "Commande directe", featureFlag: "commandes", route: "/dashboard/commandes", dependencies: ["orders", "payment_transactions"], metric: "direct_order_commission_savings_cents", availability: "pilot" },
+  "ai-reputation": { feature: "Réputation et réponses IA", featureFlag: "dashboard-avis", route: "/dashboard/avis", dependencies: ["reviews", "ai_review_drafts"], metric: "reputation_attributed_revenue_cents", availability: "available" },
+  "gift-cards-experiences": { feature: "Cartes-cadeaux et expériences", featureFlag: "gift_cards_experiences", route: "/dashboard/formules", dependencies: ["gift_cards", "payment_transactions"], metric: "gift_card_revenue_cents", availability: "pilot" },
+} as const satisfies Record<FairGrowthModuleSlug, FairGrowthModuleIntegration>;
+
+export function isOperationalFairGrowthModule(slug: FairGrowthModuleSlug) {
+  return FAIR_GROWTH_MODULE_CATALOG[slug].availability === "available";
+}
+
 export type RestaurantSubscriptionFeatureAccess = {
   plan?: string | null;
   slug?: string | null;

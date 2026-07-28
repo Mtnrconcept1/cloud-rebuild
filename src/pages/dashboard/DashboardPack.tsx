@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Loader2, Package, ShieldCheck, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
 import DashboardLayout from "@/components/DashboardLayout";
@@ -8,6 +9,7 @@ import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getSupabase } from "@/integrations/supabase/client";
+import { FAIR_GROWTH_MODULE_CATALOG, type FairGrowthModuleSlug } from "@/lib/packFeatureGating";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
 
 const supabase = getSupabase();
@@ -27,11 +29,16 @@ type FairGrowthModuleRow = {
 };
 
 type PaidModuleRow = {
+  id: string;
   module_id: string;
   status: "requested" | "trialing" | "active" | "paused" | "cancelled" | "credit_due";
   measured_value_cents: number;
   credit_amount_cents: number;
   evaluation_ends_at: string | null;
+  monthly_base_cents_snapshot: number | null;
+  variable_fee_bps_snapshot: number | null;
+  successful_reservation_fee_cents_snapshot: number | null;
+  pricing_version_snapshot: string;
 };
 
 function formatChfFromCents(cents: number) {
@@ -87,7 +94,7 @@ export default function DashboardPack() {
     enabled: Boolean(selectedId) && !isDemoMode,
     queryFn: async () => {
       const { data, error } = await (supabase.from as any)("restaurant_paid_modules")
-        .select("module_id, status, measured_value_cents, credit_amount_cents, evaluation_ends_at")
+        .select("id, module_id, status, measured_value_cents, credit_amount_cents, evaluation_ends_at, monthly_base_cents_snapshot, variable_fee_bps_snapshot, successful_reservation_fee_cents_snapshot, pricing_version_snapshot")
         .eq("restaurant_id", selectedId);
       if (error) throw error;
       return (data || []) as PaidModuleRow[];
@@ -96,11 +103,16 @@ export default function DashboardPack() {
 
   const demoSubscriptions = isDemoMode
     ? (modulesQuery.data || []).map((module) => ({
+      id: `demo-${module.id}`,
       module_id: module.id,
-      status: "active" as const,
+      status: (module.availability_status === "available" ? "active" : "requested") as PaidModuleRow["status"],
       measured_value_cents: Math.max(0, Number(module.monthly_base_cents || 0) * 4),
       credit_amount_cents: 0,
       evaluation_ends_at: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+      monthly_base_cents_snapshot: module.monthly_base_cents,
+      variable_fee_bps_snapshot: module.variable_fee_bps,
+      successful_reservation_fee_cents_snapshot: module.successful_reservation_fee_cents,
+      pricing_version_snapshot: "fair_growth_2026_07",
     }))
     : [];
   const subscriptionsByModule = new Map(
@@ -130,6 +142,24 @@ export default function DashboardPack() {
     }
   };
 
+  const transitionModule = async (subscription: PaidModuleRow, action: "pause" | "resume" | "cancel") => {
+    if (requestingSlug || isDemoMode) return;
+    setRequestingSlug(subscription.module_id);
+    try {
+      const { error } = await (supabase.rpc as any)(`${action}_fair_growth_module`, {
+        p_paid_module_id: subscription.id,
+        p_idempotency_key: crypto.randomUUID(),
+      });
+      if (error) throw error;
+      await queryClient.invalidateQueries({ queryKey: ["restaurant-paid-modules", selectedId] });
+      toast.success("État du module mis à jour");
+    } catch (error) {
+      toast.error("Action impossible", { description: error instanceof Error ? error.message : "Réessayez dans un instant." });
+    } finally {
+      setRequestingSlug(null);
+    }
+  };
+
   const isLoading = modulesQuery.isLoading || subscriptionsQuery.isLoading;
 
   return (
@@ -152,7 +182,7 @@ export default function DashboardPack() {
         {isDemoMode ? (
           <Card className="border-amber-500/30 bg-amber-500/5">
             <CardContent className="p-5 text-sm">
-              Tous les modules activés par l’administrateur sont opérationnels pour le restaurant Démo.
+              Seuls les modules disponibles sont opérationnels pour le restaurant Démo ; les pilotes restent non opérationnels.
               Les parcours financiers utilisent uniquement l’environnement Stripe Test et ne peuvent produire aucun débit réel. 
             </CardContent>
           </Card>
@@ -181,8 +211,11 @@ export default function DashboardPack() {
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {(modulesQuery.data || []).map((module) => {
               const subscription = subscriptionsByModule.get(module.id);
-              const pending = requestingSlug === module.slug;
+              const integration = FAIR_GROWTH_MODULE_CATALOG[module.slug as FairGrowthModuleSlug];
+              const pending = requestingSlug === module.slug || requestingSlug === module.id;
               const canRequest = !isDemoMode && (!subscription || subscription.status === "cancelled");
+              const operational = module.availability_status === "available" && integration?.availability === "available";
+              const action = subscription?.status === "active" ? "pause" : subscription?.status === "paused" ? "resume" : subscription && subscription.status !== "cancelled" ? "cancel" : null;
 
               return (
                 <Card key={module.id} className="flex h-full flex-col">
@@ -190,7 +223,8 @@ export default function DashboardPack() {
                     <div className="flex items-start justify-between gap-3">
                       <CardTitle className="text-lg">{module.name}</CardTitle>
                       <span className="rounded-full bg-muted px-2 py-1 text-[11px] font-medium">
-                        {subscription
+                        {!operational ? "Non opérationnel"
+                          : subscription
                           ? statusLabel(subscription.status)
                           : module.availability_status === "pilot"
                             ? "Pilote · sur demande"
@@ -204,28 +238,40 @@ export default function DashboardPack() {
                     <p className="text-xs text-muted-foreground">
                       {module.availability_status === "pilot"
                         ? "Fonction pilote soumise à validation technique et contractuelle ; aucune activation automatique."
+                        : module.availability_status === "coming_soon"
+                          ? "Fonction à venir : aucune activation ni facturation possible."
                         : "Activation manuelle après validation par TOK ; aucun débit lors de la demande."}
                     </p>
                     {subscription ? (
                       <div className="rounded-xl bg-muted/60 p-3 text-xs">
                         <p><strong>Statut :</strong> {statusLabel(subscription.status)}</p>
+                        <p><strong>Tarif accepté :</strong> {subscription.monthly_base_cents_snapshot != null ? `${formatChfFromCents(subscription.monthly_base_cents_snapshot)} / mois` : "sans base mensuelle"}{subscription.variable_fee_bps_snapshot != null ? ` + ${subscription.variable_fee_bps_snapshot / 100}%` : ""}{subscription.successful_reservation_fee_cents_snapshot != null ? ` + ${formatChfFromCents(subscription.successful_reservation_fee_cents_snapshot)} / réservation` : ""}.</p>
+                        <p><strong>Version tarifaire :</strong> {subscription.pricing_version_snapshot}.</p>
                         {subscription.evaluation_ends_at ? (
                           <p>Évaluation jusqu'au {new Date(subscription.evaluation_ends_at).toLocaleDateString("fr-CH")}.</p>
                         ) : null}
                         {subscription.measured_value_cents > 0 ? (
                           <p>Valeur mesurée : {formatChfFromCents(subscription.measured_value_cents)}.</p>
                         ) : null}
+                        <p><strong>Mesure :</strong> {integration?.metric || "non configurée"}.</p>
+                        {subscription.credit_amount_cents > 0 ? <p>Crédit : {formatChfFromCents(subscription.credit_amount_cents)}.</p> : null}
                       </div>
+                    ) : null}
+                    {operational && integration ? (
+                      <Button asChild variant="outline" className="w-full"><Link to={integration.route}>Ouvrir l’outil</Link></Button>
                     ) : null}
                     <Button
                       className="mt-auto w-full"
                       variant={canRequest ? "default" : "outline"}
-                      disabled={!canRequest || pending}
-                      onClick={() => requestModule(module)}
+                      disabled={pending || (!canRequest && !action) || module.availability_status === "coming_soon"}
+                      onClick={() => action && subscription ? transitionModule(subscription, action) : requestModule(module)}
                     >
                       {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                       {isDemoMode
-                        ? "Actif dans le restaurant Démo"
+                        ? operational ? "Actif dans le restaurant Démo" : "Non opérationnel"
+                        : action === "pause" ? "Mettre en pause"
+                        : action === "resume" ? "Reprendre"
+                        : action === "cancel" ? "Annuler"
                         : canRequest
                           ? module.availability_status === "pilot"
                             ? "Demander l'accès pilote"

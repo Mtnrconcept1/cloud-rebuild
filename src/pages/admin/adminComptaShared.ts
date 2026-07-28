@@ -128,6 +128,16 @@ export type AccountingStripeReconciliationRow = {
   details: Record<string, unknown> | null;
 };
 
+export type FairGrowthReconciliationRow = {
+  incident_type: "activation_blocked" | "stripe_payment_without_local_state";
+  restaurant_id: string | null;
+  paid_module_id: string | null;
+  module_slug: string | null;
+  stripe_event_id: string | null;
+  created_at: string;
+  details: Record<string, unknown> | null;
+};
+
 export type AccountingMonthLockRow = {
   period_month: string;
   status: "open" | "closed" | "reopened";
@@ -953,6 +963,15 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
     },
   });
 
+  const fairGrowthReconciliationQuery = useQuery({
+    queryKey: ["admin-fair-growth-reconciliation"],
+    queryFn: async () => {
+      const { data, error } = await (supabase.rpc as any)("admin_get_fair_growth_reconciliation", { p_limit: 100, p_offset: 0 });
+      if (error) throw error;
+      return (data || []) as FairGrowthReconciliationRow[];
+    },
+  });
+
   const platformFinanceSnapshotQuery = useQuery({
     queryKey: ["admin-platform-finance-monthly-snapshot", selectedMonth, selectedRestaurant],
     enabled: selectedRestaurant === "all",
@@ -1555,11 +1574,13 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
     financialHealth,
     periodControl: periodControlQuery.data || null,
     stripeReconciliation: stripeReconciliationQuery.data || [],
+    fairGrowthReconciliation: fairGrowthReconciliationQuery.data || [],
     platformFinanceSnapshot: platformFinanceSnapshotQuery.data || null,
     isPeriodClosed: isAccountingPeriodClosed(periodControlQuery.data),
     monthOptions,
     isLoading: periodControlQuery.isLoading
       || stripeReconciliationQuery.isLoading
+      || fairGrowthReconciliationQuery.isLoading
       || platformFinanceSnapshotQuery.isLoading
       || restaurantsQuery.isLoading
       || ordersQuery.isLoading
@@ -1575,6 +1596,7 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
       || refundedReservationsQuery.isLoading,
     error: periodControlQuery.error
       || stripeReconciliationQuery.error
+      || fairGrowthReconciliationQuery.error
       || platformFinanceSnapshotQuery.error
       || restaurantsQuery.error
       || ordersQuery.error
