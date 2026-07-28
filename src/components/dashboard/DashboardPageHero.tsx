@@ -111,10 +111,10 @@ export default function DashboardPageHero({
             {actions ? <div className="tok-action-row flex flex-wrap gap-3">{actions}</div> : null}
           </div>
 
-          <div className="pointer-events-none relative z-10 hidden min-h-64 lg:block">
+          <div className="pointer-events-none relative z-10 hidden lg:block">
             <div className={cn("absolute inset-x-2 top-0 h-1 rounded-full bg-gradient-to-r", toneClasses.line)} />
             <div className={cn(
-              "absolute right-0 top-6 w-full rounded-3xl border border-[#6b7da7]/35 bg-white/80 p-5 backdrop-blur dark:bg-[#07142b]/74",
+              "relative mt-6 w-full rounded-3xl border border-[#6b7da7]/35 bg-white/80 p-5 backdrop-blur dark:bg-[#07142b]/74",
               "dark:shadow-[0_26px_74px_rgba(0,0,0,0.44),inset_0_1px_0_rgba(255,255,255,0.08)]",
               toneClasses.glow,
             )}>
