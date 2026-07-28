@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 const root = process.cwd();
 const edgePath = "supabase/functions/create-social-post-boost/index.ts";
 const migrationPath = "supabase/migrations/20260728173500_actualites_boost_atomic_media.sql";
+const imageIndexMigrationPath = "supabase/migrations/20260728173600_actualites_campaign_image_index.sql";
 
 function read(path: string) {
   const absolutePath = resolve(root, path);
@@ -69,6 +70,16 @@ describe("sponsored Actualites boost resilience", () => {
     expect(sql).toContain("campaign_media_storage_object_not_found");
     expect(sql).toContain("object.bucket_id = v_storage_bucket");
     expect(sql).toContain("'trusted_asset', true");
+  });
+
+  it("indexes verified campaign images from the public images bucket", () => {
+    const sql = read(imageIndexMigrationPath);
+
+    expect(sql).toContain("sync_actualites_media_image_index");
+    expect(sql).toContain("v_source IN ('daily_dish_ai', 'campaign_image')");
+    expect(sql).toContain("NEW.metadata ->> 'trusted_asset'");
+    expect(sql).toContain("object.bucket_id = v_storage_bucket");
+    expect(sql).toContain("'campaign_id', nullif(NEW.metadata ->> 'campaign_id', '')");
   });
 
   it("repairs paid active boosts created before the atomic flow", () => {
