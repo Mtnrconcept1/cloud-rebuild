@@ -152,6 +152,13 @@ describe("Premium daily dish AI", () => {
     expect(client).toContain("aligro_prices_unavailable");
     expect(edge).toContain("ni Migros, ni Coop, ni Denner, ni Lidl, ni Aldi");
 
+    // The catalogue is built first and drives which recipes are possible; a
+    // missing ingredient changes the recipe, never the retailer.
+    expect(edge).toContain("Ne compose AUCUNE recette à ce stade");
+    expect(edge).toContain("aligro_catalog");
+    expect(edge).toContain("CHANGE DE RECETTE");
+    expect(edge).toContain("c'est le catalogue qui détermine les recettes possibles, jamais l'inverse");
+
     // Every ingredient must carry its own Aligro price, down to oil and spices.
     expect(edge).toContain("Chaque entrée de « ingredients » doit avoir exactement une ligne correspondante dans « basket »");
     expect(edge).toContain("y compris huile, beurre, épices, herbes et garnitures");
