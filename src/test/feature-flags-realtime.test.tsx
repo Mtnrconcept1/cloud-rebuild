@@ -31,10 +31,10 @@ vi.mock("@/integrations/supabase/client", () => ({
         callback: () => void,
       ) => {
         realtimeState.callback = callback;
-        const channel = {
-          subscribe: () => channel,
+        const subscribedChannel = { topic: "feature-flags-runtime" };
+        return {
+          subscribe: () => subscribedChannel,
         };
-        return channel;
       },
     }),
     removeChannel: removeChannelMock,
