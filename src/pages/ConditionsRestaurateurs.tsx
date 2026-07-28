@@ -30,7 +30,7 @@ const sections = [
       "Canal propre designe le site du restaurant, un QR code attribue, Instagram, Google ou un fichier client legitime du restaurateur. Le traitement technique par TOK ne transforme pas un canal propre en acquisition TOK.",
       "Reservation honoree designe une table effectivement accueillie, declaree par une personne autorisee du restaurant avec le chiffre d'affaires attribue. Une annulation, un no-show, un remboursement ou une demonstration n'est jamais honoree au sens tarifaire.",
       "Base commissionnable d'une commande exclut les pourboires, la livraison refacturee et les autres couts explicitement identifies comme debours ou refacturations.",
-      "Revenu TOK reellement encaisse designe les montants definitivement recus par TOK, hors TVA, remboursements, pourboires, livraison et couts refactures.",
+      "Revenu TOK reellement encaisse designe les montants définitivement recus par TOK, hors TVA, remboursements, pourboires, livraison et couts refactures.",
     ],
   },
   {
@@ -117,7 +117,7 @@ const sections = [
     body: [
       "La commission marketplace s'applique uniquement a la base commissionnable. Les pourboires sont reverses a 100 % au restaurant et ne servent jamais de base a la commission TOK ou developpeur.",
       "TWINT est prioritaire sur les parcours Stripe Checkout compatibles en Suisse. Il n'est pas propose lorsqu'une autorisation avec capture manuelle est necessaire, notamment Match Group ; une carte compatible est alors requise.",
-      "Les modules proposes sur demande sont : No-Show Shield CHF 39/mois ; Marketing Autopilot IA CHF 79/mois ; Margin & Waste Pilot CHF 59/mois ; Reputation IA CHF 29/mois. Le Receptionniste telephonique IA (CHF 49/mois plus CHF 1.50 par reservation reussie), Direct Order Saver (CHF 149/mois plus 1,5 %) et les cartes-cadeaux et experiences (3 % plus cout de paiement) restent des offres pilote soumises a validation technique et contractuelle.",
+      "Les modules proposes sur demande sont : No-Show Shield CHF 39/mois ; Marketing Autopilot IA CHF 79/mois ; Margin & Waste Pilot CHF 59/mois ; Reputation IA CHF 29/mois. Le Receptionniste telephonique IA (CHF 49/mois plus CHF 1.50 par reservation réussie), Direct Order Saver (CHF 149/mois plus 1,5 %) et les cartes-cadeaux et experiences (3 % plus cout de paiement) restent des offres pilote soumises a validation technique et contractuelle.",
       "Une demande depuis le dashboard n'active pas un module et n'autorise aucun debit. TOK et le restaurateur confirment le perimetre, les prerequis, le prix, la date de debut et les conditions de facturation avant toute activation payante.",
       "Garantie de valeur : si, sur une fenetre de 90 jours apres activation facturee et selon les donnees attribuables convenues, un module ne produit pas au moins trois fois son cout, TOK recommande sa desactivation ou accorde un credit apres verification. Cette garantie ne constitue pas une promesse de chiffre d'affaires.",
     ],

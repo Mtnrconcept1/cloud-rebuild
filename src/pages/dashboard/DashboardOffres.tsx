@@ -565,7 +565,7 @@ function OfferForm({
               <Input type="time" value={pickupStart} onChange={(e) => setPickupStart(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label>Jusqu'à</Label>
+              <Label>Jusqu’à</Label>
               <Input type="time" value={pickupEnd} onChange={(e) => setPickupEnd(e.target.value)} />
             </div>
           </div>

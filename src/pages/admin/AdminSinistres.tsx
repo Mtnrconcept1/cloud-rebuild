@@ -1193,7 +1193,7 @@ export default function AdminSinistres() {
                     <div>
                       <p className="text-sm font-semibold">Suivi du sinistre</p>
                       <p className="text-xs text-muted-foreground">
-                        Modifiez le statut sans classer le dossier definitivement.
+                        Modifiez le statut sans classer le dossier définitivement.
                       </p>
                     </div>
                     <Badge variant="outline" className="font-mono uppercase tracking-wider">

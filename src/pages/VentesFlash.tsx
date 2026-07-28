@@ -349,7 +349,7 @@ export default function VentesFlash() {
               <div className="rounded-xl bg-emerald-500/5 border border-emerald-500/10 p-3 text-center">
                 <TrendingDown className="h-4 w-4 text-emerald-500 mx-auto mb-1" />
                 <p className="text-lg font-bold">{maxDiscount > 0 ? `-${maxDiscount}%` : "—"}</p>
-                <p className="text-[10px] text-muted-foreground">Jusqu'à</p>
+                <p className="text-[10px] text-muted-foreground">Jusqu’à</p>
               </div>
             </div>
 

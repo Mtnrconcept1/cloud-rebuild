@@ -129,7 +129,7 @@ export function SponsoredRestaurantTemplateCard({
   headline,
   body,
   ctaLabel = "Découvrir l'offre",
-  discountLabel = "Jusqu'à -18%",
+  discountLabel = "Jusqu’à -18%",
   slots = [],
   className,
   variant = "card",

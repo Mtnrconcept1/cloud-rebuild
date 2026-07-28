@@ -2141,7 +2141,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                     </Button>
                   </div>
                   <p className="text-xs leading-5 text-muted-foreground">
-                    Reutilisez une seed deja reussie pour garder une famille visuelle proche sur vos prochains supports.
+                    Reutilisez une seed deja réussie pour garder une famille visuelle proche sur vos prochains supports.
                   </p>
                 </div>
                 <div className="min-w-0 space-y-2">

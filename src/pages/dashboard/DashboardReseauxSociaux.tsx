@@ -188,7 +188,7 @@ export default function DashboardReseauxSociaux() {
       return;
     }
 
-    toast({ title: "Lien supprime" });
+    toast({ title: "Lien supprimé" });
     load();
   };
 
