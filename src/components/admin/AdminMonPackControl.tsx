@@ -49,26 +49,37 @@ export default function AdminMonPackControl() {
     if (!packFlag || !serverStateAvailable || pendingState === null || !reason.trim()) return;
 
     setSubmitting(true);
-    const result = await setFlagState(packFlag.id, pendingState, reason.trim());
-    setSubmitting(false);
+    try {
+      const result = await setFlagState(packFlag.id, pendingState, reason.trim());
 
-    if (!result.success) {
+      if (!result.success) {
+        toast({
+          title: "Modification impossible",
+          description: result.error || "Le statut de Mon pack n'a pas pu être modifié.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: pendingState ? "Mon pack réactivé" : "Mon pack désactivé",
+        description: pendingState
+          ? "La coupure explicite est levée. Les dépendances globales du dashboard restent appliquées."
+          : "L'onglet, les nouvelles demandes, confirmations et reprises sont maintenant bloqués.",
+      });
+      setPendingState(null);
+      setReason("");
+    } catch (error) {
       toast({
         title: "Modification impossible",
-        description: result.error || "Le statut de Mon pack n'a pas pu être modifié.",
+        description: error instanceof Error
+          ? error.message
+          : "Le statut de Mon pack n'a pas pu être modifié.",
         variant: "destructive",
       });
-      return;
+    } finally {
+      setSubmitting(false);
     }
-
-    toast({
-      title: pendingState ? "Mon pack réactivé" : "Mon pack désactivé",
-      description: pendingState
-        ? "La coupure explicite est levée. Les dépendances globales du dashboard restent appliquées."
-        : "L'onglet, les nouvelles demandes, confirmations et reprises sont maintenant bloqués.",
-    });
-    setPendingState(null);
-    setReason("");
   };
 
   return (
