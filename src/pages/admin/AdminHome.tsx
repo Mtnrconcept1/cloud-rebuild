@@ -33,6 +33,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import AdminLogResetButton from "@/components/admin/AdminLogResetButton";
 import AdminMonPackControl from "@/components/admin/AdminMonPackControl";
 import NotificationMenuBadge from "@/components/notifications/NotificationMenuBadge";
@@ -496,6 +497,7 @@ export default function AdminHome() {
         icon={Settings2}
         tone="orange"
         visualLabel="Admin"
+        illustration={DASHBOARD_ILLUSTRATIONS.adminAnalytics}
         stats={[
           { label: "Restaurants", value: stats?.restaurants || 0, icon: UtensilsCrossed },
           { label: "Commandes", value: stats?.orders || 0, icon: ShoppingCart },
