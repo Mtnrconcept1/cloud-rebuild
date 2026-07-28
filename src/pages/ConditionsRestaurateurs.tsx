@@ -143,7 +143,7 @@ const sections = [
     body: [
       "Le restaurateur peut lancer ou demander des campagnes sponsorisées selon les fonctionnalités disponibles: objectif, budget, durée, zone, audience, format, support, texte, visuel, calendrier et indicateurs de performance.",
       "TOK ne garantit aucun volume de ventes, chiffre d'affaires, clics, impressions, réservations, commandes ou conversion. Les estimations de portee, CPC, vues et resultats sont indicatives.",
-      "Le restaurateur garantit que ses publicités, promotions, prix, réductions, photos et claims commerciaux sont exacts, non trompeurs et conformes àux règles applicables à la publicité et à la concurrence loyale.",
+      "Le restaurateur garantit que ses publicités, promotions, prix, réductions, photos et claims commerciaux sont exacts, non trompeurs et conformes aux règles applicables à la publicité et à la concurrence loyale.",
       "TOK peut refuser, suspendre ou modifier la diffusion d'une campagne en cas de contenu illicite, trompeur, dangereux, discriminatoire, sensible, non paye, techniquement instable ou contraire aux interets des utilisateurs.",
     ],
   },
