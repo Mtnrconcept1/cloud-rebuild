@@ -156,8 +156,17 @@ function latestDemoState(state: DemoDailyDishState) {
   return { ...state, run: null, variants: [] };
 }
 
+// Ingredient names are echoed from the basket lines, so a tolerant key still
+// matches when the model varies casing, accents or spacing between the two lists.
+function ingredientKey(value: string) {
+  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
+}
+
 function VariantDetails({ variant }: { variant: DailyDishVariant }) {
   const dish = variant.payload;
+  const costByIngredient = new Map(
+    dish.basket.map((item) => [ingredientKey(item.ingredient), item]),
+  );
   return (
     <div className="space-y-3 text-sm">
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -181,7 +190,7 @@ function VariantDetails({ variant }: { variant: DailyDishVariant }) {
 
       <details className="rounded-xl border bg-background p-3">
         <summary className="flex cursor-pointer list-none items-center gap-2 font-semibold">
-          <ShoppingBasket className="h-4 w-4 text-primary" /> Panier comparé ({dish.basket.length})
+          <ShoppingBasket className="h-4 w-4 text-primary" /> Panier Aligro ({dish.basket.length})
         </summary>
         <div className="mt-3 space-y-2">
           {dish.basket.map((item, index) => (
@@ -209,12 +218,31 @@ function VariantDetails({ variant }: { variant: DailyDishVariant }) {
         </summary>
         <div className="mt-3 grid gap-4 lg:grid-cols-2">
           <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Ingrédients</p>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Ingrédients · prix Aligro</p>
             <ul className="space-y-1">
-              {dish.ingredients.map((item, index) => (
-                <li key={`${item.name}-${index}`}>• {item.quantity} {item.unit} {item.name}</li>
-              ))}
+              {dish.ingredients.map((item, index) => {
+                const costed = costByIngredient.get(ingredientKey(item.name));
+                return (
+                  <li key={`${item.name}-${index}`} className="flex flex-wrap items-baseline justify-between gap-x-2">
+                    <span>• {item.quantity} {item.unit} {item.name}</span>
+                    {costed ? (
+                      <span className="tabular-nums font-medium">
+                        {money(costed.allocated_cost_chf)}
+                        <span className="ml-1 text-xs font-normal text-muted-foreground">
+                          ({costed.package_size} à {money(costed.package_price_chf)})
+                        </span>
+                      </span>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">prix non vérifié</span>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
+            <p className="mt-2 flex justify-between border-t pt-2 font-semibold">
+              <span>Total ingrédients</span>
+              <span className="tabular-nums">{money(dish.estimated_total_cost_chf)}</span>
+            </p>
           </div>
           <div>
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Préparation</p>
@@ -837,7 +865,7 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
           <>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-2 text-sm"><Check className="h-4 w-4 text-emerald-600" /><span>Propositions du {run?.generation_date ? new Date(`${run.generation_date}T12:00:00`).toLocaleDateString("fr-CH", { day: "numeric", month: "long" }) : "jour"}</span></div>
-              <Button variant="outline" size="sm" className="gap-2" onClick={() => void regenerate()} disabled={generating}>{generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />} 3 nouvelles variantes</Button>
+              <Button variant="outline" size="sm" className="gap-2" onClick={() => void regenerate()} disabled={generating}>{generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />} Générer 3 nouveaux plats du jour</Button>
             </div>
             <div className="grid gap-4 xl:grid-cols-3">
               {variants.map((variant, index) => {

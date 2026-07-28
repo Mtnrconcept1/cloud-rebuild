@@ -189,6 +189,7 @@ export function formatDailyDishError(error: unknown) {
   if (message.includes("premium_required")) return "Cette fonctionnalité est incluse dès l’abonnement TOK Premium.";
   if (message.includes("daily_dish_disabled")) return "Activez d’abord le Plat du jour IA.";
   if (message.includes("daily_dish_generation_in_progress")) return "La recherche du jour est déjà en cours.";
+  if (message.includes("aligro_prices_unavailable")) return "Aucun prix Aligro vérifiable n’a été trouvé pour aujourd’hui. Réessayez dans quelques minutes.";
   if (message.includes("supplier_prices_unavailable")) return "Aucun prix fournisseur suffisamment vérifiable n’a été trouvé. Réessayez plus tard.";
   if (message.includes("daily_dish_revision_limit")) return "La limite de cinq demandes de modification est atteinte pour cette proposition.";
   if (
