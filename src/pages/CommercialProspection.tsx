@@ -1310,6 +1310,14 @@ export default function CommercialProspection() {
     setSelectedObjectId(null);
   }, [categoryFilter, communeFilter, search, statusFilter, theForkOnly]);
 
+  const handleTheForkOnlyChange = useCallback((checked: boolean | "indeterminate") => {
+    const nextTheForkOnly = checked === true;
+    setTheForkOnly(nextTheForkOnly);
+    setAppliedFilters((current) => ({ ...current, theForkOnly: nextTheForkOnly }));
+    setHasLaunchedSearch(true);
+    setSelectedObjectId(null);
+  }, []);
+
   const handleResetSearch = useCallback(() => {
     setSearch("");
     setStatusFilter(ALL_STATUSES);
@@ -1653,7 +1661,7 @@ export default function CommercialProspection() {
                 <Checkbox
                   id="commercial-thefork-only"
                   checked={theForkOnly}
-                  onCheckedChange={(checked) => setTheForkOnly(checked === true)}
+                  onCheckedChange={handleTheForkOnlyChange}
                   disabled={!theForkAvailable}
                   className="mt-0.5"
                 />
