@@ -4,6 +4,7 @@ import { Activity, CreditCard, History, RotateCcw, Truck, Utensils } from "lucid
 
 import AdminUrgentActions from "@/components/admin/AdminUrgentActions";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -80,6 +81,7 @@ export default function AdminOperationsCenter() {
           icon={Activity}
           tone="violet"
           visualLabel="Live"
+          illustration={DASHBOARD_ILLUSTRATIONS.adminOperations}
           stats={[
             { label: "Live", value: "20 s", icon: Activity },
             { label: "Paiements", value: "P0", icon: CreditCard },

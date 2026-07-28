@@ -3,6 +3,7 @@ import { ExternalLink, Facebook, Globe, Instagram, Trash2 } from "lucide-react";
 
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -204,6 +205,7 @@ export default function DashboardReseauxSociaux() {
           icon={Globe}
           tone="sky"
           visualLabel="Social"
+          illustration={DASHBOARD_ILLUSTRATIONS.restaurantSocial}
           stats={[
             { label: "Restaurants", value: items.length, icon: Globe },
             { label: "Profils reliés", value: connectedProfiles, icon: Instagram },

@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -182,6 +183,7 @@ export default function DashboardSupport() {
           icon={CircleHelp}
           tone="sky"
           visualLabel="Support"
+          illustration={DASHBOARD_ILLUSTRATIONS.restaurantSupport}
           stats={[
             { label: "FAQ", value: filteredFaq.length, icon: Search },
             { label: "Restaurant", value: selectedRestaurant?.name || "Aucun", icon: CircleHelp },

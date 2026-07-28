@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSupabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import { Crown, History, Pencil, ShieldCheck, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -434,6 +435,7 @@ export default function AdminLoyalty() {
         icon={Crown}
         tone="amber"
         visualLabel="Loyalty"
+          illustration={DASHBOARD_ILLUSTRATIONS.adminLoyalty}
         stats={[
           { label: "Forfaits", value: subscriptionPlans.length, icon: ShieldCheck },
           { label: "Abonnes", value: Number(tokOneMetrics.activeSubscribers || 0), icon: ShieldCheck },

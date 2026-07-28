@@ -36,6 +36,7 @@ import {
 import AudienceTargeting from "@/components/AudienceTargeting";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import ImageUpload from "@/components/ImageUpload";
 import SponsoredRestaurantTemplateCard from "@/components/campaigns/SponsoredRestaurantTemplateCard";
 import { Badge } from "@/components/ui/badge";
@@ -597,6 +598,7 @@ export default function DashboardCampagnes() {
           icon={Megaphone}
           tone="rose"
           visualLabel="Ads"
+          illustration={DASHBOARD_ILLUSTRATIONS.restaurantCampaigns}
           stats={[
             { label: "Campagnes", value: campaigns?.length || 0, icon: Megaphone },
             { label: "Conversions", value: loadingConversions ? "..." : conversionsByType.total, icon: Target },

@@ -19,6 +19,7 @@ import {
 import DashboardLayout from "@/components/DashboardLayout";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -1592,6 +1593,7 @@ export default function DashboardFormules() {
           icon={Percent}
           tone="orange"
           visualLabel="Formules"
+          illustration={DASHBOARD_ILLUSTRATIONS.restaurantFormulas}
           stats={[
             { label: "Modeles", value: PRESET_FORMULAS.length, icon: UtensilsCrossed },
             { label: "Configurees", value: (formulas?.length || 0) + progressiveOffers.length, icon: Percent },

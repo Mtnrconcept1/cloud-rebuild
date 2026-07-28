@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getSupabase } from "@/integrations/supabase/client";
@@ -172,6 +173,7 @@ export default function DashboardPack() {
           icon={Package}
           tone="violet"
           visualLabel="Modules"
+          illustration={DASHBOARD_ILLUSTRATIONS.restaurantPack}
           stats={[
             { label: "Garantie", value: "3× en 90 jours", icon: ShieldCheck },
             { label: "Activation", value: isDemoMode ? "Tous les modules actifs" : "Sans débit immédiat", icon: Check },

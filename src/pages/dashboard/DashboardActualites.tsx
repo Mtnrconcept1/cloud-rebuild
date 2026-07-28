@@ -19,6 +19,7 @@ import type { LucideIcon } from "lucide-react";
 
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import SocialComposer from "@/components/social/SocialComposer";
 import SocialPostBoostDialog from "@/components/social/SocialPostBoostDialog";
 import SocialPostCard from "@/components/social/SocialPostCard";
@@ -318,6 +319,7 @@ export default function DashboardActualites() {
           icon={Newspaper}
           tone="sky"
           visualLabel="Actualités"
+          illustration={DASHBOARD_ILLUSTRATIONS.restaurantNews}
           stats={[
             { label: "Publiés", value: insights?.publishedCount ?? publishedCount, icon: Newspaper },
             { label: "Interactions", value: insights?.interactions ?? interactions, icon: ThumbsUp },

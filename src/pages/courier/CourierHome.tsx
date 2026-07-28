@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
 import CourierDashboardLayout from "@/components/CourierDashboardLayout";
+import DashboardIllustrationMedia from "@/components/dashboard/DashboardIllustrationMedia";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import CourierPushStatusCard from "@/components/courier/CourierPushStatusCard";
 import { Badge } from "@/components/ui/badge";
@@ -264,14 +265,9 @@ function CourierHomePresentation({
                     <p className="font-semibold text-foreground">Prêt pour la prochaine mission</p>
                     <p className="mt-2 leading-6">Passez en ligne pour recevoir des propositions de livraison autour de votre position.</p>
                   </div>
-                  <img
-                    src={DASHBOARD_ILLUSTRATIONS.courierEmpty.src}
-                    alt={DASHBOARD_ILLUSTRATIONS.courierEmpty.alt}
-                    width={DASHBOARD_ILLUSTRATIONS.courierEmpty.width}
-                    height={DASHBOARD_ILLUSTRATIONS.courierEmpty.height}
-                    loading="lazy"
-                    decoding="async"
-                    className="mx-auto h-auto max-h-32 w-full max-w-40 object-contain drop-shadow-[0_18px_22px_rgba(194,78,24,0.18)] sm:max-h-36 sm:max-w-none"
+                  <DashboardIllustrationMedia
+                    illustration={DASHBOARD_ILLUSTRATIONS.courierJobsEmpty}
+                    className="mx-auto h-32 w-32 bg-transparent sm:h-36 sm:w-36"
                   />
                 </div>
               )}

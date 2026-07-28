@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bot, CalendarClock, ClipboardList, Loader2, MessageSquareText, Search, Send, ShieldAlert, Store, User } from "lucide-react";
 
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -997,6 +998,7 @@ export default function AdminSinistres() {
         icon={ShieldAlert}
         tone="orange"
         visualLabel="Sinistres"
+          illustration={DASHBOARD_ILLUSTRATIONS.adminIncidents}
         stats={[
           { label: "Tickets chat", value: counters.total, icon: MessageSquareText },
           { label: "Ouverts", value: counters.open, icon: ShieldAlert },

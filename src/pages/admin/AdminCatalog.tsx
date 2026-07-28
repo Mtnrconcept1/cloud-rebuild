@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSupabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -266,6 +267,7 @@ export default function AdminCatalog() {
         icon={Layers}
         tone="violet"
         visualLabel="Catalogue"
+          illustration={DASHBOARD_ILLUSTRATIONS.adminCatalog}
         stats={[
           { label: "Cuisines", value: cuisines.length, icon: Tag },
           { label: "Collections", value: collections.length, icon: Layers },

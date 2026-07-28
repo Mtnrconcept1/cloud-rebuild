@@ -4,6 +4,7 @@ import { ArrowDown, ArrowUp, Euro, Minus, Scale, ShoppingCart, Star } from "luci
 import DashboardLayout from "@/components/DashboardLayout";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getSupabase } from "@/integrations/supabase/client";
@@ -134,6 +135,7 @@ export default function DashboardComparaison() {
           icon={Scale}
           tone="violet"
           visualLabel="Benchmark"
+          illustration={DASHBOARD_ILLUSTRATIONS.restaurantComparison}
           stats={[
             { label: "CA restaurant", value: comparison ? `${Number(comparison.my_revenue).toFixed(0)} CHF` : "-", icon: Euro },
             { label: "Commandes", value: comparison ? Math.round(Number(comparison.my_orders)) : "-", icon: ShoppingCart },

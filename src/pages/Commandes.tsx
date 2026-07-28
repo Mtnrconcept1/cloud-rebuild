@@ -8,11 +8,11 @@ import {
   MapPin,
   Package,
   RefreshCcw,
-  ShoppingCart,
   XCircle,
 } from "lucide-react";
 
 import CustomerDashboardLayout from "@/components/CustomerDashboardLayout";
+import DashboardIllustrationMedia from "@/components/dashboard/DashboardIllustrationMedia";
 import OperationProgressDialog from "@/components/ui/operation-progress-dialog";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import OrderPaymentBreakdown from "@/components/orders/OrderPaymentBreakdown";
@@ -42,6 +42,7 @@ import { cancelOrderByCustomer } from "@/lib/orderMutations";
 import { normalizeOrderStatus } from "@/lib/orderStatus";
 import { parseStripeReturnSearch } from "@/lib/stripeReturn";
 import { useToast } from "@/hooks/use-toast";
+import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 
 const supabase = getSupabase();
 
@@ -547,9 +548,13 @@ function LiveCommandes() {
           </div>
           )
         ) : (
-          <div className="space-y-3 py-12 text-center">
-            <ShoppingCart className="mx-auto h-10 w-10 text-muted-foreground" />
-            <p className="text-muted-foreground">Aucune commande pour le moment.</p>
+          <div className="mx-auto flex max-w-md flex-col items-center gap-3 py-10 text-center">
+            <DashboardIllustrationMedia
+              illustration={DASHBOARD_ILLUSTRATIONS.clientOrdersEmpty}
+              className="h-36 w-36 bg-transparent sm:h-44 sm:w-44"
+            />
+            <p className="font-semibold text-foreground">Aucune commande pour le moment.</p>
+            <p className="max-w-sm text-sm text-muted-foreground">Découvrez les restaurants TOK et retrouvez ici le suivi de vos prochaines commandes.</p>
             <Button asChild variant="outline"><Link to="/recherche">Découvrir les restaurants</Link></Button>
           </div>
         )}
