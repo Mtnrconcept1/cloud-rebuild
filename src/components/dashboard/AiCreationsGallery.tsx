@@ -133,7 +133,7 @@ export default function AiCreationsGallery({ restaurantId, userId, currentPhotoC
     if (!deleted) return;
 
     toast({
-      title: "Creation supprimee",
+      title: "Création supprimee",
       description: record.galleryAdded
         ? "La creation est retiree de Mes creations. La photo deja ajoutee reste dans la galerie."
         : "La creation est retiree de Mes creations.",

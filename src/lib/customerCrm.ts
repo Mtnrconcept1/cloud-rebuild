@@ -271,10 +271,10 @@ type CustomerCrmExportColumn = {
 
 const CUSTOMER_CRM_EXPORT_COLUMNS: CustomerCrmExportColumn[] = [
   { header: "Nom complet", kind: "text", getValue: (profile) => profile.fullName },
-  { header: "Prenom", kind: "text", getValue: (profile) => profile.firstName },
+  { header: "Prénom", kind: "text", getValue: (profile) => profile.firstName },
   { header: "Nom", kind: "text", getValue: (profile) => profile.lastName },
   { header: "Email", kind: "text", getValue: (profile) => profile.email },
-  { header: "Telephone", kind: "phone", getValue: (profile) => profile.phone },
+  { header: "Téléphone", kind: "phone", getValue: (profile) => profile.phone },
   { header: "Ville", kind: "text", getValue: (profile) => profile.city },
   { header: "Adresse", kind: "text", getValue: (profile) => profile.address },
   { header: "Restaurant recent", kind: "text", getValue: (profile) => profile.lastRestaurantName },

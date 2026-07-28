@@ -168,7 +168,7 @@ export function formatServiceDetail(svc: PackService): string | null {
     return svc.quantity ? `${svc.quantity} plats` : "Tous les plats + ambiance";
   }
   if (svc.service === "menu_creation") {
-    return svc.max_items ? `Jusqu'à ${svc.max_items} plats` : "Illimite";
+    return svc.max_items ? `Jusqu’à ${svc.max_items} plats` : "Illimite";
   }
   if (svc.service === "advertising_campaign") {
     const parts: string[] = [];

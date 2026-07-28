@@ -860,7 +860,7 @@ export default function DashboardMenu() {
                 />
                 <Upload className="mx-auto mb-3 h-9 w-9 text-primary" />
                 <p className="font-semibold">Photographiez chaque page bien à plat et sans reflet</p>
-                <p className="mt-1 text-sm text-muted-foreground">Jusqu'à 3 photos JPG, PNG ou WebP. Les plats ne sont créés qu'après votre validation.</p>
+                <p className="mt-1 text-sm text-muted-foreground">Jusqu’à 3 photos JPG, PNG ou WebP. Les plats ne sont créés qu'après votre validation.</p>
                 <Button className="mt-4" variant="outline" onClick={() => menuImportInputRef.current?.click()}>
                   Choisir les photos
                 </Button>

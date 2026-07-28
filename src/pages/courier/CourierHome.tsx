@@ -485,7 +485,7 @@ function LiveCourierHome() {
   const handleToggleOnline = async () => {
     if (!profile) return;
     if (!profile.is_online && String(profile.status || "") !== "approved") {
-      toast.error("Le compte coursier doit être approuve avant de passer en ligne.");
+      toast.error("Le compte coursier doit être approuvé avant de passer en ligne.");
       return;
     }
 

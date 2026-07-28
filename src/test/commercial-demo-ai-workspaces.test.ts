@@ -233,7 +233,7 @@ describe("commercial demo AI workspaces", () => {
     expect(marketingStudio).toContain("styleMode,");
     expect(marketingStudio).toContain("demoReferencePalette,");
     expect(marketingStudio).toContain('getCommercialDemoVisualHistory(demoRuntime, "marketing_studio", 20)');
-    expect(marketingStudio).toContain("Créations Démo persistées");
+    expect(marketingStudio).toContain("Creations Démo persistées");
     expect(marketingStudio).not.toContain(".replaceAll(");
 
     const demoUpload = marketingStudio.slice(

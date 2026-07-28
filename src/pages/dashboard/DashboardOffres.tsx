@@ -473,7 +473,7 @@ function OfferForm({
         pickup_end: pickupEnd,
         is_active: true,
       },
-      p_reason: "Creation offre anti-gaspi restaurateur",
+      p_reason: "Création offre anti-gaspi restaurateur",
     });
 
     setLoading(false);
@@ -493,7 +493,7 @@ function OfferForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <div className="space-y-2">
-        <Label>Selectionner un produit</Label>
+        <Label>Sélectionner un produit</Label>
         <Select value={selectedItemId} onValueChange={setSelectedItemId}>
           <SelectTrigger>
             <SelectValue placeholder="Choisir un plat..." />
@@ -565,7 +565,7 @@ function OfferForm({
               <Input type="time" value={pickupStart} onChange={(e) => setPickupStart(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label>Jusqu'à</Label>
+              <Label>Jusqu’à</Label>
               <Input type="time" value={pickupEnd} onChange={(e) => setPickupEnd(e.target.value)} />
             </div>
           </div>

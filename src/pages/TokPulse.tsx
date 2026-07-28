@@ -16,7 +16,7 @@ const widgetPresets = [
   {
     name: "Promo",
     title: "Offres flash ce soir",
-    subtitle: "Jusqu'à -50% près de toi",
+    subtitle: "Jusqu’à -50% près de toi",
     action: "Voir",
     icon: Flame,
   },

@@ -66,7 +66,7 @@ export default function DropsManagement() {
       const { error } = await (supabase.rpc as any)("admin_save_chef_table_drop", {
         p_drop_id: editingId,
         p_payload: payload,
-        p_reason: editingId ? "Mise a jour drop La Table du Chef" : "Creation drop La Table du Chef",
+        p_reason: editingId ? "Mise à jour drop La Table du Chef" : "Création drop La Table du Chef",
       });
       if (error) throw error;
     },
@@ -173,7 +173,7 @@ export default function DropsManagement() {
                 value={form.restaurant_id}
                 onChange={(event) => setForm({ ...form, restaurant_id: event.target.value })}
               >
-                <option value="">Selectionner...</option>
+                <option value="">Sélectionner...</option>
                 {restaurants.map((restaurant: any) => (
                   <option key={restaurant.id} value={restaurant.id}>
                     {restaurant.name}

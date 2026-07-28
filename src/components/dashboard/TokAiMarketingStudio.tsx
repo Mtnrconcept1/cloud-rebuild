@@ -614,7 +614,7 @@ function buildMarketingRestaurantContext(context?: MarketingBusinessContext | nu
     sanitizeMarketingContextValue(restaurant.cuisineType) ? `Types de cuisine: ${sanitizeMarketingContextValue(restaurant.cuisineType, 180)}` : "",
     sanitizeMarketingContextValue(restaurant.description) ? `Description: ${sanitizeMarketingContextValue(restaurant.description, 300)}` : "",
     [sanitizeMarketingContextValue(restaurant.address, 180), sanitizeMarketingContextValue(restaurant.city, 80)].filter(Boolean).join(", "),
-    sanitizeMarketingContextValue(restaurant.phone) ? `Telephone: ${sanitizeMarketingContextValue(restaurant.phone, 80)}` : "",
+    sanitizeMarketingContextValue(restaurant.phone) ? `Téléphone: ${sanitizeMarketingContextValue(restaurant.phone, 80)}` : "",
     sanitizeMarketingContextValue(restaurant.email) ? `Email: ${sanitizeMarketingContextValue(restaurant.email, 120)}` : "",
     sanitizeMarketingContextValue(restaurant.website) ? `Site: ${sanitizeMarketingContextValue(restaurant.website, 160)}` : "",
   ].filter(Boolean);
@@ -1851,7 +1851,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
               <CardHeader className="p-4 sm:p-5">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
-                    <CardTitle className="text-base">Créations Démo persistées</CardTitle>
+                    <CardTitle className="text-base">Creations Démo persistées</CardTitle>
                     <CardDescription>
                       Retrouvez les visuels de cette session après un rechargement, sans Storage ni crédit de production.
                     </CardDescription>
@@ -1988,7 +1988,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                   value={prompt}
                   onChange={(event) => updatePrompt(event.target.value)}
                   maxLength={MARKETING_PROMPT_MAX_LENGTH + 120}
-                  placeholder="Ex: Creer un flyer pour la soiree mexicaine de vendredi, avec tacos, ambiance festive, couleurs chaudes, style moderne et gourmand..."
+                  placeholder="Ex: Créer un flyer pour la soiree mexicaine de vendredi, avec tacos, ambiance festive, couleurs chaudes, style moderne et gourmand..."
                   className="min-h-[132px] resize-y rounded-2xl border-orange-200 bg-orange-50/30 text-base shadow-inner focus-visible:ring-orange-400"
                 />
                 <div className="flex min-w-0 flex-col gap-2 break-words text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
@@ -2141,7 +2141,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
                     </Button>
                   </div>
                   <p className="text-xs leading-5 text-muted-foreground">
-                    Reutilisez une seed deja reussie pour garder une famille visuelle proche sur vos prochains supports.
+                    Reutilisez une seed deja réussie pour garder une famille visuelle proche sur vos prochains supports.
                   </p>
                 </div>
                 <div className="min-w-0 space-y-2">

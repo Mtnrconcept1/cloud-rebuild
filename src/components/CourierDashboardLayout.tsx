@@ -106,7 +106,7 @@ function CourierNavContent({
             className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
           >
             <LogOut className="h-4 w-4" />
-            Deconnexion
+            Déconnexion
           </button>
         </div>
       ) : null}

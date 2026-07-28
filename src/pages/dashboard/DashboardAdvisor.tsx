@@ -153,7 +153,7 @@ const QUICK_TOOLS: QuickTool[] = [
   },
   {
     icon: Megaphone,
-    label: "Creer une campagne",
+    label: "Créer une campagne",
     mode: "agent",
     action: "marketing_campaign",
     prompt: "Cree un brouillon de campagne marketing pour augmenter les commandes cette semaine sans publier automatiquement.",
@@ -173,7 +173,7 @@ const MAX_ADVISOR_HISTORY_ENTRIES = 12;
 const SUPABASE_VISIBLE_URL_PATTERN = /https?:\/\/[^\s)"']*supabase\.co[^\s)"']*/gi;
 const SUPABASE_HOST_PATTERN = /\b[a-z0-9-]+\.supabase\.co\b/gi;
 const COMMERCIAL_DEMO_SIGNED_IMAGE_PATTERN = /!\[[^\]]*\]\(https:\/\/[^\s)"']+\.supabase\.co\/storage\/v1\/object\/sign\/commercial-demo-ai\/[^\s)"']+\)/gi;
-const COMMERCIAL_DEMO_STORED_IMAGE_PLACEHOLDER = "_Visuel disponible dans Photos > Créations IA Démo._";
+const COMMERCIAL_DEMO_STORED_IMAGE_PLACEHOLDER = "_Visuel disponible dans Photos > Creations IA Démo._";
 const DEMO_IMAGE_DATA_URL_PATTERN = /^data:image\/(?:png|jpeg|webp);base64,[a-z0-9+/=]+$/i;
 const MAX_DEMO_IMAGE_DATA_URL_LENGTH = 16 * 1024 * 1024;
 
