@@ -47,7 +47,7 @@ const sections = [
       "Le restaurateur doit fournir des informations exactes, complètes et à jour: raison sociale, enseigne, adresse, représentant autorisé, coordonnées, documents utiles, IBAN, informations fiscales, moyens de paiement, horaires, modes de service, capacités, menus, photos et justificatifs demandes.",
       "TOK peut vérifier l'identité commerciale, la cohérence des informations, l'autorisation d'exploiter, les droits sur la marque, les documents transmis et la conformité minimale du dossier avant activation complète du compte ou d'un service.",
       "TOK peut refuser, suspendre ou limiter un onboarding lorsque le dossier est incomplet, incohérent, frauduleux, non conforme, juridiquement risque ou incompatible avec la qualité attendue sur la plateforme.",
-      "Le restaurateur est responsable de tous les actes effectués depuis son compte, y compris par ses employés, prestataires ou personnes auxquelles il a donne accès.",
+      "Le restaurateur est responsable de tous les actes effectués depuis son compte, y compris par ses employés, prestataires ou personnes auxquelles il a donné accès.",
     ],
   },
   {
@@ -131,7 +131,7 @@ const sections = [
     ],
   },
   {
-    title: "13. Actualites, avis, commentaires et signalements",
+    title: "13. Actualités, avis, commentaires et signalements",
     body: [
       "Les actualités, avis, commentaires, vidéos, photos, reposts et réponses restaurateur doivent refléter des informations authentiques, licites et respectueuses.",
       "Les avis publiés doivent correspondre à une expérience réelle. TOK peut masquer, modérer ou supprimer tout contenu faux, trompeur, injurieux, diffamatoire, haineux, frauduleux, illicite, publicitaire abusif ou contraire aux règles de la plateforme.",
@@ -141,7 +141,7 @@ const sections = [
   {
     title: "14. Campagnes sponsorisées et communications commerciales",
     body: [
-      "Le restaurateur peut lancer ou demander des campagnes sponsorisées selon les fonctionnalites disponibles: objectif, budget, durée, zone, audience, format, support, texte, visuel, calendrier et indicateurs de performance.",
+      "Le restaurateur peut lancer ou demander des campagnes sponsorisées selon les fonctionnalités disponibles: objectif, budget, durée, zone, audience, format, support, texte, visuel, calendrier et indicateurs de performance.",
       "TOK ne garantit aucun volume de ventes, chiffre d'affaires, clics, impressions, réservations, commandes ou conversion. Les estimations de portee, CPC, vues et resultats sont indicatives.",
       "Le restaurateur garantit que ses publicités, promotions, prix, réductions, photos et claims commerciaux sont exacts, non trompeurs et conformes àux règles applicables à la publicité et à la concurrence loyale.",
       "TOK peut refuser, suspendre ou modifier la diffusion d'une campagne en cas de contenu illicite, trompeur, dangereux, discriminatoire, sensible, non paye, techniquement instable ou contraire aux interets des utilisateurs.",
@@ -169,7 +169,7 @@ const sections = [
   {
     title: "17. Données client, CRM, confidentialité et sécurité",
     body: [
-      "Les données personnelles traitées vià TOK doivent être utilisées uniquement pour les finalités légitimes liées au service: gestion d'une réservation, commande, support, relation client, fidélité, obligations comptables, litige, campagne autorisée ou analyse interne conforme.",
+      "Les données personnelles traitées via TOK doivent être utilisées uniquement pour les finalités légitimes liées au service: gestion d'une réservation, commande, support, relation client, fidélité, obligations comptables, litige, campagne autorisée ou analyse interne conforme.",
       "Le restaurateur s'engage à respecter la Loi fédérale suisse sur la protection des données, le RGPD lorsqu'il est applicable, les préférences de notification, les oppositions et les principes de confidentialité.",
       "Les exports CRM, CSV, XLS, factures, listes de clients, historiques et profils de vente doivent être conservés de manière sécurisée, accessibles uniquement aux personnes autorisées et supprimés lorsqu'ils ne sont plus nécessaires.",
       "Le restaurateur s'interdit de revendre, louer, partager, enrichir illicitement, aspirer, scraper, harceler ou contacter des clients hors cadre légitime à partir des données TOK.",
@@ -181,7 +181,7 @@ const sections = [
     body: [
       "Les journaux informatiques, horodatages, validations électroniques, historiques de réservation, confirmations de paiement, traces de campagne, logs de notification, statuts et données techniques enregistrés par TOK font foi jusqu'à preuve contraire.",
       "Cette présomption peut être renversée par tout moyen de preuve admissible. Chaque partie doit conserver les éléments utiles à ses réclamations, notamment tickets, justificatifs, photos, historiques internes et preuves de service.",
-      "TOK peut suspendre temporairement un remboursement, un versement, une campagne, une publication ou une décision operationnelle durant l'instruction d'un dossier.",
+      "TOK peut suspendre temporairement un remboursement, un versement, une campagne, une publication ou une décision opérationnelle durant l'instruction d'un dossier.",
     ],
   },
   {
@@ -212,9 +212,9 @@ const sections = [
   {
     title: "22. Suspension et résiliation",
     body: [
-      "Le restaurateur peut demander depuis Mon compte/Facturation ou au support la pause d'un module ou la résiliation de son abonnement. Toute date d'effet est confirmee par TOK. La pause arrête l'usage et les facturations futures du module selon cette confirmation, sans annuler les sommes déjà dues.",
+      "Le restaurateur peut demander depuis Mon compte/Facturation ou au support la pause d'un module ou la résiliation de son abonnement. Toute date d'effet est confirmée par TOK. La pause arrête l'usage et les facturations futures du module selon cette confirmation, sans annuler les sommes déjà dues.",
       "Une résiliation mensuelle prend effet à la fin de la période en cours. Une période annuelle est engagée jusqu’à son échéance et ne donne pas lieu à remboursement anticipé, sauf accord écrit ou droit impératif. Les modules optionnels peuvent etre résiliés séparément de l'abonnement principal.",
-      "TOK peut suspendre ou resilier un compte en cas de fraude, non-paiement, violation des présentes conditions, utilisation abusive, atteinte à la sécurité, contournement de plateforme, non-cooperation, risque légal, réclamations graves ou atteinte à l'image de TOK.",
+      "TOK peut suspendre ou résilier un compte en cas de fraude, non-paiement, violation des présentes conditions, utilisation abusive, atteinte à la sécurité, contournement de plateforme, non-coopération, risque légal, réclamations graves ou atteinte à l'image de TOK.",
       "Sauf fraude manifeste, urgence, risque de sécurité, risque client ou obligation légale, TOK peut accorder un delai raisonnable permettant au restaurateur de régulariser sa situation.",
       "La résiliation n'efface pas les sommes dues, obligations de confidentialité, obligations de preuve, droits de recouvrement, obligations de conservation comptable ou responsabilités nées avant la fin du partenariat.",
     ],
@@ -245,9 +245,9 @@ const sections = [
     body: [
       "TOK Connect permet à des partenaires approuvés d'interagir avec certains services TOK via API REST, OAuth, webhooks, portail développeur, documentation OpenAPI, serveur MCP et clients sandbox ou production.",
       "Le restaurateur peut autoriser ou refuser un partenaire par restaurant lorsque la fonctionnalité est disponible. Cette autorisation peut être limitée par scopes, quotas, période, finalité, volume de réservations, taille de table, disponibilités, webhooks ou tout autre paramètre affiche dans le dashboard.",
-      "Les données accessibles vià TOK Connect restent limitées au périmètre autorisé: informations restaurant, menu, disponibilités, réservation, performance agrégée, crédits ou previews de campagne selon les scopes accordés. Les données de paiement sensibles, secrets serveur et informations non nécessaires ne doivent pas être transmis au partenaire.",
+      "Les données accessibles via TOK Connect restent limitées au périmètre autorisé: informations restaurant, menu, disponibilités, réservation, performance agrégée, crédits ou previews de campagne selon les scopes accordés. Les données de paiement sensibles, secrets serveur et informations non nécessaires ne doivent pas être transmises au partenaire.",
       "Les réservations créées par TOK Connect engagent le restaurant uniquement lorsqu'elles sont confirmées selon le parcours TOK, les disponibilités réelles, les règles de service et les limites accordées au partenaire. Le restaurateur doit maintenir ses horaires, tables, capacités et restrictions à jour afin d'éviter des confirmations incorrectes.",
-      "Les campagnes, offres, crédits, actions marketing autonomes et changements commerciaux sensibles générés vià TOK Connect restent en preview, suggestion ou validation humaine tant que TOK n'a pas active explicitement un mode plus autonome. Le restaurateur demeure responsable de toute campagne ou offre qu'il valide.",
+      "Les campagnes, offres, crédits, actions marketing autonomes et changements commerciaux sensibles générés via TOK Connect restent en preview, suggestion ou validation humaine tant que TOK n'a pas active explicitement un mode plus autonome. Le restaurateur demeure responsable de toute campagne ou offre qu'il valide.",
       "Les webhooks, logs API, traces MCP, request_id, clés d'idempotence, signatures, scopes et événements d'audit peuvent etre conservés afin de diagnostiquer les incidents, vérifier les quotas, prouver une action, sécuriser l'intégration et traiter les litiges.",
       "Le restaurateur doit choisir des partenaires fiables, vérifier la finalité de l'intégration, informer TOK de tout usage suspect et retirer l'autorisation lorsqu'elle n'est plus nécessaire. TOK peut suspendre ou révoquer un partenaire en cas de risque, abus, faille de sécurité, non-conformité ou demande légitime.",
     ],
@@ -274,7 +274,7 @@ export default function ConditionsRestaurateurs() {
                 Conditions générales restaurateurs TOK
               </h1>
               <p className="max-w-3xl text-base leading-7 text-muted-foreground">
-                Cadre contractuel entre TOK et les etablissements partenaires utilisant les outils de reservation,
+                Cadre contractuel entre TOK et les établissements partenaires utilisant les outils de réservation,
                 commande, marketing, CRM, IA, facturation et pilotage restaurateur.
               </p>
             </div>
