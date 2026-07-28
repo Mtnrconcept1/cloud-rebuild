@@ -1,10 +1,20 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+type MockFeatureFlag = {
+  id: string;
+  name: string;
+  label: string;
+  description: string;
+  explicitEnabled: boolean;
+  effectiveEnabled: boolean;
+  blockedBy: string[];
+};
+
 const setFlagStateMock = vi.hoisted(() => vi.fn());
 const toastMock = vi.hoisted(() => vi.fn());
 const featureState = vi.hoisted(() => ({
-  flags: [] as any[],
+  flags: [] as MockFeatureFlag[],
   loading: false,
 }));
 
