@@ -294,14 +294,14 @@ export function useFeatureFlags(isAdmin = false) {
     setFlagAuditLogs(await fetchFeatureFlagAuditLogs());
   }, [isAdmin]);
 
-  const toggleFlag = useCallback(async (
+  const setFlagState = useCallback(async (
     id: string,
+    nextExplicitState: boolean,
     reason?: string | null,
   ): Promise<{ success: boolean; error?: string }> => {
     const flag = flags.find((entry) => entry.id === id);
     if (!flag) return { success: false, error: "Flag introuvable" };
 
-    const nextExplicitState = !flag.explicitEnabled;
     const result = await toggleFlagViaRpc(flag.name, nextExplicitState, reason);
     if (!result.success) return result;
 
@@ -313,6 +313,15 @@ export function useFeatureFlags(isAdmin = false) {
     notifyFlagChange();
     return { success: true };
   }, [flags, refreshAuditLogs]);
+
+  const toggleFlag = useCallback(async (
+    id: string,
+    reason?: string | null,
+  ): Promise<{ success: boolean; error?: string }> => {
+    const flag = flags.find((entry) => entry.id === id);
+    if (!flag) return { success: false, error: "Flag introuvable" };
+    return setFlagState(id, !flag.explicitEnabled, reason);
+  }, [flags, setFlagState]);
 
   const activateAllFlags = useCallback(async (): Promise<{ success: boolean; error?: string }> => {
     const result = await activateAllViaRpc();
@@ -350,6 +359,7 @@ export function useFeatureFlags(isAdmin = false) {
     featureMap,
     loading,
     toggleFlag,
+    setFlagState,
     activateAllFlags,
     applyFeatureFlagPreset,
     isEnabled: (featureName: string) => isFeatureEnabled(featureMap, featureName),
