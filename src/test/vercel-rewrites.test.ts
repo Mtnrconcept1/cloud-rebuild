@@ -182,7 +182,7 @@ describe("vercel config", () => {
     const noindexSources = (config.headers || [])
       .filter((entry) => entry.headers?.some((header) => header.key === "X-Robots-Tag"))
       .map((entry) => entry.source);
-    const privateSurfacePattern = "/:surface(admin|dashboard|courier|commercial|profil|notifications|commandes|commande|reservations|mon-espace|compte|espace-client|mes-avis|points-cadeau|panier|auth|oauth)";
+    const privateSurfacePattern = "/:surface(admin|dashboard|courier|commercial|profil|notifications|commandes|commande|reservations|mon-espace|compte|espace-client|mes-avis|points-cadeau|panier|auth|oauth|espaces|r)";
 
     expect(noindexSources).toContain(privateSurfacePattern);
     expect(noindexSources).toContain(`${privateSurfacePattern}/:path*`);
