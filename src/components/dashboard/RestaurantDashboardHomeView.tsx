@@ -271,7 +271,7 @@ function DashboardStatCard({
 
   if (!to) return <div aria-disabled="true" className={cn(className, "cursor-not-allowed opacity-65")}>{content}</div>;
 
-  return <Link to={to} className={className} aria-label={`Ouvrir ${label}`}>{content}</Link>;
+  return <Link to={to} className={className} aria-label={`Ouvrir ${label} : ${value}`}>{content}</Link>;
 }
 
 function MobileOverviewCard({ to, children }: { to: string | null; children: ReactNode }) {
