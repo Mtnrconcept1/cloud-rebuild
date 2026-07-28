@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSupabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -203,6 +204,7 @@ export default function DashboardVentesFlash() {
           icon={Zap}
           tone="amber"
           visualLabel="Flash"
+          illustration={DASHBOARD_ILLUSTRATIONS.flashSales}
           stats={[
             { label: "Ventes", value: sales?.length || 0, icon: Zap },
             { label: "Actives", value: sales?.filter((sale) => isSpecialOfferEffectivelyActive(sale)).length || 0, icon: Percent },
