@@ -67,7 +67,7 @@ describe("restaurant partner contracts governance", () => {
   it("requires a manual restaurateur contract signature during signup before submission", () => {
     expect(authPage).toContain("RestaurantContractSignaturePad");
     expect(authPage).toContain("Signature au doigt ou au stylet");
-    expect(authPage).toContain("Exporter le contrat signé en PDF");
+    expect(authPage).toContain("RESTAURANT_PARTNER_CONTRACT_EXPORT_ACTION_LABEL");
     expect(authPage).toContain("openSafeHtmlPrintDocument");
     expect(authPage).not.toContain(
       'window.open("", "_blank", "noopener,noreferrer")',
@@ -82,7 +82,7 @@ describe("restaurant partner contracts governance", () => {
   });
 
   it("allows signed restaurant contracts to be exported from the restaurateur dashboard", () => {
-    expect(dashboardContractCard).toContain("Exporter le contrat en PDF");
+    expect(dashboardContractCard).toContain("RESTAURANT_PARTNER_CONTRACT_EXPORT_ACTION_LABEL");
     expect(dashboardContractCard).toContain(
       "generateSignedRestaurantPartnerContractHtml",
     );

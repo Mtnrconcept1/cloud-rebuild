@@ -310,23 +310,29 @@ export function generateSignedRestaurantPartnerContractHtml(
   <title>${escapeHtml(RESTAURANT_PARTNER_CONTRACT_TITLE)} - ${escapeHtml(input.restaurantName || input.businessName || input.legalName || input.signerName)}</title>
   <style>
     :root { color-scheme: light; }
-    body { color: #0f172a; font-family: Arial, sans-serif; line-height: 1.5; margin: 32px; }
+    @page { size: A4; margin: 18mm 16mm 20mm; }
+    html { background: #fff; }
+    body { color: #0f172a; font-family: Arial, sans-serif; line-height: 1.5; margin: 0; }
     h1 { font-size: 24px; margin-bottom: 4px; }
     h2 { font-size: 16px; margin-top: 24px; }
     p { font-size: 12px; margin: 8px 0; }
-    section { break-inside: avoid; }
+    section { break-inside: auto; page-break-inside: auto; }
+    section + section { break-before: auto; page-break-before: auto; }
+    h1, h2, h3 { break-after: avoid-page; page-break-after: avoid; }
+    h2 + p { break-before: avoid-page; page-break-before: avoid; }
     .version { color: #475569; font-size: 12px; margin-top: 0; }
     .notice { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 12px; color: #7c2d12; font-size: 12px; margin: 18px 0; padding: 12px 14px; }
-    .meta, .signature { border: 1px solid #cbd5e1; border-radius: 12px; margin: 18px 0; padding: 16px; }
+    .meta, .signature { border: 1px solid #cbd5e1; border-radius: 12px; break-inside: avoid-page; page-break-inside: avoid; margin: 18px 0; padding: 16px; }
     .grid { display: grid; gap: 10px 18px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .full { grid-column: 1 / -1; }
     .label { color: #475569; font-size: 11px; text-transform: uppercase; }
     .value { font-size: 13px; font-weight: 700; margin-bottom: 8px; overflow-wrap: anywhere; }
-    img { border: 1px solid #e2e8f0; border-radius: 8px; display: block; max-height: 120px; max-width: 360px; padding: 8px; }
+    img { border: 1px solid #e2e8f0; border-radius: 8px; break-inside: avoid-page; display: block; max-height: 120px; max-width: 360px; padding: 8px; page-break-inside: avoid; }
     @media print {
-      body { margin: 16mm; }
+      html, body { width: 210mm; }
+      body { margin: 0; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
       button { display: none; }
-      .meta, .signature, section { break-inside: avoid; }
+      .signature { break-before: auto; page-break-before: auto; }
     }
   </style>
 </head>
