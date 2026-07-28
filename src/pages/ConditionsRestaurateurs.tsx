@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
 import { SUPPORT_EMAIL } from "@/lib/contact";
 import { useSeoMeta } from "@/hooks/useSeoMeta";
+import { LEGAL_DOCUMENTS, LEGAL_EFFECTIVE_DATE_FR } from "@/lib/legalDocuments";
 
-const updatedAt = "28 juillet 2026";
+const updatedAt = LEGAL_EFFECTIVE_DATE_FR;
 
 const quickPoints = [
   "Fair Growth : Starter CHF 69, Business CHF 129, Premium CHF 199 et Elite CHF 499 par mois ; annuel au prix de 11 mois pour 12.",
@@ -211,6 +212,8 @@ const sections = [
   {
     title: "22. Suspension et resiliation",
     body: [
+      "Le restaurateur peut demander depuis Mon compte/Facturation ou au support la pause d'un module ou la resiliation de son abonnement. Toute date d'effet est confirmee par TOK. La pause arrete l'usage et les facturations futures du module selon cette confirmation, sans annuler les sommes deja dues.",
+      "Une resiliation mensuelle prend effet a la fin de la periode en cours. Une periode annuelle est engagee jusqu'a son echeance et ne donne pas lieu a remboursement anticipe, sauf accord ecrit ou droit imperatif. Les modules optionnels peuvent etre resilies separement de l'abonnement principal.",
       "TOK peut suspendre ou resilier un compte en cas de fraude, non-paiement, violation des presentes conditions, utilisation abusive, atteinte a la securite, contournement de plateforme, non-cooperation, risque legal, reclamations graves ou atteinte a l'image de TOK.",
       "Sauf fraude manifeste, urgence, risque de securite, risque client ou obligation legale, TOK peut accorder un delai raisonnable permettant au restaurateur de regulariser sa situation.",
       "La resiliation n'efface pas les sommes dues, obligations de confidentialite, obligations de preuve, droits de recouvrement, obligations de conservation comptable ou responsabilites nees avant la fin du partenariat.",
@@ -276,7 +279,7 @@ export default function ConditionsRestaurateurs() {
               </p>
             </div>
             <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
-              <span className="rounded-full border bg-white px-3 py-1">Version 1.0</span>
+              <span className="rounded-full border bg-white px-3 py-1">Version {LEGAL_DOCUMENTS.restaurantTerms.version}</span>
               <span className="rounded-full border bg-white px-3 py-1">Derniere mise a jour: {updatedAt}</span>
               <span className="rounded-full border bg-white px-3 py-1">Droit suisse · Geneve</span>
             </div>

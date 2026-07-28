@@ -1,12 +1,15 @@
 import { Link } from "react-router-dom";
 import { SUPPORT_EMAIL } from "@/lib/contact";
+import { useSeoMeta } from "@/hooks/useSeoMeta";
+import { LEGAL_DOCUMENTS, LEGAL_EFFECTIVE_DATE_FR } from "@/lib/legalDocuments";
 
 export default function CGU() {
+  useSeoMeta({ title: "Conditions générales d'utilisation | TOK", description: "Règles applicables aux comptes, commandes, réservations, paiements et services publics TOK.", path: "/cgu" });
   return (
     <div className="container py-12 md:py-20 max-w-4xl space-y-12">
       <div className="space-y-4">
         <h1 className="font-display text-4xl font-bold">Conditions Générales d'Utilisation</h1>
-        <p className="text-muted-foreground">Dernière mise à jour : 26 juin 2026</p>
+        <p className="text-muted-foreground">Version {LEGAL_DOCUMENTS.cgu.version} — applicable dès le {LEGAL_EFFECTIVE_DATE_FR}</p>
       </div>
 
       <div className="prose prose-foodhub max-w-none space-y-8">
@@ -24,6 +27,9 @@ export default function CGU() {
           <h2 className="text-2xl font-semibold">2. Acceptation des CGU</h2>
           <p className="text-foreground/80 leading-relaxed">
             L'utilisation de TOK implique l'acceptation pleine et entière des présentes CGU. Si vous n'acceptez pas ces conditions, vous devez cesser d'utiliser la plateforme.
+          </p>
+          <p className="text-foreground/80 leading-relaxed">
+            Lors de la création de compte, TOK conserve avec le dossier l'identifiant exact de la présente version et de la politique de confidentialité, la date et le contexte technique disponibles. Une nouvelle version substantielle peut nécessiter une nouvelle acceptation.
           </p>
           <p className="text-foreground/80 leading-relaxed">
             Des conditions complémentaires peuvent s'appliquer à certains services, notamment Tok One, les packs restaurateurs, les campagnes sponsorisées, les réservations Zéro Attente, La Table du Chef, les dons solidaires et les services de paiement.
@@ -79,7 +85,7 @@ export default function CGU() {
             Les prix sont affichés en francs suisses (CHF), toutes taxes applicables comprises lorsque cela est indiqué. Les frais de livraison, de service, de garantie, de réservation ou de campagne sont présentés avant validation lorsque le service les prévoit.
           </p>
           <p className="text-foreground/80 leading-relaxed">
-            Une commande, réservation payante, campagne ou souscription est validée lorsque le paiement est confirmé par le prestataire de paiement. Les moyens de paiement disponibles peuvent inclure carte, portefeuilles compatibles, TWINT, PostFinance ou tout moyen ajouté ultérieurement.
+            Une commande, réservation payante, campagne ou souscription est validée lorsque le paiement est confirmé par le prestataire de paiement. Seuls les moyens effectivement affichés dans le parcours sont disponibles. L'enregistrement d'une carte pour un dossier restaurateur utilise Stripe et ne constitue pas, à lui seul, un débit ni une activation d'abonnement.
           </p>
           <p className="text-foreground/80 leading-relaxed">
             L'annulation d'une commande dépend de son état de préparation. Les réservations peuvent être soumises à des délais d'annulation et à des règles spécifiques, notamment pour Zéro Attente, La Table du Chef et les expériences limitées. Les remboursements acceptés sont effectués sur le moyen de paiement d'origine ou sous forme de crédit TOK lorsque cela est proposé.

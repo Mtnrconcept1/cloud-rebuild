@@ -21,7 +21,7 @@ export const TRACKER_INVENTORY: TrackerInventoryItem[] = [
     activation: "Connexion ou restauration d’une session existante.",
   },
   {
-    name: "tok_consent_2026-07-24-v2",
+    name: "tok_consent_cookies-2026-07-v3",
     provider: "TOK",
     storage: "localStorage",
     category: "necessary",

@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { useSeoMeta } from "@/hooks/useSeoMeta";
 
 const STATS = [
   { value: "4", label: "interfaces clés", icon: Users },
@@ -96,6 +97,7 @@ const HOW_IT_WORKS = [
 ];
 
 export default function APropos() {
+  useSeoMeta({ title: "À propos de TOK — plateforme restaurant suisse", description: "Découvrez TOK, sa mission restaurateur-first et ses services réellement disponibles ou déployés progressivement.", path: "/a-propos" });
   return (
     <div className="container py-12 md:py-20 space-y-20">
       <div className="text-center space-y-6">

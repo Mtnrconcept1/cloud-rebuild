@@ -35,6 +35,8 @@ import { SUPPORT_EMAIL } from "@/lib/contact";
 import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 import { isHelpCategoryVisible, isHelpQuestionVisible } from "@/lib/featureVisibility";
 import type { HelpChatOpenOptions } from "@/lib/helpChat";
+import { useSeoMeta } from "@/hooks/useSeoMeta";
+import { PUBLIC_FEATURE_MATRIX } from "@/lib/publicFeatureMatrix";
 
 declare global {
   interface Window {
@@ -792,6 +794,30 @@ const FAQS: FaqSection[] = [
         a: `Utilisez l'espace Restaurateurs ou contactez ${SUPPORT_EMAIL}. L'équipe vérifie vos informations, votre identité commerciale, vos horaires, modes de service, menu, photos, moyens de paiement et conditions opérationnelles avant mise en ligne.`,
       },
       {
+        q: "Que se passe-t-il après l'inscription restaurateur et la confirmation email ?",
+        a: "Après l'envoi du formulaire, ouvrez le lien de confirmation reçu par email pour vérifier l'adresse et accéder au dossier. Si le message n'arrive pas, vérifiez les indésirables puis demandez un nouvel envoi. La confirmation email ne vaut pas approbation : TOK contrôle ensuite le dossier et peut demander des justificatifs avant d'ouvrir les services.",
+      },
+      {
+        q: "Pourquoi enregistrer une carte sans débit immédiat ?",
+        a: "Stripe peut enregistrer un moyen de paiement pour préparer la souscription choisie. Cette étape ne déclenche ni abonnement ni débit immédiat : elle conserve une référence technique, jamais le numéro complet chez TOK. Le premier débit intervient seulement après approbation, activation et confirmation des conditions tarifaires applicables.",
+      },
+      {
+        q: "Quels onglets dois-je compléter pendant l'onboarding ?",
+        a: "Complétez les onglets identité et établissement, coordonnées, horaires et services, menu et allergènes, photos, paiement et facturation, puis validation. Un onglet incomplet peut retarder l'approbation. Le dashboard indique les éléments manquants ; TOK ne publie pas automatiquement un établissement dont le dossier reste à vérifier.",
+      },
+      {
+        q: "Comment raccorder Google Business ?",
+        a: "TOK commence par auditer la fiche, les droits de gestion et le lien de réservation. Après accord du restaurant, un lien attribué peut être ajouté à Google Business afin de mesurer clics, réservations confirmées et chiffre d'affaires attribuable. TOK ne revendique pas la propriété de la fiche et ne garantit ni classement Google ni volume de réservations.",
+      },
+      {
+        q: "Comment la valeur d'un module de croissance est-elle mesurée ?",
+        a: "Chaque module utilise des indicateurs attribuables annoncés avant activation : réservations honorées, no-shows évités, commandes directes, marge ou gaspillage estimés, clics, conversions et revenu associé. Le dashboard compare la valeur mesurée au coût sur une fenêtre définie, généralement 90 jours. Ces estimations ne garantissent pas un résultat commercial.",
+      },
+      {
+        q: "Comment mettre en pause ou résilier Fair Growth et ses modules ?",
+        a: "Adressez la demande depuis Mon compte/Facturation ou au support. Une pause suspend l'usage et la facturation future selon la date confirmée ; elle n'efface pas les montants déjà dus. Une résiliation mensuelle prend effet à la fin de la période en cours. Un engagement annuel reste dû jusqu'à son échéance sauf accord écrit ou droit impératif. Les modules sur demande sont arrêtés séparément après confirmation TOK.",
+      },
+      {
         q: "Que contient le dashboard restaurateur ?",
         a: "Le dashboard peut regrouper commandes, réservations, menu, offres, anti-gaspi, ventes flash, Actualités, campagnes, CRM, performances, avis, factures, photos, support, plan de salle et pilotage de service selon les droits et fonctionnalités activées. Dès Premium, le Menu inclut le Plat du jour IA avec trois propositions quotidiennes, recherche fournisseurs et publication PhotoPro.",
       },
@@ -893,6 +919,20 @@ const FAQS: FaqSection[] = [
 ];
 
 export default function Aide() {
+  useSeoMeta({
+    title: "Centre d'aide TOK — clients et restaurateurs",
+    description: "Réponses sur les commandes, paiements, inscriptions restaurateurs, Fair Growth, Google Business et fonctionnalités TOK.",
+    path: "/aide",
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: FAQS.flatMap((section) => section.questions).map((item) => ({
+        "@type": "Question",
+        name: item.q,
+        acceptedAnswer: { "@type": "Answer", text: item.a },
+      })),
+    },
+  });
   const [search, setSearch] = useState("");
   const [selectedCat, setSelectedCat] = useState<string | null>(null);
   const questionsRef = useRef<HTMLElement | null>(null);
@@ -997,6 +1037,16 @@ export default function Aide() {
       </div>
 
       <main className="container -mt-7 max-w-6xl space-y-10 px-4 md:px-6">
+        <section className="rounded-2xl border bg-card p-5 shadow-sm" aria-labelledby="feature-matrix-title">
+          <h2 id="feature-matrix-title" className="text-xl font-bold">Matrice des fonctionnalités proposées</h2>
+          <p className="mt-2 text-sm text-muted-foreground">Cette vue relie les routes publiques, les fonctionnalités activables, les packs et les modules Fair Growth à leur aide et à leurs conditions applicables.</p>
+          <div className="mt-4 max-h-96 overflow-auto rounded-xl border">
+            <table className="w-full min-w-[820px] text-left text-sm">
+              <thead className="sticky top-0 bg-muted"><tr><th className="p-3">Public</th><th className="p-3">Fonctionnalité</th><th className="p-3">Disponibilité</th><th className="p-3">Routes</th><th className="p-3">Cadre</th></tr></thead>
+              <tbody>{PUBLIC_FEATURE_MATRIX.map((row) => <tr key={`${row.audience}-${row.feature}`} className="border-t align-top"><td className="p-3">{row.audience}</td><td className="p-3 font-medium">{row.feature}</td><td className="p-3">{row.availability}</td><td className="p-3 font-mono text-xs">{row.routes.join(", ")}</td><td className="p-3"><Link className="text-primary hover:underline" to={row.legalDocument}>{row.legalDocument === "/cgu" ? "CGU" : "Conditions restaurateurs"}</Link></td></tr>)}</tbody>
+            </table>
+          </div>
+        </section>
         <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {visibleCategories.map((category) => (
             <button

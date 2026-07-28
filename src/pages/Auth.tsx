@@ -77,9 +77,9 @@ import {
   getOrCreatePaymentAttemptId,
   markPaymentAttemptRedirected,
 } from "@/lib/paymentAttempt";
+import { LEGAL_ACCEPTANCE_VERSION } from "@/lib/legalDocuments";
 
 const supabase = getSupabase();
-const LEGAL_ACCEPTANCE_VERSION = "2026-07-18-fair-growth-v3";
 const onboardingAttemptScope = (restaurantId: string) => `restaurant-onboarding:${restaurantId}`;
 
 type SignupFormState = {
