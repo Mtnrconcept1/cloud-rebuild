@@ -9,6 +9,24 @@ SET label = 'Mon pack — coupure globale',
     updated_at = now()
 WHERE name = 'dashboard-pack';
 
+-- Keep already-open clients in sync with the global switch. RLS still
+-- governs delivery and feature_flags is already publicly readable.
+DO $
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM pg_catalog.pg_publication WHERE pubname = 'supabase_realtime'
+  ) AND NOT EXISTS (
+    SELECT 1
+    FROM pg_catalog.pg_publication_tables
+    WHERE pubname = 'supabase_realtime'
+      AND schemaname = 'public'
+      AND tablename = 'feature_flags'
+  ) THEN
+    EXECUTE 'ALTER PUBLICATION supabase_realtime ADD TABLE public.feature_flags';
+  END IF;
+END;
+$;
+
 CREATE OR REPLACE FUNCTION private_finance.assert_dashboard_pack_runtime_enabled(
   p_action text
 )
