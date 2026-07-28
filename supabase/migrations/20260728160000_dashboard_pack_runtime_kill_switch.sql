@@ -151,41 +151,15 @@ $$;
 REVOKE ALL ON FUNCTION private_finance.assert_dashboard_pack_runtime_enabled(text)
   FROM PUBLIC, anon, authenticated, service_role;
 
--- Keep the existing request implementation private and expose a guarded
--- compatibility wrapper under the unchanged public RPC signature.
-ALTER FUNCTION public.request_fair_growth_module(uuid, text)
-  RENAME TO request_fair_growth_module_unchecked;
-ALTER FUNCTION public.request_fair_growth_module_unchecked(uuid, text)
-  SET SCHEMA private_finance;
-REVOKE ALL ON FUNCTION private_finance.request_fair_growth_module_unchecked(uuid, text)
-  FROM PUBLIC, anon, authenticated, service_role;
-
-CREATE OR REPLACE FUNCTION public.request_fair_growth_module(
-  p_restaurant_id uuid,
-  p_module_slug text
-)
-RETURNS public.restaurant_paid_modules
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = ''
-AS $$
-BEGIN
-  PERFORM private_finance.assert_dashboard_pack_runtime_enabled('request');
-  RETURN private_finance.request_fair_growth_module_unchecked(
-    p_restaurant_id,
-    p_module_slug
-  );
-END;
-$$;
-
-REVOKE ALL ON FUNCTION public.request_fair_growth_module(uuid, text)
-  FROM PUBLIC, anon, authenticated, service_role;
+-- Preserve the existing request implementation and its production ACL.
+-- The AFTER trigger below guards inserts and cancelled-to-requested updates
+-- after the paid-module row lock has been acquired.
 GRANT EXECUTE ON FUNCTION public.request_fair_growth_module(uuid, text)
-  TO authenticated;
+  TO authenticated, service_role;
 
--- Enforce the same invariant on trusted direct writes. The audited lifecycle
--- keeps its original lookup order, so a replayed idempotency key returns before
--- this trigger and remains valid even after a later kill-switch activation.
+-- Enforce the same invariant on trusted direct writes after the paid-module
+-- row lock is acquired. Replayed idempotency keys return before any UPDATE, so
+-- they remain valid even after a later kill-switch activation.
 CREATE OR REPLACE FUNCTION private_finance.enforce_dashboard_pack_paid_module_write()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -237,7 +211,7 @@ REVOKE ALL ON FUNCTION private_finance.enforce_dashboard_pack_paid_module_write(
 DROP TRIGGER IF EXISTS enforce_dashboard_pack_paid_module_write
   ON public.restaurant_paid_modules;
 CREATE TRIGGER enforce_dashboard_pack_paid_module_write
-  BEFORE INSERT OR UPDATE OF status, module_id ON public.restaurant_paid_modules
+  AFTER INSERT OR UPDATE OF status, module_id ON public.restaurant_paid_modules
   FOR EACH ROW
   EXECUTE FUNCTION private_finance.enforce_dashboard_pack_paid_module_write();
 
@@ -251,7 +225,6 @@ BEGIN
   END IF;
 
   IF to_regprocedure('public.request_fair_growth_module(uuid,text)') IS NULL
-    OR to_regprocedure('private_finance.request_fair_growth_module_unchecked(uuid,text)') IS NULL
     OR to_regprocedure('private_finance.assert_dashboard_pack_runtime_enabled(text)') IS NULL
     OR to_regprocedure('private_finance.transition_fair_growth_module(uuid,text,text,text,text,integer)') IS NULL
   THEN
@@ -264,6 +237,18 @@ BEGIN
     'EXECUTE'
   ) THEN
     RAISE EXCEPTION 'Postflight failed: the private Mon pack guard is executable by anon';
+  END IF;
+
+  IF NOT has_function_privilege(
+    'authenticated',
+    'public.request_fair_growth_module(uuid,text)',
+    'EXECUTE'
+  ) OR NOT has_function_privilege(
+    'service_role',
+    'public.request_fair_growth_module(uuid,text)',
+    'EXECUTE'
+  ) THEN
+    RAISE EXCEPTION 'Postflight failed: the Mon pack request ACL regressed';
   END IF;
 
   IF NOT EXISTS (
