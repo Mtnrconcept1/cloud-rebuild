@@ -288,8 +288,10 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
     writeCommercialDemoToolState(sessionId, DEMO_STORAGE_KEY, { ...current, ...next });
   }, [sessionId]);
 
-  const loadState = useCallback(async () => {
-    setLoading(true);
+  // `silent` re-reads the server state without flashing the skeleton or raising a
+  // toast, for background re-syncs the user did not trigger.
+  const loadState = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       if (isDemo && sessionId) {
         const demoState = latestDemoState(readCommercialDemoToolState<DemoDailyDishState>(sessionId, DEMO_STORAGE_KEY, buildDemoSeed()));
@@ -310,10 +312,10 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
       const selected = status.variants.find((variant) => variant.status === "selected" || variant.status === "published");
       setSelectedId(selected?.id || null);
     } catch (error) {
-      if (!mountedRef.current) return;
+      if (!mountedRef.current || silent) return;
       toast({ title: "Plat du jour IA indisponible", description: formatDailyDishError(error), variant: "destructive" });
     } finally {
-      if (mountedRef.current) setLoading(false);
+      if (mountedRef.current && !silent) setLoading(false);
     }
   }, [isDemo, restaurantId, sessionId, toast]);
 
@@ -355,7 +357,12 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
       });
     } catch (error) {
       if (!mountedRef.current) return;
-      if (!automatic || !String(error).includes("generation_in_progress")) {
+      // The automatic attempt is a background convenience the user never asked
+      // for, and leaving the tab or locking the phone aborts its request while
+      // the Edge Function keeps running server-side. Alerting there would blame
+      // the user for a run that usually completed. The visibility listener picks
+      // the finished run back up, and the manual buttons still report errors.
+      if (!automatic) {
         toast({ title: "Recherche impossible", description: formatDailyDishError(error), variant: "destructive" });
       }
     } finally {
@@ -403,6 +410,21 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
     autoAttemptRef.current = key;
     void generate(true);
   }, [accessEnabled, generate, generating, loading, restaurantId, run, settings.is_enabled]);
+
+  // Backgrounding the tab or locking the phone aborts the in-flight request, but
+  // the Edge Function still writes its run and variants. Re-reading the server
+  // state on return surfaces that finished work instead of leaving the panel
+  // empty and re-triggering a generation the user already paid for.
+  useEffect(() => {
+    if (!accessEnabled || isDemo) return;
+    const handleVisibility = () => {
+      if (document.visibilityState !== "visible") return;
+      if (generating || publishing || refiningId) return;
+      void loadState(true);
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, [accessEnabled, generating, isDemo, loadState, publishing, refiningId]);
 
   const toggleEnabled = async (enabled: boolean) => {
     setToggling(true);

@@ -140,4 +140,25 @@ describe("Premium daily dish AI", () => {
     expect(publicCard).not.toMatch(/basket|supplier|estimated_total_cost|recipe/i);
     expect(restaurantDetail).toContain("<RestaurantDailyDishCard");
   });
+
+  it("survives leaving the app: the aborted background run is recovered, not reported as an error", () => {
+    // Backgrounding the tab aborts the request while the Edge Function keeps
+    // running, so the automatic attempt must stay silent instead of blaming the
+    // user for a run that completed server-side.
+    expect(panel).toContain("if (!automatic) {");
+    expect(panel).not.toContain('if (!automatic || !String(error).includes("generation_in_progress"))');
+
+    // Returning to the tab re-reads the finished run, without a skeleton flash.
+    expect(panel).toContain('document.addEventListener("visibilitychange"');
+    expect(panel).toContain('document.removeEventListener("visibilitychange"');
+    expect(panel).toContain("void loadState(true)");
+    expect(panel).toContain("const loadState = useCallback(async (silent = false)");
+    expect(panel).toContain("if (!silent) setLoading(true)");
+
+    // A re-sync must never race an in-flight action the user did trigger.
+    expect(panel).toContain("if (generating || publishing || refiningId) return;");
+
+    // Results that land after unmount must not be written to a dead component.
+    expect(panel).toContain("mountedRef");
+  });
 });
