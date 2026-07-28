@@ -664,8 +664,8 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
   },
   {
     name: "dashboard-pack",
-    label: "Dashboard: Abonnement restaurateur",
-    description: "Expose la page de gestion de l'abonnement restaurateur.",
+    label: "Mon pack — coupure globale",
+    description: "Masque Mon pack et bloque les nouvelles activations ou reprises de modules Fair Growth.",
     defaultEnabled: true,
     group: "restaurant_dashboard",
     dependsOn: ["dashboard-restaurateur"],
