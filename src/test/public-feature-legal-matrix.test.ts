@@ -22,6 +22,13 @@ describe("public feature, help and legal coverage", () => {
     expect(PUBLIC_FEATURE_MATRIX.every((row) => row.helpSection && row.legalDocument)).toBe(true);
   });
 
+  it("keeps the internal matrix out of the public help center", () => {
+    const help = read("src/pages/Aide.tsx");
+
+    expect(help).not.toContain("Matrice des fonctionnalités proposées");
+    expect(help).not.toContain("PUBLIC_FEATURE_MATRIX");
+  });
+
   it("documents the complete restaurant onboarding and Fair Growth lifecycle", () => {
     const help = read("src/pages/Aide.tsx");
     for (const text of [
