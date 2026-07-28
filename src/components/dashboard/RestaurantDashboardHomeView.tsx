@@ -246,7 +246,7 @@ function DashboardStatCard({
 }) {
   const toneClasses = DASHBOARD_TONES[tone];
   const className = cn(
-    "tok-dashboard-kpi relative overflow-hidden rounded-3xl p-5 transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+    "block w-full tok-dashboard-kpi relative overflow-hidden rounded-3xl p-5 transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
     toneClasses.card,
   );
   const content = (
