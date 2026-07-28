@@ -19,6 +19,7 @@ describe("dashboard 3D illustrations", () => {
   it("uses illustrated photo actions with a responsive two-to-three column grid", () => {
     const photos = read("src/pages/dashboard/DashboardPhotos.tsx");
     expect(photos).toContain("IllustratedActionCard");
+    expect(photos).toContain('<h1 className="sr-only">Photos et créations</h1>');
     expect(photos).toContain("sm:grid-cols-2 xl:grid-cols-3");
     for (const key of ["photoMarketing", "photoPro", "photoAdd", "photoGallery", "photoCreations"]) expect(photos).toContain(`DASHBOARD_ILLUSTRATIONS.${key}`);
   });
