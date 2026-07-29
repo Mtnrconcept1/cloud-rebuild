@@ -49,7 +49,13 @@ describe("reservation fee and Mon pack integrity", () => {
     const dashboard = read("src/pages/dashboard/DashboardReservations.tsx");
 
     expect(dashboard.match(/Frais non calculés — clôturez la table/g)?.length).toBeGreaterThanOrEqual(2);
-    expect(dashboard.match(/Clôturer la table et calculer les frais/g)?.length).toBeGreaterThanOrEqual(2);
+    // L'action de cloture reste presente dans les deux dispositions, mais son
+    // libelle est desormais factorise : il depend de « Mon pack », coupe ou non.
+    // Compter la chaine litterale reviendrait a exiger le libelle Fair Growth
+    // meme la ou il est faux.
+    expect(dashboard.match(/honorCtaLabel/g)?.length).toBeGreaterThanOrEqual(3);
+    expect(dashboard).toContain('"Clôturer la table et calculer les frais"');
+    expect(dashboard).toContain('"Clôturer la table"');
     expect(dashboard).toContain('["arrived", "seated", "completed"]');
     expect(dashboard).toContain('arrived: ["arrived", "seated"]');
     expect(dashboard).toContain('seated: ["seated"]');

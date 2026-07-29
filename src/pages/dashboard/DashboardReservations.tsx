@@ -40,6 +40,7 @@ import { AlertTriangle, Ban, CalendarDays, Check, CreditCard, Dot, MoonStar, Sea
 import { getServicePeriodFromMetadata, getServicePeriodLabel } from "@/lib/serviceSettings";
 import { countUnreadOperationNotificationsByDate } from "@/lib/dashboardNotificationBadges";
 import { sortByColumn, type SortColumn, type SortDirection } from "@/lib/listSorting";
+import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 import {
   DASHBOARD_TIME_RANGE_OPTIONS,
   formatDashboardDateHeading,
@@ -265,6 +266,12 @@ function LiveDashboardReservations() {
   const [openDayKey, setOpenDayKey] = useState<string | null>(null);
   const [cancelTarget, setCancelTarget] = useState<ReservationWithProfile | null>(null);
   const [honorTarget, setHonorTarget] = useState<ReservationWithProfile | null>(null);
+  // « Mon pack » coupe : la cloture ne calcule plus rien, elle applique un
+  // forfait. Promettre un calcul dans le libelle serait faux.
+  const { isEnabled: isFeatureEnabled, loading: featureFlagsLoading } = useFeatureFlagSnapshot();
+  const honorCtaLabel = !featureFlagsLoading && !isFeatureEnabled("dashboard-pack")
+    ? "Clôturer la table"
+    : "Clôturer la table et calculer les frais";
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<OperationViewMode>("details");
   const deepLinkFocusedRef = useRef<string | null>(null);
@@ -934,7 +941,7 @@ function LiveDashboardReservations() {
                               className="h-auto min-h-9 whitespace-normal py-2"
                             >
                               <Check className="mr-1 h-4 w-4" />
-                              {isHonored ? "Table clôturée" : "Clôturer la table et calculer les frais"}
+                              {isHonored ? "Table clôturée" : honorCtaLabel}
                             </Button>
                           ) : null}
                           <Button
@@ -1225,7 +1232,7 @@ function LiveDashboardReservations() {
                                             className="h-auto min-h-9 whitespace-normal py-2"
                                           >
                                             <Check className="mr-1 h-4 w-4" />
-                                            {isHonored ? "Table clôturée" : "Clôturer la table et calculer les frais"}
+                                            {isHonored ? "Table clôturée" : honorCtaLabel}
                                           </Button>
                                         ) : null}
                                         <Button
