@@ -266,10 +266,15 @@ function LiveDashboardReservations() {
   const [openDayKey, setOpenDayKey] = useState<string | null>(null);
   const [cancelTarget, setCancelTarget] = useState<ReservationWithProfile | null>(null);
   const [honorTarget, setHonorTarget] = useState<ReservationWithProfile | null>(null);
-  // « Mon pack » coupe : la cloture ne calcule plus rien, elle applique un
-  // forfait. Promettre un calcul dans le libelle serait faux.
+  // « Mon pack » coupe : le frais vaut 5.- des l'arrivee, calcule par le
+  // serveur. L'etape de cloture n'a plus rien a determiner, et la maintenir
+  // ferait croire qu'un montant reste a saisir.
   const { isEnabled: isFeatureEnabled, loading: featureFlagsLoading } = useFeatureFlagSnapshot();
-  const honorCtaLabel = !featureFlagsLoading && !isFeatureEnabled("dashboard-pack")
+  const flatFeeBilling = !featureFlagsLoading && !isFeatureEnabled("dashboard-pack");
+  // Le parcours de cloture subsiste en mode Fair Growth, ou le libelle doit
+  // encore annoncer un calcul. Le forfait le laisse hors d'atteinte, mais un
+  // drapeau non encore charge peut l'exposer brievement : il reste juste.
+  const honorCtaLabel = flatFeeBilling
     ? "Clôturer la table"
     : "Clôturer la table et calculer les frais";
   const [searchTerm, setSearchTerm] = useState("");
@@ -917,7 +922,7 @@ function LiveDashboardReservations() {
                           ) : null}
                         </div>
                         <div className="grid grid-cols-1 gap-2 border-t pt-3 sm:grid-cols-2 lg:grid-cols-4">
-                          {hasUncalculatedFee ? (
+                          {hasUncalculatedFee && !flatFeeBilling ? (
                             <p className="col-span-full rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">
                               Frais non calculés — clôturez la table
                             </p>
@@ -932,7 +937,7 @@ function LiveDashboardReservations() {
                             <UserCheck className="mr-1 h-4 w-4" />
                             Arrivée
                           </Button>
-                          {!isCommercialDemoRestaurant && canCloseTable ? (
+                          {!isCommercialDemoRestaurant && canCloseTable && !flatFeeBilling ? (
                             <Button
                               size="sm"
                               onClick={() => setHonorTarget(reservation)}
@@ -1208,7 +1213,7 @@ function LiveDashboardReservations() {
                                       </div>
 
                                       <div className="flex flex-wrap gap-2 sm:justify-end">
-                                        {hasUncalculatedFee ? (
+                                        {hasUncalculatedFee && !flatFeeBilling ? (
                                           <p className="w-full rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800 sm:text-right">
                                             Frais non calculés — clôturez la table
                                           </p>
@@ -1223,7 +1228,7 @@ function LiveDashboardReservations() {
                                           <UserCheck className="mr-1 h-4 w-4" />
                                           Arrivee
                                         </Button>
-                                        {!isCommercialDemoRestaurant && canCloseTable ? (
+                                        {!isCommercialDemoRestaurant && canCloseTable && !flatFeeBilling ? (
                                           <Button
                                             size="sm"
                                             onClick={() => setHonorTarget(reservation)}
