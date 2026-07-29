@@ -36,6 +36,30 @@ describe("attribution du role commercial depuis l'onglet Utilisateurs", () => {
     expect(migration).toContain("ON CONFLICT (user_id, role) DO NOTHING");
   });
 
+  it("laisse son etape de donnees franchir son propre garde-fou", () => {
+    // Une migration ne s'execute ni comme service_role ni comme administrateur
+    // authentifie : auth.role() et auth_is_admin() y sont faux. Sans cette
+    // desactivation, le garde-fou installe quelques lignes plus haut refuse
+    // l'attribution que la meme migration cherche a poser, et le deploiement
+    // echoue en 42501. La preproduction ne l'avait pas vu : auth.users y est
+    // vide, donc le bloc sortait avant d'atteindre l'insertion.
+    expect(migration).toContain(
+      "ALTER TABLE public.user_roles DISABLE TRIGGER guard_commercial_role_assignment;",
+    );
+    expect(migration).toContain(
+      "ALTER TABLE public.user_roles ENABLE TRIGGER guard_commercial_role_assignment;",
+    );
+
+    // La desactivation doit encadrer l'etape de donnees, et la reactivation
+    // survenir apres : un ordre inverse laisserait le garde-fou hors service.
+    const off = migration.indexOf("DISABLE TRIGGER guard_commercial_role_assignment");
+    const insert = migration.indexOf("INSERT INTO public.user_roles");
+    const on = migration.indexOf("ENABLE TRIGGER guard_commercial_role_assignment");
+    expect(off).toBeGreaterThan(-1);
+    expect(insert).toBeGreaterThan(off);
+    expect(on).toBeGreaterThan(insert);
+  });
+
   it("laisse l'interface proposer le role", () => {
     expect(adminUsers).toContain('"commercial"');
     expect(adminUsers).toContain("AVAILABLE_ROLES");
