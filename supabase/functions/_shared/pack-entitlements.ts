@@ -31,7 +31,6 @@ export const ALL_GATABLE_FEATURES = [
   "dashboard-service",
   "dashboard-plan-salle",
   "dashboard-support",
-  "dashboard-pack",
 ] as const;
 
 const SERVICE_TO_FEATURES: Record<LaunchPackServiceSlug, string[]> = {
@@ -48,7 +47,6 @@ const SERVICE_TO_FEATURES: Record<LaunchPackServiceSlug, string[]> = {
     "dashboard-avis",
     "dashboard-factures",
     "dashboard-support",
-    "dashboard-pack",
   ],
   menu_creation: ["dashboard-menu"],
   product_photography: ["dashboard-photos"],
@@ -63,7 +61,7 @@ const SERVICE_TO_FEATURES: Record<LaunchPackServiceSlug, string[]> = {
   ],
 };
 
-const ALWAYS_ENABLED = ["dashboard-overview", "dashboard-support", "dashboard-pack"];
+const ALWAYS_ENABLED = ["dashboard-overview", "dashboard-support"];
 
 export function computeDisabledDashboardFeatures(services: Array<{ service?: string | null }>) {
   const enabled = new Set<string>(ALWAYS_ENABLED);

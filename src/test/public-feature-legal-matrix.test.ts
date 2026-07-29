@@ -26,12 +26,12 @@ describe("public feature, help and legal coverage", () => {
     expect(help).not.toContain("feature-matrix-title");
   });
 
-  it("documents the complete restaurant onboarding and Fair Growth lifecycle", () => {
+  it("documents the complete restaurant onboarding and subscription lifecycle", () => {
     const help = read("src/pages/Aide.tsx");
     for (const text of [
       "confirmation email", "sans débit immédiat", "ne vaut pas approbation", "onglets identité et établissement",
-      "Google Business", "valeur d'un module de croissance", "fenêtre définie, généralement 90 jours",
-      "mettre en pause ou résilier Fair Growth", "fin de la période en cours",
+      "Google Business",
+      "mettre en pause ou résilier mon abonnement", "fin de la période en cours",
     ]) expect(help).toContain(text);
   });
 

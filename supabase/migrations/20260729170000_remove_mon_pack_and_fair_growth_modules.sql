@@ -345,7 +345,24 @@ BEGIN
 END;
 $function$;
 
-------------------------------------------------------------- 5. Drapeau
+--------------------------------------------------- 5. Grille des abonnements
+
+-- Le frais par reservation cesse de dependre du plan. La colonne reste : elle
+-- alimente reservation_fee_list_cents_snapshot, donc le montant affiche sur le
+-- contrat signe. La laisser a 300 pour Elite ferait afficher « CHF 3.00 /
+-- reservation » a un restaurant reellement facture 5.-.
+--
+-- Le plafond passe a 100 % : il n'a plus d'effet, mais la colonne est NOT NULL
+-- et son snapshot conditionne encore des gardes existants.
+UPDATE public.restaurant_subscription_plans
+SET
+  acquired_reservation_fee_cents = 500,
+  reservation_revenue_cap_bps = 10000,
+  updated_at = now()
+WHERE acquired_reservation_fee_cents <> 500
+   OR reservation_revenue_cap_bps <> 10000;
+
+------------------------------------------------------------- 6. Drapeau
 
 -- L'interrupteur n'a plus de second modele a designer.
 DELETE FROM public.feature_flags WHERE name = 'dashboard-pack';
