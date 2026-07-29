@@ -109,7 +109,6 @@ export default function AdminCompta() {
     financialHealth,
     periodControl,
     stripeReconciliation,
-    fairGrowthReconciliation,
     platformFinanceSnapshot,
     isPeriodClosed,
     isLoading,
@@ -522,23 +521,6 @@ export default function AdminCompta() {
                 }))
                 : [{ label: "Rapprochement", value: "Aucun ecart", helper: "Aucun signal Stripe/Base sur cette periode." }]}
             />
-          </AccountingPanel>
-
-          <AccountingPanel
-            tone="amber"
-            icon={AlertTriangle}
-            title="Modules Fair Growth à rapprocher"
-            description="Activations bloquées et paiements Stripe autoritaires sans état local correspondant."
-            value={String(fairGrowthReconciliation.length)}
-            valueLabel="Incidents ouverts"
-          >
-            <AccountingFactList items={fairGrowthReconciliation.length > 0
-              ? fairGrowthReconciliation.map((row) => ({
-                label: row.module_slug || "Module Stripe non identifié",
-                value: row.incident_type === "activation_blocked" ? "Activation bloquée" : "Paiement sans état local",
-                helper: row.stripe_event_id ? `Événement Stripe ${row.stripe_event_id}` : `Détecté le ${new Date(row.created_at).toLocaleString("fr-CH")}`,
-              }))
-              : [{ label: "Rapprochement Fair Growth", value: "Aucun incident", helper: "Toutes les activations payées ont un état local." }]} />
           </AccountingPanel>
 
           <AccountingDigestCard

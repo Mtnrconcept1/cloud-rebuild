@@ -52,16 +52,12 @@ describe("facturation du forfait a l'arrivee", () => {
     expect(migration).toContain("cancelled_by IS NULL");
   });
 
-  it("reste sans effet en mode Fair Growth", () => {
-    // Le montant y depend du couvert : ni l'arrivee ni une bascule automatique
-    // ne peuvent le connaitre, la cloture reste donc necessaire.
-    const occurrences = migration.match(/flat_reservation_billing_active\(\)/g)?.length ?? 0;
-    expect(occurrences).toBeGreaterThanOrEqual(2);
-  });
-
-  it("retire l'etape de cloture de l'ecran quand le forfait s'applique", () => {
-    expect(list).toContain("flatFeeBilling");
-    expect(list).toContain("canCloseTable && !flatFeeBilling");
-    expect(list).toContain("hasUncalculatedFee && !flatFeeBilling");
+  it("retire l'etape de cloture de l'ecran, sans condition", () => {
+    // Le forfait n'est plus un repli : « Mon pack » ayant disparu, il n'y a
+    // plus de second modele, donc plus de drapeau a consulter avant de
+    // masquer le parcours de cloture.
+    expect(list).not.toContain("flatFeeBilling");
+    expect(list).not.toContain("Clôturer la table");
+    expect(list).not.toContain("dashboard-pack");
   });
 });

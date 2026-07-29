@@ -1,4 +1,3 @@
-import { FAIR_GROWTH_MODULES } from "@/lib/fairGrowth";
 import { FEATURE_DEFINITIONS } from "@/lib/featureCatalog";
 
 export type PublicFeatureMatrixRow = {
@@ -40,17 +39,7 @@ const restaurantCoreRows: PublicFeatureMatrixRow[] = [
   },
 ];
 
-const fairGrowthRows: PublicFeatureMatrixRow[] = FAIR_GROWTH_MODULES.map((module) => ({
-  audience: "Restaurateur",
-  feature: module.name,
-  availability: module.availabilityStatus === "pilot" ? "Pilote sur demande et après validation" : "Sur demande, activation manuelle",
-  routes: ["/packs-restaurateur"],
-  helpSection: "Restaurateurs",
-  legalDocument: "/conditions-restaurateurs",
-}));
-
 export const PUBLIC_FEATURE_MATRIX: readonly PublicFeatureMatrixRow[] = [
   ...publicFlagRows,
   ...restaurantCoreRows,
-  ...fairGrowthRows,
 ];

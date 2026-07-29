@@ -19,7 +19,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   FAIR_GROWTH_PLANS,
-  calculateCappedReservationFeeChf,
+  RESERVATION_FLAT_FEE_CHF,
   getFairGrowthPlan,
   type FairGrowthPlanSlug,
 } from "@/lib/fairGrowth";
@@ -31,7 +31,7 @@ const CANONICAL_ORIGIN = "https://www.thetok.ch";
 const comparisonRows = [
   {
     criterion: "Déclencheur du coût",
-    tok: "Réservation TOK réellement honorée, tarif du plan et plafond de 7% du CA table.",
+    tok: "Réservation réellement honorée, forfait de 5.- par table, sans plafond ni condition d'origine.",
     perCover: "Chaque couvert déclaré, apporté ou facturé selon le canal.",
     decision: "Comparer le coût avant le service, pas seulement après facturation.",
   },
@@ -99,7 +99,7 @@ const faqItems = [
   {
     question: "Pourquoi comparer avec un tarif fixe par table ?",
     answer:
-      "Fair Growth applique le tarif du plan uniquement à une réservation TOK honorée, avec un plafond de 7% du chiffre d'affaires de la table. Les canaux propres restent gratuits.",
+      "TOK facture un forfait de 5.- par réservation honorée, sans plafond, sans distinction de canal et sans dépendre du montant de l'addition.",
   },
   {
     question: "Comment intégrer les no-shows dans le calcul ?",
@@ -126,7 +126,6 @@ export default function AlternativeCommissionCouvert() {
   const [coversPerTable, setCoversPerTable] = useState(2.4);
   const [feePerCover, setFeePerCover] = useState(6);
   const [noShowRate, setNoShowRate] = useState(8);
-  const [attributedRevenuePerTable, setAttributedRevenuePerTable] = useState(120);
   const [planSlug, setPlanSlug] = useState<FairGrowthPlanSlug>("starter");
 
   const simulation = useMemo(() => {
@@ -134,16 +133,12 @@ export default function AlternativeCommissionCouvert() {
     const covers = clampNumber(coversPerTable, 0);
     const fee = clampNumber(feePerCover, 0);
     const noShows = Math.min(clampNumber(noShowRate, 0), 100) / 100;
-    const tableRevenue = clampNumber(attributedRevenuePerTable, 0);
     const fairGrowthPlan = getFairGrowthPlan(planSlug);
     const plannedCovers = tables * covers;
     const honoredTables = tables * (1 - noShows);
     const honoredCovers = honoredTables * covers;
     const perCoverCost = plannedCovers * fee;
-    const effectiveFeePerTable = calculateCappedReservationFeeChf(
-      fairGrowthPlan.acquiredReservationFeeChf,
-      tableRevenue,
-    );
+    const effectiveFeePerTable = RESERVATION_FLAT_FEE_CHF;
     const tokTableCost = honoredTables * effectiveFeePerTable;
     const tokEstimatedCost = tokTableCost + fairGrowthPlan.monthlyPriceChf;
 
@@ -158,7 +153,7 @@ export default function AlternativeCommissionCouvert() {
       effectiveFeePerTable,
       planName: fairGrowthPlan.publicName,
     };
-  }, [attributedRevenuePerTable, coversPerTable, feePerCover, noShowRate, planSlug, tablesPerMonth]);
+  }, [coversPerTable, feePerCover, noShowRate, planSlug, tablesPerMonth]);
 
   const jsonLd = useMemo(
     () => ({
@@ -310,7 +305,7 @@ export default function AlternativeCommissionCouvert() {
           <div className="grid gap-6 rounded-lg border bg-white p-5 shadow-sm lg:grid-cols-[minmax(0,1fr)_290px]">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label>Plan Fair Growth</Label>
+                <Label>Abonnement</Label>
                 <Select value={planSlug} onValueChange={(value) => setPlanSlug(value as FairGrowthPlanSlug)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -324,7 +319,6 @@ export default function AlternativeCommissionCouvert() {
               <NumberField id="covers-per-table" label="Couverts par table" value={coversPerTable} onChange={setCoversPerTable} step={0.1} />
               <NumberField id="fee-per-cover" label="Commission par couvert" value={feePerCover} onChange={setFeePerCover} step={0.1} />
               <NumberField id="no-show-rate" label="No-show / annulations (%)" value={noShowRate} onChange={setNoShowRate} />
-              <NumberField id="table-revenue" label="CA attribué par table (CHF)" value={attributedRevenuePerTable} onChange={setAttributedRevenuePerTable} />
             </div>
 
             <div className="grid gap-3 rounded-lg bg-slate-950 p-4 text-white">
@@ -332,7 +326,7 @@ export default function AlternativeCommissionCouvert() {
               <MetricDark label="Couverts honorés" value={Math.round(simulation.honoredCovers).toLocaleString("fr-CH")} />
               <MetricDark label="Coût au couvert" value={formatChf(simulation.perCoverCost)} />
               <MetricDark label={"Estimation TOK · " + simulation.planName} value={formatChf(simulation.tokEstimatedCost)} />
-              <MetricDark label="Frais effectifs / table honorée" value={simulation.effectiveFeePerTable.toLocaleString("fr-CH", { maximumFractionDigits: 2 }) + " CHF"} />
+              <MetricDark label="Forfait / table honorée" value={simulation.effectiveFeePerTable.toLocaleString("fr-CH", { maximumFractionDigits: 2 }) + " CHF"} />
               <MetricDark
                 label="Coût TOK / couvert honoré"
                 value={`${simulation.acquisitionPerHonoredCover.toLocaleString("fr-CH", { maximumFractionDigits: 2 })} CHF`}
@@ -389,17 +383,14 @@ export default function AlternativeCommissionCouvert() {
               const monthlyRevenue = scenario.tables * scenario.covers * scenario.averageTicket;
               const variableCost = scenario.tables * scenario.covers * feePerCover;
               const plan = getFairGrowthPlan(planSlug);
-              const tableCost = scenario.tables * calculateCappedReservationFeeChf(
-                plan.acquiredReservationFeeChf,
-                scenario.covers * scenario.averageTicket,
-              ) + plan.monthlyPriceChf;
+              const tableCost = scenario.tables * RESERVATION_FLAT_FEE_CHF + plan.monthlyPriceChf;
               return (
                 <article key={scenario.label} className="rounded-lg border bg-white p-5 shadow-sm">
                   <h3 className="text-xl font-bold">{scenario.label}</h3>
                   <div className="mt-4 grid gap-3 text-sm">
                     <ScenarioMetric label="CA potentiel" value={formatChf(monthlyRevenue)} />
                     <ScenarioMetric label="Commission au couvert" value={formatChf(variableCost)} />
-                    <ScenarioMetric label={"Fair Growth " + getFairGrowthPlan(planSlug).publicName} value={formatChf(tableCost)} />
+                    <ScenarioMetric label={"TOK " + getFairGrowthPlan(planSlug).publicName} value={formatChf(tableCost)} />
                   </div>
                 </article>
               );

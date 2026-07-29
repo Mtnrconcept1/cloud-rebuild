@@ -45,18 +45,20 @@ describe("reservation fee and Mon pack integrity", () => {
     );
   });
 
-  it("makes the uncalculated fee state and closing action explicit in both reservation layouts", () => {
+  it("n'expose plus aucune etape de cloture dans les deux dispositions", () => {
     const dashboard = read("src/pages/dashboard/DashboardReservations.tsx");
 
-    expect(dashboard.match(/Frais non calculés — clôturez la table/g)?.length).toBeGreaterThanOrEqual(2);
-    // L'action de cloture reste presente dans les deux dispositions, mais son
-    // libelle est desormais factorise : il depend de « Mon pack », coupe ou non.
-    // Compter la chaine litterale reviendrait a exiger le libelle Fair Growth
-    // meme la ou il est faux.
-    expect(dashboard.match(/honorCtaLabel/g)?.length).toBeGreaterThanOrEqual(3);
-    expect(dashboard).toContain('"Clôturer la table et calculer les frais"');
-    expect(dashboard).toContain('"Clôturer la table"');
-    expect(dashboard).toContain('["arrived", "seated", "completed"]');
+    // Le frais est pose des le passage en « arrivee » : il n'y a plus rien a
+    // calculer, donc plus de bouton, plus de modale, et plus d'avertissement
+    // « frais non calcules » a afficher.
+    expect(dashboard).not.toContain("Frais non calculés");
+    expect(dashboard).not.toContain("Clôturer la table");
+    expect(dashboard).not.toContain("MarkReservationHonoredDialog");
+    expect(dashboard).not.toContain("markReservationHonored");
+
+    // Le bouton « Arrivee » reste le seul geste de service, et les transitions
+    // de statut qu'il ouvre sont inchangees.
+    expect(dashboard).toContain("Arrivée");
     expect(dashboard).toContain('arrived: ["arrived", "seated"]');
     expect(dashboard).toContain('seated: ["seated"]');
   });

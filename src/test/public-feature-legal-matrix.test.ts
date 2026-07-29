@@ -4,21 +4,17 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { FEATURE_DEFINITIONS } from "@/lib/featureCatalog";
-import { FAIR_GROWTH_MODULES } from "@/lib/fairGrowth";
 import { LEGAL_ACCEPTANCE_VERSION, LEGAL_DOCUMENTS } from "@/lib/legalDocuments";
 import { PUBLIC_FEATURE_MATRIX } from "@/lib/publicFeatureMatrix";
 
 const read = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
 
 describe("public feature, help and legal coverage", () => {
-  it("maps every public feature route and every paid Fair Growth module", () => {
+  it("maps every public feature route", () => {
     const publicRoutes = FEATURE_DEFINITIONS.flatMap((feature) => feature.routeTargets || [])
       .filter((route) => !route.startsWith("/dashboard"));
     const mappedRoutes = PUBLIC_FEATURE_MATRIX.flatMap((row) => row.routes);
     for (const route of publicRoutes) expect(mappedRoutes).toContain(route);
-    for (const module of FAIR_GROWTH_MODULES) {
-      expect(PUBLIC_FEATURE_MATRIX.some((row) => row.feature === module.name)).toBe(true);
-    }
     expect(PUBLIC_FEATURE_MATRIX.every((row) => row.helpSection && row.legalDocument)).toBe(true);
   });
 
