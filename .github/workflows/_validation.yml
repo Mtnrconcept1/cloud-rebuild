@@ -103,7 +103,29 @@ jobs:
           fi
 
       - name: Test CI classifiers
-        run: node --test scripts/ci-change-plan.test.mjs scripts/ci-critical-tests.test.mjs
+        run: node --test scripts/ci-change-plan.test.mjs scripts/ci-critical-tests.test.mjs scripts/ci-migration-version-guard.test.mjs
+
+      # La suite ne voit une collision d'horodatage qu'une fois les deux
+      # migrations reunies, donc apres la fusion : main casse et la seconde
+      # migration n'est jamais appliquee, Supabase ayant deja enregistre cette
+      # version. Le controle compare donc la branche au main courant, pas a la
+      # base sur laquelle elle a ete ouverte. Seul l'arbre est lu, jamais
+      # l'historique : la profondeur 1 suffit.
+      - name: Fetch default branch for migration comparison
+        shell: bash
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          set -euo pipefail
+          if ! git fetch --no-tags --depth=1 origin \
+            "+refs/heads/${DEFAULT_BRANCH}:refs/remotes/origin/${DEFAULT_BRANCH}"; then
+            echo "::warning::Default branch unavailable; the migration version guard will skip the comparison."
+          fi
+
+      - name: Guard migration version collisions
+        env:
+          CI_MIGRATION_BASE_REF: origin/${{ github.event.repository.default_branch }}
+        run: node scripts/ci-migration-version-guard.mjs
 
       - name: Detect validation and deployment impact
         id: impact

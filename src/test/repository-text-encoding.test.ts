@@ -33,6 +33,24 @@ const GENERATED_PREFIXES = [
 // byte sequence.
 const COMMON_MOJIBAKE_PATTERN = /\ufffd|[\u00c2\u00c3\u00e2][\u0080-\u00bf\u0152\u0153\u0160\u0161\u0178\u017d\u017e\u0192\u02c6\u02dc\u2013\u2014\u2018\u2019\u201a\u201c\u201d\u201e\u2020\u2021\u2022\u2026\u2030\u2039\u203a\u20ac\u2122]/;
 
+/**
+ * Fichiers qui contiennent legitimement les majuscules A-circonflexe et
+ * A-tilde (U+00C2 et U+00C3).
+ *
+ * Le motif ci-dessus les signale parce qu'elles ouvrent presque tout mojibake
+ * latin-1 : un « é » mal decode donne la paire U+00C3 U+00A9. Une table de
+ * repli d'accents doit pourtant les enumerer comme n'importe quelle autre
+ * lettre accentuee ; les retirer reviendrait a ne plus desaccentuer ces deux
+ * majuscules, donc a casser la recherche insensible aux accents.
+ *
+ * L'exemption est nominative et doit le rester : elle desactive l'heuristique
+ * sur la totalite du fichier vise. La detection d'octets UTF-8 reellement
+ * invalides, elle, reste appliquee partout.
+ */
+const LEGITIMATE_ACCENT_TABLES = new Set([
+  "supabase/migrations/20260728173450_immutable_unaccent_lower.sql",
+]);
+
 function trackedTextFiles() {
   return execFileSync("git", ["ls-files", "-z"], { encoding: "utf8" })
     .split("\0")
@@ -61,6 +79,11 @@ describe("repository text encoding", () => {
       if (firstBytes.includes(0)) return [`${file}: contains NUL bytes near the start`];
 
       const text = buffer.toString("utf8");
+      // Un octet invalide se décode en U+FFFD : le contrôle reste actif partout,
+      // y compris sur les fichiers exemptés de la détection de mojibake.
+      if (text.includes("\ufffd")) return [`${file}: contains invalid UTF-8 bytes`];
+      if (LEGITIMATE_ACCENT_TABLES.has(file.replace(/\\/g, "/"))) return [];
+
       const lines = text.split(/\r?\n/);
       const badLine = lines.findIndex((line) => COMMON_MOJIBAKE_PATTERN.test(line));
       if (badLine < 0) return [];

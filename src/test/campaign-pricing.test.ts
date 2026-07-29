@@ -118,6 +118,7 @@ describe("campaign pricing helpers", () => {
     const portal = readSource("supabase/functions/campaign-portal/index.ts");
     const checkout = readSource("supabase/functions/create-checkout/index.ts");
     const socialBoost = readSource("supabase/functions/create-social-post-boost/index.ts");
+    const boostRpc = readSource("supabase/migrations/20260728173500_actualites_boost_atomic_media.sql");
     const dashboard = readSource("src/pages/dashboard/DashboardCampagnes.tsx");
     const paymentMethods = readSource("src/lib/paymentMethods.ts");
 
@@ -136,7 +137,16 @@ describe("campaign pricing helpers", () => {
     expect(socialBoost).not.toContain('.from("ad_campaigns")\n      .insert');
     expect(socialBoost).not.toContain('.from("social_post_promotions")\n      .insert');
     expect(socialBoost).toContain("get_restaurant_credit_usage");
+    expect(socialBoost).toContain("create_social_post_boost_atomic");
+    expect(socialBoost).toContain('payment_method: "credits"');
     expect(socialBoost).not.toContain('payment_method: "card"');
+
+    expect(boostRpc).toContain("payment_method,");
+    expect(boostRpc).toContain("payment_status,");
+    expect(boostRpc).toContain("'credits',");
+    expect(boostRpc).toContain("'paid',");
+    expect(boostRpc).toContain("'active',");
+    expect(boostRpc).not.toContain("'card'");
 
     expect(dashboard).toContain('const CAMPAIGN_PAYMENT_METHOD = "credits"');
     expect(dashboard).toContain("Recharger mes credits");
