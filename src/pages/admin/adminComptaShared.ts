@@ -101,6 +101,12 @@ export type AdminCampaignRow = {
   restaurant_id: string;
   created_at: string | null;
   payment_status: string;
+  /**
+   * "credits" designe une campagne financee par le solde TOK du restaurant.
+   * Ce solde est paye en amont, par l'abonnement ou un pack de recharge : la
+   * campagne ne doit donc etre ni refacturee ni comptee en recette.
+   */
+  payment_method: string | null;
   paid_amount: number;
   total_budget: number | null;
   title: string;
@@ -426,6 +432,10 @@ function sumBySource(bases: CommissionBaseTotals, rate: number) {
   return COMMISSION_SOURCE_ORDER.reduce((sum, source) => sum + bases[source] * rate, 0);
 }
 
+export function isCreditFundedCampaign(campaign: Pick<AdminCampaignRow, "payment_method">) {
+  return (campaign.payment_method || "").trim().toLowerCase() === "credits";
+}
+
 function getCampaignPaidAmount(campaign: Pick<AdminCampaignRow, "paid_amount" | "total_budget">) {
   const paidAmount = toAmount(campaign.paid_amount);
   return paidAmount > 0 ? paidAmount : toAmount(campaign.total_budget);
@@ -537,6 +547,10 @@ function buildAdminPayableAccrualSummary(input: {
 
   input.paidCampaigns.forEach((campaign) => {
     if (billedSourceLookup.campaignPaymentIds.has(campaign.id)) return;
+    // Reglee avec le solde TOK, donc deja payee via l'abonnement ou une
+    // recharge. La porter ici la ferait apparaitre comme restant du, et le
+    // bouton de generation de factures la facturerait une seconde fois.
+    if (isCreditFundedCampaign(campaign)) return;
 
     const amount = getCampaignPaidAmount(campaign);
     if (amount <= 0) return;
@@ -1303,6 +1317,7 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
           restaurant_id,
           created_at,
           payment_status,
+          payment_method,
           paid_amount,
           total_budget,
           title,
@@ -1451,11 +1466,28 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
     ),
     [reservationFeeAccrualsQuery.data],
   );
+  // Le chiffre d'affaires ne retient que les campagnes reglees en argent. Une
+  // campagne financee par le solde TOK a deja ete encaissee en amont, via
+  // l'abonnement ou un pack de recharge, tous deux presents dans ce meme
+  // resume : l'y ajouter compterait la meme recette deux fois.
   const paidCampaignsTotal = useMemo(
-    () => (campaignsQuery.data || []).reduce((sum, campaign) => sum + getCampaignPaidAmount(campaign), 0),
+    () => (campaignsQuery.data || [])
+      .filter((campaign) => !isCreditFundedCampaign(campaign))
+      .reduce((sum, campaign) => sum + getCampaignPaidAmount(campaign), 0),
     [campaignsQuery.data],
   );
-  const paidCampaignsCount = campaignsQuery.data?.length || 0;
+  const paidCampaignsCount = (campaignsQuery.data || [])
+    .filter((campaign) => !isCreditFundedCampaign(campaign)).length;
+  // Conservee et exposee a part : c'est de la consommation de credits, utile
+  // au pilotage, mais ce n'est pas une recette.
+  const creditFundedCampaignsTotal = useMemo(
+    () => (campaignsQuery.data || [])
+      .filter(isCreditFundedCampaign)
+      .reduce((sum, campaign) => sum + getCampaignPaidAmount(campaign), 0),
+    [campaignsQuery.data],
+  );
+  const creditFundedCampaignsCount = (campaignsQuery.data || [])
+    .filter(isCreditFundedCampaign).length;
   const tokCoveredMiamz = useMemo(
     () => (ordersQuery.data || []).reduce((accumulator, order) => {
       const amount = getTokCoveredMiamzAmount(order);
@@ -1567,6 +1599,8 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
     reservationFeeRevenueAmount,
     paidCampaignsTotal,
     paidCampaignsCount,
+    creditFundedCampaignsTotal,
+    creditFundedCampaignsCount,
     tokCoveredMiamzAmount: tokCoveredMiamz.amount,
     tokCoveredMiamzCount: tokCoveredMiamz.count,
     tokOneSubscriptionAmount: tokOneRevenue.amount,

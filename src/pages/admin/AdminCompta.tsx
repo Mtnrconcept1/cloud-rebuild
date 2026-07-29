@@ -91,6 +91,8 @@ export default function AdminCompta() {
     paidEventGross,
     paidCampaignsCount,
     paidCampaignsTotal,
+    creditFundedCampaignsCount,
+    creditFundedCampaignsTotal,
     reservationFeeRevenueAmount,
     tokOneSubscriptionAmount,
     tokOneSubscriptionCount,
@@ -787,7 +789,9 @@ export default function AdminCompta() {
                   {
                     label: "Campagnes publicitaires",
                     value: formatAmount(paidCampaignsTotal),
-                    helper: `${paidCampaignsCount} campagne${paidCampaignsCount > 1 ? "s" : ""} payée${paidCampaignsCount > 1 ? "s" : ""}.`,
+                    helper: creditFundedCampaignsCount > 0
+                      ? `${paidCampaignsCount} campagne${paidCampaignsCount > 1 ? "s" : ""} réglée${paidCampaignsCount > 1 ? "s" : ""} en argent. ${formatAmount(creditFundedCampaignsTotal)} financés par crédits TOK, déjà encaissés à l'abonnement ou à la recharge, donc hors chiffre d'affaires.`
+                      : `${paidCampaignsCount} campagne${paidCampaignsCount > 1 ? "s" : ""} réglée${paidCampaignsCount > 1 ? "s" : ""} en argent.`,
                   },
                   {
                     label: "Abonnements Tok One",
