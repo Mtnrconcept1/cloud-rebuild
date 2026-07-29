@@ -1,8 +1,12 @@
 import { useEffect, useRef } from "react";
 
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
-import { getSupabase } from "@/integrations/supabase/client";
 import { rememberActualitesPostSignal } from "@/lib/actualitesPersonalizedTrends";
+import {
+  createAnalyticsTrackingCallId,
+  getOrCreateAnalyticsViewerId,
+  recordSponsoredSocialFeedEvent,
+} from "@/lib/analytics";
 import type { SocialFeedPost } from "@/lib/socialFeed";
 import SocialPostCard from "./SocialPostCard";
 
@@ -13,21 +17,6 @@ type TrackedSocialPostCardProps = {
   source?: string;
 };
 
-const ACTUALITES_VIEWER_KEY = "tok-actualites-viewer-v1";
-
-function getOrCreateViewerId() {
-  if (typeof window === "undefined") return "server";
-  try {
-    const existing = window.localStorage.getItem(ACTUALITES_VIEWER_KEY);
-    if (existing) return existing;
-    const created = window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    window.localStorage.setItem(ACTUALITES_VIEWER_KEY, created);
-    return created;
-  } catch {
-    return "ephemeral-viewer";
-  }
-}
-
 function getLinkMetadata(target: EventTarget | null) {
   if (!(target instanceof Element)) return null;
   const link = target.closest("a[href]");
@@ -36,26 +25,6 @@ function getLinkMetadata(target: EventTarget | null) {
     href: link.getAttribute("href") || "",
     text: link.textContent?.replace(/\s+/g, " ").trim().slice(0, 120) || null,
   };
-}
-
-async function recordActualitesEvent({
-  postId,
-  eventType,
-  metadata,
-}: {
-  postId: string;
-  eventType: "impression" | "click";
-  metadata: Record<string, unknown>;
-}) {
-  try {
-    await (getSupabase().rpc as any)("record_social_feed_event", {
-      p_post_id: postId,
-      p_event_type: eventType,
-      p_metadata: metadata,
-    });
-  } catch {
-    // Tracking must never block the public feed.
-  }
 }
 
 export default function TrackedSocialPostCard({
@@ -68,28 +37,61 @@ export default function TrackedSocialPostCard({
   const productionTrackingEnabled = commercialDemoFrame?.surface !== "client";
   const containerRef = useRef<HTMLDivElement | null>(null);
   const impressionRecordedRef = useRef(false);
+  const impressionRetryCountRef = useRef(0);
+  const impressionRetryTimerRef = useRef<number | null>(null);
+  const impressionTrackingRef = useRef<{
+    postId: string;
+    trackingCallId: string;
+  } | null>(null);
   const lastClickAtRef = useRef(0);
 
   useEffect(() => {
+    impressionTrackingRef.current = {
+      postId: post.id,
+      trackingCallId: createAnalyticsTrackingCallId(),
+    };
     impressionRecordedRef.current = false;
+    impressionRetryCountRef.current = 0;
+    lastClickAtRef.current = 0;
+    if (impressionRetryTimerRef.current !== null) {
+      window.clearTimeout(impressionRetryTimerRef.current);
+      impressionRetryTimerRef.current = null;
+    }
+
+    return () => {
+      if (impressionRetryTimerRef.current !== null) {
+        window.clearTimeout(impressionRetryTimerRef.current);
+        impressionRetryTimerRef.current = null;
+      }
+    };
   }, [post.id]);
 
   useEffect(() => {
     const element = containerRef.current;
     if (!element || impressionRecordedRef.current) return;
     const browserWindow = typeof window === "undefined" ? null : window;
+    let disposed = false;
+
+    const clearImpressionRetryTimer = () => {
+      if (impressionRetryTimerRef.current === null || !browserWindow) return;
+      browserWindow.clearTimeout(impressionRetryTimerRef.current);
+      impressionRetryTimerRef.current = null;
+    };
 
     const recordImpression = () => {
-      if (impressionRecordedRef.current) return;
+      if (disposed || impressionRecordedRef.current) return;
+      const impressionTracking = impressionTrackingRef.current;
+      if (!impressionTracking || impressionTracking.postId !== post.id) return;
       impressionRecordedRef.current = true;
       if (!productionTrackingEnabled) return;
-      void recordActualitesEvent({
+      void recordSponsoredSocialFeedEvent({
         postId: post.id,
         eventType: "impression",
+        trackingCallId: impressionTracking.trackingCallId,
         metadata: {
           source,
           page: "actualites",
-          viewerId: getOrCreateViewerId(),
+          viewerId: getOrCreateAnalyticsViewerId(),
           activityId: post.activityId,
           activityType: post.activityType,
           restaurantId: post.restaurantId,
@@ -98,6 +100,22 @@ export default function TrackedSocialPostCard({
           premiumBannerImpressionsPerViewer: post.premiumBannerImpressionsPerViewer || undefined,
           premiumBannerRemainingImpressions: post.premiumBannerRemainingImpressions || undefined,
         },
+      }).then((result) => {
+        if (disposed) return;
+        if (result.eventId || result.queued || result.reason) {
+          impressionRetryCountRef.current = 0;
+          return;
+        }
+        if (impressionRetryCountRef.current >= 2) return;
+
+        impressionRetryCountRef.current += 1;
+        impressionRecordedRef.current = false;
+        impressionRetryTimerRef.current = browserWindow?.setTimeout(() => {
+          impressionRetryTimerRef.current = null;
+          if (element.isConnected && !impressionRecordedRef.current) {
+            recordImpression();
+          }
+        }, 2_000 * impressionRetryCountRef.current) ?? null;
       });
     };
 
@@ -107,7 +125,11 @@ export default function TrackedSocialPostCard({
         recordImpression();
         return;
       }
-      return () => browserWindow.clearTimeout(timeout);
+      return () => {
+        disposed = true;
+        browserWindow.clearTimeout(timeout);
+        clearImpressionRetryTimer();
+      };
     }
 
     const observer = new browserWindow.IntersectionObserver(
@@ -122,7 +144,11 @@ export default function TrackedSocialPostCard({
     );
 
     observer.observe(element);
-    return () => observer.disconnect();
+    return () => {
+      disposed = true;
+      observer.disconnect();
+      clearImpressionRetryTimer();
+    };
   }, [
     post.activityId,
     post.activityType,
@@ -136,6 +162,14 @@ export default function TrackedSocialPostCard({
   ]);
 
   const handleClickCapture = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (!(event.target instanceof Element)) return;
+    if (event.target.closest("[data-social-sponsored-cta='true']")) {
+      return;
+    }
+    if (event.target.closest("button,input,textarea,select,[role='button'],[role='menuitem']")) {
+      return;
+    }
+
     const now = Date.now();
     if (now - lastClickAtRef.current < 500) return;
     lastClickAtRef.current = now;
@@ -144,13 +178,14 @@ export default function TrackedSocialPostCard({
     rememberActualitesPostSignal(post);
 
     if (!productionTrackingEnabled) return;
-    void recordActualitesEvent({
+    void recordSponsoredSocialFeedEvent({
       postId: post.id,
       eventType: "click",
+      trackingCallId: createAnalyticsTrackingCallId(),
       metadata: {
         source,
         page: "actualites",
-        viewerId: getOrCreateViewerId(),
+        viewerId: getOrCreateAnalyticsViewerId(),
         action: link ? "link_click" : "card_click",
         href: link?.href,
         label: link?.text,

@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import CampaignInternalTestSummary from "@/components/campaigns/CampaignInternalTestSummary";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -39,6 +40,10 @@ type Campaign = {
   restaurant_id: string;
 };
 
+const OVERVIEW_INTERNAL_TEST_WINDOW_START = new Date(
+  Date.now() - (30 * 24 * 60 * 60 * 1000),
+).toISOString();
+
 function computePacingStatus(campaign: Campaign): { label: string; color: string } {
   const totalBudget = Number(campaign.total_budget || 0);
   const spent = Number(campaign.spent || 0);
@@ -71,7 +76,13 @@ function formatChf(value: number, digits = 2) {
 export default function DashboardCampagneOverview() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { selectedId, restaurants, loading: loadingRestaurants, error: restaurantError } = useDashboardRestaurant();
+  const {
+    selectedId,
+    restaurants,
+    loading: loadingRestaurants,
+    error: restaurantError,
+    isDemoMode,
+  } = useDashboardRestaurant();
   const selectedRestaurant = restaurants.find((restaurant) => restaurant.id === selectedId) || null;
 
   const { data: campaigns = [], isLoading: loading, error: queryError } = useQuery({
@@ -147,6 +158,12 @@ export default function DashboardCampagneOverview() {
             { label: "Depense totale", value: formatChf(totalSpent), icon: Wallet },
             { label: "CTR", value: `${ctr}%`, icon: MousePointerClick },
           ]}
+        />
+
+        <CampaignInternalTestSummary
+          restaurantId={selectedId}
+          since={OVERVIEW_INTERNAL_TEST_WINDOW_START}
+          enabled={!isDemoMode}
         />
 
         <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">

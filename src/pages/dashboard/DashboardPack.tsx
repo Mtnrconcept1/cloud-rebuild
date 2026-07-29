@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Loader2, Package, ShieldCheck, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -10,6 +10,7 @@ import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getSupabase } from "@/integrations/supabase/client";
+import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 import { FAIR_GROWTH_MODULE_CATALOG, type FairGrowthModuleSlug } from "@/lib/packFeatureGating";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
 
@@ -27,6 +28,7 @@ type FairGrowthModuleRow = {
   value_guarantee_days: number;
   value_guarantee_multiplier: number;
   availability_status: "available" | "pilot" | "coming_soon";
+  feature_keys: string[];
 };
 
 type PaidModuleRow = {
@@ -75,6 +77,7 @@ function statusLabel(status: PaidModuleRow["status"] | undefined) {
 
 export default function DashboardPack() {
   const { selectedId, isDemoMode } = useDashboardRestaurant();
+  const { activeFeatures, loading: featureFlagsLoading } = useFeatureFlagSnapshot({ live: true });
   const queryClient = useQueryClient();
   const [requestingSlug, setRequestingSlug] = useState<string | null>(null);
 
@@ -82,11 +85,16 @@ export default function DashboardPack() {
     queryKey: ["fair-growth-modules"],
     queryFn: async () => {
       const { data, error } = await (supabase.from as any)("fair_growth_modules")
-        .select("id, slug, name, description, monthly_base_cents, variable_fee_bps, successful_reservation_fee_cents, payment_cost_passthrough, value_guarantee_days, value_guarantee_multiplier, availability_status")
+        .select("id, slug, name, description, monthly_base_cents, variable_fee_bps, successful_reservation_fee_cents, payment_cost_passthrough, value_guarantee_days, value_guarantee_multiplier, availability_status, feature_keys")
         .eq("is_active", true)
         .order("position", { ascending: true });
       if (error) throw error;
-      return (data || []) as FairGrowthModuleRow[];
+      return (data || []).map((module: FairGrowthModuleRow) => ({
+        ...module,
+        feature_keys: Array.isArray(module.feature_keys)
+          ? module.feature_keys.filter((key): key is string => typeof key === "string" && key.length > 0)
+          : [],
+      })) as FairGrowthModuleRow[];
     },
   });
 
@@ -102,8 +110,16 @@ export default function DashboardPack() {
     },
   });
 
+  const visibleModules = useMemo(
+    () => featureFlagsLoading
+      ? []
+      : (modulesQuery.data || []).filter((module) =>
+        module.feature_keys.every((featureKey) => activeFeatures.has(featureKey))),
+    [activeFeatures, featureFlagsLoading, modulesQuery.data],
+  );
+
   const demoSubscriptions = isDemoMode
-    ? (modulesQuery.data || []).map((module) => ({
+    ? visibleModules.map((module) => ({
       id: `demo-${module.id}`,
       module_id: module.id,
       status: (module.availability_status === "available" ? "active" : "requested") as PaidModuleRow["status"],
@@ -161,7 +177,7 @@ export default function DashboardPack() {
     }
   };
 
-  const isLoading = modulesQuery.isLoading || subscriptionsQuery.isLoading;
+  const isLoading = featureFlagsLoading || modulesQuery.isLoading || subscriptionsQuery.isLoading;
 
   return (
     <DashboardLayout>
@@ -211,7 +227,7 @@ export default function DashboardPack() {
           <Card><CardContent className="p-6 text-sm text-muted-foreground">Le catalogue est temporairement indisponible.</CardContent></Card>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {(modulesQuery.data || []).map((module) => {
+            {visibleModules.map((module) => {
               const subscription = subscriptionsByModule.get(module.id);
               const integration = FAIR_GROWTH_MODULE_CATALOG[module.slug as FairGrowthModuleSlug];
               const pending = requestingSlug === module.slug || requestingSlug === module.id;

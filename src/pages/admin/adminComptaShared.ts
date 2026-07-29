@@ -174,11 +174,11 @@ export type PlatformFinanceMonthlySnapshot = {
 
 export type AdminReservationFeeAccrualRow = {
   id: string;
+  reservation_id: string;
   restaurant_id: string;
-  confirmed_at: string | null;
-  billing_fee_chf: number | string | null;
-  cancelled_by: string | null;
-  reservation_fee_invoice_id: string | null;
+  honored_at_snapshot: string;
+  fee_cents: number | string;
+  invoice_id: string | null;
   restaurants?: { name: string | null } | null;
 };
 
@@ -431,13 +431,24 @@ function getCampaignPaidAmount(campaign: Pick<AdminCampaignRow, "paid_amount" | 
   return paidAmount > 0 ? paidAmount : toAmount(campaign.total_budget);
 }
 
-function isBillableReservationFee(row: Pick<AdminReservationFeeAccrualRow, "cancelled_by" | "reservation_fee_invoice_id">) {
-  const cancelledBy = String(row.cancelled_by || "").trim().toLowerCase();
-  if (cancelledBy !== "") {
-    return false;
-  }
+function getReservationFeeAmount(row: Pick<AdminReservationFeeAccrualRow, "fee_cents">) {
+  return toAmount(row.fee_cents) / 100;
+}
 
-  return !row.reservation_fee_invoice_id;
+function isBillableReservationFee(row: Pick<AdminReservationFeeAccrualRow, "invoice_id">) {
+  return !row.invoice_id;
+}
+
+function toAccountingExportReservationFee(row: AdminReservationFeeAccrualRow) {
+  return {
+    id: row.reservation_id,
+    restaurant_id: row.restaurant_id,
+    confirmed_at: row.honored_at_snapshot,
+    billing_fee_chf: getReservationFeeAmount(row),
+    cancelled_by: null,
+    reservation_fee_invoice_id: row.invoice_id,
+    restaurants: row.restaurants,
+  };
 }
 
 function createEmptyPayableAccrualSummary(): AdminPayableAccrualSummary {
@@ -517,7 +528,7 @@ function buildAdminPayableAccrualSummary(input: {
   });
 
   input.reservationFeeAccruals.forEach((reservationFee) => {
-    const amount = toAmount(reservationFee.billing_fee_chf);
+    const amount = getReservationFeeAmount(reservationFee);
     if (amount <= 0) return;
 
     summary.reservationFeeAmount += amount;
@@ -726,24 +737,23 @@ async function fetchAdminExportReservations(selectedRestaurant: string, period: 
 
 async function fetchAdminExportReservationFees(selectedRestaurant: string, period: AccountingPeriodRange) {
   const buildQuery = () => {
-    const query = supabase
-      .from("reservations")
+    const query = (supabase as any)
+      .from("reservation_fee_charges")
       .select(`
         id,
+        reservation_id,
         restaurant_id,
-        confirmed_at,
-        billing_fee_chf,
-        cancelled_by,
-        reservation_fee_invoice_id,
+        honored_at_snapshot,
+        fee_cents,
+        invoice_id,
         restaurants ( name )
-      `)
-      .not("confirmed_at", "is", null);
+      `);
 
     return applyAccountingPeriodRange(
       applyAdminRestaurantFilter(query, selectedRestaurant),
-      "confirmed_at",
+      "honored_at_snapshot",
       period,
-    ).order("confirmed_at", { ascending: true });
+    ).order("honored_at_snapshot", { ascending: true });
   };
 
   return fetchPagedRows<AdminReservationFeeAccrualRow>(buildQuery);
@@ -847,7 +857,7 @@ export async function fetchAdminAccountingExportEntries({
     sources: {
       orders,
       reservations,
-      reservationFees,
+      reservationFees: reservationFees.map(toAccountingExportReservationFee),
       paidCampaigns,
       invoices,
       tokOnePayments,
@@ -1100,28 +1110,27 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
   });
 
   const reservationFeeAccrualsQuery = useQuery({
-    queryKey: ["admin-compta-reservation-fee-accruals-v1", selectedRestaurant, selectedMonth],
+    queryKey: ["admin-compta-reservation-fee-accruals-v2", selectedRestaurant, selectedMonth],
     queryFn: async () => {
-      let query = supabase
-        .from("reservations")
+      let query = (supabase as any)
+        .from("reservation_fee_charges")
         .select(`
           id,
+          reservation_id,
           restaurant_id,
-          confirmed_at,
-          billing_fee_chf,
-          cancelled_by,
-          reservation_fee_invoice_id,
+          honored_at_snapshot,
+          fee_cents,
+          invoice_id,
           restaurants ( name )
         `)
-        .not("confirmed_at", "is", null)
-        .gte("confirmed_at", `${monthBounds.monthStart}T00:00:00.000Z`)
-        .lte("confirmed_at", `${monthBounds.monthEnd}T23:59:59.999Z`);
+        .gte("honored_at_snapshot", `${monthBounds.monthStart}T00:00:00.000Z`)
+        .lte("honored_at_snapshot", `${monthBounds.monthEnd}T23:59:59.999Z`);
 
       if (selectedRestaurant !== "all") {
         query = query.eq("restaurant_id", selectedRestaurant);
       }
 
-      const { data, error } = await query.order("confirmed_at", { ascending: false });
+      const { data, error } = await query.order("honored_at_snapshot", { ascending: false });
       if (error) throw error;
 
       return (data || []) as AdminReservationFeeAccrualRow[];
@@ -1432,16 +1441,14 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
   );
   const reservationFeeAccrualCount = reservationFeeAccruals.length;
   const reservationFeeAccrualAmount = useMemo(
-    () => reservationFeeAccruals.reduce((sum, row) => sum + toAmount(row.billing_fee_chf), 0),
+    () => reservationFeeAccruals.reduce((sum, row) => sum + getReservationFeeAmount(row), 0),
     [reservationFeeAccruals],
   );
   const reservationFeeRevenueAmount = useMemo(
-    () => (reservationFeeAccrualsQuery.data || []).reduce((sum, row) => {
-      const cancelledBy = String(row.cancelled_by || "").trim().toLowerCase();
-      if (cancelledBy !== "") return sum;
-
-      return sum + toAmount(row.billing_fee_chf);
-    }, 0),
+    () => (reservationFeeAccrualsQuery.data || []).reduce(
+      (sum, row) => sum + getReservationFeeAmount(row),
+      0,
+    ),
     [reservationFeeAccrualsQuery.data],
   );
   const paidCampaignsTotal = useMemo(

@@ -131,11 +131,11 @@ describe("campaign pricing helpers", () => {
 
     expect(checkout).toContain("Les campagnes se reglent uniquement avec les credits TOK");
 
-    // Depuis #494, la campagne n'est plus insérée par la fonction Edge mais par
-    // la RPC atomique, pour qu'un débit de crédits sans campagne — ou l'inverse —
-    // devienne impossible. L'invariant « les campagnes se règlent en crédits TOK,
-    // jamais par carte » n'a pas changé : il est seulement descendu en SQL, et
-    // c'est donc là qu'il faut le vérifier.
+    expect(socialBoost).toContain('payment_method: "credits"');
+    expect(socialBoost).toContain('"create_social_post_boost_atomic"');
+    expect(socialBoost).toContain("if (!campaign?.id)");
+    expect(socialBoost).not.toContain('.from("ad_campaigns")\n      .insert');
+    expect(socialBoost).not.toContain('.from("social_post_promotions")\n      .insert');
     expect(socialBoost).toContain("get_restaurant_credit_usage");
     expect(socialBoost).toContain("create_social_post_boost_atomic");
     expect(socialBoost).toContain('payment_method: "credits"');

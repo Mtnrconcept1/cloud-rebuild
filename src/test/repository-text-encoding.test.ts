@@ -27,7 +27,11 @@ const GENERATED_PREFIXES = [
   "ios/App/App/public/",
 ];
 
-const COMMON_MOJIBAKE_PATTERN = /[\u00c2\u00c3\ufffd]|\u00e2[\u0080-\u00bf\u20ac]/;
+// U+00C2/U+00C3 are valid standalone letters in restaurant names and in the
+// immutable accent-normalization table. They signal mojibake only when followed
+// by a Latin-1 or Windows-1252 continuation character from a mis-decoded UTF-8
+// byte sequence.
+const COMMON_MOJIBAKE_PATTERN = /\ufffd|[\u00c2\u00c3\u00e2][\u0080-\u00bf\u0152\u0153\u0160\u0161\u0178\u017d\u017e\u0192\u02c6\u02dc\u2013\u2014\u2018\u2019\u201a\u201c\u201d\u201e\u2020\u2021\u2022\u2026\u2030\u2039\u203a\u20ac\u2122]/;
 
 /**
  * Fichiers qui contiennent legitimement les majuscules A-circonflexe et
@@ -57,6 +61,17 @@ function trackedTextFiles() {
 }
 
 describe("repository text encoding", () => {
+  it("distinguishes standalone accented letters from Windows-1252 mojibake", () => {
+    expect(COMMON_MOJIBAKE_PATTERN.test("\u00c2 \u00c3")).toBe(false);
+    for (const corrupted of [
+      "\u00c3\u2030",
+      "\u00c3\u20ac",
+      "\u00e2\u201a\u00ac",
+    ]) {
+      expect(COMMON_MOJIBAKE_PATTERN.test(corrupted)).toBe(true);
+    }
+  });
+
   it("keeps tracked text files UTF-8 readable without mojibake markers", () => {
     const offenders = trackedTextFiles().flatMap((file) => {
       const buffer = readFileSync(join(root, file));

@@ -38,6 +38,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import ImageUpload from "@/components/ImageUpload";
+import CampaignInternalTestSummary from "@/components/campaigns/CampaignInternalTestSummary";
 import SponsoredRestaurantTemplateCard from "@/components/campaigns/SponsoredRestaurantTemplateCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -649,6 +650,12 @@ export default function DashboardCampagnes() {
             </Dialog>
           </div>
           )}
+        />
+
+        <CampaignInternalTestSummary
+          restaurantId={selectedId}
+          since={conversionWindowStart}
+          enabled={!isCommercialDemo}
         />
 
         <section className="space-y-4">

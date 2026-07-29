@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Package, ShieldAlert } from "lucide-react";
 
 import {
@@ -17,9 +18,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
+import { getSupabase } from "@/integrations/supabase/client";
 import { useFeatureFlags } from "@/lib/featureFlags";
 
 const MON_PACK_FLAG_NAME = "dashboard-pack";
+const supabase = getSupabase();
 
 export default function AdminMonPackControl() {
   const { flags, loading, setFlagState } = useFeatureFlags(true);
@@ -32,6 +35,31 @@ export default function AdminMonPackControl() {
   const explicitEnabled = packFlag?.explicitEnabled ?? false;
   const effectiveEnabled = packFlag?.effectiveEnabled ?? false;
   const serverStateAvailable = Boolean(packFlag && packFlag.id !== MON_PACK_FLAG_NAME);
+  const moduleSummary = useQuery({
+    queryKey: ["admin-mon-pack-module-summary", effectiveEnabled],
+    enabled: serverStateAvailable && !effectiveEnabled,
+    queryFn: async () => {
+      const [requested, active, billable] = await Promise.all([
+        (supabase.from as any)("restaurant_paid_modules")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "requested"),
+        (supabase.from as any)("restaurant_paid_modules")
+          .select("id", { count: "exact", head: true })
+          .in("status", ["trialing", "active"]),
+        (supabase.from as any)("restaurant_paid_modules")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "active"),
+      ]);
+      const failedQuery = [requested, active, billable].find((result) => result.error);
+      if (failedQuery?.error) throw failedQuery.error;
+      return {
+        suspendedRequests: requested.count ?? 0,
+        activeModules: active.count ?? 0,
+        billableModules: billable.count ?? 0,
+      };
+    },
+    staleTime: 15_000,
+  });
 
   const closeConfirmation = () => {
     if (submitting) return;
@@ -116,6 +144,38 @@ export default function AdminMonPackControl() {
               Leur pause, annulation ou crédit doit faire l'objet d'une opération séparée.
             </p>
           </div>
+          {!loading && serverStateAvailable && !effectiveEnabled ? (
+            <div className="mt-3 rounded-xl border border-border/70 bg-background/80 p-3">
+              {moduleSummary.isLoading ? (
+                <p className="text-sm text-muted-foreground">Chargement du résumé des modules…</p>
+              ) : moduleSummary.isError ? (
+                <p className="text-sm text-destructive">
+                  Le résumé des modules est temporairement indisponible. La coupure reste active.
+                </p>
+              ) : (
+                <>
+                  <div className="grid gap-2 sm:grid-cols-3">
+                    <div className="rounded-lg bg-muted/60 p-3">
+                      <p className="text-2xl font-semibold">{moduleSummary.data?.suspendedRequests ?? 0}</p>
+                      <p className="text-xs text-muted-foreground">Demandes suspendues</p>
+                    </div>
+                    <div className="rounded-lg bg-muted/60 p-3">
+                      <p className="text-2xl font-semibold">{moduleSummary.data?.activeModules ?? 0}</p>
+                      <p className="text-xs text-muted-foreground">Modules actifs</p>
+                    </div>
+                    <div className="rounded-lg bg-muted/60 p-3">
+                      <p className="text-2xl font-semibold">{moduleSummary.data?.billableModules ?? 0}</p>
+                      <p className="text-xs text-muted-foreground">Modules facturables</p>
+                    </div>
+                  </div>
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    Les demandes suspendues restent conservées dans l'historique. Elles ne sont ni activées
+                    ni facturables et ne modifient pas les frais de réservation.
+                  </p>
+                </>
+              )}
+            </div>
+          ) : null}
           {!loading && !serverStateAvailable ? (
             <p className="mt-3 text-xs text-destructive">
               L'état serveur de Mon pack est indisponible. Le contrôle reste verrouillé pour éviter une mutation à l'aveugle.
