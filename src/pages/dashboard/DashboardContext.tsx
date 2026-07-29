@@ -132,7 +132,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         "dashboard-reseaux-sociaux",
         "dashboard-actualites",
         "dashboard-factures",
-        "dashboard-pack",
         "dashboard-support",
         "dashboard-notifications",
       ]) {

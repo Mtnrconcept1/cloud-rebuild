@@ -80,36 +80,50 @@ describe("reservation fee and Mon pack integrity", () => {
     expect(sql).toContain("cron.schedule");
   });
 
-  it("keeps disabled Mon pack requests historical, suspended, and non-billable", () => {
-    const sql = read(migrationPath);
-    const control = read("src/components/admin/AdminMonPackControl.tsx");
+  it("retire Mon pack et ses modules sans toucher aux journaux comptables", () => {
+    const removal = read(
+      "supabase/migrations/20260729170000_remove_mon_pack_and_fair_growth_modules.sql",
+    );
 
-    expect(sql).toContain("admin_get_fair_growth_reconciliation");
-    expect(sql).toContain("dashboard-pack");
-    expect(sql).not.toContain("event.payload #>>");
-    expect(control).toContain("Demandes suspendues");
-    expect(control).toContain("Modules facturables");
-    expect(control).toContain("ne modifient pas les frais de réservation");
+    // Le catalogue, les souscriptions et leur cycle de vie disparaissent.
+    expect(removal).toContain("DROP TABLE IF EXISTS public.fair_growth_modules");
+    expect(removal).toContain("DROP TABLE IF EXISTS public.restaurant_paid_modules");
+    expect(removal).toContain("DROP FUNCTION IF EXISTS public.request_fair_growth_module");
+    expect(removal).toContain("DELETE FROM public.feature_flags WHERE name = 'dashboard-pack'");
+
+    // Le garde de drapeau lit fair_growth_modules : le laisser en place ferait
+    // echouer la suppression du drapeau, quelques instructions plus bas.
+    const dropGuard = removal.indexOf("DROP FUNCTION IF EXISTS private_finance.guard_referenced_feature_flag");
+    const deleteFlag = removal.indexOf("DELETE FROM public.feature_flags");
+    expect(dropGuard).toBeGreaterThan(-1);
+    expect(deleteFlag).toBeGreaterThan(dropGuard);
+
+    // Les journaux deja factures sont de la comptabilite : on cesse d'y
+    // ecrire, on n'efface rien.
+    expect(removal).not.toContain("DROP TABLE IF EXISTS public.reservation_fee_charges");
+    expect(removal).not.toContain("DROP TABLE IF EXISTS public.reservation_fee_adjustments");
+
+    // Le garde d'integrite financiere porte un nom d'epoque mais protege
+    // encore l'immuabilite du couple honored_at / billing_fee_chf.
+    expect(removal).not.toContain("DROP FUNCTION IF EXISTS private_finance.set_reservation_fair_growth_snapshot");
   });
 
-  it("enforces each module feature key on both client and database paths", () => {
-    const sql = read(migrationPath);
-    const dashboard = read("src/pages/dashboard/DashboardPack.tsx");
-    const conversionPreflight = sql.match(
-      /DO \$assert_single_existing_campaign_conversion_per_entity\$([\s\S]*?)\$assert_single_existing_campaign_conversion_per_entity\$;/,
-    )?.[1] || "";
+  it("facture un forfait unique, sans interrupteur ni plafond", () => {
+    const removal = read(
+      "supabase/migrations/20260729170000_remove_mon_pack_and_fair_growth_modules.sql",
+    );
 
-    expect(sql).toContain("feature_keys");
-    expect(sql).toContain("fair_growth_module_requires_feature_key");
-    expect(sql).toMatch(
-      /private_finance\.guard_fair_growth_module_feature_keys\(\)[\s\S]*?IF NEW\.feature_keys IS NULL OR cardinality\(NEW\.feature_keys\) = 0/,
-    );
-    expect(conversionPreflight).not.toContain("NEW.feature_keys");
-    expect(sql).toMatch(
-      /SET\s+feature_keys = ARRAY\['dashboard-pack'\]::text\[\],[\s\S]*?updated_at = now\(\)/,
-    );
-    expect(sql).toContain("module_hidden_by_feature_flag");
-    expect(dashboard).toContain("module.feature_keys.every");
-    expect(dashboard).toContain("activeFeatures.has");
+    expect(removal).toContain("v_fee_cents constant integer := 500");
+    expect(removal).toContain("DROP FUNCTION IF EXISTS private_finance.flat_reservation_billing_active()");
+
+    // Plus de branche a pourcentage ni d'ecriture dans le registre Fair Growth.
+    expect(removal).not.toContain("reservation_fee_cap_bps_snapshot, 700");
+    expect(removal).not.toContain("INSERT INTO public.reservation_fee_charges");
+
+    // Un forfait ne s'arrondit pas a zero : les revues administratives que le
+    // pourcentage imposait n'ont plus d'objet, et auraient contredit la
+    // facturation a l'arrivee, qui honore a 5.- avec un couvert nul.
+    expect(removal).not.toContain("zero_fee_requires_review");
+    expect(removal).not.toContain("zero_revenue_requires_review");
   });
 });

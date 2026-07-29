@@ -154,7 +154,6 @@ describe("dashboard 3D illustrations", () => {
       ["src/pages/dashboard/DashboardActualites.tsx", "restaurantNews"],
       ["src/pages/dashboard/DashboardFormules.tsx", "restaurantFormulas"],
       ["src/pages/dashboard/DashboardTokConnect.tsx", "restaurantTokConnect"],
-      ["src/pages/dashboard/DashboardPack.tsx", "restaurantPack"],
       ["src/pages/dashboard/DashboardAccountBilling.tsx", "restaurantBilling"],
       ["src/pages/dashboard/DashboardInvoiceSettings.tsx", "restaurantInvoiceSettings"],
       ["src/pages/admin/AdminRestaurants.tsx", "adminRestaurants"],

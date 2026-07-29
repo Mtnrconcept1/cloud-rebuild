@@ -141,7 +141,6 @@ describe("commercial demo active tools and reservations", () => {
     for (const tool of [
       "advisor",
       "billing",
-      "pack",
       "campaigns",
       "social",
       "photos",

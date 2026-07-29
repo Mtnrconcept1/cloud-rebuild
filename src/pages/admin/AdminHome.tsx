@@ -35,7 +35,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import AdminLogResetButton from "@/components/admin/AdminLogResetButton";
-import AdminMonPackControl from "@/components/admin/AdminMonPackControl";
 import NotificationMenuBadge from "@/components/notifications/NotificationMenuBadge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
@@ -593,8 +592,6 @@ export default function AdminHome() {
           ) : null}
         </CardContent>
       </Card>
-
-      <AdminMonPackControl />
 
       <Card>
         <CardHeader className="space-y-4">
