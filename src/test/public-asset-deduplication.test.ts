@@ -45,21 +45,28 @@ describe("public asset deduplication", () => {
 
   it("does not keep exact duplicate public raster files", () => {
     const publicRoot = join(root, "public");
-    const rasterAssets = collectPublicFiles(publicRoot)
-      .filter((absolutePath) => PUBLIC_RASTER_EXTENSIONS.has(extname(absolutePath).toLowerCase()))
-      .map((absolutePath) => {
-        const stat = statSync(absolutePath);
-        return {
-          hash: createHash("sha256").update(readFileSync(absolutePath)).digest("hex"),
-          name: publicRelativePath(absolutePath),
-          size: stat.size,
-        };
-      });
+    const rasterPaths = collectPublicFiles(publicRoot)
+      .filter((absolutePath) => PUBLIC_RASTER_EXTENSIONS.has(extname(absolutePath).toLowerCase()));
+
+    // Deux fichiers identiques ont necessairement la meme taille. Regrouper par
+    // taille d'abord laisse donc passer exactement les memes doublons, mais ne
+    // lit que les fichiers qui ont un homologue possible — aujourd'hui aucun,
+    // sur 349 images et 96 Mo. Hacher l'integralite du dossier a chaque
+    // execution frolait le delai de 5 s et faisait echouer le test au hasard
+    // selon la charge de la machine, sans qu'aucun doublon n'existe.
+    const pathsBySize = new Map<number, string[]>();
+    for (const absolutePath of rasterPaths) {
+      const { size } = statSync(absolutePath);
+      pathsBySize.set(size, [...(pathsBySize.get(size) ?? []), absolutePath]);
+    }
 
     const duplicated = new Map<string, string[]>();
-    for (const asset of rasterAssets) {
-      const key = `${asset.hash}:${asset.size}`;
-      duplicated.set(key, [...(duplicated.get(key) ?? []), asset.name]);
+    for (const [size, candidates] of pathsBySize) {
+      if (candidates.length < 2) continue;
+      for (const absolutePath of candidates) {
+        const key = `${createHash("sha256").update(readFileSync(absolutePath)).digest("hex")}:${size}`;
+        duplicated.set(key, [...(duplicated.get(key) ?? []), publicRelativePath(absolutePath)]);
+      }
     }
 
     const duplicateGroups = [...duplicated.values()].filter((names) => names.length > 1);
