@@ -2,17 +2,29 @@ export const SPONSORED_ATTRIBUTION_KEY = "miamz-sponsored-attribution-v1";
 export const SPONSORED_ATTRIBUTION_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
 const MAX_ATTRIBUTIONS_PER_RESTAURANT = 12;
+const ATTRIBUTION_CLOCK_SKEW_TOLERANCE_MS = 5 * 60 * 1000;
 
 export interface SponsoredAttribution {
   campaignId: string;
   clickedAt: string;
+  touchToken?: string;
 }
 
 export type SponsoredAttributionStore = Record<string, SponsoredAttribution[]>;
 
+export type RememberSponsoredAttributionOptions = {
+  nowMs?: number;
+  storage?: Storage | null;
+  touchToken?: string | null;
+};
+
 function getBrowserStorage(): Storage | null {
   if (typeof window === "undefined") return null;
-  return window.localStorage;
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -24,9 +36,14 @@ function normalizeEntry(value: unknown): SponsoredAttribution | null {
 
   const campaignId = typeof value.campaignId === "string" ? value.campaignId.trim() : "";
   const clickedAt = typeof value.clickedAt === "string" ? value.clickedAt.trim() : "";
+  const touchToken = typeof value.touchToken === "string" ? value.touchToken.trim() : "";
   if (!campaignId || !clickedAt) return null;
 
-  return { campaignId, clickedAt };
+  return {
+    campaignId,
+    clickedAt,
+    ...(touchToken ? { touchToken } : {}),
+  };
 }
 
 export function normalizeSponsoredAttributionStore(value: unknown): SponsoredAttributionStore {
@@ -89,7 +106,12 @@ function pruneExpiredAttributions(
   const pruned = Object.entries(attributions).reduce<SponsoredAttributionStore>((store, [restaurantId, entries]) => {
     const validEntries = entries.filter((entry) => {
       const clickedAtMs = Date.parse(entry.clickedAt);
-      return Number.isFinite(clickedAtMs) && (nowMs - clickedAtMs) <= SPONSORED_ATTRIBUTION_MAX_AGE_MS;
+      if (!Number.isFinite(clickedAtMs)) return false;
+      const ageMs = nowMs - clickedAtMs;
+      return (
+        ageMs >= -ATTRIBUTION_CLOCK_SKEW_TOLERANCE_MS
+        && ageMs <= SPONSORED_ATTRIBUTION_MAX_AGE_MS
+      );
     });
 
     if (validEntries.length > 0) {
@@ -105,18 +127,30 @@ function pruneExpiredAttributions(
 export function rememberSponsoredAttribution(
   campaignId: string,
   restaurantId: string,
-  nowMs = Date.now(),
-  storage = getBrowserStorage(),
+  options: number | RememberSponsoredAttributionOptions = {},
+  legacyStorage = getBrowserStorage(),
 ) {
   const normalizedCampaignId = campaignId.trim();
   const normalizedRestaurantId = restaurantId.trim();
   if (!normalizedCampaignId || !normalizedRestaurantId) return;
 
+  const resolvedOptions = typeof options === "number"
+    ? { nowMs: options, storage: legacyStorage }
+    : options;
+  const nowMs = resolvedOptions.nowMs ?? Date.now();
+  const storage = resolvedOptions.storage === undefined
+    ? getBrowserStorage()
+    : resolvedOptions.storage;
+  const touchToken = String(resolvedOptions.touchToken || "").trim();
   const attributions = pruneExpiredAttributions(readSponsoredAttributions(storage), nowMs);
   const existingEntries = attributions[normalizedRestaurantId] || [];
   const clickedAt = new Date(nowMs).toISOString();
   const nextEntries = [
-    { campaignId: normalizedCampaignId, clickedAt },
+    {
+      campaignId: normalizedCampaignId,
+      clickedAt,
+      ...(touchToken ? { touchToken } : {}),
+    },
     ...existingEntries.filter((entry) => entry.campaignId !== normalizedCampaignId),
   ].slice(0, MAX_ATTRIBUTIONS_PER_RESTAURANT);
 

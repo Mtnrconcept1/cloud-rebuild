@@ -3,6 +3,11 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient, type QueryClie
 import { toast } from "sonner";
 
 import { getSupabase } from "@/integrations/supabase/client";
+import {
+  createAnalyticsTrackingCallId,
+  getOrCreateAnalyticsViewerId,
+  recordSponsoredSocialFeedEvent,
+} from "@/lib/analytics";
 import { getUserFacingErrorMessage } from "@/lib/userFacingErrors";
 import { useAuth } from "@/lib/auth-context";
 import { createSocialRealtimeManager } from "@/lib/socialRealtime";
@@ -65,11 +70,9 @@ function isTrackingRpcError(error: unknown) {
     .toLowerCase();
 
   return (
-    !text ||
     isMissingRpc(candidate) ||
     text.includes("connexion requise") ||
     text.includes("post introuvable") ||
-    text.includes("record_social_feed_event") ||
     text.includes("social_post_promotions") ||
     text.includes("schema cache") ||
     text.includes("permission denied") ||
@@ -86,13 +89,46 @@ async function recordSocialEventBestEffort({
   eventType: "impression" | "click" | "cta_click" | "reaction" | "comment" | "share" | "save" | "follow" | "repost";
   metadata?: Record<string, unknown>;
 }) {
-  const { data, error } = await (supabase.rpc as any)("record_social_feed_event", {
-    p_post_id: postId,
-    p_event_type: eventType,
-    p_metadata: metadata,
-  });
+  if (eventType === "impression" || eventType === "click" || eventType === "cta_click") {
+    return recordSponsoredSocialFeedEvent({
+      postId,
+      eventType,
+      metadata,
+      trackingCallId: typeof metadata.trackingCallId === "string"
+        ? metadata.trackingCallId
+        : createAnalyticsTrackingCallId(),
+    });
+  }
 
-  if (error) {
+  const durableMetadata = {
+    ...metadata,
+    trackingCallId: typeof metadata.trackingCallId === "string" && metadata.trackingCallId
+      ? metadata.trackingCallId
+      : createAnalyticsTrackingCallId(),
+  };
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const { data, error } = await (supabase.rpc as any)("record_social_feed_event_v2", {
+      p_post_id: postId,
+      p_event_type: eventType,
+      p_metadata: durableMetadata,
+    });
+
+    if (!error) {
+      return (data || null) as {
+        eventId?: string | null;
+        campaignId?: string | null;
+        restaurantId?: string | null;
+        touchToken?: string | null;
+        internalActor?: boolean;
+        attributions?: Array<{
+          campaignId?: string | null;
+          restaurantId?: string | null;
+          touchToken?: string | null;
+        }> | null;
+      } | null;
+    }
+
     if (isTrackingRpcError(error)) {
       console.warn("Social tracking skipped", {
         eventType,
@@ -102,10 +138,11 @@ async function recordSocialEventBestEffort({
       });
       return null;
     }
-    throw error;
+    if (attempt === 2) throw error;
+    await new Promise((resolve) => setTimeout(resolve, 250 * (2 ** attempt)));
   }
 
-  return data as string | null;
+  return null;
 }
 
 type SocialFeedRpcRow = {
@@ -2091,7 +2128,6 @@ export function useRecordExternalShare() {
 }
 
 export function useRecordSocialFeedEvent() {
-  const { user } = useAuth();
   const commercialDemoFrame = useCommercialDemoFrame();
   const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
 
@@ -2106,8 +2142,17 @@ export function useRecordSocialFeedEvent() {
       metadata?: Record<string, unknown>;
     }) => {
       if (isCommercialDemoClient) return null;
-      if (!user?.id) return null;
-      return recordSocialEventBestEffort({ postId, eventType, metadata });
+      const result = await recordSocialEventBestEffort({
+        postId,
+        eventType,
+        metadata: {
+          source: "actualites",
+          page: "actualites",
+          viewerId: getOrCreateAnalyticsViewerId(),
+          ...metadata,
+        },
+      });
+      return result;
     },
     onError: (error) => {
       console.warn("Social feed tracking failed", error);

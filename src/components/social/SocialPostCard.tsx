@@ -577,6 +577,7 @@ function MobileCommentsPanel({
 function SocialPostModalSummary({ post }: { post: SocialFeedPost }) {
   const cta = getCta(post);
   const CtaIcon = cta?.icon;
+  const recordEvent = useRecordSocialFeedEvent();
 
   return (
     <div className="space-y-3">
@@ -612,8 +613,21 @@ function SocialPostModalSummary({ post }: { post: SocialFeedPost }) {
                   asChild
                   size="sm"
                   className="h-8 shrink-0 gap-1.5 rounded-full bg-orange-600 px-3 text-xs hover:bg-orange-700"
+                  onClick={() =>
+                    recordEvent.mutate({
+                      postId: post.id,
+                      eventType: "cta_click",
+                      metadata: {
+                        ctaType: post.ctaType,
+                        restaurantId: post.restaurantId,
+                        premiumBannerId: post.premiumBannerId || undefined,
+                        premiumBanner: Boolean(post.premiumBannerId),
+                        source: "actualites_modal",
+                      },
+                    })
+                  }
                 >
-                  <Link to={cta.to}>
+                  <Link to={cta.to} data-social-sponsored-cta="true">
                     {CtaIcon ? <CtaIcon className="h-3.5 w-3.5" /> : null}
                     {cta.label}
                   </Link>
@@ -1345,13 +1359,14 @@ export default function SocialPostCard({
                     eventType: "cta_click",
                     metadata: {
                       ctaType: post.ctaType,
+                      restaurantId: post.restaurantId,
                       premiumBannerId: post.premiumBannerId || undefined,
                       premiumBanner: Boolean(post.premiumBannerId),
                     },
                   })
                 }
               >
-                <Link to={cta.to}>
+                <Link to={cta.to} data-social-sponsored-cta="true">
                   {CtaIcon ? (
                     <CtaIcon className="h-4 w-4 max-sm:h-3.5 max-sm:w-3.5" />
                   ) : null}

@@ -448,7 +448,7 @@ function LiveDashboardReservations() {
     },
     onSuccess: (result) => {
       toast({
-        title: "Table honorée",
+        title: "Table clôturée",
         description: result.feeChf && result.feeChf > 0
           ? `Frais Fair Growth calculés côté serveur : ${result.feeChf.toLocaleString("fr-CH", { style: "currency", currency: "CHF" })}.`
           : "Aucun frais de réservation pour cette attribution.",
@@ -635,12 +635,27 @@ function LiveDashboardReservations() {
   }, [filteredReservations]);
 
   const canUpdateReservationTo = (reservation: ReservationWithProfile, targetStatus: string) => {
-    if (!commercialDemoSnapshot) return true;
-    const demoReservation = commercialDemoSnapshot.reservations.find((item) => item.id === reservation.id);
-    return Boolean(
-      demoReservation
-      && getCommercialDemoReservationTransition(demoReservation, targetStatus),
-    );
+    if (commercialDemoSnapshot) {
+      const demoReservation = commercialDemoSnapshot.reservations.find((item) => item.id === reservation.id);
+      return Boolean(
+        demoReservation
+        && getCommercialDemoReservationTransition(demoReservation, targetStatus),
+      );
+    }
+
+    const currentStatus = String(reservation.status || "")
+      .trim()
+      .toLowerCase()
+      .replace(/-/g, "_");
+    const allowedTargets: Record<string, string[]> = {
+      pending: ["pending", "confirmed", "arrived", "no_show"],
+      confirmed: ["confirmed", "arrived", "no_show"],
+      arrived: ["arrived", "seated"],
+      seated: ["seated"],
+      no_show: ["no_show"],
+    };
+
+    return Boolean(allowedTargets[currentStatus]?.includes(targetStatus));
   };
 
   return (
@@ -860,6 +875,7 @@ function LiveDashboardReservations() {
                   const isArrived = reservation.status === "arrived";
                   const canCloseTable = ["arrived", "seated", "completed"].includes(String(reservation.status));
                   const isHonored = Boolean(reservation.honored_at);
+                  const hasUncalculatedFee = !isCommercialDemoRestaurant && canCloseTable && !isHonored;
                   const isCardLocked = Boolean(statusLockMessage) || isArrived;
                   const isConfirmedAck = reservation.status === "confirmed";
 
@@ -894,6 +910,11 @@ function LiveDashboardReservations() {
                           ) : null}
                         </div>
                         <div className="grid grid-cols-1 gap-2 border-t pt-3 sm:grid-cols-2 lg:grid-cols-4">
+                          {hasUncalculatedFee ? (
+                            <p className="col-span-full rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">
+                              Frais non calculés — clôturez la table
+                            </p>
+                          ) : null}
                           <Button
                             size="sm"
                             variant="outline"
@@ -910,9 +931,10 @@ function LiveDashboardReservations() {
                               onClick={() => setHonorTarget(reservation)}
                               disabled={isHonored || markHonoredMutation.isPending}
                               variant={isHonored ? "outline" : "default"}
+                              className="h-auto min-h-9 whitespace-normal py-2"
                             >
                               <Check className="mr-1 h-4 w-4" />
-                              {isHonored ? "Table clôturée" : "Clôturer la table"}
+                              {isHonored ? "Table clôturée" : "Clôturer la table et calculer les frais"}
                             </Button>
                           ) : null}
                           <Button
@@ -1023,6 +1045,7 @@ function LiveDashboardReservations() {
                                 const isArrived = reservation.status === "arrived";
                                 const canCloseTable = ["arrived", "seated", "completed"].includes(String(reservation.status));
                                 const isHonored = Boolean(reservation.honored_at);
+                                const hasUncalculatedFee = !isCommercialDemoRestaurant && canCloseTable && !isHonored;
                                 const isReservationLocked = Boolean(statusLockMessage);
                                 const isCardLocked = isReservationLocked || isArrived;
                                 const isConfirmedAck = reservation.status === "confirmed";
@@ -1178,6 +1201,11 @@ function LiveDashboardReservations() {
                                       </div>
 
                                       <div className="flex flex-wrap gap-2 sm:justify-end">
+                                        {hasUncalculatedFee ? (
+                                          <p className="w-full rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800 sm:text-right">
+                                            Frais non calculés — clôturez la table
+                                          </p>
+                                        ) : null}
                                         <Button
                                           size="sm"
                                           variant="outline"
@@ -1194,9 +1222,10 @@ function LiveDashboardReservations() {
                                             onClick={() => setHonorTarget(reservation)}
                                             disabled={isHonored || markHonoredMutation.isPending}
                                             variant={isHonored ? "outline" : "default"}
+                                            className="h-auto min-h-9 whitespace-normal py-2"
                                           >
                                             <Check className="mr-1 h-4 w-4" />
-                                            {isHonored ? "Table clôturée" : "Clôturer la table"}
+                                            {isHonored ? "Table clôturée" : "Clôturer la table et calculer les frais"}
                                           </Button>
                                         ) : null}
                                         <Button

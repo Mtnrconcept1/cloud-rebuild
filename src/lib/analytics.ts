@@ -56,11 +56,21 @@ let currentUserId: string | null = null;
 
 const SPONSORED_ROTATION_KEY = "miamz-sponsored-rotation-v1";
 const SPONSORED_SELECTION_KEY = "miamz-sponsored-placement-selection-v1";
+const SPONSORED_EVENT_QUEUE_KEY = "miamz-sponsored-event-queue-v1";
+const SPONSORED_SOCIAL_EVENT_QUEUE_KEY = "miamz-sponsored-social-event-queue-v1";
+const SPONSORED_DEFERRED_CONVERSION_QUEUE_KEY =
+  "miamz-sponsored-deferred-conversion-queue-v1";
 const ANALYTICS_VIEWER_KEY = "miamz-analytics-viewer-v1";
 const SPONSORED_AUDIENCE_CACHE_MS = 5 * 60 * 1000;
 const SPONSORED_SELECTION_TTL_MS = 15 * 60 * 1000;
 const SPONSORED_DISPLAY_DEDUPE_TTL_MS = 1500;
 const MAX_SPONSORED_DISPLAY_KEYS = 300;
+const MAX_SPONSORED_QUEUED_EVENTS = 50;
+const MAX_SPONSORED_EVENT_ATTEMPTS = 6;
+const SPONSORED_EVENT_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+const SPONSORED_RETRY_BASE_MS = 1_000;
+const SPONSORED_RETRY_MAX_MS = 60_000;
+const ANALYTICS_AUTH_HYDRATION_TIMEOUT_MS = 3_000;
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const SPONSORED_DISPLAY_TYPES = ["boost", "banner", "sponsored", "in_app", "push"];
 
@@ -77,6 +87,92 @@ type SponsoredTrackResult = {
   recorded: boolean;
   deduped: boolean;
   ignored?: boolean;
+  pending?: boolean;
+  queued?: boolean;
+  reason?: string | null;
+  touchToken?: string | null;
+};
+
+type SponsoredConversionType = "order" | "reservation" | "zero-attente";
+type SponsoredJourneyType = "delivery" | "takeaway" | "reservation" | "zero-attente";
+
+type SponsoredEventInput = {
+  eventType: "impression" | "click" | "conversion";
+  campaignId: string;
+  restaurantId: string;
+  source: string;
+  conversionType?: SponsoredConversionType;
+  entityId?: string | null;
+  paymentMethod?: string | null;
+  journeyType?: SponsoredJourneyType | null;
+  eventId?: string | null;
+  touchToken?: string | null;
+  viewerId?: string | null;
+  page?: string | null;
+  actorUserId?: string | null;
+  authIdentityPending?: boolean;
+};
+
+type QueuedSponsoredEvent = {
+  id: string;
+  input: SponsoredEventInput;
+  queuedAt: number;
+  attempts: number;
+  nextAttemptAt: number;
+};
+
+export type SponsoredSocialEventType = "impression" | "click" | "cta_click";
+
+export type SponsoredSocialAttribution = {
+  campaignId?: string | null;
+  restaurantId?: string | null;
+  touchToken?: string | null;
+};
+
+export type SponsoredSocialTrackResult = {
+  eventId?: string | null;
+  trackingCallId?: string | null;
+  campaignId?: string | null;
+  restaurantId?: string | null;
+  touchToken?: string | null;
+  internalActor?: boolean;
+  attributions?: SponsoredSocialAttribution[] | null;
+  queued?: boolean;
+  reason?: string | null;
+};
+
+type SponsoredSocialEventInput = {
+  postId: string;
+  eventType: SponsoredSocialEventType;
+  metadata: Record<string, unknown>;
+  trackingCallId: string;
+  actorUserId: string | null;
+  authIdentityPending: boolean;
+};
+
+type QueuedSponsoredSocialEvent = {
+  id: string;
+  input: SponsoredSocialEventInput;
+  queuedAt: number;
+  attempts: number;
+  nextAttemptAt: number;
+};
+
+type DeferredSponsoredConversionInput = {
+  eventId: string;
+  restaurantId: string;
+  conversionType: SponsoredConversionType;
+  entityId: string;
+  paymentMethod: string | null;
+  journeyType: SponsoredJourneyType | null;
+  actorUserId: string | null;
+  authIdentityPending: boolean;
+};
+
+type QueuedDeferredSponsoredConversion = {
+  id: string;
+  input: DeferredSponsoredConversionInput;
+  queuedAt: number;
 };
 
 let sponsoredAudienceSnapshotCache:
@@ -85,19 +181,28 @@ let sponsoredAudienceSnapshotCache:
 let audienceEstimateRpcUnavailable = false;
 let audienceEstimateRpcWarned = false;
 const sponsoredDisplayLedger = new Map<string, number>();
+let runtimeAnalyticsViewerId: string | null = null;
 
-function getOrCreateAnalyticsViewerId() {
+export function getOrCreateAnalyticsViewerId() {
   if (typeof window === "undefined") return "server-render";
+  if (runtimeAnalyticsViewerId) return runtimeAnalyticsViewerId;
 
   try {
     const existing = window.localStorage.getItem(ANALYTICS_VIEWER_KEY);
-    if (existing) return existing;
+    if (existing) {
+      runtimeAnalyticsViewerId = existing;
+      return runtimeAnalyticsViewerId;
+    }
 
-    const created = window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    const created = createAnalyticsTrackingCallId();
     window.localStorage.setItem(ANALYTICS_VIEWER_KEY, created);
-    return created;
+    runtimeAnalyticsViewerId = created;
+    return runtimeAnalyticsViewerId;
   } catch {
-    return "ephemeral-viewer";
+    if (!runtimeAnalyticsViewerId) {
+      runtimeAnalyticsViewerId = createAnalyticsTrackingCallId();
+    }
+    return runtimeAnalyticsViewerId;
   }
 }
 
@@ -123,11 +228,34 @@ function pruneSponsoredDisplayLedger(now = Date.now()) {
   oldestEntries.forEach(([key]) => sponsoredDisplayLedger.delete(key));
 }
 
-function createClientEventId() {
-  if (typeof window !== "undefined" && window.crypto?.randomUUID) {
-    return window.crypto.randomUUID();
+export function createAnalyticsTrackingCallId() {
+  const cryptoApi = globalThis.crypto;
+  if (typeof cryptoApi?.randomUUID === "function") {
+    return cryptoApi.randomUUID();
   }
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+
+  const bytes = new Uint8Array(16);
+  if (typeof cryptoApi?.getRandomValues === "function") {
+    cryptoApi.getRandomValues(bytes);
+  } else {
+    for (let index = 0; index < bytes.length; index += 1) {
+      bytes[index] = Math.floor(Math.random() * 256);
+    }
+  }
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = [...bytes].map((byte) => byte.toString(16).padStart(2, "0"));
+  return [
+    hex.slice(0, 4).join(""),
+    hex.slice(4, 6).join(""),
+    hex.slice(6, 8).join(""),
+    hex.slice(8, 10).join(""),
+    hex.slice(10).join(""),
+  ].join("-");
+}
+
+function createClientEventId() {
+  return createAnalyticsTrackingCallId();
 }
 
 export function createSponsoredImpressionEventId(placementKey: string) {
@@ -462,20 +590,68 @@ async function getCurrentAudienceSnapshot(): Promise<AudienceSnapshot | null> {
   }
 }
 
-// Auto-sync authentication state
-getSupabase().auth.getSession().then(({ data: { session } }) => {
-  currentUserId = session?.user?.id || null;
-  sponsoredAudienceSnapshotCache = null;
+// Auto-sync authentication state. Queue replays wait for this first snapshot so
+// an authenticated event is never discarded or replayed as anonymous while the
+// Supabase client is still hydrating its persisted session.
+let analyticsAuthHydrated = false;
+let analyticsAuthIdentityVerified = false;
+let resolveAnalyticsAuthHydration: (() => void) | null = null;
+let analyticsAuthHydrationTimer: number | null = null;
+const analyticsAuthHydration = new Promise<void>((resolve) => {
+  resolveAnalyticsAuthHydration = resolve;
 });
+
+function markAnalyticsAuthHydrated(identityVerified: boolean) {
+  if (identityVerified) analyticsAuthIdentityVerified = true;
+  if (!analyticsAuthHydrated) {
+    analyticsAuthHydrated = true;
+    resolveAnalyticsAuthHydration?.();
+    resolveAnalyticsAuthHydration = null;
+  }
+  if (identityVerified && analyticsAuthHydrationTimer !== null && typeof window !== "undefined") {
+    window.clearTimeout(analyticsAuthHydrationTimer);
+    analyticsAuthHydrationTimer = null;
+  }
+}
+
+function hydrateAnalyticsAuth() {
+  void getSupabase().auth.getSession()
+    .then(({ data: { session } }) => {
+      currentUserId = session?.user?.id || null;
+      sponsoredAudienceSnapshotCache = null;
+      markAnalyticsAuthHydrated(true);
+      scheduleSponsoredQueueFlush(0);
+      scheduleSponsoredSocialQueueFlush(0);
+      scheduleDeferredSponsoredConversionFlush(0);
+    })
+    .catch(() => undefined);
+}
+
+if (typeof window !== "undefined") {
+  analyticsAuthHydrationTimer = window.setTimeout(() => {
+    analyticsAuthHydrationTimer = null;
+    markAnalyticsAuthHydrated(false);
+  }, ANALYTICS_AUTH_HYDRATION_TIMEOUT_MS);
+}
+hydrateAnalyticsAuth();
 
 getSupabase().auth.onAuthStateChange((_event, session) => {
   currentUserId = session?.user?.id || null;
   sponsoredAudienceSnapshotCache = null;
+  markAnalyticsAuthHydrated(true);
+  scheduleSponsoredQueueFlush(0);
+  scheduleSponsoredSocialQueueFlush(0);
+  scheduleDeferredSponsoredConversionFlush(0);
 });
 
 export function setAnalyticsUser(userId: string | null) {
   currentUserId = userId;
   sponsoredAudienceSnapshotCache = null;
+  if (analyticsAuthHydrated) {
+    scheduleSponsoredQueueFlush(0);
+    scheduleSponsoredSocialQueueFlush(0);
+    scheduleDeferredSponsoredConversionFlush(0);
+  }
 }
 
 type AnalyticsIngestResponse = {
@@ -668,57 +844,1122 @@ export async function trackClick(
   }
 }
 
-let _sponsoredTrackingDisabled = false;
+let sponsoredQueueFlushPromise: Promise<void> | null = null;
+let sponsoredQueueTimer: number | null = null;
+let sponsoredEventQueueMemory: QueuedSponsoredEvent[] = [];
+let sponsoredQueueStorageAvailable: boolean | null = null;
+const sponsoredEventInFlightIds = new Set<string>();
 
-async function trackSponsoredEvent(input: {
-  eventType: "impression" | "click" | "conversion";
-  campaignId: string;
-  restaurantId: string;
-  source: string;
-  conversionType?: SponsoredConversionType;
-  entityId?: string | null;
-  paymentMethod?: string | null;
-  journeyType?: SponsoredJourneyType | null;
-  eventId?: string | null;
-  eventSignature?: string | null;
-  signedAt?: string | null;
-}): Promise<SponsoredTrackResult> {
-  if (_sponsoredTrackingDisabled) return { recorded: false, deduped: false };
+function getSponsoredQueueStorage() {
+  if (typeof window === "undefined") return null;
+  if (sponsoredQueueStorageAvailable === false) return null;
+  try {
+    const storage = window.localStorage;
+    sponsoredQueueStorageAvailable = true;
+    return storage;
+  } catch {
+    sponsoredQueueStorageAvailable = false;
+    return null;
+  }
+}
+
+function isSponsoredEventInput(value: unknown): value is SponsoredEventInput {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const candidate = value as Partial<SponsoredEventInput>;
+  return (
+    ["impression", "click", "conversion"].includes(String(candidate.eventType || ""))
+    && typeof candidate.campaignId === "string"
+    && candidate.campaignId.length > 0
+    && typeof candidate.restaurantId === "string"
+    && candidate.restaurantId.length > 0
+    && typeof candidate.source === "string"
+  );
+}
+
+function readSponsoredEventQueue(): QueuedSponsoredEvent[] {
+  const storage = getSponsoredQueueStorage();
+  if (!storage) return sponsoredEventQueueMemory;
+
+  let raw: string | null;
+  try {
+    raw = storage.getItem(SPONSORED_EVENT_QUEUE_KEY);
+  } catch {
+    sponsoredQueueStorageAvailable = false;
+    return sponsoredEventQueueMemory;
+  }
 
   try {
-    const viewerId = getOrCreateAnalyticsViewerId();
-    const { data, error } = await getSupabase().functions.invoke("track-sponsored-event", {
-      body: {
-        eventType: input.eventType,
-        campaignId: input.campaignId,
-        restaurantId: input.restaurantId,
-        viewerId,
-        source: input.source,
-        page: getTrackingPage(),
-        conversionType: input.conversionType || null,
-        entityId: input.entityId || null,
-        paymentMethod: input.paymentMethod || null,
-        journeyType: input.journeyType || null,
-        eventId: input.eventId || null,
-        eventSignature: input.eventSignature || null,
-        signedAt: input.signedAt || null,
+    const parsed = JSON.parse(raw || "[]");
+    if (!Array.isArray(parsed)) return sponsoredEventQueueMemory;
+
+    sponsoredEventQueueMemory = parsed
+      .filter((item): item is QueuedSponsoredEvent => {
+        if (!item || typeof item !== "object" || Array.isArray(item)) return false;
+        const candidate = item as Partial<QueuedSponsoredEvent>;
+        return (
+          typeof candidate.id === "string"
+          && candidate.id.length > 0
+          && isSponsoredEventInput(candidate.input)
+          && Number.isFinite(candidate.queuedAt)
+          && Number.isFinite(candidate.attempts)
+          && Number.isFinite(candidate.nextAttemptAt)
+        );
+      })
+      .slice(-MAX_SPONSORED_QUEUED_EVENTS);
+    return sponsoredEventQueueMemory;
+  } catch {
+    // A malformed value can be overwritten on the next successful enqueue;
+    // it does not mean that localStorage itself is unavailable.
+    return sponsoredEventQueueMemory;
+  }
+}
+
+function writeSponsoredEventQueue(queue: QueuedSponsoredEvent[]) {
+  sponsoredEventQueueMemory = queue.slice(-MAX_SPONSORED_QUEUED_EVENTS);
+  const storage = getSponsoredQueueStorage();
+  if (!storage) return false;
+
+  try {
+    if (sponsoredEventQueueMemory.length === 0) {
+      storage.removeItem(SPONSORED_EVENT_QUEUE_KEY);
+      return true;
+    }
+    storage.setItem(
+      SPONSORED_EVENT_QUEUE_KEY,
+      JSON.stringify(sponsoredEventQueueMemory),
+    );
+    return true;
+  } catch {
+    sponsoredQueueStorageAvailable = false;
+    return false;
+  }
+}
+
+function getSponsoredRetryDelay(attempts: number) {
+  const exponential = Math.min(
+    SPONSORED_RETRY_MAX_MS,
+    SPONSORED_RETRY_BASE_MS * (2 ** Math.max(0, attempts - 1)),
+  );
+  return Math.round(exponential * (0.8 + Math.random() * 0.4));
+}
+
+function isSponsoredTrackAccepted(result: SponsoredTrackResult) {
+  return Boolean(result.recorded || result.deduped || result.pending);
+}
+
+function applySponsoredTrackResult(input: SponsoredEventInput, result: SponsoredTrackResult) {
+  if (input.eventType === "click" && result.touchToken) {
+    rememberSponsoredAttribution(input.campaignId, input.restaurantId, {
+      touchToken: result.touchToken,
+    });
+  }
+
+  if (input.eventType === "conversion" && isSponsoredTrackAccepted(result)) {
+    clearSponsoredAttributions(input.restaurantId);
+  }
+}
+
+async function invokeSponsoredEvent(input: SponsoredEventInput): Promise<SponsoredTrackResult> {
+  const viewerId = input.viewerId || getOrCreateAnalyticsViewerId();
+  const { data, error } = await getSupabase().functions.invoke("track-sponsored-event", {
+    body: {
+      eventType: input.eventType,
+      campaignId: input.campaignId,
+      restaurantId: input.restaurantId,
+      viewerId,
+      source: input.source,
+      page: input.page || getTrackingPage(),
+      conversionType: input.conversionType || null,
+      entityId: input.entityId || null,
+      paymentMethod: input.paymentMethod || null,
+      journeyType: input.journeyType || null,
+      eventId: input.eventId || null,
+      touchToken: input.touchToken || null,
+    },
+  });
+
+  if (error) throw error;
+
+  return {
+    recorded: Boolean(data?.recorded),
+    deduped: Boolean(data?.deduped),
+    ignored: Boolean(data?.ignored),
+    pending: Boolean(data?.pending),
+    reason: typeof data?.reason === "string" ? data.reason : null,
+    touchToken: typeof data?.touchToken === "string" ? data.touchToken : null,
+  };
+}
+
+function getSponsoredErrorStatus(error: unknown) {
+  const candidate = error as {
+    status?: unknown;
+    context?: { status?: unknown } | null;
+  } | null;
+  const status = Number(candidate?.status ?? candidate?.context?.status);
+  return Number.isFinite(status) ? status : null;
+}
+
+function isRetryableSponsoredError(error: unknown) {
+  const status = getSponsoredErrorStatus(error);
+  if (status === null || status === 0 || status === 408 || status === 429) return true;
+  return status >= 500;
+}
+
+function scheduleSponsoredQueueFlush(delayMs = SPONSORED_RETRY_BASE_MS) {
+  if (typeof window === "undefined") return;
+  if (sponsoredQueueTimer !== null) window.clearTimeout(sponsoredQueueTimer);
+  sponsoredQueueTimer = window.setTimeout(() => {
+    sponsoredQueueTimer = null;
+    void flushSponsoredEventQueue();
+  }, Math.max(0, delayMs));
+}
+
+function enqueueSponsoredEvent(input: SponsoredEventInput) {
+  const now = Date.now();
+  const queue = readSponsoredEventQueue().filter(
+    (item) => (now - item.queuedAt) <= SPONSORED_EVENT_MAX_AGE_MS,
+  );
+  const id = String(input.eventId || createClientEventId());
+  const existing = queue.find((item) => item.id === id);
+
+  if (!existing) {
+    queue.push({
+      id,
+      input: { ...input, eventId: id },
+      queuedAt: now,
+      attempts: 0,
+      nextAttemptAt: now + SPONSORED_RETRY_BASE_MS,
+    });
+  } else {
+    existing.input = { ...input, eventId: id };
+  }
+
+  const persisted = writeSponsoredEventQueue(queue);
+  scheduleSponsoredQueueFlush();
+  return persisted;
+}
+
+function removeQueuedSponsoredEvent(eventId: string) {
+  const queue = readSponsoredEventQueue().filter((item) => item.id !== eventId);
+  writeSponsoredEventQueue(queue);
+}
+
+function hasQueuedSponsoredClick(campaignId: string, restaurantId: string) {
+  return readSponsoredEventQueue().some((item) => (
+    item.input.eventType === "click"
+    && item.input.campaignId === campaignId
+    && item.input.restaurantId === restaurantId
+  ));
+}
+
+function hasQueuedSponsoredSocialClick(restaurantId: string) {
+  return readSponsoredSocialEventQueue().some((item) => {
+    if (item.input.eventType !== "click" && item.input.eventType !== "cta_click") {
+      return false;
+    }
+    if (String(item.input.metadata.restaurantId || "") !== restaurantId) {
+      return false;
+    }
+    return !item.input.actorUserId || item.input.actorUserId === currentUserId;
+  });
+}
+
+function claimQueuedSponsoredSocialClicks(
+  restaurantId: string,
+  actorUserId: string | null,
+) {
+  if (!actorUserId) return;
+  let changed = false;
+  const queue = readSponsoredSocialEventQueue().map((item) => {
+    if (
+      item.input.actorUserId
+      || (item.input.eventType !== "click" && item.input.eventType !== "cta_click")
+      || String(item.input.metadata.restaurantId || "") !== restaurantId
+    ) {
+      return item;
+    }
+    changed = true;
+    return {
+      ...item,
+      input: {
+        ...item.input,
+        actorUserId,
+        authIdentityPending: false,
       },
+    };
+  });
+  if (changed) writeSponsoredSocialEventQueue(queue);
+}
+
+function getQueuedConversionTouch(input: SponsoredEventInput) {
+  if (input.eventType !== "conversion") return null;
+  return getValidSponsoredAttributions(input.restaurantId)
+    .find((attribution) => attribution.campaignId === input.campaignId)
+    ?.touchToken || null;
+}
+
+async function flushSponsoredEventQueue() {
+  if (sponsoredQueueFlushPromise) return sponsoredQueueFlushPromise;
+  if (typeof navigator !== "undefined" && navigator.onLine === false) return;
+  if (!analyticsAuthHydrated || !analyticsAuthIdentityVerified) return;
+
+  sponsoredQueueFlushPromise = (async () => {
+    const now = Date.now();
+    const snapshot = readSponsoredEventQueue();
+    const updates = new Map<string, QueuedSponsoredEvent | null>();
+    const claimedIds: string[] = [];
+
+    try {
+      for (const item of snapshot) {
+        if (
+          (now - item.queuedAt) > SPONSORED_EVENT_MAX_AGE_MS
+          || item.attempts >= MAX_SPONSORED_EVENT_ATTEMPTS
+        ) {
+          updates.set(item.id, null);
+          continue;
+        }
+        if (item.nextAttemptAt > now || sponsoredEventInFlightIds.has(item.id)) continue;
+        let replayInput = item.input.authIdentityPending
+          ? {
+              ...item.input,
+              actorUserId: currentUserId,
+              authIdentityPending: false,
+            }
+          : item.input;
+        const replayItem = replayInput === item.input ? item : { ...item, input: replayInput };
+        if (replayInput.actorUserId && replayInput.actorUserId !== currentUserId) {
+          // Keep the event for its original actor. A logout or account switch
+          // must not replay it under another identity or consume retry attempts.
+          updates.set(item.id, {
+            ...replayItem,
+            nextAttemptAt: Date.now() + SPONSORED_RETRY_MAX_MS,
+          });
+          continue;
+        }
+
+        try {
+          if (replayInput.eventType === "conversion" && !replayInput.touchToken) {
+            const refreshedAttribution = getValidSponsoredAttributions(replayInput.restaurantId)
+              .find((attribution) => attribution.campaignId === replayInput.campaignId);
+            if (refreshedAttribution?.touchToken) {
+              replayInput = { ...replayInput, touchToken: refreshedAttribution.touchToken };
+            } else if (
+              hasQueuedSponsoredClick(replayInput.campaignId, replayInput.restaurantId)
+              || hasQueuedSponsoredSocialClick(replayInput.restaurantId)
+            ) {
+              updates.set(item.id, {
+                ...replayItem,
+                nextAttemptAt: Date.now() + SPONSORED_RETRY_BASE_MS,
+              });
+              continue;
+            }
+          }
+
+          sponsoredEventInFlightIds.add(item.id);
+          claimedIds.push(item.id);
+          const result = await invokeSponsoredEvent(replayInput);
+          if (
+            replayInput.eventType === "conversion"
+            && result.reason === "missing_attribution_touch"
+          ) {
+            const refreshedTouchToken = getQueuedConversionTouch(replayInput);
+            if (
+              refreshedTouchToken
+              || hasQueuedSponsoredSocialClick(replayInput.restaurantId)
+            ) {
+              updates.set(item.id, {
+                ...replayItem,
+                input: refreshedTouchToken
+                  ? { ...replayInput, touchToken: refreshedTouchToken }
+                  : replayInput,
+                nextAttemptAt: Date.now() + SPONSORED_RETRY_BASE_MS,
+              });
+              continue;
+            }
+          }
+          applySponsoredTrackResult(replayInput, result);
+          updates.set(item.id, null);
+        } catch (error) {
+          if (!isRetryableSponsoredError(error)) {
+            updates.set(item.id, null);
+            continue;
+          }
+          const attempts = item.attempts + 1;
+          updates.set(item.id, attempts >= MAX_SPONSORED_EVENT_ATTEMPTS
+            ? null
+            : {
+                ...replayItem,
+                attempts,
+                nextAttemptAt: Date.now() + getSponsoredRetryDelay(attempts),
+              });
+        }
+      }
+
+      const current = new Map(readSponsoredEventQueue().map((item) => [item.id, item]));
+      updates.forEach((item, id) => {
+        if (item) current.set(id, item);
+        else current.delete(id);
+      });
+      const nextQueue = [...current.values()]
+        .filter((item) => (Date.now() - item.queuedAt) <= SPONSORED_EVENT_MAX_AGE_MS)
+        .slice(-MAX_SPONSORED_QUEUED_EVENTS);
+      writeSponsoredEventQueue(nextQueue);
+
+      const nextAttemptAt = nextQueue.reduce(
+        (minimum, item) => Math.min(minimum, item.nextAttemptAt),
+        Number.POSITIVE_INFINITY,
+      );
+      if (Number.isFinite(nextAttemptAt)) {
+        scheduleSponsoredQueueFlush(Math.max(250, nextAttemptAt - Date.now()));
+      }
+    } finally {
+      claimedIds.forEach((id) => sponsoredEventInFlightIds.delete(id));
+    }
+  })().finally(() => {
+    sponsoredQueueFlushPromise = null;
+  });
+
+  return sponsoredQueueFlushPromise;
+}
+
+async function trackSponsoredEvent(input: SponsoredEventInput): Promise<SponsoredTrackResult> {
+  const authIdentityPending = input.actorUserId === undefined && !analyticsAuthIdentityVerified;
+  let actorUserId = input.actorUserId ?? null;
+  if (input.actorUserId === undefined && !authIdentityPending) {
+    actorUserId = currentUserId;
+  }
+  const durableInput: SponsoredEventInput = {
+    ...input,
+    eventId: input.eventId || createClientEventId(),
+    viewerId: input.viewerId || getOrCreateAnalyticsViewerId(),
+    page: input.page || getTrackingPage(),
+    actorUserId,
+    authIdentityPending,
+  };
+  const eventId = String(durableInput.eventId);
+  let persisted = enqueueSponsoredEvent(durableInput);
+
+  await analyticsAuthHydration;
+
+  if (!analyticsAuthIdentityVerified) {
+    return {
+      recorded: false,
+      deduped: false,
+      queued: persisted,
+      reason: persisted ? "queued_until_auth_verified" : "durable_storage_unavailable",
+    };
+  }
+  if (durableInput.authIdentityPending) {
+    durableInput.actorUserId = currentUserId;
+    durableInput.authIdentityPending = false;
+    persisted = enqueueSponsoredEvent(durableInput);
+  }
+  if (typeof navigator !== "undefined" && navigator.onLine === false) {
+    return {
+      recorded: false,
+      deduped: false,
+      queued: persisted,
+      reason: persisted ? "queued_offline" : "durable_storage_unavailable",
+    };
+  }
+  if (
+    durableInput.eventType === "conversion"
+    && !durableInput.touchToken
+    && (
+      hasQueuedSponsoredClick(durableInput.campaignId, durableInput.restaurantId)
+      || hasQueuedSponsoredSocialClick(durableInput.restaurantId)
+    )
+  ) {
+    return {
+      recorded: false,
+      deduped: false,
+      queued: persisted,
+      reason: persisted ? "queued_for_click_attribution" : "durable_storage_unavailable",
+    };
+  }
+  if (sponsoredEventInFlightIds.has(eventId)) {
+    return {
+      recorded: false,
+      deduped: false,
+      queued: persisted,
+      reason: persisted ? "already_in_flight" : "durable_storage_unavailable",
+    };
+  }
+
+  sponsoredEventInFlightIds.add(eventId);
+  try {
+    const result = await invokeSponsoredEvent(durableInput);
+    if (
+      durableInput.eventType === "conversion"
+      && result.reason === "missing_attribution_touch"
+    ) {
+      const refreshedTouchToken = getQueuedConversionTouch(durableInput);
+      if (
+        refreshedTouchToken
+        || hasQueuedSponsoredSocialClick(durableInput.restaurantId)
+      ) {
+        if (refreshedTouchToken) {
+          durableInput.touchToken = refreshedTouchToken;
+          persisted = enqueueSponsoredEvent(durableInput);
+        }
+        return {
+          recorded: false,
+          deduped: false,
+          queued: persisted,
+          reason: persisted ? "queued_for_click_attribution" : "durable_storage_unavailable",
+        };
+      }
+    }
+    applySponsoredTrackResult(durableInput, result);
+    removeQueuedSponsoredEvent(eventId);
+    return result;
+  } catch (error) {
+    if (!isRetryableSponsoredError(error)) {
+      removeQueuedSponsoredEvent(eventId);
+      return {
+        recorded: false,
+        deduped: false,
+        ignored: false,
+        reason: `transport_${getSponsoredErrorStatus(error) || "terminal"}`,
+      };
+    }
+    return {
+      recorded: false,
+      deduped: false,
+      queued: persisted,
+      reason: persisted ? "queued_for_retry" : "durable_storage_unavailable",
+    };
+  } finally {
+    sponsoredEventInFlightIds.delete(eventId);
+    scheduleSponsoredQueueFlush();
+  }
+}
+
+let sponsoredSocialQueueFlushPromise: Promise<void> | null = null;
+let sponsoredSocialQueueTimer: number | null = null;
+let sponsoredSocialEventQueueMemory: QueuedSponsoredSocialEvent[] = [];
+const sponsoredSocialEventInFlightIds = new Set<string>();
+
+function isSponsoredSocialEventInput(value: unknown): value is SponsoredSocialEventInput {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const candidate = value as Partial<SponsoredSocialEventInput>;
+  return (
+    typeof candidate.postId === "string"
+    && candidate.postId.length > 0
+    && ["impression", "click", "cta_click"].includes(String(candidate.eventType || ""))
+    && Boolean(candidate.metadata)
+    && typeof candidate.metadata === "object"
+    && !Array.isArray(candidate.metadata)
+    && typeof candidate.trackingCallId === "string"
+    && candidate.trackingCallId.length > 0
+    && (candidate.actorUserId === null || typeof candidate.actorUserId === "string")
+    && typeof candidate.authIdentityPending === "boolean"
+  );
+}
+
+function readSponsoredSocialEventQueue(): QueuedSponsoredSocialEvent[] {
+  const storage = getSponsoredQueueStorage();
+  if (!storage) return sponsoredSocialEventQueueMemory;
+
+  let raw: string | null;
+  try {
+    raw = storage.getItem(SPONSORED_SOCIAL_EVENT_QUEUE_KEY);
+  } catch {
+    sponsoredQueueStorageAvailable = false;
+    return sponsoredSocialEventQueueMemory;
+  }
+
+  try {
+    const parsed = JSON.parse(raw || "[]");
+    if (!Array.isArray(parsed)) return sponsoredSocialEventQueueMemory;
+
+    sponsoredSocialEventQueueMemory = parsed
+      .filter((item): item is QueuedSponsoredSocialEvent => {
+        if (!item || typeof item !== "object" || Array.isArray(item)) return false;
+        const candidate = item as Partial<QueuedSponsoredSocialEvent>;
+        return (
+          typeof candidate.id === "string"
+          && candidate.id.length > 0
+          && isSponsoredSocialEventInput(candidate.input)
+          && Number.isFinite(candidate.queuedAt)
+          && Number.isFinite(candidate.attempts)
+          && Number.isFinite(candidate.nextAttemptAt)
+        );
+      })
+      .slice(-MAX_SPONSORED_QUEUED_EVENTS);
+    return sponsoredSocialEventQueueMemory;
+  } catch {
+    // Keep the runtime fallback and allow a later enqueue to repair the key.
+    return sponsoredSocialEventQueueMemory;
+  }
+}
+
+function writeSponsoredSocialEventQueue(queue: QueuedSponsoredSocialEvent[]) {
+  sponsoredSocialEventQueueMemory = queue.slice(-MAX_SPONSORED_QUEUED_EVENTS);
+  const storage = getSponsoredQueueStorage();
+  if (!storage) return false;
+
+  try {
+    if (sponsoredSocialEventQueueMemory.length === 0) {
+      storage.removeItem(SPONSORED_SOCIAL_EVENT_QUEUE_KEY);
+      return true;
+    }
+    storage.setItem(
+      SPONSORED_SOCIAL_EVENT_QUEUE_KEY,
+      JSON.stringify(sponsoredSocialEventQueueMemory),
+    );
+    return true;
+  } catch {
+    sponsoredQueueStorageAvailable = false;
+    return false;
+  }
+}
+
+function scheduleSponsoredSocialQueueFlush(delayMs = SPONSORED_RETRY_BASE_MS) {
+  if (typeof window === "undefined") return;
+  if (sponsoredSocialQueueTimer !== null) window.clearTimeout(sponsoredSocialQueueTimer);
+  sponsoredSocialQueueTimer = window.setTimeout(() => {
+    sponsoredSocialQueueTimer = null;
+    void flushSponsoredSocialEventQueue();
+  }, Math.max(0, delayMs));
+}
+
+function enqueueSponsoredSocialEvent(input: SponsoredSocialEventInput) {
+  const now = Date.now();
+  const queue = readSponsoredSocialEventQueue().filter(
+    (item) => (now - item.queuedAt) <= SPONSORED_EVENT_MAX_AGE_MS,
+  );
+  const existing = queue.find((item) => item.id === input.trackingCallId);
+  if (!existing) {
+    queue.push({
+      id: input.trackingCallId,
+      input,
+      queuedAt: now,
+      attempts: 0,
+      nextAttemptAt: now + SPONSORED_RETRY_BASE_MS,
+    });
+  } else {
+    existing.input = input;
+  }
+
+  const persisted = writeSponsoredSocialEventQueue(queue);
+  scheduleSponsoredSocialQueueFlush();
+  return persisted;
+}
+
+function removeQueuedSponsoredSocialEvent(trackingCallId: string) {
+  const queue = readSponsoredSocialEventQueue()
+    .filter((item) => item.id !== trackingCallId);
+  writeSponsoredSocialEventQueue(queue);
+}
+
+function applySponsoredSocialTrackResult(
+  input: SponsoredSocialEventInput,
+  result: SponsoredSocialTrackResult,
+) {
+  if (input.eventType === "impression") return;
+
+  const fallbackRestaurantId = typeof input.metadata.restaurantId === "string"
+    ? input.metadata.restaurantId
+    : "";
+  const attributions = Array.isArray(result.attributions) && result.attributions.length > 0
+    ? result.attributions
+    : [{
+        campaignId: result.campaignId,
+        restaurantId: result.restaurantId || fallbackRestaurantId,
+        touchToken: result.touchToken,
+      }];
+
+  attributions.forEach((attribution) => {
+    const campaignId = String(attribution.campaignId || "").trim();
+    const restaurantId = String(attribution.restaurantId || fallbackRestaurantId).trim();
+    if (!campaignId || !restaurantId) return;
+    rememberSponsoredAttribution(campaignId, restaurantId, {
+      touchToken: attribution.touchToken || null,
+    });
+  });
+  scheduleSponsoredQueueFlush(0);
+  scheduleDeferredSponsoredConversionFlush(0);
+}
+
+async function invokeSponsoredSocialEvent(
+  input: SponsoredSocialEventInput,
+): Promise<SponsoredSocialTrackResult> {
+  const { data, error } = await (getSupabase().rpc as any)("record_social_feed_event_v2", {
+    p_post_id: input.postId,
+    p_event_type: input.eventType,
+    p_metadata: input.metadata,
+  });
+  if (error) throw error;
+  return (data || {}) as SponsoredSocialTrackResult;
+}
+
+function isRetryableSponsoredSocialError(error: unknown) {
+  const candidate = error as {
+    code?: string;
+    message?: string;
+    details?: string;
+    hint?: string;
+    status?: unknown;
+    context?: { status?: unknown } | null;
+  } | null;
+  const text = [
+    candidate?.code,
+    candidate?.message,
+    candidate?.details,
+    candidate?.hint,
+  ].filter(Boolean).join(" ").toLowerCase();
+  if (
+    ["22023", "23505", "42501", "42883"].includes(String(candidate?.code || ""))
+    || text.includes("post introuvable")
+    || text.includes("schema cache")
+    || text.includes("permission denied")
+    || text.includes("forbidden")
+    || text.includes("social_tracking_call_id_conflict")
+    || text.includes("invalid_social_tracking")
+  ) {
+    return false;
+  }
+
+  const status = Number(candidate?.status ?? candidate?.context?.status);
+  if (
+    !Number.isFinite(status)
+    || status === 0
+    || status === 401
+    || status === 408
+    || status === 429
+  ) return true;
+  return status >= 500;
+}
+
+async function flushSponsoredSocialEventQueue() {
+  if (sponsoredSocialQueueFlushPromise) return sponsoredSocialQueueFlushPromise;
+  if (typeof navigator !== "undefined" && navigator.onLine === false) return;
+  if (!analyticsAuthHydrated || !analyticsAuthIdentityVerified) return;
+
+  sponsoredSocialQueueFlushPromise = (async () => {
+    const now = Date.now();
+    const snapshot = readSponsoredSocialEventQueue();
+    const updates = new Map<string, QueuedSponsoredSocialEvent | null>();
+    const claimedIds: string[] = [];
+
+    try {
+      for (const item of snapshot) {
+        if (
+          (now - item.queuedAt) > SPONSORED_EVENT_MAX_AGE_MS
+          || item.attempts >= MAX_SPONSORED_EVENT_ATTEMPTS
+        ) {
+          updates.set(item.id, null);
+          continue;
+        }
+        if (item.nextAttemptAt > now || sponsoredSocialEventInFlightIds.has(item.id)) continue;
+
+        const replayInput = item.input.authIdentityPending
+          ? {
+              ...item.input,
+              actorUserId: currentUserId,
+              authIdentityPending: false,
+            }
+          : item.input;
+        const replayItem = replayInput === item.input ? item : { ...item, input: replayInput };
+        if (replayInput.actorUserId && replayInput.actorUserId !== currentUserId) {
+          updates.set(item.id, {
+            ...replayItem,
+            nextAttemptAt: Date.now() + SPONSORED_RETRY_MAX_MS,
+          });
+          continue;
+        }
+
+        sponsoredSocialEventInFlightIds.add(item.id);
+        claimedIds.push(item.id);
+        try {
+          const result = await invokeSponsoredSocialEvent(replayInput);
+          applySponsoredSocialTrackResult(replayInput, result);
+          updates.set(item.id, null);
+        } catch (error) {
+          if (!isRetryableSponsoredSocialError(error)) {
+            updates.set(item.id, null);
+            continue;
+          }
+          const attempts = item.attempts + 1;
+          updates.set(item.id, attempts >= MAX_SPONSORED_EVENT_ATTEMPTS
+            ? null
+            : {
+                ...replayItem,
+                attempts,
+                nextAttemptAt: Date.now() + getSponsoredRetryDelay(attempts),
+              });
+        }
+      }
+
+      const current = new Map(readSponsoredSocialEventQueue().map((item) => [item.id, item]));
+      updates.forEach((item, id) => {
+        if (item) current.set(id, item);
+        else current.delete(id);
+      });
+      const nextQueue = [...current.values()]
+        .filter((item) => (Date.now() - item.queuedAt) <= SPONSORED_EVENT_MAX_AGE_MS)
+        .slice(-MAX_SPONSORED_QUEUED_EVENTS);
+      writeSponsoredSocialEventQueue(nextQueue);
+      scheduleDeferredSponsoredConversionFlush(0);
+
+      const nextAttemptAt = nextQueue.reduce(
+        (minimum, item) => Math.min(minimum, item.nextAttemptAt),
+        Number.POSITIVE_INFINITY,
+      );
+      if (Number.isFinite(nextAttemptAt)) {
+        scheduleSponsoredSocialQueueFlush(Math.max(250, nextAttemptAt - Date.now()));
+      }
+    } finally {
+      claimedIds.forEach((id) => sponsoredSocialEventInFlightIds.delete(id));
+    }
+  })().finally(() => {
+    sponsoredSocialQueueFlushPromise = null;
+  });
+
+  return sponsoredSocialQueueFlushPromise;
+}
+
+let deferredSponsoredConversionFlushPromise: Promise<void> | null = null;
+let deferredSponsoredConversionTimer: number | null = null;
+let deferredSponsoredConversionMemory: QueuedDeferredSponsoredConversion[] = [];
+
+function isDeferredSponsoredConversionInput(
+  value: unknown,
+): value is DeferredSponsoredConversionInput {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const candidate = value as Partial<DeferredSponsoredConversionInput>;
+  return (
+    typeof candidate.eventId === "string"
+    && candidate.eventId.length > 0
+    && typeof candidate.restaurantId === "string"
+    && candidate.restaurantId.length > 0
+    && ["order", "reservation", "zero-attente"].includes(
+      String(candidate.conversionType || ""),
+    )
+    && typeof candidate.entityId === "string"
+    && candidate.entityId.length > 0
+    && (candidate.paymentMethod === null || typeof candidate.paymentMethod === "string")
+    && (candidate.journeyType === null || [
+      "delivery",
+      "takeaway",
+      "reservation",
+      "zero-attente",
+    ].includes(String(candidate.journeyType || "")))
+    && (candidate.actorUserId === null || typeof candidate.actorUserId === "string")
+    && typeof candidate.authIdentityPending === "boolean"
+  );
+}
+
+function readDeferredSponsoredConversionQueue(): QueuedDeferredSponsoredConversion[] {
+  const storage = getSponsoredQueueStorage();
+  if (!storage) return deferredSponsoredConversionMemory;
+
+  try {
+    const parsed = JSON.parse(
+      storage.getItem(SPONSORED_DEFERRED_CONVERSION_QUEUE_KEY) || "[]",
+    );
+    if (!Array.isArray(parsed)) return deferredSponsoredConversionMemory;
+    deferredSponsoredConversionMemory = parsed
+      .filter((item): item is QueuedDeferredSponsoredConversion => {
+        if (!item || typeof item !== "object" || Array.isArray(item)) return false;
+        const candidate = item as Partial<QueuedDeferredSponsoredConversion>;
+        return (
+          typeof candidate.id === "string"
+          && candidate.id.length > 0
+          && isDeferredSponsoredConversionInput(candidate.input)
+          && Number.isFinite(candidate.queuedAt)
+        );
+      })
+      .slice(-MAX_SPONSORED_QUEUED_EVENTS);
+    return deferredSponsoredConversionMemory;
+  } catch {
+    return deferredSponsoredConversionMemory;
+  }
+}
+
+function writeDeferredSponsoredConversionQueue(
+  queue: QueuedDeferredSponsoredConversion[],
+) {
+  deferredSponsoredConversionMemory = queue.slice(-MAX_SPONSORED_QUEUED_EVENTS);
+  const storage = getSponsoredQueueStorage();
+  if (!storage) return false;
+
+  try {
+    if (deferredSponsoredConversionMemory.length === 0) {
+      storage.removeItem(SPONSORED_DEFERRED_CONVERSION_QUEUE_KEY);
+      return true;
+    }
+    storage.setItem(
+      SPONSORED_DEFERRED_CONVERSION_QUEUE_KEY,
+      JSON.stringify(deferredSponsoredConversionMemory),
+    );
+    return true;
+  } catch {
+    sponsoredQueueStorageAvailable = false;
+    return false;
+  }
+}
+
+function scheduleDeferredSponsoredConversionFlush(
+  delayMs = SPONSORED_RETRY_BASE_MS,
+) {
+  if (typeof window === "undefined") return;
+  if (deferredSponsoredConversionTimer !== null) {
+    window.clearTimeout(deferredSponsoredConversionTimer);
+  }
+  deferredSponsoredConversionTimer = window.setTimeout(() => {
+    deferredSponsoredConversionTimer = null;
+    void flushDeferredSponsoredConversionQueue();
+  }, Math.max(0, delayMs));
+}
+
+function enqueueDeferredSponsoredConversion(
+  input: DeferredSponsoredConversionInput,
+) {
+  const now = Date.now();
+  const id = [
+    input.restaurantId,
+    input.conversionType,
+    input.entityId,
+  ].join(":");
+  const queue = readDeferredSponsoredConversionQueue()
+    .filter((item) => (now - item.queuedAt) <= SPONSORED_EVENT_MAX_AGE_MS);
+  const existing = queue.find((item) => item.id === id);
+  if (existing) {
+    existing.input = {
+      ...input,
+      eventId: existing.input.eventId,
+    };
+  } else {
+    queue.push({ id, input, queuedAt: now });
+  }
+  const persisted = writeDeferredSponsoredConversionQueue(queue);
+  scheduleDeferredSponsoredConversionFlush();
+  return persisted;
+}
+
+async function flushDeferredSponsoredConversionQueue() {
+  if (deferredSponsoredConversionFlushPromise) {
+    return deferredSponsoredConversionFlushPromise;
+  }
+  if (typeof navigator !== "undefined" && navigator.onLine === false) return;
+  if (!analyticsAuthHydrated || !analyticsAuthIdentityVerified) return;
+
+  deferredSponsoredConversionFlushPromise = (async () => {
+    const snapshot = readDeferredSponsoredConversionQueue();
+    const completedIds = new Set<string>();
+    const identityUpdates = new Map<string, QueuedDeferredSponsoredConversion>();
+
+    for (const item of snapshot) {
+      if ((Date.now() - item.queuedAt) > SPONSORED_EVENT_MAX_AGE_MS) {
+        completedIds.add(item.id);
+        continue;
+      }
+
+      const replayInput = item.input.authIdentityPending
+        ? {
+            ...item.input,
+            actorUserId: currentUserId,
+            authIdentityPending: false,
+          }
+        : item.input;
+      if (replayInput !== item.input) {
+        identityUpdates.set(item.id, { ...item, input: replayInput });
+      }
+      if (
+        replayInput.actorUserId
+        && replayInput.actorUserId !== currentUserId
+      ) {
+        continue;
+      }
+      claimQueuedSponsoredSocialClicks(
+        replayInput.restaurantId,
+        replayInput.actorUserId,
+      );
+      if (hasQueuedSponsoredSocialClick(replayInput.restaurantId)) continue;
+
+      const attributions = getValidSponsoredAttributions(
+        replayInput.restaurantId,
+      );
+      if (attributions.length === 0) {
+        // The social call completed without an eligible paid campaign.
+        completedIds.add(item.id);
+        continue;
+      }
+
+      let handedOff = false;
+      for (const attribution of attributions) {
+        const result = await trackSponsoredEvent({
+          eventType: "conversion",
+          campaignId: attribution.campaignId,
+          restaurantId: replayInput.restaurantId,
+          source: "sponsored_conversion",
+          conversionType: replayInput.conversionType,
+          entityId: replayInput.entityId,
+          paymentMethod: replayInput.paymentMethod,
+          journeyType: replayInput.journeyType,
+          touchToken: attribution.touchToken || null,
+          eventId: replayInput.eventId,
+          actorUserId: replayInput.actorUserId,
+        });
+        if (result.queued || isSponsoredTrackAccepted(result)) {
+          handedOff = true;
+          break;
+        }
+      }
+      // Every attribution was terminal, or a generic durable event now owns
+      // the retry. In both cases this restaurant-level placeholder is done.
+      completedIds.add(item.id);
+      if (handedOff) scheduleSponsoredQueueFlush(0);
+    }
+
+    const current = new Map(
+      readDeferredSponsoredConversionQueue().map((item) => [item.id, item]),
+    );
+    identityUpdates.forEach((item, id) => current.set(id, item));
+    completedIds.forEach((id) => current.delete(id));
+    const nextQueue = [...current.values()]
+      .filter((item) => (
+        (Date.now() - item.queuedAt) <= SPONSORED_EVENT_MAX_AGE_MS
+      ))
+      .slice(-MAX_SPONSORED_QUEUED_EVENTS);
+    writeDeferredSponsoredConversionQueue(nextQueue);
+
+    if (nextQueue.length > 0) {
+      scheduleDeferredSponsoredConversionFlush(SPONSORED_RETRY_MAX_MS);
+    }
+  })()
+    .catch(() => {
+      scheduleDeferredSponsoredConversionFlush(SPONSORED_RETRY_MAX_MS);
+    })
+    .finally(() => {
+      deferredSponsoredConversionFlushPromise = null;
     });
 
-    if (error) {
-      _sponsoredTrackingDisabled = true;
-      return { recorded: false, deduped: false };
+  return deferredSponsoredConversionFlushPromise;
+}
+
+export async function recordSponsoredSocialFeedEvent({
+  postId,
+  eventType,
+  metadata = {},
+  trackingCallId,
+}: {
+  postId: string;
+  eventType: SponsoredSocialEventType;
+  metadata?: Record<string, unknown>;
+  trackingCallId?: string | null;
+}): Promise<SponsoredSocialTrackResult> {
+  let requestedTrackingCallId = "";
+  if (typeof trackingCallId === "string") {
+    requestedTrackingCallId = trackingCallId.trim();
+  } else if (typeof metadata.trackingCallId === "string") {
+    requestedTrackingCallId = metadata.trackingCallId.trim();
+  }
+  const stableTrackingCallId = requestedTrackingCallId || createAnalyticsTrackingCallId();
+  const authIdentityPending = !analyticsAuthIdentityVerified;
+  const input: SponsoredSocialEventInput = {
+    postId,
+    eventType,
+    trackingCallId: stableTrackingCallId,
+    actorUserId: authIdentityPending ? null : currentUserId,
+    authIdentityPending,
+    metadata: {
+      ...metadata,
+      eventId: stableTrackingCallId,
+      trackingCallId: stableTrackingCallId,
+      viewerId: typeof metadata.viewerId === "string" && metadata.viewerId
+        ? metadata.viewerId
+        : getOrCreateAnalyticsViewerId(),
+    },
+  };
+  let persisted = enqueueSponsoredSocialEvent(input);
+
+  await analyticsAuthHydration;
+
+  if (!analyticsAuthIdentityVerified) {
+    return {
+      trackingCallId: stableTrackingCallId,
+      queued: persisted,
+      reason: persisted ? "queued_until_auth_verified" : "durable_storage_unavailable",
+    };
+  }
+  if (input.authIdentityPending) {
+    input.actorUserId = currentUserId;
+    input.authIdentityPending = false;
+    persisted = enqueueSponsoredSocialEvent(input);
+  }
+  if (typeof navigator !== "undefined" && navigator.onLine === false) {
+    return {
+      trackingCallId: stableTrackingCallId,
+      queued: persisted,
+      reason: persisted ? "queued_offline" : "durable_storage_unavailable",
+    };
+  }
+  if (sponsoredSocialEventInFlightIds.has(stableTrackingCallId)) {
+    return {
+      trackingCallId: stableTrackingCallId,
+      queued: persisted,
+      reason: persisted ? "already_in_flight" : "durable_storage_unavailable",
+    };
+  }
+
+  sponsoredSocialEventInFlightIds.add(stableTrackingCallId);
+  try {
+    const result = await invokeSponsoredSocialEvent(input);
+    applySponsoredSocialTrackResult(input, result);
+    removeQueuedSponsoredSocialEvent(stableTrackingCallId);
+    return {
+      ...result,
+      trackingCallId: result.trackingCallId || stableTrackingCallId,
+      queued: false,
+    };
+  } catch (error) {
+    if (!isRetryableSponsoredSocialError(error)) {
+      removeQueuedSponsoredSocialEvent(stableTrackingCallId);
+      return {
+        trackingCallId: stableTrackingCallId,
+        queued: false,
+        reason: "terminal_tracking_error",
+      };
     }
 
     return {
-      recorded: Boolean(data?.recorded),
-      deduped: Boolean(data?.deduped),
-      ignored: Boolean(data?.ignored),
+      trackingCallId: stableTrackingCallId,
+      queued: persisted,
+      reason: persisted ? "queued_for_retry" : "durable_storage_unavailable",
     };
-  } catch {
-    _sponsoredTrackingDisabled = true;
-    return { recorded: false, deduped: false };
+  } finally {
+    sponsoredSocialEventInFlightIds.delete(stableTrackingCallId);
+    scheduleSponsoredSocialQueueFlush();
+    scheduleDeferredSponsoredConversionFlush(0);
   }
+}
+
+if (typeof window !== "undefined") {
+  const trackingWindow = window as Window & {
+    __miamzSponsoredQueueListenersBound?: boolean;
+    __miamzSponsoredQueueFlush?: () => void;
+    __miamzSponsoredSocialQueueFlush?: () => void;
+    __miamzSponsoredDeferredConversionQueueFlush?: () => void;
+  };
+  trackingWindow.__miamzSponsoredQueueFlush = () => {
+    void flushSponsoredEventQueue();
+    void flushSponsoredSocialEventQueue();
+    void flushDeferredSponsoredConversionQueue();
+  };
+  trackingWindow.__miamzSponsoredSocialQueueFlush = () => void flushSponsoredSocialEventQueue();
+  trackingWindow.__miamzSponsoredDeferredConversionQueueFlush =
+    () => void flushDeferredSponsoredConversionQueue();
+  if (!trackingWindow.__miamzSponsoredQueueListenersBound) {
+    trackingWindow.addEventListener("online", () => trackingWindow.__miamzSponsoredQueueFlush?.());
+    trackingWindow.addEventListener("pageshow", () => trackingWindow.__miamzSponsoredQueueFlush?.());
+    trackingWindow.__miamzSponsoredQueueListenersBound = true;
+  }
+  scheduleSponsoredQueueFlush(250);
+  scheduleSponsoredSocialQueueFlush(250);
+  scheduleDeferredSponsoredConversionFlush(250);
 }
 
 export async function trackSponsoredImpression(
@@ -739,7 +1980,7 @@ export async function trackSponsoredImpression(
     });
 
     void trackImpression("restaurant", restaurantId, source);
-    return result.recorded || result.deduped || result.ignored || false;
+    return isSponsoredTrackAccepted(result) || result.ignored || false;
   } catch {
     return false;
   }
@@ -751,8 +1992,6 @@ export async function trackSponsoredClick(
   source = "sponsored_click",
   eventId?: string | null,
 ) {
-  rememberSponsoredAttribution(campaignId, restaurantId);
-
   try {
     const result = await trackSponsoredEvent({
       eventType: "click",
@@ -762,8 +2001,18 @@ export async function trackSponsoredClick(
       eventId: eventId || createClientEventId(),
     });
 
+    if (
+      isSponsoredTrackAccepted(result)
+      || result.queued
+      || result.reason === "internal_actor"
+      || Boolean(result.touchToken)
+    ) {
+      rememberSponsoredAttribution(campaignId, restaurantId, {
+        touchToken: result.touchToken || null,
+      });
+    }
     void trackClick("restaurant", restaurantId);
-    return result.recorded || result.deduped || result.ignored || false;
+    return isSponsoredTrackAccepted(result);
   } catch {
     return false;
   }
@@ -786,9 +2035,6 @@ export async function trackCheckoutEvent(orderId: string, eventType: string, pay
   }
 }
 
-type SponsoredConversionType = "order" | "reservation" | "zero-attente";
-type SponsoredJourneyType = "delivery" | "takeaway" | "reservation" | "zero-attente";
-
 interface TrackSponsoredConversionOptions {
   conversionType?: SponsoredConversionType;
   entityId?: string | null;
@@ -800,11 +2046,32 @@ export async function trackSponsoredConversion(
   restaurantId: string,
   options?: TrackSponsoredConversionOptions
 ) {
+  if (
+    hasQueuedSponsoredSocialClick(restaurantId)
+    && options?.entityId
+  ) {
+    const authIdentityPending = !analyticsAuthIdentityVerified;
+    if (!authIdentityPending) {
+      claimQueuedSponsoredSocialClicks(restaurantId, currentUserId);
+    }
+    enqueueDeferredSponsoredConversion({
+      eventId: createClientEventId(),
+      restaurantId,
+      conversionType: options.conversionType || "order",
+      entityId: options.entityId,
+      paymentMethod: options.paymentMethod || null,
+      journeyType: options.journeyType || null,
+      actorUserId: authIdentityPending ? null : currentUserId,
+      authIdentityPending,
+    });
+    return false;
+  }
+
   const attributions = getValidSponsoredAttributions(restaurantId);
   if (attributions.length === 0) return false;
 
-  const results = await Promise.allSettled(
-    attributions.map(async (attribution) => {
+  for (const attribution of attributions) {
+    try {
       const result = await trackSponsoredEvent({
         eventType: "conversion",
         campaignId: attribution.campaignId,
@@ -814,26 +2081,20 @@ export async function trackSponsoredConversion(
         entityId: options?.entityId || null,
         paymentMethod: options?.paymentMethod || null,
         journeyType: options?.journeyType || null,
+        touchToken: attribution.touchToken || null,
       });
 
-      return {
-        campaignId: attribution.campaignId,
-        accepted: result.recorded || result.deduped || result.ignored || false,
-      };
-    }),
-  );
-
-  const acceptedCampaignIds = results
-    .filter((result): result is PromiseFulfilledResult<{ campaignId: string; accepted: boolean }> => result.status === "fulfilled")
-    .filter((result) => result.value.accepted)
-    .map((result) => result.value.campaignId);
-
-  if (acceptedCampaignIds.length === 0) {
-    return false;
+      if (result.queued) return false;
+      if (isSponsoredTrackAccepted(result)) {
+        clearSponsoredAttributions(restaurantId);
+        return true;
+      }
+    } catch {
+      // Try the next valid touch only after a terminal rejection.
+    }
   }
 
-  clearSponsoredAttributions(restaurantId, acceptedCampaignIds);
-  return true;
+  return false;
 }
 
 export type { AudienceCriteria } from "@/lib/campaignTargeting";
