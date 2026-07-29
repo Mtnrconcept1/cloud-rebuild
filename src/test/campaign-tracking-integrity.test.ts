@@ -118,9 +118,14 @@ describe("campaign tracking integrity", () => {
   it("keeps one impression call id per post and cleans every retry timer", () => {
     const trackedCard = read("src/components/social/TrackedSocialPostCard.tsx");
 
-    expect(trackedCard).toContain("impressionTrackingCallId");
+    expect(trackedCard).toContain("const impressionTrackingRef = useRef");
+    expect(trackedCard).toMatch(
+      /useEffect\(\(\) => \{\s*impressionTrackingRef\.current = \{[\s\S]*trackingCallId: createAnalyticsTrackingCallId\(\)/,
+    );
     expect(trackedCard).toContain("[post.id]");
-    expect(trackedCard).toContain("trackingCallId: impressionTrackingCallId");
+    expect(trackedCard).toContain("const impressionTracking = impressionTrackingRef.current");
+    expect(trackedCard).toContain("trackingCallId: impressionTracking.trackingCallId");
+    expect(trackedCard).toContain("lastClickAtRef.current = 0");
     expect(trackedCard).toContain("impressionRetryTimerRef");
     expect(trackedCard).toContain("if (disposed) return");
     expect(trackedCard).toContain("window.clearTimeout(impressionRetryTimerRef.current)");

@@ -1,6 +1,6 @@
 // GENERATED FILE — do not edit by hand.
 // Run `pnpm run generate:error-code-map` after adding or moving an HttpError.
-// 267 error codes mapped from supabase/functions/**.
+// 269 error codes mapped from supabase/functions/**.
 
 export type ErrorCodeSite = { file: string; line: number };
 
@@ -247,6 +247,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/tok-connect-portal/index.ts",
       "line": 439
+    }
+  ],
+  "anonymous_client_identity_unavailable": [
+    {
+      "file": "supabase/functions/track-sponsored-event/index.ts",
+      "line": 212
     }
   ],
   "authorization_code_expired": [
@@ -529,6 +535,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/ai-client-support/index.ts",
       "line": 350
+    }
+  ],
+  "conversion_authentication_required": [
+    {
+      "file": "supabase/functions/track-sponsored-event/index.ts",
+      "line": 207
     }
   ],
   "crm_mfa_factor_reset_failed": [
@@ -1081,6 +1093,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 303
     }
   ],
+  "invalid_authentication": [
+    {
+      "file": "supabase/functions/track-sponsored-event/index.ts",
+      "line": 129
+    }
+  ],
   "invalid_authorization_code": [
     {
       "file": "supabase/functions/tok-connect-oauth/index.ts",
@@ -1145,6 +1163,10 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
       "line": 327
+    },
+    {
+      "file": "supabase/functions/track-sponsored-event/index.ts",
+      "line": 108
     }
   ],
   "invalid_recovery_challenge": [
@@ -1385,6 +1407,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 373
     }
   ],
+  "origin_not_allowed": [
+    {
+      "file": "supabase/functions/track-sponsored-event/index.ts",
+      "line": 146
+    }
+  ],
   "outbound_request_timeout": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
@@ -1575,6 +1603,14 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
       "line": 308
+    },
+    {
+      "file": "supabase/functions/track-sponsored-event/index.ts",
+      "line": 93
+    },
+    {
+      "file": "supabase/functions/track-sponsored-event/index.ts",
+      "line": 98
     }
   ],
   "request_id_payload_mismatch": [
@@ -1739,24 +1775,6 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 99
     }
   ],
-  "signature_expired": [
-    {
-      "file": "supabase/functions/track-sponsored-event/index.ts",
-      "line": 122
-    }
-  ],
-  "signature_invalid": [
-    {
-      "file": "supabase/functions/track-sponsored-event/index.ts",
-      "line": 258
-    }
-  ],
-  "signature_required": [
-    {
-      "file": "supabase/functions/track-sponsored-event/index.ts",
-      "line": 117
-    }
-  ],
   "social_media_identity_mismatch": [
     {
       "file": "supabase/functions/analyze-restaurant-image/index.ts",
@@ -1797,6 +1815,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
       "line": 760
+    }
+  ],
+  "sponsored_touch_identity_conflict": [
+    {
+      "file": "supabase/functions/track-sponsored-event/index.ts",
+      "line": 412
     }
   ],
   "subscription_check_unavailable": [

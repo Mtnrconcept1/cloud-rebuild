@@ -13,6 +13,13 @@ type CampaignInternalTestMetric = {
   last_event_at?: string | null;
 };
 
+type CampaignInternalTestTotals = {
+  impressions: number;
+  clicks: number;
+  conversions: number;
+  lastEventAt: string | null;
+};
+
 type CampaignInternalTestSummaryProps = {
   restaurantId: string | null | undefined;
   since: string;
@@ -50,7 +57,7 @@ export default function CampaignInternalTestSummary({
   });
 
   const totals = useMemo(
-    () => data.reduce(
+    () => data.reduce<CampaignInternalTestTotals>(
       (summary, row) => ({
         impressions: summary.impressions + toCount(row.impressions),
         clicks: summary.clicks + toCount(row.clicks),

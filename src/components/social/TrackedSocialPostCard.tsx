@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useRef } from "react";
 
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { rememberActualitesPostSignal } from "@/lib/actualitesPersonalizedTrends";
@@ -39,15 +39,20 @@ export default function TrackedSocialPostCard({
   const impressionRecordedRef = useRef(false);
   const impressionRetryCountRef = useRef(0);
   const impressionRetryTimerRef = useRef<number | null>(null);
-  const impressionTrackingCallId = useMemo(
-    () => createAnalyticsTrackingCallId(),
-    [post.id],
-  );
+  const impressionTrackingRef = useRef<{
+    postId: string;
+    trackingCallId: string;
+  } | null>(null);
   const lastClickAtRef = useRef(0);
 
   useEffect(() => {
+    impressionTrackingRef.current = {
+      postId: post.id,
+      trackingCallId: createAnalyticsTrackingCallId(),
+    };
     impressionRecordedRef.current = false;
     impressionRetryCountRef.current = 0;
+    lastClickAtRef.current = 0;
     if (impressionRetryTimerRef.current !== null) {
       window.clearTimeout(impressionRetryTimerRef.current);
       impressionRetryTimerRef.current = null;
@@ -75,12 +80,14 @@ export default function TrackedSocialPostCard({
 
     const recordImpression = () => {
       if (disposed || impressionRecordedRef.current) return;
+      const impressionTracking = impressionTrackingRef.current;
+      if (!impressionTracking || impressionTracking.postId !== post.id) return;
       impressionRecordedRef.current = true;
       if (!productionTrackingEnabled) return;
       void recordSponsoredSocialFeedEvent({
         postId: post.id,
         eventType: "impression",
-        trackingCallId: impressionTrackingCallId,
+        trackingCallId: impressionTracking.trackingCallId,
         metadata: {
           source,
           page: "actualites",
@@ -152,7 +159,6 @@ export default function TrackedSocialPostCard({
     post.restaurantId,
     productionTrackingEnabled,
     source,
-    impressionTrackingCallId,
   ]);
 
   const handleClickCapture = (event: React.MouseEvent<HTMLDivElement>) => {

@@ -131,8 +131,10 @@ describe("campaign pricing helpers", () => {
     expect(checkout).toContain("Les campagnes se reglent uniquement avec les credits TOK");
 
     expect(socialBoost).toContain('payment_method: "credits"');
-    expect(socialBoost).toContain('payment_status: "paid"');
-    expect(socialBoost).toContain('status: "active"');
+    expect(socialBoost).toContain('"create_social_post_boost_atomic"');
+    expect(socialBoost).toContain("if (!campaign?.id)");
+    expect(socialBoost).not.toContain('.from("ad_campaigns")\n      .insert');
+    expect(socialBoost).not.toContain('.from("social_post_promotions")\n      .insert');
     expect(socialBoost).toContain("get_restaurant_credit_usage");
     expect(socialBoost).not.toContain('payment_method: "card"');
 
