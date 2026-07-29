@@ -118,6 +118,7 @@ describe("campaign pricing helpers", () => {
     const portal = readSource("supabase/functions/campaign-portal/index.ts");
     const checkout = readSource("supabase/functions/create-checkout/index.ts");
     const socialBoost = readSource("supabase/functions/create-social-post-boost/index.ts");
+    const boostRpc = readSource("supabase/migrations/20260728173500_actualites_boost_atomic_media.sql");
     const dashboard = readSource("src/pages/dashboard/DashboardCampagnes.tsx");
     const paymentMethods = readSource("src/lib/paymentMethods.ts");
 
@@ -130,11 +131,22 @@ describe("campaign pricing helpers", () => {
 
     expect(checkout).toContain("Les campagnes se reglent uniquement avec les credits TOK");
 
-    expect(socialBoost).toContain('payment_method: "credits"');
-    expect(socialBoost).toContain('payment_status: "paid"');
-    expect(socialBoost).toContain('status: "active"');
+    // Depuis #494, la campagne n'est plus insérée par la fonction Edge mais par
+    // la RPC atomique, pour qu'un débit de crédits sans campagne — ou l'inverse —
+    // devienne impossible. L'invariant « les campagnes se règlent en crédits TOK,
+    // jamais par carte » n'a pas changé : il est seulement descendu en SQL, et
+    // c'est donc là qu'il faut le vérifier.
     expect(socialBoost).toContain("get_restaurant_credit_usage");
+    expect(socialBoost).toContain("create_social_post_boost_atomic");
+    expect(socialBoost).toContain('payment_method: "credits"');
     expect(socialBoost).not.toContain('payment_method: "card"');
+
+    expect(boostRpc).toContain("payment_method,");
+    expect(boostRpc).toContain("payment_status,");
+    expect(boostRpc).toContain("'credits',");
+    expect(boostRpc).toContain("'paid',");
+    expect(boostRpc).toContain("'active',");
+    expect(boostRpc).not.toContain("'card'");
 
     expect(dashboard).toContain('const CAMPAIGN_PAYMENT_METHOD = "credits"');
     expect(dashboard).toContain("Recharger mes credits");
