@@ -181,7 +181,7 @@ export function SponsoredRestaurantTemplateCard({
           "ad-banner-spotlight group relative isolate w-full overflow-hidden rounded-[30px] border border-orange-100 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.12)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_32px_82px_rgba(249,115,22,0.18)] dark:border-slate-800 dark:bg-slate-950",
           compactBanner
             ? "min-h-[268px] sm:min-h-[286px] md:min-h-[300px]"
-            : "min-h-[400px] sm:min-h-[440px] md:min-h-[360px] lg:min-h-[420px]",
+            : "min-h-[260px] sm:min-h-[280px] md:min-h-[260px] lg:min-h-[300px]",
           className,
         )}
       >
@@ -194,7 +194,7 @@ export function SponsoredRestaurantTemplateCard({
         <div
           className={cn(
             "relative z-10 grid items-stretch md:grid-cols-[minmax(0,0.45fr)_minmax(0,0.55fr)] md:grid-rows-1",
-            compactBanner ? "grid-rows-[auto_minmax(116px,1fr)]" : "grid-rows-[auto_minmax(220px,1fr)]",
+            compactBanner ? "grid-rows-[auto_minmax(116px,1fr)]" : "grid-rows-[auto_minmax(132px,1fr)]",
           )}
         >
           <div
@@ -202,7 +202,7 @@ export function SponsoredRestaurantTemplateCard({
               "relative z-20 flex min-w-0 flex-col justify-center",
               compactBanner
                 ? "p-4 pb-2 sm:p-5 sm:pb-3 md:p-4 md:pr-7 lg:p-5 lg:pr-10 xl:p-6 xl:pr-14"
-                : "p-6 pb-4 sm:p-8 sm:pb-5 md:p-5 md:pb-5 md:pr-8 lg:p-8 lg:pr-14 xl:p-10 xl:pr-20 2xl:p-12 2xl:pr-24",
+                : "p-4 pb-3 sm:p-5 sm:pb-3 md:p-4 md:pb-4 md:pr-6 lg:p-6 lg:pr-10 xl:p-7 xl:pr-14 2xl:p-8 2xl:pr-16",
             )}
           >
             <div className="flex flex-wrap items-center gap-2.5">
@@ -223,7 +223,7 @@ export function SponsoredRestaurantTemplateCard({
               ) : null}
             </div>
 
-            <div className={cn("min-w-0 overflow-visible pb-3", compactBanner ? "mt-3 lg:mt-4" : "mt-6 lg:mt-6 xl:mt-8")}>
+            <div className={cn("min-w-0 overflow-visible pb-3", compactBanner ? "mt-3 lg:mt-4" : "mt-4 lg:mt-4 xl:mt-5")}>
               <p
                 className={cn("break-words text-[11px] uppercase leading-relaxed tracking-[0.32em] text-slate-500 [overflow-wrap:anywhere] dark:text-slate-300", getTypographyClass(normalized.text.eyebrow))}
                 style={getTextInlineStyle(normalized.text.eyebrow)}
@@ -235,7 +235,7 @@ export function SponsoredRestaurantTemplateCard({
                   "mt-2 max-w-full break-words pb-3 leading-[1.14] text-slate-950 [overflow-wrap:anywhere] [text-wrap:balance] dark:text-white",
                   compactBanner
                     ? "text-2xl sm:text-3xl md:text-2xl lg:text-[2.15rem] xl:text-[2.4rem]"
-                    : "text-3xl sm:text-4xl md:text-[2rem] lg:text-[2.75rem] xl:text-[3.25rem] 2xl:text-[3.75rem]",
+                    : "text-2xl sm:text-3xl md:text-[1.75rem] lg:text-[2.1rem] xl:text-[2.4rem] 2xl:text-[2.7rem]",
                   getTypographyClass(normalized.text.restaurant),
                 )}
                 style={getTextInlineStyle(normalized.text.restaurant)}
@@ -245,7 +245,7 @@ export function SponsoredRestaurantTemplateCard({
               <p
                 className={cn(
                   "mt-1 break-words leading-tight text-primary [overflow-wrap:anywhere]",
-                  compactBanner ? "text-xl sm:text-2xl lg:text-xl xl:text-2xl" : "text-2xl sm:text-3xl lg:text-2xl xl:text-3xl 2xl:text-4xl",
+                  compactBanner ? "text-xl sm:text-2xl lg:text-xl xl:text-2xl" : "text-lg sm:text-xl lg:text-lg xl:text-xl 2xl:text-2xl",
                   getTypographyClass(normalized.text.tagline),
                 )}
                 style={getTextInlineStyle(normalized.text.tagline)}
@@ -255,7 +255,7 @@ export function SponsoredRestaurantTemplateCard({
               <p
                 className={cn(
                   "flex min-w-0 items-start gap-2 font-medium leading-5 text-slate-500 dark:text-slate-300",
-                  "mt-3 text-sm xl:text-base",
+                  "mt-2 text-sm",
                   getTypographyClass(normalized.text.address),
                 )}
                 style={getTextInlineStyle(normalized.text.address)}
@@ -268,7 +268,7 @@ export function SponsoredRestaurantTemplateCard({
             <div
               className={cn(
                 "flex max-w-full flex-wrap items-center gap-x-3 gap-y-1 self-start rounded-full border-[6px] border-white bg-white/[.92] text-primary shadow-[0_16px_36px_rgba(15,23,42,0.12)] ring-1 ring-orange-100 dark:border-slate-900 dark:bg-slate-900/[.92] dark:ring-orange-300/20",
-                compactBanner ? "mt-2 px-3 py-2" : "mt-3 px-4 py-2.5",
+                compactBanner ? "mt-2 px-3 py-2" : "mt-2.5 px-3.5 py-2",
               )}
               data-sponsored-banner-seal
             >
@@ -281,7 +281,7 @@ export function SponsoredRestaurantTemplateCard({
               <span
                 className={cn(
                   "max-w-full break-words uppercase leading-none [overflow-wrap:anywhere] [text-wrap:balance]",
-                  compactBanner ? "text-base sm:text-lg" : "text-lg sm:text-xl xl:text-2xl",
+                  compactBanner ? "text-base sm:text-lg" : "text-base sm:text-lg xl:text-xl",
                   getTypographyClass(normalized.text.sealMain),
                 )}
                 style={getTextInlineStyle(normalized.text.sealMain)}
@@ -300,7 +300,7 @@ export function SponsoredRestaurantTemplateCard({
             <div
               className={cn(
                 "rounded-[26px] border border-orange-100 bg-white/[.86] shadow-[0_16px_42px_rgba(15,23,42,0.08)] backdrop-blur dark:border-white/10 dark:bg-white/[.08]",
-                compactBanner ? "mt-3 p-3 sm:p-3.5 lg:mt-3 lg:p-3.5" : "mt-5 p-4 sm:p-5 lg:mt-4 lg:p-4 xl:mt-6 xl:p-5",
+                compactBanner ? "mt-3 p-3 sm:p-3.5 lg:mt-3 lg:p-3.5" : "mt-3 p-3 sm:p-3.5 lg:mt-3 lg:p-3.5 xl:mt-4 xl:p-4",
               )}
             >
               <div className={cn("flex items-start", compactBanner ? "gap-3" : "gap-4")}>
@@ -323,13 +323,20 @@ export function SponsoredRestaurantTemplateCard({
               "relative z-20 flex min-w-0 items-end pt-0 md:items-center",
               compactBanner
                 ? "p-4 pt-0 sm:p-5 sm:pt-0 md:h-full md:p-4 md:pl-7 lg:h-full lg:p-5 lg:pl-9 xl:p-6 xl:pl-12"
-                : "p-6 pt-0 sm:p-8 sm:pt-0 md:h-full md:p-5 md:pl-8 lg:h-full lg:p-7 lg:pl-12 xl:p-8 xl:pl-16",
+                : "p-4 pt-0 sm:p-5 sm:pt-0 md:h-full md:p-4 md:pl-6 lg:h-full lg:p-5 lg:pl-9 xl:p-6 xl:pl-12",
             )}
           >
             <div
+              data-sponsored-banner-media
               className={cn(
                 "relative w-full overflow-hidden rounded-[30px] border-[5px] border-white shadow-[0_24px_56px_rgba(15,23,42,0.24)] ring-1 ring-white/[.35] md:h-full md:rounded-[36px] lg:h-full lg:rounded-[42px] dark:border-slate-900",
-                compactBanner ? "min-h-[160px] bg-white sm:min-h-[190px] md:min-h-[260px] dark:bg-slate-900" : "min-h-[260px] bg-white sm:min-h-[300px] md:min-h-[360px] dark:bg-slate-900",
+                // Un visuel carre occupe toute la largeur de sa colonne et
+                // imposait sa hauteur a la banniere entiere : plus la colonne
+                // est large, plus la carte grandit. Le plafond casse ce lien.
+                // Il ne peut pas rogner l'image, qui reste en object-contain.
+                compactBanner
+                  ? "max-h-[220px] min-h-[160px] bg-white sm:max-h-[240px] sm:min-h-[190px] md:max-h-[260px] md:min-h-[260px] dark:bg-slate-900"
+                  : "max-h-[240px] min-h-[140px] bg-white sm:max-h-[260px] sm:min-h-[160px] md:max-h-[300px] md:min-h-[220px] lg:max-h-[340px] dark:bg-slate-900",
               )}
             >
               <img

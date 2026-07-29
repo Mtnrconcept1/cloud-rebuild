@@ -157,7 +157,7 @@ describe("campaign creative studio", () => {
     const templateCard = readSource("src/components/campaigns/SponsoredRestaurantTemplateCard.tsx");
 
     expect(templateCard).toContain("[overflow-wrap:anywhere] [text-wrap:balance]");
-    expect(templateCard).toContain("text-3xl sm:text-4xl md:text-[2rem] lg:text-[2.75rem] xl:text-[3.25rem] 2xl:text-[3.75rem]");
+    expect(templateCard).toContain("text-2xl sm:text-3xl md:text-[1.75rem] lg:text-[2.1rem] xl:text-[2.4rem] 2xl:text-[2.7rem]");
     expect(templateCard).not.toContain("2xl:text-[4.8rem]");
     expect(templateCard).not.toContain("mt-1 line-clamp-2 overflow-visible pb-2 leading-[1.04]");
   });
@@ -238,7 +238,21 @@ describe("campaign creative studio", () => {
       .split('if (variant === "push")')[0];
 
     expect(bannerBranch).toBeTruthy();
-    expect(bannerBranch).not.toContain("max-h-");
+
+    // L'interdiction vise les conteneurs de copie : un plafond de hauteur y
+    // couperait le texte. Le conteneur du visuel est explicitement marque et
+    // exclu — il porte un plafond volontaire, sans lequel un fichier carre
+    // impose sa hauteur a toute la banniere, et il ne peut rien rogner
+    // puisque l'image reste en object-contain.
+    const bannerLines = bannerBranch.split("\n");
+    const mediaStart = bannerLines.findIndex((line) => line.includes("data-sponsored-banner-media"));
+    const mediaEnd = bannerLines.findIndex((line, index) => index > mediaStart && line.trim() === ")}");
+    const bannerCopyBranch = bannerLines
+      .filter((_, index) => mediaStart < 0 || index < mediaStart || index > mediaEnd)
+      .join("\n");
+
+    expect(bannerBranch).toContain("data-sponsored-banner-media");
+    expect(bannerCopyBranch).not.toContain("max-h-");
     expect(bannerBranch).not.toContain("truncate");
     expect(bannerBranch).not.toContain("line-clamp");
     expect(bannerBranch).not.toMatch(/(?:^|[\s"'`])(?:[a-z0-9_-]+:)*h-\[\d+px\](?=$|[\s"'`])/);
