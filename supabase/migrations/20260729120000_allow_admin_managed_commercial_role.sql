@@ -50,8 +50,16 @@ BEGIN
 END
 $function$;
 
--- Active le role pour rbarman@hotmail.ch, en passant par les memes ecritures
--- que la RPC d'administration : le role, puis son profil de remuneration.
+-- Active le role pour rbarman@hotmail.ch, en posant les memes ecritures que la
+-- RPC d'administration : le role, puis son profil de remuneration.
+--
+-- Le trigger est desactive le temps de cette etape. Une migration ne s'execute
+-- ni comme service_role ni comme administrateur authentifie : auth.role() et
+-- auth_is_admin() sont donc faux, et le garde-fou installe juste au-dessus
+-- refusait sa propre etape de donnees. La desactivation est transactionnelle,
+-- porte sur cette seule transaction, et est restauree meme en cas d'echec.
+ALTER TABLE public.user_roles DISABLE TRIGGER guard_commercial_role_assignment;
+
 DO $$
 DECLARE
   v_user_id uuid;
@@ -83,5 +91,7 @@ BEGIN
     updated_at = now();
 END;
 $$;
+
+ALTER TABLE public.user_roles ENABLE TRIGGER guard_commercial_role_assignment;
 
 NOTIFY pgrst, 'reload schema';
