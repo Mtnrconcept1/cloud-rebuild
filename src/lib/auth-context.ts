@@ -7,6 +7,12 @@ export interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  /**
+   * Faux tant que les roles de l'utilisateur connecte n'ont pas ete lus.
+   * Une liste de roles vide ne suffit pas a conclure a un refus d'acces : elle
+   * peut simplement signifier que la lecture n'a pas encore eu lieu.
+   */
+  rolesResolved: boolean;
   /** Currently active role (for navigation & route protection) */
   role: UserRole | null;
   /** All roles assigned to this user */
@@ -26,6 +32,7 @@ export const AuthContext = createContext<AuthContextType>({
   user: null,
   session: null,
   loading: true,
+  rolesResolved: false,
   role: null,
   roles: [],
   isSuperAdmin: false,

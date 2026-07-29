@@ -28,6 +28,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [roles, setRoles] = useState<UserRole[]>([]);
+  // Utilisateur dont les roles sont effectivement lus. Distingue « aucun role »
+  // de « roles pas encore charges » : sans cette distinction, le rendu qui
+  // precede l'effet de chargement expose un utilisateur connecte avec une liste
+  // vide, et les gardes de route y lisent un refus d'acces.
+  const [resolvedRolesUserId, setResolvedRolesUserId] = useState<string | null>(null);
   const [activeRole, setActiveRole] = useState<UserRole | null>(null);
   const [initialSessionReceived, setInitialSessionReceived] = useState(false);
   const lastSessionUserIdRef = useRef<string | null>(null);
@@ -127,6 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!userId) return [];
     const fetchedRoles = await fetchRoles(userId);
     applyRoles(fetchedRoles);
+    setResolvedRolesUserId(userId);
     return getEffectiveRoles(fetchedRoles);
   }, [applyRoles, fetchRoles, userId]);
 
@@ -160,6 +166,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(null);
         setMonitoringUser(null);
         setRoles([]);
+        setResolvedRolesUserId(null);
         setActiveRole(null);
         lastSessionUserIdRef.current = null;
         setInitialSessionReceived(true);
@@ -183,6 +190,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setMonitoringUser(session?.user ?? null);
         if (!session?.user) {
           setRoles([]);
+          setResolvedRolesUserId(null);
           setActiveRole(null);
         }
         lastSessionUserIdRef.current = nextUserId;
@@ -203,6 +211,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (!userId) {
       setRoles([]);
+      setResolvedRolesUserId(null);
       setActiveRole(null);
       setLoading(false);
       return () => {
@@ -215,6 +224,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .then((fetchedRoles) => {
         if (cancelled) return;
         applyRoles(fetchedRoles);
+          setResolvedRolesUserId(userId);
       })
       .finally(() => {
         if (!cancelled) {
@@ -252,6 +262,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSession(null);
     setMonitoringUser(null);
     setRoles([]);
+    setResolvedRolesUserId(null);
     setActiveRole(null);
     lastSessionUserIdRef.current = null;
     localStorage.removeItem(getActiveRoleStorageKey());
@@ -261,7 +272,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const canSwitchRole = canSwitchRoles(roles);
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, role: activeRole, roles, isSuperAdmin, canSwitchRole, switchRole, refreshRoles, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, rolesResolved: !user || resolvedRolesUserId === user.id, role: activeRole, roles, isSuperAdmin, canSwitchRole, switchRole, refreshRoles, signOut }}>
       {children}
     </AuthContext.Provider>
   );

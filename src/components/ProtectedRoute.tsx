@@ -12,10 +12,14 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children, requiredRole, requiredRoles }: ProtectedRouteProps) {
-  const { user, loading, role, roles } = useAuth();
+  const { user, loading, rolesResolved, role, roles } = useAuth();
   const location = useLocation();
 
-  if (loading) {
+  // Attendre aussi la lecture des roles : entre la session connue et l'effet
+  // qui les charge, il existe un rendu ou loading est deja faux et la liste
+  // encore vide. Decider la se soldait par une redirection vers l'accueil
+  // public, visible comme un clignotement en changeant d'espace.
+  if (loading || (user && !rolesResolved)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
