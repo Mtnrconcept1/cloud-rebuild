@@ -6,6 +6,9 @@ const read = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8"
 
 describe("Google Actions Center real-time updates", () => {
   const migration = read("supabase/migrations/20260728120000_google_actions_center_outbox.sql");
+  const leaseMigration = read(
+    "supabase/migrations/20260801100000_google_actions_center_outbox_claim_lease.sql",
+  );
   const cron = read("supabase/migrations/20260728120100_google_actions_center_sync_cron.sql");
   const worker = read("supabase/functions/google-actions-center-sync/index.ts");
   const config = read("supabase/config.toml");
@@ -36,19 +39,36 @@ describe("Google Actions Center real-time updates", () => {
     expect(migration).toContain("DO NOTHING");
   });
 
-  it("claims work safely and backs off on failure", () => {
-    // Overlapping runs must not deliver the same notification twice.
-    expect(migration).toContain("FOR UPDATE SKIP LOCKED");
-    expect(migration).toContain("CREATE OR REPLACE FUNCTION public.claim_google_actions_center_outbox");
-    expect(migration).toContain("CREATE OR REPLACE FUNCTION public.settle_google_actions_center_outbox");
+  it("claims work with a durable lease and a fencing token", () => {
+    // SKIP LOCKED alone ends with the claim RPC transaction. The durable
+    // processing state prevents another worker from reclaiming the row while
+    // the first worker performs the external HTTP request.
+    expect(leaseMigration).toContain("status = 'processing'");
+    expect(leaseMigration).toContain("lease_expires_at <= now()");
+    expect(leaseMigration).toContain("claim_token = gen_random_uuid()");
+    expect(leaseMigration).toContain("lease_expires_at = now() + interval '30 minutes'");
+    expect(leaseMigration).toContain("FOR UPDATE SKIP LOCKED");
+    expect(leaseMigration).toContain("), 50)");
+
+    // Only the worker that still owns the token can settle the row. Both token
+    // fields are cleared before the row becomes sent, pending or abandoned.
+    expect(leaseMigration).toContain("settle_google_actions_center_outbox_claim");
+    expect(leaseMigration).toContain("claim_token = p_claim_token");
+    expect(leaseMigration).toContain("claim_token = NULL");
+    expect(leaseMigration).toContain("lease_expires_at = NULL");
+    expect(leaseMigration).toContain("RETURN false");
+    expect(leaseMigration).toContain("WHEN unique_violation THEN");
+    expect(leaseMigration).toContain("superseded_by_newer_availability");
 
     // A permanently rejected row must stop consuming the batch.
-    expect(migration).toContain("power(3, LEAST(COALESCE(v_attempts, 0), 5))");
-    expect(migration).toContain("'abandoned'");
+    expect(leaseMigration).toContain("power(3, LEAST(COALESCE(v_attempts, 0), 5))");
+    expect(leaseMigration).toContain("'abandoned'");
 
     // Service-role only, both ways.
-    expect(migration).toContain("Service role required.");
-    expect(migration).toContain("REVOKE ALL ON public.google_actions_center_outbox FROM anon, authenticated");
+    expect(leaseMigration).toContain("Service role required.");
+    expect(leaseMigration).toContain(
+      "REVOKE ALL ON FUNCTION public.settle_google_actions_center_outbox_claim",
+    );
   });
 
   it("isolates everything that depends on the unverified Google contract", () => {
@@ -67,20 +87,36 @@ describe("Google Actions Center real-time updates", () => {
     expect(worker).toContain("GOOGLE_ACTIONS_CENTER_SERVICE_ACCOUNT");
   });
 
-  it("recomputes availability at send time and settles every row", () => {
+  it("recomputes availability at send time and verifies every settlement", () => {
     // Several bookings can land between the trigger and delivery, so the queued
     // payload must not be the one sent.
     expect(worker).toContain("get_restaurant_reservation_slot_availability");
     expect(worker).toContain("p_date: row.availability_date");
     expect(worker).toContain("remaining_tables");
 
-    // Success and failure both settle, otherwise a row stays claimed forever.
-    expect(worker).toContain("p_success: true");
-    expect(worker).toContain("p_success: false");
+    expect(worker).toContain("settle_google_actions_center_outbox_claim");
+    expect(worker).toContain("p_claim_token: row.claim_token");
+    expect(worker).toContain("if (error || settled !== true)");
+    expect(worker).toContain("outbox_settle_failed");
+    expect(worker).toContain("hasOutstandingDeliveryFailures");
+    expect(worker).toContain('["pending", "processing", "abandoned"]');
+    expect(worker).toContain('.or("status.eq.processing,last_error.not.is.null")');
+    expect(worker).toContain("batch succeeded with outstanding delivery failures");
+    expect(worker).toContain("MAX_BATCH_SIZE = 50");
 
     // Scheduler-authenticated and service-role gated.
     expect(worker).toContain("allowSchedulerSecret: true");
-    expect(worker).toContain("if (!actor.isServiceRole) throw new HttpError(403");
+    expect(worker).toContain("if (!authenticated.isServiceRole) throw new HttpError(403");
+  });
+
+  it("emits stable incident evidence only after trusted authentication", () => {
+    expect(worker).toContain('log.info("outbox idle", { claimed: 0 })');
+    expect(worker).toContain("const stableFailureCodes = [...failureCodes].sort()");
+    expect(worker).toContain("google_delivery_batch_failed:${stableFailureCodes.join");
+    expect(worker).toContain("failure_codes: stableFailureCodes");
+    expect(worker).toContain("if (actor) {");
+    expect(worker).not.toContain("google_delivery_batch_failed:${failed}/${rows.length}");
+    expect(worker).not.toContain("const adminClient = createAdminClient()");
   });
 
   it("is scheduled, registered and named in the audit log", () => {
