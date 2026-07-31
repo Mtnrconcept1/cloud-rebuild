@@ -92,6 +92,7 @@ const NAV_SECTIONS: NavSection[] = [
     title: "Marketing",
     items: [
       { to: "/dashboard/campagnes", label: "Campagnes", icon: Megaphone, feature: "dashboard-campagnes" },
+      { to: "/dashboard/campaign-studio", label: "Campaign Studio IA", icon: Bot, feature: "dashboard-campaign-studio" },
       { to: "/dashboard/crm", label: "CRM clients", icon: Users, feature: "dashboard-crm" },
       { to: "/dashboard/promotions", label: "Promotions", icon: Megaphone, feature: "dashboard-promotions" },
       { to: "/dashboard/reseaux-sociaux", label: "Reseaux sociaux", icon: Share2, feature: "dashboard-reseaux-sociaux" },
