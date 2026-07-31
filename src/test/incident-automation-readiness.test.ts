@@ -437,7 +437,7 @@ describe("human-approved Telegram and Codex incident automation", () => {
     expect(workflow).toContain("tok_incident_approved");
     expect(workflow).not.toMatch(/^\s{0,2}workflow_dispatch:/m);
     expect(workflow).toMatch(
-      /^env:\n  CODEX_REPAIR_MODEL: gpt-5\.6-sol\n  CODEX_REPAIR_EFFORT: high$/m,
+      /^env:\n {2}CODEX_REPAIR_MODEL: gpt-5\.6-sol\n {2}CODEX_REPAIR_EFFORT: high$/m,
     );
     expect(codexStep).toMatch(/uses: openai\/codex-action@[0-9a-f]{40}(?:\s+#\s+v\d+(?:\.\d+)*)?/);
     expect(codexStep).not.toMatch(/openai\/codex-action@v\d/);
