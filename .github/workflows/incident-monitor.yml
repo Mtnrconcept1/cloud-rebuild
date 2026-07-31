@@ -12,6 +12,7 @@ on:
       - completed
 
 permissions:
+  actions: read
   contents: read
 
 concurrency:
@@ -52,7 +53,23 @@ jobs:
 
   report-workflow-failure:
     name: Report failed GitHub workflow
-    if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'failure' && (github.event.workflow_run.head_branch == 'main' || github.event.workflow_run.name == 'Deploy Production') }}
+    if: >-
+      ${{
+        github.event_name == 'workflow_run' &&
+        github.event.workflow_run.head_repository.full_name == github.repository &&
+        github.event.workflow_run.head_branch == 'main' &&
+        (github.event.workflow_run.conclusion == 'failure' || github.event.workflow_run.conclusion == 'timed_out') &&
+        (
+          (github.event.workflow_run.name == 'CI' && github.event.workflow_run.event == 'push') ||
+          (
+            github.event.workflow_run.name == 'Deploy Production' &&
+            (
+              github.event.workflow_run.event == 'push' ||
+              github.event.workflow_run.event == 'workflow_dispatch'
+            )
+          )
+        )
+      }}
     runs-on: ubuntu-latest
     environment: production
     timeout-minutes: 5
@@ -65,17 +82,272 @@ jobs:
       FAILED_WORKFLOW_BRANCH: ${{ github.event.workflow_run.head_branch }}
       FAILED_WORKFLOW_SHA: ${{ github.event.workflow_run.head_sha }}
       FAILED_WORKFLOW_EVENT: ${{ github.event.workflow_run.event }}
+      FAILED_WORKFLOW_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
 
     steps:
       - name: Configuration notice
         if: ${{ env.INCIDENT_CONTROL_URL == '' || env.INCIDENT_CONTROL_SECRET == '' }}
         run: echo "::notice::GitHub workflow incident reporting is not activated yet."
 
+      - name: Collect bounded failed-job evidence
+        if: ${{ env.INCIDENT_CONTROL_URL != '' && env.INCIDENT_CONTROL_SECRET != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          EVIDENCE_DIR="$RUNNER_TEMP/tok-workflow-evidence"
+          JOBS_FILE="$EVIDENCE_DIR/jobs.json"
+          EVIDENCE_FILE="$RUNNER_TEMP/tok-workflow-evidence.json"
+          mkdir -p "$EVIDENCE_DIR"
+
+          write_fallback() {
+            local reason="$1"
+            jq -n --arg reason "$reason" '{
+              evidence_version: 1,
+              bounded: true,
+              collection: "github_actions_metadata_only",
+              failed_jobs: [],
+              primary_error: $reason,
+              collection_error: $reason
+            }' > "$EVIDENCE_FILE"
+          }
+
+          if ! timeout 30s gh api --method GET \
+            "repos/$GITHUB_REPOSITORY/actions/runs/$FAILED_WORKFLOW_ID/jobs" \
+            -f filter=latest -f per_page=100 > "$JOBS_FILE"; then
+            write_fallback "workflow_jobs_api_unavailable"
+            exit 0
+          fi
+
+          if ! jq -e '.jobs | type == "array"' "$JOBS_FILE" >/dev/null; then
+            write_fallback "workflow_jobs_payload_invalid"
+            exit 0
+          fi
+
+          cat > "$EVIDENCE_DIR/bound-log.cjs" <<'NODE'
+          const halfLimit = 65536;
+          const fullLimit = halfLimit * 2;
+          let totalBytes = 0;
+          let prefix = Buffer.alloc(0);
+          let recent = Buffer.alloc(0);
+
+          process.stdin.on("data", (value) => {
+            const chunk = Buffer.from(value);
+            totalBytes += chunk.length;
+            if (prefix.length < halfLimit) {
+              prefix = Buffer.concat([prefix, chunk.subarray(0, halfLimit - prefix.length)]);
+            }
+            recent = Buffer.concat([recent, chunk]);
+            if (recent.length > fullLimit) recent = recent.subarray(-fullLimit);
+          });
+
+          process.stdin.on("end", () => {
+            if (totalBytes <= fullLimit) {
+              process.stdout.write(recent);
+              return;
+            }
+
+            const prefixText = prefix.toString("utf8");
+            const prefixEnd = prefixText.lastIndexOf("\n");
+            const tailText = recent.subarray(-halfLimit).toString("utf8");
+            const tailStart = tailText.indexOf("\n");
+            process.stdout.write(prefixEnd >= 0 ? prefixText.slice(0, prefixEnd + 1) : "");
+            process.stdout.write("[... middle of job log omitted ...]\n");
+            process.stdout.write(tailStart >= 0 ? tailText.slice(tailStart + 1) : "");
+          });
+          NODE
+
+          jq -r '
+            [.jobs[]
+              | select(.conclusion == "failure" or .conclusion == "timed_out" or .conclusion == "cancelled")
+              | {
+                  id,
+                  priority: (
+                    if .conclusion == "failure" then 0
+                    elif .conclusion == "timed_out" then 1
+                    else 2
+                    end
+                  )
+                }]
+            | sort_by(.priority, .id)
+            | .[0:4][]
+            | .id
+          ' "$JOBS_FILE" | while IFS= read -r job_id; do
+            raw_log="$EVIDENCE_DIR/$job_id.log"
+            if ! timeout 30s gh run view "$FAILED_WORKFLOW_ID" \
+              --repo "$GITHUB_REPOSITORY" \
+              --job "$job_id" \
+              --log 2>/dev/null \
+              | node "$EVIDENCE_DIR/bound-log.cjs" > "$raw_log"; then
+              : > "$raw_log"
+            fi
+          done
+
+          export JOBS_FILE EVIDENCE_DIR EVIDENCE_FILE
+          if ! node <<'NODE'
+          const fs = require("node:fs");
+          const path = require("node:path");
+
+          const jobsPayload = JSON.parse(fs.readFileSync(process.env.JOBS_FILE, "utf8"));
+          const failedConclusions = new Set(["failure", "timed_out", "cancelled"]);
+          const conclusionPriority = new Map([["failure", 0], ["timed_out", 1], ["cancelled", 2]]);
+          const ansi = /\u001b\[[0-?]*[ -/]*[@-~]/g;
+          const strongError = /##\[error\]|\b(?:fatal|panic)\b|uncaught (?:error|exception)|ELIFECYCLE|ERR_[A-Z_]+|error TS\d+|AssertionError|syntax error/i;
+          const actionable = /\berror\b|exception|failed|failure|cannot find|missing required|timed? ?out|permission denied|unauthori[sz]ed|process completed/i;
+
+          function sanitize(value) {
+            return value
+              .replace(ansi, "")
+              .replace(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z\s+/gm, "")
+              .replace(/-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----/gi, "[PRIVATE_KEY_REDACTED]")
+              .replace(/(\bAuthorization\s*:\s*)(?:Basic|Bearer)\s+[^\s,;]+/gi, "$1[REDACTED]")
+              .replace(/Bearer\s+[A-Za-z0-9._~+/-]+=*/gi, "Bearer [REDACTED]")
+              .replace(/\bBasic\s+[A-Za-z0-9+/=]{12,}/gi, "Basic [REDACTED]")
+              .replace(/((?:x-api-key|api-key|x-auth-token|cookie|set-cookie)\s*[:=]\s*)[^\s,;]+/gi, "$1[REDACTED]")
+              .replace(/(\b(?:password|passwd|secret|token|api[_-]?key|access[_-]?key|client[_-]?secret|database[_-]?url|connection[_-]?string|private[_-]?key)\s*[:=]\s*)(?:"[^"]*"|'[^']*'|[^\s,;]+)/gi, "$1[REDACTED]")
+              .replace(/([a-z][a-z0-9+.-]*:\/\/)[^/\s:@]+:[^/\s@]+@/gi, "$1[REDACTED]@")
+              .replace(/\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/g, "[JWT_REDACTED]")
+              .replace(/\b(?:gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,})\b/g, "[GITHUB_TOKEN_REDACTED]")
+              .replace(/\b(?:AKIA|ASIA)[A-Z0-9]{16}\b/g, "[AWS_ACCESS_KEY_REDACTED]")
+              .replace(/\b(?:sk|rk|pk|whsec|sb_secret|xox[baprs])[_-](?:live[_-]|test[_-])?[A-Za-z0-9_-]{12,}\b/gi, "[SECRET_REDACTED]")
+              .replace(/([?&](?:token|key|signature|secret|password)=)[^&\s]+/gi, "$1[REDACTED]")
+              .replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi, "[EMAIL_REDACTED]")
+              .replace(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g, "[IP_REDACTED]")
+              .replace(/(^|[^\w])(?:\+|00)?\d(?:[ .()/-]*\d){7,14}(?=$|[^\w])/g, "$1[PHONE_REDACTED]");
+          }
+
+          function boundedLine(line) {
+            const normalized = line.trimEnd();
+            if (Buffer.byteLength(normalized, "utf8") <= 700) return normalized;
+            return `${normalized.slice(0, 640)} [... overlong line truncated ...]`;
+          }
+
+          function joinWholeLinesWithinBudget(lines, maxBytes) {
+            const selected = [];
+            let used = 0;
+            for (const line of lines) {
+              const bounded = boundedLine(line);
+              if (!bounded) continue;
+              const bytes = Buffer.byteLength(bounded, "utf8") + (selected.length ? 1 : 0);
+              if (used + bytes > maxBytes) continue;
+              selected.push(bounded);
+              used += bytes;
+            }
+            return selected.join("\n") || null;
+          }
+
+          function excerptFor(jobId) {
+            const logPath = path.join(process.env.EVIDENCE_DIR, String(jobId) + ".log");
+            if (!fs.existsSync(logPath)) return null;
+            const lines = sanitize(fs.readFileSync(logPath, "utf8"))
+              .split(/\r?\n/);
+
+            const matches = [];
+            lines.forEach((line, index) => {
+              if (!actionable.test(line)) return;
+              matches.push({ index, priority: strongError.test(line) ? 0 : 1 });
+            });
+
+            function headAndTail(items, limit) {
+              if (items.length <= limit) return items;
+              const headCount = Math.ceil(limit / 2);
+              return [...items.slice(0, headCount), ...items.slice(-(limit - headCount))];
+            }
+
+            const strongMatches = matches.filter(({ priority }) => priority === 0);
+            const weakMatches = matches.filter(({ priority }) => priority !== 0);
+            const prioritized = headAndTail(strongMatches, 12);
+            prioritized.push(...headAndTail(weakMatches, Math.max(0, 12 - prioritized.length)));
+
+            const selected = new Set();
+            prioritized.forEach(({ index }) => {
+                for (let cursor = Math.max(0, index - 2); cursor <= Math.min(lines.length - 1, index + 2); cursor += 1) {
+                  selected.add(cursor);
+                }
+              });
+
+            const orderedLines = [...selected]
+              .sort((left, right) => left - right)
+              .map((index) => lines[index]);
+            return joinWholeLinesWithinBudget(orderedLines, 1200);
+          }
+
+          const failedJobs = (Array.isArray(jobsPayload.jobs) ? jobsPayload.jobs : [])
+            .filter((job) => failedConclusions.has(String(job.conclusion)))
+            .sort((left, right) =>
+              (conclusionPriority.get(String(left.conclusion)) ?? 3) -
+                (conclusionPriority.get(String(right.conclusion)) ?? 3) ||
+              Number(left.id) - Number(right.id))
+            .slice(0, 4)
+            .map((job) => ({
+              id: Number(job.id),
+              name: sanitize(String(job.name || "")).slice(0, 180),
+              conclusion: String(job.conclusion || "").slice(0, 40),
+              url: typeof job.html_url === "string" ? job.html_url.slice(0, 400) : null,
+              failed_steps: (Array.isArray(job.steps) ? job.steps : [])
+                .filter((step) => failedConclusions.has(String(step.conclusion)))
+                .sort((left, right) =>
+                  (conclusionPriority.get(String(left.conclusion)) ?? 3) -
+                    (conclusionPriority.get(String(right.conclusion)) ?? 3) ||
+                  Number(left.number) - Number(right.number))
+                .slice(0, 6)
+                .map((step) => ({
+                  number: Number(step.number),
+                  name: sanitize(String(step.name || "")).slice(0, 180),
+                  conclusion: String(step.conclusion || "").slice(0, 40),
+                })),
+              log_excerpt: excerptFor(job.id),
+            }));
+
+          const firstExcerpt = failedJobs.find((job) => job.log_excerpt)?.log_excerpt || "";
+          const excerptLines = firstExcerpt.split(/\r?\n/);
+          const firstError = excerptLines.find((line) => strongError.test(line)) ||
+            excerptLines.find((line) => actionable.test(line));
+
+          const evidence = {
+            evidence_version: 1,
+            bounded: true,
+            collection: "github_actions_jobs_and_logs",
+            failed_jobs: failedJobs,
+            primary_error: (firstError || failedJobs[0]?.name || "workflow_failure").slice(0, 400),
+            collection_error: null,
+          };
+
+          const maxEvidenceBytes = 24576;
+          while (Buffer.byteLength(JSON.stringify(evidence), "utf8") > maxEvidenceBytes) {
+            const jobWithExcerpt = [...evidence.failed_jobs].reverse().find((job) => job.log_excerpt);
+            if (jobWithExcerpt) {
+              jobWithExcerpt.log_excerpt = null;
+              continue;
+            }
+            const jobWithSteps = [...evidence.failed_jobs].reverse().find((job) => job.failed_steps.length);
+            if (jobWithSteps) {
+              jobWithSteps.failed_steps.pop();
+              continue;
+            }
+            if (evidence.failed_jobs.length > 1) {
+              evidence.failed_jobs.pop();
+              continue;
+            }
+            throw new Error("Unable to fit bounded workflow evidence payload");
+          }
+
+          fs.writeFileSync(process.env.EVIDENCE_FILE, JSON.stringify(evidence));
+          NODE
+          then
+            write_fallback "workflow_evidence_processing_failed"
+          fi
+
+          rm -f "$EVIDENCE_DIR"/*.log
+
       - name: Send sanitized workflow incident
         if: ${{ env.INCIDENT_CONTROL_URL != '' && env.INCIDENT_CONTROL_SECRET != '' }}
         shell: bash
         run: |
           set -euo pipefail
+          EVIDENCE_FILE="$RUNNER_TEMP/tok-workflow-evidence.json"
+          test "$(stat -c '%s' "$EVIDENCE_FILE")" -le 32768
 
           jq -n \
             --arg workflow "$FAILED_WORKFLOW_NAME" \
@@ -84,6 +356,8 @@ jobs:
             --arg branch "$FAILED_WORKFLOW_BRANCH" \
             --arg sha "$FAILED_WORKFLOW_SHA" \
             --arg event "$FAILED_WORKFLOW_EVENT" \
+            --arg conclusion "$FAILED_WORKFLOW_CONCLUSION" \
+            --slurpfile evidence "$EVIDENCE_FILE" \
             '{
               action: "ingest",
               source: "github_actions",
@@ -91,7 +365,9 @@ jobs:
               severity: (if $workflow == "Deploy Production" then "high" else "medium" end),
               title: ("GitHub Actions — " + $workflow + " en échec"),
               summary: ("Le workflow " + $workflow + " a échoué sur la branche " + ($branch // "inconnue") + "."),
-              errorType: "workflow_failure",
+              errorType: ("workflow_" + $conclusion),
+              errorMessage: ($evidence[0].primary_error // "workflow_failure"),
+              fingerprint: ("github_actions:" + $workflow + ":" + $sha),
               context: {
                 workflow: $workflow,
                 run_id: $run_id,
@@ -99,16 +375,23 @@ jobs:
                 branch: $branch,
                 head_sha: $sha,
                 trigger_event: $event,
-                conclusion: "failure"
+                conclusion: $conclusion,
+                evidence_version: $evidence[0].evidence_version,
+                evidence_bounded: $evidence[0].bounded,
+                evidence_collection: $evidence[0].collection,
+                failed_jobs: $evidence[0].failed_jobs,
+                evidence_collection_error: $evidence[0].collection_error
               }
-            }' > "${RUNNER_TEMP}/tok-workflow-incident.json"
+            }' > "$RUNNER_TEMP/tok-workflow-incident.json"
+
+          test "$(stat -c '%s' "$RUNNER_TEMP/tok-workflow-incident.json")" -le 65536
 
           curl --fail-with-body --silent --show-error \
             --retry 2 --retry-all-errors --max-time 45 \
             -X POST "$INCIDENT_CONTROL_URL" \
             -H "Content-Type: application/json" \
             -H "x-ops-control-secret: $INCIDENT_CONTROL_SECRET" \
-            --data-binary "@${RUNNER_TEMP}/tok-workflow-incident.json" \
-            > "${RUNNER_TEMP}/tok-workflow-incident-response.json"
+            --data-binary "@$RUNNER_TEMP/tok-workflow-incident.json" \
+            > "$RUNNER_TEMP/tok-workflow-incident-response.json"
 
-          jq -e '.ok == true' "${RUNNER_TEMP}/tok-workflow-incident-response.json" >/dev/null
+          jq -e '.ok == true' "$RUNNER_TEMP/tok-workflow-incident-response.json" >/dev/null
