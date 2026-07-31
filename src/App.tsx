@@ -128,7 +128,6 @@ const DashboardService = lazy(() => import("./pages/dashboard/DashboardService")
 const DashboardPlanSalle = lazy(() => import("./pages/dashboard/DashboardPlanSalle"));
 const DashboardPlanSalleV2 = lazy(() => import("./pages/dashboard/DashboardPlanSalleV2"));
 const DashboardAdvisor = lazy(() => import("./pages/dashboard/DashboardAdvisor"));
-const DashboardPack = lazy(() => import("./pages/dashboard/DashboardPack"));
 const DashboardTokConnect = lazy(() => import("./pages/dashboard/DashboardTokConnect"));
 
 const CourierHome = lazy(() => import("./pages/courier/CourierHome"));
@@ -458,7 +457,6 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
   const dashboardSupportEnabled = hasFeature("dashboard-support");
   const dashboardServiceEnabled = hasFeature("dashboard-service");
   const dashboardPlanSalleEnabled = hasFeature("dashboard-plan-salle");
-  const dashboardPackEnabled = hasFeature("dashboard-pack");
   const dashboardTokConnectEnabled = hasFeature("dashboard-tok-connect");
   const commercialProspectionEnabled = hasFeature("commercial-prospection");
   const courierHomeEnabled = hasFeature("courier-home");
@@ -584,7 +582,6 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           <Route path="/dashboard/service" element={<DashboardRoute><FeatureSwitch enabled={dashboardServiceEnabled} fallback="/dashboard"><DashboardService /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/plan-salle" element={<DashboardRoute><FeatureSwitch enabled={dashboardPlanSalleEnabled} fallback="/dashboard"><DashboardPlanSalle /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/plan-salle-v2" element={<DashboardRoute><FeatureSwitch enabled={dashboardPlanSalleEnabled} fallback="/dashboard">{commercialDemoFrame?.surface === "restaurant" ? <DashboardPlanSalle /> : <DashboardPlanSalleV2 />}</FeatureSwitch></DashboardRoute>} />
-          <Route path="/dashboard/pack" element={<DashboardRoute><FeatureSwitch enabled={dashboardPackEnabled} fallback="/dashboard"><CommercialDemoSafeEffectsBoundary tool="pack"><DashboardPack /></CommercialDemoSafeEffectsBoundary></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/tok-connect" element={<DashboardRoute><FeatureSwitch enabled={dashboardTokConnectEnabled} fallback="/dashboard"><CommercialDemoSafeEffectsBoundary tool="tok-connect"><DashboardTokConnect /></CommercialDemoSafeEffectsBoundary></FeatureSwitch></DashboardRoute>} />
           <Route path="/courier" element={<ProtectedRoute requiredRole="courier"><FeatureSwitch enabled={courierHomeEnabled}><CourierHome /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/courier/jobs" element={<ProtectedRoute requiredRole="courier"><FeatureSwitch enabled={courierJobsEnabled} fallback="/courier"><CourierJobs /></FeatureSwitch></ProtectedRoute>} />

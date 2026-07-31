@@ -45,12 +45,10 @@ const CRITICAL_FLAGS = new Set([
   "reservation",
   "payment-card",
   "dashboard-restaurateur",
-  "dashboard-pack",
   "espace-livreur",
 ]);
 
 const GLOBAL_OVERRIDE_FLAGS = new Set([
-  "dashboard-pack",
   "payment-card",
   "payment-twint",
   "payment-postfinance-card",

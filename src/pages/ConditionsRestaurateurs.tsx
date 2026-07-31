@@ -6,9 +6,9 @@ import { LEGAL_DOCUMENTS, LEGAL_EFFECTIVE_DATE_FR } from "@/lib/legalDocuments";
 const updatedAt = LEGAL_EFFECTIVE_DATE_FR;
 
 const quickPoints = [
-  "Fair Growth : Starter CHF 69, Business CHF 129, Premium CHF 199 et Elite CHF 499 par mois ; annuel au prix de 11 mois pour 12.",
-  "Seules les réservations acquises par TOK et réellement honorées sont facturées ; les canaux propres, annulations, no-shows, remboursements et démonstrations valent CHF 0.",
-  "Le frais de réservation est plafonné à 7 % du chiffre d'affaires attribué à la table.",
+  "Abonnements : Starter CHF 69, Business CHF 129, Premium CHF 199 et Elite CHF 499 par mois ; annuel au prix de 11 mois pour 12.",
+  "Toute réservation réellement honorée est facturée CHF 5, quelle qu'en soit l'origine ; annulations, no-shows, remboursements et démonstrations valent CHF 0.",
+  "Le frais de réservation est forfaitaire : il ne dépend ni du chiffre d'affaires de la table, ni du plan souscrit.",
   "Le restaurant conserve au minimum 90 % de la base commissionnable des commandes et 100 % des pourboires.",
   "Elite couvre trois établissements ; chaque site additionnel coûte CHF 149 par mois.",
   "Les tarifs et la source d'acquisition sont enregistrés côté serveur au moment de la transaction.",
@@ -77,10 +77,10 @@ const sections = [
     ],
   },
   {
-    title: "7. Commissions et tarification Fair Growth",
+    title: "7. Commissions et tarification",
     body: [
       "Les abonnements mensuels sont : Starter CHF 69, Business CHF 129, Premium CHF 199 et Elite CHF 499. Une période annuelle fournit douze mois de service et est facturée onze mensualités, soit respectivement CHF 759, CHF 1'419, CHF 2'189 et CHF 5'489.",
-      "Le prix d'une réservation acquise par TOK et honorée est de CHF 5 en Starter, CHF 4.50 en Business, CHF 4 en Premium et CHF 3 en Elite. Le montant facturé est toujours limité au plus petit de ce prix et de 7 % du chiffre d'affaires attribué à la table.",
+      "Le prix d'une réservation honorée est de CHF 5, identique pour tous les plans. Ce montant est forfaitaire : il n'est ni plafonné, ni indexé sur le chiffre d'affaires attribué à la table.",
       "Les commissions de commande marketplace sont de 9,9 % en Starter, 8,9 % en Business, 7,9 % en Premium et 6,9 % en Elite, sur la base commissionnable. Le restaurant conserve donc respectivement 90,1 %, 91,1 %, 92,1 % ou 93,1 %, avant les éléments exclus qui lui reviennent intégralement.",
       "Elite inclut trois établissements. Chaque établissement additionnel est facturé CHF 149 par mois. Les autres plans couvrent un établissement sauf accord écrit.",
       "Les prix sont enregistrés sous une version tarifaire immuable lors de la souscription ou de la transaction. Une évolution future ne modifie pas rétroactivement les opérations déjà acquises.",
@@ -99,7 +99,7 @@ const sections = [
   {
     title: "9. Attribution et absence de contournement",
     body: [
-      "Le restaurant peut librement utiliser ses canaux propres gratuits. Aucune clause de non-contournement ne peut rendre payante une réservation dont l'origine vérifiable est un canal propre.",
+      "Le restaurant reste libre d'utiliser ses canaux propres. La source d'acquisition continue d'être attribuée et scellée côté serveur à des fins de statistiques, sans influencer le montant facturé.",
       "Il est en revanche interdit de modifier, masquer ou falsifier la source d'une réservation déjà initiée et attribuée à TOK, de demander au client de la recréer sur un autre canal, ou de déclarer un faux no-show afin d'éviter un frais légitime.",
       "TOK conserve une piste d'audit de la source, des jetons de canal, du statut, du chiffre d'affaires attribué, du plafond et de la version tarifaire. Toute correction exceptionnelle exige un traitement administratif tracé.",
     ],

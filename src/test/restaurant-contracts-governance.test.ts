@@ -39,7 +39,7 @@ describe("restaurant partner contracts governance", () => {
   it("keeps a complete signed contract version in the frontend copy", () => {
     expect(contractCopy).toContain("RESTAURANT_PARTNER_CONTRACT_VERSION");
     expect(contractCopy).toContain(
-      "Annexe tarifaire Fair Growth, commissions et facturation",
+      "Annexe tarifaire, commissions et facturation",
     );
     expect(contractCopy).toContain(
       "Paiements, annulations, no-show, remboursements et litiges clients",

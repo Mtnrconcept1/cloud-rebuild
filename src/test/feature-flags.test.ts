@@ -79,20 +79,10 @@ describe("feature flag catalog", () => {
     expect(fallbackFlags.filter((flag) => flag.critical).every((flag) => !flag.effectiveEnabled)).toBe(true);
   });
 
-  it("maps and resolves the Mon pack global dependency", () => {
-    expect(getExactFeatureForRoute("/dashboard/pack")).toBe("dashboard-pack");
-
-    const enabledFlags = resolveFlags(buildRows({
-      "dashboard-restaurateur": true,
-      "dashboard-pack": true,
-    }));
-    const disabledFlags = resolveFlags(buildRows({
-      "dashboard-restaurateur": true,
-      "dashboard-pack": false,
-    }));
-
-    expect(enabledFlags.find((flag) => flag.name === "dashboard-pack")?.effectiveEnabled).toBe(true);
-    expect(disabledFlags.find((flag) => flag.name === "dashboard-pack")?.effectiveEnabled).toBe(false);
+  it("ne connait plus la route Mon pack", () => {
+    // Le forfait de 5.- est desormais le seul modele : il n'y a plus de
+    // second modele a designer, donc plus de drapeau ni de route.
+    expect(getExactFeatureForRoute("/dashboard/pack")).toBeNull();
   });
 
   it("keeps the admin operations center enabled by default but controllable", () => {

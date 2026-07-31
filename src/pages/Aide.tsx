@@ -729,8 +729,8 @@ const FAQS: FaqSection[] = [
     category: "restaurants",
     questions: [
       {
-        q: "Quels sont les tarifs Fair Growth ?",
-        a: "Starter coûte CHF 69/mois, CHF 5 par réservation apportée par TOK et honorée, et 9,9% par commande marketplace. Business coûte CHF 129, CHF 4.50 et 8,9%. Premium coûte CHF 199, CHF 4 et 7,9%. Elite coûte CHF 499, CHF 3 et 6,9%. Elite inclut trois établissements, puis CHF 149/mois par site supplémentaire. Le rattachement des sites et tout supplément sont validés avec TOK avant facturation. L'annuel fournit 12 mois de service au prix de 11.",
+        q: "Quels sont les tarifs TOK ?",
+        a: "Toute réservation honorée est facturée CHF 5, quel que soit le plan et quelle qu'en soit l'origine. Les abonnements couvrent l'accès et la commission marketplace : Starter CHF 69/mois et 9,9% par commande, Business CHF 129 et 8,9%, Premium CHF 199 et 7,9%, Elite CHF 499 et 6,9%. Elite inclut trois établissements, puis CHF 149/mois par site supplémentaire. Le rattachement des sites et tout supplément sont validés avec TOK avant facturation. L'annuel fournit 12 mois de service au prix de 11.",
       },
       {
         q: "Comment fonctionne le Plat du jour IA ?",
@@ -738,27 +738,19 @@ const FAQS: FaqSection[] = [
       },
       {
         q: "Qu'est-ce qu'une réservation apportée par TOK ?",
-        a: "C'est une réservation dont la première source vérifiable est la marketplace TOK. La source est enregistrée côté serveur à la création et ne peut pas être changée depuis le navigateur. Une réservation issue du site du restaurant, d'un QR code TOK attribué au restaurant, d'Instagram, de Google ou du fichier client est un canal propre et reste gratuite.",
+        a: "C'est une réservation dont la première source vérifiable est la marketplace TOK. La source est enregistrée côté serveur à la création et ne peut pas être changée depuis le navigateur. Elle sert aux statistiques d'acquisition : depuis le passage au forfait, elle n'influence plus le montant facturé.",
       },
       {
         q: "Une annulation ou un no-show est-il facturé ?",
-        a: "Non. Les frais de réservation ne sont créés qu'après confirmation par le restaurant que la table a été réellement honorée et après saisie du chiffre d'affaires attribué. Annulations, no-shows, remboursements et démonstrations valent CHF 0.",
-      },
-      {
-        q: "Comment fonctionne le plafond de 7% ?",
-        a: "Le frais applicable est le plus petit montant entre le tarif du plan et 7% du chiffre d'affaires réellement attribué à la table. Exemple : avec un tarif de CHF 5 et une table à CHF 50, le maximum facturé est CHF 3.50.",
+        a: "Non. Le frais est créé au moment où la table passe en « Arrivée ». Annulations, no-shows, remboursements et démonstrations valent CHF 0. Une table encore en attente une heure après son horaire bascule automatiquement en « Arrivée » ; le restaurateur peut alors l'annuler et le justifier auprès de TOK.",
       },
       {
         q: "Quelle part d'une commande revient au restaurant ?",
-        a: "Le restaurant conserve au minimum 90% du montant éligible de la commande et 100% des pourboires. Les taux Fair Growth de 9,9%, 8,9%, 7,9% et 6,9% laissent respectivement 90,1%, 91,1%, 92,1% et 93,1% au restaurant sur la base commissionnable. Les frais Stripe et Connect de la marketplace sont absorbés par la part TOK.",
+        a: "Le restaurant conserve au minimum 90% du montant éligible de la commande et 100% des pourboires. Les taux de commission de 9,9%, 8,9%, 7,9% et 6,9% laissent respectivement 90,1%, 91,1%, 92,1% et 93,1% au restaurant sur la base commissionnable. Les frais Stripe et Connect de la marketplace sont absorbés par la part TOK.",
       },
       {
         q: "Comment fonctionne l'abonnement annuel ?",
         a: "L'abonnement annuel est payé une fois pour 12 mois de service, au prix de 11 mensualités : CHF 759 Starter, CHF 1'419 Business, CHF 2'189 Premium et CHF 5'489 Elite. Les crédits et quotas inclus restent renouvelés chaque mois.",
-      },
-      {
-        q: "Quels modules payants sont proposés ?",
-        a: "Sur demande : No-Show Shield CHF 39/mois ; Marketing Autopilot IA CHF 79/mois ; Margin & Waste Pilot CHF 59/mois ; Réputation IA CHF 29/mois. En pilote, après validation technique : Réceptionniste téléphonique IA CHF 49/mois plus CHF 1.50 par réservation réussie ; Direct Order Saver CHF 149/mois plus 1,5% ; cartes-cadeaux et expériences 3% plus coût de paiement. Les fonctions pilote ne sont pas présentées comme activées tant que TOK n'a pas confirmé leur mise en service.",
       },
       {
         q: "Que comprend l'accompagnement Google Business ?",
@@ -767,18 +759,6 @@ const FAQS: FaqSection[] = [
       {
         q: "TOK garantit-il mon classement ou la réactivation de ma fiche Google ?",
         a: "Non. Google décide de l'éligibilité, de l'affichage, du classement, des contrôles et des suspensions. TOK peut suivre les clics et conversions mesurables via un lien TOK, accompagner un diagnostic ou un recours, mais ne garantit ni visibilité, ni résultat commercial, ni délai de validation ou de rétablissement. Les délais TOK sont suspendus si Google bloque la fiche ou si les accès et validations du restaurant manquent.",
-      },
-      {
-        q: "Une demande de module déclenche-t-elle un paiement ?",
-        a: "Non. Le dashboard enregistre uniquement une demande. TOK vérifie ensuite le périmètre, les prérequis techniques, le prix et la date de début avec le restaurant. L'activation et la facturation commencent seulement après cette confirmation ; aucune intégration téléphonique, commande directe ou carte-cadeau n'est créée automatiquement.",
-      },
-      {
-        q: "Comment fonctionne la garantie de valeur 3× ?",
-        a: "TOK mesure la valeur attribuable du module pendant une fenêtre de 90 jours. Si elle n'atteint pas trois fois son coût, TOK recommande sa désactivation ou accorde un crédit après validation des données et selon les conditions du module.",
-      },
-      {
-        q: "Quand Direct Order Saver devient-il rentable ?",
-        a: "Face au taux Starter, le point d'équilibre mathématique est d'environ CHF 1'774 de commandes directes par mois, hors paiement. En incluant un panier moyen proche de CHF 40 et les coûts d'une carte suisse supportés par le flux direct, l'estimation prudente est d'environ CHF 3'100 à CHF 3'200. Le simulateur doit toujours afficher ses hypothèses.",
       },
       {
         q: "Pourquoi TWINT n'est-il pas proposé pour Match Group ?",
@@ -809,12 +789,8 @@ const FAQS: FaqSection[] = [
         a: "TOK commence par auditer la fiche, les droits de gestion et le lien de réservation. Après accord du restaurant, un lien attribué peut être ajouté à Google Business afin de mesurer clics, réservations confirmées et chiffre d'affaires attribuable. TOK ne revendique pas la propriété de la fiche et ne garantit ni classement Google ni volume de réservations.",
       },
       {
-        q: "Comment la valeur d'un module de croissance est-elle mesurée ?",
-        a: "Chaque module utilise des indicateurs attribuables annoncés avant activation : réservations honorées, no-shows évités, commandes directes, marge ou gaspillage estimés, clics, conversions et revenu associé. Le dashboard compare la valeur mesurée au coût sur une fenêtre définie, généralement 90 jours. Ces estimations ne garantissent pas un résultat commercial.",
-      },
-      {
-        q: "Comment mettre en pause ou résilier Fair Growth et ses modules ?",
-        a: "Adressez la demande depuis Mon compte/Facturation ou au support. Une pause suspend l'usage et la facturation future selon la date confirmée ; elle n'efface pas les montants déjà dus. Une résiliation mensuelle prend effet à la fin de la période en cours. Un engagement annuel reste dû jusqu'à son échéance sauf accord écrit ou droit impératif. Les modules sur demande sont arrêtés séparément après confirmation TOK.",
+        q: "Comment mettre en pause ou résilier mon abonnement ?",
+        a: "Adressez la demande depuis Mon compte/Facturation ou au support. Une pause suspend l'usage et la facturation future selon la date confirmée ; elle n'efface pas les montants déjà dus. Une résiliation mensuelle prend effet à la fin de la période en cours. Un engagement annuel reste dû jusqu'à son échéance sauf accord écrit ou droit impératif.",
       },
       {
         q: "Que contient le dashboard restaurateur ?",
@@ -854,7 +830,7 @@ const FAQS: FaqSection[] = [
       },
       {
         q: "Pourquoi un module du dashboard est-il absent ?",
-        a: "Il peut être désactivé par feature flag, non inclus dans votre pack, réservé à certains rôles, non configuré pour votre restaurant ou temporairement indisponible. Quand un module est désactivé par l'admin, il doit être inexistant dans l'interface.",
+        a: "Il peut être désactivé par feature flag, non inclus dans votre abonnement, réservé à certains rôles, non configuré pour votre restaurant ou temporairement indisponible. Quand un module est désactivé par l'admin, il doit être inexistant dans l'interface.",
       },
       {
         q: "Comment demander de l'aide opérationnelle ?",
@@ -920,7 +896,7 @@ const FAQS: FaqSection[] = [
 export default function Aide() {
   useSeoMeta({
     title: "Centre d'aide TOK — clients et restaurateurs",
-    description: "Réponses sur les commandes, paiements, inscriptions restaurateurs, Fair Growth, Google Business et fonctionnalités TOK.",
+    description: "Réponses sur les commandes, paiements, inscriptions restaurateurs, abonnements, Google Business et fonctionnalités TOK.",
     path: "/aide",
     jsonLd: {
       "@context": "https://schema.org",

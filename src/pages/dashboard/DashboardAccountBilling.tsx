@@ -57,6 +57,7 @@ import {
 import {
   FAIR_GROWTH_ANNUAL_MONTHS_CHARGED,
   getFairGrowthPlan,
+  RESERVATION_FLAT_FEE_CHF,
 } from "@/lib/fairGrowth";
 import { invokeSupabaseFunction } from "@/lib/session";
 import {
@@ -556,7 +557,7 @@ function PlanCard({
       </CardHeader>
       <CardContent className="flex flex-1 flex-col gap-4">
         <div className="grid gap-1.5 rounded-xl border border-primary/20 bg-primary/5 p-3 text-sm">
-          <span><strong>{formatChf(fairGrowthPlan.acquiredReservationFeeChf)}</strong> / réservation TOK honorée</span>
+          <span><strong>{formatChf(RESERVATION_FLAT_FEE_CHF)}</strong> / réservation honorée</span>
           <span><strong>{(fairGrowthPlan.marketplaceCommissionBps / 100).toLocaleString("fr-CH")}%</strong> / commande marketplace</span>
           <span>Canaux propres, annulation, no-show et remboursement : <strong>CHF 0</strong></span>
           <span>Plafond réservation : <strong>7% du CA table</strong></span>

@@ -8,6 +8,7 @@ import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 import {
   FAIR_GROWTH_ANNUAL_MONTHS_CHARGED,
   getFairGrowthPlan,
+  RESERVATION_FLAT_FEE_CHF,
 } from "@/lib/fairGrowth";
 import { normalizeInternalNavigationTarget } from "@/lib/navigation";
 import { openSafeHtmlPrintDocument } from "@/lib/safePrintWindow";
@@ -1898,7 +1899,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
                                 {formatChf(amount)} {selectedSubscriptionBillingPeriod === "yearly" ? "/ an" : "/ mois"}
                               </span>
                               <span className="mt-2 grid gap-1 rounded-lg bg-primary/5 p-2 text-xs text-muted-foreground">
-                                <span><strong>{formatChf(fairGrowthPlan.acquiredReservationFeeChf)}</strong> / réservation TOK honorée</span>
+                                <span><strong>{formatChf(RESERVATION_FLAT_FEE_CHF)}</strong> / réservation honorée</span>
                                 <span><strong>{(fairGrowthPlan.marketplaceCommissionBps / 100).toLocaleString("fr-CH")}%</strong> / commande marketplace</span>
                                 <span>Canaux propres, annulation, no-show et remboursement : <strong>CHF 0</strong></span>
                                 <span>Plafond réservation : <strong>7% du CA table</strong></span>

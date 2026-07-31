@@ -4,21 +4,17 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { FEATURE_DEFINITIONS } from "@/lib/featureCatalog";
-import { FAIR_GROWTH_MODULES } from "@/lib/fairGrowth";
 import { LEGAL_ACCEPTANCE_VERSION, LEGAL_DOCUMENTS } from "@/lib/legalDocuments";
 import { PUBLIC_FEATURE_MATRIX } from "@/lib/publicFeatureMatrix";
 
 const read = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
 
 describe("public feature, help and legal coverage", () => {
-  it("maps every public feature route and every paid Fair Growth module", () => {
+  it("maps every public feature route", () => {
     const publicRoutes = FEATURE_DEFINITIONS.flatMap((feature) => feature.routeTargets || [])
       .filter((route) => !route.startsWith("/dashboard"));
     const mappedRoutes = PUBLIC_FEATURE_MATRIX.flatMap((row) => row.routes);
     for (const route of publicRoutes) expect(mappedRoutes).toContain(route);
-    for (const module of FAIR_GROWTH_MODULES) {
-      expect(PUBLIC_FEATURE_MATRIX.some((row) => row.feature === module.name)).toBe(true);
-    }
     expect(PUBLIC_FEATURE_MATRIX.every((row) => row.helpSection && row.legalDocument)).toBe(true);
   });
 
@@ -30,12 +26,12 @@ describe("public feature, help and legal coverage", () => {
     expect(help).not.toContain("feature-matrix-title");
   });
 
-  it("documents the complete restaurant onboarding and Fair Growth lifecycle", () => {
+  it("documents the complete restaurant onboarding and subscription lifecycle", () => {
     const help = read("src/pages/Aide.tsx");
     for (const text of [
       "confirmation email", "sans débit immédiat", "ne vaut pas approbation", "onglets identité et établissement",
-      "Google Business", "valeur d'un module de croissance", "fenêtre définie, généralement 90 jours",
-      "mettre en pause ou résilier Fair Growth", "fin de la période en cours",
+      "Google Business",
+      "mettre en pause ou résilier mon abonnement", "fin de la période en cours",
     ]) expect(help).toContain(text);
   });
 

@@ -663,15 +663,6 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     routeTargets: ["/dashboard/plan-salle", "/dashboard/plan-salle-v2"],
   },
   {
-    name: "dashboard-pack",
-    label: "Mon pack — coupure globale",
-    description: "Masque Mon pack et bloque les nouvelles activations ou reprises de modules Fair Growth.",
-    defaultEnabled: true,
-    group: "restaurant_dashboard",
-    dependsOn: ["dashboard-restaurateur"],
-    routeTargets: ["/dashboard/pack"],
-  },
-  {
     name: "dashboard-support",
     label: "Dashboard: Support",
     description: "Expose l'aide et le support restaurateur.",

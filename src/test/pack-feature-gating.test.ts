@@ -7,24 +7,9 @@ import {
   isEliteRestaurantSubscription,
   isPremiumOrEliteRestaurantSubscription,
   type GatableFeatureKey,
-  FAIR_GROWTH_MODULE_CATALOG,
-  FAIR_GROWTH_MODULE_SLUGS,
-  isOperationalFairGrowthModule,
 } from "@/lib/packFeatureGating";
 
 describe("packFeatureGating", () => {
-  it("integrates every active Fair Growth database slug exhaustively", () => {
-    expect(Object.keys(FAIR_GROWTH_MODULE_CATALOG)).toEqual([...FAIR_GROWTH_MODULE_SLUGS]);
-    for (const integration of Object.values(FAIR_GROWTH_MODULE_CATALOG)) {
-      expect(integration.featureFlag).toBeTruthy();
-      expect(integration.route).toMatch(/^\/dashboard\//);
-      expect(integration.dependencies.length).toBeGreaterThan(0);
-      expect(integration.metric).toMatch(/_cents$/);
-    }
-    expect(FAIR_GROWTH_MODULE_SLUGS.filter(isOperationalFairGrowthModule)).toEqual([
-      "no-show-shield", "marketing-autopilot", "margin-waste-pilot", "ai-reputation",
-    ]);
-  });
   it("unlocks social news when a pack includes social media setup", () => {
     const enabled = computeEnabledFeatures(["social_media_setup"]);
 
@@ -33,11 +18,10 @@ describe("packFeatureGating", () => {
     expect(computeDisabledFeatures(["social_media_setup"])).not.toContain("dashboard-actualites");
   });
 
-  it("keeps pack, support, and overview always enabled", () => {
+  it("keeps support and overview always enabled", () => {
     expect(computeEnabledFeatures([])).toEqual([
       "dashboard-overview",
       "dashboard-support",
-      "dashboard-pack",
     ]);
   });
 
@@ -65,7 +49,6 @@ describe("packFeatureGating", () => {
       "dashboard-service",
       "dashboard-plan-salle",
       "dashboard-support",
-      "dashboard-pack",
     ]);
 
     for (const features of Object.values(getPackServiceFeatureMap())) {

@@ -1,4 +1,4 @@
-export const RESTAURANT_PARTNER_CONTRACT_VERSION = "TOK-CH-RP-FAIR-GROWTH-2026-07-v5";
+export const RESTAURANT_PARTNER_CONTRACT_VERSION = "TOK-CH-RP-2026-07-v6";
 
 export const RESTAURANT_PARTNER_CONTRACT_TITLE =
   "Contrat de partenariat restaurateur TOK";
@@ -26,7 +26,7 @@ export const RESTAURANT_PARTNER_CONTRACT_SECTIONS = [
   {
     title: "3. Obligations TOK et limites de service",
     paragraphs: [
-      "TOK fournit l'accès au dashboard restaurateur, aux outils de catalogue, commandes, réservations, avis, facturation, support, notifications, campagnes, reporting et fonctionnalités activées par feature flag, pack souscrit ou configuration administrateur.",
+      "TOK fournit l'accès au dashboard restaurateur, aux outils de catalogue, commandes, réservations, avis, facturation, support, notifications, campagnes, reporting et fonctionnalités activées par feature flag, abonnement souscrit ou configuration administrateur.",
       "TOK assure une exploitation raisonnable de la plateforme, la sécurisation des accès, la journalisation des actions sensibles, la séparation des rôles, l'application des politiques RLS et les intégrations de paiement dans la limite des prestataires tiers.",
       "TOK peut modérer, suspendre, masquer ou corriger une fiche, offre, avis, campagne ou contenu lorsqu'une information est manifestement trompeuse, incomplète, risquée pour les clients, contraire aux règles de la plateforme ou susceptible d'engager la sécurité alimentaire.",
       "TOK ne garantit pas l'absence totale d'interruption, de bug, de retard de prestataire, d'indisponibilité réseau ou de blocage par Stripe, Supabase, un service d'emailing, un fournisseur IA, un transporteur ou une autorité compétente.",
@@ -36,13 +36,13 @@ export const RESTAURANT_PARTNER_CONTRACT_SECTIONS = [
     ],
   },
   {
-    title: "4. Annexe tarifaire Fair Growth, commissions et facturation",
+    title: "4. Annexe tarifaire, commissions et facturation",
     paragraphs: [
-      "Starter: CHF 69/mois, CHF 5 par réservation acquise par TOK et honorée, 9,9% par commande marketplace. Business: CHF 129, CHF 4.50 et 8,9%. Premium: CHF 199, CHF 4 et 7,9%. Elite: CHF 499, CHF 3 et 6,9%. L'annuel fournit douze mois de service au prix de onze mensualités.",
+      "Toute réservation honorée est facturée CHF 5, quel que soit le plan et quelle qu'en soit l'origine. Les abonnements couvrent l'accès et la commission marketplace : Starter CHF 69/mois et 9,9% par commande, Business CHF 129 et 8,9%, Premium CHF 199 et 7,9%, Elite CHF 499 et 6,9%. L'annuel fournit douze mois de service au prix de onze mensualités.",
       "Elite inclut trois établissements puis CHF 149/mois par site supplémentaire. Les autres plans incluent un établissement. Le plan, la période, les sites couverts, les taux et la version tarifaire sont enregistrés dans le snapshot signé.",
-      "Les réservations provenant du site du restaurant, d'un QR code attribué, d'Instagram, de Google ou du fichier client sont gratuites. Annulations, no-shows, remboursements et démonstrations sont gratuits. Une réservation TOK n'est facturée que si elle est réellement honorée et son frais est plafonné à 7% du chiffre d'affaires attribué à la table.",
+      "Une réservation n'est facturée que si elle est réellement honorée. Le forfait de CHF 5 s'applique alors sans plafond et sans distinction de canal d'acquisition. Annulations, no-shows, remboursements et démonstrations restent gratuits.",
       "Le restaurant conserve au minimum 90% de la base commissionnable d'une commande et 100% des pourboires. Le développeur reçoit 1% de cette base; TOK reçoit le solde de la commission du plan et absorbe Stripe/Connect sur sa part marketplace.",
-      "Sur les frais de réservation, TOK reçoit 90% et le développeur 10%. Sur abonnements, publicité et modules, le développeur reçoit 10% du revenu TOK effectivement encaissé hors TVA, remboursements, pourboires, livraison et coûts refacturés.",
+      "Sur les frais de réservation, TOK reçoit 90% et le développeur 10%. Sur abonnements et publicité, le développeur reçoit 10% du revenu TOK effectivement encaissé hors TVA, remboursements, pourboires, livraison et coûts refacturés.",
       "Les factures ventilent le taux suisse normal de 8,1% et le taux réduit de 2,6% par ligne selon la nature de la prestation. La restauration sur place relève généralement du taux normal.",
     ],
   },
@@ -343,7 +343,7 @@ export function generateSignedRestaurantPartnerContractHtml(
   <h1>${escapeHtml(RESTAURANT_PARTNER_CONTRACT_TITLE)}</h1>
   <p class="version">Version ${escapeHtml(RESTAURANT_PARTNER_CONTRACT_VERSION)}</p>
   <div class="notice">
-    Ce document constitue la version contractuelle acceptée numériquement par le restaurateur. Le snapshot Fair Growth (plan, période, prix, taux, établissements et version tarifaire) ainsi que les annexes opérationnelles acceptées complètent le présent contrat.
+    Ce document constitue la version contractuelle acceptée numériquement par le restaurateur. Le snapshot tarifaire (plan, période, prix, taux, établissements et version tarifaire) ainsi que les annexes opérationnelles acceptées complètent le présent contrat.
   </div>
   <div class="meta">
     <h2>Informations complètes du restaurateur et du signataire</h2>

@@ -109,7 +109,6 @@ const NAV_SECTIONS: NavSection[] = [
   {
     title: "Mon offre",
     items: [
-      { to: "/dashboard/pack", label: "Mon pack", icon: Package, feature: "dashboard-pack" },
       { to: "/dashboard/tok-connect", label: "Tok Connect", icon: Plug, feature: "dashboard-tok-connect" },
     ],
   },

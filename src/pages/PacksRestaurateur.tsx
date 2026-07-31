@@ -16,8 +16,8 @@ import {
 } from "@/lib/restaurantSubscriptionToolAccess";
 import {
   FAIR_GROWTH_ANNUAL_MONTHS_CHARGED,
-  FAIR_GROWTH_MODULES,
   getFairGrowthPlan,
+  RESERVATION_FLAT_FEE_CHF,
 } from "@/lib/fairGrowth";
 import { cn } from "@/lib/utils";
 import { getGoogleBusinessPlanPresentation } from "@/lib/googleBusinessServiceScope";
@@ -121,7 +121,7 @@ function PlanCard({ plan }: { plan: RestaurantSubscriptionPlan }) {
           </p>
         </div>
         <div className="grid gap-2 rounded-xl border border-primary/15 bg-primary/5 p-3 text-sm">
-          <span><strong>{formatChf(fairGrowthPlan.acquiredReservationFeeChf)}</strong> par réservation apportée par TOK et honorée</span>
+          <span><strong>{formatChf(RESERVATION_FLAT_FEE_CHF)}</strong> par réservation honorée, quelle qu'en soit l'origine</span>
           <span><strong>{(fairGrowthPlan.marketplaceCommissionBps / 100).toLocaleString("fr-CH")}%</strong> sur les commandes marketplace</span>
           <span>Site, QR code, Instagram, Google et fichier client : <strong>CHF 0</strong></span>
           <span>Annulation, no-show, remboursement et démonstration : <strong>CHF 0</strong></span>
@@ -280,58 +280,6 @@ export default function PacksRestaurateur() {
             {(plansQuery.data || []).map((plan) => <PlanCard key={plan.id} plan={plan} />)}
           </div>
         )}
-      </section>
-
-      <section id="modules-fair-growth" className="scroll-mt-28 space-y-6">
-        <div className="flex items-center gap-3">
-          <Sparkles className="h-6 w-6 text-primary" />
-          <div>
-            <h2 className="text-3xl font-bold">Modules proposés à la carte</h2>
-            <p className="text-muted-foreground">
-              Chaque module est activé manuellement après validation du périmètre, des prérequis techniques,
-              du prix et de la date de début. Une demande ne déclenche aucun débit. Les offres marquées
-              « Pilote » ne sont pas encore disponibles en activation standard.
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Garantie de valeur : après 90 jours d’activation facturée, si un module ne produit pas au moins
-              3× son coût, TOK recommande sa désactivation ou accorde un crédit après validation des données.
-            </p>
-          </div>
-        </div>
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {FAIR_GROWTH_MODULES.map((module) => (
-            <Card key={module.slug} className="h-full">
-              <CardHeader>
-                <div className="flex items-start justify-between gap-3">
-                  <CardTitle className="text-lg">{module.name}</CardTitle>
-                  <span className="shrink-0 rounded-full bg-muted px-2 py-1 text-[11px] font-medium">
-                    {module.availabilityStatus === "pilot" ? "Pilote" : "Sur demande"}
-                  </span>
-                </div>
-                <p className="text-sm text-muted-foreground">{module.description}</p>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <p className="text-2xl font-bold">
-                  {module.monthlyPriceChf == null ? "" : formatChf(module.monthlyPriceChf) + " / mois"}
-                  {module.variableFeeBps ? (module.monthlyPriceChf == null ? "" : " + ") + module.variableFeeBps / 100 + "%" : ""}
-                  {module.successfulReservationFeeChf ? " + " + formatChf(module.successfulReservationFeeChf) + " / réservation réussie" : ""}
-                </p>
-                {module.paymentCostPassthrough ? (
-                  <p className="text-xs text-muted-foreground">Coût de paiement refacturé en plus après accord.</p>
-                ) : null}
-                <p className="text-xs text-muted-foreground">
-                  Activation manuelle uniquement · aucune facturation depuis cette carte.
-                </p>
-                {module.slug === "direct-order-saver" ? (
-                  <p className="text-xs text-muted-foreground">
-                    Seuil mathématique face à Starter : env. CHF 1'774/mois hors paiement.
-                    Seuil prudent estimé : CHF 3'100–3'200 avec panier CHF 40 et cartes suisses.
-                  </p>
-                ) : null}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
       </section>
 
       <section id="credits-tok" className="scroll-mt-28 space-y-6">

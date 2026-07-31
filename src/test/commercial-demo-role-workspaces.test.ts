@@ -16,7 +16,6 @@ describe("commercial demo role workspaces", () => {
   const campaigns = read("src/pages/dashboard/DashboardCampagnes.tsx");
   const menu = read("src/pages/dashboard/DashboardMenu.tsx");
   const floorPlan = read("src/pages/dashboard/DashboardPlanSalle.tsx");
-  const pack = read("src/pages/dashboard/DashboardPack.tsx");
   const social = read("src/hooks/useSocialFeed.ts");
   const isolationPreparationPath = "supabase/migrations/20260719015244_prepare_demo_isolation_for_activation.sql";
   const activationPreparationPath = "supabase/migrations/20260719110000_prepare_commercial_demo_activation.sql";
@@ -78,7 +77,6 @@ describe("commercial demo role workspaces", () => {
     expect(activeInvariantMigration).toContain("CREATE TRIGGER enforce_commercial_demo_restaurant_active");
     expect(activeInvariantMigration).toContain("NEW.is_active := true");
     expect(activeInvariantMigration).toContain("WHEN (NEW.is_demo IS TRUE)");
-    expect(pack).toContain("Tous les modules actifs");
     expect(social).toContain('"actualites-posts"');
     expect(social).toContain("unlimitedPosts: true");
   });

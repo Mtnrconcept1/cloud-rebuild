@@ -35,7 +35,7 @@ describe("Google Business commercial scope", () => {
     const contract = RESTAURANT_PARTNER_CONTRACT_SECTIONS.flatMap((section) => section.paragraphs).join(" ");
     const publicPage = read("src/pages/RestaurateursGoogleBusiness.tsx");
 
-    expect(RESTAURANT_PARTNER_CONTRACT_VERSION).toMatch(/v5$/);
+    expect(RESTAURANT_PARTNER_CONTRACT_VERSION).toMatch(/v6$/);
     for (const source of [conditions, contract, publicPage]) {
       expect(source.toLowerCase()).toContain("mandat");
       expect(source.toLowerCase()).toContain("classement");
